@@ -115,8 +115,6 @@
 
     this.suggestions = new Suggestions(this);
     this.suggestions.start();
-    this.suggestions.addEventListener('suggestionselected', this);
-    this.suggestions.addEventListener('suggestionsdismissed', this);
 
     this.touchHandler.addEventListener('key', this);
   };
@@ -133,9 +131,6 @@
     this.app.inputField.removeEventListener('inputstatechanged', this);
     this.app.inputField.removeEventListener('inputfieldchanged', this);
     this.worker.removeEventListener('message', this);
-
-    this.suggestions.removeEventListener('suggestionselected', this);
-    this.suggestions.removeEventListener('suggestionsdismissed', this);
 
     this.touchHandler.removeEventListener('key', this);
 
@@ -170,14 +165,6 @@
       case 'inputfieldchanged':
       case 'inputstatechanged':
         this.requestPredictions();
-        break;
-
-      case 'suggestionselected':
-        this.handleSelectionSelected(evt.detail);
-        break;
-
-      case 'suggestionsdismissed':
-        this.handleSelectionDismissed();
         break;
     }
   };
@@ -395,8 +382,13 @@
       // exactly, then it is significantly more common than the actual input.
       // (This rule means that "ill" will autocorrect to "I'll",
       // "wont" to "won't", etc.)
+      // Also, don't autocorrect if the input is a single letter and
+      // the first word is more than a single letter. (But still autocorrect
+      // "i" to "I")
+
       if (!this.autocorrectDisabled &&
-          (!inputIsSuggestion || suggestions[0][1] > inputWeight)) {
+          (!inputIsSuggestion || suggestions[0][1] > inputWeight) &&
+          (input.length > 1 || words[0].length === 1)) {
         this.correction = { from: input, to: words[0] };
         words[0] = '*' + words[0]; // Special code for the Suggestions module
       } else {
