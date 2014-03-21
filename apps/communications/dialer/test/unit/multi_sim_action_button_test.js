@@ -117,6 +117,7 @@ suite('multi SIM action button', function() {
     MockNavigatorSettings.mTeardown();
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatorMozIccManager.mTeardown();
+    MockTelephonyHelper.mTeardown();
   });
 
   suite('<= 1 SIMs', function() {
@@ -219,10 +220,6 @@ suite('multi SIM action button', function() {
         initSubject();
       });
 
-      teardown(function() {
-        MockTelephonyHelper.mTeardown();
-      });
-
       test('should not open SIM picker on (long) tap', function() {
         var showSpy = this.sinon.spy(MockSimPicker, 'getOrPick');
         simulateClick();
@@ -314,6 +311,44 @@ suite('multi SIM action button', function() {
           'ril.telephony.defaultServiceId', ALWAYS_ASK_OPTION_VALUE);
 
         assert.isFalse(document.body.classList.contains('has-preferred-sim'));
+      });
+
+      suite('with a call in progress', function() {
+        suiteSetup(function() {
+          window.TelephonyHelper = MockTelephonyHelper;
+        });
+
+        suiteTeardown(function() {
+          window.TelephonyHelper = null;
+        });
+
+        setup(function() {
+          cardIndex = 0;
+          initSubject();
+        });
+
+        test('should show SIM indicator with in-use serviceId', function() {
+          var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
+
+          MockTelephonyHelper.mInUseSim = 1;
+          MockNavigatorMozTelephony.mTriggerEvent({type: 'callschanged'});
+
+          sinon.assert.calledWith(localizeSpy, simIndication,
+                                  'sim-picker-button', {n: 2});
+        });
+
+        test('SIM indicator should go back to default serviceId when call over',
+             function() {
+          MockTelephonyHelper.mInUseSim = 1;
+          MockNavigatorMozTelephony.mTriggerEvent({type: 'callschanged'});
+
+          var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
+          MockTelephonyHelper.mTeardown();
+          MockNavigatorMozTelephony.mTriggerEvent({type: 'callschanged'});
+
+          sinon.assert.calledWith(localizeSpy, simIndication,
+                                  'sim-picker-button', {n: 1});
+        });
       });
     });
 
