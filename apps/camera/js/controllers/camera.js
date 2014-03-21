@@ -77,7 +77,7 @@ CameraController.prototype.bindEvents = function() {
   settings.recorderProfiles.on('change:selected', this.onRecorderProfileChange);
   settings.flashModes.on('change:selected', this.setFlashMode);
   settings.flashModes.on('change:selected', this.onFlashModeChange);
-  settings.on('change:cameras', this.loadCamera);
+  settings.on('change:cameras', this.setCamera);
   settings.on('change:mode', this.setMode);
   settings.on('change:hdr', this.setHDR);
   settings.on('change:hdr', this.onHDRChange);
@@ -284,7 +284,7 @@ CameraController.prototype.setPictureSize = function(value) {
   this.viewfinder.fadeOut(this.camera.configure);
 };
 
-CameraController.prototype.loadCamera = function(value) {
+CameraController.prototype.setCamera = function(value) {
   this.camera.set('selectedCamera', value);
   this.viewfinder.fadeOut(this.camera.load);
 };
@@ -294,26 +294,20 @@ CameraController.prototype.setFlashMode = function() {
   this.camera.setFlashMode(flashSetting.selected('key'));
 };
 
-// TODO: Tidy this crap
 CameraController.prototype.onBlur = function() {
   var recording = this.camera.get('recording');
   var camera = this.camera;
 
-  try {
-    if (recording) {
-      camera.stopRecording();
-    }
-
-    this.viewfinder.stopPreview();
-    camera.set('previewActive', false);
-    camera.set('focus', 'none');
-    this.viewfinder.setPreviewStream(null);
-  } catch (e) {
-    console.error('error while stopping preview', e.message);
-  } finally {
-    camera.release();
+  if (recording) {
+    camera.stopRecording();
   }
 
+  this.viewfinder.stopPreview();
+  camera.set('previewActive', false);
+  camera.set('focus', 'none');
+  camera.release();
+
+  this.viewfinder.setPreviewStream(null);
   // If the lockscreen is locked
   // then forget everything when closing camera
   if (this.app.inSecureMode) {
