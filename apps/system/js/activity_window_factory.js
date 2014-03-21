@@ -81,6 +81,7 @@
      * @property {String} manifestURL The manifestURL of the activity
      * @property {String} url The URL of the activity handling page
      * @property {Boolean} isActivity
+     * @property {String} parentApp The manifestURL of the caller app
      * @property {Boolean} inline The disposition of the activty is inline
      *                            or not
      */

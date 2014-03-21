@@ -67,6 +67,9 @@ suite('system/AppWindowFactory', function() {
     },
     target: {
       disposition: 'inline'
+    },
+    extra: {
+      manifestURL: 'app://fakeapp3.gaiamobile.org/manifest.webapp'
     }
   };
 
@@ -79,11 +82,14 @@ suite('system/AppWindowFactory', function() {
     'manifest': {
       'name': 'Fake App 5'
     },
-    target: {}
+    target: {},
+    extra: {
+      manifestURL: 'app://fakeapp3.gaiamobile.org/manifest.webapp'
+    }
   };
 
   var fakeLaunchConfig6 = {
-    'isActivity': true,
+    'isActivity': false,
     'url': window.location.href,
     'name': 'System',
     'manifestURL': 'app://system.gaiamobile.org/manifest.webapp',

@@ -56,6 +56,10 @@
                             'expecting-system-message');
     }
 
+    if (config.parentApp) {
+      browser.setAttribute('parentapp', config.parentApp);
+    }
+
     if (config.useAsyncPanZoom) {
       // XXX: Move this dataset assignment into app window object.
       browser.dataset.useAsyncPanZoom = true;
