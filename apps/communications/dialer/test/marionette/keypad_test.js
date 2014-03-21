@@ -63,7 +63,7 @@ marionette('Dialer > Keypad', function() {
     var number = subject.client.findElement(selectors.phoneNumber);
     assert.equal(number.getAttribute('value'), '123');
     var reflowCount = reflowHelper.getCount();
-    assert.equal(reflowCount, 16, 'you need more than 16 reflows for that?');
+    assert.equal(reflowCount, 16, 'more than 16 reflows, ' + reflowCount);
     reflowHelper.stopTracking();
   });
 
