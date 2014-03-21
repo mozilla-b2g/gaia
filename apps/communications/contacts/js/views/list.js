@@ -4,7 +4,7 @@
 
 /* Allow setter without getter */
 /* jshint -W078 */
-  
+
 'use strict';
 
 var contacts = window.contacts || {};
@@ -1292,7 +1292,8 @@ contacts.List = (function() {
     }
 
     // Passed an ID, so look up contact
-    getContactById(idOrContact, function(contact, fbData) {
+    contacts.List.getContactById(idOrContact,
+     function(contact, fbData) {
       var enrichedContact = null;
       if (fb.isFbContact(contact)) {
         var fbContact = new fb.Contact(contact);
@@ -1305,12 +1306,11 @@ contacts.List = (function() {
   function refreshContact(contact, enriched, callback) {
     remove(contact.id);
     addToList(contact, enriched);
-    if (callback) {
-      callback(contact.id);
-    }
 
     if (contacts.Search && contacts.Search.isInSearchMode()) {
-      contacts.Search.invalidateSearch();
+      contacts.Search.invalidateSearch(callback);
+    } else if (callback) {
+      callback(contact.id);
     }
   }
 

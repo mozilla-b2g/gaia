@@ -288,7 +288,6 @@ contacts.Search = (function() {
   }
 
   function doSearch(contacts, from, searchText, pattern, state) {
-    console.log('Doin a new search for ' + searchText);
     // Check whether the user enter a new term or not
     if (currentTextToSearch.localeCompare(searchText) !== 0) {
       canReuseSearchables = false;
@@ -538,11 +537,11 @@ contacts.Search = (function() {
     searchProgress.classList.add('hidden');
   }
 
-  var invalidateSearch = function searchAgain() {
+  var invalidateSearch = function searchAgain(cb) {
     invalidateCache();
     resetState();
     if (currentState) {
-      search(currentState.searchDoneCb);
+      search(cb || currentState.searchDoneCb);
     }
   };
 
