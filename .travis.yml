@@ -8,7 +8,7 @@ script: ./node_modules/.bin/travisaction $CI_ACTION script
 after_script: ./node_modules/.bin/travisaction $CI_ACTION after_script
 branches:
   only:
-  - master
+  - v1.4
 env:
   matrix:
   - CI_ACTION=linters
