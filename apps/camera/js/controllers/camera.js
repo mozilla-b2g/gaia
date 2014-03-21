@@ -263,6 +263,10 @@ CameraController.prototype.setMode = function(mode) {
   this.setFlashMode();
   this.camera.setMode(mode);
   this.viewfinder.fadeOut(this.camera.configure);
+  this.camera.disableAutoFocusMove();
+  this.camera.stopFaceDetection();
+  this.camera.setContinuousAutoFocus();
+  this.camera.enableAutoFocusMove();
 };
 
 CameraController.prototype.setPictureSize = function(value) {
