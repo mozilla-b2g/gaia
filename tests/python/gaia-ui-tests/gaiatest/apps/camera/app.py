@@ -20,6 +20,7 @@ class Camera(Base):
 
     # Controls View
     _controls_locator = (By.CSS_SELECTOR, '.controls')
+    _controls_enabled_locator = (By.CSS_SELECTOR, '.controls:not([buttons-enabled=false])')
     _switch_button_locator = (By.CSS_SELECTOR, '.test-switch')
     _capture_button_locator = (By.CSS_SELECTOR, '.test-capture')
     _gallery_button_locator = (By.CSS_SELECTOR, '.test-gallery')
@@ -83,8 +84,8 @@ class Camera(Base):
         self.wait_for_element_displayed(*self._switch_button_locator)
         self.marionette.find_element(*self._switch_button_locator).tap()
         self.wait_for_condition(
-            lambda m: m.find_element(
-                *self._controls_locator).get_attribute('buttons-enabled') == 'true')
+            lambda m: 'buttons-disabled' not in m.find_element(
+                *self._controls_locator).get_attribute('class'))
         self.wait_for_capture_ready()
 
     def tap_toggle_flash_button(self):
