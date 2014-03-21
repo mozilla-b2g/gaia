@@ -43,7 +43,8 @@
     "input-manage":{},
     "nfc":{ "access": "readonly" },
     "nfc-manager":{},
-    "downloads":{}
+    "downloads":{},
+    "systemXHR":{}
   },
   "locales": {
     "ar": {
