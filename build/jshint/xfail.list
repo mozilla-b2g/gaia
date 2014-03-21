@@ -219,7 +219,6 @@ apps/communications/dialer/test/unit/mock_mmi_ui.js
 apps/communications/dialer/test/unit/mock_mozMobileConnection.js
 apps/communications/dialer/test/unit/mock_mozVoicemail.js
 apps/communications/dialer/test/unit/mock_mozbluetooth.js
-apps/communications/dialer/test/unit/mock_moztelephony.js
 apps/communications/dialer/test/unit/mock_simple_phone_matcher.js
 apps/communications/dialer/test/unit/mock_utils.js
 apps/communications/dialer/test/unit/simple_phone_matcher_test.js
