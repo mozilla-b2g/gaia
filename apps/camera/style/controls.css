@@ -39,7 +39,6 @@
 .controls-left {
   justify-content: flex-end;
   opacity: 1;
-  pointer-events: auto;
   transition: opacity 200ms ease-in-out;
 }
 
@@ -49,7 +48,6 @@
 
 .controls[recording=true] .controls-left {
   opacity: 0;
-  pointer-events: none;
 }
 
 /** Right
@@ -283,14 +281,16 @@
 .capture-button .inner-circle {
   background-color: white;
   transform: scale(0.76);
-  transition: transform 100ms ease-in;
+  transition: transform 150ms ease-in;
 }
 
 /**
- * :active
+ * :active,
+ * capture-active=true & mode=picture
  */
 
-.capture-button:active .inner-circle {
+.capture-button:active .inner-circle,
+[capture-active=true][mode=picture] .capture-button .inner-circle {
   background-color: #00caf2;
   color: white;
   transform: scale(1.0);
@@ -338,10 +338,12 @@
 }
 
 /**
- * :active
+ * :active,
+ * capture-active=true & mode=picture
  */
 
-.capture-button:active .center:after {
+.capture-button:active .center:after,
+[capture-active=true][mode=picture] .capture-button .center:after {
   color: white;
 }
 

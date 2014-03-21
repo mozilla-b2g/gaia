@@ -69,23 +69,34 @@ suite('controllers/hud', function() {
       assert.ok(this.app.on.calledWith('change:recording'));
     });
 
-    test('Should hide controls when the camera is \'busy\'', function() {
-      assert.ok(this.app.on.calledWith('camera:busy', this.hud.hide));
+    test('Should update the flash once the settings are configured', function() {
+      assert.ok(this.app.on.calledWith('settings:configured', this.controller.updateFlash));
     });
 
-    test('Should show controls when the camera is \'ready\'', function() {
-      this.controller.onCameraReady();
-      assert.ok(this.hud.show.called);
+    test('Should set \'camera\' to \'busy\' on view when busy', function() {
+      assert.ok(this.hud.setter.calledWith('camera', 'busy'));
+      assert.ok(this.app.on.calledWith('camera:busy'));
     });
-  });
 
-  suite('HudController#onRecordingChange()', function() {
-    test('Should disable the hide the hud buttons when recording', function() {
-      this.controller.onRecordingChange(true);
-      assert.ok(this.hud.toggle.calledWithExactly(false));
-      this.hud.hide.reset();
-      this.controller.onRecordingChange(false);
-      assert.ok(this.hud.toggle.calledWithExactly(true));
+    test('Should set \'camera\' to \'ready\' on view when ready', function() {
+      assert.ok(this.hud.setter.calledWith('camera', 'ready'));
+      assert.ok(this.app.on.calledWith('camera:ready'));
+    });
+
+    test('Should set \'timer\' to \'active\' on view when started', function() {
+      assert.ok(this.hud.setter.calledWith('timer', 'active'));
+      assert.ok(this.app.on.calledWith('timer:started'));
+    });
+
+    test('Should set \'timer\' to \'inactive\' on view when timer ended or cleared', function() {
+      assert.ok(this.hud.setter.calledWith('timer', 'inactive'));
+      assert.ok(this.app.on.calledWith('timer:cleared'));
+      assert.ok(this.app.on.calledWith('timer:ended'));
+    });
+
+    test('Should set `recording` state on hud', function() {
+      assert.ok(this.hud.setter.calledWith('recording'));
+      assert.ok(this.app.on.calledWith('change:recording'));
     });
   });
 

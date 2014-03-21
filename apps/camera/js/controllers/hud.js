@@ -12,8 +12,8 @@ var bindAll = require('lib/bind-all');
  * Exports
  */
 
-exports = module.exports = function(app) { return new HudController(app); };
-exports.HudController = HudController;
+module.exports = function(app) { return new HudController(app); };
+module.exports.HudController = HudController;
 
 /**
  * Initialize a new `HudController`
@@ -53,16 +53,23 @@ HudController.prototype.configure = function() {
  */
 HudController.prototype.bindEvents = function() {
   this.app.settings.flashModes.on('change:selected', this.updateFlash);
-  this.app.settings.on('change:mode', this.onModeChange);
+  this.app.settings.on('change:mode', this.updateFlash);
+  this.app.on('settings:configured', this.updateFlash);
+
+  // View
   this.hud.on('click:settings', this.app.firer('settings:toggle'));
   this.hud.on('click:camera', this.onCameraClick);
   this.hud.on('click:flash', this.onFlashClick);
-  this.app.on('settings:configured', this.updateFlash);
-  this.app.on('change:recording', this.onRecordingChange);
-  this.app.on('camera:ready', this.onCameraReady);
-  this.app.on('camera:busy', this.hud.hide);
-  this.app.on('timer:started', this.hud.hide);
-  this.app.on('timer:cleared', this.hud.show);
+
+  // Camera
+  this.app.on('camera:ready', this.hud.setter('camera', 'ready'));
+  this.app.on('camera:busy', this.hud.setter('camera', 'busy'));
+  this.app.on('change:recording', this.hud.setter('recording'));
+
+  // Timer
+  this.app.on('timer:cleared', this.hud.setter('timer', 'inactive'));
+  this.app.on('timer:started', this.hud.setter('timer', 'active'));
+  this.app.on('timer:ended', this.hud.setter('timer', 'inactive'));
 };
 
 HudController.prototype.onModeChange = function() {
@@ -109,27 +116,8 @@ HudController.prototype.updateFlash = function() {
 
   this.hud.enable('flash', hasFlash);
   this.hud.setFlashMode(selected);
-};
 
-
-HudController.prototype.onCameraReady = function() {
-  // If the camera is ready but we are recording we don't show
-  var recording = this.app.get('recording');
-  if (recording) {
-    return;
-  }
-  this.hud.show();
-};
-
-/**
- * Toggles the visibility of the view
- * depending on recording state.
- *
- * @param  {Boolean} recording
- * @private
- */
-HudController.prototype.onRecordingChange = function(recording) {
-  this.hud.toggle(!recording);
+  debug('updated flash enabled: %, mode: %s', hasFlash, selected);
 };
 
 });

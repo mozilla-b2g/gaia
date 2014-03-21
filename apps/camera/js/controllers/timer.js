@@ -45,6 +45,7 @@ function TimerController(app) {
 TimerController.prototype.bindEvents = function() {
   this.app.on('startcountdown', this.start);
   this.view.on('timer:immanent', this.beep);
+  this.app.on('blur', this.clear);
 };
 
 /**
@@ -68,37 +69,52 @@ TimerController.prototype.start = function() {
 };
 
 /**
- * Updates the timer and checks
- * if it has reached the end.
+ * Decrements the timer and checks
+ * if its still has second left.
+ *
+ * If no time remains, an 'ended'
+ * event is fired and the timer
+ * is cleared.
+ *
+ * If time does remain, we update
+ * the view.
  *
  * @private
  */
 TimerController.prototype.tick = function() {
-  this.view.set(--this.seconds);
-  if (!this.seconds) {
+  if (!(--this.seconds)) {
     this.app.emit('timer:ended');
-    this.clear({ silent: true });
+    this._clear();
+    return;
   }
+
+  this.view.set(this.seconds);
+};
+
+/**
+ * Call ._clear() and fire 'cleared' event.
+ *
+ * @param  {Object} options
+ * @private
+ */
+TimerController.prototype.clear = function() {
+  this._clear();
+  this.app.emit('timer:cleared');
 };
 
 /**
  * Clear the timer and hide
  * the view.
  *
- * Options:
- *
- *   - `silent` no 'clear' event
- *
  * @param  {Object} options
  * @private
  */
-TimerController.prototype.clear = function(options) {
-  var silent = options && options.silent;
+TimerController.prototype._clear = function() {
   clearInterval(this.interval);
   this.unbindTimerEvents();
   this.view.hide();
+  this.view.reset();
   this.app.set('timerActive', false);
-  if (!silent) { this.app.emit('timer:cleared'); }
   debug('cleared');
 };
 
@@ -116,7 +132,6 @@ TimerController.prototype.clear = function(options) {
  */
 TimerController.prototype.bindTimerEvents = function() {
   this.app.on('click', this.clear);
-  this.app.on('blur', this.clear);
 };
 
 /**
@@ -127,12 +142,11 @@ TimerController.prototype.bindTimerEvents = function() {
  */
 TimerController.prototype.unbindTimerEvents = function() {
   this.app.off('click', this.clear);
-  this.app.off('blur', this.clear);
 };
 
 /**
  * Plays a beep sound.
- * 
+ *
  * We don't have specific sound file for beep
  * so we are using recordingEnd sound for this.
  *
