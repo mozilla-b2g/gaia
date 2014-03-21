@@ -314,6 +314,9 @@ function execute(options) {
       config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
   }
 
+  // Set the ftu ping URL -- we set this regardless of NOFTU for now
+  settings['ftu.pingURL'] = config.FTU_PING_URL;
+
   settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER ? 'adb-only'
                                                             : 'disabled';
 
