@@ -7,14 +7,6 @@ module.exports = {
   viewfinder: {
     scaleType: 'fill'
   },
-  indicators: {
-    enabled: {
-      hdr: false,
-      timer: true,
-      battery: false,
-      geolocation: false
-    }
-  },
   mode: {
     title: 'Mode',
     options: [
@@ -209,13 +201,14 @@ module.exports = {
         l10n: { title: '10-seconds' }
       }
     ],
+    selected: 'off',
     persistent: false,
     l10n: { title: 'self-timer' }
   },
 
   hdr: {
     title: 'HDR',
-    icon: 'icon-hdr-menu',
+    icon: 'icon-hdr',
     disabled: false,
     options: [
       {
@@ -227,6 +220,7 @@ module.exports = {
         l10n: { title: 'on' }
       }
     ],
+    selected: 'off',
     persistent: true
   },
 
@@ -246,6 +240,7 @@ module.exports = {
         title: 'Beauty'
       }
     ],
+    selected: 'normal',
     persistent: true,
     l10n: { title: 'scene-mode' }
   },
@@ -254,12 +249,12 @@ module.exports = {
     icon: 'icon-frame-grid',
     options: [
       {
-        key: 'on',
-        l10n: { title: 'on' }
-      },
-      {
         key: 'off',
         l10n: { title: 'off' }
+      },
+      {
+        key: 'on',
+        l10n: { title: 'on' }
       }
     ],
     selected: 'off',
@@ -269,9 +264,9 @@ module.exports = {
 
   settingsMenu: {
     items: [
-       {
+      {
          key: 'hdr'
-       },
+      },
       // {
       //   key: 'scene'
       // },
