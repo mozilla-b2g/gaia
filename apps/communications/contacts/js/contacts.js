@@ -766,8 +766,10 @@ var Contacts = (function() {
           contactsList.getContactById(event.contactID,
             function success(contact, enrichedContact) {
               currentContact = contact;
-              contactsDetails.render(currentContact, null, enrichedContact);
-              contactsList.refresh(currentContact, checkPendingChanges,
+              var mergedContact = enrichedContact || contact;
+              contactsDetails.setContact(mergedContact);
+              contactsDetails.render(mergedContact, null, enrichedContact);
+              contactsList.refresh(mergedContact, checkPendingChanges,
                                    event.reason);
           });
         } else {

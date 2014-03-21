@@ -1,3 +1,5 @@
+/* global utils */
+/* exported ServicesLauncher */
 'use strict';
 
 var FTU_APP_ORIGIN = document.location.protocol + '//' +
