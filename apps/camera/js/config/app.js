@@ -159,17 +159,20 @@ module.exports = {
       {
         key: 'auto',
         icon: 'icon-flash-auto',
-        l10n: { title: 'auto' }
+        l10n: { title: 'auto' },
+        notificationID: 'flash-set-auto'
       },
       {
         key: 'on',
         icon: 'icon-flash-on',
-        l10n: { title: 'on' }
+        l10n: { title: 'on' },
+        notificationID: 'flash-set-on'
       },
       {
         key: 'off',
         icon: 'icon-flash-off',
-        l10n: { title: 'off' }
+        l10n: { title: 'off' },
+        notificationID: 'flash-set-off'
       }
     ],
     persistent: true
@@ -180,12 +183,14 @@ module.exports = {
       {
         key: 'off',
         icon: 'icon-flash-off',
-        l10n: { title: 'off' }
+        l10n: { title: 'off' },
+        notificationID: 'flash-set-off'
       },
       {
         key: 'torch',
         icon: 'icon-flash-on',
-        l10n: { title: 'on' }
+        l10n: { title: 'on' },
+        notificationID: 'flash-set-on'
       }
     ],
     persistent: true
@@ -253,7 +258,7 @@ module.exports = {
       {
         key: 'pano',
         title: 'Panorama',
-        notificationID: 'scene-set-pano'
+        notificationID: 'scene-set-panorama'
       },
       {
         key: 'beauty',

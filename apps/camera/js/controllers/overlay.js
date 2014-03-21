@@ -44,7 +44,10 @@ function OverlayController(app) {
  */
 OverlayController.prototype.onStorageStateChange = function(value) {
   debug('storage state change: \'%s\'', value);
-  this.destroyOverlay(this.storageOverlay);
+  if (this.storageOverlay) {
+    this.storageOverlay.destroy();
+    this.storageOverlay = null;
+  }
   if (value === 'available') {
     return;
   }
@@ -59,7 +62,11 @@ OverlayController.prototype.onStorageStateChange = function(value) {
  * @param  {String} status  ['shutdown'|'critical'|'verylow'|'low']
  */
 OverlayController.prototype.onBatteryStatusChange = function(status) {
-  this.destroyOverlay(this.batteryOverlay);
+  if (this.batteryOverlay) {
+    this.batteryOverlay.destroy();
+    this.batteryOverlay = null;
+  }
+
   if (status !== 'shutdown') {
     return;
   }
@@ -84,7 +91,6 @@ OverlayController.prototype.createOverlay = function(type) {
   overlay
     .appendTo(document.body)
     .on('click:close-btn', function() {
-      overlay.destroy();
       activity.cancel();
     });
   debug('inserted \'%s\' overlay', type);
@@ -126,18 +132,6 @@ OverlayController.prototype.getOverlayData = function(type) {
   data.closeButtonText = l10n.get('close-button');
 
   return data;
-};
-
-
-/**
- * Destroy selective overlay
- */
-OverlayController.prototype.destroyOverlay = function(overlay) {
-  if (overlay) {
-    overlay.destroy();
-    debug('overlay destroyed');
-  }
-  
 };
 
 });

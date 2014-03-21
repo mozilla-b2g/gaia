@@ -84,7 +84,8 @@ BatteryController.prototype.getStatus = function (battery) {
   var value = Math.round(battery.level * 100);
   var isCharging = battery.charging;
   
-  var level = { value:'healthy' };
+
+  var level = { value: 'healthy' };
   if (isCharging) {
     level.value = 'charging';
   } else if (value <= this.shutdown) {

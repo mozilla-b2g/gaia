@@ -27,6 +27,7 @@ function HudController(app) {
   this.app = app;
   this.hud = app.views.hud;
   this.settings = app.settings;
+  this.notification = app.views.notification;
   this.configure();
   this.bindEvents();
   debug('initialized');
@@ -75,6 +76,11 @@ HudController.prototype.onCameraClick = function() {
 HudController.prototype.onFlashClick = function() {
   this.settings.flashModes.next();
   this.hud.set('flashMode' , this.settings.flashModes.selected('key'));
+  if (this.settings.flashModes.selected('notificationID')) {
+    this.notification.showNotification({
+      message: this.settings.flashModes.selected('notificationID')
+    });
+  }
 };
 
 HudController.prototype.updateFlash = function() {

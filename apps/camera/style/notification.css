@@ -17,13 +17,13 @@
 }
 
 .deg90 .notification {
-  left:10.2rem;
+  left:10.4rem;
   bottom: 45%;
   transform: rotate(270deg);
 }
 
 .deg270 .notification {
-  right: 10.2rem;
+  right: 10.4rem;
   bottom: 45%;
   transform: rotate(90deg);
 }
