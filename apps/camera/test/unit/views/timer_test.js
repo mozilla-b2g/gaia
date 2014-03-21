@@ -34,4 +34,20 @@ suite('views/timer', function() {
       assert.ok(classes.contains('immanent'));
     });
   });
+
+  suite('TimerView#reset()', function() {
+    test('Should clear the timer text', function() {
+      this.timer.set(1000);
+      assert.isTrue(this.timer.el.innerHTML.indexOf('1000') > -1);
+      this.timer.reset();
+      assert.isFalse(this.timer.el.innerHTML.indexOf('1000') > -1);
+    });
+
+    test('Should remove `immanent` class', function() {
+      this.timer.set(1);
+      assert.isTrue(this.timer.el.classList.contains('immanent'));
+      this.timer.reset();
+      assert.isFalse(this.timer.el.classList.contains('immanent'));
+    });
+  });
 });
