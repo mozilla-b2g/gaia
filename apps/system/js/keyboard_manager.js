@@ -91,6 +91,7 @@ var KeyboardManager = {
       console.log('[Keyboard Manager] ' + msg);
   },
   keyboardHeight: 0,
+  hasActiveKeyboard: false,
   isOutOfProcessEnabled: false,
 
   init: function km_init() {
@@ -462,9 +463,10 @@ var KeyboardManager = {
         // get rid of it.
         // We only do that when we don't run keyboards OOP.
         this._debug('mozmemorypressure event');
-        if (!this.isOutOfProcessEnabled && this.keyboardHeight == 0) {
+        if (!this.isOutOfProcessEnabled && !this.hasActiveKeyboard) {
           Object.keys(this.runningLayouts).forEach(this.removeKeyboard, this);
           this.runningLayouts = {};
+          this._debug('mozmemorypressure event; keyboard removed');
         }
         break;
     }
@@ -780,6 +782,7 @@ var KeyboardManager = {
     if (frame.setInputMethodActive) {
       frame.setInputMethodActive(active);
     }
+    this.hasActiveKeyboard = active;
   }
 };
 
