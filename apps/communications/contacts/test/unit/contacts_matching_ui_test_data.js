@@ -1,4 +1,6 @@
 'use strict';
+/* exported dupContacts */
+/* exported matchingDetailsData */
 
 var CORRECT_MATCHED_VALUE = '$correct$';
 

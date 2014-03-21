@@ -1,3 +1,8 @@
+'use strict';
+/* global fb */
+/* global MockFbContactsObj */
+/* global MockMozContactsObj */
+
 require('/shared/js/fb/fb_reader_utils.js');
 require('/shared/js/fb/fb_request.js');
 require('/shared/test/unit/mocks/mock_fb_data_reader.js');
@@ -5,12 +10,12 @@ requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 
 var realFbContacts, realMozContacts;
 
-if (!this.realFbContacts) {
-  this.realFbContacts = null;
+if (!window.realFbContacts) {
+  window.realFbContacts = null;
 }
 
-if (!this.realMozContacts) {
-  this.realMozContacts = null;
+if (!window.realMozContacts) {
+  window.realMozContacts = null;
 }
 
 suite('Facebook data reader utils suite', function() {

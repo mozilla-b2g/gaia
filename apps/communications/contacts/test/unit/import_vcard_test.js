@@ -1,4 +1,7 @@
 'use strict';
+/* global MocksHelper */
+/* global MockMozL10n */
+/* global utils */
 
 requireApp('communications/contacts/js/utilities/import_from_vcard.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
@@ -8,11 +11,13 @@ requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 
-if (!this._)
-  this._ = null;
+if (!window._) {
+  window._ = null;
+}
 
-if (!this.utils)
-  this.utils = null;
+if (!window.utils) {
+  window.utils = null;
+}
 
 var mocksHelperForImportVcard = new MocksHelper([
   'Contacts',
@@ -81,11 +86,7 @@ var vcardError = 'error';
 
 var contact1 = {
       id: '1'
-    },
-    contact2 = {
-      id: '2'
     };
-
 
 suite('Import from vcard', function() {
   var realMozL10n,
