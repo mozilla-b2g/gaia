@@ -90,10 +90,10 @@ module.exports = View.extend({
   },
 
   onTouchStart: function(evt) {
-    var touchCount = evt.touches.length;
+    var touchCount = evt.targetTouches.length;
     if (touchCount === 2) {
-      lastTouchA = evt.touches[0];
-      lastTouchB = evt.touches[1];
+      lastTouchA = evt.targetTouches[0];
+      lastTouchB = evt.targetTouches[1];
       isScaling = true;
       this.emit('pinchStart');
 
@@ -106,8 +106,8 @@ module.exports = View.extend({
       return;
     }
 
-    var touchA = getNewTouchA(evt.touches);
-    var touchB = getNewTouchB(evt.touches);
+    var touchA = getNewTouchA(evt.targetTouches);
+    var touchB = getNewTouchB(evt.targetTouches);
 
     var deltaZoom = getDeltaZoom(touchA, touchB);
     var zoom = this._zoom * (1 + (deltaZoom / sensitivity));
@@ -125,7 +125,7 @@ module.exports = View.extend({
       return;
     }
 
-    if (evt.touches.length < 2) {
+    if (evt.targetTouches.length < 2) {
       isScaling = false;
       this.emit('pinchEnd');
     }
