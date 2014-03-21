@@ -24,7 +24,6 @@ function IndicatorsController(app) {
   debug('initializing');
   this.app = app;
   this.settings = app.settings;
-  this.enabled = this.settings.indicators.get('enabled');
   this.onSettingsConfigured = this.onSettingsConfigured.bind(this);
   this.configure();
   debug('initialized');
@@ -37,8 +36,9 @@ function IndicatorsController(app) {
  * @private
  */
 IndicatorsController.prototype.configure = function() {
-  if (!this.enabled) { return; }
   this.view = this.app.views.indicators || new IndicatorsView();
+  // Indicators hidden by default until the settings are configured
+  this.view.hide();
   this.view.appendTo(this.app.el);
   this.bindEvents();
   debug('events bound');
@@ -57,6 +57,7 @@ IndicatorsController.prototype.bindEvents = function() {
   this.settings.timer.on('change:selected', this.view.setter('timer'));
   this.settings.hdr.on('change:selected', this.view.setter('hdr'));
   this.app.on('change:batteryStatus', this.view.setter('battery'));
+  this.app.on('change:recording', this.view.setter('recording'));
   this.app.on('settings:configured', this.onSettingsConfigured);
   debug('events bound');
 };
