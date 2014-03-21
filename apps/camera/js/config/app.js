@@ -181,6 +181,7 @@ module.exports = {
         l10n: { title: 'on' }
       }
     ],
+    selected: 'off',
     persistent: true
   },
 
