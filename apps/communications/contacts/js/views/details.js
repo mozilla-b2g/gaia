@@ -181,11 +181,38 @@ contacts.Details = (function() {
     }
   };
 
+  // Fills the contact data to display if no givenName and familyName
+  var getDisplayName = function getDisplayName(contact) {
+    var name = _('noName');
+
+    if (hasName(contact)) {
+      name = contact.name[0];
+    } else if (hasContent(contact.tel)) {
+      name = contact.tel[0].value;
+    } else if (hasContent(contact.email)) {
+      name = contact.email[0].value;
+    }
+    return name;
+  };
+
+  function hasContent(field) {
+    return (Array.isArray(field) &&
+            field.length > 0 &&
+            field[0].value &&
+            field[0].value.trim());
+  }
+
+  function hasName(contact) {
+    return (Array.isArray(contact.name) &&
+            contact.name[0] &&
+            contact.name[0].trim());
+  };
+
   //
   // Method that generates HTML markup for the contact
   //
   var doReloadContactDetails = function doReloadContactDetails(contact) {
-    detailsName.textContent = contact.name;
+    detailsName.textContent = getDisplayName(contact);
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('fb-contact');
     contactDetails.classList.remove('up');
