@@ -31,6 +31,12 @@ class Settings(Base):
     _battery_menu_item_locator = (By.ID, 'menuItem-battery')
     _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
 
+    def launch(self):
+        Base.launch(self)
+        # _currentPanel is set after all handlers are set
+        self.wait_for_condition(lambda m:
+                                m.execute_script('return window.wrappedJSObject.Settings._currentPanel') == '#root')
+
     def wait_for_airplane_toggle_ready(self):
         checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
         self.wait_for_condition(lambda m: checkbox.is_enabled())
