@@ -14,15 +14,10 @@
   flex-direction: column;
   justify-content: center; /* 1 */
   pointer-events: none; /* 2 */
-  opacity: 0;
 }
 
-/**
- * @visible
- */
-
-.indicators.visible {
-  opacity: 1;
+.indicators.hidden {
+  display: none;
 }
 
 /**
@@ -36,74 +31,50 @@
 
 /** Indicators
  ---------------------------------------------------------*/
-
-/**
- * 1. Hidden until enabled
- */
-
 .indicators li {
-  display: none; /* 1 */
   height: 1em;
   width: 1em;
   font-size: 18px;
   margin-bottom: 1.2rem;
   border-radius: 4px;
   text-align: center;
-  background: #FFFFFF;
+  background-color: #FFFFFF;
   color: #008EAB;
+  opacity: 1;
+  visibility: hidden;
 }
 
 /**
  * @off
  */
+.indicators[hdr=on] .indicator_hdr,
+.indicators[geolocation=on] .indicator_geolocation {
+  visibility: visible;
+}
 
-.indicators[hdr=off] .indicator_hdr,
-.indicators[timer=off] .indicator_timer,
-.indicators[geolocation=off] .indicator_geolocation {
-  opacity: 0.2;
+.indicators[recording=true] .indicator_hdr,
+.indicators[recording=true] .indicator_timer,
+.indicators[timer=off] .indicator_timer{
+  visibility: hidden;
 }
 
 /** Indicator Timer
  ---------------------------------------------------------*/
 
-/**
- * timer-enabled=true
- */
-
-.indicators[timer-enabled=true] .indicator_timer {
-  display: block;
-}
-
-/** Indicator HDR
- ---------------------------------------------------------*/
-
-/**
- * hdr-enabled=true
- */
-
-.indicators[hdr-enabled=true] .indicator_hdr {
-  display: block;
+.indicators .indicator_timer{
+  visibility: visible;
 }
 
 /** Indicator Battery
  ---------------------------------------------------------*/
 
-.indicator_battery {
+.indicators .indicator_battery{
+  color: #D92E2E; /* red */
   height: 1.1rem;
-  font-size: 25px;
+  font-size: 2.5rem;
   line-height: 1.1rem;
-  margin-left: -3px;
-  color: #D92E2E;
-  opacity: 0;
-  background: none;
-}
-
-/**
- * battery-enabled=true
- */
-
-.indicators[battery-enabled=true] .indicator_battery {
-  display: block;
+  margin-left: -0.3rem;
+  background-color: transparent;
 }
 
 /**
@@ -115,7 +86,7 @@
 .indicators[battery='low'] .indicator_battery,
 .indicators[battery='verylow'] .indicator_battery,
 .indicators[battery='critical'] .indicator_battery {
-  opacity: 1;
+  visibility: visible;
 }
 
 /**
@@ -141,8 +112,9 @@
  */
 
 .indicators[battery='critical'] .indicator_battery {
-  animation: 2s ease-in-out infinite indicator_battery-animation ;
+  animation: 2s ease-in-out infinite indicator_battery-animation;
 }
+
 
 /** Battery Animation
  ---------------------------------------------------------*/
