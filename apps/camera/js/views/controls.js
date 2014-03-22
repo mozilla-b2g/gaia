@@ -41,7 +41,7 @@ module.exports = View.extend({
     /*jshint maxlen:false*/
     return '' +
       '<div class="controls-left">' +
-        '<div class="controls-button controls-gallery-button test-gallery icon-gallery js-thumbnail js-btn rotates" name="gallery"></div>' +
+        '<div class="controls-button controls-gallery-button test-gallery icon-gallery js-thumbnail js-btn" name="gallery"></div>' +
         '<div class="controls-button controls-cancel-pick-button test-cancel-pick icon-cancel js-btn" name="cancel">×</div>' +
       '</div>' +
       '<div class="controls-middle">' +
@@ -65,6 +65,7 @@ module.exports = View.extend({
     if (!this.els.image) {
       this.els.image = new Image();
       this.els.thumbnail.appendChild(this.els.image);
+      this.els.image.classList.add('rotates');
     } else {
       window.URL.revokeObjectURL(this.els.image.src);
     }
