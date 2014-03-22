@@ -131,7 +131,8 @@ var Widget = (function() {
     // Update UI when visible
     document.addEventListener('visibilitychange',
       function _onVisibilityChange(evt) {
-        if (!document.hidden && initialized) {
+        if (!document.hidden && initialized &&
+            (AirplaneModeHelper.getStatus() === 'disabled')) {
           checkCardState(Common.dataSimIccId);
           updateUI();
         }
@@ -448,21 +449,26 @@ var Widget = (function() {
   }
   function initWidget() {
     Common.loadDataSIMIccId(checkSIMStatus, function _errorNoSim() {
+      var errorMessageId = (AirplaneModeHelper.getStatus() === 'enabled') ?
+                           'airplane-mode' : 'no-sim2';
       console.warn('Error when trying to get the ICC ID');
-      showSimError('no-sim2');
+      showSimError(errorMessageId);
     });
     AirplaneModeHelper.addEventListener('statechange',
       function _onAirplaneModeChange(state) {
         if (state === 'enabled') {
           var iccManager = window.navigator.mozIccManager;
-          iccManager.addEventListener('iccdetected', function _oniccdetected() {
-            iccManager.removeEventListener('iccdetected', _oniccdetected);
-            Common.loadDataSIMIccId(checkSIMStatus);
-          });
-          showSimError('no-sim2');
+          iccManager.addEventListener('iccdetected',
+            function _oniccdetected() {
+              iccManager.removeEventListener('iccdetected', _oniccdetected);
+              Common.loadDataSIMIccId(checkSIMStatus);
+            }
+          );
+          showSimError('airplane-mode');
         }
       }
     );
+
     // XXX: See bug 944342 -[Cost control] move all the process related to the
     // network and data interfaces loading to the start-up process of CC
     Common.loadNetworkInterfaces();
