@@ -2,6 +2,8 @@ suite('views/viewfinder', function() {
   'use strict';
   var require = window.req;
 
+  var SENSOR_ANGLE = 90;
+
   suiteSetup(function(done) {
     var self = this;
     require(['views/viewfinder'], function(ViewfinderView) {
@@ -17,16 +19,19 @@ suite('views/viewfinder', function() {
     this.viewfinder = new this.ViewfinderView();
 
     this.container = this.viewfinder.container = {
-      landscape: {
-        width: height,
-        height: width,
-        aspect: height / width
-      }
+      width: height,
+      height: width,
+      aspect: height / width
     };
   });
 
   suite('ViewfinderView#updatePreview()', function() {
     setup(function() {
+      this.viewfinder.el = {
+        clientWidth: this.container.height,
+        clientHeight: this.container.width
+      };
+      
       sinon.stub(this.viewfinder, 'updatePreviewMetrics');
     });
 
@@ -35,13 +40,13 @@ suite('views/viewfinder', function() {
       var scaleType;
 
       this.viewfinder.scaleType = 'fit';
-      this.viewfinder.updatePreview(preview);
-      scaleType = this.viewfinder.updatePreviewMetrics.args[0][1];
+      this.viewfinder.updatePreview(preview, SENSOR_ANGLE);
+      scaleType = this.viewfinder.updatePreviewMetrics.args[0][3];
       assert.equal(scaleType, 'fit');
 
       this.viewfinder.scaleType = 'foobar';
-      this.viewfinder.updatePreview(preview);
-      scaleType = this.viewfinder.updatePreviewMetrics.args[1][1];
+      this.viewfinder.updatePreview(preview, SENSOR_ANGLE);
+      scaleType = this.viewfinder.updatePreviewMetrics.args[1][3];
       assert.equal(scaleType, 'foobar');
     });
 
@@ -50,23 +55,23 @@ suite('views/viewfinder', function() {
 
       this.viewfinder.scaleType = undefined;
 
-      this.viewfinder.updatePreview({ width: 1600, height: 900 });
-      scaleType = this.viewfinder.updatePreviewMetrics.args[0][1];
+      this.viewfinder.updatePreview({ width: 1600, height: 900 }, SENSOR_ANGLE);
+      scaleType = this.viewfinder.updatePreviewMetrics.args[0][3];
       assert.equal(scaleType, 'fill');
 
-      this.viewfinder.updatePreview({ width: 400, height: 300 });
-      scaleType = this.viewfinder.updatePreviewMetrics.args[1][1];
+      this.viewfinder.updatePreview({ width: 400, height: 300 }, SENSOR_ANGLE);
+      scaleType = this.viewfinder.updatePreviewMetrics.args[1][3];
       assert.equal(scaleType, 'fit');
     });
 
-    test('Should add the `reversed` class if `mirror` argument is true', function() {
+    test('Should add negative scale style if `mirror` argument is true', function() {
       var preview = { width: 1600, height: 900 };
 
-      this.viewfinder.updatePreview(preview, true);
-      assert.isTrue(this.viewfinder.el.classList.contains('reversed'));
+      this.viewfinder.updatePreview(preview, SENSOR_ANGLE, true);
+      assert.isTrue(this.viewfinder.els.videoContainer.style.transform.indexOf('scale(-1') === -1);
 
-      this.viewfinder.updatePreview(preview, false);
-      assert.isFalse(this.viewfinder.el.classList.contains('reversed'));
+      this.viewfinder.updatePreview(preview, SENSOR_ANGLE, false);
+      assert.isFalse(this.viewfinder.els.videoContainer.style.transform.indexOf('scale(-1') !== -1);
     });
   });
 
@@ -76,9 +81,9 @@ suite('views/viewfinder', function() {
     test('Should set a \'scale-type\' attribute', function() {
       var previewSize = { width: 400, height: 300 };
 
-      this.viewfinder.updatePreviewMetrics(previewSize, 'fill');
+      this.viewfinder.updatePreviewMetrics(previewSize, SENSOR_ANGLE, false, 'fill');
       assert.equal(this.viewfinder.el.getAttribute('scale-type'), 'fill');
-      this.viewfinder.updatePreviewMetrics(previewSize, 'fit');
+      this.viewfinder.updatePreviewMetrics(previewSize, SENSOR_ANGLE, false, 'fit');
       assert.equal(this.viewfinder.el.getAttribute('scale-type'), 'fit');
     });
 
@@ -87,7 +92,7 @@ suite('views/viewfinder', function() {
         var previewSize = { width: 1600, height: 900 };
 
         // Run test-case
-        this.viewfinder.updatePreviewMetrics(previewSize, 'fill');
+        this.viewfinder.updatePreviewMetrics(previewSize, SENSOR_ANGLE, false, 'fill');
 
         // Frame
         var frame = {
@@ -101,18 +106,18 @@ suite('views/viewfinder', function() {
           height: parseInt(this.viewfinder.els.videoContainer.style.height, 10)
         };
 
-        assert.equal(frame.width, this.container.landscape.height);
-        assert.ok(frame.height > this.container.landscape.width);
+        assert.equal(frame.width, this.container.height);
+        assert.ok(frame.height > this.container.width);
 
-        assert.equal(video.height, this.container.landscape.height);
-        assert.ok(video.width > this.container.landscape.width);
+        assert.equal(video.height, this.container.height);
+        assert.ok(video.width > this.container.width);
       });
 
       test('Should match frame height to container height when preview aspect < container aspect', function() {
         var previewSize = { width: 400, height: 300 };
 
         // Run test-case
-        this.viewfinder.updatePreviewMetrics(previewSize, 'fill');
+        this.viewfinder.updatePreviewMetrics(previewSize, SENSOR_ANGLE, false, 'fill');
 
         var frame = {
           width: parseInt(this.viewfinder.els.frame.style.width, 10),
@@ -124,11 +129,11 @@ suite('views/viewfinder', function() {
           height: parseInt(this.viewfinder.els.videoContainer.style.height, 10)
         };
 
-        assert.ok(frame.width > this.container.landscape.height);
-        assert.equal(frame.height, this.container.landscape.width);
+        assert.ok(frame.width > this.container.height);
+        assert.equal(frame.height, this.container.width);
 
-        assert.ok(video.height > this.container.landscape.height);
-        assert.equal(video.width, this.container.landscape.width);
+        assert.ok(video.height > this.container.height);
+        assert.equal(video.width, this.container.width);
       });
     });
 
@@ -137,7 +142,7 @@ suite('views/viewfinder', function() {
         var previewSize = { width: 1600, height: 900 };
 
         // Run test-case
-        this.viewfinder.updatePreviewMetrics(previewSize, 'fit');
+        this.viewfinder.updatePreviewMetrics(previewSize, SENSOR_ANGLE, false, 'fit');
 
         var frame = {
           width: parseInt(this.viewfinder.els.frame.style.width, 10),
@@ -149,18 +154,18 @@ suite('views/viewfinder', function() {
           height: parseInt(this.viewfinder.els.videoContainer.style.height, 10)
         };
 
-        assert.equal(frame.height, this.container.landscape.width);
-        assert.ok(frame.width < this.container.landscape.height);
+        assert.equal(frame.height, this.container.width);
+        assert.ok(frame.width < this.container.height);
 
-        assert.equal(video.width, this.container.landscape.width);
-        assert.ok(video.height < this.container.landscape.height);
+        assert.equal(video.width, this.container.width);
+        assert.ok(video.height < this.container.height);
       });
 
       test('Should match frame width to container width when preview aspect < container aspect', function() {
         var previewSize = { width: 400, height: 300 };
 
         // Run test-case
-        this.viewfinder.updatePreviewMetrics(previewSize, 'fit');
+        this.viewfinder.updatePreviewMetrics(previewSize, SENSOR_ANGLE, false, 'fit');
 
         var frame = {
           width: parseInt(this.viewfinder.els.frame.style.width, 10),
@@ -173,12 +178,12 @@ suite('views/viewfinder', function() {
         };
 
         // Check width is equal and height is shorter
-        assert.equal(frame.width, this.container.landscape.height);
-        assert.ok(frame.height < this.container.landscape.width);
+        assert.equal(frame.width, this.container.height);
+        assert.ok(frame.height < this.container.width);
 
-        // Check landscape width is shorter and landscape height is equal
-        assert.ok(video.width < this.container.landscape.width);
-        assert.equal(video.height, this.container.landscape.height);
+        // Check container width is shorter and container height is equal
+        assert.ok(video.width < this.container.width);
+        assert.equal(video.height, this.container.height);
       });
     });
   });
