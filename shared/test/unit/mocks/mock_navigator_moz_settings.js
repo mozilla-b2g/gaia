@@ -2,7 +2,6 @@
 
 (function(window) {
   var observers, settings, removedObservers, requests;
-  var _mSyncRepliesOnly, _onsettingchange;
 
   function mns_mLockSet(obj) {
     // Set values.
@@ -53,11 +52,7 @@
 
   function mns_mLockGet(key) {
     var resultObj = {};
-    if (key === '*') {
-      resultObj = settings;
-    } else {
-      resultObj[key] = settings[key];
-    }
+    resultObj[key] = settings[key];
     var settingsRequest = {
       result: resultObj,
       addEventListener: function(name, cb) {
@@ -65,7 +60,7 @@
       }
     };
 
-    if (!_mSyncRepliesOnly) {
+    if (!MockNavigatorSettings.mSyncRepliesOnly) {
       setTimeout(function() {
         if (settingsRequest.onsuccess) {
           settingsRequest.onsuccess();
@@ -102,15 +97,14 @@
 
   function mns_mTriggerObservers(name, args) {
     var theseObservers = observers[name];
-    if (theseObservers) {
-      theseObservers.forEach(function(func) {
-        func(args);
-      });
+
+    if (!theseObservers) {
+      return;
     }
 
-    if (_onsettingchange) {
-      _onsettingchange(args);
-    }
+    theseObservers.forEach(function(func) {
+      func(args);
+    });
   }
 
   function mns_reset() {
@@ -121,8 +115,6 @@
     };
     removedObservers = {};
     requests = [];
-    _mSyncRepliesOnly = false;
-    _onsettingchange = null;
   }
 
   function mns_set(obj) {
@@ -143,20 +135,9 @@
     mTriggerObservers: mns_mTriggerObservers,
     mSetup: mns_reset,
     mTeardown: mns_reset,
+    mSyncRepliesOnly: false,
     mSet: mns_set,
 
-    get onsettingchange() {
-      return _onsettingchange;
-    },
-    set onsettingchange(value) {
-      _onsettingchange = value;
-    },
-    get mSyncRepliesOnly() {
-      return _mSyncRepliesOnly;
-    },
-    set mSyncRepliesOnly(value) {
-      _mSyncRepliesOnly = value;
-    },
     get mObservers() {
       return observers;
     },
