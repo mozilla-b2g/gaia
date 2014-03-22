@@ -30,7 +30,8 @@ marionette('Contacts > Details', function() {
     assert.equal(telNode.text(), tel);
   });
 
-  test('Merging 15 contacts', function() {
+  // Disabled: Bug 982260
+  test.skip('Merging 15 contacts', function() {
     var tel = 666666666,
         name = 'María Covadonga',
         duplicateFrame,
