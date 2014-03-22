@@ -78,15 +78,15 @@ Camera.prototype.loadStreamInto = function(videoElement) {
     return;
   }
 
-  // Don't load the same camera stream again
-  var isCurrent = videoElement.mozSrcObject === this.mozCamera;
-  if (isCurrent) { return debug('camera didn\'t change'); }
+  if (videoElement.mozSrcObject !== this.mozCamera) {
+    videoElement.mozSrcObject = this.mozCamera;
+    videoElement.play();
+    debug('stream loaded into video');
+  } else {
+    // Don't load the same camera stream again
+    debug('camera didn\'t change');
+  }
 
-  videoElement.mozSrcObject = this.mozCamera;
-  videoElement.play();
-  debug('stream loaded into video');
-
-  this.emit('streamLoaded');
   this.emit('ready');
 };
 
