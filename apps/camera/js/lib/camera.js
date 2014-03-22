@@ -242,10 +242,17 @@ Camera.prototype.enableAutoFocusMove = function() {
  */
 
 Camera.prototype.stopFaceDetection = function() {
-  this.mozCamera.stopFaceDetection();
-  this.mozCamera.onFacesDetected = null;
+  try {
+    this.mozCamera.stopFaceDetection();
+    this.mozCamera.onFacesDetected = null;
+  } catch(e) {
+    console.log('Exception stopFaceDetection::'+e.message);
+  }
 };
 
+Camera.prototype.checkFaceTrackingState = function() {
+   return this.mozCamera.onFacesDetected ? true : false;
+};
 /**
  * Starting detecting faces
  *
@@ -277,6 +284,54 @@ Camera.prototype.startFaceDetection = function() {
   // is face detected, it will be useful
   // when switching between focus modes.
 
+};
+
+/**
+*set focus Area
+* To focus on user specified region
+* of viewfinder set focus areas.
+*
+* @param  {object} rect
+* The argument is an object that
+* contains boundaries of focus area
+* in camera coordinate system, where
+* the top-left of the camera field
+* of view is at (-1000, -1000), and
+* bottom-right of the field at
+* (1000, 1000).
+*
+**/
+Camera.prototype.setFocusArea = function(rect) {
+  this.mozCamera.focusAreas = [{
+    top: rect.top,
+    bottom: rect.bottom,
+    left: rect.left,
+    right: rect.right,
+    weight: 1
+  }];
+};
+
+/**
+* Set the metering area.
+*
+* @param  {object} rect
+* The argument is an object that
+* contains boundaries of metering area
+* in camera coordinate system, where
+* the top-left of the camera field
+* of view is at (-1000, -1000), and
+* bottom-right of the field at
+* (1000, 1000).
+*
+**/
+Camera.prototype.setMeteringArea = function(rect) {
+  this.mozCamera.meteringAreas = [{
+    top: rect.top,
+    bottom: rect.bottom,
+    left: rect.left,
+    right: rect.right,
+    weight: 1
+  }];
 };
 
 Camera.prototype.faceTrackingModeCheck = function() {
@@ -331,6 +386,20 @@ Camera.prototype.checkFocusCapability = function() {
   }
 };
 
+/**
+* Once touch focus is done
+* clear the ring UI.
+*
+* Timeout is needed to show
+* the focused UI for sometime
+* before making it disappear.
+**/
+Camera.prototype.clearFocusRing = function() {
+  var self = this;
+  setTimeout(function() {
+    self.set('focus', 'none');
+  }, 1000);
+};
 
 /**
 * Disable auto focus move
@@ -527,7 +596,11 @@ Camera.prototype.takePicture = function(options) {
 
   rotation = selectedCamera === 'front' ? -rotation : rotation;
   this.emit('busy');
-  this.focus(onFocused);
+  if (this.get('focus-mode') === 'autoFocus') {
+    this.focus(onFocused);
+  } else {
+    onFocused(false);
+  }
 
   // if current mode is autofocus 
   // call this.focus(onFocused); and wait for onFocused callback.

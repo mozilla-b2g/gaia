@@ -32,6 +32,7 @@ function focusmodeController(app) {
   this.selectedModes = {};
   this.lastEventTime = 0;
   this.minFaceScore = 20;
+  this.focusTimeOut = null;
   this.bindEvents();
 }
 
@@ -80,7 +81,7 @@ focusmodeController.prototype.checkFocusCapability =
       focusMode.capability = this.camera.continuousFocusModeCheck();
       if (focusMode.capability) {
         focusMode.enable = this.setContinuousFocusMode;
-        focusMode.disable =this.disableContinuousFocus;
+        focusMode.disable = this.disableContinuousFocus;
       }
       break;
     }
@@ -90,8 +91,7 @@ focusmodeController.prototype.checkFocusCapability =
         focusMode.enable = this.setFaceFocusMode;
         focusMode.disable = this.disableFaceTracking;
         this.camera.on('facedetected', this.onFacedetected);
-        this.app.on('nofacedetected', this.setDefaultFocusmode);
-        focusMode.enable();
+        this.camera.on('nofacedetected', this.setDefaultFocusmode);
       }
       break;
     }
@@ -128,16 +128,24 @@ focusmodeController.prototype.checkFocusCapability =
 };
 
 focusmodeController.prototype.resetFocusModes = function() {
-  //this.focusRing.clearFocusRing();
-  var modes = this.selectedModes;
-  modes.forEach(function (currentFocusMode) {
-    if (currentFocusMode.disable) {
-      currentFocusMode.disable();
+  this.camera.clearFocusRing();
+  for (var modes in this.selectedModes) {
+    if (this.selectedModes[modes].disable) {
+      this.selectedModes[modes].disable();
+      if (modes === 'faceTracking') {
+        this.camera.off('facedetected', this.onFacedetected);
+        this.camera.off('nofacedetected', this.setDefaultFocusmode);
+      } else if (modes === 'touchFocus') {
+        this.viewfinder.off('focuspointchange', this.onFocusPointChange);
+
+      }
     }
-  });
+  }
+  this.setCurrentFocusMode(null);
 };
 
 focusmodeController.prototype.setDefaultFocusmode = function() {
+  this.checkfaceTrackingState();
   if(this.defaultMode === this.getCurrentFocusMode()) { return; }
 
   if (this.selectedModes[this.defaultMode] ) {
@@ -191,7 +199,8 @@ focusmodeController.prototype.disableFaceTracking = function() {
 };
 
 focusmodeController.prototype.disableContinuousFocus = function() {
-  this.camera.disableContinuousFocus();
+  this.camera.disableAutoFocusMove();
+ // this.camera.disableContinuousFocus();
 };
 
 /**
@@ -213,7 +222,10 @@ focusmodeController.prototype.disableContinuousFocus = function() {
 **/
 focusmodeController.prototype.onFocusPointChange = function(focusPoint, rect) {
   var self = this;
-
+  if (this.focusTimeOut) {
+    clearTimeout(this.focusTimeOut);
+    this.focusTimeOut = null;
+  }
   // TODO : diable Face tracking, C-AF and clear preview rings
   //this.resetFocusModes(focusmode);
   //this.camera.disableAutoFocusMove();
@@ -222,7 +234,6 @@ focusmodeController.prototype.onFocusPointChange = function(focusPoint, rect) {
   // Set focus and metering areas
   this.camera.setFocusArea(rect);
   this.camera.setMeteringArea(rect);
-
   // change focus ring positon with pixel values
   this.focusRing.changePosition(focusPoint.x, focusPoint.y);
 
@@ -234,11 +245,10 @@ focusmodeController.prototype.onFocusPointChange = function(focusPoint, rect) {
     // Need to clear ring UI when focused.
     // Timeout is needed to show the focused ring.
       // Set focus-mode to touch-focus
-    setTimeout(function() {
-      self.focusRing.setState('none');
+  self.focusTimeOut = setTimeout(function() {
+      self.camera.set('focus', 'none');
       self.resetFocusRingPosition();
       self.setDefaultFocusmode();
-      // TODO : Enable Face tracking, C-AF
     }, 3000);
   }
 };
@@ -275,6 +285,10 @@ focusmodeController.prototype.onFacedetected = function(faces) {
   var mainFace = null;
   var transformedFaces = [];
 
+  if (this.focusTimeOut) {
+    clearTimeout(this.focusTimeOut);
+    this.focusTimeOut = null;
+  }
   // clear any previous focus rings
   this.focusRing.clearFaceRings();
   this.disableCurrentMode();
@@ -337,15 +351,10 @@ focusmodeController.prototype.onFacedetected = function(faces) {
     return;
   }
   this.lastEventTime = currentTime;
-  var rect = {
-    left: faces[maxID].rect.left,
-    right: faces[maxID].rect.right,
-    top: faces[maxID].rect.top,
-    bottom: faces[maxID].rect.bottom
-  };
+
   // set focusing and metering areas
-  this.camera.setFocusArea(rect);
-  this.camera.setMeteringArea(rect);
+  this.camera.setFocusArea(faces[maxID].rect);
+  this.camera.setMeteringArea(faces[maxID].rect);
 
   // Call auto focus to focus on focus area.
   this.camera.focus(focusDone);
@@ -355,13 +364,20 @@ focusmodeController.prototype.onFacedetected = function(faces) {
     // clear ring UI.
     // Timeout is needed to show the focused ring.
     setTimeout(function() {
-      self.focusRing.setState('none');
+      self.camera.set('focus', 'none');
     }, 1000);
   }
+
+  this.focusTimeOut = setTimeout(function() {
+      self.camera.set('focus', 'none');
+      self.resetFocusRingPosition();
+      self.setDefaultFocusmode();
+    }, 3000);
 };
 
 focusmodeController.prototype.setCurrentFocusMode = function(mode) {
   this.focus.get('currentMode').mode = mode;
+  this.camera.set('focus-mode', mode);
 };
 
 focusmodeController.prototype.getCurrentFocusMode = function() {
@@ -369,7 +385,18 @@ focusmodeController.prototype.getCurrentFocusMode = function() {
 };
 
 focusmodeController.prototype.disableCurrentMode = function() {
+  if (this.selectedModes[this.getCurrentFocusMode()].disabled) {
     this.selectedModes[this.getCurrentFocusMode()].disabled();
+  }
+    
+};
+
+focusmodeController.prototype.checkfaceTrackingState = function() {
+  if (this.selectedModes.faceTracking) {
+    if (!this.camera.checkFaceTrackingState()) {
+      this.selectedModes.faceTracking.enable();
+    }
+  }
 };
 
 });
