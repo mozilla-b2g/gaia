@@ -9,7 +9,7 @@ module.exports = {
   },
   indicators: {
     enabled: {
-      hdr: false,
+      hdr: true,
       timer: true,
       battery: false,
       geolocation: false
@@ -190,23 +190,27 @@ module.exports = {
     options: [
       {
         key: 'off',
-        title: 'Off',
-        value: 0
+        value: 0,
+        l10n: { title: 'off' },
+        notificationID: 'timer-set-off'
       },
       {
         key: '3secs',
         value: 3,
-        l10n: { title: '3-seconds' }
+        l10n: { title: '3-seconds' },
+        notificationID: 'timer-set-3secs'
       },
       {
         key: '5secs',
         value: 5,
-        l10n: { title: '5-seconds' }
+        l10n: { title: '5-seconds' },
+        notificationID: 'timer-set-5secs'
       },
       {
         key: '10secs',
         value: 10,
-        l10n: { title: '10-seconds' }
+        l10n: { title: '10-seconds' },
+        notificationID: 'timer-set-10secs'
       }
     ],
     persistent: false,
@@ -220,11 +224,13 @@ module.exports = {
     options: [
       {
         key: 'off',
-        l10n: { title: 'off' }
+        l10n: { title: 'off' },
+        notificationID: 'hdr-set-off'
       },
       {
         key: 'on',
-        l10n: { title: 'on' }
+        l10n: { title: 'on' },
+        notificationID: 'hdr-set-on'
       }
     ],
     persistent: true
@@ -235,15 +241,18 @@ module.exports = {
     options: [
       {
         key: 'normal',
-        title: 'Normal'
+        title: 'Normal',
+        notificationID: 'scene-set-normal'
       },
       {
         key: 'pano',
-        title: 'Panorama'
+        title: 'Panorama',
+        notificationID: 'scene-set-pano'
       },
       {
         key: 'beauty',
-        title: 'Beauty'
+        title: 'Beauty',
+        notificationID: 'scene-set-beauty'
       }
     ],
     persistent: true,
@@ -253,13 +262,15 @@ module.exports = {
   grid: {
     icon: 'icon-frame-grid',
     options: [
-      {
+       {
         key: 'on',
-        l10n: { title: 'on' }
+        l10n: { title: 'on' },
+        notificationID: 'grid-set-on'
       },
       {
         key: 'off',
-        l10n: { title: 'off' }
+        l10n: { title: 'off' },
+        notificationID: 'grid-set-off'
       }
     ],
     selected: 'off',
