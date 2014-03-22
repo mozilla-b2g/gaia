@@ -100,12 +100,10 @@ suite('multi SIM action button', function() {
     navigator.mozTelephony = realMozTelephony;
     navigator.mozL10n = realMozL10n;
     navigator.mozIccManager = realMozIccManager;
-
     window.TelephonyHelper = realTelephonyHelper;
   });
 
   setup(function() {
-    MockNavigatorSettings.mSyncRepliesOnly = true;
     phoneNumber = '';
     button = document.createElement('button');
     initSubject();

@@ -1250,8 +1250,8 @@ navigator.mozL10n.ready(function loadWhenIdle() {
   var idleObserver = {
     time: 3,
     onidle: function() {
-      navigator.removeIdleObserver(idleObserver);
       CarrierSettings.init();
+      navigator.removeIdleObserver(idleObserver);
     }
   };
   navigator.addIdleObserver(idleObserver);
