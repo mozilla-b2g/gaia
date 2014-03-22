@@ -117,7 +117,8 @@ Contacts.prototype = {
   },
 
   waitForSlideDown: function(element) {
-    var bodyHeight = this.getWindowHeight();
+    var bodyHeight = this.client.findElement(Contacts.Selectors.body).
+      size().height;
     var test = function() {
       return element.location().y >= bodyHeight;
     };
@@ -143,7 +144,7 @@ Contacts.prototype = {
 
   waitForFormTransition: function() {
     var selectors = Contacts.Selectors,
-        bodyHeight = this.getWindowHeight(),
+        bodyHeight = this.client.findElement(selectors.body).size().height,
         form = this.client.findElement(selectors.form);
     var test = function() {
       var location = form.location();
@@ -167,7 +168,7 @@ Contacts.prototype = {
       // Camelcase details to match form.* selectors.
       var key = 'form' + i.charAt(0).toUpperCase() + i.slice(1);
 
-      this.client.helper.waitForElement(selectors[key])
+      this.client.findElement(selectors[key])
         .sendKeys(details[i]);
     }
 
@@ -191,7 +192,7 @@ Contacts.prototype = {
    * Helper method to simulate clicks on iFrames which is not currently
    *  working in the Marionette JS Runner.
    * @param {Marionette.Element} element The element to simulate the click on.
-   */
+   **/
   clickOn: function(element) {
     element.scriptWith(function(elementEl) {
       var event = new MouseEvent('click', {
@@ -201,23 +202,6 @@ Contacts.prototype = {
       });
       elementEl.dispatchEvent(event);
     });
-  },
-
-  getWindowHeight: function() {
-    if (this.windowHeight) {
-      return this.windowHeight;
-    }
-    var getWindowHeight = function() {
-      return Math.max(document.documentElement.clientHeight,
-                      window.innerHeight || 0);
-    };
-    var callback = function(err, value) {
-      if (!err) {
-        this.windowHeight = value;
-      }
-    };
-    this.client.executeScript(getWindowHeight, callback.bind(this));
-    return this.windowHeight;
   }
 };
 
