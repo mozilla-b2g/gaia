@@ -6,6 +6,7 @@
   height: 7.5rem;
   text-align: center;
   opacity: 1;
+  pointer-events: none;
   transition: opacity 300ms;
   transform: translateZ(1px);
 }
@@ -51,6 +52,7 @@ body:not(.filmstriphidden) .hud {
   -moz-box-sizing: content-box; /* 1 */
   transition: background-color 1s; /* 2 */
   color: #fff;
+  pointer-events: auto;
 }
 
 .hud_btn:active {
