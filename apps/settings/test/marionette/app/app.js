@@ -14,6 +14,7 @@ var Base = require('./base'),
     LanguagePanel = require('./regions/language'),
     NotificationsPanel = require('./regions/notifications'),
     ScreenLockPanel = require('./regions/screen_lock'),
+    AppPermissionPanel = require('./regions/app_permission'),
     DisplayPanel = require('./regions/display');
 
 // origin of the settings app
@@ -48,6 +49,7 @@ Settings.Selectors = {
   'languagePanel': '#languages',
   'languageMenuItem': '#menuItem-languageAndRegion',
   'screenLockMenuItem': '#menuItem-phoneLock',
+  'appPermissionPanel': '#menuItem-appPermissions',
   'displayMenuItem': '#menuItem-display'
 };
 
@@ -144,6 +146,13 @@ Settings.prototype = {
     this._feedbackPanel =
       this._feedbackPanel || new FeedbackPanel(this.client);
     return this._feedbackPanel;
+  },
+
+  get appPermissionPanel() {
+    this.openPanel.call(this, 'appPermissionPanel');
+    this._appPermissionPanel =
+      this._appPermissionPanel || new AppPermissionPanel(this.client);
+    return this._appPermissionPanel;
   },
 
   /**
