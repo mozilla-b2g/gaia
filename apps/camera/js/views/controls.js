@@ -53,10 +53,10 @@ module.exports = View.extend({
         '</div>' +
       '</div>' +
       '<div class="controls-right">' +
-        '<div class="mode-switch test-switch js-switch icon" name="switch">' +
+        '<div class="mode-switch test-switch js-switch" name="switch">' +
           '<div class="mode-icon icon rotates"></div>' +
           '<div class="selected-mode">' +
-            '<div class="selected-mode-icon rotates"></div>' +
+            '<div class="selected-mode-icon icon rotates"></div>' +
           '</div>' +
         '</div>' +
       '</div>';

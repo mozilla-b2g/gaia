@@ -1,4 +1,9 @@
 
+/**
+ * 1. We don't want borders to change
+ *    the size of the content-box.
+ */
+
 .setting {
   display: flex;
   height: 7rem;
@@ -6,6 +11,7 @@
   margin: 0 1.5rem;
   border: solid 1px rgba(255,255,255,0.15);
   border-width: 1px 0 0;
+  box-sizing: content-box; /* 1 */
 }
 
 /**
@@ -33,17 +39,12 @@
   font-size: 3rem;
 }
 
-/** Text
- ---------------------------------------------------------*/
-
-.setting_text {}
-
 /** Title
  ---------------------------------------------------------*/
 
 .setting_title {
   font-size: 1.9rem;
-  margin-bottom: 0.7rem;
+  margin-bottom: 0.6rem;
   color: rgba(255,255,255,0.5);
   text-transform: capitalize;
 }
@@ -53,5 +54,6 @@
 
 .setting_value {
   font-size: 1.6rem;
+  font-weight: 500;
   text-transform: uppercase;
 }
