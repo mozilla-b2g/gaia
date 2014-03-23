@@ -9,7 +9,6 @@
 .icon,
 [class^="icon-"],
 [class*=" icon-"] {
-  font-family: 'gaia-camera';
   font-style: normal;
   font-weight: normal;
   font-variant: normal;
@@ -19,6 +18,12 @@
   /* Better Font Rendering =========== */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon:before,
+[class^="icon-"]:before,
+[class*=" icon-"]:before {
+  font-family: 'gaia-camera';
 }
 
 .icon-timer:before {

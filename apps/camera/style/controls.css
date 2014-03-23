@@ -185,7 +185,7 @@
   line-height: 3.6rem;
 }
 
-.mode-switch .mode-icon:after {
+.mode-switch .mode-icon:before {
   content: "\e602";
   font-size: 2.1rem;
   color: #C7C7C7;
@@ -199,7 +199,7 @@
   left: 1.1rem;
 }
 
-.controls[mode=video] .mode-switch .mode-icon:after {
+.controls[mode=video] .mode-switch .mode-icon:before {
   content: "\e60f";
 }
 
@@ -227,7 +227,7 @@
 /** Selected Mode Icon
  ---------------------------------------------------------*/
 
-.mode-switch .selected-mode-icon:after {
+.mode-switch .selected-mode-icon:before {
   content: "\e60f";
   display: block;
   text-align: center;
@@ -240,7 +240,7 @@
  * mode=video
  */
 
-.controls[mode=video] .mode-switch .selected-mode-icon:after {
+.controls[mode=video] .mode-switch .selected-mode-icon:before {
   content: "\e602";
   color: #D92E2E;
 }
@@ -320,7 +320,7 @@
 /** Icon
  ---------------------------------------------------------*/
 
-.capture-button .center:after {
+.capture-button .center:before {
   display: block;
   position: absolute;
   width: 100%;
@@ -337,8 +337,8 @@
  * capture-active=true & mode=picture
  */
 
-.capture-button:active .center:after,
-[capture-active=true] .capture-button .center:after {
+.capture-button:active .center:before,
+[capture-active=true] .capture-button .center:before {
   color: white;
 }
 
@@ -346,7 +346,7 @@
  * mode=video
  */
 
-.controls[mode=video] .capture-button .center:after {
+.controls[mode=video] .capture-button .center:before {
   content: '';
   top: calc(50% - 1rem);
   left: calc(50% - 1rem);
@@ -361,8 +361,8 @@
  * mode=video & recording=true
  */
 
-.controls[mode=video] .capture-button:active .center:after,
-.controls[mode=video][capture-active=true] .capture-button .center:after {
+.controls[mode=video] .capture-button:active .center:before,
+.controls[mode=video][capture-active=true] .capture-button .center:before {
   border-radius: 25%;
   background-color: white;
 }
