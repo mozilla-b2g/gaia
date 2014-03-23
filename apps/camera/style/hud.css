@@ -50,14 +50,12 @@
   background-clip: padding-box; /* 1 */
   border: solid 2rem transparent; /* 1 */
   -moz-box-sizing: content-box; /* 1 */
-  transition: background-color 1s; /* 2 */
   color: #fff;
   pointer-events: auto;
 }
 
 .hud_btn:active {
   background-color: #00b9df;
-  transition: none; /* 2 */
 }
 
 /**
