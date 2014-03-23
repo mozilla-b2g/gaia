@@ -11,12 +11,108 @@ branches:
   - master
 env:
   matrix:
-  - CI_ACTION=linters
-  - CI_ACTION=unit-tests-in-firefox
-  - CI_ACTION=marionette_js
-  - CI_ACTION=gaia_ui_tests
-  - CI_ACTION=build_tests
+  - CI_ACTION=marionette_js x=1
+  - CI_ACTION=marionette_js x=2
+  - CI_ACTION=marionette_js x=3
+  - CI_ACTION=marionette_js x=4
+  - CI_ACTION=marionette_js x=5
+  - CI_ACTION=marionette_js x=6
+  - CI_ACTION=marionette_js x=7
+  - CI_ACTION=marionette_js x=8
+  - CI_ACTION=marionette_js x=9
+  - CI_ACTION=marionette_js x=10
+  - CI_ACTION=marionette_js x=11
+  - CI_ACTION=marionette_js x=12
+  - CI_ACTION=marionette_js x=13
+  - CI_ACTION=marionette_js x=14
+  - CI_ACTION=marionette_js x=15
+  - CI_ACTION=marionette_js x=16
+  - CI_ACTION=marionette_js x=17
+  - CI_ACTION=marionette_js x=18
+  - CI_ACTION=marionette_js x=19
+  - CI_ACTION=marionette_js x=20
+  - CI_ACTION=marionette_js x=21
+  - CI_ACTION=marionette_js x=22
+  - CI_ACTION=marionette_js x=23
+  - CI_ACTION=marionette_js x=24
+  - CI_ACTION=marionette_js x=25
+  - CI_ACTION=marionette_js x=26
+  - CI_ACTION=marionette_js x=27
+  - CI_ACTION=marionette_js x=28
+  - CI_ACTION=marionette_js x=29
+  - CI_ACTION=marionette_js x=30
+  - CI_ACTION=marionette_js x=31
+  - CI_ACTION=marionette_js x=32
+  - CI_ACTION=marionette_js x=33
+  - CI_ACTION=marionette_js x=34
+  - CI_ACTION=marionette_js x=35
+  - CI_ACTION=marionette_js x=36
+  - CI_ACTION=marionette_js x=37
+  - CI_ACTION=marionette_js x=38
+  - CI_ACTION=marionette_js x=39
+  - CI_ACTION=marionette_js x=40
+  - CI_ACTION=marionette_js x=41
+  - CI_ACTION=marionette_js x=42
+  - CI_ACTION=marionette_js x=43
+  - CI_ACTION=marionette_js x=44
+  - CI_ACTION=marionette_js x=45
+  - CI_ACTION=marionette_js x=46
+  - CI_ACTION=marionette_js x=47
+  - CI_ACTION=marionette_js x=48
+  - CI_ACTION=marionette_js x=49
+  - CI_ACTION=marionette_js x=50
+  - CI_ACTION=marionette_js x=51
+  - CI_ACTION=marionette_js x=52
+  - CI_ACTION=marionette_js x=53
+  - CI_ACTION=marionette_js x=54
+  - CI_ACTION=marionette_js x=55
+  - CI_ACTION=marionette_js x=56
+  - CI_ACTION=marionette_js x=57
+  - CI_ACTION=marionette_js x=58
+  - CI_ACTION=marionette_js x=59
+  - CI_ACTION=marionette_js x=60
+  - CI_ACTION=marionette_js x=61
+  - CI_ACTION=marionette_js x=62
+  - CI_ACTION=marionette_js x=63
+  - CI_ACTION=marionette_js x=64
+  - CI_ACTION=marionette_js x=65
+  - CI_ACTION=marionette_js x=66
+  - CI_ACTION=marionette_js x=67
+  - CI_ACTION=marionette_js x=68
+  - CI_ACTION=marionette_js x=69
+  - CI_ACTION=marionette_js x=70
+  - CI_ACTION=marionette_js x=71
+  - CI_ACTION=marionette_js x=72
+  - CI_ACTION=marionette_js x=73
+  - CI_ACTION=marionette_js x=74
+  - CI_ACTION=marionette_js x=75
+  - CI_ACTION=marionette_js x=76
+  - CI_ACTION=marionette_js x=77
+  - CI_ACTION=marionette_js x=78
+  - CI_ACTION=marionette_js x=79
+  - CI_ACTION=marionette_js x=80
+  - CI_ACTION=marionette_js x=81
+  - CI_ACTION=marionette_js x=82
+  - CI_ACTION=marionette_js x=83
+  - CI_ACTION=marionette_js x=84
+  - CI_ACTION=marionette_js x=85
+  - CI_ACTION=marionette_js x=86
+  - CI_ACTION=marionette_js x=87
+  - CI_ACTION=marionette_js x=88
+  - CI_ACTION=marionette_js x=89
+  - CI_ACTION=marionette_js x=90
+  - CI_ACTION=marionette_js x=91
+  - CI_ACTION=marionette_js x=92
+  - CI_ACTION=marionette_js x=93
+  - CI_ACTION=marionette_js x=94
+  - CI_ACTION=marionette_js x=95
+  - CI_ACTION=marionette_js x=96
+  - CI_ACTION=marionette_js x=97
+  - CI_ACTION=marionette_js x=98
+  - CI_ACTION=marionette_js x=99
+  - CI_ACTION=marionette_js x=100
   global:
+  - APP=gallery
   - ARTIFACTS_S3_BUCKET=mozilla-releng-travis-uploads
   - secure: Gf2qm+xhLRTotuIvDD7HrNRmng3/dctGdsgF5P4aEu3nDujfxtZTp4sGirTqIngbfVzh9WkJ9eoT0yaDXtvWkr40Df6vwAUyI3P1x+NBOa2CkLz7U+f9j1yaJ3pJ121+L3o+7eTzJy/mvXHJYXAfa7rxcmjrCHpH5BSm+9/OZ4s=
   - secure: JgNTK2gfJY1UcpXU/j0MFUvB1P7GaQyOVKBT19uwE2xCsO+T00YWnEhDGFZ9CxYDsATQ5EG5cW/eaoqXOpI9QQsR5kEJp1N1rLvKliqtGcm/ocVjWl/dhsG1i+ksJSCm1oDwduEuLFZ7tChrXihiZ2Sn1RAWns0mjZw9+8+tDhU=
