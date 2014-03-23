@@ -45,7 +45,7 @@ marionette('the gallery', function() {
     assert.ok(app.thumbnailsView.displayed());
   });
 
-  test('should flick through images in fullscreen mode', function() {
+  test.skip('should flick through images in fullscreen mode', function() {
     // Acquire a duplicate of an image by launching the editing
     // mode and saving it.
     app.thumbnail.click();
