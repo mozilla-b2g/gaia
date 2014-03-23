@@ -21,7 +21,12 @@
  */
 
 .setting:active {
-  background: rgba(0,190,171,0.3);
+  background: #008eab;
+  text-shadow: 0px 1px rgba(59, 59, 59, .6);
+}
+
+.setting:active .setting_title {
+  color: rgba(255,255,255, 1);
 }
 
 /** Icon
