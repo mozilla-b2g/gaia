@@ -26,6 +26,8 @@ function SettingsController(app) {
   bindAll(this);
   this.app = app;
   this.settings = app.settings;
+  this.viewfinder = app.views.viewfinder;
+  this.controls = app.views.controls;
   this.bindEvents();
   debug('initialized');
 }
@@ -38,6 +40,11 @@ function SettingsController(app) {
 SettingsController.prototype.bindEvents = function() {
   this.app.on('change:capabilities', this.onCapabilitiesChange);
   this.app.on('settings:toggle', this.toggleSettings);
+  // listen to close settings menu
+  this.controls.on('click:capture', this.closeSettings);
+  this.controls.on('click:gallery', this.closeSettings);
+  this.controls.on('click:switch', this.closeSettings);
+  this.viewfinder.on('click', this.closeSettings);
 };
 
 /**
