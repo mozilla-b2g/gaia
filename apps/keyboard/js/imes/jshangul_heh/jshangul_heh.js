@@ -85,8 +85,9 @@
       return '';
     }
 
-    if (position != FIRST)
+    if (position != FIRST) {
       position = myQ.length - 1;
+    }
 
     return myQ[position];
   }
@@ -198,8 +199,9 @@
   function specialComb(strCode) {
     var specialMap = { 'ㄴㅅ': true, 'ㄹㅇ': true, 'ㄹㄷ': true,
       'ㄹㅂ': true, 'ㄹㅅ': true };
-    if (specialMap[strCode] === undefined)
+    if (specialMap[strCode] === undefined) {
       return false;
+    }
     return true;
   }
 
