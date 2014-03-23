@@ -6,7 +6,7 @@
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
-         Thread, MultiSimActionButton, LazyLoader */
+         Thread, MultiSimActionButton, LazyLoader, Promise */
 /*exported ThreadUI */
 
 (function(global) {
@@ -72,7 +72,6 @@ var ThreadUI = global.ThreadUI = {
   inThread: false,
   isNewMessageNoticeShown: false,
   shouldChangePanelNextEvent: false,
-  inActivity: false,
   timeouts: {
     update: null,
     subjectLengthNotice: null
@@ -92,11 +91,11 @@ var ThreadUI = global.ThreadUI = {
     [
       'container', 'subheader', 'to-field', 'recipients-list', 'recipient',
       'input', 'compose-form', 'check-all-button', 'uncheck-all-button',
-      'contact-pick-button', 'back-button', 'send-button', 'attach-button',
-      'delete-button', 'cancel-button', 'subject-input', 'new-message-notice',
-      'options-icon', 'edit-mode', 'edit-form', 'tel-form', 'header-text',
-      'max-length-notice', 'convert-notice', 'resize-notice',
-      'dual-sim-information'
+      'contact-pick-button', 'back-button', 'close-button', 'send-button',
+      'attach-button', 'delete-button', 'cancel-button', 'subject-input',
+      'new-message-notice', 'options-icon', 'edit-mode', 'edit-form',
+      'tel-form', 'header-text', 'max-length-notice', 'convert-notice',
+      'resize-notice', 'dual-sim-information'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -176,6 +175,10 @@ var ThreadUI = global.ThreadUI = {
 
     this.backButton.addEventListener(
       'click', this.back.bind(this)
+    );
+
+    this.closeButton.addEventListener(
+      'click', this.close.bind(this)
     );
 
     this.checkAllButton.addEventListener(
@@ -306,7 +309,6 @@ var ThreadUI = global.ThreadUI = {
     this.HEADER_HEIGHT = document.querySelector('.view-header').offsetHeight;
 
     this.shouldChangePanelNextEvent = false;
-    this.inActivity = false;
 
     ThreadUI.updateInputMaxHeight();
   },
@@ -435,21 +437,6 @@ var ThreadUI = global.ThreadUI = {
         this.sentAudioEnabled = false;
       }
     }
-  },
-
-  // Change the back button to close button
-  enableActivityRequestMode: function thui_enableActivityRequestMode() {
-    this.inActivity = true;
-    var domBackButtonSpan = this.backButton.querySelector('span');
-    domBackButtonSpan.classList.remove('icon-back');
-    domBackButtonSpan.classList.add('icon-close');
-  },
-
-  resetActivityRequestMode: function thui_resetActivityRequestMode() {
-    this.inActivity = false;
-    var domBackButtonSpan = this.backButton.querySelector('span');
-    domBackButtonSpan.classList.remove('icon-close');
-    domBackButtonSpan.classList.add('icon-back');
   },
 
   getAllInputs: function thui_getAllInputs() {
@@ -856,38 +843,42 @@ var ThreadUI = global.ThreadUI = {
     generateHeightRule(maxHeight);
   },
 
-  leaveActivity: function thui_leaveActivity() {
-    var currentActivity = ActivityHandler.currentActivity.new;
+  close: function thui_close() {
+    return this._onNavigatingBack().then(function() {
+      ActivityHandler.leaveActivity();
+    }).catch(function(e) {
+      // If we don't have any error that means that action was rejected
+      // intentionally and there is nothing critical to report about.
+      e && console.error('Unexpected error while closing the activity: ', e);
 
-    if (currentActivity) {
-      currentActivity.postResult({ success: true });
-      ActivityHandler.resetActivity();
-    }
+      return Promise.reject(e);
+    });
   },
 
   back: function thui_back() {
-
     if (window.location.hash === '#group-view' ||
         window.location.hash.startsWith('#report-view')) {
       window.location.hash = '#thread=' + Threads.lastId;
       this.updateHeaderData();
-      return;
+
+      return Promise.resolve();
     }
 
-    var goBack = (function() {
-      this.stopRendering();
+    return this._onNavigatingBack().then(function() {
+      this.cleanFields(true);
+      window.location.hash = '#thread-list';
+    }.bind(this)).catch(function(e) {
+      e && console.error('Unexpected error while navigating back: ', e);
 
-      var leave = (function() {
-        this.cleanFields(true);
-        window.location.hash = '#thread-list';
-      }).bind(this);
+      return Promise.reject(e);
+    });
+  },
 
-      if (this.inActivity) {
-        this.leaveActivity();
-        return;
-      }
+  _onNavigatingBack: function() {
+    this.stopRendering();
 
-      // TODO Add comment about assimilation above on line #183?
+    // We're waiting for the keyboard to disappear before animating back
+    return this._ensureKeyboardIsHidden().then(function() {
       // Need to assimilate recipients in order to check if any entered
       this.assimilateRecipients();
 
@@ -905,7 +896,6 @@ var ThreadUI = global.ThreadUI = {
       if (Compose.isEmpty() &&
         (Threads.active || this.recipients.length === 0)) {
         this.discardDraft();
-        leave();
         return;
       }
 
@@ -918,53 +908,11 @@ var ThreadUI = global.ThreadUI = {
         if (!Threads.currentId) {
           this.saveDraft({autoSave: true});
         }
-        leave();
         return;
       }
 
-      var prompt = 'save-as-draft';
-      if (this.draft) {
-        prompt = 'replace-draft';
-      }
-
-      var options = {
-        items: [
-          {
-            l10nId: prompt,
-            method: function onsave() {
-              this.saveDraft();
-              leave();
-            }.bind(this)
-          },
-          {
-            l10nId: 'discard-message',
-            method: function ondiscard() {
-              this.discardDraft();
-              leave();
-            }.bind(this)
-          },
-          {
-            l10nId: 'cancel'
-          }
-        ]
-      };
-
-      new OptionMenu(options).show();
-
-    }).bind(this);
-
-    // We're waiting for the keyboard to disappear before animating back
-    if (this.isKeyboardDisplayed()) {
-
-      window.addEventListener('resize', function keyboardHidden() {
-        window.removeEventListener('resize', keyboardHidden);
-        window.clearTimeout(setTimer);
-        goBack();
-      });
-      var setTimer = window.setTimeout(goBack, 400);
-    } else {
-      goBack();
-    }
+      return this._showMessageSaveOrDiscardPrompt();
+    }.bind(this));
   },
 
   isKeyboardDisplayed: function thui_isKeyboardDisplayed() {
@@ -973,6 +921,50 @@ var ThreadUI = global.ThreadUI = {
      * between window height and the screen height will be larger than 150px
      * thus correctly yielding false here. */
     return ((window.screen.height - window.innerHeight) > 150);
+  },
+
+  _ensureKeyboardIsHidden: function() {
+    if (this.isKeyboardDisplayed()) {
+      return new Promise(function(resolve) {
+        var setTimer = window.setTimeout(resolve, 400);
+        window.addEventListener('resize', function keyboardHidden() {
+          window.clearTimeout(setTimer);
+          window.removeEventListener('resize', keyboardHidden);
+          resolve();
+        });
+      });
+    }
+    return Promise.resolve();
+  },
+
+  _showMessageSaveOrDiscardPrompt: function() {
+    return new Promise(function(resolve, reject) {
+      var options = {
+        items: [
+          {
+            l10nId: this.draft ? 'replace-draft' : 'save-as-draft',
+            method: function onSave() {
+              this.saveDraft();
+              resolve();
+            }.bind(this)
+          },
+          {
+            l10nId: 'discard-message',
+            method: function onDiscard() {
+              this.discardDraft();
+              resolve();
+            }.bind(this)
+          },
+          {
+            l10nId: 'cancel',
+            method: function onCancel() {
+              reject();
+            }
+          }
+        ]
+      };
+      new OptionMenu(options).show();
+    }.bind(this));
   },
 
   enableSend: function thui_enableSend() {
@@ -2235,8 +2227,8 @@ var ThreadUI = global.ThreadUI = {
       if (recipients.length > 1) {
         this.shouldChangePanelNextEvent = false;
         window.location.hash = '#thread-list';
-        if (this.inActivity) {
-          setTimeout(this.leaveActivity.bind(this), this.LEAVE_ACTIVITY_DELAY);
+        if (ActivityHandler.isInActivity()) {
+          setTimeout(this.close.bind(this), this.LEAVE_ACTIVITY_DELAY);
         }
       }
 

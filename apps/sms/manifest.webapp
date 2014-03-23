@@ -56,13 +56,15 @@
       "returnValue": true
     },
     "share": {
+      "href": "/index.html#activity-share",
       "filters": {
         "type": ["image/*", "audio/*", "video/*"],
         "number": {
           "max": 5
         }
        },
-      "disposition": "window"
+      "disposition": "inline",
+      "returnValue": true
     }
   },
   "messages": [

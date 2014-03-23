@@ -134,12 +134,14 @@ suite('ActivityHandler', function() {
             filenames: ['testBlob1', 'testBlob2', 'testBlob3', 'testBlob4',
                         'testBlob5']
           }
-        }
+        },
+        postResult: sinon.stub()
       };
     });
 
     teardown(function() {
       window.location.hash = this.prevHash;
+      ActivityHandler.leaveActivity();
     });
 
     test('test for pushing an attachments to an array', function() {
@@ -207,10 +209,18 @@ suite('ActivityHandler', function() {
       sinon.assert.notCalled(window.alert);
     });
 
-    test('share shouldn\'t change the ThreadUI back button', function() {
-      this.sinon.stub(ThreadUI, 'enableActivityRequestMode');
+    test('share message should switch application to request activity mode',
+      function() {
+        MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+        assert.isTrue(document.body.classList.contains(
+          ActivityHandler.REQUEST_ACTIVITY_MODE_CLASS_NAME)
+        );
+      }
+    );
+
+    test('share message should set the current activity', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
-      assert.isFalse(ThreadUI.enableActivityRequestMode.called);
+      assert.isTrue(ActivityHandler.isInActivity());
     });
   });
 
@@ -518,7 +528,8 @@ suite('ActivityHandler', function() {
           number: '123',
           body: 'foo'
         }
-      }
+      },
+      postResult: sinon.stub()
     };
 
     var newActivity_empty = {
@@ -527,7 +538,8 @@ suite('ActivityHandler', function() {
         data: {
           number: '123'
         }
-      }
+      },
+      postResult: sinon.stub()
     };
 
     setup(function() {
@@ -537,6 +549,7 @@ suite('ActivityHandler', function() {
 
     teardown(function() {
       MessageManager.activity = null;
+      ActivityHandler.leaveActivity();
     });
 
     suiteSetup(function() {
@@ -633,14 +646,17 @@ suite('ActivityHandler', function() {
 
     test('new message should set the current activity', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      assert.equal(ActivityHandler.currentActivity.new, newActivity);
+      assert.isTrue(ActivityHandler.isInActivity());
     });
 
-    test('new message should change the ThreadUI back button', function() {
-      this.sinon.stub(ThreadUI, 'enableActivityRequestMode');
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      assert.isTrue(ThreadUI.enableActivityRequestMode.called);
-    });
+    test('new message should switch application to request activity mode',
+      function() {
+        MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+        assert.isTrue(document.body.classList.contains(
+          ActivityHandler.REQUEST_ACTIVITY_MODE_CLASS_NAME)
+        );
+      }
+    );
 
   });
 
@@ -693,6 +709,49 @@ suite('ActivityHandler', function() {
         assert.isTrue(ThreadUI.cleanFields.called);
         assert.isTrue(window.confirm.called);
       });
+    });
+  });
+
+  suite('setActivity', function() {
+    teardown(function() {
+      ActivityHandler.leaveActivity();
+    });
+
+    test('setting current activity should switch on activity mode', function() {
+      ActivityHandler.setActivity({
+        postResult: sinon.stub()
+      });
+      assert.isTrue(document.body.classList.contains(
+          ActivityHandler.REQUEST_ACTIVITY_MODE_CLASS_NAME)
+      );
+    });
+
+    test('setting current activity as null or undefined should throw exception',
+      function() {
+        assert.throws(function() {
+          ActivityHandler.setActivity(null);
+        });
+        assert.throws(function() {
+          ActivityHandler.setActivity();
+        });
+        assert.isFalse(document.body.classList.contains(
+          ActivityHandler.REQUEST_ACTIVITY_MODE_CLASS_NAME)
+        );
+      }
+    );
+  });
+
+  suite('leaveActivity', function() {
+    test('should call postResult on current activity', function() {
+      var mockActivity = {
+        postResult: sinon.stub()
+      };
+      ActivityHandler.setActivity(mockActivity);
+      assert.isTrue(ActivityHandler.isInActivity());
+
+      ActivityHandler.leaveActivity();
+      sinon.assert.called(mockActivity.postResult);
+      assert.isFalse(ActivityHandler.isInActivity());
     });
   });
 });

@@ -9,16 +9,26 @@
 'use strict';
 
 var ActivityHandler = {
+  // CSS class applied to the body element when app requested via activity
+  REQUEST_ACTIVITY_MODE_CLASS_NAME: 'request-activity-mode',
+
   isLocked: false,
 
   // Will hold current activity object
-  currentActivity: { new: null },
+  _activity: null,
 
   init: function() {
     if (!window.navigator.mozSetMessageHandler) {
       return;
     }
-    window.navigator.mozSetMessageHandler('activity', this.global.bind(this));
+
+    // A mapping of MozActivity names to their associated event handler
+    window.navigator.mozSetMessageHandler('activity',
+      this._onActivity.bind(this, {
+        'new': this._onNewActivity,
+        'share': this._onShareActivity
+      })
+    );
 
     // We want to register the handler only when we're on the launch path
     if (!window.location.hash.length) {
@@ -30,108 +40,124 @@ var ActivityHandler = {
     }
   },
 
+  isInActivity: function isInActivity() {
+    return !!this._activity;
+  },
+
+  setActivity: function setActivity(value) {
+    if (!value) {
+      throw new Error('Activity should be defined!');
+    }
+    this._toggleActivityRequestMode(true);
+    this._activity = value;
+  },
+
   // The Messaging application's global Activity handler. Delegates to specific
   // handler based on the Activity name.
-  global: function activityHandler(activity) {
-
+  _onActivity: function activityHandler(handlers, activity) {
     var name = activity.source.name;
-    var handler = this._handlers[name];
+    var handler = handlers[name];
 
     if (typeof handler === 'function') {
-      handler.apply(this, arguments);
+      this.setActivity(activity);
+
+      handler.call(this, activity);
     } else {
       console.error('Unrecognized activity: "' + name + '"');
     }
   },
 
-  // A mapping of MozActivity names to their associated event handler
-  _handlers: {
-    'new': function newHandler(activity) {
+  _onNewActivity: function newHandler(activity) {
+    // This lock is for avoiding several calls at the same time.
+    if (this.isLocked) {
+      return;
+    }
 
-      // This lock is for avoiding several calls at the same time.
-      if (this.isLocked) {
-        return;
+    this.isLocked = true;
+
+    var number = activity.source.data.number;
+    var body = activity.source.data.body;
+
+    Contacts.findByPhoneNumber(number, function findContact(results) {
+      var record, details, name, contact;
+
+      // Bug 867948: results null is a legitimate case
+      if (results && results.length) {
+        record = results[0];
+        details = Utils.getContactDetails(number, record);
+        name = record.name.length && record.name[0];
+        contact = {
+          number: number,
+          name: name,
+          source: 'contacts'
+        };
       }
 
-      this.currentActivity.new = activity;
-      this.isLocked = true;
+      ActivityHandler.toView({
+        body: body,
+        number: number,
+        contact: contact || null
+      });
+    });
+  },
 
-      var number = activity.source.data.number;
-      var body = activity.source.data.body;
+  _onShareActivity: function shareHandler(activity) {
+    var activityData = activity.source.data;
 
-      Contacts.findByPhoneNumber(number, function findContact(results) {
-        var record, details, name, contact;
-
-        // Bug 867948: results null is a legitimate case
-        if (results && results.length) {
-          record = results[0];
-          details = Utils.getContactDetails(number, record);
-          name = record.name.length && record.name[0];
-          contact = {
-            number: number,
-            name: name,
-            source: 'contacts'
-          };
-        }
-
-        ActivityHandler.toView({
-          body: body,
-          number: number,
-          contact: contact || null
-        });
+    var attachments = activityData.blobs.map(function(blob, idx) {
+      var attachment = new Attachment(blob, {
+        name: activityData.filenames[idx],
+        isDraft: true
       });
 
-      ThreadUI.enableActivityRequestMode();
-    },
-    share: function shareHandler(activity) {
-      var blobs = activity.source.data.blobs,
-        names = activity.source.data.filenames;
+      return attachment;
+    });
 
-      function insertAttachments() {
-        window.removeEventListener('hashchange', insertAttachments);
+    var size = attachments.reduce(function(size, attachment) {
+      if (attachment.type !== 'img') {
+        size += attachment.size;
+      }
 
-        var attachments = blobs.map(function(blob, idx) {
-          var attachment = new Attachment(blob, {
-            name: names[idx],
-            isDraft: true
-          });
+      return size;
+    }, 0);
 
-          return attachment;
-        });
+    if (size > Settings.mmsSizeLimitation) {
+      alert(navigator.mozL10n.get('files-too-large', {
+        n: activityData.blobs.length
+      }));
+      this.leaveActivity();
+      return;
+    }
 
-        var size = attachments.reduce(function(size, attachment) {
-          if (attachment.type !== 'img') {
-            size += attachment.size;
-          }
-
-          return size;
-        }, 0);
-
-        if (size > Settings.mmsSizeLimitation) {
-          alert(navigator.mozL10n.get('files-too-large', { n: blobs.length }));
-          return;
-        }
-
-        ThreadUI.cleanFields(true);
+    // Navigating to the 'New Message' page is an asynchronous operation that
+    // clears the Composition field. If the application is not already in the
+    // 'New Message' page, delay attachment insertion until after the
+    // navigation is complete.
+    if (window.location.hash !== '#new') {
+      window.addEventListener('hashchange', function onHashChanged() {
+        window.removeEventListener('hashchange', onHashChanged);
         Compose.append(attachments);
-      }
-
-      // Navigating to the 'New Message' page is an asynchronous operation that
-      // clears the Composition field. If the application is not already in the
-      // 'New Message' page, delay attachment insertion until after the
-      // navigation is complete.
-      if (window.location.hash !== '#new') {
-        window.addEventListener('hashchange', insertAttachments);
-        window.location.hash = '#new';
-      } else {
-        insertAttachments();
-      }
+      });
+      window.location.hash = '#new';
+    } else {
+      Compose.append(attachments);
     }
   },
 
-  resetActivity: function ah_resetActivity() {
-    this.currentActivity.new = null;
-    ThreadUI.resetActivityRequestMode();
+  _toggleActivityRequestMode: function(toggle) {
+    document.body.classList.toggle(
+      this.REQUEST_ACTIVITY_MODE_CLASS_NAME,
+      toggle
+    );
+  },
+
+  leaveActivity: function ah_leaveActivity() {
+    if (this.isInActivity()) {
+      this._activity.postResult({ success: true });
+      this._activity = null;
+
+      this._toggleActivityRequestMode(false);
+    }
   },
 
   handleMessageNotification: function ah_handleMessageNotification(message) {
