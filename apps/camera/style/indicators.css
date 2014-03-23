@@ -38,9 +38,8 @@
   margin-bottom: 1.2rem;
   border-radius: 4px;
   text-align: center;
-  background-color: #FFFFFF;
+  background-color: rgba(255,255,255,0.35);
   color: #008EAB;
-  opacity: 1;
   visibility: hidden;
 }
 
