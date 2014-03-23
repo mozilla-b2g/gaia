@@ -15,12 +15,14 @@ module.exports = {
       geolocation: false
     }
   },
-  lowbattery: {
-    low: 15,
-    verylow: 10,
-    critical: 6,
-    shutdown: 5,
-    healthy: 100
+  battery: {
+    levels: {
+      low: 15,
+      verylow: 10,
+      critical: 6,
+      shutdown: 5,
+      healthy: 100
+    }
   },
   mode: {
     title: 'Mode',
