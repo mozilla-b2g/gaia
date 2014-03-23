@@ -65,7 +65,7 @@
 
   function findMapByCode(map, strCode) {
     var val = map[strCode];
-    if (val == undefined) {
+    if (val === undefined) {
       return '';
     }
     return val;
@@ -81,8 +81,9 @@
   }
 
   function watchQ(myQ, position) {
-    if (myQ.length < 1)
+    if (myQ.length < 1) {
       return '';
+    }
 
     if (position != FIRST)
       position = myQ.length - 1;
@@ -91,7 +92,7 @@
   }
 
   function doComposition(flushQ) {
-    if (S1Q.length == 0 && S2Q.length == 0 && S3Q.length == 0) {
+    if (S1Q.length === 0 && S2Q.length === 0 && S3Q.length === 0) {
       return;
     }
 
@@ -104,22 +105,28 @@
         jungseongCode.indexOf(s2q0) * JUNGSEONG_MAP_SZ;
       if (S3Q.length > 0) {
         chCode = findMapByCode(jongseongMap, S3Q.join(''));
-        if (chCode != '') {
+        if (chCode !== '') {
           intCode += chCode.charCodeAt(0) - JONGSEONG_BASE;
         } else if (S3Q.length > 1) {
           var j = findMapByCode(jongseongMap, S3Q[0]);
-          if (j != '')
+          if (j !== '') {
             intCode += j.charCodeAt(0) - JONGSEONG_BASE;
+          }
         }
       }
 
       str = String.fromCharCode(intCode);
-      if (S3Q.length > 0 && chCode == '')
+      if (S3Q.length > 0 && chCode === '') {
         str += watchQ(S3Q, LAST);
-      if (S1Q.length > 1)
+      }
+
+      if (S1Q.length > 1) {
         str += S1Q[1];
-      if (S2Q.length > 1)
+      }
+
+      if (S2Q.length > 1) {
         str += S2Q[1];
+      }
     } else {
       str = watchQ(S1Q, FIRST) + watchQ(S2Q, FIRST) + watchQ(S3Q, FIRST);
     }
@@ -137,7 +144,7 @@
   function updateJamo(myQ, myMap, chCode) {
     var strCode = watchQ(myQ, LAST) + chCode;
     var nextCode = findMapByCode(myMap, strCode);
-    if (nextCode == '') {
+    if (nextCode === '') {
       doComposition(1);
       addQ(myQ, chCode);
     } else {
@@ -191,7 +198,7 @@
   function specialComb(strCode) {
     var specialMap = { 'ㄴㅅ': true, 'ㄹㅇ': true, 'ㄹㄷ': true,
       'ㄹㅂ': true, 'ㄹㅅ': true };
-    if (specialMap[strCode] == undefined)
+    if (specialMap[strCode] === undefined)
       return false;
     return true;
   }
@@ -200,10 +207,10 @@
     var strCode = watchQ(S3Q, LAST) + chCode;
     var nextCode = findMapByCode(choseongMap, strCode);
 
-    if (nextCode == '') {
+    if (nextCode === '') {
       if (S3Q.length <= 1) {
         nextCode = findMapByCode(jongseongMap, strCode);
-        if (nextCode != '' || specialComb(strCode)) {
+        if (nextCode !== '' || specialComb(strCode)) {
           addQ(S3Q, chCode);
           doComposition(0);
           return;
@@ -243,7 +250,7 @@
       case S2:
         if (isJaum(chCode)) {
           var strCode = watchQ(S2Q, LAST);
-          if (S1Q.length == 0 || strCode == ARAEA || strCode == ARAEA2) {
+          if (S1Q.length === 0 || strCode == ARAEA || strCode == ARAEA2) {
             doComposition(1);
             S2Q.pop();
             addQ(S1Q, chCode);
@@ -312,16 +319,18 @@
       case S2:
         S2Q.pop();
         doComposition(0);
-        if (S2Q.length < 1)
+        if (S2Q.length < 1) {
           syllableState = S1;
-        else
+        } else {
           syllableState = S3;
+        }
         break;
       case S3:
         S3Q.pop();
         doComposition(0);
-        if (S3Q.length < 1)
+        if (S3Q.length < 1) {
           syllableState = S2;
+        }
         break;
       default:
         kb.sendKey(intCode);
@@ -344,8 +353,9 @@
         if (syllableState != S0) {
           flushAll();
           syllableState = S0;
-          if (intCode == KEY_RETURN)
+          if (intCode == KEY_RETURN) {
             kb.sendKey(intCode);
+          }
         } else {
           kb.sendKey(intCode);
         }
@@ -355,8 +365,9 @@
 
     var chCode = String.fromCharCode(intCode);
     if (intCode == KEY_PERIOD || syllableState == S4) {
-      if (intCode == KEY_PERIOD)
+      if (intCode == KEY_PERIOD) {
         chCode = '.';
+      }
       handlePunctuation(chCode);
       return;
     }
