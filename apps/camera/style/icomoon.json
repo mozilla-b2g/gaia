@@ -20,7 +20,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 1
+			"iconIdx": 0
 		},
 		{
 			"icon": {
@@ -41,7 +41,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 2
+			"iconIdx": 1
 		},
 		{
 			"icon": {
@@ -62,7 +62,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 3
+			"iconIdx": 2
 		},
 		{
 			"icon": {
@@ -83,7 +83,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 4
+			"iconIdx": 3
 		},
 		{
 			"icon": {
@@ -104,7 +104,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 5
+			"iconIdx": 4
 		},
 		{
 			"icon": {
@@ -125,7 +125,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 6
+			"iconIdx": 5
 		},
 		{
 			"icon": {
@@ -146,7 +146,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 7
+			"iconIdx": 6
 		},
 		{
 			"icon": {
@@ -167,7 +167,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 8
+			"iconIdx": 7
 		},
 		{
 			"icon": {
@@ -188,7 +188,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 9
+			"iconIdx": 8
 		},
 		{
 			"icon": {
@@ -209,7 +209,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 10
+			"iconIdx": 9
 		},
 		{
 			"icon": {
@@ -230,7 +230,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 11
+			"iconIdx": 10
 		},
 		{
 			"icon": {
@@ -251,7 +251,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 12
+			"iconIdx": 11
 		},
 		{
 			"icon": {
@@ -272,7 +272,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 13
+			"iconIdx": 12
 		},
 		{
 			"icon": {
@@ -293,7 +293,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 14
+			"iconIdx": 13
 		},
 		{
 			"icon": {
@@ -314,7 +314,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 15
+			"iconIdx": 14
 		},
 		{
 			"icon": {
@@ -335,7 +335,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 16
+			"iconIdx": 15
 		},
 		{
 			"icon": {
@@ -356,7 +356,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 17
+			"iconIdx": 16
 		},
 		{
 			"icon": {
@@ -377,7 +377,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 18
+			"iconIdx": 17
 		},
 		{
 			"icon": {
@@ -398,7 +398,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 19
+			"iconIdx": 18
 		},
 		{
 			"icon": {
@@ -419,7 +419,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 20
+			"iconIdx": 19
 		},
 		{
 			"icon": {
@@ -440,7 +440,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 21
+			"iconIdx": 20
 		},
 		{
 			"icon": {
@@ -461,7 +461,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 22
+			"iconIdx": 21
 		},
 		{
 			"icon": {
@@ -482,28 +482,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 23
-		},
-		{
-			"icon": {
-				"paths": [
-					"M406.694 495.33h-58.368l8.312-67.644h-32.482l-20.51 168.764h32.226l9.291-75.475h58.368l-9.276 75.475h32.467l20.525-168.764h-32.241l-8.312 67.644zM567.763 444.657c-6.596-5.617-14.577-9.848-23.944-12.695-9.352-2.846-19.893-4.277-31.624-4.277h-43.957l-20.51 168.764h49.348c14.306 0 27.136-2.319 38.46-6.972 11.309-4.638 20.887-11.309 28.702-20.028s13.764-19.336 17.83-31.88c4.066-12.529 6.114-26.79 6.114-42.737 0-11.068-1.747-20.796-5.256-29.184-3.539-8.373-8.584-15.375-15.164-20.992zM550.28 529.528c-2.756 9.608-6.581 17.574-11.475 23.928-4.894 6.355-10.677 11.083-17.333 14.17-6.686 3.087-13.929 4.638-21.73 4.638h-16.866l14.908-120.395h13.914c13.673 0 24.23 3.388 31.639 10.135 7.394 6.761 11.113 17.875 11.113 33.34 0 13.176-1.4 24.576-4.171 34.184zM715.896 504.983c7.575-9.201 11.354-20.149 11.354-32.843 0-14.005-5.256-24.907-15.752-32.723-10.496-7.816-26.669-11.731-48.474-11.731h-47.631l-20.51 168.764h32.241l8.297-67.659h20.028l31.744 67.659h34.921l-36.864-72.297c12.845-3.584 23.070-9.969 30.645-19.17zM658.869 505.585h-20.766l6.837-54.468h16.113c11.234 0 19.411 1.882 24.531 5.617 5.135 3.75 7.695 9.276 7.695 16.61 0 10.586-2.967 18.613-8.9 24.064-5.933 5.451-14.456 8.177-25.51 8.177z"
-				],
-				"grid": 16,
-				"tags": [
-					"hdr"
-				]
-			},
-			"properties": {
-				"order": 24,
-				"id": 44,
-				"prevSize": 32,
-				"code": 58900,
-				"name": "hdr",
-				"ligatures": ""
-			},
-			"setIdx": 0,
-			"iconIdx": 0
+			"iconIdx": 22
 		},
 		{
 			"icon": {
@@ -516,7 +495,7 @@
 				"grid": 16
 			},
 			"properties": {
-				"order": 25,
+				"order": 24,
 				"id": 41,
 				"prevSize": 32,
 				"code": 58891,
@@ -524,48 +503,38 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 24
+			"iconIdx": 23
 		}
 	],
 	"height": 1024,
 	"metadata": {
-		"name": "icomoon"
+		"name": "gaia-camera"
 	},
 	"preferences": {
+		"showGlyphs": true,
+		"showQuickUse": true,
 		"fontPref": {
 			"prefix": "icon-",
 			"metadata": {
-				"fontFamily": "icomoon",
+				"fontFamily": "gaia-camera",
 				"majorVersion": 1,
 				"minorVersion": 0
 			},
-			"showGlyphs": true,
 			"metrics": {
-				"emSize": 512,
+				"emSize": 1024,
 				"baseline": 6.25,
 				"whitespace": 50
 			},
-			"resetPoint": 58880,
-			"showQuickUse": true,
-			"quickUsageToken": false,
-			"showMetrics": true,
+			"embed": true,
+			"showMetrics": false,
 			"showMetadata": false,
-			"embed": true
+			"showVersion": false,
+			"resetPoint": 58880
 		},
-		"imagePref": {
-			"color": 0,
-			"height": 32,
-			"columns": 16,
-			"margin": 16,
-			"png": false,
-			"sprites": true
-		},
+		"imagePref": {},
 		"historySize": 100,
 		"showCodes": true,
 		"gridSize": 16,
-		"showLiga": false,
-		"showGrid": true,
-		"showGlyphs": true,
-		"showQuickUse": true
+		"showGrid": true
 	}
 }
