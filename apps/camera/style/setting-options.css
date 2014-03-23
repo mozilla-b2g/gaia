@@ -68,7 +68,9 @@
  */
 
 .setting-option:active {
-  background: rgba(0,190,171,0.3);
+  background-color: #008eab;
+  text-shadow: 0px 1px rgba(59, 59, 59, .6);
+  color: white;
 }
 
 /**
@@ -77,6 +79,10 @@
 
 .setting-option.selected {
   color: #008eab;
+}
+
+.setting-option.selected:active {
+  color: white;
 }
 
 /** Item Icon

@@ -146,11 +146,6 @@
   color: #C7C7C7;
 }
 
-.mode-switch .mode-icon:after {
-  content: "\e602";
-  color: #C7C7C7;
-}
-
 .controls[mode=video] .mode-switch .mode-icon{
   left: 1.1rem;
 }
