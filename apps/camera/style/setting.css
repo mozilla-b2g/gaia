@@ -27,7 +27,11 @@
  */
 
 .setting:active {
-  background: rgba(0,190,171,0.3);
+  background: #008eab;
+}
+
+.setting:active .setting_title {
+  color: rgba(255,255,255, 1);
 }
 
 /** Icon
@@ -37,6 +41,7 @@
   display: block;
   width: 4rem;
   font-size: 3rem;
+  padding-left: 1rem;
 }
 
 /** Title
