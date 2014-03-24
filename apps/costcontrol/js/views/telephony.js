@@ -66,7 +66,8 @@ var TelephonyTab = (function() {
 
   function updateUI() {
     var requestObj = { type: 'telephony' };
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestSettings(Common.dataSimIccId,
+                                  function _onSettings(settings) {
       costcontrol.request(requestObj, function _afterRequest(result) {
         var telephonyActivity = result.data;
         debug('Last telephony activity:', telephonyActivity);

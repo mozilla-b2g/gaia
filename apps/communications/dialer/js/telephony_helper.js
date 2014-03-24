@@ -26,7 +26,8 @@ var TelephonyHelper = (function() {
 
     var telephony = navigator.mozTelephony;
     var openLines = telephony.calls.length +
-        (telephony.conferenceGroup.calls.length ? 1 : 0);
+        ((telephony.conferenceGroup &&
+          telephony.conferenceGroup.calls.length) ? 1 : 0);
     // User can make call only when there are less than 2 calls by spec.
     // If the limit reached, return early to prevent holding active call.
     if (openLines >= 2) {
@@ -149,6 +150,8 @@ var TelephonyHelper = (function() {
     } else if (errorName === 'FDNBlockedError' ||
                errorName === 'FdnCheckFailure') {
       displayMessage('FixedDialingNumbers');
+    } else if (errorName == 'OtherConnectionInUse') {
+      displayMessage('OtherConnectionInUse');
     } else {
       // If the call failed for some other reason we should still
       // display something to the user. See bug 846403.
@@ -209,6 +212,10 @@ var TelephonyHelper = (function() {
         dialogTitle = 'fdnIsEnabledTitle';
         dialogBody = 'fdnIsEnabledMessage';
         break;
+      case 'OtherConnectionInUse':
+        dialogTitle = 'otherConnectionInUseTitle';
+        dialogBody = 'otherConnectionInUseMessage';
+        break;
       default:
         console.error('Invalid message argument'); // Should never happen
         return;
@@ -237,8 +244,27 @@ var TelephonyHelper = (function() {
     }
   };
 
+  var getInUseSim = function t_getInUseSim() {
+    var telephony = navigator.mozTelephony;
+    if (telephony) {
+      var isInCall = !!telephony.calls.length;
+      var isInConference = !!telephony.conferenceGroup.calls.length;
+
+      if (isInCall || isInConference) {
+        return isInCall ?
+          navigator.mozTelephony.calls[0].serviceId :
+          navigator.mozTelephony.conferenceGroup.calls[0].serviceId;
+      }
+    }
+
+    return null;
+  };
+
+  window.TelephonyHelper = TelephonyHelper;
+
   return {
-    call: call
+    call: call,
+    getInUseSim: getInUseSim
   };
 
 })();

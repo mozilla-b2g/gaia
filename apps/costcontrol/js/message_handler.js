@@ -94,7 +94,8 @@
   window.setNextReset = setNextReset;
 
   function getTopUpTimeout(callback) {
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestSettings(Common.dataSimIccId,
+                                  function _onSettings(settings) {
       var request = navigator.mozAlarms.getAll();
       request.onsuccess = function(e) {
         var alarms = e.target.result;
@@ -247,7 +248,8 @@
     clearTimeout(closing);
     switch (alarm.data.type) {
       case 'balanceTimeout':
-        ConfigManager.requestSettings(function _onSettings(settings) {
+        ConfigManager.requestSettings(Common.dataSimIccId,
+                                      function _onSettings(settings) {
           settings.errors['BALANCE_TIMEOUT'] = true;
           ConfigManager.setOption(
             { 'errors': settings.errors, 'waitingForBalance': null },
@@ -262,7 +264,8 @@
         break;
 
       case 'topupTimeout':
-        ConfigManager.requestSettings(function _onSettings(settings) {
+        ConfigManager.requestSettings(Common.dataSimIccId,
+                                      function _onSettings(settings) {
           settings.errors['TOPUP_TIMEOUT'] = true;
           ConfigManager.setOption(
             { 'errors': settings.errors, 'waitingForTopUp': null },
@@ -277,7 +280,8 @@
         break;
 
       case 'nextReset':
-        ConfigManager.requestSettings(function _onSettings(settings) {
+        ConfigManager.requestSettings(Common.dataSimIccId,
+                                      function _onSettings(settings) {
           resetAll(function updateNextResetAndClose() {
             updateNextReset(
               settings.trackingPeriod, settings.resetTime,
@@ -292,7 +296,8 @@
   function _onNetworkAlarm(alarm) {
     clearTimeout(closing);
     navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
-      ConfigManager.requestSettings(function _onSettings(settings) {
+      ConfigManager.requestSettings(Common.dataSimIccId,
+                                    function _onSettings(settings) {
         var app = evt.target.result;
         var iconURL = NotificationHelper.getIconURI(app);
 
@@ -520,7 +525,8 @@
             }
             debug('Outgoing call finished!');
 
-            ConfigManager.requestSettings(function _onSettings(settings) {
+            ConfigManager.requestSettings(Common.dataSimIccId,
+                                          function _onSettings(settings) {
               var mode = ConfigManager.getApplicationMode();
               if (mode === 'PREPAID') {
                 costcontrol.request({ type: 'balance' });

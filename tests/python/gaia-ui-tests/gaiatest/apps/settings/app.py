@@ -3,6 +3,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+from marionette.wait import Wait
+from marionette.errors import JavascriptException
 from gaiatest.apps.base import Base
 
 
@@ -34,7 +36,7 @@ class Settings(Base):
     def launch(self):
         Base.launch(self)
         # _currentPanel is set after all handlers are set
-        self.wait_for_condition(lambda m:
+        Wait(self.marionette, ignored_exceptions=JavascriptException).until(lambda m:
                                 m.execute_script('return window.wrappedJSObject.Settings._currentPanel') == '#root')
 
     def wait_for_airplane_toggle_ready(self):

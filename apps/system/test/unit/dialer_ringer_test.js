@@ -7,7 +7,7 @@ require('/js/dialer_ringer.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_audio.js');
-require('/test/unit/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 
 var mocksForDialerRinger = new MocksHelper([
   'SettingsListener',

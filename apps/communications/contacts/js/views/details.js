@@ -241,7 +241,7 @@ contacts.Details = (function() {
       }
       var pos = contact.category.indexOf('favorite');
       if (pos > -1) {
-        delete contact.category[pos];
+        contact.category.splice(pos, 1);
       }
     }
 
@@ -396,6 +396,20 @@ contacts.Details = (function() {
     }
   }
 
+  var enableCalls = function enableCalls() {
+    contactDetails.classList.remove('calls-disabled');
+  };
+
+  var disableCalls = function disableCalls() {
+    contactDetails.classList.add('calls-disabled');
+  };
+
+  var call = function call(phoneNumber, cardIndex) {
+    disableCalls();
+    TelephonyHelper.call(phoneNumber, cardIndex, enableCalls, enableCalls,
+                         enableCalls, enableCalls);
+  };
+
   var renderPhones = function cd_renderPhones(contact) {
     if (!contact.tel) {
       return;
@@ -444,7 +458,7 @@ contacts.Details = (function() {
         button.addEventListener('click', onMMICode);
       } else if (navigator.mozTelephony) {
         LazyLoader.load(['/shared/js/multi_sim_action_button.js'], function() {
-          new MultiSimActionButton(button, TelephonyHelper.call,
+          new MultiSimActionButton(button, call,
                                    'ril.telephony.defaultServiceId',
                                    function() {return number});
         });

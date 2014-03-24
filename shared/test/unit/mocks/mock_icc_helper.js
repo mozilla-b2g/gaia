@@ -1,4 +1,8 @@
 'use strict';
+/* exported MockIccHelper */
+
+/* Allow setter without getter */
+/* jshint -W078 */
 
 var MockIccHelper = {
   mProps: {'cardState': null, 'iccInfo': {}, 'retryCount': 0},
@@ -23,8 +27,8 @@ var MockIccHelper = {
       if (typeof callback === 'function') {
         callback(evt);
       } else if (typeof callback == 'object' &&
-                 typeof callback['handleEvent'] === 'function') {
-        callback['handleEvent'](evt);
+                 typeof callback.handleEvent === 'function') {
+        callback.handleEvent(evt);
       }
     });
 
@@ -34,15 +38,15 @@ var MockIccHelper = {
   },
 
   get cardState() {
-    return this.mProps['cardState'];
+    return this.mProps.cardState;
   },
 
   get iccInfo() {
-    return this.mProps['iccInfo'];
+    return this.mProps.iccInfo;
   },
 
   getCardLockRetryCount: function(lockType, onresult) {
-    onresult(this.mProps['retryCount']);
+    onresult(this.mProps.retryCount);
   },
 
   setProperty: function _setProperty(property, newState) {

@@ -56,8 +56,14 @@
     <!-- For perf-measurement related utilities -->
     <script defer="" src="/shared/js/performance_testing_helper.js"></script>
 
+    <!-- Lazy loader -->
+    <script defer="" src="/shared/js/lazy_loader.js"></script>
+
+    <!-- Screen layout watcher -->
+    <script defer="" src="/shared/js/screen_layout.js"></script>
+
     <!-- Specific code -->
-    <script data-main="js/main" src="js/vendor/alameda.js"></script>
+    <script data-skip-optimize data-main="js/main" src="js/vendor/alameda.js"></script>
 
     <!-- shared helper library -->
     <!--<script defer src="shared/js/download/download_store.js"></script>-->
@@ -76,6 +82,8 @@
     <!--<script defer src="shared/js/toaster.js"></script> -->
     <!--<script defer src="shared/js/lazy_loader.js"></script> -->
     <!--<script defer src="shared/js/screen_layout.js"></script> -->
+    <!--<script defer src="shared/js/fxa_iac_client.js"></script> -->
+    <!--<script defer src="shared/js/text_normalizer.js"></script> -->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
     <link rel="import" href="/elements/wifi_status.html">
@@ -151,6 +159,7 @@
     <link rel="import" href="/elements/help.html">
     <link rel="import" href="/elements/icc.html">
     <link rel="import" href="/elements/downloads.html">
+    <link rel="import" href="/elements/firefox_accounts.html">
   </head>
   <body class="skin-organic uninit">
     <!--
@@ -327,6 +336,9 @@
     <!-- SIM Toolkit -->
     <section is="icc" role="region" id="icc"></section>
 
+    <!-- Firefox Accounts -->
+    <section is="fxa" role="region" id="fxa"></section>
+
     <!-- Main List -->
     <section role="region" id="root" class="current" data-rendered="true">
       <header>
@@ -423,17 +435,17 @@
         </ul>
 
         <!-- Main :: Accounts -->
-        <header hidden="">
-          <h2 data-l10n-id="accounts">Accounts</h2>
-        </header>
-        <ul hidden="">
-          <li>
-            <a id="menuItem-persona" class="menu-item" href="#persona" data-l10n-id="persona">Persona</a>
-          </li>
-          <li>
-            <a id="menuItem-mail" class="menu-item" href="#mail" data-l10n-id="mail">Mail</a>
-          </li>
-        </ul>
+        <span data-show-name="identity.fxaccounts.ui.enabled" hidden>
+          <header>
+            <h2 data-l10n-id="accounts">Accounts</h2>
+          </header>
+          <ul>
+            <li>
+              <small id="fxa-desc" class="menu-item-desc"></small>
+              <a id="menuItem-fxa" class="menu-item" href="#fxa" data-l10n-id="fxa-accounts">Firefox Accounts</a>
+            </li>
+          </ul>
+        </span>
 
         <!-- Main :: Security & Privacy -->
         <header>

@@ -123,6 +123,7 @@ var Settings = {
        * card and radio state.
        */
       this.LazyLoader.load([
+        'js/firefox_accounts/menu_loader.js',
         'shared/js/airplane_mode_helper.js',
         'js/airplane_mode.js',
         'js/battery.js',

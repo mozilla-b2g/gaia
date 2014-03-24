@@ -78,8 +78,18 @@ var CostControlApp = (function() {
 
     // In case we can not get a valid ICCID.
     }, function _errorNoSim() {
-        console.warn('Error when trying to get the ICC ID');
-        showNonReadyScreen(null);
+      var fakeState = null;
+      if (AirplaneModeHelper.getStatus() === 'enabled') {
+        fakeState = 'airplaneMode';
+        var iccManager = window.navigator.mozIccManager;
+        iccManager.addEventListener('iccdetected',
+          function _oniccdetected() {
+            iccManager.removeEventListener('iccdetected', _oniccdetected);
+            waitForSIMReady(callback);
+          });
+      }
+      console.warn('Error when trying to get the ICC ID status =' + fakeState);
+      showNonReadyScreen(fakeState);
     });
   }
 
@@ -314,7 +324,8 @@ var CostControlApp = (function() {
 
   var currentMode;
   function updateUI(callback) {
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestSettings(Common.dataSimIccId,
+                                  function _onSettings(settings) {
       var mode = ConfigManager.getApplicationMode();
       debug('App UI mode: ', mode);
 

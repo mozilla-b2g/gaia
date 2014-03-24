@@ -61,7 +61,8 @@ var DataUsageTab = (function() {
       resetButtonState();
 
       // Setup the model
-      ConfigManager.requestSettings(function _onSettings(settings) {
+      ConfigManager.requestSettings(Common.dataSimIccId,
+                                    function _onSettings(settings) {
         debug('First time setup for model');
         var lastCompleteDataReset = settings.lastCompleteDataReset;
         var nextReset = settings.nextReset;
@@ -132,7 +133,8 @@ var DataUsageTab = (function() {
   }
 
   function resetButtonState() {
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestSettings(Common.dataSimIccId,
+                                  function _onSettings(settings) {
       var isMobileChartVisible = settings.isMobileChartVisible;
       if (typeof isMobileChartVisible === 'undefined') {
         isMobileChartVisible = true;
@@ -173,7 +175,8 @@ var DataUsageTab = (function() {
   }
 
   function requestDataUsage() {
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestSettings(Common.dataSimIccId,
+                                  function _onSettings(settings) {
       var requestObj = { type: 'datausage' };
       costcontrol.request(requestObj, updateCharts);
     });
@@ -181,7 +184,8 @@ var DataUsageTab = (function() {
 
   function updateCharts(result) {
     if (result.status === 'success') {
-      ConfigManager.requestSettings(function _onSettings(settings) {
+      ConfigManager.requestSettings(Common.dataSimIccId,
+                                    function _onSettings(settings) {
         debug('Updating model');
         var modelData = result.data;
         model.data.wifi.samples = modelData.wifi.samples;

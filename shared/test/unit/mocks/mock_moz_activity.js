@@ -1,4 +1,7 @@
 'use strict';
+/* Allow setter without getter */
+/* jshint -W078 */
+
 
 var MockMozActivity = function(info) {
 
@@ -13,7 +16,7 @@ var MockMozActivity = function(info) {
   var data = info.data;
 
   return {
-    set onsuccess(cb) {setTimeout(cb, 50)},
+    set onsuccess(cb) { setTimeout(cb, 50); },
     set onerror(cb) {},
     name: name,
     data: data

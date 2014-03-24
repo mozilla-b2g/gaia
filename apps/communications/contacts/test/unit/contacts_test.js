@@ -1,7 +1,8 @@
 'use strict';
 
 /* global Contacts, MockContactsListObj, MockCookie, MockMozL10n,
-          MockNavigationStack, MocksHelper, MockUtils */
+          MockNavigationStack, MocksHelper, MockUtils, MockActivities,
+          MockContactAllFields, contacts */
 
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
@@ -9,8 +10,10 @@ requireApp('communications/contacts/test/unit/mock_cookie.js');
 requireApp('communications/contacts/test/unit/mock_datastore_migrator.js');
 requireApp('communications/contacts/test/unit/mock_event_listeners.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
+requireApp('communications/contacts/test/unit/mock_activities.js');
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 
 var mocksForStatusBar = new MocksHelper([
   'DatastoreMigration',
@@ -26,6 +29,9 @@ if (!window.contacts) {
 if (!window.utils) {
   window.utils = null;
 }
+if (!window.ActivityHandler) {
+  window.ActivityHandler = null;
+}
 var globals = ['COMMS_APP_ORIGIN', '_', 'TAG_OPTIONS', 'asyncScriptsLoaded',
                'SCALE_RATIO', 'Contacts'];
 globals.forEach(function(item) {
@@ -40,6 +46,7 @@ suite('Contacts', function() {
   var realContacts;
   var realUtils;
   var mockNavigation;
+  var realActivityHandler;
 
   mocksForStatusBar.attachTestHelpers();
 
@@ -55,6 +62,9 @@ suite('Contacts', function() {
     window.utils = MockUtils;
     window.utils.cookie = MockCookie;
 
+    realActivityHandler = window.ActivityHandler;
+    window.ActivityHandler = MockActivities;
+
     realNavigationStack = window.navigationStack;
     window.navigationStack = MockNavigationStack;
     sinon.spy(window, 'navigationStack');
@@ -65,15 +75,14 @@ suite('Contacts', function() {
     navigator.mozL10n = realMozL10n;
     window.contacts = realContacts;
     window.utils = realUtils;
+    window.ActivityHandler = realActivityHandler;
 
     window.navigationStack.restore();
     window.navigationStack = realNavigationStack;
   });
 
   setup(function() {
-    document.body.innerHTML = '<h1>' +
-      '<div id="cancel_activity"></div>' +
-      '</h1>';
+    loadBodyHTML('/contacts/index.html');
 
     Contacts.init();
     mockNavigation = window.navigationStack.firstCall.thisValue;
@@ -85,6 +94,51 @@ suite('Contacts', function() {
     setTimeout(function() {
       sinon.assert.called(mockNavigation.home);
       done();
+    });
+  });
+
+  suite('on contacts change', function() {
+    var mozContact = null;
+
+    setup(function() {
+      mozContact = new MockContactAllFields();
+      Contacts.setCurrent(mozContact);
+
+      this.sinon.stub(contacts.List, 'getContactById', function(id, cb) {
+        // Return the contact + additional FB info
+        cb(mozContact, {
+          id: 'FBID',
+          email: [
+            {
+              type: ['work'],
+              value: 'myfbemail@email.com'
+            }
+          ]
+        });
+      });
+
+      this.sinon.spy(contacts.List, 'refresh');
+    });
+
+    test('> FB contact update sends MozContacts info', function() {
+      var evt = {
+        contactID: mozContact.id,
+        reason: 'update'
+      };
+
+      mockNavigation._currentView = 'view-contact-details';
+
+      navigator.mozContacts.oncontactchange(evt);
+      sinon.assert.pass(contacts.List.getContactById.called);
+      sinon.assert.calledWith(contacts.List.getContactById, mozContact.id);
+      sinon.assert.pass(contacts.List.refresh.called);
+      sinon.assert.calledWith(contacts.List.refresh, mozContact);
+
+      var argument = contacts.List.refresh.getCall(0).args[0];
+      assert.isTrue(Array.isArray(argument.email));
+      argument.email.forEach(function onEmail(email) {
+        assert.isTrue(email.value !== 'myfbemail@email.com');
+      });
     });
   });
 });

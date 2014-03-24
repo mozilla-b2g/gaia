@@ -11,7 +11,7 @@
     }
 
     // Trigger observers to mimic real mozSettings implementation.
-    for (var key in obj) {
+    for (key in obj) {
       mns_mTriggerObservers(
         key,
         { settingName: key, settingValue: obj[key] }
@@ -171,4 +171,4 @@
     }
   };
 
-})(this);
+})(window);

@@ -100,7 +100,8 @@ function resetData(mode, onsuccess, onerror) {
                                           .clearStats(currentSimcardInterface);
     mobileClearRequest.onerror = getOnErrorFor('simcard');
     mobileClearRequest.onsuccess = function _restoreDataLimitAlarm() {
-      ConfigManager.requestSettings(function _onSettings(settings) {
+      ConfigManager.requestSettings(Common.dataSimIccId,
+                                    function _onSettings(settings) {
         if (settings.dataLimit) {
           // Restore network alarm
           addNetworkUsageAlarm(currentSimcardInterface, getDataLimit(settings),
@@ -273,7 +274,8 @@ var Common = {
       return;
     }
 
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestSettings(Common.dataSimIccId,
+                                  function _onSettings(settings) {
       if (settings.nextReset) {
         setNextReset(settings.nextReset, callback);
         return;

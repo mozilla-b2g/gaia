@@ -122,6 +122,9 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   white-space: pre-wrap;
 }
 
+#bulkDelete {
+  margin-top: 1rem;
+}
 #contact-detail h1 {
   font-size: 1.4rem;
   line-height: 1.5em;
@@ -159,6 +162,10 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 #contact-detail .social-actions button {
   margin-bottom: 1rem;
+}
+
+.calls-disabled li[data-phone] button.call-action {
+  pointer-events: none;
 }
 
 #contact-detail .duplicate-actions button {

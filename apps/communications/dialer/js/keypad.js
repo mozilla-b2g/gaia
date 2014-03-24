@@ -629,8 +629,8 @@ var KeypadManager = {
     req.onsuccess = function() {
       LazyLoader.load(['/shared/js/sim_picker.js'], function() {
         LazyL10n.get(function(_) {
-          SimPicker.show(req.result[key], _('voiceMail'),
-                         self._callVoicemailForSim);
+          SimPicker.getOrPick(req.result[key], _('voiceMail'),
+                              self._callVoicemailForSim);
         });
       });
     };

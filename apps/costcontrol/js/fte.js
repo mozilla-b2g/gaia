@@ -285,7 +285,8 @@
 
   function onFinish(evt) {
     evt.target.disabled = true;
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestSettings(Common.dataSimIccId,
+                                  function _onSettings(settings) {
       ConfigManager.setOption({ fte: false }, function _returnToApp() {
         updateNextReset(settings.trackingPeriod, settings.resetTime,
           function _returnToTheApplication() {

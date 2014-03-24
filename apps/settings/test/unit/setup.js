@@ -1,6 +1,5 @@
-'use strict';
-
 /* global requirejs */
+'use strict';
 
 require('/shared/test/unit/mocks/mocks_helper.js');
 requireApp('settings/js/vendor/alameda.js', (function() {

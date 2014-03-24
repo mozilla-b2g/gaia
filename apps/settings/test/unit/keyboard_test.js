@@ -280,7 +280,9 @@ suite('keyboard >', function() {
         setup(function() {
           layouts[0][0].enabled = false;
           this.defaultCallback = this.sinon.spy();
-          KeyboardContext.defaultKeyboardEnabled(this.defaultCallback);
+          this.missingTypes = [];
+          KeyboardContext.defaultKeyboardEnabled(this.defaultCallback,
+            this.missingTypes);
         });
         test('calls checkDefaults', function() {
           assert.isTrue(this.checkDefaults.called);
@@ -288,7 +290,7 @@ suite('keyboard >', function() {
         suite('default enabled', function() {
           setup(function() {
             this.layout = {};
-            this.checkDefaults.yield([this.layout]);
+            this.checkDefaults.yield([this.layout], [this.missingTypes]);
           });
           test('calls callback with enabled layout', function() {
             assert.ok(this.defaultCallback.calledWith(this.layout));
@@ -331,7 +333,7 @@ suite('keyboard >', function() {
             types: ['url', 'text'],
             name: 'layoutName'
           }
-        });
+        }, ['text']);
       });
       teardown(function() {
         document.body.removeChild(this.title);
