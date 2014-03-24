@@ -1,7 +1,7 @@
 'use strict';
 
 mocha.globals(['AppWindow', 'AppChrome', 'System',
-  'BaseUI', 'ModalDialog', 'homeGesture']);
+  'BaseUI', 'ModalDialog', 'HomeGesture']);
 
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_app_window.js');
@@ -15,8 +15,8 @@ suite('system/AppChrome', function() {
   var stubById, realL10n, realHomeGesture;
   mocksForAppChrome.attachTestHelpers();
   setup(function(done) {
-    realHomeGesture = window.homeGesture;
-    window.homeGesture = { enable: false };
+    realHomeGesture = window.HomeGesture;
+    window.HomeGesture = { enable: false };
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     this.sinon.useFakeTimers();
@@ -29,7 +29,7 @@ suite('system/AppChrome', function() {
   });
 
   teardown(function() {
-    window.homeGesture = realHomeGesture;
+    window.HomeGesture = realHomeGesture;
     navigator.mozL10n = realL10n;
     stubById.restore();
   });
@@ -210,26 +210,5 @@ suite('system/AppChrome', function() {
     var stubToggleButtonBar = this.sinon.stub(chrome1, 'toggleButtonBar');
     chrome1.handleOpened();
     assert.isTrue(stubToggleButtonBar.called);
-  });
-
-  test('toggleButtonBar with homeGesture enabled', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    homeGesture.enabled = true;
-    chrome1.toggleButtonBar();
-    assert.isTrue(chrome1.navigation.classList.contains('closed'));
-  });
-
-  test('handleClosing with homeGesture enabled', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var chrome1 = new AppChrome(app1);
-    homeGesture.enabled = false;
-    chrome1.navigation.classList.remove('closed');
-    chrome1.handleClosing();
-    assert.isTrue(chrome1.navigation.classList.contains('closed'));
-    chrome1.navigation.classList.remove('closed');
-    homeGesture.enabled = true;
-    chrome1.handleClosing();
-    assert.isFalse(chrome1.navigation.classList.contains('closed'));
   });
 });

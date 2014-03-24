@@ -236,7 +236,7 @@
 
   AppChrome.prototype.toggleButtonBar = function ac_toggleButtonBar(time) {
     clearTimeout(this.buttonBarTimeout);
-    if (!window.homeGesture.enabled) {
+    if (!HomeGesture.enable) {
       this.navigation.classList.toggle('closed');
     }
     this.isButtonBarDisplayed = !this.isButtonBarDisplayed;
@@ -255,7 +255,7 @@
 
   AppChrome.prototype.handleClosing = function ac_handleClosing() {
     clearTimeout(this.buttonBarTimeout);
-    if (!window.homeGesture.enabled) {
+    if (!HomeGesture.enable) {
       this.navigation.classList.add('closed');
     }
     this.isButtonBarDisplayed = false;

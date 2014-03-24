@@ -1,9 +1,4 @@
 'use strict';
-/* global HomeGesture */
-/* global MocksHelper */
-/* global MockNavigatorSettings */
-/* global MockScreenLayout */
-/* global ScreenLayout */
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -16,11 +11,11 @@ var mocksForHomegesture = new MocksHelper([
   'ScreenLayout'
 ]).init();
 
+
 suite('enable/disable homegesture', function() {
   var realScreenLayout;
   var realSettings;
   var fakeHomebar;
-  var subject;
   mocksForHomegesture.attachTestHelpers();
 
   suiteSetup(function() {
@@ -59,7 +54,7 @@ suite('enable/disable homegesture', function() {
     ScreenLayout.setDefault({
       tiny: true
     });
-    subject = new HomeGesture().start();
+    HomeGesture.init();
     assert.equal(
       MockNavigatorSettings.mSettings['homegesture.enabled'], false);
   });
@@ -68,15 +63,15 @@ suite('enable/disable homegesture', function() {
     ScreenLayout.setDefault({
       tiny: false
     });
-    subject = new HomeGesture().start();
+    HomeGesture.init();
     assert.equal(
-      subject.homeBar.classList.contains('visible'),
+      HomeGesture.homeBar.classList.contains('visible'),
       true);
   });
 
   test('enable software button when homegesture is enabled', function() {
-    subject.enabled = true;
-    subject.handleEvent({
+    HomeGesture.enable = true;
+    HomeGesture.handleEvent({
       type: 'software-button-enabled'
     });
     assert.equal(
@@ -85,9 +80,9 @@ suite('enable/disable homegesture', function() {
 
   test('disable sw btn when homegesture is disabled without hardware homebtn',
     function() {
-    subject.enabled = false;
-    subject.hasHardwareHomeButton = false;
-    subject.handleEvent({
+    HomeGesture.enable = false;
+    HomeGesture.hasHardwareHomeButton = false;
+    HomeGesture.handleEvent({
       type: 'software-button-disabled'
     });
     assert.equal(
@@ -95,38 +90,38 @@ suite('enable/disable homegesture', function() {
   });
 
   test('when utility tray display', function() {
-    subject.handleEvent({
+    HomeGesture.handleEvent({
       type: 'utilitytrayshow'
     });
     assert.equal(
-      subject.homeBar.classList.contains('visible'),
+      HomeGesture.homeBar.classList.contains('visible'),
       false);
   });
 
   test('when utility tray hide', function() {
-    subject.handleEvent({
+    HomeGesture.handleEvent({
       type: 'utilitytrayhide'
     });
     assert.equal(
-      subject.homeBar.classList.contains('visible'),
+      HomeGesture.homeBar.classList.contains('visible'),
       true);
   });
 
   test('when lockscreen is enabled', function() {
-    subject.handleEvent({
+    HomeGesture.handleEvent({
       type: 'lock'
     });
     assert.equal(
-      subject.homeBar.classList.contains('visible'),
+      HomeGesture.homeBar.classList.contains('visible'),
       false);
   });
 
   test('when lockscreen is disabled', function() {
-    subject.handleEvent({
+    HomeGesture.handleEvent({
       type: 'will-unlock'
     });
     assert.equal(
-      subject.homeBar.classList.contains('visible'),
+      HomeGesture.homeBar.classList.contains('visible'),
       true);
   });
 });
