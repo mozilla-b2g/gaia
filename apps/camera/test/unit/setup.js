@@ -13,7 +13,10 @@ mocha.setup({
     'VideoPlayer',
     'GestureDetector',
     'debug',
-    'CONFIG_AVG_JPEG_COMPRESSION_RATIO'
+    'CONFIG_AVG_JPEG_COMPRESSION_RATIO',
+    'MediaFrame',
+    'confirm',
+    'MozActivity'
   ]
 });
 
