@@ -166,7 +166,7 @@ suite('Render contact form', function() {
 
     test('with email params', function() {
       var params = {
-        email: '123'
+        email: '123@example.es'
       };
       subject.render(params);
       var toCheck = ['phone', 'address', 'email', 'note'];
@@ -217,6 +217,17 @@ suite('Render contact form', function() {
       function() {
         var params = {
           email: '    '
+        };
+
+        subject.render(params);
+        assertSaveState('disabled');
+      }
+    );
+
+    test('If email is not valid then done button must be disabled',
+      function() {
+        var params = {
+          email: 'jj@'
         };
 
         subject.render(params);
