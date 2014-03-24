@@ -466,6 +466,30 @@
   100% { transform: translateY(calc(100%)); }
 }
 
+.appWindow.in-from-left {
+  animation: inFromLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.out-to-right {
+  animation: outToRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+@keyframes inFromLeft {
+  0%   {
+    transform: translateX(-20%);
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1.0;
+  }
+}
+
+@keyframes outToRight {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
+
 /* Edges */
 .edge-candidate:not(.active) {
   /* needs to be outside the viewport */
