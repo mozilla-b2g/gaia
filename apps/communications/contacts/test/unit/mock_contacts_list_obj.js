@@ -11,5 +11,6 @@ var MockContactsListObj = {
     remove: function() {},
     loaded: true,
     clearClickHandlers: function() {},
-    setOrderByLastName: function() {}
+    setOrderByLastName: function() {},
+    initAlphaScroll: function() {}
 };

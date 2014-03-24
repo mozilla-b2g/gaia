@@ -742,11 +742,13 @@ var Contacts = (function() {
           contactsList.getContactById(event.contactID,
             function success(contact, enrichedContact) {
               currentContact = contact;
-              var mergedContact = enrichedContact || contact;
-              contactsDetails.setContact(mergedContact);
-              contactsDetails.render(mergedContact, null, enrichedContact);
-              contactsList.refresh(mergedContact, checkPendingChanges,
+              if (contactsDetails) {
+                contactsDetails.render(currentContact, null, enrichedContact);
+              }
+              if (contactsList) {
+                contactsList.refresh(currentContact, checkPendingChanges,
                                    event.reason);
+              }
           });
         } else {
           contactsList.refresh(event.contactID, checkPendingChanges,

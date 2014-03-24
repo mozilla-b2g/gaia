@@ -1366,6 +1366,8 @@ suite('Render contacts list', function() {
       }
     };
 
+    var mockNavigationStack;
+
     suiteSetup(function(done) {
       window.fb.isEnabled = false;
       //resetDom(document);
@@ -1377,6 +1379,7 @@ suite('Render contacts list', function() {
 
     test('enter select mode', function(done) {
       var selectActionTitle = 'title';
+      mockNavigationStack = new MockNavigationStack();
       subject.selectFromList(selectActionTitle, null, function onSelectMode() {
         // Check visibility
 
@@ -1402,7 +1405,7 @@ suite('Render contacts list', function() {
         assert.isTrue(selectActionButton.disabled);
 
         done();
-      }, MockNavigation, 'transition');
+      }, mockNavigationStack, 'transition');
     });
 
     suite('Selection checks', function() {
@@ -1411,7 +1414,7 @@ suite('Render contacts list', function() {
         doLoad(subject, mockContacts, function() {
           subject.selectFromList('', null, function() {
             done();
-          }, MockNavigation, 'transition');
+          }, new MockNavigationStack(), 'transition');
         });
       });
 
@@ -1507,7 +1510,7 @@ suite('Render contacts list', function() {
           subject.selectFromList('', null, function() {
             // Simulate the click to close
             done();
-          }, MockNavigation, 'transition');
+          }, new MockNavigationStack(), 'transition');
         });
       });
 
@@ -1533,7 +1536,7 @@ suite('Render contacts list', function() {
             var close = document.querySelector('#cancel_activity');
             close.click();
             done();
-          }, MockNavigation, 'transition');
+          }, new MockNavigationStack(), 'transition');
         });
 
       });
@@ -1544,7 +1547,7 @@ suite('Render contacts list', function() {
           var checks = list.querySelectorAll('input[type="checkbox"]');
           assert.equal(contactsRows.length, checks.length);
           done();
-        }, MockNavigation, 'transition');
+        }, new MockNavigationStack(), 'transition');
       });
     });
   });
