@@ -19,44 +19,39 @@
 
     element: document.getElementById('windows'),
 
+    // backward compatibility to WindowManager
+    displayedApp: null,
+
+    runningApps: {},
+
+    // TODO: Remove this.
+    getRunningApps: function awm_getRunningApps() {
+      return this.runningApps;
+    },
+
     /**
      * Test the app is already running.
      * @param {AppConfig} app The configuration of app.
      * @return {Boolean} The app is running or not.
      */
     isRunning: function awm_isRunning(config) {
-      if (config.manifestURL && this.getApp(config.origin)) {
+      if (config.manifestURL && config.origin in this.runningApps) {
         return true;
       } else {
         return false;
       }
     },
 
+    getDisplayedApp: function awm_getDisplayedApp() {
+      return this.displayedApp;
+    },
+
     getActiveApp: function awm_getActiveApp() {
       return this._activeApp;
     },
 
-    /**
-     * Match app origin and get the first matching one.
-     * @param  {String} origin The origin to be matched.
-     * @return {AppWindow}        The app window object matched.
-     */
     getApp: function awm_getApp(origin) {
-      for (var id in this._apps) {
-        if (this._apps[id].origin == origin) {
-          return this._apps[id];
-        }
-      }
-      return null;
-    },
-
-    /**
-     * Match app origin and get the first matching one.
-     * @return {Object} The running app window references stored
-     *                  by its instanceID.
-     */
-    getApps: function awm_getApps(origin) {
-      return this._apps;
+      return this.runningApps[origin];
     },
 
     // reference to active appWindow instance.
@@ -68,35 +63,33 @@
 
     /**
      * Switch to a different app
-     * @param {AppWindow} newApp The new app window instance.
+     * @param {String} origin The origin of the new app.
      * @param {String} [openAnimation] The open animation for opening app.
      * @param {String} [closeAnimation] The close animation for closing app.
      * @memberOf module:AppWindowManager
      */
-    display: function awm_display(newApp, openAnimation, closeAnimation) {
-      this._dumpAllWindows();
-      var appCurrent = this._activeApp, appNext = newApp ||
-        HomescreenLauncher.getHomescreen();
+    display: function awm_display(origin, openAnimation, closeAnimation) {
+      this.debug('displaying ' + origin);
+      var currentApp = this.displayedApp, newApp = origin ||
+        HomescreenLauncher.origin;
 
-      if (!appNext) {
-        console.warn('no next app.');
+      if (newApp === HomescreenLauncher.origin) {
+        HomescreenLauncher.getHomescreen();
+      } else if (currentApp === null) {
+        HomescreenLauncher.getHomescreen().setVisible(false);
+      }
+
+      this.debug(' current is ' + currentApp + '; next is ' + newApp);
+      if (currentApp == newApp) {
+        // Do nothing.
+        console.warn('the app has been displayed.');
         return;
       }
 
-      // If the app has child app window, open it instead.
-      while (appNext.childWindow) {
-        appNext = appNext.childWindow;
-      }
-
-      this.debug(' current is ' + (appCurrent ? appCurrent.url : 'none') +
-                  '; next is ' + (appNext ? appNext.url : 'none'));
-
-      // XXX: Do this in HomescreenWindow.
-      if (appCurrent === null) {
-        HomescreenLauncher.getHomescreen().setVisible(false);
-      } else if (appCurrent.instanceID == appNext.instanceID) {
-        // Do nothing.
-        console.warn('the app has been displayed.');
+      var appNext = this.runningApps[newApp];
+      this.debug(appNext);
+      if (!appNext) {
+        console.warn('no next app.');
         return;
       }
 
@@ -106,10 +99,12 @@
 
       screenElement.classList.remove('fullscreen-app');
 
+      var appCurrent = this.runningApps[currentApp];
       var switching = appCurrent && !appCurrent.isHomescreen &&
                       !appNext.isHomescreen;
 
-      this._updateActiveApp(appNext.instanceID);
+      this._updateActiveApp(appNext.isHomescreen ?
+          HomescreenLauncher.origin : appNext.origin);
 
       if (appCurrent && LayoutManager.keyboardEnabled) {
         // Ask keyboard to hide before we switch the app.
@@ -155,7 +150,6 @@
         this.debug('ready to open/close' + switching);
         if (switching)
           HomescreenLauncher.getHomescreen().fadeOut();
-        this._updateActiveApp(appNext.instanceID);
 
         var immediateTranstion = false;
         if (appNext.rotatingDegree === 90 || appNext.rotatingDegree === 270) {
@@ -284,7 +278,7 @@
 
         case 'appcreated':
           var app = evt.detail;
-          this._apps[evt.detail.instanceID] = app;
+          this.runningApps[evt.detail.origin] = app;
           break;
 
         case 'appterminated':
@@ -293,7 +287,7 @@
           if (activeApp && app.instanceID === activeApp.instanceID) {
             activeApp = null;
           }
-          delete this._apps[instanceID];
+          delete this.runningApps[evt.detail.origin];
           break;
 
         case 'reset-orientation':
@@ -310,11 +304,13 @@
         case 'homescreenopened':
           // Someone else may open the app,
           // so we need to update active app.
-          this._updateActiveApp(evt.detail.instanceID);
+          this._updateActiveApp(evt.detail.isHomescreen ?
+            HomescreenLauncher.origin :
+            evt.detail.origin);
           break;
 
         case 'homescreencreated':
-          this._apps[evt.detail.instanceID] = evt.detail;
+          this.runningApps[HomescreenLauncher.origin] = evt.detail;
           break;
 
         case 'homescreen-changed':
@@ -327,7 +323,7 @@
 
         case 'displayapp':
         case 'apprequestopen':
-          this.display(evt.detail);
+          this.display(evt.detail.origin);
           break;
 
         case 'apprequestclose':
@@ -353,8 +349,7 @@
         case 'hidewindow':
           var detail = evt.detail;
 
-          if (activeApp &&
-              activeApp.origin !== HomescreenLauncher.origin) {
+          if (activeApp && this.displayedApp !== HomescreenLauncher.origin) {
             // This is coming from attention screen.
             // If attention screen has the same origin as our active app,
             // we cannot turn off its page visibility
@@ -362,7 +357,7 @@
             // so turn off page visibility would overwrite the page visibility
             // of the active attention screen.
             if (detail && detail.origin &&
-                detail.origin === activeApp.origin) {
+                detail.origin === this.displayedApp) {
               return;
             }
             activeApp.setVisible(false);
@@ -373,7 +368,7 @@
           break;
 
         case 'showwindow':
-          if (activeApp && activeApp.origin !== HomescreenLauncher.origin) {
+          if (activeApp && this.displayedApp !== HomescreenLauncher.origin) {
             activeApp.setVisible(true);
           } else {
             var home = HomescreenLauncher.getHomescreen();
@@ -420,7 +415,7 @@
             // determine if we are going to homescreen or the original app.
 
             this.debug('back to home.');
-            this.display();
+            this.display(HomescreenLauncher.origin);
           } else {
             // dispatch event to close activity.
             this.debug('ensure home.');
@@ -433,34 +428,6 @@
           this.debug('launching' + config.origin);
           this.launch(config);
           break;
-      }
-    },
-
-    _dumpAllWindows: function() {
-      if (!DEBUG) {
-        return;
-      }
-      console.log('=====DUMPING APP WINDOWS BEGINS=====');
-      for (var id in this._apps) {
-        var app = this._apps[id];
-        if (app.parentWindow) {
-          continue;
-        }
-        this._dumpWindow(app);
-        while (app.childWindow) {
-          this._dumpWindow(app, '->child:');
-          app = app.childWindow;
-        }
-      }
-      console.log('=====END OF DUMPING APP WINDOWS=====');
-    },
-
-    _dumpWindow: function(app, prefix) {
-      console.log((prefix ? prefix : '') + '[' + app.instanceID + ']' +
-          (app.name || app.title || 'ANONYMOUS') + ' (' + app.url + ')');
-      if (app.activityCallee) {
-        console.log('==>activity:[' + app.instanceID + ']' +
-          (app.name || app.title || 'ANONYMOUS') + ' (' + app.url + ')');
       }
     },
 
@@ -488,12 +455,8 @@
      */
     launch: function awm_launch(config) {
       if (config.stayBackground) {
-        if (config.changeURL && this.isRunning(config.origin)) {
-          // XXX: Potential problems here:
-          // there may be more than one app window instances
-          // have the same origin running,
-          // and we may change the wrong one.
-          this.getApp(config.origin).modifyURLatBackground(config.url);
+        if (config.changeURL && this.runningApps[config.origin]) {
+          this.runningApps[config.origin].modifyURLatBackground(config.url);
         }
         return;
       } else {
@@ -504,7 +467,7 @@
         if (config.origin == HomescreenLauncher.origin) {
           this.display();
         } else {
-          this.display(this.getApp(config.origin));
+          this.display(config.origin);
         }
       }
     },
@@ -512,11 +475,9 @@
     linkWindowActivity: function awm_linkWindowActivity(config) {
       // Caller should be either the current active inline activity window,
       // or the active app.
-      var caller = window.activityWindowFactory.getActiveWindow() ||
-                   this._activeApp;
-      var callee = this.getApp(config.origin);
-      callee.activityCaller = caller;
-      caller.activityCallee = callee;
+      var caller = activityWindowFactory.getActiveWindow() || this._activeApp;
+      this.runningApps[config.origin].activityCaller = caller;
+      caller.activityCallee = this.runningApps[config.origin];
     },
 
     debug: function awm_debug() {
@@ -544,10 +505,8 @@
      * @memberOf module:AppWindowManager
      */
     kill: function awm_kill(origin) {
-      for (var id in this._apps) {
-        if (this._apps[id].origin === origin) {
-          this._apps[id].kill();
-        }
+      if (this.runningApps[origin]) {
+        this.runningApps[origin].kill();
       }
     },
 
@@ -559,18 +518,17 @@
       window.dispatchEvent(evt);
     },
 
-    _updateActiveApp: function awm__changeActiveApp(instanceID) {
-      this._activeApp = this._apps[instanceID];
-      if (!this._activeApp) {
-        console.warn('no active app alive: ', instanceID);
-      }
-      if (this._activeApp && this._activeApp.isFullScreen()) {
+    _updateActiveApp: function awm__changeActiveApp(origin) {
+      this.displayedApp = origin;
+      this._activeApp = this.runningApps[this.displayedApp];
+      this.debug(origin + this._activeApp.isFullScreen());
+      if (this._activeApp.isFullScreen()) {
         screenElement.classList.add('fullscreen-app');
       } else {
         screenElement.classList.remove('fullscreen-app');
       }
       this.debug('=== Active app now is: ',
-        (this._activeApp.name || this._activeApp.origin), '===');
+        this._activeApp.name || this._activeApp.origin, '===');
     },
 
     /**
@@ -594,8 +552,8 @@
      * @memberOf module:AppWindowManager
      */
     broadcastMessage: function awm_broadcastMessage(message, detail) {
-      for (var id in this._apps) {
-        this._apps[id].broadcast(message, detail);
+      for (var id in this.runningApps) {
+        this.runningApps[id].broadcast(message, detail);
       }
     }
   };

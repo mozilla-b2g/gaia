@@ -9,8 +9,6 @@ var mocksForStackManager = new MocksHelper([
 
 suite('system/StackManager >', function() {
   var dialer, contact, settings, google, system;
-  var contact_sheet_1, contact_sheet_2;
-  var settings_sheet_1, settings_sheet_2, settings_sheet_3;
   mocksForStackManager.attachTestHelpers();
 
   setup(function() {
@@ -50,53 +48,6 @@ suite('system/StackManager >', function() {
       manifest: { role: 'system' }
     });
 
-    contact_sheet_1 = new AppWindow({
-      url: 'app://communications.gaiamobile.org/contact/sheet1.html',
-      origin: 'app://communications.gaiamobile.org/',
-      manifestURL:
-        'app://communications.gaiamobile.org/contact/manifest.webapp',
-      name: 'Contact',
-      parentWindow: contact
-    });
-
-    contact_sheet_2 = new AppWindow({
-      url: 'app://communications.gaiamobile.org/contact/sheet1.html',
-      origin: 'app://communications.gaiamobile.org/',
-      manifestURL:
-        'app://communications.gaiamobile.org/contact/manifest.webapp',
-      name: 'Contact',
-      parentWindow: contact_sheet_1
-    });
-
-    settings_sheet_1 = new AppWindow({
-      url: 'app://settings.gaiamobile.org/sheet1.html',
-      origin: 'app://settings.gaiamobile.org/',
-      manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
-      name: 'Settings',
-      parentWindow: settings
-    });
-
-    settings_sheet_2 = new AppWindow({
-      url: 'app://settings.gaiamobile.org/sheet1.html',
-      origin: 'app://settings.gaiamobile.org/',
-      manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
-      name: 'Settings',
-      parentWindow: settings_sheet_1
-    });
-
-    settings_sheet_3 = new AppWindow({
-      url: 'app://settings.gaiamobile.org/sheet1.html',
-      origin: 'app://settings.gaiamobile.org/',
-      manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
-      name: 'Settings',
-      parentWindow: settings_sheet_2
-    });
-
-    contact_sheet_1.groupID = contact.groupID;
-    contact_sheet_2.groupID = contact.groupID;
-    settings_sheet_1.groupID = settings.groupID;
-    settings_sheet_2.groupID = settings.groupID;
-    settings_sheet_3.groupID = settings.groupID;
   });
 
   teardown(function() {
@@ -131,20 +82,13 @@ suite('system/StackManager >', function() {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appterminated', true, false, {
       origin: app.origin,
-      manifestURL: app.manifestURL,
-      instanceID: app.instanceID
+      manifestURL: app.manifestURL
     });
     window.dispatchEvent(evt);
   }
 
   function home() {
     window.dispatchEvent(new Event('home'));
-  }
-
-  function openAppFromCardView(app) {
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appopening', true, false, app);
-    window.dispatchEvent(evt);
   }
 
   function configify(app) {
@@ -305,7 +249,6 @@ suite('system/StackManager >', function() {
     });
   });
 
-
   suite('When an app is launched', function() {
     setup(function() {
       appLaunch(dialer);
@@ -360,9 +303,7 @@ suite('system/StackManager >', function() {
 
       test('it should bring the current app on top too', function() {
         StackManager.goPrev();
-        StackManager._dump();
         appLaunch(dialer, true);
-        StackManager._dump();
 
         assert.deepEqual(StackManager.getPrev(), contact);
       });
@@ -541,74 +482,6 @@ suite('system/StackManager >', function() {
         assert.deepEqual(StackManager.getCurrent().config, settings.config);
       });
     });
-  });
-
-  test('open app from card should update the ordering', function() {
-    appLaunch(dialer);
-    appLaunch(contact);
-    appLaunch(settings);
-    openAppFromCardView(dialer);
-    assert.deepEqual(StackManager.getCurrent().config, dialer.config);
-  });
-
-  suite('In-app sheets support', function() {
-    setup(function() {
-      appLaunch(dialer);
-      appLaunch(contact);
-      appLaunch(settings);
-    });
-    test('goPrev() should go the the parent window if there is one',
-      function() {
-        var stub1 = this.sinon.stub(settings, 'getActiveWindow');
-        stub1.returns(settings_sheet_2);
-        var stub2 = this.sinon.stub(settings_sheet_2, 'getPrev');
-        stub2.returns(settings_sheet_1);
-        var stubBroadcast1 = this.sinon.stub(settings_sheet_1, 'broadcast');
-        var stubBroadcast2 = this.sinon.stub(settings_sheet_2, 'broadcast');
-
-        StackManager.goPrev();
-        assert.isTrue(stubBroadcast1.calledWith('swipein'));
-        assert.isTrue(stubBroadcast2.calledWith('swipeout'));
-      });
-    test('goNext() should go to the child window if there is one', function() {
-      var stub1 = this.sinon.stub(settings, 'getActiveWindow');
-      stub1.returns(settings_sheet_2);
-      var stub2 = this.sinon.stub(settings_sheet_2, 'getNext');
-      stub2.returns(settings_sheet_3);
-      var stubBroadcast1 = this.sinon.stub(settings_sheet_2, 'broadcast');
-      var stubBroadcast2 = this.sinon.stub(settings_sheet_3, 'broadcast');
-
-      StackManager.goNext();
-      assert.isTrue(stubBroadcast1.calledWith('swipeout'));
-      assert.isTrue(stubBroadcast2.calledWith('swipein'));
-    });
-    test('goNext() should go to the next app root window if we are on a leaf',
-      function() {
-        StackManager.goPrev();
-        var stub1 = this.sinon.stub(settings, 'getRootWindow');
-        stub1.returns(settings);
-        var stub2 = this.sinon.stub(contact, 'getActiveWindow');
-        stub2.returns(contact_sheet_2);
-        var stubBroadcast1 = this.sinon.stub(settings, 'broadcast');
-        var stubBroadcast2 = this.sinon.stub(contact_sheet_2, 'broadcast');
-
-        StackManager.goNext();
-        assert.isTrue(stubBroadcast2.calledWith('swipeout'));
-        assert.isTrue(stubBroadcast1.calledWith('swipein'));
-      });
-    test('goPrev() should go to the previous app leaf if we are on a root',
-      function() {
-        var stub1 = this.sinon.stub(contact, 'getLeafWindow');
-        stub1.returns(contact_sheet_2);
-        var stub2 = this.sinon.stub(settings, 'getActiveWindow');
-        stub2.returns(settings);
-        var stubBroadcast1 = this.sinon.stub(settings, 'broadcast');
-        var stubBroadcast2 = this.sinon.stub(contact_sheet_2, 'broadcast');
-
-        StackManager.goPrev();
-        assert.isTrue(stubBroadcast1.calledWith('swipeout'));
-        assert.isTrue(stubBroadcast2.calledWith('swipein'));
-      });
   });
 
   suite('When the home button is pressed', function() {

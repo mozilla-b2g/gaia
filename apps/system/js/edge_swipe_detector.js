@@ -72,8 +72,6 @@ var EdgeSwipeDetector = {
         break;
       case 'appopen':
         this.screen.classList.add('edges');
-        this._lifecycleEnabled = true;
-        this._updateEnabled();
         break;
       case 'homescreenopening':
         this.screen.classList.remove('edges');

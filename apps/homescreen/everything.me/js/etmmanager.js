@@ -114,7 +114,7 @@ var EvmeManager = (function EvmeManager() {
 
   /**
    * Returns a list of all Collections names
-   * @param {bool} lowerCase the name strings.
+   * @param  {bool} lowerCase the name strings
    */
   function getCollectionNames(lowerCase) {
     var names = [];
@@ -268,8 +268,7 @@ var EvmeManager = (function EvmeManager() {
     });
 
     activity.onerror = function() {
-      window.open('https://marketplace.firefox.com/app/' + data.slug,
-        'e.me', 'dialog');
+      window.open('https://marketplace.firefox.com/app/' + data.slug, 'e.me');
     };
   }
 
@@ -283,7 +282,7 @@ var EvmeManager = (function EvmeManager() {
 
     activity.onerror = function() {
       window.open('https://marketplace.firefox.com/search/?q=' + data.query,
-        'e.me', 'dialog');
+                                                                        'e.me');
     };
   }
 

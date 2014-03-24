@@ -132,6 +132,15 @@ var SimLock = {
         if (app.manifestURL == settingsManifestURL)
           return;
 
+        // Ignore second 'appwillopen' event when showIfLocked eventually opens
+        // the app on valid PIN code
+        var origin = app.origin;
+        if (origin == this._lastOrigin) {
+          delete this._lastOrigin;
+          return;
+        }
+        this._lastOrigin = origin;
+
         // If SIM is locked, cancel app opening in order to display
         // it after the SIM PIN dialog is shown
         this.showIfLocked();
@@ -186,8 +195,11 @@ var SimLock = {
   },
 
   onClose: function sl_onClose(reason) {
-    // XXX: We are not blocking app to be opened since bug 907013
-    // so we don't need to re-display the app here.
+    // Display the app only when PIN code is valid and when we click
+    // on `X` button
+    if (this._lastOrigin && (reason == 'success' || reason == 'skip'))
+      System.publish('displayapp', { origin: this._lastOrigin });
+    delete this._lastOrigin;
   }
 };
 

@@ -67,7 +67,7 @@ var PopupManager = {
     // this seems needed, or an override to origin in close()
     this._currentOrigin = origin;
 
-    if (AppWindowManager.getActiveApp().origin == origin) {
+    if (AppWindowManager.displayedApp == origin) {
       this.screen.classList.add('popup');
     }
 
@@ -147,8 +147,7 @@ var PopupManager = {
       case 'mozbrowserlocationchange':
         evt.target.dataset.url = evt.detail;
 
-        if (AppWindowManager.getActiveApp().origin !==
-            evt.target.dataset.frameOrigin)
+        if (AppWindowManager.displayedApp !== evt.target.dataset.frameOrigin)
           return;
 
         if (typeof(popup) === 'undefined') {
@@ -171,10 +170,6 @@ var PopupManager = {
         // Only app frame is allowed to launch popup
         if (openerType !== 'window')
           return;
-
-        if (detail.features !== 'dialog') {
-          return;
-        }
 
         // <a href="" target="_blank"> links should opened outside the app
         // itself and fire an activity to be opened into a new browser window.
