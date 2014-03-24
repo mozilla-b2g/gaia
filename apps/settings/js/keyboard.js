@@ -87,9 +87,9 @@ var KeyboardContext = (function() {
 
   var _waitForLayouts;
 
-  function notifyDefaultEnabled(layouts) {
+  function notifyDefaultEnabled(layouts, missingTypes) {
     _defaultEnabledCallbacks.forEach(function withCallbacks(callback) {
-      callback(layouts[0]);
+      callback(layouts[0], missingTypes[0]);
     });
   }
 
@@ -448,14 +448,13 @@ var InstalledLayoutsPanel = (function() {
 })();
 
 var DefaultKeyboardEnabledDialog = (function() {
-  function showDialog(layout) {
+  function showDialog(layout, missingType) {
     var l10n = navigator.mozL10n;
     l10n.localize(
       document.getElementById('keyboard-default-title'),
       'mustHaveOneKeyboard',
       {
-        type: l10n.get('keyboardType-' +
-          layout.inputManifest.types.sort()[0])
+        type: l10n.get('keyboardType-' + missingType)
       }
     );
     l10n.localize(
