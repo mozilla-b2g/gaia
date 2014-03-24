@@ -9,7 +9,7 @@
 
 var CardsView = (function() {
   //display icon of an app on top of app's card
-  var DISPLAY_APP_ICON = false;
+  var DISPLAY_APP_ICON = true;
   var DISPLAY_APP_SCREENSHOT = true;
   // if 'true' user can close the app
   // by dragging it upwards
@@ -283,7 +283,7 @@ var CardsView = (function() {
 
       card.addEventListener('onviewport', function onviewport() {
         card.style.display = 'block';
-        if (!DISPLAY_APP_SCREENSHOT || screenshotView.style.backgroundImage) {
+        if (DISPLAY_APP_SCREENSHOT && screenshotView.style.backgroundImage) {
           return;
         }
 
@@ -297,6 +297,11 @@ var CardsView = (function() {
 
         // Rotate screenshotView if needed
         screenshotView.classList.add('rotate-' + degree);
+
+        if (!DISPLAY_APP_SCREENSHOT) {
+          return;
+        }
+
         if (isLandscape) {
           // We must exchange width and height if it's landscape mode
           var width = card.clientHeight;
