@@ -7,9 +7,6 @@
 /* global MockMozL10n */
 /* global MocksHelper */
 
-/* Allow setter without getter */
-/* jshint -W078 */
-
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');

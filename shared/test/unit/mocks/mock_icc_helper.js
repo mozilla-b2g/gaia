@@ -1,9 +1,6 @@
 'use strict';
 /* exported MockIccHelper */
 
-/* Allow setter without getter */
-/* jshint -W078 */
-
 var MockIccHelper = {
   mProps: {'cardState': null, 'iccInfo': {}, 'retryCount': 0},
 

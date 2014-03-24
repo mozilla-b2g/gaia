@@ -1,9 +1,6 @@
 'use strict';
 /* exported MockDownloadHelper */
 
-/* Allow setter without getter */
-/* jshint -W078 */
-
 var MockDownloadHelper = {
   open: function() {
     return {

@@ -1,9 +1,6 @@
 'use strict';
 /* exported ValueSelector */
 
-/* Allow setter without getter */
-/* jshint -W078 */
-
 function ValueSelector() {
   return {
     data: {

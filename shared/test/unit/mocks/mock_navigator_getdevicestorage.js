@@ -1,10 +1,6 @@
 'use strict';
 /* exported MockGetDeviceStorage */
 
-/* Allow setter without getter */
-/* jshint -W078 */
-
-
 var MockGetDeviceStorage = function() {
   return {
     get: function(filepath) {

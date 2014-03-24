@@ -1,9 +1,6 @@
 'use strict';
 /* exported MockSdCard */
 
-/* Allow setter without getter */
-/* jshint -W078 */
-
 var MockSdCard = function MockSdCard() {
 
   var observers = {};
