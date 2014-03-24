@@ -1728,7 +1728,10 @@ contacts.List = (function() {
       return;
     }
 
-    check.checked = !!selectedContacts[id];
+    var selected = !!selectedContacts[id];
+    if (check.checked !== selected) {
+      check.checked = selected;
+    }
   };
 
   var selectAllContacts = function selectAllContacts() {
