@@ -58,6 +58,7 @@ ViewfinderController.prototype.bindEvents = function() {
   this.viewfinder.on('click', this.app.firer('viewfinder:click'));
   this.viewfinder.on('click', this.onViewfinderClick);
   this.viewfinder.on('pinchChange', this.onPinchChange);
+  this.viewfinder.on('updatedPreview', this.app.firer('viewfinder:ready'));
   this.app.on('camera:configured', this.loadStream);
   this.app.on('camera:configured', this.updatePreview);
   this.app.on('camera:shutter', this.viewfinder.shutter);

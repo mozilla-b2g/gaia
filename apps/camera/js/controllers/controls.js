@@ -38,6 +38,7 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('camera:busy', this.controls.disable);
   this.app.on('change:recording', this.controls.setter('recording'));
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
+  this.app.on('viewfinder:ready', this.controls.enable);
   this.controls.on('click:capture', this.app.firer('capture'));
   this.controls.on('click:gallery', this.onGalleryButtonClick);
   this.controls.on('click:switch', this.onSwitchButtonClick);
@@ -88,6 +89,15 @@ ControlsController.prototype.onTimerEnd = function(image) {
 ControlsController.prototype.onSwitchButtonClick = function() {
   this.controls.disable();
   this.app.settings.mode.next();
+};
+
+/**
+ * Switch the mode and
+ * control buttons are disable until load camera
+ */
+ControlsController.prototype.onSwitchButtonClick = function() {
+  this.app.settings.mode.next();
+  this.controls.disable();
 };
 
 /**
