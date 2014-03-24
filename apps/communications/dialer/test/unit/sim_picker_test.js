@@ -113,16 +113,13 @@ suite('SIM picker', function() {
       assert.equal(document.getElementById('sim-picker').hidden, false);
     });
 
-    test('should focus on the menu', function(done) {
+    test('should focus on the menu', function() {
       var simPickerElt = document.getElementById('sim-picker');
 
-      simPickerElt.addEventListener('focus', function onfocus(e) {
-        simPickerElt.removeEventListener('focus', onfocus);
-        assert.equal(e.target, simPickerElt);
-        done();
-      });
-
+      var focusSpy = this.sinon.spy(simPickerElt, 'focus');
       subject.getOrPick(0, '1111', function() {});
+
+      sinon.assert.calledOnce(focusSpy);
     });
   });
 
