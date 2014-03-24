@@ -13,7 +13,9 @@ class CallScreen(Phone):
     _calling_contact_locator = (By.CSS_SELECTOR, 'div.number')
     _calling_contact_information_locator = (By.CSS_SELECTOR, 'div.additionalContactInfo')
     _outgoing_call_locator = (By.CSS_SELECTOR, '.handled-call.outgoing')
+    _incoming_call_locator = (By.CSS_SELECTOR, '.handled-call.incoming')
     _hangup_bar_locator = (By.ID, 'callbar-hang-up')
+    _answer_bar_locator = (By.ID, 'callbar-answer')
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
@@ -30,6 +32,10 @@ class CallScreen(Phone):
         return self.marionette.find_element(*self._outgoing_call_locator).find_element(*self._calling_contact_locator).text
 
     @property
+    def incoming_calling_contact(self):
+        return self.marionette.find_element(*self._incoming_call_locator).find_element(*self._calling_contact_locator).text
+
+    @property
     def calling_contact_information(self):
         return self.marionette.find_element(*self._outgoing_call_locator).find_element(*self._calling_contact_information_locator).text
 
@@ -38,15 +44,19 @@ class CallScreen(Phone):
         self.wait_for_condition(lambda m: outgoing_call.location['y'] == 0)
         self.wait_for_condition(lambda m: self.outgoing_calling_contact != u'')
 
-    def tap_hang_up(self):
-        hang_up = self.marionette.find_element(*self._hangup_bar_locator)
-        hang_up.tap()
+    def wait_for_incoming_call(self):
+        incoming_call = self.marionette.find_element(*self._incoming_call_locator)
+        self.wait_for_condition(lambda m: incoming_call.location['y'] == 0)
+        self.wait_for_condition(lambda m: self.incoming_calling_contact != u'')
+
+    def answer_call(self):
+        self.marionette.find_element(*self._answer_bar_locator).tap()
 
     def a11y_click_hang_up(self):
         self.accessibility.click(self.marionette.find_element(*self._hangup_bar_locator))
 
     def hang_up(self):
-        self.tap_hang_up()
+        self.marionette.find_element(*self._hangup_bar_locator).tap()
         self.marionette.switch_to_frame()
         self.wait_for_element_not_displayed(*self._call_screen_locator)
 
