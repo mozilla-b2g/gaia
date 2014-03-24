@@ -381,14 +381,15 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     var percent = (dom.player.currentTime / dom.player.duration) * 100;
     if (isNaN(percent)) // this happens when we end the activity
       return;
-    percent += '%';
 
-    dom.elapsedText.textContent = MediaUtils.formatDuration(
-      dom.player.currentTime);
-    dom.elapsedTime.style.width = percent;
+    var scale = 'scaleX(' + (percent / 100) + ')';
+
+    dom.elapsedText.dataset.elapsed =
+      MediaUtils.formatDuration(dom.player.currentTime);
+    dom.elapsedTime.style.transform = scale;
     // Don't move the play head if the user is dragging it.
     if (!dragging)
-      dom.playHead.style.left = percent;
+      dom.playHead.style.transform = 'translateX(' + percent + '%)';
   }
 
   function handleSliderTouchEnd(event) {
@@ -429,13 +430,12 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     pos = Math.max(pos, 0);
     pos = Math.min(pos, 1);
 
-    var percent = pos * 100 + '%';
     dom.playHead.classList.add('active');
-    dom.playHead.style.left = percent;
-    dom.elapsedTime.style.width = percent;
+    dom.playHead.style.transform = 'translateX(' + (pos * 100) + '%)';
+    dom.elapsedTime.style.transform = 'scaleX(' + pos + ')';
     dom.player.currentTime = dom.player.duration * pos;
-    dom.elapsedText.textContent = MediaUtils.formatDuration(
-      dom.player.currentTime);
+    dom.elapsedText.dataset.elapsed =
+      MediaUtils.formatDuration(dom.player.currentTime);
   }
 
   function showBanner(msg) {
