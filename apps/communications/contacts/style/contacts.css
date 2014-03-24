@@ -137,6 +137,11 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 #contact-detail li .item-body-exp {
   padding-bottom: 1rem;
+  white-space: normal;
+}
+
+#contact-detail li .item-body-exp b {
+  text-overflow: ellipsis;
 }
 
 #contact-detail li button {
