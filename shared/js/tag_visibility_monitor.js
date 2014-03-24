@@ -452,6 +452,8 @@ function monitorTagVisibility(
   // NOTE: Calling relativeVisibilityPosition() can trigger a sync reflow
   //       by touching scrollTop and offsetTop.
   function relativeVisibilityPosition(container, child) {
+    if (child.offsetHeight === 0)
+      return ON;
 
     var scrollTop = container.scrollTop;
     var screenTop = scrollTop - scrollMargin;
