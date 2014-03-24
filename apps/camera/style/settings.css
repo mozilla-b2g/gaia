@@ -8,7 +8,7 @@
   font-size: 1.6rem;
   color: #FFF;
   white-space: nowrap;
-  background: rgba(0,0,0,0.85);
+  background: rgba(0,0,0,1);
   transform: translateZ(1px);
   overflow: hidden;
 }
