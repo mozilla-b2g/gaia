@@ -147,12 +147,12 @@ var SleepMenu = {
       this.elements.container.appendChild(item_button);
     }, this);
 
-    var cancel_button         = document.createElement('button');
+    var cancel_button = document.createElement('button');
     cancel_button.textContent = 'Cancel';
-    cancel_button.id          = 'sleep-cancel';
+    cancel_button.id = 'sleep-cancel';
     cancel_button.setAttribute('data-l10n-id', 'cancel');
     this.elements.container.appendChild(cancel_button);
-    this.elements.cancel      = cancel_button;
+    this.elements.cancel = cancel_button;
     this.elements.cancel.addEventListener('click', this);
   },
 
