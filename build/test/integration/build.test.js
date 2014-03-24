@@ -80,6 +80,7 @@ suite('Build Integration tests', function() {
   suiteSetup(function() {
     rmrf('profile');
     rmrf('profile-debug');
+    rmrf('build_stage');
     rmrf(localesDir);
   });
 
@@ -185,8 +186,6 @@ suite('Build Integration tests', function() {
                    'webapps', 'gallery.gaiamobile.org', 'application.zip'));
       var hsGalleryConfigJs =
         hsGalleryZip.readAsText(hsGalleryZip.getEntry('js/config.js'));
-      var hsCameraConfigJs = fs.readFileSync(
-        path.join('apps', 'camera', 'js', 'config.js'), { encoding: 'utf8' });
 
       var expectedScript =
         '//\n' +
@@ -219,8 +218,19 @@ suite('Build Integration tests', function() {
 
       assert.equal(hsGalleryConfigJs, expectedScript,
         'Gallery config js is not expected');
-      assert.equal(hsCameraConfigJs, expectedScript,
-        'Camera config js is not expected');
+
+      var musicMetadataScriptPath = path.join(process.cwd(), 'build_stage',
+        'music', 'js', 'metadata_scripts.js');
+      assert.ok(fs.existsSync(musicMetadataScriptPath), 'metadata_scripts.js ' +
+        'should exist');
+      var galleryMetadataScriptPath = path.join(process.cwd(), 'build_stage',
+        'gallery', 'js', 'metadata_scripts.js');
+      assert.ok(fs.existsSync(galleryMetadataScriptPath),
+        'metadata_scripts.js should exist');
+      var galleryFrameScriptPath = path.join(process.cwd(), 'build_stage',
+        'gallery', 'js', 'frame_scripts.js');
+      assert.ok(fs.existsSync(galleryMetadataScriptPath),
+        'frame_scripts.js should exist');
       done();
     });
   });
@@ -507,5 +517,6 @@ suite('Build Integration tests', function() {
   teardown(function() {
     rmrf('profile');
     rmrf('profile-debug');
+    rmrf('build_stage');
   });
 });
