@@ -35,6 +35,7 @@
   height: 5rem;
   width: 100%;
   z-index: 200;
+  opacity: 1;
   transition: opacity;
   will-change: opacity;
 }

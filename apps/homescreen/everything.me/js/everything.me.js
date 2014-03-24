@@ -161,26 +161,38 @@ var EverythingME = {
       e.stopPropagation();
     }
 
-    function changeActivationIconOpacity(opacity, duration) {
-      activationIcon.style.transition = duration ? duration + 'ms ease' : '';
-      activationIcon.style.opacity = Math.round(opacity * 40) / 40;
+    function addGridPageHandlers() {
+      // This step is used to reduce the number of
+      // opacity changes as the swipe transition occurs on
+      // the home screen. The goal is to improve performance.
+      var OPACITY_STEPS = 40; // opacity steps between [0,1]
+      var activationIconStyle = activationIcon.style;
+
+      function changeActivationIconOpacity(opacity, duration) {
+        var steppedOpacity =
+            Math.round(opacity * OPACITY_STEPS) / OPACITY_STEPS;
+        activationIconStyle.transition = duration ? duration + 'ms ease' : '';
+        activationIconStyle.opacity = steppedOpacity;
+      }
+
+      gridPage.addEventListener('gridpageshowstart', function onShowStart(e) {
+        changeActivationIconOpacity(1, e.detail.duration);
+      });
+      gridPage.addEventListener('gridpagehidestart', function onHideStart(e) {
+        changeActivationIconOpacity(0, e.detail.duration);
+      });
+      gridPage.addEventListener('gridpagepanning', function onPanning(e) {
+        changeActivationIconOpacity(e.detail.progress);
+      });
+      gridPage.addEventListener('gridpageshowend', function onShowEnd() {
+        EvmeFacade.onShow();
+      });
+      gridPage.addEventListener('gridpagehideend', function onHideEnd() {
+        EvmeFacade.onHide();
+      });
     }
 
-    gridPage.addEventListener('gridpageshowstart', function onPageShowStart(e) {
-      changeActivationIconOpacity(1, e.detail.duration);
-    });
-    gridPage.addEventListener('gridpagehidestart', function onPageHideStart(e) {
-      changeActivationIconOpacity(0, e.detail.duration);
-    });
-    gridPage.addEventListener('gridpagepanning', function onPagePanning(e) {
-      changeActivationIconOpacity(e.detail.progress, null);
-    });
-    gridPage.addEventListener('gridpageshowend', function onPageShowEnd() {
-      EvmeFacade.onShow();
-    });
-    gridPage.addEventListener('gridpagehideend', function onPageHideEnd() {
-      EvmeFacade.onHide();
-    });
+    addGridPageHandlers();
 
     EverythingME.migrateStorage();
   },

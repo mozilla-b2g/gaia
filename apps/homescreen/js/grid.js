@@ -83,8 +83,11 @@ var GridManager = (function() {
   // The same number of icons by default
   var MAX_ICONS_PER_EVME_PAGE = MAX_ICONS_PER_PAGE;
 
+  // Will be changed on Init stage later on
+  var searchPageEnabled = false;
+
   function setMaxIconsToSearchPage() {
-    if (!document.body.classList.contains('searchPageEnabled')) {
+    if (!searchPageEnabled) {
       return;
     }
 
@@ -270,7 +273,7 @@ var GridManager = (function() {
               next.MozTransform =
                 'translateX(' + (windowWidthMinusOne + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
-              onPanningProgress(currentPage, 1 + deltaX / windowWidthMinusOne);
+              onPanningLandingPage(1 + deltaX / windowWidthMinusOne);
             } else {
               startX = currentX;
             }
@@ -282,6 +285,11 @@ var GridManager = (function() {
               previous.MozTransform =
                 'translateX(' + (-windowWidthMinusOne + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
+
+              if (currentPage === 1) {
+                // Moving from last(second) to first screen.
+                onPanningLandingPage(deltaX / windowWidthMinusOne);
+              }
             } else {
               startX = currentX;
             }
@@ -302,9 +310,8 @@ var GridManager = (function() {
               }
 
               if (currentPage === 1) {
-                // Moving from first to second screen.
-                onPanningProgress(currentPage - 1,
-                    deltaX / windowWidthMinusOne);
+                // Moving from second to first screen.
+                onPanningLandingPage(deltaX / windowWidthMinusOne);
               }
             } else {
               next.MozTransform =
@@ -398,9 +405,12 @@ var GridManager = (function() {
     removePanHandler();
   }
 
-  function onPanningProgress(pageIndex, progress) {
+  function onPanningLandingPage(progress) {
+    if (!searchPageEnabled) {
+      return;
+    }
     var e = new CustomEvent('gridpagepanning', {detail: {progress: progress}});
-    pages[pageIndex].container.dispatchEvent(e);
+    pages[0].container.dispatchEvent(e);
   }
 
   function onTouchEnd(deltaX, evt) {
@@ -539,8 +549,8 @@ var GridManager = (function() {
     updatePaginationBar();
 
     if (previousPage === newPage) {
-      var hasBeenTranslated = currentX - startX;
-      if (hasBeenTranslated) {
+      var distanceTraveled = currentX - startX;
+      if (distanceTraveled) {
         currentX = startX = 0;
         // Pages are translated in X
         if (index > 0) {
@@ -553,7 +563,7 @@ var GridManager = (function() {
           pages[index + 1].moveByWithEffect(windowWidthMinusOne, duration);
         }
 
-        var pageToHide = pages[hasBeenTranslated > 0 ? index - 1 : index + 1];
+        var pageToHide = pages[distanceTraveled > 0 ? index - 1 : index + 1];
         var pageToShow = pages[index];
         dispatchGridPageStartEvents(pageToHide, pageToShow, duration);
 
@@ -1411,6 +1421,8 @@ var GridManager = (function() {
     swipeThreshold = windowWidth * options.swipeThreshold;
     swipeFriction = options.swipeFriction || defaults.swipeFriction; // Not zero
     kPageTransitionDuration = options.swipeTransitionDuration;
+
+    searchPageEnabled = document.body.classList.contains('searchPageEnabled');
 
     setMaxIconsToSearchPage();
 
