@@ -665,6 +665,48 @@ var Contacts = (function() {
       ],
       'button[type="reset"]': stopPropagation
     });
+
+    window.navigator.mozNfc.onpeerready = function(event) {
+	console.error (' NFC Peer Ready Invoke ');
+	var payload ;
+        var contact = {};
+	var str = '';
+        var count = 0;
+
+	var nfcdom = window.navigator.mozNfc;
+	var nfcPeer = nfcdom.getNFCPeer(event.detail);
+	var records = new Array();
+	var tnf  =  0x02;
+	var type =  'text/x-vCard';
+	var id	 =  '';
+
+	contact= currentContact ;
+
+	LazyLoader.load('/shared/js/contact2vcard.js', function() {
+	ContactToVcard([contact], function append(vcards, nCards) {
+	str += vcards;
+        count += nCards;
+	}, function success() {
+          payload = str;
+	});
+       }
+      );
+
+	var record = new MozNdefRecord(
+		tnf,
+		type,
+		id,
+		payload);
+	records.push(record);
+	nfcPeer.sendNDEF(records);
+
+	};
+
+	window.navigator.mozNfc.onpeerlost = function(event) {
+		console.error (' NFC Peer Lost ');
+	};
+
+
   };
 
   var onLineChanged = function() {
