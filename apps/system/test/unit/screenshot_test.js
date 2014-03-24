@@ -3,6 +3,7 @@
           Screenshot */
 
 requireApp('system/js/screenshot.js');
+requireApp('system/shared/test/unit/mocks/mock_dom_request.js');
 requireApp('system/test/unit/mock_navigator_get_device_storage.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/shared/test/unit/mocks/mock_notification.js');
@@ -64,17 +65,12 @@ suite('system/Screenshot', function() {
     navigator.mozL10n = realL10n;
     window.Notification = realNotification;
 
-    var mockDeviceStorage = MockNavigatorGetDeviceStorage();
-    mockDeviceStorage._freeSpace = 0;
-    mockDeviceStorage._availableState = 'available';
-
     window.CustomEvent = CustomEvent;
   });
 
   test('Receive home+sleep event with available device storage.',
-    function(done) {
+    function() {
       var mockDeviceStorage = MockNavigatorGetDeviceStorage();
-      mockDeviceStorage._freeSpace = Number.MAX_VALUE;
 
       var deviceStorageSpy = this.sinon.spy(navigator, 'getDeviceStorage');
       var availableSpy = this.sinon.spy(mockDeviceStorage, 'available');
@@ -86,24 +82,21 @@ suite('system/Screenshot', function() {
       assert.isTrue(deviceStorageSpy.calledOnce);
 
       assert.isTrue(availableSpy.calledOnce);
-      setTimeout(function(){
+      var availableRequest = availableSpy.getCall(0).returnValue;
+      availableRequest.fireSuccess('available');
 
-        assert.isTrue(freeSpaceSpy.calledOnce);
-        setTimeout(function(){
-          assert.isTrue(stubDispatchEvent.calledOnce);
-          assert.isTrue(stubDispatchEvent.calledWith(
-            { type: 'mozContentEvent', detail: { type: 'take-screenshot' }}));
+      assert.isTrue(freeSpaceSpy.calledOnce);
+      var freeSpaceRequest = freeSpaceSpy.getCall(0).returnValue;
+      freeSpaceRequest.fireSuccess(Number.MAX_VALUE);
 
-          done();
-        });
-      });
+      assert.isTrue(stubDispatchEvent.calledOnce);
+      assert.isTrue(stubDispatchEvent.calledWith(
+        { type: 'mozContentEvent', detail: { type: 'take-screenshot' }}));
     });
 
   test('Receive home+sleep event with unavailable device storage.',
-    function(done) {
+    function() {
       var mockDeviceStorage = MockNavigatorGetDeviceStorage();
-      mockDeviceStorage._freeSpace = Number.MAX_VALUE;
-      mockDeviceStorage._availableState = 'unavailable';
 
       var deviceStorageSpy = this.sinon.spy(navigator, 'getDeviceStorage');
       var availableSpy = this.sinon.spy(mockDeviceStorage, 'available');
@@ -114,24 +107,21 @@ suite('system/Screenshot', function() {
       assert.isTrue(deviceStorageSpy.calledOnce);
 
       assert.isTrue(availableSpy.calledOnce);
-      setTimeout(function(){
-        assert.isTrue(notificationSpy.calledOnce);
-        assert.isTrue(notificationSpy.calledWithNew());
-        assert.equal(notificationSpy.firstCall.args[0],
-          'screenshotFailed');
-        assert.deepEqual(notificationSpy.firstCall.args[1],
-          { body: 'screenshotNoSDCard',
-            icon: 'style/icons/Gallery.png'});
+      var availableRequest = availableSpy.getCall(0).returnValue;
+      availableRequest.fireSuccess('unavailable');
 
-        done();
-      });
+      assert.isTrue(notificationSpy.calledOnce);
+      assert.isTrue(notificationSpy.calledWithNew());
+      assert.equal(notificationSpy.firstCall.args[0],
+        'screenshotFailed');
+      assert.deepEqual(notificationSpy.firstCall.args[1],
+        { body: 'screenshotNoSDCard',
+          icon: 'style/icons/Gallery.png'});
     });
 
   test('Receive home+sleep event with shared device storage.',
-    function(done) {
+    function() {
       var mockDeviceStorage = MockNavigatorGetDeviceStorage();
-      mockDeviceStorage._freeSpace = Number.MAX_VALUE;
-      mockDeviceStorage._availableState = 'shared';
 
       var deviceStorageSpy = this.sinon.spy(navigator, 'getDeviceStorage');
       var availableSpy = this.sinon.spy(mockDeviceStorage, 'available');
@@ -142,23 +132,21 @@ suite('system/Screenshot', function() {
       assert.isTrue(deviceStorageSpy.calledOnce);
 
       assert.isTrue(availableSpy.calledOnce);
-      setTimeout(function(){
-        assert.isTrue(notificationSpy.calledOnce);
-        assert.isTrue(notificationSpy.calledWithNew());
-        assert.equal(notificationSpy.firstCall.args[0],
-          'screenshotFailed');
-        assert.deepEqual(notificationSpy.firstCall.args[1],
-          { body: 'screenshotSDCardInUse',
-            icon: 'style/icons/Gallery.png'});
+      var availableRequest = availableSpy.getCall(0).returnValue;
+      availableRequest.fireSuccess('shared');
 
-        done();
-      });
+      assert.isTrue(notificationSpy.calledOnce);
+      assert.isTrue(notificationSpy.calledWithNew());
+      assert.equal(notificationSpy.firstCall.args[0],
+        'screenshotFailed');
+      assert.deepEqual(notificationSpy.firstCall.args[1],
+        { body: 'screenshotSDCardInUse',
+          icon: 'style/icons/Gallery.png'});
     });
 
   test('Receive home+sleep event with low disk space.',
-    function(done) {
+    function() {
       var mockDeviceStorage = MockNavigatorGetDeviceStorage();
-      mockDeviceStorage._freeSpace = 256;
 
       var deviceStorageSpy = this.sinon.spy(navigator, 'getDeviceStorage');
       var availableSpy = this.sinon.spy(mockDeviceStorage, 'available');
@@ -170,25 +158,24 @@ suite('system/Screenshot', function() {
       assert.isTrue(deviceStorageSpy.calledOnce);
 
       assert.isTrue(availableSpy.calledOnce);
-      setTimeout(function(){
+      var availableRequest = availableSpy.getCall(0).returnValue;
+      availableRequest.fireSuccess('available');
 
-        assert.isTrue(freeSpaceSpy.calledOnce);
-        setTimeout(function(){
-          assert.isTrue(notificationSpy.calledOnce);
-          assert.isTrue(notificationSpy.calledWithNew());
-          assert.equal(notificationSpy.firstCall.args[0],
-            'screenshotFailed');
-          assert.deepEqual(notificationSpy.firstCall.args[1],
-            { body: 'screenshotSDCardLow',
-              icon: 'style/icons/Gallery.png'});
+      assert.isTrue(freeSpaceSpy.calledOnce);
+      var freeSpaceRequest = freeSpaceSpy.getCall(0).returnValue;
+      freeSpaceRequest.fireSuccess(256);
 
-          done();
-        });
-      });
+      assert.isTrue(notificationSpy.calledOnce);
+      assert.isTrue(notificationSpy.calledWithNew());
+      assert.equal(notificationSpy.firstCall.args[0],
+        'screenshotFailed');
+      assert.deepEqual(notificationSpy.firstCall.args[1],
+        { body: 'screenshotSDCardLow',
+          icon: 'style/icons/Gallery.png'});
     });
 
   test('Receive take-screenshot-success mozChromeEvent event',
-    function(done) {
+    function() {
       var mockDeviceStorage = MockNavigatorGetDeviceStorage();
       mockDeviceStorage._freeSpace = Number.MAX_VALUE;
 
@@ -205,24 +192,23 @@ suite('system/Screenshot', function() {
       assert.isTrue(deviceStorageSpy.calledOnce);
 
       assert.isTrue(availableSpy.calledOnce);
-      setTimeout(function(){
+      var availableRequest = availableSpy.getCall(0).returnValue;
+      availableRequest.fireSuccess('available');
 
-        assert.isTrue(freeSpaceSpy.calledOnce);
-        setTimeout(function(){
+      assert.isTrue(freeSpaceSpy.calledOnce);
+      var freeSpaceRequest = freeSpaceSpy.getCall(0).returnValue;
+      freeSpaceRequest.fireSuccess(Number.MAX_VALUE);
 
-          assert.isTrue(addNamedSpy.calledOnce);
-          assert.isTrue(addNamedSpy.firstCall.args[0] === mockFile);
-          setTimeout(function(){
-            assert.isTrue(notificationSpy.calledOnce);
-            assert.isTrue(notificationSpy.calledWithNew());
-            assert.equal(notificationSpy.firstCall.args[0],
-              'screenshotSaved');
-            assert.equal(notificationSpy.firstCall.args[1].icon,
-              'style/icons/Gallery.png');
+      assert.isTrue(addNamedSpy.calledOnce);
+      assert.isTrue(addNamedSpy.firstCall.args[0] === mockFile);
+      var addNamedRequest = addNamedSpy.getCall(0).returnValue;
+      addNamedRequest.fireSuccess(Number.MAX_VALUE);
 
-            done();
-          });
-        });
-      });
+      assert.isTrue(notificationSpy.calledOnce);
+      assert.isTrue(notificationSpy.calledWithNew());
+      assert.equal(notificationSpy.firstCall.args[0],
+        'screenshotSaved');
+      assert.equal(notificationSpy.firstCall.args[1].icon,
+        'style/icons/Gallery.png');
     });
 });
