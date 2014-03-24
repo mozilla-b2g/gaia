@@ -91,6 +91,14 @@ var AlarmEdit = {
       }
     });
 
+    // When the system pops up the ValueSelector, it inadvertently
+    // messes with the scrollTop of the current panel. This is a
+    // workaround for bug 981255 until the Edit panel becomes a new
+    // window per bug 922651.
+    this.element.addEventListener('scroll', function() {
+      this.element.scrollTop = 0;
+    }.bind(this));
+
     mozL10n.translate(this.element);
     this.buttons.close.addEventListener('click', this);
     this.buttons.done.addEventListener('click', this);
