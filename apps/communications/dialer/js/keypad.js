@@ -430,6 +430,9 @@ var KeypadManager = {
       this._holdTimer = setTimeout(function vm_call(self) {
         self._longPress = true;
         self._callVoicemail();
+
+        self._phoneNumber = self._phoneNumber.slice(0, -1);
+        self._updatePhoneNumberView('begin', false);
       }, 1500, this);
     }
 

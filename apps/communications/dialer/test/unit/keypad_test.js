@@ -340,6 +340,10 @@ suite('dialer/keypad', function() {
         this.sinon.spy(CallHandler, 'call');
       });
 
+      var shouldRemove1FromPhoneNumber = function() {
+        assert.equal(KeypadManager.phoneNumber(), '');
+      };
+
       suite('SingleSIM', function() {
         var fakeVoicemail = '888';
 
@@ -357,6 +361,8 @@ suite('dialer/keypad', function() {
         test('should call voicemail directly', function() {
           sinon.assert.calledWith(CallHandler.call, fakeVoicemail, 0);
         });
+
+        test('should remove 1 from phone number', shouldRemove1FromPhoneNumber);
       });
 
       suite('DualSIM', function() {
@@ -394,6 +400,8 @@ suite('dialer/keypad', function() {
           MockNavigatorSettings.mReplyToRequests();
           sinon.assert.calledWith(CallHandler.call, fakeVoicemail2, 1);
         });
+
+        test('should remove 1 from phone number', shouldRemove1FromPhoneNumber);
       });
     });
   });
