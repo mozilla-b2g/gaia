@@ -40,6 +40,7 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
   this.controls.on('click:capture', this.app.firer('capture'));
   this.controls.on('click:gallery', this.onGalleryButtonClick);
+  this.controls.on('click:thumbnail', this.app.firer('preview'));
   this.controls.on('click:switch', this.onSwitchButtonClick);
   this.controls.on('click:cancel', this.onCancelButtonClick);
   this.app.on('timer:started', this.controls.disable);
@@ -69,10 +70,18 @@ ControlsController.prototype.configure = function() {
 };
 
 /**
-  When new thumbnail is available it is displated in the gallery button
-*/
+ * When the thumbnail changes, update it in the view.
+ * This method is triggered by the 'newthumbnail' event.
+ * That event is emitted by the preview gallery controller when the a new
+ * photo or video is added, or when the preview is closed and the first
+ * photo or video has changed (because of a file deletion).
+ */
 ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
-  this.controls.setThumbnail(thumbnailBlob);
+  if (thumbnailBlob) {
+    this.controls.setThumbnail(thumbnailBlob);
+  } else {
+    this.controls.removeThumbnail();
+  }
 };
 
 ControlsController.prototype.onTimerStarted = function(image) {

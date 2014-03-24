@@ -59,8 +59,7 @@ ConfirmController.prototype.renderView = function() {
  *
  */
 ConfirmController.prototype.bindEvents = function() {
-  this.app.on('newimage', this.onNewMedia);
-  this.app.on('newvideo', this.onNewMedia);
+  this.app.on('newmedia', this.onNewMedia);
 };
 
 /**

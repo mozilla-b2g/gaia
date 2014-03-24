@@ -25,8 +25,6 @@ module.exports = {
     CONTINUOUS_VIDEO: 'continuous-video'
   },
 
-  FILMSTRIP_DURATION: 5000,
-
   PROMPT_DELAY: 2000,
 
   // The minimum available disk space to start recording a video.

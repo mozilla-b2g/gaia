@@ -15,8 +15,7 @@ suite('controllers/viewfinder', function() {
       'lib/setting'
     ], function(
       App, Camera, ViewfinderController,
-      ViewfinderView, Activity, Settings, Setting
-    ) {
+      ViewfinderView, Activity, Settings, Setting) {
       self.ViewfinderController = ViewfinderController.ViewfinderController;
       self.ViewfinderView = ViewfinderView;
       self.Settings = Settings;
@@ -34,9 +33,8 @@ suite('controllers/viewfinder', function() {
     this.app.activity = sinon.createStubInstance(this.Activity);
     this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.settings.grid = sinon.createStubInstance(this.Setting);
-    this.app.filmstrip = { toggle: sinon.spy() };
     this.app.views = {
-      viewfinder: sinon.createStubInstance(this.ViewfinderView),
+      viewfinder: sinon.createStubInstance(this.ViewfinderView)
     };
 
     // Settings
@@ -45,7 +43,6 @@ suite('controllers/viewfinder', function() {
     this.app.settings.viewfinder = sinon.createStubInstance(this.Setting);
 
     // Shortcuts
-    this.filmstrip = this.app.filmstrip;
     this.viewfinder = this.app.views.viewfinder;
   });
 
