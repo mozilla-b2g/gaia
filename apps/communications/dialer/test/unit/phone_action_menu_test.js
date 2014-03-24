@@ -45,7 +45,6 @@ suite('phone action menu', function() {
 
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
-    MockNavigatorSettings.mSyncRepliesOnly = true;
 
     fakeNodes.forEach(function(id) {
       var elem = document.createElement('div');
@@ -55,7 +54,6 @@ suite('phone action menu', function() {
   });
 
   suiteTeardown(function() {
-    MockNavigatorSettings.mSyncRepliesOnly = false;
     navigator.mozIccManager = realMozIccManager;
     navigator.mozSettings = realMozSettings;
     window.asyncStorage = realAsyncStorage;
@@ -67,6 +65,7 @@ suite('phone action menu', function() {
   });
 
   setup(function() {
+    MockNavigatorSettings.mSyncRepliesOnly = true;
     PhoneNumberActionMenu.show(null, '123');
   });
 
