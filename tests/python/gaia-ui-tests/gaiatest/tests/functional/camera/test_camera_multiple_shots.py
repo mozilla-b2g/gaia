@@ -24,8 +24,8 @@ class TestCameraMultipleShots(GaiaTestCase):
         # Take a photo
         self.camera.take_photo()
 
-        # Check that Filmstrip is visible
-        self.assertTrue(self.camera.is_filmstrip_visible)
+        # Check that thumbnail is visible
+        self.assertTrue(self.camera.is_thumbnail_visible)
 
         # Check that picture saved to SD card
         self.wait_for_condition(lambda m: len(self.data_layer.picture_files) == self.previous_number_of_pictures + 1, 10)
@@ -34,8 +34,8 @@ class TestCameraMultipleShots(GaiaTestCase):
         # Take a photo
         self.camera.take_photo()
 
-        # Check that Filmstrip is visible
-        self.assertTrue(self.camera.is_filmstrip_visible)
+        # Check that thumbnail is visible
+        self.assertTrue(self.camera.is_thumbnail_visible)
 
         # Check that picture saved to SD card
         self.wait_for_condition(lambda m: len(self.data_layer.picture_files) == self.previous_number_of_pictures + 2, 10)
@@ -44,8 +44,8 @@ class TestCameraMultipleShots(GaiaTestCase):
         # Take a photo
         self.camera.take_photo()
 
-        # Check that Filmstrip is visible
-        self.assertTrue(self.camera.is_filmstrip_visible)
+        # Check that thumbnail is visible
+        self.assertTrue(self.camera.is_thumbnail_visible)
 
         # Check that picture saved to SD card
         self.wait_for_condition(lambda m: len(self.data_layer.picture_files) == self.previous_number_of_pictures + 3, 10)
