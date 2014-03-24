@@ -1005,6 +1005,65 @@ suite('Render contacts list', function() {
         });
       });
     });
+
+    suite('Refresing a contact in the contacts list', function() {
+      var getContactByIdMock = null;
+      suiteSetup(function() {
+        getContactByIdMock = sinon.stub(contacts.List,
+         'getContactById', function(id, cb) {
+          var updatedContact = {
+            id: 1,
+            givenName: ['Jose']
+          };
+          cb(updatedContact);
+        });
+      });
+
+      suiteTeardown(function() {
+        getContactByIdMock.restore();
+      });
+
+      setup(function(done) {
+        mockContacts = new MockContactsList();
+        doLoad(subject, mockContacts, function() {
+          done();
+        });
+      });
+
+      // Gets just the name of a row by that row id
+      function getNameForId(id, fromSearchMode) {
+        var selector = '[data-uuid="' + id + '"] .contact-text';
+        if (fromSearchMode) {
+          selector = '#search-list ' + selector;
+        }
+        var elem = document.querySelector(selector);
+        if (!elem) {
+          return null;
+        }
+
+        return elem.firstChild.textContent.trim();
+      }
+
+      test('Refresing a contact via object', function(done) {
+        assert.equal(getNameForId(1), 'Pepito');
+        var updatedContact = {
+          id: 1,
+          givenName: ['Jose']
+        };
+        subject.refresh(updatedContact, function() {
+          assert.equal(getNameForId(1), 'Jose');
+          done();
+        });
+      });
+
+      test('Refresh a contact via id', function(done) {
+        assert.equal(getNameForId(1), 'Pepito');
+        subject.refresh('1', function() {
+          assert.equal(getNameForId(1), 'Jose');
+          done();
+        });
+      });
+    });
   });  // suite ends
 
   suite('Facebook Contacts List', function() {
@@ -1218,6 +1277,30 @@ suite('Render contacts list', function() {
             contacts.Search.invalidateCache();
             contacts.Search.exitSearchMode({preventDefault: function() {}});
             done();
+          });
+        });
+      });
+    });
+
+    test('Modifying contact in search', function(done) {
+      mockContacts = new MockContactsList();
+      doLoad(subject, mockContacts, function() {
+        contacts.Search.enterSearchMode({preventDefault: function() {}});
+        contacts.List.initSearch(function onInit() {
+          searchBox.value = 'p';
+          contacts.Search.search(function search_finished() {
+            var updatedContact = {
+              id: 1,
+              givenName: ['Peter']
+            };
+            var spy = sinon.spy(contacts.Search, 'invalidateSearch');
+            subject.refresh(updatedContact, function() {
+              assert.isTrue(spy.called);
+              spy.restore();
+              contacts.Search.invalidateCache();
+              contacts.Search.exitSearchMode({preventDefault: function() {}});
+              done();
+            });
           });
         });
       });

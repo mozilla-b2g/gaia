@@ -1,3 +1,5 @@
+/* global Contacts, utils, ImageLoader, LazyLoader,
+  fb, Normalizer */
 'use strict';
 
 var contacts = window.contacts || {};
@@ -31,7 +33,8 @@ contacts.Search = (function() {
       imgLoader,
       searchEnabled = false,
       source = null,
-      navigationController = null;
+      navigationController = null,
+      currentState = null;
 
   // The _source argument should be an adapter object that provides access
   // to the contact nodes in the app.  This is done by defining the following
@@ -49,13 +52,15 @@ contacts.Search = (function() {
     searchView = document.getElementById('search-view');
     searchList = document.getElementById('search-list');
 
-    if (!_source)
+    if (!_source) {
       throw new Error('Search requires a contact source!');
+    }
 
     source = _source;
 
-    if (typeof source.click === 'function')
+    if (typeof source.click === 'function') {
       searchList.addEventListener('click', source.click);
+    }
 
     searchEnabled = !!defaultEnabled;
 
@@ -364,6 +369,9 @@ contacts.Search = (function() {
 
     if (typeof state.searchDoneCb === 'function') {
       state.searchDoneCb();
+      if (currentState) {
+        currentState = null;
+      }
     }
   }
 
@@ -382,14 +390,16 @@ contacts.Search = (function() {
   // Allow the main contacts list to asynchronously tell us about additional
   // nodes as they are loaded.
   var appendNodes = function appendNodes(nodes) {
-    if (!nodes || !nodes.length || !contactNodes)
+    if (!nodes || !nodes.length || !contactNodes) {
       return;
+    }
 
     contactNodes.push.apply(contactNodes, nodes);
 
     // If there are no searches in progress, then we are done
-    if (!currentTextToSearch || !canReuseSearchables || !searchableNodes)
+    if (!currentTextToSearch || !canReuseSearchables || !searchableNodes) {
       return;
+    }
 
     // If we have a current search then we need to determine whether the
     // new nodes should show up in that search.
@@ -411,7 +421,7 @@ contacts.Search = (function() {
 
     currentTextToSearch = Normalizer.toAscii(searchBox.value.trim());
     currentTextToSearch = Normalizer.escapeRegExp(currentTextToSearch);
-    var thisSearchText = new String(currentTextToSearch);
+    var thisSearchText = '' + currentTextToSearch;
 
     if (thisSearchText.length === 0) {
       resetState();
@@ -434,6 +444,7 @@ contacts.Search = (function() {
         searchables: [],
         searchDoneCb: searchDoneCb
       };
+      currentState = state;
       searchTimer = window.setTimeout(function do_search() {
         searchTimer = null;
         doSearch(contactsToSearch, 0, thisSearchText, pattern, state);
@@ -526,6 +537,14 @@ contacts.Search = (function() {
     searchProgress.classList.add('hidden');
   }
 
+  var invalidateSearch = function searchAgain(cb) {
+    invalidateCache();
+    resetState();
+    if (currentState) {
+      search(cb || currentState.searchDoneCb);
+    }
+  };
+
   return {
     'init': init,
     'invalidateCache': invalidateCache,
@@ -536,6 +555,7 @@ contacts.Search = (function() {
     'exitSearchMode': exitSearchMode,
     'isInSearchMode': isInSearchMode,
     'enableSearch': enableSearch,
-    'selectRow': selectRow
+    'selectRow': selectRow,
+    'invalidateSearch': invalidateSearch
   };
 })();
