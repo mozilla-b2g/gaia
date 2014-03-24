@@ -44,7 +44,8 @@ contacts.List = (function() {
       boundSelectAction4Close = null,
       // Dictionary by contact id with the rows on screen
       rowsOnScreen = {},
-      selectedContacts = {};
+      selectedContacts = {},
+      sticky;
 
   // Key on the async Storage
   var ORDER_KEY = 'order.lastname';
@@ -162,6 +163,9 @@ contacts.List = (function() {
     groupsList = document.getElementById('groups-list');
     groupsList.addEventListener('click', onClickHandler);
 
+    sticky = new StickyHeader(scrollable,
+                              document.getElementById('sticky'));
+
     initOrder();
 
     // Test code calls init() directly, so we may have to reset.
@@ -183,6 +187,8 @@ contacts.List = (function() {
     if (monitor) {
       monitor.resumeMonitoringMutations(true);
     }
+
+    sticky.refresh();
   }
 
   // Define a source adapter object to pass to contacts.Search.
@@ -427,6 +433,7 @@ contacts.List = (function() {
     }
 
     renderGroupHeader(group, letter);
+    sticky.refresh();
 
     // Return the new list created by renderGroupHeader() above
     return headers[group];
@@ -755,6 +762,7 @@ contacts.List = (function() {
     // be selected just if we clicked on select all
     // and we didn't unselected any other contact
     selectAllPending = false;
+    sticky.refresh();
 
     // If there are zero contacts, then we still need to notify
     // that the initial screen has been displayed.  This is a no-op
@@ -1197,11 +1205,13 @@ contacts.List = (function() {
   var hideGroup = function hideGroup(group) {
     var groupTitle = getGroupList(group).parentNode.children[0];
     groupTitle.classList.add('hide');
+    sticky.refresh();
   };
 
   var showGroupByList = function showGroupByList(current) {
     var groupTitle = current.parentNode.children[0];
     groupTitle.classList.remove('hide');
+    sticky.refresh();
   };
 
   var remove = function remove(id) {
@@ -1351,6 +1361,8 @@ contacts.List = (function() {
     headers = {};
     loadedContacts = {};
     loaded = false;
+
+    sticky.refresh();
 
     if (cb)
       cb();
