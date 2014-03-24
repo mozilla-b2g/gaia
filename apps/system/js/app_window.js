@@ -615,7 +615,8 @@
         var caller = this.activityCaller;
         this.activityCaller.activityCallee = null;
         this.activityCaller = null;
-        caller.requestOpen();
+        caller.open('in-from-left');
+        this.close('out-to-right');
       }
     };
 
