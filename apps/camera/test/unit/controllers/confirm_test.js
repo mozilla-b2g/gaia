@@ -37,12 +37,8 @@ suite('controllers/confirm', function() {
   });
 
   suite('ConfirmController()', function() {
-    test('Should bind to app `newimage` event', function() {
-      assert.ok(this.app.on.calledWith('newimage'));
-    });
-
-    test('Should bind to app `newvideo` event', function() {
-      assert.ok(this.app.on.calledWith('newvideo'));
+    test('Should bind to app `newmedia` event', function() {
+      assert.ok(this.app.on.calledWith('newmedia'));
     });
   });
 
