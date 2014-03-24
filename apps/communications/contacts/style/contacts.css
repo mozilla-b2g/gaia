@@ -161,6 +161,10 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   margin-bottom: 1rem;
 }
 
+.calls-disabled li[data-phone] button.call-action {
+  pointer-events: none;
+}
+
 #contact-detail .duplicate-actions button {
   margin-bottom: 1rem;
 }
