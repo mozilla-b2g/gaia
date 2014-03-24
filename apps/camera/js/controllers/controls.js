@@ -41,7 +41,7 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
   this.controls.on('click:capture', this.app.firer('capture'));
   this.controls.on('click:gallery', this.onGalleryButtonClick);
-  this.controls.on('click:switch', this.app.settings.mode.next);
+  this.controls.on('click:switch', this.onSwitchButtonClick);
   this.controls.on('click:cancel', this.onCancelButtonClick);
   this.app.on('timer:started', this.controls.disable);
   this.app.on('timer:cleared', this.controls.enable);
@@ -128,6 +128,11 @@ ControlsController.prototype.onGalleryButtonClick = function(event) {
   // Gallery to be launched (Bug 957709)
   controls.disable();
   setTimeout(controls.enable, 2000);
+};
+
+ControlsController.prototype.onSwitchButtonClick = function() {
+  this.controls.disable();
+  this.app.settings.mode.next();
 };
 
 });
