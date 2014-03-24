@@ -101,7 +101,7 @@ Camera.prototype.load = function() {
   var selectedCamera = this.get('selectedCamera');
   var loadingNewCamera = selectedCamera !== this.lastLoadedCamera;
   this.lastLoadedCamera = selectedCamera;
-  this.emit('busy');
+  this.emit('loading');
 
   if (this.mozCamera && !loadingNewCamera) {
     this.gotCamera(this.mozCamera);
@@ -124,7 +124,6 @@ Camera.prototype.gotCamera = function(mozCamera) {
   var capabilities = mozCamera.capabilities;
   this.mozCamera = mozCamera;
   this.mozCamera.onShutter = this.onShutter;
-  this.mozCamera.onPreviewStateChange = this.onPreviewStateChange;
   this.mozCamera.onRecorderStateChange = self.onRecorderStateChange;
   this.configureFocus(capabilities.focusModes);
   this.set('capabilities', this.formatCapabilities(capabilities));
