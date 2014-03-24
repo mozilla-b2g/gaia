@@ -909,6 +909,10 @@ var Contacts = (function() {
     load('utilities', utility, callback);
   }
 
+  var updateSelectCountTitle = function updateSelectCountTitle(count) {
+    appTitleElement.textContent = _('SelectedTxt', {n: count});
+  };
+
   return {
     'goBack' : handleBack,
     'cancel': handleCancel,
@@ -936,6 +940,7 @@ var Contacts = (function() {
     'close': close,
     'view': loadView,
     'utility': loadUtility,
+    'updateSelectCountTitle': updateSelectCountTitle,
     get asyncScriptsLoaded() {
       return asyncScriptsLoaded;
     }

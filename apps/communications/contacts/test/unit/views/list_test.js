@@ -408,6 +408,7 @@ suite('Render contacts list', function() {
     window.PerformanceTestingHelper = realPerformanceTestingHelper;
     window.asyncStorage = realAsyncStorage;
     navigator.mozContacts = realMozContacts;
+    mocksForListView.suiteTeardown();
   });
 
   suite('Render contacts with cursors', function() {

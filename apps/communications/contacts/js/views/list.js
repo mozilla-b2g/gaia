@@ -1417,6 +1417,7 @@ contacts.List = (function() {
     ones are selected.
   */
   var selectAction = function selectAction(action) {
+    updateSelectCount(0);
     if (action == null) {
       exitSelectMode();
       return;
@@ -1498,6 +1499,7 @@ contacts.List = (function() {
     selectActionButton.disabled = currentlySelected == 0;
     selectAll.disabled = selectAllDisabled;
     deselectAll.disabled = deselectAllDisabled;
+    updateSelectCount(currentlySelected);
   };
 
   /*
@@ -1801,6 +1803,9 @@ contacts.List = (function() {
         contacts.List.refresh(node.dataset.uuid);
       }
     }
+  };
+  function updateSelectCount(count) {
+    Contacts.updateSelectCountTitle(count);
   };
 
   return {

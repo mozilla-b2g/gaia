@@ -93,7 +93,7 @@ suite('Render contact form', function() {
   suiteTeardown(function() {
     window.fb = realFb;
     utils.thumbnailImage = realThumbnailImage;
-    window.mozL10n = realL10n;
+    navigator.mozL10n = realL10n;
 
     mocksForm.suiteTeardown();
 
