@@ -34,6 +34,8 @@ Contacts.Selectors = {
   detailsTelLabelFirst: '#phone-details-template-0 h2',
   detailsTelButtonFirst: 'button.icon-call[data-tel]',
   detailsFindDuplicate: '#contact-detail-inner #find-merge-button',
+  detailsFavoriteButton: '#toggle-favorite',
+  detailsContactName: '#contact-name-title',
 
   duplicateFrame: 'iframe[src*="matching_contacts.html"]',
   duplicateHeader: '#title',
