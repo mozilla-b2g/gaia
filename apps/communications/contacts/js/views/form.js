@@ -455,6 +455,7 @@ contacts.Form = (function() {
     currField['i'] = counters[type];
 
     var rendered = utils.templates.render(template, currField);
+
     // Controlling that if no tel phone is present carrier field is disabled
     if (type === 'tel') {
       var carrierInput = rendered.querySelector('input[data-field="carrier"]');
@@ -466,9 +467,22 @@ contacts.Form = (function() {
 
       checkCarrierTel(carrierInput, {target: telInput});
     }
-
-    // Adding listener to properly render dates
-    if (type === 'date') {
+    else if (type === 'email') {
+      var emailInput = rendered.querySelector('input[type="email"]');
+      emailInput.addEventListener('input', function(e) {
+        var inputEle = e.target;
+        if (inputEle.validity.valid === false) {
+          inputEle.parentNode.classList.add(INVALID_CLASS);
+          textFieldsCache.clear();
+        }
+        else {
+          inputEle.parentNode.classList.remove(INVALID_CLASS);
+          textFieldsCache.clear();
+        }
+      }, true);
+    }
+    else if (type === 'date') {
+      // Adding listener to properly render dates
       var dateInput = rendered.querySelector('input[type="date"]');
 
       // Setting the max value as today's date

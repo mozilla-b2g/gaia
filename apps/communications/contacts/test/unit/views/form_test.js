@@ -224,6 +224,17 @@ suite('Render contact form', function() {
       }
     );
 
+    test('If email is not valid then done button must be disabled',
+      function() {
+        var params = {
+          email: 'jj@'
+        };
+
+        subject.render(params);
+        assertSaveState('disabled');
+      }
+    );
+
     test('If tel is filled and carrier empty done button must be enabled',
       function() {
         var params = {
