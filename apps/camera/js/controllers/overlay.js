@@ -27,9 +27,11 @@ function OverlayController(app) {
 
   this.activity = app.activity;
   this.storage = app.storage;
-  this.overlays = [];
+  this.batteryOverlay = null;
+  this.storageOverlay = null;
   bindAll(this);
   this.storage.on('statechange', this.onStorageStateChange);
+  app.on('change:batteryStatus', this.onBatteryStatusChange);
   debug('initialized');
 }
 
@@ -42,14 +44,36 @@ function OverlayController(app) {
  */
 OverlayController.prototype.onStorageStateChange = function(value) {
   debug('storage state change: \'%s\'', value);
+  if (this.storageOverlay) {
+    this.storageOverlay.destroy();
+    this.storageOverlay = null;
+  }
   if (value === 'available') {
-    this.destroyOverlays();
     return;
   }
-  this.insertOverlay(value);
+  this.storageOverlay = this.createOverlay(value);
 };
 
-OverlayController.prototype.insertOverlay = function(type) {
+/**
+ * Respond to battery `statuschange`
+ * events by inserting or destroying
+ * overlays from the app.
+ *
+ * @param  {String} status  ['shutdown'|'critical'|'verylow'|'low']
+ */
+OverlayController.prototype.onBatteryStatusChange = function(status) {
+  if (this.batteryOverlay) {
+    this.batteryOverlay.destroy();
+    this.batteryOverlay = null;
+  }
+
+  if (status !== 'shutdown') {
+    return;
+  }
+  this.batteryOverlay = this.createOverlay(status);
+};
+
+OverlayController.prototype.createOverlay = function(type) {
   var data = this.getOverlayData(type);
   var activity = this.activity;
 
@@ -67,12 +91,10 @@ OverlayController.prototype.insertOverlay = function(type) {
   overlay
     .appendTo(document.body)
     .on('click:close-btn', function() {
-      overlay.destroy();
       activity.cancel();
     });
-
-  this.overlays.push(overlay);
   debug('inserted \'%s\' overlay', type);
+  return overlay;
 };
 
 /**
@@ -99,6 +121,10 @@ OverlayController.prototype.getOverlayData = function(type) {
       data.title = l10n.get('pluggedin-title');
       data.body = l10n.get('pluggedin-text');
     break;
+    case 'shutdown':
+      data.title = l10n.get('battery-shutdown-title');
+      data.body = l10n.get('battery-shutdown-text');
+    break;
     default:
       return false;
   }
@@ -106,17 +132,6 @@ OverlayController.prototype.getOverlayData = function(type) {
   data.closeButtonText = l10n.get('close-button');
 
   return data;
-};
-
-/**
- * Destroy all overlays.
- */
-OverlayController.prototype.destroyOverlays = function() {
-  this.overlays.forEach(function(overlay) {
-    overlay.destroy();
-  });
-  this.overlays = [];
-  debug('destroyed overlays');
 };
 
 });
