@@ -696,6 +696,10 @@ nav[data-type="scrollbar"] p img {
   padding-left: 2rem !important;
 }
 
+.contact-text {
+  padding-left: 2rem;
+}
+
 form[role="dialog"].no-overlay {
   background: none;
   pointer-events: none;
