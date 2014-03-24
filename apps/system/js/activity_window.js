@@ -181,7 +181,8 @@
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
     'authDialog': window.AppAuthenticationDialog,
-    'contextmenu': window.BrowserContextMenu
+    'contextmenu': window.BrowserContextMenu,
+    'childWindowFactory': window.ChildWindowFactory
   };
 
   ActivityWindow.REGISTERED_EVENTS =
