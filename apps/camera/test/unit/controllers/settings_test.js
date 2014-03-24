@@ -9,12 +9,14 @@ suite('controllers/settings', function() {
       'controllers/settings',
       'lib/settings',
       'lib/setting',
-      'app'
-    ], function(SettingsController, Settings, Setting, App) {
+      'app',
+      'views/notification'
+    ], function(SettingsController, Settings, Setting, App, NotificationViews) {
       self.SettingsController = SettingsController.SettingsController;
       self.Settings = Settings;
       self.Setting = Setting;
       self.App = App;
+      self.NotificationViews = NotificationViews;
       done();
     });
   });
@@ -29,6 +31,9 @@ suite('controllers/settings', function() {
     this.app.settings.pictureSizesBack = sinon.createStubInstance(this.Setting);
     this.app.settings.recorderProfiles = sinon.createStubInstance(this.Setting);
     this.app.settings.hdr = sinon.createStubInstance(this.Setting);
+    this.app.views = {
+      notification: sinon.createStubInstance(this.NotificationViews)
+    };
 
     // Create test instance
     this.controller = new this.SettingsController(this.app);

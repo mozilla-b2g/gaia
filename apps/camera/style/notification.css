@@ -1,0 +1,37 @@
+.notification {
+  position: absolute;
+  bottom:15rem;
+  width: 100%;
+  text-align: center;
+  font-family: "Fira Sans Medium";
+  font-size: 2rem;
+  text-shadow: 0px 1px #000000;
+  color: #FFFFFF;
+  z-index: 1;
+}
+
+.notification .imgBox {
+  font-size: 60px;
+  color: #D92E2E;
+  text-shadow: none;
+}
+
+.deg90 .notification {
+  bottom: 0;
+  width:100vh;
+  left:calc(100% - 4.8rem);
+  transform-origin: left bottom 0;
+  transform: rotate(270deg);
+}
+
+.deg270 .notification {
+  bottom: 0;
+  width:100vh;
+  right:calc(100% - 4.8rem);
+  transform-origin: right bottom 0;
+  transform: rotate(90deg);
+}
+
+.deg180 .notification {
+  transform: rotate(180deg);
+}

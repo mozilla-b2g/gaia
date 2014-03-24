@@ -181,7 +181,8 @@ suite('controllers/camera', function() {
       this.controller = new this.CameraController(this.app);
     });
 
-    test('Should set flashModesPicture \'off\' when hdr is set to \'on\'', function() {
+    test('Should set flashModesPicture \'off\' when hdr is set to \'on\'',
+      function() {
       var flashModesPicture = this.app.settings.flashModesPicture;
 
       flashModesPicture.selected.withArgs('key').returns('on');
@@ -249,6 +250,27 @@ suite('controllers/camera', function() {
       this.app.geolocation.position = 123;
       this.controller.capture();
       assert.ok(this.app.camera.capture.args[0][0].position === 123);
+    });
+  });
+
+  suite('CameraController#onBatteryStatusChange ()', function() {
+    setup(function() {
+      this.controller = new this.CameraController(this.app);
+      this.camera.get
+        .withArgs('recording')
+        .returns(true);
+    });
+
+    test('Should call onBatteryStatuchange on \'change:batteryStatus\'',
+      function() {
+      this.controller = new this.CameraController(this.app);
+      this.app.on.calledWith('change:batteryStatus',
+        this.onBatteryStatusChange);
+    });
+
+    test('Should handle the shutDownCamera', function() {
+      this.controller.onBatteryStatusChange('shutdown');
+      assert.ok(this.camera.stopRecording.called);
     });
   });
 });
