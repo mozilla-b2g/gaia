@@ -29,7 +29,8 @@ var SleepMenu = {
   getAllElements: function sm_getAllElements() {
     this.elements.overlay = document.getElementById('sleep-menu');
     this.elements.container =
-      document.querySelector('#sleep-menu-container menu');
+      document.querySelector('#sleep-menu-container ul');
+    this.elements.cancel = document.querySelector('#sleep-menu button');
   },
 
   init: function sm_init() {
@@ -39,7 +40,7 @@ var SleepMenu = {
     window.addEventListener('screenchange', this, true);
     window.addEventListener('home', this);
     window.addEventListener('batteryshutdown', this);
-
+    this.elements.cancel.addEventListener('click', this);
 
     var self = this;
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
@@ -141,19 +142,12 @@ var SleepMenu = {
 
   buildMenu: function sm_buildMenu(items) {
     items.forEach(function traveseItems(item) {
-      var item_button = document.createElement('button');
-      item_button.dataset.value = item.value;
-      item_button.textContent = item.label;
-      this.elements.container.appendChild(item_button);
+      var item_li = document.createElement('li');
+      item_li.dataset.value = item.value;
+      item_li.textContent = item.label;
+      item_li.setAttribute('role', 'menuitem');
+      this.elements.container.appendChild(item_li);
     }, this);
-
-    var cancel_button         = document.createElement('button');
-    cancel_button.textContent = 'Cancel';
-    cancel_button.id          = 'sleep-cancel';
-    cancel_button.setAttribute('data-l10n-id', 'cancel');
-    this.elements.container.appendChild(cancel_button);
-    this.elements.cancel      = cancel_button;
-    this.elements.cancel.addEventListener('click', this);
   },
 
   hide: function lm_hide() {
@@ -165,10 +159,6 @@ var SleepMenu = {
   },
 
   handleEvent: function sm_handleEvent(evt) {
-
-    // Add preventDefault for buttons on Action menu
-    evt.preventDefault();
-
     switch (evt.type) {
       case 'batteryshutdown':
         window.dispatchEvent(

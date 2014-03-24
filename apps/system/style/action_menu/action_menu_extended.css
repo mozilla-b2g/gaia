@@ -17,26 +17,16 @@ form[role="dialog"][data-type="object"] > menu > button.tail-icon {
 
 form[role="dialog"][data-type="action"],
 form[role="dialog"][data-type="object"] {
-  visibility: hidden;
-  transform: translateY(100%);
-  transition: transform ease-in-out .3s, visibility .3s;
+	visibility: hidden;
+	transform: translateY(100%);
+	transition: transform ease-in-out .3s, visibility .3s;
 }
 
 form[role="dialog"][data-type="action"].visible,
 form[role="dialog"][data-type="object"].visible {
-  visibility: visible;
-  transform: translateY(0);
+	visibility: visible;
+	transform: translateY(0);
 }
-
-#sleep-menu-container ul[role="menu"] {
-  display: none;
-}
-
-#sleep-menu-container form[role="dialog"][data-type="action"] {
-  transform: translateY(0);
-  visibility: visible;
-}
-
 
 @media (min-width: 768px) {
   form[role="dialog"][data-type="action"],
@@ -121,4 +111,3 @@ form[role="dialog"][data-type="object"].visible {
     z-index: -1;
   }
 }
-
