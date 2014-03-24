@@ -22,29 +22,34 @@ var MultiSimActionButton = function MultiSimActionButton(
     var self = this;
     LazyLoader.load(['/shared/js/settings_listener.js'], function() {
       self._simIndication = self._button.querySelector('.js-sim-indication');
-      SettingsListener.observe(settingsKey, 0,
-                               self._settingsObserver.bind(self));
+      SettingsListener.observe(settingsKey, 0, self._updateUI.bind(self));
     });
   }
 };
 
-MultiSimActionButton.prototype._settingsObserver = function(cardIndex) {
-  this._defaultCardIndex = cardIndex;
-  this._updateUI();
-};
-
-MultiSimActionButton.prototype._getCardIndex = function() {
+MultiSimActionButton.prototype._getCardIndex =
+  function cb_getCardIndex(callback) {
   if (window.TelephonyHelper) {
     var inUseSim = window.TelephonyHelper.getInUseSim();
     if (inUseSim !== null) {
-      return inUseSim;
+      callback(inUseSim);
+      return;
     }
   }
 
-  return this._defaultCardIndex;
+  var settingsKey = this._settingsKey;
+  var settings = navigator.mozSettings;
+  var getReq = settings.createLock().get(settingsKey);
+  var done = function done() {
+    callback(getReq.result[settingsKey]);
+  };
+  getReq.onsuccess = done;
+  getReq.onerror = function() {
+    console.error('Failed to retrieve ', settingsKey);
+  };
 };
 
-MultiSimActionButton.prototype._click = function(event) {
+MultiSimActionButton.prototype._click = function cb_click(event) {
   if (event) {
     event.preventDefault();
   }
@@ -59,23 +64,22 @@ MultiSimActionButton.prototype._click = function(event) {
     return;
   }
 
-  var cardIndex = this._getCardIndex();
-  // The user has requested that we ask them every time for this key,
-  // so we prompt them to pick a SIM even when they only click.
-  if (cardIndex == ALWAYS_ASK_OPTION_VALUE) {
-    var self = this;
-    LazyLoader.load(['/shared/js/sim_picker.js'], function() {
-      SimPicker.getOrPick(cardIndex, phoneNumber,
-                          self.performAction.bind(self));
-    });
-  } else {
-    this.performAction(cardIndex);
-  }
+  var self = this;
+  self._getCardIndex(function(cardIndex) {
+    // The user has requested that we ask them every time for this key,
+    // so we prompt them to pick a SIM even when they only click.
+    if (cardIndex == ALWAYS_ASK_OPTION_VALUE) {
+      LazyLoader.load(['/shared/js/sim_picker.js'], function() {
+        SimPicker.getOrPick(cardIndex, phoneNumber,
+                            self.performAction.bind(self));
+      });
+    } else {
+      self.performAction(cardIndex);
+    }
+  });
 };
 
-MultiSimActionButton.prototype._updateUI = function() {
-  var cardIndex = this._getCardIndex();
-
+MultiSimActionButton.prototype._updateUI = function cb_updateUI(cardIndex) {
   if (cardIndex >= 0 &&
       navigator.mozIccManager &&
       navigator.mozIccManager.iccIds.length > 1) {
@@ -83,8 +87,7 @@ MultiSimActionButton.prototype._updateUI = function() {
       var self = this;
       navigator.mozL10n.ready(function() {
         navigator.mozL10n.localize(self._simIndication,
-                                   'sim-picker-button',
-                                   {n: cardIndex+1});
+                                   'sim-picker-button', {n: cardIndex+1});
       });
     }
 
@@ -94,7 +97,7 @@ MultiSimActionButton.prototype._updateUI = function() {
   }
 };
 
-MultiSimActionButton.prototype._contextmenu = function(event) {
+MultiSimActionButton.prototype._contextmenu = function cb_contextmenu(event) {
   // Don't do anything, including preventDefaulting the event, if the phone
   // number is blank. We don't want to preventDefault because we want the
   // contextmenu event to generate a click.
@@ -113,21 +116,27 @@ MultiSimActionButton.prototype._contextmenu = function(event) {
   }
 
   var self = this;
-  LazyLoader.load(['/shared/js/sim_picker.js'], function() {
-    SimPicker.getOrPick(self._getCardIndex(), phoneNumber,
-                        self.performAction.bind(self));
+  self._getCardIndex(function(cardIndex) {
+    LazyLoader.load(['/shared/js/sim_picker.js'], function() {
+      SimPicker.getOrPick(cardIndex, phoneNumber,
+                          self.performAction.bind(self));
+    });
   });
 };
 
-MultiSimActionButton.prototype.performAction = function(cardIndex) {
+MultiSimActionButton.prototype.performAction =
+  function cb_performAction(cardIndex) {
   var phoneNumber = this._phoneNumberGetter && this._phoneNumberGetter();
   if (phoneNumber === '') {
     return;
   }
 
-  if (cardIndex === undefined) {
-    cardIndex = this._getCardIndex();
+  if (cardIndex !== undefined) {
+    this._callCallback(phoneNumber, cardIndex);
+  } else {
+    var self = this;
+    this._getCardIndex(function(cardIndex) {
+      self._callCallback(phoneNumber, cardIndex);
+    });
   }
-
-  this._callCallback(phoneNumber, cardIndex);
 };

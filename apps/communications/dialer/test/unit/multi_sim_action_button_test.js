@@ -187,7 +187,8 @@ suite('multi SIM action button', function() {
     suite('always ask', function() {
       setup(function() {
         cardIndex = ALWAYS_ASK_OPTION_VALUE;
-        initSubject();
+        MockNavigatorSettings.createLock().set({
+          'ril.telephony.defaultServiceId': cardIndex });
       });
 
       test('should show SIM picker when clicked', function() {
