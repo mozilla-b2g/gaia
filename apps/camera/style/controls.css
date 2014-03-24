@@ -64,15 +64,15 @@
   position: relative;
   box-sizing: content-box;
   display: block;
-  height: 5rem;
-  width: 5rem;
+  height: 5.4rem;
+  width: 5.4rem;
   font-size: 3rem;
-  line-height: 5rem;
+  line-height: 5.4rem;
   text-align: center;
   border-radius: 50%;
   background-position: center center;
   background-repeat: no-repeat;
-  background-color: rgba(0,0,0,.3);
+  background-color: rgba(0,0,0,0.4);
   background-clip: padding-box;
   border: solid 1.8rem transparent;
   -moz-box-sizing: content-box;
@@ -87,12 +87,16 @@
   background-color: #00b9df;
 }
 
-/** Gallery Button
- ---------------------------------------------------------*/
+/**
+ * gallery=false
+ */
 
-.controls[gallery=false] .controls-gallery-button{
+.controls[gallery=false] .controls-gallery-button {
   display: none;
 }
+
+/** Thumbnail
+ ---------------------------------------------------------*/
 
 .controls-gallery-button > img {
   position: absolute;
@@ -142,11 +146,10 @@
   box-sizing: content-box;
   display: block;
   font-size: 2.4rem;
-  width: 8rem;
-  height: 4rem;
-  background: rgba(51, 51, 51, 0.65);
+  width: 7.6rem;
+  background: rgba(0,0,0,0.4);
   border-radius: 3rem;
-  padding: .3rem;
+  padding: 0.2rem;
   margin-left: 1.8rem;
   overflow: hidden;
   visibility: hidden; /* 1 */
@@ -167,7 +170,7 @@
   position: absolute;
   width: 2.4rem;
   right: 1.2rem;
-  line-height: 4rem;
+  line-height: 3.6rem;
 }
 
 .mode-switch .mode-icon:after {
@@ -192,8 +195,8 @@
 
 .mode-switch .selected-mode {
   position: relative;
-  width: 4rem;
-  height: 4rem;
+  width: 3.6rem;
+  height: 3.6rem;
   border-radius: 50%;
   background: #EEE;
   transition: transform 100ms;
@@ -211,10 +214,10 @@
  ---------------------------------------------------------*/
 
 .mode-switch .selected-mode-icon:after {
+  content: "\e60f";
   display: block;
   text-align: center;
-  line-height: 4rem;
-  content: "\e60f";
+  line-height: 3.6rem;
   color: #00CAF2;
 }
 
@@ -231,7 +234,7 @@
  ---------------------------------------------------------*/
 
 .capture-button {
-  position:relative;
+  position: relative;
   top: calc(50% - 5.1rem);
   width: 10.2rem;
   height: 10.2rem;
@@ -265,7 +268,7 @@
 
 .capture-button .inner-circle {
   background-color: white;
-  transform: scale(0.74);
+  transform: scale(0.76);
   transition: transform 100ms ease-in;
 }
 
@@ -293,7 +296,7 @@
 
 .controls[mode=video] .capture-button:active .inner-circle {
   background-color: #D92E2E;
-  transform: scale(0.74);
+  transform: scale(0.76);
 }
 
 /**
