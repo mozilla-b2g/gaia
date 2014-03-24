@@ -1,8 +1,8 @@
 'use strict';
 
-var MockNavigatorContacts = (function() {
+(function(window) {
   var contacts = [];
-  return {
+  window.MockNavigatorContacts = {
     save: function(contact) {
       contacts.push(contact);
       return {};
@@ -14,6 +14,4 @@ var MockNavigatorContacts = (function() {
       contacts = [];
     }
   };
-})();
-
-window.MockNavigatorContacts = MockNavigatorContacts;
+})(this);

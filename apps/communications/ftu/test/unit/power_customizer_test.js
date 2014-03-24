@@ -1,11 +1,12 @@
-/* global MockNavigatorSettings, sinon, powerCustomizer, requireApp, suite,
-   suiteSetup, suiteTeardown, setup, test, assert */
+/* global MockNavigatorSettings */
+/* global sinon */
+/* global powerCustomizer */
 
 'use strict';
 
-requireApp('operatorvariant/js/customizers/customizer.js');
-requireApp('operatorvariant/js/customizers/power_customizer.js');
-requireApp('operatorvariant/test/unit/mock_navigator_moz_settings.js');
+requireApp('communications/ftu/js/customizers/customizer.js');
+requireApp('communications/ftu/js/customizers/power_customizer.js');
+requireApp('communications/ftu/test/unit/mock_navigator_moz_settings.js');
 
 suite('power on/off customizer >', function() {
   var createLockSpy;

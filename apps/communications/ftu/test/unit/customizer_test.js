@@ -1,15 +1,12 @@
-/* global requireApp, suite, suiteSetup, sinon, Resources, setup, Customizer,
-   test, assert, suite, teardown, suiteTeardown */
-
 'use strict';
 
-requireApp('operatorvariant/js/resources.js');
-requireApp('operatorvariant/js/customizers/customizer.js');
+requireApp('communications/ftu/js/resources.js');
+requireApp('communications/ftu/js/customizers/customizer.js');
 
 suite(' Customizer > ', function() {
   var eventName = 'test-event';
   var resourceType = 'blob';
-  var resourcePath = 'resources/wallpaper.jpg';
+  var resourcePath = '/ftu/test/unit/resources/wallpaper.jpg';
 
   suite(' init > ', function() {
     var resourceLoaderSpy;

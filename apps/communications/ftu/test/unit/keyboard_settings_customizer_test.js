@@ -1,11 +1,11 @@
-/* global keyboardSettingsCustomizer, requireApp, suite, suiteSetup,
-   suiteTeardown, setup, teardown, test, assert */
+/* global keyboardSettingsCustomizer */
 
 'use strict';
 
-requireApp('operatorvariant/js/customizers/customizer.js');
-requireApp('operatorvariant/js/customizers/keyboard_settings_customizer.js');
-requireApp('operatorvariant/test/unit/mock_navigator_moz_settings.js');
+requireApp('communications/ftu/js/customizers/customizer.js');
+requireApp(
+  'communications/ftu/js/customizers/keyboard_settings_customizer.js');
+requireApp('communications/ftu/test/unit/mock_navigator_moz_settings.js');
 
 suite('Keyboard settings customizer >', function() {
   var realSettings;

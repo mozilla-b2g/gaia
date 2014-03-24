@@ -1,5 +1,5 @@
-/* global Customizer, Resources */
-
+/* global Customizer,
+          Resources */
 'use strict';
 
 var RingtoneCustomizer = (function() {

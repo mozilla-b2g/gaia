@@ -1,11 +1,8 @@
-/* global requireApp, suite, suiteSetup, MockNavigatorSettings, sinon,
-   suiteTeardown, setup, test, supportContactsCustomizer, assert*/
-
 'use strict';
 
-requireApp('operatorvariant/js/customizers/customizer.js');
-requireApp('operatorvariant/js/customizers/support_contacts_customizer.js');
-requireApp('operatorvariant/test/unit/mock_navigator_moz_settings.js');
+requireApp('communications/ftu/js/customizers/customizer.js');
+requireApp('communications/ftu/js/customizers/support_contacts_customizer.js');
+requireApp('communications/ftu/test/unit/mock_navigator_moz_settings.js');
 
 suite('Support contacts customizer >', function() {
   var createLockSpy, realSettings;

@@ -1,9 +1,8 @@
-/* global requireApp, suite, test, assert, Resources */
 'use strict';
 
-requireApp('operatorvariant/js/resources.js');
+requireApp('communications/ftu/js/resources.js');
 
-var resourcePath = 'resources/wallpaper.jpg';
+var resourcePath = '/ftu/test/unit/resources/wallpaper.jpg';
 
 suite(' Resources > ', function() {
   test(' load properly ', function(done) {

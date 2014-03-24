@@ -1,13 +1,10 @@
-/* global require, requireApp, MocksHelper, suite, suiteSetup,
-   MockNavigatorSettings, MockIccHelper, VariantManager,
-   suiteTeardown, test, assert */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('operatorvariant/test/unit/mock_navigator_moz_settings.js');
-requireApp('operatorvariant/js/resources.js');
-requireApp('operatorvariant/js/operator_variant.js');
-requireApp('operatorvariant/shared/test/unit/mocks/mock_icc_helper.js');
+requireApp('communications/ftu/test/unit/mock_navigator_moz_settings.js');
+requireApp('communications/ftu/js/resources.js');
+requireApp('communications/ftu/js/variant.js');
+requireApp('communications/shared/test/unit/mocks/mock_icc_helper.js');
 
 
 var mocksHelperForVariant = new MocksHelper(['IccHelper', 'LazyLoader']);
@@ -20,7 +17,7 @@ suite(' Customizer > ', function() {
   var customizationFullPath, realSettings;
   var customizationList = {
     '214-007': {
-        'support_contacts': '/resources/support_contacts.json',
+        'support_contacts': '/ftu/test/unit/resources/support_contacts.json',
         'wallpaper': '/resources/wallpaper.jpg',
         'default_contacts': '/resources/contacts.json',
         'ringtone': '/resources/ringtone.ogg'
@@ -30,7 +27,7 @@ suite(' Customizer > ', function() {
   suiteSetup(function() {
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
-    MockIccHelper.mProps.iccInfo = {
+    MockIccHelper.mProps['iccInfo'] = {
       mcc: TEST_NETWORK_MCC,
       mnc: TEST_NETWORK_MNC
     };
@@ -41,7 +38,7 @@ suite(' Customizer > ', function() {
   suiteTeardown(function() {
     navigator.mozSettings = realSettings;
     realSettings = null;
-    MockIccHelper.mProps.iccInfo = null;
+    MockIccHelper.mProps['iccInfo'] = null;
   });
 
   test(' normalize ', function() {

@@ -1,13 +1,9 @@
-/* global requireApp, suite, suiteSetup, MockNavigatorContacts,
-   MockMozContact, sinon, suiteTeardown, setup, test, defaultContactsCustomizer,
-   assert*/
-
 'use strict';
 
-requireApp('operatorvariant/test/unit/mock_mozContact.js');
-requireApp('operatorvariant/test/unit/mock_navigator_contacts.js');
-requireApp('operatorvariant/js/customizers/customizer.js');
-requireApp('operatorvariant/js/customizers/default_contacts_customizer.js');
+requireApp('communications/ftu/test/unit/mock_mozContact.js');
+requireApp('communications/ftu/test/unit/mock_navigator_contacts.js');
+requireApp('communications/ftu/js/customizers/customizer.js');
+requireApp('communications/ftu/js/customizers/default_contacts_customizer.js');
 
 var mozContact;
 suite('Default contacts customizer >', function() {
