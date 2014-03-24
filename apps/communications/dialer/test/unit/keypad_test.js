@@ -3,7 +3,7 @@
            MockDialerIndexHtml, MockIccManager, MockMozTelephony,
            MockNavigatorSettings, MockSettingsListener, MocksHelper,
            MockTonePlayer, SimPicker, telephonyAddCall,
-           MockMultiSimActionButtonSingleton
+           MockMultiSimActionButtonSingleton, MockMozL10n, MockUtils
 */
 
 'use strict';
@@ -48,12 +48,16 @@ suite('dialer/keypad', function() {
   var realMozIccManager;
   var realMozSettings;
   var realMozTelephony;
+  var realL10n;
 
   mocksHelperForKeypad.attachTestHelpers();
 
   suiteSetup(function() {
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = new MockIccManager();
+
+    realL10n = window.navigator.mozL10n;
+    navigator.mozL10n = MockMozL10n;
 
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
@@ -68,6 +72,7 @@ suite('dialer/keypad', function() {
   suiteTeardown(function() {
     navigator.mozIccManager = realMozIccManager;
     navigator.mozSettings = realMozSettings;
+    navigator.mozL10n = realL10n;
     MockNavigatorSettings.mSyncRepliesOnly = false;
 
     document.body.innerHTML = previousBody;
@@ -407,6 +412,25 @@ suite('dialer/keypad', function() {
       subject._phoneNumber = '1111111';
       assert.equal(subject._phoneNumber,
         MockMultiSimActionButtonSingleton._phoneNumberGetter());
+    });
+  });
+
+  suite('Pressing a key update the phone number area', function() {
+    test('The utility is called correctly', function() {
+      var spy = this.sinon.spy(MockUtils, 'adjustTextForElement');
+      KeypadManager.formatPhoneNumber();
+
+      var view = KeypadManager.phoneNumberView;
+      var parameters = {
+        'fontFace': KeypadManager.phoneNumberViewFont,
+        'maxWidth': KeypadManager.phoneNumberViewWidth,
+        'fontSize': {
+          'current': parseInt(window.getComputedStyle(view).fontSize, 10),
+          'allowed': KeypadManager.allowedSizes
+        },
+        'ellipsisSide': undefined
+      };
+      assert.isTrue(spy.calledWith(view, parameters));
     });
   });
 });

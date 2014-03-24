@@ -6,8 +6,6 @@
 
 'use strict';
 
-var kFontStep = 4;
-
 // Frequencies coming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
   '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
@@ -83,10 +81,16 @@ var KeypadManager = {
     return this.phoneNumberView = document.getElementById('phone-number-view');
   },
 
-  get fakePhoneNumberView() {
-    delete this.fakePhoneNumberView;
-    return this.fakePhoneNumberView =
-      document.getElementById('fake-phone-number-view');
+  get phoneNumberViewWidth() {
+    delete this.phoneNumberViewWidth;
+    return this.phoneNumberViewWidth =
+      this.phoneNumberView.getBoundingClientRect().width;
+  },
+
+  get phoneNumberViewFont() {
+    delete this.phoneNumberViewFont;
+    return this.phoneNumberViewFont =
+      window.getComputedStyle(this.phoneNumberView).fontFamily;
   },
 
   get phoneNumberViewContainer() {
@@ -165,6 +169,14 @@ var KeypadManager = {
         0.226) :
       parseInt(parseInt(defaultFontSize) * this._MAX_FONT_SIZE_DIAL_PAD *
         0.226);
+
+    this.allowedSizes = [];
+    for (var size = this.minFontSize; size <= this.maxFontSize; size += 4) {
+      this.allowedSizes.push(size);
+    }
+    if (this.allowedSizes.indexOf(this.maxFontSize) === -1) {
+      this.allowedSizes.push(this.maxFontSize);
+    }
 
     this.phoneNumberView.value = '';
     this._phoneNumber = '';
@@ -323,26 +335,30 @@ var KeypadManager = {
   },
 
   formatPhoneNumber: function kh_formatPhoneNumber(ellipsisSide, maxFontSize) {
-    var fakeView = this.fakePhoneNumberView;
     var view = this.phoneNumberView;
 
-    // We consider the case where the delete button may have
-    // been used to delete the whole phone number.
-    if (view.value === '') {
-      view.style.fontSize = this.maxFontSize;
-      return;
+    var allowedSizes = [];
+    if (maxFontSize) {
+      allowedSizes = [this.maxFontSize];
+    } else {
+      allowedSizes = this.allowedSizes;
     }
 
-    var newFontSize;
-    if (maxFontSize) {
-      newFontSize = this.maxFontSize;
-    } else {
-      newFontSize =
-        Utils.getNextFontSize(view, fakeView, this.maxFontSize,
-          this.minFontSize, kFontStep);
-    }
-    view.style.fontSize = newFontSize + 'px';
-    Utils.addEllipsis(view, fakeView, ellipsisSide);
+    var fontSize =
+      parseInt(view.style.fontSize ||
+      window.getComputedStyle(view).fontSize, 10);
+
+    var parameters = {
+      'fontFace': this.phoneNumberViewFont,
+      'maxWidth': this.phoneNumberViewWidth,
+      'fontSize': {
+        'current': fontSize,
+        'allowed': allowedSizes
+      },
+      'ellipsisSide': ellipsisSide
+    };
+
+    Utils.adjustTextForElement(view, parameters);
   },
 
   _lastPressedKey: null,

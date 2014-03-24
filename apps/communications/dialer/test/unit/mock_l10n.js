@@ -16,7 +16,7 @@ var MockMozL10n = {
   },
   language: {
     code: 'en',
-    dir: 'ltr'
+    direction: 'ltr'
   },
   ready: function(callback) {
     callback();
