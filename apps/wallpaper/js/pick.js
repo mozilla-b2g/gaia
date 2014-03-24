@@ -25,6 +25,11 @@ var Wallpaper = {
 
     var self = this;
     xhr.onload = function successGenerateWallpaperList() {
+      // The unit test won't be able to find the wallpapers element, so just
+      // return.
+      if (!self.wallpapers) {
+        return;
+      }
       self.wallpapers.innerHTML = '';
       xhr.response.forEach(function(wallpaper) {
         var div = document.createElement('div');
