@@ -672,11 +672,8 @@ ul li > label.range-icons.brightness:before {
 /******************************************************************************
  * Bluetooth
  */
-#update-device-name > section p {
-  border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
-  margin-top: 1rem;
-  padding: 0.5rem 1.2rem 0;
-  line-height: 1.2;
+#update-device-name > section input {
+  margin: 1rem 0;
 }
 
 /* Web activity handling */
