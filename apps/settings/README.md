@@ -64,6 +64,20 @@ Note that the transition happens right after onBeforeShow, please avoid heavy th
 
 As we are using require.js for module management, scripts used in a panel should be wrapped in an AMD module or loaded from it, and which should extends from `SettingsPanel` to have basic settings services. Similar to `Panel`, we are able override onShow, onHide, onBeforeShow, onBeforeHide, onInit, and onUninit by passing an option object to the constructor of `SettingsPanel`.
 
+
+## Build step
+
+The settings app has it's own [`Makefile`](Makefile). A Makefile is similar to Grunt, but written in bash, it is essentially a list of tasks that can be run (via `make <task-name>`). When a Gaia application has its own `apps/<app-name>/Makefile`, it will be automatically run when Gaia builds.
+
+At the root we also have [`gaia_build.json`](gaia_build.json), which tells Gaia to fetch the built app from `build_stage/camera` instead of `apps/camera`, before zipping it up to `profile/webapps/camera/application.zip`.
+
+Our `Makefile` has two tasks, one to **'build'** and one to **'clean'** (delete the build). The build steps are as follows:
+
+1. Remove any previous settings build from the `build_stage/`
+2. Create an new directory `build_stage/settings`
+3. Run the `r.js` (RequireJS optimizer), pointing it at our `require_config.jslike` file (`.jslike` because we don't want Gaia builds to mess with it [I think]). This copies our entire application (JS and all) and bundles our JS (tracing `require()` calls) and CSS (tracing `@import`) in two single files.
+
+
 ## Implement Guide
 ###How to create a new panel in Settings?
 1. Create an HTML template file with the following format and place it in the elements/ folder.
@@ -138,14 +152,3 @@ for `support` panel, it denotes replace `js/support.js` to `panels/SupportPanel`
 
 5. test with command for integration test
 `sudo make test-integration APP=settings`
-
-## Build step
-
-The settings app has it's own [`Makefile`](Makefile). A Makefile is similar to Grunt, but written in bash, it is essentially a list of tasks that can be run (via `make <task-name>`). When a Gaia application has its own `apps/<app-name>/Makefile`, it will be automatically run when Gaia builds.
-
-Our `Makefile` has two tasks, one to **'build'** and one to **'clean'** (delete the build). The build steps are as follows:
-
-1. Remove any previous settings build from the `build_stage/`
-2. Create an new directory `build_stage/settings`
-3. Run the `r.js` (RequireJS optimizer), pointing it at our `require_config.jslike` file (`.jslike` because we don't want Gaia builds to mess with it [I think]). This copies our entire application (JS and all) and bundles our JS (tracing `require()` calls) and CSS (tracing `@import`) in two single files.
-
