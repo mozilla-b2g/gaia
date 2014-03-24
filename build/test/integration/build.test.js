@@ -517,6 +517,20 @@ suite('Build Integration tests', function() {
     );
   });
 
+  suite('Build file inclusion tests', function() {
+    test('build includes elements folder and sim-picker', function(done) {
+      helper.exec('make', function(error, stdout, stderr) {
+        var pathInZip = 'shared/elements/sim-picker.html';
+        var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+          'communications.gaiamobile.org', 'application.zip');
+        var expectedSimPickerPath = path.join(process.cwd(),
+          'shared', 'elements', 'sim-picker.html');
+        helper.checkFileInZip(zipPath, pathInZip, expectedSimPickerPath);
+        done();
+      });
+    });
+  });
+
   teardown(function() {
     rmrf('profile');
     rmrf('profile-debug');

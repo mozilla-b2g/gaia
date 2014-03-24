@@ -6,7 +6,7 @@
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
-         Thread, MultiSimActionButton */
+         Thread, MultiSimActionButton, LazyLoader */
 /*exported ThreadUI */
 
 (function(global) {
@@ -343,6 +343,11 @@ var ThreadUI = global.ThreadUI = {
           this.simSelectedCallback.bind(this),
           Settings.SERVICE_ID_KEYS.smsServiceId
       );
+
+      var simPickerElt = document.getElementById('sim-picker');
+      LazyLoader.load([simPickerElt], function() {
+        navigator.mozL10n.translate(simPickerElt);
+      });
     }
   },
 

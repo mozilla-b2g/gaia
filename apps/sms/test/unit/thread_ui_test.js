@@ -6,7 +6,8 @@
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
          ActivityPicker, KeyEvent, MockNavigatorSettings, MockContactRenderer,
-         Draft, ErrorDialog, MockStickyHeader, MultiSimActionButton
+         Draft, ErrorDialog, MockStickyHeader, MultiSimActionButton,
+         MockLazyLoader
 */
 
 'use strict';
@@ -59,6 +60,7 @@ require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
 require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
 require('/shared/test/unit/mocks/mock_audio.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Attachment',
@@ -84,7 +86,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'MessageManager',
   'StickyHeader',
   'MultiSimActionButton',
-  'Audio'
+  'Audio',
+  'LazyLoader'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -4165,6 +4168,19 @@ suite('thread_ui.js >', function() {
             recipients: [recipient],
             serviceId: targetServiceId
           });
+        });
+      });
+
+      suite('SIM picker', function() {
+        test('loads and translates SIM picker', function() {
+          var simPickerElt = document.getElementById('sim-picker');
+          var translateSpy = this.sinon.spy(MockL10n, 'translate');
+          var loadSpy = this.sinon.spy(MockLazyLoader, 'load');
+
+          ThreadUI.onBeforeEnter();
+
+          sinon.assert.calledWith(translateSpy, simPickerElt);
+          sinon.assert.calledWith(loadSpy, [simPickerElt]);
         });
       });
     });
