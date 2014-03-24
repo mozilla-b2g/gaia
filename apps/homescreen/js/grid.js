@@ -460,8 +460,7 @@ var GridManager = (function() {
     delete document.body.dataset.transitioning;
 
     if (dispatchEvents) {
-      fromPage.container.dispatchEvent(new CustomEvent('gridpagehideend'));
-      toPage.container.dispatchEvent(new CustomEvent('gridpageshowend'));
+      dispatchGridPageEndEvents(fromPage, toPage);
     }
 
     // We are going to prepare pages that are next to current page
@@ -489,6 +488,23 @@ var GridManager = (function() {
     if (callback) {
       setTimeout(callback, 0);
     }
+  }
+
+  function dispatchGridPageStartEvents(pageToHide, pageToShow, duration) {
+    var data = {
+      detail: {
+        duration: duration
+      }
+    };
+    var hideStartEvent = new CustomEvent('gridpagehidestart', data);
+    var showStartEvent = new CustomEvent('gridpageshowstart', data);
+    pageToHide.container.dispatchEvent(hideStartEvent);
+    pageToShow.container.dispatchEvent(showStartEvent);
+  }
+
+  function dispatchGridPageEndEvents(fromPage, toPage) {
+    fromPage.container.dispatchEvent(new CustomEvent('gridpagehideend'));
+    toPage.container.dispatchEvent(new CustomEvent('gridpageshowend'));
   }
 
   var touchStartTimestamp = 0;
@@ -522,10 +538,6 @@ var GridManager = (function() {
     currentPage = index;
     updatePaginationBar();
 
-    var eventContent = {detail: {duration: duration}};
-    var hideStartEvent = new CustomEvent('gridpagehidestart', eventContent);
-    var showStartEvent = new CustomEvent('gridpageshowstart', eventContent);
-
     if (previousPage === newPage) {
       var hasBeenTranslated = currentX - startX;
       if (hasBeenTranslated) {
@@ -541,9 +553,9 @@ var GridManager = (function() {
           pages[index + 1].moveByWithEffect(windowWidthMinusOne, duration);
         }
 
-        var pageIndexToHide = hasBeenTranslated > 0 ? index - 1 : index + 1;
-        pages[pageIndexToHide].container.dispatchEvent(hideStartEvent);
-        pages[index].container.dispatchEvent(showStartEvent);
+        var pageToHide = pages[hasBeenTranslated > 0 ? index - 1 : index + 1];
+        var pageToShow = pages[index];
+        dispatchGridPageStartEvents(pageToHide, pageToShow, duration);
 
         container.addEventListener('transitionend', function transitionEnd(e) {
           container.removeEventListener('transitionend', transitionEnd);
@@ -557,8 +569,7 @@ var GridManager = (function() {
       return;
     }
 
-    previousPage.container.dispatchEvent(hideStartEvent);
-    newPage.container.dispatchEvent(showStartEvent);
+    dispatchGridPageStartEvents(previousPage, newPage, duration);
     previousPage.moveByWithEffect(-forward * windowWidthMinusOne, duration);
     newPage.moveByWithEffect(0, duration);
 
