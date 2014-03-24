@@ -1,6 +1,5 @@
 'use strict';
 
-requireApp('communications/dialer/test/unit/mock_moztelephony.js');
 requireApp('communications/dialer/test/unit/mock_call.js');
 requireApp('communications/dialer/test/unit/mock_handled_call.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
@@ -16,6 +15,7 @@ require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 
 // The CallsHandler binds stuff when evaluated so we load it
 // after the mocks and we don't want it to show up as a leak.
@@ -47,7 +47,7 @@ suite('calls handler', function() {
 
   suiteSetup(function(done) {
     realMozTelephony = navigator.mozTelephony;
-    navigator.mozTelephony = MockMozTelephony;
+    navigator.mozTelephony = MockNavigatorMozTelephony;
 
     realWakeLock = navigator.requestWakeLock;
     navigator.requestWakeLock = MockNavigatorWakeLock.requestWakeLock;
@@ -62,7 +62,7 @@ suite('calls handler', function() {
   });
 
   suiteTeardown(function() {
-    MockMozTelephony.mSuiteTeardown();
+    MockNavigatorMozTelephony.mSuiteTeardown();
     navigator.moztelephony = realMozTelephony;
     navigator.mozApps = realMozApps;
     navigator.requestWakeLock = realWakeLock;
@@ -75,7 +75,7 @@ suite('calls handler', function() {
 
   teardown(function() {
     MockNavigatorMozIccManager.mTeardown();
-    MockMozTelephony.mTeardown();
+    MockNavigatorMozTelephony.mTeardown();
   });
 
   suite('> telephony.oncallschanged handling', function() {
@@ -89,45 +89,45 @@ suite('calls handler', function() {
       });
 
       test('should instanciate a handled call', function() {
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(HandledCall.calledWith(mockCall));
       });
 
       test('should insert the handled call node in the CallScreen', function() {
         var insertSpy = this.sinon.spy(MockCallScreen, 'insertCall');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(insertSpy.calledWith(mockHC.node));
       });
 
       test('should render the CallScreen in incoming mode', function() {
         var renderSpy = this.sinon.spy(MockCallScreen, 'render');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(renderSpy.calledWith('incoming'));
       });
 
       test('should toggle the CallScreen', function() {
         var toggleSpy = this.sinon.spy(MockCallScreen, 'toggle');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(toggleSpy.calledOnce);
       });
 
       test('should unmute', function() {
         var unmuteSpy = this.sinon.spy(MockCallScreen, 'unmute');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(unmuteSpy.calledOnce);
       });
 
       test('should switch sound to default out', function() {
         var toDefaultSpy = this.sinon.spy(MockCallScreen, 'switchToDefaultOut');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(toDefaultSpy.calledOnce);
       });
 
       suite('> call isn\'t picked up', function() {
         setup(function() {
-          MockMozTelephony.mTriggerCallsChanged();
-          MockMozTelephony.calls = [];
-          MockMozTelephony.mTriggerCallsChanged();
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+          MockNavigatorMozTelephony.calls = [];
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
           var windowOpener = {postMessage: function() {}};
           Object.defineProperty(window, 'opener', {
             configurable: true,
@@ -154,12 +154,12 @@ suite('calls handler', function() {
         var mockCall = new MockCall('12334', 'incoming');
         var mockHC = telephonyAddCall.call(this, mockCall, {trigger: true});
 
-        MockMozTelephony.calls = [];
+        MockNavigatorMozTelephony.calls = [];
       });
 
       test('should toggle the CallScreen', function() {
         var toggleSpy = this.sinon.spy(MockCallScreen, 'toggle');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(toggleSpy.calledOnce);
       });
     });
@@ -177,36 +177,36 @@ suite('calls handler', function() {
       });
 
       test('should instanciate another handled call', function() {
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(HandledCall.calledWith(extraCall));
       });
 
       test('should insert the handled call node in the CallScreen', function() {
         var insertSpy = this.sinon.spy(MockCallScreen, 'insertCall');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(insertSpy.calledWith(extraHC.node));
       });
 
       test('should hide the handled call node', function() {
         var hideSpy = this.sinon.spy(extraHC, 'hide');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(hideSpy.calledOnce);
       });
 
       test('should show the call waiting UI', function() {
         var showSpy = this.sinon.spy(MockCallScreen, 'showIncoming');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(showSpy.calledOnce);
       });
 
       test('should play the call waiting tone', function() {
         var playSpy = this.sinon.spy(MockTonePlayer, 'playSequence');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(playSpy.calledOnce);
       });
 
       test('should show the contact information', function() {
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.equal(CallScreen.incomingNumber.textContent, 'test name');
         assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
         assert.equal(CallScreen.incomingNumberAdditionalInfo.textContent,
@@ -216,7 +216,7 @@ suite('calls handler', function() {
       test('should show the number of a unknown contact', function() {
         // 111 is a special case for unknown contacts in MockContacts
         extraCall.number = '111';
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.equal(CallScreen.incomingNumber.textContent, extraCall.number);
         assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
         assert.equal(CallScreen.incomingNumberAdditionalInfo.textContent, '');
@@ -229,7 +229,7 @@ suite('calls handler', function() {
 
         suite('One SIM >', function() {
           test('should hide the incoming sim', function() {
-            MockMozTelephony.mTriggerCallsChanged();
+            MockNavigatorMozTelephony.mTriggerCallsChanged();
             assert.isTrue(CallScreen.incomingSim.hidden);
           });
         });
@@ -240,7 +240,7 @@ suite('calls handler', function() {
           });
 
           test('should show the receiving sim', function() {
-            MockMozTelephony.mTriggerCallsChanged();
+            MockNavigatorMozTelephony.mTriggerCallsChanged();
             assert.equal(CallScreen.incomingSim.textContent, 'sim-number');
             assert.deepEqual(MockLazyL10n.keys['sim-number'], {n: 2});
           });
@@ -267,40 +267,41 @@ suite('calls handler', function() {
 
       test('should hangup the call directly', function() {
         var hangupSpy = this.sinon.spy(overflowCall, 'hangUp');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(hangupSpy.calledOnce);
       });
 
       test('should still instanciate a handled call', function() {
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(HandledCall.calledWith(overflowCall));
       });
 
       test('should not insert the handled call node in the CallScreen',
       function() {
         var insertSpy = this.sinon.spy(MockCallScreen, 'insertCall');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(insertSpy.notCalled);
       });
 
       suite('when a conference call is ongoing', function() {
         setup(function() {
-          MockMozTelephony.calls = [overflowCall];
-          MockMozTelephony.conferenceGroup.calls = [firstCall, extraCall];
+          MockNavigatorMozTelephony.calls = [overflowCall];
+          MockNavigatorMozTelephony.conferenceGroup.calls =
+            [firstCall, extraCall];
         });
 
         test('should not hangup the call directly', function() {
           var hangupSpy = this.sinon.spy(overflowCall, 'hangUp');
-          MockMozTelephony.mTriggerGroupCallsChanged();
-          MockMozTelephony.mTriggerCallsChanged();
+          MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
           assert.isTrue(hangupSpy.notCalled);
         });
 
         test('should insert the handled call node in the CallScreen',
         function() {
           var insertSpy = this.sinon.spy(MockCallScreen, 'insertCall');
-          MockMozTelephony.mTriggerGroupCallsChanged();
-          MockMozTelephony.mTriggerCallsChanged();
+          MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
           assert.isTrue(insertSpy.calledWith(overflowHC.node));
         });
       });
@@ -318,27 +319,27 @@ suite('calls handler', function() {
 
       test('should show the call waiting UI', function() {
         var showSpy = this.sinon.spy(MockCallScreen, 'showIncoming');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(showSpy.calledOnce);
       });
 
       test('should play the call waiting tone', function() {
         var playSpy = this.sinon.spy(MockTonePlayer, 'playSequence');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(playSpy.calledOnce);
       });
 
       test('should display the hold-and-answer button only', function() {
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(MockCallScreen.mHoldAndAnswerOnly);
       });
 
       test('should do the same after answering another call', function() {
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         var showSpy = this.sinon.spy(MockCallScreen, 'showIncoming');
         var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
         var holdSpy = this.sinon.spy(mockCall, 'hold');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(showSpy.calledOnce);
         CallsHandler.holdAndAnswer();
         assert.isTrue(hideSpy.calledOnce);
@@ -358,12 +359,12 @@ suite('calls handler', function() {
         var extraHC = telephonyAddCall.call(this, extraCall, {trigger: true});
         hideSpy = this.sinon.spy(extraHC, 'hide');
 
-        MockMozTelephony.calls = [firstCall];
+        MockNavigatorMozTelephony.calls = [firstCall];
       });
 
       test('should hide the call waiting UI', function() {
         var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(hideSpy.calledOnce);
       });
     });
@@ -379,8 +380,8 @@ suite('calls handler', function() {
         firstHC = telephonyAddCall.call(this, firstConfCall, {trigger: true});
         secondHC = telephonyAddCall.call(this, secondConfCall, {trigger: true});
 
-        MockMozTelephony.calls = [];
-        MockMozTelephony.conferenceGroup.calls = [firstConfCall,
+        MockNavigatorMozTelephony.calls = [];
+        MockNavigatorMozTelephony.conferenceGroup.calls = [firstConfCall,
                                                   secondConfCall];
       });
 
@@ -388,8 +389,8 @@ suite('calls handler', function() {
         var firstHideSpy = this.sinon.spy(firstHC, 'hide');
         var secondHideSpy = this.sinon.spy(secondHC, 'hide');
 
-        MockMozTelephony.mTriggerGroupCallsChanged();
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
 
         assert.isTrue(firstHideSpy.notCalled);
         assert.isTrue(secondHideSpy.notCalled);
@@ -407,27 +408,27 @@ suite('calls handler', function() {
         firstHC = telephonyAddCall.call(this, firstConfCall, {trigger: true});
         secondHC = telephonyAddCall.call(this, secondConfCall, {trigger: true});
 
-        MockMozTelephony.calls = [];
-        MockMozTelephony.conferenceGroup.calls = [firstConfCall,
+        MockNavigatorMozTelephony.calls = [];
+        MockNavigatorMozTelephony.conferenceGroup.calls = [firstConfCall,
                                                   secondConfCall];
 
-        MockMozTelephony.mTriggerGroupCallsChanged();
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
 
-        MockMozTelephony.calls = [firstConfCall];
-        MockMozTelephony.conferenceGroup.calls = [secondConfCall];
+        MockNavigatorMozTelephony.calls = [firstConfCall];
+        MockNavigatorMozTelephony.conferenceGroup.calls = [secondConfCall];
 
-        MockMozTelephony.mTriggerGroupCallsChanged();
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
 
-        MockMozTelephony.calls = [];
-        MockMozTelephony.conferenceGroup.calls = [];
+        MockNavigatorMozTelephony.calls = [];
+        MockNavigatorMozTelephony.conferenceGroup.calls = [];
       });
 
       test('should toggle the CallScreen', function() {
         var toggleSpy = this.sinon.spy(MockCallScreen, 'toggle');
-        MockMozTelephony.mTriggerCallsChanged();
-        MockMozTelephony.mTriggerGroupCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
         assert.isTrue(toggleSpy.calledOnce);
       });
     });
@@ -442,12 +443,12 @@ suite('calls handler', function() {
         telephonyAddCall.call(this, firstCall, {trigger: true});
         telephonyAddCall.call(this, secondCall, {trigger: true});
 
-        MockMozTelephony.calls = [firstCall];
+        MockNavigatorMozTelephony.calls = [firstCall];
       });
 
       test('should resume the first call', function() {
         this.sinon.spy(firstCall, 'resume');
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         sinon.assert.called(firstCall.resume);
       });
     });
@@ -465,21 +466,21 @@ suite('calls handler', function() {
         telephonyAddCall.call(this, secondConfCall, {trigger: true});
         telephonyAddCall.call(this, extraCall, {trigger: true});
 
-        MockMozTelephony.calls = [extraCall];
-        MockMozTelephony.conferenceGroup.calls = [firstConfCall,
+        MockNavigatorMozTelephony.calls = [extraCall];
+        MockNavigatorMozTelephony.conferenceGroup.calls = [firstConfCall,
                                                   secondConfCall];
-        firstConfCall.group = MockMozTelephony.conferenceGroup;
-        secondConfCall.group = MockMozTelephony.conferenceGroup;
+        firstConfCall.group = MockNavigatorMozTelephony.conferenceGroup;
+        secondConfCall.group = MockNavigatorMozTelephony.conferenceGroup;
 
-        MockMozTelephony.mTriggerGroupCallsChanged();
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
       });
 
       test('should resume the conference call', function() {
-        this.sinon.spy(MockMozTelephony.conferenceGroup, 'resume');
-        MockMozTelephony.calls = [];
-        MockMozTelephony.mTriggerCallsChanged();
-        sinon.assert.called(MockMozTelephony.conferenceGroup.resume);
+        this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'resume');
+        MockNavigatorMozTelephony.calls = [];
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        sinon.assert.called(MockNavigatorMozTelephony.conferenceGroup.resume);
       });
     });
 
@@ -515,7 +516,7 @@ suite('calls handler', function() {
         setup(function() {
           mockCall = new MockCall('543552', 'incoming');
           telephonyAddCall.call(this, mockCall, {trigger: true});
-          MockMozTelephony.active = mockCall;
+          MockNavigatorMozTelephony.active = mockCall;
         });
 
         test('should hangup the active call', function() {
@@ -535,11 +536,12 @@ suite('calls handler', function() {
           secondConfCall = new MockCall('432423555', 'incoming');
           telephonyAddCall.call(this, secondConfCall, {trigger: true});
 
-          MockMozTelephony.calls = [];
-          MockMozTelephony.conferenceGroup.calls = [firstConfCall,
+          MockNavigatorMozTelephony.calls = [];
+          MockNavigatorMozTelephony.conferenceGroup.calls = [firstConfCall,
                                                     secondConfCall];
 
-          MockMozTelephony.active = MockMozTelephony.conferenceGroup;
+          MockNavigatorMozTelephony.active =
+            MockNavigatorMozTelephony.conferenceGroup;
         });
 
         test('should hangup all the calls in the conference group', function() {
@@ -566,7 +568,7 @@ suite('calls handler', function() {
 
           telephonyAddCall.call(this, firstCall, {trigger: true});
           telephonyAddCall.call(this, secondCall, {trigger: true});
-          MockMozTelephony.active = secondCall;
+          MockNavigatorMozTelephony.active = secondCall;
         });
 
         test('should hang up the active call', function() {
@@ -610,7 +612,7 @@ suite('calls handler', function() {
         test('should do nothing when there is one call', function() {
           var call = new MockCall('543552', 'connected');
           telephonyAddCall.call(this, call, {trigger: true});
-          MockMozTelephony.active = call;
+          MockNavigatorMozTelephony.active = call;
 
           var hideIncomingSpy = this.sinon.spy(CallScreen, 'hideIncoming');
           var holdSpy = this.sinon.spy(call, 'hold');
@@ -630,7 +632,7 @@ suite('calls handler', function() {
             incomingCall = new MockCall('12334', 'incoming');
 
             telephonyAddCall.call(this, connectedCall, {trigger: true});
-            MockMozTelephony.active = connectedCall;
+            MockNavigatorMozTelephony.active = connectedCall;
             telephonyAddCall.call(this, incomingCall, {trigger: true});
           });
 
@@ -654,19 +656,20 @@ suite('calls handler', function() {
             var secondConfCall = new MockCall('432423555', 'incoming');
             telephonyAddCall.call(this, secondConfCall, {trigger: true});
 
-            MockMozTelephony.calls = [];
-            MockMozTelephony.conferenceGroup.calls = [firstConfCall,
+            MockNavigatorMozTelephony.calls = [];
+            MockNavigatorMozTelephony.conferenceGroup.calls = [firstConfCall,
                                                       secondConfCall];
 
-            MockMozTelephony.active = MockMozTelephony.conferenceGroup;
+            MockNavigatorMozTelephony.active =
+              MockNavigatorMozTelephony.conferenceGroup;
 
             var incomingCall = new MockCall('12334', 'incoming');
             telephonyAddCall.call(this, incomingCall, {trigger: true});
           });
 
           test('should put the group on hold', function() {
-            var holdSpy = this.sinon.spy(MockMozTelephony.conferenceGroup,
-                                         'hold');
+            var holdSpy =
+              this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'hold');
             CallsHandler.holdAndAnswer();
             assert.isTrue(holdSpy.calledOnce);
           });
@@ -720,7 +723,7 @@ suite('calls handler', function() {
             call = new MockCall('543552', 'incoming');
 
             telephonyAddCall.call(this, call, {trigger: true});
-            MockMozTelephony.active = call;
+            MockNavigatorMozTelephony.active = call;
             call.secondNumber = '12345';
             call.state = 'connected';
           });
@@ -762,7 +765,7 @@ suite('calls handler', function() {
         test('should do nothing when there is one call', function() {
           var call = new MockCall('543552', 'connected');
           telephonyAddCall.call(this, call, {trigger: true});
-          MockMozTelephony.active = call;
+          MockNavigatorMozTelephony.active = call;
 
           var hideIncomingSpy = this.sinon.spy(CallScreen, 'hideIncoming');
           var hangUpSpy = this.sinon.spy(call, 'hangUp');
@@ -782,12 +785,13 @@ suite('calls handler', function() {
             incomingCall = new MockCall('12334', 'incoming');
 
             telephonyAddCall.call(this, connectedCall, {trigger: true});
-            MockMozTelephony.active = connectedCall;
+            MockNavigatorMozTelephony.active = connectedCall;
             telephonyAddCall.call(this, incomingCall, {trigger: true});
           });
 
           test('should hang up the active call', function() {
-            var hangUpSpy = this.sinon.spy(MockMozTelephony.active, 'hangUp');
+            var hangUpSpy =
+              this.sinon.spy(MockNavigatorMozTelephony.active, 'hangUp');
             CallsHandler.endAndAnswer();
             assert.isTrue(hangUpSpy.calledOnce);
           });
@@ -833,7 +837,7 @@ suite('calls handler', function() {
             mockCall = new MockCall('543552', 'incoming');
 
             telephonyAddCall.call(this, mockCall, {trigger: true});
-            MockMozTelephony.active = mockCall;
+            MockNavigatorMozTelephony.active = mockCall;
             telephonyAddCdmaCall.call(this, '123456');
           });
 
@@ -872,11 +876,12 @@ suite('calls handler', function() {
           secondConfCall = new MockCall('432423555', 'incoming');
           telephonyAddCall.call(this, secondConfCall, {trigger: true});
 
-          MockMozTelephony.calls = [];
-          MockMozTelephony.conferenceGroup.calls = [firstConfCall,
+          MockNavigatorMozTelephony.calls = [];
+          MockNavigatorMozTelephony.conferenceGroup.calls = [firstConfCall,
                                                     secondConfCall];
 
-          MockMozTelephony.active = MockMozTelephony.conferenceGroup;
+          MockNavigatorMozTelephony.active =
+            MockNavigatorMozTelephony.conferenceGroup;
 
           var incomingCall = new MockCall('12334', 'incoming');
           telephonyAddCall.call(this, incomingCall, {trigger: true});
@@ -913,7 +918,7 @@ suite('calls handler', function() {
         waitingCall = new MockCall('12334', 'incoming');
 
         telephonyAddCall.call(this, firstCall, {trigger: true});
-        MockMozTelephony.active = firstCall;
+        MockNavigatorMozTelephony.active = firstCall;
         telephonyAddCall.call(this, waitingCall, {trigger: true});
       });
 
@@ -943,7 +948,7 @@ suite('calls handler', function() {
         mockCall = new MockCall('543552', 'incoming');
 
         telephonyAddCall.call(this, mockCall, {trigger: true});
-        MockMozTelephony.active = mockCall;
+        MockNavigatorMozTelephony.active = mockCall;
         telephonyAddCdmaCall.call(this, '123456', {trigger: true});
       });
 
@@ -974,7 +979,7 @@ suite('calls handler', function() {
         setup(function() {
           mockCall = new MockCall('543552', 'incoming');
           telephonyAddCall.call(this, mockCall, {trigger: true});
-          MockMozTelephony.active = mockCall;
+          MockNavigatorMozTelephony.active = mockCall;
         });
 
         test('should _not_ hold the active call', function() {
@@ -991,7 +996,7 @@ suite('calls handler', function() {
 
         suite('when the call is holded', function() {
           setup(function() {
-            MockMozTelephony.active = null;
+            MockNavigatorMozTelephony.active = null;
             mockCall.state = 'held';
           });
 
@@ -1016,29 +1021,31 @@ suite('calls handler', function() {
           var secondConfCall = new MockCall('432423555', 'incoming');
           telephonyAddCall.call(this, secondConfCall, {trigger: true});
 
-          MockMozTelephony.calls = [];
-          MockMozTelephony.conferenceGroup.calls = [firstConfCall,
+          MockNavigatorMozTelephony.calls = [];
+          MockNavigatorMozTelephony.conferenceGroup.calls = [firstConfCall,
                                                     secondConfCall];
 
-          MockMozTelephony.active = MockMozTelephony.conferenceGroup;
-          MockMozTelephony.mTriggerCallsChanged();
+          MockNavigatorMozTelephony.active =
+            MockNavigatorMozTelephony.conferenceGroup;
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
         });
 
         test('should _not_ hold the active conference call', function() {
-          var holdSpy = this.sinon.spy(MockMozTelephony.conferenceGroup,
-                                       'hold');
+          var holdSpy =
+            this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'hold');
           CallsHandler.toggleCalls();
           assert.isFalse(holdSpy.called);
         });
 
         suite('when the conference call is holded', function() {
           setup(function() {
-            MockMozTelephony.active = null;
+            MockNavigatorMozTelephony.active = null;
           });
 
           test('should resume the conference call', function() {
-            var resumeSpy = this.sinon.spy(MockMozTelephony.conferenceGroup,
-                                           'resume');
+            var resumeSpy =
+              this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup,
+                             'resume');
             CallsHandler.toggleCalls();
             assert.isTrue(resumeSpy.calledOnce);
           });
@@ -1060,7 +1067,7 @@ suite('calls handler', function() {
 
           telephonyAddCall.call(this, mockCall, {trigger: true});
           telephonyAddCall.call(this, extraCall, {trigger: true});
-          MockMozTelephony.active = extraCall;
+          MockNavigatorMozTelephony.active = extraCall;
         });
 
         test('should hold the active call and gecko will resume the other one',
@@ -1078,7 +1085,7 @@ suite('calls handler', function() {
           mockCall = new MockCall('543552', 'incoming');
 
           telephonyAddCall.call(this, mockCall, {trigger: true});
-          MockMozTelephony.active = mockCall;
+          MockNavigatorMozTelephony.active = mockCall;
           telephonyAddCdmaCall.call(this, '123456');
         });
 
@@ -1104,19 +1111,20 @@ suite('calls handler', function() {
           var secondConfCall = new MockCall('432423555', 'incoming');
           telephonyAddCall.call(this, secondConfCall, {trigger: true});
 
-          MockMozTelephony.calls = [];
-          MockMozTelephony.conferenceGroup.calls = [firstConfCall,
+          MockNavigatorMozTelephony.calls = [];
+          MockNavigatorMozTelephony.conferenceGroup.calls = [firstConfCall,
                                                     secondConfCall];
 
           var extraCall = new MockCall('12334', 'incoming');
           telephonyAddCall.call(this, extraCall, {trigger: true});
 
-          MockMozTelephony.active = MockMozTelephony.conferenceGroup;
+          MockNavigatorMozTelephony.active =
+            MockNavigatorMozTelephony.conferenceGroup;
         });
 
         test('should hold the active conference call', function() {
-          var holdSpy = this.sinon.spy(MockMozTelephony.conferenceGroup,
-                                       'hold');
+          var holdSpy =
+            this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'hold');
           CallsHandler.toggleCalls();
           assert.isTrue(holdSpy.calledOnce);
         });
@@ -1142,7 +1150,7 @@ suite('calls handler', function() {
         activeCall = new MockCall('12334', 'connected');
         telephonyAddCall.call(this, activeCall, {trigger: true});
         telephonyAddCall.call(this, inactiveCall, {trigger: true});
-        MockMozTelephony.active = activeCall;
+        MockNavigatorMozTelephony.active = activeCall;
       });
 
       test('should get active call', function() {
@@ -1162,8 +1170,9 @@ suite('calls handler', function() {
           activeCall = new MockCall('12334', 'connected');
           telephonyAddCall.call(this, activeCall, {trigger: true});
           telephonyAddCall.call(this, inactiveCall, {trigger: true});
-          MockMozTelephony.active = activeCall;
-          addSpy = this.sinon.spy(MockMozTelephony.conferenceGroup, 'add');
+          MockNavigatorMozTelephony.active = activeCall;
+          addSpy =
+            this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'add');
         });
 
         test('should call telephony.conferenceGroup.add()', function() {
@@ -1188,12 +1197,15 @@ suite('calls handler', function() {
 
           telephonyAddCall.call(this, overflowCall);
 
-          MockMozTelephony.calls = [overflowCall];
-          MockMozTelephony.conferenceGroup.calls = [firstCall, extraCall];
+          MockNavigatorMozTelephony.calls = [overflowCall];
+          MockNavigatorMozTelephony.conferenceGroup.calls =
+            [firstCall, extraCall];
 
-          MockMozTelephony.active = MockMozTelephony.conferenceGroup;
+          MockNavigatorMozTelephony.active =
+            MockNavigatorMozTelephony.conferenceGroup;
 
-          addSpy = this.sinon.spy(MockMozTelephony.conferenceGroup, 'add');
+          addSpy =
+            this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'add');
         });
 
         test('should call telephony.conferenceGroup.add()', function() {
@@ -1219,12 +1231,14 @@ suite('calls handler', function() {
 
         telephonyAddCall.call(this, overflowCall);
 
-        MockMozTelephony.calls = [overflowCall];
-        MockMozTelephony.conferenceGroup.calls = [firstCall, extraCall];
+        MockNavigatorMozTelephony.calls = [overflowCall];
+        MockNavigatorMozTelephony.conferenceGroup.calls =
+          [firstCall, extraCall];
 
-        MockMozTelephony.active = overflowCall;
+        MockNavigatorMozTelephony.active = overflowCall;
 
-        addSpy = this.sinon.spy(MockMozTelephony.conferenceGroup, 'add');
+        addSpy =
+          this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'add');
       });
 
       test('should call telephony.conferenceGroup.add()', function() {
@@ -1239,7 +1253,7 @@ suite('calls handler', function() {
         var secondCall = new MockCall('12334', 'incoming');
         var firstHC = telephonyAddCall.call(this, firstCall);
         var secondHC = telephonyAddCall.call(this, secondCall);
-        MockMozTelephony.mTriggerCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
         var firstSpy = this.sinon.spy(firstHC, 'restorePhoneNumber');
         var secondSpy = this.sinon.spy(secondHC, 'restorePhoneNumber');
         CallsHandler.updateAllPhoneNumberDisplays();
@@ -1258,7 +1272,7 @@ suite('calls handler', function() {
 
       test('should set speaker to enabled', function() {
         CallsHandler.switchToSpeaker();
-        assert.isTrue(MockMozTelephony.speakerEnabled);
+        assert.isTrue(MockNavigatorMozTelephony.speakerEnabled);
       });
     });
 
@@ -1272,7 +1286,7 @@ suite('calls handler', function() {
 
       test('should disable the speaker', function() {
         CallsHandler.switchToDefaultOut();
-        assert.isFalse(MockMozTelephony.speakerEnabled);
+        assert.isFalse(MockNavigatorMozTelephony.speakerEnabled);
       });
     });
 
@@ -1286,20 +1300,20 @@ suite('calls handler', function() {
 
       test('should disable the speaker', function() {
         CallsHandler.switchToReceiver();
-        assert.isFalse(MockMozTelephony.speakerEnabled);
+        assert.isFalse(MockNavigatorMozTelephony.speakerEnabled);
       });
     });
 
     suite('> CallsHandler.toggleSpeaker', function() {
       test('should call switchToSpeaker when toggle on', function() {
-        MockMozTelephony.speakerEnabled = false;
+        MockNavigatorMozTelephony.speakerEnabled = false;
         this.sinon.stub(CallsHandler, 'switchToSpeaker');
         CallsHandler.toggleSpeaker();
         assert.isTrue(CallsHandler.switchToSpeaker.calledOnce);
       });
 
       test('should call switchToDefaultOut when toggle off', function() {
-        MockMozTelephony.speakerEnabled = true;
+        MockNavigatorMozTelephony.speakerEnabled = true;
         this.sinon.stub(CallsHandler, 'switchToDefaultOut');
         CallsHandler.toggleSpeaker();
         assert.isTrue(CallsHandler.switchToDefaultOut.calledOnce);
@@ -1382,11 +1396,12 @@ suite('calls handler', function() {
       suite('> CHLD=3 conference call', function() {
         test('should log a warning without enough connected calls',
         function(done) {
-          MockMozTelephony.calls = [call1];
+          MockNavigatorMozTelephony.calls = [call1];
 
           window.postMessage({type: 'BT', command: 'CHLD=3'}, '*');
 
-          var addSpy = this.sinon.spy(MockMozTelephony.conferenceGroup, 'add');
+          var addSpy =
+            this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'add');
           var consoleWarnStub = this.sinon.stub(console, 'warn', function() {
             assert.isTrue(
               consoleWarnStub.calledWith('Cannot join conference call.'));
@@ -1397,29 +1412,31 @@ suite('calls handler', function() {
 
         test('should merge into group call if there are two individual calls',
         function(done) {
-          MockMozTelephony.calls = [call1, call2];
+          MockNavigatorMozTelephony.calls = [call1, call2];
           window.postMessage({type: 'BT', command: 'CHLD=3'}, '*');
 
-          var addStub = this.sinon.stub(MockMozTelephony.conferenceGroup, 'add',
-          function() {
-            assert.isTrue(addStub.calledWith(call1, call2));
-            done();
-          });
+          var addStub =
+            this.sinon.stub(MockNavigatorMozTelephony.conferenceGroup, 'add',
+            function() {
+              assert.isTrue(addStub.calledWith(call1, call2));
+              done();
+            });
         });
 
         test('should merge individual call into group if group call exists',
         function(done) {
-          MockMozTelephony.calls = [call1];
-          MockMozTelephony.conferenceGroup.calls = [call2, call3];
-          MockMozTelephony.conferenceGroup.state = 'connected';
+          MockNavigatorMozTelephony.calls = [call1];
+          MockNavigatorMozTelephony.conferenceGroup.calls = [call2, call3];
+          MockNavigatorMozTelephony.conferenceGroup.state = 'connected';
 
           window.postMessage({type: 'BT', command: 'CHLD=3'}, '*');
 
-          var addStub = this.sinon.stub(MockMozTelephony.conferenceGroup, 'add',
-          function() {
-            assert.isTrue(addStub.calledWith(call1));
-            done();
-          });
+          var addStub =
+            this.sinon.stub(MockNavigatorMozTelephony.conferenceGroup, 'add',
+            function() {
+              assert.isTrue(addStub.calledWith(call1));
+              done();
+            });
         });
       });
     });

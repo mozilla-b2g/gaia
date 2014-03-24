@@ -15,8 +15,8 @@ var MultiSimActionButton = function MultiSimActionButton(
 
   this._button.addEventListener('click', this._click.bind(this));
 
-  if (window.navigator.mozIccManager &&
-      window.navigator.mozIccManager.iccIds.length > 1) {
+  if (navigator.mozIccManager &&
+      navigator.mozIccManager.iccIds.length > 1) {
     this._button.addEventListener('contextmenu', this._contextmenu.bind(this));
 
     var self = this;
@@ -29,6 +29,14 @@ var MultiSimActionButton = function MultiSimActionButton(
 
 MultiSimActionButton.prototype._getCardIndex =
   function cb_getCardIndex(callback) {
+  if (window.TelephonyHelper) {
+    var inUseSim = window.TelephonyHelper.getInUseSim();
+    if (inUseSim !== null) {
+      callback(inUseSim);
+      return;
+    }
+  }
+
   var settingsKey = this._settingsKey;
   var settings = navigator.mozSettings;
   var getReq = settings.createLock().get(settingsKey);
@@ -47,11 +55,11 @@ MultiSimActionButton.prototype._click = function cb_click(event) {
   }
 
   var phoneNumber = this._phoneNumberGetter && this._phoneNumberGetter();
-  if (!window.navigator.mozIccManager || phoneNumber === '') {
+  if (!navigator.mozIccManager || phoneNumber === '') {
     return;
   }
 
-  if (window.navigator.mozIccManager.iccIds.length === 1) {
+  if (navigator.mozIccManager.iccIds.length === 1) {
     this.performAction();
     return;
   }
@@ -62,18 +70,19 @@ MultiSimActionButton.prototype._click = function cb_click(event) {
     // so we prompt them to pick a SIM even when they only click.
     if (cardIndex == ALWAYS_ASK_OPTION_VALUE) {
       LazyLoader.load(['/shared/js/sim_picker.js'], function() {
-        SimPicker.show(cardIndex, phoneNumber, self.performAction.bind(self));
+        SimPicker.getOrPick(cardIndex, phoneNumber,
+                            self.performAction.bind(self));
       });
     } else {
-      self.performAction();
+      self.performAction(cardIndex);
     }
   });
 };
 
 MultiSimActionButton.prototype._updateUI = function cb_updateUI(cardIndex) {
   if (cardIndex >= 0 &&
-      window.navigator.mozIccManager &&
-      window.navigator.mozIccManager.iccIds.length > 1) {
+      navigator.mozIccManager &&
+      navigator.mozIccManager.iccIds.length > 1) {
     if (this._simIndication) {
       var self = this;
       navigator.mozL10n.ready(function() {
@@ -93,10 +102,12 @@ MultiSimActionButton.prototype._contextmenu = function cb_contextmenu(event) {
   // number is blank. We don't want to preventDefault because we want the
   // contextmenu event to generate a click.
   var phoneNumber = this._phoneNumberGetter && this._phoneNumberGetter();
-  if (!window.navigator.mozIccManager ||
-      window.navigator.mozIccManager.iccIds.length === 0 ||
+  if (!navigator.mozIccManager ||
+      navigator.mozIccManager.iccIds.length === 0 ||
       phoneNumber === '' ||
-      event.target.disabled) {
+      event.target.disabled ||
+      (window.TelephonyHelper &&
+       window.TelephonyHelper.getInUseSim() !== null)) {
     return;
   }
 
@@ -107,7 +118,8 @@ MultiSimActionButton.prototype._contextmenu = function cb_contextmenu(event) {
   var self = this;
   self._getCardIndex(function(cardIndex) {
     LazyLoader.load(['/shared/js/sim_picker.js'], function() {
-      SimPicker.show(cardIndex, phoneNumber, self.performAction.bind(self));
+      SimPicker.getOrPick(cardIndex, phoneNumber,
+                          self.performAction.bind(self));
     });
   });
 };

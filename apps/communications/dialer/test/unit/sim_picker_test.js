@@ -1,10 +1,13 @@
-/* globals SimPicker, MocksHelper, MockMozL10n, MockNavigatorMozIccManager */
+/* globals SimPicker, MocksHelper, MockMozL10n, MockNavigatorMozIccManager,
+           MockTelephonyHelper */
 
 'use strict';
 
 require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_l10n.js');
+require('/dialer/test/unit/mock_telephony_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 
 require('/shared/js/sim_picker.js');
 
@@ -13,10 +16,13 @@ var mocksHelperForSimPicker = new MocksHelper([
   'LazyL10n'
 ]).init();
 
+mocha.globals(['TelephonyHelper']);
+
 suite('SIM picker', function() {
   var subject;
   var realMozIccManager;
   var realMozL10n;
+  var realTelephonyHelper;
   var menu;
   var header;
 
@@ -40,19 +46,24 @@ suite('SIM picker', function() {
     navigator.mozL10n = MockMozL10n;
     navigator.mozL10n.localize = function() {};
 
+    realTelephonyHelper = window.TelephonyHelper;
+    window.TelephonyHelper = null;
+
     menu = document.querySelector('menu');
   });
 
   suiteTeardown(function() {
     navigator.mozIccManager = realMozIccManager;
     navigator.mozL10n = realMozL10n;
+
+    window.TelephonyHelper = realTelephonyHelper;
   });
 
   setup(function() {
     navigator.mozIccManager.addIcc(0, {});
     navigator.mozIccManager.addIcc(1, {});
 
-    subject.show(0, '1111', function() {});
+    subject.getOrPick(0, '1111', function() {});
 
     header = document.getElementById('sim-picker-dial-via');
   });
@@ -61,10 +72,10 @@ suite('SIM picker', function() {
     navigator.mozIccManager.mTeardown();
   });
 
-  suite('show', function() {
+  suite('getOrPick/getInUseSim', function() {
     test('header should contain phone number when getter provided', function() {
       var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
-      subject.show(0, '1111', function() {});
+      subject.getOrPick(0, '1111', function() {});
       sinon.assert.calledWith(localizeSpy,
                               header,
                               'sim-picker-dial-via-with-number',
@@ -74,23 +85,23 @@ suite('SIM picker', function() {
     test('header should not contain phone number when getter not provided',
          function() {
       var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
-      subject.show(0, null, function() {});
+      subject.getOrPick(0, null, function() {});
       sinon.assert.calledWith(localizeSpy,
                               header,
                               'sim-picker-select-sim');
     });
 
-    test('showing the menu twice with different args', function() {
+    test('show the menu twice with different args', function() {
       var localizeSpy = this.sinon.spy(MockMozL10n, 'localize');
 
-      subject.show(0, '1111', function() {});
+      subject.getOrPick(0, '1111', function() {});
       sinon.assert.calledWith(localizeSpy,
                               header,
                               'sim-picker-dial-via-with-number',
                               {phoneNumber: '1111'});
       assert.equal(menu.children.length, 3);
 
-      subject.show(0, '2222', function() {});
+      subject.getOrPick(0, '2222', function() {});
       sinon.assert.calledWith(localizeSpy,
                               header,
                               'sim-picker-dial-via-with-number',
@@ -111,7 +122,7 @@ suite('SIM picker', function() {
         done();
       });
 
-      subject.show(0, '1111', function() {});
+      subject.getOrPick(0, '1111', function() {});
     });
   });
 
@@ -138,7 +149,7 @@ suite('SIM picker', function() {
     });
 
     test('should not mark default SIM when none is set', function() {
-      subject.show(undefined, '2222', function() {});
+      subject.getOrPick(undefined, '2222', function() {});
       for (var i = 0; i < menu.children.length; i++) {
         assert.isFalse(menu.children[i].classList.contains('is-default'));
       }
@@ -152,7 +163,7 @@ suite('SIM picker', function() {
 
     test('should fire callback when a SIM is selected', function() {
       var callbackStub = this.sinon.stub();
-      subject.show(0, '1111', callbackStub);
+      subject.getOrPick(0, '1111', callbackStub);
 
       menu.children[0].click();
 
@@ -162,12 +173,36 @@ suite('SIM picker', function() {
 
     test('should close menu when pressing cancel button', function() {
       var callbackStub = this.sinon.stub();
-      subject.show(0, '1111', callbackStub);
+      subject.getOrPick(0, '1111', callbackStub);
 
       menu.children[2].click();
 
       sinon.assert.notCalled(callbackStub);
       assert.equal(document.getElementById('sim-picker').hidden, true);
+    });
+  });
+
+  suite('with a call in progress', function() {
+    suiteSetup(function() {
+      window.TelephonyHelper = MockTelephonyHelper;
+    });
+
+    suiteTeardown(function() {
+      window.TelephonyHelper = null;
+    });
+
+    setup(function() {
+      MockTelephonyHelper.mInUseSim = 1;
+    });
+
+    teardown(function() {
+      MockTelephonyHelper.mTeardown();
+    });
+
+    test('should callback with in use serviceId', function() {
+      var callbackStub = this.sinon.stub();
+      subject.getOrPick(0, '1111', callbackStub);
+      sinon.assert.calledWith(callbackStub, 1);
     });
   });
 });
