@@ -2,13 +2,13 @@
 /* exported MockNavigationStack */
 
 var MockNavigationStack = function(view) {
-  this.currentView = view;
+  this._currentView = view;
   this.stack = [{
     view: view
   }];
 
   this.go = function(view, transition) {
-    this.currentView = view;
+    this._currentView = view;
     this.currentTransition = transition;
     this.stack.push({
       view: view,
@@ -20,10 +20,10 @@ var MockNavigationStack = function(view) {
     this.stack.pop();
     var entry = this.stack[this.stack.length - 1];
     if (entry) {
-      this.currentView = entry.view;
+      this._currentView = entry.view;
       this.currentTransition = entry.transition;
     } else {
-      delete this.currentView;
+      delete this._currentView;
       delete this.currentTransition;
     }
   };
@@ -31,20 +31,24 @@ var MockNavigationStack = function(view) {
   this.home = function() {
     var entry = this.stack[0];
     if (entry) {
-      this.currentView = entry.view;
+      this._currentView = entry.view;
       this.currentTransition = entry.transition;
     } else {
-      delete this.currentView;
+      delete this._currentView;
       delete this.currentTransition;
     }
     this.stack.splice(1, this.stack.length - 1);
   };
 
   this.getCurrentView = function() {
-    return this.currentView;
+    return this._currentView;
   };
 
   this.getCurrentTransition = function() {
     return this.currentTransition;
+  };
+
+  this.currentView = function() {
+    return this._currentView;
   };
 };
