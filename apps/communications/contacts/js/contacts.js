@@ -277,6 +277,78 @@ var Contacts = (function() {
     document.documentElement.dir = navigator.mozL10n.language.direction;
   };
 
+  var contains = function contains(vcard) {
+    return function(str){
+    return ((vcard.toLowerCase().indexOf(str.toLowerCase()))  !== -1);
+    };
+  };
+
+  var showContacts = function showContacts() {
+    if(window.navigator.mozNfc && window.navigator.mozNfc.onpeerready ) {
+	window.navigator.mozNfc.onpeerready = null;
+    }
+  };
+
+  var nfcPeerHandler =  function nfcPeerHandler (event) {
+    var payload ;
+    var contact = {};
+    var str = '';
+    var count = 0;
+    var tnf_mime_media = 0x02;
+    var VCARD_VERSION = '2.1'
+    var res;
+
+    var nfcdom = window.navigator.mozNfc;
+    var nfcPeer = nfcdom.getNFCPeer(event.detail);
+
+    if (!nfcPeer) {
+	return;
+    }
+
+    var records = [];
+    var tnf  =  tnf_mime_media;
+    var type =  'text/x-vCard';
+    var id   =  '';
+
+    contact= currentContact ;
+
+    if (!contact) {
+	return;
+    }
+
+    LazyLoader.load('/shared/js/contact2vcard.js', function() {
+    ContactToVcard([contact], VCARD_VERSION, function append(vcards, nCards) {
+    str += vcards;
+    count += nCards;
+    }, function success() {
+        var data;
+
+        data = contains(str)
+        if (data){
+          payload = str;
+
+        var record = new MozNdefRecord(
+          tnf,
+          type,
+          id,
+          payload);
+          records.push(record);
+          res = nfcPeer.sendNDEF(records);
+
+          res.onsuccess = (function() {
+            debug('contact data transfer successfully');
+          });
+
+          res.onerror = (function() {
+            debug('contact data transfer failed');
+          });
+
+         }
+
+	});
+       });
+  };
+
 
   var contactListClickHandler = function originalHandler(id) {
     initDetails(function onDetailsReady() {
@@ -294,6 +366,9 @@ var Contacts = (function() {
           navigation.go('view-contact-details', 'go-deeper-search');
         } else {
           navigation.go('view-contact-details', 'go-deeper');
+        }
+        if(window.navigator.mozNfc) {
+          window.navigator.mozNfc.onpeerready = nfcPeerHandler;
         }
       });
     });
@@ -934,6 +1009,7 @@ var Contacts = (function() {
     'close': close,
     'view': loadView,
     'utility': loadUtility,
+    'showContacts': showContacts,
     get asyncScriptsLoaded() {
       return asyncScriptsLoaded;
     }
