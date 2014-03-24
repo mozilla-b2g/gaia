@@ -277,6 +277,64 @@ var Contacts = (function() {
     document.documentElement.dir = navigator.mozL10n.language.direction;
   };
 
+  var contains = function contains(vcard) {
+    var str;
+    str = vcard;
+    return ( (vcard.toLowerCase().indexOf(str.toLowerCase()))  !== -1 );
+  };
+
+  var nfcPeerHandler =  function nfcPeerHandler (event) {
+	var payload ;
+        var contact = {};
+	var str = '';
+        var count = 0;
+	var res;
+
+	var nfcdom = window.navigator.mozNfc;
+	var nfcPeer = nfcdom.getNFCPeer(event.detail);
+	var records = new Array();
+	var tnf  =  0x02;
+	var type =  'text/x-vCard';
+	var id	 =  '';
+
+	contact= currentContact ;
+
+	LazyLoader.load('/shared/js/contact2vcard.js', function() {
+	ContactToVcard([contact], function append(vcards, nCards) {
+	str += vcards;
+        count += nCards;
+	}, function success() {
+	    var data;
+		data = contains(str)
+		if (data){
+		   payload = str;
+		}
+		else{
+		   return;
+		}
+	});
+       }
+      );
+	if (payload) {
+	var record = new MozNdefRecord(
+		tnf,
+		type,
+		id,
+		payload);
+	records.push(record);
+	res = nfcPeer.sendNDEF(records);
+	res.onsuccess = (function() {
+		debug('contact data transfer successfully');
+	});
+
+	 res.onerror = (function() {
+		debug('contact data transfer failed');
+	  });
+	}
+
+
+  };
+
 
   var contactListClickHandler = function originalHandler(id) {
     initDetails(function onDetailsReady() {
@@ -297,7 +355,11 @@ var Contacts = (function() {
         }
       });
     });
-  };
+
+   if(window.navigator.mozNfc) {
+    window.navigator.mozNfc.onpeerready = nfcPeerHandler;
+     }
+ };
 
   var updateContactDetail = function updateContactDetail(id) {
     contactsList.getContactById(id, function findCallback(contact) {

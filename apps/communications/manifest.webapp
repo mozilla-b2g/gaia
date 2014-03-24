@@ -85,7 +85,8 @@
     "idle":{},
     "storage": {},
     "device-storage:sdcard": { "access": "readcreate" },
-    "phonenumberservice": {}
+    "phonenumberservice": {},
+    "nfc":{ "access": "readwrite" }
   },
   "orientation": "default",
   "activities": {

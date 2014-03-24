@@ -86,6 +86,9 @@ contacts.Details = (function() {
         window.parent.postMessage(message, COMMS_APP_ORIGIN);
       }
     }
+   if(window.navigator.mozNfc) {
+    window.navigator.mozNfc.onpeerready = null;
+    }
   };
 
   var showEditContact = function showEditContact() {
