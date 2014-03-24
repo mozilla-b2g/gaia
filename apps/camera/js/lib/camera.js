@@ -323,7 +323,6 @@ Camera.prototype.takePicture = function(options) {
   this.focus(onFocused);
 
   function onFocused(err) {
-    if (err) { return complete(); }
     var position = options && options.position;
     var config = {
       rotation: rotation,
