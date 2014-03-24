@@ -35,6 +35,7 @@ contacts.Settings = (function() {
     ORDER_KEY = 'order.lastname',
     PENDING_LOGOUT_KEY = 'pendingLogout',
     umsSettingsKey = 'ums.enabled',
+    umsSettingsValue,
     bulkDeleteButton;
 
   // Initialise the settings screen (components, listeners ...)
@@ -48,15 +49,33 @@ contacts.Settings = (function() {
     utils.listeners.add({
       '#settings-close': hideSettings
     });
-    if (navigator.mozSettings) {
-      navigator.mozSettings.addObserver(umsSettingsKey, function(evt) {
-        enableStorageOptions(!evt.settingValue, 'sdUMSEnabled');
+
+    var generalSettings = navigator.mozSettings;
+    if (generalSettings) {
+      // Need to fill the value if opening for the first time
+      if (typeof umsSettingsValue === 'undefined') {
+        var req = generalSettings.createLock().get(umsSettingsKey);
+        req.onsuccess = function() {
+          umsSettingsValue = req.result[umsSettingsKey] || false;
+          updateStorageOptions();
+        };
+        req.onerror = function() {
+          // if error, we assume false to avoid further problems
+          umsSettingsValue = false;
+          updateStorageOptions();
+        };
+      }
+      generalSettings.addObserver(umsSettingsKey, function(evt) {
+        // Better to keep it global than ask for it when needed,
+        // as the request takes too much time
+        umsSettingsValue = evt.settingValue;
+        updateStorageOptions();
       });
     }
 
     // Subscribe to events related to change state in the sd card
     utils.sdcard.subscribeToChanges('check_sdcard', function(value) {
-      enableStorageOptions(utils.sdcard.checkStorageCard());
+      updateStorageOptions();
     });
   };
 
@@ -343,6 +362,7 @@ contacts.Settings = (function() {
     if (domOption === null) {
       return;
     }
+
     var optionButton = domOption.firstElementChild;
     if (disabled) {
       optionButton.setAttribute('disabled', 'disabled');
@@ -367,26 +387,38 @@ contacts.Settings = (function() {
   };
 
   /**
-   * Disables/Enables the actions over the sdcard import functionality
-   * @param {Boolean} cardState Whether storage import should be enabled or not.
-   * @param {String} alternativeError Provide an alternative message if sd is
-   *    not enabled despite that the card is present.
+   * Disables/Enables the actions over the sdcard import functionality, and
+   * the different messages to show to the user.
    */
-  var enableStorageOptions = function enableStorageOptions(cardState,
-    alternativeError) {
-    updateOptionStatus(importSDOption, !cardState, true);
-    updateOptionStatus(exportSDOption, !cardState, true);
+  var updateStorageOptions = function() {
+    var sdCardAvailable = utils.sdcard.checkStorageCard();
+    var umsEnabled = umsSettingsValue;
+    var showError,
+        disableButton,
+        messageImport = 'noMemoryCardMsg',
+        messageExport = 'noMemoryCardMsgExport';
 
-    var importSDErrorMessage = 'noMemoryCardMsg';
-    var exportSDErrorMessage = 'noMemoryCardMsgExport';
-    if (alternativeError) {
-      importSDErrorMessage = exportSDErrorMessage = alternativeError;
+    if (umsEnabled) {
+      disableButton = true;
+      showError = true;
+      messageImport = messageExport = 'sdUMSEnabled';
+    } else {
+      if (sdCardAvailable) {
+        disableButton = false;
+        showError = false;
+      } else {
+        disableButton = true;
+        showError = true;
+      }
     }
 
-    importSDOption.querySelector('p.error-message').textContent =
-      _(importSDErrorMessage);
-    exportSDOption.querySelector('p').textContent =
-      _(exportSDErrorMessage);
+    navigator.mozL10n.localize(importSDOption.querySelector('p.error-message'),
+                               messageImport);
+    updateOptionStatus(importSDOption, disableButton, showError);
+
+    navigator.mozL10n.localize(exportSDOption.querySelector('p.error-message'),
+                               messageExport);
+    updateOptionStatus(exportSDOption, disableButton, showError);
   };
 
   // Callback that will modify the ui depending if we imported or not
@@ -871,10 +903,9 @@ contacts.Settings = (function() {
       if (req.result === 0) {
         exportButton.setAttribute('disabled', 'disabled');
         bulkDeleteButton.setAttribute('disabled', 'disabled');
-      }
-      else {
-         exportButton.removeAttribute('disabled');
-         bulkDeleteButton.removeAttribute('disabled');
+      } else {
+        exportButton.removeAttribute('disabled');
+        bulkDeleteButton.removeAttribute('disabled');
       }
     };
 
@@ -959,7 +990,7 @@ contacts.Settings = (function() {
     getData();
     checkOnline();
     checkSIMCard();
-    enableStorageOptions(utils.sdcard.checkStorageCard());
+    updateStorageOptions();
     updateTimestamps();
     checkNoContacts();
   };

@@ -9,6 +9,7 @@
 /* global MocksHelper */
 /* global MockIccManager */
 /* global MockMozContacts */
+/* global MockMozL10n */
 /* global MockNavigatorMozMobileConnection */
 /* global MockNavigatorMozMobileConnections */
 /* global MockSdCard */
@@ -35,6 +36,7 @@ requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_sim_importer.js');
+requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_wakelock.js');
 requireApp('communications/contacts/js/import_utils.js');
 requireApp('communications/contacts/js/utilities/icc_handler.js');
@@ -46,6 +48,7 @@ requireApp('communications/contacts/js/utilities/event_listeners.js');
 if (!window._) { window._ = null; }
 if (!window.utils) { window.utils = null; }
 if (!navigator.onLine) { navigator.onLine = null; }
+if (!navigator.mozSettings) { navigator.mozSettings = null; }
 if (!navigator.mozContacts) { navigator.mozContacts = null; }
 if (!navigator.mozIccManager) { navigator.mozIccManager = null; }
 if (!navigator.mozMobileConnections) { navigator.mozMobileConnections = null; }
@@ -62,6 +65,8 @@ var fb,
     realUtils,
     realCookie,
     realOnLine,
+    realMozL10n,
+    realMozSettings,
     realMozIccManager,
     realMozMobileConnection,
     realMozMobileConnections;
@@ -120,6 +125,12 @@ suite('Contacts settings', function() {
     realDeviceStorage = navigator.getDeviceStorage;
     navigator.getDeviceStorage = MockgetDeviceStorage;
 
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockMozL10n;
+
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = window.MockNavigatorSettings;
+
     realCookie = window.utils && window.utils.cookie;
     window.utils = window.utils || {};
     window.utils.cookie = MockCookie;
@@ -156,6 +167,9 @@ suite('Contacts settings', function() {
     }
 
     navigator.getDeviceStorage = realDeviceStorage;
+    navigator.mozL10n = realMozL10n;
+    navigator.mozSettings = realMozSettings;
+
     mocksHelper.suiteTeardown();
   });
 
@@ -557,8 +571,13 @@ suite('Contacts settings', function() {
     });
   });
 
-  suite('SD Export when sharing sd card', function() {
-    var importSDButton = null, exportSDButton = null;
+  suite('SD Card Export >', function() {
+    var exportSection,
+        exportError,
+        exportSDButton;
+
+    var noCardError = 'noMemoryCardMsgExport',
+        umsEnabledError = 'sdUMSEnabled';
 
     // Sets the state of the sdcard to shared (not usable)
     function shareSDCard() {
@@ -570,51 +589,100 @@ suite('Contacts settings', function() {
       utils.sdcard.status = MockSdCard.AVAILABLE;
     }
 
+    // Enables ums.enabled setting
+    function enableUMS() {
+      navigator.mozSettings.createLock().set({'ums.enabled': true});
+    }
+    // Disables ums.enabled setting
+    function disableUMS() {
+      navigator.mozSettings.createLock().set({'ums.enabled': false});
+    }
+
     suiteSetup(function() {
-      importSDButton = document.getElementById('import-sd-option').
-        firstElementChild;
-      exportSDButton = document.getElementById('export-sd-option').
-        firstElementChild;
+      exportSection = document.getElementById('export-sd-option');
+      exportSDButton = exportSection.firstElementChild;
+      exportError = exportSection.querySelector('p.error-message');
 
       contacts.Settings.init();
     });
 
-    test('Without sharing the sdcard', function() {
-      unShareSDCard();
+    suite('SD available >', function() {
+      suiteSetup(function() {
+        unShareSDCard();
+      });
 
-      contacts.Settings.refresh();
-      assert.ok(!importSDButton.hasAttribute('disabled'));
-      assert.ok(!exportSDButton.hasAttribute('disabled'));
+      suite('UMS enabled >', function() {
+        setup(function() {
+          this.sinon.spy(navigator.mozL10n, 'localize');
+          enableUMS();
+        });
+
+        test('button should be disabled', function() {
+          assert.isTrue(exportSDButton.hasAttribute('disabled'));
+        });
+        test('error message should be shown', function() {
+          assert.isTrue(exportSection.classList.contains('error'));
+        });
+        test('error message should be correct (usb storage enabled)',
+          function() {
+          assert.isTrue(navigator.mozL10n.localize.calledWith(
+            exportError, umsEnabledError));
+        });
+      });
+
+      suite('UMS disabled >', function() {
+        setup(function() {
+          disableUMS();
+        });
+
+        test('button should be enabled', function() {
+          assert.isFalse(exportSDButton.hasAttribute('disabled'));
+        });
+        test('error message should be hidden', function() {
+          assert.isFalse(exportSection.classList.contains('error'));
+        });
+      });
     });
 
-    test('Without sharing sdcard at start and sharing it', function(done) {
-      unShareSDCard();
+    suite('SD not available >', function() {
+      suiteSetup(function() {
+        shareSDCard();
+      });
 
-      // Trigger the card state change
-      shareSDCard();
+      suite('UMS enabled >', function() {
+        setup(function() {
+          this.sinon.spy(navigator.mozL10n, 'localize');
+          enableUMS();
+        });
 
-      setTimeout(function checkStorageButtons() {
-          assert.ok(importSDButton.hasAttribute('disabled'));
-          assert.ok(exportSDButton.hasAttribute('disabled'));
-          done();
-      }, 200);
-    });
-
-    test('With sharing sdcrd enabled at start and disabling it',
-      function(done) {
-      shareSDCard();
-
-      contacts.Settings.refresh();
-      assert.ok(importSDButton.hasAttribute('disabled'));
-      assert.ok(exportSDButton.hasAttribute('disabled'));
-
-      unShareSDCard();
-      setTimeout(function checkStorageButtons() {
-        assert.ok(!importSDButton.hasAttribute('disabled'));
-        assert.ok(!exportSDButton.hasAttribute('disabled'));
-        done();
-      }, 200);
-
+        test('button should be disabled', function() {
+          assert.isTrue(exportSDButton.hasAttribute('disabled'));
+        });
+        test('error message should be shown', function() {
+          assert.isTrue(exportSection.classList.contains('error'));
+        });
+        test('error message should be correct (usb storage enabled)',
+          function() {
+          assert.isTrue(navigator.mozL10n.localize.calledWith(
+            exportError, umsEnabledError));
+        });
+      });
+      suite('UMS disabled >', function() {
+        setup(function() {
+          this.sinon.spy(navigator.mozL10n, 'localize');
+          disableUMS();
+        });
+        test('button should be disabled', function() {
+          assert.isTrue(exportSDButton.hasAttribute('disabled'));
+        });
+        test('error message should be shown', function() {
+          assert.isTrue(exportSection.classList.contains('error'));
+        });
+        test('error message should be correct (insert SD card)', function() {
+          assert.isTrue(navigator.mozL10n.localize.calledWith(
+            exportError, noCardError));
+        });
+      });
     });
   });
 
