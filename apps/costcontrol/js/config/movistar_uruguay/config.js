@@ -3,8 +3,8 @@
 
 var MovistarUruguayConfig = {
   provider: 'Movistar',
-  is_free: true,
-  is_roaming_free: true,
+  is_free: false,
+  is_roaming_free: false,
   credit: { currency: '$' },
   balance: {
     destination: '222',
