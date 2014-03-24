@@ -10,7 +10,7 @@ suite('controllers/controls', function() {
       'app',
       'lib/camera',
       'controllers/controls',
-      'views/Controls',
+      'views/controls',
       'lib/activity',
       'lib/settings',
       'lib/setting'
