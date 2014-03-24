@@ -6,8 +6,6 @@
   height: 16rem;
   width: 16rem;
   margin: -8rem;
-  font-size: 10.2rem;
-  font-weight: 100;
   border-radius: 50%;
   background: rgba(0,0,0,0.12);
   color: #FFF;
@@ -15,6 +13,7 @@
   line-height: 16rem;
   pointer-events: none;
   opacity: 0;
+  overflow: hidden;
   transition: opacity 200ms;
 }
 
@@ -32,4 +31,25 @@
 
 .timer.immanent {
   background: rgba(245,50,50, 0.4);
+}
+
+/** Count
+ ---------------------------------------------------------*/
+
+.timer_count {
+  font-size: 10.2rem;
+  font-weight: 100;
+  opacity: 1;
+  transform: scale(1.6);
+  transition: none;
+}
+
+/**
+ * @shrink
+ */
+
+.shrink .timer_count {
+  transition: all 1s;
+  opacity: 0;
+  transform: scale(1);
 }

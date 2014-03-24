@@ -32,7 +32,10 @@ module.exports = View.extend({
 
   set: function(time) {
     var isImmanent = time <= this.immanent;
+    this.el.classList.remove('shrink');
     this.els.count.textContent = time;
+    this.reflow = this.el.offsetTop;
+    this.el.classList.add('shrink');
     this.el.classList.toggle('immanent', isImmanent);
     if (isImmanent) { this.emit('timer:immanent'); }
     debug('set time: %s, near: %s', time, isImmanent);

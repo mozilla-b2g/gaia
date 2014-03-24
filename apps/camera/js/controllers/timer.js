@@ -74,11 +74,13 @@ TimerController.prototype.start = function() {
  * @private
  */
 TimerController.prototype.tick = function() {
-  this.view.set(--this.seconds);
-  if (!this.seconds) {
-    this.app.emit('timer:ended');
-    this.clear({ silent: true });
+  if (--this.seconds) {
+    this.view.set(this.seconds);
+    return;
   }
+
+  this.app.emit('timer:ended');
+  this.clear({ silent: true });
 };
 
 /**
@@ -132,7 +134,7 @@ TimerController.prototype.unbindTimerEvents = function() {
 
 /**
  * Plays a beep sound.
- * 
+ *
  * We don't have specific sound file for beep
  * so we are using recordingEnd sound for this.
  *
