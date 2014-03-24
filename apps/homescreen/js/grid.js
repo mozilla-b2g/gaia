@@ -301,9 +301,10 @@ var GridManager = (function() {
                 next.MozTransform = 'translateX(' + windowWidthMinusOne + 'px)';
               }
 
-              if(currentPage === 1) {
+              if (currentPage === 1) {
                 // Moving from first to second screen.
-                onPanningProgress(currentPage - 1, deltaX / windowWidthMinusOne);
+                onPanningProgress(currentPage - 1,
+                    deltaX / windowWidthMinusOne);
               }
             } else {
               next.MozTransform =
@@ -398,7 +399,8 @@ var GridManager = (function() {
   }
 
   function onPanningProgress(pageIndex, progress) {
-    pages[pageIndex].container.dispatchEvent(new CustomEvent('gridpagepanning', {detail: {progress: progress}}));
+    var e = new CustomEvent('gridpagepanning', {detail: {progress: progress}});
+    pages[pageIndex].container.dispatchEvent(e);
   }
 
   function onTouchEnd(deltaX, evt) {
@@ -520,6 +522,10 @@ var GridManager = (function() {
     currentPage = index;
     updatePaginationBar();
 
+    var eventContent = {detail: {duration: duration}};
+    var hideStartEvent = new CustomEvent('gridpagehidestart', eventContent);
+    var showStartEvent = new CustomEvent('gridpageshowstart', eventContent);
+
     if (previousPage === newPage) {
       var hasBeenTranslated = currentX - startX;
       if (hasBeenTranslated) {
@@ -536,8 +542,8 @@ var GridManager = (function() {
         }
 
         var pageIndexToHide = hasBeenTranslated > 0 ? index - 1 : index + 1;
-        pages[pageIndexToHide].container.dispatchEvent(new CustomEvent('gridpagehidestart', {detail: {duration: duration}}));
-        pages[index].container.dispatchEvent(new CustomEvent('gridpageshowstart', {detail: {duration: duration}}));
+        pages[pageIndexToHide].container.dispatchEvent(hideStartEvent);
+        pages[index].container.dispatchEvent(showStartEvent);
 
         container.addEventListener('transitionend', function transitionEnd(e) {
           container.removeEventListener('transitionend', transitionEnd);
@@ -551,8 +557,8 @@ var GridManager = (function() {
       return;
     }
 
-    previousPage.container.dispatchEvent(new CustomEvent('gridpagehidestart', {detail: {duration: duration}}));
-    newPage.container.dispatchEvent(new CustomEvent('gridpageshowstart', {detail: {duration: duration}}));
+    previousPage.container.dispatchEvent(hideStartEvent);
+    newPage.container.dispatchEvent(showStartEvent);
     previousPage.moveByWithEffect(-forward * windowWidthMinusOne, duration);
     newPage.moveByWithEffect(0, duration);
 

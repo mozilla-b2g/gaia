@@ -161,7 +161,7 @@ var EverythingME = {
       e.stopPropagation();
     }
 
-    function changeActivationIconOpacity (opacity, duration) {
+    function changeActivationIconOpacity(opacity, duration) {
       activationIcon.style.transition = duration ? duration + 'ms ease' : '';
       activationIcon.style.opacity = Math.round(opacity * 40) / 40;
     }
