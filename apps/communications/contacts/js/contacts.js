@@ -512,6 +512,52 @@ var Contacts = (function() {
     showForm();
   };
 
+  var getCurrentContact = function c_getCurrentContact(){
+	var payload ;
+
+	if (currentContact.givenName) {
+		payload       = 'BEGIN:VCARD\n';
+		payload      += 'VERSION:2.1\n';
+		payload      += 'N:' + currentContact.givenName + ';\n'  ;
+	}
+	else {
+		console.error(' Missing Name from contact list ');
+		return null;
+	}
+	if (currentContact.familyName) {
+		payload      += 'FN:' + currentContact.familyName + ';\n'  ;
+	}
+	if(currentContact.tel) {
+	var telLength = currentContact.tel.length;
+	for (var tel = 0; tel < telLength; tel++) {
+		var currentTel = currentContact.tel[tel];
+		}
+		payload += 'TEL:' + currentTel.value  + '\n';
+	}
+	if(currentContact.email) {
+	var emailLength = currentContact.email.length;
+	for (var email = 0; email < emailLength; email++) {
+		var currentEmail = currentContact.email[email];
+		}
+		payload += 'EMAIL:' + currentEmail['value']  + '\n';
+	}
+	if (currentContact.adr) {
+	for (var i = 0; i < currentContact.adr.length; i++) {
+		var currentAddress = currentContact.adr[i];
+
+		var address = currentAddress['streetAddress'];
+		var locality = currentAddress['locality'];
+		var country = currentAddress['countryName'];
+		var postalCode = currentAddress['postalCode'];
+		var addressField = address+' '+postalCode+' '+locality+' '+country;
+
+		payload += 'ADR;TYPE=home:' + addressField + '\n';
+		}
+	}
+	payload += 'END:VCARD';
+	return payload;
+  };
+
   var loadFacebook = function loadFacebook(callback) {
     if (!fbLoader.loaded) {
       fb.init(function onInitFb() {
@@ -919,6 +965,7 @@ var Contacts = (function() {
     'isEmpty': isEmpty,
     'getLength': getLength,
     'showForm': showForm,
+    'getCurrentContact':getCurrentContact,
     'setCurrent': setCurrent,
     'getTags': TAG_OPTIONS,
     'onLocalized': onLocalized,
