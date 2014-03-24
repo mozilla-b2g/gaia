@@ -692,8 +692,8 @@ nav[data-type="scrollbar"] p img {
   display: block !important;
 }
 
-.contact-text-selecting {
-  padding-left: 2rem !important;
+#groups-list.selecting .group-section li {
+  padding-left: 2rem;
 }
 
 form[role="dialog"].no-overlay {
