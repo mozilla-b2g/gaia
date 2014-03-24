@@ -19,8 +19,8 @@
 }
 */
 
-/* Home gesture panel should not be covered by any element of system */
-#screen > #bottom-panel.visible {
+/* Bottom gesture panel should not be covered by any element of system */
+#screen > #bottom-panel {
   z-index: 2147483647;
 }
 

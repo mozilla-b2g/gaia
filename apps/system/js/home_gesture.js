@@ -2,6 +2,7 @@
 // TODO: animation for closing app and enable cardview
 var HomeGesture = {
   enable: false,
+  pause: false,
   _moving: false,
   _multiTouch: false,
   _startY1: 0,
@@ -35,6 +36,10 @@ var HomeGesture = {
     }
   },
 
+  isActive: function hg_isActive() {
+    return this.enable && !this.pause;
+  },
+
   toggle: function hg_toggle(enable) {
     if (enable === this.enable)
       return;
@@ -44,14 +49,12 @@ var HomeGesture = {
       window.addEventListener('lock', this);
       window.addEventListener('utilitytrayshow', this);
       window.addEventListener('utilitytrayhide', this);
-      this.homeBar.classList.add('visible');
     } else {
       this.publish('homegesture-disabled');
       window.removeEventListener('will-unlock', this);
       window.removeEventListener('lock', this);
       window.removeEventListener('utilitytrayshow', this);
       window.removeEventListener('utilitytrayhide', this);
-      this.homeBar.classList.remove('visible');
     }
     this.enable = enable;
   },
@@ -59,6 +62,9 @@ var HomeGesture = {
   handleEvent: function hg_handleEvent(evt) {
     switch (evt.type) {
       case 'touchstart':
+        if (!this.isActive()) {
+          return;
+        }
         evt.preventDefault();
         this._moving = true;
         this._startY1 = evt.changedTouches[0].pageY;
@@ -67,6 +73,9 @@ var HomeGesture = {
         }
         break;
       case 'touchend':
+        if (!this.isActive()) {
+          return;
+        }
         var progress = Math.abs(this._startY1 - evt.changedTouches[0].pageY);
         if (this._moving &&
             (progress >= this.MINUMUM_DISTANCE)) {
@@ -82,11 +91,11 @@ var HomeGesture = {
       // hide gesture function when utilitytray/lockscreen display
       case 'lock':
       case 'utilitytrayshow':
-        this.homeBar.classList.remove('visible');
+        this.pause = true;
         break;
       case 'will-unlock':
       case 'utilitytrayhide':
-        this.homeBar.classList.add('visible');
+        this.pause = false;
         break;
       case 'software-button-disabled':
         // at least one of software home button or gesture is enabled
