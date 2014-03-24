@@ -221,11 +221,13 @@ var CardsView = (function() {
         var iconURI = getIconURI(position);
         if (iconURI) {
           var appIcon = document.createElement('img');
-          appIcon.classList.add('appIcon');
           appIcon.src = iconURI;
-          card.appendChild(appIcon);
-          card.classList.add('appIconPreview');
+        } else {
+          appIcon = document.createElement('span');
         }
+        appIcon.classList.add('appIcon');
+        card.appendChild(appIcon);
+        card.classList.add('appIconPreview');
       }
 
       var title = document.createElement('h1');
