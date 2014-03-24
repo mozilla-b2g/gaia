@@ -405,10 +405,9 @@ var GridManager = (function() {
     removePanHandler();
   }
 
-  function onPanningLandingPage(progress) {
-    if (!searchPageEnabled) {
-      return;
-    }
+  // Will become _onPanningLandingPage if search bar is present
+  var onPanningLandingPage = noop;
+  function _onPanningLandingPage(progress) {
     var e = new CustomEvent('gridpagepanning', {detail: {progress: progress}});
     pages[0].container.dispatchEvent(e);
   }
@@ -1423,6 +1422,9 @@ var GridManager = (function() {
     kPageTransitionDuration = options.swipeTransitionDuration;
 
     searchPageEnabled = document.body.classList.contains('searchPageEnabled');
+    if (searchPageEnabled) {
+      onPanningLandingPage = _onPanningLandingPage;
+    }
 
     setMaxIconsToSearchPage();
 
