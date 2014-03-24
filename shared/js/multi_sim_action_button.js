@@ -22,14 +22,8 @@ var MultiSimActionButton = function MultiSimActionButton(
     var self = this;
     LazyLoader.load(['/shared/js/settings_listener.js'], function() {
       self._simIndication = self._button.querySelector('.js-sim-indication');
-
       SettingsListener.observe(settingsKey, 0,
                                self._settingsObserver.bind(self));
-
-      var telephony = navigator.mozTelephony;
-      if (telephony) {
-        telephony.addEventListener('callschanged', self._updateUI.bind(self));
-      }
     });
   }
 };
