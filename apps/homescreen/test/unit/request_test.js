@@ -20,18 +20,38 @@ suite('request.js >', function() {
     document.body.removeChild(dialog);
   });
 
-  test(' Request dialog displayed ', function() {
+  function showDialog() {
     ConfirmDialog.show('Game', 'Delete?', {title: 'Cancel'}, {title: 'OK'});
+  }
+
+  test(' Request dialog displayed ', function() {
+    this.sinon.useFakeTimers();
+    showDialog();
     assert.isTrue(dialog.classList.contains('visible'));
+    this.sinon.clock.tick(50);
+    assert.isTrue(dialog.classList.contains('show'));
   });
 
   test(' Request dialog hidden ', function() {
     ConfirmDialog.hide();
+    assert.isFalse(dialog.classList.contains('show'));
+    dialog.dispatchEvent(new CustomEvent('transitionend'));
     assert.isFalse(dialog.classList.contains('visible'));
   });
 
+  test(' Hide dialog twice - no transitionend listeners lost', function() {
+    this.sinon.useFakeTimers();
+    showDialog();
+    this.sinon.clock.tick(50);
+    var dialogSpy = this.sinon.spy(dialog, 'addEventListener');
+    ConfirmDialog.hide();
+    ConfirmDialog.hide();
+    sinon.assert.callCount(dialogSpy, 1);
+    dialogSpy.restore();
+  });
+
   test(' Request dialog displayed > UI elements ', function() {
-    ConfirmDialog.show('Game', 'Delete?', {title: 'Cancel'}, {title: 'OK'});
+    showDialog();
 
     assert.equal(document.querySelector('#confirm-dialog-title').textContent,
                  'Game');
