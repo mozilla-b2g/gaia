@@ -25,7 +25,7 @@ define(function(require, exports, module) {
  * @return {[type]}             [description]
  */
 module.exports = function(imageBlob, thumbnailWidth, thumbnailHeight,
-                          video, rotation, mirrored, callback) {
+                          rotation, mirrored, callback) {
   var offscreenImage = new Image();
 
   offscreenImage.src = window.URL.createObjectURL(imageBlob);
@@ -55,29 +55,27 @@ module.exports = function(imageBlob, thumbnailWidth, thumbnailHeight,
 
     // If a orientation is specified, rotate/mirroring the canvas context.
     if (rotation || mirrored) {
-      context.save();
       // All transformation are applied to the center of the thumbnail.
       context.translate(centerX, centerY);
-    }
 
-    if (mirrored) {
-      context.scale(-1, 1);
-    }
-    if (rotation) {
-      switch (rotation) {
-      case 90:
-        context.rotate(Math.PI / 2);
-        break;
-      case 180:
-        context.rotate(Math.PI);
-        break;
-      case 270:
-        context.rotate(-Math.PI / 2);
-        break;
+      if (mirrored) {
+        context.scale(-1, 1);
       }
-    }
 
-    if (rotation || mirrored) {
+      if (rotation) {
+        switch (rotation) {
+        case 90:
+          context.rotate(Math.PI / 2);
+          break;
+        case 180:
+          context.rotate(Math.PI);
+          break;
+        case 270:
+          context.rotate(-Math.PI / 2);
+          break;
+        }
+      }
+
       context.translate(-centerX, -centerY);
     }
 
@@ -85,46 +83,10 @@ module.exports = function(imageBlob, thumbnailWidth, thumbnailHeight,
     context.drawImage(offscreenImage, x, y, w, h,
                       0, 0, thumbnailWidth, thumbnailHeight);
 
-    // Restore the default rotation so the play arrow comes out correctly
-    if (rotation || mirrored) {
-      context.restore();
-    }
-
     // We're done with the offscreen image now
     window.URL.revokeObjectURL(offscreenImage.src);
     offscreenImage.onload = null;
     offscreenImage.src = '';
-
-    if (video) {
-      // Superimpose a translucent play button over
-      // the thumbnail to distinguish it from a still photo
-      // thumbnail. First draw a transparent gray circle.
-      context.fillStyle = 'rgba(0, 0, 0, .3)';
-      context.beginPath();
-      context.arc(thumbnailWidth / 2, thumbnailHeight / 2,
-                           thumbnailHeight / 3, 0, 2 * Math.PI, false);
-      context.fill();
-
-      // Now outline the circle in white
-      context.strokeStyle = 'rgba(255,255,255,.6)';
-      context.lineWidth = 2;
-      context.stroke();
-
-      // And add a white play arrow.
-      context.beginPath();
-      context.fillStyle = 'rgba(255,255,255,.6)';
-      // The height of an equilateral triangle is sqrt(3)/2 times the side
-      var side = thumbnailHeight / 3;
-      var triangle_height = side * Math.sqrt(3) / 2;
-      context.moveTo(thumbnailWidth / 2 + triangle_height * 2 / 3,
-                              thumbnailHeight / 2);
-      context.lineTo(thumbnailWidth / 2 - triangle_height / 3,
-                              thumbnailHeight / 2 - side / 2);
-      context.lineTo(thumbnailWidth / 2 - triangle_height / 3,
-                              thumbnailHeight / 2 + side / 2);
-      context.closePath();
-      context.fill();
-    }
 
     canvas.toBlob(callback, 'image/jpeg');
   };
