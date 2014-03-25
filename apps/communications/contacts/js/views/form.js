@@ -1270,6 +1270,14 @@ contacts.Form = (function() {
     var img = document.createElement('img');
     var url = URL.createObjectURL(blob);
     img.src = url;
+
+    function cleanupImg() {
+      img.src = '';
+      URL.revokeObjectURL(url);
+    }
+
+    img.onerror = cleanupImg;
+
     img.onload = function() {
       var image_width = img.width;
       var image_height = img.height;
@@ -1288,8 +1296,13 @@ contacts.Form = (function() {
       var context = canvas.getContext('2d', { willReadFrequently: true });
 
       context.drawImage(img, x, y, w, h, 0, 0, target_width, target_height);
-      URL.revokeObjectURL(url);
-      canvas.toBlob(callback, 'image/jpeg');
+      cleanupImg();
+      canvas.toBlob(function(resized) {
+        context = null;
+        canvas.width = canvas.height = 0;
+        canvas = null;
+        callback(resized);
+      } , 'image/jpeg');
     };
   }
 
