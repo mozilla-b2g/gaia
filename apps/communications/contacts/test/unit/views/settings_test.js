@@ -1,13 +1,16 @@
+'use strict';
+
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
+require('/shared/test/unit/mocks/mock_iccmanager.js');
 requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
-requireApp('communications/contacts/test/unit/mock_iccmanager.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
+requireApp('communications/contacts/test/unit/mock_cookie.js');
 requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
 requireApp('communications/contacts/test/unit/mock_sdcard.js');
 requireApp('communications/contacts/test/unit/mock_icc_helper.js');
@@ -21,11 +24,11 @@ requireApp('communications/contacts/js/utilities/icc_handler.js');
 requireApp('communications/contacts/js/utilities/sim_dom_generator.js');
 requireApp('communications/contacts/js/navigation.js');
 requireApp('communications/contacts/js/views/settings.js');
-requireApp('communications/contacts/js/utilities/cookie.js');
 requireApp('communications/contacts/js/utilities/event_listeners.js');
 
 if (!this._) this._ = null;
 if (!this.utils) this.utils = null;
+if (!navigator.onLine) navigator.onLine = null;
 if (!navigator.mozContacts) navigator.mozContacts = null;
 if (!navigator.mozIccManager) navigator.mozIccManager = null;
 if (!navigator.mozMobileConnections) navigator.mozMobileConnections = null;
@@ -37,15 +40,21 @@ if (!window.Rest) {
 
 window.self = null;
 
-var realMozContacts, realUtils, realMozIccManager,
-  realMozMobileConnection, realMozMobileConnections;
+var realMozContacts,
+    realUtils,
+    realCookie,
+    realOnLine,
+    realMozIccManager,
+    realMozMobileConnection,
+    realMozMobileConnections,
+    realFbUtils;
 
 if (!this.realMozContacts) {
   realMozContacts = null;
 }
 
 if (!this.realMozIccManager) {
-  realIccManager = null;
+  realMozIccManager = null;
 }
 
 var mocksHelperForContactSettings = new MocksHelper([
@@ -81,9 +90,20 @@ suite('Contacts settings', function() {
 
     real_ = window._;
     realUtils = window.utils;
+    realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
+    Object.defineProperty(navigator, 'onLine', {
+      fakeOnLine: false,
+      configurable: true,
+      get: function() { return this.fakeOnLine},
+      set: function(status) { this.fakeOnLine = status; }
+    });
+
     realDeviceStorage = navigator.getDeviceStorage;
     navigator.getDeviceStorage = MockgetDeviceStorage;
 
+    realCookie = window.utils && window.utils.cookie;
+    window.utils = window.utils || {};
+    window.utils.cookie = MockCookie;
 
     if (!window.utils) {
       window.utils = { sdcard: MockSdCard };
@@ -110,6 +130,12 @@ suite('Contacts settings', function() {
   suiteTeardown(function() {
     window._ = real_;
     window.utils = realUtils;
+    window.utils.cookie = realCookie;
+
+    if (realOnLine) {
+      Object.defineProperty(navigator, 'onLine', realOnLine);
+    }
+
     navigator.getDeviceStorage = realDeviceStorage;
     mocksHelper.suiteTeardown();
   });
@@ -416,8 +442,104 @@ suite('Contacts settings', function() {
     });
   });
 
+  suite('Network status change', function() {
+    var fbImportOption,
+        fbOfflineMsg,
+        fbUpdateButton,
+        importGmailOption,
+        importLiveOption;
+    var fbValue;
+
+    suiteSetup(function() {
+      fbValue = fb.isEnabled;
+      fb.setIsEnabled(true);
+      contacts.Settings.init();
+
+      fbImportOption = document.querySelector('#settingsFb');
+      fbOfflineMsg = document.querySelector('#no-connection');
+      fbUpdateButton = document.querySelector('#import-fb');
+      importGmailOption = document.getElementById('import-gmail-option');
+      importLiveOption = document.getElementById('import-live-option');
+    });
+
+    suiteTeardown(function() {
+      fb.setIsEnabled(fbValue);
+    });
+
+    suite('Online', function() {
+      setup(function() {
+        navigator.onLine = true;
+        contacts.Settings.onLineChanged();
+      });
+
+      test('Import Facebook enabled', function() {
+        assert.isFalse(
+          fbImportOption.querySelector('li').hasAttribute('aria-disabled'));
+      });
+      test('Import Facebook error hidden', function() {
+        assert.isTrue(
+          fbOfflineMsg.classList.contains('hide'));
+      });
+      test('Update Facebook shown', function() {
+        assert.isFalse(
+          fbUpdateButton.classList.contains('hide'));
+      });
+      test('Import Gmail enabled', function() {
+        assert.isFalse(
+          importGmailOption.firstElementChild.hasAttribute('disabled'));
+      });
+      test('Import Gmail error hidden', function() {
+        assert.isFalse(
+          importGmailOption.classList.contains('error'));
+      });
+      test('Import Live enabled', function() {
+        assert.isFalse(
+          importLiveOption.firstElementChild.hasAttribute('disabled'));
+      });
+      test('Import Live error hidden', function() {
+        assert.isFalse(
+          importLiveOption.classList.contains('error'));
+      });
+    });
+
+    suite('Offline', function() {
+      setup(function() {
+        navigator.onLine = false;
+        contacts.Settings.onLineChanged();
+      });
+      test('Import Facebook disabled', function() {
+        assert.isTrue(
+          fbImportOption.querySelector('li').hasAttribute('aria-disabled'));
+      });
+      test('Import Facebook error shown', function() {
+        assert.isFalse(
+          fbOfflineMsg.classList.contains('hide'));
+      });
+      test('Update Facebook hidden', function() {
+        assert.isTrue(
+          fbUpdateButton.classList.contains('hide'));
+      });
+      test('Import Gmail disabled', function() {
+        assert.isTrue(
+          importGmailOption.firstElementChild.hasAttribute('disabled'));
+      });
+      test('Import Gmail error shown', function() {
+        assert.isTrue(
+          importGmailOption.classList.contains('error'));
+      });
+      test('Import Live disabled', function() {
+        assert.isTrue(
+          importLiveOption.firstElementChild.hasAttribute('disabled'));
+      });
+      test('Import Live error shown', function() {
+        assert.isTrue(
+          importLiveOption.classList.contains('error'));
+        });
+    });
+  });
+
   suite('SD Export when sharing sd card', function() {
-    var importSDButton = exportSDButton = null;
+    var importSDButton = null, exportSDButton = null;
 
     // Sets the state of the sdcard to shared (not usable)
     function shareSDCard() {
@@ -476,4 +598,5 @@ suite('Contacts settings', function() {
 
     });
   });
+
 });

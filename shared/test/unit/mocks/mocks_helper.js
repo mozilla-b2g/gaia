@@ -1,7 +1,14 @@
+/* global
+    suiteSetup,
+    suiteTeardown,
+    setup,
+    teardown
+*/
+
 'use strict';
 
 var MocksHelper = function(mocks) {
-  this.mocks = mocks;
+  this.mocks = mocks.sort();
   this.realWindowObjects = {};
 
   // bind functions to myself
@@ -36,6 +43,10 @@ MocksHelper.prototype = {
   },
 
   suiteSetup: function mh_suiteSetup() {
+    // we run this function here instead of in the constructor to make mocha
+    // fail when this throws
+    this._assertMocksAreUnique();
+
     this.mocks.forEach(function(objName) {
       var mockName = 'Mock' + objName;
       if (!window[mockName]) {
@@ -69,6 +80,29 @@ MocksHelper.prototype = {
         mock[funcName]();
       }
     });
+  },
+
+  _assertMocksAreUnique: function mh_assertMocksAreUnique() {
+    var notUnique = {};
+
+    for (var i = 1, l = this.mocks.length; i < l; i++) {
+      var prev = this.mocks[i - 1],
+          curr = this.mocks[i];
+
+      // `this.mocks` is sorted in the constructor, so duplicate items end up
+      // adjacent.
+      if (curr === prev) {
+        notUnique[curr] = 1; // Have a unique list
+      }
+    }
+
+    notUnique = Object.keys(notUnique);
+    if (notUnique.length) {
+      var errMsg = 'One or more mocks have been specified more than once: ' +
+        notUnique.join(', ');
+
+      throw new Error(errMsg);
+    }
   }
 };
 

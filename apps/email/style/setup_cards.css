@@ -248,7 +248,7 @@ li.align-center {
 .settings-input-title {
   display: block;
   font-size: 1.8rem;
-  padding: 1rem 1rem 0rem 3rem;
+  padding: 1rem 1rem 0 3rem;
 }
 
 li.settings-input-list {

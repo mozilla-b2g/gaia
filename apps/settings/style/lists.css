@@ -130,12 +130,16 @@ ul li > label.pack-checkbox > .color-preview:before {
   margin: 0 1rem -0.2rem -1rem;
 }
 
+ul li > label.pack-checkbox > .warning-counter:before {
+  background-color: orange;
+}
+
 ul li > label.pack-checkbox > .error-counter:before {
   background-color: red;
 }
 
-ul li > label.pack-checkbox > .warning-counter:before {
-  background-color: orange;
+ul li > label.pack-checkbox > .security-counter:before {
+  background-color: black;
 }
 
 ul li > label.pack-checkbox > .reflow-counter:before {
@@ -457,5 +461,10 @@ html[dir="rtl"] dl dt {
 html[dir="rtl"] ul li.bluetooth-device > a{
   padding-left: 1rem;
   padding-right: 1rem;
+}
+
+html[dir="rtl"] ul li > label.pack-checkbox > .color-preview:before {
+  margin-left: 1rem;
+  margin-right: -1rem;
 }
 

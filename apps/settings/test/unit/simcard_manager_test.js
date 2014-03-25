@@ -13,11 +13,12 @@ requireApp(
   'settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp(
   'settings/shared/test/unit/mocks/mock_mobile_operator.js');
+requireApp(
+  'settings/shared/test/unit/mocks/mock_sim_settings_helper.js');
 requireApp('settings/test/unit/mock_airplane_mode_helper.js');
 requireApp('settings/test/unit/mock_l10n.js');
 requireApp('settings/test/unit/mock_template.js');
 requireApp('settings/test/unit/mock_simcard_manager_simcard_helper.js');
-requireApp('settings/test/unit/mock_simcard_manager_settings_helper.js');
 
 mocha.globals(['Template', 'SimUIModel', 'SimCardManager',
   'SimSettingsHelper', 'MobileOperator', 'localize', 'AirplaneModeHelper']);

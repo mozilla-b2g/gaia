@@ -2,7 +2,6 @@
 
 var CallLog = {
   _: null,
-  _groupCounter: 0,
   _initialized: false,
   _headersInterval: null,
   _empty: true,
@@ -23,7 +22,8 @@ var CallLog = {
       '/shared/style/lists.css',
       '/contacts/js/utilities/confirm.js',
       '/dialer/js/phone_action_menu.js',
-      '/dialer/js/utils.js'
+      '/dialer/js/utils.js',
+      '/shared/js/sticky_header.js'
     ];
     var self = this;
 
@@ -77,6 +77,9 @@ var CallLog = {
         this[Utils.toCamelCase(id)] = document.getElementById(id);
       }, self);
 
+      var dualSim = navigator.mozIccManager.iccIds.length > 1;
+      self.callLogContainer.classList.toggle('dual-sim', dualSim);
+
       LazyL10n.get(function localized(_) {
         self._ = _;
         self.render();
@@ -104,6 +107,9 @@ var CallLog = {
             self.updateHeadersContinuously();
           }
         });
+
+        self.sticky = new StickyHeader(self.callLogContainer,
+                                       document.getElementById('sticky'));
       });
     });
 
@@ -185,9 +191,9 @@ var CallLog = {
     var prevDate;
     var startDate = new Date().getTime();
     var screenRendered = false;
-    var MAX_GROUPS_FOR_FIRST_RENDER = 6;
-    var MAX_DAYS_TO_BATCH_RENDER = 60;
-    this._groupCounter = 0;
+    var MAX_GROUPS_FOR_FIRST_RENDER = 8;
+    var MAX_GROUPS_TO_BATCH_RENDER = 100;
+    var batchGroupCounter = 0;
 
     CallLogDBManager.getGroupList(function logGroupsRetrieved(cursor) {
       if (!cursor.value) {
@@ -204,6 +210,7 @@ var CallLog = {
             PerformanceTestingHelper.dispatch('first-chunk-ready');
           }
           self.enableEditMode();
+          self.sticky.refresh();
           self.updateHeadersContinuously();
           PerformanceTestingHelper.dispatch('call-log-ready');
         }
@@ -212,25 +219,27 @@ var CallLog = {
 
       self._empty = false;
       var currDate = new Date(cursor.value.date);
-      self._groupCounter++;
+      batchGroupCounter++;
       if (!prevDate || (currDate.getTime() == prevDate.getTime())) {
         chunk.push(cursor.value);
       } else {
+        daysToRender.push(chunk);
+        chunk = [cursor.value];
+
         var renderNow = false;
-        if (self._groupCounter >= MAX_GROUPS_FOR_FIRST_RENDER &&
+        if (batchGroupCounter >= MAX_GROUPS_FOR_FIRST_RENDER &&
             !screenRendered) {
           renderNow = true;
           screenRendered = true;
           PerformanceTestingHelper.dispatch('first-chunk-ready');
-        } else if (daysToRender.length >= MAX_DAYS_TO_BATCH_RENDER) {
+        } else if (batchGroupCounter >= MAX_GROUPS_TO_BATCH_RENDER) {
           renderNow = true;
         }
         if (renderNow) {
           self.renderSeveralDays(daysToRender);
           daysToRender = [];
+          batchGroupCounter = 0;
         }
-        daysToRender.push(chunk);
-        chunk = [cursor.value];
       }
       prevDate = currDate;
       cursor.continue();
@@ -362,6 +371,8 @@ var CallLog = {
       }
       container.appendChild(callLogSection);
     }
+
+    this.sticky.refresh();
   },
 
   // Method that places a log group in the right place inside a section
@@ -444,6 +455,11 @@ var CallLog = {
           groupDOM.classList.add('missed-call');
         }
         break;
+    }
+
+    if (typeof group.serviceId !== 'undefined') {
+      var serviceClass = (group.serviceId == 0) ? 'first-sim' : 'second-sim';
+      iconStyle += ' ' + serviceClass;
     }
 
     var label = document.createElement('label');

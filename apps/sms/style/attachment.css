@@ -32,9 +32,11 @@
   width: 122px;
 }
 
-.attachment-container.preview { /* 80x80 px thumbnail, no filename shown */
-  /* thumbnail size is defined dynamically, extensible to 80x120 or 120x80 */
-}
+/*.attachment-container.preview {
+ * 80x80 px thumbnail, no filename shown
+ * thumbnail size is defined dynamically, extensible to 80x120 or 120x80 
+ *}
+ */
 
 .article-list[data-type="list"] .message .attachment-container {
   margin: 1rem 0;

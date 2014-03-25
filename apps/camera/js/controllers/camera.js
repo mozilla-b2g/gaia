@@ -183,6 +183,7 @@ CameraController.prototype.onNewImage = function(image) {
     debug('new image', image);
     self.app.emit('newmedia', image);
   });
+
 };
 
 /**

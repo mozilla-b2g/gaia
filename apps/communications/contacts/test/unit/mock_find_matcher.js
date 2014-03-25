@@ -1,9 +1,18 @@
+'use strict';
+/* global SimplePhoneMatcher */
+/* exported MockFindMatcher */
+
+/* Allow setter without getter */
+/* jshint -W078 */
+
 var MockFindMatcher = {
   find: function(options) {
     this.result = [];
 
+    var value;
+
     if (options.filterBy.indexOf('tel') !== -1) {
-      var value = options.filterValue;
+      value = options.filterValue;
 
       var variantsValue = SimplePhoneMatcher.generateVariants(value);
       var variantsContact1 = [];
@@ -14,7 +23,7 @@ var MockFindMatcher = {
         found = variantsValue.indexOf(
                           SimplePhoneMatcher.sanitizedNumber(telValue)) !== -1;
         if (!found) {
-          var variantsContact1 =
+          variantsContact1 =
             SimplePhoneMatcher.generateVariants(telValue);
           found = variantsContact1.indexOf(
                             SimplePhoneMatcher.sanitizedNumber(value)) !== -1;
@@ -26,7 +35,7 @@ var MockFindMatcher = {
         found = variantsValue.indexOf(
                           SimplePhoneMatcher.sanitizedNumber(tel2Value)) !== -1;
         if (!found) {
-          var variantsContact2 =
+          variantsContact2 =
             SimplePhoneMatcher.generateVariants(tel2Value);
           found = variantsContact1.indexOf(
                             SimplePhoneMatcher.sanitizedNumber(value)) !== -1;
@@ -36,22 +45,19 @@ var MockFindMatcher = {
       if (found) {
         this.result = [this.data];
       }
-    }
-    else if (options.filterBy.indexOf('email') !== -1) {
-      var value = options.filterValue;
+    } else if (options.filterBy.indexOf('email') !== -1) {
+      value = options.filterValue;
       if (this.data.email && this.data.email[0].value === value ||
           this.data.email[1] && this.data.email[1].value === value) {
         this.result = [this.data];
       }
-    }
-    else if (options.filterBy.indexOf('familyName') !== -1) {
-      var value = options.filterValue;
+    } else if (options.filterBy.indexOf('familyName') !== -1) {
+      value = options.filterValue;
       if (this.data.familyName && this.data.familyName[0] === value) {
         this.result = [this.data];
       }
-    }
-    else if (options.filterBy.indexOf('name') !== -1) {
-      var value = options.filterValue;
+    } else if (options.filterBy.indexOf('name') !== -1) {
+      value = options.filterValue;
       if (this.data.name && this.data.name[0] === value) {
         this.result = [this.data];
       }

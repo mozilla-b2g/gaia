@@ -67,7 +67,7 @@
 
   body.fullscreenView .videoPlayerSlider .videoPlayerDurationText {
     text-align: left;
-    right: 0rem;
+    right: 0;
     width: 10rem;
   }
 }

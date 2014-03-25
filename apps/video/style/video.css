@@ -400,7 +400,7 @@ footer {
   position: absolute;
   width: 50%;
   height: 100%;
-  left: 0%;
+  left: 0;
   background-image: url('images/iconaction_video_30x30.png');
   background-size: 3rem;
   background-position: center center;
@@ -620,7 +620,7 @@ header .icon:after {
 
 .progress {
   height: 0.3rem;
-  width: 0%;
+  width: 0;
   top: 50%;
   margin-top: -0.1rem;
 }
@@ -760,7 +760,7 @@ body:not(.view-activity) #spinner-overlay {
 
 /* move videoBar to bottom when picking */
 body.pick-activity #videoControls #videoBar {
-  bottom: 0rem;
+  bottom: 0;
 }
 
 section[role="region"] > header:first-child .icon-back {

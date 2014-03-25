@@ -66,8 +66,12 @@ window.addEventListener('load', function startup() {
   // Please sort it alphabetically
   window.activities = new Activities();
   window.devtoolsView = new DevtoolsView();
-  window.dialerComms = new DialerComms();
+  window.dialerRinger = new DialerRinger().start();
   window.remoteDebugger = new RemoteDebugger();
+
+  window.telephonySettings = new TelephonySettings();
+  window.telephonySettings.start();
+
   window.title = new Title();
   window.ttlView = new TTLView();
 

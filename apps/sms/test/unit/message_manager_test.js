@@ -2,7 +2,9 @@
          MockL10n, MockContact, loadBodyHTML, MozSmsFilter,
          ThreadListUI, MockThreads, MockMessages, Threads, Compose,
          GroupView, ReportView, ThreadListUI, MockThreads, MockMessages,
-         Threads, Compose, Drafts, Draft, MockNotification, Notification */
+         Threads, Compose, Drafts, Draft, MockNotification, Notification, SMIL,
+         Settings
+*/
 
 'use strict';
 
@@ -24,6 +26,7 @@ requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_moz_sms_filter.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_recipients.js');
+require('/test/unit/mock_settings.js');
 requireApp('sms/test/unit/mock_smil.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_thread_list_ui.js');
@@ -43,10 +46,10 @@ var mocksHelperForMessageManager = new MocksHelper([
   'LinkActionHandler',
   'MozSmsFilter',
   'Notification',
-  'LinkActionHandler',
   'GroupView',
   'ReportView',
   'Recipients',
+  'Settings',
   'SMIL',
   'ThreadListUI',
   'ThreadUI',
@@ -72,173 +75,348 @@ suite('message_manager.js >', function() {
     MessageManager._mozMobileMessage = realMozMobileMessage;
   });
 
+  setup(function() {
+    this.sinon.spy(MockNavigatormozMobileMessage, 'send');
+    this.sinon.spy(MockNavigatormozMobileMessage, 'sendMMS');
+  });
+
+
   suite('on message sent > ', function() {
     setup(function() {
       this.sinon.spy(ThreadUI, 'onMessageSending');
       this.sinon.stub(Threads, 'registerMessage');
     });
 
-    test('message is shown in the current thread if it belongs to the thread',
-      function() {
-        var sms = MockMessages.sms;
+    test('ThreadUI is always notified', function() {
+        var sms = MockMessages.sms();
+
+        Threads.currentId = sms.threadId;
+        MessageManager.onMessageSending({ message: sms });
+        sinon.assert.called(ThreadUI.onMessageSending);
+
+        ThreadUI.onMessageSending.reset();
+
         // ensure the threadId is different
         Threads.currentId = sms.threadId + 1;
         MessageManager.onMessageSending({ message: sms });
-        assert.isFalse(ThreadUI.onMessageSending.calledOnce);
+        sinon.assert.called(ThreadUI.onMessageSending);
       }
     );
   });
 
   suite('sendSMS() >', function() {
     test('send to one recipient successfully', function() {
-      var onSuccessCalledTimes = 0;
-      var onCompleteCalledTimes = 0;
+      var smsOpts = {
+        recipients: '123',
+        content: 'hola',
+        onsuccess: sinon.stub(),
+        oncomplete: sinon.stub()
+      };
 
-      MessageManager.sendSMS(
-        '123',
-        'hola',
-        function() {
-          onSuccessCalledTimes += 1;
-        },
-        null,
-        function() {
-          onCompleteCalledTimes += 1;
-        }
+      MessageManager.sendSMS(smsOpts);
+
+      sinon.assert.calledWithExactly(
+        MockNavigatormozMobileMessage.send,
+        ['123'], 'hola', undefined
       );
 
       MockNavigatormozMobileMessage.mTriggerSmsOnSuccess();
-      assert.equal(onSuccessCalledTimes, 1);
-      assert.equal(onCompleteCalledTimes, 1);
+      sinon.assert.calledOnce(smsOpts.onsuccess);
+      sinon.assert.calledOnce(smsOpts.oncomplete);
     });
 
     test('send to two recipients successfully', function() {
-      var onSuccessCalledTimes = 0;
-      var onCompleteCalledTimes = 0;
-      var recipients = ['123', '456'];
+      var smsOpts = {
+        recipients: ['123', '456'],
+        content: 'hola',
+        onsuccess: sinon.stub(),
+        oncomplete: sinon.stub()
+      };
 
-      MessageManager.sendSMS(
-        recipients,
-        'hola',
-        function() {
-          onSuccessCalledTimes += 1;
-        },
-        null,
-        function() {
-          onCompleteCalledTimes += 1;
-        }
+      MessageManager.sendSMS(smsOpts);
+
+      sinon.assert.calledWithExactly(
+        MockNavigatormozMobileMessage.send,
+        ['123', '456'], 'hola', undefined
       );
 
       MockNavigatormozMobileMessage.mTriggerSmsOnSuccess();
-      assert.equal(onSuccessCalledTimes, recipients.length);
-      assert.equal(onCompleteCalledTimes, 1);
+      sinon.assert.calledTwice(smsOpts.onsuccess);
+      sinon.assert.calledOnce(smsOpts.oncomplete);
     });
 
     test('send to one recipient unsuccessfully', function() {
-      var onErrorCalledTimes = 0;
-      var onCompleteCalledTimes = 0;
+      var smsOpts = {
+        recipients: '123',
+        content: 'hola',
+        onerror: sinon.stub(),
+        oncomplete: sinon.stub()
+      };
 
-      MessageManager.sendSMS(
-        '123',
-        'hola',
-        null,
-        function() {
-          onErrorCalledTimes += 1;
-        },
-        function() {
-          onCompleteCalledTimes += 1;
-        }
-      );
+      MessageManager.sendSMS(smsOpts);
 
       MockNavigatormozMobileMessage.mTriggerSmsOnError();
-      assert.equal(onErrorCalledTimes, 1);
-      assert.equal(onCompleteCalledTimes, 1);
+      sinon.assert.calledOnce(smsOpts.onerror);
+      sinon.assert.calledOnce(smsOpts.oncomplete);
     });
 
     test('send to two recipients unsuccessfully', function() {
-      var onErrorCalledTimes = 0;
-      var onCompleteCalledTimes = 0;
-      var recipients = ['123', '456'];
+      var smsOpts = {
+        recipients: ['123', '456'],
+        content: 'hola',
+        onerror: sinon.stub(),
+        oncomplete: sinon.stub()
+      };
 
-      MessageManager.sendSMS(
-        recipients,
-        'hola',
-        null,
-        function() {
-          onErrorCalledTimes += 1;
-        },
-        function() {
-          onCompleteCalledTimes += 1;
-        }
-      );
+      MessageManager.sendSMS(smsOpts);
 
       MockNavigatormozMobileMessage.mTriggerSmsOnError();
-      assert.equal(onErrorCalledTimes, recipients.length);
-      assert.equal(onCompleteCalledTimes, 1);
+      sinon.assert.calledTwice(smsOpts.onerror);
+      sinon.assert.calledOnce(smsOpts.oncomplete);
+    });
+
+    test('send with a serviceId in a dual SIM setup', function() {
+      this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+      var smsOpts = {
+        recipients: '123',
+        content: 'hola',
+        serviceId: 0 // we use 0 because it's falsy, to test it still works
+      };
+
+      MessageManager.sendSMS(smsOpts);
+
+      sinon.assert.calledWithExactly(
+        MockNavigatormozMobileMessage.send,
+        ['123'], 'hola', { serviceId: 0 }
+      );
+    });
+
+    test('send with a serviceId in a non-dual SIM setup', function() {
+      this.sinon.stub(Settings, 'hasSeveralSim').returns(false);
+      var smsOpts = {
+        recipients: '123',
+        content: 'hola',
+        serviceId: 1
+      };
+
+      MessageManager.sendSMS(smsOpts);
+
+      sinon.assert.calledWithExactly(
+        MockNavigatormozMobileMessage.send,
+        ['123'], 'hola', undefined
+      );
+    });
+
+    test('serviceId is a string containing a number', function() {
+      this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+      var smsOpts = {
+        recipients: '123',
+        content: 'hola',
+        serviceId: '0'
+      };
+
+      MessageManager.sendSMS(smsOpts);
+
+      sinon.assert.calledWithExactly(
+        MockNavigatormozMobileMessage.send,
+        ['123'], 'hola', { serviceId: 0 }
+      );
+    });
+
+    test('serviceId is a bad string', function() {
+      this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+      var smsOpts = {
+        recipients: '123',
+        content: 'hola',
+        serviceId: 'oirutoirutoitr'
+      };
+
+      MessageManager.sendSMS(smsOpts);
+
+      sinon.assert.calledWithExactly(
+        MockNavigatormozMobileMessage.send,
+        ['123'], 'hola', undefined
+      );
     });
   });
 
   suite('sendMMS() >', function() {
+    setup(function() {
+      this.sinon.spy(SMIL, 'generate');
+    });
+
     test('send to one recipient successfully', function() {
-      var isOnSuccessCalled = false;
-      var mmsMessage = {
+      var mmsOpts = {
         recipients: '123',
         subject: null,
-        content: 'hola'
+        content: 'hola',
+        onsuccess: sinon.stub()
       };
 
-      MessageManager.sendMMS(mmsMessage, function() {
-        isOnSuccessCalled = true;
-      }, null);
+      MessageManager.sendMMS(mmsOpts);
+      var smil = SMIL.generate.firstCall.returnValue;
+
+      sinon.assert.calledWithExactly(
+        MockNavigatormozMobileMessage.sendMMS,
+        {
+          receivers: ['123'],
+          subject: null,
+          smil: smil.smil,
+          attachments: smil.attachments
+        }, /* send options */ undefined
+      );
 
       MockNavigatormozMobileMessage.mTriggerMmsOnSuccess();
-      assert.ok(isOnSuccessCalled);
+      sinon.assert.calledOnce(mmsOpts.onsuccess);
     });
 
     test('send to two recipients successfully', function() {
-      var onSuccessCalledTimes = 0;
-      var mmsMessage = {
+      var mmsOpts = {
         recipients: ['123', '456'],
         subject: null,
-        content: 'hola'
+        content: 'hola',
+        onsuccess: sinon.stub()
       };
-      MessageManager.sendMMS(mmsMessage, function() {
-        onSuccessCalledTimes += 1;
-      }, null);
+      MessageManager.sendMMS(mmsOpts);
 
       MockNavigatormozMobileMessage.mTriggerMmsOnSuccess();
-      assert.equal(onSuccessCalledTimes, 1);
+      sinon.assert.calledOnce(mmsOpts.onsuccess);
     });
 
     test('send to one recipient unsuccessfully', function() {
-      var onErrorCalledTimes = 0;
-      var mmsMessage = {
+      var mmsOpts = {
         recipients: '123',
         subject: null,
-        content: 'hola'
+        content: 'hola',
+        onerror: sinon.stub()
       };
 
-      MessageManager.sendMMS(mmsMessage, null, function() {
-        onErrorCalledTimes += 1;
-      });
+      MessageManager.sendMMS(mmsOpts);
 
       MockNavigatormozMobileMessage.mTriggerMmsOnError();
-      assert.equal(onErrorCalledTimes, 1);
+
+      sinon.assert.calledOnce(mmsOpts.onerror);
     });
 
     test('send to two recipients unsuccessfully', function() {
-      var onErrorCalledTimes = 0;
-      var mmsMessage = {
+      var mmsOpts = {
         recipients: ['123', '456'],
         subject: null,
-        content: 'hola'
+        content: 'hola',
+        onerror: sinon.stub()
       };
 
-      MessageManager.sendMMS(mmsMessage, null, function() {
-        onErrorCalledTimes += 1;
-      });
+      MessageManager.sendMMS(mmsOpts);
 
       MockNavigatormozMobileMessage.mTriggerMmsOnError();
-      assert.equal(onErrorCalledTimes, 1);
+
+      sinon.assert.calledOnce(mmsOpts.onerror);
+    });
+
+    suite('send with a serviceId', function() {
+      var mmsOpts;
+
+      setup(function() {
+        this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+        this.sinon.stub(Settings, 'switchMmsSimHandler');
+
+        mmsOpts = {
+          recipients: '123',
+          subject: null,
+          content: 'hola',
+          // we use 0 to check that the code behaves correctly with falsy values
+          serviceId: 0
+        };
+      });
+
+      test('while the current serviceId is the same', function() {
+        Settings.mmsServiceId = 0;
+
+        MessageManager.sendMMS(mmsOpts);
+        sinon.assert.notCalled(Settings.switchMmsSimHandler);
+
+        var smil = SMIL.generate.firstCall.returnValue;
+
+        sinon.assert.calledWithExactly(
+          MockNavigatormozMobileMessage.sendMMS,
+          {
+            receivers: ['123'],
+            subject: null,
+            smil: smil.smil,
+            attachments: smil.attachments
+          }, {
+            serviceId: mmsOpts.serviceId
+          }
+        );
+      });
+
+      test('while the current serviceId is different', function() {
+        Settings.mmsServiceId = 1;
+
+        MessageManager.sendMMS(mmsOpts);
+        sinon.assert.calledWith(
+          Settings.switchMmsSimHandler, mmsOpts.serviceId
+        );
+
+        Settings.switchMmsSimHandler.yield();
+
+        var smil = SMIL.generate.firstCall.returnValue;
+
+        sinon.assert.calledWithExactly(
+          MockNavigatormozMobileMessage.sendMMS,
+          {
+            receivers: ['123'],
+            subject: null,
+            smil: smil.smil,
+            attachments: smil.attachments
+          }, {
+            serviceId: mmsOpts.serviceId
+          }
+        );
+      });
+
+      test('on a non-dual sim setup with a different serviceId', function() {
+        Settings.hasSeveralSim.returns(false);
+        Settings.mmsServiceId = 1;
+
+        MessageManager.sendMMS(mmsOpts);
+        sinon.assert.notCalled(Settings.switchMmsSimHandler);
+
+        var smil = SMIL.generate.firstCall.returnValue;
+
+        sinon.assert.calledWithExactly(
+          MockNavigatormozMobileMessage.sendMMS,
+          {
+            receivers: ['123'],
+            subject: null,
+            smil: smil.smil,
+            attachments: smil.attachments
+          }, undefined);
+      });
+
+      test('serviceId is a string containing a number', function() {
+        mmsOpts.serviceId = '0';
+        Settings.mmsServiceId = 0;
+
+        MessageManager.sendMMS(mmsOpts);
+
+        sinon.assert.calledWith(
+          MockNavigatormozMobileMessage.sendMMS,
+          sinon.match.any, { serviceId: 0 }
+        );
+      });
+
+      test('serviceId is a bad string', function() {
+        mmsOpts.serviceId = 'hjuoriut';
+        Settings.mmsServiceId = 0;
+
+        MessageManager.sendMMS(mmsOpts);
+
+        sinon.assert.calledWithExactly(
+          MockNavigatormozMobileMessage.sendMMS,
+          sinon.match.any, undefined
+        );
+      });
     });
   });
 
@@ -691,7 +869,7 @@ suite('message_manager.js >', function() {
         window.location.hash = '#new';
         MessageManager.onHashChange();
       });
-      
+
       teardown(function() {
         MessageManager.activity = null;
       });

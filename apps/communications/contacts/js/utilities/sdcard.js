@@ -97,8 +97,9 @@ if (!utils.sdcard) {
    */
   SdCard.getTextFromFiles = function(fileArray, contents, cb) {
     contents = contents || '';
-    if (!fileArray || !fileArray.length)
+    if (!fileArray || !fileArray.length) {
       return cb && cb(null, contents);
+    }
 
     var reader = new FileReader();
     reader.onload = function onloaded() {

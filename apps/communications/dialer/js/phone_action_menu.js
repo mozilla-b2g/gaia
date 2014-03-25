@@ -1,8 +1,8 @@
 var PhoneNumberActionMenu = (function() {
 
   var _initiated, _newPhoneNumber, _addContactActionMenu, _callMenuItem,
-    _createNewContactMenuItem, _addToExistingContactMenuItem,
-    _cancelActionMenuItem, _addContactActionTitle;
+    _createNewContactMenuItem, _addToExistingContactMenuItem, _sendSmsMenuItem,
+    _cancelActionMenuItem, _addContactActionTitle, _optionToMenuItem;
 
   var _formSubmit = function _formSubmit(event) {
     return false;
@@ -42,7 +42,21 @@ var PhoneNumberActionMenu = (function() {
   var _call = function _call() {
     if (_newPhoneNumber) {
       _updateLatestVisit();
-      CallHandler.call(_newPhoneNumber);
+      if (navigator.mozIccManager.iccIds.length <= 1) {
+        CallHandler.call(_newPhoneNumber, 0);
+      } else {
+        var callFn = CallHandler.call.bind(CallHandler, _newPhoneNumber);
+
+        var key = 'ril.voicemail.defaultServiceId';
+        var req = navigator.mozSettings.createLock().get(key);
+        req.onsuccess = function() {
+          LazyLoader.load(['/shared/js/sim_picker.js'], function() {
+            LazyL10n.get(function(_) {
+              SimPicker.show(req.result[key], _newPhoneNumber, callFn);
+            });
+          });
+        };
+      }
     }
     _addContactActionMenu.classList.remove('visible');
   };
@@ -84,7 +98,7 @@ var PhoneNumberActionMenu = (function() {
         }
       }
     } else {
-      for (opt in _optionToMenuItem)
+      for (var opt in _optionToMenuItem)
         _optionToMenuItem[opt].classList.remove('hide');
     }
     if (contactId) {
@@ -112,8 +126,8 @@ var PhoneNumberActionMenu = (function() {
     if (_initiated) {
       return;
     }
-    _addContactActionTitle = document.querySelector(
-      '#add-contact-action-title');
+    _addContactActionTitle = document.getElementById(
+      'add-contact-action-title');
     _addContactActionMenu = document.getElementById('add-contact-action-menu');
     _addContactActionMenu.addEventListener('submit', _formSubmit);
     _callMenuItem = document.getElementById('call-menuitem');

@@ -420,6 +420,8 @@ var PermissionManager = {
       return;
     this.dispatchResponse(this.currentRequestId, 'permission-deny', false);
     this.hidePermissionPrompt();
+    // reset the queue
+    this.pending = [];
   }
 
 };

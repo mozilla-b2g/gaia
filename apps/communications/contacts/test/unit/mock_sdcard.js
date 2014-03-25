@@ -1,4 +1,8 @@
 'use strict';
+/* exported MockSdCard */
+
+/* Allow setter without getter */
+/* jshint -W078 */
 
 var MockSdCard = function MockSdCard() {
 
@@ -46,13 +50,6 @@ var MockSdCard = function MockSdCard() {
   };
 
   var deviceStorage = null;
-  var setDeviceStorage = function setDeviceStorage(ds) {
-    deviceStorage = ds;
-    deviceStorage.addEventListener('change',
-      function sd_deviceStorageChangeHandler(e) {
-      updateStorageState(e.reason);
-    });
-  };
 
   var subscribeToChanges = function subscribeToChanges(name, func, force) {
     if (observers[name] !== undefined && !force) {

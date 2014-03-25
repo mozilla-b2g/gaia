@@ -40,6 +40,7 @@ Calendar.Selector = Object.freeze({
   addEventButton: 'a[href="/event/add/"]',
   dayButton: '#view-selector .day a',
   editEventAlarm: '#modify-event-view select[name="alarm[]"]',
+  editEventLastAlarm: '#modify-event-view .alarms > *:last-child',
   editEventDescription: '#modify-event-view textarea[name="description"]',
   editEventEndDate: '#modify-event-view input[name="endDate"]',
   editEventEndTime: '#modify-event-view input[name="endTime"]',
@@ -67,6 +68,7 @@ Calendar.Selector = Object.freeze({
   toolbarButton: '#time-header button.settings',
   toolbarSyncButton: '#settings [role="toolbar"] .sync',
   viewEventView: '#event-view',
+  viewEventViewAlarms: '#event-view .alarms',
   viewEventViewAlarm: '#event-view .alarms > .content > div',
   viewEventViewCalendar: '#event-view .current-calendar .content',
   viewEventViewEndDate: '#event-view .end-date > .content',
@@ -104,11 +106,21 @@ Calendar.prototype = {
   /**
    * Find some elements given their name.
    *
+   * @param {Marionette.Element} opt_parent optional parent element.
    * @param {String} name of some calendar elements.
    * @return {Array.<Marionette.Element>} the element.
    */
-  findElements: function(name) {
-    return this.client.findElements(Calendar.Selector[name]);
+  findElements: function(opt_parent, name) {
+    if (typeof opt_parent === 'string') {
+      name = opt_parent;
+      return this.client.findElements(Calendar.Selector[name]);
+    }
+
+    if (opt_parent instanceof Marionette.Element) {
+      return opt_parent.findElements(Calendar.Selector[name]);
+    }
+
+    throw new Error('Bad arguments given to Calendar#findElements');
   },
 
   /**
@@ -130,6 +142,14 @@ Calendar.prototype = {
     }
     child = Calendar.Selector[child];
     return this.client.helper.waitForChild(parent, child);
+  },
+
+  scrollMonthViewDayEventIntoView: function() {
+    this.client.executeScript(function(selector) {
+      var element = document.querySelector(selector);
+      var container = document.getElementById('event-list');
+      container.scrollTop = element.offsetTop;
+    }, [Calendar.Selector.monthViewDayEvent]);
   },
 
   waitForMonthView: function() {
@@ -259,16 +279,16 @@ Calendar.prototype = {
   },
 
   /**
-   * Create an offline event with a single reminder (alarm) that fires when
-   * the event begins.
+   * Create an offline event.
    *
    * @param {Object} opts options object.
-   *   (string) title - event title
-   *   (string) location - event location
+   *   (String) title - event title
+   *   (String) location - event location
    *   (Date) startDate - when event starts
    *   (Date) endDate - when event ends
    *   (Number) startHour - shortcut for setting the startDate
    *   (Number) duration - shortcut for setting the endDate based on startDate
+   *   (Array) reminders - alarm reminders.
    * @return {Event} Created event.
    */
   createEvent: function(opts) {
@@ -304,6 +324,18 @@ Calendar.prototype = {
       var duration = opts.duration || 1;
       endDate = new Date(startDate.getTime() + (60 * duration * 60 * 1000));
     }
+
+    var reminders = Array.isArray(opts.reminders) ? opts.reminders : [];
+    // Begin by removing the default alarm.
+    this.client.helper.tapSelectOption(
+      this.waitForElement('editEventAlarm'), 'None');
+
+    // Now apply all of the reminders
+    reminders.forEach(function(reminder) {
+      var lastAlarm = this.waitForElement('editEventLastAlarm');
+      this.client.helper.tapSelectOption(lastAlarm, reminder);
+    }.bind(this));
+
 
     var form = this.waitForElement('editEventForm');
     this.client.forms.fill(form, {
@@ -435,6 +467,10 @@ Calendar.prototype = {
         hint.click();
       }
     }
+  },
+
+  close: function(callback) {
+    this.client.apps.close(Calendar.ORIGIN, callback);
   },
 
   /**

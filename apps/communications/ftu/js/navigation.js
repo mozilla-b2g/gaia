@@ -35,10 +35,16 @@ var steps = {
   },
   7: {
     onlyForward: false,
+    hash: '#firefox_accounts',
+    requireSIM: false,
+    requireFxAEnabled: true
+  },
+  8: {
+    onlyForward: false,
     hash: '#welcome_browser',
     requireSIM: false
   },
-  8: {
+  9: {
     onlyForward: false,
     hash: '#browser_privacy',
     requireSIM: false
@@ -53,7 +59,8 @@ var _;
 var Navigation = {
   currentStep: 1,
   previousStep: 1,
-
+  simMandatory: false,
+  fxaEnabled: false,
   init: function n_init() {
     _ = navigator.mozL10n.get;
     var settings = navigator.mozSettings;
@@ -64,12 +71,21 @@ var Navigation = {
     window.addEventListener('hashchange', this);
     UIManager.activationScreen.addEventListener('click',
         this.handleExternalLinksClick.bind(this));
-    this.simMandatory = false;
 
-    var req = settings && settings.createLock().get('ftu.sim.mandatory') || {};
+    var reqSIM =
+      settings && settings.createLock().get('ftu.sim.mandatory') || {};
     var self = this;
-    req.onsuccess = function onSuccess() {
-      self.simMandatory = req.result['ftu.sim.mandatory'] || false;
+    reqSIM.onsuccess = function onSuccess() {
+      self.simMandatory = reqSIM.result['ftu.sim.mandatory'] || false;
+    };
+
+    var reqFxA =
+      settings &&
+      settings.createLock().get('identity.fxaccounts.ui.enabled') || {};
+    var self = this;
+    reqFxA.onsuccess = function onSuccess() {
+      self.fxaEnabled =
+        reqFxA.result['identity.fxaccounts.ui.enabled'] || false;
     };
   },
 
@@ -188,6 +204,9 @@ var Navigation = {
         fbState = window.navigator.onLine ? 'enabled' : 'disabled';
         ImportIntegration.checkImport(fbState);
         break;
+      case '#firefox_accounts':
+        UIManager.mainTitle.innerHTML = _('firefox-accounts');
+        break;
       case '#welcome_browser':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
         break;
@@ -255,13 +274,21 @@ var Navigation = {
 
     // Retrieve future location
     var futureLocation = steps[self.currentStep];
+
+    // Check required setting.
+    if (futureLocation.requireFxAEnabled &&
+        !this.fxaEnabled) {
+      self.skipStep();
+      return;
+    }
+
     // There is some locations which need a 'loading'
     if (futureLocation.hash === '#wifi') {
       utils.overlay.show(_('scanningNetworks'), 'spinner');
     }
 
     // If SIMcard is mandatory and no SIM, go to message window
-    if (self.simMandatory &&
+    if (this.simMandatory &&
         !IccHelper.cardState &&
         futureLocation.requireSIM) {
       //Send to SIM Mandatory message

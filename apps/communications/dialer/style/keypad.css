@@ -18,7 +18,7 @@
   text-align: center;
   display: table;
   table-layout: fixed;
-  border-spacing: 1.5rem 0rem;
+  border-spacing: 1.5rem 0;
   font-weight: 300;
   overflow: hidden;
   padding-bottom: 4.5rem;
@@ -183,10 +183,9 @@ article:not(:target) #keypad-delete {
 #keypad-callbar {
   background: rgba(24,24,24,.92);
   height: 6rem;
+  display: flex;
+  flex-direction: row;
   width: 100%;
-  display: table;
-  table-layout: fixed;
-  border-spacing: 0.8rem 0.8rem;
   border: solid 0.1rem rgba(255, 255, 255, 0.2);
   border-right-color: rgba(0, 0, 0, 0.4);
   border-bottom: 0;
@@ -196,12 +195,11 @@ article:not(:target) #keypad-delete {
 
 #keypad-callbar-add-contact,
 #keypad-callbar-cancel {
-  display: table-cell;
   width: 9rem;
   background: url("images/btn_generic.png") repeat-x;
   background-size: auto 100%;
   border-radius: .2rem;
-  vertical-align: middle;
+  margin: 0.8rem 0 0.8rem 0.8rem;
 }
 
 #keypad-callbar-add-contact.disabled {
@@ -227,17 +225,24 @@ article:not(:target) #keypad-delete {
 }
 
 #keypad-callbar-call-action {
-  display: table-cell;
-  width: 100%;
-  background: url("images/btn_pick_up.png") repeat-x;
-  background-size: auto 100%;
+  display: flex;
+  position: relative;
+  flex-grow: 1;
+  align-items: center;
+  flex-direction: row-reverse;
+  background-image: url("images/ActionIcon_40x40_pickup.png"),
+                    url("images/btn_pick_up.png");
+  background-color: #4B780A;
+  background-repeat: no-repeat, repeat-x;
+  background-position: center;
+  background-size: 4rem 4rem, auto 100%;
   border: 0;
   border-radius: .2rem;
-  vertical-align: middle;
+  margin: 0.8em;
 }
 
 #keypad-callbar-call-action:active {
-  background: #4B780A;
+  background-image: url("images/ActionIcon_40x40_pickup.png");
 }
 
 .icon-add-contact {
@@ -250,14 +255,27 @@ article:not(:target) #keypad-delete {
   background-position: center;
 }
 
-#keypad-callbar-call-action > div {
-  margin: auto;
-  width: 4rem;
-  height: 4rem;
-  background-image: url("images/ActionIcon_40x40_pickup.png");
+.js-sim-indication {
+  display: none;
+
+  font-size: 1.3rem;
+  margin-right: 10px;
+}
+
+.has-preferred-sim .js-sim-indication {
+  display: initial;
+}
+
+.has-preferred-sim #keypad-callbar-call-action:after {
+  content: "";
+  position: absolute;
+  width: 1.4rem;
+  height: 1rem;
+  bottom: 0;
+  right: 0.9rem;
+  background-image: url("/shared/style/sim_picker/images/long-tap-indicator.png");
   background-repeat: no-repeat;
-  background-size: 4rem 4rem;
-  background-position: center;
+  background-size: 1.4rem 1rem;
 }
 
 #keypad-hidebar {

@@ -27,7 +27,6 @@ section[role="region"] > header:first-child .icon.icon-clear {
   background-image: url(images/icons/clear.png);
   background-position: center calc(50% + 0.1rem);
   background-size: 3rem;
-  right: calc(-50% + 7rem);
   width: 2rem;
   margin: 0;
   padding: 0 2rem;
@@ -114,12 +113,28 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   margin: 0 1.5rem;
 }
 
-#threads-container[data-type="list"] header {
-  position: sticky;
-  top: 0;
-  background: #fff;
+#sticky {
+  position: absolute;
+
+  /* The sticky element is positioned at the beginning of the list. */
+  top: 5rem;
+
+  /* The width is not 100% so the scrollbar is visible. */
+  width: calc(100% - 1.5rem);
+
+  /* The height needs to be kept in sync with the header height. */
+  height: 3.1rem;
+
+  /* The sticky element needs to be above the list. */
   z-index: 2;
-  padding-top: 0.7rem;
+
+  /* Those style will affect the bagroundImage: -moz-element. */
+  background-repeat: no-repeat;
+  background-position: 1.5rem 0;
+}
+
+#threads-container[data-type="list"] header {
+  background: #fff;
 }
 
 #threads-container[data-type="list"] ul {
@@ -448,6 +463,10 @@ section.has-carrier .article-list header:first-child {
   background: #fff;
 }
 
+#messages-container[data-type="list"] ul {
+  background-color: #e4e4e4;
+}
+
 #messages-container[data-type="list"] .message.mms .bubble img {
   height: auto;
   width: auto;
@@ -458,7 +477,7 @@ section.has-carrier .article-list header:first-child {
 }
 
 .article-list[data-type="list"] .has-subject .bubble {
-  padding-top: 0rem;
+  padding-top: 0;
 }
 
 .article-list[data-type="list"] .has-subject .subject {
@@ -715,6 +734,10 @@ form.bottom[role="search"].messages-compose-form {
   font-size: 1.8rem;
 }
 
+#messages-input.ignoreEvents {
+  pointer-events: none;
+}
+
 #messages-input.placeholder:after,
 #messages-subject-input::-moz-placeholder {
   color: #888;
@@ -753,6 +776,44 @@ form.bottom[role="search"].messages-compose-form {
   font-style: italic;
   font-size: 1.4rem;
   line-height: 2rem;
+}
+
+.js-sim-indication {
+  position: absolute;
+  left: 0;
+  top: 0.2rem;
+  display: none;
+
+  line-height: 1;
+  width: 100%;
+
+  font-size: 1.3rem;
+  opacity: 0.5;
+}
+
+.has-preferred-sim .js-sim-indication {
+  display: block;
+}
+
+.has-preferred-sim #messages-send-button {
+  height: 4.5rem;
+  padding-top: 0.5rem;
+
+  /* override BB, first one is separator, second one is background */
+  background-position: left bottom, bottom;
+}
+
+.has-preferred-sim #messages-send-button:after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+
+  content: '';
+  display: block;
+  width: 100%;
+  height: 1rem;
+
+  background: url(images/long-tap-indicator.png) center no-repeat;
 }
 
 /*

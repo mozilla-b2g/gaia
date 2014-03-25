@@ -54,10 +54,7 @@
   <body>
     <article id="call-screen" data-layout>
       <div id="lockscreen-header">
-        <div class="lockscreen-clock">
-          <span id="lockscreen-clock-numbers"></span>
-          <span id="lockscreen-clock-meridiem"></span>
-        </div>
+        <div id="lockscreen-clock-time"></div>
         <div id="lockscreen-date"></div>
       </div>
       <article id="calls" data-count="0">
@@ -77,6 +74,8 @@
           <div class="duration">
             <span class="font-light"></span>
             <div class="direction"></div>
+          </div>
+          <div class="sim">
           </div>
           <button class="merge-button">Merge</button>
         </section>
@@ -206,6 +205,7 @@
           <span id="incoming-number"></span>
           <span id="incoming-number-additional-info"></span>
         </div>
+        <div id="incoming-sim" class="sim"></div>
         <button id="incoming-ignore" data-l10n-id="ignore">
             Ignore
         </button>

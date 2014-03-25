@@ -104,8 +104,8 @@ function SimPinDialog(dialog) {
     var count = event.retryCount;
     if (count <= 0) {
       if (type === 'pin') {
-        _action = initUI('unlock_puk');
-        pukInput.focus();
+        // we leave this for system app
+        skip();
       } else if (type === 'fdn') {
         _action = initUI('unlock_puk2');
         pukInput.focus();

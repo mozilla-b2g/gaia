@@ -25,11 +25,28 @@ form[role="dialog"][data-type="edit"] > menu {
   background: #fff;
 }
 
-#call-log-container[data-type="list"] header {
-  position: sticky;
+#sticky {
+  position: absolute;
+
+  /* The sticky element is positioned at the beginning of the list. */
   top: 0;
-  background: #fff;
+
+  /* The width is not 100% so the scrollbar is visible. */
+  width: calc(100% - 1.5rem);
+
+  /* The height needs to be kept in sync with the header height. */
+  height: 3.1rem;
+
+  /* The sticky element needs to be above the list. */
   z-index: 2;
+
+  /* Those style will affect the bagroundImage: -moz-element. */
+  background-repeat: no-repeat;
+  background-position: 1.5rem 0;
+}
+
+#call-log-container[data-type="list"] header {
+  background: #fff;
 }
 
 /* Override Building Block styles for lists */
@@ -121,16 +138,47 @@ ol, ul {
   background-size: 3rem;
 }
 
+/* .first-sim and .second-sim classes should only affect the style
+ * if the .dual-sim class is set on the container */
+
 [data-type="list"] aside.icon.icon-incoming {
   background-image: url('images/CallLog_30x30_incoming.png');
+}
+[data-type="list"].dual-sim aside.icon.icon-incoming.first-sim {
+  background-image: url('images/CallLog_30x30_incoming-first-sim.png');
+}
+[data-type="list"].dual-sim aside.icon.icon-incoming.second-sim {
+  background-image: url('images/CallLog_30x30_incoming-second-sim.png');
 }
 
 [data-type="list"] aside.icon.icon-outgoing {
   background-image: url('images/CallLog_30x30_outgoing.png');
 }
+[data-type="list"].dual-sim aside.icon.icon-outgoing.first-sim {
+  background-image: url('images/CallLog_30x30_outgoing-first-sim.png');
+}
+[data-type="list"].dual-sim aside.icon.icon-outgoing.second-sim {
+  background-image: url('images/CallLog_30x30_outgoing-second-sim.png');
+}
 
 [data-type="list"] aside.icon.icon-missed {
   background-image: url('images/CallLog_30x30_missed_grey.png');
+}
+[data-type="list"].dual-sim aside.icon.icon-missed.first-sim {
+  background-image: url('images/CallLog_30x30_missed_grey-first-sim.png');
+}
+[data-type="list"].dual-sim aside.icon.icon-missed.second-sim {
+  background-image: url('images/CallLog_30x30_missed_grey-second-sim.png');
+}
+
+[data-type="list"] .missed-call.highlighted aside.icon.icon-missed {
+  background-image: url('images/CallLog_30x30_missed.png');
+}
+[data-type="list"].dual-sim .missed-call.highlighted aside.icon.icon-missed.first-sim {
+  background-image: url('images/CallLog_30x30_missed-first-sim.png');
+}
+[data-type="list"].dual-sim .missed-call.highlighted aside.icon.icon-missed.second-sim {
+  background-image: url('images/CallLog_30x30_missed-first-sim.png');
 }
 
 .log-item * {
@@ -167,10 +215,6 @@ ol, ul {
 
 .log-item .call-log-contact-photo {
   pointer-events: auto;
-}
-
-[data-type="list"] .missed-call.highlighted aside.icon.icon-missed {
-  background-image: url('images/CallLog_30x30_missed.png');
 }
 
 .log-item.missed-call.highlighted .call-time {

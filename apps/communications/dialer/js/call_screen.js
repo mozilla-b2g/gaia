@@ -39,13 +39,13 @@ var CallScreen = {
 
   incomingContainer: document.getElementById('incoming-container'),
   incomingNumber: document.getElementById('incoming-number'),
+  incomingSim: document.getElementById('incoming-sim'),
   incomingNumberAdditionalInfo:
     document.getElementById('incoming-number-additional-info'),
   incomingAnswer: document.getElementById('incoming-answer'),
   incomingEnd: document.getElementById('incoming-end'),
   incomingIgnore: document.getElementById('incoming-ignore'),
-  lockedClockNumbers: document.getElementById('lockscreen-clock-numbers'),
-  lockedClockMeridiem: document.getElementById('lockscreen-clock-meridiem'),
+  lockedClockTime: document.getElementById('lockscreen-clock-time'),
   lockedDate: document.getElementById('lockscreen-date'),
 
   statusMessage: document.getElementById('statusMsg'),
@@ -418,12 +418,9 @@ var CallScreen = {
   showClock: function cs_showClock(now) {
     LazyL10n.get(function localized(_) {
       var f = new navigator.mozL10n.DateTimeFormat();
-      var timeFormat = _('shortTimeFormat');
+      var timeFormat = _('shortTimeFormat').replace('%p', '<span>%p</span>');
       var dateFormat = _('longDateFormat');
-      var time = f.localeFormat(now, timeFormat);
-      this.lockedClockNumbers.textContent = time.match(/([012]?\d).[0-5]\d/g);
-      this.lockedClockMeridiem.textContent =
-        (time.match(/AM|PM/i) || []).join('');
+      this.lockedClockTime.innerHTML = f.localeFormat(now, timeFormat);
       this.lockedDate.textContent = f.localeFormat(now, dateFormat);
     }.bind(this));
   },

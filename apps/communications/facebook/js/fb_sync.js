@@ -39,7 +39,7 @@ if (!fb.sync) {
         for (var c = 0; c < arguments.length; c++) {
           theArgs.push(arguments[c]);
         }
-        window.console.log.apply(this, theArgs);
+        window.console.log.apply(window.console, theArgs);
       }
     }
 
@@ -108,6 +108,11 @@ if (!fb.sync) {
           changed = 0;
           totalToChange = m.data.totalToChange;
           nextTimestamp = m.data.queryTimestamp;
+          var newFriendNumber = m.data.newFriendNumber;
+          if (newFriendNumber) {
+            debug('New friend number: ', newFriendNumber);
+            fb.utils.setCachedNumFriends(newFriendNumber);
+          }
 
           debug('Total to be changed: ', totalToChange);
 

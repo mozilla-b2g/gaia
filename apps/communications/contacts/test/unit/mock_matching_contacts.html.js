@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockMatchingContactsHtml */
 
 var MockMatchingContactsHtml = (function MockMatchingContactsHtml() {
   var req = new XMLHttpRequest();

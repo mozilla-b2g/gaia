@@ -3,7 +3,8 @@
 
 /*global Template, Utils, Threads, Contacts, Threads,
          WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders,
-         Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker */
+         Drafts, Thread, ThreadUI, OptionMenu, ActivityPicker,
+         PerformanceTestingHelper, StickyHeader */
 
 /*exported ThreadListUI */
 (function(exports) {
@@ -80,6 +81,9 @@ var ThreadListUI = {
 
     this.draftLinks = new Map();
     ThreadListUI.draftRegistry = {};
+
+    this.sticky =
+      new StickyHeader(this.container, document.getElementById('sticky'));
   },
 
   getAllInputs: function thlui_getAllInputs() {
@@ -245,6 +249,8 @@ var ThreadListUI = {
       parent.previousSibling.remove();
       parent.remove();
 
+      this.sticky.refresh();
+
       // if we have no more elements, set empty classes
       if (!this.container.querySelector('li')) {
         this.setEmpty(true);
@@ -396,6 +402,8 @@ var ThreadListUI = {
           }
         }
       }, this);
+
+      this.sticky.refresh();
     }.bind(this));
   },
 
@@ -416,10 +424,15 @@ var ThreadListUI = {
     if (!empty) {
       TimeHeaders.updateAll('header[data-time-update]');
     }
+
+    this.sticky.refresh();
   },
 
   renderThreads: function thlui_renderThreads(done) {
+    PerformanceTestingHelper.dispatch('will-render-threads');
+
     var hasThreads = false;
+    var firstPanelCount = 9; // counted on a Peak
 
     this.prepareRendering();
 
@@ -431,6 +444,9 @@ var ThreadListUI = {
       }
 
       this.appendThread(thread);
+      if (--firstPanelCount === 0) {
+        PerformanceTestingHelper.dispatch('above-the-fold-ready');
+      }
     }
 
     function onThreadsRendered() {
@@ -439,6 +455,8 @@ var ThreadListUI = {
       /* We set the view as empty only if there's no threads and no drafts,
        * this is done to prevent races between renering threads and drafts. */
       this.finalizeRendering(!(hasThreads || Drafts.size));
+
+      PerformanceTestingHelper.dispatch('startup-path-done');
     }
 
     var renderingOptions = {
@@ -592,6 +610,7 @@ var ThreadListUI = {
     }
     this.appendThread(thread);
     this.setEmpty(false);
+    this.sticky.refresh();
   },
 
   onMessageSending: function thlui_onMessageSending(message) {
@@ -655,6 +674,10 @@ var ThreadListUI = {
     var threadContainer = document.createElement('div');
     // Create Header DOM Element
     var headerDOM = document.createElement('header');
+
+    // The id is used by the sticky header code as the -moz-element target.
+    headerDOM.id = 'header_' + timestamp;
+
     // Append 'time-update' state
     headerDOM.dataset.timeUpdate = 'repeat';
     headerDOM.dataset.time = timestamp;

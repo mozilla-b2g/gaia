@@ -1,4 +1,7 @@
 'use strict';
+/* global MockNavigationStack */
+/* global ConfirmDialog */
+/* exported MockContacts */
 
 var MockContacts = {
   getLength: function(prop) {

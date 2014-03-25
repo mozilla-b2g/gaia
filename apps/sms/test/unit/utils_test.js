@@ -831,6 +831,60 @@ suite('Utils', function() {
     });
   });
 
+  suite('Utils.getDownsamplingSrcUrl', function() {
+    var testOptions;
+
+    setup(function() {
+      testOptions = {
+        url: 'test url',
+        size: 300 * 1024,
+        type: 'thumbnail'
+      };
+    });
+    test('no size information', function() {
+      testOptions = {
+        url: 'test url',
+        type: 'thumbnail'
+      };
+      assert.equal(Utils.getDownsamplingSrcUrl(testOptions), testOptions.url);
+    });
+    test('no downsampling reference type ', function() {
+      testOptions = {
+        url: 'test url',
+        size: 300 * 1024
+      };
+      assert.equal(Utils.getDownsamplingSrcUrl(testOptions), testOptions.url);
+    });
+    test('No need to add -moz-samplesize postfix when ratio < 2', function() {
+      testOptions = {
+        url: 'test url',
+        size: 1,
+        type: 'thumbnail'
+      };
+      assert.equal(Utils.getDownsamplingSrcUrl(testOptions), testOptions.url);
+    });
+    test('Add -moz-samplesize postfix with ratio when ratio >= 2', function() {
+      testOptions = {
+        url: 'test url',
+        size: 300 * 1024,
+        type: 'thumbnail'
+      };
+      var result =
+        Utils.getDownsamplingSrcUrl(testOptions).split('#-moz-samplesize=');
+      assert.equal(testOptions.url, result[0]);
+      assert.isTrue(+result[1] > 0 && Number.isInteger(+result[1]));
+    });
+    test('Maximum samplesize ratio reached', function() {
+      testOptions = {
+        url: 'test url',
+        size: Number.MAX_VALUE,
+        type: 'thumbnail'
+      };
+      assert.equal(Utils.getDownsamplingSrcUrl(testOptions),
+        testOptions.url + '#-moz-samplesize=16');
+    });
+  });
+
   suite('Utils.typeFromMimeType', function() {
     var tests = {
       'text/plain': 'text',

@@ -29,6 +29,9 @@ var Selector = {
   manualNextButton: '.sup-account-header .sup-manual-next-btn',
   msgDownBtn: '.card-message-reader .msg-down-btn',
   msgListScrollOuter: '.card-message-list .msg-list-scrollouter',
+  editMode: '.card-message-list .msg-edit-btn',
+  editModeCheckBoxes: '.card-message-list label.pack-checkbox',
+  editModeTrash: '.card-message-list button.msg-delete-btn',
   msgUpBtn: '.card-message-reader .msg-up-btn',
   msgEnvelopeSubject: '.card-message-reader .msg-envelope-subject',
   showMailButton: '.card-setup-done .sup-show-mail-btn',
@@ -45,11 +48,14 @@ var Selector = {
   refreshButton: '.card.center .msg-refresh-btn',
   messageHeaderItem: '.msg-messages-container .msg-header-item',
   cardMessageReader: '.card-message-reader',
+  currentCardInputs: '.card.center input[type="text"]',
   replyMenuButton: '.msg-reply-btn',
   replyMenu: '.msg-reply-menu',
   replyMenuReply: '.msg-reply-menu-reply',
   replyMenuForward: '.msg-reply-menu-forward',
   replyMenuAll: '.msg-reply-menu-reply-all',
+  searchButton: '.msg-search-btn',
+  searchCard: '.card[data-mode="search"]',
   folderListButton: '.msg-list-header .msg-folder-list-btn',
   settingsButton: '.fld-nav-toolbar .fld-nav-settings-btn',
   settingsDoneButton: '.card-settings-main [data-l10n-id="settings-done"]',
@@ -299,10 +305,51 @@ Email.prototype = {
     }, []);
   },
 
+  /**
+   * Enters edit mode.
+   * Waits for an edit checkbox to appear.
+   */
+  editMode: function() {
+    client.helper
+      .waitForElement(Selector.editMode)
+      .tap();
+
+    client.helper
+      .waitForElement(Selector.editModeCheckBoxes);
+  },
+
+  /**
+   * Returns the edit mode checkboxes.
+   */
+  editModeCheckboxes: function() {
+    var elements = client.findElements(Selector.editModeCheckBoxes);
+    return elements;
+  },
+
+  /**
+   * Taps the trash button in edit mode.
+   */
+  editModeTrash: function() {
+    client.helper
+      .waitForElement(Selector.editModeTrash)
+      .tap();
+  },
+
   abortCompose: function(cardId) {
     this._waitForElementNoTransition(Selector.composeBackButton).tap();
     this._waitForElementNoTransition(Selector.composeDraftDiscard).tap();
     this._waitForTransitionEnd(cardId);
+  },
+
+  /**
+   * Returns the visible input elements for the current card.
+   */
+  getVisibleCardInputs: function() {
+    var elements = this.client.findElements(Selector.currentCardInputs)
+      .filter(function(element) {
+        return element.displayed();
+      });
+    return elements;
   },
 
   saveLocalDrafts: function() {
@@ -335,6 +382,16 @@ Email.prototype = {
     this.client.helper
       .waitForElement(Selector.refreshButton)
       .tap();
+  },
+
+  tapSearchButton: function() {
+    this.client.helper
+      .waitForElement(Selector.searchButton)
+      .tap();
+
+    this.client.helper
+      .waitForElement(Selector.searchCard);
+    this._waitForTransitionEnd('message_list');
   },
 
   waitForMessageList: function() {

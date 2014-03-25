@@ -1,7 +1,7 @@
 /* global MocksHelper, MockAttachment, MockL10n, loadBodyHTML,
          Compose, Attachment, MockMozActivity, Settings, Utils,
          AttachmentMenu, Draft, document, XMLHttpRequest, Blob, navigator,
-         setTimeout, ThreadUI */
+         setTimeout, ThreadUI, SMIL */
 
 /*jshint strict:false */
 /*jslint node: true */
@@ -22,6 +22,7 @@ requireApp('sms/test/unit/mock_settings.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
+require('/test/unit/mock_smil.js');
 
 var mocksHelperForCompose = new MocksHelper([
   'AttachmentMenu',
@@ -30,7 +31,8 @@ var mocksHelperForCompose = new MocksHelper([
   'Utils',
   'MozActivity',
   'Attachment',
-  'ThreadUI'
+  'ThreadUI',
+  'SMIL'
 ]).init();
 
 suite('compose_test.js', function() {
@@ -712,6 +714,34 @@ suite('compose_test.js', function() {
         Compose.type = 'sms';
 
         assert.equal(message.getAttribute('x-inputmode'), '-moz-sms');
+      });
+    });
+
+    suite('Compose fromMessage', function() {
+      setup(function() {
+        this.sinon.spy(Compose, 'append');
+        this.sinon.spy(HTMLElement.prototype, 'focus');
+        this.sinon.stub(SMIL, 'parse');
+      });
+      test('from sms', function() {
+        Compose.fromMessage({type: 'sms', body: 'test'});
+        sinon.assert.called(Compose.append);
+        sinon.assert.called(message.focus);
+      });
+
+      test('from mms', function() {
+        var testString = ['test\nstring 1\nin slide 1',
+                          'test\nstring 2\nin slide 2'];
+        Compose.fromMessage({type: 'mms'});
+
+        // Should not be focused before parse complete.
+        sinon.assert.notCalled(message.focus);
+        assert.isTrue(message.classList.contains('ignoreEvents'));
+        SMIL.parse.yield([{text: testString[0]}, {text: testString[1]}]);
+
+        sinon.assert.calledWith(Compose.append);
+        sinon.assert.called(message.focus);
+        assert.isFalse(message.classList.contains('ignoreEvents'));
       });
     });
   });

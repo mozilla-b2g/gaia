@@ -127,6 +127,8 @@ var MockNavigatormozMobileMessage = {
     return cursor;
   },
 
+  retrieveMMS: function() {},
+
   _mDefaultSegmentInfo: {
     segments: 1,
     charsAvailableInLastSegment: 150

@@ -132,6 +132,17 @@ suite('cards view >', function() {
   var originalLockScreen;
   var ihDescriptor;
 
+  function createTouchEvent(type, target, x, y) {
+    var touch = document.createTouch(window, target, 1, x, y, x, y);
+    var touchList = document.createTouchList(touch);
+
+    var evt = document.createEvent('TouchEvent');
+    evt.initTouchEvent(type, true, true, window,
+                       0, false, false, false, false,
+                       touchList, touchList, touchList);
+    return evt;
+  }
+
   mocksForCardsView.attachTestHelpers();
   suiteSetup(function(done) {
     ihDescriptor = Object.getOwnPropertyDescriptor(window, 'innerHeight');
@@ -378,27 +389,16 @@ suite('cards view >', function() {
       CardsView.hideCardSwitcher(true);
     });
 
-    test('remove the app with a gesture doesn\'t fail', function() {
+    test('Prevent reflowing during swipe to remove', function() {
       var card = document.querySelector('.card');
 
-      var mousedown = new MouseEvent('mousedown', {
-        bubbles: true,
-        cancelable: true,
-        clientY: 500
-      });
-      var mousemove = new MouseEvent('mousemove', {
-        bubbles: true,
-        cancelable: true,
-        clientY: 200
-      });
-      var mouseup = new MouseEvent('mouseup', {
-        bubbles: true,
-        cancelable: true,
-        clientY: 200
-      });
-      card.dispatchEvent(mousedown);
-      card.dispatchEvent(mousemove);
-      card.dispatchEvent(mouseup);
+      var touchstart = createTouchEvent('touchstart', card, 0, 500);
+      var touchmove = createTouchEvent('touchmove', card, 0, 200);
+      var touchend = createTouchEvent('touchend', card, 0, 200);
+
+      assert.isFalse(card.dispatchEvent(touchstart));
+      assert.isFalse(card.dispatchEvent(touchmove));
+      assert.isFalse(card.dispatchEvent(touchend));
     });
   });
 

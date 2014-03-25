@@ -10,6 +10,8 @@ requireApp('communications/dialer/test/unit/mock_performance_testing_helper.js')
 requireApp('sms/test/unit/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
+require('/shared/test/unit/mocks/mock_sticky_header.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 
 requireApp('communications/shared/test/unit/mocks/mock_notification.js');
 
@@ -19,13 +21,15 @@ var mocksHelperForCallLog = new MocksHelper([
   'PerformanceTestingHelper',
   'LazyLoader',
   'LazyL10n',
-  'ContactPhotoHelper'
+  'ContactPhotoHelper',
+  'StickyHeader'
 ]).init();
 
 suite('dialer/call_log', function() {
   var realL10n;
   var realCallLogL10n;
   var realNotification;
+  var realMozIccManager;
 
   mocksHelperForCallLog.attachTestHelpers();
 
@@ -36,12 +40,15 @@ suite('dialer/call_log', function() {
     CallLog._ = MockMozL10n.get;
     realNotification = window.Notification;
     window.Notification = MockNotification;
+    realMozIccManager = navigator.mozIccManager;
+    navigator.mozIccManager = MockNavigatorMozIccManager;
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
     CallLog._ = realCallLogL10n;
     window.Notification = realNotification;
+    navigator.mozIccManager = realMozIccManager;
   });
 
   var noResult;
@@ -61,7 +68,8 @@ suite('dialer/call_log', function() {
       'select-all-threads',
       'call-log-upgrading',
       'call-log-upgrade-progress',
-      'call-log-upgrade-percent'
+      'call-log-upgrade-percent',
+      'sticky'
     ];
 
     mainNodes.forEach(function(prop) {
@@ -86,6 +94,7 @@ suite('dialer/call_log', function() {
   teardown(function() {
     noResult.parentNode.removeChild(noResult);
     CallLog._initialized = false;
+    MockNavigatorMozIccManager.mTeardown();
   });
 
   var incomingGroup = {
@@ -108,6 +117,16 @@ suite('dialer/call_log', function() {
     }
   };
 
+  var firstSimGroup = {
+    id: '1222',
+    lastEntryDate: Date.now(),
+    date: 1,
+    number: '3345321',
+    serviceId: '0',
+    type: 'incoming',
+    status: 'connected'
+  };
+
   var outgoingGroup = {
     id: '123',
     lastEntryDate: Date.now(),
@@ -126,6 +145,16 @@ suite('dialer/call_log', function() {
       },
       photo: null
     }
+  };
+
+  var secondSimGroup = {
+    id: '1244',
+    lastEntryDate: Date.now(),
+    date: 1,
+    number: '424242',
+    serviceId: '1',
+    type: 'dialing',
+    status: 'connected'
   };
 
   var missedGroup = {
@@ -261,6 +290,15 @@ suite('dialer/call_log', function() {
       return;
     }
 
+    // DSDS SIM display.
+    if (group.serviceId === '0') {
+      assert.ok(groupDOM.querySelector('.icon.call-type-icon.first-sim'),
+                'First sim call');
+    } else if (group.serviceId === '1') {
+      assert.ok(groupDOM.querySelector('.icon.call-type-icon.second-sim'),
+                'Second sim call');
+    }
+
     // Primary info.
     var primaryInfo = groupDOM.querySelector('.primary-info');
     assert.ok(primaryInfo, 'Primary info ok');
@@ -390,6 +428,14 @@ suite('dialer/call_log', function() {
     test('Emergency group', function(done) {
       checkGroupDOM(CallLog.createGroup(emergencyGroup), emergencyGroup, done);
     });
+
+    test('Group on first sim', function(done) {
+      checkGroupDOM(CallLog.createGroup(firstSimGroup), firstSimGroup, done);
+    });
+
+    test('Group on second sim', function(done) {
+      checkGroupDOM(CallLog.createGroup(secondSimGroup), secondSimGroup, done);
+    });
   });
 
   suite('render', function() {
@@ -435,24 +481,68 @@ suite('dialer/call_log', function() {
     });
 
     test('Below batch render threshold', function(done) {
-      appendAndCheckGroupDOM(50, null, function() {
+      appendAndCheckGroupDOM(80, null, function() {
         sinon.assert.callCount(renderSeveralDaysSpy, 2);
         done();
       });
     });
 
     test('Above batch render threshold', function(done) {
-      appendAndCheckGroupDOM(100, null, function() {
+      appendAndCheckGroupDOM(120, null, function() {
         sinon.assert.callCount(renderSeveralDaysSpy, 3);
         done();
       });
     });
 
     test('Multiple batch renders', function(done) {
-      appendAndCheckGroupDOM(300, null, function() {
+      appendAndCheckGroupDOM(500, null, function() {
         sinon.assert.callCount(renderSeveralDaysSpy, 6);
         done();
       });
+    });
+
+    test('First render batch crossed in middle of a day', function(done) {
+      // Day 1 - 1 group
+      var grp = JSON.parse(JSON.stringify(incomingGroup));
+      grp.id = 1;
+      grp.date = 1;
+      CallLogDBManager.add(grp);
+      // Day 2 - 100 groups
+      for (var i = 2; i < 102; i++) {
+        grp = JSON.parse(JSON.stringify(incomingGroup));
+        grp.id = i;
+        grp.date = 2;
+        CallLogDBManager.add(grp);
+      }
+      // Day 3 - 10 group
+      for (var i = 102; i < 112; i++) {
+        grp = JSON.parse(JSON.stringify(incomingGroup));
+        grp.id = i;
+        grp.date = 3;
+        CallLogDBManager.add(grp);
+      }
+
+      CallLog.render();
+      setTimeout(function() {
+        sinon.assert.callCount(renderSeveralDaysSpy, 2);
+        done();
+      });
+    });
+  });
+
+  suite('StickyHeader', function() {
+    test('Updated on render', function(done) {
+      this.sinon.spy(CallLog.sticky, 'refresh');
+      appendAndCheckGroupDOM(10, 1, function() {
+        sinon.assert.called(CallLog.sticky.refresh);
+        done();
+      });
+    });
+
+    test('Updated on appendGroup', function() {
+      this.sinon.spy(CallLog.sticky, 'refresh');
+      CallLog.appendGroup(noContactGroup);
+      sinon.assert.called(CallLog.sticky.refresh);
     });
   });
 
@@ -610,6 +700,35 @@ suite('dialer/call_log', function() {
       CallLog.filter();
       CallLog.unfilter();
       assert.equal(document.getElementsByClassName('groupFiltered').length, 0);
+    });
+  });
+
+  suite('DSDS support', function() {
+    setup(function() {
+      CallLog._initialized = false;
+    });
+
+    suite('One SIM', function() {
+      setup(function() {
+        MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
+        CallLog.init();
+      });
+
+      test('should not put the dual sim class on the container', function() {
+        assert.isFalse(CallLog.callLogContainer.classList.contains('dual-sim'));
+      });
+    });
+
+    suite('Dual SIM', function() {
+      setup(function() {
+        MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
+        MockNavigatorMozIccManager.addIcc('3232', {'cardState': 'ready'});
+        CallLog.init();
+      });
+
+      test('should put the dual sim class on the container', function() {
+        assert.isTrue(CallLog.callLogContainer.classList.contains('dual-sim'));
+      });
     });
   });
 });

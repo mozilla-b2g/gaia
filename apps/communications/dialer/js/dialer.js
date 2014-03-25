@@ -56,7 +56,7 @@ var CallHandler = (function callHandler() {
         LazyL10n.get(function localized(_) {
           var title;
           if (navigator.mozIccManager.iccIds.length > 1) {
-            title = _('missedCallMultiSim', {n: serviceId + 1});
+            title = _('missedCallMultiSims', {n: serviceId + 1});
           } else {
             title = _('missedCall');
           }
@@ -241,7 +241,7 @@ var CallHandler = (function callHandler() {
   window.addEventListener('message', handleMessage);
 
   /* === Calls === */
-  function call(number) {
+  function call(number, cardIndex) {
     if (MmiManager.isMMI(number)) {
       MmiManager.send(number);
       // Clearing the code from the dialer screen gives the user immediate
@@ -277,8 +277,19 @@ var CallHandler = (function callHandler() {
       }
     };
 
-    LazyLoader.load('/dialer/js/telephony_helper.js', function() {
-      TelephonyHelper.call(number, oncall, connected, disconnected, error);
+    LazyLoader.load(['/dialer/js/telephony_helper.js',
+                     '/shared/js/sim_settings_helper.js'], function() {
+      // FIXME/bug 982163: Temporarily load a cardIndex from SimSettingsHelper
+      // if we were not given one as an argument.
+      if (cardIndex === undefined) {
+        SimSettingsHelper.getCardIndexFrom('outgoingCall', function(ci) {
+          TelephonyHelper.call(
+            number, ci, oncall, connected, disconnected, error);
+        });
+      } else {
+        TelephonyHelper.call(
+          number, cardIndex, oncall, connected, disconnected, error);
+      }
     });
   }
 
@@ -427,6 +438,7 @@ var NavbarManager = {
     LazyLoader.load(['/shared/js/async_storage.js',
                      '/shared/js/notification_helper.js',
                      '/shared/js/simple_phone_matcher.js',
+                     '/shared/js/contact_photo_helper.js',
                      '/dialer/js/contacts.js',
                      '/dialer/js/call_log.js',
                      '/dialer/style/call_log.css'], function rs_loaded() {
@@ -465,10 +477,8 @@ var NavbarManager = {
       case '#call-log-view':
         checkContactsTab();
         this.ensureResources(function() {
-          LazyLoader.load(['/shared/js/contact_photo_helper.js'], function() {
-            recent.classList.add('toolbar-option-selected');
-            CallLog.init();
-          });
+          recent.classList.add('toolbar-option-selected');
+          CallLog.init();
         });
         break;
       case '#contacts-view':

@@ -91,6 +91,7 @@ var MockCallScreen = {
   screen: document.createElement('div'),
   incomingContainer: document.createElement('div'),
   incomingNumber: document.createElement('div'),
+  incomingSim: document.createElement('div'),
   incomingNumberAdditionalInfo: document.createElement('span'),
 
   mEnableKeypadCalled: false,

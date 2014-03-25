@@ -81,19 +81,24 @@
   border-bottom: 1px solid #2A2A2A;
   height: 8rem;
   overflow: hidden;
-  box-shadow: 0px 5px 5px 0px rgba(1, 1, 1, 0.2);
+  box-shadow: 0 5px 5px 0 rgba(1, 1, 1, 0.2);
   position: relative;
   z-index: 11;
 }
 
 #week-view .sticky .all-day {
   transform: rotate(-90deg);
-  line-height: 120%;
-  float: left;
+  transform-origin: 0 0;
   position: absolute;
-  top: 4rem;
-  left: -1rem;
+  top: 7.9rem;
+  left: 0.3rem;
+  width: 6rem;
+  height: 1.3rem;
   font-size: 1.3rem;
+  line-height: 120%;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 #week-view .sticky .children {
@@ -132,7 +137,6 @@
   transform: rotate(-90deg);
   line-height: 120%;
   width: 6rem;
-  padding: 0.4rem 0.3rem 0 0;
   float: left;
   height: 6rem;
   text-align: center;
@@ -186,6 +190,7 @@
   height: 100%;
   margin: 1px;
   line-height: 1.4rem;
+  min-height: 1.8rem;
   font-size: 120%;
   padding: 0.2rem;
   overflow: hidden;

@@ -37,7 +37,6 @@ var mocksHelperForGrid = new MocksHelper([
   'HIDDEN_APPS',
   'ManifestHelper',
   'getDefaultIcon',
-  'Configurator',
   'Bookmark'
 ]).init();
 

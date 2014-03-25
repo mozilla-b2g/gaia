@@ -79,7 +79,6 @@ body.evme-displayed #search-overlay:not(:empty){
         background: rgba(0, 0, 0, .4);
      }
         #bgimage-overlay .content h2 {
-            font-weight: 600;
             color: #fff;
             font-size: 2.2rem;
             height: 5.4rem;

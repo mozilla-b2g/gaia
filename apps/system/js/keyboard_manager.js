@@ -579,7 +579,10 @@ var KeyboardManager = {
     // Need to make the message in spec: "FirefoxOS - English"...
     var current = this.keyboardLayouts[showed.type][showed.index];
 
-    this.fakenotiMessage.textContent = current.appName + ':' + current.name;
+    this.fakenotiMessage.textContent = _('ime-switching-title', {
+      appName: current.appName,
+      name: current.name
+    });
     this.fakenotiTip.textContent = _('ime-switching-tip');
 
     // Instead of create DOM element dynamically, we can just turn the message

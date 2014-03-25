@@ -43,6 +43,7 @@ suite('dialer/call_log_db', function() {
     }
     assert.equal(group.id, id);
     assert.equal(group.number, call.number || '');
+    assert.equal(group.serviceId, call.serviceId);
     assert.equal(group.date, Utils.getDayDate(call.date));
     assert.equal(group.type, call.type);
     assert.equal(group.status, call.status);
@@ -114,6 +115,7 @@ suite('dialer/call_log_db', function() {
     test('Add a call', function(done) {
       var call = {
         number: numbers[0],
+        serviceId: 1,
         type: 'incoming',
         date: days[0]
       };
@@ -222,6 +224,7 @@ suite('dialer/call_log_db', function() {
   suite('Two calls, same group, different hour', function() {
     var call = {
       number: numbers[0],
+      serviceId: 1,
       type: 'incoming',
       status: 'connected',
       date: days[0]
@@ -229,6 +232,7 @@ suite('dialer/call_log_db', function() {
 
     var call2 = {
       number: numbers[0],
+      serviceId: 0,
       type: 'incoming',
       status: 'connected',
       date: days[1]

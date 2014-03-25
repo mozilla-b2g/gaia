@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockContactsSearch */
 
 var MockContactsSearch = {
   'init': function(s, d, n) {},

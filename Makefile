@@ -531,8 +531,8 @@ reference-workload-x-heavy:
 # some commands for invoking it. But it is platform dependent
 # IMPORTANT: you should generally change the directory name when you change the
 # URL unless you know what you're doing
-XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2013/08/2013-08-07-03-02-16-mozilla-central/xulrunner-26.0a1.en-US.
-XULRUNNER_BASE_DIRECTORY?=xulrunner-sdk-26
+XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2014/03/2014-03-08-03-02-03-mozilla-central/xulrunner-30.0a1.en-US.
+XULRUNNER_BASE_DIRECTORY?=xulrunner-sdk-30
 XULRUNNER_DIRECTORY?=$(XULRUNNER_BASE_DIRECTORY)/xulrunner-sdk
 XULRUNNER_URL_FILE=$(XULRUNNER_BASE_DIRECTORY)/.url
 
@@ -869,7 +869,7 @@ endif
 # Utils                                                                       #
 ###############################################################################
 
-.PHONY: lint gjslint hint
+.PHONY: lint gjslint hint csslint
 
 # Lint apps
 ## only gjslint files from build/jshint-xfail.list - files not yet safe to jshint
@@ -909,6 +909,9 @@ endif
 hint: node_modules/.bin/jshint
 	@echo Running jshint...
 	@./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES) || (echo Please consult https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md to get some information about how to fix jshint issues. && exit 1)
+
+csslint: install-xulrunner-sdk
+	@$(call run-js-command, csslint)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
@@ -955,7 +958,7 @@ install-media-samples:
 	$(ADB) push media-samples/Music $(MSYS_FIX)/sdcard/Music
 
 install-test-media:
-	$(ADB) push test_media/DCIM $(MSYS_FIX)/sdcard/DCIM
+	$(ADB) push test_media/Pictures $(MSYS_FIX)/sdcard/DCIM
 	$(ADB) push test_media/Movies $(MSYS_FIX)/sdcard/Movies
 	$(ADB) push test_media/Music $(MSYS_FIX)/sdcard/Music
 

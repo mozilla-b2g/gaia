@@ -21,7 +21,7 @@ body[role="application"] [role="dialog"] {
   border-top: solid 0.1rem #b7b7b7;
   border-bottom: solid 0.1rem #fff;
   position: absolute;
-  top: 6.5rem;
+  top: 5.5rem;
   left: 1.5rem;
   right: 1.5rem;
   z-index: 100;
@@ -30,12 +30,12 @@ body[role="application"] [role="dialog"] {
 #firsttime-view .step-state:before {
   content: "";
   width: calc(100% / 3);
-  height: 0.6rem;
+  height: 0.3rem;
   position: absolute;
   top: 50%;
   left: 0;
-  margin-top: -0.3rem;
-  background: #00a5c6;
+  margin-top: -0.2rem;
+  background: #858585;
   transition: all 0.35s cubic-bezier(0.000, 1.000, 0.535, 1.110);
 }
 
@@ -120,12 +120,12 @@ body[role="application"] [role="dialog"] {
 #firsttime-view .choices li {
     margin: 0;
     list-style: none;
-    border-bottom: 0.1rem solid #d0d0d0;
+    border-bottom: 0.1rem solid #E7E7E7;
     position: relative;
-    color: #fff;
+    color: #000;
     font-weight: lighter;
     font-size: 1.6rem;
-    height: 5.9rem;
+    height: 6rem;
     line-height: 5.9rem;
     color: #000;
     transition: background 0.2s ease;

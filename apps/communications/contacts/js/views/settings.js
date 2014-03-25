@@ -100,8 +100,8 @@ contacts.Settings = (function() {
     importSDOption = document.getElementById('import-sd-option');
     exportSDOption = document.getElementById('export-sd-option');
     importSettingsTitle = document.getElementById('import-settings-title');
-    importLiveOption = document.getElementById('import-gmail-option');
-    importGmailOption = document.getElementById('import-live-option');
+    importLiveOption = document.getElementById('import-live-option');
+    importGmailOption = document.getElementById('import-gmail-option');
 
     /*
      * Adding listeners
@@ -383,7 +383,11 @@ contacts.Settings = (function() {
   };
 
   function fbSetEnabledState() {
-    fbGetTotals();
+    // We always get the totals from the cached value instead of remote value
+    // This due to the fact that friend_count query from Facebook returns
+    // all friends included those that have their accounts deactivated
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=838605
+    fbGetTotals(false);
 
     fbImportCheck.checked = true;
   }
