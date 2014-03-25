@@ -83,7 +83,7 @@ class Camera(Base):
         self.marionette.find_element(*self._switch_button_locator).tap()
         self.wait_for_condition(
             lambda m: m.find_element(
-                *self._controls_locator).get_attribute('buttons-enabled') == 'true')
+                *self._controls_locator).get_attribute('enabled') == 'true')
         self.wait_for_capture_ready()
 
     def tap_toggle_flash_button(self):
