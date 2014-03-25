@@ -12,6 +12,7 @@ var ValueSelector = {
   _currentPickerType: null,
   _currentInputType: null,
   _currentDatetimeValue: '',
+  _im: navigator.mozInputMethod,
 
   debug: function(msg) {
     var debugFlag = false;
@@ -216,7 +217,7 @@ var ValueSelector = {
       if (selectee.length > 0)
         singleOptionIndex = selectee[0].dataset.optionIndex;
 
-      window.navigator.mozKeyboard.setSelectedOption(singleOptionIndex);
+      this._im.setSelectedOption(singleOptionIndex);
 
     } else if (this._currentPickerType === 'select-multiple') {
       // Multiple select case
@@ -226,7 +227,7 @@ var ValueSelector = {
         optionIndices.push(index);
       }
 
-      window.navigator.mozKeyboard.setSelectedOptions(optionIndices);
+      this._im.setSelectedOptions(optionIndices);
     }
 
   },
@@ -251,7 +252,7 @@ var ValueSelector = {
 
   cancel: function vs_cancel() {
     this.debug('cancel invoked');
-    window.navigator.mozKeyboard.removeFocus();
+    this._im.removeFocus();
     this.hide();
   },
 
@@ -262,7 +263,7 @@ var ValueSelector = {
       case 'time':
         var timeValue = TimePicker.getTimeValue();
         this.debug('output value: ' + timeValue);
-        window.navigator.mozKeyboard.setValue(timeValue);
+        this._im.setValue(timeValue);
         break;
 
       case 'date':
@@ -270,7 +271,7 @@ var ValueSelector = {
         // The format should be 2012-09-19
         dateValue = dateValue.toLocaleFormat('%Y-%m-%d');
         this.debug('output value: ' + dateValue);
-        window.navigator.mozKeyboard.setValue(dateValue);
+        this._im.setValue(dateValue);
         break;
 
       case 'datetime':
@@ -322,12 +323,12 @@ var ValueSelector = {
                             selectedDate.getMilliseconds();
           }
           this.debug('output value: ' + datetimeValue);
-          window.navigator.mozKeyboard.setValue(datetimeValue);
+          this._im.setValue(datetimeValue);
         }
         break;
     }
 
-    window.navigator.mozKeyboard.removeFocus();
+    this._im.removeFocus();
     this.hide();
   },
 

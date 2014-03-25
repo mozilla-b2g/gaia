@@ -641,11 +641,6 @@ var KeyboardHelper = exports.KeyboardHelper = {
           return;
         }
 
-        //XXX remove this hard code check if one day system app no longer
-        //    use mozKeyboard API
-        if (app.origin === 'app://system.gaiamobile.org') {
-          return;
-        }
         // all keyboard apps should define its layout(s) in "inputs" section
         if (!app.manifest.inputs) {
           return;
