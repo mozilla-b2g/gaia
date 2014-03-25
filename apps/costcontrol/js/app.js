@@ -81,18 +81,32 @@ var CostControlApp = (function() {
 
     // In case we can not get a valid ICCID.
     }, function _errorNoSim() {
-      var fakeState = null;
-      if (AirplaneModeHelper.getStatus() === 'enabled') {
-        fakeState = 'airplaneMode';
-        var iccManager = window.navigator.mozIccManager;
-        iccManager.addEventListener('iccdetected',
-          function _oniccdetected() {
-            iccManager.removeEventListener('iccdetected', _oniccdetected);
-            waitForSIMReady(callback);
-          });
-      }
-      console.warn('Error when trying to get the ICC ID status =' + fakeState);
-      showNonReadyScreen(fakeState);
+      console.warn('Error when trying to get the ICC, SIM not detected.');
+      LazyLoader.load(['/shared/js/airplane_mode_helper.js'], function() {
+        var fakeState = null;
+        function checkAirplaneMode() {
+          if (AirplaneModeHelper.getStatus() === 'enabled') {
+            console.warn('The airplaneMode is enabled.');
+            fakeState = 'airplaneMode';
+            var iccManager = window.navigator.mozIccManager;
+            iccManager.addEventListener('iccdetected',
+              function _oniccdetected() {
+                iccManager.removeEventListener('iccdetected', _oniccdetected);
+                waitForSIMReady(callback);
+              });
+          }
+          showNonReadyScreen(fakeState);
+        }
+        // XXX: See bug 988445 - [AirplaneModeHelper] getStatus method does not
+        // return the correct state
+        if (AirplaneModeHelper.getStatus() !== 'enabled' ||
+            AirplaneModeHelper.getStatus() !== 'disabled') {
+          // wait for the first state change
+          AirplaneModeHelper.addEventListener('statechange', checkAirplaneMode);
+        } else {
+          checkAirplaneMode();
+        }
+      });
     });
   }
 
