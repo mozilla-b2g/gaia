@@ -135,20 +135,20 @@
   background-color: rgba(255, 255, 255, 1);
 }
 
-#cards-view .card > .appIcon {
+#cards-view .card > .appIconView {
   position: absolute;
-  height: 8rem;
-  width: 8rem;
-  border-radius: .6rem;
-  top: 50%;
-  left: 50%;
-  margin-top: -4rem;
-  margin-left: -4rem;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url(../icons/Default.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  opacity: 0;
 }
 
-#cards-view .card > span.appIcon {
-  background-size: cover;
-  background-image: url(../icons/Default.png);
+#cards-view .card.appIconPreview > .appIconView {
+  opacity: 1;
 }
 
 #cards-view .close-card {

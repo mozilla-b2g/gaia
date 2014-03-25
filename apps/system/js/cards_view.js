@@ -10,7 +10,9 @@
 var CardsView = (function() {
   //display icon of an app on top of app's card
   var DISPLAY_APP_ICON = false;
-  var DISPLAY_APP_SCREENSHOT = true;
+  var SCREENSHOT_PREVIEWS_SETTING = 'app.cards_view.screenshot_previews';
+  var useAppScreenshotPreviews = false; // reflects setting.
+
   // if 'true' user can close the app
   // by dragging it upwards
   var MANUAL_CLOSING = true;
@@ -37,6 +39,13 @@ var CardsView = (function() {
   // init events
   var gd = new GestureDetector(cardsView);
   gd.startDetecting();
+
+  var settings = window.navigator.mozSettings;
+  if (settings) {
+    settings.addObserver(SCREENSHOT_PREVIEWS_SETTING, function(event) {
+      useAppScreenshotPreviews = event.settingValue;
+    });
+  }
 
   /*
    * Returns an icon URI
@@ -65,10 +74,12 @@ var CardsView = (function() {
       return null;
     }
 
-    if (iconPath.indexOf('data:') !== 0) {
-      iconPath = app.origin + iconPath;
-    }
 
+    if (iconPath.indexOf('data:') !== 0) {
+      var origin = getOriginObject(app.origin);
+      iconPath = origin.protocol + '//' + origin.hostname + ':' +
+                 origin.port + iconPath;
+    }
     return iconPath;
   }
 
@@ -216,16 +227,15 @@ var CardsView = (function() {
       screenshotView.classList.add('screenshotView');
       card.appendChild(screenshotView);
 
-      //display app icon on the tab
+      // app icon overlays screenshot by default
+      // and will be removed if/when we display the screenshot
       var iconURI = getIconURI(position);
+      var appIconView = document.createElement('div');
+      appIconView.classList.add('appIconView');
+      card.appendChild(appIconView);
       if (iconURI) {
-        var appIcon = document.createElement('img');
-        appIcon.src = iconURI;
-      } else {
-        appIcon = document.createElement('span');
+          appIconView.style.backgroundImage = 'url(' + iconURI + ')';
       }
-      appIcon.classList.add('appIcon');
-      card.appendChild(appIcon);
       card.classList.add('appIconPreview');
 
       var title = document.createElement('h1');
@@ -233,13 +243,12 @@ var CardsView = (function() {
       card.appendChild(title);
 
       // only take the frame reference if we need to
-      var frameForScreenshot = DISPLAY_APP_SCREENSHOT && app.iframe;
-
+      var frameForScreenshot = useAppScreenshotPreviews && app.iframe;
       var origin = stack[position].origin;
       if (PopupManager.getPopupFromOrigin(origin)) {
         var popupFrame =
           PopupManager.getPopupFromOrigin(origin);
-        frameForScreenshot = DISPLAY_APP_SCREENSHOT && popupFrame;
+        frameForScreenshot = useAppScreenshotPreviews && popupFrame;
 
         var subtitle = document.createElement('p');
         subtitle.textContent =
@@ -256,7 +265,7 @@ var CardsView = (function() {
 
       if (TrustedUIManager.hasTrustedUI(origin)) {
         var popupFrame = TrustedUIManager.getDialogFromOrigin(origin);
-        frameForScreenshot = DISPLAY_APP_SCREENSHOT && popupFrame.frame;
+        frameForScreenshot = useAppScreenshotPreviews && popupFrame.frame;
         var header = document.createElement('section');
         header.setAttribute('role', 'region');
         header.classList.add('skin-organic');
@@ -281,8 +290,13 @@ var CardsView = (function() {
 
       card.addEventListener('onviewport', function onviewport() {
         card.style.display = 'block';
-        if (DISPLAY_APP_SCREENSHOT && screenshotView.style.backgroundImage) {
-          return;
+        if (useAppScreenshotPreviews) {
+          card.classList.remove('appIconPreview');
+          if (screenshotView.style.backgroundImage) {
+            return;
+          }
+        } else {
+          card.classList.add('appIconPreview');
         }
 
         // Handling cards in different orientations
@@ -296,7 +310,7 @@ var CardsView = (function() {
         // Rotate screenshotView if needed
         screenshotView.classList.add('rotate-' + degree);
 
-        if (!DISPLAY_APP_SCREENSHOT) {
+        if (!useAppScreenshotPreviews) {
           return;
         }
 
@@ -330,27 +344,34 @@ var CardsView = (function() {
           var rect = card.getBoundingClientRect();
           var width = isLandscape ? rect.height : rect.width;
           var height = isLandscape ? rect.width : rect.height;
-          frameForScreenshot.getScreenshot(
-            width, height).onsuccess =
-            function gotScreenshot(screenshot) {
-              var blob = screenshot.target.result;
-              if (blob) {
-                var objectURL = URL.createObjectURL(blob);
+          var request = frameForScreenshot.getScreenshot(
+            width, height);
+          request.onsuccess = function gotScreenshot(screenshot) {
+            var blob = screenshot.target.result;
+            if (blob) {
+              var objectURL = URL.createObjectURL(blob);
 
-                // Overwrite the cached image to prevent flickering
-                screenshotView.style.backgroundImage =
-                  'url(' + objectURL + '), url(' + cachedLayer + ')';
+              // Overwrite the cached image to prevent flickering
+              screenshotView.style.backgroundImage =
+                'url(' + objectURL + '), url(' + cachedLayer + ')';
 
-                app.renewCachedScreenshotBlob(blob);
+              app.renewCachedScreenshotBlob(blob);
 
-                // setTimeout is needed to ensure that the image is fully drawn
-                // before we remove it. Otherwise the rendering is not smooth.
-                // See: https://bugzilla.mozilla.org/show_bug.cgi?id=844245
-                setTimeout(function() {
-                  URL.revokeObjectURL(objectURL);
-                }, 200);
-              }
-            };
+              // setTimeout is needed to ensure that the image is fully drawn
+              // before we remove it. Otherwise the rendering is not smooth.
+              // See: https://bugzilla.mozilla.org/show_bug.cgi?id=844245
+              setTimeout(function() {
+                URL.revokeObjectURL(objectURL);
+              }, 200);
+            } else {
+              // bad screenshot, fallback to using icon
+              card.classList.add('appIconPreview');
+            }
+          };
+          request.onerror = function screenshotError() {
+            // bad screenshot, fallback to using icon
+            card.classList.add('appIconPreview');
+          };
         }
       });
     }
