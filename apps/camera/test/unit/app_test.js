@@ -56,6 +56,8 @@ suite('app', function() {
       };
     }
 
+    navigator.mozL10n = { readyState: null };
+
     var options = this.options = {
       doc: mocks.doc(),
       win: mocks.win(),
@@ -70,21 +72,25 @@ suite('app', function() {
       config: new Config(),
       views: {
         viewfinder: new View({ name: 'viewfinder' }),
-        focusRing: new View({ name: 'focusring' }),
+        focusRing: new View({ name: 'focus-ring' }),
         controls: new View({ name: 'controls' }),
         hud: new View({ name: 'hud' })
       },
-      filmstrip: sinon.spy(),
       controllers: {
         hud: sinon.spy(),
+        timer: sinon.spy(),
         controls: sinon.spy(),
         viewfinder: sinon.spy(),
+        previewGallery: sinon.spy(),
         overlay: sinon.spy(),
         confirm: sinon.spy(),
         camera: sinon.spy(),
         settings: sinon.spy(),
         activity: sinon.spy(),
-        sounds: sinon.spy()
+        sounds: sinon.spy(),
+        recordingTimer: sinon.spy(),
+        zoomBar: sinon.spy(),
+        indicators: sinon.spy()
       }
     };
 
@@ -107,7 +113,8 @@ suite('app', function() {
     // Create the app
     this.app = new App(options);
     this.sandbox.spy(this.app, 'set');
-
+    this.sandbox.spy(this.app, 'emit');
+    this.sandbox.spy(this.app, 'firer');
   });
 
   teardown(function() {
@@ -155,8 +162,10 @@ suite('app', function() {
       assert.ok(controllers.hud.calledWith(app));
       assert.ok(controllers.controls.calledWith(app));
       assert.ok(controllers.viewfinder.calledWith(app));
+      assert.ok(controllers.previewGallery.calledWith(app));
       assert.ok(controllers.overlay.calledWith(app));
       assert.ok(controllers.camera.calledWith(app));
+      assert.ok(controllers.zoomBar.calledWith(app));
     });
 
     test('Should put each of the views into the root element', function() {
@@ -178,11 +187,9 @@ suite('app', function() {
     });
 
     test('Should bind to `beforeunload` event', function() {
+      var addEventListener = this.app.win.addEventListener;
       this.app.boot();
-      var doc = this.app.win;
-      var call = doc.addEventListener.getCall(0);
-      assert.ok(call.args[0] === 'beforeunload');
-      assert.ok(typeof call.args[1] === 'function');
+      assert.ok(addEventListener.calledWith('beforeunload', this.app.onBeforeUnload));
     });
 
     test('Should set the \'mode\' to the mode ' +
@@ -234,6 +241,24 @@ suite('app', function() {
       var activity = this.app.activity;
       this.app.onBlur();
       assert.ok(activity.cancel.called);
+    });
+  });
+
+  suite('App#l10n()', function() {
+    test('Should fire a `localized` event if l10n is already complete', function() {
+      navigator.mozL10n.readyState = 'complete';
+      this.app.l10n();
+      assert.ok(this.app.emit.calledWith('localized'));
+    });
+
+    test('Should not fire a `localized` event if l10n is not \'complete\'', function() {
+      this.app.l10n();
+      assert.ok(!this.app.emit.calledWith('localized'));
+    });
+
+    test('Should always listen for \'localized\' events', function() {
+      this.app.l10n();
+      assert.ok(!this.app.win.addEventListener('localized'));
     });
   });
 });

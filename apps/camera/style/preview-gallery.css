@@ -1,0 +1,269 @@
+.preview-gallery {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  bottom: 0;
+  background: #000;
+  z-index: 100;
+  overflow: hidden;
+  opacity: 1;
+  visibility: visible;
+  transition: all 0.5s ease-in-out;
+}
+
+.preview-gallery.offscreen {
+  opacity: 0;
+  visibility: hidden;
+  transition: all 200ms ease-in-out;
+}
+
+/** Frame Container
+ ---------------------------------------------------------*/
+
+.frame-container {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  overflow: hidden;
+  -moz-user-select: none;
+}
+
+.media-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #333333;
+}
+
+/**
+ * @deg90
+ */
+
+.deg90 .media-frame {
+  width: 100vh;
+  height: 100vw;
+  top: calc((100vh - 100vw) / 2);
+  left: calc((100vw - 100vh) / 2);
+  transform: rotate(-90deg);
+}
+
+/**
+ * @deg180
+ */
+
+.deg180 .media-frame {
+  transform: rotate(-180deg);
+}
+
+/**
+ * @deg270
+ */
+
+.deg270 .media-frame {
+  width: 100vh;
+  height: 100vw;
+  top: calc((100vh - 100vw) / 2);
+  left: calc((100vw - 100vh) / 2);
+  transform: rotate(-270deg);
+}
+
+.media-frame > img {
+  top: 0;
+  left: 0;
+  position: absolute;
+  pointer-events: none;
+  -moz-user-select: none;
+}
+
+.media-frame > video {
+  transform-origin: 0 0;
+}
+
+/** Preview Menu
+ ---------------------------------------------------------*/
+
+.preview-menu {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease-in-out;
+}
+
+.preview-menu.visible {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.preview-gallery[secure-mode=true] .preview-gallery-button,
+.preview-gallery[secure-mode=true] .preview-share-button,
+.preview-gallery[secure-mode=true] .preview-delete-button {
+  display: none;
+}
+
+.camera-back {
+  position: absolute;
+  font-size: 4.5rem;
+  width: 5rem;
+  height: 5rem;
+  line-height: 5rem;
+  text-align: center;: ;
+  border-radius: 50%;
+  background-color: rgba(0,0,0,.12);
+  background-clip: padding-box;
+  border: solid 2rem transparent;
+  -moz-box-sizing: content-box;
+  color: #fff;
+}
+
+/**
+ * @deg90
+ */
+
+.deg90 .camera-back {
+  bottom: 0;
+}
+
+/**
+ * @deg180
+ */
+
+.deg180 .camera-back {
+  bottom: 0;
+  right: 0;
+}
+
+/**
+ * @deg270
+ */
+.deg270 .camera-back {
+  top: 0;
+  right: 0;
+}
+
+.count-text {
+  position: absolute;
+  bottom: 83px;
+  width: 100%;
+  height: 2rem;
+  font-size: 2rem;
+  text-align: center;
+  font-family: 'Fira Sans Medium', sans-serif;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+  color: #FFFFFF;
+}
+
+/**
+ * @deg90
+ */
+
+.deg90 .count-text {
+  width: 100vh;
+  bottom: 0;
+  left: calc(100% - 83px);
+  transform-origin: left bottom;
+  transform: rotate(-90deg);
+}
+
+/**
+ * @deg180
+ */
+
+.deg180 .count-text {
+  top: 88px;
+  transform: rotate(-180deg);
+}
+
+/**
+ * @deg270
+ */
+
+.deg270 .count-text {
+  width: 100vh;
+  top: 0;
+  left: calc(83px + 2rem);
+  transform-origin: left top;
+  transform: rotate(-270deg);
+}
+
+/** Preview Controls
+ ---------------------------------------------------------*/
+
+.preview-controls {
+  position: absolute;
+  display: flex;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 4.5rem;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+/**
+ * @deg90
+ */
+
+.deg90 .preview-controls {
+  width: 100vh;
+  left: 100%;
+  transform-origin: left bottom;
+  transform: rotate(-90deg);
+}
+
+/**
+ * @deg180
+ */
+
+.deg180 .preview-controls {
+  top: 0;
+  transform: rotate(-180deg);
+}
+
+/**
+ * @deg270
+ */
+
+.deg270 .preview-controls {
+  width: 100vh;
+  top: 0;
+  left: 4.5rem;
+  transform-origin: left top;
+  transform: rotate(-270deg);
+}
+
+/* TD DO common  
+.preview-controls > * {
+  display: flex;
+}*/
+
+.camera-back:active,
+.preview-gallery-button:active,
+.preview-share-button:active,
+.preview-delete-button:active {
+  background-color: #008EAB;
+  opacity: 1;
+}
+
+.preview-gallery-button,
+.preview-share-button,
+.preview-delete-button {  
+  display: flex;
+  width: 33%;
+  height: 100%;
+  justify-content: center;
+  color: white;
+}
+
+.preview-gallery-icon,
+.preview-delete-icon,
+.preview-share-icon {
+  font-size: 3rem;
+  width: 4rem;
+  height: 4rem;
+  margin-top: 7px;
+}
