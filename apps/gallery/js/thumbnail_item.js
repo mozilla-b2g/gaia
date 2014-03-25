@@ -27,5 +27,5 @@ function ThumbnailItem(fileData) {
   // and offscreen callbacks below set and unset the actual
   // background image style. This means that we don't keep
   // images decoded if we don't need them.
-  this.htmlNode.dataset.backgroundImage = 'url("' + url + '")';
+  this.htmlNode.style.backgroundImage = 'url("' + url + '")';
 }
