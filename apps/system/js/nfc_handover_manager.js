@@ -47,6 +47,12 @@ var NfcHandoverManager = {
   incomingFileTransferInProgress: false,
 
   /*
+   * The bluetoothWasEnabled flag remembers whether Bluetooth was enabled
+   * or disabled prior to a file transfer.
+   */
+  bluetoothWasEnabled: false,
+
+  /*
    * settingsNotified is used to prevent triggering Settings multiple times.
    */
   settingsNotified: false,
@@ -324,6 +330,7 @@ var NfcHandoverManager = {
 
   handleFileTransfer: function handleFileTransfer(session, blob, requestId) {
     this.debug('handleFileTransfer');
+    this.bluetoothWasEnabled = this.bluetooth.enabled;
     this.doAction({callback: this.initiateFileTransfer, args: [session, blob,
                                                                requestId]});
   },
@@ -336,6 +343,10 @@ var NfcHandoverManager = {
   transferComplete: function transferComplete(succeeded) {
     this.debug('transferComplete');
     if (this.sendFileRequest != null) {
+      if (!this.bluetoothWasEnabled) {
+        this.debug('Disabling Bluetooth');
+        this.settings.createLock().set({'bluetooth.enabled': false});
+      }
       // Completed an outgoing send file request. Call onsuccess/onerror
       if (succeeded == true) {
         this.sendFileRequest.onsuccess();
