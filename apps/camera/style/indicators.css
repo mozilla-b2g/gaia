@@ -33,49 +33,65 @@
  ---------------------------------------------------------*/
 
 .indicators li {
-  height: 1em;
-  width: 1em;
+  display: none;
+  height: 1.8rem;
+  width: 1.8rem;
   font-size: 18px;
   margin-bottom: 1.2rem;
   border-radius: 4px;
   text-align: center;
   background-color: rgba(255,255,255,0.35);
   color: #008EAB;
-  visibility: hidden;
 }
 
 /**
- * @off
+ * visible
  */
+
 .indicators[hdr=on] .indicator_hdr,
 .indicators[geolocation=on] .indicator_geolocation {
-  visibility: visible;
+  display: block;
 }
+
+/**
+ * hidden
+ */
 
 .indicators[recording=true] .indicator_hdr,
 .indicators[recording=true] .indicator_timer,
-.indicators[timer=off] .indicator_timer{
-  visibility: hidden;
+.indicators[timer=off] .indicator_timer {
+  display: none;
 }
 
 /** Indicator Timer
  ---------------------------------------------------------*/
 
-.indicators .indicator_timer{
-  visibility: visible;
+.indicators .indicator_timer {
+  display: block;
 }
 
 /** Indicator Battery
  ---------------------------------------------------------*/
 
 .indicators .indicator_battery {
-  height: 1.1rem;
+  width: 2.5rem;
+  height: 0.9rem;
   font-size: 2.5rem;
-  line-height: 1.1rem;
-  margin-left: -3px;
+  line-height: 0.9rem;
+  margin-left: -0.3rem;
   color: #D92E2E;
-  opacity: 0;
   background: transparent;
+}
+
+/**
+ * deg90,
+ * deg270
+ */
+
+.deg90 .indicators .indicator_battery,
+.deg270 .indicators .indicator_battery {
+  margin-top: 0.9rem;
+  margin-left: -0.4rem;
 }
 
 /**
@@ -95,7 +111,7 @@
 .indicators[battery='low'] .indicator_battery,
 .indicators[battery='verylow'] .indicator_battery,
 .indicators[battery='critical'] .indicator_battery {
-  visibility: visible;
+  display: block;
 }
 
 /**
@@ -121,9 +137,8 @@
  */
 
 .indicators[battery='critical'] .indicator_battery {
-  animation: 2s ease-in-out infinite indicator_battery-animation;
+  animation: 2s linear infinite indicator_battery-animation;
 }
-
 
 /** Battery Animation
  ---------------------------------------------------------*/
@@ -131,4 +146,5 @@
 @keyframes indicator_battery-animation {
   0% { opacity: 1; }
   50% { opacity: 0; }
+  100% { opacity: 1; }
 }

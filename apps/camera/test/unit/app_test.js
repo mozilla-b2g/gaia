@@ -246,20 +246,20 @@ suite('app', function() {
     });
   });
 
-  suite('App#l10n()', function() {
+  suite('App#configureL10n()', function() {
     test('Should fire a `localized` event if l10n is already complete', function() {
       navigator.mozL10n.readyState = 'complete';
-      this.app.l10n();
+      this.app.configureL10n();
       assert.ok(this.app.emit.calledWith('localized'));
     });
 
     test('Should not fire a `localized` event if l10n is not \'complete\'', function() {
-      this.app.l10n();
+      this.app.configureL10n();
       assert.ok(!this.app.emit.calledWith('localized'));
     });
 
     test('Should always listen for \'localized\' events', function() {
-      this.app.l10n();
+      this.app.configureL10n();
       assert.ok(!this.app.win.addEventListener('localized'));
     });
   });

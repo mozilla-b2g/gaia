@@ -33,6 +33,7 @@ suite('controllers/battery', function() {
     this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.settings.battery = sinon.createStubInstance(this.Settings);
     this.app.settings.battery.get.withArgs('levels').returns(levels);
+    this.app.l10n = { get: sinon.stub() };
     this.app.views = {
       notification: sinon.createStubInstance(this.NotificationView)
     };
