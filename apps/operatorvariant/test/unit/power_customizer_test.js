@@ -1,12 +1,12 @@
-/* global MockNavigatorSettings */
-/* global sinon */
-/* global powerCustomizer */
+/* global sinon, requireApp, suite, suiteSetup, suiteTeardown, setup, teardown,
+   test, assert, powerCustomizer */
 
 'use strict';
 
-requireApp('communications/ftu/js/customizers/customizer.js');
-requireApp('communications/ftu/js/customizers/power_customizer.js');
-requireApp('communications/ftu/test/unit/mock_navigator_moz_settings.js');
+requireApp('operatorvariant/test/unit/mock_navigator_moz_settings.js');
+
+requireApp('operatorvariant/js/customizers/customizer.js');
+requireApp('operatorvariant/js/customizers/power_customizer.js');
 
 suite('power on/off customizer >', function() {
   var createLockSpy;
@@ -20,18 +20,21 @@ suite('power on/off customizer >', function() {
 
   suiteSetup(function() {
     realSettings = navigator.mozSettings;
-    navigator.mozSettings = MockNavigatorSettings;
-    createLockSpy = sinon.spy(MockNavigatorSettings, 'createLock');
+    navigator.mozSettings = window.MockNavigatorSettings;
+    createLockSpy = sinon.spy(navigator.mozSettings, 'createLock');
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realSettings;
-    realSettings = null;
     createLockSpy.restore();
   });
 
   setup(function() {
     createLockSpy.reset();
+  });
+
+  teardown(function() {
+    navigator.mozSettings.mTeardown();
   });
 
   test(' set > ', function() {

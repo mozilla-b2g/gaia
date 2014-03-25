@@ -6,13 +6,6 @@
         "ringtone": "/resources/ringtone.ogg"
         "power": "/ftu/test/unit/resources/power.json"
     },
-    "214-007": {
-        "support_contacts": "/ftu/test/unit/resources/support_contacts.json",
-        "wallpaper": "/resources/wallpaper.jpg",
-        "default_contacts": "/resources/contacts.json",
-        "ringtone": "/resources/ringtone.ogg"
-        "power": "/ftu/test/unit/resources/power.json"
-    },
     "214-02": {
         "support_contacts": "/ftu/test/unit/resources/support_contacts.json",
         "wallpaper": "/resources/wallpaper.jpg",
@@ -20,11 +13,11 @@
         "ringtone": "/resources/ringtone.ogg"
         "power": "/ftu/test/unit/resources/power.json"
     },
-    "214-07": {
-        "support_contacts": "/ftu/test/unit/resources/support_contacts.json",
+    "214-007": {
+        "support_contacts": "/test/unit/resources/support_contacts.json",
         "wallpaper": "/resources/wallpaper.jpg",
         "default_contacts": "/resources/contacts.json",
         "ringtone": "/resources/ringtone.ogg"
-        "power": "/ftu/test/unit/resources/power.json"
+        "power": "/test/unit/resources/power.json"
     }
 }
