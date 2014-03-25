@@ -284,7 +284,7 @@ function errorParamsGenerator(actions, opts) {
 
 function ErrorDialog(errorName, opts) {
   var actions = ERRORS[errorName] || {
-    prefix: 'sendGeneralError',
+    prefix: 'sendDefaultError',
     showRecipient: false,
     showDsdsStatus: false,
     hasHandler: false
