@@ -225,7 +225,7 @@ module.exports = {
 
   hdr: {
     title: 'HDR',
-    icon: 'icon-hdr',
+    icon: 'icon-hdr-menu',
     disabled: false,
     options: [
       {
