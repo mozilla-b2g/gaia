@@ -156,7 +156,8 @@ marionette('Notification.get():', function() {
     done();
   });
 
-  test('notifications should persist even after closing app', function(done) {
+  // Disabled bug 987838
+  test.skip('notifications should persist even after closing app', function(done) {
     var title = 'test title:' + Date.now();
     var tag = 'test tag:' + Date.now();
 
