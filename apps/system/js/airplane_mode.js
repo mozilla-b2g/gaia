@@ -90,24 +90,21 @@
       );
     },
     updateStatus: function(value) {
+      var mozSettings = window.navigator.mozSettings;
       var bluetooth = window.navigator.mozBluetooth;
       var wifiManager = window.navigator.mozWifiManager;
+      var mobileData = window.navigator.mozMobileConnections[0] &&
+        window.navigator.mozMobileConnections[0].data;
       var fmRadio = window.navigator.mozFMRadio;
 
-      // Radio is a special service (might not exist e.g. tablet)
-      // if value is true,
-      // it means Radio.enabled is false
-      if (window.Radio) {
-        window.Radio.enabled = !value;
-      }
-
       if (value) {
-
         // Turn off mobile data:
         // we toggle the mozSettings value here just for the sake of UI,
         // platform RIL disconnects mobile data when
         // 'ril.radio.disabled' is true.
-        this._suspend('ril.data');
+        if (mobileData) {
+          this._suspend('ril.data');
+        }
 
         // Turn off Bluetooth.
         if (bluetooth) {
@@ -138,7 +135,7 @@
         // established.
 
         // Don't attempt to turn on mobile data if it's already on
-        if (!this._settings['ril.data.enabled']) {
+        if (mobileData && !this._settings['ril.data.enabled']) {
           this._restore('ril.data');
         }
 
@@ -189,10 +186,6 @@
       bluetooth: {
         enabled: 'bluetooth-adapter-added',
         disabled: 'bluetooth-disabled'
-      },
-      radio: {
-        enabled: 'radio-enabled',
-        disabled: 'radio-disabled'
       }
     },
 
@@ -233,12 +226,75 @@
      */
     set enabled(value) {
       if (value !== this._enabled) {
+        var self = this;
+        var setCount = 0;
+        var isError = false;
+        var checkedActions = this._getCheckedActions(value);
+        var mobileConnections = window.navigator.mozMobileConnections;
+
         // start watching events
-        this.watchEvents(value, this._getCheckedActions(value));
+        this.watchEvents(value, checkedActions);
 
-        this._enabled = value;
+        var setRadioAfterReqsCalled = function(enabled) {
+          if (setCount !== mobileConnections.length) {
+            return;
+          } else {
+            if (isError) {
+              self._enabled = enabled;
+              setAirplaneModeEnabled(self._enabled);
+            } else {
+              self._enabled = !enabled;
+            }
+            checkedActions['conn'] = true;
+            self._updateAirplaneModeStatus(checkedActions);
+          }
+        };
 
-        // tell services to do their own operations
+        var doSetRadioEnabled = function doSetRadioEnabled(i, enabled) {
+          var conn = mobileConnections[i];
+          var req = conn.setRadioEnabled(enabled);
+          setCount++;
+
+          req.onsuccess = function() {
+            setRadioAfterReqsCalled(enabled);
+          };
+          req.onerror = function() {
+            isError = true;
+            setRadioAfterReqsCalled(enabled);
+          };
+        };
+
+        var setRadioEnabled = function setRadioEnabled(i, enabled) {
+          var conn = mobileConnections[i];
+          if (conn.radioState !== 'enabling' &&
+              conn.radioState !== 'disabling' &&
+              conn.radioState !== null) {
+            doSetRadioEnabled(i, enabled);
+          } else {
+            conn.addEventListener('radiostatechange',
+              function radioStateChangeHandler() {
+                if (conn.radioState == 'enabling' ||
+                    conn.radioState == 'disabling' ||
+                    conn.radioState == null) {
+                  return;
+                }
+                conn.removeEventListener('radiostatechange',
+                  radioStateChangeHandler);
+                doSetRadioEnabled(i, enabled);
+            });
+          }
+        };
+
+        var setAirplaneModeEnabled = function setAirplaneModeEnabled(enabled) {
+          // set airplane mode `true`
+          // means setRadioEnabled `false`
+          enabled = !enabled;
+          for (var i = 0; i < mobileConnections.length; i++) {
+            setRadioEnabled(i, enabled);
+          }
+        };
+
+        setAirplaneModeEnabled(value);
         this._serviceHelper.updateStatus(value);
       }
     },
@@ -265,7 +321,7 @@
       areAllActionsDone = this._areCheckedActionsAllDone(checkActions);
 
       if (areAllActionsDone) {
-        SettingsListener.getSettingsLock().set({
+        var req = SettingsListener.getSettingsLock().set({
           'airplaneMode.enabled': self._enabled,
           'airplaneMode.status': self._enabled ? 'enabled' : 'disabled',
           // NOTE
@@ -295,8 +351,8 @@
 
       if (value === true) {
         // check connection
-        if (window.Radio) {
-          checkedActions.radio = false;
+        if (window.navigator.mozMobileConnections) {
+          checkedActions.conn = false;
         }
 
         // check bluetooth
@@ -308,10 +364,11 @@
         if (this._serviceHelper.isEnabled('wifi')) {
           checkedActions.wifi = false;
         }
-      } else {
+      }
+      else {
         // check connection
-        if (window.Radio) {
-          checkedActions.radio = false;
+        if (window.navigator.mozMobileConnections) {
+          checkedActions.conn = false;
         }
 
         // check bluetooth
@@ -344,10 +401,33 @@
     },
 
     /*
+     * We have to handle emergency call case from Gecko
+     *
+     * @param {MozMobileConnection} conn
+     */
+    _bindEmergencyCallEvent: function(conn) {
+      /*
+       * If we are in airplane mode and the user just dial out an
+       * emergency call, we have to exit airplane mode.
+       */
+      conn.addEventListener('radiostatechange', function() {
+        if (conn.radioState === 'enabled' && this._enabled === true) {
+          this.enabled = false;
+        }
+      }.bind(this));
+    },
+
+    /*
      * Entry point
      */
     init: function apm_init() {
       var self = this;
+      var mozSettings = window.navigator.mozSettings;
+      var mozMobileConnections = window.navigator.mozMobileConnections;
+
+      if (!mozSettings || !mozMobileConnections) {
+        return;
+      }
 
       this._serviceHelper.init();
 
@@ -361,20 +441,12 @@
       };
 
       // monitor airplaneMode communication key change
-      SettingsListener.observe('airplaneMode.enabled', false, function(value) {
-        self.enabled = value;
+      mozSettings.addObserver('airplaneMode.enabled', function(e) {
+        self.enabled = e.settingValue;
       });
 
-      /*
-       * If we are in airplane mode and the user just dial out an
-       * emergency call, we have to exit airplane mode.
-       */
-      if (window.Radio) {
-        window.Radio.addEventListener('radiostatechange', function(state) {
-          if (state === 'enabled' && this._enabled === true) {
-            this.enabled = false;
-          }
-        }.bind(this));
+      for (var i = 0; i < mozMobileConnections.length; i++) {
+        this._bindEmergencyCallEvent(mozMobileConnections[i]);
       }
     }
   };
