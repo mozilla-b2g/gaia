@@ -598,8 +598,14 @@ Camera.prototype.takePicture = function(options) {
   this.emit('busy');
   if (this.get('focus-mode') === 'autoFocus') {
     this.focus(onFocused);
-  } else {
+  }
+  if (this.get('focus') === 'focused'){
     onFocused(false);
+  } else {
+    onFocused(true);
+    /*setTimeout(function(){
+      self.takePicture(options);
+    },100);*/
   }
 
   // if current mode is autofocus 

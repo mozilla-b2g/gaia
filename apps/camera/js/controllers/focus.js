@@ -306,12 +306,12 @@ focusmodeController.prototype.onFacedetected = function(faces) {
     if (faces[i].score < this.minFaceScore) {
       continue;
     }
-    var width = Math.abs(faces[i].rect.right - faces[i].rect.left);
-    var height = Math.abs(faces[i].rect.bottom - faces[i].rect.top);
+    var width = Math.abs(faces[i].bounds.right - faces[i].bounds.left);
+    var height = Math.abs(faces[i].bounds.bottom - faces[i].bounds.top);
     area = width * height;
-    var px = Math.round(faces[i].rect.left * sw);
-    var py = Math.round((-1) * ((faces[i].rect.bottom +
-      faces[i].rect.top) / 2) * sh);
+    var px = Math.round(faces[i].bounds.left * sw);
+    var py = Math.round((-1) * ((faces[i].bounds.bottom +
+      faces[i].bounds.top) / 2) * sh);
     var radius = Math.round(((width + height) / 2) * sw);
 
     transformedFaces[i] = {
@@ -353,8 +353,8 @@ focusmodeController.prototype.onFacedetected = function(faces) {
   this.lastEventTime = currentTime;
 
   // set focusing and metering areas
-  this.camera.setFocusArea(faces[maxID].rect);
-  this.camera.setMeteringArea(faces[maxID].rect);
+  this.camera.setFocusArea(faces[maxID].bounds);
+  this.camera.setMeteringArea(faces[maxID].bounds);
 
   // Call auto focus to focus on focus area.
   this.camera.focus(focusDone);
