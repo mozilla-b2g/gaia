@@ -51,12 +51,7 @@
         }
 
         self._simPickerElt.hidden = false;
-
-        // FIXME/bug 984446: If we use the .focus() method on the element, for
-        // some reason in the tests we don't get a focus callback. This method,
-        // however, works.
-        var focusEvent = new CustomEvent('focus');
-        self._simPickerElt.dispatchEvent(focusEvent);
+        self._simPickerElt.focus();
       });
     },
 
