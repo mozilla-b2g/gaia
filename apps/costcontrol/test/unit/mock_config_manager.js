@@ -1,3 +1,4 @@
+/* exported MockConfigManager */
 'use strict';
 
 var MockConfigManager = function(config) {
@@ -11,7 +12,7 @@ var MockConfigManager = function(config) {
       return v;
     }
 
-    return new Date(v['__date__']);
+    return new Date(v.__date__);
   }
 
   function getMockRequiredMessage(mocking, parameter, isAFunction) {

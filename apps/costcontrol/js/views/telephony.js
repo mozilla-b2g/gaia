@@ -1,14 +1,14 @@
-
+/* global _, CostControl, ConfigManager, debug, computeTelephonyMinutes,
+          formatTimeHTML, Common */
 /*
  * The telephony tab is in charge of show telephony and billing cycle
  * information.
  *
  * It has two areas of drawing: one for the counters and another for
  */
-
+'use strict';
 
 var TelephonyTab = (function() {
-  'use strict';
   var costcontrol, initialized = false;
   var view, smscount, calltime, time, resetDate;
   function setupTab() {

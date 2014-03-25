@@ -1,7 +1,8 @@
+/* global debug, Common, LazyLoader, asyncStorage, deepCopy */
+/* exported ConfigManager */
+'use strict';
 
 var ConfigManager = (function() {
-
-  'use strict';
 
   var today = new Date();
 
@@ -148,7 +149,7 @@ var ConfigManager = (function() {
       return v;
     }
 
-    return new Date(v['__date__']);
+    return new Date(v.__date__);
   }
 
   // Load stored settings
@@ -254,9 +255,12 @@ var ConfigManager = (function() {
   function callCallbacks(evt) {
     debug('Option', evt.detail.name, 'has changed!');
     var callbackCollection = callbacks[evt.detail.name] || [];
-    for (var i = 0, callback; callback = callbackCollection[i]; i++) {
-      callback(evt.detail.value, evt.detail.oldValue, evt.detail.name,
-               evt.detail.settings);
+    for (var i = 0; i < callbackCollection.lenght; i++) {
+      var callback = callbackCollection[i];
+      if (callback) {
+        callback(evt.detail.value, evt.detail.oldValue, evt.detail.name,
+                 evt.detail.settings);
+      }
     }
   }
 

@@ -1,9 +1,10 @@
-/* global _, debug, BalanceView, checkDataUsageNotification,
-         ConfigManager, Common, computeTelephonyMinutes, CostControl,
-          formatTimeHTML, getDataLimit, MozActivity, roundData, SettingsListener
+/* global _, debug, BalanceView, AirplaneModeHelper, SettingsListener,
+          ConfigManager, Common, computeTelephonyMinutes, CostControl,
+          formatTimeHTML, getDataLimit, MozActivity, roundData, LazyLoader
 */
-
 /* exported activity */
+
+'use strict';
 /*
  * The widget is in charge of show balance, telephony data and data usage
  * statistics depending on the SIM inserted.
@@ -15,9 +16,7 @@
 
 var Widget = (function() {
 
-  'use strict';
-
-  var costcontrol;
+  var costcontrol, activity;
   function checkSIMStatus() {
 
     var mobileConnection = window.navigator.mozMobileConnections;
@@ -149,17 +148,17 @@ var Widget = (function() {
     // Open application with the proper view
     views.balance.addEventListener('click',
       function _openCCBalance() {
-        var activity = new MozActivity({ name: 'costcontrol/balance' });
+        activity = new MozActivity({ name: 'costcontrol/balance' });
       }
     );
     views.telephony.addEventListener('click',
       function _openCCTelephony() {
-        var activity = new MozActivity({ name: 'costcontrol/telephony' });
+        activity = new MozActivity({ name: 'costcontrol/telephony' });
       }
     );
     rightPanel.addEventListener('click',
       function _openCCDataUsage() {
-        var activity = new MozActivity({ name: 'costcontrol/data_usage' });
+        activity = new MozActivity({ name: 'costcontrol/data_usage' });
       }
     );
 
@@ -185,13 +184,13 @@ var Widget = (function() {
 
   // On balance update fail
   function onErrors(errors, old, key, settings) {
-    if (!errors || !errors['BALANCE_TIMEOUT']) {
+    if (!errors || !errors.BALANCE_TIMEOUT) {
       return;
     }
     debug('Balance timeout!');
 
     setBalanceMode('warning');
-    errors['BALANCE_TIMEOUT'] = false;
+    errors.BALANCE_TIMEOUT = false;
     ConfigManager.setOption({errors: errors});
   }
 
@@ -230,7 +229,7 @@ var Widget = (function() {
 
     fte.addEventListener('click', function launchFte() {
       fte.removeEventListener('click', launchFte);
-      var activity = new MozActivity({ name: 'costcontrol/balance' });
+      activity = new MozActivity({ name: 'costcontrol/balance' });
     });
 
     var keyLookup = {
@@ -378,16 +377,16 @@ var Widget = (function() {
         } else if (mode === 'POSTPAID') {
           requestObj = { type: 'telephony' };
           costcontrol.request(requestObj, function _onRequest(result) {
-            var activity = result.data;
+            var dataActivity = result.data;
             document.getElementById('telephony-calltime').textContent =
               _('magnitude', {
-                value: computeTelephonyMinutes(activity),
+                value: computeTelephonyMinutes(dataActivity),
                 unit: 'min'
               }
             );
             document.getElementById('telephony-smscount').textContent =
               _('magnitude', {
-                value: activity.smscount,
+                value: dataActivity.smscount,
                 unit: 'SMS'
               }
             );

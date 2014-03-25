@@ -1,3 +1,5 @@
+/* global debug */
+/* exported AutoSettings */
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -166,8 +168,9 @@ var AutoSettings = (function() {
 
   // Return the <li> wrapping the option
   function getEntryParent(item) {
-    while (item && item.tagName !== 'LI')
+    while (item && item.tagName !== 'LI') {
       item = item.parentNode;
+    }
     return item;
   }
 
@@ -179,7 +182,6 @@ var AutoSettings = (function() {
   // Configure the web page
   var settings, vmanager;
   function initialize(settingsInterface, viewManager, root) {
-    var that = this;
 
     root = root || 'body';
     settings = settingsInterface;

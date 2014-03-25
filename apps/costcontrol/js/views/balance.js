@@ -1,3 +1,5 @@
+/* global _, BalanceView, TopUpLayoutView, CostControl, ConfigManager,
+          ViewManager, debug, MozActivity, getTopUpTimeout, LazyLoader */
 
 /*
  * The balance tab is in charge of show balance details and allows the use
@@ -8,9 +10,9 @@
  * when the user taps on the update button. Furthermore, the balance update
  * can be triggered by a successful top up request.
  */
+'use strict';
 
 var BalanceTab = (function() {
-  'use strict';
 
   var view, updateButton;
   var topUpUSSD, topUp, topUpDialog, topUpCodeInput, sendCode, countdownSpan;
@@ -145,7 +147,7 @@ var BalanceTab = (function() {
 
   // On balance timeout
   function onBalanceTimeout(errors) {
-    if (!errors['BALANCE_TIMEOUT']) {
+    if (!errors.BALANCE_TIMEOUT) {
       return;
     }
     debug('Balance timeout!');
@@ -154,7 +156,7 @@ var BalanceTab = (function() {
     setError('balance_error');
 
     // Error handled, disabling
-    errors['BALANCE_TIMEOUT'] = false;
+    errors.BALANCE_TIMEOUT = false;
     ConfigManager.setOption({errors: errors});
   }
 
@@ -162,7 +164,8 @@ var BalanceTab = (function() {
 
   // On tapping Top Up and Pay
   function topUpWithUSSD() {
-    var dialing = new MozActivity({
+    var dialing;
+    dialing = new MozActivity({
       name: 'dial',
       data: {
         type: 'webtelephony/number',
@@ -235,12 +238,12 @@ var BalanceTab = (function() {
     debug('ERRORS:', errors);
 
     var mode;
-    if (errors['TOPUP_TIMEOUT']) {
-      errors['TOPUP_TIMEOUT'] = false;
+    if (errors.TOPUP_TIMEOUT) {
+      errors.TOPUP_TIMEOUT = false;
       mode = 'topup_timeout';
     }
-    if (errors['INCORRECT_TOPUP_CODE']) {
-      errors['INCORRECT_TOPUP_CODE'] = false;
+    if (errors.INCORRECT_TOPUP_CODE) {
+      errors.INCORRECT_TOPUP_CODE = false;
       mode = 'incorrect_code';
     }
     debug('Most important error: ', mode);

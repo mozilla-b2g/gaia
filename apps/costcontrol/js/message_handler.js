@@ -1,4 +1,8 @@
-
+/* global ConfigManager, CostControl, debug, Common, asyncStorage,
+          NotificationHelper, _, resetAll, updateNextReset, getDataLimit,
+          formatData, smartRound, MozActivity, NetworkUsageAlarm */
+/*jshint -W020 */
+/* exported activity */
 (function() {
 
   'use strict';
@@ -30,12 +34,8 @@
     return window.parent.location.pathname === '/index.html';
   }
 
-  function inWidgetMode() {
-    return window.parent.location.pathname === '/widget.html';
-  }
-
   // Close if in standalone mode
-  var closing;
+  var closing, activity;
   function closeIfProceeds() {
     debug('Checking for closing...');
     if (inStandAloneMode()) {
@@ -133,7 +133,7 @@
   function updateResetAttributes(alarmId, date, callback) {
     asyncStorage.setItem('nextResetAlarm', alarmId, function _updateOption() {
       ConfigManager.setOption({ nextReset: date }, function _sync() {
-        localStorage['sync'] = 'nextReset#' + Math.random();
+        localStorage.sync = 'nextReset#' + Math.random();
         if (callback) {
           callback();
         }
@@ -157,7 +157,7 @@
             app.launch();
             window.parent.BalanceTab.topUpWithCode(true);
           } else {
-            var activity = new MozActivity({ name: 'costcontrol/balance' });
+            activity = new MozActivity({ name: 'costcontrol/balance' });
           }
         };
       }
@@ -189,7 +189,7 @@
             app.launch();
             window.parent.CostControlApp.showBalanceTab();
           } else {
-            var activity = new MozActivity({ name: 'costcontrol/balance' });
+            activity = new MozActivity({ name: 'costcontrol/balance' });
           }
         };
       }
@@ -250,13 +250,13 @@
       case 'balanceTimeout':
         ConfigManager.requestSettings(Common.dataSimIccId,
                                       function _onSettings(settings) {
-          settings.errors['BALANCE_TIMEOUT'] = true;
+          settings.errors.BALANCE_TIMEOUT = true;
           ConfigManager.setOption(
             { 'errors': settings.errors, 'waitingForBalance': null },
             function _onBalanceTimeout() {
               debug('Timeout for balance');
               debug('Trying to synchronize!');
-              localStorage['sync'] = 'errors#' + Math.random();
+              localStorage.sync = 'errors#' + Math.random();
               closeIfProceeds();
             }
           );
@@ -266,13 +266,13 @@
       case 'topupTimeout':
         ConfigManager.requestSettings(Common.dataSimIccId,
                                       function _onSettings(settings) {
-          settings.errors['TOPUP_TIMEOUT'] = true;
+          settings.errors.TOPUP_TIMEOUT = true;
           ConfigManager.setOption(
             { 'errors': settings.errors, 'waitingForTopUp': null },
             function _onBalanceTimeout() {
               debug('Timeout for topup');
               debug('Trying to synchronize!');
-              localStorage['sync'] = 'errors#' + Math.random();
+              localStorage.sync = 'errors#' + Math.random();
               closeIfProceeds();
             }
           );
@@ -308,7 +308,7 @@
               app.launch();
               window.parent.CostControlApp.showDataUsageTab();
             } else {
-              var activity = new MozActivity({name: 'costcontrol/data_usage'});
+              activity = new MozActivity({name: 'costcontrol/data_usage'});
             }
           };
         }
@@ -422,7 +422,7 @@
                 function _onSet() {
                   debug('Balance up to date and stored');
                   debug('Trying to synchronize!');
-                  localStorage['sync'] = 'lastBalance#' + Math.random();
+                  localStorage.sync = 'lastBalance#' + Math.random();
                   sendBalanceThresholdNotification(newBalance, settings,
                                                    closeIfProceeds);
                 }
@@ -440,13 +440,13 @@
                 function _onSet() {
                   debug('TopUp confirmed!');
                   debug('Trying to synchronize!');
-                  localStorage['sync'] = 'waitingForTopUp#' + Math.random();
+                  localStorage.sync = 'waitingForTopUp#' + Math.random();
                   closeIfProceeds();
                 }
               );
             } else if (isError) {
               // Store ERROR for TopUp and sync
-              settings.errors['INCORRECT_TOPUP_CODE'] = true;
+              settings.errors.INCORRECT_TOPUP_CODE = true;
               navigator.mozAlarms.remove(settings.waitingForTopUp);
               debug('TopUp timeout: ', settings.waitingForTopUp, 'removed');
               ConfigManager.setOption(
@@ -459,7 +459,7 @@
                 function _onSet() {
                   debug('Balance up to date and stored');
                   debug('Trying to synchronize!');
-                  localStorage['sync'] = 'errors#' + Math.random();
+                  localStorage.sync = 'errors#' + Math.random();
                   sendIncorrectTopUpNotification(closeIfProceeds);
                 }
               );
@@ -509,7 +509,7 @@
             ConfigManager.setOption({
               lastTelephonyActivity: settings.lastTelephonyActivity
             }, function _sync() {
-              localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
+              localStorage.sync = 'lastTelephonyActivity#' + Math.random();
               closeIfProceeds();
             });
           }
@@ -537,7 +537,7 @@
               ConfigManager.setOption({
                 lastTelephonyActivity: settings.lastTelephonyActivity
               }, function _sync() {
-                localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
+                localStorage.sync = 'lastTelephonyActivity#' + Math.random();
                 closeIfProceeds();
               });
             });

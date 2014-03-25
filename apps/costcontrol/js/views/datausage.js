@@ -1,5 +1,5 @@
-/* global _, ConfigManager, CostControl, checkDataUsageNotification,
-          debug, toMidnight, formatData, roundData, smartRound */
+/* global _, ConfigManager, CostControl, debug, toMidnight, formatData,
+          roundData, smartRound, Common */
 /* jshint -W120 */
 
 /*
@@ -7,10 +7,8 @@
  *
  * It has several canvas areas layered one above the others.
  */
-
+'use strict';
 var DataUsageTab = (function() {
-
-  'use strict';
 
   var DAY = 24 * 60 * 60 * 1000;
   var NEVER_PERIOD = 30 * DAY;
@@ -64,8 +62,6 @@ var DataUsageTab = (function() {
       ConfigManager.requestSettings(Common.dataSimIccId,
                                     function _onSettings(settings) {
         debug('First time setup for model');
-        var lastCompleteDataReset = settings.lastCompleteDataReset;
-        var nextReset = settings.nextReset;
         model = {
           height: toDevicePixels(graphicArea.clientHeight),
           width: toDevicePixels(graphicArea.clientWidth),
@@ -386,7 +382,7 @@ var DataUsageTab = (function() {
 
   function drawBackgroundLayer(model) {
     var canvas = document.getElementById('background-layer');
-    var height = canvas.height = model.height;
+    canvas.height = model.height;
     var width = canvas.width = model.width;
     var ctx = canvas.getContext('2d');
 
@@ -415,7 +411,7 @@ var DataUsageTab = (function() {
 
     // Vertical lines every day
     var days = (model.axis.X.upper - model.axis.X.lower) / DAY;
-    var step = model.axis.X.len / days;
+    step = model.axis.X.len / days;
     ctx.strokeStyle = '#eeeeee';
     ctx.lineWidth = toDevicePixels(1);
     for (var x = model.originX; x <= model.endX; x += step) {
@@ -448,8 +444,8 @@ var DataUsageTab = (function() {
   var FONTWEIGHT_AXIS = '400'; // normal font weight
   function drawTodayLayer(model) {
     var canvas = document.getElementById('today-layer');
-    var height = canvas.height = model.height;
-    var width = canvas.width = model.width;
+    canvas.height = model.height;
+    canvas.width = model.width;
     var ctx = canvas.getContext('2d');
 
     // Compute the X offset
@@ -487,14 +483,15 @@ var DataUsageTab = (function() {
   function drawAxisLayer(model) {
 
     var canvas = document.getElementById('axis-layer');
-    var height = canvas.height = model.height;
-    var width = canvas.width = model.width;
+    canvas.height = model.height;
+    canvas.width = model.width;
     var ctx = canvas.getContext('2d');
 
     // Start drawing Y axis
     var step = model.axis.Y.step;
     var dataStep = model.axis.Y.upper - model.axis.Y.maxValue;
-    var offsetX = model.originX - 4, marginBottom = 4;
+    var marginRight = 4;
+    var offsetX = model.originX - marginRight;
     ctx.font = makeCSSFontString(FONTSIZE, FONTWEIGHT_AXIS);
     ctx.textAlign = 'right';
     var displayLimit = mobileToggle.checked && model.limits.enabled;
@@ -561,8 +558,8 @@ var DataUsageTab = (function() {
     var color = '#b50202';
 
     var canvas = document.getElementById('limits-layer');
-    var height = canvas.height = model.height;
-    var width = canvas.width = model.width;
+    canvas.height = model.height;
+    canvas.width = model.width;
     var ctx = canvas.getContext('2d');
 
     var displayLimit = mobileToggle.checked && model.limits.enabled;
@@ -572,7 +569,6 @@ var DataUsageTab = (function() {
 
     ctx.save();
 
-    var marginLeft = 4;
     var marginTop = 1;
     var offsetY = set ? model.axis.Y.get(model.limits.value) :
                         FONTSIZE + 2 * marginTop;
@@ -602,8 +598,8 @@ var DataUsageTab = (function() {
     }
 
     var canvas = document.getElementById('wifi-layer');
-    var height = canvas.height = model.height;
-    var width = canvas.width = model.width;
+    canvas.height = model.height;
+    canvas.width = model.width;
     var ctx = canvas.getContext('2d');
 
     // Style
@@ -617,7 +613,7 @@ var DataUsageTab = (function() {
     for (var i = 0, len = samples.length; i < len; i++) {
 
       var sample = samples[i];
-      if (sample.value == undefined) {
+      if (typeof sample.value === 'undefined') {
         lastX = x = model.axis.X.get(sample.date);
         ctx.moveTo(x, y);
 
@@ -685,7 +681,7 @@ var DataUsageTab = (function() {
     }
 
     var canvas = document.getElementById('mobile-layer');
-    var height = canvas.height = model.height;
+    canvas.height = model.height;
     var width = canvas.width = model.width;
     var ctx = canvas.getContext('2d');
 
@@ -698,7 +694,7 @@ var DataUsageTab = (function() {
     var lastX = model.originX, lastY = model.axis.Y.get(sum);
     for (var i = 0, len = samples.length; i < len; i++) {
       var sample = samples[i];
-      if (sample.value == undefined) {
+      if (typeof sample.value === 'undefined') {
         lastX = x = model.axis.X.get(sample.date);
         ctx.moveTo(x, y);
 
@@ -731,8 +727,8 @@ var DataUsageTab = (function() {
 
   function drawWarningOverlay(model) {
     var canvas = document.getElementById('warning-layer');
-    var height = canvas.height = model.height;
-    var width = canvas.width = model.width;
+    canvas.height = model.height;
+    canvas.width = model.width;
     var ctx = canvas.getContext('2d');
 
     if (!model.limits.enabled || model.limits.value === null) {
@@ -761,12 +757,12 @@ var DataUsageTab = (function() {
     }
 
     // Limit exceeded
-    var limitValue = model.axis.Y.get(model.limits.value);
+    var limitValueExceeded = model.axis.Y.get(model.limits.value);
     ctx.beginPath();
     ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
     ctx.fillRect(
       model.originX, 0,
-      model.axis.X.len + 0.5, limitValue
+      model.axis.X.len + 0.5, limitValueExceeded
     );
   }
 
