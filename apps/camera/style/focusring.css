@@ -9,9 +9,14 @@
   font-size: 92px;
 }
 
-[data-mode=face] .focusring{
+[data-mode=faceTracking] .focusring{
   margin-top: -0rem;
   margin-left: -0rem;
+}
+
+[data-mode=continuousFocus] .focusring{
+  margin-top: -5rem;
+  margin-left: -5rem;
 }
 
 .focusring[data-state=focusing]:before {

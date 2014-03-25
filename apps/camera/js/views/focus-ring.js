@@ -17,11 +17,10 @@ module.exports = View.extend({
 
   initialize: function() {
     this.render();
-    this.els.focus.dataset.state = 'none';
+    this.setState('none');
   },
   render: function() {
     this.el.innerHTML = this.template();
-    this.el.dataset.mode = 'normal';
     this.els.focus = find('.js-focus', this.el);
   },
 
@@ -29,9 +28,13 @@ module.exports = View.extend({
     this.els.focus.dataset.state = state;
   },
 
+  setMode: function(mode) {
+    this.clearFaceRings();
+    this.setDefaultValues();
+    this.el.dataset.mode = mode;
+  },
   changePosition: function(x, y) {
     this.setDefaultValues();
-    this.el.dataset.mode = 'touch';
     this.els.focus.style.left = x + 'px';
     this.els.focus.style.top = y + 'px';
   },
@@ -69,7 +72,6 @@ module.exports = View.extend({
     if (this.els.face) {
       this.els.face.removeChild(this.els.face);
     }
-    this.el.dataset.mode = 'face';
     this.setDefaultValues();
     this.els.focus.style.fontSize = mainFace.length + 'px';
     this.els.focus.style.transform = 'translate(' + mainFace.pointY +

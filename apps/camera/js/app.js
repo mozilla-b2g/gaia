@@ -281,6 +281,11 @@ App.prototype.miscStuff = function() {
     }
   });
 
+  // TODO: Should probably be
+  // moved to a focusRing controller
+  camera.on('change:focusMode', function(value) {
+    self.views.focusRing.setMode(value);
+  });
 
   dcf.init();
   performanceTesting.dispatch('initialising-camera-preview');

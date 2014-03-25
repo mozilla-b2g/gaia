@@ -244,7 +244,7 @@ Camera.prototype.enableAutoFocusMove = function() {
 Camera.prototype.stopFaceDetection = function() {
   try {
     this.mozCamera.stopFaceDetection();
-    this.mozCamera.onFacesDetected = null;
+    this.mozCamera.onFacesDetected = this.diableFocusCall();
   } catch(e) {
     console.log('Exception stopFaceDetection::'+e.message);
   }
@@ -406,10 +406,12 @@ Camera.prototype.clearFocusRing = function() {
 * and change focus mode.
 **/
 Camera.prototype.disableAutoFocusMove = function() {
-  this.mozCamera.onAutoFocusMoving = null;
+  this.mozCamera.onAutoFocusMoving = this.diableFocusCall();
 
   this.mozCamera.focusMode = 'auto';
 };
+
+Camera.prototype.diableFocusCall = function() { };
 
 Camera.prototype.noFocusMode = function() {
   this.mozCamera.focusMode = 'null';
@@ -666,7 +668,7 @@ Camera.prototype.takePicture = function(options) {
  * @private
  */
 Camera.prototype.focus = function(done) {
-  if (!this.autoFocus.auto) { return done(); }
+ /* if (!this.autoFocus.auto) { return done(); }*/
   var reset = function() { self.set('focus', 'none'); };
   var self = this;
 
