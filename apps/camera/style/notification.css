@@ -62,12 +62,30 @@
   display: none;
 }
 
-/** Notifciation Icon
+/** Item Text
+ ---------------------------------------------------------*/
+
+.notification > li > span {
+  font-family: sans-serif;
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+/** Notification Icon
  ---------------------------------------------------------*/
 
 .notification > li:before {
   display: block;
-  font-size: 60px;
+  font-size: 4rem;
+  line-height: 1;
   color: #D92E2E;
   text-shadow: none;
+}
+
+/**
+ * icon-battery-verylow
+ */
+
+.notification > li.icon-battery-verylow:before {
+  font-size: 7.5rem;
 }

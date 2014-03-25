@@ -26,7 +26,7 @@ module.exports = View.extend({
 
     item.el = document.createElement('li');
     item.el.className = options.className || '';
-    item.el.innerHTML = options.text;
+    item.el.innerHTML = '<span>' + options.text + '</span>';
     this.el.appendChild(item.el);
 
     // Remove last notfication in the way
