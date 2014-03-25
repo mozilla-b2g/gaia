@@ -34,7 +34,6 @@ contacts.Settings = (function() {
     newOrderByLastName = null,
     ORDER_KEY = 'order.lastname',
     PENDING_LOGOUT_KEY = 'pendingLogout',
-    umsSettingsKey = 'ums.enabled',
     bulkDeleteButton;
 
   // Initialise the settings screen (components, listeners ...)
@@ -48,11 +47,6 @@ contacts.Settings = (function() {
     utils.listeners.add({
       '#settings-close': hideSettings
     });
-    if (navigator.mozSettings) {
-      navigator.mozSettings.addObserver(umsSettingsKey, function(evt) {
-        enableStorageOptions(!evt.settingValue, 'sdUMSEnabled');
-      });
-    }
 
     // Subscribe to events related to change state in the sd card
     utils.sdcard.subscribeToChanges('check_sdcard', function(value) {
@@ -372,21 +366,30 @@ contacts.Settings = (function() {
    * @param {String} alternativeError Provide an alternative message if sd is
    *    not enabled despite that the card is present.
    */
-  var enableStorageOptions = function enableStorageOptions(cardState,
-    alternativeError) {
+  var enableStorageOptions = function enableStorageOptions(cardState) {
     updateOptionStatus(importSDOption, !cardState, true);
     updateOptionStatus(exportSDOption, !cardState, true);
 
-    var importSDErrorMessage = 'noMemoryCardMsg';
-    var exportSDErrorMessage = 'noMemoryCardMsgExport';
-    if (alternativeError) {
-      importSDErrorMessage = exportSDErrorMessage = alternativeError;
-    }
+    console.log('Status: ', utils.sdcard.status, 'cardState: ', cardState);
 
-    importSDOption.querySelector('p.error-message').textContent =
-      _(importSDErrorMessage);
-    exportSDOption.querySelector('p').textContent =
-      _(exportSDErrorMessage);
+    if (!cardState || utils.sdcard.status === utils.sdcard.SHARED) {
+      var importSDErrorMessage = 'noMemoryCardMsg';
+      var exportSDErrorMessage = 'noMemoryCardMsgExport';
+      if (utils.sdcard.status === utils.sdcard.SHARED) {
+        importSDErrorMessage = exportSDErrorMessage = 'sdUMSEnabled';
+      }
+
+      console.log(importSDErrorMessage);
+
+      importSDOption.querySelector('p.error-message').textContent =
+        _(importSDErrorMessage);
+      exportSDOption.querySelector('p').textContent =
+        _(exportSDErrorMessage);
+    }
+    else {
+      exportSDOption.querySelector('p').textContent = '';
+      importSDOption.querySelector('p.error-message').textContent = '';
+    }
   };
 
   // Callback that will modify the ui depending if we imported or not
@@ -959,7 +962,9 @@ contacts.Settings = (function() {
     getData();
     checkOnline();
     checkSIMCard();
-    enableStorageOptions(utils.sdcard.checkStorageCard());
+    utils.sdcard.getStatus(function() {
+      enableStorageOptions(utils.sdcard.checkStorageCard());
+    });
     updateTimestamps();
     checkNoContacts();
   };
