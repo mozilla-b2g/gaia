@@ -36,6 +36,9 @@ class CardsView(Base):
         return self.is_element_present(*self._app_card_locator(app))
 
     def tap_app(self, app):
+        # Wait for the targeted app to be in the foreground before tapping on it
+        self.wait_for_element_present(self._app_card_locator(app)[0],
+                                        '%s[style*="pointer-events: auto;"]' % self._app_card_locator(app)[1])
         return self.marionette.find_element(*self._app_card_locator(app)).tap()
 
     def close_app(self, app):
@@ -58,3 +61,13 @@ class CardsView(Base):
         # swipe backward to get next app card
         Actions(self.marionette).flick(
             current_frame, start_x_position, start_y_position, 0, start_y_position).perform()
+
+    def swipe_to_previous_app(self):
+        current_frame = self.apps.displayed_app.frame
+
+        start_x_position = current_frame.size['width']
+        start_y_position = current_frame.size['height'] // 2
+
+        # swipe forward to get previous app card
+        Actions(self.marionette).flick(
+            current_frame, 0, start_y_position, start_x_position, start_y_position).perform()
