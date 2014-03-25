@@ -91,13 +91,11 @@ input.cmp-subject-text {
 }
 
 .cmp-body-text {
-  width: calc(100% - 3rem);
   overflow-x: auto;
   overflow-y: hidden;
   max-height: none;
-  margin: 1rem 1.5rem 0 1.5rem;
   display: block;
-  padding: 0;
+  padding: 1rem 1.5rem 0;
   font-family: inherit;
   /* be careful about specifying a line-height different than the font-size,
      as it may result in the text visuall shifting upwards when typing the
