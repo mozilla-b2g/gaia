@@ -254,15 +254,9 @@ var CardsView = (function() {
         card.appendChild(subtitle);
       }
 
-<<<<<<< HEAD
       if (TrustedUIManager.hasTrustedUI(origin)) {
         var popupFrame = TrustedUIManager.getDialogFromOrigin(origin);
         frameForScreenshot = DISPLAY_APP_SCREENSHOT && popupFrame.frame;
-=======
-      if (TrustedUIManager.hasTrustedUI(app.origin)) {
-        var popupFrame = TrustedUIManager.getDialogFromOrigin(app.origin);
-        frameForScreenshot = popupFrame.frame;
->>>>>>> master
         var header = document.createElement('section');
         header.setAttribute('role', 'region');
         header.classList.add('skin-organic');
