@@ -132,9 +132,9 @@ function lint(root, files) {
 
 
     // Now lint the css of each files and reports any errors/warnings.
-    files.split(' ').forEach(function parseCSSFor(filename) {
+    files.split(/\s/).forEach(function parseCSSFor(filename) {
       let file = utils.getFile(root, filename);
-      if (!/^apps\//.test(filename)) {
+      if (!/^(apps|shared)\//.test(filename)) {
         return;
       }
 
@@ -150,7 +150,7 @@ function lint(root, files) {
 
       let errorsCount = messages.errors.length;
       let warningsCount = messages.warnings.length;
-      if (!errorsCount && !warningsCount) {
+      if (!errorsCount && !warningsCount && !(filename in xfail)) {
         return;
       }
 
