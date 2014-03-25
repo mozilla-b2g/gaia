@@ -38,6 +38,7 @@ section,footer,nav,a,img {
   background-color: #ff7f02;
   transition: transform .35s ease;
   visibility: hidden;
+  will-change: transform;
 }
 
 #icongrid {

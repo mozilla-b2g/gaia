@@ -111,7 +111,7 @@
 
   .fake-number {
     position: absolute;
-    line-height: 0rem;
+    line-height: 0;
     visibility: hidden;
     white-space: nowrap;
   }
@@ -126,6 +126,10 @@
   }
 
   #bluetooth-menu {
+    display: none;
+  }
+
+  .sim {
     display: none;
   }
 }

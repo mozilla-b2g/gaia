@@ -1,4 +1,5 @@
 /*jshint node: true, browser: true */
+var SHARED_PATH = __dirname + '/../../../../../shared/test/integration';
 
 function EmailSync(client) {
   this.client = client;
@@ -11,8 +12,9 @@ EmailSync.prototype = {
    */
 
   setup: function() {
-    this.client.contentScript.inject(__dirname +
-      '/mocks/mock_navigator_moz_set_message_handler.js');
+    this.client.contentScript.inject(
+      SHARED_PATH + '/mock_navigator_moz_set_message_handler.js'
+    );
   },
 
   /**

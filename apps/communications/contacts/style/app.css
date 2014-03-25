@@ -203,14 +203,6 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
   transform: translateY(100%);
 }
 
-
-/* BB Header redefinition
-    This avoids full repainting on scroll in the contacts lists
-    We must fill a bug with this issue
- */
-section[role="region"] > header:first-child {
-}
-
 /* Rewritting from buttons.css */
 section[role="region"] > header:first-child button,
 section[role="region"] > header:first-child a[role="button"] {
@@ -721,4 +713,30 @@ form[role="dialog"].no-overlay button {
 
 #groups-list[data-type="list"].active.selecting li:not(:active):after {
   display:none !important;
+}
+
+.has-preferred-sim .icon-call div:after {
+  content: "";
+  position: absolute;
+  width: 1.4rem;
+  height: 1rem;
+  bottom: 0;
+  right: 0.9rem;
+  background-image: url("/shared/style/sim_picker/images/long-tap-indicator.png");
+  background-repeat: no-repeat;
+  background-size: 1.4rem 1rem;
+}
+
+.js-sim-indication {
+  float: right;
+  margin-right: -0.2rem;
+  display: none;
+}
+
+.has-preferred-sim .js-sim-indication { 
+  display: initial;
+}
+
+#sim-picker {
+  text-align: left;
 }

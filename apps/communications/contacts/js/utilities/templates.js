@@ -75,7 +75,7 @@ if (!utils.templates) {
           out = text;
         }
         return out;
-      }
+      };
     }
 
     /**
@@ -131,7 +131,7 @@ if (!utils.templates) {
              target.appendChild(newElem);
           } else if (mode === 'P') { // Append mode
             if (target.firstChild) {
-              target.insertBefore(newElem, ele.firstChild);
+              target.insertBefore(newElem, element.firstChild);
             } else {
               target.appendChild(newElem);
             }
@@ -139,7 +139,7 @@ if (!utils.templates) {
 
         } // if template
 
-      }.bind(this)); // forEach data
+      }.bind(Templates)); // forEach data
 
       return newElem;
     }

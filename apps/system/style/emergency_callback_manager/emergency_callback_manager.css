@@ -49,7 +49,7 @@
 
 #emergency-callback-toaster > .timer {
   position: absolute;
-  right: 0rem;
+  right: 0;
   top: 1rem;
   width: 4rem;
   line-height: 2.8rem;
@@ -65,7 +65,7 @@
 }
 
 #emergency-callback-notification > .timer {
-  margin: 0.3rem 0px 0px 5rem;
+  margin: 0.3rem 0 0 5rem;
   width: calc(100% - 5.5rem);
   color: #bfbfbf;
   font-size: 1.4rem;

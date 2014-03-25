@@ -1,4 +1,11 @@
 'use strict';
+/* global fb */
+/* global MockAllFacebookContacts */
+/* global MockContactAllFields */
+/* global MockLinkedContacts */
+
+/* Allow setter without getter */
+/* jshint -W078 */
 
 var FB_ID = 220439;
 
@@ -44,7 +51,6 @@ Mockfb.contacts = function() {
         // Fetch FB data, that is returning a contact info
         this.result = {};
         this.result[FB_ID] = new MockContactAllFields();
-        var deviceContact = this.result[FB_ID];
         this.result[FB_ID].id = '567';
         this.result[FB_ID].familyName = ['Taylor'];
         this.result[FB_ID].givenName = ['Bret'];
@@ -69,11 +75,11 @@ Mockfb.contacts = function() {
 
 Mockfb.Contact = function(devContact, mozCid) {
   var deviceContact = devContact;
-  var cid = mozCid;
   var contactData;
 
-  if (devContact)
+  if (devContact) {
     setFacebookUid(FB_ID);
+  }
 
   function markAsFb(deviceContact) {
     if (!deviceContact.category) {
@@ -93,8 +99,7 @@ Mockfb.Contact = function(devContact, mozCid) {
     if (!out) {
       if (Mockfb.isFbLinked(data)) {
         out = getLinkedTo(data);
-      }
-      else if (data.category) {
+      } else if (data.category) {
         var idx = data.category.indexOf(fb.CATEGORY);
         if (idx !== -1) {
           out = data.category[idx + 2];
@@ -236,10 +241,6 @@ Mockfb.isFbLinked = function(contact) {
   return this.fbLinked;
 };
 
-Mockfb.isEnabled = function() {
-  return this.isEnabled;
-};
-
 Mockfb.getWorksAt = function(fbData) {
   return 'Telefónica';
 };
@@ -299,6 +300,22 @@ Mockfb.utils = (function() {
 
     getImportChecked: function() {
 
+    },
+
+    setCachedNumFriends: function() {
+
     }
   };
 }());
+
+Mockfb.contacts = {
+  _importedContacts: 40,
+  getLength: function() {
+    return {
+      result: this._importedContacts,
+      set onsuccess(cb) {
+        cb();
+      }
+    };
+  }
+};

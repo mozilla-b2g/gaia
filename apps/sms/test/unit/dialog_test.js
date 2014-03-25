@@ -57,13 +57,14 @@ suite('Dialog', function() {
 
   test('Appending to DOM', function() {
     var previouslyDefinedForms = document.getElementsByTagName('form').length;
-    // In this case we have several forms pre-defined (5):
+    // In this case we have several forms pre-defined (6):
     // - "messages-compose-form"
     // - "messages-edit-form"
     // - "loading"
     // - "attachment"
     // - "threads-edit-form"
-    assert.equal(previouslyDefinedForms, 5);
+    // - "sim-picker"
+    assert.equal(previouslyDefinedForms, 6);
     // Now we create the new element
     var dialog = new Dialog(params);
     // We check if the object is appended to the DOM
@@ -71,7 +72,7 @@ suite('Dialog', function() {
     // Is appended properly?
     var currentlyDefinedForms = document.getElementsByTagName('form');
     var currentlyDefinedFormsLength = currentlyDefinedForms.length;
-    assert.equal(currentlyDefinedFormsLength, 6);
+    assert.equal(currentlyDefinedFormsLength, 7);
     // We check the type
     var dialogForm = currentlyDefinedForms[currentlyDefinedFormsLength - 1];
     assert.equal(dialogForm.dataset.type, 'confirm');
@@ -355,11 +356,7 @@ suite('Dialog', function() {
 
       var handler = function() {};
       var dialog = new ErrorDialog(
-        'NonActiveSimCardError', {
-          active: 'SIM 1',
-          nonactive: 'SIM 2',
-          confirmHandler: handler
-        }
+        'NonActiveSimCardError', { confirmHandler: handler }
       );
       dialog.show();
 
@@ -375,6 +372,30 @@ suite('Dialog', function() {
       });
       assert.equal(opt.options.confirm.text.l10nId,
                   'nonActiveSimConfirm');
+      assert.equal(opt.options.confirm.method, handler);
+    });
+
+    test('show non-active sim card when sending mms error', function() {
+      MockSettings.mmsServiceId = 0;
+
+      var handler = function() {};
+      var dialog = new ErrorDialog(
+        'NonActiveSimCardToSendError', { confirmHandler: handler }
+      );
+      dialog.show();
+
+      var opt = dialogSpy.firstCall.args[1];
+      assert.equal(opt.title.l10nId,
+                  'nonActiveSimToSendTitle');
+      assert.equal(opt.body.l10nId,
+                  'nonActiveSimToSendBody');
+      assert.deepEqual(opt.body.l10nArgs,
+      {
+        active: 'SIM 1',
+        nonactive: 'SIM 2'
+      });
+      assert.equal(opt.options.confirm.text.l10nId,
+                  'nonActiveSimToSendConfirm');
       assert.equal(opt.options.confirm.method, handler);
     });
   });

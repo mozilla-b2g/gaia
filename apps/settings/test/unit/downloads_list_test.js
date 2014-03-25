@@ -101,6 +101,22 @@ suite('DownloadList', function() {
     mocksHelperForDownloadList.teardown();
   });
 
+  suite(' > initialization', function() {
+    test(' > edit mode UI components are hidden while rendering',
+         function(done) {
+      DownloadsList.init(function() {
+        var downloadsEditMenu = document.getElementById('downloads-edit-menu');
+        var editModeHeader = document.getElementById('edit-mode-header');
+        assert.isTrue(downloadsEditMenu.hidden);
+        assert.isTrue(editModeHeader.hidden);
+        // Edit mode
+        editButton.click();
+        assert.isFalse(downloadsEditMenu.hidden);
+        assert.isFalse(editModeHeader.hidden);
+        done();
+      });
+    });
+  });
 
   suite(' > edit mode', function() {
     test(' > edit mode button enabled/disabled', function(done) {
@@ -147,6 +163,25 @@ suite('DownloadList', function() {
         // Deselect all
         deselectAllButton.click();
         // Is the button disabled?
+        assert.isFalse(selectAllButton.disabled);
+        done();
+      });
+    });
+
+    test(' > select the first one download', function(done) {
+      DownloadsList.init(function() {
+        var item = document.querySelector('#downloadList ul > li:first-child');
+        // Edit mode
+        editButton.click();
+        // Select the first one download
+        item.click();
+        // Are the buttons disabled?
+        assert.isFalse(deselectAllButton.disabled);
+        assert.isFalse(selectAllButton.disabled);
+        // Deselect this one
+        item.click();
+        // Are the buttons disabled?
+        assert.ok(deselectAllButton.disabled);
         assert.isFalse(selectAllButton.disabled);
         done();
       });

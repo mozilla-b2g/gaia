@@ -1,3 +1,4 @@
+/* exported IccHandler */
 //
 // IccManager Handler, abstract the new IccManager Multi SIM
 // API.

@@ -14,6 +14,12 @@ var IconManager = (function() {
 
   function addActive(target) {
     if ('isIcon' in target.dataset) {
+      removeActive !== noop && removeActive();
+      removeActive = function _removeActive() {
+        target.classList.remove('active');
+        clearActiveTimeout();
+        removeActive = noop;
+      };
       if (activeDelay) {
         activeTimeout = setTimeout(function() {
           target.classList.add('active');
@@ -22,12 +28,6 @@ var IconManager = (function() {
       } else {
         target.classList.add('active');
       }
-      removeActive !== noop && removeActive();
-      removeActive = function _removeActive() {
-        target.classList.remove('active');
-        clearActiveTimeout();
-        removeActive = noop;
-      };
     } else {
       removeActive = noop;
     }

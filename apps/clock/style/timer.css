@@ -59,7 +59,7 @@ ul#timer-edit li {
 }
 
 ul#timer-edit li:first-child {
-  padding-top: 0rem;
+  padding-top: 0;
   padding-bottom: 0.25rem;
 }
 

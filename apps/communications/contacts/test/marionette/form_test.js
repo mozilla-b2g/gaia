@@ -1,3 +1,5 @@
+'use strict';
+
 var Contacts = require('./lib/contacts'),
     Dialer = require('../../../dialer/test/marionette/lib/dialer'),
     assert = require('assert'),
@@ -7,6 +9,7 @@ marionette('Contacts > Form', function() {
   var client = marionette.client(Contacts.config),
     subject,
     dialerSubject,
+    dialerSelectors,
     selectors;
 
   setup(function() {

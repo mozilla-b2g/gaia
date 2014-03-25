@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockMozL10n */
+
 window.realL10n = window.navigator.mozL10n;
 
 var MockMozL10n = window.navigator.mozL10n = {

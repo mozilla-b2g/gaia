@@ -22,7 +22,7 @@
 
   function _setAccountDetails(response) {
     if (response && response.user.accountId) {
-      FxaModuleManager.setParam('email', response.user.accountId);
+      FxaModuleManager.setParam('done', true);
       FxaModuleManager.setParam('verified', response.user.verified);
     }
   }

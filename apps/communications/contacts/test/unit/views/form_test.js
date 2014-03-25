@@ -1,3 +1,5 @@
+'use strict';
+
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/lazy_loader.js');
@@ -13,6 +15,7 @@ requireApp('communications/contacts/js/utilities/misc.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+requireApp('communications/contacts/test/unit/mock_external_services.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_contacts_search.js');
 requireApp('communications/contacts/test/unit/mock_confirm_dialog.js');
@@ -24,7 +27,6 @@ var subject,
     realL10n,
     dom,
     fb,
-    Contacts,
     realContacts,
     realFb,
     realThumbnailImage,
@@ -35,6 +37,7 @@ var subject,
     ActivityHandler;
 
 var mocksForm = new MocksHelper([
+  'Contacts',
   'ConfirmDialog',
   'ContactPhotoHelper'
 ]).init();
@@ -42,6 +45,7 @@ var mocksForm = new MocksHelper([
 suite('Render contact form', function() {
 
   suiteSetup(function() {
+
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
       get: function get(key) {
@@ -56,8 +60,8 @@ suite('Render contact form', function() {
 
     mocksForm.suiteSetup();
 
-    realContacts = window.Contacts;
-    window.Contacts = MockContacts;
+    Contacts.extServices = MockExtServices;
+
     realFb = window.fb;
     window.fb = Mockfb;
     realThumbnailImage = utils.thumbnailImage;
@@ -70,12 +74,10 @@ suite('Render contact form', function() {
       currentlyHandling: false
     };
 
-
     subject.init(Contacts.getTags());
   });
 
   suiteTeardown(function() {
-    window.Contacts = realContacts;
     window.fb = realFb;
     utils.thumbnailImage = realThumbnailImage;
     window.mozL10n = realL10n;
@@ -105,7 +107,7 @@ suite('Render contact form', function() {
     assert.isTrue(value === state);
   }
 
-  function assertAddDateSate(value) {
+  function assertAddDateState(value) {
      assert.equal(document.getElementById('add-new-date').disabled, value);
   }
 
@@ -124,7 +126,7 @@ suite('Render contact form', function() {
       assertSaveState('disabled');
 
       // The add date button shouldn't be disabled
-      assertAddDateSate(false);
+      assertAddDateState(false);
     });
 
     test('with tel params', function() {
@@ -319,7 +321,7 @@ suite('Render contact form', function() {
       assertDateContent('#' + element + '-0', mockContact.bday);
 
       // The add date button shouldn't be disabled
-     assertAddDateSate(false);
+     assertAddDateState(false);
     });
 
     test('with birthday and anniversary', function() {
@@ -336,7 +338,16 @@ suite('Render contact form', function() {
       assertDateContent('#' + element + '-1', mockContact.anniversary);
 
       // The add date button should be disabled
-      assertAddDateSate(true);
+      assertAddDateState(true);
+    });
+
+    test('Dates are saved preserving their timestasmp referred to UTC',
+      function() {
+        var deviceContact = new MockContactAllFields();
+
+        subject.render(deviceContact);
+        subject.saveContact();
+        assert.equal(deviceContact.bday.getTime(), 0);
     });
 
     test('if tel field has a value, carrier input must be in regular state',
@@ -444,12 +455,11 @@ suite('Render contact form', function() {
                       'Icon delete not present');
 
         // The add date button shouldn't be disabled
-        assertAddDateSate(false);
+        assertAddDateState(false);
 
         assert.isFalse(footer.classList.contains('hide'));
       };
     });
-
 
     test('FB Linked. e-mail and phone both from FB and device', function() {
       window.fb.setIsFbContact(true);
@@ -533,7 +543,7 @@ suite('Render contact form', function() {
                       'Icon delete not present');
 
         // The add date button shouldn't be disabled
-        assertAddDateSate(false);
+        assertAddDateState(false);
       };
     });
   });

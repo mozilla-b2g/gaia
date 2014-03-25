@@ -19,6 +19,7 @@ var debug = require('debug')('app');
 var HudView = require('views/hud');
 var bind = require('lib/bind');
 var dcf = require('lib/dcf');
+var orientation = require('lib/orientation');
 
 /**
  * Locals
@@ -177,6 +178,7 @@ App.prototype.onFocus = function() {
   var ms = LOCATION_PROMPT_DELAY;
   setTimeout(this.geolocationWatch, ms);
   this.storage.check();
+  orientation.start();
   debug('focus');
 };
 
@@ -187,6 +189,7 @@ App.prototype.onFocus = function() {
 App.prototype.onBlur = function() {
   this.geolocation.stopWatching();
   this.activity.cancel();
+  orientation.stop();
   debug('blur');
 };
 

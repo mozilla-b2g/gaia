@@ -4,7 +4,7 @@
 /*global ThreadListUI, ThreadUI, Threads, SMIL, MozSmsFilter, Compose,
          Utils, LinkActionHandler, Contacts, GroupView,
          ReportView, Utils, LinkActionHandler, Contacts, Drafts,
-         Notification */
+         Notification, Settings */
 
 /*exported MessageManager */
 
@@ -50,15 +50,10 @@ var MessageManager = {
 
   onMessageSending: function mm_onMessageSending(e) {
     var message = e.message;
-    var threadId = message.threadId;
 
     Threads.registerMessage(message);
 
-    if (threadId === Threads.currentId) {
-      ThreadUI.onMessageSending(message);
-    } else {
-      window.location.hash = '#thread=' + threadId;
-    }
+    ThreadUI.onMessageSending(message);
     ThreadListUI.onMessageSending(message);
   },
 
@@ -175,6 +170,8 @@ var MessageManager = {
     }
 
     this.threadMessages.classList.add('new');
+
+    ThreadUI.onBeforeEnter();
     this.slide('left', function() {
       callback && callback();
     });
@@ -357,6 +354,8 @@ var MessageManager = {
             }
           );
 
+        ThreadUI.onBeforeEnter();
+
         // Update Header
         ThreadUI.updateHeaderData(function headerUpdated() {
           if (willSlide) {
@@ -471,10 +470,59 @@ var MessageManager = {
     };
   },
 
+  // 0 is a valid value so we need to take care to not consider it as a falsy
+  // value. We want to return null for anything that's not a number or a string
+  // containing a number.
+  _sanitizeServiceId: function mm_sanitizeServiceId(serviceId) {
+    if (serviceId == null || // null or undefined
+        isNaN(+serviceId)) {
+      serviceId = null;
+    } else {
+      serviceId = +serviceId;
+    }
+
+    return serviceId;
+  },
+
+  _getSendOptionsFromServiceId: function mm_gSOFSI(serviceId) {
+    var sendOpts;
+
+    if (serviceId != null && // not null, not undefined
+        Settings.hasSeveralSim()) {
+      sendOpts = { serviceId: serviceId };
+    }
+
+    return sendOpts;
+  },
+
   // consider splitting this method for the different use cases
-  sendSMS: function mm_send(recipients, content,
-                            onsuccess, onerror, oncomplete) {
-    var requests;
+  /*
+   * `opts` can have the following properties:
+   * - recipients (string or array of string): contains the list of
+   *   recipients for this message
+   * - content (string): the message's body
+   * - serviceId (optional long or string): the SIM serviceId we use to send the
+   *   message
+   * - onsuccess (optional function): will be called when one SMS has been
+   *   sent successfully, with the request's result as argument. Can be called
+   *   several times.
+   * - onerror (optional function): will be called when one SMS transmission
+   *   failed, with the error object as argument. Can be called several times.
+   * - oncomplete (optional function): will be called when all messages have
+   *   been sent. It's argument will have the following properties:
+   *   + hasError (boolean): whether we had at least one error
+   *   + return (array): each item is an object with the following properties:
+   *     . success (boolean): whether this is a success or an error
+   *     . result (request's result): the request's result object
+   *     . recipient (string): the recipient used for this transmission.
+   */
+  sendSMS: function mm_send(opts) {
+    var recipients = opts.recipients || [],
+        content = opts.content,
+        serviceId = this._sanitizeServiceId(opts.serviceId),
+        onsuccess = opts.onsuccess,
+        onerror = opts.onerror,
+        oncomplete = opts.oncomplete;
 
     if (!Array.isArray(recipients)) {
       recipients = [recipients];
@@ -484,8 +532,10 @@ var MessageManager = {
     // Instead, It's an array of DOM requests.
     var i = 0;
     var requestResult = { hasError: false, return: [] };
+    var sendOpts = this._getSendOptionsFromServiceId(serviceId);
 
-    requests = this._mozMobileMessage.send(recipients, content);
+    var requests = this._mozMobileMessage.send(recipients, content, sendOpts);
+
     var numberOfRequests = requests.length;
 
     requests.forEach(function(request, idx) {
@@ -523,12 +573,43 @@ var MessageManager = {
     });
   },
 
-  sendMMS:
-    function mm_sendMMS(mmsMessage, onsuccess, onerror) {
+  /*
+   * opts is an object with the following properties:
+   * - recipients (string or array of string): recipients for this message
+   * - subject (optional string): subject for this message
+   * - content (array of SMIL slides): this is the content for the message (see
+   *   ThreadUI for more information)
+   * - serviceId (optional long or string): the SIM that should be used for
+   *   sending this message. If this is not the current default configuration
+   *   for sending MMS, then we'll first switch the configuration to this
+   *   serviceId, and only then send the message. That means that the "sending"
+   *   event will come quite late in this case.
+   * - onsuccess (optional func): called only once, even for several recipients,
+   *   when the message is successfully sent.
+   * - onerror (optional func): called only once if there is an error.
+   *
+   */
+  sendMMS: function mm_sendMMS(opts) {
+    var serviceId = opts.serviceId = this._sanitizeServiceId(opts.serviceId);
+
+    if (serviceId !== null &&
+        Settings.hasSeveralSim() &&
+        serviceId !== Settings.mmsServiceId) {
+      // TODO give a feedback, Bug 983315 
+      Settings.switchMmsSimHandler(serviceId, this._doSendMMS.bind(this, opts));
+    } else {
+      this._doSendMMS(opts);
+    }
+  },
+
+  _doSendMMS: function mm_doSendMMS(opts) {
     var request;
-    var recipients = mmsMessage.recipients,
-        subject = mmsMessage.subject,
-        content = mmsMessage.content;
+    var recipients = opts.recipients,
+        subject = opts.subject,
+        content = opts.content,
+        serviceId = opts.serviceId,
+        onsuccess = opts.onsuccess,
+        onerror = opts.onerror;
 
     if (!Array.isArray(recipients)) {
       recipients = [recipients];
@@ -536,12 +617,14 @@ var MessageManager = {
 
     var message = SMIL.generate(content);
 
+    var sendOpts = this._getSendOptionsFromServiceId(serviceId);
+
     request = this._mozMobileMessage.sendMMS({
       receivers: recipients,
       subject: subject,
       smil: message.smil,
       attachments: message.attachments
-    });
+    }, sendOpts);
 
     request.onsuccess = function onSuccess(event) {
       onsuccess && onsuccess(event.target.result);

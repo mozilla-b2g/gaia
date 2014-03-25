@@ -183,6 +183,12 @@ var ERRORS = {
     showDsdsStatus: false,
     hasHandler: false
   },
+  NonActiveSimCardToSendError: {
+    prefix: 'nonActiveSimToSend',
+    showRecipient: false,
+    showDsdsStatus: true,
+    hasHandler: true
+  },
   NonActiveSimCardError: {
     prefix: 'nonActiveSim',
     showRecipient: false,

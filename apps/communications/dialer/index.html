@@ -6,11 +6,10 @@
     <title>Dialer</title>
 
     <!-- Localization -->
-    <script defer src="/shared/js/lazy_loader.js"></script>
-    <script defer src="/shared/js/lazy_l10n.js"></script>
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/contacts/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
+    <link rel="resource" type="application/l10n" href="/shared/locales/sim_picker.ini">
     <!-- Needed to not duplicate PIN/PUK management strings -->
     <link rel="resource" type="application/l10n" href="/ftu/locales/locales.ini">
 
@@ -20,14 +19,18 @@
     <link rel="stylesheet" type="text/css" href="/dialer/style/keypad.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/overlay.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/tabs.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/sim_picker.css">
 
     <!-- JS -->
+    <script defer src="/shared/js/lazy_loader.js"></script>
+    <script defer src="/shared/js/lazy_l10n.js"></script>
     <script defer src="/dialer/js/index.js"></script>
     <script defer src="/dialer/js/utils.js"></script>
     <script defer src="/dialer/js/tone_player.js"></script>
     <script defer src="/dialer/js/keypad.js"></script>
     <script defer src="/dialer/js/dialer.js"></script>
     <script defer src="/dialer/js/call_log_db.js"></script>
+    <script defer src="/shared/js/multi_sim_action_button.js"></script>
 
     <!-- for perf-measurement related utilities -->
     <script defer src='/shared/js/performance_testing_helper.js'></script>
@@ -47,6 +50,7 @@
     <script defer src="/shared/js/l10n_date.js"></script>
     <script defer src="/shared/js/mobile_operator.js"></script>
     <script defer src="/shared/js/notification_helper.js"></script>
+    <script defer src="/shared/js/sim_picker.js"></script>
     <script defer src="/shared/js/simple_phone_matcher.js"></script>
     <script defer src="/shared/js/settings_listener.js"></script>
     <script defer src="/contacts/js/utilities/confirm.js"></script>
@@ -55,6 +59,7 @@
     <script defer src="/shared/js/fb/fb_reader_utils.js"></script>
     <script defer src="/shared/js/fb/fb_tel_index.js"></script>
     <script defer src="/shared/js/binary_search.js"></script>
+    <script defer src="/shared/js/sticky_header.js"></script>
     <script defer src="/dialer/js/contacts.js"></script>
     <script defer src="/dialer/js/contact_data_manager.js"></script>
     <script defer src="/dialer/js/suggestion_bar.js"></script>
@@ -66,6 +71,7 @@
 
     <link rel="import" href="elements/edit-mode.html">
     <link rel="import" href="elements/add-contact-action-menu.html">
+    <link rel="import" href="elements/sim-picker.html">
     <link rel="import" href="elements/confirmation-message.html">
   </head>
   <body role="application">
@@ -99,6 +105,7 @@
                   </div>
                 </div>
               </article>
+              <div id="sticky"></div>
             </div>
           </section>
         </div>
@@ -189,13 +196,12 @@
               </div>
             </section>
             <section id="keypad-callbar">
-              <span role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" class="disabled">
+              <div role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" class="disabled">
                 <div class="icon-add-contact"></div>
-              </span>
-              <span role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
-                <div>
-                </div>
-              </span>
+              </div>
+              <div role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
+                <div class="js-sim-indication"></div>
+              </div>
             </section>
           </article>
         </div>
@@ -205,6 +211,8 @@
     <form is="edit-mode" id="edit-mode" role="dialog" data-type="edit" hidden></form>
 
     <form is="add-contact-action-menu" id="add-contact-action-menu" role="dialog" data-type="action" hidden></form>
+
+    <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" hidden></form>
 
     <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
 

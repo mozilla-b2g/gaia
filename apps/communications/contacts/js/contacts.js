@@ -444,27 +444,6 @@ var Contacts = (function() {
       SmsIntegration.sendSms(number);
   };
 
-  var callOrPick = function callOrPick(number) {
-    LazyLoader.load('/dialer/js/mmi.js', function mmiLoaded() {
-      if (ActivityHandler.currentlyHandling &&
-          ActivityHandler.activityName !== 'open') {
-        ActivityHandler.postPickSuccess({ number: number });
-      } else if (MmiManager.isMMI(number)) {
-        // For security reasons we cannot directly call MmiManager.send(). We
-        // need to show the MMI number in the dialer instead.
-        new MozActivity({
-          name: 'dial',
-          data: {
-            type: 'webtelephony/number',
-            number: number
-          }
-        });
-      } else if (navigator.mozTelephony) {
-        TelephonyHelper.call(number);
-      }
-    });
-  };
-
   var handleBack = function handleBack() {
     navigation.back();
   };
@@ -585,15 +564,20 @@ var Contacts = (function() {
       callback();
     } else {
       Contacts.view('Details', function viewLoaded() {
-        detailsReady = true;
-        contactsDetails = contacts.Details;
-        contactsDetails.init();
-        callback();
+        var simPickerNode = document.getElementById('sim-picker');
+        LazyLoader.load([simPickerNode], function() {
+          navigator.mozL10n.translate(simPickerNode);
+          detailsReady = true;
+          contactsDetails = contacts.Details;
+          contactsDetails.init();
+          callback();
+        });
       });
     }
   };
 
-  var showForm = function c_showForm(edit) {
+  var showForm = function c_showForm(edit, contact) {
+    currentContact = contact || currentContact;
     initForm(function onInit() {
       doShowForm(edit);
     });
@@ -783,6 +767,7 @@ var Contacts = (function() {
             function success(contact, enrichedContact) {
               currentContact = contact;
               var mergedContact = enrichedContact || contact;
+              contactsDetails.setContact(mergedContact);
               contactsDetails.render(mergedContact, null, enrichedContact);
               contactsList.refresh(mergedContact, checkPendingChanges,
                                    event.reason);
@@ -927,7 +912,6 @@ var Contacts = (function() {
     'cancel': handleCancel,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
-    'callOrPick': callOrPick,
     'navigation': navigation,
     'sendEmailOrPick': sendEmailOrPick,
     'updatePhoto': updatePhoto,

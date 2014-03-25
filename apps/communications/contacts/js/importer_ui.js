@@ -1,3 +1,6 @@
+/* globals LazyLoader, ConfirmDialog, utils, contacts, oauthflow,
+  Curtain, ImageLoader, importer, asyncStorage, FriendListRenderer,
+  Rest, oauth2, contactsList*/
 'use strict';
 
 if (typeof window.importer === 'undefined') {
@@ -252,7 +255,7 @@ if (typeof window.importer === 'undefined') {
             markPendingLogout(logoutUrl, serviceName, cb);
           },
           timeout: function() {
-            window.console.warn('Timeout while logging out user ', url);
+            window.console.warn('Timeout while logging out user ', logoutUrl);
             removeToken();
             markPendingLogout(logoutUrl, serviceName, cb);
           },
@@ -412,7 +415,7 @@ if (typeof window.importer === 'undefined') {
      */
     function friendsAvailable() {
       imgLoader = new ImageLoader('#mainContent',
-                                ".block-item:not([data-uuid='#uid#'])");
+                                '.block-item:not([data-uuid="#uid#"])');
 
       var s = '.block-item:not([data-uuid="#uid#"]) input[type="checkbox"]';
       checkNodeList = contactList.querySelectorAll(s);
@@ -519,17 +522,6 @@ if (typeof window.importer === 'undefined') {
       serviceConnector.listDeviceContacts(callbacks);
 
     };
-
-    function friendImportTimeout() {
-      if (currentRequest) {
-        window.setTimeout(currentRequest.ontimeout, 0);
-      }
-    }
-
-    function friendImportError(e) {
-      currentRequest.failed(e);
-    }
-
 
     /**
      *  Callback invoked when friends are ready to be used
@@ -784,8 +776,9 @@ if (typeof window.importer === 'undefined') {
       var total = selected + unSelected;
 
       cancelled = false;
+      var progress;
       if (selected > 0) {
-        var progress = Curtain.show('progress', 'import');
+        progress = Curtain.show('progress', 'import');
         progress.setTotal(total);
 
         Curtain.oncancel = cancelImport;
@@ -809,7 +802,7 @@ if (typeof window.importer === 'undefined') {
           }
         }, progress);
       } else if (unSelected > 0) {
-        var progress = Curtain.show('progress', 'update');
+        progress = Curtain.show('progress', 'update');
         progress.setTotal(total);
         Curtain.oncancel = cancelImport;
         cleanContacts(function callback() {
@@ -865,17 +858,6 @@ if (typeof window.importer === 'undefined') {
 
       return false;
     };
-
-    /**
-     *   Clears the list of contacts
-     *
-     */
-    function clearList() {
-      var template = contactList.querySelector('[data-template]');
-
-      utils.dom.removeChildNodes(contactList);
-      contactList.appendChild(template);
-    }
 
     /**
      *  Makes a bulk selection of the contacts
@@ -972,8 +954,6 @@ if (typeof window.importer === 'undefined') {
       }
 
       checkNodeList = null;
-      var toBeImported = Object.keys(selectedContacts);
-      var numFriends = toBeImported.length;
 
       theImporter = serviceConnector.getImporter(selectedContacts,
                                                    access_token);

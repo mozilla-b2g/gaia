@@ -39,8 +39,7 @@ suite('call screen', function() {
       statusMessageText;
   var lockedHeader,
       lockedClock,
-      lockedClockNumbers,
-      lockedClockMeridiem,
+      lockedClockTime,
       lockedDate;
   var incomingContainer;
   var bluetoothButton,
@@ -108,12 +107,8 @@ suite('call screen', function() {
     screen.appendChild(statusMessage);
 
     lockedHeader = document.createElement('div');
-    lockedClock = document.createElement('div');
-    lockedHeader.appendChild(lockedClock);
-    lockedClockNumbers = document.createElement('span');
-    lockedClock.appendChild(lockedClockNumbers);
-    lockedClockMeridiem = document.createElement('span');
-    lockedClock.appendChild(lockedClockMeridiem);
+    lockedClockTime = document.createElement('div');
+    lockedHeader.appendChild(lockedClockTime);
     lockedDate = document.createElement('div');
     lockedHeader.appendChild(lockedDate);
     screen.appendChild(lockedHeader);
@@ -149,8 +144,7 @@ suite('call screen', function() {
       CallScreen.speakerButton = speakerButton;
       CallScreen.groupCalls = groupCalls;
       CallScreen.groupCallsList = groupCallsList;
-      CallScreen.lockedClockNumbers = lockedClockNumbers;
-      CallScreen.lockedClockMeridiem = lockedClockMeridiem;
+      CallScreen.lockedClockTime = lockedClockTime;
       CallScreen.lockedDate = lockedDate;
       CallScreen.incomingContainer = incomingContainer;
       CallScreen.bluetoothButton = bluetoothButton;
@@ -851,8 +845,7 @@ suite('call screen', function() {
   suite('showClock in screen locked status', function() {
     var formatArgs = [],
         currentDate,
-        fakeNumber = '12:02',
-        fakeMeridiem = 'PM',
+        fakeClockTime = '12:02 <span>PM</span>',
         fakeDate = 'Monday, September 16';
 
     setup(function() {
@@ -860,7 +853,7 @@ suite('call screen', function() {
         this.localeFormat = function(date, format) {
           formatArgs.push(arguments);
           if (format === 'shortTimeFormat') {
-            return fakeNumber + ' ' + fakeMeridiem;
+            return fakeClockTime;
           }
           return fakeDate;
         };
@@ -870,15 +863,13 @@ suite('call screen', function() {
     test('clock and date should display current clock/date info', function() {
       currentDate = new Date();
       CallScreen.showClock(currentDate);
-      var numbersStr = CallScreen.lockedClockNumbers.textContent;
-      var meridiemStr = CallScreen.lockedClockMeridiem.textContent;
+      var clockTime = CallScreen.lockedClockTime.innerHTML;
       var dateStr = CallScreen.lockedDate.textContent;
       // The date parameter here should be equal to clock setup date.
       assert.equal(formatArgs.length, 2);
       assert.equal(formatArgs[0][0], currentDate);
       assert.equal(formatArgs[1][0], currentDate);
-      assert.equal(numbersStr, fakeNumber);
-      assert.equal(meridiemStr, fakeMeridiem);
+      assert.equal(clockTime, fakeClockTime);
       assert.equal(dateStr, fakeDate);
     });
   });

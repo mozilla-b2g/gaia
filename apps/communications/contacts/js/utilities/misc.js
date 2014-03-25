@@ -1,3 +1,4 @@
+/* global mozContact */
 'use strict';
 
 var utils = window.utils || {};
@@ -24,11 +25,12 @@ if (!utils.misc) {
     }
     var dateFormat = _('dateFormat') || '%B %e';
     var f = new navigator.mozL10n.DateTimeFormat();
+    var dateString = null;
     try {
       var offset = date.getTimezoneOffset() * 60 * 1000;
       var normalizedDate = new Date(date.getTime() + offset);
       var dayMonthString = f.localeFormat(normalizedDate, dateFormat);
-      var dateString = _('dateOutput', {
+      dateString = _('dateOutput', {
         dayMonthFormatted: dayMonthString,
         year: year
       });
@@ -40,22 +42,111 @@ if (!utils.misc) {
     return dateString;
   };
 
-  // Normalizes the contact date in UTC TZ
-  utils.misc.normalizeDate = function normalizeDate(filledDate) {
-    var normalizedDate;
+  // Parses a name to obtain a givenName and a familyName
+  // This is useful while importing contacts from SIM card
+  utils.misc.parseName = function parseName(nameString) {
+    // Minimum length to consider a token as significative
+    var MIN_LENGHT_SIGNIFICATIVE = 3;
+    // Minimum length of a token to consider it a familyName
+    var MIN_LENGHT_FN = 2;
 
-    if (filledDate) {
-      normalizedDate = new Date(0);
-      normalizedDate.setUTCDate(filledDate.getDate());
-      normalizedDate.setUTCMonth(filledDate.getMonth());
-      normalizedDate.setUTCFullYear(filledDate.getFullYear());
+    var out = {
+      givenName: '',
+      familyName: ''
+    };
 
-      normalizedDate.setUTCHours(0);
-      normalizedDate.setUTCMinutes(0);
-      normalizedDate.setUTCSeconds(0);
-      normalizedDate.setUTCMilliseconds(0);
+    if (!nameString) {
+      return out;
+    }
+    var str = nameString.trim();
+    if (!str) {
+      return out;
     }
 
-    return normalizedDate;
+    function startsWithUpper(str) {
+      var firstLetter = str.charAt(0);
+      var capFirstLetter = firstLetter.toLocaleUpperCase();
+
+      return (capFirstLetter === firstLetter);
+    }
+
+    // First step of the algorithm is to split the name in its tokens
+    var tokens = nameString.split(/\s+/);
+    var significativeTokens = {};
+    for (var j = 0; j < tokens.length; j++) {
+      var token = tokens[j];
+      // A significative token os one with that min length and which starts with
+      // uppercase letter
+      if (token.length > MIN_LENGHT_SIGNIFICATIVE || startsWithUpper(token)) {
+        significativeTokens[token] = true;
+      }
+    }
+
+    var totalTokens = tokens.length;
+    var lastToken = totalTokens - 1;
+    var rolePrevToken;
+    var remainingTokens = Object.keys(significativeTokens).length;
+    var outGivenNames = [], outFamilyNames = [];
+    // We need to keep the totals in a different variable as a familyName
+    // can be composed by more than one token
+    var numFns = 0;
+
+    while (lastToken >= 0) {
+      if (significativeTokens[tokens[lastToken]]) {
+        remainingTokens--;
+      }
+
+      var currToken = tokens[lastToken],
+          nextToken = tokens[lastToken + 1],
+          prevToken = tokens[lastToken - 1];
+
+      // The last element is taken as part of the family name
+      if (!nextToken && prevToken) {
+          outFamilyNames.push(currToken);
+          numFns++;
+          rolePrevToken = 'FN';
+      }
+      else if (!prevToken) {
+        outGivenNames.push(currToken);
+        rolePrevToken = 'GN';
+      }
+      else if (nextToken) {
+        if (!significativeTokens[currToken]) {
+          if (rolePrevToken === 'FN') {
+            // Here the number of fns is not incremented as this is a non
+            // significative token
+            outFamilyNames.push(currToken);
+          }
+          else {
+            outGivenNames.push(currToken);
+          }
+        }
+        else if (currToken.length < MIN_LENGHT_FN) {
+          outGivenNames.push(currToken);
+          rolePrevToken = 'GN';
+        }
+        else {
+          // Number of familyNames will be two at most
+          // Preference is given to the givenName over familyName
+          // We prefer two givenNames instead of two family Names
+          if (remainingTokens >= 2 && numFns < 2) {
+            outFamilyNames.push(currToken);
+            numFns++;
+            rolePrevToken = 'FN';
+          }
+          else {
+            outGivenNames.push(currToken);
+            rolePrevToken = 'GN';
+          }
+        }
+      }
+
+      lastToken--;
+    }
+
+    out.givenName = outGivenNames.reverse().join(' ').trim();
+    out.familyName = outFamilyNames.reverse().join(' ').trim();
+
+    return out;
   };
 }

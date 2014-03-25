@@ -135,7 +135,7 @@
 }
 
 /**
- * settings-enabled=false
+ * @settings-disabled
  */
 
 .hud[settings-enabled=false] .hud_settings {

@@ -11,7 +11,7 @@ var assert = require('chai').assert;
 var fs = require('fs');
 
 suite('Distribution mechanism', function() {
-  var distDir;
+  var cusDir;
   suiteSetup(function() {
     rmrf('profile');
   });
@@ -19,9 +19,8 @@ suite('Distribution mechanism', function() {
   function validatePreloadSettingDB() {
     var settingsPath = path.join(process.cwd(), 'profile', 'settings.json');
     var settings = JSON.parse(fs.readFileSync(settingsPath));
-    var expectedSettings = {
-      'wap.push.enabled': false
-    };
+    var expectedSettings = JSON.parse(
+      fs.readFileSync(path.join(cusDir, 'settings.json')));
 
     helper.checkSettings(settings, expectedSettings);
   }
@@ -29,34 +28,17 @@ suite('Distribution mechanism', function() {
   function validateSettings() {
     var setingsZipPath = path.join(process.cwd(), 'profile',
       'webapps', 'settings.gaiamobile.org', 'application.zip');
-    var expectedSupportData = {
-      'onlinesupport': {
-        'href': 'http://support.mozilla.org/',
-        'title': 'Mozilla Support'
-      },
-      'callsupport': [
-        {
-          'href': 'tel:12345678',
-          'title': 'Call Support 1'
-        },
-        {
-          'href': 'tel:87654321',
-          'title': 'Call Support 2'
-        }
-      ]
-    };
-    helper.checkFileContentInZip(setingsZipPath, 'resources/support.json',
-      expectedSupportData, true);
 
-    var expectedSensorsData = { ambientLight: false };
+    helper.checkFileContentByPathInZip(
+      setingsZipPath, 'resources/support.json',
+      path.join(cusDir, 'support.json'), true);
 
-    helper.checkFileContentInZip(setingsZipPath, 'resources/sensors.json',
-      expectedSensorsData, true);
+    helper.checkFileContentByPathInZip(
+      setingsZipPath, 'resources/sensors.json',
+      path.join(cusDir, 'sensors.json'), true);
   }
 
   function validateComm() {
-    var distPath = path.join(process.cwd(), 'build', 'test', 'resources',
-      'distribution_test');
     var zipPath = path.join(process.cwd(), 'profile',
       'webapps', 'communications.gaiamobile.org', 'application.zip');
     var variantConfig = {
@@ -74,17 +56,17 @@ suite('Distribution mechanism', function() {
     helper.checkFileContentInZip(zipPath, 'resources/customization.json',
       expectedCustom, true);
     helper.checkFileInZip(zipPath, 'resources/mobizilla_wallpaper.png',
-      path.join(distPath, 'mobizilla', 'mobizilla_wallpaper.png'));
+      path.join(cusDir, 'mobizilla', 'mobizilla_wallpaper.png'));
     helper.checkFileInZip(zipPath, 'resources/mobizilla_contacts.json',
-      path.join(distPath, 'mobizilla', 'mobizilla_contacts.json'));
+      path.join(cusDir, 'mobizilla', 'mobizilla_contacts.json'));
     helper.checkFileInZip(zipPath, 'resources/mobizilla_support_contacts.json',
-      path.join(distPath, 'mobizilla', 'mobizilla_support_contacts.json'));
+      path.join(cusDir, 'mobizilla', 'mobizilla_support_contacts.json'));
     helper.checkFileInZip(zipPath, 'resources/mobizilla_keyboard.json',
-      path.join(distPath, 'mobizilla', 'mobizilla_keyboard.json'));
+      path.join(cusDir, 'mobizilla', 'mobizilla_keyboard.json'));
     helper.checkFileInZip(zipPath, 'resources/mobizilla_network_type.json',
-      path.join(distPath, 'mobizilla', 'mobizilla_network_type.json'));
+      path.join(cusDir, 'mobizilla', 'mobizilla_network_type.json'));
     helper.checkFileInZip(zipPath, 'resources/mobizilla_known_networks.json',
-      path.join(distPath, 'mobizilla', 'mobizilla_known_networks.json'));
+      path.join(cusDir, 'mobizilla', 'mobizilla_known_networks.json'));
   }
 
   function validateCalendar() {
@@ -94,83 +76,62 @@ suite('Distribution mechanism', function() {
     assert.isNotNull(presetsContent, 'js/presets.js should exist');
     var sandbox = { Calendar: { Presets: null } };
     vm.runInNewContext(presetsContent, sandbox);
-    assert.isDefined(sandbox.Calendar.Presets['Test Provider'],
-      'Test Provider should be defined');
-    assert.equal(sandbox.Calendar.Presets['Test Provider'].providerType,
-      'Local', 'Property providerType should equal "Local"');
+
+    var expectedCalendarData = JSON.parse(fs.readFileSync(
+      path.join(cusDir, 'calendar.json')));
+
+    helper.checkSettings(sandbox.Calendar.Presets, expectedCalendarData);
   }
 
   function validateWappush() {
-    var wappushZip = new AdmZip(path.join(process.cwd(), 'profile',
-      'webapps', 'wappush.gaiamobile.org', 'application.zip'));
-    var whitelist =
-      wappushZip.readAsText(wappushZip.getEntry('js/whitelist.json'));
-    assert.isNotNull(whitelist, 'js/whitelist.json should exist');
-    var list = JSON.parse(whitelist);
-    assert.isDefined(list[0], 'whitelist[0] should be defined');
-    assert.equal(list[0], '9871010079',
-      'whitelist[0] should equal "9871010079"');
+    var wappushZipPath = path.join(process.cwd(), 'profile',
+      'webapps', 'wappush.gaiamobile.org', 'application.zip');
+
+    helper.checkFileContentByPathInZip(wappushZipPath, 'js/whitelist.json',
+      path.join(cusDir, 'wappush-whitelist.json'), true);
   }
 
   function validateWallpaper() {
-    var zip = new AdmZip(path.join(process.cwd(), 'profile',
-      'webapps', 'wallpaper.gaiamobile.org', 'application.zip'));
-    var listText = zip.readAsText(
-      zip.getEntry('resources/320x480/list.json'));
-    assert.isNotNull(listText, 'resources/320x480/list.json should exist');
-    var list = JSON.parse(listText);
-    var expectedList = [
-      'efefef.png',
-      'FXOS_Illus_Blocks.png',
-      'FXOS_Illus_Fox_Nature.png',
-      'FXOS_Illus_Mountains.png'
-    ];
-    assert.deepEqual(list, expectedList,
-      'list should match the expected list.');
+    var zipPath = path.join(process.cwd(), 'profile',
+      'webapps', 'wallpaper.gaiamobile.org', 'application.zip');
+    helper.checkFileContentByPathInZip(zipPath, 'resources/320x480/list.json',
+      path.join(cusDir, 'wallpapers', 'list.json'), true);
 
-    var file = zip.readFile(zip.getEntry('resources/320x480/efefef.png'));
-    assert.isNotNull(file, 'rresources/320x480/efefef.png should exist');
+    helper.checkFileContentByPathInZip(zipPath,
+      'resources/320x480/customize.png',
+      path.join(cusDir, 'wallpapers', 'customize.png'), false);
   }
 
   function validateBrowser() {
-    var appPath = path.join(distDir, 'browser.json');
-    var appConfig = JSON.parse(fs.readFileSync(appPath));
-    var broZip = new AdmZip(path.join(process.cwd(), 'profile',
-      'webapps', 'browser.gaiamobile.org', 'application.zip'));
-    var presetsContent = broZip.readAsText(broZip.getEntry('js/init.json'));
-    assert.isNotNull(presetsContent, 'js/init.json should exist');
-    assert.deepEqual(JSON.parse(presetsContent), appConfig);
+    var broZipPath = path.join(process.cwd(), 'profile',
+      'webapps', 'browser.gaiamobile.org', 'application.zip');
+    helper.checkFileContentByPathInZip(broZipPath, 'js/init.json',
+      path.join(cusDir, 'browser.json'), true);
   }
 
   function validateSystem() {
-    var icc = path.join(distDir, 'icc.json');
-    var iccConfig = JSON.parse(fs.readFileSync(icc));
-    var wapuaprof = path.join(distDir, 'wapuaprof.json');
-    var wapuaprofConfig = JSON.parse(fs.readFileSync(wapuaprof));
-    var power = path.join(distDir, 'power', 'fakePowerFile.json');
-    var powerFile = JSON.parse(fs.readFileSync(power));
     var sysZipPath = path.join(process.cwd(), 'profile',
           'webapps', 'system.gaiamobile.org', 'application.zip');
-
-    helper.checkFileContentInZip(sysZipPath, 'resources/icc.json',
-      iccConfig, true);
-    helper.checkFileContentInZip(sysZipPath, 'resources/wapuaprof.json',
-      wapuaprofConfig, true);
-    helper.checkFileContentInZip(sysZipPath,
-      'resources/power/fakePowerFile.json', powerFile, true);
-
+    helper.checkFileContentByPathInZip(sysZipPath, 'resources/icc.json',
+      path.join(cusDir, 'icc.json'), true);
+    helper.checkFileContentByPathInZip(sysZipPath, 'resources/wapuaprof.json',
+      path.join(cusDir, 'wapuaprof.json'), true);
+    helper.checkFileContentByPathInZip(sysZipPath,
+      'resources/power/carrie_power_on.png',
+      path.join(cusDir, 'power', 'carrie_power_on.png'), false);
   }
 
   function validateSms() {
-    var appPath = path.join(distDir, 'sms-blacklist.json');
-    var appConfig = JSON.parse(fs.readFileSync(appPath));
     var zipPath = path.join(process.cwd(), 'profile',
       'webapps', 'sms.gaiamobile.org', 'application.zip');
-    helper.checkFileContentInZip(zipPath, 'js/blacklist.json',
-      appConfig, true);
+    helper.checkFileContentByPathInZip(zipPath, 'js/blacklist.json',
+      path.join(cusDir, 'sms-blacklist.json'), true);
   }
 
-  function validateCustomizeMaximumImageSize(appConfig, content) {
+  function parseCustimizeImageSetting(appConfig) {
+    if (typeof appConfig !== 'object') {
+      return '';
+    }
     var expectedContent =
       '//\n' +
       '// This file is automatically generated: DO NOT EDIT.\n' +
@@ -208,25 +169,25 @@ suite('Distribution mechanism', function() {
         'var CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH = 0;\n' +
         'var CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT = 0;\n';
     }
-
-    assert.isNotNull(content, 'js/config.js should exist');
-    assert.equal(expectedContent,  content);
+    return expectedContent;
   }
 
   function validateGallery() {
-    var distPath = path.join(distDir, 'gallery.json');
-    var distConfig = JSON.parse(fs.readFileSync(distPath));
+    var cusPath = path.join(cusDir, 'gallery.json');
+    var cusConfig = JSON.parse(fs.readFileSync(cusPath));
     var appZip = new AdmZip(path.join(process.cwd(), 'profile',
       'webapps', 'gallery.gaiamobile.org', 'application.zip'));
     var presetsContent = appZip.readAsText(appZip.getEntry('js/config.js'));
 
-    validateCustomizeMaximumImageSize(distConfig, presetsContent);
+    var expectContent = parseCustimizeImageSetting(cusConfig);
+    assert.equal(presetsContent,  expectContent);
   }
 
   function validateHomescreen() {
     var appZip = new AdmZip(path.join(process.cwd(), 'profile',
       'webapps', 'homescreen.gaiamobile.org', 'application.zip'));
     var config = JSON.parse(appZip.readAsText(appZip.getEntry('js/init.json')));
+
     assert.equal(config.grid[0][0].name, 'Camera');
     assert.equal(config.grid[0][1].entry_point, 'dialer');
     assert.equal(config.grid[0][2].name, 'Messages');
@@ -253,9 +214,8 @@ suite('Distribution mechanism', function() {
   }
 
   test('build with GAIA_DISTRIBUTION_DIR', function(done) {
-    distDir = path.join(process.cwd(), 'build', 'test', 'resources',
-      'distribution_test');
-    var cmd = 'GAIA_DISTRIBUTION_DIR=' + distDir + ' make';
+    cusDir = path.join(process.cwd(), 'customization');
+    var cmd = 'GAIA_DISTRIBUTION_DIR=' + cusDir + ' make';
     exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
       validatePreloadSettingDB();

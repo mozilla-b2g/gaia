@@ -3,7 +3,6 @@
 var _;
 
 var UIManager = {
-
   // As in other Gaia apps, we store all the dom selectors in one
   // place and then camelCase them and attach to the main object,
   // eg. instead of calling document.getElementById('splash-screen')
@@ -62,6 +61,8 @@ var UIManager = {
     'no-sim',
     'sd-import-button',
     'no-memorycard',
+    // Fxa Intro
+    'fxa-create-account',
     // Wifi
     'networks',
     'wifi-refresh-button',
@@ -154,6 +155,8 @@ var UIManager = {
     this.initTZ();
 
     this.geolocationSwitch.addEventListener('click', this);
+
+    this.fxaCreateAccount.addEventListener('click', this);
 
     // Prevent form submit in case something tries to send it
     this.timeForm.addEventListener('submit', function(event) {
@@ -362,6 +365,10 @@ var UIManager = {
       case 'share-performance':
         this.updateSetting(event.target.name, event.target.checked);
         break;
+      // Fxa Intro
+      case 'fxa-create-account':
+        this.createFirefoxAccount();
+        break;
       default:
         // wifi selection
         if (event.target.parentNode.id === 'networks-list') {
@@ -378,6 +385,41 @@ var UIManager = {
     }
     var cset = {}; cset[name] = value;
     settings.createLock().set(cset);
+  },
+
+  createFirefoxAccount: function ui_createFirefoxAccount() {
+    var fxaDescription = document.getElementById('fxa-intro');
+    var showResponse = function ui_showResponse(response) {
+      if (response && response.done) {
+        // Update the email
+        UIManager.newsletterInput.value = response.email;
+        // Update the string
+        fxaDescription.innerHTML = '';
+        navigator.mozL10n.localize(
+          fxaDescription,
+          'fxa-logged',
+          {
+            email: response.email
+          }
+        );
+        // Disable the button
+        UIManager.fxaCreateAccount.disabled = true;
+      }
+    };
+    var showError = function ui_showError(response) {
+      console.error('Create FxA Error: ' + JSON.stringify(response));
+      // Clean fields
+      UIManager.newsletterInput.value = '';
+      // Reset the field
+      navigator.mozL10n.localize(
+        fxaDescription,
+        'fxa-intro'
+      );
+      // Enable the button
+      UIManager.fxaCreateAccount.disabled = false;
+    };
+
+    FxAccountsIACHelper.openFlow(showResponse, showError);
   },
 
   displayOfflineDialog: function ui_displayOfflineDialog(href, title) {
@@ -432,7 +474,7 @@ var UIManager = {
   setTimeZone: function ui_stz(timezone) {
     var utcOffset = timezone.utcOffset;
     document.getElementById('time_zone_overlay').className =
-      utcOffset.replace(/[+:]/g, '');
+      'UTC' + utcOffset.replace(/[+:]/g, '');
     var timezoneTitle = document.getElementById('time-zone-title');
     navigator.mozL10n.localize(timezoneTitle, 'timezoneTitle', {
       utcOffset: utcOffset,

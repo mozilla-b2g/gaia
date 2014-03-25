@@ -66,34 +66,30 @@ suite('search/providers/marketplace', function() {
 
   suite('mock response', function() {
 
-    var marketplaceContent = {
-      meta: {
-        total_count: 2
+    var marketplaceContent = [
+      {
+        'manifest_url': 'http://fakeapp1.mozilla.org/manifest.webapp',
+        'name': 'FIRST Marketplace App',
+        'icon': ''
       },
-      objects: [
-        {
-          'manifest_url': 'http://fakeapp1.mozilla.org/manifest.webapp',
-          'name': {
-            'en-us': 'FIRST Marketplace App'
-          },
-          'icons': {}
-        },
-        {
-          'manifest_url': 'http://fakeapp2.mozilla.org/manifest.webapp',
-          'name': {
-            'en-us': 'SECOND Marketplace App'
-          },
-          'icons': {}
-        }
-      ]
-    };
+      {
+        'manifest_url': 'http://fakeapp2.mozilla.org/manifest.webapp',
+        'name': 'SECOND Marketplace App',
+        'icon': ''
+      }
+    ];
 
     var requests = [];
+    var xhr;
 
     setup(function() {
-      var xhr = sinon.useFakeXMLHttpRequest();
+      xhr = sinon.useFakeXMLHttpRequest();
       requests = [];
       xhr.onCreate = function(req) { requests.push(req); };
+    });
+
+    teardown(function() {
+      xhr.restore();
     });
 
     test('renders all results', function() {

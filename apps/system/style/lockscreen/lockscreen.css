@@ -549,7 +549,7 @@ button::-moz-focus-inner {
   display: inline-block;
   padding: 0;
   color: #fff;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 500;
   line-height: 1.6rem;
   text-transform: uppercase;
@@ -599,7 +599,7 @@ button::-moz-focus-inner {
 
 #lockscreen-icon-container {
   position: absolute;
-  bottom: 0rem;
+  bottom: 0;
   width: 100%;
   height: 10rem;
   pointer-events: none;

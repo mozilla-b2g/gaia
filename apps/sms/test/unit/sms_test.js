@@ -13,6 +13,7 @@ require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
 require('/shared/js/gesture_detector.js');
 require('/shared/js/async_storage.js');
+require('/shared/js/sticky_header.js');
 
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
 requireApp('sms/test/unit/mock_contact.js');
@@ -38,6 +39,7 @@ requireApp('sms/js/thread_list_ui.js');
 requireApp('sms/js/recipients.js');
 requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/waiting_screen.js');
+require('/shared/js/performance_testing_helper.js');
 requireApp('sms/js/startup.js');
 
 var MocksHelperForSmsUnitTest = new MocksHelper([

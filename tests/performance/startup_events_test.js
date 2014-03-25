@@ -9,7 +9,8 @@ var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 var whitelistedApps = [
   'communications/contacts',
   'clock',
-  'fm'
+  'fm',
+  'sms'
 ];
 
 if (whitelistedApps.indexOf(mozTestInfo.appPath) === -1) {

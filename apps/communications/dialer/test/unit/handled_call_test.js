@@ -9,6 +9,7 @@ requireApp('communications/dialer/test/unit/mock_utils.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
 requireApp('communications/dialer/test/unit/mock_call.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 
 requireApp('communications/dialer/js/handled_call.js');
 requireApp('communications/dialer/js/voicemail.js');
@@ -26,6 +27,7 @@ var mocksHelperForHandledCall = new MocksHelper([
 
 suite('dialer/handled_call', function() {
   var realNavigatorSettings;
+  var realMozIccManager;
 
   const VOICEMAIL_NUMBER = '123';
   var subject;
@@ -42,6 +44,9 @@ suite('dialer/handled_call', function() {
   suiteSetup(function() {
     realNavigatorSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+
+    realMozIccManager = navigator.mozIccManager;
+    navigator.mozIccManager = MockNavigatorMozIccManager;
 
     phoneNumber = Math.floor(Math.random() * 10000);
 
@@ -66,8 +71,10 @@ suite('dialer/handled_call', function() {
                               '<div class="direction">' +
                                 '<div></div>' +
                               '</div>' +
-                            '<button class="merge-button"></button>' +
                             '</div>' +
+                            '<div class="sim">' +
+                            '</div>' +
+                            '<button class="merge-button"></button>' +
                           '</section>';
     document.body.appendChild(templates);
   });
@@ -76,6 +83,7 @@ suite('dialer/handled_call', function() {
     templates.parentNode.removeChild(templates);
     Voicemail.check.restore();
     navigator.mozSettings = realNavigatorSettings;
+    navigator.mozIccManager = realMozIccManager;
   });
 
   setup(function() {
@@ -94,6 +102,7 @@ suite('dialer/handled_call', function() {
   });
 
   teardown(function() {
+    MockNavigatorMozIccManager.mTeardown();
     var node = subject.node;
     if (node && node.parentNode) {
       node.parentNode.removeChild(node);
@@ -464,14 +473,20 @@ suite('dialer/handled_call', function() {
   });
 
   suite('call direction', function() {
-    test('before connexion', function() {
-      assert.isTrue(subject.node.classList.contains('outgoing'));
-    });
 
-    test('after connexion', function() {
-      mockCall._connect();
-      assert.isTrue(subject.node.classList.contains('ongoing'));
-      assert.isTrue(subject.node.classList.contains('outgoing'));
+    suite('outgoing call', function() {
+      setup(function() {
+        mockCall = new MockCall('888', 'outgoing');
+        subject = new HandledCall(mockCall);
+      });
+
+      test('before and after connexion', function() {
+        assert.isTrue(subject.node.classList.contains('outgoing'));
+        assert.isFalse(subject.node.classList.contains('ongoing'));
+        mockCall._connect();
+        assert.isTrue(subject.node.classList.contains('ongoing'));
+        assert.isTrue(subject.node.classList.contains('outgoing'));
+      });
     });
 
     suite('incoming call', function() {
@@ -480,11 +495,9 @@ suite('dialer/handled_call', function() {
         subject = new HandledCall(mockCall);
       });
 
-      test('before connexion', function() {
+      test('before and after connexion', function() {
         assert.isTrue(subject.node.classList.contains('incoming'));
-      });
-
-      test('after connexion', function() {
+        assert.isFalse(subject.node.classList.contains('ongoing'));
         mockCall._connect();
         assert.isTrue(subject.node.classList.contains('ongoing'));
         assert.isTrue(subject.node.classList.contains('incoming'));
@@ -499,6 +512,10 @@ suite('dialer/handled_call', function() {
 
     test('number', function() {
       assert.equal(subject.recentsEntry.number, mockCall.number);
+    });
+
+    test('serviceId', function() {
+      assert.equal(subject.recentsEntry.serviceId, mockCall.serviceId);
     });
 
     suite('type incoming', function() {
@@ -1035,6 +1052,36 @@ suite('dialer/handled_call', function() {
                                                   'mergeActiveCallWith');
       subject.mergeButton.onclick();
       assert.isTrue(mergeActiveCallWithSpy.calledWith(subject.call));
+    });
+  });
+
+  suite('DSDS SIM display >', function() {
+    setup(function() {
+      MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
+    });
+
+    suite('One SIM >', function() {
+      test('should hide the sim node', function() {
+        mockCall = new MockCall('888', 'outgoing');
+        subject = new HandledCall(mockCall);
+
+        assert.isTrue(subject.simNode.hidden);
+      });
+    });
+
+    suite('Multiple SIMs >', function() {
+      setup(function() {
+        MockNavigatorMozIccManager.addIcc('424242', {'cardState': 'ready'});
+      });
+
+      test('should show which sim is in use', function() {
+        mockCall = new MockCall('888', 'outgoing');
+        subject = new HandledCall(mockCall);
+
+        assert.isFalse(subject.simNode.hidden);
+        assert.equal(subject.simNode.textContent, 'via-sim');
+        assert.deepEqual(MockLazyL10n.keys['via-sim'], {n: 2});
+      });
     });
   });
 });

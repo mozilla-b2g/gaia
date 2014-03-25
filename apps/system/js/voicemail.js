@@ -17,14 +17,12 @@ var Voicemail = {
 
     this.icon = window.location.protocol + '//' +
       window.location.hostname + '/style/icons/voicemail.png';
+    this.voiceMailNumberHelper = SettingsHelper('ril.iccInfo.mbdn', null);
   },
 
   handleEvent: function vm_handleEvent(evt) {
-    // TODO: remove this backward compatibility check
-    // after bug-814634 is landed
     var voicemail = window.navigator.mozVoicemail;
-    var status = voicemail.status ||
-      voicemail.getStatus && voicemail.getStatus();
+    var status = evt.status;
 
     if (!status)
       return;
@@ -36,6 +34,7 @@ var Voicemail = {
     var _ = window.navigator.mozL10n.get;
     var title = status.returnMessage;
     var showCount = status.hasMessages && status.messageCount > 0;
+    var simIndex = status.serviceId + 1;
 
     if (!title) {
       title = showCount ? _('newVoicemails', { n: status.messageCount }) :
@@ -53,28 +52,27 @@ var Voicemail = {
     // looking up |navigator.mozVoicemail.number|.
     // Some SIM card may not provide MBDN info
     // but we could still use settings to overload that.
-    var transaction = settings.createLock();
-    var request = transaction.get('ril.iccInfo.mbdn');
-    request.onsuccess = function() {
-      var number = request.result['ril.iccInfo.mbdn'];
+    this.voiceMailNumberHelper.get(function gotVMNumbers(numbers) {
       var voicemail = navigator.mozVoicemail;
-      // TODO: remove this backward compatibility check
-      // after bug-814634 is landed
+      var number = numbers && numbers[simIndex];
+
       if (!number && voicemail) {
-        number = voicemail.number ||
-          voicemail.getNumber && voicemail.getNumber();
+       number = voicemail.getNumber(status.serviceId);
       }
+
       if (number) {
         text = _('dialNumber', { number: number });
       }
 
       if (status.hasMessages) {
+        if (SIMSlotManager.isMultiSIM()) {
+          title = 'SIM ' + simIndex + ' - ' + title;
+        }
         Voicemail.showNotification(title, text, number);
       } else {
         Voicemail.hideNotification();
       }
-    };
-    request.onerror = function() {};
+    });
   },
 
   showNotification: function vm_showNotification(title, text, voicemailNumber) {

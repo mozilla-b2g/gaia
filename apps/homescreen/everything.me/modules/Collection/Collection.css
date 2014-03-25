@@ -175,9 +175,6 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
         overflow: hidden;
     }
 
-.evmeScope #collection.full-image {
-
-}
     .evmeScope #collection.full-image .evme-apps,
     .evmeScope #collection.full-image .header .close,
     .evmeScope #collection.full-image .image-overlay {
