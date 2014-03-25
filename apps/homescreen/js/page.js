@@ -43,7 +43,7 @@ Icon.prototype = {
   // App icons shadow settings
   SHADOW_BLUR: 5,
   SHADOW_OFFSET_Y: 2,
-  SHADOW_COLOR: 'rgba(0,0,0,0.15)',
+  SHADOW_COLOR: 'rgba(0,0,0,0.05)',
 
   // These properties will be copied from the descriptor onto the icon's HTML
   // element dataset and allow us to uniquely look up the Icon object from

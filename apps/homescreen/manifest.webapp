@@ -40,7 +40,10 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "30": "/style/icons/HomeScreen.png"
+    "30": "/style/icons/HomeScreen.png",
+    "45": "/style/icons/HomeScreen_45.png",
+    "60": "/style/icons/HomeScreen_60.png",
+    "68": "/style/icons/HomeScreen_68.png"
   },
   "orientation": "default",
   "activities": {

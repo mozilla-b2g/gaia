@@ -33,6 +33,7 @@
   },
   "default_locale": "en-US",
   "icons": {
+    "135": "/style/icons/Fm_135.png",
     "128": "/style/icons/Fm_120.png",
     "90": "/style/icons/Fm_90.png",
     "60": "/style/icons/Fm_60.png"
