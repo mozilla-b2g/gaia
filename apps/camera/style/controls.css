@@ -175,6 +175,10 @@
   visibility: visible;
 }
 
+.controls[recording=true] .mode-switch {
+  visibility: hidden;
+}
+
 /** Mode Icon
  ---------------------------------------------------------*/
 
