@@ -1,5 +1,7 @@
 /* global BalanceView, LazyLoader, AutoSettings, BalanceLowLimitView,
           ViewManager, dataLimitConfigurer */
+/* exported debug */
+
 /*
  * Settings is in charge of setup the setting section. It uses an AutoSettings
  * object to automatically bind markup with local settings.
@@ -29,6 +31,7 @@
 
  // Import debug
  var DEBUGGING = window.parent.DEBUGGING;
+ var debug = window.parent.debug;
 
 var Settings = (function() {
 

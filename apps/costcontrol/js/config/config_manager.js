@@ -255,7 +255,7 @@ var ConfigManager = (function() {
   function callCallbacks(evt) {
     debug('Option', evt.detail.name, 'has changed!');
     var callbackCollection = callbacks[evt.detail.name] || [];
-    for (var i = 0; i < callbackCollection.lenght; i++) {
+    for (var i = 0; i < callbackCollection.length; i++) {
       var callback = callbackCollection[i];
       if (callback) {
         callback(evt.detail.value, evt.detail.oldValue, evt.detail.name,

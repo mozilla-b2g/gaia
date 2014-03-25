@@ -392,7 +392,7 @@ var Widget = (function() {
             );
             var meta = views.telephony.querySelector('.meta');
             meta.innerHTML = '';
-            meta.appendChild(formatTimeHTML(activity.timestamp));
+            meta.appendChild(formatTimeHTML(dataActivity.timestamp));
           });
         }
       }
