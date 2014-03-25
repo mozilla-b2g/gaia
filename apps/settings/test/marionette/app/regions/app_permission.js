@@ -16,7 +16,7 @@ function AppPermissionPanel(client) {
 module.exports = AppPermissionPanel;
 
 AppPermissionPanel.Selectors = {
-  'firstAppEntry': 'a[href="#appPermissions-details"]',
+  'firstAppEntry': '.app-list a',
   'geolocationSelect': 'select[data-perm="geolocation"]'
 };
 
