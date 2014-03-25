@@ -81,11 +81,3 @@
   color: #D92E2E;
   text-shadow: none;
 }
-
-/**
- * icon-battery-verylow
- */
-
-.notification > li.icon-battery-verylow:before {
-  font-size: 7.5rem;
-}
