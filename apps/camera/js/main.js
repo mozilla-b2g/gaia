@@ -15,7 +15,6 @@ require(['config/require', 'config'], function() {
     var Sounds = require('lib/sounds');
     var Config = require('lib/config');
     var Settings = require('lib/settings');
-    var Filmstrip = require('lib/filmstrip');
     var sounds = new Sounds(require('config/sounds'));
     var config = new Config(require('config/app'));
     var settings = new Settings(config.get());
@@ -26,13 +25,21 @@ require(['config/require', 'config'], function() {
       hud: require('controllers/hud'),
       controls: require('controllers/controls'),
       viewfinder: require('controllers/viewfinder'),
+      recordingTimer: require('controllers/recording-timer'),
+      previewGallery: require('controllers/preview-gallery'),
       overlay: require('controllers/overlay'),
       confirm: require('controllers/confirm'),
       settings: require('controllers/settings'),
       activity: require('controllers/activity'),
       camera: require('controllers/camera'),
-      sounds: require('controllers/sounds')
+      sounds: require('controllers/sounds'),
+      timer: require('controllers/timer'),
+      zoomBar: require('controllers/zoom-bar'),
+      indicators: require('controllers/indicators')
     };
+
+    // Attach navigator.mozL10n
+    require('l10n');
 
     debug('required dependencies');
 
@@ -58,15 +65,15 @@ require(['config/require', 'config'], function() {
       camera: camera,
       sounds: sounds,
       controllers: controllers,
-      filmstrip: Filmstrip,
       storage: new Storage()
     });
 
     debug('created app');
 
-    // Async jobs to be
-    // done before boot...
+    // Fetch persistent settings
     app.settings.fetch();
+
+    // Check for activities, then boot
     app.activity.check(app.boot);
   });
 
