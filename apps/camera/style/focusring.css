@@ -10,8 +10,8 @@
 }
 
 [data-mode=faceTracking] .focusring{
-  margin-top: -0rem;
-  margin-left: -0rem;
+  margin-top: -5rem;
+  margin-left: -5rem;
 }
 
 [data-mode=continuousFocus] .focusring{

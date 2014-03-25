@@ -72,7 +72,6 @@ module.exports = View.extend({
     if (this.els.face) {
       this.els.face.removeChild(this.els.face);
     }
-    this.setDefaultValues();
     this.els.focus.style.fontSize = mainFace.length + 'px';
     this.els.focus.style.transform = 'translate(' + mainFace.pointY +
       'px, ' + mainFace.pointX + 'px)';

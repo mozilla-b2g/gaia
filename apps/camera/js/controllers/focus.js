@@ -286,7 +286,7 @@ focusmodeController.prototype.onFacedetected = function(faces) {
   var mainFace = null;
   var transformedFaces = [];
 
-  //if (this.faceDisable) { return; }
+  if (this.faceDisable) { return; }
   if (this.focusTimeOut) {
     clearTimeout(this.focusTimeOut);
     this.focusTimeOut = null;
@@ -315,8 +315,8 @@ focusmodeController.prototype.onFacedetected = function(faces) {
     var px = Math.round(faces[i].bounds.left * sw);
     var py = Math.round((-1) * ((faces[i].bounds.bottom +
       faces[i].bounds.top) / 2) * sh);
-    var radius = Math.round(((width + height) / 2) * sw);
-
+    var radius = Math.round(height * sw);
+    //Math.round(((width + height) / 2) * sw);
     transformedFaces[i] = {
       pointX: px,
       pointY: py,
@@ -369,7 +369,7 @@ focusmodeController.prototype.onFacedetected = function(faces) {
     setTimeout(function() {
       self.camera.set('focus', 'none');
       self.faceDisable = false;
-    }, 1000);
+    }, 3000);
   }
 
   this.focusTimeOut = setTimeout(function() {
@@ -377,7 +377,7 @@ focusmodeController.prototype.onFacedetected = function(faces) {
       self.faceDisable = false;
       self.resetFocusRingPosition();
       self.setDefaultFocusmode();
-    }, 3000);
+    }, 5000);
 };
 
 focusmodeController.prototype.setCurrentFocusMode = function(mode) {
