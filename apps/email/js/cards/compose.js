@@ -354,6 +354,12 @@ ComposeCard.prototype = {
         return false;
     };
 
+    // If no composer, then it means the card was destroyed before full
+    // setup, which means there is nothing to save.
+    if (!this.composer) {
+      return false;
+    }
+
     // We need to save / ask about deleting the draft if:
     // There's any recipients listed, there's a subject, there's anything in the
     // body, there are attachments, or we already created a draft for this
