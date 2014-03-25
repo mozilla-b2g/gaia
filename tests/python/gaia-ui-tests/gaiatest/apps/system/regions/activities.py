@@ -29,6 +29,7 @@ class Activities(Base):
 
     def tap_wallpaper(self):
         self.marionette.find_element(*self._wallpaper_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._actions_menu_locator)
         from gaiatest.apps.wallpaper.app import Wallpaper
         wallpaper = Wallpaper(self.marionette)
         wallpaper.switch_to_wallpaper_frame()
@@ -36,6 +37,7 @@ class Activities(Base):
 
     def tap_gallery(self):
         self.marionette.find_element(*self._gallery_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._actions_menu_locator)
         from gaiatest.apps.gallery.app import Gallery
         gallery = Gallery(self.marionette)
         gallery.switch_to_gallery_frame()
@@ -43,6 +45,7 @@ class Activities(Base):
 
     def tap_camera(self):
         self.marionette.find_element(*self._camera_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._actions_menu_locator)
         from gaiatest.apps.camera.app import Camera
         camera = Camera(self.marionette)
         camera.switch_to_camera_frame()
@@ -50,6 +53,7 @@ class Activities(Base):
 
     def tap_cancel(self):
         self.marionette.find_element(*self._cancel_button_locator).tap()
+        self.wait_for_element_not_displayed(*self._actions_menu_locator)
         self.apps.switch_to_displayed_app()
 
     @property
