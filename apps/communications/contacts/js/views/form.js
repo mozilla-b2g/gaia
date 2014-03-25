@@ -1252,11 +1252,28 @@ contacts.Form = (function() {
       // (see https://bugzilla.mozilla.org/show_bug.cgi?id=806503)
       // And it might not be the size we want, anyway, so we make
       // our own copy that is at the right size.
-      resizeBlob(this.result.blob, PHOTO_WIDTH, PHOTO_HEIGHT,
-                 function(resized) {
-                   Contacts.updatePhoto(resized, thumb);
-                   currentPhoto = resized;
-                 });
+      LazyLoader.load(['/contacts/js/utilities/resize_image.js'], function() {
+        resizeImage({
+          blob: this.result.blob,
+          mimeType: 'image/jpeg',
+          transform: function(origWidth, origHeight, draw, cancel) {
+            var scalex = origWidth / PHOTO_WIDTH;
+            var scaley = origHeight / PHOTO_HEIGHT;
+            var scale = Math.min(scalex, scaley);
+
+            var w = PHOTO_WIDTH * scale;
+            var h = PHOTO_HEIGHT * scale;
+            var x = (origWidth - w) / 2;
+            var y = (origHeight - h) / 2;
+
+            draw(x, y, w, h, PHOTO_WIDTH, PHOTO_HEIGHT);
+          },
+          success: function(resized) {
+            Contacts.updatePhoto(resized, thumb);
+            currentPhoto = resized;
+          }
+        });
+      }.bind(this));
     };
 
     activity.onerror = function() {
@@ -1265,33 +1282,6 @@ contacts.Form = (function() {
 
     return false;
   };
-
-  function resizeBlob(blob, target_width, target_height, callback) {
-    var img = document.createElement('img');
-    var url = URL.createObjectURL(blob);
-    img.src = url;
-    img.onload = function() {
-      var image_width = img.width;
-      var image_height = img.height;
-      var scalex = image_width / target_width;
-      var scaley = image_height / target_height;
-      var scale = Math.min(scalex, scaley);
-
-      var w = target_width * scale;
-      var h = target_height * scale;
-      var x = (image_width - w) / 2;
-      var y = (image_height - h) / 2;
-
-      var canvas = document.createElement('canvas');
-      canvas.width = target_width;
-      canvas.height = target_height;
-      var context = canvas.getContext('2d', { willReadFrequently: true });
-
-      context.drawImage(img, x, y, w, h, 0, 0, target_width, target_height);
-      URL.revokeObjectURL(url);
-      canvas.toBlob(callback, 'image/jpeg');
-    };
-  }
 
   return {
     'init': init,
