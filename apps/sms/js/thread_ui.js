@@ -1886,12 +1886,12 @@ var ThreadUI = global.ThreadUI = {
     }
     if (selected.length > 0) {
       this.uncheckAllButton.disabled = false;
-      this.deleteButton.classList.remove('disabled');
+      this.deleteButton.disabled = false;
       navigator.mozL10n.localize(this.editMode, 'selected',
         {n: selected.length});
     } else {
       this.uncheckAllButton.disabled = true;
-      this.deleteButton.classList.add('disabled');
+      this.deleteButton.disabled = true;
       navigator.mozL10n.localize(this.editMode, 'deleteMessages-title');
     }
   },

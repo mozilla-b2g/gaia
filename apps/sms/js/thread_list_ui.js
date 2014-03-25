@@ -195,11 +195,11 @@ var ThreadListUI = {
     }
     if (selected) {
       this.uncheckAllButton.disabled = false;
-      this.deleteButton.classList.remove('disabled');
+      this.deleteButton.disabled = false;
       navigator.mozL10n.localize(this.editMode, 'selected', {n: selected});
     } else {
       this.uncheckAllButton.disabled = true;
-      this.deleteButton.classList.add('disabled');
+      this.deleteButton.disabled = true;
       navigator.mozL10n.localize(this.editMode, 'deleteMessages-title');
     }
   },
@@ -356,7 +356,7 @@ var ThreadListUI = {
       }]
     };
 
-    // Add delete option when list is not empty 
+    // Add delete option when list is not empty
     if (ThreadListUI.noMessages.classList.contains('hide')) {
       params.items.unshift({
         l10nId: 'deleteMessages-label',
