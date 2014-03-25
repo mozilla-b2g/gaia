@@ -217,18 +217,16 @@ var CardsView = (function() {
       card.appendChild(screenshotView);
 
       //display app icon on the tab
-      if (DISPLAY_APP_ICON) {
-        var iconURI = getIconURI(position);
-        if (iconURI) {
-          var appIcon = document.createElement('img');
-          appIcon.src = iconURI;
-        } else {
-          appIcon = document.createElement('span');
-        }
-        appIcon.classList.add('appIcon');
-        card.appendChild(appIcon);
-        card.classList.add('appIconPreview');
+      var iconURI = getIconURI(position);
+      if (iconURI) {
+        var appIcon = document.createElement('img');
+        appIcon.src = iconURI;
+      } else {
+        appIcon = document.createElement('span');
       }
+      appIcon.classList.add('appIcon');
+      card.appendChild(appIcon);
+      card.classList.add('appIconPreview');
 
       var title = document.createElement('h1');
       title.textContent = app.name;
