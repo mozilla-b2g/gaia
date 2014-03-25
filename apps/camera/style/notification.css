@@ -1,6 +1,6 @@
 .notification {
   position: absolute;
-  bottom:15rem;
+  bottom:14.6rem;
   width: 100%;
   text-align: center;
   font-family: "Fira Sans Medium";
@@ -19,7 +19,7 @@
 .deg90 .notification {
   bottom: 0;
   width:100vh;
-  left:calc(100% - 4.8rem);
+  left:calc(100% - 4.4rem);
   transform-origin: left bottom 0;
   transform: rotate(270deg);
 }
@@ -27,7 +27,7 @@
 .deg270 .notification {
   bottom: 0;
   width:100vh;
-  right:calc(100% - 4.8rem);
+  right:calc(100% - 4.4rem);
   transform-origin: right bottom 0;
   transform: rotate(90deg);
 }
