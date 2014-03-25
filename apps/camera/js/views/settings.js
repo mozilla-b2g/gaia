@@ -35,8 +35,8 @@ module.exports = View.extend({
     this.optionsView = new OptionsView({ model: model })
       .render()
       .appendTo(this.els.pane2)
-      .on('tap:option', this.firer('tap:option'))
-      .on('tap:back', this.goBack);
+      .on('click:option', this.firer('click:option'))
+      .on('click:back', this.goBack);
 
     this.showPane(2);
   },
@@ -52,7 +52,7 @@ module.exports = View.extend({
     this.els.items = this.find('.js-items');
     this.els.pane2 = this.find('.js-pane-2');
     this.els.close = this.find('.js-close');
-    bind(this.els.close, 'click', this.firer('tap:close'));
+    bind(this.els.close, 'click', this.firer('click:close'));
     this.items.forEach(this.addItem);
     debug('rendered');
     return this;
