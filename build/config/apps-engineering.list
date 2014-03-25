@@ -21,3 +21,4 @@ test_apps/test-wappush
 test_apps/uitest
 test_apps/uitest-privileged
 test_apps/test-fxa-client
+test_apps/lockscreen-as-app
