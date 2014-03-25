@@ -3,6 +3,7 @@
  ---------------------------------------------------------*/
 
 .setting-options {
+  height: 100%;
   font-size: 1.6rem;
   color: #FFF;
 }
@@ -20,8 +21,11 @@
  ---------------------------------------------------------*/
 
 .setting-options .settings_title:before {
-  margin-left: -1.9rem;
-  margin-right: 0.3rem;
+  position: relative;
+  top: 1px;
+  font-size: 24px;
+  margin-left: -2.6rem;
+  margin-right: 0.4rem;
 }
 
 /** Items
@@ -45,8 +49,18 @@
   margin: 0 1.5rem;
   padding: 0 1.5rem;
   line-height: 7rem;
-  border-top: solid 1px rgba(255,255,255,0.15);
+  font-size: 1.7rem;
+  border: solid 1px rgba(255,255,255,0.15);
+  border-width: 1px 0 0;
   text-transform: uppercase;
+}
+
+/**
+ * @last-child
+ */
+
+.setting-option:last-child {
+  border-width: 1px 0 1px;
 }
 
 /**
@@ -70,6 +84,7 @@
 
 .setting-option:before {
   float: right;
+  margin-right: 0.5rem;
   visibility: hidden;
 }
 
