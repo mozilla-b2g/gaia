@@ -258,6 +258,11 @@ var ThreadUI = global.ThreadUI = {
     this.composeForm.addEventListener(
       'submit', this.handleEvent.bind(this)
     );
+
+    this.composeForm.addEventListener(
+      'touchstart', this.preventKeyboardClosing.bind(this)
+    );
+
     // For picking a contact from Contacts. It's mouse down for
     // avoiding weird effect of keyboard, as in 'send' button.
     this.contactPickButton.addEventListener(
@@ -2888,6 +2893,12 @@ var ThreadUI = global.ThreadUI = {
     // auto save operation
     if (!opts || (opts && !opts.autoSave)) {
       ThreadListUI.onDraftSaved();
+    }
+  },
+
+  preventKeyboardClosing: function(e) {
+    if (e.target === this.composeForm) {
+      e.preventDefault();
     }
   }
 };
