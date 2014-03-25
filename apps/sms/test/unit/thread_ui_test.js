@@ -4342,6 +4342,12 @@ suite('thread_ui.js >', function() {
     test('calling function does not throw uncaught exception ', function() {
       assert.doesNotThrow(ThreadUI.initSentAudio);
     });
+
+    test('correctly creates the audio element', function() {
+      ThreadUI.initSentAudio();
+      assert.isTrue(ThreadUI.sentAudio.src.endsWith('/sounds/sent.opus'));
+      assert.equal(ThreadUI.sentAudio.mozAudioChannelType, 'notification');
+    });
   });
 
   suite('enableActivityRequestMode', function() {
