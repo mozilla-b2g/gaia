@@ -43,11 +43,13 @@ Timer.Panel = function(element) {
     element: this.element.querySelector('#time-picker'),
     pickers: {
       hours: {
-        range: [0, 23]
+        range: [0, 23],
+        valueText: 'nSpinnerHours'
       },
       minutes: {
         range: [0, 59],
-        isPadded: true
+        isPadded: true,
+        valueText: 'nSpinnerMinutes'
       }
     }
   });
