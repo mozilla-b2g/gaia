@@ -233,13 +233,9 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   margin: 0 0 0 -3rem;
 }
 
-.edit #threads-container[data-type="list"] aside.pack-end img {
+.edit #threads-container[data-type="list"] aside.pack-end span {
   transform: translateX(7.5rem);
   transition: all 0.3s ease;
-}
-
-.edit #threads-container[data-type="list"] aside.pack-end img[src=""] {
-  width: 6.5rem;
 }
 
 /* Panel handling */
