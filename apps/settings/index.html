@@ -63,7 +63,7 @@
     <script defer="" src="/shared/js/screen_layout.js"></script>
 
     <!-- Specific code -->
-    <script defer="" src="js/settings.js"></script>
+    <script data-skip-optimize data-main="js/main" src="js/vendor/alameda.js"></script>
 
     <!-- shared helper library -->
     <!--<script defer src="shared/js/download/download_store.js"></script>-->
@@ -80,6 +80,10 @@
     <!--<script defer src="shared/js/settings_listener.js"></script> -->
     <!--<script defer src="shared/js/airplane_mode_helper.js"></script> -->
     <!--<script defer src="shared/js/toaster.js"></script> -->
+    <!--<script defer src="shared/js/lazy_loader.js"></script> -->
+    <!--<script defer src="shared/js/screen_layout.js"></script> -->
+    <!--<script defer src="shared/js/fxa_iac_client.js"></script> -->
+    <!--<script defer src="shared/js/text_normalizer.js"></script> -->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
     <link rel="import" href="/elements/wifi_status.html">
@@ -155,6 +159,7 @@
     <link rel="import" href="/elements/help.html">
     <link rel="import" href="/elements/icc.html">
     <link rel="import" href="/elements/downloads.html">
+    <link rel="import" href="/elements/firefox_accounts.html">
   </head>
   <body class="skin-organic uninit">
     <!--
@@ -331,19 +336,25 @@
     <!-- SIM Toolkit -->
     <section is="icc" role="region" id="icc"></section>
 
+    <!-- Firefox Accounts -->
+    <section is="fxa" role="region" id="fxa"></section>
+
     <!-- Main List -->
     <section role="region" id="root" class="current" data-rendered="true">
       <header>
+        <menu id="activityDoneButton" type="toolbar">
+          <a href="#home" role="menuitem" data-l10n-id="done">Done</a>
+        </menu>
         <h1 data-l10n-id="settings"> Settings </h1>
       </header>
 
       <div>
         <!-- Main :: Network & Connectivity -->
-        <header>
+        <header data-category="connectivity">
           <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
         </header>
         <ul>
-          <li>
+          <li data-category="connectivity">
             <label class="pack-switch">
               <input id="airplaneMode-input" class="uninit" type="checkbox" disabled>
               <span id="menuItem-airplaneMode" class="menu-item" data-l10n-id="airplaneMode">Airplane Mode</span>
@@ -355,7 +366,7 @@
               <span id="menuItem-gps" class="menu-item" data-l10n-id="geolocation">Geolocation</span>
             </label>
           </li>
-          <li>
+          <li data-category="connectivity">
             <small id="wifi-desc" class="menu-item-desc"></small>
             <a id="menuItem-wifi" class="menu-item" href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
           </li>
@@ -371,7 +382,7 @@
             <small id="messaging-desc" class="menu-item-desc"></small>
             <a id="menuItem-messagingSettings" class="menu-item" href="#messaging" data-l10n-id="messagingSettings">Messaging Settings</a>
           </li>
-          <li id="data-connectivity" aria-disabled="true">
+          <li id="data-connectivity" data-category="connectivity" aria-disabled="true">
             <small id="data-desc" class="menu-item-desc"></small>
             <a id="menuItem-cellularAndData" class="menu-item" href="#carrier" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
           </li>
@@ -424,17 +435,17 @@
         </ul>
 
         <!-- Main :: Accounts -->
-        <header hidden="">
-          <h2 data-l10n-id="accounts">Accounts</h2>
-        </header>
-        <ul hidden="">
-          <li>
-            <a id="menuItem-persona" class="menu-item" href="#persona" data-l10n-id="persona">Persona</a>
-          </li>
-          <li>
-            <a id="menuItem-mail" class="menu-item" href="#mail" data-l10n-id="mail">Mail</a>
-          </li>
-        </ul>
+        <span data-show-name="identity.fxaccounts.ui.enabled" hidden>
+          <header>
+            <h2 data-l10n-id="accounts">Accounts</h2>
+          </header>
+          <ul>
+            <li>
+              <small id="fxa-desc" class="menu-item-desc"></small>
+              <a id="menuItem-fxa" class="menu-item" href="#fxa" data-l10n-id="fxa-accounts">Firefox Accounts</a>
+            </li>
+          </ul>
+        </span>
 
         <!-- Main :: Security & Privacy -->
         <header>

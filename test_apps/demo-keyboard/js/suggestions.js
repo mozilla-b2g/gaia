@@ -57,17 +57,22 @@
     // and then dispatch an event about it. Or, if we find the dismiss
     // button, then dismiss the suggestions.
     while (target !== this.suggestionsContainer) {
+      var event;
       if (target.classList.contains('suggestion')) {
         var word = target.dataset.word + ' ';
-        var event = new CustomEvent('suggestionselected', { detail: word });
+        event = new CustomEvent('suggestionselected', { detail: word });
         this.suggestionsContainer.dispatchEvent(event);
+
         return;
       }
-      else if (target.classList.contains('dismiss-suggestions-button')) {
-        var event = new CustomEvent('suggestionsdismissed');
+
+      if (target.classList.contains('dismiss-suggestions-button')) {
+        event = new CustomEvent('suggestionsdismissed');
         this.suggestionsContainer.dispatchEvent(event);
+
         return;
       }
+
       target = target.parentNode;
     }
   };
@@ -131,7 +136,7 @@
     span.textContent = word;
     container.appendChild(span);
 
-    var limit = .6;  // Dont use a scale smaller than this
+    var limit = 0.6;  // Dont use a scale smaller than this
     var scale = getScale(span, container);
 
     // If the word does not fit within the scaling limit,
@@ -170,16 +175,21 @@
     function getScale(element, container) {
       var elementWidth = element.getBoundingClientRect().width;
       var s = container.clientWidth / elementWidth;
-      if (s >= 1)
+      if (s >= 1) {
         return 1;    // 10pt font "Body Large"
-      if (s >= .8)
-        return .8;   // 8pt font "Body"
-      if (s >= .7)
-        return .7;   // 7pt font "Body Medium"
-      if (s >= .65)
-        return .65;  // 6.5pt font "Body Small"
-      if (s >= .6)
-        return .6;   // 6pt font "Body Mini"
+      }
+      if (s >= 0.8) {
+        return 0.8;   // 8pt font "Body"
+      }
+      if (s >= 0.7) {
+        return 0.7;   // 7pt font "Body Medium"
+      }
+      if (s >= 0.65) {
+        return 0.65;  // 6.5pt font "Body Small"
+      }
+      if (s >= 0.6) {
+        return 0.6;   // 6pt font "Body Mini"
+      }
       return s;      // Something smaller than 6pt.
     }
   };

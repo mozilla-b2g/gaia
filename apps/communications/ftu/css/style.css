@@ -940,7 +940,6 @@ aside.connecting {
 
 
 #browser_privacy p a {
-  margin-left: 0.3rem;
   font-size: 1.35rem;
   line-height: 1.8rem;
   color: #000;
@@ -976,8 +975,8 @@ aside.connecting {
   margin-top: 2rem;
 }
 
-#about-your-rights p a ,#about-your-privacy p a, #sharing-performance-data p a {
-  margin-left: 0.3rem;
+#about-your-privacy p a,
+#sharing-performance-data p a {
   font-size: 1.35rem;
   line-height: 1.8rem;
   color: #000;

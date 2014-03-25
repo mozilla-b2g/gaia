@@ -733,7 +733,7 @@ form[role="dialog"].no-overlay button {
   display: none;
 }
 
-.has-preferred-sim .js-sim-indication { 
+.has-preferred-sim .js-sim-indication {
   display: initial;
 }
 

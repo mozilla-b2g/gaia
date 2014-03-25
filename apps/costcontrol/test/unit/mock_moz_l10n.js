@@ -1,3 +1,4 @@
+/* exported MockMozL10n */
 'use strict';
 
 var MockMozL10n = {

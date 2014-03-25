@@ -3,7 +3,7 @@ const utils = require('./utils');
 function execute(options) {
   const WEBAPP_FILENAME = 'manifest.webapp';
   const STAGE_FOLDER = utils.getEnv('STAGE_FOLDER');
-  var gaia = utils.getGaia(options);
+  var gaia = utils.gaia.getInstance(options);
   var webappsBaseDir = utils.getFile(options.PROFILE_DIR);
   webappsBaseDir.append('webapps');
   gaia.webapps.forEach(function(app) {

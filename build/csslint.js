@@ -18,19 +18,9 @@ const domParser = Cc['@mozilla.org/xmlextras/domparser;1']
 let CSSLint = null;
 
 function execute(config) {
-  // Activate more CSS properties so those are not considered errors by
-  // the parser.
-  Services.prefs.setBoolPref('layout.css.sticky.enabled', true);
-  Services.prefs.setBoolPref('layout.css.will-change.enabled', true);
+  setupLinters(config.GAIA_DIR);
 
-  // Load the third-party CSS Linter.
-  let scope = {};
-  let url =
-    'file:///' + config.GAIA_DIR + '/build/csslinter.js?reload=' + Date.now();
-  Services.scriptloader.loadSubScript(url, scope);
-  CSSLint = scope.CSSLint;
-
-  let gaia = utils.getGaia(config);
+  let gaia = utils.gaia.getInstance(config);
 
   let errorsCount = 0;
   let warningsCount = 0;
@@ -70,8 +60,139 @@ function execute(config) {
   }
 
   if (errorsCount || warningsCount) {
-    dump('\n' + errorsCount + ' errors and ' + warningsCount + ' warnings' + '\n');
+    dump('\n' +
+         errorsCount + ' errors and ' +
+         warningsCount + ' warnings' + '\n');
   }
+}
+
+function lint(root, files) {
+  const xfailFilePath = 'build/csslint/xfail.list';
+
+  let hasNewErrorsOrWarnings = 0;
+
+  function lessErrorsOrWarnings(filename, type, previous, current) {
+    hasNewErrorsOrWarnings = 1;
+
+    dump('You rock! ' + (previous - current) + ' ' + type + ' has been ' +
+         'removed from ' + filename + '. Please update ' + xfailFilePath +
+         ' with the updated number of errors (' + current + ') or remove ' +
+         'the file from ' + xfailFilePath + '\n');
+  }
+
+  function moreErrorsOrWarnings(filename, type, previous, current) {
+    hasNewErrorsOrWarnings = 1;
+
+    dump(':( ' + (previous - current) + ' ' + type + ' has been added to ' +
+         filename + '.\n');
+  }
+
+  function lessWarnings(filename, previous, current) {
+    lessErrorsOrWarnings(filename, 'warnings', previous, current);
+  }
+
+  function moreWarnings(filename, previous, current) {
+    moreErrorsOrWarnings(filename, 'warnings', previous, current);
+  }
+
+  function lessErrors(filename, previous, current) {
+    lessErrorsOrWarnings(filename, 'errors', previous, current);
+  }
+
+  function moreErrors(filename, previous, current) {
+    moreErrorsOrWarnings(filename, 'errors', previous, current);
+  }
+
+  try {
+    setupLinters(root);
+
+    // Get the list of ignored files and build a map of:
+    // filename: { errors: x, warnings: y }
+    //
+    // This map is used to check that no new errors or warnings are introduced
+    // into a file.
+    // Once an error/warning has been fixed the xfail.list file also needs
+    // to be updated and so the number of errors/warnings should be smaller
+    // and smaller...
+    let xfail = {};
+
+    let content = utils.getFileContent(utils.getFile(root, xfailFilePath));
+    content.split('\n').forEach(function buildXfailMap(line) {
+      // ignore lines starting with #.
+      if (line[0] === '#') {
+        return;
+      }
+
+      let [filename, errors, warnings] = line.split(' ');
+      xfail[filename] = {
+        errors: errors,
+        warnings: warnings
+      };
+    });
+
+
+    // Now lint the css of each files and reports any errors/warnings.
+    files.split(/\s/).forEach(function parseCSSFor(filename) {
+      let file = utils.getFile(root, filename);
+      if (!/^(apps|shared)\//.test(filename)) {
+        return;
+      }
+
+      if (/\/(tests|docs)\//.test(file.path)) {
+        return;
+      }
+
+      if (!/\.css$/.test(file.leafName)) {
+        return;
+      }
+
+      let messages = parseCSS(file);
+
+      let errorsCount = messages.errors.length;
+      let warningsCount = messages.warnings.length;
+      if (!errorsCount && !warningsCount && !(filename in xfail)) {
+        return;
+      }
+
+      if (!(filename in xfail)) {
+        hasNewErrorsOrWarnings = 1;
+        dump(filename + ' has new errors/warnings.\n');
+        return;
+      }
+
+      let rules = xfail[filename];
+      if (errorsCount > rules.errors) {
+        moreErrors(filename, rules.errors, errorsCount);
+      } else if (errorsCount < rules.errors) {
+        lessErrors(filename, rules.errors, errorsCount);
+      }
+
+      if (warningsCount > rules.warnings) {
+        moreWarnings(filename, rules.warnings, warningsCount);
+      } else if (warningsCount < rules.warnings) {
+        lessWarnings(filename, rules.warnings, warningsCount);
+      }
+    });
+
+    return hasNewErrorsOrWarnings;
+  } catch(e) {
+    dump('Error while trying to run csslint on files: ' + e + '\n');
+    return 1;
+  }
+}
+
+function setupLinters(root) {
+  // Activate more CSS properties so those are not considered errors by
+  // the parser.
+  Services.prefs.setBoolPref('layout.css.sticky.enabled', true);
+  Services.prefs.setBoolPref('layout.css.will-change.enabled', true);
+
+  // Load the third-party CSS Linter.
+  let scope = {};
+  let url =
+    'file:///' + root + '/build/csslinter.js?reload=' + Date.now();
+  Services.scriptloader.loadSubScript(url, scope);
+  CSSLint = scope.CSSLint;
 }
 
 function parseCSS(file) {
@@ -327,14 +448,22 @@ function checkForGoodPractices(content) {
 
     // Selectors that look like regular expressions are slow and should be
     // avoided.
-    'regex-selectors': 1,
+    //
+    // This one is not enabled since it is used heavily in Gaia. It would be
+    // nice to remove the usage of such selectors but that seems like a lot of
+    // work and very regressions prone.
+    'regex-selectors': 0,
 
     // Don't use universal selector because it's slow.
-    'universal-selector': 1,
+    //
+    // This one is not enabled for the same reason as 'regex-selectors'
+    'universal-selector': 0,
 
     // Don't use unqualified attribute selectors because they're just like
     // universal selectors.
-    'unqualified-attributes': 1,
+    //
+    // This one is not enabled for the same reason as 'universal-selectors'
+    'unqualified-attributes': 0,
 
     // You don't need to specify units when a value is 0.
     'zero-units': 1,
@@ -393,3 +522,4 @@ function checkForGoodPractices(content) {
 }
 
 exports.execute = execute;
+exports.lint = lint;

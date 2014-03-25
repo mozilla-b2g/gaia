@@ -159,11 +159,11 @@ button::-moz-focus-inner {
 }
 
 .keyboard-row button:last-child.highlighted > .visual-wrapper > span:after {
-   left: -2.4rem;
+  left: -2.4rem;
 }
 
 .keyboard-row button:first-child.highlighted > .visual-wrapper > span:after {
-    left: 0rem;
+  left: 0;
 }
 
 
@@ -367,7 +367,7 @@ bubble above the key when you tap and hold. */
   display: block;
   background: #252220;
   padding: 0;
-  margin: 0.2rem 0rem 0.2rem 0rem;
+  margin: 0.2rem 0 0.2rem 0;
   border: none;
   border-top: 0.1rem solid #000000;
   border-bottom: 0.1rem solid #000000;
@@ -384,14 +384,14 @@ bubble above the key when you tap and hold. */
   top: 0.1rem;
   height: -moz-calc(100% - 0.4rem);
   z-index: 1;
-  margin: 0.1rem 0rem 0.2rem 0rem;
+  margin: 0.1rem 0 0.2rem 0;
 }
 
 .keyboard-candidate-panel-toggle-button {
   display: none;
   z-index: 1;
   position: absolute;
-  right: 0rem;
+  right: 0;
   top: 0.25rem;
   font-size: 0;
   height: 2.8rem;
@@ -448,7 +448,7 @@ bubble above the key when you tap and hold. */
   height: 3rem;
   width: 100%;
   background: #333;
-  margin: -0.6rem 0rem 0rem 0rem; /* I don't know why we need the top margin */
+  margin: -0.6rem 0 0 0; /* I don't know why we need the top margin */
   border: none;
   border-bottom: 0.1rem solid #a0a6a8;
   overflow: hidden;

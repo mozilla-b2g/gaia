@@ -1088,7 +1088,7 @@ var ThreadUI = global.ThreadUI = {
     if (Settings.mmsSizeLimitation) {
       if (Compose.size > Settings.mmsSizeLimitation) {
         Compose.lock = true;
-        this.showMaxLengthNotice('messages-exceeded-length-text');
+        this.showMaxLengthNotice('message-exceeded-max-length');
         return false;
       } else if (Compose.size === Settings.mmsSizeLimitation) {
         Compose.lock = true;
@@ -1886,12 +1886,12 @@ var ThreadUI = global.ThreadUI = {
     }
     if (selected.length > 0) {
       this.uncheckAllButton.disabled = false;
-      this.deleteButton.classList.remove('disabled');
+      this.deleteButton.disabled = false;
       navigator.mozL10n.localize(this.editMode, 'selected',
         {n: selected.length});
     } else {
       this.uncheckAllButton.disabled = true;
-      this.deleteButton.classList.add('disabled');
+      this.deleteButton.disabled = true;
       navigator.mozL10n.localize(this.editMode, 'deleteMessages-title');
     }
   },
@@ -2590,14 +2590,21 @@ var ThreadUI = global.ThreadUI = {
 
     // Render each contact in the contacts results
     var renderer = ContactRenderer.flavor('suggestion');
+    var unknownContactsRenderer = ContactRenderer.flavor('suggestionUnknown');
 
     contacts.forEach(function(contact) {
-      renderer.render({
+      var rendererArg = {
         contact: contact,
         input: fValue,
         target: ul,
         skip: this.recipients.numbers
-      });
+      };
+      if (contact.source != 'unknown') {
+        renderer.render(rendererArg);
+      }
+      else {
+        unknownContactsRenderer.render(rendererArg);
+      }
     }, this);
 
     this.container.appendChild(ul);

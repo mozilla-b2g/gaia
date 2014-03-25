@@ -1,4 +1,6 @@
+/* global uuid */
 Calendar.ns('Provider').CaldavPullEvents = (function() {
+  'use strict';
 
   var Calc = Calendar.Calc;
   var debug = Calendar.debug('pull events');
@@ -225,7 +227,6 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       delete event.remote.exceptions;
 
       var id = event._id;
-      var token = event.remote.syncToken;
 
       // clear any busytimes that could possibly be
       // related to this event as we will be adding new
@@ -306,8 +307,8 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
           this.handleComponentSync(data[0]);
           break;
         case 'event':
-          var event = this.formatEvent(data[0]);
-          this.handleEventSync(event);
+          var e = this.formatEvent(data[0]);
+          this.handleEventSync(e);
           break;
       }
     },
@@ -338,9 +339,6 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
         // Commit nothing, if sync was aborted.
         return callback && callback(null);
       }
-
-      var calendar = this.calendar;
-      var account = this.account;
 
       // Stash a reference to the transaction, in case we still need to abort.
       this._trans = trans;

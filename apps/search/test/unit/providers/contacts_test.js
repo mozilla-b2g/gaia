@@ -8,8 +8,8 @@ require('/shared/test/unit/mocks/mock_moz_activity.js');
 require('/shared/js/url_helper.js');
 requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');
-requireApp('communications/contacts/test/unit/mock_mozContacts.js');
-requireApp('communications/contacts/test/unit/mock_contacts_list.js');
+require('/apps/communications/contacts/test/unit/mock_mozContacts.js');
+require('/apps/communications/contacts/test/unit/mock_contacts_list.js');
 
 var mocksForMarketplaceProvider = new MocksHelper([
   'MozActivity'

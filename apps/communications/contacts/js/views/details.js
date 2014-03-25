@@ -181,11 +181,38 @@ contacts.Details = (function() {
     }
   };
 
+  // Fills the contact data to display if no givenName and familyName
+  var getDisplayName = function getDisplayName(contact) {
+    var name = _('noName');
+
+    if (hasName(contact)) {
+      name = contact.name[0];
+    } else if (hasContent(contact.tel)) {
+      name = contact.tel[0].value;
+    } else if (hasContent(contact.email)) {
+      name = contact.email[0].value;
+    }
+    return name;
+  };
+
+  function hasContent(field) {
+    return (Array.isArray(field) &&
+            field.length > 0 &&
+            field[0].value &&
+            field[0].value.trim());
+  }
+
+  function hasName(contact) {
+    return (Array.isArray(contact.name) &&
+            contact.name[0] &&
+            contact.name[0].trim());
+  };
+
   //
   // Method that generates HTML markup for the contact
   //
   var doReloadContactDetails = function doReloadContactDetails(contact) {
-    detailsName.textContent = contact.name;
+    detailsName.textContent = getDisplayName(contact);
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('fb-contact');
     contactDetails.classList.remove('up');
@@ -241,7 +268,7 @@ contacts.Details = (function() {
       }
       var pos = contact.category.indexOf('favorite');
       if (pos > -1) {
-        delete contact.category[pos];
+        contact.category.splice(pos, 1);
       }
     }
 
@@ -396,6 +423,20 @@ contacts.Details = (function() {
     }
   }
 
+  var enableCalls = function enableCalls() {
+    contactDetails.classList.remove('calls-disabled');
+  };
+
+  var disableCalls = function disableCalls() {
+    contactDetails.classList.add('calls-disabled');
+  };
+
+  var call = function call(phoneNumber, cardIndex) {
+    disableCalls();
+    TelephonyHelper.call(phoneNumber, cardIndex, enableCalls, enableCalls,
+                         enableCalls, enableCalls);
+  };
+
   var renderPhones = function cd_renderPhones(contact) {
     if (!contact.tel) {
       return;
@@ -404,16 +445,18 @@ contacts.Details = (function() {
     for (var tel = 0; tel < telLength; tel++) {
       var currentTel = contact.tel[tel];
       var escapedType = Normalizer.escapeHTML(currentTel.type, true).trim();
+      var carrier = Normalizer.escapeHTML(currentTel.carrier || '', true) || '';
       escapedType =
             _(PHONE_TYPE_MAP[escapedType] || escapedType || DEFAULT_TEL_TYPE) ||
             escapedType;
       var telField = {
         value: Normalizer.escapeHTML(currentTel.value, true) || '',
-        type: escapedType,
+        type: escapedType + (carrier ? _('separator') : ''),
         'type_l10n_id': currentTel.type,
-        carrier: Normalizer.escapeHTML(currentTel.carrier || '', true) || '',
+        carrier: carrier,
         i: tel
       };
+
       var template = utils.templates.render(phonesTemplate, telField);
 
       // Add event listeners to the phone template components
@@ -442,7 +485,7 @@ contacts.Details = (function() {
         button.addEventListener('click', onMMICode);
       } else if (navigator.mozTelephony) {
         LazyLoader.load(['/shared/js/multi_sim_action_button.js'], function() {
-          new MultiSimActionButton(button, TelephonyHelper.call,
+          new MultiSimActionButton(button, call,
                                    'ril.telephony.defaultServiceId',
                                    function() {return number});
         });

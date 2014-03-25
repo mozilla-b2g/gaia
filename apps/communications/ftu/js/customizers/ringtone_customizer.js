@@ -1,3 +1,5 @@
+/* global Customizer,
+          Resources */
 'use strict';
 
 var RingtoneCustomizer = (function() {
@@ -9,7 +11,7 @@ var RingtoneCustomizer = (function() {
         console.error('Settings is not available');
         return;
       }
-      var request = settings.createLock().set({
+      settings.createLock().set({
         'dialer.ringtone': blob,
         'dialer.ringtone.name': ringtoneParams.name
       });

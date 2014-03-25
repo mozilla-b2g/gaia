@@ -1,24 +1,3 @@
-<div id="timer-active">
-  <div id="timer-time-display">
-    <div id="timer-time">00:00</div>
-    <menu id="timer-controls">
-      <button id="timer-start" class="edit-button" data-l10n-id="resume">
-        Resume
-      </button>
-      <button id="timer-pause" class="edit-button" data-l10n-id="pause">
-        Pause
-      </button>
-      <button id="timer-cancel" class="danger" data-l10n-id="cancel">
-        Cancel
-      </button>
-    </menu>
-  </div>
-  <div id="timer-plus-time">
-    <a href="#timer-panel" id="timer-plus" data-value="60" data-l10n-id="plusMinute">
-      +1 Min
-    </a>
-  </div>
-</div>
 <div id="timer-dialog" class="panel">
 
   <div id="value-selector">
@@ -36,16 +15,16 @@
         </div>
         <div class="picker-bar-background">
         </div>
-        <div class="picker-hours-wrapper">
+        <div class="picker-hours-wrapper" role="spinbutton" aria-labelledby="hours">
           <div class="picker-hours">
           </div>
         </div>
-        <div class="picker-minutes-wrapper">
+        <div class="picker-minutes-wrapper" role="spinbutton" aria-labelledby="minutes">
           <div class="picker-minutes">
           </div>
         </div>
         <div class="value-indicator">
-          <div class="value-indicator-colon">:</div>
+          <div class="value-indicator-colon" aria-hidden="true">:</div>
         </div>
       </div>
     </div>
@@ -79,5 +58,26 @@
         </label>
       </li>
     </ul>
+  </div>
+</div>
+<div id="timer-active">
+  <div id="timer-time-display">
+    <div id="timer-time">00:00</div>
+    <menu id="timer-controls">
+      <button id="timer-start" class="edit-button" data-l10n-id="resume">
+        Resume
+      </button>
+      <button id="timer-pause" class="edit-button" data-l10n-id="pause">
+        Pause
+      </button>
+      <button id="timer-cancel" class="danger" data-l10n-id="cancel">
+        Cancel
+      </button>
+    </menu>
+  </div>
+  <div id="timer-plus-time">
+    <a href="#timer-panel" id="timer-plus" data-value="60" data-l10n-id="plusMinute">
+      +1 Min
+    </a>
   </div>
 </div>

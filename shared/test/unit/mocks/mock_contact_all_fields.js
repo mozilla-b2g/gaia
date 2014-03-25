@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockContactAllFields */
 
 function MockContactAllFields(withoutPhoto) {
   var photo;

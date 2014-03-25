@@ -3,7 +3,7 @@
 /* global CallHandler, KeypadManager, MockNavigatorMozTelephony, MocksHelper,
           Promise */
 
-require('/test/unit/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/test/unit/mock_keypad.js');
 
 require('/emergency-call/js/dialer.js');

@@ -553,9 +553,12 @@ var ModeManager = {
           PlayerView.setOptions(playerSettings);
         }
 
+        // Music only share the playing file when it's in player mode.
+        this.enableNFCSharing(true);
+
         if (callback)
           callback();
-      });
+      }.bind(this));
     } else {
       if (mode === MODE_LIST || mode === MODE_PICKER)
         document.getElementById('views-list').classList.remove('hidden');
@@ -572,6 +575,9 @@ var ModeManager = {
         document.getElementById('views-sublist').classList.add('hidden');
         document.getElementById('views-player').classList.add('hidden');
       }
+
+      // Disable the NFC sharing when it's in the other modes.
+      this.enableNFCSharing(false);
 
       if (callback)
         callback();
@@ -601,6 +607,25 @@ var ModeManager = {
         (mode === MODE_SUBLIST || mode === MODE_PLAYER)) {
       document.getElementById('scan-progress').classList.add('hidden');
       displayingScanProgress = false;
+    }
+  },
+
+  enableNFCSharing: function(enabled) {
+    if (!navigator.mozNfc)
+      return;
+
+    if (enabled && !pendingPick) {
+      // Assign the sharing function to onpeerready so that it will trigger
+      // the shrinking ui to share the playing file.
+      navigator.mozNfc.onpeerready = function(event) {
+        var peer = navigator.mozNfc.getNFCPeer(event.detail);
+        if (peer)
+          peer.sendFile(PlayerView.playingBlob);
+      };
+    } else {
+      // The mozNfc api will check onpeerready, if it's null, then it will not
+      // trigger the shrinking ui so it won't be able to share the file.
+      navigator.mozNfc.onpeerready = null;
     }
   }
 };
@@ -651,10 +676,6 @@ var TitleBar = {
               }
 
               cleanupPick();
-            }
-            // clear onpeerready while come out from PLAYER MODE.
-            if (ModeManager.currentMode === MODE_PLAYER && navigator.mozNfc) {
-              navigator.mozNfc.onpeerready = null;
             }
 
             ModeManager.pop();

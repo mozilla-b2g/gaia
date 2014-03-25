@@ -14,6 +14,7 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_devtools_view.js');
 requireApp('system/test/unit/mock_dialer_ringer.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
+requireApp('system/test/unit/mock_home_gesture.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_remote_debugger.js');
@@ -23,6 +24,7 @@ requireApp('system/test/unit/mock_storage.js');
 requireApp('system/test/unit/mock_telephony_settings.js');
 requireApp('system/test/unit/mock_ttl_view.js');
 requireApp('system/test/unit/mock_title.js');
+requireApp('system/test/unit/mock_visibility_manager.js');
 
 mocha.globals([
   'Shortcuts',
@@ -35,12 +37,14 @@ mocha.globals([
   'secureWindowFactory',
   'devtoolsView',
   'dialerRinger',
+  'homeGesture',
   'remoteDebugger',
   'storage',
   'telephonySettings',
   'ttlView',
   'title',
-  'ActivityWindowFactory'
+  'ActivityWindowFactory',
+  'visibilityManager'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
@@ -49,6 +53,7 @@ var mocksForBootstrap = new MocksHelper([
   'DevtoolsView',
   'DialerRinger',
   'FtuLauncher',
+  'HomeGesture',
   'HomescreenLauncher',
   'Places',
   'RemoteDebugger',
@@ -59,7 +64,8 @@ var mocksForBootstrap = new MocksHelper([
   'Storage',
   'TelephonySettings',
   'TTLView',
-  'Title'
+  'Title',
+  'VisibilityManager'
 ]).init();
 
 suite('system/Bootstrap', function() {

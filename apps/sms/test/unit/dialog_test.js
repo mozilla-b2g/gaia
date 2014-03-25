@@ -128,6 +128,32 @@ suite('Dialog', function() {
     assert.equal(optionalOptions.length, 1);
   });
 
+  test('Checking the structure. Confirm (with custom class name).', function() {
+    // We add the confirm
+    params.options.confirm = {
+      text: {
+        value: 'Foo Cancel'
+      },
+      className: 'test-class'
+    };
+    // Now we create the new element
+    var dialog = new Dialog(params);
+    // We append the element to the DOM
+    dialog.show();
+    // We retrieve the last created form
+    var currentlyDefinedForms = document.getElementsByTagName('form');
+    var currentlyDefinedFormsLength = currentlyDefinedForms.length;
+    // We check the type
+    var dialogForm = currentlyDefinedForms[currentlyDefinedFormsLength - 1];
+
+    // We check whether default 'recommend' class wasn't applied
+    var optionalOptions = dialogForm.getElementsByClassName('recommend');
+    assert.equal(optionalOptions.length, 0);
+    // We check whether custom class name was applied
+    optionalOptions = dialogForm.getElementsByClassName('test-class');
+    assert.equal(optionalOptions.length, 1);
+  });
+
   test('Checking the localization.', function() {
     params.title = {
       l10nId: 'l10n Title'
@@ -170,45 +196,6 @@ suite('Dialog', function() {
       'Confirm DOM localized with proper string');
     assert.ok(l10nSpy.calledWith(formOptions[1],
       params.options.confirm.text.l10nId),
-      'Cancel DOM localized with proper string');
-  });
-
-  test('Checking the localization(Confirm on the left side).', function() {
-    params.title = {
-      l10nId: 'l10n Title'
-    },
-    params.body = {
-      l10nId: 'l10n Body'
-    },
-    params.options.cancel = {
-      text: {
-        l10nId: 'l10n keyCancel'
-      }
-    };
-    params.options.confirm = {
-      text: {
-        l10nId: 'l10n keyConfirm'
-      },
-      position: 'left'
-    };
-    var l10nSpy = this.sinon.spy(navigator.mozL10n, 'localize');
-    // Now we create the new element
-    var dialog = new Dialog(params);
-    // We append the element to the DOM
-    dialog.show();
-    // We retrieve the last created form
-    var currentlyDefinedForms = document.getElementsByTagName('form');
-    var currentlyDefinedFormsLength = currentlyDefinedForms.length;
-    // We check the type
-    var dialogForm = currentlyDefinedForms[currentlyDefinedFormsLength - 1];
-    // We check how many buttons we have (mandatory + confirm one)
-    var formOptions = dialogForm.getElementsByTagName('button');
-
-    assert.ok(l10nSpy.calledWith(formOptions[0],
-      params.options.confirm.text.l10nId),
-      'Confirm DOM localized with proper string');
-    assert.ok(l10nSpy.calledWith(formOptions[1],
-      params.options.cancel.text.l10nId),
       'Cancel DOM localized with proper string');
   });
 
@@ -286,9 +273,9 @@ suite('Dialog', function() {
 
       var opt = dialogSpy.firstCall.args[1];
       assert.equal(opt.title.l10nId,
-                  'sendGeneralErrorTitle');
+                  'sendDefaultErrorTitle');
       assert.equal(opt.body.l10nId,
-                  'sendGeneralErrorBody');
+                  'sendDefaultErrorBody');
     });
 
     test('show general error for internal case', function() {
@@ -296,8 +283,8 @@ suite('Dialog', function() {
       dialog.show();
 
       var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId, 'sendGeneralErrorTitle');
-      assert.equal(opt.body.l10nId, 'sendGeneralErrorBody');
+      assert.equal(opt.title.l10nId, 'sendDefaultErrorTitle');
+      assert.equal(opt.body.l10nId, 'sendDefaultErrorBody');
     });
 
     test('show invalid address error', function() {

@@ -1,7 +1,8 @@
+/* global debug, Common, LazyLoader, asyncStorage, deepCopy */
+/* exported ConfigManager */
+'use strict';
 
 var ConfigManager = (function() {
-
-  'use strict';
 
   var today = new Date();
 
@@ -148,14 +149,14 @@ var ConfigManager = (function() {
       return v;
     }
 
-    return new Date(v['__date__']);
+    return new Date(v.__date__);
   }
 
   // Load stored settings
   var NO_ICCID = 'NOICCID';
   var settings;
-  function requestSettings(callback) {
-    var currentICCID = Common.dataSimIccId || NO_ICCID;
+  function requestSettings(iccIdInfo, callback) {
+    var currentICCID = iccIdInfo || NO_ICCID;
     asyncStorage.getItem(currentICCID, function _wrapGetItem(localSettings) {
       // No entry: set defaults
       try {
@@ -179,7 +180,7 @@ var ConfigManager = (function() {
   // Provides vendor configuration and settings
   function requestAll(callback) {
     requestConfiguration(function _afterConfig(configuration) {
-      requestSettings(function _afterSettings(settings) {
+      requestSettings(Common.dataSimIccId, function _afterSettings(settings) {
         if (callback) {
           callback(configuration, settings);
         }
@@ -204,7 +205,7 @@ var ConfigManager = (function() {
   function setOption(options, callback) {
     // If settings is not ready, load and retry
     if (!settings) {
-      requestSettings(function _afterEnsuringSettings() {
+      requestSettings(Common.dataSimIccId, function _afterEnsuringSettings() {
         setOption(options, callback);
       });
       return;
@@ -222,7 +223,7 @@ var ConfigManager = (function() {
     var currentICCID = Common.dataSimIccId || NO_ICCID;
     asyncStorage.setItem(currentICCID, JSON.stringify(settings),
       function _onSet() {
-        requestSettings(function _onSettings(settings) {
+        requestSettings(Common.dataSimIccId, function _onSettings(settings) {
           for (var name in options) {
             if (options.hasOwnProperty(name)) {
                 dispatchOptionChange(name, settings[name], formerValue[name],
@@ -254,9 +255,12 @@ var ConfigManager = (function() {
   function callCallbacks(evt) {
     debug('Option', evt.detail.name, 'has changed!');
     var callbackCollection = callbacks[evt.detail.name] || [];
-    for (var i = 0, callback; callback = callbackCollection[i]; i++) {
-      callback(evt.detail.value, evt.detail.oldValue, evt.detail.name,
-               evt.detail.settings);
+    for (var i = 0; i < callbackCollection.length; i++) {
+      var callback = callbackCollection[i];
+      if (callback) {
+        callback(evt.detail.value, evt.detail.oldValue, evt.detail.name,
+                 evt.detail.settings);
+      }
     }
   }
 
@@ -279,7 +283,8 @@ var ConfigManager = (function() {
           var name = evt.newValue.split('#')[0];
           var oldValue = settings ? settings[name] : undefined;
           debug('Synchronization request for', name, 'received!');
-          requestSettings(function _onSettings(newSettings) {
+          requestSettings(Common.dataSimIccId,
+                          function _onSettings(newSettings) {
             settings = newSettings;
             dispatchOptionChange(name, settings[name], oldValue, settings);
           });

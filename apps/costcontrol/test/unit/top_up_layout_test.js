@@ -1,3 +1,4 @@
+/* global TopUpLayoutView */
 'use strict';
 
 requireApp('costcontrol/js/views/TopUpLayoutView.js');

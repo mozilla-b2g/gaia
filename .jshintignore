@@ -32,3 +32,4 @@ apps/keyboard/js/layouts/**
 apps/music/js/metadata_scripts.js
 apps/keyboard/js/imes/jszhuyin/tools/cook.js
 apps/keyboard/build/keyboard-config.js
+apps/settings/js/vendor/alameda.js

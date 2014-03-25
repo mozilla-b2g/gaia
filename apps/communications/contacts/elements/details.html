@@ -12,18 +12,19 @@
       <div id="cover-img"></div>
         <section id="contact-detail" class="view-body-inner">
           <li data-phone id='phone-details-template-#i#' data-template>
-            <h2 data-l10n-id="#type_l10n_id#">#type#</h2>
+            <h2 data-l10n-id="#type_l10n_id#">#type# <span class="carrier">#carrier#</span></h2>
             <div class="item">
               <div class="item-media pull-right">
                 <button id="send-sms-button-#i#" class="activity send-sms icon icon-message"></button>
               </div>
               <div class="item-body-exp">
-                <button class="activity icon icon-call" id="call-or-pick-#i#">
-                  <b>
-                    #value#
-                    <em>#carrier#</em>
-                  </b>
-                  <div class="js-sim-indication"></div>
+                <button class="activity call-action icon icon-call" id="call-or-pick-#i#">
+                  <div>
+                    <b>
+                      #value#
+                    </b>
+                    <div class="js-sim-indication"></div>
+                  </div>
                 </button>
               </div>
             </div>

@@ -70,6 +70,14 @@ var AlarmEdit = function() {
     }
   });
 
+  // When the system pops up the ValueSelector, it inadvertently
+  // messes with the scrollTop of the current panel. This is a
+  // workaround for bug 981255 until the Edit panel becomes a new
+  // window per bug 922651.
+  this.element.addEventListener('scroll', function() {
+    this.element.scrollTop = 0;
+  }.bind(this));
+
   mozL10n.translate(this.element);
   // When the language changes, the value of 'weekStartsOnMonday'
   // might change. Since that's more than a simple text string, we

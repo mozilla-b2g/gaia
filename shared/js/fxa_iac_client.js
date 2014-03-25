@@ -12,6 +12,8 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
   var rules = default_rules;
   var port;
 
+  // callbacks is a set of arrays containing {successCb, errorCb} pairs,
+  // keyed on the method name, for example, callbacks.getAccounts.
   var callbacks = {};
   var eventListeners = {};
 
@@ -58,6 +60,7 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
     rules = default_rules;
     eventListeners = {};
     callbacks = {};
+    port = null;
   };
 
   var onMessage = function onMessage(evt) {
@@ -78,20 +81,23 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
         return;
       }
 
-      var cbs;
+      var cbs, cb;
       if (message.methodName) {
         cbs = callbacks[message.methodName];
-        if (!cbs) {
+        if (!cbs || !cbs.length) {
           console.warn('No callbacks for method ' + message.methodName);
           return;
         }
-      }
 
-      if (typeof message.data !== 'undefined') {
-        cbs.successCb(message.data);
-      } else {
-        var errorType = message.error || 'Unknown';
-        cbs.errorCb(errorType);
+        while (cbs.length) {
+          cb = cbs.shift();
+          if (typeof message.data !== 'undefined') {
+            cb.successCb(message.data);
+          } else {
+            var errorType = message.error || 'Unknown';
+            cb.errorCb(errorType);
+          }
+        }
       }
     } else {
       console.error('Unknown');
@@ -112,7 +118,26 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
     };
   };
 
-  var connect = function connect(callback) {
+  var requestQueue = [];
+  var isConnecting = false;
+  var connect = function connect(cb) {
+    if (isConnecting) {
+      return requestQueue.push(cb);
+    }
+    isConnecting = true;
+    _connect(function onConnect(err) {
+      var next;
+      isConnecting = false;
+      if (typeof cb === 'function') {
+        cb(err);
+      }
+      while (next = requestQueue.shift()) {
+        next && next(err);
+      }
+    });
+  };
+
+  var _connect = function _connect(callback) {
     getSelf(function onApp(app) {
       if (!app) {
         return;
@@ -149,10 +174,12 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
     }
 
     if (!callbacks[name]) {
-      callbacks[name] = {};
+      callbacks[name] = [];
     }
-    callbacks[name].successCb = successCb;
-    callbacks[name].errorCb = errorCb;
+    callbacks[name].push({
+      successCb: successCb,
+      errorCb: errorCb
+    });
     // We set onmessage here again cause it is the only way that we have to
     // trigger it during the tests. It sucks but it is harmless.
     port.onmessage = onMessage;

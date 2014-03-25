@@ -1,7 +1,7 @@
 Calendar.ns('Views').DayChild = (function() {
+  'use strict';
 
   var template = Calendar.Templates.Day;
-  var OrderedMap = Calendar.Utils.OrderedMap;
 
   function Day(options) {
     Calendar.Views.DayBased.apply(this, arguments);
@@ -15,7 +15,6 @@ Calendar.ns('Views').DayChild = (function() {
     __proto__: Calendar.Views.DayBased.prototype,
 
     _renderEvent: function(busytime, event) {
-      var remote = event.remote;
       var attendees;
       var classes;
 

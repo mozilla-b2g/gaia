@@ -3157,7 +3157,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      * Default config when config file not found.
      */
     _defaultConfig: {
-      'data-cover-only': 'js/'
+      'data-cover-only': 'js/',
+      'data-cover-never': 'test/unit/',
+      'data-cover-flags': 'lazyload'
     },
 
     enhance: function enhance(worker) {

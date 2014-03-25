@@ -1,5 +1,12 @@
 'use strict';
 
+/* global KeyboardLayout, KeyboardTouchHandler, InputField, ShiftKey,
+          AutoCorrect, Settings, Settings, KeyEvent */
+
+// XXX Before we support loading of layouts, this object temporary holds
+// the data for English layout.
+var englishLayout;
+
 (function(exports) {
   /**
    * KeyboardApp is the starting module of the app itself.
@@ -8,7 +15,7 @@
    */
   function KeyboardApp() {
     this._started = false;
-  };
+  }
 
   /**
    * Start the KeyboardApp instance. Attach event listeners and respond
@@ -34,11 +41,14 @@
 
     this.layout = new KeyboardLayout(englishLayout);
 
-    // XXX should be new and started here
-    this.touchHandler = KeyboardTouchHandler;
-    // XXX should be new and started here
+    this.touchHandler = new KeyboardTouchHandler();
+    this.touchHandler.start();
+
     this.inputField = new InputField();
     this.inputField.start();
+
+    this.doubleSpace = new DoubleSpace(this);
+    this.doubleSpace.start();
 
     this.shiftKey = new ShiftKey(this);
     this.shiftKey.start();
@@ -67,8 +77,8 @@
 
     // The call to resizeWindow triggers the system app to actually display
     // the frame that holds the keyboard.
-    // Wait untill next tick to show keyboard or we will get multiple resize events,
-    // triggered by calling window.resizeTo().
+    // Wait untill next tick to show keyboard or we will get multiple resize
+    // events, triggered by calling window.resizeTo().
     this.inputcontext = navigator.mozInputMethod.inputcontext;
     window.requestAnimationFrame(this.show.bind(this));
   };
@@ -95,6 +105,8 @@
     this.inputField.stop();
     this.shiftKey.stop();
     this.autoCorrect.stop();
+    this.doubleSpace.stop();
+    this.touchHandler.stop();
 
     this.inputcontext = null;
     this.layout = undefined;
@@ -107,6 +119,7 @@
     this.inputField = null;
     this.shiftKey = null;
     this.autoCorrect = null;
+    this.doubleSpace = null;
     this.settings = null;
     this.isShown = false;
   };
@@ -212,8 +225,9 @@
    */
   KeyboardApp.prototype.handleKey = function handleKey(keyname) {
     var key = this.currentPage.keys[keyname];
-    if (!key)
+    if (!key) {
       return;
+    }
 
     switch (key.keycmd) {
       case 'sendkey':
@@ -253,8 +267,9 @@
   KeyboardApp.prototype.handleInputFieldChanged =
     function handleInputFieldChanged() {
       var newvariant = this.getVariant();
-      if (newvariant === this.variant)
+      if (newvariant === this.variant) {
         return;
+      }
 
       console.log('variant changed to', newvariant);
 
@@ -262,8 +277,9 @@
       var newPageView = this.layout.getPageView(this.container,
                                                 this.currentPage.name,
                                                 this.variant);
-      if (newPageView === this.currentPageView)
+      if (newPageView === this.currentPageView) {
         return;
+      }
 
       console.log('pageview changed to',
                   newPageView.page.name, newPageView.page.variant);
@@ -347,7 +363,7 @@
   exports.KeyboardApp = KeyboardApp;
 }(window));
 
-var englishLayout = {
+englishLayout = {
   name: 'english',
   label: 'English',
   pages: {

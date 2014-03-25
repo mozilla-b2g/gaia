@@ -8,7 +8,11 @@ var MockL10n = {
     return key;
   },
   localize: function(element, label, args) {
-    element.textContent = label;
+    if (label == 'learn-more-privacy') {
+      element.textContent = args.link;
+    } else {
+      element.textContent = label;
+    }
   },
   DateTimeFormat: function () {
   }

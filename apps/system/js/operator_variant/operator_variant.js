@@ -368,10 +368,18 @@
      * Store the voicemail settings into the settings database.
      *
      * @param {Array} allSettings Carrier settings.
-     * @param {Boolean} isUpdate Flag. First run after flashing or updating.
+     * @param {Boolean} isSystemUpdate Indicating whether the function is called
+     *                                 due to system update or a new icc card is
+     *                                 detected.
      */
     applyVoicemailSettings:
-      function ovh_applyVoicemailSettings(allSettings, isUpdate) {
+      function ovh_applyVoicemailSettings(allSettings, isSystemUpdate) {
+        var number = this.getVMNumberFromOperatorVariantSettings(allSettings);
+        this.updateVoicemailSettings(number, isSystemUpdate);
+    },
+
+    getVMNumberFromOperatorVariantSettings:
+      function ovh_getVMNumberFromOperatorVariantSettings(allSettings) {
         var operatorVariantSettings = {};
         for (var i = 0; i < allSettings.length; i++) {
           if (allSettings[i] &&
@@ -382,41 +390,45 @@
         }
 
         // Load the voicemail number stored in the apn.json database.
-        var number = operatorVariantSettings['voicemail'] || '';
+        return operatorVariantSettings['voicemail'] || '';
+    },
 
+    updateVoicemailSettings:
+      function ovh_updateVoicemailSettings(number, isSystemUpdate) {
         // Store settings into the database.
         var settings = window.navigator.mozSettings;
         var transaction = settings.createLock();
 
         var request = transaction.get('ril.iccInfo.mbdn');
         request.onsuccess = (function() {
-          var result = request.result['ril.iccInfo.mbdn'];
+          var originalSetting = request.result['ril.iccInfo.mbdn'];
+          var newSetting;
+          var newNumber;
 
-          if (!result) {
-            // First boot after flashing the device.
-            result = ['', ''];
-            result[this._iccCardIndex] = number;
-          } else if (!Array.isArray(result)) {
-            // Might be a first boot after a system update.
-            result = ['', ''];
-            if (!isUpdate) {
-              // First boot after flashing the device.
-              result[this._iccCardIndex] = number;
-            } else {
-              // Actually it is a system update. Do not overrite number and keep
-              // it as the voice number for first ICC card.
-              if (result !== number) {
-                result[0] = result;
-              } else {
-                result[0] = number;
-              }
-            }
+          // Create an empty setting if needed
+          if (!originalSetting || !Array.isArray(originalSetting)) {
+            newSetting = ['', ''];
           } else {
-            // First boot after a new ICC card is inserted.
-            result[this._iccCardIndex] = number;
+            newSetting = originalSetting;
           }
 
-          transaction.set({'ril.iccInfo.mbdn': result});
+          // Determine the new value:
+          // - Use the original value when the function is called due to
+          //   system update
+          // - Use the passed in number when the function is called due to
+          //   new icc cards detected (not system update)
+          if (isSystemUpdate) {
+            if (!Array.isArray(originalSetting)) {
+              newNumber = originalSetting;
+            } else {
+              newNumber = originalSetting[this._iccCardIndex];
+            }
+          } else {
+            newNumber = number;
+          }
+
+          newSetting[this._iccCardIndex] = newNumber;
+          transaction.set({'ril.iccInfo.mbdn': newSetting});
         }).bind(this);
     },
 

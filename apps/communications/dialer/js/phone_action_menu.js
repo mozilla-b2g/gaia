@@ -52,7 +52,7 @@ var PhoneNumberActionMenu = (function() {
         req.onsuccess = function() {
           LazyLoader.load(['/shared/js/sim_picker.js'], function() {
             LazyL10n.get(function(_) {
-              SimPicker.show(req.result[key], _newPhoneNumber, callFn);
+              SimPicker.getOrPick(req.result[key], _newPhoneNumber, callFn);
             });
           });
         };

@@ -4,7 +4,7 @@ mocha.globals(['resizeTo']);
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
-requireApp('communications/dialer/test/unit/mock_moztelephony.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 
 requireApp('communications/dialer/test/unit/mock_handled_call.js');
 requireApp('communications/dialer/test/unit/mock_calls_handler.js');
@@ -49,7 +49,7 @@ suite('call screen', function() {
 
   suiteSetup(function() {
     realMozTelephony = navigator.mozTelephony;
-    navigator.mozTelephony = MockMozTelephony;
+    navigator.mozTelephony = MockNavigatorMozTelephony;
 
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
@@ -58,7 +58,7 @@ suite('call screen', function() {
   });
 
   suiteTeardown(function() {
-    MockMozTelephony.mSuiteTeardown();
+    MockNavigatorMozTelephony.mSuiteTeardown();
     navigator.mozTelephony = realMozTelephony;
     navigator.mozApps = realMozApps;
   });
@@ -155,7 +155,7 @@ suite('call screen', function() {
   });
 
   teardown(function() {
-    MockMozTelephony.mTeardown();
+    MockNavigatorMozTelephony.mTeardown();
     MockNavigatormozApps.mTeardown();
     screen.parentNode.removeChild(screen);
   });

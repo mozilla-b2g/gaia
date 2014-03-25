@@ -1,3 +1,5 @@
+/* global MockAllNetworkInterfaces */
+/* exported MockMozNetworkStats */
 'use strict';
 
 var MockMozNetworkStats;

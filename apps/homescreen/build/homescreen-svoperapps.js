@@ -51,7 +51,7 @@ function getSystemApps(config, grid) {
   var hiddenRoles = ['system', 'input', 'homescreen'];
   var systemApps = [];
 
-  utils.getGaia(config).webapps.forEach(function(webapp) {
+  utils.gaia.getInstance(config).webapps.forEach(function(webapp) {
     if (!webapp.manifest.role ||
       hiddenRoles.indexOf(webapp.manifest.role) === -1) {
       // Check if the application has an entrypoint, it means that there are

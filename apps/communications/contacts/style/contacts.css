@@ -122,6 +122,9 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   white-space: pre-wrap;
 }
 
+#bulkDelete {
+  margin-top: 1rem;
+}
 #contact-detail h1 {
   font-size: 1.4rem;
   line-height: 1.5em;
@@ -143,8 +146,26 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   margin: 0.1rem 0;
 }
 
+#contact-detail li button.icon-call {
+  padding-left: 0;
+}
+
+#contact-detail li button>div {
+  display: inline-flex;
+  width: calc(100% - 20px);
+  margin-left: 20px;
+}
+
+#contact-detail li button>div b {
+  flex: 1;
+}
+
 #contact-detail .social-actions button {
   margin-bottom: 1rem;
+}
+
+.calls-disabled li[data-phone] button.call-action {
+  pointer-events: none;
 }
 
 #contact-detail .duplicate-actions button {
@@ -154,6 +175,12 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 #contact-detail h2 {
   text-transform: uppercase;
   font-size: 1.4rem;
+}
+
+#contact-detail .carrier {
+  font-size: 1.4rem;
+  color: #5f5f5f;
+  text-transform: none;
 }
 
 .block-item > * {

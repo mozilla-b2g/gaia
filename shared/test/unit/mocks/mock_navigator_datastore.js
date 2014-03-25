@@ -1,19 +1,5 @@
 'use strict';
 
-var MockNavigatorDatastore = {
-  getDataStores: function() {
-    if (MockNavigatorDatastore._notFound === true) {
-      return new window.Promise(function(resolve, reject) {
-        resolve([]);
-      });
-    }
-
-    return new window.Promise(function(resolve, reject) {
-      resolve([MockDatastore]);
-    });
-  }
-};
-
 var MockDatastore = {
   readOnly: false,
   revisionId: '123456',
@@ -108,6 +94,20 @@ var MockDatastore = {
     this._records = {};
     return new window.Promise(function(resolve, reject) {
       resolve();
+    });
+  }
+};
+
+var MockNavigatorDatastore = {
+  getDataStores: function() {
+    if (MockNavigatorDatastore._notFound === true) {
+      return new window.Promise(function(resolve, reject) {
+        resolve([]);
+      });
+    }
+
+    return new window.Promise(function(resolve, reject) {
+      resolve([MockDatastore]);
     });
   }
 };

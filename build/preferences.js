@@ -9,7 +9,7 @@ var PreferencesBuilder = function() {
 PreferencesBuilder.prototype.setConfig = function(config) {
   this.config = config;
   this.prefs = {};
-  this.gaia = utils.getGaia(this.config);
+  this.gaia = utils.gaia.getInstance(this.config);
 };
 
 PreferencesBuilder.prototype.execute = function(config) {

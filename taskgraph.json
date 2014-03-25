@@ -1,0 +1,55 @@
+{
+  "tasks": {
+    "marionette integration tests": {
+      "task": {
+        "metadata": {
+          "name": "Gaia Marionette JS integration testing"
+        },
+        "payload": {
+          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv",
+          "command": [
+            "./bin/github_pr https://github.com/$GH_REPO_SLUG.git $GH_PULL_REQUEST_NUMBER make test-integration REPORTER=mocha-tbpl-reporter"
+          ]
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "GI"
+        }
+      }
+    },
+    "build tests": {
+      "task": {
+        "metadata": {
+          "name": "Gaia build system tests"
+        },
+        "payload": {
+          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv",
+          "command": [
+            "./bin/github_pr https://github.com/$GH_REPO_SLUG.git $GH_PULL_REQUEST_NUMBER ./tests/travis_ci/build_tests/script"
+          ]
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "GB"
+        }
+      }
+    },
+    "lint": {
+      "task": {
+        "metadata": {
+          "name": "Gaia code linters"
+        },
+        "payload": {
+          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv",
+          "command": [
+            "./bin/github_pr https://github.com/$GH_REPO_SLUG.git $GH_PULL_REQUEST_NUMBER make hint"
+          ]
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "HINT"
+        }
+      }
+    }
+  }
+}

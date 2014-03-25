@@ -1,6 +1,6 @@
 'use strict';
 
-requireApp('communications/dialer/test/unit/mock_moztelephony.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 requireApp('communications/dialer/test/unit/mock_call.js');
 requireApp('communications/dialer/test/unit/mock_handled_call.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
@@ -34,7 +34,7 @@ suite('conference group handler', function() {
 
   suiteSetup(function(done) {
     realMozTelephony = navigator.mozTelephony;
-    navigator.mozTelephony = MockMozTelephony;
+    navigator.mozTelephony = MockNavigatorMozTelephony;
 
     fakeDOM = document.createElement('div');
     fakeDOM.innerHTML = '<section id="group-call" hidden>' +
@@ -74,7 +74,7 @@ suite('conference group handler', function() {
   });
 
   teardown(function() {
-    MockMozTelephony.mTeardown();
+    MockNavigatorMozTelephony.mTeardown();
   });
 
   suite('telephony.conferenceGroup.oncallschanged handling', function() {
@@ -83,8 +83,8 @@ suite('conference group handler', function() {
     var thirdCall, thirdHC;
 
     function flush() {
-      MockMozTelephony.mTriggerGroupCallsChanged();
-      MockMozTelephony.mTriggerCallsChanged();
+      MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+      MockNavigatorMozTelephony.mTriggerCallsChanged();
     }
 
     setup(function() {
@@ -97,8 +97,9 @@ suite('conference group handler', function() {
 
     suite('when the conference call is created', function() {
       setup(function() {
-        MockMozTelephony.calls = [];
-        MockMozTelephony.conferenceGroup.calls = [firstCall, secondCall];
+        MockNavigatorMozTelephony.calls = [];
+        MockNavigatorMozTelephony.conferenceGroup.calls =
+          [firstCall, secondCall];
       });
 
       test('should update the group label', function() {
@@ -114,9 +115,9 @@ suite('conference group handler', function() {
           thirdCall = new MockCall('54329890', 'incoming');
           thirdHC = telephonyAddCall.call(this, thirdCall, {trigger: true});
 
-          MockMozTelephony.calls = [];
-          MockMozTelephony.conferenceGroup.calls = [firstCall, secondCall,
-                                                    thirdCall];
+          MockNavigatorMozTelephony.calls = [];
+          MockNavigatorMozTelephony.conferenceGroup.calls =
+            [firstCall, secondCall, thirdCall];
         });
 
         test('should update the group label', function() {
@@ -135,8 +136,9 @@ suite('conference group handler', function() {
           setup(function() {
             flush();
 
-            MockMozTelephony.calls = [thirdCall];
-            MockMozTelephony.conferenceGroup.calls = [firstCall, secondCall];
+            MockNavigatorMozTelephony.calls = [thirdCall];
+            MockNavigatorMozTelephony.conferenceGroup.calls =
+              [firstCall, secondCall];
           });
 
           test('should update the group label', function() {
@@ -150,8 +152,9 @@ suite('conference group handler', function() {
           setup(function() {
             flush();
 
-            MockMozTelephony.calls = [];
-            MockMozTelephony.conferenceGroup.calls = [firstCall, secondCall];
+            MockNavigatorMozTelephony.calls = [];
+            MockNavigatorMozTelephony.conferenceGroup.calls =
+              [firstCall, secondCall];
           });
 
           test('should update the group label', function() {
@@ -173,8 +176,8 @@ suite('conference group handler', function() {
         setup(function() {
           flush();
 
-          MockMozTelephony.calls = [firstCall, secondCall];
-          MockMozTelephony.conferenceGroup.calls = [];
+          MockNavigatorMozTelephony.calls = [firstCall, secondCall];
+          MockNavigatorMozTelephony.conferenceGroup.calls = [];
         });
 
         test('should hide the overlay of group details', function() {
@@ -198,18 +201,18 @@ suite('conference group handler', function() {
       secondCall = new MockCall('54212152', 'incoming');
       secondHC = telephonyAddCall.call(this, secondCall, {trigger: true});
 
-      MockMozTelephony.calls = [];
-      MockMozTelephony.conferenceGroup.calls = [firstCall, secondCall];
+      MockNavigatorMozTelephony.calls = [];
+      MockNavigatorMozTelephony.conferenceGroup.calls = [firstCall, secondCall];
 
-      MockMozTelephony.mTriggerGroupCallsChanged();
-      MockMozTelephony.mTriggerCallsChanged();
+      MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+      MockNavigatorMozTelephony.mTriggerCallsChanged();
     });
 
     test('should start timer when connected', function() {
       assert.isFalse(MockCallScreen.mCalledCreateTicker);
 
-      MockMozTelephony.conferenceGroup.state = 'connected';
-      MockMozTelephony.mTriggerGroupStateChange();
+      MockNavigatorMozTelephony.conferenceGroup.state = 'connected';
+      MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isTrue(MockCallScreen.mCalledCreateTicker);
     });
@@ -218,8 +221,8 @@ suite('conference group handler', function() {
       fakeGroupLine.classList.add('held');
       fakeGroupLine.classList.add('ended');
 
-      MockMozTelephony.conferenceGroup.state = 'connected';
-      MockMozTelephony.mTriggerGroupStateChange();
+      MockNavigatorMozTelephony.conferenceGroup.state = 'connected';
+      MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isFalse(fakeGroupLine.classList.contains('held'));
       assert.isFalse(fakeGroupLine.classList.contains('ended'));
@@ -227,16 +230,16 @@ suite('conference group handler', function() {
     });
 
     test('should set photo to default when connected', function() {
-      MockMozTelephony.conferenceGroup.state = 'connected';
-      MockMozTelephony.mTriggerGroupStateChange();
+      MockNavigatorMozTelephony.conferenceGroup.state = 'connected';
+      MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isNull(MockCallScreen.mSetCallerContactImageArg);
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
 
     test('should set photo to default when resuming', function() {
-      MockMozTelephony.conferenceGroup.state = 'resuming';
-      MockMozTelephony.mTriggerGroupStateChange();
+      MockNavigatorMozTelephony.conferenceGroup.state = 'resuming';
+      MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isNull(MockCallScreen.mSetCallerContactImageArg);
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
@@ -245,8 +248,8 @@ suite('conference group handler', function() {
     test('should stop timer when groupcall ends', function() {
       assert.isFalse(MockCallScreen.mCalledStopTicker);
 
-      MockMozTelephony.conferenceGroup.state = '';
-      MockMozTelephony.mTriggerGroupStateChange();
+      MockNavigatorMozTelephony.conferenceGroup.state = '';
+      MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isTrue(MockCallScreen.mCalledStopTicker);
     });
@@ -254,20 +257,20 @@ suite('conference group handler', function() {
     test('should add the held class once held', function() {
       assert.isFalse(fakeGroupLine.classList.contains('held'));
 
-      MockMozTelephony.conferenceGroup.state = 'held';
-      MockMozTelephony.mTriggerGroupStateChange();
+      MockNavigatorMozTelephony.conferenceGroup.state = 'held';
+      MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isTrue(fakeGroupLine.classList.contains('held'));
     });
 
     test('should remove the held class while resuming', function() {
-      MockMozTelephony.conferenceGroup.state = 'held';
-      MockMozTelephony.mTriggerGroupStateChange();
+      MockNavigatorMozTelephony.conferenceGroup.state = 'held';
+      MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isTrue(fakeGroupLine.classList.contains('held'));
 
-      MockMozTelephony.conferenceGroup.state = 'resuming';
-      MockMozTelephony.mTriggerGroupStateChange();
+      MockNavigatorMozTelephony.conferenceGroup.state = 'resuming';
+      MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isFalse(fakeGroupLine.classList.contains('held'));
     });
@@ -275,15 +278,15 @@ suite('conference group handler', function() {
     test('should call CallsHandler.checkCalls when exiting conference call',
     function() {
       var checkCallsSpy = this.sinon.spy(MockCallsHandler, 'checkCalls');
-      MockMozTelephony.conferenceGroup.state = '';
-      MockMozTelephony.mTriggerGroupStateChange();
+      MockNavigatorMozTelephony.conferenceGroup.state = '';
+      MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isTrue(checkCallsSpy.calledOnce);
     });
 
     test('should show call ended when exiting conference call', function() {
-      MockMozTelephony.conferenceGroup.state = '';
-      MockMozTelephony.mTriggerGroupStateChange();
+      MockNavigatorMozTelephony.conferenceGroup.state = '';
+      MockNavigatorMozTelephony.mTriggerGroupStateChange();
       assert.equal(fakeDurationChildNode.textContent, 'callEnded');
     });
 
@@ -292,8 +295,8 @@ suite('conference group handler', function() {
       fakeGroupLine.hidden = false;
       this.sinon.useFakeTimers();
 
-      MockMozTelephony.conferenceGroup.state = '';
-      MockMozTelephony.mTriggerGroupStateChange();
+      MockNavigatorMozTelephony.conferenceGroup.state = '';
+      MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
       assert.isFalse(fakeGroupLine.hidden);
       assert.isTrue(fakeGroupLine.classList.contains('ended'));
@@ -306,13 +309,13 @@ suite('conference group handler', function() {
   suite('telephony.conferenceGroup.onerror handling', function() {
     test('error when merging calls', function() {
       var showStatusSpy = this.sinon.spy(CallScreen, 'showStatusMessage');
-      MockMozTelephony.conferenceGroup.onerror({name: 'addError'});
+      MockNavigatorMozTelephony.conferenceGroup.onerror({name: 'addError'});
       assert.isTrue(showStatusSpy.calledWith('conferenceAddError'));
     });
 
     test('error when unmerging calls', function() {
       var showStatusSpy = this.sinon.spy(CallScreen, 'showStatusMessage');
-      MockMozTelephony.conferenceGroup.onerror({name: 'removeError'});
+      MockNavigatorMozTelephony.conferenceGroup.onerror({name: 'removeError'});
       assert.isTrue(showStatusSpy.calledWith('conferenceRemoveError'));
     });
   });

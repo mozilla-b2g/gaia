@@ -1,22 +1,31 @@
 'use strict';
 
-(function() {
+/* global MockDOMRequest */
 
-  var DeviceStorage = {
+(function() {
+  /**
+   * This file implements a partly completed MockDeviceStorage.
+   * Many of it's method returns a MockDOMRequest(). You should install a
+   * sinon.spy on the method and retrive the MockDOMRequest instance with
+   * 'spy.getCall(0).returnValue'.
+   *
+   * Check out 'apps/system/test/unit/screenshot_test.js' for example.
+   *
+   * @type {Object}
+   */
+  var MockDeviceStorage = {
     _listeners: {},
-    _freeSpace: 0,
 
     freeSpace: function freeSpace() {
-      var request = {};
+      return new MockDOMRequest();
+    },
 
-      setTimeout((function nextTick() {
-        if (request.onsuccess) {
-          request.result = this._freeSpace;
-          request.onsuccess();
-        }
-      }).bind(this));
+    available: function available() {
+      return new MockDOMRequest();
+    },
 
-      return request;
+    addNamed: function addNamed(file, filename) {
+      return new MockDOMRequest();
     },
 
     addEventListener: function addEventListener(event, listener) {
@@ -25,7 +34,7 @@
   };
 
   function mockGetDeviceStorage() {
-    return DeviceStorage;
+    return MockDeviceStorage;
   }
 
   window.MockNavigatorGetDeviceStorage = mockGetDeviceStorage;

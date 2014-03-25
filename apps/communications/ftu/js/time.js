@@ -1,3 +1,4 @@
+/* exported TimeManager */
 'use strict';
 
 var TimeManager = {

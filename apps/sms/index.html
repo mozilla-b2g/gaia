@@ -101,7 +101,7 @@
         </div>
 
         <form id="threads-edit-form" role="dialog" data-type="edit">
-          <section>
+          <section role="region">
             <header>
               <button id="threads-cancel-button">
                 <span data-l10n-id="cancel" class="icon icon-close">close</span>
@@ -250,8 +250,8 @@
           <div id="messages-input" contentEditable="true" name="message"
             data-l10n-id="composeMessage" x-inputmode="-moz-sms"><br></div>
         </form>
-        <form role="dialog" id="messages-edit-form" role="dialog" data-type="edit" >
-          <section>
+        <form role="dialog" id="messages-edit-form" role="dialog" data-type="edit">
+          <section role="region">
             <header>
               <button id="messages-cancel-button">
                 <span data-l10n-id="cancel" class="icon icon-close">close</span>
@@ -317,6 +317,22 @@
         </a>
       </li>
       -->
+    </div>
+
+    <div id="contact-suggestion-unknown-tmpl" class="hide">
+    <!--
+    <li>
+      <a class="suggestion"
+        data-number="${number}" data-source="contacts" data-name="${name}"
+        data-type="${type}" data-separator="${separator}" data-carrier="${carrier}">
+        ${photoHTML}
+        <p class="name">${numberHTML}</p>
+        <p class="number">
+          <span data-l10n-id="${type}">Unknown Contact</span>
+        </p>
+     </a>
+    </li>
+    -->
     </div>
 
     <div id="contact-prompt-tmpl" class="hide">

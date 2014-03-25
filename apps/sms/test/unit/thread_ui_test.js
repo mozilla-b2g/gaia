@@ -5,8 +5,8 @@
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
-         ActivityPicker, KeyEvent, MockNavigatorSettings, Draft,
-         ErrorDialog, MockStickyHeader, MultiSimActionButton
+         ActivityPicker, KeyEvent, MockNavigatorSettings, MockContactRenderer,
+         Draft, ErrorDialog, MockStickyHeader, MultiSimActionButton
 */
 
 'use strict';
@@ -311,8 +311,30 @@ suite('thread_ui.js >', function() {
     });
 
     suite('rendering suggestions list', function() {
+      var suggestionRenderer, unknownRenderer;
+      var contact, unknown;
       setup(function() {
-        this.sinon.spy(ContactRenderer.prototype, 'render');
+        suggestionRenderer = new MockContactRenderer();
+        unknownRenderer = new MockContactRenderer();
+        sinon.spy(suggestionRenderer, 'render');
+        sinon.spy(unknownRenderer, 'render');
+
+        this.sinon.stub(ContactRenderer, 'flavor').throws();
+        ContactRenderer.flavor.withArgs('suggestion')
+          .returns(suggestionRenderer);
+        ContactRenderer.flavor.withArgs('suggestionUnknown')
+          .returns(unknownRenderer);
+
+        // create a normal and an unknown contact
+        contact = new MockContact();
+        unknown = {
+          name: ['unknown '],
+          tel: ['+33123456999 '],
+          source: 'unknown'
+        };
+
+        this.sinon.stub(Contacts, 'findByString').yields([contact, unknown]);
+
         ThreadUI.recipients.add({
           number: '888'
         });
@@ -329,15 +351,26 @@ suite('thread_ui.js >', function() {
       });
 
       test('does display found contacts', function() {
-        sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
+        sinon.assert.calledWithMatch(suggestionRenderer.render, {
+          contact: contact,
           input: '999',
           target: container.querySelector('ul.contact-list')
+        });
+
+        sinon.assert.calledWithMatch(unknownRenderer.render, {
+          contact: unknown,
+           input: '999',
+           target: container.querySelector('ul.contact-list')
         });
       });
 
       test('does not display entered recipients', function() {
-        sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
-          skip: ['888']
+
+        sinon.assert.calledWithMatch(suggestionRenderer.render, {
+            skip: ['888']
+        });
+        sinon.assert.calledWithMatch(unknownRenderer.render, {
+           skip: ['888']
         });
       });
     });
@@ -1084,7 +1117,7 @@ suite('thread_ui.js >', function() {
       test('banner localized', function() {
         assert.ok(
           localize.calledWith(banner.querySelector('p'),
-            'messages-exceeded-length-text')
+            'message-exceeded-max-length')
         );
       });
 

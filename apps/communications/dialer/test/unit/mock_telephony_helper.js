@@ -3,5 +3,8 @@
 /* exported MockTelephonyHelper */
 
 var MockTelephonyHelper = {
-  call: function() {}
+  mInUseSim: null,
+  call: function() {},
+  getInUseSim: function() { return this.mInUseSim; },
+  mTeardown: function() { this.mInUseSim = null; }
 };

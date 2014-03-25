@@ -81,7 +81,7 @@ HomescreenAppBuilder.prototype.bestMatchingIcon =
 HomescreenAppBuilder.prototype.getCollectionManifest =
   function(directory, appName) {
   var config = this.options;
-  let gaia = utils.getGaia(config);
+  let gaia = utils.gaia.getInstance(config);
 
   // Locate the directory of a given app.
   // If the directory (Gaia.distributionDir)/(directory)/(appName) exists,
