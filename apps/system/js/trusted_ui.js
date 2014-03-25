@@ -175,13 +175,13 @@ var TrustedUIManager = {
   },
 
   _restoreCallerApp: function trui_restoreCallerApp(origin) {
-    var frame = AppWindowManager.getRunningApps()[origin].frame;
+    var frame = AppWindowManager.getApp(origin).frame;
     frame.style.visibility = 'visible';
     frame.classList.remove('back');
     if (!AppWindowManager.getActiveApp().isHomescreen) {
       this.publish('trusteduihide', { origin: origin });
     }
-    if (AppWindowManager.getDisplayedApp() == origin) {
+    if (AppWindowManager.getActiveApp().origin == origin) {
       frame.classList.add('restored');
       frame.addEventListener('transitionend', function removeRestored() {
         frame.removeEventListener('transitionend', removeRestored);

@@ -316,6 +316,7 @@
   left: 0;
   width: 100%;
   height: 100%;
+  opacity: 0.8;
 }
 
 .appWindow.fadeout > .fade-overlay {
@@ -413,30 +414,42 @@
   z-index: 4;
 }
 
-.appWindow > .modal-dialog {
-  z-index: 3;
+.appWindow.in-from-left {
+  animation: inFromLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.out-to-right {
+  animation: outToRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+@keyframes slideLeft {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(0); }
 }
 
 .appWindow > .contextmenu {
   z-index: 2;
 }
 
-.appWindow > .screenshot-overlay.visible {
-  z-index: 2;
+@keyframes inFromLeft {
+  0%   {
+    transform: translateX(-20%);
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1.0;
+  }
 }
 
-.appWindow > iframe {
-  z-index: 1;
+@keyframes outToRight {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(100%); }
 }
 
-.appWindow > .screenshot-overlay {
-  z-index: -1;
-}
-
-/* animation */
-
-.appWindow.slideup {
-  animation: slideUp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+/* Edges */
+#screen.edges #windows > .appWindow {
+  box-shadow: -0.5rem 0 rgba(0, 0, 0, 0.5);
 }
 
 .appWindow.slidedown {
