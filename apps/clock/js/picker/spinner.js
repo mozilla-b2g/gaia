@@ -75,9 +75,6 @@ define(function(require) {
       },
       length: {
         value: setup.values.length
-      },
-      textValues: {
-        value: setup.textValues
       }
     });
 
@@ -106,11 +103,6 @@ define(function(require) {
     this.container.addEventListener('touchstart', this, false);
     this.container.addEventListener('pan', this, false);
     this.container.addEventListener('swipe', this, false);
-    this.container.addEventListener('keypress', this, false);
-    this.container.setAttribute('aria-valuemax', this.upper);
-    this.container.setAttribute('aria-valuemin', this.lower);
-    this.container.setAttribute('aria-valuenow', this.index);
-    this.container.setAttribute('aria-valuetext', this.textValues[this.index]);
 
     this.reset();
 
@@ -126,8 +118,6 @@ define(function(require) {
   };
 
   Spinner.prototype.update = function() {
-    this.container.setAttribute('aria-valuenow', this.index);
-    this.container.setAttribute('aria-valuetext', this.textValues[this.index]);
     this.element.style.transform = 'translateY(' + this.top + 'px)';
   };
 
@@ -231,15 +221,6 @@ define(function(require) {
 
     this.stopInteraction();
 
-  };
-
-  Spinner.prototype.onkeypress = function(event) {
-    this.element.classList.add('animation-on');
-    if (event.keyCode == KeyEvent.DOM_VK_DOWN) {
-      this.select(this.index - 1);
-    } else {
-      this.select(this.index + 1);
-    }
   };
 
   return Spinner;
