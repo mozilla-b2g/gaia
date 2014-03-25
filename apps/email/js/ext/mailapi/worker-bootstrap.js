@@ -12462,6 +12462,7 @@ exports.createHash = function(algorithm) {
   return {
     update: function(addData) {
       data += addData;
+      return this;
     },
     digest: function(encoding) {
       switch (encoding) {
