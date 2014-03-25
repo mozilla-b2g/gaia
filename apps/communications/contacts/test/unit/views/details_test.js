@@ -203,13 +203,34 @@ suite('Render contact', function() {
       assert.equal(detailsName.textContent, mockContact.name[0]);
     });
 
-    test('without name', function() {
+    test('without name, with phone', function() {
       var contactWoName = new MockContactAllFields(true);
       contactWoName.name = null;
       subject.setContact(contactWoName);
       subject.render(null, TAG_OPTIONS);
-      assert.equal(detailsName.textContent, '');
+      assert.equal(detailsName.textContent, contactWoName.tel[0].value);
     });
+
+    test('without name, without phone, with email', function() {
+      var contactWoName = new MockContactAllFields(true);
+      contactWoName.name = null;
+      contactWoName.tel = null;
+      subject.setContact(contactWoName);
+      subject.render(null, TAG_OPTIONS);
+      assert.equal(detailsName.textContent, contactWoName.email[0].value);
+    });
+
+    test('no name, no phone, no email', function() {
+      var contactWoName = new MockContactAllFields(true);
+      contactWoName.name = null;
+      contactWoName.tel = null;
+      contactWoName.email = null;
+      subject.setContact(contactWoName);
+      subject.render(null, TAG_OPTIONS);
+      assert.notEqual(detailsName.textContent, '');
+      assert.isTrue(mozL10nGetSpy.calledWith('noName'));
+    });
+
   });
 
   suite('Render favorite', function() {

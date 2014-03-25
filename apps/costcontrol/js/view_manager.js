@@ -1,3 +1,4 @@
+/* exported ViewManager */
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
@@ -22,7 +23,7 @@ var ViewManager = (function() {
     this._currentView = null;
     this._currentTab = null;
 
-  };
+  }
 
   // Return true if the passed view is a tab
   ViewManager.prototype._isTab = function _isTab(view) {
@@ -77,7 +78,7 @@ var ViewManager = (function() {
     // Overlay view
     } else {
       this.closeCurrentView();
-      var previousViewId = this._currentView ? this._currentView.id : '';
+      previousViewId = this._currentView ? this._currentView.id : '';
       this._currentView = {
         id: viewId,
         defaultViewport: view.dataset.viewport
@@ -100,15 +101,17 @@ var ViewManager = (function() {
   }
 
   ViewManager.prototype.loadPanel = function _loadPanel(panel) {
-    if (!panel || panel.hidden === false) return;
+    if (!panel || panel.hidden === false) {
+      return;
+    }
 
     // apply the HTML markup stored in the first comment node
-    for (var i = 0; i < panel.childNodes.length; i++) {
-      if (panel.childNodes[i].nodeType == document.COMMENT_NODE) {
+    for (var idx = 0; idx < panel.childNodes.length; idx++) {
+      if (panel.childNodes[idx].nodeType == document.COMMENT_NODE) {
         // XXX: Note we use innerHTML precisely because we need to parse the
         // content and we want to avoid overhead introduced by DOM
         // manipulations.
-        panel.innerHTML = panel.childNodes[i].nodeValue;
+        panel.innerHTML = panel.childNodes[idx].nodeValue;
         break;
       }
     }
@@ -132,8 +135,8 @@ var ViewManager = (function() {
 
     // activate all scripts
     var scripts = panel.querySelectorAll('script');
-    for (var i = 0; i < scripts.length; i++) {
-      var src = scripts[i].getAttribute('src');
+    for (var j = 0; j < scripts.length; j++) {
+      var src = scripts[j].getAttribute('src');
       if (!document.getElementById(src)) {
         var script = document.createElement('script');
         script.type = 'application/javascript';

@@ -273,9 +273,9 @@ suite('Dialog', function() {
 
       var opt = dialogSpy.firstCall.args[1];
       assert.equal(opt.title.l10nId,
-                  'sendGeneralErrorTitle');
+                  'sendDefaultErrorTitle');
       assert.equal(opt.body.l10nId,
-                  'sendGeneralErrorBody');
+                  'sendDefaultErrorBody');
     });
 
     test('show general error for internal case', function() {
@@ -283,8 +283,8 @@ suite('Dialog', function() {
       dialog.show();
 
       var opt = dialogSpy.firstCall.args[1];
-      assert.equal(opt.title.l10nId, 'sendGeneralErrorTitle');
-      assert.equal(opt.body.l10nId, 'sendGeneralErrorBody');
+      assert.equal(opt.title.l10nId, 'sendDefaultErrorTitle');
+      assert.equal(opt.body.l10nId, 'sendDefaultErrorBody');
     });
 
     test('show invalid address error', function() {

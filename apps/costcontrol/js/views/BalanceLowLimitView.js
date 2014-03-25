@@ -1,3 +1,4 @@
+/* exported BalanceLowLimitView */
 'use strict';
 
 function BalanceLowLimitView(lowLimitEnabler, lowLimitInput) {

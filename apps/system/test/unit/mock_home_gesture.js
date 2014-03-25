@@ -4,3 +4,5 @@
 
 function MockHomeGesture() {
 }
+
+MockHomeGesture.prototype.start = function() {};

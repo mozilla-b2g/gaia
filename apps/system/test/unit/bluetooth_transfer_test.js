@@ -6,6 +6,7 @@ requireApp(
   'system/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
 );
 
+requireApp('system/shared/test/unit/mocks/mock_dom_request.js');
 requireApp('system/test/unit/mock_navigator_get_device_storage.js');
 requireApp('system/test/unit/mock_bluetooth.js');
 requireApp('system/test/unit/mock_l10n.js');

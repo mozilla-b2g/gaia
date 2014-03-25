@@ -1,3 +1,9 @@
+/* global BalanceTab, ConfigManager, Common, NonReadyScreen, showSimErrorDialog,
+          debug, CostControl, SettingsListener, TelephonyTab, ViewManager,
+          LazyLoader, AirplaneModeHelper */
+/* exported CostControlApp */
+
+'use strict';
 
 /*
  * The application is in charge of display detailed information about the usage.
@@ -37,8 +43,6 @@
 
 var CostControlApp = (function() {
 
-  'use strict';
-
   var costcontrol, initialized = false;
   var vmanager;
 
@@ -47,7 +51,6 @@ var CostControlApp = (function() {
   // SIM. Once ready, callback is executed.
   function waitForSIMReady(callback) {
     Common.loadDataSIMIccId(function _onIccId(iccid) {
-      var iccid = Common.dataSimIccId;
       var dataSimIccInfo = Common.dataSimIcc;
       var cardState = dataSimIccInfo && dataSimIccInfo.cardState;
 

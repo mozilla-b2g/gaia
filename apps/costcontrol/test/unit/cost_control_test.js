@@ -1,3 +1,6 @@
+/* global MockCommon, MockMozMobileConnection,
+          MockMozNetworkStats, MockConfigManager, CostControl, Common
+*/
 'use strict';
 
 requireApp('costcontrol/test/unit/mock_debug.js');
@@ -15,24 +18,24 @@ var realCommon,
     realConfigManager,
     realMozMobileConnection;
 
-if (!this.SettingsListener) {
-  this.SettingsListener = null;
+if (!window.SettingsListener) {
+  window.SettingsListener = null;
 }
 
-if (!this.ConfigManager) {
-  this.ConfigManager = null;
+if (!window.ConfigManager) {
+  window.ConfigManager = null;
 }
 
-if (!this.navigator.mozMobileConnection) {
-  this.navigator.mozMobileConnection = null;
+if (!window.navigator.mozMobileConnection) {
+  window.navigator.mozMobileConnection = null;
 }
 
-if (!this.navigator.mozNetworkStats) {
-  this.navigator.mozNetworkStats = null;
+if (!window.navigator.mozNetworkStats) {
+  window.navigator.mozNetworkStats = null;
 }
 
-if (!this.Common) {
-  this.Common = null;
+if (!window.Common) {
+  window.Common = null;
 }
 
 

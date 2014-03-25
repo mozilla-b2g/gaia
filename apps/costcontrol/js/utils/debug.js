@@ -1,3 +1,6 @@
+/* exported debug  */
+'use strict';
+
 var DEBUGGING = false;
 
 var debug = (function() {

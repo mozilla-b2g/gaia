@@ -1,3 +1,5 @@
+/* global MockCommon, MockCostControl, MockMozMobileConnection, Event,
+          CostControlApp, Common, MockConfigManager, MockSettingsListener */
 'use strict';
 
 // XXX: As there are two iframes in the body, Firefox adds two indexed items
@@ -32,36 +34,36 @@ var realCommon,
     realNonReadyScreen,
     realLazyLoader;
 
-if (!this.Common) {
-  this.Common = null;
+if (!window.Common) {
+  window.Common = null;
 }
 
-if (!this.navigator.mozMobileConnection) {
-  this.navigator.mozMobileConnection = null;
+if (!window.navigator.mozMobileConnection) {
+  window.navigator.mozMobileConnection = null;
 }
 
-if (!this.navigator.mozL10n) {
-  this.navigator.mozL10n = null;
+if (!window.navigator.mozL10n) {
+  window.navigator.mozL10n = null;
 }
 
-if (!this.SettingsListener) {
-  this.SettingsListener = null;
+if (!window.SettingsListener) {
+  window.SettingsListener = null;
 }
 
-if (!this.CostControl) {
-  this.CostControl = null;
+if (!window.CostControl) {
+  window.CostControl = null;
 }
 
-if (!this.ConfigManager) {
-  this.ConfigManager = null;
+if (!window.ConfigManager) {
+  window.ConfigManager = null;
 }
 
-if (!this.navigator.mozSetMessageHandler) {
-  this.navigator.mozSetMessageHandler = null;
+if (!window.navigator.mozSetMessageHandler) {
+  window.navigator.mozSetMessageHandler = null;
 }
 
-if (!this.NonReadyScreen) {
-  this.NonReadyScreen = null;
+if (!window.NonReadyScreen) {
+  window.NonReadyScreen = null;
 }
 
 if (!window.LazyLoader) {

@@ -15,22 +15,17 @@ var MultiSimActionButton = function MultiSimActionButton(
 
   this._button.addEventListener('click', this._click.bind(this));
 
+  var self = this;
+  LazyLoader.load(['/shared/js/settings_listener.js'], function() {
+    SettingsListener.observe(settingsKey, 0,
+                             self._settingsObserver.bind(self));
+  });
+
   if (navigator.mozIccManager &&
       navigator.mozIccManager.iccIds.length > 1) {
     this._button.addEventListener('contextmenu', this._contextmenu.bind(this));
 
-    var self = this;
-    LazyLoader.load(['/shared/js/settings_listener.js'], function() {
-      self._simIndication = self._button.querySelector('.js-sim-indication');
-
-      SettingsListener.observe(settingsKey, 0,
-                               self._settingsObserver.bind(self));
-
-      var telephony = navigator.mozTelephony;
-      if (telephony) {
-        telephony.addEventListener('callschanged', self._updateUI.bind(self));
-      }
-    });
+    this._simIndication = this._button.querySelector('.js-sim-indication');
   }
 };
 

@@ -925,8 +925,13 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
     } else {
       pause();
     }
+
+    //show video player after seeking is done
+    dom.player.hidden = false;
   }
 
+  //hide video player before setVideoUrl
+  dom.player.hidden = true;
   setVideoUrl(dom.player, currentVideo, function() {
 
     if (enterFullscreen) {
@@ -1200,6 +1205,14 @@ function releaseVideo() {
 function restoreVideo() {
   // When restoreVideo is called, we assume we have currentVideo because the
   // playerShowing is true.
+
+  function doneRestoreSeeking() {
+    dom.player.onseeked = null;
+    dom.player.hidden = false;
+  }
+
+  //hide video player before setVideoUrl
+  dom.player.hidden = true;
   setVideoUrl(dom.player, currentVideo, function() {
     VideoUtils.fitContainer(dom.videoContainer, dom.player,
                             currentVideo.metadata.rotation || 0);
@@ -1215,6 +1228,12 @@ function restoreVideo() {
       // video and the restoreTime is null. At the same case, the currentTime of
       // metadata is still undefined because we haven't updateMetadata.
       dom.player.currentTime = currentVideo.metadata.currentTime || 0;
+    }
+
+    if (dom.player.seeking) {
+      dom.player.onseeked = doneRestoreSeeking;
+    } else {
+      doneRestoreSeeking();
     }
   });
 }

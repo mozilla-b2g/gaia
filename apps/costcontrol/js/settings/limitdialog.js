@@ -1,10 +1,10 @@
-
+/* global _, formatData, getDataLimit, addNetworkUsageAlarm, Common */
+/* exported dataLimitConfigurer */
 'use strict';
 
 function dataLimitConfigurer(guiWidget, settings, viewManager) {
 
   var dialog = document.getElementById('data-limit-dialog');
-  var switchUnitButton = document.getElementById('switch-unit-button');
   var dataLimitInput = dialog.querySelector('input');
   var format = function ccal_formatterDataUnit(value) {
     var unit = settings.option('dataLimitUnit');

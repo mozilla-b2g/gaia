@@ -175,6 +175,12 @@ var ClockView = {
     this.setTransform('second', sec);
     this.setTransform('minute', min);
     this.setTransform('hour', hour);
+
+    // Update aria label for analog view.
+    var time = Utils.getLocaleTime(now);
+    this.container.setAttribute(
+      'aria-label', time.t + (time.p ? ' ' : '') + time.p);
+
     // update again in one second
     this.timeouts.analog = setTimeout(
       this.updateAnalogClock.bind(this), 1000 - now.getMilliseconds()
