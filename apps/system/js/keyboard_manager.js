@@ -1,6 +1,6 @@
 'use strict';
 
-// If we get a focuschange event from mozKeyboard for an element with
+// If we get a inputmethod-contextchange chrome event for an element with
 // one of these types, we'll just ignore it.
 // XXX we won't skip these types in the future when we move value selector
 // to an app.
