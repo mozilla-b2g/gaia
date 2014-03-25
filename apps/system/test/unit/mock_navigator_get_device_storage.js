@@ -4,7 +4,7 @@
 
 (function() {
   /**
-   * This file implements a partly complete MockDeviceStorage.
+   * This file implements a partly completed MockDeviceStorage.
    * Many of it's method returns a MockDOMRequest(). You should install a
    * sinon.spy on the method and retrive the MockDOMRequest instance with
    * 'spy.getCall(0).returnValue'.
