@@ -4,7 +4,27 @@ define(function(require, exports, module) {
 module.exports = {
   showSettings: true,
   enableZoom: true,
-  focus: {
+  focus:{
+    continuousFocus: {
+      video:true,
+      supported: true,
+    },
+    faceTracking: {
+      supported: true,
+    },
+    touchFocus: {
+      video:true,
+      supported: true,
+    },
+    autoFocus: {
+      supported: true,
+    },
+    fixedFocus: {
+      video:true,
+      supported: true,
+    }
+  },
+  /*focus: {
     defaultMode:'continuousFocus',
     back: {
       continuousFocus: {
@@ -62,7 +82,7 @@ module.exports = {
       mode: null
     },
     state: null //[none, focusing, focused, fail]
-  },
+  },*/
   viewfinder: {
     scaleType: 'fill'
   },

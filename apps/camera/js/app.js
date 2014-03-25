@@ -115,7 +115,6 @@ App.prototype.runControllers = function() {
   this.controllers.sounds(this);
   this.controllers.hud(this);
   this.controllers.zoomBar(this);
-   this.controllers.focusmode(this);
   debug('controllers run');
 };
 

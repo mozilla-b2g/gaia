@@ -51,6 +51,7 @@ function Camera(options) {
   this.cameraList = navigator.mozCameras.getListOfCameras();
   this.orientation = options.orientation || orientation;
   this.autoFocus = {};
+  this.focusModes = {};
   this.video = {
     storage: navigator.getDeviceStorage('videos'),
     filepath: null,
@@ -127,7 +128,8 @@ Camera.prototype.gotCamera = function(mozCamera) {
   this.mozCamera.onRecorderStateChange = self.onRecorderStateChange;
   this.configureFocus(capabilities.focusModes);
   this.set('capabilities', this.formatCapabilities(capabilities));
-  this.emit('camera:loaded');
+  this.configureFocusModes();
+  this.setDefaultFocusmode();
 };
 
 Camera.prototype.formatCapabilities = function(capabilities) {
@@ -1125,6 +1127,83 @@ Camera.prototype.getZoomPreviewAdjustment = function() {
  */
 Camera.prototype.getSensorAngle = function() {
   return this.mozCamera.sensorAngle;
+};
+
+
+Camera.prototype.configureFocusModes = function () {
+  var selectedCamera = this.get('selectedCamera');
+  var cameraMode = this.mode;
+  if (selectedCamera === 'front') {
+    this.focusModes = {
+      fixedFocus: {
+        supported: true,
+      }
+    };
+  } else {
+    if (cameraMode === 'video') {
+      this.focusModes = {
+        continuousFocus: {
+          supported: this.continuousFocusModeCheck(),
+          enable: this.setContinuousFocusMode,
+          disable: this.disableAutoFocusMove
+        },
+        touchFocus: {
+          supported: this.touchFocusModeCheck(),
+        },
+        fixedFocus: {
+          supported: true,
+        }
+      };
+    } else {
+      this.focusModes = {
+        continuousFocus: {
+          supported: this.continuousFocusModeCheck(),
+          enable: this.setContinuousFocusMode,
+          disable: this.disableAutoFocusMove
+        },
+         faceTracking: {
+          supported: this.faceTrackingModeCheck(),
+          enable: this.startFaceDetection,
+          disable: this.stopFaceDetection
+        },
+        touchFocus: {
+          supported: this.touchFocusModeCheck(),
+        },
+        autoFocus: {
+          supported: this.autoFocusModeCheck()
+        },
+        fixedFocus: {
+          supported: true,
+        }
+      };
+    }
+  }
+};
+
+/**
+* Set default focus mode as continuous Auto.
+* Later when Face tracking is landed the default
+* mode will be changed to Face tracking mode on availability.
+**/
+Camera.prototype.setContinuousFocusMode = function() {
+  // Start continuous Auto Focus mode
+  this.setContinuousAutoFocus();
+  // Enable Gecko callbacks of success
+  this.enableAutoFocusMove();
+};
+
+Camera.prototype.onFacedetected = function(faces) {
+
+};
+
+Camera.prototype.setDefaultFocusmode = function(focusPoint, rect) {
+  if (this.focusModes.continuousFocus.supported) {
+    this.focusModes.continuousFocus.enable();
+  }
+};
+
+Camera.prototype.onFocusPointChange = function() {
+
 };
 
 });

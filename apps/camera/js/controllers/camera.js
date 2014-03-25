@@ -65,7 +65,10 @@ CameraController.prototype.bindEvents = function() {
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
   camera.on('newimage', this.onNewImage);
   camera.on('newvideo', this.onNewVideo);
-
+  //focus events
+  camera.on('facedetected', camera.onFacedetected);
+  camera.on('nofacedetected', camera.setDefaultFocusmode);
+  this.viewfinder.on('focuspointchange', camera.onFocusPointChange);
   // App
   app.on('boot', this.camera.load);
   app.on('focus', this.camera.load);
