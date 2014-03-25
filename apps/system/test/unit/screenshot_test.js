@@ -3,6 +3,7 @@
           Screenshot */
 
 requireApp('system/js/screenshot.js');
+requireApp('system/shared/test/unit/mocks/mock_event_target.js');
 requireApp('system/shared/test/unit/mocks/mock_dom_request.js');
 requireApp('system/test/unit/mock_navigator_get_device_storage.js');
 requireApp('system/test/unit/mock_l10n.js');
