@@ -71,7 +71,7 @@ suite('AlarmEditView', function() {
 
       this.sinon.stub(alarmEdit, 'getTimeSelect');
       this.sinon.stub(alarmEdit, 'getSoundSelect');
-      this.sinon.stub(alarmEdit, 'getVibrateSelect');
+      this.sinon.stub(alarmEdit, 'getVibrateCheckbox');
       this.sinon.stub(alarmEdit, 'getSnoozeSelect');
       this.sinon.stub(alarmEdit, 'getRepeatSelect');
 
@@ -85,7 +85,7 @@ suite('AlarmEditView', function() {
         minute: alarm.minute
       });
       alarmEdit.getSoundSelect.returns(alarmEdit.alarm.sound);
-      alarmEdit.getVibrateSelect.returns(alarmEdit.alarm.vibrate);
+      alarmEdit.getVibrateCheckbox.returns(alarmEdit.alarm.vibrate);
       alarmEdit.getSnoozeSelect.returns(alarmEdit.alarm.snooze);
       alarmEdit.getRepeatSelect.returns(alarmEdit.alarm.repeat);
 
@@ -179,7 +179,7 @@ suite('AlarmEditView', function() {
       this.sinon.stub(AlarmList, 'refreshItem');
 
       // mock the view to turn off vibrate
-      alarmEdit.getVibrateSelect.returns('0');
+      alarmEdit.getVibrateCheckbox.returns('0');
 
       alarmEdit.alarm = new Alarm({
         hour: 5,
@@ -205,13 +205,13 @@ suite('AlarmEditView', function() {
       this.sinon.stub(AlarmList, 'refresh');
       this.sinon.stub(AlarmList, 'refreshItem');
       // mock the view to turn sound on and vibrate off
-      alarmEdit.getVibrateSelect.returns('0');
+      alarmEdit.getVibrateCheckbox.returns('0');
 
       this.sinon.stub(alarmEdit.alarm, 'setEnabled', function(val, callback) {
         callback(null, alarmEdit.alarm);
       });
 
-      alarmEdit.getVibrateSelect.returns('1');
+      alarmEdit.getVibrateCheckbox.returns('1');
       alarmEdit.getSoundSelect.returns('0');
       alarmEdit.save(function(err, alarm) {
         assert.ok(alarm.id);

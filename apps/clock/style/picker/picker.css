@@ -37,7 +37,7 @@
 
 [data-type="picker"] .picker-labels {
   position: absolute;
-  top: 0px;
+  top: 0;
   width: 100%;
   z-index: 2;
 }
