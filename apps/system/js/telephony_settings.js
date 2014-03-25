@@ -2,7 +2,6 @@
 /* global SettingsHelper */
 
 (function(exports) {
-
   /**
    * TelephonySettings sets voice privacy and roaming modes based on
    * the users saved settings.
@@ -27,6 +26,7 @@
 
       this.initVoicePrivacy();
       this.initRoaming();
+      this.initPreferredNetworkType();
 
       this.started = true;
     },
@@ -75,6 +75,70 @@
           };
         });
       }.bind(this));
+    },
+
+    /**
+     * Initialize preferred network type. If the default value is null, we
+     * should use the option that makes the device able to connect all supported
+     * netwrok types.
+     */
+    initPreferredNetworkType: function() {
+      var preferredNetworkTypeHelper =
+        SettingsHelper('ril.radio.preferredNetworkType');
+      preferredNetworkTypeHelper.get(function got_pnt(values) {
+        if (!values) {
+          values = this._getDefaultPreferredNetworkTypes();
+        } else if (typeof values == 'string') {
+          // do the migration
+          var tempDefault = this._getDefaultPreferredNetworkTypes();
+          tempDefault[0] = values;
+          values = tempDefault;
+        }
+
+        this.connections.forEach(function pnt_iterator(conn, index) {
+          this._setDefaultPreferredNetworkType(conn, values[index]);
+        }, this);
+      }.bind(this));
+    },
+
+    _setDefaultPreferredNetworkType: function(conn, preferredNetworkType) {
+      var doSet = function() {
+        var setReq = conn.setPreferredNetworkType(preferredNetworkType);
+        setReq.onerror = function set_vpm_error() {
+          console.error('Error setting preferred network type: ' +
+            preferredNetworkType);
+        };
+      };
+      if (conn.radioState === 'enabled') {
+        doSet();
+      } else {
+        conn.addEventListener('radiostatechange', function onchange() {
+          if (conn.radioState === 'enabled') {
+            conn.removeEventListener('radiostatechange', onchange);
+            doSet();
+          }
+        });
+      }
+    },
+
+    /**
+     * Returns an array specifying the default preferred network types of all
+     * mobile connections.
+     */
+    _getDefaultPreferredNetworkTypes: function() {
+      return this.connections.map(function(conn) {
+        return this._getDefaultPreferredNetworkType(conn.supportedNetworkTypes);
+      }, this);
+    },
+
+    /**
+     * Returns the default preferred network types based on the hardware
+     * supported network types.
+     */
+    _getDefaultPreferredNetworkType: function(hwSupportedTypes) {
+      return ['lte', 'wcdma', 'gsm', 'cdma', 'evdo'].filter(function(type) {
+        return (hwSupportedTypes.indexOf(type) !== -1);
+      }).join('/');
     }
   };
 
