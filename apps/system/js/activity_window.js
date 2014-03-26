@@ -251,7 +251,8 @@
       manifest: this.manifest,
       manifestURL: this.manifestURL,
       window_name: 'inline' + this.instanceID,
-      oop: true
+      oop: true,
+      parentApp: this.parentApp
     });
     this.element =
       document.getElementById('activity-window-' + this.instanceID);
