@@ -46,8 +46,12 @@ return View.extend({
     this.frame = new MediaFrame(this.els.mediaFrame);
     
     this.els.player = this.find('.videoPlayer');
+    this.els.playerPlayBtn = this.find('.videoPlayerPlayButton');
 
-    bind(this.els.player, 'play', this.handleVideoPlay);
+    // To hanlde player events in the preview not video_player.js.
+    // Use 'click' event instead of 'play'
+    // because 'click' event fires ealer than 'play'
+    bind(this.els.playerPlayBtn, 'click', this.handleVideoPlay);
     bind(this.els.player, 'pause', this.handleVideoStop);
     bind(this.els.player, 'ended', this.handleVideoStop);
 
@@ -78,18 +82,17 @@ return View.extend({
   },
 
   onClick: function() {
+    if (this.videoPlaying) { return; }
+    
     var isShown = this.els.previewMenu.classList.contains('visible');
     if (isShown) {
       this.previewMenuFadeOut();
     } else {
-      setTimeout(this.previewMenuFadeIn, 500);
+      this.previewMenuFadeIn();
     }
   },
 
   previewMenuFadeIn: function() {
-    if (this.videoPlaying) {
-      return;
-    }
     this.els.previewMenu.classList.add('visible');
     if (this.previewTimer) {
       clearTimeout(this.previewTimer);
@@ -167,11 +170,12 @@ return View.extend({
   handleVideoPlay: function(e) {
     this.videoPlaying = true;
     this.previewMenuFadeOut();
+    e.stopPropagation();
   },
 
-  handleVideoStop: function(e) {
+  handleVideoStop: function() {
     this.videoPlaying = false;
-    setTimeout(this.previewMenuFadeIn, 500);
+    setTimeout(this.previewMenuFadeIn, 200);
   }
 
 });
