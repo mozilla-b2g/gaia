@@ -17,7 +17,7 @@ suite('Error manager', function() {
     'NO_TOKEN_SESSION': 'generic-error',
     'GENERIC_ERROR': 'generic-error',
     'UNKNOWN': 'unknown-error',
-    'COPPA_ERROR': 'coppa-error'
+    'COPPA_ERROR': 'coppa-failure-error'
   };
   var response;
   var realL10n;
