@@ -90,7 +90,6 @@
 .preview-menu {
   opacity: 0;
   pointer-events: none;
-  transition: opacity 200ms ease-in-out;
 }
 
 .preview-menu.visible {
