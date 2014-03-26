@@ -272,17 +272,28 @@ var CarrierSettings = (function(window, document, undefined) {
       return;
 
     var alertDialog = document.getElementById('preferredNetworkTypeAlert');
+    var message = document.getElementById('preferredNetworkTypeAlertMessage');
     var continueButton = alertDialog.querySelector('button');
     continueButton.addEventListener('click', function onClickHandler() {
       alertDialog.hidden = true;
       getSupportedNetworkInfo(_mobileConnection, cs_updateNetworkTypeSelector);
     });
 
+    var preferredNetworkTypeHelper =
+      SettingsHelper('ril.radio.preferredNetworkType');
+
     var selector = document.getElementById('preferredNetworkType');
-    selector.addEventListener('change', function evenHandler() {
+    selector.addEventListener('blur', function evenHandler() {
+      var targetIndex = DsdsSettings.getIccCardIndexForCellAndDataSettings();
       var type = selector.value;
       var request = _mobileConnection.setPreferredNetworkType(type);
-      var message = document.getElementById('preferredNetworkTypeAlertMessage');
+
+      request.onsuccess = function onSuccessHandler() {
+        preferredNetworkTypeHelper.get(function gotPNT(values) {
+          values[targetIndex] = type;
+          preferredNetworkTypeHelper.set(values);
+        });
+      };
       request.onerror = function onErrorHandler() {
         message.textContent = _('preferredNetworkTypeAlertErrorMessage');
         alertDialog.hidden = false;
@@ -299,16 +310,17 @@ var CarrierSettings = (function(window, document, undefined) {
       return;
     }
 
+    var selector = document.getElementById('preferredNetworkType');
+    // Clean up all option before updating again.
+    while (selector.hasChildNodes()) {
+      selector.removeChild(selector.lastChild);
+    }
+
     var request = _mobileConnection.getPreferredNetworkType();
     request.onsuccess = function onSuccessHandler() {
       var supportedNetworkTypes = supportedNetworkTypeResult.networkTypes;
       var networkType = request.result;
       if (networkType) {
-        var selector = document.getElementById('preferredNetworkType');
-        // Clean up all option before updating again.
-        while (selector.hasChildNodes()) {
-          selector.removeChild(selector.lastChild);
-        }
         supportedNetworkTypes.forEach(function(type) {
           var option = document.createElement('option');
           option.value = type;
