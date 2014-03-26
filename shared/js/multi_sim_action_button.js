@@ -26,6 +26,11 @@ var MultiSimActionButton = function MultiSimActionButton(
     this._button.addEventListener('contextmenu', this._contextmenu.bind(this));
 
     this._simIndication = this._button.querySelector('.js-sim-indication');
+
+    var telephony = navigator.mozTelephony;
+    if (telephony) {
+      telephony.addEventListener('callschanged', self._updateUI.bind(self));
+    }
   }
 };
 
