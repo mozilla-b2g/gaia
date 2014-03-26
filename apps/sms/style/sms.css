@@ -199,12 +199,8 @@ form[role="dialog"][data-type="edit"] > menu {
   margin: 0 0 0 -3rem;
 }
 
-.edit #threads-container[data-type="list"] aside.pack-end img {
+.edit #threads-container[data-type="list"] aside.pack-end span {
   transform: translateX(7.5rem);
-}
-
-.edit #threads-container[data-type="list"] aside.pack-end img[src=""] {
-  width: 6.5rem;
 }
 
 /* Panel handling */
