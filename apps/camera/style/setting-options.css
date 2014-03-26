@@ -48,8 +48,9 @@
   height: 7rem;
   margin: 0 1.5rem;
   padding: 0 1.5rem;
+  font-size: 1.6rem;
   line-height: 7rem;
-  font-size: 1.7rem;
+  font-weight: 500;
   border: solid 1px rgba(255,255,255,0.15);
   border-width: 1px 0 0;
   text-transform: uppercase;
