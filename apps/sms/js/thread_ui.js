@@ -333,6 +333,7 @@ var ThreadUI = global.ThreadUI = {
    * visible.
    */
   onBeforeEnter: function thui_onBeforeEnter() {
+    Recipients.View.isFocusable = true;
     if (!this.multiSimActionButton) {
       // handles the various actions on the send button and encapsulates the
       // DSDS specific behavior
