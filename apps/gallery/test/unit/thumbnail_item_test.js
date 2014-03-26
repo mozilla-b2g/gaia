@@ -49,8 +49,7 @@ suite('Thumbnail Item Unit Tests', function() {
     });
 
     test('#htmlNode dataset backgroundImage', function() {
-      assert.notEqual(thumbnail.htmlNode.dataset.backgroundImage, '');
-      assert.equal(thumbnail.htmlNode.style.backgroundImage, '');
+      assert.notEqual(thumbnail.htmlNode.style.backgroundImage, '');
     });
   });
 });

@@ -214,12 +214,12 @@ body.pickView #thumbnails {
   padding: 0;
 }
 
-#thumbnails>li {
+#thumbnails>img {
   /* no list item bullets */
   list-style-type: none;
 }
 
-#thumbnails>li:first-child .thumbnail-group-header {
+#thumbnails>img:first-child .thumbnail-group-header {
   border-top: 0.1rem solid;
   border-color:rgba(255,255,255, 0.1);
 }

@@ -17,7 +17,7 @@ function ThumbnailItem(fileData) {
   }
   this.data = fileData;
 
-  this.htmlNode = document.createElement('li');
+  this.htmlNode = document.createElement('img');
   this.htmlNode.classList.add('thumbnail');
   this.htmlNode.dataset.filename = fileData.name;
 
@@ -27,5 +27,5 @@ function ThumbnailItem(fileData) {
   // and offscreen callbacks below set and unset the actual
   // background image style. This means that we don't keep
   // images decoded if we don't need them.
-  this.htmlNode.dataset.backgroundImage = 'url("' + url + '")';
+  this.htmlNode.style.backgroundImage = 'url("' + url + '")';
 }
