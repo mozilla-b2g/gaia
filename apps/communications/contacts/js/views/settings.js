@@ -34,7 +34,6 @@ contacts.Settings = (function() {
     newOrderByLastName = null,
     ORDER_KEY = 'order.lastname',
     PENDING_LOGOUT_KEY = 'pendingLogout',
-    umsSettingsKey = 'ums.enabled',
     bulkDeleteButton;
 
   // Initialise the settings screen (components, listeners ...)
@@ -48,15 +47,10 @@ contacts.Settings = (function() {
     utils.listeners.add({
       '#settings-close': hideSettings
     });
-    if (navigator.mozSettings) {
-      navigator.mozSettings.addObserver(umsSettingsKey, function(evt) {
-        enableStorageOptions(!evt.settingValue, 'sdUMSEnabled');
-      });
-    }
 
     // Subscribe to events related to change state in the sd card
     utils.sdcard.subscribeToChanges('check_sdcard', function(value) {
-      enableStorageOptions(utils.sdcard.checkStorageCard());
+      updateStorageOptions(utils.sdcard.checkStorageCard());
     });
   };
 
@@ -179,14 +173,14 @@ contacts.Settings = (function() {
         importSettingsPanel.classList.remove('export');
         importSettingsPanel.classList.remove('import');
     });
-  };
+  }
 
   function importContactsHandler() {
       // Hide elements for export and transition
       importSettingsPanel.classList.add('import');
       updateImportTitle('importContactsTitle');
       navigationHandler.go('import-settings', 'right-left');
-  };
+  }
 
   function exportContactsHandler() {
       // Hide elements for import and transition
@@ -199,7 +193,7 @@ contacts.Settings = (function() {
           navigationHandler.go('import-settings', 'right-left');
         });
       }
-  };
+  }
 
   // Given an event, select wich should be the targeted
   // import/export source
@@ -367,26 +361,32 @@ contacts.Settings = (function() {
   };
 
   /**
-   * Disables/Enables the actions over the sdcard import functionality
-   * @param {Boolean} cardState Whether storage import should be enabled or not.
-   * @param {String} alternativeError Provide an alternative message if sd is
-   *    not enabled despite that the card is present.
+   * Disables/Enables the actions over the sdcard import/export functionality
+   * @param {Boolean} cardAvailable Whether functions should be enabled or not.
    */
-  var enableStorageOptions = function enableStorageOptions(cardState,
-    alternativeError) {
-    updateOptionStatus(importSDOption, !cardState, true);
-    updateOptionStatus(exportSDOption, !cardState, true);
+  var updateStorageOptions = function updateStorageOptions(cardAvailable) {
+    // Enable/Disable button and shows/hides error message
+    updateOptionStatus(importSDOption, !cardAvailable, true);
+    updateOptionStatus(exportSDOption, !cardAvailable, true);
 
-    var importSDErrorMessage = 'noMemoryCardMsg';
-    var exportSDErrorMessage = 'noMemoryCardMsgExport';
-    if (alternativeError) {
-      importSDErrorMessage = exportSDErrorMessage = alternativeError;
+    var importSDErrorMessage = '';
+    var exportSDErrorMessage = '';
+
+    var cardShared = utils.sdcard.status === utils.sdcard.SHARED;
+    if (!cardAvailable) {
+      importSDErrorMessage = _('noMemoryCardMsg');
+      exportSDErrorMessage = _('noMemoryCardMsgExport');
+
+      if (cardShared) {
+        importSDErrorMessage = exportSDErrorMessage = _('sdUMSEnabled');
+      }
     }
 
+    // update the message
     importSDOption.querySelector('p.error-message').textContent =
-      _(importSDErrorMessage);
-    exportSDOption.querySelector('p').textContent =
-      _(exportSDErrorMessage);
+      importSDErrorMessage;
+    exportSDOption.querySelector('p').textContent = exportSDErrorMessage;
+
   };
 
   // Callback that will modify the ui depending if we imported or not
@@ -959,7 +959,9 @@ contacts.Settings = (function() {
     getData();
     checkOnline();
     checkSIMCard();
-    enableStorageOptions(utils.sdcard.checkStorageCard());
+    utils.sdcard.getStatus(function statusUpdated() {
+      updateStorageOptions(utils.sdcard.checkStorageCard());
+    });
     updateTimestamps();
     checkNoContacts();
   };
