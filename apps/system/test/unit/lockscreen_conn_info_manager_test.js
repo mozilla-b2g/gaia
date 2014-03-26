@@ -397,6 +397,21 @@ suite('system/LockScreenConnInfoManager >', function() {
         assert.equal(simIDLine2.textContent, 'SIM 2');
       });
 
+      test('Should hide sim IDs if all sim cards are not connected to networks',
+        function() {
+          sinon.stub(SIMSlotManager, 'noSIMCardConnectedToNetwork')
+            .returns(true);
+          subject.updateConnStates();
+
+          var simIDLine1 = domConnStateList[0].domConnstateIDLine;
+          var connState1line1 = domConnStateList[0].domConnstateL1;
+          var simIDLine2 = domConnStateList[1].domConnstateIDLine;
+          assert.isTrue(simIDLine1.hidden);
+          assert.isTrue(simIDLine2.hidden);
+          assert.equal(connState1line1.textContent, 'emergencyCallsOnly');
+          SIMSlotManager.noSIMCardConnectedToNetwork.restore();
+      });
+
       test('Should show operator names on Line 1', function() {
         subject.updateConnStates();
 
@@ -415,6 +430,25 @@ suite('system/LockScreenConnInfoManager >', function() {
           MockMobileOperator.mCarrier + ' ' + MockMobileOperator.mRegion);
         assert.equal(connState2line2.textContent,
           MockMobileOperator.mCarrier + ' ' + MockMobileOperator.mRegion);
+      });
+
+      test('Should display "emergency calls only" if target sim is the ' +
+        'primary one and is emergency calls only', function() {
+          mockMobileConnections[0].voice.emergencyCallsOnly = true;
+          subject._telephonyDefaultServiceId = 0;
+          subject.updateConnStates();
+
+          var connState1line1 = domConnStateList[0].domConnstateL1;
+          assert.equal(connState1line1.textContent, 'emergencyCallsOnly');
+      });
+
+      test('Should hide the conn state of the target sim if it is not the ' +
+        'primary one but is emergency calls only', function() {
+          mockMobileConnections[0].voice.emergencyCallsOnly = true;
+          subject._telephonyDefaultServiceId = 1;
+          subject.updateConnStates();
+
+          assert.isTrue(domConnStateList[0].hidden);
       });
     });
   });
