@@ -24,7 +24,8 @@ class FTUStep3(CostControl):
     def __init__(self, marionette):
         CostControl.__init__(self, marionette)
         view = self.marionette.find_element(*self._view_locator)
-        self.wait_for_condition(lambda m: view.location['x'] == 0)
+        self.wait_for_condition(lambda m: view.location['x'] == 0,
+                                message="Actual view location [x]: %s" %view.location['x'])
 
     def toggle_data_alert_switch(self, value):
         self.wait_for_element_displayed(*self._ftu_data_alert_label_locator)
@@ -39,13 +40,15 @@ class FTUStep3(CostControl):
 
         data_limit_view = self.marionette.find_element(
             *self._data_limit_view_locator)
-        self.wait_for_condition(lambda m: data_limit_view.location['y'] == 0)
+        self.wait_for_condition(lambda m: data_limit_view.location['y'] == 0,
+                                message="Actual data_limit_view location [y]: %s" %data_limit_view.location['y'])
         self.wait_for_element_displayed(*self._switch_unit_button_locator)
 
         current_unit = self.marionette.find_element(*self._switch_unit_button_locator)
         if current_unit.text != unit:
             current_unit.tap()
-            self.wait_for_condition(lambda m: current_unit.text == unit)
+            self.wait_for_condition(lambda m: current_unit.text == unit,
+                                    message="Current unit text: %s" %current_unit.text)
 
         # clear the original assigned value and set it to the new value
         self.wait_for_element_displayed(*self._size_input_locator)
@@ -56,7 +59,8 @@ class FTUStep3(CostControl):
 
         data_limit_view = self.marionette.find_element(
             *self._data_limit_view_locator)
-        self.wait_for_condition(lambda m: data_limit_view.location['y'] == data_limit_view.size['height'])
+        self.wait_for_condition(lambda m: data_limit_view.location['y'] == data_limit_view.size['height'],
+                                message="Data limit view location [y] is {0} and data limit size [height] is {1}".format(data_limit_view.location['y'], data_limit_view.size['height']))
 
     def tap_lets_go(self):
         self.wait_for_element_displayed(*self._go_button_locator)

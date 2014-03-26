@@ -28,7 +28,8 @@ class SettingsForm(Base):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         view = self.marionette.find_element(*self._settings_view_locator)
-        self.wait_for_condition(lambda m: view.location['y'] == 0)
+        self.wait_for_condition(lambda m: view.location['y'] == 0,
+                                message="Actual view location [y]: %s" %view.location['y'])
 
     def tap_order_by_last_name(self):
         self.wait_for_element_displayed(*self._order_by_last_name_locator)
@@ -41,12 +42,16 @@ class SettingsForm(Base):
     def tap_import_contacts(self):
         self.wait_for_element_displayed(*self._import_contacts_locator)
         self.marionette.find_element(*self._import_contacts_locator).tap()
-        self.wait_for_condition(lambda m: m.find_element(*self._import_settings_locator).location['x'] == 0)
+        import_settings_location = self.marionette.find_element(*self._import_settings_locator).location['x']
+        self.wait_for_condition(lambda m: import_settings_location == 0,
+                                message="Actual settings location: %s" %import_settings_location)
 
     def tap_export_contacts(self):
         self.wait_for_element_displayed(*self._export_contacts_locator)
         self.marionette.find_element(*self._export_contacts_locator).tap()
-        self.wait_for_condition(lambda m: m.find_element(*self._import_settings_locator).location['x'] == 0)
+        import_settings_location = self.marionette.find_element(*self._import_settings_locator).location['x']
+        self.wait_for_condition(lambda m: import_settings_location == 0,
+                                message="Actual settings location: %s" %import_settings_location)
 
     def tap_import_from_sim(self):
         self.wait_for_element_displayed(*self._import_from_sim_button_locator)
@@ -73,7 +78,9 @@ class SettingsForm(Base):
     def tap_export_to_sd(self):
         self.wait_for_element_displayed(*self._export_to_sd_button_locator)
         self.marionette.find_element(*self._export_to_sd_button_locator).tap()
-        self.wait_for_condition(lambda m: m.find_element(*self._select_contacts_locator).location['y'] == 0)
+        select_contacts_location = self.marionette.find_element(*self._select_contacts_locator).location['y']
+        self.wait_for_condition(lambda m: select_contacts_location == 0,
+                                message="Actual select contacts location: %s" %select_contacts_location)
 
     def tap_done(self):
         self.marionette.find_element(*self._settings_close_button_locator).tap()

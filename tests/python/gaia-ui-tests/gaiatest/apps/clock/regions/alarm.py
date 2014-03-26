@@ -26,7 +26,8 @@ class NewAlarm(Clock):
     def __init__(self, marionette):
         Clock.__init__(self, marionette)
         view = self.marionette.find_element(*self._alarm_view_locator)
-        self.wait_for_condition(lambda m: view.location['x'] == 0 and view.is_displayed())
+        self.wait_for_condition(lambda m: view.location['x'] == 0 and view.is_displayed(),
+                                message="Actual view location: %s" %view.location)
 
     def type_alarm_label(self, value):
         self.marionette.find_element(*self._alarm_name_locator).tap()
@@ -65,7 +66,8 @@ class NewAlarm(Clock):
         self.wait_for_element_displayed(*self._done_locator)
         self.marionette.find_element(*self._done_locator).tap()
         view = self.marionette.find_element(*self._alarm_view_locator)
-        self.wait_for_condition(lambda m: view.location['x'] == view.size['width'])
+        self.wait_for_condition(lambda m: view.location['x'] == view.size['width'],
+                                message="Actual view location[x] is {0} and view width is {1}".format(view.location['x'], view.size['width']))
         return Clock(self.marionette)
 
     @property
@@ -153,5 +155,6 @@ class EditAlarm(NewAlarm):
     def tap_delete(self):
         self.marionette.find_element(*self._alarm_delete_button_locator).tap()
         view = self.marionette.find_element(*self._alarm_view_locator)
-        self.wait_for_condition(lambda m: view.location['x'] == view.size['width'])
+        self.wait_for_condition(lambda m: view.location['x'] == view.size['width'],
+                                message="Actual view location [x] is {0} and view width is {1}".format(view.location['x'], view.size['width']))
         return Clock(self.marionette)

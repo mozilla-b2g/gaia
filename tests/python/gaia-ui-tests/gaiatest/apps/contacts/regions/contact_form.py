@@ -141,7 +141,8 @@ class EditContact(ContactForm):
     def __init__(self, marionette):
         ContactForm.__init__(self, marionette)
         update = self.wait_for_element_present(*self._update_locator)
-        self.wait_for_condition(lambda m: update.location['y'] == 0)
+        self.wait_for_condition(lambda m: update.location['y'] == 0,
+                                message="Actual update location [y]: %s" %update.location['y'])
 
     def tap_update(self):
         self.wait_for_update_button_enabled()
@@ -181,7 +182,8 @@ class NewContact(ContactForm):
     def __init__(self, marionette):
         ContactForm.__init__(self, marionette)
         done = self.marionette.find_element(*self._done_button_locator)
-        self.wait_for_condition(lambda m: done.location['y'] == 0)
+        self.wait_for_condition(lambda m: done.location['y'] == 0,
+                                message="Actual done location [y]: %s" %done.location['y'])
 
     def tap_done(self, return_contacts=True):
         # NewContact can be opened as an Activity from other apps. In this scenario we don't return Contacts

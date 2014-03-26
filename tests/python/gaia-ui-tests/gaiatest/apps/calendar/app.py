@@ -111,4 +111,4 @@ class Calendar(Base):
         action.flick(month, x_start, y_start, x_end, y_end, 200).perform()
 
         self.wait_for_condition(
-            lambda m: self.current_month_year != month_year)
+            lambda m: self.current_month_year != month_year, message="Actual month_year: %s" %month_year)

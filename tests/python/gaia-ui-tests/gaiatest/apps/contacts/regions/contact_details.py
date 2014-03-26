@@ -19,7 +19,9 @@ class ContactDetails(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_condition(lambda m: m.find_element(*self._contact_name_title_locator).location['x'] == 0)
+        contact_name_title_location = self.marionette.find_element(*self._contact_name_title_locator).location['x']
+        self.wait_for_condition(lambda m: contact_name_title_location == 0,
+                                message="Actual contact name title location: %s" %contact_name_title_location)
 
     @property
     def full_name(self):

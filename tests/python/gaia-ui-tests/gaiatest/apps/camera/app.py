@@ -99,10 +99,10 @@ class Camera(Base):
         self.wait_for_element_displayed(*self._select_button_locator)
 
     def wait_for_filmstrip_visible(self):
-        self.wait_for_condition(lambda m: self.is_filmstrip_visible)
+        self.wait_for_condition(lambda m: self.is_filmstrip_visible, message="Filmstrip not visible")
 
     def wait_for_filmstrip_not_visible(self):
-        self.wait_for_condition(lambda m: self.is_filmstrip_hidden)
+        self.wait_for_condition(lambda m: self.is_filmstrip_hidden, message="Filmstrip still visible")
 
     def wait_for_capture_ready(self):
         self.wait_for_condition(
@@ -117,7 +117,7 @@ class Camera(Base):
         self.wait_for_element_not_displayed(*self._video_timer_locator)
 
     def wait_for_flash_text_visible(self):
-        self.wait_for_condition(lambda m: self.is_flash_text_visible)
+        self.wait_for_condition(lambda m: self.is_flash_text_visible, message="Flash text not visible")
 
     def switch_to_camera_frame(self):
         self.marionette.switch_to_frame()
@@ -130,7 +130,8 @@ class Camera(Base):
         switch_to_gallery_button = self.marionette.find_element(*self._gallery_button_locator)
         switch_to_gallery_button.tap()
         gallery_app = gaiatest.apps.gallery.app.Gallery(self.marionette)
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == gallery_app.name)
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == gallery_app.name,
+                                message="Actual displayed app: %s" %self.apps.displayed_app.name)
         self.apps.switch_to_displayed_app()
         return gallery_app
 
@@ -190,7 +191,9 @@ class ImagePreview(Base):
     def wait_for_media_frame(self):
         media_frame = self.marionette.find_element(*self._media_frame_locator)
         scr_height = int(self.marionette.execute_script('return window.screen.height'))
-        self.wait_for_condition(lambda m: (media_frame.location['y'] + media_frame.size['height']) == scr_height)
+        media_location = (media_frame.location['y'] + media_frame.size['height'])
+        self.wait_for_condition(lambda m: media_location == scr_height,
+                                message="Actual media location is {0} and scr height is {1}".format(media_location, scr_height))
 
     def tap_camera(self):
         self.marionette.find_element(*self._camera_button_locator).tap()

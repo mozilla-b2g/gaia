@@ -16,7 +16,8 @@ class FTUStep2(CostControl):
     def __init__(self, marionette):
         CostControl.__init__(self, marionette)
         view = self.marionette.find_element(*self._view_locator)
-        self.wait_for_condition(lambda m: view.location['x'] == 0)
+        self.wait_for_condition(lambda m: view.location['x'] == 0,
+                                message="Actual view location [x]: %s" %view.location['x'])
 
     def select_reset_report_value(self, value):
         self.marionette.find_element(
