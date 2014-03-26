@@ -335,5 +335,28 @@ var GaiaApps = {
       navigator.mozApps.mgmt.uninstall(app);
       marionetteScriptFinished(false);
     });
+  },
+
+  /*
+   * Install an app with manifest URL.
+   * The request is not completed until there is interaction in Gaia.
+   * Thus this atom only gives us the chance to initiate the install process.
+   */
+  installWithManifestURL: function(manifestURL){
+    var req = navigator.mozApps.install(manifestURL);
+
+    req.onerror - function() {
+      console.log('Install failed, error: ' + this.error.name);
+    }
+
+    waitFor(
+      function() {
+        marionetteScriptFinished(true);
+      },
+      function() {
+        // a way to check the request has been initiated
+        return req.readyState === 'pending';
+      }
+    );
   }
 };
