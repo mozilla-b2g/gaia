@@ -102,8 +102,6 @@ suite('multi SIM action button', function() {
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
 
-    MockNavigatorSettings.mSyncRepliesOnly = true;
-
     realTelephonyHelper = window.TelephonyHelper;
     window.TelephonyHelper = null;
   });
@@ -113,8 +111,6 @@ suite('multi SIM action button', function() {
     navigator.mozTelephony = realMozTelephony;
     navigator.mozL10n = realMozL10n;
     navigator.mozIccManager = realMozIccManager;
-
-    MockNavigatorSettings.mSyncRepliesOnly = false;
 
     window.TelephonyHelper = realTelephonyHelper;
   });
