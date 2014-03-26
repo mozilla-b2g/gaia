@@ -155,6 +155,12 @@ GAIA_DEV_PIXELS_PER_PX?=1
 DOGFOOD?=0
 NODE_MODULES_SRC?=modules.tar
 
+# GAIA_DEVICE_TYPE customization
+# phone - default
+# tablet
+# tv
+GAIA_DEVICE_TYPE?=phone
+
 # Rocketbar customization
 # none - Do not enable rocketbar
 # half - Rocketbar is enabled, and so is browser app
