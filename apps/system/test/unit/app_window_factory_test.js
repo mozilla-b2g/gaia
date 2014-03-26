@@ -1,8 +1,10 @@
 'use strict';
+/* global MocksHelper, MockApplications, MockAppWindowManager,
+          AppWindow, HomescreenLauncher, AppWindowFactory, appWindowFactory */
 
 mocha.globals(['AppWindowManager', 'Applications',
       'ManifestHelper', 'AppWindow', 'System', 'AppWindowFactory',
-      'BrowserConfigHelper', 'homescreenLauncher']);
+      'BrowserConfigHelper', 'homescreenLauncher', 'appWindowFactory']);
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_applications.js');
@@ -112,18 +114,25 @@ suite('system/AppWindowFactory', function() {
 
     requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
-    requireApp('system/js/app_window_factory.js', done);
+    requireApp('system/js/app_window_factory.js', function() {
+      window.appWindowFactory = new AppWindowFactory();
+      window.appWindowFactory.start();
+
+      done();
+    });
   });
 
   teardown(function() {
     window.homescreenLauncher = undefined;
+    window.appWindowFactory.stop();
+    window.appWindowFactory = undefined;
     stubById.restore();
   });
 
   suite('handle event', function() {
     test('classic app launch', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-      AppWindowFactory.handleEvent({
+      appWindowFactory.handleEvent({
         type: 'webapps-launch',
         detail: fakeLaunchConfig1
       });
@@ -135,7 +144,7 @@ suite('system/AppWindowFactory', function() {
 
     test('a second applaunch', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-      AppWindowFactory.handleEvent({
+      appWindowFactory.handleEvent({
         type: 'webapps-launch',
         detail: fakeLaunchConfig2
       });
@@ -147,7 +156,7 @@ suite('system/AppWindowFactory', function() {
 
     test('opening from a system message', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-      AppWindowFactory.handleEvent({
+      appWindowFactory.handleEvent({
         type: 'open-app',
         detail: fakeLaunchConfig3
       });
@@ -159,7 +168,7 @@ suite('system/AppWindowFactory', function() {
 
     test('opening a first activity', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-      AppWindowFactory.handleEvent({
+      appWindowFactory.handleEvent({
         type: 'open-app',
         detail: fakeLaunchConfig4
       });
@@ -171,7 +180,7 @@ suite('system/AppWindowFactory', function() {
 
     test('opening a second activity', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-      AppWindowFactory.handleEvent({
+      appWindowFactory.handleEvent({
         type: 'open-app',
         detail: fakeLaunchConfig5
       });
@@ -183,7 +192,7 @@ suite('system/AppWindowFactory', function() {
 
     test('open system app', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-      AppWindowFactory.handleEvent({
+      appWindowFactory.handleEvent({
         type: 'open-app',
         detail: fakeLaunchConfig6
       });
@@ -195,7 +204,7 @@ suite('system/AppWindowFactory', function() {
       var app = new AppWindow();
       var stubReviveBrowser = this.sinon.stub(app, 'reviveBrowser');
       spy.returns(app);
-      AppWindowFactory.handleEvent({
+      appWindowFactory.handleEvent({
         type: 'open-app',
         detail: fakeLaunchConfig5
       });
