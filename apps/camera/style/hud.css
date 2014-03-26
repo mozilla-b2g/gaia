@@ -20,7 +20,7 @@
 
 .hud[timer=active],
 .hud[camera=busy],
-.hud[recording=true], {
+.hud[recording=true] {
   pointer-events: none;
   opacity: 0;
 }

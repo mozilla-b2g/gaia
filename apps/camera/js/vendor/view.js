@@ -153,10 +153,10 @@ define(function(require, exports, module) {
    * @param  {*} value
    * @return {Function}
    */
-  View.prototype.setter = function(key, value) {
+  View.prototype.setter = function(key, forced) {
     var self = this;
-    return function(_value) {
-      value = value !== undefined ? value : _value;
+    return function(passed) {
+      var value = forced !== undefined ? forced : passed;
       self.set(key, value);
     };
   };

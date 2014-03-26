@@ -59,6 +59,11 @@ module.exports = View.extend({
     this.el.classList.add('hidden');
   },
 
+  reset: function() {
+    this.els.count.textContent = '';
+    this.el.classList.remove('immanent');
+  },
+
   template: function() {
     return '<div class="timer_circle-1"></div>' +
       '<div class="timer_circle-2"></div>' +

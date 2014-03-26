@@ -113,6 +113,7 @@ TimerController.prototype._clear = function() {
   clearInterval(this.interval);
   this.unbindTimerEvents();
   this.view.hide();
+  this.view.reset();
   this.app.set('timerActive', false);
   debug('cleared');
 };
