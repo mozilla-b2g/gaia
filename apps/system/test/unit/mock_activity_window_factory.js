@@ -14,6 +14,12 @@
     getActiveWindow: function() {
       return this._activeActivity;
     },
+    start: function() {
+      // not implemented.
+    },
+    stop: function() {
+      // not implemented.
+    },
     launchActivity: function() {
       // not implemented.
     },
