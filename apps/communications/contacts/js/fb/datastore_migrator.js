@@ -1,3 +1,8 @@
+'use strict';
+
+/* global LazyLoader, fb, contacts, utils */
+/* exported DatastoreMigration */
+
 var DatastoreMigration = function(db) {
   var active = false;
   var ongoingMigration = false;
@@ -45,7 +50,7 @@ var DatastoreMigration = function(db) {
     var SLICE_SIZE = 5;
     var initialized = false;
 
-    var datastore, database = db;
+    var database = db;
 
     var self = this;
 
@@ -140,13 +145,14 @@ var DatastoreMigration = function(db) {
       }
 
       var numResponses = 0;
+      var migrateCb = function migratCb() {
+        numResponses++;
+        if (numResponses === list.length) {
+          cb();
+        }
+      };
       for (var j = 0; j < list.length; j++) {
-        migrateRecord(list[j], function() {
-          numResponses++;
-          if (numResponses === list.length) {
-            cb();
-          }
-        });
+        migrateRecord(list[j], migrateCb);
       }
     }
 

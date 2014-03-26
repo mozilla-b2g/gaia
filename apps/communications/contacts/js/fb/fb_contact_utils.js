@@ -1,6 +1,10 @@
 'use strict';
 
+/* global fb */
+
+/* jshint ignore:start */
 var fb = this.fb || {};
+/* jshint ignore:end */
 
 fb.PROPAGATED_PREFIX = 'fb_propagated_';
 
@@ -216,7 +220,7 @@ fb.markAsUnlinked = function(devContact) {
         updatedCategory.push(category[c]);
       }
       // The facebook category, the linked mark and the UID are skipped
-      for (var c = idx + 3; c < category.length; c++) {
+      for (c = idx + 3; c < category.length; c++) {
          updatedCategory.push(category[c]);
       }
     }

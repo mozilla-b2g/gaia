@@ -1,3 +1,7 @@
+'use strict';
+
+/* global oauth2, oauthflow */
+
 var fb = window.fb || {};
 
 if (typeof fb.msg === 'undefined') {
@@ -6,8 +10,8 @@ if (typeof fb.msg === 'undefined') {
     var to;
     var message;
     var params = oauthflow.params.facebook;
-    var appId = params['applicationId'];
-    var redirectURI = params['redirectMsg'];
+    var appId = params.applicationId;
+    var redirectURI = params.redirectMsg;
 
     Msg.CID_PARAM = 'contactid';
 
