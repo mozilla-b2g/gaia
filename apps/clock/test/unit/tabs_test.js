@@ -1,4 +1,8 @@
+
 'use strict';
+
+mocha.setup({ globals: ['AccessibilityHelper'] });
+
 suite('Tabs', function() {
   var Tabs;
 
@@ -29,9 +33,10 @@ suite('Tabs', function() {
     setup(function() {
       this.links[1].click();
     });
-    test('moved aria-selected', function() {
-      assert.isTrue(this.links[1].parentNode.hasAttribute('aria-selected'));
-      assert.equal(this.element.querySelectorAll('[aria-selected]').length, 1);
+    test('test aria-selected set', function() {
+      ['false', 'true', 'false'].forEach(function(value, index) {
+        assert.equal(this.links[index].getAttribute('aria-selected'), value);
+      }, this);
     });
   });
 });

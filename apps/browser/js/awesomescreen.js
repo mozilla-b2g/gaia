@@ -18,6 +18,7 @@ var Awesomescreen = {
   init: function awesomescreen_init() {
     // DOM elements
     this.cancelButton = document.getElementById('awesomescreen-cancel-button');
+    this.tabs = document.querySelectorAll('#awesomescreen [role="tab"]');
     this.tabPanels = document.getElementById('tab-panels');
     this.tabHeaders = document.getElementById('tab-headers');
     this.topSitesTab = document.getElementById('top-sites-tab');
@@ -88,6 +89,7 @@ var Awesomescreen = {
     this.deselectTabs();
     this.topSitesTab.classList.add('selected');
     this.topSites.classList.add('selected');
+    AccessibilityHelper.setAriaSelected(this.topSitesTab, this.tabs);
     BrowserDB.getTopSites(this.TOP_SITES_COUNT, null,
       this.populateTopSites.bind(this));
   },
@@ -119,6 +121,7 @@ var Awesomescreen = {
     this.deselectTabs();
     this.historyTab.classList.add('selected');
     this.history.classList.add('selected');
+    AccessibilityHelper.setAriaSelected(this.historyTab, this.tabs);
     BrowserDB.getHistory(this.populateHistory.bind(this));
   },
 
@@ -247,6 +250,7 @@ var Awesomescreen = {
     this.deselectTabs();
     this.bookmarksTab.classList.add('selected');
     this.bookmarks.classList.add('selected');
+    AccessibilityHelper.setAriaSelected(this.bookmarksTab, this.tabs);
     BrowserDB.getBookmarks(this.populateBookmarks.bind(this));
   },
 

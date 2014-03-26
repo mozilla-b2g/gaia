@@ -48,22 +48,22 @@
   <section role="region">
     <!-- if your tabs are at the top, remove data-position="bottom" -->
     <ul role="tablist" data-items="4" data-position="bottom">
-      <li id="panel1">
-        <a role="tab" href="#panel1" class="icon icon-comms">comms</a>
-        <div role="tabpanel"></div>
+      <li id="panel1" role="presentation">
+        <a id="tab1" role="tab" aria-controls="tabpanel1" href="#panel1" class="icon icon-comms">comms</a>
+        <div id="tabpanel1" role="tabpanel" aria-labelledby="tab1"></div>
       </li>
-      <li id="panel2">
-        <a role="tab" href="#panel2" class="icon icon-contacts">contacts</a>
-        <div role="tabpanel"></div>
+      <li id="panel2" role="presentation">
+        <a id="tab2" role="tab" aria-controls="tabpanel2" href="#panel2" class="icon icon-contacts">contacts</a>
+        <div id="tabpanel2" role="tabpanel" aria-labelledby="tab2"></div>
       </li>
-      <li id="panel3">
-        <a role="tab" href="#panel3" class="icon icon-dialer">dialer</a>
-        <div role="tabpanel"></div>
+      <li id="panel3" role="presentation">
+        <a id="tab3" role="tab" aria-controls="tabpanel3" href="#panel3" class="icon icon-dialer">dialer</a>
+        <div id="tabpanel3" role="tabpanel" aria-labelledby="tab3"></div>
       </li>
-      <li id="panel4" aria-disabled="true">
+      <li id="panel4" aria-disabled="true" role="presentation">
         <!-- no href to disabled tab -->
-        <a role="tab">Disabled</a>
-        <div role="tabpanel"></div>
+        <a id="tab4" role="tab" aria-controls="tabpanel4">Disabled</a>
+        <div id="tabpanel4" role="tabpanel" aria-labelledby="tab4"></div>
       </li>
     </ul>
   </section>

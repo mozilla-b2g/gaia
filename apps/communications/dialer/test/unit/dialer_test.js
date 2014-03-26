@@ -8,6 +8,7 @@ requireApp('communications/dialer/test/unit/mock_l10n.js');
 requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
 
+require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_notification.js');
@@ -17,6 +18,7 @@ require('/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('communications/dialer/js/dialer.js');
 
 var mocksHelperForDialer = new MocksHelper([
+  'AccessibilityHelper',
   'Contacts',
   'LazyL10n',
   'LazyLoader',

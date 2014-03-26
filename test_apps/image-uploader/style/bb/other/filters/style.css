@@ -44,13 +44,13 @@ body[role="application"] ul[role="tablist"].filter li a {
 }
 
 /* Selected state */
-body[role="application"] ul[role="tablist"].filter li[aria-selected="true"] {
+body[role="application"] ul[role="tablist"].filter li.selected {
   background: #fff;
   border-bottom-color: #c2c1c1;
   color: #000;
 }
 
-body[role="application"] ul[role="tablist"].filter li[aria-selected="true"] a {
+body[role="application"] ul[role="tablist"].filter li a[aria-selected="true"] {
   color: #000;
 }
 
@@ -70,7 +70,7 @@ body[role="application"] ul[role="tablist"][data-position="bottom"].filter li a 
   padding: 1.3rem 0;
 }
 
-body[role="application"] ul[role="tablist"][data-position="bottom"].filter li[aria-selected="true"] {
+body[role="application"] ul[role="tablist"][data-position="bottom"].filter li.selected {
   border-top-color: #c2c1c1;
 }
 
