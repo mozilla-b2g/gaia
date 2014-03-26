@@ -118,18 +118,6 @@ suite('activity', function() {
     assert.ok(!~parsed.modes.indexOf('video'));
   });
 
-  test('Should support both modes with empty `type` array', function() {
-    var parsed = this.activity.parse({
-      source: {
-        name: 'pick',
-        data: { type: [] }
-      }
-    });
-
-    assert.ok(~parsed.modes.indexOf('picture'));
-    assert.ok(~parsed.modes.indexOf('video'));
-  });
-
   test('Should allow both image and video if no types given', function() {
     var parsed = this.activity.parse({
       source: {

@@ -5,7 +5,6 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var SettingAlias = require('./setting-alias');
 var debug = require('debug')('settings');
 var allDone = require('lib/all-done');
 var Setting = require('./setting');
@@ -26,13 +25,8 @@ module.exports = Settings;
 function Settings(items) {
   this.ids = {};
   this.items = [];
-  this.aliases = {
-    list: [],
-    hash: {}
-  };
-
-  this.localize = this.localize.bind(this);
   this.addEach(items);
+  this.storageKey = 'settings';
 }
 
 Settings.prototype.add = function(data) {
@@ -40,9 +34,7 @@ Settings.prototype.add = function(data) {
   var self = this;
   this.items.push(setting);
   this.ids[setting.key] = this[setting.key] = setting;
-  setting.on('change:selected', function() {
-    self.onSettingChange(setting.key, setting.selected('key'));
-  });
+  setting.on('change:selected', function() { self.onSettingChange(setting); });
 };
 
 Settings.prototype.addEach = function(items) {
@@ -61,19 +53,24 @@ Settings.prototype.get = function(key) {
   return this.ids[key];
 };
 
-Settings.prototype.onSettingChange = function(key, value) {
-  debug('setting change %s', key);
-  this.fire('change:' + key, value);
+Settings.prototype.onSettingChange = function(setting) {
+  debug('setting change %s', setting.key);
+  this.fire('change:' + setting.key, setting.value(), setting);
 };
 
-Settings.prototype.options = function(options) {
-  this.items.forEach(function(setting) {
-    var match = setting.key in options;
-    if (match) {
-      debug('reset options key: %s', setting.key);
-      setting.resetOptions(options[setting.key]);
-    }
-  });
+Settings.prototype.menu = function(key) {
+  return this.items
+    .filter(function(item) { return !!item.get('menu'); })
+    .sort(function(a, b) { return a.get('menu') - b.get('menu'); });
+};
+
+Settings.prototype.value = function(key, value) {
+  var item = this.get(key);
+  return item && item.value();
+};
+
+Settings.prototype.toggler = function(key) {
+  return (function() { this.get(key).next(); }).bind(this);
 };
 
 Settings.prototype.fetch = function(done) {
@@ -81,27 +78,7 @@ Settings.prototype.fetch = function(done) {
   this.items.forEach(function(setting) { setting.fetch(done()); });
 };
 
-Settings.prototype.localize = function() {
-  debug('localizing');
-  this.items.forEach(function(setting) { setting.localize(); });
-  debug('localized');
-};
-
-Settings.prototype.alias = function(key, options) {
-  options.settings = this;
-  options.key = key;
-  var alias = new SettingAlias(options);
-  this.aliases[key] = alias;
-  this[key] = alias;
-};
-
-Settings.prototype.getAlias = function(key) {
-  var alias = this.aliases[key];
-  return alias && alias.get();
-};
-
-Settings.prototype.removeAlias = function(key) {
-  // TODO: Implement
-};
+Settings.prototype.forEach = function(fn) { this.items.forEach(fn); };
+Settings.prototype.filter = function(fn) { return this.items.filter(fn); };
 
 });

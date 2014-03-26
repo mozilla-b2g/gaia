@@ -10,8 +10,7 @@ function customizeMaximumImageSize(customize) {
     '//\n' +
     '//   {\n' +
     '//     "maxImagePixelSize": 6000000,\n' +
-    '//     "maxSnapshotPixelSize": 4000000, \n' +
-    '//     "avgJpegCompressionRatio": 24 \n' +
+    '//     "maxSnapshotPixelSize": 4000000 }\n' +
     '//   }\n' +
     '//\n' +
     '// Optionally, you can also define variables to specify the\n' +
@@ -27,9 +26,7 @@ function customizeMaximumImageSize(customize) {
     'var CONFIG_MAX_IMAGE_PIXEL_SIZE = ' +
       customize.maxImagePixelSize + ';\n' +
     'var CONFIG_MAX_SNAPSHOT_PIXEL_SIZE = ' +
-      customize.maxSnapshotPixelSize + ';\n' +
-    'var CONFIG_AVG_JPEG_COMPRESSION_RATIO = ' +
-      customize.avgJpegCompressionRatio + ';\n';
+      customize.maxSnapshotPixelSize + ';\n';
 
     if (customize.requiredEXIFPreviewSize) {
       content +=

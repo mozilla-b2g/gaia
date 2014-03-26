@@ -1,26 +1,16 @@
 
 .hud {
-  display: flex;
   position: absolute;
   top: 0; left: 0;
   width: 100%;
-  height: 9rem;
-  padding: 0 1.5rem;
-  align-items: center;
-  justify-content: space-between;
-  opacity: 1;
-  pointer-events: none;
-  transition: opacity 300ms;
+  height: 7.5rem;
+  z-index: 10;
+  text-align: center;
   transform: translateZ(1px);
 }
 
-/**
- * @hidden
- */
-
-.hud.hidden {
-  pointer-events: none;
-  opacity: 0;
+body:not(.filmstriphidden) .hud {
+  transform: translateY(5rem);
 }
 
 /** Buttons
@@ -32,32 +22,38 @@
  *    it changes color instanly.
  *    When it is released it transitons
  *    back to the default color.
- * 3. Offset large border
  */
 
 .hud_btn,
 .settings_close {
+  display: inline-block;
   height: 5rem;
   width: 5rem;
-  margin: -2rem; /* 3 */
   font-size: 2rem;
   line-height: 5rem;
   text-align: center;
   border-radius: 50%;
   background-position: center center;
   background-repeat: no-repeat;
-  background-color: rgba(0,0,0,0.12);
+  background-color: rgba(0,0,0,.3);
   background-clip: padding-box; /* 1 */
   border: solid 2rem transparent; /* 1 */
   -moz-box-sizing: content-box; /* 1 */
   transition: background-color 1s; /* 2 */
   color: #fff;
-  pointer-events: auto;
 }
 
 .hud_btn:active {
   background-color: #00b9df;
   transition: none; /* 2 */
+}
+
+.hud_btn:first-child {
+  float: left;
+}
+
+.hud_btn:last-child {
+  float: right;
 }
 
 /**
@@ -89,7 +85,7 @@
  * @camera-hidden
  */
 
-.hud.camera-hidden .hud_camera {
+.hud[camera-hidden=true] .hud_camera {
   opacity: 0;
 }
 
@@ -111,31 +107,98 @@
 
 .hud_flash {
   position: relative; /* 1 */
+  visibility: hidden;
   font-size: 2.5rem;
-  opacity: 0;
   transition: opacity 300ms;
+  opacity: 0;
 }
 
 /**
- * flash-enabled=true
+ * @flash-enabled
  */
 
 .hud[flash-enabled=true] .hud_flash {
+  visibility: visible;
   opacity: 1;
 }
 
 /**
- * settings-enabled=true
+ * @settings-disabled
  */
 
-.hud[settings-enabled=true] .hud_flash {
-  width: 5.8rem;
-  height: 5.8rem;
-  line-height: 5.8rem;
+.hud[settings-enabled=false] .hud_flash {
+  float: right;
+}
+
+
+/**
+ * @camera-hidden
+ */
+
+.hud[flash-hidden=true] .hud_flash {
+  opacity: 0;
+}
+
+/** Flash Text
+ ---------------------------------------------------------*/
+
+/**
+ * 1. Hide this as it's not apparent
+ *    in UX spec for v1.4.
+ */
+
+.hud_flash-text {
+  display: none; /* 1 */
+  position: absolute;
+  top: 50%; left: 100%;
+  margin: 0 1rem;
+  margin-top: -0.4em;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+  font-size: 14px;
+  line-height: 1em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 1000ms;
 }
 
 /**
- * settings-enabled=false
+ * @deg90,
+ * @deg180
+ *
+ * The flash text must be moved
+ * to the left of the icon so
+ * that it doesn't hang off the
+ * endge of the screen.
+ */
+
+.deg90 .hud_flash-text,
+.deg180 .hud_flash-text {
+  left: auto;
+  right: 100%;
+}
+
+/**
+ * @is-toggling
+ *
+ * When the user is toggling
+ * the flash setting we show
+ * the flash text.
+ */
+
+.hud[toggling-flash=true] .hud_flash-text {
+  opacity: 1;
+  transition: none;
+}
+
+/** Flash Name
+ ---------------------------------------------------------*/
+
+.flash-name {
+  text-transform: capitalize;
+}
+
+/**
+ * @settings-disabled
  */
 
 .hud[settings-enabled=false] .hud_settings {

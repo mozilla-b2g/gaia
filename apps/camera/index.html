@@ -16,6 +16,8 @@
     -->
 
     <!-- <script defer src="/shared/js/l10n.js"></script> -->
+    <!-- <script defer src="/shared/js/l10n_date.js"></script> -->
+    <!-- <script defer src="/shared/js/lazy_l10n.js"></script> -->
     <!-- <script defer src="/shared/js/async_storage.js"></script> -->
     <!-- <script defer src="/shared/js/media/jpeg_metadata_parser.js"></script> -->
     <!-- <script defer src="/shared/js/media/get_video_rotation.js"></script> -->
@@ -26,7 +28,20 @@
 
     <link rel="stylesheet" type="text/css" href="style/main.css" />
   </head>
-  <body>
+  <body class="filmstriphidden">
+
+    <!-- see filmstrip.js and filmstrip.css for these elements -->
+    <div id="filmstrip" class="filmstrip"></div>
+    <div id="preview" class="preview offscreen">
+      <div id="frame-container" class="frame-container">     <!-- media frame rotates inside this -->
+        <div id="media-frame" class="media-frame"></div> <!-- image or video here -->
+      </div>
+      <footer id="preview-controls" class="preview-controls"> <!-- camera, delete, share buttons -->
+        <a id="camera-button" class="camera-button button"></a>
+        <a id="delete-button" class="delete-button button"></a>
+        <a id="share-button" class="share-button button"></a>
+      </footer>
+    </div>
     <script src="js/startup.js"></script>
   </body>
 </html>

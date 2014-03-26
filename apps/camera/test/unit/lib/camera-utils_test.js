@@ -233,15 +233,99 @@ suite('utils/camera-utils', function() {
     });
   });
 
-  suite('getOptimalPreviewSize', function() {
+  suite('selectOptimalPreviewSize', function() {
     setup(function() {});
 
     test('Should select optimal preview size to ' +
-         'match picture size preserving aspect ratio', function() {
-      var pictureSize, previewSizes, optimalPreviewSize;
+         '*FILL* viewport preserving aspect ratio', function() {
+      var viewportSize, previewSizes, optimalPreviewSize;
+      
+      // Case where a preview size exactly matches viewport size
+      viewportSize = {
+        width: 720,
+        height: 1280
+      };
+
+      previewSizes = [
+        { width: 720,
+          height: 1280 },
+        { width: 480,
+          height: 864 },
+        { width: 480,
+          height: 800 },
+        { width: 432,
+          height: 768 },
+        { width: 480,
+          height: 720 },
+        { width: 480,
+          height: 640 },
+        { width: 432,
+          height: 576 },
+        { width: 320,
+          height: 480 },
+        { width: 240,
+          height: 432 },
+        { width: 288,
+          height: 384 },
+        { width: 288,
+          height: 352 },
+        { width: 240,
+          height: 320 },
+        { width: 160,
+          height: 240 },
+        { width: 144,
+          height: 176 }
+      ];
+
+      optimalPreviewSize = CameraUtils.selectOptimalPreviewSize(viewportSize,
+                                                                previewSizes);
+      assert.equal(optimalPreviewSize.width, 720);
+      assert.equal(optimalPreviewSize.height, 1280);
+
+      // Case where a preview size matches viewport width, overflows height
+      viewportSize = {
+        width: 480,
+        height: 768
+      };
+
+      previewSizes = [
+        { width: 720,
+          height: 1280 },
+        { width: 480,
+          height: 864 },
+        { width: 480,
+          height: 800 },
+        { width: 432,
+          height: 768 },
+        { width: 480,
+          height: 720 },
+        { width: 480,
+          height: 640 },
+        { width: 432,
+          height: 576 },
+        { width: 320,
+          height: 480 },
+        { width: 240,
+          height: 432 },
+        { width: 288,
+          height: 384 },
+        { width: 288,
+          height: 352 },
+        { width: 240,
+          height: 320 },
+        { width: 160,
+          height: 240 },
+        { width: 144,
+          height: 176 }
+      ];
+
+      optimalPreviewSize = CameraUtils.selectOptimalPreviewSize(viewportSize,
+                                                                previewSizes);
+      assert.equal(optimalPreviewSize.width, 480);
+      assert.equal(optimalPreviewSize.height, 800);
 
       // Hamachi test case
-      pictureSize = {
+      viewportSize = {
         width: 480,
         height: 320
       };
@@ -267,14 +351,13 @@ suite('utils/camera-utils', function() {
           height: 144  }
       ];
 
-      optimalPreviewSize = CameraUtils.getOptimalPreviewSize(previewSizes,
-                                                             pictureSize,
-                                                             pictureSize);
+      optimalPreviewSize = CameraUtils.selectOptimalPreviewSize(viewportSize,
+                                                                previewSizes);
       assert.equal(optimalPreviewSize.width, 480);
       assert.equal(optimalPreviewSize.height, 320);
 
       // Helix test case
-      pictureSize = {
+      viewportSize = {
         width: 800,
         height: 480
       };
@@ -310,16 +393,15 @@ suite('utils/camera-utils', function() {
           height: 144  }
       ];
 
-      optimalPreviewSize = CameraUtils.getOptimalPreviewSize(previewSizes,
-                                                             pictureSize,
-                                                             pictureSize);
+      optimalPreviewSize = CameraUtils.selectOptimalPreviewSize(viewportSize,
+                                                                previewSizes);
       assert.equal(optimalPreviewSize.width, 800);
       assert.equal(optimalPreviewSize.height, 480);
 
       // Nexus 4 test case
-      pictureSize = {
-        width: 1280,
-        height: 720
+      viewportSize = {
+        width: 1180,
+        height: 768
       };
 
       previewSizes = [
@@ -349,11 +431,10 @@ suite('utils/camera-utils', function() {
           height: 144  }
       ];
 
-      optimalPreviewSize = CameraUtils.getOptimalPreviewSize(previewSizes,
-                                                             pictureSize,
-                                                             pictureSize);
-      assert.equal(optimalPreviewSize.width, 1280);
-      assert.equal(optimalPreviewSize.height, 720);
+      optimalPreviewSize = CameraUtils.selectOptimalPreviewSize(viewportSize,
+                                                                previewSizes);
+      assert.equal(optimalPreviewSize.width, 720);
+      assert.equal(optimalPreviewSize.height, 480);
     });
   });
 });
