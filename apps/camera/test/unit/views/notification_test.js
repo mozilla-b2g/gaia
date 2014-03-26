@@ -10,8 +10,7 @@ suite('views/notification', function() {
   });
 
   setup(function() {
-    this.l10n = { get: sinon.stub() };
-    this.view = new this.NotificationView({ l10n: this.l10n });
+    this.view = new this.NotificationView();
     this.clock = sinon.useFakeTimers();
   });
 
@@ -46,7 +45,7 @@ suite('views/notification', function() {
         var second = this.view.el.children[0];
 
         assert.ok(second);
-        assert.equal(first.parentNode, null);
+        assert.equal(first.parentNode, null, 'not in dom');
         assert.equal(second.textContent, 'bar');
       });
 
@@ -58,13 +57,22 @@ suite('views/notification', function() {
         assert.equal(first.textContent, 'foo');
 
         this.clock.tick(1000);
-        assert.ok(first.parentNode, 'Should be in DOM');
+        assert.ok(first.parentNode, 'is in dom');
 
         this.clock.tick(1000);
-        assert.ok(first.parentNode, 'Should be in DOM');
+        assert.ok(first.parentNode, 'is in dom');
 
         this.clock.tick(1000);
-        assert.equal(first.parentNode, null, 'Should be removed from DOM');
+        assert.equal(first.parentNode, null, 'not in dom');
+      });
+
+      test('Should not mutate the passed object', function() {
+        var options = { text: 'foo' };
+
+        this.view.display(options);
+
+        assert.equal(Object.keys(options).length, 1);
+        assert.equal(options.text, 'foo');
       });
     });
 
@@ -73,14 +81,16 @@ suite('views/notification', function() {
         var id = this.view.display({ text: 'text', persistent: true });
         var el = this.view.el.children[0];
 
-        assert.ok(el.parentNode, 'should be in DOM');
+        assert.ok(el.parentNode, 'is in dom');
+
         this.clock.tick(1000);
-        assert.ok(el.parentNode, 'should be in DOM');
+        assert.ok(el.parentNode, 'is in dom');
+
         this.clock.tick(3000);
-        assert.ok(el.parentNode, 'should be in DOM');
+        assert.ok(el.parentNode, 'is in dom');
 
         this.view.clear(id);
-        assert.ok(!el.parentNode, 'should not be in DOM');
+        assert.ok(!el.parentNode, 'not in dom');
       });
 
       test('Should hide to show temporary notifications, then return', function() {
@@ -98,8 +108,10 @@ suite('views/notification', function() {
         assert.ok(els.temporary.parentNode, 'should be in DOM');
         assert.isTrue(els.persistent.classList.contains('hidden'));
 
-        this.clock.tick(4000);
+        this.clock.tick(1000);
+        assert.isTrue(els.persistent.classList.contains('hidden'));
 
+        this.clock.tick(3000);
         assert.ok(!els.temporary.parentNode);
         assert.isFalse(els.persistent.classList.contains('hidden'));
       });
@@ -152,7 +164,7 @@ suite('views/notification', function() {
       assert.isTrue(els.persistent.classList.contains('hidden'), 'is hidden');
 
       this.view.clear(temporary);
-      assert.isFalse(els.persistent.classList.contains('hidden'), 'is hidden');
+      assert.isFalse(els.persistent.classList.contains('hidden'), 'is not hidden');
     });
   });
 });

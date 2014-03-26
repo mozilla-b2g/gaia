@@ -6,18 +6,38 @@ define(function(require, exports, module) {
 */
 
 var View = require('vendor/view');
+var mix = require('lib/mixin');
 
 /**
-* Exports
-*/
+ * Exports
+ */
 
 module.exports = View.extend({
   name:'notification',
   tag: 'ul',
-  duration: 3000,
+  time: 3000,
 
+  initialize: function() {
+    this.counter = 0;
+    this.hash = {};
+  },
+
+  /**
+   * Display a new notification.
+   *
+   * Options:
+   *
+   *   - `text {String}`
+   *   - `className {String}`
+   *   - `persistent {Boolean}`
+   *
+   * @param  {Object} options
+   * @return {Number} id for clearing
+   * @public
+   */
   display: function(options) {
-    var item = options;
+    var item = mix({}, options);
+    var id = ++this.counter;
     var self = this;
 
     item.el = document.createElement('li');
@@ -25,26 +45,29 @@ module.exports = View.extend({
     item.el.innerHTML = '<span>' + options.text + '</span>';
     this.el.appendChild(item.el);
 
-    // Remove last notfication in the way
+    // Remove last temporary
+    // notification in the way
     this.clear(this.temporary);
 
     // Remove non-persistent
     // messages after 3s
     if (!item.persistent) {
-      this.temporary = item;
-      this.hide(this.persistent, this.duration + 100);
+      this.temporary = id;
+      this.hide(this.persistent);
       item.clearTimeout = setTimeout(function() {
-        self.clear(item);
-      }, this.duration);
+        self.clear(id);
+      }, this.time);
     }
 
     // Remove previous persistent
     if (item.persistent) {
       this.clear(this.persistent);
-      this.persistent = item;
+      this.persistent = id;
     }
 
-    return item;
+    // Store and return
+    this.hash[id] = item;
+    return id;
   },
 
   /**
@@ -57,7 +80,8 @@ module.exports = View.extend({
    * @param  {Number} item
    * @public
    */
-  clear: function(item) {
+  clear: function(id) {
+    var item = this.hash[id];
     if (!item || item.cleared) { return; }
 
     this.el.removeChild(item.el);
@@ -67,28 +91,35 @@ module.exports = View.extend({
     // Clear references
     if (item === this.temporary) { this.temporary = null; }
     if (item === this.persistent) { this.persistent = null; }
+    delete this.hash[id];
 
-    // Show persistent notifcation
-    // (if there is one)
+    // Show persistent notification
+    // (if there still is one)
     this.show(this.persistent);
   },
 
-  hide: function(item, ms) {
+  /**
+   * Hide a notification.
+   *
+   * @param  {Number} id
+   * @private
+   */
+  hide: function(id) {
+    var item = this.hash[id];
     if (!item) { return; }
-
-    var self = this;
     item.el.classList.add('hidden');
-
-    if (ms) {
-      clearTimeout(item.showTimeout);
-      item.showTimeout = setTimeout(function() { self.show(item); }, ms);
-    }
   },
 
-  show: function(item) {
+  /**
+   * Show a hidden notification.
+   *
+   * @param  {Number} id
+   * @private
+   */
+  show: function(id) {
+    var item = this.hash[id];
     if (!item) { return; }
     item.el.classList.remove('hidden');
-    clearTimeout(item.showTimeout);
   }
 });
 
