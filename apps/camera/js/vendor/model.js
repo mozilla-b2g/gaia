@@ -22,7 +22,7 @@ function Model(obj) {
 Model.prototype = events({
   get: function(key) {
     var data = this._getData();
-    return key !== undefined ? data[key] : mix({}, data);
+    return key ? data[key] : mix({}, data);
   },
 
   set: function(key, value, options) {
