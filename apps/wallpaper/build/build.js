@@ -6,12 +6,18 @@ var utils = require('utils');
 var WallPaperAppBuilder = function(options) {
 };
 
+WallPaperAppBuilder.prototype.APP_DIR = 'apps/wallpaper';
+WallPaperAppBuilder.prototype.BUILD_DIR = 'build_stage/wallpaper';
 WallPaperAppBuilder.prototype.WALLPAPER_PATH = 'resources/320x480';
 
 // set options
 WallPaperAppBuilder.prototype.setOptions = function(options) {
+  var distDirPath = [options.GAIA_DIR].concat(this.BUILD_DIR.split('/'));
+  this.distDir = utils.getFile.apply(utils, distDirPath);
+
   var wallpaperDirPath =
-    [options.STAGE_APP_DIR].concat(this.WALLPAPER_PATH.split('/'));
+    [options.GAIA_DIR].concat(this.BUILD_DIR.split('/'),
+                              this.WALLPAPER_PATH.split('/'));
   this.wallpaperDir = utils.getFile.apply(utils, wallpaperDirPath);
 
   this.gaia = utils.gaia.getInstance(options);

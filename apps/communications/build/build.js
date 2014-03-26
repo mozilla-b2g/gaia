@@ -4,18 +4,25 @@
 const utils = require('utils');
 const { Cc, Ci } = require('chrome');
 
+const APP_NAME = 'communications';
 const DEBUG = false;
 
 var CommAppBuilder = function() {
 };
 
+CommAppBuilder.prototype.APP_DIR = 'apps/' + APP_NAME;
+CommAppBuilder.prototype.STAGE_DIR = 'build_stage/' + APP_NAME;
+
 // set destination directory and application directory
 CommAppBuilder.prototype.setOptions = function(options) {
-  this.stageDir = utils.getFile(options.STAGE_APP_DIR);
-  this.appDir = utils.getFile(options.APP_DIR);
+  var stageDirPath = [options.GAIA_DIR].concat(this.STAGE_DIR.split('/'));
+  this.stageDir = utils.getFile.apply(utils, stageDirPath);
+
+  var appDirPath = [options.GAIA_DIR].concat(this.APP_DIR.split('/'));
+  this.appDir = utils.getFile.apply(utils, appDirPath);
 
   this.webapp = utils.getWebapp(this.appDir.path, options.GAIA_DOMAIN,
-    options.GAIA_SCHEME, options.GAIA_PORT, options.STAGE_DIR);
+    options.GAIA_SCHEME, options.GAIA_PORT);
   this.gaia = utils.gaia.getInstance(options);
 
   var content = JSON.parse(utils.getFileContent(utils.getFile(this.appDir.path,
@@ -28,8 +35,12 @@ CommAppBuilder.prototype.setOptions = function(options) {
 
 CommAppBuilder.prototype.generateManifest = function() {
   var manifestObject;
-  var manifestContent = utils.getFileContent(this.webapp.manifestFile);
-  manifestObject = JSON.parse(manifestContent);
+  if (this.gaia.l10nManager) {
+    manifestObject = this.gaia.l10nManager.localizeManifest(this.webapp);
+  } else {
+    var manifestContent = utils.getFileContent(this.webapp.manifestFile);
+    manifestObject = JSON.parse(manifestContent);
+  }
 
   var redirects = manifestObject.redirects;
 
@@ -122,8 +133,8 @@ CommAppBuilder.prototype.generateCustomizeResources = function() {
       }
     });
   } else {
-    utils.log('communications', variantFile.path + ' not found. Single' +
-      ' variant resources will not be added.\n');
+    utils.log(variantFile.path + ' not found. Single variant resources will' +
+      ' not be added.\n');
   }
 };
 

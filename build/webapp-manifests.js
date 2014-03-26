@@ -109,7 +109,6 @@ function fillAppManifest(webapp) {
   // Copy webapp's manifest to the profile
   let webappTargetDir = webappsTargetDir.clone();
   webappTargetDir.append(webappTargetDirName);
-  utils.ensureFolderExists(webappTargetDir);
   let gaia = utils.gaia.getInstance(config);
 
   if (gaia.l10nManager) {
@@ -226,7 +225,7 @@ function fillExternalAppManifest(webapp) {
 
   // In case of packaged app, just copy `application.zip` and `update.webapp`
   if (isPackaged) {
-    let updateManifest = webapp.sourceDirectoryFile.clone();
+    let updateManifest = webapp.buildDirectoryFile.clone();
     updateManifest.append('update.webapp');
     if (!updateManifest.exists()) {
       errors.push('External packaged webapp `' + webapp.domain + '  is ' +
@@ -237,7 +236,7 @@ function fillExternalAppManifest(webapp) {
       return;
     }
 
-    let appPackage = webapp.sourceDirectoryFile.clone();
+    let appPackage = webapp.buildDirectoryFile.clone();
     appPackage.append('application.zip');
     appPackage.copyTo(webappTargetDir, 'application.zip');
     updateManifest.copyTo(webappTargetDir, 'update.webapp');
@@ -249,7 +248,7 @@ function fillExternalAppManifest(webapp) {
                                                     true;
 
     // This is an hosted app. Check if there is an offline cache.
-    let srcCacheFolder = webapp.sourceDirectoryFile.clone();
+    let srcCacheFolder = webapp.buildDirectoryFile.clone();
     srcCacheFolder.append('cache');
     if (srcCacheFolder.exists()) {
       let cacheManifest = srcCacheFolder.clone();
@@ -347,8 +346,12 @@ function execute(options) {
     mapping[appname].manifestURL = webapps[appname].webappsJson.manifestURL;
   }
 
-  let stageDir = utils.getFile(config.STAGE_DIR);
-  utils.ensureFolderExists(stageDir);
+  let stageFolder = utils.getEnv('STAGE_FOLDER');
+  let stageDir;
+  if (stageFolder) {
+    stageDir = utils.getFile(config.GAIA_DIR, stageFolder);
+    utils.ensureFolderExists(stageDir);
+  }
   let mappingFile = stageDir.clone();
   mappingFile.append('webapps-mapping.json');
   utils.writeContent(mappingFile, JSON.stringify(mapping, null, 2));
