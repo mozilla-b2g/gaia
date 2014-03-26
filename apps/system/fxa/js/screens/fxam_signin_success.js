@@ -12,11 +12,6 @@
 var FxaModuleSigninSuccess = (function() {
 
   var Module = Object.create(FxaModule);
-  Module.init = function init(options) {
-    options = options || {};
-    this.importElements('fxa-summary-email');
-    this.fxaSummaryEmail.textContent = options.email;
-  };
 
   Module.onNext = function onNext(done) {
     done(FxaModuleStates.DONE);

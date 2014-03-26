@@ -15,6 +15,7 @@
 var FxaModuleEnterEmail = (function() {
 
   var _ = null;
+  var localize = null;
 
   function _isEmailValid(emailEl) {
     return emailEl && emailEl.value && emailEl.validity.valid;
@@ -39,6 +40,13 @@ var FxaModuleEnterEmail = (function() {
   var Module = Object.create(FxaModule);
   Module.init = function init() {
     _ = navigator.mozL10n.get;
+    localize = navigator.mozL10n.localize;
+
+    // Cache static HTML elements
+    this.importElements(
+      'fxa-email-input',
+      'fxa-notice'
+    );
 
     // Blocks the navigation until check the condition
     _enableNext(this.fxaEmailInput);
@@ -47,8 +55,24 @@ var FxaModuleEnterEmail = (function() {
       return;
     }
 
-    // Cache HTML elements
-    this.importElements('fxa-email-input');
+    // dynamically construct and localize ToS/PN notice
+    var noticeText = _('fxa-notice');
+    var tosReplaced = noticeText.replace(
+      '{{tos}}',
+      '<a id="fxa-terms" href="#" class="disabled">Terms of Service</a>'
+    );
+    var tosPnReplaced = tosReplaced.replace(
+      '{{pn}}',
+      '<a id="fxa-privacy" href="#" class="disabled">Privacy Notice</a>'
+    );
+    this.fxaNotice.innerHTML = tosPnReplaced;
+
+    // manually import a few elements after innerHTMLing
+    this.fxaPrivacy = document.getElementById('fxa-privacy');
+    localize(this.fxaPrivacy, 'fxa-pn');
+    this.fxaTerms = document.getElementById('fxa-terms');
+    localize(this.fxaTerms, 'fxa-tos');
+
     // Add listeners
     this.fxaEmailInput.addEventListener(
       'input',
@@ -73,7 +97,7 @@ var FxaModuleEnterEmail = (function() {
   };
 
   Module.onNext = function onNext(gotoNextStepCallback) {
-    FxaModuleOverlay.show(_('fxa-connecting-to-firefox'));
+    FxaModuleOverlay.show(_('fxa-connecting'));
 
     var email = this.fxaEmailInput.value;
 

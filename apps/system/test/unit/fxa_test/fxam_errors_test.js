@@ -5,19 +5,13 @@ requireApp('system/fxa/js/fxam_errors.js');
 
 suite('Error manager', function() {
   var errorsObject = {
-    'ACCOUNT_DOES_NOT_EXIST': 'account-does-not-exist',
-    'CANNOT_CREATE_ACCOUNT': 'cannot-create',
+    'CONNECTION_ERROR': 'connection-error',
     'RESET_PASSWORD_ERROR': 'reset-password-error',
-    'RESET_PASSWORD_IN_SETTINGS': 'reset-password-in-settings',
     'INVALID_EMAIL': 'invalid-email',
     'INVALID_PASSWORD': 'invalid-password',
-    'ALREADY_SIGNED_IN_USER': 'already-signed-in',
-    'INTERNAL_ERROR_INVALID_USER': 'generic-error',
-    'SERVER_ERROR': 'generic-error',
-    'NO_TOKEN_SESSION': 'generic-error',
-    'GENERIC_ERROR': 'generic-error',
-    'UNKNOWN': 'unknown-error',
     'COPPA_ERROR': 'coppa-failure-error'
+    'OFFLINE': 'offline-error',
+    'UNKNOWN': 'unknown-error'
   };
   var response;
   var realL10n;

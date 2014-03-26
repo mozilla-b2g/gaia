@@ -54,7 +54,7 @@ var FxaModuleEnterPassword = (function() {
     var self = this;
     if (this.isFTU) {
       return this.showErrorResponse({
-        error: 'RESET_PASSWORD_IN_SETTINGS'
+        error: 'RESET_PASSWORD_ERROR'
       });
     }
     // Note: we don't need to pass a success callback, but we do need an errback
@@ -63,7 +63,7 @@ var FxaModuleEnterPassword = (function() {
       null,
       function on_reset_error() {
         self.showErrorResponse({
-          error: 'RESET_PASSWORD_ERROR'
+          error: 'UNKNOWN_ERROR'
         });
       }
     );
@@ -124,6 +124,11 @@ var FxaModuleEnterPassword = (function() {
     this.fxaUserEmail.textContent = options.email;
     this.email = options.email;
 
+    navigator.mozL10n.localize(this.fxaUserEmail, 'fxa-hello-user', {
+      email: ''
+    });
+    this.fxaUserEmail.textContent = this.email;
+
     _cleanForm(
       this.fxaPwInput,
       this.fxaShowPw
@@ -134,7 +139,7 @@ var FxaModuleEnterPassword = (function() {
   };
 
   Module.onNext = function onNext(gotoNextStepCallback) {
-    FxaModuleOverlay.show(_('fxa-authenticating'));
+    FxaModuleOverlay.show(_('fxa-connecting'));
 
     FxaModuleManager.setParam('success', true);
     FxModuleServerRequest.signIn(
