@@ -1574,6 +1574,7 @@ function switchToNextIME() {
 }
 
 function showIMEList() {
+  clearTouchedKeys();
   var mgmt = navigator.mozInputMethod.mgmt;
   mgmt.showAll();
 }
@@ -1587,6 +1588,7 @@ function resetKeyboard() {
   // separately after this function
   isUpperCase = false;
   isUpperCaseLocked = false;
+  clearTouchedKeys();
 }
 
 // This is a wrapper around inputContext.sendKey()
@@ -1920,6 +1922,27 @@ function needsCandidatePanel() {
 function isGreekSMS() {
   return (currentInputMode === '-moz-sms' &&
           keyboardName === 'el');
+}
+
+// Remove the event listeners on the touched keys and the highlighting.
+// This is because sometimes DOM element is removed before
+// touchend is fired.
+function clearTouchedKeys() {
+  for (var id in touchedKeys) {
+    if (!touchedKeys[id]) {
+      continue;
+    }
+
+    var target = touchedKeys[id].target;
+    if (target) {
+      target.removeEventListener('touchmove', onTouchMove);
+      target.removeEventListener('touchend', onTouchEnd);
+      target.removeEventListener('touchcancel', onTouchEnd);
+      IMERender.unHighlightKey(target);
+    }
+  }
+
+  touchedKeys = {};
 }
 /*
  * This is a helper to scroll the keyboard layout menu when the touch moves near
