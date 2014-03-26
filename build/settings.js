@@ -171,15 +171,19 @@ function execute(config) {
   }
 
   if (config.NO_LOCK_SCREEN) {
-    settings['screen.timeout'] = 0;
     settings['lockscreen.enabled'] = false;
     settings['lockscreen.locked'] = false;
+  }
+
+  if (typeof(config.SCREEN_TIMEOUT) == 'number') {
+    settings['screen.timeout'] = config.SCREEN_TIMEOUT;
   }
 
   setDefaultKeyboardLayouts(config.GAIA_DEFAULT_LOCALE, settings, config);
 
   // Ensure not quitting xpcshell before all asynchronous code is done
   utils.processEvents(function(){return {wait : false}});
+
   var queue = utils.Q.defer();
   queue.resolve();
 
