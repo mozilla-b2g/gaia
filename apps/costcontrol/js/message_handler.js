@@ -245,6 +245,16 @@
   // When receiving an alarm, differenciate by type and act
   function _onAlarm(alarm) {
     clearTimeout(closing);
+
+    function _launchNextReset() {
+      ConfigManager.requestSettings(function _onSettings(settings) {
+        resetAll(function updateNextResetAndClose() {
+          updateNextReset(settings.trackingPeriod, settings.resetTime,
+                          closeIfProceeds);
+        });
+      });
+    }
+
     switch (alarm.data.type) {
       case 'balanceTimeout':
         ConfigManager.requestSettings(function _onSettings(settings) {
@@ -277,14 +287,11 @@
         break;
 
       case 'nextReset':
-        ConfigManager.requestSettings(function _onSettings(settings) {
-          resetAll(function updateNextResetAndClose() {
-            updateNextReset(
-              settings.trackingPeriod, settings.resetTime,
-              closeIfProceeds
-            );
-          });
-        });
+        if (!Common.allNetworkInterfaceLoaded) {
+          Common.loadNetworkInterfaces(_launchNextReset);
+        } else {
+          _launchNextReset();
+        }
         break;
     }
   }
