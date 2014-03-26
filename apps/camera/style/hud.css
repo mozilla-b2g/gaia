@@ -9,7 +9,6 @@
   align-items: center;
   justify-content: space-between;
   opacity: 1;
-  pointer-events: none;
   transition: opacity 300ms;
   transform: translateZ(1px);
 }
@@ -52,20 +51,11 @@
   -moz-box-sizing: content-box; /* 1 */
   transition: background-color 1s; /* 2 */
   color: #fff;
-  pointer-events: auto;
 }
 
 .hud_btn:active {
   background-color: #00b9df;
   transition: none; /* 2 */
-}
-
-/**
- * @buttons-disabled
- */
-
-.hud[buttons-enabled=false] .hud_btn {
-  pointer-events: none;
 }
 
 /** Camera Button
