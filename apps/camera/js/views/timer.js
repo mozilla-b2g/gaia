@@ -20,6 +20,7 @@ var View = require('vendor/view');
 module.exports = View.extend({
   name:'timer',
   immanent: 3,
+  className: 'rotates',
 
   initialize: function() {
     this.render();
@@ -60,8 +61,9 @@ module.exports = View.extend({
   },
 
   template: function() {
-    return '<div class="timer_inner-circle"></div>' +
-      '<div class="timer_count rotates js-count"></div>';
+    return '<div class="timer_circle-1"></div>' +
+      '<div class="timer_circle-2"></div>' +
+      '<div class="timer_count js-count"></div>';
   }
 });
 
