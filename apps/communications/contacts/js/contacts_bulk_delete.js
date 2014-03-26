@@ -20,10 +20,10 @@ contacts.BulkDelete = (function() {
     return response;
   };
 
-  var doDelete = function doDelete(ids) {
+  var doDelete = function doDelete(contactList) {
     cancelled = false;
     var progress = utils.overlay.show(_('DeletingContacts'), 'progressBar');
-    progress.setTotal(ids.length);
+    progress.setTotal(contactList.length);
     utils.overlay.showMenu();
 
     utils.overlay.oncancel = function() {
@@ -32,7 +32,7 @@ contacts.BulkDelete = (function() {
     };
 
     var contactsRemoverObj = new contactsRemover();
-    contactsRemoverObj.init(ids, function onInitDone() {
+    contactsRemoverObj.init(contactList, function onInitDone() {
       contactsRemoverObj.start();
     });
 
@@ -70,11 +70,11 @@ contacts.BulkDelete = (function() {
   var performDelete = function performDelete(promise) {
     requireOverlay(function onOverlay() {
       utils.overlay.show(_('preparing-contacts'), 'spinner');
-      promise.onsuccess = function onSucces(ids) {
+      promise.onsuccess = function onSuccess(ids, contactList) {
         Contacts.hideOverlay();
         var confirmDelete = showConfirm(ids.length);
         if (confirmDelete) {
-          doDelete(ids);
+          doDelete(contactList);
         } else {
           Contacts.showStatus(_('BulkDelCancel'));
         }
@@ -91,4 +91,3 @@ contacts.BulkDelete = (function() {
   };
 
 })();
-
