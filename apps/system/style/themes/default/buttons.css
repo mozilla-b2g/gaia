@@ -9,93 +9,96 @@
 
 [role="dialog"] button,
 [role="dialog"] a[role="button"] {
+  font-family: sans-serif;
+  font-style: italic;
   width: 100%;
-  height: 3.8rem;
+  height: 4rem;
   margin: 0 0 1rem;
-  padding: 0 1.5rem;
+  padding: 0 1.2rem;
   -moz-box-sizing: border-box;
   display: inline-block;
   vertical-align: middle;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  background: #fafafa url(images/ui/default.png) repeat-x left bottom;
-  border: 0.1rem solid #9f9f9f;
-  border-radius: 0.3rem;
+  background: #d8d8d8;
+  border: none;
+  border-radius: 2rem;
+  font-weight: normal;
   font-size: 1.6rem;
-  font-weight: 600;
-  line-height: 3.8rem;
+  line-height: 4rem;
   color: #333;
   text-align: center;
-  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
   text-decoration: none;
   outline: none;
-}
-
-/* Press (default & affirmative) */
-[role="dialog"] button:active,
-[role="dialog"] a[role="button"]:active,
-[role="dialog"] button.affirmative:active,
-[role="dialog"] a.affirmative[role="button"]:active  {
-  border-color: #008aaa;
-  background: #008aaa;
-  color: #333;
 }
 
 /* Affirmative */
 [role="dialog"] button.affirmative,
 [role="dialog"] a[role="button"].affirmative {
-  background-image: url(images/ui/affirmative.png);
   background-color: #00caf2;
-  border-color: #00acce;
+  color: #fff;
 }
 
 /* Negative */
 [role="dialog"] button.negative,
 [role="dialog"] a.negative[role="button"] {
-  background-image: url(images/ui/negative.png);
-  background-color: #b70404;
+  background-color: #e51e1e;
   color: #fff;
-  text-shadow: -0.1rem -0.1rem 0 #830b0b;
-  border: none; 
 }
 
-/* Negative Press */
-[role="dialog"] button.negative:active,
-[role="dialog"] a[role="button"].negative:active {
-  background-image: url(images/ui/negative-press.png);
-  background-color: #890707;
+/* Pressed */
+[role="dialog"] button:active,
+[role="dialog"] a[role="button"]:active {
+  background-color: #b2f2ff;
+  color: #fff;
 }
 
-/* Disabled (default & affirmative) */
+/* Disabled */
 [role="dialog"] button[disabled="disabled"],
-[role="dialog"] a[role="button"][aria-disabled="true"],
-[role="dialog"] button[disabled="disabled"].affirmative,
-[role="dialog"] a[role="button"][aria-disabled="true"].affirmative {
-  background-image: url(images/ui/disabled-bright.png);
-  background-color: transparent;
-  border-color: #dadada;
-  color: #bcbcbc;
-}
-
-/* Disabled dark (default & affirmative) */
-[role="dialog"] menu button[disabled="disabled"],
-[role="dialog"] menu a[role="button"][aria-disabled="true"],
-[role="dialog"] menu button[disabled="disabled"].affirmative,
-[role="dialog"] menu a[role="button"][aria-disabled="true"].affirmative {
-  background-image: url(images/ui/disabled-dark.png);
-  background-color: transparent;
-  border: none;
-  color: #4a4a4a;
-  text-shadow: 0 0.1rem 0 rgba(255, 255, 255, 0.2);
+[role="dialog"] a[role="button"][aria-disabled="true"] {
+  background-color: #e7e7e7;
+  color: #a6a6a6;
+  pointer-events: none;
 }
 
 /* Negative disabled */
-[role="dialog"] button[disabled="disabled"].negative,
-[role="dialog"] a[role="button"][aria-disabled="true"].negative {
-  background-image: url(images/ui/negative-disabled.png);
-  color: #fff;
-  text-shadow: none;
+[role="dialog"] button.negative[disabled="disabled"],
+[role="dialog"] a.negative[role="button"][aria-disabled="true"] {
+  background-color: #97cbd5;
+  color: rgba(255,255,255,0.5);
+}
+
+/* Affirmative disabled */
+[role="dialog"] button.affirmative[disabled="disabled"],
+[role="dialog"] a.affirmative[role="button"][aria-disabled="true"] {
+  background-color: #eb7474;
+  color: rgba(255,255,255,0.5);
+}
+
+/* Disabled dark */
+[role="dialog"] menu button[disabled="disabled"],
+[role="dialog"] menu a[role="button"][aria-disabled="true"] {
+  background-color: #565656;
+  color: rgba(255,255,255,0.4);
+}
+
+/* Affirmative disabled */
+[role="dialog"] menu button[disabled="disabled"].affirmative,
+[role="dialog"] menu a[role="button"][aria-disabled="true"].affirmative {
+  background-color: #006579;
+}
+
+/* Negative disabled */
+[role="dialog"] menu button[disabled="disabled"].negative,
+[role="dialog"] menu a[role="button"][aria-disabled="true"].negative {
+  background-color: #730f0f;
+}
+
+button[disabled]::-moz-selection,
+.button[aria-disabled="true"]::-moz-selection,
+[role="button"][aria-disabled="true"]::-moz-selection {
+  -moz-user-select: none;
 }
 
 /* Icons in buttons */
