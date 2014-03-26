@@ -60,7 +60,8 @@ module.exports = View.extend({
   },
 
   template: function() {
-    return '<div class="timer_count js-count rotates"></div>';
+    return '<div class="timer_inner-circle"></div>' +
+      '<div class="timer_count rotates js-count"></div>';
   }
 });
 
