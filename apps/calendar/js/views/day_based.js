@@ -509,7 +509,7 @@ Calendar.ns('Views').DayBased = (function() {
       var controller = this.controller;
 
       this._removeTimespanObserver();
-      this.id = date.valueOf();
+      this.id = Calendar.Calc.getDayId(date);
       this.date = Calendar.Calc.createDay(date);
       this.timespan = Calendar.Calc.spanOfDay(date);
 
