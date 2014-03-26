@@ -166,6 +166,7 @@ suite('ActivityHandler', function() {
     test('Appends an attachment to the Compose field for each media file',
       function() {
       this.sinon.stub(Compose, 'append');
+      window.location.hash = '#new';
 
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
 
@@ -177,17 +178,33 @@ suite('ActivityHandler', function() {
         sinon.match.instanceOf(Attachment)
       ]);
     });
-    test('Attachment size over max mms should not be appended', function() {
-          // Adjust mmsSizeLimitation for verifying alert popup when size over
-          // limitation
-          Settings.mmsSizeLimitation = 1;
-          this.sinon.spy(Compose, 'append');
-          window.location.hash = '#new';
 
-          MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
-          sinon.assert.notCalled(Compose.append);
-          assert.equal(Mockalert.mLastMessage, 'file-too-large');
+    test('Attachment size over max mms should not be appended', function() {
+      // Adjust mmsSizeLimitation for verifying alert popup when size over
+      // limitation
+      Settings.mmsSizeLimitation = 1;
+      this.sinon.spy(Compose, 'append');
+      window.location.hash = '#new';
+
+      MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+      sinon.assert.notCalled(Compose.append);
+      assert.equal(Mockalert.mLastMessage, 'file-too-large');
     });
+
+    test('Should append images even when they are big', function() {
+      shareActivity.source.data.blobs = [
+        new Blob(['test'], { type: 'image/jpeg' }),
+      ];
+
+      Settings.mmsSizeLimitation = 1;
+      this.sinon.spy(Compose, 'append');
+      window.location.hash = '#new';
+
+      MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+      sinon.assert.called(Compose.append);
+      assert.isNull(Mockalert.mLastMessage);
+    });
+
     test('share shouldn\'t change the ThreadUI back button', function() {
       this.sinon.stub(ThreadUI, 'enableActivityRequestMode');
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);

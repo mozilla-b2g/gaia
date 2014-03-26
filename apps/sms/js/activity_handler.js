@@ -84,29 +84,36 @@ var ActivityHandler = {
       ThreadUI.enableActivityRequestMode();
     },
     share: function shareHandler(activity) {
-      var arr = [];
       var blobs = activity.source.data.blobs,
         names = activity.source.data.filenames;
 
       function insertAttachments() {
         window.removeEventListener('hashchange', insertAttachments);
 
-        blobs.forEach(function(blob, idx) {
+        var attachments = blobs.map(function(blob, idx) {
           var attachment = new Attachment(blob, {
             name: names[idx],
             isDraft: true
           });
-          // TODO: We only allow sharing one item in a single action now.
-          //       Keeping the same sequence while adding the multiple items
-          //       should be considered in the future.
-          if (attachment.size > Settings.mmsSizeLimitation) {
-            alert(navigator.mozL10n.get('file-too-large'));
-            return;
-          }
-          arr.push(attachment);
+
+          return attachment;
         });
+
+        var size = attachments.reduce(function(size, attachment) {
+          if (attachment.type !== 'img') {
+            size += attachment.size;
+          }
+
+          return size;
+        }, 0);
+
+        if (size > Settings.mmsSizeLimitation) {
+          alert(navigator.mozL10n.get('file-too-large'));
+          return;
+        }
+
         ThreadUI.cleanFields(true);
-        Compose.append(arr);
+        Compose.append(attachments);
       }
 
       // Navigating to the 'New Message' page is an asynchronous operation that
