@@ -136,10 +136,7 @@ suite('Build Integration tests', function() {
       var ignoreSettings = [
         'apz.force-enable',
         'debug.console.enabled',
-        'developer.menu.enabled',
-        'screen.timeout',
-        'lockscreen.enabled',
-        'lockscreen.locked'
+        'developer.menu.enabled'
       ];
       ignoreSettings.forEach(function(key) {
         if (commonSettings[key] !== undefined) {
@@ -331,8 +328,7 @@ suite('Build Integration tests', function() {
         'installed-extensions.json');
       var expectedSettings = {
         'homescreen.manifestURL': 'http://homescreen.gaiamobile.org:8080/manifest.webapp',
-        'rocketbar.searchAppURL': 'http://search.gaiamobile.org:8080/index.html',
-        'screen.timeout': 600
+        'rocketbar.searchAppURL': 'http://search.gaiamobile.org:8080/index.html'
       };
       var expectedUserPrefs = {
         'browser.manifestURL': 'http://system.gaiamobile.org:8080/manifest.webapp',

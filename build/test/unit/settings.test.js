@@ -263,33 +263,9 @@ suite('settings.js', function() {
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'debugger.remote-mode': 'adb-devtools',
+          'screen.timeout': 0,
           'lockscreen.enabled': false,
           'lockscreen.locked': false,
-          'wallpaper.image': undefined,
-          'dialer.ringtone': undefined,
-          'notification.ringtone': undefined },
-          result);
-        done();
-      });
-    });
-
-
-    test('SCREEN_TIMEOUT === 600', function(done) {
-      config.SCREEN_TIMEOUT = 600;
-      var queue = app.execute(config);
-      queue.done(function(result) {
-        assert.deepEqual({
-          'debug.console.enabled': true,
-          'developer.menu.enabled': true,
-          'apz.force-enable': true,
-          'homescreen.manifestURL': config.GAIA_SCHEME +
-            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
-            '/manifest.webapp',
-          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-          'debugger.remote-mode': 'adb-only',
-          'language.current': config.GAIA_DEFAULT_LOCALE,
-          'screen.timeout': 600,
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
           'notification.ringtone': undefined },
