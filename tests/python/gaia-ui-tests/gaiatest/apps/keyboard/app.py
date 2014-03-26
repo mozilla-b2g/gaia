@@ -144,7 +144,8 @@ class Keyboard(Base):
         self.marionette.switch_to_frame()
         keyboards = self.marionette.find_element(*self._keyboards_locator)
         self.wait_for_condition(lambda m: 'hide' not in keyboards.get_attribute('class') and \
-            not keyboards.get_attribute('data-transition-in'),
+            not keyboards.get_attribute('data-transition-in') and \
+            self.is_element_displayed(*self._keyboard_frame_locator),
             message="Keyboard not interpreted as displayed. Debug is_displayed(): %s"
                 %keyboards.is_displayed())
 
