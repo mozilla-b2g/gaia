@@ -14,7 +14,9 @@ MockIcon.prototype = MockTemplateIcon.prototype = {
   remove: function mi_remove() {
   },
 
-  update: function mi_update() {
+  update: function mi_update(descriptor, app) {
+    this.descriptor = descriptor;
+    this.app = app;
   },
 
   getWidth: function mi_getWidth() {

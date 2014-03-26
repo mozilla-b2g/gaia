@@ -1,11 +1,15 @@
 'use strict';
 
-requireApp('homescreen/test/unit/mock_mozsetmessagehandler.js');
-requireApp('homescreen/test/unit/mock_bookmark_editor.js');
-requireApp('homescreen/test/unit/mock_l10n.js');
+/* global BookmarkEditor, msgHandler, realMozSetMessageHandler, utils */
+/* global requireApp, suite, suiteTeardown, suiteSetup, test, assert,
+          MocksHelper */
 
-requireApp('homescreen/js/components/status.js');
-requireApp('homescreen/js/save-bookmark.js');
+requireApp('bookmark/test/unit/mock_mozsetmessagehandler.js');
+requireApp('bookmark/test/unit/mock_bookmark_editor.js');
+requireApp('bookmark/test/unit/mock_l10n.js');
+
+requireApp('bookmark/js/components/status.js');
+requireApp('bookmark/js/save-bookmark.js');
 
 var mocksHelperForSaveBookmark = new MocksHelper([
   'BookmarkEditor'
@@ -15,11 +19,12 @@ mocksHelperForSaveBookmark.init();
 
 suite('save-bookmark.js >', function() {
 
+  mocksHelperForSaveBookmark.attachTestHelpers();
+
   suiteSetup(function() {
     utils.status.init();
     // We change the duration of the status in order to avoid timeout
     utils.status.setDuration(400);
-    mocksHelperForSaveBookmark.suiteSetup();
   });
 
   suiteTeardown(function() {
@@ -27,8 +32,6 @@ suite('save-bookmark.js >', function() {
 
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     msgHandler.activity = null;
-
-    mocksHelperForSaveBookmark.suiteTeardown();
   });
 
   function createSource(name, type) {
@@ -40,7 +43,7 @@ suite('save-bookmark.js >', function() {
     };
   }
 
-  test('Homescreen is listening right now ', function() {
+  test('Bookmark app is listening right now ', function() {
     // The handler was defined
     assert.isFunction(msgHandler.activity);
     // The handler defines a parameter -> the activity
@@ -52,6 +55,19 @@ suite('save-bookmark.js >', function() {
       source: createSource('save-bookmark', 'url'),
       postResult: function(result) {
         assert.equal(result, 'saved');
+        done();
+      }
+    });
+
+    // The user clicks on <save> button
+    BookmarkEditor.save(true);
+  });
+
+  test('The bookmark already exists and it is updated ', function(done) {
+    msgHandler.activity({
+      source: createSource('save-bookmark', 'url'),
+      postResult: function(result) {
+        assert.equal(result, 'updated');
         done();
       }
     });
@@ -113,7 +129,7 @@ suite('save-bookmark.js >', function() {
       done();
     });
 
-    BookmarkEditor.save();
+    BookmarkEditor.save(true);
   });
 
 });

@@ -9,7 +9,6 @@ requireApp('homescreen/test/unit/mock_grid_manager.js');
 requireApp('homescreen/test/unit/mock_pagination_bar.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('homescreen/js/grid_components.js');
-requireApp('homescreen/js/message.js');
 requireApp('homescreen/js/request.js');
 
 requireApp('homescreen/js/homescreen.js');

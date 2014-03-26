@@ -40,3 +40,43 @@ Bookmark.prototype = {
     this.url = this.origin = this.sanitizeURL(url);
   }
 };
+
+(function(exports) {
+  var BookmarksListener = {
+    handleEvent: function(e) {
+      switch (e.type) {
+        case 'added':
+        case 'updated':
+          GridManager.install(new Bookmark(e.target));
+          break;
+        case 'removed':
+          // TODO bug 988177
+          break;
+      }
+      updateHomescreenRevisionId();
+    }
+  };
+
+  var eventTypesToListenFor = ['added', 'updated', 'removed'];
+  var revisionIdStorageKey = 'bookmarkRevisionStorageKey';
+
+  function updateHomescreenRevisionId() {
+    BookmarksDatabase.getRevisionId().then(function gotRevisionId(revisionId) {
+      asyncStorage.setItem(revisionIdStorageKey, revisionId);
+    });
+  }
+
+  exports.BookmarksManager = {
+    attachListeners: function bm_attachListeners() {
+      eventTypesToListenFor.forEach(function iterateTypes(type) {
+        BookmarksDatabase.addEventListener(type, BookmarksListener);
+      });
+    },
+
+    getHomescreenRevisionId: function bm_getHomescreenRevisionId(cb) {
+      asyncStorage.getItem(revisionIdStorageKey, cb);
+    },
+
+    updateHomescreenRevisionId: updateHomescreenRevisionId
+  };
+}(window));

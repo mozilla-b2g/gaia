@@ -1,5 +1,6 @@
 'use strict';
 
+/* exported MockBookmarkEditor */
 var MockBookmarkEditor = {
   init: function mbe_init(options) {
     this.onsaved = options.onsaved;
@@ -10,8 +11,8 @@ var MockBookmarkEditor = {
     this.oncancelled();
   },
 
-  save: function mbe_save() {
-    this.onsaved();
+  save: function mbe_save(value) {
+    this.onsaved(value);
   },
 
   cancel: function mbe_cancel() {

@@ -4,13 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
 
-    <link rel="stylesheet" type="text/css" href="style/homescreen.css">
     <link rel="stylesheet" type="text/css" href="style/bookmark.css">
 
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
-    <script type="text/javascript" src="shared/js/l10n_date.js"></script>
-    <script type="text/javascript" src="shared/js/url_helper.js"></script>
+    <script type="text/javascript" defer src="shared/js/url_helper.js"></script>
+    <script type="text/javascript" defer src="shared/js/bookmarks_database.js"></script>
 
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
@@ -19,21 +18,16 @@
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
 
     <!-- Specific code -->
-    <script type="text/javascript" src="js/message.js"></script>
-    <script type="text/javascript" src="js/grid_components.js"></script>
-    <script type="text/javascript" src="js/bookmark.js"></script>
-    <script type="text/javascript" src="js/bookmark_editor.js"></script>
-    <script type="text/javascript" src="js/components/status.js"></script>
-    <script type="text/javascript" src="js/save-bookmark.js"></script>
+    <script type="text/javascript" defer src="js/bookmark_editor.js"></script>
+    <script type="text/javascript" defer src="js/components/status.js"></script>
+    <script type="text/javascript" defer src="js/save-bookmark.js"></script>
 
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
-
   </head>
   <body>
     <section id="bookmark-entry-sheet" role="region" class="skin-organic">
       <header>
-        <button id="button-bookmark-cancel">
+        <button id="button-bookmark-cancel" type="button">
           <span class="icon icon-close" data-l10n-id="cancel">Cancel</span>
         </button>
         <h1 data-l10n-id="add-to-home-screen-header">Add link</h1>
@@ -45,7 +39,7 @@
         <label data-l10n-id="address">
           Address <input type="url" id="bookmark-url"></input>
         </label>
-        <button id="button-bookmark-add" disabled data-l10n-id="add-to-home-screen">Add to Home Screen</button>
+        <button id="button-bookmark-add" type="button" disabled data-l10n-id="add-to-home-screen">Add to Home Screen</button>
       </form>
     </section>
   </body>
