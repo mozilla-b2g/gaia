@@ -43,8 +43,9 @@ ControlsController.prototype.bindEvents = function() {
   this.controls.on('click:thumbnail', this.app.firer('preview'));
   this.controls.on('click:switch', this.onSwitchButtonClick);
   this.controls.on('click:cancel', this.onCancelButtonClick);
-  this.app.on('timer:started', this.controls.disable);
-  this.app.on('timer:cleared', this.controls.enable);
+  this.app.on('timer:started', this.onTimerStarted);
+  this.app.on('timer:cleared', this.onTimerEnded);
+  this.app.on('timer:ended', this.onTimerEnded);
   debug('events bound');
 };
 
@@ -84,14 +85,27 @@ ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
   }
 };
 
-ControlsController.prototype.onTimerStarted = function(image) {
+/**
+ * Forces the capture button to
+ * look pressed while the timer is
+ * counting down and disables buttons.
+ *
+ * @private
+ */
+ControlsController.prototype.onTimerStarted = function() {
   this.controls.set('capture-active', true);
-  this.disableButtons();
+  this.controls.disable();
 };
 
-ControlsController.prototype.onTimerEnd = function(image) {
+/**
+ * Restores the capture button to its
+ * unpressed state and re-enables buttons.
+ *
+ * @private
+ */
+ControlsController.prototype.onTimerEnded = function() {
   this.controls.set('capture-active', false);
-  this.enableButtons();
+  this.controls.enable();
 };
 
 ControlsController.prototype.onSwitchButtonClick = function() {
