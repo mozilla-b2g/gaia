@@ -264,7 +264,7 @@ CameraController.prototype.setCamera = function(value) {
 };
 
 CameraController.prototype.setFlashMode = function() {
-  var flashSetting = this.settings.aliases.flashModes;
+  var flashSetting = this.settings.flashModes;
   this.camera.setFlashMode(flashSetting.selected('key'));
 };
 
