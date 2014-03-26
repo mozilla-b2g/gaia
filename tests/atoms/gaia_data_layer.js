@@ -214,7 +214,12 @@ var GaiaDataLayer = {
       callback(true);
     }
     else {
-      var req = manager.associate(aNetwork);
+      var req;
+      if (window.MozWifiNetwork === undefined) {
+        req = manager.associate(aNetwork);
+      } else {
+        req = manager.associate(new window.MozWifiNetwork(aNetwork));
+      }
 
       req.onsuccess = function() {
         console.log("waiting for connection status 'connected'");
