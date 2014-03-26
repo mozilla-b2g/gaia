@@ -2,7 +2,11 @@ define(function(require, exports, module) {
 'use strict';
 
 module.exports = {
-  showSettings: false,
+  showSettings: true,
+  enableZoom: true,
+  viewfinder: {
+    scaleType: 'fill'
+  },
   mode: {
     title: 'Mode',
     options: [
@@ -16,6 +20,28 @@ module.exports = {
       }
     ],
     persistent: false
+  },
+
+  isoModes: {
+    disabled: false,
+    options: [
+      {
+        key: 'auto',
+        title: 'Auto'
+      }
+    ],
+    selected:'auto'
+  },
+
+  whiteBalance: {
+    disabled: false,
+    options: [
+      {
+        key: 'auto',
+        title: 'Auto'
+      }
+    ],
+    selected:'auto'
   },
 
   cameras: {
@@ -33,37 +59,31 @@ module.exports = {
     persistent: false
   },
 
-  pictureSizes: {
-    title: 'Camera Resolution',
+  pictureSizesFront: {
     icon: 'icon-picture-size',
+    maxPixelSize: window.CONFIG_MAX_IMAGE_PIXEL_SIZE,
     options: [
-      {
-        key: '5mp',
-        title: '5MP'
-      },
-      {
-        key: '3mp',
-        title: '3MP'
-      },
-      {
-        key: '1mp',
-        title: '1MP'
-      },
-      {
-        key: 'vga',
-        title: 'VGA'
-      },
-      {
-        key: 'qvga',
-        title: 'QVGA'
-      }
+      // {
+      //   key: '2048x1536'
+      // }
     ],
     persistent: true,
-    menu: 4
+    l10n: { title: 'camera-resolution' }
   },
 
-  recorderProfiles: {
-    title: 'Video Resolution',
+  pictureSizesBack: {
+    icon: 'icon-picture-size',
+    maxPixelSize: window.CONFIG_MAX_IMAGE_PIXEL_SIZE,
+    options: [
+      // {
+      //   key: '2048x1536'
+      // }
+    ],
+    persistent: true,
+    l10n: { title: 'camera-resolution' }
+  },
+
+  recorderProfilesBack: {
     icon: 'icon-video-size',
     options: [
 
@@ -88,51 +108,77 @@ module.exports = {
       }
     ],
     persistent: true,
-    menu: 4
+    l10n: { title: 'video-resolution' }
   },
 
-  pictureFlashModes: {
-    title: 'Picture Flash',
+  recorderProfilesFront: {
+    icon: 'icon-video-size',
+    options: [
+
+      // NOTE: Disabled due to Helix crashing
+      // when trying to record at these resolutions.
+
+      // {
+      //   key: '720p',
+      //   title: '720p 1040X720'
+      // },
+      // {
+      //   key: '480p',
+      //   title: '480p 720X480'
+      // },
+      {
+        key: 'cif',
+        title: 'CIF 352X288'
+      },
+      {
+        key: 'qcif',
+        title: 'QCIF 176X144'
+      }
+    ],
+    persistent: true,
+    l10n: { title: 'video-resolution' }
+  },
+
+  flashModesPicture: {
     options: [
       {
         key: 'auto',
-        title: 'Auto',
-        icon: 'icon-flash-auto'
+        icon: 'icon-flash-auto',
+        l10n: { title: 'auto' }
       },
       {
         key: 'on',
-        title: 'On',
-        icon: 'icon-flash-on'
+        icon: 'icon-flash-on',
+        l10n: { title: 'on' }
       },
       {
         key: 'off',
-        title: 'Off',
-        icon: 'icon-flash-off'
+        icon: 'icon-flash-off',
+        l10n: { title: 'off' }
       }
     ],
     persistent: true
   },
 
-  videoFlashModes: {
-    title: 'Video Flash',
+  flashModesVideo: {
     options: [
       {
-        key: 'torch',
-        title: 'On',
-        icon: 'icon-flash-on'
+        key: 'off',
+        icon: 'icon-flash-off',
+        l10n: { title: 'off' }
       },
       {
-        key: 'off',
-        title: 'Off',
-        icon: 'icon-flash-off'
+        key: 'torch',
+        icon: 'icon-flash-on',
+        l10n: { title: 'on' }
       }
     ],
+    selected: 'off',
     persistent: true
   },
 
   timer: {
-    title: 'Self Timer',
-    icon: 'icon-self-timer',
+    icon: 'icon-timer',
     options: [
       {
         key: 'off',
@@ -141,50 +187,44 @@ module.exports = {
       },
       {
         key: '3secs',
-        title: '3 Seconds',
-        value: 3
+        value: 3,
+        l10n: { title: '3-seconds' }
       },
       {
         key: '5secs',
-        title: '5 Seconds',
-        value: 5
+        value: 5,
+        l10n: { title: '5-seconds' }
       },
       {
         key: '10secs',
-        title: '10 Seconds',
-        value: 10
+        value: 10,
+        l10n: { title: '10-seconds' }
       }
     ],
+    selected: 'off',
     persistent: false,
-    menu: 3
+    l10n: { title: 'self-timer' }
   },
 
   hdr: {
     title: 'HDR',
     icon: 'icon-hdr',
+    disabled: false,
     options: [
       {
-        key: 'auto',
-        title: 'Auto',
-        icon: 'A'
+        key: 'off',
+        l10n: { title: 'off' }
       },
       {
         key: 'on',
-        title: 'On',
-        icon: 'O'
-      },
-      {
-        key: 'off',
-        title: 'Off',
-        icon: 'O'
+        l10n: { title: 'on' }
       }
     ],
-    persistent: true,
-    menu: 1
+    selected: 'off',
+    persistent: true
   },
 
   scene: {
-    title: 'Scene Mode',
     icon: 'icon-scene',
     options: [
       {
@@ -200,28 +240,59 @@ module.exports = {
         title: 'Beauty'
       }
     ],
+    selected: 'normal',
     persistent: true,
-    menu: 2
+    l10n: { title: 'scene-mode' }
   },
 
   grid: {
-    title: 'Grid',
     icon: 'icon-frame-grid',
     options: [
       {
-        key: 'on',
-        title: 'On',
-        value: true
+        key: 'off',
+        l10n: { title: 'off' }
       },
       {
-        key: 'off',
-        title: 'Off',
-        value: false
+        key: 'on',
+        l10n: { title: 'on' }
       }
     ],
     selected: 'off',
     persistent: true,
-    menu: 3
+    l10n: { title: 'grid' }
+  },
+
+  settingsMenu: {
+    items: [
+      {
+         key: 'hdr'
+      },
+      // {
+      //   key: 'scene'
+      // },
+      {
+        key: 'grid'
+      },
+      {
+        key: 'timer'
+      },
+      // {
+      //   key: 'pictureSizesBack',
+      //   condition: { 'cameras': 'back' }
+      // },
+      // {
+      //   key: 'pictureSizesFront',
+      //   condition: { 'cameras': 'front' }
+      // },
+      // {
+      //   key: 'recorderProfilesBack',
+      //   condition: { 'cameras': 'back' }
+      // },
+      // {
+      //   key: 'recorderProfilesFront',
+      //   condition: { 'cameras': 'front' }
+      // }
+    ]
   }
 };
 
