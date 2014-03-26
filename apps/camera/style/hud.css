@@ -15,10 +15,12 @@
 }
 
 /**
- * @hidden
+ * hidden
  */
 
-.hud.hidden {
+.hud[timer=active],
+.hud[camera=busy],
+.hud[recording=true] {
   pointer-events: none;
   opacity: 0;
 }
