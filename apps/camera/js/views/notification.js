@@ -47,6 +47,16 @@ module.exports = View.extend({
     return item;
   },
 
+  /**
+   * Clear notfication by id.
+   *
+   * Remove the notification from the DOM,
+   * clear any existing `clearTimeout` that
+   * may have been installed on creation.
+   *
+   * @param  {Number} item
+   * @public
+   */
   clear: function(item) {
     if (!item || item.cleared) { return; }
 
@@ -54,14 +64,21 @@ module.exports = View.extend({
     clearTimeout(item.clearTimeout);
     item.cleared = true;
 
+    // Clear references
     if (item === this.temporary) { this.temporary = null; }
     if (item === this.persistent) { this.persistent = null; }
+
+    // Show persistent notifcation
+    // (if there is one)
+    this.show(this.persistent);
   },
 
   hide: function(item, ms) {
     if (!item) { return; }
+
     var self = this;
     item.el.classList.add('hidden');
+
     if (ms) {
       clearTimeout(item.showTimeout);
       item.showTimeout = setTimeout(function() { self.show(item); }, ms);

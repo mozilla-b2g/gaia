@@ -140,5 +140,19 @@ suite('views/notification', function() {
       assert.equal(el.parentNode, null);
       this.view.clear(id);
     });
+
+    test('Should show hidden persistent notification', function() {
+      var persistent = this.view.display({ text: 'foo', persistent: true });
+      var els = {};
+
+      els.persistent = this.view.el.children[0];
+      assert.ok(els.persistent.parentNode, 'is in the dom');
+
+      var temporary = this.view.display({ text: 'foo' });
+      assert.isTrue(els.persistent.classList.contains('hidden'), 'is hidden');
+
+      this.view.clear(temporary);
+      assert.isFalse(els.persistent.classList.contains('hidden'), 'is hidden');
+    });
   });
 });
