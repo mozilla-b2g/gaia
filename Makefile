@@ -767,10 +767,19 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
 test-integration-test:
-	./bin/gaia-marionette RUN_CALDAV_SERVER=1 \
+	./bin/gaia-marionette \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--manifest $(TEST_MANIFEST) \
 		--reporter $(REPORTER)
+
+.PHONY: caldav-server-install
+caldav-server-install:
+	pip install virtualenv
+	virtualenv js-marionette-env; \
+  source ./js-marionette-env/bin/activate; \
+				export LC_ALL=en_US.UTF-8; \
+				export LANG=en_US.UTF-8; \
+				pip install radicale;
 
 .PHONY: test-perf
 test-perf:
@@ -1052,7 +1061,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf xulrunner-* .xulrunner-* node_modules b2g modules.tar
+	rm -rf xulrunner-* .xulrunner-* node_modules b2g modules.tar js-marionette-env
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
