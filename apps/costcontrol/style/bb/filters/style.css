@@ -2,7 +2,7 @@
  * FILTERS
  * ---------------------------------- */
 
-body[role="application"] ul[role="tablist"].filter {
+body[role="application"] ul.bb-tablist.filter {
   background: #a5a5a5;
   display: inline-block;
   width: 100%;
@@ -11,7 +11,7 @@ body[role="application"] ul[role="tablist"].filter {
   margin: 0;
   position: relative;
 }
-body[role="application"] ul[role="tablist"].filter:before {
+body[role="application"] ul.bb-tablist.filter:before {
   content: "";
   position: absolute;
   left: 0;
@@ -21,7 +21,7 @@ body[role="application"] ul[role="tablist"].filter:before {
   background: url(images/ui/shadow.png) repeat-x left bottom;
 }
 
-body[role="application"] ul[role="tablist"].filter li {
+body[role="application"] ul.bb-tablist.filter li {
   float: left;
   text-align: center;
   -moz-box-sizing: border-box;
@@ -32,7 +32,7 @@ body[role="application"] ul[role="tablist"].filter li {
   border-bottom: solid 1px #7e7d7d;
 }
 
-body[role="application"] ul[role="tablist"].filter li a {
+body[role="application"] ul.bb-tablist.filter li a {
   display: block;
   padding: 0.8rem 0.5rem;
   text-decoration: none;
@@ -43,44 +43,44 @@ body[role="application"] ul[role="tablist"].filter li a {
 }
 
 /* Selected state */
-body[role="application"] ul[role="tablist"].filter li[aria-selected="true"] {
+body[role="application"] ul.bb-tablist.filter li.selected {
   background: #fff;
   border-bottom-color: #c2c1c1;
   color: #000;
 }
-body[role="application"] ul[role="tablist"].filter li[aria-selected="true"] a {
+body[role="application"] ul.bb-tablist.filter li.selected a {
   color: #000;
 }
 
 /* Bottom position */
-body[role="application"] ul[role="tablist"][data-position="bottom"].filter:before {
+body[role="application"] ul.bb-tablist[data-position="bottom"].filter:before {
   bottom: 100%;
   top: auto;
   background-image: url(images/ui/shadow-revert.png);
 }
 
-body[role="application"] ul[role="tablist"][data-position="bottom"].filter li {
+body[role="application"] ul.bb-tablist[data-position="bottom"].filter li {
   border-bottom: none;
   border-top: solid 1px #7e7d7d;
 }
 
-body[role="application"] ul[role="tablist"][data-position="bottom"].filter li a {
+body[role="application"] ul.bb-tablist[data-position="bottom"].filter li a {
   padding: 1.3rem 0;
 }
 
-body[role="application"] ul[role="tablist"][data-position="bottom"].filter li[aria-selected="true"] {
+body[role="application"] ul.bb-tablist[data-position="bottom"].filter li.selected {
   border-top-color: #c2c1c1;
 }
 
 /* Items calcs */
-body[role="application"] ul[role="tablist"][data-items="2"].filter li {
+body[role="application"] ul.bb-tablist[data-items="2"].filter li {
   width: -moz-calc(100% / 2);
 }
 
-body[role="application"] ul[role="tablist"][data-items="3"].filter li {
+body[role="application"] ul.bb-tablist[data-items="3"].filter li {
   width: -moz-calc(100% / 3);
 }
 
-body[role="application"] ul[role="tablist"][data-items="4"].filter li {
+body[role="application"] ul.bb-tablist[data-items="4"].filter li {
   width: -moz-calc(100% / 4);
 }

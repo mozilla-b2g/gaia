@@ -19,6 +19,7 @@
 
   <!--- shared scripts -->
   <script defer src="/shared/js/l10n.js"></script>
+  <script defer src="/shared/js/accessibility_helper.js"></script>
   <script defer src="/shared/js/gesture_detector.js"></script>
   <script defer src="/shared/js/lazy_loader.js"></script>
   <script defer src="/shared/js/l10n_date.js"></script>
@@ -138,27 +139,27 @@
     <div class="hint-swipe-image"></div>
   </div>
 
-  <section id="month-view">
+  <section id="month-view" role="tabpanel" aria-labelledby="month">
   </section>
 
   <!---
   When a day is selected you have
   access to the details here
   -->
-  <section id="months-day-view">
+  <section id="months-day-view" role="tabpanel" aria-labelledby="today">
     <section id="event-list" class="day-events">
     </section>
   </section>
 
-  <section id="day-view"></section>
+  <section id="day-view" role="tabpanel" aria-labelledby="day"></section>
 
-  <section id="week-view"></section>
+  <section id="week-view" role="tabpanel" aria-labelledby="week"></section>
 
-  <ul id="view-selector" role="tablist">
-    <li class="today" role="tab"><a id="today" data-l10n-id="show-today" href="#today">Today</a></li>
-    <li class="month" role="tab"><a data-l10n-id="show-month-view" href="/month/">Month</a></li>
-    <li class="week" role="tab"><a data-l10n-id="show-week-view" href="/week/">Week</a></li>
-    <li class="day" role="tab"><a data-l10n-id="show-day-view" href="/day/">Day</a></li>
+  <ul id="view-selector" role="tablist" class="bb-tablist">
+    <li class="today" role="presentation"><a role="tab" aria-selected="false" aria-controls="months-day-view" id="today" data-l10n-id="show-today" href="#today">Today</a></li>
+    <li class="month" role="presentation"><a role="tab" aria-selected="true" aria-controls="month-view" id="month" data-l10n-id="show-month-view" href="/month/">Month</a></li>
+    <li class="week" role="presentation"><a role="tab" aria-selected="false" aria-controls="week-view" id="week" data-l10n-id="show-week-view" href="/week/">Week</a></li>
+    <li class="day" role="presentation"><a role="tab" aria-selected="false" aria-controls="day-view" id="day" data-l10n-id="show-day-view" href="/day/">Day</a></li>
   </ul>
 
 </section>

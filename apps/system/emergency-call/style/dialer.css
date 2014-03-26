@@ -72,11 +72,6 @@ html * {
   width: 100%;
 }
 
-#views > *[role=tabpanel] {
-  height: 100%;
-  width: 100%;
-}
-
 body.hidden *[data-l10n-id] {
   visibility: hidden;
 }

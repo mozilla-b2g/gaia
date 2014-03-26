@@ -1,8 +1,8 @@
 {
   "tabs": {
-    "alarm": "#alarm-tab a",
-    "timer": "#timer-tab a",
-    "stopwatch": "#stopwatch-tab a"
+    "alarm": "#alarm-tab",
+    "timer": "#timer-tab",
+    "stopwatch": "#stopwatch-tab"
   },
   "panels": {
     "alarm": "[data-panel-id='alarm']",

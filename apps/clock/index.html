@@ -34,18 +34,18 @@
   <body>
     <div id="views">
       <div id="main-panel-wrapper">
-        <div class="active panel" data-panel-id="alarm"></div>
-        <div class="panel hidden" data-panel-id="timer"></div>
-        <div class="panel hidden" data-panel-id="stopwatch"></div>
+        <div id="alarm-panel" class="active panel" data-panel-id="alarm" role="tabpanel" aria-labelledby="alarm-tab"></div>
+        <div id="timer-panel" class="panel hidden" data-panel-id="timer" role="tabpanel" aria-labelledby="timer-tab"></div>
+        <div id="stopwatch-panel" class="panel hidden" data-panel-id="stopwatch" role="tabpanel" aria-labelledby="stopwatch-tab"></div>
       </div>
       <section role="region" class="skin-dark panel hidden" data-panel-id="alarm_edit">
       </section>
     </div>
 
-    <ul role="tablist" class="skin-dark bottom" id="clock-tabs">
-      <li id="alarm-tab" role="tab" aria-selected="true"><a href="#alarm-panel" data-l10n-id="alarm">Alarm</a></li>
-      <li id="timer-tab" role="tab"><a href="#timer-panel" data-l10n-id="timer">Timer</a></li>
-      <li id="stopwatch-tab" role="tab"><a href="#stopwatch-panel" data-l10n-id="stopwatch">Stopwatch</a></li>
+    <ul role="tablist" class="bb-tablist skin-dark bottom" id="clock-tabs">
+      <li role="presentation"><a id="alarm-tab" aria-controls="alarm-panel" aria-selected="true" role="tab" href="#alarm-panel" data-l10n-id="alarm">Alarm</a></li>
+      <li role="presentation"><a id="timer-tab" aria-controls="timer-panel" aria-selected="false" role="tab" href="#timer-panel" data-l10n-id="timer">Timer</a></li>
+      <li role="presentation"><a id="stopwatch-tab" aria-controls="stopwatch-panel" aria-selected="false" role="tab" href="#stopwatch-panel" data-l10n-id="stopwatch">Stopwatch</a></li>
     </ul>
 
     <script data-main="js/startup.js" src="js/alameda.js"></script>

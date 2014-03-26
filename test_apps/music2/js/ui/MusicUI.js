@@ -3,6 +3,12 @@
 function MusicUI() {
   Utils.loadDomIds(this, [
     'views',
+    'tabs',
+    'tabs-mix',
+    'tabs-playlists',
+    'tabs-artists',
+    'tabs-albums',
+    'tabs-songs',
     'title-back',
     'title-player'
   ]);
@@ -20,6 +26,8 @@ function MusicUI() {
   this.playerView = new PlayerView();
 
   this._setupViewRoutes();
+
+  this.dom.tabs = this.dom.tabs.querySelectorAll('[role="tab"]');
 
   this.dom.titleBack.classList.add('hidden');
   this.dom.titleBack.onclick = (function() {
@@ -46,9 +54,6 @@ function MusicUI() {
 
   this.orientation = null;
 
-  // Set the default hash to mix view because if there is no hashchange event,
-  // the mix view won't apply the css role for showing and hiding.
-  window.location.hash = '#mix';
   window.addEventListener('hashchange', this._setView.bind(this));
 
   window.screen.onmozorientationchange = this._relayout.bind(this);
@@ -56,6 +61,14 @@ function MusicUI() {
 
 MusicUI.prototype = {
   name: 'MusicUI',
+
+  _tabIds: {
+    '#mix': 'tabsMix',
+    '#playlists': 'tabsPlaylists',
+    '#artists': 'tabsArtists',
+    '#albums': 'tabsAlbums',
+    '#songs': 'tabsSongs'
+  },
   //============== API ===============
   setPlaylist: function(playlist, playlistId) {
     this.playerView.setPlaylist(playlist);
@@ -93,10 +106,13 @@ MusicUI.prototype = {
     }
   },
   _setView: function() {
+    var hash = window.location.hash;
     if (this.currentView)
       this.currentView.hide();
-    this.currentView = this.viewTable[window.location.hash];
-    this.dom.views.dataset.mode = window.location.hash;
+    this.currentView = this.viewTable[hash];
+    AccessibilityHelper.setAriaSelected(this.dom[this._tabIds[hash]],
+      this.dom.tabs);
+    this.dom.views.dataset.mode = hash;
     this.dom.titleBack.classList.add('hidden');
     this.currentView.show();
   },

@@ -2,7 +2,7 @@
   "name": "Music2",
   "description": "Gaia Music2",
   "type": "certified",
-  "launch_path": "/index.html#select-mix",
+  "launch_path": "/index.html",
   "developer": {
     "name": "Evan Shapiro",
     "url": "https://github.com/mozilla-b2g/gaia"

@@ -19,6 +19,7 @@
     <script defer src="shared/js/device_storage/enumerate_all.js"></script>
     <script defer src="shared/js/mediadb.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/accessibility_helper.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/text_normalizer.js"></script>
     <script defer src="shared/js/media/remote_controls.js"></script>
@@ -42,7 +43,7 @@
       </header>
     </section>
     <div id="views">
-      <div id="views-tiles" class="view hidden">
+      <div id="views-tiles" class="view bb-tabpanel hidden" aria-labelledby="tabs-mix" role="tabpanel">
         <form id="views-tiles-search" role="search" class="skin-dark">
           <button id="views-tiles-search-close" data-l10n-id="search-close" type="submit">close</button>
           <p>
@@ -53,7 +54,7 @@
         </form>
         <div id="views-tiles-anchor"></div>
       </div>
-      <div id="views-list" class="view hidden">
+      <div id="views-list" class="view bb-tabpanel hidden" role="tabpanel">
         <form id="views-list-search" role="search" class="skin-dark">
           <button id="views-list-search-close" data-l10n-id="search-close" type="submit">close</button>
           <p>
@@ -142,21 +143,21 @@
     </div>
     <!-- BB tabs -->
     <div id="tabs">
-      <ul role="tablist" class="skin-dark">
-        <li id="mix" role="tab">
-          <a href="#mix" id="tabs-mix" data-option="mix" class="icon">mix</a>
+      <ul role="tablist" class="bb-tablist skin-dark">
+        <li id="mix" role="presentation">
+          <a href="#mix" id="tabs-mix" data-option="mix" class="icon" role="tab" aria-selected="true" aria-controls="views-tiles">mix</a>
         </li>
-        <li id="playlists" role="tab">
-          <a href="#playlists" id="tabs-playlists" data-option="playlist" class="icon">playlists</a>
+        <li id="playlists" role="presentation">
+          <a href="#playlists" id="tabs-playlists" data-option="playlist" class="icon" role="tab" aria-selected="false" aria-controls="views-list">playlists</a>
         </li>
-        <li id="artists" role="tab">
-          <a href="#artists" id="tabs-artists" data-option="artist" class="icon">artists</a>
+        <li id="artists" role="presentation">
+          <a href="#artists" id="tabs-artists" data-option="artist" class="icon" role="tab" aria-selected="false" aria-controls="views-list">artists</a>
         </li>
-        <li id="albums" role="tab">
-          <a href="#albums" id="tabs-albums" data-option="album" class="icon">albums</a>
+        <li id="albums" role="presentation">
+          <a href="#albums" id="tabs-albums" data-option="album" class="icon" role="tab" aria-selected="false" aria-controls="views-list">albums</a>
         </li>
-        <li id="songs" role="tab">
-          <a href="#songs" id="tabs-songs" data-option="title" class="icon">songs</a>
+        <li id="songs" role="presentation">
+          <a href="#songs" id="tabs-songs" data-option="title" class="icon" role="tab" aria-selected="false" aria-controls="views-list">songs</a>
         </li>
       </ul>
     </div>

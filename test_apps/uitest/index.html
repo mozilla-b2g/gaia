@@ -17,6 +17,7 @@
   <!-- <script src="shared/js/download/download_helper.js"></script> -->
   <!-- <script src="shared/js/download/download_store.js"></script> -->
   <script defer src="shared/js/lazy_loader.js"></script>
+  <script defer src="shared/js/accessibility_helper.js"></script>
 </head>
 <body>
   <div class="panel list-panel">
@@ -108,18 +109,18 @@
       </section>
     </div>
     <div id="tabs" class="tabs">
-      <ul role="tablist" data-items="3">
-        <li id="panel1" role="tab">
-          <a href="#UI" id="UI">UI</a>
-          <div role="tabpanel"></div>
+      <ul role="tablist" class="bb-tablist" data-items="3">
+        <li id="panel1" role="presentation">
+          <a href="#UI" id="UI" role="tab" aria-controls="UIpanel">UI</a>
+          <div id="UIpanel" class="bb-tabpanel" role="tabpanel" aria-labelledby="UI"></div>
         </li>
-        <li id="panel2" role="tab">
-          <a href="#API" id="API">API</a>
-          <div role="tabpanel"></div>
+        <li id="panel2" role="presentation">
+          <a href="#API" id="API" role="tab" aria-controls="APIpanel">API</a>
+          <div id="APIpanel" class="bb-tabpanel" role="tabpanel" aria-labelledby="API"></div>
         </li>
-        <li id="panel3" role="tab">
-          <a href="#HW" id="HW">HW</a>
-          <div role="tabpanel"></div>
+        <li id="panel3" role="presentation">
+          <a href="#HW" id="HW" role="tab" aria-controls="HWpanel">HW</a>
+          <div id="HWpanel" class="bb-tabpanel" role="tabpanel" aria-labelledby="HW"></div>
         </li>
       </ul>
     </div>
