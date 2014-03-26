@@ -46,17 +46,6 @@ section[role="region"] > header:first-child .icon.icon-attachment {
   background-image: url(images/icons/attachments.png);
 }
 
-/* Override Building Block [Header] first-child hover styles(for v1.3 fixing)
- * TODO: We will remove this part once Bug 961572 fixing landed in master
- */
-section[role="region"] > header:first-child > a:not([aria-disabled="true"]):hover:after {
-  background-color: #F97C17 !important;
-}
-
-section[role="region"] > header:first-child > a:not([aria-disabled="true"]):hover:active:after {
-  background-color: #dc6a0e !important;
-}
-
 /* Override Building Block [Imput areas] styles */
 form.bottom[role="search"] {
   z-index: 3;
@@ -68,23 +57,12 @@ form.bottom[role="search"] {
 }
 
 /* Override Building Block [Edit mode] styles */
-form[role="dialog"][data-type="edit"] header,
-form[role="dialog"][data-type="edit"] > menu {
-  transition: all 0.4s ease;
-}
-
 form[role="dialog"][data-type="edit"] header {
   transform: translateY(-110%);
 }
 
 form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(110%);
-}
-
-/* BB issue */
-form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
-  border: none;
-  color: #fff;
 }
 
 /* Override Building Block [Lists] styles */
@@ -156,21 +134,9 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
 
 [data-type="list"] li > label {
   right: 5rem;
-
   display: block;
   overflow: hidden;
-
   opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-[data-type="list"] li > .pack-checkbox input ~ span:after {
-  opacity: 0;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-[data-type="list"] li > a > p {
-  transition: transform 0.3s ease;
 }
 
 [data-type="list"] aside.icon-unread {
@@ -233,13 +199,8 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   margin: 0 0 0 -3rem;
 }
 
-.edit #threads-container[data-type="list"] aside.pack-end img {
+.edit #threads-container[data-type="list"] aside.pack-end span {
   transform: translateX(7.5rem);
-  transition: all 0.3s ease;
-}
-
-.edit #threads-container[data-type="list"] aside.pack-end img[src=""] {
-  width: 6.5rem;
 }
 
 /* Panel handling */

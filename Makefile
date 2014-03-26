@@ -75,12 +75,19 @@ GAIA_DOMAIN?=gaiamobile.org
 DEBUG?=0
 DEVICE_DEBUG?=0
 NO_LOCK_SCREEN?=0
+SCREEN_TIMEOUT?=undefined
 PRODUCTION?=0
 DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
 DOGFOOD?=0
 NODE_MODULES_SRC?=modules.tar
+
+# GAIA_DEVICE_TYPE customization
+# phone - default
+# tablet
+# tv
+GAIA_DEVICE_TYPE?=phone
 
 # Rocketbar customization
 # none - Do not enable rocketbar
@@ -96,6 +103,7 @@ ifeq ($(SIMULATOR),1)
 DESKTOP=1
 NOFTU=1
 DEVICE_DEBUG=1
+NO_LOCK_SCREEN=1
 endif
 
 # Enable compatibility to run in Firefox Desktop
@@ -104,11 +112,6 @@ DESKTOP?=$(DEBUG)
 NOFTU?=0
 # Automatically enable remote debugger
 REMOTE_DEBUGGER?=0
-
-ifeq ($(DEVICE_DEBUG),1)
-REMOTE_DEBUGGER=1
-NO_LOCK_SCREEN=1
-endif
 
 # We also disable FTU when running in Firefox or in debug mode
 ifeq ($(DEBUG),1)
@@ -171,6 +174,17 @@ endif
 ifeq ($(PRODUCTION), 1)
 GAIA_OPTIMIZE=1
 GAIA_APP_TARGET=production
+else
+DEVICE_DEBUG=1
+endif
+
+ifeq ($(DEVICE_DEBUG),1)
+REMOTE_DEBUGGER=1
+SCREEN_TIMEOUT=600
+endif
+
+ifeq ($(SIMULATOR),1)
+SCREEN_TIMEOUT=0
 endif
 
 ifeq ($(DOGFOOD), 1)
@@ -377,6 +391,7 @@ define BUILD_CONFIG
 	"DESKTOP" : $(DESKTOP), \
 	"DEVICE_DEBUG" : $(DEVICE_DEBUG), \
 	"NO_LOCK_SCREEN" : $(NO_LOCK_SCREEN), \
+	"SCREEN_TIMEOUT" : $(SCREEN_TIMEOUT), \
 	"HOMESCREEN" : "$(HOMESCREEN)", \
 	"GAIA_PORT" : "$(GAIA_PORT)", \
 	"GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)", \

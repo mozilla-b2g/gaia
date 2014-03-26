@@ -50,7 +50,8 @@ marionette('creating an event', function() {
       app.readEvent.waitForDisplay();
     });
 
-    test('should display the created event in read view', function() {
+    // disabled bug 974731
+    test.skip('should display the created event in read view', function() {
       var readEvent = app.readEvent;
       assert.equal(readEvent.title, title);
       assert.equal(readEvent.description, description);

@@ -2,9 +2,6 @@
 /* global SimplePhoneMatcher */
 /* exported MockFindMatcher */
 
-/* Allow setter without getter */
-/* jshint -W078 */
-
 var MockFindMatcher = {
   find: function(options) {
     this.result = [];

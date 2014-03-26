@@ -1,4 +1,3 @@
-/*jshint -W078*/
 'use strict';
 
 var View = require('./view');

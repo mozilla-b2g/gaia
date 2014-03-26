@@ -12,9 +12,6 @@
 /* global MockThumbnailImage */
 /* global utils */
 
-/* Allow setter without getter */
-/* jshint -W078 */
-
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/lazy_loader.js');

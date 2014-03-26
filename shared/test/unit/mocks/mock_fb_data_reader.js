@@ -1,9 +1,6 @@
 'use strict';
 /* exported MockFbContacts */
 
-/* Allow setter without getter */
-/* jshint -W078 */
-
 var MockFbContactsObj = function(result, inError) {
   this.mResult = result;
   this.inError = inError;

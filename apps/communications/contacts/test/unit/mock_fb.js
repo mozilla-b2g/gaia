@@ -4,9 +4,6 @@
 /* global MockContactAllFields */
 /* global MockLinkedContacts */
 
-/* Allow setter without getter */
-/* jshint -W078 */
-
 var FB_ID = 220439;
 
 var Mockfb = {

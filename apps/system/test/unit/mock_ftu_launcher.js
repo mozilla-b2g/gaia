@@ -5,5 +5,8 @@ var MockFtuLauncher = {
 
   isFtuRunning: function() {
     return this.mIsRunning;
+  },
+
+  retrieve: function() {
   }
 };

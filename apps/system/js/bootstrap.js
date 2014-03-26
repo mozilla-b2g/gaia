@@ -27,7 +27,8 @@ window.addEventListener('load', function startup() {
       window.removeEventListener('homescreen-ready', onHomescreenReady);
       FtuLauncher.retrieve();
     });
-    HomescreenLauncher.init();
+    /** @global */
+    window.homescreenLauncher = new HomescreenLauncher().start();
   }
 
   if (Applications.ready) {
