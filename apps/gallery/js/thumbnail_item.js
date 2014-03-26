@@ -17,15 +17,11 @@ function ThumbnailItem(fileData) {
   }
   this.data = fileData;
 
-  this.htmlNode = document.createElement('li');
+  this.htmlNode = document.createElement('img');
   this.htmlNode.classList.add('thumbnail');
   this.htmlNode.dataset.filename = fileData.name;
 
   // We revoke this url in imageDeleted
   var url = URL.createObjectURL(fileData.metadata.thumbnail);
-  // We set the url on a data attribute and let the onscreen
-  // and offscreen callbacks below set and unset the actual
-  // background image style. This means that we don't keep
-  // images decoded if we don't need them.
-  this.htmlNode.dataset.backgroundImage = 'url("' + url + '")';
+  this.htmlNode.style.backgroundImage = 'url("' + url + '")';
 }
