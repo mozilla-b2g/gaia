@@ -16,10 +16,6 @@ module.exports = View.extend({
   tag: 'ul',
   duration: 3000,
 
-  initialize: function(options) {
-    this.persistentMessage = null;
-  },
-
   display: function(options) {
     var item = options;
     var self = this;
