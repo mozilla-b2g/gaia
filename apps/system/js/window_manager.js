@@ -741,13 +741,14 @@ var WindowManager = (function() {
       }
     });
 
-  function createFrame(origFrame, origin, url, name, manifest, manifestURL) {
+  function createFrame(origFrame, origin, url, name, manifest, manifestURL, parentApp) {
     var browser_config = {
       origin: origin,
       url: url,
       name: name,
       manifest: manifest,
-      manifestURL: manifestURL
+      manifestURL: manifestURL,
+      parentApp: parentApp
     };
 
     // TODO: Move into browser configuration helper.
@@ -807,10 +808,10 @@ var WindowManager = (function() {
   }
 
   function appendFrame(origFrame, origin, url, name, manifest, manifestURL,
-                       expectingSystemMessage, stayBackground) {
+                       expectingSystemMessage, stayBackground, parentApp) {
     // Create the <iframe mozbrowser mozapp> that hosts the app
     var frame =
-        createFrame(origFrame, origin, url, name, manifest, manifestURL);
+        createFrame(origFrame, origin, url, name, manifest, manifestURL, parentApp);
     var iframe = frame.firstChild;
     frame.id = 'appframe' + nextAppId++;
     iframe.dataset.frameType = 'window';
@@ -969,7 +970,8 @@ var WindowManager = (function() {
       } else {
         if (!isRunning(config.origin)) {
           appendFrame(null, config.origin, config.url,
-                      config.name, config.manifest, config.manifestURL);
+                      config.name, config.manifest, config.manifestURL,
+                      false, false, config.parentApp);
         }
         // TODO: Move below iframe hack into app window.
         runningApps[config.origin].iframe.dataset.start = startTime;
@@ -1007,7 +1009,7 @@ var WindowManager = (function() {
                                 config.name, config.manifest,
                                 config.manifestURL,
                                 /* expectingSystemMessage */
-                                true, config.stayBackground);
+                                true, config.stayBackground, config.parentApp);
 
           // set the size of the iframe
           // so Cards View will get a correct screenshot of the frame
@@ -1145,7 +1147,7 @@ var WindowManager = (function() {
       app = appendFrame(iframe, config.origin, config.url, config.title, {
         'name': config.title
       }, null, /* expectingSystemMessage */ false,
-      /* stayBackground */ false);
+      /* stayBackground */ false, config.parentApp);
 
       // XXX: Move this into app window.
       // Set the window name in order to reuse this app if we try to open
