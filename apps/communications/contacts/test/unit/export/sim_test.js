@@ -2,9 +2,6 @@
 /* global ContactsSIMExport */
 /* global MockMozContacts */
 
-/* Allow setter without getter */
-/* jshint -W078 */
-
 requireApp('communications/contacts/js/export/sim.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 
