@@ -33,7 +33,8 @@ marionette('day view', function() {
       app.waitForDayView();
     });
 
-    test('click after first hour', function() {
+    // disabled bug 988516
+    test.skip('click after first hour', function() {
       // click will happen at middle of element and middle is after first hour,
       // so this should be enough to trigger the event details (Bug 972666)
       app.findElement('dayViewEvent').click();
