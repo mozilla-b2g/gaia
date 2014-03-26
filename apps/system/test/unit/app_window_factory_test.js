@@ -2,7 +2,7 @@
 
 mocha.globals(['AppWindowManager', 'Applications',
       'ManifestHelper', 'AppWindow', 'System', 'AppWindowFactory',
-      'BrowserConfigHelper']);
+      'BrowserConfigHelper', 'homescreenLauncher']);
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_applications.js');
@@ -102,6 +102,7 @@ suite('system/AppWindowFactory', function() {
     MockApplications.mRegisterMockApp(fakeLaunchConfig5);
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
+    window.homescreenLauncher = new HomescreenLauncher().start();
 
     requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
@@ -109,6 +110,7 @@ suite('system/AppWindowFactory', function() {
   });
 
   teardown(function() {
+    window.homescreenLauncher = undefined;
     stubById.restore();
   });
 
