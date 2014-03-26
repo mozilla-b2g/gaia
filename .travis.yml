@@ -12,7 +12,7 @@ branches:
 env:
   matrix:
   - CI_ACTION=linters
-  - CI_ACTION=unit-tests-in-firefox
+  - CI_ACTION=unit-tests-in-b2g
   - CI_ACTION=marionette_js
   - CI_ACTION=gaia_ui_tests
   - CI_ACTION=build_tests
