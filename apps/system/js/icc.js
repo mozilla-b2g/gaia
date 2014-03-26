@@ -16,7 +16,20 @@ var icc = {
       window.navigator.mozSetMessageHandler('icc-stkcommand',
         function callHandleSTKCommand(message) {
           if (self._iccManager && self._iccManager.getIccById) {
-            self.handleSTKCommand(message);
+            if ((!message.iccId) && (command.typeOfCommand == 37)) {
+              // Workaround - Bug #980780
+              setTimeout(function() {
+                DUMP('STK: iccId is null when recv setupmenu - ' +
+                     'using first card IccId');
+                self.handleSTKCommand({
+                  iccId: this._iccManager.iccIds[0],
+                  command: message.command
+                });
+              },15000);
+              // End of workaround - Bug #980780
+            } else {
+              self.handleSTKCommand(message);
+            }
           }
         });
     });
