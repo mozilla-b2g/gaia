@@ -5,9 +5,11 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var formatTimer = require('lib/format-timer');
 var debug = require('debug')('view:controls');
 var attach = require('vendor/attach');
 var View = require('vendor/view');
+var find = require('lib/find');
 
 /**
  * Exports
@@ -23,69 +25,59 @@ module.exports = View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-    this.els.thumbnail = this.find('.js-thumbnail');
-
-    // Bind events
+    attach.on(this.el, 'click', '.js-switch', this.onSwitchClick);
     attach.on(this.el, 'click', '.js-btn', this.onButtonClick);
-    attach.on(this.el, 'click', '.js-switch', this.onButtonClick);
+    this.els.timer = find('.js-video-timer', this.el);
     debug('rendered');
   },
 
+  set: function(key, value) {
+    this.el.setAttribute(key, value);
+  },
+
+  setter: function(key) {
+    return (function(value) { this.set(key, value); }).bind(this);
+  },
+
+  enable: function(key, value) {
+    value = arguments.length === 2 ? value : true;
+    this.set(key + '-enabled', value);
+  },
+
+  enabler: function(key) {
+    return (function(value) { this.enable(key, value); }).bind(this);
+  },
+
+  disable: function(key) {
+    this.enable(key, false);
+  },
+
+  setVideoTimer: function(ms) {
+    var formatted = formatTimer(ms);
+    this.els.timer.textContent = formatted;
+  },
+
   onButtonClick: function(e, el) {
-    var name = el.getAttribute('name');
     e.stopPropagation();
+    var name = el.getAttribute('name');
     this.emit('click:' + name, e);
   },
 
   template: function() {
-    /*jshint maxlen:false*/
-    return '' +
-      '<div class="controls-left">' +
-        '<div class="controls-button controls-gallery-button test-gallery icon-gallery js-btn rotates" name="gallery"></div>' +
-        '<div class="controls-button controls-thumbnail-button test-thumbnail js-thumbnail js-btn rotates" name="thumbnail"></div>' +
-        '<div class="controls-button controls-cancel-pick-button test-cancel-pick icon-cancel js-btn" name="cancel">×</div>' +
-      '</div>' +
-      '<div class="controls-middle">' +
-        '<div class="capture-button test-capture js-btn rotates" name="capture">' +
-          '<div class="circle outer-circle"></div>' +
-          '<div class="circle inner-circle"></div>' +
-          '<div class="center icon"></div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="controls-right">' +
-        '<div class="mode-switch test-switch js-switch icon" name="switch">' +
-          '<div class="mode-icon icon rotates"></div>' +
-          '<div class="selected-mode">' +
-            '<div class="selected-mode-icon rotates"></div>' +
-          '</div>' +
-        '</div>' +
-      '</div>';
+    return '<a class="switch-button test-switch js-btn" name="switch">' +
+      '<span class="icon rotates"></span>' +
+    '</a>' +
+    '<a class="capture-button test-capture js-btn" name="capture">' +
+      '<span class="icon rotates"></span>' +
+    '</a>' +
+    '<div class="misc-button">' +
+      '<a class="gallery-button test-gallery js-btn" name="gallery">' +
+        '<span class="icon-gallery rotates"></span>' +
+      '</a>' +
+      '<a class="cancel-pick test-cancel-pick js-btn" name="cancel"></a>' +
+      '<span class="video-timer test-video-timer js-video-timer">00:00</span>' +
+    '</div>';
   },
-
-  setThumbnail: function(blob) {
-    if (!this.els.image) {
-      this.els.image = new Image();
-      this.els.thumbnail.appendChild(this.els.image);
-
-      this.set('thumbnail', true);
-      this.set('gallery', false);
-    } else {
-      window.URL.revokeObjectURL(this.els.image.src);
-    }
-    this.els.image.src = window.URL.createObjectURL(blob);
-  },
-
-  removeThumbnail: function() {
-    if (this.els.image) {
-      this.els.thumbnail.removeChild(this.els.image);
-      window.URL.revokeObjectURL(this.els.image.src);
-      this.els.image = null;
-    }
-
-    this.set('gallery', true);
-    this.set('thumbnail', false);
-  }
-
 });
 
 });

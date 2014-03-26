@@ -4,6 +4,7 @@
 mocha.setup({
   globals: [
     'PerformanceTestingHelper',
+    'LazyLoader',
     'asyncStorage',
     'LazyL10n',
     'BlobView',
@@ -12,11 +13,7 @@ mocha.setup({
     'Format',
     'VideoPlayer',
     'GestureDetector',
-    'debug',
-    'CONFIG_AVG_JPEG_COMPRESSION_RATIO',
-    'MediaFrame',
-    'confirm',
-    'MozActivity'
+    'debug'
   ]
 });
 
@@ -31,6 +28,8 @@ requireApp('camera/js/vendor/alameda.js', function() {
   window.req = window.requirejs.config({
     baseUrl: '/js',
     paths: {
+      'LazyL10n': '../shared/js/lazy_l10n',
+      'LazyLoader': '../shared/js/lazy_loader',
       'asyncStorage': '../shared/js/async_storage',
       'getVideoRotation': '../shared/js/media/get_video_rotation',
       'performanceTesting': '../shared/js/performance_testing_helper',
@@ -46,6 +45,10 @@ requireApp('camera/js/vendor/alameda.js', function() {
       'format': {
         exports: 'Format'
       },
+      'LazyL10n': {
+        deps: ['LazyLoader'],
+        exports: 'LazyL10n'
+      },
       'getVideoRotation': {
         deps: ['BlobView'],
         exports: 'getVideoRotation'
@@ -56,6 +59,9 @@ requireApp('camera/js/vendor/alameda.js', function() {
       },
       'BlobView': {
         exports: 'BlobView'
+      },
+      'LazyLoader': {
+        exports: 'LazyLoader'
       },
       'asyncStorage': {
         exports: 'asyncStorage'

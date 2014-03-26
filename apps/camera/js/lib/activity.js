@@ -126,19 +126,20 @@ Activity.prototype.reset = function() {
  * @return {Object}
  */
 Activity.prototype.getModes = function(activity) {
-  var raw = activity.source.data.type;
-  var types = raw && raw.length ? raw : ['image/*', 'video/*'];
+  var raw = activity.source.data.type || ['image/*', 'video/*'];
   var modes = [];
   var map = {
     video: 'video',
     image: 'picture'
   };
 
-  if (types === 'videos') {
+  if (raw === 'videos') {
     return [map.video];
   }
 
-  types.forEach(function(item) {
+  // Make sure it's an array
+  raw = [].concat(raw);
+  raw.forEach(function(item) {
     var type = item.split('/')[0];
     if (map[type]) { modes.push(map[type]); }
   });

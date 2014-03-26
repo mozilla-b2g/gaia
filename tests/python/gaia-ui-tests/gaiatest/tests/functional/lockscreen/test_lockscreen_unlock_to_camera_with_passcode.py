@@ -37,8 +37,8 @@ class TestCameraUnlockWithPasscode(GaiaTestCase):
         camera.switch_to_camera_frame()
         camera.take_photo()
 
-        # Check that thumbnail is visible
-        self.assertTrue(camera.is_thumbnail_visible)
+        # Check that Filmstrip is visible
+        self.assertTrue(camera.is_filmstrip_visible)
 
         # Check that picture saved to SD cards
         self.wait_for_condition(lambda m: len(self.data_layer.picture_files) == 1)

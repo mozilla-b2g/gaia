@@ -16,10 +16,6 @@
   transform-origin: 0 0;
 }
 
-.confirm.hidden {
-  display: none;
-}
-
 .confirm-media-frame {
   position: absolute;
   left: 0;

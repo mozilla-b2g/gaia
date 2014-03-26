@@ -180,11 +180,13 @@ suite('Build Integration tests', function() {
       assert.deepEqual(JSON.parse(hsSmsBlacklistJSON), expectedResult,
         'Sms blacklist.json is not expected');
 
-      // Check config.js file of gallery
+      // Check config.js file of gallery & camera
       var hsGalleryZip = new AdmZip(path.join(process.cwd(), 'profile',
                    'webapps', 'gallery.gaiamobile.org', 'application.zip'));
       var hsGalleryConfigJs =
         hsGalleryZip.readAsText(hsGalleryZip.getEntry('js/config.js'));
+      var hsCameraConfigJs = fs.readFileSync(
+        path.join('apps', 'camera', 'js', 'config.js'), { encoding: 'utf8' });
 
       var expectedScript =
         '//\n' +
@@ -217,6 +219,8 @@ suite('Build Integration tests', function() {
 
       assert.equal(hsGalleryConfigJs, expectedScript,
         'Gallery config js is not expected');
+      assert.equal(hsCameraConfigJs, expectedScript,
+        'Camera config js is not expected');
       done();
     });
   });

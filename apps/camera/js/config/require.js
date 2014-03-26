@@ -1,7 +1,8 @@
 require.config({
   baseUrl: '/js',
   paths: {
-    'l10n': '../shared/js/l10n',
+    'LazyL10n': '../shared/js/lazy_l10n',
+    'LazyLoader': '../shared/js/lazy_loader',
     'asyncStorage': '../shared/js/async_storage',
     'getVideoRotation': '../shared/js/media/get_video_rotation',
     'performanceTesting': '../shared/js/performance_testing_helper',
@@ -17,6 +18,10 @@ require.config({
     'format': {
       exports: 'Format'
     },
+    'LazyL10n': {
+      deps: ['LazyLoader'],
+      exports: 'LazyL10n'
+    },
     'getVideoRotation': {
       deps: ['BlobView'],
       exports: 'getVideoRotation'
@@ -27,6 +32,9 @@ require.config({
     },
     'BlobView': {
       exports: 'BlobView'
+    },
+    'LazyLoader': {
+      exports: 'LazyLoader'
     },
     'asyncStorage': {
       exports: 'asyncStorage'

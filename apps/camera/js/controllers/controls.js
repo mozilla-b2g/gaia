@@ -33,24 +33,21 @@ function ControlsController(app) {
 
 ControlsController.prototype.bindEvents = function() {
   this.app.settings.on('change:mode', this.controls.setter('mode'));
-  this.app.on('newthumbnail', this.onNewThumbnail);
-  this.app.on('camera:ready', this.controls.enable);
-  this.app.on('camera:busy', this.controls.disable);
   this.app.on('change:recording', this.controls.setter('recording'));
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
   this.controls.on('click:capture', this.app.firer('capture'));
   this.controls.on('click:gallery', this.onGalleryButtonClick);
-  this.controls.on('click:thumbnail', this.app.firer('preview'));
-  this.controls.on('click:switch', this.onSwitchButtonClick);
+  this.controls.on('click:switch', this.app.settings.toggler('mode'));
   this.controls.on('click:cancel', this.onCancelButtonClick);
-  this.app.on('timer:started', this.controls.disable);
-  this.app.on('timer:cleared', this.controls.enable);
+  this.app.on('camera:loading', this.disableButtons);
+  this.app.on('camera:ready', this.enableButtons);
+  this.app.on('camera:busy', this.disableButtons);
   debug('events bound');
 };
 
 ControlsController.prototype.configure = function() {
   var isSwitchable = this.app.settings.mode.get('options').length > 1;
-  var initialMode = this.app.settings.mode.selected('key');
+  var initialMode = this.app.settings.mode.value();
   var isCancellable = !!this.app.activity.active;
 
   // The gallery button should not
@@ -69,34 +66,16 @@ ControlsController.prototype.configure = function() {
   debug('mode: %s', initialMode);
 };
 
-/**
- * When the thumbnail changes, update it in the view.
- * This method is triggered by the 'newthumbnail' event.
- * That event is emitted by the preview gallery controller when the a new
- * photo or video is added, or when the preview is closed and the first
- * photo or video has changed (because of a file deletion).
- */
-ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
-  if (thumbnailBlob) {
-    this.controls.setThumbnail(thumbnailBlob);
-  } else {
-    this.controls.removeThumbnail();
-  }
+ControlsController.prototype.disableButtons = function() {
+  this.controls.disable('buttons');
 };
 
-ControlsController.prototype.onTimerStarted = function(image) {
-  this.controls.set('capture-active', true);
-  this.disableButtons();
+ControlsController.prototype.enableButtons = function() {
+  this.controls.enable('buttons');
 };
 
-ControlsController.prototype.onTimerEnd = function(image) {
-  this.controls.set('capture-active', false);
-  this.enableButtons();
-};
-
-ControlsController.prototype.onSwitchButtonClick = function() {
-  this.controls.disable();
-  this.app.settings.mode.next();
+ControlsController.prototype.onSwitchClick = function() {
+  this.app.settings.get('mode').next();
 };
 
 /**
@@ -108,28 +87,33 @@ ControlsController.prototype.onSwitchButtonClick = function() {
  * navigate back to the app
  * that initiated the activity.
  *
- * @private
  */
 ControlsController.prototype.onCancelButtonClick = function() {
   this.activity.cancel();
 };
 
-/**
- * Open the gallery app when the
- * gallery button is pressed.
- *
- * @private
- */
-ControlsController.prototype.onGalleryButtonClick = function(event) {
-  event.stopPropagation();
+var throttleGalleryLaunch = false;
 
+/**
+ * Open the gallery app
+ * when the gallery button
+ * is pressed.
+ *
+ */
+ControlsController.prototype.onGalleryButtonClick = function(e) {
+  e.stopPropagation();
   var MozActivity = window.MozActivity;
-  var controls = this.controls;
 
   // Can't launch the gallery if the lockscreen is locked.
   // The button shouldn't even be visible in this case, but
   // let's be really sure here.
   if (this.app.inSecureMode) { return; }
+
+  if (throttleGalleryLaunch) {
+    return;
+  }
+
+  throttleGalleryLaunch = true;
 
   // Launch the gallery with an activity
   this.mozActivity = new MozActivity({
@@ -137,10 +121,11 @@ ControlsController.prototype.onGalleryButtonClick = function(event) {
     data: { type: 'photos' }
   });
 
-  // Wait 2000ms before re-enabling the
-  // Gallery to be launched (Bug 957709)
-  controls.disable();
-  setTimeout(controls.enable, 2000);
+  // Wait 2000ms before re-enabling the Gallery to be launched
+  // (Bug 957709)
+  window.setTimeout(function() {
+    throttleGalleryLaunch = false;
+  }, 2000);
 };
 
 });
