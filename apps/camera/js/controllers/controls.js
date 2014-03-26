@@ -38,14 +38,14 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('camera:busy', this.controls.disable);
   this.app.on('change:recording', this.controls.setter('recording'));
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
-  this.controls.on('click:capture', this.app.firer('capture'));
+  this.controls.on('click:capture', this.onCaptureClick);
   this.controls.on('click:gallery', this.onGalleryButtonClick);
   this.controls.on('click:thumbnail', this.app.firer('preview'));
   this.controls.on('click:switch', this.onSwitchButtonClick);
   this.controls.on('click:cancel', this.onCancelButtonClick);
   this.app.on('timer:started', this.onTimerStarted);
-  this.app.on('timer:cleared', this.onTimerEnded);
-  this.app.on('timer:ended', this.onTimerEnded);
+  this.app.on('timer:cleared', this.restore);
+  this.app.on('camera:shutter', this.restore);
   debug('events bound');
 };
 
@@ -68,6 +68,23 @@ ControlsController.prototype.configure = function() {
   debug('switchable: %s', isSwitchable);
   debug('gallery: %s', showGallery);
   debug('mode: %s', initialMode);
+};
+
+/**
+ * Keep capture button pressed and
+ * fire the `capture` event to allow
+ * the camera to repond.
+ *
+ * When the 'camera:shutter' event fires
+ * we remove the capture butter pressed
+ * state so that it times with the
+ * capture sound effect.
+ *
+ * @private
+ */
+ControlsController.prototype.onCaptureClick = function() {
+  this.controls.set('capture-active', true);
+  this.app.fire('capture');
 };
 
 /**
@@ -103,7 +120,7 @@ ControlsController.prototype.onTimerStarted = function() {
  *
  * @private
  */
-ControlsController.prototype.onTimerEnded = function() {
+ControlsController.prototype.restore = function() {
   this.controls.set('capture-active', false);
   this.controls.enable();
 };
