@@ -20,8 +20,7 @@ var templateNode = require('tmpl!./message_list.html'),
     bindContainerHandler = common.bindContainerHandler,
     appendMatchItemTo = common.appendMatchItemTo,
     displaySubject = common.displaySubject,
-    prettyDate = common.prettyDate,
-    accessibilityHelper = require('shared/js/accessibility_helper');
+    prettyDate = common.prettyDate;
 
 /**
  * Try and keep at least this many display heights worth of undisplayed
@@ -195,7 +194,6 @@ function MessageListCard(domNode, mode, args) {
     bindContainerHandler(
       domNode.getElementsByClassName('filter')[0],
       'click', this.onSearchFilterClick.bind(this));
-    this.searchFilterTabs = domNode.querySelectorAll('.filter [role="tab"]');
     this.searchInput = domNode.getElementsByClassName('msg-search-text')[0];
     this.searchInput.addEventListener(
       'input', this.onSearchTextChange.bind(this), false);
@@ -499,12 +497,21 @@ MessageListCard.prototype = {
 
   showSearch: function(phrase, filter) {
     console.log('sf: showSearch. phrase:', phrase, phrase.length);
+    var tab = this.domNode.getElementsByClassName('filter')[0];
+    var nodes = tab.getElementsByClassName('msg-search-filter');
 
     this.curFolder = model.folder;
     this.messagesContainer.innerHTML = '';
     this.curPhrase = phrase;
     this.curFilter = filter;
 
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].dataset.filter != this.curFilter) {
+        nodes[i].setAttribute('aria-selected', 'false');
+        continue;
+      }
+      nodes[i].setAttribute('aria-selected', 'true');
+    }
     if (phrase.length < 1)
       return false;
 
@@ -520,8 +527,6 @@ MessageListCard.prototype = {
   },
 
   onSearchFilterClick: function(filterNode, event) {
-    accessibilityHelper.setAriaSelected(filterNode.firstElementChild,
-      this.searchFilterTabs);
     this.showSearch(this.searchInput.value, filterNode.dataset.filter);
   },
 

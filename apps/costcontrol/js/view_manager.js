@@ -1,4 +1,3 @@
-/* global AccessibilityHelper */
 /* exported ViewManager */
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
@@ -65,15 +64,14 @@ var ViewManager = (function() {
       }
       if (disposingTab) {
         disposingTab.dataset.viewport = this._tabs[disposingTab.id];
-        document.getElementById(disposingTab.id + '-filter').classList.remove(
-          '.selected');
+        document.getElementById(disposingTab.id + '-filter')
+          .setAttribute('aria-selected', 'false');
       }
+
       // Showing the new one
       view.dataset.viewport = '';
-      document.getElementById(view.id + '-filter').classList.add('.selected');
-      AccessibilityHelper.setAriaSelected(
-        document.getElementById(view.id + '-control'),
-        document.querySelectorAll('[role="tab"]'));
+      document.getElementById(view.id + '-filter')
+        .setAttribute('aria-selected', 'true');
 
       this._currentTab = viewId;
 

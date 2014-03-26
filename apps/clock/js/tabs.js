@@ -6,17 +6,28 @@ define(function(require) {
  */
 function Tabs(element) {
   this.element = element;
-  this.links = element.querySelectorAll('a');
+  this.links = Array.prototype.slice.call(element.querySelectorAll('a'));
+  this.currentIndex = 0;
   this.element.addEventListener('click', this);
-  this.accessibilityHelper = require('shared/js/accessibility_helper');
 }
 
 /**
- * Update selected attributes for the selected tab.
+ * Find the clicked link in the list of links and update selected attributes.
  * Also emit a 'selected' event with the relevant data.
  */
 Tabs.prototype.handleEvent = function tabsHandleEvent(event) {
-  this.accessibilityHelper.setAriaSelected(event.target, this.links);
+  var index = this.links.indexOf(event.target);
+  if (index === -1 || index === this.currentIndex) {
+    return;
+  }
+  this.currentIndex = index;
+  this.links.forEach(function toggleLinks(link, linkIndex) {
+    if (linkIndex === index) {
+      link.parentNode.setAttribute('aria-selected', 'true');
+    } else {
+      link.parentNode.removeAttribute('aria-selected');
+    }
+  });
 };
 
 return Tabs;

@@ -23,7 +23,6 @@ requireApp('costcontrol/js/view_manager.js');
 requireApp('costcontrol/js/app.js');
 requireApp('costcontrol/js/common.js');
 require('/shared/test/unit/load_body_html_helper.js');
-require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 
 var realCommon,
     realMozMobileConnection,
@@ -33,7 +32,6 @@ var realCommon,
     realConfigManager,
     realMozSetMessageHandler,
     realNonReadyScreen,
-    realAccessibilityHelper,
     realLazyLoader;
 
 if (!window.Common) {
@@ -66,10 +64,6 @@ if (!window.navigator.mozSetMessageHandler) {
 
 if (!window.NonReadyScreen) {
   window.NonReadyScreen = null;
-}
-
-if (!window.AccessibilityHelper) {
-  window.AccessibilityHelper = null;
 }
 
 if (!window.LazyLoader) {
@@ -106,9 +100,6 @@ suite('Application Startup Modes Test Suite >', function() {
     realNonReadyScreen = window.NonReadyScreen;
     window.NonReadyScreen = window.MockNonReadyScreen;
 
-    realAccessibilityHelper = window.AccessibilityHelper;
-    window.AccessibilityHelper = window.MockAccessibilityHelper;
-
     iframe = document.createElement('iframe');
     iframe.id = 'message-handler';
     document.body.appendChild(iframe);
@@ -136,7 +127,6 @@ suite('Application Startup Modes Test Suite >', function() {
     window.navigator.mozSetMessageHandler.mTeardown();
     window.navigator.mozSetMessageHandler = realMozSetMessageHandler;
     window.NonReadyScreen = realNonReadyScreen;
-    window.AccessibilityHelper = realAccessibilityHelper;
   });
 
   function assertNonReadyScreen(done) {

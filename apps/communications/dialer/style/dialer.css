@@ -89,23 +89,23 @@ body.hidden *[data-l10n-id] {
 }
 
 .with-keyboard #views, .with-keyboard #contacts-view,
-.with-keyboard .bb-tablist .bb-tabpanel {
+.with-keyboard [role="tablist"] [role="tabpanel"] {
   height: 100% !important;
 }
 
-.with-keyboard .bb-tablist > li > a,
-.with-keyboard .bb-tablist > li:before {
+.with-keyboard [role="tablist"] [role="tab"] > a,
+.with-keyboard [role="tablist"] [role="tab"]:before {
   display: none;
 }
 
 /* Making lazy loading look nice */
-#contacts-view .bb-tabpanel,
-#recents-view.hidden .bb-tabpanel {
+#contacts-view [role="tabpanel"],
+#recents-view.hidden [role="tabpanel"] {
   background-color: white;
 }
 
-#contacts-view .bb-tabpanel:before,
-#recents-view.hidden .bb-tabpanel:before {
+#contacts-view [role="tabpanel"]:before,
+#recents-view.hidden [role="tabpanel"]:before {
   position: absolute;
   left: 0;
   right: 0;
@@ -123,7 +123,7 @@ body.hidden *[data-l10n-id] {
   position: absolute;
 }
 
-#recents-view.hidden .bb-tabpanel section {
+#recents-view.hidden [role="tabpanel"] section {
   display:none;
 }
 
@@ -141,18 +141,19 @@ body.hidden *[data-l10n-id] {
   transform: translateX(100%);
 }
 
-#views > li > .icon {
+article[role="tab"]:before,
+article[role="tab"] > .icon {
   transform: translateY(0%);
   z-index: 2;
   transition: 0.5s transform 0.5s;
 }
 
-#views.hide-toolbar > li {
+#views.hide-toolbar > article[role="tab"] {
   pointer-events: none;
 }
 
-#views.hide-toolbar > li:before,
-#views.hide-toolbar > li > .icon {
+#views.hide-toolbar > article[role="tab"]:before,
+#views.hide-toolbar > article[role="tab"] > .icon {
   transform: translateY(100%);
 }
 
@@ -160,11 +161,11 @@ body.hidden *[data-l10n-id] {
   height: 100%;
 }
 
-#views .bb-tabpanel {
+#views [role="tabpanel"] {
   pointer-events: all;
   transition: 0s height 0.5s;
 }
 
-#contacts-view .bb-tabpanel {
+#contacts-view [role="tabpanel"] {
   height: calc(100% - 4.5rem);
 }

@@ -22,9 +22,6 @@ requirejs.config({
     'shared/js/async_storage': {
       exports: 'asyncStorage'
     },
-    'shared/js/accessibility_helper': {
-      exports: 'AccessibilityHelper'
-    },
     'shared/js/performance_testing_helper': {
       exports: 'PerformanceTestingHelper'
     },

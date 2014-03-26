@@ -37,7 +37,6 @@
     <script type="text/javascript" defer src="shared/js/l10n.js"></script>
     <script type="text/javascript" defer src="shared/js/l10n_date.js"></script>
     <script type="text/javascript" defer src="shared/js/async_storage.js"></script>
-    <script type="text/javascript" defer src="shared/js/accessibility_helper.js"></script>
     <script type="text/javascript" defer src="shared/js/settings_listener.js"></script>
     <script type="text/javascript" defer src="shared/js/lazy_loader.js"></script>
     <script type="text/javascript" defer src="shared/js/format.js"></script>
@@ -67,35 +66,35 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
       </header>
 
       <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
-      <ul id="tabs" role="tablist" class="bb-tablist" data-type="filter" data-items="2">
-        <li id="balance-tab-filter" role="presentation">
-          <a id="balance-tab-control" data-l10n-id="balance" href="#balance-tab" role="tab" aria-controls="balance-tab">
+      <ul id="tabs" role="tablist" data-type="filter" data-items="2">
+        <li id="balance-tab-filter" role="tab">
+          <a data-l10n-id="balance" href="#balance-tab">
             Balance
           </a>
         </li>
-        <li id="telephony-tab-filter" role="presentation" aria-hidden="true">
-          <a id="telephony-tab-control" data-l10n-id="phone" href="#telephony-tab" role="tab" aria-controls="telephony-tab">
+        <li id="telephony-tab-filter" role="tab" aria-hidden="true">
+          <a data-l10n-id="phone" href="#telephony-tab">
             Phone
           </a>
         </li>
-        <li id="datausage-tab-filter" role="presentation">
-          <a id="datausage-tab-control" data-l10n-id="internet" href="#datausage-tab" role="tab" aria-controls="datausage-tab">
+        <li id="datausage-tab-filter" role="tab">
+          <a data-l10n-id="internet" href="#datausage-tab">
             Internet
           </a>
         </li>
       </ul>
 
       <!-- BALANCE TAB -->
-      <section is="balance-tab" aria-labelledby="balance-tab-control" role="region tabpanel" id="balance-tab" class="bb-tabpanel view" data-viewport="left" hidden></section>
+      <section is="balance-tab" role="region" id="balance-tab" class="view" data-viewport="left" hidden></section>
 
       <!-- TELEPHONY TAB -->
-      <section is="telephony-tab" aria-labelledby="telephony-tab-control" role="region tabpanel" id="telephony-tab" class="bb-tabpanel view" data-viewport="left" hidden></section>
+      <section is="telephony-tab" role="region" id="telephony-tab" class="view" data-viewport="left" hidden></section>
 
       <!-- The top up input -->
       <section is="topup-dialog" role="region" id="topup-dialog" class="view" data-viewport="bottom" hidden></section>
 
       <!-- DATA USAGE TAB -->
-      <section is="datausage-tab" aria-labelledby="datausage-tab-control" id="datausage-tab" role="region tabpanel" class="bb-tabpanel view" data-viewport="right" hidden></section>
+      <section is="datausage-tab" id="datausage-tab" role="region" class="view" data-viewport="right" hidden></section>
 
       <!-- Settings view -->
       <section id="settings-view" class="view" data-viewport="bottom">

@@ -642,9 +642,8 @@ var CallLog = {
     }
 
     this.callLogContainer.classList.add('filter');
-    AccessibilityHelper.setAriaSelected(this.missedFilter.firstElementChild, [
-      this.allFilter.firstElementChild, this.missedFilter.firstElementChild]);
-    this.callLogContainer.setAttribute('aria-labelledby', 'missed-filter-tab');
+    this.allFilter.setAttribute('aria-selected', 'false');
+    this.missedFilter.setAttribute('aria-selected', 'true');
 
     var containers = this.callLogContainer.getElementsByTagName('ol');
     var totalMissedCalls = 0;
@@ -682,9 +681,8 @@ var CallLog = {
     }
 
     this.callLogContainer.classList.remove('filter');
-    AccessibilityHelper.setAriaSelected(this.allFilter.firstElementChild, [
-      this.allFilter.firstElementChild, this.missedFilter.firstElementChild]);
-    this.callLogContainer.setAttribute('aria-labelledby', 'all-filter-tab');
+    this.allFilter.setAttribute('aria-selected', 'true');
+    this.missedFilter.setAttribute('aria-selected', 'false');
 
     var hiddenContainers = document.getElementsByClassName('groupFiltered');
     // hiddenContainers is a live list, so let's iterate on the list in the

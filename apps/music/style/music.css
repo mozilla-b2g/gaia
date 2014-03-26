@@ -894,31 +894,27 @@ button::-moz-focus-inner {
   z-index: 20;
 }
 
-#tabs li:last-child {
-  margin-bottom: 0;
-}
-
 #tabs a {
   outline: none;
 }
 
-#tabs-mix {
+#mix[role="tab"] a {
   background-image: url("./images/iconaction_media_gridview.png");
 }
 
-#tabs-playlists {
+#playlists[role="tab"] a {
   background-image: url("./images/iconaction_media_playlistfilter.png");
 }
 
-#tabs-artists {
+#artists[role="tab"] a {
   background-image: url("./images/iconaction_media_artistfilter.png");
 }
 
-#tabs-albums {
+#albums[role="tab"] a {
   background-image: url("./images/iconaction_media_albumfilter.png");
 }
 
-#tabs-songs {
+#songs[role="tab"] a {
   background-image: url("./images/iconaction_media_songsfilter.png");
 }
 

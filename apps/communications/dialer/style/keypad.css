@@ -45,7 +45,6 @@
   visibility: hidden;
 }
 
-li:not(:target) #keypad-delete,
 article:not(:target) #keypad-delete {
   display: none;
 }

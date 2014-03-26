@@ -39,28 +39,23 @@
     </header>
     <!-- Search filter switcher -->
     <header class="msg-search-controls-bar">
-      <ul role="tablist" class="bb-tablist filter" data-type="filter">
-        <li role="presentation" class="msg-search-from msg-search-filter"
+      <ul role="tablist" class="filter" data-type="filter">
+        <li role="tab" class="msg-search-from msg-search-filter"
             data-filter="author">
-          <a data-l10n-id="message-search-from" role="tab"
-            aria-selected="false">FroM</a></li>
-        <li role="presentation" class="msg-search-to msg-search-filter"
+          <a data-l10n-id="message-search-from">FroM</a></li>
+        <li role="tab" class="msg-search-to msg-search-filter"
             data-filter="recipients">
-          <a data-l10n-id="message-search-to" role="tab"
-            aria-selected="false">tO</a></li>
-        <li role="presentation" class="msg-search-subject msg-search-filter"
+          <a data-l10n-id="message-search-to">tO</a></li>
+        <li role="tab" class="msg-search-subject msg-search-filter"
              data-filter="subject">
-          <a data-l10n-id="message-search-subject" role="tab"
-            aria-selected="false">SubjecT</a>
+          <a data-l10n-id="message-search-subject">SubjecT</a>
         </li>
-        <li role="presentation" class="msg-search-body msg-search-filter"
+        <li role="tab" class="msg-search-body msg-search-filter"
              data-filter="body">
-          <a data-l10n-id="message-search-body" role="tab"
-            aria-selected="false">BodY</a></li>
-        <li role="presentation" class="msg-search-body msg-search-filter"
-            data-filter="all">
-          <a data-l10n-id="message-search-all" role="tab"
-            aria-selected="true">AlL</a></li>
+          <a data-l10n-id="message-search-body">BodY</a></li>
+        <li role="tab" class="msg-search-body msg-search-filter"
+            data-filter="all" aria-selected>
+          <a data-l10n-id="message-search-all">AlL</a></li>
       </ul>
     </header>
   </section>
@@ -96,30 +91,30 @@
   <div class="msg-activity-infobar hidden">
   </div>
   <!-- Toolbar for non-multi-edit state -->
-  <ul class="bb-tablist msg-list-action-toolbar">
-    <li role="presentation" class="msg-nonsearch-only">
+  <ul role="tablist" class="msg-list-action-toolbar">
+    <li role="tab" class="msg-nonsearch-only">
       <button class="icon msg-refresh-btn" data-state="synchronized"></button>
     </li>
-    <li role="presentation" class="msg-nonsearch-only">
+    <li role="tab" class="msg-nonsearch-only">
       <button class="icon msg-search-btn"></button>
     </li>
-    <li role="presentation">
+    <li role="tab">
       <button class="icon msg-edit-btn"></button>
     </li>
   </ul>
 
   <!-- Toolbar for multi-edit state -->
-  <ul class="bb-tablist msg-listedit-action-toolbar collapsed">
-    <li role="presentation">
+  <ul role="tablist" class="msg-listedit-action-toolbar collapsed">
+    <li role="tab">
       <button class="icon msg-delete-btn"></button>
     </li>
-    <li role="presentation">
+    <li role="tab">
       <button class="icon msg-star-btn"></button>
     </li>
-    <li role="presentation">
+    <li role="tab">
       <button class="icon msg-mark-read-btn"></button>
     </li>
-    <li role="presentation">
+    <li role="tab">
       <button class="icon msg-move-btn"></button>
     </li>
   </ul>
