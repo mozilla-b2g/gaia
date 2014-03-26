@@ -49,6 +49,10 @@ Calendar.prototype = {
     return this.client.findElement('#time-header a[href="/event/add/"]');
   },
 
+  get currentTimeHeader() {
+    return this.client.findElement('#current-month-year');
+  },
+
   openAdvancedSettingsView: function() {
     // TODO(gareth)
   },
@@ -93,22 +97,21 @@ Calendar.prototype = {
     var startDate;
     if (opts.startDate) {
       startDate = opts.startDate;
-    } else if (opts.startHour) {
-      startDate = new Date();
-      startDate.setHours(opts.startHour);
-      startDate.setMinutes(0);
-      startDate.setSeconds(0);
-      startDate.setMilliseconds(0);
     } else {
       startDate = new Date();
+      // startHour can be zero!
+      if (opts.startHour != null) {
+        startDate.setHours(opts.startHour, 0, 0, 0);
+      }
     }
 
     var endDate;
     if (opts.endDate) {
       endDate = opts.endDate;
-    } else if (opts.duration) {
-      endDate = new Date();
-      endDate.setTime(startDate.getTime() + opts.duration * 60 * 60 * 1000);
+    } else {
+      // 1h by default
+      var duration = opts.duration || 1;
+      endDate = new Date(startDate.getTime() + duration * 60 * 60 * 1000);
     }
 
     this.addEventButton.click();
