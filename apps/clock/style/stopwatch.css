@@ -13,6 +13,14 @@
   pointer-events: none;
 }
 
+/**
+ * When the stopwatch shows over 100 minutes, it becomes extra wide.
+ * Tweak the font size to compensate.
+ */
+.stopwatch-time.over-100-minutes {
+  font-size: 8rem;
+}
+
 #stopwatch-controls {
   display: flex;
   padding: 0;
