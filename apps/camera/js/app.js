@@ -6,9 +6,9 @@ define(function(require, exports, module) {
  */
 
 var performanceTesting = require('performanceTesting');
-var RecordingTimerView = require('views/recording-timer');
 var NotificationView = require('views/notification');
 var ViewfinderView = require('views/viewfinder');
+var orientation = require('lib/orientation');
 var ControlsView = require('views/controls');
 var FocusRing = require('views/focus-ring');
 var ZoomBarView = require('views/zoom-bar');
@@ -20,7 +20,6 @@ var debug = require('debug')('app');
 var HudView = require('views/hud');
 var bind = require('lib/bind');
 var dcf = require('lib/dcf');
-var orientation = require('lib/orientation');
 
 /**
  * Locals
@@ -122,7 +121,6 @@ App.prototype.runControllers = function() {
 App.prototype.initializeViews = function() {
   debug('initializing views');
   this.views.viewfinder = new ViewfinderView();
-  this.views.recordingTimer = new RecordingTimerView();
   this.views.focusRing = new FocusRing();
   this.views.controls = new ControlsView();
   this.views.hud = new HudView();
@@ -134,7 +132,6 @@ App.prototype.initializeViews = function() {
 App.prototype.injectViews = function() {
   debug('injecting views');
   this.views.viewfinder.appendTo(this.el);
-  this.views.recordingTimer.appendTo(this.el);
   this.views.focusRing.appendTo(this.el);
   this.views.controls.appendTo(this.el);
   this.views.hud.appendTo(this.el);
