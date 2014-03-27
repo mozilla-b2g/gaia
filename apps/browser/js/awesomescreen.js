@@ -11,6 +11,8 @@ var Awesomescreen = {
   resultTemplate: null,
   searchTemplate: null,
   resultCache: {},
+  updateInProgress: false,
+  pendingUpdateFilter: null,
 
   /**
    * Initialise Awesomescreen.
@@ -289,6 +291,14 @@ var Awesomescreen = {
    * @param {string} filter String to filter results by.
    */
   update: function awesomescreen_update(filter) {
+    // If an update is already in progress enqueue the following ones
+    if (this.updateInProgress) {
+      this.pendingUpdateFilter = filter;
+      return;
+    } else {
+      this.updateInProgress = true;
+    }
+
     if (!filter) {
       this.results.classList.add('hidden');
       filter = false;
@@ -296,7 +306,17 @@ var Awesomescreen = {
       this.results.classList.remove('hidden');
     }
     BrowserDB.getTopSites(this.TOP_SITES_COUNT, filter,
-      this.populateResults.bind(this));
+      (function gotTopSites(results, filter) {
+        this.populateResults(results, filter);
+        this.updateInProgress = false;
+
+        var pendingUpdateFilter = this.pendingUpdateFilter;
+
+        if (pendingUpdateFilter !== null) {
+          this.pendingUpdateFilter = null;
+          this.update(pendingUpdateFilter);
+        }
+      }).bind(this));
   },
 
   /**
