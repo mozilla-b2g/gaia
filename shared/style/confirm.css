@@ -59,7 +59,6 @@ form[role="dialog"][data-type="confirm"] menu {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
-  border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
   background: #2d2d2d url(confirm/images/ui/pattern.png) repeat left top;
   display: block;
   overflow: hidden;
@@ -76,68 +75,66 @@ form[role="dialog"][data-type="confirm"] menu button::-moz-focus-inner {
 }
 
 form[role="dialog"][data-type="confirm"] menu button {
+  font-family: sans-serif;
+  font-style: italic;
   width: 100%;
-  height: 3.8rem;
+  height: 4rem;
   margin: 0 0 1rem;
-  padding: 0 1.5rem;
+  padding: 0 1.2rem;
   -moz-box-sizing: border-box;
   display: inline-block;
   vertical-align: middle;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom/ auto 100%;
-  border: 0.1rem solid #a6a6a6;
-  border-radius: 0.3rem;
-  font-weight: 500;
+  background: #d8d8d8;
+  border: none;
+  border-radius: 2rem;
+  font-weight: normal;
   font-size: 1.6rem;
-  line-height: 3.8rem;
+  line-height: 4rem;
   color: #333;
   text-align: center;
-  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  text-shadow: none;
   text-decoration: none;
   outline: none;
 }
 
-/* Press (default & recommend) */
-form[role="dialog"][data-type="confirm"] menu button:active,
-form[role="dialog"][data-type="confirm"] menu button.recommend:active,
-a.recommend[role="button"]:active  {
-  border-color: #008aaa;
-  background: #008aaa;
-  color: #333;
-}
-
 /* Recommend */
 form[role="dialog"][data-type="confirm"] menu button.recommend {
-  background-image: url(buttons/images/ui/recommend.png);
   background-color: #00caf2;
-  border-color: #008eab;
+  color: #fff;
 }
 
 /* Danger */
-form[role="dialog"][data-type="confirm"] menu button.danger,
-a.danger[role="button"] {
-  background-image: url(buttons/images/ui/danger.png);
-  background-color: #b70404;
+form[role="dialog"][data-type="confirm"] menu button.danger {
+  background-color: #e51e1e;
   color: #fff;
-  text-shadow: none;
-  border-color: #820000;
 }
 
-/* Danger Press */
-form[role="dialog"][data-type="confirm"] menu button.danger:active {
-  background-image: url(buttons/images/ui/danger-press.png);
-  background-color: #890707;
+/* Pressed */
+form[role="dialog"][data-type="confirm"] menu button:active {
+  background: #b2f2ff;
+  color: #fff;
 }
 
 /* Disabled */
 form[role="dialog"][data-type="confirm"] > menu > button[disabled] {
-  background: #5f5f5f;
-  color: #4d4d4d;
-  text-shadow: none;
-  border-color: #4d4d4d;
+  background-color: #565656;
+  color: rgba(255,255,255,0.4);
   pointer-events: none;
+}
+
+form[role="dialog"][data-type="confirm"] > menu > button[disabled].recommend {
+  background-color: #006579;
+}
+
+form[role="dialog"][data-type="confirm"] > menu > button[disabled].danger {
+  background-color: #730f0f;
+}
+
+button[disabled]::-moz-selection {
+  -moz-user-select: none;
 }
 
 
