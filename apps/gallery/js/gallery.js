@@ -892,7 +892,12 @@ function cropAndEndPick() {
     photodb.getFile(pickedFile.name, endPick);
   }
   else {
-    cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight, endPick);
+    cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight,
+                                    function _gotCroppedBlob(blob) {
+                                      endPick(new File([blob],
+                                                       pickedFile.name,
+                                                       {type: pickType}));
+                                    });
   }
 }
 
