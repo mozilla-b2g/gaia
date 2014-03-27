@@ -23,9 +23,6 @@ module.exports.ActivityController = ActivityController;
  * @param {App} app
  */
 function ActivityController(app) {
-  if (!app.activity.active) { return; }
-  debug('initializing');
-
   bindAll(this);
   this.activity = app.activity;
   this.settings = app.settings;
@@ -58,6 +55,7 @@ ActivityController.prototype.configure = function() {
  * @private
  */
 ActivityController.prototype.bindEvents = function() {
+  this.activity.on('activityreceived', this.onActivityReceived);
   this.settings.recorderProfiles.on('configured', this.filterRecorderProfiles);
   this.settings.pictureSizes.on('configured', this.filterPictureSize);
 };
@@ -67,9 +65,19 @@ ActivityController.prototype.bindEvents = function() {
  * @return {[type]} [description]
  */
 ActivityController.prototype.configureMode = function() {
-  var modes = this.activity.data.modes;
+  var modes = this.activity.modes;
   this.settings.mode.filterOptions(modes);
+
+  var mode = modes[0];
+  if (mode) {
+    this.settings.mode.select(mode);
+  }
+
   debug('configured mode', modes);
+};
+
+ActivityController.prototype.onActivityReceived = function() {
+  this.configure();
 };
 
 /**

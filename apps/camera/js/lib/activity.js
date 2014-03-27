@@ -6,6 +6,13 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('activity');
+var model = require('vendor/model');
+
+/**
+ * Mixin `Model` methods
+ */
+
+model(Activity.prototype);
 
 /**
  * Exports
@@ -21,6 +28,7 @@ module.exports = Activity;
 function Activity() {
   this.active = false;
   this.data = {};
+  this.modes = ['picture', 'video'];
   debug('initialized');
 }
 
@@ -29,11 +37,19 @@ function Activity() {
  * calling the given callback
  * when done.
  *
+ * NOTE: The `done` callback may be called a number of times
+ * over the lifespan of the app instance. When the Camera app
+ * receives a `record` activity, it reuses an instance of the
+ * Camera app (if one exists), therefore, this callback may
+ * execute more than once.
+ *
  * @param  {Function} done
  */
 Activity.prototype.check = function(done) {
   var hasMessage = navigator.mozHasPendingMessage('activity');
   var self = this;
+
+  navigator.mozSetMessageHandler('activity', onActivity);
 
   if (!hasMessage) {
     debug('none');
@@ -41,42 +57,65 @@ Activity.prototype.check = function(done) {
     return;
   }
 
-  debug('incoming...');
-  navigator.mozSetMessageHandler('activity', onActivity);
-
   function onActivity(activity) {
-    var data = self.parse(activity);
+    var source = activity.source;
+    var name = source.name;
+    var data = source.data;
 
-    // We currently only alter the
-    // behaviour of the camera app
-    // for 'pick' activities.
-    if (data.name !== 'pick') {
-      debug('type \'%s\'not supported', data.name);
-      done();
-      return;
+    self.activity = activity;
+    self.name = name;
+    self.data = data;
+
+    switch (name) {
+      case 'pick':
+        debug('Received \'pick\' activity for types: %s', data.type);
+        self.active = true;
+        self.modes = self.getModesForPickActivity(activity);
+        self.emit('activityreceived');
+        break;
+      case 'record':
+        debug('Received \'record\' activity for types: %s', data.type);
+        self.modes = self.getModesForRecordActivity(activity);
+        self.emit('activityreceived');
+        break;
+      default:
+        debug('Received unsupported \'%s\' activity', name);
+        break;
     }
 
-    self.active = true;
-    self.data = data;
-    self.raw = activity;
-    debug('parsed \'%s\' activity', data.name, JSON.stringify(data));
     done();
   }
 };
 
-/**
- * Parses a raw activity object
- * and returns relevant information.
- *
- * @param  {Activity} activity
- * @return {Object}
- */
-Activity.prototype.parse = function(activity) {
-  var data = activity.source.data;
-  data.name = activity.source.name;
-  data.modes = this.getModes(activity);
-  debug('parsed', data);
-  return data;
+Activity.prototype.getModesForPickActivity = function(activity) {
+  var source = activity.source;
+  var types = source.data.type || [];
+  var modes = [];
+
+  types.forEach(function(item) {
+    var type = item.split('/')[0];
+    var mode = type === 'image' ? 'picture' : type;
+
+    if (modes.indexOf(mode) === -1) {
+      modes.push(mode);
+    }
+  });
+
+  if (modes.length === 0) {
+    modes = ['picture', 'video'];
+  }
+
+  return modes;
+};
+
+Activity.prototype.getModesForRecordActivity = function(activity) {
+  var source = activity.source;
+  var type = source.data.type;
+  if (type === 'videos') {
+    return ['video', 'picture'];
+  }
+
+  return ['picture', 'video'];
 };
 
 /**
@@ -87,9 +126,8 @@ Activity.prototype.parse = function(activity) {
  *
  */
 Activity.prototype.postResult = function(data) {
-  if (this.raw) {
-    this.raw.postResult(data);
-    this.reset();
+  if (this.activity) {
+    this.activity.postResult(data);
   }
 };
 
@@ -102,48 +140,9 @@ Activity.prototype.postResult = function(data) {
  *
  */
 Activity.prototype.cancel = function() {
-  if (this.raw) {
-    this.raw.postError('pick cancelled');
-    this.reset();
+  if (this.activity) {
+    this.activity.postError('pick cancelled');
   }
-};
-
-/**
- * Reset the activity state.
- *
- */
-Activity.prototype.reset = function() {
-  Activity.call(this);
-};
-
-/**
- * Returns an object that
- * states which types (image,
- * video) the incoming acitvity
- * accepts.
- *
- * @param  {Activity} activity
- * @return {Object}
- */
-Activity.prototype.getModes = function(activity) {
-  var raw = activity.source.data.type;
-  var types = raw && raw.length ? raw : ['image/*', 'video/*'];
-  var modes = [];
-  var map = {
-    video: 'video',
-    image: 'picture'
-  };
-
-  if (types === 'videos') {
-    return [map.video];
-  }
-
-  types.forEach(function(item) {
-    var type = item.split('/')[0];
-    if (map[type]) { modes.push(map[type]); }
-  });
-
-  return modes;
 };
 
 });

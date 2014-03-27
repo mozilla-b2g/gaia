@@ -127,3 +127,73 @@ The are still some modules have not been reworked into the new architecture:
 - [filmstrip.js](js/filmstrip.js)
 
 As far as I know there is nothing blocking work on aligning `confirm.js` and `panzoom.js` with our new architecture. `filmstrip.js` has been touched as little as possible as plans in `1.4` propose very different funtionality. Therefore work to refactor this module would probably be discarded as `1.4` features are implemented.
+
+## Activities
+
+Lockscreen, Gallery
+
+```
+{
+  "source": {
+    "data": {
+      "type": "photos"
+    },
+    "name": "record"
+  }
+}
+```
+
+Video
+
+```
+{
+  "source": {
+    "data": {
+      "type": "videos"
+    },
+    "name": "record"
+  }
+}
+```
+
+SMS
+
+```
+{
+  "source": {
+    "data": {
+      "type": ["image/*", "audio/*", "video/*"],
+      "maxFileSizeBytes": 307200
+    },
+    "name": "pick"
+  }
+}
+```
+
+Browser: `input[type="file"]`, `input[type="file"][capture]`
+
+```
+{
+  "source": {
+    "data": {
+      "type": [],
+      "nocrop": true
+    },
+    "name": "pick"
+  }
+}
+```
+
+Browser: `input[type="file"][accept="image/*"]`, `input[type="file"][accept="image/*"][capture]`
+
+```
+{
+  "source": {
+    "data": {
+      "type": ["image/gif", "image/jpeg", "image/pjpeg", "image/png", "image/svg+xml", "image/tiff", "image/vnd.microsoft.icon"],
+      "nocrop": true
+    },
+    "name": "pick"
+  }
+}
+```

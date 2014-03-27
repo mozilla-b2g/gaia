@@ -72,7 +72,10 @@ function App(options) {
  * @public
  */
 App.prototype.boot = function() {
-  this.setInitialMode();
+  if (this.didBoot) {
+    return;
+  }
+
   this.initializeViews();
   this.runControllers();
   this.injectViews();
@@ -81,11 +84,8 @@ App.prototype.boot = function() {
   this.configureL10n();
   this.emit('boot');
   debug('booted');
-};
 
-App.prototype.setInitialMode = function() {
-  var mode = this.activity.mode;
-  if (mode) { this.set('mode', mode, { silent: true }); }
+  this.didBoot = true;
 };
 
 App.prototype.teardown = function() {
