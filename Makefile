@@ -101,7 +101,6 @@ SIMULATOR?=0
 ifeq ($(SIMULATOR),1)
 DESKTOP=1
 NOFTU=1
-NOFTUPING=1
 DEVICE_DEBUG=1
 endif
 
@@ -109,8 +108,6 @@ endif
 DESKTOP?=$(DEBUG)
 # Disable first time experience screen
 NOFTU?=0
-# Disable first time ping
-NOFTUPING?=0
 # Automatically enable remote debugger
 REMOTE_DEBUGGER?=0
 
@@ -122,20 +119,12 @@ endif
 # We also disable FTU when running in Firefox or in debug mode
 ifeq ($(DEBUG),1)
 NOFTU=1
-NOFTUPING=1
 PROFILE_FOLDER?=profile-debug
 else ifeq ($(DESKTOP),1)
 NOFTU=1
-NOFTUPING=1
 PROFILE_FOLDER?=profile-debug
 else ifeq ($(MAKECMDGOALS),test-integration)
 PROFILE_FOLDER?=profile-test
-endif
-
-ifeq ($(NOFTUPING), 0)
-FTU_PING_URL?=https://fxos.telemetry.mozilla.org/submit/telemetry
-else
-$(warning NO_FTU_PING=1)
 endif
 
 PROFILE_FOLDER?=profile
@@ -419,8 +408,7 @@ define BUILD_CONFIG
 	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
 	"SETTINGS_PATH" : "$(SETTINGS_PATH)", \
 	"VARIANT_PATH" : "$(VARIANT_PATH)", \
-	"KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)", \
-	"FTU_PING_URL": "$(FTU_PING_URL)" \
+	"KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)" \
 }
 endef
 export BUILD_CONFIG

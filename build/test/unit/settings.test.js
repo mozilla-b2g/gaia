@@ -197,8 +197,7 @@ suite('settings.js', function() {
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
-          'notification.ringtone': undefined,
-          'ftu.pingURL': config.FTU_PING_URL },
+          'notification.ringtone': undefined },
           result);
         done();
       });
@@ -222,8 +221,7 @@ suite('settings.js', function() {
             '/manifest.webapp',
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
-          'notification.ringtone': undefined,
-          'ftu.pingURL': config.FTU_PING_URL },
+          'notification.ringtone': undefined },
           result);
         done();
       });
@@ -245,8 +243,7 @@ suite('settings.js', function() {
           'debugger.remote-mode': 'disabled',
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
-          'notification.ringtone': undefined,
-          'ftu.pingURL': config.FTU_PING_URL },
+          'notification.ringtone': undefined },
           result);
         done();
       });
@@ -271,8 +268,7 @@ suite('settings.js', function() {
           'lockscreen.locked': false,
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
-          'notification.ringtone': undefined,
-          'ftu.pingURL': config.FTU_PING_URL },
+          'notification.ringtone': undefined },
           result);
         done();
       });
