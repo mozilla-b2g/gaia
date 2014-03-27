@@ -25,12 +25,8 @@ var EmergencyCbManager = {
   cancelButton: null,
 
   init: function ecm_init() {
-
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    this._conn = navigator.mozMobileConnection ||
-      navigator.mozMobileConnections &&
-        navigator.mozMobileConnections[0];
+    this._conn = navigator.mozMobileConnections &&
+                 navigator.mozMobileConnections[0];
 
     // Dom elements
     this.notification =
@@ -171,11 +167,8 @@ var EmergencyCbManager = {
 
 window.addEventListener('localized', function startup(evt) {
   window.removeEventListener('localized', startup);
-  // XXX: check bug-926169
-  // this is used to keep all tests passing while introducing multi-sim APIs
-  var conn = navigator.mozMobileConnection ||
-    navigator.mozMobileConnections &&
-      navigator.mozMobileConnections[0];
+  var conn = navigator.mozMobileConnections &&
+             navigator.mozMobileConnections[0];
 
   if (!conn || !conn.getPreferredNetworkType) {
     return;
