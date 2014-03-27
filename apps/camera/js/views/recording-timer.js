@@ -1,4 +1,4 @@
-define(function(require) {
+define(function(require, exports, module) {
 'use strict';
 
 /**
@@ -7,44 +7,22 @@ define(function(require) {
 
 var debug = require('debug')('view:recording-timer');
 var formatTimer = require('lib/format-timer');
-
 var View = require('vendor/view');
 
 /**
- * Locals
+ * Exports
  */
 
-return View.extend({
+module.exports = View.extend({
   name: 'recording-timer',
-  className: 'recording-timer',
 
   initialize: function() {
-    this.render();
-    debug('rendered');
+    this.value(0);
   },
 
-  render: function() {
-    this.el.classList.add('test-video-timer');
-    this.el.textContent = formatTimer(this.value);
-  },
-
-  value: 0,
-
-  getValue: function() {
-    return this.value;
-  },
-
-  setValue: function(value) {
-    this.value = value;
-    this.el.textContent = formatTimer(this.value);
-  },
-
-  show: function() {
-    this.el.classList.add('active');
-  },
-
-  hide: function() {
-    this.el.classList.remove('active');
+  value: function(value) {
+    this.el.textContent = formatTimer(value);
+    debug('set value: %s', value);
   }
 });
 
