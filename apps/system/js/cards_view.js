@@ -58,6 +58,9 @@ var CardsView = (function() {
    */
   function getIconURI(origin) {
     var app = runningApps[origin];
+    if (!app) {
+      return null;
+    }
     var icons = app.manifest && app.manifest.icons;
     var iconPath;
 
@@ -79,7 +82,12 @@ var CardsView = (function() {
     }
 
     if (iconPath.indexOf('data:') !== 0) {
-      iconPath = origin + iconPath;
+      // We need to resolve iconPath as a relative url to origin, since
+      // origin can be a full url in some apps.
+      var base = document.createElement("a");
+      base.href = origin;
+      var port = base.port ? (":" + port) : "";
+      iconPath = base.protocol + "//" + base.host + port + iconPath;
     }
 
     return iconPath;
