@@ -5152,6 +5152,12 @@ suite('thread_ui.js >', function() {
       ThreadUI.onBeforeEnter();
       sinon.assert.calledOnce(MultiSimActionButton);
     });
+
+    test('Should set the isFocusable value to \'true\'', function() {
+      Recipients.View.isFocusable = false;
+      ThreadUI.onBeforeEnter();
+      assert.isTrue(Recipients.View.isFocusable);
+    });
   });
 
   suite('Keyboard should not close when slightly missing the send button',
