@@ -84,10 +84,10 @@ var CardsView = (function() {
     if (iconPath.indexOf('data:') !== 0) {
       // We need to resolve iconPath as a relative url to origin, since
       // origin can be a full url in some apps.
-      var base = document.createElement("a");
+      var base = document.createElement('a');
       base.href = origin;
-      var port = base.port ? (":" + port) : "";
-      iconPath = base.protocol + "//" + base.host + port + iconPath;
+      var port = base.port ? (':' + port) : '';
+      iconPath = base.protocol + '//' + base.hostname + port + iconPath;
     }
 
     return iconPath;
