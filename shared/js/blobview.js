@@ -249,85 +249,17 @@ var BlobView = (function() {
       return String.fromCharCode.apply(String, bytes);
     },
 
-    // Replace this with the StringEncoding API when we've got it.
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=764234
     getUTF8Text: function(offset, len) {
-      function fail() { throw new Error('Illegal UTF-8'); }
+      var totalOffset = this.viewOffset + offset;
+      var bufferView = new Uint8Array(this.slice, totalOffset, len);
+      var decoded;
 
-      var pos = offset;         // Current position in this.view
-      var end = offset + len;   // Last position
-      var charcode;             // Current charcode
-      var s = '';               // Accumulate the string
-      var b1, b2, b3, b4;       // Up to 4 bytes per charcode
-
-      // See http://en.wikipedia.org/wiki/UTF-8
-      while (pos < end) {
-        var b1 = this.view.getUint8(pos);
-        if (b1 < 128) {
-          s += String.fromCharCode(b1);
-          pos += 1;
-        }
-        else if (b1 < 194) {
-          // unexpected continuation character...
-          fail();
-        }
-        else if (b1 < 224) {
-          // 2-byte sequence
-          if (pos + 1 >= end)
-            fail();
-          b2 = this.view.getUint8(pos + 1);
-          if (b2 < 128 || b2 > 191)
-            fail();
-          charcode = ((b1 & 0x1f) << 6) + (b2 & 0x3f);
-          s += String.fromCharCode(charcode);
-          pos += 2;
-        }
-        else if (b1 < 240) {
-          // 3-byte sequence
-          if (pos + 2 >= end)
-            fail();
-          b2 = this.view.getUint8(pos + 1);
-          if (b2 < 128 || b2 > 191)
-            fail();
-          b3 = this.view.getUint8(pos + 2);
-          if (b3 < 128 || b3 > 191)
-            fail();
-          charcode = ((b1 & 0x0f) << 12) + ((b2 & 0x3f) << 6) + (b3 & 0x3f);
-          s += String.fromCharCode(charcode);
-          pos += 3;
-        }
-        else if (b1 < 245) {
-          // 4-byte sequence
-          if (pos + 3 >= end)
-            fail();
-          b2 = this.view.getUint8(pos + 1);
-          if (b2 < 128 || b2 > 191)
-            fail();
-          b3 = this.view.getUint8(pos + 2);
-          if (b3 < 128 || b3 > 191)
-            fail();
-          b4 = this.view.getUint8(pos + 3);
-          if (b4 < 128 || b4 > 191)
-            fail();
-          charcode = ((b1 & 0x07) << 18) +
-            ((b2 & 0x3f) << 12) +
-            ((b3 & 0x3f) << 6) +
-            (b4 & 0x3f);
-
-          // Now turn this code point into two surrogate pairs
-          charcode -= 0x10000;
-          s += String.fromCharCode(0xd800 + ((charcode & 0x0FFC00) >>> 10));
-          s += String.fromCharCode(0xdc00 + (charcode & 0x0003FF));
-
-          pos += 4;
-        }
-        else {
-          // Illegal byte
-          fail();
-        }
+      try {
+        decoded = TextDecoder('utf-8').decode(bufferView);
+      } catch (e) {
+        throw new Error('Illegal UTF-8');
       }
-
-      return s;
+      return decoded;
     },
 
     readUTF8Text: function(len) {
