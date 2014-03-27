@@ -1,5 +1,5 @@
 'use strict';
-/* global Applications, BrowserConfigHelper, AppWindowManager,
+/* global applications, BrowserConfigHelper, AppWindowManager,
           homescreenLauncher, AppWindow */
 /* jshint nonew: false */
 
