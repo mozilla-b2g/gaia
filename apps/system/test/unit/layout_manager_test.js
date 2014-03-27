@@ -1,5 +1,3 @@
-/* global MocksHelper, LayoutManager, MockKeyboardManager, MockStatusBar,
-          MockSoftwareButtonManager */
 'use strict';
 
 mocha.globals(['OrientationManager']);
@@ -15,73 +13,68 @@ var mocksForLayoutManager = new MocksHelper([
 suite('system/LayoutManager >', function() {
   mocksForLayoutManager.attachTestHelpers();
 
-  var layoutManager;
-  setup(function() {
-    layoutManager = new LayoutManager().start();
-  });
-
   suite('handle events', function() {
     test('resize', function() {
-      var stubPublish = this.sinon.stub(layoutManager, 'publish');
-      layoutManager.handleEvent({
+      var stubPublish = this.sinon.stub(LayoutManager, 'publish');
+      LayoutManager.handleEvent({
         type: 'resize'
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
     });
 
     test('status-active', function() {
-      var stubPublish = this.sinon.stub(layoutManager, 'publish');
-      layoutManager.handleEvent({
+      var stubPublish = this.sinon.stub(LayoutManager, 'publish');
+      LayoutManager.handleEvent({
         type: 'status-active'
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
     });
 
     test('status-inactive', function() {
-      var stubPublish = this.sinon.stub(layoutManager, 'publish');
-      layoutManager.handleEvent({
+      var stubPublish = this.sinon.stub(LayoutManager, 'publish');
+      LayoutManager.handleEvent({
         type: 'status-inactive'
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
     });
 
     test('keyboardchange', function() {
-      var stubPublish = this.sinon.stub(layoutManager, 'publish');
-      layoutManager.handleEvent({
+      var stubPublish = this.sinon.stub(LayoutManager, 'publish');
+      LayoutManager.handleEvent({
         type: 'keyboardchange'
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
-      assert.isTrue(layoutManager.keyboardEnabled);
+      assert.isTrue(LayoutManager.keyboardEnabled);
     });
 
     test('keyboardhide', function() {
-      var stubPublish = this.sinon.stub(layoutManager, 'publish');
-      layoutManager.handleEvent({
+      var stubPublish = this.sinon.stub(LayoutManager, 'publish');
+      LayoutManager.handleEvent({
         type: 'keyboardhide'
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
-      assert.isFalse(layoutManager.keyboardEnabled);
+      assert.isFalse(LayoutManager.keyboardEnabled);
     });
 
     test('mozfullscreenchange', function() {
-      var stubPublish = this.sinon.stub(layoutManager, 'publish');
-      layoutManager.handleEvent({
+      var stubPublish = this.sinon.stub(LayoutManager, 'publish');
+      LayoutManager.handleEvent({
         type: 'mozfullscreenchange'
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
     });
 
     test('software-button-enabled', function() {
-      var stubPublish = this.sinon.stub(layoutManager, 'publish');
-      layoutManager.handleEvent({
+      var stubPublish = this.sinon.stub(LayoutManager, 'publish');
+      LayoutManager.handleEvent({
         type: 'software-button-enabled'
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
     });
 
     test('software-button-disabled', function() {
-      var stubPublish = this.sinon.stub(layoutManager, 'publish');
-      layoutManager.handleEvent({
+      var stubPublish = this.sinon.stub(LayoutManager, 'publish');
+      LayoutManager.handleEvent({
         type: 'software-button-disabled'
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
@@ -95,13 +88,13 @@ suite('system/LayoutManager >', function() {
     MockKeyboardManager.mHeight = 100;
     MockStatusBar.height = 30;
     MockSoftwareButtonManager.height = 50;
-    layoutManager.keyboardEnabled = true;
-    assert.equal(layoutManager.usualHeight, H - 100 - 30 - 50);
-    assert.equal(layoutManager.fullscreenHeight, H - 100 - 50);
-    assert.equal(layoutManager.width, W);
-    assert.equal(layoutManager.clientWidth, _w);
+    LayoutManager.keyboardEnabled = true;
+    assert.equal(LayoutManager.usualHeight, H - 100 - 30 - 50);
+    assert.equal(LayoutManager.fullscreenHeight, H - 100 - 50);
+    assert.equal(LayoutManager.width, W);
+    assert.equal(LayoutManager.clientWidth, _w);
 
-    assert.isTrue(layoutManager.match(W, H - 100 - 30 - 50, false));
-    assert.isTrue(layoutManager.match(W, H - 100 - 50, true));
+    assert.isTrue(LayoutManager.match(W, H - 100 - 30 - 50, false));
+    assert.isTrue(LayoutManager.match(W, H - 100 - 50, true));
   });
 });

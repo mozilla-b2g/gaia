@@ -1,9 +1,6 @@
-/* global MocksHelper, LayoutManager, MockAppWindow, AppTransitionController,
-          layoutManager */
 'use strict';
 
-mocha.globals(['AppTransitionController', 'AppWindow', 'System',
-               'layoutManager']);
+mocha.globals(['AppTransitionController', 'AppWindow', 'System']);
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_layout_manager.js');
@@ -19,8 +16,6 @@ suite('system/AppTransitionController', function() {
   setup(function(done) {
     this.sinon.useFakeTimers();
 
-    window.layoutManager = new LayoutManager().start();
-
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/system.js');
@@ -28,8 +23,6 @@ suite('system/AppTransitionController', function() {
   });
 
   teardown(function() {
-    delete window.layoutManager;
-
     stubById.restore();
   });
 
@@ -119,7 +112,7 @@ suite('system/AppTransitionController', function() {
 
   suite('Opened', function() {
     test('Handle opened', function() {
-      var stubMatch = this.sinon.stub(layoutManager, 'match');
+      var stubMatch = this.sinon.stub(MockLayoutManager, 'match');
       stubMatch.returns(false);
       var app1 = new MockAppWindow(fakeAppConfig1);
       var acn1 = new AppTransitionController(app1);
@@ -133,7 +126,7 @@ suite('system/AppTransitionController', function() {
     });
 
     test('Handle opened and layout is not matched', function() {
-      var stubMatch = this.sinon.stub(layoutManager, 'match');
+      var stubMatch = this.sinon.stub(MockLayoutManager, 'match');
       stubMatch.returns(false);
       var app1 = new MockAppWindow(fakeAppConfig1);
       var acn1 = new AppTransitionController(app1);

@@ -59,8 +59,7 @@ mocha.globals([
   'visibilityManager',
   'Applications',
   'activityWindowFactory',
-  'homescreenLauncher',
-  'layoutManager'
+  'homescreenLauncher'
 ]);
 
 var mocksForBootstrap = new MocksHelper([

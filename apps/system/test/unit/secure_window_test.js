@@ -11,17 +11,20 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'KeyboardManager', 'StatusBar', 'BrowserMixin',
       'SoftwareButtonManager', 'AppWindow', 'SecureWindow',
       'OrientationManager', 'SettingsListener', 'BrowserFrame',
-      'BrowserConfigHelper', 'System', 'AppTransitionController', 'stubById']);
+      'BrowserConfigHelper', 'System', 'LayoutManager',
+      'AppTransitionController', 'stubById']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
+requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 
 var mocksForSecureWindowManager = new window.MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'ScreenLayout'
+  'ManifestHelper', 'LayoutManager',
+  'ScreenLayout'
 ]).init();
 
 suite('system/SecureWindow', function() {

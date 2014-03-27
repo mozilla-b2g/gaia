@@ -7,7 +7,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
       'lockScreen', 'OrientationManager', 'BrowserFrame',
       'BrowserConfigHelper', 'System', 'BrowserMixin', 'TransitionMixin',
-      'homescreenLauncher', 'layoutManager']);
+      'homescreenLauncher', 'LayoutManager']);
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_lock_screen.js');
@@ -45,7 +45,6 @@ suite('system/AppWindowManager', function() {
     window.lockScreen = MockLockScreen;
     window.activityWindowFactory = new ActivityWindowFactory();
     window.activityWindowFactory.start();
-    window.layoutManager = new LayoutManager().start();
 
     home = new HomescreenWindow('fakeHome');
     window.homescreenLauncher = new HomescreenLauncher().start();
@@ -71,7 +70,6 @@ suite('system/AppWindowManager', function() {
     delete window.lockScreen;
     window.activityWindowFactory.stop();
     delete window.activityWindowFactory;
-    delete window.layoutManager;
     // MockHelper won't invoke mTeardown() for us
     // since MockHomescreenLauncher is instantiable now
     window.homescreenLauncher.mTeardown();

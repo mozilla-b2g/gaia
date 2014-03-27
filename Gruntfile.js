@@ -10,16 +10,12 @@ module.exports = function(grunt) {
     jsdoc: {
       system: {
         src: ['apps/system/js/**/*.js',
-              // XXX Remove the following exclusion after related javascript
-              // features are supported by JSDocs parser.
               '!apps/system/js/airplane_mode.js',
               '!apps/system/js/sound_manager.js',
               '!apps/system/js/title.js',
               '!apps/system/js/value_selector/date_picker.js',
               '!apps/system/js/value_selector/spin_date_picker.js',
-              '!apps/system/js/lockscreen.js',
-              '!apps/system/js/edge_swipe_detector.js',
-              '!apps/system/js/stack_manager.js',],
+              '!apps/system/js/lockscreen.js'],
         options: {
           destination: 'docs/system'
         }
