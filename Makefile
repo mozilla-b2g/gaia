@@ -59,12 +59,85 @@
 #                                                                             #
 ###############################################################################
 
+MAKEFLAGS=-r
+
 -include local.mk
 
 # .b2g.mk recorded the make flags from Android.mk
 # This ensures |./flash.sh gaia| follows |./build.sh gaia| will pick up the same
 # flags.
 -include .b2g.mk
+
+GAIA_DIR := $(CURDIR)
+
+# what OS are we on?
+SYS=$(shell uname -s)
+ARCH?=$(shell uname -m)
+MSYS_FIX=
+ifeq (${SYS}/${ARCH},Darwin/i386)
+ARCH=x86_64
+endif
+SEP=/
+SEP_FOR_SED=/
+ifneq (,$(findstring MINGW32_,$(SYS)))
+GAIA_DIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
+SEP=\\
+SEP_FOR_SED=\\\\
+# Mingw mangle path and append c:\mozilla-build\msys\data in front of paths
+MSYS_FIX=/
+endif
+
+# The install-xulrunner target arranges to get xulrunner downloaded and sets up
+# some commands for invoking it. But it is platform dependent
+# IMPORTANT: you should generally change the directory name when you change the
+# URL unless you know what you're doing
+XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2013/08/2013-08-07-03-02-16-mozilla-central/xulrunner-26.0a1.en-US.
+XULRUNNER_BASE_DIRECTORY?=xulrunner-sdk-26
+XULRUNNER_DIRECTORY?=$(XULRUNNER_BASE_DIRECTORY)/xulrunner-sdk
+XULRUNNER_URL_FILE=$(XULRUNNER_BASE_DIRECTORY)/.url
+
+ifeq ($(SYS),Darwin)
+# For mac we have the xulrunner-sdk so check for this directory
+# We're on a mac
+XULRUNNER_MAC_SDK_URL=$(XULRUNNER_SDK_URL)mac-
+ifeq ($(ARCH),i386)
+# 32-bit
+XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_MAC_SDK_URL)i386.sdk.tar.bz2
+else
+# 64-bit
+XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_MAC_SDK_URL)x86_64.sdk.tar.bz2
+endif
+XULRUNNERSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/run-mozilla.sh)
+XPCSHELLSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/xpcshell)
+
+else ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
+# For windows we only have one binary
+XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_SDK_URL)win32.sdk.zip
+XULRUNNERSDK=
+XPCSHELLSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/xpcshell)
+
+else
+# Otherwise, assume linux
+# downloads and installs locally xulrunner to run the xpchsell
+# script that creates the offline cache
+XULRUNNER_LINUX_SDK_URL=$(XULRUNNER_SDK_URL)linux-
+ifeq ($(ARCH),x86_64)
+XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_LINUX_SDK_URL)x86_64.sdk.tar.bz2
+else
+XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_LINUX_SDK_URL)i686.sdk.tar.bz2
+endif
+XULRUNNERSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/run-mozilla.sh)
+XPCSHELLSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/xpcshell)
+endif
+
+# It's difficult to figure out XULRUNNERSDK in subprocesses; it's complex and
+# some builders may want to override our find logic (ex: TBPL).
+# So let's export these variables to external processes.
+export XULRUNNER_DIRECTORY XULRUNNERSDK XPCSHELLSDK
+export SYS
+export GAIA_DIR
+export SEP
+export SEP_FOR_SED
 
 # Headless bot does not need the full output of wget
 # and it can cause crashes in bot.io option is here so
@@ -129,8 +202,8 @@ endif
 
 PROFILE_FOLDER?=profile
 
-STAGE_FOLDER?=build_stage
-export STAGE_FOLDER
+STAGE_DIR?=$(GAIA_DIR)$(SEP)build_stage
+export STAGE_DIR
 
 LOCAL_DOMAINS?=1
 
@@ -220,42 +293,19 @@ endif
 # Force bash for all shell commands since we depend on bash-specific syntax
 SHELL := /bin/bash
 
-# what OS are we on?
-SYS=$(shell uname -s)
-ARCH?=$(shell uname -m)
-MSYS_FIX=
-ifeq (${SYS}/${ARCH},Darwin/i386)
-ARCH=x86_64
-endif
-SEP=/
-SEP_FOR_SED=/
-ifneq (,$(findstring MINGW32_,$(SYS)))
-CURDIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
-SEP=\\
-SEP_FOR_SED=\\\\
-GAIA_BUILD_DIR := file:///$(shell pwd -W)/build/
-# Mingw mangle path and append c:\mozilla-build\msys\data in front of paths
-MSYS_FIX=/
-else
-GAIA_BUILD_DIR := file://$(CURDIR)/build/
-endif
-
-export SYS
-export GAIA_BUILD_DIR
-
 ifndef GAIA_APP_CONFIG
-GAIA_APP_CONFIG=build$(SEP)config$(SEP)apps-$(GAIA_APP_TARGET).list
+GAIA_APP_CONFIG=$(GAIA_DIR)$(SEP)build$(SEP)config$(SEP)apps-$(GAIA_APP_TARGET).list
 endif
 
 ifndef GAIA_DISTRIBUTION_DIR
-  GAIA_DISTRIBUTION_DIR := $(CURDIR)$(SEP)distribution
+  GAIA_DISTRIBUTION_DIR := $(GAIA_DIR)$(SEP)distribution
 else
-	ifneq (,$(findstring MINGW32_,$(SYS)))
-		GAIA_DISTRIBUTION_DIR := $(shell pushd $(GAIA_DISTRIBUTION_DIR) > /dev/null; \
-			pwd -W | sed 's|/|\\\\|g'; popd > /dev/null;)
-	else
-		GAIA_DISTRIBUTION_DIR := $(realpath $(GAIA_DISTRIBUTION_DIR))
-	endif
+  ifneq (,$(findstring MINGW32_,$(SYS)))
+    GAIA_DISTRIBUTION_DIR := $(shell pushd $(GAIA_DISTRIBUTION_DIR) > /dev/null; \
+      pwd -W | sed 's|/|\\\\|g'; popd > /dev/null;)
+  else
+    GAIA_DISTRIBUTION_DIR := $(realpath $(GAIA_DISTRIBUTION_DIR))
+  endif
 endif
 export GAIA_DISTRIBUTION_DIR
 
@@ -263,26 +313,26 @@ SETTINGS_PATH := build/config/custom-settings.json
 KEYBOARD_LAYOUTS_PATH := build/config/keyboard-layouts.json
 
 ifdef GAIA_DISTRIBUTION_DIR
-	DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
-	DISTRIBUTION_CONTACTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)contacts.json
-	DISTRIBUTION_APP_CONFIG := $(GAIA_DISTRIBUTION_DIR)$(SEP)apps.list
-	DISTRIBUTION_VARIANT := $(GAIA_DISTRIBUTION_DIR)$(SEP)variant.json
-	DISTRIBUTION_KEYBOARD_LAYOUTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)keyboard-layouts.json
-	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
-		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
-	endif
-	ifneq ($(wildcard $(DISTRIBUTION_CONTACTS)),)
-		CONTACTS_PATH := $(DISTRIBUTION_CONTACTS)
-	endif
-	ifneq ($(wildcard $(DISTRIBUTION_APP_CONFIG)),)
-		GAIA_APP_CONFIG := $(DISTRIBUTION_APP_CONFIG)
-	endif
-	ifneq ($(wildcard $(DISTRIBUTION_VARIANT)),)
-		VARIANT_PATH := $(DISTRIBUTION_VARIANT)
-	endif
-	ifneq ($(wildcard $(DISTRIBUTION_KEYBOARD_LAYOUTS)),)
-		KEYBOARD_LAYOUTS_PATH := $(DISTRIBUTION_KEYBOARD_LAYOUTS)
-	endif
+  DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
+  DISTRIBUTION_CONTACTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)contacts.json
+  DISTRIBUTION_APP_CONFIG := $(GAIA_DISTRIBUTION_DIR)$(SEP)apps.list
+  DISTRIBUTION_VARIANT := $(GAIA_DISTRIBUTION_DIR)$(SEP)variant.json
+  DISTRIBUTION_KEYBOARD_LAYOUTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)keyboard-layouts.json
+  ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
+    SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
+  endif
+  ifneq ($(wildcard $(DISTRIBUTION_CONTACTS)),)
+    CONTACTS_PATH := $(DISTRIBUTION_CONTACTS)
+  endif
+  ifneq ($(wildcard $(DISTRIBUTION_APP_CONFIG)),)
+    GAIA_APP_CONFIG := $(DISTRIBUTION_APP_CONFIG)
+  endif
+  ifneq ($(wildcard $(DISTRIBUTION_VARIANT)),)
+    VARIANT_PATH := $(DISTRIBUTION_VARIANT)
+  endif
+  ifneq ($(wildcard $(DISTRIBUTION_KEYBOARD_LAYOUTS)),)
+    KEYBOARD_LAYOUTS_PATH := $(DISTRIBUTION_KEYBOARD_LAYOUTS)
+  endif
 endif
 
 # Read the file specified in $GAIA_APP_CONFIG and turn them into $GAIA_APPDIRS,
@@ -302,19 +352,19 @@ $(warning GAIA_APP_SRCDIRS is deprecated, please use GAIA_APP_CONFIG)
 endif
 
 GAIA_APPDIRS=$(shell while read LINE; do \
-	if [ "$${LINE\#$${LINE%?}}" = "*" ]; then \
-		srcdir="`echo "$$LINE" | sed 's/.\{2\}$$//'`"; \
-		[ -d $(CURDIR)$(SEP)$$srcdir ] && find -L $(CURDIR)$(SEP)$$srcdir -mindepth 1 -maxdepth 1 -type d | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-		[ -d $(GAIA_DISTRIBUTION_DIR)$(SEP)$$srcdir ] && find -L $(GAIA_DISTRIBUTION_DIR)$(SEP)$$srcdir -mindepth 1 -maxdepth 1 -type d | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-	else \
+  if [ "$${LINE\#$${LINE%?}}" = "*" ]; then \
+    srcdir="`echo "$$LINE" | sed 's/.\{2\}$$//'`"; \
+    [ -d $(GAIA_DIR)$(SEP)$$srcdir ] && find -L $(GAIA_DIR)$(SEP)$$srcdir -mindepth 1 -maxdepth 1 -type d | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
+    [ -d $(GAIA_DISTRIBUTION_DIR)$(SEP)$$srcdir ] && find -L $(GAIA_DISTRIBUTION_DIR)$(SEP)$$srcdir -mindepth 1 -maxdepth 1 -type d | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
+  else \
     if [ -d "$(GAIA_DISTRIBUTION_DIR)$(SEP)$$LINE" ]; then \
       echo "$(GAIA_DISTRIBUTION_DIR)$(SEP)$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-    elif [ -d "$(CURDIR)$(SEP)$$LINE" ]; then \
-		  echo "$(CURDIR)$(SEP)$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
+    elif [ -d "$(GAIA_DIR)$(SEP)$$LINE" ]; then \
+      echo "$(GAIA_DIR)$(SEP)$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
     elif [ -d "$$LINE" ]; then \
       echo "$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
     fi \
-	fi \
+  fi \
 done < $(GAIA_APP_CONFIG))
 
 ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
@@ -326,7 +376,7 @@ endif
 
 GAIA_LOCALES_PATH?=locales
 LOCALES_FILE?=shared/resources/languages.json
-GAIA_LOCALE_SRCDIRS=$(CURDIR)$(SEP)shared $(GAIA_APPDIRS)
+GAIA_LOCALE_SRCDIRS=$(GAIA_DIR)$(SEP)shared $(GAIA_APPDIRS)
 GAIA_DEFAULT_LOCALE?=en-US
 GAIA_INLINE_LOCALES?=1
 GAIA_CONCAT_LOCALES?=1
@@ -349,11 +399,11 @@ endif
 # Test agent setup
 TEST_COMMON=test_apps/test-agent/common
 ifeq ($(strip $(NODEJS)),)
-	NODEJS := `which node`
+  NODEJS := `which node`
 endif
 
 ifeq ($(strip $(NPM)),)
-	NPM := `which npm`
+  NPM := `which npm`
 endif
 
 TEST_AGENT_CONFIG="./test_apps/test-agent/config.json"
@@ -368,138 +418,173 @@ PYTHON_MAJOR := $(word 1,$(PYTHON_FULL))
 PYTHON_MINOR := $(word 2,$(PYTHON_FULL))
 MARIONETTE_HOST ?= localhost
 MARIONETTE_PORT ?= 2828
-TEST_DIRS ?= $(CURDIR)/tests
+TEST_DIRS ?= $(GAIA_DIR)/tests
 
-define BUILD_CONFIG
+define get-build-config
 { \
-	"ADB" : "$(adb)", \
-	"GAIA_DIR" : "$(CURDIR)", \
-	"PROFILE_DIR" : "$(CURDIR)$(SEP)$(PROFILE_FOLDER)", \
-	"PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
-	"GAIA_SCHEME" : "$(SCHEME)", \
-	"GAIA_DOMAIN" : "$(GAIA_DOMAIN)", \
-	"DEBUG" : $(DEBUG), \
-	"LOCAL_DOMAINS" : $(LOCAL_DOMAINS), \
-	"DESKTOP" : $(DESKTOP), \
-	"DEVICE_DEBUG" : $(DEVICE_DEBUG), \
-	"NO_LOCK_SCREEN" : $(NO_LOCK_SCREEN), \
-	"HOMESCREEN" : "$(HOMESCREEN)", \
-	"GAIA_PORT" : "$(GAIA_PORT)", \
-	"GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)", \
-	"GAIA_INSTALL_PARENT" : "$(GAIA_INSTALL_PARENT)", \
-	"LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
-	"GAIA_KEYBOARD_LAYOUTS" : "$(GAIA_KEYBOARD_LAYOUTS)", \
-	"LOCALE_BASEDIR" : "$(subst \,\\,$(LOCALE_BASEDIR))", \
-	"BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
-	"PRODUCTION" : "$(PRODUCTION)", \
-	"GAIA_OPTIMIZE" : "$(GAIA_OPTIMIZE)", \
-	"GAIA_DEV_PIXELS_PER_PX" : "$(GAIA_DEV_PIXELS_PER_PX)", \
-	"DOGFOOD" : "$(DOGFOOD)", \
-	"OFFICIAL" : "$(MOZILLA_OFFICIAL)", \
-	"GAIA_DEFAULT_LOCALE" : "$(GAIA_DEFAULT_LOCALE)", \
-	"GAIA_INLINE_LOCALES" : "$(GAIA_INLINE_LOCALES)", \
-	"GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)", \
-	"GAIA_ENGINE" : "xpcshell", \
-	"GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)", \
-	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
-	"NOFTU" : "$(NOFTU)", \
-	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
-	"ROCKETBAR" : "$(ROCKETBAR)", \
-	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
-	"SETTINGS_PATH" : "$(SETTINGS_PATH)", \
-	"VARIANT_PATH" : "$(VARIANT_PATH)", \
-	"KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)" \
+  "ADB" : "$(adb)", \
+  "GAIA_DIR" : "$(GAIA_DIR)", \
+  "PROFILE_DIR" : "$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)", \
+  "PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
+  "GAIA_SCHEME" : "$(SCHEME)", \
+  "GAIA_DOMAIN" : "$(GAIA_DOMAIN)", \
+  "DEBUG" : $(DEBUG), \
+  "LOCAL_DOMAINS" : $(LOCAL_DOMAINS), \
+  "DESKTOP" : $(DESKTOP), \
+  "DEVICE_DEBUG" : $(DEVICE_DEBUG), \
+  "NO_LOCK_SCREEN" : $(NO_LOCK_SCREEN), \
+  "HOMESCREEN" : "$(HOMESCREEN)", \
+  "GAIA_PORT" : "$(GAIA_PORT)", \
+  "GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)", \
+  "GAIA_INSTALL_PARENT" : "$(GAIA_INSTALL_PARENT)", \
+  "LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
+  "GAIA_KEYBOARD_LAYOUTS" : "$(GAIA_KEYBOARD_LAYOUTS)", \
+  "LOCALE_BASEDIR" : "$(subst \,\\,$(LOCALE_BASEDIR))", \
+  "BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
+  "PRODUCTION" : "$(PRODUCTION)", \
+  "GAIA_OPTIMIZE" : "$(GAIA_OPTIMIZE)", \
+  "GAIA_DEV_PIXELS_PER_PX" : "$(GAIA_DEV_PIXELS_PER_PX)", \
+  "DOGFOOD" : "$(DOGFOOD)", \
+  "OFFICIAL" : "$(MOZILLA_OFFICIAL)", \
+  "GAIA_DEFAULT_LOCALE" : "$(GAIA_DEFAULT_LOCALE)", \
+  "GAIA_INLINE_LOCALES" : "$(GAIA_INLINE_LOCALES)", \
+  "GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)", \
+  "GAIA_ENGINE" : "xpcshell", \
+  "GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)", \
+  "GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
+  "NOFTU" : "$(NOFTU)", \
+  "REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
+  "ROCKETBAR" : "$(ROCKETBAR)", \
+  "TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
+  "SETTINGS_PATH" : "$(SETTINGS_PATH)", \
+  "KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)", \
+  "STAGE_DIR" : "$(STAGE_DIR)", \
+  "STAGE_APP_DIR" : "$(1)", \
+  "APP_DIR" : "$(GAIA_DIR)/$(2)", \
+  "VARIANT_PATH" : "$(VARIANT_PATH)" \
 }
 endef
+
+BUILD_CONFIG := $(call get-build-config)
 export BUILD_CONFIG
 
-define run-build-test
-	./node_modules/.bin/mocha \
-		--harmony \
-		--reporter spec \
-		--ui tdd \
-		--timeout 0 \
-		$(strip $1)
+define atomic-copy
+	$(eval TEMPFILE:=$(shell mktemp /tmp/$(shell basename $(1)).XXXXXX))
+	@cat $(1) > $(TEMPFILE) && mv $(TEMPFILE) $(2)
 endef
 
-# Generate profile/
+include build/common.mk
 
-$(PROFILE_FOLDER): preferences app-makefiles keyboard-layouts copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+# copy template function for each apps in build_stage, it can avoid copy again
+# if the app doesn't have any change.
+define app-makefile-template
+$(1): $(call rwildcard,$(2),*) $(XULRUNNER_BASE_DIRECTORY) | $(STAGE_DIR)
+	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
+		if [[ -e "$(2)/Makefile" ]]; then \
+			echo "execute Makefile for $(shell basename $(2)) app" ; \
+			STAGE_APP_DIR="../../build_stage/$(shell basename $(2))" make -C "$(2)" ; \
+		else \
+			echo "copy $(shell basename $(2)) to build_stage/" ; \
+			rm -rf "$(STAGE_DIR)/$(shell basename $(2))"; \
+			cp -r "$(2)" $(STAGE_DIR) ; \
+			if [[ -e "$(2)/build/build.js" ]]; then \
+				echo "execute $(shell basename $(2))/build/build.js"; \
+				export APP_DIR=$(2); \
+				$(call run-js-command,app/build); \
+			fi; \
+		fi; \
+		$(call clean-build-files,$(STAGE_DIR)/$(shell basename $(2))); \
+	fi;
+endef
+
+define test-agent-bootstrap-apps-template
+$(1)$(SEP)test$(SEP)unit$(SEP)_sandbox.html $(1)$(SEP)test$(SEP)unit$(SEP)_proxy.html: $(TEST_COMMON)$(SEP)test$(SEP)boilerplate$(SEP)_proxy.html $(TEST_COMMON)$(SEP)test$(SEP)boilerplate$(SEP)_sandbox.html
+	@if [[ "$(SYS)" != *MINGW32_* ]]; then \
+		mkdir -p $(1)$(SEP)test$(SEP)unit ; \
+		mkdir -p $(1)$(SEP)test$(SEP)integration ; \
+	else \
+		mkdir -p `echo "$(1)" | sed 's|^\(\w\):|/\1|g' | sed 's|\\\\|/|g'`/test/unit ; \
+		mkdir -p `echo "$(1)" | sed 's|^\(\w\):|/\1|g' | sed 's|\\\\|/|g'`/test/integration ; \
+	fi;
+	@echo "Copying _proxy.html and _sandbox.html for `basename $(1)`"
+	@$(call atomic-copy,$(TEST_COMMON)$(SEP)test$(SEP)boilerplate$(SEP)_proxy.html,$(1)$(SEP)test$(SEP)unit$(SEP)_proxy.html);
+	@$(call atomic-copy,$(TEST_COMMON)$(SEP)test$(SEP)boilerplate$(SEP)_sandbox.html,$(1)$(SEP)test$(SEP)unit$(SEP)_sandbox.html);
+endef
+
+BUILD_STAGE_APPS := $(foreach appdir,$(GAIA_APPDIRS),$(STAGE_DIR)$(SEP)$(shell basename $(appdir)))
+TEST_AGENT_TEMPLATE_FILES := $(foreach appdir,$(GAIA_APPDIRS),$(appdir)$(SEP)test$(SEP)unit$(SEP)_sandbox.html $(appdir)$(SEP)test$(SEP)unit$(SEP)_proxy.html)
+
+# Generate profile/
+$(PROFILE_FOLDER): preferences $(BUILD_STAGE_APPS) keyboard-layouts copy-build-stage-manifest test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
 
-svoperapps: install-xulrunner-sdk
-	@$(call run-js-command, svoperapps)
+$(STAGE_DIR):
+	mkdir -p $@
+
+$(foreach appdir,$(GAIA_APPDIRS), \
+	$(eval $(call app-makefile-template,$(STAGE_DIR)$(SEP)$(shell basename $(appdir)),$(appdir))) \
+	$(eval $(call test-agent-bootstrap-apps-template,$(appdir))) \
+)
+
+# Keyboard app needs keyboard_layouts.json from |keyboard-layouts|
+$(STAGE_DIR)$(SEP)keyboard: keyboard-layouts
+
+# Homescreen app needs webapps-mapping.json from |webapp-manifests| and
+# singlevariantconf.json from |svoperapps|
+$(STAGE_DIR)$(SEP)homescreen: webapp-manifests svoperapps
+
+svoperapps: $(XULRUNNER_BASE_DIRECTORY)
+	@$(call run-js-command,svoperapps)
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
-.PHONY: app-makefiles
-# Applications may want to perform their own build steps.  (For example, the
-# clock and e-mail apps use r.js to perform optimization steps.)  These steps
-# may produce the following output consumed by other tooling:
-# - build_stage/APPNAME/*: This is where the build output goes.
-#   build/webapp-zip.js knows about this directory.
-# - build_stage/APPNAME/gaia_shared.json: This file lists shared resource
-#   dependencies that build/webapp-zip.js's detection logic might not determine
-#   because of lazy loading, etc.
-app-makefiles: svoperapps webapp-manifests keyboard-layouts install-xulrunner-sdk
-	@for d in ${GAIA_APPDIRS}; \
-	do \
-		if [[ ("$$d" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
-			for mfile in `find $$d -mindepth 1 -maxdepth 1 -name "Makefile"` ;\
-			do \
-				make -C `dirname $$mfile` || exit 1 ;\
-			done; \
-		fi; \
-	done;
-
-.PHONY: webapp-manifests
 # Generate $(PROFILE_FOLDER)/webapps/
 # We duplicate manifest.webapp to manifest.webapp and manifest.json
 # to accommodate Gecko builds without bug 757613. Should be removed someday.
 #
-# We depend on app-makefiles so that per-app Makefiles could modify the manifest
+# We depend on $(BUILD_STAGE_APPS) so that per-app Makefiles could modify the manifest
 # as part of their build step.  None currently do this, and webapp-manifests.js
 # would likely want to change to see if the build directory includes a manifest
-# in that case.  Right now this is just making sure we don't race app-makefiles
+# in that case.  Right now this is just making sure we don't race $(BUILD_STAGE_APPS)
 # in case someone does decide to get fancy.
-webapp-manifests: install-xulrunner-sdk
-	@$(call run-js-command, webapp-manifests)
+webapp-manifests: $(XULRUNNER_BASE_DIRECTORY)
+	@$(call run-js-command,webapp-manifests)
 
 .PHONY: webapp-zip
 # Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-webapp-zip: webapp-optimize app-makefiles keyboard-layouts install-xulrunner-sdk
+webapp-zip: webapp-optimize $(BUILD_STAGE_APPS) keyboard-layouts $(XULRUNNER_BASE_DIRECTORY)
 ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
-	@$(call run-js-command, webapp-zip)
+	@$(call run-js-command,webapp-zip)
 endif
 
 .PHONY: webapp-optimize
 # Web app optimization steps (like precompling l10n, concatenating js files, etc..).
-# You need xulrunner (install-xulrunner-sdk) to do this, and you need the app
-# to have been built (app-makefiles).
-webapp-optimize: app-makefiles install-xulrunner-sdk
-	@$(call run-js-command, webapp-optimize)
+# You need xulrunner ($(XULRUNNER_BASE_DIRECTORY)) to do this, and you need the app
+# to have been built ($(BUILD_STAGE_APPS)).
+webapp-optimize: $(BUILD_STAGE_APPS) $(XULRUNNER_BASE_DIRECTORY)
+	@$(call run-js-command,webapp-optimize)
 
 .PHONY: optimize-clean
 # Remove temporary l10n files created by the webapp-optimize step.  Because
 # webapp-zip wants these files to still be around during the zip stage, depend
 # on webapp-zip so it runs to completion before we start the cleanup.
-optimize-clean: webapp-zip install-xulrunner-sdk
-	@$(call run-js-command, optimize-clean)
+optimize-clean: webapp-zip $(XULRUNNER_BASE_DIRECTORY)
+	@$(call run-js-command,optimize-clean)
 
 .PHONY: keyboard-layouts
 # A separate step for shared/ folder to generate its content in build time
- keyboard-layouts: webapp-manifests install-xulrunner-sdk
-	@$(call run-js-command, keyboard-layouts)
+ keyboard-layouts: webapp-manifests $(XULRUNNER_BASE_DIRECTORY)
+	@$(call run-js-command,keyboard-layouts)
 
 # Get additional extensions
 $(PROFILE_FOLDER)/installed-extensions.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
 ifeq ($(SIMULATOR),1)
 	# Prevent installing external firefox helper addon for the simulator
 else ifeq ($(DESKTOP),1)
-	@$(call run-js-command, additional-extensions)
+	@$(call run-js-command,additional-extensions)
 endif
 
 profile-dir:
@@ -517,7 +602,7 @@ endif
 endif
 
 # Create webapps
-offline: app-makefiles optimize-clean
+offline: $(BUILD_STAGE_APPS) optimize-clean
 
 # Create an empty reference workload
 .PHONY: reference-workload-empty
@@ -543,7 +628,6 @@ reference-workload-heavy:
 .PHONY: reference-workload-x-heavy
 reference-workload-x-heavy:
 	test_media/reference-workload/makeReferenceWorkload.sh x-heavy
-
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
@@ -603,8 +687,7 @@ xulrunner_sdk:
 print-xulrunner-sdk:
 	@echo "$(XULRUNNER_DIRECTORY)"
 
-.PHONY: install-xulrunner-sdk
-install-xulrunner-sdk:
+$(XULRUNNER_BASE_DIRECTORY):
 	@echo "XULrunner directory: $(XULRUNNER_DIRECTORY)"
 ifndef USE_LOCAL_XULRUNNER_SDK
 ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell test -d $(XULRUNNER_DIRECTORY) && cat $(XULRUNNER_URL_FILE) 2> /dev/null))
@@ -626,28 +709,6 @@ endif # MINGW32
 	@echo $(XULRUNNER_SDK_DOWNLOAD) > $(XULRUNNER_URL_FILE)
 endif # XULRUNNER_SDK_DOWNLOAD
 endif # USE_LOCAL_XULRUNNER_SDK
-
-define run-js-command
-# When an xpcshell module throws exception which is already captured by
-# JavaScript module, some exceptions will make xpcshell returns error code.
-# We put quit(0); to override the return code when all exceptions are handled
-# in JavaScript module.
-	echo "run-js-command $1";
-	$(XULRUNNERSDK) $(XPCSHELLSDK) \
-		-e "const GAIA_BUILD_DIR='$(GAIA_BUILD_DIR)'" \
-		-f build/xpcshell-commonjs.js \
-		-e "try { require('$(strip $1)').execute($$BUILD_CONFIG); quit(0);} \
-			catch(e) { \
-				dump('Exception: ' + e + '\n' + e.stack + '\n'); \
-				throw(e); \
-			}"
-endef
-
-define run-node-command
-	echo "run-node-command $1";
-	node --harmony -e \
-	"require('./build/$(strip $1).js').execute($$BUILD_CONFIG)"
-endef
 
 # Optional files that may be provided to extend the set of default
 # preferences installed for gaia.  If the preferences in these files
@@ -672,9 +733,9 @@ PARTNER_PREF_FILES = \
   partner-prefs.js\
 
 # Generate profile/prefs.js
-preferences: profile-dir install-xulrunner-sdk
+preferences: profile-dir $(XULRUNNER_BASE_DIRECTORY)
 ifeq ($(BUILD_APP_NAME),*)
-	@$(call run-js-command, preferences)
+	@$(call run-js-command,preferences)
 	@$(foreach prefs_file,$(addprefix build/config/,$(EXTENDED_PREF_FILES)),\
 	  if [ -f $(prefs_file) ]; then \
 	    cat $(prefs_file) >> $(PROFILE_FOLDER)/user.js; \
@@ -777,7 +838,7 @@ test-perf:
 	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" ./bin/gaia-perf-marionette
 
 .PHONY: tests
-tests: app-makefiles offline
+tests: $(BUILD_STAGE_APPS) offline
 	echo "Checking if the mozilla build has tests enabled..."
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."
@@ -803,7 +864,7 @@ update-common: common-install
 
 # Create the json config file
 # for use with the test agent GUI
-test-agent-config: test-agent-bootstrap-apps
+test-agent-config: $(TEST_AGENT_TEMPLATE_FILES)
 ifeq ($(BUILD_APP_NAME),*)
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)
@@ -823,24 +884,6 @@ ifeq ($(BUILD_APP_NAME),*)
 	@echo '  ]}' >> $(TEST_AGENT_CONFIG);
 	@echo "Finished: test ui config file: $(TEST_AGENT_CONFIG)"
 	@rm -f /tmp/test-agent-config
-endif
-
-.PHONY: test-agent-bootstrap-apps
-test-agent-bootstrap-apps:
-ifeq ($(BUILD_APP_NAME),*)
-	@for d in ${GAIA_APPDIRS} ;\
-	do \
-		if [[ "$(SYS)" != *MINGW32_* ]]; then \
-			mkdir -p $$d$(SEP)test$(SEP)unit ; \
-			mkdir -p $$d$(SEP)test$(SEP)integration ; \
-		else \
-			mkdir -p `echo "$$d" | sed 's|^\(\w\):|/\1|g' | sed 's|\\\\|/|g'`/test/unit ; \
-			mkdir -p `echo "$$d" | sed 's|^\(\w\):|/\1|g' | sed 's|\\\\|/|g'`/test/integration ; \
-		fi; \
-		cp -f $(TEST_COMMON)$(SEP)test$(SEP)boilerplate$(SEP)_proxy.html $$d$(SEP)test$(SEP)unit$(SEP)_proxy.html; \
-		cp -f $(TEST_COMMON)$(SEP)test$(SEP)boilerplate$(SEP)_sandbox.html $$d$(SEP)test$(SEP)unit$(SEP)_sandbox.html; \
-	done
-	@echo "Finished: bootstrapping test proxies/sandboxes";
 endif
 
 # For test coverage report
@@ -935,7 +978,7 @@ hint: node_modules/.bin/jshint
 	@./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES) || (echo Please consult https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md to get some information about how to fix jshint issues. && exit 1)
 
 csslint: install-xulrunner-sdk
-	@$(call run-js-command, csslint)
+	@$(call run-js-command,csslint)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
@@ -968,7 +1011,7 @@ forward:
 # on your phone, and you have adb in your path, then you can use the
 # install-gaia target to update the gaia files and reboot b2g
 install-gaia: adb-remount $(PROFILE_FOLDER)
-	@$(call run-js-command, install-gaia)
+	@$(call run-js-command,install-gaia)
 
 # Copy demo media to the sdcard.
 # If we've got old style directories on the phone, rename them first.
@@ -1015,9 +1058,9 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 	$(ADB) shell 'if test -d $(MSYS_FIX)/persist/svoperapps; then rm -r $(MSYS_FIX)/persist/svoperapps; fi'
 
-$(PROFILE_FOLDER)/settings.json: profile-dir keyboard-layouts install-xulrunner-sdk
+$(PROFILE_FOLDER)/settings.json: profile-dir keyboard-layouts $(XULRUNNER_BASE_DIRECTORY)
 ifeq ($(BUILD_APP_NAME),*)
-	@$(call run-js-command, settings)
+	@$(call run-js-command,settings)
 endif
 
 # push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone
@@ -1048,7 +1091,7 @@ endif
 
 # clean out build products
 clean:
-	rm -rf profile profile-debug profile-test $(PROFILE_FOLDER) $(STAGE_FOLDER) docs
+	rm -rf profile profile-debug profile-test $(PROFILE_FOLDER) $(STAGE_DIR) docs
 
 # clean out build products and tools
 really-clean: clean
@@ -1064,8 +1107,8 @@ adb-remount:
 # Generally we got manifest from webapp-manifest.js unless manifest is generated
 # from Makefile of app. so we will copy manifest.webapp if it's avaiable in
 # build_stage/
-copy-build-stage-manifest: app-makefiles
-	@$(call run-js-command, copy-build-stage-manifest)
+copy-build-stage-manifest: $(BUILD_STAGE_APPS)
+	@$(call run-js-command,copy-build-stage-manifest)
 
 build-test-unit: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-test, $(shell find build/test/unit/*.test.js))

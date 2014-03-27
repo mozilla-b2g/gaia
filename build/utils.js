@@ -120,3 +120,4 @@ exports.isExternalApp = utils.isExternalApp;
 exports.getDocument = utils.getDocument;
 exports.getWebapp = utils.getWebapp;
 exports.Services = utils.Services;
+exports.concatenatedScripts = utils.concatenatedScripts;
