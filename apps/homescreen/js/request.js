@@ -5,6 +5,8 @@ var ConfirmDialog = (function() {
 
   var dialog, titleElem, appIcon, messageElem, cancelButton, cancelButton2, cancelButton3, confirmButton;
 
+  var image, blob;
+
   var _ = navigator.mozL10n.get;
 
   function initialize() {
@@ -28,7 +30,7 @@ var ConfirmDialog = (function() {
       cancelButton.onclick = confirmButton.onclick = null;
     },
 
-    show: function dialog_show(title, msg, cancel, confirm, img) {
+    show: function dialog_show(title, msg, cancel, confirm, icon) {
 	  
 	  //Make sure send app to dialog is hidden at first.
 	  document.getElementById('app_manage').style.display='block';
@@ -38,7 +40,20 @@ var ConfirmDialog = (function() {
 	  title = title.slice(7);
 	
       titleElem.textContent = title;
-      appIcon.appendChild(img);
+
+      IconRetriever.get({
+        icon: icon,
+        success: function(blob) {
+          appIcon.innerHTML = "";
+          image = new Image();
+          image.src = window.URL.createObjectURL(blob);
+          appIcon.appendChild(image);
+        },
+        error: function(){
+          return false; 
+        }
+      });
+
       //messageElem.textContent = msg;
 
       cancelButton.textContent = cancel.title;
@@ -65,9 +80,7 @@ var ConfirmDialog = (function() {
     },
 
     showApp: function dialog_showApp(icon) {
-      var title, body, img, app = icon.app;
-      img = icon.img; 
-      console.log(img);
+      var title, body, app = icon.app;
 
       var cancel = {
         title: _('cancel'),
@@ -122,7 +135,7 @@ var ConfirmDialog = (function() {
         confirm.title = _('delete');
       }
 
-      this.show(title, body, cancel, confirm, img);
+      this.show(title, body, cancel, confirm, icon);
     },
 
     init: initialize
