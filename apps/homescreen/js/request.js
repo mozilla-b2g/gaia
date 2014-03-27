@@ -3,7 +3,7 @@
 
 var ConfirmDialog = (function() {
 
-  var dialog, titleElem, messageElem, cancelButton, cancelButton2, cancelButton3, confirmButton;
+  var dialog, titleElem, appIcon, messageElem, cancelButton, cancelButton2, cancelButton3, confirmButton;
 
   var _ = navigator.mozL10n.get;
 
@@ -12,10 +12,11 @@ var ConfirmDialog = (function() {
 
     titleElem = document.getElementById('confirm-dialog-title');
     //messageElem = document.getElementById('confirm-dialog-message');
+    appIcon = document.getElementById('app_icon')
 
     cancelButton = document.getElementById('confirm-dialog-cancel-button');
-	cancelButton2 = document.getElementById('confirm-dialog-cancel-button2');
-	cancelButton3 = document.getElementById('confirm-dialog-cancel-button3');
+    cancelButton2 = document.getElementById('confirm-dialog-cancel-button2');
+	  cancelButton3 = document.getElementById('confirm-dialog-cancel-button3');
     confirmButton = document.getElementById('confirm-dialog-confirm-button');
   }
 
@@ -27,7 +28,7 @@ var ConfirmDialog = (function() {
       cancelButton.onclick = confirmButton.onclick = null;
     },
 
-    show: function dialog_show(title, msg, cancel, confirm) {
+    show: function dialog_show(title, msg, cancel, confirm, img) {
 	  
 	  //Make sure send app to dialog is hidden at first.
 	  document.getElementById('app_manage').style.display='block';
@@ -37,6 +38,7 @@ var ConfirmDialog = (function() {
 	  title = title.slice(7);
 	
       titleElem.textContent = title;
+      appIcon.appendChild(img);
       //messageElem.textContent = msg;
 
       cancelButton.textContent = cancel.title;
@@ -63,7 +65,9 @@ var ConfirmDialog = (function() {
     },
 
     showApp: function dialog_showApp(icon) {
-      var title, body, app = icon.app;
+      var title, body, img, app = icon.app;
+      img = icon.img; 
+      console.log(img);
 
       var cancel = {
         title: _('cancel'),
@@ -118,7 +122,7 @@ var ConfirmDialog = (function() {
         confirm.title = _('delete');
       }
 
-      this.show(title, body, cancel, confirm);
+      this.show(title, body, cancel, confirm, img);
     },
 
     init: initialize
