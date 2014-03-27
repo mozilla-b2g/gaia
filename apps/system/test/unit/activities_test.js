@@ -1,5 +1,5 @@
 'use strict';
-/* global MocksHelper, MockApplications, MockL10n, Activities */
+/* global MocksHelper, MockApplications, MockL10n, ActionMenu, Activities */
 
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -159,6 +159,24 @@ suite('system/Activities', function() {
         }
       ]);
       assert.equal(result.length, 1);
+    });
+  });
+
+  suite('opens action menu', function() {
+    test('only opens once if we get two activity-choice events', function() {
+      var actionMenuStub = this.sinon.stub(ActionMenu.prototype, 'start');
+      var evt = {
+        type: 'mozChromeEvent',
+        detail: {
+          type: 'activity-choice',
+          choices: []
+        }
+      };
+      subject.handleEvent(evt);
+      this.sinon.clock.tick();
+      subject.handleEvent(evt);
+      this.sinon.clock.tick();
+      assert.ok(actionMenuStub.calledOnce);
     });
   });
 });

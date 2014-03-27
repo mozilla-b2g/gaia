@@ -11,6 +11,7 @@
    */
   function Activities() {
     window.addEventListener('mozChromeEvent', this);
+    this.actionMenu = null;
   }
 
   Activities.prototype = {
@@ -57,9 +58,11 @@
           window.dispatchEvent(new CustomEvent('activitymenuwillopen'));
 
           var activityName = navigator.mozL10n.get('activity-' + detail.name);
-          var menu = new ActionMenu(this._listItems(choices), activityName,
-                           this.choose.bind(this), this.cancel.bind(this));
-          menu.start();
+          if (!this.actionMenu) {
+            this.actionMenu = new ActionMenu(this._listItems(choices),
+              activityName, this.choose.bind(this), this.cancel.bind(this));
+            this.actionMenu.start();
+          }
         }).bind(this));
       }
     },
@@ -70,6 +73,8 @@
     * @param {Number} choice The activity choice.
     */
     choose: function(choice) {
+      this.actionMenu = null;
+
       var returnedChoice = {
         id: this._id,
         type: 'activity-choice',
@@ -85,6 +90,8 @@
     * @memberof Activities.prototype
     */
     cancel: function() {
+      this.actionMenu = null;
+
       var returnedChoice = {
         id: this._id,
         type: 'activity-choice',
