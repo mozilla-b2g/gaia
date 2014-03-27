@@ -6,10 +6,16 @@ var utils = require('utils');
 var BrowserAppBuilder = function() {
 };
 
+BrowserAppBuilder.prototype.APP_DIR = 'apps/browser';
+BrowserAppBuilder.prototype.STAGE_DIR = 'build_stage/browser';
 // set options
 BrowserAppBuilder.prototype.setOptions = function(options) {
-  this.stageDir = utils.getFile(options.STAGE_APP_DIR);
-  this.appDir = utils.getFile(options.APP_DIR);
+  var stageDirPath = [options.GAIA_DIR].concat(this.STAGE_DIR.split('/'));
+  this.stageDir = utils.getFile.apply(utils, stageDirPath);
+
+  var appDirPath = [options.GAIA_DIR].concat(this.STAGE_DIR.split('/'));
+  this.appDir = utils.getFile.apply(utils, appDirPath);
+
   this.distDirPath = options.GAIA_DISTRIBUTION_DIR;
 };
 
