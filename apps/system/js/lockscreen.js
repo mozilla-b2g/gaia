@@ -608,7 +608,9 @@ var LockScreen = {
 
     var currentFrame = null;
 
-    if (currentApp) {
+    // XXX: the |getAppFrame(currentApp)| may be null in some monkey test.
+    // This was reported at Bug 988717.
+    if (currentApp && null !== WindowManager.getAppFrame(currentApp)) {
       currentFrame = WindowManager.getAppFrame(currentApp).firstChild;
       WindowManager.setOrientationForApp(currentApp);
     }
