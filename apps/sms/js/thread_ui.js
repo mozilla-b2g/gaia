@@ -415,7 +415,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     this.sentAudioKey = 'message.sent-sound.enabled';
-    this.sentAudio = new Audio('/sounds/sent.ogg');
+    this.sentAudio = new Audio('/sounds/sent.opus');
     this.sentAudio.mozAudioChannelType = 'notification';
     this.sentAudioEnabled = false;
 
