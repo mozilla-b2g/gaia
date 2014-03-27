@@ -1,6 +1,7 @@
+/* global KeyboardManager, SoftwareButtonManager, StatusBar, System */
 'use strict';
 
-(function(window) {
+(function(exports) {
   var DEBUG = false;
   /**
    * LayoutManager gathers all external events which would affect
@@ -20,12 +21,26 @@
    *
    * ![resize layout flow](http://i.imgur.com/bUMm4VM.png)
    *
-   * @module LayoutManager
+   * @class LayoutManager
+   * @requires KeyboardManager
+   * @requires SoftwareButtonManager
+   * @requires StatusBar
+   * @requires System
    */
-  window.LayoutManager = {
+  var LayoutManager = function LayoutManager() {};
+
+  LayoutManager.prototype = {
+    /** @lends LayoutManager */
+
+    /**
+     * Gives the width for the screen.
+     *
+     * @memberOf LayoutManager
+     */
     get clientWidth() {
-      if (this._clientWidth)
+      if (this._clientWidth) {
         return this._clientWidth;
+      }
 
       this._clientWidth = document.documentElement.clientWidth;
       return this._clientWidth;
@@ -34,7 +49,7 @@
     /**
      * Gives the possible height for a fullscreen window.
      *
-     * @memberOf module:LayoutManager
+     * @memberOf LayoutManager
      */
     get fullscreenHeight() {
       return window.innerHeight -
@@ -45,7 +60,7 @@
     /**
      * Gives the possible height for a normal window.
      *
-     * @memberOf module:LayoutManager
+     * @memberOf LayoutManager
      */
     get usualHeight() {
       return window.innerHeight -
@@ -53,6 +68,11 @@
         SoftwareButtonManager.height - StatusBar.height;
     },
 
+    /**
+     * Gives the possible width for a normal window.
+     *
+     * @memberOf LayoutManager
+     */
     get width() {
       return window.innerWidth;
     },
@@ -64,9 +84,9 @@
      * @param  {Boolean} isFullScreen To match fullscreen case or not.
      * @return {Boolean}              Matches current layout or not.
      *
-     * @memberOf module:LayoutManager
+     * @memberOf LayoutManager
      */
-    match: function(width, height, isFullScreen) {
+    match: function lm_match(width, height, isFullScreen) {
       if (isFullScreen) {
         return (this.fullscreenHeight === height);
       } else {
@@ -77,11 +97,16 @@
     /**
      * Record the keyboard is enabled now or not.
      * @type {Boolean}
-     * @memberOf module:LayoutManager
+     * @memberOf LayoutManager
      */
     keyboardEnabled: false,
 
-    init: function lm_init() {
+    /**
+     * Startup. Adds all event listeners needed.
+     * @return {LayoutManager} this object
+     * @memberOf LayoutManager
+     */
+    start: function lm_start() {
       window.addEventListener('resize', this);
       window.addEventListener('status-active', this);
       window.addEventListener('status-inactive', this);
@@ -91,24 +116,27 @@
       window.addEventListener('mozfullscreenchange', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
+      return this;
     },
 
     handleEvent: function lm_handleEvent(evt) {
       this.debug('resize event got: ', evt.type);
       switch (evt.type) {
         case 'keyboardchange':
-          if (document.mozFullScreen)
+          if (document.mozFullScreen) {
             document.mozCancelFullScreen();
+          }
           this.keyboardEnabled = true;
           /**
            * Fired when layout needs to be adjusted.
-           * @event module:LayoutManager#system-resize
+           * @event LayoutManager#system-resize
            */
           this.publish('system-resize');
           break;
         default:
-          if (evt.type === 'keyboardhide')
+          if (evt.type === 'keyboardhide') {
             this.keyboardEnabled = false;
+          }
           this.publish('system-resize');
           break;
       }
@@ -130,6 +158,5 @@
       }
     }
   };
-
-  LayoutManager.init();
-}(this));
+  exports.LayoutManager = LayoutManager;
+}(window));
