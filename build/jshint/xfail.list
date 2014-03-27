@@ -604,7 +604,6 @@ apps/system/js/app_install_manager.js
 apps/system/js/app_modal_dialog.js
 apps/system/js/app_transition_controller.js
 apps/system/js/app_window_manager.js
-apps/system/js/applications.js
 apps/system/js/async_semaphore.js
 apps/system/js/attention_screen.js
 apps/system/js/base_ui.js

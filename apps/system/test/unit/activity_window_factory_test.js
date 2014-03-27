@@ -3,7 +3,7 @@
    AppWindow, MockAppWindowManager */
 
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
-      'dispatchEvent', 'AppWindowManager', 'Applications', 'ManifestHelper',
+      'dispatchEvent', 'AppWindowManager', 'applications', 'ManifestHelper',
       'ActivityWindow', 'KeyboardManager', 'StatusBar',
       'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
       'ActivityWindowFactory', 'OrientationManager',

@@ -37,7 +37,7 @@ window.addEventListener('load', function startup() {
     window.homescreenLauncher = new HomescreenLauncher().start();
   }
 
-  if (Applications.ready) {
+  if (applications.ready) {
     registerGlobalEntries();
     safelyLaunchFTU();
   } else {

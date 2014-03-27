@@ -2,7 +2,7 @@
 /* global MocksHelper, MockApplications, MockAppWindowManager,
           AppWindow, HomescreenLauncher, AppWindowFactory, appWindowFactory */
 
-mocha.globals(['AppWindowManager', 'Applications',
+mocha.globals(['AppWindowManager', 'applications',
       'ManifestHelper', 'AppWindow', 'System', 'AppWindowFactory',
       'BrowserConfigHelper', 'homescreenLauncher', 'appWindowFactory']);
 
@@ -102,12 +102,18 @@ suite('system/AppWindowFactory', function() {
     target: {}
   };
 
+  var realApplications;
+
   setup(function(done) {
     MockApplications.mRegisterMockApp(fakeLaunchConfig1);
     MockApplications.mRegisterMockApp(fakeLaunchConfig2);
     MockApplications.mRegisterMockApp(fakeLaunchConfig3);
     MockApplications.mRegisterMockApp(fakeLaunchConfig4);
     MockApplications.mRegisterMockApp(fakeLaunchConfig5);
+
+    realApplications = window.applications;
+    window.applications = MockApplications;
+
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     window.homescreenLauncher = new HomescreenLauncher().start();
@@ -127,6 +133,8 @@ suite('system/AppWindowFactory', function() {
     window.appWindowFactory.stop();
     window.appWindowFactory = undefined;
     stubById.restore();
+    window.applications = realApplications;
+    realApplications = null;
   });
 
   suite('handle event', function() {
