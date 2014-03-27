@@ -151,7 +151,6 @@ section[role="region"] > header:first-child .icon {
   position: relative;
   float: none;
   display: inline-block;
-  vertical-align: middle;
   width: 3rem;
   height: 5rem;
   margin: 0 -1rem;
