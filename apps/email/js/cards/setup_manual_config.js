@@ -42,7 +42,8 @@ function SetupManualConfig(domNode, mode, args) {
   this.formItems.common.password = domNode.getElementsByClassName(
     'sup-info-password')[0];
   this.formItems.common.password.value = args.password;
-
+  this.formItems.common.passwordWrapper = domNode.getElementsByClassName(
+    'sup-manual-password-wrapper')[0];
 
   this.formItems.composite.hostname = domNode.getElementsByClassName(
     'sup-manual-composite-hostname')[0];
@@ -52,6 +53,10 @@ function SetupManualConfig(domNode, mode, args) {
     'sup-manual-composite-socket')[0];
   this.formItems.composite.username = domNode.getElementsByClassName(
     'sup-manual-composite-username')[0];
+  this.formItems.composite.username.value = args.emailAddress;
+  this.formItems.composite.password = domNode.getElementsByClassName(
+    'sup-manual-composite-password')[0];
+  this.formItems.composite.password.value = args.password;
 
   this.formItems.smtp.hostname = domNode.getElementsByClassName(
     'sup-manual-smtp-hostname')[0];
@@ -61,11 +66,23 @@ function SetupManualConfig(domNode, mode, args) {
     'sup-manual-smtp-socket')[0];
   this.formItems.smtp.username = domNode.getElementsByClassName(
     'sup-manual-smtp-username')[0];
+  this.formItems.smtp.username.value = args.emailAddress;
+  this.formItems.smtp.password = domNode.getElementsByClassName(
+    'sup-manual-smtp-password')[0];
+  this.formItems.smtp.password.value = args.password;
 
   this.formItems.activeSync.hostname = domNode.getElementsByClassName(
     'sup-manual-activesync-hostname')[0];
   this.formItems.activeSync.username = domNode.getElementsByClassName(
     'sup-manual-activesync-username')[0];
+
+  this.changeIfSame(this.formItems.common.emailAddress,
+                    [this.formItems.composite.username,
+                     this.formItems.smtp.username]);
+  this.changeIfSame(this.formItems.composite.username,
+                    [this.formItems.smtp.username]);
+  this.changeIfSame(this.formItems.composite.password,
+                    [this.formItems.smtp.password]);
 
   for (var type in this.formItems) {
     for (var field in this.formItems[type]) {
@@ -85,7 +102,7 @@ function SetupManualConfig(domNode, mode, args) {
   this.formItems.smtp.socket.addEventListener(
     'change', this.onChangeSmtpSocket.bind(this));
 
-  this.onChangeAccountType({target: this.accountTypeNode});
+  this.onChangeAccountType({ target: this.accountTypeNode });
 
   new FormNavigation({
     formElem: this.formNode,
@@ -99,6 +116,7 @@ SetupManualConfig.prototype = {
   },
 
   onNext: function(event) {
+    event.preventDefault(); // Prevent FormNavigation from taking over.
     var config = { type: this.accountTypeNode.value };
 
     if (config.type === 'imap+smtp' || config.type === 'pop3+smtp') {
@@ -106,13 +124,15 @@ SetupManualConfig.prototype = {
         hostname: this.formItems.composite.hostname.value,
         port: this.formItems.composite.port.value,
         socketType: this.formItems.composite.socket.value,
-        username: this.formItems.composite.username.value
+        username: this.formItems.composite.username.value,
+        password: this.formItems.composite.password.value
       };
       config.outgoing = {
         hostname: this.formItems.smtp.hostname.value,
         port: this.formItems.smtp.port.value,
         socketType: this.formItems.smtp.socket.value,
-        username: this.formItems.smtp.username.value
+        username: this.formItems.smtp.username.value,
+        password: this.formItems.smtp.password.value
       };
     }
     else { // config.type === 'activesync'
@@ -122,13 +142,26 @@ SetupManualConfig.prototype = {
       };
     }
 
+    this.pushSetupCard(config);
+  },
+
+  pushSetupCard: function(config) {
+    // For composite accounts where they've elected to have separate
+    // passwords, use the composite password field. For everything
+    // else, there's MasterCard. Uh, I mean, the common password.
+    var password;
+    if (this.accountTypeNode.value === 'activesync') {
+      password = this.formItems.common.password.value;
+    } else {
+      password = this.formItems.composite.password.value;
+    }
     // The progress card is the dude that actually tries to create the account.
     Cards.pushCard(
       'setup_progress', 'default', 'animate',
       {
         displayName: this.formItems.common.displayName.value,
         emailAddress: this.formItems.common.emailAddress.value,
-        password: this.formItems.common.password.value,
+        password: password,
 
         domainInfo: config,
         callingCard: this
@@ -136,9 +169,26 @@ SetupManualConfig.prototype = {
       'right');
   },
 
-
-  onInfoInput: function(event) {
+  onInfoInput: function(ignoredEvent) {
     this.nextButton.disabled = !this.formNode.checkValidity();
+  },
+
+  /**
+   * When sourceField changes, change every field in destFields to
+   * match, if and only if destField previously matched sourceField.
+   */
+  changeIfSame: function(sourceField, destFields) {
+    sourceField._previousValue = sourceField.value;
+    sourceField.addEventListener('input', function(e) {
+      for (var i = 0; i < destFields.length; i++) {
+        var destField = destFields[i];
+        if (destField.value === e.target._previousValue) {
+          destField.value = destField._previousValue = e.target.value;
+        }
+      }
+      sourceField._previousValue = e.target.value;
+      this.onInfoInput(); // run validation
+    }.bind(this));
   },
 
   onChangeAccountType: function(event) {
@@ -163,6 +213,8 @@ SetupManualConfig.prototype = {
       activeSyncSection.classList.remove('collapsed');
     }
 
+    this.formItems.common.passwordWrapper.classList.toggle(
+      'collapsed', isComposite);
     this.requireFields('composite', isComposite);
     this.requireFields('smtp', isComposite);
     this.requireFields('activeSync', !isComposite);
