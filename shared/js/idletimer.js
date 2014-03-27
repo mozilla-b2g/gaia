@@ -20,9 +20,8 @@
 
 // Wrap everything into a closure so we will not expose idleTimerRegistry
 
-'use strict';
-
 (function idleTimerAsAIdleObserverWrapper(win) {
+  'use strict';
 
   // stuff the 0th element so id is always a truey value
   var idleTimerRegistry = [undefined];
@@ -82,8 +81,9 @@
 
         // If idleCallback is not called yet,
         // we should not trigger activeCallback here
-        if (!idleFired)
+        if (!idleFired) {
           return;
+        }
 
         // fire the real activeCallback
         activeCallback();
@@ -109,8 +109,9 @@
 
   // clearIdleTimeout()
   win.clearIdleTimeout = function clearIdleTimeout(id) {
-    if (!idleTimerRegistry[id])
+    if (!idleTimerRegistry[id]) {
       return;
+    }
 
     // Get the idleTimer object and remove it from registry
     var idleTimer = idleTimerRegistry[id];
@@ -120,8 +121,9 @@
     // those callbacks ever again.
     navigator.removeIdleObserver(idleTimer.observer);
     window.removeEventListener('moztimechange', idleTimer.resetStartTimestamp);
-    if (idleTimer.timer)
+    if (idleTimer.timer) {
       clearTimeout(idleTimer.timer);
+    }
   };
 
 })(this);

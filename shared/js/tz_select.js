@@ -1,6 +1,5 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* globals IccHelper */
+/* exported tzSelect */
 'use strict';
 
 function tzSelect(regionSelector, citySelector, onchange, onload) {
@@ -24,8 +23,9 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
    */
 
   function getDefaultTimezoneID(callback) {
-    if (!callback)
+    if (!callback) {
       return;
+    }
 
     // Worst case scenario: default to New York (which is just as good or
     // bad as anything else -- we used to default to Pago Pago)
@@ -172,8 +172,9 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
 
   function newTZObserver() {
     var settings = window.navigator.mozSettings;
-    if (!settings)
+    if (!settings) {
       return;
+    }
 
     settings.addObserver('time.timezone', function(event) {
       setTimezoneDescription(event.settingValue);

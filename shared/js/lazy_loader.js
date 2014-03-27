@@ -1,3 +1,5 @@
+/* exported LazyLoader */
+/* globals HtmlImports*/
 'use strict';
 
 /**
@@ -58,18 +60,21 @@ var LazyLoader = (function() {
     },
 
     load: function(files, callback) {
-      if (!Array.isArray(files))
+      if (!Array.isArray(files)) {
         files = [files];
+      }
 
       var loadsRemaining = files.length, self = this;
       function perFileCallback(file) {
-        if (self._isLoading[file])
+        if (self._isLoading[file]) {
           delete self._isLoading[file];
+        }
         self._loaded[file] = true;
 
         if (--loadsRemaining === 0) {
-          if (callback)
+          if (callback) {
             callback();
+          }
         }
       }
 

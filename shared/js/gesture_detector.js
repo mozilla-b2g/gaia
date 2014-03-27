@@ -1,5 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* exported GestureDetector */
 
 'use strict';
 
@@ -93,8 +92,9 @@ var GestureDetector = (function() {
 
   GD.prototype.handleEvent = function(e) {
     var handler = this.state[e.type];
-    if (!handler) return;
-
+    if (!handler) {
+      return;
+    }
     // If this is a touch event handle each changed touch separately
     if (e.changedTouches) {
       // If we ever receive a touch event, then we know we are on a
@@ -135,8 +135,9 @@ var GestureDetector = (function() {
     this.timers[type] = setTimeout(function() {
       self.timers[type] = null;
       var handler = self.state[type];
-      if (handler)
+      if (handler) {
         handler(self, type);
+      }
     }, time);
   };
 
@@ -152,8 +153,9 @@ var GestureDetector = (function() {
   // and are just passed through to the state init function.
   GD.prototype.switchTo = function(state, event, touch) {
     this.state = state;
-    if (state.init)
+    if (state.init) {
       state.init(this, event, touch);
+    }
   };
 
   GD.prototype.emitEvent = function(type, detail) {
@@ -175,7 +177,7 @@ var GestureDetector = (function() {
   GD.MOUSE_PAN_THRESHOLD = 15; // Mice are more precise, so smaller threshold
   GD.DOUBLE_TAP_DISTANCE = 50;
   GD.DOUBLE_TAP_TIME = 500;
-  GD.VELOCITY_SMOOTHING = .5;
+  GD.VELOCITY_SMOOTHING = 0.5;
 
   // Don't start sending transform events until the gesture exceeds a threshold
   GD.SCALE_THRESHOLD = 20;     // pixels
@@ -209,10 +211,11 @@ var GestureDetector = (function() {
     // So if the timestamp is much larger than the current time, assue it is
     // in microseconds and divide by 1000
     var ts = e.timeStamp;
-    if (ts > 2 * Date.now())
+    if (ts > 2 * Date.now()) {
       return Math.floor(ts / 1000);
-    else
+    } else {
       return ts;
+    }
   }
 
 
@@ -283,10 +286,11 @@ var GestureDetector = (function() {
   // Returns an angle a -180 < a <= 180.
   function touchRotation(d1, d2) {
     var angle = d2 - d1;
-    if (angle > 180)
+    if (angle > 180) {
       angle -= 360;
-    else if (angle <= -180)
+    } else if (angle <= -180) {
       angle += 360;
+    }
     return angle;
   }
 
@@ -352,8 +356,9 @@ var GestureDetector = (function() {
       d.start = d.last = coordinates(e, t);
       // Start a timer for a hold
       // If we're doing hold events, start a timer for them
-      if (d.options.holdEvents)
+      if (d.options.holdEvents) {
         d.startTimer('holdtimeout', GD.HOLD_INTERVAL);
+      }
     },
 
     touchstart: function(d, e, t) {
@@ -366,8 +371,9 @@ var GestureDetector = (function() {
       // Ignore any touches but the initial one
       // This could happen if there was still a finger down after
       // the end of a previous 2-finger gesture, e.g.
-      if (t.identifier !== d.touch1)
+      if (t.identifier !== d.touch1) {
         return;
+      }
 
       if (abs(t.screenX - d.start.screenX) > d.options.panThreshold ||
           abs(t.screenY - d.start.screenY) > d.options.panThreshold) {
@@ -377,8 +383,9 @@ var GestureDetector = (function() {
     },
     touchend: function(d, e, t) {
       // Ignore any touches but the initial one
-      if (t.identifier !== d.touch1)
+      if (t.identifier !== d.touch1) {
         return;
+      }
 
       // If there was a previous tap that was close enough in time
       // and space, then emit a 'dbltap' event
@@ -425,14 +432,16 @@ var GestureDetector = (function() {
       // If we transition into this state with a touchmove event,
       // then process it with that handler. If we don't do this then
       // we can end up with swipe events that don't know their velocity
-      if (e.type === 'touchmove')
+      if (e.type === 'touchmove') {
         panStartedState.touchmove(d, e, t);
+      }
     },
 
     touchmove: function(d, e, t) {
       // Ignore any fingers other than the one we're tracking
-      if (t.identifier !== d.touch1)
+      if (t.identifier !== d.touch1) {
         return;
+      }
 
       // Each time the touch moves, emit a pan event but stay in this state
       var current = coordinates(e, t);
@@ -470,8 +479,9 @@ var GestureDetector = (function() {
     },
     touchend: function(d, e, t) {
       // Ignore any fingers other than the one we're tracking
-      if (t.identifier !== d.touch1)
+      if (t.identifier !== d.touch1) {
         return;
+      }
 
       // Emit a swipe event when the finger goes up.
       // Report start and end point, dx, dy, dt, velocity and direction
@@ -481,19 +491,21 @@ var GestureDetector = (function() {
       // angle is a positive number of degrees, starting at 0 on the
       // positive x axis and increasing clockwise.
       var angle = atan2(dy, dx) * 180 / PI;
-      if (angle < 0)
+      if (angle < 0) {
         angle += 360;
+      }
 
       // Direction is 'right', 'down', 'left' or 'up'
       var direction;
-      if (angle >= 315 || angle < 45)
+      if (angle >= 315 || angle < 45) {
         direction = 'right';
-      else if (angle >= 45 && angle < 135)
+      } else if (angle >= 45 && angle < 135) {
         direction = 'down';
-      else if (angle >= 135 && angle < 225)
+      } else if (angle >= 135 && angle < 225) {
         direction = 'left';
-      else if (angle >= 225 && angle < 315)
+      } else if (angle >= 225 && angle < 315) {
         direction = 'up';
+      }
 
       d.emitEvent('swipe', {
         start: d.start,
@@ -578,8 +590,9 @@ var GestureDetector = (function() {
 
     touchmove: function(d, e, t) {
       // Ignore touches we're not tracking
-      if (t.identifier !== d.touch1 && t.identifier !== d.touch2)
+      if (t.identifier !== d.touch1 && t.identifier !== d.touch2) {
         return;
+      }
 
       // Get the two Touch objects
       var t1 = e.touches.identifiedTouch(d.touch1);
@@ -600,15 +613,16 @@ var GestureDetector = (function() {
           d.startDistance = d.lastDistance =
             floor(d.startDistance +
                   GD.THRESHOLD_SMOOTHING * (distance - d.startDistance));
-        }
-        else
+        } else {
           distance = d.startDistance;
+        }
       }
       if (!d.rotated) {
-        if (abs(rotation) > GD.ROTATE_THRESHOLD)
+        if (abs(rotation) > GD.ROTATE_THRESHOLD) {
           d.rotated = true;
-        else
+        } else {
           direction = d.startDirection;
+        }
       }
 
       // If nothing has exceeded the threshold yet, then we
@@ -645,14 +659,14 @@ var GestureDetector = (function() {
       // that would mean that the finger left down could cause a tap or
       // pan event. So we need an afterTransform state that waits for
       // a finger to come back down or the other finger to go up.
-      if (t.identifier === d.touch2)
+      if (t.identifier === d.touch2) {
         d.touch2 = null;
-      else if (t.identifier === d.touch1) {
+      } else if (t.identifier === d.touch1) {
         d.touch1 = d.touch2;
         d.touch2 = null;
-      }
-      else
+      } else {
         return; // It was a touch we weren't tracking
+      }
 
       // If we emitted any transform events, now we need to emit
       // a transformend event to end the series.  The details of this
@@ -686,8 +700,9 @@ var GestureDetector = (function() {
     },
 
     touchend: function(d, e, t) {
-      if (t.identifier === d.touch1)
+      if (t.identifier === d.touch1) {
         d.switchTo(initialState);
+      }
     }
   };
 
@@ -708,8 +723,9 @@ var GestureDetector = (function() {
 
       // Start a timer for a hold
       // If we're doing hold events, start a timer for them
-      if (d.options.holdEvents)
+      if (d.options.holdEvents) {
         d.startTimer('holdtimeout', GD.HOLD_INTERVAL);
+      }
     },
 
     mousemove: function(d, e) {
@@ -805,8 +821,9 @@ var GestureDetector = (function() {
       // If we transition into this state with a mousemove event,
       // then process it with that handler. If we don't do this then
       // we can end up with swipe events that don't know their velocity
-      if (e.type === 'mousemove')
+      if (e.type === 'mousemove') {
         mousePannedState.mousemove(d, e);
+      }
     },
     mousemove: function(d, e) {
       // Each time the mouse moves, emit a pan event but stay in this state
@@ -861,19 +878,21 @@ var GestureDetector = (function() {
       // angle is a positive number of degrees, starting at 0 on the
       // positive x axis and increasing clockwise.
       var angle = atan2(dy, dx) * 180 / PI;
-      if (angle < 0)
+      if (angle < 0) {
         angle += 360;
+      }
 
       // Direction is 'right', 'down', 'left' or 'up'
       var direction;
-      if (angle >= 315 || angle < 45)
+      if (angle >= 315 || angle < 45) {
         direction = 'right';
-      else if (angle >= 45 && angle < 135)
+      } else if (angle >= 45 && angle < 135) {
         direction = 'down';
-      else if (angle >= 135 && angle < 225)
+      } else if (angle >= 135 && angle < 225) {
         direction = 'left';
-      else if (angle >= 225 && angle < 315)
+      } else if (angle >= 225 && angle < 315) {
         direction = 'up';
+      }
 
       d.emitEvent('swipe', {
         start: d.start,
