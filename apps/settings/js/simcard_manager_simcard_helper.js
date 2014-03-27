@@ -15,7 +15,18 @@
   var SimUIModel = function(cardIndex) {
     this.cardIndex = cardIndex;
 
-    // state list
+    /*
+     * We have following states and would try to reflect them on
+     * related UI. Take `locked` state for example, it doesn't mean
+     * that this SIm is locked (we have to access icc.cardState
+     * to make sure the SIM is locked), instead, it means that
+     * SimCardManager has to show a small `locker` icon on the screen.
+     *
+     * The reason why we need this Model is because UX needs different
+     * look and feel based on different cardState, in this way, I
+     * think this would be better to use separate propeties to reflect
+     * each UI on the screen so that we can change them easily.
+     */
     this.enabled = false;
     this.absent = false;
     this.locked = false;
@@ -54,6 +65,15 @@
           this.locked = true;
           this.number = '';
           this.operator = _('sim-pin-locked');
+          break;
+
+        case 'blocked':
+          this.enabled = true;
+          this.absent = true;
+          this.locked = false;
+          this.number = '';
+          this.operator = '';
+          this.name = _('noSimCard');
           break;
 
         case 'normal':
