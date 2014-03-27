@@ -9,6 +9,8 @@ window.addEventListener('load', function startup() {
    * Register global instances and constructors here.
    */
   function registerGlobalEntries() {
+    // Solve app_window dependency
+    window.layoutManager = new LayoutManager().start();
     /** @global */
     window.appWindowFactory = new AppWindowFactory();
     window.appWindowFactory.start();
@@ -81,7 +83,6 @@ window.addEventListener('load', function startup() {
   window.title = new Title();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager().start();
-  window.layoutManager = new LayoutManager().start();
 
   navigator.mozL10n.ready(function l10n_ready() {
     window.mediaRecording = new MediaRecording().start();
