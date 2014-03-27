@@ -892,8 +892,45 @@ function cropAndEndPick() {
     photodb.getFile(pickedFile.name, endPick);
   }
   else {
-    cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight, endPick);
+    cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight,
+                                    convertToFileBackedBlob);
   }
+}
+
+// HACK HACK HACK
+//
+// For bug 975599, we need to use a file backed blob in pendingPick.postResult
+// so this function saves the blob to a temporary file in device storage and
+// then reads that file back and passes that to endPick.
+//
+// When the underlying bug is fixed, we can remove this function and just
+// call endPick directly as the getCroppedRegionBlob callback.
+//
+// XXX: note that this is just a proof-of-concept at this point. It always
+// uses the same temporary file, and I expect that will fail if the user
+// attaches two cropped images to an MMS message. If this seems to fix the
+// bug it will have to be extended to use a different temporary filename
+// for each cropped image and also to clean up old (> 1 hour maybe) images
+//
+// XXX: the round trip through device storage requires is to map the image
+// type to the right file extension or the blob we read back will have the
+// wrong type.  jpeg is hardcoded below.
+//
+function convertToFileBackedBlob(memoryBackedBlob) {
+  var storage = navigator.getDeviceStorage('pictures');
+  var filename = '.gallery/tmp/cropped_image.jpg';
+  storage.delete(filename).onsuccess = function() {
+    var write = storage.addNamed(memoryBackedBlob, filename);
+    write.onsuccess = function() {
+      var read = storage.get(filename);
+      read.onsuccess = function() {
+        endPick(read.result);
+      };
+    };
+    write.onerror = function() {
+      endPick(memoryBackedBlob);
+    };
+  };
 }
 
 function endPick(blob) {
