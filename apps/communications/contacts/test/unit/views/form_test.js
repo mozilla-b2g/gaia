@@ -351,6 +351,14 @@ suite('Render contact form', function() {
       assertAddDateState(true);
     });
 
+    test('Birthday first day of the year is rendered properly', function() {
+      mockContact.bday = new Date(Date.UTC(2014, 0, 1));
+      subject.render(mockContact);
+
+      var element = 'add-date';
+      assertDateContent('#' + element + '-0', mockContact.bday);
+    });
+
     test('Dates are saved preserving their timestasmp referred to UTC',
       function() {
         var deviceContact = new MockContactAllFields();
