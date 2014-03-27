@@ -11,20 +11,35 @@
  */
 
 function contactsRemover() {
-
   var totalRemoved = 0;
   var totalSelected = 0;
   var cancelled = false;
   /*jshint validthis:true */
   var self = this;
   var ids;
+  var fbData = Object.create(null);
 
   this.init = function(cIds, cb) {
     if (cIds === null || cIds.length === 0) {
       return;
     }
     ids = cIds;
-    cb();
+
+    // In order to properly delete FB Contacts we need to obtain their data
+    // Take into account that we are querying all FB Contacts but we don't know
+    // beforehand if there will be any of them to be deleted
+    var req = fb.utils.getAllFbContacts();
+    req.onsuccess = function() {
+      var fbContacts = req.result;
+      fbContacts.forEach(function(aFbContact) {
+        fbData[aFbContact.id] = aFbContact;
+      });
+      cb();
+    };
+    req.onerror = function() {
+      console.error('Error while retrieving FB Contacts: ', req.error.name);
+      cb();
+    };
   };
 
   this.start = function() {
@@ -94,8 +109,8 @@ function contactsRemover() {
     var contact = new mozContact();
     contact.id = currentID;
 
-    if (fb.isFbContact(contact)) {
-      var fbContact = new fb.Contact(contact);
+    if (fbData[contact.id]) {
+      var fbContact = new fb.Contact(fbData[contact.id]);
       request = fbContact.remove();
     } else {
       request = navigator.mozContacts.remove(contact);
