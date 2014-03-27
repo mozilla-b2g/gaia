@@ -1242,14 +1242,11 @@ function startPress(target, coords, touchId) {
   // Furthermore, delete key has a repetition behavior
   if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
 
-    // First, just pressing (without feedback)
-    sendDelete(false);
-
-    // Second, after a delay (with feedback)
+    // First repetition, after a delay (with feedback)
     deleteTimeout = window.setTimeout(function() {
       sendDelete(true);
 
-      // Third, after shorter delay (with feedback too)
+      // Second, after shorter delay (with feedback too)
       deleteInterval = setInterval(function() {
         sendDelete(true);
       }, REPEAT_RATE);
@@ -1363,6 +1360,11 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
   clearTimeout(deleteTimeout);
   clearInterval(deleteInterval);
   clearTimeout(menuTimeout);
+  // The backspace key pressing is regarded as non-repetitive behavior.
+  var keyCode = getKeyCodeFromTarget(target);
+  if (keyCode === KeyEvent.DOM_VK_BACK_SPACE && inputContext) {
+    inputContext.sendKey(keyCode, 0, 0, false);
+  }
 
   var wasShowingKeyboardLayoutMenu = isShowingKeyboardLayoutMenu;
   hideAlternatives();
@@ -1619,6 +1621,10 @@ function resetKeyboard() {
 function sendKey(keyCode) {
   switch (keyCode) {
   case KeyEvent.DOM_VK_BACK_SPACE:
+    if (inputContext) {
+      return inputContext.sendKey(keyCode, 0, 0, true);
+    }
+    break;
   case KeyEvent.DOM_VK_RETURN:
     if (inputContext) {
       return inputContext.sendKey(keyCode, 0, 0);
