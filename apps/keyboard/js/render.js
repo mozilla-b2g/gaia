@@ -41,6 +41,9 @@ const IMERender = (function() {
     isSpecialKey = keyTest;
     ime = document.getElementById('keyboard');
     menu = document.getElementById('keyboard-accent-char-menu');
+
+    cachedWindowHeight = window.innerHeight;
+    cachedWindowWidth = window.innerWidth;
   };
 
   var setInputMethodName = function(name) {
