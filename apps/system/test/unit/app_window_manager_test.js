@@ -65,6 +65,7 @@ suite('system/AppWindowManager', function() {
   });
 
   teardown(function() {
+    AppWindowManager.uninit();
     delete window.lockScreen;
     delete window.activityWindowFactory;
     // MockHelper won't invoke mTeardown() for us

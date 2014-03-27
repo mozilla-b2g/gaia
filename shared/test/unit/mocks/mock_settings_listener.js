@@ -36,6 +36,9 @@ var MockSettingsListener = {
     this.mCallbacks[name] = cb;
   },
 
+  unobserve: function msl_unobserve(name, cb) {
+  },
+
   getSettingsLock: function msl_getSettingsLock() {
     return MockLock;
   },
