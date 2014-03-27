@@ -566,12 +566,19 @@ Camera.prototype.onShutter = function() {
   this.emit('shutter');
 };
 
-Camera.prototype.onPreviewStateChange = function(previewState) {
-  if (previewState === 'stopped' || previewState === 'paused') {
-    this.emit('busy');
-  } else {
-    this.emit('ready');
-  }
+/**
+ * The preview state change events come
+ * from the camera hardware. If 'stopped'
+ * or 'paused' the camera must not be used.
+ *
+ * @param  {String} state
+ * @private
+ */
+Camera.prototype.onPreviewStateChange = function(state) {
+  debug('preview state change: %s', state);
+  var busy = state === 'stopped' || state === 'paused';
+  if (busy) { this.emit('busy'); }
+  else { this.emit('ready'); }
 };
 
 /**
