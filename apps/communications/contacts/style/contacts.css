@@ -350,7 +350,6 @@ form p textarea + button[type="reset"].hide {
 
 .removed {
   border-color: #c8c8c8;
-  opacity: 0.85;
 }
 
 .removed fieldset, .removed legend, .removed input {
