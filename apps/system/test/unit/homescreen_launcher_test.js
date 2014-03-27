@@ -128,4 +128,22 @@ suite('system/HomescreenLauncher', function() {
     assert.isTrue(stubToggle.calledWith(false));
     stubToggle.restore();
   });
+
+  test('cards view before shown, then closed', function() {
+    MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
+    homescreen = HomescreenLauncher.getHomescreen();
+    var stubFadeOut = this.sinon.stub(homescreen, 'fadeOut');
+    HomescreenLauncher.handleEvent({
+      type: 'cardviewbeforeshow'
+    });
+    assert.isTrue(stubFadeOut.called);
+    stubFadeOut.restore();
+
+    var stubFadeIn = this.sinon.stub(homescreen, 'fadeIn');
+    HomescreenLauncher.handleEvent({
+      type: 'cardviewbeforeclose'
+    });
+    assert.isTrue(stubFadeIn.called);
+    stubFadeIn.restore();
+  });
 });

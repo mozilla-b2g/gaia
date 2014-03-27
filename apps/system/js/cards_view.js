@@ -77,10 +77,22 @@ var CardsView = (function() {
     return stringHTML;
   }
 
-  function fireCardViewShown() {
+  function fireEventNextTick(eventName) {
     setTimeout(function nextTick() {
-      window.dispatchEvent(new CustomEvent('cardviewshown'));
+      window.dispatchEvent(new CustomEvent(eventName));
     });
+  }
+
+  function fireCardViewBeforeShow() {
+    fireEventNextTick('cardviewbeforeshow');
+  }
+
+  function fireCardViewShown() {
+    fireEventNextTick('cardviewshown');
+  }
+
+  function fireCardViewBeforeClose() {
+    fireEventNextTick('cardviewbeforeclose');
   }
 
   function fireCardViewClosed(newStackPosition) {
@@ -146,8 +158,11 @@ var CardsView = (function() {
       SC_SCALE = 0.6;
     }
 
-    // Switch to homescreen
+    // Ensure homescreen is already faded when we switch to it.
+    fireCardViewBeforeShow();
+    // Now we can switch to the homescreen.
     AppWindowManager.display(null, null, 'to-cardview');
+    // Now we're showing!
     cardsViewShown = true;
 
     // First add an item to the cardsList for each running app
@@ -442,8 +457,12 @@ var CardsView = (function() {
     if (removeImmediately) {
       cardsView.classList.add('no-transition');
     }
+
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
+    // Let everyone know we're about to close the cards view
+    fireCardViewBeforeClose();
+    // Now we can consider ourselves hidden again.
     cardsViewShown = false;
 
     // And remove all the cards from the document after the transition
