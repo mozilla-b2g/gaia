@@ -18,6 +18,7 @@ module.exports = View.extend({
 
   initialize: function(options) {
     this.model = options.model;
+    this.l10n = options.l10n || navigator.mozL10n;
     this.on('destroy', this.onDestroy);
     attach(this.el, 'click', 'li', this.onOptionClick);
     attach(this.el, 'click', '.js-back', this.firer('click:back'));
@@ -54,7 +55,7 @@ module.exports = View.extend({
     var li = document.createElement('li');
     var isSelected = option.key === this.selectedKey;
 
-    li.textContent = option.title;
+    li.textContent = this.localize(option.title);
     li.setAttribute('data-key', option.key);
     li.className = 'setting-option icon-tick';
     this.els.ul.appendChild(li);
@@ -66,10 +67,14 @@ module.exports = View.extend({
     }
   },
 
+  localize: function(value) {
+    return this.l10n.get(value) || value;
+  },
+
   template: function(data) {
     return '<div class="inner">' +
       '<h2 class="settings_title icon-back-arrow js-back">' +
-      data.title + '</h2>' +
+      this.localize(data.title) + '</h2>' +
       '<div class="settings_items"><ul class="inner js-list"></ul></div>' +
     '</div>';
   }

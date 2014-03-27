@@ -340,35 +340,6 @@ Setting.prototype.fetch = function() {
 };
 
 /**
- * Localize self and options objects
- *
- * @public
- */
-Setting.prototype.localize = function() {
-  var options = this.get('options');
-  this.localizeObject(this._data);
-  options.forEach(this.localizeObject, this);
-  this.fire('change');
-};
-
-/**
- * Adds localized keys from a
- * defined `l10n` object map.
- *
- * @param  {Object} object
- * @private
- */
-Setting.prototype.localizeObject = function(object) {
-  var l10n = this.mozL10n || navigator.mozL10n;
-  var keys = object.l10n;
-  if (keys) {
-    each(keys, function(value, key) {
-      object[key] = l10n.get(value);
-    });
-  }
-};
-
-/**
  * States whether this setting
  * is currently supported.
  *

@@ -36,6 +36,7 @@ suite('controllers/hud', function() {
     this.app = sinon.createStubInstance(this.App);
     this.app.camera = sinon.createStubInstance(this.Camera);
     this.app.settings = sinon.createStubInstance(this.Settings);
+    this.app.l10n = { get: sinon.spy(function(value) { return value; }) };
     this.app.views = {
       notification: sinon.createStubInstance(this.NotificationView),
       viewfinder: sinon.createStubInstance(this.ViewfinderView),

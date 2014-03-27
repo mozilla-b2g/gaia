@@ -26,6 +26,7 @@ function SettingsController(app) {
   bindAll(this);
   this.app = app;
   this.settings = app.settings;
+  this.l10n = app.l10n || navigator.mozL10n;
   this.notification = app.views.notification;
   this.configure();
   this.bindEvents();
@@ -46,7 +47,6 @@ SettingsController.prototype.configure = function() {
 SettingsController.prototype.bindEvents = function() {
   this.app.on('change:capabilities', this.onCapabilitiesChange);
   this.app.on('settings:toggle', this.toggleSettings);
-  this.app.on('localized', this.settings.localize);
 };
 
 /**
@@ -102,9 +102,16 @@ SettingsController.prototype.onOptionTap = function(key, setting) {
   this.notify(setting);
 };
 
+/**
+ * Display a notifcation showing the
+ * current state of the given setting.
+ *
+ * @param  {Setting} setting
+ * @private
+ */
 SettingsController.prototype.notify = function(setting) {
-  var optionTitle = setting.selected('title');
-  var settingTitle = setting.get('title');
+  var optionTitle = this.l10n.get(setting.selected('title'));
+  var settingTitle = this.l10n.get(setting.get('title'));
   var message = settingTitle + '<br/>' + optionTitle;
 
   this.notification.display({ text: message });
