@@ -53,7 +53,7 @@ body.searchPageEnabled .apps div:first-child ol > li:nth-child(13) {
   width: calc(100% - .5rem);
   height: 2.6rem;
   z-index: 15; /* So the Delete button will be above the collections' circle */
-  background: url(../resources/images/delete.png) no-repeat left top / 2.4rem;
+  background: url(../resources/images/menu.png) no-repeat left top / 2.4rem;
 }
 
 /* Container -> icon + label */
@@ -219,7 +219,7 @@ body[data-transitioning] .loading:after {
 
   .apps ol > li span.options {
     height: 4.5rem;
-    background: url(../resources/images/delete.png) no-repeat left top / 4.5rem;
+    background: url(../resources/images/menu.png) no-repeat left top / 4.5rem;
   }
 
   .apps ol {

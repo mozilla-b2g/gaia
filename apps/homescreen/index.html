@@ -52,7 +52,7 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
 
     <link rel="import" href="/elements/contextmenu.html">
-    <link rel="import" href="/elements/confirm_dialog.html">
+    <!--<link rel="import" href="/elements/confirm_dialog.html">-->
     <link rel="import" href="/elements/search_page.html">
     <link rel="import" href="/elements/loading_dialog.html">
   </head>
@@ -68,7 +68,65 @@
       </span>
     </div>
 
-    <section is="confirm-dialog" id="confirm-dialog"></section>
+    <section is="confirm-dialog" id="confirm-dialog">
+      
+      <div id="app_manager" class="bottom_arrow">
+	
+    	<div id="app_manage" class="manage_container">
+          <div class="grey_part">
+        	<span id="confirm-dialog-cancel-button2">X</span>
+			<h1 class="app_grey_header">Manage app</h1>
+		  </div>
+        
+          <div class="word_space">
+              <h1 class="word_style" id="confirm-dialog-confirm-button">Delete app</h1>
+          </div>
+      
+          <hr>
+      
+          <div class="word_space">
+              <h1 class="word_style" id="confirm-dialog-send-button" onClick="document.getElementById('app_manage').style.display='none'; document.getElementById('send_manage').style.display='block';">Send app to...</h1>
+          </div>
+      
+          <hr>
+      
+          <div class="word_space">
+              <h1 class="word_style" id="confirm-dialog-cancel-button">Cancel</h1>
+          </div>
+        </div>
+        
+        <div id="send_manage" class="manage_container">
+          <div class="grey_part">
+              <span id="confirm-dialog-cancel-button3">X</span>
+              <h1 class="app_grey_header">Send app with</h1>
+          </div>
+      
+          <div class="word_space">
+              <h1 class="word_style" onClick="window.location='elements/select_recipient.html'">Bluetooth</h1>
+          </div>
+      
+          <hr>
+      
+          <div class="word_space">
+              <h1 class="word_style" id="confirm-dialog-send-button">Email</h1>
+          </div>
+      
+          <hr>
+      
+          <div class="word_space">
+              <h1 class="word_style" id="confirm-dialog-cancel-button" onClick="document.getElementById('app_manage').style.display='block'; document.getElementById('send_manage').style.display='none';">Back</h1>
+          </div>
+        </div>
+    
+	  	<span id="bottom_arrow"><img src="resources/images/confirm_bottom_arrow.png" width="72" height="22"></span>
+        
+        <div id="app_info">
+        	<img src="resources/images/demoapp.png" width="64" height="64">
+			<p id="confirm-dialog-title"></p>
+      	</div>
+      </div>
+        
+    </section>
 
     <section is="contextmenu-dialog" id="contextmenu-dialog"></section>
 

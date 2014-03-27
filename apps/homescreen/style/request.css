@@ -7,16 +7,43 @@
   height: 100%;
   display: none;
   z-index: 20001; /* just below the sleep menu */
+  background: rgba(51, 51, 51, 0.8); 
 }
 
 #confirm-dialog.visible {
   display: block;
 }
 
+/* BB defines padding: 0 1.5rem; */
+/*
 #confirm-dialog-title {
-  width: calc(100% - 3rem); /* BB defines padding: 0 1.5rem; */
+  width: calc(100% - 3rem); 
   overflow: hidden;
   mask: url('app_name_mask.svg#fade_right_mask');
   text-overflow: '';
   white-space: nowrap;
 }
+*/
+
+
+/* App Options & Send Options Page CSS */
+/* Shared */
+#confirm-dialog #send_manage { display:none; }
+
+#confirm-dialog #app_manager { width:255px; height:255px; margin:4% auto; border:.15rem solid #666; border-radius:1rem; background-color:#E6E7E9; position:relative; }
+	#confirm-dialog #app_manager hr { width:210px; height:2px; border:0; background-color:#D3D3D3; }
+	#confirm-dialog #app_manager #bottom_arrow { position:absolute; right:0; text-align:left; width: calc(50% + 36px); display:inline-block; }
+	#confirm-dialog #app_info { text-align:center; position:relative; top:30px; }
+	#confirm-dialog #app_info p { margin-top:.5rem; color:#9A8893; font-size:18px; font-weight:bold; }
+	#confirm-dialog .grey_part { background-color:#D3D3D3;border-top-left-radius:14px;border-top-right-radius:14px; }
+		#confirm-dialog .grey_part #confirm-dialog-cancel-button2, #confirm-dialog .grey_part #confirm-dialog-cancel-button3 { font-size:28px; font-weight:bold; color:#888894; left:10px; top:10px; position:absolute; }
+	#confirm-dialog .first_word_space { margin-top:60px;margin-bottom:20px; }
+	#confirm-dialog .word_space { margin-top:25px;margin-bottom:25px; }
+	#confirm-dialog .word_style { font-size:18px;text-align:center; }
+	
+	/* App Options */
+	#confirm-dialog .app_grey_header { color:#858585;font-size:24px;font-weight:300;margin:0;text-align:center;padding-top:10px;padding-bottom:10px; }
+	
+	/* Send Options */
+	#confirm-dialog .send_grey_header { color:#858585;font-size:24px;font-weight:300;margin:0;text-align:center;padding-top:10px;padding-bottom:10px; }
+	#confirm-dialog .back_style { background-color:#D3D3D3;margin-top:-38px;margin-bottom:62px;margin-left:10px; }	

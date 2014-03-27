@@ -53,7 +53,7 @@
   width: calc(100% - .5rem);
   height: 2.6rem;
   z-index: 2;
-  background: url(../resources/images/delete.png) no-repeat left top / 2.4rem;
+  background: url(../resources/images/menu.png) no-repeat left top / 2.4rem;
 }
 
 #footer li > div > *:not(img) {
@@ -93,6 +93,6 @@
   #footer li span.options {
     width: calc(50% - .5rem);
     height: 4.5rem;
-    background: url(../resources/images/delete.png) no-repeat left top / 4.5rem;
+    background: url(../resources/images/menu.png) no-repeat left top / 4.5rem;
   }
 }

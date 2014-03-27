@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<style>
+	/* Select Receipient Page CSS */
+	body { font-family:Arial, Helvetica, sans-serif; background-color:#FFF; }
+	
+	#select #header { margin:.6rem auto 0 auto; width:76%; position:relative; }
+		#select #header img { display:inline-block; position:absolute; top:1.1rem; left:-2rem; cursor:pointer; }
+		#select #header h1 { font-weight:normal; color:#CCC; display:inline-block; }
+		#select .grey_header { background-color:#E6E7E6; color:#4D4D4D; font-size:120%; padding:.5rem 2rem; }
+		#select .white_dev { font-size:150%; padding:1rem 2rem; }
+		#select form { text-align:center; margin-top:1rem; }
+			#select form input { width:90%; height:2rem; margin:0 auto; font-size:130%; }
+	</style>
+
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>Select Recipient</title>
+	
+	<!--[if le IE 9]>
+      <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <script src="scripts/respond.js"></script>
+    <![endif]-->
+    
+    <!-- The following two elements pull in the styles for the default template functionality  -->
+    
+	<link href="styles/normalize.css" rel="stylesheet" type="text/css">
+	
+	<!-- Below is your custom application stylesheet -->
+	
+	<link href="styles/app.css" rel="stylesheet" type="text/css">
+	
+</head>
+<body id="select">
+
+<div id="header">
+	<img src="../resources/images/icon-back.png" width="17" height="32" alt="Back" onClick="window.history.back();">
+	<h1>Send app to...</h1>
+</div>
+
+<div class="grey_header">
+	Paired devices
+</div>
+
+<div class="white_dev" id="send_device">
+	AJ's phone
+</div>
+
+<div class="grey_header">
+	Nearby devices
+</div>
+
+<div class="white_dev">
+	Pete's phone
+</div>
+
+<form>
+	<input type="search" name="searchDevices" id="searchDevices" placeholder="Search for devices..." />
+</form>
+
+<script type="text/javascript" src="../js/select_recipient.js"></script>
+</body>
+</html>
