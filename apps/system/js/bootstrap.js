@@ -13,6 +13,9 @@ window.addEventListener('load', function startup() {
     window.appWindowFactory = new AppWindowFactory();
     window.appWindowFactory.start();
     /** @global */
+    window.activityWindowFactory = new ActivityWindowFactory();
+    window.activityWindowFactory.start();
+    /** @global */
     window.secureWindowManager = window.secureWindowManager ||
       new SecureWindowManager();
     /** @global */
@@ -21,8 +24,6 @@ window.addEventListener('load', function startup() {
     if (window.SuspendingAppPriorityManager) {
       window.suspendingAppPriorityManager = new SuspendingAppPriorityManager();
     }
-    /** @global */
-    window.activityWindowFactory = new ActivityWindowFactory();
   }
 
   function safelyLaunchFTU() {
