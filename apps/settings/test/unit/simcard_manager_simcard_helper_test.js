@@ -1,3 +1,5 @@
+/* global requireApp, mocha, suite, suiteSetup, suiteTeardown,
+          setup, MockL10n, SimUIModel, assert, test */
 'use strict';
 
 requireApp('settings/test/unit/mock_l10n.js');
@@ -51,7 +53,7 @@ suite('SimUIModel', function() {
       });
     });
 
-    suite('lock state > ', function() {
+    suite('locked state > ', function() {
       setup(function() {
         fakeSimcard.setState('locked');
       });
@@ -64,6 +66,22 @@ suite('SimUIModel', function() {
         assert.equal(cardInfo.name, 'SIM ' + (fakeSimcardIndex + 1));
         assert.equal(cardInfo.number, '');
         assert.equal(cardInfo.operator, 'sim-pin-locked');
+      });
+    });
+
+    suite('blocked state > ', function() {
+      setup(function() {
+        fakeSimcard.setState('blocked');
+      });
+
+      test('set state to blocked successfully', function() {
+        var cardInfo = fakeSimcard.getInfo();
+        assert.isTrue(cardInfo.enabled);
+        assert.isTrue(cardInfo.absent);
+        assert.isFalse(cardInfo.locked);
+        assert.equal(cardInfo.name, 'noSimCard');
+        assert.equal(cardInfo.number, '');
+        assert.equal(cardInfo.operator, '');
       });
     });
 

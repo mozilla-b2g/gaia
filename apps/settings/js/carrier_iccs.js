@@ -12,6 +12,7 @@ var IccHandlerForCarrierSettings = (function(window, document, undefined) {
   var CARDSTATE_MAPPING = {
    'pinRequired' : 'simCardLockedMsg',
    'pukRequired' : 'simCardLockedMsg',
+   'permanentBlocked': 'simCardBlockedMsg',
    'networkLocked' : 'simLockedPhone',
    'serviceProviderLocked' : 'simLockedPhone',
    'corporateLocked' : 'simLockedPhone',

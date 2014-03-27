@@ -517,20 +517,20 @@ suite('SimCardManager > ', function() {
   suite('initSimCardManagerUI > ', function() {
     setup(function() {
       this.sinon.stub(SimCardManager, 'initSimCardsUI');
-      this.sinon.stub(SimCardManager, 'initSelectOptionsUI');
+      this.sinon.stub(SimCardManager, 'updateSelectOptionsUI');
       this.sinon.stub(SimCardManager, 'updateSimCardsUI');
       this.sinon.stub(SimCardManager, 'updateSimSecurityUI');
       SimCardManager.initSimCardManagerUI();
     });
     test('all related methods are exectued', function() {
       assert.ok(SimCardManager.initSimCardsUI.called);
-      assert.ok(SimCardManager.initSelectOptionsUI.called);
+      assert.ok(SimCardManager.updateSelectOptionsUI.called);
       assert.ok(SimCardManager.updateSimCardsUI.called);
       assert.ok(SimCardManager.updateSimSecurityUI.called);
     });
   });
 
-  suite('initSelectOptionUI > ', function() {
+  suite('updateSelectOptionUI > ', function() {
     var selectedIndex = 1;
     var fakeSelect;
 
@@ -542,19 +542,19 @@ suite('SimCardManager > ', function() {
     });
     test('if storageKey is outgoingCall, we would add "always ask" option',
       function() {
-        SimCardManager.initSelectOptionUI('outgoingCall',
+        SimCardManager.updateSelectOptionUI('outgoingCall',
           selectedIndex, fakeSelect);
         assert.equal(fakeSelect.length, 3);
     });
     test('if storageKey is outgoingMessages, we would add "always ask" option',
       function() {
-        SimCardManager.initSelectOptionUI('outgoingMessages',
+        SimCardManager.updateSelectOptionUI('outgoingMessages',
           selectedIndex, fakeSelect);
         assert.equal(fakeSelect.length, 3);
     });
     test('if storageKey is outgoingData, we won\'t add "always ask" option',
       function() {
-        SimCardManager.initSelectOptionUI('outgoingData',
+        SimCardManager.updateSelectOptionUI('outgoingData',
           selectedIndex, fakeSelect);
         assert.equal(fakeSelect.length, 2);
     });
@@ -624,6 +624,38 @@ suite('SimCardManager > ', function() {
         assert.equal('false',
           SimCardManager.simManagerSecurityEntry.getAttribute('aria-disabled'));
       });
+    });
+  });
+
+  suite('We can change options when simcard is blocked', function() {
+    var fakeLockedIccId = '123456789';
+
+    suiteSetup(function() {
+      sinon.stub(SimCardManager, 'updateCardStateWithUI');
+      sinon.stub(SimCardManager, 'updateSelectOptionsUI');
+
+      window.navigator.mozIccManager.addIcc(fakeLockedIccId, {
+        'cardState' : 'permanentBlocked'
+      });
+
+      SimCardManager.addChangeEventOnIccByIccId(fakeLockedIccId);
+
+      var callback =
+        window.navigator.mozIccManager.getIccById(
+          fakeLockedIccId
+        )._eventListeners.cardstatechange[0];
+      callback();
+    });
+
+    suiteTeardown(function() {
+      SimCardManager.updateCardStateWithUI.restore();
+      SimCardManager.updateSelectOptionsUI.restore();
+      window.navigator.mozIccManager.removeIcc(fakeLockedIccId);
+    });
+
+    test('change successfully', function() {
+      assert.isTrue(SimCardManager.updateCardStateWithUI.called);
+      assert.isTrue(SimCardManager.updateSelectOptionsUI.called);
     });
   });
 
