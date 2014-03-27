@@ -1,5 +1,7 @@
 /* global _, BalanceView, TopUpLayoutView, CostControl, ConfigManager,
-          ViewManager, debug, MozActivity, getTopUpTimeout, LazyLoader */
+          ViewManager, debug, MozActivity, getTopUpTimeout, LazyLoader,
+          sendBalanceThresholdNotification
+*/
 
 /*
  * The balance tab is in charge of show balance details and allows the use
@@ -130,11 +132,19 @@ var BalanceTab = (function() {
   function toogleLimits(isEnabled, old, key, settings) {
     updateBalance(settings.lastBalance,
                   isEnabled && settings.lowLimitThreshold);
+    if (isEnabled) {
+      sendBalanceThresholdNotification(settings.lastBalance, settings, false);
+      updateBalance(settings.lastBalance, settings.lowLimitThreshold);
+    }
   }
 
   // On changing the threshold for low limit
   function resetNotification() {
     ConfigManager.setOption({ 'lowLimitNotified': false });
+    ConfigManager.requestAll(function _onSettings(configuration, settings) {
+      updateBalance(settings.lastBalance, settings.lowLimitThreshold);
+      sendBalanceThresholdNotification(settings.lastBalance, settings, false);
+    });
   }
 
   // On balance update received
