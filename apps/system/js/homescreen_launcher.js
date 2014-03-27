@@ -125,6 +125,8 @@
       window.addEventListener('appopening', this);
       window.addEventListener('appopened', this);
       window.addEventListener('keyboardchange', this);
+      window.addEventListener('cardviewbeforeshow', this);
+      window.addEventListener('cardviewbeforeclose', this);
       return this;
     },
 
@@ -147,6 +149,8 @@
       window.removeEventListener('trusteduihide', this);
       window.removeEventListener('trusteduishow', this);
       window.removeEventListener('applicationready', this._onAppReady);
+      window.removeEventListener('cardviewbeforeshow', this);
+      window.removeEventListener('cardviewbeforeclose', this);
       this._started = false;
     },
 
@@ -182,6 +186,15 @@
           // Fade out the homescreen, so that it won't be seen when showing/
           // hiding/switching keyboard.
           this.getHomescreen().fadeOut();
+          break;
+        case 'cardviewbeforeshow':
+          // Fade out the homescreen before showing the cards view to avoid
+          // having it bleed through during the transition animation.
+          this.getHomescreen().fadeOut();
+          break;
+        case 'cardviewbeforeclose':
+          // Fade homescreen back in before the cards view closes.
+          this.getHomescreen().fadeIn();
           break;
       }
     },

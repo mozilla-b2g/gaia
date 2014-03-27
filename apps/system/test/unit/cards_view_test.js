@@ -523,7 +523,6 @@ suite('cards view >', function() {
       MockAppWindowManager.mRunningApps = {
         'http://sms.gaiamobile.org': apps['http://sms.gaiamobile.org']
       };
-
       CardsView.showCardSwitcher(true);
       window.addEventListener('cardviewclosed', handler);
     });
