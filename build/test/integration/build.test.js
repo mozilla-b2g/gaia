@@ -32,6 +32,50 @@ suite('ADB tests', function() {
   });
 });
 
+suite('Build GAIA from differece app list', function() {
+
+  suiteSetup(function() {
+    rmrf('profile');
+    rmrf('profile-debug');
+    rmrf('build_stage');
+  });
+
+  test('GAIA_DEVICE_TYPE=tablet make', function(done) {
+    helper.exec('GAIA_DEVICE_TYPE=tablet make', function(error, stdout, stderr) {
+      helper.checkError(error, stdout, stderr);
+
+      // zip path for system app
+      var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+        'sms.gaiamobile.org', 'application.zip');
+
+      // sms should not exists in Tablet builds
+      assert.isFalse(fs.existsSync(zipPath));
+      done();
+    });
+  });
+
+  test('GAIA_DEVICE_TYPE=phone make', function(done) {
+    helper.exec('GAIA_DEVICE_TYPE=phone make', function(error, stdout, stderr) {
+      helper.checkError(error, stdout, stderr);
+
+      // zip path for system app
+      var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+        'sms.gaiamobile.org', 'application.zip');
+
+      // sms should not exists in Tablet builds
+      assert.ok(fs.existsSync(zipPath));
+      done();
+    });
+  });
+
+  teardown(function() {
+    rmrf('profile');
+    rmrf('profile-debug');
+    rmrf('build_stage');
+  });
+
+});
+
 suite('Node modules tests', function() {
   test('make node_modules from git mirror', function(done) {
     rmrf('modules.tar');
@@ -253,6 +297,13 @@ suite('Build Integration tests', function() {
 
       helper.checkSettings(settings, expectedSettings);
       assert.isUndefined(sandbox.prefs['dom.payment.skipHTTPSCheck']);
+
+      // zip path for system app
+      var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+        'uitest.gaiamobile.org', 'application.zip');
+
+      // uitest should not exists in production builds
+      assert.isFalse(fs.existsSync(zipPath));
       done();
     });
   });
