@@ -1,3 +1,9 @@
+/* globals _, Browser, BrowserDB, DateHelper, HtmlHelper */
+
+/* exported Awesomescreen */
+
+'use strict';
+
 /**
  *  Browser App Awesomescreen.
  */
@@ -154,8 +160,9 @@ var Awesomescreen = {
         threshold = this.incrementHistoryThreshold(timestamp, threshold,
           thresholds);
         // Special case for month headings
-        if (threshold != 5)
+        if (threshold != 5) {
           this.drawHistoryHeading(fragment, threshold);
+        }
       }
       if (threshold === 5) {
         var timestampDate = new Date(timestamp);
@@ -174,8 +181,9 @@ var Awesomescreen = {
       }
     }, this);
 
-    if (fragment.childNodes.length)
+    if (fragment.childNodes.length) {
       this.history.appendChild(fragment);
+    }
   },
 
   /**
@@ -204,8 +212,9 @@ var Awesomescreen = {
       var date = new Date(timestamp);
       var now = new Date();
       text = _('month-' + date.getMonth());
-      if (date.getFullYear() != now.getFullYear())
+      if (date.getFullYear() != now.getFullYear()) {
         text += ' ' + date.getFullYear();
+      }
     } else {
       text = _(LABELS[threshold]);
     }
@@ -443,8 +452,9 @@ var Awesomescreen = {
     }
 
     // If the result was cached, nothing left to do so return it
-    if (fromCache)
+    if (fromCache) {
       return listItem;
+    }
 
     // Set result icon
     var underlay = ',url(./style/images/favicon-underlay.png)';
@@ -453,7 +463,7 @@ var Awesomescreen = {
         'url(' + this.DEFAULT_FAVICON + ')' + underlay;
     } else {
       BrowserDB.db.getIcon(data.iconUri, (function(icon) {
-        if (icon && icon.failed != true && icon.data) {
+        if (icon && icon.failed !== true && icon.data) {
           var imgUrl = window.URL.createObjectURL(icon.data);
           link.style.backgroundImage = 'url(' + imgUrl + ')' + underlay;
         } else {
@@ -476,8 +486,9 @@ var Awesomescreen = {
    */
   cacheResult: function awesomescreen_cacheResult(uri, listItem) {
     var keys = Object.keys(this.resultCache);
-    if (keys.length >= this.RESULT_CACHE_SIZE)
+    if (keys.length >= this.RESULT_CACHE_SIZE) {
       delete this.resultCache[keys[0]];
+    }
     this.resultCache[uri] = listItem;
   },
 

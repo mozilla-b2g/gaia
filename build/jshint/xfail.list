@@ -1,7 +1,6 @@
 apps/bluetooth/js/deviceList.js
 apps/bluetooth/js/transfer.js
 apps/browser/js/authentication_dialog.js
-apps/browser/js/awesomescreen.js
 apps/browser/js/browser.js
 apps/browser/js/browser_db.js
 apps/browser/js/modal_dialog.js
