@@ -259,6 +259,7 @@
     this.containerElement.insertAdjacentHTML('beforeend', this.view());
     // TODO: Use BrowserConfigHelper.
     this.browser_config = {
+      parentApp: this.parentApp,
       origin: this.origin,
       url: this.url,
       name: this.name,

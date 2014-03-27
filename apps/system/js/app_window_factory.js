@@ -75,6 +75,9 @@
           }
           config.changeURL = !detail.onlyShowApp;
           config.stayBackground = !detail.showApp;
+          if (detail.extra && detail.extra.manifestURL) {
+            config.parentApp = detail.extra.manifestURL;
+          }
           // TODO: Create activity window instance
           // or background app window instance for system message here.
           this.launch(config);
