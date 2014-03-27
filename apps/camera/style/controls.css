@@ -41,7 +41,6 @@
 .controls-left {
   justify-content: flex-end;
   opacity: 1;
-  pointer-events: auto;
   transition: opacity 200ms ease-in-out;
 }
 
