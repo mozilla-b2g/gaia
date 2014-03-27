@@ -32,6 +32,7 @@ requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_secure_window_manager.js');
 requireApp('system/test/unit/mock_secure_window_factory.js');
 requireApp('system/test/unit/mock_activity_window_factory.js');
+requireApp('system/test/unit/mock_app_window_factory.js');
 
 mocha.globals([
   'Shortcuts',
@@ -53,6 +54,7 @@ mocha.globals([
   'title',
   'appWindowFactory',
   'LayoutManager',
+  'activityWindowFactory',
   'visibilityManager',
   'Applications',
   'activityWindowFactory',
@@ -78,6 +80,7 @@ var mocksForBootstrap = new MocksHelper([
   'TelephonySettings',
   'TTLView',
   'Title',
+  'AppWindowFactory',
   'VisibilityManager',
   'LayoutManager',
   'SecureWindowManager',
