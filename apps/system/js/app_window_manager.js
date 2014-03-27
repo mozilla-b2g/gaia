@@ -66,6 +66,9 @@
     // note: the id is instanceID instead of origin here.
     _apps: {},
 
+    // store all callback functions in order to unobserve them when uninit.
+    _settingsObserveHandler: null,
+
     /**
      * Switch to a different app
      * @param {AppWindow} newApp The new app window instance.
@@ -236,29 +239,85 @@
       window.addEventListener('homegesture-disabled', this);
       window.addEventListener('system-resize', this);
 
-      // update app name when language setting changes
-      SettingsListener.observe('language.current', null,
-        function(value) {
-          if (!value)
-            return;
-          this.broadcastMessage('localized');
-        }.bind(this));
+      this._settingsObserveHandler = {
+        // update app name when language setting changes
+        'language.current': {
+          defaultValue: null,
+          callback: function(value) {
+            if (!value)
+              return;
+            this.broadcastMessage('localized');
+          }.bind(this)
+        },
 
-      // continuous transition controlling
-      SettingsListener.observe('continuous-transition.enabled', null,
-        function(value) {
-          if (!value)
-            return;
-          this.continuousTransition = !!value;
-        }.bind(this));
+        // continuous transition controlling
+        'continuous-transition.enabled': {
+          defaultValue: null,
+          callback: function(value) {
+            if (!value)
+              return;
+            this.continuousTransition = !!value;
+          }.bind(this)
+        },
 
-      SettingsListener.observe('app-suspending.enabled', false,
-        function(value) {
-          // Kill all instances if they are suspended.
-          if (!value) {
-            this.broadcastMessage('kill_suspended');
-          }
-        }.bind(this));
+        'app-suspending.enabled': {
+          defaultValue: false,
+          callback: function(value) {
+            // Kill all instances if they are suspended.
+            if (!value) {
+              this.broadcastMessage('kill_suspended');
+            }
+          }.bind(this)
+        }
+      };
+
+      for (var name in this._settingsObserveHandler) {
+        SettingsListener.observe(
+          name,
+          this._settingsObserveHandler[name].defaultValue,
+          this._settingsObserveHandler[name].callback
+        );
+      }
+    },
+
+    /**
+     * Remove all event handlers. Currently we only call this function in unit
+     * tests to avoid breaking other tests.
+     * @memberOf module:AppWindowManager
+     */
+    uninit: function awm_uninit() {
+      window.removeEventListener('launchapp', this);
+      window.removeEventListener('home', this);
+      window.removeEventListener('appcreated', this);
+      window.removeEventListener('appterminated', this);
+      window.removeEventListener('ftuskip', this);
+      window.removeEventListener('appopened', this);
+      window.removeEventListener('apprequestopen', this);
+      window.removeEventListener('apprequestclose', this);
+      window.removeEventListener('homescreenopened', this);
+      window.removeEventListener('reset-orientation', this);
+      window.removeEventListener('homescreencreated', this);
+      window.removeEventListener('homescreen-changed', this);
+      window.removeEventListener('killapp', this);
+      window.removeEventListener('displayapp', this);
+      window.removeEventListener('applicationuninstall', this);
+      window.removeEventListener('hidewindows', this);
+      window.removeEventListener('showwindows', this);
+      window.removeEventListener('hidewindow', this);
+      window.removeEventListener('showwindow', this);
+      window.removeEventListener('overlaystart', this);
+      window.removeEventListener('homegesture-enabled', this);
+      window.removeEventListener('homegesture-disabled', this);
+      window.removeEventListener('system-resize', this);
+
+      for (var name in this._settingsObserveHandler) {
+        SettingsListener.unobserve(
+          name,
+          this._settingsObserveHandler[name].callback
+        );
+      }
+
+      this._settingsObserveHandler = null;
     },
 
     handleEvent: function awm_handleEvent(evt) {
