@@ -455,4 +455,29 @@ suite('camera', function() {
       assert.isTrue(takePicture.calledBefore(resumePreview));
     });
   });
+
+  suite('Camera#onPreviewStateChange()', function() {
+    setup(function() {
+      this.camera = new this.Camera();
+      sinon.stub(this.camera, 'emit');
+    });
+
+    test('Should fire \'busy\' event if \'stopped\' or \'paused\'', function() {
+      this.camera.onPreviewStateChange('stopped');
+      assert.ok(this.camera.emit.calledWith('busy'));
+      this.camera.emit.reset();
+
+      this.camera.onPreviewStateChange('paused');
+      assert.ok(this.camera.emit.calledWith('busy'));
+    });
+
+    test('Should not fire \'ready\' event for all other states', function() {
+      this.camera.onPreviewStateChange('something else');
+      assert.ok(this.camera.emit.calledWith('ready'));
+      this.camera.emit.reset();
+
+      this.camera.onPreviewStateChange('other');
+      assert.ok(this.camera.emit.calledWith('ready'));
+    });
+  });
 });
