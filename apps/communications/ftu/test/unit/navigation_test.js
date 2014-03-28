@@ -105,7 +105,8 @@ suite('navigation >', function() {
   });
 
   var setStepState = function(current, callback) {
-    Navigation.currentStep = Navigation.previousStep = current;
+    Navigation.currentStep = current;
+    Navigation.previousStep = current != 1 ? current - 1 : 1;
     Navigation.manageStep(callback);
   };
 
@@ -118,10 +119,12 @@ suite('navigation >', function() {
     MockIccHelper.setProperty('cardState', 'ready');
     Navigation.simMandatory = true;
     Navigation.fxaEnabled = true;
+    Navigation.totalSteps = numSteps; // explicitly set the total steps
 
     setStepState(1);
     for (var i = Navigation.currentStep; i < numSteps; i++) {
       Navigation.forward();
+      assert.equal(Navigation.getProgressBarState(), i + 1);
       assert.equal(Navigation.previousStep, i);
       assert.equal(Navigation.currentStep, (i + 1));
       assert.equal(window.location.hash, steps[(i + 1)].hash);
@@ -131,14 +134,53 @@ suite('navigation >', function() {
   test('navigates backwards', function() {
     Navigation.simMandatory = true;
     Navigation.fxaEnabled = true;
+    Navigation.totalSteps = numSteps; // explicitly set the total steps
+
     setStepState(numSteps);
     // The second step isn't mandatory.
     for (var i = Navigation.currentStep; i > 2; i--) {
       Navigation.back();
+      assert.equal(Navigation.getProgressBarState(), i - 1);
       assert.equal(Navigation.previousStep, i);
       assert.equal(Navigation.currentStep, i - 1);
       assert.equal(window.location.hash, steps[i - 1].hash);
     }
+  });
+
+  test('progress bar start and end positions', function() {
+    Navigation.simMandatory = true;
+    Navigation.fxaEnabled = true;
+    Navigation.totalSteps = numSteps; // explicitly set the total steps
+
+    // Start position
+    setStepState(1);
+    assert.equal(Navigation.getProgressBarState(), 1);
+
+    // Last step position
+    setStepState(numSteps);
+    assert.equal(Navigation.getProgressBarState(), numSteps);
+  });
+
+  test('skip firefox accounts screen', function() {
+    Navigation.simMandatory = true;
+    Navigation.fxaEnabled = false;
+
+    setStepState(6); // #import_contacts screen, right before #firefox_accounts
+    assert.equal(Navigation.previousStep, 5);
+    assert.equal(Navigation.currentStep, 6);
+    assert.equal(Navigation.getProgressBarState(), 6);
+
+    // Go forward, skipping the #firefox_accounts screen
+    Navigation.forward();
+    assert.equal(Navigation.previousStep, 6);
+    assert.equal(Navigation.currentStep, 8);
+    assert.equal(Navigation.getProgressBarState(), 7);
+
+    // Go backward, skipping the #firefox_accounts screen
+    Navigation.back();
+    assert.equal(Navigation.previousStep, 8);
+    assert.equal(Navigation.currentStep, 6);
+    assert.equal(Navigation.getProgressBarState(), 6);
   });
 
   test('last step launches tutorial', function() {
@@ -300,12 +342,14 @@ suite('navigation >', function() {
 
       assert.equal(Navigation.previousStep, 1);
       assert.equal(Navigation.currentStep, 2);
+      assert.equal(Navigation.getProgressBarState(), 2);
 
       // Fire a cardstate change
       cardStateChangeCallback('ready');
       // Ensure we don't skip this current state
       assert.equal(Navigation.previousStep, 1);
       assert.equal(Navigation.currentStep, 2);
+      assert.equal(Navigation.getProgressBarState(), 2);
 
     });
 
@@ -315,6 +359,7 @@ suite('navigation >', function() {
 
       assert.equal(Navigation.previousStep, 1);
       assert.equal(Navigation.currentStep, 2);
+      assert.equal(Navigation.getProgressBarState(), 2);
 
       // Make sure we don't skip unlock screens on way forward.
       assert.isTrue(handleCardStateStub.calledWith(
@@ -322,15 +367,46 @@ suite('navigation >', function() {
 
       // Skip step 2, sim pin entry
       Navigation.skipStep();
+      Navigation.skipDataScreen = true;
+      assert.equal(Navigation.previousStep, 1);
       assert.equal(Navigation.currentStep, 3);
+      assert.equal(Navigation.getProgressBarState(), 2);
 
       // Go back
       Navigation.back();
+      assert.equal(Navigation.previousStep, 3);
       assert.equal(Navigation.currentStep, 2);
+      assert.equal(Navigation.getProgressBarState(), 1);
 
       // Make sure we skip unlock screens going back.
       assert.isTrue(handleCardStateStub.calledWith(
         cardStateChangeCallback, true));
+    });
+
+    test('skip pin and go forward', function() {
+      MockIccHelper.setProperty('cardState', 'pinRequired');
+      Navigation.forward();
+
+      assert.equal(Navigation.previousStep, 1);
+      assert.equal(Navigation.currentStep, 2);
+      assert.equal(Navigation.getProgressBarState(), 2);
+
+      // Make sure we don't skip unlock screens on way forward.
+      assert.isTrue(handleCardStateStub.calledWith(
+        cardStateChangeCallback, false));
+
+      // Skip step 2, sim pin entry
+      Navigation.skipStep();
+      Navigation.skipDataScreen = true;
+      assert.equal(Navigation.previousStep, 1);
+      assert.equal(Navigation.currentStep, 3);
+      assert.equal(Navigation.getProgressBarState(), 2);
+
+      // Go forward
+      Navigation.forward();
+      assert.equal(Navigation.previousStep, 3);
+      assert.equal(Navigation.currentStep, 4);
+      assert.equal(Navigation.getProgressBarState(), 3);
     });
   });
 
@@ -354,6 +430,7 @@ suite('navigation >', function() {
 
       assert.equal(Navigation.previousStep, 1);
       assert.equal(Navigation.currentStep, 2);
+      assert.equal(Navigation.getProgressBarState(), 2);
       assert.equal(window.location.hash, hash);
 
       Navigation.back();
@@ -361,6 +438,7 @@ suite('navigation >', function() {
 
       assert.equal(Navigation.previousStep, 1);
       assert.equal(Navigation.currentStep, 2);
+      assert.equal(Navigation.getProgressBarState(), 2);
       assert.equal(window.location.hash, hash);
     });
 
@@ -370,6 +448,7 @@ suite('navigation >', function() {
 
       assert.equal(Navigation.previousStep, 1);
       assert.equal(Navigation.currentStep, 2);
+      assert.equal(Navigation.getProgressBarState(), 2);
       assert.equal(window.location.hash, steps[Navigation.currentStep].hash);
     });
 

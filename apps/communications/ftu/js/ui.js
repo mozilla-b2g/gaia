@@ -1,9 +1,8 @@
 /* global utils, tzSelect,
           Basket, ConfirmDialog, ScreenLayout,
           DataMobile, SimManager, SdManager,
-          Navigation, Tutorial, TimeManager,
-          WifiManager, WifiUI, WifiHelper,
-          FxAccountsIACHelper  */
+          Tutorial, TimeManager, WifiManager,
+          WifiUI, WifiHelper, FxAccountsIACHelper  */
 /* exported UIManager */
 'use strict';
 
@@ -293,7 +292,6 @@ var UIManager = {
         SimManager.back();
         break;
       case 'unlock-sim-button':
-        Navigation.skipped = false;
         SimManager.unlock();
         break;
       case 'unlock-sim-back':
