@@ -62,7 +62,8 @@ suite('Tutorial >', function() {
 
     suiteSetup(function() {
       Tutorial.init();
-      Tutorial.numTutorialSteps = Object.keys(TutorialSteps.tiny).length;
+      Tutorial.numTutorialSteps =
+        Object.keys(TutorialSteps.initial.tiny).length;
     });
 
     suiteTeardown(function() {
@@ -96,8 +97,9 @@ suite('Tutorial >', function() {
     suiteSetup(function() {
       ScreenLayout.setDevice('large');
       Tutorial.init();
-      Tutorial.numTutorialSteps = Object.keys(TutorialSteps.large).length;
-      });
+      Tutorial.numTutorialSteps =
+        Object.keys(TutorialSteps.initial.large).length;
+    });
 
     suiteTeardown(function() {
       Tutorial.jumpTo(1);
