@@ -19,16 +19,17 @@ if (!utils.misc) {
     var FLAG_YEAR_IGNORED = 9996;
     var _ = navigator.mozL10n.get;
 
-    var year = date.getFullYear();
-    if (year === FLAG_YEAR_IGNORED) {
-      year = '';
-    }
     var dateFormat = _('dateFormat') || '%B %e';
     var f = new navigator.mozL10n.DateTimeFormat();
     var dateString = null;
     try {
       var offset = date.getTimezoneOffset() * 60 * 1000;
       var normalizedDate = new Date(date.getTime() + offset);
+
+      var year = normalizedDate.getFullYear();
+      if (year === FLAG_YEAR_IGNORED) {
+        year = '';
+      }
       var dayMonthString = f.localeFormat(normalizedDate, dateFormat);
       dateString = _('dateOutput', {
         dayMonthFormatted: dayMonthString,
