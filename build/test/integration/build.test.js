@@ -514,6 +514,15 @@ suite('Build Integration tests', function() {
     );
   });
 
+  test('problematic files', function(done) {
+    exec('GAIA_APP_CONFIG=build/test/integration/problematic-apps.list make',
+      function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+        done();
+      }
+    );
+  });
+
   teardown(function() {
     rmrf('profile');
     rmrf('profile-debug');
