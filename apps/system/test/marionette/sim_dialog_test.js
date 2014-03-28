@@ -38,7 +38,7 @@ marionette('Sim Dialog:', function() {
     document.body.appendChild(script);
   }
 
-  test.skip('Input is shown with error', function() {
+  test('Input is shown with error', function() {
 
     client.executeScript(loadScripts, [[
       'js/mock_simslot.js',
@@ -62,10 +62,10 @@ marionette('Sim Dialog:', function() {
       });
     });
 
-    client.findElement(pinInput).tap();
 
     // Wait for keyboard to show up
     client.waitFor(function() {
+      client.findElement(pinInput).tap();
       var keyboard = client.findElement('#keyboards');
       return keyboard.displayed() &&
         !keyboard.getAttribute('data-transition-in');

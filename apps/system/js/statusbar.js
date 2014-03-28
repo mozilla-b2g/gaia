@@ -681,6 +681,9 @@ var StatusBar = {
       for (var index = 0; index < simSlots.length; index++) {
         var simslot = simSlots[index];
         var conn = simslot.conn;
+        if (!conn) {
+          continue;
+        }
         var voice = conn.voice;
         var data = conn.data;
         var icon = self.icons.signals[index];
