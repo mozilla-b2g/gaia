@@ -39,7 +39,8 @@
   "icons": {
     "60": "/style/icons/Sms_60.png",
     "90": "/style/icons/Sms_90.png",
-    "120": "/style/icons/Sms_120.png"
+    "120": "/style/icons/Sms_120.png",
+    "135": "/style/icons/Sms_135.png"
   },
   "orientation": "default",
   "activities": {
