@@ -41,6 +41,10 @@ require.config({
     {
       name: 'panels/help/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/phone_lock/panel',
+      exclude: ['main']
     }
   ]
 });
