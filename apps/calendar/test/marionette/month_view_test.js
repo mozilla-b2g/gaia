@@ -1,6 +1,6 @@
 'use strict';
 
-var Calendar = require('./calendar'),
+var Calendar = require('./lib/calendar'),
     assert = require('chai').assert;
 
 marionette('month view', function() {
@@ -19,17 +19,17 @@ marionette('month view', function() {
       startHour: 0,
       duration: 16
     });
-    app.waitForMonthView();
 
-    var monthDayViewEvents = app.findElement('monthDayViewEvents');
+    app.openMonthView();
+    var container = app.monthDay.container;
 
     assert.equal(
-      monthDayViewEvents.getAttribute('scrollTop'),
+      container.getAttribute('scrollTop'),
       0,
       'scroll should start at zero'
     );
 
-    var pos = monthDayViewEvents.location();
+    var pos = container.location();
     var x = pos.x + 30;
     var body = client.findElement('body');
     // fast vertical swipe, needs to happen on the body since we want
@@ -40,8 +40,7 @@ marionette('month view', function() {
 
     // this will timeout if scroll did not change
     client.waitFor(function() {
-      return monthDayViewEvents.getAttribute('scrollTop') > 0;
+      return container.getAttribute('scrollTop') > 0;
     });
   });
-
 });
