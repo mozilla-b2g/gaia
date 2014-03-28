@@ -31,6 +31,7 @@ function Settings(items) {
     hash: {}
   };
 
+  this.localize = this.localize.bind(this);
   this.addEach(items);
 }
 
@@ -78,6 +79,12 @@ Settings.prototype.options = function(options) {
 Settings.prototype.fetch = function(done) {
   done = allDone()(done);
   this.items.forEach(function(setting) { setting.fetch(done()); });
+};
+
+Settings.prototype.localize = function() {
+  debug('localizing');
+  this.items.forEach(function(setting) { setting.localize(); });
+  debug('localized');
 };
 
 Settings.prototype.alias = function(key, options) {

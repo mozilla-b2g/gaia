@@ -17,6 +17,7 @@ module.exports = {
     }
   },
   mode: {
+    title: 'Mode',
     options: [
       {
         key: 'picture',
@@ -53,6 +54,7 @@ module.exports = {
   },
 
   cameras: {
+    title: 'Selected Camera',
     options: [
       {
         key: 'back',
@@ -67,7 +69,6 @@ module.exports = {
   },
 
   pictureSizesFront: {
-    title: 'camera-resolution',
     icon: 'icon-picture-size',
     maxPixelSize: window.CONFIG_MAX_IMAGE_PIXEL_SIZE,
     options: [
@@ -87,11 +88,11 @@ module.exports = {
       //   key: '2048x1536'
       // }
     ],
-    persistent: true
+    persistent: true,
+    l10n: { title: 'camera-resolution' }
   },
 
   recorderProfilesBack: {
-    title: 'video-resolution',
     icon: 'icon-video-size',
     options: [
 
@@ -115,11 +116,11 @@ module.exports = {
         title: 'QCIF 176X144'
       }
     ],
-    persistent: true
+    persistent: true,
+    l10n: { title: 'video-resolution' }
   },
 
   recorderProfilesFront: {
-    title: 'video-resolution',
     icon: 'icon-video-size',
     options: [
 
@@ -143,26 +144,26 @@ module.exports = {
         title: 'QCIF 176X144'
       }
     ],
-    persistent: true
+    persistent: true,
+    l10n: { title: 'video-resolution' }
   },
 
   flashModesPicture: {
-    title: 'flash',
     options: [
       {
         key: 'auto',
         icon: 'icon-flash-auto',
-        title: 'flash-auto'
+        l10n: { title: 'auto' },
       },
       {
         key: 'on',
         icon: 'icon-flash-on',
-        title: 'flash-on'
+        l10n: { title: 'on' },
       },
       {
         key: 'off',
         icon: 'icon-flash-off',
-        title: 'flash-off'
+        l10n: { title: 'off' },
       }
     ],
     persistent: true,
@@ -170,17 +171,16 @@ module.exports = {
   },
 
   flashModesVideo: {
-    title: 'flash',
     options: [
       {
         key: 'off',
         icon: 'icon-flash-off',
-        title: 'flash-off'
+        l10n: { title: 'off' },
       },
       {
         key: 'torch',
         icon: 'icon-flash-on',
-        title: 'flash-on'
+        l10n: { title: 'on' },
       }
     ],
     persistent: true,
@@ -188,85 +188,85 @@ module.exports = {
   },
 
   timer: {
-    title: 'self-timer',
     icon: 'icon-timer',
     options: [
       {
         key: 'off',
-        title: 'self-timer-off',
-        value: 0
+        value: 0,
+        l10n: { title: 'off' },
       },
       {
         key: '3secs',
         value: 3,
-        title: 'self-timer-3-seconds'
+        l10n: { title: '3-seconds' },
       },
       {
         key: '5secs',
         value: 5,
-        title: 'self-timer-5-seconds'
+        l10n: { title: '5-seconds' },
       },
       {
         key: '10secs',
         value: 10,
-        title: 'self-timer-10-seconds'
+        l10n: { title: '10-seconds' },
       }
     ],
     persistent: false,
+    l10n: { title: 'self-timer' }
   },
 
   hdr: {
-    title: 'hdr',
+    title: 'HDR',
     icon: 'icon-hdr-menu',
     disabled: false,
     options: [
       {
         key: 'off',
-        title: 'hdr-off'
+        l10n: { title: 'off' },
       },
       {
         key: 'on',
-        title: 'hdr-on'
+        l10n: { title: 'on' },
       }
     ],
     persistent: true
   },
 
   scene: {
-    title: 'scene-mode',
     icon: 'icon-scene',
     options: [
       {
         key: 'normal',
-        title: 'scene-mode-normal'
+        title: 'Normal',
       },
       {
         key: 'pano',
-        title: 'scene-mode-panorama'
+        title: 'Panorama',
       },
       {
         key: 'beauty',
-        title: 'scene-mode-beauty'
+        title: 'Beauty',
       }
     ],
     persistent: true,
+    l10n: { title: 'scene-mode' }
   },
 
   grid: {
-    title: 'grid',
     icon: 'icon-frame-grid',
     options: [
-      {
-        key: 'off',
-        title: 'grid-off'
+       {
+        key: 'on',
+        l10n: { title: 'on' },
       },
       {
-        key: 'on',
-        title: 'grid-on'
+        key: 'off',
+        l10n: { title: 'off' },
       }
     ],
     selected: 'off',
     persistent: true,
+    l10n: { title: 'grid' }
   },
 
   settingsMenu: {
