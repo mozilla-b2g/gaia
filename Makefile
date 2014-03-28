@@ -816,7 +816,7 @@ endif
 # Reorder application.zip for each app if we have a reordering log file
 # available for this app.
 .PHONY: reorder
-reorder: profile-dir
+reorder: profile-dir webapp-zip
 ifeq ($(BUILD_APP_NAME),*)
 	@for d in ${GAIA_APPDIRS} ;\
 	do \
