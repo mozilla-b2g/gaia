@@ -23,6 +23,7 @@ suite('controllers/settings', function() {
 
   setup(function() {
     this.app = sinon.createStubInstance(this.App);
+    this.app.l10n = { get: sinon.stub() };
 
     // Settings
     this.app.settings = sinon.createStubInstance(this.Settings);
