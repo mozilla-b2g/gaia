@@ -2,6 +2,20 @@
 
 requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_app.js');
+mocha.globals(['FxAccountsIACHelper']);
+
+// Return a function that is the partial application of the function f over its
+// initial arguments.  This allows us to construct methods to invoke for IAC
+// calls where we know the last two arguments (success and error callbacks),
+// but we don't know whether there may be additional initial arguments (as in
+// the case of getAssertionForSignedInUser).
+function partial(f) {
+  let as = Array.prototype.slice.call(arguments, 1);
+  return function() {
+    return f.apply(this, as.concat(Array.prototype.slice.call(arguments)));
+  };
+}
+
 // XXX consider moving this to a separate file if it gets much more complex
 
 // arthurcc's suggested replacement:
@@ -28,6 +42,32 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
 
   var postMessageSpy;
 
+  // Return a callback to be invoked on success of an IAC method.
+  // Ensure that the IAC message is equal to expected, then call done.
+  function getSuccessCallback(done, expected) {
+    return function() {
+      assert.ok(postMessageSpy.called);
+      var arg = postMessageSpy.args[0][0];
+      // We do have an id for this message
+      assert.isNotNull(arg.id);
+      assert.isNotNull(arg);
+      // Remove the id, as it's automatically generated
+      delete arg.id;
+
+      assert.deepEqual(arg, expected);
+      done();
+    };
+  }
+
+  // Return a callback to be invoked on failure of an IAC method.
+  function getFailureCallback(done) {
+    return function() {
+      // Break if we are called.
+      assert.ok(false);
+      done();
+    };
+  }
+
   suiteSetup(function() {
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockAppsMgmt;
@@ -45,7 +85,7 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
         var future = {
           'then': function(cb) {}
         };
-        var connectStub = sinon.stub(future, 'then', function(cb) {
+        sinon.stub(future, 'then', function(cb) {
           cb([port]);
         });
         return future;
@@ -65,43 +105,60 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
 
   test('Library integrity', function() {
     assert.isNotNull(FxAccountsIACHelper);
-    assert.equal(Object.keys(FxAccountsIACHelper).length, 9);
+    assert.equal(Object.keys(FxAccountsIACHelper).length, 10);
   });
 
-  ['getAccounts', 'openFlow', 'logout'].forEach(function(method) {
-    suite(method + ' suite', function() {
-      setup(function() {
-        postMessageSpy = sinon.spy(port, 'postMessage');
-      });
+  // Test methods that accept no args other than success and error callbacks
+  test('IAC Methods', function() {
+    // The dictionary of expected results needs to be defined in this test so
+    // it will be constructed after setup() executes and the
+    // FxAccountsIACHelper is defined.
+    var expectedResults = {
+      'getAccounts': {
+        method: FxAccountsIACHelper.getAccounts,
+        message: {name: 'getAccounts'}
+      },
+      'getAssertionForSignedInUser': {
+        method: partial(
+                    FxAccountsIACHelper.getAssertionForSignedInUser,
+                    'https://example.org',
+                    {foo: 42}),
+        message: {
+          name: 'getAssertionForSignedInUser',
+          audience: 'https://example.org',
+          options: {foo: 42}
+        }
+      },
+      'openFlow': {
+        method: FxAccountsIACHelper.openFlow,
+        message: {name: 'openFlow'}
+      },
+      'logout': {
+        method: FxAccountsIACHelper.logout,
+        message: {name: 'logout'}
+      }
+    };
+    var expected;
 
-      test('Check that we send the ' + method + ' message', function(done) {
-        this.timeout(20000);
-        port.methodName = method;
-        FxAccountsIACHelper[method](
-          function() {
-            assert.ok(postMessageSpy.called);
-            var arg = postMessageSpy.args[0][0];
-            // We do have an id for this message
-            assert.isNotNull(arg.id);
-            assert.isNotNull(arg);
-            // Remove the id, as it's automatically generated
-            delete arg.id;
+    Object.keys(expectedResults).forEach(function(method) {
+      suite(method + ' suite', function() {
+        setup(function() {
+          postMessageSpy = sinon.spy(port, 'postMessage');
+          expected = expectedResults[method];
+        });
 
-            assert.deepEqual(arg, {
-              'name': method
-            });
-            done();
-          },
-          function() {
-            // Break if we are called.
-            assert.ok(false);
-            done();
-          }
-        );
-      });
+        test('Check that we send the ' + method + ' message', function(done) {
+          this.timeout(20000);
+          port.methodName = method;
+          expected.method(
+            getSuccessCallback(done, expected.message),
+            getFailureCallback(done)
+          );
+        });
 
-      teardown(function() {
-        postMessageSpy.restore();
+        teardown(function() {
+          postMessageSpy.restore();
+        });
       });
     });
   });
@@ -279,7 +336,7 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
           var future = {
             'then': function(cb) {}
           };
-          var connectStub = sinon.stub(future, 'then', function(cb) {
+          sinon.stub(future, 'then', function(cb) {
             // wait a turn so that we can queue up multiple requests
             setTimeout(function() {
               cb([port]);

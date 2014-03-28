@@ -60,11 +60,11 @@ suite('system/FxAccountsClient >', function() {
   suite('Init', function() {
     test('Integrity', function() {
       assert.isNotNull(FxAccountsClient);
-      assert.equal(Object.keys(FxAccountsClient).length, 7);
+      assert.equal(Object.keys(FxAccountsClient).length, 8);
     });
 
     test('No event listeners', function() {
-      assert.isUndefined(MockEventListener['mozFxAccountsChromeEvent']);
+      assert.isUndefined(MockEventListener.mozFxAccountsChromeEvent);
     });
   });
 
@@ -77,7 +77,7 @@ suite('system/FxAccountsClient >', function() {
 
     test('Event dispatched to chrome side', function() {
       assert.equal(MockDispatchedEvents.length, 1);
-      assert.ok(MockEventListener['mozFxAccountsChromeEvent']);
+      assert.ok(MockEventListener.mozFxAccountsChromeEvent);
       assert.ok(MockDispatchedEvents[0].detail.id);
       assert.ok(MockDispatchedEvents[0].detail.data);
       assert.deepEqual(MockDispatchedEvents[0].detail.data, {
@@ -88,7 +88,7 @@ suite('system/FxAccountsClient >', function() {
 
   suite('getAccounts reply success', function() {
     setup(function() {
-      MockEventListener['mozFxAccountsChromeEvent']({
+      MockEventListener.mozFxAccountsChromeEvent({
         detail: {
           id: MockDispatchedEvents[0].detail.id,
           data: expectedData
@@ -108,7 +108,7 @@ suite('system/FxAccountsClient >', function() {
       assert.isTrue(successCbCalled);
       assert.isFalse(errorCbCalled);
       assert.equal(result, expectedData);
-      assert.isUndefined(MockEventListener['mozFxAccountsChromeEvent']);
+      assert.isUndefined(MockEventListener.mozFxAccountsChromeEvent);
     });
   });
 
@@ -119,7 +119,7 @@ suite('system/FxAccountsClient >', function() {
 
     test('Event dispatched to chrome side', function() {
       assert.equal(MockDispatchedEvents.length, 1);
-      assert.ok(MockEventListener['mozFxAccountsChromeEvent']);
+      assert.ok(MockEventListener.mozFxAccountsChromeEvent);
       assert.ok(MockDispatchedEvents[0].detail.id);
       assert.ok(MockDispatchedEvents[0].detail.data);
       assert.deepEqual(MockDispatchedEvents[0].detail.data, {
@@ -130,7 +130,7 @@ suite('system/FxAccountsClient >', function() {
 
   suite('getAccounts reply error', function() {
     setup(function() {
-      MockEventListener['mozFxAccountsChromeEvent']({
+      MockEventListener.mozFxAccountsChromeEvent({
         detail: {
           id: MockDispatchedEvents[0].detail.id,
           error: expectedError
@@ -150,7 +150,97 @@ suite('system/FxAccountsClient >', function() {
       assert.isFalse(successCbCalled);
       assert.isTrue(errorCbCalled);
       assert.equal(error, expectedError);
-      assert.isUndefined(MockEventListener['mozFxAccountsChromeEvent']);
+      assert.isUndefined(MockEventListener.mozFxAccountsChromeEvent);
+    });
+  });
+
+  suite('getAssertionForSignedInUser', function() {
+    setup(function() {
+      FxAccountsClient.getAssertionForSignedInUser(
+        'https://example.org', {payload: 'ohai'}, successCb, errorCb);
+    });
+
+    test('Event dispatched to chrome side', function() {
+      assert.equal(MockDispatchedEvents.length, 1);
+      assert.ok(MockEventListener.mozFxAccountsChromeEvent);
+      assert.ok(MockDispatchedEvents[0].detail.id);
+      assert.ok(MockDispatchedEvents[0].detail.data);
+      assert.deepEqual(MockDispatchedEvents[0].detail.data, {
+        method: 'getAssertionForSignedInUser',
+        audience: 'https://example.org',
+        options: {payload: 'ohai'}
+      });
+    });
+  });
+
+  suite('getAssertionForSignedInUser reply success', function() {
+    setup(function() {
+      MockEventListener.mozFxAccountsChromeEvent({
+        detail: {
+          id: MockDispatchedEvents[0].detail.id,
+          data: expectedData
+        }
+      });
+    });
+
+    suiteTeardown(function() {
+      MockDispatchedEvents = [];
+      result = null;
+      error = null;
+      successCbCalled = false;
+      errorCbCalled = false;
+    });
+
+    test('On chrome event', function() {
+      assert.isTrue(successCbCalled);
+      assert.isFalse(errorCbCalled);
+      assert.equal(result, expectedData);
+      assert.isUndefined(MockEventListener.mozFxAccountsChromeEvent);
+    });
+  });
+
+  suite('getAssertionForSignedInUser', function() {
+    setup(function() {
+      FxAccountsClient.getAssertionForSignedInUser(
+        'https://example.org', {payload: 'ohai'}, successCb, errorCb);
+    });
+
+    test('Event dispatched to chrome side', function() {
+      assert.equal(MockDispatchedEvents.length, 1);
+      assert.ok(MockEventListener.mozFxAccountsChromeEvent);
+      assert.ok(MockDispatchedEvents[0].detail.id);
+      assert.ok(MockDispatchedEvents[0].detail.data);
+      assert.deepEqual(MockDispatchedEvents[0].detail.data, {
+        method: 'getAssertionForSignedInUser',
+        audience: 'https://example.org',
+        options: {payload: 'ohai'}
+      });
+    });
+  });
+
+  suite('getAssertionForSignedInUser reply error', function() {
+    setup(function() {
+      MockEventListener.mozFxAccountsChromeEvent({
+        detail: {
+          id: MockDispatchedEvents[0].detail.id,
+          error: expectedError
+        }
+      });
+    });
+
+    suiteTeardown(function() {
+      MockDispatchedEvents = [];
+      result = null;
+      error = null;
+      successCbCalled = false;
+      errorCbCalled = false;
+    });
+
+    test('On chrome event', function() {
+      assert.isFalse(successCbCalled);
+      assert.isTrue(errorCbCalled);
+      assert.equal(error, expectedError);
+      assert.isUndefined(MockEventListener.mozFxAccountsChromeEvent);
     });
   });
 
@@ -161,7 +251,7 @@ suite('system/FxAccountsClient >', function() {
 
     test('Event dispatched to chrome side', function() {
       assert.equal(MockDispatchedEvents.length, 1);
-      assert.ok(MockEventListener['mozFxAccountsChromeEvent']);
+      assert.ok(MockEventListener.mozFxAccountsChromeEvent);
       assert.ok(MockDispatchedEvents[0].detail.id);
       assert.ok(MockDispatchedEvents[0].detail.data);
       assert.deepEqual(MockDispatchedEvents[0].detail.data, {
@@ -182,7 +272,7 @@ suite('system/FxAccountsClient >', function() {
 
     test('Event dispatched to chrome side', function() {
       assert.equal(MockDispatchedEvents.length, 2);
-      assert.ok(MockEventListener['mozFxAccountsChromeEvent']);
+      assert.ok(MockEventListener.mozFxAccountsChromeEvent);
       assert.ok(MockDispatchedEvents[0].detail.id);
       assert.ok(MockDispatchedEvents[1].detail.id);
       assert.ok(MockDispatchedEvents[0].detail.data);
@@ -210,7 +300,7 @@ suite('system/FxAccountsClient >', function() {
 
     test('Event dispatched to chrome side', function() {
       assert.equal(MockDispatchedEvents.length, 2);
-      assert.ok(MockEventListener['mozFxAccountsChromeEvent']);
+      assert.ok(MockEventListener.mozFxAccountsChromeEvent);
       assert.ok(MockDispatchedEvents[0].detail.id);
       assert.ok(MockDispatchedEvents[1].detail.id);
       assert.ok(MockDispatchedEvents[0].detail.data);
@@ -239,7 +329,7 @@ suite('system/FxAccountsClient >', function() {
 
     test('Event dispatched to chrome side', function() {
       assert.equal(MockDispatchedEvents.length, 1);
-      assert.ok(MockEventListener['mozFxAccountsChromeEvent']);
+      assert.ok(MockEventListener.mozFxAccountsChromeEvent);
       assert.ok(MockDispatchedEvents[0].detail.id);
       assert.ok(MockDispatchedEvents[0].detail.data);
       assert.deepEqual(MockDispatchedEvents[0].detail.data, {

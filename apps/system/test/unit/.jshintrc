@@ -1,6 +1,10 @@
 {
   "extends": "../../../../.jshintrc",
   "predef": [
+    "FxAccountsClient",
+    "FxAccountsIACHelper",
+    "MockApp",
+    "MockAppsMgmt",
     "assert",
     "suite",
     "test",

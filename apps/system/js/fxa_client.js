@@ -55,7 +55,6 @@ var FxAccountsClient = function FxAccountsClient() {
       callback.errorCb(message.error);
       delete callbacks[message.id];
     }
-
     eventCount--;
     if (!eventCount) {
       window.removeEventListener('mozFxAccountsChromeEvent', onChromeEvent);
@@ -79,6 +78,21 @@ var FxAccountsClient = function FxAccountsClient() {
   var getAccounts = function getAccounts(successCb, errorCb) {
     sendMessage({
       method: 'getAccounts'
+    }, successCb, errorCb);
+  };
+
+  var getAssertionForSignedInUser =
+    function getAssertionForSignedInUser(audience, options,
+                                         successCb, errorCb) {
+    if (typeof options == 'function') {
+      errorCb = successCb;
+      successCb = options;
+      options = {};
+    }
+    sendMessage({
+      method: 'getAssertionForSignedInUser',
+      audience: audience,
+      options: options
     }, successCb, errorCb);
   };
 
@@ -129,6 +143,7 @@ var FxAccountsClient = function FxAccountsClient() {
 
   return {
     'getAccounts': getAccounts,
+    'getAssertionForSignedInUser': getAssertionForSignedInUser,
     'logout': logout,
     'queryAccount': queryAccount,
     'resendVerificationEmail': resendVerificationEmail,
