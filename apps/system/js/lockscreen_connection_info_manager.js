@@ -97,7 +97,7 @@
         var req2 =
           SettingsListener.getSettingsLock()
             .get('ril.telephony.defaultServiceId');
-        req.onsuccess = function() {
+        req2.onsuccess = function() {
           self._telephonyDefaultServiceId =
             req2.result['ril.telephony.defaultServiceId'] || 0;
           self.updateConnStates();
@@ -213,6 +213,12 @@
         }
         simIDLine.hidden = true;
         return;
+      } else if (SIMSlotManager.noSIMCardConnectedToNetwork()) {
+        if (index == 0) {
+          localize(nextLine(), 'emergencyCallsOnly');
+        }
+        simIDLine.hidden = true;
+        return;
       }
 
       // If there are multiple sim slots and only one sim card inserted, we
@@ -245,8 +251,10 @@
       if (voice.emergencyCallsOnly) {
         if (this._telephonyDefaultServiceId == index) {
           localize(nextLine(), 'emergencyCallsOnly');
+          localize(nextLine(), _lockedStateMsgMap[iccObj.cardState]);
+        } else {
+          connstate.hidden = true;
         }
-        localize(nextLine(), _lockedStateMsgMap[iccObj.cardState]);
         return;
       }
 

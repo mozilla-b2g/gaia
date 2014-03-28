@@ -1368,6 +1368,8 @@ suite('Render contacts list', function() {
     };
     var mockNavigationStack;
 
+    var mockNavigationStack;
+
     suiteSetup(function(done) {
       window.fb.isEnabled = false;
       //resetDom(document);

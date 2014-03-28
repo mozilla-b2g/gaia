@@ -28,6 +28,5 @@ var MockUtils = {
     add: function() {}
   },
   cookie: {
-
   }
 };

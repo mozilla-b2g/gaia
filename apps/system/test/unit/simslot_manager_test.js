@@ -47,6 +47,19 @@ suite('SIMSlotManager', function() {
     assert.isTrue(SIMSlotManager.noSIMCardOnDevice());
   });
 
+  test('noSIMCardConnectedToNetwork', function() {
+    MockIccManager.iccIds = [0, 1];
+    MockNavigatorMozMobileConnections.mAddMobileConnection();
+
+    SIMSlotManager._instances = [];
+    SIMSlotManager.init();
+    MockNavigatorMozMobileConnections[0].voice = { emergencyCallsOnly: true };
+    MockNavigatorMozMobileConnections[1].voice = { emergencyCallsOnly: true };
+    assert.isTrue(SIMSlotManager.noSIMCardConnectedToNetwork());
+    MockNavigatorMozMobileConnections[0].voice.emergencyCallsOnly = false;
+    assert.isFalse(SIMSlotManager.noSIMCardConnectedToNetwork());
+  });
+
   test('getSlotByIccId', function() {
     var card1 = document.createElement('div');
     card1.iccId = 1;
