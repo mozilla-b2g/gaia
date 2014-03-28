@@ -3,8 +3,19 @@
 /* exported Tutorial */
 
 (function(exports) {
-  
   'use strict';
+  // A configuration object.
+  var config = {
+    'default': {
+      maxstepsTiny: 6,
+      maxstepsLarge: 4
+    },
+    '1.3.0.0-prerelease..1.4.0.0-prerelease': {
+      maxstepsTiny: 3,
+      maxstepsLarge: 3
+    }
+  };
+
   // Keeps track of the current step
   var currentStep = 1;
   // Keeps in memory the max. length taking into account the layout
@@ -12,7 +23,9 @@
     tiny: 0,
     large: 0
   };
-  // Defaut layout is 'tiny', the one for mobile device
+  // The folder where the images are located.
+  var imageFolder = 'tutorial';
+  // Defaut layout is 'tiny', the one for mobile device.
   var currentLayout = 'tiny';
   // Most used DOM elements
   var dom = {};
@@ -26,7 +39,7 @@
 
   function _setProgressBarStep(step) {
     dom.tutorialProgressBar.style.transform =
-        'translate(' + ((step - 1) * 100) + '%)';
+      'translate(' + ((step - 1) * 100) + '%)';
   }
 
   function _setStep(value) {
@@ -37,7 +50,7 @@
     }
     // Set the step
     dom.tutorial.dataset.step = currentStep;
-    
+
     // Internationalize
     navigator.mozL10n.localize(
       dom.tutorialStepTitle,
@@ -46,7 +59,7 @@
 
     // Update the image
     dom.tutorialStepImage.querySelector('img').src =
-      'css/images/tutorial/' + currentStep + imgSuffix + '.png';
+      '/ftu/css/images/' + imageFolder + '/' + currentStep + imgSuffix + '.png';
 
     _setProgressBarStep(currentStep);
   }
@@ -62,10 +75,15 @@
 
   var initialized = false;
   var Tutorial = {
-    init: function() {
+    init: function(stepsKey) {
       if (initialized) {
         return;
       }
+
+      if (stepsKey === undefined) {
+        stepsKey = 'default';
+      }
+
       // Update the value of the layout if needed
       // 'ScreenLayout' give us 4 different values
       // tiny: '(max-width: 767px)',
@@ -83,26 +101,25 @@
       }
 
       // Cache DOM elements
-      elementIDs.forEach(function (name) {
+      elementIDs.forEach(function(name) {
         dom[Utils.camelCase(name)] = document.getElementById(name);
       }, this);
-      
+
       // Cache max steps taking into account the layout
-      stepsLength.tiny = dom.tutorial.dataset.maxstepsTiny;
-      stepsLength.large = dom.tutorial.dataset.maxstepsLarge;
-      
+      stepsLength.tiny = config[stepsKey].maxstepsTiny;
+      stepsLength.large = config[stepsKey].maxstepsLarge;
+
+      if (stepsKey !== 'default') {
+        imageFolder = 'tutorial-' + stepsKey;
+      }
+
       // Add event listeners
-      dom.forwardTutorial.addEventListener(
-        'click',
-        this.next.bind(this)
-      );
-      dom.backTutorial.addEventListener(
-        'click',
-        this.back.bind(this)
-      );
+      dom.forwardTutorial.addEventListener('click', this.next.bind(this));
+      dom.backTutorial.addEventListener('click', this.back.bind(this));
+
       // Set suffix according to the layout
-      l10nSuffix = (currentLayout === 'tiny') ? '-tiny': '-large-2';
-      imgSuffix = (currentLayout === 'tiny') ? '': '_large';
+      l10nSuffix = (currentLayout === 'tiny') ? '-tiny' : '-large-2';
+      imgSuffix = (currentLayout === 'tiny') ? '' : '_large';
 
       // Avoid to reset this
       initialized = true;
@@ -124,7 +141,8 @@
     done: function() {
       FinishScreen.init();
       dom.tutorial.classList.remove('show');
-    }
+    },
+    config: config
   };
 
   exports.Tutorial = Tutorial;
