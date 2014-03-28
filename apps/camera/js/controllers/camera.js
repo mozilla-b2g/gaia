@@ -134,12 +134,8 @@ CameraController.prototype.onSettingsConfigured = function() {
  *
  * @return {[type]} [description]
  */
-CameraController.prototype.capture = function() {
-  if (this.shouldCountdown()) {
-    this.app.emit('startcountdown');
-    return;
-  }
-
+ CameraController.prototype.capture = function() {
+  if (this.shouldCountdown()) { return; }
   var position = this.app.geolocation.position;
   this.camera.capture({ position: position });
 };
@@ -160,8 +156,12 @@ CameraController.prototype.shouldCountdown = function() {
   var timerSet = this.settings.timer.selected('value');
   var timerActive = this.app.get('timerActive');
   var recording = this.app.get('recording');
-
-  return timerSet && !timerActive && !recording;
+  var shouldCountdown = timerSet && !timerActive && !recording;
+  debug('should countdown: %s', shouldCountdown);
+  if (shouldCountdown) {
+    this.app.emit('startcountdown');
+    return true;
+  }
 };
 
 CameraController.prototype.onNewImage = function(image) {

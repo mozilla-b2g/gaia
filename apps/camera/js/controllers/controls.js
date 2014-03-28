@@ -36,16 +36,15 @@ ControlsController.prototype.bindEvents = function() {
   this.app.on('newthumbnail', this.onNewThumbnail);
   this.app.on('camera:ready', this.controls.enable);
   this.app.on('camera:busy', this.controls.disable);
-  this.app.on('change:recording', this.onRecordingChange);
+  this.app.on('change:recording', this.controls.setter('recording'));
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
-  this.controls.on('click:capture', this.onCaptureClick);
+  this.controls.on('click:capture', this.app.firer('capture'));
   this.controls.on('click:gallery', this.onGalleryButtonClick);
   this.controls.on('click:thumbnail', this.app.firer('preview'));
   this.controls.on('click:switch', this.onSwitchButtonClick);
   this.controls.on('click:cancel', this.onCancelButtonClick);
-  this.app.on('timer:started', this.onTimerStarted);
-  this.app.on('timer:cleared', this.restore);
-  this.app.on('camera:shutter', this.restore);
+  this.app.on('timer:started', this.controls.disable);
+  this.app.on('timer:cleared', this.controls.enable);
   debug('events bound');
 };
 
@@ -71,32 +70,6 @@ ControlsController.prototype.configure = function() {
 };
 
 /**
- * Keep capture button pressed and
- * fire the `capture` event to allow
- * the camera to repond.
- *
- * When the 'camera:shutter' event fires
- * we remove the capture butter pressed
- * state so that it times with the
- * capture sound effect.
- *
- * @private
- */
-ControlsController.prototype.onCaptureClick = function() {
-  this.controls.set('capture-active', true);
-  this.app.fire('capture');
-};
-
-ControlsController.prototype.onRecordingChange = function(recording) {
-  this.controls.set('recording', recording);
-  if (!recording) { this.onRecordingEnd(); }
-};
-
-ControlsController.prototype.onRecordingEnd = function() {
-  this.controls.set('capture-active', false);
-};
-
-/**
  * When the thumbnail changes, update it in the view.
  * This method is triggered by the 'newthumbnail' event.
  * That event is emitted by the preview gallery controller when the a new
@@ -111,27 +84,14 @@ ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
   }
 };
 
-/**
- * Forces the capture button to
- * look pressed while the timer is
- * counting down and disables buttons.
- *
- * @private
- */
-ControlsController.prototype.onTimerStarted = function() {
+ControlsController.prototype.onTimerStarted = function(image) {
   this.controls.set('capture-active', true);
-  this.controls.disable();
+  this.disableButtons();
 };
 
-/**
- * Restores the capture button to its
- * unpressed state and re-enables buttons.
- *
- * @private
- */
-ControlsController.prototype.restore = function() {
+ControlsController.prototype.onTimerEnd = function(image) {
   this.controls.set('capture-active', false);
-  this.controls.enable();
+  this.enableButtons();
 };
 
 ControlsController.prototype.onSwitchButtonClick = function() {

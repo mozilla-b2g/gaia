@@ -20,6 +20,15 @@
   display: none;
 }
 
+/**
+ * @deg180
+ */
+
+.deg180 .indicators {
+  left: auto; right: 0;
+  transform: rotate(0deg);
+}
+
 /** Indicators
  ---------------------------------------------------------*/
 

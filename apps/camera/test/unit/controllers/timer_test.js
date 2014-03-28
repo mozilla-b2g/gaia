@@ -53,11 +53,6 @@ suite('controllers/timer', function() {
       var controller = new this.TimerController(this.app);
       assert.ok(this.app.on.calledWith('startcountdown', controller.start));
     });
-
-    test('Should stop the timer when the app \'blur\' event fires', function() {
-      var controller = new this.TimerController(this.app);
-      assert.ok(this.app.on.calledWith('blur', controller.clear));
-    });
   });
 
   suite('TimerController#start()', function() {
@@ -69,8 +64,10 @@ suite('controllers/timer', function() {
 
     test('Should bind events async so as not to respond to current event', function() {
       assert.ok(!this.app.on.calledWith('click', this.controller.clear));
+      assert.ok(!this.app.on.calledWith('blur', this.controller.clear));
       this.clock.tick(1);
       assert.ok(this.app.on.calledWith('click', this.controller.clear));
+      assert.ok(this.app.on.calledWith('blur', this.controller.clear));
     });
 
     test('Should set the view with the current value of the timer setting', function() {
@@ -105,9 +102,9 @@ suite('controllers/timer', function() {
 
     test('Should not update the view after time is up', function() {
       this.clock.tick(5000);
-      assert.ok(this.view.set.callCount === 5, 'should be 5, was: ' + this.view.set.callCount);
+      assert.ok(this.view.set.callCount === 6, 'should be 6, was: ' + this.view.set.callCount);
       this.clock.tick(1000);
-      assert.ok(this.view.set.callCount === 5, 'should not have been called any more');
+      assert.ok(this.view.set.callCount === 6, 'should not have been called any more');
     });
 
     test('Should set the timerActive flag back to false', function() {
@@ -149,6 +146,7 @@ suite('controllers/timer', function() {
 
     test('Should unbind the app listeners', function() {
       assert.ok(this.app.off.calledWith('click', this.controller.clear));
+      assert.ok(this.app.off.calledWith('blur', this.controller.clear));
     });
   });
 });
