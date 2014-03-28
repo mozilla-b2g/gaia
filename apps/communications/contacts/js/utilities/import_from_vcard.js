@@ -53,7 +53,6 @@ utils.importFromVcard = function(file, callback) {
       if (!textFromFile || !importer) {
         return;// No contacts were found.
       }
-
       importer.onread = import_read;
       importer.onimported = imported_contact;
       importer.onerror = import_error;
@@ -66,12 +65,7 @@ utils.importFromVcard = function(file, callback) {
             {n: importedContacts})
           );
         }
-
-        if (result && result.length) {
-          callback(result[0].id);
-        } else {
-          callback();
-        }
+        callback(result[0].id);
       });
     }
 

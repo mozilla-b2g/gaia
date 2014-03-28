@@ -6,38 +6,16 @@ var utils = require('utils');
 var GalleryAppBuilder = function() {
 };
 
+GalleryAppBuilder.prototype.DIST_DIR = 'build_stage/gallery';
+
 GalleryAppBuilder.prototype.DEFAULT_VALUE = {
   maxImagePixelSize: 5 * 1024 * 1024,
   maxSnapshotPixelSize: 5 * 1024 * 1024
 };
 
 GalleryAppBuilder.prototype.setOptions = function(options) {
-  this.options = options;
-  this.sharedPath = utils.gaia.getInstance(options).sharedFolder.path;
-};
-
-GalleryAppBuilder.prototype.concatenatedScripts = function() {
-  var frameScriptsPaths = [
-    [this.sharedPath, 'js', 'gesture_detector.js'],
-    [this.sharedPath, 'js', 'format.js'],
-    [this.sharedPath, 'js', 'media', 'video_player.js'],
-    [this.sharedPath, 'js', 'media', 'media_frame.js'],
-    [this.options.APP_DIR, 'js', 'frames.js']
-  ];
-  var frameScriptsPath = utils.joinPath(this.options.STAGE_APP_DIR, 'js',
-    'frame_scripts.js');
-  utils.concatenatedScripts(frameScriptsPaths, frameScriptsPath);
-
-  var metadataScriptsPaths = [
-    [this.sharedPath, 'js', 'blobview.js'],
-    [this.sharedPath, 'js', 'media', 'jpeg_metadata_parser.js'],
-    [this.sharedPath, 'js', 'media', 'get_video_rotation.js'],
-    [this.options.APP_DIR, 'js', 'imagesize.js'],
-    [this.options.APP_DIR, 'js', 'MetadataParser.js']
-  ];
-  var metadataScriptsPath = utils.joinPath(this.options.STAGE_APP_DIR, 'js',
-    'metadata_scripts.js');
-  utils.concatenatedScripts(metadataScriptsPaths, metadataScriptsPath);
+  var distDirPath = [options.GAIA_DIR].concat(this.DIST_DIR.split('/'));
+  this.distDir = utils.getFile.apply(utils, distDirPath);
 };
 
 GalleryAppBuilder.prototype.customizeMaximumImageSize = function(options) {
@@ -81,13 +59,12 @@ GalleryAppBuilder.prototype.customizeMaximumImageSize = function(options) {
         'var CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH = 0;\n' +
         'var CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT = 0;\n';
     }
-    var file = utils.getFile(this.options.STAGE_APP_DIR, 'js', 'config.js');
+    var file = utils.getFile(this.distDir.path, 'js', 'config.js');
     utils.writeContent(file, content);
 };
 
 GalleryAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
-  this.concatenatedScripts();
   this.customizeMaximumImageSize(options);
 };
 

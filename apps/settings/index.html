@@ -160,7 +160,6 @@
     <link rel="import" href="/elements/icc.html">
     <link rel="import" href="/elements/downloads.html">
     <link rel="import" href="/elements/firefox_accounts.html">
-    <link rel="import" href="/elements/findmydevice.html">
   </head>
   <body class="skin-organic uninit">
     <!--
@@ -279,9 +278,6 @@
     <!-- Personalization :: Keyboard -->
     <section is="keyboard" role="region" id="keyboard" data-require-sub-panels="true"></section>
     <section is="keyboard-enabled-default" role="region" id="keyboard-enabled-default"></section>
-
-    <!-- Accounts :: Find My Device -->
-    <section is="findmydevice" role="region" id="findmydevice"></section>
 
     <!-- Security :: Phone Lock :: PIN Input -->
     <section is="phoneLock-passcode" role="region" id="phoneLock-passcode"></section>
@@ -439,20 +435,17 @@
         </ul>
 
         <!-- Main :: Accounts -->
-        <header>
-          <h2 data-l10n-id="accounts">Accounts</h2>
-        </header>
-        <ul>
-          <li data-show-name="identity.fxaccounts.ui.enabled" hidden>
-            <small id="fxa-desc" class="menu-item-desc"></small>
-            <a id="menuItem-fxa" class="menu-item" href="#fxa" data-l10n-id="fxa-accounts">Firefox Accounts</a>
-          </li>
-          <li data-show-name="findmydevice.ui.enabled" hidden>
-            <small id="findmydevice-desc" class="menu-item-desc"></small>
-            <a id="menuItem-findmydevice" class="menu-item" href="#findmydevice"
-              data-l10n-id="findmydevice">Find My Device</a>
-          </li>
-        </ul>
+        <span data-show-name="identity.fxaccounts.ui.enabled" hidden>
+          <header>
+            <h2 data-l10n-id="accounts">Accounts</h2>
+          </header>
+          <ul>
+            <li>
+              <small id="fxa-desc" class="menu-item-desc"></small>
+              <a id="menuItem-fxa" class="menu-item" href="#fxa" data-l10n-id="fxa-accounts">Firefox Accounts</a>
+            </li>
+          </ul>
+        </span>
 
         <!-- Main :: Security & Privacy -->
         <header>

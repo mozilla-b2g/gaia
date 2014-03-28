@@ -80,12 +80,12 @@ suite('Build Integration tests', function() {
   suiteSetup(function() {
     rmrf('profile');
     rmrf('profile-debug');
-    rmrf('build_stage');
     rmrf(localesDir);
   });
 
   test('make without rule & variable', function(done) {
-    exec('ROCKETBAR=none make', function(error, stdout, stderr) {
+    exec('ROCKETBAR=none make', { maxBuffer: 400*1024 },
+      function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       // expected values for prefs and user_prefs
@@ -218,19 +218,6 @@ suite('Build Integration tests', function() {
 
       assert.equal(hsGalleryConfigJs, expectedScript,
         'Gallery config js is not expected');
-
-      var musicMetadataScriptPath = path.join(process.cwd(), 'build_stage',
-        'music', 'js', 'metadata_scripts.js');
-      assert.ok(fs.existsSync(musicMetadataScriptPath), 'metadata_scripts.js ' +
-        'should exist');
-      var galleryMetadataScriptPath = path.join(process.cwd(), 'build_stage',
-        'gallery', 'js', 'metadata_scripts.js');
-      assert.ok(fs.existsSync(galleryMetadataScriptPath),
-        'metadata_scripts.js should exist');
-      var galleryFrameScriptPath = path.join(process.cwd(), 'build_stage',
-        'gallery', 'js', 'frame_scripts.js');
-      assert.ok(fs.existsSync(galleryMetadataScriptPath),
-        'frame_scripts.js should exist');
       done();
     });
   });
@@ -258,7 +245,8 @@ suite('Build Integration tests', function() {
   });
 
   test('make with SIMULATOR=1', function(done) {
-    exec('SIMULATOR=1 make', function(error, stdout, stderr) {
+    exec('SIMULATOR=1 make', { maxBuffer: 400*1024 },
+    function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       var settingsPath = path.join(process.cwd(), 'profile-debug',
@@ -335,7 +323,8 @@ suite('Build Integration tests', function() {
   });
 
   test('make with DEBUG=1', function(done) {
-    exec('DEBUG=1 make', function(error, stdout, stderr) {
+    exec('DEBUG=1 make', { maxBuffer: 400*1024 },
+    function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       var installedExtsPath = path.join('profile-debug',
@@ -443,7 +432,8 @@ suite('Build Integration tests', function() {
   });
 
   test('make with MOZILLA_OFFICIAL=1', function(done) {
-    exec('MOZILLA_OFFICIAL=1 make', function(error, stdout, stderr) {
+    exec('MOZILLA_OFFICIAL=1 make', { maxBuffer: 400*1024 },
+    function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       // path in zip for unofficial branding
@@ -460,7 +450,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with ROCKETBAR=full', function(done) {
-    exec('ROCKETBAR=full make',
+    exec('ROCKETBAR=full make', { maxBuffer: 400*1024 },
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 
@@ -517,6 +507,5 @@ suite('Build Integration tests', function() {
   teardown(function() {
     rmrf('profile');
     rmrf('profile-debug');
-    rmrf('build_stage');
   });
 });
