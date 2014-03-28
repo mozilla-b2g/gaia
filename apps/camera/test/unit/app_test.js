@@ -10,15 +10,13 @@ suite('app', function() {
       'lib/camera',
       'vendor/view',
       'lib/geo-location',
-      'lib/activity',
-      'lib/config'
-    ], function(App, Camera, View, GeoLocation, Activity, Config) {
+      'lib/activity'
+    ], function(App, Camera, View, GeoLocation, Activity) {
       modules.app = App;
       modules.view = View;
       modules.camera = Camera;
       modules.geolocation = GeoLocation;
       modules.activity = Activity;
-      modules.config = Config;
       done();
     });
   });
@@ -44,7 +42,6 @@ suite('app', function() {
     var GeoLocation = modules.geolocation;
     var Activity = modules.activity;
     var Camera = modules.camera;
-    var Config = modules.config;
     var View = modules.view;
     var App = modules.app;
 
@@ -69,7 +66,6 @@ suite('app', function() {
       storage: {
         once: sinon.spy()
       },
-      config: new Config(),
       views: {
         viewfinder: new View({ name: 'viewfinder' }),
         focusRing: new View({ name: 'focus-ring' }),
@@ -199,6 +195,17 @@ suite('app', function() {
       this.app.activity.mode = 'video';
       this.app.boot();
       assert.ok(this.app.set.calledWith('mode', 'video'));
+    });
+
+    test('Should run the activity controller before controls or camera', function() {
+      var activity = this.app.controllers.activity;
+      var controls = this.app.controllers.controls;
+      var camera = this.app.controllers.camera;
+
+      this.app.boot();
+
+      assert.isTrue(activity.calledBefore(controls));
+      assert.isTrue(activity.calledBefore(camera));
     });
 
     suite('app.geolocation', function() {

@@ -7,7 +7,6 @@ define(function(require, exports, module) {
 
 var SettingAlias = require('./setting-alias');
 var debug = require('debug')('settings');
-var allDone = require('lib/all-done');
 var Setting = require('./setting');
 var evt = require('vendor/evt');
 
@@ -23,26 +22,18 @@ evt(Settings.prototype);
 
 module.exports = Settings;
 
+/**
+ * Initialize a new 'Setting'
+ *
+ * @param {Object} items
+ */
 function Settings(items) {
   this.ids = {};
   this.items = [];
-  this.aliases = {
-    list: [],
-    hash: {}
-  };
-
+  this.aliases = {};
+  this.SettingAlias = SettingAlias; // Test hook
   this.addEach(items);
 }
-
-Settings.prototype.add = function(data) {
-  var setting = new Setting(data);
-  var self = this;
-  this.items.push(setting);
-  this.ids[setting.key] = this[setting.key] = setting;
-  setting.on('change:selected', function() {
-    self.onSettingChange(setting.key, setting.selected('key'));
-  });
-};
 
 Settings.prototype.addEach = function(items) {
   if (!items) { return; }
@@ -56,41 +47,23 @@ Settings.prototype.addEach = function(items) {
   }
 };
 
-Settings.prototype.get = function(key) {
-  return this.ids[key];
-};
-
-Settings.prototype.onSettingChange = function(key, value) {
-  debug('setting change %s', key);
-  this.fire('change:' + key, value);
-};
-
-Settings.prototype.options = function(options) {
-  this.items.forEach(function(setting) {
-    var match = setting.key in options;
-    if (match) {
-      debug('reset options key: %s', setting.key);
-      setting.resetOptions(options[setting.key]);
-    }
-  });
+Settings.prototype.add = function(data) {
+  var setting = new Setting(data);
+  this.items.push(setting);
+  this.ids[setting.key] = this[setting.key] = setting;
+  debug('added setting: %', setting.key);
 };
 
 Settings.prototype.fetch = function(done) {
-  done = allDone()(done);
-  this.items.forEach(function(setting) { setting.fetch(done()); });
+  this.items.forEach(function(setting) { setting.fetch(); });
 };
 
 Settings.prototype.alias = function(key, options) {
   options.settings = this;
   options.key = key;
-  var alias = new SettingAlias(options);
+  var alias = new this.SettingAlias(options);
   this.aliases[key] = alias;
   this[key] = alias;
-};
-
-Settings.prototype.getAlias = function(key) {
-  var alias = this.aliases[key];
-  return alias && alias.get();
 };
 
 Settings.prototype.removeAlias = function(key) {

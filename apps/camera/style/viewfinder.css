@@ -14,6 +14,7 @@
   justify-content: center;
   overflow: hidden;
   opacity: 0.001; /* 1 */
+  will-change: opacity;
   transition: opacity 200ms ease-in-out;
 }
 
