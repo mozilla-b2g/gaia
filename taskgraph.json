@@ -6,9 +6,9 @@
           "name": "Gaia Marionette JS integration testing"
         },
         "payload": {
-          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv",
+          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
           "command": [
-            "./bin/github_pr https://github.com/$GH_REPO_SLUG.git $GH_PULL_REQUEST_NUMBER make test-integration REPORTER=mocha-tbpl-reporter"
+            "./bin/github make test-integration REPORTER=mocha-tbpl-reporter"
           ]
         },
         "tags": {
@@ -23,9 +23,9 @@
           "name": "Gaia build system tests"
         },
         "payload": {
-          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv",
+          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
           "command": [
-            "./bin/github_pr https://github.com/$GH_REPO_SLUG.git $GH_PULL_REQUEST_NUMBER ./tests/travis_ci/build_tests/script"
+            "./bin/github ./tests/travis_ci/build_tests/script"
           ]
         },
         "tags": {
@@ -40,9 +40,9 @@
           "name": "Gaia code linters"
         },
         "payload": {
-          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv",
+          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
           "command": [
-            "./bin/github_pr https://github.com/$GH_REPO_SLUG.git $GH_PULL_REQUEST_NUMBER make hint"
+            "./bin/github make hint"
           ]
         },
         "tags": {
