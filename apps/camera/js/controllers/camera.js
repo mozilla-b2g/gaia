@@ -67,14 +67,14 @@ CameraController.prototype.bindEvents = function() {
   app.on('settings:configured', this.onSettingsConfigured);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
 
-  settings.pictureSizes.on('change:selected', this.onPictureSizeChange);
   settings.recorderProfiles.on('change:selected', this.onRecorderProfileChange);
-  settings.flashModes.on('change:selected', this.setFlashMode);
+  settings.pictureSizes.on('change:selected', this.onPictureSizeChange);
   settings.flashModes.on('change:selected', this.onFlashModeChange);
-  settings.on('change:cameras', this.setCamera);
-  settings.on('change:mode', this.setMode);
-  settings.on('change:hdr', this.setHDR);
-  settings.on('change:hdr', this.onHDRChange);
+  settings.flashModes.on('change:selected', this.setFlashMode);
+  settings.cameras.on('change:selected', this.setCamera);
+  settings.mode.on('change:selected', this.setMode);
+  settings.hdr.on('change:selected', this.setHDR);
+  settings.hdr.on('change:selected', this.onHDRChange);
 
   this.storage.on('statechange', this.onStorageStateChange);
   debug('events bound');
@@ -94,7 +94,7 @@ CameraController.prototype.configure = function() {
 
   // Configure the 'cameras' setting using the
   // cameraList data given by the camera hardware
-  settings.cameras.resetOptions(camera.cameraList);
+  settings.cameras.filterOptions(camera.cameraList);
 
   // Give the camera a way to create video filepaths. This
   // is so that the camera can record videos directly to
@@ -229,9 +229,8 @@ CameraController.prototype.onPictureSizeChange = function() {
   this.setPictureSize(value);
 };
 
-CameraController.prototype.onRecorderProfileChange = function() {
-  var value = this.settings.recorderProfiles.selected('key');
-  this.camera.setRecorderProfile(value);
+CameraController.prototype.onRecorderProfileChange = function(key) {
+  this.setRecorderProfile(key);
 };
 
 CameraController.prototype.onFileSizeLimitReached = function() {
@@ -256,8 +255,19 @@ CameraController.prototype.setMode = function(mode) {
 };
 
 CameraController.prototype.setPictureSize = function(value) {
+  var pictureMode = this.settings.mode.selected('key') === 'picture';
+
+  // Only configure in video mode
   this.camera.setPictureSize(value);
-  this.viewfinder.fadeOut(this.camera.configure);
+  if (pictureMode) { this.viewfinder.fadeOut(this.camera.configure); }
+};
+
+CameraController.prototype.setRecorderProfile = function(value) {
+  var videoMode = this.settings.mode.selected('key') === 'video';
+
+  // Only configure in video mode
+  this.camera.setRecorderProfile(value);
+  if (videoMode) { this.viewfinder.fadeOut(this.camera.configure); }
 };
 
 CameraController.prototype.setCamera = function(value) {

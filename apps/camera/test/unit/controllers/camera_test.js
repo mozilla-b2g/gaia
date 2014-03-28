@@ -60,7 +60,11 @@ suite('controllers/camera', function() {
 
     // Aliases
     this.viewfinder = this.app.views.viewfinder;
+    this.settings = this.app.settings;
     this.camera = this.app.camera;
+
+    // Call the callback
+    this.viewfinder.fadeOut.callsArg(0);
 
     // Test instance (some tests create there own)
     this.controller = new this.CameraController(this.app);
@@ -157,6 +161,71 @@ suite('controllers/camera', function() {
       this.app.settings.hdr.selected.withArgs('key').returns('on');
       this.controller.onFlashModeChange();
       assert.ok(!this.controller.app.settings.hdr.select.called);
+    });
+  });
+
+  suite('CameraController#onRecorderProfileChange()', function() {
+    test('Should call camera.setRecorderProfile with current key', function() {
+      this.controller.onRecorderProfileChange('480p');
+      assert.isTrue(this.camera.setRecorderProfile.calledWith('480p'));
+    });
+  });
+
+  suite('CameraController#setPictureSize()', function() {
+    setup(function() {
+      this.settings.mode.selected
+        .withArgs('key')
+        .returns('picture');
+    });
+
+    test('Should call camera.setPictureSize', function() {
+      this.controller.setPictureSize({ width: 4, height: 3 });
+      var arg = this.camera.setPictureSize.args[0][0];
+      assert.deepEqual(arg, { width: 4, height: 3 });
+    });
+
+    test('Should call configure only if in \'picture\' mode', function() {
+      this.controller.setPictureSize({});
+      assert.isTrue(this.camera.configure.called);
+
+      this.settings.mode.selected
+        .withArgs('key')
+        .returns('video');
+
+      this.camera.configure.reset();
+      this.controller.setPictureSize({});
+      assert.isFalse(this.camera.configure.called);
+    });
+
+    test('Should call configure after the viewfinder has faded out', function() {
+      this.controller.setPictureSize({});
+      assert.isTrue(this.camera.configure.calledAfter(this.viewfinder.fadeOut));
+    });
+  });
+
+  suite('CameraController#setRecorderProfile()', function() {
+    setup(function() {
+      this.settings.mode.selected
+        .withArgs('key')
+        .returns('video');
+    });
+
+    test('Should call configure only if in \'video\' mode', function() {
+      this.controller.setRecorderProfile('480p');
+      assert.isTrue(this.camera.configure.called);
+
+      this.settings.mode.selected
+        .withArgs('key')
+        .returns('picture');
+
+      this.camera.configure.reset();
+      this.controller.setRecorderProfile('480p');
+      assert.isFalse(this.camera.configure.called);
+    });
+
+    test('Should call configure after the viewfinder has faded out', function() {
+      this.controller.setRecorderProfile('480p');
+      assert.isTrue(this.camera.configure.calledAfter(this.viewfinder.fadeOut));
     });
   });
 

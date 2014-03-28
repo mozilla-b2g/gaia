@@ -2,8 +2,9 @@ define(function(require, exports, module) {
 'use strict';
 
 module.exports = {
-  showSettings: true,
-  enableZoom: true,
+  zoom: {
+    disabled: false
+  },
   viewfinder: {
     scaleType: 'fill'
   },
@@ -80,6 +81,7 @@ module.exports = {
   },
 
   pictureSizesBack: {
+    title: 'camera-resolution',
     icon: 'icon-picture-size',
     maxPixelSize: window.CONFIG_MAX_IMAGE_PIXEL_SIZE,
     options: [
@@ -87,62 +89,22 @@ module.exports = {
       //   key: '2048x1536'
       // }
     ],
+    exclude: ['1920x1088'],
     persistent: true
   },
 
   recorderProfilesBack: {
     title: 'video-resolution',
     icon: 'icon-video-size',
-    options: [
-
-      // NOTE: Disabled due to Helix crashing
-      // when trying to record at these resolutions.
-
-      // {
-      //   key: '720p',
-      //   title: '720p 1040X720'
-      // },
-      // {
-      //   key: '480p',
-      //   title: '480p 720X480'
-      // },
-      {
-        key: 'cif',
-        title: 'CIF 352X288'
-      },
-      {
-        key: 'qcif',
-        title: 'QCIF 176X144'
-      }
-    ],
+    options: [],
+    exclude: ['high', '1080p'],
     persistent: true
   },
 
   recorderProfilesFront: {
     title: 'video-resolution',
     icon: 'icon-video-size',
-    options: [
-
-      // NOTE: Disabled due to Helix crashing
-      // when trying to record at these resolutions.
-
-      // {
-      //   key: '720p',
-      //   title: '720p 1040X720'
-      // },
-      // {
-      //   key: '480p',
-      //   title: '480p 720X480'
-      // },
-      {
-        key: 'cif',
-        title: 'CIF 352X288'
-      },
-      {
-        key: 'qcif',
-        title: 'QCIF 176X144'
-      }
-    ],
+    options: [],
     persistent: true
   },
 
@@ -283,22 +245,12 @@ module.exports = {
       {
         key: 'timer'
       },
-      // {
-      //   key: 'pictureSizesBack',
-      //   condition: { 'cameras': 'back' }
-      // },
-      // {
-      //   key: 'pictureSizesFront',
-      //   condition: { 'cameras': 'front' }
-      // },
-      // {
-      //   key: 'recorderProfilesBack',
-      //   condition: { 'cameras': 'back' }
-      // },
-      // {
-      //   key: 'recorderProfilesFront',
-      //   condition: { 'cameras': 'front' }
-      // }
+      {
+        key: 'pictureSizes',
+      },
+      {
+        key: 'recorderProfiles',
+      }
     ]
   }
 };

@@ -53,7 +53,7 @@ ViewfinderController.prototype.hideGrid = function() {
 };
 
 ViewfinderController.prototype.bindEvents = function() {
-  this.app.settings.on('change:grid', this.viewfinder.setter('grid'));
+  this.app.settings.grid.on('change:selected', this.viewfinder.setter('grid'));
   this.viewfinder.on('click', this.app.firer('viewfinder:click'));
   this.viewfinder.on('pinchChange', this.onPinchChange);
   this.app.on('camera:configured', this.loadStream);
@@ -76,7 +76,7 @@ ViewfinderController.prototype.updatePreview = function() {
                                 isFrontCamera);
 
   var enableZoom = this.camera.isZoomSupported() &&
-                   this.app.settings.enableZoom.selected().value;
+                   this.app.settings.zoom.enabled();
   if (enableZoom) {
     this.viewfinder.enableZoom(this.camera.getMinimumZoom(),
                                this.camera.getMaximumZoom());

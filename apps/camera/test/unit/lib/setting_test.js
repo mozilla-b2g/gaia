@@ -10,6 +10,13 @@ suite('lib/setting', function() {
     });
   });
 
+  setup(function() {
+    this.storage = {
+      getItem: sinon.stub(),
+      setItem: sinon.stub()
+    };
+  });
+
   suite('Setting()', function() {
     setup(function() {
       this.sandbox = sinon.sandbox.create();
@@ -51,6 +58,25 @@ suite('lib/setting', function() {
 
       assert.ok(setting.get('selected') === 'a');
     });
+
+    test('Should flag `options.defined` if options initially defined', function() {
+      var setting = new this.Setting({
+        key: 'key',
+        options: [
+          { key: 'a' },
+          { key: 'b' }
+        ]
+      });
+
+      assert.isTrue(setting.options.defined);
+
+      setting = new this.Setting({
+        key: 'key',
+        options: []
+      });
+
+      assert.isFalse(setting.options.defined);
+    });
   });
 
   suite('Setting#select()', function() {
@@ -79,7 +105,7 @@ suite('lib/setting', function() {
   suite('Setting#resetOptions()', function() {
     setup(function() {
       this.setting = new this.Setting({
-        key: 'key',
+        selected: 'b',
         options: [
           { key: 'a' },
           { key: 'b' },
@@ -88,67 +114,143 @@ suite('lib/setting', function() {
       });
     });
 
-    test('Should filter the list down be just suppled keys', function() {
-      this.setting.resetOptions(['a', 'c']);
-
-      var list = this.setting.get('options');
-      var found = {};
-
-      list.forEach(function(item) { found[item.key] = true; });
-
-      assert.ok(!found.b);
-      assert.ok(found.a);
-      assert.ok(found.c);
-    });
-
-    test('Should accept an Object as well as an Array', function() {
-      this.setting.resetOptions({
-        a: {},
-        c: {}
-      });
-
-      var list = this.setting.get('options');
-      var found = {};
-
-      list.forEach(function(item) { found[item.key] = true; });
-
-      assert.ok(!found.b);
-      assert.ok(found.a);
-      assert.ok(found.c);
-    });
-
-    test('Should accept an Array of Objects with `key` properties', function() {
+    test('Should update the `selected` option to first if no new options match selected', function() {
       this.setting.resetOptions([
-        { key: 'a' },
-        { key: 'c' }
+        { key: 'd' },
+        { key: 'e' },
+        { key: 'f' }
       ]);
 
-      var list = this.setting.get('options');
-      var found = {};
-
-      list.forEach(function(item) { found[item.key] = true; });
-
-      assert.ok(!found.b);
-      assert.ok(found.a);
-      assert.ok(found.c);
+      assert.equal(this.setting.selected('key'), 'd');
     });
 
-    test('Should sort the options list by the original config index', function() {
+    test('Should maintain the selected key if a key of new options matches', function() {
       this.setting.resetOptions([
+        { key: 'c' },
         { key: 'b' },
         { key: 'a' }
       ]);
 
-      var list = this.setting.get('options');
-      assert.ok(list[0].key === 'a');
-      assert.ok(list[1].key === 'b');
+      assert.equal(this.setting.selected('key'), 'b');
     });
 
-    test('Should fire a `optionsreset` event', function() {
+    test('Should maintain the order', function() {
+      var options;
+
+      this.setting.resetOptions([
+        { key: 'a' },
+        { key: 'b' },
+        { key: 'c' }
+      ]);
+
+      options = this.setting.get('options');
+      assert.equal(options[0].key, 'a');
+      assert.equal(options[1].key, 'b');
+      assert.equal(options[2].key, 'c');
+
+      this.setting.resetOptions([
+        { key: 'c' },
+        { key: 'b' },
+        { key: 'a' }
+      ]);
+
+      options = this.setting.get('options');
+      assert.equal(options[0].key, 'c');
+      assert.equal(options[1].key, 'b');
+      assert.equal(options[2].key, 'a');
+    });
+
+    test('Should not fire a `change` event', function() {
       var spy = sinon.spy();
-      this.setting.on('optionsreset', spy);
-      this.setting.resetOptions(['a', 'b']);
-      assert.ok(spy.called);
+
+      this.setting.on('change', spy);
+      this.setting.resetOptions([{ key: 'c' }]);
+
+      assert.isFalse(spy.called);
+    });
+  });
+
+  suite('Setting#filterOptions()', function() {
+    setup(function() {
+      this.setting = new this.Setting({
+        key: 'key',
+        selected: 'b',
+        options: [
+          { key: 'a' },
+          { key: 'b' },
+          { key: 'c' }
+        ]
+      });
+    });
+
+    test('Should filter down the available options', function() {
+      this.setting.filterOptions(['a', 'b']);
+
+      var available = this.setting.get('options');
+      var found = available.some(function(option) { return option.key === 'c'; });
+
+      assert.isFalse(found, 'c should not longer be present');
+    });
+
+    test('Should have no available options if argument is falsy', function() {
+      var available;
+
+      this.setting.filterOptions(null);
+      available = this.setting.get('options');
+      assert.equal(available.length, 0);
+
+      this.setting.filterOptions(undefined);
+      available = this.setting.get('options');
+      assert.equal(available.length, 0);
+
+      this.setting.filterOptions(false);
+      available = this.setting.get('options');
+      assert.equal(available.length, 0);
+    });
+
+    test('Should always filter the original config', function() {
+      var available;
+
+      this.setting.filterOptions(['a', 'b']);
+      available = this.setting.get('options');
+      assert.equal(available.length, 2);
+      assert.equal(available[0].key, 'a');
+      assert.equal(available[1].key, 'b');
+
+      this.setting.filterOptions(['c']);
+      available = this.setting.get('options');
+      assert.equal(available.length, 1);
+      assert.equal(available[0].key, 'c');
+    });
+
+    test('Should maintain `selected` if in filter list', function() {
+      this.setting.filterOptions(['c', 'b']);
+      assert.equal(this.setting.selected('key'), 'b');
+    });
+
+    test('Should update the `selected` match first if not in filter list', function() {
+      this.setting.filterOptions(['c', 'a']);
+      assert.equal(this.setting.selected('key'), 'a');
+    });
+
+    test('Should not fire a `change` event', function() {
+      var spy = sinon.spy();
+
+      this.setting.on('change', spy);
+      this.setting.filterOptions(['c']);
+
+      assert.isFalse(spy.called);
+    });
+
+    test('Should cope with keys that aren\'t defined', function() {
+      var spy = sinon.spy();
+
+      this.setting.filterOptions(['a', 'c', 'jibberish']);
+      var options = this.setting.get('options');
+
+      assert.equal(options.length, 2);
+      assert.equal(options[0].key, 'a');
+      assert.equal(options[1].key, 'c');
     });
   });
 
@@ -183,6 +285,13 @@ suite('lib/setting', function() {
       var key = this.setting.selected('key');
       assert.ok(key === 'b');
     });
+
+    test('Should return `undefined` if no available options', function() {
+      this.setting.filterOptions([]);
+
+      assert.equal(this.setting.selected(), undefined);
+      assert.equal(this.setting.selected('key'), undefined);
+    });
   });
 
   suite('Setting#next()', function() {
@@ -207,81 +316,6 @@ suite('lib/setting', function() {
     });
   });
 
-  suite('Setting#format()', function() {
-    test('Should format a simple array into a list of objects', function() {
-      var data = ['a', 'b', 'c'];
-      var output = this.Setting.prototype.format(data);
-
-      assert.ok(output[0].key === 'a');
-      assert.ok(output[1].key === 'b');
-      assert.ok(output[2].key === 'c');
-      assert.ok(output.length === 3);
-    });
-
-    test('Should accept an array of objects', function() {
-      var output = this.Setting.prototype.format([
-        { key: 'a' },
-        { key: 'b' },
-        { key: 'c' },
-      ]);
-
-      assert.ok(output[0].key === 'a');
-      assert.ok(output[1].key === 'b');
-      assert.ok(output[2].key === 'c');
-      assert.ok(output.length === 3);
-    });
-
-    test('Should format array keys correctly', function() {
-      var data = [{ key: 'a'}, { nokey: 'b' }, 'c'];
-      var output = this.Setting.prototype.format(data);
-
-      assert.ok(output[0].key === 'a');
-      assert.ok(output[1].key === undefined);
-      assert.ok(output[2].key === 'c');
-      assert.ok(output.length === 3);
-    });
-
-    test('Should extract data correctly', function() {
-      var output = this.Setting.prototype.format({
-        a: { some: 'a-content' },
-        b: { data: { some: 'b-content' } },
-        c: 'c-content'
-      });
-
-      assert.ok(output[0].data.some === 'a-content');
-      assert.ok(output[1].data.some === 'b-content');
-      assert.ok(output[2].data === 'c-content');
-
-      output = this.Setting.prototype.format([
-        { key: 'a', data: 'a-content' },
-        { key: 'b', some: 'b-content' },
-        'c'
-      ]);
-
-      assert.ok(output[0].data === 'a-content');
-      assert.ok(output[1].data.some === 'b-content');
-      assert.ok(!output[2].data);
-    });
-
-    test('Should format an object correctly', function() {
-      var data = {
-        a: { stuff: 'a-stuff' },
-        b: { stuff: 'b-stuff' },
-        c: { stuff: 'c-stuff' }
-      };
-
-      var output = this.Setting.prototype.format(data);
-
-      assert.ok(output[0].key === 'a');
-      assert.ok(output[1].key === 'b');
-      assert.ok(output[2].key === 'c');
-      assert.ok(output[0].data.stuff === 'a-stuff');
-      assert.ok(output[1].data.stuff === 'b-stuff');
-      assert.ok(output[2].data.stuff === 'c-stuff');
-      assert.ok(output.length === 3);
-    });
-  });
-
   suite('Setting#supported()', function() {
     setup(function() {
       this.config = {
@@ -295,26 +329,83 @@ suite('lib/setting', function() {
 
       this.config.disabled = true;
       setting = new this.Setting(this.config);
-      assert.ok(setting.supported() === false);
+      assert.isFalse(setting.supported());
 
       this.config.disabled = false;
       setting = new this.Setting(this.config);
-      assert.ok(setting.supported() === true);
+      assert.isTrue(setting.supported());
 
       delete this.config.disabled;
       setting = new this.Setting(this.config);
-      assert.ok(setting.supported() === true);
+      assert.isTrue(setting.supported());
     });
 
     test('Should return true if not disabled and has options', function() {
       var setting;
 
       setting = new this.Setting(this.config);
-      assert.ok(setting.supported() === true);
+      assert.isTrue(setting.supported());
 
       this.config.options = [];
       setting = new this.Setting(this.config);
-      assert.ok(setting.supported() === false);
+      assert.isFalse(setting.supported());
+    });
+  });
+
+  suite('Setting#fetch()', function() {
+    setup(function() {
+      this.setting = new this.Setting({
+        key: 'foo',
+        storage: this.storage
+      });
+    });
+
+    test('Should `select` silently the given key if one is in storage', function() {
+      sinon.spy(this.setting, 'selected');
+
+      this.setting.fetch();
+      assert.isFalse(this.setting.selected.called);
+
+      this.storage.getItem
+        .withArgs('setting:' + this.setting.key)
+        .returns('the-key');
+
+      this.setting.fetch();
+      assert.isFalse(this.setting.selected.calledWith('the-key'));
+    });
+
+    test('Should not fire a `change` event', function() {
+      var spy = sinon.spy();
+
+      this.storage.getItem
+        .withArgs('setting:' + this.setting.key)
+        .returns('the-key');
+
+      this.setting.on('change', spy);
+      this.setting.fetch();
+
+      assert.isFalse(spy.called);
+    });
+  });
+
+  suite('Setting#save()', function() {
+    setup(function() {
+      this.setting = new this.Setting({
+        key: 'foo',
+        storage: this.storage,
+        options: [
+          { key: 'a' },
+          { key: 'b' }
+        ]
+      });
+    });
+
+    test('Should call `setItem` with the current selected option key', function() {
+      var key = 'setting:' + this.setting.key;
+      var value = this.setting.selected('key');
+
+      this.setting.save();
+      assert.isTrue(this.storage.setItem.calledWith(key, value));
     });
   });
 });

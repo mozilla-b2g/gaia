@@ -247,7 +247,6 @@ module.exports = View.extend({
   updatePreview: function(preview, sensorAngle, mirrored) {
     var elementWidth = this.el.clientWidth;
     var elementHeight = this.el.clientHeight;
-
     var aspect;
 
     // Invert dimensions if the camera's `sensorAngle` is

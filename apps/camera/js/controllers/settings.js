@@ -5,6 +5,8 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var formatPictureSizes = require('lib/picture-sizes/format-picture-sizes');
+var formatRecorderProfiles = require('lib/format-recorder-profiles');
 var debug = require('debug')('controller:settings');
 var SettingsView = require('views/settings');
 var bindAll = require('lib/bind-all');
@@ -23,20 +25,28 @@ module.exports.SettingsController = SettingsController;
  * @param {App} app
  */
 function SettingsController(app) {
+  debug('initializing');
   bindAll(this);
   this.app = app;
   this.settings = app.settings;
-  this.l10n = app.l10n || navigator.mozL10n;
   this.notification = app.views.notification;
+
+  // Allow test stubs
+  this.l10n = app.l10n || navigator.mozL10n;
+  this.SettingsView = app.SettingsView || SettingsView;
+  this.formatPictureSizes = app.formatPictureSizes || formatPictureSizes;
+  this.formatRecorderProfiles = app.formatRecorderProfiles ||
+    formatRecorderProfiles;
+
   this.configure();
   this.bindEvents();
   debug('initialized');
 }
 
 SettingsController.prototype.configure = function() {
-  this.settings.pictureSizesFront.format = formatters.pictureSizes;
-  this.settings.pictureSizesBack.format = formatters.pictureSizes;
-  this.configureAliases();
+  this.settings.alias('recorderProfiles', this.aliases.recorderProfiles);
+  this.settings.alias('pictureSizes', this.aliases.pictureSizes);
+  this.settings.alias('flashModes', this.aliases.flashModes);
 };
 
 /**
@@ -50,6 +60,16 @@ SettingsController.prototype.bindEvents = function() {
 };
 
 /**
+ * Toggle the settings menu open/closed.
+ *
+ * @private
+ */
+SettingsController.prototype.toggleSettings = function() {
+  if (this.view) { this.closeSettings(); }
+  else { this.openSettings(); }
+};
+
+/**
  * Render and display the settings menu.
  *
  * We use settings.menu() to retrieve
@@ -59,11 +79,11 @@ SettingsController.prototype.bindEvents = function() {
  * @private
  */
 SettingsController.prototype.openSettings = function() {
-  if (this.view) { return; }
   debug('open settings');
+  if (this.view) { return; }
 
   var items = this.menuItems();
-  this.view = new SettingsView({ items: items })
+  this.view = new this.SettingsView({ items: items })
     .render()
     .appendTo(this.app.el)
     .on('click:close', this.closeSettings)
@@ -79,11 +99,10 @@ SettingsController.prototype.openSettings = function() {
  * @private
  */
 SettingsController.prototype.closeSettings = function() {
-  if (this.view) {
-    this.view.destroy();
-    this.view = null;
-  }
-
+  debug('close settings');
+  if (!this.view) { return; }
+  this.view.destroy();
+  this.view = null;
   this.app.emit('settings:closed');
   debug('settings closed');
 };
@@ -110,21 +129,15 @@ SettingsController.prototype.onOptionTap = function(key, setting) {
  * @private
  */
 SettingsController.prototype.notify = function(setting) {
-  var optionTitle = this.l10n.get(setting.selected('title'));
-  var settingTitle = this.l10n.get(setting.get('title'));
+  var optionTitle = this.localize(setting.selected('title'));
+  var settingTitle = this.localize(setting.get('title'));
   var message = settingTitle + '<br/>' + optionTitle;
 
   this.notification.display({ text: message });
 };
 
-/**
- * Toggle the settings menu open/closed.
- *
- * @private
- */
-SettingsController.prototype.toggleSettings = function() {
-  if (this.view) { this.closeSettings(); }
-  else { this.openSettings(); }
+SettingsController.prototype.localize = function(value) {
+  return this.l10n.get(value) || value;
 };
 
 /**
@@ -139,30 +152,60 @@ SettingsController.prototype.toggleSettings = function() {
  * @param  {Object} capabilities
  */
 SettingsController.prototype.onCapabilitiesChange = function(capabilities) {
+  debug('new capabilities');
 
-  // Update the options for any settings
-  // keys that match capabilities keys
-  this.settings.options(capabilities);
+  this.settings.hdr.filterOptions(capabilities.hdr);
+  this.settings.flashModesPicture.filterOptions(capabilities.flashModes);
+  this.settings.flashModesVideo.filterOptions(capabilities.flashModes);
 
-  // Reset both picture and video flash modes
-  // as it is possible to change between the
-  // two *without* re-requesting the mozCamera.
-  this.settings.flashModesPicture.resetOptions(capabilities.flashModes);
-  this.settings.flashModesVideo.resetOptions(capabilities.flashModes);
-
-  // Only reset the current alias
-  this.settings.recorderProfiles.resetOptions(capabilities.recorderProfiles);
-  this.settings.pictureSizes.resetOptions(capabilities.pictureSizes);
+  this.configurePictureSizes(capabilities.pictureSizes);
+  this.configureRecorderProfiles(capabilities.recorderProfiles);
 
   // Let the rest of the app
   // know we're good to go.
   this.app.emit('settings:configured');
+  debug('settings configured to new capabilities');
 };
 
-SettingsController.prototype.configureAliases = function() {
-  this.settings.alias('recorderProfiles', aliases.recorderProfiles);
-  this.settings.alias('pictureSizes', aliases.pictureSizes);
-  this.settings.alias('flashModes', aliases.flashModes);
+/**
+ * Formats the raw pictureSizes into
+ * a format that Setting class can
+ * work with, then resets the pictureSize
+ * options.
+ *
+ * @param  {Array} sizes
+ */
+SettingsController.prototype.configurePictureSizes = function(sizes) {
+  var setting = this.settings.pictureSizes;
+  var maxPixelSize = setting.get('maxPixelSize');
+  var exclude = setting.get('exclude');
+  var options = {
+    exclude: exclude,
+    maxPixelSize: maxPixelSize,
+    mp: this.l10n.get('mp')
+  };
+  var formatted = this.formatPictureSizes(sizes, options);
+
+  setting.resetOptions(formatted);
+  setting.emit('configured');
+};
+
+/**
+ * Formats the raw recorderProfiles
+ * into a format that Setting class can
+ * work with, then resets the recorderProfile
+ * options.
+ *
+ * @param  {Array} sizes
+ */
+SettingsController.prototype.configureRecorderProfiles = function(sizes) {
+  var setting = this.settings.recorderProfiles;
+  var exclude = setting.get('exclude');
+  var options = { exclude: exclude };
+  var formatted = this.formatRecorderProfiles(sizes, options);
+
+  setting.resetOptions(formatted);
+  setting.emit('configured');
 };
 
 /**
@@ -195,18 +238,7 @@ SettingsController.prototype.menuItems = function() {
  */
 SettingsController.prototype.validMenuItem = function(item) {
   var setting = this.settings[item.key];
-  var supported = !setting.get('disabled') && !!setting.get('options').length;
-  var self = this;
-  var test = function(condition) {
-    for (var key in condition) {
-      var value = condition[key];
-      var setting = self.settings[key];
-      if (setting.selected('key') !== value) { return false; }
-    }
-    return true;
-  };
-
-  return supported && (!item.condition || test(item.condition));
+  return !!setting && setting.supported();
 };
 
 /**
@@ -217,7 +249,7 @@ SettingsController.prototype.validMenuItem = function(item) {
  *
  * @type {Object}
  */
-var aliases = {
+SettingsController.prototype.aliases = {
   recorderProfiles: {
     map: {
       back: 'recorderProfilesBack',
@@ -249,54 +281,5 @@ var aliases = {
     }
   }
 };
-
-var formatters = {
-  pictureSizes: function(options) {
-    var getMP = function(w, h) { return Math.round((w * h) / 1000000); };
-    var maxPixelSize = this.get('maxPixelSize');
-    var MP = navigator.mozL10n.get('mp');
-    var normalized = [];
-
-    options.forEach(function(option) {
-      var w = option.width;
-      var h = option.height;
-      var pixelSize = w * h;
-
-      // Don't allow pictureSizes above the maxPixelSize limit
-      if (maxPixelSize && pixelSize > maxPixelSize) {
-        return;
-      }
-
-      option.aspect = getAspect(w, h);
-      option.mp = getMP(w, h);
-
-      var mp = option.mp ? option.mp + MP + ' ' : '';
-
-      normalized.push({
-        key: w + 'x' + h,
-        title: mp + w + '×' + h + ' ' + option.aspect,
-        data: option
-      });
-    });
-
-    return normalized;
-  }
-};
-
-/**
- * Returns aspect ratio string.
- *
- * Makes use of Euclid's GCD algorithm,
- * http://en.wikipedia.org/wiki/Euclidean_algorithm
- *
- * @param  {Number} w
- * @param  {Number} h
- * @return {String}
- */
-function getAspect(w, h) {
-  var gcd = function(a, b) { return (b === 0) ? a : gcd(b, a % b); };
-  var divisor = gcd(w, h);
-  return (w / divisor) + ':' + (h / divisor);
-}
 
 });

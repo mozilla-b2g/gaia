@@ -102,12 +102,10 @@
 /** Flash Button
  ---------------------------------------------------------*/
 
-/**
- * 1. Required to position the flash text.
- */
-
 .hud_flash {
-  position: relative; /* 1 */
+  width: 5.8rem;
+  height: 5.8rem;
+  line-height: 5.8rem;
   font-size: 2.5rem;
   opacity: 0;
   transition: opacity 300ms;
@@ -119,22 +117,4 @@
 
 .hud[flash-enabled=true] .hud_flash {
   opacity: 1;
-}
-
-/**
- * settings-enabled=true
- */
-
-.hud[settings-enabled=true] .hud_flash {
-  width: 5.8rem;
-  height: 5.8rem;
-  line-height: 5.8rem;
-}
-
-/**
- * settings-enabled=false
- */
-
-.hud[settings-enabled=false] .hud_settings {
-  display: none;
 }

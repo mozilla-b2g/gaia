@@ -28,11 +28,17 @@ suite('controllers/activity', function() {
         recorderProfiles: sinon.createStubInstance(this.Setting)
       }
     };
+
+    // Aliases
+    this.settings = this.app.settings;
+    this.activity = this.app.activity;
+
+    this.controller = new this.ActivityController(this.app);
   });
 
   suite('ConfirmController()', function() {
     setup(function() {
-      this.configure = sinon.stub(this.ActivityController.prototype, 'configure');
+      this.configure = sinon.spy(this.ActivityController.prototype, 'configure');
     });
 
     teardown(function() {
@@ -49,86 +55,155 @@ suite('controllers/activity', function() {
       this.controller = new this.ActivityController(this.app);
       assert.ok(this.configure.called);
     });
-  });
 
-  suite('ConfirmController#configure()', function() {
-    test('Should should configure pictureSize and ' +
-      'recorderProfile options when reset', function() {
-      this.controller = new this.ActivityController(this.app);
-
-      var pictureSizes = this.app.settings.pictureSizes;
-      var recorderProfiles = this.app.settings.recorderProfiles;
-
-      assert.ok(pictureSizes.on.calledWith('optionsreset', this.controller.configurePictureSize));
-      assert.ok(recorderProfiles.on.calledWith('optionsreset', this.controller.configureVideoSize));
-    });
-  });
-
-  suite('ConfirmController#bindEvents()', function() {
-    test('Should reset the `settings.mode` with the ' +
-      'modes defined by the activity', function() {
+    test('Should reset the `settings.mode` with the modes defined by the activity', function() {
       this.app.activity.data.modes = ['video'];
+      this.app.settings.mode.filterOptions.reset();
       this.controller = new this.ActivityController(this.app);
 
-      assert.ok(this.app.settings.mode.resetOptions.args[0][0].length === 1);
-      assert.ok(this.app.settings.mode.resetOptions.args[0][0][0] === 'video');
-      this.app.settings.mode.resetOptions.reset();
+      assert.ok(this.app.settings.mode.filterOptions.args[0][0].length === 1);
+      assert.ok(this.app.settings.mode.filterOptions.args[0][0][0] === 'video');
+      this.app.settings.mode.filterOptions.reset();
 
       this.app.activity.data.modes = ['video', 'picture'];
       this.controller = new this.ActivityController(this.app);
 
-      assert.ok(this.app.settings.mode.resetOptions.args[0][0].length === 2);
-      assert.ok(this.app.settings.mode.resetOptions.args[0][0][0] === 'video');
-      assert.ok(this.app.settings.mode.resetOptions.args[0][0][1] === 'picture');
+      assert.ok(this.app.settings.mode.filterOptions.args[0][0].length === 2);
+      assert.ok(this.app.settings.mode.filterOptions.args[0][0][0] === 'video');
+      assert.ok(this.app.settings.mode.filterOptions.args[0][0][1] === 'picture');
+    });
+
+    test('Should should configure pictureSize and recorderProfile options when reset', function() {
+      var pictureSizes = this.app.settings.pictureSizes;
+      var recorderProfiles = this.app.settings.recorderProfiles;
+      var callback;
+
+      callback = pictureSizes.on.args[0][1];
+      assert.ok(pictureSizes.on.calledWith('configured'));
+      assert.equal(typeof callback, 'function');
+
+      callback = recorderProfiles.on.args[0][1];
+      assert.ok(recorderProfiles.on.calledWith('configured'));
+      assert.equal(typeof callback, 'function');
     });
   });
 
-  suite('ConfirmController#configurePictureSize()', function() {
+  suite('ConfirmController#filterPictureSize()', function() {
     setup(function() {
-      this.filteredOptions = [{}, {}, {}];
-      this.pickedOption = { width: 1, height: 1 };
+      this.sizes = [{
+        "key": "2048x1536",
+        "title": "3MP 2048x1536 4:3",
+        "pixelSize": 3145728,
+        "data": {
+          "height": 1536,
+          "width": 2048,
+          "aspect": "4:3",
+          "mp": 3
+        },
+        "index": 0
+      }, {
+        "key": "800x600",
+        "title": "800x600 4:3",
+        "pixelSize": 480000,
+        "data": {
+          "height": 600,
+          "width": 800,
+          "aspect": "4:3",
+          "mp": 0
+        },
+        "index": 5
+      }, {
+        "key": "800x480",
+        "title": "800x480 5:3",
+        "pixelSize": 384000,
+        "data": {
+          "height": 480,
+          "width": 800,
+          "aspect": "5:3",
+          "mp": 0
+        },
+        "index": 6
+      }, {
+        "key": "640x480",
+        "title": "640x480 4:3",
+        "pixelSize": 307200,
+        "data": {
+          "height": 480,
+          "width": 640,
+          "aspect": "4:3",
+          "mp": 0
+        },
+        "index": 7
+      }, {
+        "key": "320x240",
+        "title": "320x240 4:3",
+        "pixelSize": 76800,
+        "data": {
+          "height": 240,
+          "width": 320,
+          "aspect": "4:3",
+          "mp": 0
+        },
+        "index": 9
+      }];
 
-      this.app.lessThanFileSize = sinon.stub().returns(this.filteredOptions);
-      this.app.closestToSize = sinon.stub().returns(this.pickedOption);
-
-      this.controller = new this.ActivityController(this.app);
+      this.app.settings.pictureSizes.get
+        .withArgs('options')
+        .returns(this.sizes);
     });
 
-    test('Should filter `pictureSize` options by bytes if ' +
-      'activity defines `maxFileSizeBytes`', function() {
-      var options = [{}, {}, {}];
-      this.app.activity.data.maxFileSizeBytes = 100;
-      this.controller.configurePictureSize(options);
-
-      assert.ok(this.app.lessThanFileSize.calledWith(100, options));
-      assert.ok(this.app.settings.pictureSizes.set.calledWith('options', this.filteredOptions));
+    test('Should filter by file-size if `maxFileSizeBytes` defined', function() {
+      this.app.activity.data.maxFileSizeBytes = 460800;
+      this.controller.filterPictureSize();
+      var args = this.settings.pictureSizes.filterOptions.args[0][0];
+      assert.equal(args.length, 4);
     });
 
-    test('Should not attempt to filter by options by ' +
-      'width/height if `maxFileSizeBytes` is defined', function() {
-      this.app.activity.data.maxFileSizeBytes = 100;
-      this.controller.configurePictureSize([]);
-      assert.ok(!this.app.closestToSize.called);
-    });
+    test('Should filter by width/height if defined', function() {
+      var arg;
 
-    test('Should filter `pictureSize` options by size if ' +
-      'activity defines `width` or `height`', function() {
-      var options = ['a', 'b', 'c'];
-      this.app.activity.data.width = 100;
-      this.app.activity.data.height = 100;
-      this.controller.configurePictureSize(options);
+      this.app.activity.data.width = 640;
+      this.app.activity.data.height = 480;
 
-      var target = this.app.closestToSize.args[0][0];
+      this.controller.filterPictureSize();
+      arg = this.settings.pictureSizes.filterOptions.args[0][0];
+      assert.equal(arg[0], '640x480');
 
-      assert.ok(target.width === 100);
-      assert.ok(target.height === 100);
+      this.app.activity.data.width = 400;
+      this.app.activity.data.height = 300;
 
-      var pickedSize = this.app.settings.pictureSizes.set.args[0][1][0];
-      assert.ok(pickedSize === this.pickedOption);
+      this.controller.filterPictureSize();
+      arg = this.settings.pictureSizes.filterOptions.args[0][0];
+      assert.equal(arg[0], '640x480');
     });
   });
 
+ suite('ConfirmController#filterRecorderProfiles()', function() {
+  setup(function() {
+    this.profiles = [
+      { key: 'high' },
+      { key: 'medium' },
+      { key: 'low' }
+    ];
 
+    this.app.settings.recorderProfiles.get
+      .withArgs('options')
+      .returns(this.profiles);
+  });
 
+  test('Should not filter if `maxFileSizeBytes` is not defined', function() {
+    this.controller.filterRecorderProfiles();
+    assert.isFalse(this.settings.recorderProfiles.filterOptions.called);
+  });
 
+  test('Should pick the lowest (last) profile if `maxFileSizeBytes` is specified', function() {
+    var filterOptions = this.settings.recorderProfiles.filterOptions;
+
+    this.activity.data.maxFileSizeBytes = 99999;
+    this.controller.filterRecorderProfiles();
+
+    assert.isTrue(filterOptions.called);
+    assert.equal(filterOptions.args[0][0][0], 'low');
+  });
+ });
 });
