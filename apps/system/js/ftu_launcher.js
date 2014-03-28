@@ -5,14 +5,8 @@
 
 var FtuLauncher = {
 
-  /* The application object of ftu got from Application module */
-  _ftu: null,
-
-  /* The manifest URL of FTU */
-  _ftuManifestURL: '',
-
   /* The url of FTU */
-  _ftuURL: '',
+  _origin: '',
 
   /* Store that if FTU is currently running */
   _isRunningFirstTime: false,
@@ -24,7 +18,7 @@ var FtuLauncher = {
   },
 
   getFtuOrigin: function fl_getFtuOrigin() {
-    return this._ftuURL;
+    return this._origin;
   },
 
   setBypassHome: function fl_setBypassHome(value) {
@@ -58,7 +52,7 @@ var FtuLauncher = {
   handleEvent: function fl_init(evt) {
     switch (evt.type) {
       case 'appopened':
-        if (evt.detail.origin == this._ftuURL && this._isRunningFirstTime) {
+        if (evt.detail.origin == this._origin && this._isRunningFirstTime) {
           // FTU starting, letting everyone know
           var evt = document.createEvent('CustomEvent');
           evt.initCustomEvent('ftuopen',
@@ -77,7 +71,7 @@ var FtuLauncher = {
             var killEvent = document.createEvent('CustomEvent');
             killEvent.initCustomEvent('killapp',
               /* canBubble */ true, /* cancelable */ false, {
-              origin: this._ftuURL
+              origin: this._origin
             });
             window.dispatchEvent(killEvent);
           }
@@ -98,7 +92,7 @@ var FtuLauncher = {
         break;
 
       case 'appterminated':
-        if (evt.detail.origin == this._ftuURL) {
+        if (evt.detail.origin == this._origin) {
           this.close();
         }
         break;
@@ -113,6 +107,8 @@ var FtuLauncher = {
   close: function fl_close() {
     this._isRunningFirstTime = false;
     window.asyncStorage.setItem('ftu.enabled', false);
+    var lock = navigator.mozSettings.createLock();
+    lock.set({ 'deviceinfo.previous_os': '' });
     // Done with FTU, letting everyone know
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('ftudone',
@@ -128,41 +124,59 @@ var FtuLauncher = {
     window.dispatchEvent(evt);
   },
 
+  launch: function fl_launch() {
+    var self = this;
+    var lock = navigator.mozSettings.createLock();
+    var req = lock.get('ftu.manifestURL');
+    req.onsuccess = function() {
+      var manifestURL = this.result['ftu.manifestURL'];
+      if (!manifestURL) {
+        self.skip();
+        return;
+      }
+
+      var ftu = applications.getByManifestURL(manifestURL);
+      if (!ftu) {
+        self.skip();
+        return;
+      }
+
+      self._origin = ftu.origin + ftu.manifest.entry_points['ftu'].launch_path;
+      self._isRunningFirstTime = true;
+      ftu.launch('ftu');
+    };
+    req.onerror = function() {
+      self.skip();
+    };
+  },
+
   // Check if the FTU was executed or not, if not, get a
   // reference to the app and launch it.
   // Used by Bootstrap module.
   retrieve: function fl_retrieve() {
     var self = this;
     FtuPing.ensurePing();
-    window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
-      if (launchFTU === false) {
-        self.skip();
+    window.asyncStorage.getItem('ftu.enabled', function getItem(shouldFTU) {
+      if (shouldFTU !== false) {
+        self.launch();
         return;
       }
+
+      // Verify if there is any FTU Update to show
       var lock = navigator.mozSettings.createLock();
-      var req = lock.get('ftu.manifestURL');
+      var req = lock.get('deviceinfo.os');
       req.onsuccess = function() {
-        self._ftuManifestURL = this.result['ftu.manifestURL'];
-        if (!self._ftuManifestURL) {
-          dump('FTU manifest cannot be found skipping.\n');
-          self.skip();
-          return;
-        }
-        self._ftu = applications.getByManifestURL(self._ftuManifestURL);
-        if (!self._ftu) {
-          dump('Opps, bogus FTU manifest.\n');
-          self.skip();
-          return;
-        }
-        self._ftuURL =
-          self._ftu.origin + self._ftu.manifest.entry_points['ftu'].launch_path;
-        self._isRunningFirstTime = true;
-        // Open FTU
-        self._ftu.launch('ftu');
-      };
-      req.onerror = function() {
-        dump('Couldn\'t get the ftu manifestURL.\n');
-        self.skip();
+        var currentVersion = this.result['deviceinfo.os'];
+
+        var reqPrevious = lock.get('deviceinfo.previous_os');
+        reqPrevious.onsuccess = function() {
+          var previousVersion = this.result['deviceinfo.previous_os'];
+          if (previousVersion !== '' && previousVersion !== currentVersion) {
+            self.launch();
+          } else {
+            self.skip();
+          }
+        };
       };
     });
   }
