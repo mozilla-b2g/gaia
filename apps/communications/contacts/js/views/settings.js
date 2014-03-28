@@ -1,4 +1,20 @@
 'use strict';
+/* global _ */
+/* global ConfirmDialog */
+/* global Contacts */
+/* global ContactsBTExport */
+/* global ContactsExporter */
+/* global ContactsSDExport */
+/* global ContactsSIMExport */
+/* global fb */
+/* global IccHandler */
+/* global LazyLoader */
+/* global navigationStack */
+/* global Rest */
+/* global SimContactsImporter */
+/* global SimDomGenerator */
+/* global utils */
+/* global VCFReader */
 
 var contacts = window.contacts || {};
 
@@ -26,13 +42,10 @@ contacts.Settings = (function() {
     fbImportCheck,
     fbUpdateButton,
     fbOfflineMsg,
-    noSimMsg,
-    noMemoryCardMsg,
     fbTotalsMsg,
     fbPwdRenewMsg,
     fbImportedValue,
     newOrderByLastName = null,
-    ORDER_KEY = 'order.lastname',
     PENDING_LOGOUT_KEY = 'pendingLogout',
     bulkDeleteButton;
 
@@ -207,6 +220,8 @@ contacts.Settings = (function() {
   }
 
   function importOptionsHandler(e) {
+    /* jshint validthis:true */
+
     var source = getSource(e);
     switch (source) {
       case 'sim':
@@ -224,7 +239,7 @@ contacts.Settings = (function() {
         Contacts.extServices.importLive();
         break;
     }
-  };
+  }
 
   var bulkDeleteHandler = function bulkDeleteHandler() {
     LazyLoader.load(
@@ -288,7 +303,7 @@ contacts.Settings = (function() {
         );
         break;
     }
-  };
+  }
 
   function doExport(strategy) {
     // Launch the selection mode in the list, and then invoke
@@ -320,7 +335,7 @@ contacts.Settings = (function() {
       navigationHandler,
       'popup'
     );
-  };
+  }
 
   // Options checking & updating
 
@@ -744,28 +759,34 @@ contacts.Settings = (function() {
       'text/directory;profile=vCard',
       'text/directory'
     ], ['vcf', 'vcard'], function(err, fileArray) {
-      if (err)
+      if (err) {
         return import_error(err, cb);
+      }
 
-      if (cancelled)
+      if (cancelled) {
         return;
+      }
 
-      if (fileArray.length)
+      if (fileArray.length) {
         utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
-      else
+      } else {
         import_error('No contacts were found.', cb);
+      }
     });
 
     function onFiles(err, text) {
-      if (err)
+      if (err) {
         return import_error(err, cb);
+      }
 
-      if (cancelled)
+      if (cancelled) {
         return;
+      }
 
       importer = new VCFReader(text);
-      if (!text || !importer)
+      if (!text || !importer) {
         return import_error('No contacts were found.', cb);
+      }
 
       importer.onread = import_read;
       importer.onimported = imported_contact;

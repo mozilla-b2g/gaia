@@ -1,4 +1,15 @@
 'use strict';
+/* global ActivityHandler */
+/* global ConfirmDialog */
+/* global ContactPhotoHelper */
+/* global Contacts */
+/* global fb */
+/* global ImageLoader */
+/* global LazyLoader */
+/* global monitorTagVisibility */
+/* global Normalizer */
+/* global PerformanceTestingHelper */
+/* global utils */
 
 var contacts = window.contacts || {};
 contacts.List = (function() {
@@ -46,13 +57,9 @@ contacts.List = (function() {
       rowsOnScreen = {},
       selectedContacts = {};
 
-  // Key on the async Storage
-  var ORDER_KEY = 'order.lastname';
-
   // Possible values for the configuration field 'defaultContactsOrder'
   // config.json file (see bug 841693)
   var ORDER_BY_FAMILY_NAME = 'familyName';
-  var ORDER_BY_GIVEN_NAME = 'givenName';
 
   var MAX_INT = 0x7fffffff;
 
@@ -74,7 +81,7 @@ contacts.List = (function() {
     for (var i = 0; i < letters.length; i++) {
       order[letters[i]] = i + 1;
     }
-    order['und'] = i + 1;
+    order.und = i + 1;
     return order;
   })();
 
@@ -123,13 +130,15 @@ contacts.List = (function() {
   };
 
   var clearLoadedContact = function(el, id, group) {
-    if (!el.dataset.rendered || !el.dataset.order || !el.dataset.search)
+    if (!el.dataset.rendered || !el.dataset.order || !el.dataset.search) {
       return;
+    }
 
     id = id || el.dataset.uuid;
     group = group || el.dataset.group;
-    if (loadedContacts[id])
+    if (loadedContacts[id]) {
       loadedContacts[id][group] = null;
+    }
   };
 
   var offscreen = function(row) {
@@ -272,8 +281,9 @@ contacts.List = (function() {
   };
 
   var scrollToCb = function scrollCb(domTarget, group) {
-    if (domTarget.offsetTop > 0)
+    if (domTarget.offsetTop > 0) {
       scrollable.scrollTop = domTarget.offsetTop;
+    }
   };
 
   var load = function load(contacts, forceReset) {
@@ -464,13 +474,15 @@ contacts.List = (function() {
   // contacts.  This is used to defer the computation of the search string
   // since profiling has shown it to be expensive.
   var renderSearchString = function renderSearchString(node, contact) {
-    if (node.dataset.search)
+    if (node.dataset.search) {
       return;
+    }
 
     contact = contact || loadedContacts[node.dataset.uuid][node.dataset.group];
 
-    if (!contact)
+    if (!contact) {
       return;
+    }
 
     var display = getDisplayName(contact);
     node.dataset.search = getSearchString(contact, display);
@@ -479,13 +491,15 @@ contacts.List = (function() {
   };
 
   var renderOrderString = function renderOrderString(node, contact) {
-    if (node.dataset.order)
+    if (node.dataset.order) {
       return;
+    }
 
     contact = contact || loadedContacts[node.dataset.uuid][node.dataset.group];
 
-    if (!contact)
+    if (!contact) {
       return;
+    }
 
     var display = getDisplayName(contact);
     node.dataset.order = getStringToBeOrdered(contact, display);
@@ -500,7 +514,7 @@ contacts.List = (function() {
   var createPlaceholder = function createPlaceholder(contact, group) {
     var ph = document.createElement('li');
     ph.dataset.uuid = contact.id;
-    var group = group || getFastGroupName(contact);
+    group = group || getFastGroupName(contact);
     var order = null;
     if (!group) {
       order = getStringToBeOrdered(contact);
@@ -518,21 +532,23 @@ contacts.List = (function() {
     // calculated the order string, then go ahead and save it instead of
     // recalculating it later.
     var display = getDisplayName(contact);
-    if (!display.modified && order)
+    if (!display.modified && order) {
       ph.dataset.order = order;
+    }
 
     return ph;
   };
 
   var getStringValue = function getStringValue(contact, field) {
-    if (contact[field] && contact[field][0])
+    if (contact[field] && contact[field][0]) {
       return String(contact[field][0]).trim();
+    }
 
     return null;
   };
 
   var getSearchString = function getSearchString(contact, display) {
-    var display = display || contact;
+    display = display || contact;
     var searchInfo = [];
     var searchable = ['givenName', 'familyName'];
     searchable.forEach(function(field) {
@@ -579,19 +595,6 @@ contacts.List = (function() {
     return ele;
   }
 
-  function buildSocialMarks(category) {
-    var marks = [];
-    if (category.indexOf('facebook') !== -1) {
-      marks.push(markAsFb(createSocialMark()));
-    }
-
-    if (category.indexOf('twitter') !== -1) {
-      marks.push(markAsTw(createSocialMark()));
-    }
-
-    return marks;
-  }
-
   function createSocialMark() {
     var span = document.createElement('span');
     span.classList.add('icon-social');
@@ -601,12 +604,6 @@ contacts.List = (function() {
 
   function markAsFb(ele) {
     ele.classList.add('icon-fb');
-
-    return ele;
-  }
-
-  function markAsTw(ele) {
-    ele.classList.add('icon-tw');
 
     return ele;
   }
@@ -640,8 +637,9 @@ contacts.List = (function() {
   // this point so tools can measure the time.
   var notifiedAboveTheFold = false;
   function notifyAboveTheFold() {
-    if (notifiedAboveTheFold)
+    if (notifiedAboveTheFold) {
       return;
+    }
 
     notifiedAboveTheFold = true;
     PerformanceTestingHelper.dispatch('above-the-fold-ready');
@@ -658,7 +656,7 @@ contacts.List = (function() {
       monitor = monitorTagVisibility(scrollable, 'li', scrollMargin,
                                      scrollDelta, onscreen, offscreen);
     });
-  };
+  }
 
   function getViewHeight(config) {
     if (viewHeight < 0) {
@@ -707,8 +705,9 @@ contacts.List = (function() {
     updatePhoto(contact);
     var ph = createPlaceholder(contact);
     var groups = [ph.dataset.group];
-    if (isFavorite(contact))
+    if (isFavorite(contact)) {
       groups.push('favorites');
+    }
 
     var nodes = [];
 
@@ -733,8 +732,9 @@ contacts.List = (function() {
       renderContact(contact, ph);
     }
 
-    if (!loadedContacts[contact.id])
+    if (!loadedContacts[contact.id]) {
       loadedContacts[contact.id] = {};
+    }
 
     loadedContacts[contact.id][group] = contact;
 
@@ -858,13 +858,13 @@ contacts.List = (function() {
     if (!photoTemplate) {
       photoTemplate = document.createElement('aside');
       photoTemplate.className = 'pack-end';
-      var img = document.createElement('span');
+      img = document.createElement('span');
       img.dataset.type = 'img';
       photoTemplate.appendChild(img);
     }
 
     var figure = photoTemplate.cloneNode(true);
-    var img = figure.children[0];
+    img = figure.children[0];
     setImageURL(img, photo);
 
     link.insertBefore(figure, link.children[0]);
@@ -960,14 +960,6 @@ contacts.List = (function() {
     Contacts.confirmDialog(null, msg, noObject);
   };
 
-  function addToFavoriteList(favorite) {
-    var container = getGroupList('favorites');
-    container.appendChild(favorite);
-    if (container.children.length === 1) {
-      showGroupByList(container);
-    }
-  }
-
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
     if (!Contacts.asyncScriptsLoaded) {
       // delay loading if they're not there yet
@@ -1049,15 +1041,16 @@ contacts.List = (function() {
         var contact = evt.target.result;
         if (contact) {
           chunk.push(contact);
-          if (num && (num % CHUNK_SIZE == 0)) {
+          if (num && (num % CHUNK_SIZE === 0)) {
             successCb(chunk);
             chunk = [];
           }
           num++;
           cursor.continue();
         } else {
-          if (chunk.length)
+          if (chunk.length) {
             successCb(chunk);
+          }
           var showNoContacs = (num === 0);
           toggleNoContactsScreen(showNoContacs);
           onListRendered();
@@ -1078,8 +1071,9 @@ contacts.List = (function() {
     renderSearchString(renderedNode, contact);
     renderOrderString(renderedNode, contact);
 
-    if (updatePhoto(contact))
+    if (updatePhoto(contact)) {
       renderPhoto(renderedNode, contact.id);
+    }
     var list = getGroupList(renderedNode.dataset.group);
     addToGroup(renderedNode, list);
 
@@ -1120,8 +1114,9 @@ contacts.List = (function() {
 
   // Fills the contact data to display if no givenName and familyName
   var getDisplayName = function getDisplayName(contact) {
-    if (hasName(contact))
+    if (hasName(contact)) {
       return { givenName: contact.givenName, familyName: contact.familyName };
+    }
 
     var givenName = [];
     if (contact.org && contact.org.length > 0) {
@@ -1146,7 +1141,7 @@ contacts.List = (function() {
     var comp = 0;
     var target = len;
     while (begin <= end) {
-      var target = ~~((begin + end) / 2);
+      target = ~~((begin + end) / 2);
       if (target >= len) {
         break;
       }
@@ -1250,8 +1245,9 @@ contacts.List = (function() {
     ret.push(first);
     ret.push(second);
 
-    if (first != '' || second != '')
+    if (first !== '' || second !== '') {
       return Normalizer.toAscii(ret.join('')).toUpperCase().trim();
+    }
     ret.push(contact.org);
     ret.push(contact.tel && contact.tel.length > 0 ?
       contact.tel[0].value.trim() : '');
@@ -1314,9 +1310,10 @@ contacts.List = (function() {
   function refreshContact(contact, enriched, callback) {
     remove(contact.id);
     addToList(contact, enriched);
-    if (callback)
+    if (callback) {
       callback(contact.id);
-  };
+    }
+  }
 
   var callbacks = [];
   var handleClick = function handleClick(callback) {
@@ -1352,8 +1349,9 @@ contacts.List = (function() {
     loadedContacts = {};
     loaded = false;
 
-    if (cb)
+    if (cb) {
       cb();
+    }
   };
 
   var setOrderByLastName = function setOrderByLastName(value) {
@@ -1444,7 +1442,7 @@ contacts.List = (function() {
       }
     }
 
-    if (ids.length == 0) {
+    if (ids.length === 0) {
       return;
     }
 
@@ -1490,13 +1488,13 @@ contacts.List = (function() {
       default:
         // We checked in a row, check the mass selection/deselection buttons
         selectAllDisabled = currentlySelected == contacts.List.total;
-        deselectAllDisabled = currentlySelected == 0;
+        deselectAllDisabled = currentlySelected === 0;
         break;
     }
 
     updateRowsOnScreen();
 
-    selectActionButton.disabled = currentlySelected == 0;
+    selectActionButton.disabled = currentlySelected === 0;
     selectAll.disabled = selectAllDisabled;
     deselectAll.disabled = deselectAllDisabled;
     updateSelectCount(currentlySelected);
@@ -1541,8 +1539,8 @@ contacts.List = (function() {
           var request = navigator.mozContacts.find({});
           request.onsuccess = function onAllContacts() {
             request.result.forEach(function onContact(contact) {
-              if (notSelectedCount == 0 ||
-                notSelectedIds[contact.id] == undefined) {
+              if (notSelectedCount === 0 ||
+                notSelectedIds[contact.id] === undefined) {
                 self._selected.push(contact.id);
               }
             });
@@ -1665,7 +1663,7 @@ contacts.List = (function() {
 
     selectNavigationController.go('view-contacts-list', transitionType);
 
-    if (contacts.List.total == 0) {
+    if (contacts.List.total === 0) {
       var emptyPromise = createSelectPromise();
       emptyPromise.resolve([]);
     }
@@ -1724,7 +1722,7 @@ contacts.List = (function() {
 
   // Given a row, and the contact id, setup the value of the selection check
   var updateSingleRowSelection = function updateSingleRowSelection(row, id) {
-    var id = id || row.dataset.uuid;
+    id = id || row.dataset.uuid;
     var check = row.querySelector('input[value="' + id + '"]');
     if (!check) {
       return;
@@ -1806,7 +1804,7 @@ contacts.List = (function() {
   };
   function updateSelectCount(count) {
     Contacts.updateSelectCountTitle(count);
-  };
+  }
 
   return {
     'init': init,

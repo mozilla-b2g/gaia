@@ -339,10 +339,6 @@ form p textarea + button[type="reset"].hide {
   background-image: url(images/f_logo.png) !important;
 }
 
-.icon-social.icon-tw {
-  background-image: url(images/tw_logo2.png) !important;
-}
-
 .icon-social.notorg {
   margin-left: 0 !important;
 }
