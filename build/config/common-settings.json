@@ -46,7 +46,6 @@
    "devtools.overlay": false,
    "devtools.eventlooplag.threshold": 100,
    "feedback.url": "https://input.allizom.org/api/v1/feedback/",
-   "findmydevice.ui.enabled": true,
    "gaia.system.checkForUpdates": false,
    "gaia.ui.menu": "#f97c17",
    "gaia.ui.menutext": "#ffffff",
