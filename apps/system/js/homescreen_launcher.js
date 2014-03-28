@@ -55,8 +55,16 @@
       window.addEventListener('trusteduishow', this);
       window.addEventListener('trusteduihide', this);
       window.addEventListener('appopening', this);
+      window.addEventListener('cardviewbeforeshow', this);
+      window.addEventListener('cardviewbeforeclose', this);
     },
 
+    /**
+     * General event handler interface.
+     *
+     * @param  {DOMEvent} evt The event.
+     * @type {boolean}
+     */
     handleEvent: function hl_handleEvent(evt) {
       switch (evt.type) {
         case 'trusteduishow':
@@ -72,6 +80,15 @@
               evt.detail.rotatingDegree === 270) {
             this.getHomescreen().fadeOut();
           }
+          break;
+        case 'cardviewbeforeshow':
+          // Fade out the homescreen before showing the cards view to avoid
+          // having it bleed through during the transition animation.
+          this.getHomescreen().fadeOut();
+          break;
+        case 'cardviewbeforeclose':
+          // Fade homescreen back in before the cards view closes.
+          this.getHomescreen().fadeIn();
           break;
       }
     },
