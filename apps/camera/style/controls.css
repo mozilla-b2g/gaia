@@ -187,6 +187,7 @@
 
 .mode-switch .mode-icon:after {
   content: "\e602";
+  font-size: 2.1rem;
   color: #C7C7C7;
 }
 
@@ -211,7 +212,8 @@
   height: 3.6rem;
   border-radius: 50%;
   background: #EEE;
-  transition: transform 100ms;
+  will-change: transform;
+  transition: transform 140ms;
 }
 
 /**
@@ -229,6 +231,7 @@
   content: "\e60f";
   display: block;
   text-align: center;
+  font-size: 1.8rem;
   line-height: 3.6rem;
   color: #00CAF2;
 }
@@ -280,6 +283,7 @@
 
 .capture-button .inner-circle {
   background-color: white;
+  will-change: transform;
   transform: scale(0.76);
   transition: transform 150ms ease-in;
 }
@@ -290,7 +294,7 @@
  */
 
 .capture-button:active .inner-circle,
-[capture-active=true][mode=picture] .capture-button .inner-circle {
+[capture-active=true] .capture-button .inner-circle {
   background-color: #00caf2;
   color: white;
   transform: scale(1.0);
@@ -308,16 +312,8 @@
  * mode=video & :active
  */
 
-.controls[mode=video] .capture-button:active .inner-circle {
-  background-color: #D92E2E;
-  transform: scale(0.76);
-}
-
-/**
- * mode=video & recording=true
- */
-
-.controls[mode=video][recording=true] .capture-button .inner-circle {
+.controls[mode=video] .capture-button:active .inner-circle,
+.controls[mode=video][capture-active=true] .capture-button .inner-circle {
   background-color: #D92E2E;
 }
 
@@ -334,7 +330,6 @@
   text-align: center;
   color: #81ACB6;
   content: "\e60f";
-  transition: none;
 }
 
 /**
@@ -343,7 +338,7 @@
  */
 
 .capture-button:active .center:after,
-[capture-active=true][mode=picture] .capture-button .center:after {
+[capture-active=true] .capture-button .center:after {
   color: white;
 }
 
@@ -352,6 +347,7 @@
  */
 
 .controls[mode=video] .capture-button .center:after {
+  content: '';
   top: calc(50% - 1rem);
   left: calc(50% - 1rem);
   width: 2rem;
@@ -359,14 +355,14 @@
   border-radius: 50%;
   background-color: #D92E2E;
   color: white;
-  content: "";
 }
 
 /**
  * mode=video & recording=true
  */
 
-.controls[mode=video][recording=true] .capture-button .center:after {
+.controls[mode=video] .capture-button:active .center:after,
+.controls[mode=video][capture-active=true] .capture-button .center:after {
   border-radius: 25%;
   background-color: white;
 }
