@@ -40,10 +40,9 @@ function SetupAccountInfoCard(domNode, mode, args) {
   this.nameNode.addEventListener('input', this.onInfoInput.bind(this));
   this.passwordNode.addEventListener('input', this.onInfoInput.bind(this));
 
-  this.manualConfig =
-    domNode.getElementsByClassName('sup-manual-config-btn')[0];
-  this.manualConfig.addEventListener('click',
-                                     this.onClickManualConfig.bind(this));
+  var manualConfig = domNode.getElementsByClassName('sup-manual-config-btn')[0];
+  manualConfig.addEventListener('click', this.onClickManualConfig.bind(this),
+                                false);
 
   new FormNavigation({
     formElem: domNode.getElementsByTagName('form')[0],
@@ -64,7 +63,6 @@ SetupAccountInfoCard.prototype = {
     }
   },
   onNext: function(event) {
-    event.preventDefault(); // Prevent FormNavigation from taking over.
     var nameNode = this.domNode.getElementsByClassName('sup-info-name')[0],
         emailNode = this.domNode.getElementsByClassName('sup-info-email')[0],
         passwordNode =
@@ -83,12 +81,10 @@ SetupAccountInfoCard.prototype = {
   },
 
   onInfoInput: function(event) {
-    this.nextButton.disabled = this.manualConfig.disabled =
-      !this.formNode.checkValidity();
+    this.nextButton.disabled = !this.formNode.checkValidity();
   },
 
-  onClickManualConfig: function(event) {
-    event.preventDefault(); // Prevent FormNavigation from taking over.
+  onClickManualConfig: function() {
     Cards.pushCard(
       'setup_manual_config', 'default', 'animate',
       {

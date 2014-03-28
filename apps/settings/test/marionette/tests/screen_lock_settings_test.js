@@ -37,8 +37,7 @@ marionette('manipulate screenLock settings', function() {
       'passcode is not checked');
   });
 
-  // Disabled for intermittent failures. Bug 983171
-  test.skip(
+  test(
     'passcode is enabled, and we want to disable passcode ' +
     'but failed to enter the right code',
     function() {

@@ -59,13 +59,11 @@ require('wake_locks');
 model.latestOnce('api', function(api) {
   // If our password is bad, we need to pop up a card to ask for the updated
   // password.
-  api.onbadlogin = function(account, problem, whichSide) {
+  api.onbadlogin = function(account, problem) {
     switch (problem) {
       case 'bad-user-or-pass':
         Cards.pushCard('setup_fix_password', 'default', 'animate',
-                  { account: account,
-                    whichSide: whichSide,
-                    restoreCard: Cards.activeCardIndex },
+                  { account: account, restoreCard: Cards.activeCardIndex },
                   'right');
         break;
       case 'imap-disabled':

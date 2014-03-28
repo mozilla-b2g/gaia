@@ -892,79 +892,8 @@ function cropAndEndPick() {
     photodb.getFile(pickedFile.name, endPick);
   }
   else {
-    cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight,
-                                    convertToFileBackedBlob);
+    cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight, endPick);
   }
-}
-
-// HACK HACK HACK
-//
-// For bug 975599, we need to use a file backed blob in pendingPick.postResult
-// so this function saves the blob to a temporary file in device storage and
-// then reads that file back and passes that to endPick.
-//
-// When the underlying bug is fixed, we can remove this function and just
-// call endPick directly as the getCroppedRegionBlob callback.
-//
-
-function convertToFileBackedBlob(memoryBackedBlob) {
-  var TEMP_IMAGE_DIR = '.gallery/cropped';
-  var storage = navigator.getDeviceStorage('pictures');
-
-  function saveFileBackedBlob() {
-    // Pick a random number, remove the "0." prefix from it,
-    // add a dot then add the mime type with the "image/" removed from it
-    // to get a unique temporary filename for each cropped image
-    var filename = TEMP_IMAGE_DIR + '/' +
-                   Math.random().toString().substring(2) + '.' +
-                   memoryBackedBlob.type.substring(6);
-
-    function onerror() {
-      console.error('Failed to return file backed blob');
-      endPick(memoryBackedBlob);
-    }
-
-    var write = storage.addNamed(memoryBackedBlob, filename);
-    write.onsuccess = function() {
-      var read = storage.get(filename);
-      read.onsuccess = function() {
-        endPick(read.result);
-      };
-      read.onerror = onerror;
-    };
-    write.onerror = onerror;
-  }
-
-  // Clean up files with lastmodified date > 1 day in TEMP_IMAGE_DIR and
-  // then save the blob to a temporary file in device storage
-  var yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  var cursor = storage.enumerate(TEMP_IMAGE_DIR);
-  cursor.onsuccess = function() {
-    function next() {
-      cursor.continue();
-    }
-    var file = cursor.result;
-    if (file) {
-      if (file.lastModifiedDate < yesterday) {
-        var request = storage.delete(file.name);
-        request.onsuccess = request.onerror = next;
-      }
-      else {
-       next();
-      }
-    }
-    else {
-      saveFileBackedBlob();
-    }
-  };
-  cursor.onerror = function() {
-    // We expect an error if the cropped directory does not exist yet,
-    // so only report it if it is something unexpected.
-    if (cursor.error.name !== 'NotFoundError') {
-      console.error('Failed to clean temp directory', cursor.error.name);
-    }
-    saveFileBackedBlob();
-  };
 }
 
 function endPick(blob) {

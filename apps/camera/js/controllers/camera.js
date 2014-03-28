@@ -75,8 +75,6 @@ CameraController.prototype.bindEvents = function() {
   settings.on('change:mode', this.setMode);
   settings.on('change:hdr', this.setHDR);
   settings.on('change:hdr', this.onHDRChange);
-
-  this.storage.on('statechange', this.onStorageStateChange);
   debug('events bound');
 };
 
@@ -323,17 +321,6 @@ CameraController.prototype.onHDRChange = function(hdr) {
 
 CameraController.prototype.onBatteryStatusChange = function(status) {
   if (status === 'shutdown') { this.camera.stopRecording(); }
-};
-
-/**
- * Respond to storage `statechange` events.
- *
- * @param  {String} value  ['nospace'|'shared'|'unavailable'|'available']
- */
-CameraController.prototype.onStorageStateChange = function(value) {
-  if (value === 'shared' && this.camera.get('recording')) {
-    this.camera.stopRecording();
-  }
 };
 
 });

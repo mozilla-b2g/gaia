@@ -22,23 +22,6 @@ marionette('day view', function() {
     assert.operator(header.text().length, '<', 21);
   });
 
-  suite('create event', function(){
-    setup(function() {
-      app.createEvent({
-        title: 'Foo',
-        location: 'Bar',
-        startHour: 1,
-        duration: 1
-      });
-      app.waitForDayView();
-    });
-
-    test('should not create unnecessary day views', function() {
-      var events = client.findElements('#day-view .event');
-      assert.equal(events.length, 1);
-    });
-  });
-
   suite('events longer than 2h', function() {
     setup(function() {
       app.createEvent({

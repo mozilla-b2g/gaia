@@ -626,12 +626,12 @@ CompositeIncomingAccount.prototype = {
     switch (state) {
       case 'healthy':
         this.universe.__removeAccountProblem(this.compositeAccount,
-                                             'connection', 'incoming');
+                                             'connection');
         break;
       case 'unreachable':
       case 'broken':
         this.universe.__reportAccountProblem(this.compositeAccount,
-                                             'connection', 'incoming');
+                                             'connection');
         break;
     }
   },
@@ -3517,7 +3517,7 @@ var properties = {
                         this._connInfo.hostname, this._connInfo.port);
           if (normErr.reportProblem)
             this.universe.__reportAccountProblem(this.compositeAccount,
-                                                 normErr.name, 'incoming');
+                                                 normErr.name);
 
 
           if (listener)
@@ -8737,7 +8737,7 @@ var properties = {
 
           if (err.reportProblem) {
             this.universe.__reportAccountProblem(
-              this.compositeAccount, err.name, 'incoming');
+              this.compositeAccount, err.name);
           }
 
           callback && callback(err.name, null);
@@ -8935,7 +8935,7 @@ SmtpAccount.prototype = {
    *         @case[null]{
    *           No error, message sent successfully.
    *         }
-   *         @case['bad-user-or-pass']{
+   *         @case['auth']{
    *           Authentication problem.  This should probably be escalated to
    *           the user so they can fix their password.
    *         }
@@ -8974,117 +8974,6 @@ SmtpAccount.prototype = {
    * ]
    */
   sendMessage: function(composer, callback) {
-    this.establishConnection({
-      /**
-       * Send the envelope.
-       * @param conn
-       * @param {function()} bail Abort the connection. Used for when
-       * we must gracefully cancel without sending a message.
-       */
-      sendEnvelope: function(conn, bail) {
-        // - Optimistic case
-        // Send the envelope once the connection is ready (fires again after
-        // ready too.)
-        console.log('smtp: idle reached, sending envelope');
-        conn.useEnvelope(composer.getEnvelope());
-      },
-      /**
-       * Send the message body.
-       */
-      sendMessage: function(conn) {
-        // Then send the actual message if everything was cool
-        console.log('smtp: message reached, building message blob');
-        composer.withMessageBlob({ includeBcc: false }, function(blob) {
-          console.log('smtp: blob composed, writing blob');
-          // simplesmtp's SMTPClient does not understand Blobs, so we issue
-          // the write directly.  All that it cares about is knowing whether
-          // our data payload included a trailing \r\n.  Our long term plan
-          // to avoid this silliness is to switch to using firemail's fork of
-          // simplesmtp or something equally less hacky; see bug 885110.
-          conn.socket.write(blob);
-          // SMTPClient tracks the last bytes it has written in _lastDataBytes
-          // to this end and writes the \r\n if they aren't the last bytes
-          // written.  Since we know that mailcomposer always ends the buffer
-          // with \r\n we just set that state directly ourselves.
-          conn._lastDataBytes[0] = 0x0d;
-          conn._lastDataBytes[1] = 0x0a;
-          // put some data in the console.log if in debug mode too
-          if (conn.options.debug) {
-            console.log('CLIENT (DATA) blob of size:', blob.size);
-          }
-          // this does not actually terminate the connection; just tells the
-          // client to flush stuff, etc.
-          conn.end();
-        });
-      },
-      /**
-       * The send succeeded.
-       */
-      onSendComplete: function(conn) {
-        console.log('smtp: send completed, closing connection');
-        callback();
-      },
-      /**
-       * The send failed.
-       */
-      onError: function(err, badAddresses) {
-        callback(err, badAddresses);
-      }
-    });
-  },
-
-  /**
-   * Check the account credentials by connecting to the server. Calls
-   * back with an error if we had a problem (see sendMessage for
-   * details), or no arguments if we succeeded.
-   *
-   * @param {function(err)} callback
-   */
-  checkAccount: function(callback) {
-    this.establishConnection({
-      sendEnvelope: function(conn, bail) {
-        // If we get here, we've successfully connected. Sorry, SMTP
-        // server friend, we aren't actually going to send a message
-        // now. Psych!
-        bail(); // bail so that we don't receive onError too
-        callback();
-      },
-      sendMessage: function(conn) {
-        // We're not sending a message, so this won't be called.
-      },
-      onSendComplete: function(conn) {
-        // Ibid.
-      },
-      onError: function(err, badAddresses) {
-        // Aha, here we have an error -- we might have bad credentials
-        // or something else. This error is normalized per the
-        // documentation for sendMessage, so we can just pass it along.
-
-        // We only report auth errors. When checking the account,
-        // transient server connection errors don't matter; and we're
-        // not trying to send a message.
-        if (err === 'bad-user-or-pass') {
-          this.universe.__reportAccountProblem(
-            this.compositeAccount, err, 'outgoing');
-        }
-        callback(err);
-      }.bind(this)
-    });
-  },
-
-  /**
-   * Abstract out connection management so that we can do different
-   * things with the connection (i.e. just test login credentials, or
-   * actually send a message).
-   *
-   * Callbacks is an object with the following functions, all required:
-   *
-   * sendEnvelope(conn) -- you should send the envelope
-   * sendMessage(conn) -- you should send the message body
-   * onSendComplete(conn) -- the message was successfully sent
-   * onError(err, badAddresses) -- send failed (or connection error)
-   */
-  establishConnection: function(callbacks) {
     console.log('smtp: requiring code');
     require(['simplesmtp/lib/client'], function ($simplesmtp) {
       var conn, bailed = false, sendingMessage = false;
@@ -9095,40 +8984,57 @@ SmtpAccount.prototype = {
         {
           crypto: this.connInfo.crypto,
           auth: {
-            // Someday, `null` might be a valid value, so be careful here
-            user: (this.credentials.outgoingUsername !== undefined ?
-                   this.credentials.outgoingUsername :
-                   this.credentials.username),
-            pass: (this.credentials.outgoingPassword !== undefined ?
-                   this.credentials.outgoingPassword :
-                   this.credentials.password),
+            user: this.credentials.username,
+            pass: this.credentials.password
           },
           debug: exports.ENABLE_SMTP_LOGGING,
         });
 
       this._activeConnections.push(conn);
 
-      function bail() {
-        bailed = true;
-        conn.close();
-      }
-
+      // - Optimistic case
+      // Send the envelope once the connection is ready (fires again after
+      // ready too.)
       conn.once('idle', function() {
-        callbacks.sendEnvelope(conn, bail);
-      });
+          console.log('smtp: idle reached, sending envelope');
+          conn.useEnvelope(composer.getEnvelope());
+        });
+      // Then send the actual message if everything was cool
       conn.on('message', function() {
-        if (bailed) {
-          return;
-        }
-        sendingMessage = true;
-        callbacks.sendMessage(conn);
-      });
+          if (bailed)
+            return;
+          sendingMessage = true;
+          console.log('smtp: message reached, building message blob');
+          composer.withMessageBlob({ includeBcc: false }, function(blob) {
+            console.log('smtp: blob composed, writing blob');
+            // simplesmtp's SMTPClient does not understand Blobs, so we issue
+            // the write directly.  All that it cares about is knowing whether
+            // our data payload included a trailing \r\n.  Our long term plan
+            // to avoid this silliness is to switch to using firemail's fork of
+            // simplesmtp or something equally less hacky; see bug 885110.
+            conn.socket.write(blob);
+            // SMTPClient tracks the last bytes it has written in _lastDataBytes
+            // to this end and writes the \r\n if they aren't the last bytes
+            // written.  Since we know that mailcomposer always ends the buffer
+            // with \r\n we just set that state directly ourselves.
+            conn._lastDataBytes[0] = 0x0d;
+            conn._lastDataBytes[1] = 0x0a;
+            // put some data in the console.log if in debug mode too
+            if (conn.options.debug) {
+              console.log('CLIENT (DATA) blob of size:', blob.size);
+            }
+            // this does not actually terminate the connection; just tells the
+            // client to flush stuff, etc.
+            conn.end();
+          });
+        });
       // And close the connection and be done once it has been sent
       conn.on('ready', function() {
-        bailed = true;
-        conn.close();
-        callbacks.onSendComplete(conn);
-      });
+          console.log('smtp: send completed, closing connection');
+          bailed = true;
+          conn.close();
+          callback(null);
+        });
 
       // - Error cases
       // It's possible for the server to decide some, but not all, of the
@@ -9138,15 +9044,15 @@ SmtpAccount.prototype = {
       //
       // We upgrade this to a full failure to send
       conn.on('rcptFailed', function(addresses) {
-        // nb: this gets called all the time, even without any failures
-        if (addresses.length) {
-          console.warn('smtp: nonzero bad recipients');
-          bailed = true;
-          // simplesmtp doesn't view this as fatal, so we have to close it
-          conn.close();
-          callbacks.onError('bad-recipient', addresses);
-        }
-      });
+          // nb: this gets called all the time, even without any failures
+          if (addresses.length) {
+            console.warn('smtp: nonzero bad recipients');
+            bailed = true;
+            // simplesmtp does't view this as fatal, so we have to close it ourself
+            conn.close();
+            callback('bad-recipient', addresses);
+          }
+        });
       conn.on('error', function(err) {
         if (bailed) // (paranoia, this shouldn't happen.)
           return;
@@ -9164,7 +9070,7 @@ SmtpAccount.prototype = {
               reportAs = 'server-maybe-offline';
             break;
           case 'AuthError':
-            reportAs = 'bad-user-or-pass';
+            reportAs = 'auth';
             break;
           case 'UnknownAuthError':
             reportAs = 'server-maybe-offline';
@@ -9186,7 +9092,7 @@ SmtpAccount.prototype = {
             break;
         }
         bailed = true;
-        callbacks.onError(reportAs, null);
+        callback(reportAs, null);
         // the connection gets automatically closed.
       });
       conn.on('end', function() {
@@ -9198,7 +9104,7 @@ SmtpAccount.prototype = {
           console.error('Dead unknown connection?');
         if (bailed)
           return;
-        callbacks.onError('connection-lost', null);
+        callback('connection-lost', null);
         bailed = true;
         // (the connection is already closed if we are here)
       }.bind(this));
@@ -9236,7 +9142,6 @@ define('mailapi/composite/account',
     '../imap/account',
     '../pop3/account',
     '../smtp/account',
-    '../allback',
     'exports'
   ],
   function(
@@ -9247,7 +9152,6 @@ define('mailapi/composite/account',
     $imapacct,
     $pop3acct,
     $smtpacct,
-    allback,
     exports
   ) {
 
@@ -9383,21 +9287,11 @@ CompositeAccount.prototype = {
 
   /**
    * Check that the account is healthy in that we can login at all.
-   * We'll check both the incoming server and the SMTP server; for
-   * simplicity, the errors are returned as follows:
-   *
-   *   callback(incomingErr, outgoingErr);
-   *
-   * If you don't want to check both pieces, you should just call
-   * checkAccount on the receivePiece or sendPiece as appropriate.
    */
   checkAccount: function(callback) {
-    var latch = allback.latch();
-    this._receivePiece.checkAccount(latch.defer('incoming'));
-    this._sendPiece.checkAccount(latch.defer('outgoing'));
-    latch.then(function(results) {
-      callback(results.incoming[0], results.outgoing[0]);
-    });
+    // Since we use the same credential for both cases, we can just have the
+    // IMAP account attempt to establish a connection and forget about SMTP.
+    this._receivePiece.checkAccount(callback);
   },
 
   /**
@@ -9498,21 +9392,9 @@ exports.configurator = {
     var credentials, incomingInfo, smtpConnInfo, incomingType;
     if (domainInfo) {
       incomingType = (domainInfo.type === 'imap+smtp' ? 'imap' : 'pop3');
-      var password = null;
-      // If the account has an outgoingPassword, use that; otherwise
-      // use the main password. We must take care to treat null values
-      // as potentially valid in the future, if we allow password-free
-      // account configurations.
-      if (userDetails.outgoingPassword !== undefined) {
-        password = userDetails.outgoingPassword;
-      } else {
-        password = userDetails.password;
-      }
       credentials = {
         username: domainInfo.incoming.username,
         password: userDetails.password,
-        outgoingUsername: domainInfo.outgoing.username,
-        outgoingPassword: password,
       };
       incomingInfo = {
         hostname: domainInfo.incoming.hostname,
@@ -9600,9 +9482,6 @@ exports.configurator = {
     var credentials = {
       username: oldAccountDef.credentials.username,
       password: oldAccountDef.credentials.password,
-      // (if these two keys are null, keep them that way:)
-      outgoingUsername: oldAccountDef.credentials.outgoingUsername,
-      outgoingPassword: oldAccountDef.credentials.outgoingPassword,
     };
     var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
     var oldType = oldAccountDef.type || 'imap+smtp';

@@ -91,11 +91,10 @@ suiteGroup('Views.Day', function() {
   });
 
   test('#_getId', function() {
-    var today = new Date();
-    var todayId = subject._getId(today);
-    var yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-    var yesterdayId = subject._getId(yesterday);
-    assert.notEqual(today, yesterday);
+    var date = new Date();
+    var id = subject._getId(date);
+
+    assert.equal(date.valueOf(), id);
   });
 
   test('#_nextTime', function() {

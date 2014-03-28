@@ -428,44 +428,15 @@ MailAccount.prototype = {
    * @args[
    *   @param[mods @dict[
    *     @key[password String]
-   *     @key[incomingPassword String]
-   *     @key[outgoingPassword String]
-   *     @key[username String]
-   *     @key[incomingUsername String]
-   *     @key[outgoingUsername String]
    *   ]]
-   *   @param[callback function]
    * ]{
-   *   Modify properties on the account.
-   *
    *   In addition to regular account property settings,
-   *   "setAsDefault": true can be passed to set this account as the
-   *   default acccount.
-   *
-   *   # Username and Password Setting
-   *
-   *   If you want to modify the username or password of an account,
-   *   keep in mind that IMAP/POP3 accounts might have two separate
-   *   passwords, one for incoming mail and one for SMTP. You have a
-   *   couple options:
-   *
-   *   - If you specify "username" and/or "password", we'll change the
-   *     incoming side, and if the SMTP side had the same
-   *     username/password, we'll change that too.
-   *
-   *   - If you specify incomingUsername, incomingPassword, etc., we
-   *     will NOT do that magic inferring; we'll just change the side
-   *     you specify.
-   *
-   *   Practically speaking, most accounts will likely share the same
-   *   username and password. Additionally, if we guess that the
-   *   passwords/usernames should match when they actually should
-   *   differ, we'll safely recover becuase we'll then ask for a
-   *   corrected SMTP password.
+   *   "setAsDefault": true can be passed to set this
+   *   account as the default acccount.
    * }
    */
-  modifyAccount: function(mods, callback) {
-    this._api._modifyAccount(this, mods, callback);
+  modifyAccount: function(mods) {
+    this._api._modifyAccount(this, mods);
   },
 
   /**
@@ -1911,18 +1882,6 @@ function AccountsViewSlice(api, handle) {
 }
 AccountsViewSlice.prototype = Object.create(BridgedViewSlice.prototype);
 
-/**
- * Return the account with the given ID, or null.
- */
-AccountsViewSlice.prototype.getAccountById = function(id) {
-  for (var i = 0; i < this.items.length; i++) {
-    if (this.items[i]._wireRep.id === id) {
-      return this.items[i];
-    }
-  }
-  return null;
-};
-
 Object.defineProperty(AccountsViewSlice.prototype, 'defaultAccount', {
   get: function () {
     var defaultAccount = this.items[0];
@@ -2569,9 +2528,7 @@ MailAPI.prototype = {
 
   _recv_badLogin: function ma__recv_badLogin(msg) {
     if (this.onbadlogin)
-      this.onbadlogin(new MailAccount(this, msg.account, null),
-                      msg.problem,
-                      msg.whichSide);
+      this.onbadlogin(new MailAccount(this, msg.account, null), msg.problem);
     return true;
   },
 
@@ -3111,25 +3068,12 @@ MailAPI.prototype = {
     return true;
   },
 
-  _modifyAccount: function ma__modifyAccount(account, mods, callback) {
-    var handle = this._nextHandle++;
-    this._pendingRequests[handle] = {
-      type: 'modifyAccount',
-      callback: callback,
-    };
+  _modifyAccount: function ma__modifyAccount(account, mods) {
     this.__bridgeSend({
       type: 'modifyAccount',
       accountId: account.id,
       mods: mods,
-      handle: handle
     });
-  },
-
-  _recv_modifyAccount: function(msg) {
-    var req = this._pendingRequests[msg.handle];
-    delete this._pendingRequests[msg.handle];
-    req.callback && req.callback();
-    return true;
   },
 
   _deleteAccount: function ma__deleteAccount(account) {

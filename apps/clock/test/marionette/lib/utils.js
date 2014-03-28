@@ -1,77 +1,42 @@
 'use strict';
-
-var assert = require('assert');
-
 /**
- * Extract a duration from any point in the given string. See the
- * inline assertions below for expected usage.
+ * Transform a nested lookup table according to the provided `transform`
+ * function.
  *
- * @return Duration found in milliseconds, or null if none found.
+ * @param {Object} lookup - The lookup table that maps key names to values.
+ * @param {Function} transform - A function that defines how string values in
+ *                               `lookup` ought to be modified. Invoked with
+ *                               two arguments for every string value:
+ *                               1. the value itself
+ *                               2. the key at which it is stored
+ * @param {Object} options - Optional collection of behavior-modifying settings
+ *                           Specifying an `isLeaf` method will change what is
+ *                           considered a "leaf" node (and therefor
+ *                           transformed). By default, `deepMap` considers
+ *                           string values to be leaves.
+ *
+ * Iterate over each key in a given object. If the corresponding value is a
+ * string, supply the key and value to the specified `transform` function and
+ * use its value in the "mapped" object. Otherwise, recurse into the nested
+ * object.
  */
-exports.extractDuration = function(str) {
-  var match = /(?:(\d+):)?(\d+):(\d+)(?:[:.](\d)?(\d)?(\d)?)?/i.exec(str);
-  if (!match) { return null; }
-  var factors = [60 * 60 * 1000, 60 * 1000, 1000, 100, 10, 1];
-  return match.slice(1).reduce(function(sum, value, i) {
-    return sum + ((value || 0) * factors[i]);
-  }, 0);
+var deepMap = exports.deepMap = function(lookup, transform, options) {
+  var context = {};
+  var isLeaf = options && options.isLeaf || defaultIsLeaf;
+
+  Object.keys(lookup).forEach(function(key) {
+    var value = lookup[key];
+
+    if (isLeaf(value)) {
+      transform.call(context, key, value);
+    } else {
+      context[key] = deepMap(value, transform);
+    }
+  });
+
+  return context;
 };
 
-assert.equal(exports.extractDuration('It took 0:00:00.000'), 0);
-assert.equal(exports.extractDuration('It took 00:00.1'), 100);
-assert.equal(exports.extractDuration('It took 1:00:00.010'), 3600010);
-assert.equal(exports.extractDuration('It took 1:05:10.050'), 3910050);
-assert.equal(exports.extractDuration('It took 30:22:22.55'), 109342550);
-
-/**
- * Extract a time from any point in the given string. See the inline
- * assertions below for expected usage.
- *
- * @return An object with { hours: N, minutes: N } in 24-hour format.
- */
-function extractTime(str) {
-  var match = /\b([0-9]+):([0-9]+)\s*(am|pm|a\.m\.|p\.m\.)?/i.exec(str);
-  var hr = parseInt(match[1], 10);
-  var min = parseInt(match[2], 10);
-  var hasAmPm = !!match[3];
-  if (hasAmPm && /p/i.test(match[3])) {
-    if (hr < 12) {
-      hr += 12;
-    }
-  } else {
-    if (hr === 12) {
-      hr = 0;
-    }
-  }
-  return { hours: hr, minutes: min, hasAmPm: hasAmPm };
+function defaultIsLeaf(value) {
+  return typeof value === 'string';
 }
-
-exports.assertStringContainsTime = function(str, date) {
-  var time = extractTime(str);
-  if (time.hasAmPm) {
-    assert.equal(time.hours, date.getHours());
-  } else {
-    assert.equal(time.hours % 12, date.getHours() % 12);
-  }
-  assert.equal(time.minutes, date.getMinutes());
-};
-
-exports.stringContainsTime = function(str, date) {
-  try {
-    exports.assertStringContainsTime(str, date);
-    return true;
-  } catch (e) {
-    return false;
-  }
-};
-
-assert.deepEqual(extractTime('It is 12:30 PM.'),
-                 { hours: 12, minutes: 30, hasAmPm: true });
-assert.deepEqual(extractTime('It is 12:30 AM.'),
-                 { hours: 0, minutes: 30, hasAmPm: true });
-assert.deepEqual(extractTime('It is 15:22.'),
-                 { hours: 15, minutes: 22, hasAmPm: false });
-assert.deepEqual(extractTime('It is 0:00.'),
-                 { hours: 0, minutes: 0, hasAmPm: false });
-assert.deepEqual(extractTime('It is 6:00 p.m..'),
-                 { hours: 18, minutes: 0, hasAmPm: true });

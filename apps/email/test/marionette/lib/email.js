@@ -15,8 +15,7 @@ var Selector = {
   prefsNextButton: '.card-setup-account-prefs .sup-info-next-btn',
   manualSetupNameInput: '.sup-manual-form .sup-info-name',
   manualSetupEmailInput: '.sup-manual-form .sup-info-email',
-  manualSetupImapPasswordInput:
-    '.sup-manual-form .sup-manual-composite-password',
+  manualSetupPasswordInput: '.sup-manual-form .sup-info-password',
   manualSetupImapUsernameInput:
     '.sup-manual-form .sup-manual-composite-username',
   manualSetupImapHostnameInput:
@@ -25,10 +24,9 @@ var Selector = {
   manualSetupImapSocket: '.sup-manual-form .sup-manual-composite-socket',
   manualSetupSmtpUsernameInput: '.sup-manual-form .sup-manual-smtp-username',
   manualSetupSmtpHostnameInput: '.sup-manual-form .sup-manual-smtp-hostname',
-  manualSetupSmtpPasswordInput: '.sup-manual-form .sup-manual-smtp-password',
   manualSetupSmtpPortInput: '.sup-manual-form .sup-manual-smtp-port',
   manualSetupSmtpSocket: '.sup-manual-form .sup-manual-smtp-socket',
-  manualNextButton: '.card-setup-manual-config .sup-manual-next-btn',
+  manualNextButton: '.sup-account-header .sup-manual-next-btn',
   msgDownBtn: '.card-message-reader .msg-down-btn',
   msgListScrollOuter: '.card-message-list .msg-list-scrollouter',
   editMode: '.card-message-list .msg-edit-btn',
@@ -141,26 +139,22 @@ Email.prototype = {
   },
 
   manualSetupImapEmail: function(server, finalActionName) {
-    // setup a IMAP email account
-    var email = server.imap.username + '@' + server.imap.hostname;
-
     // wait for the setup page is loaded
-    this._setupTypeName(server.imap.username);
-    this._setupTypeEmail(email);
-    this._setupTypePassword(server.imap.password);
-
     this._waitForElementNoTransition(Selector.manualConfigButton).tap();
     this._waitForTransitionEnd('setup_manual_config');
+    // setup a IMAP email account
+    var email = server.imap.username + '@' + server.imap.hostname;
+    this._manualSetupTypeName(server.imap.username);
+    this._manualSetupTypeEmail(email);
+    this._manualSetupTypePassword(server.imap.password);
 
     this._manualSetupTypeImapUsername(server.imap.username);
     this._manualSetupTypeImapHostname(server.imap.hostname);
-    this._manualSetupTypeImapPassword(server.imap.password);
     this._manualSetupTypeImapPort(server.imap.port);
     this._manualSetupUpdateSocket('manualSetupImapSocket');
 
     this._manualSetupTypeSmtpUsername(server.smtp.username);
     this._manualSetupTypeSmtpHostname(server.smtp.hostname);
-    this._manualSetupTypeSmtpPassword(server.smtp.password);
     this._manualSetupTypeSmtpPort(server.smtp.port);
     this._manualSetupUpdateSocket('manualSetupSmtpSocket');
 
@@ -612,7 +606,7 @@ Email.prototype = {
 
   _setupTypePassword: function(password) {
     this.client.helper
-      .waitForElement(Selector.setupPasswordInput)
+      .waitForElement(setupPasswordInput)
       .sendKeys(password);
   },
 
@@ -631,50 +625,60 @@ Email.prototype = {
       this._waitForTransitionEnd(cardId);
   },
 
-  _clearAndSendKeys: function(selector, value) {
-    var el = this.client.helper.waitForElement(selector);
-    el.clear();
-    el.sendKeys(value);
-  },
-
   _manualSetupTypeName: function(name) {
-    this._clearAndSendKeys(Selector.manualSetupNameInput, name);
+    this.client.helper
+      .waitForElement(Selector.manualSetupNameInput)
+      .sendKeys(name);
   },
 
   _manualSetupTypeEmail: function(email) {
-    this._clearAndSendKeys(Selector.manualSetupEmailInput, email);
+    this.client.helper
+      .waitForElement(Selector.manualSetupEmailInput)
+      .sendKeys(email);
   },
 
-  _manualSetupTypeImapPassword: function(password) {
-    this._clearAndSendKeys(Selector.manualSetupImapPasswordInput, password);
-  },
-
-  _manualSetupTypeSmtpPassword: function(password) {
-    this._clearAndSendKeys(Selector.manualSetupSmtpPasswordInput, password);
+  _manualSetupTypePassword: function(password) {
+    this.client.helper
+      .waitForElement(Selector.manualSetupPasswordInput)
+      .sendKeys(password);
   },
 
   _manualSetupTypeImapUsername: function(name) {
-    this._clearAndSendKeys(Selector.manualSetupImapUsernameInput, name);
+    this.client.helper
+      .waitForElement(Selector.manualSetupImapUsernameInput)
+      .sendKeys(name);
   },
 
   _manualSetupTypeImapHostname: function(hostname) {
-    this._clearAndSendKeys(Selector.manualSetupImapHostnameInput, hostname);
+    this.client.helper
+      .waitForElement(Selector.manualSetupImapHostnameInput)
+      .sendKeys(hostname);
   },
 
   _manualSetupTypeImapPort: function(port) {
-    this._clearAndSendKeys(Selector.manualSetupImapPortInput, port);
+    var manualSetupImapPortInput =
+        this.client.helper.waitForElement(Selector.manualSetupImapPortInput);
+    manualSetupImapPortInput.clear();
+    manualSetupImapPortInput.sendKeys(port);
   },
 
   _manualSetupTypeSmtpUsername: function(name) {
-    this._clearAndSendKeys(Selector.manualSetupSmtpUsernameInput, name);
+    this.client.helper
+      .waitForElement(Selector.manualSetupSmtpUsernameInput)
+      .sendKeys(name);
   },
 
   _manualSetupTypeSmtpHostname: function(hostname) {
-    this._clearAndSendKeys(Selector.manualSetupSmtpHostnameInput, hostname);
+    this.client.helper
+      .waitForElement(Selector.manualSetupSmtpHostnameInput)
+      .sendKeys(hostname);
   },
 
   _manualSetupTypeSmtpPort: function(port) {
-    this._clearAndSendKeys(Selector.manualSetupSmtpPortInput, port);
+    var manualSetupSmtpPortInput =
+        this.client.helper.waitForElement(Selector.manualSetupSmtpPortInput);
+    manualSetupSmtpPortInput.clear();
+    manualSetupSmtpPortInput.sendKeys(port);
   },
 
   /**

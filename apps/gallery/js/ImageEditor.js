@@ -1344,22 +1344,14 @@ ImageEditor.prototype.getCroppedRegionBlob = function(type,
     var canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
-    var context = canvas.getContext('2d', { willReadFrequently: true });
+    var context = canvas.getContext('2d');
 
     // Copy that rectangle to our canvas
     context.drawImage(self.original,
                       left, top, right - left, bottom - top,
                       0, 0, width, height);
 
-    // We're done with the original image
-    self.original.src = '';
-    self.original = null;
-
-    canvas.toBlob(function(blob) {
-      canvas.width = canvas.height = 0;
-      canvas = context = null;
-      callback(blob);
-    }, type);
+    canvas.toBlob(callback, type);
   }
 };
 

@@ -127,14 +127,6 @@ function videoCreated(videoinfo) {
 }
 
 function videoDeleted(filename) {
-
-  // In tablet landscape mode, we use currentVideo to be the current playing
-  // video and last played video. When deleting file and the file is playing or
-  // last played video, we need to change the it to the next, previous or null.
-  if (currentVideo && filename === currentVideo.name) {
-    resetCurrentVideo();
-  }
-
   // And remove its thumbnail from the document
   thumbnailList.removeItem(filename);
 
