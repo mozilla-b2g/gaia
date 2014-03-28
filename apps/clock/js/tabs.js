@@ -16,6 +16,13 @@ function Tabs(element) {
  * Also emit a 'selected' event with the relevant data.
  */
 Tabs.prototype.handleEvent = function tabsHandleEvent(event) {
+  // This event came from a click on e.g. <a href="#foo">, but we don't want to
+  // *actually* navigate to #foo (we don't want to instantly scroll the element
+  // with id "foo" into view). We have CSS animations that will manage that,
+  // and any additional viewport adjustments will only confuse them.
+  // So, we use preventDefault() to prevent the navigation from occurring.
+  event.preventDefault();
+
   var index = this.links.indexOf(event.target);
   if (index === -1 || index === this.currentIndex) {
     return;
