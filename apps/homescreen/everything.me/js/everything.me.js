@@ -44,6 +44,8 @@ var EverythingME = {
       input.setAttribute('placeholder', defaultText);
     });
 
+    this.searchElement = activationIcon;
+
     // add event listeners that trigger evme load
     activationIcon.addEventListener('contextmenu', onContextMenu);
     activationIcon.addEventListener('click', triggerActivateFromInput);
@@ -77,7 +79,6 @@ var EverythingME = {
       var activationInput = activationIcon.querySelector('input');
       activationInput.addEventListener('blur',
                                         EverythingME.onActivationIconBlur);
-
       triggerActivate(e);
     }
 
@@ -161,22 +162,22 @@ var EverythingME = {
       e.stopPropagation();
     }
 
-    this.addGridPageHandlers(activationIcon, gridPage);
+    this.addGridPageHandlers(gridPage);
 
     EverythingME.migrateStorage();
   },
-
-  addGridPageHandlers: function(activationIcon, gridPage) {
+  searchElement: null,
+  addGridPageHandlers: function(gridPage) {
     // This step is used to reduce the number of
     // opacity changes as the swipe transition occurs on
     // the home screen. The goal is to improve performance.
     var OPACITY_STEPS = 40; // opacity steps between [0,1]
-    var activationIconStyle = activationIcon.style;
-
+    var self = this;
     function changeActivationIconOpacity(opacity, duration) {
+      var searchElStyle = self.searchElement.style;
       var steppedOpacity = Math.round(opacity * OPACITY_STEPS) / OPACITY_STEPS;
-      activationIconStyle.transition = duration ? duration + 'ms ease' : '';
-      activationIconStyle.opacity = steppedOpacity;
+      searchElStyle.transition = duration ? duration + 'ms ease' : '';
+      searchElStyle.opacity = steppedOpacity;
     }
 
     gridPage.addEventListener('gridpageshowstart', function onShowStart(e) {
@@ -353,10 +354,12 @@ var EverythingME = {
 
   initEvme: function EverythingME_initEvme() {
     var config = this.datastore.getConfig();
+    var self = this;
     config.then(function resolve(emeConfig) {
       EverythingME.log('EVME config from storage', JSON.stringify(emeConfig));
 
-      Evme.init({'deviceId': emeConfig.deviceId}, EverythingME.onEvmeLoaded);
+      Evme.init({deviceId: emeConfig.deviceId},
+          EverythingME.onEvmeLoaded.bind(self));
       EvmeFacade = Evme;
     }, function reject(reason) {
       EverythingME.warn('EVME config missing', reason);
@@ -371,6 +374,7 @@ var EverythingME = {
         activationIconInput = activationIcon.querySelector('input'),
         existingQuery = activationIconInput && activationIconInput.value,
         evmeInput = document.getElementById('search-q'),
+        topContainer = document.getElementById('top-container'),
         closeButton = document.querySelector('#collection .close');
 
     activationIconInput.removeEventListener('blur',
@@ -378,6 +382,8 @@ var EverythingME = {
 
     // add evme into the first grid page
     gridPage.appendChild(page.parentNode.removeChild(page));
+
+    this.searchElement = topContainer;
 
     EvmeFacade.onShow();
 
