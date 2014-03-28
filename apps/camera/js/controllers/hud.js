@@ -27,6 +27,7 @@ function HudController(app) {
   this.app = app;
   this.hud = app.views.hud;
   this.settings = app.settings;
+  this.l10n = app.l10n || navigator.mozL10n;
   this.notification = app.views.notification;
   this.configure();
   this.bindEvents();
@@ -101,9 +102,16 @@ HudController.prototype.onFlashClick = function() {
   this.notify(setting);
 };
 
+/**
+ * Display a notifcation showing the
+ * current state of the given setting.
+ *
+ * @param  {Setting} setting
+ * @private
+ */
 HudController.prototype.notify = function(setting) {
-  var optionTitle = setting.selected('title');
-  var title = setting.get('title');
+  var optionTitle = this.l10n.get(setting.selected('title'));
+  var title = this.l10n.get(setting.get('title'));
   var html = title + '<br/>' + optionTitle;
 
   this.flashNotification = this.notification.display({ text: html });
