@@ -1,5 +1,3 @@
-/* global MocksHelper, LayoutManager, MockAppWindowManager, MockKeyboardManager,
-          MockStatusBar, MockSoftwareButtonManager */
 'use strict';
 
 mocha.globals(['OrientationManager']);
@@ -7,10 +5,9 @@ requireApp('system/js/layout_manager.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
 
 var mocksForLayoutManager = new MocksHelper([
-  'KeyboardManager', 'SoftwareButtonManager', 'StatusBar', 'AppWindowManager'
+  'KeyboardManager', 'SoftwareButtonManager', 'StatusBar'
 ]).init();
 
 suite('system/LayoutManager >', function() {
@@ -99,26 +96,5 @@ suite('system/LayoutManager >', function() {
 
     assert.isTrue(LayoutManager.match(W, H - 100 - 30 - 50, false));
     assert.isTrue(LayoutManager.match(W, H - 100 - 50, true));
-  });
-
-
-  test('available Height > fullscreen app', function() {
-    var app = {
-      isFullScreen: function() {
-        return true;
-      }
-    };
-    this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
-    assert.equal(LayoutManager.availableHeight, LayoutManager.fullscreenHeight);
-  });
-
-  test('available Height > not fullscreen app', function() {
-    var app = {
-      isFullScreen: function() {
-        return false;
-      }
-    };
-    this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
-    assert.equal(LayoutManager.availableHeight, LayoutManager.usualHeight);
   });
 });
