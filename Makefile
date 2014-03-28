@@ -478,7 +478,7 @@ include build/common.mk
 # copy template function for each apps in build_stage, it can avoid copy again
 # if the app doesn't have any change.
 define app-makefile-template
-$(1): $(call rwildcard,$(2),*) $(XULRUNNER_BASE_DIRECTORY) | $(STAGE_DIR)
+$(1): $(subst :,\:,$(call rwildcard,$(2),*)) $(XULRUNNER_BASE_DIRECTORY) | $(STAGE_DIR)
 	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
 		if [[ -e "$(2)/Makefile" ]]; then \
 			echo "execute Makefile for $(shell basename $(2)) app" ; \
