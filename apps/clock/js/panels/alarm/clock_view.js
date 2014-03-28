@@ -92,6 +92,9 @@ var ClockView = {
 
     this.analog.addEventListener('click', handler, false);
     this.digital.addEventListener('click', handler, false);
+    window.addEventListener('alarm-list-changed',
+                            this.resizeAnalogClock.bind(this));
+
     this.hands = {};
     ['second', 'minute', 'hour'].forEach(function(hand) {
       this.hands[hand] = document.getElementById(hand + 'hand');
