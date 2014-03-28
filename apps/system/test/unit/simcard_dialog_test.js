@@ -1,6 +1,6 @@
 'use strict';
 
-mocha.globals(['SIMSlotManager', 'SimPinSystemDialog', 'SimPinDialog']);
+mocha.globals(['SIMSlotManager', 'SystemDialog', 'SimPinDialog']);
 
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/js/mock_simslot.js');
@@ -16,7 +16,7 @@ suite('simcard dialog', function() {
 
   mocksForSIMPINDialog.attachTestHelpers();
 
-  var MockSimPinSystemDialog = function(id, options) {
+  var MockSystemDialog = function(id, options) {
     return {
       show: function() {},
       hide: function() {}
@@ -25,12 +25,12 @@ suite('simcard dialog', function() {
 
   suiteSetup(function() {
     window.navigator.mozL10n = MockL10n;
-    window['SimPinSystemDialog'] = MockSimPinSystemDialog;
+    window['SystemDialog'] = MockSystemDialog;
   });
 
   suiteTeardown(function() {
     window.navigator.mozL10n = realL10n;
-    window['SimPinSystemDialog'] = null;
+    window['SystemDialog'] = null;
   });
 
   setup(function(callback) {

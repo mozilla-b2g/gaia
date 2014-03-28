@@ -657,13 +657,12 @@ apps/system/js/simslot.js
 apps/system/js/simslot_manager.js
 apps/system/js/sleep_menu.js
 apps/system/js/software_button_manager.js
-apps/system/js/source_view.js
+apps/system/js/sound_manager.js
 apps/system/js/stack_manager.js
 apps/system/js/statusbar.js
 apps/system/js/storage_watcher.js
 apps/system/js/system.js
 apps/system/js/system_dialog.js
-apps/system/js/telephony_settings.js
 apps/system/js/trusted_ui.js
 apps/system/js/updatable.js
 apps/system/js/update_manager.js

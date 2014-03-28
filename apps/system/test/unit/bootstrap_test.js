@@ -22,11 +22,9 @@ requireApp('system/test/unit/mock_media_recording.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_remote_debugger.js');
 requireApp('system/test/unit/mock_screen_manager.js');
-requireApp('system/test/unit/mock_sound_manager.js');
 requireApp('system/test/unit/mock_source_view.js');
 requireApp('system/test/unit/mock_storage.js');
 requireApp('system/test/unit/mock_telephony_settings.js');
-requireApp('system/test/unit/mock_system_dialog_manager.js');
 requireApp('system/test/unit/mock_ttl_view.js');
 requireApp('system/test/unit/mock_title.js');
 requireApp('system/test/unit/mock_activity_window_factory.js');
@@ -46,13 +44,12 @@ mocha.globals([
   'cancelHomeClick',
   'secureWindowManager',
   'secureWindowFactory',
-  'systemDialogManager',
   'devtoolsView',
   'dialerRinger',
   'homeGesture',
   'mediaRecording',
   'remoteDebugger',
-  'soundManager',
+  'sourceView',
   'storage',
   'telephonySettings',
   'ttlView',
@@ -83,11 +80,9 @@ var mocksForBootstrap = new MocksHelper([
   'ScreenManager',
   'SettingsListener',
   'SettingsURL',
-  'SoundManager',
   'SourceView',
   'Storage',
   'TelephonySettings',
-  'SystemDialogManager',
   'TTLView',
   'Title',
   'AppWindowFactory',

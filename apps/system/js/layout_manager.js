@@ -1,5 +1,3 @@
-/* global AppWindowManager, KeyboardManager, SoftwareButtonManager, StatusBar,
-          System */
 'use strict';
 
 (function(window) {
@@ -55,21 +53,6 @@
         SoftwareButtonManager.height - StatusBar.height;
     },
 
-    /**
-     * Gives the available height for a active App window.
-     *
-     * @memberOf LayoutManager
-     */
-    get availableHeight() {
-      var isFullScreen = AppWindowManager.getActiveApp().isFullScreen();
-      return (isFullScreen ? this.fullscreenHeight : this.usualHeight);
-    },
-
-    /**
-     * Gives the possible width for a normal window.
-     *
-     * @memberOf LayoutManager
-     */
     get width() {
       return window.innerWidth;
     },

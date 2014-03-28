@@ -24,9 +24,6 @@ window.addEventListener('load', function startup() {
     if (window.SuspendingAppPriorityManager) {
       window.suspendingAppPriorityManager = new SuspendingAppPriorityManager();
     }
-    /** @global */
-    window.systemDialogManager = window.systemDialogManager ||
-      new SystemDialogManager();
   }
 
   function safelyLaunchFTU() {
@@ -65,8 +62,7 @@ window.addEventListener('load', function startup() {
   // Enable checkForUpdate as well if booted without FTU
   window.addEventListener('ftuskip', doneWithFTU);
 
-
-  SourceView.init();
+  window.sourceView = new SourceView();
   Shortcuts.init();
   ScreenManager.turnScreenOn();
   Places.init();
@@ -77,13 +73,13 @@ window.addEventListener('load', function startup() {
   window.dialerRinger = new DialerRinger().start();
   window.homeGesture = new HomeGesture().start();
   window.remoteDebugger = new RemoteDebugger();
-  window.soundManager = new SoundManager().start();
+
   window.telephonySettings = new TelephonySettings();
   window.telephonySettings.start();
+
   window.title = new Title();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager().start();
-  window.layoutManager = new LayoutManager().start();
 
   navigator.mozL10n.ready(function l10n_ready() {
     window.mediaRecording = new MediaRecording().start();

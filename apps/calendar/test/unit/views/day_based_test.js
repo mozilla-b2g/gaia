@@ -679,7 +679,7 @@ suiteGroup('Views.DayBased', function() {
     };
 
     var el = subject.create();
-    assert.equal(subject.id, date.valueOf(), 'id');
+    assert.equal(subject.id, Calendar.Calc.getDayId(date), 'id');
 
     assert.ok(el);
     assert.equal(el.tagName.toLowerCase(), 'section');
