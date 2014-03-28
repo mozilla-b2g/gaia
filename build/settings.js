@@ -325,7 +325,7 @@ function execute(options) {
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
 
   if (config.DEVICE_DEBUG) {
-    settings['debugger.remote-mode'] = 'adb-only';
+    settings['debugger.remote-mode'] = 'adb-devtools';
     settings['screen.timeout'] = 0;
     settings['lockscreen.enabled'] = false;
     settings['lockscreen.locked'] = false;
