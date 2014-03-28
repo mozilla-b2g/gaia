@@ -10,5 +10,10 @@ module.exports = Day;
 Day.prototype = {
   __proto__: View.prototype,
 
-  selector: '#day-view'
+  selector: '#day-view',
+
+  get events() {
+    return this.findElements('.event');
+  }
+
 };
