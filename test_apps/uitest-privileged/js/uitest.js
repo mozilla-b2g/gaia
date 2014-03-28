@@ -25,6 +25,22 @@ var UITest = {
     delete this.panelTitle;
     return this.panelTitle = document.getElementById('test-panel-title');
   },
+  get tabs() {
+    delete this.tabs;
+    return this.tabs = document.querySelectorAll('[role="tab"]');
+  },
+  get UITab() {
+    delete this.UITab;
+    return this.UITab = document.getElementById('UI');
+  },
+  get APITab() {
+    delete this.APITab;
+    return this.APITab = document.getElementById('API');
+  },
+  get HWTab() {
+    delete this.HWTab;
+    return this.HWTab = document.getElementById('HW');
+  },
   currentTab: 'UI',
   handleNotificationMessage: function(message) {
     if (!message.clicked) {
@@ -89,6 +105,7 @@ var UITest = {
         if (window.location.hash == '#UI')
         {
           this.UItests.classList.remove('invisible');
+          AccessibilityHelper.setAriaSelected(this.UITab, this.tabs);
           if (!this.HWtests.classList.contains('invisible'))
             this.HWtests.classList.add('invisible');
           if (!this.APItests.classList.contains('invisible'))
@@ -97,6 +114,7 @@ var UITest = {
         else if (window.location.hash == '#API')
         {
           this.APItests.classList.remove('invisible');
+          AccessibilityHelper.setAriaSelected(this.APITab, this.tabs);
           if (!this.UItests.classList.contains('invisible'))
             this.UItests.classList.add('invisible');
           if (!this.HWtests.classList.contains('invisible'))
@@ -105,6 +123,7 @@ var UITest = {
         else if (window.location.hash == '#HW')
         {
           this.HWtests.classList.remove('invisible');
+          AccessibilityHelper.setAriaSelected(this.HWTab, this.tabs);
           if (!this.UItests.classList.contains('invisible'))
             this.UItests.classList.add('invisible');
           if (!this.APItests.classList.contains('invisible'))

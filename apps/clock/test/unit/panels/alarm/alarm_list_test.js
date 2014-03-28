@@ -1,7 +1,7 @@
 suite('AlarmList', function() {
   'use strict';
   var nma, fixture, dom;
-  var AlarmList, Alarm, panel;
+  var AccessibilityHelper, AlarmList, Alarm, panel;
 
   suiteSetup(function(done) {
     // Account for potentially-slow file loading operations
@@ -11,22 +11,26 @@ suite('AlarmList', function() {
         'panels/alarm/main',
         'panels/alarm/alarm_list',
         'alarm',
+        'mocks/mock_shared/js/accessibility_helper',
         'mocks/mock_moz_alarm'
       ], {
         mocks: [
           'alarm_manager',
           'alarmsdb',
           'banner/main',
-          'panels/alarm/active_alarm'
+          'panels/alarm/active_alarm',
+          'shared/js/accessibility_helper'
         ]
       },
-      function(AlarmPanel, alarmList, alarm, mockMozAlarms) {
+      function(AlarmPanel, alarmList, alarm, mockAccessibilityHelper,
+        mockMozAlarms) {
         // Instantiate an Alarm Panel to ensure that elements are initialized
         // properly
         var div = document.createElement('div');
         document.body.appendChild(div);
         panel = new AlarmPanel(div);
 
+        AccessibilityHelper = mockAccessibilityHelper;
         AlarmList = alarmList;
         Alarm = alarm;
         nma = navigator.mozAlarms;

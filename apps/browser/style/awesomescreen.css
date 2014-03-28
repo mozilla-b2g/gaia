@@ -28,7 +28,7 @@ nav[data-role="tabs"] {
   height: 100%;
 }
 
-#tab-headers [role="tablist"] {
+#tab-headers .bb-tablist {
   margin: 0;
   padding: 0;
   list-style-type: none;
@@ -39,19 +39,19 @@ nav[data-role="tabs"] {
 }
 
 /* override [BB]Tabs */
-#tab-headers [role="tablist"]:before {
+#tab-headers .bb-tablist:before {
   display: none;
 }
 
-#tab-headers [role="tablist"] [role="tab"] a:active {
+#tab-headers .bb-tablist a:active {
   background-color: transparent;
 }
 
-#tab-headers [role="tablist"] li[role="tab"] {
+#tab-headers .bb-tablist li {
   display: inline;
 }
 
-#tab-headers [role="tablist"] li[role="tab"] a {
+#tab-headers .bb-tablist li a {
   float: left;
   max-width: calc(33% - 3.9rem);
   height: 3.6rem;
@@ -68,15 +68,15 @@ nav[data-role="tabs"] {
   overflow: hidden;
 }
 
-#tab-headers [role="tablist"] li[role="tab"] a:active {
+#tab-headers .bb-tablist li a:active {
   background: none;
 }
 
-#tab-headers [role="tablist"] li[role="tab"]:first-child a {
+#tab-headers .bb-tablist li:first-child a {
   margin-left: 0;
 }
 
-#tab-headers [role="tablist"] li[role="tab"] a.selected {
+#tab-headers .bb-tablist li a.selected {
   background-image: url('images/tab-background.png');
   background-image: url('images/tab-left.png'), url('images/tab-right.png'), url('images/tab-background.png');
   background-position: left, right, center;
@@ -85,14 +85,14 @@ nav[data-role="tabs"] {
   background-size: auto 3.6rem;
 }
 
-section[role="tabpanel"] {
+section.bb-tabpanel {
   padding-top: 0.5rem;
   clear: both;
   background-color: #f3f4f8;
   display: none;
 }
 
-section[role="tabpanel"].selected {
+section.bb-tabpanel.selected {
   display: block;
 }
 

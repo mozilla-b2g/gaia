@@ -427,11 +427,11 @@ input.msg-search-text-tease {
   to   { transform: rotate(360deg); }
 }
 
-[role="tablist"] .icon {
+.bb-tablist .icon {
   background-position: 50% 0;
 }
 
-[role="tablist"] .msg-btn-active {
+.bb-tablist .msg-btn-active {
   background-position: 50% 100% !important;
 }
 

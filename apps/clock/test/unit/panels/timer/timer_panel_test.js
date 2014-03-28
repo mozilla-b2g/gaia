@@ -1,9 +1,10 @@
 'use strict';
 /* global asyncStorage */
+
 suite('Timer.Panel', function() {
   var clock;
   var isHidden;
-  var ActiveAlarm, View, Timer, Utils, mozL10n;
+  var AccessibilityHelper, ActiveAlarm, View, Timer, Utils, mozL10n;
   var nativeMozAlarms = navigator.mozAlarms;
 
   suiteSetup(function(done) {
@@ -12,10 +13,12 @@ suite('Timer.Panel', function() {
     };
 
     testRequire(['panels/alarm/active_alarm', 'timer', 'panels/timer/main',
-        'view', 'utils', 'mocks/mock_moz_alarm', 'l10n'], {
-      mocks: ['picker/picker']
-      }, function(activealarm, timer, timerPanel, view, utils, mockMozAlarms,
-                  l10n) {
+        'view', 'utils', 'mocks/mock_shared/js/accessibility_helper',
+        'mocks/mock_moz_alarm', 'l10n'], {
+      mocks: ['picker/picker', 'shared/js/accessibility_helper']
+      }, function(activealarm, timer, timerPanel, view, utils,
+                  mockAccessibilityHelper, mockMozAlarms, l10n) {
+      AccessibilityHelper = mockAccessibilityHelper;
       ActiveAlarm = activealarm;
       Timer = timer;
       Timer.Panel = timerPanel;
