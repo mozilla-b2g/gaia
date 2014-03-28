@@ -12,6 +12,7 @@ requireApp('communications/dialer/test/unit/mock_utils.js');
 requireApp('communications/dialer/test/unit/mock_simple_phone_matcher.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 // The CallsHandler binds stuff when evaluated so we load it
 // after the mocks and we don't want it to show up as a leak.
@@ -34,6 +35,7 @@ var mocksHelperForCallsHandler = new MocksHelper([
 
 suite('calls handler', function() {
   var realMozTelephony;
+  var realMozSettings;
 
   mocksHelperForCallsHandler.attachTestHelpers();
 
@@ -41,12 +43,16 @@ suite('calls handler', function() {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockMozTelephony;
 
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+
     requireApp('communications/dialer/js/calls_handler.js', done);
   });
 
   suiteTeardown(function() {
     MockMozTelephony.mSuiteTeardown();
     navigator.moztelephony = realMozTelephony;
+    navigator.mozSettings = realMozSettings;
   });
 
   setup(function() {
@@ -55,6 +61,7 @@ suite('calls handler', function() {
 
   teardown(function() {
     MockMozTelephony.mTeardown();
+    MockNavigatorSettings.mTeardown();
   });
 
   suite('> telephony.oncallschanged handling', function() {
@@ -1121,6 +1128,28 @@ suite('calls handler', function() {
         CallsHandler.updateAllPhoneNumberDisplays();
         assert.isTrue(firstSpy.calledOnce);
         assert.isTrue(secondSpy.calledOnce);
+      });
+    });
+
+    suite('> CallsHandler.turnSpeakerOn', function() {
+      test('should set telephony.speakerEnabled and ' +
+        '"telephony.speaker.enabled" correctly', function() {
+          CallsHandler.turnSpeakerOn();
+          assert.isTrue(MockMozTelephony.speakerEnabled);
+          assert.isTrue(
+            MockNavigatorSettings.mSettings['telephony.speaker.enabled']);
+      });
+    });
+
+    suite('> CallsHandler.turnSpeakerOff', function() {
+      test('should set telephony.speakerEnabled and ' +
+        '"telephony.speaker.enabled" correctly', function() {
+        MockMozTelephony.speakerEnabled = true;
+        MockNavigatorSettings.mSettings['telephony.speaker.enabled'] = true;
+        CallsHandler.turnSpeakerOff();
+        assert.isFalse(MockMozTelephony.speakerEnabled);
+        assert.isFalse(
+          MockNavigatorSettings.mSettings['telephony.speaker.enabled']);
       });
     });
   });

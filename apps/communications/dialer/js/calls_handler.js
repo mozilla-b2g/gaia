@@ -23,6 +23,8 @@ var CallsHandler = (function callsHandler() {
              window.navigator.mozMobileConnections &&
              window.navigator.mozMobileConnections[0];
 
+  var settings = window.navigator.mozSettings;
+
   if (conn && conn.voice && conn.voice.network && conn.voice.network.mcc) {
     SimplePhoneMatcher.mcc = conn.voice.network.mcc;
   }
