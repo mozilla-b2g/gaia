@@ -219,17 +219,6 @@ suite('system/UtilityTray', function() {
     });
   });
 
-  suite('handleEvent: launchapp', function() {
-    setup(function() {
-      fakeEvt = createEvent('launchapp');
-      UtilityTray.show();
-      UtilityTray.handleEvent(fakeEvt);
-    });
-
-    test('should be hidden', function() {
-      assert.equal(UtilityTray.shown, false);
-    });
-  });
 
   suite('handleEvent: touchstart', function() {
     mocksHelperForUtilityTray.attachTestHelpers();
