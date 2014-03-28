@@ -72,11 +72,13 @@ define(function(require) {
 
   Stopwatch.Panel.prototype = Object.create(Panel.prototype);
 
+
   Stopwatch.Panel.prototype.update = function() {
     var swp = priv.get(this);
     var e = swp.stopwatch.getElapsedTime();
     var time = Utils.format.durationMs(e);
     this.nodes.time.textContent = time;
+    this.nodes.time.classList.toggle('over-100-minutes', e >= 1000 * 60 * 100);
     this.activeLap(false);
   };
 
