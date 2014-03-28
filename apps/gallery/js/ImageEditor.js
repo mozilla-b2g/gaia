@@ -1377,18 +1377,32 @@ ImageEditor.prototype.prepareAutoEnhancement = function(pixel) {
 // WebGL context helper class for handling context lost/restore event
 // and resource management.
 function WebGLCanvasHelper(canvas, lostCallback, restoreCallback, needRestore) {
+  var self = this;
+
   this.canvas = canvas;
-  this.lostCallback = lostCallback;
-  this.restoreCallback = restoreCallback;
   // We might just want to listen the lost event but do not need to restore
   // the context
   this.needRestore = needRestore;
 
-  this.lostEventListener = this.contextLostHandler.bind(this);
-  canvas.addEventListener('webglcontextlost', this.lostEventListener, false);
-  this.restoreEventListener = this.contextRestoreHandler.bind(this);
-  canvas.addEventListener('webglcontextrestored', this.restoreEventListener,
-                          false);
+  this.lostHandler = function(event) {
+    if (self.needRestore) {
+      // We should call preventDefault to prevent the webgl default behavior:
+      // do not restore the context
+      event.preventDefault();
+    }
+
+    if (self.lostCallback) {
+      self.lostCallback();
+    }
+  };
+  this.restoreHandler = function(event) {
+    if (self.restoreCallback) {
+      self.restoreCallback();
+    }
+  };
+
+  canvas.addEventListener('webglcontextlost', this.lostHandler, false);
+  canvas.addEventListener('webglcontextrestored', this.restoreHandler, false);
 
   var options = { alpha: false, depth: false, stencil: false,
                   antialias: false };
@@ -1398,35 +1412,17 @@ function WebGLCanvasHelper(canvas, lostCallback, restoreCallback, needRestore) {
   this.loseContextExt = this.context.getExtension('WEBGL_lose_context');
 }
 
-WebGLCanvasHelper.prototype.contextLostHandler = function(event) {
-  if (this.needRestore) {
-    // We should call preventDefault to prevent the webgl default behavior:
-    // do not restore the context
-    event.preventDefault();
-  }
-
-  if (this.lostCallback) {
-    this.lostCallback();
-  }
-};
-
-WebGLCanvasHelper.prototype.contextRestoreHandler = function(event) {
-  if (this.restoreCallback) {
-    this.restoreCallback();
-  }
-};
-
 // Destroy the webgl canvas and context
 WebGLCanvasHelper.prototype.destroy = function() {
   // Remove the context lost/restore handler to prevent the restore event
-  if (this.lostEventListener) {
+  if (this.lostHandler) {
     this.canvas.removeEventListener('webglcontextlost',
-                                    this.lostEventListener,
+                                    this.lostHandler,
                                     false);
   }
-  if (this.restoreEventListener) {
+  if (this.restoreHandler) {
     this.canvas.removeEventListener('webglcontextrestored',
-                                    this.restoreListener,
+                                    this.restoreHandler,
                                     false);
   }
 
