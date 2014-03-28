@@ -7,7 +7,7 @@ requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
 
 var mocksForLayoutManager = new MocksHelper([
-  'KeyboardManager', 'SoftwareButtonManager', 'StatusBar'
+  'KeyboardManager', 'softwareButtonManager', 'StatusBar'
 ]).init();
 
 suite('system/LayoutManager >', function() {
@@ -87,7 +87,7 @@ suite('system/LayoutManager >', function() {
     var _w = document.documentElement.clientWidth;
     MockKeyboardManager.mHeight = 100;
     MockStatusBar.height = 30;
-    MockSoftwareButtonManager.height = 50;
+    MocksoftwareButtonManager.height = 50;
     LayoutManager.keyboardEnabled = true;
     assert.equal(LayoutManager.usualHeight, H - 100 - 30 - 50);
     assert.equal(LayoutManager.fullscreenHeight, H - 100 - 50);

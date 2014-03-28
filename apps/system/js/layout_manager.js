@@ -39,7 +39,7 @@
     get fullscreenHeight() {
       return window.innerHeight -
         (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
-        SoftwareButtonManager.height;
+        softwareButtonManager.height;
     },
 
     /**
@@ -50,7 +50,7 @@
     get usualHeight() {
       return window.innerHeight -
         (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
-        SoftwareButtonManager.height - StatusBar.height;
+        softwareButtonManager.height - StatusBar.height;
     },
 
     get width() {

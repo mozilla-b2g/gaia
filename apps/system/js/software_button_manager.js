@@ -1,40 +1,79 @@
 'use strict';
-(function(window) {
-  var DEBUG = false;
-  var SoftwareButtonManager = {
+/* global Event */
+/* global ScreenLayout */
+/* global SettingsListener */
+
+(function(exports) {
+
+  /**
+   * SoftwareButtonManager manages a home button for devides without
+   * physical home buttons. The software home button will display at the bottom
+   * of the screen and is meant to function in the same way as a hardware 
+   * home button.
+   * @class SoftwareButtonManager
+   * @requires ScreenLayout
+   * @requires SettingsListener
+   */
+  function SoftwareButtonManager() {
+    this.isMobile = ScreenLayout.getCurrentLayout('tiny');
+    this.isOnRealDevice = ScreenLayout.isOnRealDevice();
+    this.hasHardwareHomeButton =
+      ScreenLayout.getCurrentLayout('hardwareHomeButton');
+    // enabled is true on mobile that has no hardware home button
+    this.enabled = !this.hasHardwareHomeButton && this.isMobile;
+    this.element = document.getElementById('software-buttons');
+    this.homeButton = document.getElementById('software-home-button');
+    this.fullscreenHomeButton =
+      document.getElementById('fullscreen-software-home-button');
+    this.screenElement = document.getElementById('screen');
+  }
+
+  SoftwareButtonManager.prototype = {
+
+    /**
+     * True if the device has a hardware home button.
+     * @memberof SoftwareButtonManager.prototype
+     * @type {Boolean}
+     */
     hasHardwareHomeButton: true,
-    _enable: false,
-    OverrideFlag: false,
-    debug: function sbm_debug() {
-      if (DEBUG) {
-        console.log('[SoftwareButtonManager]' +
-          '[' + System.currentTime() + '] ' +
-          Array.slice(arguments).concat());
-      }
-    },
+
+    /**
+     * Whether or not the SoftwareButtonManager is enabled.
+     * @memberof SoftwareButtonManager.prototype
+     * @type {Boolean}
+     */
+    enabled: false,
+
+    /**
+     * Enables the software button if hasHardwareHomeButton is false.
+     * @memberof SoftwareButtonManager.prototype
+     * @type {Boolean}
+     */
+    overrideFlag: false,
+
+    /**
+     * Whether or not the SoftwareButtonManager is enabled.
+     * @memberof SoftwareButtonManager.prototype
+     * @return The height of the software home button element.
+     */
     get height() {
-      if (!this._enable)
+      if (!this.enabled) {
         return 0;
+      }
+
       return this._cacheHeight ||
             (this._cacheHeight = this.element.getBoundingClientRect().height);
     },
 
-    init: function sbm_init() {
-      var isMobile = ScreenLayout.getCurrentLayout('tiny');
-      var isOnRealDevice = ScreenLayout.isOnRealDevice();
-      this.hasHardwareHomeButton =
-        ScreenLayout.getCurrentLayout('hardwareHomeButton');
-      // _enable is true on mobile that has no hardware home button
-      this._enable = !this.hasHardwareHomeButton && isMobile;
-      this.element = document.getElementById('software-buttons');
-      this.homeButton = document.getElementById('software-home-button');
-      this.fullscreenHomeButton =
-        document.getElementById('fullscreen-software-home-button');
-      this.screenElement = document.getElementById('screen');
 
-      if (isMobile && isOnRealDevice) {
+    /**
+     * Starts the SoftwareButtonManager instance.
+     * @memberof SoftwareButtonManager.prototype
+     */
+    start: function() {
+      if (this.isMobile && this.isOnRealDevice) {
         if (!this.hasHardwareHomeButton) {
-          this.OverrideFlag = true;
+          this.overrideFlag = true;
 
           var lock = SettingsListener.getSettingsLock();
           var req = lock.get('homegesture.enabled');
@@ -49,16 +88,16 @@
             // Default settings from build/settings.js will override the value
             // of 'software-button.enabled', so we set a flag to avoid it
             // in case.
-            if (this.OverrideFlag) {
-              this.OverrideFlag = false;
+            if (this.overrideFlag) {
+              this.overrideFlag = false;
               return;
             }
-            this._enable = value;
+            this.enabled = value;
             this.toggle();
             this.dispatchResizeEvent(value);
           }.bind(this));
       } else {
-        this._enable = false;
+        this.enabled = false;
         this.toggle();
       }
 
@@ -69,28 +108,45 @@
       window.addEventListener('mozfullscreenchange', this);
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
+
+      return this;
     },
 
-    dispatchResizeEvent: function sbm_dispatchResizeEvent(evtName) {
-      if (this._enable) {
+    /**
+     * Dispatches an event so screens can resize themselves after a change
+     * in the state of the software home button.
+     * @memberof SoftwareButtonManager.prototype
+     * @param {String} type The type of softwareButtonEvent.
+     */
+    dispatchResizeEvent: function(evtName) {
+      if (this.enabled) {
         window.dispatchEvent(new Event('software-button-enabled'));
       } else {
         window.dispatchEvent(new Event('software-button-disabled'));
       }
     },
 
-    publish: function sbm_publish(type) {
-      this.debug(' publish ' + type);
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('softwareButtonEvent', true, false, {
-        type: type
-      });
-      this.element.dispatchEvent(evt);
+    /**
+     * Shortcut to publish a custom software button event.
+     * @memberof SoftwareButtonManager.prototype
+     * @param {String} type The type of softwareButtonEvent.
+     */
+    publish: function(type) {
+      this.element.dispatchEvent(new CustomEvent('softwareButtonEvent', {
+        bubbles: true,
+        detail: {
+          type: type
+        }
+      }));
     },
 
-    toggle: function sbm_toggle() {
+    /**
+     * Toggles the status of the software button.
+     * @memberof SoftwareButtonManager.prototype
+     */
+    toggle: function() {
       delete this._cacheHeight;
-      if (this._enable) {
+      if (this.enabled) {
         this.element.classList.add('visible');
         this.screenElement.classList.add('software-button-enabled');
         this.screenElement.classList.remove('software-button-disabled');
@@ -101,7 +157,12 @@
       }
     },
 
-    handleEvent: function sbm_handleEvent(evt) {
+    /**
+     * General event handler interface.
+     * @memberof SoftwareButtonManager.prototype
+     * @param {DOMEvent} evt The event.
+     */
+    handleEvent: function(evt) {
       switch (evt.type) {
         case 'mousedown':
           this.publish('home-button-press');
@@ -112,20 +173,22 @@
         case 'homegesture-disabled':
           // at least one of software home button or gesture is enabled
           // when no hardware home button
-          if (!this.hasHardwareHomeButton && !this._enable) {
-            var lock = SettingsListener.getSettingsLock();
-            lock.set({'software-button.enabled': true});
+          if (!this.hasHardwareHomeButton && !this.enabled) {
+            SettingsListener.getSettingsLock()
+              .set({'software-button.enabled': true});
           }
           break;
         case 'homegesture-enabled':
-          if (this._enable) {
-            var lock = SettingsListener.getSettingsLock();
-            lock.set({'software-button.enabled': false});
+          if (this.enabled) {
+            SettingsListener.getSettingsLock()
+              .set({'software-button.enabled': false});
           }
           break;
         case 'mozfullscreenchange':
-          if (!this._enable)
+          if (!this.enabled) {
             return;
+          }
+
           if (document.mozFullScreenElement) {
             this.fullscreenHomeButton.classList.add('visible');
           } else {
@@ -136,6 +199,6 @@
     }
   };
 
-  SoftwareButtonManager.init();
-  window.SoftwareButtonManager = SoftwareButtonManager;
-}(this));
+  exports.SoftwareButtonManager = SoftwareButtonManager;
+
+}(window));

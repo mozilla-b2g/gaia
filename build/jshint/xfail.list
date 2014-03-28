@@ -656,7 +656,6 @@ apps/system/js/sim_lock.js
 apps/system/js/simslot.js
 apps/system/js/simslot_manager.js
 apps/system/js/sleep_menu.js
-apps/system/js/software_button_manager.js
 apps/system/js/sound_manager.js
 apps/system/js/stack_manager.js
 apps/system/js/statusbar.js
@@ -776,7 +775,6 @@ apps/system/test/unit/mock_screen_layout.js
 apps/system/test/unit/mock_settingslistener_installer.js
 apps/system/test/unit/mock_sheets_transition.js
 apps/system/test/unit/mock_sleep_menu.js
-apps/system/test/unit/mock_software_button_manager.js
 apps/system/test/unit/mock_stack_manager.js
 apps/system/test/unit/mock_statusbar.js
 apps/system/test/unit/mock_template.js
@@ -795,7 +793,6 @@ apps/system/test/unit/sheets_transition_test.js
 apps/system/test/unit/simcard_dialog_test.js
 apps/system/test/unit/simslot_manager_test.js
 apps/system/test/unit/simslot_test.js
-apps/system/test/unit/software_button_manager_test.js
 apps/system/test/unit/spin_date_picker_test.js
 apps/system/test/unit/stack_manager_test.js
 apps/system/test/unit/statusbar_test.js
