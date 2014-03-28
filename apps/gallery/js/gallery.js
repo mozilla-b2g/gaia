@@ -370,8 +370,8 @@ function initThumbnails() {
   //  - batch up as much work as possible while showing unpainted
   //    thumbnails as little as possible.  4000px determined by
   //    experimentation.  (Provides 10 rows' worth loading zone.)
-  var visibilityMargin = 5060;
-  var minimumScrollDelta = 4000;
+  var visibilityMargin = 360;
+  var minimumScrollDelta = 1;
 
   visibilityMonitor =
     monitorTagVisibility(thumbnails, 'li',
