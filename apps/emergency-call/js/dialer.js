@@ -36,8 +36,10 @@ var CallHandler = {
     }
   }
 };
+/** @global CallHandler */
+window.CallHandler = CallHandler;
 
 window.addEventListener('load', function onload() {
   window.removeEventListener('load', onload);
-  KeypadManager.init();
+  window.KeypadManager.init();
 });

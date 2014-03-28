@@ -15,7 +15,7 @@ var gTonesFrequencies = {
 };
 
 var keypadSoundIsEnabled = true;
-SettingsListener.observe('phone.ring.keypad', true, function(value) {
+window.SettingsListener.observe('phone.ring.keypad', true, function(value) {
   keypadSoundIsEnabled = !!value;
 });
 
@@ -30,10 +30,11 @@ var TonePlayer = {
   },
 
   ensureAudio: function tp_ensureAudio() {
-    if (this._audioContext)
+    if (this._audioContext) {
       return;
+    }
 
-    this._audioContext = new AudioContext();
+    this._audioContext = new window.AudioContext();
     this._gainNode = this._audioContext.createGain();
     this._gainNode.gain.value = kMasterVolume;
     this._gainNode.connect(this._audioContext.destination);
@@ -74,70 +75,82 @@ var KeypadManager = {
 
   get phoneNumberView() {
     delete this.phoneNumberView;
-    return this.phoneNumberView = document.getElementById('phone-number-view');
+    this.phoneNumberView = document.getElementById('phone-number-view');
+    return this.phoneNumberView;
   },
 
   get fakePhoneNumberView() {
     delete this.fakePhoneNumberView;
-    return this.fakePhoneNumberView =
+    this.fakePhoneNumberView =
       document.getElementById('fake-phone-number-view');
+    return  this.fakePhoneNumberView;
   },
 
   get phoneNumberViewContainer() {
     delete this.phoneNumberViewContainer;
-    return this.phoneNumberViewContainer =
+    this.phoneNumberViewContainer =
       document.getElementById('phone-number-view-container');
+    return this.phoneNumberViewContainer;
   },
 
   get keypad() {
     delete this.keypad;
-    return this.keypad = document.getElementById('keypad');
+    this.keypad = document.getElementById('keypad');
+    return this.keypad;
   },
 
   get callBar() {
     delete this.callBar;
-    return this.callBar =
+    this.callBar =
       document.getElementById('keypad-callbar');
+    return this.callBar;
   },
 
   get hideBar() {
     delete this.hideBar;
-    return this.hideBar = document.getElementById('keypad-hidebar');
+    this.hideBar = document.getElementById('keypad-hidebar');
+    return this.hideBar;
   },
 
   get callBarAddContact() {
     delete this.callBarAddContact;
-    return this.callBarAddContact =
+    this.callBarAddContact =
       document.getElementById('keypad-callbar-add-contact');
+    return this.callBarAddContact;
   },
 
   get callBarCallAction() {
     delete this.callBarCallAction;
-    return this.callBarCallAction =
+    this.callBarCallAction =
       document.getElementById('keypad-callbar-call-action');
+    return this.callBarCallAction;
   },
 
   get callBarCancelAction() {
     delete this.callBarCancelAction;
-    return this.callBarCancelAction =
+    this.callBarCancelAction =
       document.getElementById('keypad-callbar-cancel');
+    return this.callBarCancelAction;
   },
 
   get deleteButton() {
     delete this.deleteButton;
-    return this.deleteButton = document.getElementById('keypad-delete');
+    this.deleteButton = document.getElementById('keypad-delete');
+    return this.deleteButton;
   },
 
   get hideBarHangUpAction() {
     delete this.hideBarHangUpAction;
-    return this.hideBarHangUpAction =
+    this.hideBarHangUpAction =
       document.getElementById('keypad-hidebar-hang-up-action-wrapper');
+    return this.hideBarHangUpAction;
   },
 
   get hideBarHideAction() {
     delete this.hideBarHideAction;
-    return this.hideBarHideAction =
+    this.hideBarHideAction =
       document.getElementById('keypad-hidebar-hide-keypad-action');
+    return this.hideBarHangAction;
   },
 
   init: function kh_init() {
@@ -176,10 +189,7 @@ var KeypadManager = {
     // The keypad cancel bar is only the emergency call version of the keypad.
     if (this.callBarCancelAction) {
       this.callBarCancelAction.addEventListener('mouseup', function() {
-        // Before we make emergency call as an app, we must solve the closing
-        // issue like this. App would have some other formal events to close
-        // itself by SecureWindowManager.
-        window.parent.dispatchEvent(new CustomEvent('emergency-call-leave'));
+        window.close();
       });
     }
 
@@ -214,7 +224,8 @@ var KeypadManager = {
   render: function hk_render(layoutType) {
     if (layoutType == 'oncall') {
       this._onCall = true;
-      var numberNode = CallScreen.activeCall.querySelector('.number');
+      var numberNode =
+        window.CallScreen.activeCall.querySelector('.number');
       this._phoneNumber = numberNode.textContent;
       this.phoneNumberViewContainer.classList.add('keypad-visible');
       if (this.callBar) {
@@ -243,18 +254,19 @@ var KeypadManager = {
   makeCall: function hk_makeCall(event) {
     event.stopPropagation();
 
-    if (this._phoneNumber != '') {
-      CallHandler.call(KeypadManager._phoneNumber);
+    if (this._phoneNumber !== '') {
+      window.CallHandler.call(KeypadManager._phoneNumber);
     }
   },
 
   addContact: function hk_addContact(event) {
     var number = this._phoneNumber;
-    if (!number)
+    if (!number) {
       return;
+    }
 
     try {
-      var activity = new MozActivity({
+      var activity = new window.MozActivity({
         name: 'new',
         data: {
           type: 'webcontacts/contact',
@@ -263,37 +275,46 @@ var KeypadManager = {
           }
         }
       });
+
+      // To prevent the bad habit that new a variable
+      // but not use it.
+      activity.onsuccess = function() {};
+      activity.onerror = function() {};
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
   },
 
   callbarBackAction: function hk_callbarBackAction(event) {
-    CallScreen.hideKeypad();
+    window.CallScreen.hideKeypad();
   },
 
   hangUpCallFromKeypad: function hk_hangUpCallFromKeypad(event) {
-    CallScreen.views.classList.remove('show');
-    OnCallHandler.end();
+    window.CallScreen.views.classList.remove('show');
+    window.OnCallHandler.end();
   },
 
   formatPhoneNumber: function kh_formatPhoneNumber(mode) {
+    var fakeView = null,
+        view = null;
     switch (mode) {
       case 'dialpad':
-        var fakeView = this.fakePhoneNumberView;
-        var view = this.phoneNumberView;
+        fakeView = this.fakePhoneNumberView;
+        view = this.phoneNumberView;
 
         // We consider the case where the delete button may have
         // been used to delete the whole phone number.
-        if (view.value == '') {
+        if (view.value === '') {
           view.style.fontSize = view.dataset.size;
           return;
         }
       break;
 
       case 'on-call':
-        var fakeView = CallScreen.activeCall.querySelector('.fake-number');
-        var view = CallScreen.activeCall.querySelector('.number');
+        fakeView =
+          window.CallScreen.activeCall.querySelector('.fake-number');
+        view =
+          window.CallScreen.activeCall.querySelector('.number');
       break;
     }
 
@@ -356,8 +377,9 @@ var KeypadManager = {
   keyHandler: function kh_keyHandler(event) {
     var key = event.target.dataset.value;
 
-    if (!key)
+    if (!key) {
       return;
+    }
 
     event.stopPropagation();
     if (event.type == 'mousedown') {
@@ -415,8 +437,9 @@ var KeypadManager = {
         this._phoneNumber += key;
       }
 
-      if (this._holdTimer)
+      if (this._holdTimer) {
         clearTimeout(this._holdTimer);
+      }
 
       this._updatePhoneNumberView();
     }
@@ -435,7 +458,8 @@ var KeypadManager = {
     this.deleteButton.style.visibility = visibility;
 
     if (this._onCall) {
-      var view = CallScreen.activeCall.querySelector('.number');
+      var view =
+        window.CallScreen.activeCall.querySelector('.number');
       view.textContent = phoneNumber;
       this.formatPhoneNumber('on-call');
     } else {
@@ -454,7 +478,7 @@ var KeypadManager = {
         voicemail.getNumber && voicemail.getNumber();
 
        if (number) {
-         CallHandler.call(number);
+         window.CallHandler.call(number);
        }
      }
   }

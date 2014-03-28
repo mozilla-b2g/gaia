@@ -226,7 +226,7 @@ suite('system/LockScreen >', function() {
   test('Switch panel: to Camera; should notify SecureWindowFactory\'s method',
     function() {
       var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
-      subject.loadPanel('camera', function() {});
+      subject.invokeSecureApp('camera');
       assert.isTrue(stubDispatch.calledWithMatch(sinon.match(function(e) {
           return 'secure-launchapp' === e.type;
         })),

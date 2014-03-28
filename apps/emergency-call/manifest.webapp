@@ -1,0 +1,68 @@
+{
+  "name": "EmergencyCall",
+  "description": "The emergency call pad",
+  "type": "certified",
+  "role": "system",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "orientation": "default",
+  "fullscreen": true,
+  "permissions": {
+    "telephony":{},
+    "mobileconnection":{},
+    "phonenumberservice": {}
+  },
+  "locales": {
+    "ar": {
+      "name": "EmergencyCall",
+      "description": "Web app template"
+    },
+    "de": {
+      "name": "EmergencyCall",
+      "description": "Web app template"
+    },
+    "el": {
+      "name": "EmergencyCall",
+      "description": "Web app template"
+    },
+    "en-US": {
+      "name": "EmergencyCall",
+      "description": "Web app template"
+    },
+    "es": {
+      "name": "EmergencyCall",
+      "description": "Web app template"
+    },
+    "fr": {
+      "name": "EmergencyCall",
+      "description": "Web app template"
+    },
+    "it": {
+      "name": "EmergencyCall",
+      "description": "Web app template"
+    },
+    "pt-BR": {
+      "name": "EmergencyCall",
+      "description": "Web app template"
+    },
+    "ru": {
+      "name": "EmergencyCall",
+      "description": "Web app template"
+    },
+    "tr": {
+      "name": "EmergencyCall",
+      "description": "Web app template"
+    },
+    "zh-TW": {
+      "name": "EmergencyCall",
+      "description": "Web app template"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  }
+}
