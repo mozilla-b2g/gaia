@@ -606,6 +606,7 @@ var DataUsageTab = (function() {
     ctx.fillStyle = '#cbd936';
     ctx.strokeStyle = '#8b9052';
     ctx.lineWidth = toDevicePixels(2);
+    ctx.lineJoin = 'round';
     ctx.moveTo(model.originX, model.originY);
     var today = toMidnight(new Date());
     var sum = 0; var x, y = model.originY;
@@ -668,7 +669,9 @@ var DataUsageTab = (function() {
       // Stroke
       ctx.globalCompositeOperation = 'source-over';
       ctx.beginPath();
-      ctx.moveTo(x0Fixed, y0);
+      // It's necessary add 1 to the X coordinate to make up for the offset
+      // produced with the drawing of the previous line.
+      ctx.moveTo(x0Fixed + 1, y0);
       ctx.lineTo(x1Fixed, y1);
       ctx.stroke();
     }
@@ -688,6 +691,7 @@ var DataUsageTab = (function() {
     ctx.fillStyle = 'rgba(147, 21, 98, 0.7)';
     ctx.strokeStyle = '#762d4a';
     ctx.lineWidth = toDevicePixels(2);
+    ctx.lineJoin = 'round';
 
     var today = toMidnight(new Date());
     var sum = 0; var x, y = model.originY;
