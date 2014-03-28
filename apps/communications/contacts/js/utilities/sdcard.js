@@ -7,26 +7,36 @@ if (!utils.sdcard) {
     NOT_INITIALIZED: 0,
     NOT_AVAILABLE: 1,
     AVAILABLE: 2,
+    SHARED: 3,
     observers: {}
   };
 
   SdCard.status = SdCard.NOT_INITIALIZED;
   SdCard.deviceStorage = navigator.getDeviceStorage('sdcard');
 
-  SdCard.updateStorageState = function sd_updateStorageState(state) {
+  SdCard._toStatus = function toStatus(state) {
     switch (state) {
       case 'available':
         SdCard.status = SdCard.AVAILABLE;
         break;
-      // Making the 'shared' state as NOT_AVAILABLE since we
-      // could have inconsistencies if we allow changing the sdcard
-      // content meanwhile exporting/importing
+      // NOTE: The 'SHARED' state is equivalent to NOT_AVAILABLE, since we
+      // could have inconsistencies if we allow changing the sdcard content
+      // meanwhile exporting/importing.
+      // It's needed to have it's own state solely for showing the proper
+      // message when needed
       case 'shared':
+        SdCard.status = SdCard.SHARED;
+        break;
       case 'unavailable':
       case 'deleted':
         SdCard.status = SdCard.NOT_AVAILABLE;
         break;
     }
+  };
+
+  SdCard.updateStorageState = function sd_updateStorageState(state) {
+    SdCard._toStatus(state);
+
     Object.keys(this.observers).forEach(function onObserver(name) {
       if (typeof(SdCard.observers[name]) === 'function') {
         SdCard.observers[name].call(null, state);
@@ -53,6 +63,19 @@ if (!utils.sdcard) {
    */
   SdCard.checkStorageCard = function sd_checkStorageCard() {
     return SdCard.status === SdCard.AVAILABLE;
+  };
+
+  SdCard.getStatus = function(cb) {
+    var req = SdCard.deviceStorage.available();
+
+    req.onsuccess = function() {
+      SdCard._toStatus(req.result);
+      cb(SdCard.status);
+    };
+    req.onerror = function() {
+      console.error('Error while determining SD Status', req.error.name);
+      cb(SdCard.status);
+    };
   };
 
   /**
