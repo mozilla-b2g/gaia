@@ -22,11 +22,13 @@ function Icon(descriptor, app) {
 // Support rendering icons for different screens
 var SCALE_RATIO = window.devicePixelRatio;
 var MAX_ICON_SIZE = 60;
-var ICON_PADDING_IN_CANVAS = 4;
+var ICON_PADDING_IN_CANVAS = 20;
 
 Icon.prototype = {
 
   MAX_ICON_SIZE: MAX_ICON_SIZE,
+
+  ICON_PADDING_IN_CANVAS: ICON_PADDING_IN_CANVAS,
 
   // It defines the time (in ms) to ensure that the onDragStop method finishes
   FALLBACK_DRAG_STOP_DELAY: 1000,
@@ -41,9 +43,9 @@ Icon.prototype = {
                     '/style/images/app_paused.png',
 
   // App icons shadow settings
-  SHADOW_BLUR: 5,
-  SHADOW_OFFSET_Y: 2,
-  SHADOW_COLOR: 'rgba(0,0,0,0.15)',
+  SHADOW_BLUR: 10,
+  SHADOW_OFFSET_Y: 5,
+  SHADOW_COLOR: 'rgba(0,0,0,0.2)',
 
   // These properties will be copied from the descriptor onto the icon's HTML
   // element dataset and allow us to uniquely look up the Icon object from
@@ -353,7 +355,7 @@ Icon.prototype = {
                           canvas.height - ICON_PADDING_IN_CANVAS * SCALE_RATIO);
     ctx.drawImage(img,
                   (canvas.width - width) / 2,
-                  (canvas.height - height) / 2,
+                  this.SHADOW_OFFSET_Y,
                   width, height);
     ctx.fill();
 

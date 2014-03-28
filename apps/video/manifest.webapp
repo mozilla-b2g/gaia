@@ -39,7 +39,8 @@
   "icons": {
     "60": "/style/icons/Video_60.png",
     "90": "/style/icons/Video_90.png",
-    "120": "/style/icons/Video_120.png"
+    "120": "/style/icons/Video_120.png",
+    "135": "/style/icons/Video_135.png"
   },
   "activities": {
     "pick": {

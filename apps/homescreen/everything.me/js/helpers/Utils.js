@@ -40,7 +40,7 @@ Evme.Utils = new function Evme_Utils() {
 
   // reduce this from our icons that should be the same as the OS
   // since OS icons have some transparent padding to them
-  this.OS_ICON_PADDING = 2;
+  this.OS_ICON_PADDING = 0;
 
   this.PIXEL_RATIO_NAMES = {
     NORMAL: 'normal',
@@ -64,9 +64,9 @@ Evme.Utils = new function Evme_Utils() {
 
   this.APPS_FONT_SIZE = 13 * (window.devicePixelRatio || 1);
   this.APP_NAMES_SHADOW_OFFSET_X = 0;
-  this.APP_NAMES_SHADOW_OFFSET_Y = 1;
-  this.APP_NAMES_SHADOW_BLUR = 4;
-  this.APP_NAMES_SHADOW_COLOR = 'rgba(0, 0, 0, 0.9)';
+  this.APP_NAMES_SHADOW_OFFSET_Y = Icon.prototype.SHADOW_OFFSET_Y;
+  this.APP_NAMES_SHADOW_BLUR = Icon.prototype.SHADOW_BLUR;
+  this.APP_NAMES_SHADOW_COLOR = Icon.prototype.SHADOW_COLOR;
 
   this.PIXEL_RATIO_NAME =
     (window.devicePixelRatio > 1) ?

@@ -44,7 +44,8 @@
   "icons": {
     "79": "/style/icons/Email_90.png",
     "60": "/style/icons/Email_60.png",
-    "120": "/style/icons/Email_120.png"
+    "120": "/style/icons/Email_120.png",
+    "135": "/style/icons/Email_135.png"
   },
   "activities": {
     "new": {
