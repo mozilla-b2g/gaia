@@ -17,6 +17,23 @@
         }
       }
     },
+    "gaia unit tests": {
+      "task": {
+        "metadata": {
+          "name": "Gaia test agent tests"
+        },
+        "payload": {
+          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
+          "command": [
+            "./bin/github ./tests/travis_ci/unit-tests-in-b2g/install && ./tests/travis_ci/unit-tests-in-b2g/before_script && ./tests/travis_ci/unit-tests-in-b2g/script"
+          ]
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "G"
+        }
+      }
+    },
     "build tests": {
       "task": {
         "metadata": {
