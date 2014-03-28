@@ -260,6 +260,7 @@ var CarrierSettings = (function(window, document, undefined) {
    */
   function cs_initNetworkTypeSelector() {
     var alertDialog = document.getElementById('preferredNetworkTypeAlert');
+    var message = document.getElementById('preferredNetworkTypeAlertMessage');
     var continueButton = alertDialog.querySelector('button');
     continueButton.addEventListener('click', function onClickHandler() {
       alertDialog.hidden = true;
@@ -273,11 +274,21 @@ var CarrierSettings = (function(window, document, undefined) {
       });
     });
 
+    var preferredNetworkTypeHelper =
+      SettingsHelper('ril.radio.preferredNetworkType');
+
     var selector = document.getElementById('preferredNetworkType');
-    selector.addEventListener('change', function evenHandler() {
+    selector.addEventListener('blur', function evenHandler() {
+      var targetIndex = DsdsSettings.getIccCardIndexForCellAndDataSettings();
       var type = selector.value;
       var request = _mobileConnection.setPreferredNetworkType(type);
-      var message = document.getElementById('preferredNetworkTypeAlertMessage');
+
+      request.onsuccess = function onSuccessHandler() {
+        preferredNetworkTypeHelper.get(function gotPNT(values) {
+          values[targetIndex] = type;
+          preferredNetworkTypeHelper.set(values);
+        });
+      };
       request.onerror = function onErrorHandler() {
         message.textContent = _('preferredNetworkTypeAlertErrorMessage');
         alertDialog.hidden = false;
@@ -289,15 +300,20 @@ var CarrierSettings = (function(window, document, undefined) {
    * Update network type selector.
    */
   function cs_updateNetworkTypeSelector(networkTypes, gsm, cdma) {
+    if (!_mobileConnection.getPreferredNetworkType || !networkTypes) {
+      return;
+    }
+
+    var selector = document.getElementById('preferredNetworkType');
+    // Clean up all option before updating again.
+    while (selector.hasChildNodes()) {
+      selector.removeChild(selector.lastChild);
+    }
+
     var request = _mobileConnection.getPreferredNetworkType();
     request.onsuccess = function onSuccessHandler() {
       var networkType = request.result;
       if (networkType) {
-        var selector = document.getElementById('preferredNetworkType');
-        // Clean up all option before updating again.
-        while (selector.hasChildNodes()) {
-          selector.removeChild(selector.lastChild);
-        }
         networkTypes.forEach(function(type) {
           var option = document.createElement('option');
           option.value = type;
