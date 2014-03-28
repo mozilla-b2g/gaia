@@ -25,6 +25,7 @@ requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_source_view.js');
 requireApp('system/test/unit/mock_storage.js');
 requireApp('system/test/unit/mock_telephony_settings.js');
+requireApp('system/test/unit/mock_system_dialog_manager.js');
 requireApp('system/test/unit/mock_ttl_view.js');
 requireApp('system/test/unit/mock_title.js');
 requireApp('system/test/unit/mock_activity_window_factory.js');
@@ -44,6 +45,7 @@ mocha.globals([
   'cancelHomeClick',
   'secureWindowManager',
   'secureWindowFactory',
+  'systemDialogManager',
   'devtoolsView',
   'dialerRinger',
   'homeGesture',
@@ -82,6 +84,7 @@ var mocksForBootstrap = new MocksHelper([
   'SourceView',
   'Storage',
   'TelephonySettings',
+  'SystemDialogManager',
   'TTLView',
   'Title',
   'AppWindowFactory',
