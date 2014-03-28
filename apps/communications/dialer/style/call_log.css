@@ -276,7 +276,7 @@ ol, ul {
   margin: 0;
 }
 
-#edit-mode {
+.recents-edit #edit-mode {
   display: block;
 }
 

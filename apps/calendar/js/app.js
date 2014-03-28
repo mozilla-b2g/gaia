@@ -315,7 +315,9 @@ Calendar.App = (function(window) {
     _init: function() {
       var self = this;
       // quick hack for today button
-      var today = document.querySelector('#view-selector .today');
+      var tablist = document.querySelector('#view-selector');
+      var today = tablist.querySelector('.today a');
+      var tabs = tablist.querySelectorAll('[role="tab"]');
 
       today.addEventListener('click', function(e) {
         var date = new Date();
@@ -323,6 +325,13 @@ Calendar.App = (function(window) {
         self.timeController.selectedDay = date;
 
         e.preventDefault();
+      });
+
+      // Handle aria-selected attribute for tabs.
+      tablist.addEventListener('click', function(event) {
+        if (event.target !== today) {
+          AccessibilityHelper.setAriaSelected(event.target, tabs);
+        }
       });
 
       this.dateFormat = navigator.mozL10n.DateTimeFormat();

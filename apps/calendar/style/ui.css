@@ -64,8 +64,8 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   color: #5f5f5f;
 }
 
-[role="tablist"] > [role="tab"] > a:after,
-[role="tablist"] > [role="tab"] > button:after {
+.bb-tablist > li > a:after,
+.bb-tablist > li > button:after {
   display: block !important;
 }
 

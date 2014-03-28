@@ -28,6 +28,10 @@
 
       'shared/js/notification_helper': {
         exports: 'NotificationHelper'
+      },
+
+      'shared/js/accessibility_helper': {
+        exports: 'AccessibilityHelper'
       }
     },
     definePrim: 'prim'
