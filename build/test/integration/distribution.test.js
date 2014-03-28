@@ -227,7 +227,7 @@ suite('Distribution mechanism', function() {
   test('build with GAIA_DISTRIBUTION_DIR', function(done) {
     cusDir = path.join(process.cwd(), 'customization');
     var cmd = 'GAIA_DISTRIBUTION_DIR=' + cusDir + ' make';
-    exec(cmd, function(error, stdout, stderr) {
+    exec(cmd, { maxBuffer: 400*1024 }, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
       validatePreloadSettingDB();
       validateSettings();

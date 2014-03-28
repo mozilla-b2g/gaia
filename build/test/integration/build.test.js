@@ -83,7 +83,7 @@ suite('Build Integration tests', function() {
     rmrf(localesDir);
   });
 
-  test('make without rule & variable', function(done) {
+  test('make without rule & variable', { maxBuffer: 400*1024 }, function(done) {
     exec('ROCKETBAR=none make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -244,7 +244,8 @@ suite('Build Integration tests', function() {
   });
 
   test('make with SIMULATOR=1', function(done) {
-    exec('SIMULATOR=1 make', function(error, stdout, stderr) {
+    exec('SIMULATOR=1 make', { maxBuffer: 400*1024 },
+    function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       var settingsPath = path.join(process.cwd(), 'profile-debug',
@@ -321,7 +322,8 @@ suite('Build Integration tests', function() {
   });
 
   test('make with DEBUG=1', function(done) {
-    exec('DEBUG=1 make', function(error, stdout, stderr) {
+    exec('DEBUG=1 make', { maxBuffer: 400*1024 },
+    function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       var installedExtsPath = path.join('profile-debug',
@@ -429,7 +431,8 @@ suite('Build Integration tests', function() {
   });
 
   test('make with MOZILLA_OFFICIAL=1', function(done) {
-    exec('MOZILLA_OFFICIAL=1 make', function(error, stdout, stderr) {
+    exec('MOZILLA_OFFICIAL=1 make', { maxBuffer: 400*1024 },
+    function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       // path in zip for unofficial branding
@@ -446,7 +449,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with ROCKETBAR=full', function(done) {
-    exec('ROCKETBAR=full make',
+    exec('ROCKETBAR=full make', { maxBuffer: 400*1024 },
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 
