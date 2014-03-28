@@ -563,13 +563,6 @@ function deleteFile(filename) {
       navigator.getDeviceStorage('pictures'). delete(postername);
   }
 
-  // In tablet landscape mode, we use currentVideo to be the current playing
-  // video and last played video. When deleting file and the file is playing or
-  // last played video, we need to change the it to the next, previous or null.
-  if (currentVideo && filename === currentVideo.name) {
-    resetCurrentVideo();
-  }
-
   // Whether or not there was a poster file to delete, delete the
   // actual video file. This will cause the MediaDB to send a 'deleted'
   // event, and the handler for that event will call videoDeleted() below.

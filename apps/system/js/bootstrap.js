@@ -62,8 +62,7 @@ window.addEventListener('load', function startup() {
   // Enable checkForUpdate as well if booted without FTU
   window.addEventListener('ftuskip', doneWithFTU);
 
-
-  SourceView.init();
+  window.sourceView = new SourceView();
   Shortcuts.init();
   ScreenManager.turnScreenOn();
   Places.init();

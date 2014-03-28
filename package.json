@@ -20,7 +20,7 @@
     "grunt-contrib-clean": "0.5.0",
     "grunt-jsdoc": "0.5.1",
     "jshint": "2.4.2",
-    "mail-fakeservers": "~0.0.11",
+    "mail-fakeservers": "~0.0.15",
     "marionette-apps": "~0.3.3",
     "marionette-client": "~1.1.0",
     "marionette-content-script": "0.0.4",

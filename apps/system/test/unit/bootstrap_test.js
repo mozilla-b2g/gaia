@@ -49,6 +49,7 @@ mocha.globals([
   'homeGesture',
   'mediaRecording',
   'remoteDebugger',
+  'sourceView',
   'storage',
   'telephonySettings',
   'ttlView',

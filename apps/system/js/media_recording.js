@@ -1,4 +1,4 @@
-/* global Applications, ManifestHelper */
+/* global applications, ManifestHelper */
 (function(exports) {
   'use strict';
 
@@ -6,7 +6,7 @@
    * The visible indicator present in the Utility Tray indicating that the
    * mic/camera is active at a target app name or web url.
    * @class MediaRecording
-   * @requires Applications, ManifestHelper
+   * @requires applications, ManifestHelper
    */
   function MediaRecording() {
   }
@@ -100,7 +100,7 @@
     getOrigin: function mr_getOrigin(detail) {
       var origin;
       if (detail.isApp) {
-        var app = Applications.getByManifestURL(detail.requestURL);
+        var app = applications.getByManifestURL(detail.requestURL);
         origin = new ManifestHelper(app.manifest).name;
       } else {
         var pathArray = detail.requestURL.split('/');
