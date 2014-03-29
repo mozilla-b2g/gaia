@@ -78,7 +78,7 @@ var FakeMusic = {
 
   toggleInterrupt: function() {
     this._interrupted = !this._interrupted;
-    var status = this._interrupted ? 'mozinterruptbegin' : 'PLAYING';
+    var status = this._interrupted ? 'mozinterruptbegin' : 'mozinterruptend';
     FakeMusicComms.notifyStatusChanged({playStatus: status});
   },
 
