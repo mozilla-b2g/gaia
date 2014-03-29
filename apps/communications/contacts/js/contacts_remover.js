@@ -1,4 +1,5 @@
-/* globals mozContact, fb */
+/* globals fb */
+/* exported contactsRemover */
 'use strict';
 
 /*
@@ -17,21 +18,21 @@ function contactsRemover() {
   var cancelled = false;
   /*jshint validthis:true */
   var self = this;
-  var ids;
+  var contacts;
 
-  this.init = function(cIds, cb) {
-    if (cIds === null || cIds.length === 0) {
+  this.init = function(pcontacts, cb) {
+    if (pcontacts === null || pcontacts.length === 0) {
       return;
     }
-    ids = cIds;
+    contacts = pcontacts;
     cb();
   };
 
   this.start = function() {
     totalRemoved = 0;
     cancelled = false;
-    totalSelected = ids.length;
-    continueCb(ids);
+    totalSelected = contacts.length;
+    continueCb(contacts);
   };
 
   this.finish = function() {
@@ -42,9 +43,9 @@ function contactsRemover() {
     return totalRemoved;
   };
 
-  function continueCb(ids) {
-    var currentId = ids.shift();
-    if (!currentId || cancelled) {
+  function continueCb(contacts) {
+    var currentContact = contacts.shift();
+    if (!currentContact || cancelled) {
       if (totalRemoved === totalSelected) {
         notifyFinished();
       }
@@ -53,11 +54,11 @@ function contactsRemover() {
       }
       return;
     }
-    var request = deleteContact(currentId);
+    var request = deleteContact(currentContact);
     request.onSuccess = function() {
       totalRemoved++;
-      notifyDeleted(currentId);
-      continueCb(ids);
+      notifyDeleted(currentContact);
+      continueCb(contacts);
     };
     request.onError = function() {
       notifyError();
@@ -82,17 +83,15 @@ function contactsRemover() {
     }
   }
 
-  function notifyDeleted(currentId) {
+  function notifyDeleted(currentContact) {
     if (typeof self.onDeleted === 'function') {
-      self.onDeleted(currentId);
+      self.onDeleted(currentContact);
     }
   }
 
-  function deleteContact(currentID) {
+  function deleteContact(contact) {
     var request;
     var outreq = {onSuccess: null, onError: null};
-    var contact = new mozContact();
-    contact.id = currentID;
 
     if (fb.isFbContact(contact)) {
       var fbContact = new fb.Contact(contact);
@@ -109,5 +108,3 @@ function contactsRemover() {
     return outreq;
   }
 }
-
-window.contactsRemover = contactsRemover;

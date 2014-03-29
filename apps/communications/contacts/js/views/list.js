@@ -1502,6 +1502,9 @@ contacts.List = (function() {
     updateSelectCount(currentlySelected);
   };
 
+  function contactByIdResolver(id, resolve, reject) {
+    contacts.List.getContactById(id, resolve, reject);
+  }
   /*
     If we perform a selection over the list of contacts
     and we don't have all the info yet, we send a promise
@@ -1514,49 +1517,98 @@ contacts.List = (function() {
       resolved: false,
       successCb: null,
       errorCb: null,
+
+      // Resolves the promise by getting cached contact data
+      _resolveCached: function(values) {
+        var self = this;
+
+        this._selected = values;
+        this.resolved = true;
+        var contactDataList = [];
+        var notResolvedContacts = [];
+        // The contact data is obtained by going to the cached
+        for (var j = 0; j < values.length; j++) {
+          console.log(JSON.stringify(loadedContacts));
+          var cachedContact = loadedContacts[values[j]];
+          // If for some reason we cannot find the contactin the cache
+          // We enque a request to the mozContacts API
+          if (!cachedContact) {
+            console.warn('Cannot find loaded contact for: ', values[j]);
+            notResolvedContacts.push(new Promise(
+                                contactByIdResolver.bind(null, values[j])));
+            continue;
+          }
+          var key = Object.keys(cachedContact)[0];
+          contactDataList.push(cachedContact[key]);
+        }
+
+        if (notResolvedContacts.length === 0) {
+           this.successCb && this.successCb(values, contactDataList);
+           return;
+        }
+
+        Promise.all(notResolvedContacts).then(function success(contacts) {
+          contactDataList = contactDataList.concat(contacts);
+          self.successCb && self.successCb(values, contactDataList);
+        }, function err(error) {
+            console.error('Failure while getting contact data',
+                          error.name);
+        });
+
+        return;
+      },
+
+      // Resolves the promise by getting all contacts through mozContacts
+      _resolveMozContacts: function() {
+        var self = this;
+
+        // We don't know if we render all the contacts and their checks,
+        // so fetch ALL the contacts and remove those one we un selected
+        // remember this is a promise, so is already async.
+        var notSelectedIds = {};
+        for (var id in selectedContacts) {
+          if (!selectedContacts[id]) {
+            notSelectedIds[id] = true;
+          }
+        }
+        var notSelectedCount = Object.keys(notSelectedIds).length;
+
+        var request = navigator.mozContacts.find({});
+
+        request.onsuccess = function onAllContacts() {
+          request.result.forEach(function onContact(contact) {
+            if (notSelectedCount == 0 ||
+              typeof notSelectedIds[contact.id] === 'undefined') {
+              self._selected.push(contact.id);
+              self._selectedContacts.push(contact);
+            }
+          });
+
+          self.resolved = true;
+          if (self.successCb) {
+            self.successCb(self._selected, self._selectedContacts);
+          }
+        };
+        request.onerror = function onError() {
+          self.reject();
+        };
+      },
+
       resolve: function resolve(values) {
         var self = this;
+
         setTimeout(function onResolve() {
           // If we have the values parameter we can directly
           // resolve this promise
           if (values) {
-            self._selected = values;
-            self.resolved = true;
-            if (self.successCb) {
-              self.successCb(values);
-            }
-            return;
+            self._resolveCached(values);
           }
-
-          // We don't know if we render all the contacts and their checks,
-          // so fetch ALL the contacts and remove those one we un selected
-          // remember this is a promise, so is already async.
-          var notSelectedIds = {};
-          for (var id in selectedContacts) {
-            if (!selectedContacts[id]) {
-              notSelectedIds[id] = true;
-            }
+          else {
+            self._resolveMozContacts();
           }
-          var notSelectedCount = Object.keys(notSelectedIds).length;
-          var request = navigator.mozContacts.find({});
-          request.onsuccess = function onAllContacts() {
-            request.result.forEach(function onContact(contact) {
-              if (notSelectedCount == 0 ||
-                notSelectedIds[contact.id] == undefined) {
-                self._selected.push(contact.id);
-              }
-            });
-
-            self.resolved = true;
-            if (self.successCb) {
-              self.successCb(self._selected);
-            }
-          };
-          request.onerror = function onError() {
-            self.reject();
-          };
         }, 0);
       },
+
       reject: function reject() {
         this.canceled = true;
 
@@ -1564,6 +1616,7 @@ contacts.List = (function() {
           this.errorCb();
         }
       },
+
       set onsuccess(callback) {
         if (this.resolved) {
           callback(this._selected);
@@ -1571,6 +1624,7 @@ contacts.List = (function() {
           this.successCb = callback;
         }
       },
+
       set onerror(callback) {
         if (this.canceled) {
           callback();
