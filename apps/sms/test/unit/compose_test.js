@@ -743,6 +743,12 @@ suite('compose_test.js', function() {
         sinon.assert.called(message.focus);
         assert.isFalse(message.classList.contains('ignoreEvents'));
       });
+
+      test('empty body', function() {
+        Compose.fromMessage({type: 'sms', body: null});
+        sinon.assert.calledWith(Compose.append, '');
+        sinon.assert.called(message.focus);
+      });
     });
   });
 
