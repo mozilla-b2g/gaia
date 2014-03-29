@@ -3,7 +3,6 @@
  * TODO: Shared code unit tests should not be in gallery
  * Bug #841422 has been filed to move these tests
  */
-require('/shared/js/l10n.js');
 
 suite('L10n', function() {
   var _;
@@ -38,7 +37,7 @@ suite('L10n', function() {
   ].join('\n');
 
   var inlineL10Props = {
-    'inline-translation-test': {'_': 'static content provided by inlined JSON'}
+    'inline-translation-test': 'static content provided by inlined JSON'
   };
 
   var key_cropImage = 'cropimage';
@@ -48,9 +47,11 @@ suite('L10n', function() {
   var key_multiLine = 'multiLine';
   var key_backslash = 'trailingBackslash';
 
+  var xhr;
+
   // Do not begin tests until the test locale has been loaded.
   suiteSetup(function(done) {
-    var xhr = sinon.useFakeXMLHttpRequest();
+    xhr = sinon.useFakeXMLHttpRequest();
 
     xhr.onCreate = function(request) {
       setTimeout(function() {
@@ -62,7 +63,9 @@ suite('L10n', function() {
     _translate = navigator.mozL10n.translate;
     _localize = navigator.mozL10n.localize;
 
-    var lang = 'en-US';
+    // en-US has already been loaded in setup.js and l10n.js is smart enough
+    // not to re-fetch resources;  hence, set the lang to something new
+    var lang = 'fr';
 
     var inline = document.createElement('script');
     inline.setAttribute('type', 'application/l10n');
@@ -73,11 +76,14 @@ suite('L10n', function() {
     navigator.mozL10n.language.code = lang;
     navigator.mozL10n.ready(function suiteSetup_ready() {
       // Make sure to remove this event listener in case we re-translate
-      // below.  The xhr mock won't exist any more.
+      // below.
       window.removeEventListener('localized', suiteSetup_ready);
-      xhr.restore();
       done();
     });
+  });
+
+  suiteTeardown(function() {
+    xhr.restore();
   });
 
   suite('get', function() {
@@ -240,7 +246,7 @@ suite('L10n', function() {
     test('inline translation', function(done) {
       elem.dataset.l10nId = 'inline-translation-test';
       assert.equal(elem.textContent, '');
-      setLang('en-US', done, function() {
+      setLang('zh-TW', done, function() {
         assert.equal(elem.textContent,
             'static content provided by inlined JSON');
         done();
@@ -250,7 +256,7 @@ suite('L10n', function() {
     test('downloaded translation', function(done) {
       elem.dataset.l10nId = 'cropimage';
       assert.equal(elem.textContent, '');
-      setLang('en-US', done, function() {
+      setLang('ar', done, function() {
         assert.equal(elem.textContent, 'Crop');
         done();
       });

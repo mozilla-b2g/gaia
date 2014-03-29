@@ -255,8 +255,8 @@ apps/gallery/test/unit/GestureDetector_test.js
 apps/gallery/test/unit/asyncStorage_test.js
 apps/gallery/test/unit/format_test.js
 apps/gallery/test/unit/input_parser_test.js
-apps/gallery/test/unit/l10n_date_test.js
-apps/gallery/test/unit/l10n_test.js
+apps/gallery/test/unit/l10n/l10n_date_test.js
+apps/gallery/test/unit/l10n/l10n_test.js
 apps/gallery/test/unit/lazy_loader_test.js
 apps/gallery/test/unit/mediadb_test.js
 apps/gallery/test/unit/mime_mapper_test.js
@@ -710,7 +710,6 @@ shared/js/fb/fb_reader_utils.js
 shared/js/fb/fb_request.js
 shared/js/fxa_iac_client.js
 shared/js/keyboard_helper.js
-shared/js/l10n.js
 shared/js/lockscreen_slide.js
 shared/js/media/get_video_rotation.js
 shared/js/media/jpeg_metadata_parser.js
