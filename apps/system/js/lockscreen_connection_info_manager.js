@@ -7,7 +7,12 @@
     'pukRequired': 'emergencyCallsOnly-pukRequired',
     'networkLocked': 'emergencyCallsOnly-networkLocked',
     'serviceProviderLocked': 'emergencyCallsOnly-serviceProviderLocked',
-    'corporateLocked': 'emergencyCallsOnly-corporateLocked'
+    'corporateLocked': 'emergencyCallsOnly-corporateLocked',
+    'network1Locked': 'emergencyCallsOnly-network1Locked',
+    'network2Locked': 'emergencyCallsOnly-network2Locked',
+    'hrpdNetworkLocked' : 'emergencyCallsOnly-hrpdNetworkLocked',
+    'ruimCorporateLocked' : 'emergencyCallsOnly-ruimCorporateLocked',
+    'ruimServiceProviderLocked' : 'emergencyCallsOnly-ruimServiceProviderLocked'
   };
 
   /*

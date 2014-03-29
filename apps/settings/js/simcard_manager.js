@@ -308,7 +308,12 @@
         'pukRequired',
         'networkLocked',
         'serviceProviderLocked',
-        'corporateLocked'
+        'corporateLocked',
+        'network1Locked',
+        'network2Locked',
+        'hrpdNetworkLocked',
+        'ruimCorporateLocked',
+        'ruimServiceProviderLocked'
       ];
 
       // make sure the card is in locked mode or not

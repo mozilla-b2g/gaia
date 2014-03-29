@@ -47,7 +47,9 @@ var SimManager = (function() {
 
   // mozIcc.cardState values for a locked SIM
   var lockStates = ['pinRequired', 'pukRequired', 'networkLocked',
-                   'corporateLocked', 'serviceProviderLocked'];
+                   'corporateLocked', 'serviceProviderLocked', 'network1Locked',
+                   'network2Locked', 'hrpdNetworkLocked', 'ruimCorporateLocked',
+                   'ruimServiceProviderLocked'];
 
   return {
   icc0: null,
@@ -176,6 +178,11 @@ var SimManager = (function() {
   *   'networkLocked',
   *   'corporateLocked',
   *   'serviceProviderLocked',
+  *   'network1Locked',
+  *   'network2Locked',
+  *   'hrpdNetworkLocked',
+  *   'ruimCorporateLocked',
+  *   'ruimServiceProviderLocked'
   *   'ready'.
   */
   handleCardState: function sm_handleCardState(callback, skipUnlockScreen) {
@@ -239,6 +246,11 @@ var SimManager = (function() {
       case 'networkLocked':
       case 'corporateLocked':
       case 'serviceProviderLocked':
+      case 'network1Locked':
+      case 'network2Locked':
+      case 'hrpdNetworkLocked':
+      case 'ruimCorporateLocked':
+      case 'ruimServiceProviderLocked':
         this.showXckScreen(icc);
         break;
       default:
@@ -357,6 +369,21 @@ var SimManager = (function() {
       case 'serviceProviderLocked':
         lockType = 'spck';
         break;
+      case 'network1Locked':
+        lockType = 'nck1';
+        break;
+      case 'network2Locked':
+        lockType = 'nck2';
+        break;
+      case 'hrpdNetworkLocked':
+        lockType = 'hnck';
+        break;
+      case 'ruimCorporateLocked':
+        lockType = 'rcck';
+        break;
+      case 'ruimServiceProviderLocked':
+        lockType = 'rspck';
+        break;
       default:
         return; // We shouldn't be here.
     }
@@ -387,6 +414,36 @@ var SimManager = (function() {
         UIManager.unlockSimHeader.textContent = _('spckcodeTitle',
                                                   {n: simNumber});
         UIManager.xckLabel.textContent = _('spckcodeLabel',
+                                           {n: simNumber});
+        break;
+      case 'network1Locked':
+        UIManager.unlockSimHeader.textContent = _('nck1codeTitle',
+                                                  {n: simNumber});
+        UIManager.xckLabel.textContent = _('nck1codeLabel',
+                                           {n: simNumber});
+        break;
+      case 'network2Locked':
+        UIManager.unlockSimHeader.textContent = _('nck2codeTitle',
+                                                  {n: simNumber});
+        UIManager.xckLabel.textContent = _('nck2codeLabel',
+                                           {n: simNumber});
+        break;
+      case 'hrpdNetworkLocked':
+        UIManager.unlockSimHeader.textContent = _('hnckcodeTitle',
+                                                  {n: simNumber});
+        UIManager.xckLabel.textContent = _('hnckcodeLabel',
+                                           {n: simNumber});
+        break;
+      case 'ruimCorporateLocked':
+        UIManager.unlockSimHeader.textContent = _('rcckcodeTitle',
+                                                  {n: simNumber});
+        UIManager.xckLabel.textContent = _('rcckcodeLabel',
+                                           {n: simNumber});
+        break;
+      case 'ruimServiceProviderLocked':
+        UIManager.unlockSimHeader.textContent = _('rspckcodeTitle',
+                                                  {n: simNumber});
+        UIManager.xckLabel.textContent = _('rspckcodeLabel',
                                            {n: simNumber});
         break;
     }
@@ -464,6 +521,11 @@ var SimManager = (function() {
       case 'networkLocked':
       case 'corporateLocked':
       case 'serviceProviderLocked':
+      case 'network1Locked':
+      case 'network2Locked':
+      case 'hrpdNetworkLocked':
+      case 'ruimCorporateLocked':
+      case 'ruimServiceProviderLocked':
         this.unlockXck(icc);
         break;
     }
@@ -550,6 +612,21 @@ var SimManager = (function() {
         break;
       case 'serviceProviderLocked':
         lockType = 'spck';
+        break;
+      case 'network1Locked':
+        lockType = 'nck1';
+        break;
+      case 'network2Locked':
+        lockType = 'nck2';
+        break;
+      case 'hrpdNetworkLocked':
+        lockType = 'hnck';
+        break;
+      case 'ruimCorporateLocked':
+        lockType = 'rcck';
+        break;
+      case 'ruimServiceProviderLocked':
+        lockType = 'rspck';
         break;
     }
     if (xck.length < 8 || xck.length > 16) {

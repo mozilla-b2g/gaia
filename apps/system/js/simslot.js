@@ -9,7 +9,12 @@
     'pukRequired': true,
     'networkLocked': true,
     'corporateLocked': true,
-    'serviceProviderLocked': true
+    'serviceProviderLocked': true,
+    'network1Locked': true,
+    'network2Locked': true,
+    'hrpdNetworkLocked': true,
+    'ruimCorporateLocked': true,
+    'ruimServiceProviderLocked': true
   };
   /**
    * SIMSlot is the API wrapper for each mobileConnection,

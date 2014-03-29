@@ -39,7 +39,12 @@ var SimPinDialog = {
     'pukRequired': 'puk',
     'networkLocked': 'nck',
     'corporateLocked': 'cck',
-    'serviceProviderLocked': 'spck'
+    'serviceProviderLocked': 'spck',
+    'network1Locked': 'nck1',
+    'network2Locked': 'nck2',
+    'hrpdNetworkLocked': 'hnck',
+    'ruimCorporateLocked': 'rcck',
+    'ruimServiceProviderLocked': 'rspck'
   },
 
   getNumberPasswordInputField: function spl_wrapNumberInput(name) {
