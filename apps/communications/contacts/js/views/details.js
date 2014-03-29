@@ -1,4 +1,18 @@
 'use strict';
+/* jshint nonew: false */
+/* global ActivityHandler */
+/* global COMMS_APP_ORIGIN */
+/* global Contacts */
+/* global ContactPhotoHelper */
+/* global fb */
+/* global LazyLoader */
+/* global MmiManager */
+/* global MozActivity */
+/* global MultiSimActionButton */
+/* global Normalizer */
+/* global SCALE_RATIO */
+/* global TelephonyHelper */
+/* global utils */
 
 var contacts = window.contacts || {};
 
@@ -13,7 +27,6 @@ contacts.Details = (function() {
   var contactData,
       contactDetails,
       listContainer,
-      star,
       detailsName,
       orgTitle,
       datesTemplate,
@@ -79,7 +92,7 @@ contacts.Details = (function() {
 
       Contacts.navigation.back(resetPhoto);
       // post message to parent page included Contacts app.
-      if (params['back_to_previous_tab'] === '1') {
+      if (params.back_to_previous_tab === '1') {
         var message = { 'type': 'contactsiframe', 'message': 'back' };
         window.parent.postMessage(message, COMMS_APP_ORIGIN);
       }
@@ -92,10 +105,6 @@ contacts.Details = (function() {
 
   var setContact = function cd_setContact(currentContact) {
     contactData = currentContact;
-  };
-
-  var setContainer = function cd_setContainer(container) {
-    listContainer = container;
   };
 
   var initPullEffect = function cd_initPullEffect(cover) {
@@ -200,7 +209,7 @@ contacts.Details = (function() {
     return (Array.isArray(contact.name) &&
             contact.name[0] &&
             contact.name[0].trim());
-  };
+  }
 
   //
   // Method that generates HTML markup for the contact
@@ -301,7 +310,7 @@ contacts.Details = (function() {
   };
 
   var renderOrg = function cd_renderOrg(contact) {
-    if (contact.org && contact.org.length > 0 && contact.org[0] != '') {
+    if (contact.org && contact.org.length > 0 && contact.org[0] !== '') {
       orgTitle.textContent = contact.org[0];
       orgTitle.className = '';
     } else {
@@ -315,8 +324,6 @@ contacts.Details = (function() {
       return;
     }
 
-    var f = new navigator.mozL10n.DateTimeFormat();
-    var dateFormat = _('dateFormat') || '%e %B';
     var dateString = '';
 
     var fields = ['bday', 'anniversary'];
@@ -369,10 +376,12 @@ contacts.Details = (function() {
       doDisableButton(linkButton);
     } else {
         var socialLabel = social.querySelector('#social-label');
-        if (socialLabel)
+        if (socialLabel) {
           socialLabel.textContent = _('facebook');
-          // Check whether the social buttons that require to be online
-          // should be there
+        }
+
+        // Check whether the social buttons that require to be online
+        // should be there
         disableButtons(social, socialButtonIds);
     }
 
@@ -455,11 +464,11 @@ contacts.Details = (function() {
 
       // Add event listeners to the phone template components
       var sendSmsButton = template.querySelector('#send-sms-button-' + tel);
-      sendSmsButton.dataset['tel'] = telField.value;
+      sendSmsButton.dataset.tel = telField.value;
       sendSmsButton.addEventListener('click', onSendSmsClicked);
 
       var callOrPickButton = template.querySelector('#call-or-pick-' + tel);
-      callOrPickButton.dataset['tel'] = telField.value;
+      callOrPickButton.dataset.tel = telField.value;
       setupPhoneButtonListener(callOrPickButton, telField.value);
 
       listContainer.appendChild(template);
@@ -481,7 +490,7 @@ contacts.Details = (function() {
         LazyLoader.load(['/shared/js/multi_sim_action_button.js'], function() {
           new MultiSimActionButton(button, call,
                                    'ril.telephony.defaultServiceId',
-                                   function() {return number});
+                                   function() { return number; });
         });
       }
     });
@@ -490,14 +499,14 @@ contacts.Details = (function() {
   // If we are currently handing an activity, send the phone
   // number as result of clicking in the phone button.
   function onPickNumber(evt) {
-    var number = evt.target.dataset['tel'];
+    var number = evt.target.dataset.tel;
     ActivityHandler.postPickSuccess({ number: number });
   }
 
   // If the phone number stored in a contact is a MMI code,
   // launch the dialer with that specific code.
   function onMMICode(evt) {
-    var number = evt.target.dataset['tel'];
+    var number = evt.target.dataset.tel;
     // For security reasons we cannot directly call MmiManager.send(). We
     // need to show the MMI number in the dialer instead.
     new MozActivity({
@@ -510,7 +519,7 @@ contacts.Details = (function() {
   }
 
   var onSendSmsClicked = function onSendSmsClicked(evt) {
-    var tel = evt.target.dataset['tel'];
+    var tel = evt.target.dataset.tel;
     Contacts.sendSms(tel);
   };
 
@@ -521,18 +530,18 @@ contacts.Details = (function() {
     var emailLength = Contacts.getLength(contact.email);
     for (var email = 0; email < emailLength; email++) {
       var currentEmail = contact.email[email];
-      var escapedType = Normalizer.escapeHTML(currentEmail['type'], true);
+      var escapedType = Normalizer.escapeHTML(currentEmail.type, true);
       var emailField = {
-        value: Normalizer.escapeHTML(currentEmail['value'], true) || '',
+        value: Normalizer.escapeHTML(currentEmail.value, true) || '',
         type: _(escapedType) || escapedType || DEFAULT_EMAIL_TYPE,
-        'type_l10n_id': currentEmail['type'],
+        'type_l10n_id': currentEmail.type,
         i: email
       };
       var template = utils.templates.render(emailsTemplate, emailField);
 
       // Add event listeners to the phone template components
       var emailButton = template.querySelector('#email-or-pick-' + email);
-      emailButton.dataset['email'] = emailField.value;
+      emailButton.dataset.email = emailField.value;
       emailButton.addEventListener('click', onEmailOrPickClick);
 
       listContainer.appendChild(template);
@@ -541,7 +550,7 @@ contacts.Details = (function() {
 
   var onEmailOrPickClick = function onEmailOrPickClick(evt) {
     evt.preventDefault();
-    var email = evt.target.dataset['email'];
+    var email = evt.target.dataset.email;
     Contacts.sendEmailOrPick(email);
     return false;
   };
@@ -557,14 +566,14 @@ contacts.Details = (function() {
         'locality', 'countryName'])) {
         continue;
       }
-      var address = currentAddress['streetAddress'] || '';
+      var address = currentAddress.streetAddress || '';
       var escapedStreet = Normalizer.escapeHTML(address, true);
-      var locality = currentAddress['locality'];
+      var locality = currentAddress.locality;
       var escapedLocality = Normalizer.escapeHTML(locality, true);
-      var escapedType = Normalizer.escapeHTML(currentAddress['type'], true);
-      var country = currentAddress['countryName'] || '';
+      var escapedType = Normalizer.escapeHTML(currentAddress.type, true);
+      var country = currentAddress.countryName || '';
       var escapedCountry = Normalizer.escapeHTML(country, true);
-      var postalCode = currentAddress['postalCode'] || '';
+      var postalCode = currentAddress.postalCode || '';
       var escapedPostalCode = Normalizer.escapeHTML(postalCode, true);
 
       var addressField = {
@@ -574,7 +583,7 @@ contacts.Details = (function() {
         countryName: escapedCountry,
         type: _(escapedType) || escapedType ||
                                         TAG_OPTIONS['address-type'][0].value,
-        'type_l10n_id': currentAddress['type'],
+        'type_l10n_id': currentAddress.type,
         i: i
       };
       var template = utils.templates.render(addressesTemplate, addressField);

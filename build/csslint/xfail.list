@@ -24,7 +24,7 @@ apps/communications/dialer/style/keypad.css 0 1
 apps/communications/dialer/style/call_log.css 0 3
 apps/communications/dialer/style/dialer.css 0 3
 apps/communications/contacts/style/overlay.css 0 1
-apps/communications/contacts/style/contacts.css 0 6
+apps/communications/contacts/style/contacts.css 0 5
 apps/communications/contacts/style/status.css 0 1
 apps/communications/contacts/style/matching_contacts.css 0 3
 apps/communications/contacts/style/search.css 0 3
