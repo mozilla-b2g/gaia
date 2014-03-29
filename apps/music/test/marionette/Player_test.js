@@ -1,6 +1,8 @@
 /* global require, marionette, setup, suite, test, __dirname */
 'use strict';
 
+// This test is disabled in travis, bug 989644
+
 var assert = require('assert');
 var Music = require('./lib/music.js');
 var FakeRingtones = require('./lib/fakeringtones.js');
