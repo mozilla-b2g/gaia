@@ -1,4 +1,4 @@
-/* globals Contacts, _, utils, contactsRemover */
+/* globals Contacts, _, utils, ContactsRemover */
 'use strict';
 
 var contacts = window.contacts || {};
@@ -20,7 +20,7 @@ contacts.BulkDelete = (function() {
     return response;
   };
 
-  var doDelete = function doDelete(ids) {
+  var doDelete = function doDelete(ids, fbIds) {
     cancelled = false;
     var progress = utils.overlay.show(_('DeletingContacts'), 'progressBar');
     progress.setTotal(ids.length);
@@ -31,8 +31,8 @@ contacts.BulkDelete = (function() {
       contactsRemoverObj.finish();
     };
 
-    var contactsRemoverObj = new contactsRemover();
-    contactsRemoverObj.init(ids, function onInitDone() {
+    var contactsRemoverObj = new ContactsRemover();
+    contactsRemoverObj.init(ids, fbIds, function onInitDone() {
       contactsRemoverObj.start();
     });
 
@@ -70,11 +70,11 @@ contacts.BulkDelete = (function() {
   var performDelete = function performDelete(promise) {
     requireOverlay(function onOverlay() {
       utils.overlay.show(_('preparing-contacts'), 'spinner');
-      promise.onsuccess = function onSucces(ids) {
+      promise.onsuccess = function onSuccess(ids, fbIds) {
         Contacts.hideOverlay();
         var confirmDelete = showConfirm(ids.length);
         if (confirmDelete) {
-          doDelete(ids);
+          doDelete(ids, fbIds);
         } else {
           Contacts.showStatus(_('BulkDelCancel'));
         }
@@ -91,4 +91,3 @@ contacts.BulkDelete = (function() {
   };
 
 })();
-

@@ -44,7 +44,8 @@ contacts.List = (function() {
       boundSelectAction4Close = null,
       // Dictionary by contact id with the rows on screen
       rowsOnScreen = {},
-      selectedContacts = {};
+      selectedContacts = {},
+      selectedFbContacts = {};
 
   // Key on the async Storage
   var ORDER_KEY = 'order.lastname';
@@ -1227,6 +1228,7 @@ contacts.List = (function() {
     toggleNoContactsScreen(showNoContacts);
 
     delete selectedContacts[id];
+    delete selectedFbContacts[id];
   };
 
   var getStringToBeOrdered = function getStringToBeOrdered(contact, display) {
@@ -1438,9 +1440,13 @@ contacts.List = (function() {
     }
 
     var ids = [];
+    var fbIds = [];
     for (var id in selectedContacts) {
       if (selectedContacts[id]) {
         ids.push(id);
+      }
+      if (selectedFbContacts[id]) {
+        fbIds.push(id);
       }
     }
 
@@ -1449,7 +1455,7 @@ contacts.List = (function() {
     }
 
     action(selectionPromise);
-    selectionPromise.resolve(ids);
+    selectionPromise.resolve(ids, fbIds);
   };
 
   /*
@@ -1511,10 +1517,11 @@ contacts.List = (function() {
     var promise = {
       canceled: false,
       _selected: [],
+      _fbSelected: [],
       resolved: false,
       successCb: null,
       errorCb: null,
-      resolve: function resolve(values) {
+      resolve: function resolve(values, fbValues) {
         var self = this;
         setTimeout(function onResolve() {
           // If we have the values parameter we can directly
@@ -1523,7 +1530,7 @@ contacts.List = (function() {
             self._selected = values;
             self.resolved = true;
             if (self.successCb) {
-              self.successCb(values);
+              self.successCb(values, fbValues);
             }
             return;
           }
@@ -1544,12 +1551,15 @@ contacts.List = (function() {
               if (notSelectedCount == 0 ||
                 notSelectedIds[contact.id] == undefined) {
                 self._selected.push(contact.id);
+                if (fb.isFbContact(contact)) {
+                  self._fbSelected.push(contact.id);
+                }
               }
             });
 
             self.resolved = true;
             if (self.successCb) {
-              self.successCb(self._selected);
+              self.successCb(self._selected, self._fbSelected);
             }
           };
           request.onerror = function onError() {
@@ -1724,7 +1734,12 @@ contacts.List = (function() {
 
   // Given a row, and the contact id, setup the value of the selection check
   var updateSingleRowSelection = function updateSingleRowSelection(row, id) {
-    var id = id || row.dataset.uuid;
+    id = id || row.dataset.uuid;
+    // check whether it is a Facebook Contact or not
+    if (row.dataset.fbUid) {
+      selectedFbContacts[id] = selectedContacts[id];
+    }
+
     var check = row.querySelector('input[value="' + id + '"]');
     if (!check) {
       return;
@@ -1742,6 +1757,9 @@ contacts.List = (function() {
   var deselectAllContacts = function deselectAllContacts() {
     for (var id in selectedContacts) {
       selectedContacts[id] = false;
+      if (selectedFbContacts[id]) {
+        selectedFbContacts[id] = false;
+      }
     }
   };
 

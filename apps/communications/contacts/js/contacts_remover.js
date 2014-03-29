@@ -1,4 +1,5 @@
-/* globals mozContact, fb */
+/* globals mozContact, fb, contacts */
+/* exported ContactsRemover */
 'use strict';
 
 /*
@@ -10,7 +11,7 @@
  *   - onError: Error while deleting contacts.
  */
 
-function contactsRemover() {
+function ContactsRemover() {
 
   var totalRemoved = 0;
   var totalSelected = 0;
@@ -18,12 +19,15 @@ function contactsRemover() {
   /*jshint validthis:true */
   var self = this;
   var ids;
+  var fbIds;
 
-  this.init = function(cIds, cb) {
+  this.init = function(cIds, pfbIds, cb) {
     if (cIds === null || cIds.length === 0) {
       return;
     }
     ids = cIds;
+    fbIds = pfbIds;
+
     cb();
   };
 
@@ -89,25 +93,38 @@ function contactsRemover() {
   }
 
   function deleteContact(currentID) {
+    var outreq = {
+      onSuccess: null,
+      onError: null
+    };
+
+    function successCb() {
+      outreq.onSuccess();
+    }
+
+    function errorCb() {
+      outreq.onError();
+    }
+
     var request;
-    var outreq = {onSuccess: null, onError: null};
+
     var contact = new mozContact();
     contact.id = currentID;
 
-    if (fb.isFbContact(contact)) {
-      var fbContact = new fb.Contact(contact);
-      request = fbContact.remove();
+    if (fbIds.indexOf(currentID) !== -1) {
+      contacts.List.getContactById(currentID, function(contactData) {
+        var fbContact = new fb.Contact(contactData);
+        request = fbContact.remove();
+
+        request.onsuccess = successCb;
+        request.onerror = errorCb;
+      });
     } else {
       request = navigator.mozContacts.remove(contact);
+      request.onsuccess = successCb;
+      request.onerror = errorCb;
     }
-    request.onsuccess = function() {
-      outreq.onSuccess();
-    };
-    request.onerror = function() {
-      outreq.onError();
-    };
+
     return outreq;
   }
 }
-
-window.contactsRemover = contactsRemover;

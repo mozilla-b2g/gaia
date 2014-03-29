@@ -1,6 +1,6 @@
 /*jshint node: true, browser: true */
 /* globals MockContactsList, MockMozContacts, Mockfb,
-MocksHelper, contactsRemover, contacts, MockContactsSettings */
+MocksHelper, ContactsRemover, contacts, MockContactsSettings */
 
 'use strict';
 
@@ -109,7 +109,7 @@ suite('Multiple Contacts Delete', function() {
   });
 
   setup(function() {
-    subject = new contactsRemover();
+    subject = new ContactsRemover();
   });
 
 
