@@ -121,7 +121,7 @@ function execute(options) {
    'app.launch_path.blacklist': [],
    'app.reportCrashes': 'ask',
    'app.update.interval': 86400,
-   'apz.force-enable': false,
+   'apz.force-enable': true,
    'audio.volume.alarm': 15,
    'audio.volume.bt_sco': 15,
    'audio.volume.dtmf': 15,
