@@ -42,6 +42,7 @@
  *
  */
 Calendar.EventMutations = (function() {
+  'use strict';
 
   var Calc = Calendar.Calc;
 
