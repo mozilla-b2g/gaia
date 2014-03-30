@@ -66,7 +66,7 @@ function SystemDialog(id, options) {
       case 'home':
       case 'holdhome':
         // Automatically hide the dialog on home button press
-        if (SystemScreen.isVisible(screenName)) {
+        if (SystemScreen.isVisible(screenName) && !SimPinDialog.visible) {
           hide(evt.type);
           // Prevent AppWindowManager to shift homescreen to the first page
           // when the dialog is on top of the homescreen
