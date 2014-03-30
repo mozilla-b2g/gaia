@@ -15,7 +15,7 @@ marionette('week view', function() {
     app.findElement('weekButton').click();
   });
 
-  test('multiple months (eg. "Dec 2013 Jan 2014")', function() {
+  test.skip('multiple months (eg. "Dec 2013 Jan 2014")', function() {
     // match the header on a multi week view, we just check for 2 dates since
     // month names will have different patterns on each locale
     var multiMonthPattern = /\d{4}.+\d{4}$/;
