@@ -6,16 +6,17 @@ define(function(require, exports, module) {
  */
 
 var performanceTesting = require('performanceTesting');
+var NotificationView = require('views/notification');
 var ViewfinderView = require('views/viewfinder');
+var orientation = require('lib/orientation');
 var ControlsView = require('views/controls');
 var FocusRing = require('views/focus-ring');
+var ZoomBarView = require('views/zoom-bar');
 var lockscreen = require('lib/lock-screen');
 var constants = require('config/camera');
-var broadcast = require('lib/broadcast');
 var bindAll = require('lib/bind-all');
 var model = require('vendor/model');
 var debug = require('debug')('app');
-var LazyL10n = require('LazyL10n');
 var HudView = require('views/hud');
 var bind = require('lib/bind');
 var dcf = require('lib/dcf');
@@ -55,7 +56,6 @@ function App(options) {
   this.inSecureMode = (this.win.location.hash === '#secure');
   this.controllers = options.controllers;
   this.geolocation = options.geolocation;
-  this.filmstrip = options.filmstrip;
   this.activity = options.activity;
   this.config = options.config;
   this.settings = options.settings;
@@ -78,6 +78,7 @@ App.prototype.boot = function() {
   this.injectViews();
   this.bindEvents();
   this.miscStuff();
+  this.configureL10n();
   this.emit('boot');
   debug('booted');
 };
@@ -99,32 +100,43 @@ App.prototype.teardown = function() {
  */
 App.prototype.runControllers = function() {
   debug('running controllers');
-  this.filmstrip = this.filmstrip(this);
   this.controllers.settings(this);
   this.controllers.activity(this);
+  this.controllers.timer(this);
   this.controllers.camera(this);
   this.controllers.viewfinder(this);
+  this.controllers.recordingTimer(this);
+  this.controllers.indicators(this);
+  this.controllers.previewGallery(this);
   this.controllers.controls(this);
   this.controllers.confirm(this);
   this.controllers.overlay(this);
   this.controllers.sounds(this);
   this.controllers.hud(this);
+  this.controllers.zoomBar(this);
+  this.controllers.battery(this);
   debug('controllers run');
 };
 
 App.prototype.initializeViews = function() {
+  debug('initializing views');
   this.views.viewfinder = new ViewfinderView();
-  this.views.controls = new ControlsView();
   this.views.focusRing = new FocusRing();
+  this.views.controls = new ControlsView();
   this.views.hud = new HudView();
+  this.views.zoomBar = new ZoomBarView();
+  this.views.notification = new NotificationView();
   debug('views initialized');
 };
 
 App.prototype.injectViews = function() {
-  this.views.hud.appendTo(this.el);
-  this.views.controls.appendTo(this.el);
+  debug('injecting views');
   this.views.viewfinder.appendTo(this.el);
   this.views.focusRing.appendTo(this.el);
+  this.views.controls.appendTo(this.el);
+  this.views.hud.appendTo(this.el);
+  this.views.zoomBar.appendTo(this.el);
+  this.views.notification.appendTo(this.el);
   debug('views injected');
 };
 
@@ -137,9 +149,10 @@ App.prototype.bindEvents = function() {
   bind(this.doc, 'visibilitychange', this.onVisibilityChange);
   bind(this.win, 'beforeunload', this.onBeforeUnload);
   bind(this.el, 'click', this.onClick);
-  //this.on('change', this.onStateChange);
   this.on('focus', this.onFocus);
   this.on('blur', this.onBlur);
+  this.on('previewgallery:opened', lockscreen.enableTimeout);
+  this.on('previewgallery:closed', lockscreen.disableTimeout);
   debug('events bound');
 };
 
@@ -166,6 +179,7 @@ App.prototype.onFocus = function() {
   var ms = LOCATION_PROMPT_DELAY;
   setTimeout(this.geolocationWatch, ms);
   this.storage.check();
+  orientation.start();
   debug('focus');
 };
 
@@ -176,6 +190,7 @@ App.prototype.onFocus = function() {
 App.prototype.onBlur = function() {
   this.geolocation.stopWatching();
   this.activity.cancel();
+  orientation.stop();
   debug('blur');
 };
 
@@ -225,6 +240,23 @@ App.prototype.onBeforeUnload = function() {
 };
 
 /**
+ * Initialize l10n 'localized' listener.
+ *
+ * Sometimes it may have completed
+ * before we reach this point, meaning
+ * we will have missed the 'localized'
+ * event. In this case, we emit the
+ * 'localized' event manually.
+ *
+ * @private
+ */
+App.prototype.configureL10n = function() {
+  var complete = navigator.mozL10n.readyState === 'complete';
+  bind(this.win, 'localized', this.firer('localized'));
+  if (complete) { this.emit('localized'); }
+};
+
+/**
  * Miscalaneous tasks to be
  * run when the app first
  * starts.
@@ -253,37 +285,12 @@ App.prototype.miscStuff = function() {
   });
 
 
-  if (!navigator.mozCameras) {
-    // TODO: Need to clarify what we
-    // should do in this condition.
-  }
-
+  dcf.init();
   performanceTesting.dispatch('initialising-camera-preview');
 
   // Prevent the phone
   // from going to sleep.
   lockscreen.disableTimeout();
-
-  // This must be tidied, but the
-  // important thing is it's out
-  // of camera.js
-  LazyL10n.get(function() {
-    dcf.init();
-    performanceTesting.dispatch('startup-path-done');
-  });
-
-  // The screen wakelock should be on
-  // at all times except when the
-  // filmstrip preview is shown.
-  broadcast.on('filmstripItemPreview', function() {
-    lockscreen.enableTimeout();
-  });
-
-  // When the filmstrip preview is hidden
-  // we can enable the  again.
-  broadcast.on('filmstripPreviewHide', function() {
-    lockscreen.disableTimeout();
-  });
 
   debug('misc stuff done');
 };

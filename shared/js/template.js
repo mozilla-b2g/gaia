@@ -78,7 +78,7 @@
     priv.set(this, {
       tmpl: extract(idOrNode)
     });
-  };
+  }
 
   /**
    * template.toString()

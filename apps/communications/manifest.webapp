@@ -14,7 +14,8 @@
       "icons": {
         "60": "/dialer/style/icons/Dialer_60.png",
         "90": "/dialer/style/icons/Dialer_90.png",
-        "120": "/dialer/style/icons/Dialer_120.png"
+        "120": "/dialer/style/icons/Dialer_120.png",
+        "135": "/dialer/style/icons/Dialer_135.png"
       },
       "locales": {
         "ar": {
@@ -41,7 +42,8 @@
       "icons": {
         "60": "/contacts/style/icons/Contacts_60.png",
         "90": "/contacts/style/icons/Contacts_90.png",
-        "120": "/contacts/style/icons/Contacts_120.png"
+        "120": "/contacts/style/icons/Contacts_120.png",
+        "135": "/contacts/style/icons/Contacts_135.png"
       },
       "locales": {
         "ar": {
@@ -65,7 +67,25 @@
     "ftu": {
       "launch_path": "/ftu/index.html",
       "name": "FTU",
-      "fullscreen": "true"
+      "fullscreen": "true",
+      "locales": {
+        "ar": {
+          "name": "FTU",
+          "description": "FTU"
+        },
+        "en-US": {
+          "name": "FTU",
+          "description": "FTU"
+        },
+        "fr": {
+          "name": "FTU",
+          "description": "FTU"
+        },
+        "zh-TW": {
+          "name": "FTU",
+          "description": "FTU"
+        }
+      }
     }
   },
   "permissions": {

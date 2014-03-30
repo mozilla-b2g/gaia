@@ -1,5 +1,6 @@
-
 'use strict';
+/* global MockDownload */
+/* exported MockMozDownloads */
 
 /*
  * This mockup needs to import as well:

@@ -30,6 +30,14 @@ function addNetworkUsageAlarm(dataInterface, dataLimit, callback) {
   }
 }
 
+function sendBalanceThresholdNotification(remaining, settings, callback) {
+  var handlerContainer = document.getElementById('message-handler');
+  if (handlerContainer) {
+    handlerContainer.contentWindow
+      .sendBalanceThresholdNotification(remaining, settings, callback);
+  }
+}
+
 // Next automatic reset date based on user preferences
 function updateNextReset(trackingPeriod, value, callback) {
   if (trackingPeriod === 'never') {
@@ -100,7 +108,8 @@ function resetData(mode, onsuccess, onerror) {
                                           .clearStats(currentSimcardInterface);
     mobileClearRequest.onerror = getOnErrorFor('simcard');
     mobileClearRequest.onsuccess = function _restoreDataLimitAlarm() {
-      ConfigManager.requestSettings(function _onSettings(settings) {
+      ConfigManager.requestSettings(Common.dataSimIccId,
+                                    function _onSettings(settings) {
         if (settings.dataLimit) {
           // Restore network alarm
           addNetworkUsageAlarm(currentSimcardInterface, getDataLimit(settings),
@@ -273,7 +282,8 @@ var Common = {
       return;
     }
 
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestSettings(Common.dataSimIccId,
+                                  function _onSettings(settings) {
       if (settings.nextReset) {
         setNextReset(settings.nextReset, callback);
         return;

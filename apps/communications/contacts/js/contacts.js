@@ -444,31 +444,6 @@ var Contacts = (function() {
       SmsIntegration.sendSms(number);
   };
 
-  var callOrPick = function callOrPick(number) {
-    LazyLoader.load(['/dialer/js/mmi.js',
-                     '/shared/js/sim_settings_helper.js'],
-                    function mmiLoaded() {
-      if (ActivityHandler.currentlyHandling &&
-          ActivityHandler.activityName !== 'open') {
-        ActivityHandler.postPickSuccess({ number: number });
-      } else if (MmiManager.isMMI(number)) {
-        // For security reasons we cannot directly call MmiManager.send(). We
-        // need to show the MMI number in the dialer instead.
-        new MozActivity({
-          name: 'dial',
-          data: {
-            type: 'webtelephony/number',
-            number: number
-          }
-        });
-      } else if (navigator.mozTelephony) {
-        SimSettingsHelper.getCardIndexFrom('outgoingCall', function(cardIndex) {
-          TelephonyHelper.call(number, cardIndex);
-        });
-      }
-    });
-  };
-
   var handleBack = function handleBack() {
     navigation.back();
   };
@@ -589,10 +564,14 @@ var Contacts = (function() {
       callback();
     } else {
       Contacts.view('Details', function viewLoaded() {
-        detailsReady = true;
-        contactsDetails = contacts.Details;
-        contactsDetails.init();
-        callback();
+        var simPickerNode = document.getElementById('sim-picker');
+        LazyLoader.load([simPickerNode], function() {
+          navigator.mozL10n.translate(simPickerNode);
+          detailsReady = true;
+          contactsDetails = contacts.Details;
+          contactsDetails.init();
+          callback();
+        });
       });
     }
   };
@@ -787,11 +766,13 @@ var Contacts = (function() {
           contactsList.getContactById(event.contactID,
             function success(contact, enrichedContact) {
               currentContact = contact;
-              var mergedContact = enrichedContact || contact;
-              contactsDetails.setContact(mergedContact);
-              contactsDetails.render(mergedContact, null, enrichedContact);
-              contactsList.refresh(mergedContact, checkPendingChanges,
+              if (contactsDetails) {
+                contactsDetails.render(currentContact, null, enrichedContact);
+              }
+              if (contactsList) {
+                contactsList.refresh(currentContact, checkPendingChanges,
                                    event.reason);
+              }
           });
         } else {
           contactsList.refresh(event.contactID, checkPendingChanges,
@@ -928,12 +909,15 @@ var Contacts = (function() {
     load('utilities', utility, callback);
   }
 
+  var updateSelectCountTitle = function updateSelectCountTitle(count) {
+    appTitleElement.textContent = _('SelectedTxt', {n: count});
+  };
+
   return {
     'goBack' : handleBack,
     'cancel': handleCancel,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
-    'callOrPick': callOrPick,
     'navigation': navigation,
     'sendEmailOrPick': sendEmailOrPick,
     'updatePhoto': updatePhoto,
@@ -956,6 +940,7 @@ var Contacts = (function() {
     'close': close,
     'view': loadView,
     'utility': loadUtility,
+    'updateSelectCountTitle': updateSelectCountTitle,
     get asyncScriptsLoaded() {
       return asyncScriptsLoaded;
     }

@@ -1,5 +1,5 @@
 /* global ConfirmDialog, MocksHelper, MockIccHelper, MockMozL10n,
-   MockMozMobileConnection, MockMozTelephony, MockNavigatorSettings,
+   MockMozMobileConnection, MockNavigatorMozTelephony, MockNavigatorSettings,
    MockTonePlayer, Promise, TelephonyHelper */
 
 'use strict';
@@ -9,8 +9,8 @@ requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 
-requireApp('communications/dialer/test/unit/mock_moztelephony.js');
 requireApp('communications/dialer/test/unit/mock_mozMobileConnection.js');
 requireApp('communications/dialer/test/unit/mock_icc_helper.js');
 requireApp('communications/dialer/test/unit/mock_tone_player.js');
@@ -45,7 +45,7 @@ suite('telephony helper', function() {
     navigator.mozSettings = MockNavigatorSettings;
 
     realMozTelephony = navigator.mozTelephony;
-    navigator.mozTelephony = MockMozTelephony;
+    navigator.mozTelephony = MockNavigatorMozTelephony;
 
     realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnection = MockMozMobileConnection;
@@ -67,12 +67,12 @@ suite('telephony helper', function() {
 
   setup(function() {
     spyConfirmShow = this.sinon.spy(ConfirmDialog, 'show');
-    mockTelephony = this.sinon.mock(MockMozTelephony);
+    mockTelephony = this.sinon.mock(MockNavigatorMozTelephony);
   });
 
   teardown(function() {
     MockMozMobileConnection.mTeardown();
-    MockMozTelephony.mTeardown();
+    MockNavigatorMozTelephony.mTeardown();
     MockNavigatorSettings.mTeardown();
   });
 
@@ -89,7 +89,7 @@ suite('telephony helper', function() {
 
   test('should not dial the same number twice', function() {
     var dialNumber = '0145345520';
-    MockMozTelephony.calls = [{number: dialNumber}];
+    MockNavigatorMozTelephony.calls = [{number: dialNumber}];
 
     mockTelephony.expects('dial').never();
     subject.call(dialNumber, 0);
@@ -153,10 +153,10 @@ suite('telephony helper', function() {
       hold: holdStub
     };
     var dialSpy = mockTelephony.expects('dial').withArgs('123456');
-    MockMozTelephony.active = mockActive;
+    MockNavigatorMozTelephony.active = mockActive;
 
     subject.call(dialNumber, 0);
-    delete MockMozTelephony.active;
+    delete MockNavigatorMozTelephony.active;
     mockActive.onheld();
     mockTelephony.verify();
 
@@ -168,24 +168,26 @@ suite('telephony helper', function() {
   function() {
     var dialNumber = '123456';
     var holdStub = this.sinon.stub();
-    MockMozTelephony.conferenceGroup.calls =
-                        [{number: '111111'}, {number: '222222'}];
-    MockMozTelephony.conferenceGroup.state = 'connected';
-    MockMozTelephony.conferenceGroup.hold = holdStub;
-    MockMozTelephony.active = MockMozTelephony.conferenceGroup;
+    MockNavigatorMozTelephony.conferenceGroup.calls =
+      [{number: '111111', serviceId: 0}, {number: '222222', serviceId: 0}];
+    MockNavigatorMozTelephony.conferenceGroup.state = 'connected';
+    MockNavigatorMozTelephony.conferenceGroup.hold = holdStub;
+    MockNavigatorMozTelephony.active =
+      MockNavigatorMozTelephony.conferenceGroup;
     var dialSpy = mockTelephony.expects('dial').withArgs('123456');
 
     subject.call(dialNumber, 0);
-    delete MockMozTelephony.active;
-    MockMozTelephony.conferenceGroup.onheld();
+    delete MockNavigatorMozTelephony.active;
+    MockNavigatorMozTelephony.conferenceGroup.onheld();
     mockTelephony.verify();
 
     assert.isTrue(holdStub.calledBefore(dialSpy));
-    assert.isNull(MockMozTelephony.conferenceGroup.onheld);
+    assert.isNull(MockNavigatorMozTelephony.conferenceGroup.onheld);
   });
 
   test('should not dial when call limit reached (2 normal call)', function() {
-    MockMozTelephony.calls = [{number: '111111'}, {number: '222222'}];
+    MockNavigatorMozTelephony.calls =
+      [{number: '111111', serviceId: 0}, {number: '222222', serviceId: 0}];
     subject.call('333333', 0);
     assert.isTrue(spyConfirmShow.calledWith('unableToCallTitle',
                                             'unableToCallMessage'));
@@ -193,12 +195,27 @@ suite('telephony helper', function() {
 
   test('should not dial when call limit reached (1 normal call + 1 group call)',
   function() {
-    MockMozTelephony.calls = [{number: '111111'}];
-    MockMozTelephony.conferenceGroup.calls =
-                            [{number: '222222'}, {number: '333333'}];
+    MockNavigatorMozTelephony.calls = [{number: '111111', serviceId: 0}];
+    MockNavigatorMozTelephony.conferenceGroup.calls =
+      [{number: '222222', serviceId: 0}, {number: '333333', serviceId: 0}];
     subject.call('444444', 0);
     assert.isTrue(spyConfirmShow.calledWith('unableToCallTitle',
                                             'unableToCallMessage'));
+  });
+
+  test('should return null serviceId - no call', function() {
+    assert.equal(subject.getInUseSim(), null);
+  });
+
+  test('should return call serviceId - call', function() {
+    MockNavigatorMozTelephony.calls = [{number: '111111', serviceId: 0}];
+    assert.equal(subject.getInUseSim(), 0);
+  });
+
+  test('should return call serviceId - conference call', function() {
+    MockNavigatorMozTelephony.conferenceGroup.calls =
+      [{number: '222222', serviceId: 0}, {number: '333333', serviceId: 0}];
+    assert.equal(subject.getInUseSim(), 0);
   });
 
   test('should display an error if there is no network', function() {
@@ -221,7 +238,7 @@ suite('telephony helper', function() {
 
     setup(function() {
       mockCall = {};
-      this.sinon.stub(MockMozTelephony, 'dial').returns(mockCall);
+      this.sinon.stub(MockNavigatorMozTelephony, 'dial').returns(mockCall);
     });
 
     test('should trigger oncall as soon as we get a call object',
@@ -259,7 +276,7 @@ suite('telephony helper', function() {
     setup(function() {
       mockCall = {};
       mockPromise = Promise.resolve(mockCall);
-      this.sinon.stub(MockMozTelephony, 'dial').returns(mockPromise);
+      this.sinon.stub(MockNavigatorMozTelephony, 'dial').returns(mockPromise);
     });
 
     test('should trigger oncall as soon as we get a call object',
@@ -300,8 +317,9 @@ suite('telephony helper', function() {
     var mockCall;
     setup(function() {
       mockCall = {};
-      this.sinon.stub(MockMozTelephony, 'dial').returns(mockCall);
-      this.sinon.stub(MockMozTelephony, 'dialEmergency').returns(mockCall);
+      this.sinon.stub(MockNavigatorMozTelephony, 'dial').returns(mockCall);
+      this.sinon.stub(
+        MockNavigatorMozTelephony, 'dialEmergency').returns(mockCall);
     });
 
     suite('BadNumberError handle', function() {
@@ -373,8 +391,10 @@ suite('telephony helper', function() {
       setup(function() {
         mockCall = {};
         mockPromise = Promise.resolve(mockCall);
-        this.sinon.stub(MockMozTelephony, 'dial').returns(mockPromise);
-        this.sinon.stub(MockMozTelephony, 'dialEmergency').returns(mockPromise);
+        this.sinon.stub(
+          MockNavigatorMozTelephony, 'dial').returns(mockPromise);
+        this.sinon.stub(
+          MockNavigatorMozTelephony, 'dialEmergency').returns(mockPromise);
       });
 
       // BadNumberError can come from the network
@@ -444,16 +464,15 @@ suite('telephony helper', function() {
                                        'emergencyDialogBodyDeviceNotAccepted'));
         }).then(done, done);
       });
-
     });
 
     suite('promise errors', function() {
       var mockPromise;
 
       setup(function() {
-        this.sinon.stub(MockMozTelephony, 'dial',
+        this.sinon.stub(MockNavigatorMozTelephony, 'dial',
                         function() { return mockPromise;});
-        this.sinon.stub(MockMozTelephony, 'dialEmergency',
+        this.sinon.stub(MockNavigatorMozTelephony, 'dialEmergency',
                         function() { return mockPromise;});
       });
 
@@ -489,6 +508,15 @@ suite('telephony helper', function() {
         }).then(done, done);
       });
 
+      test('should handle OtherConnectionInUse', function(done) {
+        mockPromise = Promise.reject('OtherConnectionInUse');
+        subject.call('123', 0);
+        mockPromise.catch(function() {
+          sinon.assert.calledWith(spyConfirmShow, 'otherConnectionInUseTitle',
+                                                 'otherConnectionInUseMessage');
+        }).then(done, done);
+      });
+
       test('should handle unknown errors', function(done) {
         mockPromise = Promise.reject('Gloubiboulga');
         var onerrorSpy = this.sinon.spy();
@@ -503,7 +531,7 @@ suite('telephony helper', function() {
   });
 
   test('should display a message if we didn\'t get a call back', function() {
-    this.sinon.stub(MockMozTelephony, 'dial').returns(null);
+    this.sinon.stub(MockNavigatorMozTelephony, 'dial').returns(null);
     subject.call('123', 0);
     assert.isTrue(spyConfirmShow.calledWith('unableToCallTitle',
                                             'unableToCallMessage'));
@@ -512,7 +540,7 @@ suite('telephony helper', function() {
   test('should display a message if we didn\'t get a call back,promise edition',
        function(done) {
     var mockPromise = Promise.reject();
-    this.sinon.stub(MockMozTelephony, 'dial').returns(mockPromise);
+    this.sinon.stub(MockNavigatorMozTelephony, 'dial').returns(mockPromise);
     subject.call('123', 0);
     mockPromise.catch(function() {
       assert.isTrue(spyConfirmShow.calledWith('unableToCallTitle',
@@ -521,7 +549,7 @@ suite('telephony helper', function() {
   });
 
   test('should dial with correct card index', function() {
-    var dialSpy = this.sinon.stub(MockMozTelephony, 'dial');
+    var dialSpy = this.sinon.stub(MockNavigatorMozTelephony, 'dial');
     subject.call('123', 1);
     sinon.assert.calledWith(dialSpy, '123', 1);
   });

@@ -1,4 +1,5 @@
 Calendar.ns('Views').ViewEvent = (function() {
+  'use strict';
 
   function ViewEvent(options) {
     Calendar.Views.EventBase.apply(this, arguments);
@@ -44,10 +45,7 @@ Calendar.ns('Views').ViewEvent = (function() {
      * @param {Boolean} boolean true/false.
      */
     _markReadonly: function(boolean) {
-      if (boolean)
-        this.primaryButton.disabled = true;
-      else
-        this.primaryButton.disabled = false;
+      this.primaryButton.disabled = boolean;
     },
 
     /**
@@ -56,7 +54,7 @@ Calendar.ns('Views').ViewEvent = (function() {
      */
     setContent: function(element, content, method) {
       method = method || 'textContent';
-      var element = this.getEl(element);
+      element = this.getEl(element);
       element.querySelector('.content')[method] = content;
 
       if (!content) {
@@ -74,8 +72,9 @@ Calendar.ns('Views').ViewEvent = (function() {
     },
 
     formatTime: function(time) {
-      if (!time)
+      if (!time) {
         return '';
+      }
 
       return Calendar.App.dateFormat.localeFormat(
         time,
@@ -135,6 +134,7 @@ Calendar.ns('Views').ViewEvent = (function() {
 
         var alarmDescription = Calendar.Templates.Alarm.description;
 
+        //jshint boss:true
         for (var i = 0, alarm; alarm = this.event.alarms[i]; i++) {
           alarmContent += '<div>' +
             alarmDescription.render({

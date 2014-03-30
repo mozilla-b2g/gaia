@@ -336,7 +336,7 @@ contacts.Matcher = (function() {
                 results[aId] = nameResults[aId];
               }
               else {
-                results[aId].matchings['name']  =
+                results[aId].matchings['name'] =
                                           nameResults[aId].matchings['name'];
               }
             });

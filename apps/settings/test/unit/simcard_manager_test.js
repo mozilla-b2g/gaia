@@ -1,5 +1,5 @@
 /* global mocha, MockL10n, MockTemplate, MockSimUIModel,
-   SimUIModel, MockSimSettingsHelper, SimCardManager,
+   SimUIModel, MockSimSettingsHelper, SimCardManager, SimSettingsHelper,
    MockNavigatorMozIccManager, MockNavigatorMozMobileConnections,
    MockMobileOperator, MockNavigatorSettings, MockAirplaneModeHelper, test,
    requireApp, suite, suiteTeardown, suiteSetup, setup, assert, sinon */
@@ -123,6 +123,83 @@ suite('SimCardManager > ', function() {
     stubById.restore();
   });
 
+  suite('addOutgoingDataSelectEvent > ', function() {
+    var select;
+
+    function triggerEventOnSelect(evtName) {
+      if (select.addEventListener.withArgs(evtName)) {
+        var cb = select.addEventListener.withArgs(evtName).args[0][1];
+        cb.call(select);
+      }
+    }
+
+    setup(function() {
+      select = document.createElement('select');
+
+      [0, 1].forEach(function(index) {
+        var option = document.createElement('option');
+        option.text = index;
+        option.value = index;
+        if (index === 0) {
+          option.selected = true;
+        }
+        select.add(option);
+      });
+
+      SimCardManager.simManagerOutgoingDataSelect = select;
+      this.sinon.stub(select, 'addEventListener');
+      this.sinon.stub(SimSettingsHelper, 'setServiceOnCard');
+
+      SimCardManager.addOutgoingDataSelectEvent();
+    });
+
+    suite('if there is no change in option', function() {
+      setup(function() {
+        this.sinon.stub(window, 'confirm', function() {
+          return false;
+        });
+
+        triggerEventOnSelect('focus');
+        select.selectedIndex = 0;
+        triggerEventOnSelect('blur');
+      });
+      test('nothing happened', function() {
+        assert.isFalse(SimSettingsHelper.setServiceOnCard.called);
+      });
+    });
+
+    suite('if option is changed, but users don\'t confirm it', function() {
+      setup(function() {
+        this.sinon.stub(window, 'confirm', function() {
+          return false;
+        });
+
+        triggerEventOnSelect('focus');
+        select.selectedIndex = 1;
+        triggerEventOnSelect('blur');
+      });
+      test('we would set the select back to original value', function() {
+        assert.equal(select.selectedIndex, 0);
+        assert.isFalse(SimSettingsHelper.setServiceOnCard.called);
+      });
+    });
+
+    suite('if option is chagned, and users confirm it', function() {
+      setup(function() {
+        this.sinon.stub(window, 'confirm', function() {
+          return true;
+        });
+
+        triggerEventOnSelect('focus');
+        select.selectedIndex = 1;
+        triggerEventOnSelect('blur');
+      });
+      test('we would set cardIndex on mozSettings', function() {
+        assert.equal(select.selectedIndex, 1);
+        assert.isTrue(SimSettingsHelper.setServiceOnCard.called);
+      });
+    });
+  });
 
   // add test below
   suite('init > ', function() {
@@ -135,6 +212,7 @@ suite('SimCardManager > ', function() {
       this.sinon.stub(SimCardManager, 'addCardStateChangeEventOnIccs');
       this.sinon.stub(SimCardManager, 'addAirplaneModeChangeEvent');
       this.sinon.stub(SimCardManager, 'addVoiceChangeEventOnConns');
+      this.sinon.stub(SimCardManager, 'addOutgoingDataSelectEvent');
       SimCardManager.init();
     });
 
@@ -143,14 +221,10 @@ suite('SimCardManager > ', function() {
         SimCardManager.simManagerOutgoingCallSelect;
       var outgoingMessages =
         SimCardManager.simManagerOutgoingMessagesSelect;
-      var outgoingData =
-        SimCardManager.simManagerOutgoingDataSelect;
 
       assert.equal(outgoingCall.addEventListener.lastCall.args[0],
         'change');
       assert.equal(outgoingMessages.addEventListener.lastCall.args[0],
-        'change');
-      assert.equal(outgoingData.addEventListener.lastCall.args[0],
         'change');
     });
 
@@ -443,20 +517,20 @@ suite('SimCardManager > ', function() {
   suite('initSimCardManagerUI > ', function() {
     setup(function() {
       this.sinon.stub(SimCardManager, 'initSimCardsUI');
-      this.sinon.stub(SimCardManager, 'initSelectOptionsUI');
+      this.sinon.stub(SimCardManager, 'updateSelectOptionsUI');
       this.sinon.stub(SimCardManager, 'updateSimCardsUI');
       this.sinon.stub(SimCardManager, 'updateSimSecurityUI');
       SimCardManager.initSimCardManagerUI();
     });
     test('all related methods are exectued', function() {
       assert.ok(SimCardManager.initSimCardsUI.called);
-      assert.ok(SimCardManager.initSelectOptionsUI.called);
+      assert.ok(SimCardManager.updateSelectOptionsUI.called);
       assert.ok(SimCardManager.updateSimCardsUI.called);
       assert.ok(SimCardManager.updateSimSecurityUI.called);
     });
   });
 
-  suite('initSelectOptionUI > ', function() {
+  suite('updateSelectOptionUI > ', function() {
     var selectedIndex = 1;
     var fakeSelect;
 
@@ -468,19 +542,19 @@ suite('SimCardManager > ', function() {
     });
     test('if storageKey is outgoingCall, we would add "always ask" option',
       function() {
-        SimCardManager.initSelectOptionUI('outgoingCall',
+        SimCardManager.updateSelectOptionUI('outgoingCall',
           selectedIndex, fakeSelect);
         assert.equal(fakeSelect.length, 3);
     });
     test('if storageKey is outgoingMessages, we would add "always ask" option',
       function() {
-        SimCardManager.initSelectOptionUI('outgoingMessages',
+        SimCardManager.updateSelectOptionUI('outgoingMessages',
           selectedIndex, fakeSelect);
         assert.equal(fakeSelect.length, 3);
     });
     test('if storageKey is outgoingData, we won\'t add "always ask" option',
       function() {
-        SimCardManager.initSelectOptionUI('outgoingData',
+        SimCardManager.updateSelectOptionUI('outgoingData',
           selectedIndex, fakeSelect);
         assert.equal(fakeSelect.length, 2);
     });
@@ -550,6 +624,38 @@ suite('SimCardManager > ', function() {
         assert.equal('false',
           SimCardManager.simManagerSecurityEntry.getAttribute('aria-disabled'));
       });
+    });
+  });
+
+  suite('We can change options when simcard is blocked', function() {
+    var fakeLockedIccId = '123456789';
+
+    suiteSetup(function() {
+      sinon.stub(SimCardManager, 'updateCardStateWithUI');
+      sinon.stub(SimCardManager, 'updateSelectOptionsUI');
+
+      window.navigator.mozIccManager.addIcc(fakeLockedIccId, {
+        'cardState' : 'permanentBlocked'
+      });
+
+      SimCardManager.addChangeEventOnIccByIccId(fakeLockedIccId);
+
+      var callback =
+        window.navigator.mozIccManager.getIccById(
+          fakeLockedIccId
+        )._eventListeners.cardstatechange[0];
+      callback();
+    });
+
+    suiteTeardown(function() {
+      SimCardManager.updateCardStateWithUI.restore();
+      SimCardManager.updateSelectOptionsUI.restore();
+      window.navigator.mozIccManager.removeIcc(fakeLockedIccId);
+    });
+
+    test('change successfully', function() {
+      assert.isTrue(SimCardManager.updateCardStateWithUI.called);
+      assert.isTrue(SimCardManager.updateSelectOptionsUI.called);
     });
   });
 

@@ -77,10 +77,22 @@ var CardsView = (function() {
     return stringHTML;
   }
 
-  function fireCardViewShown() {
+  function fireEventNextTick(eventName) {
     setTimeout(function nextTick() {
-      window.dispatchEvent(new CustomEvent('cardviewshown'));
+      window.dispatchEvent(new CustomEvent(eventName));
     });
+  }
+
+  function fireCardViewBeforeShow() {
+    fireEventNextTick('cardviewbeforeshow');
+  }
+
+  function fireCardViewShown() {
+    fireEventNextTick('cardviewshown');
+  }
+
+  function fireCardViewBeforeClose() {
+    fireEventNextTick('cardviewbeforeclose');
   }
 
   function fireCardViewClosed(newStackPosition) {
@@ -146,8 +158,11 @@ var CardsView = (function() {
       SC_SCALE = 0.6;
     }
 
-    // Switch to homescreen
+    // Ensure homescreen is already faded when we switch to it.
+    fireCardViewBeforeShow();
+    // Now we can switch to the homescreen.
     AppWindowManager.display(null, null, 'to-cardview');
+    // Now we're showing!
     cardsViewShown = true;
 
     // First add an item to the cardsList for each running app
@@ -172,8 +187,8 @@ var CardsView = (function() {
     // Make sure we're in default orientation
     screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
-    // Make sure the keyboard isn't showing by blurring the active app.
-    if (stack.length) {
+    // If there is a displayed app, take keyboard focus away
+    if (currentPosition) {
       stack[currentPosition].blur();
     }
 
@@ -233,19 +248,19 @@ var CardsView = (function() {
 
         var subtitle = document.createElement('p');
         subtitle.textContent =
-          PopupManager.getOpenedOriginFromOpener(origin);
+          PopupManager.getOpenedOriginFromOpener(app.origin);
         card.appendChild(subtitle);
         card.classList.add('popup');
       } else if (getOffOrigin(app.iframe.dataset.url ?
-            app.iframe.dataset.url : app.iframe.src, origin)) {
+            app.iframe.dataset.url : app.iframe.src, app.origin)) {
         var subtitle = document.createElement('p');
         subtitle.textContent = getOffOrigin(app.iframe.dataset.url ?
-            app.iframe.dataset.url : app.iframe.src, origin);
+            app.iframe.dataset.url : app.iframe.src, app.origin);
         card.appendChild(subtitle);
       }
 
-      if (TrustedUIManager.hasTrustedUI(origin)) {
-        var popupFrame = TrustedUIManager.getDialogFromOrigin(origin);
+      if (TrustedUIManager.hasTrustedUI(app.origin)) {
+        var popupFrame = TrustedUIManager.getDialogFromOrigin(app.origin);
         frameForScreenshot = popupFrame.frame;
         var header = document.createElement('section');
         header.setAttribute('role', 'region');
@@ -256,7 +271,7 @@ var CardsView = (function() {
         header.innerHTML += '</h1></header>';
         card.appendChild(header);
         card.classList.add('trustedui');
-      } else if (attentionScreenApps.indexOf(origin) == -1) {
+      } else if (attentionScreenApps.indexOf(app.origin) == -1) {
         var closeButton = document.createElement('div');
         closeButton.setAttribute('role', 'button');
         closeButton.classList.add('close-card');
@@ -349,7 +364,7 @@ var CardsView = (function() {
       closeApp(card, true);
     } else if ('position' in e.target.dataset) {
       AppWindowManager.display(
-        stack[e.target.dataset.position].origin,
+        stack[e.target.dataset.position],
         'from-cardview',
         null
       );
@@ -442,8 +457,12 @@ var CardsView = (function() {
     if (removeImmediately) {
       cardsView.classList.add('no-transition');
     }
+
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
+    // Let everyone know we're about to close the cards view
+    fireCardViewBeforeClose();
+    // Now we can consider ourselves hidden again.
     cardsViewShown = false;
 
     // And remove all the cards from the document after the transition

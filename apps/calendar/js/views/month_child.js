@@ -1,4 +1,6 @@
 (function(window) {
+  'use strict';
+
   var template = Calendar.Templates.Month;
   var Calc = Calendar.Calc;
 
@@ -10,13 +12,11 @@
   function Child() {
     Calendar.View.apply(this, arguments);
 
-    this.id = this.date.valueOf();
+    this.id = Calendar.Calc.getDayId(this.date);
     this.controller = this.app.timeController;
 
     this._days = Object.create(null);
     this.timespan = Calc.spanOfMonth(this.date);
-
-    var daysInWeek = Calc.daysInWeek();
   }
 
   Child.prototype = {
@@ -34,7 +34,8 @@
     },
 
     set element(val) {
-      return this._element = val;
+      this._element = val;
+      return val;
     },
 
     _dayId: function(date) {
@@ -148,13 +149,8 @@
      * @param {Date} date representing a date.
      */
     _renderDay: function _renderDay(date) {
-      var month = Calc.today.getMonth(),
-          id = Calc.getDayId(date),
-          state,
-          units,
-          busytimes = this.app.store('Busytime');
-
-      state = Calc.relativeState(
+      var id = Calc.getDayId(date);
+      var state = Calc.relativeState(
         date,
         this.date
       );
@@ -246,7 +242,8 @@
         '#' + id + ' .busy-indicator'
       );
 
-      return this._days[stringId] = found;
+      this._days[stringId] = found;
+      return found;
     },
 
     /**
@@ -256,9 +253,6 @@
      * @return {String} return value.
      */
     _renderMonth: function _renderMonth() {
-      var id = Calc.getDayId(this.date);
-      var weekList = [];
-
       var week = 0;
       var slice;
       var days = this.timespan.daysBetween();
@@ -274,8 +268,9 @@
           daysInWeek
         );
 
-        if (slice.length)
+        if (slice.length) {
           html += this._renderWeek(slice);
+        }
       }
 
       return this._renderDayHeaders() + html;
@@ -390,8 +385,9 @@
        * events and query th cache for related records.
        * We do this async so to minimally effect swipes.
        */
-      if (this.hasBeenActive)
+      if (this.hasBeenActive) {
         return;
+      }
 
       Calendar.nextTick(function() {
         this.controller.queryCache(this.timespan).forEach(
@@ -422,7 +418,6 @@
      */
     create: function() {
       var html = this._renderMonth();
-      var controller = this.controller;
       var element = document.createElement('section');
 
       element.classList.add('month');

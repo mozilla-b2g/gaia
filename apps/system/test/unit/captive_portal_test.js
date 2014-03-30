@@ -26,7 +26,6 @@ var mocksForCaptivePortal = new MocksHelper([
 
 suite('captive portal > ', function() {
   var realWifiManager;
-  var realSettingsListener;
   var realL10n;
   var realSettings;
   var realActivity;
@@ -58,7 +57,6 @@ suite('captive portal > ', function() {
 
   suiteTeardown(function() {
     navigator.mozWifiManager = realWifiManager;
-    window.SettingsListener = realSettingsListener;
     try {
       window.MozActivity = realActivity;
     } catch (e) {

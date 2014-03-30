@@ -125,6 +125,16 @@ navigator.mozL10n.ready(function deviceList() {
       if (show) {
         openList.show(true);
         searchingItem.hidden = false;
+      } else {
+        openList.show(false);
+        pairList.show(false);
+        searchingItem.hidden = true;
+        pairingAddress = null;
+        connectingAddress = null;
+        connectedAddress = null;
+        // clear discoverTimeout
+        clearTimeout(discoverTimeout);
+        discoverTimeout = null;
       }
     }
 

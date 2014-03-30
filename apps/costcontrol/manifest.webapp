@@ -42,6 +42,7 @@
   },
   "default_locale": "en-US",
   "icons": {
+    "135": "/style/icons/cost-control_135.png",
     "120": "/style/icons/cost-control_120.png",
     "90": "/style/icons/cost-control_90.png",
     "60": "/style/icons/cost-control_60.png"

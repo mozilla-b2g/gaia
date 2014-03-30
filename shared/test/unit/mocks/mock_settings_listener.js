@@ -1,3 +1,8 @@
+'use strict';
+/* global MockNavigatorSettings */
+/* global requireApp */
+/* exported MockSettingsListener */
+
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 var MockLock = {
@@ -29,6 +34,9 @@ var MockSettingsListener = {
     this.mDefaultValue = defaultValue;
     this.mCallback = cb;
     this.mCallbacks[name] = cb;
+  },
+
+  unobserve: function msl_unobserve(name, cb) {
   },
 
   getSettingsLock: function msl_getSettingsLock() {

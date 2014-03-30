@@ -905,6 +905,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         # unlock
         self.device.unlock()
 
+        # kill any open apps
+        self.apps.kill_all()
+
         if full_reset:
             # disable passcode
             self.data_layer.set_setting('lockscreen.passcode-lock.code', '1111')
@@ -944,9 +947,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
             # reset to home screen
             self.device.touch_home_button()
-
-        # kill any open apps
-        self.apps.kill_all()
 
         # disable sound completely
         self.data_layer.set_volume(0)

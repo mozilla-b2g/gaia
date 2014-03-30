@@ -89,7 +89,7 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -3rem -6rem;
 }
 
-#menuItem-persona::before {
+#menuItem-fxa::before {
   background-position: -6rem -6rem;
 }
 
@@ -186,7 +186,7 @@ aside.wifi-signal       { background-image: url(images/wifi_disconnected_sprite.
 aside.connected         { background-image: url(images/wifi_connected_sprite.png);}
 aside.secured           { background-image: url(images/wifi_disconnected_locked_sprite.png);}
 aside.secured.connected { background-image: url(images/wifi_connected_locked_sprite.png);}
-aside.level-0 { background-position:     0rem center;}
+aside.level-0 { background-position:     0    center;}
 aside.level-1 { background-position:  -3.2rem center;}
 aside.level-2 { background-position:  -6.4rem center;}
 aside.level-3 { background-position:  -9.6rem center;}
@@ -201,7 +201,7 @@ aside.connecting {
   animation-name: wifi-signal;
 }
 @keyframes wifi-signal {
- 0%     { background-position:     0rem center; }
+ 0%     { background-position:     0    center; }
  25%    { background-position:  -3.2rem center; }
  50%    { background-position:  -6.4rem center; }
  75%    { background-position:  -9.6rem center; }
@@ -247,59 +247,59 @@ aside.connecting {
 
 /* device icons */
 .bluetooth-type-audio-card:before {
-  background-position: 0rem 0rem;
+  background-position: 0 0;
 }
 
 .bluetooth-type-audio-input-microphone:before {
-  background-position: -3rem 0rem;
+  background-position: -3rem 0;
 }
 
 .bluetooth-type-battery:before {
-  background-position: -6rem 0rem;
+  background-position: -6rem 0;
 }
 
 .bluetooth-type-camera-photo:before {
-  background-position: -9rem 0rem;
+  background-position: -9rem 0;
 }
 
 .bluetooth-type-camera-video:before {
-  background-position: -12rem 0rem;
+  background-position: -12rem 0;
 }
 
 .bluetooth-type-camera-web:before {
-  background-position: -15rem 0rem;
+  background-position: -15rem 0;
 }
 
 .bluetooth-type-computer:before {
-  background-position: -18rem 0rem;
+  background-position: -18rem 0;
 }
 
 .bluetooth-type-drive-harddisk:before {
-  background-position: -21rem 0rem;
+  background-position: -21rem 0;
 }
 
 .bluetooth-type-drive-optical:before {
-  background-position: -24rem 0rem;
+  background-position: -24rem 0;
 }
 
 .bluetooth-type-drive-removable-media:before {
-  background-position: -27rem 0rem;
+  background-position: -27rem 0;
 }
 
 .bluetooth-type-input-gaming:before {
-  background-position: -30rem 0rem;
+  background-position: -30rem 0;
 }
 
 .bluetooth-type-input-keyboard:before {
-  background-position: -33rem 0rem;
+  background-position: -33rem 0;
 }
 
 .bluetooth-type-input-mouse:before {
-  background-position: -36rem 0rem;
+  background-position: -36rem 0;
 }
 
 .bluetooth-type-input-tablet:before {
-  background-position: 0rem -3rem;
+  background-position: 0 -3rem;
 }
 
 .bluetooth-type-media-flash:before {
@@ -410,7 +410,7 @@ aside.connecting {
  * Right-To-Left layout
  */
 html[dir="rtl"] .menu-item {
-  padding-left: auto;
+  padding-left: 0;
   padding-right: 5.5rem;
 }
 
@@ -440,7 +440,7 @@ html[dir="rtl"] #menuItem-callWaiting .alert-label > span {
 html[dir="rtl"] .bluetooth-device {
   background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
   padding-left: 2rem;
-  padding-right: auto;
+  padding-right: 0;
 }
 
 html[dir="rtl"] .bluetooth-device:before {

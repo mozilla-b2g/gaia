@@ -1,9 +1,6 @@
 'use strict';
 /* exported MockSdCard */
 
-/* Allow setter without getter */
-/* jshint -W078 */
-
 var MockSdCard = function MockSdCard() {
 
   var observers = {};
@@ -31,7 +28,8 @@ var MockSdCard = function MockSdCard() {
   var STATUSES = {
     NOT_INITIALIZED: 0,
     NOT_AVAILABLE: 1,
-    AVAILABLE: 2
+    AVAILABLE: 2,
+    SHARED: 3
   };
 
   var status = STATUSES.AVAILABLE;
@@ -39,8 +37,10 @@ var MockSdCard = function MockSdCard() {
   var updateStorageState = function updateStorageState(state) {
     switch (state) {
       case 'available':
-      case 'shared':
         status = STATUSES.AVAILABLE;
+        break;
+      case 'shared':
+        status = STATUSES.SHARED;
         break;
       case 'unavailable':
       case 'deleted':
@@ -73,8 +73,12 @@ var MockSdCard = function MockSdCard() {
     NOT_INITIALIZED: STATUSES.NOT_INITIALIZED,
     NOT_AVAILABLE: STATUSES.NOT_AVAILABLE,
     AVAILABLE: STATUSES.AVAILABLE,
+    SHARED: STATUSES.SHARED,
     set failOnRetrieveFiles(value) {
       failOnRetrieveFiles = value;
+    },
+    getStatus: function(cb) {
+      cb(status);
     },
     get status() {
       return status;

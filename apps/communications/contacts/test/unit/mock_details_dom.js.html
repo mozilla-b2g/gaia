@@ -14,7 +14,7 @@ var MockDetailsDom = '<section id="view-contact-details" role="region" class="vi
             '<section id="contact-detail" class="view-body-inner">' +
               '<!-- Phone Template -->' +
               '<li data-phone id="phone-details-template-#i#" data-template>' +
-                '<h2>#type#</h2>' +
+                '<h2>#type# <span class="carrier">#carrier#</span></h2>' +
                 '<div class="item">' +
                   '<div class="item-media pull-right">' +
                     '<button id="send-sms-button-#i#" class="activity send-sms icon icon-message"></button>' +
@@ -23,7 +23,6 @@ var MockDetailsDom = '<section id="view-contact-details" role="region" class="vi
                     '<button class="activity icon icon-call" id="call-or-pick-#i#">' +
                       '<b>' +
                         '#value#' +
-                        '<em>#carrier#</em>' +
                       '</b>' +
                     '</button>' +
                   '</div>' +
@@ -34,7 +33,7 @@ var MockDetailsDom = '<section id="view-contact-details" role="region" class="vi
                 '<li id="dates-template-#i#" data-template>' +
                   '<h2>#type#</h2>' +
                   '<p><strong>#date#</strong></p>' +
-                '</li>' + 
+                '</li>' +
 
               '<!-- Email Template -->' +
               '<li data-mail id="email-details-template-#i#" data-template>' +
@@ -105,4 +104,6 @@ var MockDetailsDom = '<section id="view-contact-details" role="region" class="vi
               '</div>' +
             '</section>' +
         '</article>' +
-      '</section>';
+      '</section>' +
+      '<form is="sim-picker" id="sim-picker" role="dialog" data-type="action" hidden>' +
+      '</form>';

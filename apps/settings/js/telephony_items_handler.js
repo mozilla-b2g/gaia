@@ -31,6 +31,7 @@ var TelephonyItemsHandler = (function(window, document, undefined) {
   var CARD_STATE_MAPPING = {
     'pinRequired' : 'simCardLockedMsg',
     'pukRequired' : 'simCardLockedMsg',
+    'permanentBlocked': 'simCardBlockedMsg',
     'networkLocked' : 'simLockedPhone',
     'serviceProviderLocked' : 'simLockedPhone',
     'corporateLocked' : 'simLockedPhone',

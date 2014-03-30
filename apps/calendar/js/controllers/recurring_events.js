@@ -1,4 +1,5 @@
 Calendar.ns('Controllers').RecurringEvents = (function() {
+  'use strict';
 
   var debug = Calendar.debug('expand events');
 
@@ -224,8 +225,9 @@ Calendar.ns('Controllers').RecurringEvents = (function() {
         }
 
         // if there are no accounts we need to fire the callback.
-        if (!pending)
+        if (!pending) {
           Calendar.nextTick(callback);
+        }
 
       }.bind(this));
     }

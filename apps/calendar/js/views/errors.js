@@ -1,4 +1,5 @@
 Calendar.ns('Views').Errors = (function() {
+  'use strict';
 
   function Errors() {
     Calendar.View.apply(this, arguments);

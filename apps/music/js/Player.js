@@ -149,6 +149,12 @@ var PlayerView = {
     this.audio.addEventListener('mozinterruptbegin', this);
     this.audio.addEventListener('mozinterruptend', this);
 
+    // XXX: We use localstorage event as a workaround solution in music app
+    // to resolve audio channel competetion between regular mode and pick mode.
+    // This shouldn't have handled by music app itself. Remove the patch of
+    // bug 894744 once we have better solution.
+    window.addEventListener('storage', this._handleInterpageMessage.bind(this));
+
     // A timer we use to work around
     // https://bugzilla.mozilla.org/show_bug.cgi?id=783512
     this.endedTimer = null;
@@ -512,8 +518,32 @@ var PlayerView = {
     });
   },
 
+  PLAYER_IS_OCCUPIED_BY: 'music-player-is-occupied-by',
+
+  _handleInterpageMessage: function(evt) {
+    if (evt.key === this.PLAYER_IS_OCCUPIED_BY) {
+      // if there is another page (different from the page we are at now)
+      // going to play, stop the current one
+      if (evt.newValue && evt.newValue !== location.href) {
+        this.pause();
+      }
+    }
+  },
+
+  _sendInterpageMessage: function() {
+    window.localStorage.setItem(this.PLAYER_IS_OCCUPIED_BY, location.href);
+  },
+
+  _clearInterpageMessage: function() {
+    var whoIsPlaying = window.localStorage.getItem(this.PLAYER_IS_OCCUPIED_BY);
+    if (whoIsPlaying && whoIsPlaying === window.location.href) {
+      window.localStorage.removeItem(this.PLAYER_IS_OCCUPIED_BY);
+    }
+  },
+
   play: function pv_play(targetIndex) {
     this.checkSCOStatus();
+    this._sendInterpageMessage();
     this.showInfo();
 
     if (arguments.length > 0) {
@@ -560,6 +590,7 @@ var PlayerView = {
 
   pause: function pv_pause() {
     this.checkSCOStatus();
+    this._clearInterpageMessage();
     this.audio.pause();
   },
 
@@ -857,33 +888,10 @@ var PlayerView = {
     });
   },
 
-  handlePeerConnectivity: function nfc_handlePeerConnectivity(event) {
-    // Only trigger NFC sharing when launched regular music.
-    if (typeof ModeManager !== 'undefined' && navigator.mozNfc) {
-      // NFC enabled, assign the callback to have shrink UI
-      if (ModeManager.currentMode == MODE_PLAYER) {
-        navigator.mozNfc.onpeerready = (function(event) {
-          var peer = navigator.mozNfc.getNFCPeer(event.detail);
-          if (peer && this.playingBlob) {
-            // send music file
-            peer.sendFile(this.playingBlob);
-          }
-        }.bind(this));
-      } else {
-        // clear onpeerready if not in PLAYER MODE.
-        navigator.mozNfc.onpeerready = null;
-      }
-    }
-  },
-
   handleEvent: function pv_handleEvent(evt) {
     var target = evt.target;
     if (!target)
       return;
-
-    // Currently we are unable to distinguish the nfc event and the others.
-    // So we just pass all the event to the peer connectivity handler.
-    this.handlePeerConnectivity(evt);
 
     switch (evt.type) {
       case 'click':
@@ -1037,7 +1045,11 @@ var PlayerView = {
         break;
 
       case 'mozinterruptend':
-        this.playStatus = INTERRUPT_END;
+        // After received the mozinterruptend event the player should recover
+        // its status to the status before mozinterruptbegin, it should be
+        // PLAYING because mozinterruptbegin only fires when an audio element
+        // is playing.
+        this.playStatus = PLAYSTATUS_PLAYING;
         this.updateRemotePlayStatus();
         break;
 

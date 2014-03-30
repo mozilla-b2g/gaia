@@ -1,10 +1,12 @@
+/* global MockCommon, MockCostControl, MockMozMobileConnection, Event,
+          CostControlApp, Common, MockConfigManager, MockSettingsListener */
 'use strict';
 
 // XXX: As there are two iframes in the body, Firefox adds two indexed items
 // in the window object referring to those frames. Mocha considers these
 // indices as global leaks so we need to `whitelist` them.
 mocha.setup({ globals: ['0', '1'] });
-
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('costcontrol/test/unit/mock_debug.js');
 requireApp('costcontrol/test/unit/mock_common.js');
 requireApp('costcontrol/test/unit/mock_moz_l10n.js');
@@ -21,6 +23,7 @@ requireApp('costcontrol/js/view_manager.js');
 requireApp('costcontrol/js/app.js');
 requireApp('costcontrol/js/common.js');
 require('/shared/test/unit/load_body_html_helper.js');
+require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 
 var realCommon,
     realMozMobileConnection,
@@ -29,38 +32,48 @@ var realCommon,
     realCostControl,
     realConfigManager,
     realMozSetMessageHandler,
-    realNonReadyScreen;
+    realNonReadyScreen,
+    realAccessibilityHelper,
+    realLazyLoader;
 
-if (!this.Common) {
-  this.Common = null;
+if (!window.Common) {
+  window.Common = null;
 }
 
-if (!this.navigator.mozMobileConnection) {
-  this.navigator.mozMobileConnection = null;
+if (!window.navigator.mozMobileConnection) {
+  window.navigator.mozMobileConnection = null;
 }
 
-if (!this.navigator.mozL10n) {
-  this.navigator.mozL10n = null;
+if (!window.navigator.mozL10n) {
+  window.navigator.mozL10n = null;
 }
 
-if (!this.SettingsListener) {
-  this.SettingsListener = null;
+if (!window.SettingsListener) {
+  window.SettingsListener = null;
 }
 
-if (!this.CostControl) {
-  this.CostControl = null;
+if (!window.CostControl) {
+  window.CostControl = null;
 }
 
-if (!this.ConfigManager) {
-  this.ConfigManager = null;
+if (!window.ConfigManager) {
+  window.ConfigManager = null;
 }
 
-if (!this.navigator.mozSetMessageHandler) {
-  this.navigator.mozSetMessageHandler = null;
+if (!window.navigator.mozSetMessageHandler) {
+  window.navigator.mozSetMessageHandler = null;
 }
 
-if (!this.NonReadyScreen) {
-  this.NonReadyScreen = null;
+if (!window.NonReadyScreen) {
+  window.NonReadyScreen = null;
+}
+
+if (!window.AccessibilityHelper) {
+  window.AccessibilityHelper = null;
+}
+
+if (!window.LazyLoader) {
+  window.LazyLoader = null;
 }
 
 suite('Application Startup Modes Test Suite >', function() {
@@ -82,6 +95,9 @@ suite('Application Startup Modes Test Suite >', function() {
 
     realConfigManager = window.ConfigManager;
 
+    realLazyLoader = window.LazyLoader;
+    window.LazyLoader = window.MockLazyLoader;
+
     realMozSetMessageHandler = window.navigator.mozSetMessageHandler;
     window.navigator.mozSetMessageHandler =
       window.MockNavigatormozSetMessageHandler;
@@ -89,6 +105,9 @@ suite('Application Startup Modes Test Suite >', function() {
 
     realNonReadyScreen = window.NonReadyScreen;
     window.NonReadyScreen = window.MockNonReadyScreen;
+
+    realAccessibilityHelper = window.AccessibilityHelper;
+    window.AccessibilityHelper = window.MockAccessibilityHelper;
 
     iframe = document.createElement('iframe');
     iframe.id = 'message-handler';
@@ -111,11 +130,13 @@ suite('Application Startup Modes Test Suite >', function() {
     window.navigator.mozL10n = realMozL10n;
     window.CostControl = realCostControl;
     window.ConfigManager = realConfigManager;
+    window.LazyLoader = realLazyLoader;
     window.SettingsListener.mTeardown();
     window.SettingsListener = realSettingsListener;
     window.navigator.mozSetMessageHandler.mTeardown();
     window.navigator.mozSetMessageHandler = realMozSetMessageHandler;
     window.NonReadyScreen = realNonReadyScreen;
+    window.AccessibilityHelper = realAccessibilityHelper;
   });
 
   function assertNonReadyScreen(done) {

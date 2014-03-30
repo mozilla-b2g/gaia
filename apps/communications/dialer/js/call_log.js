@@ -77,6 +77,9 @@ var CallLog = {
         this[Utils.toCamelCase(id)] = document.getElementById(id);
       }, self);
 
+      var dualSim = navigator.mozIccManager.iccIds.length > 1;
+      self.callLogContainer.classList.toggle('dual-sim', dualSim);
+
       LazyL10n.get(function localized(_) {
         self._ = _;
         self.render();
@@ -454,6 +457,11 @@ var CallLog = {
         break;
     }
 
+    if (typeof group.serviceId !== 'undefined') {
+      var serviceClass = (group.serviceId == 0) ? 'first-sim' : 'second-sim';
+      iconStyle += ' ' + serviceClass;
+    }
+
     var label = document.createElement('label');
     label.className = 'pack-checkbox call-log-selection danger';
     var input = document.createElement('input');
@@ -634,8 +642,9 @@ var CallLog = {
     }
 
     this.callLogContainer.classList.add('filter');
-    this.allFilter.setAttribute('aria-selected', 'false');
-    this.missedFilter.setAttribute('aria-selected', 'true');
+    AccessibilityHelper.setAriaSelected(this.missedFilter.firstElementChild, [
+      this.allFilter.firstElementChild, this.missedFilter.firstElementChild]);
+    this.callLogContainer.setAttribute('aria-labelledby', 'missed-filter-tab');
 
     var containers = this.callLogContainer.getElementsByTagName('ol');
     var totalMissedCalls = 0;
@@ -673,8 +682,9 @@ var CallLog = {
     }
 
     this.callLogContainer.classList.remove('filter');
-    this.allFilter.setAttribute('aria-selected', 'true');
-    this.missedFilter.setAttribute('aria-selected', 'false');
+    AccessibilityHelper.setAriaSelected(this.allFilter.firstElementChild, [
+      this.allFilter.firstElementChild, this.missedFilter.firstElementChild]);
+    this.callLogContainer.setAttribute('aria-labelledby', 'all-filter-tab');
 
     var hiddenContainers = document.getElementsByClassName('groupFiltered');
     // hiddenContainers is a live list, so let's iterate on the list in the

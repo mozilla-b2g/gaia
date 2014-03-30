@@ -1,3 +1,5 @@
+/* global IccHelper, Resources, LazyLoader */
+/* exported VariantManager */
 'use strict';
 
 var VariantManager = {
@@ -85,8 +87,8 @@ var VariantManager = {
   },
 
   getMccMnc: function vm_getMccMnc() {
-    var mcc = undefined;
-    var mnc = undefined;
+    var mcc = null;
+    var mnc = null;
     // If we have valid iccInfo, use that. Otherwise continue with undefined
     // values.
     if (IccHelper && IccHelper.iccInfo) {

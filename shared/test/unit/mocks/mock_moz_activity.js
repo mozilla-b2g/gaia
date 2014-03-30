@@ -13,7 +13,7 @@ var MockMozActivity = function(info) {
   var data = info.data;
 
   return {
-    set onsuccess(cb) {setTimeout(cb, 50)},
+    set onsuccess(cb) { setTimeout(cb, 50); },
     set onerror(cb) {},
     name: name,
     data: data

@@ -6,7 +6,7 @@ function debug(str) {
 }
 
 function execute(options) {
-  var gaia = utils.getGaia(options);
+  var gaia = utils.gaia.getInstance(options);
   config = options;
   debug('Begin');
 

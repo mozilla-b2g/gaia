@@ -6,6 +6,7 @@
   "icons": {
     "60": "/collections/sports/icon.png",
     "90": "/collections/sports/icon@1.5x.png",
-    "120": "/collections/sports/icon@2x.png"
+    "120": "/collections/sports/icon@2x.png",
+    "135": "/collections/sports/icon@2.25x.png"
   }
 }

@@ -22,6 +22,17 @@ suite('Distribution mechanism', function() {
     var expectedSettings = JSON.parse(
       fs.readFileSync(path.join(cusDir, 'settings.json')));
 
+    var keyboardManifestURL = 'app://keyboard.gaiamobile.org/manifest.webapp';
+    var expectedLayouts = {};
+    // For test only, so deliberately makes English map to cs and es layout
+    expectedLayouts[keyboardManifestURL] = {cs: true, es: true};
+
+    var expectedSettings = {
+      'wap.push.enabled': true,
+      'keyboard.enabled-layouts': expectedLayouts,
+      'keyboard.default-layouts': expectedLayouts
+    };
+
     helper.checkSettings(settings, expectedSettings);
   }
 
@@ -183,16 +194,6 @@ suite('Distribution mechanism', function() {
     assert.equal(presetsContent,  expectContent);
   }
 
-  function validateCamera() {
-    var cusPath = path.join(cusDir, 'camera.json');
-    var cusConfig = JSON.parse(fs.readFileSync(cusPath));
-    var appConfigPath =
-      path.join(process.cwd(), 'apps', 'camera', 'js', 'config.js');
-    var appConfig = fs.readFileSync(appConfigPath, {encoding: 'utf8'});
-    var expectContent = parseCustimizeImageSetting(cusConfig);
-    assert.equal(appConfig, expectContent);
-  }
-
   function validateHomescreen() {
     var appZip = new AdmZip(path.join(process.cwd(), 'profile',
       'webapps', 'homescreen.gaiamobile.org', 'application.zip'));
@@ -226,7 +227,7 @@ suite('Distribution mechanism', function() {
   test('build with GAIA_DISTRIBUTION_DIR', function(done) {
     cusDir = path.join(process.cwd(), 'customization');
     var cmd = 'GAIA_DISTRIBUTION_DIR=' + cusDir + ' make';
-    exec(cmd, function(error, stdout, stderr) {
+    exec(cmd, { maxBuffer: 400*1024 }, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
       validatePreloadSettingDB();
       validateSettings();
@@ -236,7 +237,6 @@ suite('Distribution mechanism', function() {
       validateSystem();
       validateSms();
       validateGallery();
-      validateCamera();
       validateComm();
       validateHomescreen();
       validateWallpaper();

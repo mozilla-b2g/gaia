@@ -74,12 +74,16 @@ var ValueSelector = {
     window.addEventListener('appopened', this);
     window.addEventListener('appclosing', this);
 
-    // invalidate the current spin date picker when language setting changes
+    // invalidate the current date and time picker when language setting changes
     navigator.mozSettings.addObserver('language.current',
       (function language_change(e) {
         if (this._datePicker) {
           this._datePicker.uninit();
           this._datePicker = null;
+        }
+        if (this._timePickerInitialized) {
+          this._timePickerInitialized = false;
+          TimePicker.uninitTimePicker();
       }}).bind(this));
   },
 
@@ -552,6 +556,14 @@ var TimePicker = {
     document.getElementById('hours-minutes-separator').textContent = separator;
   },
 
+  uninitTimePicker: function tp_uninitTimePicker() {
+    TimePicker.timePicker.minute.uninit();
+    TimePicker.timePicker.hour.uninit();
+    if (TimePicker.timePicker.hour24State) {
+      TimePicker.timePicker.hour24State.uninit();
+    }
+  },
+
   setTimePickerStyle: function tp_setTimePickerStyle() {
     var style = 'format24h';
     if (this.timePicker.is12hFormat) {
@@ -561,7 +573,7 @@ var TimePicker = {
       style = (reversedPeriod) ? 'format12hrev' : 'format12h';
     }
     var container = ValueSelector._context.querySelector('.picker-container');
-    container.classList.add(style);
+    container.className = 'picker-container ' + style;
   },
 
   getHour: function tp_getHours() {

@@ -56,16 +56,17 @@ marionette('Dialer > Keypad', function() {
     });
   }
 
-  test('Entering a 3 digits number with the keypad', function() {
-    reflowHelper.startTracking(Dialer.URL + '/manifest.webapp');
-    typeNumber();
+  // FIXME Test disabled because of bug 986173
+  // test('Entering a 3 digits number with the keypad', function() {
+  //   reflowHelper.startTracking(Dialer.URL + '/manifest.webapp');
+  //   typeNumber();
 
-    var number = subject.client.findElement(selectors.phoneNumber);
-    assert.equal(number.getAttribute('value'), '123');
-    var reflowCount = reflowHelper.getCount();
-    assert.equal(reflowCount, 16, 'you need more than 16 reflows for that?');
-    reflowHelper.stopTracking();
-  });
+  //   var number = subject.client.findElement(selectors.phoneNumber);
+  //   assert.equal(number.getAttribute('value'), '123');
+  //   var reflowCount = reflowHelper.getCount();
+  //   assert.equal(reflowCount, 16, 'you need more than 16 reflows for that?');
+  //   reflowHelper.stopTracking();
+  // });
 
   test('Using the special extention key', function() {
     var zero = subject.client.findElement(selectors.zero);

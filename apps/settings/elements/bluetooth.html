@@ -54,18 +54,18 @@
       </ul>
     </div>
 
-    <form role="dialog" data-type="action" id="update-device-name" hidden>
-      <header>
-        <button id="update-device-name-cancel"><span class="icon icon-close" data-l10n-id="cancel">close</span></button>
-        <menu type="toolbar">
-          <button data-l10n-id="ok" id="update-device-name-confirm">done</button>
-        </menu>
-        <h1 data-l10n-id="change-phone-name">Change phone name</h1>
-      </header>
+    <form role="dialog" data-type="confirm" id="update-device-name" hidden>
       <section>
-        <input type="text" id="update-device-name-input" value=""/>
-        <p data-l10n-id="change-phone-name-desc">Change the name of your device as it appears in your computer</p>
+        <h1 data-l10n-id="change-phone-name">Change phone name</h1>
+        <p>
+          <input type="text" id="update-device-name-input" value=""/>
+          <span data-l10n-id="change-phone-name-desc">Change the name of your device as it appears in your computer</span>
+        </p>
       </section>
+      <menu>
+        <button id="update-device-name-cancel" data-l10n-id="cancel">close</button>
+        <button data-l10n-id="ok" id="update-device-name-confirm" class="recommend">done</button>
+      </menu>
     </form>
 
     <form role="dialog" data-type="action" id="paired-device-option" hidden>
@@ -80,7 +80,7 @@
     <form role="dialog" data-type="confirm" id="unpair-device" hidden>
       <section>
         <h1 data-l10n-id="device-option-unpair-confirmation">Confirmation</h1>
-        <p data-l10n-id="device-option-unpair-device">Unpair Device?</p>
+        <p data-l10n-id="device-option-unpair-device">Unpair device?</p>
       </section>
       <menu>
         <button data-l10n-id="cancel">Cancel</button>

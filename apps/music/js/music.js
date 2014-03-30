@@ -168,13 +168,8 @@ function init() {
     if (typeof PlayerView !== 'undefined')
       PlayerView.stop();
 
-    // Generally when the user select one of the tabs, it should trigger the
-    // css pseudo-class to highlight the selected tab, but here we manually
-    // select the mix page so we have to change the hash to it to trigger the
-    // css pseudo-class or the tab of mix page will not be highlighted.
-    // Also the option of the TabBar should be set to "mix" to sync with it.
+    // TabBar should be set to "mix" to sync with the tab selection.
     if (!pendingPick) {
-      window.location.hash = '#mix';
       TabBar.option = 'mix';
       ModeManager.start(MODE_TILES);
       TilesView.hideSearch();
@@ -553,9 +548,12 @@ var ModeManager = {
           PlayerView.setOptions(playerSettings);
         }
 
+        // Music only share the playing file when it's in player mode.
+        this.enableNFCSharing(true);
+
         if (callback)
           callback();
-      });
+      }.bind(this));
     } else {
       if (mode === MODE_LIST || mode === MODE_PICKER)
         document.getElementById('views-list').classList.remove('hidden');
@@ -572,6 +570,9 @@ var ModeManager = {
         document.getElementById('views-sublist').classList.add('hidden');
         document.getElementById('views-player').classList.add('hidden');
       }
+
+      // Disable the NFC sharing when it's in the other modes.
+      this.enableNFCSharing(false);
 
       if (callback)
         callback();
@@ -601,6 +602,25 @@ var ModeManager = {
         (mode === MODE_SUBLIST || mode === MODE_PLAYER)) {
       document.getElementById('scan-progress').classList.add('hidden');
       displayingScanProgress = false;
+    }
+  },
+
+  enableNFCSharing: function(enabled) {
+    if (!navigator.mozNfc)
+      return;
+
+    if (enabled && !pendingPick) {
+      // Assign the sharing function to onpeerready so that it will trigger
+      // the shrinking ui to share the playing file.
+      navigator.mozNfc.onpeerready = function(event) {
+        var peer = navigator.mozNfc.getNFCPeer(event.detail);
+        if (peer)
+          peer.sendFile(PlayerView.playingBlob);
+      };
+    } else {
+      // The mozNfc api will check onpeerready, if it's null, then it will not
+      // trigger the shrinking ui so it won't be able to share the file.
+      navigator.mozNfc.onpeerready = null;
     }
   }
 };
@@ -651,10 +671,6 @@ var TitleBar = {
               }
 
               cleanupPick();
-            }
-            // clear onpeerready while come out from PLAYER MODE.
-            if (ModeManager.currentMode === MODE_PLAYER && navigator.mozNfc) {
-              navigator.mozNfc.onpeerready = null;
             }
 
             ModeManager.pop();
@@ -1880,6 +1896,11 @@ var TabBar = {
     return this._view = document.getElementById('tabs');
   },
 
+  get tabs() {
+    delete this._tabs;
+    return this._tabs = this.view.querySelectorAll('[role="tab"]');
+  },
+
   init: function tab_init() {
     this.option = '';
     this.view.addEventListener('click', this);
@@ -1917,6 +1938,8 @@ var TabBar = {
         } else {
           this.option = target.dataset.option;
         }
+
+        AccessibilityHelper.setAriaSelected(target, this.tabs);
 
         switch (target.id) {
           case 'tabs-mix':

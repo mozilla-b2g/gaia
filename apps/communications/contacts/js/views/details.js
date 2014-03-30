@@ -1,4 +1,18 @@
 'use strict';
+/* jshint nonew: false */
+/* global ActivityHandler */
+/* global COMMS_APP_ORIGIN */
+/* global Contacts */
+/* global ContactPhotoHelper */
+/* global fb */
+/* global LazyLoader */
+/* global MmiManager */
+/* global MozActivity */
+/* global MultiSimActionButton */
+/* global Normalizer */
+/* global SCALE_RATIO */
+/* global TelephonyHelper */
+/* global utils */
 
 var contacts = window.contacts || {};
 
@@ -13,7 +27,6 @@ contacts.Details = (function() {
   var contactData,
       contactDetails,
       listContainer,
-      star,
       detailsName,
       orgTitle,
       datesTemplate,
@@ -27,7 +40,6 @@ contacts.Details = (function() {
       isFbLinked,
       editContactButton,
       cover,
-      wrapper,
       favoriteMessage,
       detailsInner,
       TAG_OPTIONS,
@@ -60,7 +72,6 @@ contacts.Details = (function() {
     favoriteMessage = dom.querySelector('#toggle-favorite');
     notesTemplate = dom.querySelector('#note-details-template-\\#i\\#');
 
-    wrapper = dom.querySelector('#contact-detail-wrapper');
     initPullEffect(cover);
 
     utils.listeners.add({
@@ -81,7 +92,7 @@ contacts.Details = (function() {
 
       Contacts.navigation.back(resetPhoto);
       // post message to parent page included Contacts app.
-      if (params['back_to_previous_tab'] === '1') {
+      if (params.back_to_previous_tab === '1') {
         var message = { 'type': 'contactsiframe', 'message': 'back' };
         window.parent.postMessage(message, COMMS_APP_ORIGIN);
       }
@@ -96,62 +107,54 @@ contacts.Details = (function() {
     contactData = currentContact;
   };
 
-  var setContainer = function cd_setContainer(container) {
-    listContainer = container;
-  };
-
   var initPullEffect = function cd_initPullEffect(cover) {
-    wrapper.addEventListener('touchstart', function(event) {
+    var maxPosition = Math.round(150 * SCALE_RATIO);
+    var startPosition = 0;
 
-      // Avoiding repaint (at least when no scroll is needed)
-      if (cover.style.overflow == 'hidden') {
-        var headerHeight = 5;
-        contactDetails.style.top = headerHeight + 'rem';
-        contactDetails.style.position = 'fixed';
-      }
-
-      var event = event.changedTouches[0];
-      if (contactDetails.classList.contains('no-photo'))
+    function onTouchStart(e) {
+      if (contactDetails.classList.contains('no-photo')) {
         return;
+      }
+      e.preventDefault();
+      startPosition = e.changedTouches[0].clientY;
 
-      var startPosition = event.clientY;
       contactDetails.classList.add('up');
       cover.classList.add('up');
 
-      var max_margin = Math.round(150 * SCALE_RATIO);
+      window.addEventListener('touchmove', onTouchMove, true);
+      window.addEventListener('touchend', onTouchEnd, true);
+    }
 
-      var onMouseMove = function onMouseMove(event) {
-        var event = event.changedTouches[0];
-        var newMargin = event.clientY - startPosition;
-        if (newMargin > 0 && newMargin < max_margin) {
-          contactDetails.classList.remove('up');
-          cover.classList.remove('up');
-          var calc = 'calc(' + initMargin + 'rem + ' + newMargin + 'px)';
-          // Divide by 40 (4 times slower and in rems)
-          contactDetails.style.transform = 'translateY(' + calc + ')';
-          var newPos = (-photoPos + (newMargin / 40)) + 'rem';
-          cover.style.transform = 'translateY(' + newPos + ')';
-        }
-      };
+    function onTouchEnd(e) {
+      e.preventDefault();
 
-      var onMouseUp = function onMouseUp(event) {
-        var event = event.changedTouches[0];
-        contactDetails.classList.add('up');
-        cover.classList.add('up');
-        contactDetails.style.transform = null;
-        cover.style.transform = null;
-        removeEventListener('touchmove', onMouseMove);
-        removeEventListener('touchend', onMouseUp);
-        contactDetails.addEventListener('transitionend', function transEnd() {
-          contactDetails.style.position = 'relative';
-          contactDetails.style.top = '0';
-          this.removeEventListener('transitionend', transEnd);
-        });
-      };
+      contactDetails.style.transform = null;
+      contactDetails.classList.add('up');
 
-      addEventListener('touchmove', onMouseMove);
-      addEventListener('touchend', onMouseUp);
-    });
+      cover.style.transform = null;
+      cover.classList.add('up');
+
+      window.removeEventListener('touchmove', onTouchMove, true);
+      window.removeEventListener('touchend', onTouchEnd, true);
+    }
+
+    function onTouchMove(e) {
+      e.preventDefault();
+
+      var deltaY = e.changedTouches[0].clientY - startPosition;
+      deltaY = Math.min(maxPosition, Math.max(0, deltaY));
+
+      var calc = 'calc(' + initMargin + 'rem + ' + deltaY + 'px)';
+      contactDetails.style.transform = 'translateY(' + calc + ')';
+      contactDetails.classList.remove('up');
+
+      // Divide by 40 (4 times slower and in rems)
+      var coverPosition = (-photoPos + (deltaY / 40)) + 'rem';
+      cover.style.transform = 'translateY(' + coverPosition + ')';
+      cover.classList.remove('up');
+    }
+
+    cover.addEventListener('touchstart', onTouchStart, true);
   };
 
   var render = function cd_render(currentContact, tags, fbContactData) {
@@ -181,11 +184,38 @@ contacts.Details = (function() {
     }
   };
 
+  // Fills the contact data to display if no givenName and familyName
+  var getDisplayName = function getDisplayName(contact) {
+    var name = _('noName');
+
+    if (hasName(contact)) {
+      name = contact.name[0];
+    } else if (hasContent(contact.tel)) {
+      name = contact.tel[0].value;
+    } else if (hasContent(contact.email)) {
+      name = contact.email[0].value;
+    }
+    return name;
+  };
+
+  function hasContent(field) {
+    return (Array.isArray(field) &&
+            field.length > 0 &&
+            field[0].value &&
+            field[0].value.trim());
+  }
+
+  function hasName(contact) {
+    return (Array.isArray(contact.name) &&
+            contact.name[0] &&
+            contact.name[0].trim());
+  }
+
   //
   // Method that generates HTML markup for the contact
   //
   var doReloadContactDetails = function doReloadContactDetails(contact) {
-    detailsName.textContent = contact.name;
+    detailsName.textContent = getDisplayName(contact);
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('fb-contact');
     contactDetails.classList.remove('up');
@@ -241,7 +271,7 @@ contacts.Details = (function() {
       }
       var pos = contact.category.indexOf('favorite');
       if (pos > -1) {
-        delete contact.category[pos];
+        contact.category.splice(pos, 1);
       }
     }
 
@@ -280,7 +310,7 @@ contacts.Details = (function() {
   };
 
   var renderOrg = function cd_renderOrg(contact) {
-    if (contact.org && contact.org.length > 0 && contact.org[0] != '') {
+    if (contact.org && contact.org.length > 0 && contact.org[0] !== '') {
       orgTitle.textContent = contact.org[0];
       orgTitle.className = '';
     } else {
@@ -294,8 +324,6 @@ contacts.Details = (function() {
       return;
     }
 
-    var f = new navigator.mozL10n.DateTimeFormat();
-    var dateFormat = _('dateFormat') || '%e %B';
     var dateString = '';
 
     var fields = ['bday', 'anniversary'];
@@ -348,10 +376,12 @@ contacts.Details = (function() {
       doDisableButton(linkButton);
     } else {
         var socialLabel = social.querySelector('#social-label');
-        if (socialLabel)
+        if (socialLabel) {
           socialLabel.textContent = _('facebook');
-          // Check whether the social buttons that require to be online
-          // should be there
+        }
+
+        // Check whether the social buttons that require to be online
+        // should be there
         disableButtons(social, socialButtonIds);
     }
 
@@ -396,6 +426,20 @@ contacts.Details = (function() {
     }
   }
 
+  var enableCalls = function enableCalls() {
+    contactDetails.classList.remove('calls-disabled');
+  };
+
+  var disableCalls = function disableCalls() {
+    contactDetails.classList.add('calls-disabled');
+  };
+
+  var call = function call(phoneNumber, cardIndex) {
+    disableCalls();
+    TelephonyHelper.call(phoneNumber, cardIndex, enableCalls, enableCalls,
+                         enableCalls, enableCalls);
+  };
+
   var renderPhones = function cd_renderPhones(contact) {
     if (!contact.tel) {
       return;
@@ -404,39 +448,79 @@ contacts.Details = (function() {
     for (var tel = 0; tel < telLength; tel++) {
       var currentTel = contact.tel[tel];
       var escapedType = Normalizer.escapeHTML(currentTel.type, true).trim();
+      var carrier = Normalizer.escapeHTML(currentTel.carrier || '', true) || '';
       escapedType =
             _(PHONE_TYPE_MAP[escapedType] || escapedType || DEFAULT_TEL_TYPE) ||
             escapedType;
       var telField = {
         value: Normalizer.escapeHTML(currentTel.value, true) || '',
-        type: escapedType,
+        type: escapedType + (carrier ? _('separator') : ''),
         'type_l10n_id': currentTel.type,
-        carrier: Normalizer.escapeHTML(currentTel.carrier || '', true) || '',
+        carrier: carrier,
         i: tel
       };
+
       var template = utils.templates.render(phonesTemplate, telField);
 
       // Add event listeners to the phone template components
       var sendSmsButton = template.querySelector('#send-sms-button-' + tel);
-      sendSmsButton.dataset['tel'] = telField.value;
+      sendSmsButton.dataset.tel = telField.value;
       sendSmsButton.addEventListener('click', onSendSmsClicked);
 
       var callOrPickButton = template.querySelector('#call-or-pick-' + tel);
-      callOrPickButton.dataset['tel'] = telField.value;
-      callOrPickButton.addEventListener('click', onCallOrPickClicked);
+      callOrPickButton.dataset.tel = telField.value;
+      setupPhoneButtonListener(callOrPickButton, telField.value);
 
       listContainer.appendChild(template);
     }
   };
 
-  var onSendSmsClicked = function onSendSmsClicked(evt) {
-    var tel = evt.target.dataset['tel'];
-    Contacts.sendSms(tel);
-  };
+  // Check current situation and setup different listener for the button
+  function setupPhoneButtonListener(button, number) {
+    LazyLoader.load(['/dialer/js/mmi.js'], function() {
+      if (ActivityHandler.currentlyHandling &&
+        ActivityHandler.activityName !== 'open') {
+        button.addEventListener('click', onPickNumber);
+      } else if ((navigator.mozMobileConnection ||
+          window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0]) &&
+          MmiManager.isMMI(number)) {
+        button.addEventListener('click', onMMICode);
+      } else if (navigator.mozTelephony) {
+        LazyLoader.load(['/shared/js/multi_sim_action_button.js'], function() {
+          new MultiSimActionButton(button, call,
+                                   'ril.telephony.defaultServiceId',
+                                   function() { return number; });
+        });
+      }
+    });
+  }
 
-  var onCallOrPickClicked = function onCallOrPickClicked(evt) {
-    var tel = evt.target.dataset['tel'];
-    Contacts.callOrPick(tel);
+  // If we are currently handing an activity, send the phone
+  // number as result of clicking in the phone button.
+  function onPickNumber(evt) {
+    var number = evt.target.dataset.tel;
+    ActivityHandler.postPickSuccess({ number: number });
+  }
+
+  // If the phone number stored in a contact is a MMI code,
+  // launch the dialer with that specific code.
+  function onMMICode(evt) {
+    var number = evt.target.dataset.tel;
+    // For security reasons we cannot directly call MmiManager.send(). We
+    // need to show the MMI number in the dialer instead.
+    new MozActivity({
+      name: 'dial',
+      data: {
+        type: 'webtelephony/number',
+        number: number
+      }
+    });
+  }
+
+  var onSendSmsClicked = function onSendSmsClicked(evt) {
+    var tel = evt.target.dataset.tel;
+    Contacts.sendSms(tel);
   };
 
   var renderEmails = function cd_renderEmails(contact) {
@@ -446,18 +530,18 @@ contacts.Details = (function() {
     var emailLength = Contacts.getLength(contact.email);
     for (var email = 0; email < emailLength; email++) {
       var currentEmail = contact.email[email];
-      var escapedType = Normalizer.escapeHTML(currentEmail['type'], true);
+      var escapedType = Normalizer.escapeHTML(currentEmail.type, true);
       var emailField = {
-        value: Normalizer.escapeHTML(currentEmail['value'], true) || '',
+        value: Normalizer.escapeHTML(currentEmail.value, true) || '',
         type: _(escapedType) || escapedType || DEFAULT_EMAIL_TYPE,
-        'type_l10n_id': currentEmail['type'],
+        'type_l10n_id': currentEmail.type,
         i: email
       };
       var template = utils.templates.render(emailsTemplate, emailField);
 
       // Add event listeners to the phone template components
       var emailButton = template.querySelector('#email-or-pick-' + email);
-      emailButton.dataset['email'] = emailField.value;
+      emailButton.dataset.email = emailField.value;
       emailButton.addEventListener('click', onEmailOrPickClick);
 
       listContainer.appendChild(template);
@@ -466,7 +550,7 @@ contacts.Details = (function() {
 
   var onEmailOrPickClick = function onEmailOrPickClick(evt) {
     evt.preventDefault();
-    var email = evt.target.dataset['email'];
+    var email = evt.target.dataset.email;
     Contacts.sendEmailOrPick(email);
     return false;
   };
@@ -482,14 +566,14 @@ contacts.Details = (function() {
         'locality', 'countryName'])) {
         continue;
       }
-      var address = currentAddress['streetAddress'] || '';
+      var address = currentAddress.streetAddress || '';
       var escapedStreet = Normalizer.escapeHTML(address, true);
-      var locality = currentAddress['locality'];
+      var locality = currentAddress.locality;
       var escapedLocality = Normalizer.escapeHTML(locality, true);
-      var escapedType = Normalizer.escapeHTML(currentAddress['type'], true);
-      var country = currentAddress['countryName'] || '';
+      var escapedType = Normalizer.escapeHTML(currentAddress.type, true);
+      var country = currentAddress.countryName || '';
       var escapedCountry = Normalizer.escapeHTML(country, true);
-      var postalCode = currentAddress['postalCode'] || '';
+      var postalCode = currentAddress.postalCode || '';
       var escapedPostalCode = Normalizer.escapeHTML(postalCode, true);
 
       var addressField = {
@@ -499,7 +583,7 @@ contacts.Details = (function() {
         countryName: escapedCountry,
         type: _(escapedType) || escapedType ||
                                         TAG_OPTIONS['address-type'][0].value,
-        'type_l10n_id': currentAddress['type'],
+        'type_l10n_id': currentAddress.type,
         i: i
       };
       var template = utils.templates.render(addressesTemplate, addressField);

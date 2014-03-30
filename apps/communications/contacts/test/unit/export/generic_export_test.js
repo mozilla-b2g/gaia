@@ -1,3 +1,12 @@
+'use strict';
+/* global MockContactsList */
+/* global MockContacts */
+/* global ContactsExporter */
+/* global MockExportStrategy */
+/* global MockMozContacts */
+/* global MockMozL10n */
+/* global MocksHelper */
+
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
@@ -41,12 +50,7 @@ suite('Contacts Exporter', function() {
 
   var subject;
   var ids = ['1', '3'];
-  var contacts;
-
-  var shouldShowProgressSpy;
-  var doExportSpy;
-  var hasDeterminativeProgressSpy;
-  var setProgressStepSpy;
+  var realL10n;
 
   function getContactsForIds(ids) {
     var contacts = MockContactsList();
@@ -63,7 +67,7 @@ suite('Contacts Exporter', function() {
     });
 
     return result;
-  };
+  }
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
@@ -84,11 +88,10 @@ suite('Contacts Exporter', function() {
       };
     });
 
-    shouldShowProgressSpy = sinon.spy(MockExportStrategy, 'shouldShowProgress');
-    doExportSpy = sinon.spy(MockExportStrategy, 'doExport');
-    hasDeterminativeProgressSpy = sinon.spy(MockExportStrategy,
-      'hasDeterminativeProgress');
-    setProgressStepSpy = sinon.spy(MockExportStrategy, 'setProgressStep');
+    sinon.spy(MockExportStrategy, 'shouldShowProgress');
+    sinon.spy(MockExportStrategy, 'doExport');
+    sinon.spy(MockExportStrategy, 'hasDeterminativeProgress');
+    sinon.spy(MockExportStrategy, 'setProgressStep');
 
     if (!window.utils) {
       window.utils = {};
@@ -111,6 +114,7 @@ suite('Contacts Exporter', function() {
       show: function(msg) {},
       hide: function() {}
     };
+    sinon.spy(window.utils.status, 'show');
 
     mocksHelperForExporter.suiteSetup();
   });
@@ -118,20 +122,20 @@ suite('Contacts Exporter', function() {
   suiteTeardown(function() {
     window.navigator.mozL10n = realL10n;
 
-    shouldShowProgressSpy.restore();
-    doExportSpy.restore();
-    hasDeterminativeProgressSpy.restore();
-    setProgressStepSpy.restore();
+    MockExportStrategy.shouldShowProgress.restore();
+    MockExportStrategy.doExport.restore();
+    MockExportStrategy.hasDeterminativeProgress.restore();
+    MockExportStrategy.setProgressStep.restore();
     mocksHelperForExporter.suiteTeardown();
   });
 
   setup(function() {
     subject = new ContactsExporter(MockExportStrategy);
 
-    shouldShowProgressSpy.reset();
-    doExportSpy.reset();
-    hasDeterminativeProgressSpy.reset();
-    setProgressStepSpy.reset();
+    MockExportStrategy.shouldShowProgress.reset();
+    MockExportStrategy.doExport.reset();
+    MockExportStrategy.hasDeterminativeProgress.reset();
+    MockExportStrategy.setProgressStep.reset();
   });
 
 
@@ -144,53 +148,106 @@ suite('Contacts Exporter', function() {
     });
   });
 
-  test('Strategy with deterministic progress', function(done) {
-    subject.init(ids, function onInitDone(contacts) {
-      subject.start();
+  suite('Strategy with deterministic progress >', function() {
 
-      assert.ok(shouldShowProgressSpy.calledOnce);
-      assert.ok(doExportSpy.calledOnce);
-      assert.ok(hasDeterminativeProgressSpy.calledOnce);
-      assert.ok(setProgressStepSpy.calledOnce);
+    setup(function(done) {
+      subject.init(ids, function onInitDone(contacts) {
+        subject.start();
+        done();
+      });
+    });
 
-      done();
+    test('Progress bar is shown', function() {
+      assert.ok(MockExportStrategy.shouldShowProgress.calledOnce);
+    });
+
+    test('Export is attempted', function() {
+      assert.ok(MockExportStrategy.doExport.calledOnce);
+    });
+
+    test('The progress type is checked', function() {
+      assert.ok(MockExportStrategy.hasDeterminativeProgress.calledOnce);
+    });
+
+    test('Progress bar updates value', function() {
+      assert.ok(MockExportStrategy.setProgressStep.calledOnce);
+    });
+
+    test('Status shown', function() {
+      assert.isTrue(window.utils.status.show.called);
     });
   });
 
-  test('Strategy with no deterministic progress', function(done) {
-    subject.init(ids, function onInitDone(contacts) {
-      MockExportStrategy.determinativeValue = false;
-      subject.start();
+  suite('Strategy with no deterministic progress >', function() {
 
-      assert.ok(shouldShowProgressSpy.calledOnce);
-      assert.ok(doExportSpy.calledOnce);
-      assert.ok(hasDeterminativeProgressSpy.calledOnce);
-      assert.ok(setProgressStepSpy.callCount === 0);
-
+    setup(function(done) {
+      subject.init(ids, function onInitDone(contacts) {
+        MockExportStrategy.determinativeValue = false;
+        subject.start();
+        done();
+      });
+    });
+    teardown(function() {
       MockExportStrategy.determinativeValue = true;
+    });
 
-      done();
+    test('Progress bar is shown', function() {
+      assert.ok(MockExportStrategy.shouldShowProgress.calledOnce);
+    });
+
+    test('Export is attempted', function() {
+      assert.ok(MockExportStrategy.doExport.calledOnce);
+    });
+
+    test('The progress type is checked', function() {
+      assert.ok(MockExportStrategy.hasDeterminativeProgress.calledOnce);
+    });
+
+    test('Progress bar never updated', function() {
+      assert.ok(MockExportStrategy.setProgressStep.callCount === 0);
+    });
+
+    test('Status shown', function() {
+      assert.isTrue(window.utils.status.show.called);
     });
   });
 
-  test('Error handling', function() {
-    var errorDialogSpy = sinon.spy(MockContacts, 'confirmDialog');
-    subject.init(ids, function onInitDone(contacts) {
-      var error = {
-        'reason': 'BIGerror'
-      };
-      var errorName = 'exportError-' +
-                      MockExportStrategy.name + '-' +
-                      error.reason;
-      MockExportStrategy.setError(error);
-      subject.start();
+  suite('Error handling >', function() {
+    var error,
+        errorName;
 
-      assert.ok(doExportSpy.calledOnce);
-      assert.ok(errorDialogSpy.calledOnce);
+    setup(function(done) {
+      sinon.spy(MockContacts, 'confirmDialog');
+      subject.init(ids, function onInitDone(contacts) {
+        error = {
+          'reason': 'BIGerror'
+        };
+        errorName = 'exportError-' +
+                        MockExportStrategy.name + '-' +
+                        error.reason;
+        MockExportStrategy.setError(error);
+        subject.start();
+        done();
+      });
+    });
+    teardown(function() {
+      MockContacts.confirmDialog.restore();
+    });
+
+    test('Error dialog is called', function() {
+      assert.ok(MockContacts.confirmDialog.calledOnce);
+    });
+
+    test('The proper error shows', function() {
       // errors are called with the structure
       // {title, error, retry, cancel}
-      assert.equal(errorDialogSpy.args[0][1], errorName);
+      assert.equal(MockContacts.confirmDialog.args[0][1], errorName);
     });
+
+    test('Status shown', function() {
+      assert.isTrue(window.utils.status.show.called);
+    });
+
   });
 
 });

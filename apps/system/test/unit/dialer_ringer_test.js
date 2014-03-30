@@ -7,7 +7,7 @@ require('/js/dialer_ringer.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_audio.js');
-require('/test/unit/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 
 var mocksForDialerRinger = new MocksHelper([
   'SettingsListener',
@@ -93,6 +93,7 @@ suite('system/DialerRinger', function() {
       navigator.vibrate = vibrateSpy;
 
       mockAudio = MockAudio.instances[0];
+      mockAudio.src = '---';
       this.sinon.spy(mockAudio, 'play');
       this.sinon.spy(mockAudio, 'pause');
 
@@ -167,6 +168,17 @@ suite('system/DialerRinger', function() {
       function() {
         window.dispatchEvent(new CustomEvent('sleep'));
         assert.isTrue(mockAudio.pause.calledOnce);
+      });
+
+      suite('but we have no audio source loaded', function() {
+        setup(function() {
+          mockAudio.readyState = 0;
+        });
+
+        test('pressing the sleep button should not do anything', function() {
+          window.dispatchEvent(new CustomEvent('sleep'));
+          assert.isTrue(mockAudio.pause.notCalled);
+        });
       });
     });
 

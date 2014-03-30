@@ -1,3 +1,4 @@
+/* exported Format */
 'use strict';
 
 /**

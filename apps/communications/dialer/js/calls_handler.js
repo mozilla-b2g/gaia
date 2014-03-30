@@ -253,8 +253,8 @@ var CallsHandler = (function callsHandler() {
       }
 
       if (navigator.mozIccManager.iccIds.length > 1) {
-        CallScreen.incomingSim.innerHTML = _('via-sim',
-                                             { n: call.serviceId + 1 });
+        CallScreen.incomingSim.textContent = _('sim-number',
+                                               { n: call.serviceId + 1 });
       } else {
         CallScreen.incomingSim.hidden = true;
       }

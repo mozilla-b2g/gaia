@@ -1,5 +1,9 @@
-/* global UIManager, MobileOperator, Navigation, utils,
-          ConfirmDialog, SimContactsImporter */
+/* global ConfirmDialog,
+          MobileOperator,
+          Navigation,
+          SimContactsImporter,
+          UIManager,
+          utils */
 
 'use strict';
 

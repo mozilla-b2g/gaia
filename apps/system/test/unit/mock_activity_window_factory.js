@@ -2,22 +2,36 @@
 
 'use strict';
 
-var MockActivityWindowFactory = {
-  _lastActivity: null,
-  _activeActivity: null,
-  _activities: [],
-  getActiveWindow: function() {
-    return this._activeActivity;
-  },
-  launchActivity: function() {
-    // not implemented.
-  },
-  handleEvent: function() {
-    // not implemented.
-  },
-  mTeardown: function macwf_mTeardown() {
+(function(exports) {
+  var MockActivityWindowFactory = function() {
     this._lastActivity = null;
     this._activeActivity = null;
     this._activities = [];
-  }
-};
+    return this;
+  };
+
+  MockActivityWindowFactory.prototype = {
+    getActiveWindow: function() {
+      return this._activeActivity;
+    },
+    start: function() {
+      // not implemented.
+    },
+    stop: function() {
+      // not implemented.
+    },
+    launchActivity: function() {
+      // not implemented.
+    },
+    handleEvent: function() {
+      // not implemented.
+    },
+    mTeardown: function macwf_mTeardown() {
+      this._lastActivity = null;
+      this._activeActivity = null;
+      this._activities = [];
+    }
+  };
+
+  exports.MockActivityWindowFactory = MockActivityWindowFactory;
+}(window));

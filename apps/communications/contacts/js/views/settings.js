@@ -1,4 +1,20 @@
 'use strict';
+/* global _ */
+/* global ConfirmDialog */
+/* global Contacts */
+/* global ContactsBTExport */
+/* global ContactsExporter */
+/* global ContactsSDExport */
+/* global ContactsSIMExport */
+/* global fb */
+/* global IccHandler */
+/* global LazyLoader */
+/* global navigationStack */
+/* global Rest */
+/* global SimContactsImporter */
+/* global SimDomGenerator */
+/* global utils */
+/* global VCFReader */
 
 var contacts = window.contacts || {};
 
@@ -26,15 +42,12 @@ contacts.Settings = (function() {
     fbImportCheck,
     fbUpdateButton,
     fbOfflineMsg,
-    noSimMsg,
-    noMemoryCardMsg,
     fbTotalsMsg,
     fbPwdRenewMsg,
     fbImportedValue,
     newOrderByLastName = null,
-    ORDER_KEY = 'order.lastname',
     PENDING_LOGOUT_KEY = 'pendingLogout',
-    umsSettingsKey = 'ums.enabled';
+    bulkDeleteButton;
 
   // Initialise the settings screen (components, listeners ...)
   var init = function initialize() {
@@ -47,15 +60,10 @@ contacts.Settings = (function() {
     utils.listeners.add({
       '#settings-close': hideSettings
     });
-    if (navigator.mozSettings) {
-      navigator.mozSettings.addObserver(umsSettingsKey, function(evt) {
-        enableStorageOptions(!evt.settingValue, 'sdUMSEnabled');
-      });
-    }
 
     // Subscribe to events related to change state in the sd card
     utils.sdcard.subscribeToChanges('check_sdcard', function(value) {
-      enableStorageOptions(utils.sdcard.checkStorageCard());
+      updateStorageOptions(utils.sdcard.checkStorageCard());
     });
   };
 
@@ -100,8 +108,8 @@ contacts.Settings = (function() {
     importSDOption = document.getElementById('import-sd-option');
     exportSDOption = document.getElementById('export-sd-option');
     importSettingsTitle = document.getElementById('import-settings-title');
-    importLiveOption = document.getElementById('import-gmail-option');
-    importGmailOption = document.getElementById('import-live-option');
+    importLiveOption = document.getElementById('import-live-option');
+    importGmailOption = document.getElementById('import-gmail-option');
 
     /*
      * Adding listeners
@@ -111,7 +119,7 @@ contacts.Settings = (function() {
     window.addEventListener('message', function updateList(e) {
       if (e.data.type === 'import_updated') {
         updateTimestamps();
-        checkExport();
+        checkNoContacts();
       }
     });
 
@@ -135,6 +143,9 @@ contacts.Settings = (function() {
     exportOptions = document.getElementById('export-options');
     exportOptions.addEventListener('click', exportOptionsHandler);
 
+    // Bulk delete
+    bulkDeleteButton = document.getElementById('bulkDelete');
+    bulkDeleteButton.addEventListener('click', bulkDeleteHandler);
     if (fb.isEnabled) {
       fbImportOption = document.querySelector('#settingsFb');
       document.querySelector('#settingsFb > .fb-item').onclick = onFbEnable;
@@ -175,14 +186,14 @@ contacts.Settings = (function() {
         importSettingsPanel.classList.remove('export');
         importSettingsPanel.classList.remove('import');
     });
-  };
+  }
 
   function importContactsHandler() {
       // Hide elements for export and transition
       importSettingsPanel.classList.add('import');
       updateImportTitle('importContactsTitle');
       navigationHandler.go('import-settings', 'right-left');
-  };
+  }
 
   function exportContactsHandler() {
       // Hide elements for import and transition
@@ -195,7 +206,7 @@ contacts.Settings = (function() {
           navigationHandler.go('import-settings', 'right-left');
         });
       }
-  };
+  }
 
   // Given an event, select wich should be the targeted
   // import/export source
@@ -209,6 +220,8 @@ contacts.Settings = (function() {
   }
 
   function importOptionsHandler(e) {
+    /* jshint validthis:true */
+
     var source = getSource(e);
     switch (source) {
       case 'sim':
@@ -226,6 +239,28 @@ contacts.Settings = (function() {
         Contacts.extServices.importLive();
         break;
     }
+  }
+
+  var bulkDeleteHandler = function bulkDeleteHandler() {
+    LazyLoader.load(
+      [
+        '/contacts/js/contacts_bulk_delete.js',
+        '/contacts/js/contacts_remover.js'
+      ],
+      function() {
+        Contacts.view('search', function() {
+          contacts.List.selectFromList(_('DeleteTitle'),
+            function onSelectedContacts(promise) {
+              contacts.List.exitSelectMode();
+              contacts.BulkDelete.performDelete(promise);
+            },
+            null,
+            navigationHandler,
+            'popup'
+          );
+        });
+      }
+    );
   };
 
   function exportOptionsHandler(e) {
@@ -268,7 +303,7 @@ contacts.Settings = (function() {
         );
         break;
     }
-  };
+  }
 
   function doExport(strategy) {
     // Launch the selection mode in the list, and then invoke
@@ -300,7 +335,7 @@ contacts.Settings = (function() {
       navigationHandler,
       'popup'
     );
-  };
+  }
 
   // Options checking & updating
 
@@ -341,26 +376,32 @@ contacts.Settings = (function() {
   };
 
   /**
-   * Disables/Enables the actions over the sdcard import functionality
-   * @param {Boolean} cardState Whether storage import should be enabled or not.
-   * @param {String} alternativeError Provide an alternative message if sd is
-   *    not enabled despite that the card is present.
+   * Disables/Enables the actions over the sdcard import/export functionality
+   * @param {Boolean} cardAvailable Whether functions should be enabled or not.
    */
-  var enableStorageOptions = function enableStorageOptions(cardState,
-    alternativeError) {
-    updateOptionStatus(importSDOption, !cardState, true);
-    updateOptionStatus(exportSDOption, !cardState, true);
+  var updateStorageOptions = function updateStorageOptions(cardAvailable) {
+    // Enable/Disable button and shows/hides error message
+    updateOptionStatus(importSDOption, !cardAvailable, true);
+    updateOptionStatus(exportSDOption, !cardAvailable, true);
 
-    var importSDErrorMessage = 'noMemoryCardMsg';
-    var exportSDErrorMessage = 'noMemoryCardMsgExport';
-    if (alternativeError) {
-      importSDErrorMessage = exportSDErrorMessage = alternativeError;
+    var importSDErrorMessage = '';
+    var exportSDErrorMessage = '';
+
+    var cardShared = utils.sdcard.status === utils.sdcard.SHARED;
+    if (!cardAvailable) {
+      importSDErrorMessage = _('noMemoryCardMsg');
+      exportSDErrorMessage = _('noMemoryCardMsgExport');
+
+      if (cardShared) {
+        importSDErrorMessage = exportSDErrorMessage = _('sdUMSEnabled');
+      }
     }
 
+    // update the message
     importSDOption.querySelector('p.error-message').textContent =
-      _(importSDErrorMessage);
-    exportSDOption.querySelector('p').textContent =
-      _(exportSDErrorMessage);
+      importSDErrorMessage;
+    exportSDOption.querySelector('p').textContent = exportSDErrorMessage;
+
   };
 
   // Callback that will modify the ui depending if we imported or not
@@ -653,7 +694,7 @@ contacts.Settings = (function() {
           window.importUtils.setTimestamp(source, function() {
             // Once the timestamp is saved, update the list
             updateTimestamps();
-            checkExport();
+            checkNoContacts();
           });
         }
         if (!cancelled) {
@@ -718,28 +759,34 @@ contacts.Settings = (function() {
       'text/directory;profile=vCard',
       'text/directory'
     ], ['vcf', 'vcard'], function(err, fileArray) {
-      if (err)
+      if (err) {
         return import_error(err, cb);
+      }
 
-      if (cancelled)
+      if (cancelled) {
         return;
+      }
 
-      if (fileArray.length)
+      if (fileArray.length) {
         utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
-      else
+      } else {
         import_error('No contacts were found.', cb);
+      }
     });
 
     function onFiles(err, text) {
-      if (err)
+      if (err) {
         return import_error(err, cb);
+      }
 
-      if (cancelled)
+      if (cancelled) {
         return;
+      }
 
       importer = new VCFReader(text);
-      if (!text || !importer)
+      if (!text || !importer) {
         return import_error('No contacts were found.', cb);
+      }
 
       importer.onread = import_read;
       importer.onimported = imported_contact;
@@ -750,7 +797,7 @@ contacts.Settings = (function() {
           window.importUtils.setTimestamp('sd', function() {
             // Once the timestamp is saved, update the list
             updateTimestamps();
-            checkExport();
+            checkNoContacts();
             resetWait(wakeLock);
             if (!cancelled) {
               Contacts.showStatus(_('memoryCardContacts-imported3', {
@@ -838,15 +885,17 @@ contacts.Settings = (function() {
     updateOptionStatus(importLiveOption, !navigator.onLine, true);
   };
 
-  var checkExport = function checkExport() {
+  var checkNoContacts = function checkNoContacts() {
     var exportButton = exportContacts.firstElementChild;
     var req = navigator.mozContacts.getCount();
     req.onsuccess = function() {
       if (req.result === 0) {
         exportButton.setAttribute('disabled', 'disabled');
+        bulkDeleteButton.setAttribute('disabled', 'disabled');
       }
       else {
          exportButton.removeAttribute('disabled');
+         bulkDeleteButton.removeAttribute('disabled');
       }
     };
 
@@ -855,6 +904,7 @@ contacts.Settings = (function() {
                           req.error.name);
       // In case of error is safer to leave enabled
       exportButton.removeAttribute('disabled');
+      bulkDeleteButton.removeAttribute('disabled');
     };
   };
 
@@ -930,9 +980,11 @@ contacts.Settings = (function() {
     getData();
     checkOnline();
     checkSIMCard();
-    enableStorageOptions(utils.sdcard.checkStorageCard());
+    utils.sdcard.getStatus(function statusUpdated() {
+      updateStorageOptions(utils.sdcard.checkStorageCard());
+    });
     updateTimestamps();
-    checkExport();
+    checkNoContacts();
   };
 
   return {

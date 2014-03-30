@@ -1,6 +1,4 @@
 'use strict';
-/* Allow setter without getter */
-/* jshint -W078 */
 
 var MockMozContacts;
 
@@ -88,7 +86,10 @@ MockMozContactsObj.prototype = {
 
     return {
       set onsuccess(callback) {
-        callback();
+        var self = this;
+        setTimeout(function() {
+          callback.call(self);
+        }, 0);
       },
       set onerror(callback) {
 

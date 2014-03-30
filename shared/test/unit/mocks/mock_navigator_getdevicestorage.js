@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockGetDeviceStorage */
 
 var MockGetDeviceStorage = function() {
   return {

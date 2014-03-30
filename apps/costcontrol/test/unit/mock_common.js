@@ -1,3 +1,5 @@
+/* global MockAllNetworkInterfaces, Common  */
+/* exported MockCommon */
 'use strict';
 
 requireApp('costcontrol/test/unit/mock_all_network_interfaces.js');

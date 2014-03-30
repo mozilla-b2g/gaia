@@ -1,4 +1,5 @@
 (function(window) {
+  'use strict';
 
   var Account = Calendar.Template.create({
     provider: function() {

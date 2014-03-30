@@ -1,4 +1,4 @@
-# Gaia [![Build Status](https://travis-ci.org/mozilla-b2g/gaia.png)](https://travis-ci.org/mozilla-b2g/gaia)
+# Gaia [![Build Status](https://travis-ci.org/mozilla-b2g/gaia.svg)](https://travis-ci.org/mozilla-b2g/gaia)
 
 Gaia is Mozilla's Phone UX for the Boot to Gecko (B2G) project.
 
@@ -176,11 +176,11 @@ make test-integration VERBOSE=1
   things may be stale.
 
 - To get debug information from the b2g desktop client, run this:
-`DEBUG=b2g-desktop ./bin/gaia-marionette name/of/test.js`
+`DEBUG=b2g-desktop TEST_FILES=name/of/test.js ./bin/gaia-marionette`
 
 - To get debug information from b2g desktop and all of the marionette
 plugins, run this:
-`DEBUG=* ./bin/gaia-marionette name/of/test.js`
+`DEBUG=* TEST_FILES=name/of/test.js ./bin/gaia-marionette`
 
 ### UI Tests
 

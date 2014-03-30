@@ -147,8 +147,9 @@
    */
   LockScreenSlidePrototype.initialize =
     function(opts) {
-      if (opts)
+      if (opts) {
         this._overwriteSettings(opts);
+      }
       this._initializeCanvas();
       this.publish('lockscreenslide-unlocker-initializer');
       this.states.initialized = true;
@@ -229,8 +230,9 @@
           break;
 
         case 'touchend':
-          if (evt.changedTouches[0].identifier !== this.states.touch.id)
+          if (evt.changedTouches[0].identifier !== this.states.touch.id) {
             return;
+          }
 
           this._endGesture();
           break;

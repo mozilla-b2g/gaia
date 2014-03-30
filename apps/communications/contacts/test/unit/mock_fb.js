@@ -4,9 +4,6 @@
 /* global MockContactAllFields */
 /* global MockLinkedContacts */
 
-/* Allow setter without getter */
-/* jshint -W078 */
-
 var FB_ID = 220439;
 
 var Mockfb = {
@@ -241,10 +238,6 @@ Mockfb.isFbLinked = function(contact) {
   return this.fbLinked;
 };
 
-Mockfb.isEnabled = function() {
-  return this.isEnabled;
-};
-
 Mockfb.getWorksAt = function(fbData) {
   return 'Telefónica';
 };
@@ -308,6 +301,17 @@ Mockfb.utils = (function() {
 
     setCachedNumFriends: function() {
 
+    },
+
+    _fbData: [],
+
+    getAllFbContacts: function() {
+      return {
+        result: Mockfb.utils._fbData,
+        set onsuccess(cb) {
+          cb();
+        }
+      };
     }
   };
 }());

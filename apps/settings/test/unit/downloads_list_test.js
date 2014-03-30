@@ -101,6 +101,22 @@ suite('DownloadList', function() {
     mocksHelperForDownloadList.teardown();
   });
 
+  suite(' > initialization', function() {
+    test(' > edit mode UI components are hidden while rendering',
+         function(done) {
+      DownloadsList.init(function() {
+        var downloadsEditMenu = document.getElementById('downloads-edit-menu');
+        var editModeHeader = document.getElementById('edit-mode-header');
+        assert.isTrue(downloadsEditMenu.hidden);
+        assert.isTrue(editModeHeader.hidden);
+        // Edit mode
+        editButton.click();
+        assert.isFalse(downloadsEditMenu.hidden);
+        assert.isFalse(editModeHeader.hidden);
+        done();
+      });
+    });
+  });
 
   suite(' > edit mode', function() {
     test(' > edit mode button enabled/disabled', function(done) {

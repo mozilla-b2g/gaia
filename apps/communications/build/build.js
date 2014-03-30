@@ -23,7 +23,7 @@ CommAppBuilder.prototype.setOptions = function(options) {
 
   this.webapp = utils.getWebapp(this.appDir.path, options.GAIA_DOMAIN,
     options.GAIA_SCHEME, options.GAIA_PORT);
-  this.gaia = utils.getGaia(options);
+  this.gaia = utils.gaia.getInstance(options);
 
   var content = JSON.parse(utils.getFileContent(utils.getFile(this.appDir.path,
     'build', 'communications_services.json')));

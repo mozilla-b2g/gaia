@@ -10,7 +10,7 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
 
 #search-title {
     position: absolute;
-    top: 0rem;
+    top: 0;
     left: 1.3rem;
     right: 4rem;
     color: #fff;
@@ -21,7 +21,6 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
     font-weight: 600;
     text-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, 1), 0 0.1rem 0.1rem #000;
     cursor: pointer;
-    overflow: hidden;
     visibility: visible;
     white-space: nowrap;
     overflow: hidden;
@@ -109,8 +108,7 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
     margin-bottom: -30%; /* gets rid of the scrollbar */
     overflow: hidden;
 }
-#helper.empty {
-}
+
 #helper.animate {
     transition: transform .4s ease;
 }

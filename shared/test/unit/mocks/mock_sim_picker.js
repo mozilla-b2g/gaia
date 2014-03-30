@@ -4,5 +4,5 @@
 
 var MockSimPicker = {
   init: function() { },
-  show: function() { }
+  getOrPick: function() { }
 };

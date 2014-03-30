@@ -1,3 +1,6 @@
+/* exported InputParser */
+'use strict';
+
 /**
  * Stateless object for input parser functions..
  * The intent is the methods here will only relate to the parsing
@@ -159,5 +162,4 @@ var InputParser = (function() {
   };
 
   return InputParser;
-
 }());

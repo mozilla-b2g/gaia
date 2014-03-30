@@ -104,7 +104,7 @@ var GaiaDataLayer = {
       callback(req.result);
     };
     req.onerror = function() {
-      console.error('error finding contacts', req.error.name);
+      console.error('error finding contacts ' + req.error.name);
       SpecialPowers.removePermission('contacts-read', document);
       callback([]);
     };
@@ -127,7 +127,7 @@ var GaiaDataLayer = {
       callback(req.result);
     };
     req.onerror = function() {
-      console.error('error finding contacts', req.error.name);
+      console.error('error finding contacts ' + req.error.name);
       SpecialPowers.removePermission('contacts-read', document);
       callback([]);
     };
@@ -181,7 +181,7 @@ var GaiaDataLayer = {
       callback(result);
     };
     req.onerror = function() {
-      console.log('error getting setting', req.error.name);
+      console.log('error getting setting ' + req.error.name);
     };
   },
 
@@ -199,7 +199,7 @@ var GaiaDataLayer = {
       }
     };
     req.onerror = function() {
-      console.log('error changing setting', req.error.name);
+      console.log('error changing setting ' + req.error.name);
       marionetteScriptFinished(false);
     };
   },
@@ -214,7 +214,12 @@ var GaiaDataLayer = {
       callback(true);
     }
     else {
-      var req = manager.associate(aNetwork);
+      var req;
+      if (window.MozWifiNetwork === undefined) {
+        req = manager.associate(aNetwork);
+      } else {
+        req = manager.associate(new window.MozWifiNetwork(aNetwork));
+      }
 
       req.onsuccess = function() {
         console.log("waiting for connection status 'connected'");
@@ -232,7 +237,7 @@ var GaiaDataLayer = {
       };
 
       req.onerror = function() {
-        console.log('error connecting to network', req.error.name);
+        console.log('error connecting to network ' + req.error.name);
         callback(false);
       };
     }
@@ -303,7 +308,7 @@ var GaiaDataLayer = {
     };
 
     req.onerror = function() {
-      console.log('error getting known networks', req.error.name);
+      console.log('error getting known networks ' + req.error.name);
       callback([]);
     };
   },
@@ -334,7 +339,7 @@ var GaiaDataLayer = {
     };
 
     req.onerror = function() {
-      console.log("error forgetting network with ssid '" + aNetwork.ssid + "'",
+      console.log("error forgetting network with ssid '" + aNetwork.ssid + "' " +
                   req.error.name);
       callback(false);
     };
@@ -420,7 +425,7 @@ var GaiaDataLayer = {
   getFiles: function(aType, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
     var files = [];
-    console.log('getting', aType);
+    console.log('getting ' + aType);
     var storage = navigator.getDeviceStorage(aType);
     var req = storage.enumerate();
     req.onsuccess = function() {
@@ -442,7 +447,7 @@ var GaiaDataLayer = {
       }
     };
     req.onerror = function() {
-      console.error('failed to enumerate ' + aType, req.error.name);
+      console.error('failed to enumerate ' + aType + ' ' + req.error.name);
       callback(false);
     };
   },

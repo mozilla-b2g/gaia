@@ -30,6 +30,11 @@
 #timer-active {
   z-index: 1;
   background-size: 100% 100%;
+  visibility: hidden;
+}
+
+#timer-dialog.hidden + #timer-active {
+  visibility: visible;
 }
 
 #timer-controls {
@@ -59,7 +64,7 @@ ul#timer-edit li {
 }
 
 ul#timer-edit li:first-child {
-  padding-top: 0rem;
+  padding-top: 0;
   padding-bottom: 0.25rem;
 }
 

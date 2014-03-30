@@ -1439,6 +1439,14 @@ define("mailapi/worker-bootstrap", function(){});
 
 // set location of dynamically loaded layers.
 require.config({
+  // waitSeconds is set to the default here; the build step rewrites
+  // it to 0 in copy-to-gaia.js so that we never timeout waiting
+  // for modules in production. This is important when the device is
+  // under super-low-memory stress, as it may take a while for the
+  // device to get around to loading things email for background tasks
+  // like periodic sync.
+  waitSeconds: 0,
+
   baseUrl: '..',
   paths: {
     // mailcomposer is in the mailapi/composer layer.
@@ -4431,7 +4439,14 @@ exports.latch = function() {
     count++;
     var resolved = false;
     return function resolve() {
-      if (resolved) { return; }
+      if (resolved) {
+        var err = new Error("You have already resolved this deferred!");
+        // Exceptions aren't always readily visible, but this is a
+        // serious error and needs to be addressed.
+        console.error(err + '\n' + err.stack);
+        throw err;
+      }
+      resolved = true;
       if (name) {
         results[name] = Array.slice(arguments);
       }
@@ -12581,6 +12596,7 @@ exports.createHash = function(algorithm) {
   return {
     update: function(addData) {
       data += addData;
+      return this;
     },
     digest: function(encoding) {
       switch (encoding) {
@@ -13577,24 +13593,22 @@ MailBridge.prototype = {
   _cmd_clearAccountProblems: function mb__cmd_clearAccountProblems(msg) {
     var account = this.universe.getAccountForAccountId(msg.accountId),
         self = this;
-    account.checkAccount(function(err) {
-      // If we succeeded or the problem was not an authentication, assume
-      // everything went fine and clear the problems.  This includes the case
-      // we're offline.
-      if (!err || (
+    account.checkAccount(function(incomingErr, outgoingErr) {
+      // Note that ActiveSync accounts won't have an outgoingError,
+      // but that's fine. It just means that outgoing never errors!
+      function canIgnoreError(err) {
+        // If we succeeded or the problem was not an authentication,
+        // assume everything went fine. This includes the case we're
+        // offline.
+        return (!err || (
           err !== 'bad-user-or-pass' &&
           err !== 'bad-address' &&
           err !== 'needs-app-pass' &&
           err !== 'imap-disabled'
-        )) {
-        self.universe.clearAccountProblems(account);
+        ));
       }
-      // The login information is still bad; re-send the bad login notification.
-      else {
-        // This is only being sent over this, the same bridge the clear request
-        // came from rather than sent via the mailuniverse.  No point having the
-        // notifications stack up on inactive UIs.
-        self.notifyBadLogin(account, err);
+      if (canIgnoreError(incomingErr) && canIgnoreError(outgoingErr)) {
+        self.universe.clearAccountProblems(account);
       }
       self.__sendMessage({
         type: 'clearAccountProblems',
@@ -13616,10 +13630,43 @@ MailBridge.prototype = {
           break;
 
         case 'username':
+          // See the 'password' section below and/or
+          // MailAPI.modifyAccount docs for the rationale for this
+          // username equality check:
+          if (accountDef.credentials.outgoingUsername ===
+              accountDef.credentials.username) {
+            accountDef.credentials.outgoingUsername = val;
+          }
           accountDef.credentials.username = val;
           break;
+        case 'incomingUsername':
+          accountDef.credentials.username = val;
+          break;
+        case 'outgoingUsername':
+          accountDef.credentials.outgoingUsername = val;
+          break;
         case 'password':
+          // 'password' is for changing both passwords, if they
+          // currently match. If this account contains an SMTP
+          // password (only composite ones will) and the passwords
+          // were previously the same, assume that they both need to
+          // remain the same. NOTE: By doing this, we save the user
+          // from typing their password twice in the extremely common
+          // case that both passwords are actually the same. If the
+          // SMTP password is actually different, we'll just prompt
+          // them for that independently if we discover it's still not
+          // correct.
+          if (accountDef.credentials.outgoingPassword ===
+              accountDef.credentials.password) {
+            accountDef.credentials.outgoingPassword = val;
+          }
           accountDef.credentials.password = val;
+          break;
+        case 'incomingPassword':
+          accountDef.credentials.password = val;
+          break;
+        case 'outgoingPassword':
+          accountDef.credentials.outgoingPassword = val;
           break;
 
         case 'identities':
@@ -13653,21 +13700,36 @@ MailBridge.prototype = {
           if (val)
             accountDef.defaultPriority = $date.NOW();
           break;
+
+        default:
+          throw new Error('Invalid key for modifyAccount: "' + key);
       }
     }
 
     this.universe.saveAccountDef(accountDef, null);
+    this.__sendMessage({
+      type: 'modifyAccount',
+      handle: msg.handle,
+    });
   },
 
   _cmd_deleteAccount: function mb__cmd_deleteAccount(msg) {
     this.universe.deleteAccount(msg.accountId);
   },
 
-  notifyBadLogin: function mb_notifyBadLogin(account, problem) {
+  /**
+   * Notify the frontend that login failed.
+   *
+   * @param account
+   * @param {string} problem
+   * @param {'incoming'|'outgoing'} whichSide
+   */
+  notifyBadLogin: function mb_notifyBadLogin(account, problem, whichSide) {
     this.__sendMessage({
       type: 'badLogin',
       account: account.toBridgeWire(),
-      problem: problem
+      problem: problem,
+      whichSide: whichSide,
     });
   },
 
@@ -13771,7 +13833,7 @@ MailBridge.prototype = {
 
   _cmd_viewSenderIdentities: function mb__cmd_viewSenderIdentities(msg) {
     var proxy = this._slices[msg.handle] =
-          new SliceBridgeProxy(this, identities, msg.handle);
+          new SliceBridgeProxy(this, 'identities', msg.handle);
     this._slicesByType['identities'].push(proxy);
     var wireReps = this.universe.identities;
     // send all the identities in one go.
@@ -16747,8 +16809,12 @@ MailUniverse.prototype = {
    * We mutate its state for it, and generate a notification if this is a new
    * problem.  For problems that require user action, we additionally generate
    * a bad login notification.
+   *
+   * @param account
+   * @param {string} problem
+   * @param {'incoming'|'outgoing'} whichSide
    */
-  __reportAccountProblem: function(account, problem) {
+  __reportAccountProblem: function(account, problem, whichSide) {
     var suppress = false;
     // nothing to do if the problem is already known
     if (account.problems.indexOf(problem) !== -1) {
@@ -16769,7 +16835,7 @@ MailUniverse.prototype = {
       case 'bad-address':
       case 'imap-disabled':
       case 'needs-app-pass':
-        this.__notifyBadLogin(account, problem);
+        this.__notifyBadLogin(account, problem, whichSide);
         break;
     }
   },
@@ -16796,7 +16862,7 @@ MailUniverse.prototype = {
     this._resumeOpProcessingForAccount(account);
   },
 
-  // expects (account, problem)
+  // expects (account, problem, whichSide)
   __notifyBadLogin: makeBridgeFn('notifyBadLogin'),
 
   // expects (account)

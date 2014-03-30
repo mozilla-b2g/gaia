@@ -15,6 +15,8 @@
     <link href="/shared/style/status.css" rel="stylesheet">
     <link href="/shared/style/switches.css" rel="stylesheet">
     <link href="/shared/style/confirm.css" rel="stylesheet">
+    <link href="/shared/style/action_menu.css" rel="stylesheet">
+    <link href="/shared/style/sim_picker.css" rel="stylesheet">
 
     <link href="/contacts/style/app.css" rel="stylesheet">
     <link href="/contacts/style/contacts.css" rel="stylesheet">
@@ -48,6 +50,7 @@
 
     <link rel="resource" type="application/l10n" href="/contacts/locales/locales.ini"/>
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
+    <link rel="resource" type="application/l10n" href="/shared/locales/sim_picker.ini"/>
     <script defer src="/shared/js/l10n.js"></script>
     <script defer src="/shared/js/l10n_date.js"></script>
     <script defer src="/contacts/js/fb_loader.js"></script>
@@ -61,6 +64,7 @@
     <link href="/shared/js/fb/fb_data_reader.js">
     <link href="/shared/js/setImmediate.js">
     <link href="/shared/js/sim_settings_helper.js">
+    <link href="/shared/js/sim_picker.js">
     -->
 
     <link rel="import" href="elements/confirm.html">
@@ -72,6 +76,7 @@
     <link rel="import" href="elements/settings.html">
     <link rel="import" href="elements/status.html">
     <link rel="import" href="elements/tag.html">
+    <link rel="import" href="/dialer/elements/sim-picker.html">
   </head>
 
   <body role="application" class="app-contacts">
@@ -175,12 +180,13 @@
 
     <section is="search-view" id="search-view" class="view"></section>
     <section is="view-screenshot" id='view-screenshot' role="region" class="view hide"></section>
-    <section is="view-contact-details" id='view-contact-details' role="region" class="view view-right view-contact-profile"></section>
+    <section is="view-contact-details" id='view-contact-details' role="region" class="view view-right view-contact-profile view-noscroll"></section>
     <section is="view-contact-form" id='view-contact-form' role="region" class="view view-bottom view-edit-contact"></section>
     <section is="view-select-tag" id="view-select-tag" role="region" class="view view-right view-select-tag"></section>
     <article is="settings" id="settings-wrapper"></article>
     <form    is="confirm-form" data-type="confirm" id="loading-overlay" class="hide no-opacity" role="dialog"></form>
     <section is="status-message" id="statusMsg" role="status" class="hidden"></section>
     <form    is="confirmation-message" id="confirmation-message" class="hide" role="dialog" data-type="confirm"></form>
+    <form    is="sim-picker" id="sim-picker" role="dialog" data-type="action" hidden></form>
   </body>
 </html>

@@ -28,6 +28,7 @@ var UtilityTray = {
     window.addEventListener('emergencyalert', this);
     window.addEventListener('home', this);
     window.addEventListener('attentionscreenshow', this);
+    window.addEventListener('launchapp', this);
     window.addEventListener('displayapp', this);
     window.addEventListener('appopening', this);
 
@@ -70,6 +71,7 @@ var UtilityTray = {
       case 'keyboardchangecanceled':
       case 'simpinshow':
       case 'appopening':
+      case 'launchapp':
         if (this.shown) {
           this.hide();
         }

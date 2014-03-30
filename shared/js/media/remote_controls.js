@@ -367,7 +367,7 @@ MediaRemoteControls.prototype.notifyStatusChanged = function(status) {
   if (this.defaultAdapter) {
     // Don't send the interrupted statuses to the remote client because
     // they are not the AVRCP statuses.
-    if (status === 'mozinterruptbegin' || status === 'mozinterruptend')
+    if (status === 'mozinterruptbegin')
       return;
 
     var request = this.defaultAdapter.sendMediaPlayStatus(status);

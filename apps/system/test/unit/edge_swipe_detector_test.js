@@ -1,17 +1,21 @@
 'use strict';
 
+mocha.globals(['homescreenLauncher']);
+
 requireApp('system/js/edge_swipe_detector.js');
 
 requireApp('system/test/unit/mock_sheets_transition.js');
 requireApp('system/test/unit/mock_stack_manager.js');
 requireApp('system/test/unit/mock_touch_forwarder.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/test/unit/mock_homescreen_launcher.js');
 
 var mocksForEdgeSwipeDetector = new MocksHelper([
   'SheetsTransition',
   'StackManager',
   'SettingsListener',
-  'TouchForwarder'
+  'TouchForwarder',
+  'HomescreenLauncher'
 ]).init();
 
 suite('system/EdgeSwipeDetector >', function() {
@@ -19,6 +23,7 @@ suite('system/EdgeSwipeDetector >', function() {
   var screen;
 
   setup(function() {
+    window.homescreenLauncher = new HomescreenLauncher().start();
     // DOM
     EdgeSwipeDetector.previous = document.createElement('div');
     EdgeSwipeDetector.previous.classList.add('gesture-panel');
@@ -30,6 +35,10 @@ suite('system/EdgeSwipeDetector >', function() {
     EdgeSwipeDetector.screen = screen;
     EdgeSwipeDetector.init();
     MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
+  });
+
+  teardown(function() {
+    window.homescreenLauncher = undefined;
   });
 
   var dialer = {
@@ -144,6 +153,14 @@ suite('system/EdgeSwipeDetector >', function() {
       appLaunch(dialer);
       launchTransitionEnd();
       assert.isTrue(screen.classList.contains('edges'));
+    });
+
+    test('the edges should be enabled if an app is launched from cards view',
+    function() {
+      launchTransitionEnd();
+      MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
+      assert.isFalse(EdgeSwipeDetector.previous.classList.contains('disabled'));
+      assert.isFalse(EdgeSwipeDetector.next.classList.contains('disabled'));
     });
 
     suite('in background', function() {

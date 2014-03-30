@@ -41,7 +41,8 @@ marionette('Contacts > Form', function() {
       assert.notEqual(listElementText.indexOf(familyName), -1);
     });
 
-    test('Can create custom label', function() {
+    // disabled bug 989394
+    test.skip('Can create custom label', function() {
       subject.addContact({
         givenName: 'Custom Label Test',
         tel: 1231231234

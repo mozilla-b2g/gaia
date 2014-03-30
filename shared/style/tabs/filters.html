@@ -33,7 +33,7 @@
       border: solid 1px #e8e8e8;
     }
 
-    body[role="application"] ul[role="tablist"][data-type="filter"] {
+    body[role="application"] ul.bb-tablist[data-type="filter"] {
       margin: 10px 0;
     }
   </style>
@@ -42,15 +42,15 @@
   <section role="region">
 
     <h2 class="bb-docs">Default position - Default Filters</h2>
-    <ul role="tablist" data-type="filter">
-      <li id="filter1-1" role="tab"><a href="#filter1-1">Action 01</a></li>
-      <li id="filter1-2" role="tab"><a href="#filter1-2">Action 02</a></li>
+    <ul role="tablist" class="bb-tablist" data-type="filter">
+      <li id="filter1-1" role="presentation"><a href="#filter1-1" role="tab">Action 01</a></li>
+      <li id="filter1-2" role="presentation"><a href="#filter1-2" role="tab">Action 02</a></li>
     </ul>
 
-    <ul role="tablist" data-type="filter" class="skin-grey">
-      <li id="filter2-1" role="tab"><a href="#filter2-1">Action 01</a></li>
-      <li id="filter2-2" role="tab"><a href="#filter2-2">Action 02</a></li>
-      <li id="filter2-3" role="tab"><a href="#filter2-3">Action 02</a></li>
+    <ul role="tablist" data-type="filter" class="skin-grey bb-tablist">
+      <li id="filter2-1" role="presentation"><a href="#filter2-1" role="tab">Action 01</a></li>
+      <li id="filter2-2" role="presentation"><a href="#filter2-2" role="tab">Action 02</a></li>
+      <li id="filter2-3" role="presentation"><a href="#filter2-3" role="tab">Action 02</a></li>
     </ul>
 
     <br />
@@ -59,15 +59,15 @@
     <br />
 
     <h2 class="bb-docs">Default position - Grey Filters</h2>
-    <ul role="tablist" data-type="filter" class="bottom">
-      <li id="filter-bottom1-1" role="tab"><a href="#filter-bottom1-1">Action 01</a></li>
-      <li id="filter-bottom1-2" role="tab"><a href="#filter-bottom1-2">Action 02</a></li>
+    <ul role="tablist" data-type="filter" class="bottom bb-tablist">
+      <li id="filter-bottom1-1" role="presentation"><a href="#filter-bottom1-1" role="tab">Action 01</a></li>
+      <li id="filter-bottom1-2" role="presentation"><a href="#filter-bottom1-2" role="tab">Action 02</a></li>
     </ul>
 
-    <ul role="tablist" data-type="filter" class="skin-grey bottom">
-      <li id="filter-bottom2-1" role="tab"><a href="#filter-bottom2-1">Action 01</a></li>
-      <li id="filter-bottom2-2" role="tab"><a href="#filter-bottom2-2">Action 02</a></li>
-      <li id="filter-bottom2-3" role="tab"><a href="#filter-bottom2-3">Action 02</a></li>
+    <ul role="tablist" data-type="filter" class="skin-grey bottom bb-tablist">
+      <li id="filter-bottom2-1" role="presentation"><a href="#filter-bottom2-1" role="tab">Action 01</a></li>
+      <li id="filter-bottom2-2" role="presentation"><a href="#filter-bottom2-2" role="tab">Action 02</a></li>
+      <li id="filter-bottom2-3" role="presentation"><a href="#filter-bottom2-3" role="tab">Action 02</a></li>
     </ul>
 
   </section>

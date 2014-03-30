@@ -79,8 +79,9 @@ var Normalizer = {
     this._toAsciiForm = {};
     for (var letter in equivalentChars) {
       var accentedForms = equivalentChars[letter];
-      for (var i = accentedForms.length - 1; i >= 0; i--)
+      for (var i = accentedForms.length - 1; i >= 0; i--) {
         this._toAsciiForm[accentedForms[i]] = letter;
+      }
     }
   },
 
@@ -90,16 +91,19 @@ var Normalizer = {
    * @return {string} the normalized (ASCII) string in lower case.
    */
   toAscii: function normalizer_toAscii(str) {
-    if (!str || typeof str != 'string')
+    if (!str || typeof str != 'string') {
       return '';
+    }
 
-    if (!this._toAsciiForm)
+    if (!this._toAsciiForm) {
       Normalizer.initAsciiNormalizer();
+    }
 
     // Convert accented form to ASCII equivalent
     var result = '';
-    for (var i = 0, len = str.length; i < len; i++)
+    for (var i = 0, len = str.length; i < len; i++) {
       result += this._toAsciiForm[str.charAt(i)] || str.charAt(i);
+    }
 
     return result;
   },
@@ -115,13 +119,15 @@ var Normalizer = {
       return Normalizer.escapeHTML(str.join(' '), escapeQuotes);
     }
 
-    if (!str || typeof str != 'string')
+    if (!str || typeof str != 'string') {
       return '';
+    }
 
     var escaped = str.replace(/&/g, '&amp;').replace(/</g, '&lt;')
                      .replace(/>/g, '&gt;');
-    if (escapeQuotes)
+    if (escapeQuotes) {
       return escaped.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
+    }
     return escaped;
   },
 

@@ -1,4 +1,10 @@
+/* global utils,
+          UIManager,
+          WifiHelper */
+/* exported WifiManager, WifiUI */
 'use strict';
+
+var _;
 
 var WifiManager = {
   init: function wn_init() {
@@ -66,9 +72,11 @@ var WifiManager = {
       callback();
     }, SCAN_TIMEOUT);
   },
+
   enable: function wn_enable(lock) {
     lock.set({'wifi.enabled': true});
   },
+
   enableDebugging: function wn_enableDebugging(lock) {
     // For bug 819947: turn on wifi debugging output to help track down a bug
     // in wifi. We turn on wifi output only while the FTU app is active.
@@ -79,12 +87,14 @@ var WifiManager = {
     };
     lock.set({ 'wifi.debugging.enabled': true });
   },
+
   finish: function wn_finish() {
     if (!this._prevDebuggingValue && navigator.mozSettings) {
       var resetLock = window.navigator.mozSettings.createLock();
       resetLock.set({'wifi.debugging.enabled': false});
     }
   },
+
   getNetwork: function wm_gn(ssid) {
     var network;
     for (var i = 0; i < this.networks.length; i++) {
@@ -95,6 +105,7 @@ var WifiManager = {
     }
     return network;
   },
+
   connect: function wn_connect(ssid, password, user) {
     var network = this.getNetwork(ssid);
     this.ssid = ssid;

@@ -181,7 +181,8 @@
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
     'authDialog': window.AppAuthenticationDialog,
-    'contextmenu': window.BrowserContextMenu
+    'contextmenu': window.BrowserContextMenu,
+    'childWindowFactory': window.ChildWindowFactory
   };
 
   ActivityWindow.REGISTERED_EVENTS =
@@ -258,6 +259,7 @@
     this.containerElement.insertAdjacentHTML('beforeend', this.view());
     // TODO: Use BrowserConfigHelper.
     this.browser_config = {
+      parentApp: this.parentApp,
       origin: this.origin,
       url: this.url,
       name: this.name,

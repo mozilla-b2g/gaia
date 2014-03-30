@@ -1,4 +1,6 @@
+/* global GestureDetector */
 Calendar.ns('Views').TimeParent = (function() {
+  'use strict';
 
   var XSWIPE_OFFSET = window.innerWidth / 10;
 
@@ -106,7 +108,10 @@ Calendar.ns('Views').TimeParent = (function() {
     _previousTime: function() {},
 
     _getId: function(date) {
-      return date.valueOf();
+      // we discard the hours/minutes/seconds to avoid errors in case
+      // changeDate passes a value that is on same day but on a different hour
+      // (see Bug 988079)
+      return Calendar.Calc.getDayId(date);
     },
 
     /**
@@ -145,7 +150,6 @@ Calendar.ns('Views').TimeParent = (function() {
      * @return {Object} existing or newly added frame.
      */
     addFrame: function(date) {
-      var frame;
       var id = this._getId(date);
       var frame = this.frames.get(id);
       if (!frame) {
@@ -202,7 +206,6 @@ Calendar.ns('Views').TimeParent = (function() {
      * @param {Calendar.Timespan} timespan span of time.
      */
     purgeFrames: function(span) {
-      var key;
       var child;
       var i = 0;
       var len = this.frames.length;

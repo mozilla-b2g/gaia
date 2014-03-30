@@ -84,6 +84,28 @@ section[role="region"] > div > ul {
 }
 
 /******************************************************************************
+ * Activities section = "root" and filtered by category
+ */
+#activityDoneButton {
+  display: none;
+}
+
+body[data-filter-by] #activityDoneButton {
+  display: block;
+}
+
+body[data-filter-by] #root > div header,
+body[data-filter-by] #root > div li {
+  display: none;
+}
+
+/* These rules show the "Network & Connectivity" header and items related to
+   connectivity (airplane mode, Wi-Fi and cellular & data) */
+body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
+  display: block;
+}
+
+/******************************************************************************
  * Explanation texts
  */
 
@@ -560,7 +582,7 @@ ul li > label.range-icons.brightness:before {
   display: block;
   background: url(images/feedback_faces.png);
   width: 10rem;
-  height: 10rem;
+  min-height: 10rem;
   background-repeat: no-repeat;
   background-color: transparent;
   background-size: 20rem;
@@ -572,6 +594,16 @@ ul li > label.range-icons.brightness:before {
 
 #feedback-mood li {
   display: inline-block;
+  max-width: 11rem;
+}
+
+.feedback-face-caption {
+  overflow: visible;
+  white-space: normal;
+  line-height: 2.6rem;
+  padding-top: 1rem;
+  min-height: 6rem;
+  height: auto;
 }
 
 #feedback-happy {
@@ -587,7 +619,8 @@ ul li > label.range-icons.brightness:before {
   background-position: 0;
 }
 
-#feedback-sad .feedback-choose-face{
+#feedback-sad .feedback-choose-face {
+  display: inline-block;
   background-position: 100%;
 }
 
@@ -639,11 +672,8 @@ ul li > label.range-icons.brightness:before {
 /******************************************************************************
  * Bluetooth
  */
-#update-device-name > section p {
-  border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
-  margin-top: 1rem;
-  padding: 0.5rem 1.2rem 0;
-  line-height: 1.2;
+#update-device-name > section input {
+  margin: 1rem 0;
 }
 
 /* Web activity handling */
@@ -777,4 +807,3 @@ html[dir="rtl"] #feedback-happy {
 html[dir="rtl"] #feedback-sad {
   float: left;
 }
-

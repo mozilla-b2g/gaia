@@ -116,7 +116,7 @@ body.pick-activity #thumbnails>li:last-child {
   color: #FFFFFF;
   position: absolute;
   font-size: 1.8rem;
-  text-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
   text-align: left;
 }
 
@@ -168,7 +168,7 @@ span#elapsed-text {
 #playHead {
   position: absolute;
   background: url(images/tablet_scrubber.png) no-repeat center center;
-  margin: 0rem 0 0 -2.3rem;
+  margin: 0 0 0 -2.3rem;
   background-size: 4.6rem;
   pointer-events: none;
   border: none;
@@ -183,7 +183,7 @@ span#elapsed-text {
   background: url(images/tablet_scrubber_pressed.png) no-repeat center center;
   width: 4.6rem;
   height: 100%;
-  margin: 0rem 0 0 -2.3rem;
+  margin: 0 0 0 -2.3rem;
   top: 0;
 }
 
@@ -280,7 +280,7 @@ body.pick-activity #fullscreen-tool-bar {
   }
 
   .layout-fullscreen-player #player-view {
-    left: 0%;
+    left: 0;
     width: 100%;
   }
 
@@ -322,7 +322,7 @@ body.pick-activity #fullscreen-tool-bar {
   /* position */
   /* the videoActionBar is not shown and videoBar should be moved to bottom */
   #player-view #videoControls #videoBar {
-    bottom: 0rem;
+    bottom: 0;
   }
 
   #fullscreen-button {
@@ -333,7 +333,7 @@ body.pick-activity #fullscreen-tool-bar {
     position: absolute;
     width: 8rem;
     height: 100%;
-    right: 0rem;
+    right: 0;
   }
 
   #fullscreen-button:active {
@@ -383,7 +383,7 @@ body.pick-activity #fullscreen-tool-bar {
 
   .layout-fullscreen-player #timeSlider {
     left: 20rem;
-    right: 0rem;
+    right: 0;
   }
 
   .layout-fullscreen-player #slider-wrapper {
@@ -503,7 +503,7 @@ body.pick-activity #fullscreen-tool-bar {
     height: 19.7rem;
     font-size: 1.6rem;
     color: #FFFFFF;
-    text-shadow:0px 0px 5px #000000;
+    text-shadow:0 0 5px #000000;
     background-image: url(images/tablet_text_mask.png);
     background-repeat: repeat-y;
     background-size: 100%;
@@ -558,7 +558,7 @@ body.pick-activity #fullscreen-tool-bar {
 
   /* the videoActionBar is not shown and videoBar should be moved to bottom */
   #player-view #videoControls #videoBar {
-    bottom: 0rem;
+    bottom: 0;
   }
 
   /* spinner is only valid for tablet and landscape mode */
@@ -628,13 +628,13 @@ body.pick-activity #fullscreen-tool-bar {
     height: 19.7rem;
     font-size: 1.6rem;
     color: #FFFFFF;
-    text-shadow:0px 0px 5px #000000;
+    text-shadow:0 0 5px #000000;
     background-image: url(images/tablet_text_mask.png);
     background-repeat: repeat-y;
     background-size: 100%;
     justify-content: flex-end;
     top: auto;
-    bottom: 0px;
+    bottom: 0;
   }
 
   .thumbnail .details span {
@@ -670,10 +670,10 @@ section[role="region"].skin-organic > header:first-child,
 .skin-organic section[role="region"] > header:first-child,
 section[role="region"].skin-dark  > header:first-child,
 .skin-dark  section[role="region"] > header:first-child {
-  background: url("images/tablet_header.png") repeat-x scroll 0% 0% / auto 100% transparent;
+  background: url("images/tablet_header.png") repeat-x scroll 0 0 / auto 100% transparent;
 }
 section[role="region"] > header:first-child h1 {
-  padding: 0 1rem 0px 2rem;
+  padding: 0 1rem 0 2rem;
 }
 section[role="region"] > header:first-child .icon {
   width: 5rem;

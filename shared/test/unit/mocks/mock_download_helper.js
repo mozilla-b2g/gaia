@@ -1,11 +1,12 @@
 'use strict';
+/* exported MockDownloadHelper */
 
 var MockDownloadHelper = {
   open: function() {
     return {
       set onsuccess(s) { setTimeout(function() {
        s();
-      }, 100)},
+      }, 100); },
       set onerror(e) {}
     };
   },
@@ -13,7 +14,7 @@ var MockDownloadHelper = {
     return {
       set onsuccess(s) { setTimeout(function() {
        s();
-      }, 100)},
+      }, 100); },
       set onerror(e) {}
     };
   },

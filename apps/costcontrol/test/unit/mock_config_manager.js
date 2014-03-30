@@ -1,3 +1,4 @@
+/* exported MockConfigManager */
 'use strict';
 
 var MockConfigManager = function(config) {
@@ -11,7 +12,7 @@ var MockConfigManager = function(config) {
       return v;
     }
 
-    return new Date(v['__date__']);
+    return new Date(v.__date__);
   }
 
   function getMockRequiredMessage(mocking, parameter, isAFunction) {
@@ -32,7 +33,7 @@ var MockConfigManager = function(config) {
     requestAll: function(callback) {
       var self = this;
       self.requestConfiguration(function(configuration) {
-        self.requestSettings(function(settings) {
+        self.requestSettings(undefined, function(settings) {
           callback(configuration, settings);
         });
       });
@@ -40,7 +41,7 @@ var MockConfigManager = function(config) {
     requestConfiguration: function(callback) {
       callback(fakeConfiguration);
     },
-    requestSettings: function(callback) {
+    requestSettings: function(iccId, callback) {
       callback(JSON.parse(JSON.stringify(fakeSettings), settingsReviver));
     },
     setOption: function(options, callback) {

@@ -1,4 +1,5 @@
 (function(window) {
+  'use strict';
 
   var Cal = Calendar.Template.create({
     item: function() {

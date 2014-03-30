@@ -11,6 +11,7 @@ var PermissionManager = {
   message: document.getElementById('permission-message'),
   moreInfo: document.getElementById('permission-more-info'),
   moreInfoLink: document.getElementById('permission-more-info-link'),
+  hideInfoLink: document.getElementById('permission-hide-info-link'),
   moreInfoBox: document.getElementById('permission-more-info-box'),
 
   // "Yes"/"No" buttons on the permission UI.
@@ -166,7 +167,7 @@ var PermissionManager = {
       this.cancelRequest(this.fullscreenRequest);
       this.fullscreenRequest = undefined;
     }
-    if (detail.fullscreenorigin != AppWindowManager.getDisplayedApp()) {
+    if (detail.fullscreenorigin != AppWindowManager.getActiveApp().origin) {
       var _ = navigator.mozL10n.get;
       // The message to be displayed on the approval UI.
       var message =
@@ -191,7 +192,7 @@ var PermissionManager = {
     var _ = navigator.mozL10n.get;
 
     if (detail.isApp) { // App
-      var app = Applications.getByManifestURL(detail.manifestURL);
+      var app = applications.getByManifestURL(detail.manifestURL);
       str = _(permissionID + '-appRequest',
         { 'app': new ManifestHelper(app.manifest).name });
     } else { // Web content
@@ -255,6 +256,8 @@ var PermissionManager = {
     this.no.callback = null;
     this.moreInfoLink.removeEventListener('click',
       this.moreInfoHandler);
+    this.hideInfoLink.removeEventListener('click',
+      this.moreInfoHandler);
     this.moreInfo.classList.add('hidden');
   },
 
@@ -288,8 +291,9 @@ var PermissionManager = {
       callback = this.yes.callback;
     } else if (evt.target === this.no && this.no.callback) {
       callback = this.no.callback;
-    } else if (evt.target === this.moreInfoLink) {
-      this.moreInfoBox.classList.toggle('hidden');
+    } else if (evt.target === this.moreInfoLink ||
+               evt.target === this.hideInfoLink) {
+      this.toggleInfo();
       return;
     }
     this.hidePermissionPrompt();
@@ -298,6 +302,12 @@ var PermissionManager = {
     if (callback)
       window.setTimeout(callback, 0);
     this.showNextPendingRequest();
+  },
+
+  toggleInfo: function pm_toggleInfo() {
+    this.moreInfoLink.classList.toggle('hidden');
+    this.hideInfoLink.classList.toggle('hidden');
+    this.moreInfoBox.classList.toggle('hidden');
   },
 
   requestPermission: function pm_requestPermission(origin, permission,
@@ -364,6 +374,7 @@ var PermissionManager = {
       this.moreInfo.classList.remove('hidden');
       this.moreInfoHandler = this.clickHandler.bind(this);
       this.moreInfoLink.addEventListener('click', this.moreInfoHandler);
+      this.hideInfoLink.addEventListener('click', this.moreInfoHandler);
       this.moreInfoBox.textContent = moreInfoText;
     }
     this.currentRequestId = id;

@@ -1,3 +1,7 @@
+/* global BalanceView, LazyLoader, AutoSettings, BalanceLowLimitView,
+          ViewManager, dataLimitConfigurer */
+/* exported debug, sendBalanceThresholdNotification */
+
 /*
  * Settings is in charge of setup the setting section. It uses an AutoSettings
  * object to automatically bind markup with local settings.
@@ -5,13 +9,12 @@
  * Settings have three drawing areas with views for current values of balance,
  * data usage and telephony.
  */
-
+'use strict';
  // Import global objects from parent window
  var ConfigManager = window.parent.ConfigManager;
  var CostControl = window.parent.CostControl;
  var Common = window.parent.Common;
  var NetworkUsageAlarm = window.parent.NetworkUsageAlarm;
- var Formatting = window.parent.Formatting;
 
  // Import global functions from parent window
  var updateNextReset = window.parent.updateNextReset;
@@ -19,6 +22,8 @@
  var formatData = window.parent.formatData;
  var roundData = window.parent.roundData;
  var resetData = window.parent.resetData;
+ var sendBalanceThresholdNotification = window.parent
+                                        .sendBalanceThresholdNotification;
  var addNetworkUsageAlarm = window.parent.addNetworkUsageAlarm;
  var resetTelephony = window.parent.resetTelephony;
  var getDataLimit = window.parent.getDataLimit;
@@ -32,9 +37,7 @@
 
 var Settings = (function() {
 
-  'use strict';
-
-  var costcontrol, vmanager, autosettings, initialized;
+  var costcontrol, vmanager, initialized;
   var plantypeSelector, phoneActivityTitle, phoneActivitySettings;
   var balanceTitle, balanceSettings, reportsTitle;
   var balanceView;

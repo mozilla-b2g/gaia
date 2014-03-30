@@ -107,14 +107,30 @@
       this.manifest.chrome :
       this.config.chrome;
 
+    if (!this.manifestURL && !this.config.chrome) {
+      this.config.chrome = {
+        navigation: true
+      };
+    }
+
     if (!this.manifest && this.config && this.config.title) {
       this.updateName(this.config.title);
+    } else {
+      this.name = new self.ManifestHelper(this.manifest).name;
     }
 
     // Get icon splash
     this.getIconForSplash();
 
     this.generateID();
+    /**
+     * The instanceID of the root window of this window.
+     * @type {String}
+     */
+    this.groupID = this.getRootWindow().instanceID;
+    if (this.parentWindow) {
+      this.parentWindow.setChildWindow(this);
+    }
   };
 
   /**
@@ -391,6 +407,14 @@
       }
     }
 
+    if (this.childWindow) {
+      this.childWindow.kill();
+      this.childWindow = null;
+    }
+    if (this.parentWindow) {
+      this.parentWindow = null;
+    }
+
     // If the app is the currently displayed app, switch to the homescreen
     if (this.isActive() && !this.isHomescreen) {
       // XXX: Refine this in transition state controller.
@@ -430,8 +454,7 @@
      */
     this.publish('willdestroy');
     this.uninstallSubComponents();
-    if (this.element) {
-      this.debug(' removing element... ');
+    if (this.element && this.element.parentNode) {
       this.element.parentNode.removeChild(this.element);
       this.element = null;
     }
@@ -468,7 +491,14 @@
      */
     this.publish('willrender');
     this.containerElement.insertAdjacentHTML('beforeend', this.view());
-    this.browser = new self.BrowserFrame(this.browser_config);
+    // window.open would offer the iframe so we don't need to generate.
+    if (this.iframe) {
+      this.browser = {
+        element: this.iframe
+      };
+    } else {
+      this.browser = new self.BrowserFrame(this.browser_config);
+    }
     this.element = document.getElementById(this.instanceID);
 
     // For gaiauitest usage.
@@ -537,7 +567,8 @@
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
     'authDialog': window.AppAuthenticationDialog,
-    'contextmenu': window.BrowserContextMenu
+    'contextmenu': window.BrowserContextMenu,
+    'childWindowFactory': window.ChildWindowFactory
   };
 
   AppWindow.prototype.openAnimation = 'enlarge';
@@ -615,13 +646,36 @@
         var caller = this.activityCaller;
         this.activityCaller.activityCallee = null;
         this.activityCaller = null;
-        caller.requestOpen();
+        caller.open('in-from-left');
+        this.close('out-to-right');
       }
     };
 
   AppWindow.prototype._handle_mozbrowserclose =
     function aw__handle_mozbrowserclose(evt) {
-      this.kill();
+      if (this._closed) {
+        return;
+      }
+      this._closed = true;
+      if (this.childWindow) {
+        this.childWindow.kill();
+        this.childWindow = null;
+      }
+      // If this is an active child window which has its parent window,
+      // perform proper closing transitions to both to make transitoning nice.
+      if (this.parentWindow && this.isActive()) {
+        this.element.addEventListener('_closed', (function onClosed() {
+          this.element.removeEventListener('_closed', onClosed);
+          this.destroy();
+        }).bind(this));
+        this.parentWindow.open('in-from-left');
+        this.close('out-to-right');
+        this.parentWindow.childWindow = null;
+        this.parentWindow = null;
+        this.publish('terminated');
+      } else {
+        this.kill();
+      }
     };
 
   AppWindow.prototype._handle_mozbrowsererror =
@@ -748,6 +802,7 @@
     if (DEBUG || this._DEBUG) {
       console.log('[Dump: ' + this.CLASS_NAME + ']' +
         '[' + (this.name || this.origin) + ']' +
+        '[' + this.instanceID + ']' +
         '[' + self.System.currentTime() + ']' +
         Array.slice(arguments).concat());
     }
@@ -1061,7 +1116,7 @@
     }
   };
 
- /**
+  /**
   * Set the size of the app's iframe to match the size of the screen.
   * We have to call this on resize events (which happen when the
   * phone orientation is changed). And also when an app is launched
@@ -1401,6 +1456,92 @@
     if (this.suspended) {
       this.kill();
     }
+  };
+
+  /**
+   * Link child window to this app window instance.
+   * If there's already one, kill it at first.
+   * @param {ChildWindow} childWindow The child window instance.
+   */
+  AppWindow.prototype.setChildWindow = function aw_setChildWindow(childWindow) {
+    if (this.childWindow) {
+      this.childWindow.kill();
+    }
+    this.childWindow = childWindow;
+  };
+
+  AppWindow.prototype.unsetChildWindow = function aw_unsetChildWindow() {
+    if (this.childWindow) {
+      this.childWindow = null;
+    }
+  };
+
+  /**
+   * Get the previous window reference of current active one.
+   * @return {AppWindow} The previous one in the app sheet chain.
+   */
+  AppWindow.prototype.getPrev = function() {
+    var current = this.getActiveWindow();
+    if (current) {
+      return current.parentWindow;
+    } else {
+      return null;
+    }
+  };
+
+  /**
+   * Get the next window reference of current active one.
+   * @return {AppWindow} The next one in the app sheet chain.
+   */
+  AppWindow.prototype.getNext = function() {
+    var current = this.getActiveWindow();
+    if (current) {
+      return current.childWindow;
+    } else {
+      return null;
+    }
+  };
+
+  /**
+   * Get the active window reference in the app sheet chain.
+   * If there's no active window, return null.
+   * @return {AppWindow} The active window in the app sheet chain.
+   */
+  AppWindow.prototype.getActiveWindow = function() {
+    var app = this;
+    while (app) {
+      if (app.isActive()) {
+        return app;
+      }
+      app = app.childWindow;
+    }
+    return null;
+  };
+
+  /**
+   * Get the root window reference.
+   * If there's no parent, return ourself.
+   * @return {AppWindow} The first one in the app sheet chain.
+   */
+  AppWindow.prototype.getRootWindow = function() {
+    var app = this;
+    while (app.parentWindow) {
+      app = app.parentWindow;
+    }
+    return app;
+  };
+
+  /**
+   * Get the leaf window reference.
+   * If there's no child, return ourself.
+   * @return {AppWindow} The last one in the app sheet chain.
+   */
+  AppWindow.prototype.getLeafWindow = function() {
+    var app = this;
+    while (app.childWindow) {
+      app = app.childWindow;
+    }
+    return app;
   };
 
   exports.AppWindow = AppWindow;

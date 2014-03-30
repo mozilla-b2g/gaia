@@ -39,7 +39,55 @@ html {
   height: 3rem;
   width: 3rem;
 }
+
 #net-error.framed #retry-icon.still {
   background: url(net_error/iframe_reload_icon.png) center / 3rem no-repeat;
   animation: none;
+}
+
+#net-error.framed.netOffline #retry-icon {
+  background: url(net_error/iframe_settings_icon.png) center / 3rem no-repeat;
+}
+
+form[role="dialog"][data-type="action"] > menu > button.icon {
+  background-repeat: no-repeat;
+  padding-left: 4rem;
+  background-size: 3rem;
+  background-position: 0.5rem center;
+}
+
+form[role="dialog"][data-type="action"] > menu > button.icon-settings {
+  background-image: url(net_error/settings.png);
+}
+
+#net-error.no-frame.netOffline form[role="dialog"] > section {
+  text-align: center;
+  margin-top: -7rem;
+}
+
+#net-error.no-frame.netOffline .title {
+  font-size: 2.3rem;
+  line-height: 3.6rem;
+  font-weight: normal;
+}
+
+#failed-logo {
+  display: inline-block;
+  width: 13.5rem;
+  height: 13.5rem;
+  background-image: url(net_error/no_connectivity.png);
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+@media (max-height: 380px) and (orientation: landscape) {
+  #net-error.no-frame.netOffline .title {
+    font-size: 2rem;
+    line-height: 2.8rem;
+  }
+
+  #failed-logo {
+    width: 9rem;
+    height: 9rem;
+  }
 }

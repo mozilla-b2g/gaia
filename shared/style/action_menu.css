@@ -45,7 +45,6 @@ form[role="dialog"][data-type="object"] > header {
   right: 0;
   z-index: 10;
   height: 5rem;
-  color: #fff;
   line-height: 4.9rem;
   color: #fff;
   white-space: nowrap;
@@ -54,18 +53,7 @@ form[role="dialog"][data-type="object"] > header {
   overflow: hidden;
   font-weight: normal;
   padding: 0 3rem;
-}
-
-form[role="dialog"][data-type="action"] > header:after,
-form[role="dialog"][data-type="object"] > header:after {
-  content: '';
-  position: absolute;
-  background: #222323;
-  height: 0.1rem;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-top: 0.1rem solid #616262;
+  border-bottom: 0.1rem solid #616262;
 }
 
 form[role="dialog"][data-type="action"] > header h1,
@@ -109,13 +97,6 @@ form[role="dialog"][data-type="action"] > header menu[type="toolbar"] button {
   z-index: 5;
 }
 
-form[role="dialog"][data-type="action"] > header menu[type="toolbar"] a:last-child,
-form[role="dialog"][data-type="action"] > header menu[type="toolbar"] button:last-child {
-  background: url(action_menu/images/ui/separator.png) no-repeat left center / auto 4.8rem;
-  margin-left: -0.1rem;
-  z-index: 1;
-}
-
 form[role="dialog"][data-type="action"] > header a,
 form[role="dialog"][data-type="action"] > header button {
   border: none;
@@ -133,7 +114,6 @@ form[role="dialog"][data-type="action"] button::-moz-focus-inner,
 form[role="dialog"][data-type="object"] button::-moz-focus-inner {
   outline: none;
   border: none;
-  margin-top: -0.2rem; /* To fix line-height bug (697451) */
 }
 
 /* Pressed state */
@@ -265,17 +245,18 @@ form[role="dialog"][data-type="object"] > menu > button {
   font-weight: normal;
   line-height: 4rem;
   outline: none;
-  font-size: 1.4rem;
-  color: #fff;
+  font-size: 1.6rem;
   text-shadow: none;
   text-align: left;
-  padding: 0 1.5rem;
+  padding: 0 1.2rem;
   margin: 0 1.5rem 1rem 1.5rem;
-  background: #5f5f5f padding-box;
-  border-radius: 0.2rem;
+  background: rgba(87, 87, 87, 0.8);
   border: none;
+  border-radius: 0;
   position: relative;
-  bottom: 0;
+  color: #fff;
+  font-family: sans-serif;
+  font-style: italic;
 }
 
 form[role="dialog"][data-type="action"] > menu > button:last-child,
@@ -283,14 +264,12 @@ form[role="dialog"][data-type="object"] > menu > button:last-child {
   position: fixed;
   bottom: 0;
   left: 0;
-  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
   color: #333;
-  font-weight: 500;
-  background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom / auto 100%;
-  border: solid 0.1rem #a6a6a6;
+  background: #d8d8d8;
   text-align: center;
-  font-size: 1.6rem;
+  border: none;
   margin-bottom: 1.5rem;
+  border-radius: 2rem;
 }
 
 form[role="dialog"][data-type="action"] > menu > button:last-child:before,
@@ -303,7 +282,6 @@ form[role="dialog"][data-type="object"] > menu > button:last-child:before {
   left: 0;
   bottom: 0;
   z-index: -1;
-  border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
 }
 
 form[role="dialog"][data-type="action"] > menu > button:nth-last-child(2),
@@ -314,26 +292,24 @@ form[role="dialog"][data-type="object"] > menu > button:nth-last-child(2) {
 /* Press state */
 form[role="dialog"][data-type="action"] > menu > button:active,
 form[role="dialog"][data-type="object"] > menu > button:active {
-  background-color: #006f86;
-  color: #333;
-  text-shadow: 0 0.1rem 0 rgba(255, 255, 255, 0.25);
-}
-
-form[role="dialog"][data-type="action"] > menu > button:last-child:active,
-form[role="dialog"][data-type="object"] > menu > button:last-child:active {
-  border: solid 0.1rem #008aaa;
-  background: #008aaa;
-  color: #333;
+  background: #b2f2ff;
+  color: #fff;
 }
 
 /* Disabled */
 form[role="dialog"][data-type="action"] > menu > button[disabled],
 form[role="dialog"][data-type="object"] > menu > button[disabled] {
-  background: #4d4d4d;
-  color: #333;
-  text-shadow: none;
-  border: none;
+  background-color: rgba(87, 87, 87, 0.8);
+  color: rgba(255, 255, 255, 0.4);
+  opacity: 0.5;
   pointer-events: none;
+}
+
+form[role="dialog"][data-type="action"] > menu > button[disabled]:last-child,
+form[role="dialog"][data-type="object"] > menu > button[disabled]:last-child {
+  background-color: #e7e7e7;
+  color: #a6a6a6;
+  opacity: 1;
 }
 
 /*

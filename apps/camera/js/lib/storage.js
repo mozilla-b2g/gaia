@@ -29,6 +29,16 @@ function Storage() {
   debug('initialized');
 }
 
+/**
+ * Save the image Blob to DeviceStorage then lookup the File reference and
+ * return that in the callback as well as the resulting paths.  You always
+ * want to forget about the Blob you told us about and use the File instead
+ * since otherwise you are wasting precious memory.
+ *
+ * @param {Object} [options]
+ * @param {String} options.filepath
+ *   The path to save the image to.
+ */
 Storage.prototype.addImage = function(blob, options, done) {
   if (typeof options === 'function') {
     done = options;
@@ -53,9 +63,20 @@ Storage.prototype.addImage = function(blob, options, done) {
     var req = self.image.addNamed(blob, filepath);
     req.onerror = function() { self.emit('error'); };
     req.onsuccess = function(e) {
-      var absolutePath = e.target.result;
       debug('image stored', filepath);
-      done(filepath, absolutePath);
+      var absolutePath = e.target.result;
+      // addNamed does not give us a File handle so we need to get() it again.
+      refetchImage(filepath, absolutePath);
+    };
+  }
+
+  function refetchImage(filepath, absolutePath) {
+    var req = self.image.get(filepath);
+    req.onerror = function() { self.emit('error'); };
+    req.onsuccess = function(e) {
+      debug('image file blob handle retrieved');
+      var fileBlob = e.target.result;
+      done(filepath, absolutePath, fileBlob);
     };
   }
 };
@@ -102,7 +123,8 @@ Storage.prototype.onStorageChange = function(e) {
   // Emit an `itemdeleted` event to
   // allow parts of the UI to update.
   if (value === 'deleted') {
-    this.emit('itemdeleted', { path: e.path });
+    var filepath = this.checkFilepath(e.path);
+    this.emit('itemdeleted', { path: filepath });
   } else {
     this.setState(value);
   }
@@ -110,6 +132,25 @@ Storage.prototype.onStorageChange = function(e) {
   // Check storage
   // has spare capacity
   this.check();
+};
+
+Storage.prototype.checkFilepath = function(filepath) {
+  var startString = filepath.indexOf('DCIM/');
+
+  if (startString < -1) { return; }
+  else if (startString > 0) {
+    filepath = filepath.substr(startString);
+  }
+
+  // Check whether filepath is a video poster image or not. If filepath
+  // contains 'VID' and ends with '.jpg', consider it a video poster
+  // image and get the video filepath by changing '.jpg' to '.3gp'
+  if (filepath.indexOf('VID') != -1 &&
+      filepath.lastIndexOf('.jpg') === filepath.length - 4) {
+    filepath = filepath.replace('.jpg', '.3gp');
+  }
+  return filepath;
+
 };
 
 Storage.prototype.setState = function(value) {
@@ -172,6 +213,32 @@ Storage.prototype.getState = function(done) {
 
 Storage.prototype.available = function() {
   return this.state === 'available';
+};
+
+Storage.prototype.deleteImage = function(filepath) {
+  var pictureStorage = this.image;
+  pictureStorage.delete(filepath).onerror = function(e) {
+    console.warn('Failed to delete', filepath,
+                 'from DeviceStorage:', e.target.error);
+  };
+};
+
+Storage.prototype.deleteVideo = function(filepath) {
+  var videoStorage = this.video;
+  var pictureStorage = this.image;
+  var poster = filepath.replace('.3gp', '.jpg');
+
+  videoStorage.delete(filepath).onerror = function(e) {
+    console.warn('Failed to delete', filepath,
+                 'from DeviceStorage:', e.target.error);
+  };
+
+  // If this is a video file, delete its poster image as well
+  pictureStorage.delete(poster).onerror = function(e) {
+    console.warn('Failed to delete poster image', poster,
+                 'for video', filepath, 'from DeviceStorage:',
+                 e.target.error);
+  };
 };
 
 });

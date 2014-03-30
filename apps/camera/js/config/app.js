@@ -2,9 +2,21 @@ define(function(require, exports, module) {
 'use strict';
 
 module.exports = {
-  showSettings: false,
+  showSettings: true,
+  enableZoom: true,
+  viewfinder: {
+    scaleType: 'fill'
+  },
+  battery: {
+    levels: {
+      low: 15,
+      verylow: 10,
+      critical: 6,
+      shutdown: 5,
+      healthy: 100
+    }
+  },
   mode: {
-    title: 'Mode',
     options: [
       {
         key: 'picture',
@@ -18,8 +30,29 @@ module.exports = {
     persistent: false
   },
 
+  isoModes: {
+    disabled: false,
+    options: [
+      {
+        key: 'auto',
+        title: 'Auto'
+      }
+    ],
+    selected:'auto'
+  },
+
+  whiteBalance: {
+    disabled: false,
+    options: [
+      {
+        key: 'auto',
+        title: 'Auto'
+      }
+    ],
+    selected:'auto'
+  },
+
   cameras: {
-    title: 'Selected Camera',
     options: [
       {
         key: 'back',
@@ -33,37 +66,32 @@ module.exports = {
     persistent: false
   },
 
-  pictureSizes: {
-    title: 'Camera Resolution',
+  pictureSizesFront: {
+    title: 'camera-resolution',
     icon: 'icon-picture-size',
+    maxPixelSize: window.CONFIG_MAX_IMAGE_PIXEL_SIZE,
     options: [
-      {
-        key: '5mp',
-        title: '5MP'
-      },
-      {
-        key: '3mp',
-        title: '3MP'
-      },
-      {
-        key: '1mp',
-        title: '1MP'
-      },
-      {
-        key: 'vga',
-        title: 'VGA'
-      },
-      {
-        key: 'qvga',
-        title: 'QVGA'
-      }
+      // {
+      //   key: '2048x1536'
+      // }
     ],
     persistent: true,
-    menu: 4
+    l10n: { title: 'camera-resolution' }
   },
 
-  recorderProfiles: {
-    title: 'Video Resolution',
+  pictureSizesBack: {
+    icon: 'icon-picture-size',
+    maxPixelSize: window.CONFIG_MAX_IMAGE_PIXEL_SIZE,
+    options: [
+      // {
+      //   key: '2048x1536'
+      // }
+    ],
+    persistent: true
+  },
+
+  recorderProfilesBack: {
+    title: 'video-resolution',
     icon: 'icon-video-size',
     options: [
 
@@ -87,141 +115,191 @@ module.exports = {
         title: 'QCIF 176X144'
       }
     ],
-    persistent: true,
-    menu: 4
+    persistent: true
   },
 
-  pictureFlashModes: {
-    title: 'Picture Flash',
+  recorderProfilesFront: {
+    title: 'video-resolution',
+    icon: 'icon-video-size',
+    options: [
+
+      // NOTE: Disabled due to Helix crashing
+      // when trying to record at these resolutions.
+
+      // {
+      //   key: '720p',
+      //   title: '720p 1040X720'
+      // },
+      // {
+      //   key: '480p',
+      //   title: '480p 720X480'
+      // },
+      {
+        key: 'cif',
+        title: 'CIF 352X288'
+      },
+      {
+        key: 'qcif',
+        title: 'QCIF 176X144'
+      }
+    ],
+    persistent: true
+  },
+
+  flashModesPicture: {
+    title: 'flash',
     options: [
       {
         key: 'auto',
-        title: 'Auto',
-        icon: 'icon-flash-auto'
+        icon: 'icon-flash-auto',
+        title: 'flash-auto'
       },
       {
         key: 'on',
-        title: 'On',
-        icon: 'icon-flash-on'
+        icon: 'icon-flash-on',
+        title: 'flash-on'
       },
       {
         key: 'off',
-        title: 'Off',
-        icon: 'icon-flash-off'
+        icon: 'icon-flash-off',
+        title: 'flash-off'
       }
     ],
-    persistent: true
+    persistent: true,
+    l10n: { title: 'flash' }
   },
 
-  videoFlashModes: {
-    title: 'Video Flash',
+  flashModesVideo: {
+    title: 'flash',
     options: [
       {
-        key: 'torch',
-        title: 'On',
-        icon: 'icon-flash-on'
+        key: 'off',
+        icon: 'icon-flash-off',
+        title: 'flash-off'
       },
       {
-        key: 'off',
-        title: 'Off',
-        icon: 'icon-flash-off'
+        key: 'torch',
+        icon: 'icon-flash-on',
+        title: 'flash-on'
       }
     ],
-    persistent: true
+    persistent: true,
+    l10n: { title: 'flash' }
   },
 
   timer: {
-    title: 'Self Timer',
-    icon: 'icon-self-timer',
+    title: 'self-timer',
+    icon: 'icon-timer',
     options: [
       {
         key: 'off',
-        title: 'Off',
+        title: 'self-timer-off',
         value: 0
       },
       {
         key: '3secs',
-        title: '3 Seconds',
-        value: 3
+        value: 3,
+        title: 'self-timer-3-seconds'
       },
       {
         key: '5secs',
-        title: '5 Seconds',
-        value: 5
+        value: 5,
+        title: 'self-timer-5-seconds'
       },
       {
         key: '10secs',
-        title: '10 Seconds',
-        value: 10
+        value: 10,
+        title: 'self-timer-10-seconds'
       }
     ],
     persistent: false,
-    menu: 3
   },
 
   hdr: {
-    title: 'HDR',
-    icon: 'icon-hdr',
+    title: 'hdr',
+    icon: 'icon-hdr-menu',
+    disabled: false,
     options: [
       {
-        key: 'auto',
-        title: 'Auto',
-        icon: 'A'
+        key: 'off',
+        title: 'hdr-off'
       },
       {
         key: 'on',
-        title: 'On',
-        icon: 'O'
-      },
-      {
-        key: 'off',
-        title: 'Off',
-        icon: 'O'
+        title: 'hdr-on'
       }
     ],
-    persistent: true,
-    menu: 1
+    persistent: true
   },
 
   scene: {
-    title: 'Scene Mode',
+    title: 'scene-mode',
     icon: 'icon-scene',
     options: [
       {
         key: 'normal',
-        title: 'Normal'
+        title: 'scene-mode-normal'
       },
       {
         key: 'pano',
-        title: 'Panorama'
+        title: 'scene-mode-panorama'
       },
       {
         key: 'beauty',
-        title: 'Beauty'
+        title: 'scene-mode-beauty'
       }
     ],
     persistent: true,
-    menu: 2
   },
 
   grid: {
-    title: 'Grid',
+    title: 'grid',
     icon: 'icon-frame-grid',
     options: [
       {
-        key: 'on',
-        title: 'On',
-        value: true
+        key: 'off',
+        title: 'grid-off'
       },
       {
-        key: 'off',
-        title: 'Off',
-        value: false
+        key: 'on',
+        title: 'grid-on'
       }
     ],
     selected: 'off',
     persistent: true,
-    menu: 3
+  },
+
+  settingsMenu: {
+    items: [
+       {
+         key: 'hdr'
+       },
+      // {
+      //   key: 'scene'
+      // },
+      {
+        key: 'grid'
+      },
+      {
+        key: 'timer'
+      },
+      // {
+      //   key: 'pictureSizesBack',
+      //   condition: { 'cameras': 'back' }
+      // },
+      // {
+      //   key: 'pictureSizesFront',
+      //   condition: { 'cameras': 'front' }
+      // },
+      // {
+      //   key: 'recorderProfilesBack',
+      //   condition: { 'cameras': 'back' }
+      // },
+      // {
+      //   key: 'recorderProfilesFront',
+      //   condition: { 'cameras': 'front' }
+      // }
+    ]
   }
 };
 

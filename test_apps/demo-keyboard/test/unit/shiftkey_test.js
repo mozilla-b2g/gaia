@@ -1,7 +1,6 @@
 'use strict';
 
-/*global requireApp suite test assert setup teardown sinon mocha
-  suiteTeardown */
+/*global ShiftKey */
 
 requireApp('demo-keyboard/js/shiftkey.js');
 
@@ -14,6 +13,8 @@ suite('ShiftKey', function() {
     return d;
   }
 
+  var keyboardTouchHelper = eventTargetSpy();
+
   function appSpy() {
     var app = {
       inputField: eventTargetSpy(),
@@ -24,7 +25,8 @@ suite('ShiftKey', function() {
         }),
         shifted: false,
         locked: false
-      }
+      },
+      touchHandler: keyboardTouchHelper
     };
 
     return app;
@@ -37,21 +39,13 @@ suite('ShiftKey', function() {
 
   mocha.setup({
     globals: [
-      'KeyboardTouchHandler',
       'ShiftKey'
     ]
   });
 
-  var keyboardTouchHelper;
-  var realKeyboardTouchHandler;
 
-  suiteSetup(function() {
-    realKeyboardTouchHandler = window.KeyboardTouchHandler;
-    window.KeyboardTouchHandler = keyboardTouchHelper = eventTargetSpy();
-  });
 
   suiteTeardown(function() {
-    window.KeyboardTouchHandler = realKeyboardTouchHandler;
   });
 
   suite('Key handling', function() {
@@ -74,9 +68,11 @@ suite('ShiftKey', function() {
       }
 
       assert.equal(expectedShifted,
-          app.currentPageView.setShiftState.lastCall.args[0], 'State is shifted');
+          app.currentPageView.setShiftState.lastCall.args[0],
+          'State is shifted');
       assert.equal(expectedLocked,
-          app.currentPageView.setShiftState.lastCall.args[1], 'State is locked');
+          app.currentPageView.setShiftState.lastCall.args[1],
+          'State is locked');
     }
 
     test('Sending non-shift key doesn\'t trigger shiftState', function() {

@@ -179,7 +179,7 @@
 
 #day-view .day-events.allday {
   height: 6rem;
-  box-shadow: 0px 5px 5px 0px rgba(1, 1, 1, 0.2);
+  box-shadow: 0 5px 5px 0 rgba(1, 1, 1, 0.2);
   position: relative;
   z-index: 11;
 }

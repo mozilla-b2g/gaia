@@ -115,6 +115,10 @@
     transform: translateY(16rem);
   }
 
+  body.showKeypad #group-show {
+    display: none;
+  }
+
   #views > .view {
     height: 100%;
     width: 100%;
@@ -312,7 +316,7 @@
   }
 
   #callbar-hang-up > .callbar-inner-button {
-    margin: 1rem 0rem 1.5rem .5rem;
+    margin: 1rem 0 1.5rem .5rem;
     background: url('images/ActionIcon_40x40_hangup.png') center / 4rem no-repeat,
                 url('images/btn_hang_up.png') repeat-x;
   }
@@ -475,7 +479,7 @@
   #group-call-details-list .fake-number,
   #calls > section .fake-number {
     position: absolute;
-    line-height: 0rem;
+    line-height: 0;
     visibility: hidden;
     white-space: nowrap;
     padding: 0;
@@ -915,6 +919,9 @@
   }
 
   /* DSDS SIM indication support */
+  .sim .sim-number {
+    display: none;
+  }
 
   /* Call screen, only 1 open line */
   .big-duration .sim {
@@ -946,8 +953,11 @@
     font-size: 1.3rem;
     line-height: 3rem;
   }
-  #call-screen[data-layout="incoming-locked"] .sim span {
+  #call-screen[data-layout="incoming-locked"] .sim .via-sim {
     display: none;
+  }
+  #call-screen[data-layout="incoming-locked"] .sim .sim-number {
+    display: inline;
   }
 
   /* Call waiting UI */
@@ -960,9 +970,6 @@
     text-align: right;
     font-size: 1.3rem;
     line-height: 1.5rem;
-  }
-  #incoming-container .sim span {
-    display: none;
   }
 
   /* Hidden everywhere else */

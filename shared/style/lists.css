@@ -38,7 +38,6 @@
   width: 100%;
   height: 6rem;
   -moz-box-sizing: border-box;
-  transition: transform 0.3s ease, padding 0.3s ease;
   border-bottom: solid 0.1rem #e7e7e7;
   color: #000;
   margin: 0;
@@ -131,6 +130,9 @@ li a:active {
   background: transparent center center / cover;
   position: relative;
   z-index: 1;
+
+  /* Favor performance over quality */
+  image-rendering: -moz-crisp-edges;
 }
 
 /* Text content */

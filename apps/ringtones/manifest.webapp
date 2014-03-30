@@ -9,7 +9,8 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "settings":{ "access": "readonly" }
+    "settings":{ "access": "readonly" },
+    "audio-channel-ringer":{}
   },
   "activities": {
     "pick": {

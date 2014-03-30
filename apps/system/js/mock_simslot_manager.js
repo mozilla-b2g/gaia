@@ -16,6 +16,7 @@ var MockSIMSlotManager = {
     return this.mInstances[i].isAbsent();
   },
   noSIMCardOnDevice: function() {},
+  noSIMCardConnectedToNetwork: function() {},
   mTeardown: function mssm_mTeardown() {
     this.mInstances = [];
   }

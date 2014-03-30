@@ -3,7 +3,7 @@
  * ---------------------------------- */
 
 /* Main dialog setup */
-form[role="dialog"][data-type="value-selector"] {
+[role="dialog"][data-type="value-selector"] {
   background: url(value_selector/images/ui/pattern.png) repeat left top, url(value_selector/images/ui/gradient.png) no-repeat left top / 100% 100%;
   overflow: hidden;
   position: absolute;
@@ -17,14 +17,14 @@ form[role="dialog"][data-type="value-selector"] {
   font-family: sans-serif;
 }
 
-form[role="dialog"][data-type="value-selector"] > section {
+[role="dialog"][data-type="value-selector"] > section {
   padding: 0 1.5rem 0;
   -moz-box-sizing: padding-box;
   width: 100%;
   height: 100%;
 }
 
-form[role="dialog"][data-type="value-selector"] h1 {
+[role="dialog"][data-type="value-selector"] h1 {
   font-weight: 400;
   font-size: 1.9rem;
   line-height: 4.8rem;
@@ -38,28 +38,15 @@ form[role="dialog"][data-type="value-selector"] h1 {
 }
 
 /* Specific component code */
-form[role="dialog"][data-type="value-selector"] [role="listbox"] {
+[role="dialog"][data-type="value-selector"] [role="listbox"] {
   position: relative;
   padding: 0;
   margin: 0 -1.5rem;
   max-height: calc(100% - 5rem);
   overflow: auto;
-  border-top: solid 0.1rem #222323;
 }
 
-form[role="dialog"][data-type="value-selector"] .scrollable:before {
-  content: "";
-  display: block;
-  position: absolute;
-  pointer-events: none;
-  top: 4.8rem;
-  left: 0;
-  right: 0;
-  bottom: 6.9rem;
-  background: url(value_selector/images/ui/shadow.png) repeat-x left top, url(value_selector/images/ui/shadow-invert.png) repeat-x left bottom;
-}
-
-form[role="dialog"][data-type="value-selector"] [role="listbox"] li {
+[role="dialog"][data-type="value-selector"] [role="listbox"] li {
   margin: 0;
   padding: 0 1.5rem;
   height: auto;
@@ -72,23 +59,18 @@ form[role="dialog"][data-type="value-selector"] [role="listbox"] li {
   transition: background-color 0.2s ease;
 }
 
-form[role="dialog"][data-type="value-selector"] [role="listbox"] li:first-child label {
+[role="dialog"][data-type="value-selector"] [role="listbox"] li:first-child label {
   border-top-color: transparent;
 }
 
-form[role="dialog"][data-type="value-selector"] [role="listbox"] li label {
+[role="dialog"][data-type="value-selector"] [role="listbox"] li label {
   outline: none;
   display: block;
   color: #fff;
   border-top: 0.1rem solid #666;
-  border-bottom: 0.1rem solid #000;
 }
 
-form[role="dialog"][data-type="value-selector"] [role="listbox"] li:last-child label {
-  border-bottom-color: transparent;
-}
-
-form[role="dialog"][data-type="value-selector"] [role="listbox"] li label span {
+[role="dialog"][data-type="value-selector"] [role="listbox"] li label span {
   display: block;
   padding: 1rem 1.5rem;
   line-height: 4rem;
@@ -96,25 +78,25 @@ form[role="dialog"][data-type="value-selector"] [role="listbox"] li label span {
 }
 
 /* Pressed status */
-form[role="dialog"][data-type="value-selector"] [role="listbox"] li:active {
+[role="dialog"][data-type="value-selector"] [role="listbox"] li:active {
   background-color: #00ABCC;
 }
 
-form[role="dialog"][data-type="value-selector"] [role="listbox"] li:active label {
+[role="dialog"][data-type="value-selector"] [role="listbox"] li:active label {
   border-color: transparent;
 }
 
-form[role="dialog"][data-type="value-selector"] [role="listbox"] li:active + li label {
+[role="dialog"][data-type="value-selector"] [role="listbox"] li:active + li label {
   border-top-color: #000;
 }
 
-form[role="dialog"][data-type="value-selector"] [role="listbox"] li:active label span {
+[role="dialog"][data-type="value-selector"] [role="listbox"] li:active label span {
   color: #fff !important;
   background-image: none;
 }
 
 /* Checked status */
-form[role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
+[role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
   padding-right: 2.6rem;
   margin-right: 1.2rem;
   color: #00abcd;
@@ -124,11 +106,10 @@ form[role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selecte
 
 
 /* Menu & buttons setup */
-form[role="dialog"][data-type="value-selector"] menu {
+[role="dialog"][data-type="value-selector"] menu {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
-  border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
   background: #2d2d2d url(value_selector/images/ui/pattern.png) repeat left top;
   display: block;
   overflow: hidden;
@@ -138,60 +119,75 @@ form[role="dialog"][data-type="value-selector"] menu {
   bottom: 0;
 }
 
-form[role="dialog"][data-type="value-selector"] menu button::-moz-focus-inner {
+[role="dialog"][data-type="value-selector"] menu button::-moz-focus-inner {
   border: none;
   outline: none;
 }
 
-form[role="dialog"][data-type="value-selector"] menu button {
+[role="dialog"][data-type="value-selector"] menu button {
   width: calc((100% - 1rem) / 2);
-  height: 3.8rem;
+  font-family: sans-serif;
+  font-style: italic;
+  height: 4rem;
   margin: 0 0 1rem;
-  padding: 0 1.5rem;
+  padding: 0 1.2rem;
   -moz-box-sizing: border-box;
   display: inline-block;
   vertical-align: middle;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  background: #fafafa url(value_selector/images/ui/default.png) repeat-x left bottom/ auto 100%;
-  border: 0.1rem solid #a6a6a6;
-  border-radius: 0.3rem;
-  font-weight: 500;
+  background: #d8d8d8;
+  border: none;
+  border-radius: 2rem;
+  font-weight: normal;
   font-size: 1.6rem;
-  line-height: 3.8rem;
+  line-height: 4rem;
   color: #333;
   text-align: center;
-  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  text-shadow: none;
   text-decoration: none;
   outline: none;
 }
 
-/* Press (default & affirmative) */
-form[role="dialog"][data-type="value-selector"] menu button:active,
-form[role="dialog"][data-type="value-selector"] menu button.affirmative:active {
-  border-color: #008aaa;
-  background: #008aaa;
-  color: #333;
-}
-
-/* affirmative */
-form[role="dialog"][data-type="value-selector"] menu button.affirmative {
-  background-image: url(value_selector/images/ui/affirmative.png);
+/* Affirmative */
+[role="dialog"][data-type="value-selector"] menu button.affirmative,
+[role="dialog"][data-type="value-selector"] menu button.recommend {
   background-color: #00caf2;
-  border-color: #008eab;
+  color: #fff;
 }
 
-form[role="dialog"][data-type="value-selector"] menu button:last-child {
+/* Pressed */
+[role="dialog"][data-type="value-selector"] menu button:active {
+  background: #b2f2ff;
+  color: #fff;
+}
+
+/* Disabled */
+[role="dialog"][data-type="value-selector"] > menu > button[disabled] {
+  background-color: #565656;
+  color: rgba(255,255,255,0.4);
+  pointer-events: none;
+}
+
+[role="dialog"][data-type="value-selector"] > menu > button[disabled].recommend {
+  background-color: #006579;
+}
+
+button[disabled]::-moz-selection {
+  -moz-user-select: none;
+}
+
+[role="dialog"][data-type="value-selector"] menu button:last-child {
   margin-left: 1rem;
 }
 
-form[role="dialog"][data-type="value-selector"] menu button,
-form[role="dialog"][data-type="value-selector"] menu button:first-child {
+[role="dialog"][data-type="value-selector"] menu button,
+[role="dialog"][data-type="value-selector"] menu button:first-child {
   margin: 0;
 }
 
-form[role="dialog"][data-type="value-selector"] menu button.full {
+[role="dialog"][data-type="value-selector"] menu button.full {
   width: 100%;
 }
 

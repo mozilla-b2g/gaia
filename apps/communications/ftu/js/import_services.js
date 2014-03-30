@@ -1,57 +1,60 @@
+/* global fb, utils,
+          ServicesLauncher */
+/* exported ImportIntegration,
+            FacebookConfiguration */
 'use strict';
-
 
 var _ = navigator.mozL10n.get;
 
 var ImportIntegration = {
   get fbExtensions() {
     delete this.fbExtensions;
-    return this.fbExtensions = document.getElementById('fb-extensions');
+    return (this.fbExtensions = document.getElementById('fb-extensions'));
   },
 
   get fbImport() {
     delete this.fbImport;
-    return this.fbImport = document.getElementById('fb_import');
+    return (this.fbImport = document.getElementById('fb_import'));
   },
 
   get fbImportButton() {
     delete this.fbImportButton;
-    return this.fbImportButton = document.getElementById('fb-import-button');
+    return (this.fbImportButton = document.getElementById('fb-import-button'));
   },
 
   get liveImportButton() {
     delete this.liveImportButton;
-    return this.liveImportButton =
-      document.getElementById('live-import-button');
+    return (this.liveImportButton =
+      document.getElementById('live-import-button'));
   },
 
   get gmailImportButton() {
     delete this.gmailImportButton;
-    return this.gmailImportButton =
-      document.getElementById('gmail-import-button');
+    return (this.gmailImportButton =
+      document.getElementById('gmail-import-button'));
   },
 
   get noNetworkMsg() {
     delete this.noNetworkMsg;
-    return this.noNetworkMsg = document.getElementById('no-network');
+    return (this.noNetworkMsg = document.getElementById('no-network'));
   },
 
   get fbImportFeedback() {
     delete this.fbImportFeedback;
-    return this.fbImportFeedback = document.getElementById(
-      'fb_import_feedback');
+    return (this.fbImportFeedback = document.getElementById(
+      'fb_import_feedback'));
   },
 
   get fbAfterImport1() {
     delete this.fbAfterImport1;
-    return this.fbAfterImport1 = document.getElementById(
-      'fb_after_import1');
+    return (this.fbAfterImport1 = document.getElementById(
+      'fb_after_import1'));
   },
 
   get fbAfterImport2() {
     delete this.fbAfterImport2;
-    return this.fbAfterImport2 = document.getElementById(
-      'fb_after_import2');
+    return (this.fbAfterImport2 = document.getElementById(
+      'fb_after_import2'));
   },
 
   init: function fb_init() {

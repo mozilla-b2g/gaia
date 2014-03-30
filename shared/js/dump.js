@@ -1,11 +1,9 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* globals dump */
 
 (function() {
   'use strict';
 
-  function dump_off(msg, optionalObject) {};
+  function dump_off(msg, optionalObject) {}
   function dump_on(msg, optionalObject) {
     var output = msg;
     if (optionalObject) {

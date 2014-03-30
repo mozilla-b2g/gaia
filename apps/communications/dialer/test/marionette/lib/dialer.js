@@ -15,7 +15,9 @@ Dialer.URL = 'app://communications.gaiamobile.org';
 Dialer.config = {
   settings: {
     'ftu.manifestURL': null,
-    'lockscreen.enabled': false
+    'lockscreen.enabled': false,
+    'devtools.overlay': true,
+    'hud.reflows': true
   },
   prefs: {
     'dom.w3c_touch_events.enabled': 1,

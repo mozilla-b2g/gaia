@@ -1,3 +1,8 @@
+/* global ConfirmDialog,
+          UIManager,
+          _, utils,
+          VCFReader */
+/* exported SdManager */
 'use strict';
 
 var SdManager = {

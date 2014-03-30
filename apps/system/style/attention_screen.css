@@ -45,6 +45,18 @@
   left: 0;
 }
 
+@media not all and (-moz-physical-home-button) {
+  #screen:not(.software-button-disabled) #attention-screen:not(.status-mode) {
+    height: calc(100% - 5rem);
+    bottom: 5rem;
+  }
+}
+
+#screen.software-button-enabled #attention-screen:not(.status-mode) {
+  height: calc(100% - 5rem);
+  bottom: 5rem;
+}
+
 #attention-screen > #attention-bar {
   position: absolute;
   bottom: 0;

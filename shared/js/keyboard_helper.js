@@ -1,6 +1,3 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
 
 /**
@@ -565,6 +562,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
    */
   checkDefaults: function kh_checkDefaults(callback) {
     var layoutsEnabled = [];
+    var missingTypes = [];
     ['text', 'url', 'number'].forEach(function eachType(type) {
       // getLayouts is sync when we already have data
       var enabled;
@@ -572,6 +570,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
         enabled = layouts.length;
       });
       if (!enabled) {
+        missingTypes.push(type);
         this.getLayouts({ type: type, 'default': true }, function(layouts) {
           if (layouts[0]) {
             layouts[0].enabled = true;
@@ -583,7 +582,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
 
     if (layoutsEnabled.length) {
       if (callback) {
-        callback(layoutsEnabled);
+        callback(layoutsEnabled, missingTypes);
       }
     }
   },

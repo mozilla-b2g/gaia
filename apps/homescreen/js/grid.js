@@ -36,6 +36,12 @@ var GridManager = (function() {
   var container;
 
   var windowWidth = window.innerWidth;
+
+  // This value is used in order to keep the layers onscreen when they are
+  // moved on a panel changes. This prevent the layers to be destroyed and
+  // recreated on the next move.
+  var windowWidthMinusOne = windowWidth - 0.001;
+
   var swipeThreshold, swipeFriction, tapThreshold;
 
   var dragging = false;
@@ -43,6 +49,8 @@ var GridManager = (function() {
   var defaultAppIcon, defaultBookmarkIcon;
 
   var kPageTransitionDuration;
+
+  var kPageMinTransitionDuration = 100;
 
   var pages = [];
   var currentPage = 0;
@@ -262,7 +270,7 @@ var GridManager = (function() {
           refresh = function(e) {
             if (deltaX <= 0) {
               next.MozTransform =
-                'translateX(' + (windowWidth + deltaX) + 'px)';
+                'translateX(' + (windowWidthMinusOne + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
             } else {
               startX = currentX;
@@ -273,7 +281,7 @@ var GridManager = (function() {
           refresh = function(e) {
             if (deltaX >= 0) {
               previous.MozTransform =
-                'translateX(' + (-windowWidth + deltaX) + 'px)';
+                'translateX(' + (-windowWidthMinusOne + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
             } else {
               startX = currentX;
@@ -285,23 +293,24 @@ var GridManager = (function() {
           refresh = function(e) {
             if (deltaX >= 0) {
               previous.MozTransform =
-                'translateX(' + (-windowWidth + deltaX) + 'px)';
+                'translateX(' + (-windowWidthMinusOne + deltaX) + 'px)';
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
               if (forward) {
                 forward = false;
-                next.MozTransform = 'translateX(' + windowWidth + 'px)';
+                next.MozTransform = 'translateX(' + windowWidthMinusOne + 'px)';
               }
             } else {
               next.MozTransform =
-                'translateX(' + (windowWidth + deltaX) + 'px)';
+                'translateX(' + (windowWidthMinusOne + deltaX) + 'px)';
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
               if (!forward) {
                 forward = true;
-                previous.MozTransform = 'translateX(-' + windowWidth + 'px)';
+                previous.MozTransform =
+                  'translateX(-' + windowWidthMinusOne + 'px)';
               }
             }
 
@@ -437,17 +446,6 @@ var GridManager = (function() {
     }, SAVE_STATE_TIMEOUT);
   }
 
-  function togglePagesVisibility(start, end) {
-    for (var i = 0; i < pages.length; i++) {
-      var pagediv = pages[i].container;
-      if (i < start || i > end) {
-        pagediv.style.display = 'none';
-      } else {
-        pagediv.style.display = 'block';
-      }
-    }
-  }
-
   function goToPageCallback(index, fromPage, toPage, dispatchEvents, callback) {
     delete document.body.dataset.transitioning;
 
@@ -462,13 +460,13 @@ var GridManager = (function() {
     if (index) {
       var previous = pages[index - 1].container.style;
       previous.MozTransition = '';
-      previous.MozTransform = 'translateX(-' + windowWidth + 'px)';
+      previous.MozTransform = 'translateX(-' + windowWidthMinusOne + 'px)';
     }
 
     if (index < pages.length - 1) {
       var next = pages[index + 1].container.style;
       next.MozTransition = '';
-      next.MozTransform = 'translateX(' + windowWidth + 'px)';
+      next.MozTransform = 'translateX(' + windowWidthMinusOne + 'px)';
     }
 
     var current = toPage.container.style;
@@ -477,8 +475,6 @@ var GridManager = (function() {
 
     fromPage.container.setAttribute('aria-hidden', true);
     toPage.container.removeAttribute('aria-hidden');
-
-    togglePagesVisibility(index - 1, index + 1);
 
     if (callback) {
       setTimeout(callback, 0);
@@ -496,9 +492,23 @@ var GridManager = (function() {
     touchEndTimestamp = touchEndTimestamp || lastGoingPageTimestamp;
     var delay = touchEndTimestamp - lastGoingPageTimestamp ||
                 kPageTransitionDuration;
+
+    // Fetch the user's swiping velocity, but make sure it's more
+    // than 1 so when we factor this with the duration, we don't
+    // end up with a slower swipe
+    var velocity = Math.max(1, Math.abs(panningResolver.getVelocity() || 0));
+
     lastGoingPageTimestamp += delay;
-    var duration = delay < kPageTransitionDuration ?
-                   delay : kPageTransitionDuration;
+
+    // Bug 979396:
+    // For the non-velocity-factored duration, use either the computed
+    // delay or the configured duration, whichever is smaller. Once
+    // velocity is factored in, don't allow the transition to be
+    // quicker than kPageMinTransitionDuration
+    var duration = Math.max(
+      Math.min(delay, kPageTransitionDuration) / velocity,
+      kPageMinTransitionDuration
+    );
 
     var previousPage = pages[currentPage];
     var newPage = pages[index];
@@ -517,16 +527,18 @@ var GridManager = (function() {
     updatePaginationBar();
 
     if (previousPage === newPage) {
-      if (newPage.container.getBoundingClientRect().left !== 0) {
+      // Has the page been translated?
+      if (currentX - startX) {
+        currentX = startX = 0;
         // Pages are translated in X
         if (index > 0) {
-          pages[index - 1].moveByWithEffect(-windowWidth, duration);
+          pages[index - 1].moveByWithEffect(-windowWidthMinusOne, duration);
         }
 
         newPage.moveByWithEffect(0, duration);
 
         if (index < pages.length - 1) {
-          pages[index + 1].moveByWithEffect(windowWidth, duration);
+          pages[index + 1].moveByWithEffect(windowWidthMinusOne, duration);
         }
 
         container.addEventListener('transitionend', function transitionEnd(e) {
@@ -541,11 +553,9 @@ var GridManager = (function() {
       return;
     }
 
-    togglePagesVisibility(start, end);
-
     previousPage.container.dispatchEvent(new CustomEvent('gridpagehidestart'));
     newPage.container.dispatchEvent(new CustomEvent('gridpageshowstart'));
-    previousPage.moveByWithEffect(-forward * windowWidth, duration);
+    previousPage.moveByWithEffect(-forward * windowWidthMinusOne, duration);
     newPage.moveByWithEffect(0, duration);
 
     container.addEventListener('transitionend', function transitionEnd(e) {

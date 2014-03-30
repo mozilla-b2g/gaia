@@ -1,25 +1,88 @@
 'use strict';
 
+/* global Suggestions */
+
 (function(exports) {
 
+  /**
+   * Autocorrect class for the keyboard app.
+   * This module interacts with user inputs and provide word suggestions.
+   * It also responsible of start the worker hosting the prediction engine.
+   *
+   * @param {Object} app Refrence to the app instance.
+   * @requires Suggestions
+   * @class AutoCorrect
+   */
   function AutoCorrect(app) {
     this._started = false;
     this.app = app;
-  };
+    this.touchHandler = app.touchHandler;
+  }
 
+  /**
+   * Keycode of SPACE
+   * @type {Number}
+   */
   AutoCorrect.prototype.KEYCODE_SPACE = 32;
+
+  /**
+   * Keycode of BACKSPACE
+   * @type {Number}
+   */
   AutoCorrect.prototype.KEYCODE_BACKSPACE = 8;
-  // return keycode code isn't the same as newline charcode
+
+  /**
+   * Keycode of RETURN
+   * return keycode code isn't the same as newline charcode
+   * @type {Number}
+   */
   AutoCorrect.prototype.KEYCODE_RETURN = 13;
+
+  /**
+   * CharCode of PEROID
+   * @type {Number}
+   */
   AutoCorrect.prototype.KEYCODE_PERIOD = 46;
+
+  /**
+   * CharCode of QUESTION
+   * @type {Number}
+   */
   AutoCorrect.prototype.KEYCODE_QUESTION = 63;
+
+  /**
+   * CharCode of EXCLAMATION
+   * @type {Number}
+   */
   AutoCorrect.prototype.KEYCODE_EXCLAMATION = 33;
+
+  /**
+   * CharCode of COMMA
+   * @type {Number}
+   */
   AutoCorrect.prototype.KEYCODE_COMMA = 44;
+
+  /**
+   * CharCode of COLON
+   * @type {Number}
+   */
   AutoCorrect.prototype.KEYCODE_COLON = 58;
+
+  /**
+   * CharCode of SEMICOLON
+   * @type {Number}
+   */
   AutoCorrect.prototype.KEYCODE_SEMICOLON = 59;
 
+  /**
+   * Path to worker script relative to the document loads this script.
+   * @type {String}
+   */
   AutoCorrect.prototype.WORKER_PATH = 'js/worker.js';
 
+  /**
+   * Start response to outside requests and worker.
+   */
   AutoCorrect.prototype.start = function start() {
     if (this._started) {
       throw 'Instance should not be start()\'ed twice.';
@@ -55,10 +118,12 @@
     this.suggestions.addEventListener('suggestionselected', this);
     this.suggestions.addEventListener('suggestionsdismissed', this);
 
-    // XXX should not reference global object like this
-    KeyboardTouchHandler.addEventListener('key', this);
+    this.touchHandler.addEventListener('key', this);
   };
 
+  /**
+   * Stop the worker and remove all event listeners.
+   */
   AutoCorrect.prototype.stop = function stop() {
     if (!this._started) {
       throw 'Instance was never start()\'ed but stop() is called.';
@@ -72,8 +137,7 @@
     this.suggestions.removeEventListener('suggestionselected', this);
     this.suggestions.removeEventListener('suggestionsdismissed', this);
 
-    // XXX should not reference global object like this
-    KeyboardTouchHandler.removeEventListener('key', this);
+    this.touchHandler.removeEventListener('key', this);
 
     this.predictionStartTime = undefined;
     this.correction = null;  // A pending correction
@@ -88,6 +152,10 @@
     this.container = null;
   };
 
+  /**
+   * Dispatch received DOM events to various functions.
+   * @param  {DOMEvent} evt DOM event.
+   */
   AutoCorrect.prototype.handleEvent = function handleEvent(evt) {
     switch (evt.type) {
       case 'key':
@@ -114,6 +182,10 @@
     }
   };
 
+  /**
+   * Handle message from prediction engine web worker.
+   * @param {Object} data Object with data.
+   */
   AutoCorrect.prototype.handleWorkerMessage =
     function handleWorkerMessage(data) {
       switch (data.cmd) {
@@ -128,7 +200,7 @@
           if (data.input === this.app.inputField.wordBeforeCursor()) {
             //console.log("char predictions in",
             //            performance.now() - this.predictionStartTime);
-            KeyboardTouchHandler.setExpectedChars(data.chars);
+            this.touchHandler.setExpectedChars(data.chars);
           }
           break;
         case 'predictions':
@@ -140,10 +212,13 @@
       }
     };
 
+  /**
+   * Start the prediction with current input.
+   */
   AutoCorrect.prototype.requestPredictions = function requestPredictions() {
     // Undo the result of any previous predictions
     // Change hit target resizing
-    KeyboardTouchHandler.setExpectedChars([]);
+    this.touchHandler.setExpectedChars([]);
 
     // Once we start requesting new suggestions, the old ones
     // are no longer valid, and we should hide them now. But if we do that
@@ -158,7 +233,7 @@
     // what charcters are most likely next and what words we should suggest
     if (this.app.inputField.atWordEnd()) {
       var word = this.app.inputField.wordBeforeCursor();
-      this.predictionStartTime = performance.now();
+      this.predictionStartTime = window.performance.now();
       // XXX: combine these two into a single call
       this.worker.postMessage({ cmd: 'predictNextChar', args: [word] });
       this.worker.postMessage({ cmd: 'predict', args: [word]});
@@ -167,6 +242,10 @@
     }
   };
 
+  /**
+   * Handle the selected suggestion by send it to inputField and etc.
+   * @param  {String} suggestion Suggestion the user selects.
+   */
   AutoCorrect.prototype.handleSelectionSelected = function(suggestion) {
     var current = this.app.inputField.wordBeforeCursor();
     this.app.inputField.replaceSurroundingText(suggestion, current.length, 0);
@@ -178,6 +257,9 @@
     this.autocorrectDisabled = false;
   };
 
+  /**
+   * Handle the suggestion removal event.
+   */
   AutoCorrect.prototype.handleSelectionDismissed = function() {
     this.suggestions.display([]); // clear the suggestions
 
@@ -190,6 +272,10 @@
     this.autocorrectDisabled = false;
   };
 
+  /**
+   * Handle new key input.
+   * @param  {DOMEvent} evt Key event from touchHandler.
+   */
   AutoCorrect.prototype.handleKey = function handleKey(evt) {
     var currentPage = this.app.currentPage;
     var inputField = this.app.inputField;
@@ -252,8 +338,14 @@
     }
   };
 
-  // When the worker sends us back word suggestions, we handle them here.
-  // The argument is an array of arrays [[word1, weight1], [word2, weight2]...]
+  /**
+   * Handle the suggestions returned from worker.
+   * When the worker sends us back word suggestions, we handle them here.
+   * The argument is an array of arrays [[word1, weight1], [word2, weight2]...]
+   *
+   * @param  {String} input       The input the prediction is worked against.
+   * @param  {Array}  suggestions Suggestions as an array of arrays.
+   */
   AutoCorrect.prototype.handleSuggestions =
     function handleSuggestions(input, suggestions) {
       if (input !== this.app.inputField.wordBeforeCursor()) {
@@ -288,8 +380,9 @@
       }
 
       // Make sure we have no more than three words
-      if (suggestions.length > 3)
+      if (suggestions.length > 3) {
         suggestions.length = 3;
+      }
 
       // Now get an array of just the suggested words
       var words = suggestions.map(function(x) { return x[0]; });

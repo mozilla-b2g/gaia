@@ -73,6 +73,8 @@ suite('dialer/handled_call', function() {
                               '</div>' +
                             '</div>' +
                             '<div class="sim">' +
+                              '<span class="via-sim"></span>' +
+                              '<span class="sim-number"></span>' +
                             '</div>' +
                             '<button class="merge-button"></button>' +
                           '</section>';
@@ -512,6 +514,10 @@ suite('dialer/handled_call', function() {
 
     test('number', function() {
       assert.equal(subject.recentsEntry.number, mockCall.number);
+    });
+
+    test('serviceId', function() {
+      assert.equal(subject.recentsEntry.serviceId, mockCall.serviceId);
     });
 
     suite('type incoming', function() {
@@ -1057,11 +1063,12 @@ suite('dialer/handled_call', function() {
     });
 
     suite('One SIM >', function() {
-      test('should hide the sim node', function() {
+      test('should hide the sim nodes', function() {
         mockCall = new MockCall('888', 'outgoing');
         subject = new HandledCall(mockCall);
 
-        assert.isTrue(subject.simNode.hidden);
+        assert.isTrue(subject.viaSimNode.hidden);
+        assert.isTrue(subject.simNumberNode.hidden);
       });
     });
 
@@ -1074,9 +1081,14 @@ suite('dialer/handled_call', function() {
         mockCall = new MockCall('888', 'outgoing');
         subject = new HandledCall(mockCall);
 
-        assert.isFalse(subject.simNode.hidden);
-        assert.equal(subject.simNode.textContent, 'via-sim');
+        assert.isFalse(subject.viaSimNode.hidden);
+        assert.isFalse(subject.simNumberNode.hidden);
+
+        assert.equal(subject.viaSimNode.textContent, 'via-sim');
         assert.deepEqual(MockLazyL10n.keys['via-sim'], {n: 2});
+
+        assert.equal(subject.simNumberNode.textContent, 'sim-number');
+        assert.deepEqual(MockLazyL10n.keys['sim-number'], {n: 2});
       });
     });
   });

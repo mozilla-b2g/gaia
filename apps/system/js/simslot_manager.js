@@ -92,11 +92,20 @@
      * Check there is no any sim card on device or not.
      * @return {Boolean} There is no sim card.
      */
-    noSIMCardOnDevice: function ssm_noSIMCardOnDevice(index) {
+    noSIMCardOnDevice: function ssm_noSIMCardOnDevice() {
       if (!IccManager || !IccManager.iccIds) {
         return true;
       }
       return (IccManager.iccIds.length === 0);
+    },
+
+    noSIMCardConnectedToNetwork: function ssm_noSIMCardConnectedToNetwork() {
+      if (!IccManager || !IccManager.iccIds) {
+        return true;
+      }
+      return this._instances.every(function iterator(instance) {
+        return instance.conn.voice && instance.conn.voice.emergencyCallsOnly;
+      });
     },
 
     /**

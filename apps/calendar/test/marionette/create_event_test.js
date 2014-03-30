@@ -1,80 +1,73 @@
 'use strict';
 
-var Calendar = require('./calendar'),
-    assert = require('chai').assert;
-
+var Calendar = require('./lib/calendar'),
+    assert = require('chai').assert,
+    format = require('util').format;
 
 marionette('creating an event', function() {
-  /*jshint -W027*/
   var app;
   var client = marionette.client();
 
-  // we always use today as base day to make test simpler, we also
-  // set the hours/minutes so it always shows up at first hours of event list
-  // (avoids conflicts with click events)
-  var startDate = new Date(), endDate = new Date();
-  startDate.setHours(2);
-  startDate.setMinutes(0);
-  startDate.setSeconds(0);
-  startDate.setMilliseconds(0);
-  endDate.setTime(startDate.getTime() + 60 * 60 * 1000 /* one hour */);
-  var sourceData = {
-    title: 'Puppy Bowl dogefortlongtextfotestloremipsumdolorsitamet',
-    location: 'Animal Planet reallylongwordthatshouldnotoverflowbecausewewrap',
-    description: 'lorem ipsum dolor sit amet maecennas ullamcor',
-    startDate: startDate,
-    endDate: endDate
-  };
+  var title = 'Puppy Bowl dogefortlongtextfotestloremipsumdolorsitamet',
+      description = 'lorem ipsum dolor sit amet maecennas ullamcor',
+      location = 'Animal Planet ' +
+                 'reallylongwordthatshouldnotoverflowbecausewewrap',
+      date = new Date(),
+      startHour = 2,
+      duration = 1;
 
   setup(function() {
     app = new Calendar(client);
     app.launch({ hideSwipeHint: true });
-
-    app.createEvent(sourceData);
-
-    // Wait until we return to the base, month view.
-    app.waitForMonthView();
-  });
-
-  suite('vanilla event', function() {
-    test('should show event in month view', function() {
-      var event = app.waitForElement('monthViewDayEvent');
-      var title = app.waitForChild(event, 'monthViewDayEventName');
-      var location = app.waitForChild(event, 'monthViewDayEventLocation');
-      assert.equal(title.text(), sourceData.title);
-      assert.equal(location.text(), sourceData.location);
+    app.createEvent({
+      title: title,
+      description: description,
+      location: location,
+      startHour: startHour,
+      duration: duration
     });
+
+    app.month.waitForDisplay();
   });
 
-  suite('view event', function() {
+  test('should display the created event in months day', function() {
+    var monthDay = app.monthDay;
+    var event = monthDay.events[0];
+    assert.equal(monthDay.getTitle(event), title);
+    assert.equal(monthDay.getLocation(event), location);
+    // assert.equal(monthDay.getStartHour(event), '2AM');
+  });
 
+  suite('opening event in read view', function() {
     setup(function() {
-      // FIXME: temporary hack for keyboard while Bug 965131 is fixed
-      app.waitForKeyboardHide();
-      // we change to week view because some months spans through 6 rows which
-      // makes the click event on "monthViewDayEvent" trigger the wrong link
-      app.waitForElement('weekButton').click();
-      app.waitForWeekView();
-      app.waitForElement('weekViewEvent').click();
+      var event = app.monthDay.events[0];
+
+      // Scroll so that the first one is in view and click it.
+      app.monthDay.scrollToEvent(event);
+      event.click();
+
+      // Wait until the read view is displayed.
+      app.readEvent.waitForDisplay();
     });
 
-    test('should display the created event in read-only view', function() {
-      var actual = app.getViewEventEvent();
-      assert.deepEqual(actual, {
-        calendar: 'Offline calendar',
-        title: sourceData.title,
-        location: sourceData.location,
-        description: sourceData.description
-      }, 'event data should match');
+    // disabled bug 974731
+    test.skip('should display the created event in read view', function() {
+      var readEvent = app.readEvent;
+      assert.equal(readEvent.title, title);
+      assert.equal(readEvent.description, description);
+      assert.equal(readEvent.location, location);
+      assert.equal(readEvent.calendar, 'Offline calendar');
+      assert.equal(readEvent.startDate, app.formatDate(date));
+      assert.equal(readEvent.startTime, format('%d:00 AM', startHour));
+      assert.equal(readEvent.endDate, app.formatDate(date));
+      assert.equal(readEvent.endTime, format('%d:00 AM', startHour + duration));
     });
 
-    test('should not overflow title, location and description',
-      function() {
-        app.checkOverflow('viewEventViewTitle', 'title');
-        app.checkOverflow('viewEventViewLocation', 'location');
-        app.checkOverflow('viewEventViewDescription', 'description');
-      });
-
+    test('should not overflow title, location, or description', function() {
+      var readEvent = app.readEvent;
+      app.checkOverflow(readEvent.titleContainer, 'title');
+      app.checkOverflow(readEvent.descriptionContainer, 'description');
+      app.checkOverflow(readEvent.locationContainer, 'location');
+    });
   });
-
 });

@@ -1,0 +1,76 @@
+
+.recording-timer {
+  display: flex;
+  position: absolute;
+  top: 1.7rem; left: 1.4rem;
+  z-index: 1;
+  width: 10rem;
+  height: 5rem;
+  font-size: 2rem;
+  line-height: 1em;
+  align-items: center;
+  padding: 0 1.5rem;
+  border-radius: 5.6rem;
+  color: #ffffff;
+  overflow: hidden;
+  pointer-events: none;
+  background: rgba(0,0,0,0.12);
+  opacity: 0;
+  -moz-user-select: none;
+  transition: opacity 0.2s ease-in-out;
+}
+
+/**
+ * deg90
+ */
+
+.deg90 .recording-timer {
+  transform-origin: 50% 100%;
+  transform: rotate(-90deg);
+}
+
+/**
+ * deg180
+ */
+
+.deg180 .recording-timer {
+  transform: rotate(-180deg);
+}
+
+/**
+ * deg270
+ */
+
+.deg270 .recording-timer {
+  transform-origin: 25% 50%;
+  transform: rotate(-270deg);
+}
+
+.recording-timer.visible {
+  opacity: 1;
+}
+
+/** Red Dot
+ ---------------------------------------------------------*/
+
+.recording-timer:before {
+  content: '';
+  display: block;
+  flex-shrink: 0;
+  background: #d92e2e;
+  border-radius: 50%;
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-right: 0.6rem;
+}
+
+/**
+ * deg90,
+ * deg180
+ */
+
+.deg90 .recording-timer:before,
+.deg180 .recording-timer:before {
+  right: 2rem;
+  left: auto;
+}

@@ -6,7 +6,7 @@
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
-         Thread */
+         Thread, MultiSimActionButton */
 /*exported ThreadUI */
 
 (function(global) {
@@ -77,6 +77,7 @@ var ThreadUI = global.ThreadUI = {
     update: null,
     subjectLengthNotice: null
   },
+  multiSimActionButton: null,
   init: function thui_init() {
     var templateIds = [
       'message',
@@ -164,6 +165,9 @@ var ThreadUI = global.ThreadUI = {
 
     this.sendButton.addEventListener(
       'click', this.onSendClick.bind(this)
+    );
+    this.sendButton.addEventListener(
+      'contextmenu', this.onSendClick.bind(this)
     );
 
     this.container.addEventListener(
@@ -284,6 +288,8 @@ var ThreadUI = global.ThreadUI = {
     // Initialized here, but used in ThreadUI.cleanFields
     this.previousHash = null;
 
+    this.multiSimActionButton = null;
+
     this.timeouts.update = null;
 
     // Cache fixed measurement while init
@@ -327,16 +333,15 @@ var ThreadUI = global.ThreadUI = {
    * visible.
    */
   onBeforeEnter: function thui_onBeforeEnter() {
-    if (Settings.hasSeveralSim()) {
-      navigator.mozL10n.localize(
-        this.dualSimInformation,
-        'sim-name',
-        { id: Settings.smsServiceId + 1 }
+    if (!this.multiSimActionButton) {
+      // handles the various actions on the send button and encapsulates the
+      // DSDS specific behavior
+      this.multiSimActionButton =
+        new MultiSimActionButton(
+          this.sendButton,
+          this.simSelectedCallback.bind(this),
+          Settings.SERVICE_ID_KEYS.smsServiceId
       );
-      this.composeForm.classList.add('dual-sim-configuration');
-    } else {
-      navigator.mozL10n.localize(this.dualSimInformation);
-      this.composeForm.classList.remove('dual-sim-configuration');
     }
   },
 
@@ -1083,7 +1088,7 @@ var ThreadUI = global.ThreadUI = {
     if (Settings.mmsSizeLimitation) {
       if (Compose.size > Settings.mmsSizeLimitation) {
         Compose.lock = true;
-        this.showMaxLengthNotice('messages-exceeded-length-text');
+        this.showMaxLengthNotice('message-exceeded-max-length');
         return false;
       } else if (Compose.size === Settings.mmsSizeLimitation) {
         Compose.lock = true;
@@ -1881,12 +1886,12 @@ var ThreadUI = global.ThreadUI = {
     }
     if (selected.length > 0) {
       this.uncheckAllButton.disabled = false;
-      this.deleteButton.classList.remove('disabled');
+      this.deleteButton.disabled = false;
       navigator.mozL10n.localize(this.editMode, 'selected',
         {n: selected.length});
     } else {
       this.uncheckAllButton.disabled = true;
-      this.deleteButton.classList.add('disabled');
+      this.deleteButton.disabled = true;
       navigator.mozL10n.localize(this.editMode, 'deleteMessages-title');
     }
   },
@@ -2112,7 +2117,6 @@ var ThreadUI = global.ThreadUI = {
   },
 
   onSendClick: function thui_onSendClick() {
-    // don't send an empty message
     if (Compose.isEmpty()) {
       return;
     }
@@ -2125,8 +2129,20 @@ var ThreadUI = global.ThreadUI = {
 
     // not sure why this happens - replace me if you know
     this.container.classList.remove('hide');
+  },
 
-    this.sendMessage({ serviceId: Settings.smsServiceId });
+  // FIXME/bug 983411: phoneNumber not needed.
+  simSelectedCallback: function thui_simSelected(phoneNumber, cardIndex) {
+    if (Compose.isEmpty()) {
+      return;
+    }
+
+    cardIndex = +cardIndex;
+    if (isNaN(cardIndex)) {
+      cardIndex = 0;
+    }
+
+    this.sendMessage({ serviceId: cardIndex });
   },
 
   sendMessage: function thui_sendMessage(opts) {
@@ -2157,6 +2173,7 @@ var ThreadUI = global.ThreadUI = {
     }.bind(this);
 
     if (messageType === 'sms' ||
+      !Settings.hasSeveralSim() ||
       serviceId === Settings.mmsServiceId) {
       next();
     } else {
@@ -2579,14 +2596,21 @@ var ThreadUI = global.ThreadUI = {
 
     // Render each contact in the contacts results
     var renderer = ContactRenderer.flavor('suggestion');
+    var unknownContactsRenderer = ContactRenderer.flavor('suggestionUnknown');
 
     contacts.forEach(function(contact) {
-      renderer.render({
+      var rendererArg = {
         contact: contact,
         input: fValue,
         target: ul,
         skip: this.recipients.numbers
-      });
+      };
+      if (contact.source != 'unknown') {
+        renderer.render(rendererArg);
+      }
+      else {
+        unknownContactsRenderer.render(rendererArg);
+      }
     }, this);
 
     this.container.appendChild(ul);

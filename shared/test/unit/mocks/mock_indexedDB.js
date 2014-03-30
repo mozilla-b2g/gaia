@@ -1,7 +1,8 @@
 'use strict';
+/* global sinon */
+/* exported MockIndexedDB */
 
 function MockIndexedDB() {
-  var request = {};
   var transRequest = {};
 
   var dbs = [];

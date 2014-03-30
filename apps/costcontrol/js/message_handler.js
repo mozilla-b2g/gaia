@@ -1,4 +1,8 @@
-
+/* global ConfigManager, CostControl, debug, Common, asyncStorage,
+          NotificationHelper, _, resetAll, updateNextReset, getDataLimit,
+          formatData, smartRound, MozActivity, NetworkUsageAlarm */
+/*jshint -W020 */
+/* exported activity */
 (function() {
 
   'use strict';
@@ -30,12 +34,8 @@
     return window.parent.location.pathname === '/index.html';
   }
 
-  function inWidgetMode() {
-    return window.parent.location.pathname === '/widget.html';
-  }
-
   // Close if in standalone mode
-  var closing;
+  var closing, activity;
   function closeIfProceeds() {
     debug('Checking for closing...');
     if (inStandAloneMode()) {
@@ -94,7 +94,8 @@
   window.setNextReset = setNextReset;
 
   function getTopUpTimeout(callback) {
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestSettings(Common.dataSimIccId,
+                                  function _onSettings(settings) {
       var request = navigator.mozAlarms.getAll();
       request.onsuccess = function(e) {
         var alarms = e.target.result;
@@ -132,7 +133,7 @@
   function updateResetAttributes(alarmId, date, callback) {
     asyncStorage.setItem('nextResetAlarm', alarmId, function _updateOption() {
       ConfigManager.setOption({ nextReset: date }, function _sync() {
-        localStorage['sync'] = 'nextReset#' + Math.random();
+        localStorage.sync = 'nextReset#' + Math.random();
         if (callback) {
           callback();
         }
@@ -156,7 +157,7 @@
             app.launch();
             window.parent.BalanceTab.topUpWithCode(true);
           } else {
-            var activity = new MozActivity({ name: 'costcontrol/balance' });
+            activity = new MozActivity({ name: 'costcontrol/balance' });
           }
         };
       }
@@ -188,7 +189,7 @@
             app.launch();
             window.parent.CostControlApp.showBalanceTab();
           } else {
-            var activity = new MozActivity({ name: 'costcontrol/balance' });
+            activity = new MozActivity({ name: 'costcontrol/balance' });
           }
         };
       }
@@ -241,20 +242,33 @@
       ConfigManager.setOption(update, callback);
     };
   }
+  window.sendBalanceThresholdNotification = sendBalanceThresholdNotification;
 
   // When receiving an alarm, differenciate by type and act
   function _onAlarm(alarm) {
     clearTimeout(closing);
+
+    function _launchNextReset() {
+      ConfigManager.requestSettings(Common.dataSimIccId,
+                                    function _onSettings(settings) {
+        resetAll(function updateNextResetAndClose() {
+          updateNextReset(settings.trackingPeriod, settings.resetTime,
+                          closeIfProceeds);
+        });
+      });
+    }
+
     switch (alarm.data.type) {
       case 'balanceTimeout':
-        ConfigManager.requestSettings(function _onSettings(settings) {
-          settings.errors['BALANCE_TIMEOUT'] = true;
+        ConfigManager.requestSettings(Common.dataSimIccId,
+                                      function _onSettings(settings) {
+          settings.errors.BALANCE_TIMEOUT = true;
           ConfigManager.setOption(
             { 'errors': settings.errors, 'waitingForBalance': null },
             function _onBalanceTimeout() {
               debug('Timeout for balance');
               debug('Trying to synchronize!');
-              localStorage['sync'] = 'errors#' + Math.random();
+              localStorage.sync = 'errors#' + Math.random();
               closeIfProceeds();
             }
           );
@@ -262,14 +276,15 @@
         break;
 
       case 'topupTimeout':
-        ConfigManager.requestSettings(function _onSettings(settings) {
-          settings.errors['TOPUP_TIMEOUT'] = true;
+        ConfigManager.requestSettings(Common.dataSimIccId,
+                                      function _onSettings(settings) {
+          settings.errors.TOPUP_TIMEOUT = true;
           ConfigManager.setOption(
             { 'errors': settings.errors, 'waitingForTopUp': null },
             function _onBalanceTimeout() {
               debug('Timeout for topup');
               debug('Trying to synchronize!');
-              localStorage['sync'] = 'errors#' + Math.random();
+              localStorage.sync = 'errors#' + Math.random();
               closeIfProceeds();
             }
           );
@@ -277,14 +292,11 @@
         break;
 
       case 'nextReset':
-        ConfigManager.requestSettings(function _onSettings(settings) {
-          resetAll(function updateNextResetAndClose() {
-            updateNextReset(
-              settings.trackingPeriod, settings.resetTime,
-              closeIfProceeds
-            );
-          });
-        });
+        if (!Common.allNetworkInterfaceLoaded) {
+          Common.loadNetworkInterfaces(_launchNextReset);
+        } else {
+          _launchNextReset();
+        }
         break;
     }
   }
@@ -292,7 +304,8 @@
   function _onNetworkAlarm(alarm) {
     clearTimeout(closing);
     navigator.mozApps.getSelf().onsuccess = function _onAppReady(evt) {
-      ConfigManager.requestSettings(function _onSettings(settings) {
+      ConfigManager.requestSettings(Common.dataSimIccId,
+                                    function _onSettings(settings) {
         var app = evt.target.result;
         var iconURL = NotificationHelper.getIconURI(app);
 
@@ -303,7 +316,7 @@
               app.launch();
               window.parent.CostControlApp.showDataUsageTab();
             } else {
-              var activity = new MozActivity({name: 'costcontrol/data_usage'});
+              activity = new MozActivity({name: 'costcontrol/data_usage'});
             }
           };
         }
@@ -417,7 +430,7 @@
                 function _onSet() {
                   debug('Balance up to date and stored');
                   debug('Trying to synchronize!');
-                  localStorage['sync'] = 'lastBalance#' + Math.random();
+                  localStorage.sync = 'lastBalance#' + Math.random();
                   sendBalanceThresholdNotification(newBalance, settings,
                                                    closeIfProceeds);
                 }
@@ -435,13 +448,13 @@
                 function _onSet() {
                   debug('TopUp confirmed!');
                   debug('Trying to synchronize!');
-                  localStorage['sync'] = 'waitingForTopUp#' + Math.random();
+                  localStorage.sync = 'waitingForTopUp#' + Math.random();
                   closeIfProceeds();
                 }
               );
             } else if (isError) {
               // Store ERROR for TopUp and sync
-              settings.errors['INCORRECT_TOPUP_CODE'] = true;
+              settings.errors.INCORRECT_TOPUP_CODE = true;
               navigator.mozAlarms.remove(settings.waitingForTopUp);
               debug('TopUp timeout: ', settings.waitingForTopUp, 'removed');
               ConfigManager.setOption(
@@ -454,7 +467,7 @@
                 function _onSet() {
                   debug('Balance up to date and stored');
                   debug('Trying to synchronize!');
-                  localStorage['sync'] = 'errors#' + Math.random();
+                  localStorage.sync = 'errors#' + Math.random();
                   sendIncorrectTopUpNotification(closeIfProceeds);
                 }
               );
@@ -504,7 +517,7 @@
             ConfigManager.setOption({
               lastTelephonyActivity: settings.lastTelephonyActivity
             }, function _sync() {
-              localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
+              localStorage.sync = 'lastTelephonyActivity#' + Math.random();
               closeIfProceeds();
             });
           }
@@ -520,7 +533,8 @@
             }
             debug('Outgoing call finished!');
 
-            ConfigManager.requestSettings(function _onSettings(settings) {
+            ConfigManager.requestSettings(Common.dataSimIccId,
+                                          function _onSettings(settings) {
               var mode = ConfigManager.getApplicationMode();
               if (mode === 'PREPAID') {
                 costcontrol.request({ type: 'balance' });
@@ -531,7 +545,7 @@
               ConfigManager.setOption({
                 lastTelephonyActivity: settings.lastTelephonyActivity
               }, function _sync() {
-                localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
+                localStorage.sync = 'lastTelephonyActivity#' + Math.random();
                 closeIfProceeds();
               });
             });
