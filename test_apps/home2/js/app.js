@@ -16,8 +16,8 @@
   function App() {
     this.zoom = new Zoom();
     this.dragdrop = new DragDrop();
-    var container = document.getElementById('icons');
-    container.addEventListener('click', this.clickIcon.bind(this));
+    this.iconContainer = document.getElementById('icons');
+    this.iconContainer.addEventListener('click', this.clickIcon.bind(this));
   }
 
   App.prototype = {

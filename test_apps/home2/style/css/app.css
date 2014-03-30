@@ -8,14 +8,6 @@ html, body, .icons {
   margin: 0;
 }
 
-.icons {
-  overflow-y: scroll;
-  overflow-x: hidden;
-  width: 100%;
-  height: 100%;
-  will-change: scroll-position;
-}
-
 .icon {
   position: absolute;
   transform-origin: 0 0;
@@ -26,6 +18,15 @@ html, body, .icons {
   text-align: center;
   background: no-repeat center;
   background-size: 8rem;
+}
+
+/* When an icon is tracking pinch gestures */
+#icons.tracking .icon {
+  transition: transform 50ms linear;
+}
+
+/* When an icon is snapping to the grid */
+#icons.snapping .icon {
   transition: transform 500ms ease;
 }
 
@@ -49,6 +50,8 @@ html, body, .icons {
   background: rgba(255, 255, 255, 0.3);
   width: calc(100% - 2rem);
   transition: transform 500ms ease;
+  will-change: transform;
+  pointer-events: none;
 }
 
 .divider:last-child {

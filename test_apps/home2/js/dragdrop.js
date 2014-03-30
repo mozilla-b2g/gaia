@@ -150,12 +150,18 @@
 
             break;
           case 'touchmove':
-            // If we have an activate timeout, and our finger has moved past some
-            // threshold, cancel it.
+            if (!this.startTouch) {
+              return;
+            }
+
+            // If we have an activate timeout, and our finger has moved past
+            // some threshold, cancel it.
             var touch = e.touches[0];
             var distance = Math.sqrt(
-              (touch.pageX - this.startTouch.pageX) * (touch.pageX - this.startTouch.pageX) +
-              (touch.pageY - this.startTouch.pageY) * (touch.pageY - this.startTouch.pageY));
+              (touch.pageX - this.startTouch.pageX) *
+              (touch.pageX - this.startTouch.pageX) +
+              (touch.pageY - this.startTouch.pageY) *
+              (touch.pageY - this.startTouch.pageY));
 
             if (!this.active && this.timeout && distance > 20) {
               clearTimeout(this.timeout);
