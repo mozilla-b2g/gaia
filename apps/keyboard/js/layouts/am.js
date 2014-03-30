@@ -7,11 +7,7 @@ Keyboards.am = {
 
   width: 11,
   keys: [
-    [
-      { value: 'է' }, { value: 'թ' }, { value: 'փ' }, { value: 'ձ' },
-      { value: 'ջ }, { value: 'ւ' }, { value: 'և' }, { value: 'ր' },
-      { value: 'չ' }, { value: 'ճ' }, { value: '֊' }, { value: 'ժ' },
-    ], 
+
     [
       { value: 'ք' }, { value: 'ո' }, { value: 'ե' }, { value: 'ռ' },
       { value: 'տ' }, { value: 'ը' }, { value: 'ւ' }, { value: 'ի' },
