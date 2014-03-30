@@ -137,8 +137,28 @@ suite('Multiple Contacts Delete', function() {
     });
   });
 
-  test('Deleting several contact', function(done) {
+  test('Deleting several contacts', function(done) {
     var ids = getContactIds();
+    subject.init(ids, function onInitDone() {
+      subject.start();
+      assert.ok(ids, 'No Contact to delete');
+    });
+    subject.onError = function onError() {
+      assert.ok(!ids, 'Error Deleting contacts');
+    };
+    subject.onFinished = function onFinished() {
+      assert.ok(ids, 'Finished Deleting contacts');
+      done();
+    };
+    assert.ok(ids, 'No Contact to delete');
+  });
+
+  test('Deleting several contacts, one of them FB Contact', function(done) {
+    var ids = getContactIds();
+    Mockfb._fbData = [
+      MockContactsList()[0]
+    ];
+
     subject.init(ids, function onInitDone() {
       subject.start();
       assert.ok(ids, 'No Contact to delete');
