@@ -108,7 +108,7 @@ var ActivityHandler = {
         }, 0);
 
         if (size > Settings.mmsSizeLimitation) {
-          alert(navigator.mozL10n.get('file-too-large'));
+          alert(navigator.mozL10n.get('files-too-large', { n: blobs.length }));
           return;
         }
 

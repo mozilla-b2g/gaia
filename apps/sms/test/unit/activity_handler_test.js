@@ -2,7 +2,7 @@
          MessageManager, Attachment, ThreadUI, Settings, Notification,
          Threads  */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
-         MockNavigatorWakeLock, MockOptionMenu, Mockalert,
+         MockNavigatorWakeLock, MockOptionMenu,
          MockMessages, MockNavigatorSettings, MockL10n,
          MockNavigatormozMobileMessage,
          Settings
@@ -23,7 +23,6 @@ requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('sms/shared/test/unit/mocks/mock_settings_url.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
-requireApp('sms/test/unit/mock_alert.js');
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_black_list.js');
 requireApp('sms/test/unit/mock_compose.js');
@@ -54,8 +53,7 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'SettingsURL',
   'Threads',
   'ThreadUI',
-  'Utils',
-  'alert'
+  'Utils'
 ]).init();
 
 suite('ActivityHandler', function() {
@@ -91,6 +89,8 @@ suite('ActivityHandler', function() {
   });
 
   setup(function() {
+    this.sinon.stub(window, 'alert');
+
     MockNavigatormozSetMessageHandler.mSetup();
     ActivityHandler.init();
   });
@@ -188,7 +188,7 @@ suite('ActivityHandler', function() {
 
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
       sinon.assert.notCalled(Compose.append);
-      assert.equal(Mockalert.mLastMessage, 'file-too-large');
+      sinon.assert.calledWith(window.alert, 'files-too-large{"n":5}');
     });
 
     test('Should append images even when they are big', function() {
@@ -202,7 +202,7 @@ suite('ActivityHandler', function() {
 
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
       sinon.assert.called(Compose.append);
-      assert.isNull(Mockalert.mLastMessage);
+      sinon.assert.notCalled(window.alert);
     });
 
     test('share shouldn\'t change the ThreadUI back button', function() {
@@ -475,21 +475,23 @@ suite('ActivityHandler', function() {
 
     suite('class-0 message', function() {
       setup(function() {
-      var notification = {
-        title: title,
-        body: body,
-        imageURL: 'url?id=' + messageId + '&threadId=' + threadId +
-          '&type=class0',
-        tag: 'threadId:' + threadId,
-        clicked: true
-      };
+        var notification = {
+          title: title,
+          body: body,
+          imageURL: 'url?id=' + messageId + '&threadId=' + threadId +
+            '&type=class0',
+          tag: 'threadId:' + threadId,
+          clicked: true
+        };
 
-      MockNavigatormozSetMessageHandler.mTrigger('notification', notification);
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
+        MockNavigatormozSetMessageHandler.mTrigger(
+          'notification', notification
+        );
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
 
       test('an alert is displayed', function() {
-        assert.equal(Mockalert.mLastMessage, title + '\n' + body);
+        sinon.assert.calledWith(window.alert, title + '\n' + body);
       });
 
       test('handleMessageNotification is not called', function() {
