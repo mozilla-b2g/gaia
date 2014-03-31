@@ -36,6 +36,14 @@
 }
 
 /**
+ * @deg180
+ */
+
+.deg180 .indicators {
+  left: auto; right: 0;
+}
+
+/**
  * visible
  */
 
