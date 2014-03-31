@@ -6,15 +6,19 @@ mocha.setup({
     'LazyLoader',
     'startupLocale',
     'initLocale',
-    'ScreenLayout'
+    'ScreenLayout',
+    'MockL10n'
   ]
 });
 
 suite('SettingsService', function() {
+  var realL10n;
+
   suiteSetup(function(done) {
     navigator.addIdleObserver = sinon.spy();
 
     var modules = [
+      'unit/mock_l10n',
       'modules/settings_service',
       'modules/panel_cache',
       'unit/mock_settings_panel'
@@ -33,11 +37,14 @@ suite('SettingsService', function() {
     };
 
     testRequire(modules, map,
-      (function(SettingsService, PanelCache, MockSettingsPanel) {
+      (function(MockL10n, SettingsService, PanelCache, MockSettingsPanel) {
         this.SettingsService = SettingsService;
         this.PanelCache = PanelCache;
         // Mock of the SettingsPanel function
         this.MockSettingsPanel = MockSettingsPanel;
+
+        realL10n = window.navigator.mozL10n;
+        window.navigator.mozL10n = MockL10n;
 
         // XXX: As we use 'require' function of requirejs in PanelCache and it
         //      conflicts to the original require function, we replace it here.
@@ -48,6 +55,7 @@ suite('SettingsService', function() {
   });
 
   suiteTeardown(function() {
+    window.navigator.mozL10n = realL10n;
     window.require = this.originalRequire;
     this.originalRequire = null;
   });

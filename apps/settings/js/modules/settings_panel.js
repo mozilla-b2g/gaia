@@ -7,10 +7,12 @@
  *
  * @module SettingsPanel
  */
-define(['modules/panel', 'modules/settings_cache', 'modules/panel_utils',
-        'shared/lazy_loader'],
-  function(Panel, SettingsCache, PanelUtils, LazyLoader) {
+define(function(require) {
     'use strict';
+
+    var Panel = require('modules/panel');
+    var SettingsCache = require('modules/settings_cache');
+    var PanelUtils = require('modules/panel_utils');
 
     var _emptyFunc = function panel_emptyFunc() {};
 

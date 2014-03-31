@@ -4,9 +4,12 @@
  *
  * @module PanelCache
  */
-define(['modules/settings_panel', 'shared/lazy_loader'],
-  function(SettingsPanel, LazyLoader) {
+define(function(require) {
     'use strict';
+
+    var SettingsPanel = require('modules/settings_panel');
+    var LazyLoader = require('shared/lazy_loader');
+
     var _panelCache = {};
     var _panelStylesheetsLoaded = false;
 
