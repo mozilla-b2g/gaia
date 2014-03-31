@@ -830,6 +830,10 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         # switch off keyboard FTU screen
         self.data_layer.set_setting("keyboard.ftu.enabled", False)
 
+        # switch on keyboard autocorrection and word suggestion because we have tests depending on this.
+        self.data_layer.set_setting("keyboard.wordsuggestion", True)
+        self.data_layer.set_setting("keyboard.autocorrect", True)
+
         # restore settings from testvars
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
 
