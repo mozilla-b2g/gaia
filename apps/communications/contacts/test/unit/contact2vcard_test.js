@@ -43,6 +43,7 @@ suite('mozContact to vCard', function() {
           var _contains = contains(str);
 
           assert.equal(count, contacts.length);
+          assert.ok(_contains('version:3.0'));
           assert.ok(_contains('fn:pepito grillo'));
           assert.ok(_contains('n:grillo;pepito;green;mr.;;'));
           assert.ok(_contains('nickname:pg'));
@@ -52,7 +53,7 @@ suite('mozContact to vCard', function() {
           assert.ok(_contains('note:note 1'));
           assert.ok(_contains('bday:1970-01-01T00:00:00Z'));
           assert.ok(_contains('anniversary:1970-01-01T00:00:00Z'));
-          assert.ok(_contains('photo:data:image/gif;base64,' + b64));
+          assert.ok(_contains('photo;encoding=b;type=image/gif:' + b64));
           assert.ok(_contains('email;type=home:test@test.com'));
           assert.ok(_contains('email;type=work,pref:test@work.com'));
           assert.ok(_contains('tel;type=cell,pref:+346578888888'));
@@ -88,7 +89,7 @@ suite('mozContact to vCard', function() {
           assert.ok(_contains('note:note 1'));
           assert.ok(_contains('bday:1970-01-01T00:00:00Z'));
           assert.ok(_contains('anniversary:1970-01-01T00:00:00Z'));
-          assert.ok(_contains('photo:data:image/gif;base64,' + b64));
+          assert.ok(_contains('photo;encoding=b;type=image/gif:' + b64));
           assert.ok(_contains('email;type=home:test@test.com'));
           assert.ok(_contains('tel;type=cell,pref:+346578888888'));
           assert.ok(_contains('tel;type=home:+3120777777'));
