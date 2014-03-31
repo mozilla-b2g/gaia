@@ -37,6 +37,14 @@ class FullscreenImage(Base):
     def current_image_source(self):
         return self.marionette.find_element(*self._current_image_locator).value_of_css_property('background-image')
 
+    @property
+    def current_image_size_width(self):
+        return self.marionette.find_element(*self._current_image_locator).size['width']
+
+    @property
+    def current_image_size_height(self):
+        return self.marionette.find_element(*self._current_image_locator).size['height']
+
     def flick_to_next_image(self):
         self._flick_to_image('next')
 
@@ -76,6 +84,12 @@ class FullscreenImage(Base):
         Wait(self.marionette).until(expected.element_not_displayed(fullscreen))
         from gaiatest.apps.gallery.app import Gallery
         return Gallery(self.marionette)
+
+    def double_tap_image(self):
+        image = self.marionette.find_element(*self._current_image_locator)
+        action = Actions(self.marionette)
+        action.double_tap(image)
+        action.perform()
 
     @property
     def photo_toolbar_width(self):
