@@ -24,6 +24,8 @@ window.addEventListener('load', function startup() {
     if (window.SuspendingAppPriorityManager) {
       window.suspendingAppPriorityManager = new SuspendingAppPriorityManager();
     }
+    /** @global */
+    window.lockScreenWindowManager = new window.LockScreenWindowManager();
   }
 
   function safelyLaunchFTU() {
