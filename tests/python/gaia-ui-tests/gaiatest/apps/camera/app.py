@@ -26,7 +26,7 @@ class Camera(Base):
     _thumbnail_button_locator = (By.CSS_SELECTOR, '.test-thumbnail')
 
     _cancel_pick_button_locator = (By.CSS_SELECTOR, '.test-cancel-pick')
-    _video_timer_locator = (By.CSS_SELECTOR, '.test-video-timer')
+    _video_timer_locator = (By.CSS_SELECTOR, '.recording-timer')
 
     # HUD View
     _hud_locator = (By.CSS_SELECTOR, '.hud')
