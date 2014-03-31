@@ -57,6 +57,13 @@ function Evme_dndManager() {
 
   var hoverTimeout = null;
 
+  var cleanupTimeout = null;
+
+  // delay after which cleanup will be triggered in case something went wrong
+  // note: we don't want to fire too early to allow normal-flow cleanup after
+  // animations have ended
+  var DEFAULT_CLEANUP_DELAY = 1200;
+
   // constants
   var HOVER_DELAY = Page.prototype.REARRANGE_DELAY;
   var DRAGGING_TRANSITION = Page.prototype.DRAGGING_TRANSITION;
@@ -120,6 +127,9 @@ function Evme_dndManager() {
       clearTimeout(hoverTimeout);
     }
 
+    // make sure cleanup will be performed
+    // normally rearrage/revert will call it
+    cleanupTimeout = setTimeout(cleanup, DEFAULT_CLEANUP_DELAY);
     if (shifted) {
       rearrange();
     } else {
@@ -274,6 +284,8 @@ function Evme_dndManager() {
   }
 
   function cleanup() {
+    clearTimeout(cleanupTimeout);
+
     delete dndContainerEl.dataset.dragging;
     delete originNode.dataset.dragging;
 
@@ -324,6 +336,15 @@ function Evme_dndManager() {
 
     children = Array.prototype.slice.call(parentNode.childNodes);
     animatingNodes = [];
+
+    // remove leftover draggable elements (normally, there shouldn't be any)
+    Array.prototype.forEach.call(dndContainerEl.querySelectorAll('.draggable'),
+      function removeNode(node) {
+        dndContainerEl.removeChild(node);
+      });
+
+    // fresh start, avoid cleanup if one is scheduled
+    clearTimeout(cleanupTimeout);
 
     dndContainerEl.dataset.dragging = true;
     originNode.dataset.dragging = true;
