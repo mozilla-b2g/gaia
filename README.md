@@ -99,12 +99,12 @@ make test-integration TEST_FILES=<test>
 
 For example, we could run the `day_view_test.js` test in calendar app with the below command.
 ```
-make test-integration TEST_FILES=./apps/calendar/test/marionette/day_view_test.js
+make test-integration TEST_FILES=apps/calendar/test/marionette/day_view_test.js
 ```
 
 If you would like to run more than one test, we could do the below command.
 ```
-make test-integration TEST_FILES="./apps/calendar/test/marionette/day_view_test.js ./apps/calendar/test/marionette/today_test.js"
+make test-integration TEST_FILES="apps/calendar/test/marionette/day_view_test.js apps/calendar/test/marionette/today_test.js"
 ```
 
 #### Invoking tests for a specific app
@@ -114,6 +114,22 @@ make test-integration APP=<APP>
 ```
 
 For example, we could run all tests for the calendar app with `make test-integration APP=calendar`.
+
+#### Skipping a test file
+```sh
+make test-integration SKIP_TEST_FILES=<test>
+```
+For example, we could skip the `day_view_test.js` test in calendar app with the below command.
+```
+make test-integration SKIP_TEST_FILES=apps/calendar/test/marionette/day_view_test.js
+```
+
+If you would like to skip more than one test, we could do the below command.
+```
+make test-integration SKIP_TEST_FILES="apps/calendar/test/marionette/day_view_test.js apps/calendar/test/marionette/today_test.js"
+```
+
+Notice that we could not use the `TEST_FILES` and `SKIP_TEST_FILES` parameters at the same time.
 
 #### Running tests while working
 

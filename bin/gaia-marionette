@@ -3,34 +3,6 @@
 # All options are passed to `./node_modules/.bin/marionette-mocha` so
 # you can also use mocha commands like `--grep`, `--timeout` see `--help`
 # for more options.
-# run tests with a CalDAV server.
-if [ "$1" == "RUN_CALDAV_SERVER=1" ]; then
-  PIP=$(which pip)
-  VIRTUAL_ENV=$(which virtualenv)
-  RADICALE=$(which radicale)
-
-  # Make sure we have pip before we install the CalDav server.
-  if [ ! -x "$PIP" ]; then
-    echo "$SELF: Unable to find pip to install Python packages."
-    exit 1
-  fi
-
-  if [ ! -x "$VIRTUAL_ENV" ]; then
-    echo "Install Virtualenv."
-    sudo pip install virtualenv
-  fi
-  # Go to the isolated Python environment.
-  virtualenv ENV
-  source ./ENV/bin/activate
-
-  # Install the Radicale CalDAV server for
-  # doing testing things with Calendar App.
-  # See more in http://radicale.org.
-  if [ ! -x "$RADICALE" ]; then
-    echo "Install Radicale."
-    sudo pip install radicale
-  fi
-fi
 
 # Find the source of this file
 SOURCE="${BASH_SOURCE[0]}"
@@ -39,6 +11,30 @@ DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
 
 # where all gaia specific customizations for mocha-marionette live.
 SHARED=$DIR/../shared/test/integration
+
+# Go to the isolated Python environment if we already setup the virtualenv.
+VIRTUALENV=$(which virtualenv)
+JS_MARIONETTE_ENV=$(find $DIR/.. -path "*/js-marionette-env")
+if [ -x "$VIRTUALENV" -a -x "$JS_MARIONETTE_ENV" ]; then
+  source ./js-marionette-env/bin/activate
+fi
+
+# We skip the related tests if the Radicale CalDAV server is not installed.
+if [ ! -x "$VIRTUALENV" -o ! -x "$JS_MARIONETTE_ENV" -o ! -x "$(which radicale)" ]; then
+  echo -e "The Radicale CalDAV server is not installed in the virtualenv, we will skip the CalDAV tests.\n \
+           \rIf you want to run the CalDAV tests, please run |make caldav-server-install| first."
+  CALDAV_RELATED_TESTS="apps/calendar/test/marionette/caldav_test.js"
+  SKIP_TEST_FILES="$SKIP_TEST_FILES $CALDAV_RELATED_TESTS"
+fi
+
+# Build the script string of skipping test files.
+if [ -n "$SKIP_TEST_FILES" ]; then
+  for FILE in $SKIP_TEST_FILES
+  do
+    SKIP_TEST_FILES_SCRIPT="$SKIP_TEST_FILES_SCRIPT ! -path */$FILE"
+  done
+  SKIP_TEST_FILES="$SKIP_TEST_FILES_SCRIPT"
+fi
 
 # make sure node_modules are 100% up to date
 make node_modules
@@ -53,11 +49,21 @@ fi
 
 if [ -z "$TEST_FILES" ]; then
   if [ -z "$APP" ]; then
-    TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" \
-                          -or -path "*/test_apps/*/test/marionette/*_test.js")
+    if [ -z "$SKIP_TEST_FILES" ]; then
+      TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" \
+                            -or -path "*/test_apps/*/test/marionette/*_test.js")
+    else
+      TEST_FILES=$(find $DIR/.. -path "*/apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                            -or -path "*/test_apps/*/test/marionette/*_test.js" $SKIP_TEST_FILES)      
+    fi
   else
-    TEST_FILES=$(find $DIR/.. -path "*/apps/$APP/test/marionette/*_test.js" \
-                          -or -path "*/test_apps/$APP/test/marionette/*_test.js")
+    if [ -z "$SKIP_TEST_FILES" ]; then
+      TEST_FILES=$(find $DIR/.. -path "*/apps/$APP/test/marionette/*_test.js" \
+                            -or -path "*/test_apps/$APP/test/marionette/*_test.js")
+    else
+      TEST_FILES=$(find $DIR/.. -path "*/apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES \
+                            -or -path "*/test_apps/$APP/test/marionette/*_test.js" $SKIP_TEST_FILES)
+    fi
   fi
 fi
 
