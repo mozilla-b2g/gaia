@@ -5,15 +5,8 @@ mocha.globals(['SettingsListener', 'ScreenManager',
 
 requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/test/unit/mock_navigator_moz_power.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-
-var MockMozSettings = {
-  _listeners: {},
-
-  addObserver: function addObserver(event, listener) {
-    this._listeners[event] = listener;
-  }
-};
 
 var MockScreenManager = {
   screenEnabled: true
@@ -75,23 +68,25 @@ suite('WiFi > ', function() {
   var realMozSetMessageHandler;
   var realBattery;
   var realMozPower;
+  var realMozSettings;
+  var realWifiManager;
 
   setup(function(done) {
-    stubMozSettings = this.sinon.stub(navigator,
-      'mozSettings', MockMozSettings);
-    stubWifiManager = this.sinon.stub(navigator,
-      'mozWifiManager', MockWifiManager);
     stubRequestWakeLock = this.sinon.stub(navigator,
       'requestWakeLock', MockRequestWakeLock);
 
     fakeClock = this.sinon.useFakeTimers();
 
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
     realScreenManager = window.ScreenManager;
     window.ScreenManager = MockScreenManager;
     realSettingsListener = window.SettingsListener;
     window.SettingsListener = MockSettingsListener;
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockMozSetMessageHandler;
+    realWifiManager = navigator.mozWifiManager;
+    navigator.mozWifiManager = MockWifiManager;
 
     realBattery = navigator.battery;
     Object.defineProperty(navigator, 'battery', {
@@ -109,15 +104,15 @@ suite('WiFi > ', function() {
   });
 
   teardown(function() {
-    stubMozSettings.restore();
-    stubWifiManager.restore();
     stubRequestWakeLock.restore();
     fakeClock.restore();
 
+    navigator.mozSettings = realMozSettings;
     window.SettingsListener = realSettingsListener;
     window.ScreenManager = realScreenManager;
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
     navigator.mozPower = realMozPower;
+    navigator.mozWifiManager = realWifiManager;
   });
 
   suite('Init', function() {
