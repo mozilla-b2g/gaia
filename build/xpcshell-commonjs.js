@@ -83,3 +83,8 @@ function run(module) {
   var runner = new CommonjsRunner(module);
   runner.run();
 }
+
+function require(module) {
+  var runner = new CommonjsRunner(module);
+  return runner.require(module);
+}
