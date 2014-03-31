@@ -1,4 +1,6 @@
 'use strict';
+/* global Curtain */
+/* global LazyLoader */
 
 var contacts = window.contacts || {};
 

@@ -1,6 +1,9 @@
 'use strict';
+/* global LazyLoader */
+/* exported navigationStack */
 
 function navigationStack(currentView) {
+  /* jshint validthis:true */
   // Each transition entry includes a 'forwards' property including the
   //  classes which will be added to the 'current' and 'next' view when the
   //  transition goes forwards, as well as a 'backwards' property including the
@@ -60,8 +63,9 @@ function navigationStack(currentView) {
                    zIndex: ++navigationStack._zIndex});
 
   var waitForAnimation = function ng_waitForAnimation(view, callback) {
-    if (!callback)
+    if (!callback) {
       return;
+    }
 
     view.addEventListener('animationend', function ng_onAnimationEnd() {
       view.removeEventListener('animationend', ng_onAnimationEnd);
@@ -70,8 +74,10 @@ function navigationStack(currentView) {
   };
 
   this.go = function go(nextView, transition) {
-    if (_currentView === nextView)
+    if (_currentView === nextView) {
       return;
+    }
+
     var parent = window.parent;
     if (nextView == 'view-contact-form') {
       parent.postMessage({type: 'hide-navbar'}, COMMS_APP_ORIGIN);
@@ -106,7 +112,6 @@ function navigationStack(currentView) {
     }
 
     var forwardsClasses = this.transitions[transition].forwards;
-    var backwardsClasses = this.transitions[transition].backwards;
 
     // Add forwards class to current view.
     currentClassList.add('block-item');
@@ -133,8 +138,6 @@ function navigationStack(currentView) {
   };
 
   this.back = function back(callback) {
-    var self = this;
-
     if (this.stack.length < 2) {
       if (typeof callback === 'function') {
         setTimeout(callback, 0);

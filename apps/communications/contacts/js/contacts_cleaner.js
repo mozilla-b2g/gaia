@@ -1,4 +1,5 @@
 'use strict';
+/* global utils */
 
 window.ContactsCleaner = function(contacts) {
   this.lcontacts = contacts;

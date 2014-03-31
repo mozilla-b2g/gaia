@@ -1,9 +1,24 @@
 'use strict';
+/* global ActivityHandler */
+/* global ConfirmDialog */
+/* global contacts */
+/* global ContactsTag */
+/* global DatastoreMigration */
+/* global fb */
+/* global fbLoader */
+/* global LazyLoader */
+/* global MozActivity */
+/* global navigationStack */
+/* global PerformanceTestingHelper */
+/* global SmsIntegration */
+/* global utils */
+/* exported COMMS_APP_ORIGIN */
+/* exported SCALE_RATIO */
+/* jshint nonew: false */
 
 var _;
 var TAG_OPTIONS;
 var COMMS_APP_ORIGIN = location.origin;
-var asyncScriptsLoaded;
 
 // Scale ratio for different devices
 var SCALE_RATIO = window.innerWidth / 320;
@@ -41,7 +56,7 @@ var Contacts = (function() {
   // It receives an array of two elements with the facebook data && values
   function showEditForm(facebookData, params) {
     contactsForm.render(currentContact, goToForm,
-                                    facebookData, params['fromUpdateActivity']);
+                                    facebookData, params.fromUpdateActivity);
     showApp();
   }
 
@@ -61,12 +76,13 @@ var Contacts = (function() {
             console.log('Param missing');
             return;
           }
-          var id = params['id'];
+          var id = params.id;
           cList.getContactById(id, function onSuccess(savedContact) {
             currentContact = savedContact;
             contactsDetails.render(currentContact, TAG_OPTIONS);
-            if (params['tel'])
-              contactsDetails.reMark('tel', params['tel']);
+            if (params.tel) {
+              contactsDetails.reMark('tel', params.tel);
+            }
             navigation.go(sectionId, 'right-left');
             showApp();
           }, function onError() {
@@ -82,12 +98,12 @@ var Contacts = (function() {
           } else {
             // Editing existing contact
             if ('id' in params) {
-              var id = params['id'];
+              var id = params.id;
               cList.getContactById(id, function onSuccess(savedContact) {
                 currentContact = savedContact;
                 // Check if we have extra parameters to render
                 if ('extras' in params) {
-                  addExtrasToContact(params['extras']);
+                  addExtrasToContact(params.extras);
                 }
                 if (fb.isFbContact(savedContact)) {
                   var fbContact = new fb.Contact(savedContact);
@@ -236,8 +252,9 @@ var Contacts = (function() {
   };
 
   var initContactsList = function initContactsList() {
-    if (contactsList)
+    if (contactsList) {
       return;
+    }
     contactsList = contactsList || contacts.List;
     var list = document.getElementById('groups-list');
     contactsList.init(list);
@@ -251,12 +268,13 @@ var Contacts = (function() {
     // NOTE: Only set textContent below if necessary to avoid repaints at
     //       load time.  For more info see bug 725221.
 
+    var text;
     if (ActivityHandler.currentlyHandling) {
       cancelButton.classList.remove('hide');
       addButton.classList.add('hide');
       settingsButton.classList.add('hide');
 
-      var text = _('selectContact');
+      text = _('selectContact');
       if (appTitleElement.textContent !== text) {
         appTitleElement.textContent = text;
       }
@@ -265,7 +283,7 @@ var Contacts = (function() {
       addButton.classList.remove('hide');
       settingsButton.classList.remove('hide');
 
-      var text = _('contacts');
+      text = _('contacts');
       if (appTitleElement.textContent !== text) {
         appTitleElement.textContent = text;
       }
@@ -312,24 +330,25 @@ var Contacts = (function() {
     contactsList.handleClick(function addToContactHandler(id) {
       var data = {};
       if (params.hasOwnProperty('tel')) {
-        var phoneNumber = params['tel'];
-        data['tel'] = [{
+        var phoneNumber = params.tel;
+        data.tel = [{
           'value': phoneNumber,
           'carrier': null,
           'type': [TAG_OPTIONS['phone-type'][0].type]
         }];
       }
       if (params.hasOwnProperty('email')) {
-        var email = params['email'];
-        data['email'] = [{
+        var email = params.email;
+        data.email = [{
           'value': email,
           'type': [TAG_OPTIONS['email-type'][0].type]
         }];
       }
       var hash = '#view-contact-form?extras=' +
         encodeURIComponent(JSON.stringify(data)) + '&id=' + id;
-      if (fromUpdateActivity)
+      if (fromUpdateActivity) {
         hash += '&fromUpdateActivity=1';
+      }
       window.location.hash = hash;
     });
   };
@@ -440,8 +459,9 @@ var Contacts = (function() {
 
   var sendSms = function sendSms(number) {
     if (!ActivityHandler.currentlyHandling ||
-        ActivityHandler.activityName === 'open')
+        ActivityHandler.activityName === 'open') {
       SmsIntegration.sendSms(number);
+    }
   };
 
   var handleBack = function handleBack() {
@@ -491,7 +511,7 @@ var Contacts = (function() {
     try {
       // We don't check the email format, lets the email
       // app do that
-      var activity = new MozActivity({
+      new MozActivity({
         name: 'new',
         data: {
           type: 'mail',
@@ -501,11 +521,6 @@ var Contacts = (function() {
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
-  };
-
-  var isUpdated = function isUpdated(contact1, contact2) {
-    return contact1.id == contact2.id &&
-      (contact1.updated - contact2.updated) == 0;
   };
 
   var showAddContact = function showAddContact() {
