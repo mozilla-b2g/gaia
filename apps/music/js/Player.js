@@ -1045,7 +1045,11 @@ var PlayerView = {
         break;
 
       case 'mozinterruptend':
-        this.playStatus = INTERRUPT_END;
+        // After received the mozinterruptend event the player should recover
+        // its status to the status before mozinterruptbegin, it should be
+        // PLAYING because mozinterruptbegin only fires when an audio element
+        // is playing.
+        this.playStatus = PLAYSTATUS_PLAYING;
         this.updateRemotePlayStatus();
         break;
 
