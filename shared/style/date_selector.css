@@ -234,7 +234,7 @@
 
 /* Pressed */
 [role="dialog"][data-type="date-selector"] menu button:active {
-  background: #b2f2ff;
+  background: #00aacc;
   color: #fff;
 }
 

@@ -252,7 +252,7 @@ form[role="search"] button[type="submit"] {
 form[role="search"] button[type="submit"]:after {
   content: "";
   position: absolute;
-  left: 0;
+  left: -0.1rem;
   top: 0.7rem;
   bottom: 0.7rem;
   width: 0.1rem;
@@ -285,6 +285,11 @@ form[role="search"] button.icon:active,
 form[role="search"] button[type="submit"]:active {
   background: #b2f2ff;
   color: #fff;
+}
+
+form[role="search"].skin-dark button.icon:active,
+form[role="search"].skin-dark button[type="submit"]:active {
+  background: #00aacc;
 }
 
 form[role="search"] button[type="submit"][disabled] {

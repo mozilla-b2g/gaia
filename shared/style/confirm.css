@@ -114,7 +114,7 @@ form[role="dialog"][data-type="confirm"] menu button.danger {
 
 /* Pressed */
 form[role="dialog"][data-type="confirm"] menu button:active {
-  background: #b2f2ff;
+  background: #00aacc;
   color: #fff;
 }
 

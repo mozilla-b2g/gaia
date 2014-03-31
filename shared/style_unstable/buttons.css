@@ -53,10 +53,16 @@ button.danger,
 /* Pressed */
 button:active,
 [role="button"]:active,
-button.recommend:active,
-a.recommend[role="button"]:active {
+.button:active {
   background-color: #b2f2ff;
   color: #fff;
+}
+
+/* Pressed with dark skin */
+.dark button:active,
+.dark [role="button"]:active,
+.dark .button:active {
+  background-color: #00aacc;
 }
 
 /* Disabled */
@@ -218,23 +224,24 @@ li .button[aria-disabled="true"].icon-dialog:before {
 
 .dark li button:active,
 .dark li [role="button"]:active {
-  background-color: #b2f2ff;
-}
-
-.dark li button.icon-view:active,
-.dark li [role="button"].icon-view:active {
-  background-color: #b2f2ff;
+  background-color: #00aacc;
 }
 
 .dark li button.icon-view,
 .dark li [role="button"].icon-view {
-  background: none;
+  background-color: transparent;
   border: none;
 }
 
-.dark li button.icon-view:before,
-.dark li [role="button"].icon-view:before {
-  background-image: url(buttons/images/next.png);
+.dark li button.icon-view:active,
+.dark li [role="button"].icon-view:active {
+  background-color: #00aacc;
+}
+
+.dark li button.icon-dialog:active:before,
+.dark li [role="button"].icon-dialog:active:before,
+.dark li .button.icon-dialog:active:before {
+  border-left: 0.7rem solid #b2f2ff;
 }
 
 .dark li button:disabled,
