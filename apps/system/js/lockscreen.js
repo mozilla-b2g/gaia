@@ -445,6 +445,9 @@ var LockScreen = {
 
       case 'home':
         if (this.locked) {
+          // If we press home button after received incoming call,
+          // we should enable the lockscreen.
+          this.enableWithoutCover();
           if (this.passCodeEnabled) {
             this.switchPanel('passcode');
           } else {
