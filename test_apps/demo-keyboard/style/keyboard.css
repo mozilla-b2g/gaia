@@ -154,47 +154,30 @@ body {
   color: #abb0b1;
 }
 
-/*
- * When a key is touched, change its appearance.
- * We use this same appearance when the alternatives menu is shown
- */
-.key:not(.specialkey).touched, .key.altshown {
-  /* color changes */
-  color: #00caf2;
-  background-color: #4a5255;
+.key:not(.specialkey)::after {
+  content: '';
 
-  /*
-   * We had a 0.4rem margin top and bottom so that the borders don't extend
-   * all the way up and down. But when we highlight, we want the highlight
-   * to go all the way up and down. So we set the margin to 0 and replace
-   * it with padding on the top and bottom. But since we're using border-box
-   * sizing, the padding is part of the height and we have to add .8rem
-   * to the key height.
-   */
-  margin: 0;
-  padding: 0.4rem 0.1rem 0.4rem 0.2rem;
-  height: 5.1rem;
+  position: absolute;
 
-  /*
-   * When we highlight the key, we remove the left and right borders and
-   * add the border width to the left and right padding to keep the overall
-   * border-box width the same. This typically does not make a difference
-   * because the size of the keys are determined by a min-width property.
-   *
-   * Also, we want to cover up the border-right of the key to the left
-   * of this one, so we move the key over to the left just a bit. This
-   * is why we have an extra 0.1rem of left padding above so that the keycap
-   * does not appear to move
-   */
-  border: none;
-  transform: translateX(-0.1rem);
+  top: -5px;
+  left: -2px;
+  min-width: inherit;
+  width: inherit;
+  height: 5.2rem;
+  padding: 0;
+  background-color: black;
+
+  z-index: 11;
+  visibility: hidden;
+  opacity: 0.25;
 }
 
-.key:not(.specialkey).touched::before {
+.key:not(.specialkey)::before {
   content: attr(data-keycap);
 
   position: absolute;
-  display:block;
+  display: block;
+  visibility: hidden;
 
   top: -5.6rem;
   left: calc(50% - 2.8rem);
@@ -205,20 +188,26 @@ body {
   line-height: 5.6rem;
   border-radius: 50%;
   background-color: #00aacc;
+
+  z-index: 12;
+}
+
+.key.altshown, .key:not(.specialkey).touched::after, .key:not(.specialkey).touched::before {
+  visibility: initial;
 }
 
 /*
  * If a row has 10 or more keys in it, then the popup for the first and last
  * keys can't be centered over the key and have to be offset a bit.
  */
-.key:not(.specialkey):first-child:nth-last-child(10).touched::before,
-.key:not(.specialkey):first-child:nth-last-child(11).touched::before,
-.key:not(.specialkey):first-child:nth-last-child(12).touched::before {
+.key:not(.specialkey):first-child:nth-last-child(10)::before,
+.key:not(.specialkey):first-child:nth-last-child(11)::before,
+.key:not(.specialkey):first-child:nth-last-child(12)::before {
   left: 0;
 }
-.key:not(.specialkey):last-child:nth-child(10).touched::before,
-.key:not(.specialkey):last-child:nth-child(11).touched::before,
-.key:not(.specialkey):last-child:nth-child(12).touched::before {
+.key:not(.specialkey):last-child:nth-child(10)::before,
+.key:not(.specialkey):last-child:nth-child(11)::before,
+.key:not(.specialkey):last-child:nth-child(12)::before {
   left: auto;
   right: 0;
 }
