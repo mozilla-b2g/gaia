@@ -36,6 +36,11 @@
  * in terms of ObservableArrays. It listens to the changes of installed apps
  * and keyboard.enabled-layouts, and update the ObservableArrays.
  */
+require(['modules/mvvm/observable',
+         'modules/mvvm/observable_array',
+         'modules/mvvm/list_view'],
+(function(exports, Observable, ObservableArray, ListView) {
+
 var KeyboardContext = (function() {
   // stores layout indexed by app manifestURL and layoutId
   var _layoutDict = null;
@@ -482,3 +487,12 @@ navigator.mozL10n.ready(function keyboard_init() {
   DefaultKeyboardEnabledDialog.init();
   InstalledLayoutsPanel.init('#keyboard-selection-addMore');
 });
+
+// XXX: Export the objects for unit testing. The following should be removed
+//      after turning the all panels and modules to AMD modules.
+exports.KeyboardContext = KeyboardContext;
+exports.DefaultKeyboardEnabledDialog = DefaultKeyboardEnabledDialog;
+exports.InstalledLayoutsPanel = InstalledLayoutsPanel;
+window.dispatchEvent(new Event('keyboardcontextloaded'));
+
+}).bind(null, this));

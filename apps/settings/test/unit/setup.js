@@ -3,7 +3,8 @@
 
 require('/shared/test/unit/mocks/mocks_helper.js');
 requireApp('settings/js/vendor/alameda.js', (function() {
-  var requireFunc = requirejs.config({
+  var contextId = 0;
+  var baseConfig = {
     baseUrl: '/js',
     urlArgs: 'bust=' + Date.now(),
     paths: {
@@ -38,20 +39,24 @@ requireApp('settings/js/vendor/alameda.js', (function() {
         name: 'main'
       }
     ]
-  });
+  };
 
-  this.testRequire = function(module, map, callback) {
+  this.testRequire = function(modules, map, callback) {
+    var ctx;
     if (arguments.length === 2) {
       callback = map;
       map = null;
     }
 
-    if (map) {
-      requireFunc = requireFunc.config({
-        map: map
-      });
-    }
+    ctx = requirejs.config({
+      context: contextId++
+    });
+    ctx.config(baseConfig);
+    ctx.config({
+      map: map || {}
+    });
 
-    requireFunc(module, callback);
+    ctx(modules, callback);
+    return ctx;
   };
 }).bind(window));
