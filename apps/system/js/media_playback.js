@@ -114,9 +114,6 @@ MediaPlaybackWidget.prototype = {
       case 'mozinterruptbegin':
         this.hidden = true;
         break;
-      case 'mozinterruptend':
-        this.hidden = false;
-        break;
     }
   },
 
