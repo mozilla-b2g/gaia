@@ -5,12 +5,6 @@
   height: 100%;
   overflow: hidden;
   -moz-user-select: none;
-  opacity: 1;
-  /* Utilzing a cubic bezier timing function to hide the fact
-     that we might be slow at the beginning of the transition. */
-  transition:
-    transform 0.5s cubic-bezier(0.7, 0.0, 1.0, 1.0),
-    opacity 0.5s cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 #screen.active-statusbar > #lockscreen {
@@ -19,12 +13,6 @@
 }
 
 #lockscreen.unlocked {
-  /* Workaround specifically targetting Gecko:
-     The transform here is equal to scale(2),
-     however this will stop Gecko from creating a 2x big layer (4x the memory),
-     resulting super-smooth transition. */
-  transform: perspective(1000px) translateZ(500px);
-  opacity: 0;
   pointer-events: none;
 }
 
@@ -151,7 +139,6 @@
 [data-panel="main"] #lockscreen-panel-main,
 [data-panel="passcode"] #lockscreen-panel-main,
 [data-panel="passcode"] #lockscreen-panel-passcode,
-[data-panel="emergency-call"] #lockscreen-panel-passcode,
 [data-panel="emergency-call"] #lockscreen-panel-emergency-call {
   visibility: inherit;
 }
@@ -164,10 +151,14 @@
   opacity: 1;
 }
 
+[data-panel="emergency-call"] #lockscreen-panel-main {
+  transform: translateX(-100%);
+}
+
 #lockscreen-header {
   z-index: 9999;
   position: absolute;
-  top: 2rem;   /* 2rem = height of status bar */
+  top: 2.4rem;   /* 2.4rem = height of status bar */
   left: 0;
   width: 100%;
   -moz-box-sizing: border-box;
@@ -363,6 +354,10 @@ button::-moz-focus-inner {
   pointer-events: auto;
 }
 
+[data-panel="emergency-call"] #lockscreen-panel-passcode {
+  transform: translateX(-100%);
+}
+
 #lockscreen-panel-passcode {
   /* > camera, unlock icons > canvas */
   z-index: 32;
@@ -508,6 +503,7 @@ button::-moz-focus-inner {
 
 .passcode-entered #lockscreen-passcode-pad > a[data-key="b"] {
   display: block;
+  direction: ltr;
   text-align: left;
   text-indent: -9999px;
 }
@@ -542,7 +538,7 @@ button::-moz-focus-inner {
   display: inline-block;
   padding: 0;
   color: #fff;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 500;
   line-height: 1.6rem;
   text-transform: uppercase;

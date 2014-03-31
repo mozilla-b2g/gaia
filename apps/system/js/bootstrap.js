@@ -27,6 +27,8 @@ window.addEventListener('load', function startup() {
     /** @global */
     window.systemDialogManager = window.systemDialogManager ||
       new SystemDialogManager();
+    /** @global */
+    window.lockScreenWindowManager = new window.LockScreenWindowManager();
   }
 
   function safelyLaunchFTU() {

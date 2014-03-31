@@ -159,18 +159,13 @@
           // Stop refreshing the clock when the screen is turned off.
           this.clock.stop();
         } else {
-          var _screenOffInterval = new Date().getTime() - this._screenOffTime;
-          if (_screenOffInterval > this.passCodeRequestTimeout * 1000) {
-            this._passCodeTimeoutCheck = true;
-          } else {
-            this._passCodeTimeoutCheck = false;
-          }
+          this._passCodeTimeoutCheck = this.checkPassCodeTimeout();
 
           // Resume refreshing the clock when the screen is turned on.
           this.clock.start(this.refreshClock.bind(this));
 
           // Show the unlock keypad immediately
-          if (this.passCodeEnabled && this._passCodeTimeoutCheck) {
+          if (this.passCodeEnabled && this.checkPassCodeTimeout()) {
             this.switchPanel('passcode');
           }
         }
@@ -517,7 +512,7 @@
     var panelOrFullApp = () => {
       // If the passcode is enabled and it has a timeout which has passed
       // switch to secure camera
-      if (this.passCodeEnabled && this._passCodeTimeoutCheck) {
+      if (this.passCodeEnabled && this.checkPassCodeTimeout()) {
         this.invokeSecureApp('camera');
         return;
       }
@@ -541,17 +536,8 @@
   LockScreen.prototype._activateUnlock =
   function ls_activateUnlock() {
     var passcodeOrUnlock = () => {
-      if (this.passCodeEnabled) {
-        if (0 === this.passCodeRequestTimeout) {
-          // If the user didn't set any valid timeout.
+      if (this.passCodeEnabled && this.checkPassCodeTimeout()) {
           this.switchPanel('passcode');
-        } else if (this._passCodeTimeoutCheck) {
-          // Or the timeout expired (so should lock it).
-          this.switchPanel('passcode');
-        } else {
-          // Otherwise, user set a timeout but it didn't expire yet.
-          this.unlock();
-        }
       } else {
         this.unlock();
       }
@@ -995,15 +981,34 @@
     this.initUnlockerEvents();
   };
 
+  /**
+   * Check if the timeout has been expired and we need to check the passcode.
+   */
+  LockScreen.prototype.checkPassCodeTimeout =
+    function ls_checkPassCodeTimeout() {
+      var _screenOffInterval = new Date().getTime() - this._screenOffTime;
+      // If user set timeout, then
+      // - if timeout expired, do check
+      // - if timeout is valid, do not check
+      if (0 !== this.passCodeRequestTimeout) {
+        if (_screenOffInterval > this.passCodeRequestTimeout * 1000) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        return true;
+      }
+    };
+
   /** @exports LockScreen */
   exports.LockScreen = LockScreen;
 
-  // XXX: Before we make a reasonable way to register
-  // global names before 'load' event, to satisfy some
-  // requests from the components like AppWindowManager,
-  // we must do this to register global names before we
-  // got loaded.
-
-  /** @global*/
-  window.lockScreen = new LockScreen();
+  // XXX: Before we stop components directly reading this value,
+  // we need this to satisfy those components which would be loaded
+  // before this file.
+  if (!window.lockScreen) {
+    /** @global*/
+    window.lockScreen = { locked: false };
+  }
 })(window);
