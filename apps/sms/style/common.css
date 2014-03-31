@@ -6,9 +6,6 @@
 /*
   Structure of app
 */
-.dark-header {
-  -moz-transition: -moz-transform .2s ease-in;
-}
 
 .header-group {
   width: 100%;
@@ -40,14 +37,6 @@
   will-change: scroll-position;
 }
 
-/*
-  Styles of header
-*/
-.dark-header {
-  position: absolute;
-  top: -100%;
-  background: url(images/ui/dark/header.png) repeat-x left top;
-}
 
 /*
   Style of hightlight text.
