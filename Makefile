@@ -478,7 +478,16 @@ include build/common.mk
 # copy template function for each apps in build_stage, it can avoid copy again
 # if the app doesn't have any change.
 define app-makefile-template
-$(1): $(call rwildcard,$(2),*) $(XULRUNNER_BASE_DIRECTORY) | $(STAGE_DIR)
+APP_FILES := $(call rwildcard,$(2),*)
+
+# FIXME: [bug 989918] this workaround is use to avoid crash if a file include
+# colon in its filename.
+ifneq (,$(shell find $(2) -name "*:*"))
+APP_FILES :=
+.PHONY: $(1)
+endif
+
+$(1): $(APP_FILES) $(XULRUNNER_BASE_DIRECTORY) | $(STAGE_DIR)
 	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
 		if [[ -e "$(2)/Makefile" ]]; then \
 			echo "execute Makefile for $(shell basename $(2)) app" ; \
