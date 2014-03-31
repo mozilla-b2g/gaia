@@ -3,32 +3,39 @@
 
 /* global setImmediate */
 
+/**
+ * ContactToVcard provides the functionality necessary to export from
+ * MozContacts to vCard 3.0 (https://www.ietf.org/rfc/rfc2426.txt). The reason
+ * to choose the 3.0 standard instead of the 4.0 one is that some systems
+ * most notoriously Android 4.x don't seem to be able to import vCard 4.0.
+ */
 (function(exports) {
   'use strict';
 
   /** Mapping between contact fields and equivalent vCard fields */
   var VCARD_MAP = {
-    'fax' : 'fax',
-    'faxoffice' : 'fax,work',
-    'faxhome' : 'fax,home',
-    'faxother' : 'fax',
-    'home' : 'home',
-    'mobile' : 'cell',
-    'pager' : 'pager',
-    'personal' : 'home',
-    'pref' : 'pref',
-    'text' : 'text',
-    'textphone' : 'textphone',
-    'voice' : 'voice',
-    'work' : 'work'
+    'fax' : 'FAX',
+    'faxoffice' : 'FAX,WORK',
+    'faxhome' : 'FAX,HOME',
+    'faxother' : 'FAX',
+    'home' : 'HOME',
+    'mobile' : 'CELL',
+    'pager' : 'PAGER',
+    'personal' : 'HOME',
+    'pref' : 'PREF',
+    'text' : 'TEXT',
+    'textphone' : 'TEXTPHONE',
+    'voice' : 'VOICE',
+    'work' : 'WORK'
   };
+
+  var CRLF = '\r\n';
 
   /** Field list to be skipped when converting to vCard */
   var VCARD_SKIP_FIELD = ['fb_profile_photo'];
-
-  var VCARD_VERSION = '4.0';
-  var HEADER = 'BEGIN:VCARD\nVERSION:' + VCARD_VERSION + '\n';
-  var FOOTER = 'END:VCARD\n';
+  var VCARD_VERSION = '3.0';
+  var HEADER = 'BEGIN:VCARD' + CRLF + 'VERSION:' + VCARD_VERSION + CRLF;
+  var FOOTER = 'END:VCARD' + CRLF;
 
   function blobToBase64(blob, cb) {
     var reader = new FileReader();
@@ -50,22 +57,24 @@
     var str = d.toISOString();
 
     // Remove the milliseconds field
-    return (str.slice(0, str.indexOf('.')) + 'Z');
+    return str.slice(0, str.indexOf('.')) + 'Z';
   }
 
   /**
-   * Given an array withcontact fields (usually containing only one field),
+   * Given an array with contact fields (usually containing only one field),
    * returns the equivalent vcard field
    *
-   * @param {Array} sourceField
-   * @param {String} vcardField
-   * @return {Array}
+   * @param {Array} sourceField source field from a MozContact
+   * @param {String} vcardField vCard field name
+   * @return {Array} Array of vCard string entries
    */
   function fromContactField(sourceField, vcardField) {
     if (!sourceField || !sourceField.length) {
       return [];
     }
 
+    // Goes to the entries in the given field (usually only one but potentially
+    // more) and transforms them into string-based, vCard ones.
     return sourceField.map(function(field) {
       var str = vcardField;
       /**
@@ -100,11 +109,11 @@
       }
 
       if (field.pref && field.pref === true) {
-        types.push('pref');
+        types.push('PREF');
       }
 
       if (types.length) {
-        str += ';type=' + types.join(',');
+        str += ';TYPE=' + types.join(',');
       }
 
       return str + ':' + (field.value || '');
@@ -120,7 +129,7 @@
   }
 
   function joinFields(fields) {
-    return fields.filter(function(f) { return !!f; }).join('\n');
+    return fields.filter(function(f) { return !!f; }).join(CRLF);
   }
 
   function toBlob(vcard) {
@@ -192,7 +201,7 @@
      */
     function appendVCard(vcard) {
       if (vcard.length > 0) {
-        vCardsString += HEADER + vcard + '\n' + FOOTER;
+        vCardsString += HEADER + vcard + CRLF + FOOTER;
       }
 
       nextIndex++;
@@ -227,6 +236,17 @@
         return;
       }
 
+      /*
+       * N TYPE
+       * The structured type value corresponds, in
+       * sequence, to the Family Name, Given Name, Additional Names, Honorific
+       * Prefixes, and Honorific Suffixes. The text components are separated
+       * by the SEMI-COLON character (ASCII decimal 59). Individual text
+       * components can include multiple text values (e.g., multiple
+       * Additional Names) separated by the COMMA character (ASCII decimal
+       * 44). This type is based on the semantics of the X.520 individual name
+       * attributes. The property MUST be present in the vCard object.
+       **/
       var n = 'n:' + ([
         ct.familyName,
         ct.givenName,
@@ -246,38 +266,58 @@
 
       var allFields = [
         n,
-        fromStringArray(ct.name, 'fn'),
-        fromStringArray(ct.nickname, 'nickname'),
-        fromStringArray(ct.category, 'category'),
-        fromStringArray(ct.org, 'org'),
-        fromStringArray(ct.jobTitle, 'title'),
-        fromStringArray(ct.note, 'note'),
-        fromStringArray(ct.key, 'key')
+        fromStringArray(ct.name, 'FN'),
+        fromStringArray(ct.nickname, 'NICKNAME'),
+        fromStringArray(ct.category, 'CATEGORY'),
+        fromStringArray(ct.org, 'ORG'),
+        fromStringArray(ct.jobTitle, 'TITLE'),
+        fromStringArray(ct.note, 'NOTE'),
+        fromStringArray(ct.key, 'KEY')
       ];
 
       if (ct.bday) {
-        allFields.push('bday:' + ISODateString(ct.bday));
+        allFields.push('BDAY:' + ISODateString(ct.bday));
       }
 
-      allFields.push.apply(allFields, fromContactField(ct.email, 'email'));
-      allFields.push.apply(allFields, fromContactField(ct.url, 'url'));
-      allFields.push.apply(allFields, fromContactField(ct.tel, 'tel'));
+      allFields.push.apply(allFields, fromContactField(ct.email, 'EMAIL'));
+      allFields.push.apply(allFields, fromContactField(ct.url, 'URL'));
+      allFields.push.apply(allFields, fromContactField(ct.tel, 'TEL'));
 
-      var adrs = fromContactField(ct.adr, 'adr');
+      var adrs = fromContactField(ct.adr, 'ADR');
       allFields.push.apply(allFields, adrs.map(function(adrStr, i) {
         var orig = ct.adr[i];
-        return adrStr + (['', '', orig.streetAddress || '', orig.locality ||
-                         '', orig.region || '', orig.postalCode || '',
-                         orig.countryName || ''].join(';'));
+        return adrStr + ([
+          '',
+          '',
+          orig.streetAddress || '', orig.locality || '', orig.region || '',
+          orig.postalCode || '', orig.countryName || ''].join(';'));
       }));
 
+      /**
+       * PHOTO TYPE
+       * The encoding MUST be reset to "b" using the ENCODING
+       * parameter in order to specify inline, encoded binary data. If the
+       * value is referenced by a URI value, then the default encoding of 8bit
+       * is used and no explicit ENCODING parameter is needed.
+
+       * Type value: A single value. The default is binary value. It can also
+       * be reset to uri value. The uri value can be used to specify a value
+       * outside of this MIME entity.
+
+       * Type special notes: The type can include the type parameter "TYPE" to
+       * specify the graphic image format type. The TYPE parameter values MUST
+       * be one of the IANA registered image formats or a non-standard image
+       * format.
+      */
       if (ct.photo && ct.photo.length) {
-        var photoStr = 'photo:';
+        var photoMeta = ['PHOTO', 'ENCODING=b'];
         var blob = ct.photo[0];
-        var mime = blob.type;
+
         blobToBase64(blob, function(b64) {
-          var finalStr = 'data:' + mime + ';base64,' + b64;
-          allFields.push(photoStr + finalStr);
+          if (blob.type) {
+            photoMeta.push('TYPE=' + blob.type);
+          }
+          allFields.push(photoMeta.join(';') + ':' + b64);
           appendVCard(joinFields(allFields));
         });
       } else {
