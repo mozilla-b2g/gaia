@@ -4,7 +4,8 @@ define(function(require, exports, module) {
 var estimateJpegFileSize = function(width, height, bpp) {
   bpp = bpp || 24;
   var bitmapSizeInBytes = width * height * bpp / 8;
-  return bitmapSizeInBytes / window.CONFIG_AVG_JPEG_COMPRESSION_RATIO;
+  var compressionRatio = window.CONFIG_AVG_JPEG_COMPRESSION_RATIO || 8;
+  return bitmapSizeInBytes / compressionRatio;
 };
 
 /**

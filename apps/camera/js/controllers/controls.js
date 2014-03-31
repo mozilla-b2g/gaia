@@ -32,7 +32,7 @@ function ControlsController(app) {
 }
 
 ControlsController.prototype.bindEvents = function() {
-  this.app.settings.on('change:mode', this.controls.setter('mode'));
+  this.app.settings.mode.on('change:selected', this.controls.setter('mode'));
   this.app.on('newthumbnail', this.onNewThumbnail);
   this.app.on('camera:ready', this.controls.enable);
   this.app.on('camera:busy', this.controls.disable);
