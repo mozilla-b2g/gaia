@@ -402,21 +402,22 @@ var CallLog = {
   //  id="1369695600000-6136112351-dialing" data-type="dialing"
   //  data-phone-number="6136112351" data-timestamp="1369731559902"
   //  class="log-item">
-  //    <label class="call-log-selection danger">
-  //      <input value="1369695600000-6136112351-dialing" type="checkbox">
+  //    <label class="pack-checkbox call-log-selection danger">
+  //      <input value="1369695600000-6136112351-dialing" type="checkbox"
+  //       aria-labelledby="1369695600000-6136112351-dialing-label">
   //      <span></span>
   //    </label>
   //    <aside class="pack-end">
   //      <span data-type="img" class="call-log-contact-photo">
   //    </aside>
-  //    <a>
+  //    <a role="button" id="1369695600000-6136112351-dialing-label">
   //      <aside class="icon call-type-icon icon icon-outgoing">
   //      </aside>
-  //      <p class="primary-info">
+  //      <p aria-hidden="true" class="primary-info">
   //        <span class="primary-info-main">David R. Chichester</span>
   //      </p>
-  //      <p class="call-additional-info">Mobile, O2</p>
-  //      <p>
+  //      <p aria-hidden="true" class="call-additional-info">Mobile, O2</p>
+  //      <p aria-hidden="true">
   //        <span class="call-time">9:59 AM </span>
   //        <span class="retry-count">(1)</span>
   //      </p>
@@ -467,6 +468,8 @@ var CallLog = {
     var input = document.createElement('input');
     input.setAttribute('type', 'checkbox');
     input.value = group.id;
+    var editLabel = group.id + '-label';
+    input.setAttribute('aria-labelledby', editLabel);
     var span = document.createElement('span');
 
     label.appendChild(input);
@@ -486,11 +489,14 @@ var CallLog = {
     aside.appendChild(img);
 
     var main = document.createElement('a');
+    main.setAttribute('role', 'button');
+    main.id = editLabel;
     var icon = document.createElement('aside');
     icon.className = 'icon call-type-icon ' + iconStyle;
 
     var primInfo = document.createElement('p');
     primInfo.className = 'primary-info';
+    primInfo.setAttribute('aria-hidden', 'true');
 
     var primInfoMain = document.createElement('span');
     primInfoMain.className = 'primary-info-main';
@@ -519,9 +525,11 @@ var CallLog = {
       addInfo = document.createElement('p');
       addInfo.className = 'call-additional-info';
       addInfo.textContent = phoneNumberAdditionalInfo;
+      addInfo.setAttribute('aria-hidden', 'true');
     }
 
     var thirdInfo = document.createElement('p');
+    thirdInfo.setAttribute('aria-hidden', 'true');
     var callTime = document.createElement('span');
     callTime.className = 'call-time';
     callTime.textContent = Utils.prettyDate(date) + ' ';
@@ -634,7 +642,12 @@ var CallLog = {
       this.updateHeaderCount();
       return;
     }
-    var dataset = evt.target.dataset;
+    var logItem = evt.target;
+    if (!evt.target.classList.contains('log-item')) {
+      // Landed on the link (when using the screen reader).
+      logItem = logItem.parentNode;
+    }
+    var dataset = logItem.dataset;
     var phoneNumber = dataset.phoneNumber;
     if (phoneNumber) {
       var contactIds = (dataset.contactId) ? dataset.contactId : null;

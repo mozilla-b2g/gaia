@@ -220,6 +220,10 @@ ol, ul {
   color: #b90000 !important;
 }
 
+.log-item .pack-checkbox {
+  visibility: hidden;
+}
+
 /* Edit mode state */
 .recents-edit form[role="dialog"][data-type="edit"] header,
 .recents-edit form[role="dialog"][data-type="edit"] > menu {
@@ -232,6 +236,12 @@ ol, ul {
 
 .recents-edit .log-item a {
   transform: translateX(3rem);
+  visibility: hidden;
+}
+
+.recents-edit .log-item a > aside,
+.recents-edit .log-item a > p {
+  visibility: visible;
 }
 
 .recents-edit .log-item a > p {
@@ -248,6 +258,7 @@ ol, ul {
 
 .recents-edit .log-item .pack-checkbox {
   pointer-events: auto;
+  visibility: visible;
 }
 
 /*
