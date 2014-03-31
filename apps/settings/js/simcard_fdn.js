@@ -1,6 +1,6 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global DsdsSettings, localize, SimPinDialog, Settings, MozActivity */
+/* global localize, SimPinDialog, Settings, MozActivity */
 /* global FdnAuthorizedNumbers, getIccByIndex, console */
 
 'use strict';
@@ -80,10 +80,13 @@ var SimFdnLock = {
     this.updateFdnStatus();
 
     // add|edit|remove|call FDN contact
-
     window.addEventListener('panelready', (function(e) {
       if (e.detail.current === '#call-fdnList') {
         this.renderAuthorizedNumbers();
+      } else if (e.detail.current === '#call-fdnSettings') {
+        // Refresh FDN status when the panel is reloaded, since we could be
+        // dealing with different FDNsettings on dual SIM phones.
+        this.updateFdnStatus();
       }
     }).bind(this));
 
