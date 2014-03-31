@@ -3,12 +3,25 @@
 
 /*
  * AirplaneModeHelper is a helper that makes apps enable / disable
- * airplane mode easily. It will expose two methods for you :
- *   1. AirplaneModeHelper.setEnabled();
- *   2. AirplaneModeHelper.addEventListener('statechange', callback)
- *   3. AirplaneModeHelper.removeEventListener('statechange', callback)
+ * airplane mode easily. It will expose few methods for you :
+ *
+ *   1. AirplaneModeHelper.ready();
+ *   2. AirplaneModeHelper.setEnabled();
  *   3. AirplaneModeHelper.getStatus();
+ *   4. AirplaneModeHelper.addEventListener('statechange', callback)
+ *   5. AirplaneModeHelper.removeEventListener('statechange', callback)
+ *
+ *   If you want to call getStatus(), please make sure to put them inside
+ *   an anonymous function in AirplaneModeHelper.ready() because this is
+ *   an async call.
+ *
+ *   Like this:
+ *
+ *   AirplaneModeHelper.ready(function() {
+ *     var status = AirplaneModeHelper.getStatus();
+ *   });
  */
+
 (function(exports) {
 
   // constants
@@ -21,6 +34,19 @@
     _mozSettings: window.navigator.mozSettings,
     _callbacks: [],
     _cachedStatus: '',
+    ready: function(cb) {
+      if (this._cachedStatus === '') {
+        this.addEventListener(kEventName, function onChangeEvent() {
+          // make sure _cachedStatus is definitely not ''
+          if (this._cachedStatus !== '') {
+            this.removeEventListener(kEventName, onChangeEvent);
+            cb();
+          }
+        }.bind(this));
+      } else {
+        cb();
+      }
+    },
     getStatus: function() {
       return this._cachedStatus;
     },
@@ -38,21 +64,22 @@
       }
     },
     setEnabled: function(enabled) {
-      var status = this.getStatus();
+      this.ready(function() {
+        var status = this.getStatus();
 
-      if (status === 'enabling' || status === 'disabling') {
-        // do nothing when transition
-      }
-      else {
-        if (enabled && status === 'enabled' ||
-            !enabled && status === 'disabled') {
-          return;
+        if (status === 'enabling' || status === 'disabling') {
+          // do nothing when transition
+        } else {
+          if (enabled && status === 'enabled' ||
+              !enabled && status === 'disabled') {
+            return;
+          }
+
+          var setObj = {};
+          setObj[kCommunicationKey] = enabled;
+          this._mozSettings.createLock().set(setObj);
         }
-
-        var setObj = {};
-        setObj[kCommunicationKey] = enabled;
-        this._mozSettings.createLock().set(setObj);
-      }
+      }.bind(this));
     },
     init: function() {
       var self = this;

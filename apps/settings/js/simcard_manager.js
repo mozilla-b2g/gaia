@@ -407,4 +407,8 @@
 
 })(window);
 
-window.navigator.mozL10n.ready(SimCardManager.init.bind(SimCardManager));
+window.navigator.mozL10n.ready(function() {
+  AirplaneModeHelper.ready(function() {
+    SimCardManager.init();
+  });
+});

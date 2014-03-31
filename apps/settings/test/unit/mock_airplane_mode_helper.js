@@ -14,6 +14,11 @@ var MockAirplaneModeHelper = {
     }
     this._enabled = enabled;
   },
+  ready: function(cb) {
+    if (cb) {
+      cb();
+    }
+  },
   // mock with your own status
   getStatus: function() {
     return this._status;
