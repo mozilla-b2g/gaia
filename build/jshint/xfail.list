@@ -54,7 +54,6 @@ apps/calendar/js/utils/uri.js
 apps/calendar/js/worker/manager.js
 apps/calendar/js/worker/thread.js
 apps/calendar/test/assertions.js
-apps/calendar/test/marionette/today_test.js
 apps/calendar/test/unit/app_test.js
 apps/calendar/test/unit/calc_test.js
 apps/calendar/test/unit/calendar_test.js

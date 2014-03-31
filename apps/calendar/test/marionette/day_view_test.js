@@ -17,7 +17,7 @@ marionette('day view', function() {
   test('header copy should not overflow', function() {
     // XXX: we don't use app.checkOverflow() because of Bug 971691
     // 20 chars is a "safe" limit if font-family is Fira Sans
-    assert.operator(app.currentTimeHeader.text().length, '<', 21);
+    assert.operator(app.headerContent.text().length, '<', 21);
   });
 
   suite('create event', function(){

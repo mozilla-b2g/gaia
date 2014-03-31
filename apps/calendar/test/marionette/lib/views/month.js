@@ -10,5 +10,13 @@ module.exports = Month;
 Month.prototype = {
   __proto__: View.prototype,
 
-  selector: '#month-view'
+  selector: '#month-view',
+
+  get currentDay() {
+    return this.findElement('.present > .day');
+  },
+
+  get days() {
+    return this.findElements('.day');
+  }
 };

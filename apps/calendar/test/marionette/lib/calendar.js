@@ -49,7 +49,7 @@ Calendar.prototype = {
     return this.client.findElement('#time-header a[href="/event/add/"]');
   },
 
-  get currentTimeHeader() {
+  get headerContent() {
     return this.client.findElement('#current-month-year');
   },
 
@@ -61,24 +61,28 @@ Calendar.prototype = {
     this.client
       .findElement('#view-selector a[href="/day/"]')
       .click();
+    return this;
   },
 
   openMonthView: function() {
     this.client
       .findElement('#view-selector a[href="/month/"]')
       .click();
+    return this;
   },
 
   openWeekView: function() {
     this.client
       .findElement('#view-selector a[href="/week/"]')
       .click();
+    return this;
   },
 
   clickToday: function() {
     this.client
       .findElement('#view-selector a[href="#today"]')
       .click();
+    return this;
   },
 
   /**
@@ -129,6 +133,7 @@ Calendar.prototype = {
     editEvent.save();
 
     this.waitForKeyboardHide();
+    return this;
   },
 
   /**
@@ -157,6 +162,8 @@ Calendar.prototype = {
         wid.container + 'px)';
       throw new Error(msg);
     }
+
+    return this;
   },
 
   // TODO: extract this logic into the marionette-helper repository since this
@@ -179,6 +186,7 @@ Calendar.prototype = {
 
     client.switchToFrame();
     client.apps.switchToApp(Calendar.ORIGIN);
+    return this;
   },
 
   formatDate: function(date) {
@@ -193,5 +201,46 @@ Calendar.prototype = {
     }
 
     return [month, day, year].join('/');
+  },
+
+  swipeLeft: function() {
+    return this._swipe({ direction: 'left' });
+  },
+
+  swipeRight: function() {
+    return this._swipe({ direction: 'right' });
+  },
+
+  /**
+   * Options:
+   *   (String) direction is one of 'left', 'right'.
+   */
+  _swipe: function(options) {
+    var bodySize = this.client.executeScript(function() {
+      return {
+        height: document.body.clientHeight,
+        width: document.body.clientWidth
+      };
+    });
+
+    // (x1, y1) is swipe start.
+    // (x2, y2) is swipe end.
+    var x1, x2, y1, y2;
+    y1 = y2 = bodySize.height * 0.2;
+    if (options.direction === 'left') {
+      x1 = bodySize.width * 0.2;
+      x2 = 0;
+    } else if (options.direction === 'right') {
+      x1 = bodySize.width * 0.8;
+      x2 = bodySize.width;
+    } else {
+      throw new Error('swipe needs a direction');
+    }
+
+    var body = this.client.findElement('body');
+    this.actions
+      .flick(body, x1, y1, x2, y2)
+      .perform();
+    return this;
   }
 };
