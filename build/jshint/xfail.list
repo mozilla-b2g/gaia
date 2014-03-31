@@ -651,7 +651,6 @@ apps/system/js/sim_lock.js
 apps/system/js/simslot.js
 apps/system/js/simslot_manager.js
 apps/system/js/sleep_menu.js
-apps/system/js/sound_manager.js
 apps/system/js/stack_manager.js
 apps/system/js/statusbar.js
 apps/system/js/storage_watcher.js
