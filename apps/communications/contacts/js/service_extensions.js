@@ -1,4 +1,8 @@
 'use strict';
+/* global _ */
+/* global ConfirmDialog */
+/* global contacts */
+/* global fb */
 
 var Contacts = window.Contacts || {};
 
@@ -143,8 +147,9 @@ if (typeof Contacts.extServices === 'undefined') {
 
       // Add extra info too
       var extras = {};
-      extras['fb_is_linked'] = linked;
+      extras.fb_is_linked = linked;
 
+      /* jshint loopfunc:true */
       for (var nodeName in elements) {
         var node = socialNode.querySelector(nodeName);
         var variables = elements[nodeName].elems;
@@ -157,7 +162,7 @@ if (typeof Contacts.extServices === 'undefined') {
     };
 
     function onClickWithId(evt, callback) {
-      var contactId = evt.target.dataset['id'];
+      var contactId = evt.target.dataset.id;
       callback(contactId);
     }
 
@@ -180,8 +185,8 @@ if (typeof Contacts.extServices === 'undefined') {
 
     // Note this is slightly different
     function onLinkClick(evt) {
-      var contactId = evt.target.dataset['id'];
-      var linked = evt.target.dataset['fb_is_linked'];
+      var contactId = evt.target.dataset.id;
+      var linked = evt.target.dataset.fb_is_linked;
 
       linked = (linked === 'true');
       extServices.startLink(contactId, linked);
@@ -359,10 +364,12 @@ if (typeof Contacts.extServices === 'undefined') {
             type: 'token',
             data: access_token
           }, fb.CONTACTS_APP_ORIGIN);
+          break;
 
         case 'show_duplicate_contacts':
           extensionFrame.contentWindow.postMessage(data,
                                                     fb.CONTACTS_APP_ORIGIN);
+          break;
 
         case 'duplicate_contacts_merged':
           extensionFrame.contentWindow.postMessage(data,

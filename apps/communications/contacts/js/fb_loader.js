@@ -1,12 +1,15 @@
+'use strict';
+/* global LazyLoader */
+/* exported fbLoader */
 
 var fbLoader = (function() {
 
   var loaded = false;
-  scriptsLoaded = 0;
 
   var loadFb = function loadFb() {
-    if (loaded)
+    if (loaded) {
       return;
+    }
 
     loaded = true;
     var iframesFragment = document.createDocumentFragment();

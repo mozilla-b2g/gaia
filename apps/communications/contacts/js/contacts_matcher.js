@@ -1,4 +1,6 @@
 'use strict';
+/* global Normalizer */
+/* global SimplePhoneMatcher */
 
 var contacts = window.contacts || {};
 
@@ -212,8 +214,8 @@ contacts.Matcher = (function() {
                 allMatches[aMatch] = mailMatches[aMatch];
               }
               else {
-                allMatches[aMatch].matchings['email'] =
-                                        mailMatches[aMatch].matchings['email'];
+                allMatches[aMatch].matchings.email =
+                                        mailMatches[aMatch].matchings.email;
               }
             });
             notifyMatch(callbacks, allMatches);
@@ -336,8 +338,8 @@ contacts.Matcher = (function() {
                 results[aId] = nameResults[aId];
               }
               else {
-                results[aId].matchings['name'] =
-                                          nameResults[aId].matchings['name'];
+                results[aId].matchings.name =
+                                          nameResults[aId].matchings.name;
               }
             });
 
@@ -555,8 +557,8 @@ contacts.Matcher = (function() {
         finalResult[aResult.id] = matchingObj;
       }
       else {
-        finalResult[aResult.id].matchings['name'] =
-          matchingObj.matchings['name'];
+        finalResult[aResult.id].matchings.name =
+          matchingObj.matchings.name;
       }
     });
 
@@ -589,7 +591,7 @@ contacts.Matcher = (function() {
 
   function isEmptyStr(collection) {
     return (!Array.isArray(collection) ||
-            !(typeof collection[0] === 'string') || !(collection[0].trim()));
+            (typeof collection[0] !== 'string') || !(collection[0].trim()));
   }
 
   function hasName(aContact) {
@@ -606,9 +608,9 @@ contacts.Matcher = (function() {
       var matchingContact = nameMatches[aNameMatching].matchingContact;
 
       var isPhoneMatching = Array.isArray(phoneMailMatches[aNameMatching].
-                                          matchings['tel']);
+                                          matchings.tel);
       var isMailMatching = Array.isArray(phoneMailMatches[aNameMatching].
-                                          matchings['email']);
+                                          matchings.email);
 
       // Three cases under which a matching is considered
       if (isPhoneMatching && isMailMatching) {
