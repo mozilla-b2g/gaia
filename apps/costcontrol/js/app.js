@@ -83,8 +83,8 @@ var CostControlApp = (function() {
     }, function _errorNoSim() {
       console.warn('Error when trying to get the ICC, SIM not detected.');
       LazyLoader.load(['/shared/js/airplane_mode_helper.js'], function() {
-        var fakeState = null;
-        function checkAirplaneMode() {
+        AirplaneModeHelper.ready(function() {
+          var fakeState = null;
           if (AirplaneModeHelper.getStatus() === 'enabled') {
             console.warn('The airplaneMode is enabled.');
             fakeState = 'airplaneMode';
@@ -96,16 +96,7 @@ var CostControlApp = (function() {
               });
           }
           showNonReadyScreen(fakeState);
-        }
-        // XXX: See bug 988445 - [AirplaneModeHelper] getStatus method does not
-        // return the correct state
-        if (AirplaneModeHelper.getStatus() !== 'enabled' ||
-            AirplaneModeHelper.getStatus() !== 'disabled') {
-          // wait for the first state change
-          AirplaneModeHelper.addEventListener('statechange', checkAirplaneMode);
-        } else {
-          checkAirplaneMode();
-        }
+        });
       });
     });
   }

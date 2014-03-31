@@ -130,11 +130,13 @@ var Widget = (function() {
     // Update UI when visible
     document.addEventListener('visibilitychange',
       function _onVisibilityChange(evt) {
-        if (!document.hidden && initialized &&
-            (AirplaneModeHelper.getStatus() === 'disabled')) {
-          checkCardState(Common.dataSimIccId);
-          updateUI();
-        }
+        AirplaneModeHelper.ready(function() {
+          if (!document.hidden && initialized &&
+              (AirplaneModeHelper.getStatus() === 'disabled')) {
+            checkCardState(Common.dataSimIccId);
+            updateUI();
+          }
+        });
       }
     );
 
@@ -462,12 +464,13 @@ var Widget = (function() {
       }
     }
     Common.loadDataSIMIccId(checkSIMStatus, function _errorNoSim() {
-
-      waitForIccAndCheckSim();
-      var errorMessageId = (AirplaneModeHelper.getStatus() === 'enabled') ?
-                           'airplane-mode' : 'no-sim2';
-      console.warn('Error when trying to get the ICC ID');
-      showSimError(errorMessageId);
+      AirplaneModeHelper.ready(function() {
+        waitForIccAndCheckSim();
+        var errorMessageId = (AirplaneModeHelper.getStatus() === 'enabled') ?
+                             'airplane-mode' : 'no-sim2';
+        console.warn('Error when trying to get the ICC ID');
+        showSimError(errorMessageId);
+      });
     });
     AirplaneModeHelper.addEventListener('statechange',
       function _onAirplaneModeChange(state) {
