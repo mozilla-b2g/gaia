@@ -8,7 +8,7 @@ requireApp('communications/contacts/test/unit/mock_contacts_match.js');
 requireApp('communications/contacts/js/utilities/vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
-requireApp('system/shared/test/unit/mocks/mock_moz_contact.js');
+require('/shared/test/unit/mocks/mock_moz_contact.js');
 
 var vcf1 = 'BEGIN:VCARD\n' +
   'VERSION:2.1\n' +
@@ -26,6 +26,8 @@ var vcf1 = 'BEGIN:VCARD\n' +
   'LABEL;HOME;ENCODING=QUOTED-PRINTABLE:42 Plantation St.=0D=0ABaytown, ' +
   'LA 30314=0D=0AUnited States of America\n' +
   'EMAIL;PREF;INTERNET:forrestgump@example.com\n' +
+  'BDAY:1975-05-20\n' +
+  'ANNIVERSARY:2004-01-20\n' +
   'REV:20080424T195243Z\n' +
   'END:VCARD';
 
@@ -75,6 +77,7 @@ var vcf4 = 'BEGIN:VCARD\n' +
   'FN;CHARSET=UTF-8:Foo Bar\n' +
   'N;CHARSET=UTF-8:Bar;Foo;;;\n' +
   'BDAY;CHARSET=UTF-8:1975-05-20\n' +
+  'ANNIVERSARY;CHARSET=UTF-8:1945-05-20\n' +
   'TEL;CHARSET=UTF-8;TYPE=CELL;PREF:(123) 456-7890\n' +
   'TEL;CHARSET=UTF-8;TYPE=WORK:(123) 666-7890\n' +
   'EMAIL;CHARSET=UTF-8;TYPE=HOME:example@example.org\n' +
@@ -347,6 +350,11 @@ suite('vCard parsing settings', function() {
           assert.strictEqual('forrestgump@example.com', contact.email[0].value);
           assert.strictEqual('internet', contact.email[0].type[0]);
 
+          assert.equal(new Date(Date.UTC(1975, 4, 20)).toISOString(),
+                       contact.bday.toISOString());
+          assert.equal(new Date(Date.UTC(2004, 0, 20)).toISOString(),
+                        contact.anniversary.toISOString());
+
           done();
         };
       });
@@ -519,6 +527,10 @@ suite('vCard parsing settings', function() {
           //assert.ok(contact.tel[1].type.indexOf('WORK') > -1)
           assert.strictEqual('home', contact.email[0].type[0]);
           assert.strictEqual('example@example.org', contact.email[0].value);
+          assert.equal(new Date(Date.UTC(1975, 4, 20)).toISOString(),
+                       contact.bday.toISOString());
+          assert.equal(new Date(Date.UTC(1945, 4, 20)).toISOString(),
+                       contact.anniversary.toISOString());
           done();
         };
       });
