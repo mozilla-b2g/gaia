@@ -5,7 +5,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'KeyboardManager', 'StatusBar', 'BrowserMixin',
       'SoftwareButtonManager', 'AppWindow', 'AppChrome',
       'OrientationManager', 'SettingsListener', 'BrowserFrame',
-      'BrowserConfigHelper', 'System', 'LayoutManager',
+      'BrowserConfigHelper', 'System', 'layoutManager',
       'AppTransitionController', 'AppWindowManager']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -29,6 +29,8 @@ suite('system/AppWindow', function() {
   setup(function(done) {
     this.sinon.useFakeTimers();
 
+    window.layoutManager = new LayoutManager().start();
+
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/system.js');
@@ -39,6 +41,8 @@ suite('system/AppWindow', function() {
   });
 
   teardown(function() {
+    delete window.layoutManager;
+
     stubById.restore();
   });
 
@@ -150,7 +154,7 @@ suite('system/AppWindow', function() {
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
       app1.resize();
-      assert.equal(app1.height, MockLayoutManager.fullscreenHeight);
+      assert.equal(app1.height, layoutManager.fullscreenHeight);
     });
 
     test('Resize if we are not fullscreen', function() {
@@ -159,11 +163,11 @@ suite('system/AppWindow', function() {
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
       app1.resize();
-      assert.equal(app1.height, MockLayoutManager.usualHeight);
+      assert.equal(app1.height, layoutManager.usualHeight);
     });
 
     test('Send message to appChrome: w/o keyboard', function() {
-      MockLayoutManager.keyboardEnabled = false;
+      layoutManager.keyboardEnabled = false;
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       var stubbroadcast = this.sinon.stub(app1, 'broadcast');
       stubIsActive.returns(true);
@@ -172,7 +176,7 @@ suite('system/AppWindow', function() {
     });
 
     test('Send message to appChrome: w/ keyboard', function() {
-      MockLayoutManager.keyboardEnabled = true;
+      layoutManager.keyboardEnabled = true;
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       var stubbroadcast = this.sinon.stub(app1, 'broadcast');
       stubIsActive.returns(true);
