@@ -78,12 +78,12 @@
   <body role="application">
     <section id="views" role="tablist" class="bb-tablist skin-dark">
       <li role="presentation" class="view hidden" id="call-log-view">
-        <a id="option-recents" role="tab" aria-controls="recents-panel" href="#call-log-view" class="icon icon-recents" aria-selected="false">recents</a>
+        <a id="option-recents" role="tab" aria-controls="recents-panel" href="#call-log-view" class="icon icon-recents" data-l10n-id="recents" aria-selected="false"></a>
         <div id="recents-panel" role="tabpanel" class="bb-tabpanel" aria-labelledby="option-recents">
           <section role="region">
             <header class="view-header regular-header">
               <menu type="toolbar">
-                <a id="call-log-icon-edit" class="disabled">
+                <a id="call-log-icon-edit" data-l10n-id="callLogEdit" class="disabled">
                   <span id="call-log-edit-button" class="recents-icon icon icon-edit "></span>
                 </a>
               </menu>
@@ -120,21 +120,21 @@
         </form>
       </li>
       <li role="presentation" class="view" id="contacts-view">
-        <a id="option-contacts" role="tab" aria-controls="iframe-contacts-container" href="#contacts-view" class="icon icon-contacts" aria-selected="false">contacts</a>
+        <a id="option-contacts" role="tab" aria-controls="iframe-contacts-container" href="#contacts-view" class="icon icon-contacts" data-l10n-id="contacts" aria-selected="false"></a>
         <div id="iframe-contacts-container" role="tabpanel" class="bb-tabpanel" aria-labelledby="option-contacts">
         </div>
       </li>
       <li role="presentation" id="keyboard-view">
-        <a id="option-keypad" role="tab" aria-controls="keypad-panel" href="#keyboard-view" class="icon icon-keypad" aria-selected="true">keypad</a>
+        <a id="option-keypad" role="tab" aria-controls="keypad-panel" href="#keyboard-view" class="icon icon-keypad" data-l10n-id="keypad" aria-selected="true"></a>
         <div id="keypad-panel" role="tabpanel" class="bb-tabpanel" aria-labelledby="option-keypad">
           <div id="phone-number-view-container">
             <div class="grid-cell grid-v-align">
               <div class="grid-wrapper">
-                <input id="phone-number-view" type="text" class="phone-number-font font-light" readonly="readonly">
+                <input id="phone-number-view" type="text" class="phone-number-font font-light" readonly="readonly" data-l10n-id="phoneNumberInput">
                 <div id="fake-phone-number-view"></div>
               </div>
             </div>
-            <div id="keypad-delete" class="grid-cell grid-v-align" data-value="delete">
+            <div id="keypad-delete" class="grid-cell grid-v-align" data-value="delete" data-l10n-id="keypadDelete">
               <div>
               </div>
             </div>
@@ -153,7 +153,7 @@
             <section id="keypad">
               <div class="keypad-cell">
                 <div class="keypad-key" role="key" data-value="1" data-voicemail="true">
-                  1<em class="keypad-subicon voicemail"></em>
+                  1<em class="keypad-subicon voicemail" data-l10n-id="voiceMailKey"></em>
                 </div>
                 <div class="keypad-key" role="key" data-value="2">
                   2<em>ABC</em>
@@ -185,22 +185,22 @@
                 </div>
               </div>
               <div class="keypad-cell">
-                <div class="keypad-key keypad-key-centered" role="key" data-value="*">
+                <div class="keypad-key keypad-key-centered" role="key" data-value="*" data-l10n-id="asterisk">
                   <div class="asterisk"></div>
                 </div>
                 <div class="keypad-key" role="key" data-value="0">
                   0<em class="font-size-plus">+</em>
                 </div>
-                <div class="keypad-key keypad-key-centered" role="key" data-type="dial" data-value="#">
+                <div class="keypad-key keypad-key-centered" role="key" data-type="dial" data-value="#" data-l10n-id="hashSign">
                   <div class="sharp"></div>
                 </div>
               </div>
             </section>
             <section id="keypad-callbar">
-              <div role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" class="disabled">
+              <div role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" data-l10n-id="dialerAddContact" class="disabled">
                 <div class="icon-add-contact"></div>
               </div>
-              <div role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
+              <div role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call" data-l10n-id="makeCall">
                 <div class="js-sim-indication"></div>
               </div>
             </section>
@@ -209,9 +209,9 @@
       </li>
     </section>
 
-    <form is="edit-mode" id="edit-mode" role="dialog" data-type="edit" hidden></form>
+    <form is="edit-mode" id="edit-mode" role="dialog" data-l10n-id="callLogEditDialog" data-type="edit" hidden></form>
 
-    <form is="add-contact-action-menu" id="add-contact-action-menu" role="dialog" data-type="action" hidden></form>
+    <form is="add-contact-action-menu" id="add-contact-action-menu" role="dialog" data-l10n-id="dialerAddContactDialog" data-type="action" hidden></form>
 
     <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" hidden></form>
 

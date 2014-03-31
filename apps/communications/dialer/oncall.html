@@ -63,7 +63,7 @@
             <span role="button" id="switch-calls-button">
             </span>
           </div>
-          <div class="hangup-button"></div>
+          <div class="hangup-button" data-l10n-id="hangup-a11y-button"></div>
           <div class="numberWrapper direction-status-bar">
             <div class="number font-light"></div>
           </div>
@@ -80,7 +80,7 @@
             <span class="via-sim"></span>
             <span class="sim-number"></span>
           </div>
-          <button class="merge-button">Merge</button>
+          <button class="merge-button" data-l10n-id="merge">Merge</button>
         </section>
         <section id="group-call" hidden>
           <div class="numberWrapper">
@@ -92,7 +92,7 @@
             <span class="font-light"></span>
             <div class="direction"></div>
           </div>
-          <button class="merge-button">Merge</button>
+          <button class="merge-button" data-l10n-id="merge">Merge</button>
         </section>
       </article>
       <form id="group-call-details" role="dialog" data-type="action" class="overlay">
@@ -123,13 +123,13 @@
             <div id="lockscreen-icon-container">
               <div id="lockscreen-area-hangup"
                    class="lockscreen-icon-area lockscreen-icon-left dark" role="button"
-                   data-l10n-id="hangup-a11y-button" aria-label="Hang Up">
+                   data-l10n-id="hangup-a11y-button">
                 <div class="lockscreen-icon">
                 </div>
               </div>
               <div id="lockscreen-area-pickup"
                    class="lockscreen-icon-area lockscreen-icon-right dark" role="button"
-                   data-l10n-id="pickup-a11y-button" aria-label="Pick up">
+                   data-l10n-id="pickup-a11y-button">
                 <div class="lockscreen-icon">
                 </div>
               </div>
@@ -149,25 +149,25 @@
             <section id="co-advanced">
               <div class="grid-wrapper grid">
                 <span class="grid-cell options-column">
-                  <button id="mute" class="co-advanced-option grid-wraper grid center">
+                  <button id="mute" class="co-advanced-option grid-wraper grid center" data-l10n-id="mute">
                     <span class="icon icon-mute">
                     </span>
                   </button>
                 </span>
                 <span class="grid-cell options-column">
-                  <button id="keypad-visibility" class="co-advanced-option grid-wraper grid center">
+                  <button id="keypad-visibility" class="co-advanced-option grid-wraper grid center" data-l10n-id="toggleKeypad">
                     <span class="icon icon-keypad-visibility">
                     </span>
                   </button>
                 </span>
                 <span id="place-new-call-container" class="grid-cell options-column">
-                  <button id="place-new-call" class="co-advanced-option grid-wraper grid center">
+                  <button id="place-new-call" class="co-advanced-option grid-wraper grid center" data-l10n-id="newCall">
                     <span class="icon icon-place-new-call">
                     </span>
                   </button>
                 </span>
                 <span class="grid-cell options-column">
-                  <button id="speaker" class="co-advanced-option grid-wraper grid">
+                  <button id="speaker" class="co-advanced-option grid-wraper grid" data-l10n-id="speakerOption">
                     <span class="icon icon-speaker">
                     </span>
                   </button>
@@ -178,11 +178,11 @@
                 </span>
             </section>
             <footer id="callbar">
-              <button id="callbar-hang-up">
+              <button id="callbar-hang-up" data-l10n-id="hangup-a11y-button">
                 <div class="callbar-inner-button">
                 </div>
               </button>
-              <button id="callbar-answer">
+              <button id="callbar-answer" data-l10n-id="pickup-a11y-button">
                 <div class="callbar-inner-button">
                 </div>
               </button>
@@ -198,9 +198,9 @@
     </article>
     <article id="incoming-container">
       <header>
-        <button id="incoming-end">
+        <button id="incoming-end" data-l10n-id="hangup-a11y-button">
         </button>
-        <button id="incoming-answer">
+        <button id="incoming-answer" data-l10n-id="hold">
         </button>
       </header>
       <section id="incoming-info">
@@ -219,10 +219,10 @@
         <div id="phone-number-view-container">
           <div class="grid-cell grid-v-align">
             <div class="grid-wrapper">
-              <input id="phone-number-view" type="text" class="phone-number-font font-light" readonly="readonly">
+              <input id="phone-number-view" type="text" class="phone-number-font font-light" readonly="readonly" data-l10n-id="phoneNumberInput">
             </div>
           </div>
-          <div id="keypad-delete" class="grid-cell grid-v-align">
+          <div id="keypad-delete" class="grid-cell grid-v-align" data-l10n-id="keypadDelete">
             <div></div>
           </div>
         </div>
@@ -230,7 +230,7 @@
           <section id="keypad">
             <div class="keypad-cell">
               <div class="keypad-key" role="key" data-value="1" data-voicemail="true">
-                1<em class="keypad-subicon voicemail"></em>
+                1<em class="keypad-subicon voicemail" data-l10n-id="voiceMailKey"></em>
               </div>
               <div class="keypad-key" role="key" data-value="2">
                 2<em>ABC</em>
@@ -262,25 +262,25 @@
               </div>
             </div>
             <div class="keypad-cell">
-              <div class="keypad-key keypad-key-centered" role="key" data-value="*">
+              <div class="keypad-key keypad-key-centered" role="key" data-value="*" data-l10n-id="asterisk">
                 <div class="asterisk"></div>
               </div>
               <div class="keypad-key" role="key" data-value="0">
                 0<em class="font-size-plus">+</em>
               </div>
-              <div class="keypad-key keypad-key-centered" role="key" data-type="dial" data-value="#">
+              <div class="keypad-key keypad-key-centered" role="key" data-type="dial" data-value="#" data-l10n-id="hashSign">
                 <div class="sharp"></div>
               </div>
             </div>
           </section>
           <section id="keypad-callbar">
             <div>
-              <span role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" >
+              <span role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" data-l10n-id="dialerAddContact">
                 <div class="icon-add-contact"></div>
               </span>
             </div>
             <div>
-              <span role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
+              <span role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call" data-l10n-id="makeCall">
                 <div>
                 </div>
               </span>
@@ -288,13 +288,13 @@
           </section>
           <section id="keypad-hidebar">
             <div id="keypad-hidebar-hang-up-action-wrapper">
-              <span role="button" id="keypad-hidebar-hang-up-action" class="keypad-hidebar-button">
+              <span role="button" id="keypad-hidebar-hang-up-action" class="keypad-hidebar-button" data-l10n-id="hangup-a11y-button">
                 <div>
                 </div>
               </span>
             </div>
             <div id="keypad-hidebar-hide-keypad-action-wrapper">
-              <span role="button" id="keypad-hidebar-hide-keypad-action" class="keypad-hidebar-button">
+              <span role="button" id="keypad-hidebar-hide-keypad-action" class="keypad-hidebar-button" data-l10n-id="hideKeypad">
                 <div>
                 </div>
               </span>
