@@ -1,5 +1,9 @@
 'use strict';
 
+/* global oauthflow, utils */
+/* Ignoring function declaration in loops */
+/* jshint -W083 */
+
 var fb = window.fb || {};
 window.fb = fb;
 
@@ -7,7 +11,6 @@ window.fb = fb;
     var Utils = fb.utils || {};
     fb.utils = Utils;
 
-    var TIMEOUT_QUERY = fb.operationsTimeout;
     var FRIEND_COUNT_QUERY = 'select friend_count from user where uid=me()';
 
     var CACHE_FRIENDS_KEY = Utils.CACHE_FRIENDS_KEY = 'numFacebookFriends';
@@ -15,7 +18,7 @@ window.fb = fb;
     Utils.ALARM_ID_KEY = 'nextAlarmId';
 
     var REDIRECT_LOGOUT_URI = window.oauthflow ?
-      oauthflow.params.facebook['redirectLogout'] : '';
+      oauthflow.params.facebook.redirectLogout : '';
     var STORAGE_KEY = Utils.TOKEN_DATA_KEY = 'tokenData';
 
       // For controlling data synchronization
@@ -98,7 +101,7 @@ window.fb = fb;
               outReq.done(0);
             }
           },
-          function onerror(e) {
+          function onerror(error) {
             outReq.failed(error);
           }
         );
@@ -331,7 +334,6 @@ window.fb = fb;
       var self = this;
       var CHUNK_SIZE = 5;
       var numResponses = 0;
-      var mode = pmode || 'update';
       var mustUpdate = (pmode === 'update');
       var notifyClean = false;
 
@@ -394,19 +396,19 @@ window.fb = fb;
         for (var idx = from; idx < (from + CHUNK_SIZE) && idx < total; idx++) {
           var contact = contacts[idx];
           var number = idx;
-          var req;
+          var req, fbContact;
           if (fb.isFbLinked(contact)) {
-            var fbContact = new fb.Contact(contact);
+            fbContact = new fb.Contact(contact);
             req = fbContact.unlink('hard');
           }
           else {
             if (mustUpdate) {
-              var fbContact = new fb.Contact(contact);
+              fbContact = new fb.Contact(contact);
               req = fbContact.remove();
             }
             else {
-              var req = navigator.mozContacts.remove(
-                utils.misc.toMozContact(contact));
+              req = navigator.mozContacts.remove(
+                                            utils.misc.toMozContact(contact));
             }
           }
           req.number = number;

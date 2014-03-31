@@ -1,3 +1,7 @@
+'use strict';
+
+/* global utils */
+
 var fb = window.fb || {};
 var config = window.config || {};
 

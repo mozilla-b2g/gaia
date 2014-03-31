@@ -1,5 +1,8 @@
 'use strict';
 
+/* global Curtain, FacebookConnector, ImageLoader, Normalizer, utils,
+          importUtils, oauth2 */
+
 var fb = window.fb || {};
 
 if (!fb.link) {
@@ -31,8 +34,11 @@ if (!fb.link) {
     ];
 
     // Conditions
-    var MAIL_COND = ['strpos(email, ' , "'", null, "'", ') >= 0'];
-    var CELL_COND = ['strpos(cell, ' , "'", null, "'", ') >= 0'];
+    var MAIL_COND, CELL_COND;
+    /* jshint ignore:start */
+    MAIL_COND = ['strpos(email, ' , "'", null, "'", ') >= 0'];
+    CELL_COND = ['strpos(cell, ' , "'", null, "'", ') >= 0'];
+    /* jshint ignore:end */
 
     var ALL_QUERY = ['SELECT uid, name, last_name, first_name,',
       ' middle_name, email from user ',
@@ -222,11 +228,6 @@ if (!fb.link) {
 
       Curtain.hide(shouldNotifyParent ? notifyParent.bind(
         null, {type: 'abort'}) : null);
-    }
-
-    // Invoked when timeout or error and the user cancels all
-    function closeCb() {
-      Curtain.hide();
     }
 
     // Obtains a proposal with all friends
@@ -534,7 +535,7 @@ if (!fb.link) {
       setCurtainHandlers();
       clearList();
       imgLoader = new ImageLoader('#mainContent',
-                                  "li:not([data-uuid='#uid#'])");
+                                  'li:not([data-uuid="#uid#"])');
 
       if (!acc_tk) {
         oauth2.getAccessToken(function proposal_new_token(new_acc_tk) {
