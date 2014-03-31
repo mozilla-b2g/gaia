@@ -363,6 +363,6 @@
 
 .controls[mode=video] .capture-button:active .center:before,
 .controls[mode=video][capture-active=true] .capture-button .center:before {
-  border-radius: 25%;
+  border-radius: 3px;
   background-color: white;
 }
