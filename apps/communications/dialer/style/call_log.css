@@ -3,11 +3,6 @@ section[role="region"] > header:first-child .icon {
   pointer-events: auto;
 }
 
-section[role="region"] > header:first-child a[aria-disabled="true"] .icon,
-section[role="region"] > header:first-child button[aria-disabled="true"] .icon {
-  pointer-events: none;
-}
-
 /* Overriding BB styles for edit mode */
 form[role="dialog"][data-type="edit"] header .icon {
   pointer-events: auto;
@@ -86,8 +81,12 @@ form[role="dialog"][data-type="edit"] > menu {
   text-transform: capitalize;
 }
 
-.disabled {
+button[disabled], input[type="text"][disabled],
+a[disabled][role="button"], a[disabled][role="button"] * {
   pointer-events: none;
+}
+
+input[type="text"][disabled], a[disabled][role="button"] {
   opacity: 0.3;
 }
 
@@ -286,12 +285,4 @@ ol, ul {
 
 .filter .groupFiltered {
   display: none;
-}
-
-.disabled {
-  pointer-events: none !important;
-}
-
-.disabled *{
-  pointer-events: none !important;
 }

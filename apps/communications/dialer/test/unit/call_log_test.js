@@ -611,6 +611,7 @@ suite('dialer/call_log', function() {
   suite('Edit mode >', function() {
     suite('Entering edit mode', function() {
       setup(function() {
+        CallLog.callLogIconEdit.removeAttribute('disabled');
         CallLog.showEditMode();
       });
 
@@ -619,7 +620,8 @@ suite('dialer/call_log', function() {
       });
 
       test('should disable the delete button at first', function() {
-        assert.isTrue(CallLog.deleteButton.classList.contains('disabled'));
+        assert.equal(CallLog.deleteButton.getAttribute('disabled'),
+                     'disabled');
       });
 
       test('should disable the deselect button at first', function() {
@@ -678,6 +680,7 @@ suite('dialer/call_log', function() {
 
     test('Unfiltering should exit edit mode', function() {
       CallLog.filter();
+      CallLog.callLogIconEdit.removeAttribute('disabled');
       CallLog.showEditMode();
       CallLog.unfilter();
 

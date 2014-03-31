@@ -578,16 +578,26 @@ var CallLog = {
   },
 
   enableEditMode: function cl_enableEditMode() {
-    CallLog.callLogIconEdit.classList.remove('disabled');
+    var icon = CallLog.callLogIconEdit;
+    icon.removeAttribute('disabled');
+    icon.setAttribute('aria-disabled', false);
   },
 
-  disableEditMode: function cl_enableEditMode() {
-    CallLog.callLogIconEdit.classList.add('disabled');
+  disableEditMode: function cl_disableEditMode() {
+    var icon = CallLog.callLogIconEdit;
+    icon.setAttribute('disabled', 'disabled');
+    icon.setAttribute('aria-disabled', true);
   },
 
-  showEditMode: function cl_showEditMode() {
+  showEditMode: function cl_showEditMode(event) {
+    if (this.callLogIconEdit.hasAttribute('disabled')) {
+      // Disabled does not have effect on an anchor.
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     this.headerEditModeText.textContent = this._('edit');
-    this.deleteButton.classList.add('disabled');
+    this.deleteButton.setAttribute('disabled', 'disabled');
     this.selectAllThreads.removeAttribute('disabled');
     this.selectAllThreads.textContent = this._('selectAll');
     this.deselectAllThreads.setAttribute('disabled', 'disabled');
@@ -709,12 +719,12 @@ var CallLog = {
       this.selectAllThreads.removeAttribute('disabled');
       this.selectAllThreads.textContent = this._('selectAll');
       this.deselectAllThreads.setAttribute('disabled', 'disabled');
-      this.deleteButton.classList.add('disabled');
+      this.deleteButton.setAttribute('disabled', 'disabled');
       return;
     }
     this.headerEditModeText.textContent = this._('edit-selected',
                                             {n: selected});
-    this.deleteButton.classList.remove('disabled');
+    this.deleteButton.removeAttribute('disabled');
     if (selected === allInputs) {
       this.deselectAllThreads.removeAttribute('disabled');
       this.selectAllThreads.setAttribute('disabled', 'disabled');

@@ -203,7 +203,7 @@ article:not(:target) #keypad-delete {
   margin: 0.8rem 0 0.8rem 0.8rem;
 }
 
-#keypad-callbar-add-contact.disabled {
+#keypad-callbar-add-contact[disabled] {
   opacity: 0.2;
 }
 
