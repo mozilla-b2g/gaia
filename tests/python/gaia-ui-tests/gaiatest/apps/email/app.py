@@ -37,10 +37,11 @@ class Email(Base):
         self.wait_for_message_list()
 
     def setup_IMAP_email(self, imap):
+        basic_setup = SetupEmail(self.marionette)
+        basic_setup.type_name(imap['name'])
+        basic_setup.type_email(imap['email'])
+        basic_setup.type_password(imap['password'])
         setup = self.tap_manual_setup()
-        setup.type_name(imap['name'])
-        setup.type_email(imap['email'])
-        setup.type_password(imap['password'])
 
         setup.select_account_type('IMAP+SMTP')
 
@@ -61,11 +62,11 @@ class Email(Base):
         self.wait_for_message_list()
 
     def setup_active_sync_email(self, active_sync):
+        basic_setup = SetupEmail(self.marionette)
+        basic_setup.type_name(active_sync['name'])
+        basic_setup.type_email(active_sync['email'])
+        basic_setup.type_password(active_sync['password'])
         setup = self.tap_manual_setup()
-        setup.type_name(active_sync['name'])
-
-        setup.type_email(active_sync['email'])
-        setup.type_password(active_sync['password'])
 
         setup.select_account_type('ActiveSync')
 
