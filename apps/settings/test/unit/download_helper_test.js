@@ -157,7 +157,7 @@ suite('DownloadHelper', function() {
       };
 
       req.onerror = function(evt) {
-        assert.equal(evt.target.error.code, DownloadHelper.CODE.INVALID_STATE);
+      assert.equal(evt.target.error.code, DownloadHelper.CODE.INVALID_STATE);
         done();
       };
     });
@@ -212,7 +212,7 @@ suite('DownloadHelper', function() {
       }, 'open');
     });
 
-    test('Unmounted sdcard -> removing incomplete download ', function(done) {
+  test('Unmounted sdcard -> removing incomplete download ', function(done) {
       assertIncompleteDownloadRemoved('shared', done);
     });
 
