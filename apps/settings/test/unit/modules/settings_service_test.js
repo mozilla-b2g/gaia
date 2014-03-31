@@ -127,9 +127,9 @@ suite('SettingsService', function() {
         mockInstances[1] = sinon.mock(this.mockSettingsPanelInstances[1]);
         // Expect only calls to beforeShow and show of panel1.
         mockInstances[1].expects('beforeShow').once()
-                        .withExactArgs(this.panelElements[1], this.options[1]);
+                      .withExactArgs(this.panelElements[1], this.options[1]);
         mockInstances[1].expects('show').once()
-                        .withExactArgs(this.panelElements[1], this.options[1]);
+                      .withExactArgs(this.panelElements[1], this.options[1]);
         mockInstances[1].expects('beforeHide').never();
         mockInstances[1].expects('hide').never();
         this.SettingsService.navigate('id1', this.options[1], function() {
@@ -165,9 +165,9 @@ suite('SettingsService', function() {
         mockInstances[1] = sinon.mock(this.mockSettingsPanelInstances[1]);
         // Expect only calls to beforeShow and show of panel1.
         mockInstances[1].expects('beforeShow').once()
-                        .withExactArgs(this.panelElements[1], this.options[1]);
+                      .withExactArgs(this.panelElements[1], this.options[1]);
         mockInstances[1].expects('show').once()
-                        .withExactArgs(this.panelElements[1], this.options[1]);
+                      .withExactArgs(this.panelElements[1], this.options[1]);
         mockInstances[1].expects('beforeHide').never();
         mockInstances[1].expects('hide').never();
         this.SettingsService.navigate('id1', this.options[1], function() {
