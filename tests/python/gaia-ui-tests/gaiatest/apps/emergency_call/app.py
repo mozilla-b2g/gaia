@@ -13,10 +13,12 @@ class EmergencyCall(Base):
     _emergency_dialer_keypad_locator = (By.ID, 'keypad')
 
     def switch_to_emergency_call_frame(self):
-      emergency_frame = self.marionette.find_element(*self._emergency_frame_locator)
-      self.marionette.switch_to_frame(emergency_frame)
+        self.wait_for_element_displayed(*self._emergency_frame_locator)
+        emergency_frame = self.marionette.find_element(*self._emergency_frame_locator)
+        self.marionette.switch_to_frame(emergency_frame)
 
     @property
     def is_emergency_dialer_keypad_displayed(self):
+        self.wait_for_element_displayed(*self._emergency_dialer_keypad_locator)
         return self.is_element_displayed(*self._emergency_dialer_keypad_locator)
 
