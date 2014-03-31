@@ -2,7 +2,7 @@
   "name": "gaia",
   "private": true,
   "version": "0.0.2",
-  "description": "A bundle of components which Gaia needs.",
+  "description": "A bundle of components which Gaia needs. mod!",
   "author": "The Gaia Team <dev-gaia@lists.mozilla.org>",
   "devDependencies": {
     "async": "0.2.9",
