@@ -10,6 +10,10 @@ form.search {
   z-index: 5;
 }
 
+#search-container {
+  padding-right: 2.5rem;
+}
+
 #search-view:not(.insearchmode) form.search * {
   pointer-events: none;
 }
@@ -96,7 +100,7 @@ form.search button[type="submit"] {
   left: 0;
   right: 0;
   height: calc(100% - 3.7rem);
-  background: #f3f3f3;
+  background: #fff;
 }
 
 #groups-list-search {
