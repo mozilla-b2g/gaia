@@ -81,78 +81,88 @@ suite('activity', function() {
     assert.isFalse(callback.called);
   });
 
-  test('Should return correct modes from parsed mime types', function() {
-    var parsed;
-
-    // 'video' and 'picture'
-    parsed = this.activity.parse({
-      source: {
-        name: 'pick',
-        data: { type: ['image/*', 'video/*'] }
+  test('Should get \'picture\' and \'video\' modes ' +
+    'for SMS \'pick\' activity', function() {
+    var activity = {
+      "source": {
+        "data": {
+          "type": ["image/*", "audio/*", "video/*"],
+          "maxFileSizeBytes": 307200
+        },
+        "name": "pick"
       }
-    });
+    };
 
-    assert.ok(~parsed.modes.indexOf('picture'));
-    assert.ok(~parsed.modes.indexOf('video'));
-
-    // 'video'
-    parsed = this.activity.parse({
-      source: {
-        name: 'pick',
-        data: { type: ['video/*'] }
-      }
-    });
-
-    assert.ok(!~parsed.modes.indexOf('picture'));
-    assert.ok(~parsed.modes.indexOf('video'));
-
-    // 'picture'
-    parsed = this.activity.parse({
-      source: {
-        name: 'pick',
-        data: { type: ['image/*'] }
-      }
-    });
-
-    assert.ok(~parsed.modes.indexOf('picture'));
-    assert.ok(!~parsed.modes.indexOf('video'));
+    var modes = this.activity.getModesForPickActivity(activity);
+    assert.isTrue(modes.indexOf('picture') !== -1);
+    assert.isTrue(modes.indexOf('video') !== -1);
   });
 
-  test('Should support both modes with empty `type` array', function() {
-    var parsed = this.activity.parse({
-      source: {
-        name: 'pick',
-        data: { type: [] }
+  test('Should get \'picture\' and \'video\' modes ' +
+    'input[type="file"] \'pick\' activity', function() {
+    var activity = {
+      "source": {
+        "data": {
+          "type": [],
+          "nocrop": true
+        },
+        "name": "pick"
       }
-    });
+    };
 
-    assert.ok(~parsed.modes.indexOf('picture'));
-    assert.ok(~parsed.modes.indexOf('video'));
+    var modes = this.activity.getModesForPickActivity(activity);
+    assert.isTrue(modes.indexOf('picture') !== -1);
+    assert.isTrue(modes.indexOf('video') !== -1);
   });
 
-  test('Should allow both image and video if no types given', function() {
-    var parsed = this.activity.parse({
-      source: {
-        name: 'pick',
-        data: {}
+  test('Should get \'picture\' mode for ' +
+    'input[type="file"] \'pick\' activity', function() {
+    var activity = {
+      "source": {
+        "data": {
+          "type": ["image/gif", "image/jpeg", "image/pjpeg",
+                   "image/png", "image/svg+xml", "image/tiff",
+                   "image/vnd.microsoft.icon"],
+          "nocrop": true
+        },
+        "name": "pick"
       }
-    });
+    };
 
-    assert.ok(~parsed.modes.indexOf('picture'));
-    assert.ok(~parsed.modes.indexOf('video'));
+    var modes = this.activity.getModesForPickActivity(activity);
+    assert.isTrue(modes.indexOf('picture') !== -1);
+    assert.isTrue(modes.indexOf('video') === -1);
   });
 
-  test('Should accept a given type string of videos (unsure why)', function() {
-    var parsed = this.activity.parse({
-      source: {
-        name: 'pick',
-        data: {
-          type: 'videos'
-        }
+  test('Should get [\'picture\', \'video\'] modes for ' +
+    'Lockscreen/Gallery \'record\' activity', function() {
+    var activity = {
+      "source": {
+        "data": {
+          "type": "photos"
+        },
+        "name": "record"
       }
-    });
+    };
 
-    assert.ok(!~parsed.modes.indexOf('picture'));
-    assert.ok(~parsed.modes.indexOf('video'));
+    var modes = this.activity.getModesForRecordActivity(activity);
+    assert.isTrue(modes.indexOf('picture') === 0);
+    assert.isTrue(modes.indexOf('video') === 1);
+  });
+
+  test('Should get [\'video\', \'picture\'] modes for ' +
+    'Video \'record\' activity', function() {
+    var activity = {
+      "source": {
+        "data": {
+          "type": "videos"
+        },
+        "name": "record"
+      }
+    };
+
+    var modes = this.activity.getModesForRecordActivity(activity);
+    assert.isTrue(modes.indexOf('video') === 0);
+    assert.isTrue(modes.indexOf('picture') === 1);
   });
 });

@@ -214,8 +214,11 @@ Camera.prototype.configureFocus = function(modes) {
  * @param {String} key
  */
 Camera.prototype.setFlashMode = function(key) {
-  this.mozCamera.flashMode = key;
-  debug('flash mode set: %s', key);
+  if (this.mozCamera) {
+    this.mozCamera.flashMode = key;
+    debug('flash mode set: %s', key);
+  }
+
   return this;
 };
 
