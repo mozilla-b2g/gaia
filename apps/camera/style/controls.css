@@ -48,6 +48,7 @@
 
 .controls[recording=true] .controls-left {
   opacity: 0;
+  pointer-events: none;
 }
 
 /** Right
