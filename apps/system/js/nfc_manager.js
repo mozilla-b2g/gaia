@@ -362,6 +362,20 @@ var NfcManager = {
 
   // Miscellaneous utility functions to handle formating the JSON for activities
 
+  isTypeMatch: function nm_isTypeMatch(type, stringTypeArray) {
+    var strType = NfcUtils.toUTF8(type);
+    if (stringTypeArray && stringTypeArray.length) {
+      for (var i = 0; i < stringTypeArray.length; i++) {
+        if (strType === stringTypeArray[i]) {
+          this._debug('Found a type match.');
+          return true;
+        }
+      }
+    }
+    this._debug('Did not find a match.');
+    return false;
+  },
+
   formatEmpty: function nm_formatEmpty(record) {
     this._debug('Activity for empty tag.');
     return {
@@ -480,7 +494,8 @@ var NfcManager = {
     var activityText = null;
 
     this._debug('HandleMimeMedia');
-    if (NfcUtils.equalArrays(record.type, NfcUtils.fromUTF8('text/vcard'))) {
+    if (this.isTypeMatch(record.type,
+                         ['text/vcard', 'text/x-vCard', 'text/x-vcard'])) {
       activityText = this.formatVCardRecord(record);
     } else {
       activityText = {

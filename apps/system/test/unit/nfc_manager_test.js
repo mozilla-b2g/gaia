@@ -1,14 +1,22 @@
 'use strict';
 
 /* globals MocksHelper,
-           MozNDEFRecord, NfcBuffer, NDEF, NfcUtils, NfcManagerUtils */
+           MozNDEFRecord, NfcBuffer, NDEF, NfcManager, NfcManagerUtils, NfcUtils
+*/
 
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/nfc_utils.js');
+requireApp('system/test/unit/mock_activity.js');
+requireApp('system/test/unit/mock_screen_manager.js');
+requireApp('system/test/unit/mock_settingslistener_installer.js');
 requireApp('system/js/nfc_manager_utils.js');
+requireApp('system/js/nfc_manager.js');
 
 var mocksForNfcUtils = new MocksHelper([
-  'MozNDEFRecord'
+  'MozActivity',
+  'MozNDEFRecord',
+  'ScreenManager'
 ]).init();
 
 suite('Nfc Utility functions', function() {
@@ -159,6 +167,71 @@ suite('Nfc Utility functions', function() {
       assert.equal(equal1, true);
     });
 
+  });
+
+  suite('Activity Routing', function() {
+    var vcard;
+    var activityInjection1;
+    var activityInjection2;
+    var activityInjection3;
+
+    setup(function() {
+      vcard = 'BEGIN:VCARD\n';
+      vcard += 'VERSION:2.1\n';
+      vcard += 'N:Office;Mozilla;;;\n';
+      vcard += 'FN:Mozilla Office\n';
+      vcard += 'TEL;PREF:1-555-555-5555\n';
+      vcard += 'END:VCARD';
+
+      activityInjection1 = {
+        type: 'techDiscovered',
+        techList: ['P2P','NDEF'],
+        records: [{
+          tnf: NDEF.TNF_MIME_MEDIA,
+          type: NfcUtils.fromUTF8('text/vcard'),
+          id: new Uint8Array(),
+          payload: NfcUtils.fromUTF8(vcard)
+        }],
+        sessionToken: '{e9364a8b-538c-4c9d-84e2-e6ce524afd17}'
+      };
+      activityInjection2 = {
+        type: 'techDiscovered',
+        techList: ['P2P','NDEF'],
+        records: [{
+          tnf: NDEF.TNF_MIME_MEDIA,
+          type: NfcUtils.fromUTF8('text/x-vcard'),
+          id: new Uint8Array(),
+          payload: NfcUtils.fromUTF8(vcard)
+        }],
+        sessionToken: '{e9364a8b-538c-4c9d-84e2-e6ce524afd18}'
+      };
+      activityInjection3 = {
+        type: 'techDiscovered',
+        techList: ['P2P','NDEF'],
+        records: [{
+          tnf: NDEF.TNF_MIME_MEDIA,
+          type: NfcUtils.fromUTF8('text/x-vCard'),
+          id: new Uint8Array(),
+          payload: NfcUtils.fromUTF8(vcard)
+        }],
+        sessionToken: '{e9364a8b-538c-4c9d-84e2-e6ce524afd19}'
+      };
+    });
+
+    test('text/vcard', function() {
+      var stubFormatVCardRecord = sinon.spy(NfcManager, 'formatVCardRecord');
+
+      NfcManager.handleTechnologyDiscovered(activityInjection1);
+      assert.isTrue(stubFormatVCardRecord.calledOnce);
+
+      NfcManager.handleTechnologyDiscovered(activityInjection2);
+      assert.isTrue(stubFormatVCardRecord.calledTwice);
+
+      NfcManager.handleTechnologyDiscovered(activityInjection3);
+      assert.isTrue(stubFormatVCardRecord.calledThrice);
+
+      stubFormatVCardRecord.restore();
+    });
   });
 
 });
