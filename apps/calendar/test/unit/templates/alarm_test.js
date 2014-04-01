@@ -2,6 +2,8 @@ requireLib('template.js');
 requireLib('templates/alarm.js');
 
 suiteGroup('Templates.Alarm', function() {
+  'use strict';
+
   var subject;
 
   suiteSetup(function() {

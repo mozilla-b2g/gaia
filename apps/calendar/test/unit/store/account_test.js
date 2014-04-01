@@ -1,3 +1,5 @@
+/*global Factory */
+
 requireLib('db.js');
 requireLib('models/account.js');
 requireLib('models/calendar.js');
@@ -5,6 +7,7 @@ requireLib('store/abstract.js');
 requireLib('store/account.js');
 
 suite('store/account', function() {
+  'use strict';
 
   ['Provider.Local', 'Provider.Caldav'].forEach(function(name) {
     suiteSetup(function(done) {
@@ -46,7 +49,6 @@ suite('store/account', function() {
   });
 
   suite('#markWithError', function() {
-    var errEvent;
     var accounts = testSupport.calendar.dbFixtures(
       'account',
       'Account', {
@@ -54,7 +56,7 @@ suite('store/account', function() {
       }
     );
 
-    var calendars = testSupport.calendar.dbFixtures(
+    testSupport.calendar.dbFixtures(
       'calendar',
       'Calendar', {
         one: { _id: 'one', accountId: 55 },
@@ -207,7 +209,7 @@ suite('store/account', function() {
 
       model = new Calendar.Models.Account(modelParams);
 
-      app._providers['Caldav'] = {
+      app._providers.Caldav = {
         getAccount: function(details, callback) {
           calledWith = details;
           setTimeout(function() {
@@ -438,7 +440,9 @@ suite('store/account', function() {
     var results;
     setup(function(done) {
       subject.syncableAccounts(function(err, list) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
         results = list;
         done();
       });
@@ -456,7 +460,9 @@ suite('store/account', function() {
 
       test('result', function(done) {
         subject.syncableAccounts(function(err, list) {
-          if (err) return done(err);
+          if (err) {
+            return done(err);
+          }
           assert.equal(list.length, 0);
           done();
         });
@@ -468,7 +474,6 @@ suite('store/account', function() {
     var remote;
     var events;
     var account;
-    var results;
     var calendarStore;
     var cals;
     var remoteCalledWith;

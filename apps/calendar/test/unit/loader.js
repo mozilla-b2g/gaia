@@ -1,4 +1,6 @@
 (function(window) {
+  'use strict';
+
   window.suiteGroup = function suiteGroup(name, callback) {
     suite(name, function() {
 

@@ -1,4 +1,5 @@
 Calendar.ns('Test').FakePage = (function() {
+  'use strict';
 
   var page = function() {
     page.routes.push(Array.prototype.slice.call(arguments));

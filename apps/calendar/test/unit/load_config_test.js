@@ -1,4 +1,5 @@
 suite('load_config', function() {
+  'use strict';
 
   suiteSetup(function(done) {
     Calendar.App.loadObject('LoadConfig', done);

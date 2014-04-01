@@ -1,3 +1,5 @@
+/*global Factory */
+
 requireLib('responder.js');
 requireLib('timespan.js');
 requireLib('store/event.js');
@@ -5,54 +7,12 @@ requireLib('store/busytime.js');
 requireLib('store/alarm.js');
 
 suite('store/busytime', function() {
+  'use strict';
+
   var app;
   var subject;
   var db;
   var id = 0;
-
-  function event(start, end) {
-    var remote = {};
-
-    if (start)
-      remote.startDate = start;
-
-    if (end)
-      remote.endDate = end;
-
-    remote.id = ++id;
-
-    var out = Factory('event', {
-      remote: remote
-    });
-
-    if (!out.remote.end || !out.remote.end.utc) {
-      throw new Error('event has no end');
-    }
-
-    return out;
-  }
-
-  function eventRecuring(date) {
-    return Factory('event.recurring', {
-      remote: {
-        startDate: date,
-        _id: ++id,
-        _recurres: 1
-      }
-    });
-  }
-
-  function time(event) {
-    return event.remote.startDate.valueOf();
-  }
-
-  function record(event) {
-    var record = subject._eventToRecord(
-      event
-    );
-
-    return subject._createModel(record);
-  }
 
   setup(function(done) {
     id = 0;
@@ -157,7 +117,6 @@ suite('store/busytime', function() {
 
     function add(name, start, end) {
       setup(function(done) {
-        var store = subject.db.getStore('Event');
         var item = list[name] = Factory('busytime', {
           startDate: start,
           endDate: end

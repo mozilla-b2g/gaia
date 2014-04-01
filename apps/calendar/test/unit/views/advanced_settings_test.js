@@ -1,16 +1,19 @@
+/*global Factory */
+
 requireLib('models/account.js');
 requireLib('presets.js');
 requireLib('store/setting.js');
 requireElements('calendar/elements/advanced_settings.html');
 
 suiteGroup('Views.AdvancedSettings', function() {
+  'use strict';
+
   var subject;
   var template;
   var app;
   var accountStore;
   var fixtures;
   var settings;
-  var tries;
   var triggerEvent;
 
   suiteSetup(function() {
@@ -320,15 +323,13 @@ suiteGroup('Views.AdvancedSettings', function() {
     });
 
     test('alarms set to stored value', function() {
-      var element = subject.standardAlarm;
       assert.equal(
-        element.value, expectedEventAlarm,
+        subject.standardAlarm.value, expectedEventAlarm,
         'event alarm set to stored value'
       );
 
-      var element = subject.alldayAlarm;
       assert.equal(
-        element.value, expectedAllDayAlarm,
+        subject.alldayAlarm.value, expectedAllDayAlarm,
         'event alarm set to stored value'
       );
     });

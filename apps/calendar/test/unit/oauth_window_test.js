@@ -1,4 +1,6 @@
 suiteGroup('OAuthWindow', function() {
+  'use strict';
+
   var subject;
   var url = 'https://foobar.com';
   var element;
@@ -69,7 +71,7 @@ suiteGroup('OAuthWindow', function() {
 
   test('without redirect_uri', function() {
     assert.throws(function() {
-      new Calendar.OAuthWindow(url, {});
+      return new Calendar.OAuthWindow(url, {});
     });
   });
 

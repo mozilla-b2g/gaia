@@ -2,27 +2,14 @@ require('/shared/js/gesture_detector.js');
 requireLib('timespan.js');
 
 suiteGroup('Views.TimeParent', function() {
+  'use strict';
 
   var testEl;
-  var viewDate = new Date(2012, 1, 15);
   var app;
   var subject;
   var id;
-  var scrollTop;
   var controller;
-
   var TimeParent;
-
-  function mapKeys(map) {
-    return map.items.map(function(item) {
-      return item[0];
-    });
-  }
-
-  function viewActive(id) {
-    var view = subject.frames.get(id);
-    return view.active;
-  }
 
   function ChildView(options) {
     this.date = options.date;
@@ -310,6 +297,7 @@ suiteGroup('Views.TimeParent', function() {
       items = Object.create(null);
 
       function destroy() {
+        /*jshint validthis:true */
         this.destroyed = true;
       }
 

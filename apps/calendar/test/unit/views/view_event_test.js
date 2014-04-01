@@ -6,6 +6,7 @@ requireElements('calendar/elements/show_event.html');
 mocha.globals(['InputParser']);
 
 suiteGroup('Views.ViewEvent', function() {
+  'use strict';
 
   var subject;
   var controller;
@@ -21,10 +22,6 @@ suiteGroup('Views.ViewEvent', function() {
   var eventStore;
   var calendarStore;
   var accountStore;
-
-  function hasClass(value) {
-    return subject.element.classList.contains(value);
-  }
 
   function getEl(name) {
     return subject.getEl(name);
@@ -94,12 +91,6 @@ suiteGroup('Views.ViewEvent', function() {
       endDate: new Date(2012, 1, 5, 1)
     }
   );
-
-  var remote;
-  var event;
-  var calendar;
-  var account;
-  var busytime;
 
   setup(function() {
     remote = this.event.remote;
@@ -181,10 +172,8 @@ suiteGroup('Views.ViewEvent', function() {
         'endTime'
       ];
 
-      var key;
-
       if (overrides) {
-        for (key in overrides) {
+        for (var key in overrides) {
           expected[key] = overrides[key];
         }
       }
@@ -194,10 +183,10 @@ suiteGroup('Views.ViewEvent', function() {
           expected.calendarId = event.calendarId;
         }
 
-        for (key in expected) {
+        function replaceCaps($1) { return '-' + $1.toLowerCase(); }
+        for (var key in expected) {
 
           // To dash-delimited
-          function replaceCaps($1) { return '-' + $1.toLowerCase(); }
           var fieldKey = key.replace(/([A-Z])/g, replaceCaps);
 
           if (isAllDay && allDayHidden.indexOf(key) !== -1) {

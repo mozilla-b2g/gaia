@@ -1,4 +1,8 @@
+/*global Factory */
+
 suiteGroup('Utils.AccountCreation', function() {
+  'use strict';
+
   var subject;
   var accountStore;
   var calendarStore;

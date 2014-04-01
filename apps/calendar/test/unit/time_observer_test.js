@@ -2,6 +2,7 @@ requireLib('timespan.js');
 requireLib('time_observer.js');
 
 suite('time_observer', function() {
+  'use strict';
 
   var subject;
   var SubjectClass;

@@ -1,8 +1,11 @@
+/*global Factory */
+
 requireLib('db.js');
 requireLib('store/abstract.js');
 requireLib('store/ical_component.js');
 
 suite('store/ical_component', function() {
+  'use strict';
 
   var subject;
   var db;

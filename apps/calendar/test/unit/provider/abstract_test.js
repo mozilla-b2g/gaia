@@ -1,4 +1,5 @@
 suiteGroup('Provider.Abstract', function() {
+  'use strict';
 
   var subject;
   var app;

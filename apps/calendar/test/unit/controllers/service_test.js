@@ -1,7 +1,6 @@
 suiteGroup('Controllers.Service', function() {
+  'use strict';
 
-  var account;
-  var calendar;
   var subject;
   var app;
 

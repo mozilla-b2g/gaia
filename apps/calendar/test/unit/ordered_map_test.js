@@ -1,6 +1,7 @@
 requireLib('utils/ordered_map.js');
 
 suite('ordered_map', function() {
+  'use strict';
 
   var subject;
 
@@ -103,7 +104,6 @@ suite('ordered_map', function() {
   });
 
   test('benchmark', function() {
-    return;
     var max = 10000;
     var i = 0;
 
@@ -123,7 +123,6 @@ suite('ordered_map', function() {
     now = window.performance.now();
 
     // find
-    var key;
     var getMax = max / 2;
 
     for (i = 0; i < getMax; i++) {

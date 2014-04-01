@@ -1,9 +1,12 @@
+/*global Factory */
+
 requireLib('calc.js');
 requireLib('db.js');
 requireLib('store/abstract.js');
 requireLib('store/alarm.js');
 
 suite('store/alarm', function() {
+  'use strict';
 
   var subject;
   var db;
@@ -167,17 +170,6 @@ suite('store/alarm', function() {
     });
   }
 
-  function getAll(cb) {
-    var trans = subject.db.transaction('alarms');
-    var store = trans.objectStore('alarms');
-
-    store.mozGetAll().onsuccess = function(e) {
-      cb(e.target.result);
-    };
-
-    store.mozGetAll().onerror = cb;
-  }
-
   suite('#workQueue', function() {
     var getAllResults = [];
     var added = [];
@@ -196,8 +188,9 @@ suite('store/alarm', function() {
             target: req
           };
 
-          if (req.onsuccess)
+          if (req.onsuccess) {
             req.onsuccess(event);
+          }
 
           req.emit('success', event);
 
@@ -211,10 +204,11 @@ suite('store/alarm', function() {
         var req = new Calendar.Responder();
 
         setTimeout(function() {
-          var id = lastId++;
+          lastId++;
 
-          if (req.onsuccess)
+          if (req.onsuccess) {
             req.onsuccess(lastId);
+          }
 
           req.emit('success', lastId);
 

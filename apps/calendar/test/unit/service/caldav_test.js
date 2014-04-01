@@ -1,3 +1,5 @@
+/*global Factory */
+
 requireApp('calendar/test/unit/service/helper.js');
 requireLib('presets.js');
 requireLib('ext/ical.js');
@@ -7,6 +9,7 @@ requireLib('service/ical_recur_expansion.js');
 requireLib('service/caldav.js');
 
 suite('service/caldav', function() {
+  'use strict';
 
   var subject;
   var con;
@@ -47,10 +50,9 @@ suite('service/caldav', function() {
         value: ical
       }
     };
-  };
+  }
 
   var icalEvent;
-  var icalEvents = {};
 
   function parseFixture(name) {
     setup(function(done) {
@@ -285,6 +287,7 @@ suite('service/caldav', function() {
         var key;
         var exceptions = result.exceptions;
 
+        /*jshint loopfunc:true */
         for (key in event.exceptions) {
           var found = false;
           var instance = event.exceptions[key];
@@ -429,6 +432,7 @@ suite('service/caldav', function() {
 
         var numTested = 0;
 
+        /*jshint loopfunc:true */
         for (; i < len; i++) {
           var next = iter.next();
           var detail = icalEvent.getOccurrenceDetails(
@@ -436,11 +440,12 @@ suite('service/caldav', function() {
           );
 
           var allTriggers = [];
+          var alarms = null;
 
           if (detail.startDate.toString() !==
             detail.item.startDate.toString()) {
 
-            var alarms = detail.item.component.getAllSubcomponents('valarm');
+            alarms = detail.item.component.getAllSubcomponents('valarm');
             alarms.forEach(function(instance) {
               var action = instance.getFirstPropertyValue('action');
               if (action && action === 'DISPLAY') {
@@ -460,7 +465,7 @@ suite('service/caldav', function() {
               }
             });
           }
-          var alarms = subject._displayAlarms(detail);
+          alarms = subject._displayAlarms(detail);
 
           allTriggers.forEach(function(trigger, i) {
             assert.equal(
@@ -582,7 +587,6 @@ suite('service/caldav', function() {
     var occurrences = [];
     var components = [];
     var expandCalls;
-    var etag = 'xx1';
 
     setup(function() {
       expandCalls = null;
@@ -749,10 +753,12 @@ suite('service/caldav', function() {
 
       subject.parseEvent(fixtures.recurringEvent, function(err, event) {
         var iter = event.iterator();
+        var last = null;
         var i = 0;
 
-        while (i++ < max)
-          var last = iter.next();
+        while (i++ < max) {
+          last = iter.next();
+        }
 
         maxDate = subject.formatICALTime(last);
         done();
@@ -804,8 +810,9 @@ suite('service/caldav', function() {
     setup(function(done) {
       var list = [];
       // build list for request
-      for (var key in components)
+      for (var key in components) {
         list.push(components[key]);
+      }
 
       var options = {
         // limit the operations so test
@@ -980,12 +987,6 @@ suite('service/caldav', function() {
 
     test('success', function(done) {
       var stream = new Calendar.Responder();
-      var events = [];
-      var cals = {
-        'one': caldavEventFactory('one'),
-        'two': caldavEventFactory('two')
-      };
-
       var options = {
         startDate: new Date(2012, 0, 1),
         cached: {
@@ -1299,8 +1300,7 @@ suite('service/caldav', function() {
 
       test('with (min|max)Date', function(done) {
         var actual = [];
-        var [iter, occurrences] = occurrencesUntil(10);
-
+        var occurrences = occurrencesUntil(10)[1];
         var min = occurrences[2].recurrenceId;
         var max = occurrences[5].recurrenceId;
 
@@ -1593,7 +1593,6 @@ suite('service/caldav', function() {
     suite('#updateEvent', function() {
       var original;
       var raw;
-      var update;
 
       setup(function(done) {
         raw = fixtures.singleEvent;

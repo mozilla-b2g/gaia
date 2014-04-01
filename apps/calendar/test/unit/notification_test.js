@@ -1,6 +1,8 @@
 requireApp('calendar/shared/js/notification_helper.js');
 
 suiteGroup('Notification', function() {
+  'use strict';
+
   var sent = [];
   var MockNotificationHelper = {
     send: function() {

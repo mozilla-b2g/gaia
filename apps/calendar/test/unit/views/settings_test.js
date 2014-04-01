@@ -1,8 +1,12 @@
+/*global Factory */
+
 requireLib('models/calendar.js');
 requireLib('models/account.js');
 requireCommon('test/synthetic_gestures.js');
 
 suiteGroup('Views.Settings', function() {
+  'use strict';
+
   ['Provider.Local', 'Provider.Caldav'].forEach(function(name) {
     suiteSetup(function(done) {
       Calendar.App.loadObject(name, done);
@@ -27,7 +31,7 @@ suiteGroup('Views.Settings', function() {
         assert.equal(contains, yesNo, 'syncButton active');
         done();
       };
-    }
+    };
   }
 
   function stageModels(list) {
@@ -296,7 +300,6 @@ suiteGroup('Views.Settings', function() {
   test('sync', function() {
     var controller = app.syncController;
     var calledWith;
-    var el = subject.syncButton;
 
     controller.all = function() {
       calledWith = arguments;
@@ -320,8 +323,6 @@ suiteGroup('Views.Settings', function() {
     });
 
     var checkboxes;
-    var calledWith;
-
     setup(function(done) {
       subject.render();
       subject.onrender = function() {

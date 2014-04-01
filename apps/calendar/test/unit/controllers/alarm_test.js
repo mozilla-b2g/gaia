@@ -1,7 +1,11 @@
+/*global Factory */
+
 requireApp('calendar/shared/js/notification_helper.js');
 requireLib('notification.js');
 
 suiteGroup('Controllers.Alarm', function() {
+  'use strict';
+
   function mockRequestWakeLock(handler) {
     var realApi;
 
@@ -68,7 +72,6 @@ suiteGroup('Controllers.Alarm', function() {
   teardown(function(done) {
     subject.unobserve();
 
-    var defaults = settingStore.defaults;
     var trans = db.transaction('settings', 'readwrite');
 
     settingStore.remove('syncFrequency', trans);
@@ -109,8 +112,9 @@ suiteGroup('Controllers.Alarm', function() {
 
       var mockAlarms = navigator.mozAlarms = {
         add: function(endTime, _, data) {
-          if (data && data.type === 'sync')
+          if (data && data.type === 'sync') {
             currentAlarmTime = endTime;
+          }
 
           if (mockAlarms.onadd) {
             Calendar.nextTick(function() {
@@ -182,7 +186,6 @@ suiteGroup('Controllers.Alarm', function() {
     suite('#_sendAlarmNotification', function() {
       var realApi;
       var sent = [];
-      var onsend;
       var MockNotifications = {
         send: function() {
           var args = Array.slice(arguments);
@@ -502,7 +505,6 @@ suiteGroup('Controllers.Alarm', function() {
 
       suite('type: sync', function() {
         var locks = [];
-        var realLockApi;
 
         mockRequestWakeLock(function(lock) {
           if (lock.type === 'wifi') {
@@ -575,14 +577,16 @@ suiteGroup('Controllers.Alarm', function() {
               callback();
               assert.isTrue(lock.mIsUnlocked, 'unlocks itself');
 
-              if (!(--pending))
+              if (!(--pending)) {
                 done(onComplete);
+              }
             });
           };
 
           var i = 0;
-          while (i++ < pending)
+          while (i++ < pending) {
             subject.handleAlarmMessage({ data: { type: 'sync' } });
+          }
 
         });
 

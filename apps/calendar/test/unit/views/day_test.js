@@ -3,10 +3,11 @@ requireApp('calendar/shared/js/gesture_detector.js');
 requireLib('timespan.js');
 
 suiteGroup('Views.Day', function() {
+  'use strict';
+
   var subject,
       app,
       controller,
-      busytimes,
       triggerEvent;
 
   suiteSetup(function() {
@@ -92,9 +93,10 @@ suiteGroup('Views.Day', function() {
 
   test('#_getId', function() {
     var today = new Date();
-    var todayId = subject._getId(today);
+    subject._getId(today);
+
     var yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-    var yesterdayId = subject._getId(yesterday);
+    subject._getId(yesterday);
     assert.notEqual(today, yesterday);
   });
 

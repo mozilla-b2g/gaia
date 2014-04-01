@@ -1,4 +1,7 @@
+/*global Factory */
+
 suiteGroup('Views.CalendarColors', function() {
+  'use strict';
 
   var subject;
   var model;
@@ -307,8 +310,6 @@ suiteGroup('Views.CalendarColors', function() {
 
     var rules = subject._styles.cssRules;
     assert.equal(rules.length, 4, 'two calendars rules');
-
-    var rule;
 
     function verify(calendar, start, end) {
       for (var i = start; i < end; i++) {
