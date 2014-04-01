@@ -179,6 +179,11 @@ var SimLock = {
         case 'networkLocked':
         case 'corporateLocked':
         case 'serviceProviderLocked':
+        case 'network1Locked':
+        case 'network2Locked':
+        case 'hrpdNetworkLocked':
+        case 'ruimCorporateLocked':
+        case 'ruimServiceProviderLocked':
           SimPinDialog.show(slot, this.onClose.bind(this), skipped);
           return true;
       }

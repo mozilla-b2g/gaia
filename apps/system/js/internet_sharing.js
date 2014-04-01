@@ -24,6 +24,11 @@ var InternetSharing = (function() {
                         'networkLocked',
                         'corporateLocked',
                         'serviceProviderLocked',
+                        'network1Locked',
+                        'network2Locked',
+                        'hrpdNetworkLocked',
+                        'ruimCorporateLocked',
+                        'ruimServiceProviderLocked',
                         'ready'];
 
   var observerHooked = false;

@@ -24,6 +24,11 @@ var OperatorVariant = (function() {
   *   'networkLocked',
   *   'corporateLocked',
   *   'serviceProviderLocked',
+  *   'network1Locked',
+  *   'network2Locked',
+  *   'hrpdNetworkLocked',
+  *   'ruimCorporateLocked',
+  *   'ruimServiceProviderLocked'
   */
   function setSIMOnFirstBootState() {
     var cardState;
