@@ -13,7 +13,7 @@ Month.prototype = {
   selector: '#month-view',
 
   get currentDay() {
-    return this.findElement('.present > .day');
+    return this.findElement('.month.active .present > .day');
   },
 
   get days() {
