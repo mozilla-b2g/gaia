@@ -62,6 +62,7 @@ manifest.appcache
 /distribution/
 /node_modules/
 /.modules.tar
+/git-gaia-node-modules/
 /.cproject
 /.project
 /.settings
