@@ -408,6 +408,12 @@ Calendar.LoadConfig = (function() {
         ]
       },
 
+      'Controllers.ActivityHandler': {
+        js: [
+          'controllers/activityhandler'
+        ]
+      },
+
       'Controllers.Sync': {
         js: [
           'controllers/sync'

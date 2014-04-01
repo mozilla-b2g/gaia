@@ -12,7 +12,7 @@ Calendar.ns('Controllers').Service = (function() {
      * Load and initializer workers.
      */
     start: function() {
-      this.add('caldav', '/caldav_worker.js');
+      this.add(['caldav', 'ical'], '/caldav_worker.js');
     }
 
   };

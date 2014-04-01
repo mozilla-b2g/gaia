@@ -6,7 +6,7 @@ Calendar.ns('Provider').Local = (function() {
 
   function Local() {
     Calendar.Provider.Abstract.apply(this, arguments);
-
+    this.service = this.app.serviceController;
     this.events = this.app.store('Event');
     this.busytimes = this.app.store('Busytime');
     this.alarms = this.app.store('Alarm');
@@ -46,6 +46,108 @@ Calendar.ns('Provider').Local = (function() {
     __proto__: Calendar.Provider.Abstract.prototype,
 
     canExpandRecurringEvents: false,
+
+    /**
+     * Import events to a calendar from the .ics file at the given url.
+     *
+     * @param {String} location location of event.
+     * @param {Function} callback node style callback fired after event parsing.
+     */
+    importCalendar: function(location, callback, calendar, account) {
+      var stream = this.service.stream('ical', 'importCalendar', location);
+      this._commitToLocalCalendar(stream, callback, calendar, account);
+    },
+
+    /**
+     * Commits ical events, components and busytimes
+     * that were emitted to stream in a Local offline calendar database.
+     *
+     * @param {Calendar.Responder} stream to whose emitted events we
+     *  have to commit.
+     *
+     * @param {Function} callback node style callback fired in case
+     *  of commit error.
+     *
+     * @param {Object} calendar, optional Calendar object for CaldavPullEvents.
+     * @param {Object} account, optional Account object for CaldavPullEvents.
+     */
+    _commitToLocalCalendar: function(stream, callback, calendar, account) {
+      var self = this;
+      if (!calendar) {
+        var calendarStore = Calendar.App.store('Calendar');
+        calendarStore.get(Calendar.Provider.Local.calendarId,
+          function(err, pulleventcalendar) {
+            if (!pulleventcalendar) {
+              callback(new Error('no calendar'));
+              return;
+            }
+            if (!account) {
+              self._retriveAccountAndPull(pulleventcalendar, stream, callback);
+            } else {
+              self._createPullEvent(
+                pulleventcalendar,
+                account,
+                stream,
+                callback
+              );
+            }
+          }
+        );
+      } else if (!account) {
+        self._retriveAccountAndPull(calendar, stream, callback);
+      } else {
+        self._createPullEvent(calendar, account, stream, callback);
+      }
+    },
+
+    /**
+     * Given a calendar, retrives account and creates a CaldavPullEvent.
+     *
+     * @param {Object} calendar, Calendar object for CaldavPullEvents.
+     * @param {Calendar.Responder} stream to whose emitted events we
+     *  have to commit.
+     *
+     * @param {Function} callback, node style callback.
+     */
+    _retriveAccountAndPull: function(calendar, stream, callback)  {
+      var self = this;
+      var accountStore = Calendar.App.store('Account');
+      accountStore.get(calendar.accountId,
+        function(err, pulleventaccount) {
+          // pulleventaccount is used to initalize CaldavPullEvents
+          if (!pulleventaccount) {
+            callback(new Error('no account'));
+            return;
+          }
+          self._createPullEvent(calendar, pulleventaccount, stream);
+        }
+      );
+    },
+
+    /**
+     * Creates an instance of CaldavPullEvents and commits
+     * ical data received on the stream.
+     *
+     * @param {Object} calendar, Calendar object for CaldavPullEvents.
+     * @param {Object} account, Account object for CaldavPullEvents.
+     * @param {Calendar.Responder} stream to whose emitted events we
+     *  have to commit.
+     *
+     * @param {Function} callback, node style callback.
+     */
+    _createPullEvent: function(calendar, account, stream, callback) {
+      var pull = new Calendar.Provider.CaldavPullEvents(stream, {
+        calendar: calendar,
+        account: account
+      });
+      pull.on('complete', callback);
+      stream.request(function() {
+        // stream is complete here the audit of
+        // events can be made. They are flushed
+        // to the cache where possible but not actually
+        // persisted in the database.
+      });
+    },
 
     getAccount: function(account, callback) {
       callback(null, {});

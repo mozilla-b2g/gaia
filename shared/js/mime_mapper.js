@@ -39,6 +39,7 @@ var MimeMapper = {
     'video/webm': 'webm',
     'video/3gpp': '3gp',
     // Application
+    'text/calendar': 'ics'
     // If we want to support some types, like pdf, just add
     // 'application/pdf': 'pdf'
     'application/vcard': 'vcf',
@@ -76,6 +77,7 @@ var MimeMapper = {
     '3gp': 'video/3gpp',
     'ogg': 'video/ogg',
     // Application
+    'ics' : 'text/calendar'
     // If we want to support some extensions, like pdf, just add
     // 'pdf': 'application/pdf'
     // Text

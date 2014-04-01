@@ -1,5 +1,19 @@
+requireLib('worker/manager.js');
 requireLib('timespan.js');
-
+requireApp('calendar/test/unit/provider/mock_stream.js');
+requireApp('calendar/js/ext/uuid.js');
+requireApp('calendar/test/unit/service/helper.js');
+requireLib('ext/ical.js');
+requireLib('ext/caldav.js');
+requireLib('service/mixins.js');
+requireLib('service/caldav.js');
+requireLib('service/ical_recur_expansion.js');
+requireLib('service/ical.js');
+requireLib('provider/caldav_pull_events.js');
+requireLib('responder.js');
+requireLib('app.js');
+requireLib('models/account.js');
+requireLib('models/calendar.js');
 var uuid;
 
 suiteGroup('Provider.Local', function() {
@@ -8,6 +22,7 @@ suiteGroup('Provider.Local', function() {
   var app;
   var db;
   var controller;
+  var worker;
 
   setup(function(done) {
     app = testSupport.calendar.app();
@@ -231,5 +246,99 @@ suiteGroup('Provider.Local', function() {
       });
     });
 
+  });
+
+  suite('importCalendar', function() {
+    var calendar;
+    var account;
+    var eventStore;
+    var fixturePath;
+    var singleEventPath;
+    var dailyEventPath;
+    var recurringEventPath;
+    var singleEventCalendarPath;
+    var dailyEventCalendarPath;
+    var recurringEventCalendarPath;
+    var worker;
+    var workerapp;
+    var workersubject;
+
+    setup(function() {
+      worker = new Calendar.Controllers.Service(app);
+      worker.start();
+      app.serviceController = worker;
+      workersubject = new Calendar.Provider.Local({
+        app: app
+      });
+      calendar = Factory.create('calendar');
+      account = Factory.create('account');
+      calendar.app = app;
+      fixturePath = '../../test/unit/fixtures/caldav/ical/';
+      singleEventPath = fixturePath + 'single_event.ics';
+      dailyEventPath = fixturePath + 'daily_event.ics';
+      recurringEventPath = fixturePath + 'recurring_event.ics';
+
+      singleEventCalendarPath = {
+        format: 'ics',
+        url: singleEventPath,
+        noOfEvents: 1
+      };
+      dailyEventCalendarPath = {
+        format: 'ics',
+        url: dailyEventPath,
+        noOfEvents: 1
+      };
+      recurringEventCalendarPath = {
+        format: 'ics',
+        url: recurringEventPath,
+        noOfEvents: 3,
+        eventId: '1-cuuid/1-623c13c0-6c2b-45d6-a12b-c33ad61c4868'
+      };
+    });
+
+    test('no calendar', function(done) {
+      workersubject.importCalendar(dailyEventCalendarPath.url,
+        function(err) {
+          assert.ok(err);
+          assert.deepEqual(err, new Error('no calendar'));
+          done();
+        }
+      );
+    });
+
+    test('file is committed', function(done) {
+      workersubject.importCalendar(recurringEventCalendarPath.url,
+        function(err) {
+          assert.ok(!err);
+          eventStore = calendar.app.store('Event');
+          eventStore.findByIds(
+            [recurringEventCalendarPath.eventId],
+            function(err, list) {
+              for (var eventId in list) {
+                assert.equal(
+                  list[eventId].calendarId,
+                  calendar._id
+                );
+              }
+              done();
+            }
+          );
+        },
+        calendar,
+        account
+      );
+    });
+
+    test('no account', function(done) {
+      workersubject.importCalendar(singleEventCalendarPath.url,
+        function(err) {
+          assert.ok(err);
+          assert.deepEqual(err, new Error('no account'));
+          done();
+        },
+        calendar,
+        null
+      );
+    });
   });
 });

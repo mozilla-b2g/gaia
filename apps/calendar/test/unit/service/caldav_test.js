@@ -4,6 +4,7 @@ requireLib('ext/ical.js');
 requireLib('ext/caldav.js');
 requireLib('ext/uuid.js');
 requireLib('service/ical_recur_expansion.js');
+ requireLib('service/mixins.js');
 requireLib('service/caldav.js');
 
 suite('service/caldav', function() {

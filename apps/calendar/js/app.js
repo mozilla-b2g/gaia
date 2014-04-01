@@ -372,6 +372,14 @@ Calendar.App = (function(window) {
         self.recurringEventsController.observe();
       });
 
+      //lazy load MozActivity handler so as not to impact initial load.
+      this.loadObject('Controllers.ActivityHandler', function() {
+
+        self.activityHandlerController =
+          new Calendar.Controllers.ActivityHandler(self);
+
+        self.activityHandlerController.observe();
+      });
       // go ahead and show the first time use view if necessary
       this.view('FirstTimeUse', function(firstTimeUse) {
         firstTimeUse.doFirstTime();

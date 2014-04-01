@@ -143,8 +143,9 @@
           return self.store[name] || name;
         });
       }
-
-      return this.connection.transaction(names, state || 'readonly');
+      if (this.connection) {
+        return this.connection.transaction(names, state || 'readonly');
+      }
     },
 
     _handleVersionChange: function(db, event) {

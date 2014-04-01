@@ -3,6 +3,7 @@ requireApp('calendar/js/ext/uuid.js');
 requireApp('calendar/test/unit/service/helper.js');
 requireLib('ext/ical.js');
 requireLib('ext/caldav.js');
+requireLib('service/mixins.js');
 requireLib('service/caldav.js');
 requireLib('service/ical_recur_expansion.js');
 requireLib('models/account.js');
