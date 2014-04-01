@@ -1,9 +1,8 @@
-((typeof(Calendar) === 'undefined') ? Calendar = {} : '');
+'use strict';
 
-// expose window globally in this
-// context if not available.
-if (typeof(window) === 'undefined') {
-  this.window = this;
+if (typeof(Calendar) === 'undefined') {
+  /*global Calendar:true */
+  Calendar = {};
 }
 
 Calendar.Thread = function Thread(worker) {
@@ -52,8 +51,6 @@ Calendar.Thread.prototype = {
       var callback = self._requestCallback.bind(
         self, data.id
       );
-
-      var payload = data.payload;
 
       if (data.role) {
         if (data.role in self.roles) {

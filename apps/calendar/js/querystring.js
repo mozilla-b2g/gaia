@@ -1,4 +1,6 @@
 Calendar.QueryString = (function() {
+  'use strict';
+
   // Copyright Joyent, Inc. and other Node contributors.
   //
   // Permission is hereby granted, free of charge, to any person obtaining a
@@ -54,11 +56,13 @@ Calendar.QueryString = (function() {
               state = 'HEX0';
               break;
             case charCode('+'):
-              if (decodeSpaces) c = charCode(' ');
-              // pass thru
-            default:
+              if (decodeSpaces) {
+                c = charCode(' ');
+              }
               out[outIndex++] = c;
               break;
+            default:
+              out[outIndex++] = c;
           }
           break;
 
@@ -151,7 +155,9 @@ Calendar.QueryString = (function() {
 
     }
 
-    if (!name) return '';
+    if (!name) {
+      return '';
+    }
     return QueryString.escape(stringifyPrimitive(name)) + eq +
            QueryString.escape(stringifyPrimitive(obj));
   };

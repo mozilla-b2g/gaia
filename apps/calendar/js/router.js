@@ -1,4 +1,8 @@
+/*jshint loopfunc: true */
+
 (function(window) {
+  'use strict';
+
   var COPY_METHODS = ['start', 'stop', 'show'];
 
   function Router(page) {
@@ -41,7 +45,7 @@
      * Clears active objects, calls oninactive
      * on object if available.
      */
-    clearObjects: function(ctx) {
+    clearObjects: function() {
       var item;
       while ((item = this._activeObjects.pop())) {
         // intentionally using 'in'
@@ -110,6 +114,7 @@
         var numViews = len;
         var i;
 
+        /*jshint loopfunc: true */
         for (i = 0; i < numViews; i++) {
           Calendar.App.view(views[i], function(view) {
             viewObjs.push(view);
@@ -130,8 +135,8 @@
         }
 
         // Activate objects
-        for (var i = 0, view; view = viewObjs[i]; i++) {
-          self.mangeObject(view, ctx);
+        for (var i = 0; i < viewObjs.length; i++) {
+          self.mangeObject(viewObjs[i], ctx);
         }
 
         // Set the current path
