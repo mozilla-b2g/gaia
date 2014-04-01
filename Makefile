@@ -490,19 +490,19 @@ endif
 
 $(1): $($(shell basename $(2))_APP_FILES) $(XULRUNNER_BASE_DIRECTORY) | $(STAGE_DIR)
 	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
-		if [[ -e "$(2)/Makefile" ]]; then \
+		if [ -r "$(2)/Makefile" ]; then \
 			echo "execute Makefile for $(shell basename $(2)) app" ; \
 			STAGE_APP_DIR="../../build_stage/$(shell basename $(2))" make -C "$(2)" ; \
 		else \
 			echo "copy $(shell basename $(2)) to build_stage/" ; \
-			rm -rf "$(STAGE_DIR)/$(shell basename $(2))"; \
-			cp -r "$(2)" $(STAGE_DIR) ; \
-			if [[ -e "$(2)/build/build.js" ]]; then \
+			rm -rf "$(STAGE_DIR)/$(shell basename $(2))" && \
+			cp -r "$(2)" $(STAGE_DIR) && \
+			if [ -r "$(2)/build/build.js" ]; then \
 				echo "execute $(shell basename $(2))/build/build.js"; \
 				export APP_DIR=$(2); \
 				$(call run-js-command,app/build); \
 			fi; \
-		fi; \
+		fi && \
 		$(call clean-build-files,$(STAGE_DIR)/$(shell basename $(2))); \
 	fi;
 endef
@@ -626,54 +626,6 @@ reference-workload-heavy:
 .PHONY: reference-workload-x-heavy
 reference-workload-x-heavy:
 	test_media/reference-workload/makeReferenceWorkload.sh x-heavy
-
-# The install-xulrunner target arranges to get xulrunner downloaded and sets up
-# some commands for invoking it. But it is platform dependent
-# IMPORTANT: you should generally change the directory name when you change the
-# URL unless you know what you're doing
-XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2014/03/2014-03-08-03-02-03-mozilla-central/xulrunner-30.0a1.en-US.
-XULRUNNER_BASE_DIRECTORY?=xulrunner-sdk-30
-XULRUNNER_DIRECTORY?=$(XULRUNNER_BASE_DIRECTORY)/xulrunner-sdk
-XULRUNNER_URL_FILE=$(XULRUNNER_BASE_DIRECTORY)/.url
-
-ifeq ($(SYS),Darwin)
-# For mac we have the xulrunner-sdk so check for this directory
-# We're on a mac
-XULRUNNER_MAC_SDK_URL=$(XULRUNNER_SDK_URL)mac-
-ifeq ($(ARCH),i386)
-# 32-bit
-XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_MAC_SDK_URL)i386.sdk.tar.bz2
-else
-# 64-bit
-XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_MAC_SDK_URL)x86_64.sdk.tar.bz2
-endif
-XULRUNNERSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/run-mozilla.sh)
-XPCSHELLSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/xpcshell)
-
-else ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
-# For windows we only have one binary
-XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_SDK_URL)win32.sdk.zip
-XULRUNNERSDK=
-XPCSHELLSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/xpcshell)
-
-else
-# Otherwise, assume linux
-# downloads and installs locally xulrunner to run the xpchsell
-# script that creates the offline cache
-XULRUNNER_LINUX_SDK_URL=$(XULRUNNER_SDK_URL)linux-
-ifeq ($(ARCH),x86_64)
-XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_LINUX_SDK_URL)x86_64.sdk.tar.bz2
-else
-XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_LINUX_SDK_URL)i686.sdk.tar.bz2
-endif
-XULRUNNERSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/run-mozilla.sh)
-XPCSHELLSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/xpcshell)
-endif
-
-# It's difficult to figure out XULRUNNERSDK in subprocesses; it's complex and
-# some builders may want to override our find logic (ex: TBPL).
-# So let's export these variables to external processes.
-export XULRUNNER_DIRECTORY XULRUNNERSDK XPCSHELLSDK
 
 xpcshell_sdk:
 	@echo $(XPCSHELLSDK)
