@@ -1,4 +1,5 @@
 Calendar.ns('Test').MockView = (function() {
+  'use strict';
 
   function View(options) {
     var self = this;

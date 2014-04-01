@@ -1,4 +1,6 @@
 suiteGroup('Views.Errors', function() {
+  'use strict';
+
   var subject, app, errorName;
 
   setup(function() {

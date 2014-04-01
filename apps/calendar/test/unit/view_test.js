@@ -1,6 +1,7 @@
 requireLib('view.js');
 
 suite('view', function() {
+  'use strict';
 
   var el, subject;
 
@@ -145,8 +146,9 @@ suite('view', function() {
     test('matches - fn', function(done) {
 
       function next() {
-        if (!(--pending))
+        if (!(--pending)) {
           done();
+        }
       }
 
       var pending = 2;
@@ -206,10 +208,9 @@ suite('view', function() {
     test('successfuly display', function() {
       var errors = [{ name: 'error-default' }];
       subject.showErrors(errors);
-
       var list = subject.status.classList;
-      var errors = subject.errors.textContent;
 
+      errors = subject.errors.textContent;
       assert.ok(errors);
       assert.include(errors, navigator.mozL10n.get('error-default'));
 

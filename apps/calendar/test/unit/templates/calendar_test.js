@@ -2,6 +2,8 @@ requireLib('provider/abstract.js');
 requireLib('provider/local.js');
 
 suiteGroup('Templates.Calendar', function() {
+  'use strict';
+
   var subject;
 
   suiteSetup(function() {

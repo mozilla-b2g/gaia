@@ -2,8 +2,9 @@ requireLib('provider/abstract.js');
 requireLib('provider/local.js');
 
 suiteGroup('Models.Account', function() {
+  'use strict';
+
   var subject;
-  var provider;
 
   setup(function() {
     subject = new Calendar.Models.Account({

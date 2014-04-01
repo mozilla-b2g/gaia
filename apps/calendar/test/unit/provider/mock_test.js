@@ -1,4 +1,7 @@
+/*global Factory */
+
 suite('Provider.Mock', function() {
+  'use strict';
 
   testSupport.calendar.loadObjects(
     'Models.Account',

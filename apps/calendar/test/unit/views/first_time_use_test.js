@@ -5,6 +5,8 @@ requireLib('views/first_time_use.js');
 requireLib('app.js');
 
 suite('Views.FirstTimeUse', function() {
+  'use strict';
+
   var app,
       store,
       subject;

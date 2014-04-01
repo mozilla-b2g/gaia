@@ -1,5 +1,7 @@
 requireApp('calendar/js/calendar.js');
 suite('calendar', function() {
+  'use strict';
+
   var subject;
 
   setup(function() {
@@ -13,7 +15,6 @@ suite('calendar', function() {
     });
 
     test('check', function() {
-      var ns = Calendar.ns('App');
       assert.isTrue(Calendar.ns('App', true), 'has app');
       assert.isFalse(
         Calendar.ns('Store.FoobarX', true),
@@ -77,8 +78,9 @@ suite('calendar', function() {
         var result = fn(list, 3, function(seek, inList) {
           var target = inList[0];
 
-          if (seek === target)
+          if (seek === target) {
             return 0;
+          }
 
           if (seek < target) {
             return -1;

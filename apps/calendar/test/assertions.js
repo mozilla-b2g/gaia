@@ -1,3 +1,6 @@
+'use strict';
+/*global assert */
+
 assert.hasProperties = function chai_hasProperties(given, props, msg) {
   msg = (typeof(msg) === 'undefined') ? '' : msg + ': ';
 

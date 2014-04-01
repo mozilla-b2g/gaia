@@ -1,3 +1,5 @@
+/*global Factory */
+
 requireLib('querystring.js');
 requireLib('timespan.js');
 requireLib('utils/overlap.js');
@@ -6,6 +8,7 @@ requireLib('templates/day.js');
 requireLib('views/day_based.js');
 
 suiteGroup('Views.DayBased', function() {
+  'use strict';
 
   var OrderedMap;
 
@@ -18,11 +21,6 @@ suiteGroup('Views.DayBased', function() {
   var date = new Date(2012, 1, 5);
   var id = 0;
   var hours;
-
-  function eventHolder() {
-    return { remote: {}, _id: id++ };
-  }
-
   var controller;
   var template;
 
@@ -67,7 +65,6 @@ suiteGroup('Views.DayBased', function() {
     var addCalledWith;
     var list = [];
     var busytimes = [];
-    var start = new Date();
 
     setup(function() {
       list.length = 0;
@@ -240,7 +237,7 @@ suiteGroup('Views.DayBased', function() {
         startDate: start,
         endDate: end
       });
-    };
+    }
 
     var el;
 
@@ -275,8 +272,8 @@ suiteGroup('Views.DayBased', function() {
     });
 
     test('cross the next day', function() {
-      var endDate = new Date(2012, 0, 2, 11, 00);
-      var busy = record(time(23, 00), endDate);
+      var endDate = new Date(2012, 0, 2, 11, 0);
+      var busy = record(time(23, 0), endDate);
       subject._assignPosition(busy, el);
 
       assert.ok(!el.style.top, 'no top');
@@ -332,10 +329,6 @@ suiteGroup('Views.DayBased', function() {
       var max = 24 - intialHour;
       var curHour = intialHour + 1;
       var selector = '[data-id="' + busytime._id + '"]';
-      var initialElement = subject.element.querySelector(
-        selector
-      );
-
       var calendarId = subject.calendarId(busytime);
 
       for (; curHour < max; curHour++) {
@@ -469,8 +462,6 @@ suiteGroup('Views.DayBased', function() {
     });
 
     test('remove hourly records', function() {
-      // calendar one
-      var a = add(1, 'one');
       // calendar to
       var b = add(1, 'two');
       var c = add(1, 'two');
@@ -511,7 +502,6 @@ suiteGroup('Views.DayBased', function() {
   });
 
   suite('#createHour', function() {
-    var group;
     var children;
 
     setup(function() {

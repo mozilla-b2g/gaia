@@ -1,9 +1,12 @@
+/*global Factory */
+
 requireLib('calc.js');
 requireLib('timespan.js');
 requireLib('interval_tree.js');
 requireLib('utils/overlap.js');
 
 suite('overlap', function() {
+  'use strict';
 
   var forever;
   var subject;
@@ -64,12 +67,6 @@ suite('overlap', function() {
   function conflictSpansFromRecords(records) {
     return records.map(function(r) {
       return subject.getConflictSpan(r.busytime);
-    });
-  }
-
-  function elementsFromRecords(records) {
-    return records.map(function(r) {
-      return subject.getElement(r.busytime);
     });
   }
 
@@ -190,7 +187,7 @@ suite('overlap', function() {
       records.push(addRecord(1, 30, 3, 15));
 
       // There should be one span, now, encompassing all events.
-      var cs = conflictSpansFromRecords(records);
+      cs = conflictSpansFromRecords(records);
       cs.forEach(function(c) {
         assert.equal(c, cs[0]);
         assert.equal(c.columns.length, 3);
@@ -230,7 +227,7 @@ suite('overlap', function() {
       assert.ok(!subject.tree.byId[mergeRec.busytime._id]);
 
       // Ensure there are 2 separate conflict spans.
-      var cs = conflictSpansFromRecords(records);
+      cs = conflictSpansFromRecords(records);
       assert.notEqual(cs[0].id, cs[2].id);
       assert.equal(cs[0], cs[1]);
       assert.equal(cs[2], cs[3]);

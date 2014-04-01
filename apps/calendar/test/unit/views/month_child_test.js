@@ -1,8 +1,12 @@
+/*global Factory */
+
 requireCommon('test/synthetic_gestures.js');
 require('/shared/js/gesture_detector.js');
 requireLib('timespan.js');
 
 suiteGroup('Views.MonthChild', function() {
+  'use strict';
+
   var subject,
       controller,
       busytimes,
@@ -10,15 +14,6 @@ suiteGroup('Views.MonthChild', function() {
       testEl,
       //Nov 1st, 2012
       month = new Date(2012, 10, 1);
-
-  function range(start, end) {
-    var list = [];
-
-    for (; start <= end; start++) {
-      list.push(start);
-    }
-    return list;
-  }
 
   function createHour(hour) {
     return new Date(
@@ -51,14 +46,6 @@ suiteGroup('Views.MonthChild', function() {
   });
 
   suite('initialization', function() {
-
-    function view(month) {
-      return new Calendar.Views.MonthChild({
-        app: app,
-        date: month
-      });
-    }
-
     test('sanity', function() {
       assert.equal(subject.controller, controller);
       assert.equal(subject.date, month);
@@ -571,16 +558,6 @@ suiteGroup('Views.MonthChild', function() {
         'has no indicators'
       );
     });
-
-    function createHour(hour) {
-      return new Date(
-        day.getFullYear(),
-        day.getMonth(),
-        day.getDate(),
-        hour
-      );
-    }
-
   });
 
   suite('#_renderWeek', function() {

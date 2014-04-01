@@ -1,3 +1,5 @@
+/*global Factory */
+
 requireLib('timespan.js');
 requireLib('interval_tree.js');
 requireLib('responder.js');
@@ -5,6 +7,8 @@ requireLib('calc.js');
 requireLib('store/event.js');
 
 suite('store/event', function() {
+  'use strict';
+
   testSupport.calendar.loadObjects(
     'Models.Account',
     'Model.Calendar',
@@ -84,12 +88,7 @@ suite('store/event', function() {
   });
 
   suite('#(x)For', function() {
-    var calStore;
-    var accStore;
-
     var event;
-    var account;
-    var calendar;
 
     setup(function(done) {
       event = Factory('event', {
@@ -159,7 +158,6 @@ suite('store/event', function() {
 
   suite('#findByIds', function() {
     var events = {};
-    var expectedDbIds;
 
     function persist() {
       setup(function(done) {

@@ -1,8 +1,9 @@
+/*global Factory */
+
 requireLib('timespan.js');
 
-var uuid;
-
 suiteGroup('Provider.Local', function() {
+  'use strict';
 
   var subject;
   var app;

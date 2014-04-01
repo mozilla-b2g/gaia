@@ -11,6 +11,8 @@ requireLib('views/month.js');
 */
 
 suiteGroup('Views.Month', function() {
+  'use strict';
+
   var subject,
       app,
       controller,

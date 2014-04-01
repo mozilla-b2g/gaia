@@ -6,7 +6,8 @@
  * but should be fine for the 10-100 objects in small-large
  * tests.
  */
-var Factory = (function() {
+window.Factory = (function() {
+  'use strict';
 
   function propIsFactory(object, key) {
     var descriptor = Object.getOwnPropertyDescriptor(
@@ -51,7 +52,6 @@ var Factory = (function() {
    * (in order from left to right to the final argument)
    */
   function copy() {
-    var key;
     var args = Array.prototype.slice.call(arguments);
     var target = args.pop();
 
@@ -60,7 +60,7 @@ var Factory = (function() {
         return;
       }
 
-      for (key in object) {
+      for (var key in object) {
         if (object.hasOwnProperty(key)) {
           Object.defineProperty(
             target,
@@ -88,13 +88,16 @@ var Factory = (function() {
   Factory.define = function(name, options) {
     if (options.extend) {
       var factory = Factory.get(options.extend);
-      return Factory._defined[name] = factory.extend(
+      Factory._defined[name] = factory.extend(
+        options
+      );
+    } else {
+      Factory._defined[name] = new Factory(
         options
       );
     }
-    return Factory._defined[name] = new Factory(
-      options
-    );
+
+    return Factory._defined[name];
   };
 
   Factory.create = function(name, opts) {
@@ -163,7 +166,6 @@ var Factory = (function() {
 
       // expand factories
       var factoryOverrides;
-      var descriptor;
 
       for (key in defaults) {
         // when default property is a factory

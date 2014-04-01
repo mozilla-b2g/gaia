@@ -3,10 +3,11 @@ require('/shared/js/gesture_detector.js');
 requireLib('timespan.js');
 
 suiteGroup('Views.Week', function() {
+  'use strict';
+
   var subject;
   var app;
   var controller;
-  var busytimes;
   var triggerEvent;
   var testEl;
 

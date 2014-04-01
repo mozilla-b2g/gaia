@@ -2,6 +2,8 @@ requireLib('format.js');
 requireLib('template.js');
 
 suite('calendar/template', function() {
+  'use strict';
+
   var Template, subject,
       tplStr = '%s foo %h',
       support;
@@ -157,7 +159,7 @@ suite('calendar/template', function() {
     });
 
     test('bool handler', function() {
-      var tpl, input, output;
+      var tpl, output;
       tpl = new Template(function() { return this.bool('one', 'selected'); });
       output = tpl.render({ one: true });
       assert.equal(output, 'selected');
@@ -218,7 +220,7 @@ suite('calendar/template', function() {
   });
 
   suite('benchmarks', function() {
-
+    /*jshint -W027 */
     test('tpl vs format', function() {
       // XXX: Minor performance regression
       // come back later and inline
@@ -228,8 +230,6 @@ suite('calendar/template', function() {
 
       var tpl = 'My name is {first} {last}, Thats Mr {last}';
       var template;
-
-      var expected = 'My name is Sahaja Lal, Thats Mr Lal';
 
       var results = support.vs(5000, {
         compiled: function() {
@@ -260,7 +260,7 @@ suite('calendar/template', function() {
 
       div.appendChild(span);
 
-      var results = support.vs(5000, {
+      support.vs(5000, {
         html: function() {
           var myDiv = div.cloneNode(true),
               mySpan = myDiv.querySelector('span');
