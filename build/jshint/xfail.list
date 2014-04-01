@@ -30,8 +30,6 @@ apps/camera/build/configure.js
 apps/camera/js/startup.js
 apps/camera/js/views/viewfinder.js
 apps/clock/js/text.js
-apps/communications/contacts/oauth2/js/flow.js
-apps/communications/contacts/oauth2/js/oauth20.js
 apps/communications/dialer/js/bluetooth_helper.js
 apps/communications/dialer/js/call_log.js
 apps/communications/dialer/js/call_log_db.js

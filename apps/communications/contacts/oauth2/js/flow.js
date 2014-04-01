@@ -1,3 +1,6 @@
+/* global oauthflow */
+'use strict';
+
 /*
  *  Module: Facebook integration
  *
@@ -10,7 +13,6 @@
 
 if (typeof window.oauthflow === 'undefined') {
   (function(document) {
-    'use strict';
 
     var OAuthFlow = window.oauthflow = {};
 
@@ -19,13 +21,6 @@ if (typeof window.oauthflow === 'undefined') {
     var APP_ID = 'applicationId';
     var SCOPE = 'scope';
     var APP_ORIGIN = location.origin;
-
-    // The access token
-    var accessToken;
-    // hash to get the token
-    var hash = window.location.hash;
-    // Access Token parameter
-    var ACC_T = 'access_token';
 
     /**
      *  Initialization function it tries to find an access token
