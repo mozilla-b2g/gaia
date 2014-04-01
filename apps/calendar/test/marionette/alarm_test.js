@@ -1,6 +1,6 @@
 'use strict';
 
-var Calendar = require('./calendar'),
+var Calendar = require('./lib/calendar'),
     assert = require('chai').assert;
 
 var SHARED_PATH = __dirname + '/../../../../shared/test/integration';
@@ -20,7 +20,7 @@ marionette('alarm', function() {
   suite('create event with a single reminder', function() {
     setup(function() {
       createEventWithReminders(app, ['5 minutes before']);
-      app.scrollMonthViewDayEventIntoView();
+      app.monthDay.scrollToEvent();
     });
 
     test('should display reminder in read-only event view', function() {
@@ -38,7 +38,7 @@ marionette('alarm', function() {
   suite('create an event with two valid reminders', function() {
     setup(function() {
       createEventWithReminders(app, ['5 minutes before', '15 minutes before']);
-      app.scrollMonthViewDayEventIntoView();
+      app.monthDay.scrollToEvent();
     });
 
     test('should display both reminders in read-only view', function() {
@@ -62,26 +62,14 @@ function createEventWithReminders(app, reminders) {
     startDate: new Date(),
     reminders: reminders
   });
-
-  // Wait until we return to the base, month view.
-  app.waitForMonthView();
 }
 
 function getEventReminders(app) {
-  app
-    .waitForElement('monthViewDayEvent')
-    .click();
+  var event = app.monthDay.events[0];
+  event.click();
 
-  app.waitForViewEventView();
-
-  var elements = app.findElements(
-    app.waitForElement('viewEventViewAlarms'),
-    'viewEventViewAlarm'
-  );
-
-  return elements.map(function(element) {
-    return element.text();
-  });
+  app.readEvent.waitForDisplay();
+  return app.readEvent.alarms;
 }
 
 function getMozAlarms(client) {
