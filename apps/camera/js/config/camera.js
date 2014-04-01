@@ -2,30 +2,15 @@ define(function(require, exports, module) {
 'use strict';
 
 /**
+ * This file is @deprecated!
+ * Please use config/settings.js instead.
+ */
+
+/**
  * Exports
  */
 
 module.exports = {
-  CAMERA_MODE_TYPE: {
-    PICTURE: 'picture',
-    VIDEO: 'video'
-  },
-
-  STORAGE_STATE_TYPE: {
-    INIT: 0,
-    AVAILABLE: 1,
-    NOCARD: 2,
-    UNMOUNTED: 3,
-    CAPACITY: 4
-  },
-
-  FOCUS_MODE_TYPE: {
-    MANUALLY_TRIGGERED: 'auto',
-    CONTINUOUS_CAMERA: 'continuous-picture',
-    CONTINUOUS_VIDEO: 'continuous-video'
-  },
-
-  PROMPT_DELAY: 2000,
 
   // The minimum available disk space to start recording a video.
   RECORD_SPACE_MIN: 1024 * 1024 * 2,

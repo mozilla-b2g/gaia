@@ -24,9 +24,7 @@ var THUMBNAIL_HEIGHT = 54 * window.devicePixelRatio;
  * Exports
  */
 
-exports = module.exports = function(app) {
-  return new PreviewGalleryController(app);
-};
+module.exports = function(app) { return new PreviewGalleryController(app); };
 module.exports.PreviewGalleryController = PreviewGalleryController;
 
 function PreviewGalleryController(app) {
@@ -40,12 +38,10 @@ function PreviewGalleryController(app) {
 }
 
 PreviewGalleryController.prototype.bindEvents = function() {
+  this.storage.on('itemdeleted', this.onItemDeleted);
   this.app.on('preview', this.openPreview);
   this.app.on('newmedia', this.onNewMedia);
   this.app.on('blur', this.onBlur);
-
-  this.storage.on('itemdeleted', this.onItemDeleted);
-
   debug('events bound');
 };
 
@@ -77,6 +73,7 @@ PreviewGalleryController.prototype.openPreview = function() {
   this.view.set('secure-mode', secureMode);
   this.view.open();
 
+  this.app.set('previewGalleryOpen', true);
   this.previewItem();
 };
 
@@ -94,6 +91,8 @@ PreviewGalleryController.prototype.closePreview = function() {
     this.view.destroy();
     this.view = null;
   }
+
+  this.app.set('previewGalleryOpen', false);
   this.app.emit('previewgallery:closed');
 };
 
@@ -108,7 +107,7 @@ PreviewGalleryController.prototype.onGalleryButtonClick = function() {
   // The button shouldn't even be visible in this case, but
   // let's be really sure here.
   if (this.app.inSecureMode) { return; }
-  
+
   var MozActivity = window.MozActivity;
 
   // Launch the gallery with an activity
@@ -142,7 +141,7 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
 };
 
 /**
- * Delete the current item 
+ * Delete the current item
  * when the delete button is pressed.
  * @private
  */
