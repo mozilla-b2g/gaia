@@ -1,11 +1,15 @@
 /* global define */
-define(function() {
+define(function(require) {
   'use strict';
-  var SettingsService = {
-    navigate: function(panelId) {
-      return;
+  var MockSettingsService = {
+    _cachedNavigation: [],
+    navigate: function(panelId, options) {
+      this._cachedNavigation.push({
+        panelId: panelId,
+        options: options
+      });
     }
   };
 
-  return SettingsService;
+  return MockSettingsService;
 });
