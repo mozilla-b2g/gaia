@@ -4,6 +4,11 @@ requireLib('templates/alarm.js');
 suiteGroup('Templates.Alarm', function() {
   var app;
   var subject;
+  var app;
+
+  setup(function() {
+    app = testSupport.calendar.app();
+  });
 
   suiteSetup(function() {
     app = testSupport.calendar.app();
