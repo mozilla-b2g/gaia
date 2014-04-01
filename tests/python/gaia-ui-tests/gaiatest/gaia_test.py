@@ -830,10 +830,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         # switch off keyboard FTU screen
         self.data_layer.set_setting("keyboard.ftu.enabled", False)
 
-        # switch on keyboard autocorrection and word suggestion because we have tests depending on this.
-        self.data_layer.set_setting("keyboard.wordsuggestion", True)
-        self.data_layer.set_setting("keyboard.autocorrect", True)
-
         # restore settings from testvars
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
 
@@ -885,6 +881,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
         # disable sound completely
         self.data_layer.set_volume(0)
+
+        # disable auto-correction of keyboard, for issue like Bug 956641
+        self.data_layer.set_setting('keyboard.autocorrect', False)
 
     def connect_to_network(self):
         if not self.device.is_online:
