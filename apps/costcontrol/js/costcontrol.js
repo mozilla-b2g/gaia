@@ -1,5 +1,5 @@
 /* global debug, ConfigManager, SettingsListener, Toolkit, addAlarmTimeout,
-          toMidnight, Common  */
+          Common  */
 /* exported CostControl */
 'use strict';
 
@@ -382,14 +382,14 @@ var CostControl = (function() {
                    'samples. Setting to ' + minimumStart);
       start = minimumStart;
     }
-    start = toMidnight(start);
+    start = Toolkit.toMidnight(start);
 
-    var today = toMidnight(new Date());
+    var today = Toolkit.toMidnight(new Date());
 
     var tomorrow = new Date();
     tomorrow.setTime(today.getTime() + DAY);
 
-    var end = toMidnight(settings.nextReset ?
+    var end = Toolkit.toMidnight(settings.nextReset ?
                          new Date(settings.nextReset.getTime() - DAY) :
                          tomorrow);
 

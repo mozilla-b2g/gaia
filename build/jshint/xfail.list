@@ -131,10 +131,6 @@ apps/communications/import/test/unit/mock_connector.js
 apps/communications/import/test/unit/mock_import.html.js
 apps/communications/import/test/unit/mock_imported_contacts.js
 apps/communications/live/js/live_connector.js
-apps/costcontrol/js/common.js
-apps/costcontrol/js/utils/formatting.js
-apps/costcontrol/js/utils/toolkit.js
-apps/costcontrol/test/unit/mock_date.js
 apps/email/js/app_messages.js
 apps/email/js/app_self.js
 apps/email/js/array.js
