@@ -98,7 +98,7 @@
  *      End composition, clear the composing text and commit given text to
  *      current input field.
  *
- *    sendKey(keycode):
+ *    sendKey(keycode, isRepeat):
  *      Generate output. Typically the keyboard will just pass this
  *      keycode to inputcontext.sendKey(). The IM could call
  *      inputcontext.sendKey() directly, but doing it this way allows
@@ -1242,14 +1242,11 @@ function startPress(target, coords, touchId) {
   // Furthermore, delete key has a repetition behavior
   if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
 
-    // First, just pressing (without feedback)
-    sendDelete(false);
-
-    // Second, after a delay (with feedback)
+    // First repetition, after a delay (with feedback)
     deleteTimeout = window.setTimeout(function() {
       sendDelete(true);
 
-      // Third, after shorter delay (with feedback too)
+      // Second, after shorter delay (with feedback too)
       deleteInterval = setInterval(function() {
         sendDelete(true);
       }, REPEAT_RATE);
@@ -1406,8 +1403,11 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
   var keyCode = getKeyCodeFromTarget(target);
 
   // Delete is a special key, it reacts when pressed not released
-  if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
+  if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
+    // The backspace key pressing is regarded as non-repetitive behavior.
+    sendDelete(false);
     return;
+  }
 
   // Reset the flag when a non-space key is pressed,
   // used in space key double tap handling
@@ -1616,9 +1616,13 @@ function resetKeyboard() {
 // This is a wrapper around inputContext.sendKey()
 // We use it in the defaultInputMethod and in the interface object
 // we pass to real input methods
-function sendKey(keyCode) {
+function sendKey(keyCode, isRepeat) {
   switch (keyCode) {
   case KeyEvent.DOM_VK_BACK_SPACE:
+    if (inputContext) {
+      return inputContext.sendKey(keyCode, 0, 0, isRepeat);
+    }
+    break;
   case KeyEvent.DOM_VK_RETURN:
     if (inputContext) {
       return inputContext.sendKey(keyCode, 0, 0);
