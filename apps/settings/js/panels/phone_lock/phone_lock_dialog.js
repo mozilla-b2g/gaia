@@ -1,3 +1,4 @@
+/* global SettingsListener */
 define(function(require) {
   'use strict';
 
@@ -183,20 +184,10 @@ define(function(require) {
       },
 
       fetchSettings: function() {
-        var settings = navigator.mozSettings;
-        var lock = settings.createLock();
-        var self = this;
-
-        var reqCode = lock.get('lockscreen.passcode-lock.code');
-        reqCode.onsuccess = function onPasscodeSuccess() {
-          var passcode = reqCode.result['lockscreen.passcode-lock.code'];
-          self.settings.passcode = passcode;
-        };
-
-        settings.addObserver('lockscreen.passcode-lock.code',
-          function onPasscodeLockCodeChange(event) {
-            self.settings.passcode = event.settingValue;
-        });
+        SettingsListener.observe('lockscreen.passcode-lock.code', '0000',
+          function(passcode) {
+            this.settings.passcode = passcode;
+        }.bind(this));
       },
 
       showErrorMessage: function pl_showErrorMessage(message) {
