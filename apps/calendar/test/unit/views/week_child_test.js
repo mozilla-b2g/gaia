@@ -1,3 +1,4 @@
+requireLib('querystring.js');
 requireLib('timespan.js');
 
 suiteGroup('Views.WeekChild', function() {
@@ -74,5 +75,17 @@ suiteGroup('Views.WeekChild', function() {
     assert.include(stubStickyFrame.innerHTML, subject._renderHeader());
   });
 
+  test('tap on empty slot in week view to create event', function() {
+    var startHour = 17;
+    subject.create();
+    subject.element.querySelector('[data-hour="' + startHour + '"]').click();
+    var url = subject.app.router.page.shown;
+    var queryString =
+      Calendar.QueryString.parse(url.replace('/event/add/?', ''));
+    var startDate = new Date(Date.parse(queryString.startDate));
+    var endDate = new Date(Date.parse(queryString.endDate));
+    assert.equal(startDate.getHours(), startHour);
+    assert.equal(endDate.getHours(), startHour + 1);
+  });
 });
 

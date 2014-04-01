@@ -14,6 +14,8 @@ Calendar.ns('Views').DayChild = (function() {
 
     __proto__: Calendar.Views.DayBased.prototype,
 
+    hourSelector: 'section.hour',
+
     _renderEvent: function(busytime, event) {
       var attendees;
       var classes;

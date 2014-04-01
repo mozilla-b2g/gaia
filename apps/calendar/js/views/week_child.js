@@ -17,6 +17,8 @@ Calendar.ns('Views').WeekChild = (function() {
 
     classType: 'week-events',
 
+    hourSelector: 'ol.hour',
+
     template: template,
 
     outsideAllDay: false,

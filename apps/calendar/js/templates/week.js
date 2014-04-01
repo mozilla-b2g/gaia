@@ -16,9 +16,8 @@
     },
 
     hour: function() {
-      return '<ol class="hour-' + this.h('hour') + ' events">' +
-          this.s('items') +
-        '</ol>';
+      return '<ol class="hour hour-' + this.h('hour') + ' events" ' +
+        'data-hour="' + this.h('hour') + '">' + this.s('items') + '</ol>';
     },
 
     event: function() {

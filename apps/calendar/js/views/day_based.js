@@ -552,7 +552,7 @@ Calendar.ns('Views').DayBased = (function() {
       // TODO(gareth): This is maybe not a good place for this.
       this.changeDate(this.date);
 
-      this.delegate(el, 'click', 'section.hour',
+      this.delegate(el, 'click', this.hourSelector,
           this._onHourClick.bind(this));
       return el;
     },
