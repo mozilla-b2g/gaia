@@ -81,6 +81,7 @@ window.addEventListener('load', function startup() {
   window.layoutManager = new LayoutManager().start();
   window.remoteDebugger = new RemoteDebugger();
   window.softwareButtonManager = new SoftwareButtonManager().start();
+  window.soundManager = new SoundManager().start();
 
   window.telephonySettings = new TelephonySettings();
   window.telephonySettings.start();

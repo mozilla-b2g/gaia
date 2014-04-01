@@ -1,215 +1,543 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-'use strict';
+/* global AsyncSemaphore, Bluetooth, CustomDialog, FtuLauncher, ScreenManager,
+          SettingsListener */
 
-(function() {
-  window.addEventListener('volumeup', function() {
-    if (ScreenManager.screenEnabled || currentChannel !== 'none') {
-      if (Bluetooth.connected && onCall()) {
-        changeVolume(1, 'bt_sco');
-      } else if (isHeadsetConnected) {
-        headsetVolumeup();
-      } else {
-        changeVolume(1);
-      }
-    }
-  });
-  window.addEventListener('volumedown', function() {
-    if (ScreenManager.screenEnabled || currentChannel !== 'none') {
-      if (Bluetooth.connected && onCall()) {
-        changeVolume(-1, 'bt_sco');
-      } else {
-        changeVolume(-1);
-        ceAccumulator();
-      }
-    }
-  });
+(function(exports) {
+  'use strict';
 
   /**
-   * The mute event is dispatched from sleep menu.
-   * But if we have a mute hardware button or virtual button,
-   * we could make the button handler to fire this event, too.
+   * SoundManager handles hardware volume key events, bluetooth volume changes,
+   * and volume/channel change events.
+   * @class SoundManager
+   * @requires AsyncSemaphore
+   * @requires Bluetooth
+   * @requires FtuLauncher
+   * @requires ScreenManager
    */
-  window.addEventListener('mute', function() {
-    // Turn off vibration for really silence.
-    setVibrationEnabled(false);
-    enterSilentMode('notification');
-  });
+  function SoundManager() {
+  }
 
   /**
-   * The unmute event is dispatched from sleep menu.
-   * But if we have a mute hardware button or virtual button,
-   * we could make the button handler to fire this event, too.
+   * settings key for vibration
+   * @memberOf SoundManager
    */
-  window.addEventListener('unmute', function() {
-    // Turn on vibration.
-    setVibrationEnabled(true);
-    leaveSilentMode('notification');
-    leaveSilentMode('content');
-  });
+  SoundManager.VIBRATION_SETTINGS_KEY = 'vibration.enabled';
+  /**
+   * user preference key for vibration which is used at async storage.
+   * @memberOf SoundManager
+   */
+  SoundManager.VIBRATION_USER_PREF_KEY = 'preference.vibration.enabled';
+  /**
+   * reset time span for volume warning dialog.
+   * @memberOf SoundManager
+   */
+  SoundManager.CE_RESET_TIME = 72000000;
+  /**
+   * constant for CE counter interval.
+   * @memberOf SoundManager
+   */
+  SoundManager.TIME_ONE_MINUTE = 60000;
+  /**
+   * elapsed time from last volume warning dialog which is used at async
+   * storage.
+   * @memberOf SoundManager
+   */
+  SoundManager.CACHE_CETIMES = 'CE_ACCTIME';
+  // volume cache
+  // Platform doesn't provide the maximum value of each channel
+  // therefore, hard code here.
+  SoundManager.MAX_VOLUME = {
+    'alarm': 15,
+    'notification': 15,
+    'telephony': 5,
+    'content': 15,
+    'bt_sco': 15
+  };
 
-  // Store the current active channel;
-  // change with 'audio-channel-changed' mozChromeEvent
-  var currentChannel = 'none';
+  /**
+   * Store the current active channel;
+   * change with 'audio-channel-changed' mozChromeEvent
+   * All candidates and definitions can be found at AudioChannels link.
+   *
+   * @see {link https://wiki.mozilla.org/WebAPI/AudioChannels|AudioChannels}
+   * @memberOf SoundManager.prototype
+   * @type {String}
+   */
+  SoundManager.prototype.currentChannel = 'none';
 
-  var vibrationEnabled = true;
-  var vibrationUserPreference = (function() {
-    var _settingsKey = 'vibration.enabled';
-    var _preferenceKey = 'preference.vibration.enabled';
-    var _enabled = null;
-    var _obj = {
-      get enabled() {
-        if (_enabled === null) {
-          return true;
-        } else {
-          return _enabled;
-        }
-      },
-      set enabled(value) {
-        if (value != _enabled) {
-          window.asyncStorage.setItem(_preferenceKey, value,
-            function set_onsuccess() {
-              _enabled = value;
-          });
-        }
-      }
-    };
+  /**
+   * Tell if vibration is enabled currently.
+   *
+   * @memberOf SoundManager.prototype
+   * @type {Boolean}
+   */
+  SoundManager.prototype.vibrationEnabled = true;
 
-    // initialize the value
-    window.asyncStorage.getItem(_preferenceKey, function get_onsuccess(value) {
-      if (value === null) {
-        var req = SettingsListener.getSettingsLock().get(_settingsKey);
-        req.onsuccess = function get_onsuccess() {
-          _enabled = req.result[_settingsKey];
-          if (_enabled == null) {
-            _enabled = true;
-          }
-          _obj.enabled = _enabled; // write back to async storage
-        };
-        req.onerror = function get_onerror() {
-          _enabled = true;
-          _obj.enabled = _enabled; // write back to async storage
-        };
-      } else {
-        _enabled = value;
-      }
-    });
+  /**
+   * Default volume control channel
+   * Possible values:
+   *   normal
+   *   content
+   *   notification
+   *   alarm
+   *   telephony
+   *   ringer
+   *   publicnotification
+   *   unknown
+   * @memberOf SoundManager.prototype
+   * @type {String}
+   */
+  SoundManager.prototype.defaultVolumeControlChannel = 'unknown';
 
-    return _obj;
-  })();
+  /**
+   * is headset connected.
+   * @memberOf SoundManager.prototype
+   * @type {Boolean}
+   */
+  SoundManager.prototype.isHeadsetConnected = false;
 
-  // Cache the volume when entering silent mode.
-  // Currently only two channel would be used for mute.
-  var cachedVolume = {
+  /**
+   * We have three virtual states here:
+   * OFF -> VIBRATION -> MUTE
+   * @memberOf SoundManager.prototype
+   * @type {String}
+   */
+  SoundManager.prototype.muteState = 'OFF';
+
+  /**
+   * User preference to tell if vibration is enabled. The value is read from
+   * 'preference.vibration.enabled' key.
+   * @memberOf SoundManager.prototype
+   * @type {Boolean}
+   */
+  SoundManager.prototype.vibrationUserPrefEnabled = true;
+
+  /**
+   * Cache the volume when entering silent mode.
+   * Currently only two channel would be used for mute.
+   * @memberOf SoundManager.prototype
+   * @type {Object}
+   */
+  SoundManager.prototype.cachedVolume = {
     'content': -1,
     'notification': -1
   };
 
-  var cachedChannels = ['content', 'notification'];
+  /**
+   * The keys of cachedVolume.
+   * @memberOf SoundManager.prototype
+   * @type {Array}
+   * @see cachedVolume
+   */
+  SoundManager.prototype.cachedChannels = ['content', 'notification'];
 
-  var isHeadsetConnected = false;
+  /**
+   * The interval ID of CE accumulator.
+   * @memberOf SoundManager.prototype
+   * @type {Number}
+   */
+  SoundManager.prototype.CEAccumulatorID = null;
+  /**
+   * The minimum warning volume level.
+   * @memberOf SoundManager.prototype
+   * @type {Number}
+   * @default 11
+   */
+  SoundManager.prototype.CEWarningVol = 11;
+  /**
+   * The accumulated time where the volume is above {@link CEWarningVol} and the
+   * channel is "content".
+   * @memberOf SoundManager.prototype
+   * @type {Number}
+   * @see CEWarningVol
+   */
+  SoundManager.prototype.CEAccumulatorTime = 0;
+  /**
+   * The start time of accumulator running.
+   * @memberOf SoundManager.prototype
+   * @type {Number}
+   */
+  SoundManager.prototype.CETimestamp = 0;
 
-  var TIME_TWENTY_HOURS = 72000000;
+  /**
+   * The current volume for all channels: alarm, notification, telephony,
+   * content, and bt_sco.
+   * @memberOf SoundManager.prototype
+   * @type {Object}
+   * @see {@link https://wiki.mozilla.org/WebAPI/AudioChannels#Volume_control}
+   */
+  SoundManager.prototype.currentVolume = {
+    'alarm': 15,
+    'notification': 15,
+    'telephony': 5,
+    'content': 15,
+    'bt_sco': 15
+  };
 
-  var TIME_TEST_HOURS = 90000;// for test
+  /**
+   * A semaphore used inside of SoundManager.
+   * @memberOf SoundManager.prototype
+   * @type {AsyncSemaphore}
+   */
+  SoundManager.prototype.pendingRequest = new AsyncSemaphore();
 
-  var TIME_ONE_MINUTE = 60000;
+  /**
+   * To tell if the homescreen is visible.
+   *
+   * @memberOf SoundManager.prototype
+   * @type {Boolean}
+   */
+  SoundManager.prototype.homescreenVisible = true;
 
-  var CEAccumulatorID = null;
+  /**
+   * A counter for checking if the vibration settings is made by SoundManager.
+   *
+   * @memberOf SoundManager.prototype
+   * @type {Number}
+   */
+  SoundManager.prototype.setVibrationEnabledCount = 0;
+  /**
+   * A flag to tell if the volume is fetched from settings.
+   *
+   * @memberOf SoundManager.prototype
+   * @type {Boolean}
+   */
+  SoundManager.prototype.volumeFetched = false;
+  /**
+   * A timer ID for auto hiding volume UI.
+   *
+   * @memberOf SoundManager.prototype
+   * @type {Boolean}
+   */
+  SoundManager.prototype.activeTimerID = 0;
 
-  var CEWarningVol = 11;
+  /**
+   * It adds listeners to window events, observes the change of mozSettings, and
+   * loads settings from mozSettings.
+   *
+   * @memberOf SoundManager.prototype
+   * @returns {SoundManager}
+   */
+  SoundManager.prototype.start = function sm_start() {
+    window.addEventListener('volumeup', this);
+    window.addEventListener('volumedown', this);
+    window.addEventListener('mute', this);
+    window.addEventListener('unmute', this);
+    window.addEventListener('mozChromeEvent', this);
+    window.addEventListener('unload', this);
+    window.addEventListener('appopen', this);
+    window.addEventListener('ftudone', this);
+    window.addEventListener('holdhome', this);
+    window.addEventListener('home', this);
 
-  var CEAccumulatorTime = 0;
+    this.initVibrationUserPref();
+    this.bindVolumeSettingsHandlers();
 
-  var CETimestamp = 0;
-
-  var CACHE_CETIMES = 'CE_ACCTIME';
-
-  // Default volume control channel
-  // Possible values:
-  // * normal
-  // * content
-  // * notification
-  // * alarm
-  // * telephony
-  // * ringer
-  // * publicnotification
-  // * unknown
-  var defaultVolumeControlChannel = 'unknown';
-
-  // This event is generated in shell.js in response to bluetooth headset.
-  // Bluetooth headset always assign audio volume to a specific value when
-  // pressing its volume-up/volume-down buttons.
-  window.addEventListener('mozChromeEvent', function(e) {
-    var type = e.detail.type;
-    if (type == 'bluetooth-volumeset') {
-      changeVolume(e.detail.value - currentVolume['bt_sco'], 'bt_sco');
-    } else if (type == 'audio-channel-changed') {
-      currentChannel = e.detail.channel;
-      ceAccumulator();
-    } else if (type == 'headphones-status-changed') {
-      isHeadsetConnected = (e.detail.state != 'off');
-      ceAccumulator();
-    } else if (type == 'default-volume-channel-changed') {
-      defaultVolumeControlChannel = e.detail.channel;
-      // Do not accumulate CE time here because this event
-      // doesn't mean the content is playing now.
-    }
-  });
-
-  window.addEventListener('localized', function(e) {
-
+    var self = this;
     SettingsListener.observe('audio.volume.cemaxvol', 11, function(volume) {
-      CEWarningVol = volume;
+      self.CEWarningVol = volume;
     });
 
-    window.asyncStorage.getItem(CACHE_CETIMES,
-      function onGettingContentVolume(value) {
-        if (!value) {
-          return;
-        } else {
-          CEAccumulatorTime = value;
+    window.asyncStorage.getItem(SoundManager.CACHE_CETIMES,
+                                function getCETime(value) {
+      if (!value) {
+        return;
+      } else {
+        self.CEAccumulatorTime = value;
+      }
+    });
+    return this;
+  };
+
+  /**
+   * It removes listeners from window events
+   *
+   * @memberOf SoundManager.prototype
+   */
+  SoundManager.prototype.stop = function sm_stop() {
+    window.removeEventListener('volumeup', this);
+    window.removeEventListener('volumedown', this);
+    window.removeEventListener('mute', this);
+    window.removeEventListener('unmute', this);
+    window.removeEventListener('mozChromeEvent', this);
+    window.removeEventListener('unload', this);
+    window.removeEventListener('appopen', this);
+    window.removeEventListener('ftudone', this);
+    window.removeEventListener('holdhome', this);
+    window.removeEventListener('home', this);
+  };
+
+  /**
+   * It handles the events from window object, including hardware key events,
+   * mozChromeEvent, and custom event made by System app.
+   *
+   * @memberOf SoundManager.prototype
+   * @param {DOMEvent} e
+   */
+  SoundManager.prototype.handleEvent = function sm_handleEvent(e) {
+    switch (e.type) {
+      case 'volumeup':
+        this.handleVolumeKey(1);
+        break;
+      case 'volumedown':
+        this.handleVolumeKey(-1);
+        break;
+      case 'mute':
+        this.setMute(true);
+        break;
+      case 'unmute':
+        this.setMute(false);
+        break;
+      case 'mozChromeEvent':
+        switch (e.detail.type) {
+          case 'bluetooth-volumeset':
+            this.changeVolume(e.detail.value - this.currentVolume.bt_sco,
+                              'bt_sco');
+            break;
+          case 'audio-channel-changed':
+            this.currentChannel = e.detail.channel;
+            this.ceAccumulator();
+            break;
+          case 'headphones-status-changed':
+            this.isHeadsetConnected = (e.detail.state !== 'off');
+            this.ceAccumulator();
+            break;
+          case 'default-volume-channel-changed':
+            this.defaultVolumeControlChannel = e.detail.channel;
+            // Do not accumulate CE time here because this event
+            // doesn't mean the content is playing now.
+            break;
         }
-      });
-  });
-
-  window.addEventListener('unload', stopAccumulator, false);
-
-  function ceAccumulator() {
-    if (isHeadsetConnected && getChannel() == 'content' &&
-      currentVolume[currentChannel] >= CEWarningVol) {
-      if (CEAccumulatorTime == 0) {
-        resetToCEMaxVolume();
-      } else {
-        startAccumulator();
-      }
-    } else {
-      stopAccumulator();
+        break;
+      case 'unload':
+        this.stopAccumulator();
+        break;
+      case 'appopen':
+        this.homescreenVisible = false;
+        break;
+      case 'ftudone':
+        this.homescreenVisible = true;
+        break;
+      case 'holdhome':
+        CustomDialog.hide();
+        break;
+      case 'home':
+        this.homescreenVisible = true;
+        CustomDialog.hide();
+        break;
     }
-  }
+  };
 
-  function headsetVolumeup() {
-    if ((currentVolume[getChannel()] + 1) >= CEWarningVol &&
-        getChannel() == 'content') {
-      if (CEAccumulatorTime == 0) {
-        var okfn = function() {
-          changeVolume(1);
-          startAccumulator();
+  /**
+   * This function handles the volume key up/down behavior. When it is under a
+   * call and user sues a bluetooth, we need to change the volume of BT SCO.
+   * When the headset is connected, we need to activate CE counter. Otherwise,
+   * we calls normal changeVolume API.
+   *
+   * @memberOf SoundManager.prototype
+   * @param {Number} offset the offset which will be added to volume value.
+   */
+  SoundManager.prototype.handleVolumeKey = function sm_handleVolumeKey(offset) {
+    if (!ScreenManager.screenEnabled && this.currentChannel === 'none') {
+      return;
+    }
+
+    if (Bluetooth.connected && this.isOnCall()) {
+      this.changeVolume(offset, 'bt_sco');
+    } else if (this.isHeadsetConnected) {
+      this.headsetVolumeup();
+    } else {
+      this.changeVolume(offset);
+    }
+  };
+
+  /**
+   * The mute/unmute event is dispatched from sleep menu.
+   * But if we have a mute/unmute hardware button or virtual button,
+   * we could make the button handler to fire this event, too.
+   *
+   * @memberOf SoundManager.prototype
+   * @param {Boolean} mute the state of mute.
+   */
+  SoundManager.prototype.setMute = function sm_setMute(mute) {
+    /**
+     */
+    if (mute) {
+      // Turn off vibration for really silence.
+      this.setVibrationEnabled(false);
+      this.enterSilentMode('notification');
+    } else {
+      // Turn on vibration.
+      this.setVibrationEnabled(true);
+      this.leaveSilentMode('notification');
+      this.leaveSilentMode('content');
+    }
+  };
+
+  /*
+   * When hardware volume key is pressed, we need to decide which channel we
+   * should toggle.
+   * This method returns the string for setting key 'audio.volume.*' represents
+   * that.
+   * Note: this string does not always equal to currentChannel since some
+   * different channels are grouped together to listen to the same setting.
+   * @memberOf SoundManager.prototype
+   * @returns {String} the volume channel
+   */
+  SoundManager.prototype.getChannel = function sm_getChannel() {
+    if (this.isOnCall()) {
+      return 'telephony';
+    }
+
+    switch (this.currentChannel) {
+      case 'normal':
+      case 'content':
+        return 'content';
+      case 'telephony':
+        return 'telephony';
+      case 'alarm':
+        return 'alarm';
+      case 'notification':
+      case 'ringer':
+          return 'notification';
+      default:
+        if (this.defaultVolumeControlChannel !== 'unknown') {
+          return this.defaultVolumeControlChannel;
+        } else {
+          return this.homescreenVisible ||
+            (window.lockScreen && window.lockScreen.locked) ||
+            FtuLauncher.isFtuRunning() ? 'notification' : 'content';
+        }
+    }
+  };
+
+  /**
+   * It reads vibration user preference from asyncStorage and listen the change
+   * from mozSettings.
+   *
+   * @memberOf SoundManager.prototype
+   */
+  SoundManager.prototype.initVibrationUserPref = function sm_initVUserPref() {
+    var self = this;
+    // check asyncStorage
+    window.asyncStorage.getItem(SoundManager.VIBRATION_USER_PREF_KEY,
+                                function onok(value) {
+      if (value === null) {
+        // not found, read from settings.
+        var r = SettingsListener.getSettingsLock().get(
+                                           SoundManager.VIBRATION_SETTINGS_KEY);
+        r.onsuccess = function get_onsuccess() {
+          // write back to asyncStorage.
+          self.writeVibrationUserPref(
+                                 r.result[SoundManager.VIBRATION_SETTINGS_KEY]);
         };
-        resetToCEMaxVolume(okfn);
+        r.onerror = function get_onerror() {
+          // initial value to true
+          self.writeVibrationUserPref(true);
+        };
       } else {
-        startAccumulator();
-        changeVolume(1);
+        self.vibrationUserPrefEnabled = value;
+      }
+    });
+    // observe settings
+    SettingsListener.observe(SoundManager.VIBRATION_SETTINGS_KEY,
+                             true, function(vibration) {
+      var setBySelf = false;
+      var toggleVibrationEnabled = function toggle_vibration_enabled() {
+        // XXX: If the value does not set by sound manager,
+        //      we assume it comes from
+        //      the settings app and consider it as user preference.
+        if (!setBySelf) {
+          self.writeVibrationUserPref(vibration);
+        }
+        self.vibrationEnabled = vibration;
+      };
+
+      if (self.setVibrationEnabledCount > 0) {
+        self.setVibrationEnabledCount--;
+        setBySelf = true;
+      }
+      self.pendingRequest.wait(toggleVibrationEnabled, self);
+    });
+  };
+
+  /**
+   * It saves the user perference of vibration to asyncStorage.
+   *
+   * @memberOf SoundManager.prototype
+   * @param {Boolean} value vibration preference
+   */
+  SoundManager.prototype.writeVibrationUserPref = function sm_writeUP(value) {
+    if (this.vibrationUserPrefEnabled === value) {
+      return;
+    }
+    // if value is null or undefined, we view it as initial value which is true.
+    if (value === null || typeof(value) === 'undefined') {
+      value = true;
+    }
+
+    var self = this;
+    window.asyncStorage.setItem(SoundManager.VIBRATION_USER_PREF_KEY, value,
+      function set_onsuccess() {
+        self.vibrationUserPrefEnabled = value;
+    });
+  };
+
+  /**
+   * It checks the state to start/stop the CE accumulator.
+   *
+   * @memberOf SoundManager.prototype
+   */
+  SoundManager.prototype.ceAccumulator = function sm_ceAccumulator() {
+    if (this.isHeadsetConnected && this.getChannel() === 'content' &&
+      this.currentVolume[this.currentChannel] >= this.CEWarningVol) {
+      if (this.CEAccumulatorTime === 0) {
+        this.resetToCEMaxVolume();
+      } else {
+        this.startAccumulator();
       }
     } else {
-      changeVolume(1);
+      this.stopAccumulator();
     }
-  }
+  };
 
-  function showCEWarningDialog(okfn) {
+  /**
+   * It handles the case of pressing volumeup hardware key when headset is
+   * connected. This function mainly checks the state to start the CE
+   * accumulator and change the volume.
+   *
+   * @memberOf SoundManager.prototype
+   */
+  SoundManager.prototype.headsetVolumeup = function sm_headsetVolumeup() {
+    if ((this.currentVolume[this.getChannel()] + 1) >= this.CEWarningVol &&
+        this.getChannel() === 'content') {
+      if (this.CEAccumulatorTime === 0) {
+        var self = this;
+        var okfn = function() {
+          self.changeVolume(1);
+          self.startAccumulator();
+        };
+        this.resetToCEMaxVolume(okfn);
+      } else {
+        this.startAccumulator();
+        this.changeVolume(1);
+      }
+    } else {
+      this.changeVolume(1);
+    }
+  };
+
+  /**
+   * It shows a warning dialog to tell user that the volume may hurt his/her
+   * ear.
+   *
+   * @memberOf SoundManager.prototype
+   * @param {Function} okfun the callback function when user press ok.
+   */
+  SoundManager.prototype.showCEWarningDialog = function sm_showCEDialog(okfn) {
     // Show dialog.
-    var agreement = false;
     var _ = navigator.mozL10n.get;
 
     var ceTitle = {
@@ -222,6 +550,8 @@
       'title': _('ok')
     };
 
+    var self = this;
+
     if (okfn instanceof Function) {
       cancel.callback = function onCancel() {
         okfn();
@@ -229,247 +559,195 @@
       };
     } else {
       cancel.callback = function onCancel() {
-        startAccumulator();
+        self.startAccumulator();
         CustomDialog.hide();
       };
     }
 
     CustomDialog.show(ceTitle, ceMsg, cancel);
-  }
+  };
 
-  function startAccumulator() {
-    if (CEAccumulatorID == null) {
-      if (CEAccumulatorTime == 0) {
-        CEAccumulatorTime = 1;
-        CETimestamp = parseInt(new Date().getTime(), 10);
+  /**
+   * It starts the CE accumulator.
+   *
+   * @memberOf SoundManager.prototype
+   */
+  SoundManager.prototype.startAccumulator = function sm_startAccumulator() {
+    if (this.CEAccumulatorID === null) {
+      if (this.CEAccumulatorTime === 0) {
+        this.CEAccumulatorTime = 1;
+        this.CETimestamp = parseInt(new Date().getTime(), 10);
       }
-      CEAccumulatorID = window.setInterval(function() {
-        CEAccumulatorTime += TIME_ONE_MINUTE;
-        CETimestamp = parseInt(new Date().getTime(), 10);
-        if (CEAccumulatorTime > TIME_TWENTY_HOURS) {
-          CEAccumulatorTime = 0; // reset time
-          CETimestamp = 0; // reset timestamp
-          stopAccumulator();
-          resetToCEMaxVolume();
+      var self = this;
+      this.CEAccumulatorID = window.setInterval(function ceCounter() {
+        self.CEAccumulatorTime += SoundManager.TIME_ONE_MINUTE;
+        self.CETimestamp = parseInt(new Date().getTime(), 10);
+        if (self.CEAccumulatorTime > SoundManager.CE_RESET_TIME) {
+          self.CEAccumulatorTime = 0; // reset time
+          self.CETimestamp = 0; // reset timestamp
+          self.stopAccumulator();
+          self.resetToCEMaxVolume();
         }
-      }, TIME_ONE_MINUTE);
+      }, SoundManager.TIME_ONE_MINUTE);
     }
-  }
+  };
 
-  function stopAccumulator() {
-    if (CEAccumulatorID != null) {
-      window.clearInterval(CEAccumulatorID);
-      CEAccumulatorID = null;
-      if (CETimestamp != 0) {
-         CEAccumulatorTime = CEAccumulatorTime +
-         (parseInt(new Date().getTime(), 10) - CETimestamp);
+  /**
+   * It stops the CE accumulator.
+   *
+   * @memberOf SoundManager.prototype
+   */
+  SoundManager.prototype.stopAccumulator = function sm_stopAccumulator() {
+    if (this.CEAccumulatorID !== null) {
+      window.clearInterval(this.CEAccumulatorID);
+      this.CEAccumulatorID = null;
+      if (this.CETimestamp !== 0) {
+         this.CEAccumulatorTime = this.CEAccumulatorTime +
+                       (parseInt(new Date().getTime(), 10) - this.CETimestamp);
       }
-      window.asyncStorage.setItem(CACHE_CETIMES, CEAccumulatorTime);
+      window.asyncStorage.setItem(SoundManager.CACHE_CETIMES,
+                                  this.CEAccumulatorTime);
     }
-  }
+  };
 
-  function resetToCEMaxVolume(callback) {
-    pendingRequest.v();
+  /**
+   * It resets the content channel to warning volume - 1 and shows the warning
+   * dialog for confirm.
+   *
+   * @memberOf SoundManager.prototype
+   * @param {Function} okfun the callback function when user press ok.
+   */
+  SoundManager.prototype.resetToCEMaxVolume = function sm_resetCEMax(callback) {
+    this.pendingRequest.v();
     var req = SettingsListener.getSettingsLock().set({
-      'audio.volume.content': CEWarningVol - 1
+      'audio.volume.content': this.CEWarningVol - 1
     });
-
+    var self = this;
     req.onsuccess = function onSuccess() {
-      pendingRequest.p();
-      showCEWarningDialog(callback);
+      self.pendingRequest.p();
+      self.showCEWarningDialog(callback);
     };
 
     req.onerror = function onError() {
-      pendingRequest.p();
-      showCEWarningDialog(callback);
+      self.pendingRequest.p();
+      self.showCEWarningDialog(callback);
     };
-  }
+  };
 
-  // True if the homescreen or the lockscreen are visible.
-  var homescreenVisible = true;
-
-  window.addEventListener('appopen', function() {
-    homescreenVisible = false;
-  });
-  window.addEventListener('ftudone', function() {
-    // FTU closing implies we're going to homescreen.
-    homescreenVisible = true;
-  });
-  window.addEventListener('holdhome', function() {
-    CustomDialog.hide();
-  });
-  window.addEventListener('home', function() {
-    homescreenVisible = true;
-    CustomDialog.hide();
-  });
-
-  function onCall() {
-    if (currentChannel == 'telephony')
+  /**
+   * It tells if it is currently on a call.
+   *
+   * @memberOf SoundManager.prototype
+   */
+  SoundManager.prototype.isOnCall = function sm_isOnCall() {
+    if (this.currentChannel == 'telephony') {
       return true;
+    }
 
     // XXX: This work should be removed
     // once we could get telephony channel change event
     // https://bugzilla.mozilla.org/show_bug.cgi?id=819858
     var telephony = window.navigator.mozTelephony;
-    if (!telephony)
+    if (!telephony) {
       return false;
+    }
 
     return telephony.calls.some(function callIterator(call) {
         return (call.state == 'connected');
     });
-  }
-
-  // Platform doesn't provide the maximum value of each channel
-  // therefore, hard code here.
-  var MAX_VOLUME = {
-    'alarm': 15,
-    'notification': 15,
-    'telephony': 5,
-    'content': 15,
-    'bt_sco': 15
   };
 
-  // Please refer https://wiki.mozilla.org/WebAPI/AudioChannels > Settings
-  var currentVolume = {
-    'alarm': 15,
-    'notification': 15,
-    'telephony': 5,
-    'content': 15,
-    'bt_sco': 15
-  };
-  var pendingRequest = new AsyncSemaphore();
-  var setVibrationEnabledCount = 0;
-
-  // We have three virtual states here:
-  // OFF -> VIBRATION -> MUTE
-  var muteState = 'OFF';
-
-  /*
-    Bind setting handlers
-    @param {Function} callback Callback being called after each setting handler
-                               has been invoked once.
+  /**
+   * Bind setting handlers for each channel's volume change.
+   * @memberOf SoundManager.prototype
+   * @param {Function} callback Callback being called after each setting handler
+   *                            has been invoked once.
    */
-  (function bindVolumeSettingsHandlers(callback) {
+  SoundManager.prototype.bindVolumeSettingsHandlers = function sm_bindHdlers() {
     var callsMade = 0;
     var callbacksReceived = 0;
+    var self = this;
 
-    for (var channel in currentVolume) {
+    function observeSettingsVolumeChange(channel) {
+      var setting = 'audio.volume.' + channel;
+      SettingsListener.observe(setting, 5, function onChange(volume) {
+        var settingsChange = function settings_change() {
+          var max = SoundManager.MAX_VOLUME[channel];
+          self.currentVolume[channel] =
+            parseInt(Math.max(0, Math.min(max, volume)), 10);
+
+          if (channel === 'content' && self.volumeFetched && volume > 0) {
+            self.leaveSilentMode('content',
+                            /* skip volume restore */ true);
+          } else if (channel === 'notification' && volume > 0) {
+            self.leaveSilentMode('notification',
+                            /* skip volume restore */ true);
+          } else if (channel === 'notification' && volume === 0) {
+            // Enter silent mode when notification volume is 0
+            // no matter who sets this value.
+            self.enterSilentMode('notification');
+          }
+
+          if (!self.volumeFetched && ++callbacksReceived === callsMade) {
+            self.fetchCachedVolume();
+          }
+        };
+
+        // Initial loaded setting should always pass through
+        // (one per channel)
+        self.pendingRequest.wait(settingsChange, self);
+      });
+    }
+
+    for (var channel in this.currentVolume) {
       callsMade++;
-
-      (function(channel) {
-        var setting = 'audio.volume.' + channel;
-        SettingsListener.observe(setting, 5, function onSettingsChange(volume) {
-          var settingsChange = function settings_change() {
-            var max = MAX_VOLUME[channel];
-            currentVolume[channel] =
-              parseInt(Math.max(0, Math.min(max, volume)), 10);
-
-            if (channel === 'content' && inited && volume > 0) {
-              leaveSilentMode('content',
-                              /* skip volume restore */ true);
-            } else if (channel === 'notification' && volume > 0) {
-              leaveSilentMode('notification',
-                              /* skip volume restore */ true);
-            } else if (channel === 'notification' && volume == 0) {
-              // Enter silent mode when notification volume is 0
-              // no matter who sets this value.
-              enterSilentMode('notification');
-            }
-
-            if (!inited && ++callbacksReceived === callsMade)
-              callback();
-          };
-
-          // Initial loaded setting should always pass through (one per channel)
-          pendingRequest.wait(settingsChange, this);
-        });
-      })(channel);
+      observeSettingsVolumeChange(channel);
     }
-  })(fetchCachedVolume);
+  };
 
-  SettingsListener.observe('vibration.enabled', true, function(vibration) {
-    var setBySelf = false,
-      toggleVibrationEnabled = function toggle_vibration_enabled() {
-        // XXX: If the value does not set by sound manager,
-        //      we assume it comes from
-        //      the settings app and consider it as user preference.
-        if (!setBySelf) {
-          vibrationUserPreference.enabled = vibration;
-        }
-        vibrationEnabled = vibration;
-      };
-    if (setVibrationEnabledCount > 0) {
-      setVibrationEnabledCount--;
-      setBySelf = true;
-    }
-    pendingRequest.wait(toggleVibrationEnabled, this);
-  });
-
-  // Fetch stored volume if it exists.
-  // We should make sure this happens after settingsDB callback
-  // after booting.
-
-  var inited = false;
-
-  function fetchCachedVolume() {
-    if (inited)
+  /**
+   * Fetch stored volume if it exists.
+   * We should make sure this happens after settingsDB callback
+   * after booting.
+   * @memberOf SoundManager.prototype
+   */
+  SoundManager.prototype.fetchCachedVolume = function sm_fetchCachedVolume() {
+    if (this.volumeFetched) {
       return;
+    }
 
-    inited = true;
-    pendingRequest.v(cachedChannels.length);
-    cachedChannels.forEach(
+    this.volumeFetched = true;
+    this.pendingRequest.v(this.cachedChannels.length);
+    var self = this;
+    this.cachedChannels.forEach(
       function iterator(channel) {
         window.asyncStorage.getItem('content.volume',
           function onGettingCachedVolume(value) {
             if (!value) {
-              pendingRequest.p();
+              self.pendingRequest.p();
               return;
             }
 
-            cachedVolume[channel] = value;
-            pendingRequest.p();
+            self.cachedVolume[channel] = value;
+            self.pendingRequest.p();
           });
       });
-  }
+  };
 
-  var activeTimeout = 0;
-
-  // When hardware volume key is pressed, we need to decide which channel we
-  // should toggle.
-  // This method returns the string for setting key 'audio.volume.*' represents
-  // that.
-  // Note: this string does not always equal to currentChannel since some
-  // different channels are grouped together to listen to the same setting.
-  function getChannel() {
-    if (onCall())
-      return 'telephony';
-
-    switch (currentChannel) {
-      case 'normal':
-      case 'content':
-        return 'content';
-      case 'telephony':
-        return 'telephony';
-      case 'alarm':
-        return 'alarm';
-      case 'notification':
-      case 'ringer':
-          return 'notification';
-      default:
-        if (defaultVolumeControlChannel !== 'unknown') {
-          return defaultVolumeControlChannel;
-        } else {
-          return homescreenVisible ||
-            (window.lockScreen && window.lockScreen.locked) ||
-            FtuLauncher.isFtuRunning() ? 'notification' : 'content';
-        }
-    }
-  }
-
-  function calculateVolume(currentVolume, delta, channel) {
-    var volume = currentVolume;
-    if (channel == 'notification') {
-      if (volume == 0 && !vibrationEnabled) {
+  /**
+   * It handles the vibration case when changing the volume.
+   * @memberOf SoundManager.prototype
+   * @param {Number} curVolume the base volume
+   * @param {Number} delta the offset of the change
+   * @param {String} channel the target channel
+   * @returns {Number} the volume value. (-1) is for slient mode and (0) is for
+   *                   vibration mode
+   */
+  SoundManager.prototype.calculateVolume = function sm_calVol(
+                                                    curVolume, delta, channel) {
+    var volume = curVolume;
+    if (channel === 'notification') {
+      if (volume === 0 && !this.vibrationEnabled) {
         // This is for voluming up from Silent to Vibrate.
         // Let's take -1 as the silent state and
         // 0 as the vibrate state for easier calculation here.
@@ -480,13 +758,22 @@
       volume += delta;
     }
     return volume;
-  }
+  };
 
-  function getVibrationAndMuteState(currentVolume, delta, channel) {
-    if (channel == 'notification') {
+  /**
+   * It enables the vibration and returns the mute state.
+   * @memberOf SoundManager.prototype
+   * @param {Number} curVolume the base volume
+   * @param {Number} delta the offset of the change
+   * @param {String} channel the target channel
+   * @returns {String} the mute state
+   */
+  SoundManager.prototype.getVibrationAndMuteState = function sm_getState(
+                                                    curVolume, delta, channel) {
+    if (channel === 'notification') {
       var state;
-      var volume = currentVolume;
-      if (volume == 0 && !vibrationEnabled) {
+      var volume = curVolume;
+      if (volume === 0 && !this.vibrationEnabled) {
         // This is for voluming up from Silent to Vibrate.
         // Let's take -1 as the silent state and
         // 0 as the vibrate state for easier calculation here.
@@ -496,128 +783,154 @@
 
       if (volume < 0) {
         state = 'MUTE';
-        vibrationEnabled = false;
-      } else if (volume == 0) {
+        this.vibrationEnabled = false;
+      } else if (volume === 0) {
         state = 'MUTE';
-        vibrationEnabled = true;
+        this.vibrationEnabled = true;
       } else {
         // Restore the vibration setting only when leaving silent mode.
-        if (currentVolume <= 0) {
-          vibrationEnabled = vibrationUserPreference.enabled;
+        if (curVolume <= 0) {
+          this.vibrationEnabled = this.vibrationUserPrefEnabled;
         }
         state = 'OFF';
       }
 
       return state;
     } else {
-      if (currentVolume + delta <= 0) {
+      if (curVolume + delta <= 0) {
         return 'MUTE';
       } else {
         return 'OFF';
       }
     }
-  }
+  };
 
-  function enterSilentMode(channel) {
-    if (!channel)
+  /**
+   * Entering silent mode.
+   * @memberOf SoundManager.prototype
+   * @param  {String} [channel="content"] Specify the channel name
+   *                          which is going to enter silent mode.
+   */
+  SoundManager.prototype.enterSilentMode = function sm_enterSlient(channel) {
+    if (!channel) {
       channel = 'content';
+    }
 
     // Don't need to enter silent mode more than once.
-    if (currentVolume[channel] == 0)
+    if (this.currentVolume[channel] === 0) {
       return;
+    }
 
     var isCachedAlready =
-      (cachedVolume[channel] == currentVolume[channel]);
-    cachedVolume[channel] = currentVolume[channel];
-    pendingRequest.v();
+      (this.cachedVolume[channel] === this.currentVolume[channel]);
+    this.cachedVolume[channel] = this.currentVolume[channel];
+    this.pendingRequest.v();
 
     var settingObject = {};
     settingObject['audio.volume.' + channel] = 0;
     var req = SettingsListener.getSettingsLock().set(settingObject);
 
+    var self = this;
     req.onsuccess = function onSuccess() {
-      pendingRequest.p();
+      self.pendingRequest.p();
       // Write to async storage only happens when
       // we haven't stored it before.
       // If the user presses the volume rockers repeatedly down and up,
       // between silent-mode/vibration mode/normal mode,
       // we won't repeatedly write the same value to storage.
-      if (!isCachedAlready)
-        window.asyncStorage.setItem(channel + '.volume', cachedVolume[channel]);
+      if (!isCachedAlready) {
+        window.asyncStorage.setItem(channel + '.volume',
+                                    self.cachedVolume[channel]);
+      }
     };
 
     req.onerror = function onError() {
-      pendingRequest.p();
+      self.pendingRequest.p();
     };
-  }
+  };
 
   /**
    * Leaving silent mode.
+   * @memberOf SoundManager.prototype
    * @param  {String} channel Specify the channel name
-   *                          which is going to enter silent mode.
+   *                          which is going to leave silent mode.
    * @param  {Boolean} skip_restore Specify to skip the volume restore or not.
    */
-  function leaveSilentMode(channel, skip_restore) {
-    if (!channel)
+  SoundManager.prototype.leaveSilentMode = function sm_leaveSlient(channel,
+                                                                 skip_restore) {
+    if (!channel) {
       channel = 'content';
+    }
 
     // We're leaving silent mode.
     if (!skip_restore &&
-        (cachedVolume[channel] > 0 || currentVolume[channel] == 0)) {
+        (this.cachedVolume[channel] > 0 ||
+         this.currentVolume[channel] === 0)) {
       var req;
       var settingObject = {};
+      var self = this;
 
       // At least rollback to 1,
       // otherwise we don't really leave silent mode.
       settingObject['audio.volume.' + channel] =
-        (cachedVolume[channel] > 0) ? cachedVolume[channel] : 1;
+        (this.cachedVolume[channel] > 0) ? this.cachedVolume[channel] : 1;
 
-      pendingRequest.v();
+      this.pendingRequest.v();
       req = SettingsListener.getSettingsLock().set(settingObject);
 
       req.onsuccess = function onSuccess() {
-        pendingRequest.p();
+        self.pendingRequest.p();
       };
 
       req.onerror = function onError() {
-        pendingRequest.p();
+        self.pendingRequest.p();
       };
     }
 
-    cachedVolume[channel] = -1;
-  }
+    this.cachedVolume[channel] = -1;
+  };
 
-  function changeVolume(delta, channel) {
-    channel = channel ? channel : getChannel();
+  /**
+   * It updates the volume, turns on/off slient mode, and updates UI.
+   * @memberOf SoundManager.prototype
+   * @param  {Number} delta Specify the channel name
+   * @param  {String} [channel] Specify the channel name. It uses getChannel()
+   *                            when this argument is absent.
+   */
+  SoundManager.prototype.changeVolume = function sm_changeVolume(delta,
+                                                                 channel) {
+    channel = channel ? channel : this.getChannel();
 
-    var vibrationEnabledOld = vibrationEnabled;
-    var volume = calculateVolume(currentVolume[channel], delta, channel);
-    muteState =
-      getVibrationAndMuteState(currentVolume[channel], delta, channel);
+    var vibrationEnabledOld = this.vibrationEnabled;
+    var volume = this.calculateVolume(this.currentVolume[channel], delta,
+                                       channel);
+    this.muteState =
+      this.getVibrationAndMuteState(this.currentVolume[channel], delta,
+                                     channel);
 
     // Silent mode entry point
     if (volume <= 0 && delta < 0 && channel == 'notification') {
-      enterSilentMode('content');
+      this.enterSilentMode('content');
     } else if (volume == 1 && delta > 0 && channel == 'notification' &&
-                cachedVolume['content'] >= 0) {
+               this.cachedVolume.content >= 0) {
       // Now since the active channel is notification channel,
       // we're leaving content silent mode and the same time restoring it.
-      leaveSilentMode('content');
+      this.leaveSilentMode('content');
 
       // In the notification silent mode, volume rocker priority is higher
       // than stored notification volume value so we skip the restore.
-      leaveSilentMode('notification', /*skip volume restore*/ true);
+      this.leaveSilentMode('notification', /*skip volume restore*/ true);
     }
 
-    currentVolume[channel] = volume =
-      Math.max(0, Math.min(MAX_VOLUME[channel], volume));
+    this.currentVolume[channel] = volume =
+      Math.max(0, Math.min(SoundManager.MAX_VOLUME[channel], volume));
 
     var overlay = document.getElementById('system-overlay');
     var notification = document.getElementById('volume');
     var overlayClasses = overlay.classList;
     var classes = notification.classList;
 
-    switch (muteState) {
+    switch (this.muteState) {
       case 'OFF':
         classes.remove('mute');
         break;
@@ -626,14 +939,14 @@
         break;
     }
 
-    if (vibrationEnabled) {
+    if (this.vibrationEnabled) {
       classes.add('vibration');
     } else {
       classes.remove('vibration');
     }
 
-    if (vibrationEnabledOld != vibrationEnabled) {
-      setVibrationEnabled(vibrationEnabled);
+    if (vibrationEnabledOld != this.vibrationEnabled) {
+      this.setVibrationEnabled(this.vibrationEnabled);
     }
 
     var steps =
@@ -653,40 +966,47 @@
 
     overlayClasses.add('volume');
     classes.add('visible');
-    window.clearTimeout(activeTimeout);
-    activeTimeout = window.setTimeout(function hideSound() {
+    window.clearTimeout(this.activeTimerID);
+    this.activeTimerID = window.setTimeout(function hideSound() {
       overlayClasses.remove('volume');
       classes.remove('visible');
     }, 1500);
 
-    if (!window.navigator.mozSettings)
+    if (!window.navigator.mozSettings) {
       return;
+    }
 
-    pendingRequest.v();
-
-    var req;
+    this.pendingRequest.v();
 
     notification.dataset.channel = channel;
 
     var settingObject = {};
     settingObject['audio.volume.' + channel] = volume;
 
-    req = SettingsListener.getSettingsLock().set(settingObject);
+    var req = SettingsListener.getSettingsLock().set(settingObject);
+    var self = this;
 
     req.onsuccess = function onSuccess() {
-      pendingRequest.p();
+      self.pendingRequest.p();
     };
 
     req.onerror = function onError() {
-      pendingRequest.p();
+      self.pendingRequest.p();
     };
-  }
+  };
 
-  function setVibrationEnabled(enabled) {
-    setVibrationEnabledCount++;
+  /**
+   * It enables the vibration.
+   * @memberOf SoundManager.prototype
+   * @param  {Boolean} enabled the enable state of vibration.
+   */
+  SoundManager.prototype.setVibrationEnabled = function sm_enableVib(enabled) {
+    this.setVibrationEnabledCount++;
     SettingsListener.getSettingsLock().set({
       'vibration.enabled': enabled
     });
-  }
-})();
+  };
+
+  exports.SoundManager = SoundManager;
+})(window);
 
