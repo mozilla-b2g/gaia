@@ -5,12 +5,6 @@
   height: 100%;
   overflow: hidden;
   -moz-user-select: none;
-  opacity: 1;
-  /* Utilzing a cubic bezier timing function to hide the fact
-     that we might be slow at the beginning of the transition. */
-  transition:
-    transform 0.5s cubic-bezier(0.7, 0.0, 1.0, 1.0),
-    opacity 0.5s cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 #screen.active-statusbar > #lockscreen {
@@ -19,12 +13,6 @@
 }
 
 #lockscreen.unlocked {
-  /* Workaround specifically targetting Gecko:
-     The transform here is equal to scale(2),
-     however this will stop Gecko from creating a 2x big layer (4x the memory),
-     resulting super-smooth transition. */
-  transform: perspective(1000px) translateZ(500px);
-  opacity: 0;
   pointer-events: none;
 }
 
