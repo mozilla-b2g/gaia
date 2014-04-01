@@ -1,5 +1,6 @@
 /* global AutoSettings, BalanceLowLimitView, Common, ConfigManager, CostControl,
-          dataLimitConfigurer, LazyLoader, debug, ViewManager */
+          dataLimitConfigurer, LazyLoader,
+          debug, localizeWeekdaySelector, updateNextReset, ViewManager */
 
 /*
  * First time experience is in charge of set up the application.
@@ -153,12 +154,9 @@
   }
 
   function _onLocalize() {
-    Common.localizeWeekdaySelector(
-      document.getElementById('pre3-select-weekday'));
-    Common.localizeWeekdaySelector(
-      document.getElementById('post2-select-weekday'));
-    Common.localizeWeekdaySelector(
-      document.getElementById('non2-select-weekday'));
+    localizeWeekdaySelector(document.getElementById('pre3-select-weekday'));
+    localizeWeekdaySelector(document.getElementById('post2-select-weekday'));
+    localizeWeekdaySelector(document.getElementById('non2-select-weekday'));
 
     function _setResetTimeToDefault(evt) {
       var firstWeekDay = parseInt(navigator.mozL10n.get('weekStartsOnMonday'),
@@ -297,7 +295,7 @@
     ConfigManager.requestSettings(Common.dataSimIccId,
                                   function _onSettings(settings) {
       ConfigManager.setOption({ fte: false }, function _returnToApp() {
-        Common.updateNextReset(settings.trackingPeriod, settings.resetTime,
+        updateNextReset(settings.trackingPeriod, settings.resetTime,
           function _returnToTheApplication() {
             Common.startApp();
           }

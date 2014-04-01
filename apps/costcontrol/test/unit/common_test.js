@@ -238,7 +238,7 @@ suite('Cost Control Common >', function() {
       sinon.stub(MockMozNetworkStats, 'clearStats', getSuccessfullClearStats());
 
       Common.loadNetworkInterfaces(function() {
-        Common.resetData('wifi', function() {
+        resetData('wifi', function() {
           assert.isTrue(MockMozNetworkStats.clearStats.calledOnce);
           assert.isTrue(MockMozNetworkStats.clearStats
                                    .calledWith(Common.allNetworkInterfaces[0]));
@@ -252,7 +252,7 @@ suite('Cost Control Common >', function() {
       sinon.stub(MockMozNetworkStats, 'clearStats', getSuccessfullClearStats());
 
       Common.loadNetworkInterfaces(function() {
-        Common.resetData('mobile', function() {
+        resetData('mobile', function() {
           assert.isTrue(MockMozNetworkStats.clearStats.calledOnce);
           assert.isTrue(MockMozNetworkStats.clearStats
                                    .calledWith(Common.allNetworkInterfaces[1]));
@@ -266,7 +266,7 @@ suite('Cost Control Common >', function() {
       sinon.stub(MockMozNetworkStats, 'clearStats', getSuccessfullClearStats());
 
       Common.loadNetworkInterfaces(function() {
-        Common.resetData('all', function() {
+        resetData('all', function() {
           assert.isTrue(MockMozNetworkStats.clearStats.calledTwice);
           done();
         });
@@ -297,7 +297,7 @@ suite('Cost Control Common >', function() {
       };
 
       Common.loadNetworkInterfaces(function() {
-        Common.resetData('all', function() {
+        resetData('all', function() {
           setTimeout(testOk, 500);
         });
       });

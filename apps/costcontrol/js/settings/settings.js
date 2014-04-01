@@ -1,6 +1,7 @@
 /* global BalanceView, LazyLoader, AutoSettings, BalanceLowLimitView,
-          ViewManager, dataLimitConfigurer, Formatting */
+          ViewManager, dataLimitConfigurer */
 /* exported debug, sendBalanceThresholdNotification */
+
 /*
  * Settings is in charge of setup the setting section. It uses an AutoSettings
  * object to automatically bind markup with local settings.
@@ -9,22 +10,30 @@
  * data usage and telephony.
  */
 'use strict';
-// Import global objects from parent window
-var ConfigManager = window.parent.ConfigManager;
-var CostControl = window.parent.CostControl;
-var Common = window.parent.Common;
-var NetworkUsageAlarm = window.parent.NetworkUsageAlarm;
+ // Import global objects from parent window
+ var ConfigManager = window.parent.ConfigManager;
+ var CostControl = window.parent.CostControl;
+ var Common = window.parent.Common;
+ var NetworkUsageAlarm = window.parent.NetworkUsageAlarm;
 
-// Import global functions from parent window
-var addNetworkUsageAlarm = window.parent.addNetworkUsageAlarm;
-var resetTelephony = window.parent.resetTelephony;
-var _ = window.parent._;
-navigator.mozL10n = window.parent.navigator.mozL10n;
+ // Import global functions from parent window
+ var updateNextReset = window.parent.updateNextReset;
+ var formatTimeHTML = window.parent.formatTimeHTML;
+ var formatData = window.parent.formatData;
+ var roundData = window.parent.roundData;
+ var resetData = window.parent.resetData;
+ var sendBalanceThresholdNotification = window.parent
+                                        .sendBalanceThresholdNotification;
+ var addNetworkUsageAlarm = window.parent.addNetworkUsageAlarm;
+ var resetTelephony = window.parent.resetTelephony;
+ var getDataLimit = window.parent.getDataLimit;
+ var localizeWeekdaySelector = window.parent.localizeWeekdaySelector;
+ var computeTelephonyMinutes = window.parent.computeTelephonyMinutes;
+ var _ = window.parent._;
 
-
-// Import debug
-var DEBUGGING = window.parent.DEBUGGING;
-var debug = window.parent.debug;
+ // Import debug
+ var DEBUGGING = window.parent.DEBUGGING;
+ var debug = window.parent.debug;
 
 var Settings = (function() {
 
@@ -76,8 +85,7 @@ var Settings = (function() {
           if (!value) {
             NetworkUsageAlarm.clearAlarms(currentDataInterface);
           } else {
-            addNetworkUsageAlarm(currentDataInterface,
-                                 Common.getDataLimit(settings));
+            addNetworkUsageAlarm(currentDataInterface, getDataLimit(settings));
           }
         },
         true
@@ -123,12 +131,12 @@ var Settings = (function() {
         if (settings.resetTime !== defaultResetTime) {
           ConfigManager.setOption({ resetTime: defaultResetTime });
         } else {
-          Common.updateNextReset(settings.trackingPeriod, settings.resetTime);
+          updateNextReset(settings.trackingPeriod, settings.resetTime);
         }
       }
 
       function _updateNextReset(value, old, key, settings) {
-        Common.updateNextReset(settings.trackingPeriod, settings.resetTime);
+        updateNextReset(settings.trackingPeriod, settings.resetTime);
       }
 
       ConfigManager.observe('resetTime', _updateNextReset, true);
@@ -205,7 +213,7 @@ var Settings = (function() {
     resetWifiDataUsage.addEventListener('click',
       function _onDataReset() {
         // Reset data wifi, take in count spent offsets to fix the charts
-        Common.resetData('wifi');
+        resetData('wifi');
         updateUI();
         vmanager.closeCurrentView();
       });
@@ -215,7 +223,7 @@ var Settings = (function() {
     resetMobileDataUsage.addEventListener('click',
       function _onDataReset() {
         // Reset data mobile, take in count spent offsets to fix the charts
-        Common.resetData('mobile');
+        resetData('mobile');
         updateUI();
         vmanager.closeCurrentView();
       });
@@ -224,7 +232,7 @@ var Settings = (function() {
     resetAllDataUsage.addEventListener('click',
       function _onDataReset() {
         // Reset all data usage, take in count spent offsets to fix the charts
-        Common.resetData('all');
+        resetData('all');
         updateUI();
         vmanager.closeCurrentView();
       });
@@ -258,8 +266,7 @@ var Settings = (function() {
   function updateUI() {
     ConfigManager.requestAll(function _onInfo(configuration, settings) {
       // L10n
-      Common.localizeWeekdaySelector(
-        document.getElementById('select-weekday'));
+      localizeWeekdaySelector(document.getElementById('select-weekday'));
 
       // Layout
       var mode = ConfigManager.getApplicationMode();
@@ -303,17 +310,17 @@ var Settings = (function() {
   // Update data usage view on settings
   function updateDataUsage(datausage, lastCompleteDataReset) {
     var mobileUsage = document.querySelector('#mobile-data-usage > span');
-    var data = Formatting.roundData(datausage.mobile.total);
-    mobileUsage.textContent = Formatting.formatData(data);
+    var data = roundData(datausage.mobile.total);
+    mobileUsage.textContent = formatData(data);
 
     var wifiUsage = document.querySelector('#wifi-data-usage > span');
-    data = Formatting.roundData(datausage.wifi.total);
-    wifiUsage.textContent = Formatting.formatData(data);
+    data = roundData(datausage.wifi.total);
+    wifiUsage.textContent = formatData(data);
 
     var timestamp = document.querySelector('#wifi-data-usage + .meta');
     timestamp.innerHTML = '';
-    timestamp.appendChild(Formatting.formatTimeHTML(lastCompleteDataReset,
-                                                    datausage.timestamp));
+    timestamp.appendChild(formatTimeHTML(lastCompleteDataReset,
+                                         datausage.timestamp));
   }
 
   // Update balance view on settings
@@ -328,7 +335,7 @@ var Settings = (function() {
     var calltimeSpan = document.getElementById('calltime');
     var smscountSpan = document.getElementById('smscount');
     calltimeSpan.textContent = _('magnitude', {
-      value: Formatting.computeTelephonyMinutes(activity),
+      value: computeTelephonyMinutes(activity),
       unit: 'min.'
     });
     smscountSpan.textContent = _('magnitude', {
@@ -337,7 +344,7 @@ var Settings = (function() {
     });
     var timestamp = document.getElementById('telephony-timestamp');
     timestamp.innerHTML = '';
-    timestamp.appendChild(Formatting.formatTimeHTML(
+    timestamp.appendChild(formatTimeHTML(
       lastTelephonyReset,
       activity.timestamp
     ));
@@ -346,8 +353,6 @@ var Settings = (function() {
   return {
     initialize: function() {
       var SCRIPTS_NEEDED = [
-        'js/utils/toolkit.js',
-        'js/utils/formatting.js',
         'js/views/BalanceLowLimitView.js',
         'js/settings/limitdialog.js',
         'js/settings/autosettings.js',
