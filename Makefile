@@ -715,15 +715,15 @@ $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 
 $(NODE_MODULES_SRC):
 ifeq "$(NODE_MODULES_SRC)" "modules.tar"
-	$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/master
-	mv master "$(NODE_MODULES_SRC)"
+	$(DOWNLOAD_CMD) https://github.com/gaye/gaia-node-modules/tarball/marionette-helper-0.3.1
+	mv marionette-helper-0.3.1 "$(NODE_MODULES_SRC)"
 else
 	git clone "$(NODE_MODULES_GIT_URL)" "$(NODE_MODULES_SRC)"
 endif
 
 node_modules: $(NODE_MODULES_SRC)
 ifeq "$(NODE_MODULES_SRC)" "modules.tar"
-	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "mozilla-b2g-gaia-node-modules-*/node_modules"
+	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "gaye-gaia-node-modules-*/node_modules"
 else
 	mv $(NODE_MODULES_SRC)/node_modules node_modules
 endif
