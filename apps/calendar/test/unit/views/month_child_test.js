@@ -49,7 +49,7 @@ suiteGroup('Views.MonthChild', function() {
     test('sanity', function() {
       assert.equal(subject.controller, controller);
       assert.equal(subject.date, month);
-      assert.equal(subject.id, Calendar.Calc.getDayId(subject.date));
+      assert.equal(subject.id, subject.date.valueOf());
 
       assert.instanceOf(
         subject.timespan,
