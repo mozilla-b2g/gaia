@@ -125,6 +125,28 @@ suite('system/HomescreenWindow', function() {
         homescreenWindow.restart();
         assert.isTrue(stubKill.called);
       });
+
+      test('Homescreen should hide its fade-overlay while we call the method',
+      function() {
+        var originalOverlay = homescreenWindow.fadeOverlay,
+            domOverlay = document.createElement('div');
+        homescreenWindow.fadeOverlay = domOverlay;
+        homescreenWindow.hideFadeOverlay();
+        assert.isTrue(homescreenWindow.fadeOverlay
+          .classList.contains('hidden'));
+        homescreenWindow.fadeOverlay = originalOverlay;
+      });
+
+      test('Homescreen should show its fade-overlay while we call the method',
+      function() {
+        var originalOverlay = homescreenWindow.fadeOverlay,
+            domOverlay = document.createElement('div');
+        homescreenWindow.fadeOverlay = domOverlay;
+        homescreenWindow.showFadeOverlay();
+        assert.isFalse(homescreenWindow.fadeOverlay
+          .classList.contains('hidden'));
+        homescreenWindow.fadeOverlay = originalOverlay;
+      });
     });
   });
 });

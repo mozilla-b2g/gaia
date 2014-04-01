@@ -127,6 +127,8 @@
       window.addEventListener('keyboardchange', this);
       window.addEventListener('cardviewbeforeshow', this);
       window.addEventListener('cardviewbeforeclose', this);
+      window.addEventListener('shrinking-start', this);
+      window.addEventListener('shrinking-stop', this);
       return this;
     },
 
@@ -151,6 +153,8 @@
       window.removeEventListener('applicationready', this._onAppReady);
       window.removeEventListener('cardviewbeforeshow', this);
       window.removeEventListener('cardviewbeforeclose', this);
+      window.removeEventListener('shrinking-start', this);
+      window.removeEventListener('shrinking-stop', this);
       this._started = false;
     },
 
@@ -195,6 +199,15 @@
         case 'cardviewbeforeclose':
           // Fade homescreen back in before the cards view closes.
           this.getHomescreen().fadeIn();
+          break;
+        case 'shrinking-start':
+          // To hide the homescreen overlay while we set the background behind
+          // it due to the shrinking UI.
+          this.getHomescreen().hideFadeOverlay();
+          break;
+        case 'shrinking-stop':
+          // To resume the homescreen after shrinking UI is over.
+          this.getHomescreen().showFadeOverlay();
           break;
       }
     },

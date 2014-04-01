@@ -457,9 +457,7 @@
         this.current.appFrame.insertBefore(this.current.cover,
           anchor);
       }
-      this.current.wrapper.style.perspective = '1rem';
-      this.current.wrapper.style.backgroundImage =
-        'url("/style/shrinking_ui/images/background.png")';
+      this.current.wrapper.classList.add('shrinking-wrapper');
       this.current.appFrame.style.transition = 'transform 0.5s ease';
 
       // Add a little bouncing back animation.
@@ -627,8 +625,7 @@
       // After trasitionend, clean this handler.
       this.current.appFrame.removeEventListener('transitionend',
         this._cleanEffects);
-      this.current.wrapper.style.backgroundImage = '';
-      this.current.wrapper.style.perspective = '';
+      this.current.wrapper.classList.remove('shrinking-wrapper');
       this._disableSlidingCover().remove();
 
       this.current.wrapper = null;
