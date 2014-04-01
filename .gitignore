@@ -62,6 +62,7 @@ manifest.appcache
 ENV/
 modules.tar
 mozilla-b2g-gaia-node-modules-*
+/git-gaia-node-modules/
 /docs/
 /.cproject
 /.project
