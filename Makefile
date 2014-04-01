@@ -477,32 +477,32 @@ define app-makefile-template
 # FIXME: [bug 989918] this workaround is use to avoid crash if a file include
 # colon in its filename.
 ifneq (,$(shell find $(2) -name "*:*"))
-$(eval $(shell basename $(2))_APP_FILES =)
+$(eval $(notdir $(2))_APP_FILES =)
 .PHONY: $(1)
 else
-$(eval $(shell basename $(2))_APP_FILES = $(call rwildcard,$(2),*))
+$(eval $(notdir $(2))_APP_FILES = $(call rwildcard,$(2),*))
 endif
 
-$(1): $($(shell basename $(2))_APP_FILES) $(XULRUNNER_BASE_DIRECTORY) | $(STAGE_DIR)
+$(1): $($(notdir $(2))_APP_FILES) $(XULRUNNER_BASE_DIRECTORY) | $(STAGE_DIR)
 	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
 		if [ -r "$(2)/Makefile" ]; then \
-			echo "execute Makefile for $(shell basename $(2)) app" ; \
-			STAGE_APP_DIR="../../build_stage/$(shell basename $(2))" make -C "$(2)" ; \
+			echo "execute Makefile for $(notdir $(2)) app" ; \
+			STAGE_APP_DIR="../../build_stage/$(notdir $(2))" make -C "$(2)" ; \
 		else \
-			echo "copy $(shell basename $(2)) to build_stage/" ; \
-			rm -rf "$(STAGE_DIR)/$(shell basename $(2))" && \
+			echo "copy $(notdir $(2)) to build_stage/" ; \
+			rm -rf "$(STAGE_DIR)/$(notdir $(2))" && \
 			cp -r "$(2)" $(STAGE_DIR) && \
 			if [ -r "$(2)/build/build.js" ]; then \
-				echo "execute $(shell basename $(2))/build/build.js"; \
+				echo "execute $(notdir $(2))/build/build.js"; \
 				export APP_DIR=$(2); \
 				$(call run-js-command,app/build); \
 			fi; \
 		fi && \
-		$(call clean-build-files,$(STAGE_DIR)/$(shell basename $(2))); \
+		$(call clean-build-files,$(STAGE_DIR)/$(notdir $(2))); \
 	fi;
 endef
 
-BUILD_STAGE_APPS := $(foreach appdir,$(GAIA_APPDIRS),$(STAGE_DIR)$(SEP)$(shell basename $(appdir)))
+BUILD_STAGE_APPS := $(foreach appdir,$(GAIA_APPDIRS),$(STAGE_DIR)$(SEP)$(notdir $(appdir)))
 
 # Generate profile/
 $(PROFILE_FOLDER): preferences $(BUILD_STAGE_APPS) keyboard-layouts copy-build-stage-manifest test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
@@ -518,7 +518,7 @@ $(STAGE_DIR):
 	mkdir -p $@
 
 $(foreach appdir,$(GAIA_APPDIRS), \
-	$(eval $(call app-makefile-template,$(STAGE_DIR)$(SEP)$(shell basename $(appdir)),$(appdir))) \
+	$(eval $(call app-makefile-template,$(STAGE_DIR)$(SEP)$(notdir $(appdir)),$(appdir))) \
 )
 
 # Keyboard app needs keyboard_layouts.json from |keyboard-layouts|
