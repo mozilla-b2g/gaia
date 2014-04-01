@@ -3,13 +3,16 @@ define(function(require) {
 
 var Utils = require('utils');
 var mozL10n = require('l10n');
+var AudioManager = require('audio_manager');
 var _ = mozL10n.get;
 
 var messageHandlerMapping;
 
 function RingView(opts = {}) {
   Utils.extend(this, {
-    ringtonePlayer: null,
+    ringtonePlayer: AudioManager.createAudioPlayer({
+      interruptHandler: this
+    }),
     vibrateInterval: null,
     screenLock: null,
     message: {},
@@ -160,15 +163,9 @@ RingView.prototype.display = function rv_display() {
 RingView.prototype.ring = function rv_ring(state) {
   if (state) {
     if (this.notificationOptions.sound) {
-      var ringtonePlayer = this.ringtonePlayer = new Audio();
-      ringtonePlayer.addEventListener('mozinterruptbegin', this);
-      ringtonePlayer.mozAudioChannelType = 'alarm';
-      ringtonePlayer.loop = true;
-      ringtonePlayer.src = 'shared/resources/media/alarms/' +
-        this.notificationOptions.sound;
-      ringtonePlayer.play();
+      this.ringtonePlayer.playRingtone(this.notificationOptions.sound);
     }
-  } else if (this.ringtonePlayer) {
+  } else {
     this.ringtonePlayer.pause();
   }
 };
