@@ -468,11 +468,6 @@ endef
 BUILD_CONFIG := $(call get-build-config)
 export BUILD_CONFIG
 
-define atomic-copy
-	$(eval TEMPFILE:=$(shell mktemp /tmp/$(shell basename $(1)).XXXXXX))
-	@cat $(1) > $(TEMPFILE) && mv $(TEMPFILE) $(2)
-endef
-
 include build/common.mk
 
 # copy template function for each apps in build_stage, it can avoid copy again
