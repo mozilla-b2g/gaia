@@ -109,8 +109,6 @@ var photodb;
 // file, we have to get that from a device storage object for videos.
 var videostorage;
 
-var visibilityMonitor;
-
 var loader = LazyLoader;
 
 // Flag that indicates that we've edited a picture and just saved it
@@ -377,49 +375,11 @@ function compareFilesByDate(a, b) {
 // session or an sdcard replacement.
 //
 function initThumbnails() {
-  // If we've already been called once, then we've already got thumbnails
-  // displayed. There is no need to re-enumerate them, so we just go
-  // straight to scanning for new files
-  if (visibilityMonitor) {
-    photodb.scan();
-    return;
-  }
-
   // configure the template id for template group
   ThumbnailDateGroup.Template = new Template('thumbnail-group-header');
 
   // For gallery group view initialise ThumbnailList object
   thumbnailList = new ThumbnailList(ThumbnailDateGroup, thumbnails);
-
-  // Keep track of when thumbnails are onscreen and offscreen
-/*
-  // Tune for low memory usage and small batch jobes to fetch new
-  // images.  Lower fps / frequent but smaller jank.
-  var visibilityMargin = 360;
-  var minimumScrollDelta = 1;
-*/
-
-  // Tune for fast panning for long distances, which requires larger
-  // batch jobs.  Higher fps / infrequent but larger jank.
-  //
-  // These magic constants were determined as follows
-  //  - keep "a lot" of images loaded:
-  //      max 300 images = 100 rows
-  //       = 10600px on HVGA = (10600 - 480) / 2 margins = 5060
-  //
-  //  - batch up as much work as possible while showing unpainted
-  //    thumbnails as little as possible.  4000px determined by
-  //    experimentation.  (Provides 10 rows' worth loading zone.)
-  var visibilityMargin = 5060;
-  var minimumScrollDelta = 4000;
-
-  visibilityMonitor =
-    monitorTagVisibility(thumbnails, 'li',
-                         visibilityMargin,    // extra space top and bottom
-                         minimumScrollDelta,  // min scroll before we do work
-                         thumbnailOnscreen,   // set background image
-                         thumbnailOffscreen); // remove background image
-
 
   // Handle clicks on the thumbnails we're about to create
   thumbnails.addEventListener('click', thumbnailClickHandler);

@@ -139,6 +139,6 @@ ThumbnailDateGroup.prototype.removeItem = function(thumbnail) {
     return;
   }
   this.thumbnails.splice(idx, 1);
-  URL.revokeObjectURL(thumbnail.htmlNode.dataset.backgroundImage.slice(5, -2));
+  URL.revokeObjectURL(thumbnail.htmlNode.style.backgroundImage.slice(5, -2));
   this.container.removeChild(thumbnail.htmlNode);
 };
