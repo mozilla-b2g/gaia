@@ -38,27 +38,29 @@ suite('controllers/activity', function() {
     this.controller = new this.ActivityController(this.app);
   });
 
-  suite('ConfirmController#configure()', function() {
+  suite('ActivityController#configure()', function() {
     test('Should should configure pictureSize and ' +
       'recorderProfile options when reset', function() {
       this.controller = new this.ActivityController(this.app);
 
       var activity = this.app.activity;
-      var pictureSizes = this.app.settings.pictureSizes;
       var recorderProfiles = this.app.settings.recorderProfiles;
+      var pictureSizes = this.app.settings.pictureSizes;
       var mode = this.app.settings.mode;
 
       assert.ok(activity.on.calledWith('activityreceived', this.controller.onActivityReceived));
-      assert.ok(pictureSizes.on.calledWith('optionsreset', this.controller.configurePictureSize));
-      assert.ok(recorderProfiles.on.calledWith('optionsreset', this.controller.configureVideoSize));
-      assert.ok(mode.resetOptions.calledWith(this.app.activity.modes));
+      assert.ok(recorderProfiles.on.calledWith('configured', this.controller.filterRecorderProfiles));
+      assert.ok(pictureSizes.on.calledWith('configured', this.controller.filterPictureSize));
+      assert.ok(mode.filterOptions.calledWith(this.app.activity.modes));
       assert.ok(mode.select.calledWith(this.app.activity.modes[0]));
     });
   });
 
-  suite('ConfirmController#bindEvents()', function() {
+  suite('ActivityController#bindEvents()', function() {
     test('Should reset the `settings.mode` with the ' +
       'modes defined by the activity', function() {
+      this.app.settings.mode.filterOptions.reset();
+
       this.app.activity.modes = ['video'];
       this.controller = new this.ActivityController(this.app);
 
@@ -89,7 +91,7 @@ suite('controllers/activity', function() {
     });
   });
 
-  suite('ConfirmController#filterPictureSize()', function() {
+  suite('ActivityController#filterPictureSize()', function() {
     setup(function() {
       this.sizes = [{
         "key": "2048x1536",
@@ -179,7 +181,7 @@ suite('controllers/activity', function() {
     });
   });
 
- suite('ConfirmController#filterRecorderProfiles()', function() {
+ suite('ActivityController#filterRecorderProfiles()', function() {
   setup(function() {
     this.profiles = [
       { key: 'high' },
