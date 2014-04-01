@@ -603,3 +603,28 @@ button::-moz-focus-inner {
   z-index: 8;
   width: 100%;
 }
+
+#lockscreen-message {
+  position: relative;
+  top: 18rem;
+  left: 0;
+  word-wrap: break-word;
+  text-align: center;
+  overflow-y: auto;
+  line-height: 1.4rem;
+  z-index: 16;
+
+  margin: auto;
+  border-radius: 1rem;
+  border: 1px solid #e6e6e6;
+  padding: 5px;
+  width: 27rem;
+  min-height: 5rem;
+  max-height: 10rem;
+
+  background-color: #fafafa;
+
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: black;
+}
