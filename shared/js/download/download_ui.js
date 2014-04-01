@@ -42,6 +42,14 @@ var DownloadUI = (function() {
     this.numberOfButtons = classes.indexOf('full') !== -1 ? 1 : 2;
   };
 
+  /**
+   * Errors reported by the Downloads API.
+   */
+  var ERRORS = {
+    NO_SDCARD: 2152857618,
+    UNMOUNTED_SDCARD: 2152857621
+  };
+
   var TYPES = {
     STOP: new DownloadType('stop', ['danger'], true),
     STOPPED: new DownloadType('stopped', ['recommend'], true),
@@ -334,6 +342,10 @@ var DownloadUI = (function() {
     showActions: showActions,
 
     hide: removeContainers,
+
+    get ERRORS() {
+      return ERRORS;
+    },
 
     get TYPE() {
       return TYPES;
