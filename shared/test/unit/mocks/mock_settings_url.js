@@ -11,7 +11,6 @@ MockSettingsURL.prototype = {
   },
 
   set: function msu_set(value) {
-    this._url = value;
     return this._url;
   },
 

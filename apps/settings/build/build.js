@@ -28,25 +28,9 @@ SettingsAppBuilder.prototype.writeSensorsJSON = function(options) {
   utils.writeContent(file, content);
 };
 
-SettingsAppBuilder.prototype.writeFindMyDeviceConfigJSON = function(options) {
-  var distDir = options.GAIA_DISTRIBUTION_DIR;
-
-  var file = utils.getFile(options.GAIA_DIR, 'apps',
-                           'settings', 'resources', 'findmydevice.json');
-  var defaultContent = {
-    'api_url': 'http://ec2-54-241-87-238.us-west-1.compute.amazonaws.com',
-    'api_version': '0'
-  };
-
-  var content = utils.getDistributionFileContent('findmydevice',
-                                                  defaultContent, distDir);
-  utils.writeContent(file, content);
-};
-
 SettingsAppBuilder.prototype.execute = function(options) {
   this.writeSensorsJSON(options);
   this.writeSupportsJSON(options);
-  this.writeFindMyDeviceConfigJSON(options);
 };
 
 exports.execute = function(options) {
