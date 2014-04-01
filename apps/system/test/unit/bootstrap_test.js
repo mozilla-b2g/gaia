@@ -34,7 +34,6 @@ requireApp('system/test/unit/mock_activity_window_factory.js');
 requireApp('system/test/unit/mock_visibility_manager.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_secure_window_manager.js');
-requireApp('system/test/unit/mock_lockscreen_window_manager.js');
 requireApp('system/test/unit/mock_secure_window_factory.js');
 requireApp('system/test/unit/mock_activity_window_factory.js');
 requireApp('system/test/unit/mock_app_window_factory.js');
@@ -48,7 +47,6 @@ mocha.globals([
   'cancelHomeClick',
   'secureWindowManager',
   'secureWindowFactory',
-  'lockScreenWindowManager',
   'systemDialogManager',
   'devtoolsView',
   'dialerRinger',
@@ -103,7 +101,6 @@ var mocksForBootstrap = new MocksHelper([
   'SecureWindowManager',
   'SecureWindowFactory',
   'ActivityWindowFactory',
-  'LockScreenWindowManager',
   'L10n'
 ]).init();
 

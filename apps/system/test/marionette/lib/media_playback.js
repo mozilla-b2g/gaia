@@ -163,15 +163,6 @@ MediaPlayback.prototype = {
 
   lockScreen: function() {
     this.client.executeScript(function() {
-      // The lockscreen window would not be active while we do the test.
-      // XXX: This is a strange issue that only happen on B2G desktop:
-      // the lockscreen window suddenly disappear after the simulator is ready.
-      var lwm = window.wrappedJSObject.lockScreenWindowManager,
-          needRelock = !lwm.states.instance.isActive();
-      if (needRelock) {
-        lwm.closeApp();
-        lwm.openApp();
-      }
       window.wrappedJSObject.lockScreen.lock();
     });
   },

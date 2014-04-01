@@ -312,8 +312,6 @@
     <script defer src="js/system_dialog_manager.js"></script>
     <script defer src="js/system_simcard_dialog.js"></script>
     <script defer src="js/fxa_dialog.js"></script>
-    <script defer src="js/lockscreen_window.js"></script>
-    <script defer src="js/lockscreen_window_manager.js"></script>
     <script defer src="js/visibility_manager.js"></script>
     <script defer src="js/layout_manager.js"></script>
     <script defer src="js/suspending_app_priority_manager.js"></script>
@@ -1004,10 +1002,7 @@
 
       <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>
 
-      <!-- template for LockScreen window. -->
-      <div id="lockscreen-overlay-template" hidden>
-        <!--
-        <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
+      <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
         <div id="lockscreen-background" class="lockscreen-background"></div>
         <div id="lockscreen-container">
           <div id="lockscreen-panel-main" class="lockscreen-panel">
@@ -1081,8 +1076,6 @@
           <div id="lockscreen-panel-emergency-call" class="lockscreen-panel"></div>
         </div>
       </div>
-            -->
-      </div> <!-- end of lockscreen overlay template -->
 
       <div id="attention-screen" data-z-index-level="attention-screen">
         <div id="attention-bar"></div>
