@@ -212,9 +212,7 @@
     var evt = this.events[0];
 
     var message = evt.detail.message || '';
-    // XXX: Bug 916658 - Remove unused l10n resources from b2g gecko
-    // If we have removed translations from Gecko, then we can remove this.
-    var title = '';
+    var title = this._getTitle(evt.detail.title);
     var elements = this.elements;
 
     function escapeHTML(str) {
@@ -233,6 +231,7 @@
 
     switch (type) {
       case 'alert':
+        elements.alertTitle.innerHTML = title;
         elements.alertMessage.innerHTML = message;
         elements.alert.classList.add('visible');
         elements.alertOk.textContent = evt.yesText ? evt.yesText : _('ok');
@@ -242,6 +241,7 @@
       case 'prompt':
         elements.prompt.classList.add('visible');
         elements.promptInput.value = evt.detail.initialValue;
+        elements.promptTitle.innerHTML = title;
         elements.promptMessage.innerHTML = message;
         elements.promptOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.promptCancel.textContent = evt.noText ?
@@ -251,6 +251,7 @@
 
       case 'confirm':
         elements.confirm.classList.add('visible');
+        elements.confirmTitle.innerHTML = title;
         elements.confirmMessage.innerHTML = message;
         elements.confirmOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.confirmCancel.textContent = evt.noText ?
@@ -435,5 +436,27 @@
         evt.detail.unblock();
 
       this.processNextEvent();
+    };
+
+  AppModalDialog.prototype._getTitle =
+    function amd__getTitle(title) {
+      //
+      // XXX Bug 982006, subsystems like uriloader still report errors with
+      // titles which are important to the user for context in diagnosing
+      // issues.
+      //
+      // However, we will ignore all titles containing the application url or
+      // origin url. These types of titles simply indicate that the active
+      // application is prompting and are more confusing to the user than
+      // useful. Instead we will return the application name if there is one
+      // or an empty string.
+      //
+      if (!title ||
+          title.contains(this.app.config.url) ||
+          title.contains(this.app.config.origin)) {
+        return this.app.name || '';
+      }
+
+      return title;
     };
 }(this));

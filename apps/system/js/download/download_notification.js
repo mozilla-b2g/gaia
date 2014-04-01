@@ -88,13 +88,27 @@ DownloadNotification.prototype = {
   },
 
   _onError: function dn_onError() {
-    // this.download.error.name is always "DownloadError" so we have to check if
-    // the error is because of no free memory on SD card.
-    DownloadHelper.getFreeSpace((function gotFreeMemory(bytes) {
-      if (bytes === 0) {
-        DownloadUI.show(DownloadUI.TYPE['NO_MEMORY'], this.download, true);
-      }
-    }).bind(this));
+    var result = parseInt(this.download.error.message);
+
+    switch (result) {
+      case DownloadUI.ERRORS.NO_SDCARD:
+        DownloadUI.show(DownloadUI.TYPE['NO_SDCARD'],
+                        this.download,
+                        true);
+        break;
+      case DownloadUI.ERRORS.UNMOUNTED_SDCARD:
+        DownloadUI.show(DownloadUI.TYPE['UNMOUNTED_SDCARD'],
+                        this.download,
+                        true);
+        break;
+
+      default:
+        DownloadHelper.getFreeSpace((function gotFreeMemory(bytes) {
+          if (bytes === 0) {
+            DownloadUI.show(DownloadUI.TYPE['NO_MEMORY'], this.download, true);
+          }
+        }).bind(this));
+    }
   },
 
   _onSucceeded: function dn_onSucceeded() {

@@ -28,6 +28,10 @@ var mocksForDownloadNotification = new MocksHelper([
 ]).init();
 
 suite('system/DownloadNotification >', function() {
+  var ERRORS = {
+    NO_SDCARD: 2152857618,
+    UNMOUNTED_SDCARD: 2152857621
+  };
 
   var notification, realL10n, download, realOnLine, isOnLine;
 
@@ -172,11 +176,52 @@ suite('system/DownloadNotification >', function() {
       assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
     });
 
+    test('The download failed because the SD card is missing', function() {
+      assert.isFalse(NotificationScreen.addNotification.called);
+      download.state = 'stopped';
+      download.error = {
+        name: 'DownloadError',
+        message: ERRORS.NO_SDCARD
+      };
+      DownloadHelper.bytes = 0;
+      download.onstatechange();
+      assertUpdatedNotification(download, 'failed');
+      assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+      assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
+      assert.equal(DownloadUI.methodCalled, 'show');
+
+      // pretend like the user fixed the issue and move onto the next failure.
+      download.state = 'downloading';
+      download.currentBytes = 400;
+      download.onstatechange();
+    });
+
+    test('The download failed because the SD card is busy', function() {
+      assert.isFalse(NotificationScreen.addNotification.called);
+      download.state = 'stopped';
+      download.error = {
+        name: 'DownloadError',
+        message: ERRORS.UNMOUNTED_SDCARD
+      };
+      DownloadHelper.bytes = 0;
+      download.onstatechange();
+      assertUpdatedNotification(download, 'failed');
+      assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+      assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
+      assert.equal(DownloadUI.methodCalled, 'show');
+
+      // pretend like the user fixed the issue and move onto the next failure.
+      download.state = 'downloading';
+      download.currentBytes = 400;
+      download.onstatechange();
+    });
+
     test('The download failed because of no free memory', function() {
       assert.isFalse(NotificationScreen.addNotification.called);
       download.state = 'stopped';
       download.error = {
-        name: 'DownloadError'
+        name: 'DownloadError',
+        message: 0
       };
       DownloadHelper.bytes = 0;
       download.onstatechange();

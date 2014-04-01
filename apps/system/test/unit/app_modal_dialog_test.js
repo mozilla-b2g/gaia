@@ -12,38 +12,43 @@ var mocksForAppModalDialog = new MocksHelper([
 ]).init();
 
 suite('system/AppModalDialog', function() {
-  var stubById, realL10n, stubQuerySelector;
+  var realL10n, app, md, fragment;
   mocksForAppModalDialog.attachTestHelpers();
   setup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    stubById = this.sinon.stub(document, 'getElementById');
-    var e = document.createElement('div');
-
-    stubQuerySelector = this.sinon.stub(e, 'querySelector');
-    var parent = document.createElement('div');
-    var child = document.createElement('div');
-    parent.appendChild(child);
-    stubQuerySelector.returns(child);
-
-    stubById.returns(e);
     requireApp('system/js/system.js');
     requireApp('system/js/base_ui.js');
-    requireApp('system/js/app_modal_dialog.js', done);
+
+    requireApp('system/js/app_modal_dialog.js',
+      function() {
+        app = new AppWindow(fakeAppConfig1);
+        md = new AppModalDialog(app);
+
+        fragment = document.createElement('div');
+        fragment.innerHTML = md.view();
+        document.body.appendChild(fragment);
+
+        done();
+      }
+    );
   });
 
   teardown(function() {
     navigator.mozL10n = realL10n;
-    stubById.restore();
-    stubQuerySelector.restore();
+    document.body.removeChild(fragment);
+    fragment = null;
+    md = null;
+    app = null;
   });
 
   var fakeAppConfig1 = {
     url: 'app://www.fake/index.html',
     manifest: {},
     manifestURL: 'app://wwww.fake/ManifestURL',
-    origin: 'app://www.fake'
+    origin: 'app://www.fake',
+    name: 'Fake Application'
   };
 
   var fakeAlertEvent = {
@@ -51,6 +56,8 @@ suite('system/AppModalDialog', function() {
     preventDefault: function() {},
     detail: {
       type: 'alert',
+      title: 'alert title',
+      message: 'alert message',
       unblock: function() {}
     }
   };
@@ -60,6 +67,8 @@ suite('system/AppModalDialog', function() {
     preventDefault: function() {},
     detail: {
       type: 'confirm',
+      title: 'confirm title',
+      message: 'confirm message',
       unblock: function() {}
     }
   };
@@ -69,6 +78,8 @@ suite('system/AppModalDialog', function() {
     preventDefault: function() {},
     detail: {
       type: 'prompt',
+      title: 'prompt title',
+      message: 'prompt message',
       unblock: function() {}
     }
   };
@@ -84,46 +95,56 @@ suite('system/AppModalDialog', function() {
     }
   };
 
+  function attachModalDialog() {
+  }
+
   test('New', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new AppModalDialog(app1);
-    assert.isDefined(md1.instanceID);
+    assert.isDefined(md.instanceID);
   });
 
   test('Alert', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new AppModalDialog(app1);
-    md1.handleEvent(fakeAlertEvent);
+    md.handleEvent(fakeAlertEvent);
 
-    assert.isTrue(md1.element.classList.contains('visible'));
-    assert.isTrue(md1.elements.alert.classList.contains('visible'));
+    assert.isTrue(md.element.classList.contains('visible'));
+    assert.isTrue(md.elements.alert.classList.contains('visible'));
+    assert.equal(md.elements.alertTitle.innerHTML, 'alert title');
+    assert.equal(md.elements.alertMessage.innerHTML, 'alert message');
   });
 
   test('Confirm', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new AppModalDialog(app1);
-    md1.handleEvent(fakeConfirmEvent);
+    md.handleEvent(fakeConfirmEvent);
 
-    assert.isTrue(md1.element.classList.contains('visible'));
-    assert.isTrue(md1.elements.confirm.classList.contains('visible'));
+    assert.isTrue(md.element.classList.contains('visible'));
+    assert.isTrue(md.elements.confirm.classList.contains('visible'));
+    assert.equal(md.elements.confirmTitle.innerHTML, 'confirm title');
+    assert.equal(md.elements.confirmMessage.innerHTML, 'confirm message');
   });
 
   test('Prompt', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new AppModalDialog(app1);
-    md1.handleEvent(fakePromptEvent);
+    md.handleEvent(fakePromptEvent);
 
-    assert.isTrue(md1.element.classList.contains('visible'));
-    assert.isTrue(md1.elements.prompt.classList.contains('visible'));
+    assert.isTrue(md.element.classList.contains('visible'));
+    assert.isTrue(md.elements.prompt.classList.contains('visible'));
+    assert.equal(md.elements.promptTitle.innerHTML, 'prompt title');
+    assert.equal(md.elements.promptMessage.innerHTML, 'prompt message');
   });
 
   test('CustomPrompt', function() {
-    var app1 = new AppWindow(fakeAppConfig1);
-    var md1 = new AppModalDialog(app1);
-    md1.handleEvent(fakeCustomPromptEvent);
+    md.handleEvent(fakeCustomPromptEvent);
 
-    assert.isTrue(md1.element.classList.contains('visible'));
-    assert.isTrue(md1.elements.customPrompt.classList.contains('visible'));
+    assert.isTrue(md.element.classList.contains('visible'));
+    assert.isTrue(md.elements.customPrompt.classList.contains('visible'));
+  });
+
+  test('Ignore Dialog Titles containing App Origin URL', function() {
+    var fakeAlertBadTitleEvent = fakeAlertEvent;
+    fakeAlertBadTitleEvent.detail.title = fakeAppConfig1.url;
+
+    md.handleEvent(fakeAlertBadTitleEvent);
+
+    assert.isTrue(md.element.classList.contains('visible'));
+    assert.isTrue(md.elements.alert.classList.contains('visible'));
+    assert.equal(md.elements.alertTitle.innerHTML, fakeAppConfig1.name);
   });
 
 });
