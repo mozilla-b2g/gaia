@@ -224,27 +224,14 @@ body.pickView #thumbnails {
   border-color:rgba(255,255,255, 0.1);
 }
 
-.thumbnail {
+.thumbnailContainer {
   margin-right: 0.1rem;
   margin-bottom: 0.1rem;
   padding: 0;
   /* default to left-to-right, but overridden for rtl languages below */
   float: left;
-  /* no list item bullets */
-  list-style-type: none;
   /* don't let the user select the items */
   -moz-user-select: none;
-  /* thumbnail images will be displayed with background-image */
-  /* these properties scale and position the images correctly */
-  background-position: center;   /* keep the cropping at the edges */
-  background-size: contain;
-  background-repeat: no-repeat;
-  /*
-   * When we have a background image it will cover the whole thumbnail
-   * but when we're swapping that image in it might be visible before
-   * the image. So we want a color that contrasts with the border so we
-   * at least get the effect of a grid rather than a black screen
-   */
   background-color: #444;
 
   /*
@@ -262,7 +249,7 @@ body.pickView #thumbnails {
 /* Favor scrolling performance for the thumbnails list while
  * scrolling.
  */
-#thumbnails.scrolling .thumbnail {
+#thumbnails.scrolling .thumbnailContainer {
   image-rendering: -moz-crisp-edges;
 }
 
@@ -270,8 +257,12 @@ body.pickView #thumbnails {
   text-rendering: optimizeSpeed;
 }
 
-.thumbnail:nth-child(3n) {
+.thumbnailContainer:nth-child(3n) {
   margin-right: 0;
+}
+
+.thumbnail{
+  width: 100%;
 }
 
 .thumbnail.selected {
@@ -289,14 +280,14 @@ body.pickView #thumbnails {
 
 @media (orientation: landscape) {
   /* 4 thumbnails for each row in landscape mode. */
-  .thumbnail {
+  .thumbnailContainer {
     width: calc((100% - 0.3rem) / 4);
     padding-bottom: calc((100%  - 0.3rem) / 4);
   }
-  .thumbnail:nth-child(3n) {
+  .thumbnailContainer:nth-child(3n) {
     margin-right: 0.1rem;
   }
-  .thumbnail:nth-child(4n) {
+  .thumbnailContainer:nth-child(4n) {
     margin-right: 0;
   }
 }
@@ -378,7 +369,7 @@ body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
 
-*[dir=rtl] .thumbnail {
+*[dir=rtl] .thumbnailContainer {
   float: right;
 }
 
