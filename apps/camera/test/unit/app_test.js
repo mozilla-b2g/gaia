@@ -190,13 +190,6 @@ suite('app', function() {
       assert.ok(addEventListener.calledWith('beforeunload', this.app.onBeforeUnload));
     });
 
-    test('Should set the \'mode\' to the mode ' +
-         'specified by the activity if present', function() {
-      this.app.activity.mode = 'video';
-      this.app.boot();
-      assert.ok(this.app.set.calledWith('mode', 'video'));
-    });
-
     test('Should run the activity controller before controls or camera', function() {
       var activity = this.app.controllers.activity;
       var controls = this.app.controllers.controls;
