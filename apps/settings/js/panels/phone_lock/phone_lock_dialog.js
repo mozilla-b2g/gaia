@@ -146,7 +146,6 @@ define(function(require) {
                       this.backToPhoneLock();
                     } else {
                       this._passcodeBuffer = '';
-                      this.toggleLock(true);
                     }
                     break;
                   case 'edit':
