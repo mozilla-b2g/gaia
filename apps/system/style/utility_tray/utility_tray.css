@@ -4,9 +4,9 @@
 
 #utility-tray {
   position: absolute;
-  top: calc(-100% + 4rem);
+  top: calc(-100% + 4.8rem);
   width: calc(100%);
-  height: calc(100% - 2rem);
+  height: calc(100% - 2.4rem);
   background-color: rgba(0, 0, 0, 0.7);
 
   transform: translateY(-4rem);

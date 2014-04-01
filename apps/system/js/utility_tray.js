@@ -12,6 +12,8 @@ var UtilityTray = {
 
   statusbar: document.getElementById('statusbar'),
 
+  statusbarIcons: document.getElementById('statusbar-icons'),
+
   grippy: document.getElementById('utility-tray-grippy'),
 
   screen: document.getElementById('screen'),
@@ -20,7 +22,7 @@ var UtilityTray = {
     var touchEvents = ['touchstart', 'touchmove', 'touchend'];
     touchEvents.forEach(function bindEvents(name) {
       this.overlay.addEventListener(name, this);
-      this.statusbar.addEventListener(name, this);
+      this.statusbarIcons.addEventListener(name, this);
       this.grippy.addEventListener(name, this);
     }, this);
 
@@ -97,11 +99,11 @@ var UtilityTray = {
         }
 
         if (target !== this.overlay && target !== this.grippy &&
-            evt.currentTarget !== this.statusbar) {
+            evt.currentTarget !== this.statusbarIcons) {
           return;
         }
 
-        if (target === this.statusbar || target === this.grippy) {
+        if (target === this.statusbarIcons || target === this.grippy) {
           evt.preventDefault();
         }
 
@@ -109,7 +111,7 @@ var UtilityTray = {
         break;
 
       case 'touchmove':
-        if (target === this.statusbar || target === this.grippy) {
+        if (target === this.statusbarIcons || target === this.grippy) {
           evt.preventDefault();
         }
 
@@ -117,16 +119,12 @@ var UtilityTray = {
         break;
 
       case 'touchend':
-        if (target === this.statusbar || target === this.grippy) {
+        if (target === this.statusbarIcons || target === this.grippy) {
           evt.preventDefault();
         }
 
         evt.stopImmediatePropagation();
         var touch = evt.changedTouches[0];
-        if (Rocketbar.enabled && !this.shown && !this.active &&
-            touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
-          Rocketbar.render(true);
-        }
 
         if (!this.active)
           return;
@@ -147,22 +145,8 @@ var UtilityTray = {
     var screenRect = this.overlay.getBoundingClientRect();
     this.screenHeight = screenRect.height;
     this.screenWidth = screenRect.width;
-
-    // Show the rocketbar if it's enabled,
-    // Give a slightly larger left area, than right.
-    if (Rocketbar.enabled && !this.shown &&
-        touch.pageX < this.screenWidth * Rocketbar.triggerWidth) {
-      UtilityTray.hide();
-      return;
-    } else {
-      window.dispatchEvent(new CustomEvent('taskmanagerhide'));
-    }
-
-    Rocketbar.hide();
     this.active = true;
-
     this.startY = touch.pageY;
-
     this.screen.classList.add('utility-tray');
   },
 
@@ -189,7 +173,6 @@ var UtilityTray = {
   },
 
   onTouchEnd: function ut_onTouchEnd(touch) {
-
     // Prevent utility tray shows while the screen got black out.
     if (window.lockScreen && window.lockScreen.locked) {
       this.hide(true);
