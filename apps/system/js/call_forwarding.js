@@ -82,15 +82,19 @@
         enabled = true;
       }
       settings.createLock().set({'ril.cf.enabled': enabled});
-      asyncStorage.setItem('ril.cf.enabled.' + IccHelper.iccInfo.iccid,
-        enabled);
+      if (IccHelper.iccInfo && IccHelper.iccInfo.iccid) {
+        asyncStorage.setItem('ril.cf.enabled.' + IccHelper.iccInfo.iccid,
+          enabled);
+      }
     }
   });
 
   settings.addObserver('ril.cf.carrier.enabled', function(event) {
     var showIcon = event.settingValue;
     settings.createLock().set({'ril.cf.enabled': showIcon});
-    asyncStorage.setItem('ril.cf.enabled.' + IccHelper.iccInfo.iccid,
-    showIcon);
+    if (IccHelper.iccInfo && IccHelper.iccInfo.iccid) {
+      asyncStorage.setItem('ril.cf.enabled.' + IccHelper.iccInfo.iccid,
+        showIcon);
+    }
   });
 })();
