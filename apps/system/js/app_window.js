@@ -2,7 +2,7 @@
 'use strict';
 
 (function(exports) {
-  var DEBUG = false;
+  var DEBUG = true;
   var _id = 0;
 
   /**
@@ -711,8 +711,11 @@
     function aw__handle_mozbrowserloadend(evt) {
       if (!this.loaded) {
         // Perf test needs.
+        this.firstLaunch = false;
+        var time = parseInt(Date.now() - this.launchTime);
+        this.debug('cold launch time is ', time);
         this.publish('loadtime', {
-          time: parseInt(Date.now() - this.launchTime),
+          time: time,
           type: 'c',
           src: this.config.url
         });
@@ -1543,6 +1546,8 @@
     }
     return app;
   };
+
+  AppWindow.prototype.firstLaunch = true;
 
   exports.AppWindow = AppWindow;
 }(window));
