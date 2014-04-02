@@ -50,7 +50,7 @@
 /* Pressed */
 [role="dialog"] button:active,
 [role="dialog"] a[role="button"]:active {
-  background-color: #b2f2ff;
+  background-color: #00aacc;
   color: #fff;
 }
 
