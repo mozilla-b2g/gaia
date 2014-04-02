@@ -183,7 +183,7 @@ ifeq ($(DOGFOOD), 1)
 GAIA_APP_TARGET=dogfood
 endif
 
-NODE_MODULES_GIT_URL=https://github.com/hfiguiere/gaia-node-modules.git
+override NODE_MODULES_GIT_URL = https://github.com/hfiguiere/gaia-node-modules.git
 ifdef NODE_MODULES_GIT_URL
 NODE_MODULES_SRC := git-gaia-node-modules
 endif
