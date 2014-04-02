@@ -1,5 +1,7 @@
 'use strict';
 
+var kFontStep = 4;
+
 function HandledCall(aCall) {
   this.photo = null;
   this._leftGroup = false;

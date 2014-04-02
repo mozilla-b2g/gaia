@@ -35,6 +35,9 @@ var MockUtils = {
     return maxFontSize;
   },
 
+  adjustTextForElement: function ut_adjustTextForElement(view, parameters) {
+  },
+
   mTearDown: function tearDown() {
     this.mCalledPrettyDate = false;
     this.mCalledHeaderDate = false;

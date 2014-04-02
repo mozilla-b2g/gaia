@@ -94,6 +94,10 @@ var Utils = {
     return result;
   },
 
+  /*
+   * This method should be removed to rely on the shared/js/text_utils.js
+   * helper.
+   */
   addEllipsis: function ut_addEllipsis(view, fakeView, ellipsisSide) {
     var side = ellipsisSide || 'begin';
     LazyL10n.get(function localized(_) {
@@ -144,6 +148,10 @@ var Utils = {
     });
   },
 
+  /*
+   * This method should be removed to rely on the shared/js/text_utils.js
+   * helper.
+   */
   getNextFontSize:
     function ut_getNextFontSize(view, fakeView, maxFontSize,
       minFontSize, fontStep) {
@@ -169,6 +177,39 @@ var Utils = {
         }
 
         return fontSize;
+  },
+
+  adjustTextForElement: function ut_adjustTextForElement(view, parameters) {
+    var infos = TextUtils.getTextInfosFor(view.value, parameters);
+    view.style.fontSize = infos.fontSize + 'px';
+
+    if (infos.overflow) {
+      var counter = TextUtils.getOverflowCount(view.value, parameters);
+      this.useEllipsis(view, counter + 2, parameters.ellipsisSide);
+    }
+  },
+
+  useEllipsis: function ut_useEllipsis(view, counter, ellipsisSide) {
+   var side = ellipsisSide || 'begin';
+   var localizedSide;
+   if (navigator.mozL10n.language.direction === 'rtl') {
+      localizedSide = (side === 'begin' ? 'right' : 'left');
+    } else {
+      localizedSide = (side === 'begin' ? 'left' : 'right');
+    }
+
+    var value = view.value || view.innerHTML;
+    if (localizedSide == 'left') {
+      value = '\u2026' + value.substr(-value.length + counter);
+    } else if (localizedSide == 'right') {
+      value = value.substr(0, value.length - counter) + '\u2026';
+    }
+
+    if (view.value) {
+      view.value = value;
+    } else {
+      view.innerHTML = value;
+    }
   }
 };
 
