@@ -12,7 +12,6 @@ var GridManager = (function() {
 
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
-  var DEVICE_HEIGHT = window.innerHeight;
 
   var HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
 
@@ -35,12 +34,23 @@ var GridManager = (function() {
 
   var container;
 
+  var DEVICE_HEIGHT = window.innerHeight;
   var windowWidth = window.innerWidth;
 
   // This value is used in order to keep the layers onscreen when they are
   // moved on a panel changes. This prevent the layers to be destroyed and
   // recreated on the next move.
   var windowWidthMinusOne = windowWidth - 0.001;
+
+  // This prevents that windowWidth and DEVICE_HEIGHT get 0 when screen is off
+  // and homescreen is relaunched.
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden === false) {
+      windowWidth = window.innerWidth;
+      DEVICE_HEIGHT = window.innerHeight;
+      windowWidthMinusOne = windowWidth - 0.001;
+    }
+  });
 
   var swipeThreshold, swipeFriction, tapThreshold;
 
