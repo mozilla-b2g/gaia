@@ -19,6 +19,7 @@ module.exports = View.extend({
   name: 'settings',
 
   initialize: function(options) {
+    this.l10n = options.l10n || navigator.mozL10n;
     this.items = options.items;
     this.children = [];
     this.on('destroy', this.onDestroy);
@@ -92,7 +93,7 @@ module.exports = View.extend({
   template: function() {
     return '<div class="pane pane-1">' +
       '<div class="settings_inner">' +
-        '<h2 class="settings_title">Options</h2>' +
+        '<h2 class="settings_title">' + this.l10n.get('options') + '</h2>' +
         '<div class="settings_items"><ul class="inner js-items"></ul></div>' +
       '</div>' +
     '</div>' +
