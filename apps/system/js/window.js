@@ -67,6 +67,16 @@
   AppWindow.prototype._visibilityState = 'foreground';
 
   /**
+   * Represent the current page visibility state from system app side,
+   * i.e. what is currently visible. Possible value:
+   * 'foreground': setVisible(true)
+   * 'background': setVisible(false)
+   *
+   * Default value is background.
+   */
+  AppWindow.prototype._selfVisibilityState = 'background';
+
+  /**
    * The rotating degree of current frame.
    */
   AppWindow.prototype.rotatingDegree = 0;
@@ -106,10 +116,12 @@
     function aw_setVisible(visible, screenshotIfInvisible) {
       this.debug('set visibility -> ', visible);
       if (visible) {
+        this._selfVisibilityState = 'foreground';
         this.frame.removeAttribute('aria-hidden');
         this._screenshotOverlayState = 'frame';
         this._showFrame();
       } else {
+        this._selfVisibilityState = 'background';
         this.frame.setAttribute('aria-hidden', 'true');
         if (screenshotIfInvisible) {
           this._screenshotOverlayState = 'screenshot';
