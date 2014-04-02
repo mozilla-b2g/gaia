@@ -44,6 +44,19 @@ EditEvent.prototype = {
     this.setFormValue('endTime', value);
   },
 
+  set reminders(value) {
+    // Every event gets a 5 minute alarm. Since we want to "set" the alarms
+    // with the parameter value, first remove the default alarm and then
+    // add the parameter ones.
+    var select = this.findElement('select[name="alarm[]"]');
+    this.client.helper.tapSelectOption(select, 'None');
+
+    value.forEach(function(reminder) {
+      var alarmSelect = this.findElement('.alarms > *:last-child');
+      this.client.helper.tapSelectOption(alarmSelect, reminder);
+    }.bind(this));
+  },
+
   cancel: function() {
     this
       .findElement('.cancel')

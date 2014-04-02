@@ -126,11 +126,11 @@ Calendar.prototype = {
     editEvent.startTime = startDate;
     editEvent.endDate = endDate;
     editEvent.endTime = endDate;
-    // TODO(gareth)
-    // editEvent.reminders = opts.reminders || [];
+    editEvent.reminders = opts.reminders || [];
     editEvent.save();
 
     this.waitForKeyboardHide();
+    editEvent.waitForHide();
     return this;
   },
 
