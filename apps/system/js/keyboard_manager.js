@@ -250,8 +250,9 @@ var KeyboardManager = {
 
     // Skip the <select> element and inputs with type of date/time,
     // handled in system app for now
-    if (!type || type in IGNORED_INPUT_TYPES)
-      return;
+    if (!type || type in IGNORED_INPUT_TYPES) {
+      return this.hideKeyboard();
+    }
 
     var self = this;
     // Before a new focus event we get a blur event
