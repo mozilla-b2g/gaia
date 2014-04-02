@@ -1,7 +1,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  overflow: hidden !important;
+  overflow: hidden;
   background-image: url(images/attention_background.png);
   background-size: 100% 100%;
 }
@@ -79,7 +79,6 @@ html, body {
 
 #ring-button-stop {
   float: left;
-  display: inline-block;
   overflow: hidden;
   -moz-box-sizing: border-box;
   height: 4.12rem;
@@ -110,7 +109,6 @@ html, body {
 
 #ring-button-snooze {
   float: left;
-  display: inline-block;
   overflow: hidden;
   -moz-box-sizing: border-box;
   height: 4.12rem;

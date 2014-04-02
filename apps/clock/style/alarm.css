@@ -14,6 +14,8 @@ ul, ol {
 }
 
 ul.compact li {
+  position: relative;
+  min-height: 4.5rem;
   border-bottom-color: #232626;
 }
 
@@ -21,7 +23,12 @@ ul.compact li:last-child {
   border: none;
 }
 
+ul.compact li > span {
+  line-height: 3.6rem;
+}
+
 ul.compact li label {
+  width: calc(100% - 3rem);
   color: #9a9898;
   font-size: 1.9rem;
 }
@@ -32,7 +39,7 @@ li button.icon-dialog {
   background-color: #4d4d4d;
   font-weight: normal;
   font-size: 1.7rem;
-  text-shadow: none !important; /* override `button` */
+  text-shadow: none; /* override `button` */
 }
 
 li button.icon-dialog:before,
@@ -64,6 +71,12 @@ li .button.icon-dialog:before {
 
   pointer-events: auto;
 }
+
+#edit-alarm li > span {
+  padding: 0 1.5rem;
+}
+
+
 
 .new #delete-menu {
   display: none;

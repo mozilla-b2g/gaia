@@ -91,7 +91,7 @@ Timer.prototype.toSerializable = function timerToSerializable() {
   var ret = {};
   var props = Utils.extend({}, this, timerPrivate.get(this));
   [
-    'startTime', 'duration', 'configuredDuration', 'sound', 'vibrate',
+    'startTime', 'duration', 'configuredDuration', 'sound', 'vibrate-checkbox',
     'state'
   ].forEach(function(x) {
     ret[x] = props[x];
