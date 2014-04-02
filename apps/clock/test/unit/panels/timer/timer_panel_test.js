@@ -263,7 +263,9 @@ suite('Timer.Panel', function() {
       Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
       var mockAudio = {
         pause: this.sinon.spy(),
-        play: this.sinon.spy()
+        play: this.sinon.spy(),
+        addEventListener: function() { },
+        load: function() { }
       };
       this.sinon.stub(window, 'Audio').returns(mockAudio);
 
@@ -281,9 +283,12 @@ suite('Timer.Panel', function() {
     test('blur: pause playing alarm', function() {
       var sound = panel.nodes.sound;
       Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
+
       var mockAudio = {
         pause: this.sinon.spy(),
-        play: this.sinon.spy()
+        play: this.sinon.spy(),
+        addEventListener: function() { },
+        load: function() { }
       };
       this.sinon.stub(window, 'Audio').returns(mockAudio);
 

@@ -5,6 +5,7 @@ var Alarm = require('alarm');
 var AlarmList = require('panels/alarm/alarm_list');
 var AlarmManager = require('alarm_manager');
 var ClockView = require('panels/alarm/clock_view');
+var AudioManager = require('audio_manager');
 var FormButton = require('form_button');
 var Sounds = require('sounds');
 var Utils = require('utils');
@@ -29,7 +30,8 @@ var AlarmEdit = function() {
   }, this);
 
   this.inputs = {
-    name: this.element.querySelector('#alarm-name')
+    name: this.element.querySelector('#alarm-name'),
+    volume: this.element.querySelector('#alarm-volume-input')
   };
 
   this.buttons = {};
@@ -92,6 +94,7 @@ var AlarmEdit = function() {
   this.selects.repeat.addEventListener('change', handleDomEvent);
   this.buttons.delete.addEventListener('click', handleDomEvent);
   this.inputs.name.addEventListener('keypress', this.handleNameInput);
+  this.inputs.volume.addEventListener('change', this);
 
   // If the phone locks during preview, pause the sound.
   // TODO: When this is no longer a singleton, unbind the listener.
@@ -147,7 +150,7 @@ Utils.extend(AlarmEdit.prototype, {
     hour24State: null,
     is12hFormat: false
   },
-  previewRingtonePlayer: null,
+  ringtonePlayer: AudioManager.createAudioPlayer(),
 
   handleNameInput: function(evt) {
     // If the user presses enter on the name label, dismiss the
@@ -213,6 +216,10 @@ Utils.extend(AlarmEdit.prototype, {
       case this.selects.repeat:
         this.alarm.repeat = this.buttons.repeat.value;
         break;
+      case this.inputs.volume:
+        // Alarm Volume is applied to all alarms.
+        AudioManager.setAlarmVolume(this.getAlarmVolumeValue());
+        break;
     }
   },
 
@@ -238,6 +245,7 @@ Utils.extend(AlarmEdit.prototype, {
     // to be "undefined" rather than "".
     this.element.dataset.id = this.alarm.id || '';
     this.inputs.name.value = this.alarm.label;
+    this.inputs.volume.value = AudioManager.getAlarmVolume();
 
     // Init time, repeat, sound, snooze selection menu.
     this.initTimeSelect();
@@ -271,25 +279,12 @@ Utils.extend(AlarmEdit.prototype, {
   },
 
   previewSound: function aev_previewSound() {
-    var ringtonePlayer = this.previewRingtonePlayer;
-    if (!ringtonePlayer) {
-      this.previewRingtonePlayer = new Audio();
-      ringtonePlayer = this.previewRingtonePlayer;
-    } else {
-      ringtonePlayer.pause();
-    }
-
     var ringtoneName = this.getSoundSelect();
-    var previewRingtone = 'shared/resources/media/alarms/' + ringtoneName;
-    ringtonePlayer.mozAudioChannelType = 'alarm';
-    ringtonePlayer.src = previewRingtone;
-    ringtonePlayer.play();
+    this.ringtonePlayer.playRingtone(ringtoneName);
   },
 
   stopPreviewSound: function aev_stopPreviewSound() {
-    if (this.previewRingtonePlayer) {
-      this.previewRingtonePlayer.pause();
-    }
+    this.ringtonePlayer.pause();
   },
 
   initVibrateSelect: function aev_initVibrateSelect() {
@@ -312,6 +307,10 @@ Utils.extend(AlarmEdit.prototype, {
     return this.buttons.repeat.value;
   },
 
+  getAlarmVolumeValue: function() {
+    return parseFloat(this.inputs.volume.value);
+  },
+
   save: function aev_save(callback) {
     if (this.element.dataset.id !== '') {
       this.alarm.id = parseInt(this.element.dataset.id, 10);
@@ -328,6 +327,7 @@ Utils.extend(AlarmEdit.prototype, {
     this.alarm.sound = this.getSoundSelect();
     this.alarm.vibrate = this.getVibrateSelect();
     this.alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
+    AudioManager.setAlarmVolume(this.getAlarmVolumeValue());
 
     if (!error) {
       this.alarm.cancel();
