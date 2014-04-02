@@ -7,10 +7,17 @@
   height: 100%;
   display: none;
   z-index: 20001; /* just below the sleep menu */
+  transition: opacity .2s;
+  will-change: opacity;
+  opacity: 0;
 }
 
 #confirm-dialog.visible {
   display: block;
+}
+
+#confirm-dialog.show {
+  opacity: 1;
 }
 
 #confirm-dialog-title {

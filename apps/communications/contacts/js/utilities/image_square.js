@@ -7,11 +7,20 @@ if (typeof utils.squareImage === 'undefined') {
     var img = document.createElement('img');
     var url = URL.createObjectURL(blob);
     img.src = url;
+
+    function cleanupImg() {
+      img.src = '';
+      URL.revokeObjectURL(url);
+    }
+
+    img.onerror = cleanupImg;
+
     img.onload = function onBlobLoad() {
       var width = img.width;
       var height = img.height;
 
       if (width === height) {
+        cleanupImg();
         callback(blob);
       } else {
         var canvas = document.createElement('canvas');
@@ -19,10 +28,14 @@ if (typeof utils.squareImage === 'undefined') {
         var context = canvas.getContext('2d', { willReadFrequently: true });
         context.drawImage(img, (width - min) / 2, (height - min) / 2, min, min,
                           0, 0, min, min);
-        canvas.toBlob(callback);
+        cleanupImg();
+        canvas.toBlob(function onCanvasToBlob(canvasBlob) {
+          context = null;
+          canvas.width = canvas.height = 0;
+          canvas = null;
+          callback(canvasBlob);
+        });
       }
-
-      URL.revokeObjectURL(url);
     };
   }; // utils.squareImage
 } // if
