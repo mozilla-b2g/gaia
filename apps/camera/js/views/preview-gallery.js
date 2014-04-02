@@ -94,12 +94,6 @@ return View.extend({
 
   previewMenuFadeIn: function() {
     this.els.previewMenu.classList.add('visible');
-    if (this.previewTimer) {
-      clearTimeout(this.previewTimer);
-    }
-
-    // The preview menu is always faded out after 3secs
-    this.previewTimer = setTimeout(this.previewMenuFadeOut, 3000);
   },
 
   previewMenuFadeOut: function() {
