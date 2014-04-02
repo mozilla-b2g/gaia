@@ -27,11 +27,20 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'unit/mock_l10n': {
         exports: 'MockL10n'
       },
+      'unit/mock_async_storage': {
+        exports: 'MockAsyncStorage'
+      },
       'shared_mocks/mock_navigator_moz_settings': {
         exports: 'MockNavigatorSettings'
       },
       'shared_mocks/mock_keyboard_helper': {
         exports: 'MockKeyboardHelper'
+      },
+      'unit/mock_settings_service': {
+        exports: 'MockSettingsService'
+      },
+      'unit/mock_xml_http_request': {
+        exports: 'MockXmlHttpRequest'
       }
     },
     modules: [

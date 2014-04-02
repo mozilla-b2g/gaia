@@ -29,6 +29,14 @@ require.config({
         'main',
         'shared/keyboard_helper'
       ]
+    },
+    {
+      name: 'panels/send_feedback/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/choose_feedback/panel',
+      exclude: ['main']
     }
   ]
 });
