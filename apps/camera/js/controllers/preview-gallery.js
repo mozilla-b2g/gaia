@@ -9,16 +9,6 @@ var debug = require('debug')('controller:preview-gallery');
 var bindAll = require('lib/bind-all');
 var PreviewGalleryView = require('views/preview-gallery');
 var parseJPEGMetadata = require('jpegMetaDataParser');
-var createThumbnailImage = require('lib/create-thumbnail-image');
-
-/**
- * The size of the thumbnail images we generate.
- *
- * XXX: these constants are linked to style/controls.css, and should
- * probably be defined somewhere else in the app.
- */
-var THUMBNAIL_WIDTH = 54 * window.devicePixelRatio;
-var THUMBNAIL_HEIGHT = 54 * window.devicePixelRatio;
 
 /**
  * Exports
@@ -42,6 +32,7 @@ function PreviewGalleryController(app) {
 PreviewGalleryController.prototype.bindEvents = function() {
   this.app.on('preview', this.openPreview);
   this.app.on('newmedia', this.onNewMedia);
+  this.app.on('newpreview', this.addPreview);
   this.app.on('blur', this.onBlur);
 
   this.storage.on('itemdeleted', this.onItemDeleted);
@@ -53,6 +44,13 @@ PreviewGalleryController.prototype.configure = function() {
   this.currentItemIndex = 0;
   this.items = [];            // All the pictures and videos we know about
   this.thumbnailItem = null;  // The item that currently has a thumbnail
+};
+
+PreviewGalleryController.prototype.addPreview = function(preview) {
+  if(!preview) {
+    return;
+  }
+  this.items.unshift(preview);
 };
 
 PreviewGalleryController.prototype.openPreview = function() {
@@ -85,7 +83,7 @@ PreviewGalleryController.prototype.closePreview = function() {
   // first item in the array of items, then update the thumbnail. This can
   // happen if the user deletes items after previewing them.
   if (this.thumbnailItem !== this.items[0]) {
-    this.updateThumbnail();
+    this.app.emit('newpreview', null);
   }
 
   if (this.view) {
@@ -108,7 +106,7 @@ PreviewGalleryController.prototype.onGalleryButtonClick = function() {
   // The button shouldn't even be visible in this case, but
   // let's be really sure here.
   if (this.app.inSecureMode) { return; }
-  
+
   var MozActivity = window.MozActivity;
 
   // Launch the gallery with an activity
@@ -142,7 +140,7 @@ PreviewGalleryController.prototype.shareCurrentItem = function() {
 };
 
 /**
- * Delete the current item 
+ * Delete the current item
  * when the delete button is pressed.
  * @private
  */
@@ -230,14 +228,12 @@ PreviewGalleryController.prototype.previous = function() {
   }
 };
 
-PreviewGalleryController.prototype.onNewMedia = function(item) {
+PreviewGalleryController.prototype.onNewMedia = function(media) {
   // If we're handling a pick activity the preview gallery is not used
   if (this.app.activity.active) {
     return;
   }
-
-  this.items.unshift(item);
-  this.updateThumbnail();
+  this.createPreview(media);
 };
 
 PreviewGalleryController.prototype.previewItem = function() {
@@ -290,23 +286,23 @@ PreviewGalleryController.prototype.onBlur = function() {
   if (this.app.inSecureMode) {
     this.closePreview();
     this.configure();          // Forget all stored images
-    this.updateThumbnail();    // Get rid of any thumbnail
+    this.app.emit('newpreview', null);
   }
 };
 
-PreviewGalleryController.prototype.updateThumbnail = function() {
+PreviewGalleryController.prototype.createPreview = function(media) {
   var self = this;
-  var media = this.thumbnailItem = this.items[0] || null;
-
-  if (media === null) {
-    this.app.emit('newthumbnail', null);
-    return;
-  }
+  var media = this.thumbnailItem = media || null;
+  var thumbnailBlob;
+  var preview = {
+    blob: media.blob,
+    filepath: media.filepath
+  };
 
   if (media.isVideo) {
-    // If it is a video we can create a thumbnail from the poster image
-    createThumbnailImage(media.poster.blob, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT,
-                         media.rotation, media.mirrored, gotThumbnail);
+    media.poster.mirrored = media.mirrored;
+    media.poster.rotation = media.rotation;
+    self.app.emit('newpreview', media);
   } else {
     // If it is a photo we want to use the EXIF preview rather than
     // decoding the whole image if we can, so look for a preview first.
@@ -314,23 +310,31 @@ PreviewGalleryController.prototype.updateThumbnail = function() {
   }
 
   function onJPEGParsed(metadata) {
-    var blob;
-
     if (metadata.preview) {
       // If JPEG contains a preview we use it to create the thumbnail
-      blob = media.blob.slice(metadata.preview.start, metadata.preview.end,
+      thumbnailBlob = media.blob.slice(metadata.preview.start, metadata.preview.end,
                               'image/jpeg');
-    } else {
-      // Otherwise, use the full-size image
-      blob = media.blob;
+      preview.preview = {
+        start: metadata.preview.start,
+        end: metadata.preview.end
+      };
+      // We parse JPEG metadata of the preview to get its size
+      parseJPEGMetadata(thumbnailBlob, onThumbnailJPEGParsed);
+    } else { // If there's no exif preview we use the full image
+      media.rotation = metadata.rotation;
+      media.mirrored = metadata.mirrored;
+      self.app.emit('newpreview', media);
     }
 
-    createThumbnailImage(blob, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT,
-                         metadata.rotation, metadata.mirrored, gotThumbnail);
   }
 
-  function gotThumbnail(blob) {
-    self.app.emit('newthumbnail', blob);
+  function onThumbnailJPEGParsed(metadata) {
+    preview.preview.blob = thumbnailBlob;
+    preview.preview.height = metadata.height;
+    preview.preview.width = metadata.width;
+    preview.preview.mirrored = metadata.mirrored;
+    preview.preview.rotation = metadata.rotation;
+  self.app.emit('newpreview', preview);
   }
 };
 
