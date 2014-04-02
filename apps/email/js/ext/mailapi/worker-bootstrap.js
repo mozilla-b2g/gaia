@@ -5066,6 +5066,7 @@ exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
     fillSize: 'INITIAL_FILL_SIZE',
     days: 'INITIAL_SYNC_DAYS',
     growDays: 'INITIAL_SYNC_GROWTH_DAYS',
+    wholeFolderSync: 'SYNC_WHOLE_FOLDER_AT_N_MESSAGES',
     bisectThresh: 'BISECT_DATE_AT_N_MESSAGES',
     tooMany: 'TOO_MANY_MESSAGES',
     scaleFactor: 'TIME_SCALE_FACTOR_ON_NO_MESSAGES',
@@ -5221,8 +5222,8 @@ var SYNC_START_MINIMUM_PROGRESS = 0.02;
  * Headers are removed, added, or modified using the onHeader* methods.
  * The updates are sent to 'SliceBridgeProxy' which batches updates and
  * puts them on the event loop. We batch so that we can minimize the number of
- * reflows and painting on the DOM side. This also enables us to batch data 
- * received in network packets around the smae time without having to handle it in 
+ * reflows and painting on the DOM side. This also enables us to batch data
+ * received in network packets around the smae time without having to handle it in
  * each protocol's logic.
  *
  * Currently, we only batch updates that are done between 'now' and the next time
@@ -5267,6 +5268,11 @@ function MailSlice(bridgeHandle, storage, _parentLog) {
 }
 exports.MailSlice = MailSlice;
 MailSlice.prototype = {
+  /**
+   * We are a folder-backed view-slice.
+   */
+  type: 'folder',
+
   set atTop(val) {
     if (this._bridgeHandle)
       this._bridgeHandle.atTop = val;
@@ -5480,18 +5486,17 @@ MailSlice.prototype = {
    * called when the header is in the time-range of interest and a refresh,
    * cron-triggered sync, or IDLE/push tells us to do so.
    */
-  onHeaderAdded: function(header, syncDriven, messageIsNew) {
+  onHeaderAdded: function(header, body, syncDriven, messageIsNew) {
     if (!this._bridgeHandle)
       return;
 
     var idx = bsearchForInsert(this.headers, header, cmpHeaderYoungToOld);
     var hlen = this.headers.length;
-    // Don't append the header if it would expand us beyond our requested amount
-    // and there is no subsequent step, like accumulate flushing, that would get
-    // rid of the excess.  Note that this does not guarantee that we won't
-    // end up with more headers than originally planned; if we get told about
-    // headers earlier than the last slot, we will insert them and grow without
-    // forcing a removal of something else to offset.
+    // Don't append the header if it would expand us beyond our requested
+    // amount.  Note that this does not guarantee that we won't end up with more
+    // headers than originally planned; if we get told about headers earlier
+    // than the last slot, we will insert them and grow without forcing a
+    // removal of something else to offset.
     if (hlen >= this.desiredHeaders && idx === hlen)
       return;
     // If we are inserting (not at the end) then be sure to grow
@@ -5530,7 +5535,7 @@ MailSlice.prototype = {
    * Tells the slice that a header it should know about has changed.  (If
    * this is a search, it's okay for it not to know...)
    */
-  onHeaderModified: function(header) {
+  onHeaderModified: function(header, body) {
     if (!this._bridgeHandle)
       return;
 
@@ -6056,9 +6061,10 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
   this._mutexQueue = [];
 
   /**
-   * Active view slices on this folder.
+   * Active view / search slices on this folder.
    */
   this._slices = [];
+
   /**
    * The slice that is driving our current synchronization and wants to hear
    * about all header modifications/notes as they occur.  This will be null
@@ -6087,9 +6093,11 @@ FolderStorage.prototype = {
     // will occur, but we don't care.)
     for (var i = this._slices.length - 1; i >= 0; i--) {
       var slice = this._slices[i];
-      slice.reset();
       slice.desiredHeaders = $sync.INITIAL_FILL_SIZE;
-      this._resetAndResyncSlice(slice, true, null);
+      slice.reset();
+      if (slice.type === 'folder') {
+        this._resetAndResyncSlice(slice, true, null);
+      }
     }
   },
 
@@ -6461,7 +6469,12 @@ FolderStorage.prototype = {
    * we might make.
    */
   flushExcessCachedBlocks: function(debugLabel) {
-    var slices = this._slices;
+    // We only care about explicitly folder-backed slices for cache eviction
+    // purposes.  Search filters are sparse and would keep way too much in
+    // memory.
+    var slices = this._slices.filter(function (slice) {
+                   return slice.type === 'folder';
+                 });
     function blockIntersectsAnySlice(blockInfo) {
       for (var i = 0; i < slices.length; i++) {
         var slice = slices[i];
@@ -7279,6 +7292,10 @@ FolderStorage.prototype = {
       this._loadBlock(type, info, processBlock.bind(this));
   },
 
+  sliceOpenSearch: function fs_sliceOpenSearch(slice) {
+    this._slices.push(slice);
+  },
+
   /**
    * Track a new slice that wants to start from the most recent messages we know
    * about in the folder.
@@ -7869,8 +7886,15 @@ FolderStorage.prototype = {
     var idx = this._slices.indexOf(slice);
     this._slices.splice(idx, 1);
 
-    if (this._slices.length === 0 && this._mutexQueue.length === 0)
+    // If this was a folder-backed slice, we potentially can now free up a lot
+    // of cached memory, so do that.
+    if (slice.type === 'folder') {
+      this.flushExcessCachedBlocks('deadslice');
+    }
+
+    if (this._slices.length === 0 && this._mutexQueue.length === 0) {
       this.folderSyncer.allConsumersDead();
+    }
   },
 
   /**
@@ -8718,21 +8742,27 @@ FolderStorage.prototype = {
 
   /**
    * Add a new message to the database, generating slice notifications.
+   *
+   * @param header
+   * @param [body]
+   *   Optional body, exists to hint to slices so that SearchFilter can peek
+   *   directly at the body without needing to make an additional request to
+   *   look at the body.
    */
-  addMessageHeader: function ifs_addMessageHeader(header, callback) {
+  addMessageHeader: function ifs_addMessageHeader(header, body, callback) {
     if (header.id == null || header.suid == null) {
       throw new Error('No valid id: ' + header.id + ' or suid: ' + header.suid);
     }
 
     if (this._pendingLoads.length) {
       this._deferredCalls.push(this.addMessageHeader.bind(
-                                 this, header, callback));
+                                 this, header, body, callback));
       return;
     }
     this._LOG.addMessageHeader(header.date, header.id, header.srvid);
 
     if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders)
-      this._curSyncSlice.onHeaderAdded(header, true, true);
+      this._curSyncSlice.onHeaderAdded(header, body, true, true);
     // - Generate notifications for (other) interested slices
     if (this._slices.length > (this._curSyncSlice ? 1 : 0)) {
       var date = header.date, uid = header.id;
@@ -8776,10 +8806,21 @@ FolderStorage.prototype = {
           slice.desiredHeaders++;
         }
 
-        if (slice._onAddingHeader)
-          slice._onAddingHeader(header);
+        if (slice._onAddingHeader) {
+          try {
+            slice._onAddingHeader(header);
+          }
+          catch (ex) {
+            this._LOG.callbackErr(ex);
+          }
+        }
 
-        slice.onHeaderAdded(header, false, true);
+        try {
+          slice.onHeaderAdded(header, body, false, true);
+        }
+        catch (ex) {
+          this._LOG.callbackErr(ex);
+        }
       }
     }
 
@@ -8803,13 +8844,14 @@ FolderStorage.prototype = {
    */
   updateMessageHeader: function ifs_updateMessageHeader(date, id, partOfSync,
                                                         headerOrMutationFunc,
+                                                        body,
                                                         callback) {
     // (While this method can complete synchronously, we want to maintain its
     // perceived ordering relative to those that cannot be.)
     if (this._pendingLoads.length) {
       this._deferredCalls.push(this.updateMessageHeader.bind(
                                  this, date, id, partOfSync,
-                                 headerOrMutationFunc, callback));
+                                 headerOrMutationFunc, body, callback));
       return;
     }
 
@@ -8859,7 +8901,12 @@ FolderStorage.prototype = {
                 (date === slice.endTS &&
                  id > slice.endUID))
               continue;
-            slice.onHeaderModified(header);
+            try {
+              slice.onHeaderModified(header, body);
+            }
+            catch (ex) {
+              this._LOG.callbackErr(ex);
+            }
           }
         }
       }
@@ -8883,7 +8930,7 @@ FolderStorage.prototype = {
    * Retrieve and update a header by locating it
    */
   updateMessageHeaderByServerId: function(srvid, partOfSync,
-                                          headerOrMutationFunc) {
+                                          headerOrMutationFunc, body) {
     if (this._pendingLoads.length) {
       this._deferredCalls.push(this.updateMessageHeaderByServerId.bind(
         this, srvid, partOfSync, headerOrMutationFunc));
@@ -8904,7 +8951,7 @@ FolderStorage.prototype = {
           // future work: this method will duplicate some work to re-locate
           // the header; we could try and avoid doing that.
           this.updateMessageHeader(
-            header.date, header.id, partOfSync, headerOrMutationFunc);
+            header.date, header.id, partOfSync, headerOrMutationFunc, body);
           return;
         }
       }
@@ -9821,14 +9868,12 @@ return {
  * - Recipients
  * - Subject
  * - Body, allows ignoring quoted bits
- *
- * XXX currently all string searching uses indexOf; we at the very least should
- * build a regexp that is configured to ignore case.
  **/
 
 define('mailapi/searchfilter',
   [
     'rdcommon/log',
+    './util',
     './syncbase',
     './date',
     'module',
@@ -9836,11 +9881,31 @@ define('mailapi/searchfilter',
   ],
   function(
     $log,
+    $util,
     $syncbase,
     $date,
     $module,
     exports
   ) {
+var BEFORE = $date.BEFORE,
+    ON_OR_BEFORE = $date.ON_OR_BEFORE,
+    SINCE = $date.SINCE,
+    STRICTLY_AFTER = $date.STRICTLY_AFTER;
+var bsearchMaybeExists = $util.bsearchMaybeExists,
+    bsearchForInsert = $util.bsearchForInsert;
+
+/**
+ * cmpHeaderYoungToOld with matched-header unwrapping
+ */
+function cmpMatchHeadersYoungToOld(aMatch, bMatch) {
+  var a = aMatch.header, b = bMatch.header;
+  var delta = b.date - a.date;
+  if (delta)
+    return delta;
+  // favor larger UIDs because they are newer-ish.
+  return b.id - a.id;
+
+}
 
 /**
  * This internal function checks if a string or a regexp matches an input
@@ -10215,6 +10280,12 @@ function MessageFilterer(filters) {
   this.filters = filters;
   this.bodiesNeeded = false;
 
+  /**
+   * How many headers have we tried to match against?  This is for unit tests.
+   */
+  this.messagesChecked = 0;
+
+
   for (var i = 0; i < filters.length; i++) {
     var filter = filters[i];
     if (filter.needsBody)
@@ -10229,6 +10300,8 @@ MessageFilterer.prototype = {
    * are defined by the filterers in use.
    */
   testMessage: function(header, body) {
+    this.messagesChecked++;
+
     //console.log('sf: testMessage(', header.suid, header.author.address,
     //            header.subject, 'body?', !!body, ')');
     var matched = false, matchObj = {};
@@ -10270,6 +10343,15 @@ console.log('sf: creating SearchSlice:', phrase);
   // These correspond to the range of headers that we have searched to generate
   // the current set of matched headers.  Our matches will always be fully
   // contained by this range.
+  //
+  // This range can and will shrink when reqNoteRanges is called.  Currently we
+  // shrink to the first/last remaining matches.  Strictly speaking, this is too
+  // aggressive.  The optimal shrink constraint would be to pick the message
+  // adjacent to the first matches we are discarding so that growing by one
+  // message would immediately re-find the message.  However it would be even
+  // MORE efficient to just maintain a compact list of messages that have
+  // matched that we never forget, so we'll just do that when we're feeling all
+  // fancy in the future.
   this.startTS = null;
   this.startUID = null;
   this.endTS = null;
@@ -10299,17 +10381,17 @@ console.log('sf: creating SearchSlice:', phrase);
   this._bound_gotOlderMessages = this._gotMessages.bind(this, 1);
   this._bound_gotNewerMessages = this._gotMessages.bind(this, -1);
 
-  this.headers = [];
   this.desiredHeaders = $syncbase.INITIAL_FILL_SIZE;
-  // Fetch as many headers as we want in our results; we probably will have
-  // less than a 100% hit-rate, but there isn't much savings from getting the
-  // extra headers now, so punt on those.
-  this._storage.getMessagesInImapDateRange(
-    0, null, this.desiredHeaders, this.desiredHeaders,
-    this._gotMessages.bind(this, 1));
+  this.reset();
 }
 exports.SearchSlice = SearchSlice;
 SearchSlice.prototype = {
+  /**
+   * We are a filtering search slice.  To reduce confusion, we still call this
+   * search.
+   */
+  type: 'search',
+
   set atTop(val) {
     this._bridgeHandle.atTop = val;
   },
@@ -10317,7 +10399,32 @@ SearchSlice.prototype = {
     this._bridgeHandle.atBottom = val;
   },
 
+  reset: function() {
+    // misnomer but simplfies cutting/pasting/etc.  Really an array of
+    // { header: header, matches: matchObj }
+    this.headers = [];
+    // Track when we are still performing the initial database scan so that we
+    // can ignore dynamic additions/modifications.  The initial database scan
+    // is currently not clever enough to deal with concurrent manipulation, so
+    // we just ignore all such events.  This has an extremely low probability
+    // of resulting in false negatives.
+    this._loading = true;
+    this.startTS = null;
+    this.startUID = null;
+    this.endTS = null;
+    this.endUID = null;
+    // Fetch as many headers as we want in our results; we probably will have
+    // less than a 100% hit-rate, but there isn't much savings from getting the
+    // extra headers now, so punt on those.
+    this._storage.getMessagesInImapDateRange(
+      0, null, this.desiredHeaders, this.desiredHeaders,
+      this._gotMessages.bind(this, 1));
+  },
+
   _gotMessages: function(dir, headers, moreMessagesComing) {
+    if (!this._bridgeHandle) {
+      return;
+    }
 console.log('sf: gotMessages', headers.length);
     // update the range of what we have seen and searched
     if (headers.length) {
@@ -10337,11 +10444,16 @@ console.log('sf: gotMessages', headers.length);
     }
 
     var checkHandle = function checkHandle(headers, bodies) {
+      if (!this._bridgeHandle) {
+        return;
+      }
+
       // run a filter on these
       var matchPairs = [];
       for (i = 0; i < headers.length; i++) {
         var header = headers[i],
             body = bodies ? bodies[i] : null;
+        this._headersChecked++;
         var matchObj = this.filterer.testMessage(header, body);
         if (matchObj)
           matchPairs.push({ header: header, matches: matchObj });
@@ -10359,23 +10471,34 @@ console.log('sf: gotMessages', headers.length);
                        canGetMore;
 console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', wantMore);
         var insertAt = dir === -1 ? 0 : this.headers.length;
+        this._LOG.headersAppended(insertAt, matchPairs);
         this._bridgeHandle.sendSplice(
           insertAt, 0, matchPairs, true,
           moreMessagesComing || wantMore);
         this.headers.splice.apply(this.headers,
                                   [insertAt, 0].concat(matchPairs));
-        if (wantMore)
-          this.reqGrow(dir, false);
+        if (wantMore) {
+          this.reqGrow(dir, false, true);
+        }
+        else if (!moreMessagesComing) {
+          this._loading = false;
+          this.desiredHeaders = this.headers.length;
+        }
       }
       else if (!moreMessagesComing) {
         // If there aren't more messages coming, we either need to get more
         // messages (if there are any left in the folder that we haven't seen)
         // or signal completion.  We can use our growth function directly since
         // there are no state invariants that will get confused.
-        if (canGetMore)
-          this.reqGrow(dir, false);
-        else
+        if (canGetMore) {
+          this.reqGrow(dir, false, true);
+        }
+        else {
           this._bridgeHandle.sendStatus('synced', true, false);
+          // We can now process dynamic additions/modifications
+          this._loading = false;
+          this.desiredHeaders = this.headers.length;
+        }
       }
       // (otherwise we need to wait for the additional messages to show before
       //  doing anything conclusive)
@@ -10386,13 +10509,15 @@ console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', w
       // to the next stage of processing.  It would be nice
       var bodies = [];
       var gotBody = function(body) {
-        if (!body)
+        if (!body) {
           console.log('failed to get a body for: ',
                       headers[bodies.length].suid,
                       headers[bodies.length].subject);
+        }
         bodies.push(body);
-        if (bodies.length === headers.length)
+        if (bodies.length === headers.length) {
           checkHandle(headers, bodies);
+        }
       };
       for (var i = 0; i < headers.length; i++) {
         var header = headers[i];
@@ -10405,7 +10530,175 @@ console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', w
   },
 
   refresh: function() {
-    // no one should actually call this.
+    // no one should actually call this.  If they do, we absolutely don't want
+    // to do anything since we may span a sufficiently large time-range that it
+    // would be insane for our current/baseline IMAP support.  Eventually, on
+    // QRESYNC-capable IMAP and things like ActiveSync/POP3 where sync is
+    // simple it would make sense to pass this through.
+  },
+
+  /**
+   * We are hearing about a new header (possibly with body), or have transformed
+   * an onHeaderModified notification into onHeaderAdded since there's a
+   * possibility the header may now match the search filter.
+   *
+   * It is super important to keep in mind that / be aware of:
+   * - We only get called about headers that are inside the range we already
+   *   cover or if FolderStorage thinks the slice should grow because of being
+   *   latched to the top or something like that.
+   * - We maintain the start/end ranges based on the input to the filtering step
+   *   and not the filtered results.  So we always want to apply the start/end
+   *   update logic.
+   */
+  onHeaderAdded: function(header, body) {
+    if (!this._bridgeHandle || this._loading) {
+      return;
+    }
+
+    // COPY-N-PASTE: logic from MailSlice.onHeaderAdded
+    if (this.startTS === null ||
+        BEFORE(header.date, this.startTS)) {
+      this.startTS = header.date;
+      this.startUID = header.id;
+    }
+    else if (header.date === this.startTS &&
+             header.id < this.startUID) {
+      this.startUID = header.id;
+    }
+    if (this.endTS === null ||
+        STRICTLY_AFTER(header.date, this.endTS)) {
+      this.endTS = header.date;
+      this.endUID = header.id;
+    }
+    else if (header.date === this.endTS &&
+             header.id > this.endUID) {
+      this.endUID = header.id;
+    }
+    // END COPY-N-PASTE
+
+    var matchObj = this.filterer.testMessage(header, body);
+    if (!matchObj) {
+      // In the range-extending case, addMessageHeader may help us out by
+      // boosting our desiredHeaders.  It does this assuming we will then
+      // include the header like a normal slice, so we need to correct for this
+      // be capping ourselves back to desiredHeaders again
+      this.desiredHeaders = this.headers.length;
+      return;
+    }
+
+    var wrappedHeader = { header: header, matches: matchObj };
+    var idx = bsearchForInsert(this.headers, wrappedHeader,
+                               cmpMatchHeadersYoungToOld);
+
+    // We don't need to do headers.length checking here because the caller
+    // checks this for us sufficiently.  (The inclusion of the logic in
+    // MailSlice.onHeaderAdded relates to slices directly fed by the sync
+    // process which may be somewhat moot but definite is not something that
+    // happens to us, a search slice.)
+    //
+    // For sanity, we should make sure desiredHeaders doesn't get out-of-wack,
+    // though.
+    this.desiredHeaders = this.headers.length;
+
+    this._LOG.headerAdded(idx, wrappedHeader);
+    this._bridgeHandle.sendSplice(idx, 0, [wrappedHeader], false, false);
+    this.headers.splice(idx, 0, wrappedHeader);
+  },
+
+  /**
+   * As a shortcut on many levels, we only allow messages to transition from not
+   * matching to matching.  This is logically consistent since we don't support
+   * filtering on the user-mutable aspects of a message (flags / folder / etc.),
+   * but can end up downloading more pieces of a message's body which can result
+   * in a message starting to match.
+   *
+   * This is also a correctness shortcut since we rely on body-hints to be
+   * provided by synchronization logic.  They will be provided when the body is
+   * being updated since we always update the header at the same time, but will
+   * not be provided in the case of flag-only changes.  Obviously it would suck
+   * if the flagged state of a message changed and then we dropped the message
+   * from the match list because we had no body against which to match.  There
+   * are things we could do to track body-matchingness indepenently of the flags
+   * but it's simplest to just only allow the 1-way transition for now.
+   */
+  onHeaderModified: function(header, body) {
+    if (!this._bridgeHandle || this._loading) {
+      return;
+    }
+
+
+    var wrappedHeader = { header: header, matches: null };
+    var idx = bsearchMaybeExists(this.headers, wrappedHeader,
+                                 cmpMatchHeadersYoungToOld);
+    if (idx !== null) {
+      // Update the header in the match and send it out.
+      var existingMatch = this.headers[idx];
+      existingMatch.header = header;
+      this._LOG.headerModified(idx, existingMatch);
+      this._bridgeHandle.sendUpdate([idx, existingMatch]);
+      return;
+    }
+
+    // No transition is possible if we don't care about bodies or don't have one
+    if (!this.filterer.bodiesNeeded || !body) {
+      return;
+    }
+
+    // Okay, let the add logic see if it fits.
+    this.onHeaderAdded(header, body);
+  },
+
+  onHeaderRemoved: function(header) {
+    if (!this._bridgeHandle) {
+      return;
+    }
+    // NB: We must always apply this logic since our range characterizes what we
+    // have searched/filtered, not what's inside us.  Unfortunately, when this
+    // does happen, we will drastically decrease our scope to the mesages
+    // we have matched.  What we really need for maximum correctness is to be
+    // able to know the message namers on either side of the header being
+    // deleted.  This could be interrogated by us or provided by the caller.
+    //
+    // (This would not necessitate additional block loads since if the header is
+    // at either end of its containing block, then the namer for the thing on
+    // the other side is known from the message namer defining the adjacent
+    // block.)
+    //
+    // So, TODO: Do not drastically decrease range / lose 'latch to new'
+    // semantics when the messages bounding our search get deleted.
+    //
+    // COPY-N-PASTE-N-MODIFY: logic from MailSlice.onHeaderRemoved
+    if (header.date === this.endTS && header.id === this.endUID) {
+      if (!this.headers.length) {
+        this.endTS = null;
+        this.endUID = null;
+      }
+      else {
+        this.endTS = this.headers[0].header.date;
+        this.endUID = this.headers[0].header.id;
+      }
+    }
+    if (header.date === this.startTS && header.id === this.startUID) {
+      if (!this.headers.length) {
+        this.startTS = null;
+        this.startUID = null;
+      }
+      else {
+        var lastHeader = this.headers[this.headers.length - 1];
+        this.startTS = lastHeader.header.date;
+        this.startUID = lastHeader.header.id;
+      }
+    }
+    // END COPY-N-PASTE
+
+    var wrappedHeader = { header: header, matches: null };
+    var idx = bsearchMaybeExists(this.headers, wrappedHeader,
+                                 cmpMatchHeadersYoungToOld);
+    if (idx !== null) {
+      this._LOG.headerRemoved(idx, wrappedHeader);
+      this._bridgeHandle.sendSplice(idx, 1, [], false, false);
+      this.headers.splice(idx, 1);
+    }
   },
 
   reqNoteRanges: function(firstIndex, firstSuid, lastIndex, lastSuid) {
@@ -10444,42 +10737,62 @@ console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', w
       this.userCanGrowDownwards = false;
       var delCount = this.headers.length - lastIndex  - 1;
       this.desiredHeaders -= delCount;
-      if (!this._accumulating)
-        this._bridgeHandle.sendSplice(
-          lastIndex + 1, delCount, [],
-          // This is expected; more coming if there's a low-end splice
-          true, firstIndex > 0);
+      this._bridgeHandle.sendSplice(
+        lastIndex + 1, delCount, [],
+        // This is expected; more coming if there's a low-end splice
+        true, firstIndex > 0);
       this.headers.splice(lastIndex + 1, this.headers.length - lastIndex - 1);
-      var lastHeader = this.headers[lastIndex];
+      var lastHeader = this.headers[lastIndex].header;
       this.startTS = lastHeader.date;
       this.startUID = lastHeader.id;
     }
     if (firstIndex > 0) {
       this.atTop = false;
       this.desiredHeaders -= firstIndex;
-      if (!this._accumulating)
-        this._bridgeHandle.sendSplice(0, firstIndex, [], true, false);
+      this._bridgeHandle.sendSplice(0, firstIndex, [], true, false);
       this.headers.splice(0, firstIndex);
-      var firstHeader = this.headers[0];
+      var firstHeader = this.headers[0].header;
       this.endTS = firstHeader.date;
       this.endUID = firstHeader.id;
     }
   },
 
-  reqGrow: function(dirMagnitude, userRequestsGrowth) {
-    if (dirMagnitude === -1) {
+  reqGrow: function(dirMagnitude, userRequestsGrowth, autoDoNotDesireMore) {
+    // Stop processing dynamic additions/modifications while this is happening.
+    this._loading = true;
+    var count;
+    if (dirMagnitude < 0) {
+      if (dirMagnitude === -1) {
+        count = $syncbase.INITIAL_FILL_SIZE;
+      }
+      else {
+        count = -dirMagnitude;
+      }
+      if (!autoDoNotDesireMore) {
+        this.desiredHeaders += count;
+      }
       this._storage.getMessagesAfterMessage(this.endTS, this.endUID,
-                                            $syncbase.INITIAL_FILL_SIZE,
+                                            count,
                                             this._gotMessages.bind(this, -1));
     }
-    else if (dirMagnitude === 1) {
+    else {
+      if (dirMagnitude <= 1) {
+        count = $syncbase.INITIAL_FILL_SIZE;
+      }
+      else {
+        count = dirMagnitude;
+      }
+      if (!autoDoNotDesireMore) {
+        this.desiredHeaders += count;
+      }
       this._storage.getMessagesBeforeMessage(this.startTS, this.startUID,
-                                             $syncbase.INITIAL_FILL_SIZE,
+                                             count,
                                              this._gotMessages.bind(this, 1));
     }
   },
 
   die: function() {
+    this._storage.dyingSlice(this);
     this._bridgeHandle = null;
     this._LOG.__die();
   },
@@ -10489,8 +10802,16 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
   SearchSlice: {
     type: $log.QUERY,
     events: {
+      headersAppended: { index: false },
+      headerAdded: { index: false },
+      headerModified: { index: false },
+      headerRemoved: { index: false },
     },
     TEST_ONLY_events: {
+      headersAppended: { headers: false },
+      headerAdded: { header: false },
+      headerModified: { header: false },
+      headerRemoved: { header: false },
     },
   },
 }); // end LOGFAB
@@ -10667,7 +10988,7 @@ exports.local_do_modtags = function(op, doneCallback, undo) {
           }
         }
         storage.updateMessageHeader(header.date, header.id, false,
-                                    header, next);
+                                    header, /* body hint */ null, next);
       }
     },
     function() {
@@ -10758,7 +11079,7 @@ exports.local_do_move = function(op, doneCallback, targetFolderId) {
 
         stateDelta.moveMap[sourceSuid] = header.suid;
         addWait = 2;
-        targetStorage.addMessageHeader(header, added);
+        targetStorage.addMessageHeader(header, body, added);
         targetStorage.addMessageBody(header, body, added);
       }
       function added() {
@@ -11990,7 +12311,8 @@ draftsMixins.local_do_saveDraft = function(op, callback) {
             op.existingNamer.suid, op.existingNamer.date, dbModCompleted);
         }
 
-        folderStorage.addMessageHeader(newRecords.header, dbModCompleted);
+        folderStorage.addMessageHeader(newRecords.header, newRecords.body,
+                                       dbModCompleted);
         folderStorage.addMessageBody(newRecords.header, newRecords.body,
                                      dbModCompleted);
         function dbModCompleted() {

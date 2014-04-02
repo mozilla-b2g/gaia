@@ -574,7 +574,8 @@ CompositeIncomingAccount.prototype = {
     var storage = this._folderStorages[folderId],
         slice = new $searchfilter.SearchSlice(bridgeHandle, storage, phrase,
                                               whatToSearch, this._LOG);
-    // the slice is self-starting, we don't need to call anything on storage
+    storage.sliceOpenSearch(slice);
+    return slice;
   },
 
   shutdownFolders: function() {
@@ -1381,7 +1382,8 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
         header.date,
         header.id,
         false,
-        header
+        header,
+        body
       );
 
       event.changeDetails.bodyReps.push(req.bodyRepIndex);
@@ -2768,7 +2770,7 @@ ImapJobDriver.prototype = {
                 if (--waitingOnHeaders === 0)
                   foundUIDs_deleteOriginals();
                 return true;
-              });
+              }, /* body hint */ null);
           }
         }
 
@@ -8004,11 +8006,11 @@ Pop3FolderSyncer.prototype = {
 
       if (knownId == null) {
         self.storeMessageUidlForMessageId(header.srvid, header.id);
-        self.storage.addMessageHeader(header, latch.defer());
+        self.storage.addMessageHeader(header, bodyInfo, latch.defer());
         self.storage.addMessageBody(header, bodyInfo, latch.defer());
       } else {
         self.storage.updateMessageHeader(
-          header.date, header.id, true, header, latch.defer());
+          header.date, header.id, true, header, bodyInfo, latch.defer());
         event.changeDetails.attachments = range(bodyInfo.attachments.length);
         event.changeDetails.bodyReps = range(bodyInfo.bodyReps.length);
         var updateOptions = {};
@@ -8520,7 +8522,8 @@ Pop3JobDriver.prototype = {
       function(nullFolderConn, folderStorage) {
         var latch = allback.latch();
 
-        folderStorage.addMessageHeader(op.headerInfo, latch.defer());
+        folderStorage.addMessageHeader(op.headerInfo, op.bodyInfo,
+                                       latch.defer());
         folderStorage.addMessageBody(op.headerInfo, op.bodyInfo, latch.defer());
 
         latch.then(function(results) {
