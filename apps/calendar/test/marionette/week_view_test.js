@@ -1,6 +1,6 @@
 'use strict';
 
-var Calendar = require('./calendar'),
+var Calendar = require('./lib/calendar'),
     assert = require('chai').assert;
 
 marionette('week view', function() {
@@ -10,20 +10,18 @@ marionette('week view', function() {
   setup(function() {
     app = new Calendar(client);
     app.launch({ hideSwipeHint: true });
-
-    // Go to week view.
-    app.findElement('weekButton').click();
+    app.openWeekView();
   });
 
   test('swipe should change date', function() {
-    var prevText = app.waitForElement('monthYearHeader').text();
+    var prevText = app.headerContent.text();
     var swipeCount = 20;
     var headerCount = 0;
 
     while (swipeCount--) {
-      app.swipe();
+      app.swipeLeft();
 
-      var text = app.waitForElement('monthYearHeader').text();
+      var text = app.headerContent.text();
 
       // we are not checking for real overflow since font is different on each
       // environment (Travis uses a wider font) which would make test to fail
@@ -48,11 +46,11 @@ marionette('week view', function() {
     var headerText;
 
     while (swipeCount--) {
-      headerText = app.waitForElement('monthYearHeader').text();
+      headerText = app.headerContent.text();
       if (multiMonthPattern.test(headerText)) {
         nMatches += 1;
       }
-      app.swipe();
+      app.swipeLeft();
     }
 
     assert.operator(nMatches, '>', 0, 'header with multiple months');
