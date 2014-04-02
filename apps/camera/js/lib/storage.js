@@ -5,15 +5,9 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var createFilename = require('lib/dcf').createDCFFilename;
 var debug = require('debug')('storage');
 var events = require('vendor/evt');
-var dcf = require('lib/dcf');
-
-/**
- * Locals
- */
-
-var createFilename = dcf.createDCFFilename;
 
 /**
  * Expose `Storage`
@@ -32,7 +26,6 @@ function Storage() {
   this.image = navigator.getDeviceStorage('pictures');
   this.image.addEventListener('change', this.onStorageChange);
   this.createVideoFilepath = this.createVideoFilepath.bind(this);
-  dcf.init();
   debug('initialized');
 }
 

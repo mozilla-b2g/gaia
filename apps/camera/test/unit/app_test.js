@@ -2,25 +2,21 @@
 'use strict';
 
 suite('app', function() {
-  suiteSetup(function(done) {
-    var self = this;
+  var modules = {};
 
+  suiteSetup(function(done) {
     req([
       'app',
       'lib/camera',
       'vendor/view',
       'lib/geo-location',
-      'lib/activity',
-      'lib/storage',
-      'lib/setting',
-    ], function(App, Camera, View, GeoLocation, Activity, Storage, Setting) {
-      self.App = App;
-      self.View = View;
-      self.Camera = Camera;
-      self.Geolocation = GeoLocation;
-      self.Activity = Activity;
-      self.Storage = Storage;
-      self.Setting = Setting;
+      'lib/activity'
+    ], function(App, Camera, View, GeoLocation, Activity) {
+      modules.app = App;
+      modules.view = View;
+      modules.camera = Camera;
+      modules.geolocation = GeoLocation;
+      modules.activity = Activity;
       done();
     });
   });
@@ -43,6 +39,12 @@ suite('app', function() {
   };
 
   setup(function() {
+    var GeoLocation = modules.geolocation;
+    var Activity = modules.activity;
+    var Camera = modules.camera;
+    var View = modules.view;
+    var App = modules.app;
+
     if (!navigator.mozCameras) {
       navigator.mozCameras = {
         getListOfCameras: function() { return []; },
@@ -57,19 +59,18 @@ suite('app', function() {
       doc: mocks.doc(),
       win: mocks.win(),
       el: document.createElement('div'),
-      geolocation: sinon.createStubInstance(this.Geolocation),
-      activity: new this.Activity(),
-      camera: sinon.createStubInstance(this.Camera),
+      geolocation: new GeoLocation(),
+      activity: new Activity(),
+      camera: new Camera(),
       sounds: {},
-      storage: sinon.createStubInstance(this.Storage),
-      settings: {
-        geolocation: sinon.createStubInstance(this.Setting)
+      storage: {
+        once: sinon.spy()
       },
       views: {
-        viewfinder: new this.View({ name: 'viewfinder' }),
-        focusRing: new this.View({ name: 'focus-ring' }),
-        controls: new this.View({ name: 'controls' }),
-        hud: new this.View({ name: 'hud' })
+        viewfinder: new View({ name: 'viewfinder' }),
+        focusRing: new View({ name: 'focus-ring' }),
+        controls: new View({ name: 'controls' }),
+        hud: new View({ name: 'hud' })
       },
       controllers: {
         hud: sinon.spy(),
@@ -93,23 +94,21 @@ suite('app', function() {
     // Sandbox to put all our stubs in
     this.sandbox = sinon.sandbox.create();
 
-    // Sinon take over setTimeout
-    this.clock = sinon.useFakeTimers();
-
     // Stub out all methods
+    this.sandbox.stub(options.camera);
     this.sandbox.stub(options.activity);
+    this.sandbox.stub(options.geolocation);
     this.sandbox.stub(options.viewfinder);
     this.sandbox.stub(options.focusRing);
     this.sandbox.stub(options.hud);
 
     // More complex stubs
     options.activity.check.callsArg(0);
-    this.sandbox.spy(this.App.prototype, 'boot');
+    this.sandbox.stub(App.prototype, 'miscStuff');
+    this.sandbox.spy(App.prototype, 'boot');
 
     // Create the app
-    this.app = new this.App(options);
-
-    this.sandbox.spy(this.app, 'on');
+    this.app = new App(options);
     this.sandbox.spy(this.app, 'set');
     this.sandbox.spy(this.app, 'emit');
     this.sandbox.spy(this.app, 'firer');
@@ -117,7 +116,6 @@ suite('app', function() {
 
   teardown(function() {
     this.sandbox.restore();
-    this.clock.restore();
     delete navigator.mozCameras;
   });
 
@@ -143,21 +141,20 @@ suite('app', function() {
 
       // need to `new App()` again here (and disregard `this.app`)
       // because we have changed the option mock.
-      var app = new this.App(options);
+      var App = modules.app;
+      var app = new App(options);
 
       assert.ok(app.inSecureMode === true);
     });
   });
 
   suite('App#boot()', function() {
-    setup(function() {
-      this.app.boot();
-    });
-
     test('Should run each of the controllers,' +
          'passing itself as first argument', function() {
       var controllers = this.app.controllers;
       var app = this.app;
+
+      this.app.boot();
 
       assert.ok(controllers.hud.calledWith(app));
       assert.ok(controllers.controls.calledWith(app));
@@ -172,6 +169,8 @@ suite('app', function() {
     test('Should put each of the views into the root element', function() {
       var el = this.app.el;
 
+      this.app.boot();
+
       assert.ok(el.querySelector('.viewfinder'));
       assert.ok(el.querySelector('.focus-ring'));
       assert.ok(el.querySelector('.controls'));
@@ -179,6 +178,7 @@ suite('app', function() {
     });
 
     test('Should bind to `visibilitychange` event', function() {
+      this.app.boot();
       var call = this.app.doc.addEventListener.getCall(0);
       assert.ok(call.args[0] === 'visibilitychange');
       assert.ok(typeof call.args[1] === 'function');
@@ -186,6 +186,7 @@ suite('app', function() {
 
     test('Should bind to `beforeunload` event', function() {
       var addEventListener = this.app.win.addEventListener;
+      this.app.boot();
       assert.ok(addEventListener.calledWith('beforeunload', this.app.onBeforeUnload));
     });
 
@@ -194,80 +195,54 @@ suite('app', function() {
       var controls = this.app.controllers.controls;
       var camera = this.app.controllers.camera;
 
+      this.app.boot();
+
       assert.isTrue(activity.calledBefore(controls));
       assert.isTrue(activity.calledBefore(camera));
     });
 
-    test('Should watch location only once storage confirmed healthy', function() {
-      var geolocationWatch = this.app.geolocationWatch;
-      var storage = this.app.storage;
-      assert.ok(storage.once.calledWith('checked:healthy', geolocationWatch));
-    });
-
-    suite('App#geolocationWatch()', function() {
-      setup(function() {
-        this.options.settings.geolocation.get
-          .withArgs('promptDelay')
-          .returns(2000);
-      });
-
-      test('Should watch geolocation after given delay', function() {
-        this.app.geolocationWatch();
-
-        assert.isFalse(this.app.geolocation.watch.called);
-        this.clock.tick(2000);
-
-        assert.isTrue(this.app.geolocation.watch.called);
+    suite('app.geolocation', function() {
+      test('Should watch location only once storage confirmed healthy',
+      function() {
+        var geolocationWatch = this.app.geolocationWatch;
+        var storage = this.app.storage;
+        this.app.boot();
+        assert.ok(storage.once.calledWith('checked:healthy', geolocationWatch));
       });
 
       test('Should *not* watch location if not in activity', function() {
+        var geolocation = this.app.geolocation;
+
         this.app.doc.hidden = false;
         this.app.activity.active = true;
-
         this.app.geolocationWatch();
-        this.clock.tick(2000);
 
-        assert.isFalse(this.app.geolocation.watch.called);
+        assert.ok(geolocation.watch.notCalled);
       });
 
       test('Should *not* watch location if app hidden', function() {
+        var geolocation = this.app.geolocation;
+
         this.app.doc.hidden = true;
         this.app.activity.active = false;
-
         this.app.geolocationWatch();
-        this.clock.tick(2000);
 
-        assert.isFalse(this.app.geolocation.watch.called);
+        assert.ok(geolocation.watch.notCalled);
       });
     });
   });
 
   suite('App#onBlur', function() {
-    setup(function() {
-      this.app.onBlur();
-    });
-
     test('Should stop watching location', function() {
-      assert.ok(this.app.geolocation.stopWatching.called);
+      var geolocation = this.app.geolocation;
+      this.app.onBlur();
+      assert.ok(geolocation.stopWatching.called);
     });
 
     test('Should stop cancel any pending activity', function() {
-      assert.ok(this.app.activity.cancel.called);
-    });
-  });
-
-  suite('App#onFocus()', function() {
-    setup(function() {
-      sinon.spy(this.app, 'geolocationWatch');
-      this.app.onFocus();
-    });
-
-    test('Should run a storage check', function() {
-      assert.ok(this.app.storage.check.called);
-    });
-
-    test('Should begin watching location again', function() {
-      assert.ok(this.app.geolocationWatch.called);
+      var activity = this.app.activity;
+      this.app.onBlur();
+      assert.ok(activity.cancel.called);
     });
   });
 

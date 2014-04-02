@@ -64,7 +64,6 @@ function Camera(options) {
  * Plugs Video Stream into Video Element.
  *
  * @param  {Elmement} videoElement
- * @public
  */
 Camera.prototype.loadStreamInto = function(videoElement) {
   debug('loading stream into element');
@@ -87,96 +86,38 @@ Camera.prototype.loadStreamInto = function(videoElement) {
   debug('stream loaded into video');
 };
 
-/**
- * Loads the currently selected camera.
- *
- * There are cases whereby the camera
- * may still be 'releasing' its hardware.
- * If this is the case we wait for the
- * release process to finish, then attempt
- * to load again.
- *
- * @public
- */
-Camera.prototype.load = function(done) {
+Camera.prototype.load = function() {
   debug('load camera');
 
+  // If hardware is still pending for release
+  // we're not allowed to request a new caemera
+  if (this.cameraReleasePending) {
+    debug('camera not loaded: hardware unavailable');
+    return;
+  }
   var selectedCamera = this.get('selectedCamera');
   var loadingNewCamera = selectedCamera !== this.lastLoadedCamera;
-  var self = this;
-
+  this.lastLoadedCamera = selectedCamera;
   this.emit('busy');
 
-  // If hardware is still being released
-  // we're not allowed to request the camera.
-  if (this.releasing) {
-    debug('wait for camera release');
-    this.once('released', function() { self.load(done); });
-    return;
-  }
-
-  // Don't re-load hardware if selected camera is the same
   if (this.mozCamera && !loadingNewCamera) {
-    this.configureCamera(this.mozCamera);
-    debug('camera not changed');
-    done();
+    this.gotCamera(this.mozCamera);
     return;
   }
 
-  // If a camera is already loaded, it must be 'released' first.
-  if (this.mozCamera) {
-    this.release(ready);
-  } else {
-    ready();
-  }
-
-  function ready() {
-    self.requestCamera(selectedCamera, done);
-    self.lastLoadedCamera = selectedCamera;
-  }
+  // If a camera is already loaded,
+  // it must be 'released' first.
+  if (this.mozCamera) { this.release(this.requestCamera); }
+  else { this.requestCamera(); }
 };
 
-/**
- * Requests the mozCamera object,
- * then configures it.
- *
- * @param  {String}   camera  'front'|'back'
- * @private
- */
-Camera.prototype.requestCamera = function(camera, done) {
-  done = done || function() {};
-
-  var self = this;
-  navigator.mozCameras.getCamera(camera, {}, onSuccess, onError);
-
-  function onSuccess(mozCamera) {
-    debug('successfully got mozCamera');
-    self.configureCamera(mozCamera);
-    done();
-  }
-
-  function onError(err) {
-    debug('error requesting camera');
-    done(err);
-  }
-
-  debug('camera requested');
+Camera.prototype.requestCamera = function() {
+  var selectedCamera = this.get('selectedCamera');
+  navigator.mozCameras.getCamera(selectedCamera, {}, this.gotCamera);
 };
 
-/**
- * Configures the newly recieved
- * mozCamera object.
- *
- * Setting the 'cababilities' key
- * triggers 'change' callback inside
- * the CameraController that sets the
- * app up for the new camera.
- *
- * @param  {MozCamera} mozCamera
- * @private
- */
-Camera.prototype.configureCamera = function(mozCamera) {
-  debug('configuring camera');
+Camera.prototype.gotCamera = function(mozCamera) {
+  debug('got camera');
   var capabilities = mozCamera.capabilities;
   this.mozCamera = mozCamera;
   this.mozCamera.onShutter = this.onShutter;
@@ -184,7 +125,6 @@ Camera.prototype.configureCamera = function(mozCamera) {
   this.mozCamera.onRecorderStateChange = this.onRecorderStateChange;
   this.configureFocus(capabilities.focusModes);
   this.set('capabilities', this.formatCapabilities(capabilities));
-  debug('configured camera');
 };
 
 Camera.prototype.formatCapabilities = function(capabilities) {
@@ -289,31 +229,37 @@ Camera.prototype.setFlashMode = function(key) {
  */
 Camera.prototype.release = function(done) {
   done = done || function() {};
-  var self = this;
 
-  // Ignore if there is no loaded camera
   if (!this.mozCamera) {
     done();
     return;
   }
 
+  var self = this;
   // The hardware is not available during
   // the release process
+  this.cameraReleasePending = true;
   this.mozCamera.release(onSuccess, onError);
-  this.releasing = true;
   this.mozCamera = null;
 
   function onSuccess() {
-    self.releasing = false;
-    self.emit('released');
+    self.cameraReleasePending = false;
+    // If the app is in foreground it reloads the camera
+    // This is needed in case the user exits and enters
+    // the application quickly. We have to wait until
+    // the previous camera has been released to request
+    // a new one.
+    if(!document.hidden) {
+      self.load();
+    }
     debug('successfully released');
     done();
   }
 
-  function onError(err) {
+  function onError() {
+    self.cameraReleasePending = false;
     debug('failed to release hardware');
-    self.releasing = false;
-    done(err);
+    done();
   }
 };
 
@@ -890,7 +836,7 @@ Camera.prototype.getZoom = function() {
 
 Camera.prototype.setZoom = function(zoom) {
   this.mozCamera.zoom = zoom;
-  this.emit('zoomchanged', zoom);
+  this.emit('zoomChange', zoom);
 };
 
 Camera.prototype.getZoomPreviewAdjustment = function() {

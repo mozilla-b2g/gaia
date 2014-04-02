@@ -2,12 +2,6 @@ define(function(require, exports, module) {
 'use strict';
 
 /**
- * Dependencies
- */
-
-var debug = require('debug')('geolocation');
-
-/**
  * Locals
  */
 
@@ -35,12 +29,10 @@ function GeoLocation() {
 /**
  * Watches device location.
  *
- * @public
  */
 GeoLocation.prototype.watch = function() {
   if (!this.watcher) {
     this.watcher = geolocation.watchPosition(this.setPosition);
-    debug('started watching');
   }
 };
 
@@ -48,19 +40,16 @@ GeoLocation.prototype.watch = function() {
  * Stops watching
  * device location.
  *
- * @public
  */
 GeoLocation.prototype.stopWatching = function() {
   geolocation.clearWatch(this.watcher);
   this.watcher = null;
-  debug('stopped watching');
 };
 
 /**
  * Updates the stored
  * position object.
  *
- * @private
  */
 GeoLocation.prototype.setPosition = function(position) {
   this.position = {

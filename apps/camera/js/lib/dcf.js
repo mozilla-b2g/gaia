@@ -10,7 +10,6 @@ define(function(require, exports, module) {
  */
 
 var asyncStorage = require('asyncStorage');
-var debug = require('debug')('dcf');
 var format = require('format');
 
 /**
@@ -29,7 +28,6 @@ var dcfConfig = {
 };
 
 exports.init = function() {
-  debug('initializing');
   asyncStorage.getItem(dcfConfig.key, function(value) {
     dcfConfigLoaded = true;
     dcfConfig.seq = value ? value : defaultSeq;
@@ -41,8 +39,6 @@ exports.init = function() {
       exports.createDCFFilename(args.storage, args.type, args.callback);
       deferredArgs = null;
     }
-
-    debug('initialized');
   });
 };
 

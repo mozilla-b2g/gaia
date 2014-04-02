@@ -35,7 +35,6 @@ suite('Sounds', function() {
 
   setup(function() {
     this.sandbox = sinon.sandbox.create();
-    this.clock = sinon.useFakeTimers();
     this.sounds = new Sounds();
 
     // A sound to pass to APIs
@@ -55,7 +54,6 @@ suite('Sounds', function() {
   teardown(function() {
     navigator.mozSettings = this.backup.mozSettings;
     this.sandbox.restore();
-    this.clock.restore();
   });
 
   suite('Sounds()', function() {
@@ -102,7 +100,6 @@ suite('Sounds', function() {
 
   suite('Sounds#isEnabled()', function() {
     setup(function() {
-      var self = this;
 
       // Mock object that mimicks
       // mozSettings get API. Inside
@@ -120,7 +117,7 @@ suite('Sounds', function() {
                 result: result
               }
             });
-          });
+          }, 1);
           return this;
         }
       };
@@ -131,14 +128,11 @@ suite('Sounds', function() {
       this.sounds.isEnabled(this.mockSound);
     });
 
-    test('Should return the result from mozSettings API', function() {
+    test('Should return the result from mozSettings API', function(done) {
       this.sounds.isEnabled(this.mockSound, function(result) {
         assert.ok(result === 'the-result');
+        done();
       });
-
-      // Move time forwards
-      // so the callback fires
-      this.clock.tick(1);
     });
   });
 
