@@ -10,14 +10,26 @@
   top: 0; left: 0;
   z-index: 1;
   height: 100%;
-  padding: 1.5rem;
+  padding: 0 1.5rem;
   flex-direction: column;
   justify-content: center; /* 1 */
   pointer-events: none; /* 2 */
 }
 
+/**
+ * hidden
+ */
+
 .indicators.hidden {
   display: none;
+}
+
+/**
+ * deg180
+ */
+
+.deg180 .indicators {
+  padding: 0 0.8rem;
 }
 
 /** Indicators
