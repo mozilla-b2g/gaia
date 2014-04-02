@@ -40,7 +40,6 @@
     "audio-channel-content":{},
     "audio-channel-ringer":{},
     "cellbroadcast":{},
-    "input":{},
     "input-manage":{},
     "nfc":{ "access": "readonly" },
     "nfc-manager":{},

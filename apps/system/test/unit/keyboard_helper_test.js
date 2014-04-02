@@ -222,19 +222,6 @@ suite('KeyboardHelper', function() {
             }
           }
         },
-        // invalid because it's system
-        {
-          origin: 'app://system.gaiamobile.org',
-          manifestURL: 'app://system.gaiamobile.org/manifest.webapp',
-          manifest: {
-            type: 'certified',
-            role: 'input',
-            inputs: {},
-            permissions: {
-              input: {}
-            }
-          }
-        },
         // invalid because there aren't inputs
         {
           origin: 'app://keyboard.gaiamobile.org',
