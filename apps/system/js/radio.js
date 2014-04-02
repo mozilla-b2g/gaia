@@ -114,17 +114,17 @@
           conn.radioState !== null) {
         this._doSetRadioEnabled(conn, enabled);
       } else {
-        conn.addEventListener('radiostatechange',
-          function radioStateChangeHandler() {
-            if (conn.radioState == 'enabling' ||
-                conn.radioState == 'disabling' ||
-                conn.radioState == null) {
-              return;
-            }
-            conn.removeEventListener('radiostatechange',
-              radioStateChangeHandler);
-            this._doSetRadioEnabled(conn, enabled);
-        });
+        var radioStateChangeHandler = (function radioStateChangeHandler() {
+          if (conn.radioState == 'enabling' ||
+              conn.radioState == 'disabling' ||
+              conn.radioState == null) {
+            return;
+          }
+          conn.removeEventListener('radiostatechange',
+            radioStateChangeHandler);
+          this._doSetRadioEnabled(conn, enabled);
+        }).bind(this);
+        conn.addEventListener('radiostatechange', radioStateChangeHandler);
       }
     },
 
