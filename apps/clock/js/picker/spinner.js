@@ -64,6 +64,16 @@ define(function(require) {
           this.select(this.values.indexOf(value));
         }
       },
+      unitHeight: {
+        get: function() {
+          return this.element.children[0].clientHeight;
+        }
+      },
+      space: {
+        get: function() {
+          return this.unitHeight * this.length;
+        }
+      },
       container: {
         value: setup.element.parentNode
       },
@@ -84,7 +94,6 @@ define(function(require) {
     this.template = new Template(spinnerHtml);
 
     this.top = 0;
-    this.space = 0;
     this.index = 0;
 
     this.previous = new Touch();
@@ -118,8 +127,6 @@ define(function(require) {
   }
 
   Spinner.prototype.reset = function() {
-    this.unitHeight = this.element.children[0].clientHeight;
-    this.space = this.unitHeight * this.length;
     this.index = 0;
     this.top = 0;
     this.update();

@@ -30,20 +30,19 @@ marionette('Timer', function() {
     assert.ok(timer.countdown <= durationMs);
   });
 
-  // test('Timer resume after app termination', function() {
-  //   var durationMs = 60 * 60 * 1000;
-  //   timer.hours = 1;
-  //   timer.minutes = 0;
+  test('Timer resume after app termination', function() {
+    var durationMs = 60 * 60 * 1000;
+    timer.hours = 1;
+    timer.minutes = 0;
 
-  //   timer.start();
+    timer.start();
 
-  //   timer.advanceTime(500);
+    timer.advanceTime(500);
 
-  //   actions.restart('timer');
+    actions.restart('timer');
 
-  //   assert.ok(timer.countdown > durationMs - 5000);
-  //   assert.ok(timer.countdown <= durationMs);
-  // });
+    assert.ok(timer.countdown < durationMs);
+  });
 
   test('Timer Pausing and Restarting', function() {
     timer.hours = 0;
