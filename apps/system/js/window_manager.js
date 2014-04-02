@@ -1109,15 +1109,6 @@ var WindowManager = (function() {
     }
   });
 
-  /**
-   * We only retain the screenshot layer
-   * when attention screen drops.
-   * Otherwise we just bring the app to background.
-   */
-  window.addEventListener('hidewindow', function() {
-    runningApps[displayedApp].setVisible(false, true);
-  });
-
   function getAppName(origin, manifest) {
     if (!manifest)
       return '';
