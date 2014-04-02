@@ -431,7 +431,6 @@ apps/settings/test/marionette/app/regions/improve.js
 apps/settings/test/marionette/tests/improve_settings_test.js
 apps/settings/test/performance/integration.js
 apps/settings/test/performance/rendering_wifi_list_test.js
-apps/settings/test/unit/about_test.js
 apps/settings/test/unit/download_api_manager_test.js
 apps/settings/test/unit/download_formatter_test.js
 apps/settings/test/unit/download_helper_test.js

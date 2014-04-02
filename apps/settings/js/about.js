@@ -45,25 +45,58 @@ var About = {
   },
 
   loadHardwareInfo: function about_loadHardwareInfo() {
-    var mobileConnection = getMobileConnection();
-    if (!mobileConnection) {
-      document.getElementById('deviceinfo-phone-num').hidden = true;
+    var deviceInfoPhoneNum = document.getElementById('deviceinfo-phone-num');
+    var deviceInfoMsisdns = document.getElementById('deviceInfo-msisdns');
+    var conns = navigator.mozMobileConnections;
+
+    if (!conns) {
+      deviceInfoPhoneNum.hidden = true;
       return;
     }
 
-    if (!IccHelper)
-      return;
+    var multiSim = conns.length > 1;
+    // Only show the list item when there are valid iccinfos.
+    var showListItem = false;
 
-     var deviceInfoMsisdn = document.getElementById('deviceInfo-msisdn');
-     var info = IccHelper.iccInfo;
-     if (!navigator.mozTelephony || !info) {
-       deviceInfoMsisdn.parentNode.hidden = true;
-     } else {
-       // If the icc card is gsm card, the phone number is in msisdn.
-       // Otherwise, the phone number is in mdn.
-       deviceInfoMsisdn.textContent = info.msisdn || info.mdn ||
-       navigator.mozL10n.get('unknown-phoneNumber');
+    // update msisdns
+    while (deviceInfoMsisdns.hasChildNodes()) {
+      deviceInfoMsisdns.removeChild(deviceInfoMsisdns.lastChild);
     }
+
+    Array.prototype.forEach.call(conns, function(conn, index) {
+      var iccId = conn.iccId;
+      if (!iccId) {
+        return;
+      }
+      var iccObj = navigator.mozIccManager.getIccById(iccId);
+      if (!iccObj) {
+        return;
+      }
+      var iccInfo = iccObj.iccInfo;
+      if (!iccInfo) {
+        return;
+      }
+
+      showListItem = true;
+      // If the icc card is gsm card, the phone number is in msisdn.
+      // Otherwise, the phone number is in mdn.
+      var span = document.createElement('span');
+      var msisdn = iccInfo.msisdn || iccInfo.mdn;
+      if (msisdn) {
+        span.textContent = multiSim ?
+          'SIM ' + (index + 1) + ': ' + msisdn : msisdn;
+      } else {
+        if (multiSim) {
+          navigator.mozL10n.localize(span,
+            'unknown-phoneNumber-sim', { index: index + 1 });
+        } else {
+          navigator.mozL10n.localize(span, 'unknown-phoneNumber');
+        }
+      }
+      deviceInfoMsisdns.appendChild(span);
+    });
+
+    deviceInfoPhoneNum.hidden = !showListItem;
   },
 
   checkForUpdates: function about_checkForUpdates() {
