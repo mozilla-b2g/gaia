@@ -1,4 +1,4 @@
-/* globals _, Browser, BrowserDB, DateHelper, HtmlHelper */
+/* globals _, AccessibilityHelper, Browser, BrowserDB, DateHelper, HtmlHelper*/
 
 /* exported Awesomescreen */
 
