@@ -4,8 +4,13 @@ if (!window.Rest) {
   window.Rest = (function() {
 
     function RestRequest(xhr) {
+      var cancelled = false;
       this.cancel = function oncancel() {
-        window.setTimeout(xhr.abort, 0);
+        cancelled = true;
+        window.setTimeout(xhr.abort.bind(xhr), 0);
+      };
+      this.isCancelled = function isCancelled() {
+        return cancelled;
       };
     }
 
@@ -27,8 +32,11 @@ if (!window.Rest) {
         var responseProperty = responseType === 'xml' ?
           'responseXML' : 'response';
 
-        xhr.timeout = options.operationsTimeout ||
-                            parent.config.operationsTimeout || DEFAULT_TIMEOUT;
+        xhr.timeout = options.operationsTimeout || DEFAULT_TIMEOUT;
+        if (!xhr.timeout || xhr.timeout === DEFAULT_TIMEOUT &&
+           (parent && parent.config && parent.config.operationsTimeout)) {
+          xhr.timeout = parent.config.operationsTimeout;
+        }
 
         if (options.requestHeaders) {
           for (var header in options.requestHeaders) {
@@ -65,7 +73,8 @@ if (!window.Rest) {
         xhr.onerror = function(e) {
           console.error('Error while executing HTTP GET: ', uri,
                                    ': ', e);
-          if (callback && typeof callback.error === 'function') {
+          if (callback && typeof callback.error === 'function' &&
+           !outReq.isCancelled()) {
             setTimeout(function() {
               callback.error(e);
             },0);
