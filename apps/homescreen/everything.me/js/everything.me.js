@@ -326,15 +326,45 @@ var EverythingME = {
     }
   },
 
-  initEvme: function EverythingME_initEvme() {
-    var config = this.datastore.getConfig();
-    config.then(function resolve(emeConfig) {
-      EverythingME.log('EVME config from storage', JSON.stringify(emeConfig));
+  // Get or create devideId shared with search/eme instance via mozSettings.
+  getDeviceId: function EverythingME_getDeviceId() {
 
-      Evme.init({'deviceId': emeConfig.deviceId}, EverythingME.onEvmeLoaded);
+    // see duplicate in search/eme.js
+    function generateDeviceId() {
+      var url = window.URL.createObjectURL(new Blob());
+      var id = url.replace('blob:', '');
+
+      window.URL.revokeObjectURL(url);
+
+      return 'fxos-' + id;
+    }
+
+    var promise = new Promise(function done(resolve) {
+      SettingsListener.observe('search.deviceId', false,
+        function onSettingChange(value) {
+          if (!value) {
+            value = generateDeviceId();
+            navigator.mozSettings.createLock().set({
+              'search.deviceId': value
+            });
+            EverythingME.log('EVME set new deviceId', value);
+          }
+          resolve(value);
+      });
+    });
+
+    return promise;
+  },
+
+  initEvme: function EverythingME_initEvme() {
+    var deviceIdPromise = this.getDeviceId();
+    deviceIdPromise.then(function resolve(value) {
+      EverythingME.log('EVME init [deviceId=' + value + ']');
+
+      Evme.init({'deviceId': value}, EverythingME.onEvmeLoaded);
       EvmeFacade = Evme;
-    }, function reject(reason) {
-      EverythingME.warn('EVME config missing', reason);
+    }).catch (function _catch(ex) {
+      EverythingME.warn('EVME init failed (deviceId not found)', ex);
     });
   },
 
@@ -574,66 +604,3 @@ var EvmeFacade = {
     return false;
   }
 };
-
-
-(function() {
-  'use strict';
-
-  // datastore to use
-  var DS_NAME = 'eme_store';
-
-  // id of config object
-  var DS_CONFIG_ID = 1;
-
-  // see duplicate in search/eme.js
-  function generateDeviceId() {
-    var url = window.URL.createObjectURL(new Blob());
-    var id = url.replace('blob:', '');
-
-    window.URL.revokeObjectURL(url);
-
-    return 'fxos-' + id;
-  }
-
-  function emeDataStore() {
-  }
-  emeDataStore.prototype = {
-    // Get or create config shared with search/eme instance via DataStore API.
-    getConfig: function getConfig() {
-      var promise = new Promise(function done(resolve, reject) {
-        navigator.getDataStores(DS_NAME).then(function(stores) {
-          if (stores.length === 1) {
-            var db = stores[0];
-
-            db.get(DS_CONFIG_ID).then(function success(emeConfig) {
-              // use existing config
-              if (emeConfig) {
-                resolve(emeConfig);
-              } else {
-                // store new config
-                emeConfig = {
-                  'deviceId': generateDeviceId()
-                };
-
-                db.add(emeConfig, DS_CONFIG_ID).then(function success(id) {
-                  resolve(emeConfig);
-                }, function error(e) {
-                  reject('config creation failed');
-                });
-              }
-            }, function error(e) {
-              reject(e.message);
-            });
-
-          } else {
-            reject('invalid datastore setup');
-          }
-        });
-      });
-
-      return promise;
-    }
-  };
-
-  EverythingME.datastore = new emeDataStore();
-})();
