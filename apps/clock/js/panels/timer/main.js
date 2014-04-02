@@ -52,11 +52,6 @@ Timer.Panel = function(element) {
     }
   });
 
-  Timer.singleton(function(err, timer) {
-    this.timer = timer;
-    timer.on('end', this.dialog.bind(this));
-  }.bind(this));
-
   // Gather elements
   [
     'create', 'cancel', 'dialog', 'pause', 'start', 'sound', 'time', 'vibrate',
@@ -101,9 +96,16 @@ Timer.Panel = function(element) {
     'visibilitychange', this.onvisibilitychange.bind(this)
   );
 
-  View.instance(element, Timer.Panel).once(
-    'visibilitychange',
-    setTimeout.bind(window, this.picker.reset.bind(this.picker), 0));
+  Timer.singleton(function(err, timer) {
+    this.timer = timer;
+    timer.on('end', this.dialog.bind(this));
+    if (this.visible) {
+      // If the timer panel already became visible before we fetched
+      // the timer, we must update the display to show the proper
+      // timer status.
+      this.onvisibilitychange(true);
+    }
+  }.bind(this));
 };
 
 Timer.Panel.prototype = Object.create(Panel.prototype);
