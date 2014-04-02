@@ -314,7 +314,6 @@ suite('message_manager.js >', function() {
 
       setup(function() {
         this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
-        this.sinon.stub(Settings, 'switchMmsSimHandler');
 
         mmsOpts = {
           recipients: '123',
@@ -329,7 +328,6 @@ suite('message_manager.js >', function() {
         Settings.mmsServiceId = 0;
 
         MessageManager.sendMMS(mmsOpts);
-        sinon.assert.notCalled(Settings.switchMmsSimHandler);
 
         var smil = SMIL.generate.firstCall.returnValue;
 
@@ -350,11 +348,6 @@ suite('message_manager.js >', function() {
         Settings.mmsServiceId = 1;
 
         MessageManager.sendMMS(mmsOpts);
-        sinon.assert.calledWith(
-          Settings.switchMmsSimHandler, mmsOpts.serviceId
-        );
-
-        Settings.switchMmsSimHandler.yield();
 
         var smil = SMIL.generate.firstCall.returnValue;
 
@@ -376,7 +369,6 @@ suite('message_manager.js >', function() {
         Settings.mmsServiceId = 1;
 
         MessageManager.sendMMS(mmsOpts);
-        sinon.assert.notCalled(Settings.switchMmsSimHandler);
 
         var smil = SMIL.generate.firstCall.returnValue;
 
