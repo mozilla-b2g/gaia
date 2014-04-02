@@ -51,7 +51,6 @@
   font-size: 1.9rem;
   margin-bottom: 0.6rem;
   color: rgba(255,255,255,0.5);
-  text-transform: capitalize;
 }
 
 /** Value
@@ -60,5 +59,4 @@
 .setting_value {
   font-size: 1.6rem;
   font-weight: 500;
-  text-transform: uppercase;
 }

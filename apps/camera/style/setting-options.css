@@ -58,7 +58,6 @@
   font-weight: 500;
   border: solid 1px rgba(255,255,255,0.15);
   border-width: 1px 0 0;
-  text-transform: uppercase;
   box-sizing: content-box; /* 1 */
 }
 
