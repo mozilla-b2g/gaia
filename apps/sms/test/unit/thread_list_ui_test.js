@@ -1405,6 +1405,80 @@ suite('thread_list_ui', function() {
     });
   });
 
+  suite('Rendering in batches', function() {
+    var thread;
+    var appendSpy;
+    var flushSpy;
+
+    setup(function() {
+      ThreadListUI.threadQueue = [];
+
+      ThreadListUI.count = 99999999;
+
+      var nextDate = new Date(2013, 1, 2);
+      var message = MockMessages.sms({
+        threadId: 1,
+        timestamp: +nextDate
+      });
+      thread = Thread.create(message);
+
+      appendSpy = this.sinon.spy(ThreadListUI, 'appendThread');
+      flushSpy = this.sinon.spy(ThreadListUI, 'flushThreadQueue');
+    });
+
+    test('Queuing a single thread should immediately append it', function() {
+      ThreadListUI.count = 0;
+
+      ThreadListUI.queueOrAppendThread(thread);
+      sinon.assert.calledWith(appendSpy, thread);
+    });
+
+    test('Queuing a single thread with many should batch it', function() {
+      ThreadListUI.queueOrAppendThread(thread);
+      sinon.assert.notCalled(appendSpy);
+    });
+
+    test('Flushing queue with batched threads should append them', function() {
+      var nextDate = new Date(2013, 1, 2);
+      var message2 = MockMessages.sms({
+        threadId: 2,
+        timestamp: +nextDate
+      });
+      var thread2 = Thread.create(message2);
+
+      ThreadListUI.queueOrAppendThread(thread);
+      ThreadListUI.queueOrAppendThread(thread2);
+
+      sinon.assert.notCalled(appendSpy);
+
+      ThreadListUI.flushThreadQueue();
+
+      sinon.assert.calledWith(appendSpy, thread);
+      sinon.assert.calledWith(appendSpy, thread2);
+    });
+
+    test('Thread queue should be flushed at maximum of 50 threads', function() {
+      for (var i = 0; i < 50; i++) {
+        ThreadListUI.queueOrAppendThread(thread);
+      }
+
+      sinon.assert.calledOnce(flushSpy);
+    });
+
+    test('Rendering finishing should flush the thread queue', function(done) {
+      this.sinon.stub(MessageManager, 'getThreads', function(options) {
+        options.end();
+        options.done();
+      });
+
+      ThreadListUI.renderThreads(function() {
+        done(function() {
+          sinon.assert.calledOnce(flushSpy);
+        });
+      });
+    });
+  });
+
   suite('renderDrafts', function() {
     var draft;
     var thread, threadDraft;

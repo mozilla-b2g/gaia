@@ -27,6 +27,7 @@ var ThreadListUI = {
 
   draftLinks: null,
   draftRegistry: null,
+  threadsQueue: [],
   DRAFT_SAVED_DURATION: 5000,
   FIRST_PANEL_THREAD_COUNT: 9, // counted on a Peak
 
@@ -35,8 +36,8 @@ var ThreadListUI = {
     onDraftSaved: null
   },
 
-  // Used to track the current number of rendered
-  // threads. Updated in ThreadListUI.renderThreads
+  // Used to track the current number of loaded threads during batch operations.
+  // Only maintained and valid during initial loading.
   count: 0,
 
   // Set to |true| when in edit mode
@@ -671,7 +672,9 @@ var ThreadListUI = {
         this.startRendering();
       }
 
-      this.appendThread(thread);
+      this.count++;
+
+      this.queueOrAppendThread(thread);
       if (--firstPanelCount === 0) {
         // dispatch visuallyLoaded and contentInteractive when rendered
         // threads could fill up the top of the visible area
@@ -682,6 +685,10 @@ var ThreadListUI = {
 
     function onThreadsRendered() {
       /* jshint validthis: true */
+
+      /* There may be queued threads that are waiting for more threads to be
+       * queued before being flushed, so just flush it now. */
+      this.flushThreadQueue();
 
       /* We set the view as empty only if there's no threads and no drafts,
        * this is done to prevent races between renering threads and drafts. */
@@ -893,13 +900,45 @@ var ThreadListUI = {
     }, this);
   },
 
-  /**
-   * Append a thread to the global threads container. Creates a time container
-   * (i.e. for a day or some other time period) for this thread if it doesn't
-   * exist already.
-   *
-   * @return Boolean true if a time container was created, false otherwise
-   */
+  flushThreadQueue: function thlui_flushThreadQueue() {
+    this.threadsQueue.forEach(function (thread) {
+      this.appendThread(thread);
+    }, this);
+
+    this.threadsQueue = [];
+  },
+
+  queueOrAppendThread: function thlui_queueOrAppendThread(thread) {
+    this.threadsQueue.push(thread);
+
+    var numQueuedThreadsToFlushAt;
+    switch (true) {
+      case (this.count < 10):
+        numQueuedThreadsToFlushAt = 1;
+        break;
+      case (this.count >= 10 && this.count <= 50):
+        numQueuedThreadsToFlushAt = 5;
+        break;
+      case (this.count > 50 && this.count < 200):
+        numQueuedThreadsToFlushAt = 20;
+        break;
+      default:
+        numQueuedThreadsToFlushAt = 50;
+        break;
+    }
+
+    if (this.threadsQueue.length >= numQueuedThreadsToFlushAt) {
+      this.flushThreadQueue();
+    }
+  },
+
+/**
+ * Append a thread to the global threads container. Creates a time container
+ * (i.e. for a day or some other time period) for this thread if it doesn't
+ * exist already.
+ *
+ * @return Boolean true if a time container was created, false otherwise
+ */
   appendThread: function thlui_appendThread(thread) {
     if (navigator.mozL10n.readyState !== 'complete') {
       navigator.mozL10n.once(this.appendThread.bind(this, thread));
