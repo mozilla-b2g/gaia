@@ -17,15 +17,6 @@ apps/browser/test/marionette/navigate_test.js
 apps/browser/test/marionette/settings_test.js
 apps/browser/test/marionette/share_url_test.js
 apps/browser/test/unit/browser_db_test.js
-apps/calendar/js/controllers/alarm.js
-apps/calendar/js/controllers/error.js
-apps/calendar/js/controllers/recurring_events.js
-apps/calendar/js/controllers/service.js
-apps/calendar/js/controllers/sync.js
-apps/calendar/js/controllers/time.js
-apps/calendar/js/models/account.js
-apps/calendar/js/models/calendar.js
-apps/calendar/js/models/event.js
 apps/camera/build/configure.js
 apps/camera/js/startup.js
 apps/camera/js/views/viewfinder.js
