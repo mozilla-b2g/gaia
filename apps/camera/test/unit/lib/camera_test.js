@@ -1,4 +1,4 @@
-suite('camera', function() {
+suite('lib/camera', function() {
   'use strict';
   var require = window.req;
 
@@ -11,18 +11,32 @@ suite('camera', function() {
   });
 
   setup(function() {
-    var mozCameras = { getListOfCameras: function() {} };
+    var mozCameras = {
+      getListOfCameras: function() {},
+      getCamera: function() {}
+    };
+
     if (!navigator.mozCameras) { navigator.mozCameras = mozCameras; }
-    if (!navigator.getDeviceStorage) {
-      navigator.getDeviceStorage = function() {};
-    }
-    sinon.stub(navigator, 'getDeviceStorage').returns({});
-    sinon.stub(navigator.mozCameras, 'getListOfCameras').returns([]);
+    if (!navigator.getDeviceStorage) { navigator.getDeviceStorage = function() {}; }
+
+    this.sandbox = sinon.sandbox.create();
+    this.sandbox.stub(navigator, 'getDeviceStorage').returns({});
+    this.sandbox.stub(navigator.mozCameras);
+
+    navigator.mozCameras.getListOfCameras.returns([]);
+
+    // Fake mozCamera
+    this.mozCamera = {
+      autoFocus: sinon.stub(),
+      release: sinon.stub()
+    };
+
+    this.camera = new this.Camera();
+    this.sandbox.stub(this.camera, 'emit');
   });
 
   teardown(function() {
-    navigator.mozCameras.getListOfCameras.restore();
-    navigator.getDeviceStorage.restore();
+    this.sandbox.restore();
   });
 
   suite('Camera#focus()', function() {
@@ -30,7 +44,7 @@ suite('camera', function() {
       this.camera = {
         autoFocus: {},
         set: sinon.spy(),
-        mozCamera: { autoFocus: sinon.stub() },
+        mozCamera: this.mozCamera,
         focus: this.Camera.prototype.focus,
         orientation: sinon.stub()
       };
@@ -326,7 +340,7 @@ suite('camera', function() {
         setHDR: this.Camera.prototype.setHDR,
         get: function() {}
       };
-      this.sandbox = sinon.sandbox.create();
+
       this.sandbox.stub(this.camera, 'get', function() {
         return {sceneModes: ['auto', 'hdr']};
       });
@@ -356,7 +370,7 @@ suite('camera', function() {
         setHDR: this.Camera.prototype.setHDR,
         get: function() {}
       };
-      this.sandbox = sinon.sandbox.create();
+
       this.sandbox.stub(this.camera, 'get', function() {
         return {sceneModes: ['auto', 'hdr']};
       });
@@ -478,6 +492,156 @@ suite('camera', function() {
 
       this.camera.onPreviewStateChange('other');
       assert.ok(this.camera.emit.calledWith('ready'));
+    });
+  });
+
+  suite('Camera#load()', function() {
+    setup(function() {
+      var self = this;
+
+      this.camera = new this.Camera();
+
+      sinon.stub(this.camera, 'emit');
+      sinon.stub(this.camera, 'release').callsArg(0);
+      sinon.stub(this.camera, 'configureCamera');
+
+      sinon.stub(this.camera, 'requestCamera', function(camera, done) {
+        self.camera.mozCamera = self.mozCamera;
+        if (done) { done(); }
+      });
+
+      this.camera.set('selectedCamera', 'back');
+    });
+
+    test('Should emit a \'busy\' event', function() {
+      this.camera.load();
+      assert.isTrue(this.camera.emit.calledWith('busy'));
+    });
+
+    test('Should not request camera until camera has finished releasing', function() {
+      this.camera.releasing = true;
+      this.camera.load();
+
+      assert.isFalse(this.camera.requestCamera.called);
+
+      this.camera.releasing = false;
+      this.camera.fire('released');
+
+      assert.isTrue(this.camera.requestCamera.called);
+    });
+
+    test('Should `requestCamera` first time called', function() {
+      var callback = sinon.spy();
+      this.camera.load(callback);
+
+      assert.isTrue(this.camera.requestCamera.calledWith('back'));
+      assert.isFalse(this.camera.release.called);
+      assert.isTrue(callback.calledOnce);
+    });
+
+    test('Should `release` camera then `request` if selectedCamera changed', function() {
+      var requestCamera = this.camera.requestCamera;
+      var release = this.camera.release;
+      var callback = sinon.spy();
+
+      this.camera.load();
+      this.camera.set('selectedCamera', 'front');
+      this.camera.requestCamera.reset();
+
+      this.camera.load(callback);
+      assert.isTrue(release.calledBefore(requestCamera));
+      assert.isTrue(requestCamera.calledWith('front'));
+      assert.isTrue(callback.calledOnce);
+    });
+
+    test('Should just `configureCamera` if selected camera has\'t changed', function() {
+      var callback = sinon.spy();
+
+      this.camera.load();
+      this.camera.requestCamera.reset();
+
+      this.camera.load(callback);
+      assert.isTrue(this.camera.configureCamera.called);
+      assert.isFalse(this.camera.requestCamera.called);
+      assert.equal(callback.callCount, 1);
+    });
+  });
+
+  suite('Camera#requestCamera()', function() {
+    setup(function() {
+      this.camera = new this.Camera();
+      this.sandbox.stub(this.camera, 'configureCamera');
+      navigator.mozCameras.getCamera.callsArgWith(2, this.mozCamera);
+    });
+
+    test('Should call `navigator.mozCameras.getCamera()`', function() {
+      this.camera.requestCamera('back');
+      assert.isTrue(navigator.mozCameras.getCamera.called);
+    });
+
+    test('Should call .configureCamera', function() {
+      var callback = sinon.spy();
+      this.camera.requestCamera('back', callback);
+      assert.isTrue(this.camera.configureCamera.calledWith(this.mozCamera));
+    });
+
+    test('Should call the callback', function() {
+      var callback = sinon.spy();
+      this.camera.requestCamera('back', callback);
+      assert.isTrue(callback.called);
+    });
+
+    test('Should pass a single argument on error', function() {
+      var callback = sinon.spy();
+
+      // Simulate error callback
+      navigator.mozCameras.getCamera.restore();
+      this.sandbox.stub(navigator.mozCameras, 'getCamera').callsArgWith(3, 'error');
+
+      this.camera.requestCamera('back', callback);
+      assert.isTrue(callback.calledWith('error'));
+    });
+  });
+
+  suite('Camera#release()', function() {
+    setup(function() {
+      this.mozCamera.release.callsArgAsync(0);
+      this.camera.mozCamera = this.mozCamera;
+    });
+
+    test('Should flag as `releasing` until released', function(done) {
+      var self = this;
+
+      this.camera.release(function() {
+        assert.isFalse(self.camera.releasing);
+        done();
+      });
+
+      assert.isTrue(this.camera.releasing);
+    });
+
+    test('Should call the callback', function(done) {
+      this.camera.release(done);
+    });
+
+    test('Should emit \'released\' event', function(done) {
+      var self = this;
+      this.camera.release(function() {
+        assert.isTrue(self.camera.emit.called);
+        done();
+      });
+    });
+
+    test('Should call the callback with an error argument', function(done) {
+      var self = this;
+
+      this.mozCamera.release = sinon.stub();
+      this.mozCamera.release.callsArgWithAsync(1, 'error');
+
+      this.camera.release(function(err) {
+        assert.equal(err, 'error');
+        done();
+      });
     });
   });
 });

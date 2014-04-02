@@ -82,24 +82,28 @@ suite('controllers/camera', function() {
     test('Should set the capture mode to \'picture\' by default', function() {
       this.app.settings.mode.selected.withArgs('key').returns('picture');
       this.controller = new this.CameraController(this.app);
-
       assert.isTrue(this.app.camera.setMode.called);
     });
 
     test('Should load camera on app `boot`', function() {
-      this.app.on.calledWith('boot', this.app.camera.load);
+      assert.isTrue(this.app.on.calledWith('boot', this.camera.load));
     });
 
     test('Should load camera on app `focus`', function() {
-      this.app.on.calledWith('focus', this.app.camera.load);
+      assert.isTrue(this.app.on.calledWith('focus', this.camera.load));
     });
 
     test('Should teardown camera on app `blur`', function() {
-      this.app.on.calledWith('blur', this.controller.onBlur);
+      assert.isTrue(this.app.on.calledWith('blur', this.controller.onBlur));
     });
 
     test('Should set the camera createVideoFilepath method', function() {
       assert.equal(this.camera.createVideoFilepath, this.app.storage.createVideoFilepath);
+    });
+
+    test('Should relay focus change events', function() {
+      assert.isTrue(this.camera.on.calledWith('change:focus'));
+      assert.isTrue(this.app.firer.calledWith('camera:focuschanged'));
     });
   });
 
@@ -310,23 +314,15 @@ suite('controllers/camera', function() {
   });
 
   suite('CameraController#onBlur()', function() {
-    test('Should stop recording if recording', function() {
-      this.app.get.withArgs('recording').returns(false);
+    setup(function() {
       this.controller.onBlur();
-      assert.isFalse(this.camera.stopRecording.called);
-
-      this.app.get.withArgs('recording').returns(true);
-      this.controller.onBlur();
-      assert.isFalse(this.camera.stopRecording.called);
     });
 
-    test('Should stop viewfinder preview', function() {
-      this.controller.onBlur();
-      assert.isTrue(this.viewfinder.stopPreview.called);
+    test('Should stop recording if recording', function() {
+      assert.isTrue(this.camera.stopRecording.called);
     });
 
     test('Should release the camera hardware', function() {
-      this.controller.onBlur();
       assert.isTrue(this.camera.release.called);
     });
   });

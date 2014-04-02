@@ -10,6 +10,8 @@ suite('Media Frame Unit Tests', function() {
   var mockDeviceStorage = false;
 
   suiteSetup(function() {
+    this.clock = sinon.useFakeTimers();
+
     if (!navigator['getDeviceStorage']) {
       // create dummy getDeviceStorage for sinon overriding.
       navigator.getDeviceStorage = function() {};
@@ -18,6 +20,8 @@ suite('Media Frame Unit Tests', function() {
   });
 
   suiteTeardown(function() {
+    this.clock.restore();
+
     if (mockDeviceStorage) {
       delete navigator.getDeviceStorage;
     }
@@ -75,7 +79,7 @@ suite('Media Frame Unit Tests', function() {
       assert.isTrue(frame.displayingImage);
     });
 
-    test('=> displayImage preview file, get success', function(done) {
+    test('=> displayImage preview file, get success', function() {
       var preview = {
         'filename': 'dummyFilename',
         'width': 1000,
@@ -89,13 +93,12 @@ suite('Media Frame Unit Tests', function() {
           assert.equal(filename, 'dummyFilename');
           var retObj = {};
 
-          window.setTimeout(function() {
+          setTimeout(function() {
             retObj.result = new Blob(['empty-image'], {'type': 'image/jpeg'});
             retObj.onsuccess();
             assert.isTrue(frame.displayingPreview);
             assert.isTrue(frame.displayingImage);
             frame.reset();
-            done();
           });
 
           return retObj;
@@ -107,9 +110,13 @@ suite('Media Frame Unit Tests', function() {
       });
 
       frame.displayImage(dummyBlob, 1600, 1200, preview, 0, false);
+
+      // Move time forwards so
+      // stub callback fires
+      this.clock.tick(1);
     });
 
-    test('=> displayImage preview file, get error', function(done) {
+    test('=> displayImage preview file, get error', function() {
       var preview = {
         'filename': 'dummyFilename',
         'width': 1000,
@@ -123,13 +130,12 @@ suite('Media Frame Unit Tests', function() {
           assert.equal(filename, 'dummyFilename');
           var retObj = {};
 
-          window.setTimeout(function() {
+          setTimeout(function() {
             retObj.onerror();
             assert.isFalse(frame.displayingPreview);
             assert.isNull(frame.preview);
             assert.isTrue(frame.displayingImage);
             frame.reset();
-            done();
           });
 
           return retObj;
@@ -141,6 +147,10 @@ suite('Media Frame Unit Tests', function() {
       });
 
       frame.displayImage(dummyBlob, 1600, 1200, preview, 0, false);
+
+      // Move time forwards so
+      // stub callback fires
+      this.clock.tick(1);
     });
   });
 });
