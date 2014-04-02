@@ -38,7 +38,6 @@ var SuggestionBar = {
     this.countTag.addEventListener('click', this.showOverlay.bind(this));
     this.overlayCancel.addEventListener('click', this.hideOverlay.bind(this));
     KeypadManager.onValueChanged = this.update.bind(this);
-    this.overlay.hidden = false;
   },
 
   handleEvent: function sb_handleEvent(event) {
@@ -302,6 +301,7 @@ var SuggestionBar = {
           this._allMatched.allMatches[i][j], node);
       }
     }
+    this.overlay.hidden = false;
     this.overlay.classList.add('display');
   },
 
@@ -323,6 +323,7 @@ var SuggestionBar = {
     }
     var self = this;
     this.overlay.classList.remove('display');
+    this.overlay.hidden = true;
     self.list.innerHTML = '';
   }
 };

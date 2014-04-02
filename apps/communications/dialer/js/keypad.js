@@ -574,10 +574,12 @@ var KeypadManager = {
       var visibility;
       if (phoneNumber.length > 0) {
         visibility = 'visible';
-        this.callBarAddContact.classList.remove('disabled');
+        this.callBarAddContact.removeAttribute('disabled');
+        this.callBarAddContact.setAttribute('aria-disabled', false);
       } else {
         visibility = 'hidden';
-        this.callBarAddContact.classList.add('disabled');
+        this.callBarAddContact.setAttribute('disabled', 'disabled');
+        this.callBarAddContact.setAttribute('aria-disabled', true);
       }
       this.deleteButton.style.visibility = visibility;
 

@@ -130,8 +130,11 @@ var MmiUI = {
   },
 
   responseUpdated: function mui_responseUpdated() {
-    this.sendNode.disabled =
-      (this.responseTextNode.value.length <= 0);
+    if (this.responseTextNode.value.length <= 0) {
+      this.sendNode.setAttribute('disabled', 'disabled');
+    } else {
+      this.sendNode.removeAttribute('disabled');
+    }
   },
 
   reply: function mui_reply() {
