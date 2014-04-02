@@ -418,6 +418,37 @@ suite('Facebook datastore suite', function() {
       };
   });
 
+  suite('Initialization phase', function() {
+    setup(function() {
+      this.sinon.useFakeTimers();
+
+      // other tests are not independent, so let's restart in setup too
+      fb.contacts.restart();
+    });
+
+    teardown(function() {
+      fb.contacts.restart();
+    });
+
+    test('is bypassed if DataStore API is unavailable',
+    function() {
+      var savedAPI = navigator.getDataStores;
+      navigator.getDataStores = null;
+
+      var success = sinon.stub();
+      var error = sinon.stub();
+      fb.contacts.init(success, error);
+
+      this.sinon.clock.tick();
+
+      sinon.assert.notCalled(success);
+      sinon.assert.calledWith(error, { name: 'DatastoreNotFound' });
+
+      navigator.getDataStores = savedAPI;
+    });
+  });
+
+
   suiteTeardown(function() {
     navigator.getDataStores = realDatastore;
     navigator.mozPhoneNumberService = realPhoneNumberService;
