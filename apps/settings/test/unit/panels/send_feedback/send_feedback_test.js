@@ -173,14 +173,15 @@ suite('sendFeedback > ', function() {
         device: mock_settings['deviceinfo.hardware'],
         locale: mock_settings['language.current']
       }));
+
+      sendFeedback._xhr.readyState = 4;
+      sendFeedback._xhr.triggerReadyStateChange(201);
+      assert.equal(sendFeedback.elements.doneBtn.hidden, false);
+      assert.equal(sendFeedback.elements.sendBtn.disabled, false);
     });
 
     test('_responseHandler', function() {
       sendFeedback._xhr.readyState = 4;
-      sendFeedback._xhr.status = 201;
-      sendFeedback._responseHandler();
-      assert.equal(sendFeedback.elements.doneBtn.hidden, false);
-      assert.equal(sendFeedback.elements.sendBtn.disabled, false);
 
       sendFeedback._xhr.status = 400;
       sendFeedback._responseHandler();
