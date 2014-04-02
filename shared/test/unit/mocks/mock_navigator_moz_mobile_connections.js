@@ -55,11 +55,14 @@
       return radioEnabledReq;
     }
 
+    function mnmmc_sendMMI() {}
+
     var _mock = {
       addEventListener: mnmmc_addEventListener,
       removeEventListener: mnmmc_removeEventListener,
       triggerEventListeners: mnmmc_triggerEventListeners,
       setRadioEnabled: mnmmc_setRadioEnabled,
+      sendMMI: mnmmc_sendMMI,
       mTeardown: mnmmc_init,
       get mCachedRadioEnabledReq() {
         return radioEnabledReq;
