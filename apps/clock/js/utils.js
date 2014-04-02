@@ -159,7 +159,8 @@ Utils.extend = function(initialObject, extensions) {
   for (var i = 0; i < extensions.length; i++) {
     var extender = extensions[i];
     for (var prop in extender) {
-      if (Object.prototype.hasOwnProperty.call(extender, prop)) {
+      var descriptor = Object.getOwnPropertyDescriptor(extender, prop);
+      if (descriptor && descriptor.value !== undefined) {
         initialObject[prop] = extender[prop];
       }
     }
