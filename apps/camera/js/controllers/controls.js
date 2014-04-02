@@ -11,6 +11,13 @@ define(function(require, exports, module) {
 
 var debug = require('debug')('controller:controls');
 var bindAll = require('lib/bind-all');
+var createThumbnailImage = require('lib/create-thumbnail-image');
+
+/**
+ * The size of the thumbnail images we generate.
+ */
+var THUMBNAIL_WIDTH = 54 * window.devicePixelRatio;
+var THUMBNAIL_HEIGHT = 54 * window.devicePixelRatio;
 
 /**
  * Exports
@@ -33,7 +40,7 @@ function ControlsController(app) {
 
 ControlsController.prototype.bindEvents = function() {
   this.app.settings.mode.on('change:selected', this.controls.setter('mode'));
-  this.app.on('newthumbnail', this.onNewThumbnail);
+  this.app.on('newpreview', this.onNewPreview);
   this.app.on('camera:ready', this.controls.enable);
   this.app.on('camera:busy', this.controls.disable);
   this.app.on('change:recording', this.onRecordingChange);
@@ -103,12 +110,27 @@ ControlsController.prototype.onRecordingEnd = function() {
  * photo or video is added, or when the preview is closed and the first
  * photo or video has changed (because of a file deletion).
  */
-ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
-  if (thumbnailBlob) {
-    this.controls.setThumbnail(thumbnailBlob);
-  } else {
+ControlsController.prototype.onNewPreview = function(preview) {
+  var thumbnail;
+  var self = this;
+  var showGallery;
+  if (!preview) {
     this.controls.removeThumbnail();
+    // If we are in secure mode or daling with activity
+    // it doesn't show the gallery button
+    showGallery = !this.app.activity.active && !this.app.inSecureMode;
+    this.controls.set('gallery', showGallery);
+    return;
   }
+  // If the preview has a thumbnail we use it
+  thumbnail = preview.preview || preview.poster || preview;
+  createThumbnailImage(thumbnail.blob, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT,
+                      thumbnail.rotation, thumbnail.mirrored, gotThumbnail);
+
+  function gotThumbnail(thumbnailBlob) {
+    self.controls.setThumbnail(thumbnailBlob);
+  }
+
 };
 
 /**
