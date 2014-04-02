@@ -328,8 +328,12 @@ Evme.Helper = new function Evme_Helper() {
     title = newTitle;
 
     if (!title) {
-      elTitle.innerHTML =
-        '<b ' + Evme.Utils.l10nAttr(NAME, 'title-empty') + '></b>';
+      var b = elTitle.querySelector('b');
+      if (!b) {
+        b = document.createElement('b');
+        elTitle.appendChild(b);
+      }
+      b.setAttribute('data-l10n-id', Evme.Utils.l10n(NAME, 'title-empty'));
       return false;
     }
 
