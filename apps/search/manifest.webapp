@@ -21,6 +21,7 @@
   "permissions": {
     "webapps-manage":{},
     "open-remote-window":{},
+    "settings":{ "access": "readwrite" },
     "systemXHR":{},
     "contacts":{ "access": "readonly" }
   },
@@ -32,10 +33,6 @@
     }
   },
   "datastores-access": {
-    "eme_store": {
-      "readonly": false,
-      "description": "Stores Everything.me data"
-    },
     "places": {
       "access": "readonly",
       "description": "Stores data about browsing history."
