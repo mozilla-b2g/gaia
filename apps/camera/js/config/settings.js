@@ -17,9 +17,6 @@ module.exports = {
       healthy: 100
     }
   },
-  geolocation: {
-    promptDelay: 2000
-  },
   mode: {
     options: [
       {
