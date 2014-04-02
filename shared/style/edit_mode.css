@@ -2,40 +2,46 @@
  * Edit mode
  * ---------------------------------- */
 
-/* Header */
-[data-type="edit"] [role="region"] > header:first-child {
-  background-color: #f4f4f4;
+[role="dialog"][data-type="edit"] {
+  overflow: hidden;
+  position: absolute;
   z-index: 100;
-  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 5.1rem; /* One pixel larger that header BB to avoid selecting buttons there */
-  transition: transform 0.4s ease;
+  bottom: 0;
+  pointer-events: none;
 }
 
-[data-type="edit"] [role="region"] > header:first-child h1 {
+/* Header */
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child {
+  background-color: #f4f4f4;
+  transition: transform 0.4s ease;
+  pointer-events: auto;
+}
+
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child h1 {
   color: #868692;
 }
 
-[data-type="edit"] [role="region"] > header:first-child menu[type="toolbar"] button {
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child menu[type="toolbar"] button {
   color: #858585;
 }
 
-[data-type="edit"] [role="region"] > header:first-child > button:not(:disabled):active:after,
-[data-type="edit"] [role="region"] > header:first-child > button:not(:disabled):hover:after,
-[data-type="edit"] [role="region"] > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):hover,
-[data-type="edit"] [role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):active,
-[data-type="edit"] [role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):hover {
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child > button:not(:disabled):active:after,
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child > button:not(:disabled):hover:after,
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):hover,
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):active,
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):hover {
   background-color: #aae1e9 !important;
 }
 
-[data-type="edit"] [role="region"] > header:first-child .icon.icon-close {
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child .icon.icon-close {
   background-image: url(headers/images/icons/organic/close.png);
 }
 
 /* Menu */
-[data-type="edit"] > menu {
+[role="dialog"][data-type="edit"] > menu {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
@@ -43,16 +49,16 @@
   background: #fff;
   display: block;
   overflow: hidden;
-  position: fixed;
+  position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   display: flex;
-  z-index: 100;
   transition: transform 0.4s ease;
+  pointer-events: auto;
 }
 
-[data-type="edit"] > menu button {
+[role="dialog"][data-type="edit"] > menu button {
   font-family: sans-serif;
   font-style: italic;
   height: 4rem;
@@ -77,49 +83,49 @@
 }
 
 /* Press (default & recommend) */
-[data-type="edit"] > menu button:not(:disabled):active {
+[role="dialog"][data-type="edit"] > menu button:not(:disabled):active {
   background: #b2f2ff;
   color: #fff;
 }
 
 /* Recommend */
-[data-type="edit"] > menu button.recommend {
+[role="dialog"][data-type="edit"] > menu button.recommend {
   background-color: #00caf2;
   color: #fff;
 }
 
 /* Danger */
-[data-type="edit"] > menu button.danger {
+[role="dialog"][data-type="edit"] > menu button.danger {
   background-color: #e51e1e;
   color: #fff;
 }
 
 /* Danger Press */
-[data-type="edit"] > menu button.danger:active {
+[role="dialog"][data-type="edit"] > menu button.danger:active {
   background-color: #b2f2ff;
 }
 
 /* Disabled */
 /* Using pointer-events: none, makes events go through the button. As edit mode is an overlay is quite possible we have active buttons underneath */
-[data-type="edit"] button[disabled] {
+[role="dialog"][data-type="edit"] button[disabled] {
   pointer-events: auto;
 }
 
-[data-type="edit"] > menu button[disabled] {
+[role="dialog"][data-type="edit"] > menu button[disabled] {
   opacity: 0.6;
   color: rgba(51,51,51,0.5);
 }
 
-[data-type="edit"] button[disabled]::-moz-selection {
+[role="dialog"][data-type="edit"] button[disabled]::-moz-selection {
   -moz-user-select: none;
 }
 
 /* Danger disabled */
-[data-type="edit"] > menu button[disabled].danger {
+[role="dialog"][data-type="edit"] > menu button[disabled].danger {
   background-color: #e51e1e;
   color: #fff;
 }
 
-[data-type="edit"] > menu button:first-child {
+[role="dialog"][data-type="edit"] > menu button:first-child {
   margin-left: 0;
 }
