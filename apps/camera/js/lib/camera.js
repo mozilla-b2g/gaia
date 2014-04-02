@@ -390,6 +390,7 @@ Camera.prototype.takePicture = function(options) {
   var self = this;
 
   rotation = selectedCamera === 'front' ? -rotation : rotation;
+  debug('take picture');
   this.emit('busy');
   this.focus(onFocused);
 
@@ -412,11 +413,18 @@ Camera.prototype.takePicture = function(options) {
     self.mozCamera.takePicture(config, onSuccess, onError);
   }
 
-  function onError() {
+  function onError(error) {
     var title = navigator.mozL10n.get('error-saving-title');
     var text = navigator.mozL10n.get('error-saving-text');
-    alert(title + '. ' + text);
-    complete();
+    // if taking a picture fails because there's already
+    // a picture being taken we ignore it
+    if (error === 'TakePictureAlreadyInProgress') {
+      complete();
+    } else {
+      alert(title + '. ' + text);
+      debug('error taking picture');
+      complete();
+    }
   }
 
   function onSuccess(blob) {
@@ -424,6 +432,7 @@ Camera.prototype.takePicture = function(options) {
     self.resumePreview();
     self.set('focus', 'none');
     self.emit('newimage', image);
+    debug('success taking picture');
     complete();
   }
 
