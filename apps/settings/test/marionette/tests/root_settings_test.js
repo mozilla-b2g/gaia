@@ -1,34 +1,39 @@
 /* global require, marionette, test, setup */
 'use strict';
-
 var Settings = require('../app/app'),
     assert = require('assert');
 
-marionette('change language and go back to the root panel', function() {
+marionette('check root panel settings', function() {
   var client = marionette.client();
   var settingsApp;
-  var languagePanel;
+  var rootPanel;
 
   setup(function() {
     settingsApp = new Settings(client);
     settingsApp.launch();
-    languagePanel = settingsApp.languagePanel;
-    languagePanel.setupDefaultLanguage();
+    rootPanel = settingsApp.rootPanel;
+  });
+
+  test('check battery description is valid', function() {
+    assert.ok(rootPanel.isBatteryDescValid);
   });
 
   test('language description on the root panel is translated', function() {
+    var languagePanel = settingsApp.languagePanel;
+
     languagePanel.currentLanguage = 'french';
     languagePanel.back();
-    assert.ok(settingsApp.isLanguageDescTranslated('french'));
+    assert.ok(rootPanel.isLanguageDescTranslated('french'));
 
     languagePanel = settingsApp.languagePanel;
     languagePanel.currentLanguage = 'english';
     languagePanel.back();
-    assert.ok(settingsApp.isLanguageDescTranslated('english'));
+    assert.ok(rootPanel.isLanguageDescTranslated('english'));
 
     languagePanel = settingsApp.languagePanel;
     languagePanel.currentLanguage = 'traditionalChinese';
     languagePanel.back();
-    assert.ok(settingsApp.isLanguageDescTranslated('traditionalChinese'));
+    assert.ok(rootPanel.isLanguageDescTranslated('traditionalChinese'));
   });
+
 });
