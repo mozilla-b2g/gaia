@@ -1,5 +1,7 @@
 /*jshint browser: true */
 /*global define, console */
+'use strict';
+
 define(function(require) {
 
 var templateNode = require('tmpl!./message_list.html'),
@@ -12,6 +14,7 @@ var templateNode = require('tmpl!./message_list.html'),
     htmlCache = require('html_cache'),
     MessageListTopbar = require('message_list_topbar'),
     mozL10n = require('l10n!'),
+    VScroll = require('vscroll'),
     Cards = common.Cards,
     Toaster = common.Toaster,
     ConfirmDialog = common.ConfirmDialog,
@@ -22,21 +25,44 @@ var templateNode = require('tmpl!./message_list.html'),
     displaySubject = common.displaySubject,
     prettyDate = common.prettyDate;
 
-/**
- * Try and keep at least this many display heights worth of undisplayed
- * messages.
- */
-var SCROLL_MIN_BUFFER_SCREENS = 2;
-/**
- * Keep around at most this many display heights worth of undisplayed messages.
- */
-var SCROLL_MAX_RETENTION_SCREENS = 7;
+// Default data used for the VScroll component, when data is not
+// loaded yet for display in the virtual scroll listing.
+var defaultVScrollData = {
+  'isPlaceholderData': true,
+  'id': 'INVALID',
+  'author': {
+    'name': '\u2583\u2583\u2583\u2583\u2583\u2583\u2583\u2583',
+    'address': '',
+    'contactId': null
+  },
+  'to': [
+    {
+      'name': ' ',
+      'address': ' ',
+      'contactId': null
+    }
+  ],
+  'cc': null,
+  'bcc': null,
+  'date': '0',
+  'hasAttachments': false,
+  'snippet': '\u2583\u2583\u2583\u2583\u2583\u2583\u2583\u2583' +
+             '\u2583\u2583\u2583\u2583\u2583\u2583\u2583\u2583' +
+             '\u2583\u2583\u2583\u2583\u2583\u2583\u2583\u2583',
+  'isRead': true,
+  'isStarred': false,
+  'subject': '\u2583\u2583\u2583\u2583\u2583\u2583\u2583\u2583' +
+             '\u2583\u2583\u2583\u2583\u2583\u2583\u2583\u2583' +
+             '\u2583\u2583\u2583\u2583\u2583\u2583\u2583\u2583'
+};
 
-/**
- * Time to wait between scroll events. Initially 150 & 325 where tried but
- * because we wait between snippet requests 50 feels about right...
- */
-var SCROLL_DELAY = 50;
+// We will display this loading data for any messages we are
+// pretending exist so that the UI has a reason to poke the search
+// slice to do more work.
+var defaultSearchVScrollData = {
+  header: defaultVScrollData,
+  matches: [],
+};
 
 /**
  * Minimum number of items there must be in the message slice
@@ -53,13 +79,6 @@ var MAXIMUM_MS_BETWEEN_SNIPPET_REQUEST = 6000;
  * Fetch up to 4kb while scrolling
  */
 var MAXIMUM_BYTES_PER_MESSAGE_DURING_SCROLL = 4 * 1024;
-
-/**
- * Number of messages to grow the list by in a single event.  A value
- * of 1 will result in the GELAM default of 15 being used.
- */
-var MIN_MESSAGE_GROWTH_SIZE = 2;
-var MAX_MESSAGE_GROWTH_SIZE = 8;
 
 /**
  * List messages for listing the contents of folders ('nonsearch' mode) and
@@ -114,10 +133,11 @@ function MessageListCard(domNode, mode, args) {
   this.mode = mode;
   this.scrollNode = domNode.getElementsByClassName('msg-list-scrollouter')[0];
 
-  if (mode === 'nonsearch')
+  if (mode === 'nonsearch') {
     batchAddClass(domNode, 'msg-search-only', 'collapsed');
-  else
+  } else {
     batchAddClass(domNode, 'msg-nonsearch-only', 'collapsed');
+  }
 
   this.messagesContainer =
     domNode.getElementsByClassName('msg-messages-container')[0];
@@ -132,11 +152,9 @@ function MessageListCard(domNode, mode, args) {
     // press-and-hold shows the single-message mutation options
     this.onHoldMessage.bind(this));
 
-  // - less-than-infinite scrolling
   this.scrollContainer =
     domNode.getElementsByClassName('msg-list-scrollouter')[0];
-  this.scrollContainer.addEventListener('scroll', this.onScroll.bind(this),
-                                        false);
+
   this.syncingNode =
     domNode.getElementsByClassName('msg-messages-syncing')[0];
   this.syncMoreNode =
@@ -149,6 +167,10 @@ function MessageListCard(domNode, mode, args) {
     .addEventListener('click', this.onShowFolders.bind(this), false);
   domNode.getElementsByClassName('msg-compose-btn')[0]
     .addEventListener('click', this.onCompose.bind(this), false);
+
+  // search bar, non-edit mode
+  this.searchBar =
+                 this.domNode.getElementsByClassName('msg-search-tease-bar')[0];
 
   // - toolbar: non-edit mode
   this.toolbar = {};
@@ -199,9 +221,6 @@ function MessageListCard(domNode, mode, args) {
       'input', this.onSearchTextChange.bind(this), false);
   }
 
-  // convenience wrapper for context.
-  this._onScroll = this._onScroll.bind(this);
-
   this.editMode = false;
   this.selectedMessages = null;
 
@@ -209,6 +228,89 @@ function MessageListCard(domNode, mode, args) {
   this.isIncomingFolder = true;
 
   this.usingCachedNode = !!args.cachedNode;
+
+
+  // Set up the list data source for VScroll
+  var listFunc = (function(index) {
+     return headerCursor.messagesSlice.items[index];
+  }.bind(this));
+
+  listFunc.size = function() {
+    // This method could get called during VScroll updates triggered
+    // by messages_splice. However at that point, the headerCount may
+    // not be correct, like when fetching more messages from the
+    // server. So approximate by using the size of slice.items.
+    var slice = headerCursor.messagesSlice;
+    // coerce headerCount to 0 if it was undefined to avoid a NaN
+    return Math.max(slice.headerCount || 0, slice.items.length);
+  };
+  this.listFunc = listFunc;
+
+  // We need to wait for the slice to complete before we can issue any sensible
+  // growth requests.
+  this.waitingOnChunk = true;
+  this.desiredHighAbsoluteIndex = 0;
+  this._needVScrollData = false;
+  this.vScroll = new VScroll(
+    this.messagesContainer,
+    this.scrollNode,
+    msgHeaderItemNode,
+    (this.mode === 'nonsearch' ? defaultVScrollData : defaultSearchVScrollData)
+  );
+
+  // Called by VScroll wants to bind some data to a node it wants to
+  // display in the DOM.
+  if (this.mode === 'nonsearch') {
+    this.vScroll.bindData = (function bindNonSearch(model, node) {
+      model.element = node;
+      node.message = model;
+      this.updateMessageDom(true, model);
+    }).bind(this);
+  } else {
+    this.vScroll.bindData = (function bindSearch(model, node) {
+      model.element = node;
+      node.message = model.header;
+      this.updateMatchedMessageDom(true, model);
+    }).bind(this);
+  }
+
+  // Called by VScroll when it detects it will need more data in the near
+  // future. VScroll does not know if it already asked for this information,
+  // so this function needs to be sure it actually needs to ask for more
+  // from the back end.
+  this.vScroll.prepareData = (function(highAbsoluteIndex) {
+    var items = headerCursor.messagesSlice && headerCursor.messagesSlice.items,
+        headerCount = headerCursor.messagesSlice.headerCount;
+
+    if (!items || !headerCount) {
+      return;
+    }
+
+    // Make sure total amount stays within possible range.
+    if (highAbsoluteIndex > headerCount - 1) {
+      highAbsoluteIndex = headerCount - 1;
+    }
+
+    // We're already prepared if the slice is already that big.
+    if (highAbsoluteIndex < items.length) {
+      return;
+    }
+
+    this.loadNextChunk(highAbsoluteIndex);
+  }.bind(this));
+
+  this._hideSearchBoxByScrolling = this._hideSearchBoxByScrolling.bind(this);
+  this._onVScrollStopped = this._onVScrollStopped.bind(this);
+
+  // Event listeners for VScroll events.
+  this.vScroll.on('inited', this._hideSearchBoxByScrolling);
+  this.vScroll.on('dataChanged', this._hideSearchBoxByScrolling);
+  this.vScroll.on('scrollStopped', this._onVScrollStopped);
+  this.vScroll.on('recalculated', function(calledFromTop) {
+    if (calledFromTop) {
+      this._hideSearchBoxByScrolling();
+    }
+  }.bind(this));
 
   // Binding "this" to some functions as they are used for
   // event listeners.
@@ -278,14 +380,27 @@ MessageListCard.prototype = {
   postInsert: function() {
     this._hideSearchBoxByScrolling();
 
-    if (this.mode === 'search')
+    // Now that _hideSearchBoxByScrolling has activated the display
+    // of the search box, get the height of the search box and tell
+    // vScroll about it, but only do this once the DOM is displayed
+    // so the ClientRect gives an actual height.
+    this.vScroll.visibleOffset = this.searchBar.getBoundingClientRect().height;
+
+    // For search we want to make sure that we capture the screen size prior to
+    // focusing the input since the FxOS keyboard will resize our window to be
+    // smaller which messes up our logic a bit.  We trigger metric gathering in
+    // non-search cases too for consistency.
+    this.vScroll.captureScreenMetrics();
+    if (this.mode === 'search') {
       this.searchInput.focus();
+    }
   },
 
   onSearchButton: function() {
     // Do not bother if there is no current folder.
-    if (!this.curFolder)
+    if (!this.curFolder) {
       return;
+    }
 
     Cards.pushCard(
       'message_list', 'search', 'animate',
@@ -297,10 +412,13 @@ MessageListCard.prototype = {
   setEditMode: function(editMode) {
     // Do not bother if this is triggered before
     // a folder has loaded.
-    if (!this.curFolder)
+    if (!this.curFolder) {
       return;
+    }
 
-    var domNode = this.domNode;
+    var i,
+        domNode = this.domNode;
+
     // XXX the manual DOM play here is now a bit overkill; we should very
     // probably switch top having the CSS do this for us or at least invest
     // some time in cleanup.
@@ -324,16 +442,17 @@ MessageListCard.prototype = {
 
       this.selectedMessages = [];
       var cbs = this.messagesContainer.querySelectorAll('input[type=checkbox]');
-      for (var i = 0; i < cbs.length; i++) {
+      for (i = 0; i < cbs.length; i++) {
         cbs[i].checked = false;
       }
       this.selectedMessagesUpdated();
     }
     else {
-      if (this.mode === 'nonsearch')
+      if (this.mode === 'nonsearch') {
         normalHeader.classList.remove('collapsed');
-      else
+      } else {
         searchHeader.classList.remove('collapsed');
+      }
       normalToolbar.classList.remove('collapsed');
       editHeader.classList.add('collapsed');
       editToolbar.classList.add('collapsed');
@@ -344,7 +463,7 @@ MessageListCard.prototype = {
       // longer have a domNode around.)
       var selectedMsgNodes =
         domNode.getElementsByClassName('msg-header-item-selected');
-      for (var i = selectedMsgNodes.length - 1; i >= 0; i--) {
+      for (i = selectedMsgNodes.length - 1; i >= 0; i--) {
         selectedMsgNodes[i].classList.remove('msg-header-item-selected');
       }
 
@@ -376,10 +495,12 @@ MessageListCard.prototype = {
     var numStarred = 0, numRead = 0;
     for (var i = 0; i < this.selectedMessages.length; i++) {
       var msg = this.selectedMessages[i];
-      if (msg.isStarred)
+      if (msg.isStarred) {
         numStarred++;
-      if (msg.isRead)
+      }
+      if (msg.isRead) {
         numRead++;
+      }
     }
 
     // Unstar if everything is starred, otherwise star
@@ -388,27 +509,45 @@ MessageListCard.prototype = {
     // Mark read if everything is unread, otherwise unread
     this.setAsRead = (this.selectedMessages.length && numRead === 0);
 
-    if (!this.setAsStarred)
+    if (!this.setAsStarred) {
       starBtn.classList.add('msg-btn-active');
-    else
+    } else {
       starBtn.classList.remove('msg-btn-active');
+    }
 
-    if (this.setAsRead)
+    if (this.setAsRead) {
       readBtn.classList.add('msg-btn-active');
-    else
+    } else {
       readBtn.classList.remove('msg-btn-active');
+    }
   },
 
   _hideSearchBoxByScrolling: function() {
     // scroll the search bit out of the way
-    var searchBar =
-      this.domNode.getElementsByClassName('msg-search-tease-bar')[0];
+    var searchBar = this.searchBar,
+        scrollNode = this.scrollNode;
 
-    // Search bar could have been collapsed with a cache load, make sure
-    // it is visible
-    searchBar.classList.remove('collapsed');
+    // Search bar could have been collapsed with a cache load,
+    // make sure it is visible, but if so, adjust the scroll
+    // position in case the user has scrolled before this code
+    // runs.
+    if (searchBar.classList.contains('collapsed')) {
+      searchBar.classList.remove('collapsed');
+      scrollNode.scrollTop += searchBar.offsetHeight;
+    }
 
-    this.scrollNode.scrollTop = searchBar.offsetHeight;
+    // Adjust scroll position now that there is something new in
+    // the scroll region, but only if at the top. Otherwise, the
+    // user's purpose scroll positioning may be disrupted.
+    //
+    // Note that when we call this.vScroll.clearDisplay() we
+    // inherently scroll back up to the top, so this check is still
+    // okay even when switching folders.  (We do not want to start
+    // index 50 in our new folder because we were at index 50 in our
+    // old folder.)
+    if (scrollNode.scrollTop === 0) {
+      scrollNode.scrollTop = searchBar.offsetHeight;
+    }
   },
 
   onShowFolders: function() {
@@ -449,14 +588,17 @@ MessageListCard.prototype = {
    * we did nothing because we were already in the folder.
    */
   showFolder: function(folder, forceNewSlice) {
-    if (folder === this.curFolder && !forceNewSlice)
+    if (folder === this.curFolder && !forceNewSlice) {
       return false;
+    }
 
     // If using a cache, do not clear the HTML as it will
     // be cleared once real data has been fetched.
     if (!this.usingCachedNode) {
-      this.messagesContainer.innerHTML = '';
+      // This inherently scrolls us back up to the top of the list.
+      this.vScroll.clearDisplay();
     }
+    this._needVScrollData = true;
 
     this.curFolder = folder;
 
@@ -501,7 +643,7 @@ MessageListCard.prototype = {
     var nodes = tab.getElementsByClassName('msg-search-filter');
 
     this.curFolder = model.folder;
-    this.messagesContainer.innerHTML = '';
+    this.vScroll.clearDisplay();
     this.curPhrase = phrase;
     this.curFilter = filter;
 
@@ -512,11 +654,16 @@ MessageListCard.prototype = {
       }
       nodes[i].setAttribute('aria-selected', 'true');
     }
-    if (phrase.length < 1)
+
+    if (phrase.length < 1) {
       return false;
+    }
 
     // We are creating a new slice, so any pending snippet requests are moot.
     this._snippetRequestPending = false;
+    // Don't bother the new slice with requests until we hears it completion
+    // event.
+    this.waitingOnChunk = true;
     headerCursor.startSearch(phrase, {
       author: filter === 'all' || filter === 'author',
       recipients: filter === 'all' || filter === 'recipients',
@@ -546,40 +693,38 @@ MessageListCard.prototype = {
   },
 
   onGetMoreMessages: function() {
-    if (!headerCursor.messagesSlice)
+    if (!headerCursor.messagesSlice) {
       return;
+    }
 
     headerCursor.messagesSlice.requestGrowth(1, true);
-    // Provide instant feedback that they pressed the button by hiding the
-    // button.  However, don't show 'synchronizing' because that might not
-    // actually happen.
-    this.syncMoreNode.classList.add('collapsed');
   },
 
   // The funny name because it is auto-bound as a listener for
   // messagesSlice events in headerCursor using a naming convention.
   messages_status: function(newStatus) {
-    switch (newStatus) {
-      case 'synchronizing':
-      case 'syncblocked':
+    if (headerCursor.searchMode !== this.mode) {
+      return;
+    }
+
+    if (newStatus === 'synchronizing' ||
+       newStatus === 'syncblocked') {
         this.syncingNode.classList.remove('collapsed');
         this.syncMoreNode.classList.add('collapsed');
         this.hideEmptyLayout();
 
         this.toolbar.refreshBtn.dataset.state = 'synchronizing';
-        break;
-      case 'syncfailed':
+    } else if (newStatus === 'syncfailed' ||
+               newStatus === 'synced') {
+      if (newStatus === 'syncfailed') {
         // If there was a problem talking to the server, notify the user and
         // provide a means to attempt to talk to the server again.  We have made
         // onRefresh pretty clever, so it can do all the legwork on
         // accomplishing this goal.
         Toaster.logRetryable(newStatus, this.onRefresh.bind(this));
-
-        // Fall through...
-      case 'synced':
-        this.toolbar.refreshBtn.dataset.state = 'synchronized';
-        this.syncingNode.classList.add('collapsed');
-        break;
+      }
+      this.toolbar.refreshBtn.dataset.state = 'synchronized';
+      this.syncingNode.classList.add('collapsed');
     }
   },
 
@@ -618,10 +763,20 @@ MessageListCard.prototype = {
    * messagesSlice events in headerCursor using a naming convention.
    */
   messages_complete: function(newEmailCount) {
-    if (headerCursor.messagesSlice.userCanGrowDownwards)
+    if (headerCursor.searchMode !== this.mode) {
+      return;
+    }
+
+    console.log('message_list complete:',
+                headerCursor.messagesSlice.items.length, 'items of',
+                headerCursor.messagesSlice.headerCount,
+                'alleged known headers. canGrow:',
+                headerCursor.messagesSlice.userCanGrowDownwards);
+    if (headerCursor.messagesSlice.userCanGrowDownwards) {
       this.syncMoreNode.classList.remove('collapsed');
-    else
+    } else {
       this.syncMoreNode.classList.add('collapsed');
+    }
 
     // Show empty layout, unless this is a slice with fake data that
     // will get changed soon.
@@ -629,19 +784,48 @@ MessageListCard.prototype = {
       this.showEmptyLayout();
     }
 
+    // Search does not trigger normal conditions for a folder changed,
+    // so if vScroll is missing its data, set it up now.
+    if (this.mode === 'search' && !this.vScroll.list) {
+      this.vScroll.setData(this.listFunc);
+    }
+
     this.onNewMail(newEmailCount);
 
-    // Consider requesting more data or discarding data based on scrolling that
-    // has happened since we issued the request.  (While requests were pending,
-    // onScroll ignored scroll events.)
-    this.onScroll(null);
+    this.waitingOnChunk = false;
+    // Load next chunk if one is pending
+    if (this.desiredHighAbsoluteIndex) {
+      this.loadNextChunk(this.desiredHighAbsoluteIndex);
+      this.desiredHighAbsoluteIndex = 0;
+    }
+
+    // It's possible for a synchronization to result in a change to
+    // headerCount without resulting in a splice.  This is very likely
+    // to happen with a search filter when it was lying about another
+    // messages existing, but it's also possible to happen in synchronizations.
+    //
+    // XXX Our total correctness currently depends on headerCount only changing
+    // as a result of a synchronization triggered by this slice.  This does not
+    // hold up when confronted with periodic background sync; we need to finish
+    // cleanup up the headerCount change notification stuff.
+    //
+    // (However, this is acceptable glitchage right now.  We just need to make
+    // sure it doesn't happen for searches since it's so blatant.)
+    //
+    // So, anyways, use updateDataBind() to cause VScroll to double-check that
+    // our list size didn't change from what it thought it was.  (It renders
+    // coordinate-space predictively based on our headerCount, but we currently
+    // only provide strong correctness guarantees for actually reported `items`,
+    // so we must do this.)  If our list size is the same, this call is
+    // effectively a no-op.
+    this.vScroll.updateDataBind(0, [], 0);
   },
 
   onNewMail: function(newEmailCount) {
     var inboxFolder = model.foldersSlice.getFirstFolderWithType('inbox');
 
     if (inboxFolder.id === this.curFolder.id &&
-        newEmailCount && newEmailCount !== NaN && newEmailCount !== 0) {
+        newEmailCount && newEmailCount > 0) {
       if (!Cards.isVisible(this)) {
         this._whenVisible = this.onNewMail.bind(this, newEmailCount);
         return;
@@ -664,95 +848,22 @@ MessageListCard.prototype = {
     }
   },
 
-  onScroll: function(evt) {
-    if (this._pendingScrollEvent) {
-      return;
-    }
-
-    this._pendingScrollEvent = true;
-    this._scrollTimer = setTimeout(this._onScroll, SCROLL_DELAY, evt);
-  },
-
   /**
-   * Handle scrolling by requesting more messages when we have less than the
-   * minimum buffer space and trimming messages when we have more than the max.
-   *
-   * We don't care about the direction of scrolling, which is helpful since this
-   * also lets us handle cases where message deletion might have done bad things
-   * to us.  (It does, however, open the door to foolishness where we request
-   * data and then immediately discard some of it.)
+   * Waits for scrolling to stop before fetching snippets.
    */
-  _onScroll: function(event) {
-    if (this._pendingScrollEvent) {
-      this._pendingScrollEvent = false;
+  _onVScrollStopped: function() {
+    // Give any pending requests in the slice priority.
+    if (!headerCursor.messagesSlice ||
+        headerCursor.messagesSlice.pendingRequestCount) {
+      return;
     }
 
-
-    // Defer processing until any pending requests have completed;
-    // `onSliceRequestComplete` will call us.
-    if (!headerCursor.messagesSlice ||
-        headerCursor.messagesSlice.pendingRequestCount)
-      return;
-
-    if (!this._hasSnippetRequest()) {
+    // Do not bother fetching snippets if this card is not in view.
+    // The card could still have a scroll event triggered though
+    // by the next/previous work done in message_reader.
+    if (Cards.isVisible(this) && !this._hasSnippetRequest()) {
       this._requestSnippets();
     }
-
-    var curScrollTop = this.scrollContainer.scrollTop,
-        viewHeight = this.scrollContainer.clientHeight;
-
-    var preScreens = curScrollTop / viewHeight,
-        postScreens = (this.scrollContainer.scrollHeight -
-                       (curScrollTop + viewHeight)) /
-                      viewHeight;
-
-    var shrinkLowIncl = 0,
-        shrinkHighIncl = headerCursor.messagesSlice.items.length - 1,
-        messageNode = null, targOff;
-    if (preScreens < SCROLL_MIN_BUFFER_SCREENS &&
-        !headerCursor.messagesSlice.atTop) {
-      headerCursor.messagesSlice.requestGrowth(
-        -1 * this._getGrowth(preScreens));
-      return;
-    }
-    else if (preScreens > SCROLL_MAX_RETENTION_SCREENS) {
-      // Take off one screen at a time.
-      targOff = curScrollTop -
-                (viewHeight * (SCROLL_MAX_RETENTION_SCREENS - 1));
-      for (messageNode = this.messagesContainer.firstElementChild;
-           messageNode.offsetTop + messageNode.clientHeight < targOff;
-           messageNode = messageNode.nextElementSibling) {
-        shrinkLowIncl++;
-      }
-    }
-
-    if (postScreens < SCROLL_MIN_BUFFER_SCREENS &&
-        !headerCursor.messagesSlice.atBottom) {
-      headerCursor.messagesSlice.requestGrowth(this._getGrowth(postScreens));
-    }
-    else if (postScreens > SCROLL_MAX_RETENTION_SCREENS) {
-      targOff = curScrollTop +
-                this.scrollContainer.clientHeight +
-                (viewHeight * (SCROLL_MAX_RETENTION_SCREENS - 1));
-      for (messageNode = this.messagesContainer.lastElementChild;
-           messageNode.offsetTop > targOff;
-           messageNode = messageNode.previousElementSibling) {
-        shrinkHighIncl--;
-      }
-    }
-
-    if (shrinkLowIncl !== 0 ||
-        shrinkHighIncl !== headerCursor.messagesSlice.items.length - 1) {
-      headerCursor.messagesSlice.requestShrinkage(shrinkLowIncl,
-                                                  shrinkHighIncl);
-    }
-
-  },
-
-  _getGrowth: function(screens) {
-    var percentEmpty = 1 - (screens / SCROLL_MIN_BUFFER_SCREENS);
-    var range = MAX_MESSAGE_GROWTH_SIZE - MIN_MESSAGE_GROWTH_SIZE;
-    return ~~(MIN_MESSAGE_GROWTH_SIZE + (percentEmpty * range));
   },
 
   _hasSnippetRequest: function() {
@@ -787,24 +898,13 @@ MessageListCard.prototype = {
     this._snippetRequestPending = false;
   },
 
-  // the distance between items. It is expected to remain fairly constant
-  // throughout the list so we only need to calculate it once.
-  _getDistance: function() {
-    var items = headerCursor.messagesSlice.items;
-    if (!this._distanceBetweenMessages && items.length > 1) {
-      this._distanceBetweenMessages =
-        items[1].element.getBoundingClientRect().top -
-        items[0].element.getBoundingClientRect().top;
-    }
-    return this._distanceBetweenMessages;
-  },
-
   _requestSnippets: function() {
     var items = headerCursor.messagesSlice.items;
     var len = items.length;
 
-    if (!len)
+    if (!len) {
       return;
+    }
 
     var clearSnippets = this._clearSnippetRequest.bind(this);
     var options = {
@@ -819,27 +919,17 @@ MessageListCard.prototype = {
       return;
     }
 
-    // Distance will always be non-zero here because we ensure the list
-    // is populated above.
-    var distance = this._getDistance();
+    var visibleIndices = this.vScroll.getVisibleIndexRange();
 
-    // starting offset to begin fetching snippets
-    var startOffset = Math.floor(this.scrollContainer.scrollTop / distance);
-
-    this._snippetsPerScrollTick = (
-      this._snippetsPerScrollTick ||
-      Math.ceil(this.scrollContainer.getBoundingClientRect().height / distance)
-    );
-
-
-    this._pendingSnippetRequest();
-    headerCursor.messagesSlice.maybeRequestBodies(
-      startOffset,
-      startOffset + this._snippetsPerScrollTick,
-      options,
-      clearSnippets
-    );
-
+    if (visibleIndices) {
+      this._pendingSnippetRequest();
+      headerCursor.messagesSlice.maybeRequestBodies(
+        visibleIndices[0],
+        visibleIndices[1],
+        options,
+        clearSnippets
+      );
+    }
   },
 
   /**
@@ -874,30 +964,26 @@ MessageListCard.prototype = {
 
     var cacheNode = this.domNode.cloneNode(true);
 
-
     // Hide search field as it will not operate and gets scrolled out
     // of view after real load.
     var removableCacheNode = cacheNode.querySelector('.msg-search-tease-bar');
-    if (removableCacheNode)
+    if (removableCacheNode) {
       removableCacheNode.classList.add('collapsed');
+    }
 
     // Hide "new mail" topbar too
     removableCacheNode = cacheNode
                            .querySelector('.' + MessageListTopbar.CLASS_NAME);
-    if (removableCacheNode)
+    if (removableCacheNode) {
       removableCacheNode.classList.add('collapsed');
-
-    // Trim the message list to _cacheListLimit.
-    if (this.messagesContainer.children.length > this._cacheListLimit) {
-      var msgContainer = cacheNode
-                        .getElementsByClassName('msg-messages-container')[0];
-      for (var childIndex = msgContainer.children.length - 1;
-                            childIndex > this._cacheListLimit - 1;
-                            childIndex--) {
-        var childNode = msgContainer.children[childIndex];
-        childNode.parentNode.removeChild(childNode);
-      }
     }
+
+    // Trim vScroll containers that are not in play
+    VScroll.trimMessagesForCache(
+      cacheNode.querySelector('.msg-messages-container'),
+      this._cacheListLimit
+    );
+
     htmlCache.saveFromNode(cacheNode);
   },
 
@@ -912,8 +998,9 @@ MessageListCard.prototype = {
     if (!this._cacheDomTimeoutId &&
         // card visible state is appropriate
         this._isCacheableCardState() &&
-        // if our slice is showing the newest messages in the folder and
-        headerCursor.messagesSlice.atTop &&
+        // if the scroll area is at the top (otherwise the
+        // virtual scroll may be showing non-top messages)
+        this.vScroll.firstRenderedIndex === 0 &&
         // if actually got a numeric index and
         (index || index === 0) &&
         // if it affects the data we cache
@@ -942,94 +1029,93 @@ MessageListCard.prototype = {
     }
   },
 
+  /**
+   * Request data through desiredHighAbsoluteIndex if we don't have it
+   * already and we think it exists.  If we already have an outstanding
+   * request we will save off this most recent request to process once
+   * the current request completes.  Any previously queued request will
+   * be forgotten regardless of how it compares to the newly queued
+   * request.
+   *
+   * @param  {Number} desiredHighAbsoluteIndex
+   */
+  loadNextChunk: function(desiredHighAbsoluteIndex) {
+    // The recalculate logic will trigger a call to prepareData, so
+    // it's okay for us to bail.  It's advisable for us to bail
+    // because any calls to prepareData will be based on outdated
+    // index information.
+    if (this.vScroll.waitingForRecalculate) {
+      return;
+    }
+
+    if (this.waitingOnChunk) {
+      this.desiredHighAbsoluteIndex = desiredHighAbsoluteIndex;
+      return;
+    }
+
+    // Do not bother asking for more than exists
+    if (desiredHighAbsoluteIndex >= headerCursor.messagesSlice.headerCount) {
+      desiredHighAbsoluteIndex = headerCursor.messagesSlice.headerCount - 1;
+    }
+
+    // Do not bother asking for more than what is already
+    // fetched
+    var items = headerCursor.messagesSlice.items;
+    var curHighAbsoluteIndex = items.length - 1;
+    var amount = desiredHighAbsoluteIndex - curHighAbsoluteIndex;
+    if (amount > 0) {
+      // IMPORTANT NOTE!
+      // 1 is unfortunately a special value right now for historical reasons
+      // that the other side interprets as a request to grow downward with the
+      // default growth size.  XXX change backend and its tests...
+      console.log('message_list loadNextChunk growing', amount,
+                  (amount === 1 ? '(will get boosted to 15!) to' : 'to'),
+                  (desiredHighAbsoluteIndex + 1), 'items out of',
+                  headerCursor.messagesSlice.headerCount, 'alleged known');
+      headerCursor.messagesSlice.requestGrowth(
+        amount,
+        // the user is not requesting us to go synchronize new messages
+        false);
+      this.waitingOnChunk = true;
+    }
+  },
+
   // The funny name because it is auto-bound as a listener for
   // messagesSlice events in headerCursor using a naming convention.
   messages_splice: function(index, howMany, addedItems,
                              requested, moreExpected, fake) {
-    // If no work to do, just skip it.
-    if (index === 0 && howMany === 0 && !addedItems.length)
+
+    // If no work to do, or wrong mode, just skip it.
+    if (headerCursor.searchMode !== this.mode ||
+       (index === 0 && howMany === 0 && !addedItems.length)) {
       return;
-
-    // XXX: This function should be re-written to cache the current scrollTop
-    //      and calculate changes to it in-memory without touching the DOM.
-    //      The scrollTop should only be written back to the DOM when
-    //      absolutely necessary.  Touching thins like scrollTop, offsetTop,
-    //      getBoundingClientRect(), can trigger sync reflows.
-
-    var prevHeight;
-    // - removed messages
-    if (howMany) {
-      if (fake && index === 0 &&
-          headerCursor.messagesSlice.items.length === howMany &&
-          !addedItems.length) {
-      } else {
-        // Regular remove for current call.
-        // Plan to fixup the scroll position if we are deleting a message that
-        // starts before the (visible) scrolled area.  (We add the container's
-        // start offset because it is as big as the occluding header bar.)
-        prevHeight = null;
-        if (headerCursor.messagesSlice.items[index].element.offsetTop <
-            this.scrollContainer.scrollTop + this.messagesContainer.offsetTop) {
-          prevHeight = this.messagesContainer.clientHeight;
-        }
-
-        for (var i = index + howMany - 1; i >= index; i--) {
-          var message = headerCursor.messagesSlice.items[i];
-          message.element.parentNode.removeChild(message.element);
-        }
-
-        // If fixup is requred, adjust.
-        if (prevHeight !== null) {
-          this.scrollContainer.scrollTop -=
-            (prevHeight - this.messagesContainer.clientHeight);
-        }
-
-        // Check the message count after deletion:
-        if (this.messagesContainer.children.length === 0) {
-          this.showEmptyLayout();
-        }
-      }
     }
 
     this._clearCachedMessages();
 
-    // - added/existing
-    var insertBuddy, self = this;
-    if (index >= this.messagesContainer.childElementCount)
-      insertBuddy = null;
-    else
-      insertBuddy = this.messagesContainer.children[index];
-    if (insertBuddy &&
-        (insertBuddy.offsetTop <=
-         this.scrollContainer.scrollTop + this.messagesContainer.offsetTop))
-      prevHeight = this.messagesContainer.clientHeight;
-    else
-      prevHeight = null;
+    if (this._needVScrollData) {
+      this.vScroll.setData(this.listFunc);
+      this._needVScrollData = false;
+    }
+
+    this.vScroll.updateDataBind(index, addedItems, howMany);
 
     // Remove the no message text while new messages added:
     if (addedItems.length > 0) {
       this.hideEmptyLayout();
     }
 
-    addedItems.forEach(function(message, i) {
-      var domMessage;
-      domMessage = message.element = msgHeaderItemNode.cloneNode(true);
-
-      if (self.mode === 'nonsearch') {
-        domMessage.message = message;
-        self.updateMessageDom(true, message);
-      }
-      else {
-        domMessage.message = message.header;
-        self.updateMatchedMessageDom(true, message);
-      }
-
-      self.messagesContainer.insertBefore(domMessage, insertBuddy);
-    });
-
-    if (prevHeight) {
-      this.scrollContainer.scrollTop +=
-        (this.messagesContainer.clientHeight - prevHeight);
+    // If the end result is no more messages, then show empty layout.
+    // This is needed mostly because local drafts do not trigger
+    // a messages_complete callback when removing the last draft
+    // from the compose triggered in that view. The scrollStopped
+    // is used to avoid a flash where the old message is briefly visible
+    // before cleared, and having the empty layout overlay it.
+    if (headerCursor.messagesSlice.items.length + addedItems.length - howMany <
+        1) {
+      this.vScroll.once('scrollStopped', function() {
+        this.showEmptyLayout();
+      }.bind(this));
     }
 
     // Only cache if it is an add or remove of items
@@ -1041,6 +1127,10 @@ MessageListCard.prototype = {
   // The funny name because it is auto-bound as a listener for
   // messagesSlice events in headerCursor using a naming convention.
   messages_change: function(message, index) {
+    if (headerCursor.searchMode !== this.mode) {
+      return;
+    }
+
     if (this.mode === 'nonsearch') {
       this.onMessagesChange(message, index);
     } else {
@@ -1064,6 +1154,15 @@ MessageListCard.prototype = {
   updateMessageDom: function(firstTime, message) {
     var msgNode = message.element;
 
+    if (!msgNode) {
+      return;
+    }
+
+    // If the placeholder data, indicate that in case VScroll
+    // wants to go back and fix later.
+    var classAction = message.isPlaceholderData ? 'add': 'remove';
+    msgNode.classList[classAction](this.vScroll.itemDefaultDataClass);
+
     // ID is stored as a data- attribute so that it can survive
     // serialization to HTML for storing in the HTML cache, and
     // be usable before the actual data from the backend has
@@ -1076,18 +1175,19 @@ MessageListCard.prototype = {
     var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
     if (firstTime) {
       var listPerson;
-      if (this.isIncomingFolder)
+      if (this.isIncomingFolder) {
         listPerson = message.author;
       // XXX This is not to UX spec, but this is a stop-gap and that would
       // require adding strings which we cannot justify as a slipstream fix.
-      else if (message.to && message.to.length)
+      } else if (message.to && message.to.length) {
         listPerson = message.to[0];
-      else if (message.cc && message.cc.length)
+      } else if (message.cc && message.cc.length) {
         listPerson = message.cc[0];
-      else if (message.bcc && message.bcc.length)
+      } else if (message.bcc && message.bcc.length) {
         listPerson = message.bcc[0];
-      else
+      } else {
         listPerson = message.author;
+      }
 
       // author
       listPerson.element =
@@ -1095,15 +1195,17 @@ MessageListCard.prototype = {
       listPerson.onchange = this._updatePeepDom;
       listPerson.onchange(listPerson);
       // date
-      dateNode.dataset.time = message.date.valueOf();
-      dateNode.textContent = prettyDate(message.date);
+      var dateTime = message.date.valueOf();
+      dateNode.dataset.time = dateTime;
+      dateNode.textContent = dateTime ? prettyDate(message.date) : '';
       // subject
       displaySubject(msgNode.getElementsByClassName('msg-header-subject')[0],
                      message);
       // attachments
-      if (message.hasAttachments)
+      if (message.hasAttachments) {
         msgNode.getElementsByClassName('msg-header-attachments')[0]
           .classList.add('msg-header-attachments-yes');
+      }
     }
 
     // snippet
@@ -1117,23 +1219,38 @@ MessageListCard.prototype = {
     if (message.isRead) {
       unreadNode.classList.remove('msg-header-unread-section-unread');
       dateNode.classList.remove('msg-header-date-unread');
-    }
-    else {
+    } else {
       unreadNode.classList.add('msg-header-unread-section-unread');
       dateNode.classList.add('msg-header-date-unread');
     }
     // star
     var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
-    if (message.isStarred)
+    if (message.isStarred) {
       starNode.classList.add('msg-header-star-starred');
-    else
+    } else {
       starNode.classList.remove('msg-header-star-starred');
+    }
+
+    // edit mode select state
+    if (this.editMode) {
+      var checkbox = msgNode.querySelector('input[type=checkbox]');
+      checkbox.checked = this.selectedMessages.indexOf(message) !== -1;
+    }
   },
 
   updateMatchedMessageDom: function(firstTime, matchedHeader) {
     var msgNode = matchedHeader.element,
         matches = matchedHeader.matches,
         message = matchedHeader.header;
+
+    if (!msgNode) {
+      return;
+    }
+
+    // If the placeholder data, indicate that in case VScroll
+    // wants to go back and fix later.
+    var classAction = message.isPlaceholderData ? 'add': 'remove';
+    msgNode.classList[classAction](this.vScroll.itemDefaultDataClass);
 
     // Even though updateMatchedMessageDom is only used in searches,
     // which likely will not be cached, the dataset.is is set to
@@ -1147,6 +1264,7 @@ MessageListCard.prototype = {
       // author
       var authorNode = msgNode.getElementsByClassName('msg-header-author')[0];
       if (matches.author) {
+        authorNode.textContent = '';
         appendMatchItemTo(matches.author, authorNode);
       }
       else {
@@ -1162,22 +1280,27 @@ MessageListCard.prototype = {
 
       // subject
       var subjectNode = msgNode.getElementsByClassName('msg-header-subject')[0];
-      if (matches.subject)
+      if (matches.subject) {
+        subjectNode.textContent = '';
         appendMatchItemTo(matches.subject[0], subjectNode);
-      else
+      } else {
         displaySubject(subjectNode, message);
+      }
 
       // snippet
       var snippetNode = msgNode.getElementsByClassName('msg-header-snippet')[0];
-      if (matches.body)
-       appendMatchItemTo(matches.body[0], snippetNode);
-      else
+      if (matches.body) {
+        snippetNode.textContent = '';
+        appendMatchItemTo(matches.body[0], snippetNode);
+      } else {
         snippetNode.textContent = message.snippet;
+      }
 
       // attachments
-      if (message.hasAttachments)
+      if (message.hasAttachments) {
         msgNode.getElementsByClassName('msg-header-attachments')[0]
           .classList.add('msg-header-attachments-yes');
+      }
     }
 
     // unread (we use very specific classes directly on the nodes rather than
@@ -1194,10 +1317,17 @@ MessageListCard.prototype = {
     }
     // starmail
     var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
-    if (message.isStarred)
+    if (message.isStarred) {
       starNode.classList.add('msg-header-star-starred');
-    else
+    } else {
       starNode.classList.remove('msg-header-star-starred');
+    }
+
+    // edit mode select state
+    if (this.editMode) {
+      var checkbox = msgNode.querySelector('input[type=checkbox]');
+      checkbox.checked = this.selectedMessages.indexOf(message) !== -1;
+    }
   },
 
   /**
@@ -1213,7 +1343,23 @@ MessageListCard.prototype = {
   },
 
   onClickMessage: function(messageNode, event) {
+    // Find the node that has the header info.
+    messageNode = event.originalTarget;
+    while (messageNode && !messageNode.classList.contains('msg-header-item')) {
+      messageNode = messageNode.parentNode;
+    }
+
+    if (!messageNode) {
+      return;
+    }
+
     var header = messageNode.message;
+
+    // Skip nodes that are default/placeholder ones.
+    if (header && header.isPlaceholderData) {
+      return;
+    }
+
     if (this.editMode) {
       var idx = this.selectedMessages.indexOf(header);
       var cb = messageNode.querySelector('input[type=checkbox]');
@@ -1256,8 +1402,14 @@ MessageListCard.prototype = {
 
     if (header) {
       headerCursor.setCurrentMessage(header);
-    } else {
+    } else if (messageNode.dataset.id) {
+      // a case where header was not set yet, like clicking on a
+      // cookie cached node, or virtual scroll item that is no
+      // longer backed by a header.
       headerCursor.setCurrentMessageBySuid(messageNode.dataset.id);
+    } else {
+      // Not an interesting click, bail
+      return;
     }
 
     // If the message is really big, warn them before they open it.
@@ -1291,45 +1443,32 @@ MessageListCard.prototype = {
   /**
    * Scroll to make sure that the current message is in our visible window.
    *
-   * @param {MessageCursor.CurrentMessage} currentMessage representation of the
+   * @param {header_cursor.CurrentMessage} currentMessage representation of the
    *     email we're currently reading.
+   * @param {Number} index the index of the message in the messagesSlice
    */
-  onCurrentMessage: function(currentMessage) {
-    if (!currentMessage) {
+  onCurrentMessage: function(currentMessage, index) {
+    if (!currentMessage || headerCursor.searchMode !== this.mode) {
       return;
     }
 
-    var id = currentMessage.header.id;
-    var selector = '.msg-messages-container ' +
-                   '.msg-header-item[data-id="' + id + '"]';
-    var element = document.querySelector(selector);
-
-    // Element may not be there if current message is fired
-    // before the notification of a folder change happens,
-    // which could be the case when entering from a notification.
-    if (!element) {
-      return;
+    var visibleIndices = this.vScroll.getVisibleIndexRange();
+    if (visibleIndices &&
+        (index < visibleIndices[0] || index > visibleIndices[1])) {
+      this.vScroll.jumpToIndex(index);
     }
-
-    // Check whether or not the current message is in the visible window.
-    var top = this.scrollContainer.scrollTop;
-    var bottom = this.scrollContainer.scrollTop +
-                 this.scrollContainer.getBoundingClientRect().bottom;
-    if (element.offsetTop >= top && element.offsetTop <= bottom) {
-      return;
-    }
-
-    this.scrollContainer.scrollTop = element.offsetTop;
   },
 
   onHoldMessage: function(messageNode, event) {
-    if (this.curFolder)
+    if (this.curFolder) {
       this.setEditMode(true);
+    }
   },
 
   onRefresh: function() {
-    if (!headerCursor.messagesSlice)
+    if (!headerCursor.messagesSlice) {
       return;
+    }
 
     switch (headerCursor.messagesSlice.status) {
       // If we're still synchronizing, then the user is not well served by
@@ -1345,10 +1484,11 @@ MessageListCard.prototype = {
       // know about any messages.  Otherwise let's just create a new slice by
       // forcing reentry into the folder.
       case 'syncfailed':
-        if (headerCursor.messagesSlice.items.length)
+        if (headerCursor.messagesSlice.items.length) {
           headerCursor.messagesSlice.refresh();
-        else
+        } else {
           this.showFolder(this.curFolder, /* force new slice */ true);
+        }
         break;
     }
   },
@@ -1430,8 +1570,9 @@ MessageListCard.prototype = {
     // a change in the current account, before this listener is called.
     // So skip this work if no foldersSlice, this method will be called
     // again soon.
-    if (!model.foldersSlice)
+    if (!model.foldersSlice) {
       return;
+    }
 
     // Folder could have changed because account changed. Make sure
     // the cacheableFolderId is still set correctly.
@@ -1459,6 +1600,8 @@ MessageListCard.prototype = {
     model.removeListener('folder', this._folderChanged);
     model.removeListener('newInboxMessages', this.onNewMail);
     headerCursor.removeListener('currentMessage', this.onCurrentMessage);
+
+    this.vScroll.destroy();
   }
 };
 

@@ -1347,6 +1347,11 @@ MailMatchedHeader.prototype = {
     };
   },
 
+  __update: function(wireRep) {
+    this.matches = wireRep.matches;
+    this.header.__update(wireRep.header);
+  },
+
   __die: function() {
     this.header.__die();
   },
@@ -2652,6 +2657,12 @@ MailAPI.prototype = {
    */
   _fireSplice: function(splice, slice, transformedItems, fake) {
     var i, stopIndex, items, tempMsg;
+
+    // - update header count, but only if the splice tracks a
+    // headerCount.
+    if (splice.headerCount !== undefined) {
+      slice.headerCount = splice.headerCount;
+    }
 
     // - generate slice 'onsplice' notification
     if (slice.onsplice) {

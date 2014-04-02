@@ -1,4 +1,5 @@
 /*jshint node: true, browser: true */
+'use strict';
 function Email(client) {
   this.client = client.scope({ searchTimeout: 20000 });
 }
@@ -30,7 +31,8 @@ var Selector = {
   msgDownBtn: '.card-message-reader .msg-down-btn',
   msgListScrollOuter: '.card-message-list .msg-list-scrollouter',
   editMode: '.card-message-list .msg-edit-btn',
-  editModeCheckBoxes: '.card-message-list label.pack-checkbox',
+  editModeCheckBoxes:
+    '.card-message-list .msg-header-item[data-index="0"] label.pack-checkbox',
   editModeTrash: '.card-message-list button.msg-delete-btn',
   msgUpBtn: '.card-message-reader .msg-up-btn',
   msgEnvelopeSubject: '.card-message-reader .msg-envelope-subject',
@@ -46,7 +48,8 @@ var Selector = {
   composeDraftDiscard: '#cmp-draft-discard',
   composeDraftSave: '#cmp-draft-save',
   refreshButton: '.card.center .msg-refresh-btn',
-  messageHeaderItem: '.msg-messages-container .msg-header-item',
+  messageHeaderItem:
+  '.msg-messages-container .msg-header-item',
   cardMessageReader: '.card-message-reader',
   currentCardInputs: '.card.center input[type="text"]',
   replyMenuButton: '.msg-reply-btn',
@@ -101,7 +104,9 @@ Email.prototype = {
   },
 
   tapNotificationBar: function() {
-    this.notificationBar.click();
+    var notificationBar = this.notificationBar;
+    notificationBar.click();
+    this.client.helper.waitForElementToDisappear(notificationBar);
   },
 
   get msgDownBtn() {
@@ -294,11 +299,12 @@ Email.prototype = {
    * future if we inline various affordances proposed by UX.
    */
   getComposeBody: function() {
-    return client.executeScript(function() {
+    return this.client.executeScript(function() {
       var Cards = window.wrappedJSObject.require('mail_common').Cards,
           card = Cards._cardStack[Cards.activeCardIndex];
-      if (card.cardDef.name !== 'compose')
+      if (card.cardDef.name !== 'compose') {
         throw new Error('active card should be compose!');
+      }
 
       var composeCard = card.cardImpl;
       return composeCard.fromEditor();
@@ -310,11 +316,11 @@ Email.prototype = {
    * Waits for an edit checkbox to appear.
    */
   editMode: function() {
-    client.helper
+    this.client.helper
       .waitForElement(Selector.editMode)
       .tap();
 
-    client.helper
+    this.client.helper
       .waitForElement(Selector.editModeCheckBoxes);
   },
 
@@ -322,7 +328,7 @@ Email.prototype = {
    * Returns the edit mode checkboxes.
    */
   editModeCheckboxes: function() {
-    var elements = client.findElements(Selector.editModeCheckBoxes);
+    var elements = this.client.findElements(Selector.editModeCheckBoxes);
     return elements;
   },
 
@@ -330,7 +336,7 @@ Email.prototype = {
    * Taps the trash button in edit mode.
    */
   editModeTrash: function() {
-    client.helper
+    this.client.helper
       .waitForElement(Selector.editModeTrash)
       .tap();
   },
@@ -424,9 +430,9 @@ Email.prototype = {
   },
 
   getHeaderAtIndex: function(index) {
-    var client = this.client;
-    var elements = client.findElements(Selector.messageHeaderItem);
-    return client.helper.waitForElement(elements[index]);
+    var element = this.client.findElement(Selector.messageHeaderItem +
+                                             '[data-index="' + index + '"]');
+    return this.client.helper.waitForElement(element);
   },
 
   tapEmailAtIndex: function(index) {
@@ -440,8 +446,9 @@ Email.prototype = {
     // we see one.  Then tap on it.
     this.client.waitFor(function() {
       var element = this.getEmailBySubject(subject);
-      if (!element)
+      if (!element) {
         return false;
+      }
 
       element.tap();
       this._waitForTransitionEnd(cardId);
@@ -484,6 +491,8 @@ Email.prototype = {
       whichButton = Selector.replyMenuForward;
       break;
     case 'reply':
+      whichButton = Selector.replyMenuReply;
+      break;
     default:
       whichButton = Selector.replyMenuReply;
       break;
@@ -621,8 +630,9 @@ Email.prototype = {
 
   _tapNext: function(selector, cardId) {
     this._tapSelector(selector);
-    if (cardId)
+    if (cardId) {
       this._waitForTransitionEnd(cardId);
+    }
   },
 
   _manualSetupTypeName: function(name) {
