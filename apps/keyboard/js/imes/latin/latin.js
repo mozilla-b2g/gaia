@@ -685,12 +685,6 @@
     // Clear the list of candidates
     keyboard.sendCandidates([]);
 
-    // Send a space
-    keyboard.sendKey(SPACE);
-    inputText = inputText.substring(0, cursor) + ' ' +
-      inputText.substring(cursor);
-    cursor++;
-
     // Get rid of any autocorrection that is pending and reset the rest
     // of our state, too.
     lastSpaceTimestamp = 0;
