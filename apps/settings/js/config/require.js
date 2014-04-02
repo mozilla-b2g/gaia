@@ -37,6 +37,10 @@ require.config({
     {
       name: 'panels/choose_feedback/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/help/panel',
+      exclude: ['main']
     }
   ]
 });

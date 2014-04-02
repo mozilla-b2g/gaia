@@ -30,6 +30,12 @@ requireApp('settings/js/vendor/alameda.js', (function() {
       'unit/mock_async_storage': {
         exports: 'MockAsyncStorage'
       },
+      'unit/mock_load_json': {
+        exports: 'MockLoadJSON'
+      },
+      'unit/mock_settings_cache': {
+        exports: 'MockSettingsCache'
+      },
       'shared_mocks/mock_navigator_moz_settings': {
         exports: 'MockNavigatorSettings'
       },
