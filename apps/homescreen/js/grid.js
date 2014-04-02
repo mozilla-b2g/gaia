@@ -85,8 +85,11 @@ var GridManager = (function() {
   // The same number of icons by default
   var MAX_ICONS_PER_EVME_PAGE = MAX_ICONS_PER_PAGE;
 
+  // Will be changed on Init stage later on
+  var searchPageEnabled = false;
+
   function setMaxIconsToSearchPage() {
-    if (!document.body.classList.contains('searchPageEnabled')) {
+    if (!searchPageEnabled) {
       return;
     }
 
@@ -272,6 +275,7 @@ var GridManager = (function() {
               next.MozTransform =
                 'translateX(' + (windowWidthMinusOne + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
+              onPanningLandingPage(1 + deltaX / windowWidthMinusOne);
             } else {
               startX = currentX;
             }
@@ -283,6 +287,11 @@ var GridManager = (function() {
               previous.MozTransform =
                 'translateX(' + (-windowWidthMinusOne + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
+
+              if (currentPage === 1) {
+                // Moving from last(second) to first screen.
+                onPanningLandingPage(deltaX / windowWidthMinusOne);
+              }
             } else {
               startX = currentX;
             }
@@ -300,6 +309,11 @@ var GridManager = (function() {
               if (forward) {
                 forward = false;
                 next.MozTransform = 'translateX(' + windowWidthMinusOne + 'px)';
+              }
+
+              if (currentPage === 1) {
+                // Moving from second to first screen.
+                onPanningLandingPage(deltaX / windowWidthMinusOne);
               }
             } else {
               next.MozTransform =
@@ -393,6 +407,13 @@ var GridManager = (function() {
     removePanHandler();
   }
 
+  // Will become _onPanningLandingPage if search bar is present
+  var onPanningLandingPage = noop;
+  function _onPanningLandingPage(progress) {
+    var e = new CustomEvent('gridpagepanning', {detail: {progress: progress}});
+    pages[0].container.dispatchEvent(e);
+  }
+
   function onTouchEnd(deltaX, evt) {
     var page = currentPage;
 
@@ -450,8 +471,7 @@ var GridManager = (function() {
     delete document.body.dataset.transitioning;
 
     if (dispatchEvents) {
-      fromPage.container.dispatchEvent(new CustomEvent('gridpagehideend'));
-      toPage.container.dispatchEvent(new CustomEvent('gridpageshowend'));
+      dispatchGridPageEndEvents(fromPage, toPage);
     }
 
     // We are going to prepare pages that are next to current page
@@ -479,6 +499,23 @@ var GridManager = (function() {
     if (callback) {
       setTimeout(callback, 0);
     }
+  }
+
+  function dispatchGridPageStartEvents(pageToHide, pageToShow, duration) {
+    var data = {
+      detail: {
+        duration: duration
+      }
+    };
+    var hideStartEvent = new CustomEvent('gridpagehidestart', data);
+    var showStartEvent = new CustomEvent('gridpageshowstart', data);
+    pageToHide.container.dispatchEvent(hideStartEvent);
+    pageToShow.container.dispatchEvent(showStartEvent);
+  }
+
+  function dispatchGridPageEndEvents(fromPage, toPage) {
+    fromPage.container.dispatchEvent(new CustomEvent('gridpagehideend'));
+    toPage.container.dispatchEvent(new CustomEvent('gridpageshowend'));
   }
 
   var touchStartTimestamp = 0;
@@ -527,8 +564,8 @@ var GridManager = (function() {
     updatePaginationBar();
 
     if (previousPage === newPage) {
-      // Has the page been translated?
-      if (currentX - startX) {
+      var distanceTraveled = currentX - startX;
+      if (distanceTraveled) {
         currentX = startX = 0;
         // Pages are translated in X
         if (index > 0) {
@@ -541,20 +578,23 @@ var GridManager = (function() {
           pages[index + 1].moveByWithEffect(windowWidthMinusOne, duration);
         }
 
+        var pageToHide = pages[distanceTraveled > 0 ? index - 1 : index + 1];
+        var pageToShow = pages[index];
+        dispatchGridPageStartEvents(pageToHide, pageToShow, duration);
+
         container.addEventListener('transitionend', function transitionEnd(e) {
           container.removeEventListener('transitionend', transitionEnd);
           goToPageCallback(index, previousPage, newPage, false, callback);
         });
       } else {
-        // Swipe from rigth to left on the last page on the grid
+        // Swipe from right to left on the last page on the grid
         goToPageCallback(index, previousPage, newPage, false, callback);
       }
 
       return;
     }
 
-    previousPage.container.dispatchEvent(new CustomEvent('gridpagehidestart'));
-    newPage.container.dispatchEvent(new CustomEvent('gridpageshowstart'));
+    dispatchGridPageStartEvents(previousPage, newPage, duration);
     previousPage.moveByWithEffect(-forward * windowWidthMinusOne, duration);
     newPage.moveByWithEffect(0, duration);
 
@@ -1396,6 +1436,11 @@ var GridManager = (function() {
     swipeThreshold = windowWidth * options.swipeThreshold;
     swipeFriction = options.swipeFriction || defaults.swipeFriction; // Not zero
     kPageTransitionDuration = options.swipeTransitionDuration;
+
+    searchPageEnabled = document.body.classList.contains('searchPageEnabled');
+    if (searchPageEnabled) {
+      onPanningLandingPage = _onPanningLandingPage;
+    }
 
     setMaxIconsToSearchPage();
 

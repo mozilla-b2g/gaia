@@ -1,3 +1,9 @@
+#top-container{
+  opacity: 1;
+  transition: opacity;
+  will-change: opacity
+}
+
 #evmeContainer #header {
     background: rgba(0, 0, 0, 0.4);
     position: relative;
