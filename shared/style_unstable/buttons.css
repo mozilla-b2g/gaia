@@ -292,12 +292,36 @@ select:-moz-focusring {
 }
 
 /* Hides dropdown arrow until bug #649849 is fixed */
-.button.icon-dialog select {
+.button.icon select {
   position: absolute;
+  top: -0.6rem;
   left: 0;
-  border: 0;
   width: calc(100% + 3rem);
-  background: transparent;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  text-indent: 0;
+  font-weight: 400;
+  font-size: 1.7rem;
+  /*
+    The select element uses the text color to determine the color of the outline.
+    We put a text shadow with needed offset and no blur, so that replaces the text.
+  */
+  color: rgba(0,0,0,0);
+  text-shadow: 1rem 0.5rem 0 #333;
+  border: none;
+  background: none;
+}
+
+.button.icon select option {
+  color: #000;
+  border: 0;
+  padding: 0.6rem 1.3rem;
+  text-shadow: 0 0 0 rgba(0,0,0,0);
+}
+
+.button.icon-dialog {
+  overflow: hidden;
 }
 
 .dark .button.icon-dialog[aria-disabled="true"] select {
