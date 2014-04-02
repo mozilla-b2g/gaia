@@ -78,10 +78,10 @@
 .icon-flash-off:before {
   content: "\e60e";
 }
-.icon-battery-10:before {
+.icon-battery-verylow:before {
   content: "\e61a";
 }
-.icon-battery-15:before {
+.icon-battery-low:before {
   content: "\e619";
 }
 .icon-camera-back:before {

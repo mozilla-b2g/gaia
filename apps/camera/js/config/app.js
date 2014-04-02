@@ -7,6 +7,15 @@ module.exports = {
   viewfinder: {
     scaleType: 'fill'
   },
+  battery: {
+    levels: {
+      low: 15,
+      verylow: 10,
+      critical: 6,
+      shutdown: 5,
+      healthy: 100
+    }
+  },
   mode: {
     title: 'Mode',
     options: [
@@ -144,20 +153,24 @@ module.exports = {
       {
         key: 'auto',
         icon: 'icon-flash-auto',
-        l10n: { title: 'auto' }
+        l10n: { title: 'auto' },
+        notificationID: 'flash-set-auto'
       },
       {
         key: 'on',
         icon: 'icon-flash-on',
-        l10n: { title: 'on' }
+        l10n: { title: 'on' },
+        notificationID: 'flash-set-on'
       },
       {
         key: 'off',
         icon: 'icon-flash-off',
-        l10n: { title: 'off' }
+        l10n: { title: 'off' },
+        notificationID: 'flash-set-off'
       }
     ],
-    persistent: true
+    persistent: true,
+    l10n: { title: 'flash' }
   },
 
   flashModesVideo: {
@@ -165,15 +178,16 @@ module.exports = {
       {
         key: 'off',
         icon: 'icon-flash-off',
-        l10n: { title: 'off' }
+        l10n: { title: 'off' },
+        notificationID: 'flash-set-off'
       },
       {
         key: 'torch',
         icon: 'icon-flash-on',
-        l10n: { title: 'on' }
+        l10n: { title: 'on' },
+        notificationID: 'flash-set-on'
       }
     ],
-    selected: 'off',
     persistent: true
   },
 
@@ -182,45 +196,49 @@ module.exports = {
     options: [
       {
         key: 'off',
-        title: 'Off',
-        value: 0
+        value: 0,
+        l10n: { title: 'off' },
+        notificationID: 'timer-set-off'
       },
       {
         key: '3secs',
         value: 3,
-        l10n: { title: '3-seconds' }
+        l10n: { title: '3-seconds' },
+        notificationID: 'timer-set-3secs'
       },
       {
         key: '5secs',
         value: 5,
-        l10n: { title: '5-seconds' }
+        l10n: { title: '5-seconds' },
+        notificationID: 'timer-set-5secs'
       },
       {
         key: '10secs',
         value: 10,
-        l10n: { title: '10-seconds' }
+        l10n: { title: '10-seconds' },
+        notificationID: 'timer-set-10secs'
       }
     ],
-    selected: 'off',
     persistent: false,
     l10n: { title: 'self-timer' }
   },
 
   hdr: {
     title: 'HDR',
-    icon: 'icon-hdr',
+    icon: 'icon-hdr-menu',
     disabled: false,
     options: [
       {
         key: 'off',
-        l10n: { title: 'off' }
+        l10n: { title: 'off' },
+        notificationID: 'hdr-set-off'
       },
       {
         key: 'on',
-        l10n: { title: 'on' }
+        l10n: { title: 'on' },
+        notificationID: 'hdr-set-on'
       }
     ],
-    selected: 'off',
     persistent: true
   },
 
@@ -229,18 +247,20 @@ module.exports = {
     options: [
       {
         key: 'normal',
-        title: 'Normal'
+        title: 'Normal',
+        notificationID: 'scene-set-normal'
       },
       {
         key: 'pano',
-        title: 'Panorama'
+        title: 'Panorama',
+        notificationID: 'scene-set-panorama'
       },
       {
         key: 'beauty',
-        title: 'Beauty'
+        title: 'Beauty',
+        notificationID: 'scene-set-beauty'
       }
     ],
-    selected: 'normal',
     persistent: true,
     l10n: { title: 'scene-mode' }
   },
@@ -248,13 +268,15 @@ module.exports = {
   grid: {
     icon: 'icon-frame-grid',
     options: [
-      {
-        key: 'off',
-        l10n: { title: 'off' }
+       {
+        key: 'on',
+        l10n: { title: 'on' },
+        notificationID: 'grid-set-on'
       },
       {
-        key: 'on',
-        l10n: { title: 'on' }
+        key: 'off',
+        l10n: { title: 'off' },
+        notificationID: 'grid-set-off'
       }
     ],
     selected: 'off',
@@ -264,9 +286,9 @@ module.exports = {
 
   settingsMenu: {
     items: [
-      {
+       {
          key: 'hdr'
-      },
+       },
       // {
       //   key: 'scene'
       // },

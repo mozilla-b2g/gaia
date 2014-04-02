@@ -27,6 +27,7 @@ function HudController(app) {
   this.app = app;
   this.hud = app.views.hud;
   this.settings = app.settings;
+  this.notification = app.views.notification;
   this.configure();
   this.bindEvents();
   debug('initialized');
@@ -72,15 +73,34 @@ HudController.prototype.onCameraClick = function() {
   this.app.settings.get('cameras').next();
 };
 
+/**
+ * Cycle to the next available flash
+ * option, update the HUD view and
+ * show a change notification.
+ *
+ * @private
+ */
 HudController.prototype.onFlashClick = function() {
-  this.settings.flashModes.next();
-  this.hud.set('flashMode' , this.settings.flashModes.selected('key'));
+  var setting = this.settings.flashModes;
+
+  setting.next();
+  this.hud.set('flashMode' , setting.selected('key'));
+  this.notify(setting);
+};
+
+HudController.prototype.notify = function(setting) {
+  var optionTitle = setting.selected('title');
+  var title = setting.get('title');
+  var html = title + '<br/>' + optionTitle;
+
+  this.notification.display({ text: html });
 };
 
 HudController.prototype.updateFlash = function() {
   var setting = this.settings.flashModes;
   var selected = setting && setting.selected();
   var hasFlash = !!selected;
+
   this.hud.enable('flash', hasFlash);
   this.hud.setFlashMode(selected);
 };
