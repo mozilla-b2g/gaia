@@ -1612,7 +1612,8 @@ ActiveSyncFolderConn.prototype = {
       }
     };
 
-    this._storage.updateMessageHeader(header.date, header.id, false, header);
+    this._storage.updateMessageHeader(header.date, header.id, false, header,
+                                      bodyInfo);
     this._storage.updateMessageBody(header, bodyInfo, {}, event);
     this._storage.runAfterDeferredCalls(callback.bind(null, null, bodyInfo));
   },
@@ -1653,7 +1654,7 @@ ActiveSyncFolderConn.prototype = {
         if (storage.hasMessageWithServerId(message.header.srvid))
           continue;
 
-        storage.addMessageHeader(message.header);
+        storage.addMessageHeader(message.header, message.body);
         storage.addMessageBody(message.header, message.body);
         addedMessages++;
       }
@@ -1668,7 +1669,7 @@ ActiveSyncFolderConn.prototype = {
                                               function(oldHeader) {
           message.header.mergeInto(oldHeader);
           return true;
-        });
+        }, /* body hint */ null);
         changedMessages++;
         // XXX: update bodies
       }
@@ -2904,7 +2905,8 @@ ActiveSyncAccount.prototype = {
     var storage = this._folderStorages[folderId],
         slice = new $searchfilter.SearchSlice(bridgeHandle, storage, phrase,
                                               whatToSearch, this._LOG);
-    // the slice is self-starting, we don't need to call anything on storage
+    storage.sliceOpenSearch(slice);
+    return slice;
   },
 
   syncFolderList: lazyConnection(0, function asa_syncFolderList(callback) {
