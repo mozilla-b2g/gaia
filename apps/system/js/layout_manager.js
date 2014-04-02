@@ -53,7 +53,11 @@
      * @memberOf LayoutManager
      */
     get fullscreenHeight() {
-      return window.innerHeight -
+      if (!this._innerHeight) {
+        this._innerHeight = window.innerHeight;
+      }
+
+      return this._innerHeight -
         (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
         softwareButtonManager.height;
     },
@@ -64,7 +68,11 @@
      * @memberOf LayoutManager
      */
     get usualHeight() {
-      return window.innerHeight -
+      if (!this._innerHeight) {
+        this._innerHeight = window.innerHeight;
+      }
+
+      return this._innerHeight -
         (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
         softwareButtonManager.height - StatusBar.height;
     },
@@ -85,7 +93,11 @@
      * @memberOf LayoutManager
      */
     get width() {
-      return window.innerWidth;
+      if (!this._innerWidth) {
+        this._innerWidth = window.innerWidth;
+      }
+
+      return this._innerWidth;
     },
 
     /**

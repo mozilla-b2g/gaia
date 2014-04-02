@@ -102,7 +102,7 @@
       // is to detect screen size.
       // The screen size of b2g running on real device
       // is the same as the size of system app.
-      if (window.innerWidth === screen.availWidth) {
+      if (self.layoutManager.width === screen.availWidth) {
         this._isOnRealDevice = true;
       } else {
         this._isOnRealDevice = false;
@@ -125,7 +125,8 @@
       if (!this.isOnRealDevice()) {
         // Fallback to use width/height to calculate default orientation
         // if we're running on desktop browser or simulator.
-        this.defaultOrientation = window.innerWidth > window.innerHeight ?
+        this.defaultOrientation =
+          self.layoutManager.width > self.layoutManager.usualHeight ?
           'landscape-primary' : 'portrait-primary';
       } else {
         screen.mozLockOrientation('default');
@@ -145,7 +146,7 @@
       if (!this.isOnRealDevice()) {
         // Fallback to use width/height to calculate default orientation
         // if we're running on desktop browser or simulator.
-        return window.innerWidth > window.innerHeight ?
+        return self.layoutManager.width > self.layoutManager.usualHeight ?
           'landscape-primary' : 'portrait-primary';
       } else {
         return screen.mozOrientation;
