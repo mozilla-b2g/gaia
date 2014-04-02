@@ -17,6 +17,7 @@ requireApp('homescreen/test/unit/mock_configurator.js');
 requireApp('homescreen/test/unit/mock_hidden_apps.js');
 requireApp('homescreen/test/unit/mock_icon_retriever.js');
 
+requireApp('homescreen/js/screen_helper.js');
 require('/shared/js/screen_layout.js');
 requireApp('homescreen/js/icon_manager.js');
 requireApp('homescreen/js/grid_components.js');
