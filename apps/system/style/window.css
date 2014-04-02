@@ -275,6 +275,13 @@
   width: 100%;
 }
 
+#screen.active-statusbar:not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
+  top: 4rem;
+  bottom: 0;
+  height: calc(100% - 4rem);
+  width: 100%;
+}
+
 @keyframes closeApp {
   0%   { transform: scale(1.0); opacity: 1;}
   100% { transform: scale(0.01); opacity: 0;}
