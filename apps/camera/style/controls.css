@@ -107,6 +107,11 @@
   display: block;
 }
 
+.controls-thumbnail-button > img:active {
+  border-color:#008EAB;
+  background-color:#008EAB;
+}
+
 .controls-thumbnail-button > img {
   position: absolute;
   top: 0;
