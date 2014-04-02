@@ -741,20 +741,12 @@
         }
       }
 
-      // first resize the icon to the OS size
-      // this includes a 2px padding around the icon
-      Evme.Utils.padIconForOS({
+      // bookmark - add to homescreen
+      EvmeManager.addGridItem({
+        'originUrl': data.app.getFavLink(),
+        'name': data.data.name,
         'icon': data.app.getIcon(),
-        'resize': true,
-        'callback': function onIconResized(icon) {
-          // bookmark - add to homescreen
-          EvmeManager.addGridItem({
-            'originUrl': data.app.getFavLink(),
-            'name': data.data.name,
-            'icon': icon,
-            'useAsyncPanZoom': data.app.isExternal()
-          });
-        }
+        'useAsyncPanZoom': data.app.isExternal()
       });
 
       // display system banner
