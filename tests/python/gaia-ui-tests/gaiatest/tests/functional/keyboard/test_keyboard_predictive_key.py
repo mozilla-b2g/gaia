@@ -8,6 +8,11 @@ from gaiatest.apps.ui_tests.app import UiTests
 
 
 class TestKeyboardPredictiveKey(GaiaTestCase):
+    def setUp(self):
+        GaiaTestCase.setUp(self)
+        # enable auto-correction and suggestion of keyboard
+        self.data_layer.set_setting('keyboard.autocorrect', True)
+        self.data_layer.set_setting('keyboard.wordsuggestion', True)
 
     def test_keyboard_predictive_key(self):
         self.ui_tests = UiTests(self.marionette)
