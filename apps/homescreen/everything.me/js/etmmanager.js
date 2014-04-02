@@ -2,7 +2,7 @@
 
 /* globals
   MozActivity, LazyLoader, utils, extend,
-  Homescreen, GridItemsFactory, GridManager, Icon, Bookmark,
+  IconRetriever, Homescreen, GridItemsFactory, GridManager, Icon, Bookmark,
   Evme
 */
 
@@ -269,6 +269,17 @@ var EvmeManager = (function EvmeManager() {
     return appInfo;
   }
 
+  // get original icon (without manipulations done by homescreen)
+  function retrieveAppIcon(appInfo, success, error) {
+    var gridIcon = getIconByDescriptor(appInfo);
+
+    IconRetriever.get({
+      icon: gridIcon,
+      success: success,
+      error: error
+    });
+  }
+
   /**
    * Generate a uuid for E.me to reference the app
    */
@@ -402,6 +413,7 @@ var EvmeManager = (function EvmeManager() {
     getCollectionNames: getCollectionNames,
     getAppInfo: getAppInfo,
     getAllAppsInfo: getAllAppsInfo,
+    retrieveAppIcon: retrieveAppIcon,
 
     openUrl: openUrl,
     openCloudApp: openCloudApp,
