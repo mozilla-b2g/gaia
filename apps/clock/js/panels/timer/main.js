@@ -11,7 +11,6 @@ var Sounds = require('sounds');
 var mozL10n = require('l10n');
 var FormButton = require('form_button');
 var html = require('text!panels/timer/panel.html');
-var AudioManager = require('audio_manager');
 
 var priv = new WeakMap();
 
@@ -54,8 +53,6 @@ Timer.Panel = function(element) {
       }
     }
   });
-
-  this.ringtonePlayer = AudioManager.createAudioPlayer();
 
   // Gather elements
   [
@@ -205,15 +202,26 @@ Timer.Panel.prototype.toggle = function(show, hide) {
  * previewAlarm Plays the currently selected alarm value on a loop.
  */
 Timer.Panel.prototype.previewAlarm = function() {
+  if (!this.ringtonePlayer) {
+    this.ringtonePlayer = new Audio();
+    this.ringtonePlayer.mozAudioChannelType = 'alarm';
+    this.ringtonePlayer.loop = true;
+  }
+  this.ringtonePlayer.pause();
+
   var ringtoneName = Utils.getSelectedValueByIndex(this.nodes.sound);
-  this.ringtonePlayer.playRingtone(ringtoneName);
+  var previewRingtone = 'shared/resources/media/alarms/' + ringtoneName;
+  this.ringtonePlayer.src = previewRingtone;
+  this.ringtonePlayer.play();
 };
 
 /**
  * pauseAlarm stops the alarm if it is playing
  */
 Timer.Panel.prototype.pauseAlarm = function() {
-  this.ringtonePlayer.pause();
+  if (this.ringtonePlayer) {
+    this.ringtonePlayer.pause();
+  }
 };
 
 /**
