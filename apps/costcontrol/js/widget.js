@@ -447,7 +447,23 @@ var Widget = (function() {
     }
   }
   function initWidget() {
+    var isWaitingForIcc = false;
+    function waitForIccAndCheckSim() {
+      if (!isWaitingForIcc) {
+        var iccManager = window.navigator.mozIccManager;
+        iccManager.addEventListener('iccdetected',
+          function _oniccdetected() {
+            isWaitingForIcc = false;
+            iccManager.removeEventListener('iccdetected', _oniccdetected);
+            Common.loadDataSIMIccId(checkSIMStatus);
+          }
+        );
+        isWaitingForIcc = true;
+      }
+    }
     Common.loadDataSIMIccId(checkSIMStatus, function _errorNoSim() {
+
+      waitForIccAndCheckSim();
       var errorMessageId = (AirplaneModeHelper.getStatus() === 'enabled') ?
                            'airplane-mode' : 'no-sim2';
       console.warn('Error when trying to get the ICC ID');
@@ -456,13 +472,7 @@ var Widget = (function() {
     AirplaneModeHelper.addEventListener('statechange',
       function _onAirplaneModeChange(state) {
         if (state === 'enabled') {
-          var iccManager = window.navigator.mozIccManager;
-          iccManager.addEventListener('iccdetected',
-            function _oniccdetected() {
-              iccManager.removeEventListener('iccdetected', _oniccdetected);
-              Common.loadDataSIMIccId(checkSIMStatus);
-            }
-          );
+          waitForIccAndCheckSim();
           showSimError('airplane-mode');
         }
       }
