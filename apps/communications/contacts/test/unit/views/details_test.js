@@ -20,6 +20,7 @@
 requireApp('communications/contacts/test/unit/mock_details_dom.js.html');
 
 require('/shared/js/text_normalizer.js');
+require('/shared/js/contacts/import/utilities/misc.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
@@ -30,7 +31,6 @@ requireApp('communications/contacts/js/views/details.js');
 requireApp('communications/contacts/js/utilities/event_listeners.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/js/utilities/dom.js');
-requireApp('communications/contacts/js/utilities/misc.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');

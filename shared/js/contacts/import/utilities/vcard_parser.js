@@ -463,7 +463,7 @@ var VCFReader = (function _VCFReader() {
     this.ondone = cb;
 
     LazyLoader.load(['/shared/js/simple_phone_matcher.js',
-      '/contacts/js/utilities/misc.js',
+      '/shared/js/contacts/import/utilities/misc.js',
       '/contacts/js/contacts_matcher.js',
       '/contacts/js/contacts_merger.js',
       '/contacts/js/utilities/image_thumbnail.js',

@@ -105,5 +105,5 @@ utils.importFromVcard = function(file, callback) {
                              cancel, retry);
       utils.overlay.hide();
     }
-  });
+  }, Contacts.SHARED_UTILITIES);
 };

@@ -1,14 +1,15 @@
-/* global MockLazyLoader, MockMatcher, MockMozContacts, MocksHelper,
+/* global MockMatcher, MockMozContacts, MocksHelper,
     mozContact, VCFReader */
 
 'use strict';
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_moz_contact.js');
+require('/shared/js/contacts/import/utilities/vcard_parser.js');
+
 requireApp('communications/contacts/test/unit/mock_contacts_match.js');
-requireApp('communications/contacts/js/utilities/vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
-require('/shared/test/unit/mocks/mock_moz_contact.js');
 
 var vcf1 = 'BEGIN:VCARD\n' +
   'VERSION:2.1\n' +
@@ -136,16 +137,12 @@ if (!window.contacts) {
   window.contacts = null;
 }
 
-if (!window.LazyLoader) {
-  window.LazyLoader = null;
-}
-
 if (!window.utils) {
   window.utils = null;
 }
 
 var mocksHelperForVCardParsing = new MocksHelper([
-  'mozContact'
+  'LazyLoader','mozContact'
 ]).init();
 
 suite('vCard parsing settings', function() {
@@ -170,7 +167,7 @@ suite('vCard parsing settings', function() {
 
   mocksHelperForVCardParsing.attachTestHelpers();
 
-  var realMozContacts, realMatcher, realLazyLoader, realUtils;
+  var realMozContacts, realMatcher, realUtils;
   suite('SD Card import', function() {
     setup(function() {
       navigator.mozContacts.contacts = [];
@@ -197,9 +194,6 @@ suite('vCard parsing settings', function() {
       realMatcher = window.contacts.Matcher;
       window.contacts.Matcher = MockMatcher;
 
-      realLazyLoader = window.LazyLoader;
-      window.LazyLoader = MockLazyLoader;
-
       realUtils = window.utils;
       window.utils = {
         'misc' : {
@@ -213,7 +207,6 @@ suite('vCard parsing settings', function() {
     suiteTeardown(function() {
       navigator.mozContacts = realMozContacts;
       window.contacts.Matcher = realMatcher;
-      window.LazyLoader = realLazyLoader;
       window.utils = realUtils;
     });
 

@@ -173,7 +173,7 @@ var TelephonyHelper = (function() {
 
     var confMsg = document.getElementById('confirmation-message');
 
-    LazyLoader.load(['/contacts/js/utilities/confirm.js', confMsg], function() {
+    LazyLoader.load(['/shared/js/confirm.js', confMsg], function() {
       navigator.mozL10n.translate(confMsg);
       confirmLoaded = true;
       cb();

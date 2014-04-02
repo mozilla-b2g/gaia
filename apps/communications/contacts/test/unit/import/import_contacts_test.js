@@ -5,7 +5,6 @@
 /* global LazyLoader */
 /* global MyLocks */
 /* global utils */
-/* global TestUrlResolver */
 /* global MockWakeLock */
 /* global MockasyncStorage */
 /* global MockMozL10n */
@@ -89,8 +88,7 @@ suite('Import contacts >', function() {
     document.body.innerHTML = MockContactsIndexHtml;
     contacts.Settings.init();
 
-    LazyLoader.load(TestUrlResolver.resolve(
-      'communications/contacts/js/utilities/status.js'), done);
+    LazyLoader.load('/shared/js/contacts/import/utilities/status.js', done);
   });
 
   suiteTeardown(function() {

@@ -144,7 +144,7 @@ var utils = window.utils || {};
       break;
       case 'progressBar':
         progressElement.classList.remove('pack-activity');
-         setAsProgress();
+        setAsProgress();
       break;
     }
   }

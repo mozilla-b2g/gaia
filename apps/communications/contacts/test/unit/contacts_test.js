@@ -32,8 +32,12 @@ if (!window.utils) {
 if (!window.ActivityHandler) {
   window.ActivityHandler = null;
 }
-var globals = ['COMMS_APP_ORIGIN', '_', 'TAG_OPTIONS', 'asyncScriptsLoaded',
-               'SCALE_RATIO', 'Contacts'];
+var globals = ['COMMS_APP_ORIGIN',
+               'TAG_OPTIONS',
+               '_',
+               'asyncScriptsLoaded',
+               'SCALE_RATIO',
+               'Contacts'];
 globals.forEach(function(item) {
   if (!window[item]) {
     window[item] = null;
