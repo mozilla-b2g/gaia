@@ -83,6 +83,12 @@ nav[data-role="tabs"] {
   background-repeat: no-repeat, no-repeat, repeat-x;
   background-origin: padding-box;
   background-size: auto 3.6rem;
+  font-weight: normal;
+}
+
+/* override [BB]Tabs */
+#tab-headers .bb-tablist li a.selected:after {
+  display: none;
 }
 
 section.bb-tabpanel {
