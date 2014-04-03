@@ -165,7 +165,7 @@ suite('controllers/preview-gallery', function() {
       var item = {
         blob: {},
         filepath: 'root/fileName',
-        isVideo: false
+        isVideo: true
       };
 
       this.app.activity = {
@@ -183,7 +183,7 @@ suite('controllers/preview-gallery', function() {
       var item = {
         blob: {},
         filepath: 'root/fileName',
-        isVideo: false
+        isVideo: true
       };
 
       var data = {

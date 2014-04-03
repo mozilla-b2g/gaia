@@ -8,8 +8,8 @@ define(function(require, exports, module) {
 var debug = require('debug')('controller:preview-gallery');
 var bindAll = require('lib/bind-all');
 var PreviewGalleryView = require('views/preview-gallery');
-var parseJPEGMetadata = require('jpegMetaDataParser');
 var createThumbnailImage = require('lib/create-thumbnail-image');
+var preparePreview = require('lib/prepare-preview-blob');
 
 /**
  * The size of the thumbnail images we generate.
@@ -236,8 +236,24 @@ PreviewGalleryController.prototype.onNewMedia = function(item) {
     return;
   }
 
-  this.items.unshift(item);
-  this.updateThumbnail();
+  var self = this;
+
+  if (item.isVideo) {
+    // If the new media is video, use it as-is
+    addNewMedia(item);
+  } else {
+    // If it is a photo, find its EXIF preview first
+    preparePreview(item.blob, function(metadata) {
+      metadata.blob = item.blob;
+      metadata.filepath = item.filepath;
+      addNewMedia(metadata);
+    });
+  }
+
+  function addNewMedia(item) {
+    self.items.unshift(item);
+    self.updateThumbnail();
+  }
 };
 
 PreviewGalleryController.prototype.previewItem = function() {
@@ -309,16 +325,11 @@ PreviewGalleryController.prototype.updateThumbnail = function() {
                          media.rotation, media.mirrored, gotThumbnail);
   } else {
     // If it is a photo we want to use the EXIF preview rather than
-    // decoding the whole image if we can, so look for a preview first.
-    parseJPEGMetadata(media.blob, onJPEGParsed);
-  }
-
-  function onJPEGParsed(metadata) {
+    // decoding the whole image if we can.
     var blob;
-
-    if (metadata.preview) {
+    if (media.preview) {
       // If JPEG contains a preview we use it to create the thumbnail
-      blob = media.blob.slice(metadata.preview.start, metadata.preview.end,
+      blob = media.blob.slice(media.preview.start, media.preview.end,
                               'image/jpeg');
     } else {
       // Otherwise, use the full-size image
@@ -326,7 +337,8 @@ PreviewGalleryController.prototype.updateThumbnail = function() {
     }
 
     createThumbnailImage(blob, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT,
-                         metadata.rotation, metadata.mirrored, gotThumbnail);
+                         media.rotation, media.mirrored, gotThumbnail);
+
   }
 
   function gotThumbnail(blob) {
