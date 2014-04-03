@@ -19,7 +19,6 @@ requireApp('system/test/unit/mock_home_gesture.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_media_recording.js');
-requireApp('system/test/unit/mock_permission_manager.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_remote_debugger.js');
 requireApp('system/test/unit/mock_rocketbar.js');
@@ -74,8 +73,7 @@ mocha.globals([
   'ActivityWindowFactory',
   'visibilityManager',
   'applications',
-  'layoutManager',
-  'permissionManager'
+  'layoutManager'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
@@ -87,7 +85,6 @@ var mocksForBootstrap = new MocksHelper([
   'HomeGesture',
   'HomescreenLauncher',
   'MediaRecording',
-  'PermissionManager',
   'Places',
   'RemoteDebugger',
   'Rocketbar',
