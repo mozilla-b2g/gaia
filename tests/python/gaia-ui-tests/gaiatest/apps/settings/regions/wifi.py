@@ -24,9 +24,11 @@ class Wifi(Base):
         self.wait_for_condition(lambda m: self.is_wifi_enabled)
 
     def connect_to_network(self, network_info):
+        # Wait for the networks to be found
         this_network_locator = ('xpath', "//li/a[text()='%s']" % network_info['ssid'])
-         # Wait for the networks to be found
         this_network = self.wait_for_element_present(*this_network_locator)
+
+        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [this_network])
         this_network.tap()
 
         if network_info.get('keyManagement'):
