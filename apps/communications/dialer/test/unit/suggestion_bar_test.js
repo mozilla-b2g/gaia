@@ -1,34 +1,44 @@
+/* globals MockCallHandler, MockContacts, MockFbContacts, MocksHelper,
+           MockNavigatorMozIccManager, SuggestionBar */
+
 'use strict';
 
-requireApp('communications/dialer/test/unit/mock_contacts.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
-requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
-requireApp('communications/dialer/test/unit/mock_keypad.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/dialer/test/unit/mock_contacts.js');
+require('/dialer/test/unit/mock_l10n.js');
+require('/dialer/test/unit/mock_lazy_loader.js');
+require('/dialer/test/unit/mock_keypad.js');
+require('/dialer/test/unit/mock_call_handler.js');
 
-requireApp('communications/dialer/js/suggestion_bar.js');
-requireApp('communications/shared/js/simple_phone_matcher.js');
+require('/dialer/js/suggestion_bar.js');
+require('/shared/js/simple_phone_matcher.js');
 require('/shared/test/unit/mocks/mock_fb_data_reader.js');
 
 var mocksHelperForSuggestionBar = new MocksHelper([
   'Contacts',
   'LazyL10n',
   'LazyLoader',
-  'KeypadManager'
+  'KeypadManager',
+  'CallHandler'
 ]).init();
 
-var realFbContacts;
-
-if (!this.fb) {
-  this.fb = null;
-}
+mocha.globals(['fb']);
 
 suite('suggestion Bar', function() {
+  var realFbContacts;
+  var realMozIccManager;
+
   mocksHelperForSuggestionBar.attachTestHelpers();
 
   suiteSetup(function() {
     window.fb = window.fb || {};
     realFbContacts = window.fb.contacts;
     window.fb.contacts = MockFbContacts;
+
+    realMozIccManager = navigator.mozIccManager;
+    navigator.mozIccManager = MockNavigatorMozIccManager;
+
+    MockNavigatorMozIccManager.mTeardown();
   });
 
   var domSuggestionBar;
@@ -104,6 +114,8 @@ suite('suggestion Bar', function() {
 
   setup(function() {
     subject = SuggestionBar;
+
+    MockNavigatorMozIccManager.addIcc(0, {});
 
     domSuggestionBar = document.createElement('section');
     domSuggestionBar.id = 'suggestion-bar';
@@ -270,27 +282,72 @@ suite('suggestion Bar', function() {
         'should hide suggestion list');
   });
 
-  test('#tap on suggestion list', function(done) {
-    var item = document.createElement('li');
-    item.className = 'suggestion-item';
-    item.innerHTML =
-          '<span class="tel">3434<span class="matched">343</span>434</span>';
-    subject.list.appendChild(item);
+  suite('#tap on suggestions list', function() {
+    var createSuggestionAndClickOnIt = function() {
+      var item = document.createElement('li');
+      item.className = 'suggestion-item';
+      item.innerHTML =
+        '<span class="tel">3434<span class="matched">343</span>434</span>';
+      subject.list.appendChild(item);
 
-    window.KeypadManager.mOnMakeCall = function(number) {
-      assert.equal(number, '3434343434',
-        'Should make call through KeypadManager for number 3434343434');
-      done();
+      triggerEvent(item, 'click');
     };
-    triggerEvent(item, 'click');
+
+    test('with one SIM', function() {
+      var callSpy = this.sinon.spy(MockCallHandler, 'call');
+      createSuggestionAndClickOnIt();
+      sinon.assert.calledWith(callSpy, '3434343434', 0);
+    });
+
+    test('with two SIMs', function() {
+      MockNavigatorMozIccManager.addIcc(1, {});
+
+      var callSpy = this.sinon.spy(MockCallHandler, 'call');
+      var hideOverlaySpy = this.sinon.spy(subject, 'hideOverlay');
+      createSuggestionAndClickOnIt();
+      sinon.assert.notCalled(callSpy);
+      sinon.assert.calledOnce(hideOverlaySpy);
+    });
+  });
+
+  suite('#update suggestions - exact match', function() {
+    var setupExactMatch = function() {
+      var enteredNumber = '1234567890';
+
+      MockContacts.mResult = mockResult1;
+      MockFbContacts.mResult = [];
+      subject.update(enteredNumber);
+    };
+
+    test('one SIM', function() {
+      var mockNumber = '1234567890';
+      var tel = domSuggestionBar.querySelector('.tel');
+
+      setupExactMatch();
+
+      assert.isFalse(domSuggestionBar.hidden,
+                     'should not hide suggestionBar');
+      assert.equal(tel.textContent, mockNumber);
+    });
+
+    test('two SIMs', function() {
+      MockNavigatorMozIccManager.addIcc(1, {});
+      setupExactMatch();
+
+      assert.isTrue(domSuggestionBar.hidden, 'should hide suggestionBar');
+    });
   });
 
   teardown(function() {
     document.body.removeChild(domSuggestionBar);
     document.body.removeChild(domOverlay);
+
+    MockNavigatorMozIccManager.mTeardown();
   });
 
   suiteTeardown(function() {
     window.fb.contacts = realFbContacts;
+
+    navigator.mozIccManager = realMozIccManager;
   });
 });

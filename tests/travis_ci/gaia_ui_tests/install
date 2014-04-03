@@ -23,6 +23,10 @@ python setup.py develop
 
 cd $ROOT;
 
+echo "remove the previously created dir b2g/ and profile/ if they exist"
+rm -rf  b2g/
+rm -rf  profile/
+
 echo "downloading b2g-desktop"
 make b2g
 

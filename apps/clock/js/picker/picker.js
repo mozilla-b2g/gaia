@@ -1,6 +1,7 @@
 define(function(require) {
   'use strict';
   var Spinner = require('picker/spinner');
+  var _ = require('l10n').get;
   /**
    * Picker
    *
@@ -17,15 +18,18 @@ define(function(require) {
    *   element: 'time-picker',
    *   pickers: {
    *     hours: {
-   *       range: [0, 24]
+   *       range: [0, 24],
+   *       valueText: 'nSpinnerHours'
    *     },
    *     minutes: {
    *       range: [0, 60],
-   *       isPadded: true
+   *       isPadded: true,
+   *       valueText: 'nSpinnerMinutes'
    *     },
    *     seconds: {
    *       range: [0, 60],
-   *       isPadded: true
+   *       isPadded: true,
+   *       valueText: 'nSpinnerSeconds'
    *     }
    *   }
    * });
@@ -40,16 +44,22 @@ define(function(require) {
       var values = [];
       var range = setup.pickers[picker].range;
       var isPadded = setup.pickers[picker].isPadded || false;
+      var valueText = setup.pickers[picker].valueText;
+      var textValues = [];
 
       this.nodes[picker] = setup.element.querySelector('.picker-' + picker);
 
       for (var i = range[0]; i <= range[1]; i++) {
         values.push(isPadded && i < 10 ? '0' + i : i);
+        if (valueText) {
+          textValues.push(_(valueText, { n: i }));
+        }
       }
 
       this.spinners[picker] = new Spinner({
         element: this.nodes[picker],
-        values: values
+        values: values,
+        textValues: textValues.length ? textValues : values
       });
     }, this);
   }

@@ -1,5 +1,6 @@
 {
   "blacklist": [
+    "apps/clock/test/marionette/alarm_test.js",
     "apps/email/test/marionette/activity_create_email_account_complete_test.js",
     "apps/email/test/marionette/local_drafts_test.js",
     "apps/email/test/marionette/next_previous_test.js",
@@ -8,6 +9,8 @@
     "apps/email/test/marionette/notification_foreground_test.js",
     "apps/email/test/marionette/notification_set_interval_test.js",
     "apps/email/test/marionette/reply_imap_email_test.js",
-    "apps/email/test/marionette/send_imap_email_test.js"
+    "apps/email/test/marionette/send_imap_email_test.js",
+    "apps/homescreen/test/marionette/install_bookmark_test.js",
+    "apps/music/test/marionette/Player_test.js"
   ]
 }

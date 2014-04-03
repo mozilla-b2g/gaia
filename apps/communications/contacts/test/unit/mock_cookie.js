@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockCookie */
 
 var MockCookie = {
   data: {},

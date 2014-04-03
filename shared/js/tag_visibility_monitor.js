@@ -1,4 +1,5 @@
-
+/* exported monitorTagVisibility */
+'use strict';
 /*====================================
   monitorTagVisibility
     generalized function to watch children of a container
@@ -105,6 +106,8 @@ function monitorTagVisibility(
   var ON = 0;
   var AFTER = 1;
 
+  var ELEMENT_NODE = Node.ELEMENT_NODE;
+
   //====================================
   //  init
   //====================================
@@ -178,6 +181,7 @@ function monitorTagVisibility(
   //====================================
 
   function mutationHandler(mutations) {
+    var recomputed = false;
     // some of the removals may have messed with our first/last child on screen
     fixRange(mutations);
 
@@ -187,8 +191,13 @@ function monitorTagVisibility(
       if (mutation.addedNodes) {
         for (var j = 0; j < mutation.addedNodes.length; j++) {
           var child = mutation.addedNodes[j];
-          if (child.nodeType === Node.ELEMENT_NODE &&
+          if (child.nodeType === ELEMENT_NODE &&
               child.tagName === tag) {
+            // We have to recompute first and last items after adding a new one
+            if (!recomputed) {
+              recomputed = true;
+              recomputeFirstAndLastOnscreen();
+            }
             if (child === state.firstChild ||
                 child === state.lastChild ||
                 (after(child, state.firstChild) &&
@@ -217,7 +226,7 @@ function monitorTagVisibility(
       if (mutation.addedNodes) {
         for (var j = 0; j < mutation.addedNodes.length; j++) {
           var child = mutation.addedNodes[j];
-          if (child.nodeType === Node.ELEMENT_NODE &&
+          if (child.nodeType === ELEMENT_NODE &&
             child.tagName === tag) {
             numNodesAdded += 1;
             // Determine if this new child is being appended below the
@@ -268,20 +277,23 @@ function monitorTagVisibility(
     //      chidlren
     function fixIndex(index, target, dir) {
       var sibling;
-      if (dir == FORWARDS)
+      if (dir == FORWARDS) {
         sibling = 'nextSibling';
-      else
+      } else {
         sibling = 'previousSibling';
+      }
       while (target !== null &&
              removedNodes.has(target)
       ) {
         target = removedNodes.get(target)[sibling];
       }
       var limit = getLimit(dir);
-      if (dir == FORWARDS && index > limit)
+      if (dir == FORWARDS && index > limit) {
         index = limit;
-      while (state.children[index] !== target && index !== limit)
+      }
+      while (state.children[index] !== target && index !== limit) {
         index += dir;
+      }
       return index;
     }
 
@@ -352,16 +364,18 @@ function monitorTagVisibility(
     var limit = getLimit(dir);
     while (relativeVisibilityPosition(container, state.children[guess]) !==
            visibilityPosition) {
-      if (guess === limit)
+      if (guess === limit) {
         break;
+      }
       guess += dir;
     }
     // move back towards container
     limit = getLimit(-dir);
     while (relativeVisibilityPosition(container, state.children[guess]) ===
            visibilityPosition) {
-      if (guess === limit)
+      if (guess === limit) {
         break;
+      }
       guess += -dir;
     }
     return guess;
@@ -422,21 +436,25 @@ function monitorTagVisibility(
     }
     else { // overlapping
       // onscreen at top
-      if (state.firstChildIndex < state.prev.firstChildIndex)
+      if (state.firstChildIndex < state.prev.firstChildIndex) {
         notifyOnscreenInRange(state.firstChildIndex,
                               state.prev.firstChildIndex - 1);
+      }
       // onscreen at bottom
-      if (state.lastChildIndex > state.prev.lastChildIndex)
+      if (state.lastChildIndex > state.prev.lastChildIndex) {
         notifyOnscreenInRange(state.prev.lastChildIndex + 1,
                               state.lastChildIndex);
+      }
       // offscreen at top
-      if (state.firstChildIndex > state.prev.firstChildIndex)
+      if (state.firstChildIndex > state.prev.firstChildIndex) {
         notifyOffscreenInRange(state.prev.firstChildIndex,
                                state.firstChildIndex - 1);
+      }
       // offscreen at bottom
-      if (state.lastChildIndex < state.prev.lastChildIndex)
+      if (state.lastChildIndex < state.prev.lastChildIndex) {
         notifyOffscreenInRange(state.lastChildIndex + 1,
                                state.prev.lastChildIndex);
+      }
     }
 
     state.prev.firstChildIndex = state.firstChildIndex;
@@ -459,10 +477,12 @@ function monitorTagVisibility(
 
     var childTop = child.offsetTop;
     var childBottom = childTop + child.offsetHeight;
-    if (childBottom <= screenTop)
+    if (childBottom <= screenTop) {
       return BEFORE;
-    if (childTop >= screenBottom)
+    }
+    if (childTop >= screenBottom) {
       return AFTER;
+    }
     return ON;
   }
 
@@ -479,10 +499,11 @@ function monitorTagVisibility(
   //====================================
 
   function getLimit(dir) {
-    if (dir === 1)
+    if (dir === 1) {
       return Math.max(0, state.children.length - 1);
-    else
+    } else {
       return 0;
+    }
   }
 
   function notifyOnscreenInRange(start, stop) {
@@ -530,8 +551,9 @@ function monitorTagVisibility(
   }
 
   function resumeMonitoringMutations(forceVisibilityUpdate) {
-    if (state.stopped)
+    if (state.stopped) {
       return;
+    }
     state.observer.observe(container, { childList: true, subtree: true });
 
     if (forceVisibilityUpdate) {

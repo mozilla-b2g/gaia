@@ -1,14 +1,14 @@
 Calendar.ns('Models').Calendar = (function() {
+  'use strict';
 
   function Cal(options) {
-    var key;
     if (typeof(options) === 'undefined') {
       options = {};
     }
 
     this.remote = {};
 
-    for (key in options) {
+    for (var key in options) {
       if (options.hasOwnProperty(key)) {
         this[key] = options[key];
       }
@@ -94,6 +94,21 @@ Calendar.ns('Models').Calendar = (function() {
       var remote = this.remote.syncToken;
 
       return local != remote;
+    },
+
+    set name(name) {
+      this.remote.name = name;
+      return this.remote.name;
+    },
+
+    set color(color) {
+      this.remote.color = color;
+      return this.remote.color;
+    },
+
+    set description(description) {
+      this.remote.description = description;
+      return this.remote.description;
     },
 
     get name() {

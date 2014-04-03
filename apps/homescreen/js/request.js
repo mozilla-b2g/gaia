@@ -26,19 +26,27 @@ var ConfirmDialog = (function() {
 
   return {
     hide: function dialog_hide() {
-      dialog.classList.remove('visible');
       cancelButton.onclick = confirmButton.onclick = null;
+
+      var classList = dialog.classList;
+      if (classList.contains('show')) {
+        dialog.addEventListener('transitionend', function transitionend() {
+          dialog.removeEventListener('transitionend', transitionend);
+          classList.remove('visible');
+        });
+        classList.remove('show');
+      }
     },
 
     show: function dialog_show(title, msg, cancel, confirm, icon) {
-	  
+
 	  //Make sure send app to dialog is hidden at first.
 	  document.getElementById('app_manage').style.display='block';
 	  document.getElementById('send_manage').style.display='none';
-		
+
 	  //Slice "remove" or "delete" from the dialog title
 	  title = title.slice(7);
-	
+
       titleElem.textContent = title;
 
       IconRetriever.get({
@@ -50,7 +58,7 @@ var ConfirmDialog = (function() {
           appIcon.appendChild(image);
         },
         error: function(){
-          return false; 
+          return false;
         }
       });
 
@@ -77,6 +85,13 @@ var ConfirmDialog = (function() {
       }
 
       dialog.classList.add('visible');
+      setTimeout(function animate() {
+        dialog.addEventListener('transitionend', function transitionend() {
+          dialog.removeEventListener('transitionend', transitionend);
+          cancelButton.onclick = confirmButton.onclick = clickHandler;
+        });
+        dialog.classList.add('show');
+      }, 50); // Give the opportunity to paint the UI component
     },
 
     showApp: function dialog_showApp(icon) {

@@ -1,4 +1,5 @@
 (function(window) {
+  'use strict';
 
   var MINUTE = 60;
   var HOUR = 3600;
@@ -45,13 +46,13 @@
 
       // Format the display text based on a zero-offset trigger
       if (this.arg('layout') == 'allday') {
-        var options = layouts['allday'];
+        var options = layouts.allday;
         if (options.indexOf(trigger) !== -1) {
           trigger -= MORNING;
         }
       }
 
-      if (trigger == 0) {
+      if (trigger === 0) {
         description = _('alarm-at-event-' + this.arg('layout'));
       } else {
         var affix = trigger > 0 ? 'after' : 'before';

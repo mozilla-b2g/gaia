@@ -6,7 +6,7 @@ module.exports = [
   {
     name: 'shutter',
     setting: 'camera.shutter.enabled',
-    url: './resources/sounds/shutter.opus'
+    url: './resources/sounds/shutter.ogg'
   },
   {
     name: 'recordingStart',

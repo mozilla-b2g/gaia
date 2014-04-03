@@ -1,5 +1,6 @@
-
 'use strict';
+/* global MockDownload */
+/* exported MockMozDownloads */
 
 /*
  * This mockup needs to import as well:
@@ -45,5 +46,12 @@ var MockMozDownloads = {
     setTimeout(function() {
       handler(download);
     });
+  },
+  remove: function(download) {
+    return {
+      then: function(success, error) {
+        success(download);
+      }
+    };
   }
 };

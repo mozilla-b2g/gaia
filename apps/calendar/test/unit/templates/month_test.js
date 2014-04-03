@@ -1,4 +1,6 @@
 suiteGroup('Templates.Month', function() {
+  'use strict';
+
   var subject;
 
   suiteSetup(function() {

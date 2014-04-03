@@ -1,69 +1,142 @@
+'use strict';
+
 (function(exports) {
-  'use strict';
 
-  // Add the suggestions panel to the keyboard display area
-  var suggestionsContainer = document.createElement('div');
-  suggestionsContainer.className = 'suggestions';
-  document.getElementById('keyboard-container')
-    .appendChild(suggestionsContainer);
+  function Suggestions(autoCorrect) {
+    this._started = false;
+    this.autoCorrect = autoCorrect;
+  }
 
-  function display(suggestions) {
+  Suggestions.prototype.CONTAINER_CLASS_NAME = 'suggestions';
+
+  Suggestions.prototype.start = function start() {
+    if (this._started) {
+      throw 'Instance should not be start()\'ed twice.';
+    }
+    this._started = true;
+
+    // Add the suggestions panel to the keyboard display area
+    this.suggestionsContainer = document.createElement('div');
+    this.suggestionsContainer.className = this.CONTAINER_CLASS_NAME;
+    this.autoCorrect.container.appendChild(this.suggestionsContainer);
+
+    // Use touchend events to detect clicks on the word suggestions.
+    // If we want to add gesture support to dismiss, we'll need something
+    // more sophisticated
+    this.suggestionsContainer.addEventListener('touchend', this);
+  };
+
+  Suggestions.prototype.stop = function stop() {
+    if (!this._started) {
+      throw 'Instance was never start()\'ed but stop() is called.';
+    }
+    this._started = false;
+
+    this.suggestionsContainer.removeEventListener('touchend', this);
+    this.autoCorrect.container.removeChild(this.suggestionsContainer);
+
+    this.suggestionsContainer = null;
+  };
+
+  // EventTarget methods
+  Suggestions.prototype.addEventListener =
+    function addEventListener(type, handler) {
+      this.suggestionsContainer.addEventListener(type, handler);
+    };
+
+  Suggestions.prototype.removeEventListener =
+    function removeEventListener(type, handler) {
+      this.suggestionsContainer.removeEventListener(type, handler);
+    };
+
+  Suggestions.prototype.handleEvent = function handleEvent(evt) {
+    // handle touchend event from suggestions.
+
+    var target = evt.target;
+    // Loop up from the touch target element until we find a suggestion
+    // and then dispatch an event about it. Or, if we find the dismiss
+    // button, then dismiss the suggestions.
+    while (target !== this.suggestionsContainer) {
+      var event;
+      if (target.classList.contains('suggestion')) {
+        var word = target.dataset.word + ' ';
+        event = new CustomEvent('suggestionselected', { detail: word });
+        this.suggestionsContainer.dispatchEvent(event);
+
+        return;
+      }
+
+      if (target.classList.contains('dismiss-suggestions-button')) {
+        event = new CustomEvent('suggestionsdismissed');
+        this.suggestionsContainer.dispatchEvent(event);
+
+        return;
+      }
+
+      target = target.parentNode;
+    }
+  };
+
+  Suggestions.prototype.display = function display(suggestions) {
     // Clear any previous suggestions
-    suggestionsContainer.textContent = '';
+    this.suggestionsContainer.textContent = '';
 
     if (suggestions.length) {
       // Add a dismiss button to the container
       var dismissButton = document.createElement('div');
       dismissButton.classList.add('dismiss-suggestions-button');
-      suggestionsContainer.appendChild(dismissButton);
+      this.suggestionsContainer.appendChild(dismissButton);
 
       // Figure out how much room is left for each suggestion
-      var width = suggestionsContainer.clientWidth - dismissButton.clientWidth;
+      var width = this.suggestionsContainer.clientWidth -
+        dismissButton.clientWidth;
       width /= suggestions.length;
       width -= 6;    // 3px margin on each side
       width += 'px'; // Add CSS units
 
       // And display the suggesions
       suggestions.forEach(function(word) {
-        appendSuggestion(word, width);
-      });
+        this._appendSuggestion(word, width);
+      }, this);
     }
-  }
+  };
 
-  function appendSuggestion(word, width) {
-    // Each suggestion gets its own div
-    var div = document.createElement('div');
+  Suggestions.prototype._appendSuggestion =
+    function _appendSuggestion(word, width) {
+      // Each suggestion gets its own div
+      var div = document.createElement('div');
 
-    // Give it a class for styling, but explictly set the width
-    div.className = 'suggestion';
-    div.style.width = width;
+      // Give it a class for styling, but explictly set the width
+      div.className = 'suggestion';
+      div.style.width = width;
 
-    // Add the empty suggestion to the container now so we can measure
-    // the word inside it.
-    suggestionsContainer.appendChild(div);
+      // Add the empty suggestion to the container now so we can measure
+      // the word inside it.
+      this.suggestionsContainer.appendChild(div);
 
-    if (word[0] === '*') { // it is an autocorrection candidate
-      word = word.substring(1);
-      div.classList.add('autocorrect');
-    }
+      if (word[0] === '*') { // it is an autocorrection candidate
+        word = word.substring(1);
+        div.classList.add('autocorrect');
+      }
 
-    fitWord(div, word);
-    div.dataset.word = word;
-  }
+      this._fitWord(div, word);
+      div.dataset.word = word;
+    };
 
   // Remove any existing content of the container and display the
   // specified word in it, adjusting the scaling to make the word
   // fit. The word is placed in a span inside the container.  The
   // container must be in the document for the measurement to work.
-  function fitWord(container, word) {
+  Suggestions.prototype._fitWord = function fitWord(container, word) {
     container.textContent = '';
-    if (!word)
+    if (!word) {
       return null;
+    }
     var span = document.createElement('span');
     span.textContent = word;
     container.appendChild(span);
 
-    var limit = .6;  // Dont use a scale smaller than this
+    var limit = 0.6;  // Dont use a scale smaller than this
     var scale = getScale(span, container);
 
     // If the word does not fit within the scaling limit,
@@ -102,57 +175,24 @@
     function getScale(element, container) {
       var elementWidth = element.getBoundingClientRect().width;
       var s = container.clientWidth / elementWidth;
-      if (s >= 1)
+      if (s >= 1) {
         return 1;    // 10pt font "Body Large"
-      if (s >= .8)
-        return .8;   // 8pt font "Body"
-      if (s >= .7)
-        return .7;   // 7pt font "Body Medium"
-      if (s >= .65)
-        return .65;  // 6.5pt font "Body Small"
-      if (s >= .6)
-        return .6;   // 6pt font "Body Mini"
+      }
+      if (s >= 0.8) {
+        return 0.8;   // 8pt font "Body"
+      }
+      if (s >= 0.7) {
+        return 0.7;   // 7pt font "Body Medium"
+      }
+      if (s >= 0.65) {
+        return 0.65;  // 6.5pt font "Body Small"
+      }
+      if (s >= 0.6) {
+        return 0.6;   // 6pt font "Body Mini"
+      }
       return s;      // Something smaller than 6pt.
     }
-  }
-
-  // Use touchend events to detect clicks on the word suggestions.
-  // If we want to add gesture support to dismiss, we'll need something
-  // more sophisticated
-  suggestionsContainer.ontouchend = function(e) {
-    var target = e.target;
-    // Loop up from the touch target element until we find a suggestion
-    // and then dispatch an event about it. Or, if we find the dismiss
-    // button, then dismiss the suggestions.
-    while (target !== suggestionsContainer) {
-      if (target.classList.contains('suggestion')) {
-        var word = target.dataset.word + ' ';
-        var event = new CustomEvent('suggestionselected', { detail: word });
-        suggestionsContainer.dispatchEvent(event);
-        return;
-      }
-      else if (target.classList.contains('dismiss-suggestions-button')) {
-        var event = new CustomEvent('suggestionsdismissed');
-        suggestionsContainer.dispatchEvent(event);
-        return;
-      }
-      target = target.parentNode;
-    }
   };
 
-  // EventTarget methods
-  function addEventListener(type, handler) {
-    suggestionsContainer.addEventListener(type, handler);
-  }
-
-  function removeEventListener(type, handler) {
-    suggestionsContainer.removeEventListener(type, handler);
-  }
-
-  exports.Suggestions = {
-    display: display,
-    addEventListener: addEventListener,
-    removeEventListener: removeEventListener
-  };
-
+  exports.Suggestions = Suggestions;
 }(window));

@@ -1,3 +1,4 @@
+/* globals oauthflow, asyncStorage */
 'use strict';
 
 (function() {
@@ -13,7 +14,7 @@
   }
 
   importUtils.getPreferredPictureBox = function() {
-    var imgThumbSize = oauthflow.params['facebook'].imgThumbSize;
+    var imgThumbSize = oauthflow.params.facebook.imgThumbSize;
     var out = {
       width: scale(imgThumbSize)
     };
@@ -24,7 +25,7 @@
   };
 
   importUtils.getPreferredPictureDetail = function() {
-    var imgDetailWidth = oauthflow.params['facebook'].imgDetailWidth;
+    var imgDetailWidth = oauthflow.params.facebook.imgDetailWidth;
     return scale(imgDetailWidth);
   };
 

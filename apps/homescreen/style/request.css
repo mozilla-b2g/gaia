@@ -7,17 +7,22 @@
   height: 100%;
   display: none;
   z-index: 20001; /* just below the sleep menu */
-  background: rgba(51, 51, 51, 0.8); 
+  background: rgba(51, 51, 51, 0.8);
+  transition: opacity .2s;
+  will-change: opacity;
+  opacity: 0;
 }
 
 #confirm-dialog.visible {
   display: block;
 }
 
-/* BB defines padding: 0 1.5rem; */
-/*
+#confirm-dialog.show {
+  opacity: 1;
+}
+
 #confirm-dialog-title {
-  width: calc(100% - 3rem); 
+  width: calc(100% - 3rem);
   overflow: hidden;
   mask: url('app_name_mask.svg#fade_right_mask');
   text-overflow: '';
@@ -40,10 +45,10 @@
 	#confirm-dialog .first_word_space { margin-top:60px;margin-bottom:20px; }
 	#confirm-dialog .word_space { margin-top:25px;margin-bottom:25px; }
 	#confirm-dialog .word_style { font-size:18px;text-align:center; }
-	
+
 	/* App Options */
 	#confirm-dialog .app_grey_header { color:#858585;font-size:24px;font-weight:300;margin:0;text-align:center;padding-top:10px;padding-bottom:10px; }
-	
+
 	/* Send Options */
 	#confirm-dialog .send_grey_header { color:#858585;font-size:24px;font-weight:300;margin:0;text-align:center;padding-top:10px;padding-bottom:10px; }
-	#confirm-dialog .back_style { background-color:#D3D3D3;margin-top:-38px;margin-bottom:62px;margin-left:10px; }	
+	#confirm-dialog .back_style { background-color:#D3D3D3;margin-top:-38px;margin-bottom:62px;margin-left:10px; }

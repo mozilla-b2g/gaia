@@ -1,5 +1,8 @@
 'use strict';
 
+/* global importUtils, Normalizer, utils */
+/* exported FriendListRenderer */
+
 var FriendListRenderer = (function() {
 
   // Order criteria
@@ -196,7 +199,7 @@ var FriendListRenderer = (function() {
     }
 
     return out;
-  };
+  }
 
   function getGroupName(contact, order) {
     var ret = getStringToBeOrdered(contact, order);

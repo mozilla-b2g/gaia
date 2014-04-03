@@ -12,7 +12,15 @@ var MockDownloadHelper = {
     return {};
   },
 
+  bytes: 1000,
+
+  getFreeSpace: function(cb) {
+    this.methodCalled = 'getFreeSpace';
+    cb(this.bytes);
+  },
+
   mTeardown: function() {
+    this.bytes = 1000;
     this.methodCalled = null;
   }
 };

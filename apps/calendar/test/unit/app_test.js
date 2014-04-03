@@ -8,6 +8,7 @@ requireLib('router.js');
 requireLib('app.js');
 
 suite('app', function() {
+  'use strict';
 
   // don't need a real db for this;
   var subject;
@@ -87,9 +88,7 @@ suite('app', function() {
       fmt = Calendar.App.dateFormat = navigator.mozL10n.DateTimeFormat();
       expected = [];
 
-      var formatXDate = new Date(2012, 1, 1);
       var formatCDate = new Date(2012, 1, 1, 7, 2, 9);
-
       addExpect(formatCDate, 'myl10nKey', '%x');
       addExpect(formatCDate, 'otherl10nKey', '%c');
 
@@ -384,7 +383,6 @@ suite('app', function() {
   });
 
   test('#modifier', function() {
-    var uniq = function() {};
     subject.modifier('/foo', 'Mock');
 
     var route = page.routes[0];
@@ -399,8 +397,6 @@ suite('app', function() {
   suite('#route', function() {
 
     test('singleRoute', function() {
-      var mock = new Calendar.Views.Mock();
-
       subject.state('/single', 'Mock');
 
       var route = page.routes[0];
@@ -416,7 +412,6 @@ suite('app', function() {
     });
 
     test('twoRoutes', function() {
-      var uniq = function() {};
       subject.state('/foo', ['Mock', 'Mock']);
 
       var route = page.routes[0];

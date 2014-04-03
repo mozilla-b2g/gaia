@@ -44,11 +44,16 @@ marionette(mozTestInfo.appPath + ' >', function() {
         recentsButton.tap();
       });
 
-      performanceHelper.waitForPerfEvent(function(runResults) {
-        performanceHelper.reportRunDurations(runResults);
+      performanceHelper.waitForPerfEvent(function(runResults, error) {
+        if (error) {
+          app.close();
+          throw error;
+        } else {
+          performanceHelper.reportRunDurations(runResults);
 
-        assert.ok(Object.keys(runResults).length, 'empty results');
-        app.close();
+          assert.ok(Object.keys(runResults).length, 'empty results');
+          app.close();
+        }
       });
 
     });

@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockContactsList */
 
  function MockContactsList() {
   return [

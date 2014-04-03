@@ -3,7 +3,7 @@
 
 /*global Utils, MessageManager, Compose, OptionMenu, NotificationHelper,
          Attachment, Template, Notify, BlackList, Threads, SMIL, Contacts,
-         ThreadUI, Notification */
+         ThreadUI, Notification, Settings */
 /*exported ActivityHandler */
 
 'use strict';
@@ -90,16 +90,30 @@ var ActivityHandler = {
       function insertAttachments() {
         window.removeEventListener('hashchange', insertAttachments);
 
-        blobs.forEach(function(blob, idx) {
+        var attachments = blobs.map(function(blob, idx) {
           var attachment = new Attachment(blob, {
             name: names[idx],
             isDraft: true
           });
-          // TODO: We only allow sharing one item in a single action now.
-          //       Keeping the same sequence while adding the multiple items
-          //       should be considered in the future.
-          Compose.append(attachment);
+
+          return attachment;
         });
+
+        var size = attachments.reduce(function(size, attachment) {
+          if (attachment.type !== 'img') {
+            size += attachment.size;
+          }
+
+          return size;
+        }, 0);
+
+        if (size > Settings.mmsSizeLimitation) {
+          alert(navigator.mozL10n.get('files-too-large', { n: blobs.length }));
+          return;
+        }
+
+        ThreadUI.cleanFields(true);
+        Compose.append(attachments);
       }
 
       // Navigating to the 'New Message' page is an asynchronous operation that
@@ -292,6 +306,8 @@ var ActivityHandler = {
   /* === Incoming SMS support === */
 
   onSmsReceived: function ah_onSmsReceived(message) {
+    var _ = navigator.mozL10n.get;
+
     // Acquire the cpu wake lock when we receive an SMS.  This raises the
     // priority of this process above vanilla background apps, making it less
     // likely to be killed on OOM.  It also prevents the device from going to
@@ -373,10 +389,41 @@ var ActivityHandler = {
           'id=' + id
         ].join('&');
 
-        var goToMessage = function goToMessage() {
+        function goToMessage() {
           app.launch();
           ActivityHandler.handleMessageNotification(message);
-        };
+        }
+
+        function continueWithNotification(sender, body) {
+          var title = sender;
+          if (Settings.hasSeveralSim() && message.iccId) {
+            var simName = Settings.getSimNameByIccId(message.iccId);
+            title = _(
+              'dsds-notification-title-with-sim',
+              { sim: simName, sender: sender }
+            );
+          }
+
+          var options = {
+            icon: iconURL,
+            body: body,
+            tag: 'threadId:' + threadId
+          };
+
+          var notification = new Notification(title, options);
+          notification.addEventListener('click', goToMessage);
+          releaseWakeLock();
+
+          // Close notification if we are already in thread view and view become
+          // visible.
+          if (document.hidden && threadId === Threads.currentId) {
+            document.addEventListener('visibilitychange',
+              function onVisible() {
+                document.removeEventListener('visibilitychange', onVisible);
+                notification.close();
+            });
+          }
+        }
 
         function getTitleFromMms(callback) {
           // If message is not downloaded notification, we need to apply
@@ -387,7 +434,7 @@ var ActivityHandler = {
           // 'mms message' in the field.
           if (needManualRetrieve) {
             setTimeout(function notDownloadedCb() {
-              callback(navigator.mozL10n.get('notDownloaded-title'));
+              callback(_('notDownloaded-title'));
             });
           }
           else if (message.subject) {
@@ -405,7 +452,7 @@ var ActivityHandler = {
                 text = slideArray[i].text;
                 break;
               }
-              text = text ? text : navigator.mozL10n.get('mms-message');
+              text = text ? text : _('mms-message');
               callback(text);
             });
           }
@@ -420,18 +467,6 @@ var ActivityHandler = {
             contact[0].name.length && contact[0].name[0]) {
             sender = contact[0].name[0];
           }
-
-          var continueWithNotification =
-            function ah_continueWithNotification(sender, body) {
-              var options = {
-                icon: iconURL,
-                body: body,
-                tag: 'threadId:' + threadId
-              };
-              var notification = new Notification(sender, options);
-              notification.addEventListener('click', goToMessage.bind(this));
-              releaseWakeLock();
-            };
 
           if (message.type === 'sms') {
             continueWithNotification(sender, message.body);

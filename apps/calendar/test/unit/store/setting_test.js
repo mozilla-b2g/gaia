@@ -4,6 +4,7 @@ requireLib('store/abstract.js');
 requireLib('store/setting.js');
 
 suite('store/setting', function() {
+  'use strict';
 
   var subject;
   var db;

@@ -1,4 +1,7 @@
 'use strict';
+/* global MockNavigationStack */
+/* global ConfirmDialog */
+/* exported MockContacts */
 
 var MockContacts = {
   getLength: function(prop) {
@@ -30,6 +33,10 @@ var MockContacts = {
       'address-type' : [
         {type: 'home', value: 'Home'},
         {type: 'work', value: 'Work'}
+      ],
+      'date-type': [
+        {type: 'birthday', value: 'Birthday'},
+        {type: 'anniversary', value: 'Anniversary'}
       ]
     };
   },
@@ -65,5 +72,6 @@ var MockContacts = {
       'update': function() {}
     };
   },
-  showStatus: function(status) {}
+  showStatus: function(status) {},
+  updateSelectCountTitle: function(count) {}
 };

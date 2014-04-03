@@ -22,7 +22,7 @@ var ConferenceGroupHandler = (function() {
 
   function onCallsChanged() {
     var calls = telephony.conferenceGroup.calls;
-    CallScreen.updateSingleLine();
+    CallScreen.updateCallsDisplay();
     if (!calls.length) {
       CallScreen.hideGroupDetails();
     }

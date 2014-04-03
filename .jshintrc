@@ -26,5 +26,7 @@
   "browser": true,
   "devel": true,
   "nonstandard": true,
-  "worker": true
+  "worker": true,
+
+  "-W078": true
 }

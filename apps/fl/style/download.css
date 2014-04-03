@@ -26,9 +26,6 @@ body {
   font-size: 1.8rem;
 }
 
-#locked-content-advisory-icon {
-}
-
 #download-progress {
   width: calc(100% - 3rem);
   margin: .5rem 1.5rem .5rem 1.5rem;

@@ -1,6 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+/* exported NotificationHelper */
 'use strict';
 
 /**
@@ -18,8 +16,9 @@ var NotificationHelper = {
       icons = app.manifest.entry_points[entryPoint].icons;
     }
 
-    if (!icons)
+    if (!icons) {
       return null;
+    }
 
     var sizes = Object.keys(icons).map(function parse(str) {
       return parseInt(str, 10);
@@ -32,22 +31,25 @@ var NotificationHelper = {
   },
 
   send: function nc_send(title, body, icon, clickCB, closeCB) {
-    if (!('mozNotification' in navigator))
+    if (!('mozNotification' in navigator)) {
       return;
+    }
 
     var notification = navigator.mozNotification.createNotification(title,
                                                                     body, icon);
 
     notification.onclick = (function() {
-      if (clickCB)
+      if (clickCB) {
         clickCB();
+      }
 
       this._forget(notification);
     }).bind(this);
 
     notification.onclose = (function() {
-      if (closeCB)
+      if (closeCB) {
         closeCB();
+      }
 
       this._forget(notification);
     }).bind(this);

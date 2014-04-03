@@ -1,4 +1,5 @@
 Calendar.ns('Views').MonthsDay = (function() {
+  'use strict';
 
   var Parent = Calendar.Views.DayChild;
 
@@ -29,7 +30,6 @@ Calendar.ns('Views').MonthsDay = (function() {
     },
 
     _initEvents: function() {
-      var self = this;
       this.controller.on('selectedDayChange', this);
       this.delegate(this.events, 'click', '[data-id]', function(e, target) {
         Calendar.App.router.show('/event/show/' + target.dataset.id + '/');

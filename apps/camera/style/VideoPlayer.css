@@ -10,7 +10,7 @@
 .videoPlayer {
   position: absolute;
   left: 0; /* we position it with a transform */
-  top:0;
+  top: 0;
   transform-origin: 0 0;
 }
 
@@ -137,7 +137,7 @@ button::-moz-focus-inner {
 .videoPlayerElapsedBar,
 .videoPlayerBackgroundBar {
   height: 0.4rem;
-  width: 0%;
+  width: 0;
   top: 50%;
   margin-top: -0.2rem;
   border-radius: 0.6rem;

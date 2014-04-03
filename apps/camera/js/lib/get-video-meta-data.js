@@ -62,10 +62,6 @@ function createVideoPosterImage(blob, done) {
       offscreenVideo.removeAttribute('src');
       offscreenVideo.load();
 
-      // Save the poster image to
-      // storage, then call the done.
-      // The Gallery app depends on this
-      // poster image being saved here.
       postercanvas.toBlob(function(imageBlob) {
         done(null, {
           width: videowidth,

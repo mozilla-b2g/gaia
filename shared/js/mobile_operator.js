@@ -1,54 +1,5 @@
+/* exported MobileInfo, MobileOperator */
 'use strict';
-
-var MobileOperator = {
-  BRAZIL_MCC: '724',
-  BRAZIL_CELLBROADCAST_CHANNEL: 50,
-
-  userFacingInfo: function mo_userFacingInfo(mobileConnection) {
-    var network = mobileConnection.voice.network;
-    var iccid = mobileConnection.iccId;
-    var iccObj = navigator.mozIccManager.getIccById(iccid);
-    var iccInfo = iccObj ? iccObj.iccInfo : null;
-    var operator = network ? (network.shortName || network.longName) : null;
-
-    if (operator && iccInfo && iccInfo.isDisplaySpnRequired && iccInfo.spn &&
-        !mobileConnection.voice.roaming) {
-      if (iccInfo.isDisplayNetworkNameRequired && operator !== iccInfo.spn) {
-        operator = operator + ' ' + iccInfo.spn;
-      } else {
-        operator = iccInfo.spn;
-      }
-    }
-
-    var carrier, region;
-    if (this.isBrazil(mobileConnection)) {
-      // We are in Brazil, It is legally required to show local info
-      // about current registered GSM network in a legally specified way.
-      var lac = mobileConnection.voice.cell.gsmLocationAreaCode % 100;
-      var carriers = MobileInfo.brazil.carriers;
-      var regions = MobileInfo.brazil.regions;
-
-      carrier = carriers[network.mnc] ||
-                (this.BRAZIL_MCC + network.mnc);
-      region = (regions[lac] ? regions[lac] + ' ' + lac : '');
-    }
-
-    return {
-      'operator': operator,
-      'carrier': carrier,
-      'region': region
-    };
-  },
-
-  isBrazil: function mo_isBrazil(mobileConnection) {
-    var cell = mobileConnection.voice.cell;
-    var net = mobileConnection.voice.network;
-    return net ?
-           (net.mcc === this.BRAZIL_MCC && cell && cell.gsmLocationAreaCode) :
-           null;
-  }
-};
-
 
 var MobileInfo = {
   brazil: {
@@ -97,5 +48,54 @@ var MobileInfo = {
       '97': 'AM',
       '98': 'MA', '99': 'MA'
     }
+  }
+};
+
+var MobileOperator = {
+  BRAZIL_MCC: '724',
+  BRAZIL_CELLBROADCAST_CHANNEL: 50,
+
+  userFacingInfo: function mo_userFacingInfo(mobileConnection) {
+    var network = mobileConnection.voice.network;
+    var iccid = mobileConnection.iccId;
+    var iccObj = navigator.mozIccManager.getIccById(iccid);
+    var iccInfo = iccObj ? iccObj.iccInfo : null;
+    var operator = network ? (network.shortName || network.longName) : null;
+
+    if (operator && iccInfo && iccInfo.isDisplaySpnRequired && iccInfo.spn &&
+        !mobileConnection.voice.roaming) {
+      if (iccInfo.isDisplayNetworkNameRequired && operator !== iccInfo.spn) {
+        operator = operator + ' ' + iccInfo.spn;
+      } else {
+        operator = iccInfo.spn;
+      }
+    }
+
+    var carrier, region;
+    if (this.isBrazil(mobileConnection)) {
+      // We are in Brazil, It is legally required to show local info
+      // about current registered GSM network in a legally specified way.
+      var lac = mobileConnection.voice.cell.gsmLocationAreaCode % 100;
+      var carriers = MobileInfo.brazil.carriers;
+      var regions = MobileInfo.brazil.regions;
+
+      carrier = carriers[network.mnc] ||
+                (this.BRAZIL_MCC + network.mnc);
+      region = (regions[lac] ? regions[lac] + ' ' + lac : '');
+    }
+
+    return {
+      'operator': operator,
+      'carrier': carrier,
+      'region': region
+    };
+  },
+
+  isBrazil: function mo_isBrazil(mobileConnection) {
+    var cell = mobileConnection.voice.cell;
+    var net = mobileConnection.voice.network;
+    return net ?
+           (net.mcc === this.BRAZIL_MCC && cell && cell.gsmLocationAreaCode) :
+           null;
   }
 };

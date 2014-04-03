@@ -1,6 +1,8 @@
 'use strict';
+/* global contacts */
+/* global LazyLoader */
 
-var fb = this.fb || {};
+var fb = window.fb || {};
 
 fb.resolver = function(item, loader) {
   var FB_SCRIPTS_NEEDED = [

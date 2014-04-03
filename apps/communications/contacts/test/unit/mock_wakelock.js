@@ -1,9 +1,10 @@
 'use strict';
+/* exported MockWakeLock */
 
 var MyLocks = {};
 
 var MockWakeLock = function(type) {
-  if (MyLocks[type] == true) {
+  if (MyLocks[type] === true) {
     throw new Error('Already locked');
   }
 

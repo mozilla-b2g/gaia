@@ -1,4 +1,5 @@
 suiteGroup('Views.CreateAccount', function() {
+  'use strict';
 
   var subject;
   var template;

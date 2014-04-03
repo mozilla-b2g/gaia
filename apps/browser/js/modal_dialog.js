@@ -126,7 +126,7 @@ var ModalDialog = {
       case 'custom-prompt':
         var prompt = evt.detail;
         elements.customPrompt.classList.add('visible');
-        elements.customPromptMessage.innerHTML = prompt.message;
+        elements.customPromptMessage.innerHTML = escapeHTML(prompt.message);
 
         // Display custom list of buttons
         elements.customPromptButtons.innerHTML = '';

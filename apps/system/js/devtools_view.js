@@ -8,8 +8,8 @@
    * @class DevtoolsView
    */
   function DevtoolsView() {
-    window.addEventListener('widget-panel-update', function updateHandler(e){
-      this.display(e.detail);
+    window.addEventListener('developer-hud-update', function updateHandler(e) {
+      this.display(e.target, e.detail);
       e.preventDefault();
     }.bind(this));
   }
@@ -22,14 +22,16 @@
      * @memberof DevtoolsView.prototype
      * @param {Object} data The data to update the devtools view with.
      */
-    display: function(data) {
-      var target = 'iframe[mozapp="' + data.manifestURL + '"]';
-      var iframe = document.querySelector(target);
-      if (!iframe) {
+    display: function(target, data) {
+      if (!target) {
         return;
       }
 
-      var appwindow = iframe.parentElement;
+      var appwindow = target.parentElement;
+      if (!appwindow) {
+        return;
+      }
+
       var overlay = appwindow.querySelector('.devtools-view');
 
       if (!overlay) {
@@ -65,12 +67,16 @@
 
       var color;
       switch(metric.name) {
+        case 'warnings':
+          color = 'orange';
+          break;
+
         case 'errors':
           color = 'red';
           break;
 
-        case 'warnings':
-          color = 'orange';
+        case 'security':
+          color = 'black';
           break;
 
         case 'reflows':
@@ -80,6 +86,16 @@
         case 'jank':
           color = 'cornflowerblue';
           value += 'ms';
+          break;
+
+        case 'uss':
+          color = 'navy';
+          value = this.formatMemory(value);
+          break;
+
+        case 'memory':
+          color = 'slategrey';
+          value = this.formatMemory(value);
           break;
 
         default:
@@ -102,6 +118,15 @@
         hue += name.charCodeAt(i);
       }
       return 'hsl(' + (hue % 360) + ', 75%, 50%)';
+    },
+
+    formatMemory: function(bytes) {
+      var prefix = ['','K','M','G','T','P','E','Z','Y'];
+      var i = 0;
+      for (; bytes > 1024 && i < prefix.length; ++i) {
+        bytes /= 1024;
+      }
+      return (Math.round(bytes * 100) / 100) + ' ' + prefix[i] + 'B';
     }
   };
 

@@ -213,6 +213,7 @@ suite('system/permission manager', function() {
       PermissionManager.yes = document.createElement('div');
       PermissionManager.no = document.createElement('div');
       PermissionManager.moreInfoLink = document.createElement('div');
+      PermissionManager.hideInfoLink = document.createElement('div');
       PermissionManager.moreInfo = document.createElement('div');
       PermissionManager.message = document.createElement('div');
       PermissionManager.moreInfoBox = document.createElement('div');
@@ -289,7 +290,7 @@ suite('system/permission manager', function() {
     });
   });
 
-// bug 952244 compatibility with old audio permission
+  // bug 952244 compatibility with old audio permission
   suite('compatibility with old audio detail.permission', function() {
     var spyReq;
     setup(function() {
@@ -444,4 +445,69 @@ suite('system/permission manager', function() {
       assert.equal(PermissionManager.currentChoices['audio-capture'], '');
     });
   });
+
+  suite('bug 981550 Apps can cause permissions prompts in other apps',
+   function() {
+    setup(function() {
+      PermissionManager.overlay = document.createElement('div');
+      PermissionManager.remember = document.createElement('div');
+      PermissionManager.rememberSection = document.createElement('div');
+      PermissionManager.devices = document.createElement('div');
+
+      sendMediaEvent('permission-prompt', {'audio-capture': ['']});
+      sendMediaEvent('permission-prompt', {'video-capture': ['']});
+      PermissionManager.currentRequestId = 123;
+      PermissionManager.discardPermissionRequest();
+      sendMediaEvent('permission-prompt', {'audio-capture': ['']});
+      sendMediaEvent('permission-prompt', {'video-capture': ['']});
+    });
+
+    teardown(function() {
+      PermissionManager.overlay = null;
+      PermissionManager.pending = [];
+      PermissionManager.devices = null;
+    });
+
+    test('should have 1 pending', function() {
+      assert.equal(PermissionManager.pending.length, 1);
+    });
+  });
+
+  suite('Toggle more/hide info in permission dialog',
+    function() {
+      var spyToggleInfo;
+      var spyHidePermissionPrompt;
+
+      setup(function() {
+        PermissionManager.moreInfoLink = document.createElement('a');
+        PermissionManager.hideInfoLink = document.createElement('a');
+        spyToggleInfo = this.sinon.spy(PermissionManager, 'toggleInfo');
+        spyHidePermissionPrompt = this.sinon.spy(PermissionManager,
+                                  'hidePermissionPrompt');
+      });
+
+      teardown(function() {
+        spyToggleInfo.restore();
+        spyHidePermissionPrompt.restore();
+        PermissionManager.moreInfoLink = null;
+        PermissionManager.hideInfoLink = null;
+      });
+
+      test('should toggle info when more info is clicked', function() {
+        PermissionManager.clickHandler({
+          target: PermissionManager.moreInfoLink
+        });
+        assert.isTrue(spyToggleInfo.called);
+        assert.isFalse(spyHidePermissionPrompt.called);
+      });
+
+      test('should toggle info when hide info is clicked', function() {
+        PermissionManager.clickHandler({
+          target: PermissionManager.hideInfoLink
+        });
+        assert.isTrue(spyToggleInfo.called);
+        assert.isFalse(spyHidePermissionPrompt.called);
+      });
+  });
+
 });

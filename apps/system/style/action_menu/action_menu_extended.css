@@ -91,7 +91,7 @@ form[role="dialog"][data-type="object"].visible {
   form[role="dialog"][data-type="action"] > menu > button:last-child,
   form[role="dialog"][data-type="object"] > menu > button:last-child {
     position: absolute;
-    background: url('../themes/default/images/ui/default.png') repeat-x scroll 0px 100% #FAFAFA;
+    background: url('../themes/default/images/ui/default.png') repeat-x scroll 0 100% #FAFAFA;
     margin-top: 1.5rem;
     font-size: 2.3rem;
     line-height: 2.3rem;

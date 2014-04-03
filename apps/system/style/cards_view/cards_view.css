@@ -68,13 +68,14 @@
   vertical-align: top;
   display: none;
   width: 100%;
-  height: calc(100% - 2rem);
+  height: calc(100% - 2.4rem);
   margin: 0;
-  margin-top: 2rem;
+  margin-top: 2.4rem;
   position: absolute;
   opacity: 0;
   pointer-events: none;
   transform: scale(0.8);
+  will-change: transform, opacity;
 }
 
 #cards-view .screenshotView {

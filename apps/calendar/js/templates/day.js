@@ -1,4 +1,5 @@
 (function(window) {
+  'use strict';
 
   var Day = Calendar.Template.create({
     hour: function() {

@@ -695,7 +695,7 @@ ImageEditor.prototype.finishEdit = function(callback) {
 // it to get the edited image when you are done with the ImageEditor.
 //
 ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
-  const TILE_SIZE = 1024;
+  const TILE_SIZE = 512;
   var self = this;
 
   // Create an offscreen canvas and copy the image into it
@@ -1344,14 +1344,22 @@ ImageEditor.prototype.getCroppedRegionBlob = function(type,
     var canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
-    var context = canvas.getContext('2d');
+    var context = canvas.getContext('2d', { willReadFrequently: true });
 
     // Copy that rectangle to our canvas
     context.drawImage(self.original,
                       left, top, right - left, bottom - top,
                       0, 0, width, height);
 
-    canvas.toBlob(callback, type);
+    // We're done with the original image
+    self.original.src = '';
+    self.original = null;
+
+    canvas.toBlob(function(blob) {
+      canvas.width = canvas.height = 0;
+      canvas = context = null;
+      callback(blob);
+    }, type);
   }
 };
 

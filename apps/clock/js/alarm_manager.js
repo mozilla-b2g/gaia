@@ -80,7 +80,7 @@ var AlarmManager = {
       var endCb = generator();
       for (var i = 0; i < e.target.result.length && !hasAlarmEnabled; i++) {
         var data = e.target.result[i].data;
-        if (!data.id || ['alarm', 'snooze'].indexOf(data.type) === -1) {
+        if (!data.id || ['normal', 'snooze'].indexOf(data.type) === -1) {
           return;
         }
         AlarmsDB.getAlarm(data.id,

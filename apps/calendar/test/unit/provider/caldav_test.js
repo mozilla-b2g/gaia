@@ -1,3 +1,5 @@
+/*global Factory */
+
 requireLib('ext/ical.js');
 requireApp('calendar/test/unit/service/helper.js');
 requireApp('calendar/test/unit/provider/mock_stream.js');
@@ -5,6 +7,7 @@ requireLib('models/account.js');
 requireLib('models/calendar.js');
 
 suiteGroup('Provider.Caldav', function() {
+  'use strict';
 
   var subject;
   var app;
@@ -209,7 +212,7 @@ suiteGroup('Provider.Caldav', function() {
         canCreate: false
       };
 
-      var actual = subject.eventCapabilities(event, function(err, actual) {
+      subject.eventCapabilities(event, function(err, actual) {
         done(function() {
           assert.deepEqual(actual, expected);
         });
@@ -229,7 +232,7 @@ suiteGroup('Provider.Caldav', function() {
         canDelete: true
       };
 
-      var actual = subject.eventCapabilities(event, function(err, actual) {
+      subject.eventCapabilities(event, function(err, actual) {
         done(function() {
           assert.deepEqual(actual, expected);
         });
@@ -285,8 +288,9 @@ suiteGroup('Provider.Caldav', function() {
       var pending = 2;
       function next() {
         --pending;
-        if (pending === 0)
+        if (pending === 0) {
           Calendar.nextTick(done);
+        }
       }
 
       // mock out real markWith Error
@@ -341,7 +345,7 @@ suiteGroup('Provider.Caldav', function() {
 
       test('offline handling', function(done) {
         var realOffline = app.offline;
-        app.offline = function() { return true };
+        app.offline = function() { return true; };
         subject.getAccount(input, function cb(cbError, cbResult) {
           done(function() {
             app.offline = realOffline;
@@ -392,7 +396,7 @@ suiteGroup('Provider.Caldav', function() {
 
       test('offline handling', function(done) {
         var realOffline = app.offline;
-        app.offline = function() { return true };
+        app.offline = function() { return true; };
         subject.findCalendars(input, function cb(cbError, cbResult) {
           done(function() {
             app.offline = realOffline;
@@ -456,7 +460,7 @@ suiteGroup('Provider.Caldav', function() {
 
       test('offline handling', function(done) {
         var realOffline = app.offline;
-        app.offline = function() { return true };
+        app.offline = function() { return true; };
         subject.createEvent(event, function cb(cbError, cbResult) {
           done(function() {
             app.offline = realOffline;
@@ -544,7 +548,7 @@ suiteGroup('Provider.Caldav', function() {
 
       test('offline handling', function(done) {
         var realOffline = app.offline;
-        app.offline = function() { return true };
+        app.offline = function() { return true; };
         subject.updateEvent(event, function cb(cbError, cbResult) {
           done(function() {
             app.offline = realOffline;
@@ -605,7 +609,7 @@ suiteGroup('Provider.Caldav', function() {
         var event = Factory('event', {
           calendarId: calendar._id
         });
-        app.offline = function() { return true };
+        app.offline = function() { return true; };
         subject.deleteEvent(event, function cb(cbError, cbResult) {
           done(function() {
             app.offline = realOffline;
@@ -628,6 +632,7 @@ suiteGroup('Provider.Caldav', function() {
 
     // create some events
     var i = 0;
+    /*jshint loopfunc: true */
     for (; i < 2; i++) {
       setup(function(done) {
         var event = Factory('event', {
@@ -721,7 +726,7 @@ suiteGroup('Provider.Caldav', function() {
 
       test('offline handling', function(done) {
         var realOffline = app.offline;
-        app.offline = function() { return true };
+        app.offline = function() { return true; };
         subject.syncEvents(account, calendar, function cb(cbError, cbResult) {
           done(function() {
             app.offline = realOffline;
@@ -750,7 +755,7 @@ suiteGroup('Provider.Caldav', function() {
 
       test('offline handling', function(done) {
         var realOffline = app.offline;
-        app.offline = function() { return true };
+        app.offline = function() { return true; };
         subject.syncEvents(account, calendar, function cb(cbError, cbResult) {
           done(function() {
             app.offline = realOffline;
@@ -778,12 +783,13 @@ suiteGroup('Provider.Caldav', function() {
       subject.service.stream = function() {
         var args = Array.slice(arguments);
 
-        if (!args.shift() === 'caldav')
+        if (args.shift() !== 'caldav') {
           throw new Error('expected caldav service');
+        }
 
-        if (!args.shift() === 'streamEvents')
+        if (args.shift() !== 'streamEvents') {
           throw new Error('expected streamEvents');
-
+        }
 
         calledWith = args;
         var stream = new Calendar.Responder();
@@ -950,12 +956,14 @@ suiteGroup('Provider.Caldav', function() {
       });
 
       componentStore.persist(comp, function(err) {
-        if (err)
+        if (err) {
           return done(err);
+        }
 
         subject.ensureRecurrencesExpanded(maxDate, function(err, didExpand) {
-          if (err)
+          if (err) {
             return done(err);
+          }
 
           done(function() {
             assert.isFalse(didExpand, 'expanded');
@@ -965,6 +973,7 @@ suiteGroup('Provider.Caldav', function() {
     });
 
     suite('with simulated pre-expansion component', function() {
+      /*jshint -W027 */
       // this test still is a little too much for travis
       // CI... we need to ensure it is more reliable soon.
       return;
@@ -1015,8 +1024,9 @@ suiteGroup('Provider.Caldav', function() {
         var results = {};
 
         function next() {
-          if (!(--pending))
+          if (!(--pending)) {
             done(complete);
+          }
         }
 
         stores.forEach(function(store) {

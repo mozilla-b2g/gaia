@@ -1,5 +1,7 @@
 'use strict';
 
+/* global LazyLoader, TelIndexer, SimplePhoneMatcher */
+
 // WARNING: This file lazy loads:
 // 'shared/js/fb/fb_data_reader.js
 // 'shared/js/fb/fb_tel_index.js'
@@ -75,6 +77,7 @@ var fb = window.fb || {};
       else {
         // As the reader load will overwrite those functions probably this
         // will never be called
+        /*jshint validthis:true */
         Reader[target].apply(this, args);
       }
     }

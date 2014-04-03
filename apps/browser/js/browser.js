@@ -1,6 +1,5 @@
 'use strict';
 
-var rscheme = /^(?:[a-z\u00a1-\uffff0-9-+]+)(?::|:\/\/)/i;
 var _ = navigator.mozL10n.get;
 
 var Browser = {
@@ -585,7 +584,8 @@ var Browser = {
   handleCrashedTab: function browser_handleCrashedTab(tab) {
     // No need to show the crash screen for background tabs,
     // they will be revived when selected
-    if (tab.id === this.currentTab.id && !document.hidden) {
+    if (tab.id === this.currentTab.id && !document.hidden &&
+        this.currentTab.url != null) {
       this.showCrashScreen();
     }
     tab.loading = false;
@@ -668,7 +668,7 @@ var Browser = {
   },
 
   getUrlFromInput: function browser_getUrlFromInput(input) {
-    var hasScheme = !!(rscheme.exec(input) || [])[0];
+    var hasScheme = UrlHelper.hasScheme(input);
 
     // Not a valid URL, could be a search term
     if (UrlHelper.isNotURL(input) && this.searchEngine.uri) {
@@ -833,9 +833,9 @@ var Browser = {
 
       this.bookmarkUrl.addEventListener('keydown', (function() {
         if (UrlHelper.isURL(this.bookmarkUrl.value)) {
-          this.bookmarkEntrySheetDone.disabled = 'disabled';
+          this.bookmarkEntrySheetDone.removeAttribute('disabled');
         } else {
-          this.bookmarkEntrySheetDone.disabled = '';
+          this.bookmarkEntrySheetDone.disabled = 'disabled';
         }
       }).bind(this), false);
     }).bind(this));

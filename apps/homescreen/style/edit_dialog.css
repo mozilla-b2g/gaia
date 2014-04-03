@@ -1,0 +1,35 @@
+#edit-dialog {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20001;
+  background-color: #edeee9;
+  display: none;
+  transform: translateY(100%);
+  transition: transform ease-in-out .3s;
+  pointer-events: none;
+}
+
+#edit-dialog.visible {
+  display: block;
+}
+
+#edit-dialog.show {
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+#edit-dialog form {
+  padding: 1.5rem;
+}
+
+#edit-dialog form > label {
+  text-transform: uppercase;
+  font-size: 1.5rem;
+}
+
+#edit-dialog form > label > input {
+  margin-bottom: 1.5rem;
+}

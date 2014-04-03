@@ -72,6 +72,25 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '      </dl>';
     MockFormDom += '    </div>';
 
+    MockFormDom += '    <!-- DATES TEMPLATE -->'
+    MockFormDom += '    <div id="add-date-#i#" data-template class="date-template" data-exclusive="true" data-custom="false" data-index="#i#">'
+    MockFormDom += '      <fieldset class="fillflow-row">'
+    MockFormDom += '        <legend class="action">'
+    MockFormDom += '            <span data-taglist="date-type" name="date[#i#][type]" data-value="#type_value#" id="date_type_#i#" data-field="type" data-l10n-id="#type_l10n_id#">#type#</span>'
+    MockFormDom += '        </legend>'
+    MockFormDom += '        <section>'
+    MockFormDom += '          <p class="setbox-item">'
+    MockFormDom += '            <span class="button icon icon-dialog">'
+    MockFormDom += '              <span id="date-text_#i#" data-l10n-id="date.placeholder" class="datetime">'
+    MockFormDom += '                Date'
+    MockFormDom += '              </span>'
+    MockFormDom += '              <input placeholder="date" data-l10n-id="date" name="date[#i#][value]" class="textfield hidden-input" type="date" id="date_#i#">'
+    MockFormDom += '            </span>'
+    MockFormDom += '           </p>'
+    MockFormDom += '        </section>'
+    MockFormDom += '      </fieldset>'
+    MockFormDom += '    </div>'
+
     MockFormDom += '    <!-- COMMENTS TEMPLATE -->';
     MockFormDom += '    <div id="add-note-#i#" data-template class="note-template" data-index="#i#">';
     MockFormDom += '      <dl class="setbox fillflow-row">';
@@ -148,6 +167,16 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '            <span role="button" class="icon-add"></span>';
     MockFormDom += '            <b data-l10n-id="addAddress">Add new address</b>';
     MockFormDom += '          </button>';
+
+    MockFormDom += '        <li>'
+    MockFormDom += '          <section>'
+    MockFormDom += '            <div id="contacts-form-dates"></div>'
+    MockFormDom += '          </section>'
+    MockFormDom += '            <button data-field-type="date" id="add-new-date" data-l10n-id="addDate" class="fillflow-row action action-add icon icon-add">'
+    MockFormDom += '              Add Date'
+    MockFormDom += '            </button>'
+    MockFormDom += '        </li>'
+
 
     MockFormDom += '          <fieldset>';
     MockFormDom += '            <legend data-l10n-id="comments">Comments</legend>';

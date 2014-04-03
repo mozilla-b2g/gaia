@@ -1,6 +1,10 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global FxaModuleStates, FxaModuleUI, FxaModule, FxaModuleNavigation,
+   FxModuleServerRequest, FxaModuleOverlay, FxaModuleManager */
+/* exported FxaModuleEnterEmail */
+
 'use strict';
 
 /**
@@ -20,8 +24,8 @@ var FxaModuleEnterEmail = (function() {
     done(FxaModuleStates.ENTER_PASSWORD);
   }
 
-  function _loadSignUp(done) {
-    done(FxaModuleStates.SET_PASSWORD);
+  function _loadCoppa(done) {
+    done(FxaModuleStates.COPPA);
   }
 
   function _enableNext(emailEl) {
@@ -81,7 +85,7 @@ var FxaModuleEnterEmail = (function() {
         if (response && response.registered) {
           _loadSignIn(gotoNextStepCallback);
         } else {
-          _loadSignUp(gotoNextStepCallback);
+          _loadCoppa(gotoNextStepCallback);
         }
       },
       this.showErrorResponse);

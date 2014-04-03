@@ -27,6 +27,9 @@ requireApp('clock/js/alameda.js', function() {
       'shared/js/async_storage': {
         exports: 'asyncStorage'
       },
+      'shared/js/accessibility_helper': {
+        exports: 'AccessibilityHelper'
+      },
       'mocks/mock_shared/js/l10n': {
         exports: 'MockL10n'
       },

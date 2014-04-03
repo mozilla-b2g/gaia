@@ -13,12 +13,15 @@ function Dialer(client) {
 Dialer.URL = 'app://communications.gaiamobile.org';
 
 Dialer.config = {
-  prefs: {
-    'dom.w3c_touch_events.enabled': 1
-  },
   settings: {
-    // disable keyboard ftu because it blocks our display
-    'keyboard.ftu.enabled': false
+    'ftu.manifestURL': null,
+    'lockscreen.enabled': false,
+    'devtools.overlay': true,
+    'hud.reflows': true
+  },
+  prefs: {
+    'dom.w3c_touch_events.enabled': 1,
+    'devtools.debugger.forbid-certified-apps': false
   }
 };
 
@@ -31,12 +34,15 @@ Dialer.Selectors = {
   one: '.keypad-key[data-value="1"]',
   two: '.keypad-key[data-value="2"]',
   three: '.keypad-key[data-value="3"]',
+  keypadCallBarAddContact: '#keypad-callbar-add-contact',
 
   callLogTabItem: '#option-recents',
   callLogTabs: '#call-log-filter',
 
   contactsTabItem: '#option-contacts',
-  contactsIframe: '#iframe-contacts'
+  contactsIframe: '#iframe-contacts',
+
+  addToExistintContactMenuItem: '#add-to-existing-contact-menuitem'
 };
 
 /**

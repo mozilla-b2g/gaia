@@ -1,3 +1,4 @@
+/* global BalanceLowLimitView*/
 'use strict';
 
 requireApp('costcontrol/js/views/BalanceLowLimitView.js');
@@ -39,7 +40,7 @@ suite('Balance low limit view and validator >', function() {
       lowLimitView.validate();
       assert.isTrue(lowLimitView._isValid);
     });
-  };
+  }
 
   function assertOnlyPositiveValuesAreAccepted() {
     [

@@ -30,54 +30,125 @@ SELF_DIR=`dirname $0`
 #      in the path.
 #
 
-#
-# Configure gaia location
-#
-if [ ! -z "$1" ] ; then
-  GAIADIR="$1"
-fi
-
-if [ -z "$GAIADIR" ] ; then
-  GAIADIR="$SELF_DIR/.."
-fi
-
-if [ ! -d "$GAIADIR" ] ; then
-  echo "$SELF: '$GAIADIR' is not a directory!"
+usage() {
+  echo "$SELF [ -d ] [ -h ] [ <gaia dir> [ <firefox/B2G binary> ] ]"
+  echo "  -d: runs in B2G Desktop"
+  echo "  -h: displays this help"
   exit 1
-fi
+}
 
-GAIADIR=$( cd "$GAIADIR"; pwd)
+configure_mode() {
+  mode="firefox"
+  while getopts dh f; do
+    case $f in
+      d)
+        mode="b2g"
+        ;;
+      h|\?)
+        usage
+        ;;
+    esac
+  done
+}
 
-#
-# Configure firefox test binary
-#
-if [ ! -z "$2" ] ; then
-  FIREFOX="$2"
-fi
+configure_gaia_location() {
+  #
+  # Configure gaia location
+  #
+  if [ ! -z "$1" ] ; then
+    GAIADIR="$1"
+  fi
 
-if [ -z "$FIREFOX" ] ; then
-  FIREFOX='firefox'
-fi
+  if [ -z "$GAIADIR" ] ; then
+    GAIADIR="$SELF_DIR/.."
+  fi
 
-BASE_FIREFOX="$FIREFOX"
-FIREFOX=`which $BASE_FIREFOX`
-if [ ! -x "$FIREFOX" ] ; then
-  echo "$SELF: Unable to find an executable '$BASE_FIREFOX' in path!"
-  exit 1
-fi
+  if [ ! -d "$GAIADIR" ] ; then
+    echo "$SELF: '$GAIADIR' is not a directory!"
+    exit 1
+  fi
 
-#
-# Verify firefox version is new enough
-#
-VERSION=`$FIREFOX --version | awk '{print $3}'`
-REQ_VERSION='22'
-if expr "$VERSION" \< "$REQ_VERSION" >/dev/null ; then
-  echo "$SELF: Firefox is only version $VERSION; use $REQ_VERSION or newer."
-  exit 1
-fi
+  GAIADIR=$( cd "$GAIADIR"; pwd)
+  echo "$SELF: Using gaia at '$GAIADIR'."
+}
 
-echo "$SELF: Using gaia at '$GAIADIR'."
-echo "$SELF: Using Firefox $VERSION at '$FIREFOX'."
+configure_firefox_location() {
+  #
+  # Configure firefox test binary
+  #
+  if [ ! -z "$1" ] ; then
+    FIREFOX="$1"
+  fi
+
+  if [ -z "$FIREFOX" ] ; then
+    FIREFOX='firefox'
+  fi
+
+  BASE_FIREFOX="$FIREFOX"
+  FIREFOX=`which $BASE_FIREFOX`
+  if [ ! -x "$FIREFOX" ] ; then
+    echo "$SELF: Unable to find an executable '$BASE_FIREFOX' in path!"
+    exit 1
+  fi
+
+  #
+  # Verify firefox version is new enough
+  #
+  VERSION=`$FIREFOX --version | awk '{print $3}'`
+  REQ_VERSION='22'
+  if expr "$VERSION" \< "$REQ_VERSION" >/dev/null ; then
+    echo "$SELF: Firefox is only version $VERSION; use $REQ_VERSION or newer."
+    exit 1
+  fi
+
+  echo "$SELF: Using Firefox $VERSION at '$FIREFOX'."
+}
+
+configure_b2g_location() {
+  #
+  # Configure b2g test binary
+  #
+  if [ ! -z "$1" ] ; then
+    B2G=`which $1`
+    if [ ! -x "$B2G" ] ; then
+      echo "$SELF: Unable to find an executable '$1' in path!"
+      exit 1
+    fi
+  fi
+
+  if [ -z "$B2G" ] ; then
+    make b2g
+    B2G="./b2g/b2g-bin"
+    if [ ! -x "$B2G" ] ; then
+      # set the path for Mac OS X
+      B2G="./b2g/Contents/MacOS/b2g-bin"
+    fi
+  fi
+
+  # if we still don't have it, fail
+  if [ ! -x "$B2G" ] ; then
+    echo "$SELF: Couldn't download a suitable executable for B2G Desktop"
+    exit 1
+  fi
+
+  echo "$SELF: Using B2G Desktop at '$B2G'."
+}
+
+launch_test_runner_in_firefox() {
+  #
+  # Launch firefox
+  #
+  $FIREFOX --no-remote -profile "$PROFILE" http://test-agent.gaiamobile.org:8080/ &
+}
+
+launch_test_runner_in_b2g() {
+  $B2G -profile "$PROFILE" --runapp 'Test Agent' &
+}
+
+
+configure_mode "$@" && shift `expr $OPTIND - 1`
+configure_gaia_location "$1"
+configure_${mode}_location "$2"
 
 #
 # Verify additional dependencies are installed
@@ -103,15 +174,13 @@ cd $GAIADIR
 PROFILE="$GAIADIR/profile-debug"
 if [ ! -d "$PROFILE" ] ; then
   echo "$SELF: Building the debug profile."
-  DEBUG=1 DESKTOP=0 make
+  NO_LOCK_SCREEN=1 DEBUG=1 DESKTOP=0 make
 fi
 
-#
-# Launch firefox
-#
-$FIREFOX --no-remote -profile "$PROFILE" http://test-agent.gaiamobile.org:8080/ &
+launch_test_runner_in_${mode}
+
 cleanup() {
-  echo "$SELF: Stopping firefox on exit."
+  echo "$SELF: Stopping the test runner on exit."
   kill "%1"
 }
 trap cleanup EXIT

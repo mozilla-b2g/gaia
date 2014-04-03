@@ -12,6 +12,15 @@ var MockIACPort = {
 
   postMessage: function(msg) {
     this._messages.push(msg);
+  },
+
+  mTearDown: function() {
+    this._name = null;
+    this._messages = [];
+  },
+
+  mNumberOfMessages: function() {
+    return this._messages.length;
   }
 };
 

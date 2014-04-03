@@ -1,7 +1,6 @@
 @import url('../shared/style/switches.css');
 @import url('../shared/style/input_areas.css');
 @import url('../shared/style/buttons.css');
-@import url('../shared/style/edit_mode.css');
 
 html, body {
   width: 100%;

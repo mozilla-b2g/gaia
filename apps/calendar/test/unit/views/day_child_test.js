@@ -1,3 +1,5 @@
+/*global Factory */
+
 /*
 requireLib('utils/ordered_map.js');
 requireLib('templates/day.js');
@@ -7,6 +9,8 @@ requireLib('views/day_child.js');
 requireLib('timespan.js');
 
 suiteGroup('Views.DayChild', function() {
+  'use strict';
+
   var subject;
   var app;
   var db;

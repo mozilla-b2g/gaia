@@ -16,7 +16,8 @@ module.exports = addPanAndZoomHandlers;
 
 /*
  * This module adds pan-and-zoom capability to images displayed by
- * shared/js/media/media_frame.js.  It is used by filmstrip.js and confirm.js
+ * shared/js/media/media_frame.js.  
+ * It is used by preview-gallery.js and confirm.js
  */
 function addPanAndZoomHandlers(frame) {
   // frame is the MediaFrame object. container is its the DOM element.
@@ -30,6 +31,7 @@ function addPanAndZoomHandlers(frame) {
   container.addEventListener('dbltap', handleDoubleTap);
   container.addEventListener('transform', handleTransform);
   container.addEventListener('pan', handlePan);
+  container.addEventListener('swipe', handleSwipe);
 
   function handleDoubleTap(e) {
     var scale;
@@ -100,6 +102,44 @@ function addPanAndZoomHandlers(frame) {
     }
 
     frame.pan(dx, dy);
+  }
+
+  function handleSwipe(e) {
+    var direction = e.detail.direction;
+    switch (orientation.get()) {
+    case 90:
+      switch (e.detail.direction) {
+        case 'up': direction = 'right'; break;
+        case 'down': direction = 'left'; break;
+        case 'left': direction = 'up'; break;
+        case 'right': direction = 'down'; break;
+      }
+      break;
+    case 180:
+      switch (e.detail.direction) {
+        case 'up': direction = 'down'; break;
+        case 'down': direction = 'up'; break;
+        case 'left': direction = 'right'; break;
+        case 'right': direction = 'left'; break;
+      }
+      break;
+    case 270:
+      switch (e.detail.direction) {
+        case 'up': direction = 'left'; break;
+        case 'down': direction = 'right'; break;
+        case 'left': direction = 'down'; break;
+        case 'right': direction = 'up'; break;
+      }
+      break;
+    }
+    e.detail.direction = direction;
+
+    var itemChangeEvent = new CustomEvent('orientationSwipe', {
+      detail: e.detail
+    });
+    /*jshint validthis:true */
+    this.dispatchEvent(itemChangeEvent);
+
   }
 }
 

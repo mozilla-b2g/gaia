@@ -1,6 +1,9 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global Utils, FxaModuleManager, FxaModuleNavigation, LazyLoader */
+/* exported FxaModuleUI */
+
 'use strict';
 
 var FxaModuleUI = {
@@ -28,13 +31,16 @@ var FxaModuleUI = {
     });
 
     this.fxaModuleDone.addEventListener('click', function() {
-      FxaModuleManager.done();
+      FxaModuleNavigation.done();
     });
 
     FxaModuleNavigation.init(flow);
   },
   setMaxSteps: function(num) {
     this.maxSteps = num;
+  },
+  increaseMaxStepsBy: function(inc) {
+    this.maxSteps = this.maxSteps + inc;
   },
   loadScreen: function(params) {
     var currentScreen = document.querySelector('.current');
@@ -122,5 +128,11 @@ var FxaModuleUI = {
   },
   enableNextButton: function() {
     this.fxaModuleNext.removeAttribute('disabled');
+  },
+  disableDoneButton: function() {
+    this.fxaModuleDone.setAttribute('disabled', 'disabled');
+  },
+  enableDoneButton: function() {
+    this.fxaModuleDone.removeAttribute('disabled');
   }
 };

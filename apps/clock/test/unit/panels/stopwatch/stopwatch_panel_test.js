@@ -224,4 +224,15 @@ suite('Stopwatch.Panel', function() {
 
   });
 
+  test('Stopwatch 100 minutes display', function() {
+    panel.setStopwatch(runningSw());
+
+    assert.ok(!panel.nodes.time.classList.contains('over-100-minutes'));
+
+    clock.tick(1000 * 60 * 105); // over 100 minutes
+    panel.update(); // required due to requestAnimationFrame not being called
+
+    assert.ok(panel.nodes.time.classList.contains('over-100-minutes'));
+  });
+
 });

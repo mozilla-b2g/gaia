@@ -1,3 +1,4 @@
+/* exported MockMessageManager */
 'use strict';
 
 var MockMessageManager = {
@@ -20,18 +21,8 @@ var MockMessageManager = {
   sendMMS: function() {
     return {};
   },
+  resendMessage: function() {},
+  retrieveMMS: function() {},
   markMessagesRead: function() {},
   markThreadRead: function() {}
-};
-
-MockMessageManager.mSetup = function() {
-  sinon.spy(MockMessageManager, 'sendSMS');
-  sinon.spy(MockMessageManager, 'sendMMS');
-
-  MockMessageManager.activity = null;
-};
-
-MockMessageManager.mTeardown = function() {
-  MockMessageManager.sendSMS.restore();
-  MockMessageManager.sendMMS.restore();
 };

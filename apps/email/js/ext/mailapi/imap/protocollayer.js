@@ -200,7 +200,7 @@ Sync.prototype = {
 
             // flush our body/header information ? should we do some sorting,
             // etc.. here or just let the UI update ASAP?
-            self.storage.addMessageHeader(chewRep.header);
+            self.storage.addMessageHeader(chewRep.header, chewRep.bodyInfo);
             self.storage.addMessageBody(chewRep.header, chewRep.bodyInfo);
           }
           catch (ex) {
@@ -258,7 +258,8 @@ console.warn('  FLAGS: "' + header.flags.toString() + '" VS "' +
 
          msg.flags.toString() + '"');
           header.flags = msg.flags;
-          self.storage.updateMessageHeader(header.date, header.id, true, header);
+          self.storage.updateMessageHeader(header.date, header.id, true,
+                                           header, /* body hint */ null);
         }
         else {
           self.storage.unchangedMessageHeader(header);

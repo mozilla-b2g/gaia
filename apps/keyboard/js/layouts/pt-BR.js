@@ -6,14 +6,16 @@ Keyboards['pt-BR'] = {
   autoCorrectLanguage: 'pt_br',
   alt: {
     a: 'áãàâäåæª',
+    c: 'çćč',
     e: 'éêèęėēëɛ',
     i: 'íîìïįī',
     o: 'óõôòöœøōɵ',
     u: 'úüùûū',
-    s: '$ßš',
-    l: '£',
+    s: '$ßśš',
     n: 'ñń',
+    l: '£ł',
     y: '¥ÿ',
+    z: 'žźż',
     r: 'R$ ',
     '.': ',?!;:'
   },
@@ -39,7 +41,6 @@ Keyboards['pt-BR'] = {
   ],
   alternateLayout: {
     alt: {
-      'R$': '€$£¥',
       '0': 'º',
       '1': '1º 1ª',
       '2': '2º 2ª',
@@ -50,6 +51,7 @@ Keyboards['pt-BR'] = {
       '7': '7º 7ª',
       '8': '8º 8ª',
       '9': '9º 9ª',
+      'R$': '€£¥$',
       '?': '¿',
       '!': '¡'
     },
@@ -59,15 +61,15 @@ Keyboards['pt-BR'] = {
         { value: '5' } , { value: '6' }, { value: '7' } , { value: '8' },
         { value: '9' }, { value: '0' }
       ], [
-        { value: '-' }, { value: '/' }, { value: ':' }, { value: ';' },
-        { value: '(' } , { value: ')' },
-        { value: 'R$', compositeKey: 'R$' }, { value: '&' },
-        { value: '@', hidden: ['email'] },
-        { value: '%' }, { value: '_', visible: ['email']}
+        // These are the same as the en-US layout except $ is replaced by R$
+        { value: '@', hidden: ['email'] }, { value: '#' }, { value: 'R$', compositeKey: 'R$' },
+        { value: '%' }, { value: '&' } , { value: '*' }, { value: '-' },
+        { value: '+' }, { value: '(' }, { value: ')' },
+        { value: '_', visible: ['email'] }
       ], [
         { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
-        { value: '?' }, {value: '!' }, { value: '«' }, { value: '»' },
-        { value: '\"' }, { value: '\'' }, { value: '*' },
+        { value: '!' }, { value: '\"' }, { value: "'" }, { value: ':' },
+        { value: ';' }, { value: '/' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },

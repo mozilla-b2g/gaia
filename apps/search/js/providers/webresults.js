@@ -12,6 +12,9 @@
 
     name: 'WebResults',
 
+    dedupes: true,
+    dedupeStrategy: 'fuzzy',
+
     init: function() {
       Provider.prototype.init.apply(this, arguments);
       eme.init();
@@ -28,7 +31,7 @@
       }
     },
 
-    search: function(input) {
+    search: function(input, collect) {
       this.clear();
       if (!eme.api.Apps) {
         return;
@@ -45,6 +48,7 @@
             return {
               title: app.name,
               icon: app.icon,
+              dedupeId: app.appUrl,
               dataset: {
                 title: app.name,
                 url: app.appUrl,
@@ -52,7 +56,7 @@
               }
             };
           });
-          this.render(results);
+          collect(results);
         }
       }).bind(this), function reject(reason) {
         // handle errors

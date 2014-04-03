@@ -62,6 +62,21 @@ Homescreen.prototype = {
       'li.icon[aria-label="' + title + '"] span.labelWrapper > span');
   },
 
+  tap: function(icon) {
+    icon.tap(0, 0);
+  },
+
+  isActive: function(icon) {
+    return icon.scriptWith(function(el) {
+      return el.classList.contains('active');
+    });
+  },
+
+  getAppIcon: function(name) {
+    return this.client.findElement(
+                      'li[data-manifest-u-r-l*="' + name + '.gaiamobile.org"]');
+  },
+
   switchToBookmarkEditorFrame: function() {
     this.bookmarkEditor.backToApp();
   }

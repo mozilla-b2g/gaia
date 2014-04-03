@@ -1,4 +1,5 @@
 suiteGroup('Views.EventBase', function() {
+  'use strict';
 
   var subject;
   var app;
@@ -220,9 +221,6 @@ suiteGroup('Views.EventBase', function() {
     });
 
    suite('update', function() {
-      var busytime;
-      var event;
-
       setup(function(done) {
         subject.ondispatch = done;
         subject.dispatch({
@@ -278,7 +276,7 @@ suiteGroup('Views.EventBase', function() {
     };
     subject.dispatch({params: {}});
 
-    var fetchReturnTop = subject.returnTop();
+    subject.returnTop();
     subject._returnTo = '/bar';
     subject._updateUI = function() {
       assert.equal(subject._returnTo, '/bar');
@@ -289,7 +287,6 @@ suiteGroup('Views.EventBase', function() {
   });
 
   suite('#_createModel', function() {
-    var controller;
     var date = new Date(2012, 0, 1);
 
     test('time is less then now', function() {

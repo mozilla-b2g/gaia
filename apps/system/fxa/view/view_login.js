@@ -1,3 +1,6 @@
+/* global FxaModuleStates */
+/* exported View */
+
 'use strict';
 
 /*

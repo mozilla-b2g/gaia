@@ -1,0 +1,6 @@
+{
+  "poweron": {
+    "video": "app://operatorresources/resources/power/power_on.mp4",
+    "image": "app://operatorresources/resources/power/power_on.png"
+  }
+}

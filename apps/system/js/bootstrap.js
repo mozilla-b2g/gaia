@@ -10,6 +10,12 @@ window.addEventListener('load', function startup() {
    */
   function registerGlobalEntries() {
     /** @global */
+    window.appWindowFactory = new AppWindowFactory();
+    window.appWindowFactory.start();
+    /** @global */
+    window.activityWindowFactory = new ActivityWindowFactory();
+    window.activityWindowFactory.start();
+    /** @global */
     window.secureWindowManager = window.secureWindowManager ||
       new SecureWindowManager();
     /** @global */
@@ -19,7 +25,11 @@ window.addEventListener('load', function startup() {
       window.suspendingAppPriorityManager = new SuspendingAppPriorityManager();
     }
     /** @global */
-    window.activityWindowFactory = new ActivityWindowFactory();
+    window.systemDialogManager = window.systemDialogManager ||
+      new SystemDialogManager();
+
+    /** @global */
+    window.lockScreenWindowManager = new window.LockScreenWindowManager();
   }
 
   function safelyLaunchFTU() {
@@ -27,10 +37,11 @@ window.addEventListener('load', function startup() {
       window.removeEventListener('homescreen-ready', onHomescreenReady);
       FtuLauncher.retrieve();
     });
-    HomescreenLauncher.init();
+    /** @global */
+    window.homescreenLauncher = new HomescreenLauncher().start();
   }
 
-  if (Applications.ready) {
+  if (applications.ready) {
     registerGlobalEntries();
     safelyLaunchFTU();
   } else {
@@ -57,19 +68,29 @@ window.addEventListener('load', function startup() {
   // Enable checkForUpdate as well if booted without FTU
   window.addEventListener('ftuskip', doneWithFTU);
 
-
-  SourceView.init();
+  window.sourceView = new SourceView();
   Shortcuts.init();
   ScreenManager.turnScreenOn();
   Places.init();
+  Rocketbar.init();
 
   // Please sort it alphabetically
   window.activities = new Activities();
   window.devtoolsView = new DevtoolsView();
-  window.dialerComms = new DialerComms();
+  window.dialerRinger = new DialerRinger().start();
+  window.homeGesture = new HomeGesture().start();
+  window.layoutManager = new LayoutManager().start();
   window.remoteDebugger = new RemoteDebugger();
-  window.title = new Title();
+  window.softwareButtonManager = new SoftwareButtonManager().start();
+  window.soundManager = new SoundManager().start();
+  window.telephonySettings = new TelephonySettings();
+  window.telephonySettings.start();
   window.ttlView = new TTLView();
+  window.visibilityManager = new VisibilityManager().start();
+
+  navigator.mozL10n.ready(function l10n_ready() {
+    window.mediaRecording = new MediaRecording().start();
+  });
 
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
@@ -110,6 +131,18 @@ window.addEventListener('localized', function onlocalized() {
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
 });
+
+var wallpaperURL = new SettingsURL();
+
+// Define the default background to use for all homescreens
+SettingsListener.observe(
+  'wallpaper.image',
+  'resources/images/backgrounds/default.png',
+  function setWallpaper(value) {
+    document.getElementById('screen').style.backgroundImage =
+      'url(' + wallpaperURL.set(value) + ')';
+  }
+);
 
 // Use a setting in order to be "called" by settings app
 navigator.mozSettings.addObserver(
@@ -156,5 +189,14 @@ function cancelHomeTouchend(e) {
   }
 }
 
+function cancelHomeClick(e) {
+  if (e.pageX === 0 && e.pageY === 0) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+}
+
 window.addEventListener('touchstart', cancelHomeTouchstart, true);
 window.addEventListener('touchend', cancelHomeTouchend, true);
+window.addEventListener('mousedown', cancelHomeClick, true);
+window.addEventListener('mouseup', cancelHomeClick, true);

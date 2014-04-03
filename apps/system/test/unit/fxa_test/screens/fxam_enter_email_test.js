@@ -39,6 +39,8 @@ var mocksHelperForEmailModule = new MocksHelper([
   'FxaModuleErrors'
 ]);
 
+mocha.globals(['FxModuleServerRequest']);
+
 suite('Screen: Enter email', function() {
   var realL10n;
   suiteSetup(function(done) {
@@ -188,7 +190,7 @@ suite('Screen: Enter email', function() {
       FxModuleServerRequest.error = false;
       FxModuleServerRequest.registered = false;
       FxaModuleEnterEmail.onNext(function(params) {
-        assert.equal(params, FxaModuleStates.SET_PASSWORD);
+        assert.equal(params, FxaModuleStates.COPPA);
         assert.ok(hideOverlaySpy.calledOnce);
         assert.isFalse(showErrorOverlaySpy.calledOnce);
         done();

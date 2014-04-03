@@ -1,5 +1,5 @@
 'use strict';
-/* global ActionMenu, Applications, ManifestHelper */
+/* global ActionMenu, applications, ManifestHelper */
 
 (function(exports) {
 
@@ -11,6 +11,7 @@
    */
   function Activities() {
     window.addEventListener('mozChromeEvent', this);
+    this.actionMenu = null;
   }
 
   Activities.prototype = {
@@ -57,8 +58,11 @@
           window.dispatchEvent(new CustomEvent('activitymenuwillopen'));
 
           var activityName = navigator.mozL10n.get('activity-' + detail.name);
-          ActionMenu.open(this._listItems(choices), activityName,
-                           this.choose.bind(this), this.cancel.bind(this));
+          if (!this.actionMenu) {
+            this.actionMenu = new ActionMenu(this._listItems(choices),
+              activityName, this.choose.bind(this), this.cancel.bind(this));
+            this.actionMenu.start();
+          }
         }).bind(this));
       }
     },
@@ -69,6 +73,8 @@
     * @param {Number} choice The activity choice.
     */
     choose: function(choice) {
+      this.actionMenu = null;
+
       var returnedChoice = {
         id: this._id,
         type: 'activity-choice',
@@ -84,6 +90,8 @@
     * @memberof Activities.prototype
     */
     cancel: function() {
+      this.actionMenu = null;
+
       var returnedChoice = {
         id: this._id,
         type: 'activity-choice',
@@ -116,7 +124,7 @@
       var items = [];
 
       choices.forEach(function(choice, index) {
-        var app = Applications.getByManifestURL(choice.manifest);
+        var app = applications.getByManifestURL(choice.manifest);
         if (!app) {
           return;
         }

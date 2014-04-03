@@ -1,3 +1,7 @@
+'use strict';
+
+/* global oauth2, oauthflow */
+
 var fb = window.fb || {};
 
 if (typeof fb.msg === 'undefined') {
@@ -6,8 +10,8 @@ if (typeof fb.msg === 'undefined') {
     var to;
     var message;
     var params = oauthflow.params.facebook;
-    var appId = params['applicationId'];
-    var redirectURI = params['redirectMsg'];
+    var appId = params.applicationId;
+    var redirectURI = params.redirectMsg;
 
     Msg.CID_PARAM = 'contactid';
 
@@ -67,7 +71,7 @@ if (typeof fb.msg === 'undefined') {
       ];
 
       var target = dialogURI + params.join('&');
-      window.open(target);
+      window.open(target, '', 'dialog');
     }
 
     // Use the FB Dialogs functionality for posting to the wall
@@ -86,7 +90,8 @@ if (typeof fb.msg === 'undefined') {
     UI.sendPrivateMsg = function(contactId) {
       getFbContactUid(contactId, function ui_sendMsg(uid) {
         if (uid) {
-           window.open('https://m.facebook.com/compose_message/?uid=' + uid);
+           window.open('https://m.facebook.com/compose_message/?uid=' + uid,
+            '', 'dialog');
         }
       });
     };

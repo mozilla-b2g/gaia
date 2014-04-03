@@ -1,3 +1,5 @@
+/* global BalanceView */
+
 'use strict';
 
 requireApp('costcontrol/test/unit/mock_date.js');
@@ -9,8 +11,8 @@ requireApp('costcontrol/js/views/BalanceView.js');
 var realDate,
     realMozL10n;
 
-if (!this.navigator.mozL10n) {
-  this.navigator.mozL10n = null;
+if (!window.navigator.mozL10n) {
+  window.navigator.mozL10n = null;
 }
 
 suite(
@@ -63,11 +65,6 @@ suite(
       var timeElement = timestampLabel.children[0];
       assert.equal(timeElement.tagName, 'TIME');
       assert.equal(timeElement.childElementCount, 0);
-    }
-
-    function assertTimeElementContains(content) {
-      var timeElement = timestampLabel.children[0];
-      assert.equal(timeElement.textContent, content);
     }
 
     function assertTimestampHighlight(colorClass) {

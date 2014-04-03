@@ -1,9 +1,12 @@
 /*global Notify, Compose, mocha, MocksHelper, ActivityHandler, Contacts,
-         MessageManager, Attachment, ThreadUI */
+         MessageManager, Attachment, ThreadUI, Settings, Notification,
+         Threads  */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
-         MockNavigatorWakeLock, MockOptionMenu, Mockalert,
+         MockNavigatorWakeLock, MockOptionMenu,
          MockMessages, MockNavigatorSettings, MockL10n,
-         MockNavigatormozMobileMessage */
+         MockNavigatormozMobileMessage,
+         Settings
+*/
 
 'use strict';
 
@@ -20,7 +23,6 @@ requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('sms/shared/test/unit/mocks/mock_settings_url.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
-requireApp('sms/test/unit/mock_alert.js');
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_black_list.js');
 requireApp('sms/test/unit/mock_compose.js');
@@ -30,6 +32,7 @@ requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_threads.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_action_menu.js');
+require('/test/unit/mock_settings.js');
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -46,11 +49,11 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Notification',
   'NotificationHelper',
   'OptionMenu',
+  'Settings',
   'SettingsURL',
   'Threads',
   'ThreadUI',
-  'Utils',
-  'alert'
+  'Utils'
 ]).init();
 
 suite('ActivityHandler', function() {
@@ -86,6 +89,8 @@ suite('ActivityHandler', function() {
   });
 
   setup(function() {
+    this.sinon.stub(window, 'alert');
+
     MockNavigatormozSetMessageHandler.mSetup();
     ActivityHandler.init();
   });
@@ -107,7 +112,8 @@ suite('ActivityHandler', function() {
   });
 
   suite('"share" activity', function() {
-    var shareActivity;
+    var shareActivity, blobs, names;
+    var arr = [];
 
     setup(function() {
       this.prevHash = window.location.hash;
@@ -116,17 +122,39 @@ suite('ActivityHandler', function() {
         source: {
           name: 'share',
           data: {
-            blobs: [new Blob(), new Blob()],
-            filenames: ['testBlob1', 'testBlob2']
+            blobs: [
+              new Blob(['test'], { type: 'text/plain' }),
+              new Blob(['string'], { type: 'text/plain' }),
+              new Blob(),
+              new Blob(),
+              new Blob()
+            ],
+            filenames: ['testBlob1', 'testBlob2', 'testBlob3', 'testBlob4',
+                        'testBlob5']
           }
         }
       };
-      this.prevAppend = Compose.append;
     });
 
     teardown(function() {
       window.location.hash = this.prevHash;
-      Compose.append = this.prevAppend;
+    });
+
+    test('test for pushing an attachments to an array', function() {
+      blobs = shareActivity.source.data.blobs;
+      names = shareActivity.source.data.filenames;
+      assert.ok(arr.length === 0);
+
+      blobs.forEach(function(blob, idx) {
+        var attachment = new Attachment(blob, {
+          name: names[idx],
+          isDraft: true
+        });
+        arr.push(attachment);
+      });
+      ThreadUI.cleanFields(true);
+      //checks an array length after pushing the data to an array
+      assert.ok(arr.length > 0);
     });
 
     test('modifies the URL "hash" when necessary', function() {
@@ -136,18 +164,45 @@ suite('ActivityHandler', function() {
     });
 
     test('Appends an attachment to the Compose field for each media file',
-      function(done) {
-      this.sinon.stub(Compose, 'append', function(attachment) {
-
-        assert.instanceOf(attachment, Attachment);
-        assert.ok(Compose.append.callCount < 3);
-
-        if (Compose.append.callCount === 2) {
-          done();
-        }
-      });
+      function() {
+      this.sinon.stub(Compose, 'append');
+      window.location.hash = '#new';
 
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+
+      sinon.assert.calledWith(Compose.append, [
+        sinon.match.instanceOf(Attachment),
+        sinon.match.instanceOf(Attachment),
+        sinon.match.instanceOf(Attachment),
+        sinon.match.instanceOf(Attachment),
+        sinon.match.instanceOf(Attachment)
+      ]);
+    });
+
+    test('Attachment size over max mms should not be appended', function() {
+      // Adjust mmsSizeLimitation for verifying alert popup when size over
+      // limitation
+      Settings.mmsSizeLimitation = 1;
+      this.sinon.spy(Compose, 'append');
+      window.location.hash = '#new';
+
+      MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+      sinon.assert.notCalled(Compose.append);
+      sinon.assert.calledWith(window.alert, 'files-too-large{"n":5}');
+    });
+
+    test('Should append images even when they are big', function() {
+      shareActivity.source.data.blobs = [
+        new Blob(['test'], { type: 'image/jpeg' }),
+      ];
+
+      Settings.mmsSizeLimitation = 1;
+      this.sinon.spy(Compose, 'append');
+      window.location.hash = '#new';
+
+      MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+      sinon.assert.called(Compose.append);
+      sinon.assert.notCalled(window.alert);
     });
 
     test('share shouldn\'t change the ThreadUI back button', function() {
@@ -172,12 +227,13 @@ suite('ActivityHandler', function() {
     });
 
     suite('contact retrieved (after getSelf)', function() {
-      var contactName = '<&>';
+      var contactName = '<&>'; // testing potentially unsafe characters
       var sendSpy;
       setup(function() {
         sendSpy = this.sinon.spy(window, 'Notification');
         this.sinon.stub(Contacts, 'findByPhoneNumber')
-          .callsArgWith(1, [{name: [contactName]}]);
+          .yields([{name: [contactName]}]);
+
         MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
 
@@ -190,24 +246,18 @@ suite('ActivityHandler', function() {
 
     suite('contact without name (after getSelf)', function() {
       var phoneNumber = '+1111111111';
-      var oldSender;
       var sendSpy;
+
       setup(function() {
         sendSpy = this.sinon.spy(window, 'Notification');
-        oldSender = message.sender;
         message.sender = phoneNumber;
         this.sinon.stub(Contacts, 'findByPhoneNumber')
-          .callsArgWith(1, [{
+          .yields([{
             name: [''],
             tel: {'value': phoneNumber}
           }]);
         MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
-
-      suiteTeardown(function() {
-        message.sender = oldSender;
-      });
-
 
       test('phone in notification title when contact without name', function() {
         sinon.assert.called(sendSpy);
@@ -250,6 +300,54 @@ suite('ActivityHandler', function() {
       });
     });
 
+    suite('Close notification', function() {
+      var closeSpy;
+      var isDocumentHidden;
+
+      suiteSetup(function(){
+        Object.defineProperty(document, 'hidden', {
+          configurable: true,
+          get: function() {
+            return isDocumentHidden;
+          }
+        });
+      });
+
+      suiteTeardown(function(){
+        delete document.hidden;
+      });
+
+      setup(function() {
+        closeSpy = this.sinon.spy(Notification.prototype, 'close');
+        this.sinon.stub(document, 'addEventListener');
+      });
+
+      test('thread view already visible', function() {
+        isDocumentHidden = false;
+        this.sinon.stub(Threads, 'currentId', message.threadId);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+        sinon.assert.notCalled(document.addEventListener);
+        sinon.assert.notCalled(closeSpy);
+      });
+
+      test('Not in target thread view', function() {
+        isDocumentHidden = true;
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+        sinon.assert.notCalled(document.addEventListener);
+        sinon.assert.notCalled(closeSpy);
+      });
+
+      test('In target thread view and view is hidden', function() {
+        isDocumentHidden = true;
+        this.sinon.stub(Threads, 'currentId', message.threadId);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+        sinon.assert.called(document.addEventListener);
+        sinon.assert.notCalled(closeSpy);
+        document.addEventListener.yield();
+        sinon.assert.called(closeSpy);
+      });
+    });
+
     suite('receive class-0 message', function() {
       var realMozSettings;
 
@@ -282,6 +380,57 @@ suite('ActivityHandler', function() {
       test('vibrate', function() {
         var spied = Notify.vibrate;
         assert.ok(spied.called);
+      });
+    });
+  });
+
+  suite('Dual SIM behavior >', function() {
+    var message;
+
+    setup(function() {
+      message = MockMessages.sms({
+        iccId: '0'
+      });
+
+      this.sinon.stub(Settings, 'hasSeveralSim').returns(true);
+      this.sinon.spy(window, 'Notification');
+
+      MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+    });
+
+    suite('contact retrieved (after getSelf)', function() {
+      var contactName = 'contact';
+      setup(function() {
+        this.sinon.stub(Contacts, 'findByPhoneNumber')
+          .yields([{name: [contactName]}]);
+
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      test('prefix the contact name with the SIM information', function() {
+        var expected = 'dsds-notification-title-with-sim' +
+         '{"sim":"sim-name-0","sender":"contact"}';
+        sinon.assert.calledWith(window.Notification, expected);
+      });
+    });
+
+    suite('contact without name (after getSelf)', function() {
+      var phoneNumber = '+1111111111';
+
+      setup(function() {
+        message.sender = phoneNumber;
+        this.sinon.stub(Contacts, 'findByPhoneNumber')
+          .yields([{
+            name: [''],
+            tel: {value: phoneNumber}
+          }]);
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
+      });
+
+      test('phone in notification title when contact without name', function() {
+        var expected = 'dsds-notification-title-with-sim' +
+          '{"sim":"sim-name-0","sender":"+1111111111"}';
+        sinon.assert.calledWith(window.Notification, expected);
       });
     });
   });
@@ -326,21 +475,23 @@ suite('ActivityHandler', function() {
 
     suite('class-0 message', function() {
       setup(function() {
-      var notification = {
-        title: title,
-        body: body,
-        imageURL: 'url?id=' + messageId + '&threadId=' + threadId +
-          '&type=class0',
-        tag: 'threadId:' + threadId,
-        clicked: true
-      };
+        var notification = {
+          title: title,
+          body: body,
+          imageURL: 'url?id=' + messageId + '&threadId=' + threadId +
+            '&type=class0',
+          tag: 'threadId:' + threadId,
+          clicked: true
+        };
 
-      MockNavigatormozSetMessageHandler.mTrigger('notification', notification);
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
+        MockNavigatormozSetMessageHandler.mTrigger(
+          'notification', notification
+        );
+        MockNavigatormozApps.mTriggerLastRequestSuccess();
       });
 
       test('an alert is displayed', function() {
-        assert.equal(Mockalert.mLastMessage, title + '\n' + body);
+        sinon.assert.calledWith(window.alert, title + '\n' + body);
       });
 
       test('handleMessageNotification is not called', function() {

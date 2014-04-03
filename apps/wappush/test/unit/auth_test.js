@@ -139,7 +139,6 @@ suite('ProvisioningAuthentication >', function() {
           mac: 'AA2DC41FC48AEEF3FED7351B1EE704461A8894D4',
           data: wbxml
         };
-        USER_PIN_AUTH_INFO.data.length = wbxml.length;
         assert.isTrue(
           ProvisioningAuthentication.isDocumentValid(USER_PIN,
                                                      USER_PIN_AUTH_INFO)

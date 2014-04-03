@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockMozL10n */
+
 window.realL10n = window.navigator.mozL10n;
 
 var MockMozL10n = window.navigator.mozL10n = {
@@ -9,14 +12,19 @@ var MockMozL10n = window.navigator.mozL10n = {
     var out = key;
 
     if (params) {
-      Object.keys(params).forEach(function(id) {
-        out += params[id];
-      });
+      if (key == 'itemWithLabel') {
+        out = params.label + ', ' + params.item;
+      } else {
+        Object.keys(params).forEach(function(id) {
+          out += params[id];
+        });
+      }
     }
 
     return out;
   },
   localize: function localize(element, key, params) {
     element.textContent = this.get(key, params);
-  }
+  },
+  translate: function() {}
 };

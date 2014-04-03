@@ -12,6 +12,7 @@ var ValueSelector = {
   _currentPickerType: null,
   _currentInputType: null,
   _currentDatetimeValue: '',
+  _im: navigator.mozInputMethod,
 
   debug: function(msg) {
     var debugFlag = false;
@@ -74,12 +75,16 @@ var ValueSelector = {
     window.addEventListener('appopened', this);
     window.addEventListener('appclosing', this);
 
-    // invalidate the current spin date picker when language setting changes
+    // invalidate the current date and time picker when language setting changes
     navigator.mozSettings.addObserver('language.current',
       (function language_change(e) {
         if (this._datePicker) {
           this._datePicker.uninit();
           this._datePicker = null;
+        }
+        if (this._timePickerInitialized) {
+          this._timePickerInitialized = false;
+          TimePicker.uninitTimePicker();
       }}).bind(this));
   },
 
@@ -212,7 +217,7 @@ var ValueSelector = {
       if (selectee.length > 0)
         singleOptionIndex = selectee[0].dataset.optionIndex;
 
-      window.navigator.mozKeyboard.setSelectedOption(singleOptionIndex);
+      this._im.setSelectedOption(singleOptionIndex);
 
     } else if (this._currentPickerType === 'select-multiple') {
       // Multiple select case
@@ -222,7 +227,7 @@ var ValueSelector = {
         optionIndices.push(index);
       }
 
-      window.navigator.mozKeyboard.setSelectedOptions(optionIndices);
+      this._im.setSelectedOptions(optionIndices);
     }
 
   },
@@ -247,7 +252,7 @@ var ValueSelector = {
 
   cancel: function vs_cancel() {
     this.debug('cancel invoked');
-    window.navigator.mozKeyboard.removeFocus();
+    this._im.removeFocus();
     this.hide();
   },
 
@@ -258,7 +263,7 @@ var ValueSelector = {
       case 'time':
         var timeValue = TimePicker.getTimeValue();
         this.debug('output value: ' + timeValue);
-        window.navigator.mozKeyboard.setValue(timeValue);
+        this._im.setValue(timeValue);
         break;
 
       case 'date':
@@ -266,7 +271,7 @@ var ValueSelector = {
         // The format should be 2012-09-19
         dateValue = dateValue.toLocaleFormat('%Y-%m-%d');
         this.debug('output value: ' + dateValue);
-        window.navigator.mozKeyboard.setValue(dateValue);
+        this._im.setValue(dateValue);
         break;
 
       case 'datetime':
@@ -318,12 +323,12 @@ var ValueSelector = {
                             selectedDate.getMilliseconds();
           }
           this.debug('output value: ' + datetimeValue);
-          window.navigator.mozKeyboard.setValue(datetimeValue);
+          this._im.setValue(datetimeValue);
         }
         break;
     }
 
-    window.navigator.mozKeyboard.removeFocus();
+    this._im.removeFocus();
     this.hide();
   },
 
@@ -502,7 +507,7 @@ var TimePicker = {
   },
 
   initTimePicker: function tp_initTimePicker() {
-    var localeTimeFormat = navigator.mozL10n.get('dateTimeFormat_%X');
+    var localeTimeFormat = navigator.mozL10n.get('shortTimeFormat');
     var is12hFormat = (localeTimeFormat.indexOf('%p') >= 0);
     this.timePicker.is12hFormat = is12hFormat;
     this.setTimePickerStyle();
@@ -534,18 +539,42 @@ var TimePicker = {
 
     if (is12hFormat) {
       var hour24StateUnitStyle = {
-        valueDisplayedText: ['AM', 'PM'],
+        valueDisplayedText: [
+          navigator.mozL10n.get('time_am'),
+          navigator.mozL10n.get('time_pm')
+        ],
         className: unitClassName
       };
       this.timePicker.hour24State =
         new ValuePicker(this.hour24StateSelector, hour24StateUnitStyle);
     }
+
+    var separator = ':';
+    var minutesPosition = localeTimeFormat.indexOf('%M');
+    if (minutesPosition > 0) {
+      separator = localeTimeFormat.substr(minutesPosition - 1, 1);
+    }
+    document.getElementById('hours-minutes-separator').textContent = separator;
+  },
+
+  uninitTimePicker: function tp_uninitTimePicker() {
+    TimePicker.timePicker.minute.uninit();
+    TimePicker.timePicker.hour.uninit();
+    if (TimePicker.timePicker.hour24State) {
+      TimePicker.timePicker.hour24State.uninit();
+    }
   },
 
   setTimePickerStyle: function tp_setTimePickerStyle() {
-    var style = (this.timePicker.is12hFormat) ? 'format12h' : 'format24h';
+    var style = 'format24h';
+    if (this.timePicker.is12hFormat) {
+      var localeTimeFormat = navigator.mozL10n.get('shortTimeFormat');
+      var reversedPeriod =
+        (localeTimeFormat.indexOf('%p') < localeTimeFormat.indexOf('%M'));
+      style = (reversedPeriod) ? 'format12hrev' : 'format12h';
+    }
     var container = ValueSelector._context.querySelector('.picker-container');
-    container.classList.add(style);
+    container.className = 'picker-container ' + style;
   },
 
   getHour: function tp_getHours() {

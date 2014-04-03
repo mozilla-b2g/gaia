@@ -1,3 +1,4 @@
+/* exported MimeMapper */
 'use strict';
 
 /**

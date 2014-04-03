@@ -1,5 +1,10 @@
 requireApp('fm/js/fm.js');
 
+var PerformanceTestingHelper = {
+  dispatch: function() { }
+};
+
+
 suite('FM', function() {
   var tempNode;
 

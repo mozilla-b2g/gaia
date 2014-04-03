@@ -124,7 +124,7 @@ button::-moz-focus-inner {
 
 .videoPlayerElapsedBar, .videoPlayerBackgroundBar {
   height: 0.4rem;
-  width: 0%;
+  width: 0;
   top: 50%;
   margin-top: -0.2rem;
   border-radius: 0.6rem;

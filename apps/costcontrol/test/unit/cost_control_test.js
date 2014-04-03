@@ -1,3 +1,6 @@
+/* global MockCommon, MockMozMobileConnection,
+          MockMozNetworkStats, MockConfigManager, CostControl, Common
+*/
 'use strict';
 
 requireApp('costcontrol/test/unit/mock_debug.js');
@@ -13,31 +16,26 @@ var realCommon,
     realMozNetworkStats,
     realSettingsListener,
     realConfigManager,
-    realMozMobileConnection,
-    realNetworkstats;
+    realMozMobileConnection;
 
-if (!this.SettingsListener) {
-  this.SettingsListener = null;
+if (!window.SettingsListener) {
+  window.SettingsListener = null;
 }
 
-if (!this.ConfigManager) {
-  this.ConfigManager = null;
+if (!window.ConfigManager) {
+  window.ConfigManager = null;
 }
 
-if (!this.navigator.mozMobileConnection) {
-  this.navigator.mozMobileConnection = null;
+if (!window.navigator.mozMobileConnection) {
+  window.navigator.mozMobileConnection = null;
 }
 
-if (!this.Networkstats) {
-  this.Networkstats = null;
+if (!window.navigator.mozNetworkStats) {
+  window.navigator.mozNetworkStats = null;
 }
 
-if (!this.navigator.mozNetworkStats) {
-  this.navigator.mozNetworkStats = null;
-}
-
-if (!this.Common) {
-  this.Common = null;
+if (!window.Common) {
+  window.Common = null;
 }
 
 
@@ -55,9 +53,6 @@ suite('Cost Control Service Hub Suite >', function() {
     realMozMobileConnection = window.navigator.mozMobileConnection;
     window.navigator.mozMobileConnection = new MockMozMobileConnection();
 
-    realNetworkstats = window.Networkstats;
-    window.Networkstats = MockMozNetworkStats;
-
     realMozNetworkStats = window.navigator.mozNetworkStats;
     navigator.mozNetworkStats = MockMozNetworkStats;
 
@@ -70,7 +65,6 @@ suite('Cost Control Service Hub Suite >', function() {
     window.navigator.mozMobileConnection = realMozMobileConnection;
     window.navigator.mozNetworkStats = realMozNetworkStats;
     window.Common = realCommon;
-    window.Networkstats = realNetworkstats;
   });
 
   function setupDelaySinceLastBalance(lastBalanceRequest, delay) {

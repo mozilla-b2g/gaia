@@ -1,4 +1,5 @@
 Calendar.ns('Store').Setting = (function() {
+  'use strict';
 
   function Setting() {
     Calendar.Store.Abstract.apply(this, arguments);

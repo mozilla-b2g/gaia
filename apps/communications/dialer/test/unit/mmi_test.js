@@ -1,3 +1,7 @@
+/* globals MocksHelper, MockMozMobileConnection, MmiManager, MockMmiUI,
+           MmiManager, SUCCESS_MMI_MSG, SUCCESS_MMI_MSG, SUCCESS_MMI_NO_MSG,
+           FAILED_MMI_MSG, FAILED_MMI_MSG, FAILED_MMI_NO_MSG, MMI_MSG */
+
 'use strict';
 
 requireApp('communications/dialer/js/mmi.js');
@@ -20,7 +24,6 @@ suite('dialer/mmi', function() {
   var realMobileConnection;
 
   mocksHelperForMMI.attachTestHelpers();
-  var keys = {};
 
   setup(function() {
     realMobileConnection = window.navigator.mozMobileConnection;
@@ -33,10 +36,47 @@ suite('dialer/mmi', function() {
   });
 
   teardown(function() {
+    delete MockMozMobileConnection.voice.type;
+    delete MockMozMobileConnection.supportedNetworkTypes;
+
     window.navigator.mozMobileConnection = realMobileConnection;
 
     MmiManager._conn.mTeardown();
     MmiManager._ui.teardown();
+  });
+
+  suite('Validate MMI codes', function() {
+    setup(function(done) {
+      MmiManager.init(done);
+    });
+
+    test('Check an MMI code', function() {
+      assert.isTrue(MmiManager.isMMI('*123#'));
+    });
+
+    test('Check a non-MMI code', function() {
+      assert.isFalse(MmiManager.isMMI('123'));
+    });
+
+    test('In CDMA networks MMI codes are never allowed', function() {
+      var cdmaTypes = ['evdo0', 'evdoa', 'evdob', '1xrtt', 'is95a', 'is95b'];
+
+      for (var i = 0; i < cdmaTypes.length; i++) {
+        MockMozMobileConnection.voice.type = cdmaTypes[i];
+        assert.isFalse(MmiManager.isMMI('*123#'));
+      }
+    });
+
+    test('Requesting the IMEI is allowed on phones supporting GSM networks',
+      function() {
+        MockMozMobileConnection.supportedNetworkTypes = ['gsm', 'lte', 'wcdma'];
+        MockMozMobileConnection.voice.type = 'is95a';
+        assert.isTrue(MmiManager.isMMI('*#06#'));
+
+        MockMozMobileConnection.supportedNetworkTypes = ['cdma', 'evdo'];
+        MockMozMobileConnection.voice.type = 'evdoa';
+        assert.isFalse(MmiManager.isMMI('*#06#'));
+      });
   });
 
   suite('Successfully send mmi message with result', function() {

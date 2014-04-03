@@ -13,7 +13,7 @@ function sendChromeEvent(detail) {
 }
 
 function sendEvent(type, details) {
-  var event = tab.CustomEvent(type, details);
+  var event = new tab.CustomEvent(type, details);
   tab.dispatchEvent(event);
 }
 

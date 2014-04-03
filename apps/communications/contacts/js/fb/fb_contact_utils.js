@@ -1,6 +1,10 @@
 'use strict';
 
+/* global fb */
+
+/* jshint ignore:start */
 var fb = this.fb || {};
+/* jshint ignore:end */
 
 fb.PROPAGATED_PREFIX = 'fb_propagated_';
 
@@ -9,6 +13,8 @@ fb.PROFILE_PHOTO_URI = 'fb_profile_photo';
 fb.FRIEND_URI = 'fb_friend';
 fb.DEFAULT_PHONE_TYPE = 'other';
 fb.DEFAULT_EMAIL_TYPE = 'other';
+ // This year indicates that the year can be ignored (yearless date)
+fb.FLAG_YEAR_IGNORED = 9996;
 
 fb.CONTACTS_APP_ORIGIN = location.origin;
 
@@ -141,7 +147,7 @@ fb.getWorksAt = function(fbdata) {
   *
   */
 fb.getBirthDate = function getBirthDate(sbday) {
-  var out = new Date();
+  var out = new Date(0);
 
   var imonth = sbday.indexOf('/');
   var smonth = sbday.substring(0, imonth);
@@ -160,6 +166,15 @@ fb.getBirthDate = function getBirthDate(sbday) {
   if (syear && syear.length > 0) {
     out.setUTCFullYear(parseInt(syear, 10));
   }
+  else {
+    // 9996 is the year that flags a not known year
+    out.setUTCFullYear(fb.FLAG_YEAR_IGNORED);
+  }
+
+  out.setUTCHours(0);
+  out.setUTCMinutes(0);
+  out.setUTCSeconds(0);
+  out.setUTCMilliseconds(0);
 
   return out;
 };
@@ -205,7 +220,7 @@ fb.markAsUnlinked = function(devContact) {
         updatedCategory.push(category[c]);
       }
       // The facebook category, the linked mark and the UID are skipped
-      for (var c = idx + 3; c < category.length; c++) {
+      for (c = idx + 3; c < category.length; c++) {
          updatedCategory.push(category[c]);
       }
     }

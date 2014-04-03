@@ -153,7 +153,7 @@
    * @param  {String} type name of the event.
    */
   HardwareButtons.prototype.publish = function hb_publish(type) {
-    window.dispatchEvent(new CustomEvent(type));
+    window.dispatchEvent(new CustomEvent(type, { bubbles: type === 'home' }));
   };
 
   /**

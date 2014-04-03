@@ -34,6 +34,13 @@ var FLAVORS = {
       main: 'contact-suggestion-tmpl'
     }
   },
+  suggestionUnknown: {
+    renderAll: true,
+    shouldHighlight: true,
+    templates: {
+      main: 'contact-suggestion-unknown-tmpl'
+    }
+  },
   prompt: {
     renderAll: false,
     shouldHighlight: false,

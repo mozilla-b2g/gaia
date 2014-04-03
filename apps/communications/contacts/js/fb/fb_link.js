@@ -1,5 +1,8 @@
 'use strict';
 
+/* global Curtain, FacebookConnector, ImageLoader, Normalizer, utils,
+          importUtils, oauth2 */
+
 var fb = window.fb || {};
 
 if (!fb.link) {
@@ -31,14 +34,20 @@ if (!fb.link) {
     ];
 
     // Conditions
-    var MAIL_COND = ['strpos(email, ' , "'", null, "'", ') >= 0'];
-    var CELL_COND = ['strpos(cell, ' , "'", null, "'", ') >= 0'];
+    var MAIL_COND, CELL_COND;
+    /* jshint ignore:start */
+    MAIL_COND = ['strpos(email, ' , "'", null, "'", ') >= 0'];
+    CELL_COND = ['strpos(cell, ' , "'", null, "'", ') >= 0'];
+    /* jshint ignore:end */
 
     var ALL_QUERY = ['SELECT uid, name, last_name, first_name,',
       ' middle_name, email from user ',
       ' WHERE uid IN (SELECT uid1 FROM friend WHERE uid2=me()) ',
       ' ORDER BY name'
     ];
+
+    var COUNT_QUERY = 'SELECT uid FROM user WHERE uid IN ' +
+                      '(SELECT uid1 FROM friend WHERE uid2=me())';
 
     var SEARCH_ACCENTS_FIELDS = {
       'last_name': 'familyName',
@@ -136,11 +145,50 @@ if (!fb.link) {
 
     function getRemoteProposalAll(acc_tk) {
       numQueries++;
-      doGetRemoteProposal(acc_tk, null, ALL_QUERY.join(''));
+      doGetRemoteProposal(acc_tk, null, ALL_QUERY.join(''), true);
+    }
+
+    // This function deals with the response for a proposal
+    // It takes care whether a response with the number of friends is present
+    // and updates the cache accordingly
+    function proposalReadyMultiple(done, error, response) {
+      // If there is an error we just pass it upstream
+      if (response.error) {
+        done(response);
+        return;
+      } else if (!Array.isArray(response.data)) {
+        error({
+          name: 'QueryResponseError'
+        });
+        return;
+      }
+
+      var friendList, totalFriends;
+      if (response.data.length > 0 &&
+          Array.isArray(response.data[0].fql_result_set)) {
+        friendList = response.data[0].fql_result_set;
+        if (response.data[1] &&
+            Array.isArray(response.data[1].fql_result_set)) {
+          totalFriends = response.data[1].fql_result_set.length;
+        }
+      }
+      else {
+        friendList = response.data;
+        totalFriends = friendList.length;
+      }
+
+      if (typeof totalFriends !== 'undefined') {
+        fb.utils.setCachedNumFriends(totalFriends);
+      }
+
+      done({
+        data: friendList
+      });
     }
 
     // Performs all the work to obtain the remote proposal
-    function doGetRemoteProposal(acc_tk, contactData, query) {
+    // the "isAll" parameter indicates that the query will get all friends
+    function doGetRemoteProposal(acc_tk, contactData, query, isAll) {
       /*
         Phone.lookup was analysed but we were not happy about how it worked
 
@@ -151,9 +199,21 @@ if (!fb.link) {
       var sentries = JSON.stringify(entries);
 
       */
+      var theQuery = query;
+      var callback = proposalReadyMultiple.bind(null, fb.link.proposalReady,
+                                              fb.link.errorHandler);
+      // If the query is not going to provide a full list of friends
+      // We count all in order to refresh the total number of friends
+      if (!isAll) {
+        theQuery = JSON.stringify({
+          query1: query,
+          query2: COUNT_QUERY
+        });
+      }
+
       state = 'proposal';
-      currentNetworkRequest = fb.utils.runQuery(query, {
-        success: fb.link.proposalReady,
+      currentNetworkRequest = fb.utils.runQuery(theQuery, {
+        success: callback,
         error: fb.link.errorHandler,
         timeout: fb.link.timeoutHandler
       }, acc_tk);
@@ -168,11 +228,6 @@ if (!fb.link) {
 
       Curtain.hide(shouldNotifyParent ? notifyParent.bind(
         null, {type: 'abort'}) : null);
-    }
-
-    // Invoked when timeout or error and the user cancels all
-    function closeCb() {
-      Curtain.hide();
     }
 
     // Obtains a proposal with all friends
@@ -480,7 +535,7 @@ if (!fb.link) {
       setCurtainHandlers();
       clearList();
       imgLoader = new ImageLoader('#mainContent',
-                                  "li:not([data-uuid='#uid#'])");
+                                  'li:not([data-uuid="#uid#"])');
 
       if (!acc_tk) {
         oauth2.getAccessToken(function proposal_new_token(new_acc_tk) {
@@ -567,6 +622,7 @@ if (!fb.link) {
             link.baseHandler('timeout');
           };
 
+          imgLoader.unload(); // Removing listeners
           FacebookConnector.importContact(friendUidToLink, access_token,
                                           callbacks, 'not_match');
         }

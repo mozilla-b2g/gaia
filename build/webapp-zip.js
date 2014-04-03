@@ -207,7 +207,7 @@ function copyBuildingBlock(zip, blockName, dirName, webapp) {
   let dirPath = '/shared/' + dirName + '/';
 
   // Compute the nsIFile for this shared style
-  let styleFolder = utils.getGaia(config).sharedFolder.clone();
+  let styleFolder = utils.gaia.getInstance(config).sharedFolder.clone();
   styleFolder.append(dirName);
   let cssFile = styleFolder.clone();
   if (!styleFolder.exists()) {
@@ -239,7 +239,7 @@ function copyBuildingBlock(zip, blockName, dirName, webapp) {
 
 function customizeFiles(zip, src, dest, webapp) {
   // Add customize file to the zip
-  var distDir = utils.getGaia(config).distributionDir;
+  var distDir = utils.gaia.getInstance(config).distributionDir;
   let files = utils.ls(utils.getFile(distDir, src));
   files.forEach(function(file) {
     let filename = dest + file.leafName;
@@ -253,7 +253,7 @@ function customizeFiles(zip, src, dest, webapp) {
 
 function execute(options) {
   config = options;
-  var gaia = utils.getGaia(config);
+  var gaia = utils.gaia.getInstance(config);
   var localesFile = utils.resolve(config.LOCALES_FILE,
     config.GAIA_DIR);
   if (!localesFile.exists()) {

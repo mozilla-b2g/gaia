@@ -138,11 +138,14 @@ function processFirstQueuedItem() {
       fileinfo.metadata = metadata;
 
       // Save it to the database
-      videodb.updateMetadata(fileinfo.name, metadata);
-
-      // Create and insert a thumbnail for the video
-      if (metadata.isVideo)
-        addVideo(fileinfo);
+      videodb.updateMetadata(fileinfo.name, metadata, function() {
+        // Create and insert a thumbnail for the video
+        if (metadata.isVideo) {
+          videodb.getFileInfo(fileinfo.name, function(dbfileinfo) {
+            addVideo(dbfileinfo);
+          });
+        }
+      });
 
       // And process the next video in the queue
       setTimeout(processFirstQueuedItem);

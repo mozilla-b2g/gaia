@@ -1,3 +1,4 @@
+/* exported BlobView */
 'use strict';
 
 var BlobView = (function() {
@@ -32,17 +33,19 @@ var BlobView = (function() {
 
   // Async factory function
   BlobView.get = function(blob, offset, length, callback, littleEndian) {
-    if (offset < 0)
+    if (offset < 0) {
       fail('negative offset');
-    if (length < 0)
+    }
+    if (length < 0) {
       fail('negative length');
-    if (offset > blob.size)
+    }
+    if (offset > blob.size) {
       fail('offset larger than blob size');
-
+    }
     // Don't fail if the length is too big; just reduce the length
-    if (offset + length > blob.size)
+    if (offset + length > blob.size) {
       length = blob.size - offset;
-
+    }
     var slice = blob.slice(offset, offset + length);
     var reader = new FileReader();
     reader.readAsArrayBuffer(slice);
@@ -172,23 +175,27 @@ var BlobView = (function() {
       return this.byteLength - this.index;
     },
     seek: function(index) {
-      if (index < 0)
+      if (index < 0) {
         fail('negative index');
-      if (index > this.byteLength)
+      }
+      if (index > this.byteLength) {
         fail('index greater than buffer size');
+      }
       this.index = index;
     },
     advance: function(n) {
       var index = this.index + n;
-      if (index < 0)
+      if (index < 0) {
         fail('advance past beginning of buffer');
+      }
       // It's usual that when we finished reading one target view,
       // the index is advanced to the start(previous end + 1) of next view,
       // and the new index will be equal to byte length(the last index + 1),
       // we will not fail on it because it means the reading is finished,
       // or do we have to warn here?
-      if (index > this.byteLength)
+      if (index > this.byteLength) {
         fail('advance past end of buffer');
+      }
       this.index = index;
     },
 
@@ -273,42 +280,51 @@ var BlobView = (function() {
         }
         else if (b1 < 224) {
           // 2-byte sequence
-          if (pos + 1 >= end)
+          if (pos + 1 >= end) {
             fail();
+          }
           b2 = this.view.getUint8(pos + 1);
-          if (b2 < 128 || b2 > 191)
+          if (b2 < 128 || b2 > 191) {
             fail();
+          }
           charcode = ((b1 & 0x1f) << 6) + (b2 & 0x3f);
           s += String.fromCharCode(charcode);
           pos += 2;
         }
         else if (b1 < 240) {
           // 3-byte sequence
-          if (pos + 2 >= end)
+          if (pos + 2 >= end) {
             fail();
+          }
           b2 = this.view.getUint8(pos + 1);
-          if (b2 < 128 || b2 > 191)
+          if (b2 < 128 || b2 > 191) {
             fail();
+          }
           b3 = this.view.getUint8(pos + 2);
-          if (b3 < 128 || b3 > 191)
+          if (b3 < 128 || b3 > 191) {
             fail();
+          }
           charcode = ((b1 & 0x0f) << 12) + ((b2 & 0x3f) << 6) + (b3 & 0x3f);
           s += String.fromCharCode(charcode);
           pos += 3;
         }
         else if (b1 < 245) {
           // 4-byte sequence
-          if (pos + 3 >= end)
+          if (pos + 3 >= end) {
             fail();
+          }
           b2 = this.view.getUint8(pos + 1);
-          if (b2 < 128 || b2 > 191)
+          if (b2 < 128 || b2 > 191) {
             fail();
+          }
           b3 = this.view.getUint8(pos + 2);
-          if (b3 < 128 || b3 > 191)
+          if (b3 < 128 || b3 > 191) {
             fail();
+          }
           b4 = this.view.getUint8(pos + 3);
-          if (b4 < 128 || b4 > 191)
+          if (b4 < 128 || b4 > 191) {
             fail();
+          }
           charcode = ((b1 & 0x07) << 18) +
             ((b2 & 0x3f) << 12) +
             ((b3 & 0x3f) << 6) +
@@ -376,12 +392,14 @@ var BlobView = (function() {
     // more than size bytes.  And return as a UTF8 string
     readNullTerminatedUTF8Text: function(size) {
       for (var len = 0; len < size; len++) {
-        if (this.view.getUint8(this.index + len) === 0)
+        if (this.view.getUint8(this.index + len) === 0) {
           break;
+        }
       }
       var s = this.readUTF8Text(len);
-      if (len < size)    // skip the null terminator if we found one
+      if (len < size) {    // skip the null terminator if we found one
         this.advance(1);
+      }
       return s;
     },
 
@@ -392,10 +410,11 @@ var BlobView = (function() {
       if (le == null) {
         var BOM = this.readUnsignedShort();
         size -= 2;
-        if (BOM === 0xFEFF)
+        if (BOM === 0xFEFF) {
           le = false;
-        else
+        } else {
           le = true;
+        }
       }
 
       var s = '';

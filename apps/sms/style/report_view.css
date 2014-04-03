@@ -128,11 +128,13 @@
 }
 
 .report-view .size-block,
-.report-view .received-detail {
+.report-view .received-detail,
+.report-view .sim-info {
   padding-top: 0;
 }
 
-.report-view .size-block span {
+.report-view .size-block span,
+.report-view .sim-info span{
   font-size: 1.5rem;
   color: #858585;
 }

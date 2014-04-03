@@ -273,7 +273,6 @@ input[type="image"] {
 #url-bar {
   display: -moz-box;
   -moz-box-orient: horizontal;
-  margin: 1rem;
   border: 0.1rem solid #c1c5ce;
   border-radius: 0.5rem;
   height: 3.4rem;
@@ -289,7 +288,6 @@ input[type="image"] {
 }
 
 #url-button {
-  background-position: center;
   display: none;
   height: 3.2rem;
   width: 2.6rem;
@@ -328,13 +326,11 @@ input[type="image"] {
   height: 3.4rem;
   -moz-box-flex: 1;
   margin: 0;
-  padding: 0;
+  padding: 0 0.6rem 0 0;
   border: none;
   background-color: transparent;
   background: none;
   text-overflow: ellipsis;
-  padding: 0;
-  padding-right: 0.6rem;
   width: calc(100% - 3.2rem);
 }
 

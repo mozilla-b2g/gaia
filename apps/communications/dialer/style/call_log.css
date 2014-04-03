@@ -3,11 +3,6 @@ section[role="region"] > header:first-child .icon {
   pointer-events: auto;
 }
 
-section[role="region"] > header:first-child a[aria-disabled="true"] .icon,
-section[role="region"] > header:first-child button[aria-disabled="true"] .icon {
-  pointer-events: none;
-}
-
 /* Overriding BB styles for edit mode */
 form[role="dialog"][data-type="edit"] header .icon {
   pointer-events: auto;
@@ -21,11 +16,32 @@ form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(110%);
 }
 
-#call-log-container[data-type="list"] header {
-  position: sticky;
-  top: 0;
+#call-log-container[data-type="list"] section {
   background: #fff;
+}
+
+#sticky {
+  position: absolute;
+
+  /* The sticky element is positioned at the beginning of the list. */
+  top: 0;
+
+  /* The width is not 100% so the scrollbar is visible. */
+  width: calc(100% - 1.5rem);
+
+  /* The height needs to be kept in sync with the header height. */
+  height: 3.1rem;
+
+  /* The sticky element needs to be above the list. */
   z-index: 2;
+
+  /* Those style will affect the bagroundImage: -moz-element. */
+  background-repeat: no-repeat;
+  background-position: 1.5rem 0;
+}
+
+#call-log-container[data-type="list"] header {
+  background: #fff;
 }
 
 /* Override Building Block styles for lists */
@@ -65,8 +81,12 @@ form[role="dialog"][data-type="edit"] > menu {
   text-transform: capitalize;
 }
 
-.disabled {
+button[disabled], input[type="text"][disabled],
+a[disabled][role="button"], a[disabled][role="button"] * {
   pointer-events: none;
+}
+
+input[type="text"][disabled], a[disabled][role="button"] {
   opacity: 0.3;
 }
 
@@ -117,16 +137,47 @@ ol, ul {
   background-size: 3rem;
 }
 
+/* .first-sim and .second-sim classes should only affect the style
+ * if the .dual-sim class is set on the container */
+
 [data-type="list"] aside.icon.icon-incoming {
   background-image: url('images/CallLog_30x30_incoming.png');
+}
+[data-type="list"].dual-sim aside.icon.icon-incoming.first-sim {
+  background-image: url('images/CallLog_30x30_incoming-first-sim.png');
+}
+[data-type="list"].dual-sim aside.icon.icon-incoming.second-sim {
+  background-image: url('images/CallLog_30x30_incoming-second-sim.png');
 }
 
 [data-type="list"] aside.icon.icon-outgoing {
   background-image: url('images/CallLog_30x30_outgoing.png');
 }
+[data-type="list"].dual-sim aside.icon.icon-outgoing.first-sim {
+  background-image: url('images/CallLog_30x30_outgoing-first-sim.png');
+}
+[data-type="list"].dual-sim aside.icon.icon-outgoing.second-sim {
+  background-image: url('images/CallLog_30x30_outgoing-second-sim.png');
+}
 
 [data-type="list"] aside.icon.icon-missed {
   background-image: url('images/CallLog_30x30_missed_grey.png');
+}
+[data-type="list"].dual-sim aside.icon.icon-missed.first-sim {
+  background-image: url('images/CallLog_30x30_missed_grey-first-sim.png');
+}
+[data-type="list"].dual-sim aside.icon.icon-missed.second-sim {
+  background-image: url('images/CallLog_30x30_missed_grey-second-sim.png');
+}
+
+[data-type="list"] .missed-call.highlighted aside.icon.icon-missed {
+  background-image: url('images/CallLog_30x30_missed.png');
+}
+[data-type="list"].dual-sim .missed-call.highlighted aside.icon.icon-missed.first-sim {
+  background-image: url('images/CallLog_30x30_missed-first-sim.png');
+}
+[data-type="list"].dual-sim .missed-call.highlighted aside.icon.icon-missed.second-sim {
+  background-image: url('images/CallLog_30x30_missed-first-sim.png');
 }
 
 .log-item * {
@@ -165,12 +216,12 @@ ol, ul {
   pointer-events: auto;
 }
 
-[data-type="list"] .missed-call.highlighted aside.icon.icon-missed {
-  background-image: url('images/CallLog_30x30_missed.png');
-}
-
 .log-item.missed-call.highlighted .call-time {
   color: #b90000 !important;
+}
+
+.log-item .pack-checkbox {
+  visibility: hidden;
 }
 
 /* Edit mode state */
@@ -185,6 +236,12 @@ ol, ul {
 
 .recents-edit .log-item a {
   transform: translateX(3rem);
+  visibility: hidden;
+}
+
+.recents-edit .log-item a > aside,
+.recents-edit .log-item a > p {
+  visibility: visible;
 }
 
 .recents-edit .log-item a > p {
@@ -201,6 +258,7 @@ ol, ul {
 
 .recents-edit .log-item .pack-checkbox {
   pointer-events: auto;
+  visibility: visible;
 }
 
 /*
@@ -228,7 +286,7 @@ ol, ul {
   margin: 0;
 }
 
-#edit-mode {
+.recents-edit #edit-mode {
   display: block;
 }
 
@@ -238,12 +296,4 @@ ol, ul {
 
 .filter .groupFiltered {
   display: none;
-}
-
-.disabled {
-  pointer-events: none !important;
-}
-
-.disabled *{
-  pointer-events: none !important;
 }

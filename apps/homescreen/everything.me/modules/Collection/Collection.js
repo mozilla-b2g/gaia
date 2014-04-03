@@ -66,7 +66,7 @@ void function() {
           return;
         }
 
-        var currentTitle = elTitle.querySelector('span').textContent,
+        var currentTitle = title,
             elInput, elDone;
 
         el.classList.add(CLASS_WHEN_EDITING_NAME);
@@ -107,13 +107,17 @@ void function() {
       },
 
       done: function renameDone(shouldSave) {
-        if (!self.isRenaming) {
+        var elInput = elTitle.querySelector('input'),
+            elDone = elTitle.querySelector('.done');
+
+        // weird UI state. see bug 975917
+        if (!(self.isRenaming && currentSettings && elInput && elDone)) {
+          elInput && elInput.blur();
+          exitDoneState();
           return;
         }
 
-        var elInput = elTitle.querySelector('input'),
-            elDone = elTitle.querySelector('.done'),
-            id = currentSettings.id,
+        var id = currentSettings.id,
             oldName = EvmeManager.getIconName(id) || currentSettings.query,
             newName = elInput.value,
             nameChanged = newName && newName !== oldName;
@@ -142,16 +146,20 @@ void function() {
           self.setTitle(oldName);
         }
 
-        el.classList.remove(CLASS_WHEN_EDITING_NAME);
+        exitDoneState();
 
-        self.isRenaming = false;
+        function exitDoneState() {
+          el.classList.remove(CLASS_WHEN_EDITING_NAME);
 
-        // timeout(0) because this done function can be called from input blur
-        // if we add the event back immediately it still fires, thus keeping
-        // the user in the rename mode
-        window.setTimeout(function() {
-          elTitle.addEventListener('click', self.Rename.start);
-        }, 0);
+          self.isRenaming = false;
+
+          // timeout(0) because this done function can be called from input blur
+          // if we add the event back immediately it still fires, thus keeping
+          // the user in the rename mode
+          window.setTimeout(function() {
+            elTitle.addEventListener('click', self.Rename.start);
+          }, 0);
+        }
       }
     };
 
@@ -529,6 +537,8 @@ void function() {
       return true;
     };
 
+    this.createCollectionIcon = createCollectionIcon;
+
     function onVisibilityChange() {
       if (document.mozHidden) {
         self.toggleEditMode(false);
@@ -598,6 +608,12 @@ void function() {
    */
   Evme.CollectionSettings = function Evme_CollectionSettings(args) {
     this.id = args.id;
+
+    // default icon defined in manifest.collection
+    // only avaiable on init of pre-installed collections
+    if (args.defaultIcon) {
+      this.defaultIcon = args.defaultIcon;
+    }
 
     // object containing backgound information (image, query, source, setByUser)
     this.bg = args.bg || null;
@@ -808,12 +824,12 @@ void function() {
    * Add a collection to the homescreen.
    */
   function addToGrid(settings, gridPageOffset, extra) {
-    createCollectionIcon(settings, function onIconCreated(canvas) {
+    createCollectionIcon(settings, function onIconCreated(icon) {
       EvmeManager.addGridItem({
         'id': settings.id,
         'originUrl': settings.id,
         'name': settings.query,
-        'icon': canvas.toDataURL(),
+        'icon': icon,
         'isCollection': true,
         'gridPageOffset': gridPageOffset
       }, extra);
@@ -824,8 +840,8 @@ void function() {
    * Update a collection's icon on the homescreen
    */
   function updateGridIconImage(settings) {
-    createCollectionIcon(settings, function iconCreated(iconCanvas) {
-      EvmeManager.setIconImage(iconCanvas.toDataURL(), settings.id);
+    createCollectionIcon(settings, function iconCreated(icon) {
+      EvmeManager.setIconImage(icon, settings.id);
     });
   }
 
@@ -838,9 +854,15 @@ void function() {
                                       Evme.Config.numberOfAppInCollectionIcon);
     }
 
-    Evme.IconGroup.get(icons, function onIconCreated(iconCanvas) {
-      callback(iconCanvas);
-    });
+    // revert to default icon (if exists) instead of rendering an empty icon
+    // see bug 968918
+    if (!icons.length && settings.defaultIcon) {
+      callback(settings.defaultIcon);
+    } else {
+      Evme.IconGroup.get(icons, function onIconCreated(iconCanvas) {
+        callback(iconCanvas.toDataURL());
+      });
+    }
   }
 
   /**

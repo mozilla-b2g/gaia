@@ -1,11 +1,10 @@
 'use strict';
 
 mocha.globals(['AppWindow', 'BrowserMixin', 'ActivityWindow',
-  'System', 'BrowserFrame', 'BrowserConfigHelper', 'LayoutManager',
-  'OrientationManager', 'SettingsListener', 'Applications']);
+  'System', 'BrowserFrame', 'BrowserConfigHelper', 'OrientationManager',
+  'SettingsListener', 'Applications']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
-requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
@@ -15,7 +14,7 @@ requireApp('system/shared/test/unit/mocks/mock_screen_layout.js');
 
 var mocksForActivityWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'LayoutManager', 'AttentionScreen'
+  'ManifestHelper', 'AttentionScreen'
 ]).init();
 
 suite('system/ActivityWindow', function() {
@@ -100,12 +99,20 @@ suite('system/ActivityWindow', function() {
     teardown(function() {
     });
 
+    test('Render activity inside its caller', function() {
+      var activity = new ActivityWindow(fakeConfig, app);
+      assert.deepEqual(activity.containerElement, app.element);
+    });
+
     test('handleEvent: closing activity', function() {
       var activity = new ActivityWindow(fakeConfig, app);
       var stubRestoreCaller = this.sinon.stub(activity, 'restoreCaller');
+      var spy = this.sinon.spy();
       activity.handleEvent({
-        type: '_closing'
+        type: '_closing',
+        stopPropagation: spy
       });
+      assert.isTrue(spy.called);
       assert.isTrue(stubRestoreCaller.called);
     });
 
@@ -113,10 +120,13 @@ suite('system/ActivityWindow', function() {
       var activity = new ActivityWindow(fakeConfig, app);
       var stubIsOOP = this.sinon.stub(app, 'isOOP');
       var stubSetVisible = this.sinon.stub(app, 'setVisible');
+      var spy = this.sinon.spy();
       stubIsOOP.returns(false);
       activity.handleEvent({
-        type: '_opened'
+        type: '_opened',
+        stopPropagation: spy
       });
+      assert.isTrue(spy.called);
       assert.isTrue(stubSetVisible.calledWith(false, true));
     });
 
@@ -271,6 +281,17 @@ suite('system/ActivityWindow', function() {
       }
       activity.setOrientation();
       assert.isTrue(stubLockOrientation.calledWith('portrait-primary'));
+    });
+
+    test('Activity should stop event propagation', function() {
+      var activity = new ActivityWindow(fakeConfig, appOrientationUndefined);
+      var spy = this.sinon.spy();
+      activity.handleEvent({
+        type: 'mozbrowserloadend',
+        stopPropagation: spy,
+        detail: {}
+      });
+      assert.isTrue(spy.called);
     });
   });
 });

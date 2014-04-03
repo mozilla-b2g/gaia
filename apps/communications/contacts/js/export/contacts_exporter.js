@@ -1,3 +1,4 @@
+/* global utils, _, ConfirmDialog, Contacts*/
 'use strict';
 
 //
@@ -31,7 +32,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   // XXX: Bug 904623 since we cannot fetch a list of contacts by
   // contact id, we will need to fetch them all and filter
   var _init = function _init(theContacts, cb) {
-    if (theContacts == null || theContacts.length == 0) {
+    if (theContacts === null || theContacts.length === 0) {
       return;
     }
 
@@ -150,7 +151,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   //
   var _configureProgress = function _configureProgress() {
     determinativeProgress =
-      strategy['hasDeterminativeProgress'] !== undefined &&
+      strategy.hasDeterminativeProgress !== undefined &&
       strategy.hasDeterminativeProgress();
   };
 

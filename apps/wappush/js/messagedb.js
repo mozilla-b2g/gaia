@@ -1,6 +1,8 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global IDBKeyRange */
+
 /* exported MessageDB */
 
 'use strict';
@@ -74,6 +76,33 @@ var MessageDB = (function() {
   }
 
   /**
+   * Process a message executing the associated action. This deals with
+   * messages with a 'delete' action by deleting all coresponding message and
+   * with new messages by storing them. Once processing is done the new status
+   * is returned.
+   *
+   * @param {Object} store The messages' object store.
+   * @param {Object} message The message to be processed.
+   * @param {String} status The status of this message
+   * @param {Function} error A callback invoked if an operation fails.
+   *
+   * @return {String} The status of the message after processing it.
+   */
+  function mdb_processMessage(store, message, status, error) {
+    /* If the message has a 'delete' action delete all messages with the
+     * corresponding 'si-id' field and drop the current message. All other
+     * messages should be stored. */
+    if (message.action === 'delete') {
+      mdb_deleteById(store, message.id, error);
+      status = 'discarded';
+    } else {
+      store.put(message);
+    }
+
+    return status;
+  }
+
+  /**
    * Adds a messages to the message database according to the out-of-order
    * delivery rules specified in WAP-167 6.2. Once the transaction is completed
    * invokes the success callback with a boolean parameter set to true if the
@@ -104,60 +133,64 @@ var MessageDB = (function() {
 
       var store = transaction.objectStore(MESSAGE_STORE_NAME);
 
-      if (message.id) {
-        /* Check if the message is new, updates an existing one or is just
-         * outdated and needs to be discarded. */
-        var index = store.index(ID_INDEX);
-        var req = index.get(message.id);
-
-        req.onsuccess = function mdb_gotExistingMessage(event) {
-          if (event.target.result) {
-            var storedMessage = event.target.result;
-
-            /* If this is a new version of an existing message, expire the
-             * previous message and flag this message as updated. Older versions
-             * are discarded right away with no further action required. */
-            if (storedMessage.created && message.created) {
-              if (storedMessage.created < message.created) {
-                status = 'updated';
-                store.delete(storedMessage.timestamp);
-                store.put(message);
-              } else {
-                status = 'discarded';
-              }
-            }
-
-            /* After the normal message replacement if this message has a
-             * delete action remove all messages with the same ID including
-             * the received message itself. The user will not be notified. */
-            if (message.action === 'delete') {
-              status = 'discarded';
-              mdb_deleteById(transaction, message.id, error);
-            }
-          } else {
-            /* No existing message has a matching ID, notify the user */
-            store.put(message);
-          }
-        };
-      } else {
-        /* The message doesn't have an ID, unconditionally store it and notify
-         * the user. */
+      if (!message.id) {
+        // The message has no 'si-id' field, store it
         store.put(message);
+        return;
       }
+
+      if (!message.created) {
+        /* The message has a 'si-id' field but no creation time, process it and
+         * store it if needed */
+        status = mdb_processMessage(store, message, status, error);
+        return;
+      }
+
+      /* The message has both a 'si-id' and a 'created' field, make it go
+       * through the out-of-order delivery logic. This will check if the
+       * message is new, updates an existing one or is just outdated and
+       * needs to be discarded. */
+      var index = store.index(ID_INDEX);
+      var req = index.openCursor(IDBKeyRange.only(message.id));
+
+      req.onsuccess = function mdb_cursorSuccess(event) {
+        var cursor = event.target.result;
+
+        if (cursor) {
+          var storedMessage = cursor.value;
+
+          /* If this is a new version of an existing message, expire the
+           * previous message and flag this message as updated. Older versions
+           * are discarded right away with no further action required. */
+          if (storedMessage.created) {
+            if (storedMessage.created < message.created) {
+              cursor.delete(storedMessage);
+              status = mdb_processMessage(store, message, 'updated', error);
+            } else {
+              status = 'discarded';
+            }
+
+            return;
+          }
+
+          cursor.continue();
+        } else {
+          /* We found no matching message with a 'created' property set,
+           * process the message and store it if needed */
+          status = mdb_processMessage(store, message, status, error);
+        }
+      };
     }, error);
   }
 
   /**
-   * Deletes all messages with the specified si-id. This method is private and
-   * should only be called from within an existing transaction.
+   * Deletes all messages with the specified si-id.
    *
-   * @param {Object} transaction A transaction within which this operation will
-   *        take place.
+   * @param {Object} store The messages' object store.
    * @param {String} id The si-id of the messages to be deleted.
    * @param {Function} error A callback invoked if an operation fails.
    */
-  function mdb_deleteById(transaction, id, error) {
-    var store = transaction.objectStore(MESSAGE_STORE_NAME);
+  function mdb_deleteById(store, id, error) {
     var index = store.index(ID_INDEX);
     var req = index.openCursor(id);
 

@@ -1,3 +1,5 @@
+/* global Resources */
+/* exported Customizer */
 'use strict';
 // Extend this class for creating a new customizer and provide
 // a set() method. It is expected set() returns nothing and accept

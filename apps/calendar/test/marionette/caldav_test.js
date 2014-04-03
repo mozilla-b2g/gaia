@@ -62,7 +62,7 @@ marionette('configure CalDAV accounts', function() {
     }
   });
 
-  test('should show a event', function() {
+  test.skip('should show a event', function() {
     app.getMonthEventByTitle(TITLE).click();
     assertEvent(ACCOUNT_USERNAME, TITLE);
   });

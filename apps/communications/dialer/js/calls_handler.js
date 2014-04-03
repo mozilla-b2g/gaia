@@ -13,30 +13,8 @@ var CallsHandler = (function callsHandler() {
   var telephony = window.navigator.mozTelephony;
   telephony.oncallschanged = onCallsChanged;
 
-  var settings = window.navigator.mozSettings;
-
   var displayed = false;
   var closing = false;
-  var ringing = false;
-
-  /* === Settings === */
-  var activePhoneSound = null;
-  SettingsListener.observe('audio.volume.notification', 7, function(value) {
-    activePhoneSound = !!value;
-    if (ringing && activePhoneSound) {
-      ringtonePlayer.play();
-    }
-  });
-
-  var phoneSoundURL = new SettingsURL();
-  SettingsListener.observe('dialer.ringtone', '', function(value) {
-    ringtonePlayer.pause();
-    ringtonePlayer.src = phoneSoundURL.set(value);
-
-    if (ringing && activePhoneSound) {
-      ringtonePlayer.play();
-    }
-  });
 
   // Setting up the SimplePhoneMatcher
   // XXX: check bug-926169
@@ -50,16 +28,6 @@ var CallsHandler = (function callsHandler() {
   }
 
   var btHelper = new BluetoothHelper();
-
-  var ringtonePlayer = new Audio();
-  ringtonePlayer.mozAudioChannelType = 'ringer';
-  ringtonePlayer.src = phoneSoundURL.get();
-  ringtonePlayer.loop = true;
-
-  var activateVibration = null;
-  SettingsListener.observe('vibration.enabled', true, function(value) {
-    activateVibration = !!value;
-  });
 
   var screenLock;
 
@@ -97,8 +65,6 @@ var CallsHandler = (function callsHandler() {
       }
     };
 
-    setupSystemIAC();
-
     postToMainWindow('ready');
   }
 
@@ -106,25 +72,6 @@ var CallsHandler = (function callsHandler() {
     if (window.opener) {
       window.opener.postMessage(data, COMMS_APP_ORIGIN);
     }
-  }
-
-  function setupSystemIAC() {
-    navigator.mozApps.getSelf().onsuccess = function(evt) {
-      var app = evt.target.result;
-      app.connect('dialercomms').then(function(ports) {
-        ports.forEach(function(port) {
-          port.onmessage = function(event) {
-            if (event.data !== 'stop_ringtone') {
-              return;
-            }
-
-            ringtonePlayer.pause();
-            ringing = false;
-            activateVibration = false;
-          };
-        });
-      });
-    };
   }
 
   /* === Handled calls === */
@@ -284,33 +231,10 @@ var CallsHandler = (function callsHandler() {
   }
 
   function handleFirstIncoming(call) {
-    var vibrateInterval = 0;
-    if (activateVibration != false) {
-      vibrateInterval = window.setInterval(function vibrate() {
-        // Wait for the setting value to return before starting a vibration.
-        if ('vibrate' in navigator && activateVibration) {
-          navigator.vibrate([200]);
-        }
-      }, 600);
-    }
-
-    if (activePhoneSound == true) {
-      ringtonePlayer.play();
-      ringing = true;
-    } else if (activePhoneSound == null) {
-      // Let's wait for the setting to return before playing any sound.
-      ringing = true;
-    }
-
     screenLock = navigator.requestWakeLock('screen');
 
     call.addEventListener('statechange', function callStateChange() {
       call.removeEventListener('statechange', callStateChange);
-
-      ringtonePlayer.pause();
-      ringing = false;
-
-      window.clearInterval(vibrateInterval);
 
       if (screenLock) {
         screenLock.unlock();
@@ -326,6 +250,13 @@ var CallsHandler = (function callsHandler() {
       if (!number) {
         CallScreen.incomingNumber.textContent = _('withheld-number');
         return;
+      }
+
+      if (navigator.mozIccManager.iccIds.length > 1) {
+        CallScreen.incomingSim.textContent = _('sim-number',
+                                               { n: call.serviceId + 1 });
+      } else {
+        CallScreen.incomingSim.hidden = true;
       }
 
       Contacts.findByNumber(number,
@@ -393,12 +324,12 @@ var CallsHandler = (function callsHandler() {
     window.close();
   }
 
-  function _changeMaxFontSize(evt) {
-    handledCalls.forEach(function(hc) {
-      hc.formatPhoneNumber();
+  function updateAllPhoneNumberDisplays() {
+    handledCalls.forEach(function(call) {
+      call.restorePhoneNumber();
     });
   }
-  window.addEventListener('resize', _changeMaxFontSize);
+  window.addEventListener('resize', updateAllPhoneNumberDisplays);
 
   /* Handle commands send to the callscreen via postmessage */
   function handleCommand(evt) {
@@ -858,6 +789,7 @@ var CallsHandler = (function callsHandler() {
     mergeActiveCallWith: mergeActiveCallWith,
     mergeConferenceGroupWithActiveCall: mergeConferenceGroupWithActiveCall,
     requestContactsTab: requestContactsTab,
+    updateAllPhoneNumberDisplays: updateAllPhoneNumberDisplays,
 
     get activeCall() {
       return activeCall();

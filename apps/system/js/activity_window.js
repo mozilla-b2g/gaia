@@ -75,7 +75,9 @@
     if (caller) {
       caller.setActivityCallee(this);
       this.activityCaller = caller;
-      // TODO: Put us inside the caller element.
+      if (caller.element) {
+        this.containerElement = caller.element;
+      }
     }
 
     this.render();
@@ -97,8 +99,8 @@
    */
   ActivityWindow.prototype._DEBUG = false;
 
-  ActivityWindow.prototype.openAnimation = 'slideleft';
-  ActivityWindow.prototype.closeAnimation = 'slideright';
+  ActivityWindow.prototype.openAnimation = 'slideup';
+  ActivityWindow.prototype.closeAnimation = 'slidedown';
 
   /**
    * ActivityWindow's fullscreen state is copying from the caller
@@ -179,7 +181,8 @@
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
     'authDialog': window.AppAuthenticationDialog,
-    'contextmenu': window.BrowserContextMenu
+    'contextmenu': window.BrowserContextMenu,
+    'childWindowFactory': window.ChildWindowFactory
   };
 
   ActivityWindow.REGISTERED_EVENTS =
@@ -256,6 +259,7 @@
     this.containerElement.insertAdjacentHTML('beforeend', this.view());
     // TODO: Use BrowserConfigHelper.
     this.browser_config = {
+      parentApp: this.parentApp,
       origin: this.origin,
       url: this.url,
       name: this.name,

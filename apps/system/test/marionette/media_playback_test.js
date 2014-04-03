@@ -112,6 +112,36 @@ marionette('media playback tests', function() {
         });
       });
 
+      test('should hide controls when interrupted', function() {
+        music.runInApp(function() {
+          music.albumOneElement.click();
+        });
+
+        playback[suiteInfo.opener](function(container) {
+          container.waitForContainerShown(true);
+          assert.equal(container.isPlaying, true);
+        });
+
+        music.runInApp(function() {
+          // XXX: It would be better if we had the audio channel code do the
+          // interrupt for us instead of just synthesizing the event, but this
+          // still tests the system app side of things adequately.
+          music.interruptElement.click();
+        });
+
+        playback[suiteInfo.opener](function(container) {
+          container.waitForContainerShown(false);
+        });
+
+        music.runInApp(function() {
+          music.interruptElement.click();
+        });
+
+        playback[suiteInfo.opener](function(container) {
+          container.waitForContainerShown(true);
+        });
+      });
+
       test.skip('should play/pause from now playing widget', function() {
         music.runInApp(function() {
           music.albumOneElement.click();

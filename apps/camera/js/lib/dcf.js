@@ -1,18 +1,25 @@
-define(function(require) {
+define(function(require, exports, module) {
 'use strict';
 
 // This handles the logic pertaining to the naming of files according
 // to the Design rule for Camera File System
 // * http://en.wikipedia.org/wiki/Design_rule_for_Camera_File_system
 
+/**
+ * Dependencies
+ */
+
 var asyncStorage = require('asyncStorage');
+var debug = require('debug')('dcf');
 var format = require('format');
 
-var api = {};
+/**
+ * Locals
+ */
+
 var dcfConfigLoaded = false;
 var deferredArgs = null;
 var defaultSeq = {file: 1, dir: 100};
-
 var dcfConfig = {
   key: 'dcf_key',
   seq: null,
@@ -21,10 +28,9 @@ var dcfConfig = {
   ext: {video: '3gp', image: 'jpg'}
 };
 
-api.init = function() {
-
+exports.init = function() {
+  debug('initializing');
   asyncStorage.getItem(dcfConfig.key, function(value) {
-
     dcfConfigLoaded = true;
     dcfConfig.seq = value ? value : defaultSeq;
 
@@ -32,13 +38,15 @@ api.init = function() {
     // a response, fire it again
     if (deferredArgs) {
       var args = deferredArgs;
-      api.createDCFFilename(args.storage, args.type, args.callback);
+      exports.createDCFFilename(args.storage, args.type, args.callback);
       deferredArgs = null;
     }
+
+    debug('initialized');
   });
 };
 
-api.createDCFFilename = function(storage, type, callback) {
+exports.createDCFFilename = function(storage, type, callback) {
 
   // We havent loaded the current counters from indexedDB yet, defer
   // the call
@@ -64,7 +72,7 @@ api.createDCFFilename = function(storage, type, callback) {
     dcfConfig.seq.file = 1;
     dcfConfig.seq.dir += 1;
     asyncStorage.setItem(dcfConfig.key, dcfConfig.seq, function() {
-      api.createDCFFilename(storage, type, callback);
+      exports.createDCFFilename(storage, type, callback);
     });
   };
 
@@ -81,7 +89,5 @@ api.createDCFFilename = function(storage, type, callback) {
     });
   };
 };
-
-return api;
 
 });

@@ -63,7 +63,7 @@
     <script defer="" src="/shared/js/screen_layout.js"></script>
 
     <!-- Specific code -->
-    <script defer="" src="js/settings.js"></script>
+    <script data-skip-optimize data-main="js/main" src="js/vendor/alameda.js"></script>
 
     <!-- shared helper library -->
     <!--<script defer src="shared/js/download/download_store.js"></script>-->
@@ -80,6 +80,10 @@
     <!--<script defer src="shared/js/settings_listener.js"></script> -->
     <!--<script defer src="shared/js/airplane_mode_helper.js"></script> -->
     <!--<script defer src="shared/js/toaster.js"></script> -->
+    <!--<script defer src="shared/js/lazy_loader.js"></script> -->
+    <!--<script defer src="shared/js/screen_layout.js"></script> -->
+    <!--<script defer src="shared/js/fxa_iac_client.js"></script> -->
+    <!--<script defer src="shared/js/text_normalizer.js"></script> -->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
     <link rel="import" href="/elements/wifi_status.html">
@@ -107,6 +111,8 @@
     <link rel="import" href="/elements/carrier_data_settings.html">
     <link rel="import" href="/elements/carrier_mms_settings.html">
     <link rel="import" href="/elements/carrier_supl_settings.html">
+    <link rel="import" href="/elements/carrier_dun_settings.html">
+    <link rel="import" href="/elements/carrier_ims_settings.html">
     <link rel="import" href="/elements/carrier_dc_warning.html">
     <link rel="import" href="/elements/carrier_dr_warning.html">
     <link rel="import" href="/elements/carrier_iccs.html">
@@ -153,6 +159,8 @@
     <link rel="import" href="/elements/help.html">
     <link rel="import" href="/elements/icc.html">
     <link rel="import" href="/elements/downloads.html">
+    <link rel="import" href="/elements/firefox_accounts.html">
+    <link rel="import" href="/elements/findmydevice.html">
   </head>
   <body class="skin-organic uninit">
     <!--
@@ -229,6 +237,10 @@
     <section is="carrier-mmsSettings" role="region" id="carrier-mmsSettings"></section>
     <!-- Connectivity :: Cellular & Data :: A-GPS Settings -->
     <section is="carrier-suplSettings" role="region" id="carrier-suplSettings"></section>
+    <!-- Connectivity :: Cellular & Data :: DUN Settings -->
+    <section is="carrier-dunSettings" role="region" id="carrier-dunSettings"></section>
+    <!-- Connectivity :: Cellular & Data :: IMS Settings -->
+    <section is="carrier-imsSettings" role="region" id="carrier-imsSettings"></section>
     <!-- Connectivity :: Cellular & Data :: Data Connection Warnings -->
     <section is="carrier-dc-warning" role="region" id="carrier-dc-warning"></section>
     <!-- Connectivity :: Cellular & Data :: Data Roaming Warnings -->
@@ -267,6 +279,9 @@
     <!-- Personalization :: Keyboard -->
     <section is="keyboard" role="region" id="keyboard" data-require-sub-panels="true"></section>
     <section is="keyboard-enabled-default" role="region" id="keyboard-enabled-default"></section>
+
+    <!-- Accounts :: Find My Device -->
+    <section is="findmydevice" role="region" id="findmydevice"></section>
 
     <!-- Security :: Phone Lock :: PIN Input -->
     <section is="phoneLock-passcode" role="region" id="phoneLock-passcode"></section>
@@ -325,19 +340,25 @@
     <!-- SIM Toolkit -->
     <section is="icc" role="region" id="icc"></section>
 
+    <!-- Firefox Accounts -->
+    <section is="fxa" role="region" id="fxa"></section>
+
     <!-- Main List -->
     <section role="region" id="root" class="current" data-rendered="true">
       <header>
+        <menu id="activityDoneButton" type="toolbar">
+          <a href="#home" role="menuitem" data-l10n-id="done">Done</a>
+        </menu>
         <h1 data-l10n-id="settings"> Settings </h1>
       </header>
 
       <div>
         <!-- Main :: Network & Connectivity -->
-        <header>
+        <header data-category="connectivity">
           <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
         </header>
         <ul>
-          <li>
+          <li data-category="connectivity">
             <label class="pack-switch">
               <input id="airplaneMode-input" class="uninit" type="checkbox" disabled>
               <span id="menuItem-airplaneMode" class="menu-item" data-l10n-id="airplaneMode">Airplane Mode</span>
@@ -349,7 +370,7 @@
               <span id="menuItem-gps" class="menu-item" data-l10n-id="geolocation">Geolocation</span>
             </label>
           </li>
-          <li>
+          <li data-category="connectivity">
             <small id="wifi-desc" class="menu-item-desc"></small>
             <a id="menuItem-wifi" class="menu-item" href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
           </li>
@@ -365,7 +386,7 @@
             <small id="messaging-desc" class="menu-item-desc"></small>
             <a id="menuItem-messagingSettings" class="menu-item" href="#messaging" data-l10n-id="messagingSettings">Messaging Settings</a>
           </li>
-          <li id="data-connectivity" aria-disabled="true">
+          <li id="data-connectivity" data-category="connectivity" aria-disabled="true">
             <small id="data-desc" class="menu-item-desc"></small>
             <a id="menuItem-cellularAndData" class="menu-item" href="#carrier" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
           </li>
@@ -418,15 +439,18 @@
         </ul>
 
         <!-- Main :: Accounts -->
-        <header hidden="">
+        <header>
           <h2 data-l10n-id="accounts">Accounts</h2>
         </header>
-        <ul hidden="">
-          <li>
-            <a id="menuItem-persona" class="menu-item" href="#persona" data-l10n-id="persona">Persona</a>
+        <ul>
+          <li data-show-name="identity.fxaccounts.ui.enabled" hidden>
+            <small id="fxa-desc" class="menu-item-desc"></small>
+            <a id="menuItem-fxa" class="menu-item" href="#fxa" data-l10n-id="fxa-accounts">Firefox Accounts</a>
           </li>
-          <li>
-            <a id="menuItem-mail" class="menu-item" href="#mail" data-l10n-id="mail">Mail</a>
+          <li data-show-name="findmydevice.ui.enabled" hidden>
+            <small id="findmydevice-desc" class="menu-item-desc"></small>
+            <a id="menuItem-findmydevice" class="menu-item" href="#findmydevice"
+              data-l10n-id="findmydevice">Find My Device</a>
           </li>
         </ul>
 
@@ -506,11 +530,7 @@
         <header id="icc-mainheader">
           <h2 data-l10n-id="operatorServices">Operator Services</h2>
         </header>
-        <ul id="icc-mainentry">
-          <li>
-            <small id="icc-desc" class="menu-item-desc"></small>
-            <a id="menuItem-icc" class="menu-item" href="#icc">SIM Toolkit</a>
-          </li>
+        <ul id="icc-entries">
         </ul>
       </div>
     </section>

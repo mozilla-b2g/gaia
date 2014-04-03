@@ -3,6 +3,9 @@
 
 var MockDownloadUI = {
 
+  ERRORS: {},
+  TYPE: {},
+
   show: function() {
     this.methodCalled = 'show';
     return {};

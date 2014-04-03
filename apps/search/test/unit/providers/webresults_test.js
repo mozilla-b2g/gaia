@@ -1,9 +1,9 @@
 'use strict';
+/* global eme, Promise, Search */
 
 requireApp('search/js/eme/eme.js');
 requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');
-requireApp('search/js/providers/app_provider.js');
 
 suite('search/providers/webresults', function() {
 

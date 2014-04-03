@@ -1,6 +1,5 @@
 Calendar.ns('Provider').Caldav = (function() {
-
-  var _super = Calendar.Provider.Abstract.prototype;
+  'use strict';
 
   var CALDAV_ERROR_MAP = {
     'caldav-authentication': 'Authentication',
@@ -197,8 +196,9 @@ Calendar.ns('Provider').Caldav = (function() {
      * Hook to format remote data if needed.
      */
     formatRemoteCalendar: function(calendar) {
-      if (!calendar.color)
+      if (!calendar.color) {
         calendar.color = this.defaultColor;
+      }
 
       return calendar;
     },
@@ -542,7 +542,7 @@ Calendar.ns('Provider').Caldav = (function() {
         var component = {
           eventId: event._id,
           ical: remote.icalComponent
-        }
+        };
 
         delete remote.icalComponent;
         event.remote = remote;
@@ -609,7 +609,6 @@ Calendar.ns('Provider').Caldav = (function() {
         );
       }
 
-      var self = this;
       function handleUpdate(err, remote) {
         if (err) {
           callback(self._handleServiceError(err, {
@@ -622,7 +621,7 @@ Calendar.ns('Provider').Caldav = (function() {
         var component = {
           eventId: event._id,
           ical: remote.icalComponent
-        }
+        };
 
         delete remote.icalComponent;
         event.remote = remote;
@@ -672,7 +671,6 @@ Calendar.ns('Provider').Caldav = (function() {
 
       }
 
-      var self = this;
       function handleRequest(err) {
         if (err) {
           callback(self._handleServiceError(err, {

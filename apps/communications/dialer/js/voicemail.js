@@ -5,10 +5,7 @@ var Voicemail = {
     // check the voicemail number if the number is in the sim card
     var voicemail = navigator.mozVoicemail;
     if (voicemail) {
-      // TODO: remove this backward compatibility check
-      // after bug-814634 is landed
-      var voicemailNumber = voicemail.number ||
-          voicemail.getNumber && voicemail.getNumber();
+      var voicemailNumber = voicemail.getNumber();
       if (voicemailNumber == number) {
         callback(true);
         return;
@@ -22,8 +19,17 @@ var Voicemail = {
 
     req.onsuccess = function getVoicemailNumber() {
       var isVoicemailNumber = false;
-      var voicemailNumber = req.result['ril.iccInfo.mbdn'];
+      var voicemailNumbers = req.result['ril.iccInfo.mbdn'];
+      var voicemailNumber;
 
+      // TODO: We always use the first icc card here. It should honor the user
+      //       default voice sim card setting and which will be handled in
+      //       bug 978114.
+      if (typeof voicemailNumbers == 'string') {
+        voicemailNumber = voicemailNumbers;
+      } else {
+        voicemailNumber = voicemailNumbers && voicemailNumbers[0];
+      }
       if (voicemailNumber === number) {
         isVoicemailNumber = true;
       }

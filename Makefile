@@ -80,6 +80,13 @@ DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
 DOGFOOD?=0
+NODE_MODULES_SRC?=modules.tar
+
+# GAIA_DEVICE_TYPE customization
+# phone - default
+# tablet
+# tv
+GAIA_DEVICE_TYPE?=phone
 
 # Rocketbar customization
 # none - Do not enable rocketbar
@@ -176,6 +183,10 @@ ifeq ($(DOGFOOD), 1)
 GAIA_APP_TARGET=dogfood
 endif
 
+ifdef NODE_MODULES_GIT_URL
+NODE_MODULES_SRC := git-gaia-node-modules
+endif
+
 ###############################################################################
 # The above rules generate the profile/ folder and all its content.           #
 # The profile folder content depends on different rules:                      #
@@ -249,11 +260,14 @@ endif
 export GAIA_DISTRIBUTION_DIR
 
 SETTINGS_PATH := build/config/custom-settings.json
+KEYBOARD_LAYOUTS_PATH := build/config/keyboard-layouts.json
+
 ifdef GAIA_DISTRIBUTION_DIR
 	DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
 	DISTRIBUTION_CONTACTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)contacts.json
 	DISTRIBUTION_APP_CONFIG := $(GAIA_DISTRIBUTION_DIR)$(SEP)apps.list
 	DISTRIBUTION_VARIANT := $(GAIA_DISTRIBUTION_DIR)$(SEP)variant.json
+	DISTRIBUTION_KEYBOARD_LAYOUTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)keyboard-layouts.json
 	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
 		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
 	endif
@@ -265,6 +279,9 @@ ifdef GAIA_DISTRIBUTION_DIR
 	endif
 	ifneq ($(wildcard $(DISTRIBUTION_VARIANT)),)
 		VARIANT_PATH := $(DISTRIBUTION_VARIANT)
+	endif
+	ifneq ($(wildcard $(DISTRIBUTION_KEYBOARD_LAYOUTS)),)
+		KEYBOARD_LAYOUTS_PATH := $(DISTRIBUTION_KEYBOARD_LAYOUTS)
 	endif
 endif
 
@@ -390,7 +407,8 @@ define BUILD_CONFIG
 	"ROCKETBAR" : "$(ROCKETBAR)", \
 	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
 	"SETTINGS_PATH" : "$(SETTINGS_PATH)", \
-	"VARIANT_PATH" : "$(VARIANT_PATH)" \
+	"VARIANT_PATH" : "$(VARIANT_PATH)", \
+	"KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)" \
 }
 endef
 export BUILD_CONFIG
@@ -406,7 +424,7 @@ endef
 
 # Generate profile/
 
-$(PROFILE_FOLDER): preferences app-makefiles copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences app-makefiles keyboard-layouts copy-build-stage-manifest test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -425,7 +443,7 @@ LANG=POSIX # Avoiding sort order differences between OSes
 # - build_stage/APPNAME/gaia_shared.json: This file lists shared resource
 #   dependencies that build/webapp-zip.js's detection logic might not determine
 #   because of lazy loading, etc.
-app-makefiles: svoperapps webapp-manifests install-xulrunner-sdk
+app-makefiles: svoperapps webapp-manifests keyboard-layouts install-xulrunner-sdk
 	@for d in ${GAIA_APPDIRS}; \
 	do \
 		if [[ ("$$d" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
@@ -451,7 +469,7 @@ webapp-manifests: install-xulrunner-sdk
 
 .PHONY: webapp-zip
 # Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-webapp-zip: webapp-optimize app-makefiles install-xulrunner-sdk
+webapp-zip: webapp-optimize app-makefiles keyboard-layouts install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-zip)
@@ -470,6 +488,11 @@ webapp-optimize: app-makefiles install-xulrunner-sdk
 # on webapp-zip so it runs to completion before we start the cleanup.
 optimize-clean: webapp-zip install-xulrunner-sdk
 	@$(call run-js-command, optimize-clean)
+
+.PHONY: keyboard-layouts
+# A separate step for shared/ folder to generate its content in build time
+ keyboard-layouts: webapp-manifests install-xulrunner-sdk
+	@$(call run-js-command, keyboard-layouts)
 
 # Get additional extensions
 $(PROFILE_FOLDER)/installed-extensions.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
@@ -526,8 +549,8 @@ reference-workload-x-heavy:
 # some commands for invoking it. But it is platform dependent
 # IMPORTANT: you should generally change the directory name when you change the
 # URL unless you know what you're doing
-XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2013/08/2013-08-07-03-02-16-mozilla-central/xulrunner-26.0a1.en-US.
-XULRUNNER_BASE_DIRECTORY?=xulrunner-sdk-26
+XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2014/03/2014-03-08-03-02-03-mozilla-central/xulrunner-30.0a1.en-US.
+XULRUNNER_BASE_DIRECTORY?=xulrunner-sdk-30
 XULRUNNER_DIRECTORY?=$(XULRUNNER_BASE_DIRECTORY)/xulrunner-sdk
 XULRUNNER_URL_FILE=$(XULRUNNER_BASE_DIRECTORY)/.url
 
@@ -569,6 +592,12 @@ endif
 # some builders may want to override our find logic (ex: TBPL).
 # So let's export these variables to external processes.
 export XULRUNNER_DIRECTORY XULRUNNERSDK XPCSHELLSDK
+
+xpcshell_sdk:
+	@echo $(XPCSHELLSDK)
+
+xulrunner_sdk:
+	@echo $(XULRUNNERSDK)
 
 .PHONY: print-xulrunner-sdk
 print-xulrunner-sdk:
@@ -684,14 +713,29 @@ endif
 NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint node_modules/.bin/mocha
 $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 
-modules.tar:
-	$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/master
-	mv master modules.tar
 
-node_modules: modules.tar
-	$(TAR_WILDCARDS) --strip-components 1 -x -m -f modules.tar "mozilla-b2g-gaia-node-modules-*/node_modules"
+NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
+$(NODE_MODULES_SRC): gaia_node_modules.revision
+ifeq "$(NODE_MODULES_SRC)" "modules.tar"
+	$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV)
+	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
+else
+	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
+		git clone "$(NODE_MODULES_GIT_URL)" "$(NODE_MODULES_SRC)" ; \
+	fi
+	(cd "$(NODE_MODULES_SRC)" && git fetch && git reset --hard "$(NODE_MODULES_REV)" )
+endif
+
+node_modules: $(NODE_MODULES_SRC)
+ifeq "$(NODE_MODULES_SRC)" "modules.tar"
+	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "mozilla-b2g-gaia-node-modules-*/node_modules"
+else
+	rm -fr node_modules
+	cp -R $(NODE_MODULES_SRC)/node_modules node_modules
+endif
 	npm install && npm rebuild
 	@echo "node_modules installed."
+	touch -c $@
 
 ###############################################################################
 # Tests                                                                       #
@@ -719,7 +763,7 @@ b2g: node_modules/.bin/mozilla-download
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
-test-integration: $(PROFILE_FOLDER) test-integration-test
+test-integration: clean $(PROFILE_FOLDER) test-integration-test
 
 # XXX Because bug-969215 is not finished, if we are going to run too many
 # marionette tests for 30 times at the same time, we may easily get timeout.
@@ -730,10 +774,19 @@ test-integration: $(PROFILE_FOLDER) test-integration-test
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
 test-integration-test:
-	./bin/gaia-marionette RUN_CALDAV_SERVER=1 \
+	./bin/gaia-marionette \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--manifest $(TEST_MANIFEST) \
 		--reporter $(REPORTER)
+
+.PHONY: caldav-server-install
+caldav-server-install:
+	pip install virtualenv
+	virtualenv js-marionette-env; \
+  source ./js-marionette-env/bin/activate; \
+				export LC_ALL=en_US.UTF-8; \
+				export LANG=en_US.UTF-8; \
+				pip install radicale;
 
 .PHONY: test-perf
 test-perf:
@@ -760,9 +813,9 @@ update-common: common-install
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.js
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.css
 	rm -f $(TEST_COMMON)/vendor/chai/chai.js
-	cp $(GAIA)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
-	cp $(GAIA)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
-	cp $(GAIA)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
+	cp node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
+	cp node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
+	cp node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
 
 # Create the json config file
 # for use with the test agent GUI
@@ -814,7 +867,7 @@ endif
 # Temp make file method until we can switch
 # over everything in test
 ifneq ($(strip $(APP)),)
-APP_TEST_LIST=$(shell find apps/$(APP) -name '*_test.js' | grep '/test/unit/')
+APP_TEST_LIST=$(shell find apps/$(APP) test_apps/$(APP) -name '*_test.js' 2> /dev/null | grep '/test/unit/')
 endif
 .PHONY: test-agent-test
 test-agent-test: node_modules
@@ -856,7 +909,7 @@ endif
 # Utils                                                                       #
 ###############################################################################
 
-.PHONY: lint gjslint hint
+.PHONY: lint gjslint hint csslint
 
 # Lint apps
 ## only gjslint files from build/jshint-xfail.list - files not yet safe to jshint
@@ -880,7 +933,7 @@ gjslint:
 	# gjslint --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
 	# http://code.google.com/p/closure-linter/issues/detail?id=64
 	@echo Running gjslint...
-	@gjslint --disable 210,217,220,225 --custom_jsdoc_tags="prop,borrows,memberof,augments,exports,global,event,example,mixes,mixin,fires,inner,todo,access,namespace,listens,module,memberOf,property" -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(GJSLINTED_PATH) $(LINTED_FILES)
+	@gjslint --disable 210,217,220,225 --custom_jsdoc_tags="prop,borrows,memberof,augments,exports,global,event,example,mixes,mixin,fires,inner,todo,access,namespace,listens,module,memberOf,property,requires" -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(GJSLINTED_PATH) $(LINTED_FILES)
 	@echo Note: gjslint only checked the files that are xfailed for jshint.
 
 JSHINT_ARGS := --reporter=build/jshint/xfail $(JSHINT_ARGS)
@@ -896,6 +949,9 @@ endif
 hint: node_modules/.bin/jshint
 	@echo Running jshint...
 	@./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES) || (echo Please consult https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md to get some information about how to fix jshint issues. && exit 1)
+
+csslint: install-xulrunner-sdk
+	@$(call run-js-command, csslint)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
@@ -942,7 +998,7 @@ install-media-samples:
 	$(ADB) push media-samples/Music $(MSYS_FIX)/sdcard/Music
 
 install-test-media:
-	$(ADB) push test_media/DCIM $(MSYS_FIX)/sdcard/DCIM
+	$(ADB) push test_media/Pictures $(MSYS_FIX)/sdcard/DCIM
 	$(ADB) push test_media/Movies $(MSYS_FIX)/sdcard/Movies
 	$(ADB) push test_media/Music $(MSYS_FIX)/sdcard/Music
 
@@ -975,7 +1031,7 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 	$(ADB) shell 'if test -d $(MSYS_FIX)/persist/svoperapps; then rm -r $(MSYS_FIX)/persist/svoperapps; fi'
 
-$(PROFILE_FOLDER)/settings.json: profile-dir install-xulrunner-sdk
+$(PROFILE_FOLDER)/settings.json: profile-dir keyboard-layouts install-xulrunner-sdk
 ifeq ($(BUILD_APP_NAME),*)
 	@$(call run-js-command, settings)
 endif
@@ -1012,7 +1068,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf xulrunner-* .xulrunner-* node_modules b2g modules.tar
+	rm -rf xulrunner-* .xulrunner-* node_modules b2g modules.tar js-marionette-env
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true

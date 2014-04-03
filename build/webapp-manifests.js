@@ -109,7 +109,7 @@ function fillAppManifest(webapp) {
   // Copy webapp's manifest to the profile
   let webappTargetDir = webappsTargetDir.clone();
   webappTargetDir.append(webappTargetDirName);
-  let gaia = utils.getGaia(config);
+  let gaia = utils.gaia.getInstance(config);
 
   if (gaia.l10nManager) {
     let manifest = gaia.l10nManager.localizeManifest(webapp);
@@ -302,7 +302,6 @@ function cleanProfile(webappsDir) {
 
 function execute(options) {
   config = options;
-
   webappsTargetDir.initWithPath(config.PROFILE_DIR);
   // Create profile folder if doesn't exists
   if (!webappsTargetDir.exists())
@@ -315,13 +314,7 @@ function execute(options) {
     cleanProfile(webappsTargetDir);
   }
 
-  utils.getGaia(config).webapps.forEach(function(webapp) {
-    // If BUILD_APP_NAME isn't `*`, we only accept one webapp
-    if (config.BUILD_APP_NAME != '*' &&
-      webapp.sourceDirectoryName != config.BUILD_APP_NAME) {
-      return;
-    }
-
+  utils.gaia.getInstance(config).webapps.forEach(function(webapp) {
     if (utils.isExternalApp(webapp)) {
       fillExternalAppManifest(webapp);
     } else {

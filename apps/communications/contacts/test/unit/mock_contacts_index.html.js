@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockContactsIndexHtml */
 
 var MockContactsIndexHtml = (function MockLinkHtml() {
   var req = new XMLHttpRequest();

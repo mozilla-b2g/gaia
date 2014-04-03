@@ -13,27 +13,32 @@ require(['config/require', 'config'], function() {
     var App = require('app');
     var Camera = require('lib/camera');
     var Sounds = require('lib/sounds');
-    var Config = require('lib/config');
     var Settings = require('lib/settings');
-    var Filmstrip = require('lib/filmstrip');
     var sounds = new Sounds(require('config/sounds'));
-    var config = new Config(require('config/app'));
-    var settings = new Settings(config.get());
+    var settings = new Settings(require('config/settings'));
     var GeoLocation = require('lib/geo-location');
     var Activity = require('lib/activity');
-    var allDone = require('lib/all-done');
     var Storage = require('lib/storage');
     var controllers = {
       hud: require('controllers/hud'),
       controls: require('controllers/controls'),
       viewfinder: require('controllers/viewfinder'),
+      recordingTimer: require('controllers/recording-timer'),
+      previewGallery: require('controllers/preview-gallery'),
       overlay: require('controllers/overlay'),
       confirm: require('controllers/confirm'),
       settings: require('controllers/settings'),
       activity: require('controllers/activity'),
       camera: require('controllers/camera'),
-      sounds: require('controllers/sounds')
+      sounds: require('controllers/sounds'),
+      timer: require('controllers/timer'),
+      zoomBar: require('controllers/zoom-bar'),
+      indicators: require('controllers/indicators'),
+      battery: require('controllers/battery')
     };
+
+    // Attach navigator.mozL10n
+    require('l10n');
 
     debug('required dependencies');
 
@@ -54,22 +59,20 @@ require(['config/require', 'config'], function() {
       el: document.body,
       geolocation: new GeoLocation(),
       activity: new Activity(),
-      config: config,
       settings: settings,
       camera: camera,
       sounds: sounds,
       controllers: controllers,
-      filmstrip: Filmstrip,
       storage: new Storage()
     });
 
     debug('created app');
 
-    // Async jobs to be
-    // done before boot...
-    var done = allDone()(app.boot);
-    app.activity.check(done());
-    app.settings.fetch(done());
+    // Fetch persistent settings
+    app.settings.fetch();
+
+    // Check for activities, then boot
+    app.activity.check(app.boot);
   });
 
   require(['boot']);

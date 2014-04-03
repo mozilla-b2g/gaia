@@ -101,7 +101,7 @@ body.thumbnailListView #thumbnails {
 
 .thumbnail.selected {
   outline: 0.2rem solid #0AC;
-  box-shadow: 0px 0px 0px 4px rgb(0, 202, 242) inset;
+  box-shadow: 0 0 0 4px rgb(0, 202, 242) inset;
 }
 
 /* Fullscreen */
@@ -189,7 +189,7 @@ body.fullscreenView #fullscreen-back-button-large {
 }
 
 #edit-options {
-  background: url("images/slider-bg.png") repeat-x scroll 0% 0% #1c2124;
+  background: url("images/slider-bg.png") repeat-x scroll 0 0 #1c2124;
   bottom: 6.2rem;
   height: 14.4rem;
 }
@@ -204,7 +204,7 @@ body.fullscreenView #fullscreen-back-button-large {
   position: absolute;
   left: 0;
   display: block;
-  background: url("images/selection_mask_L.png") repeat-y scroll 0% 0% transparent;
+  background: url("images/selection_mask_L.png") repeat-y scroll 0 0 transparent;
   height: 100%;
   width: 5rem;
 }
@@ -215,7 +215,7 @@ body.fullscreenView #fullscreen-back-button-large {
   display: block;
   position: absolute;
   right: 0;
-  background: url("images/selection_mask_R.png") repeat-y scroll 0% 0% transparent;
+  background: url("images/selection_mask_R.png") repeat-y scroll 0 0 transparent;
   height: 100%;
   width: 5rem;
 }
@@ -252,7 +252,7 @@ body.fullscreenView #fullscreen-back-button-large {
   top: 0;
   background: white;
   height: 0.4rem;
-  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.5);
 }
 
 #sliderlabels {
@@ -429,7 +429,7 @@ body.thumbnailListView #fullscreen-view.toolbar-hidden .videoPlayerFooter.hidden
     font-size: 2.4rem;
     line-height: 5rem;
     color: #fff;
-    padding: 0 1rem 0px 2rem;
+    padding: 0 1rem 0 2rem;
   }
 
   section[role="region"] > header:first-child menu[type="toolbar"] a,
@@ -511,7 +511,7 @@ body.thumbnailListView #fullscreen-view.toolbar-hidden .videoPlayerFooter.hidden
   .skin-dark  section[role="region"] > header:first-child,
   section[role="region"].skin-organic > header:first-child,
   .skin-organic section[role="region"] > header:first-child {
-    background: url("images/ui/tablet_header.png") repeat-x scroll 0% 0% / auto 100% transparent;
+    background: url("images/ui/tablet_header.png") repeat-x scroll 0 0 / auto 100% transparent;
   }
 
   section[role="region"].skin-dark > header:first-child a:after,
@@ -600,7 +600,7 @@ section[role="region"] > header:first-child menu[type="toolbar"] button:after {
   }
 
   body.pickView #thumbnails .thumbnail:nth-child(6n) {
-    margin-right: 0rem;
+    margin-right: 0;
   }
 
   /*

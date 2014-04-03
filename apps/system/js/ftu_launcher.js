@@ -147,7 +147,7 @@ var FtuLauncher = {
           self.skip();
           return;
         }
-        self._ftu = Applications.getByManifestURL(self._ftuManifestURL);
+        self._ftu = applications.getByManifestURL(self._ftuManifestURL);
         if (!self._ftu) {
           dump('Opps, bogus FTU manifest.\n');
           self.skip();

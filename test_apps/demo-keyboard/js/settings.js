@@ -1,5 +1,8 @@
+'use strict';
+
+/* global Event */
+
 (function(exports) {
-  'use strict';
 
   function Settings(definitions) {
     var self = this;
@@ -23,7 +26,7 @@
       Object.defineProperty(self, name, {
         configurable: false,
         enumerable: true,
-        get: function() { return values[name] }
+        get: function() { return values[name]; }
       });
 
       var key = definitions[name].key;
@@ -62,8 +65,9 @@
       });
 
       function recordResult(name, value) {
-        if (value !== undefined)
+        if (value !== undefined) {
           values[name] = value;
+        }
         numResults++;
 
         if (numResults === numSettings) {

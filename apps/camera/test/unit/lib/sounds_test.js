@@ -1,4 +1,4 @@
-suite.skip('Sounds', function() {
+suite('Sounds', function() {
   /*jshint maxlen:false*/
   /*global req*/
   'use strict';
@@ -12,7 +12,7 @@ suite.skip('Sounds', function() {
     {
       name: 'camera',
       setting: 'camera.shutter.enabled',
-      url: 'resources/sounds/shutter.opus'
+      url: 'resources/sounds/shutter.ogg'
     },
     {
       name: 'recordingStart',
@@ -35,13 +35,14 @@ suite.skip('Sounds', function() {
 
   setup(function() {
     this.sandbox = sinon.sandbox.create();
+    this.clock = sinon.useFakeTimers();
     this.sounds = new Sounds();
 
     // A sound to pass to APIs
     this.mockSound = {
       name: 'camera',
       setting: 'camera.shutter.enabled',
-      url: 'resources/sounds/shutter.opus'
+      url: 'resources/sounds/shutter.ogg'
     };
 
     // Keep reference of
@@ -54,6 +55,7 @@ suite.skip('Sounds', function() {
   teardown(function() {
     navigator.mozSettings = this.backup.mozSettings;
     this.sandbox.restore();
+    this.clock.restore();
   });
 
   suite('Sounds()', function() {
@@ -100,6 +102,7 @@ suite.skip('Sounds', function() {
 
   suite('Sounds#isEnabled()', function() {
     setup(function() {
+      var self = this;
 
       // Mock object that mimicks
       // mozSettings get API. Inside
@@ -117,7 +120,7 @@ suite.skip('Sounds', function() {
                 result: result
               }
             });
-          }, 1);
+          });
           return this;
         }
       };
@@ -128,11 +131,14 @@ suite.skip('Sounds', function() {
       this.sounds.isEnabled(this.mockSound);
     });
 
-    test('Should return the result from mozSettings API', function(done) {
+    test('Should return the result from mozSettings API', function() {
       this.sounds.isEnabled(this.mockSound, function(result) {
         assert.ok(result === 'the-result');
-        done();
       });
+
+      // Move time forwards
+      // so the callback fires
+      this.clock.tick(1);
     });
   });
 

@@ -1,3 +1,11 @@
+/* global DataMobile, SimManager, IccHelper,
+          SdManager, UIManager, WifiManager, WifiUI,
+          ImportIntegration,
+          OperatorVariant,
+          Tutorial,
+          getLocalizedLink,
+          utils */
+/* exported Navigation */
 'use strict';
 /*
   Steps of the First Time Usage App
@@ -35,10 +43,16 @@ var steps = {
   },
   7: {
     onlyForward: false,
+    hash: '#firefox_accounts',
+    requireSIM: false,
+    requireFxAEnabled: true
+  },
+  8: {
+    onlyForward: false,
     hash: '#welcome_browser',
     requireSIM: false
   },
-  8: {
+  9: {
     onlyForward: false,
     hash: '#browser_privacy',
     requireSIM: false
@@ -53,7 +67,8 @@ var _;
 var Navigation = {
   currentStep: 1,
   previousStep: 1,
-
+  simMandatory: false,
+  fxaEnabled: false,
   init: function n_init() {
     _ = navigator.mozL10n.get;
     var settings = navigator.mozSettings;
@@ -64,12 +79,21 @@ var Navigation = {
     window.addEventListener('hashchange', this);
     UIManager.activationScreen.addEventListener('click',
         this.handleExternalLinksClick.bind(this));
-    this.simMandatory = false;
 
-    var req = settings && settings.createLock().get('ftu.sim.mandatory') || {};
     var self = this;
-    req.onsuccess = function onSuccess() {
-      self.simMandatory = req.result['ftu.sim.mandatory'] || false;
+
+    var reqSIM =
+      settings && settings.createLock().get('ftu.sim.mandatory') || {};
+    reqSIM.onsuccess = function onSuccess() {
+      self.simMandatory = reqSIM.result['ftu.sim.mandatory'] || false;
+    };
+
+    var reqFxA =
+      settings &&
+      settings.createLock().get('identity.fxaccounts.ui.enabled') || {};
+    reqFxA.onsuccess = function onSuccess() {
+      self.fxaEnabled =
+        reqFxA.result['identity.fxaccounts.ui.enabled'] || false;
     };
   },
 
@@ -132,7 +156,7 @@ var Navigation = {
   },
 
   displayExternalLink: function n_displayExternalLink(href, title) {
-    window.open(href);
+    window.open(href, '', 'dialog');
   },
 
   getProgressBarState: function n_getProgressBarState() {
@@ -188,21 +212,40 @@ var Navigation = {
         fbState = window.navigator.onLine ? 'enabled' : 'disabled';
         ImportIntegration.checkImport(fbState);
         break;
+      case '#firefox_accounts':
+        UIManager.mainTitle.innerHTML = _('firefox-accounts');
+        break;
       case '#welcome_browser':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
         break;
       case '#browser_privacy':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
+        var linkPrivacy = document.getElementById('external-link-privacy');
+        navigator.mozL10n.localize(linkPrivacy, 'learn-more-privacy', {
+          link: getLocalizedLink('learn-more-privacy')
+        });
         break;
       case '#SIM_mandatory':
         UIManager.mainTitle.innerHTML = _('SIM_mandatory');
         break;
       case '#about-your-rights':
       case '#about-your-privacy':
+        UIManager.mainTitle.innerHTML = _('aboutBrowser');
+        UIManager.progressBar.classList.add('hidden');
+        UIManager.navBar.classList.add('back-only');
+        break;
       case '#sharing-performance-data':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
         UIManager.progressBar.classList.add('hidden');
         UIManager.navBar.classList.add('back-only');
+        var linkTelemetry = document.getElementById('external-link-telemetry');
+        navigator.mozL10n.localize(linkTelemetry, 'learn-more-telemetry', {
+          link: getLocalizedLink('learn-more-telemetry')
+        });
+        var linkInfo = document.getElementById('external-link-information');
+        navigator.mozL10n.localize(linkInfo, 'learn-more-information', {
+          link: getLocalizedLink('learn-more-information')
+        });
         break;
     }
 
@@ -255,13 +298,21 @@ var Navigation = {
 
     // Retrieve future location
     var futureLocation = steps[self.currentStep];
+
+    // Check required setting.
+    if (futureLocation.requireFxAEnabled &&
+        !this.fxaEnabled) {
+      self.skipStep();
+      return;
+    }
+
     // There is some locations which need a 'loading'
     if (futureLocation.hash === '#wifi') {
       utils.overlay.show(_('scanningNetworks'), 'spinner');
     }
 
     // If SIMcard is mandatory and no SIM, go to message window
-    if (self.simMandatory &&
+    if (this.simMandatory &&
         !IccHelper.cardState &&
         futureLocation.requireSIM) {
       //Send to SIM Mandatory message
@@ -295,14 +346,19 @@ var Navigation = {
 
     // SIM card management
     if (futureLocation.requireSIM) {
-      SimManager.handleCardState(function check_cardState(response) {
+      var check_cardState = function(response) {
         self.skipped = false;
         if (!response || (!SimManager.available() &&
           // Don't skip it if next step is data 3g
          futureLocation.hash !== '#data_3g')) {
           self.skipStep();
         }
-      });
+      };
+
+      // if we are navigating backwards, we do not want to
+      // show the SIM unlock screens for the data_3g step
+      var skipUnlockScreens = this.currentStep < this.previousStep;
+      SimManager.handleCardState(check_cardState, skipUnlockScreens);
     }
   }
 };

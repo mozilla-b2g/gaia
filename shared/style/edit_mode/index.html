@@ -6,6 +6,7 @@
   <title>Edit mode</title>
   <meta name="description" content="Starts an edition mode for adding or removing items">
 
+  <link rel="stylesheet" href="../headers.css">
   <link rel="stylesheet" href="../edit_mode.css">
 
   <!--
@@ -28,7 +29,7 @@
 <body role="application">
 
   <form role="dialog" data-type="edit">
-    <section>
+    <section role="region">
       <header>
         <button><span class="icon icon-close">close</span></button>
         <menu type="toolbar">
@@ -38,11 +39,10 @@
       </header>
     </section>
     <menu>
-      <button>Delete all</button>
-      <button>Delete selected</button>
+      <button disabled>Deselect all</button>
+      <button>Select all</button>
     </menu>
   </form>
 
 </body>
 </html>
-

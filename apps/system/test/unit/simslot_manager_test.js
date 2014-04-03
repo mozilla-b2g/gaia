@@ -1,13 +1,14 @@
 'use strict';
 mocha.globals(['SIMSlotManager', 'SIMSlot']);
 
-requireApp('system/test/unit/mock_simslot.js');
+requireApp('system/js/mock_simslot.js');
 requireApp('system/test/unit/mock_icc_manager.js');
+requireApp('system/test/unit/mock_system.js');
 requireApp('system/shared/test/unit/mocks/' +
   'mock_navigator_moz_mobile_connections.js');
 
 var mocksForSIMSlotManager = new MocksHelper([
-  'SIMSlot', 'NavigatorMozMobileConnections'
+  'SIMSlot', 'NavigatorMozMobileConnections', 'System'
 ]).init();
 
 suite('SIMSlotManager', function() {
@@ -45,6 +46,19 @@ suite('SIMSlotManager', function() {
     assert.isFalse(SIMSlotManager.noSIMCardOnDevice());
     MockIccManager.iccIds = [];
     assert.isTrue(SIMSlotManager.noSIMCardOnDevice());
+  });
+
+  test('noSIMCardConnectedToNetwork', function() {
+    MockIccManager.iccIds = [0, 1];
+    MockNavigatorMozMobileConnections.mAddMobileConnection();
+
+    SIMSlotManager._instances = [];
+    SIMSlotManager.init();
+    MockNavigatorMozMobileConnections[0].voice = { emergencyCallsOnly: true };
+    MockNavigatorMozMobileConnections[1].voice = { emergencyCallsOnly: true };
+    assert.isTrue(SIMSlotManager.noSIMCardConnectedToNetwork());
+    MockNavigatorMozMobileConnections[0].voice.emergencyCallsOnly = false;
+    assert.isFalse(SIMSlotManager.noSIMCardConnectedToNetwork());
   });
 
   test('getSlotByIccId', function() {

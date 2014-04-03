@@ -1,5 +1,6 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global Settings, getIccByIndex */
 
 'use strict';
 
@@ -104,12 +105,13 @@ function SimPinDialog(dialog) {
     var count = event.retryCount;
     if (count <= 0) {
       if (type === 'pin') {
-        _action = initUI('unlock_puk');
-        pukInput.focus();
-      } else if (type === 'fdn') {
+        // we leave this for system app
+        skip();
+      } else if (type === 'fdn' || type === 'pin2') {
         _action = initUI('unlock_puk2');
         pukInput.focus();
       } else { // out of PUK/PUK2: we're doomed
+        // TODO: Shouldn't we show some kind of message here?
         skip();
       }
       return;
@@ -415,15 +417,8 @@ function SimPinDialog(dialog) {
 
   function show(action, options) {
     options = options || {};
-    var conn = conns[options.cardIndex || 0];
 
-    if (!conn) {
-      return;
-    }
-
-    var iccId = conn.iccId;
-    icc = window.navigator.mozIccManager.getIccById(iccId);
-
+    icc = getIccByIndex(options.cardIndex);
     if (!icc) {
       return;
     }

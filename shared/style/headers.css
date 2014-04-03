@@ -144,6 +144,7 @@ section[role="region"] > header:first-child menu[type="toolbar"] button:not(:dis
 section[role="region"] > header:first-child menu[type="toolbar"] a[aria-disabled="true"],
 section[role="region"] > header:first-child menu[type="toolbar"] button[disabled]  {
   opacity: 0.5;
+  pointer-events: none;
 }
 
 /* Icon definitions */
@@ -151,7 +152,6 @@ section[role="region"] > header:first-child .icon {
   position: relative;
   float: none;
   display: inline-block;
-  vertical-align: middle;
   width: 3rem;
   height: 5rem;
   margin: 0 -1rem;

@@ -69,6 +69,8 @@ suite('tag_visibility_monitor', function() {
             'scroll ' + 10000,
             'scroll ' + 0,
             'rm 0',
+            'addbefore 0 1',
+            'rm 0',
             'rm 1',
             'rm 2',
             'rm 3',
@@ -112,20 +114,22 @@ suite('tag_visibility_monitor', function() {
           for (var i = 10; i < 20; i++) { o[i] = 'off'; }
           assert.deepEqual(logger.data[4], o);
 
-          assert.deepEqual(logger.data[5], { 10: 'on' });
-          assert.deepEqual(logger.data[6], { 11: 'on' });
-          assert.deepEqual(logger.data[7], { 12: 'on' });
-          assert.deepEqual(logger.data[8], { 13: 'on' });
-          assert.deepEqual(logger.data[9], { 14: 'on' });
-          assert.deepEqual(logger.data[10], { 15: 'on' });
+          assert.deepEqual(logger.data[5], { 10: 'on' }); // first rm 0
+          assert.deepEqual(logger.data[6], { 0: 'on', 10: 'off' });
+          assert.deepEqual(logger.data[7], { 10: 'on' });
+          assert.deepEqual(logger.data[8], { 11: 'on' });
+          assert.deepEqual(logger.data[9], { 12: 'on' });
+          assert.deepEqual(logger.data[10], { 13: 'on' });
+          assert.deepEqual(logger.data[11], { 14: 'on' });
+          assert.deepEqual(logger.data[12], { 15: 'on' });
 
-          assert.deepEqual(logger.data[11], { 5: 'on', 15: 'off' });
+          assert.deepEqual(logger.data[13], { 5: 'on', 15: 'off' });
 
-          assert.deepEqual(logger.data[12], undefined);
+          assert.deepEqual(logger.data[14], undefined);
 
-          assert.deepEqual(logger.data[13], { 15: 'on' });
+          assert.deepEqual(logger.data[15], { 15: 'on' });
 
-          for (var i = 14; i < logger.data.length; i++) {
+          for (var i = 16; i < logger.data.length; i++) {
             console.log(logger.data[i]);
           }
           instance.container.parentNode.removeChild(instance.container);

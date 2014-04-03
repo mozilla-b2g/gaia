@@ -26,6 +26,7 @@
     <!-- Shared code -->
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/accessibility_helper.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/simple_operator_variant_helper.js"></script>
     <script defer src="shared/js/utilities.js"></script>
@@ -79,27 +80,33 @@
         <div id="awesomescreen">
         <!--
           <nav data-role="tabs" id="tab-headers">
-            <ul role="tablist">
-              <li role="tab">
+            <ul role="tablist" class="bb-tablist">
+              <li role="presentation">
                 <a id="top-sites-tab" href="#" class="selected"
-                   data-l10n-id="top-sites-tab">Top Sites</a>
+                   data-l10n-id="top-sites-tab" role="tab"
+                   aria-selected="true" aria-controls="top-sites">Top Sites</a>
               </li>
-              <li role="tab">
+              <li role="presentation">
                 <a id="bookmarks-tab" href="#"
-                   data-l10n-id="bookmarks">Bookmarks</a>
+                   data-l10n-id="bookmarks" role="tab"
+                   aria-selected="false" aria-controls="bookmarks">Bookmarks</a>
               </li>
-              <li role="tab">
+              <li role="presentation">
                 <a id="history-tab" href="#"
-                   data-l10n-id="history">History</a>
+                   data-l10n-id="history" role="tab"
+                   aria-selected="false" aria-controls="history">History</a>
               </li>
             </ul>
           </nav>
           <div id="tab-panels">
-            <section id="top-sites" role="tabpanel" class="selected">
+            <section id="top-sites" role="tabpanel" class="bb-tabpanel selected"
+              aria-labelledby="top-sites-tab">
             </section>
-            <section id="bookmarks" role="tabpanel">
+            <section id="bookmarks" role="tabpanel" class="bb-tabpanel"
+              aria-labelledby="bookmarks-tab">
             </section>
-            <section id="history" role="tabpanel">
+            <section id="history" role="tabpanel" class="bb-tabpanel"
+              aria-labelledby="history-tab">
             </section>
           </div>
           <section id="results" class="hidden">
@@ -126,18 +133,18 @@
       </div>
     </div>
 
-    <ul id="toolbar-end" role="tablist" class="skin-dark">
-      <li role="tab">
+    <ul id="toolbar-end" class="bb-tablist skin-dark">
+      <li role="presentation">
         <button id="back-button" class="icon" disabled="true" alt="Back"></button>
       </li>
-      <li role="tab">
+      <li role="presentation">
         <button id="forward-button" class="icon" disabled="true" alt="Forward"></button>
       </li>
-      <li role="tab">
-        <a id="bookmark-button" class="icon" alt="Bookmark"></a>
+      <li role="presentation">
+        <a id="bookmark-button" class="icon" alt="Bookmark" role="button"></a>
       </li>
-      <li role="tab">
-        <a id="share-button" class="icon" alt="Share"></a>
+      <li role="presentation">
+        <a id="share-button" class="icon" alt="Share" role="button"></a>
       </li>
     </ul>
 

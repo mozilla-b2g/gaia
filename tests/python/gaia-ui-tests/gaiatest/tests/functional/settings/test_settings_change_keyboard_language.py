@@ -36,9 +36,9 @@ class TestChangeKeyboardLanguage(GaiaTestCase):
         contacts_app.launch()
         new_contact_form = contacts_app.tap_new_contact()
         new_contact_form.type_given_name('')
-        self.wait_for_condition(lambda m: new_contact_form.keyboard.is_displayed())
 
         # Switch to keyboard frame and switch language
+        new_contact_form.keyboard.switch_to_keyboard()
         new_contact_form.keyboard.tap_keyboard_language_key()
         new_contact_form.keyboard.switch_to_keyboard()
         special_key = self.marionette.find_element(*self._special_key_locator).text

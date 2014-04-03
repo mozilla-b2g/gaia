@@ -27,6 +27,8 @@ suite('LazyL10n', function() {
   teardown(function() {
     LazyL10n._inDOM = false;
     LazyL10n._loaded = false;
+    LazyLoader._loaded = {};
+    LazyLoader._isLoading = {};
   });
 
   suite('get', function() {
@@ -48,6 +50,22 @@ suite('LazyL10n', function() {
       return (foundScripts.length == scripts.length);
     };
 
+    var checkLoadedScripts = function(scripts) {
+      if (!scripts) {
+        return true;
+      }
+      var numLoaded = 0;
+      for (var j = 0; j < scripts.length; j++) {
+        for (var loaded in LazyLoader._loaded) {
+          if (loaded === scripts[j]) {
+            numLoaded++;
+            break;
+          }
+        }
+      }
+      return numLoaded == scripts.length;
+    };
+
     test('should call the callback directly if loaded', function(done) {
       LazyL10n._loaded = true;
 
@@ -57,7 +75,6 @@ suite('LazyL10n', function() {
       };
       LazyL10n.get(callback);
     });
-
 
     test('should wait for the localized event if not loaded', function(done) {
       LazyL10n._loaded = false;
@@ -83,9 +100,31 @@ suite('LazyL10n', function() {
         assert.isTrue(LazyL10n._inDOM);
         assert.isTrue(checkLinkedScripts(['/shared/js/l10n.js',
           '/shared/js/l10n_date.js']));
+        assert.isTrue(checkLoadedScripts(['/shared/js/l10n.js',
+          '/shared/js/l10n_date.js']));
         done();
       };
 
+      LazyL10n.get(callback);
+
+      var evtObject = document.createEvent('Event');
+      evtObject.initEvent('localized', false, false);
+      window.dispatchEvent(evtObject);
+    });
+
+    test('subsequent gets should have all dependencies loaded', function(done) {
+      var headCount = document.head.childNodes.length;
+
+      var callback = function() {
+        assert.isTrue(LazyL10n._inDOM);
+        assert.isTrue(checkLinkedScripts(['/shared/js/l10n.js',
+          '/shared/js/l10n_date.js']));
+        assert.isTrue(checkLoadedScripts(['/shared/js/l10n.js',
+          '/shared/js/l10n_date.js']));
+        done();
+      };
+
+      LazyL10n.get(this.sinon.stub());
       LazyL10n.get(callback);
 
       var evtObject = document.createEvent('Event');

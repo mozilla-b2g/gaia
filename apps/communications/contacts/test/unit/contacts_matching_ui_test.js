@@ -1,3 +1,16 @@
+'use strict';
+/* global contacts */
+/* global CORRECT_MATCHED_VALUE */
+/* global dataImage */
+/* global dupContacts */
+/* global matchingDetailsData */
+/* global MockMatchingContactsHtml */
+/* global MockMatchingController */
+/* global MocksHelper */
+/* global MockImageLoader */
+/* global MockMozL10n */
+/* global MockURL */
+
 require('/shared/js/lazy_loader.js');
 requireApp('communications/contacts/test/unit/' +
                                         'mock_contacts_matching_controller.js');
@@ -12,8 +25,8 @@ requireApp('communications/contacts/js/contacts_matching_ui.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
-if (!this.ImageLoader) {
-  this.ImageLoader = null;
+if (!window.ImageLoader) {
+  window.ImageLoader = null;
 }
 
 var mocksHelperForContactMatchingUI = new MocksHelper([
@@ -165,7 +178,7 @@ suite('Matching duplicate contacts UI Test Suite', function() {
       matchingImg = matchingDetails.querySelector('img');
       matchingDetailList = matchingDetails.querySelector('#matching-list');
       // Add a photo to the matching contact with id 'user_id_1'.
-      matchingDetailsData['user_id_1'].matchingContact.photo[0] =
+      matchingDetailsData.user_id_1.matchingContact.photo[0] =
         matchingImg.src;
       contacts.MatchingUI.load('matching', masterContact, matchingDetailsData,
         function() {

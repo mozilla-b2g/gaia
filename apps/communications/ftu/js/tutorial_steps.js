@@ -1,3 +1,8 @@
+/* global ScreenLayout */
+/* jshint sub: true */
+// Need to ignore the jshint dot notation errors in here.
+// The array used for the different layouts is accesed by
+// a changing variable, and it's more readable with bracket notation
 'use strict';
 
 (function(window) {
@@ -85,4 +90,4 @@
   };
 
   window.TutorialSteps = TutorialSteps;
-})(this);
+})(window);

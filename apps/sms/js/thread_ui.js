@@ -6,7 +6,7 @@
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
-         Thread */
+         Thread, MultiSimActionButton */
 /*exported ThreadUI */
 
 (function(global) {
@@ -60,16 +60,24 @@ var ThreadUI = global.ThreadUI = {
   BANNER_DURATION: 2000,
   // delay between 2 counter updates while composing a message
   UPDATE_DELAY: 500,
+
+  // when sending an sms to several recipients in activity, we'll exit the
+  // activity after this delay after moving to the thread list.
+  LEAVE_ACTIVITY_DELAY: 3000,
+
   draft: null,
   recipients: null,
   // Set to |true| when in edit mode
   inEditMode: false,
   inThread: false,
   isNewMessageNoticeShown: false,
+  shouldChangePanelNextEvent: false,
+  inActivity: false,
   timeouts: {
     update: null,
     subjectLengthNotice: null
   },
+  multiSimActionButton: null,
   init: function thui_init() {
     var templateIds = [
       'message',
@@ -87,7 +95,8 @@ var ThreadUI = global.ThreadUI = {
       'contact-pick-button', 'back-button', 'send-button', 'attach-button',
       'delete-button', 'cancel-button', 'subject-input', 'new-message-notice',
       'options-icon', 'edit-mode', 'edit-form', 'tel-form', 'header-text',
-      'max-length-notice', 'convert-notice', 'resize-notice'
+      'max-length-notice', 'convert-notice', 'resize-notice',
+      'dual-sim-information'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -156,6 +165,9 @@ var ThreadUI = global.ThreadUI = {
 
     this.sendButton.addEventListener(
       'click', this.onSendClick.bind(this)
+    );
+    this.sendButton.addEventListener(
+      'contextmenu', this.onSendClick.bind(this)
     );
 
     this.container.addEventListener(
@@ -252,6 +264,14 @@ var ThreadUI = global.ThreadUI = {
       'mousedown', this.requestContact.bind(this)
     );
 
+    // Avoid click event propagate to recipient view, otherwise Recipients.View
+    // constructor will attach click event on the messages-to-field element.
+    this.contactPickButton.addEventListener(
+      'click', function onClick(event) {
+        event.stopPropagation();
+      }
+    );
+
     navigator.mozContacts.addEventListener(
       'contactchange',
       this.updateHeaderData.bind(this)
@@ -268,6 +288,8 @@ var ThreadUI = global.ThreadUI = {
     // Initialized here, but used in ThreadUI.cleanFields
     this.previousHash = null;
 
+    this.multiSimActionButton = null;
+
     this.timeouts.update = null;
 
     // Cache fixed measurement while init
@@ -282,6 +304,9 @@ var ThreadUI = global.ThreadUI = {
       parseInt(subjectStyle.getPropertyValue('max-height'), 10);
 
     this.HEADER_HEIGHT = document.querySelector('.view-header').offsetHeight;
+
+    this.shouldChangePanelNextEvent = false;
+    this.inActivity = false;
 
     ThreadUI.updateInputMaxHeight();
   },
@@ -299,6 +324,25 @@ var ThreadUI = global.ThreadUI = {
         ThreadUI.saveDraft({preserve: true, autoSave: true});
         Drafts.store();
       }
+    }
+  },
+
+  /*
+   * This function will be called before we slide to the thread or composer
+   * panel. This way it can change things in the panel before the panel is
+   * visible.
+   */
+  onBeforeEnter: function thui_onBeforeEnter() {
+    Recipients.View.isFocusable = true;
+    if (!this.multiSimActionButton) {
+      // handles the various actions on the send button and encapsulates the
+      // DSDS specific behavior
+      this.multiSimActionButton =
+        new MultiSimActionButton(
+          this.sendButton,
+          this.simSelectedCallback.bind(this),
+          Settings.SERVICE_ID_KEYS.smsServiceId
+      );
     }
   },
 
@@ -367,7 +411,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     this.sentAudioKey = 'message.sent-sound.enabled';
-    this.sentAudio = new Audio('/sounds/sent.opus');
+    this.sentAudio = new Audio('/sounds/sent.ogg');
     this.sentAudio.mozAudioChannelType = 'notification';
     this.sentAudioEnabled = false;
 
@@ -390,12 +434,14 @@ var ThreadUI = global.ThreadUI = {
 
   // Change the back button to close button
   enableActivityRequestMode: function thui_enableActivityRequestMode() {
+    this.inActivity = true;
     var domBackButtonSpan = this.backButton.querySelector('span');
     domBackButtonSpan.classList.remove('icon-back');
     domBackButtonSpan.classList.add('icon-close');
   },
 
   resetActivityRequestMode: function thui_resetActivityRequestMode() {
+    this.inActivity = false;
     var domBackButtonSpan = this.backButton.querySelector('span');
     domBackButtonSpan.classList.remove('icon-close');
     domBackButtonSpan.classList.add('icon-back');
@@ -593,8 +639,15 @@ var ThreadUI = global.ThreadUI = {
   },
 
   onMessageSending: function thui_onMessageReceived(message) {
-    this.onMessage(message);
-    this.forceScrollViewToBottom();
+    if (message.threadId === Threads.currentId) {
+      this.onMessage(message);
+      this.forceScrollViewToBottom();
+    } else {
+      if (this.shouldChangePanelNextEvent) {
+        window.location.hash = '#thread=' + message.threadId;
+        this.shouldChangePanelNextEvent = false;
+      }
+    }
   },
 
   onNewMessageNoticeClick: function thui_onNewMessageNoticeClick(event) {
@@ -798,6 +851,15 @@ var ThreadUI = global.ThreadUI = {
     generateHeightRule(maxHeight);
   },
 
+  leaveActivity: function thui_leaveActivity() {
+    var currentActivity = ActivityHandler.currentActivity.new;
+
+    if (currentActivity) {
+      currentActivity.postResult({ success: true });
+      ActivityHandler.resetActivity();
+    }
+  },
+
   back: function thui_back() {
 
     if (window.location.hash === '#group-view' ||
@@ -810,15 +872,13 @@ var ThreadUI = global.ThreadUI = {
     var goBack = (function() {
       this.stopRendering();
 
-      var currentActivity = ActivityHandler.currentActivity.new;
       var leave = (function() {
         this.cleanFields(true);
         window.location.hash = '#thread-list';
       }).bind(this);
 
-      if (currentActivity) {
-        currentActivity.postResult({ success: true });
-        ActivityHandler.resetActivity();
+      if (this.inActivity) {
+        this.leaveActivity();
         return;
       }
 
@@ -1029,7 +1089,7 @@ var ThreadUI = global.ThreadUI = {
     if (Settings.mmsSizeLimitation) {
       if (Compose.size > Settings.mmsSizeLimitation) {
         Compose.lock = true;
-        this.showMaxLengthNotice('messages-exceeded-length-text');
+        this.showMaxLengthNotice('message-exceeded-max-length');
         return false;
       } else if (Compose.size === Settings.mmsSizeLimitation) {
         Compose.lock = true;
@@ -1071,12 +1131,17 @@ var ThreadUI = global.ThreadUI = {
     // the new height is different whether the current height is bigger than the
     // max height
     var minHeight = Math.min(this.input.scrollHeight, inputMaxHeight);
+    var composeHeight = minHeight + verticalMargin + subjectHeight;
+    // in DSDS buttonHeight can be bigger than the planned composeHeight
+    var dsdsComposeAdjustment = Math.max(buttonHeight - composeHeight, 0);
+    composeHeight += dsdsComposeAdjustment;
+
     this.input.style.height = minHeight + 'px';
 
     // We also need to push the input field lower when subject field is shown
-    this.input.style.marginTop = (subjectHeight + this.INPUT_MARGIN_TOP) + 'px';
+    this.input.style.marginTop =
+      (subjectHeight + dsdsComposeAdjustment + this.INPUT_MARGIN_TOP) + 'px';
 
-    var composeHeight = minHeight + verticalMargin + subjectHeight;
     this.composeForm.style.height = composeHeight + 'px';
     this.container.style.height = (availableHeight - composeHeight) + 'px';
 
@@ -1563,6 +1628,7 @@ var ThreadUI = global.ThreadUI = {
     messageDOM.className = classNames.join(' ');
     messageDOM.id = 'message-' + message.id;
     messageDOM.dataset.messageId = message.id;
+    messageDOM.dataset.iccId = message.iccId;
 
     messageDOM.innerHTML = this.tmpl.message.interpolate({
       id: String(message.id),
@@ -1821,12 +1887,12 @@ var ThreadUI = global.ThreadUI = {
     }
     if (selected.length > 0) {
       this.uncheckAllButton.disabled = false;
-      this.deleteButton.classList.remove('disabled');
+      this.deleteButton.disabled = false;
       navigator.mozL10n.localize(this.editMode, 'selected',
         {n: selected.length});
     } else {
       this.uncheckAllButton.disabled = true;
-      this.deleteButton.classList.add('disabled');
+      this.deleteButton.disabled = true;
       navigator.mozL10n.localize(this.editMode, 'deleteMessages-title');
     }
   },
@@ -1861,7 +1927,7 @@ var ThreadUI = global.ThreadUI = {
         elems.message.classList.contains('pending')) {
         return;
       }
-      this.retrieveMMS(elems.message.dataset.messageId);
+      this.retrieveMMS(elems.message);
       return;
     }
 
@@ -2046,7 +2112,6 @@ var ThreadUI = global.ThreadUI = {
   },
 
   onSendClick: function thui_onSendClick() {
-    // don't send an empty message
     if (Compose.isEmpty()) {
       return;
     }
@@ -2059,14 +2124,31 @@ var ThreadUI = global.ThreadUI = {
 
     // not sure why this happens - replace me if you know
     this.container.classList.remove('hide');
+  },
 
-    var content = Compose.getContent();
-    var subject = Compose.getSubject();
+  // FIXME/bug 983411: phoneNumber not needed.
+  simSelectedCallback: function thui_simSelected(phoneNumber, cardIndex) {
+    if (Compose.isEmpty()) {
+      return;
+    }
+
+    cardIndex = +cardIndex;
+    if (isNaN(cardIndex)) {
+      cardIndex = 0;
+    }
+
+    this.sendMessage({ serviceId: cardIndex });
+  },
+
+  sendMessage: function thui_sendMessage(opts) {
+    var serviceId = opts && opts.serviceId;
     var messageType = Compose.type;
+
+    var inComposer = window.location.hash === '#new';
     var recipients;
 
     // Depending where we are, we get different nums
-    if (window.location.hash === '#new') {
+    if (inComposer) {
       if (!this.recipients.length) {
         return;
       }
@@ -2074,6 +2156,36 @@ var ThreadUI = global.ThreadUI = {
     } else {
       recipients = Threads.active.participants;
     }
+
+    var next = function next() {
+      this.doSendMessage({
+        content: Compose.getContent(),
+        subject: Compose.getSubject(),
+        messageType: Compose.type,
+        recipients: recipients,
+        serviceId: serviceId,
+      });
+    }.bind(this);
+
+    if (messageType === 'sms' ||
+      !Settings.hasSeveralSim() ||
+      serviceId === Settings.mmsServiceId) {
+      next();
+    } else {
+      this.showMessageError(
+        'NonActiveSimCardToSendError', { confirmHandler: next }
+      );
+    }
+  },
+
+  doSendMessage: function thui_sendMessage(opts) {
+    var content = opts.content,
+        subject = opts.subject,
+        messageType = opts.messageType,
+        recipients = opts.recipients,
+        serviceId = opts.serviceId === undefined ? null : opts.serviceId;
+
+    var inComposer = window.location.hash === '#new';
 
     // Clean composer fields (this lock any repeated click in 'send' button)
     this.cleanFields(true);
@@ -2089,10 +2201,15 @@ var ThreadUI = global.ThreadUI = {
 
     this.updateHeaderData();
 
+    this.shouldChangePanelNextEvent = inComposer;
+
     // Send the Message
     if (messageType === 'sms') {
-      MessageManager.sendSMS(recipients, content[0], null, null,
-        function onComplete(requestResult) {
+      MessageManager.sendSMS({
+        recipients: recipients,
+        content: content[0],
+        serviceId: serviceId,
+        oncomplete: function onComplete(requestResult) {
           if (requestResult.hasError) {
             var errors = {};
             requestResult.return.forEach(function(result) {
@@ -2112,21 +2229,24 @@ var ThreadUI = global.ThreadUI = {
             }
           }
         }.bind(this)
-      );
+      });
 
       if (recipients.length > 1) {
+        this.shouldChangePanelNextEvent = false;
         window.location.hash = '#thread-list';
+        if (this.inActivity) {
+          setTimeout(this.leaveActivity.bind(this), this.LEAVE_ACTIVITY_DELAY);
+        }
       }
+
     } else {
       var smilSlides = content.reduce(thui_generateSmilSlides, []);
-      var mmsMessage = {
+      var mmsOpts = {
         recipients: recipients,
         subject: subject,
-        content: smilSlides
-      };
-
-      MessageManager.sendMMS(mmsMessage, null,
-        function onError(error) {
+        content: smilSlides,
+        serviceId: serviceId,
+        onerror: function onError(error) {
           var errorName = error.name;
           if (errorName === 'NotFoundError') {
             console.info('The message was deleted or is no longer available.');
@@ -2134,7 +2254,9 @@ var ThreadUI = global.ThreadUI = {
           }
           this.showMessageError(errorName);
         }.bind(this)
-      );
+      };
+
+      MessageManager.sendMMS(mmsOpts);
     }
   },
 
@@ -2223,11 +2345,13 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
-  retrieveMMS: function thui_retrieveMMS(messageId) {
+  retrieveMMS: function thui_retrieveMMS(messageDOM) {
     // force a number
-    var id = +messageId;
+    var id = +messageDOM.dataset.messageId;
+    var iccId = messageDOM.dataset.iccId;
+
     var request = MessageManager.retrieveMMS(id);
-    var messageDOM = document.getElementById('message-' + id);
+
     var button = messageDOM.querySelector('button');
 
     messageDOM.classList.add('pending');
@@ -2247,27 +2371,30 @@ var ThreadUI = global.ThreadUI = {
       var errorCode = (request.error && request.error.name) ?
         request.error.name : null;
 
-      var idList = Settings.nonActivateMmsServiceIds;
-      if (!navigator.mozSettings || !idList) {
+      if (!navigator.mozSettings) {
         console.error('Settings unavailable');
         return;
       }
-
-      // Just pick the first non-active id since there should be only
-      // one non-active id in the array.
-      var nonActiveId = idList[0];
 
       if (errorCode) {
         this.showMessageError(errorCode, {
           messageId: id,
           confirmHandler: function stateResetAndRetry() {
+            var serviceId = Settings.getServiceIdByIccId(iccId);
+            if (serviceId === null) {
+              // TODO Bug 981077 should change this error message
+              this.showMessageError('NoSimCardError');
+              return;
+            }
+
+            // TODO move this before trying to call retrieveMMS in Bug 981077
             // Avoid user to click the download button while sim state is not
             // ready yet.
             messageDOM.classList.add('pending');
             messageDOM.classList.remove('error');
             navigator.mozL10n.localize(button, 'downloading');
-            Settings.switchSimHandler(nonActiveId,
-              this.retrieveMMS.bind(this, id));
+            Settings.switchMmsSimHandler(serviceId,
+              this.retrieveMMS.bind(this, messageDOM));
           }.bind(this)
         });
       }
@@ -2464,14 +2591,21 @@ var ThreadUI = global.ThreadUI = {
 
     // Render each contact in the contacts results
     var renderer = ContactRenderer.flavor('suggestion');
+    var unknownContactsRenderer = ContactRenderer.flavor('suggestionUnknown');
 
     contacts.forEach(function(contact) {
-      renderer.render({
+      var rendererArg = {
         contact: contact,
         input: fValue,
         target: ul,
         skip: this.recipients.numbers
-      });
+      };
+      if (contact.source != 'unknown') {
+        renderer.render(rendererArg);
+      }
+      else {
+        unknownContactsRenderer.render(rendererArg);
+      }
     }, this);
 
     this.container.appendChild(ul);

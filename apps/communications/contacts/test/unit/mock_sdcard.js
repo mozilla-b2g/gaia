@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockSdCard */
 
 var MockSdCard = function MockSdCard() {
 
@@ -27,7 +28,8 @@ var MockSdCard = function MockSdCard() {
   var STATUSES = {
     NOT_INITIALIZED: 0,
     NOT_AVAILABLE: 1,
-    AVAILABLE: 2
+    AVAILABLE: 2,
+    SHARED: 3
   };
 
   var status = STATUSES.AVAILABLE;
@@ -35,8 +37,10 @@ var MockSdCard = function MockSdCard() {
   var updateStorageState = function updateStorageState(state) {
     switch (state) {
       case 'available':
-      case 'shared':
         status = STATUSES.AVAILABLE;
+        break;
+      case 'shared':
+        status = STATUSES.SHARED;
         break;
       case 'unavailable':
       case 'deleted':
@@ -46,13 +50,6 @@ var MockSdCard = function MockSdCard() {
   };
 
   var deviceStorage = null;
-  var setDeviceStorage = function setDeviceStorage(ds) {
-    deviceStorage = ds;
-    deviceStorage.addEventListener('change',
-      function sd_deviceStorageChangeHandler(e) {
-      updateStorageState(e.reason);
-    });
-  };
 
   var subscribeToChanges = function subscribeToChanges(name, func, force) {
     if (observers[name] !== undefined && !force) {
@@ -76,8 +73,12 @@ var MockSdCard = function MockSdCard() {
     NOT_INITIALIZED: STATUSES.NOT_INITIALIZED,
     NOT_AVAILABLE: STATUSES.NOT_AVAILABLE,
     AVAILABLE: STATUSES.AVAILABLE,
+    SHARED: STATUSES.SHARED,
     set failOnRetrieveFiles(value) {
       failOnRetrieveFiles = value;
+    },
+    getStatus: function(cb) {
+      cb(status);
     },
     get status() {
       return status;

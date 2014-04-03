@@ -18,7 +18,7 @@ mocksHelperForDragDrop.init();
 
 suite('dragdrop.js >', function() {
 
-  var wrapperNode, page, dock, realElementFromPoint, dragabbleIcon;
+  var wrapperNode, page, dock, realElementFromPoint, dragabbleIcon, clock;
 
   function sendTouchEvent(type, node, coords) {
     var touch = document.createTouch(window, node, 1,
@@ -43,12 +43,14 @@ suite('dragdrop.js >', function() {
 
   // Simulate the movement of an icon
   function move(node, x, cb, over) {
+    over = over || 'page';
     var y = getY(over);
 
     var overPage = y >= 10000 ? dock : page;
 
+    var targetNode = overPage.olist.children[x];
     HTMLDocument.prototype.elementFromPoint = function() {
-      return overPage.olist.children[x];
+      return targetNode;
     };
 
     var coords = {
@@ -63,6 +65,7 @@ suite('dragdrop.js >', function() {
 
     sendTouchEvent('touchmove', node, coords);
     sendMouseEvent('mousemove', node, coords);
+    killAsynchrony(targetNode, startOver !== over);
   }
 
   // Simulate when users release the finger
@@ -87,7 +90,19 @@ suite('dragdrop.js >', function() {
     return over === 'dock' ? 10000 : 0;
   }
 
+  // Jumping is true when you go from grid to dock or viceversa.
+  function killAsynchrony(targetNode, jumping) {
+    // Delay between rearranges
+    clock.tick(jumping ? 0 : Page.prototype.REARRANGE_DELAY);
+    // Sending transitionend in order to indicate that icons finished of dancing
+    targetNode.dispatchEvent(new CustomEvent('transitionend'));
+    // Page.setReady method is asynchronous
+    clock.tick();
+  }
+
+  var startOver = null;
   function start(target, x, over) {
+    startOver = over || 'page';
     var initCoords = {
       x: x,
       y: getY(over)
@@ -109,6 +124,8 @@ suite('dragdrop.js >', function() {
   }
 
   suiteSetup(function() {
+    clock = sinon.useFakeTimers();
+
     realElementFromPoint = HTMLDocument.prototype.elementFromPoint;
 
     mocksHelperForDragDrop.suiteSetup();
@@ -134,6 +151,7 @@ suite('dragdrop.js >', function() {
   suiteTeardown(function() {
     mocksHelperForDragDrop.suiteTeardown();
     document.body.removeChild(wrapperNode);
+    clock.restore();
 
     HTMLDocument.prototype.elementFromPoint = realElementFromPoint;
   });
@@ -149,7 +167,7 @@ suite('dragdrop.js >', function() {
     checkPositions(dock, ['app5', 'app6']);
     assert.equal(dock.getNumIcons(), 2);
   });
-/*
+
   test('Dragging app1 to app2 | Page [app2, app1, app3, app4] ' +
       '| Dock [app5, app6] > ', function(done) {
     start(dragabbleIcon, 0);
@@ -284,6 +302,6 @@ suite('dragdrop.js >', function() {
 
       end(dragabbleIcon, 0);
     });
-  });*/
+  });
 
 });

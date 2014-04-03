@@ -1,9 +1,24 @@
 'use strict';
+/* global ActivityHandler */
+/* global ConfirmDialog */
+/* global contacts */
+/* global ContactsTag */
+/* global DatastoreMigration */
+/* global fb */
+/* global fbLoader */
+/* global LazyLoader */
+/* global MozActivity */
+/* global navigationStack */
+/* global PerformanceTestingHelper */
+/* global SmsIntegration */
+/* global utils */
+/* exported COMMS_APP_ORIGIN */
+/* exported SCALE_RATIO */
+/* jshint nonew: false */
 
 var _;
 var TAG_OPTIONS;
 var COMMS_APP_ORIGIN = location.origin;
-var asyncScriptsLoaded;
 
 // Scale ratio for different devices
 var SCALE_RATIO = window.innerWidth / 320;
@@ -37,6 +52,14 @@ var Contacts = (function() {
 
   var customTag, customTagReset, tagDone, tagCancel, lazyLoadedTagsDom = false;
 
+  // Shows the edit form for the current contact being in an update activity
+  // It receives an array of two elements with the facebook data && values
+  function showEditForm(facebookData, params) {
+    contactsForm.render(currentContact, goToForm,
+                                    facebookData, params.fromUpdateActivity);
+    showApp();
+  }
+
   var checkUrl = function checkUrl() {
     var hasParams = window.location.hash.split('?');
     var hash = hasParams[0];
@@ -53,12 +76,13 @@ var Contacts = (function() {
             console.log('Param missing');
             return;
           }
-          var id = params['id'];
+          var id = params.id;
           cList.getContactById(id, function onSuccess(savedContact) {
             currentContact = savedContact;
             contactsDetails.render(currentContact, TAG_OPTIONS);
-            if (params['tel'])
-              contactsDetails.reMark('tel', params['tel']);
+            if (params.tel) {
+              contactsDetails.reMark('tel', params.tel);
+            }
             navigation.go(sectionId, 'right-left');
             showApp();
           }, function onError() {
@@ -74,18 +98,29 @@ var Contacts = (function() {
           } else {
             // Editing existing contact
             if ('id' in params) {
-              var id = params['id'];
+              var id = params.id;
               cList.getContactById(id, function onSuccess(savedContact) {
                 currentContact = savedContact;
                 // Check if we have extra parameters to render
                 if ('extras' in params) {
-                  addExtrasToContact(params['extras']);
+                  addExtrasToContact(params.extras);
                 }
-                contactsForm.render(currentContact, goToForm,
-                                    null, params['fromUpdateActivity']);
-                showApp();
+                if (fb.isFbContact(savedContact)) {
+                  var fbContact = new fb.Contact(savedContact);
+                  var req = fbContact.getDataAndValues();
+                  req.onsuccess = function() {
+                    showEditForm(req.result, params);
+                  };
+                  req.onerror = function() {
+                    console.error('Error retrieving FB information');
+                    showEditForm(null, params);
+                  };
+                }
+                else {
+                  showEditForm(null, params);
+                }
               }, function onError() {
-                console.log('Error retrieving contact to be edited');
+                console.error('Error retrieving contact to be edited');
                 contactsForm.render(null, goToForm);
                 showApp();
               });
@@ -168,8 +203,13 @@ var Contacts = (function() {
         {type: 'other', value: _('other')}
       ],
       'address-type' : [
+        {type: 'current', value: _('current')},
         {type: 'home', value: _('home')},
         {type: 'work', value: _('work')}
+      ],
+      'date-type': [
+        {type: 'birthday', value: _('birthday')},
+        {type: 'anniversary', value: _('anniversary')}
       ]
     };
   };
@@ -212,8 +252,9 @@ var Contacts = (function() {
   };
 
   var initContactsList = function initContactsList() {
-    if (contactsList)
+    if (contactsList) {
       return;
+    }
     contactsList = contactsList || contacts.List;
     var list = document.getElementById('groups-list');
     contactsList.init(list);
@@ -227,12 +268,13 @@ var Contacts = (function() {
     // NOTE: Only set textContent below if necessary to avoid repaints at
     //       load time.  For more info see bug 725221.
 
+    var text;
     if (ActivityHandler.currentlyHandling) {
       cancelButton.classList.remove('hide');
       addButton.classList.add('hide');
       settingsButton.classList.add('hide');
 
-      var text = _('selectContact');
+      text = _('selectContact');
       if (appTitleElement.textContent !== text) {
         appTitleElement.textContent = text;
       }
@@ -241,7 +283,7 @@ var Contacts = (function() {
       addButton.classList.remove('hide');
       settingsButton.classList.remove('hide');
 
-      var text = _('contacts');
+      text = _('contacts');
       if (appTitleElement.textContent !== text) {
         appTitleElement.textContent = text;
       }
@@ -257,6 +299,12 @@ var Contacts = (function() {
   var contactListClickHandler = function originalHandler(id) {
     initDetails(function onDetailsReady() {
       contactsList.getContactById(id, function findCb(contact, fbContact) {
+
+        // Enable NFC listening is available
+        if ('mozNfc' in navigator) {
+          contacts.NFC.startListening(contact);
+        }
+
         currentContact = contact;
         currentFbContact = fbContact;
         if (ActivityHandler.currentlyHandling) {
@@ -288,24 +336,25 @@ var Contacts = (function() {
     contactsList.handleClick(function addToContactHandler(id) {
       var data = {};
       if (params.hasOwnProperty('tel')) {
-        var phoneNumber = params['tel'];
-        data['tel'] = [{
+        var phoneNumber = params.tel;
+        data.tel = [{
           'value': phoneNumber,
           'carrier': null,
           'type': [TAG_OPTIONS['phone-type'][0].type]
         }];
       }
       if (params.hasOwnProperty('email')) {
-        var email = params['email'];
-        data['email'] = [{
+        var email = params.email;
+        data.email = [{
           'value': email,
           'type': [TAG_OPTIONS['email-type'][0].type]
         }];
       }
       var hash = '#view-contact-form?extras=' +
         encodeURIComponent(JSON.stringify(data)) + '&id=' + id;
-      if (fromUpdateActivity)
+      if (fromUpdateActivity) {
         hash += '&fromUpdateActivity=1';
+      }
       window.location.hash = hash;
     });
   };
@@ -355,6 +404,13 @@ var Contacts = (function() {
     var selectedTagType = contactTag.dataset.taglist;
     var options = TAG_OPTIONS[selectedTagType];
 
+    var type = selectedTagType.split('-')[0];
+    var isCustomTagVisible = (document.querySelector(
+      '[data-template]' + '.' + type + '-' +
+      'template').dataset.custom != 'false');
+
+    options = ContactsTag.filterTags(type, contactTag, options);
+
     if (!customTag) {
       customTag = document.querySelector('#custom-tag');
       customTag.addEventListener('keydown', handleCustomTag);
@@ -376,7 +432,13 @@ var Contacts = (function() {
     for (var i in options) {
       options[i].value = _(options[i].type);
     }
+
     ContactsTag.setCustomTag(customTag);
+    // Set whether the custom tag is visible or not
+    // This is needed for dates as we only support bday and anniversary
+    // and not custom dates
+    ContactsTag.setCustomTagVisibility(isCustomTagVisible);
+
     ContactsTag.fillTagOptions(tagsList, contactTag, options);
 
     navigation.go('view-select-tag', 'right-left');
@@ -403,29 +465,9 @@ var Contacts = (function() {
 
   var sendSms = function sendSms(number) {
     if (!ActivityHandler.currentlyHandling ||
-        ActivityHandler.activityName === 'open')
+        ActivityHandler.activityName === 'open') {
       SmsIntegration.sendSms(number);
-  };
-
-  var callOrPick = function callOrPick(number) {
-    LazyLoader.load('/dialer/js/mmi.js', function mmiLoaded() {
-      if (ActivityHandler.currentlyHandling &&
-          ActivityHandler.activityName !== 'open') {
-        ActivityHandler.postPickSuccess({ number: number });
-      } else if (MmiManager.isMMI(number)) {
-        // For security reasons we cannot directly call MmiManager.send(). We
-        // need to show the MMI number in the dialer instead.
-        new MozActivity({
-          name: 'dial',
-          data: {
-            type: 'webtelephony/number',
-            number: number
-          }
-        });
-      } else if (navigator.mozTelephony) {
-        TelephonyHelper.call(number);
-      }
-    });
+    }
   };
 
   var handleBack = function handleBack() {
@@ -475,7 +517,7 @@ var Contacts = (function() {
     try {
       // We don't check the email format, lets the email
       // app do that
-      var activity = new MozActivity({
+      new MozActivity({
         name: 'new',
         data: {
           type: 'mail',
@@ -485,11 +527,6 @@ var Contacts = (function() {
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
-  };
-
-  var isUpdated = function isUpdated(contact1, contact2) {
-    return contact1.id == contact2.id &&
-      (contact1.updated - contact2.updated) == 0;
   };
 
   var showAddContact = function showAddContact() {
@@ -548,15 +585,20 @@ var Contacts = (function() {
       callback();
     } else {
       Contacts.view('Details', function viewLoaded() {
-        detailsReady = true;
-        contactsDetails = contacts.Details;
-        contactsDetails.init();
-        callback();
+        var simPickerNode = document.getElementById('sim-picker');
+        LazyLoader.load([simPickerNode], function() {
+          navigator.mozL10n.translate(simPickerNode);
+          detailsReady = true;
+          contactsDetails = contacts.Details;
+          contactsDetails.init();
+          callback();
+        });
       });
     }
   };
 
-  var showForm = function c_showForm(edit) {
+  var showForm = function c_showForm(edit, contact) {
+    currentContact = contact || currentContact;
     initForm(function onInit() {
       doShowForm(edit);
     });
@@ -680,6 +722,11 @@ var Contacts = (function() {
       '/contacts/js/utilities/dom.js'
     ];
 
+    // Lazyload nfc.js if NFC is available
+    if ('mozNfc' in navigator) {
+      lazyLoadFiles.push('/contacts/js/nfc.js');
+    }
+
     LazyLoader.load(lazyLoadFiles, function() {
       var handling = ActivityHandler.currentlyHandling;
       if (!handling || ActivityHandler.activityName === 'pick' ||
@@ -745,10 +792,13 @@ var Contacts = (function() {
           contactsList.getContactById(event.contactID,
             function success(contact, enrichedContact) {
               currentContact = contact;
-              var mergedContact = enrichedContact || contact;
-              contactsDetails.render(mergedContact, null, enrichedContact);
-              contactsList.refresh(mergedContact, checkPendingChanges,
+              if (contactsDetails) {
+                contactsDetails.render(currentContact, null, enrichedContact);
+              }
+              if (contactsList) {
+                contactsList.refresh(currentContact, checkPendingChanges,
                                    event.reason);
+              }
           });
         } else {
           contactsList.refresh(event.contactID, checkPendingChanges,
@@ -885,12 +935,15 @@ var Contacts = (function() {
     load('utilities', utility, callback);
   }
 
+  var updateSelectCountTitle = function updateSelectCountTitle(count) {
+    appTitleElement.textContent = _('SelectedTxt', {n: count});
+  };
+
   return {
     'goBack' : handleBack,
     'cancel': handleCancel,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
-    'callOrPick': callOrPick,
     'navigation': navigation,
     'sendEmailOrPick': sendEmailOrPick,
     'updatePhoto': updatePhoto,
@@ -913,6 +966,7 @@ var Contacts = (function() {
     'close': close,
     'view': loadView,
     'utility': loadUtility,
+    'updateSelectCountTitle': updateSelectCountTitle,
     get asyncScriptsLoaded() {
       return asyncScriptsLoaded;
     }

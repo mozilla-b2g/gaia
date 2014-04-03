@@ -15,6 +15,19 @@ body > iframe {
   visibility: hidden;
 }
 
+button {
+  border-radius: 0.3125em;
+  font-size: 1.1em;
+}
+
+button.active, button:active {
+  border-left: 0.15em solid #B8B8B8;
+  border-top: 0.15em solid #B8B8B8;
+  border-right: 0.15em solid white;
+  border-bottom: 0.15em solid white;
+  background-color: #E0E0E0;
+}
+
 #test-agent-ui {
   margin: 2em 2em 2em 1em;
 }
@@ -118,8 +131,7 @@ body > iframe {
   position: fixed;
   top: 0;
   left: 0;
-  padding-top: 1rem;
-  padding-left: 5rem;
+  padding: 1rem 5rem;
   background-color: rgba(250,250,250,0.7);
   width: 100%;
   height: 4.5rem;
@@ -131,9 +143,29 @@ body > iframe {
   margin-left: -0.3rem;
 }
 
+#test-agent-panel .execute {
+  margin-top: -2.5rem;
+  text-align: center;
+}
+
+@media only screen and (max-width: 720px) {
+  #test-agent-ui {
+    margin-top: 7.2em;
+  }
+
+  #test-agent-panel {
+    height: 6.8rem;
+  }
+
+  #test-agent-panel .execute button {
+    margin-top: 2.8rem;
+  }
+}
+
 @media only screen and (max-width: 480px) {
   #test-agent-ui {
-    margin: 0;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   #test-agent-ui li {
@@ -146,13 +178,24 @@ body > iframe {
     top: .8rem;
   }
 
+  #test-agent-ui .test-agent-list-head {
+    margin: 0;
+  }
+
   #test-agent-panel {
-    padding: 1rem;
+    height: 7rem;
+    padding: 1rem 2.5rem;
     border-bottom: 1px solid #aaa;
   }
 
-  #test-agent-ui .test-agent-list-head {
-    margin: 0;
+  form {
+    margin-top: 1.4rem;
+  }
+
+  #test-agent-panel .execute {
+    position: fixed;
+    margin-top: -4rem;
+    margin-left: 10.6rem;
   }
 }
 
@@ -160,60 +203,102 @@ body > iframe {
 
 #mocha {
   font: 20px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
-  padding: 0px 50px 20px;
+  margin: 4.2rem 3.5rem;
 }
 
-#mocha h1, h2 {
+#mocha ul,
+#mocha li {
+  margin: 0;
+  padding: 0;
+}
+
+#mocha ul {
+  list-style: none;
+}
+
+#mocha h1,
+#mocha h2 {
   margin: 0;
 }
 
 #mocha h1 {
-  margin-top: 15px;
-  font-size: 1em;
+  margin-top: 1rem;
+  font-size: 1.5rem;
   font-weight: 200;
+}
+
+#mocha h1 a {
+  text-decoration: none;
+  color: inherit;
+}
+
+#mocha h1 a:hover {
+  text-decoration: underline;
 }
 
 #mocha .suite .suite h1 {
   margin-top: 0;
-  font-size: .8em;
+  font-size: 1.25rem;
+}
+
+#mocha .hidden {
+  display: none;
 }
 
 #mocha h2 {
-  font-size: 12px;
+  font-size: .85rem;
   font-weight: normal;
   cursor: pointer;
 }
 
 #mocha .suite {
-  margin-left: 15px;
+  margin-left: 1rem;
 }
 
 #mocha .test {
-  margin-left: 15px;
-}
-
-#mocha .test:hover h2::after {
-  position: relative;
-  top: 0;
-  right: -10px;
-  content: '(view source)';
-  font-size: 12px;
-  font-family: arial;
-  color: #888;
+  margin-left: 1rem;
+  overflow: hidden;
 }
 
 #mocha .test.pending:hover h2::after {
   content: '(pending)';
-  font-family: arial;
+  font-family: arial, sans-serif;
+}
+
+#mocha .test.pass.medium .duration {
+  background: #c09853;
+}
+
+#mocha .test.pass.slow .duration {
+  background: #b94a48;
 }
 
 #mocha .test.pass::before {
   content: '✓';
-  font-size: 12px;
+  font-size: .85rem;
   display: block;
   float: left;
-  margin-right: 5px;
-  color: #00c41c;
+  margin-right: .35rem;
+  color: #00d6b2;
+}
+
+#mocha .test.pass .duration {
+  font-size: .64rem;
+  margin-left: .35rem;
+  padding: .14rem .35rem;
+  color: #fff;
+  -webkit-box-shadow: inset 0 .07rem .07rem rgba(0,0,0,.2);
+  -moz-box-shadow: inset 0 .07rem .07rem rgba(0,0,0,.2);
+  box-shadow: inset 0 .07rem .07rem rgba(0,0,0,.2);
+  -webkit-border-radius: .35rem;
+  -moz-border-radius: .35rem;
+  -ms-border-radius: .35rem;
+  -o-border-radius: .35rem;
+  border-radius: .35rem;
+}
+
+#mocha .test.pass.fast .duration {
+  display: none;
 }
 
 #mocha .test.pending {
@@ -235,58 +320,160 @@ body > iframe {
 
 #mocha .test.fail::before {
   content: '✖';
-  font-size: 12px;
+  font-size: .85rem;
   display: block;
   float: left;
-  margin-right: 5px;
+  margin-right: .35rem;
   color: #c00;
 }
 
 #mocha .test pre.error {
   color: #c00;
+  max-height: 21rem;
+  overflow: auto;
 }
 
+/**
+ * (1): approximate for browsers not supporting calc
+ * (2): 42 = 2*15 + 2*10 + 2*1 (padding + margin + border)
+ *      ^^ seriously
+ */
 #mocha .test pre {
-  display: inline-block;
-  font: 12px/1.5 monaco, monospace;
-  margin: 5px;
-  padding: 15px;
-  border: 1px solid #eee;
+  display: block;
+  float: left;
+  clear: left;
+  font: .85rem/1.5 monaco, monospace;
+  margin: .35rem;
+  padding: 1rem;
+  border: .1rem solid #eee;
+  max-width: 85%; /*(1)*/
+  max-width: calc(100% - 42px); /*(2)*/
+  word-wrap: break-word;
   border-bottom-color: #ddd;
-  -webkit-border-radius: 3px;
-  -webkit-box-shadow: 0 1px 3px #eee;
+  -webkit-border-radius: .2rem;
+  -webkit-box-shadow: 0 .1rem .2rem #eee;
+  -moz-border-radius: .2rem;
+  -moz-box-shadow: 0 .1rem .2rem #eee;
+  border-radius: .2rem;
 }
 
-#error {
+#mocha .test h2 {
+  position: relative;
+}
+
+#mocha .test a.replay {
+  position: absolute;
+  top: .2rem;
+  right: 0;
+  text-decoration: none;
+  vertical-align: middle;
+  display: block;
+  width: 1rem;
+  height: 1rem;
+  line-height: 1rem;
+  text-align: center;
+  background: #eee;
+  font-size: 1rem;
+  -moz-border-radius: 1rem;
+  border-radius: 1rem;
+  -webkit-transition: opacity 200ms;
+  -moz-transition: opacity 200ms;
+  transition: opacity 200ms;
+  opacity: 0.3;
+  color: #888;
+}
+
+#mocha .test:hover a.replay {
+  opacity: 1;
+}
+
+#mocha-report.pass .test.fail {
+  display: none;
+}
+
+#mocha-report.fail .test.pass {
+  display: none;
+}
+
+#mocha-report.pending .test.pass,
+#mocha-report.pending .test.fail {
+  display: none;
+}
+#mocha-report.pending .test.pass.pending {
+  display: block;
+}
+
+#mocha-error {
   color: #c00;
-  font-size: 1.5  em;
+  font-size: 1.5em;
   font-weight: 100;
   letter-spacing: 1px;
 }
 
-#stats {
+#mocha-stats {
   position: fixed;
-  top: 15px;
-  right: 10px;
-  font-size: 12px;
+  top: 1rem;
+  right: .7rem;
+  font-size: .85rem;
   margin: 0;
   color: #888;
+  z-index: 5;
 }
 
-#stats .progress {
+#mocha-stats .progress {
   float: right;
   padding-top: 0;
 }
 
-#stats em {
+#mocha-stats em {
   color: black;
 }
 
-#stats li {
+#mocha-stats a {
+  text-decoration: none;
+  color: inherit;
+}
+
+#mocha-stats a:hover {
+  border-bottom: .1rem solid #eee;
+}
+
+#mocha-stats li {
   display: inline-block;
-  margin: 0 5px;
+  margin: 0 .35rem;
   list-style: none;
-  padding-top: 11px;
+  padding-top: .8rem;
+}
+
+#mocha-stats canvas {
+  width: 40px;
+  height: 40px;
+}
+
+#mocha code .comment { color: #ddd; }
+#mocha code .init { color: #2f6fad; }
+#mocha code .string { color: #5890ad; }
+#mocha code .keyword { color: #8a6343; }
+#mocha code .number { color: #2f6fad; }
+
+@media screen and (max-device-width: 720px) {
+  #mocha-stats {
+    top: 2.4rem;
+  }
+}
+
+@media screen and (max-device-width: 480px) {
+  #mocha {
+    margin: 4.2rem 0;
+  }
+
+  #mocha #stats {
+    position: absolute;
+  }
+
+  #mocha-stats {
+    top: 0;
+  }
 }
 
 #blanket-main * {

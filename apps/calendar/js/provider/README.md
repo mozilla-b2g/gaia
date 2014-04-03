@@ -5,7 +5,7 @@ there are a number of content providers.
 
 Content providers each are responsible for providing calendars and
 events which we eventually consume/persist in the form of "models" which
-represent the local state of a resource. 
+represent the local state of a resource.
 
 The difference (and intent of separation between models and provider
 objects) is provider object always represent the state of the *server*

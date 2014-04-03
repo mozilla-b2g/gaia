@@ -1,9 +1,10 @@
 'use strict';
 /* global asyncStorage */
+
 suite('Timer.Panel', function() {
   var clock;
   var isHidden;
-  var ActiveAlarm, View, Timer, Utils;
+  var AccessibilityHelper, ActiveAlarm, View, Timer, Utils, mozL10n;
   var nativeMozAlarms = navigator.mozAlarms;
 
   suiteSetup(function(done) {
@@ -12,14 +13,18 @@ suite('Timer.Panel', function() {
     };
 
     testRequire(['panels/alarm/active_alarm', 'timer', 'panels/timer/main',
-        'view', 'utils', 'mocks/mock_moz_alarm'], {
-      mocks: ['picker/picker']
-    }, function(activealarm, timer, timerPanel, view, utils, mockMozAlarms) {
+        'view', 'utils', 'mocks/mock_shared/js/accessibility_helper',
+        'mocks/mock_moz_alarm', 'l10n'], {
+      mocks: ['picker/picker', 'shared/js/accessibility_helper']
+      }, function(activealarm, timer, timerPanel, view, utils,
+                  mockAccessibilityHelper, mockMozAlarms, l10n) {
+      AccessibilityHelper = mockAccessibilityHelper;
       ActiveAlarm = activealarm;
       Timer = timer;
       Timer.Panel = timerPanel;
       View = view;
       Utils = utils;
+      mozL10n = l10n;
       navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
         ActiveAlarm.singleton().handler
       );
@@ -61,6 +66,13 @@ suite('Timer.Panel', function() {
     panel.dialog({ isVisible: false });
 
     assert.isFalse(dialog.visible);
+  });
+
+  test('panel is translated', function() {
+    /* jshint unused:false */
+    this.sinon.spy(mozL10n, 'translate');
+    var panel = new Timer.Panel(document.createElement('div'));
+    assert.ok(mozL10n.translate.called);
   });
 
   test('update ', function() {
@@ -251,7 +263,9 @@ suite('Timer.Panel', function() {
       Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
       var mockAudio = {
         pause: this.sinon.spy(),
-        play: this.sinon.spy()
+        play: this.sinon.spy(),
+        addEventListener: function() { },
+        load: function() { }
       };
       this.sinon.stub(window, 'Audio').returns(mockAudio);
 
@@ -269,9 +283,12 @@ suite('Timer.Panel', function() {
     test('blur: pause playing alarm', function() {
       var sound = panel.nodes.sound;
       Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
+
       var mockAudio = {
         pause: this.sinon.spy(),
-        play: this.sinon.spy()
+        play: this.sinon.spy(),
+        addEventListener: function() { },
+        load: function() { }
       };
       this.sinon.stub(window, 'Audio').returns(mockAudio);
 

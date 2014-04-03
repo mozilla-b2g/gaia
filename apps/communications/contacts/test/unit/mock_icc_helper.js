@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockIccHelper */
 
 var MockIccHelper = {
   mSetup: function icch_mSetup() {},

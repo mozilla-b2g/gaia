@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockMobileOperator */
 
 var MockMobileOperator = {
   userFacingInfo: function mmo_userFacingInfo(mobileConnection) {

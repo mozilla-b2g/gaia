@@ -4,6 +4,7 @@ requireApp('system/js/storage_watcher.js');
 
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_notification_screen.js');
+requireApp('system/shared/test/unit/mocks/mock_dom_request.js');
 requireApp('system/test/unit/mock_navigator_get_device_storage.js');
 
 var mocksForStorageWatcher = new MocksHelper([
@@ -40,14 +41,12 @@ suite('system/DeviceStorageWatcher >', function() {
     done();
   });
 
-  suiteTeardown(function(done) {
+  suiteTeardown(function() {
     navigator.mozL10n = realL10n;
     navigator.getDeviceStorage = realNavigatorGetDeviceStorage;
-
-    done();
   });
 
-  setup(function(done) {
+  setup(function() {
     fakeNotif = document.createElement('div');
     fakeNotif.id = 'storage-watcher-container';
     fakeNotif.innerHTML = [
@@ -58,18 +57,12 @@ suite('system/DeviceStorageWatcher >', function() {
     ].join('');
 
     document.body.appendChild(fakeNotif);
-
-    done();
   });
 
-  teardown(function(done) {
-    setTimeout(function() {
-      DeviceStorageWatcher._container = null;
+  teardown(function() {
+    DeviceStorageWatcher._container = null;
 
-      fakeNotif.parentNode.removeChild(fakeNotif);
-
-      done();
-    }, tinyTimeout);
+    fakeNotif.parentNode.removeChild(fakeNotif);
   });
 
   suite('init', function() {
@@ -108,243 +101,215 @@ suite('system/DeviceStorageWatcher >', function() {
   suite('low device storage', function() {
     var event;
 
-    setup(function(done) {
+    setup(function() {
+      var mockDeviceStorage = MockNavigatorGetDeviceStorage();
+      var freeSpaceSpy = this.sinon.spy(mockDeviceStorage, 'freeSpace');
+
       DeviceStorageWatcher.init();
-      MockNavigatorGetDeviceStorage._freeSpace = 0;
       event = {
         type: 'change',
         reason: 'low-disk-space'
       };
       DeviceStorageWatcher.handleEvent(event);
-      done();
+
+      var freeSpaceRequest = freeSpaceSpy.getCall(0).returnValue;
+      freeSpaceRequest.fireSuccess(0);
     });
 
-    test('lowDeviceStorage should be true', function(done) {
-      setTimeout(function() {
-        assert.isTrue(DeviceStorageWatcher._lowDeviceStorage);
-        done();
-      }, tinyTimeout);
+    test('lowDeviceStorage should be true', function() {
+      assert.isTrue(DeviceStorageWatcher._lowDeviceStorage);
     });
 
-    test('should show system banner', function(done) {
-      setTimeout(function() {
-        assert.equal(1, MockSystemBanner.mShowCount);
-        assert.equal(
-          'low-device-storagefree-space{"value":0,"unit":"byteUnit-B"}',
-          MockSystemBanner.mMessage);
-        assert.equal('byteUnit-B', lastL10nKeys[0]);
-        assert.equal('low-device-storage', lastL10nKeys[1]);
-        assert.equal('free-space', lastL10nKeys[2]);
-        assert.equal(lastL10nParams[0].value, 0);
-        assert.equal(lastL10nParams[0].unit, 'byteUnit-B');
-        done();
-      }, tinyTimeout);
+    test('should show system banner', function() {
+      assert.equal(1, MockSystemBanner.mShowCount);
+      assert.equal(
+        'low-device-storagefree-space{"value":0,"unit":"byteUnit-B"}',
+        MockSystemBanner.mMessage);
+      assert.equal('byteUnit-B', lastL10nKeys[0]);
+      assert.equal('low-device-storage', lastL10nKeys[1]);
+      assert.equal('free-space', lastL10nKeys[2]);
+      assert.equal(lastL10nParams[0].value, 0);
+      assert.equal(lastL10nParams[0].unit, 'byteUnit-B');
     });
 
-    test('should display the notification', function(done) {
-      setTimeout(function() {
-        assert.isTrue(fakeNotif.classList.contains('displayed'));
-        assert.equal(fakeNotif.querySelector('.message').innerHTML,
-                     'low-device-storage');
-        assert.equal(fakeNotif.querySelector('.available-space').innerHTML,
-                     'free-space{"value":0,"unit":"byteUnit-B"}');
-        done();
-      }, tinyTimeout);
+    test('should display the notification', function() {
+      assert.isTrue(fakeNotif.classList.contains('displayed'));
+      assert.equal(fakeNotif.querySelector('.message').innerHTML,
+                   'low-device-storage');
+      assert.equal(fakeNotif.querySelector('.available-space').innerHTML,
+                   'free-space{"value":0,"unit":"byteUnit-B"}');
     });
 
-    teardown(function(done) {
+    teardown(function() {
       lastL10nKeys = [];
       lastL10nParams = [];
-      done();
     });
   });
 
   suite('low device storage, unknown free space', function() {
     var event;
 
-    setup(function(done) {
+    setup(function() {
+      var mockDeviceStorage = MockNavigatorGetDeviceStorage();
+      var freeSpaceSpy = this.sinon.spy(mockDeviceStorage, 'freeSpace');
+
       DeviceStorageWatcher.init();
       event = {
         type: 'change',
         reason: 'low-disk-space'
       };
-      DeviceStorageWatcher._appStorage._freeSpace = undefined;
       DeviceStorageWatcher.handleEvent(event);
-      done();
+
+      var freeSpaceRequest = freeSpaceSpy.getCall(0).returnValue;
+      freeSpaceRequest.fireSuccess(undefined);
     });
 
-    test('lowDeviceStorage should be true', function(done) {
-      setTimeout(function() {
-        assert.isTrue(DeviceStorageWatcher._lowDeviceStorage);
-        done();
-      }, tinyTimeout);
+    test('lowDeviceStorage should be true', function() {
+      assert.isTrue(DeviceStorageWatcher._lowDeviceStorage);
     });
 
-    test('should show system banner with unknown space', function(done) {
-      setTimeout(function() {
-        assert.equal(1, MockSystemBanner.mShowCount);
-        assert.equal('low-device-storageunknown-free-space',
-                     MockSystemBanner.mMessage);
-        assert.equal('low-device-storage', lastL10nKeys[0]);
-        assert.equal('unknown-free-space', lastL10nKeys[1]);
-        assert.equal(lastL10nParams[0], undefined);
-        done();
-      }, tinyTimeout);
+    test('should show system banner with unknown space', function() {
+      assert.equal(1, MockSystemBanner.mShowCount);
+      assert.equal('low-device-storageunknown-free-space',
+                   MockSystemBanner.mMessage);
+      assert.equal('low-device-storage', lastL10nKeys[0]);
+      assert.equal('unknown-free-space', lastL10nKeys[1]);
+      assert.equal(lastL10nParams[0], undefined);
     });
 
-    test('should display the notification with unknown space', function(done) {
-      setTimeout(function() {
-        assert.isTrue(fakeNotif.classList.contains('displayed'));
-        assert.equal(fakeNotif.querySelector('.message').innerHTML,
-                     'low-device-storage');
-        assert.equal(fakeNotif.querySelector('.available-space').innerHTML,
-                     'unknown-free-space');
-        done();
-      }, tinyTimeout);
+    test('should display the notification with unknown space', function() {
+      assert.isTrue(fakeNotif.classList.contains('displayed'));
+      assert.equal(fakeNotif.querySelector('.message').innerHTML,
+                   'low-device-storage');
+      assert.equal(fakeNotif.querySelector('.available-space').innerHTML,
+                   'unknown-free-space');
     });
 
-    teardown(function(done) {
+    teardown(function() {
       lastL10nKeys = [];
       lastL10nParams = [];
-      done();
     });
   });
 
   suite('repeated low device storage notification', function() {
     var event;
 
-    setup(function(done) {
+    setup(function() {
+      var mockDeviceStorage = MockNavigatorGetDeviceStorage();
+      var freeSpaceSpy = this.sinon.spy(mockDeviceStorage, 'freeSpace');
+
       DeviceStorageWatcher.init();
       event = {
         type: 'change',
         reason: 'low-disk-space'
       };
       DeviceStorageWatcher.handleEvent(event);
-      DeviceStorageWatcher._appStorage._freeSpace = 1024;
+
+      var freeSpaceRequest = freeSpaceSpy.getCall(0).returnValue;
+      freeSpaceRequest.fireSuccess(2048);
+
       DeviceStorageWatcher.handleEvent(event);
-      done();
+
+      var freeSpaceRequest1 = freeSpaceSpy.getCall(1).returnValue;
+      freeSpaceRequest1.fireSuccess(1024);
     });
 
-    test('lowDeviceStorage should be true', function(done) {
-      setTimeout(function() {
-        assert.isTrue(DeviceStorageWatcher._lowDeviceStorage);
-        done();
-      }, tinyTimeout * 2);
+    test('lowDeviceStorage should be true', function() {
+      assert.isTrue(DeviceStorageWatcher._lowDeviceStorage);
     });
 
-    test('should update free space', function(done) {
-      setTimeout(function() {
-        assert.equal(fakeNotif.querySelector('.available-space').innerHTML,
-                     'free-space{"value":1,"unit":"byteUnit-KB"}');
-        done();
-      }, tinyTimeout * 2);
+    test('should update free space', function() {
+      assert.equal(fakeNotif.querySelector('.available-space').innerHTML,
+                   'free-space{"value":1,"unit":"byteUnit-KB"}');
     });
   });
 
   suite('available device storage', function() {
     var event;
 
-    setup(function(done) {
+    setup(function() {
       DeviceStorageWatcher.init();
       event = {
         type: 'change',
         reason: 'available-disk-space'
       };
       DeviceStorageWatcher.handleEvent(event);
-      done();
     });
 
-    test('lowDeviceStorage should be false', function(done) {
-      setTimeout(function() {
-        assert.isTrue(!DeviceStorageWatcher._lowDeviceStorage);
-        done();
-      }, tinyTimeout);
+    test('lowDeviceStorage should be false', function() {
+      assert.isTrue(!DeviceStorageWatcher._lowDeviceStorage);
     });
 
-    test('should hide notification', function(done) {
-      setTimeout(function() {
-        assert.isTrue(!fakeNotif.classList.contains('displayed'));
-        done();
-      }, tinyTimeout);
+    test('should hide notification', function() {
+      assert.isTrue(!fakeNotif.classList.contains('displayed'));
     });
   });
 
   suite('formatSize helper', function() {
-    test('empty size', function(done) {
+    test('empty size', function() {
       assert.equal(DeviceStorageWatcher.formatSize(), undefined);
-      done();
     });
 
-    test('NaN', function(done) {
+    test('NaN', function() {
       assert.equal(DeviceStorageWatcher.formatSize('NaN'), undefined);
-      done();
     });
 
-    test('bytes', function(done) {
+    test('bytes', function() {
       var result = DeviceStorageWatcher.formatSize(1);
       assert.equal(result.size, 1);
       assert.equal(result.unit, 'byteUnit-B');
-      done();
     });
 
-    test('KB', function(done) {
+    test('KB', function() {
       var result = DeviceStorageWatcher.formatSize(1024);
       assert.equal(result.size, 1);
       assert.equal(result.unit, 'byteUnit-KB');
-      done();
     });
 
-    test('MB', function(done) {
+    test('MB', function() {
       var result = DeviceStorageWatcher.formatSize(1024 * 1024);
       assert.equal(result.size, 1);
       assert.equal(result.unit, 'byteUnit-MB');
-      done();
     });
 
-    test('GB', function(done) {
+    test('GB', function() {
       var result = DeviceStorageWatcher.formatSize(1024 * 1024 * 1024);
       assert.equal(result.size, 1);
       assert.equal(result.unit, 'byteUnit-GB');
-      done();
     });
 
-    test('TB', function(done) {
+    test('TB', function() {
       var result = DeviceStorageWatcher.formatSize(1024 * 1024 * 1024 * 1024);
       assert.equal(result.size, 1);
       assert.equal(result.unit, 'byteUnit-TB');
-      done();
     });
 
-    test('PB', function(done) {
+    test('PB', function() {
       var result = DeviceStorageWatcher.formatSize(1024 * 1024 * 1024 * 1024 *
                                                    1024);
       assert.equal(result.size, 1);
       assert.equal(result.unit, 'byteUnit-PB');
-      done();
     });
 
-    test('EB', function(done) {
+    test('EB', function() {
       var result = DeviceStorageWatcher.formatSize(1024 * 1024 * 1024 * 1024 *
                                                    1024 * 1024);
       assert.equal(result.size, 1);
       assert.equal(result.unit, 'byteUnit-EB');
-      done();
     });
 
-    test('ZB', function(done) {
+    test('ZB', function() {
       var result = DeviceStorageWatcher.formatSize(1024 * 1024 * 1024 * 1024 *
                                                    1024 * 1024 * 1024);
       assert.equal(result.size, 1);
       assert.equal(result.unit, 'byteUnit-ZB');
-      done();
     });
 
-    test('YB', function(done) {
+    test('YB', function() {
       var result = DeviceStorageWatcher.formatSize(1024 * 1024 * 1024 * 1024 *
                                                    1024 * 1024 * 1024 * 1024);
       assert.equal(result.size, 1);
       assert.equal(result.unit, 'byteUnit-YB');
-      done();
     });
   });
 });

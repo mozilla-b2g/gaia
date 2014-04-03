@@ -1,3 +1,4 @@
+/* exported DataMobile */
 'use strict';
 
 var DataMobile = {

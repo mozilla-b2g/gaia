@@ -22,8 +22,8 @@ suite('system/TouchForwarder >', function() {
     var touchList = document.createTouchList(touch);
     var touches = (type == 'touchstart' || type == 'touchmove') ?
                        touchList : null;
-    var changed = (type == 'touchmove') ?
-                       null : touchList;
+    var changed = (type == 'touchend') ?
+                       touchList : null;
 
     var e = document.createEvent('TouchEvent');
     e.initTouchEvent(type, true, true,

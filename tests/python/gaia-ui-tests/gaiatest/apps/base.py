@@ -29,22 +29,26 @@ class Base(object):
             lambda m: m.find_element(by, locator))
 
     def wait_for_element_not_present(self, by, locator, timeout=None):
+        self.marionette.set_search_timeout(0)
         try:
             return Wait(self.marionette, timeout).until(
                 lambda m: not m.find_element(by, locator))
         except NoSuchElementException:
             pass
+        self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
     def wait_for_element_displayed(self, by, locator, timeout=None):
         Wait(self.marionette, timeout, ignored_exceptions=[NoSuchElementException, StaleElementException]).until(
             lambda m: m.find_element(by, locator).is_displayed())
 
     def wait_for_element_not_displayed(self, by, locator, timeout=None):
+        self.marionette.set_search_timeout(0)
         try:
             Wait(self.marionette, timeout, ignored_exceptions=StaleElementException).until(
                 lambda m: not m.find_element(by, locator).is_displayed())
         except NoSuchElementException:
             pass
+        self.marionette.set_search_timeout(self.marionette.timeout or 10000)
 
     def wait_for_condition(self, method, timeout=None, message=None):
         Wait(self.marionette, timeout).until(method, message=message)

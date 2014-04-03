@@ -4,7 +4,7 @@ mocha.globals(['resizeTo']);
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
-requireApp('communications/dialer/test/unit/mock_moztelephony.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 
 requireApp('communications/dialer/test/unit/mock_handled_call.js');
 requireApp('communications/dialer/test/unit/mock_calls_handler.js');
@@ -39,8 +39,7 @@ suite('call screen', function() {
       statusMessageText;
   var lockedHeader,
       lockedClock,
-      lockedClockNumbers,
-      lockedClockMeridiem,
+      lockedClockTime,
       lockedDate;
   var incomingContainer;
   var bluetoothButton,
@@ -50,7 +49,7 @@ suite('call screen', function() {
 
   suiteSetup(function() {
     realMozTelephony = navigator.mozTelephony;
-    navigator.mozTelephony = MockMozTelephony;
+    navigator.mozTelephony = MockNavigatorMozTelephony;
 
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
@@ -59,7 +58,7 @@ suite('call screen', function() {
   });
 
   suiteTeardown(function() {
-    MockMozTelephony.mSuiteTeardown();
+    MockNavigatorMozTelephony.mSuiteTeardown();
     navigator.mozTelephony = realMozTelephony;
     navigator.mozApps = realMozApps;
   });
@@ -108,12 +107,8 @@ suite('call screen', function() {
     screen.appendChild(statusMessage);
 
     lockedHeader = document.createElement('div');
-    lockedClock = document.createElement('div');
-    lockedHeader.appendChild(lockedClock);
-    lockedClockNumbers = document.createElement('span');
-    lockedClock.appendChild(lockedClockNumbers);
-    lockedClockMeridiem = document.createElement('span');
-    lockedClock.appendChild(lockedClockMeridiem);
+    lockedClockTime = document.createElement('div');
+    lockedHeader.appendChild(lockedClockTime);
     lockedDate = document.createElement('div');
     lockedHeader.appendChild(lockedDate);
     screen.appendChild(lockedHeader);
@@ -149,8 +144,7 @@ suite('call screen', function() {
       CallScreen.speakerButton = speakerButton;
       CallScreen.groupCalls = groupCalls;
       CallScreen.groupCallsList = groupCallsList;
-      CallScreen.lockedClockNumbers = lockedClockNumbers;
-      CallScreen.lockedClockMeridiem = lockedClockMeridiem;
+      CallScreen.lockedClockTime = lockedClockTime;
       CallScreen.lockedDate = lockedDate;
       CallScreen.incomingContainer = incomingContainer;
       CallScreen.bluetoothButton = bluetoothButton;
@@ -161,7 +155,7 @@ suite('call screen', function() {
   });
 
   teardown(function() {
-    MockMozTelephony.mTeardown();
+    MockNavigatorMozTelephony.mTeardown();
     MockNavigatormozApps.mTeardown();
     screen.parentNode.removeChild(screen);
   });
@@ -242,20 +236,20 @@ suite('call screen', function() {
       );
     });
 
-    suite('updateSingleLine', function() {
+    suite('updateCallsDisplay', function() {
       test('should toggle single-line/big-duration class',
       function() {
         assert.isFalse(calls.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
 
         calls.innerHTML = '<section></section>';
-        CallScreen.updateSingleLine();
+        CallScreen.updateCallsDisplay();
         assert.isTrue(calls.classList.contains('single-line'));
         assert.isTrue(calls.classList.contains('big-duration'));
 
         calls.innerHTML = '<section></section>' +
                           '<section></section>';
-        CallScreen.updateSingleLine();
+        CallScreen.updateCallsDisplay();
         assert.isFalse(calls.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
       });
@@ -267,7 +261,7 @@ suite('call screen', function() {
 
         calls.innerHTML = '<section></section>' +
                           '<section hidden=""></section>';
-        CallScreen.updateSingleLine();
+        CallScreen.updateCallsDisplay();
         assert.isTrue(calls.classList.contains('single-line'));
         assert.isTrue(calls.classList.contains('big-duration'));
 
@@ -275,9 +269,18 @@ suite('call screen', function() {
                           '<section></section>' +
                           '<section hidden=""></section>';
 
-        CallScreen.updateSingleLine();
+        CallScreen.updateCallsDisplay();
         assert.isFalse(calls.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
+      });
+
+      test('should trigger call list reformat',
+      function() {
+        var updateAllPhoneNumberDisplaysStub =
+          this.sinon.stub(MockCallsHandler, 'updateAllPhoneNumberDisplays');
+        CallScreen.updateCallsDisplay();
+        assert.isTrue(updateAllPhoneNumberDisplaysStub.calledOnce);
+        updateAllPhoneNumberDisplaysStub.restore();
       });
     });
 
@@ -285,7 +288,7 @@ suite('call screen', function() {
       test('should insert the node in the calls article and update calls style',
       function() {
         var fakeNode = document.createElement('section');
-        var singleLineStub = this.sinon.stub(CallScreen, 'updateSingleLine');
+        var singleLineStub = this.sinon.stub(CallScreen, 'updateCallsDisplay');
         CallScreen.insertCall(fakeNode);
         assert.equal(fakeNode.parentNode, CallScreen.calls);
         assert.isTrue(singleLineStub.calledOnce);
@@ -300,7 +303,7 @@ suite('call screen', function() {
 
       test('should remove the node in the calls article and update calls style',
       function() {
-        var singleLineStub = this.sinon.stub(CallScreen, 'updateSingleLine');
+        var singleLineStub = this.sinon.stub(CallScreen, 'updateCallsDisplay');
         CallScreen.removeCall(fakeNode);
         assert.equal(fakeNode.parentNode, null);
         assert.isTrue(singleLineStub.calledOnce);
@@ -308,7 +311,7 @@ suite('call screen', function() {
 
       test('should remove the node in the groupList',
       function() {
-        var singleLineStub = this.sinon.stub(CallScreen, 'updateSingleLine');
+        var singleLineStub = this.sinon.stub(CallScreen, 'updateCallsDisplay');
         CallScreen.moveToGroup(fakeNode);
         CallScreen.removeCall(fakeNode);
         assert.equal(fakeNode.parentNode, null);
@@ -842,8 +845,7 @@ suite('call screen', function() {
   suite('showClock in screen locked status', function() {
     var formatArgs = [],
         currentDate,
-        fakeNumber = '12:02',
-        fakeMeridiem = 'PM',
+        fakeClockTime = '12:02 <span>PM</span>',
         fakeDate = 'Monday, September 16';
 
     setup(function() {
@@ -851,7 +853,7 @@ suite('call screen', function() {
         this.localeFormat = function(date, format) {
           formatArgs.push(arguments);
           if (format === 'shortTimeFormat') {
-            return fakeNumber + ' ' + fakeMeridiem;
+            return fakeClockTime;
           }
           return fakeDate;
         };
@@ -861,15 +863,13 @@ suite('call screen', function() {
     test('clock and date should display current clock/date info', function() {
       currentDate = new Date();
       CallScreen.showClock(currentDate);
-      var numbersStr = CallScreen.lockedClockNumbers.textContent;
-      var meridiemStr = CallScreen.lockedClockMeridiem.textContent;
+      var clockTime = CallScreen.lockedClockTime.innerHTML;
       var dateStr = CallScreen.lockedDate.textContent;
       // The date parameter here should be equal to clock setup date.
       assert.equal(formatArgs.length, 2);
       assert.equal(formatArgs[0][0], currentDate);
       assert.equal(formatArgs[1][0], currentDate);
-      assert.equal(numbersStr, fakeNumber);
-      assert.equal(meridiemStr, fakeMeridiem);
+      assert.equal(clockTime, fakeClockTime);
       assert.equal(dateStr, fakeDate);
     });
   });

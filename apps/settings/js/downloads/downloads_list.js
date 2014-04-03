@@ -14,6 +14,9 @@
   var emptyDownloadsContainer = null;
   var downloadsPanel = null;
 
+  // Menus
+  var downloadsEditMenu = null;
+
   // Buttons
   var editButton = null;
   var closeButton = null;
@@ -276,9 +279,13 @@
 
 
   function _onDownloadSelected(event) {
-    if (isEditMode && event.target.tagName === 'INPUT') {
-      event.target.checked ?
-        numberOfCheckedDownloads++ : numberOfCheckedDownloads--;
+    if (isEditMode && event.target.tagName === 'LI') {
+      var input = event.target.querySelector('input[type=checkbox]');
+      if (typeof input === 'undefined') {
+        return;
+      }
+      var checked = input.checked = !input.checked;
+      checked ? numberOfCheckedDownloads++ : numberOfCheckedDownloads--;
       _updateButtonsStatus();
     }
   }
@@ -286,12 +293,19 @@
   function _deleteDownloads() {
     var downloadsChecked = _getAllChecked() || [];
     var downloadItems = [], downloadElements = {};
-    for (var i = 0; i < downloadsChecked.length; i++) {
+    var downloadList = [];
+    var total = downloadsChecked.length;
+    var multipleDelete = total > 1;
+    for (var i = 0; i < total; i++) {
       downloadItems.push({
-        id: downloadsChecked[i].value
+        id: downloadsChecked[i].value,
+        force: multipleDelete
       });
       downloadElements[downloadsChecked[i].value] =
         downloadsChecked[i].parentNode.parentNode;
+      if (multipleDelete) {
+        downloadList.push(downloadElements[downloadsChecked[i].value]);
+      }
     }
 
     function deletionDone() {
@@ -299,19 +313,29 @@
       _closeEditMode();
     }
 
-    DownloadApiManager.deleteDownloads(
-      downloadItems,
-      function downloadsDeleted(downloadID) {
-        _removeDownloadsFromUI([downloadElements[downloadID]]);
-      },
-      function onError(downloadID, msg) {
-        console.warn('Could not delete ' + downloadID + ' : ' + msg);
-        deletionDone();
-      },
-      function onComplete() {
-        deletionDone();
-      }
-    );
+    function doDeleteDownloads() {
+      DownloadApiManager.deleteDownloads(
+        downloadItems,
+        function downloadsDeleted(downloadID) {
+          _removeDownloadsFromUI([downloadElements[downloadID]]);
+        },
+        function onError(downloadID, msg) {
+          console.warn('Could not delete ' + downloadID + ' : ' + msg);
+          deletionDone();
+        },
+        function onComplete() {
+          deletionDone();
+        }
+      );
+    }
+
+    if (multipleDelete) {
+      var req = DownloadUI.show(DownloadUI.TYPE.DELETE_ALL, downloadList);
+      req.onconfirm = doDeleteDownloads;
+      req.oncancel = deletionDone;
+    } else {
+      doDeleteDownloads();
+    }
   }
 
   function _removeDownloadsFromUI(elements) {
@@ -329,6 +353,7 @@
       targetHeader,
       targetHeader.parentNode.firstChild
     );
+    targetHeader.hidden = downloadsEditMenu.hidden = false;
     // Add 'edit' stype
     downloadsPanel.classList.add('edit');
     // Change edit mdoe status
@@ -374,6 +399,8 @@
         emptyDownloadsContainer =
           document.getElementById('download-list-empty');
         downloadsPanel = document.getElementById('downloads');
+        // Menus
+        downloadsEditMenu = document.getElementById('downloads-edit-menu');
         // Buttons
         editButton = document.getElementById('downloads-edit-button');
         closeButton = document.getElementById('downloads-close-button');

@@ -88,7 +88,6 @@
 }
 
 #downloads.edit .pack-checkbox span {
-  pointer-events: all;
   z-index: 100;
 }
 
@@ -101,7 +100,7 @@
 }
 
 #downloads.edit #downloadList li {
-  pointer-events: none;
+  pointer-events: all;
 }
 
 /* End of the styles while editing*/

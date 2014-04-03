@@ -9,6 +9,13 @@
 // their own config.
 if (typeof TestUrlResolver === 'undefined') {
   requirejs.config({
+    // waitSeconds is set to the default here; the build step rewrites
+    // it to 0 in build/email.build.js so that we never timeout waiting
+    // for modules in production. This is important when the device is
+    // under super-low-memory stress, as it may take a while for the
+    // device to get around to loading things email for background tasks
+    // like periodic sync.
+    waitSeconds: 7,
     baseUrl: 'js',
     paths: {
       l10nbase: '../shared/js/l10n',
@@ -33,6 +40,10 @@ if (typeof TestUrlResolver === 'undefined') {
 
       'shared/js/notification_helper': {
         exports: 'NotificationHelper'
+      },
+
+      'shared/js/accessibility_helper': {
+        exports: 'AccessibilityHelper'
       }
     },
     definePrim: 'prim'
@@ -59,11 +70,13 @@ require('wake_locks');
 model.latestOnce('api', function(api) {
   // If our password is bad, we need to pop up a card to ask for the updated
   // password.
-  api.onbadlogin = function(account, problem) {
+  api.onbadlogin = function(account, problem, whichSide) {
     switch (problem) {
       case 'bad-user-or-pass':
         Cards.pushCard('setup_fix_password', 'default', 'animate',
-                  { account: account, restoreCard: Cards.activeCardIndex },
+                  { account: account,
+                    whichSide: whichSide,
+                    restoreCard: Cards.activeCardIndex },
                   'right');
         break;
       case 'imap-disabled':
@@ -198,6 +211,17 @@ function resetCards(cardId, args) {
     Cards.removeAllCards();
     pushStartCard(cardId, args);
   }
+}
+
+/*
+ * Determines if current card is a nonsearch message_list
+ * card, which is the default kind of card.
+ */
+function isCurrentCardMessageList() {
+  var cardType = Cards.getCurrentCardType();
+  return (cardType &&
+          cardType[0] === 'message_list' &&
+          cardType[1] === 'nonsearch');
 }
 
 /**
@@ -359,6 +383,21 @@ appMessages.on('activity', function(type, data, rawActivity) {
     activityCallback = initComposer;
   }
 
+  // Remove previous cards because the card stack could get
+  // weird if inserting a new card that would not normally be
+  // at that stack level. Primary concern: going to settings,
+  // then trying to add a compose card at that stack level.
+  // More importantly, the added card could have a "back"
+  // operation that does not mean "back to previous state",
+  // but "back in application flowchart". Message list is a
+  // good known jump point, so do not needlessly wipe that one
+  // out if it is the current one. Message list is a good
+  // known jump point, so do not needlessly wipe that one out
+  // if it is the current one.
+  if (!isCurrentCardMessageList()) {
+    Cards.removeAllCards();
+  }
+
   if (model.inited) {
     if (model.hasAccount()) {
       initComposer();
@@ -388,6 +427,19 @@ appMessages.on('notification', function(data) {
         waitForAppMessage = false;
       }
 
+      // Remove previous cards because the card stack could get
+      // weird if inserting a new card that would not normally be
+      // at that stack level. Primary concern: going to settings,
+      // then trying to add a reader or message list card at that
+      // stack level. More importantly, the added card could have
+      // a "back" operation that does not mean "back to previous
+      // state", but "back in application flowchart". Message
+      // list is a good known jump point, so do not needlessly
+      // wipe that one out if it is the current one.
+      if (!isCurrentCardMessageList()) {
+        Cards.removeAllCards();
+      }
+
       if (type === 'message_list') {
         showMessageList({
           onPushed: onPushed
@@ -395,13 +447,10 @@ appMessages.on('notification', function(data) {
       } else if (type === 'message_reader') {
         headerCursor.setCurrentMessageBySuid(data.messageSuid);
 
-        if (!Cards.pushOrTellCard(type, 'default', 'immediate', {
+        Cards.pushCard(type, 'default', 'immediate', {
             messageSuid: data.messageSuid,
             onPushed: onPushed
-        })) {
-          // Existing card used, so just clean up waiting state.
-          onPushed();
-        }
+        });
       } else {
         console.error('unhandled notification type: ' + type);
       }

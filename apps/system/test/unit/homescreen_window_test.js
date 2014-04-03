@@ -1,31 +1,35 @@
 'use strict';
 
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
-      'dispatchEvent', 'AppWindowManager', 'Applications', 'ManifestHelper',
+      'dispatchEvent', 'AppWindowManager', 'applications', 'ManifestHelper',
       'HomescreenWindow', 'AttentionScreen', 'OrientationManager', 'System',
-      'AppWindow', 'BrowserFrame', 'BrowserConfigHelper', 'BrowserMixin']);
+      'AppWindow', 'BrowserFrame', 'BrowserConfigHelper', 'BrowserMixin',
+      'homescreenLauncher']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
-requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_attention_screen.js');
+requireApp('system/test/unit/mock_homescreen_launcher.js');
 
 var mocksForHomescreenWindow = new MocksHelper([
   'OrientationManager',
   'Applications', 'SettingsListener',
-  'ManifestHelper', 'LayoutManager', 'AppWindowManager'
+  'ManifestHelper', 'AppWindowManager',
+  'HomescreenLauncher'
 ]).init();
 
 suite('system/HomescreenWindow', function() {
   mocksForHomescreenWindow.attachTestHelpers();
   var homescreenWindow;
   var stubById;
+  var realApplications;
 
   setup(function(done) {
     this.sinon.useFakeTimers();
+    window.homescreenLauncher = new HomescreenLauncher().start();
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/system.js');
@@ -34,10 +38,16 @@ suite('system/HomescreenWindow', function() {
     requireApp('system/js/app_window.js');
     requireApp('system/js/browser_mixin.js');
     requireApp('system/js/homescreen_window.js', done);
+
+    realApplications = window.applications;
+    window.applications = MockApplications;
   });
 
   teardown(function() {
+    window.homescreenLauncher = undefined;
     stubById.restore();
+    window.applications = realApplications;
+    realApplications = null;
   });
 
   suite('homescreen window instance.', function() {
@@ -73,14 +83,12 @@ suite('system/HomescreenWindow', function() {
         stubIsActive.returns(true);
 
         homescreenWindow.handleEvent({
-          type: 'mozbrowserclose',
-          stopImmediatePropagation: function() {}
+          type: 'mozbrowserclose'
         });
         assert.isTrue(stubRestart.calledOnce);
 
         homescreenWindow.handleEvent({
           type: 'mozbrowsererror',
-          stopImmediatePropagation: function() {},
           detail: {
             type: 'fatal'
           }
@@ -116,6 +124,28 @@ suite('system/HomescreenWindow', function() {
         stubIsActive.returns(false);
         homescreenWindow.restart();
         assert.isTrue(stubKill.called);
+      });
+
+      test('Homescreen should hide its fade-overlay while we call the method',
+      function() {
+        var originalOverlay = homescreenWindow.fadeOverlay,
+            domOverlay = document.createElement('div');
+        homescreenWindow.fadeOverlay = domOverlay;
+        homescreenWindow.hideFadeOverlay();
+        assert.isTrue(homescreenWindow.fadeOverlay
+          .classList.contains('hidden'));
+        homescreenWindow.fadeOverlay = originalOverlay;
+      });
+
+      test('Homescreen should show its fade-overlay while we call the method',
+      function() {
+        var originalOverlay = homescreenWindow.fadeOverlay,
+            domOverlay = document.createElement('div');
+        homescreenWindow.fadeOverlay = domOverlay;
+        homescreenWindow.showFadeOverlay();
+        assert.isFalse(homescreenWindow.fadeOverlay
+          .classList.contains('hidden'));
+        homescreenWindow.fadeOverlay = originalOverlay;
       });
     });
   });

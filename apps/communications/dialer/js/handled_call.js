@@ -23,6 +23,7 @@ function HandledCall(aCall) {
     date: Date.now(),
     type: this.call.state,
     number: this.call.number,
+    serviceId: this.call.serviceId,
     emergency: this.call.emergency || false,
     voicemail: false,
     status: null
@@ -39,6 +40,8 @@ function HandledCall(aCall) {
 
   this.durationNode = this.node.querySelector('.duration');
   this.durationChildNode = this.node.querySelector('.duration span');
+  this.viaSimNode = this.node.querySelector('.sim .via-sim');
+  this.simNumberNode = this.node.querySelector('.sim .sim-number');
   this.numberNode = this.node.querySelector('.numberWrapper .number');
   this.additionalInfoNode = this.node.querySelector('.additionalContactInfo');
   this.hangupButton = this.node.querySelector('.hangup-button');
@@ -59,6 +62,15 @@ function HandledCall(aCall) {
     var durationMessage = (this.call.state == 'incoming') ?
                            _('incoming') : _('connecting');
     this.durationChildNode.textContent = durationMessage;
+
+    if (navigator.mozIccManager.iccIds.length > 1) {
+      var n = this.call.serviceId + 1;
+      this.viaSimNode.textContent = _('via-sim', { n: n });
+      this.simNumberNode.textContent = _('sim-number', { n: n });
+    } else {
+      this.viaSimNode.hidden = true;
+      this.simNumberNode.hidden = true;
+    }
   }).bind(this));
 
   this.updateDirection();
@@ -346,12 +358,12 @@ HandledCall.prototype.show = function hc_show() {
   if (this.node) {
     this.node.hidden = false;
   }
-  CallScreen.updateSingleLine();
+  CallScreen.updateCallsDisplay();
 };
 
 HandledCall.prototype.hide = function hc_hide() {
   if (this.node) {
     this.node.hidden = true;
   }
-  CallScreen.updateSingleLine();
+  CallScreen.updateCallsDisplay();
 };

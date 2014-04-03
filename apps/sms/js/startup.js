@@ -4,7 +4,8 @@
 'use strict';
 
 /*global Utils, ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
-         Settings, LazyLoader, TimeHeaders, Information */
+         Settings, LazyLoader, TimeHeaders, Information,
+         PerformanceTestingHelper */
 
 window.addEventListener('localized', function localized() {
   // This will be called during startup, and any time the languange is changed
@@ -50,6 +51,7 @@ window.addEventListener('localized', function localized() {
 });
 
 window.addEventListener('load', function() {
+  PerformanceTestingHelper.dispatch('load');
   function initUIApp() {
     TimeHeaders.init();
     ActivityHandler.init();
@@ -62,6 +64,7 @@ window.addEventListener('load', function() {
 
     // Fetch mmsSizeLimitation
     Settings.init();
+    PerformanceTestingHelper.dispatch('objects-init-finished');
   }
 
   if (!navigator.mozMobileMessage) {

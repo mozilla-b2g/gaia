@@ -39,6 +39,8 @@ var mocksHelperForSetPasswordModule = new MocksHelper([
   'FxaModuleErrors'
 ]);
 
+mocha.globals(['FxModuleServerRequest']);
+
 suite('Screen: Set password', function() {
   var realL10n;
   suiteSetup(function(done) {

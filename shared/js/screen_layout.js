@@ -41,8 +41,9 @@ var ScreenLayout = {
   _isOnRealDevice: undefined,
 
   isOnRealDevice: function sl_isOnRealDevice() {
-    if (typeof(this._isOnRealDevice) !== 'undefined')
+    if (typeof(this._isOnRealDevice) !== 'undefined') {
       return this._isOnRealDevice;
+    }
 
     // XXX: A hack to know we're using real device or not
     // is to detect screen size.
@@ -107,8 +108,9 @@ var ScreenLayout = {
   // activate status(boolean). ex: {name: 'small', status: true}
   handleChange: function sl_handleChange(evt) {
     for (var key in this.queries) {
-      if (this.queries[key].media !== evt.media)
+      if (this.queries[key].media !== evt.media) {
         continue;
+      }
       window.dispatchEvent(new CustomEvent('screenlayoutchange', {
         detail: {
           name: key,

@@ -102,13 +102,12 @@ var AttentionScreen = {
 
     // Check if the app has the permission to open attention screens
     var manifestURL = evt.target.getAttribute('mozapp');
-    var app = Applications.getByManifestURL(manifestURL);
+    var app = applications.getByManifestURL(manifestURL);
 
     if (!app || !this._hasAttentionPermission(app))
       return;
 
     // Hide sleep menu/list menu if it is shown now
-    ActionMenu.hide();
     SleepMenu.hide();
 
     // We want the user attention, so we need to turn the screen on
@@ -193,7 +192,7 @@ var AttentionScreen = {
       return;
 
     // Check telephony permission before removing.
-    var app = Applications.getByManifestURL(evt.target.dataset.manifestURL);
+    var app = applications.getByManifestURL(evt.target.dataset.manifestURL);
     if (app && this._hasTelephonyPermission(app)) {
       // This event is for SIM PIN lock module.
       // Because we don't need SIM PIN dialog during call

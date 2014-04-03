@@ -5,33 +5,32 @@
     <meta charset="utf-8">
     <link rel="stylesheet" href="style/net_error.css" type="text/css" />
     <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
+    <link rel="stylesheet" href="shared/style/action_menu.css" type="text/css" />
     <link rel="stylesheet" href="shared/style/progress_activity.css" type="text/css" />
     <link data-no-fetch rel="resource" type="application/l10n" href="locales/locales.ini">
     <script defer src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/lazy_loader.js"></script>
+
+    <link rel="import" href="/elements/net_error_confirm_dialog.html">
+    <link rel="import" href="/elements/net_error_action_menu.html">
   </head>
   <body id="net-error">
-    <form role="dialog" data-type="confirm">
-      <section>
-        <h1 id="error-title" data-l10n-id="noNetwork" class="title"></h1>
-        <p>
-          <span id="error-message" class="message"></span>
-          <progress class="still" id="retry-icon"></progress>
-        </p>
-      </section>
-      <menu id="actions" data-items="2">
-        <button id="close-btn" class="close" data-l10n-id="close"></button>
-        <button id="retry-btn" class="reload" data-l10n-id="try-again"></button>
-      </menu>
-    </form>
+    <section is="net-error-confirm-dialog" id="net-error-confirm-dialog"></section>
+    <section is="net-error-action-menu" id="net-error-action-menu"></section>
+    
     <!-- about:neterror cannot load external resources due to same
          origin policy, so here we specify any localization string
          keys inline to avoid embedding the entire properties file -->
-    <input type="hidden" data-l10n-id="network-error" />
-    <input type="hidden" data-l10n-id="network-connection-unavailable" />
+    <input type="hidden" data-l10n-id="network-error-in-app" />
+    <input type="hidden" data-l10n-id="network-error-launching" />
     <input type="hidden" data-l10n-id="server-not-found" />
     <input type="hidden" data-l10n-id="server-not-found-error" />
     <input type="hidden" data-l10n-id="unable-to-connect" />
-    <input type="hidden" data-l10n-id="tap-to-retry" />
+    <input type="hidden" data-l10n-id="cancel" />
+    <input type="hidden" data-l10n-id="close" />
+    <input type="hidden" data-l10n-id="try-again" />
+    <input type="hidden" data-l10n-id="check-settings" />
+    <input type="hidden" data-l10n-id="tap-to-check-settings" />
     <script defer src="js/net_error.js"></script>
   </body>
 </html>

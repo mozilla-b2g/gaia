@@ -68,6 +68,7 @@ p.meta {
 }
 
 .widget-no-sim2,
+.widget-airplane-mode,
 .widget-sim-locked {
   background: url(images/widget/sim/no-sim.png) no-repeat center center;
 }

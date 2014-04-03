@@ -1,5 +1,7 @@
 'use strict';
 
+/* global fb, utils */
+
 (function(document) {
   var cid = window.location.search.substring(fb.link.CID_PARAM.length + 2);
 

@@ -1,7 +1,7 @@
 /*global req*/
 'use strict';
 
-suite.skip('controllers/controls', function() {
+suite('controllers/controls', function() {
 
   suiteSetup(function(done) {
     var self = this;
@@ -10,7 +10,7 @@ suite.skip('controllers/controls', function() {
       'app',
       'lib/camera',
       'controllers/controls',
-      'views/Controls',
+      'views/controls',
       'lib/activity',
       'lib/settings',
       'lib/setting'
@@ -41,9 +41,6 @@ suite.skip('controllers/controls', function() {
     this.app.settings.mode.get
       .withArgs('options')
       .returns([{ key: 'picture' }, { key: 'video' }]);
-
-    // Fake current mode
-    this.app.settings.mode.value.returns('picture');
   });
 
   suite('ControlsController()', function() {
@@ -100,16 +97,22 @@ suite.skip('controllers/controls', function() {
       var controls = this.app.views.controls;
 
       // Test 'picture'
-      this.app.settings.mode.value.returns('picture');
+      this.app.settings.mode.selected.returns('picture');
       this.controller = new this.ControlsController(this.app);
       assert.ok(controls.set.calledWith('mode', 'picture'));
       controls.set.reset();
 
       // Test 'video'
-      this.app.settings.mode.value.returns('video');
+      this.app.settings.mode.selected.returns('video');
       this.controller = new this.ControlsController(this.app);
       assert.ok(controls.set.calledWith('mode', 'video'));
       controls.set.reset();
+    });
+
+    test('Should call the preview when click on thumbnail', function() {
+      this.controller = new this.ControlsController(this.app);
+      this.controller.bindEvents();
+      assert.ok(this.app.views.controls.on.calledWith('click:thumbnail'));
     });
   });
 });

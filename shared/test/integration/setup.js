@@ -1,4 +1,3 @@
-// all tests need app support
 marionette.plugin('apps', require('marionette-apps'));
 marionette.plugin('contentScript', require('marionette-content-script'));
 marionette.plugin('fileManager', require('marionette-file-manager'));

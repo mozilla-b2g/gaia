@@ -22,6 +22,8 @@ define(function(require, exports, module) {
   module.exports = {
     on: listener.on,
     off: listener.off,
+    start: listener.start,
+    stop: listener.stop,
     get: function() {
       return current;
     }

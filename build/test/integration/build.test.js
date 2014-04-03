@@ -8,6 +8,72 @@ var AdmZip = require('adm-zip');
 var dive = require('dive');
 var helper = require('./helper');
 
+suite('ADB tests', function() {
+  suiteSetup(function() {
+    rmrf('build/test/integration/result');
+  });
+
+  suiteTeardown(function() {
+    rmrf('build/test/integration/result');
+  });
+
+  test('make install-test-media', function(done) {
+    var expectedCommand = 'push test_media/Pictures /sdcard/DCIM\n' +
+                          'push test_media/Movies /sdcard/Movies\n' +
+                          'push test_media/Music /sdcard/Music\n';
+
+    exec('ADB=build/test/bin/fake-adb make install-test-media',
+      function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+        var presetsContent = fs.readFileSync(path.join(process.cwd(), 'build',
+            'test', 'integration', 'result'));
+        assert.equal(presetsContent,  expectedCommand);
+        done();
+    });
+  });
+});
+
+suite('Node modules tests', function() {
+  test('make node_modules from git mirror', function(done) {
+    rmrf('modules.tar');
+    rmrf('node_modules');
+    rmrf('git-gaia-node-modules');
+    exec('NODE_MODULES_GIT_URL=https://git.mozilla.org/b2g/gaia-node-modules.git make node_modules',
+      function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+
+        var modulesTarPath = path.join(process.cwd(), 'git-gaia-node-modules',
+          '.git');
+        assert.ok(fs.existsSync(modulesTarPath));
+
+        var packageJson = path.join(process.cwd(), 'node_modules',
+          'marionette-client', 'package.json');
+        assert.ok(fs.existsSync(packageJson));
+
+        done();
+    });
+  });
+
+  test('make node_modules from github', function(done) {
+    rmrf('modules.tar');
+    rmrf('node_modules');
+    rmrf('git-gaia-node-modules');
+    exec('make node_modules',
+      function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+
+        var modulesTarPath = path.join(process.cwd(), 'modules.tar');
+        assert.ok(fs.existsSync(modulesTarPath));
+
+        var packageJson = path.join(process.cwd(), 'node_modules',
+          'marionette-client', 'package.json');
+        assert.ok(fs.existsSync(packageJson));
+
+        done();
+    });
+  });
+});
+
 suite('Build Integration tests', function() {
   var localesDir = 'tmplocales';
 
@@ -18,7 +84,8 @@ suite('Build Integration tests', function() {
   });
 
   test('make without rule & variable', function(done) {
-    exec('ROCKETBAR=none make', function(error, stdout, stderr) {
+    exec('ROCKETBAR=none make', { maxBuffer: 400*1024 },
+      function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       // expected values for prefs and user_prefs
@@ -114,13 +181,11 @@ suite('Build Integration tests', function() {
       assert.deepEqual(JSON.parse(hsSmsBlacklistJSON), expectedResult,
         'Sms blacklist.json is not expected');
 
-      // Check config.js file of gallery & camera
+      // Check config.js file of gallery
       var hsGalleryZip = new AdmZip(path.join(process.cwd(), 'profile',
                    'webapps', 'gallery.gaiamobile.org', 'application.zip'));
       var hsGalleryConfigJs =
         hsGalleryZip.readAsText(hsGalleryZip.getEntry('js/config.js'));
-      var hsCameraConfigJs = fs.readFileSync(
-        path.join('apps', 'camera', 'js', 'config.js'), { encoding: 'utf8' });
 
       var expectedScript =
         '//\n' +
@@ -153,8 +218,6 @@ suite('Build Integration tests', function() {
 
       assert.equal(hsGalleryConfigJs, expectedScript,
         'Gallery config js is not expected');
-      assert.equal(hsCameraConfigJs, expectedScript,
-        'Camera config js is not expected');
       done();
     });
   });
@@ -182,7 +245,8 @@ suite('Build Integration tests', function() {
   });
 
   test('make with SIMULATOR=1', function(done) {
-    exec('SIMULATOR=1 make', function(error, stdout, stderr) {
+    exec('SIMULATOR=1 make', { maxBuffer: 400*1024 },
+    function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       var settingsPath = path.join(process.cwd(), 'profile-debug',
@@ -259,7 +323,8 @@ suite('Build Integration tests', function() {
   });
 
   test('make with DEBUG=1', function(done) {
-    exec('DEBUG=1 make', function(error, stdout, stderr) {
+    exec('DEBUG=1 make', { maxBuffer: 400*1024 },
+    function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       var installedExtsPath = path.join('profile-debug',
@@ -367,7 +432,8 @@ suite('Build Integration tests', function() {
   });
 
   test('make with MOZILLA_OFFICIAL=1', function(done) {
-    exec('MOZILLA_OFFICIAL=1 make', function(error, stdout, stderr) {
+    exec('MOZILLA_OFFICIAL=1 make', { maxBuffer: 400*1024 },
+    function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       // path in zip for unofficial branding
@@ -384,7 +450,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with ROCKETBAR=full', function(done) {
-    exec('ROCKETBAR=full make',
+    exec('ROCKETBAR=full make', { maxBuffer: 400*1024 },
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 

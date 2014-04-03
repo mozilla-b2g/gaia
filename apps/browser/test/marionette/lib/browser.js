@@ -20,7 +20,12 @@ Browser.Selectors = {
   'shareMenu': 'form[data-z-index-level="action-menu"]',
   'mozbrowser': 'iframe[mozbrowser]',
   'tabsBadge': '#tabs-badge',
-  'settingsButton': '#settings-button'
+  'settingsButton': '#settings-button',
+  'bookmarkButton': '#bookmark-button',
+  'bookmarkMenuAdd': '#bookmark-menu-add',
+  'bookmarkMenuEdit': '#bookmark-menu-edit',
+  'bookmarkUrl': '#bookmark-url',
+  'bookmarkEntrySheetDone': '#bookmark-entry-sheet-done'
 };
 
 /**
@@ -30,6 +35,15 @@ Browser.Selectors = {
  */
 function findElement(client, name) {
   return client.findElement(Browser.Selectors[name]);
+}
+
+/**
+ * @private
+ * @param {Marionette.Client} client for selector.
+ * @param {String} name of selector [its a key in Browser.Selectors].
+ */
+function waitForElement(client, name) {
+  return client.helper.waitForElement(Browser.Selectors[name]);
 }
 
 Browser.prototype = {
@@ -55,6 +69,26 @@ Browser.prototype = {
 
   get settingsButton() {
     return findElement(this.client, 'settingsButton');
+  },
+
+  get bookmarkButton() {
+    return findElement(this.client, 'bookmarkButton');
+  },
+
+  get bookmarkMenuAdd() {
+    return waitForElement(this.client, 'bookmarkMenuAdd');
+  },
+
+  get bookmarkMenuEdit() {
+    return waitForElement(this.client, 'bookmarkMenuEdit');
+  },
+
+  get bookmarkUrl() {
+    return waitForElement(this.client, 'bookmarkUrl');
+  },
+
+  get bookmarkEntrySheetDone() {
+    return findElement(this.client, 'bookmarkEntrySheetDone');
   },
 
   // TODO(gareth): Move this shareMenu stuff into the helper.

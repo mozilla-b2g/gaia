@@ -30,7 +30,7 @@ function checkError(error, stdout, stderr) {
 function checkSettings(settings, expectedSettings) {
   Object.keys(expectedSettings).forEach(function(key) {
     assert.isDefined(settings[key], 'key ' + key + ' is defined');
-    assert.deepEqual(expectedSettings[key], settings[key],
+    assert.deepEqual(settings[key], expectedSettings[key],
       'value of settings key ' + key + ' equal ' + expectedSettings[key]);
   });
 }
@@ -67,6 +67,19 @@ function checkFileContentInZip(zipPath, pathInZip, expectedContent, isJSON) {
   assert.deepEqual(actual, expectedContent);
 }
 
+function checkFileContentByPathInZip(zipPath, pathInZip,
+  expectedFilePath,isJSON) {
+    var actual;
+    try {
+      actual =
+        isJSON ? JSON.parse(fs.readFileSync(expectedFilePath)) :
+        fs.readFileSync(expectedFilePath);
+    } catch (e) {
+      actual = isJSON ? {} : null;
+    }
+    checkFileContentInZip(zipPath, pathInZip, actual, isJSON);
+}
+
 function checkFileContentInZip(zipPath, pathInZip, expectedContent, isJSON) {
   var zip = new AdmZip(zipPath);
   var entry = zip.getEntry(pathInZip);
@@ -81,3 +94,4 @@ exports.checkPrefs = checkPrefs;
 exports.checkWebappsScheme = checkWebappsScheme;
 exports.checkFileInZip = checkFileInZip;
 exports.checkFileContentInZip = checkFileContentInZip;
+exports.checkFileContentByPathInZip = checkFileContentByPathInZip;

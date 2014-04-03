@@ -454,6 +454,7 @@ var CallLogDBManager = {
     //   lastEntryDate: <Date>, (index)
     //   retryCount: <Number>,
     //   number: <String>, (index)
+    //   serviceId: <String>,
     //   contactId: <String>, (index)
     //   contactPrimaryInfo: <String>,
     //   contactMatchingTelType: <String>,
@@ -530,6 +531,7 @@ var CallLogDBManager = {
    *   id: <String>,
    *   date: <Date>,
    *   number: <String>,
+   *   serviceId: <String>,
    *   type: <String>,
    *   status: <String>,
    *   lastEntryDate: <Date>,
@@ -571,6 +573,7 @@ var CallLogDBManager = {
       id: group.id.join('-'),
       date: group.id[0],
       number: group.id[1],
+      serviceId: group.serviceId,
       type: group.id[2],
       status: group.id[3] || undefined,
       lastEntryDate: group.lastEntryDate,
@@ -623,6 +626,7 @@ var CallLogDBManager = {
    * param recentCall
    *        Object representing the new call to be stored with this form:
    *        { number: <String>,
+   *          serviceId: <String>,
    *          type: <String>,
    *          status: <String>,
    *          date: <Date>,
@@ -663,6 +667,7 @@ var CallLogDBManager = {
           // Groups should have the date of the newest call.
           if (group.lastEntryDate <= recentCall.date) {
             group.lastEntryDate = recentCall.date;
+            group.serviceId = recentCall.serviceId;
             group.emergency = recentCall.emergency;
             group.voicemail = recentCall.voicemail;
           }
@@ -674,6 +679,7 @@ var CallLogDBManager = {
           group = {
             id: groupId,
             number: recentCall.number,
+            serviceId: recentCall.serviceId,
             lastEntryDate: recentCall.date,
             retryCount: 1,
             emergency: recentCall.emergency,

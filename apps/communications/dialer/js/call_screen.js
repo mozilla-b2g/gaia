@@ -39,13 +39,13 @@ var CallScreen = {
 
   incomingContainer: document.getElementById('incoming-container'),
   incomingNumber: document.getElementById('incoming-number'),
+  incomingSim: document.getElementById('incoming-sim'),
   incomingNumberAdditionalInfo:
     document.getElementById('incoming-number-additional-info'),
   incomingAnswer: document.getElementById('incoming-answer'),
   incomingEnd: document.getElementById('incoming-end'),
   incomingIgnore: document.getElementById('incoming-ignore'),
-  lockedClockNumbers: document.getElementById('lockscreen-clock-numbers'),
-  lockedClockMeridiem: document.getElementById('lockscreen-clock-meridiem'),
+  lockedClockTime: document.getElementById('lockscreen-clock-time'),
   lockedDate: document.getElementById('lockscreen-date'),
 
   statusMessage: document.getElementById('statusMsg'),
@@ -66,11 +66,12 @@ var CallScreen = {
     });
   },
 
-  updateSingleLine: function cs_updateSingleLine() {
+  updateCallsDisplay: function cs_updateCallsDisplay() {
     var enabled =
       (this.calls.querySelectorAll('section:not([hidden])').length <= 1);
     this.calls.classList.toggle('single-line', enabled);
     this.calls.classList.toggle('big-duration', enabled);
+    CallsHandler.updateAllPhoneNumberDisplays();
   },
 
   /**
@@ -301,13 +302,13 @@ var CallScreen = {
 
   insertCall: function cs_insertCall(node) {
     this.calls.appendChild(node);
-    this.updateSingleLine();
+    this.updateCallsDisplay();
   },
 
   removeCall: function cs_removeCall(node) {
     // The node can be either inside groupCallsList or calls.
     node.parentNode.removeChild(node);
-    this.updateSingleLine();
+    this.updateCallsDisplay();
   },
 
   moveToGroup: function cs_moveToGroup(node) {
@@ -417,12 +418,9 @@ var CallScreen = {
   showClock: function cs_showClock(now) {
     LazyL10n.get(function localized(_) {
       var f = new navigator.mozL10n.DateTimeFormat();
-      var timeFormat = _('shortTimeFormat');
+      var timeFormat = _('shortTimeFormat').replace('%p', '<span>%p</span>');
       var dateFormat = _('longDateFormat');
-      var time = f.localeFormat(now, timeFormat);
-      this.lockedClockNumbers.textContent = time.match(/([012]?\d).[0-5]\d/g);
-      this.lockedClockMeridiem.textContent =
-        (time.match(/AM|PM/i) || []).join('');
+      this.lockedClockTime.innerHTML = f.localeFormat(now, timeFormat);
       this.lockedDate.textContent = f.localeFormat(now, dateFormat);
     }.bind(this));
   },

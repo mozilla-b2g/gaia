@@ -9,7 +9,8 @@ window.addEventListener('load', function dialerSetup() {
   setTimeout(function nextTick() {
     var lazyPanels = ['add-contact-action-menu',
                       'confirmation-message',
-                      'edit-mode'];
+                      'edit-mode',
+                      'sim-picker'];
 
     var lazyPanelsElements = lazyPanels.map(function toElement(id) {
       return document.getElementById(id);

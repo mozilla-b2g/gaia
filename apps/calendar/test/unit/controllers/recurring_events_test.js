@@ -1,9 +1,12 @@
+/*global Factory */
+
 requireLib('models/account.js');
 requireLib('provider/abstract.js');
 requireLib('provider/local.js');
 requireLib('provider/caldav.js');
 
 suiteGroup('Controllers.RecurringEvents', function() {
+  'use strict';
 
   var subject;
   var app;

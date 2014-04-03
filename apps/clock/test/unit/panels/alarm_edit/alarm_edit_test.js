@@ -3,8 +3,8 @@ mocha.setup({ globals: ['GestureDetector'] });
 
 suite('AlarmEditView', function() {
   var nativeMozAlarms = navigator.mozAlarms;
-  var Alarm, AlarmEdit, ActiveAlarm, AlarmsDB, AlarmList, AlarmManager,
-      mozL10n, alarmEdit;
+  var AccessibilityHelper, Alarm, AlarmEdit, ActiveAlarm, AlarmsDB, AlarmList,
+      AlarmManager, mozL10n, alarmEdit;
 
   suiteSetup(function(done) {
     this.slow(25000);
@@ -12,15 +12,19 @@ suite('AlarmEditView', function() {
         'alarm',
         'panels/alarm/active_alarm',
         'panels/alarm_edit/main',
+        'mocks/mock_shared/js/accessibility_helper',
         'mocks/mock_alarmsdb',
         'mocks/mock_panels/alarm/alarm_list',
         'mocks/mock_alarm_manager',
         'mocks/mock_moz_alarm',
         'mocks/mock_shared/js/l10n'
       ], {
-        mocks: ['alarmsdb', 'panels/alarm/alarm_list', 'alarm_manager']
-      }, function(alarm, activeAlarm, alarmEdit, mockAlarmsDB, mockAlarmList,
-        mockAlarmManager, mockMozAlarms, mockMozL10n) {
+        mocks: ['alarmsdb', 'panels/alarm/alarm_list', 'alarm_manager',
+          'shared/js/accessibility_helper']
+      }, function(alarm, activeAlarm, alarmEdit, mockAccessibilityHelper,
+        mockAlarmsDB, mockAlarmList, mockAlarmManager, mockMozAlarms,
+        mockMozL10n) {
+        AccessibilityHelper = mockAccessibilityHelper;
         Alarm = alarm;
         ActiveAlarm = activeAlarm;
         AlarmEdit = alarmEdit;

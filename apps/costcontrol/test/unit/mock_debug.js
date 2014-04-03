@@ -1,3 +1,4 @@
+/* exported DEBUGGING, debug */
 'use strict';
 
 var DEBUGGING = true;

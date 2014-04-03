@@ -1,12 +1,15 @@
+'use strict';
+/* global LazyLoader */
+/* exported fbLoader */
 
 var fbLoader = (function() {
 
   var loaded = false;
-  scriptsLoaded = 0;
 
   var loadFb = function loadFb() {
-    if (loaded)
+    if (loaded) {
       return;
+    }
 
     loaded = true;
     var iframesFragment = document.createDocumentFragment();
@@ -18,6 +21,7 @@ var fbLoader = (function() {
 
     var oauth = document.createElement('iframe');
     oauth.id = 'fb-oauth';
+    oauth.hidden = true;
     iframesFragment.appendChild(oauth);
 
     var extensions = document.createElement('iframe');

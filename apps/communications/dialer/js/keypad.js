@@ -1,5 +1,8 @@
-/* globals CallHandler, CallLogDBManager, CallsHandler, CallScreen, LazyLoader,
-           PhoneNumberActionMenu, SettingsListener, TonePlayer, Utils */
+/* exported KeypadManager */
+
+/* globals CallHandler, CallLogDBManager, CallsHandler, CallScreen,
+           LazyLoader, LazyL10n, MultiSimActionButton, PhoneNumberActionMenu,
+           SimPicker, SettingsListener, TonePlayer, Utils */
 
 'use strict';
 
@@ -13,11 +16,59 @@ var gTonesFrequencies = {
   '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
 };
 
+/**
+ * DTMF tone constructor, providing the SIM on which this tone will be played
+ * is mandatory.
+ *
+ * @param {String} tone The tone to be played.
+ * @param {Boolean} short True if this will be a short tone, false otherwise.
+ * @param {Integer} serviceId The ID of the SIM card on which to play the tone.
+ */
+function DtmfTone(tone, short, serviceId) {
+  this.tone = tone;
+  this.short = short;
+  this.serviceId = serviceId;
+  this.timer = 0;
+}
+
+DtmfTone.prototype = {
+  /**
+   * Starts playing the tone, if this is a short tone it will stop automatically
+   * after kShortToneLength milliseconds, otherwise it will play until stopped.
+   */
+  play: function dt_play() {
+    clearTimeout(this.timer);
+
+    // Stop previous tone before dispatching a new one
+    navigator.mozTelephony.stopTone(this.serviceId);
+    navigator.mozTelephony.startTone(this.tone, this.serviceId);
+
+    if (this.short) {
+      this.timer = window.setTimeout(function dt_stopTone(serviceId) {
+        navigator.mozTelephony.stopTone(serviceId);
+      }, DtmfTone.kShortToneLength, this.serviceId);
+    }
+  },
+
+  /**
+   * Stop the DTMF tone, this is safe to call even if the DTMF tone has already
+   * stopped.
+   */
+  stop: function dt_stop() {
+    clearTimeout(this.timer);
+    navigator.mozTelephony.stopTone(this.serviceId);
+  }
+};
+
+/**
+ * Length of a short DTMF tone, currently 120ms.
+ */
+DtmfTone.kShortToneLength = 120;
+
 var KeypadManager = {
 
   _MAX_FONT_SIZE_DIAL_PAD: 18,
   _MAX_FONT_SIZE_ON_CALL: 16,
-  _DTMF_SHORT_TONE_LENGTH: 120,
 
   _phoneNumber: '',
   _onCall: false,
@@ -95,6 +146,8 @@ var KeypadManager = {
       document.getElementById('keypad-hidebar-hide-keypad-action');
   },
 
+  multiSimActionButton: null,
+
   init: function kh_init(oncall) {
 
     this._onCall = !!oncall;
@@ -133,8 +186,30 @@ var KeypadManager = {
     // The keypad call bar is only included in the normal version and
     // the emergency call version of the keypad.
     if (this.callBarCallAction) {
+      if (typeof MultiSimActionButton !== 'undefined') {
+        if (navigator.mozMobileConnections &&
+            navigator.mozMobileConnections.length > 1) {
+          // Use LazyL10n to load l10n.js. Single SIM devices will be slowed
+          // down by the cost of loading l10n.js in the startup path if we don't
+          // do this.
+          var self = this;
+          LazyL10n.get(function localized(_) {
+            self.multiSimActionButton =
+              new MultiSimActionButton(self.callBarCallAction,
+                                       CallHandler.call,
+                                       'ril.telephony.defaultServiceId',
+                                       self.phoneNumber.bind(self));
+          });
+        } else {
+          this.multiSimActionButton =
+            new MultiSimActionButton(this.callBarCallAction,
+                                     CallHandler.call,
+                                     'ril.telephony.defaultServiceId',
+                                     this.phoneNumber.bind(this));
+        }
+      }
       this.callBarCallAction.addEventListener('click',
-                                              this.makeCall.bind(this));
+                                              this.fetchLastCalled.bind(this));
     }
 
     // The keypad cancel bar is only the emergency call version of the keypad.
@@ -207,28 +282,30 @@ var KeypadManager = {
     }
   },
 
-  makeCall: function hk_makeCall(event) {
-    if (event)
-      event.stopPropagation();
+  phoneNumber: function hk_phoneNumber() {
+    return this._phoneNumber;
+  },
 
-    if (this._phoneNumber === '') {
-      var self = this;
-      CallLogDBManager.getGroupAtPosition(1, 'lastEntryDate', true, 'dialing',
-        function hk_ggap_callback(result) {
-          if (result && (typeof result === 'object') && result.number) {
-            self.updatePhoneNumber(result.number);
-          }
-        }
-      );
-    } else {
-      CallHandler.call(KeypadManager._phoneNumber);
+  fetchLastCalled: function hk_fetchLastCalled() {
+    if (this._phoneNumber !== '') {
+      return;
     }
+
+    var self = this;
+    CallLogDBManager.getGroupAtPosition(1, 'lastEntryDate', true, 'dialing',
+      function hk_ggap_callback(result) {
+        if (result && (typeof result === 'object') && result.number) {
+          self.updatePhoneNumber(result.number);
+        }
+      }
+    );
   },
 
   addContact: function hk_addContact(event) {
     var number = this._phoneNumber;
-    if (!number)
+    if (!number) {
       return;
+    }
     LazyLoader.load(['/dialer/js/phone_action_menu.js'],
       function hk_showPhoneNumberActionMenu() {
         PhoneNumberActionMenu.show(null, number,
@@ -251,7 +328,7 @@ var KeypadManager = {
 
     // We consider the case where the delete button may have
     // been used to delete the whole phone number.
-    if (view.value == '') {
+    if (view.value === '') {
       view.style.fontSize = this.maxFontSize;
       return;
     }
@@ -269,35 +346,39 @@ var KeypadManager = {
   },
 
   _lastPressedKey: null,
-  _dtmfToneTimer: null,
+  _dtmfTone: null,
 
   _playDtmfTone: function kh_playDtmfTone(key) {
+    var serviceId = 0;
+
     if (!this._onCall) {
       return;
     }
 
-    var telephony = navigator.mozTelephony;
-
-    clearTimeout(this._dtmfToneTimer);
-    telephony.stopTone(); // Stop previous tone before dispatching a new one
-    telephony.startTone(key);
-
-    if (this._shortTone) {
-      this._dtmfToneTimer = window.setTimeout(function ch_playDTMF() {
-        telephony.stopTone();
-      }, this._DTMF_SHORT_TONE_LENGTH);
+    if (CallsHandler.activeCall) {
+      // Single call
+      serviceId = CallsHandler.activeCall.call.serviceId;
+    } else {
+      // Conference call
+      serviceId = navigator.mozTelephony.active.calls[0].serviceId;
     }
+
+    if (this._dtmfTone) {
+      this._dtmfTone.stop();
+      this._dtmfTone = null;
+    }
+
+    this._dtmfTone = new DtmfTone(key, this._shortTone, serviceId);
+    this._dtmfTone.play();
   },
 
   _stopDtmfTone: function kh_stopDtmfTone() {
-    if (!this._onCall) {
+    if (!this._dtmfTone) {
       return;
     }
 
-    var telephony = navigator.mozTelephony;
-
-    clearTimeout(this._dtmfToneTimer);
-    telephony.stopTone();
+    this._dtmfTone.stop();
+    this._dtmfTone = null;
   },
 
   /**
@@ -349,6 +430,9 @@ var KeypadManager = {
       this._holdTimer = setTimeout(function vm_call(self) {
         self._longPress = true;
         self._callVoicemail();
+
+        self._phoneNumber = self._phoneNumber.slice(0, -1);
+        self._updatePhoneNumberView('begin', false);
       }, 1500, this);
     }
 
@@ -434,7 +518,7 @@ var KeypadManager = {
     // get the device's IMEI as soon as the user enters the last # key from
     // the "*#06#" MMI string. See bug 857944.
     if (key === '#' && this._phoneNumber === '*#06#') {
-      this.makeCall(event);
+      this.multiSimActionButton.performAction();
       return;
     }
 
@@ -490,10 +574,12 @@ var KeypadManager = {
       var visibility;
       if (phoneNumber.length > 0) {
         visibility = 'visible';
-        this.callBarAddContact.classList.remove('disabled');
+        this.callBarAddContact.removeAttribute('disabled');
+        this.callBarAddContact.setAttribute('aria-disabled', false);
       } else {
         visibility = 'hidden';
-        this.callBarAddContact.classList.add('disabled');
+        this.callBarAddContact.setAttribute('disabled', 'disabled');
+        this.callBarAddContact.setAttribute('aria-disabled', true);
       }
       this.deleteButton.style.visibility = visibility;
 
@@ -503,58 +589,84 @@ var KeypadManager = {
       this.formatPhoneNumber(ellipsisSide, maxFontSize);
     }
 
-    if (this.onValueChanged)
+    if (this.onValueChanged) {
       this.onValueChanged(this._phoneNumber);
+    }
   },
 
   replacePhoneNumber:
     function kh_replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize) {
-      if (this._onCall) {
+      if (this._onCall && CallsHandler.activeCall) {
         CallsHandler.activeCall.
           replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize);
       }
   },
 
   restorePhoneNumber: function kh_restorePhoneNumber() {
-    if (this._onCall) {
+    if (this._onCall && CallsHandler.activeCall) {
       CallsHandler.activeCall.restorePhoneNumber();
     }
   },
 
   replaceAdditionalContactInfo:
     function kh_updateAdditionalContactInfo(additionalContactInfo) {
-    CallsHandler.activeCall.replaceAdditionalContactInfo(additionalContactInfo);
+      var call = CallsHandler.activeCall;
+      if (this._onCall && call) {
+        call.replaceAdditionalContactInfo(additionalContactInfo);
+      }
   },
 
   restoreAdditionalContactInfo: function kh_restoreAdditionalContactInfo() {
-    if (this._onCall) {
+    if (this._onCall && CallsHandler.activeCall) {
       CallsHandler.activeCall.restoreAdditionalContactInfo();
     }
   },
 
-  _callVoicemail: function kh_callVoicemail() {
-     var settings = navigator.mozSettings;
-     if (!settings) {
+  _callVoicemail: function() {
+    if (navigator.mozIccManager.iccIds.length <= 1) {
+      this._callVoicemailForSim(0);
       return;
-     }
-     var transaction = settings.createLock();
-     var request = transaction.get('ril.iccInfo.mbdn');
-     request.onsuccess = function() {
-       var number = request.result['ril.iccInfo.mbdn'];
-       var voicemail = navigator.mozVoicemail;
-       if (!number && voicemail) {
-         // TODO: remove this backward compatibility check
-         // after bug-814634 is landed
-         number = voicemail.number ||
-           voicemail.getNumber && voicemail.getNumber();
-       }
-       if (number) {
-         CallHandler.call(number);
-       }
-       // TODO: Bug 881178 - [Dialer] Invite the user to go set a voicemail
-       // number in the setting app.
-     };
-     request.onerror = function() {};
+    }
+
+    var self = this;
+    var key = 'ril.voicemail.defaultServiceId';
+    var req = navigator.mozSettings.createLock().get(key);
+    req.onsuccess = function() {
+      LazyLoader.load(['/shared/js/sim_picker.js'], function() {
+        LazyL10n.get(function(_) {
+          SimPicker.getOrPick(req.result[key], _('voiceMail'),
+                              self._callVoicemailForSim);
+        });
+      });
+    };
+  },
+
+  _callVoicemailForSim: function(cardIndex) {
+    var settings = navigator.mozSettings;
+    if (!settings) {
+      return;
+    }
+    var transaction = settings.createLock();
+    var request = transaction.get('ril.iccInfo.mbdn');
+    request.onsuccess = function() {
+      var numbers = request.result['ril.iccInfo.mbdn'];
+      var number;
+      if (typeof numbers == 'string') {
+        number = numbers;
+      } else {
+        number = numbers && numbers[cardIndex];
+      }
+      var voicemail = navigator.mozVoicemail;
+      if (!number && voicemail) {
+        number = voicemail.getNumber();
+      }
+      if (number) {
+        CallHandler.call(number, cardIndex);
+      }
+      // TODO: Bug 881178 - [Dialer] Invite the user to go set a voicemail
+      // number in the setting app.
+    };
+    request.onerror = function() {};
   },
 
   _observePreferences: function kh_observePreferences() {

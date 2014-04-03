@@ -1,4 +1,5 @@
 Calendar.ns('Utils').URI = (function() {
+  'use strict';
 
   var URI = {
     /**
@@ -52,7 +53,7 @@ Calendar.ns('Utils').URI = (function() {
      * @param {boolean} whether or not str represents an integer.
      */
     _isInteger: function(str) {
-      return /^\d+$/.test(str);
+      return (/^\d+$/).test(str);
     }
   };
 

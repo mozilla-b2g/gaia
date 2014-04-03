@@ -6,6 +6,8 @@
  * its architecture in Firefox OS.
  */
 
+/* exported FxAccountsClient */
+
 'use strict';
 
 var FxAccountsClient = function FxAccountsClient() {

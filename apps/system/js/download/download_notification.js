@@ -24,7 +24,7 @@ DownloadNotification.prototype = {
   /**
    * This method knows when the toaster should be displayed. Basically
    * the toaster shouldn't be displayed if the download state does not change
-   * or the download was stopped by the user
+   * or the download was stopped by the user or because of connectivity lost
    *
    * @return {boolean} True whether the toaster should be displayed.
    */
@@ -62,10 +62,8 @@ DownloadNotification.prototype = {
     }
     var noNotify = this._wontNotify();
     this.state = this.download.state;
-    // Error attr will be not null when a download is stopped because
-    // something failed
-    if (this.download.state === 'stopped' && this.download.error !== null) {
-      this.state = 'failed';
+    if (this.download.state === 'stopped') {
+      this._onStopped();
     }
     var info = this._getInfo();
     if (noNotify) {
@@ -74,6 +72,42 @@ DownloadNotification.prototype = {
     NotificationScreen.addNotification(info);
     if (this.state === 'succeeded') {
       this._onSucceeded();
+    }
+  },
+
+  _onStopped: function dn_onStopped() {
+    if (this.download.error !== null) {
+      // Error attr will be not null when a download is stopped because
+      // something failed
+      this.state = 'failed';
+      this._onError();
+    } else if (!window.navigator.onLine) {
+      // Remain downloading state when the connectivity was lost
+      this.state = 'downloading';
+    }
+  },
+
+  _onError: function dn_onError() {
+    var result = parseInt(this.download.error.message);
+
+    switch (result) {
+      case DownloadUI.ERRORS.NO_SDCARD:
+        DownloadUI.show(DownloadUI.TYPE['NO_SDCARD'],
+                        this.download,
+                        true);
+        break;
+      case DownloadUI.ERRORS.UNMOUNTED_SDCARD:
+        DownloadUI.show(DownloadUI.TYPE['UNMOUNTED_SDCARD'],
+                        this.download,
+                        true);
+        break;
+
+      default:
+        DownloadHelper.getFreeSpace((function gotFreeMemory(bytes) {
+          if (bytes === 0) {
+            DownloadUI.show(DownloadUI.TYPE['NO_MEMORY'], this.download, true);
+          }
+        }).bind(this));
     }
   },
 

@@ -64,6 +64,7 @@ contacts.Merger = (function() {
 
     mergedContact.photo = masterContact.photo || [];
     mergedContact.bday = masterContact.bday;
+    mergedContact.anniversary = masterContact.anniversary;
 
     mergedContact.adr = masterContact.adr || [];
 
@@ -150,6 +151,9 @@ contacts.Merger = (function() {
 
       if (!mergedContact.bday && theMatchingContact.bday) {
         mergedContact.bday = theMatchingContact.bday;
+      }
+      if (!mergedContact.anniversary && theMatchingContact.anniversary) {
+        mergedContact.anniversary = theMatchingContact.anniversary;
       }
 
       if (isDefined(theMatchingContact.org) && mergedContact.org.length === 0) {
@@ -305,7 +309,8 @@ contacts.Merger = (function() {
 
   function fillMasterContact(masterContact, mergedContact, mergedPhoto, done) {
     var fields = ['familyName', 'givenName', 'name', 'org', 'email', 'tel',
-                  'bday', 'adr', 'category', 'url', 'note', 'photo'];
+                  'bday', 'anniversary', 'adr', 'category',
+                  'url', 'note', 'photo'];
 
     fields.forEach(function(aField) {
       masterContact[aField] = mergedContact[aField];

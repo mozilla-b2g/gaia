@@ -1,3 +1,4 @@
+/* global Contacts, _, VCFReader, ConfirmDialog */
 'use strict';
 
 var utils = window.utils || {};
@@ -45,11 +46,13 @@ utils.importFromVcard = function(file, callback) {
     }
 
     function processTextFromFile(textFromFile) {
-      if (cancelled)
+      if (cancelled) {
         return;
+      }
       importer = new VCFReader(textFromFile);
-      if (!textFromFile || !importer)
+      if (!textFromFile || !importer) {
         return;// No contacts were found.
+      }
       importer.onread = import_read;
       importer.onimported = imported_contact;
       importer.onerror = import_error;
@@ -64,20 +67,20 @@ utils.importFromVcard = function(file, callback) {
         }
         callback(result[0].id);
       });
-    };
+    }
 
     function import_read(n) {
       progress.setClass('progressBar');
       progress.setHeaderMsg(_('memoryCardContacts-importing'));
       progress.setTotal(n);
-    };
+    }
 
     function imported_contact() {
       importedContacts++;
       if (!cancelled) {
         progress.update();
       }
-    };
+    }
 
     function import_error(e) {
       console.error('Error importing from vcard: ' + e.message);
@@ -101,6 +104,6 @@ utils.importFromVcard = function(file, callback) {
       Contacts.confirmDialog(null, _('memoryCardContacts-error'),
                              cancel, retry);
       utils.overlay.hide();
-    };
+    }
   });
 };

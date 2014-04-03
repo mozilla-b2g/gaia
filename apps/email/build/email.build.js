@@ -12,6 +12,17 @@
     end: 'plog("@@@ END OF BUILD LAYER");'
   },
 */
+  // Rewrite the waitSeconds config so that we never time out
+  // waiting for modules to load in production. See js/mail_app.js
+  // for more details.
+  onBuildWrite: function(id, url, contents) {
+    if (id === 'mail_app') {
+      return contents.replace(/waitSeconds:\s*\d+/, 'waitSeconds: 0');
+    } else {
+      return contents;
+    }
+  },
+
   modules: [
     {
       name: 'mail_app',

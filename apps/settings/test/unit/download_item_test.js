@@ -13,17 +13,35 @@ var mocksHelperForDownload = new MocksHelper([
 ]);
 
 suite('Download item', function() {
-  var realL10n;
+  var realL10n, realOnLine, isOnLine;
+
+  function navigatorOnLine() {
+    return isOnLine;
+  }
+
+  function setNavigatorOnLine(value) {
+    isOnLine = value;
+  }
+
+  mocksHelperForDownload.attachTestHelpers();
+
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    mocksHelperForDownload.suiteSetup();
+    realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
+    Object.defineProperty(navigator, 'onLine', {
+      configurable: true,
+      get: navigatorOnLine,
+      set: setNavigatorOnLine
+    });
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
     realL10n = null;
-    mocksHelperForDownload.suiteTeardown();
+    if (realOnLine) {
+      Object.defineProperty(navigator, 'onLine', realOnLine);
+    }
   });
 
   suite(' > create', function() {
@@ -77,7 +95,7 @@ suite('Download item', function() {
       downloadElement = DownloadItem.create(downloadMock);
       l10nSpy = this.sinon.spy(navigator.mozL10n, 'localize');
       fileFormatterSpy = this.sinon.spy(DownloadFormatter, 'getTotalSize');
-
+      navigator.onLine = true;
     });
 
     teardown(function() {
@@ -85,7 +103,7 @@ suite('Download item', function() {
       downloadElement = null;
     });
 
-    test(' > from downloading to stopped', function() {
+    test(' > from downloading to stopped by the user', function() {
       var downloadPaused = new MockDownload({
         state: 'stopped'
       });
@@ -93,6 +111,22 @@ suite('Download item', function() {
       assert.ok(l10nSpy.called);
       var l10nParams = l10nSpy.args[0][2];
       assert.equal(l10nParams.status, 'download-stopped');
+    });
+
+    test(' > from downloading to stopped because of connectivity was lost',
+         function() {
+      var downloadPaused = new MockDownload({
+        state: 'stopped'
+      });
+      navigator.onLine = false;
+      DownloadItem.refresh(downloadElement, downloadPaused);
+      assert.ok(l10nSpy.called);
+      assert.ok(fileFormatterSpy.called);
+      var l10nParams = l10nSpy.args[0][2];
+      assert.equal(l10nParams.partial,
+                   DownloadFormatter.getDownloadedSize(downloadPaused));
+      assert.equal(l10nParams.total,
+                   DownloadFormatter.getTotalSize(downloadPaused));
     });
 
     test(' > from downloading to failed', function() {

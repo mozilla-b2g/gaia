@@ -1,4 +1,5 @@
 suite('errors', function() {
+  'use strict';
 
   function verify(symbol) {
     test(symbol, function() {

@@ -45,9 +45,45 @@ suite('MessageDB', function() {
       timestamp: '3',
       href: 'http://www.mozilla.org',
       id: 'gaia-test@mozilla.org',
-      created: (new Date('2013-09-03T10:35:34Z')).getTime(),
       action: 'delete',
-      text: 'newer message'
+      text: ''
+    },
+    old_delete: {
+      type: 'text/vnd.wap.si',
+      sender: '+31641600986',
+      timestamp: '4',
+      href: 'http://www.mozilla.org',
+      id: 'gaia-test@mozilla.org',
+      created: (new Date('2013-09-03T10:35:32Z')).getTime(),
+      action: 'delete',
+      text: ''
+    },
+    low: {
+      type: 'text/vnd.wap.si',
+      sender: '+31641600986',
+      timestamp: '5',
+      href: 'http://www.mozilla.org',
+      id: 'http://www.mozilla.org',
+      action: 'signal-low',
+      text: 'check this out'
+    },
+    medium: {
+      type: 'text/vnd.wap.si',
+      sender: '+31641600986',
+      timestamp: '6',
+      href: 'http://www.mozilla.org',
+      id: 'http://www.mozilla.org',
+      action: 'signal-medium',
+      text: 'check this out'
+    },
+    high: {
+      type: 'text/vnd.wap.si',
+      sender: '+31641600986',
+      timestamp: '7',
+      href: 'http://www.mozilla.org',
+      id: 'http://www.mozilla.org',
+      action: 'signal-high',
+      text: 'check this out'
     }
   };
 
@@ -86,6 +122,37 @@ suite('MessageDB', function() {
                 });
             });
         });
+    });
+  });
+
+  suite('handling multiple messages', function() {
+    test('storing multiple messages with the same si-id', function(done) {
+      MessageDB.put(messages.low, function putSuccess(status_low) {
+        MessageDB.put(messages.medium, function putSuccess(status_medium) {
+          MessageDB.put(messages.high, function putSuccess(status_high) {
+            MessageDB.retrieve(messages.low.timestamp,
+              function retrieveSuccess(low) {
+                MessageDB.retrieve(messages.medium.timestamp,
+                  function retrieveSuccess(medium) {
+                    MessageDB.retrieve(messages.high.timestamp,
+                      function retrieveSuccess(high) {
+                        done(function checks() {
+                          assert.equal(status_low, 'new');
+                          assert.equal(low.id, messages.low.id);
+                          assert.equal(low.action, messages.low.action);
+                          assert.equal(status_medium, 'new');
+                          assert.equal(medium.id, messages.medium.id);
+                          assert.equal(medium.action, messages.medium.action);
+                          assert.equal(status_high, 'new');
+                          assert.equal(high.id, 'http://www.mozilla.org');
+                          assert.equal(high.action, 'signal-high');
+                        });
+                      });
+                  });
+              });
+          });
+        });
+      });
     });
   });
 
@@ -133,15 +200,43 @@ suite('MessageDB', function() {
   suite('message actions', function() {
     test('delete action removes all message with same id', function(done) {
       MessageDB.put(messages.current,
-        function putSuccess(status) {
+        function putSuccess() {
           MessageDB.put(messages.delete,
+            function putSuccess(status) {
+              MessageDB.retrieve(messages.current.timestamp,
+                function retrieveSuccess(message) {
+                  done(function checks() {
+                    assert.equal(status, 'discarded');
+                    assert.equal(message, null);
+                  });
+                });
+            });
+        });
+    });
+
+    test('delete action messages are never stored', function(done) {
+      MessageDB.put(messages.delete, function putSuccess(status) {
+        MessageDB.retrieve(messages.delete.timestamp,
+          function retrieveSuccess(message) {
+            done(function checks() {
+              assert.equal(status, 'discarded');
+              assert.equal(message, null);
+            });
+          });
+      });
+    });
+
+    test('old delete action is ignored', function(done) {
+      MessageDB.put(messages.current,
+        function putSuccess(status) {
+          MessageDB.put(messages.old_delete,
             function putSuccess(status) {
               assert.equal(status, 'discarded');
 
               MessageDB.retrieve(messages.current.timestamp,
                 function retrieveSuccess(message) {
                   done(function checks() {
-                    assert.equal(message, null);
+                    assert.ok(message);
                   });
                 });
             });

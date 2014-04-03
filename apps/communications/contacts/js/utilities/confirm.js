@@ -1,3 +1,4 @@
+/* exported ConfirmDialog */
 'use strict';
 
 var ConfirmDialog = (function() {

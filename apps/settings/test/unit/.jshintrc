@@ -10,6 +10,7 @@
     "suiteTeardown",
     "require",
     "requireApp",
+    "testRequire",
     "sinon",
     "mocha",
     "loadBodyHTML"

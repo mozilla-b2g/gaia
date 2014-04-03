@@ -6,6 +6,7 @@ var sh = require('child_process').exec;
 var fs = require('fs');
 var AdmZip = require('adm-zip');
 var Q = require('q');
+var os = require('os');
 
 function joinPath() {
   var src = path.join.apply(this, arguments);
@@ -118,6 +119,14 @@ function writeContent(file, content) {
   fs.writeFileSync(file.path, content);
 }
 
+function getLocaleBasedir(original) {
+  return (os.platform().indexOf('win') !== -1) ?
+    original.replace('/', '\\', 'g') : original;
+}
+
+var Services = {};
+
+exports.Services = Services;
 exports.joinPath = joinPath;
 exports.getFile = getFile;
 exports.getFileContent = getFileContent;
@@ -132,3 +141,4 @@ exports.getJSON = getJSON;
 exports.processEvents = processEvents;
 exports.writeContent = writeContent;
 exports.Q = Q;
+exports.getLocaleBasedir = getLocaleBasedir;

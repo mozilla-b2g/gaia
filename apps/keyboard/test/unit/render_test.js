@@ -482,8 +482,7 @@ suite('Renderer', function() {
 
     suite('showCandidates', function() {
       test('Has dismiss-suggestions-button', function() {
-        var el = document.createElement('div');
-        el.classList.add('keyboard-candidate-panel');
+        var el = IMERender.candidatePanelCode();
         activeIme.appendChild(el);
 
         IMERender.setInputMethodName('latin');
@@ -494,8 +493,7 @@ suite('Renderer', function() {
       });
 
       test('Three candidates', function() {
-        var el = document.createElement('div');
-        el.classList.add('keyboard-candidate-panel');
+        var el = IMERender.candidatePanelCode();
         activeIme.appendChild(el);
 
         IMERender.setInputMethodName('latin');
@@ -509,24 +507,10 @@ suite('Renderer', function() {
         assert.equal(spans[1].dataset.data, 'lah', 'data 1');
         assert.equal(spans[2].textContent, 'lo', 'textContent 2');
         assert.equal(spans[2].dataset.data, 'lo', 'data 2');
-
-        // total width is (innerWidth - width of dismiss button) / 3
-        var dismissWidth =
-          el.querySelector('.dismiss-suggestions-button').offsetWidth;
-        // 3 px margin on both sides
-        var expected = ((el.offsetWidth - dismissWidth) / 3) - 6 | 0;
-        for (var i = 0; i < spans.length; i++) {
-          // it can differ 1 pixel because of outlining here, depending
-          // on window size
-          assert.equal(
-            Math.abs(spans[i].parentNode.offsetWidth - expected) <= 1,
-            true);
-        }
       });
 
       test('Zero candidates', function() {
-        var el = document.createElement('div');
-        el.classList.add('keyboard-candidate-panel');
+        var el = IMERender.candidatePanelCode();
         activeIme.appendChild(el);
 
         IMERender.setInputMethodName('latin');
@@ -537,8 +521,7 @@ suite('Renderer', function() {
       });
 
       test('Candidate with star', function() {
-        var el = document.createElement('div');
-        el.classList.add('keyboard-candidate-panel');
+        var el = IMERender.candidatePanelCode();
         activeIme.appendChild(el);
 
         var can = ['*awesome', 'moar', 'whoo'];
@@ -553,8 +536,7 @@ suite('Renderer', function() {
       });
 
       test('Scaling to 0.6', function() {
-        var el = document.createElement('div');
-        el.classList.add('keyboard-candidate-panel');
+        var el = IMERender.candidatePanelCode();
         activeIme.appendChild(el);
 
         IMERender.setInputMethodName('latin');
@@ -576,8 +558,7 @@ suite('Renderer', function() {
       });
 
       test('Scaling to 0.5', function() {
-        var el = document.createElement('div');
-        el.classList.add('keyboard-candidate-panel');
+        var el = IMERender.candidatePanelCode();
         activeIme.appendChild(el);
 
         IMERender.setInputMethodName('latin');

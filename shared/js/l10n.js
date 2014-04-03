@@ -1,6 +1,3 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
 
 /**
@@ -74,7 +71,7 @@
       args.unshift('[l10n] ');
       console.log(args.join(''));
     }
-  };
+  }
 
   function consoleWarn() {
     if (gDEBUG) {
@@ -82,7 +79,7 @@
       args.unshift('[l10n] ');
       console.warn(args.join(''));
     }
-  };
+  }
 
   function consoleWarn_missingKeys(untranslatedElements, lang) {
     var len = untranslatedElements.length;
@@ -375,7 +372,7 @@
         successCallback();
       }
     }, failureCallback, gAsyncResourceLoading);
-  };
+  }
 
   // load and parse all resources for the specified locale
   function loadLocale(lang, translationRequired) {
@@ -689,158 +686,205 @@
         return 'other';
       },
       '1': function(n) {
-        if ((isBetween((n % 100), 3, 10)))
+        if ((isBetween((n % 100), 3, 10))) {
           return 'few';
-        if (n === 0)
+        }
+        if (n === 0) {
           return 'zero';
-        if ((isBetween((n % 100), 11, 99)))
+        }
+        if ((isBetween((n % 100), 11, 99))) {
           return 'many';
-        if (n == 2)
+        }
+        if (n == 2) {
           return 'two';
-        if (n == 1)
+        }
+        if (n == 1) {
           return 'one';
+        }
         return 'other';
       },
       '2': function(n) {
-        if (n !== 0 && (n % 10) === 0)
+        if (n !== 0 && (n % 10) === 0) {
           return 'many';
-        if (n == 2)
+        }
+        if (n == 2) {
           return 'two';
-        if (n == 1)
+        }
+        if (n == 1) {
           return 'one';
+        }
         return 'other';
       },
       '3': function(n) {
-        if (n == 1)
+        if (n == 1) {
           return 'one';
+        }
         return 'other';
       },
       '4': function(n) {
-        if ((isBetween(n, 0, 1)))
+        if ((isBetween(n, 0, 1))) {
           return 'one';
+        }
         return 'other';
       },
       '5': function(n) {
-        if ((isBetween(n, 0, 2)) && n != 2)
+        if ((isBetween(n, 0, 2)) && n != 2) {
           return 'one';
+        }
         return 'other';
       },
       '6': function(n) {
-        if (n === 0)
+        if (n === 0) {
           return 'zero';
-        if ((n % 10) == 1 && (n % 100) != 11)
+        }
+        if ((n % 10) == 1 && (n % 100) != 11) {
           return 'one';
+        }
         return 'other';
       },
       '7': function(n) {
-        if (n == 2)
+        if (n == 2) {
           return 'two';
-        if (n == 1)
+        }
+        if (n == 1) {
           return 'one';
+        }
         return 'other';
       },
       '8': function(n) {
-        if ((isBetween(n, 3, 6)))
+        if ((isBetween(n, 3, 6))) {
           return 'few';
-        if ((isBetween(n, 7, 10)))
+        }
+        if ((isBetween(n, 7, 10))) {
           return 'many';
-        if (n == 2)
+        }
+        if (n == 2) {
           return 'two';
-        if (n == 1)
+        }
+        if (n == 1) {
           return 'one';
+        }
         return 'other';
       },
       '9': function(n) {
-        if (n === 0 || n != 1 && (isBetween((n % 100), 1, 19)))
+        if (n === 0 || n != 1 && (isBetween((n % 100), 1, 19))) {
           return 'few';
-        if (n == 1)
+        }
+        if (n == 1) {
           return 'one';
+        }
         return 'other';
       },
       '10': function(n) {
-        if ((isBetween((n % 10), 2, 9)) && !(isBetween((n % 100), 11, 19)))
+        if ((isBetween((n % 10), 2, 9)) && !(isBetween((n % 100), 11, 19))) {
           return 'few';
-        if ((n % 10) == 1 && !(isBetween((n % 100), 11, 19)))
+        }
+        if ((n % 10) == 1 && !(isBetween((n % 100), 11, 19))) {
           return 'one';
+        }
         return 'other';
       },
       '11': function(n) {
-        if ((isBetween((n % 10), 2, 4)) && !(isBetween((n % 100), 12, 14)))
+        if ((isBetween((n % 10), 2, 4)) && !(isBetween((n % 100), 12, 14))) {
           return 'few';
+        }
         if ((n % 10) === 0 ||
             (isBetween((n % 10), 5, 9)) ||
-            (isBetween((n % 100), 11, 14)))
+            (isBetween((n % 100), 11, 14))) {
           return 'many';
-        if ((n % 10) == 1 && (n % 100) != 11)
+        }
+        if ((n % 10) == 1 && (n % 100) != 11) {
           return 'one';
+        }
         return 'other';
       },
       '12': function(n) {
-        if ((isBetween(n, 2, 4)))
+        if ((isBetween(n, 2, 4))) {
           return 'few';
-        if (n == 1)
+        }
+        if (n == 1) {
           return 'one';
+        }
         return 'other';
       },
       '13': function(n) {
-        if ((isBetween((n % 10), 2, 4)) && !(isBetween((n % 100), 12, 14)))
+        if ((isBetween((n % 10), 2, 4)) && !(isBetween((n % 100), 12, 14))) {
           return 'few';
+        }
         if (n != 1 && (isBetween((n % 10), 0, 1)) ||
             (isBetween((n % 10), 5, 9)) ||
-            (isBetween((n % 100), 12, 14)))
+            (isBetween((n % 100), 12, 14))) {
           return 'many';
-        if (n == 1)
+        }
+        if (n == 1) {
           return 'one';
+        }
         return 'other';
       },
       '14': function(n) {
-        if ((isBetween((n % 100), 3, 4)))
+        if ((isBetween((n % 100), 3, 4))) {
           return 'few';
-        if ((n % 100) == 2)
+        }
+        if ((n % 100) == 2) {
           return 'two';
-        if ((n % 100) == 1)
+        }
+        if ((n % 100) == 1) {
           return 'one';
+        }
         return 'other';
       },
       '15': function(n) {
-        if (n === 0 || (isBetween((n % 100), 2, 10)))
+        if (n === 0 || (isBetween((n % 100), 2, 10))) {
           return 'few';
-        if ((isBetween((n % 100), 11, 19)))
+        }
+        if ((isBetween((n % 100), 11, 19))) {
           return 'many';
-        if (n == 1)
+        }
+        if (n == 1) {
           return 'one';
+        }
         return 'other';
       },
       '16': function(n) {
-        if ((n % 10) == 1 && n != 11)
+        if ((n % 10) == 1 && n != 11) {
           return 'one';
+        }
         return 'other';
       },
       '17': function(n) {
-        if (n == 3)
+        if (n == 3) {
           return 'few';
-        if (n === 0)
+        }
+        if (n === 0) {
           return 'zero';
-        if (n == 6)
+        }
+        if (n == 6) {
           return 'many';
-        if (n == 2)
+        }
+        if (n == 2) {
           return 'two';
-        if (n == 1)
+        }
+        if (n == 1) {
           return 'one';
+        }
         return 'other';
       },
       '18': function(n) {
-        if (n === 0)
+        if (n === 0) {
           return 'zero';
-        if ((isBetween(n, 0, 2)) && n !== 0 && n != 2)
+        }
+        if ((isBetween(n, 0, 2)) && n !== 0 && n != 2) {
           return 'one';
+        }
         return 'other';
       },
       '19': function(n) {
-        if ((isBetween(n, 2, 10)))
+        if ((isBetween(n, 2, 10))) {
           return 'few';
-        if ((isBetween(n, 0, 1)))
+        }
+        if ((isBetween(n, 0, 1))) {
           return 'one';
+        }
         return 'other';
       },
       '20': function(n) {
@@ -848,40 +892,51 @@
             isBetween((n % 100), 10, 19) ||
             isBetween((n % 100), 70, 79) ||
             isBetween((n % 100), 90, 99)
-            ))
+            )) {
           return 'few';
-        if ((n % 1000000) === 0 && n !== 0)
+        }
+        if ((n % 1000000) === 0 && n !== 0) {
           return 'many';
-        if ((n % 10) == 2 && !isIn((n % 100), [12, 72, 92]))
+        }
+        if ((n % 10) == 2 && !isIn((n % 100), [12, 72, 92])) {
           return 'two';
-        if ((n % 10) == 1 && !isIn((n % 100), [11, 71, 91]))
+        }
+        if ((n % 10) == 1 && !isIn((n % 100), [11, 71, 91])) {
           return 'one';
+        }
         return 'other';
       },
       '21': function(n) {
-        if (n === 0)
+        if (n === 0) {
           return 'zero';
-        if (n == 1)
+        }
+        if (n == 1) {
           return 'one';
+        }
         return 'other';
       },
       '22': function(n) {
-        if ((isBetween(n, 0, 1)) || (isBetween(n, 11, 99)))
+        if ((isBetween(n, 0, 1)) || (isBetween(n, 11, 99))) {
           return 'one';
+        }
         return 'other';
       },
       '23': function(n) {
-        if ((isBetween((n % 10), 1, 2)) || (n % 20) === 0)
+        if ((isBetween((n % 10), 1, 2)) || (n % 20) === 0) {
           return 'one';
+        }
         return 'other';
       },
       '24': function(n) {
-        if ((isBetween(n, 3, 10) || isBetween(n, 13, 19)))
+        if ((isBetween(n, 3, 10) || isBetween(n, 13, 19))) {
           return 'few';
-        if (isIn(n, [2, 12]))
+        }
+        if (isIn(n, [2, 12])) {
           return 'two';
-        if (isIn(n, [1, 11]))
+        }
+        if (isIn(n, [1, 11])) {
           return 'one';
+        }
         return 'other';
       }
     };

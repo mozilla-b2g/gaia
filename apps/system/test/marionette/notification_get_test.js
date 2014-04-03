@@ -5,9 +5,6 @@ var CALENDAR_APP_MANIFEST = CALENDAR_APP + '/manifest.webapp';
 
 marionette('Notification.get():', function() {
 
-  // Disabled: bug 974734
-  return;
-
   var client = marionette.client({
     settings: {
       'ftu.manifestURL': null

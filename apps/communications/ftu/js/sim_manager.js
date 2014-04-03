@@ -1,5 +1,9 @@
-/* global UIManager, MobileOperator, Navigation, utils,
-          ConfirmDialog, SimContactsImporter */
+/* global ConfirmDialog,
+          MobileOperator,
+          Navigation,
+          SimContactsImporter,
+          UIManager,
+          utils */
 
 'use strict';
 
@@ -174,7 +178,7 @@ var SimManager = (function() {
   *   'serviceProviderLocked',
   *   'ready'.
   */
-  handleCardState: function sm_handleCardState(callback) {
+  handleCardState: function sm_handleCardState(callback, skipUnlockScreen) {
     // used to track which SIM's PIN unlock
     // screen we are currently displaying
     this._unlockingIcc = null;
@@ -184,9 +188,9 @@ var SimManager = (function() {
       this.finishCallback = callback;
     }
 
-    if (this.shouldShowUnlockScreen(this.icc0)) {
+    if (this.shouldShowUnlockScreen(this.icc0) && !skipUnlockScreen) {
       this.showUnlockScreen(this.icc0);
-    } else if (this.shouldShowUnlockScreen(this.icc1)) {
+    } else if (this.shouldShowUnlockScreen(this.icc1) && !skipUnlockScreen) {
       this.showUnlockScreen(this.icc1);
     } else if (this.shouldShowSIMInfoScreen()) {
       // reset skipped states so if we navigate back
@@ -491,6 +495,13 @@ var SimManager = (function() {
 
     UIManager.confirmNewpinInput.classList.remove('onerror');
     UIManager.confirmNewpinError.classList.add('hidden');
+
+    UIManager.pinError.classList.add('hidden');
+    UIManager.pinRetriesLeft.classList.add('hidden');
+    UIManager.pukError.classList.add('hidden');
+    UIManager.pukRetriesLeft.classList.add('hidden');
+    UIManager.xckError.classList.add('hidden');
+    UIManager.xckRetriesLeft.classList.add('hidden');
   },
 
   unlockPuk: function sm_unlockPuk(icc) {

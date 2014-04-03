@@ -1133,7 +1133,15 @@ function SmtpProber(credentials, connInfo) {
     connInfo.port, connInfo.hostname,
     {
       crypto: connInfo.crypto,
-      auth: { user: credentials.username, pass: credentials.password },
+      auth: {
+        // Someday, `null` might be a valid value, so be careful here
+        user: (credentials.outgoingUsername !== undefined ?
+               credentials.outgoingUsername :
+               credentials.username),
+        pass: (credentials.outgoingPassword !== undefined ?
+               credentials.outgoingPassword :
+               credentials.password),
+      },
       debug: exports.TEST_USE_DEBUG_MODE,
     });
 

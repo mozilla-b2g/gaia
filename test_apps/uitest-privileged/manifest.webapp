@@ -15,6 +15,7 @@
   },
   "permissions": {
     "audio-capture":{},
+    "video-capture": {},
     "contacts":{ "access": "readwrite" },
     "device-storage:music":{ "access": "readwrite" },
     "device-storage:pictures":{ "access": "readwrite" },

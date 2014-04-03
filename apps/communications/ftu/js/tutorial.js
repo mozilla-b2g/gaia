@@ -1,3 +1,9 @@
+/* global ScreenLayout,
+          TutorialSteps,
+          Utils, _,
+          UIManager,
+          WifiManager */
+/* exported Tutorial */
 'use strict';
 
 var Tutorial = {
@@ -91,6 +97,7 @@ var Tutorial = {
   },
   exit: function() {
     WifiManager.finish();
+    window.removeEventListener('hashchange', this);
     window.close();
   },
   jumpTo: function jumpTo(index) {

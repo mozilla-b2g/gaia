@@ -2,14 +2,14 @@
 
 /* exported MockCall */
 
-function MockCall(aNumber, aState) {
+function MockCall(aNumber, aState, aServiceId) {
   this._eventListeners = {
     'statechange': [],
     'disconnected': []
   };
 
   this.number = aNumber;
-  this.serviceId = 1;
+  this.serviceId = (aServiceId === undefined) ? 1 : aServiceId;
   this.state = aState;
 
   this.answer = function() {};

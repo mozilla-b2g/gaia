@@ -61,7 +61,7 @@ var MockCallScreen = {
   stopTicker: function(node) {
     this.mCalledStopTicker = true;
   },
-  updateSingleLine: function() {
+  updateCallsDisplay: function() {
     this.mUpdateSingleLineCalled = true;
   },
   removeCall: function() {
@@ -91,6 +91,7 @@ var MockCallScreen = {
   screen: document.createElement('div'),
   incomingContainer: document.createElement('div'),
   incomingNumber: document.createElement('div'),
+  incomingSim: document.createElement('div'),
   incomingNumberAdditionalInfo: document.createElement('span'),
 
   mEnableKeypadCalled: false,

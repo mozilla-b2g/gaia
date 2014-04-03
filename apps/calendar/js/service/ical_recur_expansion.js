@@ -1,3 +1,5 @@
+'use strict';
+
 Calendar.ns('Service').IcalRecurExpansion = {
 
   /**
@@ -82,8 +84,9 @@ Calendar.ns('Service').IcalRecurExpansion = {
     do {
       current = iterator.next();
 
-      if (!current)
+      if (!current) {
         break;
+      }
 
       if (!min || current.compare(min) > 0) {
         // sent should be inside the loop to guard against

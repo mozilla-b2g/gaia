@@ -3,6 +3,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+from marionette.errors import StaleElementException
+from marionette.wait import Wait
 from gaiatest.apps.base import Base
 
 
@@ -12,7 +14,6 @@ class Persona(Base):
     _persona_frame_locator = (By.CSS_SELECTOR, "iframe.screen[data-url*='persona.org/sign_in#NATIVE']")
 
     # persona login
-    _body_loading_locator = (By.CSS_SELECTOR, 'body.loading')
     _email_input_locator = (By.ID, 'authentication_email')
     _password_input_locator = (By.ID, 'authentication_password')
     _continue_button_locator = (By.CSS_SELECTOR, '.continue.right')
@@ -22,7 +23,6 @@ class Persona(Base):
         Base.__init__(self, marionette)
 
     def login(self, email, password):
-
         # This only supports logging in with a known user and no existing session
         self.type_email(email)
         self.tap_continue()
@@ -36,7 +36,10 @@ class Persona(Base):
 
     def wait_for_persona_to_load(self):
         # Wait a bit more because it's an external resource that's loading
-        self.wait_for_element_not_displayed(*self._body_loading_locator, timeout=30)
+        body_locator = (By.TAG_NAME, 'body')
+        Wait(self.marionette, timeout=30, ignored_exceptions=StaleElementException).until(
+            lambda m: m.find_element(*body_locator).is_displayed()
+            and 'loading' not in m.find_element(*body_locator).get_attribute('class'))
 
     def switch_to_persona_frame(self):
         self.marionette.switch_to_frame()

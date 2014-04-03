@@ -37,6 +37,16 @@ suite('browser class > ', function() {
     });
   });
 
+  test('set parent app manifestURL', function() {
+    var b = new BrowserFrame({
+      url: 'fake',
+      parentApp: 'fake.parent.app/manifest.webapp'
+    });
+
+    assert.equal(b.element.getAttribute('parentapp'),
+      'fake.parent.app/manifest.webapp');
+  });
+
   test('expect system message', function() {
     var b = new BrowserFrame({
       url: window.location.protocol + '//' + 'other.gaiamobile.org',

@@ -1,15 +1,17 @@
 (function() {
 
   'use strict';
+  /* global eme, Provider, Search */
 
   var ANNOTATION_REGEX = /\[(.+?)\]/g;
+
   function deannotate(match, p1) {
     return p1;
-  };
+  }
 
   function getSuggestionText(item) {
     return item.replace(ANNOTATION_REGEX, deannotate);
-  };
+  }
 
   function Suggestions(eme) {
   }
@@ -54,7 +56,6 @@
 
     render: function(input, items) {
       var ul = document.createElement('ul');
-      var results = [];
 
       items.forEach(function each(item) {
         var text = getSuggestionText(item);

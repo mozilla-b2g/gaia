@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockFbContacts */
+
 var MockFbContactsObj = function(result, inError) {
   this.mResult = result;
   this.inError = inError;

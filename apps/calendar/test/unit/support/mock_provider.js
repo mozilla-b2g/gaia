@@ -1,11 +1,10 @@
 Calendar.ns('Provider').Mock = (function() {
+  'use strict';
 
   var Parent = Calendar.Provider.Abstract;
 
   function accountGeneric(mockName) {
     return function(account, callback) {
-      var result;
-
       // next tick is scheduled before _resolveStage intentionally
       Calendar.nextTick(function() {
         callback.apply(
@@ -13,7 +12,7 @@ Calendar.ns('Provider').Mock = (function() {
           this._resolveStaged(mockName, account) || [null, {}]
         );
       }.bind(this));
-    }
+    };
   }
 
   function accountStaging(mockName) {
@@ -26,7 +25,7 @@ Calendar.ns('Provider').Mock = (function() {
       }
 
       return this._stage(mockName, matcher, args);
-    }
+    };
   }
 
   var stageEvents = {
@@ -165,8 +164,6 @@ Calendar.ns('Provider').Mock = (function() {
     getAccount: accountGeneric('getAccount'),
 
     syncEvents: function(account, calendar, callback) {
-      var err;
-
       // first so this tick is scheduled first
       Calendar.nextTick(function() {
         callback(

@@ -1,3 +1,5 @@
+'use strict';
+
 var MockSimContactsImporter = function(n) {
   this.number = n || 0;
 };

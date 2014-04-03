@@ -8,6 +8,7 @@ from gaiatest.apps.base import Base
 
 class UserMediaPage(Base):    
     _audio_button_locator = (By.CSS_SELECTOR, 'button[data-type="startAudioButton"]')
+    _video_button_locator = (By.CSS_SELECTOR, 'button[data-type="startVideoButton"]')
 
     _frame_locator = (By.CSS_SELECTOR, "#test-iframe[src*='getusermedia']")
 
@@ -19,3 +20,7 @@ class UserMediaPage(Base):
     def tap_audio1_button(self):
         self.wait_for_element_displayed(*self._audio_button_locator)
         self.marionette.find_element(*self._audio_button_locator).tap()
+
+    def tap_video1_button(self):
+        self.wait_for_element_displayed(*self._video_button_locator)
+        self.marionette.find_element(*self._video_button_locator).tap()

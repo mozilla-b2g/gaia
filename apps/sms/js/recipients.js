@@ -1089,7 +1089,7 @@
                 response.isConfirmed = true;
                 handler();
               },
-              position: 'left'
+              className: 'danger'
             }
           }
         });

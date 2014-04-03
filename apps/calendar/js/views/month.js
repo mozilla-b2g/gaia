@@ -1,6 +1,6 @@
 Calendar.ns('Views').Month = (function() {
+  'use strict';
 
-  var template = Calendar.Templates.Month;
   var Calc = Calendar.Calc;
   var Parent = Calendar.Views.TimeParent;
 
@@ -59,9 +59,7 @@ Calendar.ns('Views').Month = (function() {
     },
 
     _initEvents: function() {
-      var self = this;
       this.controller = this.app.timeController;
-
 
       Parent.prototype._initEvents.apply(this, arguments);
 

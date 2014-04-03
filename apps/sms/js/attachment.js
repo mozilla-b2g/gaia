@@ -77,7 +77,11 @@
       // as soon as the image width and height are known, the container can be
       // extended up to 120px, either horizontally or vertically.
       var img = new Image();
-      img.src = window.URL.createObjectURL(this.blob);
+      img.src = Utils.getDownsamplingSrcUrl({
+        url: window.URL.createObjectURL(this.blob),
+        size: this.blob.size,
+        type: 'thumbnail'
+      });
       img.onload = function onBlobLoaded() {
         window.URL.revokeObjectURL(img.src);
 
@@ -241,10 +245,9 @@
       activity.onerror = function() {
         var _ = navigator.mozL10n.get;
         console.error('error with open activity', this.error.name);
-        if (this.error.name === 'ActivityCanceled') {
-          return;
+        if (this.error.name === 'NO_PROVIDER') {
+          alert(_('attachmentOpenError'));
         }
-        alert(_('attachmentOpenError'));
       };
     }
   };

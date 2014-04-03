@@ -34,7 +34,7 @@
       case 'touchstart':
         sendTouchEvent(iframe, e);
 
-        touch = e.changedTouches[0];
+        touch = e.touches[0];
         this._startX = touch.clientX;
         this._startY = touch.clientY;
         this._shouldTap = true;
@@ -103,7 +103,8 @@
 
   function unsynthetizeEvent(e) {
     var type = e.type;
-    var relevantTouches = (type == 'touchmove') ? e.touches : e.changedTouches;
+    var relevantTouches = (e.type === 'touchend') ?
+                            e.changedTouches : e.touches;
     var identifiers = [];
     var xs = [];
     var ys = [];

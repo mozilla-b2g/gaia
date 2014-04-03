@@ -3,10 +3,11 @@ requireApp('calendar/shared/js/gesture_detector.js');
 requireLib('timespan.js');
 
 suiteGroup('Views.Day', function() {
+  'use strict';
+
   var subject,
       app,
       controller,
-      busytimes,
       triggerEvent;
 
   suiteSetup(function() {

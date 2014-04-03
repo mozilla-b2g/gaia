@@ -1,4 +1,6 @@
 suiteGroup('Templates.Week', function() {
+  'use strict';
+
   var subject;
 
   suiteSetup(function() {

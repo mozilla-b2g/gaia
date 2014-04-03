@@ -11,12 +11,15 @@ How to:
   prompt1.show();
 */
 
+'use strict';
+/* exported ValueSelector */
+
 function ValueSelector(list) {
   var data, el, select;
   var self = this;
 
   function init() {
-    var strPopup, body, section;
+    var strPopup, body;
 
     // Model. By having dummy data in the model,
     // it make it easier for othe developers to catch up to speed

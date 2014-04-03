@@ -10,7 +10,7 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
 
 #search-title {
     position: absolute;
-    top: 0rem;
+    top: 0;
     left: 1.3rem;
     right: 4rem;
     color: #fff;
@@ -21,7 +21,6 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
     font-weight: 600;
     text-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, 1), 0 0.1rem 0.1rem #000;
     cursor: pointer;
-    overflow: hidden;
     visibility: visible;
     white-space: nowrap;
     overflow: hidden;
@@ -32,7 +31,7 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
         font-weight: inherit;
     }
 #search-title.close {
-    display: none;
+    visibility: hidden;
 }
     #search-title .query {
         position: relative;
@@ -68,14 +67,9 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
 #helper-rapper.animate:not(.anim-disabled) {
     transition: all .3s ease;
 }
-#helper-rapper.close {
-    transform: scale(0, 0);
-    right: 1.2rem;
-    display: none;
+#helper-rapper.close, #helper-rapper.close ul {
+    visibility: hidden;
 }
-    #helper-rapper.close ul {
-        display: none;
-    }
 
     #helper-tip {
         position: absolute;
@@ -99,7 +93,6 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
         transform: rotate(45deg);
         box-shadow: -0.4rem -0.4rem 0.4rem -0.2rem rgba(0, 0, 0, .4);
     }
-
 #helper {
     position: absolute;
     top: 0;
@@ -109,8 +102,7 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
     margin-bottom: -30%; /* gets rid of the scrollbar */
     overflow: hidden;
 }
-#helper.empty {
-}
+
 #helper.animate {
     transition: transform .4s ease;
 }
@@ -212,7 +204,7 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
         }
 
 #save-search {
-    display: none;
+    visibility: hidden;
     position: absolute;
     right: 0.65rem;
     top: -0.4rem;
@@ -222,7 +214,7 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
     background-size: 3rem 3rem;
 }
 #search-title.visible ~ #save-search {
-    display: block;
+    visibility: visible;
 }
 #save-search[data-saved-as-collection='true'] {
     background-image: url('/everything.me/images/bookmarked.png');

@@ -5,7 +5,7 @@
 from marionette.by import By
 from gaiatest.apps.base import Base
 from gaiatest.apps.homescreen.app import Homescreen
-
+from gaiatest.apps.emergency_call.app import EmergencyCall
 
 class PasscodePad(Base):
 
@@ -29,9 +29,5 @@ class PasscodePad(Base):
 
     def tap_emergency_call(self):
         self.marionette.find_element(*self._emergency_button_locator).tap()
-
-        from gaiatest.apps.system.regions.emergency_call import EmergencyCallScreen
-        emergency_screen = EmergencyCallScreen(self.marionette)
-        emergency_screen.switch_to_emergency_call_screen()
-
-        return emergency_screen
+        emergency_call = EmergencyCall(self.marionette)
+        return emergency_call

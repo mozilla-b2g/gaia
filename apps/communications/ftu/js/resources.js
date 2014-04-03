@@ -1,3 +1,4 @@
+/* exported Resources */
 'use strict';
 
 var Resources = {

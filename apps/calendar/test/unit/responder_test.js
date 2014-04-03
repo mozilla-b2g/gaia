@@ -7,6 +7,8 @@
 requireApp('calendar/test/unit/helper.js');
 
 suite('responder', function() {
+  'use strict';
+
   var subject;
 
   setup(function() {
@@ -49,12 +51,12 @@ suite('responder', function() {
       subject.emit('bar', 1, 2);
 
       assert.deepEqual(
-        events['foo'],
+        events.foo,
         [[1], [1]]
       );
 
       assert.deepEqual(
-        events['bar'],
+        events.bar,
         [[1, 2]]
       );
     });

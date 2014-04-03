@@ -36,13 +36,25 @@
 #attention-screen > iframe {
   border: 0;
   width: 100%;
-  /* we have the 2rem status bar on top */
-  height: calc(100% - 2rem);
-  margin-top: 2rem;
+  /* we have the 2.4rem status bar on top */
+  height: calc(100% - 2.4rem);
+  margin-top: 2.4rem;
   background-color: transparent;
   position: absolute;
   top: 0;
   left: 0;
+}
+
+@media not all and (-moz-physical-home-button) {
+  #screen:not(.software-button-disabled) #attention-screen:not(.status-mode) {
+    height: calc(100% - 5rem);
+    bottom: 5rem;
+  }
+}
+
+#screen.software-button-enabled #attention-screen:not(.status-mode) {
+  height: calc(100% - 5rem);
+  bottom: 5rem;
 }
 
 #attention-screen > #attention-bar {
