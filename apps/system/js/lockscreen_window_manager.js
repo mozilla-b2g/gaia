@@ -143,7 +143,7 @@
    */
   LockScreenWindowManager.prototype.startObserveSettings =
     function lwm_startObserveSettings() {
-      var listener = (val) => {
+      var enabledListener = (val) => {
         if ('false' === val ||
             false   === val) {
           this.states.enabled = false;
@@ -153,8 +153,19 @@
         }
       };
 
+      // FIXME(ggp) this is currently used by Find My Device
+      // to force locking. Should be replaced by a proper
+      // IAC API in the future.
+      var lockListener = (val) => {
+        if (true === val) {
+          this.openApp();
+        }
+      };
+
       window.SettingsListener.observe('lockscreen.enabled',
-          true, listener);
+          true, enabledListener);
+      window.SettingsListener.observe('lockscreen.lock-immediately',
+          false, lockListener);
     };
 
   /**

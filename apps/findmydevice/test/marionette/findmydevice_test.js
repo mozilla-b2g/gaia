@@ -23,15 +23,6 @@ marionette('Find My Device lock >', function() {
   });
 
   test('Lock the screen through the test app', function() {
-    client.switchToFrame();
-    client.executeScript(function() {
-      // XXX: only for fixing this test.
-      window.wrappedJSObject.lockScreenWindowManager.states.enabled = true;
-      window.wrappedJSObject.lockScreenWindowManager.openApp();
-      window.wrappedJSObject.lockScreenWindowManager.closeApp(true);
-      window.wrappedJSObject.lockScreenWindowManager.states.enabled = false;
-    });
-    client.apps.switchToApp(FINDMYDEVICE_TEST_APP);
     var messageText = 'This phone is lost.';
     var messageInput = client.findElement('input[name="message"]');
     messageInput.sendKeys(messageText);
@@ -44,13 +35,6 @@ marionette('Find My Device lock >', function() {
     lockButton.click();
 
     client.switchToFrame();
-    client.waitFor(function() {
-      return client.settings.get('lockscreen.enabled', true);
-    });
-    client.executeScript(function() {
-      // XXX: only for fixing this test.
-      window.wrappedJSObject.lockScreenWindowManager.openApp();
-    });
     var lockscreen = client.findElement('#lockscreen');
     client.waitFor(function() {
       return lockscreen.displayed();
