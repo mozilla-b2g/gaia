@@ -298,13 +298,13 @@
       });
     },
 
-    // Default image size limitation is set to 300KB for MMS user story.
-    // If limit is not given or bigger than default 300KB, default value need
+    // Default image size limitation is set to 295KB for MMS user story.
+    // If limit is not given or bigger than default 295KB, default value need
     // to be applied here for size checking. Parameters could be:
-    // (blob, callback) : Resizing image to default limit 300k.
+    // (blob, callback) : Resizing image to default limit 295k.
     // (blob, limit, callback) : Resizing image to given limitation.
     getResizedImgBlob: function ut_getResizedImgBlob(blob, limit, callback) {
-      var defaultLimit = 300 * 1024;
+      var defaultLimit = 295 * 1024;
       if (typeof limit === 'function') {
         callback = limit;
         limit = defaultLimit;

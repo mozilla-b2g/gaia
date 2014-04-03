@@ -14,7 +14,7 @@ suite('Message App settings Unit-Test', function() {
   var nativeSettings = navigator.mozSettings;
   teardown(function() {
     navigator.mozSettings = nativeSettings;
-    Settings.mmsSizeLimitation = 300 * 1024;
+    Settings.mmsSizeLimitation = 295 * 1024;
   });
 
   suite('Init fetches settings', function() {
@@ -60,13 +60,16 @@ suite('Message App settings Unit-Test', function() {
         var lock = navigator.mozSettings.createLock.returnValues[0];
         assert.equal(lock.get.returnValues.length, 1);
 
+        var setting = 500 * 1024;
+        var expected = setting - 5 * 1024;
+
         var req = lock.get.returnValues[0];
         req.result = {
-          'dom.mms.operatorSizeLimitation': 512000
+          'dom.mms.operatorSizeLimitation': setting
         };
         req.onsuccess();
 
-        assert.equal(Settings.mmsSizeLimitation, 500 * 1024);
+        assert.equal(Settings.mmsSizeLimitation, expected);
       });
 
       test('Query mmsServiceId with settings exist(ID=0)', function() {
