@@ -1,3 +1,7 @@
+/* exported MockCustomDialog */
+
+'use strict';
+
 var MockCustomDialog = {
   show: function(title, msg, cancel, confirm) {
     this.mShown = true;

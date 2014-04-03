@@ -650,7 +650,7 @@ var KeypadManager = {
     }
     var transaction = settings.createLock();
     var request = transaction.get('ril.iccInfo.mbdn');
-    request.onsuccess = function() {
+    request.onsuccess = (function() {
       var numbers = request.result['ril.iccInfo.mbdn'];
       var number;
       if (typeof numbers == 'string') {
@@ -664,11 +664,53 @@ var KeypadManager = {
       }
       if (number) {
         CallHandler.call(number, cardIndex);
+      } else {
+        this._showNoVoicemailDialog();
       }
-      // TODO: Bug 881178 - [Dialer] Invite the user to go set a voicemail
-      // number in the setting app.
-    };
+    }).bind(this);
     request.onerror = function() {};
+  },
+
+  _showNoVoicemailDialog: function hk_showNoVoicemailDialog() {
+    var _ = window.navigator.mozL10n.get;
+
+    var voicemailDialog = {
+      title: _('voicemailNoNumberTitle'),
+      text: _('voicemailNoNumberText'),
+      confirm: {
+        title: _('voicemailNoNumberSettings'),
+        recommend: true,
+        callback: this.showVoicemailSettings
+      },
+      cancel: {
+        title: _('voicemailNoNumberCancel'),
+        callback: this._hideNoVoicemailDialog
+      }
+    };
+
+    LazyLoader.load(['/shared/js/custom_dialog.js'], function() {
+      CustomDialog.show(
+        voicemailDialog.title, voicemailDialog.text,
+        voicemailDialog.cancel, voicemailDialog.confirm);
+    });
+  },
+
+  _hideNoVoicemailDialog: function kh_hideNoVoicemailDialog() {
+    CustomDialog.hide();
+  },
+
+  showVoicemailSettings: function kh_showVoicemailSettings() {
+    var activity = new window.MozActivity({
+      name: 'configure',
+      data: {
+        target: 'device',
+        section: 'call'
+      }
+    });
+
+    activity.onerror = function() {
+      console.warn('Configure activity error:', activity.error.name);
+    };
   },
 
   _observePreferences: function kh_observePreferences() {
