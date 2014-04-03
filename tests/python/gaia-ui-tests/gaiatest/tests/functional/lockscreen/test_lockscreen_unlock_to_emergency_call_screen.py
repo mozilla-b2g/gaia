@@ -15,6 +15,7 @@ class TestLockScreen(GaiaTestCase):
         #set passcode-lock
         self.data_layer.set_setting('lockscreen.passcode-lock.code', self._input_passcode)
         self.data_layer.set_setting('lockscreen.passcode-lock.enabled', True)
+
         # this time we need it locked!
         self.device.lock()
 

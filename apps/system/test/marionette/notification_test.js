@@ -9,34 +9,21 @@ marionette('notification tests', function() {
   var notificationList = new NotificationList(client);
 
   test('fire notification', function() {
-    // Need to trigger LockScreenWindow manager with screenchange event.
-    client.executeScript(function(enabled) {
-      window.wrappedJSObject.ScreenManager.turnScreenOff(true);
-      window.wrappedJSObject.ScreenManager.turnScreenOn(true);
-    });
     var details = {tag: 'test tag',
                    title: 'test title',
                    body: 'test body',
                    dir: 'rtl',
                    lang: 'en'};
-    //console.log(client.screenshot());
     var notify = new NotificationTest(client, details);
     notificationList.refresh();
     assert.ok(notificationList.contains(details),
               'Utility notification notification contains all fields');
     notificationList.refreshLockScreen();
     assert.ok(notificationList.containsLockScreen(details),
-              'Lock screen notification contains all fields: ' +
-               JSON.stringify(notificationList.lockScreenNotifications));
-              // Would be empty array...
+              'Lock screen notification contains all fields');
   });
 
   test('system replace notification', function() {
-    // Need to trigger LockScreenWindow manager with screenchange event
-    client.executeScript(function(enabled) {
-      window.wrappedJSObject.ScreenManager.turnScreenOff(true);
-      window.wrappedJSObject.ScreenManager.turnScreenOn(true);
-    });
     var oldDetails = {tag: 'test tag, replace',
                       title: 'test title, replace',
                       body: 'test body, replace',
@@ -74,10 +61,6 @@ marionette('notification tests', function() {
   });
 
   test('close notification', function() {
-    client.executeScript(function(enabled) {
-      window.wrappedJSObject.ScreenManager.turnScreenOff(true);
-      window.wrappedJSObject.ScreenManager.turnScreenOn(true);
-    });
     var details = {tag: 'test tag, close',
                    title: 'test title, close',
                    body: 'test body, close'};

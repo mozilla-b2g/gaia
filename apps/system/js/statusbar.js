@@ -283,11 +283,8 @@ var StatusBar = {
 
       case 'lock':
         // Hide the clock in the statusbar when screen is locked
-        //
-        // It seems no need to detect the locked value because
-        // when the lockscreen lock itself, the value must be true,
-        // or we have some bugs.
-        this.toggleTimeLabel(false);
+        this.toggleTimeLabel(!window.lockScreen ||
+            !window.lockScreen.locked);
         break;
 
       case 'unlock':
@@ -296,13 +293,15 @@ var StatusBar = {
         break;
 
       case 'attentionscreenshow':
+        // Display the clock in the statusbar when screen is unlocked
         this.toggleTimeLabel(true);
         this.show();
         break;
 
       case 'attentionscreenhide':
         // Hide the clock in the statusbar when screen is locked
-        this.toggleTimeLabel(!this.isLocked());
+        this.toggleTimeLabel(!window.lockScreen ||
+            !window.lockScreen.locked);
         var app = AppWindowManager.getActiveApp();
         if (app && app.isFullScreen()) {
           this.hide();
@@ -382,10 +381,6 @@ var StatusBar = {
           // part.
           this.toggleTimeLabel(false);
           this.toggleTimeLabel(true);
-
-          // But we still need to consider if we're locked. So may we need to
-          // hide it again.
-          this.toggleTimeLabel(!this.isLocked());
         }).bind(this));
         break;
 
@@ -575,7 +570,9 @@ var StatusBar = {
       window.addEventListener('moznetworkdownload', this);
 
       this.refreshCallListener();
-      this.toggleTimeLabel(!this.isLocked());
+
+      this.toggleTimeLabel(!window.lockScreen ||
+          !window.lockScreen.locked);
     } else {
       var battery = window.navigator.battery;
       if (battery) {
@@ -598,6 +595,7 @@ var StatusBar = {
       window.removeEventListener('moznetworkdownload', this);
 
       this.removeCallListener();
+
       // Always prevent the clock from refreshing itself when the screen is off
       this.toggleTimeLabel(false);
     }
@@ -1142,12 +1140,6 @@ var StatusBar = {
     this.screen = document.getElementById('screen');
     this.attentionBar = document.getElementById('attention-bar');
     this.topPanel = document.getElementById('top-panel');
-  },
-
-  // To reduce the duplicated code
-  isLocked: function() {
-    return 'undefined' !== typeof window.lockScreen &&
-      window.lockScreen.locked;
   }
 };
 
