@@ -43,7 +43,7 @@ module.exports = View.extend({
       '<div class="controls-left">' +
         '<div class="controls-button controls-gallery-button test-gallery icon-gallery js-btn rotates" name="gallery"></div>' +
         '<div class="controls-button controls-thumbnail-button test-thumbnail js-thumbnail js-btn rotates" name="thumbnail"></div>' +
-        '<div class="controls-button controls-cancel-pick-button test-cancel-pick icon-cancel js-btn" name="cancel">×</div>' +
+        '<div class="controls-button controls-cancel-pick-button test-cancel-pick icon-pick-cancel js-btn rotates" name="cancel"></div>' +
       '</div>' +
       '<div class="controls-middle">' +
         '<div class="capture-button test-capture js-btn rotates" name="capture">' +
