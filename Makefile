@@ -459,8 +459,6 @@ define get-build-config
 	"SETTINGS_PATH" : "$(SETTINGS_PATH)", \
 	"KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)", \
 	"STAGE_DIR" : "$(STAGE_DIR)", \
-	"STAGE_APP_DIR" : "$(1)", \
-	"APP_DIR" : "$(GAIA_DIR)/$(2)", \
 	"VARIANT_PATH" : "$(VARIANT_PATH)" \
 }
 endef
@@ -502,10 +500,8 @@ $(1): $($(notdir $(2))_APP_FILES) $(XULRUNNER_BASE_DIRECTORY) | $(STAGE_DIR)
 	fi;
 endef
 
-BUILD_STAGE_APPS := $(foreach appdir,$(GAIA_APPDIRS),$(STAGE_DIR)$(SEP)$(notdir $(appdir)))
-
 # Generate profile/
-$(PROFILE_FOLDER): preferences $(BUILD_STAGE_APPS) keyboard-layouts copy-build-stage-manifest test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences app-makefiles keyboard-layouts copy-build-stage-manifest test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -517,16 +513,28 @@ test-agent-bootstrap: $(XULRUNNER_BASE_DIRECTORY)
 $(STAGE_DIR):
 	mkdir -p $@
 
-$(foreach appdir,$(GAIA_APPDIRS), \
-	$(eval $(call app-makefile-template,$(STAGE_DIR)$(SEP)$(notdir $(appdir)),$(appdir))) \
-)
-
-# Keyboard app needs keyboard_layouts.json from |keyboard-layouts|
-$(STAGE_DIR)$(SEP)keyboard: keyboard-layouts
-
-# Homescreen app needs webapps-mapping.json from |webapp-manifests| and
-# singlevariantconf.json from |svoperapps|
-$(STAGE_DIR)$(SEP)homescreen: webapp-manifests svoperapps
+.PHONY: app-makefiles
+app-makefiles: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts webapp-manifests svoperapps | $(STAGE_DIR)
+	@for appdir in $(GAIA_APPDIRS); \
+	do \
+		APP="`basename $$appdir`"; \
+    if [[ ("$$appdir" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
+    	if [ -r "$$appdir/Makefile" ]; then \
+    		echo "execute Makefile for $$APP app" ; \
+    		STAGE_APP_DIR="../../build_stage/$$APP" make -C "$$appdir" ; \
+    	else \
+    		echo "copy $$APP to build_stage/" ; \
+    		rm -rf "$(STAGE_DIR)/$$APP" && \
+    		cp -r "$$appdir" $(STAGE_DIR) && \
+    		if [ -r "$$appdir/build/build.js" ]; then \
+    			echo "execute $$APP/build/build.js"; \
+    			export APP_DIR=$$appdir; \
+    			$(call run-js-command,app/build); \
+    		fi; \
+    	fi && \
+    	$(call clean-build-files,$(STAGE_DIR)/$$APP); \
+    fi; \
+  done
 
 svoperapps: $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,svoperapps)
@@ -537,17 +545,17 @@ LANG=POSIX # Avoiding sort order differences between OSes
 # We duplicate manifest.webapp to manifest.webapp and manifest.json
 # to accommodate Gecko builds without bug 757613. Should be removed someday.
 #
-# We depend on $(BUILD_STAGE_APPS) so that per-app Makefiles could modify the manifest
+# We depend on app-makefiles so that per-app Makefiles could modify the manifest
 # as part of their build step.  None currently do this, and webapp-manifests.js
 # would likely want to change to see if the build directory includes a manifest
-# in that case.  Right now this is just making sure we don't race $(BUILD_STAGE_APPS)
+# in that case.  Right now this is just making sure we don't race app-makefiles
 # in case someone does decide to get fancy.
 webapp-manifests: $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,webapp-manifests)
 
 .PHONY: webapp-zip
 # Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-webapp-zip: webapp-optimize $(BUILD_STAGE_APPS) keyboard-layouts $(XULRUNNER_BASE_DIRECTORY)
+webapp-zip: webapp-optimize app-makefiles keyboard-layouts $(XULRUNNER_BASE_DIRECTORY)
 ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command,webapp-zip)
@@ -556,8 +564,8 @@ endif
 .PHONY: webapp-optimize
 # Web app optimization steps (like precompling l10n, concatenating js files, etc..).
 # You need xulrunner ($(XULRUNNER_BASE_DIRECTORY)) to do this, and you need the app
-# to have been built ($(BUILD_STAGE_APPS)).
-webapp-optimize: $(BUILD_STAGE_APPS) $(XULRUNNER_BASE_DIRECTORY)
+# to have been built (app-makefiles).
+webapp-optimize: app-makefiles $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,webapp-optimize)
 
 .PHONY: optimize-clean
@@ -595,7 +603,7 @@ endif
 endif
 
 # Create webapps
-offline: $(BUILD_STAGE_APPS) optimize-clean
+offline: app-makefiles optimize-clean
 
 # Create an empty reference workload
 .PHONY: reference-workload-empty
@@ -799,7 +807,7 @@ test-perf:
 	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" ./bin/gaia-perf-marionette
 
 .PHONY: tests
-tests: $(BUILD_STAGE_APPS) offline
+tests: app-makefiles offline
 	echo "Checking if the mozilla build has tests enabled..."
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."
@@ -1068,7 +1076,7 @@ adb-remount:
 # Generally we got manifest from webapp-manifest.js unless manifest is generated
 # from Makefile of app. so we will copy manifest.webapp if it's avaiable in
 # build_stage/
-copy-build-stage-manifest: $(BUILD_STAGE_APPS)
+copy-build-stage-manifest: app-makefiles
 	@$(call run-js-command,copy-build-stage-manifest)
 
 build-test-unit: $(NPM_INSTALLED_PROGRAMS)
