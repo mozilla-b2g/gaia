@@ -158,13 +158,13 @@ var StatusBar = {
   },
 
   expand: function sb_expand() {
+    this.element.classList.add('expanded');
     this.background.classList.add('expanded');
-    this.statusbarIcons.classList.add('hidden');
   },
 
   collapse: function sb_collapse() {
+    this.element.classList.remove('expanded');
     this.background.classList.remove('expanded');
-    this.statusbarIcons.classList.remove('hidden');
   },
 
   init: function sb_init() {
@@ -217,8 +217,13 @@ var StatusBar = {
 
     window.addEventListener('utilitytrayshow', this);
     window.addEventListener('utilitytrayhide', this);
+    window.addEventListener('home', this);
+    window.addEventListener('homescreenopened', this);
+    window.addEventListener('homescreenclosing', this);
     window.addEventListener('rocketbarexpand', this);
     window.addEventListener('rocketbarcollapse', this);
+    window.addEventListener('rocketbarfocus', this);
+    window.addEventListener('rocketbarblur', this);
 
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
@@ -255,7 +260,6 @@ var StatusBar = {
     window.addEventListener('lockpanelchange', this);
 
     window.addEventListener('appopened', this);
-    window.addEventListener('homescreenopened', this.show.bind(this));
 
     var touchEvents = ['touchstart', 'touchmove', 'touchend'];
     touchEvents.forEach(function bindEvents(name) {
@@ -320,12 +324,34 @@ var StatusBar = {
         }
         break;
 
+      case 'home':
+      case 'homescreenopened':
+        this.element.classList.add('on-homescreen');
+        this.background.classList.add('on-homescreen');
+        this.show();
+        break;
+
+      case 'homescreenclosing':
+        this.element.classList.remove('on-homescreen');
+        this.background.classList.remove('on-homescreen');
+        break;
+
       case 'rocketbarexpand':
         this.expand();
         break;
 
       case 'rocketbarcollapse':
         this.collapse();
+        break;
+
+      case 'rocketbarfocus':
+        this.element.classList.add('rocketbar-focused');
+        this.background.classList.add('rocketbar-focused');
+        break;
+
+      case 'rocketbarblur':
+        this.element.classList.remove('rocketbar-focused');
+        this.background.classList.remove('rocketbar-focused');
         break;
 
       case 'lockpanelchange':

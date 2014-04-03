@@ -19,6 +19,10 @@
   transform: scale(1);
 }
 
+body.rb-enabled #screen:not(.cards-view) #rocketbar.on-homescreen:not(.focused) {
+  transform: scale(1) translateY(2.4rem);  
+}
+
 #screen.locked:not(.attention) #rocketbar {
   display: none;
 }
@@ -58,7 +62,7 @@ body:not(.rb-enabled) #rocketbar {
 }
 
 *[dir=rtl] #rocketbar-title-content {
-  transform-origin: right center; 
+  transform-origin: right center;
 }
 
 #rocketbar.expanded #rocketbar-title-content {
