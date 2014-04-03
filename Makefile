@@ -468,38 +468,6 @@ export BUILD_CONFIG
 
 include build/common.mk
 
-# copy template function for each apps in build_stage, it can avoid copy again
-# if the app doesn't have any change.
-define app-makefile-template
-
-# FIXME: [bug 989918] this workaround is use to avoid crash if a file include
-# colon in its filename.
-ifneq (,$(shell find $(2) -name "*:*"))
-$(eval $(notdir $(2))_APP_FILES =)
-.PHONY: $(1)
-else
-$(eval $(notdir $(2))_APP_FILES = $(call rwildcard,$(2),*))
-endif
-
-$(1): $($(notdir $(2))_APP_FILES) $(XULRUNNER_BASE_DIRECTORY) | $(STAGE_DIR)
-	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
-		if [ -r "$(2)/Makefile" ]; then \
-			echo "execute Makefile for $(notdir $(2)) app" ; \
-			STAGE_APP_DIR="../../build_stage/$(notdir $(2))" make -C "$(2)" ; \
-		else \
-			echo "copy $(notdir $(2)) to build_stage/" ; \
-			rm -rf "$(STAGE_DIR)/$(notdir $(2))" && \
-			cp -r "$(2)" $(STAGE_DIR) && \
-			if [ -r "$(2)/build/build.js" ]; then \
-				echo "execute $(notdir $(2))/build/build.js"; \
-				export APP_DIR=$(2); \
-				$(call run-js-command,app/build); \
-			fi; \
-		fi && \
-		$(call clean-build-files,$(STAGE_DIR)/$(notdir $(2))); \
-	fi;
-endef
-
 # Generate profile/
 $(PROFILE_FOLDER): preferences app-makefiles keyboard-layouts copy-build-stage-manifest test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
