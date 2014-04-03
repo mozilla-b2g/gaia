@@ -1,3 +1,5 @@
+'use strict';
+
 function Server(root, port, child) {
   this.root = root;
   this.port = port;

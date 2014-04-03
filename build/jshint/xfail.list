@@ -704,8 +704,3 @@ shared/js/simple_phone_matcher.js
 shared/js/tag_visibility_monitor.js
 shared/js/visibility_monitor.js
 shared/resources/apn/query.js
-shared/test/integration/profile.js
-shared/test/integration/profile_builder.js
-shared/test/integration/server.js
-shared/test/integration/server_child.js
-shared/test/integration/setup.js
