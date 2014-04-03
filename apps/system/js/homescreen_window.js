@@ -1,3 +1,4 @@
+'use strict';
 (function(window) {
   /**
    * HomescreenWindow creates a instance of homescreen by give manifestURL.
@@ -59,7 +60,7 @@
    * @event HomescreenWindow#homescreenbackground
    */
 
-  HomescreenWindow.prototype.__proto__ = AppWindow.prototype;
+  HomescreenWindow.prototype.__proto__ = window.AppWindow.prototype;
 
   HomescreenWindow.prototype._DEBUG = false;
 
@@ -71,13 +72,13 @@
    */
   HomescreenWindow.prototype.setBrowserConfig =
     function hw_setBrowserConfig(manifestURL) {
-      var app = applications.getByManifestURL(manifestURL);
+      var app = window.applications.getByManifestURL(manifestURL);
       this.origin = app.origin;
       this.manifestURL = app.manifestURL;
       this.url = app.origin + '/index.html#root';
 
       this.browser_config =
-        new BrowserConfigHelper(this.origin, this.manifestURL);
+        new window.BrowserConfigHelper(this.origin, this.manifestURL);
 
       // Necessary for b2gperf now.
       this.name = this.browser_config.name;
@@ -159,8 +160,9 @@
 
   HomescreenWindow.prototype.toggle = function hw_toggle(visible) {
     this.ensure();
-    if (this.browser.element)
+    if (this.browser.element) {
       this.setVisible(visible);
+    }
   };
 
   // Ensure the homescreen is loaded and return its frame.  Restarts
@@ -177,5 +179,25 @@
     return this.element;
   };
 
+  /**
+   * Hide the overlay element of this window.
+   *
+   * this {HomescreenWindow}
+   * memberof HomescreenWindow
+   */
+  HomescreenWindow.prototype.hideFadeOverlay = function hw_hideFadeOverlay() {
+    this.fadeOverlay.classList.add('hidden');
+  };
+
+  /**
+   * Show the overlay element of this window.
+   *
+   * this {HomescreenWindow}
+   * memberof HomescreenWindow
+   */
+  HomescreenWindow.prototype.showFadeOverlay = function hw_showFadeOverlay() {
+    this.fadeOverlay.classList.remove('hidden');
+  };
+
   window.HomescreenWindow = HomescreenWindow;
-}(this));
+}(window));

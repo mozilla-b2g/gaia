@@ -1,4 +1,17 @@
 
+.shrinking-wrapper {
+  background-image: url('/style/shrinking_ui/images/background.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  perspective: 1rem;
+}
+
+@media screen and (orientation: landscape) {
+  .shrinking-wrapper {
+    background-image: url('/style/shrinking_ui/images/backgroundL.png');
+  }
+}
+
 #shrinking-tip {
   width: 100%;
   position: absolute;
