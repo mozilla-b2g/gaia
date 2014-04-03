@@ -33,7 +33,7 @@ suite('Settings >', function() {
   teardown(function() {
     MockNavigatorSettings.mTeardown();
     navigator.mozSettings = nativeSettings;
-    Settings.mmsSizeLimitation = 300 * 1024;
+    Settings.mmsSizeLimitation = 295 * 1024;
   });
 
   test('getSimNameByIccId returns the empty string before init', function() {
