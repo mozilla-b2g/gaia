@@ -122,8 +122,7 @@ RingView.prototype = {
     }
 
     // Vibrate if we want to shakey shakey.
-    if (alert.vibrate && alert.vibrate !== '0' &&
-        ('vibrate' in navigator)) {
+    if (alert.vibrate && ('vibrate' in navigator)) {
       clearInterval(this.vibrateInterval);
       var vibrateOnce = function() {
         navigator.vibrate([1000]);

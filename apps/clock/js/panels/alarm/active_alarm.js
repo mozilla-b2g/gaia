@@ -2,7 +2,6 @@ define(function(require) {
   'use strict';
 
   var App = require('app');
-  var AlarmManager = require('alarm_manager');
   var AlarmsDB = require('alarmsdb');
   var Timer = require('timer');
   var Utils = require('utils');
@@ -24,8 +23,6 @@ define(function(require) {
     // Handle the system's alarm event.
     navigator.mozSetMessageHandler('alarm', this.onMozAlarm.bind(this));
     window.addEventListener('test-alarm', this.onMozAlarm.bind(this));
-
-    AlarmManager.updateAlarmStatusBar();
 
     // Handle events transparently from the child window.
     PostMessageProxy.receive('activeAlarm', this);
@@ -102,27 +99,19 @@ define(function(require) {
           type: 'alarm',
           label: alarm.label,
           sound: alarm.sound,
-          vibrate: (alarm.vibrate && alarm.vibrate !== '0'),
+          vibrate: alarm.vibrate,
           time: date,
           id: alarm.id
         });
-
-        var afterSave = () => {
-          window.dispatchEvent(new CustomEvent('alarm-changed', {
-            detail: { alarm: alarm }
-          }));
-          AlarmManager.updateAlarmStatusBar();
-          done();
-        };
 
         if (type === 'normal') {
           alarm.schedule({
             type: 'normal',
             first: false
-          }, alarm.saveCallback(afterSave));
+          }, alarm.saveCallback(done));
         } else /* (type === 'snooze') */ {
           alarm.cancel('snooze');
-          alarm.save(afterSave);
+          alarm.save(done);
         }
       });
     },
@@ -139,7 +128,7 @@ define(function(require) {
           type: 'timer',
           label: timer.label,
           sound: timer.sound,
-          vibrate: (timer.vibrate && timer.vibrate !== '0'),
+          vibrate: timer.vibrate,
           time: new Date(timer.startTime + timer.duration)
         });
         done();
@@ -158,12 +147,7 @@ define(function(require) {
         }
         alarm.schedule({
           type: 'snooze'
-        }, alarm.saveCallback(function(err, alarm) {
-          window.dispatchEvent(new CustomEvent('alarm-changed', {
-            detail: { alarm: alarm }
-          }));
-          AlarmManager.updateAlarmStatusBar();
-        }));
+        }, alarm.saveCallback());
       });
     },
 

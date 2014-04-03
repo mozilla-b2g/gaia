@@ -2,7 +2,6 @@
 /* global KeyEvent */
 define(function(require) {
 var Alarm = require('alarm');
-var AlarmManager = require('alarm_manager');
 var ClockView = require('panels/alarm/clock_view');
 var AudioManager = require('audio_manager');
 var FormButton = require('form_button');
@@ -224,7 +223,7 @@ Utils.extend(AlarmEdit.prototype, {
   },
 
   handleVisibilityChange: function aev_show(evt) {
-    var isVisible = evt.isVisible;
+    var isVisible = evt.detail.isVisible;
     var alarm;
     if (!isVisible) {
       return;
@@ -309,11 +308,12 @@ Utils.extend(AlarmEdit.prototype, {
   },
 
   save: function aev_save(callback) {
-    if (this.element.dataset.id !== '') {
+    if (this.element.dataset.id && this.element.dataset.id !== '') {
       this.alarm.id = parseInt(this.element.dataset.id, 10);
     } else {
       delete this.alarm.id;
     }
+
     this.alarm.label = this.inputs.name.value;
 
     var time = this.getTimeSelect();
@@ -325,6 +325,7 @@ Utils.extend(AlarmEdit.prototype, {
     AudioManager.setAlarmVolume(this.getAlarmVolumeValue());
 
     this.alarm.cancel();
+
     this.alarm.setEnabled(true, function(err, alarm) {
       if (err) {
         callback && callback(err, alarm);
@@ -333,7 +334,6 @@ Utils.extend(AlarmEdit.prototype, {
       window.dispatchEvent(new CustomEvent('alarm-changed', {
         detail: { alarm: alarm, showBanner: true }
       }));
-      AlarmManager.updateAlarmStatusBar();
       callback && callback(null, alarm);
     });
   },
@@ -344,13 +344,7 @@ Utils.extend(AlarmEdit.prototype, {
       return;
     }
 
-    this.alarm.delete(function aev_delete(err, alarm) {
-      window.dispatchEvent(new CustomEvent('alarm-removed', {
-        detail: { alarm: alarm }
-      }));
-      AlarmManager.updateAlarmStatusBar();
-      callback && callback(err, alarm);
-    });
+    this.alarm.delete(callback);
   }
 
 });

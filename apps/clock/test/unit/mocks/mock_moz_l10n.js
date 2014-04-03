@@ -1,4 +1,4 @@
-define(function(exports) {
+define(function() {
   'use strict';
 
   function DateTimeFormat() {

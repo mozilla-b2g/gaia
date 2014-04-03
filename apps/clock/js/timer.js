@@ -50,8 +50,14 @@ Timer.prototype.constructor = Timer;
  * @param {function} [callback] - called with (err, timer_raw).
  */
 Timer.getFromStorage = function(callback) {
-  asyncStorage.getItem('active_timer', function(obj) {
-    callback && callback(obj || null);
+  asyncStorage.getItem('active_timer', function(timer) {
+    if (timer) {
+      // Normalize the timer data. Pre-April-2014 code may have stored
+      // 'vibrate' and 'sound' as the string "0".
+      timer.sound = (timer.sound !== '0' ? timer.sound : null);
+      timer.vibrate = (timer.vibrate && timer.vibrate !== '0');
+    }
+    callback && callback(timer || null);
   });
 };
 
@@ -86,15 +92,18 @@ function extractProtected(config) {
  * @return {object} - object representation of this Timer.
  */
 Timer.prototype.toSerializable = function timerToSerializable() {
-  var ret = {};
-  var props = Utils.extend({}, this, timerPrivate.get(this));
-  [
-    'startTime', 'duration', 'configuredDuration', 'sound', 'vibrate',
-    'state'
-  ].forEach(function(x) {
-    ret[x] = props[x];
-  });
-  return ret;
+  var timer = Utils.extend({}, this, timerPrivate.get(this));
+
+  // Normalize the data. TODO: Perform this normalization immediately
+  // at the getter/setter level when this class is refactored.
+  return {
+    startTime: timer.startTime,
+    duration: timer.duration,
+    configuredDuration: timer.configuredDuration,
+    sound: (timer.sound !== '0' ? timer.sound : null),
+    vibrate: (timer.vibrate !== '0' ? timer.vibrate : null),
+    state: timer.state
+  };
 };
 
 /**

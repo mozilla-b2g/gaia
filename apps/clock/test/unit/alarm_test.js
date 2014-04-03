@@ -58,6 +58,11 @@ suite('Alarm Test', function() {
           saturday: true, sunday: true
         });
       });
+
+      test('Alarm vibrate === "0"', function() {
+        var alarm = new Alarm({ vibrate: '0' });
+        assert.equal(alarm.vibrate, false);
+      });
     });
 
     suite('configuration', function() {

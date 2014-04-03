@@ -102,19 +102,20 @@ Timer.Panel = function(element) {
 
   Timer.singleton(function(err, timer) {
     this.timer = timer;
-    timer.on('end', this.dialog.bind(this));
+    timer.onend = this.dialog.bind(this);
     if (this.visible) {
       // If the timer panel already became visible before we fetched
       // the timer, we must update the display to show the proper
       // timer status.
-      this.onvisibilitychange(true);
+      this.onvisibilitychange({ detail: { isVisible: true } });
     }
   }.bind(this));
 };
 
 Timer.Panel.prototype = Object.create(Panel.prototype);
 
-Timer.Panel.prototype.onvisibilitychange = function(isVisible) {
+Timer.Panel.prototype.onvisibilitychange = function(evt) {
+  var isVisible = evt.detail.isVisible;
   var nodes = this.nodes;
   var timer = this.timer;
 

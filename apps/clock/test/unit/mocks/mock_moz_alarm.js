@@ -28,11 +28,11 @@ MockMozAlarmRequest.prototype = {
 
   init: function mar_init(config) {
     setTimeout(function() {
-      this.call(config.error, config.result);
+      this.fire(config.error, config.result);
     }.bind(this), 0);
   },
 
-  call: function mar_call(error, result) {
+  fire: function mar_call(error, result) {
     if (!error) {
       this.onsuccess && this.onsuccess({
         target: {

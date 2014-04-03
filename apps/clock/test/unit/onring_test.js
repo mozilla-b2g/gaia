@@ -21,13 +21,12 @@ suite('Ring Test', function() {
   [
     { vibrate: true, shouldVibrate: true },
     { vibrate: '1', shouldVibrate: true },
-    { vibrate: '0', shouldVibrate: false },
     { vibrate: false, shouldVibrate: false }
   ].forEach(function(testCase) {
     var { vibrate, shouldVibrate } = testCase;
 
     test('should ' + (shouldVibrate ? '' : 'not ') +
-         'vibrate when vibrate is set to ' + vibrate, function(done) {
+         'vibrate when vibrate is set to ' + vibrate, function() {
       var clock = this.sinon.useFakeTimers();
       var mock = this.sinon.mock(navigator);
       if (shouldVibrate) {
@@ -44,7 +43,7 @@ suite('Ring Test', function() {
       });
       clock.tick(5000); // vibrate starts after a setInterval
       mock.verify();
-      done();
+      mock.restore();
     });
   });
 });

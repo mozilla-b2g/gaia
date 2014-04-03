@@ -57,8 +57,11 @@ Object.defineProperties(View.prototype, {
       if (state.visible !== value) {
         state.visible = value;
 
-        var event = new CustomEvent('panel-visibilitychange');
-        event.isVisible = value;
+        var event = new CustomEvent('panel-visibilitychange', {
+          detail: {
+            isVisible: value
+          }
+        });
         this.element.dispatchEvent(event);
 
         if (!value) {

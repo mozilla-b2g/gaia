@@ -127,7 +127,7 @@ define(function(require) {
 
   Stopwatch.Panel.prototype.onvisibilitychange = function(evt) {
     var stopwatch = priv.get(this).stopwatch;
-    if (evt.isVisible) {
+    if (evt.detail.isVisible) {
       this.setState(stopwatch.getState());
     }
   };

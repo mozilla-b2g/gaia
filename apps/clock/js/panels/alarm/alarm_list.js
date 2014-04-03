@@ -29,15 +29,21 @@ function AlarmListPanel(element) {
     }
   });
 
+  // On startup, update the status bar to show whether or not we have
+  // an alarm scheduled.
+  AlarmManager.updateAlarmStatusBar();
+
   window.addEventListener('alarm-changed', (evt) => {
     var alarm = evt.detail.alarm;
     this.addOrUpdateAlarm(alarm);
     if (evt.detail.showBanner) {
       this.banner.show(alarm.getNextAlarmFireTime());
     }
+    AlarmManager.updateAlarmStatusBar();
   });
   window.addEventListener('alarm-removed', (evt) => {
     this.removeAlarm(evt.detail.alarm);
+    AlarmManager.updateAlarmStatusBar();
   });
 }
 

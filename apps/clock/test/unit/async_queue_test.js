@@ -17,12 +17,15 @@ suite('AsyncQueue', function() {
     var result = '';
     var queue = new AsyncQueue();
 
+    var clock = this.sinon.useFakeTimers();
+
     function addTask(timeout, character) {
       queue.push(function(taskFinished) {
         setTimeout(function() {
           result += character;
           taskFinished();
         }, timeout);
+        clock.tick(10);
       });
     }
 
@@ -34,8 +37,11 @@ suite('AsyncQueue', function() {
 
     queue.push(function() {
       assert.equal(result, 'hello');
+      clock.restore();
       done();
     });
+
+    clock.tick(100);
   });
 
   test('continues after queue is empty', function(done) {

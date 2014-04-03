@@ -107,7 +107,7 @@ suite('Timer.Panel', function() {
     timer.start();
     var panel = new Timer.Panel(document.createElement('div'));
     panel.timer = timer;
-    panel.onvisibilitychange(true);
+    panel.onvisibilitychange({ detail: { isVisible: true } });
 
     fakeTick(panel);
     assert.equal(panel.nodes.time.textContent, '01:00:00');
@@ -147,7 +147,7 @@ suite('Timer.Panel', function() {
 
     var panel = new Timer.Panel(document.createElement('div'));
     panel.timer = timer;
-    panel.onvisibilitychange(true);
+    panel.onvisibilitychange({ detail: { isVisible: true } });
 
     assert.isTrue(isHidden(panel.nodes.dialog));
     assert.isTrue(isHidden(panel.nodes.start));
