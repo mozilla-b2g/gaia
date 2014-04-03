@@ -30,12 +30,13 @@ class Settings(Base):
     _app_permissions_menu_item_locator = (By.ID, 'menuItem-appPermissions')
     _battery_menu_item_locator = (By.ID, 'menuItem-battery')
     _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
+    _call_settings_menu_item_locator = (By.ID, 'menuItem-callSettings')
 
     def launch(self):
         Base.launch(self)
         # _currentPanel is set after all handlers are set
         self.wait_for_condition(lambda m:
-                                m.execute_script("return window.wrappedJSObject.Settings && window.wrappedJSObject.Settings._currentPanel === '#root'"))
+            m.execute_script("return window.wrappedJSObject.Settings && window.wrappedJSObject.Settings._currentPanel === '#root'"))
 
     def wait_for_airplane_toggle_ready(self):
         checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
@@ -143,6 +144,11 @@ class Settings(Base):
         from gaiatest.apps.settings.regions.sim_manager import SimManager
         self._tap_menu_item(self._sim_manager_menu_item_locator)
         return SimManager(self.marionette)
+
+    def open_call_settings(self):
+        from gaiatest.apps.settings.regions.call_settings import CallSettings
+        self._tap_menu_item(self._call_settings_menu_item_locator)
+        return CallSettings(self.marionette)
 
     def _tap_menu_item(self, menu_item_locator):
         menu_item = self.marionette.find_element(*menu_item_locator)
