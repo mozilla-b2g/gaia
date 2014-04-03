@@ -78,6 +78,7 @@ PreviewGalleryController.prototype.openPreview = function() {
   this.view.open();
 
   this.previewItem();
+  this.app.emit('previewgallery:opened');
 };
 
 PreviewGalleryController.prototype.closePreview = function() {
@@ -194,8 +195,8 @@ PreviewGalleryController.prototype.updatePreviewGallery = function(index) {
       this.currentItemIndex = this.items.length - 1;
     }
 
-    var isPreviewOpened = this.view.isPreviewOpened();
-    if (isPreviewOpened) {
+    var isOpened = this.view ? true : false;
+    if (isOpened) {
       this.previewItem();
     }
   }
@@ -250,8 +251,6 @@ PreviewGalleryController.prototype.previewItem = function() {
   } else {
     this.view.showImage(item);
   }
-
-  this.app.emit('previewgallery:opened');
 };
 
 /**
@@ -288,10 +287,10 @@ PreviewGalleryController.prototype.onItemDeleted = function(data) {
  */
 PreviewGalleryController.prototype.onBlur = function() {
   if (this.app.inSecureMode) {
-    this.closePreview();
     this.configure();          // Forget all stored images
     this.updateThumbnail();    // Get rid of any thumbnail
   }
+  this.closePreview();
 };
 
 PreviewGalleryController.prototype.updateThumbnail = function() {

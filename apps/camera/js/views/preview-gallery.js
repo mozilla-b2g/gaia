@@ -131,10 +131,6 @@ return View.extend({
     this.frame.clear();
   },
 
-  isPreviewOpened: function() {
-    return !this.el.classList.contains('offscreen');
-  },
-
   updateCountText: function(current, total) {
     this.els.countText.textContent = current + '/' + total;
   },
