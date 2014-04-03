@@ -690,6 +690,7 @@ var pickWidth, pickHeight;
 var pickedFile;
 var cropURL;
 var cropEditor;
+var pickedFileBlob;
 
 function startPick() {
   pickType = pendingPick.source.data.type;
@@ -728,6 +729,7 @@ function cropPickedImage(fileinfo) {
 
   photodb.getFile(pickedFile.name, function(file) {
     cropURL = URL.createObjectURL(file);
+    pickedFileBlob = file
 
     var previewURL;
     var previewData = pickedFile.metadata.preview;
@@ -813,7 +815,8 @@ function cropAndEndPick() {
     photodb.getFile(pickedFile.name, endPick);
   }
   else {
-    cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight, endPick);
+    cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight,
+                                    endPick, pickedFileBlob);
   }
 }
 
