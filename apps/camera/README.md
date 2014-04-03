@@ -119,14 +119,19 @@ Our `Makefile` has two tasks, one to **'build'** and one to **'clean'** (delete 
 3. Copy all the entire `shared/` directory into our build directory. This is so that any shared dependencies that we are using are available in `build_stage/camera/shared/`, mimicking the magically resolved `/shared/` HTTP requests in development.
 4. Run the `r.js` (RequireJS optimizer), pointing it at our `require_config.jslike` file (`.jslike` because we don't want Gaia builds to mess with it [I think]). This copies our entire application (JS and all) and bundles our JS (tracing `require()` calls) and CSS (tracing `@import`) in two single files.
 
-## Old code
+## Debug messages in javascript console
 
-The are still some modules have not been reworked into the new architecture:
+- To enable debug messages for all modules
 
-- [panzoom.js](js/panzoom.js)
-- [filmstrip.js](js/filmstrip.js)
+localStorage.debug = '*'
 
-As far as I know there is nothing blocking work on aligning `confirm.js` and `panzoom.js` with our new architecture. `filmstrip.js` has been touched as little as possible as plans in `1.4` propose very different funtionality. Therefore work to refactor this module would probably be discarded as `1.4` features are implemented.
+- To enable debug messages for a particular module
+
+localStorage.debug = 'controllers:hud'
+
+- To disable debug messages:
+
+localStorage.removeItem('debug')
 
 ## Activities
 
