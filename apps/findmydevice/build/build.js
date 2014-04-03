@@ -6,9 +6,7 @@
 var utils = require('utils');
 
 function execute(config) {
-  var gaiaDir = config.GAIA_DIR;
-
-  var init = utils.getFile(gaiaDir, 'apps', 'findmydevice', 'js', 'config.js');
+  var init = utils.getFile(config.STAGE_APP_DIR, 'js', 'config.js');
   var content = {
     'api_url': 'http://ec2-54-241-87-238.us-west-1.compute.amazonaws.com',
     'api_version': '0'
