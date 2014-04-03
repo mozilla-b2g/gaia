@@ -634,13 +634,6 @@ nav[data-type="scrollbar"] ol > li > * {
   pointer-events: none;
 }
 
-nav[data-type="scrollbar"] p img {
-  position: absolute;
-  top: 25%;
-  left: 25%;
-  width: 4.8rem;
-}
-
 #groups-container.selecting {
   height: -moz-calc(100% - 7rem);
 }
