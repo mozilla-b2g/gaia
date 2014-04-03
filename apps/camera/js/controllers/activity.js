@@ -5,6 +5,8 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var lessThanFileSize = require('lib/picture-sizes/less-than-file-size');
+var closestToSize = require('lib/picture-sizes/closest-to-size');
 var debug = require('debug')('controller:activity');
 var bindAll = require('lib/bind-all');
 
@@ -15,107 +17,122 @@ var bindAll = require('lib/bind-all');
 module.exports = function(app) { return new ActivityController(app); };
 module.exports.ActivityController = ActivityController;
 
+/**
+ * Initialize new `ActivityController`
+ *
+ * @param {App} app
+ */
 function ActivityController(app) {
   bindAll(this);
   this.activity = app.activity;
   this.settings = app.settings;
   this.app = app;
+
+  // Allow these methods to be overridden
+  this.closestToSize = app.closestToSize || closestToSize;
+  this.lessThanFileSize = app.lessThanFileSize || lessThanFileSize;
+
   this.configure();
   this.bindEvents();
+  debug('initialized');
 }
 
+/**
+ * Initial configuration.
+ *
+ * @private
+ */
 ActivityController.prototype.configure = function() {
-  if (!this.activity.active) { return; }
-  var values = this.activity.data.modes;
-  this.settings.mode.configureOptions(values);
+  this.configureMode();
 };
 
+/**
+ * Filter down pictureSizes and
+ * recorderProfiles to match activity
+ * parameters each time the settings
+ * are configured.
+ *
+ * @private
+ */
 ActivityController.prototype.bindEvents = function() {
-  this.app.on('settings:beforeconfigured', this.configureMediaSizes);
+  this.activity.on('activityreceived', this.onActivityReceived);
+  this.settings.recorderProfiles.on('configured', this.filterRecorderProfiles);
+  this.settings.pictureSizes.on('configured', this.filterPictureSize);
 };
 
-ActivityController.prototype.configureMediaSizes = function() {
-  debug('configure media sizes');
-  var activity = this.app.activity;
-  if (activity.active) {
-    this.configurePictureSize(activity.data);
-    this.configureVideoSize(activity.data);
+/**
+ * Set filter the capture mode options
+ * @return {[type]} [description]
+ */
+ActivityController.prototype.configureMode = function() {
+  var modes = this.activity.modes;
+  this.settings.mode.filterOptions(modes);
+
+  var mode = modes[0];
+  if (mode) {
+    this.settings.mode.select(mode);
+  }
+
+  debug('configured mode', modes);
+};
+
+ActivityController.prototype.onActivityReceived = function() {
+  this.configure();
+};
+
+/**
+ * If `maxFileSizeBytes` is specified,
+ * we filter down the available picture
+ * sizes to just those less than the
+ * given number of bytes (estimated).
+ *
+ * Else, if a `width` or `height` is
+ * defined by the activity, we find
+ * the picture size that is closest to,
+ * but still larger than, the given size.
+ *
+ * @private
+ */
+ActivityController.prototype.filterPictureSize = function() {
+  var setting = this.settings.pictureSizes;
+  var options = setting.get('options');
+  var data = this.activity.data;
+  var maxFileSize = data.maxFileSizeBytes;
+  var filtered;
+  var keys;
+
+  // By file-size
+  if (maxFileSize) {
+    filtered = this.lessThanFileSize(maxFileSize, options);
+    keys = filtered.map(function(option) { return option.key; });
+    setting.filterOptions(keys);
+    debug('picture sizes less than \'%s\' bytes', maxFileSize);
+  }
+
+  // By width/height
+  else if (data.width || data.height) {
+    filtered = this.closestToSize(data, options);
+    if (filtered) { setting.filterOptions([filtered.key]); }
+    debug('picked picture size', filtered);
   }
 };
 
-ActivityController.prototype.configurePictureSize = function(data) {
-  var setting = this.app.settings.pictureSizes;
-  var maxFileSize = data.maxFileSizeBytes;
+/**
+ * If an activity has specified `maxFileSizeBytes`
+ * we filter down to just the the lowest (last)
+ * resolution recorder profile.
+ *
+ * @private
+ */
+ActivityController.prototype.filterRecorderProfiles = function() {
+  var maxFileSize = this.activity.data.maxFileSizeBytes;
+  var setting = this.settings.recorderProfiles;
   var options = setting.get('options');
 
-  if (maxFileSize) {
-    options = getPictureSizesSmallerThan(options, maxFileSize);
-    setting.configureOptions(options);
-    return;
-  }
+  if (!maxFileSize) { return; }
 
-  if (data.width || data.height) {
-    options = [pickBySize(options, data)];
-    debug('picked picture size ', JSON.stringify(options));
-    setting.configureOptions(options);
-  }
+  var last = options[options.length - 1];
+  setting.filterOptions([last.key]);
 };
-
-ActivityController.prototype.configureVideoSize = function(data) {
-  var setting = this.app.settings.recorderProfiles;
-  var maxFileSize = data.maxFileSizeBytes;
-  var options = setting.get('options');
-
-  if (maxFileSize) {
-    options = [getLowResVideoSize(options)];
-    setting.configureOptions(options);
-  }
-};
-
-function getPictureSizesSmallerThan(options, bytes) {
-  return options.filter(function(option) {
-    var size = option.value;
-    var mp = size.width * size.height;
-    return mp <= bytes;
-  });
-}
-
-function pickBySize(options, target) {
-  debug('picking closest picture size');
-
-  var width = target.width || 0;
-  var height = target.height || 0;
-
-  return options.reduce(function(result, option) {
-    var resultSize = result && result.value;
-    var size = option.value;
-
-    var largerThanTarget =
-      size.width >= width &&
-      size.height >= height;
-
-    // If we don't yet have a result and this option
-    // is larger than the target dimensions, use it.
-    if (!result) { return largerThanTarget ? option : null; }
-
-    // If it's not larger than the target,
-    // this option isn't going to be appropriate.
-    if (!largerThanTarget) { return result; }
-
-    var smallerThanCurrent =
-      size.width <= resultSize.width &&
-      size.height <= resultSize.height;
-
-    // If the option is larger than the target, yet
-    // smaller is size than the current choice use it!
-    return smallerThanCurrent ? option : result;
-  }, null);
-}
-
-function getLowResVideoSize(options) {
-  var hash = {};
-  options.forEach(function(option) { hash[option.key] = option; });
-  return hash.qcif || hash.cif;
-}
 
 });

@@ -183,16 +183,6 @@ suite('Distribution mechanism', function() {
     assert.equal(presetsContent,  expectContent);
   }
 
-  function validateCamera() {
-    var cusPath = path.join(cusDir, 'camera.json');
-    var cusConfig = JSON.parse(fs.readFileSync(cusPath));
-    var appConfigPath =
-      path.join(process.cwd(), 'apps', 'camera', 'js', 'config.js');
-    var appConfig = fs.readFileSync(appConfigPath, {encoding: 'utf8'});
-    var expectContent = parseCustimizeImageSetting(cusConfig);
-    assert.equal(appConfig, expectContent);
-  }
-
   function validateHomescreen() {
     var appZip = new AdmZip(path.join(process.cwd(), 'profile',
       'webapps', 'homescreen.gaiamobile.org', 'application.zip'));
@@ -236,7 +226,6 @@ suite('Distribution mechanism', function() {
       validateSystem();
       validateSms();
       validateGallery();
-      validateCamera();
       validateComm();
       validateHomescreen();
       validateWallpaper();

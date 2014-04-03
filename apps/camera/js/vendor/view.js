@@ -124,6 +124,92 @@ define(function(require, exports, module) {
     return this;
   };
 
+  View.prototype.set = function(key, value) {
+    value = value === undefined ? '' : value;
+    this.el.setAttribute(toDashed(key), value);
+  };
+
+  /**
+   * Returns a function that when called
+   * will .set() the given key.
+   *
+   * If a value is passed to .setter(),
+   * that value will always be used
+   * when the returned function is called.
+   * Else the value passed to the given
+   * function will be used.
+   *
+   * Example:
+   *
+   * var setter = this.setter('key', 'value');
+   * setter(); //=> this.set('key', 'value');
+   * setter('value2'); //=> this.set('key', 'value');
+   *
+   * var setter = this.setter('key');
+   * setter('value'); //=> this.set('key', 'value');
+   * setter(); //=> this.set('key');
+   *
+   * @param  {String} key
+   * @param  {*} value
+   * @return {Function}
+   */
+  View.prototype.setter = function(key, forced) {
+    var self = this;
+    return function(passed) {
+      var value = forced !== undefined ? forced : passed;
+      self.set(key, value);
+    };
+  };
+
+  View.prototype.enable = function(key, value) {
+    switch(arguments.length) {
+      case 0:
+        value = true;
+        key = 'enabled';
+        break;
+      case 1:
+        if (typeof key === 'boolean') {
+          value = key;
+          key = 'enabled';
+        } else {
+          value = true;
+          key = key ? key + '-enabled' : 'enabled';
+        }
+        break;
+      default:
+        key = key ? key + '-enabled' : 'enabled';
+    }
+    this.set(key, !!value);
+  };
+
+  View.prototype.disable = function(key) {
+    this.enable(key, false);
+  };
+
+  View.prototype.enabler = function(key) {
+    return (function(value) { this.enable(key, value); }).bind(this);
+  };
+
+  View.prototype.hide = function(key) {
+    this.toggle(key, false);
+  };
+
+  View.prototype.show =  function(key) {
+    this.toggle(key, true);
+  };
+
+  View.prototype.toggle = function(key, value) {
+    if (arguments.length === 1 && typeof key === 'boolean') {
+      value = key;
+      key = '';
+    } else {
+      key = key ? key + '-' : '';
+    }
+
+    this.el.classList.toggle(key + 'hidden', !value);
+    this.el.classList.toggle(key + 'visible', value);
+  };
+
   /**
    * Removes the element from
    * it's current context, firing
@@ -176,4 +262,10 @@ define(function(require, exports, module) {
 
     return Child;
   };
+
+  function toDashed(s) {
+    return s.replace(/\W+/g, '-')
+      .replace(/([a-z\d])([A-Z])/g, '$1-$2')
+      .toLowerCase();
+  }
 });

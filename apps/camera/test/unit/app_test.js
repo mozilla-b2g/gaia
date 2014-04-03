@@ -10,15 +10,13 @@ suite('app', function() {
       'lib/camera',
       'vendor/view',
       'lib/geo-location',
-      'lib/activity',
-      'lib/config'
-    ], function(App, Camera, View, GeoLocation, Activity, Config) {
+      'lib/activity'
+    ], function(App, Camera, View, GeoLocation, Activity) {
       modules.app = App;
       modules.view = View;
       modules.camera = Camera;
       modules.geolocation = GeoLocation;
       modules.activity = Activity;
-      modules.config = Config;
       done();
     });
   });
@@ -44,7 +42,6 @@ suite('app', function() {
     var GeoLocation = modules.geolocation;
     var Activity = modules.activity;
     var Camera = modules.camera;
-    var Config = modules.config;
     var View = modules.view;
     var App = modules.app;
 
@@ -55,6 +52,8 @@ suite('app', function() {
         release: function() {}
       };
     }
+
+    navigator.mozL10n = { readyState: null };
 
     var options = this.options = {
       doc: mocks.doc(),
@@ -67,24 +66,28 @@ suite('app', function() {
       storage: {
         once: sinon.spy()
       },
-      config: new Config(),
       views: {
         viewfinder: new View({ name: 'viewfinder' }),
-        focusRing: new View({ name: 'focusring' }),
+        focusRing: new View({ name: 'focus-ring' }),
         controls: new View({ name: 'controls' }),
         hud: new View({ name: 'hud' })
       },
-      filmstrip: sinon.spy(),
       controllers: {
         hud: sinon.spy(),
+        timer: sinon.spy(),
         controls: sinon.spy(),
         viewfinder: sinon.spy(),
+        previewGallery: sinon.spy(),
         overlay: sinon.spy(),
         confirm: sinon.spy(),
         camera: sinon.spy(),
         settings: sinon.spy(),
         activity: sinon.spy(),
-        sounds: sinon.spy()
+        sounds: sinon.spy(),
+        recordingTimer: sinon.spy(),
+        zoomBar: sinon.spy(),
+        indicators: sinon.spy(),
+        battery: sinon.spy()
       }
     };
 
@@ -107,7 +110,8 @@ suite('app', function() {
     // Create the app
     this.app = new App(options);
     this.sandbox.spy(this.app, 'set');
-
+    this.sandbox.spy(this.app, 'emit');
+    this.sandbox.spy(this.app, 'firer');
   });
 
   teardown(function() {
@@ -155,8 +159,11 @@ suite('app', function() {
       assert.ok(controllers.hud.calledWith(app));
       assert.ok(controllers.controls.calledWith(app));
       assert.ok(controllers.viewfinder.calledWith(app));
+      assert.ok(controllers.previewGallery.calledWith(app));
       assert.ok(controllers.overlay.calledWith(app));
       assert.ok(controllers.camera.calledWith(app));
+      assert.ok(controllers.zoomBar.calledWith(app));
+      assert.ok(controllers.battery.calledWith(app));
     });
 
     test('Should put each of the views into the root element', function() {
@@ -178,18 +185,20 @@ suite('app', function() {
     });
 
     test('Should bind to `beforeunload` event', function() {
+      var addEventListener = this.app.win.addEventListener;
       this.app.boot();
-      var doc = this.app.win;
-      var call = doc.addEventListener.getCall(0);
-      assert.ok(call.args[0] === 'beforeunload');
-      assert.ok(typeof call.args[1] === 'function');
+      assert.ok(addEventListener.calledWith('beforeunload', this.app.onBeforeUnload));
     });
 
-    test('Should set the \'mode\' to the mode ' +
-         'specified by the activity if present', function() {
-      this.app.activity.mode = 'video';
+    test('Should run the activity controller before controls or camera', function() {
+      var activity = this.app.controllers.activity;
+      var controls = this.app.controllers.controls;
+      var camera = this.app.controllers.camera;
+
       this.app.boot();
-      assert.ok(this.app.set.calledWith('mode', 'video'));
+
+      assert.isTrue(activity.calledBefore(controls));
+      assert.isTrue(activity.calledBefore(camera));
     });
 
     suite('app.geolocation', function() {
@@ -234,6 +243,24 @@ suite('app', function() {
       var activity = this.app.activity;
       this.app.onBlur();
       assert.ok(activity.cancel.called);
+    });
+  });
+
+  suite('App#configureL10n()', function() {
+    test('Should fire a `localized` event if l10n is already complete', function() {
+      navigator.mozL10n.readyState = 'complete';
+      this.app.configureL10n();
+      assert.ok(this.app.emit.calledWith('localized'));
+    });
+
+    test('Should not fire a `localized` event if l10n is not \'complete\'', function() {
+      this.app.configureL10n();
+      assert.ok(!this.app.emit.calledWith('localized'));
+    });
+
+    test('Should always listen for \'localized\' events', function() {
+      this.app.configureL10n();
+      assert.ok(!this.app.win.addEventListener('localized'));
     });
   });
 });

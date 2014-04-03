@@ -16,9 +16,7 @@ class TestCamera(GaiaTestCase):
 
     def test_capture_a_video(self):
         """https://moztrap.mozilla.org/manage/case/2477/"""
-
-        # Check that 0 video files are present before we start the test
-        self.assertEqual(len(self.data_layer.video_files), 0)
+        self.previous_number_of_videos = len(self.data_layer.video_files)
 
         self.camera = Camera(self.marionette)
         self.camera.launch()
@@ -29,9 +27,7 @@ class TestCamera(GaiaTestCase):
         # Record 3 seconds of video
         self.camera.record_video(3)
 
-        # Check that Filmstrip is visible
-        self.assertTrue(self.camera.is_filmstrip_visible)
-        self.camera.wait_for_filmstrip_not_visible()
-
         # Check that video saved to SD card
-        self.assertIn("VID_0001.3gp", self.data_layer.video_files[0])
+        self.wait_for_condition(lambda m: len(self.data_layer.video_files) == self.previous_number_of_videos + 1, 15)
+        self.assertEqual(len(self.data_layer.video_files), self.previous_number_of_videos + 1)
+
