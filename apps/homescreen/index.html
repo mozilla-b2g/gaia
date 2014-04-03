@@ -85,7 +85,7 @@
           <hr>
       
           <div class="word_space">
-              <h1 class="word_style" id="confirm-dialog-send-button" onClick="document.getElementById('app_manage').style.display='none'; document.getElementById('send_manage').style.display='block';">Send app to...</h1>
+              <h1 class="word_style" id="confirm-dialog-send-button" onClick="document.getElementById('app_manage').style.display='none'; document.getElementById('send_manage').style.display='block';">Send app to...</h1> <!-- The javascipt call here may change/be removed when backend is being integrated. -->
           </div>
       
           <hr>
@@ -114,7 +114,7 @@
           <hr>
       
           <div class="word_space">
-              <h1 class="word_style" id="confirm-dialog-cancel-button" onClick="document.getElementById('app_manage').style.display='block'; document.getElementById('send_manage').style.display='none';">Back</h1>
+              <h1 class="word_style" id="confirm-dialog-cancel-button" onClick="document.getElementById('app_manage').style.display='block'; document.getElementById('send_manage').style.display='none';">Back</h1>  <!-- The javascipt call here may change/be removed when backend is being integrated. -->
           </div>
         </div>
     
@@ -126,6 +126,28 @@
       <p id="confirm-dialog-title"></p>
       	</div>
       </div>
+      
+      
+	<form role="dialog" data-type="confirm" id="RecConf" style="display:none;">
+  		<section>
+    		<h1>Confirmation</h1>
+    		<p>
+      			<img alt="App Icon" src="app-icons/icon-48.png">
+      			<strong>Receive Application?</strong>
+      			<small>Demo App</small>
+      			<div class="prog_cont">
+      				<progress id="progress1" value="40" max="100">
+        			</progress>
+      			</div>
+      			<div class="app_size">Size: <span>15.1 MB</span></div>
+      			<div class="remain_storage">Space after installation: <span>1.2 GB</span></div>
+    		</p>
+  		</section>
+  		<menu>
+    		<button onClick="triggerRecConf();">Cancel</button>
+    		<button class="recommend" onClick="triggerRecConf();">Okay</button>
+  		</menu>
+	</form>
         
     </section>
 
