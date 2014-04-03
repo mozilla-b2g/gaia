@@ -1219,30 +1219,30 @@ var Camera = {
     this._config.position = null;
     this.hideFocusRing();
 
-
-    if (this._pendingPick) {
-      // If we're doing a Pick, ask the user to confirm the image
-      ConfirmDialog.confirmImage(blob,
-                                 this.selectPressed.bind(this),
-                                 this.retakePressed.bind(this));
-
-      // Just save the blob temporarily until the user presses "Retake" or
-      // "Select".
-      this._savedMedia = {
-        blob: blob
-      };
-    }
-    else {
-      // Otherwise (this is the normal case) start the viewfinder again
-      this.resumePreview();
-    }
-
     // In either case, save the photo to device storage
-    this._addPictureToStorage(blob, function(name, absolutePath) {
+    this._addPictureToStorage(blob, function(name, absolutePath, fileBlob) {
+      blob = fileBlob;
+
       if (!this._pendingPick) {
         Filmstrip.addImage(absolutePath, blob);
         Filmstrip.show(Camera.FILMSTRIP_DURATION);
       }
+
+      if (this._pendingPick) {
+        // If we're doing a Pick, ask the user to confirm the image
+        ConfirmDialog.confirmImage(blob,
+                                   this.selectPressed.bind(this),
+                                   this.retakePressed.bind(this));
+
+        this._savedMedia = {
+          blob: blob
+        };
+      }
+      else {
+        // Otherwise (this is the normal case) start the viewfinder again
+        this.resumePreview();
+      }
+
       this.checkStorageSpace();
     }.bind(this));
   },
@@ -1282,12 +1282,22 @@ var Camera = {
     DCFApi.createDCFFilename(this._pictureStorage, 'image',
                              function(path, name) {
       var addreq = this._pictureStorage.addNamed(blob, path + name);
-      addreq.onsuccess = function(e) {
+      addreq.onsuccess = (function(e) {
         var absolutePath = e.target.result;
-        callback(path + name, absolutePath);
-      };
+        this._refetchImage(path + name, absolutePath, callback);
+      }).bind(this);
       addreq.onerror = this.takePictureError;
     }.bind(this));
+
+  },
+
+  _refetchImage: function camera_refetchImage(filepath, absolutePath, done) {
+    var req = this._pictureStorage.get(filepath);
+    req.onerror = this.takePictureError;
+    req.onsuccess = function(e) {
+      var fileBlob = e.target.result;
+      done(filepath, absolutePath, fileBlob);
+    };
   },
 
   _resizeBlobIfNeeded: function camera_resizeBlobIfNeeded(blob, callback) {
@@ -1300,14 +1310,23 @@ var Camera = {
 
     var img = new Image();
     img.onload = function resizeImg() {
+      window.URL.revokeObjectURL(img.src);
       var canvas = document.createElement('canvas');
       canvas.width = pickWidth;
       canvas.height = pickHeight;
       var ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, pickWidth, pickHeight);
       canvas.toBlob(function toBlobSuccess(resized_blob) {
+        // If the original blob was a File, propagate the name to a new File.
+        // Note that the file is still going to be memory-backed.  (Although
+        // technically the Canvas implementation may opt to use a disk-backed
+        // cache.)
+        if (blob.name) {
+          resized_blob = new File([resized_blob], blob.name,
+                                  { type: resized_blob.type });
+        }
         callback(resized_blob);
-      }, 'image/jpeg');
+      }, blob.type);
     };
     img.src = window.URL.createObjectURL(blob);
   },
