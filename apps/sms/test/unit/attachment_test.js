@@ -72,7 +72,7 @@ suite('attachment_test.js', function() {
       req.send();
     }
     getAsset('/test/unit/media/kitten-450.jpg', function(blob) {
-      testImageBlob_small = blob; // image < 300 kB => create thumbnail
+      testImageBlob_small = blob; // image < 295 kB => create thumbnail
     });
     getAsset('/test/unit/media/IMG_0554.jpg', function(blob) {
       testImageBlob = blob;

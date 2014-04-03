@@ -539,7 +539,7 @@ suite('thread_ui.js >', function() {
             number: '999'
           });
 
-          Compose.append(mockAttachment(300 * 1024));
+          Compose.append(mockAttachment(295 * 1024));
 
           assert.isFalse(sendButton.disabled);
           Compose.append('Hola');

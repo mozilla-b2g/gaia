@@ -33,7 +33,7 @@ suite('Settings >', function() {
   teardown(function() {
     MockNavigatorSettings.mTeardown();
     navigator.mozSettings = nativeSettings;
-    Settings.mmsSizeLimitation = 300 * 1024;
+    Settings.mmsSizeLimitation = 295 * 1024;
   });
 
   test('getSimNameByIccId returns the empty string before init', function() {
@@ -104,11 +104,16 @@ suite('Settings >', function() {
       req.onsuccess();
     }
 
-    function assertSettingIsRetrieved(prop, setting, value) {
+    function assertSettingIsRetrieved(prop, setting, value, expected) {
       triggerSettingsReqSuccess(setting, value);
+
+      if (arguments.length <= 3) {
+        expected = value;
+      }
+
       assert.equal(
-        Settings[prop], value,
-        'The setting ' + setting + ' is equal to ' + value
+        Settings[prop], expected,
+        'The setting ' + setting + ' is equal to ' + expected
       );
     }
 
@@ -149,10 +154,14 @@ suite('Settings >', function() {
       // only made one call to get settings(non-DSDS case)
       sinon.assert.calledOnce(navigator.mozSettings.createLock);
 
+      var setting = 512 * 1024;
+      var expected = setting - 5 * 1024;
+
       assertSettingIsRetrieved(
         'mmsSizeLimitation',
         'dom.mms.operatorSizeLimitation',
-        512000
+        setting,
+        expected
       );
       assert.isFalse(Settings.hasSeveralSim());
     });
