@@ -55,7 +55,12 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.player.classList.add('hidden');
     // video rotation is not parsed, parse it.
     getVideoRotation(blob, function(rotation) {
-      videoRotation = rotation;
+      if (typeof rotation === 'string') {
+        console.error('get video rotation error: ' + rotation);
+        videoRotation = 0;
+      } else {
+        videoRotation = rotation;
+      }
       // show player when player size and rotation are correct.
       dom.player.classList.remove('hidden');
       // start to play the video that showPlayer also calls fitContainer.
