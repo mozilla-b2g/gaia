@@ -20,6 +20,12 @@ var DockManager = (function() {
   var touchmove = isTouch ? 'touchmove' : 'mousemove';
   var touchend = isTouch ? 'touchend' : 'mouseup';
 
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden == false) {
+      windowWidth = window.innerWidth;
+    }
+  });
+
   var getX = (function getXWrapper() {
     return isTouch ? function(e) { return e.touches[0].pageX } :
                      function(e) { return e.pageX };

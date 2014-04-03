@@ -41,6 +41,13 @@ var GridManager = (function() {
   var container;
 
   var windowWidth = window.innerWidth;
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden == false) {
+      windowWidth = window.innerWidth;
+      DEVICE_HEIGHT = window.innerHeight;
+    }
+  });
+
   var swipeThreshold, swipeFriction, tapThreshold;
 
   var dragging = false;
