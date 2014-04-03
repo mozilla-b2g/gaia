@@ -164,3 +164,10 @@ body[data-mode = 'normal'] ol > li span.options {
 #contextmenu-dialog, #confirm-dialog {
   display: none;
 }
+
+/* Below are styles specfically target at the app sharing functionality confirmation dialogs. */
+#RecConf .prog_cont { text-align:right; margin:20px 0; }
+	#RecConf .prog_cont #progress1 { background-color:transparent; width:95%; border:2px solid #999; padding:1px; }
+	#RecConf .prog_cont #progress1::-moz-progress-bar { background-color:#FFF; }
+#RecConf #app_size { text-align:right; font-size:16px; }
+#RecConf #remain_storage { text-align:right; font-size:16px; }
