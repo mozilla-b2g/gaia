@@ -1610,7 +1610,6 @@ function resetKeyboard() {
   // separately after this function
   isUpperCase = false;
   isUpperCaseLocked = false;
-  clearTouchedKeys();
 }
 
 // This is a wrapper around inputContext.sendKey()
@@ -1969,6 +1968,7 @@ function clearTouchedKeys() {
     }
   }
 
+  hideAlternatives();
   touchedKeys = {};
 }
 /*
