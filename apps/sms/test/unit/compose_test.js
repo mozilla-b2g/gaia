@@ -227,6 +227,41 @@ suite('compose_test.js', function() {
         assert.equal(txt[0], '<b>hi!</b>\ntest');
       });
 
+      test('Compose.append(array)', function() {
+        this.sinon.spy(Compose, 'append');
+
+        // The initial call and the subsequent calls for the two array items
+        // will result in 3 calls to Compose.append
+        Compose.append([1, 2]);
+
+        sinon.assert.calledThrice(Compose.append);
+      });
+
+      test('Compose.append(item, { ignoreChange: true })', function() {
+        var count = 0;
+        Compose.on('input', function() {
+          count++;
+        });
+
+        // Providing ignoreChange: true for a single item
+        // append will skip the call to onContentChanged
+        Compose.append(1, {ignoreChange: true});
+
+        assert.equal(count, 0);
+      });
+
+      test('Compose.append(array), implied ignoreChange', function() {
+        var count = 0;
+        Compose.on('input', function() {
+          count++;
+        });
+
+        // An array of items will trigger only 1 call to onContentChanged
+        Compose.append([1, 2]);
+
+        assert.equal(count, 1);
+      });
+
       test('Message prepend', function() {
         Compose.append('end');
         Compose.prepend('start');
