@@ -105,11 +105,11 @@ suite('Distribution mechanism', function() {
   function validateWallpaper() {
     var zipPath = path.join(process.cwd(), 'profile',
       'webapps', 'wallpaper.gaiamobile.org', 'application.zip');
-    helper.checkFileContentByPathInZip(zipPath, 'resources/320x480/list.json',
+    helper.checkFileContentByPathInZip(zipPath, 'resources/list.json',
       path.join(cusDir, 'wallpapers', 'list.json'), true);
 
     helper.checkFileContentByPathInZip(zipPath,
-      'resources/320x480/customize.png',
+      'resources/customize.png',
       path.join(cusDir, 'wallpapers', 'customize.png'), false);
   }
 
