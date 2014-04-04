@@ -134,6 +134,18 @@ suite('activity', function() {
     assert.isTrue(modes.indexOf('video') === -1);
   });
 
+  test('Should be able to cope with String as well as Array', function() {
+    var activity = {
+      source: {
+        data: { type: 'image/jpeg' },
+        name: 'pick'
+      }
+    };
+
+    var modes = this.activity.getModesForPickActivity(activity);
+    assert.isTrue(modes.indexOf('picture') > -1);
+  });
+
   test('Should get [\'picture\', \'video\'] modes for ' +
     'Lockscreen/Gallery \'record\' activity', function() {
     var activity = {
