@@ -79,9 +79,12 @@ var NotificationScreen = {
     window.addEventListener('utilitytrayshow', this);
     window.addEventListener('unlock', this.clearLockScreen.bind(this));
     window.addEventListener('visibilitychange', this);
-    window.addEventListener('appforeground', this.handleAppopen.bind(this));
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
+    window.addEventListener('appforeground',
+      this.clearDesktopNotifications.bind(this));
+    window.addEventListener('appopen',
+      this.clearDesktopNotifications.bind(this));
 
     this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
 
@@ -149,7 +152,7 @@ var NotificationScreen = {
     window.location.protocol + '//wappush.gaiamobile.org/manifest.webapp'
   ],
 
-  handleAppopen: function ns_handleAppopen(evt) {
+  clearDesktopNotifications: function ns_handleAppopen(evt) {
     var manifestURL = evt.detail.manifestURL,
         selector = '[data-manifest-u-r-l="' + manifestURL + '"]';
 
