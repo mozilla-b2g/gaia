@@ -13,11 +13,6 @@ class TestSettingsWifi(GaiaTestCase):
         self.data_layer.disable_wifi()
 
     def test_connect_to_wifi_via_settings_app(self):
-        """ Connect to a wifi network via the Settings app
-
-        https://github.com/mozilla/gaia-ui-tests/issues/342
-
-        """
         settings = Settings(self.marionette)
         settings.launch()
         wifi_settings = settings.open_wifi_settings()
