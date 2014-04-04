@@ -91,6 +91,11 @@ DownloadNotification.prototype = {
     var result = parseInt(this.download.error.message);
 
     switch (result) {
+      case DownloadUI.ERRORS.NO_MEMORY:
+        DownloadUI.show(DownloadUI.TYPE['NO_MEMORY'],
+                        this.download,
+                        true);
+        break;
       case DownloadUI.ERRORS.NO_SDCARD:
         DownloadUI.show(DownloadUI.TYPE['NO_SDCARD'],
                         this.download,
