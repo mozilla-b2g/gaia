@@ -4,6 +4,7 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.settings.app import Settings
+from gaiatest.apps.system.app import System
 
 
 class TestAirplaneMode(GaiaTestCase):
@@ -20,11 +21,17 @@ class TestAirplaneMode(GaiaTestCase):
         settings = Settings(self.marionette)
         settings.launch()
 
+        settings.wait_for_airplane_toggle_ready()
+
         # Switch on Airplane mode
         settings.toggle_airplane_mode()
 
         # wait for wifi to be disabled, this takes the longest when airplane mode is switched on
         self.wait_for_condition(lambda s: 'Disabled' in settings.wifi_menu_item_description)
+
+        # wait for airplane mode icon is diaplayed on status bar
+        self.marionette.switch_to_default_content()
+        self.wait_for_condition(lambda m: System(m).is_airplane_mode_statusbar_displayed)
 
         # check Wifi is disabled
         self.assertFalse(self.data_layer.is_wifi_connected(self.testvars['wifi']), "WiFi was still connected after switching on Airplane mode")
