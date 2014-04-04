@@ -6,23 +6,28 @@ from marionette.by import By
 
 from gaiatest.apps.base import Base, PageRegion
 from gaiatest.apps.music.regions.sublist_view import SublistView
+from gaiatest.apps.music.regions.player_view import PlayerView
 
 
 class ListView(Base):
 
-    _album_list_item_locator = (By.CSS_SELECTOR, '.list-item')
+    _list_item_locator = (By.CSS_SELECTOR, '.list-item')
 
     @property
-    def albums(self):
-        self.wait_for_element_displayed(*self._album_list_item_locator)
-        return [Album(self.marionette, album) for album in
-                self.marionette.find_elements(*self._album_list_item_locator)]
+    def media(self):
+        self.wait_for_element_displayed(*self._list_item_locator)
+        return [Media(self.marionette, media) for media in
+                self.marionette.find_elements(*self._list_item_locator)]
 
 
-class Album(PageRegion):
+class Media(PageRegion):
 
-    _album_link_locator = (By.TAG_NAME, 'a')
+    _media_link_locator = (By.TAG_NAME, 'a')
 
-    def tap(self):
-        self.marionette.find_element(*self._album_link_locator).tap()
+    def tap_first_album(self):
+        self.marionette.find_element(*self._media_link_locator).tap()
         return SublistView(self.marionette)
+
+    def tap_first_song(self):
+        self.marionette.find_element(*self._media_link_locator).tap()
+        return PlayerView(self.marionette)

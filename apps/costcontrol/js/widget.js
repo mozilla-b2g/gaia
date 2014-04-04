@@ -449,20 +449,32 @@ var Widget = (function() {
 
   return {
     init: function() {
+      var isWaitingForIcc = false;
+      function waitForIccAndCheckSim() {
+        if (!isWaitingForIcc) {
+          var iccManager = window.navigator.mozIccManager;
+          iccManager.addEventListener('iccdetected',
+            function _oniccdetected() {
+              isWaitingForIcc = false;
+              iccManager.removeEventListener('iccdetected', _oniccdetected);
+              Common.loadDataSIMIccId(checkSIMStatus);
+            }
+          );
+          isWaitingForIcc = true;
+        }
+      }
+
       Common.loadDataSIMIccId(checkSIMStatus, function _errorNoSim() {
+
+        waitForIccAndCheckSim();
         console.warn('Error when trying to get the ICC ID');
         showSimError('no-sim2');
       });
+
       AirplaneModeHelper.addEventListener('statechange',
         function _onAirplaneModeChange(state) {
           if (state === 'enabled') {
-            var iccManager = window.navigator.mozIccManager;
-            iccManager.addEventListener('iccdetected',
-              function _oniccdetected() {
-                iccManager.removeEventListener('iccdetected', _oniccdetected);
-                Common.loadDataSIMIccId(checkSIMStatus);
-              }
-            );
+            waitForIccAndCheckSim();
             showSimError('no-sim2');
           }
         }
@@ -473,7 +485,6 @@ var Widget = (function() {
       Common.loadNetworkInterfaces();
     }
   };
-
 }());
 
 Widget.init();
