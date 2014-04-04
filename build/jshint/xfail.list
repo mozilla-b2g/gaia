@@ -246,7 +246,6 @@ apps/communications/dialer/js/mmi_ui.js
 apps/communications/dialer/js/newsletter_manager.js
 apps/communications/dialer/js/oncall.js
 apps/communications/dialer/js/phone_action_menu.js
-apps/communications/dialer/js/tone_player.js
 apps/communications/dialer/js/utils.js
 apps/communications/dialer/js/voicemail.js
 apps/communications/dialer/test/marionette/lib/dialer.js
