@@ -74,7 +74,7 @@ module.exports = View.extend({
   template: function(data) {
     return '<div class="inner">' +
       '<h2 class="settings_title icon-back-arrow js-back">' +
-      this.localize(data.title) + '</h2>' +
+      this.localize(data.header) + '</h2>' +
       '<div class="settings_items"><ul class="inner js-list"></ul></div>' +
     '</div>';
   }
