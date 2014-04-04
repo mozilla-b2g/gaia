@@ -74,7 +74,7 @@ if (!window.Rest) {
           self.console.error('Error while executing HTTP GET: ', uri,
                                    ': ', e);
           if (callback && typeof callback.error === 'function' &&
-           !outReq.isCancelled()) {
+           !outReq.isCancelled())
             self.setTimeout(function() {
               callback.error(e);
             },0);
