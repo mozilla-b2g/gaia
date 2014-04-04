@@ -147,24 +147,12 @@ var StatusBar = {
   },
 
   show: function sb_show() {
-    this.background.classList.remove('hidden');
     this.element.classList.remove('invisible');
   },
 
   hide: function sb_hide() {
     this._releaseBar();
-    this.background.classList.add('hidden');
     this.element.classList.add('invisible');
-  },
-
-  expand: function sb_expand() {
-    this.background.classList.add('expanded');
-    this.statusbarIcons.classList.add('hidden');
-  },
-
-  collapse: function sb_collapse() {
-    this.background.classList.remove('expanded');
-    this.statusbarIcons.classList.remove('hidden');
   },
 
   init: function sb_init() {
@@ -217,8 +205,8 @@ var StatusBar = {
 
     window.addEventListener('utilitytrayshow', this);
     window.addEventListener('utilitytrayhide', this);
-    window.addEventListener('rocketbarexpand', this);
-    window.addEventListener('rocketbarcollapse', this);
+    window.addEventListener('rocketbarshown', this);
+    window.addEventListener('rocketbarhidden', this);
 
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
@@ -310,22 +298,16 @@ var StatusBar = {
         break;
 
       case 'utilitytrayshow':
+      case 'rocketbarshown':
         this.show();
         break;
 
       case 'utilitytrayhide':
+      case 'rocketbarhidden':
         var app = AppWindowManager.getActiveApp();
         if (app && app.isFullScreen()) {
           this.hide();
         }
-        break;
-
-      case 'rocketbarexpand':
-        this.expand();
-        break;
-
-      case 'rocketbarcollapse':
-        this.collapse();
         break;
 
       case 'lockpanelchange':
@@ -1137,10 +1119,9 @@ var StatusBar = {
     }
 
     this.element = document.getElementById('statusbar');
-    this.background = document.getElementById('statusbar-background');
-    this.statusbarIcons = document.getElementById('statusbar-icons');
     this.screen = document.getElementById('screen');
     this.attentionBar = document.getElementById('attention-bar');
+
     this.topPanel = document.getElementById('top-panel');
   },
 

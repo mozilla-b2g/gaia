@@ -1,4 +1,6 @@
-var MockRocketbar = {
+MockRocketbar = {
+  triggerWidth: 0.5,
+  render: function() {},
   enabled: true,
-  init: function() {}
+  hide: function() {}
 };
