@@ -27,7 +27,7 @@ class LockScreen(Base):
         return Homescreen(self.marionette)
 
     def unlock_to_camera(self):
-
+        self.wait_for_element_displayed(*self._lockscreen_handle_locator)
         self._slide_to_unlock('camera')
         return Camera(self.marionette)
 
