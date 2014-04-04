@@ -59,6 +59,7 @@ Calendar.prototype = {
     this.client
       .findElement('#view-selector a[href="/day/"]')
       .click();
+    this.day.waitForDisplay();
     return this;
   },
 
@@ -66,6 +67,7 @@ Calendar.prototype = {
     this.client
       .findElement('#view-selector a[href="/month/"]')
       .click();
+    this.month.waitForDisplay();
     return this;
   },
 
@@ -73,6 +75,7 @@ Calendar.prototype = {
     this.client
       .findElement('#view-selector a[href="/week/"]')
       .click();
+    this.week.waitForDisplay();
     return this;
   },
 
