@@ -19,6 +19,7 @@ module.exports = View.extend({
   name: 'settings',
 
   initialize: function(options) {
+    this.OptionsView = options.OptionsView || OptionsView;
     this.l10n = options.l10n || navigator.mozL10n;
     this.items = options.items;
     this.children = [];
@@ -31,9 +32,11 @@ module.exports = View.extend({
   },
 
   onItemClick: function(view) {
-    var model = view.model;
+    this.showSetting(view.model);
+  },
 
-    this.optionsView = new OptionsView({ model: model })
+  showSetting: function(model) {
+    this.optionsView = new this.OptionsView({ model: model })
       .render()
       .appendTo(this.els.pane2)
       .on('click:option', this.firer('click:option'))
@@ -61,7 +64,7 @@ module.exports = View.extend({
 
   goBack: function() {
     this.showPane(1);
-    setTimeout(this.destroyOptionsView, 400);
+    this.destroyOptionsView();
   },
 
   destroyChild: function(view) {
@@ -73,6 +76,7 @@ module.exports = View.extend({
     if (this.optionsView) {
       this.optionsView.destroy();
       this.optionsView = null;
+      debug('options view destroyed');
     }
   },
 
