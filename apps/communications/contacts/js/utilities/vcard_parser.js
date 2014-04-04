@@ -242,7 +242,7 @@ var VCFReader = (function _VCFReader() {
     }
     return contactObj;
   }
-  
+
   /**
    * Takes an object with vCard properties and a mozContact object and returns
    * the latter with the computed phone, email and url fields properly filled,
@@ -261,19 +261,19 @@ var VCFReader = (function _VCFReader() {
       }
 
       var len = vcardObj[field].length,
-          hasTypeMapper = function (x) {
+          hasTypeMapper = function(x) {
             return x.trim().toLowerCase();
           },
-          notTypeMapper = function (v, key) {
+          notTypeMapper = function(v, key) {
             return v.meta[key].trim().toLowerCase();
           },
-          noType = function (field) {
+          noType = function(field) {
             return field !== 'type';
           },
-          noPref = function (field) {
+          noPref = function(field) {
             return field !== 'pref';
           },
-          typeFilter = function (metaValue) {
+          typeFilter = function(metaValue) {
             return !!VCARD_SIMPLE_TYPES[metaValue];
           };
       for (var i = 0; i < len; i++) {
@@ -347,13 +347,35 @@ var VCFReader = (function _VCFReader() {
     return contactObj;
   }
 
+  function _isValidDate(dateValue) {
+    return !isNaN(Date.parse(dateValue));
+  }
+
   function _processFields(vcardObj, contactObj) {
-    ['org', 'title'].forEach(function(field) {
+    ['org', 'title', 'bday', 'anniversary'].forEach(function(field) {
       if (!vcardObj[field]) {
         return;
       }
 
       var v = vcardObj[field][0];
+
+      var dateValue;
+      if (field === 'bday') {
+        dateValue = v.value[0];
+        if (_isValidDate(dateValue)) {
+          contactObj.bday = new Date(dateValue);
+        }
+        return;
+      }
+
+      if (field === 'anniversary') {
+        dateValue = v.value[0];
+        if (_isValidDate(dateValue)) {
+          contactObj.anniversary = new Date(dateValue);
+        }
+        return;
+      }
+
       if (!v) {
         return;
       }

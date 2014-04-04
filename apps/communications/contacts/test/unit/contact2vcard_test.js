@@ -30,6 +30,7 @@ suite('mozContact to vCard', function() {
   suite('mozContact to vCard', function() {
     test('Convert a single contact to a vcard', function(done) {
       var mc = new MockContactAllFields();
+      mc.anniversary = new Date(0);
       var contacts = [mc];
       var str = '';
       var count = 0;
@@ -50,6 +51,7 @@ suite('mozContact to vCard', function() {
           assert.ok(_contains('title:sr. software architect'));
           assert.ok(_contains('note:note 1'));
           assert.ok(_contains('bday:1970-01-01T00:00:00Z'));
+          assert.ok(_contains('anniversary:1970-01-01T00:00:00Z'));
           assert.ok(_contains('photo:data:image/gif;base64,' + b64));
           assert.ok(_contains('email;type=home:test@test.com'));
           assert.ok(_contains('email;type=work,pref:test@work.com'));
@@ -64,6 +66,7 @@ suite('mozContact to vCard', function() {
 
     test('Convert multiple contacts to a vcard', function(done) {
       var mc = new MockContactAllFields();
+      mc.anniversary = new Date(0);
       var contacts = [mc, mc];
       var str = '';
       var count = 0;
@@ -84,6 +87,7 @@ suite('mozContact to vCard', function() {
           assert.ok(_contains('title:sr. software architect'));
           assert.ok(_contains('note:note 1'));
           assert.ok(_contains('bday:1970-01-01T00:00:00Z'));
+          assert.ok(_contains('anniversary:1970-01-01T00:00:00Z'));
           assert.ok(_contains('photo:data:image/gif;base64,' + b64));
           assert.ok(_contains('email;type=home:test@test.com'));
           assert.ok(_contains('tel;type=cell,pref:+346578888888'));
