@@ -35,13 +35,5 @@ var MockStatusBar = {
 
   decSystemDownloads: function msb_decSystemDownloads() {
     this.methodCalled('decSystemDownloads');
-  },
-
-  expand: function() {
-    this.methodCalled('expand');
-  },
-
-  collapse: function() {
-    this.methodCalled('collapse');
   }
 };

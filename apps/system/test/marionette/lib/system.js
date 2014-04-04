@@ -44,12 +44,5 @@ System.prototype = {
     });
 
     return iframe;
-  },
-
-  waitForStartup: function() {
-    var osLogo = this.client.findElement('#os-logo');
-    this.client.waitFor(function() {
-      return osLogo.getAttribute('class') == 'hide';
-    });
   }
 };

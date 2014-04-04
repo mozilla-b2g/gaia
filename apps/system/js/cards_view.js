@@ -768,6 +768,14 @@ var CardsView = (function() {
     }
   }
 
+  function maybeShowInRocketbar() {
+    if (Rocketbar.enabled) {
+      Rocketbar.render(true);
+    } else {
+      showCardSwitcher();
+    }
+  }
+
   function goToHomescreen(evt) {
     if (!cardSwitcherIsShown())
       return;
@@ -836,11 +844,11 @@ var CardsView = (function() {
         SleepMenu.hide();
         var app = AppWindowManager.getActiveApp();
         if (!app) {
-          showCardSwitcher();
+          maybeShowInRocketbar();
         } else {
           app.getScreenshot(function onGettingRealtimeScreenshot() {
             lastInTimeCapture = true;
-            showCardSwitcher();
+            maybeShowInRocketbar();
           });
         }
         break;
