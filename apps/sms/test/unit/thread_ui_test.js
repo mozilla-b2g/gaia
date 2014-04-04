@@ -15,48 +15,50 @@ mocha.setup({ globals: ['alert'] });
 
 // For Desktop testing
 if (!navigator.mozContacts) {
-  requireApp('sms/js/desktop_contact_mock.js');
+  require('/js/desktop_contact_mock.js');
 }
 
-requireApp('sms/js/compose.js');
-requireApp('sms/js/drafts.js');
-requireApp('sms/js/threads.js');
-requireApp('sms/js/thread_ui.js');
-requireApp('sms/js/thread_list_ui.js');
-requireApp('sms/js/utils.js');
+require('/js/compose.js');
+require('/js/drafts.js');
+require('/js/threads.js');
+require('/js/thread_ui.js');
+require('/js/thread_list_ui.js');
+require('/js/utils.js');
 require('/shared/js/async_storage.js');
 
-requireApp('sms/test/unit/mock_time_headers.js');
-requireApp('sms/test/unit/mock_alert.js');
-requireApp('sms/test/unit/mock_link_action_handler.js');
-requireApp('sms/test/unit/mock_attachment.js');
-requireApp('sms/test/unit/mock_attachment_menu.js');
-requireApp('sms/test/unit/mock_l10n.js');
-requireApp('sms/test/unit/mock_utils.js');
-requireApp('sms/test/unit/mock_navigatormoz_sms.js');
-requireApp('sms/test/unit/mock_moz_sms_filter.js');
-requireApp('sms/test/unit/mock_link_helper.js');
-requireApp('sms/test/unit/mock_moz_activity.js');
-requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('sms/test/unit/mock_messages.js');
-requireApp('sms/test/unit/mock_contact.js');
-requireApp('sms/test/unit/mock_contacts.js');
-requireApp('sms/test/unit/mock_recipients.js');
-requireApp('sms/test/unit/mock_settings.js');
-requireApp('sms/test/unit/mock_activity_picker.js');
-requireApp('sms/test/unit/mock_action_menu.js');
-requireApp('sms/test/unit/mock_dialog.js');
-requireApp('sms/test/unit/mock_smil.js');
-requireApp('sms/test/unit/mock_custom_dialog.js');
-requireApp('sms/test/unit/mock_url.js');
-requireApp('sms/test/unit/mock_compose.js');
-requireApp('sms/test/unit/mock_activity_handler.js');
-requireApp('sms/test/unit/mock_information.js');
+require('/test/unit/mock_time_headers.js');
+require('/test/unit/mock_alert.js');
+require('/test/unit/mock_link_action_handler.js');
+require('/test/unit/mock_attachment.js');
+require('/test/unit/mock_attachment_menu.js');
+require('/test/unit/mock_l10n.js');
+require('/test/unit/mock_utils.js');
+require('/test/unit/mock_navigatormoz_sms.js');
+require('/test/unit/mock_moz_sms_filter.js');
+require('/test/unit/mock_link_helper.js');
+require('/test/unit/mock_moz_activity.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/test/unit/mock_messages.js');
+require('/test/unit/mock_contact.js');
+require('/test/unit/mock_contacts.js');
+require('/test/unit/mock_recipients.js');
+require('/test/unit/mock_settings.js');
+require('/test/unit/mock_activity_picker.js');
+require('/test/unit/mock_action_menu.js');
+require('/test/unit/mock_dialog.js');
+require('/test/unit/mock_smil.js');
+require('/test/unit/mock_custom_dialog.js');
+require('/test/unit/mock_url.js');
+require('/test/unit/mock_compose.js');
+require('/test/unit/mock_activity_handler.js');
+require('/test/unit/mock_information.js');
 require('/test/unit/mock_contact_renderer.js');
+require('/test/unit/mock_message_manager.js');
+
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
-require('/test/unit/mock_message_manager.js');
 require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
+require('/shared/test/unit/mocks/mock_audio.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Attachment',
@@ -81,7 +83,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'ContactPhotoHelper',
   'MessageManager',
   'StickyHeader',
-  'MultiSimActionButton'
+  'MultiSimActionButton',
+  'Audio'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -4341,6 +4344,12 @@ suite('thread_ui.js >', function() {
   suite('initSentAudio', function() {
     test('calling function does not throw uncaught exception ', function() {
       assert.doesNotThrow(ThreadUI.initSentAudio);
+    });
+
+    test('correctly creates the audio element', function() {
+      ThreadUI.initSentAudio();
+      assert.isTrue(ThreadUI.sentAudio.src.endsWith('/sounds/sent.opus'));
+      assert.equal(ThreadUI.sentAudio.mozAudioChannelType, 'notification');
     });
   });
 
