@@ -6,6 +6,7 @@ requireApp('system/js/mock_simslot_manager.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_navigator_moz_voicemail.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 
 mocha.setup({
@@ -18,6 +19,7 @@ suite('voicemail notification', function() {
   var realSIMSlotManager;
   var realL10n;
   var realSettingsHelper;
+  var realMozTelephony;
 
   suiteSetup(function() {
     realMozVoicemail = navigator.mozVoicemail;
@@ -292,5 +294,55 @@ suite('voicemail notification', function() {
         });
       })(i);
     }
+  });
+
+  suite('placing voicemail calls', function() {
+    var telephonyDialSpy;
+    var notificationTitle = 'Title';
+    var notificationText = 'Text';
+    var voicemailNumber = '111';
+
+    suiteSetup(function() {
+      realMozTelephony = navigator.mozTelephony;
+      navigator.mozTelephony = MockNavigatorMozTelephony;
+    });
+
+    setup(function() {
+      telephonyDialSpy = this.sinon.spy(MockNavigatorMozTelephony, 'dial');
+    });
+
+    suiteTeardown(function() {
+      MockNavigatorMozTelephony.mSuiteTeardown();
+      navigator.mozTelephony = realMozTelephony;
+    });
+
+    teardown(function() {
+      MockNavigatorMozTelephony.calls = [];
+      MockNavigatorMozTelephony.mTeardown();
+    });
+
+    test('place a call if there is none pending', function() {
+      MockNavigatorMozTelephony.calls = [];
+      Voicemail.showNotification(
+        notificationTitle, notificationText, voicemailNumber);
+      this.notificationListenerSpy.yield();
+      sinon.assert.called(telephonyDialSpy);
+    });
+
+    test('place a call if there is less than two pending', function() {
+      MockNavigatorMozTelephony.calls = [{}];
+      Voicemail.showNotification(
+        notificationTitle, notificationText, voicemailNumber);
+      this.notificationListenerSpy.yield();
+      sinon.assert.called(telephonyDialSpy);
+    });
+
+    test('do not place a call if there is already two pending', function() {
+      MockNavigatorMozTelephony.calls = [{}, {}];
+      Voicemail.showNotification(
+        notificationTitle, notificationText, voicemailNumber);
+      this.notificationListenerSpy.yield();
+      sinon.assert.notCalled(telephonyDialSpy);
+    });
   });
 });

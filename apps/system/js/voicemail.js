@@ -98,6 +98,17 @@ var Voicemail = {
         if (!telephony) {
           return;
         }
+
+        var openLines = telephony.calls.length +
+            ((telephony.conferenceGroup &&
+              telephony.conferenceGroup.calls.length) ? 1 : 0);
+
+        // User can make call only when there are less than 2 calls by spec.
+        // If the limit reached, return early to prevent holding active call.
+        if (openLines >= 2) {
+          return;
+        }
+
         telephony.dial(voicemailNumber);
       }
     );
