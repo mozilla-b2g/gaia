@@ -1,5 +1,4 @@
 (function(window) {
-  'use strict';
 
   const NEXT_TICK = 'calendar-next-tick';
   var NUMERIC = /^([0-9]+)$/;
@@ -51,18 +50,16 @@
       for (; i < len; i++) {
         var part = parts[i];
         if (!(part in lastPart)) {
-          if (checkOnly) {
+          if (checkOnly)
             return false;
-          }
 
           lastPart[part] = {};
         }
         lastPart = lastPart[part];
       }
 
-      if (checkOnly) {
+      if (checkOnly)
         return true;
-      }
 
       return lastPart;
     },
@@ -75,9 +72,8 @@
 
     debug: function(name) {
       return function() {
-        if (!Calendar.DEBUG) {
+        if (!Calendar.DEBUG)
           return;
-        }
 
         var args = Array.prototype.slice.call(arguments);
         args = args.map(function(item) {
@@ -86,7 +82,7 @@
         args.unshift('[calendar] ');
         args.unshift(name);
         console.log.apply(console, args);
-      };
+      }
     },
 
     /**
@@ -131,22 +127,20 @@
         while (low <= high) {
           mid = low + Math.floor((high - low) / 2);
           cmpval = cmpfunc(seekVal, list[mid]);
-          if (cmpval < 0) {
+          if (cmpval < 0)
             high = mid - 1;
-          } else if (cmpval > 0) {
+          else if (cmpval > 0)
             low = mid + 1;
-          } else {
+          else
             return mid;
-          }
         }
 
         return null;
       },
 
       insert: function bsearchForInsert(list, seekVal, cmpfunc) {
-        if (!list.length) {
+        if (!list.length)
           return 0;
-        }
 
         var low = 0, high = list.length - 1,
             mid, cmpval;
@@ -155,22 +149,20 @@
           mid = low + Math.floor((high - low) / 2);
           cmpval = cmpfunc(seekVal, list[mid]);
 
-          if (cmpval < 0) {
+          if (cmpval < 0)
             high = mid - 1;
-          } else if (cmpval > 0) {
+          else if (cmpval > 0)
             low = mid + 1;
-          } else {
+          else
             break;
-          }
         }
 
-        if (cmpval < 0) {
+        if (cmpval < 0)
           return mid; // insertion is displacing, so use mid outright.
-        } else if (cmpval > 0) {
+        else if (cmpval > 0)
           return mid + 1;
-        } else {
+        else
           return mid;
-        }
       }
     }
   };

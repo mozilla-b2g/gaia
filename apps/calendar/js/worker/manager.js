@@ -1,6 +1,4 @@
 Calendar.ns('Worker').Manager = (function(global) {
-  'use strict';
-
   const IDLE_CLEANUP_TIME = 5000;
 
   /**
@@ -85,20 +83,18 @@ Calendar.ns('Worker').Manager = (function(global) {
 
     _onWorkerMessage: function(worker, event) {
       var data = this._formatData(event.data);
-      var type = data.shift();
-      var match = type.match(/^(\d+) (end|stream)$/);
+      var type = data.shift(), match;
 
       if (type == 'log') {
         this._onLog.apply(this, data);
 
-      } else if (match) {
+      } else if (match = type.match(/^(\d+) (end|stream)$/)) {
         var pending = worker.pending[match[1]];
-        if (pending) {
+        if (pending)
           this._dispatchMessage(worker, pending, match[2], data);
-        } else {
+        else
           throw new Error('Message arrived for unknown consumer: ' +
                           type + ' ' + JSON.stringify(data));
-        }
       } else {
         this.respond([type].concat(data));
       }
@@ -111,9 +107,7 @@ Calendar.ns('Worker').Manager = (function(global) {
         pending.callback.apply(null, data);
         delete worker.pending[pending.id];
         // Bail out if there are other pending requests.
-        if (Object.keys(worker.pending).length) {
-          return;
-        }
+        for (var _ in worker.pending) return;
         // If none are left, schedule cleanup
         this._scheduleCleanup(worker);
       }
@@ -129,12 +123,8 @@ Calendar.ns('Worker').Manager = (function(global) {
       worker.cleanup = setTimeout(function() {
         // Ensure we don't have a race condition where someone just
         // added a request but the timeout fired anyway.
-        if (Object.keys(worker.pending).length) {
-          return;
-        }
-        if (!worker.instance) {
-          return;
-        }
+        for (var _ in worker.pending) return;
+        if (!worker.instance) return;
 
         worker.instance.terminate();
         worker.instance = null;
@@ -166,11 +156,10 @@ Calendar.ns('Worker').Manager = (function(global) {
 
       this.workers.push(worker);
       [].concat(role).forEach(function(role) {
-        if (!(role in this.roles)) {
+        if (!(role in this.roles))
           this.roles[role] = [worker];
-        } else {
+        else
           this.roles[role].push(worker);
-        }
       }, this);
     },
 
@@ -205,10 +194,9 @@ Calendar.ns('Worker').Manager = (function(global) {
     request: function(role /*, args..., callback*/) {
       var args = Array.prototype.slice.call(arguments, 1);
       var callback = args.pop();
-      var worker = null;
 
       try {
-        worker = this._ensureActiveWorker(role);
+        var worker = this._ensureActiveWorker(role);
       } catch (e) {
         callback(e);
         return;
@@ -239,14 +227,12 @@ Calendar.ns('Worker').Manager = (function(global) {
       };
 
       stream.request = function(callback) {
-        var worker = null;
-
         stream.request = function() {
           throw new Error('stream request has been sent');
         };
 
         try {
-          worker = self._ensureActiveWorker(role);
+          var worker = self._ensureActiveWorker(role);
         } catch (e) {
           callback(e);
           return;

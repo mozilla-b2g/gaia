@@ -1,5 +1,4 @@
 Calendar.TimeObserver = (function() {
-  'use strict';
 
   function TimeObserver() {
     this._timeObservers = [];
@@ -64,6 +63,7 @@ Calendar.TimeObserver = (function() {
      */
     findTimeObserver: function(timespan, callback) {
       var len = this._timeObservers.length;
+      var idx = null;
       var field;
       var i = 0;
 

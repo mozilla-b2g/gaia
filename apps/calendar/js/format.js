@@ -1,10 +1,7 @@
 (function(window) {
-  'use strict';
-
   var FORMAT_REGEX = /%([0-9])?s/g;
 
-  if (typeof(Calendar) === 'undefined') {
-    /*global Calendar:true */
+  if (typeof(Calendar) == 'undefined') {
     Calendar = {};
   }
 

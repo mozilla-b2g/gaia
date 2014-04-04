@@ -1,5 +1,4 @@
 Calendar.Timespan = (function() {
-  'use strict';
 
   function Timespan(startDate, endDate) {
     this.start = startDate.valueOf();

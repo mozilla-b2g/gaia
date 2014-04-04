@@ -1,10 +1,7 @@
-/*jshint loopfunc: true */
-
 (function(window) {
-  'use strict';
-
   var idb = window.indexedDB;
   const VERSION = 15;
+  var debug = Calendar.debug('database');
 
   var store = {
     events: 'events',
@@ -93,7 +90,7 @@
 
       var self = this;
 
-      req.onsuccess = function() {
+      req.onsuccess = function(event) {
         self.isOpen = true;
         self.connection = req.result;
 
@@ -101,14 +98,16 @@
         if (self._upgradeOperations.length) {
           var pending = self._upgradeOperations.length;
 
+          function next() {
+            if (!(--pending)) {
+              callback(null, self);
+              self.emit('open', self);
+            }
+          }
+
           var operation;
           while ((operation = self._upgradeOperations.shift())) {
-            operation.call(self, function next() {
-              if (!(--pending)) {
-                callback(null, self);
-                self.emit('open', self);
-              }
-            });
+            operation.call(self, next);
           }
         } else {
           callback(null, self);
@@ -445,7 +444,7 @@
     deleteDatabase: function(callback) {
       var req = idb.deleteDatabase(this.name);
 
-      req.onblocked = function() {
+      req.onblocked = function(e) {
         // improve interface
         callback(new Error('blocked'));
       };

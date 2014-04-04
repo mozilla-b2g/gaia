@@ -1,5 +1,4 @@
 Calendar.Calc = (function() {
-  'use strict';
 
   const SECOND = 1000;
   const MINUTE = (SECOND * 60);
@@ -85,9 +84,8 @@ Calendar.Calc = (function() {
      */
     dayOfWeekFromMonday: function(numeric) {
       var day = numeric - 1;
-      if (day < 0) {
+      if (day < 0)
         return 6;
-      }
 
       return day;
     },
@@ -115,6 +113,8 @@ Calendar.Calc = (function() {
      * hours. ALLDAY is always first.
      */
     compareHours: function(a, b) {
+      var result;
+
       // to cover the case of a is allday
       // and b is also allday
       if (a === b) {
@@ -343,6 +343,7 @@ Calendar.Calc = (function() {
      */
     dateToTransport: function(date, tzid, isDate) {
       var result = Object.create(null);
+      result.utc = utc;
 
       if (isDate) {
         result.isDate = isDate;
@@ -519,6 +520,7 @@ Calendar.Calc = (function() {
 
       var list = [];
       var last = start.getDate();
+      var cur;
 
       // handle the case where start & end dates
       // are the same date.

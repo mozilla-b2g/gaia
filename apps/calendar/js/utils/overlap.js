@@ -3,7 +3,6 @@
  * non-overlapping columns tracked by IntervalTree instances.
  */
 Calendar.ConflictSpan = (function() {
-  'use strict';
 
   // Smallest gap interval to use in splitting conflict spans
   var MIN_SPLIT_INTERVAL = 5 * 60 * 1000;  // 5 minutes
@@ -20,7 +19,7 @@ Calendar.ConflictSpan = (function() {
     this.columnsByID = {};
     this.columns = [];
     this.addColumn();
-  }
+  };
 
   ConflictSpan.prototype = {
 
@@ -284,11 +283,10 @@ Calendar.ConflictSpan = (function() {
  * Conflict manager
  */
 Calendar.ns('Utils').Overlap = (function() {
-  'use strict';
 
   function Overlap() {
     this.reset();
-  }
+  };
 
   Overlap.prototype = {
 
@@ -304,9 +302,7 @@ Calendar.ns('Utils').Overlap = (function() {
 
       // Check for conflicts, bail if none
       var related = this._findRelated(myBusytime);
-      if (0 === related.length) {
-        return;
-      }
+      if (0 === related.length) return;
 
       var myID = myBusytime._id;
       var myCS = this.conflicts[myID];
@@ -315,9 +311,7 @@ Calendar.ns('Utils').Overlap = (function() {
       related.forEach(function(otherBusytime) {
         // Get the other's ID, skip the current
         var otherID = otherBusytime._id;
-        if (otherID === myID) {
-          return;
-        }
+        if (otherID == myID) return;
 
         var otherCS = self.conflicts[otherID];
         if (!myCS && !otherCS) {

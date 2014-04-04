@@ -15,8 +15,6 @@
  *
  */
 Calendar.Notification = (function() {
-  'use strict';
-
 
   function getApp(callback) {
     var req = navigator.mozApps.getSelf();
@@ -26,6 +24,7 @@ Calendar.Notification = (function() {
     };
 
     req.onsuccess = function sendNotification(e) {
+      var app = e.target.result;
       callback(null, e.target.result);
     };
   }

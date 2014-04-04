@@ -1,7 +1,6 @@
 //this code is from test-agent might use native dom events
 //or something else in the future to replace this.
 (function(exports) {
-  'use strict';
 
   if (typeof(exports.Calendar) === 'undefined') {
     exports.Calendar = {};
@@ -43,7 +42,7 @@
     try {
       data = (json.forEach) ? json : JSON.parse(json);
     } catch (e) {
-      throw new Error('Could not parse json: "' + json + '"');
+      throw new Error("Could not parse json: '" + json + '"');
     }
 
     return data;
@@ -117,7 +116,6 @@
     once: function once(type, callback) {
       var self = this;
       function onceCb() {
-        /*jshint validthis:true */
         self.removeEventListener(type, onceCb);
         callback.apply(this, arguments);
       }

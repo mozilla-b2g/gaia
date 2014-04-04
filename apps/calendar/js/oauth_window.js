@@ -1,5 +1,4 @@
 Calendar.OAuthWindow = (function() {
-  'use strict';
 
   /**
    * Creates a oAuth dialog given a set of parameters.
@@ -105,9 +104,7 @@ Calendar.OAuthWindow = (function() {
       this.close();
 
       // trigger an event so others can cleanup
-      if (this.onabort) {
-        this.onabort();
-      }
+      this.onabort && this.onabort();
     },
 
     handleEvent: function(event) {
@@ -148,9 +145,8 @@ Calendar.OAuthWindow = (function() {
     },
 
     close: function() {
-      if (!this.isOpen) {
+      if (!this.isOpen)
         return;
-      }
 
       this.browserFrame.removeEventListener(
         'mozbrowserlocationchange', this

@@ -1,6 +1,4 @@
 Calendar.ns('Utils').OrderedMap = (function() {
-  'use strict';
-
   function OrderedMap(list, compare) {
     if (typeof(compare) === 'undefined') {
       compare = Calendar.compare;
@@ -15,11 +13,12 @@ Calendar.ns('Utils').OrderedMap = (function() {
     } else {
       this.items = [];
     }
-  }
+  };
 
   OrderedMap.prototype = {
 
     has: function(value) {
+      var idx = this.indexOf(value);
       return this.indexOf(value) !== null;
     },
 

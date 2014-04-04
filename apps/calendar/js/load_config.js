@@ -1,5 +1,4 @@
 Calendar.LoadConfig = (function() {
-  'use strict';
 
   var SNAKE = /(_|\/)([a-zA-Z])/g;
   var SLASH = /\//g;
@@ -53,17 +52,17 @@ Calendar.LoadConfig = (function() {
           return;
         }
 
-        file = this.config.jsRoot + file + '.js';
+        var file = this.config.jsRoot + file + '.js';
         LazyLoader.load([file], cb);
       },
 
       shared: function lc_importShared(file, obs, cb) {
-        file = this.config.sharedJsRoot + file + '.js';
+        var file = this.config.sharedJsRoot + file + '.js';
         LazyLoader.load([file], cb);
       },
 
       style: function lc_importStylesheet(file, obs, cb) {
-        file = this.config.styleRoot + file + '.css';
+        var file = this.config.styleRoot + file + '.css';
         LazyLoader.load([file], cb);
       },
 

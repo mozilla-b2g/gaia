@@ -1,5 +1,3 @@
-'use strict';
-
 ['calendar',
  'responder',
  'inspect',
@@ -16,14 +14,11 @@
    importScripts('./js/' + script + '.js?time=' + Date.now());
 });
 
-
-var thread = new Calendar.Thread(window);
-window.console = new thread.console('caldav worker');
+var thread = new Calendar.Thread(this);
+this.console = new thread.console('caldav worker');
 
 thread.addRole('caldav');
 
-/*jshint unused:true */
-/*exported caldav */
 var caldav = new Calendar.Service.Caldav(
   thread.roles.caldav
 );

@@ -1,5 +1,4 @@
 Calendar.Error = (function(window) {
-  'use strict';
 
   /**
    * These errors are _not_ exceptions and are designed to be passed not thrown
