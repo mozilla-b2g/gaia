@@ -29,6 +29,7 @@ var mocksForDownloadNotification = new MocksHelper([
 
 suite('system/DownloadNotification >', function() {
   var ERRORS = {
+    NO_MEMORY: 2152857616,
     NO_SDCARD: 2152857618,
     UNMOUNTED_SDCARD: 2152857621
   };
@@ -221,14 +222,13 @@ suite('system/DownloadNotification >', function() {
       download.state = 'stopped';
       download.error = {
         name: 'DownloadError',
-        message: 0
+        message: ERRORS.NO_MEMORY
       };
       DownloadHelper.bytes = 0;
       download.onstatechange();
       assertUpdatedNotification(download, 'failed');
       assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
       assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
-      assert.equal(DownloadHelper.methodCalled, 'getFreeSpace');
       assert.equal(DownloadUI.methodCalled, 'show');
     });
 
