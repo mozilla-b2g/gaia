@@ -10,15 +10,17 @@ class TestEverythingMeLaunchApp(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        # Force disable rocketbar
+        self.data_layer.set_setting('rocketbar.enabled', False)
         self.apps.set_permission('Homescreen', 'geolocation', 'deny')
         self.connect_to_network()
 
     def test_launch_everything_me_app(self):
-        # https://github.com/mozilla/gaia-ui-tests/issues/69
 
         app_name = 'Twitter'
         homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
+        homescreen.wait_for_homescreen_to_load()
 
         search_panel = homescreen.tap_search_bar()
         search_panel.wait_for_everything_me_loaded()
@@ -26,8 +28,7 @@ class TestEverythingMeLaunchApp(GaiaTestCase):
 
         search_panel.wait_for_everything_me_results_to_load()
 
-        results = search_panel.results
-        self.assertGreater(len(results), 0)
+        self.assertGreater(len(search_panel.results), 0)
 
-        results[0].tap()
+        search_panel.results[0].tap()
         self.assertIn(app_name, self.marionette.title)
