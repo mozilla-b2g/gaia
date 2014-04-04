@@ -272,6 +272,11 @@ var Common = {
       Common.dataSimIccId = iccId;
       Common.dataSimIccIdLoaded = true;
       Common.dataSimIcc = Common.getIccInfo(iccId);
+      if (!Common.dataSimIcc) {
+        // Icc is not detected although iccId exists
+        (typeof onerror === 'function') && onerror();
+        return;
+      }
       if (onsuccess) {
         onsuccess(iccId);
       }
