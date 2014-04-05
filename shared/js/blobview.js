@@ -269,7 +269,7 @@ var BlobView = (function() {
 
       // See http://en.wikipedia.org/wiki/UTF-8
       while (pos < end) {
-        var b1 = this.view.getUint8(pos);
+        b1 = this.view.getUint8(pos);
         if (b1 < 128) {
           s += String.fromCharCode(b1);
           pos += 1;

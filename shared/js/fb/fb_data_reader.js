@@ -1,4 +1,7 @@
 'use strict';
+/* global LazyLoader */
+/* global TelIndexer */
+/* jshint -W040 */
 
 // Reader Module for FB Data in a Datastore
 // To use this library you need to include 'shared/js/fb/fb_request.js'
@@ -84,17 +87,8 @@ this.fb = fb;
     return defaultErrorCb.bind(null, request);
   }
 
-  // Creates a default handler for success
-  function defaultSuccess(request) {
-    return defaultSuccessCb.bind(null, request);
-  }
-
   function defaultErrorCb(request, error) {
     request.failed(error);
-  }
-
-  function defaultSuccessCb(request, result) {
-    request.done(result);
   }
 
   function setIndex(obj) {
@@ -111,7 +105,7 @@ this.fb = fb;
   }
 
   Object.defineProperty(contacts, 'datastore', {
-    get: function getDataStore() { return datastore },
+    get: function getDataStore() { return datastore; },
     enumerable: false,
     configurable: false
   });

@@ -194,8 +194,8 @@ OperatorVariantHelper.prototype = {
 
     } else {
       // Check whether we ran customizations already.
-      var transaction = this.settings.createLock();
-      var persistKeyGetRequest = transaction.get(this._persistKey);
+      var persistTransaction = this.settings.createLock();
+      var persistKeyGetRequest = persistTransaction.get(this._persistKey);
       persistKeyGetRequest.onsuccess = (function persistKeyGetRequestCb() {
         // Looks like we didn't run customizations, apply settings.
         if (!persistKeyGetRequest.result[this._persistKey]) {
@@ -317,12 +317,13 @@ OperatorVariantHelper.prototype = {
       listenForChange = true;
     }
 
+    var iccManager = window.navigator.mozIccManager;
+
     // Register listener if we're listening for changes.
     if (listenForChange) {
       // We need to keep a reference to the added listener for removal later.
       this._addedListener = this.customize.bind(this);
 
-      var iccManager = window.navigator.mozIccManager;
       this._iccCard = iccManager.getIccById(this._iccId);
       if (this._iccCard) {
         // Add the actual bound listener.
@@ -355,7 +356,6 @@ OperatorVariantHelper.prototype = {
     }
 
     if (this._addedListener) {
-      var iccManager = window.navigator.mozIccManager;
       this._iccCard = iccManager.getIccById(this._iccId);
       if (this._iccCard) {
         // Otherwise, unregister.

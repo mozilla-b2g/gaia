@@ -1,4 +1,5 @@
 'use strict';
+/* global ManifestHelper */
 
 /**
  * Helper object to find all installed keyboard apps and layouts.
@@ -86,6 +87,7 @@ var regExpGaiaKeyboardAppsManifestURL =
  * helper function for reading a value in one of the currentSettings
  */
 function map2dIs(manifestURL, layoutId) {
+  /* jshint validthis: true */
   // force boolean true or false
   return !!(this[manifestURL] && this[manifestURL][layoutId]);
 }
@@ -94,6 +96,7 @@ function map2dIs(manifestURL, layoutId) {
  * helper function for setting a value to true in one of the currentSettings
  */
 function map2dSet(manifestURL, layoutId) {
+  /* jshint validthis: true */
   if (!this[manifestURL]) {
     this[manifestURL] = {};
   }
@@ -105,6 +108,7 @@ function map2dSet(manifestURL, layoutId) {
  * deletes the appropriate keys
  */
 function map2dUnset(manifestURL, layoutId) {
+  /* jshint validthis: true */
   if (!this[manifestURL]) {
     return;
   }
@@ -201,6 +205,7 @@ function kh_getSettings() {
  * Parse the result from the settings query for enabling 3rd-party keyboards
  */
 function kh_parse3rdPartyAppEnabled() {
+  /* jshint validthis: true */
   var value = this.result[SETTINGS_KEYS.THIRD_PARTY_APP_ENABLED];
   if (typeof value === 'boolean') {
     enable3rdPartyKeyboardApps = value;
@@ -214,6 +219,7 @@ function kh_parse3rdPartyAppEnabled() {
  * Parse the result from the settings query for default layouts
  */
 function kh_parseDefault() {
+  /* jshint validthis: true */
   var value = this.result[SETTINGS_KEYS.DEFAULT];
   if (value) {
     currentSettings.defaultLayouts = value;
@@ -225,6 +231,7 @@ function kh_parseDefault() {
  * Parse the result from the settings query for enabled layouts
  */
 function kh_parseEnabled() {
+  /* jshint validthis: true */
   var value = this.result[SETTINGS_KEYS.ENABLED];
   var needsSave = false;
   if (!value) {
@@ -242,8 +249,9 @@ function kh_parseEnabled() {
         oldSettings.forEach(function(layout) {
           if (layout.enabled) {
             var manifestURL = layout.manifestURL;
-            if (!manifestURL)
+            if (!manifestURL) {
               manifestURL = layout.appOrigin + '/manifest.webapp';
+            }
             map2dSet.call(currentSettings.enabledLayouts, manifestURL,
               layout.layoutId);
           }
@@ -271,10 +279,11 @@ function kh_parseEnabled() {
  * layouts.
  */
 function kh_migrateDeprecatedSettings(deprecatedSettings) {
-  var settingEntry = DEPRECATE_KEYBOARD_SETTINGS['en'];
+  /* jshint loopfunc: true */
+  var settingEntry = DEPRECATE_KEYBOARD_SETTINGS.en;
 
   // No need to do migration if the deprecated settings are not available
-  if (deprecatedSettings[settingEntry] == undefined) {
+  if (deprecatedSettings[settingEntry] === undefined) {
     return;
   }
 
@@ -310,7 +319,7 @@ function kh_migrateDeprecatedSettings(deprecatedSettings) {
 
   // Clean up all the deprecated settings
   var deprecatedSettingsQuery = {};
-  for (var key in DEPRECATE_KEYBOARD_SETTINGS) {
+  for (key in DEPRECATE_KEYBOARD_SETTINGS) {
     // the deprecated setting entry, e.g. keyboard.layout.english
     settingEntry = DEPRECATE_KEYBOARD_SETTINGS[key];
 
@@ -326,8 +335,9 @@ function kh_migrateDeprecatedSettings(deprecatedSettings) {
  * JSON loader
  */
 function kh_loadJSON(href, callback) {
-  if (!callback)
+  if (!callback) {
     return;
+  }
   var xhr = new XMLHttpRequest();
   xhr.onerror = function() {
     console.error('Failed to fetch file: ' + href, xhr.statusText);
@@ -357,13 +367,13 @@ function kh_getMultiSettings(settings, callback) {
   var results = {};
   try {
     var lock = navigator.mozSettings.createLock();
-  }
-  catch (e) {
+  } catch (e) {
     // If settings is broken, just return the default values
     console.warn('Exception in mozSettings.createLock():', e,
                  '\nUsing default values');
-    for (var p in settings)
+    for (var p in settings) {
       results[p] = settings[p];
+    }
     callback(results);
   }
   var settingNames = Object.keys(settings);
@@ -375,10 +385,10 @@ function kh_getMultiSettings(settings, callback) {
   }
 
   function requestSetting(name) {
+    var request;
     try {
-      var request = lock.get(name);
-    }
-    catch (e) {
+      request = lock.get(name);
+    } catch (e) {
       console.warn('Exception querying setting', name, ':', e,
                    '\nUsing default value');
       recordResult(name, settings[name]);
@@ -711,6 +721,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
           }
 
           if (options.type) {
+            /* jshint loopfunc: true */
             options.type = [].concat(options.type);
             // check for any type in our options to be any type in the layout
             if (!options.type.some(function(type) {

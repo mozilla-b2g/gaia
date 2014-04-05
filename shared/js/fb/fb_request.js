@@ -1,4 +1,5 @@
 'use strict';
+/* jshint -W040 */
 
 var fb = this.fb || {};
 this.fb = fb;

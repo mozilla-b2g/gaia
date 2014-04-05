@@ -1,3 +1,7 @@
+'use strict';
+/* global requestAnimationFrame */
+/* global VideoPlayer */
+
 /*
  * media_frame.js:
  *
@@ -28,8 +32,9 @@
  * Much of the code in this file used to be part of the PhotoState class.
  */
 function MediaFrame(container, includeVideo) {
-  if (typeof container === 'string')
+  if (typeof container === 'string') {
     container = document.getElementById(container);
+  }
   this.container = container;
   this.image = document.createElement('img');
   this.image.style.transformOrigin = 'center center';
@@ -49,8 +54,9 @@ function MediaFrame(container, includeVideo) {
 
   var self = this;
   this.image.onerror = function(e) {
-    if (self.onerror)
+    if (self.onerror) {
       self.onerror(e);
+    }
   };
 }
 
@@ -80,8 +86,9 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   this.displayingImage = true;
 
   function isPreviewBigEnough(preview) {
-    if (!preview || !preview.width || !preview.height)
+    if (!preview || !preview.width || !preview.height) {
       return false;
+    }
 
     // If setMinimumPreviewSize has been called, then a preview is big
     // enough if it is at least that big.
@@ -145,8 +152,9 @@ MediaFrame.prototype._displayImage = function _displayImage(blob) {
   var self = this;
 
   // Create a URL for the blob (or preview blob)
-  if (this.url)
+  if (this.url) {
     URL.revokeObjectURL(this.url);
+  }
   this.url = URL.createObjectURL(blob);
 
   if (!this.preload) {
@@ -155,15 +163,16 @@ MediaFrame.prototype._displayImage = function _displayImage(blob) {
     this.preload = new Image();
     // If user gives us a dummy blob, we also need to handle the error case.
     this.preload.addEventListener('error', function onerror(e) {
-      if (self.onerror)
+      if (self.onerror) {
         self.onerror(e);
+      }
     });
 
     this.preload.addEventListener('load', function onload() {
       self.image.src = self.preload.src;
 
       // Switch height & width for rotated images
-      if (self.rotation == 0 || self.rotation == 180) {
+      if (self.rotation === 0 || self.rotation === 180) {
         self.itemWidth = self.preload.width;
         self.itemHeight = self.preload.height;
       } else {
@@ -181,8 +190,9 @@ MediaFrame.prototype._displayImage = function _displayImage(blob) {
 };
 
 MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
-  if (!this.displayingImage || !this.displayingPreview)
+  if (!this.displayingImage || !this.displayingPreview) {
     return;
+  }
 
   var self = this;
   this.displayingPreview = false;
@@ -203,7 +213,7 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
 
   // Resize the preview image to be the same size as the full image.
   // It will be pixelated, but it will be ready right away.
-  if (this.rotation == 0 || this.rotation == 180) {
+  if (this.rotation === 0 || this.rotation === 180) {
     this.itemWidth = this.oldimage.width = this.fullsizeWidth;
     this.itemHeight = this.oldimage.height = this.fullsizeHeight;
   } else {
@@ -231,12 +241,13 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
     // XXX: This is a hack. There really ought to be an event we can listen for
     // to know when the image is ready to display onscreen. See Bug 844245.
     setTimeout(function() {
-      mozRequestAnimationFrame(function() {
+      requestAnimationFrame(function() {
         self.container.removeChild(oldimage);
         self.oldimage = null;
         oldimage.src = ''; // Use '' instead of null. See Bug 901410
-        if (oldurl)
+        if (oldurl) {
           URL.revokeObjectURL(oldurl);
+        }
       });
     }, 1000);
   });
@@ -255,8 +266,9 @@ MediaFrame.prototype.displayVideo = function displayVideo(videoblob, posterblob,
                                                           width, height,
                                                           rotation)
 {
-  if (!this.video)
+  if (!this.video) {
     return;
+  }
 
   this.clear();  // reset everything
 
@@ -311,10 +323,12 @@ MediaFrame.prototype.clear = function clear() {
   if (this.video) {
     this.video.reset();
     this.video.hide();
-    if (this.videourl)
+    if (this.videourl) {
       URL.revokeObjectURL(this.videourl);
-    if (this.posterurl)
+    }
+    if (this.posterurl) {
       URL.revokeObjectURL(this.posterurl);
+    }
   }
 };
 
@@ -322,8 +336,9 @@ MediaFrame.prototype.clear = function clear() {
 // The VideoPlayer object fits itself to its container, and it
 // can't be zoomed or panned, so we only need to do this for images
 MediaFrame.prototype.setPosition = function setPosition() {
-  if (!this.fit || !this.displayingImage)
+  if (!this.fit || !this.displayingImage) {
     return;
+  }
 
   var dx = this.fit.left, dy = this.fit.top;
 
@@ -353,13 +368,15 @@ MediaFrame.prototype.setPosition = function setPosition() {
     'rotate(' + this.rotation + 'deg) ';
 
   this.image.style.transform = transform;
-  if (this.oldimage)
+  if (this.oldimage) {
     this.oldimage.style.transform = transform;
+  }
 };
 
 MediaFrame.prototype.computeFit = function computeFit() {
-  if (!this.displayingImage)
+  if (!this.displayingImage) {
     return;
+  }
   this.viewportWidth = this.container.offsetWidth;
   this.viewportHeight = this.container.offsetHeight;
 
@@ -393,8 +410,9 @@ MediaFrame.prototype.reset = function reset() {
   this.computeFit();
   this.setPosition();
   // If frame is resized, the video's size also need to reset.
-  if (this.displayingVideo)
+  if (this.displayingVideo) {
     this.video.setPlayerSize();
+  }
 };
 
 // We call this from the resize handler when the user rotates the
@@ -414,8 +432,9 @@ MediaFrame.prototype.resize = function resize() {
 
   // If this is triggered by a resize event before the frame has computed
   // its size, then there is nothing we can do yet.
-  if (!oldfit)
+  if (!oldfit) {
     return;
+  }
 
   // Compute the new fit.
   // This updates the the viewportWidth, viewportHeight and fit properties
@@ -455,12 +474,14 @@ MediaFrame.prototype.resize = function resize() {
 // to animate the zoom.
 MediaFrame.prototype.zoom = function zoom(scale, fixedX, fixedY, time) {
   // Ignore zooms if we're not displaying an image
-  if (!this.displayingImage)
+  if (!this.displayingImage) {
     return;
+  }
 
   // If we were displaying the preview, switch to the full-size image
-  if (this.displayingPreview)
+  if (this.displayingPreview) {
     this._switchToFullSizeImage();
+  }
 
   // Never zoom in farther than the native resolution of the image
   if (this.fit.scale * scale > 1) {
@@ -499,8 +520,9 @@ MediaFrame.prototype.zoom = function zoom(scale, fixedX, fixedY, time) {
   }
   else {
     // Don't let the left of the photo be past the left edge of the screen
-    if (this.fit.left > 0)
+    if (this.fit.left > 0) {
       this.fit.left = 0;
+    }
 
     // Right of photo shouldn't be to the left of the right edge
     if (this.fit.left + this.fit.width < this.viewportWidth) {
@@ -513,8 +535,9 @@ MediaFrame.prototype.zoom = function zoom(scale, fixedX, fixedY, time) {
   }
   else {
     // Don't let the top of the photo be below the top of the screen
-    if (this.fit.top > 0)
+    if (this.fit.top > 0) {
       this.fit.top = 0;
+    }
 
     // bottom of photo shouldn't be above the bottom of screen
     if (this.fit.top + this.fit.height < this.viewportHeight) {
@@ -528,8 +551,9 @@ MediaFrame.prototype.zoom = function zoom(scale, fixedX, fixedY, time) {
     // If a time was specfied, animate the transformation
     var transition = 'transform ' + time + 'ms ease';
     this.image.style.transition = transition;
-    if (this.oldimage)
+    if (this.oldimage) {
       this.oldimage.style.transition = transition;
+    }
     var self = this;
     this.image.addEventListener('transitionend', function done() {
       self.image.removeEventListener('transitionend', done);
@@ -555,12 +579,14 @@ MediaFrame.prototype.pan = function(dx, dy) {
     this.fit.top += dy;
 
     // Don't let the top of the photo be below the top of the screen
-    if (this.fit.top > 0)
+    if (this.fit.top > 0) {
       this.fit.top = 0;
+    }
 
     // bottom of photo shouldn't be above the bottom of screen
-    if (this.fit.top + this.fit.height < this.viewportHeight)
+    if (this.fit.top + this.fit.height < this.viewportHeight) {
       this.fit.top = this.viewportHeight - this.fit.height;
+    }
   }
 
   // Now handle the X dimension. If we've already panned as far as we can

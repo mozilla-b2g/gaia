@@ -1,5 +1,5 @@
-
 'use strict';
+/* exported DownloadStore */
 
 /*
  * DownloadStore.js: Allows to store download finished ordered by timestamp

@@ -1,7 +1,7 @@
-/* globals indexedDB */
-/* exported MediaDB */
-
 'use strict';
+/* global enumerateAll */
+/* global indexedDB */
+/* exported MediaDB */
 
 /**
  * MediaDB.js: a simple interface to DeviceStorage and IndexedDB that serves
@@ -1733,7 +1733,7 @@ var MediaDB = (function() {
         request.onerror = function() {
           // This probably means that the file wasn't in the db yet
           console.warn('MediaDB: Unknown file in deleteRecord:',
-                       filename, getreq.error);
+                       filename, request.error);
           deleteNextFile();
         };
         request.onsuccess = function() {

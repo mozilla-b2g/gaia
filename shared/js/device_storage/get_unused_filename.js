@@ -1,4 +1,6 @@
 'use strict';
+/* exported getUnusedFilename */
+
 //
 // This utility function helps avoid overwriting existing files.
 // If no file with the specified name exists in the specified storage, pass
@@ -19,8 +21,9 @@ function getUnusedFilename(storage, name, callback) {
     var dir = name.substring(0, p + 1);
     var file = name.substring(p + 1);
     p = file.lastIndexOf('.');
-    if (p === -1)
+    if (p === -1) {
       p = file.length;
+    }
     var ext = file.substring(p);
     var base = file.substring(0, p);
     var parts = base.match(/^(.*)_(\d{1,2})$/);

@@ -1,7 +1,6 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
+/* global requestAnimationFrame */
+/* global ScreenLayout */
 
 /**
  * This is one of possible LockScreen unlockers, and is the default unlocker
@@ -373,6 +372,8 @@
    */
   LockScreenSlidePrototype._onSliding =
     function lss_onSliding(tx) {
+      var currentState;
+      var prevState;
       var mtx = this._mapCoord(tx, 0)[0];
       var isLeft = tx - this.center.x < 0;
       this._clearCanvas();
@@ -383,39 +384,39 @@
       var expandSentinelL = this.center.x -
         this.handle.autoExpand.sentinelWidth;
 
-      var center = this.center;
-      var radius = this.handle.radius;
-      var ctx = this.canvas.getContext('2d');
-
       if (tx > expandSentinelR || tx < expandSentinelL) {
-          var prevState = this.handle.autoExpand.accState;
+          prevState = this.handle.autoExpand.accState;
           this.handle.autoExpand.accState = 'accelerating';
-          var currentState = this.handle.autoExpand.accState;
+          currentState = this.handle.autoExpand.accState;
           var slow = false;
           if (isLeft) {
             slow = this.states.touch.deltaX > 0;
-            if (prevState !== currentState)
+            if (prevState !== currentState) {
               this.publish('lockscreenslide-near-left',
                   {'currentState': currentState, 'prevState': prevState});
+            }
           } else {
             slow = this.states.touch.deltaX < 0;
-            if (prevState !== currentState)
+            if (prevState !== currentState) {
               this.publish('lockscreenslide-near-right',
                   {'currentState': currentState, 'prevState': prevState});
+            }
           }
       } else {
-        var prevState = this.handle.autoExpand.accState;
+        prevState = this.handle.autoExpand.accState;
         this.handle.autoExpand.accState = 'normal';
-        var currentState = this.handle.autoExpand.accState;
+        currentState = this.handle.autoExpand.accState;
         if (prevState !== currentState) {
           if (isLeft) {
-            if (prevState !== currentState)
+            if (prevState !== currentState) {
               this.publish('lockscreenslide-near-left',
                   {'currentState': currentState, 'prevState': prevState});
+            }
           } else {
-            if (prevState !== currentState)
+            if (prevState !== currentState) {
               this.publish('lockscreenslide-near-right',
                   {'currentState': currentState, 'prevState': prevState});
+            }
           }
         }
       }
@@ -436,7 +437,6 @@
    */
   LockScreenSlidePrototype._onSlideBegin =
     function lss_onSlideBegin(tx) {
-      var canvasCenterX = this.canvas.clientWidth >> 1;
       var center = this.center;
 
       // To see if the finger touch on the area of the center circle.
@@ -518,8 +518,9 @@
       if (!touch.touched) {
 
         // Do nothing if the user have not move the finger to the slide yet.
-        if (!this.states.sliding)
+        if (!this.states.sliding) {
           return;
+        }
 
         touch.touched = true;
         touch.initX = pageX;
@@ -552,11 +553,13 @@
       var accFactor = this.handle.autoExpand.accFactor;
       var acc = Math.pow(dx, accFactor);
       var accTx = tx + acc;
-      if (isLeft)
+      if (isLeft) {
         accTx = tx - acc;
+      }
 
-      if (accTx < 0)
+      if (accTx < 0) {
         accTx = 0;
+      }
       return accTx;
     };
 
@@ -583,9 +586,6 @@
    */
   LockScreenSlidePrototype._bounceBack =
     function lss_bounceBack(tx, cb) {
-      var canvas = this.canvas;
-      var ctx = canvas.getContext('2d');
-
       // Absolute coordinate of the canvas center.
       var duration = this.handle.bounceBackTime;
       var center = this.center;
@@ -597,12 +597,14 @@
       var isLeft = tx - center.x < 0;
 
       var drawIt = (function _drawIt(ts) {
-        if (null === tsBegin)
+        if (null === tsBegin) {
           tsBegin = ts;
+        }
 
         if (ts - tsBegin < duration) {
-          if (0 === mspf)
+          if (0 === mspf) {
             mspf = ts - tsBegin;  // Not an accurate way to determine mspf.
+          }
           interval = Math.abs(center.x - tx) / (duration / mspf);
           nextTx = isLeft ? nextTx + interval : nextTx - interval;
           if ((isLeft && nextTx < center.x) ||
@@ -619,8 +621,9 @@
           this._drawTrack();
           this._drawArrowsTo(center.x);
           this._drawSlideTo(center.x);
-          if (cb)
+          if (cb) {
             cb();
+          }
         }
       }).bind(this);
       requestAnimationFrame(drawIt);
@@ -647,7 +650,6 @@
     function lss_drawArrows(tx) {
       var canvas = this.canvas;
       var ctx = canvas.getContext('2d');
-      var radius = this.handle.radius;
       var center = this.center;
       var offset = tx - center.x;
       var isLeft = offset < 0;
@@ -762,6 +764,7 @@
       var endAngle = 0.5 * Math.PI;
       var fillAlpha = 0.0;
       var strokeStyle = 'white';
+      var borderAlpha;
       const GRADIENT_LENGTH = 50;
 
       // If user move over 15px, fill the slide.
@@ -777,7 +780,7 @@
 
         // The border must disappear during the sliding,
         // so it's alpha would decrease to zero.
-        var borderAlpha = 1.0 - fillAlpha;
+        borderAlpha = 1.0 - fillAlpha;
 
         // From white to covered color.
         strokeStyle = 'rgba(' + this.handle.touchedColorStop +
@@ -786,18 +789,18 @@
         // It's colorful now.
         this.states.slidingColorful = true;
       } else {
-
+        var color;
         if (0 === urw) {  // Draw as the initial circle.
           fillAlpha = 0.0;
-          var color = '255,255,255';
+          color = '255,255,255';
         } else {
           fillAlpha = (urw - 15) / GRADIENT_LENGTH;
           if (fillAlpha > 1.0) {
             fillAlpha = 1.0;
           }
-          var color = this.handle.touchedColorStop;
+          color = this.handle.touchedColorStop;
         }
-        var borderAlpha = 1.0 - fillAlpha;
+        borderAlpha = 1.0 - fillAlpha;
         strokeStyle = 'rgba(' + color + ',' + borderAlpha + ')';
       }
       ctx.fillStyle = 'rgba(' + this.handle.touchedColor +
@@ -878,7 +881,6 @@
     function lss_restoreArrows() {
       var canvas = this.canvas;
       var ctx = canvas.getContext('2d');
-      var center = this.center;
       ctx.drawImage(this.arrows.left,
           this.arrows.ldraw.x,
           this.arrows.ldraw.y);
@@ -896,7 +898,6 @@
     function lss_resetHandle() {
       this.states.slidingColorful = false;
       this.states.slidingColorGradientEnd = false;
-      var canvas = this.canvas;
       var centerx = this.center.x;
       this._drawSlideTo(centerx);
     };
