@@ -37,6 +37,7 @@
      * @memberof LockScreenWindowManager#
      */
     states: {
+      FTUOccurs: false,
       enabled: true,
       unlockDetail: null,
       instance: null
@@ -51,7 +52,8 @@
                 'lockscreen-appterminated',
                 'lockscreen-appclose',
                 'screenchange',
-                'ftuopen'
+                'ftuopen',
+                'ftudone'
                ]
     }
   };
@@ -74,10 +76,17 @@
       var app = null;
       switch (evt.type) {
         case 'ftuopen':
+          this.states.FTUOccurs = true;
+          if (!this.states.instance) {
+            return;
+          }
           // Need immediatly unlocking (hide window).
           this.closeApp(true);
           window.dispatchEvent(
             new CustomEvent('unlock'));
+          break;
+        case 'ftudone':
+          this.states.FTUOccurs = false;
           break;
         case 'will-unlock':
           this.states.unlockDetail = evt.detail;
@@ -97,7 +106,7 @@
           this.states.unlockDetail = null;
           break;
         case 'screenchange':
-          if (evt.detail.screenEnabled) {
+          if (evt.detail.screenEnabled && !this.states.FTUOccurs) {
             // The app would be inactive while screen off.
             this.openApp();
           }
