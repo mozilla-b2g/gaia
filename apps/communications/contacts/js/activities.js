@@ -27,6 +27,13 @@ var ActivityHandler = {
 
     return this._currentActivity.source.data.type;
   },
+  get activityMultiPickNumber() {
+    if (!this._currentActivity ||
+      !this._currentActivity.source.data.multipick) {
+      return 0;
+    }
+    return this._currentActivity.source.data.multipick;
+  },
 
   launch_activity: function ah_launch(activity, action) {
     if (this._launchedAsInlineActivity) {
@@ -65,7 +72,11 @@ var ActivityHandler = {
           return;
         }
         this._currentActivity = activity;
-        Contacts.navigation.home();
+        if (this.activityMultiPickNumber === 0) {
+          Contacts.navigation.home();
+        } else {
+          this.MultiSelectContact();
+        }
         break;
       case 'import':
         this.importContactsFromFile(activity);
@@ -96,7 +107,7 @@ var ActivityHandler = {
     }
   },
 
-  dataPickHandler: function ah_dataPickHandler(theContact) {
+  dataPickHandler: function ah_dataPickHandler(theContact, cb) {
     var type, dataSet, noDataStr;
 
     switch (this.activityDataType) {
@@ -124,6 +135,10 @@ var ActivityHandler = {
     switch (numOfData) {
       case 0:
         // If no required type of data
+        if (cb) {
+          cb(null);
+          break;
+        }
         var dismiss = {
           title: _('ok'),
           callback: function() {
@@ -139,8 +154,11 @@ var ActivityHandler = {
         } else {
           result[type] = dataSet[0].value;
         }
-
-        this.postPickSuccess(result);
+        if (ActivityHandler.activityMultiPickNumber === 0) {
+          this.postPickSuccess(result);
+        } else {
+          cb(result);
+        }
         break;
       default:
         // if more than one required type of data
@@ -162,7 +180,11 @@ var ActivityHandler = {
             result[type] = itemData;
           }
           prompt1.hide();
-          this.postPickSuccess(result);
+          if (ActivityHandler.activityMultiPickNumber === 0) {
+            this.postPickSuccess(result);
+          } else {
+            cb(result);
+          }
         }).bind(this);
         prompt1.show();
     } // switch
@@ -192,5 +214,82 @@ var ActivityHandler = {
   postCancel: function ah_postCancel() {
     this._currentActivity.postError('canceled');
     this._currentActivity = null;
+  },
+
+  getMultipleContacts: function getMultipleContacts(theContacts, cb) {
+    var self = this;
+    if (theContacts == null || theContacts.length == 0) {
+      return;
+    }
+    var cList = contacts.List;
+    contacts = [];
+    var totalSelectedContact = theContacts.length;
+    var curCount = 0;
+    theContacts.forEach(function onContact(ct) {
+      var id = ct.split('/');// id[0] = contact ID,
+         //id[1] = type [tel or email], id[2] = index in tel or email.
+      var dupContact = {};
+      cList.getContactById(id[0], function onSuccess(contact) {
+        dupContact.name = contact.name;
+        if (id[1] === 'tel') {
+          dupContact.tel = [{type: [contact.tel[id[2]].type],
+            value: contact.tel[id[2]].value}];
+        } else {
+          dupContact.email = [{type: [contact.email[id[2]].type],
+            value: contact.email[id[2]].value}];
+        }
+        self.dataPickHandler(dupContact, function returnContact(res) {
+          if (res) {
+            contacts.push(res);
+            curCount++;
+            if (curCount === totalSelectedContact) {
+              if (cb) {
+                cb(contacts);
+              }
+            }
+          } else {
+            console.log('Null empty contact');
+          }
+        });
+      });
+    });
+  },
+
+  requireOverlay: function requireOverlay(callback) {
+    Contacts.utility('Overlay', callback);
+  },
+
+  MultiSelectContact: function MultiSelectContact() {
+    var self = this;
+    var cList = contacts.List;
+    Contacts.view('search', function() {
+      contacts.List.selectFromList(_('SelectedTxt', {n: 0}),
+        function onSelectedContacts(promise) {
+          promise.onsuccess = function onSuccess(ids) {
+            self.requireOverlay(function onOverlay() {
+              utils.overlay.show(_('preparing-contacts'), 'spinner');
+              self.getMultipleContacts(ids, function onContactsReady(res) {
+                cList.exitSelectMode();
+                utils.overlay.hide();
+                if (res) {
+                  self.postPickSuccess(res);
+                } else {
+                  self.postCancel();
+                }
+              });
+            });
+          };
+          promise.onerror = function onError() {
+            contacts.List.exitSelectMode();
+            utils.overlay.hide();
+            console.log('In MultiSelectContact error');
+            self.postCancel();
+          };
+        },
+        null,
+        Contacts.navigation,
+        'popup'
+      );
+    });
   }
 };
