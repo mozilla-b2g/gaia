@@ -556,12 +556,12 @@ var EverythingME = {
 
   log: function log() {
     if (this.debug) {
-      console.log.apply(window, arguments);
+      console.log.apply(console, arguments);
     }
   },
   warn: function log() {
     if (this.debug) {
-      console.warn.apply(window, arguments);
+      console.warn.apply(console, arguments);
     }
   }
 };
