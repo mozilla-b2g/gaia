@@ -2,7 +2,7 @@
 
 /* global utils */
 
-requireApp('communications/contacts/js/utilities/misc.js');
+require('/shared/js/contacts/import/utilities/misc.js');
 
 suite('Contacts/utilities/parseName >', function() {
   var subject;

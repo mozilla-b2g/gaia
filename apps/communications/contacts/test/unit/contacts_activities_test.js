@@ -5,7 +5,7 @@
 
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('communications/contacts/js/utilities/misc.js');
+require('/shared/js/contacts/import/utilities/misc.js');
 requireApp('communications/contacts/js/activities.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');

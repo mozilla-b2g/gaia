@@ -28,33 +28,33 @@ var ConfirmDialog = (function() {
   };
 
   var _hide = function _hide() {
-      // Reset the 'confirmation-message' element and its children to their
-      // initial values and hide it.
-      if (!isShown) {
-        return;
-      }
+    // Reset the 'confirmation-message' element and its children to their
+    // initial values and hide it.
+    if (!isShown) {
+      return;
+    }
 
-      titleNode.textContent = '';
-      titleNode.className = '';
-      messageNode.textContent = '';
-      messageNode.className = '';
-      action1Node.textContent = '';
-      action1Node.className = '';
-      action1Node.onclick = null;
-      action2Node.textContent = '';
-      action2Node.className = '';
-      action2Node.onclick = null;
-      screen.classList.remove('fade-in');
-      screen.classList.add('fade-out');
-      isAnimationPlaying = true;
-      screen.addEventListener('animationend', function cd_fadeOut(ev) {
-        isAnimationPlaying = false;
-        screen.removeEventListener('animationend', cd_fadeOut);
-        screen.classList.add('no-opacity');
-        screen.classList.add('hide');
-        isShown = false;
-      });
-    };
+    titleNode.textContent = '';
+    titleNode.className = '';
+    messageNode.textContent = '';
+    messageNode.className = '';
+    action1Node.textContent = '';
+    action1Node.className = '';
+    action1Node.onclick = null;
+    action2Node.textContent = '';
+    action2Node.className = '';
+    action2Node.onclick = null;
+    screen.classList.remove('fade-in');
+    screen.classList.add('fade-out');
+    isAnimationPlaying = true;
+    screen.addEventListener('animationend', function cd_fadeOut(ev) {
+      isAnimationPlaying = false;
+      screen.removeEventListener('animationend', cd_fadeOut);
+      screen.classList.add('no-opacity');
+      screen.classList.add('hide');
+      isShown = false;
+    });
+  };
 
   /**
     * Method that shows the dialog

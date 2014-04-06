@@ -11,7 +11,7 @@ contacts.BulkDelete = (function() {
    * Loads the overlay class before showing
    */
   function requireOverlay(callback) {
-    Contacts.utility('Overlay', callback);
+    Contacts.utility('Overlay', callback, Contacts.SHARED_UTILITIES);
   }
 
   // Shows a dialog to confirm the bulk delete

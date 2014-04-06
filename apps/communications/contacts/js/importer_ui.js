@@ -95,7 +95,8 @@ if (typeof window.importer === 'undefined') {
       var dialog = parent.document.getElementById('confirmation-message');
       parent.LazyLoader.load(dialog, function() {
         navigator.mozL10n.translate(dialog);
-        LazyLoader.load('/contacts/js/utilities/confirm.js', function() {
+        LazyLoader.load('/shared/js/confirm.js',
+          function() {
           ConfirmDialog.show(_('connectionLost'), _('connectionLostMsg'),
           {
             title: _('noOption'),

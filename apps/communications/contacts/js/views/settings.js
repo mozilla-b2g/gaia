@@ -470,19 +470,18 @@ contacts.Settings = (function() {
    * Loads the overlay class before showing
    */
   function requireOverlay(callback) {
-    Contacts.utility('Overlay', callback);
+    Contacts.utility('Overlay', callback, Contacts.SHARED_UTILITIES);
   }
 
   /**
    * Loads required libraries for sim import
    */
   function requireSimImport(callback) {
-
     var libraries = ['Overlay', 'Import_sim_contacts'];
     var pending = libraries.length;
 
     libraries.forEach(function onPending(library) {
-      Contacts.utility(library, next);
+      Contacts.utility(library, next, Contacts.SHARED_UTILITIES);
     });
 
     function next() {
