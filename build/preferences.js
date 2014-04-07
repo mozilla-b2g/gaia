@@ -140,9 +140,9 @@ PreferencesBuilder.prototype.setDesktopPref = function() {
   this.prefs['font.default.x-western'] = 'sans-serif';
 
   this.prefs['font.name.serif.x-western'] = 'Charis SIL Compact';
-  this.prefs['font.name.sans-serif.x-western'] = 'Feura Sans';
+  this.prefs['font.name.sans-serif.x-western'] = 'Fira Sans';
   this.prefs['font.name.monospace.x-western'] = 'Source Code Pro';
-  this.prefs['font.name-list.sans-serif.x-western'] = 'Feura Sans, Roboto';
+  this.prefs['font.name-list.sans-serif.x-western'] = 'Fira Sans, Roboto';
   this.prefs['extensions.autoDisableScopes'] = 0;
 };
 
