@@ -17,17 +17,49 @@
 Calendar.Notification = (function() {
   'use strict';
 
+  // Due to a bug in the platform, multiple requests to
+  // mozApps.getSelf() will fail if fired in close succession.
+  // So we must make sure to only ever fire a single request to
+  // getSelf for all reminders.
+  // See: https://bugzilla.mozilla.org/show_bug.cgi?id=987458
+  var cachedApp = null;
+  var requestInProgress = false;
+  var requestQueue = [];
 
-  function getApp(callback) {
+  function fireAppCallbacks(error, app) {
+    while (requestQueue.length > 0) {
+      (requestQueue.shift())(error, app);
+    }
+  }
+
+  function makeAppRequest() {
+    requestInProgress = true;
+
     var req = navigator.mozApps.getSelf();
 
     req.onerror = function() {
-      callback(new Error('cannot find app'));
+      requestInProgress = false;
+      fireAppCallbacks(new Error('cannot find app'));
     };
 
     req.onsuccess = function sendNotification(e) {
-      callback(null, e.target.result);
+      requestInProgress = false;
+      cachedApp = e.target.result;
+      fireAppCallbacks(null, cachedApp);
     };
+  }
+
+  function getApp(callback) {
+    if (cachedApp) {
+      callback(null, cachedApp);
+      return;
+    }
+
+    requestQueue.push(callback);
+
+    if (!requestInProgress) {
+      makeAppRequest();
+    }
   }
 
   function launchApp(url) {
