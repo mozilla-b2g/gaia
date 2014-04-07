@@ -232,13 +232,22 @@ suite('controllers/preview-gallery', function() {
     });
 
     test('Should close the preview on blur', function() {
+      this.previewGalleryController.closePreview = sinon.spy();
+      this.previewGalleryController.onBlur();
+      assert.ok(this.previewGalleryController.closePreview.called);
+    });
+
+    test('Should close the preview on blur if in \'secureMode\'', function() {
       this.app.inSecureMode = true;
       this.previewGalleryController.closePreview = sinon.spy();
       this.previewGalleryController.configure = sinon.spy();
+      this.previewGalleryController.updateThumbnail = sinon.spy();
       this.previewGalleryController.onBlur();
-      assert.ok(this.previewGalleryController.closePreview.called);
       assert.ok(this.previewGalleryController.configure.called);
+      assert.ok(this.previewGalleryController.updateThumbnail.called);
+      assert.ok(this.previewGalleryController.closePreview.calledAfter(this.previewGalleryController.updateThumbnail));
     });
+
   });
 
   suite('PreviewGalleryController#openPreview()', function() {
