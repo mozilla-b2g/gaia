@@ -2,8 +2,6 @@
 /* global KeyEvent */
 define(function(require) {
 var Alarm = require('alarm');
-var AlarmList = require('panels/alarm/alarm_list');
-var AlarmManager = require('alarm_manager');
 var ClockView = require('panels/alarm/clock_view');
 var AudioManager = require('audio_manager');
 var FormButton = require('form_button');
@@ -20,7 +18,9 @@ var AlarmEdit = function() {
   this.element.innerHTML = html;
   mozL10n.translate(this.element);
   var handleDomEvent = this.handleDomEvent.bind(this);
-  this.on('visibilitychange', this.handleVisibilityChange.bind(this));
+
+  this.element.addEventListener('panel-visibilitychange',
+                                this.handleVisibilityChange.bind(this));
 
   this.selects = {};
   [
@@ -192,12 +192,7 @@ Utils.extend(AlarmEdit.prototype, {
         break;
       case this.buttons.done:
         ClockView.show();
-        this.save(function aev_saveCallback(err, alarm) {
-          if (err) {
-            return;
-          }
-          AlarmList.refreshItem(alarm);
-        });
+        this.save();
         break;
       case this.selects.sound:
         switch (evt.type) {
@@ -227,7 +222,8 @@ Utils.extend(AlarmEdit.prototype, {
     setTimeout(function() { menu.focus(); }, 10);
   },
 
-  handleVisibilityChange: function aev_show(isVisible) {
+  handleVisibilityChange: function aev_show(evt) {
+    var isVisible = evt.detail.isVisible;
     var alarm;
     if (!isVisible) {
       return;
@@ -312,12 +308,11 @@ Utils.extend(AlarmEdit.prototype, {
   },
 
   save: function aev_save(callback) {
-    if (this.element.dataset.id !== '') {
+    if (this.element.dataset.id && this.element.dataset.id !== '') {
       this.alarm.id = parseInt(this.element.dataset.id, 10);
     } else {
       delete this.alarm.id;
     }
-    var error = false;
 
     this.alarm.label = this.inputs.name.value;
 
@@ -329,26 +324,18 @@ Utils.extend(AlarmEdit.prototype, {
     this.alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
     AudioManager.setAlarmVolume(this.getAlarmVolumeValue());
 
-    if (!error) {
-      this.alarm.cancel();
-      this.alarm.setEnabled(true, function(err, alarm) {
-        if (err) {
-          callback && callback(err, alarm);
-          return;
-        }
-        AlarmList.refreshItem(alarm);
-        AlarmList.banner.show(alarm.getNextAlarmFireTime());
-        AlarmManager.updateAlarmStatusBar();
-        callback && callback(null, alarm);
-      });
-    } else {
-      // error
-      if (callback) {
-        callback(error);
-      }
-    }
+    this.alarm.cancel();
 
-    return !error;
+    this.alarm.setEnabled(true, function(err, alarm) {
+      if (err) {
+        callback && callback(err, alarm);
+        return;
+      }
+      window.dispatchEvent(new CustomEvent('alarm-changed', {
+        detail: { alarm: alarm, showBanner: true }
+      }));
+      callback && callback(null, alarm);
+    });
   },
 
   delete: function aev_delete(callback) {
@@ -357,11 +344,7 @@ Utils.extend(AlarmEdit.prototype, {
       return;
     }
 
-    this.alarm.delete(function aev_delete(err, alarm) {
-      AlarmList.refresh();
-      AlarmManager.updateAlarmStatusBar();
-      callback && callback(err, alarm);
-    });
+    this.alarm.delete(callback);
   }
 
 });

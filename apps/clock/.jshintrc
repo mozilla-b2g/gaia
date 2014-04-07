@@ -9,6 +9,8 @@
     "mozRequestAnimationFrame": false,
     "requestAnimationFrame": false,
     "cancelAnimationFrame": false,
-    "Event": false
+    "Event": false,
+    "Proxy": false,
+    "Promise": false
   }
 }

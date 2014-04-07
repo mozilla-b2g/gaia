@@ -1,12 +1,10 @@
 'use strict';
 
-mocha.setup({ globals: ['AccessibilityHelper'] });
-
 suite('Tabs', function() {
   var Tabs;
 
   suiteSetup(function(done) {
-    testRequire(['tabs'], function(tabs) {
+    require(['tabs'], function(tabs) {
       Tabs = tabs;
       done();
     });
