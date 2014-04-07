@@ -44,6 +44,7 @@ var mocksHelperForEnterPasswordModule = new MocksHelper([
 
 mocha.globals([
   'FxModuleServerRequest',
+  'FtuLauncher',
   'ftuLauncher'
 ]);
 
