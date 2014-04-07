@@ -2,6 +2,10 @@
 /**
  * 1. PERF: Don't transition to 0 to
  *    avoid composite layer being discarded.
+ * 2. Disabled `will-change` due to performance
+ *    issues on Hamachi. Leaving in place so that
+ *    we can re-introduce as a later date to improve
+ *    frame-rate on more capable devices.
  */
 
 .viewfinder {
@@ -14,7 +18,7 @@
   justify-content: center;
   overflow: hidden;
   opacity: 0.001; /* 1 */
-  will-change: opacity;
+  /*will-change: opacity;*/ /* 2 */
   transition: opacity 200ms ease-in-out;
 }
 
