@@ -1,4 +1,3 @@
-var exec = require('child_process').exec;
 var assert = require('chai').assert;
 var rmrf = require('rimraf').sync;
 var fs = require('fs');
@@ -22,7 +21,7 @@ suite('ADB tests', function() {
                           'push test_media/Movies /sdcard/Movies\n' +
                           'push test_media/Music /sdcard/Music\n';
 
-    exec('ADB=build/test/bin/fake-adb make install-test-media',
+    helper.exec('ADB=build/test/bin/fake-adb make install-test-media',
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
         var presetsContent = fs.readFileSync(path.join(process.cwd(), 'build',
@@ -38,7 +37,7 @@ suite('Node modules tests', function() {
     rmrf('modules.tar');
     rmrf('node_modules');
     rmrf('git-gaia-node-modules');
-    exec('NODE_MODULES_GIT_URL=https://git.mozilla.org/b2g/gaia-node-modules.git make node_modules',
+    helper.exec('NODE_MODULES_GIT_URL=https://git.mozilla.org/b2g/gaia-node-modules.git make node_modules',
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 
@@ -58,7 +57,7 @@ suite('Node modules tests', function() {
     rmrf('modules.tar');
     rmrf('node_modules');
     rmrf('git-gaia-node-modules');
-    exec('make node_modules',
+    helper.exec('make node_modules',
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 
@@ -85,7 +84,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make without rule & variable', function(done) {
-    exec('ROCKETBAR=none make', { maxBuffer: 400*1024 },
+    helper.exec('ROCKETBAR=none make', { maxBuffer: 400*1024 },
       function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -237,7 +236,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with PRODUCTION=1', function(done) {
-    exec('PRODUCTION=1 make', function(error, stdout, stderr) {
+    helper.exec('PRODUCTION=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       var settingsPath = path.join(process.cwd(), 'profile', 'settings.json');
@@ -259,7 +258,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with SIMULATOR=1', function(done) {
-    exec('SIMULATOR=1 make', { maxBuffer: 400*1024 },
+    helper.exec('SIMULATOR=1 make', { maxBuffer: 400*1024 },
     function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -337,7 +336,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with DEBUG=1', function(done) {
-    exec('DEBUG=1 make', { maxBuffer: 400*1024 },
+    helper.exec('DEBUG=1 make', { maxBuffer: 400*1024 },
     function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -446,7 +445,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with MOZILLA_OFFICIAL=1', function(done) {
-    exec('MOZILLA_OFFICIAL=1 make', { maxBuffer: 400*1024 },
+    helper.exec('MOZILLA_OFFICIAL=1 make', { maxBuffer: 400*1024 },
     function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -464,7 +463,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with ROCKETBAR=full', function(done) {
-    exec('ROCKETBAR=full make', { maxBuffer: 400*1024 },
+    helper.exec('ROCKETBAR=full make', { maxBuffer: 400*1024 },
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 
