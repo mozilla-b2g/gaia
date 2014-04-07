@@ -1,0 +1,35 @@
+{
+  "name": "Bookmark",
+  "description": "Bookmark Manager",
+  "type": "certified",
+  "role": "system",
+  "orientation": "default",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "activities": {
+    "save-bookmark": {
+      "filters": {
+        "type": "url",
+        "url": { "required":true, "pattern":"https?:.{1,16384}" }
+      },
+      "disposition": "inline",
+      "href": "/save.html",
+      "returnValue": true
+    }
+  },
+  "locales": {
+    "en-US": {
+      "name": "Bookmark",
+      "description": "Bookmark Manager"
+    }
+  },
+  "default_locale": "en-US",
+  "datastores-owned": {
+    "bookmarks_store": {
+      "access": "readwrite",
+      "description": "Stores bookmarks"
+    }
+  }
+}

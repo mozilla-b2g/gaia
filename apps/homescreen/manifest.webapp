@@ -46,18 +46,13 @@
     "68": "/style/icons/HomeScreen_68.png"
   },
   "orientation": "default",
-  "activities": {
-    "save-bookmark": {
-      "filters": {
-        "type": "url",
-        "url": { "required":true, "pattern":"https?:.{1,16384}" }
-      },
-      "disposition": "inline",
-      "href": "/save-bookmark.html",
-      "returnValue": true
-    }
-  },
   "messages": [
     { "alarm": "/index.html" }
-  ]
+  ],
+  "datastores-access": {
+    "bookmarks_store": {
+      "readonly": false,
+      "description": "Read and migrate bookmarks"
+    }
+  }
 }

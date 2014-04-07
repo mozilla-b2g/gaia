@@ -825,12 +825,11 @@ void function() {
    */
   function addToGrid(settings, gridPageOffset, extra) {
     createCollectionIcon(settings, function onIconCreated(icon) {
-      EvmeManager.addGridItem({
+      EvmeManager.addCollection({
         'id': settings.id,
         'originUrl': settings.id,
         'name': settings.query,
         'icon': icon,
-        'isCollection': true,
         'gridPageOffset': gridPageOffset
       }, extra);
     });

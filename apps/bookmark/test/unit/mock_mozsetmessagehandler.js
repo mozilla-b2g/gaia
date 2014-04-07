@@ -1,5 +1,6 @@
 'use strict';
 
+/* exported realMozSetMessageHandler, msgHandler */
 var realMozSetMessageHandler = navigator.mozSetMessageHandler;
 var msgHandler = {};
 

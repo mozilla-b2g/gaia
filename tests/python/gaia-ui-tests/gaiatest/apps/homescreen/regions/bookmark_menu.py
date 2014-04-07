@@ -9,7 +9,7 @@ from gaiatest.apps.base import Base
 class BookmarkMenu(Base):
 
     # System app - add bookmark to homescreen dialog
-    _add_bookmark_to_home_screen_frame_locator = (By.CSS_SELECTOR, 'iframe[src^="app://homescreen"][src$="save-bookmark.html"]')
+    _add_bookmark_to_home_screen_frame_locator = (By.CSS_SELECTOR, 'iframe[src^="app://bookmark"][src$="save.html"]')
     _add_bookmark_to_home_screen_dialog_button_locator = (By.ID, 'button-bookmark-add')
     _bookmark_title_input_locator = (By.ID, 'bookmark-title')
 

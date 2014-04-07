@@ -6,12 +6,14 @@ if (navigator.mozSetMessageHandler) {
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {
     switch (activity.source.name) {
       case 'save-bookmark':
-        var bookmarkSaved = function sb_bookmarkSaved() {
+        var bookmarkSaved = function sb_bookmarkSaved(saved) {
           window.addEventListener('status-hidden', function hidden() {
             window.removeEventListener('status-hidden', hidden);
-            activity.postResult('saved');
+            activity.postResult(saved ? 'saved' : 'updated');
           });
-          utils.status.show(navigator.mozL10n.get('added-to-home-screen'));
+          utils.status.show(
+            navigator.mozL10n.get(saved ? 'added-to-home-screen' :
+                                          'updated-bookmark'));
         };
         var addBookmarkCancelled = function sb_addBookmarkCancelled() {
           activity.postError('cancelled');
@@ -25,11 +27,6 @@ if (navigator.mozSetMessageHandler) {
             oncancelled: addBookmarkCancelled
           };
           BookmarkEditor.init(options);
-          document.addEventListener('visibilitychange', function changed() {
-            if (document.hidden) {
-              BookmarkEditor.close();
-            }
-          });
         } else {
           activity.postError('type not supported');
         }

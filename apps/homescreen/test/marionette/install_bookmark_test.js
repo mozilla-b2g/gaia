@@ -74,7 +74,7 @@ marionette('Install bookmark on homescreen', function() {
         client.switchToFrame();
         homescreen.launch();
         assert.ok(homescreen.getHomescreenIcon(expectedTitle) != null);
-        assert.ok(
+        assert.equal(
           homescreen.getLabelOfBookmark(expectedTitle).text(),
           expectedTitle);
     });
@@ -104,7 +104,7 @@ marionette('Install bookmark on homescreen', function() {
           // aria-label won't change after we change bookmark title,
           // so we select the element using previous title
           assert.ok(homescreen.getHomescreenIcon(expectedTitle) != null);
-          assert.ok(
+          assert.equal(
             homescreen.getLabelOfBookmark(expectedTitle).text(),
             newExpectedTitle);
         });

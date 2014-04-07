@@ -62,8 +62,8 @@ GridItem.prototype = {
   getFeatures: function gc_getFeatures() {
     return {
       id: this.id,
-      name: this.manifest.name,
-      icon: this.manifest.icons && this.manifest.icons['60'],
+      name: this.getName(),
+      icon: this.getIcon(),
       remote: true,
       useAsyncPanZoom: this.useAsyncPanZoom,
       features: this.features
@@ -76,6 +76,24 @@ GridItem.prototype = {
 
   setName: function gc_setName(name) {
     this.manifest.name = name;
+  },
+
+  getName: function gc_getName() {
+    return this.manifest.name;
+  },
+
+  getIcon: function gc_getIcon() {
+    return this.manifest.icons && this.manifest.icons['60'];
+  },
+
+  getDescriptor: function gc_getDescriptor() {
+    return {
+      bookmarkURL: this.url,
+      name: this.getName(),
+      icon: this.getIcon(),
+      iconable: this.iconable,
+      useAsyncPanZoom: this.useAsyncPanZoom
+    };
   }
 };
 
