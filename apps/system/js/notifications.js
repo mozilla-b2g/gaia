@@ -467,8 +467,12 @@ var NotificationScreen = {
 
     var notifSelector = '[data-notification-id="' + notificationId + '"]';
     var notificationNode = this.container.querySelector(notifSelector);
-    var lockScreenNotificationNode =
-      this.lockScreenContainer.querySelector(notifSelector);
+    this.lockScreenContainer = this.lockScreenContainer ||
+      document.getElementById('notifications-lockscreen-container');
+    if (this.lockScreenContainer) {
+      var lockScreenNotificationNode =
+        this.lockScreenContainer.querySelector(notifSelector);
+    }
 
     if (notificationNode)
       notificationNode.parentNode.removeChild(notificationNode);
