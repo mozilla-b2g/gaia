@@ -2053,7 +2053,7 @@ var ThreadUI = global.ThreadUI = {
           type: 'action',
           header: navigator.mozL10n.get('message-options')
         };
-        if ((lineClassList.contains('error')) && (lineClassList.contains('outgoing'))) {
+        if (lineClassList.contains('error') && lineClassList.contains('outgoing')) {
           params.items.splice(2, 0, {
             l10nId: 'resend-message',
             method: function resendMessage(messageId) {
