@@ -102,10 +102,6 @@ var AlarmManager = {
     request.onerror = function(e) {
       console.error('get all alarm fail');
     };
-  },
-
-  regUpdateAlarmEnableState: function am_regUpdateAlarmEnableState(handler) {
-    this._updateAlarmEableStateHandler = handler;
   }
 
 };

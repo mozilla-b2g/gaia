@@ -2,38 +2,26 @@
 /* global asyncStorage */
 
 suite('Timer.Panel', function() {
-  var clock;
+  var clock, activeAlarm;
   var isHidden;
-  var AccessibilityHelper, ActiveAlarm, View, Timer, Utils, mozL10n;
-  var nativeMozAlarms = navigator.mozAlarms;
+  var View, Timer, Utils, mozL10n;
 
   suiteSetup(function(done) {
     isHidden = function(element) {
       return element.className.contains('hidden');
     };
 
-    testRequire(['panels/alarm/active_alarm', 'timer', 'panels/timer/main',
-        'view', 'utils', 'mocks/mock_shared/js/accessibility_helper',
-        'mocks/mock_moz_alarm', 'l10n'], {
-      mocks: ['picker/picker', 'shared/js/accessibility_helper']
-      }, function(activealarm, timer, timerPanel, view, utils,
-                  mockAccessibilityHelper, mockMozAlarms, l10n) {
-      AccessibilityHelper = mockAccessibilityHelper;
-      ActiveAlarm = activealarm;
+    require(['panels/alarm/active_alarm', 'timer', 'panels/timer/main',
+             'view', 'utils', 'l10n'],
+            function(ActiveAlarm, timer, timerPanel, view, utils, l10n) {
       Timer = timer;
       Timer.Panel = timerPanel;
       View = view;
       Utils = utils;
       mozL10n = l10n;
-      navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
-        ActiveAlarm.singleton().handler
-      );
+      activeAlarm = new ActiveAlarm();
       done();
     });
-  });
-
-  suiteTeardown(function() {
-    navigator.mozAlarms = nativeMozAlarms;
   });
 
   setup(function() {
@@ -119,7 +107,7 @@ suite('Timer.Panel', function() {
     timer.start();
     var panel = new Timer.Panel(document.createElement('div'));
     panel.timer = timer;
-    panel.onvisibilitychange(true);
+    panel.onvisibilitychange({ detail: { isVisible: true } });
 
     fakeTick(panel);
     assert.equal(panel.nodes.time.textContent, '01:00:00');
@@ -159,7 +147,7 @@ suite('Timer.Panel', function() {
 
     var panel = new Timer.Panel(document.createElement('div'));
     panel.timer = timer;
-    panel.onvisibilitychange(true);
+    panel.onvisibilitychange({ detail: { isVisible: true } });
 
     assert.isTrue(isHidden(panel.nodes.dialog));
     assert.isTrue(isHidden(panel.nodes.start));
@@ -227,6 +215,7 @@ suite('Timer.Panel', function() {
     });
 
     test('click: create ', function() {
+      panel.picker = { value: '0:60' };
       panel.nodes.create.dispatchEvent(
         new CustomEvent('click')
       );
