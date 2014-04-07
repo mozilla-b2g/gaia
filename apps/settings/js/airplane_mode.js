@@ -50,8 +50,10 @@ navigator.mozL10n.ready(function loadWhenIdle() {
   var idleObserver = {
     time: 5,
     onidle: function() {
-      AirplaneMode.init();
       navigator.removeIdleObserver(idleObserver);
+      AirplaneModeHelper.ready(function() {
+        AirplaneMode.init();
+      });
     }
   };
   navigator.addIdleObserver(idleObserver);
