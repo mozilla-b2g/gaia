@@ -9,12 +9,12 @@
 /* global MockOauthflow */
 
 require('/shared/js/text_normalizer.js');
+require('/shared/js/contacts/import/utilities/misc.js');
 requireApp('communications/contacts/test/unit/mock_link.html.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/facebook/test/unit/mock_curtain.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
-requireApp('communications/contacts/js/import_utils.js');
 requireApp('communications/contacts/js/utilities/dom.js');
 require('/shared/js/binary_search.js');
 requireApp('communications/contacts/js/utilities/templates.js');

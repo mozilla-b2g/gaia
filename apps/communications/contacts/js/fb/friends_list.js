@@ -1,6 +1,6 @@
 'use strict';
 
-/* global importUtils, Normalizer, utils */
+/* global Normalizer, utils */
 /* exported FriendListRenderer */
 
 var FriendListRenderer = (function() {
@@ -130,7 +130,7 @@ var FriendListRenderer = (function() {
 
       if (friend.search && friend.search.length > 0) {
         // Set the picture size
-        var box = importUtils.getPreferredPictureBox();
+        var box = utils.misc.getPreferredPictureBox();
         friend.picwidth = box.width;
         friend.picheight = box.height;
 

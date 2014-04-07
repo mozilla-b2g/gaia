@@ -650,7 +650,7 @@ var SimManager = (function() {
         UIManager.navBar.removeAttribute('aria-disabled');
         utils.overlay.hide();
         if (importedContacts > 0) {
-          window.importUtils.setTimestamp('sim');
+          utils.misc.setTimestamp('sim');
         }
         if (!cancelled) {
           SimManager.alreadyImported = true;

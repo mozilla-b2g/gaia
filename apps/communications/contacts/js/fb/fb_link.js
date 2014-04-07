@@ -1,7 +1,6 @@
 'use strict';
 
-/* global Curtain, FacebookConnector, ImageLoader, Normalizer, utils,
-          importUtils, oauth2 */
+/* global Curtain, FacebookConnector, ImageLoader, Normalizer, utils, oauth2 */
 
 var fb = window.fb || {};
 
@@ -283,7 +282,7 @@ if (!fb.link) {
           if (!item.email) {
             item.email = '';
           }
-          var box = importUtils.getPreferredPictureBox();
+          var box = utils.misc.getPreferredPictureBox();
           item.picwidth = box.width;
           item.picheight = box.height;
 

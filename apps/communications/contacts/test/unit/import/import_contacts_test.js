@@ -30,7 +30,6 @@ requireApp('communications/contacts/test/unit/mock_sdcard.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_event_listeners.js');
-requireApp('communications/contacts/test/unit/mock_import_utils.js');
 requireApp('communications/contacts/test/unit/mock_sim_importer.js');
 
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
@@ -46,7 +45,7 @@ if (!navigator.mozMobileConnections) { navigator.mozMobileConnections = null; }
 if (!navigator.mozMobileConnection) { navigator.mozMobileConnection = null; }
 
 var mocksHelperForContactImport = new MocksHelper([
-  'Contacts', 'fb', 'asyncStorage', 'importUtils', 'ConfirmDialog',
+  'Contacts', 'fb', 'asyncStorage', 'ConfirmDialog',
   'VCFReader', 'WakeLock', 'SimContactsImporter'
 ]);
 mocksHelperForContactImport.init();
@@ -79,6 +78,14 @@ suite('Import contacts >', function() {
     window.utils.overlay = {
       show: function() {},
       showMenu: function() {}
+    };
+    window.utils.misc = {
+      getTimestamp: function(element, cb) {
+        cb();
+      },
+      setTimestamp: function(time, cb) {
+        cb();
+      }
     };
     window.utils.sdcard = MockSdCard;
     window.utils.time = {

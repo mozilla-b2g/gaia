@@ -1,11 +1,20 @@
-/* global mozContact */
+/* global mozContact, oauthflow, asyncStorage */
 'use strict';
 
 var utils = window.utils || {};
 
+// Scale ratio for different devices
+var SCALE_RATIO = window.innerWidth / 320;
+
+var LAST_IMPORT_TIMESTAMP_SUFFIX = '_last_import_timestamp';
+
+function scale(size) {
+  return Math.round(SCALE_RATIO * size);
+}
+
 if (!utils.misc) {
   utils.misc = {};
-  utils.misc.toMozContact = function ut_toMozContact(contact) {
+  utils.misc.toMozContact = function(contact) {
     var outContact = contact;
     if (!(contact instanceof mozContact)) {
       outContact = new mozContact(contact);
@@ -14,7 +23,7 @@ if (!utils.misc) {
     return outContact;
   };
 
-  utils.misc.formatDate = function formatDate(date) {
+  utils.misc.formatDate = function(date) {
     // This year indicates that the year can be ignored
     var FLAG_YEAR_IGNORED = 9996;
     var _ = navigator.mozL10n.get;
@@ -45,7 +54,7 @@ if (!utils.misc) {
 
   // Parses a name to obtain a givenName and a familyName
   // This is useful while importing contacts from SIM card
-  utils.misc.parseName = function parseName(nameString) {
+  utils.misc.parseName = function(nameString) {
     // Minimum length to consider a token as significative
     var MIN_LENGHT_SIGNIFICATIVE = 3;
     // Minimum length of a token to consider it a familyName
@@ -149,5 +158,30 @@ if (!utils.misc) {
     out.familyName = outFamilyNames.reverse().join(' ').trim();
 
     return out;
+  };
+
+  utils.misc.getPreferredPictureBox = function() {
+    var imgThumbSize = oauthflow.params.facebook.imgThumbSize;
+    var out = {
+      width: scale(imgThumbSize)
+    };
+
+    out.height = out.width;
+
+    return out;
+  };
+
+  utils.misc.getPreferredPictureDetail = function() {
+    var imgDetailWidth = oauthflow.params.facebook.imgDetailWidth;
+    return scale(imgDetailWidth);
+  };
+
+  utils.misc.setTimestamp = function(type, callback) {
+    asyncStorage.setItem(type + LAST_IMPORT_TIMESTAMP_SUFFIX, Date.now(),
+                         callback);
+  };
+
+  utils.misc.getTimestamp = function(type, callback) {
+    asyncStorage.getItem(type + LAST_IMPORT_TIMESTAMP_SUFFIX, callback);
   };
 }
