@@ -307,10 +307,12 @@
 
 /**
  * :active,
+ * recording=true,
  * capture-active=true & mode=picture
  */
 
 .capture-button:active .inner-circle,
+[recording=true] .capture-button .inner-circle,
 [capture-active=true] .capture-button .inner-circle {
   background-color: #00caf2;
   color: white;
@@ -326,11 +328,14 @@
 }
 
 /**
- * mode=video & :active
+ * mode=video & :active,
+ * mode=video & capture-active=true,
+ * mode=vide & recording=true
  */
 
 .controls[mode=video] .capture-button:active .inner-circle,
-.controls[mode=video][capture-active=true] .capture-button .inner-circle {
+.controls[mode=video][capture-active=true] .capture-button .inner-circle,
+.controls[mode=video][recording=true] .capture-button .inner-circle {
   background-color: #D92E2E;
 }
 
@@ -351,10 +356,12 @@
 
 /**
  * :active,
+ * recording=true,
  * capture-active=true & mode=picture
  */
 
 .capture-button:active .center:before,
+[recording=true] .capture-button .center:before,
 [capture-active=true] .capture-button .center:before {
   color: white;
 }
@@ -375,10 +382,13 @@
 }
 
 /**
- * mode=video & recording=true
+ * mode=video & :active,
+ * mode=video & recording=true,
+ * mode=vide & capture-active=true
  */
 
 .controls[mode=video] .capture-button:active .center:before,
+.controls[mode=video][recording=true] .capture-button .center:before,
 .controls[mode=video][capture-active=true] .capture-button .center:before {
   border-radius: 3px;
   background-color: white;

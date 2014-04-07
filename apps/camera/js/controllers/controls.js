@@ -16,10 +16,14 @@ var bindAll = require('lib/bind-all');
  * Exports
  */
 
-exports = module.exports = function(app) {
-  return new ControlsController(app);
-};
+module.exports = function(app) { return new ControlsController(app); };
+module.exports.ControlsController = ControlsController;
 
+/**
+ * Initialize a new `ControlsController`
+ *
+ * @param {App} app
+ */
 function ControlsController(app) {
   debug('initializing');
   bindAll(this);
@@ -31,24 +35,38 @@ function ControlsController(app) {
   debug('initialized');
 }
 
+/**
+ * Event bindings.
+ *
+ * @private
+ */
 ControlsController.prototype.bindEvents = function() {
   this.app.settings.mode.on('change:selected', this.controls.setter('mode'));
-  this.app.on('newthumbnail', this.onNewThumbnail);
-  this.app.on('camera:ready', this.controls.enable);
-  this.app.on('camera:busy', this.controls.disable);
+
+  // App
   this.app.on('change:recording', this.onRecordingChange);
-  this.app.on('camera:timeupdate', this.controls.setVideoTimer);
-  this.controls.on('click:capture', this.onCaptureClick);
-  this.controls.on('click:gallery', this.onGalleryButtonClick);
+  this.app.on('camera:shutter', this.captureHighlightOff);
+  this.app.on('camera:busy', this.controls.disable);
+  this.app.on('timer:started', this.onTimerStarted);
+  this.app.on('newthumbnail', this.onNewThumbnail);
+  this.app.on('timer:cleared', this.restore);
+  this.app.on('camera:ready', this.restore);
+
+  // Controls
   this.controls.on('click:thumbnail', this.app.firer('preview'));
+  this.controls.on('click:gallery', this.onGalleryButtonClick);
   this.controls.on('click:switch', this.onSwitchButtonClick);
   this.controls.on('click:cancel', this.onCancelButtonClick);
-  this.app.on('timer:started', this.onTimerStarted);
-  this.app.on('timer:cleared', this.restore);
-  this.app.on('camera:shutter', this.restore);
+  this.controls.on('click:capture', this.onCaptureClick);
+
   debug('events bound');
 };
 
+/**
+ * Initial configuration.
+ *
+ * @private
+ */
 ControlsController.prototype.configure = function() {
   var isSwitchable = this.app.settings.mode.get('options').length > 1;
   var initialMode = this.app.settings.mode.selected('key');
@@ -83,17 +101,31 @@ ControlsController.prototype.configure = function() {
  * @private
  */
 ControlsController.prototype.onCaptureClick = function() {
-  this.controls.set('capture-active', true);
-  this.app.fire('capture');
+  this.captureHighlightOn();
+  this.app.emit('capture');
 };
 
+/**
+ * Set the recording attribute on
+ * the view to allow it to style
+ * accordingly.
+ *
+ * @param  {Boolean} recording
+ * @private
+ */
 ControlsController.prototype.onRecordingChange = function(recording) {
   this.controls.set('recording', recording);
   if (!recording) { this.onRecordingEnd(); }
 };
 
+/**
+ * Remove the capture highlight,
+ * once recording has finished.
+ *
+ * @private
+ */
 ControlsController.prototype.onRecordingEnd = function() {
-  this.controls.set('capture-active', false);
+  this.captureHighlightOff();
 };
 
 /**
@@ -119,7 +151,7 @@ ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
  * @private
  */
 ControlsController.prototype.onTimerStarted = function() {
-  this.controls.set('capture-active', true);
+  this.captureHighlightOn();
   this.controls.disable();
 };
 
@@ -130,10 +162,36 @@ ControlsController.prototype.onTimerStarted = function() {
  * @private
  */
 ControlsController.prototype.restore = function() {
-  this.controls.set('capture-active', false);
+  this.captureHighlightOff();
   this.controls.enable();
 };
 
+/**
+ * Make the capture button
+ * appear pressed.
+ *
+ * @private
+ */
+ControlsController.prototype.captureHighlightOn = function() {
+  this.controls.set('capture-active', true);
+};
+
+/**
+ * Remove the pressed apperance
+ * from the capture button.
+ *
+ * @private
+ */
+ControlsController.prototype.captureHighlightOff = function() {
+  this.controls.set('capture-active', false);
+};
+
+/**
+ * Switch to the next capture
+ * mode: 'picture' or 'video'.
+ *
+ * @private
+ */
 ControlsController.prototype.onSwitchButtonClick = function() {
   this.controls.disable();
   this.app.settings.mode.next();
