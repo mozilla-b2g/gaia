@@ -14,6 +14,16 @@ var addPanAndZoomHandlers = require('lib/panzoom');
 var MediaFrame = require('MediaFrame');
 
 /**
+ * Constants
+ */
+var SWIPE_DISTANCE_THRESHOLD = window.innerWidth / 3; // pixels
+var SWIPE_VELOCITY_THRESHOLD = 1.0;                   // pixels/ms
+
+var SWIPE_DURATION = 250;   // How long to animate the swipe
+var FADE_IN_DURATION = 500; // How long to animate the fade in after swipe
+
+
+/**
  * Locals
  */
 
@@ -34,10 +44,8 @@ return View.extend({
     this.els.previewMenu = this.find('.js-preview-menu');
 
     bind(this.el, 'click', this.onClick);
-    bind(this.els.mediaFrame, 'orientationSwipe', this.orientationSwipe);
     attach.on(this.els.previewMenu, 'click', '.js-btn', this.onButtonClick);
 
-    orientation.on('orientation', this.setOrientation);
     this.configure();
     return this;
   },
@@ -55,8 +63,8 @@ return View.extend({
     bind(this.els.player, 'pause', this.handleVideoStop);
     bind(this.els.player, 'ended', this.handleVideoStop);
 
-    this.items = [];
-    addPanAndZoomHandlers(this.frame);
+    this.currentIndex = this.lastIndex = 0;
+    addPanAndZoomHandlers(this.frame, this.swipeCallback);
   },
 
   template: function() {
@@ -65,7 +73,7 @@ return View.extend({
       '<div class="media-frame js-media-frame"></div>' +
       '</div>' +
       '<div class="preview-menu js-preview-menu">' +
-        '<div class="camera-back icon-camera-back rotates js-btn" name="back"></div>' +
+        '<div class="camera-back icon-camera-back js-btn" name="back"></div>' +
         '<div class="count-text js-count-text"></div>' +
         '<footer class="preview-controls js-preview">' +
           '<div class="preview-gallery-button js-btn" name="gallery">' +
@@ -100,11 +108,98 @@ return View.extend({
     this.els.previewMenu.classList.remove('visible');
   },
 
-  orientationSwipe: function(e) {
+  swipeCallback: function(swipeAmount, swipeVelocity) {
+    var self = this;
+
+    if (swipeVelocity === undefined) {
+      // If this is not the end of the gesture, then just move the media
+      // frame left or right by the specified amount.
+      this.els.frameContainer.style.transform =
+        'translate(' + swipeAmount + 'px, 0)';
+      return;
+    }
+
+    // If we were passed a velocity, then this is the end of the gesture
+    // and we have to figure out whether we are going to go to the
+    // next item, the previous item, or remain on the current item.
+    var direction, translation;
+
+    // Should we move to the previous item?
+    if (swipeAmount > 0 && swipeVelocity > 0 &&     // Same sign and
+        this.currentIndex > 1 &&                    // has previous item and
+        (swipeAmount > SWIPE_DISTANCE_THRESHOLD ||  // distance big enough or
+         swipeVelocity > SWIPE_VELOCITY_THRESHOLD)) // speed fast enough
+    {
+      direction = 'right';
+      translation = '100%';
+    }
+    // Should we move to the next item?
+    else if (swipeAmount <= 0 && swipeVelocity <= 0 &&
+             this.currentIndex < this.lastIndex &&
+             (swipeAmount < -SWIPE_DISTANCE_THRESHOLD ||
+              swipeVelocity < -SWIPE_VELOCITY_THRESHOLD)) {
+      direction = 'left';
+      translation = '-100%';
+    }
+
+    // If we're not moving either left or right, just animate the
+    // item to its starting point and we're done.
+    if (!direction) {
+      animate('transform', 'translate(0,0)', SWIPE_DURATION);
+      return;
+    }
+
+    // If we get here, we are going to slide the current item off the screen
+    // and display the next or previous item.
+
+    // First, stop the video if there is one and it is playing.
     if (this.videoPlaying) {
       this.handleVideoStop();
     }
-    this.emit('itemChange', e);
+
+    // Now animate the item off the screen
+    animate('transform', 'translate(' + translation + ', 0)',
+            SWIPE_DURATION,
+            function() {
+              // Once we're off screen ask the controller to
+              // switch to the new image.
+              self.emit('swipe', direction);
+
+              // On the next redraw, put the frame back on the screen
+              // but make it opaque
+              window.requestAnimationFrame(function() {
+                // Next, make the frame invisible
+                // and put it back on the screen
+                self.els.frameContainer.style.opacity = 0;
+                self.els.frameContainer.style.transform = 'translate(0,0)';
+
+                // Then on the frame after that, animate the opacity to
+                // make it visible again.
+                window.requestAnimationFrame(function() {
+                  animate('opacity', 1, FADE_IN_DURATION);
+                });
+              });
+            });
+
+    // A helper function to animate the specified CSS property to the
+    // specified value for the specified duration. When the animation
+    // is complete, reset everything and call the done callback
+    function animate(property, value, duration, done) {
+      var e = self.els.frameContainer;
+      e.addEventListener('transitionend', onTransitionEnd);
+      e.style.transitionProperty = property;
+      e.style.transitionDuration = duration + 'ms';
+      e.style[property] = value;
+
+      function onTransitionEnd() {
+        e.removeEventListener('transitionend', onTransitionEnd);
+        delete e.style.transitionProperty;
+        delete e.style.transitionDuration;
+        if (done) {
+          done();
+        }
+      }
+    }
   },
 
   onButtonClick: function(e, el) {
@@ -114,28 +209,32 @@ return View.extend({
   },
 
   open: function() {
-    this.setOrientation(orientation.get());
+    window.addEventListener('resize', this.onResize);
+    orientation.unlock();
     this.previewMenuFadeIn();
     this.el.classList.remove('offscreen');
   },
 
   close: function() {
+    window.removeEventListener('resize', this.onResize);
+    orientation.lock();
     this.previewMenuFadeOut();
     this.el.classList.add('offscreen');
     this.frame.clear();
   },
 
   updateCountText: function(current, total) {
+    this.currentIndex = current;
+    this.lastIndex = total;
     this.els.countText.textContent = current + '/' + total;
   },
 
-  setOrientation: function(orientation) {
+  onResize: function() {
     // And we have to resize the frame (and its video player)
     this.frame.resize();
-    this.frame.video.setPlayerSize();
-
-    // And inform the video player of new orientation
-    this.frame.video.setPlayerOrientation(orientation);
+    if (this.frame.displayingVideo) {
+      this.frame.video.setPlayerSize();
+    }
   },
 
   showImage: function(image) {
@@ -167,7 +266,6 @@ return View.extend({
     this.videoPlaying = false;
     setTimeout(this.previewMenuFadeIn, 300);
   }
-
 });
 
 });

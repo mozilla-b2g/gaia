@@ -12,10 +12,11 @@ suite('controllers/preview-gallery', function() {
       'lib/settings',
       'views/preview-gallery',
       'views/controls',
-      'lib/storage'
+      'lib/storage',
+      'lib/orientation'
     ], function(
       App, Camera, PreviewGalleryController, Settings, PreviewGalleryView,
-      ControlsView, Storage) {
+      ControlsView, Storage, orientation) {
       self.PreviewGalleryController =
          PreviewGalleryController.PreviewGalleryController;
       self.Settings = Settings;
@@ -24,6 +25,7 @@ suite('controllers/preview-gallery', function() {
       self.Storage = Storage;
       self.Camera = Camera;
       self.App = App;
+      self.orientation = orientation;
       done();
     });
   });
@@ -204,31 +206,40 @@ suite('controllers/preview-gallery', function() {
       assert.ok(this.previewGalleryController.updatePreviewGallery.called);
     });
 
-    test('Should go to next image when onItemChange is \'left\'', function() {
-      var e = {
-        detail: {
-          direction: 'left',
-          vx: -2
-        }
-      };
-      this.previewGalleryController.currentItemIndex = -2;
+    test('Should go to next image on handleSwipe(\'left\')', function() {
+      this.previewGalleryController.items = [1,2,3];
+      this.previewGalleryController.currentItemIndex = 1;
       this.previewGalleryController.previewItem = sinon.spy();
-      this.previewGalleryController.handleItemChange(e);
+      this.previewGalleryController.handleSwipe('left');
       assert.ok(this.previewGalleryController.previewItem.called);
+      assert.equal(this.previewGalleryController.currentItemIndex, 2);
     });
 
-    test('Should go to previous image when onItemChange is \'right\'',
-      function() {
-        var e = {
-          detail: {
-            direction: 'right',
-            vx: 2
-          }
-        };
-      this.previewGalleryController.currentItemIndex = 2;
+    test('Should go to previous image on handleSwipe(\'right\')', function() {
+      this.previewGalleryController.items = [1,2,3];
+      this.previewGalleryController.currentItemIndex = 1;
       this.previewGalleryController.previewItem = sinon.spy();
-      this.previewGalleryController.handleItemChange(e);
+      this.previewGalleryController.handleSwipe('right');
       assert.ok(this.previewGalleryController.previewItem.called);
+      assert.equal(this.previewGalleryController.currentItemIndex, 0);
+    });
+
+    test('Should not go to next image if there is not one', function() {
+      this.previewGalleryController.items = [1,2];
+      this.previewGalleryController.currentItemIndex = 1;
+      this.previewGalleryController.previewItem = sinon.spy();
+      this.previewGalleryController.handleSwipe('left');
+      assert.isFalse(this.previewGalleryController.previewItem.called);
+      assert.equal(this.previewGalleryController.currentItemIndex, 1);
+    });
+
+    test('Should not go to previous image if there is not one', function() {
+      this.previewGalleryController.items = [1,2];
+      this.previewGalleryController.currentItemIndex = 0;
+      this.previewGalleryController.previewItem = sinon.spy();
+      this.previewGalleryController.handleSwipe('right');
+      assert.isFalse(this.previewGalleryController.previewItem.called);
+      assert.equal(this.previewGalleryController.currentItemIndex, 0);
     });
 
     test('Should close the preview on blur', function() {
@@ -248,6 +259,32 @@ suite('controllers/preview-gallery', function() {
       assert.ok(this.previewGalleryController.closePreview.calledAfter(this.previewGalleryController.updateThumbnail));
     });
 
+    // XXX: this is really a view test, but we don't have tests for the view yet
+    test('Should lock and unlock orientation when opening and closing view',
+         function() {
+           this.orientation.unlock = sinon.spy();
+           this.orientation.lock = sinon.spy();
+           this.previewGalleryController.previewItem = sinon.spy();
+           this.previewGalleryController.openPreview();
+           assert.isTrue(this.orientation.unlock.called);
+           assert.isTrue(this.previewGalleryController.previewItem.called);
+           assert.isFalse(this.orientation.lock.called);
+           this.previewGalleryController.closePreview();
+           assert.isTrue(this.orientation.lock.called);
+         });
+
+    // XXX: this is really a view test, but we don't have tests for the view yet
+    test('Should add and remove a resize handler when opening and closing view',
+         function() {
+           var add = sinon.spy(window, 'addEventListener').withArgs('resize');
+           var remove =
+             sinon.spy(window, 'removeEventListener').withArgs('resize');
+           this.previewGalleryController.previewItem = sinon.spy();
+           this.previewGalleryController.openPreview();
+           assert.ok(add.calledTwice); // twice because VideoPlayer does too
+           this.previewGalleryController.closePreview();
+           assert.equal(remove.callCount, 1);
+         });
   });
 
   suite('PreviewGalleryController#openPreview()', function() {

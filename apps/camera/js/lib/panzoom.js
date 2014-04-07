@@ -6,7 +6,6 @@ define(function(require, exports, module) {
  */
 
 var GestureDetector = require('GestureDetector');
-var orientation = require('lib/orientation');
 
 /**
  * Exports
@@ -16,22 +15,33 @@ module.exports = addPanAndZoomHandlers;
 
 /*
  * This module adds pan-and-zoom capability to images displayed by
- * shared/js/media/media_frame.js.  
+ * shared/js/media/media_frame.js.
  * It is used by preview-gallery.js and confirm.js
  */
-function addPanAndZoomHandlers(frame) {
-  // frame is the MediaFrame object. container is its the DOM element.
+function addPanAndZoomHandlers(frame, swipeCallback) {
+  // frame is the MediaFrame object. container is its DOM element.
   var container = frame.container;
 
   // Generate gesture events for the container
   var gestureDetector = new GestureDetector(container);
   gestureDetector.startDetecting();
 
+  // When the user touches the screen and moves their finger left or
+  // right, they might want to pan within a zoomed-in image, or they
+  // might want to swipe between multiple items in the camera preview
+  // gallery. We pass the amount of motion to the MediaFrame pan() method,
+  // and it returns the amount that cannot be used to pan the displayed
+  // item. We track this returned amount as how far left or right the
+  // image has been swiped, and pass the number to the swipeCallback.
+  var swipeAmount = 0;
+
   // And handle them with these listeners
   container.addEventListener('dbltap', handleDoubleTap);
   container.addEventListener('transform', handleTransform);
   container.addEventListener('pan', handlePan);
-  container.addEventListener('swipe', handleSwipe);
+  if (swipeCallback) {
+    container.addEventListener('swipe', handleSwipe);
+  }
 
   function handleDoubleTap(e) {
     var scale;
@@ -42,104 +52,32 @@ function addPanAndZoomHandlers(frame) {
       scale = 2;
     }
 
-    // If the phone orientation is 0 (unrotated) then the gesture detector's
-    // event coordinates match what's on the screen, and we use them to
-    // specify a point to zoom in or out on. For other orientations we could
-    // calculate the correct point, but instead just use the midpoint.
-    var x, y;
-    if (orientation.get() === 0) {
-      x = e.detail.clientX;
-      y = e.detail.clientY;
-    }
-    else {
-      x = container.offsetWidth / 2;
-      y = container.offsetHeight / 2;
-    }
-
-    frame.zoom(scale, x, y, 200);
+    frame.zoom(scale, e.detail.clientX, e.detail.clientY, 200);
   }
 
   function handleTransform(e) {
-    // If the phone orientation is 0 (unrotated) then the gesture detector's
-    // event coordinates match what's on the screen, and we use them to
-    // specify a point to zoom in or out on. For other orientations we could
-    // calculate the correct point, but instead just use the midpoint.
-    var x, y;
-    if (orientation.get() === 0) {
-      x = e.detail.midpoint.clientX;
-      y = e.detail.midpoint.clientY;
-    }
-    else {
-      x = container.offsetWidth / 2;
-      y = container.offsetHeight / 2;
-    }
-
-    frame.zoom(e.detail.relative.scale, x, y);
+    frame.zoom(e.detail.relative.scale,
+               e.detail.midpoint.clientX, e.detail.midpoint.clientY);
   }
 
   function handlePan(e) {
-    // The gesture detector event does not take our CSS rotation into
-    // account, so we have to pan by a dx and dy that depend on how
-    // the MediaFrame is rotated
-    var dx, dy;
-    switch (orientation.get()) {
-    case 0:
-      dx = e.detail.relative.dx;
-      dy = e.detail.relative.dy;
-      break;
-    case 90:
-      dx = -e.detail.relative.dy;
-      dy = e.detail.relative.dx;
-      break;
-    case 180:
-      dx = -e.detail.relative.dx;
-      dy = -e.detail.relative.dy;
-      break;
-    case 270:
-      dx = e.detail.relative.dy;
-      dy = -e.detail.relative.dx;
-      break;
-    }
+    var dx = e.detail.relative.dx;
+    var dy = e.detail.relative.dy;
 
-    frame.pan(dx, dy);
+    if (swipeCallback) {
+      dx += swipeAmount;
+      swipeAmount = frame.pan(dx, dy);
+      swipeCallback(swipeAmount);
+    } else {
+      frame.pan(dx, dy);
+    }
   }
 
   function handleSwipe(e) {
-    var direction = e.detail.direction;
-    switch (orientation.get()) {
-    case 90:
-      switch (e.detail.direction) {
-        case 'up': direction = 'right'; break;
-        case 'down': direction = 'left'; break;
-        case 'left': direction = 'up'; break;
-        case 'right': direction = 'down'; break;
-      }
-      break;
-    case 180:
-      switch (e.detail.direction) {
-        case 'up': direction = 'down'; break;
-        case 'down': direction = 'up'; break;
-        case 'left': direction = 'right'; break;
-        case 'right': direction = 'left'; break;
-      }
-      break;
-    case 270:
-      switch (e.detail.direction) {
-        case 'up': direction = 'left'; break;
-        case 'down': direction = 'right'; break;
-        case 'left': direction = 'down'; break;
-        case 'right': direction = 'up'; break;
-      }
-      break;
+    if (swipeAmount !== 0) {
+      swipeCallback(swipeAmount, e.detail.vx);
+      swipeAmount = 0;
     }
-    e.detail.direction = direction;
-
-    var itemChangeEvent = new CustomEvent('orientationSwipe', {
-      detail: e.detail
-    });
-    /*jshint validthis:true */
-    this.dispatchEvent(itemChangeEvent);
-
   }
 }
 

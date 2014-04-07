@@ -66,7 +66,7 @@ PreviewGalleryController.prototype.openPreview = function() {
   this.view.on('click:share', this.shareCurrentItem);
   this.view.on('click:delete', this.deleteCurrentItem);
   this.view.on('click:back', this.closePreview);
-  this.view.on('itemChange', this.handleItemChange);
+  this.view.on('swipe', this.handleSwipe);
 
   // If lockscreen is locked, hide all control buttons
   var secureMode = this.app.inSecureMode;
@@ -204,15 +204,12 @@ PreviewGalleryController.prototype.updatePreviewGallery = function(index) {
 /**
  * To Do: Image Swipe Transition
  */
-PreviewGalleryController.prototype.handleItemChange = function(e) {
-  var direction = e.detail.direction;
-  switch (direction) {
-  case 'left': // go to next image
+PreviewGalleryController.prototype.handleSwipe = function(direction) {
+  if (direction === 'left') {
     this.next();
-    break;
-  case 'right': // go to previous
+  }
+  else if (direction === 'right') {
     this.previous();
-    break;
   }
 };
 
