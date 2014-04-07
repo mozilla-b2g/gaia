@@ -36,35 +36,16 @@ var GaiaLockScreen = {
     let lwm = window.wrappedJSObject.lockScreenWindowManager;
     let lockscreen = window.wrappedJSObject.lockScreen || window.wrappedJSObject.LockScreen;
     let setlock = window.wrappedJSObject.SettingsListener.getSettingsLock();
-    let obj = {'screen.timeout': 0};
-    let waitLock = function() {
-      waitFor(
-        function() {
-          lockscreen.lock(true);
-          waitFor(
-            function() {
-              finish(!lockscreen.locked);
-            },
-            function() {
-              return lockscreen.locked;
-            }
-          );
-        },
-        function() {
-          return !!lockscreen;
-        }
-      );
-    };
+    let obj = {'screen.timeout': 0, 'lockscreen.enabled': true};
 
     setlock.set(obj);
-    window.wrappedJSObject.ScreenManager.turnScreenOn();
 
-    // Need to open the window before we lock the lockscreen.
-    // This would only happen when someone directly call the lockscrene.lock.
-    // It's a bad pattern and would only for test.
-    lwm.openApp();
+    // Need to trigger the event to let the LWM to open the LockScreen window
+    // and instantiate the instance.
+    window.wrappedJSObject.ScreenManager.turnScreenOff(true, 'powerkey');
+    window.wrappedJSObject.ScreenManager.turnScreenOn(true);
     waitFor(function() {
-      waitLock();
+      finish(!lockscreen.locked);
     }, function() {
       return lwm.states.instance.isActive();
     });
