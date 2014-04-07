@@ -1251,6 +1251,7 @@ var GridManager = (function() {
 
     var descriptor = {
       bookmarkURL: app.bookmarkURL,
+      url: app.url,
       manifestURL: app.manifestURL,
       entry_point: entryPoint,
       updateTime: app.updateTime,

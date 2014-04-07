@@ -4,6 +4,7 @@ var assert = require('assert');
 var Browser = require('./lib/browser');
 var Homescreen = require('./lib/homescreen');
 var Server = require('./lib/server');
+var FlowManager = require('./lib/flow_manager');
 
 marionette('Install bookmark on homescreen', function() {
   var client = marionette.client({
@@ -35,38 +36,12 @@ marionette('Install bookmark on homescreen', function() {
 
   suite(' > Navigate to sample.html and bookmark it on homescreen',
   function() {
-    var url;
     var expectedTitle = 'Sample page';
 
     setup(function() {
-      var notifToaster;
       homescreen = new Homescreen(client);
-
-      url = server.url('sample.html');
-
-      // Running tests with B2G desktop on Linux, a 'Download complete'
-      // notification-toaster will pop up and make tests failed
-      client.switchToFrame();
-      notifToaster = client.findElement('#notification-toaster');
-      if (notifToaster.displayed()) {
-        // Bug 952377: client.helper.waitForElementToDisappear(notifToaster)
-        // will failed and got timeout.
-        // (notifToaster.displayed() is always true)
-        // So we workaround this to wait for .displayed get removed
-        // from notifToaster
-        client.helper.waitFor(function() {
-          return notifToaster.getAttribute('class').indexOf('displayed') < 0;
-        });
-      }
-      browser.backToApp();
-
-      browser.searchBar.sendKeys(url);
-      browser.searchButton.click();
-      // this will fail on linux because a downloaded notification poped up
-      client.helper.waitForElement(browser.bookmarkButton).click();
-      client.helper.waitForElement(browser.addToHomeButton).click();
-      homescreen.switchToBookmarkEditorFrame();
-      homescreen.bookmarkEditor.bookmarkAddButton.click();
+      FlowManager.saveBookmark('sample.html', client, server, homescreen,
+                               browser);
     });
 
     test(' sample.html is on homescreen with expected title',
@@ -89,13 +64,7 @@ marionette('Install bookmark on homescreen', function() {
           browser.backToApp();
           client.helper.waitForElement(browser.bookmarkButton).click();
           client.helper.waitForElement(browser.addToHomeButton).click();
-          homescreen.switchToBookmarkEditorFrame();
-          homescreen.bookmarkEditor.bookmarkTitleField.clear();
-          homescreen.bookmarkEditor
-            .bookmarkTitleField.sendKeys(newExpectedTitle);
-          // tap head element to make keyboard away
-          homescreen.bookmarkEditor.bookmarkEntrySheetHead.tap();
-          homescreen.bookmarkEditor.bookmarkAddButton.click();
+          FlowManager.setTitleToBookmark(newExpectedTitle, homescreen);
         });
 
         test(' And we change the title of it', function() {

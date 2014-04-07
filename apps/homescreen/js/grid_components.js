@@ -88,7 +88,7 @@ GridItem.prototype = {
 
   getDescriptor: function gc_getDescriptor() {
     return {
-      bookmarkURL: this.url,
+      url: this.url,
       name: this.getName(),
       icon: this.getIcon(),
       iconable: this.iconable,

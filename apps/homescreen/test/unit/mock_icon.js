@@ -46,16 +46,8 @@ MockIcon.prototype = MockTemplateIcon.prototype = {
     return this.descriptor.name;
   },
 
-  getURL: function mi_getURL() {
-    return this.descriptor.url;
-  },
-
   setName: function mi_setName(value) {
     this.descriptor.name = value;
-  },
-
-  setURL: function mi_setURL(value) {
-    this.descriptor.url = value;
   }
 };
 

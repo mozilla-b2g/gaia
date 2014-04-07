@@ -3,10 +3,15 @@
 var Bookmark = function Bookmark(params) {
   GridItem.call(this, params);
 
-  // The bookmarkURL is used for indexing bookmarks in the homescreen. "It's not
-  // a real URL", just used for indexing in homescreen (bug #976955)
-  var url = params.bookmarkURL.trim();
-  this.bookmarkURL = this.generateIndex(url);
+  var url = params.url && params.url.trim();
+  if (!url) {
+    // We are here because in pre-v2.0 the real url was not saved in indexedDB
+    // and we have to extract this one from bookmarkURL ('bookmark/' + url). It
+    // happens only the first time before bookmarks migration
+    url = this.sanitizeURL(params.bookmarkURL);
+  }
+  var id = this.id = params.id || url;
+  this.bookmarkURL = this.generateIndex(id);
   this.setURL(url);
 
   this.type = GridItemsFactory.TYPE.BOOKMARK;
@@ -37,7 +42,7 @@ Bookmark.prototype = {
   },
 
   setURL: function bookmark_setURL(url) {
-    this.url = this.origin = this.sanitizeURL(url);
+    this.url = this.origin = url;
   }
 };
 
