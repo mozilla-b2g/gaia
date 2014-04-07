@@ -3,7 +3,6 @@
 /* global KeyboardPage, KeyboardPageView */
 
 (function(exports) {
-
   /*
    * A KeyboardLayout object represnts a single localization of the keyboard
    * app. In general each language will have its own KeyboardLayout object.
