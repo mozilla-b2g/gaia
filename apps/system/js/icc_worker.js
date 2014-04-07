@@ -270,7 +270,8 @@ var icc_worker = {
       }, true);
 
     var timeout = (options.duration &&
-      icc.calculateDurationInMS(options.duration)) || icc._inputTimeout;
+      iccManager.calculateDurationInMS(options.duration)) ||
+      iccManager._inputTimeout;
     iccManager.input(options.text, timeout, options,
       function(response, value) {
         if (response == null) {
