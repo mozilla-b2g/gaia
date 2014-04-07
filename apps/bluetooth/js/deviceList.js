@@ -347,7 +347,7 @@ navigator.mozL10n.ready(function deviceList() {
         searchingItem.hidden = true;
       };
       req.onerror = function bt_discoveryStopFailed() {
-        console.error('Can not stop discover nearby device');
+        console.error('Failed to stop discovery of nearby devices');
         searchAgainBtn.disabled = true;
         searchingItem.hidden = false;
       };
