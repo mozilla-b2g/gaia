@@ -275,8 +275,9 @@ var icc_worker = {
         icc.hideViews();
       }, true);
 
-    var timeout = (options.duration &&
-      icc.calculateDurationInMS(options.duration)) || icc._inputTimeout;
+    var timeout = options.duration ||
+      icc.calculateDurationInMS(options.duration) ||
+      icc._inputTimeout;
     icc.input(message, options.text, timeout, options,
       function(response, value) {
         if (response == null) {
