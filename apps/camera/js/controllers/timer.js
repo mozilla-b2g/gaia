@@ -150,10 +150,13 @@ TimerController.prototype.unbindTimerEvents = function() {
  * We don't have specific sound file for beep
  * so we are using recordingEnd sound for this.
  *
+ * NOTE: Commented out until we have correct
+ * sound effects in place (bug 991808).
+ *
  * @private
  */
 TimerController.prototype.beep = function() {
-  this.sounds.play('recordingEnd');
+  // this.sounds.play('recordingEnd');
 };
 
 });
