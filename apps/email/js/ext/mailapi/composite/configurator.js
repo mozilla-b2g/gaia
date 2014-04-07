@@ -1473,10 +1473,11 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
   },
 
   downloadMessageAttachments: function(uid, partInfos, callback, progress) {
-    require(['mailparser/mailparser'], function($mailparser) {
+    require(['mailparser/mailparser', 'mailparser/streams'],
+            function($mailparser, Streams) {
       var conn = this._conn;
       var self = this;
-      var mparser = new $mailparser.MailParser();
+      var mparser = new $mailparser.MailParser({ streamAttachments: true });
 
       // I actually implemented a usable shim for the checksum purposes, but we
       // don't actually care about the checksum, so why bother doing the work?
@@ -1484,32 +1485,47 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
         update: function() {},
         digest: function() { return null; },
       };
+      var totalBytes = 0;
+
+      var bodyPartBuffers = [];
 
       function setupBodyParser(partInfo) {
         mparser._state = 0x2; // body
         mparser._remainder = '';
-        mparser._currentNode = null;
-        mparser._currentNode = mparser._createMimeNode(null);
-        mparser._currentNode.attachment = true;
-        mparser._currentNode.checksum = dummyChecksummer;
-        mparser._currentNode.content = undefined;
+        var node = mparser._currentNode = mparser._createMimeNode(null);
+        node.attachment = true;
+        node.checksum = dummyChecksummer;
+        node.content = undefined;
         // nb: mparser._multipartTree is an empty list (always)
-        mparser._currentNode.meta.contentType = partInfo.type;
-        mparser._currentNode.meta.transferEncoding = partInfo.encoding;
-        mparser._currentNode.meta.charset = null; //partInfo.charset;
-        mparser._currentNode.meta.textFormat = null; //partInfo.textFormat;
+        node.meta.contentType = partInfo.type;
+        node.meta.transferEncoding = partInfo.encoding;
+        node.meta.charset = null; //partInfo.charset;
+        node.meta.textFormat = null; //partInfo.textFormat;
+
+        // Stream the attachments, encoding as we go, so that we don't
+        // have to decode the entire attachment at once.
+        if (node.meta.transferEncoding === "base64") {
+          node.stream = new Streams.Base64Stream();
+        }else if(node.meta.transferEncoding == "quoted-printable") {
+          node.stream = new Streams.QPStream("binary");
+        }else{
+          node.stream = new Streams.BinaryStream();
+        }
+
+        // Store chunks of the attachment (already decoded) in
+        // bodyPartBuffers, where they will be coalesced into one Blob.
+        node.stream.checksum = dummyChecksummer;
+        node.stream.on('data', function(data) {
+          bodyPartBuffers.push(data);
+        });
       }
       function bodyParseBuffer(buffer) {
+        // Parse and _process() chunks immediately to keep memory usage low.
         process.immediate = true;
+        totalBytes += buffer.length;
         mparser.write(buffer);
+        mparser._process(false);
         process.immediate = false;
-      }
-      function finishBodyParsing() {
-        process.immediate = true;
-        mparser._process(true);
-        process.immediate = false;
-        // this is a Buffer!
-        return mparser._currentNode.content;
       }
 
       var anyError = null, pendingFetches = 0, bodies = [];
@@ -1541,7 +1557,12 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
           setupBodyParser(partInfo);
           msg.on('data', bodyParseBuffer);
           msg.on('end', function() {
-            bodies.push(new Blob([finishBodyParsing()], { type: partInfo.type }));
+            process.immediate = true;
+            mparser._process(true);
+            process.immediate = false;
+            console.log('Downloaded', totalBytes, 'bytes of attachment data.');
+
+            bodies.push(new Blob(bodyPartBuffers, { type: partInfo.type }));
 
             if (--pendingFetches === 0) {
               try {
