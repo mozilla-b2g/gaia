@@ -229,16 +229,6 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
   // used as basis for aggregated scripts...
   let rootDirectory = htmlFile.parent;
 
-  // find the absolute root of the app's html file.
-  let rootUrl = htmlFile.parent.path;
-  if (webapp.build && webapp.build.dir) {
-    // Only required for keyboard a.t.m. Because all other apps that use build
-    // don't use defer'ed javascripts in their HTML files.
-    rootUrl = '.';
-  }
-  else {
-    rootUrl = rootUrl.replace(webapp.manifestFile.parent.path, '') || '.';
-  }
   // the above will yield something like: '', '/facebook/', '/contacts/', etc...
 
   function writeAggregatedScript(conf) {
@@ -261,7 +251,7 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
     let script = doc.createElement('script');
     let lastScript = conf.lastNode;
 
-    script.src = rootUrl + '/' + scriptBaseName;
+    script.src = './' + scriptBaseName;
     script.defer = lastScript.defer;
     // use the conf's type if given (for text/javascript;version=x)
     script.type = conf.type || lastScript.type;
