@@ -34,7 +34,7 @@ function ControlsController(app) {
 ControlsController.prototype.bindEvents = function() {
   this.app.settings.mode.on('change:selected', this.controls.setter('mode'));
   this.app.on('newthumbnail', this.onNewThumbnail);
-  this.app.on('camera:ready', this.controls.enable);
+  this.app.on('camera:ready', this.restore);
   this.app.on('camera:busy', this.controls.disable);
   this.app.on('change:recording', this.onRecordingChange);
   this.app.on('camera:timeupdate', this.controls.setVideoTimer);
@@ -45,7 +45,6 @@ ControlsController.prototype.bindEvents = function() {
   this.controls.on('click:cancel', this.onCancelButtonClick);
   this.app.on('timer:started', this.onTimerStarted);
   this.app.on('timer:cleared', this.restore);
-  this.app.on('camera:shutter', this.restore);
   debug('events bound');
 };
 

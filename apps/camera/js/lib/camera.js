@@ -433,7 +433,6 @@ Camera.prototype.takePicture = function(options) {
     self.set('focus', 'none');
     self.emit('newimage', image);
     debug('success taking picture');
-    complete();
   }
 
   function complete() {
