@@ -1086,11 +1086,7 @@
        */
       this.broadcast('withoutkeyboard');
     }
-    if (this.isFullScreen()) {
-      height = self.layoutManager.fullscreenHeight + this.calibratedHeight();
-    } else {
-      height = self.layoutManager.usualHeight + this.calibratedHeight();
-    }
+    height = self.layoutManager.height + this.calibratedHeight();
 
     // If we have sidebar in the future, change layoutManager then.
     width = self.layoutManager.width;

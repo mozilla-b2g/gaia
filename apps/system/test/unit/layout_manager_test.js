@@ -1,16 +1,15 @@
-/* global MocksHelper, LayoutManager, MockAppWindowManager, MockKeyboardManager,
+/* global MocksHelper, LayoutManager, MockKeyboardManager,
           MockStatusBar, MocksoftwareButtonManager */
 'use strict';
 
 mocha.globals(['OrientationManager']);
 requireApp('system/js/layout_manager.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
 
 var mocksForLayoutManager = new MocksHelper([
-  'AppWindowManager', 'KeyboardManager', 'softwareButtonManager', 'StatusBar'
+  'KeyboardManager', 'softwareButtonManager', 'StatusBar'
 ]).init();
 
 suite('system/LayoutManager >', function() {
@@ -97,33 +96,10 @@ suite('system/LayoutManager >', function() {
     MockStatusBar.height = 30;
     MocksoftwareButtonManager.height = 50;
     layoutManager.keyboardEnabled = true;
-    assert.equal(layoutManager.usualHeight, H - 100 - 30 - 50);
-    assert.equal(layoutManager.fullscreenHeight, H - 100 - 50);
+    assert.equal(layoutManager.height, H - 100 - 30 - 50);
     assert.equal(layoutManager.width, W);
     assert.equal(layoutManager.clientWidth, _w);
 
-    assert.isTrue(layoutManager.match(W, H - 100 - 30 - 50, false));
-    assert.isTrue(layoutManager.match(W, H - 100 - 50, true));
-  });
-
-
-  test('available Height > fullscreen app', function() {
-    var app = {
-      isFullScreen: function() {
-        return true;
-      }
-    };
-    this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
-    assert.equal(LayoutManager.availableHeight, LayoutManager.fullscreenHeight);
-  });
-
-  test('available Height > not fullscreen app', function() {
-    var app = {
-      isFullScreen: function() {
-        return false;
-      }
-    };
-    this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
-    assert.equal(LayoutManager.availableHeight, LayoutManager.usualHeight);
+    assert.isTrue(layoutManager.match(W, H - 100 - 30 - 50));
   });
 });
