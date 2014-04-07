@@ -6,16 +6,15 @@ import json
 import os
 import time
 
-from marionette import MarionetteTestCase, EnduranceTestCaseMixin, \
-    B2GTestCaseMixin, MemoryEnduranceTestCaseMixin
+from marionette import MarionetteTestCase, EnduranceTestCaseMixin, B2GTestCaseMixin, \
+                       MemoryEnduranceTestCaseMixin
 from marionette.by import By
 from marionette.errors import NoSuchElementException
 from marionette.errors import ElementNotVisibleException
 from marionette.errors import TimeoutException
 from marionette.errors import StaleElementException
-from marionette.errors import TimeoutException
 from marionette.errors import InvalidResponseException
-from marionette.wait import Wait
+import mozdevice
 from yoctopuce.yocto_api import YAPI, YRefParam, YModule
 from yoctopuce.yocto_current import YCurrent
 from yoctopuce.yocto_datalogger import YDataLogger
@@ -669,7 +668,7 @@ class GaiaDevice(object):
     @property
     def is_android_build(self):
         if self.testvars.get('is_android_build') is None:
-            self.testvars['is_android_build'] = 'android' in self.marionette.session_capabilities['platformName'].lower()
+            self.testvars['is_android_build'] = 'Android' in self.marionette.session_capabilities['platform']
         return self.testvars['is_android_build']
 
     @property
@@ -754,86 +753,6 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
         self.marionette.client.close()
         self.marionette.session = None
         self.marionette.window = None
-
-    def press_sleep_button(self):
-        self.marionette.execute_script("""
-            window.wrappedJSObject.dispatchEvent(new CustomEvent('mozChromeEvent', {
-              detail: {
-                type: 'sleep-button-press'
-              }
-            }));""")
-
-    def press_release_volume_up_then_down_n_times(self, n_times):
-        self.marionette.execute_script("""
-            function sendEvent(aName, aType) {
-              window.wrappedJSObject.dispatchEvent(new CustomEvent('mozChromeEvent', {
-                detail: {
-                  type: aName + '-button-' + aType
-                }
-              }));
-            }
-            for (var i = 0; i < arguments[0]; ++i) {
-              sendEvent('volume-up', 'press');
-              sendEvent('volume-up', 'release');
-              sendEvent('volume-down', 'press');
-              sendEvent('volume-down', 'release');
-            };""", script_args=[n_times])
-
-    def turn_screen_off(self):
-        self.marionette.execute_script("window.wrappedJSObject.ScreenManager.turnScreenOff(true)")
-
-    @property
-    def is_screen_enabled(self):
-        return self.marionette.execute_script('return window.wrappedJSObject.ScreenManager.screenEnabled')
-
-    def touch_home_button(self):
-        apps = GaiaApps(self.marionette)
-        if apps.displayed_app.name.lower() != 'homescreen':
-            # touching home button will return to homescreen
-            self._dispatch_home_button_event()
-            Wait(self.marionette).until(
-                lambda m: apps.displayed_app.name.lower() == 'homescreen')
-            apps.switch_to_displayed_app()
-        else:
-            apps.switch_to_displayed_app()
-            mode = self.marionette.find_element(By.TAG_NAME, 'body').get_attribute('data-mode')
-            self._dispatch_home_button_event()
-            apps.switch_to_displayed_app()
-            if mode == 'edit':
-                # touching home button will exit edit mode
-                Wait(self.marionette).until(lambda m: m.find_element(
-                    By.TAG_NAME, 'body').get_attribute('data-mode') == 'normal')
-            else:
-                # touching home button will move to first page
-                Wait(self.marionette).until(lambda m: m.execute_script(
-                    'return window.wrappedJSObject.GridManager.pageHelper.getCurrentPageNumber();') == 0)
-
-    def _dispatch_home_button_event(self):
-        self.marionette.switch_to_frame()
-        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
-
-    def hold_home_button(self):
-        self.marionette.switch_to_frame()
-        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
-
-    def hold_sleep_button(self):
-        self.marionette.switch_to_frame()
-        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdsleep'));")
-
-    @property
-    def is_locked(self):
-        self.marionette.switch_to_frame()
-        return self.marionette.execute_script('return window.wrappedJSObject.lockScreen.locked')
-
-    def lock(self):
-        self.marionette.switch_to_frame()
-        result = self.marionette.execute_async_script('GaiaLockScreen.lock()')
-        assert result, 'Unable to lock screen'
-
-    def unlock(self):
-        self.marionette.switch_to_frame()
-        result = self.marionette.execute_async_script('GaiaLockScreen.unlock()')
-        assert result, 'Unable to unlock screen'
 
 
 class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
@@ -955,7 +874,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.data_layer.remove_all_contacts()
 
             # reset to home screen
-            self.device.touch_home_button()
+            self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
 
         # kill any open apps
         self.apps.kill_all()
@@ -1167,11 +1086,12 @@ class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranc
 
     def close_app(self):
         # Close the current app (self.app) by using the home button
-        self.device.touch_home_button()
+        self.marionette.switch_to_frame()
+        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
 
         # Bring up the cards view
         _cards_view_locator = ('id', 'cards-view')
-        self.device.hold_home_button()
+        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
         self.wait_for_element_displayed(*_cards_view_locator)
 
         # Sleep a bit
@@ -1182,3 +1102,4 @@ class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranc
         _close_button_locator = ('css selector', locator_part_two)
         close_card_app_button = self.marionette.find_element(*_close_button_locator)
         close_card_app_button.tap()
+
