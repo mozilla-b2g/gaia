@@ -1,6 +1,7 @@
 ###############################################################################
 # Global configurations.  Protip: set your own overrides in a local.mk file.  #
 #                                                                             #
+#kjsdflkjsflkjsdflksdjflksdjjdf
 # GAIA_DOMAIN : change that if you plan to use a different domain to update   #
 #               your applications or want to use a local domain               #
 #                                                                             #
