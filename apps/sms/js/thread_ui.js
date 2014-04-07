@@ -2002,6 +2002,7 @@ var ThreadUI = global.ThreadUI = {
         evt.preventDefault();
         evt.stopPropagation();
         var messageBubble = this.getMessageBubble(evt.target);
+        var lineClassList = messageBubble.node.parentNode.classList;
 
         if (!messageBubble) {
           return;
@@ -2052,7 +2053,7 @@ var ThreadUI = global.ThreadUI = {
           type: 'action',
           header: navigator.mozL10n.get('message-options')
         };
-        if (messageBubble.node.parentNode.classList.contains('error')) {
+        if (lineClassList.contains('error') && lineClassList.contains('outgoing')) {
           params.items.splice(2, 0, {
             l10nId: 'resend-message',
             method: function resendMessage(messageId) {
