@@ -1,8 +1,6 @@
 Components.utils.import('resource://gre/modules/Services.jsm');
 
-
-function _registerListener(document)
-{
+function _registerListener(document) {
   try {
     let window = document.defaultView.wrappedJSObject;
 
@@ -103,8 +101,11 @@ function _registerListener(document)
 
 try {
   if (document) {
+
     _registerListener(document);
+
   } else {
+
     Services.obs.addObserver(function(document) {
       if (!document || !document.location)
         return;
@@ -114,6 +115,7 @@ try {
 
       _registerListener(document);
     }, 'document-element-inserted', false);
+
   }
 } catch (e) {
   dump('ERR: ' + e.toString() + '\n');
