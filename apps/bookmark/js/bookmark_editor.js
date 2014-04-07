@@ -43,7 +43,7 @@ var BookmarkEditor = {
       this._onEditMode();
     }
   },
-
+  
   _onEditMode: function bookmarkEditor_onEditMode() {
     // Done button will be disabled on edit mode once it is displayed
     this.saveButton.disabled = true;
