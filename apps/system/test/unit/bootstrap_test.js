@@ -22,6 +22,7 @@ requireApp('system/test/unit/mock_media_recording.js');
 requireApp('system/test/unit/mock_permission_manager.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_remote_debugger.js');
+requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_source_view.js');
@@ -87,6 +88,7 @@ var mocksForBootstrap = new MocksHelper([
   'PermissionManager',
   'Places',
   'RemoteDebugger',
+  'Rocketbar',
   'ScreenManager',
   'SettingsListener',
   'SettingsURL',

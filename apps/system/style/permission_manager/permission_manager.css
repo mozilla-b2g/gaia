@@ -1,9 +1,9 @@
 #permission-screen {
   position: absolute;
-  top: 2rem;
+  top: 2.4rem;
   left: 0;
   width: 100%;
-  height: calc(100% - 2rem);
+  height: calc(100% - 2.4rem);
   background-color: rgba(0,0,0,0.4);
   -moz-transition: opacity 0.5s ease;
   pointer-events: none;
@@ -29,7 +29,7 @@
 
 @media not all and (-moz-physical-home-button) {
   #screen:not(.software-button-disabled) #permission-screen {
-    height: calc(100% - 2rem - 5rem);
+    height: calc(100% - 2.4rem - 5rem);
   }
 
   #screen.attention:not(.software-button-disabled) #permission-screen {
@@ -42,7 +42,7 @@
 }
 
 #screen.software-button-enabled #permission-screen {
-  height: calc(100% - 2rem - 5rem);
+  height: calc(100% - 2.4rem - 5rem);
 }
 
 #screen.software-button-enabled.attention #permission-screen {
