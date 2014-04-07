@@ -400,12 +400,14 @@ var CallScreen = {
   },
 
   placeNewCall: function cs_placeNewCall() {
-    navigator.mozApps.getSelf().onsuccess = function(evt) {
-      var app = evt.target.result;
-      CallsHandler.requestContactsTab();
-      app.launch('dialer');
-      window.resizeTo(100, 40);
-    };
+    new MozActivity({
+      name: 'dial',
+      data: {
+        type: 'webtelephony/number',
+        number: ''
+      }
+    });
+    window.resizeTo(100, 40);
   },
 
   render: function cs_render(layout_type) {
