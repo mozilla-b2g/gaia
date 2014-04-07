@@ -36,11 +36,6 @@ suite('keyboard.js', function() {
       showIMEList();
       assert.isTrue(mockClearTouchedKeys.called);
     });
-
-    test('resetKeyboard should cancel all target event listeners', function() {
-      resetKeyboard();
-      assert.isTrue(mockClearTouchedKeys.called);
-    });
   });
 
   suite('clearTouchedKeys - to clear event listeners', function() {
