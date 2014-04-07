@@ -27,7 +27,7 @@ OmicronLab.Avro.Phonetic = {
 
                 if(match.type === "suffix") {
                   chk = end;
-                } 
+                }
                 // Prefix
                 else {
                   chk = prev;
@@ -49,8 +49,8 @@ OmicronLab.Avro.Phonetic = {
                 if(match.scope === "punctuation") {
                   if(
                     ! (
-                      ((chk < 0) && (match.type === "prefix")) || 
-                      ((chk >= fixed.length) && (match.type === "suffix")) || 
+                      ((chk < 0) && (match.type === "prefix")) ||
+                      ((chk >= fixed.length) && (match.type === "suffix")) ||
                                           this.isPunctuation(fixed.charAt(chk))
                                         ) ^ match.negative
                                     ) {
@@ -63,9 +63,9 @@ OmicronLab.Avro.Phonetic = {
                                     if(
                                         ! (
                                             (
-                                                (chk >= 0 && (match.type === "prefix")) || 
+                                                (chk >= 0 && (match.type === "prefix")) ||
                                                 (chk < fixed.length && (match.type === "suffix"))
-                                            ) && 
+                                            ) &&
                                             this.isVowel(fixed.charAt(chk))
                                         ) ^ match.negative
                                     ) {
@@ -78,9 +78,9 @@ OmicronLab.Avro.Phonetic = {
                                     if(
                                         ! (
                                             (
-                                                (chk >= 0 && (match.type === "prefix")) || 
+                                                (chk >= 0 && (match.type === "prefix")) ||
                                                 (chk < fixed.length && match.type === ("suffix"))
-                                            ) && 
+                                            ) &&
                                             this.isConsonant(fixed.charAt(chk))
                                         ) ^ match.negative
                                     ) {
@@ -94,7 +94,7 @@ OmicronLab.Avro.Phonetic = {
                                     if(match.type === "suffix") {
                                         s = end;
                                         e = end + match.value.length;
-                                    } 
+                                    }
                                     // Prefix
                                     else {
                                         s = start - match.value.length;
@@ -1954,9 +1954,9 @@ OmicronLab.Avro.Phonetic = {
 };
 
 (function() {
-  
+
   var keyboard, buffer = "";
-  
+
   const SPACE = 32;
   const TAB = 9;
   const RETURN = 13;
@@ -1972,8 +1972,12 @@ OmicronLab.Avro.Phonetic = {
 
   function addToBuffer(keyCode) {
     if (keyCode == SPACE || keyCode == RETURN || keyCode == TAB) {
-      buffer = buffer + String.fromCharCode(keyCode);
-      inputDone();
+      if (!isBufferEmpty()) {
+        buffer = buffer + String.fromCharCode(keyCode);
+        inputDone();
+      } else {
+        keyboard.sendKey(keyCode);
+      }
     }
     else if (keyCode == BACKSPACE) {
       backspace();
@@ -1992,7 +1996,7 @@ OmicronLab.Avro.Phonetic = {
       keyboard.sendKey(KeyEvent.DOM_VK_BACK_SPACE);
     }
   }
-	
+
   function inputDone() {
     var parsedText = OmicronLab.Avro.Phonetic.parse(buffer);
     keyboard.endComposition(parsedText);
@@ -2003,16 +2007,16 @@ OmicronLab.Avro.Phonetic = {
     init: init,
     click: click
   };
-  
+
   function init(interfaceObject) {
     keyboard = interfaceObject;
   }
-    
+
   function click(keycode, x, y) {
     addToBuffer(keycode);
     if (!isBufferEmpty()) {
       keyboard.setComposition(OmicronLab.Avro.Phonetic.parse(buffer));
     }
   }
-    
+
 })();
