@@ -166,7 +166,7 @@ var Homescreen = (function() {
      *
      */
     showAppDialog: function h_showAppDialog(icon) {
-      LazyLoader.load(['shared/style/buttons.css',
+      LazyLoader.load(['shared/style_unstable/buttons.css',
                        'shared/style/headers.css',
                        'shared/style/confirm.css',
                        'style/request.css',
@@ -180,7 +180,7 @@ var Homescreen = (function() {
       var dialog = document.getElementById('edit-dialog');
       LazyLoader.load(['style/edit_dialog.css',
                        'shared/style/headers.css',
-                       'shared/style/input_areas.css',
+                       'shared/style_unstable/input_areas.css',
                        'shared/js/url_helper.js',
                        dialog,
                        'js/edit_dialog.js'], function loaded() {

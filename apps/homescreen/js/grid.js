@@ -1390,7 +1390,7 @@ var GridManager = (function() {
   }
 
   function showRestartDownloadDialog(icon) {
-    LazyLoader.load(['shared/style/buttons.css',
+    LazyLoader.load(['shared/style_unstable/buttons.css',
                      'shared/style/headers.css',
                      'shared/style/confirm.css',
                      'style/request.css',
