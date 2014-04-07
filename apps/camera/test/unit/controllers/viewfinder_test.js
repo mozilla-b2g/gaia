@@ -86,7 +86,7 @@ suite('controllers/viewfinder', function() {
     });
 
     test('Should flash viewfinder shutter when camera shutter fires', function() {
-      assert.isTrue(this.app.on.calledWith('camera:shutter', this.viewfinder.shutter));
+      assert.isTrue(this.app.on.calledWith('camera:shutter', this.controller.onShutter));
     });
 
     test('Should respond to `zoomchanged` event', function() {
