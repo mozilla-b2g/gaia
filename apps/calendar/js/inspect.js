@@ -19,6 +19,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 (function(window) {
+  'use strict';
+
   if (typeof(window.Calendar) === 'undefined') {
     window.Calendar = {};
   }
@@ -27,20 +29,25 @@
 
   var formatRegExp = /%[sdj%]/g;
   exports.format = function(f) {
+    var i;
     if (typeof f !== 'string') {
       var objects = [];
-      for (var i = 0; i < arguments.length; i++) {
+      for (i = 0; i < arguments.length; i++) {
         objects.push(inspect(arguments[i]));
       }
       return objects.join(' ');
     }
 
-    var i = 1;
+    i = 1;
     var args = arguments;
     var len = args.length;
     var str = String(f).replace(formatRegExp, function(x) {
-      if (x === '%%') return '%';
-      if (i >= len) return x;
+      if (x === '%%') {
+        return '%';
+      }
+      if (i >= len) {
+        return x;
+      }
       switch (x) {
         case '%s': return String(args[i++]);
         case '%d': return Number(args[i++]);
@@ -80,48 +87,13 @@
   }
   exports.inspect = inspect;
 
-  // http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-  var colors = {
-    'bold' : [1, 22],
-    'italic' : [3, 23],
-    'underline' : [4, 24],
-    'inverse' : [7, 27],
-    'white' : [37, 39],
-    'grey' : [90, 39],
-    'black' : [30, 39],
-    'blue' : [34, 39],
-    'cyan' : [36, 39],
-    'green' : [32, 39],
-    'magenta' : [35, 39],
-    'red' : [31, 39],
-    'yellow' : [33, 39]
-  };
-
-  // Don't use 'blue' not visible on cmd.exe
-  var styles = {
-    'special': 'cyan',
-    'number': 'yellow',
-    'boolean': 'yellow',
-    'undefined': 'grey',
-    'null': 'bold',
-    'string': 'green',
-    'date': 'magenta',
-    // "name": intentionally not styling
-    'regexp': 'red'
-  };
-
-
   function stylizeWithColor(str, styleType) {
-    var style = styles[styleType];
-
     return str;
   }
-
 
   function stylizeNoColor(str, styleType) {
     return str;
   }
-
 
   function formatValue(ctx, value, recurseTimes) {
     // Provide a hook for user-specified inspect functions.
@@ -190,7 +162,7 @@
       base = ' ' + formatError(value);
     }
 
-    if (keys.length === 0 && (!array || value.length == 0)) {
+    if (keys.length === 0 && (!array || value.length === 0)) {
       return braces[0] + base + braces[1];
     }
 
@@ -228,7 +200,7 @@
 
       case 'string':
         var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
-                                                 .replace(/'/g, "\\'")
+                                                 .replace(/'/g, '\\\'')
                                                  .replace(/\\"/g, '"') + '\'';
         return ctx.stylize(simple, 'string');
 
@@ -320,9 +292,9 @@
         name = name.substr(1, name.length - 2);
         name = ctx.stylize(name, 'name');
       } else {
-        name = name.replace(/'/g, "\\'")
+        name = name.replace(/'/g, '\\\'')
                    .replace(/\\"/g, '"')
-                   .replace(/(^"|"$)/g, "'");
+                   .replace(/(^"|"$)/g, '\'');
         name = ctx.stylize(name, 'string');
       }
     }
@@ -335,7 +307,9 @@
     var numLinesEst = 0;
     var length = output.reduce(function(prev, cur) {
       numLinesEst++;
-      if (cur.indexOf('\n') >= 0) numLinesEst++;
+      if (cur.indexOf('\n') >= 0) {
+        numLinesEst++;
+      }
       return prev + cur.length + 1;
     }, 0);
 
