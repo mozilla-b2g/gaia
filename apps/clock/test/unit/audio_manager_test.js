@@ -1,3 +1,4 @@
+/* global testRequire */
 suite('Audio Manager', function() {
   'use strict';
 
@@ -5,9 +6,10 @@ suite('Audio Manager', function() {
   var navigator_mozSettings = navigator.mozSettings;
 
   suiteSetup(function(done) {
-    require(['mocks/mock_navigator_mozsettings'], function(mockSettings) {
+    testRequire(['mocks/mock_navigator_mozsettings'], function(mockSettings) {
+      // TODO: This is a temporary fix. Remove when testRequire goes away.
       navigator.mozSettings = mockSettings;
-      require(['audio_manager'], function(_AudioManager) {
+      testRequire(['audio_manager'], function(_AudioManager) {
         AudioManager = _AudioManager;
         done();
       });

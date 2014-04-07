@@ -1,4 +1,4 @@
-define(function() {
+(function(exports) {
   'use strict';
 
   function DateTimeFormat() {
@@ -12,7 +12,7 @@ define(function() {
 
   var testDefaults = {};
 
-  return {
+  var MockL10n = {
     /** For unit testing: */
     setForTest: function(key, value) {
       testDefaults[key] = value;
@@ -32,4 +32,6 @@ define(function() {
     DateTimeFormat: DateTimeFormat
   };
 
-});
+  exports.MockL10n = MockL10n;
+
+}(this));

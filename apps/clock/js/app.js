@@ -87,6 +87,7 @@ var App = {
    */
   navigate: function(data, callback) {
     var currentIndex = this.panels.indexOf(this.currentPanel);
+
     this.panels.forEach(function(panel, panelIndex) {
       if ('#' + panel.fragment === data.hash) {
         this.loadPanel(panel, function() {

@@ -122,7 +122,7 @@ var BaseIndexDB = function(objectStoreOptions, upgradeHandler) {
       callback && callback({
         database: database,
         store: storeName,
-        message: e.message,
+        message: event.message,
         code: request.errorCode
       });
     };

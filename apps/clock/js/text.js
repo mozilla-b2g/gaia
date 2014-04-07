@@ -1,7 +1,6 @@
 define({
   pluginBuilder: './text_builder',
   load: function(name, req, onload, config) {
-    'use strict';
     var url = req.toUrl(name),
         xhr = new XMLHttpRequest();
 

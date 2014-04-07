@@ -1,5 +1,6 @@
 define(function(require) {
 'use strict';
+var Emitter = require('emitter');
 var priv = new WeakMap();
 var elementMap = new WeakMap();
 
@@ -38,6 +39,8 @@ View.instance = function(element, ctor = View) {
   return new ctor(element);
 };
 
+View.prototype = Object.create(Emitter.prototype);
+
 Object.defineProperties(View.prototype, {
   /**
    * View.prototype.visible - set to true or false to toggle the "hidden" class
@@ -56,14 +59,7 @@ Object.defineProperties(View.prototype, {
       value = !!value;
       if (state.visible !== value) {
         state.visible = value;
-
-        var event = new CustomEvent('panel-visibilitychange', {
-          detail: {
-            isVisible: value
-          }
-        });
-        this.element.dispatchEvent(event);
-
+        this.emit('visibilitychange', value);
         if (!value) {
           this.element.classList.add('hidden');
         } else {

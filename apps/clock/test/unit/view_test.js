@@ -1,9 +1,10 @@
 'use strict';
 suite('View', function() {
-  var View;
+  var Emitter, View;
 
   suiteSetup(function(done) {
-    require(['view'], function(view) {
+    testRequire(['emitter', 'view'], function(emitter, view) {
+      Emitter = emitter;
       View = view;
       done();
     });
@@ -50,8 +51,10 @@ suite('View', function() {
       this.element.id = 'test-element';
       this.view = new View(this.element);
       this.visibleSpy = this.sinon.spy();
-      this.view.element.addEventListener('panel-visibilitychange',
-                                         this.visibleSpy);
+      this.view.on('visibilitychange', this.visibleSpy);
+    });
+    test('instanceof Emitter', function() {
+      assert.ok(this.view instanceof Emitter);
     });
     test('has element', function() {
       assert.equal(this.view.element, this.element);
@@ -75,7 +78,7 @@ suite('View', function() {
         this.view.visible = false;
       });
       test('event called', function() {
-        assert.ok(this.visibleSpy.calledOnce);
+        assert.ok(this.visibleSpy.calledWith(false));
       });
       test('added hidden class', function() {
         assert.ok(this.element.classList.contains('hidden'));
@@ -95,7 +98,7 @@ suite('View', function() {
           this.view.visible = true;
         });
         test('event called', function() {
-          assert.ok(this.visibleSpy.calledOnce);
+          assert.ok(this.visibleSpy.calledWith(true));
         });
         test('removed hidden class', function() {
           assert.isFalse(this.element.classList.contains('hidden'));

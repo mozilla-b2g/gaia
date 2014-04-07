@@ -3,7 +3,7 @@ suite('FormButton', function() {
   var doc, input, formButton, FormButton, Constants, Utils;
 
   suiteSetup(function(done) {
-    require([
+    testRequire([
         'form_button',
         'constants',
         'utils'

@@ -6,8 +6,7 @@ suite('Stopwatch.Panel', function() {
   var panel;
   var clock;
   var Stopwatch;
-  var localize;
-  var mozL10n;
+  var MockL10n, localize;
 
   suiteSetup(function(done) {
     var threeMin = 3 * 60 * 1000 + 130;
@@ -60,12 +59,12 @@ suite('Stopwatch.Panel', function() {
       return element.className.contains('hidden');
     };
 
-    require([
-      'stopwatch', 'panels/stopwatch/main', 'l10n'
-      ], function(stopwatch, stopwatchPanel, l10n) {
+    testRequire([
+      'stopwatch', 'panels/stopwatch/main', 'mocks/mock_shared/js/l10n'
+      ], function(stopwatch, stopwatchPanel, mockL10n) {
         Stopwatch = stopwatch;
         Stopwatch.Panel = stopwatchPanel;
-        mozL10n = l10n;
+        MockL10n = mockL10n;
         panel = new Stopwatch.Panel(
           document.createElement('div')
         );
@@ -76,7 +75,7 @@ suite('Stopwatch.Panel', function() {
 
   setup(function() {
     clock = this.sinon.useFakeTimers();
-    localize = this.sinon.spy(mozL10n, 'localize');
+    localize = this.sinon.spy(MockL10n, 'localize');
   });
 
   test('Default', function() {

@@ -3,7 +3,7 @@ mocha.setup({ globals: ['GestureDetector'] });
 suite('Spinner', function() {
   'use strict';
   
-  var Spinner, GestureDetector;
+  var Spinner, Template, GestureDetector;
   var _clientHeight;
   var VALUE_ELEMENT_HEIGHT = 20;
 
@@ -23,12 +23,19 @@ suite('Spinner', function() {
       }
     });
 
-    require([
+    testRequire([
         'picker/spinner',
-        'shared/js/gesture_detector'
-      ], function(spinner, GD) {
+        'mocks/mock_shared/js/template',
+        'mocks/mock_shared/js/gesture_detector'
+      ], {
+        mocks: [
+          'shared/js/template',
+          'shared/js/gesture_detector'
+        ]
+      }, function(spinner, mockTemplate, mockGD) {
         Spinner = spinner;
-        GestureDetector = GD;
+        Template = mockTemplate;
+        GestureDetector = mockGD;
         done();
       });
   });
@@ -64,6 +71,24 @@ suite('Spinner', function() {
   }
 
   function checkCreation() {
+    test('Started GestureDetector', function() {
+      assert.ok(GestureDetector.calledWith(this.container));
+      assert.ok(GestureDetector.thisValues[0].startDetecting.called);
+    });
+    test('Interpolated each value', function() {
+      var interpolate = this.spinner.template.interpolate;
+      this.spinner.values.forEach(function(value, index) {
+        assert.equal(interpolate.args[index][0].unit, value + '',
+          'unit value for value # ' + index);
+      });
+    });
+    test('Created .picker-unit elements', function() {
+      assert.equal(this.element.querySelectorAll('.picker-unit').length,
+        this.spinner.values.length);
+    });
+    test('Unit Size', function() {
+      assert.equal(this.spinner.unitHeight, VALUE_ELEMENT_HEIGHT);
+    });
     checkTranslate(0);
     checkIndex(0);
   }
@@ -110,7 +135,6 @@ suite('Spinner', function() {
           cancelable: true,
           bubbles: true
         });
-        this.event.changedTouches = [];
         this.element.dispatchEvent(this.event);
       });
       test('default is prevented', function() {

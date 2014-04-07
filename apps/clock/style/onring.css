@@ -6,14 +6,6 @@ html, body {
   background-size: 100% 100%;
 }
 
-html {
-  visibility: hidden;
-}
-
-html.ready {
-  visibility: visible;
-}
-
 .ring-display {
   position: fixed;
 

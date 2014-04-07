@@ -5,7 +5,7 @@ suite('Stopwatch', function() {
   var oneHour = 1 * 60 * 60 * 1000;
 
   suiteSetup(function(done) {
-    require(['stopwatch'], function(stopwatch) {
+    testRequire(['stopwatch'], function(stopwatch) {
       Stopwatch = stopwatch;
       this.sw = new Stopwatch();
       done();
