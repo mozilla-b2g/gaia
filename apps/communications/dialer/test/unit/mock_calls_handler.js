@@ -1,15 +1,10 @@
 var MockCallsHandler = {
   mActiveCall: null,
-  mLastEntryAdded: null,
   mUpdateKeypadEnabledCalled: true,
 
   updateKeypadEnabled: function() {
     this.mUpdateKeypadEnabledCalled =
       !this.mUpdateKeypadEnabledCalled;
-  },
-
-  addRecentEntry: function(entry) {
-    this.mLastEntryAdded = entry;
   },
 
   get activeCall() {
@@ -32,7 +27,6 @@ var MockCallsHandler = {
 
   mTeardown: function() {
     this.mActiveCall = null;
-    this.mLastEntryAdded = null;
     this.mUpdateKeypadEnabledCalled = true;
   }
 };
