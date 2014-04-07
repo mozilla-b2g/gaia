@@ -14,12 +14,14 @@ class Homescreen(Base):
     name = 'Homescreen'
 
     _homescreen_icon_locator = (By.CSS_SELECTOR, 'li.icon[aria-label="%s"]')
-    _visible_icons_locator = (By.CSS_SELECTOR, 'div.page[style*="transform: translateX(0px);"] > ol > .icon')
+    _visible_icons_locator = (By.CSS_SELECTOR, '.page[style*="translateX(0px);"] .icon')
     _edit_mode_locator = (By.CSS_SELECTOR, 'body[data-mode="edit"]')
     _search_bar_icon_locator = (By.CSS_SELECTOR, '#evme-activation-icon input')
     _landing_page_locator = (By.ID, 'icongrid')
     _collections_locator = (By.CSS_SELECTOR, 'li.icon[data-collection-name]')
     _collection_locator = (By.CSS_SELECTOR, "li.icon[data-collection-name *= '%s']")
+    _pagination_scroller_locator = (By.CSS_SELECTOR, 'div.paginationScroller')
+
 
     def launch(self):
         Base.launch(self)
@@ -29,6 +31,12 @@ class Homescreen(Base):
         search_bar.tap()
         from gaiatest.apps.homescreen.regions.search_panel import SearchPanel
         return SearchPanel(self.marionette)
+
+    def wait_for_homescreen_to_load(self):
+        # The pagination scroller is shown once number of icons/pages is known
+        self.wait_for_element_displayed(*self._pagination_scroller_locator)
+        # This element is inserted by e.me init
+        self.wait_for_element_displayed(*self._search_bar_icon_locator)
 
     def wait_for_app_icon_present(self, app_name):
         self.wait_for_element_present(self._homescreen_icon_locator[0], self._homescreen_icon_locator[1] % app_name)

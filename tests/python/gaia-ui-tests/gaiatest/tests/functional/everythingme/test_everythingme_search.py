@@ -11,6 +11,8 @@ class TestEverythingMeSearch(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        # Force disable rocketbar
+        self.data_layer.set_setting('rocketbar.enabled', False)
         self.apps.set_permission('Homescreen', 'geolocation', 'deny')
         self.connect_to_network()
 
@@ -21,6 +23,7 @@ class TestEverythingMeSearch(GaiaTestCase):
         test_string = u'News'
         homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
+        homescreen.wait_for_homescreen_to_load()
 
         search_panel = homescreen.tap_search_bar()
         search_panel.wait_for_everything_me_loaded()
