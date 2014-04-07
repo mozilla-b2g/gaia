@@ -63,7 +63,6 @@
 
 .controls-button {
   position: relative;
-  box-sizing: content-box;
   display: block;
   height: 5.4rem;
   width: 5.4rem;
@@ -76,7 +75,7 @@
   background-color: rgba(0,0,0,0.4);
   background-clip: padding-box;
   border: solid 1.8rem transparent;
-  -moz-box-sizing: content-box;
+  box-sizing: content-box;
   color: #fff;
 }
 
@@ -155,7 +154,6 @@
 
 .mode-switch {
   position: relative;
-  box-sizing: content-box;
   display: block;
   font-size: 2.4rem;
   width: 7.6rem;
@@ -165,6 +163,7 @@
   margin-left: 1.8rem;
   overflow: hidden;
   visibility: hidden; /* 1 */
+  box-sizing: content-box;
 }
 
 /**
@@ -210,13 +209,20 @@
 /** Selected Mode
  ---------------------------------------------------------*/
 
+/**
+ * 1. Disabled `will-change` due to performance
+ *    issues on Hamachi. Leaving in place so that
+ *    we can re-introduce as a later date to improve
+ *    frame-rate on more capable devices.
+ */
+
 .mode-switch .selected-mode {
   position: relative;
   width: 3.6rem;
   height: 3.6rem;
   border-radius: 50%;
   background: #EEE;
-  will-change: transform;
+  /*will-change: transform;*/ /* 1 */
   transition: transform 140ms;
 }
 
@@ -285,9 +291,16 @@
 /** Inner Circle
  ---------------------------------------------------------*/
 
+/**
+ * 1. Disabled `will-change` due to performance
+ *    issues on Hamachi. Leaving in place so that
+ *    we can re-introduce as a later date to improve
+ *    frame-rate on more capable devices.
+ */
+
 .capture-button .inner-circle {
   background-color: white;
-  will-change: transform;
+  /*will-change: transform;*/ /* 1 */
   transform: scale(0.76);
   transition: transform 150ms ease-in;
 }
