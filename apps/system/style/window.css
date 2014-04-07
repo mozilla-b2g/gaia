@@ -451,11 +451,6 @@
   100% { transform: translateX(100%); }
 }
 
-/* Edges */
-#screen.edges #windows > .appWindow {
-  box-shadow: -0.5rem 0 rgba(0, 0, 0, 0.5);
-}
-
 .appWindow.slidedown {
   animation: slideDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
