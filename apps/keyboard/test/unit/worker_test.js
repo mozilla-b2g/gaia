@@ -1,5 +1,5 @@
 /*global suite suiteSetup setup test sinon assert */
-suite('Latin en_us worker', function() {
+suite.skip('Latin en_us worker', function() {
   var worker;
   suiteSetup(function(next) {
     worker = new Worker('../../js/imes/latin/worker.js');

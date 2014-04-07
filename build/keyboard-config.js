@@ -45,6 +45,9 @@ function copyLayoutsAndResources(config) {
 
     }
 
+    // Not to copy dictionies for v1.3t, to disable the word suggestion
+    // and save ROM space. See Bug 991627.
+    /*
     try {
       if (layout.dictFile)
         layout.dictFile.copyTo(dictDest, layout.dictFile.leafName);
@@ -54,6 +57,7 @@ function copyLayoutsAndResources(config) {
                       ' for keyboard layout ' + layout.name);
 
     }
+    */
   });
 }
 
