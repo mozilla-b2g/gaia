@@ -56,6 +56,7 @@ var ConfirmDialog = (function() {
           image = new Image();
           image.src = window.URL.createObjectURL(blob);
           appIcon.appendChild(image);
+          window.asyncStorage.setItem('sendingIcon', image.src); 
         },
         error: function(){
           return false;
