@@ -44,12 +44,14 @@ var mocksHelperForEnterPasswordModule = new MocksHelper([
 
 mocha.globals([
   'FxModuleServerRequest',
-  'FtuLauncher'
+  'ftuLauncher'
 ]);
 
 suite('Screen: Enter password', function() {
   var realL10n;
   suiteSetup(function(done) {
+    window.ftuLauncher = new MockFtuLauncher();
+
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
@@ -124,13 +126,13 @@ suite('Screen: Enter password', function() {
     });
 
     test(' > Forgot password link shows error overlay when in FTE', function() {
-      FtuLauncher.mIsRunning = true;
+      ftuLauncher.mIsRunning = true;
       forgotPasswordEl.dispatchEvent(clickEvent);
       assert.ok(showErrorOverlaySpy.calledOnce);
     });
 
     test(' > Forgot password link opens web flow when not in FTE', function() {
-      FtuLauncher.mIsRunning = false;
+      ftuLauncher.mIsRunning = false;
       FxModuleServerRequest.resetSuccess = true;
       forgotPasswordEl.dispatchEvent(clickEvent);
       assert.ok(resetSpy.calledOnce);

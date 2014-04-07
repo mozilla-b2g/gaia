@@ -30,7 +30,7 @@ var mocksForStatusBar = new MocksHelper([
   'TouchForwarder'
 ]).init();
 
-mocha.globals(['Clock', 'StatusBar', 'lockScreen', 'System']);
+mocha.globals(['Clock', 'StatusBar', 'lockScreen', 'System', 'ftuLauncher']);
 suite('system/Statusbar', function() {
   var mobileConnectionCount = 2;
   var fakeStatusBarNode, fakeTopPanel;
@@ -39,6 +39,7 @@ suite('system/Statusbar', function() {
 
   mocksForStatusBar.attachTestHelpers();
   suiteSetup(function(done) {
+    window.ftuLauncher = new FtuLauncher();
     window.lockScreen = MockLockScreen;
     originalLocked = window.lockScreen.locked;
     window.lockScreen.locked = false;
@@ -1369,11 +1370,11 @@ suite('system/Statusbar', function() {
       });
 
       test('it should not reveal when ftu is running', function() {
-        FtuLauncher.mIsRunning = true;
+        ftuLauncher.mIsRunning = true;
         fakeDispatch('touchstart', 100, 0);
         fakeDispatch('touchmove', 100, 5);
         assert.equal(StatusBar.element.style.transform, '');
-        FtuLauncher.mIsRunning = false;
+        ftuLauncher.mIsRunning = false;
       });
 
       suite('after the gesture', function() {

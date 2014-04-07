@@ -121,7 +121,7 @@ var icc = {
   handleSTKCommand: function icc_handleSTKCommand(message) {
     DUMP('STK Proactive Command for SIM ' + message.iccId + ': ',
       message.command);
-    if (FtuLauncher.isFtuRunning()) {
+    if (ftuLauncher.isFtuRunning()) {
       // Delay the stk command until FTU is done
       var self = this;
       window.addEventListener('ftudone', function ftudone() {

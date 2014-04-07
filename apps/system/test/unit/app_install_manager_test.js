@@ -19,7 +19,7 @@ require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
 requireApp('system/js/app_install_manager.js');
-mocha.globals(['applications']);
+mocha.globals(['applications', 'ftuLauncher']);
 
 var mocksForAppInstallManager = new MocksHelper([
   'StatusBar',
@@ -68,6 +68,7 @@ suite('system/AppInstallManager >', function() {
 
     realApplications = window.applications;
     window.applications = MockApplications;
+    window.ftuLauncher = new MockFtuLauncher();
 
     realDispatchResponse = AppInstallManager.dispatchResponse;
     AppInstallManager.dispatchResponse = function fakeDispatch(id, type) {
@@ -592,7 +593,7 @@ suite('system/AppInstallManager >', function() {
       ];
 
       suiteTeardown(function() {
-        MockFtuLauncher.mIsRunning = false;
+        ftuLauncher.mIsRunning = false;
       });
 
       setup(function() {
@@ -613,10 +614,10 @@ suite('system/AppInstallManager >', function() {
 
       testCases.forEach(function(testCase) {
         test(testCase.name, function() {
-          MockFtuLauncher.mIsRunning = testCase.value;
+          ftuLauncher.mIsRunning = testCase.value;
           dispatchInstallEvent();
           assert.equal(MockSystemBanner.mMessage,
-                       FtuLauncher.isFtuRunning() ?
+                       ftuLauncher.isFtuRunning() ?
                         null :
                         'app-install-success{"appName":"' + mockAppName + '"}');
         });

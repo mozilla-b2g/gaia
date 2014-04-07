@@ -35,7 +35,9 @@ window.addEventListener('load', function startup() {
   function safelyLaunchFTU() {
     window.addEventListener('homescreen-ready', function onHomescreenReady() {
       window.removeEventListener('homescreen-ready', onHomescreenReady);
-      FtuLauncher.retrieve();
+      window.ftuLauncher = new FtuLauncher();
+      window.FtuLauncher.start();
+      window.ftuLauncher.retrieve();
     });
     /** @global */
     window.homescreenLauncher = new HomescreenLauncher().start();

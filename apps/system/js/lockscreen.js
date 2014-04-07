@@ -638,7 +638,7 @@
 
   LockScreen.prototype.lockIfEnabled =
   function ls_lockIfEnabled(instant) {
-    if (window.FtuLauncher && window.FtuLauncher.isFtuRunning()) {
+    if (window.ftuLauncher && window.ftuLauncher.isFtuRunning()) {
       this.unlock(instant);
       return;
     }

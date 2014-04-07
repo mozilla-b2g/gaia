@@ -3,169 +3,174 @@
    FTU is known as First Time Usage,
    which is the first app the users would use, to configure their phone. */
 
-var FtuLauncher = {
+(function(exports) {
 
-  /* The application object of ftu got from Application module */
-  _ftu: null,
+  function FtuLauncher() {}
 
-  /* The manifest URL of FTU */
-  _ftuManifestURL: '',
+  FtuLauncher.prototype = {
+    /* The application object of ftu got from Application module */
+    _ftu: null,
 
-  /* The url of FTU */
-  _ftuURL: '',
+    /* The manifest URL of FTU */
+    _ftuManifestURL: '',
 
-  /* Store that if FTU is currently running */
-  _isRunningFirstTime: false,
+    /* The url of FTU */
+    _ftuURL: '',
 
-  _bypassHomeEvent: false,
+    /* Store that if FTU is currently running */
+    _isRunningFirstTime: false,
 
-  isFtuRunning: function fl_isFtuRunning() {
-    return this._isRunningFirstTime;
-  },
+    _bypassHomeEvent: false,
 
-  getFtuOrigin: function fl_getFtuOrigin() {
-    return this._ftuURL;
-  },
+    isFtuRunning: function fl_isFtuRunning() {
+      return this._isRunningFirstTime;
+    },
 
-  setBypassHome: function fl_setBypassHome(value) {
-    this._bypassHomeEvent = value;
-  },
+    getFtuOrigin: function fl_getFtuOrigin() {
+      return this._ftuURL;
+    },
 
-  init: function fl_init() {
-    var self = this;
+    setBypassHome: function fl_setBypassHome(value) {
+      this._bypassHomeEvent = value;
+    },
 
-    // We have to block home/holdhome event if FTU is first time running.
-    // Note: FTU could be launched from Settings app too.
-    // We don't want to block home/holdhome in that case.
-    window.addEventListener('home', this);
-    window.addEventListener('holdhome', this);
+    start: function fl_start() {
+      var self = this;
 
-    // for iac connection
-    window.addEventListener('iac-ftucomms', this);
+      // We have to block home/holdhome event if FTU is first time running.
+      // Note: FTU could be launched from Settings app too.
+      // We don't want to block home/holdhome in that case.
+      window.addEventListener('home', this);
+      window.addEventListener('holdhome', this);
 
-    // Listen to appterminated event
-    window.addEventListener('appterminated', this);
+      // for iac connection
+      window.addEventListener('iac-ftucomms', this);
 
-    // Avoid race condition that
-    // lockscreen is locked after FTU inited.
-    window.addEventListener('lock', this);
+      // Listen to appterminated event
+      window.addEventListener('appterminated', this);
 
-    // Monitor appopen event
-    // to unlock lockscreen if we are running FTU at first time
-    window.addEventListener('appopened', this);
-  },
+      // Avoid race condition that
+      // lockscreen is locked after FTU inited.
+      window.addEventListener('lock', this);
 
-  handleEvent: function fl_init(evt) {
-    switch (evt.type) {
-      case 'appopened':
-        if (evt.detail.origin == this._ftuURL && this._isRunningFirstTime) {
-          // FTU starting, letting everyone know
-          var evt = document.createEvent('CustomEvent');
-          evt.initCustomEvent('ftuopen',
-          /* canBubble */ true, /* cancelable */ false, {});
-          window.dispatchEvent(evt);
-        }
-        break;
+      // Monitor appopen event
+      // to unlock lockscreen if we are running FTU at first time
+      window.addEventListener('appopened', this);
+    },
 
-      case 'home':
-        if (this._isRunningFirstTime) {
-          // Because tiny devices have its own exit button,
-          // this check is for large devices
-          if (!this._bypassHomeEvent) {
-            evt.stopImmediatePropagation();
-          } else {
-            var killEvent = document.createEvent('CustomEvent');
-            killEvent.initCustomEvent('killapp',
-              /* canBubble */ true, /* cancelable */ false, {
-              origin: this._ftuURL
-            });
-            window.dispatchEvent(killEvent);
+    handleEvent: function fl_init(evt) {
+      switch (evt.type) {
+        case 'appopened':
+          if (evt.detail.origin == this._ftuURL && this._isRunningFirstTime) {
+            // FTU starting, letting everyone know
+            var evt = document.createEvent('CustomEvent');
+            evt.initCustomEvent('ftuopen',
+            /* canBubble */ true, /* cancelable */ false, {});
+            window.dispatchEvent(evt);
           }
-        }
-        break;
+          break;
 
-      case 'iac-ftucomms':
-        var message = evt.detail;
-        if (message === 'done') {
-          this.setBypassHome(true);
-        }
-        break;
+        case 'home':
+          if (this._isRunningFirstTime) {
+            // Because tiny devices have its own exit button,
+            // this check is for large devices
+            if (!this._bypassHomeEvent) {
+              evt.stopImmediatePropagation();
+            } else {
+              var killEvent = document.createEvent('CustomEvent');
+              killEvent.initCustomEvent('killapp',
+                /* canBubble */ true, /* cancelable */ false, {
+                origin: this._ftuURL
+              });
+              window.dispatchEvent(killEvent);
+            }
+          }
+          break;
 
-      case 'holdhome':
-        if (this._isRunningFirstTime) {
-          evt.stopImmediatePropagation();
-        }
-        break;
+        case 'iac-ftucomms':
+          var message = evt.detail;
+          if (message === 'done') {
+            this.setBypassHome(true);
+          }
+          break;
 
-      case 'appterminated':
-        if (evt.detail.origin == this._ftuURL) {
-          this.close();
-        }
-        break;
+        case 'holdhome':
+          if (this._isRunningFirstTime) {
+            evt.stopImmediatePropagation();
+          }
+          break;
 
-      case 'lock':
-        if (this._isRunningFirstTime)
-          lockScreen.unlock(true);
-        break;
-    }
-  },
+        case 'appterminated':
+          if (evt.detail.origin == this._ftuURL) {
+            this.close();
+          }
+          break;
 
-  close: function fl_close() {
-    this._isRunningFirstTime = false;
-    window.asyncStorage.setItem('ftu.enabled', false);
-    // Done with FTU, letting everyone know
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('ftudone',
-      /* canBubble */ true, /* cancelable */ false, {});
-    window.dispatchEvent(evt);
-  },
-
-  skip: function fl_skip() {
-    this._isRunningFirstTime = false;
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('ftuskip',
-      /* canBubble */ true, /* cancelable */ false, {});
-    window.dispatchEvent(evt);
-  },
-
-  // Check if the FTU was executed or not, if not, get a
-  // reference to the app and launch it.
-  // Used by Bootstrap module.
-  retrieve: function fl_retrieve() {
-    var self = this;
-    FtuPing.ensurePing();
-    window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
-      if (launchFTU === false) {
-        self.skip();
-        return;
+        case 'lock':
+          if (this._isRunningFirstTime)
+            lockScreen.unlock(true);
+          break;
       }
-      var lock = navigator.mozSettings.createLock();
-      var req = lock.get('ftu.manifestURL');
-      req.onsuccess = function() {
-        self._ftuManifestURL = this.result['ftu.manifestURL'];
-        if (!self._ftuManifestURL) {
-          dump('FTU manifest cannot be found skipping.\n');
-          self.skip();
-          return;
-        }
-        self._ftu = applications.getByManifestURL(self._ftuManifestURL);
-        if (!self._ftu) {
-          dump('Opps, bogus FTU manifest.\n');
-          self.skip();
-          return;
-        }
-        self._ftuURL =
-          self._ftu.origin + self._ftu.manifest.entry_points['ftu'].launch_path;
-        self._isRunningFirstTime = true;
-        // Open FTU
-        self._ftu.launch('ftu');
-      };
-      req.onerror = function() {
-        dump('Couldn\'t get the ftu manifestURL.\n');
-        self.skip();
-      };
-    });
-  }
-};
+    },
 
-FtuLauncher.init();
+    close: function fl_close() {
+      this._isRunningFirstTime = false;
+      window.asyncStorage.setItem('ftu.enabled', false);
+      // Done with FTU, letting everyone know
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('ftudone',
+        /* canBubble */ true, /* cancelable */ false, {});
+      window.dispatchEvent(evt);
+    },
+
+    skip: function fl_skip() {
+      this._isRunningFirstTime = false;
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('ftuskip',
+        /* canBubble */ true, /* cancelable */ false, {});
+      window.dispatchEvent(evt);
+    },
+
+    // Check if the FTU was executed or not, if not, get a
+    // reference to the app and launch it.
+    // Used by Bootstrap module.
+    retrieve: function fl_retrieve() {
+      var self = this;
+      FtuPing.ensurePing();
+      window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
+        if (launchFTU === false) {
+          self.skip();
+          return;
+        }
+        var lock = navigator.mozSettings.createLock();
+        var req = lock.get('ftu.manifestURL');
+        req.onsuccess = function() {
+          self._ftuManifestURL = this.result['ftu.manifestURL'];
+          if (!self._ftuManifestURL) {
+            dump('FTU manifest cannot be found skipping.\n');
+            self.skip();
+            return;
+          }
+          self._ftu = applications.getByManifestURL(self._ftuManifestURL);
+          if (!self._ftu) {
+            dump('Opps, bogus FTU manifest.\n');
+            self.skip();
+            return;
+          }
+          self._ftuURL =
+            self._ftu.origin +
+            self._ftu.manifest.entry_points['ftu'].launch_path;
+          self._isRunningFirstTime = true;
+          // Open FTU
+          self._ftu.launch('ftu');
+        };
+        req.onerror = function() {
+          dump('Couldn\'t get the ftu manifestURL.\n');
+          self.skip();
+        };
+      });
+    }
+  };
+
+  exports.FtuLauncher = FtuLauncher;
+}(window));
