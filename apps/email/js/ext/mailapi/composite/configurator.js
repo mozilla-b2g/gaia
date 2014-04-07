@@ -9025,7 +9025,7 @@ SmtpAccount.prototype = {
        */
       onSendComplete: function(conn) {
         console.log('smtp: send completed, closing connection');
-        callback();
+        callback(null);
       },
       /**
        * The send failed.
