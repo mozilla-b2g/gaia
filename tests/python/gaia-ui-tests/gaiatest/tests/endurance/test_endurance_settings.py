@@ -24,7 +24,7 @@ class TestEnduranceSettings(GaiaEnduranceTestCase):
                      {"menu_locator": ('id', 'menuItem-languageAndRegion'), "screen_locator": ('css selector', '#root > header > h1')},
                      {"menu_locator": ('id', 'menuItem-homescreen'), "screen_locator": ('xpath', '//a[@data-l10n-id="homescreen"]')},
                      {"menu_locator": ('id', 'menuItem-keyboard'), "screen_locator": ('xpath', '//a[@data-l10n-id="vibration"]')},
-                     {"menu_locator": ('id', 'menuItem-phoneLock'), "screen_locator": ('xpath', '//a[@data-l10n-id="lockScreen"]')},
+                     {"menu_locator": ('id', 'menuItem-screenLock'), "screen_locator": ('xpath', '//a[@data-l10n-id="lockScreen"]')},
                      {"menu_locator": ('id', 'menuItem-simSecurity'), "screen_locator": ('id', 'simpin-enabled')},
                      {"menu_locator": ('id', 'menuItem-appPermissions'), "screen_locator": ('xpath', '//a[@href="#appPermissions"]')},
                      {"menu_locator": ('id', 'menuItem-doNotTrack'), "screen_locator": ('css selector', '#doNotTrack label')},

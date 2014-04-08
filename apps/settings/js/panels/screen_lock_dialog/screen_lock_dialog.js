@@ -3,9 +3,10 @@ define(function(require) {
   'use strict';
 
   var SettingsService = require('modules/settings_service');
-  var PhoneLockDialog = function ctor_phonelock_dialog() {
+
+  var ScreenLockDialog = function ctor_screenlock_dialog() {
     return {
-      panel: null,
+      _panel: null,
 
       /**
        * create  : when the user turns on passcode settings
@@ -14,15 +15,13 @@ define(function(require) {
        * new     : when the user is editing passcode
        *                and has entered old passcode successfully
        */
-      MODE: 'create',
+      _MODE: 'create',
 
-      settings: {
-        passcode: '0000',
-        passcodeEnable: false,
-        lockscreenEnable: false
+      _settings: {
+        passcode: '0000'
       },
 
-      checkingLength: {
+      _checkingLength: {
         'create': 8,
         'new': 8,
         'edit': 4,
@@ -32,20 +31,20 @@ define(function(require) {
 
       _passcodeBuffer: '',
 
-      getAllElements: function() {
-        this.passcodePanel = this.panel;
-        this.passcodeInput = this.panel.querySelector('#passcode-input');
-        this.passcodeDigits = this.panel.querySelectorAll('.passcode-digit');
+      _getAllElements: function() {
+        this.passcodePanel = this._panel;
+        this.passcodeInput = this._panel.querySelector('.passcode-input');
+        this.passcodeDigits = this._panel.querySelectorAll('.passcode-digit');
         this.passcodeContainer =
-          this.panel.querySelector('#passcode-container');
+          this._panel.querySelector('.passcode-container');
         this.createPasscodeButton =
-          this.panel.querySelector('#passcode-create');
+          this._panel.querySelector('.passcode-create');
         this.changePasscodeButton =
-          this.panel.querySelector('#passcode-change');
+          this._panel.querySelector('.passcode-change');
       },
 
       init: function() {
-        this.getAllElements();
+        this._getAllElements();
         this.passcodeInput.addEventListener('keypress', this);
         this.createPasscodeButton.addEventListener('click', this);
         this.changePasscodeButton.addEventListener('click', this);
@@ -57,24 +56,24 @@ define(function(require) {
           evt.preventDefault();
         }.bind(this));
 
-        this.fetchSettings();
+        this._fetchSettings();
       },
 
       onInit: function(panel) {
-        this.panel = panel;
+        this._panel = panel;
         this.init();
       },
 
       onBeforeShow: function(panel, mode) {
-        this.showDialogInMode(mode);
+        this._showDialogInMode(mode);
       },
 
-      showDialogInMode: function(mode) {
-        this.hideErrorMessage();
-        this.MODE = mode;
+      _showDialogInMode: function(mode) {
+        this._hideErrorMessage();
+        this._MODE = mode;
         this.passcodePanel.dataset.mode = mode;
         this.passcodeInput.focus();
-        this.updatePassCodeUI();
+        this._updatePassCodeUI();
       },
 
       handleEvent: function(evt) {
@@ -86,7 +85,7 @@ define(function(require) {
           case this.passcodeInput:
             evt.preventDefault();
             if (this._passcodeBuffer === '') {
-              this.hideErrorMessage();
+              this._hideErrorMessage();
             }
 
             var code = evt.charCode;
@@ -98,73 +97,23 @@ define(function(require) {
             if (evt.charCode === 0) {
               if (this._passcodeBuffer.length > 0) {
                 this._passcodeBuffer = this._passcodeBuffer.substring(0,
-                    this._passcodeBuffer.length - 1);
+                  this._passcodeBuffer.length - 1);
                 if (this.passcodePanel.dataset.passcodeStatus === 'success') {
-                    this.resetPasscodeStatus();
+                  this._resetPasscodeStatus();
                 }
               }
             } else if (this._passcodeBuffer.length < 8) {
               this._passcodeBuffer += key;
             }
 
-            this.updatePassCodeUI();
-
-            if (this._passcodeBuffer.length ===
-              this.checkingLength[this.MODE]) {
-                switch (this.MODE) {
-                  case 'create':
-                  case 'new':
-                    passcode = this._passcodeBuffer.substring(0, 4);
-                    var passcodeToConfirm =
-                      this._passcodeBuffer.substring(4, 8);
-                    if (passcode != passcodeToConfirm) {
-                      this._passcodeBuffer = '';
-                      this.showErrorMessage();
-                    } else {
-                      this.enableButton();
-                    }
-                    break;
-                  case 'confirm':
-                    if (this.checkPasscode()) {
-                      settings = navigator.mozSettings;
-                      lock = settings.createLock();
-                      lock.set({
-                        'lockscreen.passcode-lock.enabled': false
-                      });
-                      this.backToPhoneLock();
-                    } else {
-                      this._passcodeBuffer = '';
-                    }
-                    break;
-                  case 'confirmLock':
-                    if (this.checkPasscode()) {
-                      settings = navigator.mozSettings;
-                      lock = settings.createLock();
-                      lock.set({
-                        'lockscreen.enabled': false
-                      });
-                      this.backToPhoneLock();
-                    } else {
-                      this._passcodeBuffer = '';
-                    }
-                    break;
-                  case 'edit':
-                    if (this.checkPasscode()) {
-                      this._passcodeBuffer = '';
-                      this.updatePassCodeUI();
-                      this.showDialogInMode('new');
-                    } else {
-                      this._passcodeBuffer = '';
-                    }
-                    break;
-                }
-            }
+            this._updatePassCodeUI();
+            this._enablePasscode();
             break;
           case this.createPasscodeButton:
           case this.changePasscodeButton:
             evt.stopPropagation();
             if (this.passcodePanel.dataset.passcodeStatus !== 'success') {
-              this.showErrorMessage();
+              this._showErrorMessage();
               this.passcodeInput.focus();
               return;
             }
@@ -177,35 +126,89 @@ define(function(require) {
             lock.set({
               'lockscreen.passcode-lock.enabled': true
             });
-            this.backToPhoneLock();
+            this._backToScreenLock();
             break;
         }
       },
 
-      fetchSettings: function() {
+      _enablePasscode: function() {
+        var settings;
+        var passcode;
+        var lock;
+        if (this._passcodeBuffer.length === this._checkingLength[this._MODE]) {
+          switch (this._MODE) {
+            case 'create':
+            case 'new':
+              passcode = this._passcodeBuffer.substring(0, 4);
+              var passcodeToConfirm = this._passcodeBuffer.substring(4, 8);
+              if (passcode != passcodeToConfirm) {
+                this._passcodeBuffer = '';
+                this._showErrorMessage();
+              } else {
+                this._enableButton();
+              }
+              break;
+            case 'confirm':
+              if (this._checkPasscode()) {
+                settings = navigator.mozSettings;
+                lock = settings.createLock();
+                lock.set({
+                  'lockscreen.passcode-lock.enabled': false
+                });
+                this._backToScreenLock();
+              } else {
+                this._passcodeBuffer = '';
+              }
+              break;
+            case 'confirmLock':
+              if (this._checkPasscode()) {
+                settings = navigator.mozSettings;
+                lock = settings.createLock();
+                lock.set({
+                  'lockscreen.enabled': false
+                });
+                this._backToScreenLock();
+              } else {
+                this._passcodeBuffer = '';
+              }
+              break;
+            case 'edit':
+              if (this._checkPasscode()) {
+                this._passcodeBuffer = '';
+                this._updatePassCodeUI();
+                this._showDialogInMode('new');
+              } else {
+                this._passcodeBuffer = '';
+              }
+              break;
+          }
+        }
+      },
+
+      _fetchSettings: function pl_fetchSettings() {
         SettingsListener.observe('lockscreen.passcode-lock.code', '0000',
           function(passcode) {
-            this.settings.passcode = passcode;
+            this._settings.passcode = passcode;
         }.bind(this));
       },
 
-      showErrorMessage: function pl_showErrorMessage(message) {
+      _showErrorMessage: function pl_showErrorMessage(message) {
         this.passcodePanel.dataset.passcodeStatus = 'error';
       },
 
-      hideErrorMessage: function pl_hideErrorMessage() {
+      _hideErrorMessage: function pl_hideErrorMessage() {
         this.passcodePanel.dataset.passcodeStatus = '';
       },
 
-      resetPasscodeStatus: function pl_resetPasscodeStatus() {
+      _resetPasscodeStatus: function pl_resetPasscodeStatus() {
         this.passcodePanel.dataset.passcodeStatus = '';
       },
 
-      enableButton: function pl_enableButton() {
+      _enableButton: function pl_enableButton() {
         this.passcodePanel.dataset.passcodeStatus = 'success';
       },
 
-      updatePassCodeUI: function pl_updatePassCodeUI() {
+      _updatePassCodeUI: function pl_updatePassCodeUI() {
         for (var i = 0; i < 8; i++) {
           if (i < this._passcodeBuffer.length) {
             this.passcodeDigits[i].dataset.dot = true;
@@ -215,23 +218,23 @@ define(function(require) {
         }
       },
 
-      checkPasscode: function pl_checkPasscode() {
-        if (this.settings.passcode != this._passcodeBuffer) {
-          this.showErrorMessage();
+      _checkPasscode: function pl_checkPasscode() {
+        if (this._settings.passcode != this._passcodeBuffer) {
+          this._showErrorMessage();
           return false;
         } else {
-          this.hideErrorMessage();
+          this._hideErrorMessage();
           return true;
         }
       },
 
-      backToPhoneLock: function pl_backToPhoneLock() {
+      _backToScreenLock: function pl_backToScreenLock() {
         this._passcodeBuffer = '';
         this.passcodeInput.blur();
-        SettingsService.navigate('phoneLock');
+        SettingsService.navigate('screenLock');
       }
     };
   };
 
-  return PhoneLockDialog;
+  return ScreenLockDialog;
 });

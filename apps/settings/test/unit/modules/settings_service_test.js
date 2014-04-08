@@ -51,12 +51,6 @@ suite('SettingsService', function() {
 
           realL10n = window.navigator.mozL10n;
           window.navigator.mozL10n = MockL10n;
-
-          // XXX: As we use 'require' function of requirejs in PanelCache and 
-          //      it conflicts to the original require function, we replace it
-          //      here.
-          this.originalRequire = window.require;
-          window.require = testRequire;
           done();
     }).bind(this));
   });
@@ -64,8 +58,6 @@ suite('SettingsService', function() {
   suiteTeardown(function() {
     window.Settings = realSettings;
     window.navigator.mozL10n = realL10n;
-    window.require = this.originalRequire;
-    this.originalRequire = null;
   });
 
   suite('navigate()', function() {

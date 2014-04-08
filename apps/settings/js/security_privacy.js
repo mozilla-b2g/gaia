@@ -5,7 +5,7 @@
 
 /**
  * This library displays the security status in the main panel without
- * requiring the full `phone_lock.js' + `simcard_lock.js'
+ * requiring the full `screen_lock.js' + `simcard_lock.js'
  */
 
 // display security status on the main panel
@@ -19,13 +19,13 @@ var Security = {
       return;
 
     // update phone code status
-    var phonelockDesc = document.getElementById('phoneLock-desc');
+    var screenlockDesc = document.getElementById('screenLock-desc');
     var lock = settings.createLock();
     var reqLockscreenEnable = lock.get('lockscreen.enabled');
     reqLockscreenEnable.onsuccess = function onLockscreenEnableSuccess() {
       var enable = reqLockscreenEnable.result['lockscreen.enabled'];
-      phonelockDesc.textContent = enable ? _('enabled') : _('disabled');
-      phonelockDesc.dataset.l10nId = enable ? 'enabled' : 'disabled';
+      screenlockDesc.textContent = enable ? _('enabled') : _('disabled');
+      screenlockDesc.dataset.l10nId = enable ? 'enabled' : 'disabled';
     };
 
     this.updateSimLockDesc();
