@@ -1,12 +1,15 @@
 'use strict';
 
 var AdvancedSettings = require('./views/advanced_settings'),
+    CreateAccount = require('./views/create_account'),
     Day = require('./views/day'),
     EditEvent = require('./views/edit_event'),
     Marionette = require('marionette-client'),
+    ModifyAccount = require('./views/modify_account'),
     Month = require('./views/month'),
     MonthDay = require('./views/month_day'),
     ReadEvent = require('./views/read_event'),
+    Settings = require('./views/settings'),
     Week = require('./views/week');
 
 function Calendar(client) {
@@ -15,11 +18,14 @@ function Calendar(client) {
 
   // Initialize our view remotes.
   this.advancedSettings = new AdvancedSettings(client);
+  this.createAccount = new CreateAccount(client);
   this.day = new Day(client);
   this.editEvent = new EditEvent(client);
+  this.modifyAccount = new ModifyAccount(client);
   this.month = new Month(client);
   this.monthDay = new MonthDay(client);
   this.readEvent = new ReadEvent(client);
+  this.settings = new Settings(client);
   this.week = new Week(client);
 }
 module.exports = Calendar;
@@ -28,8 +34,10 @@ Calendar.ORIGIN = 'app://calendar.gaiamobile.org';
 
 Calendar.prototype = {
   launch: function(opts) {
-    this.client.apps.launch(Calendar.ORIGIN);
-    this.client.apps.switchToApp(Calendar.ORIGIN);
+    var client = this.client;
+
+    client.apps.launch(Calendar.ORIGIN);
+    client.apps.switchToApp(Calendar.ORIGIN);
 
     // Wait for the document body to know we're really 'launched'.
     this.client.helper.waitForElement('body');
@@ -51,8 +59,40 @@ Calendar.prototype = {
     return this.client.findElement('#current-month-year');
   },
 
+  get settingsButton() {
+    return this.client.findElement('#time-header button.settings');
+  },
+
+  openSettingsView: function() {
+    this._toggleSettingsView(true);
+    return this;
+  },
+
+  closeSettingsView: function() {
+    this._toggleSettingsView(false);
+    return this;
+  },
+
+  _toggleSettingsView: function(isOpen) {
+    var client = this.client,
+        timeView = client.findElement('#time-views');
+
+    client.helper
+      .waitForElement(this.settingsButton)
+      .click();
+    // Wait for #time-views is on the transition end state.
+    client.waitFor(function() {
+      var transform = timeView.cssProperty('transform');
+      return (isOpen && transform === 'matrix(1, 0, 0, 1, 256, 0)') ||
+             (!isOpen && transform === 'matrix(1, 0, 0, 1, 0, 0)');
+    });
+  },
+
   openAdvancedSettingsView: function() {
-    // TODO(gareth)
+    this.openSettingsView();
+    this.settings.setupAdvancedSettings();
+    this.advancedSettings.waitForDisplay();
+    return this;
   },
 
   openDayView: function() {
@@ -83,6 +123,48 @@ Calendar.prototype = {
     this.client
       .findElement('#view-selector a[href="#today"]')
       .click();
+    return this;
+  },
+
+  createCalDavAccount: function(opts) {
+    var modifyAccount = this.modifyAccount;
+
+    this.openSettingsView();
+
+    this.settings.createAccount();
+    this.createAccount.waitForDisplay();
+
+    this.createAccount.createCalDavAccount();
+    modifyAccount.waitForDisplay();
+
+    if (opts) {
+      if (opts.user) {
+        modifyAccount.user = opts.user;
+      }
+      if (opts.password) {
+        modifyAccount.password = opts.password;
+      }
+      if (opts.fullUrl) {
+        modifyAccount.fullUrl = opts.fullUrl;
+      }
+    }
+
+    modifyAccount.save();
+    this.waitForKeyboardHide();
+    // XXX: Workaround to wait for the modify account view is hide.
+    // We should do `modifyAccount.waitForHide()` here
+    // after http://bugzil.la/995563 is fixed.
+    this.client.waitFor(function() {
+      return modifyAccount.getElement().cssProperty('z-index') === '-1';
+    });
+    this.closeSettingsView();
+    return this;
+  },
+
+  syncCalendar: function() {
+    this.openSettingsView();
+    this.settings.sync();
+    this.closeSettingsView();
     return this;
   },
 
