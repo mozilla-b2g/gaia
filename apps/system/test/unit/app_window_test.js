@@ -154,7 +154,7 @@ suite('system/AppWindow', function() {
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
       app1.resize();
-      assert.equal(app1.height, layoutManager.fullscreenHeight);
+      assert.equal(app1.height, layoutManager.height);
     });
 
     test('Resize if we are not fullscreen', function() {
@@ -163,7 +163,7 @@ suite('system/AppWindow', function() {
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
       app1.resize();
-      assert.equal(app1.height, layoutManager.usualHeight);
+      assert.equal(app1.height, layoutManager.height);
     });
 
     test('Send message to appChrome: w/o keyboard', function() {
