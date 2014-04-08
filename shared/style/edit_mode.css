@@ -25,19 +25,11 @@
 }
 
 [role="dialog"][data-type="edit"] [role="region"] > header:first-child menu[type="toolbar"] button {
-  color: #858585;
-}
-
-[role="dialog"][data-type="edit"] [role="region"] > header:first-child > button:not(:disabled):active:after,
-[role="dialog"][data-type="edit"] [role="region"] > header:first-child > button:not(:disabled):hover:after,
-[role="dialog"][data-type="edit"] [role="region"] > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):hover,
-[role="dialog"][data-type="edit"] [role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):active,
-[role="dialog"][data-type="edit"] [role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):hover {
-  background-color: #aae1e9 !important;
+  color: #00aac5;
 }
 
 [role="dialog"][data-type="edit"] [role="region"] > header:first-child .icon.icon-close {
-  background-image: url(headers/images/icons/organic/close.png);
+  background-image: url(headers/images/icons/organic/close.svg);
 }
 
 /* Menu */
