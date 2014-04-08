@@ -559,14 +559,18 @@ var Compose = (function() {
       }
     },
 
+    _onAttachmentRequestError: function c_onAttachmentRequestError(err) {
+      if (err === 'file too large') {
+        alert(navigator.mozL10n.get('files-too-large', { n: 1 }));
+      } else {
+        console.warn('Unhandled error spawning activity:', err);
+      }
+    },
+
     onAttachClick: function thui_onAttachClick(event) {
       var request = this.requestAttachment();
       request.onsuccess = this.append.bind(this);
-      request.onerror = function(err) {
-        if (err === 'file too large') {
-          alert(navigator.mozL10n.get('file-too-large'));
-        }
-      };
+      request.onerror = this._onAttachmentRequestError;
     },
 
     onAttachmentClick: function thui_onAttachmentClick(event) {
@@ -601,11 +605,7 @@ var Compose = (function() {
             onContentChanged(newAttachment);
             AttachmentMenu.close();
           }).bind(this);
-          request.onerror = function(err) {
-            if (err === 'file too large') {
-              alert(navigator.mozL10n.get('file-too-large'));
-            }
-          };
+          request.onerror = this._onAttachmentRequestError;
           break;
         case 'attachment-options-cancel':
           AttachmentMenu.close();
