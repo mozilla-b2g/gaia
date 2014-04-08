@@ -1377,7 +1377,7 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
   var dataset = target.dataset;
   if (dataset.selection) {
     if (!hasCandidateScrolled) {
-      IMERender.toggleCandidatePanel(false);
+      IMERender.toggleCandidatePanel(false, true);
 
       if (inputMethod.select) {
         // We use dataset.data instead of target.textContent because the
@@ -1462,7 +1462,7 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
           candidatePanel.addEventListener('scroll', candidatePanelOnScroll);
         }
 
-        IMERender.toggleCandidatePanel(true);
+        IMERender.toggleCandidatePanel(true, true);
       };
 
       if (candidatePanel.dataset.rowCount == 1) {
@@ -1501,7 +1501,7 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
         }
       }
 
-      IMERender.toggleCandidatePanel(false);
+      IMERender.toggleCandidatePanel(false, true);
     }
     break;
 
