@@ -1,4 +1,9 @@
 'use strict';
+/* globals Evme, EvmeManager */
+
+// Mute jshint errors about the weird syntax used in this file
+/* jshint -W057 */// Weird construction. Is 'new' necessary?
+/* jshint -W058 */// Missing '()' invoking a constructor.
 
 /**
  * Collection.js
@@ -169,7 +174,6 @@ void function() {
 
     this.create = function create(options) {
       var query = options.query,
-          apps = options.apps,
           callback = options.callback || Evme.Utils.NOOP,
           extra = {'extraIconsData': options.extraIconsData};
 
@@ -560,6 +564,7 @@ void function() {
       var queries = Evme.InstalledAppsService.getMatchingQueries(appInfo);
       var gridCollections = EvmeManager.getCollections();
 
+      /* jshint -W084 */
       for (var i = 0, gridCollection; gridCollection = gridCollections[i++];) {
         nominateApp(gridCollection, appInfo, queries);
       }
@@ -568,6 +573,7 @@ void function() {
     function onAppUninstall(e) {
       var gridCollections = EvmeManager.getCollections();
 
+      /* jshint -W084, -W083 */
       for (var i = 0, gridCollection; gridCollection = gridCollections[i++];) {
         Evme.CollectionStorage.get(gridCollection.id,
           function removeApp(settings) {
@@ -629,6 +635,7 @@ void function() {
     // list of {"id": 3, "icon": "base64icon"}
     this.extraIconsData = [];
     if (args.extraIconsData) {
+      /* jshint -W084 */
       for (var i = 0, iconData; iconData = args.extraIconsData[i++]; ) {
         if (iconData.id && iconData.icon) {
           this.extraIconsData.push(iconData);
@@ -664,8 +671,6 @@ void function() {
         'query': query
       });
 
-      var installedIcons = Evme.Utils.pluck(installedApps, 'icon');
-
       var settings = new Evme.CollectionSettings({
         id: Evme.Utils.uuid(),
         query: query,
@@ -689,6 +694,7 @@ void function() {
       cleanData.apps = Evme.Utils.unique(data.apps, 'id');
 
       // cloudapps: convert ids to strings
+      /* jshint -W084 */
       for (var k = 0, app; app = cleanData.apps[k++]; ) {
         if (typeof app.id === 'number') {
           app.id = '' + app.id;
@@ -757,6 +763,7 @@ void function() {
    */
   function populateAllCollections() {
     var gridCollections = EvmeManager.getCollections();
+    /* jshint -W084 */
     for (var i = 0, gridCollection; gridCollection = gridCollections[i++];) {
       Evme.CollectionStorage.get(gridCollection.id, populateCollection);
     }
@@ -784,6 +791,7 @@ void function() {
 
   function depopulateAllCollections() {
     var gridCollections = EvmeManager.getCollections();
+    /* jshint -W084, -W083 */
     for (var i = 0, gridCollection; gridCollection = gridCollections[i++];) {
       Evme.CollectionStorage.get(gridCollection.id,
         function depopulate(settings) {
@@ -870,8 +878,7 @@ void function() {
    *
    */
   Evme.CollectionStorage = new function Evme_CollectionStorage() {
-    var NAME = 'CollectionStorage',
-        PREFIX = 'collectionsettings_',
+    var PREFIX = 'collectionsettings_',
         self = this;
 
     this.init = function init() {

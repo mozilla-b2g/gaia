@@ -259,7 +259,6 @@ apps/homescreen/everything.me/js/plugins/Analytics.js
 apps/homescreen/everything.me/js/plugins/Scroll.js
 apps/homescreen/everything.me/js/search/control.js
 apps/homescreen/everything.me/modules/BackgroundImage/BackgroundImage.js
-apps/homescreen/everything.me/modules/Collection/Collection.js
 apps/homescreen/everything.me/modules/CollectionsSuggest/CollectionsSuggest.js
 apps/homescreen/everything.me/modules/ConnectionMessage/ConnectionMessage.js
 apps/homescreen/everything.me/modules/Features/Features.js
