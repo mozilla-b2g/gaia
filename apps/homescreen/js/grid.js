@@ -1390,9 +1390,7 @@ var GridManager = (function() {
   }
 
   function showRestartDownloadDialog(icon) {
-    LazyLoader.load(['shared/style_unstable/buttons.css',
-                     'shared/style/headers.css',
-                     'shared/style/confirm.css',
+    LazyLoader.load(['shared/style/confirm.css',
                      'style/request.css',
                      document.getElementById('confirm-dialog'),
                      'js/request.js'], function loaded() {
