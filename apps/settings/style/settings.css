@@ -38,10 +38,15 @@ section[role="region"] {
  * bug 976299 non-visible regions take an extra layer
  * in the layer tree. Remove them to improve scroll performance
  * in exchange for a reflow on section transitions.
+ *
+ * bug 976630 non-visible regions should have a visibility of hidden
+ * for accessibility purposes. Removing the visibility transition
+ * in hidden->visible avoids flashing.
  */
 section[role="region"] {
   transform: translateX(+100%);
-  transition: transform .4s ease, visibility .4s ease;
+  transition: transform .4s ease, visibility .4s;
+  visibility: hidden;
   height: 0;
 }
 
@@ -52,6 +57,8 @@ section[role="region"].previous {
 
 section[role="region"].current {
   transform: translateX(0);
+  visibility: visible;
+  transition: transform .4s ease;
   height: 100%;
 }
 
