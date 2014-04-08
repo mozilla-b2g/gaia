@@ -3,7 +3,7 @@
     ["apps", "browser"],
     ["apps", "email"],
     ["apps", "gallery"],
-    ["apps", "music"],
+    ["test_apps", "music2"],
     ["apps", "communications", "contacts"],
     ["apps", "calendar"]
   ]
