@@ -170,7 +170,7 @@ class Keyboard(Base):
 
         self.wait_for_element_displayed(*self._key_locator(val))
         key = self.marionette.find_element(*self._key_locator(val))
-        Actions(self.marionette).press(key).wait(0.1).release().perform()
+        Actions(self.marionette).press(key).wait(0.08).release().perform()
 
         # These two tap cases are most important because they cause the keyboard to change state which affects next step
         if val.isspace():
