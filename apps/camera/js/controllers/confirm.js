@@ -42,7 +42,7 @@ function ConfirmController(app) {
 }
 
 ConfirmController.prototype.renderView = function() {
-  if (!this.activity.active) {
+  if (!this.activity.pick) {
     return;
   }
 
@@ -87,7 +87,7 @@ ConfirmController.prototype.bindEvents = function() {
  *
  */
 ConfirmController.prototype.onNewMedia = function(newMedia) {
-  if (!this.activity.active) { return; }
+  if (!this.activity.pick) { return; }
 
   this.newMedia = newMedia;
   if (newMedia.isVideo) { // Is video

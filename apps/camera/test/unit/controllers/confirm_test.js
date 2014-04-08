@@ -44,7 +44,7 @@ suite('controllers/confirm', function() {
 
   suite('ConfirmController#onNewMedia()', function() {
     test('Should not do anything if there is no active activity', function() {
-      this.app.activity.active = false;
+      this.app.activity.pick = false;
       this.controller.onNewMedia({});
       assert.ok(this.app.ConfirmView.notCalled);
     });

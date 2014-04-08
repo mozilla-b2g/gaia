@@ -60,7 +60,7 @@ suite('controllers/timer', function() {
 
     test('Should stop the timer when the app \'blur\' event fires', function() {
       var controller = new this.TimerController(this.app);
-      assert.ok(this.app.on.calledWith('blur', controller.clear));
+      assert.ok(this.app.on.calledWith('hidden', controller.clear));
     });
   });
 

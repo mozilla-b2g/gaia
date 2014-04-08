@@ -48,7 +48,7 @@ suite('controllers/activity', function() {
       var pictureSizes = this.app.settings.pictureSizes;
       var mode = this.app.settings.mode;
 
-      assert.ok(activity.on.calledWith('activityreceived', this.controller.onActivityReceived));
+      assert.ok(activity.on.calledWith('activityreceived', this.controller.configureMode));
       assert.ok(recorderProfiles.on.calledWith('configured', this.controller.filterRecorderProfiles));
       assert.ok(pictureSizes.on.calledWith('configured', this.controller.filterPictureSize));
       assert.ok(mode.filterOptions.calledWith(this.app.activity.modes));
@@ -91,63 +91,75 @@ suite('controllers/activity', function() {
     });
   });
 
+  suite('ActivityController#configureMode()', function() {
+    test('Should filter down the mode options', function() {
+      this.controller.configureMode();
+      this.settings.mode.filterOptions.calledWith(this.app.activity.modes);
+    });
+
+    test('Should select the first mode in activity.modes', function() {
+      this.controller.configureMode();
+      this.settings.mode.select.calledWith('picture');
+    });
+  });
+
   suite('ActivityController#filterPictureSize()', function() {
     setup(function() {
       this.sizes = [{
-        "key": "2048x1536",
-        "title": "3MP 2048x1536 4:3",
-        "pixelSize": 3145728,
-        "data": {
-          "height": 1536,
-          "width": 2048,
-          "aspect": "4:3",
-          "mp": 3
+        'key': '2048x1536',
+        'title': '3MP 2048x1536 4:3',
+        'pixelSize': 3145728,
+        'data': {
+          'height': 1536,
+          'width': 2048,
+          'aspect': '4:3',
+          'mp': 3
         },
-        "index": 0
+        'index': 0
       }, {
-        "key": "800x600",
-        "title": "800x600 4:3",
-        "pixelSize": 480000,
-        "data": {
-          "height": 600,
-          "width": 800,
-          "aspect": "4:3",
-          "mp": 0
+        'key': '800x600',
+        'title': '800x600 4:3',
+        'pixelSize': 480000,
+        'data': {
+          'height': 600,
+          'width': 800,
+          'aspect': '4:3',
+          'mp': 0
         },
-        "index": 5
+        'index': 5
       }, {
-        "key": "800x480",
-        "title": "800x480 5:3",
-        "pixelSize": 384000,
-        "data": {
-          "height": 480,
-          "width": 800,
-          "aspect": "5:3",
-          "mp": 0
+        'key': '800x480',
+        'title': '800x480 5:3',
+        'pixelSize': 384000,
+        'data': {
+          'height': 480,
+          'width': 800,
+          'aspect': '5:3',
+          'mp': 0
         },
-        "index": 6
+        'index': 6
       }, {
-        "key": "640x480",
-        "title": "640x480 4:3",
-        "pixelSize": 307200,
-        "data": {
-          "height": 480,
-          "width": 640,
-          "aspect": "4:3",
-          "mp": 0
+        'key': '640x480',
+        'title': '640x480 4:3',
+        'pixelSize': 307200,
+        'data': {
+          'height': 480,
+          'width': 640,
+          'aspect': '4:3',
+          'mp': 0
         },
-        "index": 7
+        'index': 7
       }, {
-        "key": "320x240",
-        "title": "320x240 4:3",
-        "pixelSize": 76800,
-        "data": {
-          "height": 240,
-          "width": 320,
-          "aspect": "4:3",
-          "mp": 0
+        'key': '320x240',
+        'title': '320x240 4:3',
+        'pixelSize': 76800,
+        'data': {
+          'height': 240,
+          'width': 320,
+          'aspect': '4:3',
+          'mp': 0
         },
-        "index": 9
+        'index': 9
       }];
 
       this.app.settings.pictureSizes.get
