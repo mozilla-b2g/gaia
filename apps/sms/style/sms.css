@@ -165,7 +165,6 @@ form[role="dialog"][data-type="edit"] > menu {
   color: #5f5f5f;
 }
 
-
 [data-type="list"] p time {
   display: inline-block;
 }
@@ -326,21 +325,43 @@ section[role="region"].new > header:first-child form {
 
 .new #messages-contact-pick-button {
   display: block;
+
+  width: 5rem;
+  height: 4rem;
 }
 
 #messages-contact-pick-button .icon-user {
-  display: block;
-  height: 2rem;
-  width: 2rem;
+  position: absolute;
+  top: 0.6rem;
+  right: 1rem;
 
-  background-image: url(images/add_contact.png);
-  background-size: 2rem;
+  display: block;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 50%;
+
+  color: #575757;
+  background-color: #FFF;
+}
+
+#messages-contact-pick-button .icon-user:after {
+  content: "+";
+  position: absolute;
+
+  display: block;
+  width: 2.8rem;
+  height: 2.8rem;
+
+  line-height: 2.8rem;
+  font-size: 2.1rem;
+  font-weight: 500;
+  text-align: center;
 }
 
 #messages-contact-pick-button .icon-user:active {
-  background-position: 0 2rem;
+  color: #FFF;
+  background-color: #29bbb5;
 }
-
 /*
   Messages Style as 'bubbles'
 */
@@ -357,12 +378,12 @@ section.has-carrier .article-list header:first-child {
   margin-top: 2rem;
 }
 
-.article-list {
+.new .article-list {
   z-index: 5;
 
   padding: 0;
 
-  background: none repeat scroll 0 0 #E4E4E4;
+  background: none repeat scroll 0 0 #fff;
   text-align: left;
 }
 
@@ -422,7 +443,7 @@ section.has-carrier .article-list header:first-child {
    which adds up and gives 1.5rem for the whole visible bottom padding */
 .article-list[data-type="list"] .message .bubble {
   overflow: visible;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   max-width: calc(100% - 4rem);
   height: 100%;
   padding: 1.5rem 1.5rem 1rem;
@@ -647,7 +668,7 @@ ul.message-list {
   background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%);
   height: 100%;
   width: 100%;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   font-weight: 600;
   font-size: 1.6rem;
   color: white;
@@ -672,10 +693,10 @@ ul.message-list {
 
 .js-sim-indication {
   position: absolute;
-  left: 0;
   top: 0.2rem;
-  display: none;
+  left: 0;
 
+  display: none;
   line-height: 1;
   width: 100%;
 
@@ -750,17 +771,19 @@ ul.message-list {
 }
 
 #no-result-message {
-  text-align: left;
-  line-height: 3rem;
   position: relative;
   top: 50%;
-  border-top: .1rem solid rgba(96,96,96,.5);
-  padding: 2rem 0.5rem;
+
   width: 27rem;
+  padding: 2rem 0.5rem;
   margin: -8rem auto;
-  color: #606060;
+  border-top: .1rem solid rgba(96,96,96,.5);
+
+  line-height: 3rem;
+  text-align: left;
   font-weight: 300;
   font-size: 2.2rem;
+  color: #606060;
 }
 
 /*
@@ -768,44 +791,57 @@ ul.message-list {
 */
 #messages-to-field {
   position: relative;
-  z-index: 10;
 
   display: none;
-  height: 0; /* see bug 941353 */
 
   text-align: left;
   color: black;
   font-size: 1.465rem;
+  background-color: #f2f2f2;
 }
 
 section[role="region"].new #messages-to-field {
-  display: block;
+  display: flex;
+  min-height: 5.5rem;
+
+  align-items: flex-end;
+
+  transition: transform 0.2s ease-in-out 0s;
+  transform: translateY(calc(-100% + 5.5rem));
+}
+
+
+section[role="region"].new #messages-to-field.multiline {
+  transform: translateY(0);
 }
 
 #to-label {
-  margin: 1.5rem 0 0 1.5rem;
-  overflow: hidden;
+  height: 4rem;
+  width: 3.5rem;
+  min-width: 3.5rem;
+  padding-right: 0.7rem;
 
-  white-space: nowrap;
-  color: black;
+  line-height: 4rem;
+  font-weight: 200;
   font-size: 1.465rem;
-  float: left;
+  text-align: right;
+  color: #000;
 }
 
 #messages-recipients-list-container {
-  z-index: -1;
-  -moz-box-sizing: border-box;
-  border-bottom: 0.1rem solid #4d4d4d;
-  width: 100%;
+  min-height: 4rem;
+  max-width: 23rem;
+  box-sizing: border-box;
 
-  background-color: #fff;
-  transition: transform 0.2s ease-in-out;
-  transform: translateY(calc(-100% + 4.5rem));
+  flex-grow: 1;
 }
 
 #messages-recipients-list {
-  padding: 1.4rem 0 0 0.5rem;
+  box-sizing: border-box;
+  min-height: 4rem;
+  padding: 0 0.6rem 0.6rem 0;
 }
+
 /*
 Used by Recipients.View to display multi or single line.
 Do not remove.
@@ -818,48 +854,24 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
 #messages-recipients-list.singleline {
   overflow-y: hidden;
 }
+
 #messages-recipients-list.multiline {
   overflow-y: scroll;
 }
-.multiline #messages-recipients-list-container {
-  transform: translateY(0);
-}
 
-.recipient {
-  display: inline-block;
-  overflow: hidden;
-  -moz-box-sizing: border-box;
-       box-sizing: border-box;
-  max-width: calc(100% - .5rem);
-  height: 2.4rem;
-  border: .1rem solid #4d4d4d;
-  padding: 0 0.8rem;
-
-  background: -moz-linear-gradient(#fff, #f1f1f1);
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  color: #2c2c2c;
-  margin-right: 0.5rem;
-  border-radius: .3rem;
-  font-size: 1.7rem;
-}
-
-.recipient[contenteditable=true] {
+.recipient[contenteditable] {
   overflow: hidden;
   /* Editable recipients have no `padding-left` so that they align with
-   * "assimilated" recipients (see `ThreadUI.assimilateRecipients`), but they
-   * maintain twice the `padding-right` so they wrap as if "assimilated". For
-   * discussion of this behavior, see "Bug 905260 - [messages] padding issues
-   * in the recipient panel". */
-  padding-left: 0;
+  * "assimilated" recipients (see `ThreadUI.assimilateRecipients`), but they
+  * maintain twice the `padding-right` so they wrap as if "assimilated". For
+  * discussion of this behavior, see "Bug 905260 - [messages] padding issues
+  * in the recipient panel". */
+  margin: 0.6rem 0.6rem 0 0;
+  max-width: calc(100% - 2rem);
   padding-right: 1.6rem;
 
-  background: none;
-  border-color: transparent;
-  white-space: normal;
-  text-overflow: clip;
-  color: black;
-  font-size: 1.8rem;
+  display: block;
+  float: left;
 }
 
 /* Disable padding and margin on empty contenteditable recipients when they do
@@ -869,36 +881,22 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
 .recipient[contenteditable=true]:empty {
   margin: 0;
   padding: 0;
-  border-width: 0;
+
+  word-wrap: unset;
+  background: none;
 }
 
+.recipient[contenteditable=true]:focus,
 .recipient[contenteditable=true]:empty:focus {
-  margin-right: 0.5rem;
-  padding-right: 0.8rem;
-  border-width: 0.1rem;
-}
+  margin: 0.6rem 0.5rem 0 0;
+  padding: 0 0.3rem 0 0;
 
-.recipient[contenteditable=false].attention {
-  position: relative;
+  height: 2.8rem;
+  line-height: 2.8rem;
+  border-radius: 0;
 
-  padding-left: 1.2rem;
-  border: 0.1rem solid #b90000;
-
-  background: transparent;
-}
-
-.recipient[contenteditable=false].attention::before {
-  position: absolute;
-
-  border-bottom-left-radius: 0.3rem;
-  border-top-left-radius: 0.3rem;
-  padding: 0.2rem 0.2rem 0 0.2rem;
-  margin-left: -1.2rem;
-  margin-top: -0.1rem;
-
-  background-color: #b90000;
-  color: #fff;
-  content: "!";
+  word-wrap: unset;
+  background: none;
 }
 
 .article-list[data-type="list"] ul.contact-list {
@@ -993,8 +991,10 @@ section[role="region"].new .article-list[data-type="list"]  li {
 }
 
 .subheader menu {
-  margin: 1.5rem 1.5rem 0 0;
-  float: right;
+  position: relative;
+
+  width: 5rem;
+  height: 4rem;
 }
 
 /* Elements related to information view */
