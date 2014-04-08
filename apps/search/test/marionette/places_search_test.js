@@ -31,7 +31,8 @@ marionette('Places tests', function() {
     system.waitForStartup();
   });
 
-  test('Search for previously visited URL', function() {
+  // Disabled bug 993652
+  test.skip('Search for previously visited URL', function() {
     var url = server.url('sample.html');
     rocketbar.focus();
     rocketbar.enterText(url + '\uE006');
