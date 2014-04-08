@@ -1,5 +1,50 @@
 'use strict';
 
+/* globals
+  MozActivity, LazyLoader, utils, extend,
+  Homescreen, GridItemsFactory, GridManager, Icon, Bookmark,
+  Evme
+*/
+
+var EvmeApp = function createEvmeApp(params) {
+  Bookmark.call(this, params);
+};
+
+extend(EvmeApp, Bookmark);
+
+EvmeApp.prototype.launch = function evmeapp_launch(url, name, useAsyncPanZoom) {
+  var features = {
+    name: this.manifest.name,
+    icon: this.manifest.icons['60'],
+    remote: true,
+    useAsyncPanZoom: useAsyncPanZoom
+  };
+
+  if (!GridManager.getIconForBookmark(this.origin)) {
+    features.originName = features.name;
+    features.originUrl = this.origin;
+  }
+
+  if (url && url !== this.origin && !GridManager.getIconForBookmark(url)) {
+    var searchName = navigator.mozL10n.get('wrapper-search-name', {
+      topic: name,
+      name: this.manifest.name
+    });
+
+    features.name = searchName;
+    features.searchName = searchName;
+    features.searchUrl = url;
+  }
+
+  // We use `e.me` name in order to always reuse the same window
+  // so that we can only open one e.me app at a time
+  return window.open(url || this.origin, 'e.me', Object.keys(features)
+    .map(function(key) {
+      return encodeURIComponent(key) + '=' + encodeURIComponent(features[key]);
+    }).join(','));
+};
+
+/* exported EvmeManager */
 var EvmeManager = (function EvmeManager() {
   /**
    * E.me references each entry point as a different app with unique id
@@ -8,8 +53,7 @@ var EvmeManager = (function EvmeManager() {
    */
   var EME_ENTRY_POINT_KEY = 'eme-ep';
 
-  var currentWindow = null,
-      currentURL = null;
+  var currentURL = null;
 
   function addCollection(params, extra) {
     var item = GridItemsFactory.create({
@@ -26,6 +70,7 @@ var EvmeManager = (function EvmeManager() {
   }
 
   function addBookmark(params, success) {
+    /* jshint -W031 */
     new MozActivity({
       name: 'save-bookmark',
       data: {
@@ -63,6 +108,7 @@ var EvmeManager = (function EvmeManager() {
   }
 
   function openUrl(url) {
+    /* jshint -W031 */
     new MozActivity({
       name: 'view',
       data: {
@@ -137,7 +183,8 @@ var EvmeManager = (function EvmeManager() {
   function getCollectionNames(lowerCase) {
     var names = [];
     var gridCollections = getCollections();
-    for (var i = 0; collection = gridCollections[i++]; ) {
+    /* jshint -W084 */
+    for (var i = 0, collection; collection = gridCollections[i++]; ) {
       var name = getIconName(collection.origin);
       if (name) {
         names.push(lowerCase ? name.toLowerCase() : name);
@@ -382,41 +429,3 @@ var EvmeManager = (function EvmeManager() {
     }
   };
 }());
-
-var EvmeApp = function createEvmeApp(params) {
-  Bookmark.call(this, params);
-};
-
-extend(EvmeApp, Bookmark);
-
-EvmeApp.prototype.launch = function evmeapp_launch(url, name, useAsyncPanZoom) {
-  var features = {
-    name: this.manifest.name,
-    icon: this.manifest.icons['60'],
-    remote: true,
-    useAsyncPanZoom: useAsyncPanZoom
-  };
-
-  if (!GridManager.getIconForBookmark(this.origin)) {
-    features.originName = features.name;
-    features.originUrl = this.origin;
-  }
-
-  if (url && url !== this.origin && !GridManager.getIconForBookmark(url)) {
-    var searchName = navigator.mozL10n.get('wrapper-search-name', {
-      topic: name,
-      name: this.manifest.name
-    });
-
-    features.name = searchName;
-    features.searchName = searchName;
-    features.searchUrl = url;
-  }
-
-  // We use `e.me` name in order to always reuse the same window
-  // so that we can only open one e.me app at a time
-  return window.open(url || this.origin, 'e.me', Object.keys(features)
-    .map(function(key) {
-      return encodeURIComponent(key) + '=' + encodeURIComponent(features[key]);
-    }).join(','));
-};

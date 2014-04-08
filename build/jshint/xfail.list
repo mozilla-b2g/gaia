@@ -247,7 +247,6 @@ apps/homescreen/everything.me/js/Core.js
 apps/homescreen/everything.me/js/api/DoATAPI.js
 apps/homescreen/everything.me/js/api/apiv2.js
 apps/homescreen/everything.me/js/developer/utils.1.3.js
-apps/homescreen/everything.me/js/etmmanager.js
 apps/homescreen/everything.me/js/everything.me.js
 apps/homescreen/everything.me/js/helpers/EventHandler.js
 apps/homescreen/everything.me/js/helpers/IconManager.js
