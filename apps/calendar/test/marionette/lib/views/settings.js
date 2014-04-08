@@ -28,5 +28,15 @@ Settings.prototype = {
     this
       .findElement('[role="toolbar"] .sync')
       .click();
+  },
+
+  toggleCalendar: function(name) {
+    name = name || 'Offline calendar';
+    this
+      .findElements('.calendars > li')
+      .filter(function(el) {
+        return el.findElement('.name').text() === name;
+      })[0]
+      .findElement('.pack-checkbox').click();
   }
 };
