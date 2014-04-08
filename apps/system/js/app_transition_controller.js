@@ -1,4 +1,5 @@
-/* global SettingsListener, System, layoutManager, SimPinDialog, Rocketbar */
+/* global SettingsListener, System, layoutManager, SimPinDialog, Rocketbar,
+          AppWindowManager */
 'use strict';
 
 (function(exports) {
@@ -94,8 +95,32 @@
       this.app.debug(currentState, state, '::', evt);
 
       this.switchTransitionState(state);
-      this['_do_' + state]();
-      this.app.publish(state);
+      if (state == 'opened' && !this.app.loaded && !this.app.isHomescreen) {
+        this.app.debug('we are not loaded, delaying the opened callback...');
+        this.app.element.addEventListener('_loaded', function() {
+          this.app.debug('The app is loaded, start opened process...');
+          if (this._transitionState == 'opened') {
+            this['_do_' + state]();
+            this.app.publish(state);
+          }
+        }.bind(this));
+      } else if ((state == 'closed') &&
+                  this.app.isHomescreen &&
+                  AppWindowManager.getActiveApp() &&
+                  !AppWindowManager.getActiveApp().isHomescreen &&
+                  !AppWindowManager.getActiveApp().loaded) {
+        AppWindowManager.getActiveApp().element
+          .addEventListener('_loaded', function() {
+            this.app.debug('active app is loaded, start closing process...');
+            if (this.state == 'closed') {
+              this['_do_' + state]();
+              this.app.publish(state);
+            }
+          }.bind(this));
+      } else {
+        this['_do_' + state]();
+        this.app.publish(state);
+      }
       //backward compatibility
       if (state == 'opening') {
         /**
@@ -215,11 +240,12 @@
 
   AppTransitionController.prototype.handle_opened =
     function atc_handle_opened() {
-      if (!this.app || !this.app.element) {
+      if (!this.app || !this.app.element ||
+           this._transitionState !== 'opened') {
         return;
       }
 
-      if (this.app.loaded) {
+      if (this.app.loaded && this.app.firstLaunch) {
         // Perf test needs.
         this.app.publish('loadtime', {
           time: parseInt(Date.now() - this.app.launchTime),
