@@ -522,9 +522,6 @@ var CardsView = (function() {
     addEventListener: function() {}
   };
 
-  var onViewPortEvent = new CustomEvent('onviewport');
-  var outViewPortEvent = new CustomEvent('outviewport');
-
   // Scale for current card
   var CC_SCALE = 0.8;
   // Scale for current card's siblings
@@ -543,16 +540,16 @@ var CardsView = (function() {
       return;
     }
 
-    currentCard.dispatchEvent(onViewPortEvent);
+    currentCard.dispatchEvent(new CustomEvent('onviewport'));
     // Link to the style objects of the cards
     currentCardStyle = currentCard.style;
 
     prevCard = currentCard.previousElementSibling || pseudoCard;
-    prevCard.dispatchEvent(onViewPortEvent);
+    prevCard.dispatchEvent(new CustomEvent('onviewport'));
     prevCardStyle = prevCard.style;
 
     nextCard = currentCard.nextElementSibling || pseudoCard;
-    nextCard.dispatchEvent(onViewPortEvent);
+    nextCard.dispatchEvent(new CustomEvent('onviewport'));
     nextCardStyle = nextCard.style;
 
     // Scaling and translating cards to reach target positions
@@ -572,9 +569,9 @@ var CardsView = (function() {
   function alignCurrentCard(noTransition) {
     // We're going to release memory hiding card out of screen
     if (deltaX < 0) {
-      prevCard && prevCard.dispatchEvent(outViewPortEvent);
+      prevCard && prevCard.dispatchEvent(new CustomEvent('outviewport'));
     } else {
-      nextCard && nextCard.dispatchEvent(outViewPortEvent);
+      nextCard && nextCard.dispatchEvent(new CustomEvent('outviewport'));
     }
 
     // Disable previous current card
