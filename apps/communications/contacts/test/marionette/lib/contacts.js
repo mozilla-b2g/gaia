@@ -99,7 +99,7 @@ Contacts.prototype = {
       return data;
     }, [file, key]);
 
-    return string[key]._;
+    return string[key];
   },
 
   waitSlideLeft: function(elementKey) {

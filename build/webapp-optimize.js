@@ -13,7 +13,12 @@ function debug(str) {
  * note: the `?reload' trick ensures we don't load a cached `l10njs' library.
  */
 
-var win = { navigator: {} };
+var win = {
+  navigator: {},
+  Node: {
+    TEXT_NODE: 3
+  }
+};
 let scope = {};
 let JSMin;
 
@@ -546,9 +551,9 @@ function optimize_compile(webapp, file, callback) {
 
   // catch the XHR in `loadResource' and use a local file reader instead
   win.XMLHttpRequest = function() {
-    debug('loadResource');
 
     function open(type, url, async) {
+      debug('loadResource: ' + url);
       this.readyState = 4;
       this.status = 200;
       this.responseText = optimize_getFileContent(webapp, file, url);
@@ -610,7 +615,12 @@ function optimize_compile(webapp, file, callback) {
       L10N_OPTIMIZATION_BLACKLIST.indexOf(webapp.sourceDirectoryName) < 0) {
     // selecting a language triggers `XMLHttpRequest' and `dispatchEvent' above
     debug('localizing: ' + file.path);
-    mozL10n.language.code = l10nLocales[processedLocales];
+    // since l10n.js was read before the document was created, we need to
+    // explicitly initialize it again via mozL10n.bootstrap, which looks for
+    // *.ini links in the HTML and sets up the localization context
+    mozL10n.bootstrap(function() {
+      mozL10n.language.code = l10nLocales[processedLocales];
+    });
   } else {
     callback();
   }
@@ -627,6 +637,8 @@ function execute(options) {
 
   Services.scriptloader.loadSubScript('file:///' + config.GAIA_DIR +
       '/shared/js/l10n.js?reload=' + new Date().getTime(), win);
+  Services.scriptloader.loadSubScript('file:///' + config.GAIA_DIR +
+      '/build/l10n.js?reload=' + new Date().getTime(), win);
   Services.scriptloader.loadSubScript('file:///' + config.GAIA_DIR +
       '/build/jsmin.js?reload=' + new Date().getTime(), scope);
   JSMin = scope.JSMin;
