@@ -66,6 +66,8 @@ define(function(require) {
       this.onvisibilitychange.bind(this)
     );
 
+    mozL10n.translate(this.element);
+
     this.setStopwatch(new Stopwatch());
 
   };
