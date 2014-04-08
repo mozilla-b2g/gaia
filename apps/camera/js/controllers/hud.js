@@ -94,10 +94,11 @@ HudController.prototype.clearNotifications = function() {
  */
 HudController.prototype.onFlashClick = function() {
   var setting = this.settings.flashModes;
+  var ishdrOn = this.settings.hdr.selected('key') === 'on';
 
   setting.next();
   this.hud.set('flashMode' , setting.selected('key'));
-  this.notify(setting);
+  this.notify(setting, ishdrOn);
 };
 
 /**
@@ -107,10 +108,20 @@ HudController.prototype.onFlashClick = function() {
  * @param  {Setting} setting
  * @private
  */
-HudController.prototype.notify = function(setting) {
+HudController.prototype.notify = function(setting, hdrDeactivated) {
   var optionTitle = this.l10n.get(setting.selected('title'));
   var title = this.l10n.get(setting.get('title'));
-  var html = title + '<br/>' + optionTitle;
+  var html;
+
+  // Check if the `hdr` setting is going to be deactivated as part
+  // of the change in the `flashMode` setting and display a specialized
+  // notification if that is the case
+  if (hdrDeactivated) {
+    html = title + ' ' + optionTitle + '<br/>' +
+      this.l10n.get('hdr-deactivated');
+  } else {
+    html = title + '<br/>' + optionTitle;
+  }
 
   this.flashNotification = this.notification.display({ text: html });
 };
