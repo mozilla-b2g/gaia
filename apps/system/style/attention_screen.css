@@ -36,9 +36,9 @@
 #attention-screen > iframe {
   border: 0;
   width: 100%;
-  /* we have the 2rem status bar on top */
-  height: calc(100% - 2rem);
-  margin-top: 2rem;
+  /* we have the 2.4rem status bar on top */
+  height: calc(100% - 2.4rem);
+  margin-top: 2.4rem;
   background-color: transparent;
   position: absolute;
   top: 0;
