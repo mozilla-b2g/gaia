@@ -1,12 +1,11 @@
 'use strict';
 
-var Calendar = require('./calendar'),
+var Calendar = require('./lib/calendar'),
     Radicale = require('./lib/radicale'),
     assert = require('assert'),
     dateFormat = require('dateformat');
 
 var ACCOUNT_USERNAME = 'firefox-os',
-    ACCOUNT_PASSWORD = '',
     TITLE = 'Go for a dream',
     DATE_PATTERN = 'yyyymmdd"T"HHMMssZ';
 
@@ -18,10 +17,6 @@ marionette('configure CalDAV accounts', function() {
   setup(function(done) {
     app = new Calendar(client);
     app.launch({ hideSwipeHint: true });
-    // The #time-views pannel has a transitionend event after app is launched.
-    // It is happened on b2g-desktop client, not on the device.
-    app.registerTransitionEndEvent('#time-views');
-    app.waitForTransitionEnd('#time-views');
 
     serverHelper.start(null, function(port) {
       var accountUrl = 'http://localhost:' + port + '/' + ACCOUNT_USERNAME,
@@ -29,11 +24,10 @@ marionette('configure CalDAV accounts', function() {
           endDate = new Date(),
           event = {};
 
-      app.createCalDavAccount(
-        ACCOUNT_USERNAME,
-        ACCOUNT_PASSWORD,
-        accountUrl
-      );
+      app.createCalDavAccount({
+        user: ACCOUNT_USERNAME,
+        fullUrl: accountUrl
+      });
 
       // Make sure we have a event item
       // in the top of event-list view in month view.
@@ -45,6 +39,7 @@ marionette('configure CalDAV accounts', function() {
         title: TITLE
       };
       serverHelper.addEvent(ACCOUNT_USERNAME, event);
+
       app.syncCalendar();
       // Make sure we start the server before the setup is ended.
       done();
@@ -62,20 +57,27 @@ marionette('configure CalDAV accounts', function() {
     }
   });
 
-  test.skip('should show a event', function() {
-    app.getMonthEventByTitle(TITLE).click();
+  test('should show a event', function() {
+    var event = app.monthDay.events[0];
+
+    // Scroll so that the first one is in view and click it.
+    app.monthDay.scrollToEvent(event);
+    event.click();
+
     assertEvent(ACCOUNT_USERNAME, TITLE);
   });
 
   function assertEvent(username, title) {
+    app.readEvent.waitForDisplay();
+
     assert.deepEqual(
-      app.waitForElement('viewEventViewTitleContent').text(),
+      app.readEvent.title,
       title,
       'event should have correct title'
     );
     // Make sure the event is created in the CalDAV username.
     assert.deepEqual(
-      app.waitForElement('viewEventViewCalendar').text(),
+      app.readEvent.calendar,
       username,
       'event should be created by the correct user'
     );
