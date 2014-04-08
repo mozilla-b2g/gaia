@@ -135,8 +135,10 @@ suite('Renderer', function() {
           keys[0].clientWidth + keys[1].clientWidth + keys[2].clientWidth,
           'Total width');
 
-        assert.equal(keys[0].classList.contains('float-key-first'), true);
-        assert.equal(keys[2].classList.contains('float-key-last'), true);
+        assert.equal(keys[0].classList.contains('float-key-first'), true,
+          'Has float-key-first');
+        assert.equal(keys[2].classList.contains('float-key-last'), true,
+          'Has float-key-last');
 
         next();
       });
@@ -165,8 +167,10 @@ suite('Renderer', function() {
         assert.equal(400,
           keys[0].clientWidth + keys[1].clientWidth + keys[2].clientWidth);
 
-        assert.equal(keys[0].classList.contains('float-key-first'), true);
-        assert.equal(keys[2].classList.contains('float-key-last'), true);
+        assert.equal(keys[0].classList.contains('float-key-first'), true,
+          'Has float-key-first');
+        assert.equal(keys[2].classList.contains('float-key-last'), true,
+          'Has float-key-last');
 
         next();
       });

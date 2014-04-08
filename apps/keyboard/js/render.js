@@ -642,51 +642,41 @@ const IMERender = (function() {
   var resizeUI = function(layout, callback) {
     var RESIZE_UI_TIMEOUT = 0;
 
-    // This function consists of three actual functions
+    // This function consists of two actual functions
     // 1. setKeyWidth (sets the correct width for every key)
-    // 2. firstAndLastKeyLarger (makes sure all keys fill up available space)
-    // 3. getVisualData (stores visual offsets in internal array)
+    // 2. getVisualData (stores visual offsets in internal array)
     // these are seperated into separate groups because they do similar
     // operations and minimizing reflow causes because of this
-
     function setKeyWidth() {
-      var ratio, keys;
+      [].forEach.call(rows, function(rowEl, rIx) {
+        var rowLayoutWidth = parseInt(rowEl.dataset.layoutWidth, 10);
+        var keysInRow = rowEl.childNodes.length;
 
-      for (var r = 0, row; row = rows[r]; r += 1) {
-        keys = row.childNodes;
-        for (var k = 0, key; key = keys[k]; k += 1) {
-          ratio = layout.keys[r][k].ratio || 1;
+        [].forEach.call(rowEl.childNodes, function(keyEl, kIx) {
+          var key = layout.keys[rIx][kIx];
+          var wrapperRatio = key.ratio || 1;
+          var keyRatio = wrapperRatio;
 
-          key.style.width = Math.floor(placeHolderWidth * ratio) + 'px';
-        }
-      }
+          // First and last keys should fill up space
+          if (kIx === 0) {
+            keyEl.classList.add('float-key-first');
+            keyRatio = wrapperRatio + ((layoutWidth - rowLayoutWidth) / 2);
+          }
+          else if (kIx === keysInRow - 1) {
+            keyEl.classList.add('float-key-last');
+            keyRatio = wrapperRatio + ((layoutWidth - rowLayoutWidth) / 2);
+          }
 
-      setTimeout(firstAndLastKeyLarger, RESIZE_UI_TIMEOUT);
-    }
+          keyEl.style.width = (placeHolderWidth * keyRatio | 0) + 'px';
 
-    function firstAndLastKeyLarger() {
-      for (var r = 0, row = rows[r]; r < rows.length; row = rows[++r]) {
-        // Only do rows that have space on left or right side
-        var rowLayoutWidth = parseInt(row.dataset.layoutWidth, 10);
-        if (rowLayoutWidth === layoutWidth) {
-          continue;
-        }
-
-        var allKeys = row.childNodes;
-        var keys = [allKeys[0], allKeys[allKeys.length - 1]];
-
-        for (var k = 0, key = keys[k]; k < keys.length; key = keys[++k]) {
-          var visualKey = key.querySelector('.visual-wrapper');
-          var ratio = layout.keys[r][k].ratio || 1;
-          // keep visual key width
-          visualKey.style.width = visualKey.offsetWidth + 'px';
-
-          // calculate new tap area
-          var newRatio = ratio + ((layoutWidth - rowLayoutWidth) / 2);
-          key.style.width = Math.floor(placeHolderWidth * newRatio) + 'px';
-          key.classList.add('float-key-' + (k === 0 ? 'first' : 'last'));
-        }
-      }
+          // Default aligns 100%, if they differ set width on the wrapper
+          if (keyRatio !== wrapperRatio) {
+            var wrapperEl = keyEl.querySelector('.visual-wrapper');
+            wrapperEl.style.width =
+              (placeHolderWidth * wrapperRatio | 0) + 'px';
+          }
+        });
+      });
 
       setTimeout(getVisualData, RESIZE_UI_TIMEOUT);
     }
