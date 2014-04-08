@@ -68,9 +68,6 @@ var DownloadStore = (function() {
   // Datastore name declared on the manifest.webapp
   var DATASTORE_NAME = 'download_store';
 
-  // Record Id for the index
-  var INDEX_ID = 1;
-
   /*
   * Request auxiliary object to support asynchronous calls
   */
@@ -97,13 +94,6 @@ var DownloadStore = (function() {
       }
     };
   };
-
-  // Creates the internal Object in the datastore that will act as an index
-  function createIndex() {
-    return {
-      byTimestamp: []
-    };
-  }
 
   // Indicates the initialization state
   var readyState;
@@ -145,20 +135,7 @@ var DownloadStore = (function() {
 
       datastore = ds[0];
       // Checking the length as the index should be there
-      datastore.getLength().then(function(length) {
-        if (length === 0) {
-          console.info('Adding index as datastore is empty');
-          datastore.add(createIndex(), INDEX_ID).then(function(id) {
-            console.log('The array of indexes has been stored as', id);
-            notifyOpenSuccess(success);
-          }, function(e) {
-            console.error('Error while adding index: ', JSON.stringify(e));
-            fail(e);
-          });
-        } else {
-          notifyOpenSuccess(success);
-        }
-      });
+      notifyOpenSuccess(success);
     }, function(e) {
       console.error('Error while opening the DataStore: ', e.target.error.name);
       fail(e);
@@ -210,16 +187,8 @@ var DownloadStore = (function() {
     datastore.add(downloadCooked).then(function(id) {
       // Enriched object with the id provided by the datastore
       downloadCooked.id = id;
-      datastore.put(downloadCooked, id).then(function() {
-        // Get our array of indexes
-        datastore.get(INDEX_ID).then(function(myIndex) {
-          // Update our index with the id of the new object stored
-          myIndex.byTimestamp.push(id);
-          datastore.put(myIndex, INDEX_ID).then(defaultSuccess(req),
-                                                defaultError(req));
-        }, defaultError(req));
-      }, defaultError(req));
-
+      datastore.put(downloadCooked, id).then(defaultSuccess(req),
+                                             defaultError(req));
     }, defaultError(req));
   }
 
@@ -235,9 +204,9 @@ var DownloadStore = (function() {
 
   function doGetAll(req) {
     // Getting our index of downloads
-    datastore.get(INDEX_ID).then(function(myIndex) {
-      // Get our index and return the downloads
-      return myIndex.byTimestamp;
+    datastore.getAllKeys().then(function(keys) {
+      var newKeys = keys.slice();
+      return newKeys;
     }, defaultError(req)).then(function(ids) {
       datastore.get.apply(datastore, ids).then(defaultSuccess(req),
                                                defaultError(req));
@@ -258,12 +227,7 @@ var DownloadStore = (function() {
     // Removing the download object from datastore
     datastore.remove(id).then(function(success) {
       if (success) {
-        datastore.get(INDEX_ID).then(function(myIndex) {
-          // Getting our index of downloads
-          myIndex.byTimestamp.splice(myIndex.byTimestamp.indexOf(id), 1);
-          datastore.put(myIndex, INDEX_ID).then(defaultSuccess(req),
-                                                defaultError(req));
-        }, defaultError(req));
+        defaultSuccess(req);
       } else {
         req.failed({
           message: 'The download with id: ' + id + 'does not exist'
