@@ -4,6 +4,8 @@
 // Ignore leak, otherwise an error would occur when using MockMozActivity.
 
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+
 requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_trusted_ui_manager.js');
 requireApp('system/test/unit/mock_utility_tray.js');
@@ -25,9 +27,15 @@ var mocksForCardsView = new MocksHelper([
   'SleepMenu',
   'OrientationManager',
   'PopupManager',
-  'StackManager'
+  'StackManager',
+  'NavigatorSettings'
 ]).init();
 
+var iconDataURI = 'data:image/png;base64,' +
+                  'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAa0lEQVR4nL' +
+                  '2SwQ3AMAgDTTdpVmH/FdJR6KMSIUAR/dSvyD5LjhLgoyhaUsabIyGO0Dq/' +
+                  '0Y4jpa85AZxjKOScBz1sVh9gC8xg3jZEZxXq9SrRYZItTh2yhY5I79DXnw' +
+                  'X3/vl30AKFwNFp1NINUVMgoXCifAgAAAAASUVORK5CYII=';
 var apps =
 {
   'http://sms.gaiamobile.org': {
@@ -126,7 +134,8 @@ suite('cards view >', function() {
   var subject;
   var fakeInnerHeight = 200;
 
-  var screenNode, realMozLockOrientation, realScreenLayout;
+  var screenNode, realMozLockOrientation, realScreenLayout, realMozSettings,
+      realSettingsListener;
   var cardsView, cardsList;
   var originalLockScreen;
   var ihDescriptor;
@@ -143,7 +152,7 @@ suite('cards view >', function() {
   }
 
   mocksForCardsView.attachTestHelpers();
-  suiteSetup(function(done) {
+  suiteSetup(function cv_suiteSetup(done) {
     ihDescriptor = Object.getOwnPropertyDescriptor(window, 'innerHeight');
     Object.defineProperty(window, 'innerHeight', {
       value: fakeInnerHeight,
@@ -167,6 +176,31 @@ suite('cards view >', function() {
     window.ScreenLayout = MockScreenLayout;
     realMozLockOrientation = screen.mozLockOrientation;
     screen.mozLockOrientation = MockLockScreen.mozLockOrientation;
+
+    realMozSettings = navigator.mozSettings;
+    window.navigator.mozSettings = MockNavigatorSettings;
+    // dont reset the mock between tests
+    MockNavigatorSettings.mSetup = function() {};
+    MockNavigatorSettings.mTeardown = function() {};
+
+    // init with minimum default settings
+    MockNavigatorSettings
+      .mSettings['app.cards_view.screenshots.enabled'] = true;
+    MockNavigatorSettings.mSyncRepliesOnly = true;
+
+    realSettingsListener = window.SettingsListener;
+    // minimal mock for SettingsListener
+    window.SettingsListener = {
+      observe: function(name, defaultValue, callback) {
+        MockNavigatorSettings.addObserver(name, function(event) {
+          callback(event.settingValue);
+        });
+      },
+      getSettingsLock: function() {
+        return MockNavigatorSettings.createLock();
+      }
+    };
+
     requireApp('system/js/cards_view.js', done);
   });
 
@@ -176,6 +210,8 @@ suite('cards view >', function() {
     screenNode.parentNode.removeChild(screenNode);
     window.ScreenLayout = realScreenLayout;
     screen.mozLockOrientation = realMozLockOrientation;
+    navigator.mozSettings = realMozSettings;
+    window.SettingsListener = realSettingsListener;
   });
 
   var sms, game, game2, game3, game4;
@@ -329,6 +365,7 @@ suite('cards view >', function() {
       });
 
       test('cardsview should be active', function() {
+        assert.isTrue(CardsView.cardSwitcherIsShown(), 'cardSwitcherIsShown');
         assert.isTrue(cardsView.classList.contains('active'));
       });
 
@@ -541,6 +578,169 @@ suite('cards view >', function() {
 
       CardsView.handleEvent(fakeEvent);
     });
+  });
+
+  suite('getIconURI > ', function() {
+    suiteSetup(function() {
+      var anApp = Object.create(apps['http://sms.gaiamobile.org']);
+      anApp.manifest = {
+        'icons': {
+          '32': '/img/icon-32.png'
+        }
+      };
+      MockStackManager.mStack = [anApp];
+      MockStackManager.mCurrent = 0;
+      MockAppWindowManager.mRunningApps = {
+        'http://sms.gaiamobile.org': anApp
+      };
+    });
+
+    teardown(function() {
+      CardsView.hideCardSwitcher(true);
+    });
+
+    test('gets icon from manifest.icons', function(done) {
+      CardsView.showCardSwitcher();
+      setTimeout(function() {
+        var url = CardsView._getIconURI(0);
+        assert.equal(0, url.indexOf('http://sms.gaiamobile.org/img/icon-'),
+                    'got icon from manifest resolved relative to origin');
+        done();
+      });
+    });
+
+    test('fallback to app.icon when manifest provides none', function(done) {
+      var currentApp = MockStackManager.mStack[0];
+      var iconPath = '/img/foo.png';
+      currentApp.icon = iconPath;
+      currentApp.manifest = {};
+      CardsView.showCardSwitcher();
+
+      setTimeout(function() {
+        var url = CardsView._getIconURI(0);
+        assert.equal(url, 'http://sms.gaiamobile.org' + iconPath,
+                    'return uri from .icon resolved from origin');
+        done();
+      });
+    });
+
+    test('handles data URIs', function(done) {
+      var currentApp = MockStackManager.mStack[0];
+      var iconPath = iconDataURI;
+      currentApp.icon = iconPath;
+      currentApp.manifest = {};
+      CardsView.showCardSwitcher();
+
+      setTimeout(function() {
+        var url = CardsView._getIconURI(0);
+        assert.equal(url, iconDataURI,
+                    'return data uri as-is');
+        done();
+      });
+
+    });
+  });
+
+  suite('screenshots settings >', function() {
+    var SETTING_KEY = 'app.cards_view.screenshots.enabled';
+
+    // CardsView should've added an observer when it loaded
+    test('observes "' + SETTING_KEY + '" setting at startup', function() {
+      var observers = MockNavigatorSettings.mObservers[SETTING_KEY];
+      assert.equal(observers.length, 1,
+        'exactly one observer is watching ' + SETTING_KEY);
+    });
+
+    test('observes setting updates', function() {
+      var event = { settingValue: false };
+      MockNavigatorSettings.mTriggerObservers(SETTING_KEY, event);
+      assert.ok(!CardsView._screenshotPreviewsEnabled(),
+        '_screenshotPreviewsEnabled is false when setting is false');
+
+      event = { settingValue: true };
+      MockNavigatorSettings.mTriggerObservers(SETTING_KEY, event);
+      assert.ok(CardsView._screenshotPreviewsEnabled(),
+        '_screenshotPreviewsEnabled is true when setting is true');
+    });
+
+    function makeSetup(isEnabled) {
+      var app = Object.create(game);
+      app.manifest = {
+        icons: {
+        '16': iconDataURI
+        }
+      };
+
+      return function() {
+        MockNavigatorSettings.mSettings[SETTING_KEY] = isEnabled;
+        MockNavigatorSettings.mTriggerObservers(SETTING_KEY,
+                                                { settingValue: isEnabled });
+        MockStackManager.mStack = [app];
+        MockStackManager.mCurrent = 0;
+        MockAppWindowManager.mRunningApps = {
+          'http://game.gaiamobile.org': app
+        };
+        CardsView.showCardSwitcher();
+      };
+    }
+
+    suite('screenshots enabled >', function() {
+      suiteSetup(makeSetup(true));
+      setup(function(done) {
+        CardsView.showCardSwitcher();
+        setTimeout(done);
+      });
+      teardown(function() {
+        CardsView.hideCardSwitcher(true);
+      });
+
+      test('cards dont show icons', function() {
+        var cards = document.querySelectorAll('.card');
+
+        assert.ok(cards.length, 'sanity check: ' +
+                                'with screenshots enabled there were cards');
+
+        assert.ok(Array.every(cards, function(card) {
+          return !card.classList.contains('appIconPreview');
+        }), 'all cards had appIconPreview class');
+
+      });
+    });
+
+    suite('screenshots disabled >', function() {
+      suiteSetup(makeSetup(false));
+      setup(function(done) {
+        CardsView.showCardSwitcher();
+        setTimeout(done);
+      });
+      teardown(function() {
+        CardsView.hideCardSwitcher(true);
+      });
+
+      test('cards do show icons', function() {
+        var cards = document.querySelectorAll('.card');
+        var iconViews = document.querySelectorAll('.card > .appIconView');
+
+        assert.ok(cards.length, 'sanity check: ' +
+                                'with screenshots disabled there were cards');
+        assert.ok(Array.every(cards, function(card) {
+          return card.classList.contains('appIconPreview');
+        }), 'all cards had appIconPreview class');
+
+        assert.ok(iconViews.length,
+                  'there were app-icon view elements');
+      });
+
+      test('backgroundImage is set', function() {
+        var gameCard = document.querySelector('.card');
+        var iconView = gameCard.querySelector('.appIconView');
+
+        assert.ok(iconView.style.backgroundImage.indexOf('url') > -1,
+                  '.appIconView element has backgroundImage value');
+
+      });
+    });
+
   });
 });
 
