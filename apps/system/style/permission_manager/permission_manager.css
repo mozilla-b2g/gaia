@@ -51,7 +51,7 @@
 
 
 #screen.software-button-enabled.fullscreen-app #permission-screen {
-  height: calc(100% - 7rem);
+  height: calc(100% - 5rem);
 }
 
 #permission-remember-section {
