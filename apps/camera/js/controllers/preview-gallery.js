@@ -10,7 +10,6 @@ var bindAll = require('lib/bind-all');
 var PreviewGalleryView = require('views/preview-gallery');
 var createThumbnailImage = require('lib/create-thumbnail-image');
 var preparePreview = require('lib/prepare-preview-blob');
-var CustomDialog = require('CustomDialog');
 
 /**
  * The size of the thumbnail images we generate.
@@ -154,31 +153,20 @@ PreviewGalleryController.prototype.deleteCurrentItem = function() {
   var index = this.currentItemIndex;
   var item = this.items[index];
   var filepath = item.filepath;
-  var msg;
   var self = this;
 
-  if (item.isVideo) {
-    msg = navigator.mozL10n.get('delete-video?');
-  }
-  else {
-    msg = navigator.mozL10n.get('delete-photo?');
-  }
+  var type = item.isVideo ? 'video' : 'photo';
+  var options = {
+    type: type,
+    closable: true,
+    confirmCB: deleteItem,
+    recommend: false,
+    fullButton: false
+  };
 
-  CustomDialog.show('',
-                    msg,
-                    { title: navigator.mozL10n.get('cancel'),
-                      callback: closeDialog },
-                    { title: navigator.mozL10n.get('delete'),
-                      callback: deleteItem,
-                      recommend: false });
-
-  function closeDialog() {
-    CustomDialog.hide();
-  }
+  this.app.emit('previewGallery:delete', options);
 
   function deleteItem() {
-    CustomDialog.hide();
-
     self.updatePreviewGallery(index);
 
     // Actually delete the file
