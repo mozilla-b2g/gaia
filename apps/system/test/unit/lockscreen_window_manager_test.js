@@ -93,6 +93,22 @@ suite('system/LockScreenWindowManager', function() {
       window.lockScreenWindowManager.stopEventListeners();
     });
 
+    test('Screenchange by proximity sensor, should not open the LockScreen app',
+    function() {
+      var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
+        'openApp');
+      window.lockScreenWindowManager.handleEvent(
+        {
+          type: 'screenchange',
+          detail: { screenEnabled: true,
+                    screenOffBy: 'proximity'
+          }
+        });
+      assert.isFalse(stubOpenApp.called,
+        'the manager still open the LockScreen app even the ' +
+        'screenchange was caused by proximity sensor');
+    });
+
     test('Open the app when screen is turned on', function() {
       window.lockScreenWindowManager.registerApp(appFake);
       var stubOpen = this.sinon.stub(appFake, 'open');
