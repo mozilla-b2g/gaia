@@ -158,11 +158,6 @@
             <section data-l10n-id="to" id="to-label">
               To:
             </section>
-            <menu type="toolbar">
-              <a id="messages-contact-pick-button">
-                <span class="icon icon-user"></span>
-              </a>
-            </menu>
             <!-- When overflow occurs in the recipients list, scrolling is
             commonly triggered automatically through focus and keyboard events.
             In these cases, white space described by CSS `padding-bottom` will
@@ -170,10 +165,15 @@
             only scroll far enough to bring the cursor into view). A container
             element is necessary to consistently render this vertical space
             (instead realized with CSS `margin-bottom`). -->
-            <div id="messages-recipients-list-container">
+            <div id="messages-recipients-list-container" class="bb-editable">
               <section id="messages-recipients-list" class="singleline">
               </section>
             </div>
+            <menu type="toolbar">
+              <a id="messages-contact-pick-button">
+                <span class="icon icon-user"></span>
+              </a>
+            </menu>
           </section>
           <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
             Carrier unknown

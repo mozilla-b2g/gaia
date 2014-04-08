@@ -368,7 +368,7 @@ form button::-moz-focus-inner {
   max-width: calc(100% - 1.4rem);
   overflow: hidden;
   padding: 0 1.5rem;
-  margin: 0 0 0.6rem 0.7rem;
+  margin: 0 0 0.6rem 0;
   line-height: 2.8rem;
   border-radius: 1.4rem;
   text-overflow: ellipsis;
@@ -383,37 +383,39 @@ form button::-moz-focus-inner {
   padding-right: 3.7rem;
 }
 
-.bb-editable [contenteditable].invalid {
+.bb-editable [contenteditable="false"].invalid {
   background-color: #fedcdc;
   padding-left: 3.3rem;
 }
 
-.bb-editable [contenteditable=false].invalid:before {
+.bb-editable [contenteditable="false"].invalid:before {
     content: "!";
     position: absolute;
-    top: 0.7rem;
+    top: 0.6rem;
     left: 0.8rem;
     display: block;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.7rem;
+    height: 1.6rem;
     padding: 0;
     border-radius: 50%;
-    line-height: 1.4rem;
+    line-height: 1.6rem;
     font-size: 1.2rem;
     text-align: center;
+    text-indent: -0.1rem;
     font-style: normal;
     font-weight: 600;
-    text-indent: 0.1rem;
     color: #fff;
     background-color: #b80404;
 }
 
-.bb-editable [contenteditable]:hover,
-.bb-editable [contenteditable]:active {
-  color: #fff;
-  background-color: #b2f2ff;
+.bb-editable [contenteditable="false"].invalid:hover:before,
+.bb-editable [contenteditable="false"].invalid:active:before {
+  color: #b2f2ff;
+  background-color: #fff;
 }
 
+.bb-editable [contenteditable]:hover,
+.bb-editable [contenteditable]:active,
 .bb-editable [contenteditable].invalid:hover,
 .bb-editable [contenteditable].invalid:active {
   color: #fff;
