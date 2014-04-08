@@ -1,4 +1,5 @@
 'use strict';
+/* exported enumerateAll */
 
 //
 // With the removal of composite storage, this function emulates
@@ -14,13 +15,24 @@ function enumerateAll(storages, dir, options) {
     }
   };
 
+  function onerror(e) {
+    cursor.error = e.target.error;
+    if (cursor.onerror) {
+      try {
+        cursor.onerror(e);
+      } catch (err) {
+        console.warn('enumerateAll onerror threw', err);
+      }
+    }
+  }
+
   function enumerateNextStorage() {
     // The || {} on the next line is required to make enumerate work properly
     // on v1-train.
     ds_cursor = storages[storageIndex].enumerate(dir, options || {});
     ds_cursor.onsuccess = onsuccess;
     ds_cursor.onerror = onerror;
-  };
+  }
 
   function onsuccess(e) {
     cursor.result = e.target.result;
@@ -40,18 +52,7 @@ function enumerateAll(storages, dir, options) {
         console.warn('enumerateAll onsuccess threw', err);
       }
     }
-  };
-
-  function onerror(e) {
-    cursor.error = e.target.error;
-    if (cursor.onerror) {
-      try {
-        cursor.onerror(e);
-      } catch (err) {
-        console.warn('enumerateAll onerror threw', err);
-      }
-    }
-  };
+  }
 
   enumerateNextStorage();
   return cursor;

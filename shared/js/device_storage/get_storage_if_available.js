@@ -1,4 +1,6 @@
 'use strict';
+/* exported getStorageIfAvailable */
+
 //
 // Get a DeviceStorage object for the specified kind of storage and, if it
 // is available, and if the specified number of bytes of storage space are
@@ -12,16 +14,16 @@ function getStorageIfAvailable(kind, size, success, error) {
   var storage = navigator.getDeviceStorage(kind);
   storage.available().onsuccess = function(e) {
     if (e.target.result !== 'available') {
-      if (error)
+      if (error) {
         error(e.target.result);
-    }
-    else {
+      }
+    } else {
       storage.freeSpace().onsuccess = function(e) {
         if (e.target.result < size) {
-          if (error)
+          if (error) {
             error(e.target.result);
-        }
-        else {
+          }
+        } else {
           success(storage);
         }
       };

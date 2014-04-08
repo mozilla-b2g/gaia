@@ -1,6 +1,3 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 /**
  * This lib relies on `l10n.js' to implement localizable date/time strings.
  *
@@ -11,7 +8,7 @@
  * which is specific to Firefox -- no other browser is supported.
  */
 
-
+/* global LazyLoader */
 
 (function(exports) {
   'use strict';
@@ -38,7 +35,7 @@
   }
 
   function _calcPercentage(currently, total) {
-    if (total == 0) {
+    if (total === 0) {
       return 0;
     }
 

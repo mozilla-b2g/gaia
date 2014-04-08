@@ -132,7 +132,7 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
       if (typeof cb === 'function') {
         cb(err);
       }
-      while (next = requestQueue.shift()) {
+      while ((next = requestQueue.shift())) {
         next && next(err);
       }
     });

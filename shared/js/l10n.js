@@ -219,7 +219,7 @@
                  .replace(/\\{/g, '{')
                  .replace(/\\}/g, '}')
                  .replace(/\\"/g, '"')
-                 .replace(/\\'/g, "'");
+                 .replace(/\\'/g, '\'');
     }
 
     // parse *.properties text data into an l10n dictionary
@@ -277,6 +277,7 @@
           // key-value pair
           var tmp = line.match(reSplit);
           if (tmp && tmp.length == 3) {
+            /* jshint loopfunc: true */
             // unescape unicode char codes if needed (e.g. '\u00a0')
             var val = tmp[2].replace(reUnicode, function(match, token) {
               return unescape('%u' + '0000'.slice(token.length) + token);
@@ -415,6 +416,7 @@
 
     // l10n resource loader
     function l10nResourceLink(link) {
+      /* jshint validthis: true */
       /**
        * l10n resource links can use the following syntax for href:
        * <link type="application/l10n" href="resources/{{locale}}.json" />
@@ -1110,7 +1112,7 @@
       if (args && arg in args) {
         sub = args[arg];
       } else if (arg in gL10nData) {
-        sub = gL10nData[arg]['_'];
+        sub = gL10nData[arg]._;
       } else {
         consoleLog('argument {{', arg, '}} for #', key, ' is undefined.');
         return str;
@@ -1300,5 +1302,4 @@
   };
 
   consoleLog('library loaded.');
-})(this);
-
+})(window);

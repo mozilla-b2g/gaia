@@ -98,7 +98,7 @@ var SimplePhoneMatcher = {
     };
   },
 
-  _formattingChars: ['\s', '-', '.', '(', ')'],
+  _formattingChars: ['\\s', '-', '.', '(', ')'],
 
   _mccWith00Prefix: ['208', '214', '234', '235', '724'],
   _mccWith011Prefix: ['310', '311', '312', '313', '314', '315', '316'],
@@ -422,7 +422,7 @@ var SimplePhoneMatcher = {
 
     var trunk0Join = prefixesWithTrunk0.join('|');
     var trunk0Regexp = new RegExp('^\\+(' + trunk0Join + ')');
-    this._internationalPrefixes(number).some(function match(variant) {
+    this._internationalPrefixes(number).some(function _match(variant) {
       var match = variant.match(trunk0Regexp);
 
       if (match) {
@@ -435,7 +435,7 @@ var SimplePhoneMatcher = {
 
     var noTrunkJoin = prefixesWithNoTrunk.join('|');
     var noTrunkRegexp = new RegExp('^\\+(' + noTrunkJoin + ')');
-    this._internationalPrefixes(number).some(function match(variant) {
+    this._internationalPrefixes(number).some(function _match(variant) {
       var match = variant.match(noTrunkRegexp);
 
       if (match) {
@@ -460,7 +460,7 @@ var SimplePhoneMatcher = {
     Object.keys(this._areaCodeSwipe).forEach(function(country) {
       var re = new RegExp('^\\+' + country);
 
-      this._internationalPrefixes(number).some(function match(variant) {
+      this._internationalPrefixes(number).some(function _match(variant) {
         var match = variant.match(re);
 
         if (match) {

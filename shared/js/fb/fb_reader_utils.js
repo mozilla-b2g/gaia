@@ -1,4 +1,5 @@
 'use strict';
+/* jshint -W040 */
 
 // Includes convenience functions for FB Contact Data
 // To use this library you need to include:
@@ -8,6 +9,8 @@ var fb = this.fb || {};
 this.fb = fb;
 
 if (!this.AuxFB) {
+  /* jshint loopfunc: true */
+
   this.AuxFb = (function() {
     var CATEGORY = 'facebook';
     var NOT_LINKED = 'not_linked';
