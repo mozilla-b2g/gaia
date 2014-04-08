@@ -29,7 +29,7 @@ suite('SIM picker', function() {
   mocksHelperForSimPicker.attachTestHelpers();
 
   var loadBody = function() {
-    loadBodyHTML('/dialer/elements/sim-picker.html');
+    loadBodyHTML('/shared/elements/sim-picker.html');
     document.body.innerHTML = document.body.querySelector('template').innerHTML;
   };
 
@@ -127,7 +127,7 @@ suite('SIM picker', function() {
     test('should have 2 option buttons', function() {
       var buttonNum = 0;
       for (var i = 0; i < menu.children.length; i++) {
-        if (menu.children[i].textContent !== 'Cancel') {
+        if (menu.children[i].dataset.l10nId !== 'cancel') {
           buttonNum++;
         }
       }
