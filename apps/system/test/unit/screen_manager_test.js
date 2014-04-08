@@ -718,4 +718,33 @@ suite('system/ScreenManager', function() {
       assert.isFalse(stubTurnOff.called);
     });
   });
+
+  suite('unlocking-start/stop events', function() {
+    test('handle unlocking-start event', function() {
+      // The public interface is event, so we manually fire and forward it to
+      // the handler, to avoid the asynchronous part which is unnecessary in
+      // the test.
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent',
+        function(e) {
+          ScreenManager.handleEvent(e);
+        });
+      window.dispatchEvent(new CustomEvent('unlocking-start'));
+      assert.isTrue(ScreenManager._unlocking);
+      stubDispatchEvent.restore();
+    });
+
+    test('handle unlocking-stop event', function() {
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent',
+        function(e) {
+          ScreenManager.handleEvent(e);
+        });
+      var stubReconfigScreenTimeout = this.sinon.stub(ScreenManager,
+        '_reconfigScreenTimeout');
+      window.dispatchEvent(new CustomEvent('unlocking-stop'));
+      assert.isFalse(ScreenManager._unlocking);
+      assert.isTrue(stubReconfigScreenTimeout.called);
+      stubDispatchEvent.restore();
+      stubReconfigScreenTimeout.restore();
+    });
+  });
 });
