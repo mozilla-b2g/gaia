@@ -15,10 +15,16 @@
     }
   },
   "inputs": {
-    "english": {
+    "en": {
       "launch_path": "/index.html#en",
       "name": "English",
       "description": "English layout",
+      "types": ["text", "url", "email"]
+    },
+    "es": {
+      "launch_path": "/index.html#es",
+      "name": "Spanish",
+      "description": "Spanish layout",
       "types": ["text", "url", "email"]
     }
   }
