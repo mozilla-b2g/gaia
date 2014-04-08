@@ -27,7 +27,7 @@ function HudController(app) {
   this.app = app;
   this.hud = app.views.hud;
   this.settings = app.settings;
-  this.l10n = app.l10n || navigator.mozL10n;
+  this.localize = app.localize;
   this.notification = app.views.notification;
   this.configure();
   this.bindEvents();
@@ -113,8 +113,8 @@ HudController.prototype.onFlashClick = function() {
  * @private
  */
 HudController.prototype.notify = function(setting, hdrDeactivated) {
-  var optionTitle = this.l10n.get(setting.selected('title'));
-  var title = this.l10n.get(setting.get('title'));
+  var optionTitle = this.localize(setting.selected('title'));
+  var title = this.localize(setting.get('title'));
   var html;
 
   // Check if the `hdr` setting is going to be deactivated as part
@@ -122,7 +122,7 @@ HudController.prototype.notify = function(setting, hdrDeactivated) {
   // notification if that is the case
   if (hdrDeactivated) {
     html = title + ' ' + optionTitle + '<br/>' +
-      this.l10n.get('hdr-deactivated');
+      this.localize('hdr-deactivated');
   } else {
     html = title + '<br/>' + optionTitle;
   }

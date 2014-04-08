@@ -1,80 +1,68 @@
-require(['config/require', 'config'], function() {
-  'use strict';
+define(function(require) {
+'use strict';
 
-  define('boot', function(require) {
-    var debug = require('debug')('main');
-    var timing = window.performance.timing;
-    debug('domloaded in %s', (timing.domComplete - timing.domLoading) + 'ms');
+var timing = window.performance.timing;
+var domLoaded = timing.domComplete - timing.domLoading;
+var debug = require('debug')('main');
+debug('domloaded in %s', domLoaded + 'ms');
 
-    /**
-     * Module Dependencies
-     */
+/**
+ * Module Dependencies
+ */
 
-    var App = require('app');
-    var Camera = require('lib/camera');
-    var Sounds = require('lib/sounds');
-    var Settings = require('lib/settings');
-    var sounds = new Sounds(require('config/sounds'));
-    var settings = new Settings(require('config/settings'));
-    var GeoLocation = require('lib/geo-location');
-    var Activity = require('lib/activity');
-    var Storage = require('lib/storage');
-    var controllers = {
-      hud: require('controllers/hud'),
-      controls: require('controllers/controls'),
-      viewfinder: require('controllers/viewfinder'),
-      recordingTimer: require('controllers/recording-timer'),
-      previewGallery: require('controllers/preview-gallery'),
-      overlay: require('controllers/overlay'),
-      confirm: require('controllers/confirm'),
-      settings: require('controllers/settings'),
-      activity: require('controllers/activity'),
-      camera: require('controllers/camera'),
-      sounds: require('controllers/sounds'),
-      timer: require('controllers/timer'),
-      zoomBar: require('controllers/zoom-bar'),
-      indicators: require('controllers/indicators'),
-      battery: require('controllers/battery')
-    };
+var Activity = require('lib/activity');
+var Settings = require('lib/settings');
+var GeoLocation = require('lib/geo-location');
+var settings = new Settings(require('config/settings'));
+var Camera = require('lib/camera');
+var App = require('app');
 
-    // Attach navigator.mozL10n
-    require('l10n');
+/**
+ * Create new `App`
+ */
 
-    debug('required dependencies');
+var app = window.app = new App({
+  settings: settings,
+  geolocation: new GeoLocation(),
+  activity: new Activity(),
 
-    var camera = new Camera({
-      maxFileSizeBytes: 0,
-      maxWidth: 0,
-      maxHeight: 0,
-      container: document.body,
-      cafEnabled: settings.caf.enabled()
-    });
+  el: document.body,
+  doc: document,
+  win: window,
 
-    /**
-     * Create new `App`
-     */
+  camera: new Camera({
+    maxFileSizeBytes: 0,
+    maxWidth: 0,
+    maxHeight: 0,
+    cacheConfig: true,
+    cafEnabled: settings.caf.enabled()
+  }),
 
-    var app = window.app = new App({
-      win: window,
-      doc: document,
-      el: document.body,
-      geolocation: new GeoLocation(),
-      activity: new Activity(),
-      settings: settings,
-      camera: camera,
-      sounds: sounds,
-      controllers: controllers,
-      storage: new Storage()
-    });
+  controllers: {
+    hud: require('controllers/hud'),
+    controls: require('controllers/controls'),
+    viewfinder: require('controllers/viewfinder'),
+    recordingTimer: require('controllers/recording-timer'),
+    overlay: require('controllers/overlay'),
+    settings: require('controllers/settings'),
+    activity: require('controllers/activity'),
+    camera: require('controllers/camera'),
+    timer: require('controllers/timer'),
+    zoomBar: require('controllers/zoom-bar'),
+    indicators: require('controllers/indicators'),
 
-    debug('created app');
+    // Lazy loaded
+    previewGallery: 'controllers/preview-gallery',
+    storage: 'controllers/storage',
+    confirm: 'controllers/confirm',
+    battery: 'controllers/battery',
+    sounds: 'controllers/sounds'
+  }
+});
 
-    // Fetch persistent settings
-    app.settings.fetch();
+// Fetch persistent settings,
+// Check for activities, then boot
+app.settings.fetch();
+app.activity.check(app.boot);
 
-    // Check for activities, then boot
-    app.activity.check(app.boot);
-  });
-
-  require(['boot']);
 });

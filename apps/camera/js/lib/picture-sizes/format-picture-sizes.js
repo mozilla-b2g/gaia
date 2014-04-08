@@ -9,7 +9,6 @@ define(function(require, exports, module) {
  *
  *   - `maxPixelSize {Number}`
  *   - `exclude {Array}`
- *   - `mp {String}`
  *
  * @param  {Array} sizes
  * @param  {Object} options
@@ -18,7 +17,6 @@ define(function(require, exports, module) {
 module.exports = function(sizes, options) {
   var maxPixelSize = options && options.maxPixelSize;
   var exclude = options && options.exclude || [];
-  var MP = options && options.mp || 'MP';
   var formatted = [];
 
   sizes.forEach(function(size) {
@@ -36,12 +34,8 @@ module.exports = function(sizes, options) {
     size.aspect = getAspect(w, h);
     size.mp = getMP(w, h);
 
-    // Don't show 0MP
-    var mp = size.mp ? size.mp + MP + ' ' : '';
-
     formatted.push({
       key: key,
-      title: mp + w + 'x' + h + ' ' + size.aspect,
       pixelSize: pixelSize,
       data: size
     });

@@ -69,7 +69,7 @@ ControlsController.prototype.bindEvents = function() {
 ControlsController.prototype.configure = function() {
   var isSwitchable = this.app.settings.mode.get('options').length > 1;
   var initialMode = this.app.settings.mode.selected('key');
-  var isCancellable = !!this.app.activity.active;
+  var isCancellable = !!this.app.activity.pick;
 
   // The gallery button should not
   // be shown if an activity is pending

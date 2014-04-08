@@ -29,10 +29,12 @@ function SettingsController(app) {
   bindAll(this);
   this.app = app;
   this.settings = app.settings;
+  this.activity = app.activity;
   this.notification = app.views.notification;
+  this.localize = app.localize;
 
   // Allow test stubs
-  this.l10n = app.l10n || navigator.mozL10n;
+  this.nav = app.nav || navigator;
   this.SettingsView = app.SettingsView || SettingsView;
   this.formatPictureSizes = app.formatPictureSizes || formatPictureSizes;
   this.formatRecorderProfiles = app.formatRecorderProfiles ||
@@ -44,6 +46,7 @@ function SettingsController(app) {
 }
 
 SettingsController.prototype.configure = function() {
+  if (this.activity.pick) { this.settings.dontSave(); }
   this.settings.alias('recorderProfiles', this.aliases.recorderProfiles);
   this.settings.alias('pictureSizes', this.aliases.pictureSizes);
   this.settings.alias('flashModes', this.aliases.flashModes);
@@ -55,8 +58,9 @@ SettingsController.prototype.configure = function() {
  * @private
  */
 SettingsController.prototype.bindEvents = function() {
-  this.app.on('change:capabilities', this.onCapabilitiesChange);
+  this.app.on('localized', this.formatPictureSizeTitles);
   this.app.on('settings:toggle', this.toggleSettings);
+  this.app.on('camera:newcamera', this.onNewCamera);
 };
 
 /**
@@ -142,16 +146,12 @@ SettingsController.prototype.notify = function(setting, flashDeactivated) {
   // notification if that is the case
   if (flashDeactivated) {
     html = title + ' ' + optionTitle + '<br/>' +
-      this.l10n.get('flash-deactivated');
+      this.localize('flash-deactivated');
   } else {
     html = title + '<br/>' + optionTitle;
   }
 
   this.notification.display({ text: html });
-};
-
-SettingsController.prototype.localize = function(value) {
-  return this.l10n.get(value) || value;
 };
 
 /**
@@ -165,7 +165,7 @@ SettingsController.prototype.localize = function(value) {
  *
  * @param  {Object} capabilities
  */
-SettingsController.prototype.onCapabilitiesChange = function(capabilities) {
+SettingsController.prototype.onNewCamera = function(capabilities) {
   debug('new capabilities');
 
   this.settings.hdr.filterOptions(capabilities.hdr);
@@ -195,12 +195,12 @@ SettingsController.prototype.configurePictureSizes = function(sizes) {
   var exclude = setting.get('exclude');
   var options = {
     exclude: exclude,
-    maxPixelSize: maxPixelSize,
-    mp: this.l10n.get('mp')
+    maxPixelSize: maxPixelSize
   };
   var formatted = this.formatPictureSizes(sizes, options);
 
   setting.resetOptions(formatted);
+  this.formatPictureSizeTitles();
   setting.emit('configured');
 };
 
@@ -220,6 +220,20 @@ SettingsController.prototype.configureRecorderProfiles = function(sizes) {
 
   setting.resetOptions(formatted);
   setting.emit('configured');
+};
+
+SettingsController.prototype.formatPictureSizeTitles = function() {
+  if (!this.app.localized()) { return; }
+  var options = this.settings.pictureSizes.get('options');
+  var MP = this.localize('mp');
+
+  options.forEach(function(size) {
+    var data = size.data;
+    var mp = data.mp ? data.mp + MP + ' ' : '';
+    size.title = mp + data.width + 'x' + data.height + ' ' + data.aspect;
+  });
+
+  debug('picture size titles formatted');
 };
 
 /**

@@ -69,12 +69,12 @@ suite('controllers/viewfinder', function() {
       assert.isTrue(this.app.on.calledWith('previewgallery:opened', this.controller.stopStream));
     });
 
-    test('Should start the stream when the PreviewGallery is closed', function() {
-      assert.isTrue(this.app.on.calledWith('previewgallery:closed', this.controller.startStream));
+    test('Should listen when the PreviewGallery is closed', function() {
+      assert.isTrue(this.app.on.calledWith('previewgallery:closed'));
     });
 
     test('Should stop the stream when on app blur', function() {
-      assert.isTrue(this.app.on.calledWith('blur', this.controller.stopStream));
+      assert.isTrue(this.app.on.calledWith('hidden', this.controller.stopStream));
     });
 
     test('Should hide the grid when the settings menu opened', function() {
@@ -108,6 +108,22 @@ suite('controllers/viewfinder', function() {
 
       this.controller = new this.ViewfinderController(this.app);
       assert.isTrue(this.viewfinder.set.calledWith('grid', 'on'));
+    });
+  });
+
+  suite('ViewfinderController#onPreviewGalleryClosed', function() {
+    setup(function() {
+      sinon.spy(this.controller, 'startStream');
+    });
+
+    test('Should start the stream only if the app is visible', function() {
+      this.app.hidden = true;
+      this.controller.onPreviewGalleryClosed();
+      assert.isFalse(this.controller.startStream.called);
+
+      this.app.hidden = false;
+      this.controller.onPreviewGalleryClosed();
+      assert.isTrue(this.controller.startStream.called);
     });
   });
 

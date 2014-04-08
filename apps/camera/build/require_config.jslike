@@ -3,7 +3,15 @@
   baseUrl: 'js',
   mainConfigFile: '../js/config/require.js',
   dir: '../../../build_stage/camera',
+  insertRequire: ['main'],
   name: 'main',
+  include: [
+    'vendor/alameda',
+    'config/require',
+    'config'
+  ],
+
+  exclude: ['l10n'],
 
   findNestedDependencies: true,
 

@@ -72,6 +72,8 @@ module.exports = View.extend({
     bind(this.el, 'touchmove', this.onTouchMove);
     bind(this.el, 'touchend', this.onTouchEnd);
     bind(this.el, 'animationend', this.onShutterEnd);
+
+    this.getSize();
   },
 
   render: function() {
@@ -83,6 +85,20 @@ module.exports = View.extend({
     this.els.videoContainer = this.find('.js-video-container');
 
     sensitivity = constants.ZOOM_GESTURE_SENSITIVITY * window.innerWidth;
+  },
+
+  /**
+   * Stores the container size.
+   *
+   * We're using window dimensions
+   * here to avoid causing costly
+   * reflows.
+   *
+   * @public
+   */
+  getSize: function() {
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
   },
 
   onClick: function(e) {
@@ -234,25 +250,23 @@ module.exports = View.extend({
    * @param  {Boolean} mirrored
    */
   updatePreview: function(preview, sensorAngle, mirrored) {
-    var elementWidth = this.el.clientWidth;
-    var elementHeight = this.el.clientHeight;
     var aspect;
 
     // Invert dimensions if the camera's `sensorAngle` is
     // 0 or 180 degrees.
     if (sensorAngle % 180 === 0) {
       this.container = {
-        width: elementWidth,
-        height: elementHeight,
-        aspect: elementWidth / elementHeight
+        width: this.width,
+        height: this.height,
+        aspect: this.width / this.height
       };
 
       aspect = preview.height / preview.width;
     } else {
       this.container = {
-        width: elementHeight,
-        height: elementWidth,
-        aspect: elementHeight / elementWidth
+        width: this.height,
+        height: this.width,
+        aspect: this.height / this.width
       };
 
       aspect = preview.width / preview.height;
