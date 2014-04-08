@@ -3346,7 +3346,8 @@ suite('thread_ui.js >', function() {
         assert.equal(MockOptionMenu.calls[0].items[3].l10nId, 'resend-message');
     });
 
-    test(' "long-press" on an not downloaded message bubble shows a menu without forward option',
+    test(' "long-press" on an not downloaded message ' +
+      'bubble shows a menu without forward option',
       function() {
         // Create a message with an undownloaded attachment:
         ThreadUI.appendMessage({
@@ -3360,7 +3361,7 @@ suite('thread_ui.js >', function() {
         });
 
         // Retrieve the message node
-        var messageNode = document.getElementById('message-9').querySelector('section');
+        var messageNode = document.querySelector('#message-9 section');
 
         // Dispatch custom event for testing long press
         messageNode.dispatchEvent(contextMenuEvent);
