@@ -372,6 +372,10 @@ menu[type="toolbar"] button {
   float: left;
 }
 
+menu[type="toolbar"] button.hidden {
+  display: none;
+}
+
 input::-moz-focus-inner {
   border: 0;
 }
