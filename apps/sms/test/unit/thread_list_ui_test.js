@@ -1,7 +1,7 @@
 /*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
          MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI,
-         MockOptionMenu
+         MockOptionMenu, Utils
          */
 
 'use strict';
@@ -592,6 +592,8 @@ suite('thread_list_ui', function() {
         setup(function() {
           this.sinon.stub(Threads, 'delete');
           this.sinon.stub(ThreadListUI, 'removeThread');
+          this.sinon.spy(Utils, 'closeNotificationsForThread');
+
           // call the "end" function passed to getMessages with fake message
           MessageManager.getMessages.args[0][0].end();
         });
@@ -604,6 +606,9 @@ suite('thread_list_ui', function() {
         });
         test('end calls Threads.delete with correct thread', function() {
           assert.equal(Threads.delete.args[0][0], 2);
+        });
+        test('end calls closeNotificationsForThread', function() {
+          sinon.assert.calledWith(Utils.closeNotificationsForThread, 2);
         });
         test('end doesnt hide waiting screen (yet)', function() {
           assert.isFalse(WaitingScreen.hide.called);
@@ -621,6 +626,9 @@ suite('thread_list_ui', function() {
           });
           test('end calls Threads.delete with correct thread', function() {
             assert.equal(Threads.delete.args[1][0], 1);
+          });
+          test('end calls closeNotificationsForThread', function() {
+            sinon.assert.calledWith(Utils.closeNotificationsForThread, 1);
           });
           test('end calls hide waiting screen', function() {
             assert.isTrue(WaitingScreen.hide.called);

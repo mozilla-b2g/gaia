@@ -3,8 +3,8 @@
 
 /*global ThreadListUI, ThreadUI, Threads, SMIL, MozSmsFilter, Compose,
          Utils, LinkActionHandler, Contacts, GroupView,
-         ReportView, Utils, LinkActionHandler, Contacts, Drafts,
-         Notification, Settings */
+         ReportView, Utils, LinkActionHandler, Contacts, Drafts, Settings
+*/
 
 /*exported MessageManager */
 
@@ -339,20 +339,8 @@ var MessageManager = {
         }
 
         ThreadListUI.mark(threadId, 'read');
-
-        var targetTag = 'threadId:' + threadId;
-        Notification.get({tag: targetTag})
-          .then(
-            function onSuccess(notifications) {
-              for (var i = 0; i < notifications.length; i++) {
-                notifications[i].close();
-              }
-            },
-            function onError(reason) {
-              console.error('Notification.get(tag: ' + targetTag + '): ' +
-                reason);
-            }
-          );
+        // remove current thread id's notification if exist
+        Utils.closeNotificationsForThread();
 
         ThreadUI.onBeforeEnter();
 
