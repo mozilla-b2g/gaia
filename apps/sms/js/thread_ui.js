@@ -2007,58 +2007,58 @@ var ThreadUI = global.ThreadUI = {
         evt.preventDefault();
         evt.stopPropagation();
         var messageBubble = this.getMessageBubble(evt.target);
+        var lineClassList = messageBubble.node.parentNode.classList;
 
         if (!messageBubble) {
           return;
         }
 
-        // Show options per single message.
-        // TODO Add the following functionality:
-        // + Details of a single message:
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=901453
+        // Show options per single message
         var messageId = messageBubble.id;
         var params = {
-          items:
-            [
-              {
-                l10nId: 'forward',
-                method: function forwardMessage(messageId) {
-                  MessageManager.forward = {
-                    messageId: messageId
-                  };
-                  window.location.hash = '#new';
-                },
-                params: [messageId]
-              },
-              {
-                l10nId: 'view-message-report',
-                method: function showMessageReport(messageId) {
-                  // Fetch the message by id and display report
-                  window.location.href = '#report-view=' + messageId;
-                },
-                params: [messageId]
-              },
-              {
-                l10nId: 'delete',
-                method: function deleteMessage(messageId) {
-                  // Complete deletion in DB and UI
-                  MessageManager.deleteMessage(messageId,
-                    function onDeletionDone() {
-                      ThreadUI.deleteUIMessages(messageId);
-                    }
-                  );
-                },
-                params: [messageId]
-              },
-              {
-                l10nId: 'cancel'
-              }
-            ],
           type: 'action',
-          header: navigator.mozL10n.get('message-options')
+          header: navigator.mozL10n.get('message-options'),
+          items:[]
         };
-        if (messageBubble.node.parentNode.classList.contains('error')) {
-          params.items.splice(2, 0, {
+
+        if (!lineClassList.contains('not-downloaded')) {
+          params.items.push({
+            l10nId: 'forward',
+            method: function forwardMessage(messageId) {
+              MessageManager.forward = {
+                messageId: messageId
+              };
+              window.location.hash = '#new';
+            },
+            params: [messageId]
+          });
+        }
+
+        params.items.push(
+          {
+            l10nId: 'view-message-report',
+            method: function showMessageReport(messageId) {
+              // Fetch the message by id and display report
+              window.location.href = '#report-view=' + messageId;
+            },
+            params: [messageId]
+          },
+          {
+            l10nId: 'delete',
+            method: function deleteMessage(messageId) {
+              // Complete deletion in DB and UI
+              MessageManager.deleteMessage(messageId,
+                function onDeletionDone() {
+                  ThreadUI.deleteUIMessages(messageId);
+                }
+              );
+            },
+            params: [messageId]
+          }
+        );
+
+        if (lineClassList.contains('error')) {
+          params.items.push({
             l10nId: 'resend-message',
             method: function resendMessage(messageId) {
               messageId = +messageId;
@@ -2072,6 +2072,10 @@ var ThreadUI = global.ThreadUI = {
             params: [messageId]
           });
         }
+
+        params.items.push({
+          l10nId: 'cancel'
+        });
 
         var options = new OptionMenu(params);
         options.show();
