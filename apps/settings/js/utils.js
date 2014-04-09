@@ -87,6 +87,33 @@ function loadJSON(href, callback) {
 }
 
 /**
+ * The function return support languages.
+ * Used by root panel and language panel
+ */
+(function(exports) {
+  var languages;
+  var getSupportedLanguages = function(callback) {
+    if (!callback) {
+      return;
+    }
+
+    if (!languages) {
+      var LANGUAGES = '/shared/resources/languages.json';
+      exports.loadJSON(LANGUAGES, function loadLanguages(data) {
+        if (data) {
+          languages = data;
+          callback(languages);
+        }
+      });
+    } else {
+      callback(languages);
+    }
+  };
+
+  exports.getSupportedLanguages = getSupportedLanguages;
+})(this);
+
+/**
  * L10n helper
  */
 

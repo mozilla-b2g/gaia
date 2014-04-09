@@ -11,6 +11,9 @@ require(['modules/battery'], function(Battery) {
       l10n.localize(batteryDesc,
                     'batteryLevel-percent-' + Battery.state,
                     { level: Battery.level });
+      if (batteryDesc.hidden) {
+        batteryDesc.hidden = false;
+      }
     };
 
     Battery.observe('level', _refreshText);

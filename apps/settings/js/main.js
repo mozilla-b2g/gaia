@@ -14,7 +14,7 @@ require(['config/require'], function() {
      * the root panel when in two column.
      * XXX: Currently we don't separate the navigation logic of one column and
      *      two column layout, so that the root panel will not be deactivated
-     *      in in one column layout.
+     *      in one column layout.
      */
     SettingsService.init('root');
 

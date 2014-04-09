@@ -10,10 +10,11 @@
   paths: {
     'prim': 'empty:',
     'settings': 'empty:',
+    'shared/async_storage': 'empty:',
+    'shared/keyboard_helper': 'empty:',
     'shared/lazy_loader': 'empty:',
-    'shared/settings_listener': 'empty:',
     'shared/manifest_helper': 'empty:',
-    'shared/keyboard_helper': 'empty:'
+    'shared/settings_listener': 'empty:',
   },
 
   findNestedDependencies: true,
