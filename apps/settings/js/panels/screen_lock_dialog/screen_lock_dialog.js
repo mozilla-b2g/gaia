@@ -31,7 +31,7 @@ define(function(require) {
 
       _passcodeBuffer: '',
 
-      _getAllElements: function() {
+      _getAllElements: function sld_getAllElements() {
         this.passcodePanel = this._panel;
         this.passcodeInput = this._panel.querySelector('.passcode-input');
         this.passcodeDigits = this._panel.querySelectorAll('.passcode-digit');
@@ -43,7 +43,7 @@ define(function(require) {
           this._panel.querySelector('.passcode-change');
       },
 
-      init: function() {
+      init: function sld_onInit() {
         this._getAllElements();
         this.passcodeInput.addEventListener('keypress', this);
         this.createPasscodeButton.addEventListener('click', this);
@@ -59,16 +59,16 @@ define(function(require) {
         this._fetchSettings();
       },
 
-      onInit: function(panel) {
+      onInit: function sld_onInit(panel) {
         this._panel = panel;
         this.init();
       },
 
-      onBeforeShow: function(panel, mode) {
+      onBeforeShow: function sld_onBeforeShow(panel, mode) {
         this._showDialogInMode(mode);
       },
 
-      _showDialogInMode: function(mode) {
+      _showDialogInMode: function sld_showDialogInMode(mode) {
         this._hideErrorMessage();
         this._MODE = mode;
         this.passcodePanel.dataset.mode = mode;
@@ -76,7 +76,7 @@ define(function(require) {
         this._updatePassCodeUI();
       },
 
-      handleEvent: function(evt) {
+      handleEvent: function sld_handleEvent(evt) {
         var settings;
         var passcode;
         var lock;
@@ -131,10 +131,11 @@ define(function(require) {
         }
       },
 
-      _enablePasscode: function() {
+      _enablePasscode: function sld_enablePasscode() {
         var settings;
         var passcode;
         var lock;
+
         if (this._passcodeBuffer.length === this._checkingLength[this._MODE]) {
           switch (this._MODE) {
             case 'create':
@@ -185,30 +186,30 @@ define(function(require) {
         }
       },
 
-      _fetchSettings: function pl_fetchSettings() {
+      _fetchSettings: function sld_fetchSettings() {
         SettingsListener.observe('lockscreen.passcode-lock.code', '0000',
           function(passcode) {
             this._settings.passcode = passcode;
         }.bind(this));
       },
 
-      _showErrorMessage: function pl_showErrorMessage(message) {
+      _showErrorMessage: function sld_showErrorMessage(message) {
         this.passcodePanel.dataset.passcodeStatus = 'error';
       },
 
-      _hideErrorMessage: function pl_hideErrorMessage() {
+      _hideErrorMessage: function sld_hideErrorMessage() {
         this.passcodePanel.dataset.passcodeStatus = '';
       },
 
-      _resetPasscodeStatus: function pl_resetPasscodeStatus() {
+      _resetPasscodeStatus: function sld_resetPasscodeStatus() {
         this.passcodePanel.dataset.passcodeStatus = '';
       },
 
-      _enableButton: function pl_enableButton() {
+      _enableButton: function sld_enableButton() {
         this.passcodePanel.dataset.passcodeStatus = 'success';
       },
 
-      _updatePassCodeUI: function pl_updatePassCodeUI() {
+      _updatePassCodeUI: function sld_updatePassCodeUI() {
         for (var i = 0; i < 8; i++) {
           if (i < this._passcodeBuffer.length) {
             this.passcodeDigits[i].dataset.dot = true;
@@ -218,7 +219,7 @@ define(function(require) {
         }
       },
 
-      _checkPasscode: function pl_checkPasscode() {
+      _checkPasscode: function sld_checkPasscode() {
         if (this._settings.passcode != this._passcodeBuffer) {
           this._showErrorMessage();
           return false;
@@ -228,7 +229,7 @@ define(function(require) {
         }
       },
 
-      _backToScreenLock: function pl_backToScreenLock() {
+      _backToScreenLock: function sld_backToScreenLock() {
         this._passcodeBuffer = '';
         this.passcodeInput.blur();
         SettingsService.navigate('screenLock');

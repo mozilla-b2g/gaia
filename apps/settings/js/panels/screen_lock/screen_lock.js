@@ -13,14 +13,14 @@ define(function(require) {
         lockscreenEnabled: false
       },
 
-      _getAllElements: function pl_getAllElements() {
+      _getAllElements: function sl_getAllElements() {
         this.screenlockPanel = this._panel;
         this.lockscreenEnable = this._panel.querySelector('.lockscreen-enable');
         this.passcodeEnable = this._panel.querySelector('.passcode-enable');
         this.passcodeEditButton = this._panel.querySelector('.passcode-edit');
       },
 
-      init: function pl_init() {
+      init: function sl_init() {
         this._getAllElements();
         this.passcodeEnable.addEventListener('click', this);
         this.lockscreenEnable.addEventListener('click', this);
@@ -28,12 +28,12 @@ define(function(require) {
         this._fetchSettings();
       },
 
-      onInit: function pl_onInit(panel) {
+      onInit: function sl_onInit(panel) {
         this._panel = panel;
         this.init();
       },
 
-      _fetchSettings: function pl_fetchSettings() {
+      _fetchSettings: function sl_fetchSettings() {
         SettingsListener.observe('lockscreen.enabled', false,
           function(enabled) {
             this._toggleLockscreen(enabled);
@@ -45,23 +45,23 @@ define(function(require) {
         }.bind(this));
       },
 
-      _togglePasscode: function pl_togglePasscode(enabled) {
+      _togglePasscode: function sl_togglePasscode(enabled) {
         this._settings.passcodeEnabled = enabled;
         this.screenlockPanel.dataset.passcodeEnabled = enabled;
         this.passcodeEnable.checked = enabled;
       },
 
-      _toggleLockscreen: function pl_toggleLockscreen(enabled) {
+      _toggleLockscreen: function sl_toggleLockscreen(enabled) {
         this._settings.lockscreenEnabled = enabled;
         this.screenlockPanel.dataset.lockscreenEnabled = enabled;
         this.lockscreenEnable.checked = enabled;
       },
 
-      _showDialog: function pl_showDialog(mode) {
+      _showDialog: function sl_showDialog(mode) {
         SettingsService.navigate('screenLock-passcode', mode);
       },
 
-      handleEvent: function pl_handleEvent(evt) {
+      handleEvent: function sl_handleEvent(evt) {
         switch (evt.target) {
           case this.passcodeEnable:
             evt.preventDefault();
