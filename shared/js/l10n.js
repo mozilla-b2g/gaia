@@ -1327,7 +1327,14 @@
     this.ctx.requestLocales(navigator.language);
     // mozSettings won't be required here when https://bugzil.la/780953 lands
     if (navigator.mozSettings) {
-      navigator.mozSettings.addObserver('language.current', function(event) {
+      // Need to get the setting value on startup (https://bugzil.la/988689)
+      var key = 'language.current';
+      var req = navigator.mozSettings.createLock().get(key);
+      req.onsuccess = function() {
+        navigator.mozL10n.language.code = req.result[key];
+      };
+      // Observer for future changes
+      navigator.mozSettings.addObserver(key, function(event) {
         navigator.mozL10n.language.code = event.settingValue;
       });
     }
