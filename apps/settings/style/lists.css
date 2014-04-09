@@ -114,9 +114,22 @@ ul li > label.pack-switch > small {
    right: 9rem;
 }
 
+/* multiple line item */
+ul li.multiline > small {
+  position: relative;
+  top: -3rem;
+  margin-bottom: -2.3rem;
+}
+
+ul li.multiline > small > span {
+  display: block;
+  padding-bottom: 0.2rem;
+}
+
 /* required for empty elements like Bluetooth */
 ul li small:not(:empty) + a,
-ul li small:not(:empty) + span {
+ul li small:not(:empty) + span,
+ul li.multiline > span {
   line-height: 4.4rem;
   padding-bottom: 0.1rem; /* Bug 903438 */
 }
