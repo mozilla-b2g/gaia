@@ -213,13 +213,13 @@ suite('settings.js', function() {
           'homescreen.manifestURL': config.GAIA_SCHEME +
             'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
-          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
-            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-          'language.current': config.GAIA_DEFAULT_LOCALE,
-          'debugger.remote-mode': 'adb-only',
           'ftu.manifestURL': config.GAIA_SCHEME +
             'communications.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
+          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
+            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'debugger.remote-mode': 'adb-only',
+          'language.current': config.GAIA_DEFAULT_LOCALE,
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
           'notification.ringtone': undefined,
@@ -240,9 +240,9 @@ suite('settings.js', function() {
             '/manifest.webapp',
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'debugger.remote-mode': 'disabled',
           'feedback.url': 'https://input.mozilla.org/api/v1/feedback/',
           'language.current': config.GAIA_DEFAULT_LOCALE,
-          'debugger.remote-mode': 'disabled',
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
           'notification.ringtone': undefined,
@@ -264,11 +264,36 @@ suite('settings.js', function() {
             '/manifest.webapp',
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
-          'language.current': config.GAIA_DEFAULT_LOCALE,
           'debugger.remote-mode': 'adb-devtools',
-          'screen.timeout': 0,
+          'language.current': config.GAIA_DEFAULT_LOCALE,
           'lockscreen.enabled': false,
           'lockscreen.locked': false,
+          'wallpaper.image': undefined,
+          'dialer.ringtone': undefined,
+          'notification.ringtone': undefined,
+          'ftu.pingURL': config.FTU_PING_URL },
+          result);
+        done();
+      });
+    });
+
+    test('SCREEN_TIMEOUT === 600', function(done) {
+      config.DEVICE_DEBUG = true;
+      config.SCREEN_TIMEOUT = 600;
+      var queue = app.execute(config);
+      queue.done(function(result) {
+        assert.deepEqual({
+          'debug.console.enabled': true,
+          'developer.menu.enabled': true,
+          'apz.force-enable': true,
+          'homescreen.manifestURL': config.GAIA_SCHEME +
+            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            '/manifest.webapp',
+          'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
+            config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
+          'debugger.remote-mode': 'adb-devtools',
+          'language.current': config.GAIA_DEFAULT_LOCALE,
+          'screen.timeout': 600,
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
           'notification.ringtone': undefined,
