@@ -11,7 +11,7 @@ requireApp('sms/js/utils.js');
 requireApp('sms/js/time_headers.js');
 
 requireApp('sms/test/unit/mock_attachment.js');
-requireApp('sms/test/unit/mock_async_storage.js');
+require('/shared/test/unit/mocks/mock_async_storage.js');
 requireApp('sms/test/unit/mock_compose.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_contacts.js');
