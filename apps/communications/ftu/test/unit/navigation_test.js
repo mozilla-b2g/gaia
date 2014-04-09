@@ -246,7 +246,10 @@ suite('navigation >', function() {
         observer.disconnect();
         assert.equal(UIManager.mainTitle.innerHTML, _('aboutBrowser'));
         var linkRef = document.getElementById('external-link-privacy');
-        assert.equal(linkRef.textContent, '<a>learn-more-privacy-link</a>');
+        assert.equal(linkRef.textContent,
+                     '<a class="external" ' +
+                     'href="https://www.mozilla.org/privacy/firefox-os/">' +
+                     'learn-more-privacy-link</a>');
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
