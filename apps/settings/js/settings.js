@@ -342,9 +342,9 @@ window.addEventListener('keydown', function handleSpecialKeys(event) {
 
 // startup & language switching
 function startupLocale() {
-  navigator.mozL10n.ready(function startupLocale() {
+  // XXX change to mozL10n.ready when https://bugzil.la/993188 is fixed
+  navigator.mozL10n.once(function startupLocale() {
     initLocale();
-    // XXX this might call `initLocale()` twice until bug 882592 is fixed
     window.addEventListener('localized', initLocale);
   });
 }

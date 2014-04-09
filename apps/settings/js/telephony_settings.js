@@ -23,7 +23,7 @@ var TelephonySettingHelper = (function(window, document, undefined) {
       return;
     }
 
-    navigator.mozL10n.ready(function loadWhenIdle() {
+    navigator.mozL10n.once(function loadWhenIdle() {
       var idleObserver = {
         time: 3,
         onidle: function() {

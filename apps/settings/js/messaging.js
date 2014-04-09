@@ -124,4 +124,4 @@ var Messaging = (function(window, document, undefined) {
   };
 })(this, document);
 
-navigator.mozL10n.ready(Messaging.init.bind(Messaging));
+navigator.mozL10n.once(Messaging.init.bind(Messaging));

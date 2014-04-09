@@ -302,5 +302,5 @@ var PhoneLock = {
 };
 
 // startup
-navigator.mozL10n.ready(PhoneLock.init.bind(PhoneLock));
+navigator.mozL10n.once(PhoneLock.init.bind(PhoneLock));
 

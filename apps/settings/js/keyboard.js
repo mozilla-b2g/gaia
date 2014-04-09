@@ -480,7 +480,7 @@ var DefaultKeyboardEnabledDialog = (function() {
   };
 })();
 
-navigator.mozL10n.ready(function keyboard_init() {
+navigator.mozL10n.once(function keyboard_init() {
   KeyboardPanel.init('#keyboard');
   EnabledLayoutsPanel.init('#keyboard-selection');
   DefaultKeyboardEnabledDialog.init();

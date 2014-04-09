@@ -74,4 +74,4 @@ var Hotspot = {
   }
 };
 
-navigator.mozL10n.ready(Hotspot.init.bind(Hotspot));
+navigator.mozL10n.once(Hotspot.init.bind(Hotspot));

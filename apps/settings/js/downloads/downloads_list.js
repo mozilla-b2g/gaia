@@ -442,5 +442,5 @@
 }(this));
 
 // startup
-navigator.mozL10n.ready(DownloadsList.init.bind(DownloadsList));
+navigator.mozL10n.once(DownloadsList.init.bind(DownloadsList));
 

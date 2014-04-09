@@ -29,7 +29,7 @@ suite('SimPinLock > ', function() {
   var stubById;
 
   suiteSetup(function(done) {
-    MockL10n.ready = function() {};
+    MockL10n.once = function() {};
     MockL10n._cachedParams = {};
     MockL10n.get = function(key, params) {
       if (!MockL10n._cachedParams[key]) {

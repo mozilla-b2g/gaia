@@ -23,7 +23,7 @@ suite('keyboard >', function() {
   suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    suiteSandbox.stub(MockL10n, 'ready');
+    suiteSandbox.stub(MockL10n, 'once');
 
     // XXX: As we use 'require' function of requirejs in PanelCache and it
     //      conflicts to the original require function, we replace it here.

@@ -52,5 +52,5 @@
     });
   };
 
-  navigator.mozL10n.ready(init);
+  navigator.mozL10n.once(init);
 })();

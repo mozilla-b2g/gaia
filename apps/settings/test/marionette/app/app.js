@@ -47,7 +47,7 @@ Settings.Selectors = {
   'improveSection': '#improveBrowserOS',
   'feedbackPanel': 'button[data-href="#improveBrowserOS-chooseFeedback"]',
   'soundMenuItem': '#menuItem-sound',
-  'languagePanel': '#languages',
+  'languageDesc': '#language-desc',
   'languageMenuItem': '#menuItem-languageAndRegion',
   'screenLockMenuItem': '#menuItem-phoneLock',
   'appPermissionPanel': '#menuItem-appPermissions',
@@ -57,6 +57,18 @@ Settings.Selectors = {
 Settings.prototype = {
 
   __proto__: Base.prototype,
+
+  _languageMap: {
+    english: {
+      desc: 'English (US)',
+    },
+    traditionalChinese: {
+      desc: '正體中文',
+    },
+    french: {
+      desc: 'Français',
+    }
+  },
 
   get bluetoothPanel() {
     this.openPanel('bluetoothMenuItem');
@@ -119,6 +131,20 @@ Settings.prototype = {
     this._languagePanel = this._languagePanel ||
       new LanguagePanel(this.client);
     return this._languagePanel;
+  },
+
+  get currentLanguageDesc() {
+    return this.findElement('languageDesc').text();
+  },
+
+  isLanguageDescTranslated: function(languageKey) {
+    if (this._languageMap[languageKey]) {
+      var desc = this._languageMap[languageKey].desc;
+      if (this.currentLanguageDesc === desc) {
+        return true;
+      }
+    }
+    return false;
   },
 
   get screenLockPanel() {

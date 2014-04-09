@@ -6,7 +6,7 @@
 'use strict';
 
 // handle Accessibility settings
-navigator.mozL10n.ready(function accessibilitySettings() {
+navigator.mozL10n.once(function accessibilitySettings() {
   var l10n = navigator.mozL10n;
   var settings = Settings.mozSettings;
   var gScreenreaderCheckbox =

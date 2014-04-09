@@ -2,7 +2,7 @@
 
 'use strict';
 
-navigator.mozL10n.ready(function loadWhenIdle() {
+navigator.mozL10n.once(function loadWhenIdle() {
   Settings.getSettings(function(results) {
     var enabled = results['identity.fxaccounts.ui.enabled'];
     if (!enabled) {

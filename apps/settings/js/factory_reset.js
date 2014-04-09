@@ -3,9 +3,7 @@
 
 'use strict';
 
-navigator.mozL10n.ready(function SettingsFactoryReset() {
-  var _ = navigator.mozL10n.get;
-
+navigator.mozL10n.once(function SettingsFactoryReset() {
   function factoryReset() {
     var power = navigator.mozPower;
     if (!power) {

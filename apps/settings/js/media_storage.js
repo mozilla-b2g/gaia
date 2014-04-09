@@ -512,4 +512,4 @@ var StackedBar = function(div) {
   };
 };
 
-navigator.mozL10n.ready(MediaStorage.init.bind(MediaStorage));
+navigator.mozL10n.once(MediaStorage.init.bind(MediaStorage));

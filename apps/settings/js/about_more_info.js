@@ -109,4 +109,4 @@ var AboutMoreInfo = {
   }
 };
 
-navigator.mozL10n.ready(AboutMoreInfo.init.bind(AboutMoreInfo));
+navigator.mozL10n.once(AboutMoreInfo.init.bind(AboutMoreInfo));

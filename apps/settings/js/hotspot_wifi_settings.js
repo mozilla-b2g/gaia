@@ -131,4 +131,4 @@ var HotspotWifiSettings = {
   }
 };
 
-navigator.mozL10n.ready(HotspotWifiSettings.init.bind(HotspotWifiSettings));
+navigator.mozL10n.once(HotspotWifiSettings.init.bind(HotspotWifiSettings));

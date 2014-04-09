@@ -211,5 +211,5 @@ var SimFdnLock = {
   }
 };
 
-navigator.mozL10n.ready(SimFdnLock.init.bind(SimFdnLock));
+navigator.mozL10n.once(SimFdnLock.init.bind(SimFdnLock));
 
