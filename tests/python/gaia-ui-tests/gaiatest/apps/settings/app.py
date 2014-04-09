@@ -110,7 +110,7 @@ class Settings(Base):
         return MediaStorage(self.marionette)
 
     def open_screen_lock_settings(self):
-        from gaiatest.apps.settings.regions.screen_lock import ScreenLock
+        from gaiatest.apps.settings.regions.phone_lock import ScreenLock
         self._tap_menu_item(self._screen_lock_menu_item_locator)
         return ScreenLock(self.marionette)
 
