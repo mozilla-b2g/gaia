@@ -38,6 +38,10 @@
   border: 0;
 }
 
+#keyboards iframe.hide {
+  transform: translateY(100%);
+}
+
 /* notification */
 #keyboard-show-ime-list > .fake-notification {
   background-repeat: no-repeat;

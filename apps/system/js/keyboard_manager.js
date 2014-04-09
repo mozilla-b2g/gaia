@@ -350,7 +350,7 @@ var KeyboardManager = {
       layoutFrame = this.loadKeyboardLayout(layout);
       // TODO make sure setLayoutFrameActive function is ready
       this.setLayoutFrameActive(layoutFrame, false);
-      layoutFrame.hidden = true;
+      layoutFrame.classList.add('hide');
       layoutFrame.dataset.frameManifestURL = layout.manifestURL;
     }
 
@@ -528,7 +528,7 @@ var KeyboardManager = {
       delete this.keyboardFrameContainer.dataset.transitionOut;
     }
 
-    this.showingLayout.frame.hidden = false;
+    this.showingLayout.frame.classList.remove('hide');
     this.setLayoutFrameActive(this.showingLayout.frame, true);
     this.showingLayout.frame.addEventListener(
          'mozbrowserresize', this, true);
@@ -623,7 +623,7 @@ var KeyboardManager = {
       return;
     }
 
-    frame.hidden = true;
+    frame.classList.add('hide');
     this.setLayoutFrameActive(frame, false);
     frame.removeEventListener('mozbrowserresize', this, true);
   },
