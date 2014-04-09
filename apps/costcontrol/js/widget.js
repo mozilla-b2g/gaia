@@ -488,18 +488,31 @@ var Widget = (function() {
 
   return {
     init: function() {
-        var SCRIPTS_NEEDED = [
-        'js/utils/debug.js',
-        'js/utils/formatting.js',
-        'js/utils/toolkit.js',
+      var SCRIPTS_NEEDED = [
         'js/common.js',
-        'js/costcontrol.js',
-        'js/costcontrol_init.js',
-        'js/config/config_manager.js',
-        'js/settings/networkUsageAlarm.js',
-        'js/views/BalanceView.js'
+        'js/utils/toolkit.js'
       ];
-      LazyLoader.load(SCRIPTS_NEEDED, initWidget);
+      // Check if the mandatory APIs to work  exist.
+      if (!window.navigator.mozMobileConnections ||
+          !window.navigator.mozIccManager ||
+          !window.navigator.mozNetworkStats) {
+        LazyLoader.load(SCRIPTS_NEEDED, function _showError() {
+          showSimError('no-sim2');
+        });
+      } else {
+        SCRIPTS_NEEDED = [
+          'js/utils/debug.js',
+          'js/utils/formatting.js',
+          'js/utils/toolkit.js',
+          'js/common.js',
+          'js/costcontrol.js',
+          'js/costcontrol_init.js',
+          'js/config/config_manager.js',
+          'js/settings/networkUsageAlarm.js',
+          'js/views/BalanceView.js'
+        ];
+        LazyLoader.load(SCRIPTS_NEEDED, initWidget);
+      }
     }
   };
 
