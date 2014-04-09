@@ -93,6 +93,7 @@ var CallLog = {
         self.allFilter.addEventListener('click',
           self.unfilter.bind(self));
         self.callLogContainer.addEventListener('click', self);
+        self.callLogContainer.addEventListener('contextmenu', self);
         self.selectAllThreads.addEventListener('click',
           self.selectAll.bind(self));
         self.deselectAllThreads.addEventListener('click',
@@ -326,7 +327,7 @@ var CallLog = {
       var parent = previousLogGroup.parentNode;
       parent.removeChild(previousLogGroup);
       this.insertInSection(logGroupDOM, parent);
-      return;
+      return logGroupDOM;
     }
 
     var groupSelector = '[data-timestamp="' + dayIndex + '"]';
@@ -337,7 +338,7 @@ var CallLog = {
       // in the right position.
       var section = sectionExists.getElementsByTagName('ol')[0];
       this.insertInSection(logGroupDOM, section);
-      return;
+      return logGroupDOM;
     }
 
     // We don't have any call for that day, so creating a new section
@@ -373,6 +374,8 @@ var CallLog = {
     }
 
     this.sticky.refresh();
+
+    return logGroupDOM;
   },
 
   // Method that places a log group in the right place inside a section
@@ -634,9 +637,7 @@ var CallLog = {
     this.callLogUpgradePercent.textContent = progress + '%';
   },
 
-  // Method that handles click events in the call log.
   // In case we are in edit mode, just update the counter of selected rows.
-  // Display the action menu, otherwise.
   handleEvent: function cl_handleEvent(evt) {
     if (document.body.classList.contains('recents-edit')) {
       this.updateHeaderCount();
@@ -649,7 +650,19 @@ var CallLog = {
     }
     var dataset = logItem.dataset;
     var phoneNumber = dataset.phoneNumber;
-    if (phoneNumber) {
+    if (!phoneNumber) {
+      return;
+    }
+
+    if (evt.type == 'click') {
+      if (navigator.mozIccManager &&
+          navigator.mozIccManager.iccIds.length > 1) {
+        KeypadManager.updatePhoneNumber(phoneNumber);
+        window.location.hash = '#keyboard-view';
+      } else {
+        CallHandler.call(phoneNumber, 0);
+      }
+    } else {
       var contactIds = (dataset.contactId) ? dataset.contactId : null;
       var contactId = null;
       if (contactIds !== null) {
@@ -663,6 +676,7 @@ var CallLog = {
         null,
         isMissedCall
       );
+      evt.preventDefault();
     }
   },
 

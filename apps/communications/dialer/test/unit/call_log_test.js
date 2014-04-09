@@ -2,21 +2,27 @@
 
 /* global CallLog */
 
-requireApp('communications/dialer/js/call_log.js');
+require('/dialer/js/call_log.js');
 require('/shared/js/dialer/utils.js');
 
-requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
-requireApp('communications/dialer/test/unit/mock_performance_testing_helper.js');
-requireApp('communications/dialer/test/unit/mock_phone_action_menu.js');
+require('/dialer/test/unit/mock_call_log_db_manager.js');
+require('/dialer/test/unit/mock_performance_testing_helper.js');
+require('/dialer/test/unit/mock_phone_action_menu.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
+require('/dialer/test/unit/mock_call_log_db_manager.js');
+require('/dialer/test/unit/mock_l10n.js');
+require('/dialer/test/unit/mock_performance_testing_helper.js');
+require('/dialer/test/unit/mock_call_handler.js');
+require('/dialer/test/unit/mock_keypad.js');
+require('/dialer/test/unit/mock_phone_number_action_menu.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
-
-requireApp('communications/shared/test/unit/mocks/mock_notification.js');
+require('/shared/test/unit/mocks/dialer/mock_keypad.js');
+require('/shared/test/unit/mocks/mock_notification.js');
 
 var mocksHelperForCallLog = new MocksHelper([
   'asyncStorage',
@@ -27,7 +33,9 @@ var mocksHelperForCallLog = new MocksHelper([
   'LazyLoader',
   'LazyL10n',
   'ContactPhotoHelper',
-  'StickyHeader'
+  'StickyHeader',
+  'CallHandler',
+  'KeypadManager'
 ]).init();
 
 suite('dialer/call_log', function() {
@@ -705,7 +713,7 @@ suite('dialer/call_log', function() {
 
     test('regular number', function() {
       groupDOM = CallLog.createGroup(incomingGroup);
-      CallLog.handleEvent({target: groupDOM});
+      CallLog.handleEvent({target: groupDOM, preventDefault: function() {}});
 
       sinon.assert.calledWith(
         phoneNumberActionMenuSpy,
@@ -718,7 +726,7 @@ suite('dialer/call_log', function() {
 
     test('missed number', function() {
       groupDOM = CallLog.createGroup(missedGroup);
-      CallLog.handleEvent({target: groupDOM});
+      CallLog.handleEvent({target: groupDOM, preventDefault: function() {}});
 
       sinon.assert.calledWith(
         phoneNumberActionMenuSpy,
@@ -735,6 +743,29 @@ suite('dialer/call_log', function() {
       CallLog._initialized = false;
     });
 
+    var simulateClick = function(button) {
+      var ev = new MouseEvent('click', {
+        view: window,
+        bubbles: true,
+        cancelable: true
+      });
+      button.dispatchEvent(ev);
+    };
+
+    var simulateContextMenu = function(button) {
+      var ev = document.createEvent('MouseEvents');
+      ev.initMouseEvent('contextmenu', true, false, window, 0, 0, 0, 0, 0,
+                        false, false, false, false, 2, null);
+      button.dispatchEvent(ev);
+    };
+
+    var longPressShouldShowActionMenu = function() {
+      var showSpy = this.sinon.spy(PhoneNumberActionMenu, 'show');
+      simulateContextMenu(CallLog.appendGroup(missedGroup));
+      sinon.assert.calledWith(
+        showSpy, missedGroup.contact.id, missedGroup.number);
+    };
+
     suite('One SIM', function() {
       setup(function() {
         MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
@@ -744,6 +775,15 @@ suite('dialer/call_log', function() {
       test('should not put the dual sim class on the container', function() {
         assert.isFalse(CallLog.callLogContainer.classList.contains('dual-sim'));
       });
+
+      test('tapping the entry should place call immediately', function() {
+        var callSpy = this.sinon.spy(CallHandler, 'call');
+        simulateClick(CallLog.appendGroup(missedGroup));
+        sinon.assert.calledWith(callSpy, missedGroup.number, 0);
+      });
+
+      test('long pressing the entry should show action menu',
+           longPressShouldShowActionMenu);
     });
 
     suite('Dual SIM', function() {
@@ -756,6 +796,19 @@ suite('dialer/call_log', function() {
       test('should put the dual sim class on the container', function() {
         assert.isTrue(CallLog.callLogContainer.classList.contains('dual-sim'));
       });
+
+      test('tapping the entry should switch to keypad view', function() {
+        var updateSpy = this.sinon.spy(KeypadManager, 'updatePhoneNumber');
+        assert.notEqual(window.location.hash, '#keyboard-view');
+        assert.notEqual(KeypadManager.phoneNumber(), missedGroup.number);
+        simulateClick(CallLog.appendGroup(missedGroup));
+        assert.equal(window.location.hash, '#keyboard-view');
+        assert.equal(KeypadManager.phoneNumber(), missedGroup.number);
+        sinon.assert.calledWith(updateSpy, missedGroup.number);
+      });
+
+      test('long pressing the entry should show action menu',
+           longPressShouldShowActionMenu);
     });
   });
 });
