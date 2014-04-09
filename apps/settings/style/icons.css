@@ -323,6 +323,11 @@ html[dir="rtl"] aside.pack-end {
   text-align: left;
 }
 
+html[dir="rtl"] section#downloads aside.pack-end {
+  left: auto;
+  right: 0;
+}
+
 html[dir="rtl"] #menuItem-callWaiting .alert-label > span {
   left: 1.5rem;
   right: auto;
