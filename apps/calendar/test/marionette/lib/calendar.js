@@ -1,15 +1,12 @@
 'use strict';
 
 var AdvancedSettings = require('./views/advanced_settings'),
-    CreateAccount = require('./views/create_account'),
     Day = require('./views/day'),
     EditEvent = require('./views/edit_event'),
     Marionette = require('marionette-client'),
-    ModifyAccount = require('./views/modify_account'),
     Month = require('./views/month'),
     MonthDay = require('./views/month_day'),
     ReadEvent = require('./views/read_event'),
-    Settings = require('./views/settings'),
     Week = require('./views/week');
 
 function Calendar(client) {
@@ -18,14 +15,11 @@ function Calendar(client) {
 
   // Initialize our view remotes.
   this.advancedSettings = new AdvancedSettings(client);
-  this.createAccount = new CreateAccount(client);
   this.day = new Day(client);
   this.editEvent = new EditEvent(client);
-  this.modifyAccount = new ModifyAccount(client);
   this.month = new Month(client);
   this.monthDay = new MonthDay(client);
   this.readEvent = new ReadEvent(client);
-  this.settings = new Settings(client);
   this.week = new Week(client);
 }
 module.exports = Calendar;
@@ -34,10 +28,8 @@ Calendar.ORIGIN = 'app://calendar.gaiamobile.org';
 
 Calendar.prototype = {
   launch: function(opts) {
-    var client = this.client;
-
-    client.apps.launch(Calendar.ORIGIN);
-    client.apps.switchToApp(Calendar.ORIGIN);
+    this.client.apps.launch(Calendar.ORIGIN);
+    this.client.apps.switchToApp(Calendar.ORIGIN);
 
     // Wait for the document body to know we're really 'launched'.
     this.client.helper.waitForElement('body');
@@ -49,11 +41,6 @@ Calendar.prototype = {
           .click();
       }
     }
-
-    // The #time-views pannel has a transitionend event after app is launched.
-    // It is happened on b2g-desktop client, not on the device.
-    registerTransitionEndEvent(client, '#time-views');
-    waitForTransitionEnd(client, '#time-views');
   },
 
   get addEventButton() {
@@ -64,30 +51,8 @@ Calendar.prototype = {
     return this.client.findElement('#current-month-year');
   },
 
-  get settingsButton() {
-    return this.client.findElement('#time-header button.settings');
-  },
-
-  openSettingsView: function() {
-    this._toggleSettingsView();
-    this.settings.waitForDisplay();
-  },
-
-  closeSettingsView: function() {
-    this._toggleSettingsView();
-  },
-
-  _toggleSettingsView: function() {
-    var client = this.client;
-    registerTransitionEndEvent(client, '#time-views');
-    this.settingsButton.click();
-    waitForTransitionEnd(client, '#time-views');
-  },
-
   openAdvancedSettingsView: function() {
-    this.openSettingsView();
-    this.settings.setupAdvancedSettings();
-    this.advancedSettings.waitForDisplay();
+    // TODO(gareth)
   },
 
   openDayView: function() {
@@ -119,40 +84,6 @@ Calendar.prototype = {
       .findElement('#view-selector a[href="#today"]')
       .click();
     return this;
-  },
-
-  createCalDavAccount: function(opts) {
-    var modifyAccount = this.modifyAccount;
-
-    this.openSettingsView();
-
-    this.settings.createAccount();
-    this.createAccount.waitForDisplay();
-
-    this.createAccount.createCalDavAccount();
-    modifyAccount.waitForDisplay();
-
-    if (opts) {
-      if (opts.user) {
-        modifyAccount.user = opts.user;
-      }
-      if (opts.password) {
-        modifyAccount.password = opts.password;
-      }
-      if (opts.fullUrl) {
-        modifyAccount.fullUrl = opts.fullUrl;
-      }
-    }
-
-    modifyAccount.save();
-    this.waitForKeyboardHide();
-    this.closeSettingsView();
-  },
-
-  syncCalendar: function() {
-    this.openSettingsView();
-    this.settings.sync();
-    this.closeSettingsView();
   },
 
   /**
@@ -314,51 +245,3 @@ Calendar.prototype = {
     return this;
   }
 };
-
-/**
- * Add transitionend event on a element.
- * We need to register the event
- * before we do waitForTransitionEnd function for each time.
- *
- * @param {Object} client marionette client instance.
- * @param {String} element css selector of the element.
- */
-function registerTransitionEndEvent(client, selector) {
-  // Add transitionend event for the element.
-  client.executeScript(function(selector) {
-    var doc = window.wrappedJSObject.document,
-        ele = doc.querySelector(selector);
-
-    // Init transition status of the element.
-    ele.dataset.transitionStatus = '';
-    ele.addEventListener('transitionend', function onTransitionEnd() {
-      ele.removeEventListener('transitionend', onTransitionEnd);
-      ele.dataset.transitionStatus = 'end';
-    });
-  }, [selector]);
-}
-
-/**
- * Wait for the transition end event of a element.
- *
- * @param {Object} client marionette client instance.
- * @param {String} element css selector of the element.
- */
-function waitForTransitionEnd(client, selector) {
-  client.waitFor(function() {
-    var transitionStatus =
-      client.executeScript(function(selector) {
-        var doc = window.wrappedJSObject.document,
-            ele = doc.querySelector(selector),
-            transitionStatus = ele.dataset.transitionStatus;
-
-        // Clean the transition status.
-        if (transitionStatus === 'end') {
-          ele.dataset.transitionStatus = '';
-        }
-        return transitionStatus;
-      }, [selector]);
-
-    return (transitionStatus === 'end');
-  });
-}
