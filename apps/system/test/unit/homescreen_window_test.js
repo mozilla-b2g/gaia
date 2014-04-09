@@ -183,7 +183,7 @@ suite('system/HomescreenWindow', function() {
 
       test('Homescreen is crashed at foreground:' +
           'rerender right away.', function() {
-        homescreenWindow._visibilityState = 'foreground';
+        homescreenWindow._selfVisibilityState = 'foreground';
         homescreenWindow.restart();
         assert.isTrue(stubKill.called);
         clock.tick(1);
@@ -192,7 +192,7 @@ suite('system/HomescreenWindow', function() {
       });
 
       test('Homescreen is crashed at background: killed', function() {
-        homescreenWindow._visibilityState = 'background';
+        homescreenWindow._selfVisibilityState = 'background';
         homescreenWindow.restart();
         assert.isTrue(stubKill.called);
       });
