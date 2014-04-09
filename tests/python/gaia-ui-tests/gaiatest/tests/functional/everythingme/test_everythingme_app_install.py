@@ -27,12 +27,12 @@ class TestEverythingMeInstallApp(GaiaTestCase):
         app = collection.applications[0]
         app_name = app.name
         app.long_tap_to_install()
-        app.tap_save_to_home_screen()
+        add_link = app.tap_save_to_home_screen()
+        add_link.switch_to_add_bookmark_frame()
+        add_link.tap_add_bookmark_to_home_screen_dialog_button()
 
-        notification_message = collection.notification_message
-        self.assertEqual(notification_message, '%s added to Home Screen' % app_name)
-
-        homescreen = collection.tap_exit()
+        # Switch to Home Screen to look for app
+        self.device.touch_home_button()
 
         self.assertTrue(homescreen.is_app_installed(app_name),
                         'The app %s was not found to be installed on the home screen.' % app_name)
