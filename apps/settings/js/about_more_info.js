@@ -3,8 +3,7 @@
 var AboutMoreInfo = {
 
   init: function about_init() {
-    this.loadImei();
-    this.loadIccId();
+    this.loadHardwareInfo();
     this.loadGaiaCommit();
   },
 
@@ -53,59 +52,29 @@ var AboutMoreInfo = {
     req.send();
   },
 
-  loadImei: function about_loadImei() {
+  loadHardwareInfo: function about_loadHardwareInfo() {
+    var mobileConnection = getMobileConnection();
+    if (!mobileConnection)
+      return;
+
+    if (!IccHelper)
+      return;
+
+    var deviceInfoIccid = document.getElementById('deviceInfo-iccid');
     var deviceInfoImei = document.getElementById('deviceInfo-imei');
-    var conns = navigator.mozMobileConnections;
-
-    if (!navigator.mozTelephony || !conns) {
+    var info = IccHelper.iccInfo;
+    if (!navigator.mozTelephony || !info) {
+      deviceInfoIccid.parentNode.hidden = true;
       deviceInfoImei.parentNode.hidden = true;
-      return;
-    }
-
-    // update imei, we use the first mobile conneciton.
-    var req = conns[0].sendMMI('*#06#');
-    req.onsuccess = function getIMEI() {
-      if (req.result && req.result.statusMessage) {
-        deviceInfoImei.textContent = req.result.statusMessage;
-      } else {
-        navigator.mozL10n.localize(deviceInfoImei, 'unavailable');
-      }
-    };
-    req.onerror = function() {
-      navigator.mozL10n.localize(deviceInfoImei, 'unavailable');
-    };
-  },
-
-  loadIccId: function about_loadIccId() {
-    var deviceInfoIccIds = document.getElementById('deviceInfo-iccids');
-    var conns = navigator.mozMobileConnections;
-
-    if (!navigator.mozTelephony || !conns) {
-      deviceInfoIccIds.parentNode.hidden = true;
-      return;
-    }
-
-    var multiSim = conns.length > 1;
-
-    // update iccids
-    while (deviceInfoIccIds.hasChildNodes()) {
-      deviceInfoIccIds.removeChild(deviceInfoIccIds.lastChild);
-    }
-    Array.prototype.forEach.call(conns, function(conn, index) {
-      var span = document.createElement('span');
-      if (conn.iccId) {
-        span.textContent = multiSim ?
-          'SIM ' + (index + 1) + ': ' + conn.iccId : conn.iccId;
-      } else {
-        if (multiSim) {
-          navigator.mozL10n.localize(span,
-            'deviceInfo-ICCID-unavailable-sim', { index: index + 1 });
-        } else {
-          navigator.mozL10n.localize(span, 'unavailable');
+    } else {
+      deviceInfoIccid.textContent = info.iccid;
+      var req = mobileConnection.sendMMI('*#06#');
+      req.onsuccess = function getIMEI() {
+        if (req.result && req.result.statusMessage) {
+          deviceInfoImei.textContent = req.result.statusMessage;
         }
-      }
-      deviceInfoIccIds.appendChild(span);
-    });
+      };
+    }
   }
 };
 
