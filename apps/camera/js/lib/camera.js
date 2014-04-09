@@ -497,6 +497,9 @@ Camera.prototype.startRecording = function(options) {
 
   this.emit('busy');
 
+  // Lock orientation during video recording
+  this.orientation.stop();
+
   // First check if there is enough free space
   this.getFreeVideoStorageSpace(gotStorageSpace);
 
@@ -572,6 +575,9 @@ Camera.prototype.stopRecording = function() {
   this.mozCamera.stopRecording();
   this.set('recording', false);
   this.emit('busy');
+
+  // Unlock orientation when stopping video recording
+  this.orientation.start();
 
   // Register a listener for writing
   // completion of current video file
