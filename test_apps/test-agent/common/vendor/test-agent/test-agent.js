@@ -733,6 +733,11 @@
     _queue: null,
 
     /**
+     * Loading counter
+     */
+    _batchCount: 0,
+
+    /**
      * Used for queue identification.
      */
     _currentId: null,
@@ -806,21 +811,21 @@
      * Begins an item in the queue.
      */
     _begin: function() {
-      var item = this._queue[0];
+      this._batchCount++;
 
-      if (item) {
-        item();
-      } else {
-        this._fireCallbacks();
-      }
-    },
+      var promises = this._queue.map(function(item) {
+        return item();
+      });
 
-    /**
-     * Moves to the next item in the queue.
-     */
-    _next: function() {
-      this._queue.shift();
-      this._begin();
+      this._queue.length = 0;
+
+      Promise.all(promises).then(function() {
+        this._batchCount--;
+        if (!this._batchCount) {
+          // don't fire callbacks if we have pending stuff
+          this._fireCallbacks();
+        }
+      }.bind(this));
     },
 
     /**
@@ -843,15 +848,13 @@
 
     /**
      * Function that does the actual require work work.
-     * Handles calling ._next on cached file or on onload
-     * success.
+     * returns a promise that will be resolved when the action is finished
      *
      * @private
      */
     _require: function require(url, callback, options) {
       var prefix = this.prefix,
           suffix = '',
-          self = this,
           element,
           key,
           document = this.targetWindow.document;
@@ -860,7 +863,7 @@
         if (callback) {
           callback();
         }
-        return this._next();
+        return Promise.resolve();
       }
 
       if (this.bustCache) {
@@ -881,24 +884,28 @@
             element.setAttribute(key, options[key]);
           }
         }
-      };
-
-      function oncomplete() {
-        if (callback) {
-          callback();
-        }
-        self._next();
       }
 
+      var promise = new Promise(function(resolve, reject) {
+        function oncomplete() {
+          if (callback) {
+            callback();
+          }
+          resolve();
+        }
 
-      //XXX: should we report missing
-      //files differently ? maybe
-      //fail the whole test case
-      //when a file is missing...?
-      element.onerror = oncomplete;
-      element.onload = oncomplete;
+
+        //XXX: should we report missing
+        //files differently ? maybe
+        //fail the whole test case
+        //when a file is missing...?
+        element.onerror = oncomplete;
+        element.onload = oncomplete;
+      });
 
       document.getElementsByTagName('head')[0].appendChild(element);
+
+      return promise;
     }
 
   };

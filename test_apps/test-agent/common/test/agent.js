@@ -68,7 +68,8 @@
 
   var worker = new TestAgent.BrowserWorker({
         /* this is where your tests will be loaded into */
-        sandbox: './sandbox.html'
+        sandbox: './sandbox.html',
+        bustCache: false
       });
 
   worker.use(TestAgent.BrowserWorker.Config, {
