@@ -3259,6 +3259,7 @@ suite('thread_ui.js >', function() {
         'bubbles': true,
         'cancelable': true
       });
+  
 
       this.sinon.spy(LinkActionHandler, 'onClick');
       this.sinon.spy(ThreadUI, 'promptContact');
@@ -3321,7 +3322,8 @@ suite('thread_ui.js >', function() {
       // Show menu with 'delete' option
       assert.equal(MockOptionMenu.calls[0].items[2].l10nId, 'delete');
     });
-    test(' "long-press" on an error bubble shows a menu with resend option',
+    test(' "long-press" on an error outgoing sms bubble shows a menu ' +
+      'with resend option',
       function() {
 
       // Create a message with a delivery error:
@@ -3342,6 +3344,59 @@ suite('thread_ui.js >', function() {
 
       // Confirm that the menu contained a "resend-message" option
       assert.equal(MockOptionMenu.calls[0].items[2].l10nId, 'resend-message');
+    });
+    test(' "long-press" on an error outgoing mms bubble should show a menu '+
+      ' with resend option',
+      function() {
+      // Create a message with a download error:
+      ThreadUI.appendMessage({
+        id: 10,
+        type: 'mms',
+        delivery: 'error',
+        deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
+        subject: 'error download',
+        timestamp: +new Date(Date.now() - 150000),
+        expiryDate: +new Date(Date.now() + ONE_DAY_TIME * 2)
+      });
+
+      // Retrieve the message node
+      link = document.getElementById('message-10').querySelector('.error');
+
+      // Dispatch custom event for testing long press
+      link.dispatchEvent(contextMenuEvent);
+      assert.ok(MockOptionMenu.calls.length, 1);
+
+      // Confirm that the menu contained a "resend-message" option
+      assert.equal(MockOptionMenu.calls[0].items[2].l10nId, 'resend-message');
+    });
+    test(' "long-press" on an incoming download error mms bubble should not '+
+      'show a menu with resend option',
+      function() {
+      // Create a message with a download error:
+      ThreadUI.appendMessage({
+        id: 11,
+        sender: '123456',
+        iccId: 'B',
+        type: 'mms',
+        delivery: 'not-downloaded',
+        deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
+        subject: 'error download',
+        timestamp: +new Date(Date.now() - 150000),
+        expiryDate: +new Date(Date.now() + ONE_DAY_TIME * 2)
+      });
+
+      // Retrieve the message node
+      element = document.getElementById('message-11').
+      link = element.querySelector('.not-downloaded-message');
+
+      // Dispatch custom event for testing long press
+      link.dispatchEvent(contextMenuEvent);
+      assert.ok(MockOptionMenu.calls.length, 1);
+      function checkResend(element) {
+        return (element.l10nId === 'resend-message');
+      }
+      // Confirm that the menu doesn't contained a "resend-message" option
+      assert.isFalse(MockOptionMenu.calls[0].items.some(checkResend));
     });
   });
 
