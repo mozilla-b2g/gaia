@@ -44,13 +44,15 @@ var GridManager = (function() {
 
   // This prevents that windowWidth and DEVICE_HEIGHT get 0 when screen is off
   // and homescreen is relaunched.
-  document.addEventListener('visibilitychange', function() {
-    if (document.hidden === false) {
-      windowWidth = window.innerWidth;
-      DEVICE_HEIGHT = window.innerHeight;
-      windowWidthMinusOne = windowWidth - 0.001;
-    }
-  });
+  if (windowWidth === 0 || DEVICE_HEIGHT === 0) {
+    document.addEventListener('visibilitychange',
+      function watchVisibilitychange() {
+        document.removeEventListener('visibilitychange', watchVisibilitychange);
+        windowWidth = window.innerWidth;
+        DEVICE_HEIGHT = window.innerHeight;
+        windowWidthMinusOne = windowWidth - 0.001;
+    });
+  }
 
   var swipeThreshold, swipeFriction, tapThreshold;
 

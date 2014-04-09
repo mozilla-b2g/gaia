@@ -22,11 +22,14 @@ var DockManager = (function() {
   var windowWidth = window.innerWidth;
   // This prevents that windowWidth gets 0 when screen is off and homescreen is
   // relaunched.
-  document.addEventListener('visibilitychange', function() {
-    if (document.hidden === false) {
-      windowWidth = window.innerWidth;
-    }
-  });
+  if (windowWidth === 0) {
+    document.addEventListener('visibilitychange',
+      function watchVisibilitychange() {
+        document.removeEventListener('visibilitychange', watchVisibilitychange);
+        windowWidth = window.innerWidth;
+      }
+    );
+  }
 
   var getX = (function getXWrapper() {
     return isTouch ? function(e) { return e.touches[0].pageX } :
