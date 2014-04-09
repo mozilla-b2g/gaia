@@ -560,7 +560,7 @@ webapp-shared: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts $(STAGE_DIR) clear-s
 # Web app optimization steps (like precompling l10n, concatenating js files, etc..).
 # You need xulrunner ($(XULRUNNER_BASE_DIRECTORY)) to do this, and you need the app
 # to have been built (app-makefiles).
-webapp-optimize: app-makefiles $(XULRUNNER_BASE_DIRECTORY)
+webapp-optimize: multilocale app-makefiles $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,webapp-optimize)
 
 .PHONY: optimize-clean
@@ -1069,7 +1069,7 @@ really-clean: clean
 # Generally we got manifest from webapp-manifest.js unless manifest is generated
 # from Makefile of app. so we will copy manifest.webapp if it's avaiable in
 # build_stage/
-copy-build-stage-manifest: app-makefiles
+copy-build-stage-manifest: app-makefiles multilocale
 	@$(call run-js-command,copy-build-stage-manifest)
 
 build-test-unit: $(NPM_INSTALLED_PROGRAMS)
@@ -1085,3 +1085,9 @@ docs: $(NPM_INSTALLED_PROGRAMS)
 .PHONY: watch
 watch: $(NPM_INSTALLED_PROGRAMS)
 	node build/watcher.js
+
+.PHONY: multilocale
+multilocale: app-makefiles webapp-shared $(XULRUNNER_BASE_DIRECTORY)
+ifneq ($(LOCALE_BASEDIR),)
+	@$(call run-js-command,multilocale)
+endif

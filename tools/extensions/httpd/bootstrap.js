@@ -20,9 +20,11 @@ function startup(data, reason) {
 
   // Make sure all applications are considered launchable
   Cu.import('resource://gre/modules/Webapps.jsm');
+  const env = Cc['@mozilla.org/process/environment;1'].
+              getService(Ci.nsIEnvironment);
   DOMApplicationRegistry.allAppsLaunchable = true;
 
-  const RE_EN_PROP = /(\w+)\.en-US\.(properties)$/;
+  const LANG_EN = 'en-US';
   const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
   const GAIA_APPDIRS = Services.prefs.getCharPref("extensions.gaia.appdirs");
   const GAIA_DIR = Services.prefs.getCharPref("extensions.gaia.dir");
@@ -49,9 +51,15 @@ function startup(data, reason) {
     dump(data + '\n');
   }
 
+  function isl10nFile(fname) {
+    var matched;
+    return fname.contains('.ini') || fname.contains('manifest.webapp');
+  }
+
   function startupHttpd(baseDir, port) {
     const httpdURL = 'chrome://httpd.js/content/httpd.js';
     let httpd = {};
+    env.set('GAIA_DIR', GAIA_DIR);
     Services.scriptloader.loadSubScript(httpdURL, httpd);
     let server = new httpd.nsHttpServer();
     server.registerDirectory('/', new LocalFile(baseDir));
@@ -86,34 +94,24 @@ function startup(data, reason) {
         '/xpcshell-commonjs.js', commonjs);
       utils = commonjs.require('./utils');
       let multilocale = commonjs.require('./multilocale');
+      let sharedDir = utils.getFile(GAIA_DIR, 'shared');
       l10nManager = new multilocale.L10nManager(GAIA_DIR,
-        utils.joinPath(GAIA_DIR, 'shared'), LOCALES_FILE, LOCALE_BASEDIR);
-      let filesInShared = utils.ls(utils.getFile(l10nManager.sharedDir), true);
+        LOCALES_FILE, LOCALE_BASEDIR);
+      let filesInShared = utils.ls(sharedDir, true);
       let localesFile = utils.resolve(LOCALES_FILE, GAIA_DIR);
 
       // Finding out which file we need to handle.
       appDirs.forEach(function(appDir) {
         let appDirFile = utils.getFile(appDir);
-        utils.ls(appDirFile, true).forEach(function(fileInApp) {
-          let fname = fileInApp.leafName;
+        let filesInApp = utils.ls(appDirFile, true);
+
+        [...filesInApp, ...filesInShared].forEach(function(file) {
+          let fname = file.leafName;
+          let relativePath = file.path.substr(GAIA_DIR.length);
           // localized ini and manifest files will be generated in runtime
           // so we need handle path if client request those files.
           // and we use "LocalizationHandler" to handle them.
-          if (fname.contains('.ini') || fname.contains('manifest.webapp')) {
-            let relativePath = fileInApp.path.substr(GAIA_DIR.length);
-            server.registerPathHandler(relativePath, LocalizationHandler);
-            return;
-          }
-        });
-
-        // register all manifest, ini and properties files in shared folder for
-        // each app.
-        filesInShared.forEach(function(fileInShared) {
-          let fname = fileInShared.leafName;
-          if (fname.contains('.ini') || fname.contains('manifest.webapp')) {
-            // we added '../..' for matching path which is processed in httpd.js
-            // please reference _processHeaders in httpd.js
-            let relativePath = fileInShared.path.substr(GAIA_DIR.length);
+          if (isl10nFile(fname)) {
             server.registerPathHandler(relativePath, LocalizationHandler);
           }
         });
@@ -121,7 +119,8 @@ function startup(data, reason) {
 
       // languages.json
       server.registerFile('/shared/resources/languages.json', localesFile);
-      server.registerDirectory('/locales/', new LocalFile(LOCALE_BASEDIR));
+      server.registerDirectory('/locales/',
+        new LocalFile(l10nManager.localeBasedir));
     }
 
 
@@ -248,11 +247,14 @@ function startup(data, reason) {
           let modifiedIni = serializeIni(modifyLocaleIni(iniOriginal, locales));
           response.write(modifiedIni);
         } else if (file.leafName.contains('manifest.webapp')) {
+          let buildDirectoryFile = getFile(GAIA_DIR, 'build_stage',
+            file.parent.leafName);
           response.setHeader('Content-Type', 'application/json');
           let webapp = {
             manifestFile: file,
             sourceDirectoryFile: file.parent,
-            sourceDirectoryName: file.parent.leafName
+            sourceDirectoryName: file.parent.leafName,
+            buildDirectoryFile: buildDirectoryFile
           };
           let manifest = l10nManager.localizeManifest(webapp);
           response.write(JSON.stringify(manifest));

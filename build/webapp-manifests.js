@@ -113,17 +113,7 @@ function fillAppManifest(webapp) {
   utils.ensureFolderExists(webappTargetDir);
   let gaia = utils.gaia.getInstance(config);
 
-  if (gaia.l10nManager) {
-    let manifest = gaia.l10nManager.localizeManifest(webapp);
-    manifestFile = webappTargetDir.clone();
-    utils.ensureFolderExists(webappTargetDir);
-    manifestFile.append('manifest.webapp');
-    let args = DEBUG ? [manifest, undefined, 2] : [manifest];
-    utils.writeContent(manifestFile, JSON.stringify.apply(JSON, args));
-  } else {
-    webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
-  }
-
+  webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
   manifestInterAppHostnames(webapp, webappTargetDir);
 
   // Add webapp's entry to the webapps global manifest.

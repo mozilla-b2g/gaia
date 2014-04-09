@@ -306,12 +306,10 @@ WebappShared.prototype.pushFileByType = function(kind, path) {
       }
       break;
     case 'locales':
-      if (this.config.GAIA_INLINE_LOCALES !== '1') {
-        var localeName = path.substr(0, path.lastIndexOf('.'));
-        if (this.used.locales.indexOf(localeName) === -1) {
-          this.used.locales.push(localeName);
-          this.pushLocale(localeName);
-        }
+      var localeName = path.substr(0, path.lastIndexOf('.'));
+      if (this.used.locales.indexOf(localeName) === -1) {
+        this.used.locales.push(localeName);
+        this.pushLocale(localeName);
       }
       break;
     case 'elements':
