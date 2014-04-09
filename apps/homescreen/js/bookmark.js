@@ -55,7 +55,9 @@ Bookmark.prototype = {
           GridManager.install(new Bookmark(e.target));
           break;
         case 'removed':
-          // TODO bug 988177
+          var bookmarkIndex = Bookmark.prototype.generateIndex(e.target.id);
+          var icon = GridManager.getIconForBookmark(bookmarkIndex);
+          icon && icon.app.uninstall();
           break;
       }
       updateHomescreenRevisionId();

@@ -26,7 +26,7 @@ mocksHelperForHome.init();
 
 suite('homescreen.js >', function() {
 
-  var dialog;
+  var dialog, icon;
 
   mocksHelperForHome.attachTestHelpers();
 
@@ -36,6 +36,10 @@ suite('homescreen.js >', function() {
     dialog.innerHTML = MockRequestHtml;
     document.body.appendChild(dialog);
     ConfirmDialog.init();
+    icon = new MockIcon(null, {
+      id: 'test',
+      type: GridItemsFactory.TYPE.BOOKMARK
+    });
   });
 
   suiteTeardown(function() {
@@ -73,10 +77,6 @@ suite('homescreen.js >', function() {
   });
 
   test(' Homescreen showEditBookmarkDialog ', function() {
-    var icon = new MockIcon(null, {
-      id: 'test'
-    });
-
     var activities = MockMozActivity.calls;
     assert.equal(activities.length, 0);
 
@@ -85,6 +85,20 @@ suite('homescreen.js >', function() {
     assert.equal(activities.length, 1);
     var activity = activities[0];
     assert.equal(activity.name, 'save-bookmark');
+    assert.equal(activity.data.type, 'url');
+    assert.equal(activity.data.url, icon.app.id);
+  });
+
+  test(' Homescreen showAppDialog for bookmarks ', function() {
+    var activities = MockMozActivity.calls;
+    assert.equal(activities.length, 0);
+
+    Homescreen.showAppDialog(icon);
+
+    assert.equal(activities.length, 1);
+    // Activity data
+    var activity = activities[0];
+    assert.equal(activity.name, 'remove-bookmark');
     assert.equal(activity.data.type, 'url');
     assert.equal(activity.data.url, icon.app.id);
   });
