@@ -1463,6 +1463,7 @@ function write (chunk) {
 
     var events = [
       'ontext',
+      'oncdata',
       'onopentag',
       'onclosetag',
       'onerror',
@@ -1641,6 +1642,10 @@ function write (chunk) {
 
     ontext: function(data) {
       this._fireHandler('ontext', data);
+    },
+
+    oncdata: function(data) {
+      this._fireHandler('oncdata', data);
     },
 
     onerror: function(data) {
@@ -2739,6 +2744,12 @@ function write (chunk) {
 
 (function(module, ns) {
 
+  var Caldav;
+  if (typeof(window) !== 'undefined') {
+    Caldav = window.Caldav;
+  } else {
+    Caldav = ns.require('caldav');
+  }
   var XHR = ns.require('xhr');
 
   /**
@@ -2941,11 +2952,20 @@ function write (chunk) {
     //value where key is local tag name
     //and value is the text.
     ontext: function(data) {
-      var handler = this.handler;
-      this.current[this.currentTag[handler.tagField]] =
-        CalendarDataHandler.parseICAL(data);
-    }
+      return CalendarDataHandler.ondata.call(this, data);
+    },
+
+    // Servers can also stash ical data inside of an xml cdata.
+    oncdata: function(data) {
+      return CalendarDataHandler.ondata.call(this, data);
+    },
   });
+
+  CalendarDataHandler.ondata = function(data) {
+    var handler = this.handler;
+    this.current[this.currentTag[handler.tagField]] =
+      CalendarDataHandler.parseICAL(data);
+  };
 
   /**
    * Default ical parser handler.
