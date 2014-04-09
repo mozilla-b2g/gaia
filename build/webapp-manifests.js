@@ -3,7 +3,8 @@ var config;
 const { Cc, Ci, Cr, Cu } = require('chrome');
 Cu.import('resource://gre/modules/Services.jsm');
 
-const INSTALL_TIME = 132333986000;
+const INSTALL_TIME = Date.now();
+const UPDATE_TIME = Date.now();
 const DEBUG = false;
 // Match this to value in applications-data.js
 
@@ -136,6 +137,7 @@ function fillAppManifest(webapp) {
     installOrigin: url,
     receipt: null,
     installTime: INSTALL_TIME,
+    updateTime: UPDATE_TIME,
     manifestURL: url + '/manifest.webapp',
     appStatus: getAppStatus(webapp.manifest.type),
     localId: localId
@@ -274,7 +276,8 @@ function fillExternalAppManifest(webapp) {
     origin: origin,
     installOrigin: installOrigin,
     receipt: null,
-    installTime: 132333986000,
+    installTime: INSTALL_TIME,
+    updateTime: UPDATE_TIME,
     manifestURL: manifestURL,
     removable: removable,
     localId: id++,
