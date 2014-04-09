@@ -5,12 +5,15 @@ var Agent = TestAgent,
     Apps = Agent.server,
     Suite = Agent.Suite,
     suite = new Suite({
-      paths: [fsPath.resolve(__dirname + '/../../../apps/'),
-              fsPath.resolve(__dirname + '/../../../test_apps/')],
+      path: fsPath.resolve(__dirname + '/../../../'),
+      includeDirs: ['apps/', 'test_apps/'],
       strictMode: false,
       testDir: 'test/unit',
       libDir: 'js/',
-      testSuffix: '_test.js'
+      testSuffix: '_test.js',
+      // Blacklist can pass array of relative paths to skip
+      // relative path must be included if includeDirs is given
+      blacklist: []
     });
 
 server.use(Apps.Suite, suite);

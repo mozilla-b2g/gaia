@@ -846,18 +846,9 @@ TEST_ARGS=--coverage
 endif
 # Temp make file method until we can switch
 # over everything in test
-ifneq ($(strip $(APP)),)
-APP_TEST_LIST=$(shell find apps/$(APP) test_apps/$(APP) -name '*_test.js' 2> /dev/null | grep '/test/unit/')
-endif
 .PHONY: test-agent-test
 test-agent-test: node_modules
-ifneq ($(strip $(APP)),)
-	@echo 'Running tests for $(APP)';
-	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
-else
-	@echo 'Running all tests';
-	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
-endif
+	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) --app $(APP)
 
 .PHONY: test-agent-server
 test-agent-server: common-install node_modules
