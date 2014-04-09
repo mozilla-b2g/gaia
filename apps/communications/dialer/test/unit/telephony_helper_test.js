@@ -1,4 +1,4 @@
-/* global ConfirmDialog, MocksHelper, MockIccHelper, MockMozL10n,
+/* global ConfirmDialog, MocksHelper, MockIccHelper, MockLazyL10n, MockMozL10n,
    MockMozMobileConnection, MockNavigatorMozTelephony, MockNavigatorSettings,
    MockTonePlayer, Promise, TelephonyHelper */
 
@@ -74,6 +74,7 @@ suite('telephony helper', function() {
     MockMozMobileConnection.mTeardown();
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatorSettings.mTeardown();
+    MockLazyL10n.keys = {};
   });
 
   function createCallError(name) {
@@ -350,15 +351,19 @@ suite('telephony helper', function() {
     test('should handle FDNBlockedError', function() {
       subject.call('123', 0);
       mockCall.onerror(createCallError('FDNBlockedError'));
-      assert.isTrue(spyConfirmShow.calledWith('fdnIsEnabledTitle',
-                                              'fdnIsEnabledMessage'));
+      assert.isTrue(spyConfirmShow.calledWith('fdnIsActiveTitle',
+                                              'fdnIsActiveMessage'));
+      assert.deepEqual(MockLazyL10n.keys.fdnIsActiveMessage,
+                       {number: '123'});
     });
 
     test('should handle FdnCheckFailure', function() {
       subject.call('123', 0);
       mockCall.onerror(createCallError('FdnCheckFailure'));
-      assert.isTrue(spyConfirmShow.calledWith('fdnIsEnabledTitle',
-                                              'fdnIsEnabledMessage'));
+      assert.isTrue(spyConfirmShow.calledWith('fdnIsActiveTitle',
+                                              'fdnIsActiveMessage'));
+      assert.deepEqual(MockLazyL10n.keys.fdnIsActiveMessage,
+                       {number: '123'});
     });
 
     test('should play the busy tone', function() {
@@ -442,8 +447,10 @@ suite('telephony helper', function() {
         subject.call('123', 0);
         mockPromise.then(function() {
           mockCall.onerror(createCallError('FDNBlockedError'));
-          assert.isTrue(spyConfirmShow.calledWith('fdnIsEnabledTitle',
-                                                  'fdnIsEnabledMessage'));
+          assert.isTrue(spyConfirmShow.calledWith('fdnIsActiveTitle',
+                                                  'fdnIsActiveMessage'));
+          assert.deepEqual(MockLazyL10n.keys.fdnIsActiveMessage,
+                           {number: '123'});
         }).then(done, done);
       });
 
@@ -451,8 +458,10 @@ suite('telephony helper', function() {
         subject.call('123', 0);
         mockPromise.then(function() {
           mockCall.onerror(createCallError('FdnCheckFailure'));
-          assert.isTrue(spyConfirmShow.calledWith('fdnIsEnabledTitle',
-                                                  'fdnIsEnabledMessage'));
+          assert.isTrue(spyConfirmShow.calledWith('fdnIsActiveTitle',
+                                                  'fdnIsActiveMessage'));
+          assert.deepEqual(MockLazyL10n.keys.fdnIsActiveMessage,
+                           {number: '123'});
         }).then(done, done);
       });
 
