@@ -247,7 +247,6 @@ apps/homescreen/everything.me/js/Core.js
 apps/homescreen/everything.me/js/api/DoATAPI.js
 apps/homescreen/everything.me/js/api/apiv2.js
 apps/homescreen/everything.me/js/developer/utils.1.3.js
-apps/homescreen/everything.me/js/etmmanager.js
 apps/homescreen/everything.me/js/everything.me.js
 apps/homescreen/everything.me/js/helpers/EventHandler.js
 apps/homescreen/everything.me/js/helpers/IconManager.js
@@ -260,7 +259,6 @@ apps/homescreen/everything.me/js/plugins/Analytics.js
 apps/homescreen/everything.me/js/plugins/Scroll.js
 apps/homescreen/everything.me/js/search/control.js
 apps/homescreen/everything.me/modules/BackgroundImage/BackgroundImage.js
-apps/homescreen/everything.me/modules/Collection/Collection.js
 apps/homescreen/everything.me/modules/CollectionsSuggest/CollectionsSuggest.js
 apps/homescreen/everything.me/modules/ConnectionMessage/ConnectionMessage.js
 apps/homescreen/everything.me/modules/Features/Features.js
