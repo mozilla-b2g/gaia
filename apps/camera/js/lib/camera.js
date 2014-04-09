@@ -870,6 +870,9 @@ Camera.prototype.configureZoom = function(previewSize) {
       }
     }
   };
+
+  this.setZoom(this.getMinimumZoom());
+  this.emit('zoomconfigured');
 };
 
 Camera.prototype.getMinimumZoom = function() {
