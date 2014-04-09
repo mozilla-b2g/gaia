@@ -1,5 +1,5 @@
 'use strict';
-/* globals Evme, EvmeManager */
+/* globals Evme, EvmeManager, Promise */
 
 // Mute jshint errors about the weird syntax used in this file
 /* jshint -W057 */// Weird construction. Is 'new' necessary?
@@ -853,22 +853,47 @@ void function() {
   }
 
   function createCollectionIcon(settings, callback) {
-    var icons = Evme.Utils.pluck(settings.apps, 'icon');
-
-    if (icons.length < Evme.Config.numberOfAppInCollectionIcon) {
-      var extraIcons = Evme.Utils.pluck(settings.extraIconsData, 'icon');
-      icons = icons.concat(extraIcons).slice(0,
-                                      Evme.Config.numberOfAppInCollectionIcon);
-    }
-
-    // revert to default icon (if exists) instead of rendering an empty icon
-    // see bug 968918
-    if (!icons.length && settings.defaultIcon) {
-      callback(settings.defaultIcon);
-    } else {
-      Evme.IconGroup.get(icons, function onIconCreated(iconCanvas) {
-        callback(iconCanvas.toDataURL());
+    var
+    iconsNeeded = Evme.Config.numberOfAppInCollectionIcon,
+    iconPromises =
+      settings.apps.slice(0, iconsNeeded).map(function getIcon(app) {
+        return new Promise(function done(resolve) {
+          if (app.staticType === Evme.STATIC_APP_TYPE.CLOUD) {
+            resolve(app.icon);
+          } else {
+            // try to use the un-manipulated app icon so we can apply
+            // the shadow and sizing needed for the collection icon
+            EvmeManager.retrieveAppIcon(app, function success(blob) {
+              resolve(blob);
+            }, function error() {
+              // fallback to homescreen manipulated icon
+              resolve(app.icon);
+            });
+          }
+        });
       });
+
+    Promise.all(iconPromises).then(function iconsReady(icons) {
+      if (icons.length < iconsNeeded) {
+        var extraIcons = Evme.Utils.pluck(settings.extraIconsData, 'icon');
+        icons = icons.concat(extraIcons).slice(0, iconsNeeded);
+      }
+
+      // revert to default icon (if exists) instead of rendering an empty icon
+      // see bug 968918
+      if (!icons.length) {
+        useDefault();
+      } else {
+        Evme.IconGroup.get(icons, function onIconCreated(iconCanvas) {
+          callback(iconCanvas.toDataURL());
+        });
+      }
+    }, useDefault).catch(useDefault);
+
+    function useDefault() {
+      if (settings.defaultIcon) {
+        callback(settings.defaultIcon);
+      }
     }
   }
 
