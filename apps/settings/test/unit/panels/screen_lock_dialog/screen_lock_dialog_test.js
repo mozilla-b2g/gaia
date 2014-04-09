@@ -7,11 +7,11 @@ mocha.globals([
   'SettingsService'
 ]);
 
-suite('ScreenLockPasscode > ', function() {
+suite('ScreenLockDialog > ', function() {
   'use strict';
 
   var fakePanel;
-  var screenLockPasscode;
+  var screenLockDialog;
   var realMozSettings;
   var realSettingsListener;
   var realSettingsService;
@@ -21,19 +21,19 @@ suite('ScreenLockPasscode > ', function() {
       'shared_mocks/mock_navigator_moz_settings',
       'shared_mocks/mock_settings_listener',
       'unit/mock_settings_service',
-      'panels/screen_lock_passcode/screen_lock_passcode'
+      'panels/screen_lock_dialog/screen_lock_dialog'
     ];
 
     var maps = {
-      'panels/screen_lock_passcode/screen_lock_passcode': {
+      'panels/screen_lock_dialog/screen_lock_dialog': {
         'modules/settings_service': 'unit/mock_settings_service'
       }
     };
 
     testRequire(modules, maps,
       function(MockNavigatorSettings, MockSettingsListener, MockSettingsService,
-        ScreenLockPasscode) {
-          screenLockPasscode = ScreenLockPasscode();
+        ScreenLockDialog) {
+          screenLockDialog = ScreenLockDialog();
 
           // fake all related DOM elements
           fakePanel = document.createElement('div');
@@ -57,7 +57,7 @@ suite('ScreenLockPasscode > ', function() {
           realMozSettings = window.navigator.mozSettings;
           window.navigator.mozSettings = MockNavigatorSettings;
 
-          screenLockPasscode.onInit(fakePanel);
+          screenLockDialog.onInit(fakePanel);
           done();
     });
   });
@@ -70,20 +70,20 @@ suite('ScreenLockPasscode > ', function() {
 
   suite('when clicking on passcodeContainer', function() {
     setup(function() {
-      this.sinon.stub(screenLockPasscode.passcodeInput, 'focus');
-      screenLockPasscode.passcodeContainer.click();
+      this.sinon.stub(screenLockDialog.passcodeInput, 'focus');
+      screenLockDialog.passcodeContainer.click();
     });
 
     test('we would focus passcodeInput', function() {
-      assert.ok(screenLockPasscode.passcodeInput.focus.called);
+      assert.ok(screenLockDialog.passcodeInput.focus.called);
     });
   });
 
   suite('_backToScreenLock > ', function() {
     setup(function() {
-      this.sinon.stub(screenLockPasscode.passcodeInput, 'blur');
+      this.sinon.stub(screenLockDialog.passcodeInput, 'blur');
       this.sinon.stub(SettingsService, 'navigate');
-      screenLockPasscode._backToScreenLock();
+      screenLockDialog._backToScreenLock();
     });
 
     test('we would go back to screenLock panel', function() {
@@ -91,88 +91,88 @@ suite('ScreenLockPasscode > ', function() {
     });
 
     test('we would blur focus on passcodeInput', function() {
-      assert.ok(screenLockPasscode.passcodeInput.blur.called);
+      assert.ok(screenLockDialog.passcodeInput.blur.called);
     });
 
     test('we would clean _passcodeBuffer', function() {
-      assert.equal(screenLockPasscode._passcodeBuffer, '');
+      assert.equal(screenLockDialog._passcodeBuffer, '');
     });
   });
 
   suite('_checkPasscode > ', function() {
     suiteSetup(function() {
-      screenLockPasscode._passcodeBuffer = '';
-      screenLockPasscode._settings.passcode = '0000';
+      screenLockDialog._passcodeBuffer = '';
+      screenLockDialog._settings.passcode = '0000';
     });
 
     setup(function() {
-      this.sinon.stub(screenLockPasscode, '_showErrorMessage');
-      this.sinon.stub(screenLockPasscode, '_hideErrorMessage');
+      this.sinon.stub(screenLockDialog, '_showErrorMessage');
+      this.sinon.stub(screenLockDialog, '_hideErrorMessage');
     });
 
     suite('passcode is different', function() {
       setup(function() {
-        screenLockPasscode._settings.passcode = '0123';
-        screenLockPasscode._passcodeBuffer = '0000';
-        screenLockPasscode._checkPasscode();
+        screenLockDialog._settings.passcode = '0123';
+        screenLockDialog._passcodeBuffer = '0000';
+        screenLockDialog._checkPasscode();
       });
       test('we would show error message', function() {
-        assert.ok(screenLockPasscode._showErrorMessage.called);
+        assert.ok(screenLockDialog._showErrorMessage.called);
       });
     });
 
     suite('passcode is the same', function() {
       setup(function() {
-        screenLockPasscode._settings.passcode = '0000';
-        screenLockPasscode._passcodeBuffer = '0000';
-        screenLockPasscode._checkPasscode();
+        screenLockDialog._settings.passcode = '0000';
+        screenLockDialog._passcodeBuffer = '0000';
+        screenLockDialog._checkPasscode();
       });
       test('we would hide error message', function() {
-        assert.ok(screenLockPasscode._hideErrorMessage.called);
+        assert.ok(screenLockDialog._hideErrorMessage.called);
       });
     });
   });
 
   suite('handleEvent > ', function() {
     setup(function() {
-      this.sinon.stub(screenLockPasscode, '_enableButton');
-      this.sinon.stub(screenLockPasscode, '_showErrorMessage');
-      this.sinon.stub(screenLockPasscode, '_showDialogInMode');
-      this.sinon.stub(screenLockPasscode, '_updatePassCodeUI');
-      this.sinon.stub(screenLockPasscode, '_backToScreenLock');
+      this.sinon.stub(screenLockDialog, '_enableButton');
+      this.sinon.stub(screenLockDialog, '_showErrorMessage');
+      this.sinon.stub(screenLockDialog, '_showDialogInMode');
+      this.sinon.stub(screenLockDialog, '_updatePassCodeUI');
+      this.sinon.stub(screenLockDialog, '_backToScreenLock');
     });
 
     suite('create/new lock > ', function() {
       suite('with right passcode', function() {
         setup(function() {
           // we would add one more zero (charCode = 96)
-          screenLockPasscode._passcodeBuffer = '0000000';
-          screenLockPasscode._MODE = 'create';
-          screenLockPasscode.handleEvent({
-            target: screenLockPasscode.passcodeInput,
+          screenLockDialog._passcodeBuffer = '0000000';
+          screenLockDialog._MODE = 'create';
+          screenLockDialog.handleEvent({
+            target: screenLockDialog.passcodeInput,
             charCode: 48,
             preventDefault: function() {}
           });
         });
         test('enable button', function() {
-          assert.ok(screenLockPasscode._enableButton.called);
+          assert.ok(screenLockDialog._enableButton.called);
         });
       });
 
       suite('with wrong passcode', function() {
         setup(function() {
           // we would add one more zero (charCode = 96)
-          screenLockPasscode._passcodeBuffer = '0000000';
-          screenLockPasscode._MODE = 'create';
-          screenLockPasscode.handleEvent({
-            target: screenLockPasscode.passcodeInput,
+          screenLockDialog._passcodeBuffer = '0000000';
+          screenLockDialog._MODE = 'create';
+          screenLockDialog.handleEvent({
+            target: screenLockDialog.passcodeInput,
             charCode: 49,
             preventDefault: function() {}
           });
         });
         test('show error message, clean passcodeBuffer', function() {
-          assert.ok(screenLockPasscode._showErrorMessage.called);
-          assert.equal(screenLockPasscode._passcodeBuffer, '');
+          assert.ok(screenLockDialog._showErrorMessage.called);
+          assert.equal(screenLockDialog._passcodeBuffer, '');
         });
       });
     });
@@ -180,35 +180,35 @@ suite('ScreenLockPasscode > ', function() {
     suite('confirm > ', function() {
       suite('with right passcode', function() {
         setup(function() {
-          screenLockPasscode._settings.passcode = '0000';
+          screenLockDialog._settings.passcode = '0000';
           // we would add one more zero (charCode = 96)
-          screenLockPasscode._passcodeBuffer = '000';
-          screenLockPasscode._MODE = 'confirm';
-          screenLockPasscode.handleEvent({
-            target: screenLockPasscode.passcodeInput,
+          screenLockDialog._passcodeBuffer = '000';
+          screenLockDialog._MODE = 'confirm';
+          screenLockDialog.handleEvent({
+            target: screenLockDialog.passcodeInput,
             charCode: 48,
             preventDefault: function() {}
           });
         });
         test('we would back to screenLock', function() {
-          assert.ok(screenLockPasscode._backToScreenLock.called);
+          assert.ok(screenLockDialog._backToScreenLock.called);
         });
       });
 
       suite('with wrong passcode', function() {
         setup(function() {
-          screenLockPasscode._settings.passcode = '0001';
+          screenLockDialog._settings.passcode = '0001';
           // we would add one more zero (charCode = 96)
-          screenLockPasscode._passcodeBuffer = '000';
-          screenLockPasscode._MODE = 'confirm';
-          screenLockPasscode.handleEvent({
-            target: screenLockPasscode.passcodeInput,
+          screenLockDialog._passcodeBuffer = '000';
+          screenLockDialog._MODE = 'confirm';
+          screenLockDialog.handleEvent({
+            target: screenLockDialog.passcodeInput,
             charCode: 48,
             preventDefault: function() {}
           });
         });
         test('we would reset passcodeBuffer', function() {
-          assert.equal(screenLockPasscode._passcodeBuffer, '');
+          assert.equal(screenLockDialog._passcodeBuffer, '');
         });
       });
     });
@@ -216,35 +216,35 @@ suite('ScreenLockPasscode > ', function() {
     suite('confirmLock > ', function() {
       suite('with right passcode', function() {
         setup(function() {
-          screenLockPasscode._settings.passcode = '0000';
+          screenLockDialog._settings.passcode = '0000';
           // we would add one more zero (charCode = 96)
-          screenLockPasscode._passcodeBuffer = '000';
-          screenLockPasscode._MODE = 'confirmLock';
-          screenLockPasscode.handleEvent({
-            target: screenLockPasscode.passcodeInput,
+          screenLockDialog._passcodeBuffer = '000';
+          screenLockDialog._MODE = 'confirmLock';
+          screenLockDialog.handleEvent({
+            target: screenLockDialog.passcodeInput,
             charCode: 48,
             preventDefault: function() {}
           });
         });
         test('we would back to screenLock', function() {
-          assert.ok(screenLockPasscode._backToScreenLock.called);
+          assert.ok(screenLockDialog._backToScreenLock.called);
         });
       });
 
       suite('with wrong passcode', function() {
         setup(function() {
-          screenLockPasscode._settings.passcode = '0001';
+          screenLockDialog._settings.passcode = '0001';
           // we would add one more zero (charCode = 96)
-          screenLockPasscode._passcodeBuffer = '000';
-          screenLockPasscode._MODE = 'confirmLock';
-          screenLockPasscode.handleEvent({
-            target: screenLockPasscode.passcodeInput,
+          screenLockDialog._passcodeBuffer = '000';
+          screenLockDialog._MODE = 'confirmLock';
+          screenLockDialog.handleEvent({
+            target: screenLockDialog.passcodeInput,
             charCode: 48,
             preventDefault: function() {}
           });
         });
         test('we would reset passcodeBuffer', function() {
-          assert.equal(screenLockPasscode._passcodeBuffer, '');
+          assert.equal(screenLockDialog._passcodeBuffer, '');
         });
       });
     });
@@ -252,37 +252,37 @@ suite('ScreenLockPasscode > ', function() {
     suite('edit > ', function() {
       suite('with right passcode', function() {
         setup(function() {
-          screenLockPasscode._settings.passcode = '0000';
+          screenLockDialog._settings.passcode = '0000';
           // we would add one more zero (charCode = 96)
-          screenLockPasscode._passcodeBuffer = '000';
-          screenLockPasscode._MODE = 'edit';
-          screenLockPasscode.handleEvent({
-            target: screenLockPasscode.passcodeInput,
+          screenLockDialog._passcodeBuffer = '000';
+          screenLockDialog._MODE = 'edit';
+          screenLockDialog.handleEvent({
+            target: screenLockDialog.passcodeInput,
             charCode: 48,
             preventDefault: function() {}
           });
         });
         test('we would do a lot', function() {
-          assert.ok(screenLockPasscode._updatePassCodeUI.called);
-          assert.ok(screenLockPasscode._showDialogInMode.calledWith('new'));
-          assert.equal(screenLockPasscode._passcodeBuffer, '');
+          assert.ok(screenLockDialog._updatePassCodeUI.called);
+          assert.ok(screenLockDialog._showDialogInMode.calledWith('new'));
+          assert.equal(screenLockDialog._passcodeBuffer, '');
         });
       });
 
       suite('with wrong passcode', function() {
         setup(function() {
-          screenLockPasscode._settings.passcode = '0001';
+          screenLockDialog._settings.passcode = '0001';
           // we would add one more zero (charCode = 96)
-          screenLockPasscode._passcodeBuffer = '000';
-          screenLockPasscode._MODE = 'edit';
-          screenLockPasscode.handleEvent({
-            target: screenLockPasscode.passcodeInput,
+          screenLockDialog._passcodeBuffer = '000';
+          screenLockDialog._MODE = 'edit';
+          screenLockDialog.handleEvent({
+            target: screenLockDialog.passcodeInput,
             charCode: 48,
             preventDefault: function() {}
           });
         });
         test('we would reset passcodeBuffer', function() {
-          assert.equal(screenLockPasscode._passcodeBuffer, '');
+          assert.equal(screenLockDialog._passcodeBuffer, '');
         });
       });
     });

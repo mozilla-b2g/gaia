@@ -4,7 +4,7 @@ define(function(require) {
 
   var SettingsService = require('modules/settings_service');
 
-  var ScreenLockPasscode = function ctor_screenlock_passcode() {
+  var ScreenLockDialog = function ctor_screenlock_dialog() {
     return {
       _panel: null,
 
@@ -237,5 +237,5 @@ define(function(require) {
     };
   };
 
-  return ScreenLockPasscode;
+  return ScreenLockDialog;
 });
