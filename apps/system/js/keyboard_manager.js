@@ -325,7 +325,7 @@ var KeyboardManager = {
       layoutFrame = this.loadKeyboardLayout(layout);
     // TODO make sure setLayoutFrameActive function is ready
     this.setLayoutFrameActive(layoutFrame, false);
-    layoutFrame.hidden = true;
+    layoutFrame.dataset.hidden = true;
     layoutFrame.dataset.frameName = layout.id;
     layoutFrame.dataset.frameManifestURL = layout.manifestURL;
     layoutFrame.dataset.framePath = layout.path;
@@ -483,7 +483,7 @@ var KeyboardManager = {
     // to the foreground; this is effectively equal to calling
     // setKeyboardToShow() *then* call resetShowingKeyboard().
     if (launchOnly) {
-      this.showingLayout.frame.hidden = true;
+      this.showingLayout.frame.dataset.hidden = true;
       return;
     }
     // remove transitionOut for showing keyboard while user foucus quickly again
@@ -491,7 +491,7 @@ var KeyboardManager = {
       delete this.keyboardFrameContainer.dataset.transitionOut;
     }
 
-    this.showingLayout.frame.hidden = false;
+    delete this.showingLayout.frame.dataset.hidden;
     this.setLayoutFrameActive(this.showingLayout.frame, true);
     this.showingLayout.frame.addEventListener(
          'mozbrowserresize', this, true);
@@ -573,7 +573,7 @@ var KeyboardManager = {
     if (!this.showingLayout.frame) {
       return;
     }
-    this.showingLayout.frame.hidden = true;
+    this.showingLayout.frame.dataset.hidden = true;
     this.setLayoutFrameActive(this.showingLayout.frame, false);
     this.showingLayout.frame.removeEventListener(
         'mozbrowserresize', this, true);
