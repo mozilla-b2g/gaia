@@ -1,7 +1,8 @@
 'use strict';
 
-var Calendar = require('./lib/calendar'),
-    assert = require('chai').assert;
+var Calendar = require('./lib/calendar');
+var swipe = require('./lib/swipe');
+var assert = require('chai').assert;
 
 marionette('month view', function() {
   var app;
@@ -43,4 +44,27 @@ marionette('month view', function() {
       return container.getAttribute('scrollTop') > 0;
     });
   });
+
+  suite('swipe should change date', function() {
+
+    function testSwipe(isNext) {
+      swipe.changeDate({
+        app: app,
+        isNext: isNext,
+        getDate: function() {
+          return app.monthDay.date;
+        }
+      });
+    }
+
+    test('next date', function() {
+      testSwipe(true);
+    });
+
+    test('prev date', function() {
+      testSwipe(false);
+    });
+
+  });
+
 });

@@ -24,6 +24,10 @@ suiteGroup('Views.DayBased', function() {
   var controller;
   var template;
 
+  function getDateId(date) {
+    return Calendar.Calc.getDayId(date);
+  }
+
   setup(function() {
     id = 0;
     app = testSupport.calendar.app();
@@ -669,7 +673,7 @@ suiteGroup('Views.DayBased', function() {
     };
 
     var el = subject.create();
-    assert.equal(subject.id, date.valueOf(), 'id');
+    assert.equal(subject.id, getDateId(date), 'id');
 
     assert.ok(el);
     assert.equal(el.tagName.toLowerCase(), 'section');

@@ -91,13 +91,6 @@ suiteGroup('Views.Day', function() {
     );
   });
 
-  test('#_getId', function() {
-    var date = new Date();
-    var id = subject._getId(date);
-
-    assert.equal(date.valueOf(), id);
-  });
-
   test('#_nextTime', function() {
     var date = new Date(2012, 1, 15);
     var expected = new Date(2012, 1, 16);

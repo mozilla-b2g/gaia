@@ -1,7 +1,8 @@
 'use strict';
 
-var Calendar = require('./lib/calendar'),
-    assert = require('chai').assert;
+var Calendar = require('./lib/calendar');
+var swipe = require('./lib/swipe');
+var assert = require('chai').assert;
 
 marionette('day view', function() {
   var app;
@@ -18,6 +19,25 @@ marionette('day view', function() {
     // XXX: we don't use app.checkOverflow() because of Bug 971691
     // 20 chars is a "safe" limit if font-family is Fira Sans
     assert.operator(app.headerContent.text().length, '<', 21);
+  });
+
+  suite('create event', function() {
+
+    setup(function() {
+      app.createEvent({
+        title: 'Foo',
+        location: 'Bar',
+        startHour: 1,
+        duration: 1
+      });
+      app.day.waitForDisplay();
+    });
+
+    test('should not create unnecessary day views', function() {
+      // we do not reuse the day view abstraction since it bypasses the problem
+      var events = client.findElements('#day-view .event');
+      assert.equal(events.length, 1);
+    });
   });
 
   suite('events longer than 2h', function() {
@@ -60,6 +80,28 @@ marionette('day view', function() {
       // there is a delay between tap and view display
       app.editEvent.waitForDisplay();
     });
+  });
+
+  suite('swipe should change date', function() {
+
+    function testSwipe(isNext) {
+      swipe.changeDate({
+        app: app,
+        isNext: isNext,
+        getDate: function() {
+          return app.day.date;
+        }
+      });
+    }
+
+    test('next date', function() {
+      testSwipe(true);
+    });
+
+    test('prev date', function() {
+      testSwipe(false);
+    });
+
   });
 
 });

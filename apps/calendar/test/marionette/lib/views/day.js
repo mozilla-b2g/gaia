@@ -15,6 +15,11 @@ Day.prototype = {
   get events() {
     // FIXME: use a very specific selector because of Bug 988079
     return this.findElements('section[data-date].active .event');
+  },
+
+  get date() {
+    var el = this.findElement('.active[data-date]');
+    return new Date(el.getAttribute('data-date'));
   }
 
 };

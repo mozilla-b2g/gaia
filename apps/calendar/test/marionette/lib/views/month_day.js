@@ -12,6 +12,10 @@ MonthDay.prototype = {
 
   selector: '#months-day-view',
 
+  get date() {
+    return new Date(this.element.getAttribute('data-date'));
+  },
+
   get container() {
     return this.findElement('#event-list');
   },

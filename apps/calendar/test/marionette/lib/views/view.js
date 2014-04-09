@@ -14,20 +14,20 @@ View.prototype = {
    */
   findElement: function(selector) {
     return this
-      .getElement()
+      .element
       .findElement(selector);
   },
 
   findElements: function(selector) {
     return this
-      .getElement()
+      .element
       .findElements(selector);
   },
 
   /**
    * Grab the root element associated with this view.
    */
-  getElement: function() {
+  get element() {
     return this.client.findElement(this.selector);
   },
 
@@ -36,7 +36,7 @@ View.prototype = {
    * this view is displayed.
    */
   displayed: function() {
-    return this.getElement().displayed();
+    return this.element.displayed();
   },
 
   waitForDisplay: function() {

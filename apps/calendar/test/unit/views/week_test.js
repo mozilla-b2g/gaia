@@ -285,7 +285,7 @@ suiteGroup('Views.Week', function() {
 
     test('child placement', function() {
       var container = subject.frameContainer;
-      assert.length(container.children, 3);
+      assert.length(container.children, 1);
     });
 
     test('#_appendSidebarHours', function() {
