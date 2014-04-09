@@ -93,6 +93,9 @@ var Rocketbar = {
 
     // Listen for messages from search app
     window.addEventListener('iac-search-results', this);
+
+    // Listen for FTU events
+    window.addEventListener('ftudone', this);
   },
 
   /**
@@ -141,6 +144,9 @@ var Rocketbar = {
         break;
       case 'iac-search-results':
         this.handleSearchMessage(e);
+        break;
+      case 'ftudone':
+        this.handleFTUDone(e);
         break;
     }
   },
@@ -228,13 +234,20 @@ var Rocketbar = {
   },
 
   /**
+   * Reset the Rocketbar to its initial empty state
+   */
+  clear: function() {
+    this.input.value = '';
+    this.titleContent.textContent = navigator.mozL10n.get('search');
+  },
+
+  /**
    * Show the task manager and clear Rocketbar.
    */
   showTaskManager: function() {
     this.showResults();
     window.dispatchEvent(new CustomEvent('taskmanagershow'));
-    this.input.value = '';
-    this.titleContent.textContent = navigator.mozL10n.get('search');
+    this.clear();
   },
 
   /**
@@ -313,8 +326,7 @@ var Rocketbar = {
    * Handle press of hardware home button.
    */
   handleHome: function() {
-    this.titleContent.textContent = navigator.mozL10n.get('search');
-    this.input.value = '';
+    this.clear();
     this.hideResults();
     this.collapse();
   },
@@ -510,6 +522,13 @@ var Rocketbar = {
       this.hideResults();
       this.collapse();
     }
+  },
+
+  /**
+  * Reset the Rocketbar after completion of FTU
+  */
+  handleFTUDone: function() {
+    this.clear();
   },
 
   /**
