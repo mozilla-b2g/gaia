@@ -17,7 +17,7 @@ function Search(client) {
 Search.URL = 'app://search.gaiamobile.org';
 
 Search.Selectors = {
-  iframe: '#rocketbar-results-frame',
+  iframe: 'iframe[mozapptype="search"]',
   firstAppContainer: '#localapps',
   firstApp: '#localapps div',
   firstContact: '#contacts div',

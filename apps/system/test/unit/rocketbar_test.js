@@ -4,7 +4,6 @@
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_iac_handler.js');
-requireApp('system/js/rocketbar.js');
 
 var mocksForRocketbar = new MocksHelper([
   'AppWindow',
@@ -12,11 +11,13 @@ var mocksForRocketbar = new MocksHelper([
   'IACPort'
 ]).init();
 
+mocha.globals(['SearchWindow', 'Rocketbar']);
+
 suite('system/Rocketbar', function() {
   mocksForRocketbar.attachTestHelpers();
   var stubById;
 
-  setup(function() {
+  setup(function(done) {
     stubById = this.sinon.stub(document, 'getElementById', function(id) {
       if (id == 'rocketbar-input') {
         return document.createElement('input');
@@ -24,8 +25,13 @@ suite('system/Rocketbar', function() {
         return document.createElement('div');
       }
     });
-    Rocketbar.init();
-    Rocketbar._port = MockIACPort;
+
+    requireApp('system/js/search_window.js');
+    requireApp('system/js/rocketbar.js', function() {
+      Rocketbar.init();
+      Rocketbar._port = MockIACPort;
+      done();
+    });
   });
 
   teardown(function() {
@@ -126,13 +132,6 @@ suite('system/Rocketbar', function() {
     rocketbarRemoveEventListenerStub.restore();
     inputRemoveEventListenerStub.restore();
     formRemoveEventListenerStub.restore();
-  });
-
-  test('setSearchAppURL()', function() {
-    Rocketbar.setSearchAppURL('app://mysearch.example.com/');
-    assert.equal(Rocketbar._searchAppURL, 'app://mysearch.example.com/');
-    assert.equal(Rocketbar._searchManifestURL,
-      'app://mysearch.example.com/manifest.webapp');
   });
 
   test('expand() - collapsed', function(done) {
@@ -603,28 +602,7 @@ test ('handleStackChanged() - non-empty stack', function() {
 
     // searchFrame DOM
     Rocketbar.loadSearchApp();
-    var searchFrame = Rocketbar.results.querySelector('iframe');
-    assert.ok(searchFrame);
-    assert.equal(searchFrame.id, 'rocketbar-results-frame');
-    assert.equal(searchFrame.src, 'http://search.example.com/');
-    assert.equal(searchFrame.getAttribute('mozapptype'), 'mozsearch');
-    assert.equal(searchFrame.getAttribute('mozbrowser'), 'true');
-    assert.equal(searchFrame.getAttribute('remote'), 'true');
-    assert.equal(searchFrame.getAttribute('mozapp'),
-      'http://search.example.com/manifest.webapp');
-    assert.ok(searchFrame.classList.contains('hidden'));
     assert.ok(initSearchConnectionStub.calledOnce);
-
-    // mozbrowserloadend
-    var event = new CustomEvent('mozbrowserloadend');
-    searchFrame.dispatchEvent(event);
-    assert.equal(searchFrame.classList.contains('hidden'), false);
-
-    // mozbrowsererror
-    event = new CustomEvent('mozbrowsererror');
-    searchFrame.dispatchEvent(event);
-    searchFrame = Rocketbar.results.querySelector('iframe');
-    assert.equal(searchFrame, undefined);
 
     initSearchConnectionStub.restore();
   });
@@ -645,6 +623,7 @@ test ('handleStackChanged() - non-empty stack', function() {
           };
        }
     }};
+    Rocketbar._port = null;
     navigator.mozApps.getSelf = function() { return app; };
     Rocketbar.initSearchConnection();
     app.onsuccess();

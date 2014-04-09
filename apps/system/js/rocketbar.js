@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsListener, AppWindow */
+/* global SettingsListener, AppWindow, SearchWindow */
 
 /**
  * The Rocketbar is a system-wide URL/search/title bar.
@@ -21,8 +21,6 @@ var Rocketbar = {
     this.onHomescreen = false;
 
     // Properties
-    this._searchAppURL = null;
-    this._searchManifestURL = null;
     this._port = null; // Inter-app communications port
     this._touchStart = -1;
     this._wasClicked = false; // Remember when transition triggered by a click
@@ -47,8 +45,6 @@ var Rocketbar = {
         this.disable();
       }
     }.bind(this));
-    SettingsListener.observe('rocketbar.searchAppURL', '',
-      this.setSearchAppURL.bind(this));
   },
 
   /**
@@ -490,37 +486,12 @@ var Rocketbar = {
   },
 
   /**
-   * Insert the search app iframe into the DOM.
+   * Instantiates a new SearchWindow
    */
   loadSearchApp: function() {
-    var container = this.results;
-    var searchFrame = container.querySelector('iframe');
-
-    // If there is already a search frame, tell it that it is
-    // visible and bail out.
-    if (searchFrame && searchFrame.setVisible) {
-      searchFrame.setVisible(true);
-      return;
+    if (!this.searchWindow) {
+      this.searchWindow = new SearchWindow();
     }
-
-    searchFrame = document.createElement('iframe');
-    searchFrame.id = 'rocketbar-results-frame';
-    searchFrame.src = this._searchAppURL;
-    searchFrame.setAttribute('mozapptype', 'mozsearch');
-    searchFrame.setAttribute('mozbrowser', 'true');
-    searchFrame.setAttribute('remote', 'true');
-    searchFrame.setAttribute('mozapp', this._searchManifestURL);
-    searchFrame.classList.add('hidden');
-
-    container.appendChild(searchFrame);
-
-    searchFrame.addEventListener('mozbrowsererror', function() {
-      container.removeChild(searchFrame);
-    });
-
-    searchFrame.addEventListener('mozbrowserloadend', function() {
-      searchFrame.classList.remove('hidden');
-    });
 
     this.initSearchConnection();
   },
@@ -530,6 +501,12 @@ var Rocketbar = {
    */
   initSearchConnection: function() {
     var self = this;
+
+    if (this._port) {
+      return;
+    }
+
+    this._port = 'pending';
     navigator.mozApps.getSelf().onsuccess = function() {
       var app = this.result;
       app.connect('search').then(
