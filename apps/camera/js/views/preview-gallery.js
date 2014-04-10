@@ -16,12 +16,12 @@ var MediaFrame = require('MediaFrame');
 /**
  * Constants
  */
+
 var SWIPE_DISTANCE_THRESHOLD = window.innerWidth / 3; // pixels
 var SWIPE_VELOCITY_THRESHOLD = 1.0;                   // pixels/ms
 
 var SWIPE_DURATION = 250;   // How long to animate the swipe
 var FADE_IN_DURATION = 500; // How long to animate the fade in after swipe
-
 
 /**
  * Locals
@@ -43,7 +43,8 @@ return View.extend({
     this.els.countText = this.find('.js-count-text');
     this.els.previewMenu = this.find('.js-preview-menu');
 
-    bind(this.el, 'click', this.onClick);
+    // MediaFrame has a GestureDetector that can emit 'tap' events
+    bind(this.el, 'tap', this.onTap);
     attach.on(this.els.previewMenu, 'click', '.js-btn', this.onButtonClick);
 
     this.configure();
@@ -51,19 +52,12 @@ return View.extend({
   },
 
   configure: function() {
-    this.frame = new MediaFrame(this.els.mediaFrame);
-
-    this.els.player = this.find('.videoPlayer');
-    this.els.playerPlayBtn = this.find('.videoPlayerPlayButton');
-
-    // To hanlde player events in the preview not video_player.js.
-    // Use 'click' event instead of 'play'
-    // because 'click' event fires ealer than 'play'
-    bind(this.els.playerPlayBtn, 'click', this.handleVideoPlay);
-    bind(this.els.player, 'pause', this.handleVideoStop);
-    bind(this.els.player, 'ended', this.handleVideoStop);
-
     this.currentIndex = this.lastIndex = 0;
+
+    this.frame = new MediaFrame(this.els.mediaFrame);
+    this.frame.video.onplaying = this.handleVideoPlay;
+    this.frame.video.onpaused = this.handleVideoStop;
+
     addPanAndZoomHandlers(this.frame, this.swipeCallback);
   },
 
@@ -89,8 +83,10 @@ return View.extend({
       '</div>';
   },
 
-  onClick: function() {
-    if (this.videoPlaying) { return; }
+  onTap: function() {
+    if (this.videoPlaying) {
+      return;
+    }
 
     var isShown = this.els.previewMenu.classList.contains('visible');
     if (isShown) {
@@ -203,6 +199,10 @@ return View.extend({
   },
 
   onButtonClick: function(e, el) {
+    if (this.videoPlaying) {
+      return;
+    }
+
     var name = el.getAttribute('name');
     this.emit('click:' + name, e);
     e.stopPropagation();
@@ -256,15 +256,22 @@ return View.extend({
       video.rotation);
   },
 
-  handleVideoPlay: function(e) {
+  handleVideoPlay: function() {
+    if (this.videoPlaying) {
+      return;
+    }
+
     this.videoPlaying = true;
     this.previewMenuFadeOut();
-    e.stopPropagation();
   },
 
   handleVideoStop: function() {
+    if (!this.videoPlaying) {
+      return;
+    }
+
     this.videoPlaying = false;
-    setTimeout(this.previewMenuFadeIn, 300);
+    this.previewMenuFadeIn();
   }
 });
 
