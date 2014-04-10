@@ -199,7 +199,7 @@ var ModalDialog = {
         elements.prompt.classList.add('visible');
         elements.promptInput.value = evt.detail.initialValue;
         elements.promptMessage.innerHTML = message;
-        this.setTitle('prompt', '');
+        this.setTitle('prompt', title);
         elements.promptOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.promptCancel.textContent = evt.noText ?
           evt.noText : _('cancel');
@@ -209,7 +209,7 @@ var ModalDialog = {
       case 'confirm':
         elements.confirm.classList.add('visible');
         elements.confirmMessage.innerHTML = message;
-        this.setTitle('confirm', '');
+        this.setTitle('confirm', title);
         elements.confirmOk.textContent = evt.yesText ? evt.yesText : _('ok');
         elements.confirmCancel.textContent = evt.noText ?
           evt.noText : _('cancel');
