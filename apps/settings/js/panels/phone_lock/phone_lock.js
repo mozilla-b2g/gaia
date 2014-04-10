@@ -1,4 +1,3 @@
-/* global SettingsListener */
 define(function(require) {
   'use strict';
 
@@ -33,17 +32,40 @@ define(function(require) {
       },
 
       fetchSettings: function pl_fetchSettings() {
-        SettingsListener.observe('lockscreen.enabled', false,
-          function(enabled) {
-            this.toggleLock(enabled);
-        }.bind(this));
+        var settings = navigator.mozSettings;
+        var lock = settings.createLock();
+        var self = this;
 
-        SettingsListener.observe('lockscreen.passcode-lock.enabled', false,
-          function(enabled) {
-            this.settings.passcodeEnable = enabled;
-            this.phonelockPanel.dataset.passcodeEnabled = enabled;
-            this.passcodeEnable.checked = enabled;
-        }.bind(this));
+        // TODO
+        // improve the following stuffs with new API
+
+        var reqLockscreenEnable = lock.get('lockscreen.enabled');
+        reqLockscreenEnable.onsuccess = function onLockscreenEnableSuccess() {
+          var enable = reqLockscreenEnable.result['lockscreen.enabled'];
+          self.toggleLock(enable);
+        };
+
+        var reqPasscodeEnable = lock.get('lockscreen.passcode-lock.enabled');
+        reqPasscodeEnable.onsuccess = function onPasscodeEnableSuccess() {
+          var enable =
+            reqPasscodeEnable.result['lockscreen.passcode-lock.enabled'];
+          self.settings.passcodeEnable = enable;
+          self.phonelockPanel.dataset.passcodeEnabled = enable;
+          self.passcodeEnable.checked = enable;
+        };
+
+        settings.addObserver('lockscreen.enabled',
+          function onLockscreenEnabledChange(event) {
+            var enable = event.settingValue;
+            self.toggleLock(enable);
+        });
+
+        settings.addObserver('lockscreen.passcode-lock.enabled',
+          function onPasscodeLockEnableChange(event) {
+            self.settings.passcodeEnable = event.settingValue;
+            self.phonelockPanel.dataset.passcodeEnabled = event.settingValue;
+            self.passcodeEnable.checked = event.settingValue;
+        });
       },
 
       toggleLock: function pl_toggleLock(enable) {
