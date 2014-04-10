@@ -184,10 +184,6 @@ a {
 /*
  SIM info screen
 */
-#sim-info-screen {
-  z-index: 2000;
-}
-
 #sim-info-screen .sim-info {
   margin: 0 1.6rem;
   height: 7rem;
@@ -257,15 +253,11 @@ a {
 /*
   Pin code screen
 */
-#unlock-sim-screen {
-  z-index: 2000;
-}
-
-#unlock-sim-screen .unlock_container {
+#sim_manager .unlock_container {
   height: calc(100% - 10rem);
 }
 
-#unlock-sim-screen section label {
+#sim_manager section label {
   display: inline-block;
   padding: 1.8rem 0 1.4rem 3rem;
   color: black;
@@ -273,39 +265,39 @@ a {
   width: auto;
   pointer-events: none;
 }
-#unlock-sim-screen section label.retries {
+#sim_manager section label.retries {
   padding-left: 0.7rem;
   font-size: 1.4rem;
   color: #00aacc
 }
 
-#unlock-sim-screen .input-wrapper {
+#sim_manager .input-wrapper {
   padding: 0 1.6rem;
   position: relative;
 }
 
-#unlock-sim-screen .info {
+#sim_manager .info {
   font-size: 1.5rem;
   padding: 1rem 1.5rem;
 }
 
-#unlock-sim-screen .error {
+#sim_manager .error {
   padding: 1.4rem;
   font-size: 1.5rem;
   line-height: 1.9rem;
   color: red;
 }
 
-#unlock-sim-screen .onerror {
+#sim_manager .onerror {
   border: 0.1rem solid red;
 }
 
-#unlock-sim-screen .input-wrapper input {
+#sim_manager .input-wrapper input {
   font-size: 2rem;
   padding-left: 1.5rem;
 }
 
-#unlock-sim-screen input[type="password"] {
+#sim_manager input[type="password"] {
     -moz-box-sizing: border-box;
     display: block;
     overflow: hidden;
@@ -318,8 +310,8 @@ a {
 #hidden-wifi-authentication input[type="password"] {
   pointer-events: auto;
 }
-#unlock-sim-screen [role=navigation] button,
-#unlock-sim-screen [role=navigation] .recommend {
+#sim_manager [role=navigation] button,
+#sim_manager [role=navigation] .recommend {
   text-align: center;
 }
 
