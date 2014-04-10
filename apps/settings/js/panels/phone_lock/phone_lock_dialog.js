@@ -52,10 +52,11 @@ define(function(require) {
 
         // If the pseudo-input loses focus, then allow the user to restore focus
         // by touching the container around the pseudo-input.
+        var self = this;
         this.passcodeContainer.addEventListener('click', function(evt) {
-          this.passcodeInput.focus();
+          self.passcodeInput.focus();
           evt.preventDefault();
-        }.bind(this));
+        });
 
         this.fetchSettings();
       },
