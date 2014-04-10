@@ -1,6 +1,6 @@
 /* global mocha, MockL10n, MockTemplate, Template,
    MockNavigatorMozIccManager, MockNavigatorMozMobileConnections, SimPinLock,
-   MockSimPinDialog
+   MockSimPinDialog, MockToaster
 */
 'use strict';
 
@@ -13,8 +13,11 @@ requireApp(
 requireApp('settings/test/unit/mock_l10n.js');
 requireApp('settings/test/unit/mock_template.js');
 requireApp('settings/test/unit/mock_sim_pin_dialog.js');
+requireApp('settings/test/unit/mock_toaster.js');
 
 mocha.globals(['Template', 'SimPinLock', 'SimPinDialog']);
+
+var mocksForSimPinLock = new MocksHelper(['Toaster']).init();
 
 suite('SimPinLock > ', function() {
   var realL10n;
@@ -327,6 +330,23 @@ suite('SimPinLock > ', function() {
       test('called successfully', function() {
         assert.ok(SimPinLock.simPinDialog.show.called);
         assert.equal(SimPinLock.simPinDialog.show.args[0][1].cardIndex, '0');
+      });
+    });
+
+    suite('changeSimPin 2 > ', function() {
+      mocksForSimPinLock.attachTestHelpers();
+      setup(function() {
+        fakeDom.dataset.type = 'changeSimPin';
+        fakeDom.dataset.simIndex = '1';
+        this.sinon.stub(SimPinLock.simPinDialog, 'show');
+        SimPinLock.handleEvent.call(SimPinLock, fakeEvt);
+      });
+      test('called successfully', function() {
+        assert.ok(SimPinLock.simPinDialog.show.called);
+        assert.equal(SimPinLock.simPinDialog.show.args[0][1].cardIndex, '1');
+        assert.ok(SimPinLock.simPinDialog.show.args[0][1].onsuccess);
+        SimPinLock.simPinDialog.show.args[0][1].onsuccess();
+        assert.equal(MockToaster._lastToast.messageL10nArgs.index, 2);
       });
     });
   });
