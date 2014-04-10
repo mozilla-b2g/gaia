@@ -617,29 +617,6 @@ suite('call screen', function() {
     });
   });
 
-  suite('placeNewCall', function() {
-    test('launches the dialer app', function() {
-      CallScreen.placeNewCall();
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
-      assert.equal(MockNavigatormozApps.mAppWasLaunchedWithEntryPoint,
-                   'dialer');
-    });
-
-    test('requests the contacts tab in the dialer app', function() {
-      var requestSpy = this.sinon.spy(MockCallsHandler, 'requestContactsTab');
-      CallScreen.placeNewCall();
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
-      assert.isTrue(requestSpy.calledOnce);
-    });
-
-    test('resizes the call screen in status bar mode', function() {
-      var resizeSpy = this.sinon.spy(window, 'resizeTo');
-      CallScreen.placeNewCall();
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
-      assert.equal(resizeSpy.firstCall.args[1], 40);
-    });
-  });
-
   suite('hideIncoming', function() {
     var MockWakeLock;
     setup(function() {

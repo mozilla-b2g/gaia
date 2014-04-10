@@ -25,7 +25,6 @@ var MockCallsHandler = {
   checkCalls: function() {},
   mergeActiveCallWith: function() {},
   mergeConferenceGroupWithActiveCall: function() {},
-  requestContactsTab: function() {},
   end: function() {},
   answer: function() {},
   updateAllPhoneNumberDisplays: function() {},

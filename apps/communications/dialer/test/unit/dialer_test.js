@@ -37,13 +37,11 @@ suite('navigation bar', function() {
   suite('> show / hide', function() {
     test('NavbarManager.hide() should hide navbar', function() {
       NavbarManager.hide();
-
       assert.isTrue(domViews.classList.contains('hide-toolbar'));
     });
 
     test('NavbarManager.show() should show navbar', function() {
       NavbarManager.show();
-
       assert.isFalse(domViews.classList.contains('hide-toolbar'));
     });
   });
