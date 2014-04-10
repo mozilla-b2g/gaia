@@ -116,7 +116,7 @@ suite('firefox accounts panel > ', function() {
     // test localize was called with correct args
     assert.deepEqual(localizeSpy.args[0], [
       document.getElementById('fxa-unverified-text'),
-      'fxa-verification-email-sent',
+      'fxa-verification-email-sent-msg',
       { email: 'on@log.in' }
     ]);
   });
