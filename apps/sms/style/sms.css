@@ -426,7 +426,7 @@ section.has-carrier .article-list header:first-child {
 
   transition: none;
 }
-/*remove margin for notice-button class of button*/
+/* remove margin for notice-button class of button */
 .notice-button {
   margin: 0;
 }
