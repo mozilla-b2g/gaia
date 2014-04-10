@@ -289,6 +289,14 @@ ol, ul {
   display: block;
 }
 
+.recents-edit .recents-filter-container {
+  display: none;
+}
+
+.recents-edit .view-body {
+  height: calc(100% - 7.6rem);
+}
+
 .filter .log-item:not(.missed-call) {
   display: none;
 }
