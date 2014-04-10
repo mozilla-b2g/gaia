@@ -62,7 +62,7 @@
 @-moz-keyframes none {}
 
 /* Image and label have shaking effect */
-body[data-mode = 'edit'] ol > li > div > img,
+body[data-mode = 'edit'] [role=presentation],
 #collection[data-mode = 'edit'] .evme-apps ul.static li .icon {
   -moz-animation-name: shake;
   -moz-animation-duration: .8s;
@@ -71,8 +71,7 @@ body[data-mode = 'edit'] ol > li > div > img,
   -moz-animation-timing-function: ease-out;
 }
 
-body[data-transitioning] ol > li > div > img,
-body[data-dragging] ol > li > div > img,
+body[data-dragging] [role=presentation],
 #collection[data-transitioning] .evme-apps ul.static li .icon,
 #collection[data-dragging] .evme-apps ul.static li .icon {
   -moz-animation-name: none;

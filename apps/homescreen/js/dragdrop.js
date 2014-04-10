@@ -518,8 +518,11 @@ var DragDropManager = (function() {
     clearOverCollectionTimeout();
     window.removeEventListener(touchmove, onMove);
     window.removeEventListener(touchend, onEnd);
+
+    GridManager.onDragStop();
+
     stop(function dg_stop() {
-      DockManager.onDragStop(GridManager.onDragStop);
+      DockManager.onDragStop();
       window.dispatchEvent(new CustomEvent('dragend'));
     });
   }

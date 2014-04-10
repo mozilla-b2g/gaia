@@ -252,8 +252,6 @@ var GridManager = (function() {
         if (currentX === startX)
           return;
 
-        document.body.dataset.transitioning = 'true';
-
         // Panning time! Stop listening here to enter into a dedicated
         // method for panning only the 2 relevants pages based on the
         // direction of the inputs. The code here is carefully written
@@ -452,8 +450,6 @@ var GridManager = (function() {
   }
 
   function goToPageCallback(index, fromPage, toPage, dispatchEvents, callback) {
-    delete document.body.dataset.transitioning;
-
     if (dispatchEvents) {
       fromPage.container.dispatchEvent(new CustomEvent('gridpagehideend'));
       toPage.container.dispatchEvent(new CustomEvent('gridpageshowend'));
@@ -572,17 +568,14 @@ var GridManager = (function() {
   }
 
   function goToLandingPage() {
-    document.body.dataset.transitioning = 'true';
     goToPage(0);
   }
 
   function goToNextPage(callback) {
-    document.body.dataset.transitioning = 'true';
     goToPage(currentPage + 1, callback);
   }
 
   function goToPreviousPage(callback) {
-    document.body.dataset.transitioning = 'true';
     goToPage(currentPage - 1, callback);
   }
 
@@ -1558,7 +1551,6 @@ var GridManager = (function() {
     onDragStop: function gm_onDragStop() {
       delete document.body.dataset.dragging;
       dragging = false;
-      delete document.body.dataset.transitioning;
       ensurePanning();
       ensurePagesOverflow(removeEmptyPages);
     },
