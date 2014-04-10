@@ -35,17 +35,95 @@ suite('system/Rocketbar', function() {
   });
 
   test('enable()', function() {
-     Rocketbar.enable();
-     assert.ok(Rocketbar.body.classList.contains('rb-enabled'));
-     assert.ok(Rocketbar.enabled);
+    var addEventListenersStub = this.sinon.stub(Rocketbar,
+      'addEventListeners');
+    Rocketbar.enable();
+    assert.ok(addEventListenersStub.calledOnce);
+    assert.ok(Rocketbar.body.classList.contains('rb-enabled'));
+    assert.ok(Rocketbar.enabled);
+    addEventListenersStub.restore();
   });
 
   test('disable()', function() {
-     Rocketbar.body.classList.add('rb-enabled');
-     Rocketbar.enabled = true;
-     Rocketbar.disable();
-     assert.equal(Rocketbar.body.classList.contains('rb-enabled'), false);
-     assert.equal(Rocketbar.enabled, false);
+    var removeEventListenersStub = this.sinon.stub(Rocketbar,
+      'removeEventListeners');
+    Rocketbar.body.classList.add('rb-enabled');
+    Rocketbar.enabled = true;
+    Rocketbar.disable();
+    assert.ok(removeEventListenersStub.calledOnce);
+    assert.equal(Rocketbar.body.classList.contains('rb-enabled'), false);
+    assert.equal(Rocketbar.enabled, false);
+    removeEventListenersStub.restore();
+  });
+
+  test('addEventListeners()', function() {
+    var windowAddEventListenerStub = this.sinon.stub(window,
+      'addEventListener');
+    var rocketbarAddEventListenerStub = this.sinon.stub(Rocketbar.rocketbar,
+      'addEventListener');
+    var inputAddEventListenerStub = this.sinon.stub(Rocketbar.input,
+      'addEventListener');
+    var formAddEventListenerStub = this.sinon.stub(Rocketbar.form,
+      'addEventListener');
+
+    Rocketbar.addEventListeners();
+
+    assert.ok(windowAddEventListenerStub.calledWith('apploading'));
+    assert.ok(windowAddEventListenerStub.calledWith('appforeground'));
+    assert.ok(windowAddEventListenerStub.calledWith('apptitlechange'));
+    assert.ok(windowAddEventListenerStub.calledWith('applocationchange'));
+    assert.ok(windowAddEventListenerStub.calledWith('home'));
+    assert.ok(windowAddEventListenerStub.calledWith('cardviewclosedhome'));
+    assert.ok(windowAddEventListenerStub.calledWith('appopened'));
+    assert.ok(windowAddEventListenerStub.calledWith('cardviewclosed'));
+    assert.ok(rocketbarAddEventListenerStub.calledWith('touchstart'));
+    assert.ok(rocketbarAddEventListenerStub.calledWith('touchmove'));
+    assert.ok(rocketbarAddEventListenerStub.calledWith('touchend'));
+    assert.ok(rocketbarAddEventListenerStub.calledWith('transitionend'));
+    assert.ok(inputAddEventListenerStub.calledWith('blur'));
+    assert.ok(inputAddEventListenerStub.calledWith('input'));
+    assert.ok(formAddEventListenerStub.calledWith('submit'));
+    assert.ok(windowAddEventListenerStub.calledWith('iac-search-results'));
+
+    windowAddEventListenerStub.restore();
+    rocketbarAddEventListenerStub.restore();
+    inputAddEventListenerStub.restore();
+    formAddEventListenerStub.restore();
+  });
+
+  test('removeEventListeners()', function() {
+    var windowRemoveEventListenerStub = this.sinon.stub(window,
+      'removeEventListener');
+    var rocketbarRemoveEventListenerStub = this.sinon.stub(Rocketbar.rocketbar,
+      'removeEventListener');
+    var inputRemoveEventListenerStub = this.sinon.stub(Rocketbar.input,
+      'removeEventListener');
+    var formRemoveEventListenerStub = this.sinon.stub(Rocketbar.form,
+      'removeEventListener');
+
+    Rocketbar.removeEventListeners();
+
+    assert.ok(windowRemoveEventListenerStub.calledWith('apploading'));
+    assert.ok(windowRemoveEventListenerStub.calledWith('appforeground'));
+    assert.ok(windowRemoveEventListenerStub.calledWith('apptitlechange'));
+    assert.ok(windowRemoveEventListenerStub.calledWith('applocationchange'));
+    assert.ok(windowRemoveEventListenerStub.calledWith('home'));
+    assert.ok(windowRemoveEventListenerStub.calledWith('cardviewclosedhome'));
+    assert.ok(windowRemoveEventListenerStub.calledWith('appopened'));
+    assert.ok(windowRemoveEventListenerStub.calledWith('cardviewclosed'));
+    assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchstart'));
+    assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchmove'));
+    assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchend'));
+    assert.ok(rocketbarRemoveEventListenerStub.calledWith('transitionend'));
+    assert.ok(inputRemoveEventListenerStub.calledWith('blur'));
+    assert.ok(inputRemoveEventListenerStub.calledWith('input'));
+    assert.ok(formRemoveEventListenerStub.calledWith('submit'));
+    assert.ok(windowRemoveEventListenerStub.calledWith('iac-search-results'));
+
+    windowRemoveEventListenerStub.restore();
+    rocketbarRemoveEventListenerStub.restore();
+    inputRemoveEventListenerStub.restore();
+    formRemoveEventListenerStub.restore();
   });
 
   test('setSearchAppURL()', function() {

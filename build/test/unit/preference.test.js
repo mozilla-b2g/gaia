@@ -194,9 +194,9 @@ suite('preferences.js', function() {
         'wifi.suspended': false,
         'font.default.x-western': 'sans-serif',
         'font.name.serif.x-western': 'Charis SIL Compact',
-        'font.name.sans-serif.x-western': 'Feura Sans',
+        'font.name.sans-serif.x-western': 'Fira Sans',
         'font.name.monospace.x-western': 'Source Code Pro',
-        'font.name-list.sans-serif.x-western': 'Feura Sans, Roboto',
+        'font.name-list.sans-serif.x-western': 'Fira Sans, Roboto',
         'extensions.autoDisableScopes': 0
       });
 

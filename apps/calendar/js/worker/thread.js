@@ -5,6 +5,11 @@ if (typeof(Calendar) === 'undefined') {
   Calendar = {};
 }
 
+/*jshint -W040 */
+if (typeof(window) === 'undefined') {
+  this.window = this;
+}
+
 Calendar.Thread = function Thread(worker) {
   Calendar.Responder.call(this);
   this.worker = worker;

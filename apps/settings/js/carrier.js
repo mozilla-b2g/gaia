@@ -16,10 +16,31 @@ var CarrierSettings = (function(window, document, undefined) {
   var NETWORK_TYPE_SETTING = 'operatorResources.data.icon';
   var networkTypeMapping = {};
 
+  var _networkTypeCategory = {
+    'gprs': 'gsm',
+    'edge': 'gsm',
+    'umts': 'gsm',
+    'hsdpa': 'gsm',
+    'hsupa': 'gsm',
+    'hspa': 'gsm',
+    'hspa+': 'gsm',
+    'lte': 'gsm',
+    'gsm': 'gsm',
+    'is95a': 'cdma',
+    'is95b': 'cdma',
+    '1xrtt': 'cdma',
+    'evdo0': 'cdma',
+    'evdoa': 'cdma',
+    'evdob': 'cdma',
+    'ehrpd': 'cdma'
+  };
+
   var _ = window.navigator.mozL10n.get;
   var _settings = window.navigator.mozSettings;
   var _mobileConnections = window.navigator.mozMobileConnections;
   var _iccManager = window.navigator.mozIccManager;
+  var _voiceTypes = Array.prototype.map.call(_mobileConnections,
+    function() { return null; });
 
   /** mozMobileConnection instance the panel settings rely on */
   var _mobileConnection = null;
@@ -56,6 +77,10 @@ var CarrierSettings = (function(window, document, undefined) {
       return;
     }
 
+    cs_addVoiceTypeChangeListeners();
+    cs_updateNetworkTypeLimitedItemsVisibility(
+      _mobileConnection.voice && _mobileConnection.voice.type);
+
     // Show carrier name.
     cs_showCarrierName();
 
@@ -79,14 +104,8 @@ var CarrierSettings = (function(window, document, undefined) {
       var content =
         document.getElementById('carrier-operatorSettings-content');
 
-      if (result.gsm) {
-        cs_initOperatorSelector();
-        content.classList.add('gsm');
-      }
-      if (result.cdma) {
-        cs_initRoamingPreferenceSelector();
-        content.classList.add('cdma');
-      }
+      cs_initOperatorSelector();
+      cs_initRoamingPreferenceSelector();
 
       // Init warnings the user sees before enabling data calls and roaming.
       cs_initWarnings();
@@ -140,6 +159,44 @@ var CarrierSettings = (function(window, document, undefined) {
         });
       });
     });
+  }
+
+  /**
+   * Add listeners on 'voicechange' for show/hide network type limited items.
+   */
+  function cs_addVoiceTypeChangeListeners() {
+    Array.prototype.forEach.call(_mobileConnections, function(conn, index) {
+      _voiceTypes[index] = conn.voice.type;
+      conn.addEventListener('voicechange', function() {
+        var newType = conn.voice.type;
+        if (index !== DsdsSettings.getIccCardIndexForCellAndDataSettings() ||
+            _voiceTypes[index] === newType) {
+          return;
+        }
+        _voiceTypes[index] = newType;
+        cs_updateNetworkTypeLimitedItemsVisibility(newType);
+      });
+    });
+  }
+
+  /**
+   * Update the network type limited items' visibility based on the voice type.
+   */
+  function cs_updateNetworkTypeLimitedItemsVisibility(voiceType) {
+    // The following features are limited to GSM types.
+    var autoSelectOperatorItem = document.getElementById('operator-autoSelect');
+    var availableOperatorsHeader =
+      document.getElementById('availableOperatorsHeader');
+    var availableOperators = document.getElementById('availableOperators');
+    // The following feature is limited to CDMA types.
+    var roamingPreferenceItem =
+      document.getElementById('operator-roaming-preference');
+
+    autoSelectOperatorItem.hidden = availableOperatorsHeader.hidden =
+      availableOperators.hidden = (_networkTypeCategory[voiceType] !== 'gsm');
+
+    roamingPreferenceItem.hidden =
+      (_networkTypeCategory[voiceType] !== 'cdma');
   }
 
   /**
@@ -629,10 +686,6 @@ var CarrierSettings = (function(window, document, undefined) {
 
     req.onerror = function() {
       console.warn('carrier: ' + req.error.name);
-      if (req.error.name === 'RequestNotSupported' ||
-          req.error.name === 'GenericFailure') {
-        document.getElementById('operator-roaming-preference').hidden = true;
-      }
     };
 
     selector.addEventListener('blur', function() {

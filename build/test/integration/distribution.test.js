@@ -2,7 +2,6 @@
 
 /* global require, process, suite, suiteSetup, test, teardown */
 var rmrf = require('rimraf').sync;
-var exec = require('child_process').exec;
 var vm = require('vm');
 var AdmZip = require('adm-zip');
 var helper = require('./helper');
@@ -14,6 +13,7 @@ suite('Distribution mechanism', function() {
   var cusDir;
   suiteSetup(function() {
     rmrf('profile');
+    rmrf('build_stage');
   });
 
   function validatePreloadSettingDB() {
@@ -227,7 +227,7 @@ suite('Distribution mechanism', function() {
   test('build with GAIA_DISTRIBUTION_DIR', function(done) {
     cusDir = path.join(process.cwd(), 'customization');
     var cmd = 'GAIA_DISTRIBUTION_DIR=' + cusDir + ' make';
-    exec(cmd, { maxBuffer: 400*1024 }, function(error, stdout, stderr) {
+    helper.exec(cmd, { maxBuffer: 400*1024 }, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
       validatePreloadSettingDB();
       validateSettings();
@@ -247,5 +247,6 @@ suite('Distribution mechanism', function() {
 
   teardown(function() {
     rmrf('profile');
+    rmrf('build_stage');
   });
 });

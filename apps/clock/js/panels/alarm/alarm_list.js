@@ -5,245 +5,178 @@ var Banner = require('banner/main');
 var AlarmsDB = require('alarmsdb');
 var AlarmManager = require('alarm_manager');
 var Utils = require('utils');
-var Template = require('template');
-var mozL10n = require('l10n');
+var _ = require('l10n').get;
 var App = require('app');
-var alarmHtml = require('text!panels/alarm/list_item.html');
+var alarmTemplate = require('tmpl!panels/alarm/list_item.html');
+var AsyncQueue = require('async_queue');
 
-var _ = mozL10n.get;
+/**
+ * AlarmListPanel displays the list of alarms on the Clock tab.
+ */
+function AlarmListPanel(element) {
+  this.alarms = element;
 
-var AlarmList = {
+  this.newAlarmButton.addEventListener(
+    'click', this.onClickNewAlarm.bind(this));
+  this.alarms.addEventListener('click', this.onClickAlarmItem.bind(this));
 
-  alarmList: [],
+  this.banner = new Banner('banner-countdown');
 
-  // Lookup table mapping alarm IDs to the number "toggle" operations currently
-  // in progress.
-  toggleOperations: {},
-  count: 0,
+  AlarmsDB.getAlarmList((err, alarmList) => {
+    if (!alarmList) { return; }
+    for (var i = 0; i < alarmList.length; i++) {
+      this.addOrUpdateAlarm(alarmList[i]);
+    }
+  });
 
-  get alarms() {
-    delete this.alarms;
-    return (this.alarms = document.getElementById('alarms'));
+  // On startup, update the status bar to show whether or not we have
+  // an alarm scheduled.
+  AlarmManager.updateAlarmStatusBar();
+
+  window.addEventListener('alarm-changed', (evt) => {
+    var alarm = evt.detail.alarm;
+    this.addOrUpdateAlarm(alarm);
+    if (evt.detail.showBanner) {
+      this.banner.show(alarm.getNextAlarmFireTime());
+    }
+    AlarmManager.updateAlarmStatusBar();
+  });
+  window.addEventListener('alarm-removed', (evt) => {
+    this.removeAlarm(evt.detail.alarm);
+    AlarmManager.updateAlarmStatusBar();
+  });
+}
+
+AlarmListPanel.prototype = {
+  alarmIdMap: {},
+
+  onClickNewAlarm: function(evt) {
+    evt.preventDefault();
+    App.navigate({ hash: '#alarm-edit-panel', data: null });
   },
 
-  get title() {
-    delete this.title;
-    return (this.title = document.getElementById('alarms-title'));
-  },
-
-  get newAlarmButton() {
-    delete this.newAlarmButton;
-    return (this.newAlarmButton = document.getElementById('alarm-new'));
-  },
-
-  template: null,
-
-  handleEvent: function al_handleEvent(evt) {
-
+  onClickAlarmItem: function(evt) {
     var link = evt.target;
-    if (!link) {
-      return;
-    }
-
-    if (link === this.newAlarmButton) {
-      this.alarmEditView();
-      evt.preventDefault();
-    } else if (link.classList.contains('input-enable')) {
-      this.toggleAlarmEnableState(link.checked,
-        this.getAlarmFromList(parseInt(link.dataset.id, 10)));
+    var alarm = this.alarmIdMap[link.dataset.id];
+    if (link.classList.contains('input-enable')) {
+      this.toggleAlarm(alarm, link.checked);
     } else if (link.classList.contains('alarm-item')) {
-      this.alarmEditView(this.getAlarmFromList(
-        parseInt(link.dataset.id, 10)));
+      App.navigate({ hash: '#alarm-edit-panel', data: alarm });
       evt.preventDefault();
     }
   },
 
-  alarmEditView: function(alarm) {
-    App.navigate({ hash: '#alarm-edit-panel', data: alarm });
-  },
+  /**
+   * Render an alarm into a DOM node.
+   *
+   * @param alarm The alarm to render.
+   * @param {Element} [li] Existing element to re-use, if any.
+   */
+  renderAlarm: function(alarm) {
+    var li = (this.alarms.querySelector('#alarm-' + alarm.id) ||
+              alarmTemplate.cloneNode(true));
 
-  init: function al_init() {
-    this.template = new Template(alarmHtml);
-    this.newAlarmButton.addEventListener('click', this);
-    this.alarms.addEventListener('click', this);
-    this.banner = new Banner('banner-countdown');
-
-    // Bind this.refresh so that the listener can be easily removed.
-    this.refresh = this.refresh.bind(this);
-    // Update the dropdown when the language changes.
-    window.addEventListener('localized', this.refresh);
-    this.refresh();
-    AlarmManager.regUpdateAlarmEnableState(this.refreshItem.bind(this));
-  },
-
-  refresh: function al_refresh() {
-    AlarmsDB.getAlarmList(function al_gotAlarmList(err, list) {
-      if (!err) {
-        this.fillList(list);
-      } else {
-        console.error(err);
-      }
-    }.bind(this));
-  },
-
-  render: function al_render(alarm) {
-    var repeat = alarm.isRepeating() ?
-      alarm.summarizeDaysOfWeek() : '';
-    var withRepeat = alarm.isRepeating() ? ' with-repeat' : '';
-    // Because `0` is a valid value for these attributes, check for their
-    // presence with the `in` operator.
-    var isActive = 'normal' in alarm.registeredAlarms ||
-      'snooze' in alarm.registeredAlarms;
-    var checked = !!isActive ? 'checked=true' : '';
+    var isActive = ('normal' in alarm.registeredAlarms ||
+                    'snooze' in alarm.registeredAlarms);
 
     var d = new Date();
     d.setHours(alarm.hour);
     d.setMinutes(alarm.minute);
+    var localeTime = Utils.getLocaleTime(d);
 
-    var id = alarm.id + '';
-    var time = Utils.getLocaleTime(d);
-    var label = alarm.label ? alarm.label : _('alarm');
-
-    return this.template.interpolate({
-      id: id,
-      checked: checked,
-      label: label,
-      meridian: time.p,
-      repeat: repeat,
-      withRepeat: withRepeat,
-      time: time.t
-    });
-  },
-
-  createItem: function al_createItem(alarm, prependTarget) {
-    /**
-     * createItem
-     *
-     * Render and then prepend an alarm to the DOM element
-     * prependTarget
-     *
-     */
-    var count = this.getAlarmCount();
-    var li = document.createElement('li');
-    li.className = 'alarm-cell';
     li.id = 'alarm-' + alarm.id;
-    li.innerHTML = this.render(alarm);
+    li.dataset.id = alarm.id;
 
-    if (prependTarget) {
-      prependTarget.insertBefore(li, prependTarget.firstChild);
+    var enableButton = li.querySelector('.input-enable');
+    enableButton.dataset.id = alarm.id;
+    enableButton.checked = isActive;
 
-      if (this.count !== count) {
-        this.count = count;
-        // TODO: Address this circular dependency
-        require(['panels/alarm/clock_view'], function(ClockView) {
-        ClockView.resizeAnalogClock();
-        });
-      }
-    }
+    var link = li.querySelector('.alarm-item');
+    link.classList.toggle('with-repeat', alarm.isRepeating());
+    link.dataset.id = alarm.id;
+
+    li.querySelector('.time-part').textContent = localeTime.time;
+    li.querySelector('.period').textContent = localeTime.ampm;
+    li.querySelector('.label').textContent = alarm.label || _('alarm');
+    li.querySelector('.repeat').textContent =
+      (alarm.isRepeating() ? alarm.summarizeDaysOfWeek() : '');
+
     return li;
   },
 
-  refreshItem: function al_refreshItem(alarm) {
-    var li;
-    var id = alarm.id;
+  refreshClockView: function() {
+    window.dispatchEvent(new CustomEvent('alarm-list-changed'));
+  },
 
-    if (!this.getAlarmFromList(id)) {
-      this.alarmList.push(alarm);
-      this.alarmList.sort(function(a, b) {
-        return a.id - b.id;
-      });
-      this.createItem(alarm, this.alarms);
-    } else {
-      this.setAlarmFromList(id, alarm);
-      li = this.alarms.querySelector('#alarm-' + id);
-      li.innerHTML = this.render(alarm);
+  addOrUpdateAlarm: function(alarm) {
+    this.alarmIdMap[alarm.id] = alarm;
+    var li = this.renderAlarm(alarm);
+    var liId = parseInt(li.dataset.id, 10);
 
-      // clear the refreshing alarm's flag
-      if (id in this.toggleOperations) {
-        delete this.toggleOperations[id];
+    // Go through the list of existing alarms, inserting this alarm
+    // before the first alarm that has a lower ID than this one.
+    var node = this.alarms.firstChild;
+    while (true) {
+      var nodeId = (node ? parseInt(node.dataset.id, 10) : -1);
+      if (nodeId < liId) {
+        this.alarms.insertBefore(li, node);
+        break;
       }
+      node = node.nextSibling;
     }
+    this.refreshClockView();
   },
 
-  fillList: function al_fillList(alarmList) {
-    /**
-     * fillList
-     *
-     * Render all alarms in alarmList to the DOM in
-     * decreasing order
-     *
-     */
-    this.alarms.innerHTML = '';
-    this.alarmList = alarmList;
-
-    alarmList.sort(function(a, b) {
-      return a.id - b.id;
-    }).forEach(function al_fillEachList(alarm) {
-      // prepend the rendered alarm to the alarm list
-      this.createItem(alarm, this.alarms);
-    }.bind(this));
-  },
-
-  getAlarmFromList: function al_getAlarmFromList(id) {
-    for (var i = 0; i < this.alarmList.length; i++) {
-      if (this.alarmList[i].id === id) {
-        return this.alarmList[i];
-      }
+  removeAlarm: function(alarm) {
+    delete this.alarmIdMap[alarm.id];
+    var li = this.alarms.querySelector('#alarm-' + alarm.id);
+    if (li) {
+      li.parentNode.removeChild(li);
     }
-    return null;
+    this.refreshClockView();
   },
 
-  setAlarmFromList: function al_setAlarmFromList(id, alarm) {
-    for (var i = 0; i < this.alarmList.length; i++) {
-      if (this.alarmList[i].id === id) {
-        this.alarmList[i] = alarm;
-        return;
-      }
-    }
-  },
+  toggleAlarmQueue: new AsyncQueue(),
 
-  getAlarmCount: function al_getAlarmCount() {
-    return this.alarmList.length;
-  },
-
-  toggleAlarmEnableState: function al_toggleAlarmEnableState(enabled, alarm) {
-    var changed = false;
-    var toggleOps = this.toggleOperations;
-    // has a snooze active
+  /**
+   * Toggle an alarm's enabled state. To ensure that the database
+   * state remains consistent with the DOM, perform operations
+   * serially in a queue.
+   *
+   * @param {Alarm} alarm
+   * @param {boolean} enabled
+   * @param {function} callback Optional callback.
+   */
+  toggleAlarm: function(alarm, enabled) {
+    // If the alarm was scheduled to snooze, cancel the snooze.
     if (alarm.registeredAlarms.snooze !== undefined) {
       if (!enabled) {
         alarm.cancel('snooze');
-        changed = true;
       }
     }
-    // normal state needs to change
-    if (alarm.enabled !== enabled) {
-      toggleOps[alarm.id] = (toggleOps[alarm.id] || 0) + 1;
-      // setEnabled saves to database
-      alarm.setEnabled(!alarm.enabled, function al_putAlarm(err, alarm) {
-        toggleOps[alarm.id]--;
 
-        // If there are any pending toggle operations, the current state of
-        // the alarm is volatile, so do not update the DOM.
-        if (toggleOps[alarm.id] > 0) {
-          return;
-        }
-        delete toggleOps[alarm.id];
+    this.toggleAlarmQueue.push((done) => {
+      alarm.setEnabled(enabled, (err, alarm) => {
+        alarm.save();
+        this.addOrUpdateAlarm(alarm);
+        AlarmManager.updateAlarmStatusBar();
 
         if (alarm.enabled) {
           this.banner.show(alarm.getNextAlarmFireTime());
         }
-        this.refreshItem(alarm);
-        AlarmManager.updateAlarmStatusBar();
-      }.bind(this));
-    } else {
-      if (changed) {
-        alarm.save();
-      }
-      AlarmManager.updateAlarmStatusBar();
-    }
+
+        done();
+      });
+    });
   }
 };
 
-return AlarmList;
+Utils.extendWithDomGetters(AlarmListPanel.prototype, {
+  title: '#alarms-title',
+  newAlarmButton: '#alarm-new'
+});
+
+
+return AlarmListPanel;
+
 });

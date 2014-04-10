@@ -75,6 +75,9 @@ suite('system/ModalDialog >', function() {
     });
 
     assert.isTrue(ModalDialog.elements.selectOne.classList.contains('visible'));
+    assert.isNull(
+      ModalDialog.elements.selectOneTitle.innerHTML.match(
+        testObject.dialogTitle));
 
     ModalDialogCleanUp();
   });
@@ -89,6 +92,9 @@ suite('system/ModalDialog >', function() {
     );
 
     assert.isTrue(ModalDialog.elements.confirm.classList.contains('visible'));
+    assert.isNotNull(
+      ModalDialog.elements.confirmTitle.innerHTML.match(
+        testObject.dialogTitle));
     assert.isNotNull(
       ModalDialog.elements.confirmMessage.innerHTML.match(
         testObject.dialogText));
@@ -109,6 +115,8 @@ suite('system/ModalDialog >', function() {
 
     assert.isTrue(ModalDialog.elements.alert.classList.contains('visible'));
     assert.isNotNull(
+      ModalDialog.elements.alertTitle.innerHTML.match(testObject.dialogTitle));
+    assert.isNotNull(
       ModalDialog.elements.alertMessage.innerHTML.match(testObject.dialogText));
 
     ModalDialogCleanUp();
@@ -124,6 +132,9 @@ suite('system/ModalDialog >', function() {
     );
 
     assert.isTrue(ModalDialog.elements.prompt.classList.contains('visible'));
+    assert.isNotNull(
+      ModalDialog.elements.promptTitle.innerHTML.match(
+        testObject.dialogTitle));
     assert.isNotNull(
       ModalDialog.elements.promptMessage.innerHTML.match(
         testObject.dialogText));

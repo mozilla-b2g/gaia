@@ -136,6 +136,23 @@ parse_args() {
 ###############################################################################
 # Check for programs
 
+check_optipng_version() {
+    version=$(optipng --version | head -n 1)
+    version="${version%%: Advanced PNG optimizer.}"
+    version="${version##OptiPNG version }"
+    version="${version##OptiPNG }"
+
+    if [ ${#version} -le 3 ]; then
+      version="$version.0"
+    fi
+
+    if [ "$version" \< 0.7.0 ]; then
+        printf "error: the version of optipng you have installed ($version) is"\
+" too old, you need at least version 0.7.0 for this script to work correctly\n"
+        exit 1
+    fi
+}
+
 check_programs() {
     which optipng 1>/dev/null 2>/dev/null
 
@@ -143,6 +160,8 @@ check_programs() {
         printf "error: optipng not found\n"
         exit 1;
     fi
+
+    check_optipng_version
 
     which advpng 1>/dev/null 2>/dev/null
 
@@ -227,7 +246,10 @@ recompress_file() {
 
         if [ $rv -ne 0 ]; then
             printf "error: advpng $opt_optipng_args \"$1\" returned $rv\n"
-            exit 1
+
+            if [ $opt_keepgoing = no ]; then
+                exit 1
+            fi
         fi
     fi
 

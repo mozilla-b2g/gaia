@@ -13,6 +13,10 @@ progress:not([value]) {
   vertical-align: middle;
 }
 
+progress:not([value]).light {
+  background-image: url(progress_activity/images/ui/light.png);
+}
+
 progress:not([value])::-moz-progress-bar {
  background: none;
 }

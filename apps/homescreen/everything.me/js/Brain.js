@@ -714,48 +714,19 @@
       Evme.Collection.addCloudApp(cloudResult);
     }
 
-    function saveToHomescreen(data, showConfirm) {
-      var isBookmarked = EvmeManager.isBookmarked(data.app.getFavLink()),
-        classList = data.el.classList;
-
-      if (isBookmarked) {
-        classList.add(CLASS_WHEN_SAVING_TO_HOMESCREEN);
-        window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'app-install-exists', {
-          'name': data.data.name
-        }));
-        classList.remove(CLASS_WHEN_SAVING_TO_HOMESCREEN);
-        return;
-      }
-
-      if (showConfirm) {
-        var msg = Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'app-install-confirm', {
-          'name': data.data.name
-        });
-
-        classList.add(CLASS_WHEN_SAVING_TO_HOMESCREEN);
-        var saved = window.confirm(msg);
-        classList.remove(CLASS_WHEN_SAVING_TO_HOMESCREEN);
-
-        if (!saved) {
-          return;
-        }
-      }
-
+    function saveToHomescreen(data) {
       // bookmark - add to homescreen
-      EvmeManager.addGridItem({
+      EvmeManager.addBookmark({
         'originUrl': data.app.getFavLink(),
         'name': data.data.name,
         'icon': data.app.getIcon(),
         'useAsyncPanZoom': data.app.isExternal()
-      });
-
-      // display system banner
-      EvmeManager.onAppSavedToHomescreen(data.data.name);
-
-      // analytics
-      Evme.EventHandler.trigger(NAME, 'addToHomeScreen', {
-        'id': data.data.id,
-        'name': data.data.name
+      }, function onsuccess() {
+        // analytics
+        Evme.EventHandler.trigger(NAME, 'addToHomeScreen', {
+          'id': data.data.id,
+          'name': data.data.name
+        });
       });
     }
 

@@ -7,6 +7,10 @@ define(function() {
     this.timeout = null;
   };
   MockXMLHttpRequest.prototype = {
+    triggerReadyStateChange: function(status) {
+      this.status = status;
+      this.onreadystatechange();
+    },
     open: function(requestType, requestUrl) {
       this.data.requestType = requestType;
       this.data.requestUrl = requestUrl;

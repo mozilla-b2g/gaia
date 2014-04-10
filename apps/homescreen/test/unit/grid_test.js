@@ -16,6 +16,8 @@ requireApp('homescreen/test/unit/mock_apps_mgmt.js');
 requireApp('homescreen/test/unit/mock_configurator.js');
 requireApp('homescreen/test/unit/mock_hidden_apps.js');
 requireApp('homescreen/test/unit/mock_icon_retriever.js');
+requireApp('homescreen/test/unit/mock_bookmarks_manager.js');
+requireApp('homescreen/test/unit/mock_bookmarks_database.js');
 
 require('/shared/js/screen_layout.js');
 requireApp('homescreen/js/icon_manager.js');
@@ -37,7 +39,9 @@ var mocksHelperForGrid = new MocksHelper([
   'HIDDEN_APPS',
   'ManifestHelper',
   'getDefaultIcon',
-  'Bookmark'
+  'Bookmark',
+  'BookmarksManager',
+  'BookmarksDatabase'
 ]).init();
 
 suite('grid.js >', function() {
@@ -52,6 +56,7 @@ suite('grid.js >', function() {
   mocksHelperForGrid.attachTestHelpers();
 
   function initGridManager(done) {
+    done = done || function() {};
     // reseting markup before initing the grid manager
     var fakeMarkup =
       '<div id="icongrid" class="apps" role="main">' +
@@ -102,6 +107,219 @@ suite('grid.js >', function() {
 
   teardown(function() {
     wrapperNode.parentNode.removeChild(wrapperNode);
+  });
+
+  suite('bookmarks migration first time', function() {
+
+    var descriptor = {
+          id: '1',
+          bookmarkURL: '1',
+          name: 'Mock bookmark 1'
+        },
+        bookmarkDatabaseAddSpy = null;
+
+    setup(function() {
+      MockBookmarksDatabase._bookmarks = {};
+      MockBookmarksManager._revisionId = undefined;
+      bookmarkDatabaseAddSpy = this.sinon.spy(BookmarksDatabase, 'add');
+      this.sinon.useFakeTimers();
+    });
+
+    teardown(function() {
+      bookmarkDatabaseAddSpy.restore();
+    });
+
+    test('no bookmarks already installed > no migration', function() {
+      initGridManager();
+      this.sinon.clock.tick(SAVE_STATE_WAIT_TIMEOUT);
+      assert.isFalse(bookmarkDatabaseAddSpy.called);
+      assert.equal(Object.keys(MockBookmarksDatabase._bookmarks).length, 0);
+    });
+
+    test('one bookmark already installed > migrating', function() {
+      MockHomeState.mTestGrids = [{
+        index: 1,
+        icons: [descriptor]
+      }];
+
+      initGridManager();
+      this.sinon.clock.tick(SAVE_STATE_WAIT_TIMEOUT);
+
+      assert.isTrue(bookmarkDatabaseAddSpy.calledOnce);
+      assert.isTrue(bookmarkDatabaseAddSpy.calledWith({
+        id: '1',
+        name: 'Mock bookmark 1'
+      }));
+      assert.equal(Object.keys(MockBookmarksDatabase._bookmarks).length,
+                   MockHomeState.mTestGrids[0].icons.length);
+    });
+
+    test('more than one bookmark already installed > migrating', function() {
+      var anotherDescriptor = {
+        'id': '2',
+        'bookmarkURL': '2',
+        'name': 'Mock bookmark 2'
+      };
+
+      MockHomeState.mTestGrids = [{
+        index: 1,
+        icons: [descriptor, anotherDescriptor]
+      }];
+
+      initGridManager();
+      this.sinon.clock.tick(SAVE_STATE_WAIT_TIMEOUT);
+
+      assert.equal(bookmarkDatabaseAddSpy.callCount, 2);
+      assert.equal(bookmarkDatabaseAddSpy.firstCall.args[0].name,
+                  'Mock bookmark 1');
+      assert.equal(bookmarkDatabaseAddSpy.secondCall.args[0].name,
+                  'Mock bookmark 2');
+      assert.equal(Object.keys(MockBookmarksDatabase._bookmarks).length,
+                   MockHomeState.mTestGrids[0].icons.length);
+    });
+
+  });
+
+  suite('bookmarks synchronization', function() {
+
+    var subjectA = '123456789',
+        descriptorA = {
+          id: subjectA,
+          bookmarkURL: subjectA,
+          name: 'Bookmark A'
+        };
+
+    setup(function() {
+      MockHomeState.mTestGrids = null;
+      MockBookmarksDatabase._bookmarks = {};
+      MockHomeState.mLastSavedGrid = null;
+      MockBookmarksManager._revisionId = 1;
+      MockBookmarksDatabase._revisionId = 2;
+      this.sinon.useFakeTimers();
+    });
+
+    test('adding bookmark from datastore not installed on the homescreen',
+          function() {
+      MockBookmarksDatabase._bookmarks[subjectA] = descriptorA;
+
+      var pageAppendIconSpy = this.sinon.spy(Page.prototype, 'appendIcon');
+
+      initGridManager();
+      this.sinon.clock.tick(SAVE_STATE_WAIT_TIMEOUT);
+
+      assert.ok(MockHomeState.mLastSavedGrid);
+      assert.isTrue(pageAppendIconSpy.called);
+      var icons = MockHomeState.mLastSavedGrid[1].icons;
+      assert.equal(icons.length, 1);
+      assert.equal(icons[0].id, subjectA);
+    });
+
+    test('updating bookmark from datastore installed on the homescreen',
+          function() {
+      var expectedName = 'Bookmark B';
+
+      MockHomeState.mTestGrids = [{
+        index: 0, // dock
+        icons: [descriptorA]
+      }];
+
+      MockBookmarksDatabase._bookmarks[subjectA] = {
+        id: subjectA,
+        bookmarkURL: subjectA,
+        name: expectedName
+      };
+
+      // We have to test
+      // 1) The name of descriptorA will be update to 'Bookmark B'
+
+      var iconUpdateSpy = this.sinon.spy(Icon.prototype, 'update');
+
+      initGridManager();
+      this.sinon.clock.tick(SAVE_STATE_WAIT_TIMEOUT);
+
+      assert.ok(MockHomeState.mLastSavedGrid);
+      assert.isTrue(iconUpdateSpy.called);
+      var icons = MockHomeState.mLastSavedGrid[0].icons;
+      // There are only one bookmark updated, no duplication
+      assert.equal(icons.length, 1);
+      assert.equal(icons[0].name, expectedName);
+    });
+
+    test('removing bookmark from homescreen because it is not in the datastore',
+          function() {
+
+      MockHomeState.mTestGrids = [{
+        index: 0,
+        icons: [descriptorA]
+      }];
+
+      var iconRemoveSpy = this.sinon.spy(Icon.prototype, 'remove');
+
+      initGridManager();
+      this.sinon.clock.tick(SAVE_STATE_WAIT_TIMEOUT);
+
+      assert.isTrue(iconRemoveSpy.called);
+    });
+
+    test('adding and updating bookmarks at the same time ', function() {
+      // Two bookmarks in the datastore descriptorA and descriptorB
+      MockBookmarksDatabase._bookmarks[subjectA] = descriptorA;
+      var subjectB = '1234';
+      var descriptorB = {
+        id: subjectB,
+        bookmarkURL: subjectB,
+        name: 'Bookmark B'
+      };
+      MockBookmarksDatabase._bookmarks[subjectB] = descriptorB;
+
+      // One bookmark in homescreen descriptorA (with another name different
+      // than it has in the datastore)
+      MockHomeState.mTestGrids = [{
+        index: 0,
+        icons: [{
+          id: subjectA,
+          bookmarkURL: subjectA,
+          name: 'Bookmark A with another name'
+        }]
+      }];
+
+      var pageAppendIconSpy = this.sinon.spy(Page.prototype, 'appendIcon');
+      var iconUpdateSpy = this.sinon.spy(Icon.prototype, 'update');
+
+      // We have to test:
+      // 1) Bookmark A's name will be updated to 'Bookmark A'
+      // 2) Bookmark B will be installed
+
+      initGridManager();
+      this.sinon.clock.tick(SAVE_STATE_WAIT_TIMEOUT);
+
+      assert.ok(MockHomeState.mLastSavedGrid);
+
+      // 1) Update
+      var dockIcons = MockHomeState.mLastSavedGrid[0].icons;
+      assert.isTrue(iconUpdateSpy.called);
+      assert.equal(dockIcons.length, 1);
+      assert.equal(dockIcons[0].name, 'Bookmark A');
+
+      // 2) Install
+      var firstPageIcons = MockHomeState.mLastSavedGrid[1].icons;
+      assert.isTrue(pageAppendIconSpy.called);
+      assert.equal(firstPageIcons.length, 1);
+      assert.equal(firstPageIcons[0].name, 'Bookmark B');
+    });
+
+    test('same revision -> no changes on bookmarks', function() {
+      MockBookmarksManager._revisionId = 1;
+      MockBookmarksDatabase._revisionId = 1;
+      var bookmarksDatabaseGetAll = this.sinon.spy(BookmarksDatabase, 'getAll');
+
+      initGridManager();
+      this.sinon.clock.tick(SAVE_STATE_WAIT_TIMEOUT);
+
+      assert.isNull(MockHomeState.mLastSavedGrid);
+      assert.isFalse(bookmarksDatabaseGetAll.called);
+    });
+
   });
 
   suite('Default icons have be initialized correctly >', function() {

@@ -1313,6 +1313,9 @@ contacts.List = (function() {
     if (callback) {
       callback(contact.id);
     }
+    if (contacts.Search) {
+      contacts.Search.updateSearchList();
+    }
   }
 
   var callbacks = [];

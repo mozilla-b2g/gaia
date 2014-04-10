@@ -1,12 +1,8 @@
 'use strict';
 
-/* global KeyboardLayout, KeyboardTouchHandler, InputField, ShiftKey,
-          AutoCorrect, Settings, Settings, KeyEvent */
-
-// XXX Before we support loading of layouts, this object temporary holds
-// the data for English layout.
-var englishLayout;
-
+/* global KeyboardLayoutManager, KeyboardTouchHandler,
+         InputField, ShiftKey, AutoCorrect, Settings, Settings, KeyEvent,
+         DoubleSpace */
 (function(exports) {
   /**
    * KeyboardApp is the starting module of the app itself.
@@ -16,6 +12,8 @@ var englishLayout;
   function KeyboardApp() {
     this._started = false;
   }
+
+  KeyboardApp.prototype.DEBUG = false;
 
   /**
    * Start the KeyboardApp instance. Attach event listeners and respond
@@ -39,7 +37,14 @@ var englishLayout;
       document.getElementById(this.KEYBOARD_CONTAINER_ID);
     this.container.addEventListener('mousedown', this);
 
-    this.layout = new KeyboardLayout(englishLayout);
+    window.addEventListener('hashchange', this);
+
+    this.layoutManager = new KeyboardLayoutManager(this);
+    this.layoutManager.start();
+
+    // Get layout name
+    this.currentLayoutName = window.location.hash.substring(1);
+    this.layoutManager.load(this.currentLayoutName);
 
     this.touchHandler = new KeyboardTouchHandler();
     this.touchHandler.start();
@@ -60,27 +65,9 @@ var englishLayout;
     this.settings.addEventListener('settingschanged', this);
     this.isShown = false;
 
-    // Start off with the main page
-    this.variant = this.getVariant();
-    this.currentPageView =
-      this.layout.getPageView(this.container, null, this.variant);
-    this.currentPage = this.currentPageView.page;
-
-    // Make it visible
-    this.currentPageView.show();
-
-    // Handle events
-    this.touchHandler.setPageView(this.currentPageView);
     this.touchHandler.addEventListener('key', this);
 
     this.inputField.addEventListener('inputfieldchanged', this);
-
-    // The call to resizeWindow triggers the system app to actually display
-    // the frame that holds the keyboard.
-    // Wait untill next tick to show keyboard or we will get multiple resize
-    // events, triggered by calling window.resizeTo().
-    this.inputcontext = navigator.mozInputMethod.inputcontext;
-    window.requestAnimationFrame(this.show.bind(this));
   };
 
   /**
@@ -107,6 +94,7 @@ var englishLayout;
     this.autoCorrect.stop();
     this.doubleSpace.stop();
     this.touchHandler.stop();
+    this.layoutManager.stop();
 
     this.inputcontext = null;
     this.layout = undefined;
@@ -121,7 +109,16 @@ var englishLayout;
     this.autoCorrect = null;
     this.doubleSpace = null;
     this.settings = null;
+    this.layoutManager = null;
     this.isShown = false;
+    this.currentLayoutName = '';
+  };
+
+  KeyboardApp.prototype.debug = function debug(msg) {
+    if (this.DEBUG) {
+      console.log('[KeyboardApp]' +
+        Array.slice(arguments).concat());
+    }
   };
 
   /**
@@ -130,6 +127,7 @@ var englishLayout;
    * @memberof KeyboardApp.prototype
    */
   KeyboardApp.prototype.handleEvent = function(evt) {
+    this.debug('handleEvent: ' + evt.type);
     switch (evt.type) {
       case 'key':
         this.handleKey(evt.detail);
@@ -163,6 +161,11 @@ var englishLayout;
 
       case 'mozvisibilitychange':
         this.show();
+        break;
+
+      case 'hashchange':
+        this.currentLayoutName = window.location.hash.substring(1);
+        this.layoutManager.load(this.currentLayoutName);
         break;
     }
   };
@@ -352,7 +355,10 @@ var englishLayout;
    * @memberof KeyboardApp.prototype
    */
   KeyboardApp.prototype.show = function show() {
-    if (!document.mozHidden && this.inputcontext) {
+    // Also check if the layout defintion is ready yet.
+    var currentLayout = this.layoutManager.getLayout(this.currentLayoutName);
+
+    if (!document.mozHidden && this.inputcontext && currentLayout) {
       this.resizeWindow();
       this.isShown = true;
     } else {
@@ -360,52 +366,35 @@ var englishLayout;
     }
   };
 
+  KeyboardApp.prototype.changeLayout = function changeLayout(layoutName) {
+    this.layout = this.layoutManager.getLayout(layoutName);
+
+    // Start off with the main page
+    this.variant = this.getVariant();
+
+    var previousPageView = this.currentPageView;
+    this.currentPageView =
+      this.layout.getPageView(this.container, null, this.variant);
+    this.currentPage = this.currentPageView.page;
+
+    // Make it visible
+    this.currentPageView.show();
+
+    // Hide the previous pageview
+    if (previousPageView) {
+      previousPageView.hide();
+    }
+
+    // Handle events
+    this.touchHandler.setPageView(this.currentPageView);
+  };
+
+  KeyboardApp.prototype.handleLayoutLoaded =
+    function handleLayoutLoaded(layoutName) {
+      this.changeLayout(layoutName);
+      this.inputcontext = navigator.mozInputMethod.inputcontext;
+      this.show();
+    };
+
   exports.KeyboardApp = KeyboardApp;
 }(window));
-
-englishLayout = {
-  name: 'english',
-  label: 'English',
-  pages: {
-    main: {
-      layout: [
-        'q w e r t y u i o p',
-        'a s d f g h j k l',
-        'SHIFT z x c v b n m BACKSPACE',
-        '?123 SWITCH SPACE . RETURN'
-      ],
-      variants: {
-        email: [
-          'q w e r t y u i o p',
-          'a s d f g h j k l _',
-          'SHIFT z x c v b n m BACKSPACE',
-          '?123 SWITCH @ SPACE . RETURN'
-        ],
-        url: [
-          'q w e r t y u i o p',
-          'a s d f g h j k l :',
-          'SHIFT z x c v b n m BACKSPACE',
-          '?123 SWITCH SPACE . RETURN'
-        ]
-      }
-    },
-    NUMBERS: 'inherit',  // Use the built-in number and symbol pages
-    SYMBOLS: 'inherit'
-  },
-
-  keys: {
-    '.': {
-      alternatives: ', ? ! ; :'
-    },
-    q: { alternatives: '1' },
-    w: { alternatives: '2' },
-    e: { alternatives: '3 é è' },
-    r: { alternatives: '4' },
-    t: { alternatives: '5' },
-    y: { alternatives: '6' },
-    u: { alternatives: '7' },
-    i: { alternatives: '8' },
-    o: { alternatives: '9' },
-    p: { alternatives: '0' }
-  }
-};

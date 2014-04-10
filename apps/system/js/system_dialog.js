@@ -94,7 +94,7 @@
    * Update dialog height via LayoutManager
    */
   SystemDialog.prototype.updateHeight = function sd_updateHeight() {
-    var height = LayoutManager.availableHeight;
+    var height = LayoutManager.height;
     this.containerElement.style.height = height + 'px';
     this.debug('updateHeight: new height = ' + height);
   };

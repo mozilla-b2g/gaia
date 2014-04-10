@@ -37,33 +37,6 @@ var Rocketbar = {
     this.input = document.getElementById('rocketbar-input');
     this.results = document.getElementById('rocketbar-results');
 
-    // Listen for events from window manager
-    window.addEventListener('apploading', this.handleAppChange.bind(this));
-    window.addEventListener('appforeground', this.handleAppChange.bind(this));
-    window.addEventListener('apptitlechange',
-      this.handleTitleChange.bind(this));
-    window.addEventListener('applocationchange',
-      this.handleLocationChange.bind(this));
-    window.addEventListener('home', this.handleHome.bind(this));
-    window.addEventListener('cardviewclosedhome', this.handleHome.bind(this));
-    window.addEventListener('appopened', this.collapse.bind(this));
-    window.addEventListener('cardviewclosed',
-      this.handleCardViewClosed.bind(this));
-
-    // Listen for events from Rocketbar
-    this.rocketbar.addEventListener('touchstart', this.handleTouch.bind(this));
-    this.rocketbar.addEventListener('touchmove', this.handleTouch.bind(this));
-    this.rocketbar.addEventListener('touchend', this.handleTouch.bind(this));
-    this.rocketbar.addEventListener('transitionend',
-      this.handleTransitionEnd.bind(this));
-    this.input.addEventListener('blur', this.blur.bind(this));
-    this.input.addEventListener('input', this.handleInput.bind(this));
-    this.form.addEventListener('submit', this.handleSubmit.bind(this));
-
-    // Listen for messages from search app
-    window.addEventListener('iac-search-results',
-      this.handleSearchMessage.bind(this));
-
     // Listen for settings changes
     SettingsListener.observe('rocketbar.enabled', false,
       function(value) {
@@ -81,6 +54,7 @@ var Rocketbar = {
    * Enable Rocketbar.
    */
   enable: function() {
+    this.addEventListeners();
     this.body.classList.add('rb-enabled');
     this.enabled = true;
   },
@@ -89,8 +63,113 @@ var Rocketbar = {
    * Disable Rocketbar.
    */
   disable: function() {
+    this.removeEventListeners();
     this.body.classList.remove('rb-enabled');
     this.enabled = false;
+  },
+
+  /**
+   * Add event listeners. Only called when Rocketbar is turned on.
+   */
+  addEventListeners: function() {
+    // Listen for events from window manager
+    window.addEventListener('apploading', this);
+    window.addEventListener('appforeground', this);
+    window.addEventListener('apptitlechange', this);
+    window.addEventListener('applocationchange', this);
+    window.addEventListener('home', this);
+    window.addEventListener('cardviewclosedhome', this);
+    window.addEventListener('appopened', this);
+    window.addEventListener('cardviewclosed', this);
+
+    // Listen for events from Rocketbar
+    this.rocketbar.addEventListener('touchstart', this);
+    this.rocketbar.addEventListener('touchmove', this);
+    this.rocketbar.addEventListener('touchend', this);
+    this.rocketbar.addEventListener('transitionend', this);
+    this.input.addEventListener('blur', this);
+    this.input.addEventListener('input', this);
+    this.form.addEventListener('submit', this);
+
+    // Listen for messages from search app
+    window.addEventListener('iac-search-results', this);
+  },
+
+  /**
+   * Dispatch events to correct event handlers.
+   *
+   * @param {Event} e Event.
+   */
+  handleEvent: function(e) {
+    switch(e.type) {
+      case 'apploading':
+      case 'appforeground':
+        this.handleAppChange(e);
+        break;
+      case 'apptitlechange':
+        this.handleTitleChange(e);
+        break;
+      case 'applocationchange':
+        this.handleLocationChange(e);
+        break;
+      case 'home':
+      case 'cardviewclosedhome':
+        this.handleHome(e);
+        break;
+      case 'appopened':
+        this.collapse(e);
+        break;
+      case 'cardviewclosed':
+        this.handleCardViewClosed(e);
+        break;
+      case 'touchstart':
+      case 'touchmove':
+      case 'touchend':
+        this.handleTouch(e);
+        break;
+      case 'transitionend':
+        this.handleTransitionEnd(e);
+        break;
+      case 'blur':
+        this.blur(e);
+        break;
+      case 'input':
+        this.handleInput(e);
+        break;
+      case 'submit':
+        this.handleSubmit(e);
+        break;
+      case 'iac-search-results':
+        this.handleSearchMessage(e);
+        break;
+    }
+  },
+
+  /**
+   * Remove all event listeners. Called when Rocketbar is disabled.
+   */
+  removeEventListeners: function() {
+    // Stop listening for events from window manager
+    window.removeEventListener('apploading', this);
+    window.removeEventListener('appforeground', this);
+    window.removeEventListener('apptitlechange', this);
+    window.removeEventListener('applocationchange', this);
+    window.removeEventListener('home', this);
+    window.removeEventListener('cardviewclosedhome', this);
+    window.removeEventListener('appopened', this);
+    window.removeEventListener('cardviewclosed', this);
+
+    // Stop listening for events from Rocketbar
+    this.rocketbar.removeEventListener('touchstart', this);
+    this.rocketbar.removeEventListener('touchmove', this);
+    this.rocketbar.removeEventListener('touchend', this);
+    this.rocketbar.removeEventListener('transitionend', this);
+    this.input.removeEventListener('blur', this);
+    this.input.removeEventListener('input', this);
+    this.form.removeEventListener('submit', this);
+
+    // Stop listening for messages from search app
+    window.removeEventListener('iac-search-results', this);
   },
 
   /**
@@ -162,9 +241,9 @@ var Rocketbar = {
    * Put Rocketbar in focused state.
    */
   focus: function() {
-    // Swallow keyboard change event so homescreen does not resize
+    // Swallow keyboard change events so homescreen does not resize
     this.body.addEventListener('keyboardchange',
-      this.handleKeyboardChange.bind(this), true);
+      this.handleKeyboardChange, true);
     this.title.classList.add('hidden');
     this.form.classList.remove('hidden');
     this.input.select();
@@ -176,12 +255,12 @@ var Rocketbar = {
    * Take Rocketbar out of focused state.
    */
   blur: function() {
+    // Stop swallowing keyboard change events
+    this.body.removeEventListener('keyboardchange',
+      this.handleKeyboardChange, true);
     if (!this.results.classList.contains('hidden')) {
       return;
     }
-    // Swallow keyboard change event so homescreen does not resize
-    this.body.removeEventListener('keyboardchange',
-      this.handleKeyboardChange.bind(this), true);
     this.input.blur();
     this.title.classList.remove('hidden');
     this.form.classList.add('hidden');

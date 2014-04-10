@@ -26,12 +26,19 @@ define(function(require, exports, module) {
   // Alarm Object
 
   function Alarm(config) {
+    config = config || {};
     if (config instanceof Alarm) {
       config = config.toSerializable();
     }
-    var econfig = Utils.extend(this.defaultProperties(), config || {});
-    this.extractProtected(econfig);
-    Utils.extend(this, econfig);
+
+    config = Utils.extend(this.defaultProperties(), config);
+    this.extractProtected(config);
+    Utils.extend(this, config);
+
+    // Normalize the alarm data. Pre-April-2014 code may have stored
+    // 'vibrate' and 'sound' as the string "0".
+    config.sound = (config.sound !== '0' ? config.sound : null);
+    config.vibrate = (config.vibrate && config.vibrate !== '0');
   }
 
   Alarm.prototype = {
@@ -90,19 +97,25 @@ define(function(require, exports, module) {
     // Persisted form
 
     toSerializable: function alarm_toSerializable() {
-      var retval = {};
+      var alarm = {};
       for (var i in this) {
         if (this.hasOwnProperty(i)) {
-          retval[i] = this[i];
+          alarm[i] = this[i];
         }
       }
       for (var kv of protectedProperties) {
         var prop = kv[0], map = kv[1];
         if (map.has(this) && map.get(this) !== undefined) {
-          retval[prop] = map.get(this);
+          alarm[prop] = map.get(this);
         }
       }
-      return retval;
+
+      // Normalize the data. TODO: Perform this normalization immediately
+      // at the getter/setter level when this class is refactored.
+      alarm.sound = (alarm.sound !== '0' ? alarm.sound : null);
+      alarm.vibrate = (alarm.vibrate && alarm.vibrate !== '0');
+
+      return alarm;
     },
 
     // ---------------------------------------------------------
@@ -276,10 +289,18 @@ define(function(require, exports, module) {
 
     delete: function alarm_delete(callback) {
       this.cancel();
-      AlarmsDB.deleteAlarm(this.id,
-        function alarm_innerDelete(err, alarm) {
+      AlarmsDB.deleteAlarm(this.id, (err, alarm) => {
+        window.dispatchEvent(new CustomEvent('alarm-removed', {
+          detail: { alarm: this }
+        }));
         callback(err, this);
-      }.bind(this));
+      });
+    },
+
+    _dispatchChangeNotification: function() {
+      window.dispatchEvent(new CustomEvent('alarm-changed', {
+        detail: { alarm: this }
+      }));
     },
 
     // ---------------------------------------------------------
@@ -300,6 +321,7 @@ define(function(require, exports, module) {
     save: function alarm_save(callback) {
       AlarmsDB.putAlarm(this, function(err, alarm) {
         idMap.set(this, alarm.id);
+        this._dispatchChangeNotification();
         callback && callback(err, this);
       }.bind(this));
     },
@@ -318,6 +340,7 @@ define(function(require, exports, module) {
         var registeredAlarms = registeredAlarmsMap.get(this) || {};
         registeredAlarms[type] = ev.target.result;
         registeredAlarmsMap.set(this, registeredAlarms);
+        this._dispatchChangeNotification();
         if (callback) {
           callback(null, this);
         }
@@ -329,7 +352,7 @@ define(function(require, exports, module) {
       };
     },
 
-    schedule: function alarm_schedule(options, callback) {
+    schedule: function(options, callback) {
       /*
        * Schedule
        *
@@ -348,6 +371,7 @@ define(function(require, exports, module) {
        * alarm parent.
        *
        */
+
       options = options || {}; // defaults
       if (typeof options.type === 'undefined') {
         options.type = 'normal';

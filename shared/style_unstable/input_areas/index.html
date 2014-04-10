@@ -47,6 +47,29 @@
       margin: 1rem -1.5rem;
       padding: 1.5rem 1.5rem 0.5rem;
     }
+
+    /**
+     *  .bb-editable
+     *  Added properties for this example, don't add on app.
+     */
+    .bb-editable {
+      margin: 1rem -1.5rem;
+      padding: 1.5rem 1.5rem 0.5rem;
+      background: #bbb;
+    }
+
+    /**
+     *  .icon-email:before
+     *  Define the background-image with custom icon for App.
+     *  Atention, well need the pseudo-element for compatibility with Building Blocks.
+     *
+     *  Example:
+     *  .icon-mms:before { background-image: url(...); }
+     */
+    .icon-email:before {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAABaCAYAAACv+ebYAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAASRJREFUeNrsl8ENgjAUhqlhAEfxQDyzgXdOjoCT0ClYg54Nu+gGtcRiAlJ5fQ9CDP+XFJOW+hlo6/uTBADw76hfg9ba0n0cBd//VErp6FlO3FgZDevn9pO50u4iEXPkn/ul4hj54L4lxBT51/hS4odrVUA62b+UOCSvfP+q4rE8KF1DTF5w3JPLio9Gx1T/Yauzen/idGb8Jv13QgEAAAAAyNJi27bitJhlmeYUAhfXcoHYuKY5pU/uJ3OluaTm4sjN3JOiFnsxckN5PTFVJkVuqGsitrw9hRaL7ycvxFhxt7WuE3Lt+1ct6MfyXhq131PmVukkpX+n5RYRhn24IC0iLQIAAABIi2/uRSFOi+e6RlpEWkRaRFpEWkRaRFoEYG+8BBgAvaeWTjgXDaoAAAAASUVORK5CYII=);
+    }
+
   </style>
   <script>
     window.onload = function(){
@@ -191,6 +214,16 @@
       <textarea>Some text here</textarea>
     </p>
   </form>
+
+  <h2 class="bb-docs">Content Editable</h2>
+  <div class="bb-editable">
+    <label>To:</label>
+    <span contenteditable="false">Travis Gray Travis Gray</span>
+    <span class="invalid" contenteditable="false">Lucy B.</span>
+    <span class="icon icon-email" contenteditable="false">Mary</span>
+    <span class="invalid icon icon-email" contenteditable="false">Paul C.</span>
+    <span contenteditable="true">John</span>
+  </div>
 
 </body>
 </html>

@@ -10,6 +10,7 @@
   opacity: 1;
   visibility: visible;
   transition: all 0.5s ease-in-out;
+  background-color: #333333;
 }
 
 .preview-gallery.offscreen {
@@ -38,38 +39,6 @@
   width: 100%;
   height: 100%;
   background-color: #333333;
-}
-
-/**
- * @deg90
- */
-
-.deg90 .media-frame {
-  width: 100vh;
-  height: 100vw;
-  top: calc((100vh - 100vw) / 2);
-  left: calc((100vw - 100vh) / 2);
-  transform: rotate(-90deg);
-}
-
-/**
- * @deg180
- */
-
-.deg180 .media-frame {
-  transform: rotate(-180deg);
-}
-
-/**
- * @deg270
- */
-
-.deg270 .media-frame {
-  width: 100vh;
-  height: 100vw;
-  top: calc((100vh - 100vw) / 2);
-  left: calc((100vw - 100vh) / 2);
-  transform: rotate(-270deg);
 }
 
 .media-frame > img {
@@ -118,31 +87,6 @@
   color: #fff;
 }
 
-/**
- * @deg90
- */
-
-.deg90 .camera-back {
-  bottom: 0;
-}
-
-/**
- * @deg180
- */
-
-.deg180 .camera-back {
-  bottom: 0;
-  right: 0;
-}
-
-/**
- * @deg270
- */
-.deg270 .camera-back {
-  top: 0;
-  right: 0;
-}
-
 .count-text {
   position: absolute;
   bottom: 83px;
@@ -154,40 +98,6 @@
     1px 1px 2px rgba(0,0,0,0.4),
     0 0 29px rgba(0,0,0,0.2);
   color: #FFF;
-}
-
-/**
- * @deg90
- */
-
-.deg90 .count-text {
-  width: 100vh;
-  bottom: 0;
-  left: calc(100% - 83px);
-  transform-origin: left bottom;
-  transform: rotate(-90deg);
-}
-
-/**
- * @deg180
- */
-
-.deg180 .count-text {
-  top: 83px;
-  bottom: auto;
-  transform: rotate(-180deg);
-}
-
-/**
- * @deg270
- */
-
-.deg270 .count-text {
-  width: 100vh;
-  top: 0;
-  left: calc(83px + 2rem);
-  transform-origin: left top;
-  transform: rotate(-270deg);
 }
 
 /** Preview Controls
@@ -203,38 +113,6 @@
   height: 4.5rem;
   background-color: rgba(0, 0, 0, 0.4);
   z-index: 100;
-}
-
-/**
- * @deg90
- */
-
-.deg90 .preview-controls {
-  width: 100vh;
-  left: 100%;
-  transform-origin: left bottom;
-  transform: rotate(-90deg);
-}
-
-/**
- * @deg180
- */
-
-.deg180 .preview-controls {
-  top: 0;
-  transform: rotate(-180deg);
-}
-
-/**
- * @deg270
- */
-
-.deg270 .preview-controls {
-  width: 100vh;
-  top: 0;
-  left: 4.5rem;
-  transform-origin: left top;
-  transform: rotate(-270deg);
 }
 
 /* TD DO common

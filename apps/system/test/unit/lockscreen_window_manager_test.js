@@ -93,6 +93,22 @@ suite('system/LockScreenWindowManager', function() {
       window.lockScreenWindowManager.stopEventListeners();
     });
 
+    test('Screenchange by proximity sensor, should not open the LockScreen app',
+    function() {
+      var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
+        'openApp');
+      window.lockScreenWindowManager.handleEvent(
+        {
+          type: 'screenchange',
+          detail: { screenEnabled: true,
+                    screenOffBy: 'proximity'
+          }
+        });
+      assert.isFalse(stubOpenApp.called,
+        'the manager still open the LockScreen app even the ' +
+        'screenchange was caused by proximity sensor');
+    });
+
     test('Open the app when screen is turned on', function() {
       window.lockScreenWindowManager.registerApp(appFake);
       var stubOpen = this.sinon.stub(appFake, 'open');
@@ -102,6 +118,29 @@ suite('system/LockScreenWindowManager', function() {
       assert.isTrue(stubOpen.called,
         'the manager didn\'t call the app.close when screen off');
       window.lockScreenWindowManager.unregisterApp(appFake);
+    });
+
+    test('When FTU occurs, the window should not be instantiated', function() {
+      var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
+        'openApp');
+      window.lockScreenWindowManager.handleEvent( { type: 'ftuopen' } );
+      window.lockScreenWindowManager.handleEvent(
+        { type: 'screenchange',
+          detail: { screenEnabled: true } });
+      assert.isFalse(stubOpenApp.called,
+        'the LockScreenWindow still be instantiated while the FTU is opened');
+    });
+
+    test('But after FTU done, the window should be instantiated', function() {
+      var stubOpenApp = this.sinon.stub(window.lockScreenWindowManager,
+        'openApp');
+      window.lockScreenWindowManager.handleEvent( { type: 'ftuopen' } );
+      window.lockScreenWindowManager.handleEvent( { type: 'ftudone' } );
+      window.lockScreenWindowManager.handleEvent(
+        { type: 'screenchange',
+          detail: { screenEnabled: true } });
+      assert.isTrue(stubOpenApp.called,
+        'the LockScreenWindow is not instantiated after the FTU was closed.');
     });
   });
 });

@@ -51,7 +51,7 @@ section,footer,nav,a,img {
 }
 
 button:focus::-moz-focus-inner {
-  border-color: transparent !important;
+  border-color: transparent;
 }
 
 button::-moz-focus-inner {
@@ -69,7 +69,7 @@ html[dir=rtl] #footer li {
 }
 
 li:active {
-  background-color: transparent !important;
+  background-color: transparent;
 }
 
 #bg-overlay {
@@ -132,10 +132,6 @@ body[data-mode = 'edit'] .apps ol > li[data-type = "bookmark"] > div > span > sp
   padding: .1rem .6rem .3rem .6rem;
 }
 
-#edit-dialog {
-  display: none;
-}
-
 /* For WVGA (800 x 480), adjust the padding to make app icons fit in 4 x 5 grid */
 @media all and (min-device-width: 320px) and (max-device-width: 359px) and (max-aspect-ratio: 4 / 6) {
   #paginationBar {
@@ -167,7 +163,7 @@ body[data-mode = 'edit'] .apps ol > li[data-type = "bookmark"] > div > span > sp
        (device-height: 540px) and (max-height: 450px),
        (device-height: 960px) and (max-height: 870px) {
   footer { opacity: 0; pointer-events: none; }
-  .apps > div { height: 100% !important; }
+  .apps > div { height: 100%; }
   #bg-overlay { transform: translateY(0); }
 }
 

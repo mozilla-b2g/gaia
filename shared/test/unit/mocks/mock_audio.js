@@ -1,8 +1,8 @@
 'use strict';
 
-function MockAudio(url) {
+function MockAudio(src) {
   MockAudio.instances.push(this);
-  this.url = url;
+  this.src = src;
   this.readyState = 1;
   this.paused = true;
 }

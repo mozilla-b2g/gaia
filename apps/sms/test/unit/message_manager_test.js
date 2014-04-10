@@ -1,17 +1,14 @@
 /*global MocksHelper, MockNavigatormozMobileMessage, MessageManager, ThreadUI,
          MockL10n, MockContact, loadBodyHTML, MozSmsFilter,
-         ThreadListUI, MockThreads, MockMessages, Threads, Compose,
-         GroupView, ReportView, ThreadListUI, MockThreads, MockMessages,
-         Threads, Compose, Drafts, Draft, MockNotification, Notification, SMIL,
-         Settings
+         ThreadListUI, MockThreads, MockMessages, Threads, Compose, Settings,
+         GroupView, ReportView, ThreadListUI, MockMessages, Compose, SMIL,
+         Drafts, Draft, Utils
 */
 
 'use strict';
 
 requireApp('sms/js/utils.js');
 requireApp('sms/js/time_headers.js');
-
-requireApp('sms/shared/test/unit/mocks/mock_notification.js');
 
 requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_async_storage.js');
@@ -45,7 +42,6 @@ var mocksHelperForMessageManager = new MocksHelper([
   'Drafts',
   'LinkActionHandler',
   'MozSmsFilter',
-  'Notification',
   'GroupView',
   'ReportView',
   'Recipients',
@@ -733,7 +729,6 @@ suite('message_manager.js >', function() {
   });
 
   suite('onHashChange', function() {
-    var notificationGetStub;
     setup(function() {
       this.sinon.spy(document.activeElement, 'blur');
       MessageManager.threadMessages = document.createElement('div');
@@ -747,16 +742,6 @@ suite('message_manager.js >', function() {
       this.sinon.spy(ReportView, 'reset');
       this.sinon.spy(MessageManager, 'handleActivity');
       this.sinon.stub(MessageManager, 'slide');
-      notificationGetStub = function notificationGet(options) {
-        return {
-          then: function(onSuccess, onError, onProgress) {
-            onSuccess([
-              new Notification('123456789', options)
-            ]);
-          }
-        };
-      };
-      this.sinon.stub(Notification, 'get', notificationGetStub);
       MessageManager.onHashChange();
     });
 
@@ -888,14 +873,13 @@ suite('message_manager.js >', function() {
       });
 
       suite('> Switch to #thread=100', function() {
-        var closeSpy;
         setup(function() {
           // reset states
           MessageManager.threadMessages.classList.add('new');
           MessageManager.slide.reset();
           ThreadUI.updateHeaderData.reset();
 
-          closeSpy = this.sinon.spy(MockNotification.prototype, 'close');
+          this.sinon.spy(Utils, 'closeNotificationsForThread');
           this.threadId = MockThreads.currentId = 100;
           window.location.hash = '#thread=' + this.threadId;
           MessageManager.onHashChange();
@@ -913,14 +897,8 @@ suite('message_manager.js >', function() {
             ThreadListUI.mark.calledWith(this.threadId, 'read')
           );
         });
-        test('calls Notification.get() on correct tag', function() {
-          assert.ok(
-            Notification.get.calledWith(
-              {tag: 'threadId:' + this.threadId})
-          );
-        });
-        test('calls Notification.close()', function() {
-          sinon.assert.calledOnce(closeSpy);
+        test('calls closeNotificationsForThread', function() {
+          sinon.assert.called(Utils.closeNotificationsForThread);
         });
         test('calls updateHeaderData', function() {
           assert.ok(

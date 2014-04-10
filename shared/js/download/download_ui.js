@@ -46,6 +46,7 @@ var DownloadUI = (function() {
    * Errors reported by the Downloads API.
    */
   var ERRORS = {
+    NO_MEMORY: 2152857616,
     NO_SDCARD: 2152857618,
     UNMOUNTED_SDCARD: 2152857621
   };

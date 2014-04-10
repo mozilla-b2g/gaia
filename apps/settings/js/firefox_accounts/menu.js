@@ -32,13 +32,13 @@ var FxaMenu = (function fxa_menu() {
     var email = e ? Normalizer.escapeHTML(e.accountId || e.email) : '';
 
     if (!e) {
-      navigator.mozL10n.localize(menuStatus, 'fxa-login');
+      navigator.mozL10n.localize(menuStatus, 'fxa-invitation');
     } else if (e.verified) {
       navigator.mozL10n.localize(menuStatus, 'fxa-logged-in-text', {
         email: email
       });
     } else { // unverified
-      navigator.mozL10n.localize(menuStatus, 'fxa-check-email', {
+      navigator.mozL10n.localize(menuStatus, 'fxa-confirm-email', {
         email: email
       });
     }

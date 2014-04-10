@@ -116,9 +116,13 @@ SettingsController.prototype.closeSettings = function() {
  * @private
  */
 SettingsController.prototype.onOptionTap = function(key, setting) {
+  var flashMode = this.settings.flashModesPicture.selected('key');
+  var ishdrOn = setting.key === 'hdr' && key === 'on';
+  var flashDeactivated = flashMode !== 'off' && ishdrOn;
+
   setting.select(key);
   this.closeSettings();
-  this.notify(setting);
+  this.notify(setting, flashDeactivated);
 };
 
 /**
@@ -128,12 +132,22 @@ SettingsController.prototype.onOptionTap = function(key, setting) {
  * @param  {Setting} setting
  * @private
  */
-SettingsController.prototype.notify = function(setting) {
+SettingsController.prototype.notify = function(setting, flashDeactivated) {
   var optionTitle = this.localize(setting.selected('title'));
-  var settingTitle = this.localize(setting.get('title'));
-  var message = settingTitle + '<br/>' + optionTitle;
+  var title = this.localize(setting.get('title'));
+  var html;
 
-  this.notification.display({ text: message });
+  // Check if the `flashMode` setting is going to be deactivated as part
+  // of the change in the `hdr` setting and display a specialized
+  // notification if that is the case
+  if (flashDeactivated) {
+    html = title + ' ' + optionTitle + '<br/>' +
+      this.l10n.get('flash-deactivated');
+  } else {
+    html = title + '<br/>' + optionTitle;
+  }
+
+  this.notification.display({ text: html });
 };
 
 SettingsController.prototype.localize = function(value) {

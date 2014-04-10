@@ -4,310 +4,237 @@ define(function(require) {
 var Utils = require('utils');
 var mozL10n = require('l10n');
 var AudioManager = require('audio_manager');
-var _ = mozL10n.get;
+var PostMessageProxy = require('./panels/alarm/post_message_proxy');
+var ChildWindowManager = require('./panels/alarm/child_window_manager');
 
-var messageHandlerMapping;
+/**
+ * RingView displays the alert screen when a timer or alarm fires.
+ * This screen may receive multiple different alarm/timer events;
+ * ideally it would display all events that fire, but currently it
+ * only shows the most recent event.
+ */
+function RingView() {
+  this.alerts = [];
+  this.ringtonePlayer = AudioManager.createAudioPlayer({
+    interruptHandler: this
+  });
 
-function RingView(opts = {}) {
-  Utils.extend(this, {
-    ringtonePlayer: AudioManager.createAudioPlayer({
-      interruptHandler: this
-    }),
-    vibrateInterval: null,
-    screenLock: null,
-    message: {},
-    started: false,
-    notificationOptions: {
-      sound: 'ac_classic_clock_alarm.opus',
-      vibrate: true,
-      label: _('alarm'),
-      time: new Date()
-    },
-    stopActions: [],
-    callback: null
-  }, opts);
-  window.addEventListener('message',
-    this.handleMessage.bind(this), false);
+  this.snoozeButton.addEventListener('click', this.onClickSnooze.bind(this));
+  this.closeButton.addEventListener('click', this.onClickClose.bind(this));
+  window.addEventListener('beforeunload', this.onBeforeUnload.bind(this));
+
+  this.activeAlarm = PostMessageProxy.create(window.opener, 'activeAlarm');
+
+  PostMessageProxy.receive('ringView', this);
+
+  if (window.opener) {
+    mozL10n.ready(() => {
+      ChildWindowManager.fireReady();
+    });
+  }
 }
 
-RingView.singleton = Utils.singleton(RingView);
+// The time, in milliseconds, to keep the screen awake while showing
+// an alarm. After this time, the screen shuts off and the alarm
+// silences itself.
+const WAKE_DURATION = 600000;
 
-RingView.prototype = {};
+RingView.prototype = {
 
-  RingView.prototype.handleMessage = function rv_handleMessage(ev) {
-    Utils.safeWakeLock({type: 'cpu', timeoutMs: 5000}, function(done) {
-    var err = [];
-    var data = ev.data;
-    var messageTypes = (data.type || '') .split(' ');
-    var gen = Utils.async.generator(done);
-    var lp = gen();
-    for (var type of messageTypes) {
-      var cb = gen();
-      try { // Ensure all handlers get called
-        if (typeof messageHandlerMapping[type] === 'function') {
-          messageHandlerMapping[type].call(this, ev, cb);
-        }
-      } catch (e) {
-        err.push(e);
-        cb();
-      }
+  /**
+   * Fire the notification for an alarm or timer.
+   *
+   * Presently, we only display one notification at a time, and the
+   * _most recent_ one at that. Each notification gets its own wake
+   * lock, ensuring that the screen will remain on for WAKE_DURATION.
+   *
+   * @param {string} alert.type 'alarm' or 'timer'
+   * @param {string} alert.label Label to display (optional).
+   * @param {string} alert.sound Filename of a sound to play (optional).
+   * @param {boolean} alert.vibrate True if the alert should vibrate.
+   */
+  addAlert: function(alert) {
+    // If we previously had an alert visible, this one is
+    // going to override it, as though the previous alert was
+    // dismissed.
+    if (this.alerts.length) {
+      var oldAlert = this.alerts.shift();
+      oldAlert.releaseScreenWakeLock();
     }
-    lp();
-    if (err.length !== 0) {
-      err.forEach(function(e) {
-        console.error('Error in onring handler:', e.message, '\n', e.stack);
+
+    alert.releaseScreenWakeLock = function() { };
+
+    // Insert this alert at the front of the stack, so that it
+    // overrides any previous alert that was being displayed.
+    this.alerts.unshift(alert);
+
+    this.refreshDisplay();
+
+    // Acquire a CPU wake lock so that we don't fall asleep waiting
+    // for the document to become visible. We'll only try to hold a
+    // lock for a few seconds as we wait for the document to become
+    // visible, out of an abundance of caution.
+    Utils.safeWakeLock({ type: 'cpu', timeoutMs: 5000 }, (releaseCpu) => {
+      // When the document is visible, acquire a screen wake lock so
+      // that we can safely display the alert.
+      this.whenVisible(() => {
+          Utils.safeWakeLock({ type: 'screen', timeoutMs: WAKE_DURATION },
+                             (releaseScreenWakeLock) => {
+            // Once we have acquired the screen wake lock, we can
+            // release the CPU lock.
+            releaseCpu();
+
+            // Save off the screen wake lock for when we dismiss the
+            // alert; all alarms each have their own screen wake lock.
+            alert.releaseScreenWakeLock = releaseScreenWakeLock;
+        });
       });
-      done();
+    });
+  },
+
+  /**
+   * Update the display to show the currently active alert. If there
+   * are a stack of alerts pending, only the most recent alert is
+   * shown, as added to this.alerts by this.addAlert().
+   */
+  refreshDisplay: function() {
+    // First, silence any existing sound or vibration. If a previous
+    // alarm was going off, this alarm may have different settings.
+    // The new alarm will replace any prior settings.
+    this.silence();
+
+    var alert = this.alerts[0];
+
+    // Set the label (blank or falsey becomes a default string).
+    this.ringLabel.textContent = alert.label ||
+      mozL10n.get(alert.type === 'alarm' ? 'alarm' : 'timer');
+
+    // Display the proper screen widgets.
+    this.ringDisplay.dataset.ringType = alert.type;
+
+    // Set the time to display.
+    var localeTime = Utils.getLocaleTime(alert.time);
+    this.time.textContent = localeTime.time;
+    this.hourState.textContent = localeTime.ampm;
+
+    if (alert.sound) {
+      this.ringtonePlayer.playRingtone(alert.sound);
     }
-  }.bind(this));
-};
 
-function isVisibleWorkaround(callback) {
-  /*jshint validthis:true */
-  // See https://bugzilla.mozilla.org/show_bug.cgi?id=810431
-  document.addEventListener('visibilitychange', this);
-  if (!document.hidden) {
-    callback();
-  } else {
-    // The setTimeout() is used to workaround
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=810431
-    // The workaround is used in screen off mode.
-    // hidden will be true in init() state.
-    window.setTimeout(function rv_checkHidden() {
-    // If hidden is true in init state,
-    // it means that the incoming call happens before the alarm.
-    // We should just put a "silent" alarm screen
-    // underneath the oncall screen
-      if (!document.hidden) {
-        callback();
-      }
-      // Our final chance is to rely on visibilitychange event handler.
-    }.bind(this), 0);
-  }
-}
-
-RingView.prototype.alarm = function rv_alarm(ev, wakelock) {
-  this.type = 'alarm';
-  this.alarm = ev.data.alarm;
-  var date;
-  try {
-    date = new Date(ev.data.date);
-  } catch (err) {
-    date = new Date();
-  }
-  this.snoozeButton.addEventListener('click', this);
-  this.closeButton.addEventListener('click', this);
-  this.notificationOptions = {
-    sound: ev.data.alarm.sound,
-    // TODO: normalize this throughout all layers
-    vibrate: ev.data.alarm.vibrate && ev.data.alarm.vibrate !== '0',
-    label: ev.data.alarm.label,
-    time: date
-  };
-
-  this.stopActions.push(function() {
-    window.opener.postMessage({
-      type: 'close-' + this.type
-    }, window.location.origin);
-    this.type = null;
-    this.snoozeButton.removeEventListener('click', this);
-    this.closeButton.removeEventListener('click', this);
-    this.notificationOptions = {};
-  }.bind(this));
-
-  isVisibleWorkaround.call(this, function() {
-    mozL10n.ready(function rv_waitLocalized() {
-      this.startNotify();
-      this.ringDisplay.dataset.ringType = 'alarm';
-      wakelock();
-    }.bind(this));
-  }.bind(this));
-};
-
-RingView.prototype.timer = function rv_timer(ev, wakelock) {
-  this.type = 'timer';
-  this.closeButton.addEventListener('click', this);
-  this.notificationOptions = {
-    sound: ev.data.timer.sound,
-    // TODO: normalize this throughout all layers
-    vibrate: ev.data.timer.vibrate && ev.data.timer.vibrate !== '0',
-    label: _('timer'),
-    time: new Date(ev.data.timer.startTime + ev.data.timer.duration)
-  };
-
-  this.stopActions.push(function() {
-    window.opener.postMessage({
-      type: 'close-' + this.type
-    }, window.location.origin);
-    this.type = null;
-    this.closeButton.removeEventListener('click', this);
-    this.notificationOptions = {};
-  }.bind(this));
-
-  isVisibleWorkaround.call(this, function() {
-    this.startNotify();
-    this.ringDisplay.dataset.ringType = 'timer';
-    wakelock();
-  }.bind(this));
-};
-
-RingView.prototype.display = function rv_display() {
-  var label = this.notificationOptions.label;
-  this.ringLabel.textContent = (label === '') ? _('alarm') : label;
-
-  var time = Utils.getLocaleTime(this.notificationOptions.time);
-  this.time.textContent = time.t;
-  this.hourState.textContent = time.p;
-};
-
-RingView.prototype.ring = function rv_ring(state) {
-  if (state) {
-    if (this.notificationOptions.sound) {
-      this.ringtonePlayer.playRingtone(this.notificationOptions.sound);
-    }
-  } else {
-    this.ringtonePlayer.pause();
-  }
-};
-
-  RingView.prototype.vibrate = function rv_vibrate(state) {
-  if (state) {
-    if ('vibrate' in navigator) {
+    // Vibrate if we want to shakey shakey.
+    if (alert.vibrate && ('vibrate' in navigator)) {
       clearInterval(this.vibrateInterval);
-      // TODO: this should vibrate immediately, not after 2s
-      this.vibrateInterval = window.setInterval(function vibrate() {
+      var vibrateOnce = function() {
         navigator.vibrate([1000]);
-      }, 2000);
+      };
+      this.vibrateInterval = setInterval(vibrateOnce, 2000);
+      vibrateOnce();
     }
-  } else {
-    clearInterval(this.vibrateInterval);
-    this.vibrateInterval = null;
-  }
-};
 
-RingView.prototype.startNotify = function rv_startNotify(timeout) {
-  timeout = timeout || 60000 * 10;
-  // Ensure called only once.
-  if (this.started) {
-    return;
-  }
-  var unique = {};
-  Utils.safeWakeLock({type: 'screen', timeoutMs: timeout + 5000},
-    function(done) {
-    this.started = unique;
-    this.wakelock = done;
-    this.display();
-    this.ring(true);
-    this.vibrate(this.notificationOptions.vibrate);
+    document.documentElement.classList.add('ready');
+
+    // If the window has been hidden, show the window.
     if (document.hidden) {
       window.focus();
     }
-    setTimeout(function rv_clearVibration() {
-      if (this.started === unique) {
-        this.vibrate(false);
-        this.ring(false);
-      }
-      done();
-    }.bind(this), timeout);
-  }.bind(this));
-};
+  },
 
-RingView.prototype.stopNotify = function rv_stopNotify(temporary, done) {
-  this.started = null;
-  this.ring(false);
-  this.vibrate(false);
-  if (typeof this.wakelock === 'function') {
-    this.wakelock();
-  }
-  this.wakelock = null;
-  while (!temporary) {
-    var el = this.stopActions.shift();
-    if (el) {
-      if (typeof el === 'function') {
-        el();
-      }
+  /**
+   * Stop all sounds and vibration immediately.
+   */
+  silence: function() {
+    // Stop the alert sound, if one was playin'.
+    this.ringtonePlayer.pause();
+
+    // Stop vibrating, if we were shakin'.
+    clearInterval(this.vibrateInterval);
+    this.vibrateInterval = null;
+  },
+
+  /**
+   * Handle an interrupt as reported from the Audio player. This could
+   * happen if an incoming call arrives while the alert is ringing. We
+   * should silence our alarm to allow the phone call to take
+   * precedence.
+   */
+  onInterrupt: function(evt) {
+    this.silence();
+  },
+
+  /**
+   * Clean up any state when we close this alert window. This includes
+   * silencing the alarm and releasing any locks we have acquired.
+   */
+  onBeforeUnload: function(evt) {
+    // Clean up any wake locks we still have.
+    while (this.alerts.length) {
+      var alert = this.alerts.shift();
+      alert.releaseScreenWakeLock();
+    }
+    this.silence();
+  },
+
+  /**
+   * Snooze the current alarm. (The snooze button is only visible for
+   * alarms, not timers. Alarms have an ID; timers do not.)
+   */
+  onClickSnooze: function(evt) {
+    var alert = this.alerts[0];
+    this.activeAlarm.snoozeAlarm(alert.id);
+    window.close();
+  },
+
+  /**
+   * Close this window, notifying ActiveAlarm, which will pop the user
+   * back to the appropriate location if they are still using the
+   * Clock app.
+   */
+  onClickClose: function(evt) {
+    var alert = this.alerts[0];
+    this.activeAlarm.close(alert.type, alert.id);
+    window.close();
+  },
+
+  /**
+   * Call the callback when `document.hidden` is false. Due to a bug
+   * in the B2G Browser API <https://bugzil.la/810431>, the window may
+   * not be immediately visible, particularly if the screen is off.
+   * The recommended workaround for that bug was to use setTimeout. If
+   * the page is still hidden after that, we listen for
+   * `visibilitychange`. When that bug has some action, we should
+   * revisit how much of this method is needed.
+   */
+  whenVisible: function(cb) {
+    if (!document.hidden) {
+      cb();
     } else {
-      break;
+      setTimeout(() => {
+        if (!document.hidden) {
+          cb();
+        } else {
+          var listener = function(e) {
+            if (!document.hidden) {
+              document.removeEventListener('visibilitychange', listener);
+              cb();
+            }
+          };
+          document.addEventListener('visibilitychange', listener);
+        }
+      });
     }
   }
-  window.opener.postMessage({
-    type: 'ringer',
-    status: 'READY'
-  }, window.location.origin);
-  done && done();
+
 };
 
-var domEventMap = {};
+Utils.extendWithDomGetters(RingView.prototype, {
+  time: '#ring-clock-time',
+  hourState: '#ring-clock-hour24-state',
+  ringLabel: '#ring-label',
+  snoozeButton: '#ring-button-snooze',
+  closeButton: '#ring-button-stop',
+  ringDisplay: '.ring-display'
+});
 
-RingView.prototype.handleEvent = function rv_handleEvent(evt) {
-  try {
-    domEventMap[evt.type].call(this, evt);
-  } catch (err) {
-    console.error('Error handling DOM event', evt);
-    throw err;
-  }
-};
+return RingView;
 
-RingView.prototype.onVisibilityChange = domEventMap.visibilitychange =
-  function rv_onVisibilityChange(evt) {
-  // There's chance to miss the hidden state when initiated,
-  // before setVisible take effects, there may be a latency.
-  if (!document.hidden) {
-    this.startNotify();
-  }
-};
-
-RingView.prototype.onMozInterruptBegin = domEventMap.mozinterruptbegin =
-  function rv_onMozInterruptBegin(evt) {
-  // Only ringer/telephony channel audio could trigger 'mozinterruptbegin'
-  // event on the 'alarm' channel audio element.
-  // If the incoming call happens after the alarm rings,
-  // we need to close ourselves.
-  this.stopNotify(true);
-};
-
-RingView.prototype.onClick = domEventMap.click =
-  function rv_onClick(evt) {
-  var input = evt.target;
-  if (!input) {
-    return;
-  }
-  switch (input.id) {
-    case 'ring-button-snooze':
-      this.stopNotify();
-      window.opener.postMessage({
-        type: 'scheduleSnooze',
-        id: this.alarm.id
-      }, window.location.origin);
-      window.close();
-      break;
-    case 'ring-button-stop':
-      this.stopNotify();
-      window.close();
-      break;
-  }
-};
-
-  var domMap = {
-    time: '#ring-clock-time',
-    hourState: '#ring-clock-hour24-state',
-    ringLabel: '#ring-label',
-    snoozeButton: '#ring-button-snooze',
-    closeButton: '#ring-button-stop',
-    ringDisplay: '.ring-display'
-  };
-  for (var i in domMap) {
-    Object.defineProperty(RingView.prototype, i,
-      Utils.memoizedDomPropertyDescriptor(domMap[i]));
-  }
-
-  messageHandlerMapping = {
-    timer: RingView.prototype.timer,
-    alarm: RingView.prototype.alarm,
-    stop: function(msg, done) {
-      RingView.prototype.stopNotify.call(this, false, done);
-    }
-  };
-
-  return RingView;
 });

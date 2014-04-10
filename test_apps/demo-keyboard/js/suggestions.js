@@ -38,17 +38,6 @@
     this.suggestionsContainer = null;
   };
 
-  // EventTarget methods
-  Suggestions.prototype.addEventListener =
-    function addEventListener(type, handler) {
-      this.suggestionsContainer.addEventListener(type, handler);
-    };
-
-  Suggestions.prototype.removeEventListener =
-    function removeEventListener(type, handler) {
-      this.suggestionsContainer.removeEventListener(type, handler);
-    };
-
   Suggestions.prototype.handleEvent = function handleEvent(evt) {
     // handle touchend event from suggestions.
 
@@ -57,18 +46,15 @@
     // and then dispatch an event about it. Or, if we find the dismiss
     // button, then dismiss the suggestions.
     while (target !== this.suggestionsContainer) {
-      var event;
       if (target.classList.contains('suggestion')) {
         var word = target.dataset.word + ' ';
-        event = new CustomEvent('suggestionselected', { detail: word });
-        this.suggestionsContainer.dispatchEvent(event);
+        this.autoCorrect.handleSelectionSelected(word);
 
         return;
       }
 
       if (target.classList.contains('dismiss-suggestions-button')) {
-        event = new CustomEvent('suggestionsdismissed');
-        this.suggestionsContainer.dispatchEvent(event);
+        this.autoCorrect.handleSelectionDismissed();
 
         return;
       }
@@ -161,8 +147,7 @@
       span.style.width = (100 / scale) + '%';
       span.style.transformOrigin = 'left';
       span.style.transform = 'scale(' + scale + ')';
-    }
-    else {
+    } else {
       span.style.width = '100%';
     }
 

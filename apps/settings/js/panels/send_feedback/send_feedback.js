@@ -110,7 +110,7 @@ define(function(require) {
         'Content-type', 'application/json');
       this._xhr.timeout = 5000;
       this._xhr.onreadystatechange =
-        this._messageHandler.bind(this);
+        this._responseHandler.bind(this);
       this._xhr.ontimeout = function() {
         this._messageHandler('timeout');
       }.bind(this);

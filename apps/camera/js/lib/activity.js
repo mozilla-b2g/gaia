@@ -89,7 +89,7 @@ Activity.prototype.check = function(done) {
 
 Activity.prototype.getModesForPickActivity = function(activity) {
   var source = activity.source;
-  var types = source.data.type || [];
+  var types = [].concat(source.data.type || []);
   var modes = [];
 
   types.forEach(function(item) {

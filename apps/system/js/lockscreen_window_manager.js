@@ -37,6 +37,7 @@
      * @memberof LockScreenWindowManager#
      */
     states: {
+      FTUOccurs: false,
       enabled: true,
       unlockDetail: null,
       instance: null
@@ -51,7 +52,8 @@
                 'lockscreen-appterminated',
                 'lockscreen-appclose',
                 'screenchange',
-                'ftuopen'
+                'ftuopen',
+                'ftudone'
                ]
     }
   };
@@ -74,10 +76,17 @@
       var app = null;
       switch (evt.type) {
         case 'ftuopen':
+          this.states.FTUOccurs = true;
+          if (!this.states.instance) {
+            return;
+          }
           // Need immediatly unlocking (hide window).
           this.closeApp(true);
           window.dispatchEvent(
             new CustomEvent('unlock'));
+          break;
+        case 'ftudone':
+          this.states.FTUOccurs = false;
           break;
         case 'will-unlock':
           this.states.unlockDetail = evt.detail;
@@ -97,7 +106,13 @@
           this.states.unlockDetail = null;
           break;
         case 'screenchange':
-          if (evt.detail.screenEnabled) {
+          // The screenchange may be invoked by proximity sensor,
+          // or the power button. If it's caused by the proximity sensor,
+          // we should not open the LockScreen, because the user may stay
+          // in another app, not the LockScreen.
+          if (evt.detail.screenEnabled &&
+              'proximity' !== evt.detail.screenOffBy &&
+              !this.states.FTUOccurs) {
             // The app would be inactive while screen off.
             this.openApp();
           }
@@ -128,7 +143,7 @@
    */
   LockScreenWindowManager.prototype.startObserveSettings =
     function lwm_startObserveSettings() {
-      var listener = (val) => {
+      var enabledListener = (val) => {
         if ('false' === val ||
             false   === val) {
           this.states.enabled = false;
@@ -138,8 +153,19 @@
         }
       };
 
+      // FIXME(ggp) this is currently used by Find My Device
+      // to force locking. Should be replaced by a proper
+      // IAC API in the future.
+      var lockListener = (val) => {
+        if (true === val) {
+          this.openApp();
+        }
+      };
+
       window.SettingsListener.observe('lockscreen.enabled',
-          true, listener);
+          true, enabledListener);
+      window.SettingsListener.observe('lockscreen.lock-immediately',
+          false, lockListener);
     };
 
   /**

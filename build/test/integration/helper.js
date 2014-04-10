@@ -1,6 +1,7 @@
 var assert = require('chai').assert;
 var fs = require('fs');
 var AdmZip = require('adm-zip');
+var exec = require('child_process').exec;
 
 function getPrefsSandbox() {
   var sandbox = {
@@ -87,6 +88,14 @@ function checkFileContentInZip(zipPath, pathInZip, expectedContent, isJSON) {
   assert.deepEqual(actual, expectedContent);
 }
 
+function exec(command, callback) {
+  var options = {
+    maxBuffer: 400*1024
+  };
+
+  exec(command, options, callback);
+}
+
 exports.getPrefsSandbox = getPrefsSandbox;
 exports.checkError = checkError;
 exports.checkSettings = checkSettings;
@@ -95,3 +104,4 @@ exports.checkWebappsScheme = checkWebappsScheme;
 exports.checkFileInZip = checkFileInZip;
 exports.checkFileContentInZip = checkFileContentInZip;
 exports.checkFileContentByPathInZip = checkFileContentByPathInZip;
+exports.exec = exec;

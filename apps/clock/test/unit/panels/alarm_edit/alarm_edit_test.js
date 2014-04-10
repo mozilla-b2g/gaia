@@ -2,57 +2,46 @@
 mocha.setup({ globals: ['GestureDetector'] });
 
 suite('AlarmEditView', function() {
-  var nativeMozAlarms = navigator.mozAlarms;
-  var AccessibilityHelper, Alarm, AlarmEdit, ActiveAlarm, AlarmsDB, AlarmList,
-      AlarmManager, mozL10n, alarmEdit;
+  var Alarm, AlarmEdit, activeAlarm, AlarmsDB, alarmListPanel, AlarmManager,
+      alarmEdit, panel, mozL10n;
 
   suiteSetup(function(done) {
     this.slow(25000);
-    testRequire([
-        'alarm',
-        'panels/alarm/active_alarm',
-        'panels/alarm_edit/main',
-        'mocks/mock_shared/js/accessibility_helper',
-        'mocks/mock_alarmsdb',
-        'mocks/mock_panels/alarm/alarm_list',
-        'mocks/mock_alarm_manager',
-        'mocks/mock_moz_alarm',
-        'mocks/mock_shared/js/l10n'
-      ], {
-        mocks: ['alarmsdb', 'panels/alarm/alarm_list', 'alarm_manager',
-          'shared/js/accessibility_helper']
-      }, function(alarm, activeAlarm, alarmEdit, mockAccessibilityHelper,
-        mockAlarmsDB, mockAlarmList, mockAlarmManager, mockMozAlarms,
-        mockMozL10n) {
-        AccessibilityHelper = mockAccessibilityHelper;
-        Alarm = alarm;
-        ActiveAlarm = activeAlarm;
-        AlarmEdit = alarmEdit;
-        AlarmsDB = mockAlarmsDB;
-        AlarmList = mockAlarmList;
-        AlarmManager = mockAlarmManager;
-        mozL10n = mockMozL10n;
-        navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
-          ActiveAlarm.handler
-        );
+    require([
+      'alarm',
+      'panels/alarm/active_alarm',
+      'panels/alarm_edit/main',
+      'alarmsdb',
+      'panels/alarm/main',
+      'panels/alarm/alarm_list',
+      'alarm_manager',
+      'l10n'
+    ], function(alarm, ActiveAlarm, alarmEdit, _AlarmsDB, AlarmPanel,
+                AlarmListPanel, _AlarmManager, l10n) {
+      // Instantiate an Alarm Panel to ensure that elements are initialized
+      // properly
+      var div = document.createElement('div');
+      document.body.appendChild(div);
+      panel = new AlarmPanel(div);
 
-        done();
-      }
-    );
+      Alarm = alarm;
+      activeAlarm = new ActiveAlarm();
+      AlarmEdit = alarmEdit;
+      AlarmsDB = _AlarmsDB;
+      alarmListPanel = new AlarmListPanel(document.createElement('div'));
+      AlarmManager = _AlarmManager;
+      mozL10n = l10n;
+      done();
+    });
   });
 
   setup(function() {
-    this.sinon.stub(ActiveAlarm.singleton(), 'handler');
     alarmEdit = new AlarmEdit(document.createElement('div'));
-  });
-
-  suiteTeardown(function() {
-    navigator.mozAlarms = nativeMozAlarms;
   });
 
   suite('Alarm persistence', function() {
 
-    setup(function() {
+    setup(function(done) {
       // Create an Alarm
       var alarm = alarmEdit.alarm = new Alarm({
         id: 42,
@@ -63,11 +52,6 @@ suite('AlarmEditView', function() {
         monday: true, wednesday: true, friday: true
       };
       alarmEdit.element.dataset.id = alarm.id;
-
-      // Store to alarmsdb
-      AlarmsDB.alarms.clear();
-      AlarmsDB.alarms.set(alarm.id, alarm);
-      AlarmsDB.idCount = 43;
 
       // shim the edit alarm view
       alarmEdit.buttons.time.input = alarmEdit.selects.time;
@@ -93,12 +77,14 @@ suite('AlarmEditView', function() {
       alarmEdit.getSnoozeSelect.returns(alarmEdit.alarm.snooze);
       alarmEdit.getRepeatSelect.returns(alarmEdit.alarm.repeat);
 
-      this.sinon.useFakeTimers();
+      // Store to alarmsdb
+      AlarmsDB.putAlarm(alarm, done);
     });
 
     test('should save an alarm, no id', function(done) {
-      this.sinon.stub(AlarmList, 'refreshItem');
-      this.sinon.stub(AlarmList.banner, 'show');
+      this.sinon.spy(alarmListPanel, 'addOrUpdateAlarm');
+      this.sinon.stub(alarmListPanel.banner, 'show');
+
       alarmEdit.alarm = new Alarm({
         hour: 5,
         minute: 17,
@@ -106,32 +92,28 @@ suite('AlarmEditView', function() {
           monday: true, wednesday: true, friday: true
         }
       });
-      alarmEdit.element.dataset.id = null;
-
-      this.sinon.stub(alarmEdit.alarm, 'setEnabled', function(val, callback) {
-        callback(null, alarmEdit.alarm);
-      });
+      alarmEdit.element.dataset.id = '';
 
       alarmEdit.save(function(err, alarm) {
         assert.ok(!err);
+
         // Refreshed AlarmList
-        assert.ok(AlarmList.refreshItem.calledOnce);
-        assert.ok(AlarmList.refreshItem.calledWithExactly(alarm));
+        assert.ok(alarmListPanel.addOrUpdateAlarm.called, 'addCalledOnce');
+        assert.ok(alarmListPanel.addOrUpdateAlarm.calledWithExactly(alarm));
 
         // Rendered BannerBar
-        assert.ok(AlarmList.banner.show.calledOnce);
-        assert.ok(AlarmManager.updateAlarmStatusBar.calledOnce);
+        assert.ok(alarmListPanel.banner.show.called);
+        assert.ok(AlarmManager.updateAlarmStatusBar.called);
         done();
       });
-      this.sinon.clock.tick(100);
     });
 
     test('should save an alarm, existing id', function(done) {
-      this.sinon.stub(AlarmList, 'refreshItem');
-      this.sinon.stub(AlarmList.banner, 'show');
-      var curid = AlarmsDB.idCount++;
+
+      this.sinon.stub(alarmListPanel, 'addOrUpdateAlarm');
+      this.sinon.stub(alarmListPanel.banner, 'show');
       alarmEdit.alarm = new Alarm({
-        id: curid,
+        id: 1,
         hour: 5,
         minute: 17,
         repeat: {
@@ -140,47 +122,33 @@ suite('AlarmEditView', function() {
       });
       alarmEdit.element.dataset.id = alarmEdit.alarm.id;
 
-      this.sinon.stub(alarmEdit.alarm, 'setEnabled', function(val, callback) {
-        callback(null, alarmEdit.alarm);
-      });
-
       alarmEdit.save(function(err, alarm) {
         assert.ok(!err);
         // Refreshed AlarmList
-        assert.ok(AlarmList.refreshItem.calledOnce);
-        assert.ok(AlarmList.refreshItem.calledWithExactly(alarm));
+        assert.ok(alarmListPanel.addOrUpdateAlarm.called);
+        assert.ok(alarmListPanel.addOrUpdateAlarm.calledWithExactly(alarm));
 
         // Rendered BannerBar
-        assert.ok(AlarmList.banner.show.calledOnce);
-        assert.ok(AlarmManager.updateAlarmStatusBar.calledOnce);
+        assert.ok(alarmListPanel.banner.show.called);
+        assert.ok(AlarmManager.updateAlarmStatusBar.called);
         done();
       });
-      this.sinon.clock.tick(100);
+
     });
 
     test('should delete an alarm', function(done) {
-      var called = false;
-      this.sinon.stub(AlarmList, 'refresh');
-
-      this.sinon.stub(alarmEdit.alarm, 'delete', function(callback) {
-        callback(null, alarmEdit.alarm);
-      });
+      this.sinon.stub(alarmListPanel, 'removeAlarm');
 
       alarmEdit.delete(function(err, alarm) {
         assert.ok(!err, 'delete reported error');
-        assert.ok(AlarmList.refresh.calledOnce);
-        assert.ok(AlarmManager.updateAlarmStatusBar.calledOnce);
-        called = true;
+        assert.ok(alarmListPanel.removeAlarm.calledOnce);
+        assert.ok(AlarmManager.updateAlarmStatusBar.called);
         done();
       });
-      this.sinon.clock.tick(10);
-      if (!called) {
-        done('was not called');
-      }
     });
 
     test('should add an alarm with sound, no vibrate', function(done) {
-      this.sinon.stub(AlarmList, 'refreshItem');
+      this.sinon.stub(alarmListPanel, 'addOrUpdateAlarm');
 
       // mock the view to turn off vibrate
       alarmEdit.getVibrateSelect.returns('0');
@@ -192,42 +160,30 @@ suite('AlarmEditView', function() {
           monday: true, wednesday: true, friday: true
         }
       });
-      alarmEdit.element.dataset.id = null;
-
-      this.sinon.stub(alarmEdit.alarm, 'setEnabled', function(val, callback) {
-        callback(null, alarmEdit.alarm);
-      });
+      alarmEdit.element.dataset.id = '';
 
       alarmEdit.save(function(err, alarm) {
-        assert.ok(AlarmList.refreshItem.calledOnce);
+        assert.ok(alarmListPanel.addOrUpdateAlarm.called);
         done();
       });
-      this.sinon.clock.tick(10);
+
     });
 
     test('should update existing alarm with no sound, vibrate', function(done) {
-      this.sinon.stub(AlarmList, 'refresh');
-      this.sinon.stub(AlarmList, 'refreshItem');
+      this.sinon.stub(alarmListPanel, 'addOrUpdateAlarm');
       // mock the view to turn sound on and vibrate off
-      alarmEdit.getVibrateSelect.returns('0');
-
-      this.sinon.stub(alarmEdit.alarm, 'setEnabled', function(val, callback) {
-        callback(null, alarmEdit.alarm);
-      });
-
       alarmEdit.getVibrateSelect.returns('1');
       alarmEdit.getSoundSelect.returns('0');
       alarmEdit.save(function(err, alarm) {
         assert.ok(alarm.id);
-        assert.ok(AlarmList.refreshItem.calledOnce);
+        assert.ok(alarmListPanel.addOrUpdateAlarm.called);
         AlarmsDB.getAlarm(alarm.id, function(err, alarm) {
-          assert.equal(alarm.vibrate, 1);
-          assert.equal(alarm.sound, 0);
+          assert.equal(alarm.vibrate, true);
+          assert.equal(alarm.sound, null);
           done();
         });
       });
 
-      this.sinon.clock.tick(10);
     });
 
     test('should update start of week for l10n, Monday first', function() {
@@ -262,7 +218,7 @@ suite('AlarmEditView', function() {
     var alarm;
 
     setup(function() {
-      alarm = alarmEdit.alarm = new Alarm();
+      alarm = alarmEdit.alarm = new Alarm({});
     });
 
     suiteTeardown(function() {

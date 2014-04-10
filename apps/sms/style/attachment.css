@@ -11,7 +11,7 @@
   display: block;
   border: none;
   height: 82px; /* default size = 80 px + border */
-  width: 82px;
+  width: 122px;
 }
 
 .attachment-draft {
@@ -63,9 +63,8 @@
   top: 0;
   left: 0;
 
-  width: 80px;
+  width: 120px;
   height: 80px;
-  border: 1px solid #018eac;
   border-radius: 2px;
 }
 
@@ -144,10 +143,10 @@
   width: 100%;
   height: 100%;
 
-  background-image: url('icons/attachments.png');
+  background-image: url('images/attachments.png');
   background-repeat: no-repeat;
   background-position: left top;
-  background-size: 160px;
+  background-size: 120px;
 }
 
 .attachment-container .thumbnail,
@@ -160,7 +159,8 @@
 .attachment-draft:active .thumbnail-placeholder,
 .attachment-container:hover .thumbnail-placeholder,
 .attachment-container:active .thumbnail-placeholder {
-  background-position: right top;
+  background-color: #33cccc;
+  background-blend-mode: luminosity;
 }
 
 .img-placeholder {

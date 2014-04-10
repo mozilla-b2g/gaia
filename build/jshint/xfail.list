@@ -36,7 +36,6 @@ apps/communications/dialer/js/mmi_ui.js
 apps/communications/dialer/js/newsletter_manager.js
 apps/communications/dialer/js/oncall.js
 apps/communications/dialer/js/phone_action_menu.js
-apps/communications/dialer/js/tone_player.js
 apps/communications/dialer/js/utils.js
 apps/communications/dialer/js/voicemail.js
 apps/communications/dialer/test/marionette/lib/dialer.js
@@ -228,8 +227,8 @@ apps/gallery/test/unit/GestureDetector_test.js
 apps/gallery/test/unit/asyncStorage_test.js
 apps/gallery/test/unit/format_test.js
 apps/gallery/test/unit/input_parser_test.js
-apps/gallery/test/unit/l10n_date_test.js
-apps/gallery/test/unit/l10n_test.js
+apps/gallery/test/unit/l10n/l10n_date_test.js
+apps/gallery/test/unit/l10n/l10n_test.js
 apps/gallery/test/unit/lazy_loader_test.js
 apps/gallery/test/unit/mediadb_test.js
 apps/gallery/test/unit/mime_mapper_test.js
@@ -248,7 +247,6 @@ apps/homescreen/everything.me/js/Core.js
 apps/homescreen/everything.me/js/api/DoATAPI.js
 apps/homescreen/everything.me/js/api/apiv2.js
 apps/homescreen/everything.me/js/developer/utils.1.3.js
-apps/homescreen/everything.me/js/etmmanager.js
 apps/homescreen/everything.me/js/everything.me.js
 apps/homescreen/everything.me/js/helpers/EventHandler.js
 apps/homescreen/everything.me/js/helpers/IconManager.js
@@ -261,7 +259,6 @@ apps/homescreen/everything.me/js/plugins/Analytics.js
 apps/homescreen/everything.me/js/plugins/Scroll.js
 apps/homescreen/everything.me/js/search/control.js
 apps/homescreen/everything.me/modules/BackgroundImage/BackgroundImage.js
-apps/homescreen/everything.me/modules/Collection/Collection.js
 apps/homescreen/everything.me/modules/CollectionsSuggest/CollectionsSuggest.js
 apps/homescreen/everything.me/modules/ConnectionMessage/ConnectionMessage.js
 apps/homescreen/everything.me/modules/Features/Features.js
@@ -416,7 +413,6 @@ apps/settings/test/marionette/app/regions/improve.js
 apps/settings/test/marionette/tests/improve_settings_test.js
 apps/settings/test/performance/integration.js
 apps/settings/test/performance/rendering_wifi_list_test.js
-apps/settings/test/unit/about_test.js
 apps/settings/test/unit/download_api_manager_test.js
 apps/settings/test/unit/download_formatter_test.js
 apps/settings/test/unit/download_helper_test.js
@@ -486,7 +482,6 @@ apps/system/js/operator_variant/operator_variant.js
 apps/system/js/operator_variant/operator_variant_iccs.js
 apps/system/js/orientation_manager.js
 apps/system/js/payment.js
-apps/system/js/permission_manager.js
 apps/system/js/popup_manager.js
 apps/system/js/quick_settings.js
 apps/system/js/screen_manager.js
@@ -496,6 +491,7 @@ apps/system/js/sim_lock.js
 apps/system/js/simslot.js
 apps/system/js/simslot_manager.js
 apps/system/js/sleep_menu.js
+apps/system/js/sound_manager.js
 apps/system/js/stack_manager.js
 apps/system/js/statusbar.js
 apps/system/js/storage_watcher.js
@@ -623,7 +619,6 @@ apps/system/test/unit/mock_wifi_manager.js
 apps/system/test/unit/modal_dialog_test.js
 apps/system/test/unit/operator_variant_helper_test.js
 apps/system/test/unit/orientation_manager_test.js
-apps/system/test/unit/permission_manager_test.js
 apps/system/test/unit/quick_settings_test.js
 apps/system/test/unit/screen_manager_test.js
 apps/system/test/unit/settings_helper_test.js
@@ -684,7 +679,6 @@ shared/js/fb/fb_reader_utils.js
 shared/js/fb/fb_request.js
 shared/js/fxa_iac_client.js
 shared/js/keyboard_helper.js
-shared/js/l10n.js
 shared/js/lockscreen_slide.js
 shared/js/media/get_video_rotation.js
 shared/js/media/jpeg_metadata_parser.js

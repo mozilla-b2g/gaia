@@ -8,7 +8,7 @@ suite('AlarmsDB Test Suite', function() {
   var AlarmsDB, Utils, rawQuery;
 
   suiteSetup(function(done) {
-    testRequire([
+    require([
         'alarm',
         'alarmsdb',
         'utils'

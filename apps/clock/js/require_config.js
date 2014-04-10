@@ -13,9 +13,6 @@ requirejs.config({
     'shared/js/template': {
       exports: 'Template'
     },
-    emitter: {
-      exports: 'Emitter'
-    },
     'shared/js/gesture_detector': {
       exports: 'GestureDetector'
     },

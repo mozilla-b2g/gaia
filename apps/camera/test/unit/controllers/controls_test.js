@@ -41,6 +41,11 @@ suite('controllers/controls', function() {
     this.app.settings.mode.get
       .withArgs('options')
       .returns([{ key: 'picture' }, { key: 'video' }]);
+
+    // Aliases
+    this.controls = this.app.views.controls;
+
+    this.controller = new this.ControlsController(this.app);
   });
 
   suite('ControlsController()', function() {
@@ -58,13 +63,11 @@ suite('controllers/controls', function() {
 
     test('Should show the gallery if no pending activity' +
          'and not in \'secureMode\'', function() {
-      this.controller = new this.ControlsController(this.app);
       assert.isTrue(this.app.views.controls.set.calledWith('gallery', true));
     });
 
     test('Should *not* show the cancel button when ' +
          '*not* within a \'pick\' activity', function() {
-      this.controller = new this.ControlsController(this.app);
       assert.isTrue(this.app.views.controls.set.calledWith('cancel', false));
     });
 
@@ -110,9 +113,38 @@ suite('controllers/controls', function() {
     });
 
     test('Should call the preview when click on thumbnail', function() {
-      this.controller = new this.ControlsController(this.app);
-      this.controller.bindEvents();
       assert.ok(this.app.views.controls.on.calledWith('click:thumbnail'));
+    });
+
+    test('Should remove the capture button highlight when shutter fires', function() {
+      assert.isTrue(this.app.on.calledWith('camera:shutter', this.controller.captureHighlightOff));
+    });
+
+    test('Should disable the controls when the camera is busy', function() {
+      assert.isTrue(this.app.on.calledWith('camera:busy', this.controls.disable));
+    });
+
+    test('Should restore the controls when the camera is \'ready\'', function() {
+      assert.isTrue(this.app.on.calledWith('camera:ready', this.controller.restore));
+    });
+
+    test('Should restore the controls when the timer is cleared', function() {
+      assert.isTrue(this.app.on.calledWith('timer:cleared', this.controller.restore));
+    });
+  });
+
+  suite('ControlsController#onCaptureClick', function() {
+    setup(function() {
+      sinon.spy(this.controller, 'captureHighlightOn');
+      this.controller.onCaptureClick();
+    });
+
+    test('Should highlight the capture button', function() {
+      assert.isTrue(this.controller.captureHighlightOn.calledOnce);
+    });
+
+    test('Should fire a \'capture\' event on the app', function() {
+      assert.isTrue(this.app.emit.calledWith('capture'));
     });
   });
 });

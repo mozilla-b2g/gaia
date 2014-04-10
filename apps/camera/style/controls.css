@@ -63,7 +63,6 @@
 
 .controls-button {
   position: relative;
-  box-sizing: content-box;
   display: block;
   height: 5.4rem;
   width: 5.4rem;
@@ -76,7 +75,7 @@
   background-color: rgba(0,0,0,0.4);
   background-clip: padding-box;
   border: solid 1.8rem transparent;
-  -moz-box-sizing: content-box;
+  box-sizing: content-box;
   color: #fff;
 }
 
@@ -136,8 +135,6 @@
 
 .controls-cancel-pick-button {
   display: none;
-  font-size: 4rem;
-  line-height: 4rem;
 }
 
 /**
@@ -157,7 +154,6 @@
 
 .mode-switch {
   position: relative;
-  box-sizing: content-box;
   display: block;
   font-size: 2.4rem;
   width: 7.6rem;
@@ -167,6 +163,7 @@
   margin-left: 1.8rem;
   overflow: hidden;
   visibility: hidden; /* 1 */
+  box-sizing: content-box;
 }
 
 /**
@@ -212,13 +209,20 @@
 /** Selected Mode
  ---------------------------------------------------------*/
 
+/**
+ * 1. Disabled `will-change` due to performance
+ *    issues on Hamachi. Leaving in place so that
+ *    we can re-introduce as a later date to improve
+ *    frame-rate on more capable devices.
+ */
+
 .mode-switch .selected-mode {
   position: relative;
   width: 3.6rem;
   height: 3.6rem;
   border-radius: 50%;
   background: #EEE;
-  will-change: transform;
+  /*will-change: transform;*/ /* 1 */
   transition: transform 140ms;
 }
 
@@ -287,19 +291,28 @@
 /** Inner Circle
  ---------------------------------------------------------*/
 
+/**
+ * 1. Disabled `will-change` due to performance
+ *    issues on Hamachi. Leaving in place so that
+ *    we can re-introduce as a later date to improve
+ *    frame-rate on more capable devices.
+ */
+
 .capture-button .inner-circle {
   background-color: white;
-  will-change: transform;
+  /*will-change: transform;*/ /* 1 */
   transform: scale(0.76);
   transition: transform 150ms ease-in;
 }
 
 /**
  * :active,
+ * recording=true,
  * capture-active=true & mode=picture
  */
 
 .capture-button:active .inner-circle,
+[recording=true] .capture-button .inner-circle,
 [capture-active=true] .capture-button .inner-circle {
   background-color: #00caf2;
   color: white;
@@ -315,11 +328,14 @@
 }
 
 /**
- * mode=video & :active
+ * mode=video & :active,
+ * mode=video & capture-active=true,
+ * mode=vide & recording=true
  */
 
 .controls[mode=video] .capture-button:active .inner-circle,
-.controls[mode=video][capture-active=true] .capture-button .inner-circle {
+.controls[mode=video][capture-active=true] .capture-button .inner-circle,
+.controls[mode=video][recording=true] .capture-button .inner-circle {
   background-color: #D92E2E;
 }
 
@@ -340,10 +356,12 @@
 
 /**
  * :active,
+ * recording=true,
  * capture-active=true & mode=picture
  */
 
 .capture-button:active .center:before,
+[recording=true] .capture-button .center:before,
 [capture-active=true] .capture-button .center:before {
   color: white;
 }
@@ -364,10 +382,13 @@
 }
 
 /**
- * mode=video & recording=true
+ * mode=video & :active,
+ * mode=video & recording=true,
+ * mode=vide & capture-active=true
  */
 
 .controls[mode=video] .capture-button:active .center:before,
+.controls[mode=video][recording=true] .capture-button .center:before,
 .controls[mode=video][capture-active=true] .capture-button .center:before {
   border-radius: 3px;
   background-color: white;

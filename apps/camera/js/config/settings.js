@@ -66,6 +66,7 @@ module.exports = {
 
   pictureSizesFront: {
     title: 'camera-resolution',
+    header: 'camera-resolution-header',
     icon: 'icon-picture-size',
     maxPixelSize: window.CONFIG_MAX_IMAGE_PIXEL_SIZE,
     options: [
@@ -78,6 +79,7 @@ module.exports = {
 
   pictureSizesBack: {
     title: 'camera-resolution',
+    header: 'camera-resolution-header',
     icon: 'icon-picture-size',
     maxPixelSize: window.CONFIG_MAX_IMAGE_PIXEL_SIZE,
     options: [
@@ -91,6 +93,7 @@ module.exports = {
 
   recorderProfilesBack: {
     title: 'video-resolution',
+    header: 'video-resolution-header',
     icon: 'icon-video-size',
     options: [],
     exclude: ['high', '1080p'],
@@ -99,6 +102,7 @@ module.exports = {
 
   recorderProfilesFront: {
     title: 'video-resolution',
+    header: 'video-resolution-header',
     icon: 'icon-video-size',
     options: [],
     persistent: true
@@ -145,6 +149,7 @@ module.exports = {
 
   timer: {
     title: 'self-timer',
+    header: 'self-timer-header',
     icon: 'icon-timer',
     options: [
       {
@@ -173,6 +178,7 @@ module.exports = {
 
   hdr: {
     title: 'hdr',
+    header: 'hdr-header',
     icon: 'icon-hdr-menu',
     disabled: false,
     options: [
@@ -190,6 +196,7 @@ module.exports = {
 
   scene: {
     title: 'scene-mode',
+    header: 'scene-mode-header',
     icon: 'icon-scene',
     options: [
       {
@@ -210,6 +217,7 @@ module.exports = {
 
   grid: {
     title: 'grid',
+    header: 'grid-header',
     icon: 'icon-frame-grid',
     options: [
       {
@@ -238,12 +246,12 @@ module.exports = {
       },
       {
         key: 'timer'
-      }
+      }//,
       // {
-      //   key: 'pictureSizes',
+      //   key: 'pictureSizes'
       // },
       // {
-      //   key: 'recorderProfiles',
+      //   key: 'recorderProfiles'
       // }
     ]
   }

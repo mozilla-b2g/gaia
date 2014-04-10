@@ -1,4 +1,4 @@
-/* global AppWindowManager, KeyboardManager, softwareButtonManager, StatusBar,
+/* global KeyboardManager, softwareButtonManager, StatusBar,
           System */
 'use strict';
 
@@ -48,35 +48,15 @@
     },
 
     /**
-     * Gives the possible height for a fullscreen window.
+     * Gives the possible height for a window.
      *
      * @memberOf LayoutManager
      */
-    get fullscreenHeight() {
+    get height() {
       return window.innerHeight -
         (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
+        StatusBar.height -
         softwareButtonManager.height;
-    },
-
-    /**
-     * Gives the possible height for a normal window.
-     *
-     * @memberOf LayoutManager
-     */
-    get usualHeight() {
-      return window.innerHeight -
-        (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
-        softwareButtonManager.height - StatusBar.height;
-    },
-
-    /**
-     * Gives the available height for a active App window.
-     *
-     * @memberOf LayoutManager
-     */
-    get availableHeight() {
-      var isFullScreen = AppWindowManager.getActiveApp().isFullScreen();
-      return (isFullScreen ? this.fullscreenHeight : this.usualHeight);
     },
 
     /**
@@ -92,17 +72,12 @@
      * Match the given size with current layout.
      * @param  {Number}  width        The matched width.
      * @param  {Number}  height       The matched height.
-     * @param  {Boolean} isFullScreen To match fullscreen case or not.
      * @return {Boolean}              Matches current layout or not.
      *
      * @memberOf LayoutManager
      */
-    match: function lm_match(width, height, isFullScreen) {
-      if (isFullScreen) {
-        return (this.fullscreenHeight === height);
-      } else {
-        return (this.usualHeight === height);
-      }
+    match: function lm_match(width, height) {
+      return (this.height === height);
     },
 
     /**

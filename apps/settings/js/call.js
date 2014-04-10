@@ -7,6 +7,25 @@
  * Singleton object that handles some call settings.
  */
 var CallSettings = (function(window, document, undefined) {
+  var _networkTypeCategory = {
+    'gprs': 'gsm',
+    'edge': 'gsm',
+    'umts': 'gsm',
+    'hsdpa': 'gsm',
+    'hsupa': 'gsm',
+    'hspa': 'gsm',
+    'hspa+': 'gsm',
+    'lte': 'gsm',
+    'gsm': 'gsm',
+    'is95a': 'cdma',
+    'is95b': 'cdma',
+    '1xrtt': 'cdma',
+    'evdo0': 'cdma',
+    'evdoa': 'cdma',
+    'evdob': 'cdma',
+    'ehrpd': 'cdma'
+  };
+
   var _cfReason = {
     CALL_FORWARD_REASON_UNCONDITIONAL: 0,
     CALL_FORWARD_REASON_MOBILE_BUSY: 1,
@@ -36,6 +55,8 @@ var CallSettings = (function(window, document, undefined) {
   var _ = window.navigator.mozL10n.get;
   var _settings = window.navigator.mozSettings;
   var _mobileConnections = window.navigator.mozMobileConnections;
+  var _voiceTypes = Array.prototype.map.call(_mobileConnections,
+    function() { return null; });
 
   /** mozMobileConnection instance the panel settings rely on */
   var _mobileConnection = null;
@@ -71,6 +92,10 @@ var CallSettings = (function(window, document, undefined) {
       backButton.setAttribute('href', '#call-iccs');
     }
 
+    cs_addVoiceTypeChangeListeners();
+    cs_updateNetworkTypeLimitedItemsVisibility(
+      _mobileConnection.voice && _mobileConnection.voice.type);
+
     // Init call setting stuff.
     cs_initVoiceMailSettings();
     cs_initVoicePrivacyMode();
@@ -97,6 +122,8 @@ var CallSettings = (function(window, document, undefined) {
               e.detail.previous === '#call-voiceMailSettings') {
             return;
           }
+          cs_updateNetworkTypeLimitedItemsVisibility(
+            _mobileConnection.voice && _mobileConnection.voice.type);
           cs_refreshCallSettingItems();
           break;
       }
@@ -105,6 +132,8 @@ var CallSettings = (function(window, document, undefined) {
     // We need to refresh call setting items as they can be changed in dialer.
     document.addEventListener('visibilitychange', function() {
       if (!document.hidden && Settings.currentPanel === '#call') {
+        cs_updateNetworkTypeLimitedItemsVisibility(
+          _mobileConnection.voice && _mobileConnection.voice.type);
         cs_refreshCallSettingItems();
       }
     });
@@ -113,11 +142,53 @@ var CallSettings = (function(window, document, undefined) {
   }
 
   /**
+   * Add listeners on 'voicechange' for show/hide network type limited items.
+   */
+  function cs_addVoiceTypeChangeListeners() {
+    Array.prototype.forEach.call(_mobileConnections, function(conn, index) {
+      _voiceTypes[index] = conn.voice.type;
+      conn.addEventListener('voicechange', function() {
+        var newType = conn.voice.type;
+        if (index !== DsdsSettings.getIccCardIndexForCallSettings() ||
+            _voiceTypes[index] === newType) {
+          return;
+        }
+        _voiceTypes[index] = newType;
+        cs_updateNetworkTypeLimitedItemsVisibility(newType);
+        cs_refreshCallSettingItems();
+      });
+    });
+  }
+
+  /**
+   * Update the network type limited items' visibility based on the voice type.
+   */
+  function cs_updateNetworkTypeLimitedItemsVisibility(voiceType) {
+    // The following features are limited to GSM types.
+    var callForwardingHeader =
+      document.getElementById('header-callForwarding');
+    var callForwardingList = document.getElementById('list-callForwarding');
+    var callWaitingItem = document.getElementById('menuItem-callWaiting');
+    var callerIdItem = document.getElementById('menuItem-callerId');
+    // The following feature is limited to CDMA types.
+    var voicePrivacyItem =
+      document.getElementById('menuItem-voicePrivacyMode');
+
+    callForwardingHeader.hidden = callForwardingList.hidden =
+      callWaitingItem.hidden = callerIdItem.hidden =
+      (_networkTypeCategory[voiceType] !== 'gsm');
+
+    voicePrivacyItem.hidden =
+      (_networkTypeCategory[voiceType] !== 'cdma');
+  }
+
+  /**
    * Refresh the items in the call setting panel.
    */
   function cs_refreshCallSettingItems() {
     cs_updateVoiceMailItemState();
     cs_updateFdnStatus();
+    cs_updateVoicePrivacyItemState();
     if (!_updatingInProgress) {
       cs_updateCallerIdItemState(
         function panelready_updateCallerIdItemState() {
@@ -471,6 +542,14 @@ var CallSettings = (function(window, document, undefined) {
                                             checkSetCallForwardingOptionResult,
                                             reason,
                                             action) {
+    var element = document.getElementById('header-callForwarding');
+    if (!element || element.hidden) {
+      if (typeof callback === 'function') {
+        callback(null);
+      }
+      return;
+    }
+
     _updatingInProgress = true;
 
     cs_displayInfoForAll(_('callSettingsQuery'));
@@ -541,6 +620,14 @@ var CallSettings = (function(window, document, undefined) {
    *
    */
   function cs_updateCallerIdItemState(callback) {
+    var element = document.getElementById('menuItem-callerId');
+    if (!element || element.hidden) {
+      if (typeof callback === 'function') {
+        callback(null);
+      }
+      return;
+    }
+
     cs_enableTabOnCallerIdItem(false);
     cs_enableTabOnCallWaitingItem(false);
     cs_enableTapOnCallForwardingItems(false);
@@ -644,7 +731,14 @@ var CallSettings = (function(window, document, undefined) {
    *
    */
   function cs_updateCallWaitingItemState(callback) {
-    var menuItem = document.querySelector('#menuItem-callWaiting');
+    var menuItem = document.getElementById('menuItem-callWaiting');
+    if (!menuItem || menuItem.hidden) {
+      if (typeof callback === 'function') {
+        callback(null);
+      }
+      return;
+    }
+
     var input = menuItem.querySelector('.checkbox-label input');
 
     var getCWEnabled = _mobileConnection.getCallWaitingOption();
@@ -789,57 +883,57 @@ var CallSettings = (function(window, document, undefined) {
     });
   }
 
+  function cs_updateVoicePrivacyItemState() {
+    var menuItem = document.getElementById('menuItem-voicePrivacyMode');
+    if (!menuItem || menuItem.hidden) {
+      return;
+    }
+
+    var privacyModeItem =
+        document.getElementById('menuItem-voicePrivacyMode');
+    var privacyModeInput =
+      privacyModeItem.querySelector('input');
+
+    var getReq = _mobileConnection.getVoicePrivacyMode();
+    getReq.onsuccess = function get_vpm_success() {
+      privacyModeInput.checked = getReq.result;
+    };
+    getReq.onerror = function get_vpm_error() {
+      console.warn('get voice privacy mode: ' + getReq.error.name);
+    };
+  }
+
   /**
    * Init voice privacy mode.
    */
   function cs_initVoicePrivacyMode() {
-    // get network type
-    getSupportedNetworkInfo(_mobileConnection, function(result) {
-      if (!result.cdma) {
-        return;
-      }
+    var defaultVoicePrivacySettings =
+      Array.prototype.map.call(_mobileConnections,
+        function() { return false; });
+    var voicePrivacyHelper =
+      SettingsHelper('ril.voicePrivacy.enabled', defaultVoicePrivacySettings);
 
-      var defaultVoicePrivacySettings =
-        Array.prototype.map.call(_mobileConnections,
-          function() { return false; });
-      var voicePrivacyHelper =
-        SettingsHelper('ril.voicePrivacy.enabled', defaultVoicePrivacySettings);
+    var privacyModeItem =
+      document.getElementById('menuItem-voicePrivacyMode');
+    var privacyModeInput =
+      privacyModeItem.querySelector('input');
 
-      var privacyModeItem =
-        document.getElementById('menuItem-voicePrivacyMode');
-      var privacyModeInput =
-        privacyModeItem.querySelector('input');
-
-      var getReq = _mobileConnection.getVoicePrivacyMode();
-      getReq.onsuccess = function get_vpm_success() {
-        privacyModeItem.hidden = false;
-        privacyModeInput.checked = getReq.result;
-      };
-      getReq.onerror = function get_vpm_error() {
-        console.warn('get voice privacy mode: ' + getReq.error.name);
-        if (getReq.error.name === 'RequestNotSupported' ||
-            getReq.error.name === 'GenericFailure') {
-          privacyModeItem.hidden = true;
-        }
-      };
-
-      privacyModeInput.addEventListener('change',
-        function vpm_inputChanged() {
-          var checked = this.checked;
-          voicePrivacyHelper.get(function gotVP(values) {
-            var originalValue = !checked;
-            var setReq = _mobileConnection.setVoicePrivacyMode(checked);
-            setReq.onsuccess = function set_vpm_success() {
-              var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
-              values[targetIndex] = !originalValue;
-              voicePrivacyHelper.set(values);
-            };
-            setReq.onerror = function get_vpm_error() {
-              // restore the value if failed.
-              privacyModeInput.checked = originalValue;
-            };
-          });
-      });
+    privacyModeInput.addEventListener('change',
+      function vpm_inputChanged() {
+        var checked = this.checked;
+        voicePrivacyHelper.get(function gotVP(values) {
+          var originalValue = !checked;
+          var setReq = _mobileConnection.setVoicePrivacyMode(checked);
+          setReq.onsuccess = function set_vpm_success() {
+            var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
+            values[targetIndex] = !originalValue;
+            voicePrivacyHelper.set(values);
+          };
+          setReq.onerror = function get_vpm_error() {
+            // restore the value if failed.
+            privacyModeInput.checked = originalValue;
+          };
+        });
     });
   }
 

@@ -20,7 +20,7 @@ var CallLog = {
       '/shared/style/confirm.css',
       '/shared/style/switches.css',
       '/shared/style/lists.css',
-      '/contacts/js/utilities/confirm.js',
+      '/shared/js/confirm.js',
       '/dialer/js/phone_action_menu.js',
       '/dialer/js/utils.js',
       '/shared/js/sticky_header.js'

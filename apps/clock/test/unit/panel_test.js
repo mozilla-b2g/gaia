@@ -3,7 +3,7 @@ suite('Panel', function() {
   var Panel;
 
   suiteSetup(function(done) {
-    testRequire(['panel'], function(panel) {
+    require(['panel'], function(panel) {
       Panel = panel;
       done();
     });
@@ -15,10 +15,6 @@ suite('Panel', function() {
   });
 
   suite('active', function() {
-    setup(function() {
-      this.activeSpy = this.sinon.spy();
-      this.panel.on('active', this.activeSpy);
-    });
     test('starts out active false', function() {
       assert.isFalse(this.panel.active);
     });
@@ -30,9 +26,6 @@ suite('Panel', function() {
       setup(function() {
         this.panel.active = false;
       });
-      test('does not call active event(same state)', function() {
-        assert.equal(this.activeSpy.callCount, 0);
-      });
       test('class not on element', function() {
         assert.isFalse(this.element.classList.contains('active'));
       });
@@ -41,9 +34,6 @@ suite('Panel', function() {
     suite('setting true', function() {
       setup(function() {
         this.panel.active = true;
-      });
-      test('calls active event', function() {
-        assert.ok(this.activeSpy.calledWith(true));
       });
       test('active is true', function() {
         assert.isTrue(this.panel.active);
@@ -54,11 +44,7 @@ suite('Panel', function() {
 
       suite('setting true', function() {
         setup(function() {
-          this.activeSpy.reset();
           this.panel.active = true;
-        });
-        test('does not call active event(same state)', function() {
-          assert.equal(this.activeSpy.callCount, 0);
         });
         test('class on element', function() {
           assert.isTrue(this.element.classList.contains('active'));
@@ -67,11 +53,7 @@ suite('Panel', function() {
 
       suite('setting false', function() {
         setup(function() {
-          this.activeSpy.reset();
           this.panel.active = false;
-        });
-        test('calls active event', function() {
-          assert.ok(this.activeSpy.calledWith(false));
         });
         test('active is false', function() {
           assert.isFalse(this.panel.active);

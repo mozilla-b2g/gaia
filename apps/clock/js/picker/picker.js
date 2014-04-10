@@ -50,7 +50,7 @@ define(function(require) {
       this.nodes[picker] = setup.element.querySelector('.picker-' + picker);
 
       for (var i = range[0]; i <= range[1]; i++) {
-        values.push(isPadded && i < 10 ? '0' + i : i);
+        values.push(isPadded && i < 10 ? '0' + i : '' + i);
         if (valueText) {
           textValues.push(_(valueText, { n: i }));
         }

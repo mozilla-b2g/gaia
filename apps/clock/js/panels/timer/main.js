@@ -5,10 +5,10 @@ var Panel = require('panel');
 var Picker = require('picker/picker');
 var View = require('view');
 
+var mozL10n = require('l10n');
 var Utils = require('utils');
 var Timer = require('timer');
 var Sounds = require('sounds');
-var mozL10n = require('l10n');
 var FormButton = require('form_button');
 var html = require('text!panels/timer/panel.html');
 var AudioManager = require('audio_manager');
@@ -83,6 +83,8 @@ Timer.Panel = function(element) {
     element.addEventListener('click', this.onclick.bind(this), false);
   }, this);
 
+  mozL10n.translate(this.element);
+
   var sound = this.nodes.sound;
 
   sound.addEventListener('blur', this.pauseAlarm.bind(this), false);
@@ -95,27 +97,25 @@ Timer.Panel = function(element) {
   this.soundButton = new FormButton(sound, soundMenuConfig);
   this.soundButton.refresh();
 
-  mozL10n.translate(this.element);
-
-  View.instance(element, Timer.Panel).on(
-    'visibilitychange', this.onvisibilitychange.bind(this)
-  );
+  element.addEventListener('panel-visibilitychange',
+                           this.onvisibilitychange.bind(this));
 
   Timer.singleton(function(err, timer) {
     this.timer = timer;
-    timer.on('end', this.dialog.bind(this));
+    timer.onend = this.dialog.bind(this);
     if (this.visible) {
       // If the timer panel already became visible before we fetched
       // the timer, we must update the display to show the proper
       // timer status.
-      this.onvisibilitychange(true);
+      this.onvisibilitychange({ detail: { isVisible: true } });
     }
   }.bind(this));
 };
 
 Timer.Panel.prototype = Object.create(Panel.prototype);
 
-Timer.Panel.prototype.onvisibilitychange = function(isVisible) {
+Timer.Panel.prototype.onvisibilitychange = function(evt) {
+  var isVisible = evt.detail.isVisible;
   var nodes = this.nodes;
   var timer = this.timer;
 

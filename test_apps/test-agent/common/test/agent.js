@@ -82,22 +82,12 @@
 
   worker.use(TestAgent.BrowserWorker.MultiDomainDriver, {
     groupTestsByDomain: function(test) {
-
-      var testsDir = '/test/unit/';
-
       var parsed = TestUrlResolver.parse(test);
 
-      var env = parsed.host;
-
-      // any sub-folders that contain unit tests
-      // will be sandboxed in their own environment
-      var testsDirIndex = parsed.url.indexOf(testsDir);
-      if (testsDirIndex > 0) {
-          env += '-'+ parsed.url.slice(0, testsDirIndex);
-      }
+      var env = parsed.host + '-' + parsed.url;
 
       var result = {
-        domain: parsed.domain + testsDir + '_proxy.html',
+        domain: parsed.domain + '/test/unit/_proxy.html',
         test: '/' + parsed.url,
         env: env
       };

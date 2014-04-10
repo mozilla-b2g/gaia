@@ -117,7 +117,11 @@ suite('lib/camera', function() {
   suite('Camera#startRecording()', function() {
     setup(function() {
       this.options = {
-        orientation: { get: sinon.stub().returns(0) },
+        orientation: {
+          get: sinon.stub().returns(0),
+          start: sinon.stub(),
+          stop: sinon.stub()
+        },
         recordSpaceMin: 999,
         recordSpacePadding: 100
       };

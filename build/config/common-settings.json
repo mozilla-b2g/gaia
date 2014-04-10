@@ -3,6 +3,7 @@
    "accessibility.screenreader": false,
    "alarm.enabled": false,
    "app-transition.enabled": true,
+   "app.cards_view.screenshots.enabled": true,
    "app-suspending.enabled": false,
    "app.launch_path.blacklist": [],
    "app.reportCrashes": "ask",

@@ -1,8 +1,6 @@
 'use strict';
 suite('ClockView', function() {
-  var nativeMozAlarms = navigator.mozAlarms;
   var ClockView;
-  var AlarmList;
   var asyncStorage;
   var panel;
 
@@ -11,45 +9,27 @@ suite('ClockView', function() {
     // system's time zone
     this.sixAm = new Date(2013, 5, 16, 6).getTime();
 
-    testRequire([
-        'panels/alarm/main',
-        'panels/alarm/clock_view',
-        'mocks/mock_panels/alarm/alarm_list',
-        'mocks/mock_shared/js/async_storage',
-        'mocks/mock_moz_alarm'
-      ], {
-        mocks: [
-          'panels/alarm/alarm_list',
-          'shared/js/async_storage',
-          'panels/alarm/active_alarm'
-        ]
-      }, function(
-          AlarmPanel,
-          clockView,
-          mockAlarmList,
-          mockAsyncStorage,
-          mockMozAlarms
-        ) {
-        navigator.mozAlarms = new mockMozAlarms.MockMozAlarms();
+    require([
+      'panels/alarm/main',
+      'panels/alarm/clock_view',
+      'shared/js/async_storage'
+    ], function(
+      AlarmPanel,
+      clockView,
+      mockAsyncStorage
+    ) {
 
-        AlarmList = mockAlarmList;
+      // Instantiate an Alarm Panel to ensure that elements are initialized
+      // properly
+      var div = document.createElement('div');
+      document.body.appendChild(div);
+      panel = new AlarmPanel(div);
 
-        // Instantiate an Alarm Panel to ensure that elements are initialized
-        // properly
-        var div = document.createElement('div');
-        document.body.appendChild(div);
-        panel = new AlarmPanel(div);
+      ClockView = clockView;
 
-        ClockView = clockView;
-        AlarmList = mockAlarmList;
-
-        asyncStorage = mockAsyncStorage;
-        done();
-      });
-  });
-
-  suiteTeardown(function() {
-    navigator.mozAlarms = nativeMozAlarms;
+      asyncStorage = mockAsyncStorage;
+      done();
+    });
   });
 
   test('ClockView.isInitialized ', function() {
@@ -378,7 +358,7 @@ suite('ClockView', function() {
     });
 
     setup(function() {
-      this.getAlarmCountStub = this.sinon.stub(AlarmList, 'getAlarmCount');
+      this.getAlarmCountStub = this.sinon.stub(ClockView, 'getAlarmCount');
     });
 
     test('large size when no alarms in alarms list', function() {
