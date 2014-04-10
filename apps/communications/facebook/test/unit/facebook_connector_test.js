@@ -2,11 +2,11 @@
 
 requireApp('communications/contacts/js/fb/fb_contact_utils.js');
 require('/shared/js/fb/fb_reader_utils.js');
+require('/shared/js/contacts/import/utilities/misc.js');
 requireApp('communications/contacts/js/fb/fb_contact.js');
 requireApp('communications/facebook/js/facebook_connector.js');
 requireApp('communications/facebook/test/unit/mock_fb_graph_data.js');
 requireApp('communications/facebook/test/unit/mock_fb_query.js');
-requireApp('communications/contacts/js/import_utils.js');
 requireApp('communications/contacts/test/unit/mock_oauthflow.js');
 
 var realFbUtils,

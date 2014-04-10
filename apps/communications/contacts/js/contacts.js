@@ -716,7 +716,7 @@ var Contacts = (function() {
       '/contacts/js/utilities/templates.js',
       '/contacts/js/contacts_shortcuts.js',
       '/contacts/js/contacts_tag.js',
-      '/contacts/js/import_utils.js',
+      SHARED_UTILS_PATH + '/' + 'misc.js',
       '/contacts/js/utilities/normalizer.js',
       '/shared/js/text_normalizer.js',
       '/dialer/js/telephony_helper.js',

@@ -266,7 +266,7 @@ hr {
 /* Overriding Input areas BB */
 form p input + button[type="reset"].hide,
 form p textarea + button[type="reset"].hide {
-  display: block!important;
+  display: block !important;
   opacity: 0;
   pointer-events: none;
 }

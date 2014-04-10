@@ -690,7 +690,7 @@ contacts.Settings = (function() {
         resetWait(wakeLock);
         if (importedContacts > 0) {
           var source = 'sim-' + iccId;
-          window.importUtils.setTimestamp(source, function() {
+          utils.misc.setTimestamp(source, function() {
             // Once the timestamp is saved, update the list
             updateTimestamps();
             checkNoContacts();
@@ -793,7 +793,7 @@ contacts.Settings = (function() {
 
       importer.process(function import_finish() {
         window.setTimeout(function onfinish_import() {
-          window.importUtils.setTimestamp('sd', function() {
+          utils.misc.setTimestamp('sd', function() {
             // Once the timestamp is saved, update the list
             updateTimestamps();
             checkNoContacts();
@@ -960,7 +960,7 @@ contacts.Settings = (function() {
     var importSources =
       document.querySelectorAll('#import-options li[data-source]');
     Array.prototype.forEach.call(importSources, function(node) {
-      window.importUtils.getTimestamp(node.dataset.source,
+      utils.misc.getTimestamp(node.dataset.source,
                                       function(time) {
         var spanID = 'notImported';
         if (time) {
