@@ -64,7 +64,10 @@ Contacts.Selectors = {
   searchLabel: '#search-start',
   searchInput: '#search-contact',
   searchCancel: '#cancel-search',
-  searchResultFirst: '#search-list .contact-item'
+  searchResultFirst: '#search-list .contact-item',
+
+  scrollbar: 'nav[data-type="scrollbar"]',
+  overlay: 'nav[data-type="scrollbar"] p'
 };
 
 Contacts.prototype = {
@@ -144,9 +147,13 @@ Contacts.prototype = {
         form = this.client.findElement(selectors.form);
     var test = function() {
       var location = form.location();
-      return location.y >= bodyHeight;
+      // Since only checking form position could not guarantee
+      // the transition is ended, add z-index checking because
+      // it will be removed after transition.
+      var zIndex = this.getElementStyle(selectors.form, 'zIndex');
+      return location.y >= bodyHeight && !zIndex;
     };
-    this.client.waitFor(test);
+    this.client.waitFor(test.bind(this));
   },
 
   enterContactDetails: function(details) {
@@ -198,6 +205,12 @@ Contacts.prototype = {
       });
       elementEl.dispatchEvent(event);
     });
+  },
+
+  getElementStyle: function(selector, type) {
+    return this.client.executeScript(function(selector, type) {
+      return document.querySelector(selector).style[type];
+    }, [selector, type]);
   }
 };
 
