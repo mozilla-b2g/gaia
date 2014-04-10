@@ -1,0 +1,50 @@
+<element name="app-manager" extends="section">
+  <template>
+
+    <section class="app-manager__sheet">
+
+      <header class="app-manager__sheet__header app-manager__sheet__header--level-0">
+
+        <!-- App manager menu header -->
+        <div class="app-manager__sheet__header-content app-manager__sheet__header-content--level-0">
+          <button class="app-manager__sheet__header__button" id="app-manager__sheet__header__button--close">
+            <span class="icon icon-close">close</span>
+          </button>
+          <h1 class="app-manager__sheet__header__title">Manage app</h1>
+        </div>
+
+        <!-- App sharing menu header -->
+        <div class="app-manager__sheet__header-content app-manager__sheet__header-content--level-1">
+          <button class="app-manager__sheet__header__button" id="app-manager__sheet__header__button--back">
+            <span class="icon icon-back">back</span>
+          </button>
+          <h1 class="app-manager__sheet__header__title">Send app with</h1>
+        </div>
+
+      </header>
+
+      <section class="app-manager__menus">
+        <div class="app-manager__menus__mover">
+          <!-- Root level menu of app manager -->
+          <menu class="app-manager__menu app-manager__menu--level-0">
+            <button class="app-manager__button" id="app-manager__button--delete">Delete app</button>
+            <button class="app-manager__button" id="app-manager__button--send">Send to&hellip;</button>
+            <button class="app-manager__button" id="app-manager__button--cancel">Cancel</button>
+          </menu>
+
+          <!-- App sharing menu of app manager -->
+          <menu class="app-manager__menu app-manager__menu--level-1">
+            <button class="app-manager__button" id="app-manager__button--bluetooth">Bluetooth</button>
+            <button class="app-manager__button" id="app-manager__button--email">Email</button>
+            <button class="app-manager__button" id="app-manager__button--back">Back</button>
+          </menu>
+        </div>
+      </section>
+
+      <i class="app-manager__sheet-arrow"></i>
+    </section>
+
+    <i id="app-manager__app-icon"></i>
+
+  </template>
+</element>

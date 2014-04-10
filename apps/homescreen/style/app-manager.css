@@ -1,0 +1,188 @@
+#app-manager {
+  display: none;
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 20001; /* Above homescreen dock */
+  width: 100%;
+  height: 100%;
+  background: -moz-radial-gradient(center, rgba(0,0,0,0.65), rgba(0,0,0,0.75));
+  opacity: 0;
+  transition: .4s;
+}
+
+#app-manager * { box-sizing: border-box; }
+
+#app-manager.visible {
+  display: block;
+}
+
+#app-manager.show {
+  opacity: 1;
+}
+
+.app-manager__sheet {
+  position: absolute;
+  top: 10%; left: 10%;
+  width: 80%;
+  background: rgba(0,0,0,0.6);
+  transform: translate3d(0, -100%, 0) scale(0.1);
+  opacity: 0;
+  transition: all .3s ease-out;
+  border-radius: 1rem;
+}
+
+#app-manager.show .app-manager__sheet {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.app-manager__sheet-arrow {
+  position: absolute;
+  bottom: -3rem; left: 50%;
+  margin-left: -4rem;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 3rem 4rem 0 4rem;
+  border-color: rgba(0,0,0,0.6) transparent transparent transparent;
+}
+
+.app-manager--bluetooth .app-manager__sheet-arrow {
+  background: red;
+}
+
+.app-manager__sheet__header {
+  position: relative;
+  width: 100%;
+  height: 5rem;
+  padding: 0 4.5rem;
+  background: rgba(0,0,0,0.5);
+  border-radius: 1rem 1rem 0 0;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  text-align: center;
+}
+
+.app-manager__sheet__header-content {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.app-manager--menu-level-1 .app-manager__sheet__header-content--level-0 {
+  display: none;
+}
+
+.app-manager__sheet__header-content--level-1 {
+  display: none;
+}
+
+.app-manager--menu-level-1 .app-manager__sheet__header-content--level-1 {
+  display: block;
+}
+
+.app-manager__sheet__header__button {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  width: 4rem;
+  background: no-repeat 50% 50%;
+  background-size: 3rem 3rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-indent: 100%;
+  border: none;
+  opacity: 0.7;
+}
+
+#app-manager__sheet__header__button--close {
+  background-image: url(../../shared/style/action_menu/images/icons/close.png);
+}
+
+#app-manager__sheet__header__button--back {
+  background-image: url(../../shared/style/action_menu/images/icons/back.png);
+}
+
+@media (min-resolution: 1.5dppx) {
+  #app-manager__sheet__header__button--close {
+    background-image: url(../../shared/style/action_menu/images/icons/close@1.5x.png);
+  }
+
+  #app-manager__sheet__header__button--back {
+    background-image: url(../../shared/style/action_menu/images/icons/back@1.5x.png);
+  }
+}
+
+@media (min-resolution: 2dppx) {
+  #app-manager__sheet__header__button--close {
+    background-image: url(../../shared/style/action_menu/images/icons/close@2x.png);
+  }
+
+  #app-manager__sheet__header__button--back {
+    background-image: url(../../shared/style/action_menu/images/icons/back@2x.png);
+  }
+}
+
+.app-manager__sheet__header__title {
+  padding: 0;
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: normal;
+  line-height: 5rem;
+  color: #fff;
+}
+
+.app-manager__menus {
+  width: 100%;
+  overflow: hidden;
+}
+
+.app-manager__menus__mover {
+  width: 200%; /* Two levels */
+  transition: transform 0.5s;
+  transform: translate3d(0, 0,0);
+}
+
+.app-manager--menu-level-1 .app-manager__menus__mover {
+  transform: translate3d(-50%, 0,0);
+}
+
+.app-manager__menu {
+  float: left;
+  width: 50%;
+  margin: 0;
+  padding: 1rem 2rem;
+  list-style: none;
+  transition: transform 0.5s, opacity 0.15s;
+  opacity: 1;
+}
+
+.app-manager--menu-level-1 .app-manager__menu--menu-level-0 {
+  opacity: 0;
+}
+
+.app-manager__menu--menu-level-1 {
+  opacity: 0;
+}
+
+.app-manager--menu-level-1 .app-manager__menu--menu-level-1 {
+  opacity: 1;
+}
+
+
+.app-manager__button {
+  display: block;
+  width: 90%;
+  height: 6rem;
+  margin: 0 5%;
+  background: transparent;
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  font-size: 1.6rem;
+  line-height: 5rem;
+  color: #fff;
+}
+
+.app-manager__button:first-child {
+  border-top: none;
+}

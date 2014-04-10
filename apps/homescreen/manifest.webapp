@@ -18,7 +18,8 @@
     "geolocation": {},
     "alarms": {},
     "power":{},
-    "contacts":{ "access": "readonly" }
+    "contacts":{ "access": "readonly" },
+	"desktop-notification":{ "description": "To show notifications" }
   },
   "locales": {
     "ar": {
