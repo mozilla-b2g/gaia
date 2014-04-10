@@ -163,11 +163,10 @@ var Homescreen = (function() {
      *
      */
     showAppDialog: function h_showAppDialog(icon) {
-      LazyLoader.load(['shared/style/confirm.css',
-                       'style/request.css',
-                       document.getElementById('confirm-dialog'),
-                       'js/request.js'], function loaded() {
-        ConfirmDialog.showApp(icon);
+      LazyLoader.load(['style/app-manager.css',
+                       document.getElementById('app-manager'),
+                       'js/app-manager.js'], function loaded() {
+        AppManager.show(icon);
       });
     },
 

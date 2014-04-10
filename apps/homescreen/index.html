@@ -21,8 +21,9 @@
     <!-- <script type="text/javascript" defer src="shared/js/omadrm/fl.js"></script> -->
     <!-- <script type="text/javascript" defer src="shared/js/mobile_operator.js"></script> -->
 
-    <!-- Lazy load for ConfirmDialog -->
-    <!-- <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"> -->
+    <!-- Lazy loaded for AppManager -->
+    <!-- <script type="text/javascript" defer src="js/app-manager.js"></script> -->
+    <!-- <link rel="stylesheet" type="text/css" href="style/app-manager.css"> -->
 
     <!-- Lazy load for ContextMenuDialog -->
     <!-- <link rel="stylesheet" type="text/css" href="style/contextmenu.css"> -->
@@ -50,7 +51,7 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
 
     <link rel="import" href="/elements/contextmenu.html">
-    <!--<link rel="import" href="/elements/confirm_dialog.html">-->
+    <link rel="import" href="/elements/app_manager.html">
     <link rel="import" href="/elements/search_page.html">
     <link rel="import" href="/elements/loading_dialog.html">
   </head>
@@ -66,88 +67,7 @@
       </span>
     </div>
 
-    <section is="confirm-dialog" id="confirm-dialog">
-
-      <div id="app_manager" class="bottom_arrow">
-
-    	<div id="app_manage" class="manage_container">
-          <div class="grey_part">
-        	<span id="confirm-dialog-cancel-button2">X</span>
-			<h1 class="app_grey_header">Manage app</h1>
-		  </div>
-
-          <div class="word_space">
-              <h1 class="word_style" id="confirm-dialog-confirm-button">Delete app</h1>
-          </div>
-
-          <hr>
-
-          <div class="word_space">
-              <h1 class="word_style" id="confirm-dialog-send-button" onClick="document.getElementById('app_manage').style.display='none'; document.getElementById('send_manage').style.display='block';">Send app to...</h1> <!-- The javascipt call here may change/be removed when backend is being integrated. -->
-          </div>
-
-          <hr>
-
-          <div class="word_space">
-              <h1 class="word_style" id="confirm-dialog-cancel-button">Cancel</h1>
-          </div>
-        </div>
-
-        <div id="send_manage" class="manage_container">
-          <div class="grey_part">
-              <span id="confirm-dialog-cancel-button3">X</span>
-              <h1 class="app_grey_header">Send app with</h1>
-          </div>
-
-          <div class="word_space">
-              <h1 class="word_style" onClick="window.location='elements/select_recipient.html'">Bluetooth</h1>
-          </div>
-
-          <hr>
-
-          <div class="word_space">
-              <h1 class="word_style" id="confirm-dialog-send-button">Email</h1>
-          </div>
-          
-          <hr>
-
-          <div class="word_space">
-              <h1 class="word_style" id="confirm-dialog-cancel-button" onClick="document.getElementById('app_manage').style.display='block'; document.getElementById('send_manage').style.display='none';">Back</h1>  <!-- The javascipt call here may change/be removed when backend is being integrated. -->
-          </div>
-        </div>
-
-	  	<span id="bottom_arrow"><img src="resources/images/confirm_bottom_arrow.png" width="72" height="22"></span>
-
-        <div id="app_info">
-          <div id="app_icon">
-          </div>
-      <p id="confirm-dialog-title"></p>
-      	</div>
-      </div>
-
-
-	<form role="dialog" data-type="confirm" id="RecConf" style="display:none;">
-  		<section>
-    		<h1>Confirmation</h1>
-    		<p>
-      			<img alt="App Icon" src="app-icons/icon-48.png">
-      			<strong>Receive Application?</strong>
-      			<small>Demo App</small>
-      			<div class="prog_cont">
-      				<progress id="progress1" value="40" max="100">
-        			</progress>
-      			</div>
-      			<div class="app_size">Size: <span>15.1 MB</span></div>
-      			<div class="remain_storage">Space after installation: <span>1.2 GB</span></div>
-    		</p>
-  		</section>
-  		<menu>
-    		<button onClick="triggerRecConf();">Cancel</button>
-    		<button class="recommend" onClick="triggerRecConf();">Okay</button>
-  		</menu>
-	</form>
-
-    </section>
+    <section is="app-manager" id="app-manager"></section>
 
     <section is="contextmenu-dialog" id="contextmenu-dialog"></section>
 
