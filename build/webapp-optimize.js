@@ -17,7 +17,8 @@ var win = {
   navigator: {},
   Node: {
     TEXT_NODE: 3
-  }
+  },
+  dispatchEvent: function() {}
 };
 let scope = {};
 let JSMin;
@@ -570,40 +571,6 @@ function optimize_compile(webapp, file, callback) {
     };
   };
 
-  // catch the `localized' event dispatched by `fireL10nReadyEvent()'
-  win.dispatchEvent = function() {
-    processedLocales++;
-    debug('fireL10nReadyEvent - ' +
-        processedLocales + '/' + l10nLocales.length);
-
-    let docElt = win.document.documentElement;
-    subDict[mozL10n.language.code] = mozL10n.getDictionary(docElt);
-    fullDict[mozL10n.language.code] = mozL10n.getDictionary();
-
-    if (processedLocales < l10nLocales.length) {
-      // load next locale
-      mozL10n.language.code = l10nLocales[processedLocales];
-    } else {
-      // we expect the last locale to be the default one:
-      // set the lang/dir attributes of the current document
-      docElt.dir = mozL10n.language.direction;
-      docElt.lang = mozL10n.language.code;
-
-      // save localized / optimized document
-      let newFile = new FileUtils.File(file.path + '.' +
-        config.GAIA_DEFAULT_LOCALE);
-      optimize_embedHtmlImports(win.document, webapp, newFile);
-      optimize_embedL10nResources(win.document, subDict);
-      optimize_concatL10nResources(win.document, webapp, fullDict);
-      optimize_aggregateJsResources(win.document, webapp, newFile);
-      optimize_inlineResources(win.document, webapp, file.path, newFile);
-      optimize_serializeHTMLDocument(win.document, newFile);
-
-      // notify the world that this HTML document has been optimized
-      callback();
-    }
-  };
-
   // load and parse the HTML document
   win.document = utils.getDocument(utils.getFileContent(file));
 
@@ -619,7 +586,40 @@ function optimize_compile(webapp, file, callback) {
     // explicitly initialize it again via mozL10n.bootstrap, which looks for
     // *.ini links in the HTML and sets up the localization context
     mozL10n.bootstrap(function() {
-      mozL10n.language.code = l10nLocales[processedLocales];
+      let docElt = win.document.documentElement;
+
+      while (processedLocales < l10nLocales.length) {
+        debug('fireL10nReadyEvent - ' +
+              processedLocales + '/' + l10nLocales.length);
+
+        // change the language of the localization context
+        mozL10n.ctx.requestLocales(l10nLocales[processedLocales]);
+
+        // create JSON dicts for the current language; one for the <script> tag
+        // embedded in HTML and one for locales-obj/
+        subDict[mozL10n.language.code] = mozL10n.getDictionary(docElt);
+        fullDict[mozL10n.language.code] = mozL10n.getDictionary();
+
+        processedLocales++;
+      }
+
+      // we expect the last locale to be the default one:
+      // set the lang/dir attributes of the current document
+      docElt.dir = mozL10n.language.direction;
+      docElt.lang = mozL10n.language.code;
+
+      // save localized / optimized document
+      let newFile = new FileUtils.File(file.path + '.' +
+                                       config.GAIA_DEFAULT_LOCALE);
+      optimize_embedHtmlImports(win.document, webapp, newFile);
+      optimize_embedL10nResources(win.document, subDict);
+      optimize_concatL10nResources(win.document, webapp, fullDict);
+      optimize_aggregateJsResources(win.document, webapp, newFile);
+      optimize_inlineResources(win.document, webapp, file.path, newFile);
+      optimize_serializeHTMLDocument(win.document, newFile);
+
+      // notify the world that this HTML document has been optimized
+      callback();
     });
   } else {
     callback();
