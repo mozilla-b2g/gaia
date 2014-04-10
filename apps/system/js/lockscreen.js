@@ -476,7 +476,13 @@ var LockScreen = {
         if (this.locked) {
           this.switchPanel();
           if (!!navigator.mozTelephony.calls.length) {
+            // To hide the normal lockscreen with cover,
+            // when the user is dialing.
             this.disableWithCover();
+          } else {
+            // Back to the lockscreen and remove the cover,
+            // whe user had dialed but not success.
+            this.enableWithoutCover();
           }
         }
         break;
