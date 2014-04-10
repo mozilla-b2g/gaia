@@ -101,19 +101,19 @@ var TelephonyHelper = (function() {
          To remove when bug 969218 lands */
       if (promiseOrCall && promiseOrCall.then) {
         promiseOrCall.then(function(call) {
-          installHandlers(call, emergencyOnly, oncall, onconnected,
-                          ondisconnected, onerror);
+          installHandlers(call, sanitizedNumber, emergencyOnly, oncall,
+                          onconnected, ondisconnected, onerror);
         }).catch(function(errorName) {
-          handleError(errorName, emergencyOnly, onerror);
+          handleError(errorName, sanitizedNumber, emergencyOnly, onerror);
         });
       } else {
-        installHandlers(promiseOrCall, emergencyOnly, oncall, onconnected,
-                        ondisconnected, onerror);
+        installHandlers(promiseOrCall, sanitizedNumber, emergencyOnly, oncall,
+                        onconnected, ondisconnected, onerror);
       }
     });
   }
 
-  function installHandlers(call, emergencyOnly, oncall, onconnected,
+  function installHandlers(call, number, emergencyOnly, oncall, onconnected,
                            ondisconnected, onerror) {
     if (call) {
       if (oncall) {
@@ -123,14 +123,14 @@ var TelephonyHelper = (function() {
       call.ondisconnected = ondisconnected;
       call.onerror = function errorCB(evt) {
         var errorName = evt.call.error.name;
-        handleError(errorName, emergencyOnly, onerror);
+        handleError(errorName, number, emergencyOnly, onerror);
       };
     } else {
       displayMessage('UnableToCall');
     }
   }
 
-  function handleError(errorName, emergencyOnly, onerror) {
+  function handleError(errorName, number, emergencyOnly, onerror) {
     if (onerror) {
       onerror();
     }
@@ -149,7 +149,7 @@ var TelephonyHelper = (function() {
       displayMessage('NumberIsBusy');
     } else if (errorName === 'FDNBlockedError' ||
                errorName === 'FdnCheckFailure') {
-      displayMessage('FixedDialingNumbers');
+      displayMessage('FixedDialingNumbers', number);
     } else if (errorName == 'OtherConnectionInUse') {
       displayMessage('OtherConnectionInUse');
     } else {
@@ -180,7 +180,7 @@ var TelephonyHelper = (function() {
     });
   };
 
-  var displayMessage = function t_displayMessage(message) {
+  var displayMessage = function t_displayMessage(message, number) {
     var showDialog = function fm_showDialog(_) {
       var dialogTitle, dialogBody;
       switch (message) {
@@ -209,8 +209,8 @@ var TelephonyHelper = (function() {
         dialogBody = 'numberIsBusyMessage';
         break;
       case 'FixedDialingNumbers':
-        dialogTitle = 'fdnIsEnabledTitle';
-        dialogBody = 'fdnIsEnabledMessage';
+        dialogTitle = 'fdnIsActiveTitle';
+        dialogBody = 'fdnIsActiveMessage';
         break;
       case 'OtherConnectionInUse':
         dialogTitle = 'otherConnectionInUseTitle';
@@ -224,7 +224,7 @@ var TelephonyHelper = (function() {
       loadConfirm(function() {
         ConfirmDialog.show(
           _(dialogTitle),
-          _(dialogBody),
+          _(dialogBody, {number: number}),
           {
             title: _('emergencyDialogBtnOk'), // Just 'ok' would be better.
             callback: function() {
