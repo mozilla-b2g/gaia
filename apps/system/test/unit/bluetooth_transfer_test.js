@@ -2,15 +2,12 @@
 
 mocha.globals(['BluetoothTransfer']);
 
-requireApp(
-  'system/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
-);
-
-requireApp('system/shared/test/unit/mocks/mock_dom_request.js');
-requireApp('system/test/unit/mock_navigator_get_device_storage.js');
-requireApp('system/test/unit/mock_bluetooth.js');
-requireApp('system/test/unit/mock_l10n.js');
-requireApp('sms/shared/test/unit/mocks/mock_notification_helper.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/shared/test/unit/mocks/mock_dom_request.js');
+require('/test/unit/mock_navigator_get_device_storage.js');
+require('/test/unit/mock_bluetooth.js');
+require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_notification_helper.js');
 
 var mocksForBluetoothTransfer = new MocksHelper([
   'Bluetooth',
