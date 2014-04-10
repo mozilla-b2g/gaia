@@ -1,13 +1,16 @@
 'use strict';
 
 requireApp('communications/ftu/test/unit/mock_screenlayout.js');
-requireApp('communications/ftu/js/tutorial_steps.js');
 
-mocha.globals(['ScreenLayout']);
+mocha.globals(['ScreenLayout', 'TutorialSteps']);
 
 suite('TutorialSteps >', function() {
 
   var realScreenLayout;
+
+  setup(function(done) {
+    requireApp('communications/ftu/js/tutorial_steps.js', done);
+  });
 
   suiteSetup(function() {
     realScreenLayout = window.ScreenLayout;
