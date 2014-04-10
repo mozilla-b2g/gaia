@@ -3,9 +3,6 @@
     this.setBrowserConfig(manifestURL);
     this.render();
     this.publish('created');
-    if (window.AppModalDialog) {
-      new AppModalDialog(this);
-    }
     return this;
   };
 
@@ -66,6 +63,10 @@
     this._registerEvents();
     this.resize();
     this.publish('rendered');
+
+    if (window.AppModalDialog) {
+      new AppModalDialog(this);
+    }
   };
 
   HomescreenWindow.prototype._registerEvents = function hw_registerEvents() {
