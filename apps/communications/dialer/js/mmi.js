@@ -264,19 +264,21 @@ var MmiManager = {
   },
 
   handleMMIReceived: function mm_handleMMIReceived(message, sessionEnded) {
-    this._pendingRequest = null;
-    // Do not notify the UI if no message to show.
-    if (message == null && !sessionEnded) {
-      return;
-    }
+    this.init((function() {
+      this._pendingRequest = null;
+      // Do not notify the UI if no message to show.
+      if (message == null && !sessionEnded) {
+        return;
+      }
 
-    var data = {
-      type: 'mmi-received-ui',
-      message: message,
-      title: this._operator,
-      sessionEnded: sessionEnded
-    };
-    window.postMessage(data, this.COMMS_APP_ORIGIN);
+      var data = {
+        type: 'mmi-received-ui',
+        message: message,
+        title: this._operator,
+        sessionEnded: sessionEnded
+      };
+      window.postMessage(data, this.COMMS_APP_ORIGIN);
+    }).bind(this));
   },
 
   isMMI: function mm_isMMI(number) {
