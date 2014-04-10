@@ -661,13 +661,6 @@ section[role="region"] > header .icon.icon-settings {
   color: #ff4e00;
 }
 
-.valueselector {
-  position: fixed;
-  top: -100%;
-  left: -100%;
-  opacity: 0;
-}
-
 #sources {
   margin-top: 1rem;
 }
