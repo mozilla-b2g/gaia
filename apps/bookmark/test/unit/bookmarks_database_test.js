@@ -135,6 +135,30 @@ suite('bookmarks_database.js >', function() {
     });
   });
 
+  test('calling to remove method - OK >', function(done) {
+    var id = url;
+
+    MockDatastore._records[id] = {
+      id: id,
+      url: url,
+      name: name
+    };
+    
+    BookmarksDatabase.remove(id).then(function(bookmark) {
+      assert.equal(Object.keys(MockDatastore._records).length, 0);
+      done();
+    });
+  });
+
+  test('calling to remove method - failed >', function(done) {
+    MockDatastore._inError = true;
+    BookmarksDatabase.remove(url).then(function() {
+      // Do nothing here
+    }, function() {
+      done();
+    });
+  });
+
   test('calling to get method - OK >', function(done) {
     BookmarksDatabase.add(data).then(function() {
       BookmarksDatabase.get(url).then(function(bookmark) {

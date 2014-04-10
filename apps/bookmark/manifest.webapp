@@ -17,6 +17,15 @@
       "disposition": "inline",
       "href": "/save.html",
       "returnValue": true
+    },
+    "remove-bookmark": {
+      "filters": {
+        "type": "url",
+        "url": { "required":true, "pattern":"https?:.{1,16384}" }
+      },
+      "disposition": "inline",
+      "href": "/remove.html",
+      "returnValue": true
     }
   },
   "locales": {
