@@ -108,14 +108,7 @@
       datastore.get(event.id).then(function got(result) {
         callback({
           type: operation,
-          target: result
-        });
-      }, function notExists() {
-        callback({
-          type: operation,
-          target: {
-            id: event.id
-          }
+          target: result || event
         });
       });
     });
@@ -195,6 +188,14 @@
     });
   }
 
+  function remove(id) {
+    return new Promise(function doRemove(resolve, reject) {
+      init().then(function onInitialized() {
+        datastore.remove(id).then(resolve, reject);
+      }, reject);
+    });
+  }
+
   exports.BookmarksDatabase = {
    /*
     * This method returns a bookmark object
@@ -247,7 +248,14 @@
      *
      * @param{Object} The bookmark's data
      */
-     put: put
+     put: put,
+
+    /*
+     * This method removes a bookmark from the datastore
+     *
+     * @param{String} The bookmark's id
+     */
+     remove: remove
   };
 
 }(window));
