@@ -11,8 +11,6 @@
 requireApp('sms/js/compose.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/drafts.js');
-// Storage automatically called on Drafts.add()
-require('/shared/js/async_storage.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_attachment.js');
@@ -23,8 +21,10 @@ requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 require('/test/unit/mock_smil.js');
+require('/shared/test/unit/mocks/mock_async_storage.js');
 
 var mocksHelperForCompose = new MocksHelper([
+  'asyncStorage',
   'AttachmentMenu',
   'Settings',
   'Recipients',

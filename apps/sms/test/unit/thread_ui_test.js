@@ -25,7 +25,6 @@ require('/js/threads.js');
 require('/js/thread_ui.js');
 require('/js/thread_list_ui.js');
 require('/js/utils.js');
-require('/shared/js/async_storage.js');
 
 require('/test/unit/mock_time_headers.js');
 require('/test/unit/mock_alert.js');
@@ -61,8 +60,10 @@ require('/shared/test/unit/mocks/mock_sticky_header.js');
 require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_async_storage.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
+  'asyncStorage',
   'Attachment',
   'AttachmentMenu',
   'Utils',
