@@ -1,0 +1,18 @@
+{
+  "name": "Fake Activity Callee",
+  "description": "A fake activity callee",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "fullscreen": true,
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "activities": {
+    "test-alert": {
+      "disposition": "inline",
+      "href": "index.html",
+      "returnValue": true
+    }
+  }
+}
