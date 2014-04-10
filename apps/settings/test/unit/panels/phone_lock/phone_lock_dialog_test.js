@@ -20,11 +20,11 @@ suite('PhoneLockDialog > ', function() {
       'shared_mocks/mock_navigator_moz_settings',
       'shared_mocks/mock_settings_listener',
       'unit/mock_settings_service',
-      'panels/phone_lock_dialog/phone_lock_dialog'
+      'panels/phone_lock/phone_lock_dialog'
     ];
 
     var maps = {
-      'panels/phone_lock_dialog/phone_lock_dialog': {
+      'panels/phone_lock/phone_lock_dialog': {
         'modules/settings_service': 'unit/mock_settings_service'
       }
     };
