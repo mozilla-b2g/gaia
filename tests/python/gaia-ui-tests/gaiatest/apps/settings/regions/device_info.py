@@ -8,7 +8,7 @@ from gaiatest.apps.base import Base
 
 class DeviceInfo(Base):
 
-    _phone_number_locator = (By.ID, 'deviceInfo-msisdn')
+    _phone_number_locator = (By.ID, 'deviceInfo-msisdns')
     _model_locator = (By.CSS_SELECTOR, '#about small[data-name="deviceinfo.hardware"]')
     _software_locator = (By.CSS_SELECTOR, '#about small[data-name="deviceinfo.software"]')
     _more_info_button_locator = (By.CSS_SELECTOR, '#about button[data-l10n-id="more-info"]')
@@ -39,7 +39,7 @@ class DeviceInfo(Base):
         _hardware_revision_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.hardware"]')
         _mac_address_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.mac"]')
         _imei_locator = (By.ID, 'deviceInfo-imei')
-        _iccid_locator = (By.ID, 'deviceInfo-iccid')
+        _iccid_locator = (By.ID, 'deviceInfo-iccids')
         _platform_version_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.platform_version"]')
         _build_id_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.platform_build_id"]')
         _update_channel_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.update_channel"]')
