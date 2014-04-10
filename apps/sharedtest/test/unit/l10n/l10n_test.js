@@ -10,18 +10,26 @@ suite('L10n', function() {
     'delete-n-items[one]       = Delete selected item?',
     'delete-n-items[other]     = Delete {{ n }} items?',
     'textcontent-test          = this is text content',
-    'prop-test.prop            = this is a property',
+    'dom-overlay-test          = this is text content <button>(bar)</button>',
+    'prop-test.title           = this is an attribute',
     'euroSign                  = price: 10\\u20ac to 20\\u20ac',
     'leadingSpaces             = \\u0020\\u020\\u20%2F',
     'trailingBackslash         = backslash\\\\',
     'multiLine                 = foo \\',
     '                            bar \\',
     '                            baz',
+    // XXX Remove in https://bugzil.la/1027117
     'update.innerHTML          = {[ plural(n) ]}',
     'update.innerHTML[zero]    = <strong>No updates.</strong>',
     'update.innerHTML[one]     = <strong>{{n}} update available.</strong> \\',
     '                            <span>Tap for more info.</span>',
     'update.innerHTML[other]   = <strong>{{n}} updates available.</strong> \\',
+    '                            <span>Tap for more info.</span>',
+    'overlay                    = {[ plural(n) ]}',
+    'overlay[zero]              = <strong>No updates.</strong>',
+    'overlay[one]               = <strong>{{n}} update available.</strong> \\',
+    '                            <span>Tap for more info.</span>',
+    'overlay[other]             = <strong>{{n}} updates available.</strong> \\',
     '                            <span>Tap for more info.</span>',
     'inline-translation-test   = static content provided by inlined JSON',
     'a11y-label.ariaLabel      = label via ARIA'
@@ -124,7 +132,7 @@ suite('L10n', function() {
     test('properties', function() {
       elem.dataset.l10nId = 'prop-test';
       _translateFragment(elem);
-      assert.equal(elem.getAttribute('prop'), 'this is a property');
+      assert.equal(elem.getAttribute('title'), 'this is an attribute');
     });
 
     test('ARIA labels', function() {
@@ -149,9 +157,10 @@ suite('L10n', function() {
     test('properties', function() {
       _localize(elem, 'prop-test');
       _translateFragment(elem);
-      assert.equal(elem.getAttribute('prop'), 'this is a property');
+      assert.equal(elem.getAttribute('title'), 'this is an attribute');
     });
 
+    // XXX Remove in https://bugzil.la/1027117
     suite('properties + pluralization', function() {
       test('n=0', function() {
         _localize(elem, 'update', { n: 0 });
@@ -184,12 +193,51 @@ suite('L10n', function() {
       });
     });
 
-    test('element with child', function() {
+    suite('DOM overlays + pluralization', function() {
+      test('n=0', function() {
+        _localize(elem, 'overlay', { n: 0 });
+        _translateFragment(elem);
+        var info = elem.querySelector('strong');
+        var span = elem.querySelector('span');
+        assert.ok(info);
+        assert.isNull(span);
+        assert.equal(info.textContent, 'No updates.');
+      });
+
+      test('n=1', function() {
+        _localize(elem, 'overlay', { n: 1 });
+        _translateFragment(elem);
+        var info = elem.querySelector('strong');
+        var span = elem.querySelector('span');
+        assert.ok(info);
+        assert.ok(span);
+        assert.equal(info.textContent, '1 update available.');
+      });
+
+      test('n=2', function() {
+        _localize(elem, 'overlay', { n: 2 });
+        _translateFragment(elem);
+        var info = elem.querySelector('strong');
+        var span = elem.querySelector('span');
+        assert.ok(info);
+        assert.ok(span);
+        assert.equal(info.textContent, '2 updates available.');
+      });
+    });
+
+    test('element with child, translation without a child', function() {
       elem.innerHTML = 'here is a button <button>(foo)</button>';
       _localize(elem, 'textcontent-test');
       _translateFragment(elem);
-      assert.equal(elem.textContent, 'this is text content(foo)');
-      assert.ok(elem.querySelector('button'));
+      assert.equal(elem.innerHTML, 'this is text content');
+    });
+
+    test('element and translation with child', function() {
+      elem.innerHTML = 'here is a button <button>(foo)</button>';
+      _localize(elem, 'dom-overlay-test');
+      _translateFragment(elem);
+      assert.equal(elem.innerHTML,
+                   'this is text content <button>(bar)</button>');
     });
   });
 

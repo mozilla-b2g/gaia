@@ -1127,6 +1127,335 @@
 
 
 
+  function loadINI(url, callback) {
+    var ctx = this.ctx;
+    io.load(url, function(err, source) {
+      var pos = ctx.resLinks.indexOf(url);
+
+      if (err) {
+        // remove the ini link from resLinks
+        ctx.resLinks.splice(pos, 1);
+        return callback(err);
+      }
+
+      if (!source) {
+        ctx.resLinks.splice(pos, 1);
+        return callback(new Error('Empty file: ' + url));
+      }
+
+      var patterns = parseINI(source, url).resources.map(function(x) {
+        return x.replace('en-US', '{{locale}}');
+      });
+      ctx.resLinks.splice.apply(ctx.resLinks, [pos, 1].concat(patterns));
+      callback();
+    });
+  }
+
+  function relativePath(baseUrl, url) {
+    if (url[0] === '/') {
+      return url;
+    }
+
+    var dirs = baseUrl.split('/')
+      .slice(0, -1)
+      .concat(url.split('/'))
+      .filter(function(path) {
+        return path !== '.';
+      });
+
+    return dirs.join('/');
+  }
+
+  var iniPatterns = {
+    'section': /^\s*\[(.*)\]\s*$/,
+    'import': /^\s*@import\s+url\((.*)\)\s*$/i,
+    'entry': /[\r\n]+/
+  };
+
+  function parseINI(source, iniPath) {
+    var entries = source.split(iniPatterns.entry);
+    var locales = ['en-US'];
+    var genericSection = true;
+    var uris = [];
+    var match;
+
+    for (var i = 0; i < entries.length; i++) {
+      var line = entries[i];
+      // we only care about en-US resources
+      if (genericSection && iniPatterns['import'].test(line)) {
+        match = iniPatterns['import'].exec(line);
+        var uri = relativePath(iniPath, match[1]);
+        uris.push(uri);
+        continue;
+      }
+
+      // but we need the list of all locales in the ini, too
+      if (iniPatterns.section.test(line)) {
+        genericSection = false;
+        match = iniPatterns.section.exec(line);
+        locales.push(match[1]);
+      }
+    }
+    return {
+      locales: locales,
+      resources: uris
+    };
+  }
+
+  /* jshint -W104 */
+
+  var whitelist = {
+    elements: [
+      'a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'data',
+      'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u',
+      'mark', 'ruby', 'rt', 'rp', 'bdi', 'bdo', 'span', 'br', 'wbr'
+    ],
+    attributes: {
+      global: [ 'title', 'aria-label' ],
+      a: [ 'download' ],
+      area: [ 'download', 'alt' ],
+      // value is special-cased in isAttrAllowed
+      input: [ 'alt', 'placeholder' ],
+      menuitem: [ 'label' ],
+      menu: [ 'label' ],
+      optgroup: [ 'label' ],
+      option: [ 'label' ],
+      track: [ 'label' ],
+      img: [ 'alt' ],
+      textarea: [ 'placeholder' ],
+      th: [ 'abbr']
+    }
+  };
+
+  function translateDocument() {
+    document.documentElement.lang = this.language.code;
+    document.documentElement.dir = this.language.direction;
+    translateFragment.call(this, document.documentElement);
+  }
+
+  function translateFragment(element) {
+    if (element.hasAttribute('data-l10n-id')) {
+      translateElement.call(this, element);
+    }
+
+    var nodes = getTranslatableChildren(element);
+    for (var i = 0; i < nodes.length; i++ ) {
+      translateElement.call(this, nodes[i]);
+    }
+  }
+
+  function getTranslatableChildren(element) {
+    return element ? element.querySelectorAll('*[data-l10n-id]') : [];
+  }
+
+  function localizeElement(element, id, args) {
+    // XXX remove this codepath in https://bugzil.la/994519
+    if (!id) {
+      element.removeAttribute('data-l10n-id');
+      element.removeAttribute('data-l10n-args');
+      element.innerHTML = '';
+      return;
+    }
+
+    element.setAttribute('data-l10n-id', id);
+    if (args && typeof args === 'object') {
+      element.setAttribute('data-l10n-args', JSON.stringify(args));
+    } else {
+      element.removeAttribute('data-l10n-args');
+    }
+  }
+
+  function camelCaseToDashed(string) {
+    return string
+    .replace(/[A-Z]/g, function (match) {
+      return '-' + match.toLowerCase();
+    })
+    .replace(/^-/, '');
+  }
+
+  function translateElement(element) {
+    var id = element.getAttribute('data-l10n-id');
+    var args = element.getAttribute('data-l10n-args');
+    if (args) {
+      args = JSON.parse(args);
+    }
+
+    var entity = this.ctx.getEntity(id, args);
+    if (entity === null || entity === undefined) {
+      return;
+    }
+
+    var value;
+    if (typeof entity === 'string') {
+      value = entity;
+    } else {
+      value = entity.value;
+    }
+
+    if (value) {
+      // if there is no HTML in the translation nor no HTML entities are used,
+      // just replace the textContent
+      if (value.indexOf('<') === -1 && value.indexOf('&') === -1) {
+        element.textContent = value;
+      } else {
+        // otherwise, start with an inert template element and move its
+        // children into `element` but such that `element`'s own children are
+        // not replaced
+        var translation = document.createElement('template');
+        translation.innerHTML = value;
+        // overlay the node with the DocumentFragment
+        overlayElement(element, translation.content);
+      }
+    }
+
+    for (var key in entity.attributes) {
+      if (entity.attributes.hasOwnProperty(key)) {
+        // XXX A temporary special-case for translations using the old method
+        // of declaring innerHTML.  To be removed in https://bugzil.la/1027117
+        if (key === 'innerHTML') {
+          element.innerHTML = entity.attributes[key];
+          continue;
+        }
+        var attrName = camelCaseToDashed(key);
+        if (isAttrAllowed({ name: attrName }, element)) {
+          element.setAttribute(attrName, entity.attributes[key]);
+        }
+      }
+    }
+  }
+
+  // The goal of overlayElement is to move the children of `translationElement`
+  // into `sourceElement` such that `sourceElement`'s own children are not
+  // replaced, but onle have their text nodes and their attributes modified.
+  //
+  // We want to make it possible for localizers to apply text-level semantics to
+  // the translations and make use of HTML entities. At the same time, we
+  // don't trust translations so we need to filter unsafe elements and
+  // attribtues out and we don't want to break the Web by replacing elements to
+  // which third-party code might have created references (e.g. two-way
+  // bindings in MVC frameworks).
+  function overlayElement(sourceElement, translationElement) {
+    /* jshint boss:true */
+    var result = document.createDocumentFragment();
+    var k, attr;
+
+    // take one node from translationElement at a time and check it against the
+    // whitelist or try to match it with a corresponding element in the source
+    var childElement;
+    while (childElement = translationElement.childNodes[0]) {
+      translationElement.removeChild(childElement);
+
+      if (childElement.nodeType === Node.TEXT_NODE) {
+        result.appendChild(childElement);
+        continue;
+      }
+
+      var sourceChild = getElementOfType(sourceElement, childElement);
+      if (sourceChild) {
+        // there is a corresponding element in the source, let's use it
+        overlayElement(sourceChild, childElement);
+        result.appendChild(sourceChild);
+        continue;
+      }
+
+      if (isElementAllowed(childElement)) {
+        for (k = 0, attr; attr = childElement.attributes[k]; k++) {
+          if (!isAttrAllowed(attr, childElement)) {
+            childElement.removeAttribute(attr.name);
+          }
+        }
+        result.appendChild(childElement);
+        continue;
+      }
+
+      // otherwise just take this child's textContent
+      var text = new window.Text(childElement.textContent);
+      result.appendChild(text);
+    }
+
+    // clear `sourceElement` and append `result` which by this time contains
+    // `sourceElement`'s original children, overlayed with translation
+    sourceElement.textContent = '';
+    sourceElement.appendChild(result);
+
+    // if we're overlaying a nested element, translate the whitelisted
+    // attributes; top-level attributes are handled in `translateElement`
+    // XXX attributes previously set here for another language should be
+    // cleared if a new language doesn't use them; https://bugzil.la/922577
+    if (translationElement.attributes) {
+      for (k = 0, attr; attr = translationElement.attributes[k]; k++) {
+        if (isAttrAllowed(attr, sourceElement)) {
+          sourceElement.setAttribute(attr.name, attr.value);
+        }
+      }
+    }
+  }
+
+  // XXX the whitelist should be amendable; https://bugzil.la/922573
+  function isElementAllowed(element) {
+    return whitelist.elements.indexOf(element.tagName.toLowerCase()) !== -1;
+  }
+
+  function isAttrAllowed(attr, element) {
+    var attrName = attr.name.toLowerCase();
+    var tagName = element.tagName.toLowerCase();
+    // is it a globally safe attribute?
+    if (whitelist.attributes.global.indexOf(attrName) !== -1) {
+      return true;
+    }
+    // are there no whitelisted attributes for this element?
+    if (!whitelist.attributes[tagName]) {
+      return false;
+    }
+    // is it allowed on this element?
+    // XXX the whitelist should be amendable; https://bugzil.la/922573
+    if (whitelist.attributes[tagName].indexOf(attrName) !== -1) {
+      return true;
+    }
+    // special case for value on inputs with type button, reset, submit
+    if (tagName === 'input' && attrName === 'value') {
+      var type = element.type.toLowerCase();
+      if (type === 'submit' || type === 'button' || type === 'reset') {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // ideally, we'd use querySelector(':scope > ELEMENT:nth-of-type(index)'),
+  // but 1) :scope is not widely supported yet and 2) it doesn't work with
+  // DocumentFragments. :scope is needed to query only immediate children
+  // https://developer.mozilla.org/en-US/docs/Web/CSS/:scope
+  function getElementOfType(context, element) {
+    /* jshint boss:true */
+    var index = getIndexOfType(element);
+    var nthOfType = 0;
+    for (var i = 0, child; child = context.children[i]; i++) {
+      if (child.nodeType === Node.ELEMENT_NODE &&
+          child.tagName === element.tagName) {
+        if (nthOfType === index) {
+          return child;
+        }
+        nthOfType++;
+      }
+    }
+    return null;
+  }
+
+  function getIndexOfType(element) {
+    /* jshint boss:true */
+    var index = 0;
+    var child;
+    while (child = element.previousElementSibling) {
+      if (child.tagName === element.tagName) {
+        index++;
+      }
+    }
+    return index;
+  }
+
+  /* jshint -W104 */
+
   var DEBUG = false;
   var isPretranslated = false;
   var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
@@ -1186,7 +1515,6 @@
         rePlaceables: rePlaceables,
         getTranslatableChildren:  getTranslatableChildren,
         translateDocument: translateDocument,
-        getL10nAttributes: getL10nAttributes,
         loadINI: loadINI,
         fireLocalizedEvent: fireLocalizedEvent,
         parse: parse,
@@ -1390,205 +1718,6 @@
       }
     });
     window.dispatchEvent(event);
-  }
-
-  /* jshint -W104 */
-
-  function loadINI(url, callback) {
-    var ctx = this.ctx;
-    io.load(url, function(err, source) {
-      var pos = ctx.resLinks.indexOf(url);
-
-      if (err) {
-        // remove the ini link from resLinks
-        ctx.resLinks.splice(pos, 1);
-        return callback(err);
-      }
-
-      if (!source) {
-        ctx.resLinks.splice(pos, 1);
-        return callback(new Error('Empty file: ' + url));
-      }
-
-      var patterns = parseINI(source, url).resources.map(function(x) {
-        return x.replace('en-US', '{{locale}}');
-      });
-      ctx.resLinks.splice.apply(ctx.resLinks, [pos, 1].concat(patterns));
-      callback();
-    });
-  }
-
-  function relativePath(baseUrl, url) {
-    if (url[0] === '/') {
-      return url;
-    }
-
-    var dirs = baseUrl.split('/')
-      .slice(0, -1)
-      .concat(url.split('/'))
-      .filter(function(path) {
-        return path !== '.';
-      });
-
-    return dirs.join('/');
-  }
-
-  var iniPatterns = {
-    'section': /^\s*\[(.*)\]\s*$/,
-    'import': /^\s*@import\s+url\((.*)\)\s*$/i,
-    'entry': /[\r\n]+/
-  };
-
-  function parseINI(source, iniPath) {
-    var entries = source.split(iniPatterns.entry);
-    var locales = ['en-US'];
-    var genericSection = true;
-    var uris = [];
-    var match;
-
-    for (var i = 0; i < entries.length; i++) {
-      var line = entries[i];
-      // we only care about en-US resources
-      if (genericSection && iniPatterns['import'].test(line)) {
-        match = iniPatterns['import'].exec(line);
-        var uri = relativePath(iniPath, match[1]);
-        uris.push(uri);
-        continue;
-      }
-
-      // but we need the list of all locales in the ini, too
-      if (iniPatterns.section.test(line)) {
-        genericSection = false;
-        match = iniPatterns.section.exec(line);
-        locales.push(match[1]);
-      }
-    }
-    return {
-      locales: locales,
-      resources: uris
-    };
-  }
-
-  /* jshint -W104 */
-
-  function translateDocument() {
-    document.documentElement.lang = this.language.code;
-    document.documentElement.dir = this.language.direction;
-    translateFragment.call(this, document.documentElement);
-  }
-
-  function translateFragment(element) {
-    if (element.hasAttribute('data-l10n-id')) {
-      translateElement.call(this, element);
-    }
-
-    var nodes = getTranslatableChildren(element);
-    for (var i = 0; i < nodes.length; i++ ) {
-      translateElement.call(this, nodes[i]);
-    }
-  }
-
-  function getTranslatableChildren(element) {
-    return element ? element.querySelectorAll('*[data-l10n-id]') : [];
-  }
-
-  function localizeElement(element, id, args) {
-    if (!id) {
-      element.removeAttribute('data-l10n-id');
-      element.removeAttribute('data-l10n-args');
-      setTextContent(element, '');
-      return;
-    }
-
-    element.setAttribute('data-l10n-id', id);
-    if (args && typeof args === 'object') {
-      element.setAttribute('data-l10n-args', JSON.stringify(args));
-    } else {
-      element.removeAttribute('data-l10n-args');
-    }
-  }
-
-  function getL10nAttributes(element) {
-    if (!element) {
-      return {};
-    }
-
-    var l10nId = element.getAttribute('data-l10n-id');
-    var l10nArgs = element.getAttribute('data-l10n-args');
-
-    var args = l10nArgs ? JSON.parse(l10nArgs) : null;
-
-    return {id: l10nId, args: args};
-  }
-
-
-
-  function translateElement(element) {
-    var l10n = getL10nAttributes(element);
-
-    if (!l10n.id) {
-      return false;
-    }
-
-    var entity = this.ctx.getEntity(l10n.id, l10n.args);
-
-    if (!entity) {
-      return false;
-    }
-
-    if (typeof entity === 'string') {
-      setTextContent(element, entity);
-      return true;
-    }
-
-    if (entity.value) {
-      setTextContent(element, entity.value);
-    }
-
-    for (var key in entity.attributes) {
-      if (entity.attributes.hasOwnProperty(key)) {
-        var attr = entity.attributes[key];
-        if (key === 'ariaLabel') {
-          element.setAttribute('aria-label', attr);
-        } else if (key === 'innerHTML') {
-          // XXX: to be removed once bug 994357 lands
-          element.innerHTML = attr;
-        } else {
-          element.setAttribute(key, attr);
-        }
-      }
-    }
-
-    return true;
-  }
-
-  function setTextContent(element, text) {
-    // standard case: no element children
-    if (!element.firstElementChild) {
-      element.textContent = text;
-      return;
-    }
-
-    // this element has element children: replace the content of the first
-    // (non-blank) child textNode and clear other child textNodes
-    var found = false;
-    var reNotBlank = /\S/;
-    for (var child = element.firstChild; child; child = child.nextSibling) {
-      if (child.nodeType === Node.TEXT_NODE &&
-          reNotBlank.test(child.nodeValue)) {
-        if (found) {
-          child.nodeValue = '';
-        } else {
-          child.nodeValue = text;
-          found = true;
-        }
-      }
-    }
-    // if no (non-empty) textNode is found, insert a textNode before the
-    // element's first child.
-    if (!found) {
-      element.insertBefore(document.createTextNode(text), element.firstChild);
-    }
   }
 
 })(this);
