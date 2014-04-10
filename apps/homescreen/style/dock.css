@@ -56,6 +56,19 @@
   background: url(../resources/images/menu.png) no-repeat left top / 2.4rem;
 }
 
+@media (min-resolution: 1.5dppx) {
+  #footer li span.options {
+    background-image: url(../resources/images/menu@1.5x.png);
+  }
+}
+
+@media (min-resolution: 2dppx) {
+  #footer li span.options {
+    background-image: url(../resources/images/menu@2x.png);
+  }
+}
+
+
 #footer li > div > *:not(img) {
   display: none;
 }
