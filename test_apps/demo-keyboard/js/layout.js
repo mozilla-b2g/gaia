@@ -81,6 +81,18 @@
           console.error('Skipping unknown page', pagename);
           continue;
         }
+      } else if (pagename in KeyboardLayout.predefinedPages) {
+        // not inherit, but may need to borrow some key definitions
+        if (!pageconfig.keys) {
+          pageconfig.keys = {};
+        }
+
+        var keysDef = KeyboardLayout.predefinedPages[pagename].keys;
+        for (var keyDef in keysDef) {
+          if (!(keyDef in pageconfig.keys)) {
+            pageconfig.keys[keyDef] = keysDef[keyDef];
+          }
+        }
       }
 
       // This is the processed version of the page configuration data
