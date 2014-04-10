@@ -50,8 +50,9 @@ var Toaster = {
   },
 
   _onTransitionEnd: function t_onTransitionEnd(e) {
-    if (!this._containerElement.classList.contains(this._toastVisibleClass)) {
-      this._hideContainerElement();
+    if (!Toaster._containerElement.classList.contains(
+        Toaster._toastVisibleClass)) {
+      Toaster._hideContainerElement();
     }
   },
 

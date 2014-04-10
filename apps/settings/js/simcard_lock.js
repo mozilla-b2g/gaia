@@ -148,7 +148,7 @@
               } else {
                 toast = {
                   messageL10nId: 'simPinChangedSuccessfullyWithIndex',
-                  messageL10nArgs: {'index': cardIndex + 1},
+                  messageL10nArgs: {'index': +(cardIndex) + 1},
                   latency: 3000,
                   useTransition: true
                 };
