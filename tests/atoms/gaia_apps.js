@@ -30,7 +30,7 @@ var GaiaApps = {
                 anApp[key] = runningApps[app][key];
             }
         }
-        apps[app.origin] = anApp;
+        apps[runningApps[app]['origin']] = anApp;
     }
     return apps;
   },
@@ -206,7 +206,7 @@ var GaiaApps = {
     let apps = GaiaApps.getApps();
     for (let id in apps) {
       let origin = apps[id].origin;
-      if (origin.indexOf('homescreen') == -1) {
+      if (origin.indexOf('homescreen') == -1 && origin.indexOf('operatorvariant') == -1) {
         originsToClose.push(origin);
       }
     }
@@ -220,12 +220,12 @@ var GaiaApps = {
       GaiaApps.kill(origin, function() {});
     });
 
-    // Even after the 'appterminated' event has been fired for an app,
-    // it can still exist in the apps list, so wait until 1 or fewer
-    // apps are running (since we don't close the homescreen app).
+    // Even after the 'appterminated' event has been fired for an app, it
+    // can still exist in the apps list, so wait until 2 or fewer apps are
+    // running (since we don't close the homescreen or operatorvariant apps).
     waitFor(
       function() { marionetteScriptFinished(true); },
-      function() { return that.numRunningApps() <= 1; }
+      function() { return that.numRunningApps() <= 2; }
     );
   },
 
