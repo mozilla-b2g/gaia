@@ -261,11 +261,9 @@ var WifiUI = {
     UIManager.navBar.classList.add('secondary-menu');
     // Update changes in form
     if (WifiHelper.isEap(WifiManager.getNetwork(ssid))) {
-      userLabel.classList.remove('hidden');
-      userInput.classList.remove('hidden');
+      userInput.parentNode.classList.remove('hidden');
     } else {
-      userLabel.classList.add('hidden');
-      userInput.classList.add('hidden');
+      userInput.parentNode.classList.add('hidden');
     }
 
     // Change hash
