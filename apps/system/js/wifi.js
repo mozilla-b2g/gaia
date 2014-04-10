@@ -132,31 +132,62 @@ var Wifi = {
   // Check the status of screen, wifi wake lock and power source
   // and turn on/off wifi accordingly
   maybeToggleWifi: function wifi_maybeToggleWifi() {
+    // Keep CPU awake to ensure the flow is done.
+    var cpuLock = navigator.requestWakeLock('cpu');
+
+    var releaseCpuLock = function() {
+      if (cpuLock) {
+        cpuLock.unlock();
+        cpuLock = null;
+      }
+
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+        timeoutId = 0;
+      }
+    };
+
+    // To prevent the CPU awake forever (if anything goes run)
+    var timeoutId = window.setTimeout(releaseCpuLock, 30000);
+
     // Do nothing if we are being disabled.
-    if (!this.screenOffTimeout)
+    if (!this.screenOffTimeout) {
+      releaseCpuLock();
       return;
+    }
 
     var battery = window.navigator.battery;
     var wifiManager = window.navigator.mozWifiManager;
     if (!battery || !wifiManager ||
-        (!this.wifiEnabled && !this.wifiDisabledByWakelock))
+        // We don't need to do anything if wifi is not disabled by system app.
+        (!this.wifiEnabled && !this.wifiDisabledByWakelock)) {
+      releaseCpuLock();
       return;
+    }
 
-
+    var lock = SettingsListener.getSettingsLock();
     // Let's quietly turn off wifi if there is no wake lock and
     // the screen is off and we are not on a power source.
-    if (!ScreenManager.screenEnabled &&
-        !this.wifiWakeLocked && !battery.charging) {
-      // We don't need to do anything if wifi is not enabled currently
-      if (!this.wifiEnabled)
+    // But if wifi wake lock is held, turn wifi into power save mode instead of
+    // turning wifi off.
+    if (!ScreenManager.screenEnabled && !battery.charging) {
+      // Wifi wake lock is held while screen and wifi are off, turn on wifi and
+      // get into power save mode.
+      if (!this.wifiEnabled && this.wifiWakeLocked) {
+        lock.set({ 'wifi.enabled': true });
+        window.addEventListener('wifi-enabled', function() {
+          wifiManager.setPowerSavingMode(true);
+          releaseCpuLock();
+        });
         return;
+      }
 
       // We still need to turn of wifi even if there is no Alarm API
       if (!navigator.mozAlarms) {
         console.warn('Turning off wifi without sleep timer because' +
           ' Alarm API is not available');
         this.sleep();
-
+        releaseCpuLock();
         return;
       }
 
@@ -169,11 +200,13 @@ var Wifi = {
       var req = navigator.mozAlarms.add(date, 'ignoreTimezone', 'wifi-off');
       req.onsuccess = function wifi_offAlarmSet() {
         self._alarmId = req.result;
+        releaseCpuLock();
       };
       req.onerror = function wifi_offAlarmSetFailed() {
         console.warn('Fail to set wifi sleep timer on Alarm API. ' +
           'Turn off wifi immediately.');
         self.sleep();
+        releaseCpuLock();
       };
     }
     // ... and quietly turn it back on or cancel the timer otherwise
@@ -190,55 +223,81 @@ var Wifi = {
       }
 
       // We don't need to do anything if we didn't disable wifi at first place.
-      if (!this.wifiDisabledByWakelock)
+      if (!this.wifiDisabledByWakelock) {
+        releaseCpuLock();
         return;
-
-      var lock = SettingsListener.getSettingsLock();
-      // turn wifi back on.
-      lock.set({ 'wifi.enabled': true });
+      }
 
       this.wifiDisabledByWakelock = false;
+
+      if (this.wifiEnabled) {
+        // Restore from power save mode is wifi is already enabled.
+        wifiManager.setPowerSavingMode(false);
+        releaseCpuLock();
+        return;
+      }
+
+      // turn wifi back on.
+      lock.set({ 'wifi.enabled': true });
       lock.set({ 'wifi.disabled_by_wakelock': false });
+      window.addEventListener('wifi-enabled', function() {
+        releaseCpuLock();
+      });
     }
   },
 
   // Quietly turn off wifi for real, set wifiDisabledByWakelock to true
   // so we will turn it back on.
   sleep: function wifi_sleep() {
-    var lock = SettingsListener.getSettingsLock();
-
-    // Actually turn off the wifi
-
     // The |sleep| might be triggered when an alarm comes.
     // If the CPU is in suspend mode at this moment, alarm servcie would wake
     // up the CPU to run the handler and turn it back to suspend immediately
     // |sleep| is finished. In this case, we acquire a CPU wake lock to prevent
     // the CPU goes to suspend mode before the switching is done.
     var wakeLockForWifi = navigator.requestWakeLock('cpu');
+
+    var releaseWakeLockForWifi = function() {
+      if (wakeLockForWifi) {
+        wakeLockForWifi.unlock();
+        wakeLockForWifi = null;
+      }
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+        timeoutId = 0;
+      }
+    };
+
+    // To prevent the CPU awake forever (if wifi cannot be disabled)
+    var timeoutId = window.setTimeout(releaseWakeLockForWifi, 30000);
+
+    // Remember that it was turned off by us.
+    this.wifiDisabledByWakelock = true;
+
+    var request = null;
+    // If Wifi wake lock is held, change wifi to power save mode instead of
+    // disable it.
+    if (this.wifiWakeLocked) {
+      var wifiManager = window.navigator.mozWifiManager;
+      if (wifiManager) {
+        request = wifiManager.setPowerSavingMode(true);
+        request.onsuccess = releaseWakeLockForWifi;
+        request.onerror = releaseWakeLockForWifi;
+        return;
+      }
+    }
+
+    var lock = SettingsListener.getSettingsLock();
+
+    // Actually turn off the wifi
+    var wakeLockForSettings = navigator.requestWakeLock('cpu');
     lock.set({ 'wifi.enabled': false });
-    window.addEventListener('wifi-disabled', function() {
-      if (wakeLockForWifi) {
-        wakeLockForWifi.unlock();
-        wakeLockForWifi = null;
-      }
-    });
-    window.setTimeout(function() {
-      if (wakeLockForWifi) {
-        wakeLockForWifi.unlock();
-        wakeLockForWifi = null;
-      }
-     }, 30000); //To prevent the CPU awake forever (if wifi cannot be disabled)
+    window.addEventListener('wifi-disabled', releaseWakeLockForWifi);
 
-     // Remember that it was turned off by us.
-     this.wifiDisabledByWakelock = true;
-
-     // Keep this value in disk so if the phone reboots we'll
-     // be able to turn the wifi back on.
-     var wakeLockForSettings = navigator.requestWakeLock('cpu');
-     var request = lock.set({ 'wifi.disabled_by_wakelock': true });
-     request.onsuccess = function() { wakeLockForSettings.unlock() };
-     request.onerror = request.onsuccess;
-
+    // Keep this value in disk so if the phone reboots we'll
+    // be able to turn the wifi back on.
+    request = lock.set({ 'wifi.disabled_by_wakelock': true });
+    request.onsuccess = function() { wakeLockForSettings.unlock() };
+    request.onerror = request.onsuccess;
   },
 
   // Register for handling system message,
