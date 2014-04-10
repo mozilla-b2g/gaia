@@ -80,7 +80,8 @@ window.addEventListener('load', function startup() {
   window.dialerRinger = new DialerRinger().start();
   window.homeGesture = new HomeGesture().start();
   window.layoutManager = new LayoutManager().start();
-  window.permissionManager = new PermissionManager().start();
+  window.permissionManager = new PermissionManager();
+  window.permissionManager.start();
   window.remoteDebugger = new RemoteDebugger();
   window.softwareButtonManager = new SoftwareButtonManager().start();
   window.telephonySettings = new TelephonySettings();
