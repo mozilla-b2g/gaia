@@ -1,11 +1,16 @@
 'use strict';
 
 /* global CallHandler, MocksHelper, MockLazyL10n, MockNavigatormozApps,
-   MockNavigatorMozIccManager, NavbarManager, Notification */
+   MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
+   NavbarManager, Notification, MockKeypadManager */
 
+require(
+  '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
+);
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
 requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
+requireApp('communications/dialer/test/unit/mock_keypad.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
 
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
@@ -22,6 +27,7 @@ var mocksHelperForDialer = new MocksHelper([
   'Contacts',
   'LazyL10n',
   'LazyLoader',
+  'KeypadManager',
   'Notification',
   'NotificationHelper',
   'SettingsListener',
@@ -37,6 +43,7 @@ suite('navigation bar', function() {
 
   var realMozApps;
   var realMozIccManager;
+  var realSetMessageHandler;
 
   mocksHelperForDialer.attachTestHelpers();
 
@@ -47,6 +54,9 @@ suite('navigation bar', function() {
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;
 
+    realSetMessageHandler = navigator.mozSetMessageHandler;
+    navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
+    MockNavigatormozSetMessageHandler.mSetup();
 
     domViews = document.createElement('section');
     domViews.id = 'views';
@@ -76,6 +86,9 @@ suite('navigation bar', function() {
   teardown(function() {
     MockNavigatorMozIccManager.mTeardown();
     navigator.mozIccManager = realMozIccManager;
+
+    MockNavigatormozSetMessageHandler.mTeardown();
+    navigator.mozSetMessageHandler = realSetMessageHandler;
 
     MockNavigatormozApps.mTeardown();
     navigator.mozApps = realMozApps;
@@ -134,6 +147,57 @@ suite('navigation bar', function() {
         });
 
         window.postMessage(notificationObject, '*');
+      });
+    });
+
+    suite('> WebActivities support', function() {
+      var activity;
+      var originalHash;
+
+      function triggerActivity(activity) {
+        MockNavigatormozSetMessageHandler.mTrigger('activity', activity);
+      }
+
+      setup(function() {
+        originalHash = window.location.hash;
+
+        activity = {
+          source: {
+            name: 'dial',
+            data: {
+              type: 'webtelephony/number',
+              number: '12345'
+            }
+          }
+        };
+      });
+
+      teardown(function() {
+        window.location.hash = originalHash;
+      });
+
+      suite('> dial activity with a number', function() {
+        test('should fill the phone number view', function() {
+          var spy = this.sinon.spy(MockKeypadManager, 'updatePhoneNumber');
+          triggerActivity(activity);
+          sinon.assert.calledWith(spy, '12345', 'begin', false);
+        });
+
+        test('should show the keypad view', function() {
+          triggerActivity(activity);
+          assert.equal(window.location.hash, '#keyboard-view');
+        });
+      });
+
+      suite('> dial without a number', function() {
+        setup(function() {
+          activity.source.data.number = '';
+        });
+
+        test('should show the contacts view', function() {
+          triggerActivity(activity);
+          assert.equal(window.location.hash, '#contacts-view');
+        });
       });
     });
   });

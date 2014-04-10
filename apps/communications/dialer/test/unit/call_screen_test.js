@@ -3,8 +3,8 @@
 mocha.globals(['resizeTo']);
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_moz_activity.js');
 
 requireApp('communications/dialer/test/unit/mock_handled_call.js');
 requireApp('communications/dialer/test/unit/mock_calls_handler.js');
@@ -18,13 +18,13 @@ if (!this.CallScreen) {
 
 var mocksHelperForCallScreen = new MocksHelper([
   'CallsHandler',
+  'MozActivity',
   'LazyL10n'
 ]).init();
 
 
 suite('call screen', function() {
   var realMozTelephony;
-  var realMozApps;
 
   var screen;
   var container;
@@ -51,16 +51,12 @@ suite('call screen', function() {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
 
-    realMozApps = navigator.mozApps;
-    navigator.mozApps = MockNavigatormozApps;
-
     navigator.mozL10n = MockMozL10n;
   });
 
   suiteTeardown(function() {
     MockNavigatorMozTelephony.mSuiteTeardown();
     navigator.mozTelephony = realMozTelephony;
-    navigator.mozApps = realMozApps;
   });
 
   setup(function(done) {
@@ -156,7 +152,6 @@ suite('call screen', function() {
 
   teardown(function() {
     MockNavigatorMozTelephony.mTeardown();
-    MockNavigatormozApps.mTeardown();
     screen.parentNode.removeChild(screen);
   });
 
@@ -714,24 +709,21 @@ suite('call screen', function() {
   });
 
   suite('placeNewCall', function() {
-    test('launches the dialer app', function() {
+    test('launches the dialer app with an empty dial activity', function() {
       CallScreen.placeNewCall();
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
-      assert.equal(MockNavigatormozApps.mAppWasLaunchedWithEntryPoint,
-                   'dialer');
-    });
-
-    test('requests the contacts tab in the dialer app', function() {
-      var requestSpy = this.sinon.spy(MockCallsHandler, 'requestContactsTab');
-      CallScreen.placeNewCall();
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
-      assert.isTrue(requestSpy.calledOnce);
+      var activity = MockMozActivity.calls[0];
+      assert.deepEqual(activity, {
+        name: 'dial',
+        data: {
+          type: 'webtelephony/number',
+          number: ''
+        }
+      });
     });
 
     test('resizes the call screen in status bar mode', function() {
       var resizeSpy = this.sinon.spy(window, 'resizeTo');
       CallScreen.placeNewCall();
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
       assert.equal(resizeSpy.firstCall.args[1], 40);
     });
   });
