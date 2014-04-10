@@ -96,6 +96,7 @@ section[role="region"] > header:first-child menu[type="toolbar"] button {
   text-align: center;
   text-shadow: none;
   z-index: 5;
+  font-style: italic;
 }
 
 
