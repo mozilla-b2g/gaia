@@ -6,7 +6,6 @@ var CallHandler = (function callHandler() {
   var callScreenWindow = null;
   var callScreenWindowReady = false;
   var btCommandsToForward = [];
-  var currentActivity = null;
   var FB_SYNC_ERROR_PARAM = 'isSyncError';
 
   /* === Settings === */
@@ -20,13 +19,15 @@ var CallHandler = (function callHandler() {
     if (activity.source.name != 'dial')
       return;
 
-    currentActivity = activity;
-
     var number = activity.source.data.number;
     if (number) {
       KeypadManager.updatePhoneNumber(number, 'begin', false);
       if (window.location.hash != '#keyboard-view') {
         window.location.hash = '#keyboard-view';
+      }
+    } else {
+      if (window.location.hash != '#contacts-view') {
+        window.location.hash = '#contacts-view';
       }
     }
   }
@@ -217,8 +218,6 @@ var CallHandler = (function callHandler() {
       handleCallScreenClosing();
     } else if (data === 'ready') {
       handleCallScreenReady();
-    } else if (data == 'request-contacts') {
-      window.location.hash = '#contacts-view';
     } else if (!data.type) {
       return;
     } else if (data.type === 'notification') {
