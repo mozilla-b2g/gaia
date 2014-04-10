@@ -14,19 +14,15 @@
 
       xhr.open('GET', url, !sync);
 
-      //TODO: Replace this with addEventListener (bug 934727)
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4) {
-          if (xhr.status === 200 || xhr.status === 0) {
-            callback(null, xhr.responseText);
-          } else {
-            callback(new Error('Not found: ' + url));
-          }
+      xhr.addEventListener('load', function io_load(e) {
+        if (e.target.status === 200 || e.target.status === 0) {
+          callback(null, e.target.responseText);
+        } else {
+          callback(new Error('Not found: ' + url));
         }
-      };
-
-      xhr.onerror = callback;
-      xhr.ontimeout = callback;
+      });
+      xhr.addEventListener('error', callback);
+      xhr.addEventListener('timeout', callback);
 
       // the app: protocol throws on 404, see https://bugzil.la/827243
       try {
@@ -46,11 +42,15 @@
       xhr.open('GET', url);
 
       xhr.responseType = 'json';
-      xhr.onload = function(e) {
-        callback(null, e.target.response);
-      };
-      xhr.onerror = callback;
-      xhr.ontimeout = callback;
+      xhr.addEventListener('load', function io_loadjson(e) {
+        if (e.target.status === 200 || e.target.status === 0) {
+          callback(null, e.target.response);
+        } else {
+          callback(new Error('Not found: ' + url));
+        }
+      });
+      xhr.addEventListener('error', callback);
+      xhr.addEventListener('timeout', callback);
 
       // the app: protocol throws on 404, see https://bugzil.la/827243
       try {
