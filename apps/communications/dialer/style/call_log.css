@@ -114,6 +114,7 @@ ol, ul {
   position: absolute;
   overflow: hidden;
   width: 100%;
+  transform: translateY(0);
 }
 
 .view-body-inner {
@@ -288,6 +289,12 @@ ol, ul {
 
 .recents-edit #edit-mode {
   display: block;
+}
+
+.recents-edit .view-body {
+  height: calc(100% - 7.6rem);
+  transform: translateY(-4rem);
+  transition: transform 0.4s ease;
 }
 
 .filter .log-item:not(.missed-call) {
