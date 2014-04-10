@@ -12,7 +12,7 @@
   <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/lists.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/progress_activity.css">
-  <link  rel="stylesheet"type="text/css" href="/shared/style/status.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="/shared/style/status.css">
 
   <!-- Specific style -->
   <link rel="stylesheet" type="text/css" href="/contacts/style/animations.css">
@@ -96,114 +96,10 @@
   <script defer type="text/javascript" src="/shared/js/confirm.js"></script>
 </head>
 <body>
-  <section id="splash-screen" role="region" class="show">
+  <section role="region" id="splash-screen" class="show">
   </section>
 
-  <section id="unlock-sim-screen" role="region" class="skin-organic">
-    <header>
-      <button id="unlock-sim-back"><span class="icon icon-back">back</span></button>
-      <h1 id="unlock-sim-header"></h1>
-    </header>
-    <article role="main">
-      <section id="pincode-screen" role="region">
-        <label id="pin-label"></label>
-        <label id="pin-retries-left" data-l10n-id="inputCodeRetriesLeft" class="retries hidden">Unknown tries left</label>
-        <section class="input-wrapper">
-          <input id="pin-input" name="simpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
-          <label id="pin-error" data-l10n-id="pinError" class="hidden error">The PIN was incorrect.</label>
-        </section>
-      </section>
-
-      <section id="pukcode-screen" role="region">
-        <label id="puk-label"></label>
-        <label id="puk-retries-left" data-l10n-id="inputCodeRetriesLeft" class="retries hidden">Unknown tries left</label>
-        <section class="input-wrapper">
-          <input id="puk-input" name="simpuk" type="password" x-inputmode="digit" size="8" maxlength="8" />
-          <div id="puk-info" data-l10n-id="pukInfo" class="info">You must enter the Personal Unlocking Key (PUK) Code for the SIM card. Refer to your SIM card documentation or contact your carrier for more information.</div>
-          <div id="puk-error" data-l10n-id="pukError" class="hidden error">The PUK was incorrect.</div>
-        </section>
-        <label id="newpin" data-l10n-id="create_newpin">Create new PIN (4 to 8 digits)</label>
-        <section class="input-wrapper">
-          <input id="newpin-input" name="newpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
-          <label id="newpin-error" data-l10n-id="pinValidation" class="hidden error">PIN must have between 4 and 8 characters.</label>
-        </section>
-        <label id="confirm-newpin" data-l10n-id="confirm_newpin">Confirm new PIN</label>
-        <section class="input-wrapper">
-          <input id="confirm-newpin-input" name="confirm-newpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
-          <label id="confirm-newpin-error" data-l10n-id="confirm_newpin" class="hidden error">Confirm new PIN</label>
-        </section>
-      </section>
-
-      <section id="xckcode-screen" role="region">
-        <label id="xck-label" data-l10n-id="type_nck">Type your NCK code</label>
-        <label id="xck-retries-left" data-l10n-id="inputCodeRetriesLeft" class="hidden retries">Unknown tries left</label>
-        <section class="input-wrapper">
-          <input id="xck-input" name="simxck" type="password"  x-inputmode="digit" size="16" maxlength="16" />
-          <label id="xck-error" data-l10n-id="confirm_newpin" class="hidden error"></label>
-        </section>
-      </section>
-    </article>
-
-    <nav role="navigation">
-      <button id="skip-pin-button" class="button-left" data-l10n-id="skip">
-        Skip
-      </button>
-      <button id="back-sim-button" class="button-left back hidden" data-l10n-id="back">
-        Back
-      </button>
-      <button id="unlock-sim-button" class="recommend" data-l10n-id="ok">
-        OK
-      </button>
-    </nav>
-  </section>
-
-  <section id="sim-info-screen" role="region" class="skin-organic">
-    <header>
-      <h1 id="sim-info-header" data-l10n-id="simManager">SIM Manager</h1>
-    </header>
-    <article role="main">
-      <section>
-        <section id="sim-info-1" class="sim-info">
-          <div class="sim-image"></div>
-          <p class="sim-title">
-            <span data-l10n-id="simDetail" data-l10n-args='{"n": "1"}'>SIM 1</span>
-            <span data-l10n-id="simDefault" class="default">(default)</span>
-          </p>
-          <p id="sim-carrier-1"  class="sim-carrier"></p>
-          <p id="sim-number-1" class="sim-number"></p>
-        </section>
-        <section id="sim-info-2" class="sim-info">
-          <div class="sim-image"></div>
-          <p class="sim-title">
-            <span data-l10n-id="simDetail" data-l10n-args='{"n": "2"}'>SIM 2</span>
-          </p>
-          <p id="sim-carrier-2"  class="sim-carrier"></p>
-          <p id="sim-number-2" class="sim-number"></p>
-        </section>
-      </section>
-      <section id="sim-info-messages">
-        <p id="sim-default-message" data-l10n-id="simDefaultMessage">
-          Outgoing calls, outgoing messages and data connection are set to SIM 1 as default
-        </p>
-        <p id="sim-settings-message" data-l10n-id="simSettingsMessage">
-          You can change default settings at Settings &gt; SIM manager
-        </p>
-      </section>
-    </article>
-
-    <nav role="navigation">
-      <button id="sim-info-back" class="button-left back" data-l10n-id="navbar-back">
-        Back
-        <span></span>
-      </button>
-      <button id="sim-info-forward" class="recommend forward" data-l10n-id="navbar-next">
-        Next
-        <span></span>
-      </button>
-    </nav>
-  </section>
-
-  <section id="activation-screen" role="region" class="skin-organic no-options">
+  <section role="region" id="activation-screen" class="skin-organic no-options">
     <header>
       <menu type="toolbar">
         <button id="wifi-refresh-button" data-l10n-id="refresh">Refresh</button>
@@ -214,6 +110,7 @@
       <li id="progress-bar-state" class="step-state-bar"></li>
       <li>languages</li>
       <li>SIM_mandatory</li>
+      <li>sim_management</li>
       <li>3g</li>
       <li>wifi</li>
       <li>configure network</li>
@@ -229,6 +126,77 @@
           </ul>
         </article>
       </section>
+
+      <section role="region" id="sim_manager">
+        <section role="region" id="pincode-screen">
+          <label id="pin-label"></label>
+          <label id="pin-retries-left" data-l10n-id="inputCodeRetriesLeft" class="retries hidden">Unknown tries left</label>
+          <section class="input-wrapper">
+            <input id="pin-input" name="simpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
+            <label id="pin-error" data-l10n-id="pinError" class="hidden error">The PIN was incorrect.</label>
+          </section>
+        </section>
+
+        <section role="region" id="pukcode-screen">
+          <label id="puk-label"></label>
+          <label id="puk-retries-left" data-l10n-id="inputCodeRetriesLeft" class="retries hidden">Unknown tries left</label>
+          <section class="input-wrapper">
+            <input id="puk-input" name="simpuk" type="password" x-inputmode="digit" size="8" maxlength="8" />
+            <div id="puk-info" data-l10n-id="pukInfo" class="info">You must enter the Personal Unlocking Key (PUK) Code for the SIM card. Refer to your SIM card documentation or contact your carrier for more information.</div>
+            <div id="puk-error" data-l10n-id="pukError" class="hidden error">The PUK was incorrect.</div>
+          </section>
+          <label id="newpin" data-l10n-id="create_newpin">Create new PIN (4 to 8 digits)</label>
+          <section class="input-wrapper">
+            <input id="newpin-input" name="newpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
+            <label id="newpin-error" data-l10n-id="pinValidation" class="hidden error">PIN must have between 4 and 8 characters.</label>
+          </section>
+          <label id="confirm-newpin" data-l10n-id="confirm_newpin">Confirm new PIN</label>
+          <section class="input-wrapper">
+            <input id="confirm-newpin-input" name="confirm-newpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
+            <label id="confirm-newpin-error" data-l10n-id="confirm_newpin" class="hidden error">Confirm new PIN</label>
+          </section>
+        </section>
+
+        <section role="region" id="xckcode-screen">
+          <label id="xck-label" data-l10n-id="type_nck">Type your NCK code</label>
+          <label id="xck-retries-left" data-l10n-id="inputCodeRetriesLeft" class="hidden retries">Unknown tries left</label>
+          <section class="input-wrapper">
+            <input id="xck-input" name="simxck" type="password" x-inputmode="digit" size="16" maxlength="16" />
+            <label id="xck-error" data-l10n-id="confirm_newpin" class="hidden error"></label>
+          </section>
+        </section>
+
+        <section role="region" id="sim-info-screen">
+          <section>
+            <section id="sim-info-1" class="sim-info">
+              <div class="sim-image"></div>
+              <p class="sim-title">
+                <span data-l10n-id="simDetail" data-l10n-args='{"n": "1"}'>SIM 1</span>
+                <span data-l10n-id="simDefault" class="default">(default)</span>
+              </p>
+              <p id="sim-carrier-1"  class="sim-carrier"></p>
+              <p id="sim-number-1" class="sim-number"></p>
+            </section>
+            <section id="sim-info-2" class="sim-info">
+              <div class="sim-image"></div>
+              <p class="sim-title">
+                <span data-l10n-id="simDetail" data-l10n-args='{"n": "2"}'>SIM 2</span>
+              </p>
+              <p id="sim-carrier-2"  class="sim-carrier"></p>
+              <p id="sim-number-2" class="sim-number"></p>
+            </section>
+          </section>
+          <section id="sim-info-messages">
+            <p id="sim-default-message" data-l10n-id="simDefaultMessage">
+                Outgoing calls, outgoing messages and data connection are set to SIM 1 as default
+            </p>
+            <p id="sim-settings-message" data-l10n-id="simSettingsMessage">
+                You can change default settings at Settings &gt; SIM manager
+            </p>
+          </section>
+        </section>
+      </section>
+
       <section role="region" id="data_3g">
         <article data-type="list">
           <ul>
@@ -248,6 +216,7 @@
           <p id="dataExplanation" data-l10n-id="dataConnectionInfo">Some text here</p>
         </section>
       </section>
+
       <section role="region" id="wifi">
         <div id="wifi-wrapper" role="main">
           <article id="networks">
@@ -257,6 +226,7 @@
           </button>
         </div>
       </section>
+
       <section role="region" id="configure_network">
         <section id="configure_network_params">
           <form>
@@ -273,6 +243,7 @@
           </form>
         </section>
       </section>
+
       <section role="region" id="hidden-wifi-authentication">
         <div>
           <form>
@@ -357,6 +328,7 @@
           </ul>
         </form>
       </section>
+
       <section role="region" id="geolocation">
         <article data-type="list">
           <ul>
@@ -378,6 +350,7 @@
           <p><a href="#about-your-privacy" data-l10n-id="aboutYourPrivacy">Your Privacy</a></p>
         </section>
       </section>
+
       <section role="region" id="import_contacts">
         <article data-type="list">
           <ul>
@@ -473,6 +446,7 @@
           on its websites, and to distribute the feedback.
         </p>
       </section>
+
       <section role="region" id="about-your-privacy">
         <i class='hack-first-child'></i> <!-- see Bug 819886 -->
         <header>
@@ -510,6 +484,7 @@
           </ul>
         </article>
       </section>
+
       <section role="region" id="sharing-performance-data">
         <p data-l10n-id='telemetry-sends'>
           Telemetry sends Mozilla data about performance, hardware,
@@ -580,21 +555,29 @@
       </section>
     </article>
     <menu role="navigation" id="nav-bar" class="forward-only">
+      <!-- SIM Manager buttons -->
+      <button id="skip-pin-button" class="button-left hidden" data-l10n-id="skip">
+        Skip
+      </button>
+      <button id="unlock-sim-button" class="recommend hidden" data-l10n-id="ok">
+        OK
+      </button>
+      <!-- Regular steps buttons -->
       <button id="back" class="button-left back" data-l10n-id="navbar-back">
         Back
         <span></span>
       </button>
-      <button class="recommend forward" id="forward" data-l10n-id="navbar-next">
+      <button id="forward" class="recommend forward" data-l10n-id="navbar-next">
         Next
         <span></span>
       </button>
-      <button class="recommend" id="wifi-join-button" data-l10n-id="navbar-join">
+      <button id="wifi-join-button" class="recommend" data-l10n-id="navbar-join">
         Join
       </button>
     </menu>
   </section>
 
-  <section id="finish-screen" class="finish-screen-base" role="region">
+  <section role="region" id="finish-screen" class="finish-screen-base">
     <section class="content">
 
       <!-- for tiny devices -->
@@ -617,19 +600,19 @@
         </p>
       </div>
 
-      </section>
-      <menu role="navigation">
-        <button id="skip-tutorial-button" class="button-left" data-l10n-id="skip">
-          Skip
-        </button>
-        <button id="lets-go-button" class="recommend" data-l10n-id="startTour">
-          Start Tour!
-        </button>
-      </menu>
+    </section>
+    <menu role="navigation">
+      <button id="skip-tutorial-button" class="button-left" data-l10n-id="skip">
+        Skip
+      </button>
+      <button id="lets-go-button" class="recommend" data-l10n-id="startTour">
+        Start Tour!
+      </button>
+    </menu>
     </section>
   </section>
 
-  <section id="tutorial-screen" class="tutorial-screen-base" role="region">
+  <section role="region" id="tutorial-screen" class="tutorial-screen-base">
     <ol id="tutorial-progress" class="step-state">
       <li id="tutorial-progress-state" class="step-state-bar"></li>
       <li>step 1</li>
@@ -719,7 +702,7 @@
     </nav>
   </section>
 
-  <section id="tutorial-finish-tiny" class="tutorial-finish-base" role="region">
+  <section role="region" id="tutorial-finish-tiny" class="tutorial-finish-base">
     <section class="content">
       <h1 data-l10n-id="thatsIt">
         That's it!
@@ -737,7 +720,7 @@
   <!-- end of tiny devices -->
 
   <!-- for large devices -->
-  <section id="tutorial-finish-large" class="tutorial-finish-base" role="region">
+  <section role="region" id="tutorial-finish-large" class="tutorial-finish-base">
     <section class="content">
       <header>
         <p data-l10n-id="thatsIt1Tablet-2">

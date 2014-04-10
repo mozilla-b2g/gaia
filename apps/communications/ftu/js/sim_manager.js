@@ -205,7 +205,6 @@ var SimManager = (function() {
 
   finish: function() {
     this.hideScreen();
-    this.hideSIMInfoScreen();
     // card state has been handled, so return
     // to normal navigation, and only show cell
     // data step if we have an unlocked sim
@@ -221,6 +220,16 @@ var SimManager = (function() {
   // only show sim info screen if we have two SIMs inserted
   shouldShowSIMInfoScreen: function sm_shouldShowSIMInfoScreen() {
     return (this.icc0 && this.icc1);
+  },
+
+  hasReadySimCard: function sm_hasReadySimCard() {
+    return (!!this.icc0 && !this.icc0.isLocked()) ||
+           (!!this.icc1 && !this.icc1.isLocked());
+  },
+
+  hasLockedSimCard: function sm_hasLockedSimCard() {
+    return (this.icc0 && this.icc0.isLocked()) ||
+           (this.icc1 && this.icc1.isLocked());
   },
 
   showUnlockScreen: function sm_showUnlockScreen(icc) {
@@ -273,13 +282,11 @@ var SimManager = (function() {
   showSIMInfoScreen: function sm_showSIMInfoScreen() {
     this.updateSIMInfoText(this.icc0);
     this.updateSIMInfoText(this.icc1);
-    UIManager.activationScreen.classList.remove('show');
-    UIManager.simInfoScreen.classList.add('show');
-  },
 
-  hideSIMInfoScreen: function sm_hidescreen() {
-    UIManager.simInfoScreen.classList.remove('show');
-    UIManager.activationScreen.classList.add('show');
+    UIManager.simInfoScreen.classList.add('show');
+    UIManager.mainTitle.textContent = _('simManager');
+
+    this.hideScreen();
   },
 
   checkSIMButton: function sm_checkSIMButton() {
@@ -309,12 +316,12 @@ var SimManager = (function() {
       UIManager.unlockSimButton.disabled = (event.target.value.length < 4);
     });
     // Screen management
-    UIManager.activationScreen.classList.remove('show');
-    UIManager.unlockSimScreen.classList.add('show');
     UIManager.pincodeScreen.classList.add('show');
+    UIManager.pukcodeScreen.classList.remove('show');
     UIManager.xckcodeScreen.classList.remove('show');
+    UIManager.simInfoScreen.classList.remove('show');
 
-    UIManager.unlockSimHeader.textContent = _('pincode2');
+    UIManager.mainTitle.textContent = _('pincode2');
     var pincodeLabel = _('type_pin');
     if (this.simSlots > 1) {
       var simNumber = icc === this.icc0 ? 1 : 2;
@@ -322,18 +329,20 @@ var SimManager = (function() {
     }
     UIManager.pinLabel.textContent = pincodeLabel;
     UIManager.pinInput.focus();
+
+    // If SIM card is mandatory, we hide the button skip
+    this.updateSimManagerButtons();
   },
 
   showPukScreen: function sm_showPukScreen(icc) {
     showRetryCount(icc, 'puk', UIManager.pukRetriesLeft);
 
-    UIManager.unlockSimScreen.classList.add('show');
-    UIManager.activationScreen.classList.remove('show');
     UIManager.pincodeScreen.classList.remove('show');
     UIManager.pukcodeScreen.classList.add('show');
     UIManager.xckcodeScreen.classList.remove('show');
+    UIManager.simInfoScreen.classList.remove('show');
 
-    UIManager.unlockSimHeader.textContent = _('pukcode');
+    UIManager.mainTitle.textContent = _('pukcode');
     var pukcodeLabel = _('type_puk');
     if (this.simSlots > 1) {
       var simNumber = icc === this.icc0 ? 1 : 2;
@@ -342,6 +351,9 @@ var SimManager = (function() {
     UIManager.pukLabel.textContent = pukcodeLabel;
 
     UIManager.pukInput.focus();
+
+    // If SIM card is mandatory, we hide the button skip
+    this.updateSimManagerButtons();
   },
 
   showXckScreen: function sm_showXckScreen(icc) {
@@ -363,34 +375,50 @@ var SimManager = (function() {
 
     showRetryCount(icc, lockType, UIManager.xckRetriesLeft);
 
-    UIManager.unlockSimScreen.classList.add('show');
-    UIManager.activationScreen.classList.remove('show');
     UIManager.pincodeScreen.classList.remove('show');
     UIManager.pukcodeScreen.classList.remove('show');
     UIManager.xckcodeScreen.classList.add('show');
+    UIManager.simInfoScreen.classList.remove('show');
 
     var simNumber = icc === this.icc0 ? 1 : 2;
     switch (icc.mozIcc.cardState) {
       case 'networkLocked':
-        UIManager.unlockSimHeader.textContent = _('nckcodeTitle',
+        UIManager.mainTitle.textContent = _('nckcodeTitle',
                                                   {n: simNumber});
         UIManager.xckLabel.textContent = _('nckcodeLabel',
                                            {n: simNumber});
         break;
       case 'corporateLocked':
-        UIManager.unlockSimHeader.textContent = _('cckcodeTitle',
+        UIManager.mainTitle.textContent = _('cckcodeTitle',
                                                   {n: simNumber});
         UIManager.xckLabel.textContent = _('cckcodeLabel',
                                            {n: simNumber});
         break;
       case 'serviceProviderLocked':
-        UIManager.unlockSimHeader.textContent = _('spckcodeTitle',
+        UIManager.mainTitle.textContent = _('spckcodeTitle',
                                                   {n: simNumber});
         UIManager.xckLabel.textContent = _('spckcodeLabel',
                                            {n: simNumber});
         break;
     }
     UIManager.xckInput.focus();
+
+    // If SIM card is mandatory, we hide the button skip
+    this.updateSimManagerButtons();
+  },
+
+  updateSimManagerButtons: function sm_updateSimManagerButtons() {
+    if (/*this.simMandatory*/false) {
+      UIManager.skipPinButton.classList.add('hidden');
+      UIManager.unlockSimButton.classList.remove('hidden');
+      document.getElementById('back').classList.add('hidden');
+      document.getElementById('forward').classList.add('hidden');
+    } else {
+      UIManager.skipPinButton.classList.remove('hidden');
+      UIManager.unlockSimButton.classList.remove('hidden');
+      document.getElementById('back').classList.add('hidden');
+      document.getElementById('forward').classList.add('hidden');
+    }
   },
 
   resetForm: function sm_clearInputs() {
@@ -405,11 +433,14 @@ var SimManager = (function() {
   },
 
   hideScreen: function sm_hideScreen() {
-    UIManager.unlockSimScreen.classList.remove('show');
     UIManager.pincodeScreen.classList.remove('show');
     UIManager.pukcodeScreen.classList.remove('show');
     UIManager.xckcodeScreen.classList.remove('show');
-    UIManager.activationScreen.classList.add('show');
+
+    UIManager.skipPinButton.classList.add('hidden');
+    UIManager.unlockSimButton.classList.add('hidden');
+    document.getElementById('back').classList.remove('hidden');
+    document.getElementById('forward').classList.remove('hidden');
   },
 
   skip: function sm_skip() {
@@ -434,7 +465,6 @@ var SimManager = (function() {
     this.resetForm();
     this.resetSkipped();
     this.hideScreen();
-    this.hideSIMInfoScreen();
     Navigation.back();
   },
 
@@ -465,6 +495,10 @@ var SimManager = (function() {
       case 'corporateLocked':
       case 'serviceProviderLocked':
         this.unlockXck(icc);
+        break;
+      case 'ready':
+        this.resetSkipped();
+        this.finish();
         break;
     }
   },

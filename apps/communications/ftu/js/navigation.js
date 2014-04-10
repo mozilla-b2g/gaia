@@ -1,4 +1,4 @@
-/* global DataMobile, SimManager, IccHelper,
+/* global DataMobile, SimManager,
           SdManager, UIManager, WifiManager, WifiUI,
           ImportIntegration,
           OperatorVariant,
@@ -18,41 +18,46 @@ var steps = {
   },
   2: {
     onlyForward: false,
+    hash: '#sim_manager',
+    requireSIM: false
+  },
+  3: {
+    onlyForward: false,
     hash: '#data_3g',
     requireSIM: true
   },
-  3: {
+  4: {
     onlyForward: false,
     hash: '#wifi',
     requireSIM: false
   },
-  4: {
+  5: {
     onlyForward: false,
     hash: '#date_and_time',
     requireSIM: false
   },
-  5: {
+  6: {
     onlyForward: false,
     hash: '#geolocation',
     requireSIM: false
   },
-  6: {
+  7: {
     onlyForward: false,
     hash: '#import_contacts',
     requireSIM: false
   },
-  7: {
+  8: {
     onlyForward: false,
     hash: '#firefox_accounts',
     requireSIM: false,
     requireFxAEnabled: true
   },
-  8: {
+  9: {
     onlyForward: false,
     hash: '#welcome_browser',
     requireSIM: false
   },
-  9: {
+  10: {
     onlyForward: false,
     hash: '#browser_privacy',
     requireSIM: false
@@ -172,6 +177,9 @@ var Navigation = {
       case '#languages':
         UIManager.mainTitle.innerHTML = _('language');
         break;
+      case '#sim_manager':
+        // sim_manager.js is in charge of that.
+        break;
       case '#data_3g':
         UIManager.mainTitle.innerHTML = _('3g');
         DataMobile.
@@ -255,15 +263,6 @@ var Navigation = {
     UIManager.progressBarState.style.transform =
       'translateX(' + (this.getProgressBarState() * 100) + '%)';
 
-    // If SIM card is mandatory, we hide the button skip
-    if (this.simMandatory) {
-      UIManager.skipPinButton.classList.add('hidden');
-      UIManager.backSimButton.classList.remove('hidden');
-    } else {
-      UIManager.skipPinButton.classList.remove('hidden');
-      UIManager.backSimButton.classList.add('hidden');
-    }
-
     // Managing options button
     if (this.currentStep <= numSteps &&
         steps[this.currentStep].hash !== '#wifi') {
@@ -307,19 +306,46 @@ var Navigation = {
       return;
     }
 
+    if (futureLocation.hash === '#sim_manager') {
+      var goesBackward = this.currentStep < this.previousStep;
+
+      if (!goesBackward && SimManager.hasLockedSimCard() ||
+        SimManager.shouldShowSIMInfoScreen()) {
+        var check_cardState = function(response) {
+          if (response) {
+            window.location.hash = '#data_3g';
+            self.currentStep = 3;
+          } else {
+            window.location.hash = '#wifi';
+            self.currentStep = 4;
+          }
+        };
+
+        // if we are navigating backwards, we do not want to
+        // show the SIM unlock screens for the data_3g step
+        SimManager.handleCardState(check_cardState, goesBackward);
+      } else {
+        self.skipStep();
+        return;
+      }
+    }
+
     // There is some locations which need a 'loading'
     if (futureLocation.hash === '#wifi') {
       utils.overlay.show(_('scanningNetworks'), 'spinner');
     }
 
-    // If SIMcard is mandatory and no SIM, go to message window
-    if (this.simMandatory &&
-        !IccHelper.cardState &&
-        futureLocation.requireSIM) {
-      //Send to SIM Mandatory message
-      futureLocation.hash = '#SIM_mandatory';
-      futureLocation.requireSIM = false;
-      futureLocation.onlyBackward = true;
+    if (futureLocation.requireSIM && !SimManager.hasReadySimCard()) {
+      // If SIMcard is mandatory and no SIM, go to message window
+      if (this.simMandatory) {
+        //Send to SIM Mandatory message
+        futureLocation.hash = '#SIM_mandatory';
+        futureLocation.requireSIM = false;
+        futureLocation.onlyBackward = true;
+      } else {
+        self.skipStep();
+        return;
+      }
     }
 
     // Navigation bar management
@@ -344,22 +370,5 @@ var Navigation = {
 
     // Change hash to the right location
     window.location.hash = futureLocation.hash;
-
-    // SIM card management
-    if (futureLocation.requireSIM) {
-      var check_cardState = function(response) {
-        self.skipped = false;
-        if (!response || (!SimManager.available() &&
-          // Don't skip it if next step is data 3g
-         futureLocation.hash !== '#data_3g')) {
-          self.skipStep();
-        }
-      };
-
-      // if we are navigating backwards, we do not want to
-      // show the SIM unlock screens for the data_3g step
-      var skipUnlockScreens = this.currentStep < this.previousStep;
-      SimManager.handleCardState(check_cardState, skipUnlockScreens);
-    }
   }
 };
