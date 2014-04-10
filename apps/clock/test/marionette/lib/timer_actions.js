@@ -4,8 +4,9 @@ var utils = require('./utils');
 var $ = require('./mquery');
 var pickerUtils = require('./picker');
 
-function TimerActions(client) {
+function TimerActions(client, actions) {
   this._client = client;
+  this.actions = actions;
 }
 
 module.exports = TimerActions;
@@ -52,6 +53,25 @@ TimerActions.prototype = {
 
   advanceTime: function(milliseconds) {
     return this._client.helper.wait(milliseconds);
+  },
+
+  fire: function(attentionHandler, testOpts) {
+    testOpts = testOpts || {};
+    this._client.executeScript(function(testOpts) {
+      testOpts = JSON.parse(testOpts);
+      setTimeout(function() {
+        window.dispatchEvent(new CustomEvent('test-alarm', {
+          detail: {
+            type: 'timer',
+            testOpts: testOpts
+          }
+        }));
+      }, testOpts.delay || 0);
+    }, [JSON.stringify(testOpts)]);
+
+    if (attentionHandler) {
+      this.actions.withAttentionFrame(attentionHandler);
+    }
   }
 
 };

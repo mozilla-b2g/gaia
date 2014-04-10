@@ -83,29 +83,27 @@ AlarmActions.prototype = {
     return $('#alarm-volume-input');
   },
 
-  fire: function(idx, attentionHandler) {
+  fire: function(idx, attentionHandler, testOpts) {
+    testOpts = testOpts || {};
+
     // Trigger a fake 'alarm' event:
-    this._client.executeScript(function(idx) {
+    this._client.executeScript(function(idx, testOpts) {
+      testOpts = JSON.parse(testOpts);
       var id = document.querySelector(
         '.alarm-cell:nth-child(' + (idx + 1) + ') .alarm-item').dataset.id;
-      var alarm = new CustomEvent('test-alarm', {
-        detail: {
-          id: parseInt(id, 10),
-          type: 'normal'
-        }
-      });
-      window.dispatchEvent(alarm);
-    }, [idx]);
+      setTimeout(function() {
+        window.dispatchEvent(new CustomEvent('test-alarm', {
+          detail: {
+            id: parseInt(id, 10),
+            type: 'normal',
+            testOpts: testOpts
+          }
+        }));
+      }, testOpts.delay || 0);
+    }, [idx, JSON.stringify(testOpts)]);
 
     if (attentionHandler) {
-      // Switch to the Attention Screen
-      this._client.switchToFrame();
-      this._client.switchToFrame(
-        $('iframe[data-frame-name="_blank"]').el);
-      attentionHandler();
-      // Now switch back to the system, then to the clock.
-      this._client.switchToFrame();
-      this._client.apps.switchToApp(this.actions.origin);
+      this.actions.withAttentionFrame(attentionHandler);
     }
   },
 

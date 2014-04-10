@@ -174,21 +174,4 @@ marionette('Alarm', function() {
     assert(alarm.list[0].enabled, 'Alarm is re-enabled after toggling');
   });
 
-  test('Fire an alarm', function() {
-    alarm.create();
-    alarm.fire(0, function() {
-      // Click the "stop" button
-      var el = $('#ring-button-stop');
-      try {
-        el.click();
-      } catch(e) {
-        // Marionette throws an error because the frame closes while
-        // handling the click event. This is expected.
-      }
-    });
-
-    // Make sure we can see the analog clock again.
-    $('#analog-clock').waitToAppear();
-  });
-
 });

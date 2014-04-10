@@ -4,7 +4,7 @@
 suite('Timer.Panel', function() {
   var clock, activeAlarm;
   var isHidden;
-  var View, Timer, Utils, mozL10n;
+  var View, Timer, Utils, mozL10n, mockAudio;
 
   suiteSetup(function(done) {
     isHidden = function(element) {
@@ -25,6 +25,13 @@ suite('Timer.Panel', function() {
   });
 
   setup(function() {
+    mockAudio = {
+      pause: this.sinon.spy(),
+      play: this.sinon.spy(),
+      addEventListener: function() { },
+      load: function() { }
+    };
+    this.sinon.stub(window, 'Audio').returns(mockAudio);
     clock = this.sinon.useFakeTimers();
   });
 
@@ -250,13 +257,6 @@ suite('Timer.Panel', function() {
     test('change: sound', function() {
       var sound = panel.nodes.sound;
       Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
-      var mockAudio = {
-        pause: this.sinon.spy(),
-        play: this.sinon.spy(),
-        addEventListener: function() { },
-        load: function() { }
-      };
-      this.sinon.stub(window, 'Audio').returns(mockAudio);
 
       sound.dispatchEvent(
         new CustomEvent('change')
@@ -272,14 +272,6 @@ suite('Timer.Panel', function() {
     test('blur: pause playing alarm', function() {
       var sound = panel.nodes.sound;
       Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
-
-      var mockAudio = {
-        pause: this.sinon.spy(),
-        play: this.sinon.spy(),
-        addEventListener: function() { },
-        load: function() { }
-      };
-      this.sinon.stub(window, 'Audio').returns(mockAudio);
 
       sound.dispatchEvent(
         new CustomEvent('change')
