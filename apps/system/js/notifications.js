@@ -220,8 +220,10 @@ var NotificationScreen = {
     notification.classList.add('disappearing');
   },
 
-  tap: function ns_tap(notificationNode) {
-    var notificationId = notificationNode.dataset.notificationId;
+  tap: function ns_tap(node) {
+    var notificationId = node.dataset.notificationId;
+    var notificationNode = this.container.querySelector(
+      '[data-notification-id="' + notificationId + '"]');
 
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentEvent', true, true, {
@@ -242,7 +244,7 @@ var NotificationScreen = {
       this.removeNotification(notificationId, false);
     }
 
-    if (notificationNode == this.toaster) {
+    if (node == this.toaster) {
       this.toaster.classList.remove('displayed');
     } else {
       UtilityTray.hide();
