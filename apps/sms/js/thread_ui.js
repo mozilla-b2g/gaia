@@ -1745,7 +1745,6 @@ var ThreadUI = global.ThreadUI = {
       * Different situations depending on the state
       * - 'Add Subject' if there's none, 'Delete subject' if already added
       * - 'Delete messages' for existing conversations
-      * - 'Settings' for all cases
       */
     var params = {
       header: navigator.mozL10n.get('message'),
@@ -1768,14 +1767,6 @@ var ThreadUI = global.ThreadUI = {
         method: this.startEdit.bind(this)
       });
     }
-
-    // Last option is Settings
-    params.items.push({
-      l10nId: 'settings',
-      method: function oSettings() {
-        ActivityPicker.openSettings();
-      }
-    });
 
     // Last item is the Cancel button
     params.items.push({

@@ -20,6 +20,7 @@ class NewMessage(Messages):
     _message_sending_locator = (By.CSS_SELECTOR, "li.message.outgoing.sending")
     _thread_messages_locator = (By.ID, 'thread-messages')
     _message_resize_notice_locator = (By.ID, 'messages-resize-notice')
+    _subject_input_locator = (By.ID, 'messages-subject-input')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -68,6 +69,9 @@ class NewMessage(Messages):
 
     def wait_for_resizing_to_finish(self):
         self.wait_for_element_not_displayed(*self._message_resize_notice_locator)
+
+    def wait_for_subject_input_displayed(self):
+        self.wait_for_element_displayed(*self._subject_input_locator)
 
     @property
     def first_recipient_name(self):

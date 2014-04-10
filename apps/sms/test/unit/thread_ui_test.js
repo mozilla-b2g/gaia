@@ -5052,9 +5052,8 @@ suite('thread_ui.js >', function() {
         ThreadUI.showOptions();
         options = MockOptionMenu.calls[0].items;
         assert.equal(MockOptionMenu.calls.length, 1);
-        assert.equal(options.length, 3);
+        assert.equal(options.length, 2);
         assert.equal(options[0].l10nId, 'add-subject');
-        assert.equal(options[1].l10nId, 'settings');
       });
     });
 
@@ -5076,9 +5075,6 @@ suite('thread_ui.js >', function() {
       });
       test('should show option for deleting messages', function() {
         assert.equal(options[1].l10nId, 'deleteMessages-label');
-      });
-      test('should show settings options last', function() {
-        assert.equal(options[options.length - 2].l10nId, 'settings');
       });
     });
   });

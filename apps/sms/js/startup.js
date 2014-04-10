@@ -5,7 +5,7 @@
 
 /*global Utils, ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
          Settings, LazyLoader, TimeHeaders, Information,
-         PerformanceTestingHelper */
+         PerformanceTestingHelper, App */
 
 window.addEventListener('localized', function localized() {
   // This will be called during startup, and any time the languange is changed
@@ -60,7 +60,9 @@ window.addEventListener('load', function() {
     ThreadUI.init();
     ThreadListUI.init();
     Information.initDefaultViews();
-    ThreadListUI.renderThreads();
+    ThreadListUI.renderThreads(function() {
+      App.setReady();
+    });
 
     // Fetch mmsSizeLimitation
     Settings.init();
