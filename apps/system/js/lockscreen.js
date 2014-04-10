@@ -370,13 +370,6 @@
         this.setEnabled(value);
     }).bind(this));
 
-    window.SettingsListener.observe('lockscreen.lock-immediately', false,
-      (function(value) {
-        if (value === true) {
-          this.lockIfEnabled(value);
-        }
-    }).bind(this));
-
     var wallpaperURL = new window.SettingsURL();
 
     window.SettingsListener.observe('wallpaper.image',
