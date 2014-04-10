@@ -6,7 +6,7 @@
 var Voicemail = {
 
   icon: null,
-  notification: null,
+  notifications: {},
 
   init: function vm_init() {
     var voicemail = window.navigator.mozVoicemail;
@@ -68,31 +68,34 @@ var Voicemail = {
         if (SIMSlotManager.isMultiSIM()) {
           title = 'SIM ' + simIndex + ' - ' + title;
         }
-        Voicemail.showNotification(title, text, number);
+        Voicemail.showNotification(title, text, number, status.serviceId);
       } else {
-        Voicemail.hideNotification();
+        Voicemail.hideNotification(status.serviceId);
       }
     });
   },
 
-  showNotification: function vm_showNotification(title, text, voicemailNumber) {
+  showNotification:
+  function vm_showNotification(title, text, voicemailNumber, serviceId) {
     if (!('Notification' in window)) {
       return;
     }
 
+    serviceId = serviceId || 0;
+
     var notifOptions = {
       body: text,
       icon: this.icon,
-      tag: 'voicemailNotification'
+      tag: 'voicemailNotification:' + serviceId
     };
 
-    this.notification = new Notification(title, notifOptions);
+    var notification = new Notification(title, notifOptions);
 
     if (!voicemailNumber) {
       return;
     }
 
-    this.notification.addEventListener('click',
+    notification.addEventListener('click',
       function vmNotification_onClick(event) {
         var telephony = window.navigator.mozTelephony;
         if (!telephony) {
@@ -109,18 +112,20 @@ var Voicemail = {
           return;
         }
 
-        telephony.dial(voicemailNumber);
+        telephony.dial(voicemailNumber, serviceId);
       }
     );
+
+    this.notifications[serviceId] = notification;
   },
 
-  hideNotification: function vm_hideNotification() {
-    if (!this.notification) {
+  hideNotification: function vm_hideNotification(serviceId) {
+    if (!this.notifications[serviceId]) {
       return;
     }
 
-    this.notification.close();
-    this.notification = null;
+    this.notifications[serviceId].close();
+    this.notifications[serviceId] = null;
   }
 };
 

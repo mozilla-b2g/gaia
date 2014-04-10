@@ -169,8 +169,9 @@ suite('voicemail notification', function() {
                       'SIM ' + (serviceId + 1) + ' - ' + expectedTitle;
                   }
 
-                  sinon.assert.calledWith(Voicemail.showNotification,
-                    expectedTitle, expectedText, this.voiceNumbers[serviceId]);
+                  sinon.assert.calledWithExactly(Voicemail.showNotification,
+                    expectedTitle, expectedText,
+                    this.voiceNumbers[serviceId], serviceId);
 
                   done();
                 }).bind(this));
@@ -195,9 +196,9 @@ suite('voicemail notification', function() {
                         'SIM ' + (serviceId + 1) + ' - ' + expectedTitle;
                     }
 
-                    sinon.assert.calledWith(Voicemail.showNotification,
+                    sinon.assert.calledWithExactly(Voicemail.showNotification,
                       expectedTitle, expectedText,
-                      this.voiceNumbers[serviceId]);
+                      this.voiceNumbers[serviceId], serviceId);
 
                     done();
                   }).bind(this));
@@ -222,9 +223,9 @@ suite('voicemail notification', function() {
                         'SIM ' + (serviceId + 1) + ' - ' + expectedTitle;
                     }
 
-                    sinon.assert.calledWith(Voicemail.showNotification,
+                    sinon.assert.calledWithExactly(Voicemail.showNotification,
                       expectedTitle, expectedText,
-                      this.voiceNumbers[serviceId]);
+                      this.voiceNumbers[serviceId], serviceId);
 
                     done();
                   }).bind(this));
@@ -246,8 +247,8 @@ suite('voicemail notification', function() {
                       'SIM ' + (serviceId + 1) + ' - ' + expectedTitle;
                   }
 
-                  sinon.assert.calledWith(Voicemail.showNotification,
-                    expectedTitle, expectedText, undefined);
+                  sinon.assert.calledWithExactly(Voicemail.showNotification,
+                    expectedTitle, expectedText, undefined, serviceId);
 
                   done();
                 }).bind(this));
@@ -282,9 +283,9 @@ suite('voicemail notification', function() {
                           'SIM ' + (serviceId + 1) + ' - ' + expectedTitle;
                       }
 
-                      sinon.assert.calledWith(Voicemail.showNotification,
+                      sinon.assert.calledWithExactly(Voicemail.showNotification,
                         expectedTitle, expectedText,
-                        this.voiceNumbers[serviceId]);
+                        this.voiceNumbers[serviceId], serviceId);
 
                       done();
                     }).bind(this));
@@ -326,7 +327,7 @@ suite('voicemail notification', function() {
       Voicemail.showNotification(
         notificationTitle, notificationText, voicemailNumber);
       this.notificationListenerSpy.yield();
-      sinon.assert.called(telephonyDialSpy);
+      sinon.assert.calledWith(telephonyDialSpy, voicemailNumber, 0);
     });
 
     test('place a call if there is less than two pending', function() {
@@ -334,7 +335,7 @@ suite('voicemail notification', function() {
       Voicemail.showNotification(
         notificationTitle, notificationText, voicemailNumber);
       this.notificationListenerSpy.yield();
-      sinon.assert.called(telephonyDialSpy);
+      sinon.assert.calledWith(telephonyDialSpy, voicemailNumber, 0);
     });
 
     test('do not place a call if there is already two pending', function() {
@@ -343,6 +344,25 @@ suite('voicemail notification', function() {
         notificationTitle, notificationText, voicemailNumber);
       this.notificationListenerSpy.yield();
       sinon.assert.notCalled(telephonyDialSpy);
+    });
+
+    test('place a voicemail call to SIM 1', function() {
+      var serviceId = 0;
+      Voicemail.showNotification(
+        notificationTitle, notificationText, voicemailNumber, serviceId);
+      this.notificationListenerSpy.yield();
+      sinon.assert.calledWithExactly(
+        telephonyDialSpy, voicemailNumber, serviceId);
+    });
+
+    test('place a voicemail call to SIM 2', function() {
+      var serviceId = 1;
+      voicemailNumber = '222';
+      Voicemail.showNotification(
+        notificationTitle, notificationText, voicemailNumber, serviceId);
+      this.notificationListenerSpy.yield();
+      sinon.assert.calledWithExactly(
+        telephonyDialSpy, voicemailNumber, serviceId);
     });
   });
 });
