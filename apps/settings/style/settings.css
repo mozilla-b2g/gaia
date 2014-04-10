@@ -398,18 +398,6 @@ section ul.operate-certificate {
   pointer-events: none;
 }
 
-
-/******************************************************************************
- * Cellular and Data
- */
-
-#carrier-operatorSettings-content:not(.cdma) #operator-roaming-preference,
-#carrier-operatorSettings-content:not(.gsm) #operator-autoSelect,
-#carrier-operatorSettings-content:not(.gsm) #availableOperatorsHeader,
-#carrier-operatorSettings-content:not(.gsm) #availableOperators {
-  display: none;
-}
-
 /******************************************************************************
  * APN settings
  */
