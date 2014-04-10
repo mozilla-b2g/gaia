@@ -341,8 +341,16 @@ suite('thread_list_ui', function() {
         sinon.assert.calledTwice(ThreadListUI.appendThread);
       });
 
-      test('Refresh the fixed header', function() {
-        sinon.assert.called(ThreadListUI.sticky.refresh);
+      test('only refreshes StickyHeader with new container', function() {
+        var sameDate = new Date(2013, 1, 2);
+        var newMessage = MockMessages.sms({
+          threadId: 3,
+          timestamp: +sameDate
+        });
+        ThreadListUI.updateThread(newMessage);
+        // It had to be called once before during setup() since that created a
+        // new container.
+        sinon.assert.calledOnce(ThreadListUI.sticky.refresh);
       });
     });
 
@@ -804,10 +812,10 @@ suite('thread_list_ui', function() {
         });
 
         thread = Thread.create(message);
-        ThreadListUI.appendThread(thread);
       });
 
       test('show up in a new container', function() {
+        assert.isTrue(ThreadListUI.appendThread(thread));
         var newContainerId = 'threadsContainer_' + (+thread.timestamp);
         var newContainer = document.getElementById(newContainerId);
         assert.ok(newContainer);
@@ -831,16 +839,21 @@ suite('thread_list_ui', function() {
         });
 
         thread = Thread.create(message);
-        ThreadListUI.appendThread(thread);
       });
 
       test('show up in a new container', function() {
+        assert.isTrue(ThreadListUI.appendThread(thread));
         var newContainerId = 'threadsContainer_' + (+thread.timestamp);
         var newContainer = document.getElementById(newContainerId);
         assert.ok(newContainer);
         assert.ok(newContainer.querySelector('li'));
         var expectedThreadId = 'thread-' + thread.id;
         assert.equal(newContainer.querySelector('li').id, expectedThreadId);
+      });
+
+      test('should return false when adding to existing thread', function() {
+        assert.isTrue(ThreadListUI.appendThread(thread));
+        assert.isFalse(ThreadListUI.appendThread(thread));
       });
     });
   });

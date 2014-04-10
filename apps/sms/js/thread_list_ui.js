@@ -618,9 +618,11 @@ var ThreadListUI = {
       // remove the current thread node in order to place the new one properly
       this.removeThread(thread.id);
     }
-    this.appendThread(thread);
+
     this.setEmpty(false);
-    this.sticky.refresh();
+    if (this.appendThread(thread)) {
+      this.sticky.refresh();
+    }
   },
 
   onMessageSending: function thlui_onMessageSending(message) {
@@ -631,9 +633,17 @@ var ThreadListUI = {
     this.updateThread(message, { unread: true });
   },
 
+  /**
+   * Append a thread to the global threads container. Creates a time container
+   * (i.e. for a day or some other time period) for this thread if it doesn't
+   * exist already.
+   *
+   * @return Boolean true if a time container was created, false otherwise
+   */
   appendThread: function thlui_appendThread(thread) {
     var timestamp = +thread.timestamp;
     var drafts = Drafts.byThreadId(thread.id);
+    var firstThreadInContainer = false;
 
     if (drafts.length) {
       timestamp = Math.max(drafts.latest.timestamp, timestamp);
@@ -658,6 +668,8 @@ var ThreadListUI = {
       threadsContainer = threadsContainerWrapper.childNodes[1];
       // Place our new content in the DOM
       ThreadListUI.insertThreadContainer(threadsContainerWrapper, timestamp);
+      // We had to create a container, so this will be the first thread in it.
+      firstThreadInContainer = true;
     }
 
     // Where have I to place the new thread?
@@ -677,6 +689,8 @@ var ThreadListUI = {
     if (this.inEditMode) {
       this.checkInputs();
     }
+
+    return firstThreadInContainer;
   },
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
