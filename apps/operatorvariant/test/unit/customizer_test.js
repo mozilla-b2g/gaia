@@ -1,19 +1,32 @@
-'use strict';
+/* global requireApp, suite, suiteSetup, sinon, Resources, setup, Customizer,
+   test, assert, suite, teardown, suiteTeardown */
 
-requireApp('communications/ftu/js/resources.js');
-requireApp('communications/ftu/js/customizers/customizer.js');
+'use strict';
+requireApp('operatorvariant/test/unit/mock_navigator_moz_settings.js');
+
+requireApp('operatorvariant/js/resources.js');
+requireApp('operatorvariant/js/customizers/customizer.js');
 
 suite(' Customizer > ', function() {
+  var realSettings;
+
   var eventName = 'test-event';
   var resourceType = 'blob';
-  var resourcePath = '/ftu/test/unit/resources/wallpaper.jpg';
+  var resourcePath = 'resources/wallpaper.jpg';
 
   suite(' init > ', function() {
     var resourceLoaderSpy;
     var customizer;
 
     suiteSetup(function() {
+      realSettings = navigator.mozSettings;
+      navigator.mozSettings = window.MockNavigatorSettings;
+
       resourceLoaderSpy = sinon.spy(Resources, 'load');
+    });
+
+    suiteTeardown(function() {
+      navigator.mozSettings = realSettings;
     });
 
     setup(function() {
@@ -22,6 +35,7 @@ suite(' Customizer > ', function() {
     });
 
     teardown(function() {
+      navigator.mozSettings.mTeardown();
       customizer = null;
     });
 

@@ -1,4 +1,5 @@
 /* exported Resources */
+
 'use strict';
 
 var Resources = {
@@ -6,7 +7,6 @@ var Resources = {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
     xhr.responseType = type;
-
     var mimetype = this.getMimetype(url);
     if (mimetype) {
       xhr.overrideMimeType(mimetype);
@@ -15,7 +15,8 @@ var Resources = {
       if (xhr.status === 200) {
         onsuccess && onsuccess(xhr.response);
       } else {
-        console.error('Resources.js: Failed to fetch file.', xhr.statusText);
+        console.error('Resources.js: Failed to fetch file ' + url + '. ' +
+                      xhr.statusText);
         onerror && onerror(xhr.statusText);
       }
     };
@@ -24,10 +25,12 @@ var Resources = {
       xhr.send();
     } catch (e) {
       // TODO Remove when 827243 will be fixed.
-      console.error('Resources.js: Failed to fetch file.', xhr.statusText);
+      console.error('Resources.js: Failed to fetch file ' + url + '. ' +
+                    xhr.statusText);
       onerror && onerror('404: due to bug 827243');
     }
   },
+
   getMimetype: function r_getMimetype(fileName) {
     var fileExtension = fileName.split('.').pop();
     var mimetype = false;

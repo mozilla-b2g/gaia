@@ -9,6 +9,12 @@ var PowerCustomizer = (function() {
     if (!aDatas) {
       return;
     }
+    var settings = navigator.mozSettings;
+    if (!settings) {
+      console.error('PowerCustomizer. Settings is not available');
+      return;
+    }
+
     var settingsValue = {};
 
     if (aDatas.poweron) {
@@ -27,9 +33,8 @@ var PowerCustomizer = (function() {
         settingsValue['poweroff.image'] = aDatas.poweroff.image;
       }
     }
-
     if (Object.keys(settingsValue).length) {
-      navigator.mozSettings.createLock().set({
+      settings.createLock().set({
         'operatorResources.power': settingsValue
       });
     }

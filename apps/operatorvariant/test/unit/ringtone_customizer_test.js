@@ -1,13 +1,22 @@
+/* global requireApp, suite, suiteSetup, suiteTeardown, setup, teardown,
+   test,  sinon, Resources, ringtoneCustomizer */
+
 'use strict';
 
-requireApp('communications/ftu/js/resources.js');
-requireApp('communications/ftu/js/customizers/customizer.js');
-requireApp('communications/ftu/js/customizers/ringtone_customizer.js');
-requireApp('communications/ftu/test/unit/mock_navigator_moz_settings.js');
+requireApp('operatorvariant/test/unit/mock_navigator_moz_settings.js');
+
+requireApp('operatorvariant/js/resources.js');
+requireApp('operatorvariant/js/customizers/customizer.js');
+requireApp('operatorvariant/js/customizers/ringtone_customizer.js');
 
 suite('RingtoneCustomizer >', function() {
-  var ringtoneParams = { uri: '/ftu/test/unit/resources/ringtone.ogg',
-                         name: 'ringtone' };
+  var ringtoneParams = {
+    uri: '/test/unit/resources/5secs.ogg',
+    name: 'ringtone'
+  };
+
+  var TINY_TIMEOUT = 20;
+
   var realSettings;
 
   suiteSetup(function() {
@@ -16,12 +25,22 @@ suite('RingtoneCustomizer >', function() {
   });
 
   suiteTeardown(function() {
+    navigator.mozSettings = realSettings;
+  });
+
+  setup(function() {
+    this.sinon.useFakeTimers();
+  });
+
+  teardown(function() {
     navigator.mozSettings.mTeardown();
+    this.sinon.clock.restore();
   });
 
   test(' request the right ringtone blob > ', function() {
     var resourcesSpy = sinon.spy(Resources, 'load');
     ringtoneCustomizer.set(ringtoneParams);
+    this.sinon.clock.tick(TINY_TIMEOUT);
     sinon.assert.calledOnce(resourcesSpy);
     sinon.assert.calledWith(resourcesSpy, ringtoneParams.uri, 'blob');
     resourcesSpy.restore();

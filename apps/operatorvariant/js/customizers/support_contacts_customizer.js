@@ -1,11 +1,17 @@
 /* global Customizer */
+
 'use strict';
 
 var SupportContactsCustomizer = (function() {
   Customizer.call(this, 'support_contacts', 'json');
   this.set = function(contacts) {
     if (contacts) {
-      navigator.mozSettings.createLock().set({
+      var settings = navigator.mozSettings;
+      if (!settings) {
+        console.error('SupportContactsCustomizer. Settings is not available');
+        return;
+      }
+      settings.createLock().set({
         'support.onlinesupport.title': contacts.onlinesupport.title,
         'support.onlinesupport.href': contacts.onlinesupport.href,
         'support.callsupport1.title': contacts.callsupport1.title,
