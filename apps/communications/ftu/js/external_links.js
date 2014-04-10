@@ -5,19 +5,19 @@ function getLocalizedLink(key) {
   // External links definition
   var refs = {
     'learn-more-telemetry': {
-      linkUrl: 'https://www.mozilla.org/telemetry/',
+      href: 'https://www.mozilla.org/telemetry/',
       textContent: 'www.mozilla.org/telemetry/',
-      cssClass: 'external'
+      className: 'external'
     },
     'learn-more-information': {
-      linkUrl: 'https://www.mozilla.org/privacy/',
+      href: 'https://www.mozilla.org/privacy/',
       textContent: 'www.mozilla.org/privacy/',
-      cssClass: 'external'
+      className: 'external'
     },
     'learn-more-privacy': {
-      linkUrl: 'https://www.mozilla.org/privacy/firefox-os/',
+      href: 'https://www.mozilla.org/privacy/firefox-os/',
       l10nId: 'learn-more-privacy-link',
-      cssClass: 'external'
+      className: 'external'
     }
   };
 
