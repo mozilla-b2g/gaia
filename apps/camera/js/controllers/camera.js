@@ -64,6 +64,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('blur', this.onBlur);
   app.on('settings:configured', this.onSettingsConfigured);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
+  app.on('previewgallery:opened', this.onPreviewGalleryOpened);
 
   // Settings
   settings.recorderProfiles.on('change:selected', this.onRecorderProfileChange);
@@ -333,6 +334,14 @@ CameraController.prototype.onStorageStateChange = function(value) {
   if (value === 'shared' && this.camera.get('recording')) {
     this.camera.stopRecording();
   }
+};
+
+/**
+ * Resets the camera zoom when the preview gallery
+ * is opened.
+ */
+CameraController.prototype.onPreviewGalleryOpened = function() {
+  this.camera.configureZoom(this.camera.previewSize());
 };
 
 });
