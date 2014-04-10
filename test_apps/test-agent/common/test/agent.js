@@ -104,6 +104,7 @@
   });
 
   worker.use(TestAgent.Common.BlanketCoverEvents);
+  worker.use(TestAgent.Common.BlanketReporter);
 
   worker.on({
 

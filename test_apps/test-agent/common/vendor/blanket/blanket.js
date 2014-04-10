@@ -5621,6 +5621,11 @@ window.falafel = module.exports;})(function(){return {parse: esprima.parse};},{e
 var inBrowser = typeof window !== 'undefined' && this === window;
 var parseAndModify = (inBrowser ? window.falafel : require("falafel"));
 
+window._proxyXHROpen = XMLHttpRequest.prototype.open;
+window._proxyAppendChild = Element.prototype.appendChild;
+window._proxyInsertBefore = Element.prototype.insertBefore;
+window._proxyReplaceChild = Element.prototype.replaceChild;
+
 (inBrowser ? window : exports).blanket = (function() {
 
     var linesToAddTracking = [
@@ -5815,7 +5820,7 @@ var parseAndModify = (inBrowser ? window.falafel : require("falafel"));
 
             intro += "if (typeof " + covVar + "['" + filename + "'] === 'undefined'){";
 
-            intro += covVar + "['" + filename + "']=[];\n";
+            intro += covVar + "['" + filename + "']={};\n";
 
             if (branches) {
                 intro += covVar + "['" + filename + "'].branchData=[];\n";
@@ -5988,7 +5993,7 @@ var parseAndModify = (inBrowser ? window.falafel : require("falafel"));
         onTestDone: function(total, passed) {
             this._checkIfSetup();
 
-            if (passed === total) {
+            if (passed) {
                 coverageInfo.stats.passes++;
             } else {
                 coverageInfo.stats.failures++;
@@ -6683,12 +6688,7 @@ blanket.defaultReporter = function(coverage) {
     bodyContent += "</div>"; // closing main
 
     appendTag('style', head, cssSytle);
-
-    if (document.getElementById("blanket-main")) {
-        document.getElementById("blanket-main").innerHTML = bodyContent.slice(23, -6);
-    } else {
-        appendTag('div', body, bodyContent);
-    }
+    appendTag('div', body, bodyContent);
 };
 
 (function() {
@@ -6801,10 +6801,6 @@ blanket.defaultReporter = function(coverage) {
         blanket._commonjs = {};
     }
 
-    window._proxyXHROpen = XMLHttpRequest.prototype.open;
-    window._proxyAppendChild = Element.prototype.appendChild;
-    window._proxyInsertBefore = Element.prototype.insertBefore;
-    window._proxyReplaceChild = Element.prototype.replaceChild;
 
 })();
 
