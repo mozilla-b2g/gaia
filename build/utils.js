@@ -123,3 +123,6 @@ exports.Services = utils.Services;
 exports.concatenatedScripts = utils.concatenatedScripts;
 exports.dirname = utils.dirname;
 exports.basename = utils.basename;
+exports.addEntryContentWithTime = utils.addEntryContentWithTime;
+exports.copyDirTo = utils.copyDirTo;
+exports.getCompression = utils.getCompression;

@@ -16,3 +16,4 @@ $(STAGE_APP_DIR)/js/startup.js:
 	cp -rp ../../shared $(STAGE_APP_DIR)/shared
 	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/require_config.jslike
 	$(XULRUNNERSDK) $(XPCSHELLSDK) build/make_gaia_shared.js
+	@rm -rf $(BUILD_DIR)/shared
