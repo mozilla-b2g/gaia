@@ -1,7 +1,7 @@
 'use strict';
 
 mocha.globals(['SecureWindowManager', 'SecureWindowFactory', 'LockScreen',
-               'LockScreenSlide', 'Clock', 'OrientationManager',
+               'LockScreenSlide', 'Clock', 'OrientationManager', 'System',
                'addEventListener', 'dispatchEvent', 'secureWindowManager',
                'secureWindowFactory', 'lockScreen', 'LockScreenConnInfoManager',
                'MediaPlaybackWidget', 'SettingsListener', 'SettingsURL']);
@@ -149,9 +149,12 @@ suite('system/LockScreen >', function() {
   });
 
   test('Unlock: can actually unlock', function() {
+    var originalSystem = window.System;
+    window.System = {};
     subject.overlay = domOverlay;
     subject.unlock(true);
     assert.isFalse(subject.locked);
+    window.System = originalSystem;
   });
 
   test('Passcode: enter passcode can unlock the screen', function() {
@@ -203,6 +206,8 @@ suite('system/LockScreen >', function() {
       'would fire event to turn secure mode off',
       function() {
         var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
+        var originalSystem = window.System;
+        window.System = {};
         subject.unlock();
         assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
               function(e) {
@@ -210,6 +215,7 @@ suite('system/LockScreen >', function() {
               })),
           'the event was not fired');
         stubDispatch.restore();
+        window.System = originalSystem;
       });
 
   test('Handle event: when lock,' +
@@ -217,6 +223,8 @@ suite('system/LockScreen >', function() {
       function() {
         subject.unlock();
         var stubDispatch = this.sinon.stub(window, 'dispatchEvent');
+        var originalSystem = window.System;
+        window.System = {};
         subject.lock();
         assert.isTrue(stubDispatch.calledWithMatch(sinon.match(
               function(e) {
@@ -224,6 +232,7 @@ suite('system/LockScreen >', function() {
               })),
           'the event was not fired');
         stubDispatch.restore();
+        window.System = originalSystem;
       });
 
   test('Switch panel: to Camera; should notify SecureWindowFactory\'s method',
