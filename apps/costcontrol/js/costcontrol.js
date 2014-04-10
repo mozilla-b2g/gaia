@@ -1,5 +1,4 @@
-/* global debug, ConfigManager, SettingsListener, Toolkit, addAlarmTimeout,
-          Common  */
+/* global debug, ConfigManager, Toolkit, addAlarmTimeout, Common  */
 /* exported CostControl */
 'use strict';
 
@@ -90,7 +89,9 @@ var CostControl = (function() {
 
       // Only type is set here
       result.type = requestObj.type;
-
+      function _requestDataStatistics() {
+        requestDataStatistics(configuration, settings, callback, result);
+      }
       switch (requestObj.type) {
         case 'balance':
           // Check service
@@ -178,7 +179,12 @@ var CostControl = (function() {
 
         case 'datausage':
           // Dispatch
-          requestDataStatistics(configuration, settings, callback, result);
+          if (!Common.allNetworkInterfaceLoaded) {
+            Common.loadNetworkInterfaces(_requestDataStatistics,
+                                         _requestDataStatistics);
+          } else {
+            _requestDataStatistics();
+          }
           break;
 
         case 'telephony':
@@ -196,9 +202,6 @@ var CostControl = (function() {
 
   // Check service status and return the most representative issue if there is
   function getServiceIssues(configuration, settings) {
-    if (airplaneMode) {
-      return 'airplane_mode';
-    }
 
     if (!connection || !connection.voice || !connection.data) {
       return 'no_service';
@@ -498,17 +501,7 @@ var CostControl = (function() {
     return [output, accum];
   }
 
-  var airplaneMode = false;
-  function init() {
-    SettingsListener.observe('ril.radio.disabled', false,
-      function _onValue(value) {
-        airplaneMode = value;
-      }
-    );
-  }
-
   return {
-    init: init,
     getInstance: getInstance
   };
 

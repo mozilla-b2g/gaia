@@ -26,7 +26,6 @@
       'js/utils/toolkit.js',
       'js/common.js',
       'js/costcontrol.js',
-      'js/costcontrol_init.js',
       'js/config/config_manager.js',
       'js/views/BalanceLowLimitView.js',
       'js/view_manager.js',

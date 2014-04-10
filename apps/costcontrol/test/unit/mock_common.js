@@ -71,9 +71,10 @@ var MockCommon = function(config) {
       return wifiInterface;
     },
     getIccInfo: function() { return;},
-    loadNetworkInterfaces: function() {
+    loadNetworkInterfaces: function(onsuccess, onerror) {
       setTimeout(function() {
         Common.allNetworkInterfaces = allInterfacesFake;
+        (typeof onsuccess === 'function') && onsuccess();
       }, 0);
     },
     loadDataSIMIccId: function(onsuccess, onerror) {
