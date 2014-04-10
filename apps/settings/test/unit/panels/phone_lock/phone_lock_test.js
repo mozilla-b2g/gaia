@@ -5,30 +5,30 @@ mocha.globals([
   'SettingsListener'
 ]);
 
-suite('ScreenLock > ', function() {
+suite('PhoneLock > ', function() {
   'use strict';
 
-  var screenLock;
+  var phoneLock;
   var fakePanel;
   var realSettingsListener;
 
   suiteSetup(function(done) {
     var modules = [
       'shared_mocks/mock_settings_listener',
-      'panels/screen_lock/screen_lock'
+      'panels/phone_lock/phone_lock'
     ];
 
     var maps = {
-      'panels/screen_lock/screen_lock': {
+      'panels/phone_lock/phone_lock': {
         'modules/settings_service': 'unit/mock_settings_service'
       }
     };
 
-    testRequire(modules, maps, function(MockSettingsListener, ScreenLock) {
+    testRequire(modules, maps, function(MockSettingsListener, PhoneLock) {
         realSettingsListener = window.SettingsListener;
         window.SettingsListener = MockSettingsListener;
 
-        screenLock = ScreenLock();
+        phoneLock = PhoneLock();
 
         // try to mimic the environment
         fakePanel = document.createElement('div');
@@ -36,7 +36,7 @@ suite('ScreenLock > ', function() {
           return document.createElement('div');
         });
 
-        screenLock.onInit(fakePanel);
+        phoneLock.onInit(fakePanel);
         done();
     });
   });
@@ -47,39 +47,39 @@ suite('ScreenLock > ', function() {
 
   suite('navigation > ', function() {
     setup(function() {
-      this.sinon.stub(screenLock, '_showDialog');
+      this.sinon.stub(phoneLock, 'showDialog');
     });
     suite('when passcodeEnable is clicked', function() {
-      test('show confirm if passcodeEnabled is true', function() {
-        screenLock._settings.passcodeEnabled = true;
-        screenLock.passcodeEnable.click();
-        assert.ok(screenLock._showDialog.calledWith('confirm'));
+      test('show confirm if passcodeEnable is true', function() {
+        phoneLock.settings.passcodeEnable = true;
+        phoneLock.passcodeEnable.click();
+        assert.ok(phoneLock.showDialog.calledWith('confirm'));
       });
-      test('show create if passcodeEnabled is false', function() {
-        screenLock._settings.passcodeEnabled = false;
-        screenLock.passcodeEnable.click();
-        assert.ok(screenLock._showDialog.calledWith('create'));
+      test('show create if passcodeEnable is false', function() {
+        phoneLock.settings.passcodeEnable = false;
+        phoneLock.passcodeEnable.click();
+        assert.ok(phoneLock.showDialog.calledWith('create'));
       });
     });
     suite('when lockscreenEnable is clicked', function() {
       test('show confirmLock if passcode and lockscreen both are enabled',
         function() {
-          screenLock._settings.passcodeEnabled = true;
-          screenLock._settings.lockscreenEnabled = true;
-          screenLock.lockscreenEnable.click();
-          assert.ok(screenLock._showDialog.calledWith('confirmLock'));
+          phoneLock.settings.passcodeEnable = true;
+          phoneLock.settings.lockscreenEnable = true;
+          phoneLock.lockscreenEnable.click();
+          assert.ok(phoneLock.showDialog.calledWith('confirmLock'));
         });
       test('won\'t show confirmLock if one of them are disabled', function() {
-          screenLock._settings.passcodeEnabled = true;
-          screenLock._settings.lockscreenEnabled = false;
-          screenLock.lockscreenEnable.click();
-          assert.isFalse(screenLock._showDialog.called);
+          phoneLock.settings.passcodeEnable = true;
+          phoneLock.settings.lockscreenEnable = false;
+          phoneLock.lockscreenEnable.click();
+          assert.isFalse(phoneLock.showDialog.called);
         });
     });
     suite('click on passcodeEditButton', function() {
       test('show edit directly', function() {
-        screenLock.passcodeEditButton.click();
-        assert.ok(screenLock._showDialog.calledWith('edit'));
+        phoneLock.passcodeEditButton.click();
+        assert.ok(phoneLock.showDialog.calledWith('edit'));
       });
     });
   });

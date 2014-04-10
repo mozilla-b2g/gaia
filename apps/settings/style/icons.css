@@ -97,7 +97,7 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -9rem -6rem;
 }
 
-#menuItem-screenLock::before {
+#menuItem-phoneLock::before {
   background-position: -12rem -6rem;
 }
 

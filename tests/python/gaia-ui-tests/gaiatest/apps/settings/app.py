@@ -23,7 +23,7 @@ class Settings(Base):
     _language_menu_item_locator = (By.ID, 'menuItem-languageAndRegion')
     _do_not_track_menu_item_locator = (By.ID, 'menuItem-doNotTrack')
     _media_storage_menu_item_locator = (By.ID, 'menuItem-mediaStorage')
-    _screen_lock_menu_item_locator = (By.ID, 'menuItem-screenLock')
+    _phone_lock_menu_item_locator = (By.ID, 'menuItem-phoneLock')
     _display_menu_item_locator = (By.ID, 'menuItem-display')
     _wifi_menu_item_locator = (By.ID, 'menuItem-wifi')
     _device_info_menu_item_locator = (By.ID, 'menuItem-deviceInfo')
@@ -109,10 +109,10 @@ class Settings(Base):
         self._tap_menu_item(self._media_storage_menu_item_locator)
         return MediaStorage(self.marionette)
 
-    def open_screen_lock_settings(self):
-        from gaiatest.apps.settings.regions.phone_lock import ScreenLock
-        self._tap_menu_item(self._screen_lock_menu_item_locator)
-        return ScreenLock(self.marionette)
+    def open_phone_lock_settings(self):
+        from gaiatest.apps.settings.regions.phone_lock import PhoneLock
+        self._tap_menu_item(self._phone_lock_menu_item_locator)
+        return PhoneLock(self.marionette)
 
     def open_display_settings(self):
         from gaiatest.apps.settings.regions.display import Display

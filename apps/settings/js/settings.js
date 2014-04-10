@@ -107,6 +107,9 @@ var Settings = {
       return;
     }
 
+    // add handy reference to DOM elements
+    this.setAllElements();
+
     this.SettingsService = options.SettingsService;
     this.SettingsCache = options.SettingsCache;
     this.PageTransitions = options.PageTransitions;
@@ -140,11 +143,9 @@ var Settings = {
         'js/nfc.js',
         'js/dsds_settings.js',
         'js/telephony_settings.js',
-        'js/telephony_items_handler.js',
-        'js/screen_lock.js'
+        'js/telephony_items_handler.js'
       ], function() {
         TelephonySettingHelper.init();
-        ScreenLock.init();
       });
     }).bind(this));
 
@@ -190,7 +191,24 @@ var Settings = {
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
+    this.watchChanges();
+
     this.currentPanel = 'root';
+  },
+
+  setAllElements: function() {
+    var elementsId = [
+      'phoneLock-desc'
+    ];
+    var toCamelCase = function toCamelCase(str) {
+      return str.replace(/\-(.)/g, function(str, p1) {
+        return p1.toUpperCase();
+      });
+    };
+    elementsId.forEach(function loopElement(name) {
+      this[toCamelCase(name)] =
+        document.getElementById(name);
+    }, this);
   },
 
   // Cache of all current settings values.  There's some large stuff
@@ -317,6 +335,18 @@ var Settings = {
         }
       });
     }
+  },
+
+  watchChanges: function() {
+    var _ = navigator.mozL10n.get;
+
+    // reflect UI changes on phoneLock-Desc
+    this.mozSettings.addObserver('lockscreen.enabled',
+      function onLockscreenEnabledChange(event) {
+        var enable = event.settingValue;
+        this.phoneLockDesc.textContent = enable ? _('enabled') : _('disabled');
+        this.phoneLockDesc.dataset.l10nId = enable ? 'enabled' : 'disabled';
+    }.bind(this));
   }
 };
 

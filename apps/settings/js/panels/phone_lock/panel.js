@@ -1,15 +1,14 @@
 define(function(require) {
   'use strict';
-
   var SettingsPanel = require('modules/settings_panel');
-  var ScreenLock = require('panels/screen_lock/screen_lock');
+  var PhoneLock = require('panels/phone_lock/phone_lock');
 
-  return function ctor_screenlock() {
-    var screenLock = ScreenLock();
+  return function ctor_phonelock() {
+    var phoneLock = PhoneLock();
 
     return SettingsPanel({
       onInit: function(panel) {
-        screenLock.onInit(panel);
+        phoneLock.onInit(panel);
       }
     });
   };

@@ -1,0 +1,141 @@
+#phoneLock li.lockscreen-enabled {
+  display: none;
+}
+
+#phoneLock[data-lockscreen-enabled="true"] li.lockscreen-enabled {
+  display: block;
+}
+
+#phoneLock li.passcode-enabled {
+  display: none;
+}
+
+#phoneLock[data-lockscreen-enabled="true"][data-passcode-enabled="true"] li.passcode-enabled {
+  display: block;
+}
+
+#phoneLock li.passcode-enabled {
+  display: none;
+}
+
+#phoneLock[data-lockscreen-enabled="true"][data-passcode-enabled="true"] li.passcode-enabled {
+  display: block;
+}
+
+#phoneLock-passcode .passcode-error {
+  clear: both;
+  display: none;
+  height: 4.2rem;
+  padding-left: 3rem;
+  color: red;
+  font-size: 1.5rem;
+  line-height: 4.2rem;
+}
+
+#phoneLock-passcode[data-passcode-status="error"][data-mode="confirm"] div.passcode-error[data-type="incorrect"],
+#phoneLock-passcode[data-passcode-status="error"][data-mode="confirmLock"] div.passcode-error[data-type="incorrect"],
+#phoneLock-passcode[data-passcode-status="error"][data-mode="edit"] div.passcode-error[data-type="incorrect"] {
+  display: block;
+}
+
+#phoneLock-passcode[data-passcode-status="error"][data-mode="new"] div.passcode-error[data-type="mismatch"],
+#phoneLock-passcode[data-passcode-status="error"][data-mode="create"] div.passcode-error[data-type="mismatch"] {
+  display: block;
+}
+
+#phoneLock-passcode[data-passcode-status="error"] menu[data-mode="new"] {
+  display: none;
+}
+
+#passcode-change div.passcode-overlay {
+  position: relative;
+}
+
+#phoneLock-passcode label {
+  -moz-box-sizing: border-box;
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 1.6rem 0 0.4rem;
+  padding: 0 2rem;
+  color: #000;
+  font-size: 1.8rem;
+}
+
+#phoneLock-passcode [data-mode] {
+  display: none;
+}
+
+#phoneLock-passcode menu[type="toolbar"] {
+  width: 9rem;
+}
+
+#phoneLock-passcode menu[type="toolbar"] button {
+  width: 100%;
+}
+
+#phoneLock-passcode[data-mode="create"]  [data-mode*="create"],
+#phoneLock-passcode[data-mode="confirm"] [data-mode*="confirm"],
+#phoneLock-passcode[data-mode="confirmLock"] [data-mode*="confirmLock"],
+#phoneLock-passcode[data-mode="edit"]    [data-mode*="edit"],
+#phoneLock-passcode[data-mode="new"]     [data-mode*="new"] {
+  display: inherit;
+}
+
+#passcode-confirm {
+  display: none;
+}
+
+#phoneLock-passcode[data-status="success"] #passcode-confirm {
+  display: inherit;
+}
+
+#passcode-input {
+  z-index: -1;
+  position: absolute;
+  top: -5rem;
+  left: 0;
+}
+
+.passcode-container {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background: url(images/document-bg.png);
+}
+
+.passcode {
+  width: calc(100% - 2rem);
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.passcode-digit {
+  -moz-box-sizing: border-box;
+  position: relative;
+  float: left;
+  width: calc(25% - 1rem);
+  height: 4rem;
+  margin: 0 0.5rem;
+  border: 0.1rem solid #c2c2c2;
+  text-align: center;
+  background-color: #fff;
+  border-radius: 0.3rem;
+}
+
+span.passcode-digit[data-dot]::before {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: #3e3b39;
+  border-radius: 0.75rem;
+  top: 50%;
+  left: 50%;
+  margin-left: -0.75rem;
+  margin-top: -0.75rem;
+}
+

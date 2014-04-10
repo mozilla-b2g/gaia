@@ -43,7 +43,7 @@ require.config({
       exclude: ['main']
     },
     {
-      name: 'panels/screen_lock/panel',
+      name: 'panels/phone_lock/panel',
       exclude: ['main']
     }
   ]

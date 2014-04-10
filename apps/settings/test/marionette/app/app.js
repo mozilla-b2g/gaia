@@ -49,7 +49,7 @@ Settings.Selectors = {
   'soundMenuItem': '#menuItem-sound',
   'languagePanel': '#languages',
   'languageMenuItem': '#menuItem-languageAndRegion',
-  'screenLockMenuItem': '#menuItem-screenLock',
+  'screenLockMenuItem': '#menuItem-phoneLock',
   'appPermissionPanel': '#menuItem-appPermissions',
   'displayMenuItem': '#menuItem-display'
 };
