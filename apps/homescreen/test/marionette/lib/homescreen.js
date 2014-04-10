@@ -57,6 +57,11 @@ Homescreen.prototype = {
     return this.client.findElement('li.icon[aria-label="' + title + '"]');
   },
 
+  waitForHomescreenIcon: function(title) {
+    return this.client.helper.waitForElement('li.icon[aria-label="' + title +
+                                             '"]');
+  },
+
   getLabelOfBookmark: function(title) {
     return this.client.findElement(
       'li.icon[aria-label="' + title + '"] span.labelWrapper > span');

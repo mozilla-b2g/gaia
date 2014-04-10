@@ -27,19 +27,26 @@
   <body>
     <section id="bookmark-entry-sheet" role="region" class="skin-organic">
       <header>
-        <button id="button-bookmark-cancel" type="button">
-          <span class="icon icon-close" data-l10n-id="cancel">Cancel</span>
+        <button id="cancel-button" type="button">
+          <span class="icon icon-close" data-l10n-id="cancel-action"></span>
         </button>
-        <h1 data-l10n-id="add-to-home-screen-header">Add link</h1>
+        <menu type="toolbar">
+          <button id="edit-button" disabled type="button" role="menuitem" data-l10n-id="done-action"></button>
+        </menu>
+        <h1 id="add-bookmark-header" data-l10n-id="add-bookmark-header"></h1>
+        <h1 id="edit-bookmark-header" data-l10n-id="edit-bookmark-header"></h1>
       </header>
       <form id="bookmark-form">
         <label data-l10n-id="website-name">
-          Website Name<input type="text" id="bookmark-title"></input>
+          <p>
+            <input type="text" id="bookmark-title"></input>
+            <button id="bookmark-title-clear" type="reset">Clear</button>
+          </p>
         </label>
         <label data-l10n-id="address">
-          Address <input type="url" id="bookmark-url"></input>
+          <input type="url" id="bookmark-url"></input>
         </label>
-        <button id="button-bookmark-add" type="button" disabled data-l10n-id="add-to-home-screen">Add to Home Screen</button>
+        <button id="add-button" type="button" disabled data-l10n-id="add-action"></button>
       </form>
     </section>
   </body>

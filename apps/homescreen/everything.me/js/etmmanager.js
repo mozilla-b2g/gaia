@@ -400,11 +400,6 @@ var EvmeManager = (function EvmeManager() {
     addCollection: addCollection,
     removeGridItem: removeGridItem,
 
-    isBookmarked: function isBookmarked(url) {
-      return GridManager.getIconForBookmark(
-              Bookmark.prototype.generateIndex(url));
-    },
-
     getIconByDescriptor: getIconByDescriptor,
     getAppByDescriptor: getAppByDescriptor,
     getAppByOrigin: getAppByOrigin,
