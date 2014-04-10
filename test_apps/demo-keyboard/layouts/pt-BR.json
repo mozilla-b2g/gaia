@@ -1,18 +1,18 @@
 {
-  "name": "Spanish",
-  "label": "Español",
+  "name": "Portuguese",
+  "label": "Português",
   "imEngine": "latin",
   "types": [
     "text",
     "url",
     "email"
   ],
-  "autoCorrectLanguage": "es",
+  "autoCorrectLanguage": "pt_br",
   "pages": {
     "main": {
       "layout": [
         "q w e r t y u i o p",
-        "a s d f g h j k l ñ",
+        "a s d f g h j k l ç",
         "SHIFT z x c v b n m BACKSPACE",
         "?123 SWITCH SPACE . RETURN"
       ],
@@ -34,19 +34,12 @@
     "NUMBERS": {
       "layout": [
         "1 2 3 4 5 6 7 8 9 0",
-        "- / : ; ( ) € & @ %",
-        "ALT ¿ ? ¡ ! \" ' * BACKSPACE",
+        "@ # R$ % & * - + ( )",
+        "ALT ! \" ' : ; / ? BACKSPACE",
         "ABC SWITCH SPACE . RETURN"
       ]
     },
-    "SYMBOLS": {
-      "layout": [
-        "[ ] { } # % ^ + = °",
-        "_ \\ | ~ < > $ £ ¥ •",
-        "ALT ¿ ? ¡ ! \" ' * BACKSPACE",
-        "ABC SWITCH SPACE . RETURN"
-      ]
-    }
+    "SYMBOLS": "inherit"
   },
   "keys": {
     "0": {
@@ -80,43 +73,52 @@
       "alternatives": "9º 9ª"
     },
     "a": {
-      "alternatives": "á ª à â ä å ã ā æ"
+      "alternatives": "á ã à â ä å æ ª"
     },
     "c": {
-      "alternatives": "ç"
+      "alternatives": "ç ć č"
     },
     "e": {
-      "alternatives": "é € è ê ë ē ę ɛ"
+      "alternatives": "é ê è ę ė ē ë ɛ"
     },
     "i": {
-      "alternatives": "í ï ì î ī į"
+      "alternatives": "í î ì ï į ī"
     },
     "o": {
-      "alternatives": "ó º ö ò ô ō œ ø ɵ"
+      "alternatives": "ó õ ô ò ö œ ø ō ɵ"
     },
     "u": {
       "alternatives": "ú ü ù û ū"
     },
     "s": {
-      "alternatives": "$ ß š"
-    },
-    "l": {
-      "alternatives": "£ l·l"
+      "alternatives": "$ ß ś š"
     },
     "n": {
-      "alternatives": "ń"
+      "alternatives": "ñ ń"
+    },
+    "l": {
+      "alternatives": "£ ł"
     },
     "y": {
-      "alternatives": "¥"
+      "alternatives": "¥ ÿ"
+    },
+    "z": {
+      "alternatives": "ž ź ż"
+    },
+    "r": {
+      "alternatives": "R$ "
     },
     ".": {
-      "alternatives": "·"
+      "alternatives": ", ? ! ; :"
     },
-    ":)": {
-      "alternatives": ":) :D :( ;D :* :/"
+    "R$": {
+      "alternatives": "€ £ ¥ $"
     },
-    "€": {
-      "alternatives": "$ £ ¥"
+    "?": {
+      "alternatives": "¿"
+    },
+    "!": {
+      "alternatives": "¡"
     }
   }
 }
