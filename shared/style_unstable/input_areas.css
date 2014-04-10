@@ -312,17 +312,6 @@ form button::-moz-focus-inner {
 }
 
 /* .bb-editable - e.g email & SMS recipients */
-.bb-editable label {
-  display: inline-block;
-  overflow: hidden;
-  margin: 0 0 0.6rem 0.7rem;
-  height: 3.6rem;
-  line-height: 3.6rem;
-  font-weight: 300;
-  font-size: 1.6rem;
-  color: #000;
-}
-
 .bb-editable [contenteditable] {
   display: inline-block;
   box-sizing: border-box;
@@ -331,9 +320,8 @@ form button::-moz-focus-inner {
   overflow: hidden;
   padding: 0 1.5rem;
   margin: 0 0 0.6rem 0.7rem;
-  height: 3.6rem;
-  line-height: 3.6rem;
-  border-radius: 1.8rem;
+  line-height: 2.8rem;
+  border-radius: 1.4rem;
   text-overflow: ellipsis;
   font-size: 1.6rem;
   font-style: italic;
@@ -348,6 +336,27 @@ form button::-moz-focus-inner {
 
 .bb-editable [contenteditable].invalid {
   background-color: #fedcdc;
+  padding-left: 3.3rem;
+}
+
+.bb-editable [contenteditable=false].invalid:before {
+    content: "!";
+    position: absolute;
+    top: 0.7rem;
+    left: 0.8rem;
+    display: block;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border-radius: 50%;
+    line-height: 1.4rem;
+    font-size: 1.2rem;
+    text-align: center;
+    font-style: normal;
+    font-weight: 600;
+    text-indent: 0.1rem;
+    color: #fff;
+    background-color: #b80404;
 }
 
 .bb-editable [contenteditable]:hover,
@@ -362,10 +371,10 @@ form button::-moz-focus-inner {
   background-color: #b2f2ff;
 }
 
-.bb-editable [contenteditable].icon:before {
+.bb-editable [contenteditable].icon:after {
   content: "";
   position: absolute;
-  top: 1rem;
+  top: 0.7rem;
   right: 0;
   width: 3rem;
   height: 3rem;
@@ -374,17 +383,17 @@ form button::-moz-focus-inner {
   background-size: 3rem;
 }
 
-.bb-editable [contenteditable].icon:hover:before,
-.bb-editable [contenteditable].icon:active:before {
+.bb-editable [contenteditable].icon:hover:after,
+.bb-editable [contenteditable].icon:active:after {
   background-position: -0.7rem -0.8rem;
 }
 
-.bb-editable [contenteditable].invalid.icon:before {
+.bb-editable [contenteditable].invalid.icon:after {
   background-position: -0.7rem -6.8rem;
 }
 
-.bb-editable [contenteditable].invalid.icon:hover:before,
-.bb-editable [contenteditable].invalid.icon:active:before {
+.bb-editable [contenteditable].invalid.icon:hover:after,
+.bb-editable [contenteditable].invalid.icon:active:after {
   background-position: -0.7rem -0.8rem;
 }
 
