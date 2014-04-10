@@ -18,7 +18,6 @@ var Widget = (function() {
 
   var costcontrol, activity;
   function checkSIMStatus() {
-
     var mobileConnection = window.navigator.mozMobileConnections;
 
     if (!mobileConnection) {
@@ -63,14 +62,14 @@ var Widget = (function() {
     // SIM is absent
     if (!cardState || cardState === 'absent') {
       debug('There is no SIM');
-      showSimError('no-sim2');
+      Widget.showSimError('no-sim2');
 
     // SIM is locked
     } else if (
       cardState === 'pinRequired' ||
       cardState === 'pukRequired'
     ) {
-      showSimError('sim-locked');
+      Widget.showSimError('sim-locked');
       state = 'locked';
     }
 
@@ -82,7 +81,7 @@ var Widget = (function() {
     function _onNoICCID() {
       console.error('checkSIM() failed. Impossible to ensure consistent' +
                     'data. Aborting start up.');
-      showSimError('no-sim2');
+      Widget.showSimError('no-sim2');
     }
 
     Common.checkSIM(function _onSIMChecked() {
@@ -204,7 +203,7 @@ var Widget = (function() {
   // USER INTERFACE
 
   // Reuse fte panel to display errors
-  function showSimError(status) {
+  function _showSimError(status) {
     // Wait to l10n resources are ready
     navigator.mozL10n.ready(function showErrorStatus() {
       var fte = document.getElementById('fte-view');
@@ -469,14 +468,14 @@ var Widget = (function() {
         var errorMessageId = (AirplaneModeHelper.getStatus() === 'enabled') ?
                              'airplane-mode' : 'no-sim2';
         console.warn('Error when trying to get the ICC ID');
-        showSimError(errorMessageId);
+        Widget.showSimError(errorMessageId);
       });
     });
     AirplaneModeHelper.addEventListener('statechange',
       function _onAirplaneModeChange(state) {
         if (state === 'enabled') {
           waitForIccAndCheckSim();
-          showSimError('airplane-mode');
+          Widget.showSimError('airplane-mode');
         }
       }
     );
@@ -497,7 +496,7 @@ var Widget = (function() {
           !window.navigator.mozIccManager ||
           !window.navigator.mozNetworkStats) {
         LazyLoader.load(SCRIPTS_NEEDED, function _showError() {
-          showSimError('no-sim2');
+          Widget.showSimError('no-sim2');
         });
       } else {
         SCRIPTS_NEEDED = [
@@ -513,7 +512,8 @@ var Widget = (function() {
         ];
         LazyLoader.load(SCRIPTS_NEEDED, initWidget);
       }
-    }
+    },
+    showSimError: _showSimError
   };
 
 }());
