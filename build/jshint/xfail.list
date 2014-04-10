@@ -396,6 +396,7 @@ apps/settings/js/messaging.js
 apps/settings/js/mvvm/views.js
 apps/settings/js/nfc.js
 apps/settings/js/onpair.js
+apps/settings/js/phone_lock.js
 apps/settings/js/security_privacy.js
 apps/settings/js/settings.js
 apps/settings/js/simcard_dialog.js
