@@ -245,7 +245,7 @@ Icon.prototype = {
       self.isDefaultIcon = false;
 
       // real icon is ready (not default icon)
-      if (!self.app.downloading &&
+      if (self.app && !self.app.downloading &&
           self.descriptor.type !== GridItemsFactory.TYPE.COLLECTION) {
         window.dispatchEvent(new CustomEvent('appInstalled', {
           'detail': {
