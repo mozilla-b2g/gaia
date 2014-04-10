@@ -9,6 +9,7 @@ var addPanAndZoomHandlers = require('lib/panzoom');
 var MediaFrame = require('MediaFrame');
 var View = require('vendor/view');
 var bind = require('lib/bind');
+var orientation = require('lib/orientation');
 
 /**
  * Exports
@@ -47,15 +48,18 @@ module.exports = View.extend({
   setupMediaFrame: function() {
     this.mediaFrame = new MediaFrame(this.els.mediaFrame);
     addPanAndZoomHandlers(this.mediaFrame);
+    window.addEventListener('resize', this.onResize);
     return this;
   },
 
   hide: function() {
     this.el.classList.add('hidden');
+    orientation.lock();
   },
 
   show: function() {
     this.el.classList.remove('hidden');
+    orientation.unlock();
   },
 
   showImage: function(image) {
@@ -96,7 +100,15 @@ module.exports = View.extend({
     this.emit('click:' + name);
   },
 
+  onResize: function() {
+    this.mediaFrame.resize();
+    if (this.mediaFrame.displayingVideo) {
+      this.mediaFrame.video.setPlayerSize();
+    }
+  },
+
   onDestroy: function() {
+    window.removeEventListener('resize', this.onResize);
     this.mediaFrame.clear();
   }
 });
