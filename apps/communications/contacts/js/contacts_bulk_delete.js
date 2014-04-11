@@ -41,7 +41,7 @@ contacts.BulkDelete = (function() {
     });
   };
 
-  var doDelete = function doDelete(ids) {
+  var doDelete = function doDelete(ids, done) {
     cancelled = false;
     var progress = utils.overlay.show(_('DeletingContacts'), 'progressBar');
     progress.setTotal(ids.length);
@@ -84,17 +84,21 @@ contacts.BulkDelete = (function() {
       Contacts.showStatus(_('DeletedTxt',
         {n: contactsRemoverObj.getDeletedCount()}));
       contacts.Settings.refresh();
+
+      if (typeof done === 'function') {
+        done();
+      }
     };
 
   };
   // Start the delete of the contacts
-  var performDelete = function performDelete(promise) {
+  var performDelete = function performDelete(promise, done) {
     requireOverlay(function onOverlay() {
       utils.overlay.show(_('preparing-contacts'), 'spinner');
-      promise.onsuccess = function onSucces(ids) {
+      promise.onsuccess = function onSuccess(ids) {
         Contacts.hideOverlay();
-        showConfirm(ids.length).then(contacts.BulkDelete.doDelete.bind(null,
-                                                                       ids));
+        showConfirm(ids.length).then(
+                          contacts.BulkDelete.doDelete.bind(null, ids, done));
       };
       promise.onerror = function onError() {
         Contacts.hideOverlay();
@@ -108,4 +112,3 @@ contacts.BulkDelete = (function() {
   };
 
 })();
-

@@ -18,6 +18,7 @@ contacts.Search = (function() {
       searchProgress,
       searchTimer = null,
       contactNodes = null,
+      selectableForm = null,
       // On the steady state holds the list result of the current search
       searchableNodes = null,
       currentTextToSearch = '',
@@ -55,6 +56,8 @@ contacts.Search = (function() {
 
     searchView = document.getElementById('search-view');
     searchList = document.getElementById('search-list');
+
+    selectableForm = document.getElementById('selectable-form');
 
     if (!_source) {
       throw new Error('Search requires a contact source!');
@@ -157,6 +160,7 @@ contacts.Search = (function() {
       evt.preventDefault();
     }
     searchView.classList.remove('insearchmode');
+    selectableForm.classList.remove('insearchmode');
     if (navigationController) {
       navigationController.back();
     }
@@ -275,6 +279,8 @@ contacts.Search = (function() {
     if (!inSearchMode) {
       window.addEventListener('input', onInput);
       searchView.classList.add('insearchmode');
+      selectableForm.classList.add('insearchmode');
+
       doInit();
       fillInitialSearchPage();
       inSearchMode = true;

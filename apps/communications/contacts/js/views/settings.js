@@ -49,6 +49,8 @@ contacts.Settings = (function() {
     PENDING_LOGOUT_KEY = 'pendingLogout',
     bulkDeleteButton;
 
+    var EXPORT_TRANSITION_LEVEL = 2, DELETE_TRANSITION_LEVEL = 1;
+
   // Initialise the settings screen (components, listeners ...)
   var init = function initialize() {
     // Create the DOM for our SIM cards and listen to any changes
@@ -250,13 +252,15 @@ contacts.Settings = (function() {
       function() {
         Contacts.view('search', function() {
           contacts.List.selectFromList(_('DeleteTitle'),
-            function onSelectedContacts(promise) {
-              contacts.List.exitSelectMode();
-              contacts.BulkDelete.performDelete(promise);
+            function onSelectedContacts(promise, done) {
+              contacts.BulkDelete.performDelete(promise, done);
             },
             null,
             navigationHandler,
-            'popup'
+            {
+              isDanger: true,
+              transitionLevel: DELETE_TRANSITION_LEVEL
+            }
           );
         });
       }
@@ -333,7 +337,10 @@ contacts.Settings = (function() {
       },
       null,
       navigationHandler,
-      'popup'
+      {
+        isDanger: false,
+        transitionLevel: EXPORT_TRANSITION_LEVEL
+      }
     );
   }
 
