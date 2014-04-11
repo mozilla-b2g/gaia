@@ -54,7 +54,8 @@ var CallsHandler = (function callsHandler() {
     if (acm) {
       acm.addEventListener('headphoneschange', function onheadphoneschange() {
         if (acm.headphones) {
-          CallScreen.switchToDefaultOut();
+          // Do not connect bluetooth SCO if headphone is plugged in
+          CallScreen.switchToDefaultOut(true /* do not connect */);
         }
       });
     }
@@ -145,7 +146,16 @@ var CallsHandler = (function callsHandler() {
     // First incoming or outgoing call, reset mute and speaker.
     if (handledCalls.length == 0) {
       CallScreen.unmute();
-      CallScreen.switchToDefaultOut();
+
+      /**
+       * Do not connect bluetooth SCO for first incoming/outgoing call.
+       *
+       * Bluetooth certification test requires SCO be connected after
+       * user answers incoming call. Gecko bluetooth would connect SCO
+       * automatically once 1) user answers incoming call or
+       * 2) user dials outgoing call.
+       */
+      CallScreen.switchToDefaultOut(true /* do not connect */);
     }
 
     // Find an available node for displaying the call
@@ -659,13 +669,16 @@ var CallsHandler = (function callsHandler() {
     }
   }
 
-  function switchToDefaultOut() {
+  function switchToDefaultOut(doNotConnect) {
     if (telephony.speakerEnabled) {
       telephony.speakerEnabled = false;
     }
-    // add a btHelper.isConnected() check before calling disconnectSco
-    // once bug 929376 lands.
-    btHelper.connectSco();
+
+    if (!doNotConnect) {
+      // add a btHelper.isConnected() check before calling disconnectSco
+      // once bug 929376 lands.
+      btHelper.connectSco();
+    }
   }
 
   function switchToReceiver() {

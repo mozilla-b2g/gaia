@@ -638,6 +638,13 @@ suite('call screen', function() {
       assert.isTrue(switchToDefaultOutSpy.calledOnce);
     });
 
+    test('should pass |doNotConnect| parameter to CallsHandler', function() {
+      var switchToDefaultOutSpy =
+        this.sinon.spy(MockCallsHandler, 'switchToDefaultOut');
+      CallScreen.switchToDefaultOut(true);
+      assert.isTrue(switchToDefaultOutSpy.calledWith(true));
+    });
+
     test('should collapse bluetooth menu', function() {
       var toggleMenuSpy = this.sinon.spy(CallScreen, 'toggleBluetoothMenu');
       CallScreen.switchToSpeaker();

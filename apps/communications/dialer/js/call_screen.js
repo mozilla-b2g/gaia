@@ -371,10 +371,10 @@ var CallScreen = {
 
   // when BT device available: switch to BT
   // when BT device unavailable: switch to receiver
-  switchToDefaultOut: function cs_switchToDefaultOut() {
+  switchToDefaultOut: function cs_switchToDefaultOut(doNotConnect) {
     this.speakerButton.classList.remove('active-state');
     this.bluetoothButton.classList.add('active-state');
-    CallsHandler.switchToDefaultOut();
+    CallsHandler.switchToDefaultOut(doNotConnect);
     this.toggleBluetoothMenu(false);
   },
 
