@@ -445,6 +445,9 @@ var icc = {
       setTimeout(function workaround_bug818270() {
         self.icc_input_box.maxLength = options.maxLength;
         self.icc_input_box.value = options.defaultText || '';
+        self.icc_input_btn.disabled = !checkInputLengthValid(
+          self.icc_input_box.value.length, options.minLength,
+          options.maxLength);
       }, 500);
       this.icc_input_box.placeholder = message;
       this.icc_input_box.type = options.isAlphabet ? 'text' : 'tel';
