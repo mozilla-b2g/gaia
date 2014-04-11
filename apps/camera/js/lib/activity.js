@@ -126,7 +126,7 @@ Activity.prototype.getModesForRecordActivity = function(activity) {
  *
  */
 Activity.prototype.postResult = function(data) {
-  if (this.activity) {
+  if (this.active) {
     this.activity.postResult(data);
   }
 };
@@ -140,7 +140,7 @@ Activity.prototype.postResult = function(data) {
  *
  */
 Activity.prototype.cancel = function() {
-  if (this.activity) {
+  if (this.active) {
     this.activity.postError('pick cancelled');
   }
 };
