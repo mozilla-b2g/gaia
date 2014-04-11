@@ -77,3 +77,5 @@ requireApp('camera/js/vendor/alameda.js', function() {
     }
   });
 });
+
+require('/shared/test/unit/mocks/mocks_helper.js');
