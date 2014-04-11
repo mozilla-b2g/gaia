@@ -793,6 +793,7 @@
       }
       var value = env[id].resolve(ctxdata);
       if (typeof value === 'string') {
+        // prevent Billion Laughs attacks
         if (value.length >= MAX_PLACEABLE_LENGTH) {
           throw new Error('Too many characters in placeable (' + value.length +
                           ', max allowed is ' + MAX_PLACEABLE_LENGTH + ')');
@@ -806,6 +807,7 @@
   function interpolate(ctxdata, env, str) {
     var placeablesCount = 0;
     var value = str.replace(rePlaceables, function(match, id) {
+      // prevent Quadratic Blowup attacks
       if (placeablesCount++ >= MAX_PLACEABLES) {
         throw new Error('Too many placeables (' + placeablesCount +
                         ', max allowed is ' + MAX_PLACEABLES + ')');
@@ -855,6 +857,16 @@
     }
 
     return undefined;
+  }
+
+  function compile(env, ast) {
+    env = env || {};
+    for (var id in ast) {
+      if (ast.hasOwnProperty(id)) {
+        env[id] = new Entity(id, ast[id], env);
+      }
+    }
+    return env;
   }
 
 
@@ -1184,12 +1196,14 @@
       return {
         Context: Context,
         Locale: Locale,
+        getPluralRule: getPluralRule,
         rePlaceables: rePlaceables,
         getTranslatableChildren:  getTranslatableChildren,
         getL10nAttributes: getL10nAttributes,
         loadINI: loadINI,
         fireLocalizedEvent: fireLocalizedEvent,
-        parse: parse
+        parse: parse,
+        compile: compile
       };
     }
   };
