@@ -128,6 +128,18 @@ suite('Image Loader Test Suite >', function() {
       containerSpy.restore();
     });
 
+    test('image loader not called anymore after pausing', function() {
+      var containerSpy = this.sinon.spy(document.querySelector('#mainContent'),
+                                       'removeEventListener');
+      var documentSpy = this.sinon.spy(document, 'removeEventListener');
+      imgLoader.defaultLoad(item);
+      window.dispatchEvent(new CustomEvent('image-loader-pause'));
+      sinon.assert.callCount(documentSpy, 1);
+      sinon.assert.callCount(containerSpy, 1);
+      documentSpy.restore();
+      containerSpy.restore();
+    });
+
   });
 
 });

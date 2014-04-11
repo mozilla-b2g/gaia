@@ -17,9 +17,9 @@ if (!window.ImageLoader) {
       itemsSelector = pItems;
       container = document.querySelector(pContainer);
 
-      container.addEventListener('scroll', onScroll);
-      document.addEventListener('onupdate', onUpdate);
-
+      attachHandlers();
+      window.addEventListener('image-loader-resume', attachHandlers);
+      window.addEventListener('image-loader-pause', unload);
       load();
     }
 
@@ -37,6 +37,11 @@ if (!window.ImageLoader) {
       total = items.length;
       // Initial check if items should appear
       window.setTimeout(update, 0);
+    }
+
+    function attachHandlers() {
+      container.addEventListener('scroll', onScroll);
+      document.addEventListener('onupdate', onUpdate);
     }
 
     function unload() {

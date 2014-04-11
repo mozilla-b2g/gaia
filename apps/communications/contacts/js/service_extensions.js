@@ -72,6 +72,8 @@ if (typeof Contacts.extServices === 'undefined') {
     }
 
     function unload() {
+      // Attaching again scrolling handlers on the contact list's image loader
+      window.dispatchEvent(new CustomEvent('image-loader-resume'));
       extensionFrame.src = currentURI = null;
     }
 
@@ -299,6 +301,9 @@ if (typeof Contacts.extServices === 'undefined') {
                 type: 'dom_transition_end',
                 data: ''
               }, fb.CONTACTS_APP_ORIGIN);
+              // Stop scrolling listeners on the contact list's image loader to
+              // prevent images cancelled while friends are being imported
+              window.dispatchEvent(new CustomEvent('image-loader-pause'));
             });
           }, 0);
         break;
