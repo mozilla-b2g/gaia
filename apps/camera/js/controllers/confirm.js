@@ -50,7 +50,7 @@ ConfirmController.prototype.renderView = function() {
   this.confirmView.hide();
   this.confirmView.render().appendTo(this.container);
   this.confirmView.on('click:select', this.onSelectMedia);
-  this.confirmView.on('click:retake', this.confirmView.hide);
+  this.confirmView.on('click:retake', this.onRetakeMedia);
   this.camera.resumePreview();
 };
 
@@ -111,7 +111,11 @@ ConfirmController.prototype.onSelectMedia = function() {
     }
   }
   activity.postResult(media);
+};
 
+ConfirmController.prototype.onRetakeMedia = function() {
+  this.confirmView.hide();
+  this.confirmView.clearMediaFrame();
 };
 
 });
