@@ -17,6 +17,7 @@
     <link href="/shared/style/confirm.css" rel="stylesheet">
     <link href="/shared/style/action_menu.css" rel="stylesheet">
     <link href="/shared/style/sim_picker.css" rel="stylesheet">
+    <link href="/shared/style/edit_mode.css" rel="stylesheet">
     <link href="/shared/style/animations.css" rel="stylesheet">
 
     <link href="/contacts/style/app.css" rel="stylesheet">
@@ -176,19 +177,23 @@
               </div>
             </div>
           </div>
-          <form id="selectable-form" role="dialog" data-type="confirm" class="hide no-overlay">
-            <menu id="select-all-wrapper">
-             <button id="deselect-all" class="edit-button" data-l10n-id="deselectAll" disabled>
-                Deselect all
-              </button>
-              <button id="select-all" class="edit-button" data-l10n-id="selectAll">
-                Select all
-              </button>
-            </menu>
-          </form>
         </article>
       </section>
-
+    <form id="selectable-form" role="dialog" data-type="edit" class="hide">
+      <section role="region">
+        <header>
+          <h1>hola</h1>
+        </header>
+      </section>
+      <menu id="select-all-wrapper">
+       <button id="deselect-all" class="edit-button" data-l10n-id="deselectAll" disabled>
+          Deselect all
+        </button>
+        <button id="select-all" class="edit-button" data-l10n-id="selectAll">
+          Select all
+        </button>
+      </menu>
+    </form>
     <section is="search-view" id="search-view" class="view"></section>
     <section is="view-screenshot" id='view-screenshot' role="region" class="view hide"></section>
     <section is="view-contact-details" id='view-contact-details' role="region" class="view view-right view-contact-profile view-noscroll"></section>
