@@ -81,12 +81,9 @@ var NotificationScreen = {
     window.addEventListener('utilitytrayshow', this);
     window.addEventListener('unlock', this.clearLockScreen.bind(this));
     window.addEventListener('visibilitychange', this);
+    window.addEventListener('appforeground', this.handleAppopen.bind(this));
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
-    window.addEventListener('appforeground',
-      this.clearDesktopNotifications.bind(this));
-    window.addEventListener('appopened',
-      this.clearDesktopNotifications.bind(this));
 
     this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
 
@@ -150,7 +147,7 @@ var NotificationScreen = {
   },
 
   // TODO: Remove this when we ditch mozNotification (bug 952453)
-  clearDesktopNotifications: function ns_handleAppopen(evt) {
+  handleAppopen: function ns_handleAppopen(evt) {
     var manifestURL = evt.detail.manifestURL,
         selector = '[data-manifest-u-r-l="' + manifestURL + '"]';
 
