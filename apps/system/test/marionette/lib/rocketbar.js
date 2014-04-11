@@ -34,6 +34,7 @@ Rocketbar.clientOptions = {
 
 Rocketbar.prototype = {
   selectors: {
+    activeBrowserFrame: '#windows .appWindow.active',
     screen: '#screen',
     rocketbar: '#rocketbar',
     rocketbarInput: '#rocketbar-input'
@@ -77,7 +78,8 @@ Rocketbar.prototype = {
   waitForBrowserFrame: function() {
     this.client.switchToFrame();
     this.client.waitFor((function() {
-      var size = this.client.findElement('.appWindow.active').size();
+      var size = this.client.findElement(this.selectors.activeBrowserFrame)
+        .size();
       return size.width === 320 && size.height === 456;
     }).bind(this));
     return this.client.executeScript(function() {

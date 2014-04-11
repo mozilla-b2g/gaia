@@ -101,3 +101,7 @@ body:not(.rb-enabled) #rocketbar {
 #rocketbar-results.hidden, #rocketbar-results iframe.hidden {
   display: none;
 }
+
+#search.appWindow {
+  top: 0;
+}

@@ -103,6 +103,10 @@
        * we add this frame to the document, we can't change its app type.
        */
       iframe.setAttribute('mozapptype', 'homescreen');
+    } else if (config.isSearch) {
+      /* If this frame corresponds to search, set mozapptype=search
+       */
+      iframe.setAttribute('mozapptype', 'search');
     }
   }
 }(this));
