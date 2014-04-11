@@ -1,4 +1,4 @@
-/*global requireApp suite test assert setup teardown IMERender */
+/*global requireApp suite test assert setup teardown IMERender sinon */
 requireApp('keyboard/js/render.js');
 
 suite('Renderer', function() {
@@ -9,6 +9,20 @@ suite('Renderer', function() {
       value: val,
       writable: true
     };
+  }
+
+  function loadKeyboardStyle(callback) {
+    // Dirty trick http://www.phpied.com/when-is-a-stylesheet-really-loaded/
+    var style = document.createElement('style');
+    style.textContent = '@import "../../style/keyboard.css"';
+    var fi = setInterval(function() {
+      try {
+        style.sheet.cssRules;
+        clearInterval(fi);
+        callback();
+      } catch (e) {}
+    }, 10);
+    document.body.appendChild(style);
   }
 
   suite('resizeUI', function() {
@@ -25,14 +39,8 @@ suite('Renderer', function() {
     }
 
     var ime, activeIme;
-    setup(function() {
+    setup(function(next) {
       document.body.innerHTML = '';
-
-      var style = document.createElement('link');
-      style.rel = 'stylesheet';
-      style.type = 'text/css';
-      style.href = '../../style/keyboard.css';
-      document.body.appendChild(style);
 
       ime = document.createElement('div');
       ime.id = 'keyboard';
@@ -45,6 +53,8 @@ suite('Renderer', function() {
 
       IMERender.init();
       IMERender.activeIme = activeIme;
+
+      loadKeyboardStyle(next);
     });
 
     test('Add portrait class to IME in portrait mode', function() {
@@ -260,14 +270,8 @@ suite('Renderer', function() {
 
   suite('Draw', function() {
     var ime, activeIme;
-    setup(function() {
+    setup(function(next) {
       document.body.innerHTML = '';
-
-      var style = document.createElement('link');
-      style.rel = 'stylesheet';
-      style.type = 'text/css';
-      style.href = '../../style/keyboard.css';
-      document.body.appendChild(style);
 
       ime = document.createElement('div');
       ime.id = 'keyboard';
@@ -279,9 +283,11 @@ suite('Renderer', function() {
 
       IMERender.init(function(key) {
         return key.value.toUpperCase();
-      }, function(key) {
+      }, function() {
         return false; // is special key
       });
+
+      loadKeyboardStyle(next);
     });
 
     test('Should add last-row class to last row', function() {
@@ -577,6 +583,80 @@ suite('Renderer', function() {
         assert.equal(spans[0].style.width, '200%');
         assert.equal(spans[0].style.transformOrigin, 'left center 0px');
         assert.equal(spans[0].style.transform, 'scale(0.5)');
+      });
+    });
+
+    suite('Dimensions', function() {
+      function createDimensionTest(rows, orientation, suggest, latin, next) {
+        var layout = {
+          width: (Math.random() * 8 | 0) + 2,
+          keys: [],
+          keyboardName: 'test'
+        };
+
+        for (var ri = 0; ri < rows.length; ri++) {
+          var r = [];
+          for (var ki = 0, kl = (Math.random() * 8 | 0) + 2; ki < kl; ki++) {
+            r.push({ value: (Math.random() * 26 | 0) + 97 });
+          }
+          layout.keys.push(r);
+        }
+
+        if (orientation === 'landscape') {
+          document.querySelector('#keyboard').classList.remove('portrait');
+          document.querySelector('#keyboard').classList.add('landscape');
+        }
+        else {
+          document.querySelector('#keyboard').classList.add('portrait');
+          document.querySelector('#keyboard').classList.remove('landscape');
+        }
+
+        var flags = suggest ?
+          { showCandidatePanel: true } :
+          {};
+
+        IMERender.draw(layout, flags, function() {
+          if (latin) {
+            IMERender.setInputMethodName('latin');
+          }
+
+          assert.equal(
+            IMERender.activeIme.scrollHeight, IMERender.getHeight());
+          next();
+        });
+      }
+
+      var rows = [0, 1, 2, 3, 4, 5];
+      var orientation = ['portrait', 'landscape'];
+      var suggest = [true, false];
+      var latin = [true, false];
+
+      rows.forEach(function(row) {
+        orientation.forEach(function(orientation) {
+          suggest.forEach(function(suggest) {
+            latin.forEach(function(latin) {
+              var name = [
+                'getHeight',
+                row + ' rows',
+                orientation,
+                (suggest ? '' : 'no') + ' suggest',
+                latin ? 'latin' : ''
+              ].join(', ');
+
+              test(name, function(next) {
+                createDimensionTest(row, orientation, suggest, latin, next);
+              });
+            });
+          });
+        });
+      });
+
+      test('Container has a one pixel extra offset', function(next) {
+        var comp = getComputedStyle(document.querySelector('#keyboard'));
+        assert.equal(comp.paddingTop, '0px');
+        assert.equal(comp.marginTop, '0px');
+        assert.equal(comp.borderTopWidth, '1px');
+        next();
       });
     });
   });
