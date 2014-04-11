@@ -235,24 +235,24 @@ module.exports = {
 
   settingsMenu: {
     items: [
-       {
-         key: 'hdr'
-       },
       // {
       //   key: 'scene'
       // },
       {
-        key: 'grid'
+        key: 'hdr'
       },
       {
         key: 'timer'
-      }//,
+      },
       // {
       //   key: 'pictureSizes'
       // },
       // {
       //   key: 'recorderProfiles'
-      // }
+      // },
+      {
+        key: 'grid'
+      }
     ]
   }
 };
