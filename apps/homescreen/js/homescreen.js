@@ -163,6 +163,17 @@ var Homescreen = (function() {
      *
      */
     showAppDialog: function h_showAppDialog(icon) {
+      if (icon.app.type === GridItemsFactory.TYPE.BOOKMARK) {
+        new MozActivity({
+          name: 'remove-bookmark',
+          data: {
+            type: 'url',
+            url: icon.app.id
+          }
+        });
+        return;
+      }
+
       LazyLoader.load(['shared/style/confirm.css',
                        'style/request.css',
                        document.getElementById('confirm-dialog'),
