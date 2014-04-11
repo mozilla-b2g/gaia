@@ -17,18 +17,18 @@ var TonePlayer = {
   _gainNode: null,
   _playingNodes: [],
   _tonesSamples: {
-    'resources/tones/tone_1.opus': [697, 1209],
-    'resources/tones/tone_2.opus': [697, 1336],
-    'resources/tones/tone_3.opus': [697, 1477],
-    'resources/tones/tone_4.opus': [770, 1209],
-    'resources/tones/tone_5.opus': [770, 1336],
-    'resources/tones/tone_6.opus': [770, 1477],
-    'resources/tones/tone_7.opus': [852, 1209],
-    'resources/tones/tone_8.opus': [852, 1336],
-    'resources/tones/tone_9.opus': [852, 1477],
-    'resources/tones/tone_star.opus': [941, 1209],
-    'resources/tones/tone_0.opus': [941, 1336],
-    'resources/tones/tone_hash.opus': [941, 1477]
+    '/shared/resources/media/tones/tone_1.opus': [697, 1209],
+    '/shared/resources/media/tones/tone_2.opus': [697, 1336],
+    '/shared/resources/media/tones/tone_3.opus': [697, 1477],
+    '/shared/resources/media/tones/tone_4.opus': [770, 1209],
+    '/shared/resources/media/tones/tone_5.opus': [770, 1336],
+    '/shared/resources/media/tones/tone_6.opus': [770, 1477],
+    '/shared/resources/media/tones/tone_7.opus': [852, 1209],
+    '/shared/resources/media/tones/tone_8.opus': [852, 1336],
+    '/shared/resources/media/tones/tone_9.opus': [852, 1477],
+    '/shared/resources/media/tones/tone_star.opus': [941, 1209],
+    '/shared/resources/media/tones/tone_0.opus': [941, 1336],
+    '/shared/resources/media/tones/tone_hash.opus': [941, 1477]
   },
 
   init: function tp_init(channel) {

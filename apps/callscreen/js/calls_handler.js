@@ -1,9 +1,6 @@
 'use strict';
 
 var CallsHandler = (function callsHandler() {
-  var COMMS_APP_ORIGIN = document.location.protocol + '//' +
-    document.location.host;
-
   // Changing this will probably require markup changes
   var CALLS_LIMIT = 2;
 
@@ -66,13 +63,8 @@ var CallsHandler = (function callsHandler() {
       }
     };
 
-    postToMainWindow('ready');
-  }
-
-  function postToMainWindow(data) {
-    if (window.opener) {
-      window.opener.postMessage(data, COMMS_APP_ORIGIN);
-    }
+    navigator.mozSetMessageHandler('headset-button', handleHSCommand);
+    navigator.mozSetMessageHandler('bluetooth-dialer-command', handleBTCommand);
   }
 
   /* === Handled calls === */
@@ -181,7 +173,7 @@ var CallsHandler = (function callsHandler() {
         hc.show();
       }
     } else {
-      if (window.location.hash === '#locked' &&
+      if (window.location.hash.startsWith('#locked') &&
           (call.state == 'incoming')) {
         CallScreen.render('incoming-locked');
       } else {
@@ -306,8 +298,6 @@ var CallsHandler = (function callsHandler() {
 
     closing = true;
 
-    postToMainWindow('closing');
-
     // If the screen is not displayed yet we close the window directly
     if (animate && displayed) {
       toggleScreen();
@@ -318,6 +308,7 @@ var CallsHandler = (function callsHandler() {
 
   function closeWindow() {
     closing = false;
+    TonePlayer.setChannel('normal');
     window.close();
   }
 
@@ -328,41 +319,18 @@ var CallsHandler = (function callsHandler() {
   }
   window.addEventListener('resize', updateAllPhoneNumberDisplays);
 
-  /* Handle commands send to the callscreen via postmessage */
-  function handleCommand(evt) {
-    if (evt.origin !== COMMS_APP_ORIGIN) {
-      return;
-    }
-    var message = evt.data;
-    if (!message) {
-      return;
-    }
-
-    // Currently managing three kinds of commands:
-    // BT: bluetooth
-    // HS: headset
-    // * : general cases, not specific to hardware control
-    switch (message.type) {
-      case 'BT':
-        handleBTCommand(message.command);
-        break;
-      case 'HS':
-        handleHSCommand(message.command);
-        break;
-      case '*':
-        handleGeneralCommand(message.command);
-        break;
-    }
-  }
-
   /* === Bluetooth Headset support ===*/
   function handleBTCommand(message) {
-    switch (message) {
+    var command = message['command'];
+    switch (command) {
       case 'CHUP':
         end();
         break;
       case 'ATA':
         answer();
+        break;
+      case 'CHLD=0':
+        hangupWaitingCalls();
         break;
       case 'CHLD=1':
         // End the active call and answer the other one
@@ -394,18 +362,16 @@ var CallsHandler = (function callsHandler() {
         }
         console.warn('Cannot join conference call.');
         break;
-      case 'CHLD=0':
-        hangupWaitingCalls();
-        break;
       default:
-        var partialCommand = message.substring(0, 3);
+        var partialCommand = command.substring(0, 3);
         if (partialCommand === 'VTS') {
-          KeypadManager.press(message.substring(4));
+          KeypadManager.press(command.substring(4));
         }
         break;
     }
   }
 
+  /* Headset command support */
   var lastHeadsetPress = 0;
 
   function handleHSCommand(message) {
@@ -436,18 +402,6 @@ var CallsHandler = (function callsHandler() {
       answer();
     }
   }
-
-  function handleGeneralCommand(message) {
-    // Calls might be ended before callscreen is completely loaded or we
-    // register 'callschanged' event. To avoid leaving callscreen stuck open,
-    // we use a simple postMessage protocol to know when the call screen is
-    // supposed to be closed, in addition to 'callschanged' event.
-    if (message == 'exitCallScreen') {
-      exitCallScreen(false);
-    }
-  }
-
-  window.addEventListener('message', handleCommand);
 
   /* === User Actions === */
   function answer() {

@@ -1,5 +1,5 @@
-requireApp('communications/dialer/js/utils.js');
-requireApp('communications/dialer/test/unit/mock_contacts.js');
+require('/shared/js/dialer/utils.js');
+require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 
 if (!this.SettingsListener) {
   this.SettingsListener = null;

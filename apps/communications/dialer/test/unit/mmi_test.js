@@ -5,12 +5,12 @@
 'use strict';
 
 requireApp('communications/dialer/js/mmi.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
 requireApp('communications/dialer/test/unit/mock_mmi_ui.js');
 requireApp('communications/dialer/test/unit/mock_mozMobileConnection.js');
 requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
 
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 
 const TINY_TIMEOUT = 5;
 

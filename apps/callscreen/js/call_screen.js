@@ -137,24 +137,23 @@ var CallScreen = {
 
     this.calls.addEventListener('click', CallsHandler.toggleCalls.bind(this));
 
-    if (window.location.hash === '#locked') {
-      this.showClock(new Date());
-      this.initLockScreenSlide();
-
-      if (!this.screen.dataset.layout) {
-        this.render('incoming-locked');
-      }
-    }
 
     this.setWallpaper();
 
-    // Handle resize events
     window.addEventListener('resize', this.resizeHandler.bind(this));
+    window.addEventListener('hashchange', this.hashchangeHandler.bind(this));
+    this.hashchangeHandler();
 
     this.syncSpeakerEnabled();
   },
 
+  _slideInitialized: false,
   initLockScreenSlide: function cs_initLockScreenSlide() {
+    if (this._slideInitialized) {
+      return;
+    }
+    this._slideInitialized = true;
+
     // Setup incoming call screen slider
     this.hangUpIcon = document.getElementById('lockscreen-area-hangup');
     this.pickUpIcon = document.getElementById('lockscreen-area-pickup');
@@ -183,8 +182,8 @@ var CallScreen = {
         },
 
         resources: {
-          larrow: '/dialer/style/images/larrow.png',
-          rarrow: '/dialer/style/images/rarrow.png'
+          larrow: '/style/images/larrow.png',
+          rarrow: '/style/images/rarrow.png'
         },
         handle: {
           autoExpand: {
@@ -327,6 +326,17 @@ var CallScreen = {
       KeypadManager.restorePhoneNumber();
     } else {
       KeypadManager.updatePhoneNumber(this._typedNumber, 'begin', true);
+    }
+  },
+
+  hashchangeHandler: function cs_hashchangeHandler() {
+    if (window.location.hash.startsWith('#locked')) {
+      this.showClock(new Date());
+      this.initLockScreenSlide();
+
+      if (!this.screen.dataset.layout) {
+        this.render('incoming-locked');
+      }
     }
   },
 
