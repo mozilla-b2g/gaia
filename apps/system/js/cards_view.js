@@ -51,6 +51,9 @@ var CardsView = (function() {
     useAppScreenshotPreviews = settingValue;
   });
 
+  function debug(message) {
+    console.log('cards_view > \n  ', message);
+  }
 
   /*
    * Returns an icon URI
@@ -147,11 +150,13 @@ var CardsView = (function() {
   // cardswitcher inside of the rocketbar. Both modes are necessary until
   // Rocketbar is enabled by default, then this will go away.
   function showCardSwitcher(inRocketbar) {
+    debug('showCardSwitcher');
 
     var inTimeCapture = lastInTimeCapture;
     lastInTimeCapture = false;
 
     if (cardSwitcherIsShown()) {
+      debug('already showing, nothing to do.');
       return;
     }
 
@@ -191,8 +196,16 @@ var CardsView = (function() {
 
     // Ensure homescreen is already faded when we switch to it.
     fireCardViewBeforeShow();
-    // Now we can switch to the homescreen.
-    AppWindowManager.display(null, null, 'to-cardview');
+
+    // Now we can switch to the homescreen. We avoid jank when displayed in the
+    // the rocketbar by skipping the transition to the homescreen.
+    if (!inRocketbar) {
+      AppWindowManager.display(null, null, 'to-cardview');
+    }
+    else {
+      AppWindowManager.display(null, null, 'to-cardview');
+    }
+
     // Now we're showing!
     cardsViewShown = true;
 
@@ -340,55 +353,22 @@ var CardsView = (function() {
           screenshotView.style.top = ((width - height) / 2) + 'px';
         }
 
-        // If we have a cached screenshot, use that first
-        // We then 'res-in' the correctly sized version
         var cachedLayer = app.requestScreenshotURL();
+        debug('cached layer for app = \'' + app.name + '\' available? ' +
+              !!cachedLayer);
+
+        // If we have a cached screenshot, use that.
         if (cachedLayer) {
           screenshotView.style.backgroundImage = 'url(' + cachedLayer + ')';
         }
 
-        // And then switch it with screenshots when one will be ready
-        // (instead of -moz-element backgrounds)
-        // Only take a new screenshot if is the active app
-        if (!cachedLayer || (
-          origin === stack[currentPosition].origin && !inTimeCapture)) {
-          if (typeof frameForScreenshot.getScreenshot !== 'function') {
-            return;
-          }
-
-          // rect is the final size (considering CSS transform) of the card.
-          var rect = card.getBoundingClientRect();
-          width = isLandscape ? rect.height : rect.width;
-          height = isLandscape ? rect.width : rect.height;
-          var request = frameForScreenshot.getScreenshot(
-            width, height);
-          request.onsuccess = function gotScreenshot(screenshot) {
-            var blob = screenshot.target.result;
-            if (blob) {
-              var objectURL = URL.createObjectURL(blob);
-
-              // Overwrite the cached image to prevent flickering
-              screenshotView.style.backgroundImage =
-                'url(' + objectURL + '), url(' + cachedLayer + ')';
-
-              app.renewCachedScreenshotBlob(blob);
-
-              // setTimeout is needed to ensure that the image is fully drawn
-              // before we remove it. Otherwise the rendering is not smooth.
-              // See: https://bugzilla.mozilla.org/show_bug.cgi?id=844245
-              setTimeout(function() {
-                URL.revokeObjectURL(objectURL);
-              }, 200);
-            } else {
-              // failed to get screenshot, fallback to using icon
-              card.classList.add('appIconPreview');
-            }
-          };
-          request.onerror = function screenshotError() {
-            // failed to get screenshot, fallback to using icon
-            card.classList.add('appIconPreview');
-          };
-        }
+        //
+        // We used to try and forcibly refresh the screenshot for the current
+        // active application, this is absolutely not necessary anymore as the
+        // app window itself will always have a fresh screenshot for use as
+        // we transition from displaying the app to displaying the cards view.
+        //
+        return;
       });
     }
   }
@@ -547,7 +527,7 @@ var CardsView = (function() {
   // Arbitrarily chosen to be 4x larger than the gecko18 drag
   // threshold.  This constant should be a truemm/mozmm value, but
   // it's hard for us to evaluate that here.
-  var removeCardThreshold = 100;
+  var openCardThreshold = 100;
   var switchingCardThreshold = 30;
 
   var prevCardStyle, currentCardStyle, nextCardStyle, deltaX;
@@ -787,17 +767,15 @@ var CardsView = (function() {
     ) {
       draggingCardUp = false;
       var origin = stack[element.dataset.position].origin;
-      // Prevent user from closing the app with a attention screen
-      if (-dy > removeCardThreshold &&
-        attentionScreenApps.indexOf(origin) == -1
-      ) {
-
-        // Remove the icon from the task list
+      if (-dy > openCardThreshold) {
+        // Remove the card from the Task Manager for a smooth transition.
         cardsList.removeChild(element);
-
-        closeApp(element);
-        alignCurrentCard();
-        return;
+        // Open the card if the user swipes up passed the threshold.
+        AppWindowManager.display(stack[element.dataset.position],
+                                 'from-cardview',
+                                 null);
+        // Card switcher will get hidden when 'appopen' is fired.
+        fireCardViewClosed(element.dataset.position);
       } else {
         element.style.MozTransform = '';
         alignCurrentCard();
@@ -862,7 +840,15 @@ var CardsView = (function() {
         break;
 
       case 'taskmanagershow':
-        showCardSwitcher(true);
+        var app = AppWindowManager.getActiveApp();
+        if (!app) {
+          showCardSwitcher(true);
+        } else {
+          app.getScreenshot(function onGettingRealtimeScreenshot() {
+            lastInTimeCapture = true;
+            showCardSwitcher(true);
+          });
+        }
         break;
 
       case 'taskmanagerhide':
@@ -886,7 +872,7 @@ var CardsView = (function() {
         }
         break;
 
-      case 'appopen':
+      case 'appopening':
         if (!evt.detail.isHomescreen) {
           hideCardSwitcher(/* immediately */ true);
         }
@@ -912,4 +898,4 @@ window.addEventListener('taskmanagershow', CardsView);
 window.addEventListener('taskmanagerhide', CardsView);
 window.addEventListener('holdhome', CardsView);
 window.addEventListener('home', CardsView);
-window.addEventListener('appopen', CardsView);
+window.addEventListener('appopening', CardsView);
