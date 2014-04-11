@@ -52,20 +52,41 @@ TimerController.prototype.bindEvents = function() {
  * Start the timer counting down
  * from the currently set timer value.
  *
- * We bind to the app event asynchronously
+ * Don't allow timer to start if
+ * one is already active.
+ *
+ * We bind to app events asynchronously
  * so that the timer isn't instantly
  * cleared by the 'click' that started it.
  *
  * @private
  */
 TimerController.prototype.start = function() {
+  if (this.app.get('timerActive')) { return; }
+
   this.seconds = this.settings.timer.selected('value');
-  this.interval = setInterval(this.tick, 1000);
   this.view.set(this.seconds).show();
   setTimeout(this.bindTimerEvents);
+  this.scheduleTick();
+
   this.app.set('timerActive', true);
   this.app.emit('timer:started');
+
   debug('started');
+};
+
+/**
+ * Schedule the next tick.
+ *
+ * Make sure to clear any existing
+ * timeout to be absolutely sure that
+ * only one timeout is ever pending.
+ *
+ * @private
+ */
+TimerController.prototype.scheduleTick = function() {
+  clearTimeout(this.timeout);
+  this.timeout = setTimeout(this.tick, 1000);
 };
 
 /**
@@ -82,13 +103,14 @@ TimerController.prototype.start = function() {
  * @private
  */
 TimerController.prototype.tick = function() {
-  if (!(--this.seconds)) {
+  if (--this.seconds <= 0) {
     this.app.emit('timer:ended');
     this._clear();
     return;
   }
 
   this.view.set(this.seconds);
+  this.scheduleTick();
 };
 
 /**
@@ -110,7 +132,7 @@ TimerController.prototype.clear = function() {
  * @private
  */
 TimerController.prototype._clear = function() {
-  clearInterval(this.interval);
+  clearTimeout(this.timeout);
   this.unbindTimerEvents();
   this.view.hide();
   this.view.reset();
