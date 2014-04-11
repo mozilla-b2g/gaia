@@ -1,18 +1,19 @@
 'use strict';
 
 requireApp('communications/dialer/test/unit/mock_moztelephony.js');
-requireApp('communications/dialer/test/unit/mock_call.js');
-requireApp('communications/dialer/test/unit/mock_handled_call.js');
-requireApp('communications/dialer/test/unit/mock_call_screen.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
-requireApp('communications/dialer/test/unit/mock_contacts.js');
-requireApp('communications/dialer/test/unit/mock_tone_player.js');
-requireApp('communications/dialer/test/unit/mock_bluetooth_helper.js');
-requireApp('communications/dialer/test/unit/mock_utils.js');
-requireApp('communications/dialer/test/unit/mock_simple_phone_matcher.js');
+requireApp('callscreen/test/unit/mock_call_screen.js');
+requireApp('callscreen/test/unit/mock_bluetooth_helper.js');
+requireApp('callscreen/test/unit/mock_simple_phone_matcher.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/shared/test/unit/mocks/dialer/mock_call.js');
+require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+require('/shared/test/unit/mocks/dialer/mock_contacts.js');
+require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
+require('/shared/test/unit/mocks/dialer/mock_utils.js');
 
 // The CallsHandler binds stuff when evaluated so we load it
 // after the mocks and we don't want it to show up as a leak.
@@ -36,6 +37,7 @@ var mocksHelperForCallsHandler = new MocksHelper([
 suite('calls handler', function() {
   var realMozTelephony;
   var realMozSettings;
+  var realMozSetMessageHandler;
 
   mocksHelperForCallsHandler.attachTestHelpers();
 
@@ -46,17 +48,22 @@ suite('calls handler', function() {
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
-    requireApp('communications/dialer/js/calls_handler.js', done);
+    realMozSetMessageHandler = navigator.mozSetMessageHandler;
+    navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
+
+    requireApp('callscreen/js/calls_handler.js', done);
   });
 
   suiteTeardown(function() {
     MockMozTelephony.mSuiteTeardown();
     navigator.moztelephony = realMozTelephony;
     navigator.mozSettings = realMozSettings;
+    navigator.mozSetMessageHandler = realMozSetMessageHandler;
   });
 
   setup(function() {
     this.sinon.useFakeTimers();
+    MockNavigatormozSetMessageHandler.mSetup();
   });
 
   teardown(function() {

@@ -1,6 +1,6 @@
 requireApp('communications/dialer/js/call_log.js');
-requireApp('communications/dialer/js/utils.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
+require('/shared/js/dialer/utils.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 var mocksHelperForCallLog = new MocksHelper([
