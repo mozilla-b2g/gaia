@@ -186,7 +186,6 @@ App.prototype.onFocus = function() {
  */
 App.prototype.onBlur = function() {
   this.geolocation.stopWatching();
-  this.activity.cancel();
   orientation.stop();
   debug('blur');
 };
