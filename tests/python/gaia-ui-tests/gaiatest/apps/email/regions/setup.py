@@ -140,12 +140,9 @@ class ManualSetupEmail(Base):
         el.clear()
         el.send_keys(value)
 
-    def type_activesync_port(self, value):
-        el = self.marionette.find_element(*self._activesync_port_locator)
-        el.clear()
-        el.send_keys(value)
-
     def tap_next(self):
+        self.wait_for_condition(lambda m: m.find_element(*self._next_locator).get_attribute('disabled') != 'true')
+        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [self.marionette.find_element(*self._next_locator)])
         self.marionette.find_element(*self._next_locator).tap()
         self.wait_for_element_displayed(*self._check_for_new_messages_locator)
 
