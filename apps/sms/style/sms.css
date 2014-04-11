@@ -400,6 +400,10 @@ section.has-carrier .article-list header:first-child {
 
   transition: none;
 }
+/* remove margin for notice-button class of button */
+.notice-button {
+  margin: 0;
+}
 
 /* hide download button via css on expired messages */
 .message.expired button {
@@ -550,13 +554,6 @@ ul.message-list {
   background-size: 2.2rem;
 }
 
-.article-list[data-type="list"] .message button.download {
-  padding: 0.5em;
-  margin: 0.5em;
-  background: #ccc;
-  width: 100%;
-}
-
 .article-list[data-type="list"] .message.pending .bubble aside,
 .article-list[data-type="list"] .message.sending .bubble aside {
   display: block;
@@ -651,6 +648,8 @@ form.bottom[role="search"].messages-compose-form {
   position: relative;
   bottom: 0;
   right: 0;
+
+  overflow: visible;
 }
 
 #messages-send-button.active {
