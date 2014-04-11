@@ -10,8 +10,8 @@
 
   display: block;
   border: none;
-  height: 82px; /* default size = 80 px + border */
-  width: 122px;
+  height: 84px; /* default size = 80 px + border */
+  width: 124px;
 }
 
 .attachment-draft {
@@ -28,8 +28,8 @@
 }
 
 .attachment-container.nopreview { /* 80x80 px placeholder + filename below */
-  height: calc(82px + 2.7rem); /* font-size = 1.7rem + 1rem margin */
-  width: 122px;
+  height: calc(80px + 2.7rem); /* font-size = 1.7rem + 1rem margin */
+  width: 120px;
 }
 
 /*.attachment-container.preview {
@@ -65,7 +65,6 @@
 
   width: 120px;
   height: 80px;
-  border-radius: 2px;
 }
 
 .outgoing .attachment {
@@ -74,17 +73,17 @@
 }
 
 .preview .attachment {
-  -moz-box-sizing: border-box;
-       box-sizing: border-box;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
 
-  background-color: rgba(0, 170, 205, 0.45);
+  background-color: #ececec;
+  border: 2px solid #fff;
 }
 
 .preview .attachment:active,
 .preview .attachment:hover {
-  background-color: rgba(0, 140, 170, 1);
+  background-color: #b2f2ff;
 }
 
 .size-indicator {

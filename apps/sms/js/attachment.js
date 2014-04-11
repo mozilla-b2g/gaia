@@ -162,7 +162,7 @@
 
         var hasPreview = (thumbnail.data && !thumbnail.error);
         if (hasPreview) {
-          var borderWidth = 1; // px
+          var borderWidth = 2; // px
           container.style.width = (thumbnail.width + 2 * borderWidth) + 'px';
           container.style.height = (thumbnail.height + 2 * borderWidth) + 'px';
         }
