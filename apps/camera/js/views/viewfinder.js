@@ -26,25 +26,25 @@ var scaleSizeTo = {
 };
 
 var getNewTouchA = function(touches) {
-  if (!lastTouchA) return null;
+  if (!lastTouchA) { return null; }
   for (var i = 0, length = touches.length, touch; i < length; i++) {
     touch = touches[i];
-    if (touch.identifier === lastTouchA.identifier) return touch;
+    if (touch.identifier === lastTouchA.identifier) { return touch; }
   }
   return null;
 };
 
 var getNewTouchB = function(touches) {
-  if (!lastTouchB) return null;
+  if (!lastTouchB) { return null; }
   for (var i = 0, length = touches.length, touch; i < length; i++) {
     touch = touches[i];
-    if (touch.identifier === lastTouchB.identifier) return touch;
+    if (touch.identifier === lastTouchB.identifier) { return touch; }
   }
   return null;
 };
 
 var getDeltaZoom = function(touchA, touchB) {
-  if (!touchA || !lastTouchA || !touchB || !lastTouchB) return 0;
+  if (!touchA || !lastTouchA || !touchB || !lastTouchB) { return 0; }
 
   var oldDistance = Math.sqrt(
                       Math.pow(lastTouchB.pageX - lastTouchA.pageX, 2) +
