@@ -1080,7 +1080,9 @@ suite('thread_ui.js >', function() {
         assert.isTrue(shouldEnableSend);
       });
 
-      test('banner is displayed', function() {
+      test('banner is and stays displayed', function() {
+        assert.isFalse(banner.classList.contains('hide'));
+        this.sinon.clock.tick(200000);
         assert.isFalse(banner.classList.contains('hide'));
       });
 
@@ -1117,7 +1119,9 @@ suite('thread_ui.js >', function() {
         assert.isFalse(shouldEnableSend);
       });
 
-      test('banner is displayed', function() {
+      test('banner is and stays displayed', function() {
+        assert.isFalse(banner.classList.contains('hide'));
+        this.sinon.clock.tick(200000);
         assert.isFalse(banner.classList.contains('hide'));
       });
 
