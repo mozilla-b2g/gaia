@@ -168,6 +168,7 @@
      { "headset-button": "/dialer/index.html#keyboard-view" },
      { "notification": "/dialer/index.html#keyboard-view" },
      { "telephony-new-call": "/dialer/index.html#keyboard-view" },
+     { "telephony-call-ended": "/dialer/index.html#keyboard-view" },
      { "ussd-received": "/dialer/index.html#keyboard-view" }
   ],
   "redirects": [

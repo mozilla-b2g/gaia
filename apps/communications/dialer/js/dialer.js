@@ -51,7 +51,8 @@ var CallHandler = (function callHandler() {
     };
   }
 
-  function handleNotificationRequest(number, serviceId) {
+  /* === Telephony Call Ended Support === */
+  function sendNotification(number, serviceId) {
     LazyLoader.load('/dialer/js/utils.js', function() {
       Contacts.findByNumber(number, function lookup(contact, matchingTel) {
         LazyL10n.get(function localized(_) {
@@ -98,12 +99,34 @@ var CallHandler = (function callHandler() {
     });
   }
 
-  /* === Recents support === */
-  function handleRecentAddRequest(entry) {
-    CallLogDBManager.add(entry, function(logGroup) {
-      CallLog.appendGroup(logGroup);
+  function callEnded(data) {
+    var number = data.number;
+    var direction = data.direction;
+    var incoming = data.direction === 'incoming';
+
+    NavbarManager.ensureResources(function() {
+      // Missed call
+      if (incoming && !data.duration) {
+        sendNotification(number, data.serviceId);
+      }
+
+      Voicemail.check(number, function(isVoicemailNumber) {
+        var entry = {
+          date: Date.now() - parseInt(data.duration),
+          type: incoming ? 'incoming' : 'dialing',
+          number: number,
+          serviceId: data.serviceId,
+          emergency: data.emergency || false,
+          voicemail: isVoicemailNumber,
+          status: (incoming && data.duration > 0) ? 'connected' : null
+        };
+
+        CallLogDBManager.add(entry, function(logGroup) {
+          CallLog.appendGroup(logGroup);
+        });
+      });
     });
-  }
+   }
 
   /* === Handle messages recevied from iframe === */
   function handleContactsIframeRequest(message) {
@@ -204,8 +227,6 @@ var CallHandler = (function callHandler() {
   // Receiving messages from the callscreen via post message
   //   - when the call screen is closing
   //   - when the call screen is ready to receive messages
-  //   - when we need to send a missed call notification
-  //   - when we need to add an entry to the recents database
   //   - when we need to hide or show navbar
   function handleMessage(evt) {
     if (evt.origin !== COMMS_APP_ORIGIN) {
@@ -220,15 +241,6 @@ var CallHandler = (function callHandler() {
       handleCallScreenReady();
     } else if (!data.type) {
       return;
-    } else if (data.type === 'notification') {
-      // We're being asked to send a missed call notification
-      NavbarManager.ensureResources(function() {
-        handleNotificationRequest(data.number, data.serviceId);
-      });
-    } else if (data.type === 'recent') {
-      NavbarManager.ensureResources(function() {
-        handleRecentAddRequest(data.entry);
-      });
     } else if (data.type === 'contactsiframe') {
       handleContactsIframeRequest(data.message);
     } else if (data.type === 'hide-navbar') {
@@ -372,6 +384,9 @@ var CallHandler = (function callHandler() {
 
       if (window.navigator.mozSetMessageHandler) {
         window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
+        window.navigator.mozSetMessageHandler('telephony-call-ended',
+                                              callEnded);
+
         window.navigator.mozSetMessageHandler('activity', handleActivity);
         window.navigator.mozSetMessageHandler('notification',
                                               handleNotification);
@@ -440,6 +455,7 @@ var NavbarManager = {
                      '/shared/js/simple_phone_matcher.js',
                      '/shared/js/contact_photo_helper.js',
                      '/dialer/js/contacts.js',
+                     '/dialer/js/voicemail.js',
                      '/dialer/js/call_log.js',
                      '/dialer/style/call_log.css'], function rs_loaded() {
                     self.resourcesLoaded = true;
