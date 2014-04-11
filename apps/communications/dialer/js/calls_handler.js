@@ -145,18 +145,6 @@ var CallsHandler = (function callsHandler() {
     CallScreen.insertCall(hc.node);
 
     if (call.state === 'incoming') {
-      call.addEventListener('statechange', function callStateChange() {
-        call.removeEventListener('statechange', callStateChange);
-        // The call wasn't picked up
-        if (call.state == 'disconnected') {
-          var callInfo = {
-            type: 'notification',
-            number: call.number
-          };
-          postToMainWindow(callInfo);
-        }
-      });
-
       // This is the initial incoming call, need to ring !
       if (handledCalls.length === 1) {
         handleFirstIncoming(call);
@@ -648,15 +636,6 @@ var CallsHandler = (function callsHandler() {
       turnSpeakerOn();
   }
 
-  /* === Recents management === */
-  function addRecentEntry(entry) {
-    var message = {
-      type: 'recent',
-      entry: entry
-    };
-    postToMainWindow(message);
-  }
-
   /**
    * Plays the ANSI call waiting tone for a 10 seconds window
    *
@@ -738,7 +717,6 @@ var CallsHandler = (function callsHandler() {
     turnSpeakerOn: turnSpeakerOn,
     turnSpeakerOff: turnSpeakerOff,
 
-    addRecentEntry: addRecentEntry,
     checkCalls: onCallsChanged,
     mergeActiveCallWith: mergeActiveCallWith,
     mergeConferenceGroupWithActiveCall: mergeConferenceGroupWithActiveCall,
