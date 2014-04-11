@@ -7,7 +7,7 @@ function StickyHeader(scrollable, sticky) {
   var stickyPosition = sticky.offsetHeight + sticky.offsetTop;
   var stickyStyle = sticky.style;
 
-  this.refresh = function() {
+  this._throttledRefresh = function() {
     for (var i = 1, length = headers.length; i < length; i++) {
       if (headers[i].offsetTop - scrollable.scrollTop > stickyPosition) {
 
@@ -24,7 +24,15 @@ function StickyHeader(scrollable, sticky) {
         break;
       }
     }
-  };
+
+    this.throttle = null;
+  }.bind(this);
+
+  this.refresh = function() {
+    if (!this.throttle) {
+      this.throttle = setTimeout(this._throttledRefresh, 0);
+    }
+  }.bind(this);
 
   scrollable.addEventListener('scroll', this.refresh);
 }
