@@ -36,6 +36,14 @@ function MediaPlaybackWidget(container, options) {
 }
 
 MediaPlaybackWidget.prototype = {
+  set playStatus(status) {
+    return MediaAppAgent.playStatus = status;
+  },
+
+  set position(position) {
+    return MediaAppAgent.position = position;
+  },
+
   get hidden() {
     return this.container.hidden;
   },
@@ -71,6 +79,7 @@ MediaPlaybackWidget.prototype = {
     if (!info)
       return;
 
+    MediaAppAgent.origin = info.origin;
     this.origin = info.origin;
     this.icon.style.backgroundImage = 'url(' + info.icon + ')';
   },
@@ -99,6 +108,9 @@ MediaPlaybackWidget.prototype = {
   },
 
   updatePlaybackStatus: function mp_updatePlaybackStatus(status) {
+    this.playStatus = status.playStatus;
+    this.position = status.position;
+
     switch (status.playStatus) {
       case 'PLAYING':
         this.hidden = false;

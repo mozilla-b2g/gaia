@@ -10,7 +10,7 @@
   "permissions": {
     "storage":{},
     "device-storage:music":{ "access": "readwrite" },
-    "settings":{ "access": "readonly" },
+    "settings":{ "access": "readwrite" },
     "deprecated-hwvideo":{},
     "bluetooth":{},
     "audio-channel-content":{}
