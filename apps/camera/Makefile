@@ -20,4 +20,3 @@ $(STAGE_APP_DIR)/js/main.js: | $(STAGE_APP_DIR)
 	rm -rf $(STAGE_APP_DIR)/style
 	cp -rp ../../shared $(STAGE_APP_DIR)/
 	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/require_config.jslike
-
