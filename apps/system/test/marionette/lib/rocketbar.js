@@ -34,6 +34,7 @@ Rocketbar.clientOptions = {
 
 Rocketbar.prototype = {
   selectors: {
+    screen: '#screen',
     rocketbar: '#rocketbar',
     rocketbarInput: '#rocketbar-input'
   },
@@ -45,7 +46,8 @@ Rocketbar.prototype = {
     var rocketbar = this.client.findElement(this.selectors.rocketbar);
     this.client.waitFor(rocketbar.displayed.bind(rocketbar));
     rocketbar.tap();
-    var rocketbarInput = this.client.findElement(this.selectors.rocketbarInput);
+    var rocketbarInput =
+      this.client.findElement(this.selectors.rocketbarInput);
     this.client.waitFor(rocketbarInput.displayed.bind(rocketbarInput));
   },
 
@@ -53,7 +55,8 @@ Rocketbar.prototype = {
    * Send keys to the Rocketbar (needs to be focused first).
    */
   enterText: function(input) {
-    var rocketbarInput = this.client.findElement(this.selectors.rocketbarInput);
+    var rocketbarInput =
+      this.client.findElement(this.selectors.rocketbarInput);
     rocketbarInput.clear();
     this.client.waitFor(rocketbarInput.displayed.bind(rocketbarInput));
     rocketbarInput.sendKeys(input);
@@ -80,5 +83,19 @@ Rocketbar.prototype = {
     return this.client.executeScript(function() {
       window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
     });
+  },
+
+  /**
+   * Get the Rocketbar element.
+   */
+  get rocketbar() {
+    return this.client.findElement(this.selectors.rocketbar);
+  },
+
+  /**
+   * Get screen element.
+   */
+  get screen() {
+    return this.client.findElement(this.selectors.screen);
   }
 };
