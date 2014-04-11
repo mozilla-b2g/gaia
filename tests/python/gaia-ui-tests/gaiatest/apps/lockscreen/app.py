@@ -34,9 +34,6 @@ class LockScreen(Base):
     def unlock_to_passcode_pad(self):
         self.wait_for_element_displayed(*self._lockscreen_handle_locator)
         self._slide_to_unlock('homescreen')
-        elem = self.marionette.find_element(*self._lockscreen_passcode_panel_locator)
-        while False == elem.is_displayed():
-          self._slide_to_unlock('homescreen')
         self.wait_for_element_displayed(*self._lockscreen_passcode_panel_locator)
         return PasscodePad(self.marionette)
 
