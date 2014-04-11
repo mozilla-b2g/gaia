@@ -498,7 +498,17 @@ footer {
   left: 0;
   right: 0;
   font-size: 0;
-  transition: transform 0.2s linear;
+  visibility: visible;
+
+  /**
+    Bug 991367 - This is a temporary workaround for an issue where
+    the `tap` event on the video player "Pause" button causes a
+    `click` event to bleed through to the "Camera" button on the
+    toolbar. To get around this issue, we add 0.1s delay before
+    restoring the toolbar from hidden state and transition the
+    `visibility` property as well.
+   */
+  transition: visibility 0.2s linear 0.1s, transform 0.2s linear 0.1s;
 }
 /* only for large screen */
 #fullscreen-toolbar-header {
@@ -516,7 +526,10 @@ footer {
 }
 
 #fullscreen-view.toolbar-hidden #fullscreen-toolbar {
+  pointer-events: none;
+  visibility: hidden;
   transform: translate(0, 4.5rem);
+  transition-delay: 0s;
 }
 
 #fullscreen-view.toolbar-hidden #fullscreen-back-button-tiny {
