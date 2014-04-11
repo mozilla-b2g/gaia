@@ -878,7 +878,8 @@ function setLayoutPage(newpage) {
 // Inform about a change in the displayed application via mutation observer
 // http://hacks.mozilla.org/2012/05/dom-mutationobserver-reacting-to-dom-changes-without-killing-browser-performance/
 function updateTargetWindowHeight(hide) {
-  var imeHeight = cachedIMEDimensions.height = IMERender.ime.scrollHeight;
+  // height of the current active IME + 1px for the borderTop
+  var imeHeight = cachedIMEDimensions.height = IMERender.getHeight() + 1;
   var imeWidth = cachedIMEDimensions.width = IMERender.getWidth();
   window.resizeTo(imeWidth, imeHeight);
 }

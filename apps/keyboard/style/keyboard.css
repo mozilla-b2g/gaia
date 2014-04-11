@@ -571,22 +571,6 @@ bubble above the key when you tap and hold. */
     background: url(images/ftu_keyboard_landscape.png) no-repeat top left;
     width:47rem;
   }
-  #keyboard.landscape .keyboard-key > .visual-wrapper > span {
-    font-size: 2.8rem
-  }
-
-  #keyboard.landscape .keyboard-key.special-key > .visual-wrapper > span {
-    font: 500 2.1rem/4.3rem 'Keyboard Symbols', sans-serif;
-  }
-
-  #keyboard.landscape .keyboard-key.highlighted > .visual-wrapper > span:after {
-      top: -7rem;
-      left: calc(50% - 3.5rem);
-      width: 7rem;
-      height: 7rem;
-      line-height: 7rem;
-      font-size: 3.5rem
-  }
 }
 
 @media (orientation:portrait) {
@@ -608,6 +592,23 @@ bubble above the key when you tap and hold. */
     width: 23rem;
     height: 25rem;
   }
+}
+
+#keyboard.landscape .keyboard-key > .visual-wrapper > span {
+  font-size: 2.8rem
+}
+
+#keyboard.landscape .keyboard-key.special-key > .visual-wrapper > span {
+  font: 500 2.1rem/4.3rem 'Keyboard Symbols', sans-serif;
+}
+
+#keyboard.landscape .keyboard-key.highlighted > .visual-wrapper > span:after {
+    top: -7rem;
+    left: calc(50% - 3.5rem);
+    width: 7rem;
+    height: 7rem;
+    line-height: 7rem;
+    font-size: 3.5rem
 }
 
 #confirm-dialog button.recommend.active {

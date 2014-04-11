@@ -870,14 +870,31 @@ const IMERender = (function() {
     if (!activeIme)
       return 0;
 
-    return ime.clientWidth;
+    return cachedWindowWidth;
   };
 
   var getHeight = function getHeight() {
     if (!activeIme)
       return 0;
 
-    return ime.clientHeight;
+    var scale = screenInPortraitMode() ?
+      cachedWindowWidth / 32 :
+      cachedWindowWidth / 64;
+
+    var height = (activeIme.querySelectorAll('.keyboard-row').length *
+      (5.1 * scale));
+
+    if (activeIme.classList.contains('candidate-panel')) {
+      if (activeIme.querySelector('.keyboard-candidate-panel')
+          .classList.contains('latin')) {
+        height += (3.1 * scale);
+      }
+      else {
+        height += (3.2 * scale);
+      }
+    }
+
+    return height | 0;
   };
 
   var getKeyArray = function getKeyArray() {
