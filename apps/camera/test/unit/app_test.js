@@ -250,10 +250,6 @@ suite('app', function() {
     test('Should stop watching location', function() {
       assert.ok(this.app.geolocation.stopWatching.called);
     });
-
-    test('Should stop cancel any pending activity', function() {
-      assert.ok(this.app.activity.cancel.called);
-    });
   });
 
   suite('App#onFocus()', function() {
