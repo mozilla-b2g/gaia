@@ -23,6 +23,12 @@
     target: null,
 
     /**
+     * If we have moved an icon, this indicates that we need to save the state
+     * @type {boolean}
+     */
+    dirty: false,
+
+    /**
      * Begins the drag/drop interaction.
      * Enlarges the icon.
      * Sets additional data to make the touchmove handler faster.
@@ -113,8 +119,9 @@
       }
 
       // Insert at the found position
-      var myIndex = this.icon.itemIndex;
+      var myIndex = this.icon.detail.index;
       if (foundIndex !== myIndex) {
+        this.dirty = true;
         this.icon.noRender = true;
         app.items.splice(foundIndex, 0, app.items.splice(myIndex, 1)[0]);
         app.render();
@@ -215,7 +222,13 @@
             }
             app.render();
 
+            // Save icon state if we need to
+            if (this.dirty) {
+              app.itemStore.save(app.items);
+            }
+
             this.target = null;
+            this.dirty = false;
 
             setTimeout(function nextTick() {
               app.start();

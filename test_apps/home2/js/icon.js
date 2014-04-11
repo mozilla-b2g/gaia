@@ -10,6 +10,13 @@
   function Icon(app, entryPoint) {
     this.app = app;
     this.entryPoint = entryPoint;
+
+    this.detail = {
+      type: 'app',
+      manifestURL: app.manifestURL,
+      entryPoint: entryPoint,
+      index: 0
+    };
   }
 
   Icon.prototype = {
@@ -70,11 +77,18 @@
     },
 
     /**
+     * Sets the item position
+     */
+    setPosition: function(position) {
+      this.detail.index = position;
+    },
+
+    /**
      * Renders the icon to the container.
      * @param {Object} coordinates Grid coordinates to render to.
-     * @param {Number} itemIndex The index of the items list of this item.
+     * @param {Number} index The index of the items list of this item.
      */
-    render: function(coordinates, itemIndex) {
+    render: function(coordinates, index) {
       var x = coordinates.x * app.zoom.gridItemWidth;
       var y = app.zoom.offsetY;
 
@@ -95,7 +109,7 @@
         container.appendChild(tile);
       }
 
-      this.itemIndex = itemIndex;
+      this.setPosition(index);
       this.x = x;
       this.y = y;
       this.scale = app.zoom.percent;
