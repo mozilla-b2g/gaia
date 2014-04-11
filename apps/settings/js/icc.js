@@ -99,7 +99,7 @@
     reqTimerGoBack.onsuccess = function icc_getTimerGoBackSuccess() {
       goBackTimer.timeout = reqTimerGoBack.result['icc.goBackTimeout'];
       goBackTimer.timer = setTimeout(function() {
-        Settings.currentPanel = '#root';
+        stkResTerminate();
       }, goBackTimer.timeout);
     };
   };
