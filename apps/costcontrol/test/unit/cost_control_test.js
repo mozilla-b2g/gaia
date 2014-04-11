@@ -4,20 +4,14 @@ requireApp('costcontrol/test/unit/mock_debug.js');
 requireApp('costcontrol/test/unit/mock_common.js');
 requireApp('costcontrol/test/unit/mock_moz_mobile_connection.js');
 requireApp('costcontrol/test/unit/mock_config_manager.js');
-requireApp('costcontrol/test/unit/mock_settings_listener.js');
 requireApp('costcontrol/test/unit/mock_moz_network_stats.js');
 requireApp('costcontrol/js/utils/toolkit.js');
 requireApp('costcontrol/js/costcontrol.js');
 
 var realCommon,
     realMozNetworkStats,
-    realSettingsListener,
     realConfigManager,
     realMozMobileConnection;
-
-if (!this.SettingsListener) {
-  this.SettingsListener = null;
-}
 
 if (!this.ConfigManager) {
   this.ConfigManager = null;
@@ -39,9 +33,6 @@ if (!this.Common) {
 suite('Cost Control Service Hub Suite >', function() {
 
   suiteSetup(function() {
-    realSettingsListener = window.SettingsListener;
-    window.SettingsListener = window.MockSettingsListener;
-
     realConfigManager = window.ConfigManager;
 
     realCommon = window.Common;
@@ -56,8 +47,6 @@ suite('Cost Control Service Hub Suite >', function() {
   });
 
   suiteTeardown(function() {
-    window.SettingsListener.mTeardown();
-    window.SettingsListener = realSettingsListener;
     window.ConfigManager = realConfigManager;
     window.navigator.mozMobileConnection = realMozMobileConnection;
     window.navigator.mozNetworkStats = realMozNetworkStats;
@@ -101,7 +90,6 @@ suite('Cost Control Service Hub Suite >', function() {
     function(done) {
       setupInsufficentDelaySinceLastBalance();
 
-      CostControl.init();
       CostControl.getInstance(function(service) {
         service.request({type: 'balance'}, function(result) {
           assert.equal(result.status, 'error');
@@ -117,7 +105,6 @@ suite('Cost Control Service Hub Suite >', function() {
     function(done) {
       setupEnoughDelaySinceLastBalance();
 
-      CostControl.init();
       CostControl.getInstance(function(service) {
         service.request({type: 'balance'}, function(result) {
           assert.notEqual(result.details, 'minimum_delay');
@@ -130,7 +117,6 @@ suite('Cost Control Service Hub Suite >', function() {
   test(
     'Get dataUsage correctly',
     function(done) {
-      CostControl.init();
       CostControl.getInstance(function(service) {
         service.request({type: 'datausage'}, function(result) {
 
@@ -149,7 +135,6 @@ suite('Cost Control Service Hub Suite >', function() {
     function(done) {
       sinon.stub(Common, 'getDataSIMInterface').returns(undefined);
 
-      CostControl.init();
       CostControl.getInstance(function(service) {
         service.request({type: 'datausage'}, function(result) {
           assert.equal(result.status, 'success');
@@ -168,7 +153,6 @@ suite('Cost Control Service Hub Suite >', function() {
       sinon.stub(Common, 'getDataSIMInterface').returns(undefined);
       sinon.stub(Common, 'getWifiInterface').returns(undefined);
 
-      CostControl.init();
       CostControl.getInstance(function(service) {
         service.request({type: 'datausage'}, function(result) {
           assert.equal(result.status, 'success');
