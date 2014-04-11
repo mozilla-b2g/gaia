@@ -157,6 +157,7 @@ var CrashReporter = (function() {
   window.addEventListener('appcrashed', handleAppCrash);
   window.addEventListener('activitycrashed', handleAppCrash);
   window.addEventListener('homescreencrashed', handleAppCrash);
+  window.addEventListener('searchcrashed', handleAppCrash);
 
   return {
     setAppName: setAppName

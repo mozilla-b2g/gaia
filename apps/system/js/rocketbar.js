@@ -113,6 +113,7 @@ var Rocketbar = {
     window.addEventListener('appopened', this);
     window.addEventListener('homescreenopened', this);
     window.addEventListener('stackchanged', this);
+    window.addEventListener('searchcrashed', this);
 
     // Listen for events from Rocketbar
     this.rocketbar.addEventListener('touchstart', this);
@@ -153,6 +154,9 @@ var Rocketbar = {
         break;
       case 'appopened':
         this.collapse(e);
+        break;
+      case 'searchcrashed':
+        this.handleSearchCrashed(e);
         break;
       case 'touchstart':
       case 'touchmove':
@@ -548,6 +552,15 @@ var Rocketbar = {
     }
 
     this.initSearchConnection(callback);
+  },
+
+  /**
+   * Handles when the search app crashes.
+   */
+  handleSearchCrashed: function(e) {
+    if (this.searchWindow) {
+      this.searchWindow = null;
+    }
   },
 
   /**
