@@ -269,8 +269,8 @@ var icc_worker = {
         iccManager.hideViews();
       }, true);
 
-    var timeout = options.duration ||
-      iccManager.calculateDurationInMS(options.duration) ||
+    var timeout = (options.duration &&
+      iccManager.calculateDurationInMS(options.duration)) ||
       iccManager._inputTimeout;
     iccManager.input(options.text, timeout, options,
       function(response, value) {
