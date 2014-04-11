@@ -6,8 +6,7 @@
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
          ActivityPicker, KeyEvent, MockNavigatorSettings, MockContactRenderer,
-         Draft, ErrorDialog, MockStickyHeader, MultiSimActionButton,
-         MockLazyLoader
+         Draft, ErrorDialog, MockStickyHeader, MultiSimActionButton
 */
 
 'use strict';
@@ -25,6 +24,7 @@ require('/js/threads.js');
 require('/js/thread_ui.js');
 require('/js/thread_list_ui.js');
 require('/js/utils.js');
+require('/shared/js/async_storage.js');
 
 require('/test/unit/mock_time_headers.js');
 require('/test/unit/mock_alert.js');
@@ -59,11 +59,8 @@ require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
 require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
 require('/shared/test/unit/mocks/mock_audio.js');
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_async_storage.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
-  'asyncStorage',
   'Attachment',
   'AttachmentMenu',
   'Utils',
@@ -87,8 +84,7 @@ var mocksHelperForThreadUI = new MocksHelper([
   'MessageManager',
   'StickyHeader',
   'MultiSimActionButton',
-  'Audio',
-  'LazyLoader'
+  'Audio'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -3254,12 +3250,13 @@ suite('thread_ui.js >', function() {
 
   suite('Long press on the bubble >', function() {
     var messageId = 23;
-    var link, messageDOM, contextMenuEvent;
+    var link, messageDOM, contextMenuEvent, elements;
     setup(function() {
       contextMenuEvent = new CustomEvent('contextmenu', {
         'bubbles': true,
         'cancelable': true
       });
+  
 
       this.sinon.spy(LinkActionHandler, 'onClick');
       this.sinon.spy(ThreadUI, 'promptContact');
@@ -3287,21 +3284,18 @@ suite('thread_ui.js >', function() {
       link = null;
       MockOptionMenu.mTeardown();
     });
-
     test(' "click" on bubble (not in link-action) has no effect', function() {
       messageDOM.click();
       assert.ok(LinkActionHandler.onClick.calledOnce);
       // As there is no action, we are not going to show any menu
       assert.isFalse(ThreadUI.promptContact.calledOnce);
     });
-
     test(' "long-press" on link-action is not redirected to "onClick"',
       function() {
       // Dispatch custom event for testing long press
       link.dispatchEvent(contextMenuEvent);
       assert.isFalse(LinkActionHandler.onClick.calledOnce);
     });
-
     test(' "long-press" on link-action shows the option menu from the bubble',
       function() {
       // Dispatch custom event for testing long press
@@ -3309,79 +3303,93 @@ suite('thread_ui.js >', function() {
       // It should show the list of options of the bubble (forward, delete...)
       assert.ok(MockOptionMenu.calls.length, 1);
     });
-
-    test(' "long-press" on bubble shows a menu with forward as first option',
+    test(' "long-press" on bubble shows a menu with delete as first option',
       function() {
       // Dispatch custom event for testing long press
       link.dispatchEvent(contextMenuEvent);
       assert.ok(MockOptionMenu.calls.length, 1);
       // Is first element of the menu 'forward'?
-      assert.equal(
-        MockOptionMenu.calls[0].items[0].l10nId,
-        'forward');
-      // Show menu with 'delete' option
-      assert.equal(
-        MockOptionMenu.calls[0].items[1].l10nId,
-        'view-message-report'
-      );
-      // Show menu with 'delete' option
-      assert.equal(
-        MockOptionMenu.calls[0].items[2].l10nId,
-        'delete'
-      );
+      assert.equal(MockOptionMenu.calls[0].items[0].l10nId, 'forward');
     });
-
-    test(' "long-press" on an error bubble shows a menu with resend option',
+    test(' "long-press" on bubble shows a menu with delete option',
       function() {
-        // Create a message with a delivery error:
-        ThreadUI.appendMessage({
-          id: 9,
-          type: 'sms',
-          body: 'This is a test with 123123123',
-          delivery: 'error',
-          timestamp: Date.now()
-        });
-
-        // Retrieve the message node
-        link = document.getElementById('message-9').querySelector('a');
-
-        // Dispatch custom event for testing long press
-        link.dispatchEvent(contextMenuEvent);
-        assert.ok(MockOptionMenu.calls.length, 1);
-
-        // Confirm that the menu contained a "resend-message" option
-        assert.equal(MockOptionMenu.calls[0].items[3].l10nId, 'resend-message');
+      // Dispatch custom event for testing long press
+      link.dispatchEvent(contextMenuEvent);
+      assert.ok(MockOptionMenu.calls.length, 1);
+      // Show menu with 'delete' option
+      assert.equal(MockOptionMenu.calls[0].items[2].l10nId, 'delete');
     });
-
-    test(' "long-press" on an not downloaded message ' +
-      'bubble shows a menu without forward option',
+    test(' "long-press" on an error outgoing sms bubble shows a menu ' +
+      'with resend option',
       function() {
-        // Create a message with an undownloaded attachment:
-        ThreadUI.appendMessage({
-          id: 9,
-          type: 'mms',
-          body: 'This is mms message test without attachment',
-          delivery: 'received',
-          subject:'',
-          attachments: null,
-          timestamp: Date.now()
-        });
 
-        // Retrieve the message node
-        var messageNode = document.querySelector('#message-9 section');
+      // Create a message with a delivery error:
+      ThreadUI.appendMessage({
+        id: 9,
+        type: 'sms',
+        body: 'This is a test with 123123123',
+        delivery: 'error',
+        timestamp: Date.now()
+      });
 
-        // Dispatch custom event for testing long press
-        messageNode.dispatchEvent(contextMenuEvent);
-        assert.ok(MockOptionMenu.calls.length, 1);
-        assert.ok(MockOptionMenu.calls[0].items.length, 4);
+      // Retrieve the message node
+      link = document.getElementById('message-9').querySelector('a');
 
-        // Confirm that the menu contained a "resend-message" option
-        for (var i = MockOptionMenu.calls[0].length - 1; i >= 0; i--) {
-          assert.notEqual(
-            MockOptionMenu.calls[0].items[i].l10nId,
-            'forward'
-          );
-        }
+      // Dispatch custom event for testing long press
+      link.dispatchEvent(contextMenuEvent);
+      assert.ok(MockOptionMenu.calls.length, 1);
+
+      // Confirm that the menu contained a "resend-message" option
+      assert.equal(MockOptionMenu.calls[0].items[2].l10nId, 'resend-message');
+    });
+    test(' "long-press" on an error outgoing mms bubble should show a menu '+
+      ' with resend option',
+      function() {
+      // Create a message with a download error:
+      ThreadUI.appendMessage({
+        id: 10,
+        type: 'mms',
+        delivery: 'error',
+        deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
+        subject: 'error download',
+      });
+
+      // Retrieve the message node
+      link = document.getElementById('message-10').querySelector('.error');
+
+      // Dispatch custom event for testing long press
+      link.dispatchEvent(contextMenuEvent);
+      assert.ok(MockOptionMenu.calls.length, 1);
+
+      // Confirm that the menu contained a "resend-message" option
+      assert.equal(MockOptionMenu.calls[0].items[2].l10nId, 'resend-message');
+    });
+    test(' "long-press" on an incoming download error mms bubble should not '+
+      'show a menu with resend option',
+      function() {
+      // Create a message with a download error:
+      ThreadUI.appendMessage({
+        id: 11,
+        sender: '123456',
+        iccId: 'B',
+        type: 'mms',
+        delivery: 'not-downloaded',
+        deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
+        subject: 'error download',
+      });
+
+      // Retrieve the message node
+      elements = document.getElementById('message-11').
+      link = elements.querySelector('.not-downloaded-message');
+
+      // Dispatch custom event for testing long press
+      link.dispatchEvent(contextMenuEvent);
+      assert.ok(MockOptionMenu.calls.length, 1);
+      function checkResend(element) {
+        return (element.l10nId === 'resend-message');
+      }
+      // Confirm that the menu doesn't contained a "resend-message" option
+      assert.isFalse(MockOptionMenu.calls[0].items.some(checkResend));
     });
   });
 
@@ -3408,34 +3416,29 @@ suite('thread_ui.js >', function() {
         sentMsg: ThreadUI.container.querySelector('.sent')
       };
     });
-
     test('clicking on "pack-end" aside in an error message' +
       'triggers a confirmation dialog',
       function() {
       this.elems.errorMsg.querySelector('.pack-end').click();
       assert.equal(window.confirm.callCount, 1);
     });
-
     test('clicking on p element in an error message' +
       'does not triggers a confirmation  dialog',
       function() {
       this.elems.errorMsg.querySelector('.bubble p').click();
       assert.equal(window.confirm.callCount, 0);
     });
-
     test('clicking on an error message does not trigger a confirmation dialog',
       function() {
       this.elems.errorMsg.click();
       assert.equal(window.confirm.callCount, 0);
     });
-
     test('clicking on "pack-end" aside in an error message and accepting the ' +
       'confirmation dialog triggers a message re-send operation', function() {
       window.confirm.returns(true);
       this.elems.errorMsg.querySelector('.pack-end').click();
       assert.equal(ThreadUI.resendMessage.callCount, 1);
     });
-
     test('clicking on an error message bubble and rejecting the ' +
       'confirmation dialog does not trigger a message re-send operation',
       function() {
@@ -3443,7 +3446,6 @@ suite('thread_ui.js >', function() {
       this.elems.errorMsg.querySelector('.bubble').click();
       assert.equal(ThreadUI.resendMessage.callCount, 0);
     });
-
     test('clicking on a sent message does not trigger a confirmation dialog ' +
       'nor a message re-send operation', function() {
       this.elems.sentMsg.click();
@@ -4214,19 +4216,6 @@ suite('thread_ui.js >', function() {
             recipients: [recipient],
             serviceId: targetServiceId
           });
-        });
-      });
-
-      suite('SIM picker', function() {
-        test('loads and translates SIM picker', function() {
-          var simPickerElt = document.getElementById('sim-picker');
-          var translateSpy = this.sinon.spy(MockL10n, 'translate');
-          var loadSpy = this.sinon.spy(MockLazyLoader, 'load');
-
-          ThreadUI.onBeforeEnter();
-
-          sinon.assert.calledWith(translateSpy, simPickerElt);
-          sinon.assert.calledWith(loadSpy, [simPickerElt]);
         });
       });
     });
