@@ -35,12 +35,11 @@ var CarrierSettings = (function(window, document, undefined) {
     'ehrpd': 'cdma'
   };
 
-  var _ = window.navigator.mozL10n.get;
-  var _settings = window.navigator.mozSettings;
-  var _mobileConnections = window.navigator.mozMobileConnections;
-  var _iccManager = window.navigator.mozIccManager;
-  var _voiceTypes = Array.prototype.map.call(_mobileConnections,
-    function() { return null; });
+  var _;
+  var _settings;
+  var _mobileConnections;
+  var _iccManager;
+  var _voiceTypes;
 
   /** mozMobileConnection instance the panel settings rely on */
   var _mobileConnection = null;
@@ -69,6 +68,13 @@ var CarrierSettings = (function(window, document, undefined) {
    * Init function.
    */
   function cs_init() {
+    _ = window.navigator.mozL10n.get;
+    _settings = window.navigator.mozSettings;
+    _mobileConnections = window.navigator.mozMobileConnections;
+    _iccManager = window.navigator.mozIccManager;
+    _voiceTypes = Array.prototype.map.call(_mobileConnections,
+      function() { return null; });
+
     // Get the mozMobileConnection instace for this ICC card.
     _mobileConnection = _mobileConnections[
       DsdsSettings.getIccCardIndexForCellAndDataSettings()
@@ -918,6 +924,19 @@ var CarrierSettings = (function(window, document, undefined) {
   }
 
   /**
+   * Helper function. Ensure only one radio button is selected at any time.
+   *
+   * @param {Element} apnList Element list.
+   *
+   * @param {String} carrier Carrier value (either code or name) whose check
+   *                         button element needs to be selected.
+   */
+  function cs_switchRadioButtons(apnList, carrier) {
+    var selector = 'input[type="radio"][value="' + carrier + '"]';
+    apnList.querySelector(selector).checked = true;
+  }
+
+  /**
    * Update APN list.
    *
    * @param {Array} apnItems Array of APNs.
@@ -957,14 +976,18 @@ var CarrierSettings = (function(window, document, undefined) {
     ];
 
     /**
-     * Helper function. Ensure only one radio button is selected at any time.
+     * Helper function. Given a string, return a hash code.
      *
-     * @param {String} carrier Carrier name whose check button element needs to
-     *                         be selected.
+     * @param {String} s Given string.
+     *
+     * @return {Numeric} Hash code.
      */
-    function switchRadioButtons(carrier) {
-      var selector = 'input[type="radio"][value="' + carrier + '"]';
-      apnList.querySelector(selector).checked = true;
+    function _getHashCode(s) {
+      return s.split('').reduce(
+        function(a, b) {
+          a = ((a << 5) - a) + b.charCodeAt(0);
+          return a & a;
+        }, 0);
     }
 
     /**
@@ -996,16 +1019,18 @@ var CarrierSettings = (function(window, document, undefined) {
      * Create a button to apply <apn> data to the current fields.
      *
      */
-    function createAPNItem(item) {
+    function createAPNItem(index, item) {
       // create an <input type="radio"> element
       var input = document.createElement('input');
       input.type = 'radio';
       input.name = currentType + 'Apn';
-      input.value = item.carrier;
+      var s = item.carrier + index;
+      var hashCode = _getHashCode(s);
+      input.value = hashCode;
       input.dataset.item = item;
       input.onclick = function onClickHandler() {
         fillApnForm(item);
-        switchRadioButtons(item.carrier);
+        cs_switchRadioButtons(apnList, hashCode);
       };
 
       // include the radio button element in a list item
@@ -1028,7 +1053,7 @@ var CarrierSettings = (function(window, document, undefined) {
 
     // fill the APN list
     for (var i = 0; i < apnItems.length; i++) {
-      apnList.insertBefore(createAPNItem(apnItems[i]), lastItem);
+      apnList.insertBefore(createAPNItem(i, apnItems[i]), lastItem);
     }
 
     // maps for UI fields(current settings key) to new apn setting keys.
@@ -1202,9 +1227,12 @@ var CarrierSettings = (function(window, document, undefined) {
         }
 
         var apnSelected = false;
+        var s, hashCode;
         var radioApnItems = apnList.querySelectorAll('input[type="radio"]');
         for (var j = 0; (j < radioApnItems.length) && apn; j++) {
-          radioApnItems[j].checked = (radioApnItems[j].value === apn.carrier);
+          s = apn.carrier + j;
+          hashCode = _getHashCode(s);
+          radioApnItems[j].checked = (radioApnItems[j].value == hashCode);
           apnSelected = apnSelected || radioApnItems[j].checked;
           if (apnSelected) {
             break;
@@ -1217,16 +1245,16 @@ var CarrierSettings = (function(window, document, undefined) {
               break;
             }
           }
-          switchRadioButtons(apn.carrier);
+          cs_switchRadioButtons(apnList, hashCode);
         } else {
           fillCustomAPNSettingFields();
-          switchRadioButtons('_custom_');
+          cs_switchRadioButtons(apnList, '_custom_');
         }
 
         lastItem.querySelector('input').addEventListener('click',
           function() {
             fillCustomAPNSettingFields();
-            switchRadioButtons('_custom_');
+            cs_switchRadioButtons(apnList, '_custom_');
         });
       };
 
@@ -1234,7 +1262,7 @@ var CarrierSettings = (function(window, document, undefined) {
       // and sanitize addresses
       advForm.onchange = function onCustomInput(event) {
         lastItem.querySelector('input').checked = true;
-        switchRadioButtons('_custom_');
+        cs_switchRadioButtons(apnList, '_custom_');
 
         var addresskeys = ['mmsproxy', 'httpProxyHost'];
         addresskeys.forEach(function(addresskey) {
@@ -1304,7 +1332,9 @@ var CarrierSettings = (function(window, document, undefined) {
   } // cs_updateApnList function
 
   return {
-    init: cs_init
+    init: cs_init,
+    switchRadioButtons: cs_switchRadioButtons,
+    updateApnList: cs_updateApnList
   };
 })(this, document);
 
