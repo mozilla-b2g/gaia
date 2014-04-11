@@ -47,5 +47,8 @@ var MockCallLogDBManager = {
     if (this._getGroupListCallback != null) {
       this._getGroupListCallback(this);
     }
+  },
+  mSuiteSetup: function() {
+    this._calls = [];
   }
 };

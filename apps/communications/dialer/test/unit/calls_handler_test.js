@@ -122,31 +122,6 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(toDefaultSpy.calledOnce);
       });
-
-      suite('> call isn\'t picked up', function() {
-        setup(function() {
-          MockNavigatorMozTelephony.mTriggerCallsChanged();
-          MockNavigatorMozTelephony.calls = [];
-          MockNavigatorMozTelephony.mTriggerCallsChanged();
-          var windowOpener = {postMessage: function() {}};
-          Object.defineProperty(window, 'opener', {
-            configurable: true,
-            get: function() {
-              return windowOpener;
-            }
-          });
-          this.sinon.spy(window.opener, 'postMessage');
-          mockCall._disconnect();
-        });
-
-        test('should notify the user', function() {
-          sinon.assert.calledWith(window.opener.postMessage, {
-            type: 'notification',
-            number: mockCall.number,
-            serviceId: mockCall.serviceId
-          });
-        });
-      });
     });
 
     suite('> hanging up the last incoming call', function() {
