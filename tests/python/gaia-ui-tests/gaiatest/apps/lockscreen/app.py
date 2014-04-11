@@ -31,17 +31,26 @@ class LockScreen(Base):
         self._slide_to_unlock('camera')
         return Camera(self.marionette)
 
+    def to_wait_for_unlock_to_passcode_pad(self, m):
+        self._slide_to_unlock('homescreen')
+        panel = self.marionette.execute_script('return document.querySelector("#lockscreen").dataset.panel')
+        return 'passcode' == panel
+
     def unlock_to_passcode_pad(self):
         self.wait_for_element_displayed(*self._lockscreen_handle_locator)
+
+        # First, we unlock to show the passcode pad.
         self._slide_to_unlock('homescreen')
-        elem = self.marionette.find_element(*self._lockscreen_passcode_panel_locator)
-        while False == elem.is_displayed():
-          self._slide_to_unlock('homescreen')
+
+        self.wait_for_condition(
+            self.to_wait_for_unlock_to_passcode_pad,
+            message='passcode pad didn\'t show according to the CSS class')
+
+        # And we need to wait the panel is displayed.
         self.wait_for_element_displayed(*self._lockscreen_passcode_panel_locator)
         return PasscodePad(self.marionette)
 
     def _slide_to_unlock(self, destination):
-
         lockscreen_handle = self.marionette.find_element(*self._lockscreen_handle_locator)
         lockscreen_handle_x_centre = int(lockscreen_handle.size['width'] / 2)
         lockscreen_handle_y_centre = int(lockscreen_handle.size['height'] / 2)
