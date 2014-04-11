@@ -161,12 +161,19 @@ window.addEventListener('localized', function() {
   }
 
   function checkFilename() {
-    var dotIdx = activityData.filename.lastIndexOf('.');
-    if (dotIdx > -1) {
-      var ext = activityData.filename.substr(dotIdx + 1);
-      return MimeMapper.guessTypeFromExtension(ext) === blob.type;
-    } else {
+    // Hide save button for file names having hidden
+    // .gallery/ directories. See Bug 992426
+    if (activityData.filename.indexOf('.gallery/') != -1) {
       return false;
+    }
+    else {
+      var dotIdx = activityData.filename.lastIndexOf('.');
+      if (dotIdx > -1) {
+        var ext = activityData.filename.substr(dotIdx + 1);
+        return MimeMapper.guessTypeFromExtension(ext) === blob.type;
+      } else {
+        return false;
+      }
     }
   }
 
