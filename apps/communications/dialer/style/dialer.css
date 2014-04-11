@@ -46,23 +46,6 @@ a:hover, a:active, a:focus {
   height: 100%;
 }
 
-.grid-v-align {
-  vertical-align: middle;
-}
-
-.grid-row {
-  display: table-row;
-}
-
-.grid-cell {
-  display: table-cell;
-}
-
-.grid {
-  display: table;
-  table-layout: fixed;
-}
-
 .center {
   text-align: center;
 }

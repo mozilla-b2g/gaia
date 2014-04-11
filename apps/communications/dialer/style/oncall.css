@@ -327,12 +327,11 @@
   }
 
   #callbar-answer > .callbar-inner-button {
-    background: url('images/ActionIcon_40x40_pickup.png') center / 4rem no-repeat,
-                url('images/btn_pick_up.png') repeat-x;
+    background: url('images/pickup.svg') center / 4rem no-repeat;
   }
 
   #callbar-answer:active > .callbar-inner-button {
-    background: url('images/ActionIcon_40x40_pickup.png') center / 4rem no-repeat,
+    background: url('images/pickup.svg') center / 4rem no-repeat,
                 #4B780A;
   }
 
