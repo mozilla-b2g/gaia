@@ -32,9 +32,13 @@ suite('controllers/timer', function() {
       timer: sinon.createStubInstance(this.TimerView)
     };
 
-    this.timer = this.app.views.timer;
-    this.timer.set.returns(this.timer);
+    // Aliases
+    this.view = this.app.views.timer;
+
+    this.view.set.returns(this.view);
     this.app.settings.timer.selected.returns(5);
+
+    this.controller = new this.TimerController(this.app);
   });
 
   teardown(function() {
@@ -46,7 +50,7 @@ suite('controllers/timer', function() {
   suite('TimerController()', function() {
     test('Should append the TimerView to the app', function() {
       var controller = new this.TimerController(this.app);
-      assert.ok(this.timer.appendTo.calledWith(this.app.el));
+      assert.ok(this.view.appendTo.calledWith(this.app.el));
     });
 
     test('Should start the timer when the \'startcountdown\' event fires', function() {
@@ -62,8 +66,6 @@ suite('controllers/timer', function() {
 
   suite('TimerController#start()', function() {
     setup(function() {
-      this.controller = new this.TimerController(this.app);
-      this.view = this.controller.view;
       this.controller.start();
     });
 
@@ -116,7 +118,7 @@ suite('controllers/timer', function() {
       assert.ok(this.app.set.calledWith('timerActive', false));
     });
 
-    test('Should hide the view', function() {
+    test('Should hide the view once time is up', function() {
       this.clock.tick(5000);
       assert.ok(this.view.hide.called);
     });
@@ -125,12 +127,27 @@ suite('controllers/timer', function() {
       this.clock.tick(5000);
       assert.ok(!this.app.emit.calledWith('timer:cleared'));
     });
+
+    test('Should never be able to fall into negative numbers', function() {
+      this.controller.seconds = 0;
+      this.view.set.reset();
+
+      this.clock.tick(1000);
+
+      //
+      assert.isFalse(this.view.set.calledWith(-1));
+    });
+
+    test('Should not able to start a timer if one is already active', function() {
+      this.app.emit.reset();
+      this.app.get.withArgs('timerActive').returns(true);
+      this.controller.start();
+      assert.isFalse(this.app.emit.calledWith('timer:started'));
+    });
   });
 
   suite('TimerController#clear()', function() {
     setup(function() {
-      this.controller = new this.TimerController(this.app);
-      this.view = this.controller.view;
       this.controller.start();
       this.controller.clear();
     });
