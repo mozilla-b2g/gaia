@@ -31,15 +31,12 @@ marionette('day view', function() {
       app.day.waitForDisplay();
     });
 
-    // disabled bug 988516
-    test.skip('click after first hour', function() {
-      // click will happen at middle of element and middle is after first hour,
-      // so this should be enough to trigger the event details (Bug 972666)
+    test('click after first hour', function() {
       app.day.events[0].click();
       app.readEvent.waitForDisplay();
 
       assert.equal(
-        app.readEvent.title,
+        app.readEvent.waitForTextNotEmpty('title'),
         'Lorem Ipsum',
         'title should match'
       );
