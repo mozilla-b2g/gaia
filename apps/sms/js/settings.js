@@ -50,6 +50,8 @@ var Settings = {
 
     this._serviceIds = [];
 
+    console.log('>>> settings is', settings);
+    console.log('>>> conns is', conns);
     if (!settings) {
       return;
     }
@@ -65,6 +67,8 @@ var Settings = {
       for (var i = 0, l = conns.length; i < l; i++) {
         this._serviceIds.push(conns[i].iccId);
       }
+
+      console.log('service ids are', this._serviceIds);
     }
 
     for (var key in keyHandlerSet) {

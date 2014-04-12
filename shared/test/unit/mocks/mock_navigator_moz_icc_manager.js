@@ -263,10 +263,5 @@
 
   };
 
-  // add default Icc instance at first
-  MockIccManager.addIcc('12345', {
-    'cardState': 'ready'
-  });
-
   window.MockNavigatorMozIccManager = MockIccManager;
 })();

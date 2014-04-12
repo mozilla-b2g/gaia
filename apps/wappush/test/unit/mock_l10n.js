@@ -30,6 +30,7 @@
     localize: function localize(element, id, args) {
       element.innerText = MockL10n.get(id, args);
     },
+    ctx: { isReady: true },
     DateTimeFormat: DateTimeFormat
   };
 

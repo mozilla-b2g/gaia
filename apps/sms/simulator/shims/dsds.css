@@ -1,0 +1,11 @@
+.show-dsds-options .dsds-options {
+  display: initial;
+}
+
+.dsds-options {
+  display: none;
+}
+
+.dsds label {
+  display: block;
+}

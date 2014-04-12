@@ -607,6 +607,7 @@ var ThreadUI = {
   },
 
   beforeEnterThread: function thui_beforeEnterThread(args) {
+    console.log('beforeEnterThread');
     // TODO should we implement hooks to Navigation so that Threads could
     // get an event whenever the panel changes?
     Threads.currentId = args.id;
@@ -1348,7 +1349,7 @@ var ThreadUI = {
     // completely. So in the case of Desktop testing we are going to execute
     // the callback directly in order to make it work!
     // https://bugzilla.mozilla.org/show_bug.cgi?id=836733
-    if (!this._mozMobileMessage) {
+//    if (!this._mozMobileMessage) {
       navigator.mozL10n.setAttributes(
         this.headerText,
         'thread-header-text',
@@ -1358,7 +1359,7 @@ var ThreadUI = {
         }
       );
       return Promise.resolve();
-    }
+//    }
 
     // Add data to contact activity interaction
     this.headerText.dataset.number = number;
