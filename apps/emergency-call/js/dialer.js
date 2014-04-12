@@ -10,16 +10,10 @@ var CallHandler = {
     var sanitizedNumber = number.replace(/-/g, '');
     var telephony = this._telephony;
     if (telephony) {
-      /* XXX: Temporary fix to handle old and new telephony API
-         To remove when bug 969218 lands */
-      var promiseOrCall = telephony.dialEmergency(sanitizedNumber);
-      if (promiseOrCall && promiseOrCall.then) {
-        promiseOrCall.then(function(call) {
-          this._installHandlers(call);
-        }.bind(this));
-      } else {
-        this._installHandlers(promiseOrCall);
-      }
+      var callPromise = telephony.dialEmergency(sanitizedNumber);
+      callPromise.then(function(call) {
+        this._installHandlers(call);
+      }.bind(this));
     }
   },
 

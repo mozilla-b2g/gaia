@@ -32,8 +32,6 @@ apps/callscreen/test/unit/mock_bluetooth_helper.js
 apps/callscreen/test/unit/mock_call_screen.js
 apps/callscreen/test/unit/mock_mozbluetooth.js
 apps/callscreen/test/unit/mock_simple_phone_matcher.js
-apps/camera/js/startup.js
-apps/camera/js/views/viewfinder.js
 apps/communications/dialer/js/call_log.js
 apps/communications/dialer/js/call_log_db.js
 apps/communications/dialer/js/dialer.js
@@ -176,8 +174,6 @@ apps/email/test/unit/mock_api.js
 apps/email/test/unit/model_test.js
 apps/email/test/unit/query_string_test.js
 apps/email/test/unit/setup_manual_config_protocol_dropdown_test.js
-apps/emergency-call/test/unit/dialer_test.js
-apps/emergency-call/test/unit/setup.js
 apps/fl/js/binary_string_view.js
 apps/fl/js/constants.js
 apps/fl/js/db.js
@@ -355,7 +351,6 @@ apps/settings/js/downloads/download_api_manager.js
 apps/settings/js/downloads/download_item.js
 apps/settings/js/downloads/downloads_list.js
 apps/settings/js/dsds_settings.js
-apps/settings/js/factory_reset.js
 apps/settings/js/homescreen.js
 apps/settings/js/hotspot.js
 apps/settings/js/hotspot_wifi_settings.js

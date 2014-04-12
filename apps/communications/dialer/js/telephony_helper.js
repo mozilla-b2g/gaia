@@ -80,7 +80,7 @@ var TelephonyHelper = (function() {
       var cardState = IccHelper.cardState;
       var emergencyOnly = conn.voice.emergencyCallsOnly;
       var hasCard = (conn.iccId !== null);
-      var promiseOrCall;
+      var callPromise;
 
       // Note: no need to check for cardState null. While airplane mode is on
       // cardState is null and we handle that situation in call() above.
@@ -92,42 +92,31 @@ var TelephonyHelper = (function() {
         // If the mobileConnection has a sim card we let gecko take the
         // default service, otherwise we force the first slot.
         cardIndex = hasCard ? undefined : 0;
-        promiseOrCall = telephony.dialEmergency(sanitizedNumber, cardIndex);
+        callPromise = telephony.dialEmergency(sanitizedNumber, cardIndex);
       } else {
-        promiseOrCall = telephony.dial(sanitizedNumber, cardIndex);
+        callPromise = telephony.dial(sanitizedNumber, cardIndex);
       }
 
-      /* XXX: Temporary fix to handle old and new telephony API
-         To remove when bug 969218 lands */
-      if (promiseOrCall && promiseOrCall.then) {
-        promiseOrCall.then(function(call) {
-          installHandlers(call, sanitizedNumber, emergencyOnly, oncall,
-                          onconnected, ondisconnected, onerror);
-        }).catch(function(errorName) {
-          handleError(errorName, sanitizedNumber, emergencyOnly, onerror);
-        });
-      } else {
-        installHandlers(promiseOrCall, sanitizedNumber, emergencyOnly, oncall,
+      callPromise.then(function(call) {
+        installHandlers(call, sanitizedNumber, emergencyOnly, oncall,
                         onconnected, ondisconnected, onerror);
-      }
+      }).catch(function(errorName) {
+        handleError(errorName, sanitizedNumber, emergencyOnly, onerror);
+      });
     });
   }
 
   function installHandlers(call, number, emergencyOnly, oncall, onconnected,
                            ondisconnected, onerror) {
-    if (call) {
-      if (oncall) {
-        oncall();
-      }
-      call.onconnected = onconnected;
-      call.ondisconnected = ondisconnected;
-      call.onerror = function errorCB(evt) {
-        var errorName = evt.call.error.name;
-        handleError(errorName, number, emergencyOnly, onerror);
-      };
-    } else {
-      displayMessage('UnableToCall');
+    if (oncall) {
+      oncall();
     }
+    call.onconnected = onconnected;
+    call.ondisconnected = ondisconnected;
+    call.onerror = function errorCB(evt) {
+      var errorName = evt.call.error.name;
+      handleError(errorName, number, emergencyOnly, onerror);
+    };
   }
 
   function handleError(errorName, number, emergencyOnly, onerror) {
