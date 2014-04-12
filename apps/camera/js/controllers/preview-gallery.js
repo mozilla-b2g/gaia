@@ -68,6 +68,7 @@ PreviewGalleryController.prototype.openPreview = function() {
   this.view.on('click:delete', this.deleteCurrentItem);
   this.view.on('click:back', this.closePreview);
   this.view.on('swipe', this.handleSwipe);
+  this.view.on('click:options', this.onOptionsClick);
 
   // If lockscreen is locked, hide all control buttons
   var secureMode = this.app.inSecureMode;
@@ -108,7 +109,9 @@ PreviewGalleryController.prototype.onGalleryButtonClick = function() {
   // Can't launch the gallery if the lockscreen is locked.
   // The button shouldn't even be visible in this case, but
   // let's be really sure here.
-  if (this.app.inSecureMode) { return; }
+  if (this.app.inSecureMode) {
+    return;
+  }
 
   var MozActivity = window.MozActivity;
 
@@ -119,8 +122,19 @@ PreviewGalleryController.prototype.onGalleryButtonClick = function() {
   });
 };
 
+PreviewGalleryController.prototype.onOptionsClick = function() {
+  if (this.app.inSecureMode) {
+    return;
+  }
+
+  this.view.showOptionsMenu();
+};
+
+
 PreviewGalleryController.prototype.shareCurrentItem = function() {
-  if (this.app.inSecureMode) { return; }
+  if (this.app.inSecureMode) {
+    return;
+  }
 
   var index = this.currentItemIndex;
   var item = this.items[index];
