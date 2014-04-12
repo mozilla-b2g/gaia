@@ -52,6 +52,10 @@ module.exports = View.extend({
     return this;
   },
 
+  clearMediaFrame: function() {
+    this.mediaFrame.clear();
+  },
+
   hide: function() {
     this.el.classList.add('hidden');
     orientation.lock();
