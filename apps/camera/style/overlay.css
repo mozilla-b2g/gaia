@@ -18,6 +18,10 @@
   z-index: 110;
 }
 
+.overlay.hidden {
+  visibility: hidden;
+}
+
 /*
  * The overlay content area holds the text of the overlay.
  * It has borders and a less transparent background so that
@@ -79,6 +83,17 @@
   display: block !important; /* 1 */
 }
 
+/**
+ * @fullbutton=false
+ */
+.overlay .second-button {
+  display: none !important;
+}
+
+.overlay[data-fullbutton=false] .second-button {
+  display: inline-block !important;
+}
+
 /** Menu Storage
  ---------------------------------------------------------*/
 
@@ -111,3 +126,45 @@
 .overlay menu button.hidden {
   display: none;
 }
+
+/*.deg90 .overlay[data-type=photo] .overlay-menu-close,
+.deg90 .overlay[data-type=video] .overlay-menu-close {
+  width: 100vh;
+  left: 100%;
+  transform-origin: left bottom;
+  transform: rotate(-90deg);  
+}
+
+.deg180 .overlay[data-type=photo] .overlay-menu-close,
+.deg180 .overlay[data-type=video] .overlay-menu-close {
+  top: 0;
+  bottom: calc(100% - 7rem);
+  transform: rotate(-180deg);
+}
+
+.deg270 .overlay[data-type=photo] .overlay-menu-close,
+.deg270 .overlay[data-type=video] .overlay-menu-close {
+  width: 100vh;
+  top: 0;
+  left: 7rem;
+  transform-origin: left bottom;
+  transform: rotate(-270deg);
+}
+
+.deg90 .overlay[data-type=photo] .overlay-body,
+.deg90 .overlay[data-type=video] .overlay-body {
+  width: 100vh;
+  transform: rotate(-90deg);  
+}
+
+.deg180 .overlay[data-type=photo] .overlay-body,
+.deg180 .overlay[data-type=video] .overlay-body {
+  transform: rotate(-180deg) translateY(-10.2rem);
+}
+
+.deg270 .overlay[data-type=photo] .overlay-body,
+.deg270 .overlay[data-type=video] .overlay-body {
+  width: 100vh;
+  transform-origin: left top;
+  transform: rotate(-270deg);
+}*/

@@ -154,23 +154,27 @@ PreviewGalleryController.prototype.deleteCurrentItem = function() {
   var index = this.currentItemIndex;
   var item = this.items[index];
   var filepath = item.filepath;
-  var msg;
+  var self = this;
 
-  if (item.isVideo) {
-    msg = navigator.mozL10n.get('delete-video?');
-  }
-  else {
-    msg = navigator.mozL10n.get('delete-photo?');
-  }
+  var type = item.isVideo ? 'video' : 'photo';
+  var options = {
+    type: type,
+    closable: true,
+    confirmCB: deleteItem,
+    recommend: false,
+    fullButton: false
+  };
 
-  if (window.confirm(msg)) {
-    this.updatePreviewGallery(index);
+  this.app.emit('previewGallery:delete', options);
+
+  function deleteItem() {
+    self.updatePreviewGallery(index);
 
     // Actually delete the file
     if (item.isVideo) {
-      this.storage.deleteVideo(filepath);
+      self.storage.deleteVideo(filepath);
     } else {
-      this.storage.deleteImage(filepath);
+      self.storage.deleteImage(filepath);
     }
   }
 };

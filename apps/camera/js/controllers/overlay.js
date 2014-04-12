@@ -36,6 +36,7 @@ function OverlayController(app) {
 OverlayController.prototype.bindEvents = function() {
   this.storage.on('statechange', this.onStorageStateChange);
   this.app.on('change:batteryStatus', this.onBatteryStatusChange);
+  this.app.on('previewGallery:delete', this.onDeleteDialog);
 };
 
 /**
@@ -78,6 +79,51 @@ OverlayController.prototype.onBatteryStatusChange = function(status) {
   }
 };
 
+OverlayController.prototype.onDeleteDialog = function(options) {
+  if (this.deleteOverlay) {
+    this.deleteOverlay.destroy();
+    this.deleteOverlay = null;
+  }
+
+  this.deleteOverlay = this.createDialog(options);
+};
+
+OverlayController.prototype.createDialog = function(options) {
+  var data = this.getOverlayData(options.type);
+
+  if (!data) {
+    return;
+  }
+
+  var overlay = new Overlay({
+    type: options.type,
+    closable: options.closable,
+    fullButton: options.fullButton,
+    data: data
+  });
+
+  if (!options.full) {
+    overlay.setButtonType(options.recommend);
+  }
+
+  overlay
+    .appendTo(document.body)
+    .on('click:close-btn', closeClick)
+    .on('click:confirm-btn', confirmClick);
+
+  function closeClick() {
+    overlay.el.classList.add('hidden');
+  }
+
+  function confirmClick() {
+    closeClick();
+    options.confirmCB();
+  }
+
+  debug('inserted \'%s\' overlay', options.type);
+  return overlay;
+};
+
 OverlayController.prototype.createOverlay = function(type) {
   var data = this.getOverlayData(type);
   var activity = this.activity;
@@ -113,7 +159,7 @@ OverlayController.prototype.createOverlay = function(type) {
 OverlayController.prototype.getOverlayData = function(type) {
   var l10n = navigator.mozL10n;
   var data = {};
-
+  
   switch (type) {
     case 'unavailable':
       data.title = l10n.get('nocard2-title');
@@ -131,11 +177,25 @@ OverlayController.prototype.getOverlayData = function(type) {
       data.title = l10n.get('battery-shutdown-title');
       data.body = l10n.get('battery-shutdown-text');
     break;
+    case 'video':
+      data.title = '';
+      data.body = l10n.get('delete-video?');
+      data.closeButtonText = l10n.get('cancel');
+      data.confirmButtonText = l10n.get('delete');
+    break;
+    case 'photo':
+      data.title = '';
+      data.body = l10n.get('delete-photo?');
+      data.closeButtonText = l10n.get('cancel');
+      data.confirmButtonText = l10n.get('delete');
+    break;
     default:
       return false;
   }
 
-  data.closeButtonText = l10n.get('close-button');
+  if (type != 'video' && type != 'photo') {
+    data.closeButtonText = l10n.get('close-button');
+  }
 
   return data;
 };
