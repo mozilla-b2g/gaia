@@ -3,7 +3,7 @@
 var System = require('../../../system/test/marionette/lib/system');
 var Search = require('./lib/search');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
-var Calendar = require('../../../calendar/test/marionette/calendar');
+var Calendar = require('../../../calendar/test/marionette/lib/calendar');
 
 marionette('Search - App search', function() {
   var client = marionette.client(Rocketbar.clientOptions);
