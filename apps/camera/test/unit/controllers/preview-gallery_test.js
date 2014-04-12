@@ -138,34 +138,6 @@ suite('controllers/preview-gallery', function() {
       assert.ok(arg.data.filepaths[0] === item.filepath);
     });
 
-    test('Should deleteCurrentItem which is image', function() {
-      var item = {
-        blob: {},
-        filepath: 'root/fileName',
-        isVideo: false
-      };
-      this.previewGalleryController.items = [item];
-      this.previewGalleryController.currentItemIndex = 0;
-      this.previewGalleryController.deleteCurrentItem();
-
-      assert.ok(this.previewGalleryController.storage.deleteImage
-                .calledWith('root/fileName'));
-    });
-
-    test('Should deleteCurrentItem which is video', function() {
-      var item = {
-        blob: {},
-        filepath: 'root/fileName',
-        isVideo: true
-      };
-      this.previewGalleryController.items = [item];
-      this.previewGalleryController.currentItemIndex = 0;
-      this.previewGalleryController.deleteCurrentItem();
-
-      assert.ok(this.previewGalleryController.storage.deleteVideo
-                .calledWith('root/fileName'));
-    });
-
     test('Check onNewMedia callback', function() {
       var item = {
         blob: {},

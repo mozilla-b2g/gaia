@@ -18,6 +18,10 @@
   z-index: 110;
 }
 
+.overlay.hidden {
+  visibility: hidden;
+}
+
 /*
  * The overlay content area holds the text of the overlay.
  * It has borders and a less transparent background so that
@@ -79,24 +83,15 @@
   display: block !important; /* 1 */
 }
 
-/** Menu Storage
- ---------------------------------------------------------*/
-
 /**
- * 1. Override high specificity of
- *    conifrm.css selectors.
+ * @fullbutton=false
  */
-
-.overlay-menu-storage {
-  display: none !important; /* 1 */
+.overlay .second-button {
+  display: none !important;
 }
 
-/**
- * @nocard
- */
-
-.overlay[data-type=unavailable] .overlay-menu-storage {
-  display: block !important; /* 1 */
+.overlay[data-fullbutton=false] .second-button {
+  display: inline-block !important;
 }
 
 /*
