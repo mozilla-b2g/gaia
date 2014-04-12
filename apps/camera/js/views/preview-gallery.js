@@ -62,24 +62,22 @@ return View.extend({
   },
 
   template: function() {
+    var l10n = navigator.mozL10n;
     /*jshint maxlen:false*/
     return '<div class="frame-container js-frame-container">' +
       '<div class="media-frame js-media-frame"></div>' +
       '</div>' +
       '<div class="preview-menu js-preview-menu">' +
-        '<div class="camera-back icon-camera-back js-btn" name="back"></div>' +
-        '<div class="count-text js-count-text"></div>' +
-        '<footer class="preview-controls js-preview">' +
-          '<div class="preview-gallery-button js-btn" name="gallery">' +
-            '<div class="preview-gallery-icon icon-gallery"></div>' +
-          '</div>' +
-          '<div class="preview-share-button js-btn" name="share">' +
-            '<div class="preview-share-icon icon-preview-share"></div>' +
-          '</div>' +
-          '<div class="preview-delete-button js-btn" name="delete">' +
-            '<div class="preview-delete-icon icon-preview-delete"></div>' +
-          '</div>' +
-        '</footer>' +
+       '<header class="preview-header js-preview-header">' +
+         '<div class="camera-back icon-back-arrow js-btn" name="back"></div>' +
+         '<div class="preview-text " name="preview-text">' +
+         l10n.get('preview') + '</div>' +
+         '<div class="preview-share-icon icon-preview-share js-btn"' +
+         'name="share"></div>' +
+         '<div class="preview-option-icon icon-preview-options js-btn"' +
+         ' name="option" ></div>' +
+       '</header>' +
+      '<div class="count-text js-count-text"></div>' +
       '</div>';
   },
 
@@ -199,11 +197,12 @@ return View.extend({
   },
 
   onButtonClick: function(e, el) {
-    if (this.videoPlaying) {
-      return;
-    }
+    if (this.videoPlaying) { return; }
 
     var name = el.getAttribute('name');
+    if (this.container) {
+      this.removeOption();
+    }
     this.emit('click:' + name, e);
     e.stopPropagation();
   },
@@ -272,7 +271,56 @@ return View.extend({
 
     this.videoPlaying = false;
     this.previewMenuFadeIn();
+  },
+
+   previewOption: function() {
+    var l10n = navigator.mozL10n;
+    // Create the structure
+    this.container = document.createElement('form');
+    this.container.dataset.type = 'action';
+    this.container.setAttribute('role', 'dialog');
+    this.container.setAttribute('data-z-index-level', 'action-menu');
+
+    // An action menu has a mandatory header
+    this.header = document.createElement('header');
+    this.header.textContent = l10n.get('options');
+    this.container.appendChild(this.header);
+
+    // We have a menu with all the options
+    this.menu = document.createElement('menu');
+    this.container.appendChild(this.menu);
+    this.container.classList.add('visible');
+    this.menu.innerHTML = this.optionTemplate();
+    this.el.appendChild(this.container);
+
+    // We add the event listner for menu items and cancel buttons
+    var cancelButton = this.find('.js-cancel');
+    bind(cancelButton, 'click', this.removeOption);
+    if (this.menu) {
+      attach.on(this.menu, 'click', '.js-btn', this.onButtonClick);
+    }
+  },
+
+  optionTemplate: function() {
+    var l10n = navigator.mozL10n;
+    return '<button class=" js-btn"' +
+    ' name="gallery">' +
+     l10n.get('open-gallery') +
+     '</button>' +
+     '<button class=" js-btn" name="delete" >' +
+      l10n.get('delete') + '</button>' +
+     '<button data-action="cancel" class="js-cancel">' +
+     l10n.get('cancel') + '</button>';
+  },
+
+  removeOption: function() {
+    if (this.container) {
+      this.container.parentElement.removeChild(this.container);
+      this.container = null;
+    }
+    this.previewMenuFadeIn();
   }
+
 });
 
 });

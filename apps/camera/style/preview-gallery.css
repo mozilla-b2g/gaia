@@ -69,25 +69,75 @@
   pointer-events: auto;
 }
 
-.preview-gallery[secure-mode=true] .preview-gallery-button,
-.preview-gallery[secure-mode=true] .preview-share-button,
-.preview-gallery[secure-mode=true] .preview-delete-button {
+.preview-gallery[secure-mode=true] .preview-share-icon,
+.preview-gallery[secure-mode=true] .preview-option-icon {
   display: none;
 }
 
-.camera-back {
+.camera-back {  
   position: absolute;
-  font-size: 4.5rem;
+  font-size: 2.5rem;
   width: 5rem;
   height: 5rem;
   line-height: 5rem;
-  text-align: center;
-  border-radius: 50%;
-  background-color: rgba(0,0,0,.12);
+  text-align: left;
   background-clip: padding-box;
   border: solid 2rem transparent;
   -moz-box-sizing: content-box;
   color: #fff;
+  top: -2.2rem;
+  left: -1.8rem;
+}
+
+/*  preview-header  */
+.preview-header {
+  position: absolute;
+  height: 5rem;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+
+}
+
+.preview-share-icon {    
+  position: absolute;
+  font-size: 2rem;
+  float: right;
+  right: 3rem;
+  width: 5rem;
+  height: 5rem;
+  line-height: 5rem;
+  text-align: center;
+  background-clip: padding-box;
+  border: solid 2rem transparent;
+  -moz-box-sizing: content-box;
+  color: #fff;
+  top: -2rem;
+}
+
+.preview-option-icon {   
+  position: absolute;
+  font-size: 1.9rem;
+  right: -2rem;
+  width: 5rem;
+  height: 5rem;
+  line-height: 5rem;
+  text-align: center;
+  background-clip: padding-box;
+  border: solid 2rem transparent;
+  -moz-box-sizing: content-box;
+  color: #fff;
+  top: -2rem;
+}
+
+.preview-text {
+  position: absolute;
+  font-size: 2.5rem;
+  width: 5rem;
+  height: 5rem;
+  left: 2.8rem;
+  text-align: center;
+  color: #fff;
+  top: 1.1rem;
 }
 
 .count-text {
@@ -124,28 +174,8 @@
 }*/
 
 .camera-back:active,
-.preview-gallery-button:active,
-.preview-share-button:active,
-.preview-delete-button:active {
+.preview-share-icon:active,
+.preview-option-icon:active {
   background-color: #008EAB;
   opacity: 1;
-}
-
-.preview-gallery-button,
-.preview-share-button,
-.preview-delete-button {
-  display: flex;
-  width: 33%;
-  height: 100%;
-  justify-content: center;
-  color: white;
-}
-
-.preview-gallery-icon,
-.preview-delete-icon,
-.preview-share-icon {
-  font-size: 3rem;
-  width: 4rem;
-  height: 4rem;
-  margin-top: 7px;
 }

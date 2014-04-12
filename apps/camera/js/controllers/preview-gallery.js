@@ -68,6 +68,7 @@ PreviewGalleryController.prototype.openPreview = function() {
   this.view.on('click:delete', this.deleteCurrentItem);
   this.view.on('click:back', this.closePreview);
   this.view.on('swipe', this.handleSwipe);
+  this.view.on('click:option', this.onPreviewOptionClick);
 
   // If lockscreen is locked, hide all control buttons
   var secureMode = this.app.inSecureMode;
@@ -118,6 +119,11 @@ PreviewGalleryController.prototype.onGalleryButtonClick = function() {
     data: { type: 'photos' }
   });
 };
+
+PreviewGalleryController.prototype.onPreviewOptionClick = function() {
+  this.view.previewOption();
+};
+
 
 PreviewGalleryController.prototype.shareCurrentItem = function() {
   if (this.app.inSecureMode) { return; }
