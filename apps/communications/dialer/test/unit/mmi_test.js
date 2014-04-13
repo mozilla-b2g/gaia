@@ -159,6 +159,12 @@ suite('dialer/mmi', function() {
     });
   });
 
+  test('Should handle network initiated messages properly', function() {
+    this.sinon.spy(window, 'postMessage');
+    MmiManager.handleMMIReceived(MMI_MSG, false);
+    sinon.assert.calledWithMatch(window.postMessage, {type: 'mmi-received-ui'});
+  });
+
   suite('Mmi received with message and session active', function() {
     setup(function() {
       MmiManager._conn.triggerUssdReceived(MMI_MSG, false);
