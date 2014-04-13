@@ -102,7 +102,7 @@
    "lockscreen.unlock-sound.enabled": false,
    "mail.sent-sound.enabled": true,
    "message.sent-sound.enabled": true,
-   "nfc.enabled": false,
+   "nfc.enabled": true,
    "nfc.suspended": false,
    "operatorvariant.mcc": "000",
    "operatorvariant.mnc": "00",
