@@ -868,6 +868,10 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         else:
             self.cleanup_gaia(full_reset=True)
 
+        if self.device.is_android_build:
+            # TODO Bug 990580 - workaround to avoid launch() timeout failures 
+            time.sleep(5)
+
     def cleanup_data(self):
         self.device.manager.removeDir('/cache/*')
         self.device.manager.removeDir('/data/b2g/mozilla')
