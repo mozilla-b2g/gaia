@@ -22,7 +22,9 @@ marionette('Keyboard APP', function() {
   setup(function() {
     keyboardtests = new KeyboardTests(client);
     keyboardtests.launch();
-    keyboardtests.textInput.click(0, 0);
+
+    client.helper.wait(30 * 1000);
+    keyboardtests.textInput.click();
   });
 
   test('should show lowercase layout', function() {
