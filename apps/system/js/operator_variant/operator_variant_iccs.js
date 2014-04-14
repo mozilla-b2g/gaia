@@ -21,7 +21,7 @@ var OperatorVariant = (function() {
   /**
    * Init function.
    */
-  function cs_init() {
+  function ov_init() {
     if (!_mobileConnections || !_iccManager || !_settings) {
       return;
     }
@@ -64,8 +64,41 @@ var OperatorVariant = (function() {
     return -1;
   }
 
+  /**
+   * Helper function. Ensure the value of 'ril.iccInfo.mbdn' is an array.
+   */
+  function ov_ensureVoicemailType(callback) {
+    callback = callback || function() {};
+
+    var getReq = _settings.createLock().get('ril.iccInfo.mbdn');
+    getReq.onsuccess = function() {
+      var originalSetting = getReq.result['ril.iccInfo.mbdn'];
+      var newSetting = null;
+      if (!originalSetting) {
+        newSetting = ['', ''];
+      } else if (!Array.isArray(originalSetting)) {
+        // Migrate settings field if needed
+        newSetting = [originalSetting, ''];
+      }
+
+      if (newSetting) {
+        var setReq = _settings.createLock().set({
+          'ril.iccInfo.mbdn': newSetting
+        });
+        setReq.onsuccess = callback;
+        setReq.onerror = callback;
+      } else {
+        callback();
+      }
+    };
+    getReq.onerror = callback;
+  }
+
   return {
-    init: cs_init
+    ov_ensureVoicemailType: ov_ensureVoicemailType,
+    init: function() {
+      ov_ensureVoicemailType(ov_init);
+    }
   };
 })();
 
