@@ -239,12 +239,15 @@ var StatusBar = {
     // Listen to 'moztimechange'
     window.addEventListener('moztimechange', this);
 
-    // Listen to 'lock', 'unlock', and 'lockpanelchange' from lockscreen.js in
-    // order to correctly set the visibility of the statusbar clock depending
-    // on the active lockscreen panel
+    // Listen to 'lock', 'unlock' from lockscreen.js in
+    // order to correctly set the visibility of the statusbar clock
     window.addEventListener('lock', this);
     window.addEventListener('unlock', this);
-    window.addEventListener('lockpanelchange', this);
+
+    // If secure-app launched, show the clock if it's not a
+    // full screen app.
+    window.addEventListener('secure-appcreated', this);
+    window.addEventListener('secure-appterminated', this);
 
     window.addEventListener('appopened', this);
     window.addEventListener('homescreenopened', this.show.bind(this));
@@ -287,6 +290,16 @@ var StatusBar = {
         this.toggleTimeLabel(true);
         break;
 
+      case 'secure-appcreated':
+        this.screen.classList.add('secureapp-launched');
+        this.toggleTimeLabel(true);
+        break;
+
+      case 'secure-appterminated':
+        this.screen.classList.remove('secureapp-launched');
+        this.toggleTimeLabel(false);
+        break;
+
       case 'attentionscreenshow':
         this.toggleTimeLabel(true);
         this.show();
@@ -294,7 +307,7 @@ var StatusBar = {
 
       case 'attentionscreenhide':
         // Hide the clock in the statusbar when screen is locked
-        this.toggleTimeLabel(!this.isLocked());
+        this.toggleTimeLabel(!window.System.locked);
         var app = AppWindowManager.getActiveApp();
         if (app && app.isFullScreen()) {
           this.hide();
@@ -312,12 +325,34 @@ var StatusBar = {
         }
         break;
 
-      case 'lockpanelchange':
-        if (this.screen.classList.contains('locked')) {
-          // Display the clock in the statusbar if on Emergency Call screen
-          var isHidden = (evt.detail.panel == 'emergency-call') ? false : true;
-          this.toggleTimeLabel(!isHidden);
-        }
+      case 'home':
+      case 'homescreenopened':
+        this.element.classList.add('on-homescreen');
+        this.background.classList.add('on-homescreen');
+        this.show();
+        break;
+
+      case 'homescreenclosing':
+        this.element.classList.remove('on-homescreen');
+        this.background.classList.remove('on-homescreen');
+        break;
+
+      case 'rocketbarexpand':
+        this.expand();
+        break;
+
+      case 'rocketbarcollapse':
+        this.collapse();
+        break;
+
+      case 'rocketbarfocus':
+        this.element.classList.add('rocketbar-focused');
+        this.background.classList.add('rocketbar-focused');
+        break;
+
+      case 'rocketbarblur':
+        this.element.classList.remove('rocketbar-focused');
+        this.background.classList.remove('rocketbar-focused');
         break;
 
       case 'chargingchange':
@@ -373,7 +408,7 @@ var StatusBar = {
 
           // But we still need to consider if we're locked. So may we need to
           // hide it again.
-          this.toggleTimeLabel(!this.isLocked());
+          this.toggleTimeLabel(!window.System.locked);
         }).bind(this));
         break;
 
@@ -567,7 +602,8 @@ var StatusBar = {
       window.addEventListener('moznetworkdownload', this);
 
       this.refreshCallListener();
-      this.toggleTimeLabel(!this.isLocked());
+
+      this.toggleTimeLabel(!window.System.locked);
     } else {
       var battery = window.navigator.battery;
       if (battery) {
@@ -1136,6 +1172,8 @@ var StatusBar = {
   getAllElements: function sb_getAllElements() {
     // ID of elements to create references
 
+    // It's not an 'icon', so don't handle it with the ELEMENTS.
+    this.screen = document.getElementById('screen');
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
         return p1.toUpperCase();
@@ -1199,12 +1237,6 @@ var StatusBar = {
     this.screen = document.getElementById('screen');
     this.attentionBar = document.getElementById('attention-bar');
     this.topPanel = document.getElementById('top-panel');
-  },
-
-  // To reduce the duplicated code
-  isLocked: function() {
-    return 'undefined' !== typeof window.lockScreen &&
-      window.lockScreen.locked;
   }
 };
 

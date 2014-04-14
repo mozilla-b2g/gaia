@@ -17,7 +17,7 @@ class PasscodePad(Base):
         self.marionette = marionette
         lockscreen_panel = self.marionette.find_element(*self._lockscreen_panel_locator)
         emergency_button = self.marionette.find_element(*self._emergency_button_locator)
-        self.wait_for_condition(lambda m: lockscreen_panel.size['height'] ==
+        self.wait_for_condition(lambda m: lockscreen_panel.size['height'] >
               (emergency_button.size['height'] + emergency_button.location['y']))
 
     def type_passcode(self, passcode):

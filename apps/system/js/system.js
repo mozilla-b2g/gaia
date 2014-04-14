@@ -53,6 +53,16 @@
       } catch (e) {
         console.log(e.stack);
       }
+    },
+
+    get locked() {
+      // Someone ask this state too early.
+      if ('undefined' === typeof window.lockScreenWindowManager) {
+        return false;
+      } else {
+        // Map it from the manager who actually manage the state.
+        return window.lockScreenWindowManager.states.active;
+      }
     }
   };
 }(this));

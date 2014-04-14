@@ -1,13 +1,12 @@
-/* globals MocksHelper, MockLockScreen, VisibilityManager,
+/* globals MocksHelper, VisibilityManager,
            MockAttentionScreen */
 'use strict';
 
-mocha.globals(['VisibilityManager', 'System', 'lockScreen']);
+mocha.globals(['VisibilityManager', 'System']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_attention_screen.js');
-requireApp('system/test/unit/mock_lock_screen.js');
 
 var mocksForVisibilityManager = new MocksHelper([
   'AttentionScreen'
@@ -18,7 +17,6 @@ suite('system/VisibilityManager', function() {
   var visibilityManager;
   mocksForVisibilityManager.attachTestHelpers();
   setup(function(done) {
-    window.lockScreen = MockLockScreen;
     this.sinon.useFakeTimers();
 
     stubById = this.sinon.stub(document, 'getElementById');
@@ -88,16 +86,6 @@ suite('system/VisibilityManager', function() {
       this.sinon.clock.tick(3000);
       assert.isTrue(stubPublish.getCall(1).args[0] === 'hidewindow');
       assert.isTrue(stubPublish.getCall(1).args[1].origin === 'fake-dialer');
-    });
-
-    test('show lockscreen when screen is on.', function() {
-      MockLockScreen.locked = true;
-      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
-      visibilityManager.handleEvent({
-        type: 'attentionscreenhide'
-      });
-
-      assert.isTrue(stubPublish.calledWith('showlockscreenwindow'));
     });
 
     test('rocketbar-overlayopened', function() {

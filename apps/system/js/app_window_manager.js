@@ -1,5 +1,5 @@
 /* global SettingsListener, homescreenLauncher, KeyboardManager,
-          layoutManager, lockScreen, System */
+          layoutManager, System */
 'use strict';
 
 (function(exports) {
@@ -364,10 +364,7 @@
           break;
 
         case 'ftuskip':
-          // XXX: There's a race between lockscreenWindow and homescreenWindow.
-          // If lockscreenWindow is instantiated before homescreenWindow,
-          // we should not display the homescreen here.
-          if (!lockScreen.locked) {
+          if (!System.locked) {
             this.display();
           } else {
             homescreenLauncher.getHomescreen().setVisible(false);

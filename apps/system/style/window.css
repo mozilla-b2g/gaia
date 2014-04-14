@@ -603,6 +603,10 @@
   100% { transform: translateX(100%); }
 }
 
+.lockScreenWindow.appWindow.render > iframe{
+  background: black;
+}
+
 /* Task Manager */
 #screen.task-manager:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.in-task-manager,
 #screen.task-manager:not(.active-statusbar):not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow.in-task-manager:not(.fullscreen-app) {
