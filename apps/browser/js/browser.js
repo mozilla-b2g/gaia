@@ -130,8 +130,8 @@ var Browser = {
     var filesToLoad = [
       // css files
       'shared/style/headers.css',
-      'shared/style/buttons.css',
-      'shared/style/input_areas.css',
+      'shared/style_unstable/buttons.css',
+      'shared/style_unstable/input_areas.css',
       'shared/style/status.css',
       'shared/style/confirm.css',
       'style/modal_dialog/modal_dialog.css',
