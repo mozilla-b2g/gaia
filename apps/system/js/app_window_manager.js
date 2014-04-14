@@ -201,9 +201,6 @@
      * @memberOf module:AppWindowManager
      */
     init: function awm_init() {
-      if (lockScreen && lockScreen.locked) {
-        this.element.setAttribute('aria-hidden', 'true');
-      }
       if (System.slowTransition) {
         this.element.classList.add('slow-transition');
       } else {
@@ -229,8 +226,6 @@
       // if the application is being uninstalled,
       // we ensure it stop running here.
       window.addEventListener('applicationuninstall', this);
-      window.addEventListener('hidewindows', this);
-      window.addEventListener('showwindows', this);
       window.addEventListener('hidewindow', this);
       window.addEventListener('showwindow', this);
       window.addEventListener('overlaystart', this);
@@ -300,8 +295,6 @@
       window.removeEventListener('killapp', this);
       window.removeEventListener('displayapp', this);
       window.removeEventListener('applicationuninstall', this);
-      window.removeEventListener('hidewindows', this);
-      window.removeEventListener('showwindows', this);
       window.removeEventListener('hidewindow', this);
       window.removeEventListener('showwindow', this);
       window.removeEventListener('overlaystart', this);
@@ -398,14 +391,6 @@
         // we ensure it stop running here.
         case 'applicationuninstall':
           this.kill(evt.detail.application.origin);
-          break;
-
-        case 'hidewindows':
-          this.element.setAttribute('aria-hidden', 'true');
-          break;
-
-        case 'showwindows':
-          this.element.setAttribute('aria-hidden', 'false');
           break;
 
         case 'hidewindow':
