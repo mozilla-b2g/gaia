@@ -18,7 +18,7 @@ KeyboardTests.prototype = {
     client.apps.launch(KeyboardTests.ORIGIN);
     client.apps.switchToApp(KeyboardTests.ORIGIN);
 
-    client.helper.wait(10 * 1000);
+    client.helper.wait(2 * 1000);
     // Wait until the app has told us it's fully loaded.
     client.helper.waitForElement('#textInput');
   }

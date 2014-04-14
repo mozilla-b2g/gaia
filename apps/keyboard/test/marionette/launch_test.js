@@ -29,8 +29,22 @@ marionette('Keyboard APP', function() {
     // switch to System app
     client.switchToFrame();
     console.log(client.screenshot());
+
+    // Wait for the keyboard pop up and switch to it
+    client.waitFor(function() {
+      var keyboards = client.findElement('#keyboards');
+
+      var classes = keyboards.getAttribute('class');
+      var transitionIn = keyboards.getAttribute('data-transition-in');
+
+      console.log(classes, transitionIn);
+
+      return ( classes.indexOf('hide') == -1 ) &&  transitionIn !== 'true';
+    });
+
     client.apps.switchToApp(KEYBOARD_ORIGIN);
-    // XXX: Workaround to get the #keyboard element to instead of the body element.
+    // XXX: Workaround to get the #keyboard element to instead of the body
+    // element.
     // The value of `client.findElement('body').displayed()` could not be true
     // when the keyboard app is show up in the screen currently.
     // Please refer to http://bugzil.la/995865.
@@ -41,6 +55,6 @@ marionette('Keyboard APP', function() {
         assert.ok(true);
         return true;
       }
-    });    
+    });
   });
 });
