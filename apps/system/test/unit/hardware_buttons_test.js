@@ -1,10 +1,15 @@
 'use strict';
 
 /* global HardwareButtons, MocksHelper, ScreenManager,
- *        MockSettingsListener, MockNavigatorMozTelephony 
+ *        MockSettingsListener, MockNavigatorMozTelephony
  */
 
-mocha.globals(['HardwareButtons', 'ScreenManager', 'MockSettingsListener', 'MockNavigatorMozTelephony']);
+mocha.globals([
+  'HardwareButtons',
+  'ScreenManager',
+  'MockSettingsListener',
+  'MockNavigatorMozTelephony'
+]);
 
 requireApp('system/js/hardware_buttons.js');
 requireApp('system/test/unit/mock_screen_manager.js');
