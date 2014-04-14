@@ -870,7 +870,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
         if self.device.is_android_build:
             # TODO Bug 990580 - workaround to avoid launch() timeout failures 
-            time.sleep(5)
+            time.sleep(10)
 
     def cleanup_data(self):
         self.device.manager.removeDir('/cache/*')
