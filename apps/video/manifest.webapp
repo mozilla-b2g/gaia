@@ -15,7 +15,8 @@
     "settings":{ "access": "readonly" },
     "deprecated-hwvideo":{},
     "audio-channel-content":{},
-    "nfc": { "access": "readwrite" }
+    "nfc": { "access": "readwrite" },
+    "power":{}
   },
   "locales": {
     "ar": {

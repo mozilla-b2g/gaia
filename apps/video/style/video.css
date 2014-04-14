@@ -788,3 +788,6 @@ form[role="dialog"][data-type="confirm"] button.hidden {
   border: none;
   padding: 0;
 }
+.fontsize {
+  font-size: large;
+}
