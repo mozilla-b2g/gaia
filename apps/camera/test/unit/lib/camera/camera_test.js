@@ -1,12 +1,12 @@
 /*jshint maxlen:false*/
 
-suite('lib/camera', function() {
+suite('lib/camera/camera', function() {
   'use strict';
   var require = window.req;
 
   suiteSetup(function(done) {
     var self = this;
-    require(['lib/camera'], function(Camera) {
+    require(['lib/camera/camera'], function(Camera) {
       self.Camera = Camera;
       done();
     });
@@ -39,7 +39,6 @@ suite('lib/camera', function() {
 
     // Fake mozCamera
     this.mozCamera = {
-      autoFocus: sinon.stub(),
       release: sinon.stub(),
       setConfiguration: sinon.stub(),
       capabilities: {}
@@ -55,7 +54,6 @@ suite('lib/camera', function() {
 
     // Aliases
     this.storage = this.options.storage;
-
     this.camera = new this.Camera(this.options);
     this.sandbox.spy(this.camera, 'ready');
     this.sandbox.spy(this.camera, 'emit');
@@ -65,81 +63,6 @@ suite('lib/camera', function() {
   teardown(function() {
     this.clock.restore();
     this.sandbox.restore();
-  });
-
-  suite('Camera#focus()', function() {
-    setup(function() {
-      this.camera = {
-        set: sinon.spy(),
-        mozCamera: this.mozCamera,
-        focus: this.Camera.prototype.focus,
-        orientation: sinon.stub()
-      };
-
-      this.clock = sinon.useFakeTimers();
-    });
-
-    teardown(function() {
-      this.clock.restore();
-    });
-
-    test('Should not call mozCamera.autoFocus if not supported', function() {
-      var done = sinon.spy();
-
-      this.camera.mozCamera.focusMode = 'infinity';
-
-      this.camera.focus(done);
-      this.clock.tick();
-      assert.ok(!this.camera.mozCamera.autoFocus.called);
-      assert.ok(done.called);
-    });
-
-    test('Should call autoFocus if supported manual AF supported', function() {
-      var done = sinon.spy();
-
-      this.camera.mozCamera.focusMode = 'auto';
-
-      this.camera.mozCamera.autoFocus.callsArgWith(0, true);
-
-      this.camera.focus(done);
-
-      // Check the focus state was first set to 'focusing'
-      assert.ok(this.camera.set.args[0][0] === 'focus');
-      assert.ok(this.camera.set.args[0][1] === 'focusing');
-
-      // Check the call to `autoFocus` was made
-      assert.ok(this.camera.mozCamera.autoFocus.called);
-
-      // Check the second focus state was then set to 'focused'
-      assert.ok(this.camera.set.args[1][0] === 'focus');
-      assert.ok(this.camera.set.args[1][1] === 'focused');
-
-      // The callback
-      assert.ok(done.called, 'callback called');
-    });
-
-    test('Should repond correctly on focus failure', function() {
-      var done = sinon.spy();
-
-      this.camera.mozCamera.focusMode = 'auto';
-      this.camera.mozCamera.autoFocus.callsArgWith(0, false);
-
-      this.camera.focus(done);
-
-      // Check the focus state was first set to 'focusing'
-      assert.ok(this.camera.set.args[0][0] === 'focus');
-      assert.ok(this.camera.set.args[0][1] === 'focusing');
-
-      // Check the call to `autoFocus` was made
-      assert.ok(this.camera.mozCamera.autoFocus.called);
-
-      // Check the second focus state was then set to 'focused'
-      assert.ok(this.camera.set.args[1][0] === 'focus');
-      assert.ok(this.camera.set.args[1][1] === 'fail');
-
-      // The callback
-      assert.ok(done.calledWith('failed'));
-    });
   });
 
   suite('Camera#startRecording()', function() {
@@ -563,7 +486,11 @@ suite('lib/camera', function() {
   suite('Camera#takePicture()', function() {
     setup(function() {
       this.camera = new this.Camera();
-      sinon.stub(this.camera, 'focus').callsArg(0);
+      this.camera.focus = {
+        focus: function() {},
+        resume: function() {}
+      };
+      sinon.stub(this.camera.focus, 'focus').callsArg(0);
       sinon.stub(this.camera, 'set');
       this.camera.mozCamera = {
         takePicture: sinon.stub().callsArgWith(1, 'the-blob'),
@@ -583,7 +510,7 @@ suite('lib/camera', function() {
     });
 
     test('Should still take picture even when focus fails', function() {
-      this.camera.focus = sinon.stub().callsArgWith(0, 'some error');
+      this.camera.focus.focus = sinon.stub().callsArgWith(0, 'some error');
       this.camera.takePicture({});
       assert.isTrue(this.camera.mozCamera.takePicture.called);
     });
@@ -758,8 +685,9 @@ suite('lib/camera', function() {
   suite('Camera#requestCamera()', function() {
     setup(function() {
       this.sandbox.stub(this.camera, 'setupNewCamera');
+      this.sandbox.stub(this.camera, 'configureFocus');
       navigator.mozCameras.getCamera.callsArgWith(2, this.mozCamera);
-
+      this.camera.mozCamera = this.mozCamera;
       this.camera.selectedCamera = 'back';
     });
 
@@ -817,6 +745,10 @@ suite('lib/camera', function() {
       this.camera.mozCamera = this.mozCamera;
       this.camera.recorderProfile = '720p';
       this.mozCamera.setConfiguration.callsArg(1);
+      this.camera.focus = {
+        configure: sinon.stub(),
+        resume: sinon.stub()
+      };
       this.sandbox.stub(this.camera, 'previewSize');
       this.sandbox.spy(this.camera, 'saveBootConfig');
       this.camera.previewSize.returns({ width: 400, height: 300 });

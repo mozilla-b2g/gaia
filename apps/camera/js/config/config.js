@@ -2,6 +2,9 @@ define(function(require, exports, module) {
 'use strict';
 
 module.exports = {
+  // This remaining globals are required by external dependencies of camera.
+  // shared/js/media/jpeg_metadata_parser.js
+  // shared/js/media/media_frame.js
   globals : {
     // The maximum picture size that camera is allowed to take
     CONFIG_MAX_IMAGE_PIXEL_SIZE: 5242880,
@@ -10,38 +13,35 @@ module.exports = {
     // Size of the exif preview embeded in images taken by camera
     CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH: 0,
     CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT: 0,
-
-    // TODO: Move these zoom globals
-    // into `zoom` config key below
-
-    // Amount of inactivity time (in milliseconds) to hide the Zoom Bar
-    ZOOM_BAR_INACTIVITY_TIMEOUT: 3000,
-
-    // Amount (%) to adjust the Zoom Bar by when tapping the min/max indicators
-    ZOOM_BAR_INDICATOR_INTERVAL: 10,
-
-    // Used to adjust sensitivity for pinch-to-zoom gesture
-    // (smaller values = more sensitivity)
-    ZOOM_GESTURE_SENSITIVITY: 0.425
   },
-
-  // You can override any of the `Camera`
-  // default options here (see lib/camera.js
-  // constructor for available options).
-  camera: {},
 
   zoom: {
-    disabled: false
+    disabled: false,
   },
 
-  caf: {
-    // Set this property to true if you want to disable continuous auto focus
-    // even on hardware that supports it.
-    disabled: false
+  focus: {
+    // Set this properties to false if you
+    // want to disable focus modes
+    // even on hardware that supports them
+    // -----------------------------------
+    // The camera will be continously focusing
+    // on a point of the scene. It is the center of the image
+    // unless touch to focus is enabled and the user selects a
+    // different region.
+    continuousAutoFocus: true,
+    // The user can select the area of the image
+    // where the camera is going to try to focus the scene.
+    touchFocus: false,
+    // The camera detects faces and tries to focus
+    // on them.
+    faceTracking: false
   },
 
   viewfinder: {
-    scaleType: 'fill'
+    scaleType: 'fill',
+    // Used to adjust sensitivity for pinch-to-zoom gesture
+    // (smaller values = more sensitivity)
+    zoomGestureSensitivity: 0.425
   },
 
   battery: {

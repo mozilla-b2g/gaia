@@ -40,7 +40,6 @@ module.exports = View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-
     // Find elements
     this.els.frame = this.find('.js-frame');
     this.els.video = this.find('.js-video');
@@ -62,7 +61,7 @@ module.exports = View.extend({
   },
 
   onClick: function(e) {
-    this.emit('click');
+    this.emit('click', e);
   },
 
   enableZoom: function(minimumZoom, maximumZoom) {

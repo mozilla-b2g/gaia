@@ -44,8 +44,9 @@ CameraController.prototype.bindEvents = function() {
   // Relaying camera events means other modules
   // don't have to depend directly on camera
   camera.on('change:videoElapsed', app.firer('camera:recorderTimeUpdate'));
+  camera.on('focusconfigured',  app.firer('camera:focusconfigured'));
+  camera.on('change:focus', app.firer('camera:focusstatechanged'));
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
-  camera.on('change:focus', app.firer('camera:focuschanged'));
   camera.on('change:recording', app.setter('recording'));
   camera.on('newcamera', app.firer('camera:newcamera'));
   camera.on('newimage', app.firer('camera:newimage'));
@@ -57,6 +58,7 @@ CameraController.prototype.bindEvents = function() {
   camera.on('busy', app.firer('camera:busy'));
 
   // App
+  app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
   app.on('previewgallery:opened', this.onPreviewGalleryOpened);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
   app.on('settings:configured', this.onSettingsConfigured);
@@ -314,6 +316,13 @@ CameraController.prototype.onStorageChanged = function(state) {
  */
 CameraController.prototype.onPreviewGalleryOpened = function() {
   this.camera.configureZoom(this.camera.previewSize());
+};
+
+/**
+ * Updates focus area when the user clicks on the viewfinder
+ */
+CameraController.prototype.onFocusPointChanged = function(focusPoint) {
+  this.camera.updateFocusArea(focusPoint.area);
 };
 
 });

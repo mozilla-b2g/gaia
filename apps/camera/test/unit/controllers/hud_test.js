@@ -8,7 +8,7 @@ suite('controllers/hud', function() {
 
     req([
       'app',
-      'lib/camera',
+      'lib/camera/camera',
       'controllers/hud',
       'views/hud',
       'views/controls',
