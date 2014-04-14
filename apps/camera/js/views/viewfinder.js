@@ -19,7 +19,7 @@ var lastTouchA = null;
 var lastTouchB = null;
 var isScaling = false;
 var isZoomEnabled = false;
-var sensitivity = constants.ZOOM_GESTURE_SENSITIVITY;
+var sensitivity;
 var scaleSizeTo = {
   fill: CameraUtils.scaleSizeToFillViewport,
   fit: CameraUtils.scaleSizeToFitViewport
@@ -81,6 +81,8 @@ module.exports = View.extend({
     this.els.frame = this.find('.js-frame');
     this.els.video = this.find('.js-video');
     this.els.videoContainer = this.find('.js-video-container');
+
+    sensitivity = constants.ZOOM_GESTURE_SENSITIVITY * window.innerWidth;
   },
 
   onClick: function(e) {

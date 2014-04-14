@@ -30,7 +30,7 @@ module.exports = {
 
   // Used to adjust sensitivity for pinch-to-zoom gesture
   // (smaller values = more sensitivity)
-  ZOOM_GESTURE_SENSITIVITY: 200
+  ZOOM_GESTURE_SENSITIVITY: 0.425
 };
 
 });
