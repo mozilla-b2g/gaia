@@ -4,7 +4,8 @@ var KeyboardTests = require('./lib/keyboard_tests'),
     assert = require('assert');
 
 var KEYBOARD_ORIGIN = 'app://keyboard.gaiamobile.org';
-
+var browser_ORIGIN = 'app://browser.gaiamobile.org';
+var urlBar = null;
 marionette('Keyboard APP', function() {
   var apps = {},
       keyboardtests = null,
@@ -20,11 +21,14 @@ marionette('Keyboard APP', function() {
   });
 
   setup(function() {
-    keyboardtests = new KeyboardTests(client);
-    keyboardtests.launch();
-
-    client.helper.wait(30 * 1000);
-    keyboardtests.textInput.click();
+    // keyboardtests = new KeyboardTests(client);
+    // keyboardtests.launch();
+    // keyboardtests.textInput.click(0, 0);
+    client.apps.launch(browser_ORIGIN);
+    client.apps.switchToApp(browser_ORIGIN);
+    client.helper.waitForElement('#url-input');
+    urlBar = client.findElement('#url-input');
+    urlBar.click();
   });
 
   test('should show lowercase layout', function() {
@@ -44,6 +48,8 @@ marionette('Keyboard APP', function() {
       return ( classes.indexOf('hide') == -1 ) &&  transitionIn !== 'true';
     });
 
+    client.helper.wait(5000);
+    console.log('data:image/png;base64,' + client.screenshot());
     client.apps.switchToApp(KEYBOARD_ORIGIN);
     // XXX: Workaround to get the #keyboard element to instead of the body
     // element.
