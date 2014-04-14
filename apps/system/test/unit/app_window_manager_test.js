@@ -290,22 +290,6 @@ suite('system/AppWindowManager', function() {
 
     });
 
-    test('Hide whole windows', function() {
-      var stubSetAttribute =
-        this.sinon.stub(AppWindowManager.element, 'setAttribute');
-
-      AppWindowManager.handleEvent({ type: 'hidewindows' });
-      assert.isTrue(stubSetAttribute.calledWith('aria-hidden', 'true'));
-    });
-
-    test('Show whole windows', function() {
-      var stubSetAttribute =
-        this.sinon.stub(AppWindowManager.element, 'setAttribute');
-
-      AppWindowManager.handleEvent({ type: 'showwindows' });
-      assert.isTrue(stubSetAttribute.calledWith('aria-hidden', 'false'));
-    });
-
     test('Launch app', function() {
       var stubLaunch =
         this.sinon.stub(AppWindowManager, 'launch');
