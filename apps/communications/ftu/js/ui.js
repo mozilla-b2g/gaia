@@ -396,7 +396,7 @@ var UIManager = {
       // Reset the field
       navigator.mozL10n.localize(
         fxaDescription,
-        'fxa-intro'
+        'fxa-overview'
       );
       // Enable the button
       UIManager.fxaCreateAccount.disabled = false;
