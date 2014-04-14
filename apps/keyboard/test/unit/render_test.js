@@ -11,6 +11,20 @@ suite('Renderer', function() {
     };
   }
 
+  function loadKeyboardStyle(callback) {
+    // Dirty trick http://www.phpied.com/when-is-a-stylesheet-really-loaded/
+    var style = document.createElement('style');
+    style.textContent = '@import "../../style/keyboard.css"';
+    var fi = setInterval(function() {
+      try {
+        style.sheet.cssRules;
+        clearInterval(fi);
+        callback();
+      } catch (e) {}
+    }, 10);
+    document.body.appendChild(style);
+  }
+
   suite('resizeUI', function() {
     function createKeyboardRow(chars, layoutWidth) {
       var row = document.createElement('div');
@@ -25,14 +39,8 @@ suite('Renderer', function() {
     }
 
     var ime, activeIme;
-    setup(function() {
+    setup(function(next) {
       document.body.innerHTML = '';
-
-      var style = document.createElement('link');
-      style.rel = 'stylesheet';
-      style.type = 'text/css';
-      style.href = '../../style/keyboard.css';
-      document.body.appendChild(style);
 
       ime = document.createElement('div');
       ime.id = 'keyboard';
@@ -45,6 +53,8 @@ suite('Renderer', function() {
 
       IMERender.init();
       IMERender.activeIme = activeIme;
+
+      loadKeyboardStyle(next);
     });
 
     test('Add portrait class to IME in portrait mode', function() {
@@ -135,8 +145,10 @@ suite('Renderer', function() {
           keys[0].clientWidth + keys[1].clientWidth + keys[2].clientWidth,
           'Total width');
 
-        assert.equal(keys[0].classList.contains('float-key-first'), true);
-        assert.equal(keys[2].classList.contains('float-key-last'), true);
+        assert.equal(keys[0].classList.contains('float-key-first'), true,
+          'Has float-key-first');
+        assert.equal(keys[2].classList.contains('float-key-last'), true,
+          'Has float-key-last');
 
         next();
       });
@@ -165,8 +177,10 @@ suite('Renderer', function() {
         assert.equal(400,
           keys[0].clientWidth + keys[1].clientWidth + keys[2].clientWidth);
 
-        assert.equal(keys[0].classList.contains('float-key-first'), true);
-        assert.equal(keys[2].classList.contains('float-key-last'), true);
+        assert.equal(keys[0].classList.contains('float-key-first'), true,
+          'Has float-key-first');
+        assert.equal(keys[2].classList.contains('float-key-last'), true,
+          'Has float-key-last');
 
         next();
       });
@@ -193,10 +207,10 @@ suite('Renderer', function() {
         Object.defineProperty(ime, 'clientWidth', makeDescriptor(700));
 
         IMERender.resizeUI(layout, function() {
-            assert.equal(visual[0].clientWidth, visual[1].clientWidth,
-              'Visually same');
+          assert.equal(visual[0].clientWidth, visual[1].clientWidth,
+            'Visually same');
 
-            next();
+          next();
         });
       });
 
@@ -247,8 +261,10 @@ suite('Renderer', function() {
           document.querySelectorAll('.visual-wrapper'));
 
         visuals.forEach(function(v, ix) {
-          assert.equal(v.offsetLeft, keyArray[ix].x, 'x for ' + ix);
-          assert.equal(v.offsetTop, keyArray[ix].y, 'y for ' + ix);
+          assert.equal(Math.abs(v.offsetLeft - keyArray[ix].x) <= 1, true,
+            'x for ' + ix);
+          assert.equal(Math.abs(v.offsetTop - keyArray[ix].y) <= 1, true,
+            'y for ' + ix);
           assert.equal(v.clientWidth, keyArray[ix].width, 'width for ' + ix);
           assert.equal(v.clientHeight, keyArray[ix].height, 'height for ' + ix);
         });
@@ -260,14 +276,8 @@ suite('Renderer', function() {
 
   suite('Draw', function() {
     var ime, activeIme;
-    setup(function() {
+    setup(function(next) {
       document.body.innerHTML = '';
-
-      var style = document.createElement('link');
-      style.rel = 'stylesheet';
-      style.type = 'text/css';
-      style.href = '../../style/keyboard.css';
-      document.body.appendChild(style);
 
       ime = document.createElement('div');
       ime.id = 'keyboard';
@@ -282,6 +292,8 @@ suite('Renderer', function() {
       }, function(key) {
         return false; // is special key
       });
+
+      loadKeyboardStyle(next);
     });
 
     test('Should add last-row class to last row', function() {
@@ -553,6 +565,79 @@ suite('Renderer', function() {
         assert.equal(spans[0].style.width, '200%');
         assert.equal(spans[0].style.transformOrigin, 'left center 0px');
         assert.equal(spans[0].style.transform, 'scale(0.5)');
+      });
+    });
+
+    suite('getVisualData', function() {
+      var layout = {
+        width: 10,
+        keys: [
+          [
+            { value: 'q' }, { value: 'w' }, { value: 'e' } , { value: 'r' },
+            { value: 't' } , { value: 'y' }, { value: 'u' } , { value: 'i' },
+            { value: 'o' }, { value: 'p' }
+          ], [
+            { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
+            { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' },
+            { value: 'l' }
+          ], [
+            { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
+            { value: 'z' }, { value: 'x' }, { value: 'c' }, { value: 'v' },
+            { value: 'b' }, { value: 'n' }, { value: 'm' },
+            { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
+          ], [
+            { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+            { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
+          ]
+        ],
+        keyboardName: 'yolo'
+      };
+
+      function verify(next) {
+        var ka = IMERender.getKeyArray();
+
+        ka.forEach(function(info) {
+          var el = document.querySelector(
+            '*[data-keycode="' + info.code + '"] .visual-wrapper');
+
+          // Tolerate 1px difference for left + top
+          assert.equal(Math.abs(el.offsetLeft - info.x) <= 1, true,
+            'x was ' + info.x + ', but should be ' + el.offsetLeft);
+          assert.equal(Math.abs(el.offsetTop - info.y) <= 1, true,
+            'y was ' + info.y + ', but should be ' + el.offsetTop);
+          assert.equal(el.clientWidth, info.width, 'width');
+          assert.equal(el.clientHeight, info.height, 'height');
+        });
+
+        next();
+      }
+
+      test('No candidate panel', function(next) {
+        IMERender.draw(layout, {}, function() {
+          verify(next);
+        });
+      });
+
+      test('With candidate panel', function(next) {
+        IMERender.draw(layout, { showCandidatePanel: true }, function() {
+          verify(next);
+        });
+      });
+
+      test('No candidate panel, latin', function(next) {
+        IMERender.draw(layout, {}, function() {
+          IMERender.setInputMethodName('latin');
+
+          verify(next);
+        });
+      });
+
+      test('With candidate panel, latin', function(next) {
+        IMERender.draw(layout, { showCandidatePanel: true }, function() {
+          IMERender.setInputMethodName('latin');
+
+          verify(next);
+        });
       });
     });
   });
