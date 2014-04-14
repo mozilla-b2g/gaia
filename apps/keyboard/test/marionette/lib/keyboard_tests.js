@@ -17,6 +17,7 @@ KeyboardTests.prototype = {
     var client = this.client;
     client.apps.launch(KeyboardTests.ORIGIN);
     client.apps.switchToApp(KeyboardTests.ORIGIN);
-    client.helper.waitForElement('body');
+    // Wait until the app has told us it's fully loaded.
+    client.helper.waitForElement('body.loaded');
   }
 };
