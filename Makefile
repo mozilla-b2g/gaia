@@ -775,7 +775,8 @@ test-integration-test:
 	./bin/gaia-marionette \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--manifest $(TEST_MANIFEST) \
-		--reporter $(REPORTER)
+		--reporter $(REPORTER)   \
+		--verbose
 
 .PHONY: caldav-server-install
 caldav-server-install:
