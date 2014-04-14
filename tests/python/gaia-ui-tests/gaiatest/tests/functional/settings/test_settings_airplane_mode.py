@@ -46,6 +46,7 @@ class TestAirplaneMode(GaiaTestCase):
         self.apps.switch_to_displayed_app()
 
         # Switch off Airplane mode
+        settings.wait_for_airplane_toggle_ready()
         settings.toggle_airplane_mode()
 
         # Wait for wifi to be connected, because this takes the longest to connect after airplane mode is switched off
