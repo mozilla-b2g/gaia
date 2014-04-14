@@ -1,10 +1,10 @@
 'use strict';
 
 /* global HardwareButtons, MocksHelper, ScreenManager,
- *        MockNavigatorMozTelephone 
+ *        MockSettingsListener, MockNavigatorMozTelephony 
  */
 
-mocha.globals(['HardwareButtons', 'ScreenManager']);
+mocha.globals(['HardwareButtons', 'ScreenManager', 'MockSettingsListener', 'MockNavigatorMozTelephony']);
 
 requireApp('system/js/hardware_buttons.js');
 requireApp('system/test/unit/mock_screen_manager.js');
@@ -88,7 +88,7 @@ suite('system/HardwareButtons', function() {
     assert.isTrue(stubClearTimeout.calledOnce);
     assert.equal(stubClearTimeout.getCall(0).args[0],
       stubSetTimeout.getCall(0).returnValue);
-    assert.isTrue(vibrateSpy.calledWidth([50]));
+    assert.isTrue(vibrateSpy.calledWith([50]));
   });
 
   test('press and release home (screen disabled)', function() {
@@ -594,11 +594,6 @@ suite('system/HardwareButtons', function() {
     });
 
     test('it should not vibrate', function() {
-      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
-      var stubSetTimeout = this.sinon.stub(window, 'setTimeout');
-      stubSetTimeout.returns(Math.floor(Math.random() * 10000));
-      var stubClearTimeout = this.sinon.stub(window, 'clearTimeout');
-
       fireChromeEvent('home-button-press');
       fireChromeEvent('home-button-release');
 
