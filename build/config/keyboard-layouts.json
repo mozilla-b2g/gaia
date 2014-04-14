@@ -62,7 +62,7 @@
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "gl": [
-        {"layoutId": "en", "app": ["apps", "keyboard"]}
+        {"layoutId": "es", "app": ["apps", "keyboard"]}
     ],
     "he": [
         {"layoutId": "he", "app": ["apps", "keyboard"]},
