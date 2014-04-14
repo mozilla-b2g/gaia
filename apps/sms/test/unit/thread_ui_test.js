@@ -2664,7 +2664,7 @@ suite('thread_ui.js >', function() {
       });
       test('message is correct', function() {
         assert.equal(notDownloadedMessage.dataset.l10nId,
-          'not-downloaded-mms',
+          'not-downloaded-attachment',
           'localization id set correctly');
         assert.equal(notDownloadedMessage.dataset.l10nArgs,
           '{"date":"date_stub"}',
@@ -2674,10 +2674,10 @@ suite('thread_ui.js >', function() {
         assert.equal(+Utils.date.format.localeFormat.args[0][0],
           message.expiryDate);
         assert.equal(Utils.date.format.localeFormat.args[0][1],
-          'dateTimeFormat_%x');
+          'expiry-date-format');
       });
       test('button text is correct', function() {
-        assert.equal(button.dataset.l10nId, 'downloading');
+        assert.equal(button.dataset.l10nId, 'downloading-attachment');
       });
       suite('clicking', function() {
         setup(function() {
@@ -2719,7 +2719,7 @@ suite('thread_ui.js >', function() {
       });
       test('message is correct', function() {
         assert.equal(notDownloadedMessage.dataset.l10nId,
-          'not-downloaded-mms',
+          'not-downloaded-attachment',
           'localization id set correctly');
         assert.equal(notDownloadedMessage.dataset.l10nArgs,
           '{"date":"date_stub"}',
@@ -2729,10 +2729,10 @@ suite('thread_ui.js >', function() {
         assert.equal(+Utils.date.format.localeFormat.args[0][0],
           message.expiryDate);
         assert.equal(Utils.date.format.localeFormat.args[0][1],
-          'dateTimeFormat_%x');
+          'expiry-date-format');
       });
       test('button text is correct', function() {
-        assert.equal(button.dataset.l10nId, 'download');
+        assert.equal(button.dataset.l10nId, 'download-attachment');
       });
       suite('clicking', function() {
         var showMessageErrorSpy;
@@ -2750,7 +2750,7 @@ suite('thread_ui.js >', function() {
           });
         });
         test('changes download text', function() {
-          assert.ok(localize.calledWith(button, 'downloading'));
+          assert.ok(localize.calledWith(button, 'downloading-attachment'));
         });
         test('error class absent', function() {
           assert.isFalse(element.classList.contains('error'));
@@ -2773,7 +2773,7 @@ suite('thread_ui.js >', function() {
             assert.isFalse(element.classList.contains('pending'));
           });
           test('changes download text', function() {
-            assert.ok(localize.calledWith(button, 'download'));
+            assert.ok(localize.calledWith(button, 'download-attachment'));
           });
           test('Message error dialog should not exist', function() {
             assert.equal(showMessageErrorSpy.called, false);
@@ -2813,7 +2813,7 @@ suite('thread_ui.js >', function() {
             MockErrorDialog.calls[0][1].confirmHandler();
             assert.isTrue(element.classList.contains('pending'));
             assert.isFalse(element.classList.contains('error'));
-            sinon.assert.calledWith(localize, button, 'downloading');
+            sinon.assert.calledWith(localize, button, 'downloading-attachment');
             sinon.assert.calledWith(Settings.switchMmsSimHandler, 1);
           });
 
@@ -2901,7 +2901,7 @@ suite('thread_ui.js >', function() {
       });
       test('message is correct', function() {
         assert.equal(notDownloadedMessage.dataset.l10nId,
-          'not-downloaded-mms',
+          'not-downloaded-attachment',
           'localization id set correctly');
         assert.equal(notDownloadedMessage.dataset.l10nArgs,
           '{"date":"date_stub"}',
@@ -2911,10 +2911,10 @@ suite('thread_ui.js >', function() {
         assert.equal(+Utils.date.format.localeFormat.args[0][0],
           message.expiryDate);
         assert.equal(Utils.date.format.localeFormat.args[0][1],
-          'dateTimeFormat_%x');
+          'expiry-date-format');
       });
       test('button text is correct', function() {
-        assert.equal(button.dataset.l10nId, 'download');
+        assert.equal(button.dataset.l10nId, 'download-attachment');
       });
       suite('clicking', function() {
         setup(function() {
@@ -2924,7 +2924,7 @@ suite('thread_ui.js >', function() {
           });
         });
         test('changes download text', function() {
-          assert.ok(localize.calledWith(button, 'downloading'));
+          assert.ok(localize.calledWith(button, 'downloading-attachment'));
         });
         test('error class absent', function() {
           assert.isFalse(element.classList.contains('error'));
@@ -2947,7 +2947,7 @@ suite('thread_ui.js >', function() {
             assert.isFalse(element.classList.contains('pending'));
           });
           test('changes download text', function() {
-            assert.ok(localize.calledWith(button, 'download'));
+            assert.ok(localize.calledWith(button, 'download-attachment'));
           });
         });
         suite('response success', function() {
@@ -2991,7 +2991,7 @@ suite('thread_ui.js >', function() {
       });
       test('message is correct', function() {
         assert.equal(notDownloadedMessage.dataset.l10nId,
-          'expired-mms',
+          'expired-attachment',
           'localization id set correctly');
         assert.equal(notDownloadedMessage.dataset.l10nArgs,
           '{"date":"date_stub"}',
@@ -3001,7 +3001,7 @@ suite('thread_ui.js >', function() {
         assert.equal(+Utils.date.format.localeFormat.args[0][0],
           message.expiryDate);
         assert.equal(Utils.date.format.localeFormat.args[0][1],
-          'dateTimeFormat_%x');
+          'expiry-date-format');
       });
       suite('clicking', function() {
         setup(function() {

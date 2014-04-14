@@ -1418,21 +1418,21 @@ var ThreadUI = global.ThreadUI = {
   _createNotDownloadedHTML:
   function thui_createNotDownloadedHTML(message, classNames) {
     // default strings:
-    var messageL10nId = 'not-downloaded-mms';
-    var downloadL10nId = 'download';
+    var messageL10nId = 'not-downloaded-attachment';
+    var downloadL10nId = 'download-attachment';
 
     // assuming that incoming message only has one deliveryInfo
     var status = message.deliveryInfo[0].deliveryStatus;
 
     var expireFormatted = Utils.date.format.localeFormat(
-      new Date(+message.expiryDate), navigator.mozL10n.get('dateTimeFormat_%x')
+      new Date(+message.expiryDate), navigator.mozL10n.get('expiry-date-format')
     );
 
     var expired = +message.expiryDate < Date.now();
 
     if (expired) {
       classNames.push('expired');
-      messageL10nId = 'expired-mms';
+      messageL10nId = 'expired-attachment';
     }
 
     if (status === 'error') {
@@ -1440,7 +1440,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     if (status === 'pending') {
-      downloadL10nId = 'downloading';
+      downloadL10nId = 'downloading-attachment';
       classNames.push('pending');
     }
 
@@ -2270,7 +2270,7 @@ var ThreadUI = global.ThreadUI = {
 
     messageDOM.classList.add('pending');
     messageDOM.classList.remove('error');
-    navigator.mozL10n.localize(button, 'downloading');
+    navigator.mozL10n.localize(button, 'downloading-attachment');
 
     request.onsuccess = (function retrieveMMSSuccess() {
       this.removeMessageDOM(messageDOM);
@@ -2279,7 +2279,7 @@ var ThreadUI = global.ThreadUI = {
     request.onerror = (function retrieveMMSError() {
       messageDOM.classList.remove('pending');
       messageDOM.classList.add('error');
-      navigator.mozL10n.localize(button, 'download');
+      navigator.mozL10n.localize(button, 'download-attachment');
 
       // Show NonActiveSimCard/Other error dialog while retrieving MMS
       var errorCode = (request.error && request.error.name) ?
@@ -2306,7 +2306,7 @@ var ThreadUI = global.ThreadUI = {
             // ready yet.
             messageDOM.classList.add('pending');
             messageDOM.classList.remove('error');
-            navigator.mozL10n.localize(button, 'downloading');
+            navigator.mozL10n.localize(button, 'downloading-attachment');
             Settings.switchMmsSimHandler(serviceId).then(
               this.retrieveMMS.bind(this, messageDOM))
             .catch(function(err) {
