@@ -138,7 +138,10 @@ Sounds.prototype.player = function(name) {
  */
 Sounds.prototype.playSound = function(sound) {
   if (sound.enabled) {
-    sound.audio.play();
+    // cloneNode() lets us play overlapping sounds and is needed when the
+    // user takes pictures very rapidly.
+    // See http://robert.ocallahan.org/2011/11/latency-of-html5-sounds.html
+    sound.audio.cloneNode(true).play();
   }
 };
 

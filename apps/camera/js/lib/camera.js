@@ -20,6 +20,10 @@ var model = require('vendor/model');
 var recordSpaceMin = constants.RECORD_SPACE_MIN;
 var recordSpacePadding = constants.RECORD_SPACE_PADDING;
 
+// More explicit names for the focus modes we care about
+var MANUAL_AUTO_FOCUS = 'auto';
+var CONTINUOUS_AUTO_FOCUS = 'continuous-picture';
+
 /**
  * Locals
  */
@@ -50,13 +54,23 @@ function Camera(options) {
   this.mozCamera = null;
   this.cameraList = navigator.mozCameras.getListOfCameras();
   this.orientation = options.orientation || orientation;
-  this.autoFocus = {};
   this.video = {
     storage: navigator.getDeviceStorage('videos'),
     filepath: null,
     minSpace: options.recordSpaceMin || recordSpaceMin,
     spacePadding : options.recordSpacePadding || recordSpacePadding
   };
+
+  // If the hardware supports continuous auto focus, we generally want to
+  // use it. But we do have a option in the settings file to disable it
+  // at build time.
+  if (options.cafEnabled !== undefined) {
+    this.cafEnabled = options.cafEnabled;
+  } else {
+    // If the option is not specified at all, assume true
+    this.cafEnabled = true;
+  }
+
   debug('initialized');
 }
 
@@ -182,7 +196,6 @@ Camera.prototype.configureCamera = function(mozCamera) {
   this.mozCamera.onShutter = this.onShutter;
   this.mozCamera.onPreviewStateChange = this.onPreviewStateChange;
   this.mozCamera.onRecorderStateChange = this.onRecorderStateChange;
-  this.configureFocus(capabilities.focusModes);
   this.set('capabilities', this.formatCapabilities(capabilities));
   debug('configured camera');
 };
@@ -215,6 +228,7 @@ Camera.prototype.configure = function() {
     options.previewSize.height);
 
   this.mozCamera.setConfiguration(options, success, error);
+  this.configureFocus(this.mode);
   this.configureZoom(previewSize);
 };
 
@@ -258,12 +272,6 @@ Camera.prototype.setRecorderProfile = function(key) {
   this.recorderProfile.key = key;
   debug('video profile set: %s', key);
   return this;
-};
-
-Camera.prototype.configureFocus = function(modes) {
-  var supports = this.autoFocus = {};
-  (modes || []).forEach(function(mode) { supports[mode] = true; });
-  debug('focus configured', supports);
 };
 
 /**
@@ -430,46 +438,70 @@ Camera.prototype.takePicture = function(options) {
   function onSuccess(blob) {
     var image = { blob: blob };
     self.resumePreview();
-    self.set('focus', 'none');
     self.emit('newimage', image);
     debug('success taking picture');
     complete();
   }
 
   function complete() {
+    // If we are in C-AF mode, we have to call resumeContinuousFocus() in
+    // order to get the camera to resume focusing on what we point it at.
+    if (self.mozCamera.focusMode === CONTINUOUS_AUTO_FOCUS) {
+      self.mozCamera.resumeContinuousFocus();
+    }
+
+    self.set('focus', 'none');
     self.emit('ready');
   }
 };
 
-/** Focus the camera, callback when done.
+/**
+ * Focus the camera, invoke the callback asynchronously when done.
  *
- * If the camera don't support focus,
- * callback is called (sync).
- *
- * If the focus fails, the 'focus' state
- * is set, then reset after 1 second.
+ * If we only have fixed focus, then we call the callback right away
+ * (but still asynchronously). Otherwise, we call autoFocus to focus
+ * the camera and call the callback when focus is complete. In C-AF mode
+ * this process should be fast. In manual AF mode, focusing takes about
+ * a second and causes a noticeable delay before the picture is taken.
  *
  * @param  {Function} done
  * @private
  */
 Camera.prototype.focus = function(done) {
-  if (!this.autoFocus.auto) { return done(); }
-  var reset = function() { self.set('focus', 'none'); };
   var self = this;
+  var focusMode = this.mozCamera.focusMode;
 
-  this.set('focus', 'focusing');
-  this.mozCamera.autoFocus(onFocus);
+  if (focusMode === MANUAL_AUTO_FOCUS || focusMode === CONTINUOUS_AUTO_FOCUS) {
+    //
+    // In either focus mode, we call autoFocus() to ensure that the user gets
+    // a sharp picture. The difference between the two modes is that if
+    // C-AF is on, it is likely that the camera is already focused, so the
+    // call to autoFocus() invokes its callback very quickly and we get much
+    // better response time.
+    //
+    // In either case, the callback is passed a boolean specifying whether
+    // focus was successful or not, and we display a green or red focus ring
+    // then call the done callback, which takes the picture and clears
+    // the focus ring.
+    //
+    this.set('focus', 'focusing');     // white focus ring
 
-  function onFocus(success) {
-    if (success) {
-      self.set('focus', 'focused');
-      done();
-      return;
-    }
-
-    self.set('focus', 'fail');
-    setTimeout(reset, 1000);
-    done('failed');
+    this.mozCamera.autoFocus(function(success) {
+      if (success) {
+        self.set('focus', 'focused');  // green focus ring
+        done();
+      }
+      else {
+        self.set('focus', 'fail');     // red focus ring
+        done('failed');
+      }
+    });
+  }
+  else {
+    // This is fixed focus: there is nothing we can do here so we
+    // should just call the callback and take the photo. No focus
+    // happens so we don't display a focus ring.
+    setTimeout(done);
   }
 };
 
@@ -835,6 +867,37 @@ Camera.prototype.setSceneMode = function(value){
   var modes =  this.get('capabilities').sceneModes;
   if (modes.indexOf(value) > -1) {
     this.mozCamera.sceneMode = value;
+  }
+};
+
+Camera.prototype.configureFocus = function(captureMode) {
+  var focusModes = this.get('capabilities').focusModes;
+
+  // If we're taking still pictures, and C-AF is enabled and supported
+  // (and gecko supports resumeContinuousFocus) then use C-AF.
+  // XXX: once bug 986024 has landed and been uplifted we can remove
+  // the check for resumeContinuousFocus support
+  if (captureMode === 'picture') {
+    if (this.cafEnabled &&
+        focusModes.indexOf(CONTINUOUS_AUTO_FOCUS) >= 0 &&
+        this.mozCamera.resumeContinuousFocus) {
+      this.mozCamera.focusMode = CONTINUOUS_AUTO_FOCUS;
+      return;
+    }
+  }
+
+  // Otherwise, we'll use 'auto' mode, if it is supported.
+  // We do this for video and still pictures. For videos, this mode
+  // actually does continous focus and it seems to work better than
+  // the actual 'continuous-video' mode.
+  if (focusModes.indexOf(MANUAL_AUTO_FOCUS) >= 0) {
+    this.mozCamera.focusMode = MANUAL_AUTO_FOCUS;
+  }
+  else {
+    // If auto mode is not supported then we presumably have a fixed focus
+    // camera. Just use the first available focus mode, and don't call
+    // auto focus. This happens with the front-facing camera, typically
+    this.mozCamera.focusMode = focusModes[0];
   }
 };
 
