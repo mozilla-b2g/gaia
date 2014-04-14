@@ -229,6 +229,121 @@ Camera.prototype.setFixedFocusMode = function() {
   }
 };
 
+Camera.prototype.continuousFocusModeCheck = function() {
+  if (!this.checkFocusCapability()) {
+    return false;
+  }
+  if (!this.autoFocus.CONTINUOUS_CAMERA ||
+    !this.autoFocus.CONTINUOUS_VIDEO) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
+Camera.prototype.checkFocusCapability = function() {
+  var maxfocusAreas = this.mozCamera.capabilities.maxfocusAreas;
+  var maxMeteringAreas = this.mozCamera.capabilities.maxMeteringAreas;
+  if (maxfocusAreas < 1 && maxMeteringAreas < 1) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
+/**
+* Once touch focus is done
+* clear the ring UI.
+*
+* Timeout is needed to show
+* the focused UI for sometime
+* before making it disappear.
+**/
+Camera.prototype.clearFocusRing = function() {
+  var self = this;
+  setTimeout(function() {
+    self.set('focus', 'none');
+  }, 1000);
+};
+
+/**
+* Disable auto focus move
+* and change focus mode.
+**/
+Camera.prototype.disableAutoFocusMove = function() {
+  this.mozCamera.onAutoFocusMoving = this.diableFocusCall;
+
+  this.mozCamera.focusMode = this.autoFocus.MANUALLY_TRIGGERED;
+};
+
+Camera.prototype.diableFocusCall = function() { return; };
+
+Camera.prototype.noFocusMode = function() {
+  this.mozCamera.focusMode = this.autoFocus.FIXED_FOCUS;
+};
+
+/**
+* Set focus mode as continuous auto
+* based on the mode selected
+**/
+Camera.prototype.setContinuousAutoFocus = function() {
+  var mode =  (this.mode === 'video') ?
+   this.autoFocus.CONTINUOUS_VIDEO : this.autoFocus.CONTINUOUS_CAMERA;
+  this.mozCamera.focusMode = mode;
+};
+
+/**
+* Enable auto focus move to make camera
+* adjusts the focus of new scene or
+* postion.
+**/
+Camera.prototype.enableAutoFocusMove = function() {
+  var self = this;
+  var timer = null;
+  var isVideo = this.mode === 'video';
+  if (!isVideo) {
+    this.mozCamera.onAutoFocusMoving = onAutoFocusMoving;
+  }
+  
+  /**
+  * Focus move callbacks from gecko:
+  * During continuous auto focus, when
+  * camera moves to a new scene or location,
+  * it has to refocus to get the clear view.
+  * Gecko sends the call back when camera
+  * is refocusing on to a new scene.
+  *
+  * @param {bool} isMoving
+  * isMoving is true when focusing on new scene.
+  * isMoving is false when focus is complete.
+  * for that particular scene.
+  **/
+
+  // we can use the state concept of face tracking here.
+  // starting, focusing, focused.
+  // if consecutive states are same, ignore.
+  // wait fot focused state when taking picture.
+  function onAutoFocusMoving(isMoving) {
+    function clearFocusState() {
+    timer = setTimeout(function() {
+        self.set('focus', 'none');
+      }, 3000);
+    }
+    function focused() {
+      console.log('Camera Focus Mode ');
+      setTimeout(function() {
+        self.set('focus','focused');
+        clearFocusState();
+      }, 50);
+    }
+    if (isMoving === true) {
+      self.set('focus','focusing');
+    } else {
+      focused();
+    }
+  }
+};
+
 Camera.prototype.previewSizes = function() {
   return this.mozCamera.capabilities.previewSizes;
 };
@@ -469,7 +584,7 @@ Camera.prototype.takePicture = function(options) {
  * @private
  */
 Camera.prototype.focus = function(done) {
-  if (!this.autoFocus.auto) { return done(); }
+ /* if (!this.autoFocus.auto) { return done(); }*/
   var reset = function() { self.set('focus', 'none'); };
   var self = this;
 
@@ -942,6 +1057,18 @@ Camera.prototype.getZoomPreviewAdjustment = function() {
  */
 Camera.prototype.getSensorAngle = function() {
   return this.mozCamera.sensorAngle;
+};
+
+/**
+* Set default focus mode as continuous Auto.
+* Later when Face tracking is landed the default
+* mode will be changed to Face tracking mode on availability.
+**/
+Camera.prototype.setContinuousFocusMode = function() {
+  // Start continuous Auto Focus mode
+  this.setContinuousAutoFocus();
+  // Enable Gecko callbacks of success
+  this.enableAutoFocusMove();
 };
 
 Camera.prototype.setDefaultFocusmode = function() {

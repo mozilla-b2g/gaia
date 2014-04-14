@@ -43,7 +43,7 @@ module.exports = {
   },
   focusModes: {
     modes: {
-      continuousFocus: false,
+      continuousFocus: true,
       faceTracking:false,
       touchFocus: false,
       autoFocus: false,
