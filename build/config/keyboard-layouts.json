@@ -44,6 +44,8 @@
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "eu": [
+        {"layoutId": "es", "app": ["apps", "keyboard"]},
+        {"layoutId": "fr", "app": ["apps", "keyboard"]},
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "ff": [
