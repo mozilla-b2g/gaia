@@ -28,6 +28,8 @@ marionette('Keyboard APP', function() {
   test('should show lowercase layout', function() {
     // switch to System app
     client.switchToFrame();
+    client.helper.wait(5000);
+    console.log(client.screenshot());
     client.apps.switchToApp(KEYBOARD_ORIGIN);
     // XXX: Workaround to get the #keyboard element to instead of the body element.
     // The value of `client.findElement('body').displayed()` could not be true
