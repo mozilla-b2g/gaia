@@ -18,6 +18,6 @@ KeyboardTests.prototype = {
     client.apps.launch(KeyboardTests.ORIGIN);
     client.apps.switchToApp(KeyboardTests.ORIGIN);
     // Wait until the app has told us it's fully loaded.
-    client.helper.waitForElement('body.loaded');
+    client.helper.waitForElement('#textInput');
   }
 };
