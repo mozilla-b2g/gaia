@@ -238,8 +238,7 @@
 
   InputField.prototype.deleteSurroundingText =
     function deleteSurroundingText(numBefore, numAfter) {
-      this._monitor(this._context.deleteSurroundingText(-numBefore,
-                                                       numBefore + numAfter));
+      return this.replaceSurroundingText('', numBefore, numAfter);
     };
 
   InputField.prototype._monitor = function _monitor(promise) {

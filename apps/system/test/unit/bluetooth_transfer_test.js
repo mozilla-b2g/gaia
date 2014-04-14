@@ -3,6 +3,7 @@
 mocha.globals(['BluetoothTransfer']);
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/shared/test/unit/mocks/mock_event_target.js');
 require('/shared/test/unit/mocks/mock_dom_request.js');
 require('/test/unit/mock_navigator_get_device_storage.js');
 require('/test/unit/mock_bluetooth.js');
