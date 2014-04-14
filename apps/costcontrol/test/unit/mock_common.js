@@ -23,6 +23,9 @@ var MockCommon = function(config) {
     allNetworkInterfaces: {},
     dataSimIccId: null,
     dataSimIcc: null,
+    localize: function (element, label, args) {
+      element.textContent = label;
+    },
     isValidICCID: function(iccid) {
       assert.isDefined(
         config.isValidICCID,
