@@ -14221,7 +14221,14 @@ MailBridge.prototype = {
                 else
                   rTo = [effectiveAuthor];
               }
-              rCc = header.cc;
+
+              // For reply-all, don't reply to your own address.
+              var notYourIdentity = function(person) {
+                return person.address !== identity.address;
+              };
+
+              rTo = rTo.filter(notYourIdentity);
+              rCc = (header.cc || []).filter(notYourIdentity);
               rBcc = header.bcc;
               break;
           }
