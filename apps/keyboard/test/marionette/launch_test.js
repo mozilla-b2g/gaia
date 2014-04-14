@@ -28,13 +28,26 @@ marionette('Keyboard APP', function() {
   test('should show lowercase layout', function() {
     // switch to System app
     client.switchToFrame();
+
+    // Wait for the keyboard pop up and switch to it
+    client.waitFor(function() {
+      var keyboards = client.findElement('#keyboards');
+
+      var classes = keyboards.getAttribute('class');
+      var transitionIn = keyboards.getAttribute('data-transition-in');
+
+      console.log(classes, transitionIn);
+
+      return ( classes.indexOf('hide') == -1 ) &&  transitionIn !== 'true';
+    });
+
     client.apps.switchToApp(KEYBOARD_ORIGIN);
     // XXX: Workaround
     // To get the #keyboard element to instead of the body element.
     // The value of `client.findElement('body').displayed()` could not be true
     // when the keyboard app is show up in the screen currently.
     // Please refer to http://bugzil.la/995865.
-    var keyboard = client.findElement('#keyboard');
+    var keyboard = client.findElement('.keyboard-type-container[data-active]');
 
     client.waitFor(function() {
       if (keyboard.displayed()) {
