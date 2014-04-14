@@ -11,6 +11,12 @@ define(function(require, exports, module) {
  */
 
 module.exports = {
+  FOCUS_MODE_TYPE: {
+    MANUALLY_TRIGGERED: 'auto',
+    CONTINUOUS_CAMERA: 'continuous-picture',
+    CONTINUOUS_VIDEO: 'continuous-video',
+    FIXED_FOCUS: 'fixed'
+  },
 
   // The minimum available disk space to start recording a video.
   RECORD_SPACE_MIN: 1024 * 1024 * 2,

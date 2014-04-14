@@ -19,7 +19,7 @@ var model = require('vendor/model');
 
 var recordSpaceMin = constants.RECORD_SPACE_MIN;
 var recordSpacePadding = constants.RECORD_SPACE_PADDING;
-
+var configFocusValue = constants.FOCUS_MODE_TYPE;
 /**
  * Locals
  */
@@ -51,6 +51,7 @@ function Camera(options) {
   this.cameraList = navigator.mozCameras.getListOfCameras();
   this.orientation = options.orientation || orientation;
   this.autoFocus = {};
+  this.focusModes = {};
   this.video = {
     storage: navigator.getDeviceStorage('videos'),
     filepath: null,
@@ -184,7 +185,7 @@ Camera.prototype.configureCamera = function(mozCamera) {
   this.mozCamera.onRecorderStateChange = this.onRecorderStateChange;
   this.configureFocus(capabilities.focusModes);
   this.set('capabilities', this.formatCapabilities(capabilities));
-  debug('configured camera');
+  this.emit('got-camera');
 };
 
 Camera.prototype.formatCapabilities = function(capabilities) {
@@ -216,6 +217,16 @@ Camera.prototype.configure = function() {
 
   this.mozCamera.setConfiguration(options, success, error);
   this.configureZoom(previewSize);
+};
+
+Camera.prototype.setFixedFocusMode = function() {
+  if (this.autoFocus.FIXED_FOCUS) {
+    this.mozCamera.focusMode = this.autoFocus.FIXED_FOCUS;
+  } else if(this.autoFocus.MANUALLY_TRIGGERED){
+    this.mozCamera.focusMode = this.autoFocus.MANUALLY_TRIGGERED;
+  } else {
+    this.mozCamera.focusMode = this.get('capabilities').focusModes;
+  }
 };
 
 Camera.prototype.previewSizes = function() {
@@ -261,9 +272,13 @@ Camera.prototype.setRecorderProfile = function(key) {
 };
 
 Camera.prototype.configureFocus = function(modes) {
-  var supports = this.autoFocus = {};
-  (modes || []).forEach(function(mode) { supports[mode] = true; });
-  debug('focus configured', supports);
+  this.autoFocus = {};
+  for (var mode in configFocusValue) {
+    if (modes.indexOf(configFocusValue[mode]) > -1) {
+      this.autoFocus[mode] = configFocusValue[mode];
+    }
+  }
+  debug('focus configured', this.autoFocus);
 };
 
 /**
@@ -438,6 +453,7 @@ Camera.prototype.takePicture = function(options) {
 
   function complete() {
     self.emit('ready');
+    self.setDefaultFocusmode();
   }
 };
 
@@ -928,4 +944,44 @@ Camera.prototype.getSensorAngle = function() {
   return this.mozCamera.sensorAngle;
 };
 
+Camera.prototype.setDefaultFocusmode = function() {
+  
+  var defaultFocus = this.focusModes.continuousFocus ||
+   this.focusModes.autoFocus || this.focusModes.fixedFocus;
+   this.set('focusMode', defaultFocus.key);
+  if (defaultFocus && defaultFocus.enable) {
+    defaultFocus.enable();
+  }
+  if (this.focusModes.faceTracking &&
+     this.focusModes.faceTracking.enable) {
+    this.focusModes.faceTracking.enable();
+  }
+};
+
+Camera.prototype.disableDefaultModes = function() {
+  var defaultFocus = this.focusModes.continuousFocus ||
+   this.focusModes.autoFocus || this.focusModes.fixedFocus;
+  if (defaultFocus && defaultFocus.disable) {
+    this.focusModes.continuousFocus.disable();
+  }
+  if (this.focusModes.faceTracking) {
+    this.focusModes.faceTracking.disable();
+  }
+};
+
+Camera.prototype.disableCurrentMode = function() {
+  var currentFocusMode = this.focusModes[this.get('focusMode')];
+  if (currentFocusMode && currentFocusMode.disable) {
+    currentFocusMode.disable();
+  }
+};
+Camera.prototype.disableSupportedFocus = function() {
+  for (var mode in this.focusModes) {
+    if (this.focusModes[mode].disable) {
+      this.focusModes[mode].disable();
+    }
+  }
+  this.set('focusMode', 'none');
+  this.set('focus', 'none');
+};
 });

@@ -10,6 +10,7 @@ var CameraUtils = require('lib/camera-utils');
 var debug = require('debug')('view:viewfinder');
 var constants = require('config/camera');
 var View = require('vendor/view');
+var FocusRingView = require('views/focus-ring');
 
 /**
  * Locals
@@ -76,7 +77,9 @@ module.exports = View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-
+    //append focus ring
+    this.focusRing = new FocusRingView();
+    this.focusRing.appendTo(this.el);
     // Find elements
     this.els.frame = this.find('.js-frame');
     this.els.video = this.find('.js-video');
@@ -128,6 +131,7 @@ module.exports = View.extend({
       this.emit('pinchEnd');
     }
   },
+  
 
   enableZoom: function(minimumZoom, maximumZoom) {
     if (minimumZoom) {
