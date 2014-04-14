@@ -1,17 +1,27 @@
+'use strict';
+/* global MocksHelper, MockL10n, MockNavigatorMozTelephony, ModalDialog */
+/* global SIMSlotManager */
+
 requireApp('system/js/voicemail.js');
 requireApp('system/shared/js/settings_helper.js');
 
 requireApp('system/js/mock_simslot.js');
 requireApp('system/js/mock_simslot_manager.js');
+requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_navigator_moz_voicemail.js');
+requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 
 mocha.setup({
-  globals: ['SIMSlotManager']
+  globals: ['SIMSlotManager', 'MozActivity']
 });
+
+var mocksForVoicemail = new MocksHelper([
+  'ModalDialog'
+]).init();
 
 suite('voicemail notification', function() {
   var realMozVoicemail;
@@ -20,6 +30,9 @@ suite('voicemail notification', function() {
   var realL10n;
   var realSettingsHelper;
   var realMozTelephony;
+  var realMozActivity;
+
+  mocksForVoicemail.attachTestHelpers();
 
   suiteSetup(function() {
     realMozVoicemail = navigator.mozVoicemail;
@@ -36,6 +49,12 @@ suite('voicemail notification', function() {
 
     realSettingsHelper = SettingsHelper;
     SettingsHelper = MockSettingsHelper;
+
+    realMozTelephony = navigator.mozTelephony;
+    navigator.mozTelephony = MockNavigatorMozTelephony;
+
+    realMozActivity = window.MozActivity;
+    window.MozActivity = MockMozActivity;
   });
 
   setup(function() {
@@ -53,6 +72,8 @@ suite('voicemail notification', function() {
     navigator.mozL10n = realL10n;
     window.SIMSlotManager = realSIMSlotManager;
     SettingsHelper = realSettingsHelper;
+    navigator.mozTelephony = realMozTelephony;
+    window.MozActivity = realMozActivity;
   });
 
   teardown(function() {
@@ -113,17 +134,60 @@ suite('voicemail notification', function() {
         sinon.assert.calledWith(window.Notification, 'title');
     });
 
-    suite('showNotification should register a click event handler correctly',
+    suite('showNotification register and trigger click event handler correctly',
       function() {
+        var telephonyDialSpy;
+        var promptSpy;
+        var activitySpy;
+        var voicemailNumber = '111';
+
+        setup(function() {
+          telephonyDialSpy = this.sinon.spy(MockNavigatorMozTelephony, 'dial');
+          promptSpy = this.sinon.spy(ModalDialog, 'confirm');
+          activitySpy = this.sinon.spy(window, 'MozActivity');
+        });
+
         test('should register a handler when with a voice number', function() {
-          Voicemail.showNotification('title', 'text', '111');
+          Voicemail.showNotification('title', 'text', voicemailNumber);
           sinon.assert.calledWith(this.notificationListenerSpy, 'click');
         });
 
-        test('should not register a handler when without a voice number',
+        test('should trigger handler when with a voice number', function() {
+          Voicemail.showNotification('title', 'text', voicemailNumber);
+          this.notificationListenerSpy.yield();
+          sinon.assert.calledWith(telephonyDialSpy, voicemailNumber);
+        });
+
+        test('should register a handler when there is no voicemail number',
           function() {
             Voicemail.showNotification('title', 'text');
-            sinon.assert.notCalled(this.notificationListenerSpy);
+            sinon.assert.calledWith(this.notificationListenerSpy, 'click');
+        });
+
+        test('should trigger handler when without a voice number', function() {
+          var expectedTitle = 'voicemailNoNumberTitle';
+          var expectedText = 'voicemailNoNumberText';
+          var expectedConfirm = {
+            title: 'voicemailNoNumberSettings',
+            callback: Voicemail.showVoicemailSettings
+          };
+          Voicemail.showNotification('title', 'text');
+          this.notificationListenerSpy.yield();
+          sinon.assert.notCalled(telephonyDialSpy);
+          sinon.assert.calledWithMatch(
+            promptSpy, expectedTitle, expectedText, expectedConfirm);
+        });
+
+        test('send MozActivity to display voicemail settings', function() {
+          var expectedActivity = {
+            name: 'configure',
+            data: {
+              target: 'device',
+              section: 'call'
+            }
+          };
+          Voicemail.showVoicemailSettings();
+          sinon.assert.calledWith(activitySpy, expectedActivity);
         });
     });
 

@@ -91,30 +91,49 @@ var Voicemail = {
 
     var notification = new Notification(title, notifOptions);
 
-    if (!voicemailNumber) {
-      return;
-    }
+    var callVoicemail = function vmNotificationCall_onClick(event) {
+      var telephony = window.navigator.mozTelephony;
+      if (!telephony) {
+        return;
+      }
+
+      var openLines = telephony.calls.length +
+          ((telephony.conferenceGroup &&
+            telephony.conferenceGroup.calls.length) ? 1 : 0);
+
+      // User can make call only when there are less than 2 calls by spec.
+      // If the limit reached, return early to prevent holding active call.
+      if (openLines >= 2) {
+        return;
+      }
+
+      telephony.dial(voicemailNumber, serviceId);
+    };
+
+    var showNoVoicemail = (function vmNotificationNoCall_onClick(event) {
+      var _ = window.navigator.mozL10n.get;
+
+      var voicemailDialog = {
+        title: _('voicemailNoNumberTitle'),
+        text: _('voicemailNoNumberText'),
+        confirm: {
+          title: _('voicemailNoNumberSettings'),
+          callback: this.showVoicemailSettings
+        },
+        cancel: {
+          title: _('voicemailNoNumberCancel'),
+          callback: function() {}
+        }
+      };
+
+      ModalDialog.confirm(
+        voicemailDialog.title, voicemailDialog.text,
+        voicemailDialog.confirm, voicemailDialog.cancel
+      );
+    }).bind(this);
 
     notification.addEventListener('click',
-      function vmNotification_onClick(event) {
-        var telephony = window.navigator.mozTelephony;
-        if (!telephony) {
-          return;
-        }
-
-        var openLines = telephony.calls.length +
-            ((telephony.conferenceGroup &&
-              telephony.conferenceGroup.calls.length) ? 1 : 0);
-
-        // User can make call only when there are less than 2 calls by spec.
-        // If the limit reached, return early to prevent holding active call.
-        if (openLines >= 2) {
-          return;
-        }
-
-        telephony.dial(voicemailNumber, serviceId);
-      }
-    );
+      voicemailNumber ? callVoicemail : showNoVoicemail);
 
     this.notifications[serviceId] = notification;
   },
@@ -126,6 +145,20 @@ var Voicemail = {
 
     this.notifications[serviceId].close();
     this.notifications[serviceId] = null;
+  },
+
+  showVoicemailSettings: function vm_showVoicemailSettings() {
+    var activity = new window.MozActivity({
+      name: 'configure',
+      data: {
+        target: 'device',
+        section: 'call'
+      }
+    });
+
+    activity.onerror = function() {
+      console.warn('Configure activity error:', activity.error.name);
+    };
   }
 };
 
