@@ -8,7 +8,7 @@ var browser_ORIGIN = 'app://browser.gaiamobile.org';
 var urlBar = null;
 marionette('Keyboard APP', function() {
   var apps = {},
-      keyboardtests = null,
+      //keyboardtests = null,
       client = null;
 
   apps[KeyboardTests.ORIGIN] = __dirname + '/keyboardtests';
