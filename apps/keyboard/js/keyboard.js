@@ -1610,7 +1610,6 @@ function resetKeyboard() {
   // Don't call setUpperCase because renderKeyboard() should be invoked
   // separately after this function
   isUpperCase = false;
-  isUpperCaseLocked = false;
 }
 
 // This is a wrapper around inputContext.sendKey()
