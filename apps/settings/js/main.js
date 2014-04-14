@@ -3,7 +3,6 @@ require(['config/require'], function() {
 
   define('boot', function(require) {
     var SettingsService = require('modules/settings_service'),
-        SettingsCache = require('modules/settings_cache'),
         PageTransitions = require('modules/page_transitions'),
         LazyLoader = require('shared/lazy_loader'),
         ScreenLayout = require('shared/screen_layout'),
@@ -21,7 +20,6 @@ require(['config/require'], function() {
 
     var options = {
       SettingsService: SettingsService,
-      SettingsCache: SettingsCache,
       PageTransitions: PageTransitions,
       LazyLoader: LazyLoader,
       ScreenLayout: ScreenLayout

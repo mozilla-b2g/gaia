@@ -143,6 +143,5 @@ define(function() {
   // Make a request for settings to warm the cache, since we need it
   // very soon in startup after the DOM is available.
   SettingsCache.getSettings(null);
-
   return SettingsCache;
 });

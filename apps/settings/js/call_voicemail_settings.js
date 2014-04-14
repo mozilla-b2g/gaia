@@ -1,19 +1,23 @@
-/* global DsdsSettings, Settings */
+/* global DsdsSettings */
 
 'use strict';
 
-(function() {
-  var input, submitBtn;
+require([
+  'modules/settings_cache'
+], function(SettingsCache) {
+  var input;
+  var submitBtn;
+
   var init = function csvm_init() {
     input = document.getElementById('vm-number');
     submitBtn =
       document.querySelector('#call-voiceMailSettings button[type="submit"]');
-
+  
     submitBtn.addEventListener('click', function(e) {
       e.preventDefault();
       submit();
     });
-
+  
     window.addEventListener('panelready', function(e) {
       if (e.detail.current === '#call-voiceMailSettings') {
         reset(function() {
@@ -28,10 +32,10 @@
       }
     });
   };
-
+  
   var submit = function csvm_submit() {
     var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
-    Settings.getSettings(function(results) {
+    SettingsCache.getSettings(function(results) {
       var numbers = results['ril.iccInfo.mbdn'] || [];
       numbers[targetIndex] = input.value;
       navigator.mozSettings.createLock().set({
@@ -39,10 +43,10 @@
       });
     });
   };
-
+  
   var reset = function csvm_reset(callback) {
     var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
-    Settings.getSettings(function(results) {
+    SettingsCache.getSettings(function(results) {
       var numbers = results['ril.iccInfo.mbdn'];
       var number = numbers && numbers[targetIndex];
       input.value = number || '';
@@ -51,6 +55,6 @@
       }
     });
   };
-
+  
   navigator.mozL10n.once(init);
-})();
+});
