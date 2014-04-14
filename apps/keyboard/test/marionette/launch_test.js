@@ -22,6 +22,7 @@ marionette('Keyboard APP', function() {
   setup(function() {
     keyboardtests = new KeyboardTests(client);
     keyboardtests.launch();
+    client.helper.wait(5000);
     keyboardtests.textInput.click();
   });
 
