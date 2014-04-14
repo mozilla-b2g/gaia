@@ -5,6 +5,11 @@ module.exports = {
   zoom: {
     disabled: false
   },
+  caf: {
+    // Set this property to true if you want to disable continuous auto focus
+    // even on hardware that supports it.
+    disabled: false
+  },
   viewfinder: {
     scaleType: 'fill'
   },
