@@ -3,7 +3,6 @@
 var System = require('../../../system/test/marionette/lib/system');
 var Search = require('./lib/search');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
-var Calendar = require('../../../calendar/test/marionette/lib/calendar');
 
 marionette('Search - App search', function() {
   var client = marionette.client(Rocketbar.clientOptions);
@@ -21,7 +20,7 @@ marionette('Search - App search', function() {
     rocketbar.enterText('calendar');
     search.goToResults();
     search.checkResult('firstApp', 'Calendar');
-    search.goToApp(Calendar.ORIGIN);
+    search.goToApp('app://calendar.gaiamobile.org');
   });
 
   test('Search for app with entry point', function() {
