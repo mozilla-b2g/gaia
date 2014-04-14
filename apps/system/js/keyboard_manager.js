@@ -85,7 +85,7 @@ var KeyboardManager = {
 
   focusChangeTimeout: 0,
   switchChangeTimeout: 0,
-  _onDebug: false,
+  _onDebug: true,
   _debug: function km_debug(msg) {
     if (this._onDebug)
       console.log('[Keyboard Manager] ' + msg);
