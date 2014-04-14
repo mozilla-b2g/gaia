@@ -144,7 +144,10 @@ marionette('Alarm', function() {
 
     alarm.saveForm();
 
-    assert.equal(alarm.list[0].name, changedName);
+    $.client.waitFor(function() {
+      return alarm.list[0].name === changedName;
+    }.bind(this));
+
     utils.assertStringContainsTime(alarm.list[0].timeString, changedTime);
 
     // Assert that the banner has been displayed.
