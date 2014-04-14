@@ -404,34 +404,13 @@
 
         var request = transaction.get('ril.iccInfo.mbdn');
         request.onsuccess = (function() {
-          var originalSetting = request.result['ril.iccInfo.mbdn'];
-          var newSetting;
-          var newNumber;
-
-          // Create an empty setting if needed
-          if (!originalSetting || !Array.isArray(originalSetting)) {
-            newSetting = ['', ''];
-          } else {
-            newSetting = originalSetting;
-          }
-
-          // Determine the new value:
-          // - Use the original value when the function is called due to
-          //   system update
+          var originalSetting = request.result['ril.iccInfo.mbdn'] || ['', ''];
           // - Use the passed in number when the function is called due to
           //   new icc cards detected (not system update)
-          if (isSystemUpdate) {
-            if (!Array.isArray(originalSetting)) {
-              newNumber = originalSetting;
-            } else {
-              newNumber = originalSetting[this._iccCardIndex];
-            }
-          } else {
-            newNumber = number;
+          if (!isSystemUpdate) {
+            originalSetting[this._iccCardIndex] = number;
+            transaction.set({ 'ril.iccInfo.mbdn': originalSetting });
           }
-
-          newSetting[this._iccCardIndex] = newNumber;
-          transaction.set({'ril.iccInfo.mbdn': newSetting});
         }).bind(this);
     },
 
