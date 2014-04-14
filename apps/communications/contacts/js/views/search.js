@@ -128,8 +128,11 @@ contacts.Search = (function() {
     });
   };
 
-  var updateSearchList = function updateSearchList() {
+  var updateSearchList = function updateSearchList(cb) {
     if (!inSearchMode) {
+      if (cb) {
+        cb();
+      }
       return;
     }
 
@@ -137,7 +140,7 @@ contacts.Search = (function() {
       // Resetting state
       resetStateAndCache();
 
-      search();
+      search(cb);
     });
   };
 
