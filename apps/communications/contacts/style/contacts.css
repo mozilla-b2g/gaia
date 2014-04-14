@@ -703,11 +703,19 @@ section[role="region"] > header .icon.icon-settings {
   pointer-events: none;
   position: absolute;
   top: 0;
-  left: 1rem;
-  right: 0;
+  left: 1.5rem;
+  right: 2rem;
   line-height: 4rem;
+  font-size: 1.6rem;
   font-weight: normal;
-  background: url(/shared/style/input_areas/images/icons/arrow.png) no-repeat 100% 100% / 1.2rem;
+  color: #333;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.datetime + input[type="date"] {
+  font-size: 0;
 }
 
 .placeholder {
