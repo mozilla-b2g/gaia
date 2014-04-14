@@ -32,27 +32,22 @@
     },
 
     /**
-     * Gives the possible height for a fullscreen window.
+     * Gives the possible height for a window.
      *
      * @memberOf module:LayoutManager
      */
-    get fullscreenHeight() {
+    get height() {
       return window.innerHeight -
         (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
+        StatusBar.height -
         SoftwareButtonManager.height;
     },
 
     /**
-     * Gives the possible height for a normal window.
+     * Gives the possible width for a normal window.
      *
-     * @memberOf module:LayoutManager
+     * @memberOf LayoutManager
      */
-    get usualHeight() {
-      return window.innerHeight -
-        (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
-        SoftwareButtonManager.height - StatusBar.height;
-    },
-
     get width() {
       return window.innerWidth;
     },
@@ -61,17 +56,12 @@
      * Match the given size with current layout.
      * @param  {Number}  width        The matched width.
      * @param  {Number}  height       The matched height.
-     * @param  {Boolean} isFullScreen To match fullscreen case or not.
      * @return {Boolean}              Matches current layout or not.
      *
      * @memberOf module:LayoutManager
      */
-    match: function(width, height, isFullScreen) {
-      if (isFullScreen) {
-        return (this.fullscreenHeight === height);
-      } else {
-        return (this.usualHeight === height);
-      }
+    match: function lm_match(width, height) {
+      return (this.height === height);
     },
 
     /**
