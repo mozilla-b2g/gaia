@@ -34,6 +34,8 @@ Features available:
 
 ## Tests
 
+In general it's a good idea to install jshint and other goodies before starting. So hop into /gaia and run `npm install` to install them. This way, linting et al. is run on a hook.
+
 ### Unit Tests
 
 Unit tests for an app go in `apps/<APP>/test/unit/`.
