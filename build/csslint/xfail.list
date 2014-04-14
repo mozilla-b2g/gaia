@@ -57,7 +57,7 @@ apps/fm/style/fm.css 0 1
 apps/settings/style/settings.css 0 2
 apps/settings/style/settings_large.css 0 1
 apps/settings/style/lists.css 2 0
-apps/music/style/music.css 0 3
+apps/music/style/music.css 0 1
 apps/pdfjs/content/web/viewer.css 3 3
 apps/system/emergency-call/style/keypad.css 1 1
 apps/system/emergency-call/style/dialer.css 2 0
