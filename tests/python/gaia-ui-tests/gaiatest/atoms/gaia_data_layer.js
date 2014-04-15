@@ -241,11 +241,12 @@ var GaiaDataLayer = {
   disableWiFi: function() {
     var manager = window.navigator.mozWifiManager;
     if (manager.enabled) {
-      manager.ondisabled = function() {
-        manager.ondisabled = null;
-        console.log('wifi disabled');
-        marionetteScriptFinished(true);
-      };
+      waitFor(
+        function() { marionetteScriptFinished(true); },
+        function() {
+          console.log('wifi enabled status: ' + manager.enabled);
+          return manager.enabled === false;
+      });
       this.setSetting('wifi.enabled', false, false);
     }
     else {
@@ -257,11 +258,12 @@ var GaiaDataLayer = {
   enableWiFi: function() {
     var manager = window.navigator.mozWifiManager;
     if (!manager.enabled) {
-      manager.onenabled = function() {
-        manager.onenabled = null;
-        console.log('wifi enabled');
-        marionetteScriptFinished(true);
-      };
+      waitFor(
+        function() { marionetteScriptFinished(true); },
+        function() {
+          console.log('wifi enabled status: ' + manager.enabled);
+          return manager.enabled === true;
+      });
       this.setSetting('wifi.enabled', true, false);
     }
     else {
