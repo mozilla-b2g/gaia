@@ -28,7 +28,7 @@ function ViewfinderController(app) {
   this.activity = app.activity;
   this.settings = app.settings;
   this.viewfinder = app.views.viewfinder;
-  this.focusRing = app.views.focusRing;
+  this.focusRing = this.viewfinder.focusRing;
   this.bindEvents();
   this.configure();
   debug('initialized');

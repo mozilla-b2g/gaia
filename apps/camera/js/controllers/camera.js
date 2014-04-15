@@ -30,6 +30,7 @@ function CameraController(app) {
   this.activity = app.activity;
   this.viewfinder = app.views.viewfinder;
   this.controls = app.views.controls;
+  this.focusRing = this.viewfinder.focusRing;
   this.hdrDisabled = this.settings.hdr.get('disabled');
   this.configure();
   this.bindEvents();
@@ -55,7 +56,9 @@ CameraController.prototype.bindEvents = function() {
   camera.on('busy', app.firer('camera:busy'));
   camera.on('newimage', this.onNewImage);
   camera.on('newvideo', this.onNewVideo);
-
+  //focus events  got-camera
+  camera.on('got-camera', this.configureFocus);
+  app.on('viewfinder:updated', this.setDafaultPotion);
   // App
   app.on('boot', this.camera.load);
   app.on('focus', this.camera.load);
@@ -271,6 +274,7 @@ CameraController.prototype.setRecorderProfile = function(value) {
 };
 
 CameraController.prototype.setCamera = function(value) {
+  this.disableSupportedFocus();
   this.camera.set('selectedCamera', value);
   this.viewfinder.fadeOut(this.camera.load);
 };
@@ -282,6 +286,7 @@ CameraController.prototype.setFlashMode = function() {
 
 CameraController.prototype.onBlur = function() {
   this.camera.stopRecording();
+  this.disableSupportedFocus();
   this.camera.set('previewActive', false);
   this.camera.set('focus', 'none');
   this.camera.release();
@@ -344,4 +349,86 @@ CameraController.prototype.onPreviewGalleryOpened = function() {
   this.camera.configureZoom(this.camera.previewSize());
 };
 
+CameraController.prototype.onFocusModeChange = function(value) {
+  this.focusRing.setMode(value);
+  if (value === 'continuousFocus') {
+    this.setDafaultPotion();
+  }
+  this.camera.set('focus', 'none');
+  this.faceFocusTimeout = false;
+};
+
+CameraController.prototype.setDafaultPotion = function(value) {
+  var x = this.viewfinder.els.frame.clientWidth / 2;
+  var y = this.viewfinder.els.frame.clientHeight / 2;
+  this.setFocusRingPosition(x, y);
+};
+CameraController.prototype.configureFocus = function() {
+  var selectedCamera = this.camera.get('selectedCamera');
+  var focusModes = (selectedCamera === 'back') ?
+   this.settings.focusModes.get('modes') : { fixedFocus: true };
+  var cameraMode = this.camera.mode;
+  this.camera.focusModes = {};
+  for (var mode in focusModes) {
+    if (!focusModes[mode]) { continue; }
+    var supportedMode = this.supportedfocusModes(mode, cameraMode);
+    if (supportedMode && supportedMode.supported) {
+      this.camera.focusModes[mode] = supportedMode;
+      this.camera.focusModes[mode].key = mode;
+    }
+  }
+  console.log("this.camera.focusModes::  "+this.camera.focusModes.toSource());
+  this.camera.setDefaultFocusmode();
+};
+
+CameraController.prototype.supportedfocusModes = function(mode, cameraMode) {
+  var focusObject = null;
+  switch (mode) {
+    case 'continuousFocus':
+      focusObject = {
+        supported: this.camera.continuousFocusModeCheck(),
+        enable: this.camera.setContinuousFocusMode,
+        disable: this.camera.disableAutoFocusMove
+      };
+    break;
+    case 'faceTracking':
+      focusObject = {
+        supported: (cameraMode !== 'video') ?
+         this.camera.faceTrackingModeCheck() : false,
+        enable: this.camera.startFaceDetection,
+        disable: this.camera.stopFaceDetection
+      };
+    break;
+    case 'touchFocus':
+      focusObject = {
+        supported: this.camera.touchFocusModeCheck(),
+      };
+    break;
+    case 'autoFocus':
+      focusObject = {
+        supported: (cameraMode !== 'video') ?
+         this.camera.autoFocusModeCheck() : false,
+      };
+    break;
+    case 'fixedFocus':
+      focusObject = {
+        supported: true,
+        enable: this.camera.setFixedFocusMode
+      };
+    break;
+  }
+  return focusObject;
+};
+
+CameraController.prototype.disableSupportedFocus = function() {
+  if (this.focusTimeOut) {
+    clearTimeout(this.focusTimeOut);
+    this.focusTimeOut = null;
+  }
+  this.camera.disableSupportedFocus();
+};
+
+CameraController.prototype.setFocusRingPosition = function(x, y) {
+  this.focusRing.changePosition(x, y);
+};
 });

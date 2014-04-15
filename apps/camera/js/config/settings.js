@@ -41,7 +41,15 @@ module.exports = {
     ],
     selected:'auto'
   },
-
+  focusModes: {
+    modes: {
+      continuousFocus: true,
+      faceTracking:false,
+      touchFocus: false,
+      autoFocus: false,
+      fixedFocus: true
+    }
+  },
   whiteBalance: {
     disabled: false,
     options: [
