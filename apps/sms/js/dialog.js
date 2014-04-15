@@ -174,7 +174,7 @@ var ERRORS = {
     hasHandler: false
   },
   FdnCheckError: {
-    prefix: 'fdnBlocked',
+    prefix: 'fdnBlocked2',
     showRecipient: true,
     showDsdsStatus: false,
     hasHandler: false
