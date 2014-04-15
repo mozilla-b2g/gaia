@@ -307,7 +307,7 @@ export SEP
 export SEP_FOR_SED
 
 ifndef GAIA_APP_CONFIG
-GAIA_APP_CONFIG=$(GAIA_DIR)$(SEP)build$(SEP)config$(SEP)apps-$(GAIA_APP_TARGET).list
+GAIA_APP_CONFIG=$(GAIA_DIR)$(SEP)build$(SEP)config$(SEP)$(GAIA_DEVICE_TYPE)$(SEP)apps-$(GAIA_APP_TARGET).list
 endif
 
 ifndef GAIA_DISTRIBUTION_DIR
