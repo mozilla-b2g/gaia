@@ -631,7 +631,6 @@ shared/js/dialer/utils.js
 shared/js/dialer/voicemail.js
 shared/js/download/download_formatter.js
 shared/js/download/download_helper.js
-shared/js/download/download_store.js
 shared/js/download/download_ui.js
 shared/js/fb/fb_data_reader.js
 shared/js/fb/fb_reader_utils.js
