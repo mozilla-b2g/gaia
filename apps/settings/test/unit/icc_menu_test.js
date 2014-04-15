@@ -51,25 +51,6 @@ if (!window.DUMP) {
 }
 
 suite('STK (Main menu) >', function() {
-  setup(function() {
-    mocksHelper.setup();
-    MockNavigatorSettings.mTriggerObservers('icc.applications', {
-      settingValue: JSON.stringify({
-        '1': {
-          'iccId': '1111111111111',
-          'entries': dummySTKMenuEntries
-        },
-        '2': {
-          'iccId': '2222222222222',
-          'entries': dummySTKMenuEntries
-        }})});
-  });
-
-  teardown(function() {
-    mocksHelper.teardown();
-    MockNavigatorSettings.mTeardown();
-  });
-
   suiteSetup(function(done) {
     loadBodyHTML('/index.html');
     realL10n = navigator.mozL10n;
@@ -85,40 +66,91 @@ suite('STK (Main menu) >', function() {
     requireApp('settings/js/icc_menu.js', done);
   });
 
-  test('Check initialization', function() {
-    assert.ok(document.getElementById('icc-mainheader'));
-    assert.ok(document.getElementById('icc-entries'));
-  });
-
-  test('Two entries into the STK applications list', function() {
-    assert.equal(document.getElementById('icc-entries').childElementCount, 2);
-  });
-
-  test('Operator name (SIM 1) showed in the list', function() {
-    assert.equal(document.querySelector(
-      '#icc-entries li a').textContent, 'DummyOperator');
-  });
-
-  test('SIM number (SIM 1) showed in the list', function() {
-    assert.equal(document.querySelector(
-      '#icc-entries li small').textContent, 'SIM 1');
-  });
-
-  test('Operator name (SIM 2) showed in the list', function() {
-    assert.equal(document.querySelector(
-      '#icc-entries li:nth-child(2) a').textContent, 'DummyOperator');
-  });
-
-  test('SIM number (SIM 2) showed in the list', function() {
-    assert.equal(document.querySelector(
-      '#icc-entries li:nth-child(2) small').textContent, 'SIM 2');
-  });
-
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
     navigator.mozSettings = realMozSettings;
     navigator.mozIccManager = realMozIccManager;
     window.DUMP = realDUMP;
     mocksHelper.suiteTeardown();
+    MockNavigatorSettings.mTeardown();
+  });
+
+  test('Check initialization', function() {
+    assert.ok(document.getElementById('icc-mainheader'));
+    assert.ok(document.getElementById('icc-entries'));
+  });
+
+  suite('Single SIM >', function() {
+    setup(function() {
+      mocksHelper.setup();
+      MockNavigatorSettings.mTriggerObservers('icc.applications', {
+        settingValue: JSON.stringify({
+          '1': {
+            'iccId': '1111111111111',
+            'entries': dummySTKMenuEntries
+          }})});
+    });
+
+    teardown(function() {
+      mocksHelper.teardown();
+    });
+
+    test('One entry into the STK applications list', function() {
+      assert.equal(document.getElementById('icc-entries').childElementCount, 1);
+    });
+
+    test('Operator name showed in the list', function() {
+      assert.equal(document.querySelector(
+        '#icc-entries li a').textContent, 'DummyOperator');
+    });
+
+    test('SIM number not showed in the list', function() {
+      assert.isNull(document.querySelector(
+        '#icc-entries li small'));
+    });
+  });
+
+  suite('Dual SIM >', function() {
+    setup(function() {
+      mocksHelper.setup();
+      MockNavigatorSettings.mTriggerObservers('icc.applications', {
+        settingValue: JSON.stringify({
+          '1': {
+            'iccId': '1111111111111',
+            'entries': dummySTKMenuEntries
+          },
+          '2': {
+            'iccId': '2222222222222',
+            'entries': dummySTKMenuEntries
+          }})});
+    });
+
+    teardown(function() {
+      mocksHelper.teardown();
+    });
+
+    test('Two entries into the STK applications list', function() {
+      assert.equal(document.getElementById('icc-entries').childElementCount, 2);
+    });
+
+    test('Operator name (SIM 1) showed in the list', function() {
+      assert.equal(document.querySelector(
+        '#icc-entries li a').textContent, 'DummyOperator');
+    });
+
+    test('SIM number (SIM 1) showed in the list', function() {
+      assert.equal(document.querySelector(
+        '#icc-entries li small').textContent, 'SIM 1');
+    });
+
+    test('Operator name (SIM 2) showed in the list', function() {
+      assert.equal(document.querySelector(
+        '#icc-entries li:nth-child(2) a').textContent, 'DummyOperator');
+    });
+
+    test('SIM number (SIM 2) showed in the list', function() {
+      assert.equal(document.querySelector(
+        '#icc-entries li:nth-child(2) small').textContent, 'SIM 2');
+    });
   });
 });
