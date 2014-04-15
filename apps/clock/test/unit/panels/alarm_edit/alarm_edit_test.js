@@ -228,7 +228,7 @@ suite('AlarmEditView', function() {
       alarmEdit.alarm.hour = '0';
       alarmEdit.alarm.minute = '0';
       alarmEdit.initTimeSelect();
-      assert.equal(alarmEdit.timeSelect.value, '00:00');
+      assert.equal(alarmEdit.selects.time.value, '00:00');
     });
 
     test('3:5, should init time select with format of system time picker',
@@ -236,7 +236,7 @@ suite('AlarmEditView', function() {
       alarmEdit.alarm.hour = '3';
       alarmEdit.alarm.minute = '5';
       alarmEdit.initTimeSelect();
-      assert.equal(alarmEdit.timeSelect.value, '03:05');
+      assert.equal(alarmEdit.selects.time.value, '03:05');
     });
 
     test('9:25, should init time select with format of system time picker',
@@ -244,7 +244,7 @@ suite('AlarmEditView', function() {
       alarmEdit.alarm.hour = '9';
       alarmEdit.alarm.minute = '25';
       alarmEdit.initTimeSelect();
-      assert.equal(alarmEdit.timeSelect.value, '09:25');
+      assert.equal(alarmEdit.selects.time.value, '09:25');
     });
 
     test('12:55, should init time select with format of system time picker',
@@ -252,7 +252,7 @@ suite('AlarmEditView', function() {
       alarmEdit.alarm.hour = '12';
       alarmEdit.alarm.minute = '55';
       alarmEdit.initTimeSelect();
-      assert.equal(alarmEdit.timeSelect.value, '12:55');
+      assert.equal(alarmEdit.selects.time.value, '12:55');
     });
 
     test('15:5, should init time select with format of system time picker',
@@ -260,7 +260,7 @@ suite('AlarmEditView', function() {
       alarmEdit.alarm.hour = '15';
       alarmEdit.alarm.minute = '5';
       alarmEdit.initTimeSelect();
-      assert.equal(alarmEdit.timeSelect.value, '15:05');
+      assert.equal(alarmEdit.selects.time.value, '15:05');
     });
 
     test('23:0, should init time select with format of system time picker',
@@ -268,7 +268,7 @@ suite('AlarmEditView', function() {
       alarmEdit.alarm.hour = '23';
       alarmEdit.alarm.minute = '0';
       alarmEdit.initTimeSelect();
-      assert.equal(alarmEdit.timeSelect.value, '23:00');
+      assert.equal(alarmEdit.selects.time.value, '23:00');
     });
   });
 

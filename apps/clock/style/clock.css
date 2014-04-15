@@ -32,7 +32,7 @@ html, body {
   pointer-events: none;
 }
 
-#clock-hour24-state {
+#clock-time small {
   font-weight: lighter;
   font-size: 3.7rem;
   color: #5C6466;

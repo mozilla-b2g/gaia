@@ -68,11 +68,6 @@ var ClockView = {
     return (this.time = document.getElementById('clock-time'));
   },
 
-  get hourState() {
-    delete this.hourState;
-    return (this.hourState = document.getElementById('clock-hour24-state'));
-  },
-
   get dayDate() {
     delete this.dayDate;
     return (this.dayDate = document.getElementById('clock-day-date'));
@@ -153,10 +148,7 @@ var ClockView = {
     opts = opts || {};
 
     var d = new Date();
-    var time = Utils.getLocaleTime(d);
-    this.time.textContent = time.time;
-    this.hourState.textContent = time.ampm || '  '; // 2 non-break spaces
-
+    this.time.innerHTML = Utils.getLocalizedTimeHtml(d);
     this.timeouts.digital = setTimeout(
       this.updateDigitalClock.bind(this), (60 - d.getSeconds()) * 1000
     );
@@ -179,9 +171,7 @@ var ClockView = {
     this.setTransform('hour', hour);
 
     // Update aria label for analog view.
-    var time = Utils.getLocaleTime(now);
-    this.container.setAttribute(
-      'aria-label', time.t + (time.p ? ' ' : '') + time.p);
+    this.container.setAttribute('aria-label', Utils.getLocalizedTimeText(now));
 
     // update again in one second
     this.timeouts.analog = setTimeout(
