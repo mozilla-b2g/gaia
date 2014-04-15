@@ -45,6 +45,7 @@
   };
 
   AppModalDialog.prototype.handleEvent = function amd_handleEvent(evt) {
+    this.app.debug('handling ' + evt.type);
     evt.preventDefault();
     this.events.push(evt);
     if (!this._injected) {
