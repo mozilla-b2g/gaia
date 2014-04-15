@@ -96,7 +96,6 @@
               <h1 data-l10n-id="callLog"></h1>
             </header>
             <nav id="call-log-filter" class="recents-filter-container">
-
               <ul role="tablist" class="bb-tablist" data-type="filter" aria-controls="call-log-container">
                 <li id="all-filter" role="presentation"><a id="all-filter-tab" role="tab" aria-selected="true" data-action="all" data-l10n-id="all"></a></li>
                 <li id="missed-filter" role="presentation"><a id="missed-filter-tab" role="tab" aria-selected="false" data-action="missed" data-l10n-id="missed"></a></li>
@@ -134,16 +133,12 @@
         <a id="option-keypad" role="tab" aria-controls="keypad-panel" href="#keyboard-view" class="icon icon-keypad" data-l10n-id="keypad" aria-selected="true"></a>
         <div id="keypad-panel" role="tabpanel" class="bb-tabpanel" aria-labelledby="option-keypad">
           <div id="phone-number-view-container">
-            <div class="grid-cell grid-v-align">
-              <div class="grid-wrapper">
-                <input id="phone-number-view" type="text" class="phone-number-font font-light" readonly="readonly" data-l10n-id="phoneNumberInput">
-                <div id="fake-phone-number-view"></div>
-              </div>
+            <div class="phone-number-view-wrapper-input">
+              <input id="phone-number-view" type="text" class="phone-number-font font-light" readonly="readonly" data-l10n-id="phoneNumberInput">
+              <div id="fake-phone-number-view"></div>
             </div>
-            <div id="keypad-delete" class="grid-cell grid-v-align" data-value="delete" role="button" data-l10n-id="keypadDelete">
-              <div>
-              </div>
-            </div>
+            <button id="keypad-delete" class="reset-button" data-value="delete" data-l10n-id="keypadDelete">
+            </button>
           </div>
           <section id="suggestion-bar" hidden>
             <div id="suggestion-count" class="more"></div>
@@ -157,58 +152,66 @@
           </section>
           <article id="keyboard-container">
             <section id="keypad">
-              <div class="keypad-cell">
+              <div class="keypad-row">
                 <div class="keypad-key" role="key" data-value="1" data-voicemail="true">
-                  1<em class="keypad-subicon voicemail" data-l10n-id="voiceMailKey"></em>
+                  <span>1</span>
+                  <em class="keypad-subicon voicemail" data-l10n-id="voiceMailKey"></em>
                 </div>
                 <div class="keypad-key" role="key" data-value="2">
-                  2<em>ABC</em>
+                  <span>2</span>
+                  <em>ABC</em>
                 </div>
                 <div class="keypad-key" role="key" data-value="3">
-                  3<em>DEF</em>
+                  <span>3</span>
+                  <em>DEF</em>
                 </div>
               </div>
-              <div class="keypad-cell">
+              <div class="keypad-row">
                 <div class="keypad-key" role="key" data-value="4">
-                  4<em>GHI</em>
+                  <span>4</span>
+                  <em>GHI</em>
                 </div>
                 <div class="keypad-key" role="key" data-value="5">
-                  5<em>JKL</em>
+                  <span>5</span>
+                  <em>JKL</em>
                 </div>
                 <div class="keypad-key" role="key" data-value="6">
-                  6<em>MNO</em>
+                  <span>6</span>
+                  <em>MNO</em>
                 </div>
               </div>
-              <div class="keypad-cell">
+              <div class="keypad-row">
                 <div class="keypad-key" role="key" data-value="7">
-                  7<em>PQRS</em>
+                  <span>7</span>
+                  <em>PQRS</em>
                 </div>
                 <div class="keypad-key" role="key" data-value="8">
-                  8<em>TUV</em>
+                  <span>8</span>
+                  <em>TUV</em>
                 </div>
                 <div class="keypad-key" role="key" data-value="9">
-                  9<em>WXYZ</em>
+                  <span>9</span>
+                  <em>WXYZ</em>
                 </div>
               </div>
-              <div class="keypad-cell">
-                <div class="keypad-key keypad-key-centered" role="key" data-value="*" data-l10n-id="asterisk">
-                  <div class="asterisk"></div>
+              <div class="keypad-row">
+                <div class="keypad-key" role="key" data-value="*" data-l10n-id="asterisk">
+                  <div class="asterisk">*</div>
                 </div>
                 <div class="keypad-key" role="key" data-value="0">
-                  0<em class="font-size-plus">+</em>
+                  <span>0</span>
+                  <em class="font-size-plus">+</em>
                 </div>
-                <div class="keypad-key keypad-key-centered" role="key" data-type="dial" data-value="#" data-l10n-id="hashSign">
-                  <div class="sharp"></div>
+                <div class="keypad-key" role="key" data-type="dial" data-value="#" data-l10n-id="hashSign">
+                  <div class="sharp">#</div>
                 </div>
               </div>
             </section>
             <section id="keypad-callbar">
-              <div role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" data-l10n-id="dialerAddContact" disabled aria-disabled="true">
-                <div class="icon-add-contact"></div>
-              </div>
-              <div role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call" data-l10n-id="makeCall">
+              <button id="keypad-callbar-add-contact" data-value="add-contact" class="reset-button keypad-callbar-button icon-add-contact" data-l10n-id="dialerAddContact" disabled></button>
+              <button id="keypad-callbar-call-action" class="reset-button" data-value="make-call" data-l10n-id="makeCall">
                 <div class="js-sim-indication"></div>
-              </div>
+              </button>
             </section>
           </article>
         </div>
