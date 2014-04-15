@@ -21,51 +21,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 14
-		},
-		{
-			"icon": {
-				"paths": [
-					"M512.439 908.15c-52.275 0-102.143-10.222-147.822-28.643l-25.226 25.247c110.65 48.736 237.644 48.582 348.108-0.758l-25.269-25.269c-46.207 18.916-96.756 29.424-149.791 29.424zM146.241 362.529l-25.247-25.269c-50.054 111.892-49.527 240.743 1.11 352.394l25.017-25.017c-19.531-46.846-30.358-98.23-30.358-152.154 0-53.089 10.53-103.714 29.478-149.955zM904.634 339.27l-25.226 25.236c18.444 45.714 28.699 95.625 28.699 147.954 0 53.165-10.541 103.879-29.556 150.197l25.226 25.247c49.549-110.595 49.726-237.809 0.858-348.636zM337.15 121.082l25.247 25.236c46.273-18.981 96.911-29.523 150.044-29.523 53.869 0 105.21 10.816 152.022 30.314l25.027-25.027c-111.671-50.593-240.48-51.087-352.339-1.001z"
-				],
-				"tags": [
-					"focus-locked"
-				],
-				"defaultCode": 58901,
-				"grid": 16
-			},
-			"properties": {
-				"id": 16,
-				"order": 2,
-				"prevSize": 32,
-				"code": 58901,
-				"name": "focus-locked",
-				"ligatures": ""
-			},
-			"setIdx": 0,
-			"iconIdx": 16
-		},
-		{
-			"icon": {
-				"paths": [
-					"M30.513 704.359h-23.665c54.759 144.35 169.597 258.88 313.814 313.726v-23.422c-63.695-25.334-123.411-63.707-174.949-115.255-51.549-51.594-89.898-111.321-115.2-175.049zM994.389 320.575h23.665c-54.759-144.327-169.597-258.847-313.792-313.693v23.401c63.695 25.325 123.378 63.683 174.928 115.266 51.539 51.571 89.921 111.321 115.2 175.026zM6.859 320.575h23.653c25.313-63.707 63.651-123.455 115.2-175.026 51.539-51.561 111.254-89.931 174.949-115.255v-23.412c-144.218 54.836-259.055 169.366-313.804 313.693zM879.188 879.408c-51.549 51.549-111.233 89.931-174.928 115.255v23.401c144.195-54.825 259.022-169.355 313.792-313.705h-23.665c-25.28 63.728-63.662 123.455-115.2 175.049z"
-				],
-				"tags": [
-					"focus-locking"
-				],
-				"defaultCode": 58902,
-				"grid": 16
-			},
-			"properties": {
-				"id": 17,
-				"order": 3,
-				"prevSize": 32,
-				"code": 58902,
-				"name": "focus-locking",
-				"ligatures": ""
-			},
-			"setIdx": 0,
-			"iconIdx": 17
+			"iconIdx": 0
 		},
 		{
 			"icon": {
@@ -80,14 +36,14 @@
 			},
 			"properties": {
 				"id": 25,
-				"order": 4,
+				"order": 2,
 				"prevSize": 32,
 				"code": 58891,
 				"name": "preview-share",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 25
+			"iconIdx": 1
 		},
 		{
 			"icon": {
@@ -102,14 +58,14 @@
 			},
 			"properties": {
 				"id": 0,
-				"order": 5,
+				"order": 3,
 				"prevSize": 32,
 				"code": 58903,
 				"name": "pick-cancel",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 0
+			"iconIdx": 2
 		},
 		{
 			"icon": {
@@ -124,14 +80,14 @@
 			},
 			"properties": {
 				"id": 1,
-				"order": 6,
+				"order": 4,
 				"prevSize": 32,
 				"code": 58887,
 				"name": "timer",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 1
+			"iconIdx": 3
 		},
 		{
 			"icon": {
@@ -146,14 +102,14 @@
 			},
 			"properties": {
 				"id": 12,
-				"order": 7,
+				"order": 5,
 				"prevSize": 32,
 				"code": 58881,
 				"name": "back-arrow",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 12
+			"iconIdx": 4
 		},
 		{
 			"icon": {
@@ -168,14 +124,14 @@
 			},
 			"properties": {
 				"id": 13,
-				"order": 8,
+				"order": 6,
 				"prevSize": 32,
 				"code": 58884,
 				"name": "tick",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 13
+			"iconIdx": 5
 		},
 		{
 			"icon": {
@@ -190,14 +146,14 @@
 			},
 			"properties": {
 				"id": 2,
-				"order": 9,
+				"order": 7,
 				"prevSize": 32,
 				"code": 58898,
 				"name": "hdr-menu",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 2
+			"iconIdx": 6
 		},
 		{
 			"icon": {
@@ -212,14 +168,14 @@
 			},
 			"properties": {
 				"id": 3,
-				"order": 10,
+				"order": 8,
 				"prevSize": 32,
 				"code": 58880,
 				"name": "gallery",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 3
+			"iconIdx": 7
 		},
 		{
 			"icon": {
@@ -234,14 +190,14 @@
 			},
 			"properties": {
 				"id": 15,
-				"order": 11,
+				"order": 9,
 				"prevSize": 32,
 				"code": 58896,
 				"name": "toggle-camera",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 15
+			"iconIdx": 8
 		},
 		{
 			"icon": {
@@ -256,14 +212,14 @@
 			},
 			"properties": {
 				"id": 4,
-				"order": 12,
+				"order": 10,
 				"prevSize": 32,
 				"code": 58882,
 				"name": "video",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 4
+			"iconIdx": 9
 		},
 		{
 			"icon": {
@@ -278,14 +234,14 @@
 			},
 			"properties": {
 				"id": 5,
-				"order": 13,
+				"order": 11,
 				"prevSize": 32,
 				"code": 58883,
 				"name": "geolocation",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 5
+			"iconIdx": 10
 		},
 		{
 			"icon": {
@@ -300,14 +256,14 @@
 			},
 			"properties": {
 				"id": 6,
-				"order": 14,
+				"order": 12,
 				"prevSize": 32,
 				"code": 58899,
 				"name": "picture-size",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 6
+			"iconIdx": 11
 		},
 		{
 			"icon": {
@@ -322,14 +278,14 @@
 			},
 			"properties": {
 				"id": 18,
-				"order": 15,
+				"order": 13,
 				"prevSize": 32,
 				"code": 58897,
 				"name": "flash-on",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 18
+			"iconIdx": 12
 		},
 		{
 			"icon": {
@@ -344,14 +300,14 @@
 			},
 			"properties": {
 				"id": 19,
-				"order": 16,
+				"order": 14,
 				"prevSize": 32,
 				"code": 58894,
 				"name": "flash-off",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 19
+			"iconIdx": 13
 		},
 		{
 			"icon": {
@@ -366,14 +322,14 @@
 			},
 			"properties": {
 				"id": 7,
-				"order": 17,
+				"order": 15,
 				"prevSize": 32,
 				"code": 58885,
 				"name": "frame-grid",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 7
+			"iconIdx": 14
 		},
 		{
 			"icon": {
@@ -388,14 +344,14 @@
 			},
 			"properties": {
 				"id": 8,
-				"order": 18,
+				"order": 16,
 				"prevSize": 32,
 				"code": 58889,
 				"name": "scene",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 8
+			"iconIdx": 15
 		},
 		{
 			"icon": {
@@ -410,14 +366,14 @@
 			},
 			"properties": {
 				"id": 20,
-				"order": 19,
+				"order": 17,
 				"prevSize": 32,
 				"code": 58906,
 				"name": "battery-verylow",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 20
+			"iconIdx": 16
 		},
 		{
 			"icon": {
@@ -432,14 +388,14 @@
 			},
 			"properties": {
 				"id": 21,
-				"order": 20,
+				"order": 18,
 				"prevSize": 32,
 				"code": 58905,
 				"name": "battery-low",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 21
+			"iconIdx": 17
 		},
 		{
 			"icon": {
@@ -454,14 +410,14 @@
 			},
 			"properties": {
 				"id": 9,
-				"order": 21,
+				"order": 19,
 				"prevSize": 32,
 				"code": 58892,
 				"name": "settings",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 9
+			"iconIdx": 18
 		},
 		{
 			"icon": {
@@ -476,14 +432,14 @@
 			},
 			"properties": {
 				"id": 10,
-				"order": 22,
+				"order": 20,
 				"prevSize": 32,
 				"code": 58893,
 				"name": "flash-auto",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 10
+			"iconIdx": 19
 		},
 		{
 			"icon": {
@@ -498,14 +454,14 @@
 			},
 			"properties": {
 				"id": 22,
-				"order": 23,
+				"order": 21,
 				"prevSize": 32,
 				"code": 58886,
 				"name": "camera-back",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 22
+			"iconIdx": 20
 		},
 		{
 			"icon": {
@@ -520,14 +476,14 @@
 			},
 			"properties": {
 				"id": 23,
-				"order": 24,
+				"order": 22,
 				"prevSize": 32,
 				"code": 58888,
 				"name": "preview-delete",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 23
+			"iconIdx": 21
 		},
 		{
 			"icon": {
@@ -542,14 +498,14 @@
 			},
 			"properties": {
 				"id": 11,
-				"order": 25,
+				"order": 23,
 				"prevSize": 32,
 				"code": 58890,
 				"name": "video-size",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 11
+			"iconIdx": 22
 		},
 		{
 			"icon": {
@@ -564,14 +520,56 @@
 			},
 			"properties": {
 				"id": 24,
-				"order": 26,
+				"order": 24,
 				"prevSize": 32,
 				"code": 58900,
 				"name": "hdr",
 				"ligatures": ""
 			},
 			"setIdx": 0,
+			"iconIdx": 23
+		},
+		{
+			"icon": {
+				"paths": [
+					"M818.504 818.524c-43.733 43.742-94.527 76.085-148.693 97.222v11.534c118.33-45.027 212.451-139.119 257.449-257.488h-11.525c-21.137 54.175-53.48 104.979-97.232 148.731zM96.72 354.207h11.525c21.137-54.166 53.48-104.979 97.232-148.731 43.752-43.742 94.556-76.085 148.731-97.222v-11.534c-118.349 45.017-212.49 139.119-257.488 257.488zM915.736 354.207h11.534c-44.998-118.359-139.119-212.461-257.459-257.488v11.534c54.156 21.137 104.95 53.48 148.693 97.212 43.752 43.762 76.085 94.575 97.232 148.741zM108.245 669.802h-11.525c44.998 118.378 139.138 212.48 257.478 257.497v-11.544c-54.166-21.137-104.979-53.48-148.731-97.222-43.742-43.762-76.085-94.565-97.222-148.731z"
+				],
+				"tags": [
+					"focus-locking"
+				],
+				"grid": 16
+			},
+			"properties": {
+				"order": 25,
+				"id": 26,
+				"prevSize": 32,
+				"code": 58902,
+				"name": "focus-locking",
+				"ligatures": ""
+			},
+			"setIdx": 0,
 			"iconIdx": 24
+		},
+		{
+			"icon": {
+				"paths": [
+					"M354.217 96.749c-118.359 44.998-212.461 139.129-257.488 257.468h32.729c20.2-49.017 50.157-94.962 89.996-134.782 39.82-39.82 85.746-69.777 134.762-89.967v-32.72zM669.773 96.749l0.010 32.72c48.997 20.2 94.933 50.147 134.762 89.977 39.83 39.83 69.796 85.765 89.986 134.782h32.729c-45.017-118.33-139.129-212.461-257.488-257.478zM219.455 804.526c-39.83-39.81-69.787-85.746-89.986-134.743h-32.72c45.027 118.32 139.129 212.461 257.468 257.468v-32.739c-49.007-20.19-94.942-50.157-134.762-89.986zM927.261 669.783l-32.691 0.010c-20.2 49.007-50.147 94.942-89.977 134.772-39.839 39.83-85.784 69.806-134.801 89.986v32.7c118.34-45.008 212.451-139.148 257.468-257.468z"
+				],
+				"tags": [
+					"focus-locked"
+				],
+				"grid": 16
+			},
+			"properties": {
+				"order": 26,
+				"id": 27,
+				"prevSize": 32,
+				"code": 58901,
+				"name": "focus-locked",
+				"ligatures": ""
+			},
+			"setIdx": 0,
+			"iconIdx": 25
 		}
 	],
 	"height": 1024,
@@ -579,8 +577,6 @@
 		"name": "gaia-camera"
 	},
 	"preferences": {
-		"showGlyphs": true,
-		"showQuickUse": true,
 		"fontPref": {
 			"prefix": "icon-",
 			"metadata": {
@@ -588,22 +584,34 @@
 				"majorVersion": 1,
 				"minorVersion": 0
 			},
+			"showGlyphs": true,
 			"metrics": {
-				"emSize": 1024,
+				"emSize": 512,
 				"baseline": 6.25,
 				"whitespace": 50
 			},
-			"embed": true,
-			"showMetrics": false,
+			"resetPoint": 58880,
+			"showQuickUse": true,
+			"quickUsageToken": false,
+			"showMetrics": true,
 			"showMetadata": false,
-			"showVersion": false,
-			"resetPoint": 58880
+			"embed": true
 		},
-		"imagePref": {},
+		"imagePref": {
+			"color": 0,
+			"height": 32,
+			"columns": 16,
+			"margin": 16,
+			"png": false,
+			"sprites": true
+		},
 		"historySize": 100,
 		"showCodes": true,
 		"gridSize": 16,
+		"showLiga": false,
 		"showGrid": true,
+		"showGlyphs": true,
+		"showQuickUse": true,
 		"search": ""
 	}
 }
