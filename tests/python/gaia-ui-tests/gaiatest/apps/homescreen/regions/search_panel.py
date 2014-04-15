@@ -14,7 +14,6 @@ from gaiatest.apps.base import PageRegion
 class SearchPanel(Base):
 
     _body = (By.CSS_SELECTOR, 'body')
-    _search_title_type_locator = (By.CSS_SELECTOR, '#search-title > .type')
     _search_title_query_locator = (By.CSS_SELECTOR, '#search-title > .query')
     _search_title_first_word_locator = (By.CSS_SELECTOR, '#search-title [data-l10n-id="evme-helper-title-prefix"]')
     _search_results_from_everything_me_locator = (By.CSS_SELECTOR, '#search .evme-apps ul.cloud li[data-name]')
@@ -35,10 +34,6 @@ class SearchPanel(Base):
 
     def wait_for_everything_me_results_to_load(self):
         self.wait_for_element_displayed(*self._search_results_from_everything_me_locator)
-
-    def wait_for_type(self, type):
-        Wait(self.marionette, ignored_exceptions=[StaleElementException, NoSuchElementException]).until(
-            lambda m: type.lower() in m.find_element(*self._search_title_type_locator).text.lower())
 
     def wait_for_app_icons_displayed(self):
         self.wait_for_element_displayed(*self._app_icon_locator)
