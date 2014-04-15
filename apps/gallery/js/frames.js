@@ -39,9 +39,10 @@ fullscreenButtons.delete.onclick = deleteSingleItem;
 
 // Clicking the Edit button while viewing a photo switches to edit mode
 fullscreenButtons.edit.onclick = function() {
-  loader.load('js/ImageEditor.js', function() {
-    editPhotoIfCardNotFull(currentFileIndex);
-  });
+  loader.load(['js/ImageEditor.js', 'shared/js/media/crop_resize_rotate.js'],
+              function() {
+                editPhotoIfCardNotFull(currentFileIndex);
+              });
 };
 
 // In fullscreen mode, the share button shares the current item
@@ -143,7 +144,48 @@ function deleteSingleItem() {
 
 // In fullscreen mode, the share button shares the current item
 function shareSingleItem() {
-  share([currentFrame.imageblob || currentFrame.videoblob]);
+  // This is the item we're sharing
+  var fileinfo = files[currentFileIndex];
+
+  // If the item is a video, just share it
+  if (fileinfo.metadata.video) {
+    share([currentFrame.videoblob]);
+  }
+  else {
+    // Otherwise it is an image.
+    // If it does not have any EXIF orientation, and if we don't need
+    // to downsample it, then just share it as it is.
+    if (!fileinfo.metadata.rotation &&
+        !fileinfo.metadata.mirrored &&
+        !CONFIG_MAX_PICK_PIXEL_SIZE) {
+      share([currentFrame.imageblob]);
+    }
+    else {
+      // This is only tricky case. If we are sharing an image that uses
+      // EXIF orientation for correct display, rotate it before sharing
+      // so that the recieving app doesn't have to know about EXIF
+      loader.load(['shared/js/media/crop_resize_rotate.js'],
+                  shareModifiedImage);
+    }
+  }
+
+  function shareModifiedImage() {
+    var metadata = fileinfo.metadata;
+    var button = $('fullscreen-share-button');
+    button.classList.add('disabled');
+    showSpinner();
+    cropResizeRotate(currentFrame.imageblob, null,
+                     CONFIG_MAX_PICK_PIXEL_SIZE || null, null, metadata,
+                     function(error, rotatedBlob) {
+                       hideSpinner();
+                       button.classList.remove('disabled');
+                       if (error) {
+                         console.error('Error while rotating image: ', error);
+                         rotatedBlob = currentFrame.imageblob;
+                       }
+                       share([rotatedBlob], currentFrame.imageblob.name);
+                     });
+  }
 }
 
 // In order to distinguish single taps from double taps, we have to
