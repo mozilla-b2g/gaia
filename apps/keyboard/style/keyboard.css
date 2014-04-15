@@ -52,7 +52,7 @@ button::-moz-focus-inner {
   bottom: 0;
   background-color: #606b6e;
   border-top: 0.1rem solid #a1a5a8;
-  transform: translateY(100%);
+  transform: translateY(9999px);
 }
 
 .keyboard-type-container[data-active] {
