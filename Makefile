@@ -706,7 +706,7 @@ $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
 $(NODE_MODULES_SRC): gaia_node_modules.revision
 ifeq "$(NODE_MODULES_SRC)" "modules.tar"
-	$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV)
+	-$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
 	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
 else
 	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
