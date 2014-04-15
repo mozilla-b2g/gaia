@@ -33,29 +33,38 @@
 
 /* SETTINGS LISTS */
 .settings li {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-height: 4rem;
   border-bottom: solid 0.1rem #e0e0dd;
   font-size: 1.6rem;
-  padding: 1.2rem 0;
-  margin-left: 1.5rem;
-  margin-right: 1.5rem;
+  margin: 0 1.5rem;
+  padding: 1rem 0;
   position: relative;
-  overflow: hidden;
-  min-height: 3.6rem;
+}
+
+.settings li:last-child {
+  border-bottom: none;
+}
+
+.settings li.column {
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .settings li p {
   margin: 0 1.5rem;
-  overflow: hidden;
 }
 
-.settings li button {
-  background: #fafafa url(../bb/buttons/images/ui/default.png) repeat-x left bottom / auto 100%;
+.settings li.column p {
+  margin-bottom: 0.5rem;
 }
 
-.settings li p:only-of-type {
-  padding-top: 0.8rem;
-  padding-bottom: 0.8rem;
-  line-height: 2rem;
+.settings li button,
+.settings li .button {
+  margin-bottom: 0;
+  min-width: 6rem;
 }
 
 .settings li[aria-disabled="true"]:after {
@@ -80,6 +89,14 @@
 }
 
 /* End elements */
+.settings li > .end {
+  order: 2;
+}
+
+.settings li > .end + p {
+  flex: 1;
+}
+/*
 .settings li > .end {
   position: relative;
   height: 4.6rem;
@@ -120,10 +137,15 @@
 .settings li .toggle.end {
   margin-top: -2.3rem;
 }
+*/
 
 .settings li label {
   font-size: 1.4rem;
   color: #505859;
+}
+
+.settings li label.pack-switch {
+    height: 4rem;
 }
 
 .settings li .toggle input[type="checkbox"] {

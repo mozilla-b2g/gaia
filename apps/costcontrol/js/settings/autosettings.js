@@ -9,13 +9,6 @@ var AutoSettings = (function() {
     'select': function _selectConfigurer(guiWidget) {
       var optionName = guiWidget.dataset.option;
       var span, parent = guiWidget.parentElement;
-      if (parent.classList.contains('fake-select')) {
-        var firstChild = parent.firstChild;
-        if (!firstChild || firstChild.tagName !== 'SPAN') {
-          span = document.createElement('span');
-          parent.insertBefore(span, parent.firstChild);
-        }
-      }
       guiWidget.addEventListener('change', function _onSelectChange() {
         debug('Value:', guiWidget.value);
         settings.option(optionName, guiWidget.value);
