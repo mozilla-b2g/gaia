@@ -185,7 +185,10 @@ suite('Sounds', function() {
 
   suite('Sounds#playSound()', function() {
     setup(function() {
-      this.mockSound.audio = { play: sinon.spy() };
+      this.mockSound.audio = {
+        play: sinon.spy(),
+        cloneNode: function() { return this; }
+      };
     });
 
     test('Should *not* play the sound if it\'s not enabled', function() {
