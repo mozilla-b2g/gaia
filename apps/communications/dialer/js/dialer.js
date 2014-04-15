@@ -370,6 +370,13 @@ var CallHandler = (function callHandler() {
       sendCommandToCallScreen('BT', command);
     });
     btCommandsToForward = [];
+
+    // Calls might be ended before callscreen is comletedly loaded,
+    // so that callscreen will miss call-related events. We check if there is
+    // any calls here when the call screen is ready.
+    var telephony = navigator.mozTelephony;
+    if (telephony.calls.length == 0)
+      sendCommandToCallScreen('*', 'exitCallScreen');
   }
 
   function init() {
