@@ -28,17 +28,17 @@ marionette('Keyboard APP', function() {
     //console.log(client.screenshot());
 
     // Wait for the keyboard pop up and switch to it
-    client.waitFor(function() {
-      var keyboards = client.findElement('#keyboards');
+    var keyboards = client.findElement('#keyboards');
 
-      var classes = keyboards.getAttribute('class');
-      var transitionIn = keyboards.getAttribute('data-transition-in');
+    var classes = keyboards.getAttribute('class');
+    var transitionIn = keyboards.getAttribute('data-transition-in');
 
-      console.log('keyboards class; ' + classes, ' - transition-in: ' +
-                  transitionIn);
+    console.log('keyboards class; ' + classes, ' - transition-in: ' +
+                transitionIn);
 
-      return ( classes.indexOf('hide') == -1 ) &&  transitionIn !== 'true';
-    });
+    if ((classes.indexOf('hide') !== -1) || transitionIn == 'true') {
+      return;
+    }
 
     //client.helper.wait(5000);
     //console.log('data:image/png;base64,' + client.screenshot());
