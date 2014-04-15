@@ -29,36 +29,43 @@ marionette('Rocketbar', function() {
   test('Rocketbar is expanded on homescreen', function() {
     // Check that Rocketbar is expanded
     var element = rocketbar.rocketbar;
+    var screen = rocketbar.screen;
     client.waitFor(function() {
       var rocketbarClass = element.getAttribute('class');
       return rocketbarClass.indexOf('expanded') != -1;
     });
     // Check that Rocketbar is in the home state
     client.waitFor(function() {
-      var rocketbarClass = element.getAttribute('class');
-      return rocketbarClass.indexOf('on-homescreen') != -1;
+      var screenClass = screen.getAttribute('class');
+      return screenClass.indexOf('on-homescreen') != -1;
     });
   });
 
   test('Focus', function() {
+    var screen = rocketbar.screen;
     // Wait for Rocketbar to enter home state
-    var element = rocketbar.rocketbar;
     client.waitFor(function() {
-      var rocketbarClass = element.getAttribute('class');
-      return rocketbarClass.indexOf('on-homescreen') != -1;
+      var screenClass = screen.getAttribute('class');
+      return screenClass.indexOf('on-homescreen') != -1;
     });
     rocketbar.focus();
     // Check that focussed Rocketbar is in the focused state
     client.waitFor(function() {
-      var rocketbarClass = element.getAttribute('class');
-      return rocketbarClass.indexOf('active') != -1;
+      var screenClass = screen.getAttribute('class');
+      return screenClass.indexOf('rocketbar-focused') != -1;
     });
   });
 
   test('Navigate to URL', function() {
+    var element = rocketbar.rocketbar;
     var url = server.url('sample.html');
     rocketbar.focus();
     rocketbar.enterText(url + '\uE006'); // Enter the URL with enter key
     rocketbar.switchToBrowserFrame(url);
+    client.switchToFrame();
+    client.waitFor(function() {
+      var rocketbarClass = element.getAttribute('class');
+      return rocketbarClass.indexOf('expanded') != -1;
+    });
   });
 });

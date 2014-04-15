@@ -571,7 +571,7 @@
     ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
      'mozbrowsertitlechange', 'mozbrowserlocationchange',
-     'mozbrowsericonchange',
+     'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      'popupterminated', 'activityterminated', 'activityclosing',
      'popupclosing', 'activityopened'];
@@ -769,6 +769,15 @@
     function aw__handle_mozbrowsericonchange(evt) {
       this.config.favicon = evt.detail;
       this.publish('iconchange');
+    };
+
+  AppWindow.prototype._handle_mozbrowserasyncscroll =
+    function aw__handle_mozbrowserasyncscroll(evt) {
+      if (this.manifest) {
+        return;
+      }
+      this.scrollPosition = evt.detail.top;
+      this.publish('scroll');
     };
 
   AppWindow.prototype._registerEvents = function aw__registerEvents() {

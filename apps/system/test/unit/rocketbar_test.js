@@ -82,7 +82,7 @@ suite('system/Rocketbar', function() {
     assert.ok(windowAddEventListenerStub.calledWith('home'));
     assert.ok(windowAddEventListenerStub.calledWith('cardviewclosedhome'));
     assert.ok(windowAddEventListenerStub.calledWith('appopened'));
-    assert.ok(windowAddEventListenerStub.calledWith('homescreenopened'));
+    assert.ok(windowAddEventListenerStub.calledWith('homescreenopening'));
     assert.ok(windowAddEventListenerStub.calledWith('stackchanged'));
     assert.ok(rocketbarAddEventListenerStub.calledWith('touchstart'));
     assert.ok(rocketbarAddEventListenerStub.calledWith('touchmove'));
@@ -118,7 +118,7 @@ suite('system/Rocketbar', function() {
     assert.ok(windowRemoveEventListenerStub.calledWith('home'));
     assert.ok(windowRemoveEventListenerStub.calledWith('cardviewclosedhome'));
     assert.ok(windowRemoveEventListenerStub.calledWith('appopened'));
-    assert.ok(windowRemoveEventListenerStub.calledWith('homescreenopened'));
+    assert.ok(windowRemoveEventListenerStub.calledWith('homescreenopening'));
     assert.ok(windowRemoveEventListenerStub.calledWith('stackchanged'));
     assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchstart'));
     assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchmove'));
@@ -135,14 +135,12 @@ suite('system/Rocketbar', function() {
     formRemoveEventListenerStub.restore();
   });
 
-  test('expand() - collapsed', function(done) {
-    window.addEventListener('rocketbarexpand', function onrocketbarexpanded() {
-      window.removeEventListener('rocketbarexpand', onrocketbarexpanded);
-      done();
-    });
+  test('expand() - collapsed', function() {
     Rocketbar.expand();
     assert.ok(Rocketbar.rocketbar.classList.contains('expanded'));
+    assert.ok(Rocketbar.screen.classList.contains('rocketbar-expanded'));
     assert.ok(Rocketbar.expanded);
+    assert.ok(Rocketbar.transitioning === true);
   });
 
   test('expand() - already expanded', function() {
@@ -151,21 +149,27 @@ suite('system/Rocketbar', function() {
     assert.equal(Rocketbar.rocketbar.classList.contains('expanded'), false);
   });
 
-  test('collapse() - expanded', function(done) {
+  test('expand() - transitioning', function() {
+    Rocketbar.transitioning = true;
+    Rocketbar.expand();
+    assert.equal(Rocketbar.rocketbar.classList.contains('expanded'), false);
+  });
+
+  test('collapse() - expanded', function() {
     var hideResultsStub = this.sinon.stub(Rocketbar, 'hideResults');
     var blurStub = this.sinon.stub(Rocketbar, 'blur');
     var exitHomeStub = this.sinon.stub(Rocketbar, 'exitHome');
     Rocketbar.active = true;
     Rocketbar.expanded = true;
-    window.addEventListener('rocketbarcollapse', function() {
-      done();
-    });
     Rocketbar.collapse();
     assert.ok(exitHomeStub.calledOnce);
     assert.ok(hideResultsStub.calledOnce);
     assert.ok(blurStub.calledOnce);
     assert.equal(Rocketbar.rocketbar.classList.contains('expanded'), false);
+    assert.equal(Rocketbar.screen.classList.contains('rocketbar-expanded'),
+      false);
     assert.equal(Rocketbar.expanded, false);
+    assert.ok(Rocketbar.transitioning === true);
     hideResultsStub.restore();
     blurStub.restore();
     exitHomeStub.restore();
@@ -174,6 +178,17 @@ suite('system/Rocketbar', function() {
   test('collapse() - already collapsed', function() {
     var hideResultsStub = this.sinon.stub(Rocketbar, 'hideResults');
     var blurStub = this.sinon.stub(Rocketbar, 'blur');
+    Rocketbar.collapse();
+    assert.ok(hideResultsStub.notCalled);
+    assert.ok(blurStub.notCalled);
+    hideResultsStub.restore();
+    blurStub.restore();
+  });
+
+  test('collapse() - transitioning', function() {
+    var hideResultsStub = this.sinon.stub(Rocketbar, 'hideResults');
+    var blurStub = this.sinon.stub(Rocketbar, 'blur');
+    Rocketbar.transitioning = true;
     Rocketbar.collapse();
     assert.ok(hideResultsStub.notCalled);
     assert.ok(blurStub.notCalled);
@@ -194,7 +209,8 @@ suite('system/Rocketbar', function() {
     assert.ok(Rocketbar.onHomescreen);
     assert.ok(expandStub.calledOnce);
     assert.ok(clearStub.calledOnce);
-    Rocketbar.rocketbar.classList.contains('on-homescreen');
+    expandStub.restore();
+    clearStub.restore();
   });
 
   test('enterHome() - already home', function() {
@@ -210,7 +226,6 @@ suite('system/Rocketbar', function() {
     Rocketbar.onHomescreen = true;
     Rocketbar.exitHome();
     assert.ok(!Rocketbar.onHomescreen);
-    assert.ok(!Rocketbar.rocketbar.classList.contains('on-homescreen'));
   });
 
   test('showResults()', function() {
@@ -242,47 +257,30 @@ suite('system/Rocketbar', function() {
     showResultsStub.restore();
   });
 
-  test('focus()', function(done) {
-    window.addEventListener('rocketbarfocus', function focus() {
-      window.removeEventListener('rocketbarfocus', focus);
-      done();
-    });
+  test('focus()', function() {
     var loadSearchAppStub = this.sinon.stub(Rocketbar, 'loadSearchApp');
-    var handleKeyboardChangeStub = this.sinon.stub(Rocketbar,
-      'handleKeyboardChange');
     Rocketbar.form.classList.add('hidden');
     Rocketbar.activate();
     Rocketbar.focus();
     assert.ok(Rocketbar.rocketbar.classList.contains('active'));
     assert.ok(Rocketbar.title.classList.contains('hidden'));
     assert.equal(Rocketbar.form.classList.contains('hidden'), false);
+    assert.ok(Rocketbar.screen.classList.contains('rocketbar-focused'));
     assert.ok(Rocketbar.active);
     assert.ok(loadSearchAppStub.calledOnce);
-    var event = new CustomEvent('keyboardchange');
-    Rocketbar.body.dispatchEvent(event);
-    assert.ok(handleKeyboardChangeStub.calledOnce);
     loadSearchAppStub.restore();
-    handleKeyboardChangeStub.restore();
   });
 
-  test('blur() - results hidden', function(done) {
-    window.addEventListener('rocketbarblur', function() {
-      done();
-    });
-    var handleKeyboardChangeStub = this.sinon.stub(Rocketbar,
-      'handleKeyboardChange');
+  test('blur() - results hidden', function() {
     Rocketbar.results.classList.add('hidden');
     Rocketbar.title.classList.add('hidden');
     Rocketbar.active = true;
     Rocketbar.deactivate();
     assert.equal(Rocketbar.title.classList.contains('hidden'), false);
     assert.ok(Rocketbar.form.classList.contains('hidden'));
+    assert.ok(!Rocketbar.screen.classList.contains('rocketbar-focused'));
     assert.equal(Rocketbar.active, false);
     assert.ok(!Rocketbar.rocketbar.classList.contains('active'));
-    var event = new CustomEvent('keyboardchange');
-    Rocketbar.body.dispatchEvent(event);
-    assert.ok(handleKeyboardChangeStub.notCalled);
-    handleKeyboardChangeStub.restore();
   });
 
   test('blur() - results shown', function() {
@@ -290,7 +288,7 @@ suite('system/Rocketbar', function() {
     assert.equal(Rocketbar.form.classList.contains('hidden'), false);
   });
 
-  test('handleAppChange()', function() {
+  test('handleAppChange() - app', function() {
     var handleLocationChangeStub = this.sinon.stub(Rocketbar,
       'handleLocationChange');
     var handleTitleChangeStub = this.sinon.stub(Rocketbar,
@@ -298,17 +296,51 @@ suite('system/Rocketbar', function() {
     var exitHomeStub = this.sinon.stub(Rocketbar, 'exitHome');
     var collapseStub = this.sinon.stub(Rocketbar, 'collapse');
     var hideResultsStub = this.sinon.stub(Rocketbar, 'hideResults');
-     Rocketbar.handleAppChange();
+    Rocketbar.handleAppChange({
+      detail: {
+        manifestURL: 'http://example.com/manifest.webapp'
+      }
+     });
      assert.ok(handleLocationChangeStub.calledOnce);
      assert.ok(handleTitleChangeStub.calledOnce);
      assert.ok(exitHomeStub.calledOnce);
      assert.ok(collapseStub.calledOnce);
      assert.ok(hideResultsStub.calledOnce);
+     assert.equal(Rocketbar.currentScrollPosition, 0);
      handleLocationChangeStub.restore();
      handleTitleChangeStub.restore();
      exitHomeStub.restore();
      collapseStub.restore();
      hideResultsStub.restore();
+  });
+
+  test('handleAppChange() - non-app', function() {
+    var handleLocationChangeStub = this.sinon.stub(Rocketbar,
+      'handleLocationChange');
+    var handleTitleChangeStub = this.sinon.stub(Rocketbar,
+      'handleTitleChange');
+    var exitHomeStub = this.sinon.stub(Rocketbar, 'exitHome');
+    var expandStub = this.sinon.stub(Rocketbar, 'expand');
+    var collapseStub = this.sinon.stub(Rocketbar, 'collapse');
+    var hideResultsStub = this.sinon.stub(Rocketbar, 'hideResults');
+    Rocketbar.handleAppChange({
+      detail: {
+        manifestURL: null
+      }
+     });
+    assert.ok(handleLocationChangeStub.calledOnce);
+    assert.ok(handleTitleChangeStub.calledOnce);
+    assert.ok(exitHomeStub.calledOnce);
+    assert.ok(expandStub.calledOnce);
+    assert.ok(collapseStub.notCalled);
+    assert.ok(hideResultsStub.calledOnce);
+    assert.equal(Rocketbar.currentScrollPosition, 0);
+    handleLocationChangeStub.restore();
+    handleTitleChangeStub.restore();
+    exitHomeStub.restore();
+    expandStub.restore();
+    collapseStub.restore();
+    hideResultsStub.restore();
   });
 
   test('handleTitleChange()', function() {
@@ -345,9 +377,94 @@ suite('system/Rocketbar', function() {
     updateSearchIndexStub.restore();
   });
 
+  test('handleScroll() - app', function() {
+    var expandStub = this.sinon.stub(Rocketbar, 'expand');
+    var collapseStub = this.sinon.stub(Rocketbar, 'collapse');
+    Rocketbar.handleScroll({
+      detail: {
+        manifestURL: 'http://example.com/manifest.webapp'
+      }
+    });
+    assert.ok(expandStub.notCalled);
+    assert.ok(collapseStub.notCalled);
+    expandStub.restore();
+    collapseStub.restore();
+  });
+
+  test('handleScroll() - Scroll up on non-app with expanded Rocketbar',
+    function() {
+    var expandStub = this.sinon.stub(Rocketbar, 'expand');
+    var collapseStub = this.sinon.stub(Rocketbar, 'collapse');
+    Rocketbar.expanded = true;
+    Rocketbar.handleScroll({
+      detail: {
+        manifestURL: null,
+        scrollPosition: 1
+      }
+    });
+    assert.ok(expandStub.notCalled);
+    assert.ok(collapseStub.calledOnce);
+    expandStub.restore();
+    collapseStub.restore();
+  });
+
+  test('handleScroll() - Scroll down on non-app with collapsed Rocketbar',
+      function() {
+    var expandStub = this.sinon.stub(Rocketbar, 'expand');
+    var collapseStub = this.sinon.stub(Rocketbar, 'collapse');
+    Rocketbar.expanded = false;
+    Rocketbar.handleScroll({
+      detail: {
+        manifestURL: null,
+        scrollPosition: 1
+      }
+    });
+    assert.ok(expandStub.notCalled);
+    assert.ok(collapseStub.notCalled);
+    expandStub.restore();
+    collapseStub.restore();
+  });
+
+  test('handleScroll() - Scroll up non-app with collapsed Rocketbar',
+      function() {
+    var expandStub = this.sinon.stub(Rocketbar, 'expand');
+    var collapseStub = this.sinon.stub(Rocketbar, 'collapse');
+    Rocketbar.expanded = false;
+    Rocketbar.currentScrollPosition = 10;
+    Rocketbar.handleScroll({
+      detail: {
+        manifestURL: null,
+        scrollPosition: 3
+      }
+    });
+    assert.ok(expandStub.calledOnce);
+    assert.ok(collapseStub.notCalled);
+    expandStub.restore();
+    collapseStub.restore();
+  });
+
+  test('handleScroll() - Tiny scroll up non-app with collapsed Rocketbar',
+      function() {
+    var expandStub = this.sinon.stub(Rocketbar, 'expand');
+    var collapseStub = this.sinon.stub(Rocketbar, 'collapse');
+    Rocketbar.expanded = false;
+    Rocketbar.currentScrollPosition = 10;
+    Rocketbar.handleScroll({
+      detail: {
+        manifestURL: null,
+        scrollPosition: 8
+      }
+    });
+    assert.ok(expandStub.notCalled);
+    assert.ok(collapseStub.notCalled);
+    expandStub.restore();
+    collapseStub.restore();
+  });
+
   test('handleLocationChange() - browser window', function() {
     var updateSearchIndexStub = this.sinon.stub(Rocketbar,
       'updateSearchIndex');
+    var deactivateStub = this.sinon.stub(Rocketbar, 'deactivate');
     Rocketbar.titleContent.textConent = 'value to clear';
     var event = new CustomEvent('apptlocationchange', { 'detail': {
       'config': {
@@ -358,7 +475,9 @@ suite('system/Rocketbar', function() {
     assert.equal(Rocketbar.input.value, 'http://example.com');
     assert.equal(Rocketbar.titleContent.textContent, '');
     assert.ok(updateSearchIndexStub.calledOnce);
+    assert.ok(deactivateStub.calledOnce);
     updateSearchIndexStub.restore();
+    deactivateStub.restore();
   });
 
   test('handleLocationChange() - app window', function() {
@@ -519,9 +638,11 @@ suite('system/Rocketbar', function() {
     // Expanded
     Rocketbar.expanded = true;
     Rocketbar._wasClicked = true;
+    Rocketbar.transitioning = true;
     Rocketbar.handleTransitionEnd();
     assert.ok(focusStub.calledOnce);
     assert.ok(!Rocketbar._wasClicked);
+    assert.equal(Rocketbar.transitioning, false);
     focusStub.restore();
   });
 

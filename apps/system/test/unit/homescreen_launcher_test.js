@@ -215,5 +215,26 @@ suite('system/HomescreenLauncher', function() {
       assert.isTrue(isSuccessCalled, 'the method not got called');
       stubGetHomescreen.restore();
     });
+
+    test('homescreenopening', function() {
+      window.homescreenLauncher._screen = document.createElement('div');
+      window.homescreenLauncher.handleEvent({
+        type: 'homescreenopening'
+      });
+      assert.ok(window.homescreenLauncher._screen.classList.
+        contains('on-homescreen'));
+      window.homescreenLauncher._screen = null;
+    });
+
+    test('homescreenclosing', function() {
+      window.homescreenLauncher._screen = document.createElement('div');
+      window.homescreenLauncher._screen.classList.add('on-homescreen');
+      window.homescreenLauncher.handleEvent({
+        type: 'homescreenclosing'
+      });
+      assert.ok(!window.homescreenLauncher._screen.classList.
+        contains('on-homescreen'));
+      window.homescreenLauncher._screen = null;
+    });
   });
 });
