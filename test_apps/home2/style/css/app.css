@@ -1,0 +1,63 @@
+html {
+  font-size: 10px;
+}
+
+html, body, .icons {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.icon {
+  position: absolute;
+  transform-origin: 0 0;
+  will-change: transform;
+  display: inline-block;
+  width: calc(100% / 3);
+  height: 9rem;
+  text-align: center;
+  background: no-repeat center;
+  background-size: 8rem;
+}
+
+/* When an icon is tracking pinch gestures */
+#icons.tracking .icon {
+  transition: transform 50ms linear;
+}
+
+/* When an icon is snapping to the grid */
+#icons.snapping .icon {
+  transition: transform 500ms ease;
+}
+
+.icon .title {
+  display: block;
+  margin-top: 9rem;
+  pointer-events: none;
+  color: #fff;
+  font-size: 1.2rem;
+  text-shadow: 0 0 0.5rem rgba(0,0,0,0.5);
+}
+
+.icon.active {
+  transition: none;
+}
+
+.divider {
+  position: absolute;
+  height: 0.4rem;
+  margin: 2.3rem 1rem;
+  background: rgba(255, 255, 255, 0.3);
+  width: calc(100% - 2rem);
+  transition: transform 500ms ease;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.divider:last-child {
+  visibility: hidden;
+}
+
+.edit-mode .divider:last-child {
+  visibility: visible;
+}
