@@ -3,6 +3,8 @@
 var KeyboardTests = require('./lib/keyboard_tests'),
     assert = require('assert');
 
+var Actions = require('marionette-client').Actions;
+
 var KEYBOARD_ORIGIN = 'app://keyboard.gaiamobile.org';
 var browser_ORIGIN = 'app://browser.gaiamobile.org';
 var urlBar = null;
@@ -19,6 +21,8 @@ marionette('Keyboard APP', function() {
       'focusmanager.testmode': true
     }
   });
+
+  var actions =  new Actions(client);
 
   function checkKeyboardAvailable() {
     console.log('checkKeyboardAvailable');
@@ -53,9 +57,8 @@ marionette('Keyboard APP', function() {
       console.log('keyboard found');
       return true;
     } else {
-
       console.log('keyboard  not found');
-      urlBar.click();
+      //urlBar.click();
     }
   }
 
@@ -68,7 +71,9 @@ marionette('Keyboard APP', function() {
     client.helper.waitForElement('#url-input');
     urlBar = client.findElement('#url-input');
 
-    urlBar.click();
+
+    actions.tap(urlBar).perform();
+    //urlBar.click();
     client.waitFor(function () {
       return checkKeyboardAvailable(urlBar);
     });
