@@ -46,8 +46,7 @@ require(['config/require', 'config'], function() {
       maxFileSizeBytes: 0,
       maxWidth: 0,
       maxHeight: 0,
-      container: document.body,
-      cafEnabled: settings.caf.enabled()
+      container: document.body
     });
 
     /**
