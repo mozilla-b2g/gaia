@@ -32,7 +32,7 @@ GalleryAppBuilder.prototype.concatenatedScripts = function() {
     [this.sharedPath, 'js', 'blobview.js'],
     [this.sharedPath, 'js', 'media', 'jpeg_metadata_parser.js'],
     [this.sharedPath, 'js', 'media', 'get_video_rotation.js'],
-    [this.options.APP_DIR, 'js', 'imagesize.js'],
+    [this.sharedPath, 'js/media', 'image_size.js'],
     [this.options.APP_DIR, 'js', 'MetadataParser.js']
   ];
   var metadataScriptsPath = utils.joinPath(this.options.STAGE_APP_DIR, 'js',
@@ -81,6 +81,7 @@ GalleryAppBuilder.prototype.customizeMaximumImageSize = function(options) {
         'var CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH = 0;\n' +
         'var CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT = 0;\n';
     }
+
     var file = utils.getFile(this.options.STAGE_APP_DIR, 'js', 'config.js');
     utils.writeContent(file, content);
 };
