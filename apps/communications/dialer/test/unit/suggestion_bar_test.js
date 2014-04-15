@@ -120,11 +120,13 @@ suite('suggestion Bar', function() {
     domSuggestionBar = document.createElement('section');
     domSuggestionBar.id = 'suggestion-bar';
     domSuggestionBar.innerHTML =
-      '<div id="suggestion-count"></div>' +
+      '<div id="suggestion-count" class="more"></div>' +
       '<div class="suggestion-item">' +
       '  <div class="name"></div>' +
-      '  <div class="tel-type"></div>' +
-      '  <div class="tel"><span class="matched"></span></div>' +
+      '  <div>' +
+      '    <span class="tel-type"></span>' +
+      '    <span class="tel"><span class="matched"></span></span>' +
+      '  </div>' +
       '</div>';
     document.body.appendChild(domSuggestionBar);
     domOverlay = document.createElement('form');
