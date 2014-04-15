@@ -30,6 +30,7 @@ class TestFtu(GaiaTestCase):
     _network_state_locator = (By.XPATH, 'p[2]')
     _password_input_locator = (By.ID, 'wifi_password')
     _join_network_locator = (By.ID, 'wifi-join-button')
+    _progress_activity_locator = (By.ID, 'progress-activity')
 
     # Step Date & Time
     _section_date_time_locator = (By.ID, 'date_and_time')
@@ -118,9 +119,11 @@ class TestFtu(GaiaTestCase):
 
         # Tap next
         self.marionette.find_element(*self._next_button_locator).tap()
+        self.wait_for_condition(lambda m: not self.is_element_displayed(*self._progress_activity_locator))
         self.wait_for_element_displayed(*self._section_wifi_locator)
 
         # Wait for the networks to be found
+        self.wait_for_condition(lambda m: len(m.find_elements(*self._found_wifi_networks_locator)) > 0, message='No networks listed on screen')
         wifi_network_locator = (By.ID, self.testvars['wifi']['ssid'])
         wifi_network = self.wait_for_element_present(*wifi_network_locator)
         wifi_network.tap()
