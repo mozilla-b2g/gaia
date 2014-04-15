@@ -37,6 +37,8 @@ class TestFtu(GaiaTestCase):
         self.ftu.disable_geolocation()
         self.ftu.tap_next_to_import_contacts_section()
 
+        self.ftu.tap_next_to_firefox_accounts_section()
+
         self.ftu.tap_next_to_welcome_browser_section()
 
         # Tap the statistics box and check that it sets a setting
