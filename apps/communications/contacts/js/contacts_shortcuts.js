@@ -122,6 +122,9 @@ if (!utils.alphaScroll) {
       }
 
       var currentY = getY(evt);
+      // We set the threshold of updating the shortcut to half of the offset
+      // to avoid when touch already moved to center of the certain letter but
+      // shows another letter.
       if (Math.abs(lastY - currentY) < offset / 2) {
         return;
       }
