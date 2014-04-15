@@ -929,6 +929,7 @@ aside.connecting {
 
 #browser_privacy input {
   margin-bottom: 2rem;
+  -moz-box-sizing: border-box;
 }
 
 .invisible {
