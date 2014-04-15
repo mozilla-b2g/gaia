@@ -19,7 +19,7 @@
       url: window.location.href,
       manifest: {
         fullscreen: true,
-        orientation: ['portrait']
+        orientation: ['default']
       },
       // No manifestURL + no chrome would cause a default chrome app
       manifestURL: window.location.href + '/manifest.webapp',
