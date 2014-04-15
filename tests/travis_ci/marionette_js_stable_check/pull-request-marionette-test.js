@@ -5,7 +5,7 @@ var childProcess = require('child_process'),
     request = require('request');
 
 var PULL_REQUEST_URL_PATTERN =
-      'https://api.github.com/repos/evanxd/gaia/pulls/[id]/files',
+      'https://api.github.com/repos/mozilla-b2g/gaia/pulls/[id]/files',
     MARIONETTE_TEST_FILE_NAME_PATTERN =
       /apps\/[a-z]+\/test\/marionette\/[\w\/]+_test.js/;
 
