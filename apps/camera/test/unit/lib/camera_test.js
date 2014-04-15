@@ -42,7 +42,6 @@ suite('lib/camera', function() {
   suite('Camera#focus()', function() {
     setup(function() {
       this.camera = {
-        autoFocus: {},
         set: sinon.spy(),
         mozCamera: this.mozCamera,
         focus: this.Camera.prototype.focus,
@@ -58,16 +57,20 @@ suite('lib/camera', function() {
 
     test('Should not call mozCamera.autoFocus if not supported', function() {
       var done = sinon.spy();
-      this.camera.autoFocus.auto = false;
+
+      this.camera.mozCamera.focusMode = 'infinity';
+
       this.camera.focus(done);
+      this.clock.tick();
       assert.ok(!this.camera.mozCamera.autoFocus.called);
       assert.ok(done.called);
     });
 
-    test('Should call to focus the camera if supported', function() {
+    test('Should call autoFocus if supported manual AF supported', function() {
       var done = sinon.spy();
 
-      this.camera.autoFocus.auto = true;
+      this.camera.mozCamera.focusMode = 'auto';
+
       this.camera.mozCamera.autoFocus.callsArgWith(0, true);
 
       this.camera.focus(done);
@@ -90,7 +93,7 @@ suite('lib/camera', function() {
     test('Should repond correctly on focus failure', function() {
       var done = sinon.spy();
 
-      this.camera.autoFocus.auto = true;
+      this.camera.mozCamera.focusMode = 'auto';
       this.camera.mozCamera.autoFocus.callsArgWith(0, false);
 
       this.camera.focus(done);
@@ -108,9 +111,6 @@ suite('lib/camera', function() {
 
       // The callback
       assert.ok(done.calledWith('failed'));
-
-      this.clock.tick(1001);
-      assert.ok(this.camera.set.calledWith('focus', 'none'));
     });
   });
 
@@ -243,34 +243,6 @@ suite('lib/camera', function() {
       this.camera.mozCamera.startRecording.callsArg(4);
       this.camera.startRecording();
       assert.ok(this.camera.onRecordingError.called);
-    });
-  });
-
-  suite('Camera#configureFocus()', function() {
-    setup(function() {
-      this.camera = {
-        autoFocus: {},
-        configureFocus: this.Camera.prototype.configureFocus
-      };
-    });
-
-    test('Should convert modes to a hash', function() {
-      var modes = ['auto', 'infinity', 'normal', 'macro'];
-      this.camera.configureFocus(modes);
-
-      assert.ok('auto' in this.camera.autoFocus);
-      assert.ok('infinity' in this.camera.autoFocus);
-      assert.ok('normal' in this.camera.autoFocus);
-      assert.ok('macro' in this.camera.autoFocus);
-    });
-
-    test('Should empty hash each time', function() {
-      this.camera.configureFocus(['infinity']);
-      assert.ok('infinity' in this.camera.autoFocus);
-      this.camera.configureFocus(['auto', 'normal']);
-      assert.ok('auto' in this.camera.autoFocus);
-      assert.ok('normal' in this.camera.autoFocus);
-      assert.ok(!('infinity' in this.camera.autoFocus));
     });
   });
 
