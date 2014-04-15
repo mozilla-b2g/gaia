@@ -22,13 +22,13 @@ marionette('manipulate media storage settings', function() {
       );
     });
 
-    test.skip('check storage data contain numbers', function() {
+    test('check storage data contain numbers', function() {
       assert.ok(mediaStoragePanel.containNumberInMusicSpace);
       assert.ok(mediaStoragePanel.containNumberInPictureSpace);
       assert.ok(mediaStoragePanel.containNumberInVideoSpace);
     });
 
-    test.skip('check free/total space contain numbers', function() {
+    test('check free/total space contain numbers', function() {
       assert.ok(mediaStoragePanel.containNumberInFreeSpace);
       assert.ok(mediaStoragePanel.containNumberInTotalSpace);
     });
