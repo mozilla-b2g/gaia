@@ -246,6 +246,10 @@ var TelephonyItemsHandler = (function(window, document, undefined) {
   // Public API.
   return {
     init: tih_init,
-    handleItems: tih_handleItems
+    handleItems: function() {
+      AirplaneModeHelper.ready(function() {
+        tih_handleItems();
+      });
+    }
   };
 })(this, document);
