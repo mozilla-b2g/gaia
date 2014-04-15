@@ -1,6 +1,6 @@
 /* global _, debug, BalanceView, AirplaneModeHelper, SettingsListener,
-          ConfigManager, Common, CostControl,
-          MozActivity, LazyLoader, Formatting
+          ConfigManager, Common, CostControl, MozActivity, LazyLoader,
+          Formatting, setNextReset
 */
 /* exported activity */
 
@@ -18,38 +18,26 @@ var Widget = (function() {
 
   var costcontrol, activity;
   function checkSIMStatus() {
-    var mobileConnection = window.navigator.mozMobileConnections;
 
-    if (!mobileConnection) {
-      console.error('No mozMobileConnection available');
-      return;
-    }
     var iccid = Common.dataSimIccId;
     var dataSimIccInfo = Common.dataSimIcc;
     var cardState = checkCardState();
 
-    if (!dataSimIccInfo || !dataSimIccInfo.iccInfo) {
-      debug('ICC info not ready yet.');
-      dataSimIccInfo.oniccinfochange = checkSIMStatus;
-
-    // SIM not ready
-    } else if (cardState !== 'ready') {
+    if (cardState !== 'ready') {
       debug('SIM not ready:', dataSimIccInfo.cardState);
       initialized = false;
       dataSimIccInfo.oncardstatechange = checkSIMStatus;
-
-    // SIM is ready, but ICC info is not ready yet
-    } else if (!Common.isValidICCID(iccid)) {
-      debug('ICC info not ready yet');
-      dataSimIccInfo.oniccinfochange = checkSIMStatus;
-
-    // All ready
+    // SIM ready
     } else {
       debug('SIM ready. ICCID:', iccid);
       dataSimIccInfo.oncardstatechange = undefined;
       dataSimIccInfo.oniccinfochange = undefined;
-      document.getElementById('message-handler').src = 'message_handler.html';
-      Common.waitForDOMAndMessageHandler(window, startWidget);
+      var SCRIPTS_NEEDED_TO_START = [
+        'js/costcontrol.js',
+        'js/config/config_manager.js'
+      ];
+      LazyLoader.load(SCRIPTS_NEEDED_TO_START, startWidget);
+
     }
   }
 
@@ -76,31 +64,36 @@ var Widget = (function() {
     return state;
   }
 
-  function startWidget() {
-
-    function _onNoICCID() {
-      console.error('checkSIM() failed. Impossible to ensure consistent' +
-                    'data. Aborting start up.');
-      Widget.showSimError('no-sim2');
-    }
-
-    Common.checkSIM(function _onSIMChecked() {
-      CostControl.getInstance(function _onCostControlReady(instance) {
-        costcontrol = instance;
-        setupWidget();
+  function loadMessageHandler() {
+    document.getElementById('message-handler').src = 'message_handler.html';
+    if (ConfigManager.option('nextReset')) {
+      window.addEventListener('messagehandlerready', function _setNextReset() {
+        window.removeEventListener('messagehandlerready', _setNextReset);
+        LazyLoader.load('js/settings/networkUsageAlarm.js', function() {
+          Common.loadNetworkInterfaces(function() {
+            setNextReset(ConfigManager.option('nextReset'));
+          });
+        });
       });
-    }, _onNoICCID);
+    }
   }
 
-  window.addEventListener('localized', function _onLocalize() {
-    if (initialized) {
-      updateUI();
-    }
-  });
+  function startWidget() {
+    CostControl.getInstance(function _onCostControlReady(instance) {
+      costcontrol = instance;
+      loadMessageHandler();
+      setupWidget();
+    });
+  }
 
   var initialized, widget, leftPanel, rightPanel, fte, views = {};
   var balanceView;
+
   function setupWidget() {
+    var mode = ConfigManager.getApplicationMode();
+    var isDataUsageOnly = (mode === 'DATA_USAGE_ONLY');
+    var isBalanceEnabled = !isDataUsageOnly;
+
     // HTML entities
     widget = document.getElementById('cost-control');
     leftPanel = document.getElementById('left-panel');
@@ -111,20 +104,38 @@ var Widget = (function() {
     views.telephony = document.getElementById('telephony-view');
     views.balance = document.getElementById('balance-view');
 
+    if (isBalanceEnabled) {
+      // Use observers to handle not on-demand updates
+      ConfigManager.observe('lastBalance', onBalance, true);
+      ConfigManager.observe('waitingForBalance', onErrors, true);
+      ConfigManager.observe('errors', onErrors, true);
+
+      LazyLoader.load('js/views/BalanceView.js', function() {
+        // Subviews
+        var balanceConfig = ConfigManager.configuration.balance;
+        balanceView = new BalanceView(
+          document.getElementById('balance-credit'),
+          document.querySelector('#balance-credit + .meta'),
+          balanceConfig ? balanceConfig.minimum_delay : undefined
+        );
+      });
+
+      // Open application with the proper view
+      views.balance.addEventListener('click',
+        function _openCCBalance() {
+          activity = new MozActivity({ name: 'costcontrol/balance' });
+        }
+      );
+      views.telephony.addEventListener('click',
+        function _openCCTelephony() {
+          activity = new MozActivity({ name: 'costcontrol/telephony' });
+        }
+      );
+    }
+
     // Use observers to handle not on-demand updates
-    ConfigManager.observe('lastBalance', onBalance, true);
-    ConfigManager.observe('waitingForBalance', onErrors, true);
-    ConfigManager.observe('errors', onErrors, true);
     ConfigManager.observe('lastCompleteDataReset', onReset, true);
     ConfigManager.observe('lastTelephonyReset', onReset, true);
-
-    // Subviews
-    var balanceConfig = ConfigManager.configuration.balance;
-    balanceView = new BalanceView(
-      document.getElementById('balance-credit'),
-      document.querySelector('#balance-credit + .meta'),
-      balanceConfig ? balanceConfig.minimum_delay : undefined
-    );
 
     // Update UI when visible
     document.addEventListener('visibilitychange',
@@ -146,28 +157,32 @@ var Widget = (function() {
       }
     });
 
+    window.addEventListener('localized', function _onLocalize() {
+      if (initialized) {
+        updateUI();
+      }
+    });
+
     // Open application with the proper view
-    views.balance.addEventListener('click',
-      function _openCCBalance() {
-        activity = new MozActivity({ name: 'costcontrol/balance' });
-      }
-    );
-    views.telephony.addEventListener('click',
-      function _openCCTelephony() {
-        activity = new MozActivity({ name: 'costcontrol/telephony' });
-      }
-    );
     rightPanel.addEventListener('click',
       function _openCCDataUsage() {
         activity = new MozActivity({ name: 'costcontrol/data_usage' });
       }
     );
 
-    updateUI();
+    LazyLoader.load(['js/utils/formatting.js'], function() {
+      updateUI();
+    });
 
+    // Avoid reload data sim info on the application startup
+    var isFirstCall = true;
     // Refresh UI when the user changes the SIM for data connections
     SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
-      Common.loadDataSIMIccId(updateUI.bind(null, true));
+      if (!isFirstCall) {
+        Common.loadDataSIMIccId(updateUI.bind(null, true));
+      } else {
+        isFirstCall = false;
+      }
     });
 
     initialized = true;
@@ -206,10 +221,12 @@ var Widget = (function() {
   function _showSimError(status) {
     // Wait to l10n resources are ready
     navigator.mozL10n.ready(function showErrorStatus() {
+      var widget = document.getElementById('cost-control');
       var fte = document.getElementById('fte-view');
       var leftPanel = document.getElementById('left-panel');
       var rightPanel = document.getElementById('right-panel');
 
+      widget.setAttribute('aria-hidden', false);
       fte.setAttribute('aria-hidden', false);
       leftPanel.setAttribute('aria-hidden', true);
       rightPanel.setAttribute('aria-hidden', true);
@@ -224,6 +241,7 @@ var Widget = (function() {
 
   function setupFte(provider, mode) {
 
+    widget.setAttribute('aria-hidden', false);
     fte.setAttribute('aria-hidden', false);
     leftPanel.setAttribute('aria-hidden', true);
     rightPanel.setAttribute('aria-hidden', true);
@@ -267,6 +285,7 @@ var Widget = (function() {
       }
 
       // Layout
+      widget.setAttribute('aria-hidden', true);
       fte.setAttribute('aria-hidden', true);
       leftPanel.setAttribute('aria-hidden', false);
       rightPanel.setAttribute('aria-hidden', false);
@@ -281,11 +300,13 @@ var Widget = (function() {
       // And the other view if applies...
       if (isDataUsageOnly) {
         widget.classList.add('full');
+        widget.setAttribute('aria-hidden', false);
 
       } else {
         widget.classList.remove('full');
         views.balance.setAttribute('aria-hidden', !isPrepaid);
         views.telephony.setAttribute('aria-hidden', isPrepaid);
+        widget.setAttribute('aria-hidden', false);
       }
 
       // Content for data statistics
@@ -447,6 +468,7 @@ var Widget = (function() {
       views.balance.classList.add('updating');
     }
   }
+
   function initWidget() {
     var isWaitingForIcc = false;
     function waitForIccAndCheckSim() {
@@ -479,10 +501,6 @@ var Widget = (function() {
         }
       }
     );
-
-    // XXX: See bug 944342 -[Cost control] move all the process related to the
-    // network and data interfaces loading to the start-up process of CC
-    Common.loadNetworkInterfaces();
   }
 
   return {
@@ -500,15 +518,9 @@ var Widget = (function() {
         });
       } else {
         SCRIPTS_NEEDED = [
-          'js/utils/debug.js',
-          'js/utils/formatting.js',
-          'js/utils/toolkit.js',
           'js/common.js',
-          'js/costcontrol.js',
-          'js/costcontrol_init.js',
-          'js/config/config_manager.js',
-          'js/settings/networkUsageAlarm.js',
-          'js/views/BalanceView.js'
+          'js/utils/toolkit.js',
+          'js/utils/debug.js'
         ];
         LazyLoader.load(SCRIPTS_NEEDED, initWidget);
       }

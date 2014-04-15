@@ -5,7 +5,7 @@ var MockCostControl = function(config) {
 
   config = config || {};
 
-  var fakeCostControlInstance = {};
+  var fakeCostControlInstance = config;
 
   return {
     getInstance: function(callback) {
