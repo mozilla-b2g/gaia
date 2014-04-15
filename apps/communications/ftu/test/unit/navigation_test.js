@@ -1,5 +1,8 @@
 'use strict';
 
+require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+require('/shared/test/unit/mocks/mock_icc_helper.js');
+
 requireApp('communications/ftu/js/external_links.js');
 requireApp('communications/ftu/js/navigation.js');
 
@@ -14,13 +17,7 @@ requireApp('communications/ftu/test/unit/mock_tutorial.js');
 requireApp('communications/ftu/test/unit/mock_wifi_manager.js');
 requireApp('communications/ftu/test/unit/mock_utils.js');
 requireApp('communications/ftu/test/unit/mock_operatorVariant.js');
-requireApp(
-    'communications/ftu/test/unit/mock_navigator_moz_mobile_connection.js');
-
-requireApp('communications/shared/test/unit/mocks/mock_icc_helper.js');
-requireApp(
-    'communications/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-
+requireApp('communications/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('communications/ftu/test/unit/mock_navigation.html.js');
 
 mocha.globals(['open']);
@@ -46,7 +43,7 @@ suite('navigation >', function() {
   var isOnLine = true;
   var realOnLine,
       realL10n,
-      realMozMobileConnection,
+      realMozMobileConnections,
       realSettings,
       realHTML;
 
@@ -62,8 +59,8 @@ suite('navigation >', function() {
     realHTML = document.body.innerHTML;
     document.body.innerHTML = MockImportNavigationHTML;
 
-    realMozMobileConnection = navigator.mozMobileConnection;
-    navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
+    realMozMobileConnections = navigator.mozMobileConnections;
+    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
 
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
@@ -90,8 +87,8 @@ suite('navigation >', function() {
     document.body.innerHTML = realHTML;
     realHTML = null;
 
-    navigator.mozMobileConnection = realMozMobileConnection;
-    realMozMobileConnection = null;
+    navigator.mozMobileConnections = realMozMobileConnections;
+    realMozMobileConnections = null;
 
     navigator.mozSettings = realSettings;
     realSettings = null;
