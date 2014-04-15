@@ -74,72 +74,6 @@
   display: none;
 }
 
-.camera-back {  
-  position: absolute;
-  font-size: 2.5rem;
-  width: 5rem;
-  height: 5rem;
-  line-height: 5rem;
-  text-align: left;
-  background-clip: padding-box;
-  border: solid 2rem transparent;
-  -moz-box-sizing: content-box;
-  color: #fff;
-  top: -2.2rem;
-  left: -1.8rem;
-}
-
-/*  preview-header  */
-.preview-header {
-  position: absolute;
-  height: 5rem;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
-
-}
-
-.preview-share-icon {    
-  position: absolute;
-  font-size: 2rem;
-  float: right;
-  right: 3rem;
-  width: 5rem;
-  height: 5rem;
-  line-height: 5rem;
-  text-align: center;
-  background-clip: padding-box;
-  border: solid 2rem transparent;
-  -moz-box-sizing: content-box;
-  color: #fff;
-  top: -2rem;
-}
-
-.preview-option-icon {   
-  position: absolute;
-  font-size: 1.9rem;
-  right: -2rem;
-  width: 5rem;
-  height: 5rem;
-  line-height: 5rem;
-  text-align: center;
-  background-clip: padding-box;
-  border: solid 2rem transparent;
-  -moz-box-sizing: content-box;
-  color: #fff;
-  top: -2rem;
-}
-
-.preview-text {
-  position: absolute;
-  font-size: 2.5rem;
-  width: 5rem;
-  height: 5rem;
-  left: 2.8rem;
-  text-align: center;
-  color: #fff;
-  top: 1.1rem;
-}
-
 .count-text {
   position: absolute;
   bottom: 83px;
@@ -168,14 +102,19 @@
   z-index: 100;
 }
 
-/* TD DO common
-.preview-controls > * {
-  display: flex;
-}*/
+.preview-option-icon,
+.preview-back-icon,
+.preview-share-icon {
+  vertical-align: middle;
+  font-size: 2.9rem;
+  color: white;
+}
 
-.camera-back:active,
-.preview-share-icon:active,
-.preview-option-icon:active {
-  background-color: #008EAB;
-  opacity: 1;
+.preview-back-icon {
+  margin-left: -1rem;
+}
+
+section[role="region"].skin-dark > header:first-child,
+.skin-dark > section[role="region"] > header:first-child {
+   background-color: rgba(0,0,0,0.12);
 }

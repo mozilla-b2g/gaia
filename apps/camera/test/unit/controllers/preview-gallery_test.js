@@ -72,6 +72,11 @@ suite('controllers/preview-gallery', function() {
         deleteVideo: sinon.spy(),
         on: sinon.spy()
       };
+
+      CustomDialog.show = function(title, msg, cancelCb, deleteCb) {
+        deleteCb.callback();
+      };
+
     });
 
     teardown(function() {
@@ -146,6 +151,7 @@ suite('controllers/preview-gallery', function() {
       };
       this.previewGalleryController.items = [item];
       this.previewGalleryController.currentItemIndex = 0;
+
       this.previewGalleryController.deleteCurrentItem();
 
       assert.ok(this.previewGalleryController.storage.deleteImage
@@ -311,12 +317,12 @@ suite('controllers/preview-gallery', function() {
   suite('PreviewGalleryController#onPreviewOptionClick()', function() {
     setup(function() {
      this.controller.view = new this.PreviewGalleryView();
-     this.controller.view.previewOption = sinon.spy();
-     this.controller.onPreviewOptionClick();
+     this.controller.view.showOptionsMenu = sinon.spy();
+     this.controller.onOptionsClick();
     });
 
     test('Should open previewOption on onPreviewOptionClick', function() {
-      assert.isTrue(this.controller.view.previewOption.called);
+      assert.isTrue(this.controller.view.showOptionsMenu.called);
     });
   });
 

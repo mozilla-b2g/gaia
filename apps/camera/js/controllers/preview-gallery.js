@@ -68,7 +68,7 @@ PreviewGalleryController.prototype.openPreview = function() {
   this.view.on('click:delete', this.deleteCurrentItem);
   this.view.on('click:back', this.closePreview);
   this.view.on('swipe', this.handleSwipe);
-  this.view.on('click:option', this.onPreviewOptionClick);
+  this.view.on('click:options', this.onOptionsClick);
 
   // If lockscreen is locked, hide all control buttons
   var secureMode = this.app.inSecureMode;
@@ -120,8 +120,8 @@ PreviewGalleryController.prototype.onGalleryButtonClick = function() {
   });
 };
 
-PreviewGalleryController.prototype.onPreviewOptionClick = function() {
-  this.view.previewOption();
+PreviewGalleryController.prototype.onOptionsClick = function() {
+  this.view.showOptionsMenu();
 };
 
 

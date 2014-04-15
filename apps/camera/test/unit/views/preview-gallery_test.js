@@ -30,13 +30,14 @@ suite('views/preview-gallery', function() {
     });
 
     test('previewGalleryView#previewOption', function() {
-      this.view.previewOption();
-      assert.equal(this.view.container.dataset.type, 'action');
+      this.view.showOptionsMenu();
+      assert.equal(this.view.container.children[0].getAttribute(
+        'data-type'), 'action');
     });
 
     test('previewGalleryView#removeOption', function() {
       this.view.previewMenuFadeIn = sinon.spy();
-      this.view.removeOption();
+      this.view.hideOptionMenu();
       assert.isTrue(this.view.previewMenuFadeIn.called);
     });
   });
