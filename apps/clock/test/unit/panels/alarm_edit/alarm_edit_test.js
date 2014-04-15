@@ -59,7 +59,6 @@ suite('AlarmEditView', function() {
 
       this.sinon.stub(alarmEdit, 'getTimeSelect');
       this.sinon.stub(alarmEdit, 'getSoundSelect');
-      this.sinon.stub(alarmEdit, 'getVibrateSelect');
       this.sinon.stub(alarmEdit, 'getSnoozeSelect');
       this.sinon.stub(alarmEdit, 'getRepeatSelect');
 
@@ -73,7 +72,7 @@ suite('AlarmEditView', function() {
         minute: alarm.minute
       });
       alarmEdit.getSoundSelect.returns(alarmEdit.alarm.sound);
-      alarmEdit.getVibrateSelect.returns(alarmEdit.alarm.vibrate);
+      alarmEdit.checkboxes.vibrate.checked = alarmEdit.alarm.vibrate;
       alarmEdit.getSnoozeSelect.returns(alarmEdit.alarm.snooze);
       alarmEdit.getRepeatSelect.returns(alarmEdit.alarm.repeat);
 
@@ -150,8 +149,7 @@ suite('AlarmEditView', function() {
     test('should add an alarm with sound, no vibrate', function(done) {
       this.sinon.stub(alarmListPanel, 'addOrUpdateAlarm');
 
-      // mock the view to turn off vibrate
-      alarmEdit.getVibrateSelect.returns('0');
+      alarmEdit.checkboxes.vibrate.checked = false;
 
       alarmEdit.alarm = new Alarm({
         hour: 5,
@@ -172,7 +170,7 @@ suite('AlarmEditView', function() {
     test('should update existing alarm with no sound, vibrate', function(done) {
       this.sinon.stub(alarmListPanel, 'addOrUpdateAlarm');
       // mock the view to turn sound on and vibrate off
-      alarmEdit.getVibrateSelect.returns('1');
+      alarmEdit.checkboxes.vibrate.checked = true;
       alarmEdit.getSoundSelect.returns('0');
       alarmEdit.save(function(err, alarm) {
         assert.ok(alarm.id);

@@ -14,6 +14,8 @@ ul, ol {
 }
 
 ul.compact li {
+  position: relative;
+  min-height: 4rem;
   border-bottom-color: #232626;
 }
 
@@ -22,6 +24,7 @@ ul.compact li:last-child {
 }
 
 ul.compact li label {
+  width: calc(100% - 3rem);
   color: #9a9898;
   font-size: 1.9rem;
 }
@@ -32,7 +35,7 @@ li button.icon-dialog {
   background-color: #4d4d4d;
   font-weight: normal;
   font-size: 1.7rem;
-  text-shadow: none !important; /* override `button` */
+  text-shadow: none; /* override `button` */
 }
 
 li button.icon-dialog:before,

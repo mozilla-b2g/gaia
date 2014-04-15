@@ -24,7 +24,7 @@ var AlarmEdit = function() {
 
   this.selects = {};
   [
-    'time', 'repeat', 'sound', 'vibrate', 'snooze'
+    'time', 'repeat', 'sound', 'snooze'
   ].forEach(function(id) {
     this.selects[id] = this.element.querySelector('#' + id + '-select');
   }, this);
@@ -40,6 +40,10 @@ var AlarmEdit = function() {
   ].forEach(function(id) {
     this.buttons[id] = this.element.querySelector('#alarm-' + id);
   }, this);
+
+  this.checkboxes = {
+    vibrate: this.element.querySelector('#vibrate-checkbox')
+  };
 
   this.buttons.time = new FormButton(this.selects.time, {
     formatLabel: function(value) {
@@ -57,13 +61,6 @@ var AlarmEdit = function() {
   this.buttons.sound = new FormButton(this.selects.sound, {
     id: 'sound-menu',
     formatLabel: Sounds.formatLabel
-  });
-  this.buttons.vibrate = new FormButton(this.selects.vibrate, {
-    formatLabel: function(vibrate) {
-      return (vibrate === null || vibrate === '0') ?
-        _('vibrateOff') :
-        _('vibrateOn');
-    }
   });
   this.buttons.snooze = new FormButton(this.selects.snooze, {
     id: 'snooze-menu',
@@ -118,8 +115,6 @@ var selectors = {
   sundayListItem: '#repeat-select-sunday',
   soundMenu: '#sound-menu',
   soundSelect: '#sound-select',
-  vibrateMenu: '#vibrate-menu',
-  vibrateSelect: '#vibrate-select',
   snoozeMenu: '#snooze-menu',
   snoozeSelect: '#snooze-select',
   deleteButton: '#alarm-delete',
@@ -247,8 +242,9 @@ Utils.extend(AlarmEdit.prototype, {
     this.initTimeSelect();
     this.initRepeatSelect();
     this.initSoundSelect();
-    this.initVibrateSelect();
     this.initSnoozeSelect();
+    this.checkboxes.vibrate.checked = this.alarm.vibrate;
+
     location.hash = '#alarm-edit-panel';
   },
 
@@ -283,14 +279,6 @@ Utils.extend(AlarmEdit.prototype, {
     this.ringtonePlayer.pause();
   },
 
-  initVibrateSelect: function aev_initVibrateSelect() {
-    this.buttons.vibrate.value = this.alarm.vibrate;
-  },
-
-  getVibrateSelect: function aev_getVibrateSelect() {
-    return this.buttons.vibrate.value;
-  },
-
   initSnoozeSelect: function aev_initSnoozeSelect() {
     this.buttons.snooze.value = this.alarm.snooze;
   },
@@ -320,7 +308,7 @@ Utils.extend(AlarmEdit.prototype, {
     this.alarm.time = [time.hour, time.minute];
     this.alarm.repeat = this.buttons.repeat.value;
     this.alarm.sound = this.getSoundSelect();
-    this.alarm.vibrate = this.getVibrateSelect();
+    this.alarm.vibrate = this.checkboxes.vibrate.checked;
     this.alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
     AudioManager.setAlarmVolume(this.getAlarmVolumeValue());
 
