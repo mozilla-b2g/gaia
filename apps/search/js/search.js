@@ -1,4 +1,5 @@
 (function() {
+
   'use strict';
   /* global Search, UrlHelper */
 
@@ -29,23 +30,22 @@
 
     providers: {},
 
+    searchResults: document.getElementById('search-results'),
+    newTabPage: document.getElementById('newtab-page'),
+
     init: function() {
       // Initialize the parent port connection
       var self = this;
       navigator.mozApps.getSelf().onsuccess = function() {
         var app = this.result;
-        app.connect('search-results').then(
-          function onConnectionAccepted(ports) {
-            ports.forEach(function(port) {
-              self._port = port;
-            });
-
-            setConnectionHandler();
-          },
-          function onConnectionRejected(reason) {
-            console.log('Error connecting: ' + reason + '\n');
-          }
-        );
+        app.connect('search-results').then(function onConnAccepted(ports) {
+          ports.forEach(function(port) {
+            self._port = port;
+          });
+          setConnectionHandler();
+        }, function onConnectionRejected(reason) {
+          console.log('Error connecting: ' + reason + '\n');
+        });
       };
 
       function setConnectionHandler() {
@@ -63,7 +63,7 @@
 
       function initializeProviders() {
         for (var i in self.providers) {
-          self.providers[i].init();
+          self.providers[i].init(self);
         }
       }
     },
@@ -89,6 +89,8 @@
      */
     change: function(msg) {
       clearTimeout(this.changeTimeout);
+
+      this.showSearchResults();
 
       var input = msg.data.input;
       var providers = this.providers;
@@ -150,7 +152,7 @@
         }
         var fuzzyDedupeIds = [host, dedupeId];
 
-         // Try to use some simple domain heuristics to find duplicates
+        // Try to use some simple domain heuristics to find duplicates
         // E.g, we would want to de-dupe between:
         // m.site.org and touch.site.org, sub.m.site.org and m.site.org
         // We also try to avoid deduping on second level domains by
@@ -233,6 +235,33 @@
       for (var i in this.providers) {
         this.providers[i].clear();
       }
+      this.showBlank();
+    },
+
+    showBlank: function() {
+      if (this.searchResults) {
+        this.newTabPage.classList.add('hidden');
+        this.searchResults.classList.add('hidden');
+      }
+    },
+
+    /**
+     * Called when the user displays the task manager
+     */
+    showTaskManager: function() {
+      this.showBlank();
+    },
+
+    showSearchResults: function() {
+      if (this.searchResults) {
+        this.searchResults.classList.remove('hidden');
+        this.newTabPage.classList.add('hidden');
+      }
+    },
+
+    showNewTabPage: function() {
+      this.searchResults.classList.add('hidden');
+      this.newTabPage.classList.remove('hidden');
     },
 
     /**
@@ -277,11 +306,19 @@
       window.open(url, '_blank', featureStr);
     },
 
+    requestScreenshot: function(url) {
+      this._port.postMessage({
+        'action': 'request-screenshot',
+        'url': url
+      });
+    },
+
     /**
      * Sends a message to the system app to update the input value
      */
     setInput: function(input) {
       this._port.postMessage({
+        'action': 'input',
         'input': input
       });
       this.expandSearch(input);

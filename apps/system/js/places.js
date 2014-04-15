@@ -1,4 +1,4 @@
-/* globals SettingsListener, Promise */
+/* globals SettingsListener, Promise, AppWindowManager */
 /* exported Places */
 
 /**
@@ -20,10 +20,13 @@ var Places = {
 
   writeInProgress: false,
 
+  screenshotQueue: [],
+
   init: function(callback) {
     window.addEventListener('apptitlechange', this);
     window.addEventListener('applocationchange', this);
     window.addEventListener('appiconchange', this);
+    window.addEventListener('apploaded', this);
 
     navigator.getDataStores(this.STORE_NAME)
       .then(this.initStore.bind(this)).then(callback);
@@ -45,19 +48,42 @@ var Places = {
     if (!this.rocketBarEnabled) {
       return;
     }
-
+    var app = evt.detail;
     switch (evt.type) {
     case 'apptitlechange':
-      this.setPlaceTitle(evt.detail.config.url, evt.detail.title);
+      this.setPlaceTitle(app.config.url, app.title);
       break;
     case 'applocationchange':
-      this.addVisit(evt.detail.config.url);
+      this.addVisit(app.config.url);
       break;
     case 'appiconchange':
-      this.setPlaceIconUri(evt.detail.config.url,
-                           evt.detail.config.favicon.href);
+      this.setPlaceIconUri(app.config.url, app.config.favicon.href);
+      break;
+    case 'apploaded':
+      var index = this.screenshotQueue.indexOf(app.config.url);
+      if (index !== -1) {
+        this.screenshotRequested(app.config.url);
+        this.screenshotQueue.splice(index, 1);
+      }
       break;
     }
+  },
+
+  screenshotRequested: function(url) {
+    var self = this;
+    var app = AppWindowManager.getApp(url);
+    if (!app) {
+      return false;
+    }
+    if (app.loading) {
+      this.screenshotQueue.push(url);
+      return;
+    }
+    app.getScreenshot(function(screenshot) {
+      if (screenshot) {
+        self.saveScreenshot(url, screenshot);
+      }
+    });
   },
 
   defaultPlace: function(url) {
@@ -99,7 +125,15 @@ var Places = {
    */
   addVisit: function(url) {
     return this.editPlace(url, function(place, cb) {
+      place.visited = Date.now();
       place.frecency++;
+      cb(place);
+    });
+  },
+
+  saveScreenshot: function(url, screenshot) {
+    return this.editPlace(url, function(place, cb) {
+      place.screenshot = screenshot;
       cb(place);
     });
   },

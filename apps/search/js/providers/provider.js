@@ -23,7 +23,8 @@ Provider.prototype = {
   /**
    * Initializes the provider container and adds listeners
    */
-  init: function() {
+  init: function(searchObj) {
+    this.searchObj = searchObj;
     this.container = document.getElementById(this.name.toLowerCase());
     this.container.addEventListener('click', this.click.bind(this));
   },
@@ -57,7 +58,7 @@ Provider.prototype = {
    * - icon: The icon of the result.
    * - dataset: Data attributes to apply to the result.
    */
-  render: function(results) {
+  buildResultsDom: function(results) {
     //<div class="result" data-url="mozilla.com">
     //  <img class="icon" src="..." />
     //  <div class="urlwrapper">
@@ -105,6 +106,11 @@ Provider.prototype = {
       result.appendChild(description);
       frag.appendChild(result);
     });
-    this.container.appendChild(frag);
+    return frag;
+  },
+
+  render: function(results) {
+    var dom = this.buildResultsDom(results);
+    this.container.appendChild(dom);
   }
 };

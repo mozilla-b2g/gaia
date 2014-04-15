@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsListener, AppWindow, SearchWindow */
+/* global SettingsListener, AppWindow, SearchWindow, Places */
 
 /**
  * The Rocketbar is a system-wide URL/search/title bar.
@@ -17,8 +17,10 @@ var Rocketbar = {
     // States
     this.enabled = false;
     this.expanded = false;
-    this.focused = false;
+    this.active = false;
     this.onHomescreen = false;
+    this.newTabPage = false;
+    this.cardView = false;
 
     // Properties
     this._port = null; // Inter-app communications port
@@ -63,6 +65,38 @@ var Rocketbar = {
     this.removeEventListeners();
     this.body.classList.remove('rb-enabled');
     this.enabled = false;
+  },
+
+  activate: function(callback) {
+    if (this.active) {
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+    this.body.addEventListener('keyboardchange',
+                               this.handleKeyboardChange, true);
+    this.active = true;
+    this.rocketbar.classList.add('active');
+    this.loadSearchApp(callback);
+    var event = new CustomEvent('rocketbarfocus');
+    window.dispatchEvent(event);
+  },
+
+  deactivate: function() {
+    if (!this.active) {
+      return;
+    }
+    // Stop swallowing keyboard change events
+    this.body.removeEventListener('keyboardchange',
+      this.handleKeyboardChange, true);
+    this.active = false;
+    this.cardView = false;
+    this.newTabPage = false;
+    this.rocketbar.classList.remove('active');
+    this.blur();
+    var event = new CustomEvent('rocketbarblur');
+    window.dispatchEvent(event);
   },
 
   /**
@@ -212,7 +246,7 @@ var Rocketbar = {
     this.rocketbar.classList.remove('expanded');
     this.exitHome();
     this.hideResults();
-    this.blur();
+    this.deactivate();
     window.dispatchEvent(new CustomEvent('rocketbarcollapse'));
   },
 
@@ -274,9 +308,22 @@ var Rocketbar = {
    * Show the task manager and clear Rocketbar.
    */
   showTaskManager: function() {
+    this.cardView = true;
     this.showResults();
     window.dispatchEvent(new CustomEvent('taskmanagershow'));
     this.clear();
+  },
+
+  showNewTabPage: function() {
+    this.newTabPage = true;
+    this.activate((function() {
+      this.showResults();
+      if (this._port) {
+        this._port.postMessage({
+          action: 'showNewTabPage'
+        });
+      }
+    }).bind(this));
   },
 
   /**
@@ -284,38 +331,21 @@ var Rocketbar = {
    */
   focus: function() {
     // Swallow keyboard change events so homescreen does not resize
-    this.body.addEventListener('keyboardchange',
-      this.handleKeyboardChange, true);
-    this.rocketbar.classList.add('focused');
-    this.title.classList.add('hidden');
+    this.input.focus();
     this.form.classList.remove('hidden');
-    this.input.select();
-    this.screen.classList.add('rocketbar-focused');
-    this.focused = true;
-    this.showResults();
-    this.loadSearchApp();
-    var event = new CustomEvent('rocketbarfocus');
-    window.dispatchEvent(event);
+    this.title.classList.add('hidden');
   },
 
   /**
    * Take Rocketbar out of focused state.
    */
   blur: function() {
-    // Stop swallowing keyboard change events
-    this.body.removeEventListener('keyboardchange',
-      this.handleKeyboardChange, true);
-    if (!this.results.classList.contains('hidden')) {
-      return;
-    }
     this.input.blur();
-    this.rocketbar.classList.remove('focused');
-    this.title.classList.remove('hidden');
     this.form.classList.add('hidden');
-    this.screen.classList.remove('rocketbar-focused');
-    this.focused = false;
-    var event = new CustomEvent('rocketbarblur');
-    window.dispatchEvent(event);
+    this.title.classList.remove('hidden');
+    if (this.input.value === '' && !this.newTabPage) {
+      this.deactivate();
+    }
   },
 
   /**
@@ -370,7 +400,7 @@ var Rocketbar = {
     this.clear();
     this.hideResults();
     this.enterHome();
-    this.blur();
+    this.deactivate();
   },
 
   /**
@@ -393,7 +423,7 @@ var Rocketbar = {
           !this.onHomescreen) {
           this.collapse();
         }
-        if (dy > this.TASK_MANAGER_THRESHOLD && !this.focused) {
+        if (dy > this.TASK_MANAGER_THRESHOLD && !this.active) {
           this.showTaskManager();
         }
         break;
@@ -413,8 +443,17 @@ var Rocketbar = {
    * Handle clicks on the Rocketbar.
    */
   handleClick: function() {
-    if (this.expanded && !this.focused) {
+    if (this.active) {
       this.focus();
+      this.input.select();
+      return;
+    }
+
+    if (this.expanded) {
+      this.activate((function() {
+        this.focus();
+        this.input.select();
+      }).bind(this));
     } else {
       this._wasClicked = true;
       this.expand();
@@ -426,7 +465,10 @@ var Rocketbar = {
    */
   handleTransitionEnd: function() {
     if (this.expanded && this._wasClicked) {
-      this.focus();
+      this.activate((function() {
+        this.focus();
+        this.input.select();
+      }).bind(this));
       this._wasClicked = false;
     }
   },
@@ -438,14 +480,23 @@ var Rocketbar = {
     var input = this.input.value;
     // If the task manager is shown, hide it
     if (this.screen.classList.contains('task-manager')) {
+      this.cardView = false;
       window.dispatchEvent(new CustomEvent('taskmanagerhide'));
     }
 
-    // If there is input and results are hidden, show them
-    if (input && this.results.classList.contains('hidden')) {
-      this.showResults();
-    } else if (!input && !this.results.classList.contains('hidden')) {
+    if (!input && !this.newTabPage &&
+        !this.results.classList.contains('hidden')) {
       this.hideResults();
+      return;
+    }
+
+    if (!input && this.newTabPage) {
+      this.showNewTabPage();
+      return;
+    }
+
+    if (this.results.classList.contains('hidden')) {
+      this.showResults();
     }
 
     this._port.postMessage({
@@ -480,29 +531,35 @@ var Rocketbar = {
    */
   handleStackChanged: function(e) {
     // Focus the Rocketbar in cards view when stack length reaches zero.
-    if (this.expanded && e.detail.sheets.length === 0) {
-      this.focus();
+    if (this.cardView && e.detail.sheets.length === 0) {
+      this.hideResults();
+      this.activate((function() {
+        this.focus();
+      }).bind(this));
     }
   },
 
   /**
    * Instantiates a new SearchWindow
    */
-  loadSearchApp: function() {
+  loadSearchApp: function(callback) {
     if (!this.searchWindow) {
       this.searchWindow = new SearchWindow();
     }
 
-    this.initSearchConnection();
+    this.initSearchConnection(callback);
   },
 
   /**
    * Initialise inter-app connection with search app.
    */
-  initSearchConnection: function() {
+  initSearchConnection: function(callback) {
     var self = this;
 
     if (this._port) {
+      if (callback) {
+        callback();
+      }
       return;
     }
 
@@ -517,6 +574,9 @@ var Rocketbar = {
           if (self._pendingMessage) {
             self.handleSearchMessage(self._pendingMessage);
             delete self._pendingMessage;
+          }
+          if (callback) {
+            callback();
           }
         },
         function onConnectionRejected(reason) {
@@ -538,12 +598,17 @@ var Rocketbar = {
       this.initSearchConnection();
       return;
     }
-    var detail = e.detail;
-    if (detail.input) {
-      Rocketbar.input.value = detail.input;
-    } else if (detail.action && detail.action == 'hide') {
-      this.hideResults();
-      this.collapse();
+    switch (e.detail.action) {
+      case 'input':
+        Rocketbar.input.value = e.detail.input;
+        break;
+      case 'request-screenshot':
+        Places.screenshotRequested(e.detail.url);
+        break;
+      case 'hide':
+        this.hideResults();
+        this.collapse();
+        break;
     }
   },
 

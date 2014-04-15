@@ -32,8 +32,7 @@
       "url": "http://mozilla.org",
       "icon": "app://homescreen.gaiamobile.org/style/icons/Aurora.png",
       "iconable": false,
-      "useAsyncPanZoom": true,
-      "features": "toolbar=yes,location=yes",
+      "features": "rocketbarstartpage",
       "removable": false
     }
   ]
