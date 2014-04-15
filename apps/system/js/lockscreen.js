@@ -159,6 +159,10 @@
           // Stop refreshing the clock when the screen is turned off.
           this.clock.stop();
         } else {
+          // Lock the orientation to prevent it become landscape,
+          // while somebody return to the LockScreen from a landscape app.
+          screen.mozLockOrientation(
+              window.OrientationManager.defaultOrientation);
           var _screenOffInterval = new Date().getTime() - this._screenOffTime;
           if (_screenOffInterval > this.passCodeRequestTimeout * 1000) {
             this._passCodeTimeoutCheck = true;
