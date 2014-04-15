@@ -1,7 +1,7 @@
-requireApp('communications/dialer/js/voicemail.js');
+require('/shared/js/dialer/voicemail.js');
 
-requireApp('communications/dialer/test/unit/mock_mozVoicemail.js');
-requireApp('communications/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/dialer/test/unit/mock_mozVoicemail.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 suite('dialer/voicemail', function() {
   var realMozVoicemail;

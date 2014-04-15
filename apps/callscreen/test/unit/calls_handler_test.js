@@ -1,14 +1,8 @@
 'use strict';
 
-requireApp('communications/dialer/test/unit/mock_call.js');
-requireApp('communications/dialer/test/unit/mock_handled_call.js');
-requireApp('communications/dialer/test/unit/mock_call_screen.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
-requireApp('communications/dialer/test/unit/mock_contacts.js');
-requireApp('communications/dialer/test/unit/mock_tone_player.js');
-requireApp('communications/dialer/test/unit/mock_bluetooth_helper.js');
-requireApp('communications/dialer/test/unit/mock_utils.js');
-requireApp('communications/dialer/test/unit/mock_simple_phone_matcher.js');
+require('/test/unit/mock_call_screen.js');
+require('/test/unit/mock_bluetooth_helper.js');
+require('/test/unit/mock_simple_phone_matcher.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -16,6 +10,15 @@ require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/dialer/mock_call.js');
+require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+require('/shared/test/unit/mocks/dialer/mock_contacts.js');
+require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
+require('/shared/test/unit/mocks/dialer/mock_utils.js');
+require(
+  '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
+);
 
 // The CallsHandler binds stuff when evaluated so we load it
 // after the mocks and we don't want it to show up as a leak.
@@ -42,6 +45,7 @@ suite('calls handler', function() {
   var realMozApps;
   var realWakeLock;
   var realMozIccManager;
+  var realSetMessageHandler;
 
   mocksHelperForCallsHandler.attachTestHelpers();
 
@@ -58,7 +62,10 @@ suite('calls handler', function() {
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
 
-    requireApp('communications/dialer/js/calls_handler.js', done);
+    realSetMessageHandler = navigator.mozSetMessageHandler;
+    navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
+
+    require('/js/calls_handler.js', done);
   });
 
   suiteTeardown(function() {
@@ -67,15 +74,18 @@ suite('calls handler', function() {
     navigator.mozApps = realMozApps;
     navigator.requestWakeLock = realWakeLock;
     navigator.mozIccManager = realMozIccManager;
+    navigator.mozSetMessageHandler = realSetMessageHandler;
   });
 
   setup(function() {
     this.sinon.useFakeTimers();
+    MockNavigatormozSetMessageHandler.mSetup();
   });
 
   teardown(function() {
     MockNavigatorMozIccManager.mTeardown();
     MockNavigatorMozTelephony.mTeardown();
+    MockNavigatormozSetMessageHandler.mTeardown();
   });
 
   suite('> telephony.oncallschanged handling', function() {
@@ -1382,16 +1392,86 @@ suite('calls handler', function() {
     });
 
     suite('> bluetooth commands', function() {
-      var call1 = {number: 111111};
-      var call2 = {number: 222222};
-      var call3 = {number: 333333};
+      var call1, call2, call3;
+
+      function triggerCommand(command) {
+        MockNavigatormozSetMessageHandler.mTrigger(
+          'bluetooth-dialer-command', {
+            command: command
+          }
+        );
+      }
+
+      setup(function() {
+        call1 = new MockCall('111111', 'outgoing');
+        call2 = new MockCall('222222', 'incoming');
+        call3 = new MockCall('333333', 'incoming');
+        CallsHandler.setup();
+      });
+
+      suite('> CHUP', function() {
+        test('should end the active call', function() {
+          MockNavigatorMozTelephony.calls = [call1];
+          MockNavigatorMozTelephony.active = call1;
+
+          var hangUpSpy = this.sinon.spy(call1, 'hangUp');
+          triggerCommand('CHUP');
+          sinon.assert.calledOnce(hangUpSpy);
+        });
+      });
+
+      suite('> ATA', function() {
+        test('should answer the incoming call', function() {
+          MockNavigatorMozTelephony.calls = [call1];
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+          var answerSpy = this.sinon.spy(call1, 'answer');
+          triggerCommand('ATA');
+          sinon.assert.calledOnce(answerSpy);
+        });
+      });
+
+      suite('> CHLD=0', function() {
+        test('should hang up the waiting call', function() {
+          MockNavigatorMozTelephony.calls = [call1, call2];
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+          var hangUpSpy = this.sinon.spy(call2, 'hangUp');
+          triggerCommand('CHLD=0');
+          sinon.assert.calledOnce(hangUpSpy);
+        });
+      });
+
+      suite('> CHLD=1', function() {
+        test('should end and answer the waiting call', function() {
+          MockNavigatorMozTelephony.calls = [call1, call2];
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+          var hangUpSpy = this.sinon.spy(call1, 'hangUp');
+          triggerCommand('CHLD=1');
+          sinon.assert.calledOnce(hangUpSpy);
+        });
+      });
+
+      suite('> CHLD=2', function() {
+        test('should hold and answer the waiting call', function() {
+          MockNavigatorMozTelephony.calls = [call1, call2];
+          MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+          var answerSpy = this.sinon.spy(call2, 'answer');
+          triggerCommand('CHLD=2');
+          sinon.assert.calledOnce(answerSpy);
+        });
+      });
 
       suite('> CHLD=3 conference call', function() {
+        function triggerCHLD() {
+          triggerCommand('CHLD=3');
+        }
+
         test('should log a warning without enough connected calls',
         function(done) {
           MockNavigatorMozTelephony.calls = [call1];
-
-          window.postMessage({type: 'BT', command: 'CHLD=3'}, '*');
 
           var addSpy =
             this.sinon.spy(MockNavigatorMozTelephony.conferenceGroup, 'add');
@@ -1401,12 +1481,13 @@ suite('calls handler', function() {
             assert.isFalse(addSpy.calledOnce);
             done();
           });
+
+          triggerCHLD();
         });
 
         test('should merge into group call if there are two individual calls',
         function(done) {
           MockNavigatorMozTelephony.calls = [call1, call2];
-          window.postMessage({type: 'BT', command: 'CHLD=3'}, '*');
 
           var addStub =
             this.sinon.stub(MockNavigatorMozTelephony.conferenceGroup, 'add',
@@ -1414,6 +1495,8 @@ suite('calls handler', function() {
               assert.isTrue(addStub.calledWith(call1, call2));
               done();
             });
+
+          triggerCHLD();
         });
 
         test('should merge individual call into group if group call exists',
@@ -1422,7 +1505,6 @@ suite('calls handler', function() {
           MockNavigatorMozTelephony.conferenceGroup.calls = [call2, call3];
           MockNavigatorMozTelephony.conferenceGroup.state = 'connected';
 
-          window.postMessage({type: 'BT', command: 'CHLD=3'}, '*');
 
           var addStub =
             this.sinon.stub(MockNavigatorMozTelephony.conferenceGroup, 'add',
@@ -1430,7 +1512,54 @@ suite('calls handler', function() {
               assert.isTrue(addStub.calledWith(call1));
               done();
             });
+
+          triggerCHLD();
         });
+      });
+    });
+
+    suite('> headset commands', function() {
+      var mockCall;
+
+      setup(function() {
+        CallsHandler.setup();
+        mockCall = new MockCall('12334', 'incoming');
+      });
+
+      function triggerHeadset(clock) {
+        MockNavigatormozSetMessageHandler.mTrigger('headset-button',
+                                                   'headset-button-press');
+        clock.tick(10);
+        MockNavigatormozSetMessageHandler.mTrigger('headset-button',
+                                                   'headset-button-release');
+      }
+
+      test('should end the active call', function() {
+        MockNavigatorMozTelephony.calls = [mockCall];
+        MockNavigatorMozTelephony.active = mockCall;
+
+        var hangUpSpy = this.sinon.spy(mockCall, 'hangUp');
+        triggerHeadset(this.sinon.clock);
+        sinon.assert.calledOnce(hangUpSpy);
+      });
+
+      test('should answer an incoming call', function() {
+        MockNavigatorMozTelephony.calls = [mockCall];
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        var answerSpy = this.sinon.spy(mockCall, 'answer');
+        triggerHeadset(this.sinon.clock);
+        sinon.assert.calledOnce(answerSpy);
+      });
+
+      test('should answer a waiting call', function() {
+        var waitingCall = new MockCall('88888', 'incoming');
+        MockNavigatorMozTelephony.calls = [mockCall, waitingCall];
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        var answerSpy = this.sinon.spy(waitingCall, 'answer');
+        triggerHeadset(this.sinon.clock);
+        sinon.assert.calledOnce(answerSpy);
       });
     });
   });

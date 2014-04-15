@@ -1,7 +1,7 @@
 'use strict';
 
-requireApp('communications/dialer/test/unit/mock_mozbluetooth.js');
-requireApp('communications/dialer/js/bluetooth_helper.js');
+require('/test/unit/mock_mozbluetooth.js');
+require('/js/bluetooth_helper.js');
 
 function switchReadOnlyProperty(originObject, propName, targetObj) {
   Object.defineProperty(originObject, propName, {

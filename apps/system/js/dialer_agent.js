@@ -1,6 +1,7 @@
 'use strict';
 
-/* global SettingsListener, SettingsURL */
+/* global SettingsListener, SettingsURL, AttentionScreen, lockScreen */
+/* r=? dialer+system peers for changes in this file. */
 
 (function(exports) {
   /**
@@ -8,27 +9,27 @@
    * The delay between an incoming phone call and the first ring or vibration
    * needs to be as short as possible.
    *
-   * On very low-end devices, waiting for the dialer app to start, to load an
-   * attention screen and then to load the ringtone from the settings database
-   * makes the delay unacceptable.
-   *
    * This simple module keeps the ringtone (blob) around and starts alerting the
    * user as soon as a new incoming call is detected via the mozTelephony API.
+   * And it opens an AttentionScreen with the preloaded callscreen app inside.
    *
    * We also listen for the sleep and volumedown hardware buttons to provide
    * the user with an easy way to stop the ringing.
    *
    * @example
-   * var dialerRinger = new DialerRinger();
-   * dialerRinger.start(); // Attach the event listeners.
-   * dialerRinger.stop();  // Deattach the event listeners.
+   * var dialerAgent = new DialerAgent();
+   * dialerAgent.start(); // Attach the event listeners.
+   * dialerAgent.stop();  // Deattach the event listeners.
    *
-   * @class    DialerRinger
+   * @class    DialerAgent
    * @requires SettingsListener
    * @requires SettingsURL
    *
    **/
-  var DialerRinger = function DialerRinger() {
+
+  var CSORIGIN = window.location.origin.replace('system', 'callscreen') + '/';
+
+  var DialerAgent = function DialerAgent() {
     var telephony = navigator.mozTelephony;
     if (!telephony) {
       return;
@@ -49,9 +50,11 @@
     player.mozAudioChannelType = 'ringer';
     player.preload = 'metadata';
     player.loop = true;
+
+    this._callScreen = this._createCallScreen();
   };
 
-  DialerRinger.prototype.start = function dr_start() {
+  DialerAgent.prototype.start = function da_start() {
     if (!this._telephony) {
       return;
     }
@@ -88,10 +91,16 @@
     window.addEventListener('sleep', this);
     window.addEventListener('volumedown', this);
 
+    var callScreen = this._callScreen;
+    callScreen.src = CSORIGIN + 'index.html';
+    callScreen.dataset.preloaded = true;
+    // We need the iframe in the DOM
+    AttentionScreen.attentionScreen.appendChild(callScreen);
+
     return this;
   };
 
-  DialerRinger.prototype.stop = function dr_stop() {
+  DialerAgent.prototype.stop = function da_stop() {
     if (!this._started) {
       return;
     }
@@ -107,18 +116,26 @@
     // See bug 981373.
   };
 
-  DialerRinger.prototype.handleEvent = function dr_handleEvent(evt) {
+  DialerAgent.prototype.handleEvent = function da_handleEvent(evt) {
     if (evt.type === 'sleep' || evt.type === 'volumedown') {
       this._stopAlerting();
       return;
     }
 
-    if (this._alerting || evt.type !== 'callschanged') {
+    if (evt.type !== 'callschanged') {
       return;
     }
 
     var calls = this._telephony.calls;
-    if (calls.length !== 1 || calls[0].state !== 'incoming') {
+    if (calls.length !== 1) {
+      return;
+    }
+
+    if (calls[0].state === 'incoming' || calls[0].state === 'dialing') {
+      this._openCallScreen();
+    }
+
+    if (this._alerting || calls[0].state !== 'incoming') {
       return;
     }
 
@@ -133,7 +150,7 @@
     });
   };
 
-  DialerRinger.prototype._startAlerting = function dr_startAlerting() {
+  DialerAgent.prototype._startAlerting = function da_startAlerting() {
     this._alerting = true;
 
     if ('vibrate' in navigator && this._shouldVibrate) {
@@ -148,7 +165,7 @@
     }
   };
 
-  DialerRinger.prototype._stopAlerting = function dr_stopAlerting() {
+  DialerAgent.prototype._stopAlerting = function da_stopAlerting() {
     var player = this._player;
 
     this._alerting = false;
@@ -160,5 +177,40 @@
     window.clearInterval(this._vibrateInterval);
   };
 
-  exports.DialerRinger = DialerRinger;
+  DialerAgent.prototype._createCallScreen = function da_createCallScreen() {
+    // TODO: use a BrowswerFrame
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=995979
+    var iframe = document.createElement('iframe');
+    iframe.setAttribute('name', 'call_screen');
+    iframe.setAttribute('mozbrowser', 'true');
+    iframe.setAttribute('remote', 'false');
+    iframe.setAttribute('mozapp', CSORIGIN + 'manifest.webapp');
+    iframe.dataset.frameOrigin = CSORIGIN;
+    iframe.dataset.hidden = 'true';
+
+    return iframe;
+  };
+
+  DialerAgent.prototype._openCallScreen = function da_openCallScreen() {
+    var callScreen = this._callScreen;
+    var timestamp = new Date().getTime();
+
+    var src = callScreen.src.split('#')[0] + '#' +
+              (lockScreen.locked ? 'locked' : '');
+    src = src + '&timestamp=' + timestamp;
+    callScreen.src = src;
+
+    var asRequest = {
+      target: callScreen,
+      stopPropagation: function() {},
+      detail: {
+        features: 'attention',
+        name: 'call_screen',
+        frameElement: callScreen
+      }
+    };
+    AttentionScreen.open(asRequest);
+  };
+
+  exports.DialerAgent = DialerAgent;
 }(window));

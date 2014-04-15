@@ -6,12 +6,12 @@
 'use strict';
 
 require('/dialer/test/unit/mock_lazy_loader.js');
-require('/dialer/test/unit/mock_l10n.js');
 require('/dialer/test/unit/mock_telephony_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_sim_picker.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 
 require('/shared/js/multi_sim_action_button.js');
 

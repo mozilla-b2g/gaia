@@ -208,7 +208,9 @@ function copyBuildingBlock(zip, blockName, dirName, webapp) {
 
   // Compute the nsIFile for this shared style
   let styleFolder = utils.getGaia(config).sharedFolder.clone();
-  styleFolder.append(dirName);
+  dirName.split('/').forEach(function(segment) {
+    styleFolder.append(segment);
+  });
   let cssFile = styleFolder.clone();
   if (!styleFolder.exists()) {
     throw new Error('Using inexistent shared style: ' + blockName);
@@ -496,7 +498,11 @@ function execute(options) {
 
     used.styles.forEach(function(name) {
       try {
-        copyBuildingBlock(zip, name, 'style', webapp);
+        let segments = name.split('/');
+        name = segments.pop();
+        segments.unshift('style');
+        let dirName = segments.join('/');
+        copyBuildingBlock(zip, name, dirName, webapp);
       } catch (e) {
         throw new Error(e + ' from: ' + webapp.domain);
       }
