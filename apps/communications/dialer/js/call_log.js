@@ -24,7 +24,7 @@ var CallLog = {
       '/shared/style_unstable/lists.css',
       '/contacts/js/utilities/confirm.js',
       '/dialer/js/phone_action_menu.js',
-      '/dialer/js/utils.js'
+      '/shared/js/dialer/utils.js'
     ];
     var self = this;
 

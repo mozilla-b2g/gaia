@@ -35,7 +35,7 @@ window.addEventListener('load', function startup() {
   ScreenManager.turnScreenOn();
 
   // Please sort it alphabetically
-  window.dialerRinger = new DialerRinger().start();
+  window.dialerAgent = new DialerAgent().start();
 
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
