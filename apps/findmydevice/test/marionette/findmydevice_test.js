@@ -41,7 +41,15 @@ marionette('Find My Device lock >', function() {
     });
 
     var lockscreenMessage = client.findElement('#lockscreen-message');
-    assert.equal(lockscreenMessage.text(), messageText);
+    client.waitFor(function() {
+      var text = lockscreenMessage.text();
+      if (text !== '') {
+        assert.equal(lockscreenMessage.text(), messageText);
+        return true;
+      }
+
+      return false;
+    });
 
     var settings = {
       'lockscreen.enabled': true,
