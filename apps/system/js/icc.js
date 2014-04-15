@@ -119,6 +119,12 @@ var icc = {
   },
 
   handleSTKCommand: function icc_handleSTKCommand(message) {
+    // Protection to bad formed messages
+    if (!message || !message.iccId || !message.command ||
+        !message.command.typeOfCommand || !message.command.options) {
+      return DUMP('STK Proactive Command bad formed: ', message);
+    }
+
     DUMP('STK Proactive Command for SIM ' + message.iccId + ': ',
       message.command);
     if (FtuLauncher.isFtuRunning()) {
