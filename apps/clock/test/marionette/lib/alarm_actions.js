@@ -59,6 +59,10 @@ AlarmActions.prototype = {
     }
   },
 
+  cancelForm: function() {
+    this.actions.tapAndTransition('#alarm-close');
+  },
+
   saveForm: function() {
     this.actions.tapAndTransition('#alarm-done');
   },
@@ -69,6 +73,10 @@ AlarmActions.prototype = {
 
   get timeField() {
     return $('#time-select');
+  },
+
+  get volumeInput() {
+    return $('#alarm-volume-input');
   },
 
   fire: function(idx, attentionHandler) {
