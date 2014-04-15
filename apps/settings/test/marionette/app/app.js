@@ -17,7 +17,8 @@ var Base = require('./base'),
     ScreenLockPanel = require('./regions/screen_lock'),
     AppPermissionPanel = require('./regions/app_permission'),
     DisplayPanel = require('./regions/display'),
-    AppStoragePanel = require('./regions/app_storage');
+    AppStoragePanel = require('./regions/app_storage'),
+    MediaStoragePanel = require('./regions/media_storage');
 
 // origin of the settings app
 var ORIGIN = 'app://settings.gaiamobile.org';
@@ -53,7 +54,8 @@ Settings.Selectors = {
   'screenLockMenuItem': '#menuItem-screenLock',
   'appPermissionPanel': '#menuItem-appPermissions',
   'displayMenuItem': '#menuItem-display',
-  'appStorageMenuItem': '#menuItem-applicationStorage'
+  'appStorageMenuItem': '#menuItem-applicationStorage',
+  'mediaStorageMenuItem': '#menuItem-mediaStorage'
 };
 
 Settings.prototype = {
@@ -169,6 +171,13 @@ Settings.prototype = {
     this._appStoragePanel =
       this._appStoragePanel || new AppStoragePanel(this.client);
     return this._appStoragePanel;
+  },
+
+  get mediaStoragePanel() {
+    this.openPanel('mediaStorageMenuItem');
+    this._mediaStoragePanel = this._mediaStoragePanel ||
+      new MediaStoragePanel(this.client);
+    return this._mediaStoragePanel;
   },
 
   /**

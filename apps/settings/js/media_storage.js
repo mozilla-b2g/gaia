@@ -122,6 +122,7 @@ require([
       label.classList.add('stackedbar-color-label');
       size = document.createElement('span');
       size.classList.add('size');
+      size.hidden = true;
       text = document.createElement('a');
       l10nId = type + '-space';
       text.dataset.l10nId = l10nId;
@@ -136,6 +137,7 @@ require([
 
     size = document.createElement('span');
     size.classList.add('size');
+    size.hidden = true;
     text = document.createElement('a');
     l10nId = 'total-space';
     text.dataset.l10nId = l10nId;
@@ -183,6 +185,7 @@ require([
           self.rootElement.querySelector('.color-' + type + ' .size');
         DeviceStorageHelper.showFormatedSize(
           element, 'storageSize', sizes[type]);
+        element.hidden = false;
         self.stackedbar.add({ 'type': type, 'value': sizes[type] });
       });
       self.stackedbar.refreshUI();
@@ -192,6 +195,7 @@ require([
         self.rootElement.querySelector('a[data-l10n-id="total-space"] .size');
       DeviceStorageHelper.showFormatedSize(element, 'storageSize',
                                            sizes['sdcard'] + sizes['free']);
+      element.hidden = false;
     });
   };
 
