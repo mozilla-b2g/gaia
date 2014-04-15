@@ -9,7 +9,7 @@ from gaiatest.apps.phone.app import Phone
 
 class CallScreen(Phone):
 
-    _call_screen_locator = (By.CSS_SELECTOR, "iframe[name='call_screen0']")
+    _call_screen_locator = (By.CSS_SELECTOR, "iframe[name='call_screen']")
     _calling_contact_locator = (By.CSS_SELECTOR, 'div.number')
     _calling_contact_information_locator = (By.CSS_SELECTOR, 'div.additionalContactInfo')
     _outgoing_call_locator = (By.CSS_SELECTOR, '.handled-call.outgoing')
@@ -45,4 +45,4 @@ class CallScreen(Phone):
     def hang_up(self):
         self.tap_hang_up()
         self.marionette.switch_to_frame()
-        self.wait_for_element_not_present(*self._call_screen_locator)
+        self.wait_for_element_not_displayed(*self._call_screen_locator)

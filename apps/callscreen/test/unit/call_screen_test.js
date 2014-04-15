@@ -5,10 +5,9 @@ mocha.globals(['resizeTo']);
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
-
-requireApp('communications/dialer/test/unit/mock_handled_call.js');
-requireApp('communications/dialer/test/unit/mock_calls_handler.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
+require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 
 // The CallScreen binds stuff when evaluated so we load it
 // after the fake dom and we don't want it to show up as a leak.
@@ -147,7 +146,7 @@ suite('call screen', function() {
       CallScreen.bluetoothMenu = bluetoothMenu;
     }
 
-    requireApp('communications/dialer/js/call_screen.js', done);
+    require('/js/call_screen.js', done);
   });
 
   teardown(function() {
@@ -181,7 +180,7 @@ suite('call screen', function() {
 
       setup(function() {
         oldHash = window.location.hash;
-        window.location.hash = '#locked';
+        window.location.hash = '#locked?timestamp=0';
       });
 
       teardown(function() {
