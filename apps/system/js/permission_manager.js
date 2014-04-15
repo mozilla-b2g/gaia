@@ -498,7 +498,7 @@
       this.yes.callback = yescallback;
 
       this.no.textContent = isSharedPermission ?
-          _('dontshare-' + this.permissionType) : _('deny');
+          _('dontshare-' + this.permissionType) : _('dontallow');
       this.noHandler = this.clickHandler.bind(this);
       this.no.addEventListener('click', this.noHandler);
       this.no.callback = nocallback;
