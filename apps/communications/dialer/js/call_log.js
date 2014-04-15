@@ -21,8 +21,8 @@ var CallLog = {
       '/shared/style/switches.css',
       '/shared/style/lists.css',
       '/shared/js/confirm.js',
+      '/shared/js/dialer/utils.js',
       '/dialer/js/phone_action_menu.js',
-      '/dialer/js/utils.js',
       '/shared/js/sticky_header.js'
     ];
     var self = this;

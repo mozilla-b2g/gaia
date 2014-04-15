@@ -1,19 +1,18 @@
 'use strict';
 
-requireApp('communications/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('communications/dialer/test/unit/mock_contacts.js');
-requireApp('communications/dialer/test/unit/mock_call_screen.js');
-requireApp('communications/dialer/test/unit/mock_calls_handler.js');
-requireApp('communications/dialer/test/unit/mock_keypad.js');
-requireApp('communications/dialer/test/unit/mock_utils.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
-requireApp('communications/dialer/test/unit/mock_call.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/test/unit/mock_call_screen.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/dialer/mock_contacts.js');
+require('/shared/test/unit/mocks/dialer/mock_keypad.js');
+require('/shared/test/unit/mocks/dialer/mock_utils.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+require('/shared/test/unit/mocks/dialer/mock_call.js');
+require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 
-requireApp('communications/dialer/js/handled_call.js');
-requireApp('communications/dialer/js/voicemail.js');
-
+require('/js/handled_call.js');
+require('/shared/js/dialer/voicemail.js');
 
 var mocksHelperForHandledCall = new MocksHelper([
   'Contacts',

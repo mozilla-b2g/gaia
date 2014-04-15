@@ -3,9 +3,9 @@
 /* global CallLog */
 
 requireApp('communications/dialer/js/call_log.js');
-requireApp('communications/dialer/js/utils.js');
+require('/shared/js/dialer/utils.js');
+
 requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
 requireApp('communications/dialer/test/unit/mock_performance_testing_helper.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
@@ -13,6 +13,7 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 
 requireApp('communications/shared/test/unit/mocks/mock_notification.js');
 

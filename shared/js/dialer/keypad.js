@@ -231,7 +231,11 @@ var KeypadManager = {
                                                 this.hangUpCallFromKeypad);
     }
 
-    TonePlayer.init(this._onCall ? 'telephony' : 'normal');
+    TonePlayer.init('normal');
+    var channel = this._onCall ? 'telephony' : 'normal';
+    window.addEventListener('visibilitychange', (function() {
+      TonePlayer.setChannel(document.mozHidden ? 'normal' : channel);
+    }).bind(this));
 
     this.render();
     LazyLoader.load(['/shared/style/action_menu.css',

@@ -4,41 +4,45 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <title>Dialer</title>
-    <link rel="stylesheet" type="text/css" href="/dialer/style/oncall.css">
-    <link rel="stylesheet" type="text/css" href="/dialer/style/oncall_status_bar.css">
-    <link rel="stylesheet" type="text/css" href="/dialer/style/keypad.css">
-    <link rel="stylesheet" type="text/css" href="/dialer/style/status.css">
-    <link rel="stylesheet" type="text/css" href="/dialer/style/overlay.css">
+    <link rel="stylesheet" type="text/css" href="/style/oncall.css">
+    <link rel="stylesheet" type="text/css" href="/style/oncall_status_bar.css">
+    <link rel="stylesheet" type="text/css" href="/style/status.css">
+
+    <link rel="stylesheet" type="text/css" href="/shared/style/dialer/keypad.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/dialer/overlay.css">
+
     <link rel="stylesheet" type="text/css" href="/shared/style/status.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
 
     <!-- Localization -->
     <script defer type="text/javascript" src="/shared/js/lazy_loader.js"></script>
     <script defer type="application/javascript" src="/shared/js/lazy_l10n.js"></script>
-    <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
+    <link rel="resource" type="application/l10n" href="/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
     <!-- Making sure the shared resources will be copy into the zip
     <script type="application/javascript" src="/shared/js/l10n.js"></script>
     <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
+    <link rel="resource" type="application/json" href="shared/resources/media/tones/"/>
     -->
 
-    <script defer type="application/javascript" src="/dialer/js/oncall.js"></script>
+    <script defer type="application/javascript" src="/js/index.js"></script>
     <script defer type="application/javascript" src="/shared/js/settings_listener.js"></script>
     <script defer type="application/javascript" src="/shared/js/settings_url.js"></script>
     <script defer type="application/javascript" src="/shared/js/async_storage.js"></script>
     <script defer type="application/javascript" src="/shared/js/contact_photo_helper.js"></script>
 
     <script defer type="application/javascript" src="/shared/js/simple_phone_matcher.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/contacts.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/tone_player.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/keypad.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/utils.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/call_screen.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/bluetooth_helper.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/calls_handler.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/conference_group_handler.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/voicemail.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/handled_call.js"></script>
+    <script defer type="application/javascript" src="/shared/js/dialer/contacts.js"></script>
+    <script defer type="application/javascript" src="/shared/js/dialer/tone_player.js"></script>
+    <script defer type="application/javascript" src="/shared/js/dialer/keypad.js"></script>
+    <script defer type="application/javascript" src="/shared/js/dialer/utils.js"></script>
+    <script defer type="application/javascript" src="/shared/js/dialer/voicemail.js"></script>
+
+    <script defer type="application/javascript" src="/js/call_screen.js"></script>
+    <script defer type="application/javascript" src="/js/bluetooth_helper.js"></script>
+    <script defer type="application/javascript" src="/js/calls_handler.js"></script>
+    <script defer type="application/javascript" src="/js/conference_group_handler.js"></script>
+    <script defer type="application/javascript" src="/js/handled_call.js"></script>
 
     <!-- Lazy load these:
     <script defer type="application/javascript" src="/shared/js/fb/fb_request.js"></script>
@@ -47,7 +51,7 @@
     -->
 
     <!-- incoming call / swiper on locked screen-->
-    <link rel="stylesheet" type="text/css" href="/dialer/style/swiper.css">
+    <link rel="stylesheet" type="text/css" href="/style/swiper.css">
     <script defer src="/shared/js/lockscreen_slide.js"></script>
     <script defer src="/shared/js/screen_layout.js"></script>
   </head>

@@ -77,7 +77,7 @@ window.addEventListener('load', function startup() {
   // Please sort it alphabetically
   window.activities = new Activities();
   window.devtoolsView = new DevtoolsView();
-  window.dialerRinger = new DialerRinger().start();
+  window.dialerAgent = new DialerAgent().start();
   window.homeGesture = new HomeGesture().start();
   window.layoutManager = new LayoutManager().start();
   window.permissionManager = new PermissionManager();
