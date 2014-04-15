@@ -101,7 +101,9 @@
         responseSTKCommand(message, {
          resultCode: iccManager.STK_RESULT_NO_RESPONSE_FROM_USER
         }, true);
-        stkResGoBack(message);
+        if (Settings) {
+          Settings.currentPanel = '#root';
+        }
       }, selectTimer.timeout);
     };
   };
