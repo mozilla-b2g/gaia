@@ -153,6 +153,7 @@ suite('system/Rocketbar', function() {
     var hideResultsStub = this.sinon.stub(Rocketbar, 'hideResults');
     var blurStub = this.sinon.stub(Rocketbar, 'blur');
     var exitHomeStub = this.sinon.stub(Rocketbar, 'exitHome');
+    Rocketbar.active = true;
     Rocketbar.expanded = true;
     window.addEventListener('rocketbarcollapse', function() {
       done();
@@ -233,19 +234,20 @@ suite('system/Rocketbar', function() {
   });
 
   test('focus()', function(done) {
-    window.addEventListener('rocketbarfocus', function() {
+    window.addEventListener('rocketbarfocus', function focus() {
+      window.removeEventListener('rocketbarfocus', focus);
       done();
     });
     var loadSearchAppStub = this.sinon.stub(Rocketbar, 'loadSearchApp');
     var handleKeyboardChangeStub = this.sinon.stub(Rocketbar,
       'handleKeyboardChange');
     Rocketbar.form.classList.add('hidden');
+    Rocketbar.activate();
     Rocketbar.focus();
-    assert.ok(Rocketbar.rocketbar.classList.contains('focused'));
+    assert.ok(Rocketbar.rocketbar.classList.contains('active'));
     assert.ok(Rocketbar.title.classList.contains('hidden'));
     assert.equal(Rocketbar.form.classList.contains('hidden'), false);
-    assert.ok(Rocketbar.screen.classList.contains('rocketbar-focused'));
-    assert.ok(Rocketbar.focused);
+    assert.ok(Rocketbar.active);
     assert.ok(loadSearchAppStub.calledOnce);
     var event = new CustomEvent('keyboardchange');
     Rocketbar.body.dispatchEvent(event);
@@ -262,12 +264,12 @@ suite('system/Rocketbar', function() {
       'handleKeyboardChange');
     Rocketbar.results.classList.add('hidden');
     Rocketbar.title.classList.add('hidden');
-    Rocketbar.blur();
+    Rocketbar.active = true;
+    Rocketbar.deactivate();
     assert.equal(Rocketbar.title.classList.contains('hidden'), false);
     assert.ok(Rocketbar.form.classList.contains('hidden'));
-    assert.ok(!Rocketbar.screen.classList.contains('rocketbar-focused'));
-    assert.equal(Rocketbar.focused, false);
-    assert.ok(!Rocketbar.rocketbar.classList.contains('focused'));
+    assert.equal(Rocketbar.active, false);
+    assert.ok(!Rocketbar.rocketbar.classList.contains('active'));
     var event = new CustomEvent('keyboardchange');
     Rocketbar.body.dispatchEvent(event);
     assert.ok(handleKeyboardChangeStub.notCalled);
@@ -275,7 +277,7 @@ suite('system/Rocketbar', function() {
   });
 
   test('blur() - results shown', function() {
-    Rocketbar.blur();
+    Rocketbar.deactivate();
     assert.equal(Rocketbar.form.classList.contains('hidden'), false);
   });
 
@@ -376,7 +378,7 @@ suite('system/Rocketbar', function() {
     };
     var hideResultsStub = this.sinon.stub(Rocketbar, 'hideResults');
     var enterHomeStub = this.sinon.stub(Rocketbar, 'enterHome');
-    var blurStub = this.sinon.stub(Rocketbar, 'blur');
+    var blurStub = this.sinon.stub(Rocketbar, 'deactivate');
     Rocketbar.input.value = 'value to clear';
     Rocketbar.handleHome();
     assert.ok(hideResultsStub.calledOnce);
@@ -496,6 +498,7 @@ suite('system/Rocketbar', function() {
     assert.ok(focusStub.calledOnce);
 
     // Collapsed
+    Rocketbar.active = false;
     Rocketbar.expanded = false;
     Rocketbar.handleClick();
     assert.ok(Rocketbar._wasClicked);
@@ -569,8 +572,8 @@ suite('system/Rocketbar', function() {
   });
 
   test ('handleStackChanged() - empty stack', function() {
-    Rocketbar.expanded = true;
-    var focusStub = this.sinon.stub(Rocketbar, 'focus');
+    Rocketbar.cardView = true;
+    var focusStub = this.sinon.stub(Rocketbar, 'activate');
     var event = {
       detail: {
         sheets: []
@@ -644,6 +647,7 @@ test ('handleStackChanged() - non-empty stack', function() {
     var event = {
       type: 'iac-search-results',
       detail: {
+        action: 'input',
         input: 'http://example.com'
       }
     };
