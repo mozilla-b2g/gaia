@@ -1,7 +1,7 @@
 {
   "name": "Calendar",
   "description": "Gaia Calendar",
-  "type": "certified",
+  "type": "privileged",
   "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
@@ -13,7 +13,6 @@
   ],
   "permissions": {
     "systemXHR":{},
-    "settings":{ "access": "readonly" },
     "alarms":{},
     "browser": {},
     "storage":{},
