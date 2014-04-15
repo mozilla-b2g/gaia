@@ -15,9 +15,14 @@
   function Zoom() {
     this.touches = 0;
     this.zoomStartTouches = [];
+    this.zoomStartDistance = 0;
+
+    this.container = document.getElementById('zoom');
+    this.arrows = this.container.querySelector('.arrows');
+    this.curtain = this.container.querySelector('.curtain');
+    this.indicator = this.container.querySelector('.indicator');
 
     window.addEventListener('touchstart', this);
-    window.addEventListener('touchmove', this);
   }
 
   Zoom.prototype = {
@@ -87,8 +92,32 @@
      */
     handleEvent: function(e) {
 
-      if (e.type === 'touchend') {
-        console.log('touchend: ', e.touches.length);
+      function stopGestureListeners() {
+        /* jshint validthis: true */
+        window.removeEventListener('touchmove', this);
+        window.removeEventListener('touchend', this);
+      }
+
+      function resetState() {
+        /* jshint validthis: true */
+        this.zoomInProgress = false;
+
+        this.container.hidden = true;
+        this.indicator.classList.remove('active');
+        this.arrows.classList.remove('shrink');
+        this.arrows.classList.remove('grow');
+        this.arrows.style.transform = '';
+
+        window.addEventListener('touchstart', this);
+      }
+
+      if (e.type === 'touchend' && this.zoomStartTouches) {
+        if (!this.zoomInProgress) {
+          resetState.call(this);
+        }
+
+        stopGestureListeners();
+        return;
       }
 
       if (!e.touches || e.touches.length !== 2) {
@@ -100,19 +129,65 @@
         return a.pageX - b.pageX;
       });
 
+      var touchDistance = Math.sqrt(
+        (touches[0].pageX - touches[1].pageX) *
+        (touches[0].pageX - touches[1].pageX) +
+        (touches[0].pageY - touches[1].pageY) *
+        (touches[0].pageY - touches[1].pageY));
+
       switch(e.type) {
         case 'touchstart':
+          this.container.hidden = false;
           this.zoomStartTouches = touches;
+          this.zoomStartDistance = touchDistance;
+
+          window.addEventListener('touchmove', this);
+          window.addEventListener('touchend', this);
           break;
         case 'touchmove':
           if (this.perRow < maxIconsPerRow &&
-              touches[1].pageX < this.zoomStartTouches[1].pageX) {
+              touchDistance < this.zoomStartDistance) {
               this.percent = 0.75;
-              app.render();
+              this.zoomInProgress = true;
+              stopGestureListeners();
           } else if (this.perRow > minIconsPerRow &&
-                     touches[1].pageX > this.zoomStartTouches[1].pageX) {
+                     touchDistance > this.zoomStartDistance) {
             this.percent = 1;
+            this.zoomInProgress = true;
+            stopGestureListeners();
+          } else {
+            return;
+          }
+
+          // For now just implement a canned animation
+          stopGestureListeners();
+
+          this.arrows.addEventListener('transitionend',
+            function ontransitionend() {
+            this.arrows.removeEventListener('transitionend', ontransitionend);
+
+            // Change the indicator color at the end.
+            this.indicator.classList.add('active');
+
+            // Reset zoom element state after a set time.
             app.render();
+
+            var zoomHideTime = 400;
+            setTimeout(resetState.bind(this), zoomHideTime);
+          }.bind(this));
+
+          this.indicator.dataset.cols = this.perRow;
+
+          if (this.zoomInProgress && touchDistance < this.zoomStartDistance) {
+            this.arrows.classList.add('grow');
+            // Force a sync reflow
+            document.body.clientHeight;
+            this.arrows.style.transform = 'scale(0.4)';
+          } else {
+            this.arrows.classList.add('shrink');
+            // Force a sync reflow
+            document.body.clientHeight;
+            this.arrows.style.transform = 'scale(1)';
           }
 
           break;

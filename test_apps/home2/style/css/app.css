@@ -26,7 +26,6 @@ html, body, .icons {
   text-align: center;
   background: no-repeat center;
   background-size: 8rem;
-  transition: transform 500ms ease;
 }
 
 .icon .title {
@@ -38,17 +37,12 @@ html, body, .icons {
   text-shadow: 0 0 0.5rem rgba(0,0,0,0.5);
 }
 
-.icon.active {
-  transition: none;
-}
-
 .divider {
   position: absolute;
   height: 0.4rem;
   margin: 2.3rem 1rem;
   background: rgba(255, 255, 255, 0.3);
   width: calc(100% - 2rem);
-  transition: transform 500ms ease;
 }
 
 .divider:last-child {
