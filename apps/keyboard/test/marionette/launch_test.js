@@ -67,7 +67,7 @@ marionette('Keyboard APP', function() {
     // keyboardtests.launch();
     // keyboardtests.textInput.click(0, 0);
     client.apps.launch(browser_ORIGIN);
-    client.apps.switchToApp(browser_ORIGIN);
+    client.apps.switchToApp(browser_ORIGIN, null, null, true);
     client.helper.waitForElement('#url-input');
     urlBar = client.findElement('#url-input');
 
