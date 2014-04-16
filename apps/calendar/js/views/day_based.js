@@ -273,9 +273,7 @@ Calendar.ns('Views').DayBased = (function() {
       // check if end time is on same date.
       var endMin = 59;
       var endHour = 23;
-      var isSameDateWithEndDate =
-          Calendar.Calc.isSameDate(this.date, busytime.endDate);
-      if (isSameDateWithEndDate) {
+      if (Calendar.Calc.isSameDate(this.date, busytime.endDate)) {
         endHour = end.getHours();
         endMin = end.getMinutes();
       }
@@ -290,21 +288,14 @@ Calendar.ns('Views').DayBased = (function() {
       // Calculate duration in hours, with minutes as decimal part
       var hoursDuration = (endHour - startHour) +
                           ((endMin - startMin) / MINUTES_IN_HOUR);
-      var elementHeight = hoursDuration;
 
-      // If this event is less than a full hour and NOT cross next day,
-      // tweak the classname so that some alternate styles for
-      // a tiny event can apply. (eg. hide details)
-      // And if the event is cross next day, the height of event element is 1.
+      // If this event is less than a full hour, tweak the classname so that
+      // some alternate styles for a tiny event can apply (eg. hide details)
       if (hoursDuration < 1) {
-        if (isSameDateWithEndDate) {
-          element.className += ' partial-hour';
-        } else {
-          elementHeight = 1;
-        }
+        element.className += ' partial-hour';
       }
 
-      return this._assignHeight(element, elementHeight);
+      return this._assignHeight(element, hoursDuration);
     },
 
     /**
