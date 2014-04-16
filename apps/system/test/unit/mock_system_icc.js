@@ -1,7 +1,6 @@
 'use strict';
 
 /* exported MockSystemICC */
-
 function MockSystemICC(iccManager) {
   return {
     onresponse: function() {},
