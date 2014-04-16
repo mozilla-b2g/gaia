@@ -283,6 +283,10 @@ Camera.prototype.setRecorderProfile = function(key) {
  */
 Camera.prototype.setFlashMode = function(key) {
   if (this.mozCamera) {
+    // If no key was provided, set it to 'off' which is
+    // a valid flash mode.
+    key = key || 'off';
+
     this.mozCamera.flashMode = key;
     debug('flash mode set: %s', key);
   }
