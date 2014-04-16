@@ -2,6 +2,7 @@ define(function(require) {
 'use strict';
 
 var mozL10n = require('l10n');
+var constants = require('constants');
 
 var Utils = {};
 // Maintain references to millisecond multipliers
@@ -557,6 +558,51 @@ Utils.addEventListenerOnce = function(element, type, fn, useCapture) {
   };
   element.addEventListener(type, handler, useCapture);
 };
+
+Utils.summarizeDaysOfWeek = function(repeat) {
+  var days = [];
+  if (repeat) {
+    for (var day in repeat) {
+      if (repeat[day]) {
+        days.push(day);
+      }
+    }
+  }
+
+  var _ = mozL10n.get;
+  if (days.length === 7) {
+    return _('everyday');
+  } else if (days.length === 5 &&
+             days.indexOf('saturday') === -1 &&
+             days.indexOf('sunday') === -1) {
+    return _('weekdays');
+  } else if (days.length === 2 &&
+             days.indexOf('saturday') !== -1 &&
+             days.indexOf('sunday') !== -1) {
+    return _('weekends');
+  } else if (days.length === 0) {
+    return _('never');
+  } else {
+    var weekStartsOnMonday = parseInt(_('weekStartsOnMonday'), 10);
+    var allDays = (weekStartsOnMonday ?
+                   constants.DAYS_STARTING_MONDAY :
+                   constants.DAYS_STARTING_SUNDAY);
+
+    var repeatStrings = [];
+    allDays.forEach(function(day, idx) {
+      if (days.indexOf(day) !== -1) {
+        repeatStrings.push(_('weekday-' + idx + '-short'));
+      }
+    });
+
+    // TODO: Use a localized separator.
+    return repeatStrings.join(', ');
+  }
+};
+
+
+
+
 
 return Utils;
 

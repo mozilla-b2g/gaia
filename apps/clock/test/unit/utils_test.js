@@ -645,4 +645,27 @@ suite('Time functions', function() {
       assert.ok(spy.calledOnce);
     });
   });
+
+  test('summarizeDaysOfWeek', function() {
+    assert.equal(Utils.summarizeDaysOfWeek({
+      sunday: true, saturday: true
+    }), 'weekends');
+
+    assert.equal(Utils.summarizeDaysOfWeek({ }), 'never');
+
+    assert.equal(Utils.summarizeDaysOfWeek({
+      monday: true, tuesday: true, wednesday: true,
+      thursday: true, friday: true
+    }), 'weekdays');
+
+    assert.equal(Utils.summarizeDaysOfWeek({
+      monday: true, tuesday: true, wednesday: true,
+      thursday: true, friday: true, saturday: true, sunday: true
+    }), 'everyday');
+
+    assert.equal(Utils.summarizeDaysOfWeek({
+      monday: true, wednesday: true, friday: true
+    }), 'weekday-1-short, weekday-3-short, weekday-5-short');
+  });
+
 });
