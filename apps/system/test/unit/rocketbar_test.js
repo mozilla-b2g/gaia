@@ -1,5 +1,5 @@
 'use strict';
-/* global Rocketbar, MocksHelper, MockAppWindow, MockIACPort */
+/* global Rocketbar, MocksHelper, MockAppWindow, MockIACPort, SearchWindow */
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -571,7 +571,7 @@ suite('system/Rocketbar', function() {
     Rocketbar.handleKeyboardChange(event);
   });
 
-  test ('handleStackChanged() - empty stack', function() {
+  test('handleStackChanged() - empty stack', function() {
     Rocketbar.cardView = true;
     var focusStub = this.sinon.stub(Rocketbar, 'activate');
     var event = {
@@ -584,7 +584,7 @@ suite('system/Rocketbar', function() {
     focusStub.restore();
   });
 
-test ('handleStackChanged() - non-empty stack', function() {
+  test('handleStackChanged() - non-empty stack', function() {
     Rocketbar.expanded = true;
     var focusStub = this.sinon.stub(Rocketbar, 'focus');
     var event = {
@@ -681,6 +681,25 @@ test ('handleStackChanged() - non-empty stack', function() {
     Rocketbar.updateSearchIndex();
     assert.ok(postMessageStub.calledOnce);
     postMessageStub.restore();
+  });
+
+  test('handleSearchCrashed() - calls render after crash', function() {
+    Rocketbar.enable();
+
+    Rocketbar._searchAppURL = 'http://search.example.com/';
+    Rocketbar._searchManifestURL = 'http://search.example.com/manifest.webapp';
+
+    Rocketbar.searchWindow = null;
+
+    var publishStub = this.sinon.stub(SearchWindow.prototype, 'publish');
+
+    Rocketbar.loadSearchApp();
+    assert.ok(publishStub.calledOnce);
+
+    // Dispatch a crash event.
+    window.dispatchEvent(new CustomEvent('searchcrashed'));
+    Rocketbar.loadSearchApp();
+    assert.ok(publishStub.calledTwice);
   });
 
 });

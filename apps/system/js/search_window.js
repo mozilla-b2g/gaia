@@ -16,7 +16,10 @@
     return this;
   }
 
-  SearchWindow.REGISTERED_EVENTS = [];
+  SearchWindow.REGISTERED_EVENTS = [
+    // Let our parent AppWindow handle error events.
+    'mozbrowsererror'
+  ];
 
   SearchWindow.SUB_COMPONENTS = {};
 
