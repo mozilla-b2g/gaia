@@ -68,7 +68,8 @@ var CallHandler = (function callHandler() {
               contact);
             if (primaryInfo) {
               if (primaryInfo !== matchingTel.value) {
-                body = _('from-contact', {contact: primaryInfo});
+                // primaryInfo is an object here
+                body = _('from-contact', {contact: primaryInfo.toString()});
               } else {
                 body = _('from-number', {number: primaryInfo});
               }
