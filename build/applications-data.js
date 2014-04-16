@@ -516,7 +516,8 @@ function execute(options) {
   (function customizeMaximumImageSize() {
     let defaultValue = {
       maxImagePixelSize: 5 * 1024 * 1024,
-      maxSnapshotPixelSize: 5 * 1024 * 1024
+      maxSnapshotPixelSize: 5 * 1024 * 1024,
+      maxGifImageFileSize: 1 * 1024 * 1024
     };
     let customize = JSON.parse(utils.getDistributionFileContent('camera',
                                                                 defaultValue,
@@ -529,7 +530,8 @@ function execute(options) {
       '//\n' +
       '//   {\n' +
       '//     "maxImagePixelSize": 6000000,\n' +
-      '//     "maxSnapshotPixelSize": 4000000 }\n' +
+      '//     "maxSnapshotPixelSize": 4000000,\n' +
+      '//     "maxGifImageFileSize": 512000\n' +
       '//   }\n' +
       '//\n' +
       '// Optionally, you can also define variables to specify the\n' +
@@ -542,10 +544,19 @@ function execute(options) {
       '// be used if they are big enough to fill the screen in either\n' +
       '// width or height in both landscape and portrait mode.\n' +
       '//\n' +
+      '// To change the gif file limitation, use the maxGifImageFileSize\n' +
+      '// to specify the maximum allowable file size whose resolution is\n' +
+      '// under maxImagePixelSize and use maxUnknownImageFileSize to\n' +
+      '// specify the maximum allowable file size whose resolution is\n' +
+      '// unknown.\n' +
+      '//\n' +
       'var CONFIG_MAX_IMAGE_PIXEL_SIZE = ' +
         customize.maxImagePixelSize + ';\n' +
       'var CONFIG_MAX_SNAPSHOT_PIXEL_SIZE = ' +
-        customize.maxSnapshotPixelSize + ';\n';
+        customize.maxSnapshotPixelSize + ';\n' +
+      'var CONFIG_MAX_GIF_IMAGE_FILE_SIZE = ' +
+        customize.maxGifImageFileSize + ';\n';
+
 
     if (customize.requiredEXIFPreviewSize) {
       content +=

@@ -189,6 +189,14 @@ var metadataParser = (function() {
         metadataError('Ignoring high-resolution image ' + file.name);
         return;
       }
+      // If the image is lower resolution but with large file size, like
+      // animated GIF, we should not decode it.
+      if ((file.type === 'image/gif' || file.name.endsWith('.gif')) &&
+          file.size > CONFIG_MAX_GIF_IMAGE_FILE_SIZE) {
+        metadataError('Ignoring acceptable resolution but large gif file ' +
+                      file.name);
+        return;
+      }
 
       // If the file included a preview image, see if it is big enough
       if (metadata.preview) {

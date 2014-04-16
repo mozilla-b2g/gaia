@@ -100,6 +100,14 @@ window.addEventListener('localized', function() {
         return;
       }
 
+      // If the image is lower resolution but with large file size, like
+      // animated GIF, we should not decode it.
+      if (blob.type === 'image/gif' &&
+          blob.size > CONFIG_MAX_GIF_IMAGE_FILE_SIZE) {
+        displayError('imagetoobig');
+        return;
+      }
+
       // If there was no EXIF preview, or if the image is not very big,
       // display the full-size image.
       if (!metadata.preview || pixels < 512 * 1024) {
