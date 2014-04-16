@@ -134,6 +134,7 @@ class ManualSetupEmail(Base):
         el = self.marionette.find_element(*self._smtp_port_locator)
         el.clear()
         el.send_keys(value)
+        self.keyboard.dismiss()
 
     def type_activesync_name(self, value):
         el = self.marionette.find_element(*self._activesync_username_locator)
