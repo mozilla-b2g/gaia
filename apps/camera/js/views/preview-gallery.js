@@ -286,6 +286,7 @@ return View.extend({
     // Create the structure
     this.container.innerHTML = this.optionTemplate();
     this.el.appendChild(this.container);
+    this.menu = this.find('.js-menu');
 
     // We add the event listner for menu items and cancel buttons
     var cancelButton = this.find('.js-cancel');
@@ -301,10 +302,10 @@ return View.extend({
     return '<form class="visible" data-type="action"' +
       'role="dialog" data-z-index-level="action-menu">' +
       '<header>' + l10n.get('options') + '</header>' +
-      '<menu>' +
-      '<button class=" js-btn" name="gallery">' +
+      '<menu class="js-menu">' +
+      '<button class="js-btn" name="gallery">' +
       l10n.get('open-gallery') + '</button>' +
-      '<button class=" js-btn" name="delete">' +
+      '<button class="js-btn" name="delete">' +
       l10n.get('delete') + '</button>' +
       '<button class="js-cancel" data-action="cancel">' +
       l10n.get('cancel') + '</button>' +

@@ -11,12 +11,10 @@ suite('views/preview-gallery', function() {
 
   setup(function() {
     this.view = new this.previewGalleryView();
-    console.log('test' + this.view);
-    console.log('view name' + this.view.name);
     this.clock = sinon.useFakeTimers();
   });
 
-  suite('previewGalleryView', function() {
+  suite('previewGalleryView#showOptionsMenu()', function() {
     var realL10n = navigator.mozL10n;
     setup(function() {
       var mozL10n = { get: function() {} };
@@ -29,13 +27,15 @@ suite('views/preview-gallery', function() {
       navigator.mozL10n = realL10n;
     });
 
-    test('previewGalleryView#previewOption', function() {
+    test('Should show the option menu', function() {
       this.view.showOptionsMenu();
       assert.equal(this.view.container.children[0].getAttribute(
         'data-type'), 'action');
     });
+  });
 
-    test('previewGalleryView#removeOption', function() {
+  suite('previewGalleryView#hideOptionMenu()', function() {
+      test('Should hide the option menu', function() {
       this.view.previewMenuFadeIn = sinon.spy();
       this.view.hideOptionMenu();
       assert.isTrue(this.view.previewMenuFadeIn.called);
