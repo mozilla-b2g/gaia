@@ -19,8 +19,8 @@ suite('ManifestHelper', function() {
 
   test('All properties the same when no locales', function() {
     var data = {
-      name: 'Built-in Keyboard',
-      description: 'Built-in Keyboard',
+      name: 'Built-in keyboard',
+      description: 'Built-in keyboard',
       type: 'certified',
       role: 'keyboard'
     };
@@ -33,8 +33,8 @@ suite('ManifestHelper', function() {
     setup(function() {
       navigator.mozL10n.language.code = 'en-US';
       this.data = {
-        name: 'Built-in Keyboard',
-        description: 'Built-in Keyboard',
+        name: 'Built-in keyboard',
+        description: 'Built-in keyboard',
         type: 'certified',
         role: 'keyboard',
         test: 'none',
