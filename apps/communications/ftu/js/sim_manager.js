@@ -585,7 +585,7 @@ var SimManager = (function() {
   guessIcc: function guessIcc() {
     var tempIcc = null;
     if (navigator.mozMobileConnections) {
-      // New multi-sim api, use mozMobileConnection to guess
+      // New multi-sim api, use mozMobileConnections to guess
       // the first inserted sim
       for (var i = 0;
         i < navigator.mozMobileConnections.length && tempIcc === null; i++) {

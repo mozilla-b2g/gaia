@@ -18,7 +18,8 @@ var win = {
   Node: {
     TEXT_NODE: 3
   },
-  dispatchEvent: function() {}
+  CustomEvent: function() {},
+  dispatchEvent: function() {},
 };
 let scope = {};
 let JSMin;

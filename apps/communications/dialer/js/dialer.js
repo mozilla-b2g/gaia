@@ -3,9 +3,6 @@
 var CallHandler = (function callHandler() {
   var COMMS_APP_ORIGIN = document.location.protocol + '//' +
     document.location.host;
-  var callScreenWindow = null;
-  var callScreenWindowReady = false;
-  var btCommandsToForward = [];
   var FB_SYNC_ERROR_PARAM = 'isSyncError';
 
   /* === Settings === */
@@ -53,7 +50,7 @@ var CallHandler = (function callHandler() {
 
   /* === Telephony Call Ended Support === */
   function sendNotification(number, serviceId) {
-    LazyLoader.load('/dialer/js/utils.js', function() {
+    LazyLoader.load('/shared/js/dialer/utils.js', function() {
       Contacts.findByNumber(number, function lookup(contact, matchingTel) {
         LazyL10n.get(function localized(_) {
           var title;
@@ -128,7 +125,28 @@ var CallHandler = (function callHandler() {
     });
    }
 
-  /* === Handle messages recevied from iframe === */
+  /* === postMessage support === */
+  function handleMessage(evt) {
+    if (evt.origin !== COMMS_APP_ORIGIN) {
+      return;
+    }
+
+    var data = evt.data;
+
+    if (!data.type) {
+      return;
+    }
+
+    if (data.type === 'contactsiframe') {
+      handleContactsIframeRequest(data.message);
+    } else if (data.type === 'hide-navbar') {
+      NavbarManager.hide();
+    } else if (data.type === 'show-navbar') {
+      NavbarManager.show();
+    }
+  }
+  window.addEventListener('message', handleMessage);
+
   function handleContactsIframeRequest(message) {
     switch (message) {
       case 'back':
@@ -141,115 +159,36 @@ var CallHandler = (function callHandler() {
     }
   }
 
-  /* === ALL calls === */
-  function newCall() {
-    var telephony = navigator.mozTelephony;
-    telephony.oncallschanged = function dialer_oncallschanged(evt) {
-      if (telephony.calls.length !== 0) {
-        openCallScreen();
-      }
-    };
-  }
-
   /* === Bluetooth Support === */
   function btCommandHandler(message) {
     var command = message['command'];
-    var partialCommand = command.substring(0, 3);
-    if (command === 'BLDN') {
-      CallLogDBManager.getGroupAtPosition(1, 'lastEntryDate', true, 'dialing',
-        function(result) {
-          if (result && (typeof result === 'object') && result.number) {
-            CallHandler.call(result.number);
-          } else {
-            console.log('Could not get the last outgoing group ' + result);
-          }
-        });
+    var isAtd = command.startsWith('ATD');
+
+    // Not a dialing request
+    if (command !== 'BLDN' && !isAtd) {
       return;
-    } else if (partialCommand === 'ATD') {
+    }
 
-      // Special prefix for call index.
-      // ATD>3 means we have to call the 3rd recent number.
-      if (command[3] === '>') {
-        var pos = parseInt(command.substring(4), 10);
+    // Dialing a specific number
+    if (isAtd && command[3] !== '>') {
+      var phoneNumber = command.substring(3);
+      CallHandler.call(phoneNumber);
+      return;
+    }
 
-        CallLogDBManager.getGroupAtPosition(pos, 'lastEntryDate', true, null,
-          function(result) {
-            if (result && (typeof result === 'object') && result.number) {
-              CallHandler.call(result.number);
-            } else {
-              console.log('Could not get the group at: ' + pos +
-                          '. Error: ' + result);
-            }
-          });
+    // Dialing from the call log
+    // ATD>3 means we have to call the 3rd recent number.
+    var position = isAtd ? parseInt(command.substring(4), 10) : 1;
+    CallLogDBManager.getGroupAtPosition(position, 'lastEntryDate', true, null,
+    function(result) {
+      if (result && (typeof result === 'object') && result.number) {
+        CallHandler.call(result.number);
       } else {
-        var phoneNumber = command.substring(3);
-        CallHandler.call(phoneNumber);
+        console.log('Could not get the group at: ' + position +
+                    '. Error: ' + result);
       }
-      return;
-    }
-
-    // Other commands needs to be handled from the call screen
-    if (callScreenWindowReady) {
-      sendCommandToCallScreen('BT', command);
-    } else {
-      // We queue the commands while the call screen is loading
-      btCommandsToForward.push(command);
-    }
+    });
   }
-
-  /* === Headset Support === */
-  function headsetCommandHandler(message) {
-    sendCommandToCallScreen('HS', message);
-  }
-
-  /*
-    Send commands to the callScreen via post message.
-    @type: Handler to be used in the CallHandler. Currently managing to
-           kind of commands:
-           'BT': bluetooth
-           'HS': headset
-           '*' : for general cases, not specific to hardware control
-    @command: The specific message to each kind of type
-  */
-  function sendCommandToCallScreen(type, command) {
-    if (!callScreenWindow) {
-      return;
-    }
-
-    var message = {
-      type: type,
-      command: command
-    };
-
-    callScreenWindow.postMessage(message, COMMS_APP_ORIGIN);
-  }
-
-  // Receiving messages from the callscreen via post message
-  //   - when the call screen is closing
-  //   - when the call screen is ready to receive messages
-  //   - when we need to hide or show navbar
-  function handleMessage(evt) {
-    if (evt.origin !== COMMS_APP_ORIGIN) {
-      return;
-    }
-
-    var data = evt.data;
-
-    if (data === 'closing') {
-      handleCallScreenClosing();
-    } else if (data === 'ready') {
-      handleCallScreenReady();
-    } else if (!data.type) {
-      return;
-    } else if (data.type === 'contactsiframe') {
-      handleContactsIframeRequest(data.message);
-    } else if (data.type === 'hide-navbar') {
-      NavbarManager.hide();
-    } else if (data.type === 'show-navbar') {
-      NavbarManager.show();
-    }
-  }
-  window.addEventListener('message', handleMessage);
 
   /* === Calls === */
   function call(number, cardIndex) {
@@ -267,25 +206,13 @@ var CallHandler = (function callHandler() {
       KeypadManager.updatePhoneNumber('', 'begin', true);
     };
 
-    var shouldCloseCallScreen = false;
-
     var error = function() {
-      shouldCloseCallScreen = true;
       KeypadManager.updatePhoneNumber(number, 'begin', true);
     };
 
     var oncall = function() {
-      if (!callScreenWindow) {
-        SuggestionBar.hideOverlay();
-        SuggestionBar.clear();
-        openCallScreen(opened);
-      }
-    };
-
-    var opened = function() {
-      if (shouldCloseCallScreen) {
-        sendCommandToCallScreen('*', 'exitCallScreen');
-      }
+      SuggestionBar.hideOverlay();
+      SuggestionBar.clear();
     };
 
     LazyLoader.load(['/dialer/js/telephony_helper.js',
@@ -304,74 +231,6 @@ var CallHandler = (function callHandler() {
     });
   }
 
-  /* === Attention Screen === */
-  // Each window gets a unique name to prevent a possible race condition
-  // where we want to open a new call screen while the previous one is
-  // animating out of the screen.
-  var callScreenId = 0;
-  var openingWindow = false;
-  function openCallScreen(openCallback) {
-    if (callScreenWindow || openingWindow)
-      return;
-
-    openingWindow = true;
-    var host = document.location.host;
-    var protocol = document.location.protocol;
-    var urlBase = protocol + '//' + host + '/dialer/oncall.html';
-
-    var highPriorityWakeLock = navigator.requestWakeLock('high-priority');
-    var openWindow = function dialer_openCallScreen(state) {
-      openingWindow = false;
-      callScreenWindow = window.open(urlBase + '#' + state,
-                  ('call_screen' + callScreenId++), 'attention');
-
-      callScreenWindow.onload = function onload() {
-        highPriorityWakeLock.unlock();
-        if (openCallback) {
-          openCallback();
-        }
-      };
-    };
-
-    // if screenState was initialized, use this value directly to openWindow()
-    // else if mozSettings doesn't exist, use default value 'unlocked'
-    if (screenState || !navigator.mozSettings) {
-      screenState = screenState || 'unlocked';
-      openWindow(screenState);
-      return;
-    }
-
-    var req = navigator.mozSettings.createLock().get('lockscreen.locked');
-    req.onsuccess = function dialer_onsuccess() {
-      if (req.result['lockscreen.locked']) {
-        screenState = 'locked';
-      } else {
-        screenState = 'unlocked';
-      }
-      openWindow(screenState);
-    };
-    req.onerror = function dialer_onerror() {
-      // fallback to default value 'unlocked'
-      screenState = 'unlocked';
-      openWindow(screenState);
-    };
-  }
-
-  function handleCallScreenClosing() {
-    callScreenWindow = null;
-    callScreenWindowReady = false;
-  }
-
-  function handleCallScreenReady() {
-    callScreenWindowReady = true;
-
-    // Have any BT commands queued?
-    btCommandsToForward.forEach(function btIterator(command) {
-      sendCommandToCallScreen('BT', command);
-    });
-    btCommandsToForward = [];
-  }
-
   function init() {
     /* === MMI === */
     LazyLoader.load(['/shared/js/mobile_operator.js',
@@ -383,17 +242,13 @@ var CallHandler = (function callHandler() {
                      '/dialer/style/mmi.css'], function() {
 
       if (window.navigator.mozSetMessageHandler) {
-        window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
         window.navigator.mozSetMessageHandler('telephony-call-ended',
                                               callEnded);
-
         window.navigator.mozSetMessageHandler('activity', handleActivity);
         window.navigator.mozSetMessageHandler('notification',
                                               handleNotification);
         window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
                                                btCommandHandler);
-        window.navigator.mozSetMessageHandler('headset-button',
-                                              headsetCommandHandler);
 
         window.navigator.mozSetMessageHandler('ussd-received', function(evt) {
           if (document.hidden) {
@@ -454,8 +309,8 @@ var NavbarManager = {
                      '/shared/js/notification_helper.js',
                      '/shared/js/simple_phone_matcher.js',
                      '/shared/js/contact_photo_helper.js',
-                     '/dialer/js/contacts.js',
-                     '/dialer/js/voicemail.js',
+                     '/shared/js/dialer/contacts.js',
+                     '/shared/js/dialer/voicemail.js',
                      '/dialer/js/call_log.js',
                      '/dialer/style/call_log.css'], function rs_loaded() {
                     self.resourcesLoaded = true;

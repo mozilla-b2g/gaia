@@ -45,6 +45,9 @@ class Ftu(Base):
     _import_from_sim_locator = (By.ID, 'sim-import-button')
     _sim_import_feedback_locator = (By.ID, 'statusMsg')
 
+    # Step Firefox Accounts
+    _section_firefox_accounts_locator = (By.ID, 'firefox_accounts')
+
     # Section Welcome Browser
     _section_welcome_browser_locator = (By.ID, 'welcome_browser')
     _enable_statistic_checkbox_locator = (By.ID, 'form_share_statistics')
@@ -169,6 +172,10 @@ class Ftu(Base):
             count = self._pattern_contacts_N.match(import_sim_message).group(1)
             import_sim_count = int(count)
         return import_sim_count
+
+    def tap_next_to_firefox_accounts_section(self):
+        self.tap_next()
+        self.wait_for_element_displayed(*self._section_firefox_accounts_locator)
 
     def tap_next_to_welcome_browser_section(self):
         self.tap_next()

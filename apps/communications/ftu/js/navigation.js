@@ -67,8 +67,11 @@ var _;
 var Navigation = {
   currentStep: 1,
   previousStep: 1,
+  totalSteps: numSteps,
   simMandatory: false,
   fxaEnabled: false,
+  skipFxaScreen: false,
+  skipDataScreen: false,
   init: function n_init() {
     _ = navigator.mozL10n.get;
     var settings = navigator.mozSettings;
@@ -94,6 +97,11 @@ var Navigation = {
     reqFxA.onsuccess = function onSuccess() {
       self.fxaEnabled =
         reqFxA.result['identity.fxaccounts.ui.enabled'] || false;
+
+      if (!self.fxaEnabled) {
+        // step 7 is skipped in this case, so numSteps is smaller by 1
+        self.totalSteps = numSteps - 1;
+      }
     };
   },
 
@@ -159,10 +167,16 @@ var Navigation = {
     window.open(href, '', 'dialog');
   },
 
+  // Compute the position of the navigation progress bar
   getProgressBarState: function n_getProgressBarState() {
-    // Manage step state (dynamically change)
-    return (this.skipped && this.currentStep > 2) ? this.currentStep - 2 :
-      this.currentStep - 1;
+    // Initial step
+    if (this.currentStep == 1) {
+      return 1;
+    }
+
+    return this.currentStep -
+              (this.skipFxaScreen ? 1 : 0) -
+              (this.skipDataScreen ? 1 : 0);
   },
 
   handleEvent: function n_handleEvent(event) {
@@ -251,9 +265,9 @@ var Navigation = {
     }
 
     UIManager.progressBarState.style.width =
-      'calc(100% / ' + numSteps + ')';
+      'calc(100% / ' + this.totalSteps + ')';
     UIManager.progressBarState.style.transform =
-      'translateX(' + (this.getProgressBarState() * 100) + '%)';
+      'translateX(' + ((this.getProgressBarState() - 1) * 100) + '%)';
 
     // If SIM card is mandatory, we hide the button skip
     if (this.simMandatory) {
@@ -277,7 +291,7 @@ var Navigation = {
     }
   },
 
-  skipStep: function n_skipStep(callback) {
+  skipStep: function n_skipStep() {
     this.currentStep = this.currentStep +
                       (this.currentStep - this.previousStep);
     if (this.currentStep < 1) {
@@ -286,7 +300,6 @@ var Navigation = {
     if (this.currentStep > numSteps) {
       this.previousStep = this.currentStep = numSteps;
     }
-    this.skipped = true;
     this.manageStep();
   },
 
@@ -297,12 +310,20 @@ var Navigation = {
       OperatorVariant.setSIMOnFirstBootState();
     }
 
+    // Reset totalSteps and skip screen flags at beginning of navigation
+    if (self.currentStep == 1) {
+      self.totalSteps = !self.fxaEnabled ? numSteps - 1 : numSteps;
+      self.skipFxaScreen = false;
+      self.skipDataScreen = false;
+    }
+
     // Retrieve future location
     var futureLocation = steps[self.currentStep];
 
     // Check required setting.
-    if (futureLocation.requireFxAEnabled &&
-        !this.fxaEnabled) {
+    if (futureLocation.requireFxAEnabled && !this.fxaEnabled) {
+      // Toggle skip flag to ensure it is set properly if navigating backwards
+      self.skipFxaScreen = !self.skipFxaScreen;
       self.skipStep();
       return;
     }
@@ -348,11 +369,16 @@ var Navigation = {
     // SIM card management
     if (futureLocation.requireSIM) {
       var check_cardState = function(response) {
-        self.skipped = false;
         if (!response || (!SimManager.available() &&
           // Don't skip it if next step is data 3g
          futureLocation.hash !== '#data_3g')) {
           self.skipStep();
+          // To avoid jumping the progress bar, update its width to match the
+          // new total number of steps
+          if (self.currentStep > self.previousStep) {
+            self.skipDataScreen = true;
+            self.totalSteps--;
+          }
         }
       };
 

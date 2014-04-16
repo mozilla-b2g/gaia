@@ -171,6 +171,31 @@ suite('STK (icc) >', function() {
     }
   });
 
+  test('Sending incomplete message (empty object)', function() {
+    icc.handleSTKCommand({});
+  });
+
+  test('Sending incomplete message (null)', function() {
+    icc.handleSTKCommand(null);
+  });
+
+  test('Sending incomplete message (without iccId)', function() {
+    icc.handleSTKCommand({ command: { typeOfCommand: 0, options: {} } });
+  });
+
+  test('Sending incomplete message (without command)', function() {
+    icc.handleSTKCommand({ iccId: '1234' });
+  });
+
+  test('Sending incomplete message (without command.typeOfCommand)',
+    function() {
+      icc.handleSTKCommand({ command: { options: {} } });
+    });
+
+  test('Sending incomplete message (without command.options)', function() {
+    icc.handleSTKCommand({ command: { typeOfCommand: 0 } });
+  });
+
   test('UI: Input (timeout 1sec)', function(done) {
     var testCmd = stkTestCommands.STK_CMD_GET_INPUT;
     window.icc.input(testCmd, testCmd.command.options.text, 1000,

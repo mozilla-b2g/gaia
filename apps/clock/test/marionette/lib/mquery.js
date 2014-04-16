@@ -255,6 +255,9 @@ ElementSet.prototype.val = function(value) {
     } else {
       this.client.forms.fill(el, value);
     }
+    el.scriptWith(function(el) {
+      el.dispatchEvent(new CustomEvent('change'));
+    });
     return this;
   }
 };

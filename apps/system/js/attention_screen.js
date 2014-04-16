@@ -121,12 +121,15 @@ var AttentionScreen = {
     attentionFrame.dataset.frameName = evt.detail.name;
     attentionFrame.dataset.frameOrigin = evt.target.dataset.frameOrigin;
     attentionFrame.dataset.manifestURL = manifestURL;
+    delete attentionFrame.dataset.hidden;
     attentionFrame.addEventListener('mozbrowserresize', this.toggle.bind(this));
 
     // We would like to put the dialer call screen on top of all other
     // attention screens by ensure it is the last iframe in the DOM tree
     if (this._hasTelephonyPermission(app)) {
-      this.attentionScreen.appendChild(attentionFrame);
+      if (attentionFrame.parentNode !== this.attentionScreen) {
+        this.attentionScreen.appendChild(attentionFrame);
+      }
 
       // This event is for SIM PIN lock module.
       // Because we don't need SIM PIN dialog during call
@@ -159,7 +162,8 @@ var AttentionScreen = {
 
   // Make sure visibililty state of all attention screens are set correctly
   _updateAttentionFrameVisibility: function as_updateAtteFrameVisibility() {
-    var frames = this.attentionScreen.querySelectorAll('iframe');
+    var selector = 'iframe:not([data-hidden])';
+    var frames = this.attentionScreen.querySelectorAll(selector);
     var i = frames.length - 1;
 
     // In case someone call this function w/o checking for frame first
@@ -186,13 +190,18 @@ var AttentionScreen = {
 
   // close the attention screen overlay
   close: function as_close(evt) {
-    if (!'frameType' in evt.target.dataset ||
-        evt.target.dataset.frameType !== 'attention' ||
+    var iframe = evt.target;
+    if (!'frameType' in iframe.dataset ||
+        iframe.dataset.frameType !== 'attention' ||
         (evt.type === 'mozbrowsererror' && evt.detail.type !== 'fatal'))
       return;
 
+    if (iframe.dataset.hidden) {
+      return;
+    }
+
     // Check telephony permission before removing.
-    var app = applications.getByManifestURL(evt.target.dataset.manifestURL);
+    var app = applications.getByManifestURL(iframe.dataset.manifestURL);
     if (app && this._hasTelephonyPermission(app)) {
       // This event is for SIM PIN lock module.
       // Because we don't need SIM PIN dialog during call
@@ -201,9 +210,22 @@ var AttentionScreen = {
       this.dispatchEvent('callscreenwillclose');
     }
 
-    // Remove the frame
-    var origin = evt.target.dataset.frameOrigin;
-    this.attentionScreen.removeChild(evt.target);
+    // 'Closing' the attention screen
+    var origin = iframe.dataset.frameOrigin;
+
+    if (iframe.dataset.preloaded) {
+      // Unload then preload again
+      var src = iframe.src.split('#')[0];
+      iframe.src = ''; // cocotte
+      setTimeout(function nextTick() {
+        iframe.src = src;
+      });
+
+      iframe.dataset.hidden = 'hidden';
+      iframe.blur();
+    } else {
+      this.attentionScreen.removeChild(iframe);
+    }
 
     // We've just removed the focused window leaving the system
     // without any focused window, let's fix this.
@@ -211,7 +233,8 @@ var AttentionScreen = {
 
     // if there are other attention frames,
     // we need to update the visibility and show() the overlay.
-    if (this.attentionScreen.querySelectorAll('iframe').length) {
+    var selector = 'iframe:not([data-hidden])';
+    if (this.attentionScreen.querySelectorAll(selector).length) {
       this._updateAttentionFrameVisibility();
 
       this.dispatchEvent('attentionscreenclose', { origin: origin });
@@ -342,7 +365,8 @@ var AttentionScreen = {
 
   getAttentionScreenOrigins: function as_getAttentionScreenOrigins() {
     var attentionScreen = this.attentionScreen;
-    var frames = this.attentionScreen.querySelectorAll('iframe');
+    var selector = 'iframe:not([data-hidden])';
+    var frames = this.attentionScreen.querySelectorAll(selector);
     var attentiveApps = [];
     Array.prototype.forEach.call(frames, function pushFrame(frame) {
       attentiveApps.push(frame.dataset.frameOrigin);

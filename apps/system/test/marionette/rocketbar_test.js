@@ -51,7 +51,7 @@ marionette('Rocketbar', function() {
     // Check that focussed Rocketbar is in the focused state
     client.waitFor(function() {
       var rocketbarClass = element.getAttribute('class');
-      return rocketbarClass.indexOf('focused') != -1;
+      return rocketbarClass.indexOf('active') != -1;
     });
   });
 

@@ -164,6 +164,39 @@ input[type="datetime-local"][disabled] {
   background-color: transparent
 }
 
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="datetime"]:focus,
+input[type="datetime-local"]:focus {
+  box-shadow: none;
+  border-bottom-color: #c7c7c7;
+}
+
+.skin-dark input[type="date"]:focus,
+.skin-dark input[type="time"]:focus,
+.skin-dark input[type="datetime"]:focus,
+.skin-dark input[type="datetime-local"]:focus {
+  box-shadow: none;
+  border-bottom-color: #858585;
+}
+
+input[type="date"]:active,
+input[type="time"]:active,
+input[type="datetime"]:active,
+input[type="datetime-local"]:active {
+  background-color: #b2f2ff;
+  color: #fff;
+}
+
+.skin-dark input[type="date"]:active,
+.skin-dark input[type="time"]:active,
+.skin-dark input[type="datetime"]:active,
+.skin-dark input[type="datetime-local"]:active {
+  background-color: #00aacc;
+  background-image: url(input_areas/images/dialog_active.svg);
+}
+
+
 /* fix for required inputs with wrong or empty value e.g. [type=email] */
 input:invalid,
 textarea:invalid,

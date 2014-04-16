@@ -8,13 +8,9 @@
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
 );
-requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_call_log.js');
 requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
 requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
-requireApp('communications/dialer/test/unit/mock_keypad.js');
-requireApp('communications/dialer/test/unit/mock_utils.js');
 requireApp('communications/dialer/test/unit/mock_voicemail.js');
 
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
@@ -23,6 +19,10 @@ require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/mock_notification.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/dialer/mock_contacts.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+require('/shared/test/unit/mocks/dialer/mock_keypad.js');
+require('/shared/test/unit/mocks/dialer/mock_utils.js');
 
 requireApp('communications/dialer/js/dialer.js');
 
@@ -251,6 +251,42 @@ suite('navigation bar', function() {
         addSpy.yield(fakeGroup);
 
         sinon.assert.calledWith(appendSpy, fakeGroup);
+      });
+    });
+
+    suite('> bluetooth commands', function() {
+      function sendCommand(command) {
+        MockNavigatormozSetMessageHandler.mTrigger('bluetooth-dialer-command', {
+          command: command
+        });
+      }
+
+      test('> Dialing a specific number', function() {
+        var callSpy = this.sinon.stub(CallHandler, 'call');
+        sendCommand('ATD12345');
+        sinon.assert.calledWith(callSpy, '12345');
+      });
+
+      test('> Dialing the last recent entry', function() {
+        var getSpy = this.sinon.stub(MockCallLogDBManager,
+                                     'getGroupAtPosition');
+        var callSpy = this.sinon.stub(CallHandler, 'call');
+
+        sendCommand('BLDN');
+        sinon.assert.calledWith(getSpy, 1, 'lastEntryDate', true);
+        getSpy.yield({number: '424242'});
+        sinon.assert.calledWith(callSpy, '424242');
+      });
+
+      test('> Dialing a specific recent entry', function() {
+        var getSpy = this.sinon.stub(MockCallLogDBManager,
+                                     'getGroupAtPosition');
+        var callSpy = this.sinon.stub(CallHandler, 'call');
+
+        sendCommand('ATD>3');
+        sinon.assert.calledWith(getSpy, 3, 'lastEntryDate', true);
+        getSpy.yield({number: '333'});
+        sinon.assert.calledWith(callSpy, '333');
       });
     });
 

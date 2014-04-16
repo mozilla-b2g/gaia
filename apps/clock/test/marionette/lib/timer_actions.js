@@ -21,6 +21,10 @@ TimerActions.prototype = {
     return utils.extractDuration($('#timer-time').text());
   },
 
+  get sound() {
+    return $('#timer-sound').val();
+  },
+
   start: function() {
     $('#timer-create').tap();
     // Wait until the timer has moved from its default state of 0:00

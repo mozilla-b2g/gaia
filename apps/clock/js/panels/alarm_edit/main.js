@@ -94,7 +94,7 @@ var AlarmEdit = function() {
   this.selects.repeat.addEventListener('change', handleDomEvent);
   this.buttons.delete.addEventListener('click', handleDomEvent);
   this.inputs.name.addEventListener('keypress', this.handleNameInput);
-  this.inputs.volume.addEventListener('change', this);
+  this.inputs.volume.addEventListener('change', handleDomEvent);
 
   // If the phone locks during preview, pause the sound.
   // TODO: When this is no longer a singleton, unbind the listener.

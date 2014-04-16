@@ -1,0 +1,60 @@
+html {
+  font-size: 10px;
+}
+
+html, body, .icons {
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.icons {
+  overflow-y: scroll;
+  overflow-x: hidden;
+  width: 100%;
+  height: 100%;
+  will-change: scroll-position;
+}
+
+.icon {
+  position: absolute;
+  transform-origin: 0 0;
+  will-change: transform;
+  display: inline-block;
+  width: calc(100% / 3);
+  height: 9rem;
+  text-align: center;
+  background: no-repeat center;
+  background-size: 8rem;
+  transition: transform 500ms ease;
+}
+
+.icon .title {
+  display: block;
+  margin-top: 9rem;
+  pointer-events: none;
+  color: #fff;
+  font-size: 1.2rem;
+  text-shadow: 0 0 0.5rem rgba(0,0,0,0.5);
+}
+
+.icon.active {
+  transition: none;
+}
+
+.divider {
+  position: absolute;
+  height: 0.4rem;
+  margin: 2.3rem 1rem;
+  background: rgba(255, 255, 255, 0.3);
+  width: calc(100% - 2rem);
+  transition: transform 500ms ease;
+}
+
+.divider:last-child {
+  visibility: hidden;
+}
+
+.edit-mode .divider:last-child {
+  visibility: visible;
+}

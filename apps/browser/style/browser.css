@@ -283,6 +283,14 @@ input[type="image"] {
   width: calc(100% - 1.5rem);
 }
 
+#url-input:disabled {
+  color: #000;
+}
+
+#url-bar input:focus {
+  box-shadow: none;
+}
+
 #url-bar.focus {
   border: 0.1rem solid #00c7ef;
 }

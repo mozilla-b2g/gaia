@@ -88,7 +88,7 @@ ViewfinderController.prototype.bindEvents = function() {
   this.camera.on('zoomchanged', this.onZoomChanged);
   this.app.on('camera:focuschanged', this.focusRing.setState);
   this.app.on('camera:configured', this.onCameraConfigured);
-  this.app.on('camera:shutter', this.viewfinder.shutter);
+  this.app.on('camera:shutter', this.onShutter);
   this.app.on('previewgallery:closed', this.startStream);
   this.app.on('previewgallery:opened', this.stopStream);
   this.app.on('settings:closed', this.configureGrid);
@@ -113,6 +113,11 @@ ViewfinderController.prototype.onCameraConfigured = function() {
   // newly set dimensions before fading in.
   // https://bugzilla.mozilla.org/show_bug.cgi?id=982230
   setTimeout(this.viewfinder.fadeIn, 300);
+};
+
+ViewfinderController.prototype.onShutter = function() {
+  this.focusRing.setState('none');
+  this.viewfinder.shutter();
 };
 
 /**

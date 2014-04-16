@@ -32,52 +32,52 @@ marionette('Contacts shortcuts > touch', function() {
 
   suite('touch on shortcuts', function() {
     test('press/release on scrollbar should show/hide shortcut', function() {
-      var act = actions.press(scrollbar, 10, 200).perform();
+      var action = actions.press(scrollbar, 10, 200).perform();
       overlay = client.helper.waitForElement(selectors.overlay);
       assert.equal(overlay.text().length, 1);
       assert.equal(overlayOpacity(), '1');
-      act.release().perform();
+      action.release().perform();
       assert.equal(overlay.text().length, 0);
       assert.equal(overlayOpacity(), '0');
     });
 
-    test('shortcut text should change after move some distance', function() {
-      var ch, nextCh, lastCh;
+    test('shortcut text should change after moving some distance', function() {
+      var letter, nextLetter, lastLetter;
 
-      var act = actions.press(scrollbar, 10, 100).perform();
+      var action = actions.press(scrollbar, 10, 100).perform();
       overlay = client.helper.waitForElement(selectors.overlay);
-      ch = overlay.text();
-      assert.equal(ch.length, 1);
+      letter = overlay.text();
+      assert.equal(letter.length, 1);
 
-      act.moveByOffset(0, 1).perform();
-      nextCh = overlay.text();
-      assert.equal(nextCh.length, 1);
-      assert.equal(ch, nextCh);
+      action.moveByOffset(0, 1).perform();
+      nextLetter = overlay.text();
+      assert.equal(nextLetter.length, 1);
+      assert.equal(letter, nextLetter);
 
-      act.moveByOffset(0, 50).perform();
-      lastCh = overlay.text();
-      assert.equal(nextCh.length, 1);
-      assert.notEqual(lastCh, nextCh);
+      action.moveByOffset(0, 50).perform();
+      lastLetter = overlay.text();
+      assert.equal(nextLetter.length, 1);
+      assert.notEqual(lastLetter, nextLetter);
 
-      act.release().perform();
+      action.release().perform();
     });
 
-    test('Press near the last release position should show valid shortcut',
+    test('pressing near the last release position should show valid shortcut',
       function() {
       actions.press(scrollbar, 10, 200).release().perform();
 
-      var act = actions.press(scrollbar, 10, 200).perform();
+      var action = actions.press(scrollbar, 10, 200).perform();
       overlay = client.helper.waitForElement(selectors.overlay);
       assert.equal(overlay.text().length, 1);
-      act.release().perform();
+      action.release().perform();
     });
 
-    test('Press outside the scrollbar should not show shortcut',
+    test('pressing outside the scrollbar should not show shortcut',
       function() {
-      var act = actions.press(scrollbar, -1, 200).perform();
+      var action = actions.press(scrollbar, -1, 200).perform();
 
       assert.notEqual(overlayOpacity(), '1');
-      act.release().perform();
+      action.release().perform();
     });
   });
 

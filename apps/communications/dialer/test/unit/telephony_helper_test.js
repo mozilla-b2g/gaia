@@ -5,15 +5,15 @@
 'use strict';
 
 requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
-requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/dialer/mock_contacts.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 
 requireApp('communications/dialer/test/unit/mock_mozMobileConnection.js');
 requireApp('communications/dialer/test/unit/mock_icc_helper.js');
-requireApp('communications/dialer/test/unit/mock_tone_player.js');
 
 requireApp('communications/dialer/js/telephony_helper.js');
 

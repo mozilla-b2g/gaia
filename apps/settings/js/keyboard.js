@@ -259,7 +259,6 @@ var KeyboardPanel = (function() {
       container = document.createElement('li');
       span = document.createElement('span');
 
-      container.classList.add('keyboard-menuItem');
       container.appendChild(span);
     }
 

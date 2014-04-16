@@ -54,6 +54,7 @@ var MockConfigManager = function(config) {
         getMockRequiredMessage('getApplicationMode', 'applicationMode', true)
       );
       return config.applicationMode;
-    }
+    },
+    get configuration() { return config; }
   };
 };

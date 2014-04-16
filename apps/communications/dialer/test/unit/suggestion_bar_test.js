@@ -4,15 +4,15 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
-require('/dialer/test/unit/mock_contacts.js');
-require('/dialer/test/unit/mock_l10n.js');
 require('/dialer/test/unit/mock_lazy_loader.js');
-require('/dialer/test/unit/mock_keypad.js');
 require('/dialer/test/unit/mock_call_handler.js');
 
 require('/dialer/js/suggestion_bar.js');
 require('/shared/js/simple_phone_matcher.js');
 require('/shared/test/unit/mocks/mock_fb_data_reader.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+require('/shared/test/unit/mocks/dialer/mock_contacts.js');
+require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 
 var mocksHelperForSuggestionBar = new MocksHelper([
   'Contacts',

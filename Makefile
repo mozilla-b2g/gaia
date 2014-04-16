@@ -307,7 +307,7 @@ export SEP
 export SEP_FOR_SED
 
 ifndef GAIA_APP_CONFIG
-GAIA_APP_CONFIG=$(GAIA_DIR)$(SEP)build$(SEP)config$(SEP)apps-$(GAIA_APP_TARGET).list
+GAIA_APP_CONFIG=$(GAIA_DIR)$(SEP)build$(SEP)config$(SEP)$(GAIA_DEVICE_TYPE)$(SEP)apps-$(GAIA_APP_TARGET).list
 endif
 
 ifndef GAIA_DISTRIBUTION_DIR
@@ -715,7 +715,7 @@ $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
 $(NODE_MODULES_SRC): gaia_node_modules.revision
 ifeq "$(NODE_MODULES_SRC)" "modules.tar"
-	$(DOWNLOAD_CMD) https://github.com/RudyLu/gaia-node-modules/tarball/$(NODE_MODULES_REV)
+	-$(DOWNLOAD_CMD) https://github.com/RudyLu/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
 	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
 else
 	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
@@ -899,7 +899,7 @@ ifdef APP
   JSHINTED_PATH = apps/$(APP)
   GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint/xfail.list | ( while read file ; do test -f "$$file" && echo $$file ; done ) )
 else
-  JSHINTED_PATH = apps shared build/test/unit
+  JSHINTED_PATH = apps shared build/test/unit test_apps/home2
   GJSLINTED_PATH = $(shell ( while read file ; do test -f "$$file" && echo $$file ; done ) < build/jshint/xfail.list )
 endif
 endif

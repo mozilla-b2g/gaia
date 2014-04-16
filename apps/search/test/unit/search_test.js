@@ -245,7 +245,7 @@ suite('search/search', function() {
       var stub = this.sinon.stub(Search._port, 'postMessage');
       this.sinon.stub(Search, 'expandSearch');
       Search.setInput('foo');
-      assert.ok(stub.calledWith({input: 'foo'}));
+      assert.ok(stub.calledWith({action: 'input', input: 'foo'}));
     });
   });
 

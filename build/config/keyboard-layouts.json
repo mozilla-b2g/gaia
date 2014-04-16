@@ -69,6 +69,7 @@
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "hi-IN": [
+        {"layoutId": "hi", "app": ["apps", "keyboard"]},
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "hr": [
