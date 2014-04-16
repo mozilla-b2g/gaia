@@ -16,6 +16,8 @@ class TestFtu(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
+        self.number_of_sim_contacts = len(self.data_layer.sim_contacts)
+
         self.ftu = Ftu(self.marionette)
         self.ftu.launch()
 
@@ -78,7 +80,7 @@ class TestFtu(GaiaTestCase):
         # Tap import from SIM
         # You can do this as many times as you like without db conflict
         self.ftu.tap_import_from_sim()
-        self.ftu.wait_for_contacts_imported()
+        self.ftu.wait_for_contacts_imported(self.number_of_sim_contacts)
         self.assertEqual(self.ftu.count_imported_contacts, len(self.data_layer.all_contacts))
 
         # all_contacts switches to top frame; Marionette needs to be switched back to ftu
