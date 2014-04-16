@@ -87,14 +87,6 @@
   background-color: #00b9df;
 }
 
-/**
- * gallery=false
- */
-
-.controls[gallery=false] .controls-gallery-button {
-  display: none;
-}
-
 /** Thumbnail Button
  ---------------------------------------------------------*/
 

@@ -32,7 +32,7 @@ return View.extend({
   className: 'offscreen',
 
   initialize: function() {
-    debug('rendered');
+    debug('initialized');
   },
 
   render: function() {
@@ -42,6 +42,9 @@ return View.extend({
     this.els.mediaFrame = this.find('.js-media-frame');
     this.els.countText = this.find('.js-count-text');
     this.els.previewMenu = this.find('.js-preview-menu');
+
+    // Update localization strings
+    navigator.mozL10n.translate(this.el);
 
     // MediaFrame has a GestureDetector that can emit 'tap' events
     bind(this.el, 'tap', this.onTap);
@@ -62,25 +65,31 @@ return View.extend({
   },
 
   template: function() {
-    /*jshint maxlen:false*/
     return '<div class="frame-container js-frame-container">' +
-      '<div class="media-frame js-media-frame"></div>' +
-      '</div>' +
-      '<div class="preview-menu js-preview-menu">' +
-        '<div class="camera-back icon-camera-back js-btn" name="back"></div>' +
-        '<div class="count-text js-count-text"></div>' +
-        '<footer class="preview-controls js-preview">' +
-          '<div class="preview-gallery-button js-btn" name="gallery">' +
-            '<div class="preview-gallery-icon icon-gallery"></div>' +
-          '</div>' +
-          '<div class="preview-share-button js-btn" name="share">' +
-            '<div class="preview-share-icon icon-preview-share"></div>' +
-          '</div>' +
-          '<div class="preview-delete-button js-btn" name="delete">' +
-            '<div class="preview-delete-icon icon-preview-delete"></div>' +
-          '</div>' +
-        '</footer>' +
-      '</div>';
+     '<div class="media-frame js-media-frame"></div>' +
+     '</div>' +
+     '<div class="preview-menu js-preview-menu">' +
+       '<section class="skin-dark" role="region">' +
+        '<header class="js-preview-header">' +
+          '<button class="js-btn" name="back">' +
+            '<span class="preview-back-icon icon-back-arrow">' +
+            '</span>' +
+          '</button>' +
+          '<menu type="toolbar">' +
+            '<button class="js-btn" name="share">' +
+              '<span class="preview-share-icon icon-preview-share">' +
+              '</span>' +
+            '</button>' +
+            '<button class="js-btn" name="options" >' +
+              '<span class="preview-option-icon icon-preview-options">' +
+              '</span>' +
+            '</button>' +
+          '</menu>' +
+          '<h1 data-l10n-id="preview">Preview</h1>' +
+        '</header>' +
+       '</section>' +
+      '<div class="count-text js-count-text"></div>' +
+    '</div>';
   },
 
   onTap: function() {
@@ -199,11 +208,12 @@ return View.extend({
   },
 
   onButtonClick: function(e, el) {
-    if (this.videoPlaying) {
-      return;
-    }
+    if (this.videoPlaying) { return; }
 
     var name = el.getAttribute('name');
+    if (this.optionsMenuContainer) {
+      this.hideOptionsMenu();
+    }
     this.emit('click:' + name, e);
     e.stopPropagation();
   },
@@ -272,6 +282,48 @@ return View.extend({
 
     this.videoPlaying = false;
     this.previewMenuFadeIn();
+  },
+
+  showOptionsMenu: function() {
+    this.optionsMenuContainer = document.createElement('div');
+    this.optionsMenuContainer.innerHTML = this.optionTemplate();
+    navigator.mozL10n.translate(this.optionsMenuContainer);
+    this.el.appendChild(this.optionsMenuContainer);
+
+    this.menu = this.find('.js-menu');
+
+    // We add the event listner for menu items and cancel buttons
+    var cancelButton = this.find('.js-cancel');
+    bind(cancelButton, 'click', this.hideOptionsMenu);
+    if (this.menu) {
+      attach.on(this.menu, 'click', '.js-btn', this.onButtonClick);
+    }
+  },
+
+  hideOptionsMenu: function() {
+    if (this.optionsMenuContainer) {
+      this.optionsMenuContainer.parentElement.removeChild(
+        this.optionsMenuContainer);
+      this.optionsMenuContainer = null;
+    }
+  },
+
+  optionTemplate: function() {
+    return '<form class="visible" data-type="action"' +
+      'role="dialog" data-z-index-level="action-menu">' +
+      '<header data-l10n-id="options">Options</header>' +
+      '<menu class="js-menu">' +
+      '<button class="js-btn" name="gallery" data-l10n-id="open-gallery">' +
+        'Open Gallery' +
+      '</button>' +
+      '<button class="js-btn" name="delete" data-l10n-id="delete">' +
+        'Delete' +
+      '</button>' +
+      '<button class="js-cancel" data-action="cancel" data-l10n-id="cancel">' +
+        'Cancel' +
+      '</button>' +
+      '</menu>' +
+      '</form>';
   }
 });
 
