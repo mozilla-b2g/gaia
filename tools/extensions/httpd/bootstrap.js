@@ -73,7 +73,7 @@ function startup(data, reason) {
     let host = GAIA_DOMAIN;
     identity.add(scheme, host, port);
 
-    let directories = getDirectories(GAIA_APPDIRS.split(' '));
+    let directories = getDirectories(GAIA_APPDIRS.split('\n'));
     directories.forEach(function appendDir(name) {
       // Some app names can cause a raise here, preventing other apps
       // from being added.
@@ -85,7 +85,7 @@ function startup(data, reason) {
     });
 
     if (LOCALE_BASEDIR) {
-      let appDirs = GAIA_APPDIRS.split(' ');
+      let appDirs = GAIA_APPDIRS.split('\n');
       let commonjs = {
         GAIA_BUILD_DIR: 'file://' + GAIA_DIR.replace(/\\/g, '/') + '/build/'
       };
