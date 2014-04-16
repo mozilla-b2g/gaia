@@ -427,9 +427,6 @@ var CostControlApp = (function() {
       document.getElementById('message-handler').src = 'message_handler.html';
       Common.waitForDOMAndMessageHandler(window, startApp);
     });
-    // XXX: See bug 944342 -[Cost control] move all the process related to the
-    // network and data interfaces loading to the start-up process of CC
-    Common.loadNetworkInterfaces();
   }
 
   return {

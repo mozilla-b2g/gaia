@@ -354,7 +354,13 @@ var Settings = (function() {
         'js/view_manager.js',
         'js/views/BalanceView.js'
       ];
-      LazyLoader.load(SCRIPTS_NEEDED, configureUI);
+      LazyLoader.load(SCRIPTS_NEEDED, function() {
+        if (!Common.allNetworkInterfaceLoaded) {
+          Common.loadNetworkInterfaces(configureUI);
+        } else {
+          configureUI();
+        }
+      });
     },
     updateUI: updateUI
   };
