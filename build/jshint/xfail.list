@@ -966,7 +966,6 @@ shared/js/device_storage/get_storage_if_available.js
 shared/js/device_storage/get_unused_filename.js
 shared/js/download/download_formatter.js
 shared/js/download/download_helper.js
-shared/js/download/download_store.js
 shared/js/download/download_ui.js
 shared/js/dump.js
 shared/js/fb/fb_data_reader.js
