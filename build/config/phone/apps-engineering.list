@@ -14,7 +14,6 @@ test_apps/share-receiver
 test_apps/template
 test_apps/test-agent
 test_apps/test-container
-test_apps/test-keyboard-app
 test_apps/test-otasp
 test_apps/test-receiver-1
 test_apps/test-receiver-2
