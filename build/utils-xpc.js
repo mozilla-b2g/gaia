@@ -288,7 +288,7 @@ var gaia = {
       this.instance = {
         engine: this.config.GAIA_ENGINE,
         sharedFolder: getFile(this.config.GAIA_DIR, 'shared'),
-        webapps: makeWebappsObject(this.config.GAIA_APPDIRS.split(' '),
+        webapps: makeWebappsObject(getAppDirs(this.config.STAGE_APPS_LIST),
           this.config.GAIA_DOMAIN, this.config.GAIA_SCHEME,
           this.config.GAIA_PORT, this.config.STAGE_DIR),
         aggregatePrefix: 'gaia_build_',
@@ -735,6 +735,18 @@ function killAppByPid(appName, gaiaDir) {
   }
 }
 
+function getAppDirs(stageAppsList) {
+  try {
+    var appsList = getFile(stageAppsList);
+    return getFileContent(appsList).split('\n');
+  } catch (e) {
+    var error = new Error('build_stage/apps.list doesn\'t exist, please use ' +
+      '|make apps-list| to generate it');
+    error.stack = e.stack;
+    throw error;
+  }
+}
+
 function getDocument(content) {
   var DOMParser = CC('@mozilla.org/xmlextras/domparser;1', 'nsIDOMParser');
   return document = (new DOMParser()).parseFromString(content, 'text/html');
@@ -785,3 +797,4 @@ exports.gaia = gaia;
 exports.concatenatedScripts = concatenatedScripts;
 exports.dirname = dirname;
 exports.basename = basename;
+exports.getAppDirs = getAppDirs;

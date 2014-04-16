@@ -123,3 +123,4 @@ exports.Services = utils.Services;
 exports.concatenatedScripts = utils.concatenatedScripts;
 exports.dirname = utils.dirname;
 exports.basename = utils.basename;
+exports.getAppDirs = utils.getAppDirs;
