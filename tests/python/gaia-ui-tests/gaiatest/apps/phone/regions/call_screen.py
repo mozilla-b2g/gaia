@@ -42,7 +42,15 @@ class CallScreen(Phone):
         hang_up = self.marionette.find_element(*self._hangup_bar_locator)
         hang_up.tap()
 
+    def a11y_click_hang_up(self):
+        self.accessibility.click(self.marionette.find_element(*self._hangup_bar_locator))
+
     def hang_up(self):
         self.tap_hang_up()
+        self.marionette.switch_to_frame()
+        self.wait_for_element_not_displayed(*self._call_screen_locator)
+
+    def a11y_hang_up(self):
+        self.a11y_click_hang_up()
         self.marionette.switch_to_frame()
         self.wait_for_element_not_displayed(*self._call_screen_locator)
