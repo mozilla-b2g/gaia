@@ -148,6 +148,10 @@
     "sv-SE": [
         {"layoutId": "sv", "app": ["apps", "keyboard"]}
     ],
+    "ta": [
+        {"layoutId": "ta", "app": ["apps", "keyboard"]},
+        {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
     "te": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
