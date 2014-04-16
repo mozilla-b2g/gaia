@@ -63,8 +63,10 @@ Ringtones.prototype = {
     }.bind(this));
   },
 
-  preview: function() {
-    this.radios[1].click();
+  previewAll: function() {
+    this.radios.forEach(function(radio) {
+      radio.click();
+    });
   },
 
   leavePanel: function() {

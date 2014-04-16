@@ -47,7 +47,10 @@ marionette('ringtones tests', function() {
 
       ringtones.launchInForeground();
       ringtones.waitForPanel();
-      ringtones.preview();
+      // Make sure the change event of the input elements does fire so we
+      // preview all the ringtones, or if none of the ringtones was previewed,
+      // this test won't pass.
+      ringtones.previewAll();
 
       statusbar.waitForPlayingIndicatorShown(false);
 
