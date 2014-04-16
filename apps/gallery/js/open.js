@@ -120,6 +120,20 @@ window.addEventListener('localized', function() {
         return;
       }
 
+      // If the image is lower resolution but with large file size, like
+      // animated GIF, we also need to block this case.
+      if (blob.size > CONFIG_MAX_IMAGE_FILE_SIZE) {
+        displayError('imagetoobig');
+        return;
+      }
+
+      // If the image is lower resolution but with large file size, like
+      // animated GIF, we should not decode it.
+      if (blob.type === 'image/gif' &&
+        blob.size > CONFIG_MAX_GIF_IMAGE_FILE_SIZE) {
+        displayError('imagetoobig');
+        return;
+      }
       // If there was no EXIF preview, or if the image is not very big,
       // display the full-size image.
       if (!metadata.preview || pixels < 512 * 1024) {
@@ -179,7 +193,7 @@ window.addEventListener('localized', function() {
       // and then display an error message if the frame.onerror
       // function gets called.
       //
-      if (blob.size < MAX_FILE_SIZE) {
+      if (blob.size < CONFIG_MAX_UNKNOWN_IMAGE_FILE_SIZE) {
         frame.displayImage(blob);
       }
       else {
