@@ -77,4 +77,4 @@ var FindMyDevice = {
   }
 };
 
-navigator.mozL10n.ready(FindMyDevice.init.bind(FindMyDevice));
+navigator.mozL10n.once(FindMyDevice.init.bind(FindMyDevice));

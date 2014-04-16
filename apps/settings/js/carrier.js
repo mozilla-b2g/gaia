@@ -1341,7 +1341,7 @@ var CarrierSettings = (function(window, document, undefined) {
 /**
  * Startup.
  */
-navigator.mozL10n.ready(function loadWhenIdle() {
+navigator.mozL10n.once(function loadWhenIdle() {
   var idleObserver = {
     time: 3,
     onidle: function() {

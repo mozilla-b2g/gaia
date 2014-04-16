@@ -46,7 +46,7 @@ var AirplaneMode = {
 };
 
 // starting when we get a chance
-navigator.mozL10n.ready(function loadWhenIdle() {
+navigator.mozL10n.once(function loadWhenIdle() {
   var idleObserver = {
     time: 5,
     onidle: function() {

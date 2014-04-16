@@ -225,4 +225,4 @@ var Storage = {
 
 };
 
-navigator.mozL10n.ready(Storage.init.bind(Storage));
+navigator.mozL10n.once(Storage.init.bind(Storage));

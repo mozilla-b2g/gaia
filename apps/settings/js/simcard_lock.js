@@ -276,5 +276,5 @@
 
 })(window);
 
-navigator.mozL10n.ready(SimPinLock.init.bind(SimPinLock));
+navigator.mozL10n.once(SimPinLock.init.bind(SimPinLock));
 

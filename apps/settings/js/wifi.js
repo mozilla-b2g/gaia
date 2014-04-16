@@ -4,7 +4,7 @@
 'use strict';
 
 // handle Wi-Fi settings
-navigator.mozL10n.ready(function wifiSettings() {
+navigator.mozL10n.once(function wifiSettings() {
   var _ = navigator.mozL10n.get;
 
   var settings = window.navigator.mozSettings;

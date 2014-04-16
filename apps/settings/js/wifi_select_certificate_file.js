@@ -4,9 +4,7 @@
 'use strict';
 
 // handle Wi-Fi select certificate file page
-navigator.mozL10n.ready(function wifiSelectCertificateFile() {
-  var _ = navigator.mozL10n.get;
-
+navigator.mozL10n.once(function wifiSelectCertificateFile() {
   var gWifiManager = WifiHelper.getWifiManager();
 
   // select certificate files to import

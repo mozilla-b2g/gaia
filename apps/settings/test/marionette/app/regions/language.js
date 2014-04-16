@@ -16,6 +16,9 @@ function LanguagePanel(client) {
 module.exports = LanguagePanel;
 
 LanguagePanel.Selectors = {
+  'languagePanel': '#languages',
+  'body': 'body',
+  'back': 'a[href="#root"]',
   'languageChangeSelect': '#languages select[name="language.current"]',
   'languageLabel': 'p[data-l10n-id="language"]',
   'languageRegionDateLabel': '#region-date'
@@ -100,5 +103,17 @@ LanguagePanel.prototype = {
       }
     }
     return false;
+  },
+
+  back: function() {
+    var parentSection = this.waitForElement('languagePanel');
+    this.findElement('back').tap();
+
+    var bodyWidth = this.findElement('body').size().width;
+    this.client.waitFor(function() {
+      var loc = parentSection.location();
+      return loc.x >= bodyWidth;
+    });
   }
+
 };

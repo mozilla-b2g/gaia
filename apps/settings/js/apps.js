@@ -424,5 +424,5 @@ var ApplicationsList = {
   }
 };
 
-navigator.mozL10n.ready(ApplicationsList.init.bind(ApplicationsList));
+navigator.mozL10n.once(ApplicationsList.init.bind(ApplicationsList));
 

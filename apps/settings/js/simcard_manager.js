@@ -436,7 +436,7 @@
 
 })(window);
 
-window.navigator.mozL10n.ready(function() {
+window.navigator.mozL10n.once(function() {
   AirplaneModeHelper.ready(function() {
     SimCardManager.init();
   });

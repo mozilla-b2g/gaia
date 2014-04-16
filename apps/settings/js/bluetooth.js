@@ -11,7 +11,7 @@
 var gDeviceList = null;
 
 // handle Bluetooth settings
-navigator.mozL10n.ready(function bluetoothSettings() {
+navigator.mozL10n.once(function bluetoothSettings() {
   // Service ID for profiles
   var Profiles = {
     'HFP': 0x111E,

@@ -189,5 +189,5 @@ var About = {
 };
 
 // startup
-navigator.mozL10n.ready(About.init.bind(About));
+navigator.mozL10n.once(About.init.bind(About));
 

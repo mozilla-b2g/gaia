@@ -16,7 +16,7 @@ suite('SimCardFdn > ', function() {
   suiteSetup(function(done) {
     realL10n = window.navigator.mozL10n;
     // dont exec the init so quick
-    MockL10nStub = sinon.stub(MockL10n, 'ready', function() {});
+    MockL10nStub = sinon.stub(MockL10n, 'once', function() {});
 
     window.navigator.mozL10n = MockL10n;
 
