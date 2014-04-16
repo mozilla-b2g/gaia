@@ -38,8 +38,7 @@
       "description": "Wake up Find My Device from the System app",
       "rules": {
         "manifestURLs": [
-          "app://system.gaiamobile.org/manifest.webapp",
-          "http://system.gaiamobile.org:8080/manifest.webapp"
+          "app://system.gaiamobile.org/manifest.webapp"
         ]
       }
     },
@@ -47,8 +46,7 @@
       "description": "Manually trigger commands for testing",
       "rules": {
         "manifestURLs": [
-          "app://test-findmydevice.gaiamobile.org/manifest.webapp",
-          "http://test-findmydevice.gaiamobile.org:8080/manifest.webapp"
+          "app://test-findmydevice.gaiamobile.org/manifest.webapp"
         ]
       }
     }
