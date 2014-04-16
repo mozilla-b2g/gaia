@@ -499,6 +499,22 @@ ul li > label.range-icons.brightness:before {
   width: calc(100% - 10.7rem);
 }
 
+ul li > label.range-icons.volume:before {
+  background:
+    url(images/range_icons_volume_min.png) no-repeat 0 50%,
+    url(images/range_icons_volume_max.png) no-repeat 100% 50%;
+  background-size: 3rem;
+  left: 1.4rem;
+  right: auto;
+  width: calc(100% - 2.1rem);
+  top: calc(50% + .6rem);
+}
+
+ul li > label.range-icons.volume input {
+  width: calc(100% - 10.5rem);
+  top: 0.2rem;
+  left: 0.35rem;
+}
 
 /******************************************************************************
  * SIM Toolkit
@@ -802,3 +818,13 @@ html[dir="rtl"] #feedback-happy {
 html[dir="rtl"] #feedback-sad {
   float: left;
 }
+
+html[dir="rtl"] ul li > label.range-icons.volume:before {
+  background-position: 100% 50%, 0 50%;
+}
+
+html[dir="rtl"] ul li > label.range-icons.volume input {
+  left: auto;
+  right: 0.35rem;
+}
+
