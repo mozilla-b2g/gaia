@@ -128,14 +128,6 @@ KeyboardAppBuilder.prototype.generateManifest = function() {
                      JSON.stringify(manifest));
 };
 
-KeyboardAppBuilder.prototype.cleanDirectory = function(path) {
-  var dir = this.distDir.clone();
-  path.split('/').forEach(function(part) {
-    dir.append(part);
-  });
-  dir.remove(true);
-  utils.ensureFolderExists(dir);
-};
 
 KeyboardAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
@@ -144,8 +136,6 @@ KeyboardAppBuilder.prototype.execute = function(options) {
   this.versionOneLayouts = this.getLayoutsForVersion('one');
   this.versionTwoLayouts = this.getLayoutsForVersion('two');
   this.throwForNoneExistLayouts();
-  this.cleanDirectory('js/imes');
-  this.cleanDirectory('js/layouts');
   this.copyStaticFiles();
   this.copyLayouts();
   this.generateManifest();
