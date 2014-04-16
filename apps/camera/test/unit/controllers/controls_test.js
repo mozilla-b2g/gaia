@@ -49,22 +49,6 @@ suite('controllers/controls', function() {
   });
 
   suite('ControlsController()', function() {
-    test('Should *not* show the gallery if in \'secureMode\'', function() {
-      this.app.inSecureMode = true;
-      this.controller = new this.ControlsController(this.app);
-      assert.isTrue(this.app.views.controls.set.calledWith('gallery', false));
-    });
-
-    test('Should *not* show the gallery if in pending activity', function() {
-      this.app.activity.active = true;
-      this.controller = new this.ControlsController(this.app);
-      assert.isTrue(this.app.views.controls.set.calledWith('gallery', false));
-    });
-
-    test('Should show the gallery if no pending activity' +
-         'and not in \'secureMode\'', function() {
-      assert.isTrue(this.app.views.controls.set.calledWith('gallery', true));
-    });
 
     test('Should *not* show the cancel button when ' +
          '*not* within a \'pick\' activity', function() {

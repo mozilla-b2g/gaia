@@ -4,6 +4,27 @@
 		{
 			"icon": {
 				"paths": [
+					"M238.967 449.946c-34.304 0-62.020 27.75-62.020 62.020s27.716 62.089 62.020 62.089c34.236 0 62.020-27.785 62.020-62.089 0-34.236-27.785-62.020-62.020-62.020zM511.727 449.946c-34.304 0-62.020 27.75-62.020 62.020s27.716 62.089 62.020 62.089c34.236 0 62.020-27.785 62.020-62.089 0.034-34.236-27.785-62.020-62.020-62.020zM785.033 449.946c-34.304 0-61.986 27.75-61.986 62.020s27.716 62.089 61.986 62.089c34.236 0 62.020-27.785 62.020-62.089 0-34.236-27.785-62.020-62.020-62.020z"
+				],
+				"grid": 16,
+				"tags": [
+					"preview-options"
+				]
+			},
+			"properties": {
+				"order": 1,
+				"id": 28,
+				"prevSize": 32,
+				"code": 58904,
+				"name": "preview-options",
+				"ligatures": ""
+			},
+			"setIdx": 0,
+			"iconIdx": 0
+		},
+		{
+			"icon": {
+				"paths": [
 					"M511.454 305.937c-113.607 0-205.722 92.103-205.722 205.733 0 113.618 92.103 205.722 205.722 205.722 113.63 0 205.733-92.092 205.733-205.722 0.011-113.63-92.103-205.733-205.733-205.733zM837.518 159.38h-651.025c-59.017 0-106.86 47.844-106.86 106.86v491.52c0 59.017 47.844 106.849 106.86 106.849h651.025c59.017 0 106.849-47.844 106.849-106.849v-491.52c0-59.017-47.844-106.86-106.849-106.86zM512.273 768.387c-141.609 0-256.387-114.779-256.387-256.375 0-141.619 114.79-256.398 256.387-256.398 141.596 0 256.398 114.79 256.398 256.398 0 141.596-114.79 256.375-256.398 256.375z"
 				],
 				"tags": [
@@ -14,14 +35,14 @@
 			},
 			"properties": {
 				"id": 14,
-				"order": 1,
+				"order": 2,
 				"prevSize": 32,
 				"code": 58895,
 				"name": "camera",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 0
+			"iconIdx": 1
 		},
 		{
 			"icon": {
@@ -36,14 +57,14 @@
 			},
 			"properties": {
 				"id": 25,
-				"order": 2,
+				"order": 3,
 				"prevSize": 32,
 				"code": 58891,
 				"name": "preview-share",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 1
+			"iconIdx": 2
 		},
 		{
 			"icon": {
@@ -58,14 +79,14 @@
 			},
 			"properties": {
 				"id": 0,
-				"order": 3,
+				"order": 4,
 				"prevSize": 32,
 				"code": 58903,
 				"name": "pick-cancel",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 2
+			"iconIdx": 3
 		},
 		{
 			"icon": {
@@ -80,14 +101,14 @@
 			},
 			"properties": {
 				"id": 1,
-				"order": 4,
+				"order": 5,
 				"prevSize": 32,
 				"code": 58887,
 				"name": "timer",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 3
+			"iconIdx": 4
 		},
 		{
 			"icon": {
@@ -102,14 +123,14 @@
 			},
 			"properties": {
 				"id": 12,
-				"order": 5,
+				"order": 6,
 				"prevSize": 32,
 				"code": 58881,
 				"name": "back-arrow",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 4
+			"iconIdx": 5
 		},
 		{
 			"icon": {
@@ -124,14 +145,14 @@
 			},
 			"properties": {
 				"id": 13,
-				"order": 6,
+				"order": 7,
 				"prevSize": 32,
 				"code": 58884,
 				"name": "tick",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 5
+			"iconIdx": 6
 		},
 		{
 			"icon": {
@@ -146,14 +167,14 @@
 			},
 			"properties": {
 				"id": 2,
-				"order": 7,
+				"order": 8,
 				"prevSize": 32,
 				"code": 58898,
 				"name": "hdr-menu",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 6
+			"iconIdx": 7
 		},
 		{
 			"icon": {
@@ -168,14 +189,14 @@
 			},
 			"properties": {
 				"id": 3,
-				"order": 8,
+				"order": 9,
 				"prevSize": 32,
 				"code": 58880,
 				"name": "gallery",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 7
+			"iconIdx": 8
 		},
 		{
 			"icon": {
@@ -190,14 +211,14 @@
 			},
 			"properties": {
 				"id": 15,
-				"order": 9,
+				"order": 10,
 				"prevSize": 32,
 				"code": 58896,
 				"name": "toggle-camera",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 8
+			"iconIdx": 9
 		},
 		{
 			"icon": {
@@ -212,14 +233,14 @@
 			},
 			"properties": {
 				"id": 4,
-				"order": 10,
+				"order": 11,
 				"prevSize": 32,
 				"code": 58882,
 				"name": "video",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 9
+			"iconIdx": 10
 		},
 		{
 			"icon": {
@@ -234,14 +255,14 @@
 			},
 			"properties": {
 				"id": 5,
-				"order": 11,
+				"order": 12,
 				"prevSize": 32,
 				"code": 58883,
 				"name": "geolocation",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 10
+			"iconIdx": 11
 		},
 		{
 			"icon": {
@@ -256,14 +277,14 @@
 			},
 			"properties": {
 				"id": 6,
-				"order": 12,
+				"order": 13,
 				"prevSize": 32,
 				"code": 58899,
 				"name": "picture-size",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 11
+			"iconIdx": 12
 		},
 		{
 			"icon": {
@@ -278,14 +299,14 @@
 			},
 			"properties": {
 				"id": 18,
-				"order": 13,
+				"order": 14,
 				"prevSize": 32,
 				"code": 58897,
 				"name": "flash-on",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 12
+			"iconIdx": 13
 		},
 		{
 			"icon": {
@@ -300,14 +321,14 @@
 			},
 			"properties": {
 				"id": 19,
-				"order": 14,
+				"order": 15,
 				"prevSize": 32,
 				"code": 58894,
 				"name": "flash-off",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 13
+			"iconIdx": 14
 		},
 		{
 			"icon": {
@@ -322,14 +343,14 @@
 			},
 			"properties": {
 				"id": 7,
-				"order": 15,
+				"order": 16,
 				"prevSize": 32,
 				"code": 58885,
 				"name": "frame-grid",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 14
+			"iconIdx": 15
 		},
 		{
 			"icon": {
@@ -344,14 +365,14 @@
 			},
 			"properties": {
 				"id": 8,
-				"order": 16,
+				"order": 17,
 				"prevSize": 32,
 				"code": 58889,
 				"name": "scene",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 15
+			"iconIdx": 16
 		},
 		{
 			"icon": {
@@ -366,14 +387,14 @@
 			},
 			"properties": {
 				"id": 20,
-				"order": 17,
+				"order": 18,
 				"prevSize": 32,
 				"code": 58906,
 				"name": "battery-verylow",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 16
+			"iconIdx": 17
 		},
 		{
 			"icon": {
@@ -388,14 +409,14 @@
 			},
 			"properties": {
 				"id": 21,
-				"order": 18,
+				"order": 19,
 				"prevSize": 32,
 				"code": 58905,
 				"name": "battery-low",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 17
+			"iconIdx": 18
 		},
 		{
 			"icon": {
@@ -410,14 +431,14 @@
 			},
 			"properties": {
 				"id": 9,
-				"order": 19,
+				"order": 20,
 				"prevSize": 32,
 				"code": 58892,
 				"name": "settings",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 18
+			"iconIdx": 19
 		},
 		{
 			"icon": {
@@ -432,14 +453,14 @@
 			},
 			"properties": {
 				"id": 10,
-				"order": 20,
+				"order": 21,
 				"prevSize": 32,
 				"code": 58893,
 				"name": "flash-auto",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 19
+			"iconIdx": 20
 		},
 		{
 			"icon": {
@@ -454,14 +475,14 @@
 			},
 			"properties": {
 				"id": 22,
-				"order": 21,
+				"order": 22,
 				"prevSize": 32,
 				"code": 58886,
 				"name": "camera-back",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 20
+			"iconIdx": 21
 		},
 		{
 			"icon": {
@@ -476,14 +497,14 @@
 			},
 			"properties": {
 				"id": 23,
-				"order": 22,
+				"order": 23,
 				"prevSize": 32,
 				"code": 58888,
 				"name": "preview-delete",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 21
+			"iconIdx": 22
 		},
 		{
 			"icon": {
@@ -498,14 +519,14 @@
 			},
 			"properties": {
 				"id": 11,
-				"order": 23,
+				"order": 24,
 				"prevSize": 32,
 				"code": 58890,
 				"name": "video-size",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 22
+			"iconIdx": 23
 		},
 		{
 			"icon": {
@@ -520,14 +541,14 @@
 			},
 			"properties": {
 				"id": 24,
-				"order": 24,
+				"order": 25,
 				"prevSize": 32,
 				"code": 58900,
 				"name": "hdr",
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 23
+			"iconIdx": 24
 		},
 		{
 			"icon": {
@@ -540,7 +561,7 @@
 				"grid": 16
 			},
 			"properties": {
-				"order": 25,
+				"order": 26,
 				"id": 26,
 				"prevSize": 32,
 				"code": 58902,
@@ -548,7 +569,7 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 24
+			"iconIdx": 25
 		},
 		{
 			"icon": {
@@ -561,7 +582,7 @@
 				"grid": 16
 			},
 			"properties": {
-				"order": 26,
+				"order": 27,
 				"id": 27,
 				"prevSize": 32,
 				"code": 58901,
@@ -569,18 +590,18 @@
 				"ligatures": ""
 			},
 			"setIdx": 0,
-			"iconIdx": 25
+			"iconIdx": 26
 		}
 	],
 	"height": 1024,
 	"metadata": {
-		"name": "gaia-camera"
+		"name": "icomoon"
 	},
 	"preferences": {
 		"fontPref": {
 			"prefix": "icon-",
 			"metadata": {
-				"fontFamily": "gaia-camera",
+				"fontFamily": "icomoon",
 				"majorVersion": 1,
 				"minorVersion": 0
 			},

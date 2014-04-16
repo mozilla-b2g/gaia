@@ -69,25 +69,9 @@
   pointer-events: auto;
 }
 
-.preview-gallery[secure-mode=true] .preview-gallery-button,
-.preview-gallery[secure-mode=true] .preview-share-button,
-.preview-gallery[secure-mode=true] .preview-delete-button {
+.preview-gallery[secure-mode=true] .preview-share-icon,
+.preview-gallery[secure-mode=true] .preview-option-icon {
   display: none;
-}
-
-.camera-back {
-  position: absolute;
-  font-size: 4.5rem;
-  width: 5rem;
-  height: 5rem;
-  line-height: 5rem;
-  text-align: center;
-  border-radius: 50%;
-  background-color: rgba(0,0,0,.12);
-  background-clip: padding-box;
-  border: solid 2rem transparent;
-  -moz-box-sizing: content-box;
-  color: #fff;
 }
 
 .count-text {
@@ -118,34 +102,61 @@
   z-index: 100;
 }
 
-/* TD DO common
-.preview-controls > * {
-  display: flex;
-}*/
+section[role="region"].skin-dark > header:first-child > button:active,
+section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:not(:disabled):active {
+  background-color: #008eab;
+  opacity: .30;
 
-.camera-back:active,
-.preview-gallery-button:active,
-.preview-share-button:active,
-.preview-delete-button:active {
-  background-color: #008EAB;
-  opacity: 1;
 }
 
-.preview-gallery-button,
-.preview-share-button,
-.preview-delete-button {
-  display: flex;
-  width: 33%;
-  height: 100%;
-  justify-content: center;
+section[role="region"].skin-dark > header:first-child > button,
+section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:not(:disabled) {
+  vertical-align: middle;
+  text-align: center;
+}
+
+section[role="region"].skin-dark > header:first-child > button {
+  width: 3rem;
+}
+
+section[role="region"] > header:first-child h1 {
+  font-weight: normal;
+  padding: 0px 1rem 0px 2.8rem;
+}
+
+section[role="region"].skin-dark > header:first-child > button:not(:disabled):hover:after,
+section[role="region"].skin-dark > header:first-child > button:not(:disabled):active:after,
+section[role="region"] > header:first-child > button:not(:disabled):active:after,
+section[role="region"] > header:first-child > button:not(:disabled):hover:after {
+   background-color: #008eab;
+}
+
+section[role="region"].skin-dark > header:first-child,
+.skin-dark > section[role="region"] > header:first-child {
+   background: rgba(0, 0, 0, 0.75);
+}
+
+.preview-share-icon {
+  vertical-align: middle;
+  font-size: 2.9rem;
+  color: white;
+  vertical-align: -8px;
+  text-align: center;
+}
+
+.preview-back-icon {
+  vertical-align: middle;
+  font-size: 2.8rem;
+  color: white;
+  margin-left: 0rem;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.preview-option-icon {
+  font-size: 2.8rem;
+  vertical-align: middle;
+  text-align: center;
   color: white;
 }
 
-.preview-gallery-icon,
-.preview-delete-icon,
-.preview-share-icon {
-  font-size: 3rem;
-  width: 4rem;
-  height: 4rem;
-  margin-top: 7px;
-}

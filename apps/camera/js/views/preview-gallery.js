@@ -62,25 +62,30 @@ return View.extend({
   },
 
   template: function() {
-    /*jshint maxlen:false*/
+    var l10n = navigator.mozL10n;
+
     return '<div class="frame-container js-frame-container">' +
-      '<div class="media-frame js-media-frame"></div>' +
-      '</div>' +
-      '<div class="preview-menu js-preview-menu">' +
-        '<div class="camera-back icon-camera-back js-btn" name="back"></div>' +
-        '<div class="count-text js-count-text"></div>' +
-        '<footer class="preview-controls js-preview">' +
-          '<div class="preview-gallery-button js-btn" name="gallery">' +
-            '<div class="preview-gallery-icon icon-gallery"></div>' +
-          '</div>' +
-          '<div class="preview-share-button js-btn" name="share">' +
-            '<div class="preview-share-icon icon-preview-share"></div>' +
-          '</div>' +
-          '<div class="preview-delete-button js-btn" name="delete">' +
-            '<div class="preview-delete-icon icon-preview-delete"></div>' +
-          '</div>' +
-        '</footer>' +
-      '</div>';
+     '<div class="media-frame js-media-frame"></div>' +
+     '</div>' +
+     '<div class="preview-menu js-preview-menu">' +
+       '<section class="skin-dark" role="region">' +
+        '<header class="js-preview-header">' +
+          '<button class="js-btn" name="back">' +
+          '<span class="preview-back-icon icon-back-arrow "' +
+             '></span></button>' +
+          '<menu type="toolbar">' +
+            '<button class=" js-btn" name="share">' +
+            '<span class="preview-share-icon icon-preview-share js-btn"' +
+              '></span></button>' +
+            '<button class=" js-btn" name="options" >' +
+            '<span class="preview-option-icon icon-preview-options"' +
+              '></span></button>' +
+          '</menu>' +
+         '<h1>' + l10n.get('preview') + '</h1>' +
+        '</header>' +
+       '</section>' +
+      '<div class="count-text js-count-text"></div>' +
+    '</div>';
   },
 
   onTap: function() {
@@ -199,11 +204,12 @@ return View.extend({
   },
 
   onButtonClick: function(e, el) {
-    if (this.videoPlaying) {
-      return;
-    }
+    if (this.videoPlaying) { return; }
 
     var name = el.getAttribute('name');
+    if (this.container) {
+      this.hideOptionMenu();
+    }
     this.emit('click:' + name, e);
     e.stopPropagation();
   },
@@ -272,7 +278,49 @@ return View.extend({
 
     this.videoPlaying = false;
     this.previewMenuFadeIn();
+  },
+
+   showOptionsMenu: function() {
+    var l10n = navigator.mozL10n;
+    this.container = document.createElement('div');
+    // Create the structure
+    this.container.innerHTML = this.optionTemplate();
+    this.el.appendChild(this.container);
+    this.menu = this.find('.js-menu');
+
+    // We add the event listner for menu items and cancel buttons
+    var cancelButton = this.find('.js-cancel');
+    bind(cancelButton, 'click', this.hideOptionMenu);
+    if (this.menu) {
+      attach.on(this.menu, 'click', '.js-btn', this.onButtonClick);
+    }
+  },
+
+  optionTemplate: function() {
+    var l10n = navigator.mozL10n;
+
+    return '<form class="visible" data-type="action"' +
+      'role="dialog" data-z-index-level="action-menu">' +
+      '<header>' + l10n.get('options') + '</header>' +
+      '<menu class="js-menu">' +
+      '<button class="js-btn" name="gallery">' +
+      l10n.get('open-gallery') + '</button>' +
+      '<button class="js-btn" name="delete">' +
+      l10n.get('delete') + '</button>' +
+      '<button class="js-cancel" data-action="cancel">' +
+      l10n.get('cancel') + '</button>' +
+      '</menu>' +
+      '</form>';
+  },
+
+  hideOptionMenu: function() {
+    if (this.container) {
+      this.container.parentElement.removeChild(this.container);
+      this.container = null;
+    }
+    this.previewMenuFadeIn();
   }
+
 });
 
 });
