@@ -7,7 +7,12 @@
   /**
    * Represents a single divider on the homepage.
    */
-  function Divider() {}
+  function Divider() {
+    this.detail = {
+      type: 'divider',
+      index: 0
+    };
+  }
 
   Divider.prototype = {
 
@@ -29,9 +34,9 @@
     /**
      * Renders the icon to the container.
      * @param {Object} coordinates Grid coordinates to render to.
-     * @param {Number} itemIndex The index of the items list of this item.
+     * @param {Number} index The index of the items list of this item.
      */
-    render: function(coordinates, itemIndex) {
+    render: function(coordinates, index) {
       // Generate the content if we need to
       if (!this.divider) {
         var divider = document.createElement('div');
@@ -44,7 +49,7 @@
       var y = app.zoom.offsetY;
       this.divider.style.transform = 'translate(0 ,' + y + 'px)';
 
-      this.itemIndex = itemIndex;
+      this.detail.index = index;
       this.y = y;
     },
 
