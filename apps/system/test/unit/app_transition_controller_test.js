@@ -1,13 +1,16 @@
-/* global MocksHelper, MockAppWindow, AppTransitionController*/
+/* global MocksHelper, MockAppWindow, MockSystem, AppTransitionController */
 'use strict';
 
 mocha.globals(['AppTransitionController', 'AppWindow', 'System']);
 
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/test/unit/mock_layout_manager.js');
+requireApp('system/test/unit/mock_system.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForAppTransitionController = new MocksHelper([
-  'AppWindow', 'SettingsListener'
+  'AppWindow', 'LayoutManager', 'SettingsListener', 'System'
 ]).init();
 
 suite('system/AppTransitionController', function() {
@@ -18,7 +21,6 @@ suite('system/AppTransitionController', function() {
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
-    requireApp('system/js/system.js');
     requireApp('system/js/app_transition_controller.js', done);
   });
 
@@ -89,6 +91,7 @@ suite('system/AppTransitionController', function() {
   });
 
   test('Animation end event', function() {
+    this.sinon.stub(MockSystem, 'isBusyLoading').returns(false);
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
     var spy = this.sinon.spy();
@@ -98,6 +101,35 @@ suite('system/AppTransitionController', function() {
       stopPropagation: spy
     });
     assert.isTrue(spy.called);
+    acn1._transitionState = 'opened';
+  });
+
+  test('Discard animationend event if system is busy', function() {
+    this.sinon.stub(MockSystem, 'isBusyLoading').returns(true);
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    var acn1 = new AppTransitionController(app1);
+    var spy = this.sinon.spy();
+    acn1._transitionState = 'opening';
+    acn1.handleEvent({
+      type: 'animationend',
+      stopPropagation: spy
+    });
+    assert.equal(acn1._transitionState, 'opening');
+  });
+
+  test('Discard animationend event if system is busy', function() {
+    this.sinon.stub(MockSystem, 'isBusyLoading').returns(true);
+    var app1 = new MockAppWindow(fakeAppConfig1);
+    app1.isHomescreen = true;
+    var acn1 = new AppTransitionController(app1);
+    var spy = this.sinon.spy();
+    acn1._transitionState = 'opening';
+    var stubFocus = this.sinon.stub(app1, 'focus');
+    acn1.handleEvent({
+      type: 'animationend',
+      stopPropagation: spy
+    });
+    assert.isTrue(stubFocus.called);
   });
 
   test('Handle opening', function() {
