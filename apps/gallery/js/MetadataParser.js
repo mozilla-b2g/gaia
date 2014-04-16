@@ -29,9 +29,6 @@ var metadataParser = (function() {
     height: THUMBNAIL_HEIGHT
   };
 
-  // Don't try to decode image files of unknown type if bigger than this
-  var MAX_UNKNOWN_IMAGE_FILE_SIZE = .5 * 1024 * 1024; // half a megabyte
-
   // An <img> element for loading images
   var offscreenImage = new Image();
 
@@ -173,7 +170,7 @@ var metadataParser = (function() {
       // The image is not a JPEG, PNG or GIF file. We may still be
       // able to decode and display it but we don't know the image
       // size, so we won't even try if the file is too big.
-      if (file.size > MAX_UNKNOWN_IMAGE_FILE_SIZE) {
+      if (file.size > CONFIG_MAX_UNKNOWN_IMAGE_FILE_SIZE) {
         metadataError('Ignoring large file ' + file.name);
         return;
       }
@@ -239,6 +236,14 @@ var metadataParser = (function() {
       if (metadata.width * metadata.height > imagesizelimit ||
           file.size > filesizelimit) {
         metadataError('Ignoring high-resolution image ' + file.name);
+        return;
+      }
+
+      // If the image is lower resolution but with large file size, like
+      // animated GIF, we also need to block this case.
+      if (file.size > CONFIG_MAX_IMAGE_FILE_SIZE) {
+        metadataError('Ignoring acceptable resolution but large file ' +
+                      file.name);
         return;
       }
 
