@@ -979,13 +979,15 @@ navigator.mozL10n.once(function wifiSettings() {
   // update network state, called only when wifi enabled.
   function updateNetworkState() {
     var networkStatus = gWifiManager.connection.status;
+    var networkProp = gWifiManager.connection.network ?
+        {ssid: gWifiManager.connection.network.ssid} : null;
 
     // networkStatus has one of the following values:
     // connecting, associated, connected, connectingfailed, disconnected.
     gNetworkList.display(gCurrentNetwork, networkStatus);
 
     gWifiInfoBlock.textContent =
-        _('fullStatus-' + networkStatus, gWifiManager.connection.network);
+        _('fullStatus-' + networkStatus, networkProp);
 
     if (networkStatus === 'connectingfailed' && gCurrentNetwork) {
       settings.createLock().set({'wifi.connect_via_settings': false});
