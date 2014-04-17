@@ -44,7 +44,7 @@ suite('KeyboardLayoutManager', function() {
         sinon.assert.calledWith(app.handleLayoutLoaded, 'en');
 
         var layout = layoutManager.getLayout('en');
-        assert.equal(layout.name, 'english');
+        assert.equal(layout.name, 'English');
 
         done();
       });
@@ -76,7 +76,7 @@ suite('KeyboardLayoutManager', function() {
         sinon.assert.calledWith(app.handleLayoutLoaded, 'es');
 
         var layout = layoutManager.getLayout('en');
-        assert.equal(layout.name, 'english');
+        assert.equal(layout.name, 'English');
 
         layout = layoutManager.getLayout('es');
         assert.equal(layout.name, 'Spanish');
@@ -94,7 +94,7 @@ suite('KeyboardLayoutManager', function() {
         sinon.assert.calledWith(app.handleLayoutLoaded, 'en');
 
         var layout = layoutManager.getLayout('en');
-        assert.equal(layout.name, 'english');
+        assert.equal(layout.name, 'English');
 
         done();
       });
@@ -116,7 +116,7 @@ suite('KeyboardLayoutManager', function() {
           sinon.assert.callCount(layoutManager.handleEvent, 0);
 
           var layout = layoutManager.getLayout('en');
-          assert.equal(layout.name, 'english');
+          assert.equal(layout.name, 'English');
           done();
         });
 
