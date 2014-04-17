@@ -2,7 +2,6 @@
 
 /* global require, exports */
 const utils = require('utils');
-const { Cc, Ci } = require('chrome');
 
 const DEBUG = false;
 
@@ -104,108 +103,11 @@ CommAppBuilder.prototype.generateServicesConfig = function() {
     commsServices + ';');
 };
 
-CommAppBuilder.prototype.generateCustomizeResources = function() {
-  if (!this.gaia.distributionDir) {
-    return;
-  }
-  var variantFile = utils.getFile(this.gaia.distributionDir, 'variant.json');
-  if (variantFile.exists()) {
-    var resources = this.getSingleVariantResources(variantFile);
-
-    var resourceDirFile = utils.getFile(this.stageDir.path, 'resources');
-    utils.ensureFolderExists(resourceDirFile);
-    var customizationFile = utils.getFile(this.stageDir.path,
-      'resources', 'customization.json');
-    utils.writeContent(customizationFile, JSON.stringify(resources.conf));
-
-    resources.files.forEach(function(file) {
-      if (file instanceof Ci.nsILocalFile) {
-        file.copyTo(resourceDirFile, file.leafName);
-      } else {
-        var resourceFile = resourceDirFile.clone();
-        resourceFile.append(file.filename);
-        utils.writeContent(resourceFile, JSON.stringify(file.content));
-      }
-    });
-  } else {
-    utils.log('communications', variantFile.path + ' not found. Single' +
-      ' variant resources will not be added.\n');
-  }
-};
-
-CommAppBuilder.prototype.getResource = function(path, resources, json, key) {
-  var distDir = this.gaia.distributionDir;
-  if (path) {
-    var file = utils.getFile(distDir, path);
-    if (!file.exists()) {
-      throw new Error('Invalid single variant configuration: ' +
-                      file.path + ' not found');
-    }
-
-    resources.push(file);
-    json[key] = '/resources/' + file.leafName;
-  }
-};
-
-CommAppBuilder.prototype.getSingleVariantResources = function(conf) {
-  conf = utils.getJSON(conf);
-
-  var output = {};
-  var resources = [];
-  conf.operators.forEach((function(operator) {
-    var object = {};
-
-    this.getResource(operator.wallpaper, resources, object, 'wallpaper');
-    this.getResource(operator.default_contacts,
-      resources, object, 'default_contacts');
-    this.getResource(operator.support_contacts,
-      resources, object, 'support_contacts');
-    this.getResource(operator.keyboard, resources, object, 'keyboardSettings');
-    this.getResource(operator.network_type,
-      resources, object, 'dataiconstatusbar');
-    this.getResource(operator.known_networks,
-      resources, object, 'knownNetworks');
-
-    var ringtone = operator.ringtone;
-    if (ringtone) {
-      var ringtoneName = ringtone.name;
-      if (!ringtoneName) {
-        throw new Error('Missing name for ringtone in single variant conf.');
-      }
-
-      this.getResource(ringtone.path, resources, object, 'ringtone');
-      if (!object.ringtone) {
-        throw new Error('Missing path for ringtone in single variant conf.');
-      }
-
-      // Generate ringtone JSON
-      var uuidGenerator = Cc['@mozilla.org/uuid-generator;1'].
-                            createInstance(Ci.nsIUUIDGenerator);
-      var ringtoneObj = { filename: uuidGenerator.generateUUID().toString() +
-                                    '.json',
-                          content: { uri: object.ringtone,
-                                     name: ringtoneName }};
-
-      resources.push(ringtoneObj);
-      object.ringtone = '/resources/' + ringtoneObj.filename;
-    }
-
-    operator['mcc-mnc'].forEach(function(mcc) {
-      if (Object.keys(object).length !== 0) {
-        output[mcc] = object;
-      }
-    });
-  }).bind(this));
-
-  return {'conf': output, 'files': resources};
-};
-
 CommAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
   this.generateManifest();
   this.generateContactsConfig();
   this.generateServicesConfig();
-  this.generateCustomizeResources();
 };
 
 exports.execute = function(options) {
