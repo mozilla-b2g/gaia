@@ -69,6 +69,7 @@
         {"layoutId": "en", "appManifestURL": "app://keyboard.gaiamobile.org/manifest.webapp"}
     ],
     "hi-IN": [
+        {"layoutId": "hi", "appManifestURL": "app://keyboard.gaiamobile.org/manifest.webapp"},
         {"layoutId": "en", "appManifestURL": "app://keyboard.gaiamobile.org/manifest.webapp"}
     ],
     "hr": [
