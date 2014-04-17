@@ -955,6 +955,10 @@ forward:
 	$(ADB) shell killall rilproxy
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
 
+# install-gaia is alias to build & push to device.
+.PHONY: install-gaia
+install-gaia: $(PROFILE_FOLDER) push
+
 # If your gaia/ directory is a sub-directory of the B2G directory, then
 # you should use:
 #
@@ -962,9 +966,11 @@ forward:
 #
 # But if you're working on just gaia itself, and you already have B2G firmware
 # on your phone, and you have adb in your path, then you can use the
-# install-gaia target to update the gaia files and reboot b2g
-install-gaia: adb-remount $(PROFILE_FOLDER)
-	@$(call run-js-command,install-gaia)
+# push target to update the gaia files and reboot b2g
+.PHONY: push
+push: $(XULRUNNER_BASE_DIRECTORY)
+	@$(ADB) remount
+	@$(call run-js-command,push-to-device)
 
 # Copy demo media to the sdcard.
 # If we've got old style directories on the phone, rename them first.
@@ -1052,10 +1058,6 @@ really-clean: clean
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
-
-.PHONY: adb-remount
-adb-remount:
-	$(ADB) remount
 
 # Generally we got manifest from webapp-manifest.js unless manifest is generated
 # from Makefile of app. so we will copy manifest.webapp if it's avaiable in

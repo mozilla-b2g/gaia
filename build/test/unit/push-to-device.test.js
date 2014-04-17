@@ -5,11 +5,11 @@ var proxyquire = require('proxyquire');
 var mockUtils =
   require('./mock_utils.js');
 
-suite('install-gaia.js', function() {
+suite('push-to-device.js', function() {
   var app;
   setup(function() {
       app = proxyquire.noCallThru().load(
-              '../../install-gaia', {
+              '../../push-to-device', {
                 './utils': mockUtils
               });
       mockUtils.getFileContent = function(file) {
@@ -17,11 +17,11 @@ suite('install-gaia.js', function() {
       };
   });
 
-  suite('installGaia, getPid and installSvoperapps', function() {
+  suite('pushToDevice, getPid and installSvoperapps', function() {
     var profileFolder = 'testProfileFolder';
     var remotePath = 'testRemotePath';
 
-    test('installGaia without indexedDbFile', function(done) {
+    test('pushToDevice without indexedDbFile', function(done) {
       mockUtils.getFile = function() {
         var args = Array.prototype.slice.call(arguments);
         var path = args.join('/');
@@ -36,7 +36,7 @@ suite('install-gaia.js', function() {
           path: profileFolder + '/indexedDB'
         };
       };
-      var queue = app.installGaia(profileFolder, remotePath);
+      var queue = app.pushToDevice(profileFolder, remotePath);
       queue.done(function() {
         assert.deepEqual(
           mockUtils.hasRunCommands,
@@ -53,7 +53,7 @@ suite('install-gaia.js', function() {
       });
     });
 
-    test('installGaia with indexedDbFile', function(done) {
+    test('pushToDevice with indexedDbFile', function(done) {
       mockUtils.getFile = function() {
         var args = Array.prototype.slice.call(arguments);
         var path = args.join('/');
@@ -68,7 +68,7 @@ suite('install-gaia.js', function() {
           path: profileFolder + '/indexedDB'
         };
       };
-      var queue = app.installGaia(profileFolder, remotePath);
+      var queue = app.pushToDevice(profileFolder, remotePath);
       queue.done(function() {
         assert.deepEqual(
           mockUtils.hasRunCommands,

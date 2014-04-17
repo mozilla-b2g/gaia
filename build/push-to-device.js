@@ -6,7 +6,7 @@ var Q = utils.Q;
 
 sh.initPath(utils.getEnvPath());
 
-function installGaia(profileFolder, remotePath) {
+function pushToDevice(profileFolder, remotePath) {
   // MingGW on Windows takes '/remote/src' as 'c:\remote\src' which is
   // not right, so we use two slash before the remote path to prevent it.
   var webapps_path = '/' + remotePath + '/webapps';
@@ -97,7 +97,7 @@ function execute(options) {
     return sh.run(['-c', 'adb shell rm -r //cache/*']);
   }).then(function() {
     if (buildAppName === '*') {
-      return installGaia(profileFolder, remotePath);
+      return pushToDevice(profileFolder, remotePath);
     } else {
       targetFolder = utils.joinPath(
           profileFolder, 'webapps',
@@ -130,4 +130,4 @@ function execute(options) {
 
 exports.execute = execute;
 exports.installSvoperapps = installSvoperapps;
-exports.installGaia = installGaia;
+exports.pushToDevice = pushToDevice;
