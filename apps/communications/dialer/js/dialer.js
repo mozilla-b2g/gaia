@@ -123,6 +123,10 @@ var NavbarManager = {
     if (window.location.hash != '#contacts-view') {
       return;
     }
+    this._contactsHome();
+  },
+
+  _contactsHome: function() {
     var contactsIframe = document.getElementById('iframe-contacts');
     if (!contactsIframe) {
       return;
@@ -162,6 +166,7 @@ var CallHandler = (function callHandler() {
       if (window.location.hash != '#contacts-view') {
         window.location.hash = '#contacts-view';
       }
+      NavbarManager._contactsHome();
     }
   }
 
