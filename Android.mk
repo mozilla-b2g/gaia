@@ -14,8 +14,7 @@ LOCAL_SRC_FILES := profile.tar.gz
 LOCAL_MODULE_PATH := $(TARGET_OUT_DATA)/local
 include $(BUILD_PREBUILT)
 
-# We will keep this flag in .b2g.mk so |./flash.sh gaia| follows
-# will correctly pick up the flags.
+# Collect all flags we need to pass to Gaia Makefile
 GAIA_MAKE_FLAGS :=
 
 GAIA_PROFILE_INSTALL_PARENT := $(TARGET_OUT_DATA)/local
@@ -35,7 +34,6 @@ GAIA_MAKE_FLAGS += GAIA_DEV_PIXELS_PER_PX=$(GAIA_DEV_PIXELS_PER_PX)
 endif
 
 ifeq ($(B2G_SYSTEM_APPS),1)
-GAIA_MAKE_FLAGS += B2G_SYSTEM_APPS=1
 GAIA_APP_INSTALL_PARENT := $(TARGET_OUT)/b2g
 CLEAN_PROFILE := 1
 endif
@@ -70,7 +68,6 @@ $(LOCAL_PATH)/profile.tar.gz:
 ifeq ($(CLEAN_PROFILE), 1)
 	rm -rf $(GAIA_PATH)/profile $(GAIA_PATH)/profile.tar.gz
 endif
-	echo $(GAIA_MAKE_FLAGS) > $(GAIA_PATH)/.b2g.mk
 	$(MAKE) -C $(GAIA_PATH) $(GAIA_MAKE_FLAGS) profile
 	@FOLDERS='webapps'; \
 	if [ -d $(GAIA_PATH)/profile/indexedDB ]; then \

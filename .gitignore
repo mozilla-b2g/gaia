@@ -53,7 +53,6 @@ manifest.appcache
 /build/config/custom-settings.json
 /build_stage/
 /local.mk
-/.b2g.mk
 
 /tools/xpcwindow/vendor/
 
