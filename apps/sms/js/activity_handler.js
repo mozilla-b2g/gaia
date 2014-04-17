@@ -24,6 +24,7 @@ var ActivityHandler = {
     if (!window.location.hash.length) {
       window.navigator.mozSetMessageHandler('sms-received',
         this.onSmsReceived.bind(this));
+      this.pendingSms = 0;
 
       window.navigator.mozSetMessageHandler('notification',
         this.onNotification.bind(this));
@@ -113,6 +114,11 @@ var ActivityHandler = {
         insertAttachments();
       }
     }
+  },
+
+  getEntryPoint: function ah_getEntryPoint() {
+    var href = window.location.href;
+    return href.substr(href.lastIndexOf('/'));
   },
 
   resetActivity: function ah_resetActivity() {
@@ -315,6 +321,22 @@ var ActivityHandler = {
     }
     timeoutID = setTimeout(releaseWakeLock, 30 * 1000);
 
+    // We track the number of pending sms messages so that we can make
+    // sure to process all messages before finally calling window.close.
+    this.pendingSms++;
+
+    function onSmsHandlerComplete() {
+      releaseWakeLock();
+      // If we are in the system message entry point, we close the app upon
+      // completion of handling ALL sms so that we can open the launch_path
+      // the next time we open open the app or get a notification event.
+      ActivityHandler.pendingSms--;
+      if (ActivityHandler.getEntryPoint() === '/message-sms-received.html' &&
+          ActivityHandler.pendingSms === 0) {
+        window.close();
+      }
+    };
+
     // The black list includes numbers for which notifications should not
     // progress to the user. Se blackllist.js for more information.
     var number = message.sender;
@@ -340,13 +362,13 @@ var ActivityHandler = {
           Notify.ringtone();
           Notify.vibrate();
           alert(number + '\n' + message.body);
-          releaseWakeLock();
+          onSmsHandlerComplete();
         });
       };
       return;
     }
     if (BlackList.has(message.sender)) {
-      releaseWakeLock();
+      setTimeout(onSmsHandlerComplete);
       return;
     }
 
@@ -355,7 +377,7 @@ var ActivityHandler = {
       if (!document.hidden) {
         if (threadId === Threads.currentId) {
           navigator.vibrate([200, 200, 200]);
-          releaseWakeLock();
+          onSmsHandlerComplete();
           return;
         }
       }
@@ -387,6 +409,7 @@ var ActivityHandler = {
           // 'mms message' in the field.
           if (needManualRetrieve) {
             setTimeout(function notDownloadedCb() {
+              var str = (navigator.mozL10n.get('notDownloaded-title'));
               callback(navigator.mozL10n.get('notDownloaded-title'));
             });
           }
@@ -422,13 +445,12 @@ var ActivityHandler = {
           }
 
           if (message.type === 'sms') {
-            NotificationHelper.send(sender, message.body, iconURL,
-                                                          goToMessage);
-            releaseWakeLock();
+            NotificationHelper.send(sender, message.body, iconURL, goToMessage);
+            onSmsHandlerComplete();
           } else { // mms
             getTitleFromMms(function textCallback(text) {
               NotificationHelper.send(sender, text, iconURL, goToMessage);
-              releaseWakeLock();
+              onSmsHandlerComplete();
             });
           }
         });
@@ -446,6 +468,7 @@ var ActivityHandler = {
       // message status from sender.
       var status = message.deliveryInfo[0].deliveryStatus;
       if (status === 'pending') {
+        onSmsHandlerComplete();
         return;
       }
 
