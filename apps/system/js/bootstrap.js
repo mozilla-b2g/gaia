@@ -164,14 +164,6 @@ navigator.mozSettings.addObserver(
     lock.set({'clear.remote-windows.data': false});
   });
 
-// Cancel dragstart event to workaround
-// https://bugzilla.mozilla.org/show_bug.cgi?id=783076
-// which stops OOP home screen pannable with left mouse button on
-// B2G/Desktop.
-window.addEventListener('dragstart', function(evt) {
-  evt.preventDefault();
-}, true);
-
 /* === XXX Bug 900512 === */
 // On some devices touching the hardware home button triggers
 // touch events at position 0,0. In order to make sure those does
