@@ -44,6 +44,9 @@ require.config({
     },
     'utils': {
       exports: ''
+    },
+    'shared/device_storage/enumerate_all': {
+      exports: 'enumerateAll'
     }
   },
   modules: [
@@ -142,6 +145,42 @@ require.config({
         'main',
         'modules/mvvm/observable'
       ]
+    },
+    {
+      name: 'panels/wifi/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/wifi_auth/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/wifi_enter_certificate_nickname/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/wifi_join_hidden/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/wifi_manage_certificates/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/wifi_manage_networks/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/wifi_select_certificate_file/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/wifi_status/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/wifi_wps/panel',
+      exclude: ['main']
     }
   ]
 });

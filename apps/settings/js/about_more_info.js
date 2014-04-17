@@ -1,3 +1,4 @@
+/* global SettingsListener */
 'use strict';
 
 var AboutMoreInfo = {
@@ -6,6 +7,14 @@ var AboutMoreInfo = {
     this.loadImei();
     this.loadIccId();
     this.loadGaiaCommit();
+    this.loadMacAddress();
+  },
+
+  loadMacAddress: function about_loadMacAddress() {
+    var field = document.querySelector('[data-name="deviceinfo.mac"]');
+    SettingsListener.observe('deviceinfo.mac', '', function(macAddress) {
+      field.textContent = macAddress;
+    });
   },
 
   loadGaiaCommit: function about_loadGaiaCommit() {
