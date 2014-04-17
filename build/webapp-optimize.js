@@ -583,6 +583,11 @@ function optimize_compile(webapp, file, callback) {
       L10N_OPTIMIZATION_BLACKLIST.indexOf(webapp.sourceDirectoryName) < 0) {
     // selecting a language triggers `XMLHttpRequest' and `dispatchEvent' above
     debug('localizing: ' + file.path);
+
+    // if LOCALE_BASEDIR is set, we're going to show missing strings at 
+    // buildtime.
+    var debugL10n = config.LOCALE_BASEDIR != "";
+    
     // since l10n.js was read before the document was created, we need to
     // explicitly initialize it again via mozL10n.bootstrap, which looks for
     // *.ini links in the HTML and sets up the localization context
@@ -621,7 +626,7 @@ function optimize_compile(webapp, file, callback) {
 
       // notify the world that this HTML document has been optimized
       callback();
-    });
+    }, debugL10n);
   } else {
     callback();
   }

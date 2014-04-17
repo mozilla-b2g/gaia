@@ -4,15 +4,19 @@
   /* jshint validthis:true */
   /* jshint -W104 */
 
-  var DEBUG = true;
+  var DEBUG = false;
   var requiresInlineLocale = false; // netError requires inline locale
 
   var L10n = navigator.mozL10n._getInternalAPI();
 
-  navigator.mozL10n.bootstrap = function bootstrap(callback) {
+  navigator.mozL10n.bootstrap = function bootstrap(callback, debug) {
     var ctx = navigator.mozL10n.ctx = new L10n.Context();
     ctx.ready(onReady.bind(this));
     requiresInlineLocale = false;
+
+    if (debug) {
+      DEBUG = true;
+    }
 
     if (DEBUG) {
       ctx.addEventListener('error', addBuildMessage.bind(this, 'error'));
