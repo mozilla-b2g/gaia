@@ -85,7 +85,8 @@
           app.itemStore.save(app.items);
           break;
         case 'removed':
-          // Locate and uninstall application from grid.
+          // The 'id' of a bookmark is really the url.
+          this.removeIconFromGrid(e.target.id);
           break;
       }
     },
@@ -94,6 +95,15 @@
      * Adds a bookmark icon to the grid.
      */
     addIconToGrid: function(detail) {
+
+      // If there is a pre-existing icon, just update it.
+      var existing = app.icons[detail.id];
+      if (existing) {
+        existing.detail = detail;
+        app.render();
+        return;
+      }
+
       var bookmark = new Bookmark(detail);
       bookmark.setPosition(this.store.getNextPosition());
       this.entries.push(bookmark);
@@ -107,13 +117,17 @@
     /**
      * Removes a bookmark icon from the grid.
      */
-    removeIconFromGrid: function(detail) {
-      var appObject = app.icons[detail.url];
+    removeIconFromGrid: function(url) {
+      var appObject = app.icons[url];
       delete app.icons[appObject.identifier];
 
       var itemIndex = app.items.indexOf(appObject);
       app.items.splice(itemIndex, 1);
       app.render();
+
+      if (appObject.element) {
+        appObject.element.parentNode.removeChild(appObject.element);
+      }
     }
 
   };
