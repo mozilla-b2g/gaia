@@ -245,7 +245,10 @@ suite('system/FxAccountManager >', function() {
     var id = 123;
     var dispatchEventStub;
     setup(function() {
-      dispatchEventStub = this.sinon.stub(window, 'dispatchEvent');
+      dispatchEventStub = this.sinon.stub(window, 'dispatchEvent')
+        .throws('Should send content event');
+      dispatchEventStub.withArgs(sinon.match.has('type',
+                                 'mozFxAccountsRPContentEvent'));
 
       FxAccountsUI._successMsg = 'success';
       FxAccountsManager.handleEvent({
@@ -266,7 +269,7 @@ suite('system/FxAccountManager >', function() {
     });
 
     test('on FxAccountsUI reply sendContentEvent', function() {
-      sinon.assert.calledOnce(dispatchEventStub);
+      assert.isTrue(dispatchEventStub.called);
     });
   });
 
@@ -342,7 +345,10 @@ suite('system/FxAccountManager >', function() {
     var id = 123;
     var dispatchEventStub;
     setup(function() {
-      dispatchEventStub = this.sinon.stub(window, 'dispatchEvent');
+      dispatchEventStub = this.sinon.stub(window, 'dispatchEvent')
+        .throws('Should send content event');
+      dispatchEventStub.withArgs(sinon.match.has('type',
+                                 'mozFxAccountsRPContentEvent'));
 
       FxAccountsUI._successMsg = 'success';
       FxAccountsManager.handleEvent({
@@ -367,7 +373,7 @@ suite('system/FxAccountManager >', function() {
     });
 
     test('on FxAccountsUI reply sendContentEvent', function() {
-      sinon.assert.calledOnce(dispatchEventStub);
+      assert.isTrue(dispatchEventStub.called);
     });
   });
 

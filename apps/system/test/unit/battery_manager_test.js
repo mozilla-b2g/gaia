@@ -117,10 +117,11 @@ suite('battery manager >', function() {
 
       test('should send batteryshutdown when battery is below threshold',
       function() {
-        var dispatchEventStub = this.sinon.stub(window, 'dispatchEvent');
+        var dispatchEventStub = this.sinon.stub(window, 'dispatchEvent')
+          .throws('should send batteryshutdown event');
+        dispatchEventStub.withArgs(sinon.match.has('type', 'batteryshutdown'));
         sendLevelChange(0.00);
-        sinon.assert.calledWithMatch(window.dispatchEvent,
-                                     { type: 'batteryshutdown' });
+        assert.isTrue(dispatchEventStub.called);
       });
     });
 

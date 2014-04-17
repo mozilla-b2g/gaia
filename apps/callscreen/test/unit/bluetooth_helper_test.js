@@ -62,12 +62,12 @@ suite('bluetooth helper', function() {
       var stubDOMReq = {result: ['profiles']};
       this.sinon.stub(MockBTAdapter, 'getConnectedDevices').returns(stubDOMReq);
 
-      var cb = sinon.stub();
+      var cb = sinon.stub().throws('Passing wrong results to callback');
+      cb.withArgs(stubDOMReq.result);
+
       subject.getConnectedDevicesByProfile('stubProfileId', cb);
       stubDOMReq.onsuccess();
-
-      sinon.assert.calledOnce(cb);
-      sinon.assert.calledWithExactly(cb, stubDOMReq.result);
+      assert.isTrue(cb.calledOnce);
     });
 
     test('should connect to sco', function() {

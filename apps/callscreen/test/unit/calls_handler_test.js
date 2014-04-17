@@ -1353,9 +1353,11 @@ suite('calls handler', function() {
         this.sinon.stub(
           MockBluetoothHelperInstance, 'getConnectedDevicesByProfile')
           .yields(['dummyDevice']);
-        var setIconStub = this.sinon.stub(MockCallScreen, 'setBTReceiverIcon');
+        var setIconStub = this.sinon.stub(MockCallScreen, 'setBTReceiverIcon')
+                    .throws('should pass true to setBTReceiverIcon');
+        setIconStub.withArgs(true);
         CallsHandler.setup();
-        sinon.assert.calledOnce(setIconStub);
+        assert.isTrue(setIconStub.calledOnce);
       });
 
       test('should show the speaker button when connected if no bluetooth' +
@@ -1363,9 +1365,11 @@ suite('calls handler', function() {
         this.sinon.stub(
           MockBluetoothHelperInstance, 'getConnectedDevicesByProfile')
           .yields([]);
-        var setIconStub = this.sinon.stub(MockCallScreen, 'setBTReceiverIcon');
+        var setIconStub = this.sinon.stub(MockCallScreen, 'setBTReceiverIcon')
+                    .throws('should pass false to setBTReceiverIcon');
+        setIconStub.withArgs(false);
         CallsHandler.setup();
-        sinon.assert.calledOnce(setIconStub);
+        assert.isTrue(setIconStub.calledOnce);
       });
 
       test('should switch sound to BT receiver when connected', function() {
