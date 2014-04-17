@@ -312,9 +312,11 @@ const IMERender = (function() {
     }
   };
 
-  var toggleCandidatePanel = function(expand) {
+  var toggleCandidatePanel = function(expand, resetScroll) {
     var candidatePanel = activeIme.querySelector('.keyboard-candidate-panel');
-    candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
+    if (resetScroll) {
+      candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
+    }
 
     if (expand) {
       ime.classList.remove('candidate-panel');
@@ -438,7 +440,7 @@ const IMERender = (function() {
         candidatePanel.innerHTML = '';
 
         candidatePanelToggleButton.style.display = 'none';
-        toggleCandidatePanel(false);
+        toggleCandidatePanel(false, false);
         docFragment = candidatesFragmentCode(1, candidates, true);
         candidatePanel.appendChild(docFragment);
       }
