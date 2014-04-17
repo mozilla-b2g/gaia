@@ -2,32 +2,19 @@ require('/shared/js/gesture_detector.js');
 requireLib('timespan.js');
 
 suiteGroup('Views.TimeParent', function() {
+  'use strict';
 
   var testEl;
-  var viewDate = new Date(2012, 1, 15);
   var app;
   var subject;
   var id;
-  var scrollTop;
   var controller;
-
   var TimeParent;
-
-  function mapKeys(map) {
-    return map.items.map(function(item) {
-      return item[0];
-    });
-  }
-
-  function viewActive(id) {
-    var view = subject.frames.get(id);
-    return view.active;
-  }
 
   function ChildView(options) {
     this.date = options.date;
     this.app = options.app;
-    this.id = Calendar.Calc.getDayId(this.date);
+    this.id = this.date.valueOf();
   }
 
   ChildView.prototype = {
@@ -141,7 +128,7 @@ suiteGroup('Views.TimeParent', function() {
 
     test('#_createFrame', function() {
       var date = new Date();
-      var id = Calendar.Calc.getDayId(date);
+      var id = date.valueOf();
       var out = subject._createFrame(date);
 
       assert.instanceOf(out, ChildView);
@@ -159,7 +146,7 @@ suiteGroup('Views.TimeParent', function() {
 
     test('creation and duplication', function() {
       // verify frame is there
-      var id = Calendar.Calc.getDayId(date);
+      var id = date.valueOf();
       var originalFrame = subject.frames.get(id);
       assert.equal(result, originalFrame, 'returns frame');
 
@@ -212,8 +199,7 @@ suiteGroup('Views.TimeParent', function() {
       var nextFrame = subject.frames.get(nextId);
       var prevFrame = subject.frames.get(prevId);
 
-      assert.equal(prevFrame.id, prevId, 'prev frame sanity');
-      assert.equal(nextFrame.id, nextId, 'next frame sanity');
+      assert.equal(prevFrame.id, prevId, 'frame sanity');
 
       assert.ok(!nextFrame.active, 'has next frame (should be inactive)');
       assert.ok(!prevFrame.active, 'has prev frame (should be inactive)');
@@ -258,9 +244,9 @@ suiteGroup('Views.TimeParent', function() {
 
       // verify frames exist
       assert.length(subject.frames, 3, 'trims extra frames when over max');
-      assert.ok(cur, 'cur');
-      assert.ok(prev, 'prev');
-      assert.ok(next, 'next');
+      assert.ok(subject.frames.has(cur), 'cur');
+      assert.ok(subject.frames.has(prev), 'prev');
+      assert.ok(subject.frames.has(next), 'next');
 
       // verify other children where removed
       assert.length(subject.frameContainer.children, 3);
@@ -310,6 +296,7 @@ suiteGroup('Views.TimeParent', function() {
       items = Object.create(null);
 
       function destroy() {
+        /*jshint validthis:true */
         this.destroyed = true;
       }
 

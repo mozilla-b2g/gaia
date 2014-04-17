@@ -1,24 +1,17 @@
+/*global Factory */
+
 requireLib('timespan.js');
 requireLib('interval_tree.js');
 
 window.page = window.page || {};
 
 suite('Controllers.Time', function() {
+  'use strict';
+
   var subject;
   var app;
   var busytimeStore;
   var db;
-
-  function logSpan(span) {
-    if (Array.isArray(span)) {
-      return span.forEach(logSpan);
-    }
-
-    console.log();
-    console.log('START:', new Date(span.start));
-    console.log('END:', new Date(span.end));
-    console.log();
-  }
 
   setup(function(done) {
     app = testSupport.calendar.app();
@@ -312,11 +305,6 @@ suite('Controllers.Time', function() {
     });
 
     test('when given a busytime id (not cached)', function(done) {
-      var expected = {
-        busytime: hasAlarm,
-        event: event
-      };
-
       subject.findAssociated(hasAlarm._id, function(err, data) {
         done(function() {
           assert.length(data, 1, 'has data');
@@ -529,11 +517,6 @@ suite('Controllers.Time', function() {
 
       subject.observe();
       max = subject._maxTimespans;
-
-      var longSpan = new Calendar.Timespan(
-        new Date(2010, 0, 1),
-        new Date(2013, 0, 1)
-      );
 
       subject.on(
         'purge',
@@ -972,7 +955,6 @@ suite('Controllers.Time', function() {
     var stored;
     var spanOfMonth;
     var initialMove;
-    var loadResults;
     var loaded;
 
     suiteSetup(function() {
@@ -1133,20 +1115,20 @@ suite('Controllers.Time', function() {
       // reset timespans
       subject._timespans.length = 0;
 
-      function month(year, month) {
+      function generateSpanOfMonth(year, month) {
         return spanOfMonth(new Date(year, month));
       }
 
       subject.on('loadingComplete', function() {
         done(function() {
           var expected = [
-            month(2010, 11),
-            month(2011, 0),
-            month(2011, 1),
+            generateSpanOfMonth(2010, 11),
+            generateSpanOfMonth(2011, 0),
+            generateSpanOfMonth(2011, 1),
 
-            month(2011, 11),
-            month(2012, 0),
-            month(2012, 1)
+            generateSpanOfMonth(2011, 11),
+            generateSpanOfMonth(2012, 0),
+            generateSpanOfMonth(2012, 1)
           ];
 
           assert.length(subject._timespans, 6);

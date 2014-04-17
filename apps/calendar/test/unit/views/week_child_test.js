@@ -1,6 +1,10 @@
+/*global Factory */
+
 requireLib('timespan.js');
 
 suiteGroup('Views.WeekChild', function() {
+  'use strict';
+
   var subject;
   var app;
   var controller;

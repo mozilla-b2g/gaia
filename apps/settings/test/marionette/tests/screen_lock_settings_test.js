@@ -177,7 +177,8 @@ marionette('manipulate screenLock settings', function() {
         'passcode is still checked');
   });
 
-  test('passcode is enabled, then get changed successfully', function() {
+  // Disabled for intermittent failures. Bug 983171
+  test.skip('passcode is enabled, then get changed successfully', function() {
     var oldCode = '1234';
     var newCode = '4567';
     screenLockPanel.toggleScreenLock();

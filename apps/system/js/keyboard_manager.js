@@ -1,6 +1,6 @@
 'use strict';
 
-// If we get a focuschange event from mozKeyboard for an element with
+// If we get a inputmethod-contextchange chrome event for an element with
 // one of these types, we'll just ignore it.
 // XXX we won't skip these types in the future when we move value selector
 // to an app.
@@ -265,8 +265,9 @@ var KeyboardManager = {
 
     // Skip the <select> element and inputs with type of date/time,
     // handled in system app for now
-    if (!type || type in IGNORED_INPUT_TYPES)
-      return;
+    if (!type || type in IGNORED_INPUT_TYPES) {
+      return this.hideKeyboard();
+    }
 
     var self = this;
     // Before a new focus event we get a blur event
@@ -349,7 +350,7 @@ var KeyboardManager = {
       layoutFrame = this.loadKeyboardLayout(layout);
       // TODO make sure setLayoutFrameActive function is ready
       this.setLayoutFrameActive(layoutFrame, false);
-      layoutFrame.hidden = true;
+      layoutFrame.classList.add('hide');
       layoutFrame.dataset.frameManifestURL = layout.manifestURL;
     }
 
@@ -527,7 +528,7 @@ var KeyboardManager = {
       delete this.keyboardFrameContainer.dataset.transitionOut;
     }
 
-    this.showingLayout.frame.hidden = false;
+    this.showingLayout.frame.classList.remove('hide');
     this.setLayoutFrameActive(this.showingLayout.frame, true);
     this.showingLayout.frame.addEventListener(
          'mozbrowserresize', this, true);
@@ -622,7 +623,7 @@ var KeyboardManager = {
       return;
     }
 
-    frame.hidden = true;
+    frame.classList.add('hide');
     this.setLayoutFrameActive(frame, false);
     frame.removeEventListener('mozbrowserresize', this, true);
   },

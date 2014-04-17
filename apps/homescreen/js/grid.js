@@ -12,7 +12,6 @@ var GridManager = (function() {
 
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
-  var DEVICE_HEIGHT = window.innerHeight;
 
   var HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
 
@@ -35,12 +34,23 @@ var GridManager = (function() {
 
   var container;
 
+  var DEVICE_HEIGHT = window.innerHeight;
   var windowWidth = window.innerWidth;
 
   // This value is used in order to keep the layers onscreen when they are
   // moved on a panel changes. This prevent the layers to be destroyed and
   // recreated on the next move.
   var windowWidthMinusOne = windowWidth - 0.001;
+
+  // This prevents that windowWidth and DEVICE_HEIGHT get 0 when screen is off
+  // and homescreen is relaunched.
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden === false) {
+      windowWidth = window.innerWidth;
+      DEVICE_HEIGHT = window.innerHeight;
+      windowWidthMinusOne = windowWidth - 0.001;
+    }
+  });
 
   var swipeThreshold, swipeFriction, tapThreshold;
 
@@ -807,8 +817,8 @@ var GridManager = (function() {
   var appIcons;
   // Map 'origin' -> app object.
   var appsByOrigin;
-  // Map 'origin' for bookmarks -> bookmark object.
-  var bookmarksByOrigin;
+  // Map 'id' for bookmarks -> bookmark object.
+  var bookmarksById;
 
   function rememberIcon(icon) {
     var descriptor = icon.descriptor;
@@ -947,6 +957,72 @@ var GridManager = (function() {
     });
   }
 
+  function processBookmarks(done) {
+    BookmarksManager.getHomescreenRevisionId(function(homescreenRevisionId) {
+      if (!homescreenRevisionId) {
+        // We have to populate the datastore with bookmarks already installed.
+        // Just the first time after updating the device from 1.4 to 2.0 version
+        var bookmarks = Object.keys(bookmarksById);
+        var numberBookmarks = bookmarks.length;
+        if (numberBookmarks === 0) {
+          // No bookmarks to migrate to the datastore. Basically it means that
+          // user had no bookmarks in 1.4 or it is a new device 2.0
+          mergeBookmarks(done);
+          return;
+        }
+
+        var onProccessed = function() {
+          if (--numberBookmarks === 0) {
+            mergeBookmarks(done);
+          }
+        };
+
+        // At this point we are going to propagate our bookmarks to system
+        bookmarks.forEach(function(id) {
+          BookmarksDatabase.add(bookmarksById[id].getDescriptor()).
+                            then(onProccessed, onProccessed);
+        });
+      } else {
+        BookmarksDatabase.getRevisionId().then(function(systemRevisionId) {
+          if (homescreenRevisionId !== systemRevisionId) {
+            // Not synchronized (bookmarks added/modified/deleted while it was
+            // not running)
+            mergeBookmarks(done);
+          } else {
+            // Same revision in system and home, nothing to do here...
+            done();
+          }
+        }, done);
+      }
+    });
+  }
+
+  function mergeBookmarks(done) {
+    BookmarksDatabase.getAll().then(function(systemBookmarks) {
+      // We are going to iterate over system bookmarks
+      Object.keys(systemBookmarks).forEach(function(id) {
+        if (bookmarksById[id]) {
+          // Deleting from the list because it should not be removed from grid
+          delete bookmarksById[id];
+        }
+        // Adding or updating bookmark
+        processApp(new Bookmark(systemBookmarks[id]));
+      });
+
+      // Deleting bookmarks that are not stored in the datastore. The
+      // homescreen won't show bookmarks that are not in the system
+      Object.keys(bookmarksById).forEach(function(id) {
+        var icon = getIconForBookmark(bookmarksById[id].bookmarkURL);
+        if (icon) {
+          icon.remove();
+          markDirtyState();
+        }
+      });
+
+      done();
+    }, done);
+  }
+
   /*
    * Initialize the mozApps event handlers and synchronize our grid
    * state with the applications known to the system.
@@ -958,6 +1034,13 @@ var GridManager = (function() {
       setTimeout(callback);
       return;
     }
+
+    processBookmarks(function done() {
+      BookmarksManager.updateHomescreenRevisionId();
+      BookmarksManager.attachListeners();
+      bookmarksById = null;
+      ensurePagesOverflow(removeEmptyPages);
+    });
 
     appMgr.oninstall = function oninstall(event) {
       if (Configurator.isSingleVariantReady) {
@@ -988,11 +1071,6 @@ var GridManager = (function() {
         delete iconsByManifestURL[app.manifestURL];
         processApp(app, null, EVME_PAGE_STATE_INDEX);
       });
-
-      for (var origin in bookmarksByOrigin) {
-        appsByOrigin[origin] = bookmarksByOrigin[origin];
-      }
-      bookmarksByOrigin = null;
 
       for (var manifestURL in iconsByManifestURL) {
         var iconsForApp = iconsByManifestURL[manifestURL];
@@ -1035,10 +1113,14 @@ var GridManager = (function() {
           descriptor.type = GridItemsFactory.TYPE.COLLECTION;
         }
         app = GridItemsFactory.create(descriptor);
-        if (haveLocale && app.type === GridItemsFactory.TYPE.COLLECTION) {
-          descriptor.localizedName = _(app.manifest.name);
+        if (app.type === GridItemsFactory.TYPE.COLLECTION) {
+          appsByOrigin[app.origin] = app;
+          if (haveLocale) {
+            descriptor.localizedName = _(app.manifest.name);
+          }
+        } else {
+          bookmarksById[app.id] = app;
         }
-        bookmarksByOrigin[app.origin] = app;
       }
 
       var icon = icons[i] = new Icon(descriptor, app);
@@ -1169,6 +1251,7 @@ var GridManager = (function() {
 
     var descriptor = {
       bookmarkURL: app.bookmarkURL,
+      url: app.url,
       manifestURL: app.manifestURL,
       entry_point: entryPoint,
       updateTime: app.updateTime,
@@ -1308,9 +1391,7 @@ var GridManager = (function() {
   }
 
   function showRestartDownloadDialog(icon) {
-    LazyLoader.load(['shared/style/buttons.css',
-                     'shared/style/headers.css',
-                     'shared/style/confirm.css',
+    LazyLoader.load(['shared/style/confirm.css',
                      'style/request.css',
                      document.getElementById('confirm-dialog'),
                      'js/request.js'], function loaded() {
@@ -1388,7 +1469,7 @@ var GridManager = (function() {
     bookmarkIcons = Object.create(null);
     appIcons = Object.create(null);
     appsByOrigin = Object.create(null);
-    bookmarksByOrigin = Object.create(null);
+    bookmarksById = Object.create(null);
 
     initUI(options.gridSelector);
 

@@ -33,7 +33,8 @@ var mocksForStatusBar = new MocksHelper([
 mocha.globals(['Clock', 'StatusBar', 'lockScreen', 'System']);
 suite('system/Statusbar', function() {
   var mobileConnectionCount = 2;
-  var fakeStatusBarNode, fakeTopPanel;
+  var fakeStatusBarNode, fakeTopPanel, fakeStatusBarBackground,
+    fakeStatusBarIcons;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [];
   var originalLocked;
 
@@ -70,6 +71,14 @@ suite('system/Statusbar', function() {
     fakeTopPanel = document.createElement('div');
     fakeTopPanel.id = 'top-panel';
     document.body.appendChild(fakeTopPanel);
+
+    fakeStatusBarBackground = document.createElement('div');
+    fakeStatusBarBackground.id = 'statusbar-background';
+    document.body.appendChild(fakeStatusBarBackground);
+
+    fakeStatusBarIcons = document.createElement('div');
+    fakeStatusBarIcons.id = 'statusbar-icons';
+    document.body.appendChild(fakeStatusBarIcons);
 
     StatusBar.ELEMENTS.forEach(function testAddElement(elementName) {
       var elt;
@@ -237,11 +246,14 @@ suite('system/Statusbar', function() {
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
     });
-    test('moztime change', function() {
+    test('moztime change while lockscreen is unlocked', function() {
+      var originalLocked = window.lockScreen.locked;
+      window.lockScreen.locked = false;
       var evt = new CustomEvent('moztimechange');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
+      window.lockScreen.locked = originalLocked;
     });
     test('screen enable but screen is unlocked', function() {
       var evt = new CustomEvent('screenchange', {
@@ -1293,6 +1305,44 @@ suite('system/Statusbar', function() {
       StatusBar.handleEvent(evt);
 
       assert.isFalse(StatusBar.element.classList.contains('invisible'));
+    });
+
+    test('homescreenopened should set classes and call show()', function() {
+      var showStub = this.sinon.stub(StatusBar, 'show');
+      var evt = new CustomEvent('homescreenopened');
+      StatusBar.handleEvent(evt);
+      assert.ok(showStub.calledOnce);
+      assert.ok(StatusBar.element.classList.contains('on-homescreen'));
+      assert.ok(StatusBar.background.classList.contains('on-homescreen'));
+      showStub.restore();
+
+    });
+
+    test('homescreenclosing should unset classes', function() {
+      StatusBar.element.classList.add('on-homescreen');
+      StatusBar.background.classList.add('on-homescreen');
+      var evt = new CustomEvent('homescreenclosing');
+      StatusBar.handleEvent(evt);
+      assert.isFalse(StatusBar.element.classList.contains('on-homescreen'));
+      assert.isFalse(StatusBar.background.classList.contains('on-homescreen'));
+    });
+
+    test('rocketbarfocus', function() {
+      var evt = new CustomEvent('rocketbarfocus');
+      StatusBar.handleEvent(evt);
+      assert.ok(StatusBar.element.classList.contains('rocketbar-focused'));
+      assert.ok(StatusBar.background.classList.contains('rocketbar-focused'));
+    });
+
+    test('rocketbarblur', function() {
+      StatusBar.element.classList.add('rocketbar-focused');
+      StatusBar.background.classList.add('rocketbar-focused');
+      var evt = new CustomEvent('rocketbarblur');
+      StatusBar.handleEvent(evt);
+      assert.isFalse(StatusBar.element.classList.
+        contains('rocketbar-focused'));
+      assert.isFalse(StatusBar.background.classList.
+        contains('rocketbar-focused'));
     });
 
     test('the status bar should show when attentionscreen is showing',

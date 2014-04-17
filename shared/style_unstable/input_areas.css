@@ -10,14 +10,14 @@ input[type="url"],
 input[type="number"],
 textarea {
   font-family: sans-serif;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   display: block;
   width: 100%;
   height: 4rem;
+  line-height: 4rem;
   resize: none;
-  padding: 0.3rem 1.5rem 0;
+  padding: 0 1.5rem;
   font-size: 1.6rem;
-  border: 0;
   border: 0.1rem solid #c7c7c7;
   border-radius: 0;
   box-shadow: none; /* override the box-shadow from the system (performance issue) */
@@ -30,18 +30,6 @@ textarea {
   height: 10rem;
   max-height: 10rem;
   line-height: 2rem;
-}
-
-/* fix for required inputs with wrong or empty value e.g. [type=email] */
-input:invalid,
-textarea:invalid {
-  border-bottom: 0.2rem solid #820000;
-  color: #b90000;
-}
-
-input:focus,
-textarea:focus {
-  border-bottom: 0.2rem solid #00caf2;
 }
 
 input::-moz-placeholder,
@@ -66,18 +54,8 @@ textarea[disabled] {
 .skin-dark input[type="number"],
 .skin-dark textarea  {
   color: #fff;
-  background: transparent;
+  background-color: transparent;
   border-color: #858585;
-}
-
-.skin-dark input:focus,
-.skin-dark textarea:focus  {
-  border-bottom: 0.2rem solid #00caf2;
-}
-
-.skin-dark input:invalid,
-.skin-dark textarea:invalid {
-  border-bottom: 0.2rem solid #820000;
 }
 
 form p {
@@ -141,7 +119,7 @@ input[type="datetime"],
 input[type="datetime-local"] {
   border: 0.1rem solid #c7c7c7;
   width: 100%;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   font-family: sans-serif;
   font-style: italic;
   font-size: 1.6rem;
@@ -167,12 +145,74 @@ fieldset[disabled] {
   pointer-events: none;
 }
 
+.skin-dark fieldset legend,
+.skin-dark input[type="date"],
+.skin-dark input[type="time"],
+.skin-dark input[type="datetime"],
+.skin-dark input[type="datetime-local"] {
+  color: #fff;
+  background-color: transparent;
+  border-color: #858585;
+}
+
 fieldset[disabled] legend,
 input[type="date"][disabled],
 input[type="time"][disabled],
 input[type="datetime"][disabled],
 input[type="datetime-local"][disabled] {
   background-image: url(input_areas/images/dialog_disabled.svg);
+  background-color: transparent
+}
+
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="datetime"]:focus,
+input[type="datetime-local"]:focus {
+  box-shadow: none;
+  border-bottom-color: #c7c7c7;
+}
+
+.skin-dark input[type="date"]:focus,
+.skin-dark input[type="time"]:focus,
+.skin-dark input[type="datetime"]:focus,
+.skin-dark input[type="datetime-local"]:focus {
+  box-shadow: none;
+  border-bottom-color: #858585;
+}
+
+input[type="date"]:active,
+input[type="time"]:active,
+input[type="datetime"]:active,
+input[type="datetime-local"]:active {
+  background-color: #b2f2ff;
+  color: #fff;
+}
+
+.skin-dark input[type="date"]:active,
+.skin-dark input[type="time"]:active,
+.skin-dark input[type="datetime"]:active,
+.skin-dark input[type="datetime-local"]:active {
+  background-color: #00aacc;
+  background-image: url(input_areas/images/dialog_active.svg);
+}
+
+
+/* fix for required inputs with wrong or empty value e.g. [type=email] */
+input:invalid,
+textarea:invalid,
+.skin-dark input:invalid,
+.skin-dark textarea:invalid {
+  box-shadow: inset 0 -0.1rem 0 #820000;
+  border-bottom-color: #820000;
+  color: #b90000;
+}
+
+input:focus,
+textarea:focus,
+.skin-dark input:focus,
+.skin-dark textarea:focus {
+  box-shadow: inset 0 -0.1rem 0 #00caf2;
+  border-bottom-color: #00caf2;
 }
 
 /* Tidy (search/submit) */
@@ -199,6 +239,7 @@ form[role="search"] p textarea {
   background: none;
   padding: 0;
   margin: 0;
+  box-shadow: none;
 }
 
 form[role="search"] p textarea {
@@ -229,6 +270,7 @@ form[role="search"].skin-dark p input,
 form[role="search"].skin-dark p textarea {
   color: #fff;
   background: none;
+  box-shadow: none;
 }
 
 form[role="search"] button[type="submit"] {
@@ -252,7 +294,7 @@ form[role="search"] button[type="submit"] {
 form[role="search"] button[type="submit"]:after {
   content: "";
   position: absolute;
-  left: 0;
+  left: -0.1rem;
   top: 0.7rem;
   bottom: 0.7rem;
   width: 0.1rem;
@@ -287,6 +329,11 @@ form[role="search"] button[type="submit"]:active {
   color: #fff;
 }
 
+form[role="search"].skin-dark button.icon:active,
+form[role="search"].skin-dark button[type="submit"]:active {
+  background: #00aacc;
+}
+
 form[role="search"] button[type="submit"][disabled] {
   color: #adadad;
   pointer-events: none;
@@ -295,6 +342,109 @@ form[role="search"] button[type="submit"][disabled] {
 form button::-moz-focus-inner {
   border: none;
   outline: none;
+}
+
+/* .bb-editable - e.g email & SMS recipients */
+.bb-editable [contenteditable] {
+  display: inline-block;
+  box-sizing: border-box;
+  position: relative;
+  max-width: calc(100% - 1.4rem);
+  overflow: hidden;
+  padding: 0 1.5rem;
+  margin: 0 0 0.6rem 0.7rem;
+  line-height: 2.8rem;
+  border-radius: 1.4rem;
+  text-overflow: ellipsis;
+  font-size: 1.6rem;
+  font-style: italic;
+  white-space: nowrap;
+  color: #333;
+  background: #fff;
+}
+
+.bb-editable [contenteditable].icon {
+  padding-right: 3.7rem;
+}
+
+.bb-editable [contenteditable].invalid {
+  background-color: #fedcdc;
+  padding-left: 3.3rem;
+}
+
+.bb-editable [contenteditable=false].invalid:before {
+    content: "!";
+    position: absolute;
+    top: 0.7rem;
+    left: 0.8rem;
+    display: block;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    border-radius: 50%;
+    line-height: 1.4rem;
+    font-size: 1.2rem;
+    text-align: center;
+    font-style: normal;
+    font-weight: 600;
+    text-indent: 0.1rem;
+    color: #fff;
+    background-color: #b80404;
+}
+
+.bb-editable [contenteditable]:hover,
+.bb-editable [contenteditable]:active {
+  color: #fff;
+  background-color: #b2f2ff;
+}
+
+.bb-editable [contenteditable].invalid:hover,
+.bb-editable [contenteditable].invalid:active {
+  color: #fff;
+  background-color: #b2f2ff;
+}
+
+.bb-editable [contenteditable].icon:after {
+  content: "";
+  position: absolute;
+  top: 0.7rem;
+  right: 0;
+  width: 3rem;
+  height: 3rem;
+  background-position: -0.7rem -3.8rem;
+  background-repeat: no-repeat;
+  background-size: 3rem;
+}
+
+.bb-editable [contenteditable].icon:hover:after,
+.bb-editable [contenteditable].icon:active:after {
+  background-position: -0.7rem -0.8rem;
+}
+
+.bb-editable [contenteditable].invalid.icon:after {
+  background-position: -0.7rem -6.8rem;
+}
+
+.bb-editable [contenteditable].invalid.icon:hover:after,
+.bb-editable [contenteditable].invalid.icon:active:after {
+  background-position: -0.7rem -0.8rem;
+}
+
+.bb-editable [contenteditable="true"],
+.bb-editable [contenteditable="true"]:hover,
+.skin-comms .bb-editable [contenteditable="true"]:hover {
+    padding: 0 0.2rem;
+    white-space: normal;
+    font-size: 1.8rem;
+    font-style: normal;
+    color: #000;
+    background: none repeat scroll 0% 0% transparent;
+}
+
+.skin-comms .bb-editable [contenteditable]:hover,
+.skin-comms .bb-editable [contenteditable]:active {
+  color: #fff;
+  background-color: #29bbb5;
 }
 
 /******************************************************************************

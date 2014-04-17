@@ -1,4 +1,6 @@
 suiteGroup('Templates.Day', function() {
+  'use strict';
+
   var subject;
   var dynamicClass = 'happy-class';
 

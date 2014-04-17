@@ -43,6 +43,12 @@ View.prototype = {
     return this.client.waitFor(this.displayed.bind(this));
   },
 
+  waitForHide: function() {
+    return this.client.waitFor(function() {
+      return !this.displayed();
+    }.bind(this));
+  },
+
   /* Form helpers */
 
   setFormValue: function(name, value) {

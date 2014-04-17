@@ -386,7 +386,7 @@ var BluetoothTransfer = {
     var _ = navigator.mozL10n.get;
 
     var cancel = {
-      title: _('continue'),
+      title: _('continueFileTransfer'),
       callback: this.continueTransfer.bind(this)
     };
 

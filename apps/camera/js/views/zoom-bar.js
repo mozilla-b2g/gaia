@@ -127,9 +127,11 @@ module.exports = View.extend({
     el.classList.remove('zooming');
 
     // Force ZoomBar to hide *immediately* on orientation change
-    el.style.transitionDuration = '0ms';
     window.requestAnimationFrame(function() {
-      el.style.transitionDuration = '';
+      el.style.transitionDuration = '0ms';
+      window.requestAnimationFrame(function() {
+        el.style.transitionDuration = '';
+      });
     });
 
     this._orientation = orientation;
@@ -190,12 +192,20 @@ module.exports = View.extend({
   resetInactivityTimeout: function() {
     window.clearTimeout(this._inactivityTimeout);
 
-    this.el.classList.add('zooming');
+    this.show();
 
     var self = this;
     this._inactivityTimeout = window.setTimeout(function() {
-      self.el.classList.remove('zooming');
+      self.hide();
     }, constants.ZOOM_BAR_INACTIVITY_TIMEOUT);
+  },
+
+  show: function() {
+    this.el.classList.add('zooming');
+  },
+
+  hide: function() {
+    this.el.classList.remove('zooming');
   }
 });
 

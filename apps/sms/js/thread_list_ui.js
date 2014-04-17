@@ -273,6 +273,9 @@ var ThreadListUI = {
       // Cleanup the DOM
       this.removeThread(threadId);
 
+      // Remove notification if exist
+      Utils.closeNotificationsForThread(threadId);
+
       if (--count === 0) {
         this.cancelEdit();
         Drafts.store();

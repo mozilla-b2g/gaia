@@ -1,3 +1,5 @@
+/*global Factory */
+
 requireLib('provider/abstract.js');
 requireLib('template.js');
 requireLib('querystring.js');
@@ -7,6 +9,8 @@ requireElements('calendar/elements/show_event.html');
 mocha.globals(['InputParser']);
 
 suiteGroup('Views.ModifyEvent', function() {
+  /*jshint -W027 */
+  'use strict';
   /** disabled because of intermittent failures see bug 917537 */
   return;
 
@@ -28,17 +32,14 @@ suiteGroup('Views.ModifyEvent', function() {
     return newDate;
   }
 
-  function hasClass(value) {
-    return subject.element.classList.contains(value);
-  }
-
   function getEl(name) {
     return subject.getEl(name);
   }
 
   function setFieldValue(name, value) {
     var field = getEl(name);
-    return field.value = value;
+    field.value = value;
+    return field.value;
   }
 
   function fieldValue(name) {
@@ -52,20 +53,6 @@ suiteGroup('Views.ModifyEvent', function() {
     });
 
     return template.render({ value: html });
-  }
-
-  function primaryIsEnabled() {
-    assert.ok(
-      !subject.primaryButton.hasAttribute('aria-disabled'),
-      'button is enabled'
-    );
-  }
-
-  function primaryIsDisabled() {
-    assert.ok(
-      subject.primaryButton.hasAttribute('aria-disabled'),
-      'button is disabled'
-    );
   }
 
   var triggerEvent;
@@ -214,20 +201,19 @@ suiteGroup('Views.ModifyEvent', function() {
         currentCalendar: calendar.remote.name
       };
 
-      var key;
-
       if (overrides) {
-        for (key in overrides) {
+        for (var key in overrides) {
           expected[key] = overrides[key];
         }
       }
 
       function verify() {
+        /*jshint validthis:true */
         if (subject.provider.canCreateEvent) {
           expected.calendarId = this.event.calendarId;
         }
 
-        for (key in expected) {
+        for (var key in expected) {
           if (expected.hasOwnProperty(key)) {
             assert.equal(
               fieldValue(key),
@@ -240,7 +226,7 @@ suiteGroup('Views.ModifyEvent', function() {
         var curCal = getEl('currentCalendar');
         assert.isTrue(curCal.readOnly, 'current calendar readonly');
 
-        var expected = escapeHTML(event.remote.description);
+        expected = escapeHTML(event.remote.description);
 
         assert.equal(
           getEl('description').innerHTML,
@@ -438,7 +424,8 @@ suiteGroup('Views.ModifyEvent', function() {
     });
 
     test('should set startDate and endDate on the event', function() {
-      assert.notEqual(subject.event.startDate.getTime(), startDate.getTime());
+      assert.notEqual(subject.event.startDate.getTime(),
+                      startDate.getTime());
       assert.notEqual(subject.event.endDate.getTime(), endDate.getTime());
       subject._overrideEvent(search);
       assert.equal(subject.event.startDate.getTime(), startDate.getTime());
@@ -520,8 +507,6 @@ suiteGroup('Views.ModifyEvent', function() {
       setFieldValue('endTime', '01:07:00');
       setFieldValue('startTime', '01:08:00');
 
-      var props = subject.formData();
-
       assert.hasProperties(subject.formData(), {
         startDate: new Date(2012, 0, 1),
         endDate: new Date(2012, 0, 3)
@@ -579,7 +564,6 @@ suiteGroup('Views.ModifyEvent', function() {
 
   suite('#deleteRecord', function() {
     var calledWith;
-    var realGo;
 
     setup(function(done) {
       calledWith = null;
@@ -650,7 +634,6 @@ suiteGroup('Views.ModifyEvent', function() {
 
     function haltsOnError(providerMethod) {
       test('does not persist record when provider fails', function(done) {
-        var dispatchesError;
         var err = new Calendar.Error.Authentication();
         subject.showErrors = function(gotErr) {
           done(function() {
@@ -667,14 +650,13 @@ suiteGroup('Views.ModifyEvent', function() {
         subject.primary();
       });
 
-      test('does not invoke provider when validations fails', function(done) {
+      test('does not invoke provider when validations fails',
+        function(done) {
         provider[providerMethod] = function() {
           done(new Error('should not persist record.'));
         };
 
-        var event = subject.event;
         var errors = [new Error('epic fail')];
-        var displayedErrors;
 
         subject.showErrors = function(givenErrs) {
           done(function() {
@@ -788,7 +770,7 @@ suiteGroup('Views.ModifyEvent', function() {
   });
 
   suite('calendar id handling', function() {
-    var accounts = testSupport.calendar.dbFixtures(
+    testSupport.calendar.dbFixtures(
       'account',
       'Account', {
         one: { _id: 55, providerType: 'Mock' }
@@ -1048,7 +1030,8 @@ suiteGroup('Views.ModifyEvent', function() {
         } else {
           defaultAlarmKey = 'standardAlarmDefault';
         }
-        settingStore.set(defaultAlarmKey, defaultValue, function(err, value) {
+        settingStore.set(defaultAlarmKey, defaultValue,
+          function(err, value) {
           provider.createEvent = function(event, callback) {
             var data = subject.formData();
 
@@ -1101,7 +1084,8 @@ suiteGroup('Views.ModifyEvent', function() {
       testDefaultAlarms(isAllDay, defaultValue, done);
     });
 
-    test('Bug 898242 - when allday alarm default is not none', function(done) {
+    test('Bug 898242 - when allday alarm default is not none',
+      function(done) {
       var isAllDay = true;
       var defaultValue = morning;
       testDefaultAlarms(isAllDay, defaultValue, done);
@@ -1165,7 +1149,6 @@ suiteGroup('Views.ModifyEvent', function() {
       });
 
       test('when start & end are same dates (all day)', function() {
-        var model = subject.event;
         var date = new Date(2012, 0, 1);
         var value = InputParser.exportDate(date);
 

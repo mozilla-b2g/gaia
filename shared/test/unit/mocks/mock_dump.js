@@ -1,4 +1,7 @@
+/* global mocha */
 'use strict';
+
+mocha.globals(['DUMP']);
 
 var MockDump = (function() {
   var dump_off = function() {};
@@ -21,3 +24,14 @@ var MockDump = (function() {
 }());
 
 MockDump.disable();
+
+var realDUMP = null;
+
+MockDump.mSetup = function() {
+  realDUMP = window.DUMP;
+  window.DUMP = MockDump.disable();
+};
+
+MockDump.mTeardown = function() {
+  window.DUMP = realDUMP;
+};

@@ -128,6 +128,29 @@ contacts.Search = (function() {
     });
   };
 
+  var updateSearchList = function updateSearchList(cb) {
+    if (!inSearchMode) {
+      if (cb) {
+        cb();
+      }
+      return;
+    }
+
+    window.setTimeout(function() {
+      // Resetting state
+      resetStateAndCache();
+
+      search(cb);
+    });
+  };
+
+  var resetStateAndCache = function resetStateAndCache() {
+    contactNodes = null;
+    searchTextCache = {};
+    resetState();
+  };
+
+
   // Search mode instructions
   var exitSearchMode = function exitSearchMode(evt) {
     if (evt) {
@@ -547,6 +570,7 @@ contacts.Search = (function() {
     'exitSearchMode': exitSearchMode,
     'isInSearchMode': isInSearchMode,
     'enableSearch': enableSearch,
-    'selectRow': selectRow
+    'selectRow': selectRow,
+    'updateSearchList': updateSearchList
   };
 })();

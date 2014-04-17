@@ -133,8 +133,10 @@
   z-index: 4098 !important;
 }
 
-#screen > [data-z-index-level="lockscreen"] {
-  z-index: 2048;
+#screen > [data-z-index-level="app"] > .lockScreenWindow.active
+{
+  /* Or the .appWindow one would be first adopted.*/
+  z-index: 2048 !important;
 }
 
 /* Permission screen is here because of the lockscreen camera. */
@@ -155,7 +157,7 @@
   z-index: 2044;
 }
 
-#screen > [data-z-index-level="search-bar"] {
+#screen > [data-z-index-level="rocketbar-results"] {
   z-index: 2043;
 }
 

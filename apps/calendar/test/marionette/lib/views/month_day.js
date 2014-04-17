@@ -40,7 +40,14 @@ MonthDay.prototype = {
       .text();
   },
 
+  /**
+   * If event is not specified, we'll use today's first event.
+   */
   scrollToEvent: function(event) {
+    if (!event) {
+      event = this.events[0];
+    }
+
     event.scriptWith(function(element) {
       var container = document.getElementById('event-list');
       container.scrollTop = element.offsetTop;

@@ -23,7 +23,7 @@ define(function() {
 
   var lastMotionFilteredTime = 0;
   var lastMotionData = {x: 0, y: 0, z: 0, t: 0};
-  var pendingOrientation = 0;
+  var pendingOrientation = null;
   var orientationChangeTimer = 0;
   var eventListeners = {'orientation': []};
 
@@ -123,20 +123,35 @@ define(function() {
       window.clearTimeout(orientationChangeTimer);
     }
 
-    // create timer for waiting to rotate the phone
-    pendingOrientation = orientation;
-    orientationChangeTimer = window.setTimeout(function doOrient() {
+    // If we don't have any current orientation, then send an event right away
+    // Otherwise, wait to make sure we're stable before sending it.
+    if (pendingOrientation === null) {
+      pendingOrientation = orientation;
       fireOrientationChangeEvent(pendingOrientation);
-      orientationChangeTimer = 0;
-    }, ORIENTATION_CHANGE_INTERVAL);
+    }
+    else {
+      // create timer for waiting to rotate the phone
+      pendingOrientation = orientation;
+      orientationChangeTimer = window.setTimeout(function doOrient() {
+        fireOrientationChangeEvent(pendingOrientation);
+        orientationChangeTimer = 0;
+      }, ORIENTATION_CHANGE_INTERVAL);
+    }
   }
 
   function start() {
+    // Reset our state so that the first devicemotion event we get
+    // will always generate an orientation event.
+    pendingOrientation = null;
     window.addEventListener('devicemotion', handleMotionEvent);
   }
 
   function stop() {
     window.removeEventListener('devicemotion', handleMotionEvent);
+    if (orientationChangeTimer) {
+      clearTimeout(orientationChangeTimer);
+      orientationChangeTimer = 0;
+    }
   }
 
   function addEventListener(type, listener) {

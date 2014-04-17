@@ -1,4 +1,5 @@
 addEventListener('message', function prepare(e) {
+  'use strict';
 
   removeEventListener('message', prepare);
 

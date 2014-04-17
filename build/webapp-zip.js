@@ -208,7 +208,9 @@ function copyBuildingBlock(zip, blockName, dirName, webapp) {
 
   // Compute the nsIFile for this shared style
   let styleFolder = utils.gaia.getInstance(config).sharedFolder.clone();
-  styleFolder.append(dirName);
+  dirName.split('/').forEach(function(segment) {
+    styleFolder.append(segment);
+  });
   let cssFile = styleFolder.clone();
   if (!styleFolder.exists()) {
     throw new Error('Using inexistent shared style: ' + blockName);
@@ -317,6 +319,7 @@ function execute(options) {
         /<(?:script|link).+=['"]\.?\.?\/?shared\/([^\/]+)\/([^''\s]+)("|')/g;
 
     let used = {
+      elements: [],        // List of HTML elements to copy
       js: [],              // List of JS file paths to copy
       locales: [],         // List of locale names to copy
       resources: [],       // List of resources to copy
@@ -326,6 +329,11 @@ function execute(options) {
 
     function sortResource(kind, path) {
       switch (kind) {
+        case 'elements':
+          if (used.elements.indexOf(path) == -1) {
+            used.elements.push(path);
+          }
+          break;
         case 'js':
           if (used.js.indexOf(path) == -1) {
             used.js.push(path);
@@ -370,7 +378,7 @@ function execute(options) {
         // Grep files to find shared/* usages
         let content = utils.getFileContent(file);
         while ((matches = SHARED_USAGE.exec(content)) !== null) {
-          let kind = matches[1]; // js | locales | resources | style
+          let kind = matches[1]; // elements | js | locales | resources | style
           let path = matches[2];
           sortResource(kind, path);
         }
@@ -396,6 +404,22 @@ function execute(options) {
         });
       });
     }
+
+    used.elements.forEach(function(path) {
+      // Compute the nsIFile for this shared JS file
+      let file = gaia.sharedFolder.clone();
+      file.append('elements');
+      path.split('/').forEach(function(segment) {
+        file.append(segment);
+      });
+      if (!file.exists()) {
+        throw new Error('Using inexistent shared HTML file: ' + path +
+                        ' from: ' + webapp.domain);
+      }
+      var pathInZip = '/shared/elements/' + path;
+      var compression = getCompression(pathInZip, webapp);
+      addToZip(zip, pathInZip, file, compression);
+    });
 
     used.js.forEach(function(path) {
       // Compute the nsIFile for this shared JS file
@@ -496,7 +520,11 @@ function execute(options) {
 
     used.styles.forEach(function(name) {
       try {
-        copyBuildingBlock(zip, name, 'style', webapp);
+        let segments = name.split('/');
+        name = segments.pop();
+        segments.unshift('style');
+        let dirName = segments.join('/');
+        copyBuildingBlock(zip, name, dirName, webapp);
       } catch (e) {
         throw new Error(e + ' from: ' + webapp.domain);
       }

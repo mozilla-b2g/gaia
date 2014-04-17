@@ -5,6 +5,8 @@
 
 @import url("../shared/style/confirm.css");
 @import url("../shared/style/buttons.css");
+@import url("../shared/style/action_menu.css");
+@import url("../shared/style/headers.css");
 
 /**
  * App
@@ -13,7 +15,7 @@
 @import url("app.css");
 @import url("icons.css");
 @import url("viewfinder.css");
-@import url("focusring.css");
+@import url("focus-ring.css");
 @import url("controls.css");
 @import url("overlay.css");
 @import url("hud.css");

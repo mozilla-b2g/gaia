@@ -1,3 +1,5 @@
+/*global Factory */
+
 requireLib('responder.js');
 requireLib('db.js');
 
@@ -8,7 +10,7 @@ requireLib('store/abstract.js');
 requireLib('store/calendar.js');
 
 suite('store/calendar', function() {
-
+  'use strict';
 
   var subject;
   var db;
@@ -18,8 +20,6 @@ suite('store/calendar', function() {
   setup(function(done) {
     app = testSupport.calendar.app();
     db = app.db;
-
-    var accountStore = db.getStore('Account');
 
     subject = db.getStore('Calendar');
 

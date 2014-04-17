@@ -24,6 +24,11 @@ var COMMS_APP_ORIGIN = location.origin;
 var SCALE_RATIO = window.innerWidth / 320;
 
 var Contacts = (function() {
+  var SHARED = 'shared';
+  var SHARED_PATH = '/' + SHARED + '/' + 'js';
+  var SHARED_UTILS = 'sharedUtilities';
+  var SHARED_UTILS_PATH = SHARED_PATH + '/contacts/import/utilities';
+
   var navigation = new navigationStack('view-contacts-list');
 
   var goToForm = function edit() {
@@ -299,6 +304,12 @@ var Contacts = (function() {
   var contactListClickHandler = function originalHandler(id) {
     initDetails(function onDetailsReady() {
       contactsList.getContactById(id, function findCb(contact, fbContact) {
+
+        // Enable NFC listening is available
+        if ('mozNfc' in navigator) {
+          contacts.NFC.startListening(contact);
+        }
+
         currentContact = contact;
         currentFbContact = fbContact;
         if (ActivityHandler.currentlyHandling) {
@@ -639,7 +650,7 @@ var Contacts = (function() {
     Contacts.utility('Overlay', function _loaded() {
       contacts.List.show();
       utils.overlay.hide();
-    });
+    }, SHARED_UTILS);
   };
 
   var showStatus = function c_showStatus(message) {
@@ -705,16 +716,21 @@ var Contacts = (function() {
       '/contacts/js/utilities/templates.js',
       '/contacts/js/contacts_shortcuts.js',
       '/contacts/js/contacts_tag.js',
-      '/contacts/js/import_utils.js',
+      SHARED_UTILS_PATH + '/' + 'misc.js',
       '/contacts/js/utilities/normalizer.js',
       '/shared/js/text_normalizer.js',
       '/dialer/js/telephony_helper.js',
       '/contacts/js/sms_integration.js',
-      '/contacts/js/utilities/sdcard.js',
-      '/contacts/js/utilities/vcard_parser.js',
-      '/contacts/js/utilities/status.js',
+      SHARED_UTILS_PATH + '/' + 'sdcard.js',
+      SHARED_UTILS_PATH + '/' + 'vcard_parser.js',
+      SHARED_UTILS_PATH + '/' + 'status.js',
       '/contacts/js/utilities/dom.js'
     ];
+
+    // Lazyload nfc.js if NFC is available
+    if ('mozNfc' in navigator) {
+      lazyLoadFiles.push('/contacts/js/nfc.js');
+    }
 
     LazyLoader.load(lazyLoadFiles, function() {
       var handling = ActivityHandler.currentlyHandling;
@@ -846,7 +862,7 @@ var Contacts = (function() {
     var args = Array.slice(arguments);
     Contacts.utility('Confirm', function viewLoaded() {
       ConfirmDialog.show.apply(ConfirmDialog, args);
-    });
+    }, SHARED);
   }
 
   /**
@@ -859,7 +875,8 @@ var Contacts = (function() {
       Details: loadFacebook,
       Form: loadFacebook
     },
-    utilities: {}
+    utilities: {},
+    sharedUtilities: {}
   };
 
   // Mapping of view names to element IDs
@@ -875,15 +892,27 @@ var Contacts = (function() {
     confirm: 'confirmation-message'
   };
 
-  function load(type, file, callback) {
+  function load(type, file, callback, path) {
     /**
      * Performs the actual lazy loading
      * Called once all dependencies are met
      */
     function doLoad() {
       var name = file.toLowerCase();
-      var toLoad = ['js/' + type + '/' + name + '.js'];
+      var finalPath = 'js' + '/' + type;
 
+      switch (path) {
+        case SHARED:
+          finalPath = SHARED_PATH;
+          break;
+        case SHARED_UTILS:
+          finalPath = SHARED_UTILS_PATH;
+          break;
+        default:
+          finalPath = 'js' + '/' + type;
+      }
+
+      var toLoad = [finalPath + '/' + name + '.js'];
       var node = document.getElementById(elementMapping[name]);
       if (node) {
         toLoad.unshift(node);
@@ -920,8 +949,8 @@ var Contacts = (function() {
    * @param {String} utility name.
    * @param {Function} callback.
    */
-  function loadUtility(utility, callback) {
-    load('utilities', utility, callback);
+  function loadUtility(utility, callback, type) {
+    load('utilities', utility, callback, type);
   }
 
   var updateSelectCountTitle = function updateSelectCountTitle(count) {
@@ -958,6 +987,9 @@ var Contacts = (function() {
     'updateSelectCountTitle': updateSelectCountTitle,
     get asyncScriptsLoaded() {
       return asyncScriptsLoaded;
+    },
+    get SHARED_UTILITIES() {
+      return SHARED_UTILS;
     }
   };
 })();

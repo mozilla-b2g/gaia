@@ -276,6 +276,15 @@ suite('KeyboardManager', function() {
         sinon.assert.calledWith(KeyboardManager.setKeyboardToShow, 'text');
         sinon.assert.notCalled(KeyboardManager.resetShowingKeyboard);
       });
+
+      test('Switching from "text" to "select-one"', function() {
+        simulateInputChangeEvent('text');
+        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+        simulateInputChangeEvent('select-one');
+        this.sinon.clock.tick(BLUR_CHANGE_DELAY);
+
+        sinon.assert.called(KeyboardManager.hideKeyboard);
+      });
     });
 
     suite('keyboard type "url" - has enabled layouts', function() {

@@ -1,9 +1,11 @@
+/*global Factory */
+
 requireLib('interval_tree.js');
 requireLib('timespan.js');
 
 suite('interval_tree', function() {
+  'use strict';
 
-  var tree;
   var subject;
   var items;
   var list;
@@ -198,7 +200,7 @@ suite('interval_tree', function() {
       ];
 
       assert.ok(!subject.byId['just after']);
-      assert.ok(!subject.byId['after']);
+      assert.ok(!subject.byId.after);
 
       var ids = subject.items.map(function(item) {
         return item._id;
@@ -444,8 +446,6 @@ suite('interval_tree', function() {
       test('large dataset with gaps', function() {
         var expected = [];
         var i = 0;
-        var id = 0;
-        var list = [];
 
         // create some out of range in lower bounds
         for (i = 0; i < 1021; i++) {
@@ -516,7 +516,6 @@ suite('interval_tree', function() {
       });
 
       test('basic middle query', function() {
-        var begin = window.performance.now();
         var range = new Calendar.Timespan(
           expectedRange.start,
           expectedRange.end

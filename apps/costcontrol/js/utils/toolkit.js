@@ -1,18 +1,11 @@
-
+/* global DEBUGGING */
+/* exported _, deepCopy, Toolkit */
 'use strict';
 
 var _ = function cc_fallbackTranslation(keystring) {
-  var r = navigator.mozL10n.get.apply(this, arguments);
+  var r = window.navigator.mozL10n.get.apply(this, arguments);
   return r || (DEBUGGING ? '!!' : '') + keystring;
 };
-
-function toMidnight(date) {
-  date.setHours(0);
-  date.setMinutes(0);
-  date.setSeconds(0);
-  date.setMilliseconds(0);
-  return date;
-}
 
 // Deep copy algorithm with Data support
 function deepCopy(object) {
@@ -50,10 +43,7 @@ Object.prototype.extend = function _extend() {
   return this;
 };
 
-var NOP = function() {};
-
 var Toolkit = {
-
   checkEnoughDelay: function(threshold, dateA, dateB) {
     if (!dateA) {
       return true;
@@ -61,6 +51,14 @@ var Toolkit = {
 
     var end = dateB || new Date();
     return (end.getTime() - dateA.getTime()) > threshold;
+  },
+
+  toMidnight: function _toMidnight(date) {
+    date.setHours(0);
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+    return date;
   }
 
 };

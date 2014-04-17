@@ -3,7 +3,8 @@
 /* global MockMozL10n */
 /* global utils */
 
-requireApp('communications/contacts/js/utilities/import_from_vcard.js');
+require('/shared/js/contacts/import/utilities/import_from_vcard.js');
+
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_file_reader.js');

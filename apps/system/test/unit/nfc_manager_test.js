@@ -1,28 +1,42 @@
 'use strict';
 
+mocha.globals(['NfcManager', 'ScreenManager']);
+
 /* globals MocksHelper,
-           MozNDEFRecord, NfcBuffer, NDEF, NfcUtils, NfcManagerUtils */
+           MozNDEFRecord, NfcBuffer, NDEF, NfcUtils, NfcManagerUtils,
+           NfcManager */
 
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/nfc_utils.js');
+require('/test/unit/mock_screen_manager.js');
+requireApp('system/test/unit/mock_activity.js');
+requireApp('system/test/unit/mock_screen_manager.js');
+requireApp('system/test/unit/mock_settingslistener_installer.js');
 requireApp('system/js/nfc_manager_utils.js');
+requireApp('system/js/nfc_manager.js');
 
 var mocksForNfcUtils = new MocksHelper([
-  'MozNDEFRecord'
+  'MozActivity',
+  'MozNDEFRecord',
+  'ScreenManager'
 ]).init();
 
-suite('Nfc Utility functions', function() {
+suite('Nfc Manager Functions', function() {
 
+  var sinon;
   mocksForNfcUtils.attachTestHelpers();
 
-  suiteSetup(function() {
+  setup(function() {
+    sinon = this.sinon;
   });
 
-  suite('nfc uint8array utils', function() {
+  suite('NFC Utils', function() {
+
     var string1;
     var uint8array1;
 
-    suiteSetup(function() {
+    setup(function() {
       string1 = 'StringTestString ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       uint8array1 = new Uint8Array([0x53, 0x74, 0x72, 0x69, 0x6e, 0x67,
                                     0x54, 0x65, 0x73, 0x74,
@@ -68,7 +82,7 @@ suite('Nfc Utility functions', function() {
     var urlNDEF; // MozNDEFRecord
     var urlU8a; // Uint8Array
 
-    suiteSetup(function() {
+    setup(function() {
       var tnf     = NDEF.TNF_WELL_KNOWN;
       var type    = NDEF.RTD_URI;
       var id      = new Uint8Array(); // no id.
@@ -157,6 +171,108 @@ suite('Nfc Utility functions', function() {
 
       var equal1 = NfcUtils.equalArrays(hsNDEFU8a2, hsNDEFU8a1);
       assert.equal(equal1, true);
+    });
+
+  });
+
+  suite('Activity Routing', function() {
+    var vcard;
+    var activityInjection1;
+    var activityInjection2;
+    var activityInjection3;
+
+    setup(function() {
+      vcard = 'BEGIN:VCARD\n';
+      vcard += 'VERSION:2.1\n';
+      vcard += 'N:Office;Mozilla;;;\n';
+      vcard += 'FN:Mozilla Office\n';
+      vcard += 'TEL;PREF:1-555-555-5555\n';
+      vcard += 'END:VCARD';
+
+      activityInjection1 = {
+        type: 'techDiscovered',
+        techList: ['P2P','NDEF'],
+        records: [{
+          tnf: NDEF.TNF_MIME_MEDIA,
+          type: NfcUtils.fromUTF8('text/vcard'),
+          id: new Uint8Array(),
+          payload: NfcUtils.fromUTF8(vcard)
+        }],
+        sessionToken: '{e9364a8b-538c-4c9d-84e2-e6ce524afd17}'
+      };
+      activityInjection2 = {
+        type: 'techDiscovered',
+        techList: ['P2P','NDEF'],
+        records: [{
+          tnf: NDEF.TNF_MIME_MEDIA,
+          type: NfcUtils.fromUTF8('text/x-vcard'),
+          id: new Uint8Array(),
+          payload: NfcUtils.fromUTF8(vcard)
+        }],
+        sessionToken: '{e9364a8b-538c-4c9d-84e2-e6ce524afd18}'
+      };
+      activityInjection3 = {
+        type: 'techDiscovered',
+        techList: ['P2P','NDEF'],
+        records: [{
+          tnf: NDEF.TNF_MIME_MEDIA,
+          type: NfcUtils.fromUTF8('text/x-vCard'),
+          id: new Uint8Array(),
+          payload: NfcUtils.fromUTF8(vcard)
+        }],
+        sessionToken: '{e9364a8b-538c-4c9d-84e2-e6ce524afd19}'
+      };
+    });
+
+    test('text/vcard', function() {
+      var stubFormatVCardRecord = sinon.spy(NfcManager, 'formatVCardRecord');
+
+      NfcManager.handleTechnologyDiscovered(activityInjection1);
+      assert.isTrue(stubFormatVCardRecord.calledOnce);
+
+      NfcManager.handleTechnologyDiscovered(activityInjection2);
+      assert.isTrue(stubFormatVCardRecord.calledTwice);
+
+      NfcManager.handleTechnologyDiscovered(activityInjection3);
+      assert.isTrue(stubFormatVCardRecord.calledThrice);
+
+      stubFormatVCardRecord.restore();
+    });
+  });
+
+  suite('NFC Manager Dispatch Events', function() {
+    var aUUID = '{4f4787c4-51f0-4288-8caf-55d440303b0b}';
+    var vcard;
+
+    setup(function() {
+      vcard = 'BEGIN:VCARD\n';
+      vcard += 'VERSION:2.1\n';
+      vcard += 'END:VCARD';
+    });
+
+    test('NFC Manager Outgoing DispatchEvents', function() {
+      var command = {
+        sessionToken: aUUID,
+        techList: ['NDEF'],
+        records: [{
+          tnf: NDEF.TNF_MIME_MEDIA,
+          type: NfcUtils.fromUTF8('text/vcard'),
+          id: new Uint8Array(),
+          payload: NfcUtils.fromUTF8(vcard)
+        }]
+      };
+
+      var stubDispatchEvent = sinon.stub(window, 'dispatchEvent');
+
+      NfcManager.handleTechnologyDiscovered(command);
+      stubDispatchEvent.getCall(0).calledWith({ type: 'nfc-tech-discovered',
+                                                bubbles: false });
+
+      NfcManager.handleTechLost(command);
+      stubDispatchEvent.getCall(0).calledWith({ type: 'nfc-tech-lost',
+                                                bubbles: false });
+
+      stubDispatchEvent.restore();
     });
 
   });

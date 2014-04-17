@@ -83,6 +83,17 @@ var NfcHandoverManager = {
 
   init: function init() {
     var self = this;
+
+    if (this.bluetooth.enabled) {
+      this.debug('Bluetooth already enabled on boot');
+      var req = this.bluetooth.getDefaultAdapter();
+      req.onsuccess = function bt_getAdapterSuccess() {
+        self.defaultAdapter = req.result;
+        self.debug('MAC address: ' + self.defaultAdapter.address);
+        self.debug('MAC name: ' + self.defaultAdapter.name);
+      };
+    }
+
     window.addEventListener('bluetooth-adapter-added', function() {
       self.debug('bluetooth-adapter-added');
       var req = self.bluetooth.getDefaultAdapter();
@@ -197,7 +208,7 @@ var NfcHandoverManager = {
     var nfcPeer = this.nfc.getNFCPeer(session);
     var carrierPowerState = this.bluetooth.enabled ? 1 : 2;
     var mac = this.defaultAdapter.address;
-    var hs = NfcUtils.encodeHandoverSelect(mac, carrierPowerState);
+    var hs = NfcManagerUtils.encodeHandoverSelect(mac, carrierPowerState);
     var req = nfcPeer.sendNDEF(hs);
     var self = this;
     req.onsuccess = function() {

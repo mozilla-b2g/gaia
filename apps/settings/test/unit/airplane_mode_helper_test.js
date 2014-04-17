@@ -33,6 +33,31 @@ suite('AirplaneModeHelper > ', function() {
     });
   });
 
+  suite('ready > ', function() {
+    var fakeCallback = sinon.spy();
+
+    suite('without _cachedStatus', function() {
+      setup(function() {
+        AirplaneModeHelper._cachedStatus = '';
+        this.sinon.stub(AirplaneModeHelper, 'addEventListener');
+        AirplaneModeHelper.ready(fakeCallback);
+      });
+      test('we would register on eventListener', function() {
+        assert.ok(AirplaneModeHelper.addEventListener.called);
+        assert.isFalse(fakeCallback.called);
+      });
+    });
+    suite('with _cachedStatus', function() {
+      setup(function() {
+        AirplaneModeHelper._cachedStatus = 'enabled';
+        AirplaneModeHelper.ready(fakeCallback);
+      });
+      test('we would execute the callback directly', function() {
+        assert.ok(fakeCallback.called);
+      });
+    });
+  });
+
   suite('getStatus > ', function() {
     var fakeStatus;
     setup(function() {
@@ -99,6 +124,16 @@ suite('AirplaneModeHelper > ', function() {
   });
 
   suite('setEnabled > ', function() {
+    suite('we would call ready first', function() {
+      setup(function() {
+        this.sinon.stub(AirplaneModeHelper, 'ready');
+        AirplaneModeHelper._cachedStatus = 'enabled';
+        AirplaneModeHelper.setEnabled(true);
+      });
+      test('to make sure _cachedStatus is ready', function() {
+        assert.ok(AirplaneModeHelper.ready.called);
+      });
+    });
     suite('setEnabled(true) when enabling', function() {
       setup(function() {
         AirplaneModeHelper._cachedStatus = 'enabling';

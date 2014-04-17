@@ -44,7 +44,7 @@
  * TODO: Implement self-balancing and real tree mutations.
  */
 Calendar.IntervalTree = (function() {
-
+  'use strict';
   /**
    * Internal function to add an item
    * to an array via binary search insert.
@@ -90,6 +90,7 @@ Calendar.IntervalTree = (function() {
    * @param {Object} item object with [START] & [END] properties.
    */
   function buildEndpoints(item) {
+    /*jshint validthis:true */
     addOrdered(item[START], this);
     addOrdered(item[END], this);
   }
@@ -218,7 +219,7 @@ Calendar.IntervalTree = (function() {
 
     this.byId = Object.create(null);
     this.synced = false;
-  };
+  }
 
   IntervalTree.prototype = {
 
@@ -246,8 +247,9 @@ Calendar.IntervalTree = (function() {
     index: function(property, value) {
       var items = this._indexes[property];
 
-      if (items && value)
+      if (items && value) {
         return items[value];
+      }
 
       return items;
     },
@@ -266,8 +268,9 @@ Calendar.IntervalTree = (function() {
         var value = object[property];
 
         // create array for index possibilities
-        if (!index[value])
+        if (!index[value]) {
           index[value] = [];
+        }
 
         // and push single object to index
         index[value].push(object);
@@ -297,8 +300,9 @@ Calendar.IntervalTree = (function() {
     add: function(item) {
       var id = this._getId(item);
 
-      if (id in this.byId)
+      if (id in this.byId) {
         return;
+      }
 
 
       if (!item[START] && item.startDate) {
@@ -450,8 +454,9 @@ Calendar.IntervalTree = (function() {
 
       var max = this.items.length - 1;
 
-      if (!this.items[idx])
+      if (!this.items[idx]) {
         return;
+      }
 
 
       // for duplicate values we need
@@ -505,8 +510,9 @@ Calendar.IntervalTree = (function() {
 
       var max = items.length - 1;
 
-      if (!items[idx])
+      if (!items[idx]) {
         return;
+      }
 
       // for duplicate values we need
       // to find the very last one
@@ -567,11 +573,13 @@ Calendar.IntervalTree = (function() {
       }, this);
 
       // recurse - create left/right nodes.
-      if (left.length)
+      if (left.length) {
         rootNode.left = this._nodeFromList(left);
+      }
 
-      if (right.length)
+      if (right.length) {
         rootNode.right = this._nodeFromList(right);
+      }
 
       return rootNode;
     }

@@ -1,16 +1,22 @@
 'use strict';
-/* global Search, eme, Promise */
+/* global Search, eme, Promise, MockNavigatorSettings */
 
+requireApp('search/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('search/shared/js/settings_listener.js');
 requireApp('search/js/eme/eme.js');
+requireApp('search/js/eme/api.js');
 requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');
 requireApp('search/js/providers/bgimage.js');
 
 suite('search/providers/bgimage', function() {
 
-  var fakeElement, stubById, subject;
+  var fakeElement, stubById, subject, realSettings;
 
   setup(function(done) {
+    realSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+
     fakeElement = document.createElement('div');
     fakeElement.style.cssText = 'height: 100px; display: block;';
     stubById = this.sinon.stub(document, 'getElementById')
@@ -23,6 +29,7 @@ suite('search/providers/bgimage', function() {
   });
 
   teardown(function() {
+    navigator.mozSettings = realSettings;
     stubById.restore();
   });
 

@@ -1,3 +1,5 @@
+/*global Factory */
+
 requireLib('responder.js');
 requireLib('db.js');
 requireLib('store/abstract.js');
@@ -5,6 +7,8 @@ requireLib('models/account.js');
 requireApp('calendar/test/unit/helper.js');
 
 suite('store/abstract', function() {
+  'use strict';
+
   var subject;
   var db;
   var app;
@@ -142,8 +146,9 @@ suite('store/abstract', function() {
 
         function next() {
           pending--;
-          if (!pending)
+          if (!pending) {
             complete();
+          }
         }
 
         function complete() {
@@ -323,9 +328,6 @@ suite('store/abstract', function() {
 
   suite('#all', function() {
     var ids = [];
-    var all;
-    var result;
-    var eventFired;
 
     setup(function() {
       ids.length = 0;
@@ -411,8 +413,9 @@ suite('store/abstract', function() {
       }
 
       subject.all(function(err, data) {
-        if (err)
+        if (err) {
           done(err);
+        }
 
         result = data;
         done(verify);

@@ -4,6 +4,8 @@ requireLib('calc.js');
 //Worth noting that these tests will fail
 //in horrible ways outside of US timezone.
 suite('calendar/calc', function() {
+  'use strict';
+
   var subject, mocked = {};
 
   setup(function() {
@@ -26,15 +28,6 @@ suite('calendar/calc', function() {
     subject[fn] = function() {
       return value;
     };
-  }
-
-  function removeOffset(date) {
-    return date.valueOf() - currentOffset();
-  }
-
-  function currentOffset() {
-    var date = new Date();
-    return (date.getTimezoneOffset() * (60 * 1000));
   }
 
   suite('#isOnlyDate', function() {
@@ -709,7 +702,6 @@ suite('calendar/calc', function() {
 
   suite('#dateFromId', function() {
     var id,
-        result,
         date = new Date(2012, 7, 3);
 
     suite('from day', function() {

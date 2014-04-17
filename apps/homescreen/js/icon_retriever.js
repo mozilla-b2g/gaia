@@ -99,8 +99,9 @@ var IconRetriever = (function() {
 
     if (retry) {
       pendingRequests[uid] = pendingRequests[uid] || ongoingRequests[uid];
-      delete ongoingRequests[uid];
     }
+
+    delete ongoingRequests[uid];
   }
 
   function online() {

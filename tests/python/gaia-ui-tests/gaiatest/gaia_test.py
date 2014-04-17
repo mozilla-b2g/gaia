@@ -600,6 +600,11 @@ class Accessibility(object):
             'return Accessibility.isHidden.apply(Accessibility, arguments)',
             [element], special_powers=True)
 
+    def is_disabled(self, element):
+        return self.marionette.execute_async_script(
+            'return Accessibility.isDisabled.apply(Accessibility, arguments)',
+            [element], special_powers=True)
+
     def click(self, element):
         self.marionette.execute_async_script(
             'Accessibility.click.apply(Accessibility, arguments)',
@@ -804,6 +809,7 @@ class GaiaDevice(object):
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('GaiaLockScreen.lock()')
         assert result, 'Unable to lock screen'
+        Wait(self.marionette).until(lambda m: m.find_element(By.CSS_SELECTOR, 'div.lockScreenWindow.active'))
 
     def unlock(self):
         self.marionette.switch_to_frame()
@@ -866,6 +872,10 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.cleanup_gaia(full_reset=False)
         else:
             self.cleanup_gaia(full_reset=True)
+
+        if self.device.is_android_build:
+            # TODO Bug 990580 - workaround to avoid launch() timeout failures 
+            time.sleep(10)
 
     def cleanup_data(self):
         self.device.manager.removeDir('/cache/*')

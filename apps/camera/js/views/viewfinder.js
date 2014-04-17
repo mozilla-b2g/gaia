@@ -19,32 +19,32 @@ var lastTouchA = null;
 var lastTouchB = null;
 var isScaling = false;
 var isZoomEnabled = false;
-var sensitivity = constants.ZOOM_GESTURE_SENSITIVITY;
+var sensitivity;
 var scaleSizeTo = {
   fill: CameraUtils.scaleSizeToFillViewport,
   fit: CameraUtils.scaleSizeToFitViewport
 };
 
 var getNewTouchA = function(touches) {
-  if (!lastTouchA) return null;
+  if (!lastTouchA) { return null; }
   for (var i = 0, length = touches.length, touch; i < length; i++) {
     touch = touches[i];
-    if (touch.identifier === lastTouchA.identifier) return touch;
+    if (touch.identifier === lastTouchA.identifier) { return touch; }
   }
   return null;
 };
 
 var getNewTouchB = function(touches) {
-  if (!lastTouchB) return null;
+  if (!lastTouchB) { return null; }
   for (var i = 0, length = touches.length, touch; i < length; i++) {
     touch = touches[i];
-    if (touch.identifier === lastTouchB.identifier) return touch;
+    if (touch.identifier === lastTouchB.identifier) { return touch; }
   }
   return null;
 };
 
 var getDeltaZoom = function(touchA, touchB) {
-  if (!touchA || !lastTouchA || !touchB || !lastTouchB) return 0;
+  if (!touchA || !lastTouchA || !touchB || !lastTouchB) { return 0; }
 
   var oldDistance = Math.sqrt(
                       Math.pow(lastTouchB.pageX - lastTouchA.pageX, 2) +
@@ -81,6 +81,8 @@ module.exports = View.extend({
     this.els.frame = this.find('.js-frame');
     this.els.video = this.find('.js-video');
     this.els.videoContainer = this.find('.js-video-container');
+
+    sensitivity = constants.ZOOM_GESTURE_SENSITIVITY * window.innerWidth;
   },
 
   onClick: function(e) {
@@ -169,7 +171,7 @@ module.exports = View.extend({
    * pinch-to-zoom gestures can correctly adjust the current zoom
    * level in the event that the zoom level is changed outside of
    * the pinch-to-zoom gesture (e.g.: ZoomBar). This gets called
-   * when the `Camera` emits a `zoomChange` event.
+   * when the `Camera` emits a `zoomchanged` event.
    */
   setZoom: function(zoom) {
     if (!isZoomEnabled) {
@@ -182,28 +184,15 @@ module.exports = View.extend({
   /**
    * Adjust the scale of the <video/> tag to compensate for the inability
    * of the Camera API to zoom the preview stream beyond a certain point.
-   * This gets called when the `Camera` emits a `zoomChange` event and is
+   * This gets called when the `Camera` emits a `zoomchanged` event and is
    * calculated by `Camera.prototype.getZoomPreviewAdjustment()`.
    */
   setZoomPreviewAdjustment: function(zoomPreviewAdjustment) {
     this.els.video.style.transform = 'scale(' + zoomPreviewAdjustment + ')';
   },
 
-  setPreviewStream: function(previewStream) {
-    this.els.video.mozSrcObject = previewStream;
-  },
-
-  setStream: function(stream, done) {
-    this.setPreviewStream(stream);
-    this.startPreview();
-  },
-
-  startPreview: function() {
-    this.els.video.play();
-  },
-
-  stopPreview: function() {
-    this.els.video.pause();
+  stopStream: function() {
+    this.els.video.mozSrcObject = null;
   },
 
   fadeOut: function(done) {
@@ -247,7 +236,6 @@ module.exports = View.extend({
   updatePreview: function(preview, sensorAngle, mirrored) {
     var elementWidth = this.el.clientWidth;
     var elementHeight = this.el.clientHeight;
-
     var aspect;
 
     // Invert dimensions if the camera's `sensorAngle` is

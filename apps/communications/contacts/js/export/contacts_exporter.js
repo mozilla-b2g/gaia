@@ -173,7 +173,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
         progress.setTotal(contacts.length);
         strategy.setProgressStep(progress.update);
       }
-    });
+    }, Contacts.SHARED_UTILITIES);
   };
 
   return {

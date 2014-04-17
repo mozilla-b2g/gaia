@@ -8,6 +8,7 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <script defer src="shared/js/url_helper.js"></script>
     <script defer src="shared/js/utilities.js"></script>
+    <script defer src="shared/js/settings_listener.js"></script>
     <script defer src="js/search.js"></script>
     <script defer src="js/eme/eme.js"></script>
     <script defer src="js/eme/api.js"></script>
@@ -24,7 +25,8 @@
     <script defer src="shared/js/l10n.js"></script>
   <head>
   <body>
-    <div id="search-results">
+
+    <div id="search-results" class="hidden">
       <section id="suggestions" class="suggestions"></section>
       <section id="contacts" class="local"></section>
       <section id="places" class="local"></section>
@@ -32,6 +34,15 @@
         <section id="localapps"></section>
         <section id="marketplace"></section>
         <section id="webresults"></section>
-    </section>
+      </section>
+    </div>
+
+    <div id="newtab-page" class="hidden">
+      <h2><span data-l10n-id="top-sites">TOP SITES</span></h2>
+      <section id="top-sites"></section>
+      <h2><span data-l10n-id="history">HISTORY</span></h2>
+      <section id="history" class="local"></section>
+    </div>
+
   </body>
 </html>

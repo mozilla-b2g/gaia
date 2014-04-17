@@ -38,10 +38,6 @@ Evme.Utils = new function Evme_Utils() {
       protocol = document.location.protocol,
       homescreenOrigin = protocol + '//homescreen.' + domain;
 
-  // reduce this from our icons that should be the same as the OS
-  // since OS icons have some transparent padding to them
-  this.OS_ICON_PADDING = 2;
-
   this.PIXEL_RATIO_NAMES = {
     NORMAL: 'normal',
     HIGH: 'high'
@@ -65,8 +61,8 @@ Evme.Utils = new function Evme_Utils() {
   this.APPS_FONT_SIZE = 13 * (window.devicePixelRatio || 1);
   this.APP_NAMES_SHADOW_OFFSET_X = 0;
   this.APP_NAMES_SHADOW_OFFSET_Y = 1;
-  this.APP_NAMES_SHADOW_BLUR = 4;
-  this.APP_NAMES_SHADOW_COLOR = 'rgba(0, 0, 0, 0.9)';
+  this.APP_NAMES_SHADOW_BLUR = 2;
+  this.APP_NAMES_SHADOW_COLOR = 'rgba(0, 0, 0, 1)';
 
   this.PIXEL_RATIO_NAME =
     (window.devicePixelRatio > 1) ?
@@ -320,40 +316,6 @@ Evme.Utils = new function Evme_Utils() {
     }
 
     return arrayOrigin;
-  };
-
-  // resize = false: use the icon's size, but pad it
-  // resize = true: resize the icon to the OS' size
-  this.padIconForOS = function padIconForOS(options) {
-    var icon = options.icon,
-      resize = !! options.resize,
-      callback = options.callback;
-
-    if (typeof icon === 'string') {
-      var src = icon;
-      icon = new Image();
-      icon.onload = handleIcon;
-      icon.src = src;
-    } else {
-      handleIcon();
-    }
-
-    function handleIcon() {
-      var padding = self.OS_ICON_PADDING,
-          width = resize ? OS_ICON_SIZE : icon.width,
-          height = resize ? OS_ICON_SIZE : icon.height,
-          newWidth = width - padding,
-          newHeight = height - padding,
-          elCanvas = document.createElement('canvas'),
-          context = elCanvas.getContext('2d');
-
-      elCanvas.width = width;
-      elCanvas.height = height;
-      context.drawImage(icon, (width - newWidth) / 2, (height - newHeight) / 2,
-        newWidth, newHeight);
-
-      callback(elCanvas.toDataURL());
-    }
   };
 
   this.getRoundIcon = function getRoundIcon(options, callback) {

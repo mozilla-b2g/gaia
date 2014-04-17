@@ -68,14 +68,18 @@
 /** Camera Button
  ---------------------------------------------------------*/
 
+/**
+ * 1. Hidden by default
+ */
+
 .hud_camera {
   font-size: 2.6rem;
   transition: opacity 300ms;
-  opacity: 0;
+  opacity: 0; /* 1 */
 }
 
 /**
- * @camera-enabled
+ * camera-enabled=true
  */
 
 .hud[camera-enabled=true] .hud_camera {
@@ -83,33 +87,26 @@
 }
 
 /**
- * @camera-hidden
+ * camera-enabled=false
  */
 
-.hud.camera-hidden .hud_camera {
-  opacity: 0;
+.hud[camera-enabled=false] .hud_camera {
+  pointer-events: none;
 }
-
-/**
- * @toggling-camera
- */
-
-.hud[toggling-camera=true] .hud_camera {
-  background-color: #00b9df;
-}
-
 
 /** Flash Button
  ---------------------------------------------------------*/
 
 /**
- * 1. Required to position the flash text.
+ * 1. Hidden by default
  */
 
 .hud_flash {
-  position: relative; /* 1 */
+  width: 5.8rem;
+  height: 5.8rem;
+  line-height: 5.8rem;
   font-size: 2.5rem;
-  opacity: 0;
+  opacity: 0; /* 1 */
   transition: opacity 300ms;
 }
 
@@ -122,19 +119,9 @@
 }
 
 /**
- * settings-enabled=true
+ * flash-enabled=false
  */
 
-.hud[settings-enabled=true] .hud_flash {
-  width: 5.8rem;
-  height: 5.8rem;
-  line-height: 5.8rem;
-}
-
-/**
- * settings-enabled=false
- */
-
-.hud[settings-enabled=false] .hud_settings {
-  display: none;
+.hud[flash-enabled=false] .hud_flash {
+  pointer-events: none;
 }

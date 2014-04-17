@@ -47,7 +47,7 @@ suite('controllers/hud', function() {
     // Stub 'cameras' setting
     this.app.settings.cameras = sinon.createStubInstance(this.Setting);
     this.app.settings.flashModes = sinon.createStubInstance(this.Setting);
-    this.app.settings.showSettings = sinon.createStubInstance(this.Setting);
+    this.app.settings.settingsMenu = sinon.createStubInstance(this.Setting);
     this.app.settings.mode = sinon.createStubInstance(this.Setting);
     this.app.settings.cameras.get.withArgs('options').returns([]);
 
@@ -102,6 +102,12 @@ suite('controllers/hud', function() {
   });
 
   suite('HudController#onFlashClick()', function() {
+    setup(function() {
+      this.settings.hdr = {
+        selected: sinon.spy()
+      };
+    });
+
     test('Should cycle to the next flash setting', function() {
       this.controller.onFlashClick();
       assert.ok(this.settings.flashModes.next.calledOnce);
@@ -121,6 +127,12 @@ suite('controllers/hud', function() {
   });
 
   suite('HudController#notify()', function() {
+    setup(function() {
+      this.settings.hdr = {
+        selected: sinon.spy()
+      };
+    });
+    
     test('Should display a notification', function() {
       this.controller.onFlashClick();
       assert.ok(this.notification.display.called);

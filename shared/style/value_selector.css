@@ -82,12 +82,9 @@
   background-color: #00ABCC;
 }
 
-[role="dialog"][data-type="value-selector"] [role="listbox"] li:active label {
-  border-color: transparent;
-}
-
+[role="dialog"][data-type="value-selector"] [role="listbox"] li:active label,
 [role="dialog"][data-type="value-selector"] [role="listbox"] li:active + li label {
-  border-top-color: #000;
+  border-top-color: transparent;
 }
 
 [role="dialog"][data-type="value-selector"] [role="listbox"] li:active label span {
@@ -159,7 +156,7 @@
 
 /* Pressed */
 [role="dialog"][data-type="value-selector"] menu button:active {
-  background: #b2f2ff;
+  background: #00aacc;
   color: #fff;
 }
 

@@ -11,8 +11,15 @@
   var urls = [];
   var MAX_URLS = 50;
 
+  // Store the most recent history and top sites in an ordered list
+  // in memory
+  var history = [];
+  var topSites = [];
+
   // Maximum number of results to show show for a single query
-  var MAX_RESULTS = 3;
+  var MAX_AWESOME_RESULTS = 3;
+  var MAX_HISTORY_RESULTS = 5;
+  var MAX_TOPSITES_RESULTS = 6;
 
   // Name of the datastore we pick up places from
   var STORE_NAME = 'places';
@@ -25,6 +32,21 @@
   var syncing = false;
 
   var store;
+
+  var topSitesWrapper = document.getElementById('top-sites');
+  var historyWrapper = document.getElementById('history');
+
+  var initialSync = true;
+  var screenshotRequests = {};
+
+  topSitesWrapper.addEventListener('click', itemClicked);
+  historyWrapper.addEventListener('click', itemClicked);
+
+  function itemClicked(e) {
+    if (e.target.dataset.url) {
+      window.open(e.target.dataset.url, '_blank', 'remote=true');
+    }
+  }
 
   navigator.getDataStores(STORE_NAME).then(function(stores) {
     store = stores[0];
@@ -45,6 +67,7 @@
       } else {
         icons[url] = icon;
       }
+      showStartPage();
     });
   }
 
@@ -93,6 +116,75 @@
     xhr.send();
   }
 
+  function addToOrderedStore(store, obj, key, max) {
+    // Check the url isnt already in the store
+    var index = store.findIndex(function(x) { return x.url === obj.url; });
+    if (index !== -1) {
+      store[index] = obj;
+      return true;
+    }
+    // if the store is empty or the objects key is larger than the smallest
+    // in the store (ie oldest visit or least frecency)
+    if (store.length < max || obj[key] >= store[store.length - 1][key]) {
+      store.push(obj);
+      // Sort by key in reverse order
+      store.sort(function(a, b) { return b[key] - a[key]; });
+      if (store.length > max) {
+        store.length = max;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  function addToStartPage(place) {
+    place.visited = place.visited || 0;
+
+    addToOrderedStore(history, place, 'visited', MAX_HISTORY_RESULTS);
+
+    if (addToOrderedStore(topSites, place, 'frecency', MAX_TOPSITES_RESULTS)) {
+      if (initialSync) {
+        // Dont attempt to load screenshots during initial sync, the
+        // pages wont exist
+        return;
+      }
+      if (place.url in screenshotRequests &&
+          screenshotRequests[place.url] >= place.visited) {
+        return;
+      }
+      screenshotRequests[place.url] = place.visited;
+      places.searchObj.requestScreenshot(place.url);
+    }
+  }
+
+  function showStartPage() {
+    var historyDom = places.buildResultsDom(history.map(function(x) {
+      return formatPlace(x, '');
+    }));
+
+    var docFragment = document.createDocumentFragment();
+
+    topSites.forEach(function(x) {
+      var div = document.createElement('div');
+      var span = document.createElement('span');
+      span.textContent = x.title;
+      div.dataset.url = x.url;
+      div.classList.add('top-site');
+      div.appendChild(span);
+
+      if (x.screenshot) {
+        var objectURL = URL.createObjectURL(x.screenshot);
+        div.style.backgroundImage = 'url(' + objectURL + ')';
+      }
+      docFragment.appendChild(div);
+    });
+
+    historyWrapper.innerHTML = '';
+    historyWrapper.appendChild(historyDom);
+    topSitesWrapper.innerHTML = '';
+    topSitesWrapper.appendChild(docFragment);
+  }
+
   function doSync() {
     if (syncing) {
       return;
@@ -123,11 +215,14 @@
           var url = urls.pop();
           delete results[url];
         }
+        addToStartPage(task.data);
         break;
       case 'clear':
       case 'remove':
         break;
       case 'done':
+        initialSync = false;
+        showStartPage();
         syncing = false;
         return;
       }
@@ -166,10 +261,7 @@
 
     name: 'Places',
 
-    click: function(e) {
-      var target = e.target;
-      window.open(target.dataset.url, '_blank', 'remote=true');
-    },
+    click: itemClicked,
 
     search: function(filter, collect) {
       this.clear();
@@ -183,14 +275,15 @@
         }
         renderResults.push(formatPlace(result, filter));
 
-        if (++matched >= MAX_RESULTS) {
+        if (++matched >= MAX_AWESOME_RESULTS) {
           break;
         }
       }
       collect(renderResults);
-    }
+    },
   };
 
-  Search.provider(new Places());
+  var places = new Places();
+  Search.provider(places);
 
 }());

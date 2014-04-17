@@ -148,7 +148,7 @@
               } else {
                 toast = {
                   messageL10nId: 'simPinChangedSuccessfullyWithIndex',
-                  messageL10nArgs: {'index': cardIndex + 1},
+                  messageL10nArgs: {'index': +(cardIndex) + 1},
                   latency: 3000,
                   useTransition: true
                 };
@@ -276,5 +276,5 @@
 
 })(window);
 
-navigator.mozL10n.ready(SimPinLock.init.bind(SimPinLock));
+navigator.mozL10n.once(SimPinLock.init.bind(SimPinLock));
 

@@ -6,10 +6,11 @@
 
 var Accessibility = {
   _getAccessible: function Accessibility__getAccessible(element, callback) {
-    let gAccRetrieval = SpecialPowers.Cc["@mozilla.org/accessibleRetrieval;1"].
-          getService(SpecialPowers.Ci.nsIAccessibleRetrieval);
+    let gAccRetrieval = SpecialPowers.Cc[
+      "@mozilla.org/accessibleRetrieval;1"].getService(
+        SpecialPowers.Ci.nsIAccessibleRetrieval);
     let attempts = 0;
-    let intervalId = setInterval(function () {
+    let intervalId = setInterval(function() {
       let acc = gAccRetrieval.getAccessibleFor(element);
       if (acc || ++attempts > 10) {
         clearInterval(intervalId);
@@ -18,12 +19,26 @@ var Accessibility = {
     }, 10);
   },
 
+  _matchState: function Accessibility__matchState(acc, stateName) {
+    let stateToMatch = SpecialPowers.wrap(
+      SpecialPowers.Components).interfaces.nsIAccessibleStates[stateName];
+    let state = {};
+    let extState = {};
+    acc.getState(state, extState);
+    marionetteScriptFinished(!!(state.value & stateToMatch));
+  },
+
   click: function Accessibility_click(element) {
-    this._getAccessible(element.wrappedJSObject,
-                       function(acc) {
-                         acc.doAction(0);
-                         marionetteScriptFinished();
-                       });
+    this._getAccessible(element.wrappedJSObject, function(acc) {
+      acc.doAction(0);
+      marionetteScriptFinished();
+    });
+  },
+
+  isDisabled: function Accessibility_isDisabled(element) {
+    this._getAccessible(element.wrappedJSObject, (acc) => {
+      this._matchState(acc, 'STATE_UNAVAILABLE');
+    });
   },
 
   isHidden: function Accessibility_isHidden(element) {
@@ -37,18 +52,12 @@ var Accessibility = {
       elem = elem.parentNode;
     } while (elem && elem.getAttribute);
 
-    this._getAccessible(
-      element.wrappedJSObject,
-      function(acc) {
-        if (!acc) {
-          marionetteScriptFinished(true);
-          return;
-        }
-        let invisible = SpecialPowers.wrap(SpecialPowers.Components).interfaces.
-              nsIAccessibleStates.STATE_INVISIBLE;
-        let state = {};
-        acc.getState(state, {});
-        marionetteScriptFinished(!!(state & invisible));
-      });
+    this._getAccessible(element.wrappedJSObject, (acc) => {
+      if (!acc) {
+        marionetteScriptFinished(true);
+        return;
+      }
+      this._matchState(acc, 'STATE_INVISIBLE');
+    });
   }
 };

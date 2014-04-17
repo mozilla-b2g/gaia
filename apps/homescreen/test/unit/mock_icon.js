@@ -14,7 +14,9 @@ MockIcon.prototype = MockTemplateIcon.prototype = {
   remove: function mi_remove() {
   },
 
-  update: function mi_update() {
+  update: function mi_update(descriptor, app) {
+    this.descriptor = descriptor;
+    this.app = app;
   },
 
   getWidth: function mi_getWidth() {
@@ -44,16 +46,8 @@ MockIcon.prototype = MockTemplateIcon.prototype = {
     return this.descriptor.name;
   },
 
-  getURL: function mi_getURL() {
-    return this.descriptor.url;
-  },
-
   setName: function mi_setName(value) {
     this.descriptor.name = value;
-  },
-
-  setURL: function mi_setURL(value) {
-    this.descriptor.url = value;
   }
 };
 

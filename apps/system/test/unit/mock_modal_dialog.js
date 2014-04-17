@@ -1,7 +1,7 @@
 var MockModalDialog = {
 
   mMethods: [
-    'alert'
+    'alert', 'confirm'
   ],
 
   mPopulate: function mmd_mPopulate() {

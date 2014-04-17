@@ -14,8 +14,11 @@ var evt = require('vendor/evt');
 var off = evt.prototype.off;
 var on = evt.prototype.on;
 var forwardMethods = [
+  'filterOptions',
   'resetOptions',
+  'supported',
   'selected',
+  'select',
   'next',
   'get',
   'set'

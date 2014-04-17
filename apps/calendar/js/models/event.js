@@ -1,4 +1,5 @@
 Calendar.ns('Models').Event = (function() {
+  'use strict';
 
   /**
    * Creates a wrapper around a event instance from the db
@@ -189,7 +190,8 @@ Calendar.ns('Models').Event = (function() {
     },
 
     set location(value) {
-      return this.remote.location = value;
+      this.remote.location = value;
+      return this.remote.location;
     },
 
     get alarms() {
@@ -197,7 +199,8 @@ Calendar.ns('Models').Event = (function() {
     },
 
     set alarms(value) {
-      return this.remote.alarms = value;
+      this.remote.alarms = value;
+      return this.remote.alarms;
     },
 
     /**

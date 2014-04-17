@@ -108,10 +108,7 @@ Calendar.ns('Views').TimeParent = (function() {
     _previousTime: function() {},
 
     _getId: function(date) {
-      // we discard the hours/minutes/seconds to avoid errors in case
-      // changeDate passes a value that is on same day but on a different hour
-      // (see Bug 988079)
-      return Calendar.Calc.getDayId(date);
+      return date.valueOf();
     },
 
     /**

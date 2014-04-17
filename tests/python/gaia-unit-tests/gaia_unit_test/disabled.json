@@ -1,6 +1,5 @@
 [ "calendar/test/unit/store/busytime_test.js",
   "calendar/test/unit/views/modify_event_test.js",
-  "calendar/test/unit/templates/alarm_test.js",
   "camera/test/unit/controllers/confirm_test.js",
   "camera/test/unit/lib/sounds_test.js",
   "communications/contacts/test/unit/contacts_list_test.js",

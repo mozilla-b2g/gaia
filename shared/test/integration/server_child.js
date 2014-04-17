@@ -1,6 +1,8 @@
+'use strict';
+
 var http = require('http');
 var emptyPort = require('empty-port');
-var static = require('node-static');
+var nodeStatic = require('node-static');
 
 var root = process.argv[2];
 
@@ -18,7 +20,7 @@ var Server = {
 
   start: function(port) {
     // using node-static for now we can do fancy stuff in the future.
-    var file = new static.Server(root);
+    var file = new nodeStatic.Server(root);
     this.http = http.createServer(function(req, res) {
       req.addListener('end', function() {
         // hand off request to node-static

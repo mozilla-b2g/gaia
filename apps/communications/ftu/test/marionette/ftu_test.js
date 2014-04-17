@@ -32,6 +32,7 @@ marionette('First Time Use >', function() {
     clickThruPanel('#date_and_time', '#forward');
     clickThruPanel('#geolocation', '#forward');
     clickThruPanel('#import_contacts', '#forward');
+    clickThruPanel('#firefox_accounts', '#forward');
     clickThruPanel('#welcome_browser', '#forward');
     clickThruPanel('#browser_privacy', '#forward');
     clickThruPanel('#finish-screen', undefined);

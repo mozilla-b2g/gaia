@@ -1,6 +1,5 @@
 /* global AutoSettings, BalanceLowLimitView, Common, ConfigManager, CostControl,
-          dataLimitConfigurer, LazyLoader,
-          debug, localizeWeekdaySelector, updateNextReset, ViewManager */
+          dataLimitConfigurer, LazyLoader, debug, ViewManager */
 
 /*
  * First time experience is in charge of set up the application.
@@ -27,7 +26,6 @@
       'js/utils/toolkit.js',
       'js/common.js',
       'js/costcontrol.js',
-      'js/costcontrol_init.js',
       'js/config/config_manager.js',
       'js/views/BalanceLowLimitView.js',
       'js/view_manager.js',
@@ -36,8 +34,6 @@
     ];
     LazyLoader.load(SCRIPTS_NEEDED, function onScriptsLoaded() {
       Common.loadDataSIMIccId(_onIccReady);
-      Common.loadNetworkInterfaces();
-
       parent.postMessage({
         type: 'fte_ready',
         data: ''
@@ -75,7 +71,7 @@
 
     function trySetup() {
       if (!(--stepsLeft)) {
-        setupFTE();
+        Common.loadNetworkInterfaces(setupFTE);
       }
     }
   }
@@ -154,9 +150,12 @@
   }
 
   function _onLocalize() {
-    localizeWeekdaySelector(document.getElementById('pre3-select-weekday'));
-    localizeWeekdaySelector(document.getElementById('post2-select-weekday'));
-    localizeWeekdaySelector(document.getElementById('non2-select-weekday'));
+    Common.localizeWeekdaySelector(
+      document.getElementById('pre3-select-weekday'));
+    Common.localizeWeekdaySelector(
+      document.getElementById('post2-select-weekday'));
+    Common.localizeWeekdaySelector(
+      document.getElementById('non2-select-weekday'));
 
     function _setResetTimeToDefault(evt) {
       var firstWeekDay = parseInt(navigator.mozL10n.get('weekStartsOnMonday'),
@@ -295,7 +294,7 @@
     ConfigManager.requestSettings(Common.dataSimIccId,
                                   function _onSettings(settings) {
       ConfigManager.setOption({ fte: false }, function _returnToApp() {
-        updateNextReset(settings.trackingPeriod, settings.resetTime,
+        Common.updateNextReset(settings.trackingPeriod, settings.resetTime,
           function _returnToTheApplication() {
             Common.startApp();
           }

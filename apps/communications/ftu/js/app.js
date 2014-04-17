@@ -1,6 +1,5 @@
 /* global DataMobile, Navigation, SimManager, TimeManager,
-          VariantManager, UIManager, WifiManager,
-          ImportIntegration */
+          UIManager, WifiManager, ImportIntegration */
 /* exported AppManager */
 'use strict';
 
@@ -17,13 +16,10 @@ var AppManager = {
     UIManager.init();
     Navigation.init();
     DataMobile.init();
-    VariantManager.init();
     var kSplashTimeout = 700;
     // Retrieve mobile connection if available
-    // XXX: check bug-926169
     // this is used to keep all tests passing while introducing multi-sim APIs
-    var conn = window.navigator.mozMobileConnection ||
-               window.navigator.mozMobileConnections &&
+    var conn = window.navigator.mozMobileConnections &&
                window.navigator.mozMobileConnections[0];
 
     if (!conn) {

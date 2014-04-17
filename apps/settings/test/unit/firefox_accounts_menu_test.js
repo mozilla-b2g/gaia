@@ -75,7 +75,7 @@ suite('firefox accounts menu item > ', function() {
     MockFxAccountsIACHelper.fireEvent('onlogout');
     assert.deepEqual(localizeSpy.args[0], [
       fxaDescEl,
-      'fxa-login'
+      'fxa-invitation'
     ]);
   });
 
@@ -88,7 +88,7 @@ suite('firefox accounts menu item > ', function() {
     MockFxAccountsIACHelper.fireEvent('onlogin');
     assert.deepEqual(localizeSpy.args[0], [
       fxaDescEl,
-      'fxa-check-email',
+      'fxa-confirm-email',
       { email: 'on@log.in' }
     ]);
   });

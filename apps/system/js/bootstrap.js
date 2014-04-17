@@ -27,6 +27,9 @@ window.addEventListener('load', function startup() {
     /** @global */
     window.systemDialogManager = window.systemDialogManager ||
       new SystemDialogManager();
+
+    /** @global */
+    window.lockScreenWindowManager = new window.LockScreenWindowManager();
   }
 
   function safelyLaunchFTU() {
@@ -69,20 +72,20 @@ window.addEventListener('load', function startup() {
   Shortcuts.init();
   ScreenManager.turnScreenOn();
   Places.init();
+  Rocketbar.init();
 
   // Please sort it alphabetically
   window.activities = new Activities();
   window.devtoolsView = new DevtoolsView();
-  window.dialerRinger = new DialerRinger().start();
+  window.dialerAgent = new DialerAgent().start();
   window.homeGesture = new HomeGesture().start();
   window.layoutManager = new LayoutManager().start();
+  window.permissionManager = new PermissionManager();
+  window.permissionManager.start();
   window.remoteDebugger = new RemoteDebugger();
   window.softwareButtonManager = new SoftwareButtonManager().start();
-
   window.telephonySettings = new TelephonySettings();
   window.telephonySettings.start();
-
-  window.title = new Title();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager().start();
 
@@ -160,14 +163,6 @@ navigator.mozSettings.addObserver(
     var lock = navigator.mozSettings.createLock();
     lock.set({'clear.remote-windows.data': false});
   });
-
-// Cancel dragstart event to workaround
-// https://bugzilla.mozilla.org/show_bug.cgi?id=783076
-// which stops OOP home screen pannable with left mouse button on
-// B2G/Desktop.
-window.addEventListener('dragstart', function(evt) {
-  evt.preventDefault();
-}, true);
 
 /* === XXX Bug 900512 === */
 // On some devices touching the hardware home button triggers

@@ -1,5 +1,7 @@
-/* global MockCommon, MockCostControl, MockMozMobileConnection, Event,
-          CostControlApp, Common, MockConfigManager, MockSettingsListener */
+/* global MockCommon, MockCostControl, MockNavigatorMozMobileConnections, Event,
+          CostControlApp, Common, MockConfigManager, MockSettingsListener,
+          MockMozNetworkStats, MocksHelper
+*/
 'use strict';
 
 // XXX: As there are two iframes in the body, Firefox adds two indexed items
@@ -7,116 +9,95 @@
 // indices as global leaks so we need to `whitelist` them.
 mocha.setup({ globals: ['0', '1'] });
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('costcontrol/test/unit/mock_debug.js');
-requireApp('costcontrol/test/unit/mock_common.js');
-requireApp('costcontrol/test/unit/mock_moz_l10n.js');
-requireApp('costcontrol/test/unit/mock_moz_mobile_connection.js');
-requireApp('costcontrol/test/unit/mock_settings_listener.js');
-requireApp('costcontrol/shared/test/unit/mocks/' +
-           'mock_navigator_moz_set_message_handler.js');
+require('/test/unit/mock_debug.js');
+require('/test/unit/mock_common.js');
+require('/test/unit/mock_moz_l10n.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+require('/test/unit/mock_moz_network_stats.js');
+require('/test/unit/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('costcontrol/test/unit/mock_cost_control.js');
-requireApp('costcontrol/test/unit/mock_config_manager.js');
-requireApp('costcontrol/test/unit/mock_non_ready_screen.js');
-requireApp('costcontrol/js/utils/toolkit.js');
-requireApp('costcontrol/js/view_manager.js');
-requireApp('costcontrol/js/app.js');
-requireApp('costcontrol/js/common.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/test/unit/mock_cost_control.js');
+require('/test/unit/mock_config_manager.js');
+require('/test/unit/mock_non_ready_screen.js');
+require('/js/utils/toolkit.js');
+require('/js/view_manager.js');
+require('/js/app.js');
+require('/js/common.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
+require('/test/unit/mock_airplane_mode_helper.js');
 
 var realCommon,
-    realMozMobileConnection,
+    realMozMobileConnections,
     realMozL10n,
-    realSettingsListener,
-    realCostControl,
-    realConfigManager,
     realMozSetMessageHandler,
-    realNonReadyScreen,
-    realAccessibilityHelper,
-    realLazyLoader;
+    realMozNetworkStats,
+    realMozIccManager;
+
+if (!window.navigator.mozNetworkStats) {
+  window.navigator.mozNetworkStats = null;
+}
+
+if (!window.navigator.mozIccManager) {
+  window.navigator.mozIccManager = null;
+}
 
 if (!window.Common) {
   window.Common = null;
-}
-
-if (!window.navigator.mozMobileConnection) {
-  window.navigator.mozMobileConnection = null;
-}
-
-if (!window.navigator.mozL10n) {
-  window.navigator.mozL10n = null;
-}
-
-if (!window.SettingsListener) {
-  window.SettingsListener = null;
-}
-
-if (!window.CostControl) {
-  window.CostControl = null;
-}
-
-if (!window.ConfigManager) {
-  window.ConfigManager = null;
 }
 
 if (!window.navigator.mozSetMessageHandler) {
   window.navigator.mozSetMessageHandler = null;
 }
 
-if (!window.NonReadyScreen) {
-  window.NonReadyScreen = null;
+if (!window.navigator.mozMobileConnections) {
+  window.navigator.mozMobileConnections = null;
 }
 
-if (!window.AccessibilityHelper) {
-  window.AccessibilityHelper = null;
+if (!window.navigator.mozL10n) {
+  window.navigator.mozL10n = null;
 }
 
-if (!window.LazyLoader) {
-  window.LazyLoader = null;
-}
+var MocksHelperForUnitTest = new MocksHelper([
+  'LazyLoader',
+  'AirplaneModeHelper',
+  'ConfigManager',
+  'CostControl',
+  'SettingsListener',
+  'NonReadyScreen',
+  'AccessibilityHelper'
+]).init();
 
 suite('Application Startup Modes Test Suite >', function() {
 
-  var iframe;
+  MocksHelperForUnitTest.attachTestHelpers();
 
   suiteSetup(function() {
     realCommon = window.Common;
 
-    realMozMobileConnection = window.navigator.mozMobileConnection;
+    realMozMobileConnections = window.navigator.mozMobileConnections;
+    window.navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
 
     realMozL10n = window.navigator.mozL10n;
     window.navigator.mozL10n = window.MockMozL10n;
-
-    realSettingsListener = window.SettingsListener;
-    window.SettingsListener = window.MockSettingsListener;
-
-    realCostControl = window.CostControl;
-
-    realConfigManager = window.ConfigManager;
-
-    realLazyLoader = window.LazyLoader;
-    window.LazyLoader = window.MockLazyLoader;
 
     realMozSetMessageHandler = window.navigator.mozSetMessageHandler;
     window.navigator.mozSetMessageHandler =
       window.MockNavigatormozSetMessageHandler;
     window.navigator.mozSetMessageHandler.mSetup();
 
-    realNonReadyScreen = window.NonReadyScreen;
-    window.NonReadyScreen = window.MockNonReadyScreen;
+    realMozNetworkStats = window.navigator.mozNetworkStats;
+    navigator.mozNetworkStats = MockMozNetworkStats;
 
-    realAccessibilityHelper = window.AccessibilityHelper;
-    window.AccessibilityHelper = window.MockAccessibilityHelper;
-
-    iframe = document.createElement('iframe');
-    iframe.id = 'message-handler';
-    document.body.appendChild(iframe);
-
+    realMozIccManager = window.navigator.mozIccManager;
+    navigator.mozIccManager = window.MockNavigatorMozIccManager;
   });
 
   setup(function() {
     CostControlApp.reset();
+    navigator.mozIccManager = window.MockNavigatorMozIccManager;
     window.dispatchEvent(new Event('localized'));
   });
 
@@ -126,17 +107,13 @@ suite('Application Startup Modes Test Suite >', function() {
 
   suiteTeardown(function() {
     window.Common = realCommon;
-    window.navigator.mozMobileConnection = realMozMobileConnection;
+    window.navigator.mozMobileConnections = realMozMobileConnections;
     window.navigator.mozL10n = realMozL10n;
-    window.CostControl = realCostControl;
-    window.ConfigManager = realConfigManager;
-    window.LazyLoader = realLazyLoader;
-    window.SettingsListener.mTeardown();
-    window.SettingsListener = realSettingsListener;
     window.navigator.mozSetMessageHandler.mTeardown();
     window.navigator.mozSetMessageHandler = realMozSetMessageHandler;
-    window.NonReadyScreen = realNonReadyScreen;
-    window.AccessibilityHelper = realAccessibilityHelper;
+    window.navigator.mozNetworkStats = realMozNetworkStats;
+    window.navigator.mozIccManager = realMozIccManager;
+
   });
 
   function assertNonReadyScreen(done) {
@@ -209,7 +186,6 @@ suite('Application Startup Modes Test Suite >', function() {
   function setupCardState(icc) {
     window.Common = new MockCommon({ isValidICCID: true });
     window.CostControl = new MockCostControl();
-    window.navigator.mozMobileConnection = new MockMozMobileConnection({});
     Common.dataSimIcc = icc;
   }
 
@@ -218,6 +194,14 @@ suite('Application Startup Modes Test Suite >', function() {
     setupCardState({cardState: null});
 
     assertNonReadyScreen(done);
+
+    CostControlApp.init();
+  });
+
+  test('Not exist a mandatory API', function(done) {
+    loadBodyHTML('/index.html');
+    assertNonReadyScreen(done);
+    window.navigator.mozIccManager = null;
 
     CostControlApp.init();
   });
@@ -292,7 +276,6 @@ suite('Application Startup Modes Test Suite >', function() {
     loadBodyHTML('/index.html');
     window.Common = new MockCommon({ isValidICCID: true });
     window.CostControl = new MockCostControl();
-    window.navigator.mozMobileConnection = new MockMozMobileConnection({});
     window.ConfigManager = new MockConfigManager({
       fakeSettings: { fte: false },
       applicationMode: applicationMode

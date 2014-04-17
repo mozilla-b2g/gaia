@@ -1,3 +1,5 @@
+/*global Factory */
+
 requireApp('calendar/test/unit/provider/mock_stream.js');
 requireApp('calendar/js/ext/uuid.js');
 requireApp('calendar/test/unit/service/helper.js');
@@ -9,6 +11,8 @@ requireLib('models/account.js');
 requireLib('models/calendar.js');
 
 suiteGroup('Provider.CaldavPullEvents', function() {
+  'use strict';
+
   var fixtures;
   var ical;
   var subject;
@@ -192,7 +196,6 @@ suiteGroup('Provider.CaldavPullEvents', function() {
 
     test('single event', function() {
       var event = serviceEvent('singleEvent');
-      var result = subject.formatEvent(event);
 
       var remote = serviceEvent('singleEvent');
 
@@ -528,8 +531,6 @@ suiteGroup('Provider.CaldavPullEvents', function() {
     setup(function(done) {
       event = serviceEvent('dailyEvent');
       addedTimes.length = 0;
-
-      var store = app.store('Busytime');
 
       controller.cacheBusytime = function(given) {
         addedTimes.push(given);

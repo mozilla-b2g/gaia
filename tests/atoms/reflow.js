@@ -16,7 +16,8 @@ const Cu = Components.utils;
     },
 
     handleEvent: function rw_handleEvent(evt) {
-      if (evt.detail.metric !== 'reflows' ||
+      var metric = evt.detail.metric.name || evt.detail.metric;
+      if (metric !== 'reflows' ||
           evt.detail.manifest !== this._trackingManifest) {
         return;
       }

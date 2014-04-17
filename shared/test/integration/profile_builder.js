@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Profile builder hookup for gaia.
  */

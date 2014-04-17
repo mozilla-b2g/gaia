@@ -1,7 +1,11 @@
+/*global Factory */
+
 (function(window) {
+  'use strict';
+
   var oldRequire = window.require;
 
-  require = function(path) {
+  window.require = function(path) {
     if (path === 'stream') {
       throw new Error('skip');
     }
@@ -9,13 +13,11 @@
   };
 
 
-  if (typeof(testSupport) === 'undefined') {
-    testSupport = {};
+  if (typeof(window.testSupport) === 'undefined') {
+    window.testSupport = {};
   }
 
-  /* testSupport */
-
-  testSupport.calendar = {
+  window.testSupport.calendar = {
     _lastEnvId: 0,
 
     accountEnvironment: function(accOverrides, calOverrides) {
@@ -143,7 +145,7 @@
 
       name.forEach(function(storeName) {
         var store = trans.objectStore(storeName);
-        var res = store.clear();
+        store.clear();
       });
 
       trans.oncomplete = function() {
@@ -231,10 +233,8 @@
     }
   };
 
-
-  /* global exports */
-
   function requireLib() {
+    /*jshint validthis: true */
     var args = Array.prototype.slice.call(arguments);
     args[0] = 'calendar/js/' + args[0];
 
@@ -242,6 +242,7 @@
   }
 
   function requireSupport() {
+    /*jshint validthis: true */
     var args = Array.prototype.slice.call(arguments);
     args[0] = 'calendar/test/unit/support/' + args[0];
 
@@ -299,7 +300,7 @@
     document.dispatchEvent(new Event('DOMContentLoaded'));
 
     suiteSetup(function(done) {
-      var links = Array.slice(document.querySelectorAll('link'));
+      Array.slice(document.querySelectorAll('link'));
 
       var state = navigator.mozL10n.readyState;
       if (state !== 'complete' && state !== 'interactive') {

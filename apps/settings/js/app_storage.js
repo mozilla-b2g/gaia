@@ -44,10 +44,8 @@ var AppStorage = (function AppStorage() {
   };
 })();
 
-navigator.mozL10n.ready(function SettingsAppStorage() {
+navigator.mozL10n.once(function SettingsAppStorage() {
   function updateInfo(usedSize, freeSize) {
-    var _ = navigator.mozL10n.get;
-
     // calculate the percentage to show a space usage bar
     var totalSize = usedSize + freeSize;
     var usedPercentage = (totalSize == 0) ? 0 : (usedSize * 100 / totalSize);

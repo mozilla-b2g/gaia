@@ -1,0 +1,34 @@
+{
+  appDir: '..',
+  baseUrl: 'js',
+  mainConfigFile: '../js/config/require.js',
+  dir: '../../../build_stage/settings',
+  paths: {
+    prim: 'empty:'
+  },
+
+  findNestedDependencies: true,
+
+  // optimize is now passed via Makefile's GAIA_SETTINGS_MINIFY
+  // default is none if not passed at all.
+  // optimize: 'none',
+
+  // Just strip comments, no code compression or mangling.
+  // Only active if optimize: 'uglify2'
+  uglify2: {
+    // Comment out the output section to get rid of line
+    // returns and tabs spacing.
+    output: {
+      beautify: false
+    },
+    compress: true,
+    mangle: true
+  },
+
+  fileExclusionRegExp: /^\.|^test$|^build$/,
+
+  // Keeping build dir since Makefile cleans it up and
+  // preps build dir with the shared directory
+  keepBuildDir: true,
+  removeCombined: true
+}

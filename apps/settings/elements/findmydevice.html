@@ -1,0 +1,49 @@
+<element name="findmydevice" extends="section">
+  <template>
+
+    <header>
+      <a href="#root"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="findmydevice"> Find My Device </h1>
+    </header>
+
+    <div>
+      <div id="findmydevice-signin">
+        <ul>
+          <li class="description" data-l10n-id="findmydevice-signup-description">
+          FindMyDevice allows you to locate, lock or erase your phone.
+          </li>
+          <li>
+          <button class="icon icon-view" id="findmydevice-login"
+            data-l10n-id="findmydevice-login">
+            Sign In or Create an Account
+          </button>
+          </li>
+        </ul>
+      </div>
+
+      <div id="findmydevice-settings" hidden>
+        <ul>
+          <li id="findmydevice-enabled">
+            <label class="pack-switch">
+              <input type="checkbox" data-ignore>
+              <span data-l10n-id="findmydevice-enable">Enable Find My Device</span>
+            </label>
+          </li>
+        </ul>
+
+        <header>
+          <h2 data-l10n-id="findmydevice-about">About Find My Device</h2>
+        </header>
+        <ul>
+          <li class="description" data-l10n-id="findmydevice-settings-description">
+          FindMyDevice allows you to locate, lock or erase your phone from a web
+          site: <a class="link-text" href="#" data-href="http://findmydevice.mozilla.com">FindMyDevice.com</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <script src="js/findmydevice.js"></script>
+
+  </template>
+</element>

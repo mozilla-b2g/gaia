@@ -119,8 +119,10 @@ var Connectivity = (function(window, document, undefined) {
       storeMacAddress();
       // network.connection.status has one of the following values:
       // connecting, associated, connected, connectingfailed, disconnected.
+      var networkProp = wifiManager.connection.network ?
+          {ssid: wifiManager.connection.network.ssid} : null;
       localize(wifiDesc, 'fullStatus-' + wifiManager.connection.status,
-               wifiManager.connection.network);
+               networkProp);
     } else {
       localize(wifiDesc, 'disabled');
     }
@@ -267,7 +269,7 @@ var Connectivity = (function(window, document, undefined) {
 
 
 // starting when we get a chance
-navigator.mozL10n.ready(function loadWhenIdle() {
+navigator.mozL10n.once(function loadWhenIdle() {
   var idleObserver = {
     time: 3,
     onidle: function() {

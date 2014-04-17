@@ -4,8 +4,11 @@ var MockL10n = {
   get: function get(key, params) {
     return key;
   },
-  localize: function localize() {},
+  localize: function localize(element, l10nId) {},
   ready: function(callback) {
+    callback();
+  },
+  once: function(callback) {
     callback();
   },
   DateTimeFormat: function() {},

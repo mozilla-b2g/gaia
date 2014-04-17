@@ -1,6 +1,9 @@
+/*global Factory */
+
 requireApp('calendar/test/unit/support/factory.js');
 
 suite('factory', function() {
+  'use strict';
 
   var subject;
   var realDefined;
@@ -169,7 +172,6 @@ suite('factory', function() {
 
   suite('with factory props', function() {
     var childFactory;
-    var increment = 0;
 
     setup(function() {
       childFactory = new Factory({
@@ -326,9 +328,9 @@ suite('factory', function() {
   suite('acceptance', function() {
     var result;
 
-    function Event() { Model.apply(this, arguments) }
-    function Cal() { Model.apply(this, arguments) }
-    function Account() { Model.apply(this, arguments) }
+    function Event() { Model.apply(this, arguments); }
+    function Cal() { Model.apply(this, arguments); }
+    function Account() { Model.apply(this, arguments); }
 
     setup(function() {
       Factory.define('event', {

@@ -36,6 +36,20 @@ suite('Radio > ', function() {
     Radio._mozMobileConnections = null;
   });
 
+  suite('internal _doSetRadioEnabled', function() {
+    setup(function() {
+      Radio.enabled = true;
+      setConnection(0, 'enabled');
+      this.sinon.spy(Radio, '_doSetRadioEnabled');
+    });
+
+    test('is called', function() {
+      var conn = MockNavigatorMozMobileConnections[0];
+      conn.triggerEventListeners('radiostatechange');
+      sinon.assert.called(Radio._doSetRadioEnabled);
+    });
+  });
+
   suite('set enabled to true', function() {
     // make conn count back to 1 at first
     suiteSetup(function() {

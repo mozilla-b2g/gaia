@@ -6,11 +6,11 @@
     <title>Messages</title>
     <!-- Stable Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
     <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
@@ -74,6 +74,8 @@
     <script defer src="shared/js/performance_testing_helper.js"></script>
     <script defer src="shared/js/sticky_header.js"></script>
     <script defer src="js/startup.js"></script>
+    <!-- Elements -->
+    <link rel="import" href="/shared/elements/sim-picker.html">
   </head>
 
   <body role="application">
@@ -499,16 +501,7 @@
     </div>
 
     <article>
-      <form id="sim-picker" data-type="action" role="dialog" tabindex="-1" hidden>
-        <header id="sim-picker-dial-via" data-l10n-id="sim-picker-select-sim"></header>
-        <menu type="toolbar">
-          <button id="sim-picker-button-template">
-            <span class="js-sim-picker-button">SIM n</span>
-            <span class="sim-default" data-l10n-id="sim-picker-button-default">(AEFAEFdefault)</span>
-          </button>
-          <button data-l10n-id="cancel">Cancel</button>
-        </menu>
-      </form>
+      <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" tabindex="-1" hidden></form>
     </article>
   </body>
 </html>

@@ -57,7 +57,7 @@ define(function(require) {
     var _navigate = function ss_navigate(panelId, options, callback) {
       _loadPanel(panelId, function() {
         // We have to make sure l10n is ready before navigations
-        navigator.mozL10n.ready(function() {
+        navigator.mozL10n.once(function() {
           PanelCache.get(panelId, function(panel) {
             // Check if there is any pending navigation.
             if (_pendingNavigation) {

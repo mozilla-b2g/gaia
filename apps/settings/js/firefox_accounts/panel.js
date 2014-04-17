@@ -111,9 +111,11 @@ var FxaPanel = (function fxa_panel() {
   function showUnverifiedPanel(email) {
     unverifiedPanel.hidden = false;
     cancelBtn.onclick = onLogoutClick;
-    navigator.mozL10n.localize(unverifiedEmail, 'fxa-verification-email-sent', {
-      email: email
-    });
+    navigator.mozL10n.localize(
+      unverifiedEmail,
+      'fxa-verification-email-sent-msg',
+      {email: email}
+    );
   }
 
   function onLogoutClick(e) {

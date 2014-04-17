@@ -278,6 +278,9 @@
       if (ct.bday) {
         allFields.push('BDAY:' + ISODateString(ct.bday));
       }
+      if (ct.anniversary) {
+        allFields.push('ANNIVERSARY:' + ISODateString(ct.anniversary));
+      }
 
       allFields.push.apply(allFields, fromContactField(ct.email, 'EMAIL'));
       allFields.push.apply(allFields, fromContactField(ct.url, 'URL'));

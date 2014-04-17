@@ -2,16 +2,13 @@
 
 /* global CallHandler, KeypadManager, MockNavigatorMozTelephony, MocksHelper,
           Promise */
-require('/test/unit/mock_keypad.js', function() {
-  // Don't know why mocks helper doesn't work.
-  window.KeypadManager = MockKeypadManager;
-});
+require('/test/unit/mock_keypad.js');
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 
 require('/js/dialer.js');
 
-var mocksHelperForDialer = new window.MocksHelper([
+var mocksHelperForDialer = new MocksHelper([
   'KeypadManager'
 ]).init();
 
@@ -31,43 +28,7 @@ suite('Emergency Dialer', function() {
     navigator.mozTelephony = realMozTelephony;
   });
 
-  suite('> Classic Telephony API', function() {
-    var mockCall;
-
-    setup(function() {
-      mockCall = {};
-      this.sinon.stub(navigator.mozTelephony, 'dialEmergency')
-        .returns(mockCall);
-      CallHandler.call('123');
-    });
-
-    test('> calls dialEmergency', function() {
-      sinon.assert.calledWith(navigator.mozTelephony.dialEmergency, '123');
-    });
-
-    test('> installs onconnected handler', function() {
-      assert.isFunction(mockCall.onconnected);
-    });
-
-    test('> installs ondisconnected handler', function() {
-      assert.isFunction(mockCall.ondisconnected);
-    });
-
-    test('> clears the keypad on connected', function() {
-      this.sinon.spy(KeypadManager, 'updatePhoneNumber');
-      mockCall.onconnected();
-      sinon.assert.calledWith(KeypadManager.updatePhoneNumber, '');
-    });
-
-    test('> clears the keypad on disconnected', function() {
-      this.sinon.spy(KeypadManager, 'updatePhoneNumber');
-      mockCall.ondisconnected();
-      sinon.assert.calledWith(KeypadManager.updatePhoneNumber, '');
-    });
-
-  });
-
-  suite('> Promise Telephony API', function() {
+  suite('> Telephony API', function() {
     var mockCall;
     var mockPromise;
 

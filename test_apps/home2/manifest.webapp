@@ -1,0 +1,29 @@
+{
+  "name": "homescreen2",
+  "description": "A FirefoxOS vertical homepage.",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "role": "homescreen",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "open-remote-window":{},
+    "storage": {},
+    "webapps-manage": {}
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "60": "/style/icons/blank.png"
+  },
+  "orientation": "portrait-primary",
+  "activities": {},
+  "messages": [],
+  "datastores-access": {
+    "bookmarks_store": {
+      "readonly": true,
+      "description": "Display bookmarks"
+    }
+  }
+}

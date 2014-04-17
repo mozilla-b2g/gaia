@@ -1,7 +1,3 @@
-/* globals HandledCall, MockHandledCall, MockNavigatorMozTelephony
-*/
-/* exported telephonyAddCall, telephonyAddCdmaCall */
-
 'use strict';
 
 (function() {
@@ -121,34 +117,3 @@
 
   window.MockNavigatorMozTelephony = Mock;
 })();
-
-// Should be called in the context of a suite
-function telephonyAddCall(mockCall, opt) {
-  MockNavigatorMozTelephony.calls.push(mockCall);
-
-  var handledCall = new MockHandledCall(mockCall);
-
-  // not already stubed
-  if (!('restore' in HandledCall)) {
-    /* jshint validthis: true */
-    this.sinon.stub(window, 'HandledCall');
-  }
-  HandledCall.withArgs(mockCall).returns(handledCall);
-
-  if (opt && opt.trigger) {
-    MockNavigatorMozTelephony.mTriggerCallsChanged();
-  }
-
-  return handledCall;
-}
-
-/* Should be called in the context of a suite after one call has already been
- * added via telephonyAddCall(). */
-function telephonyAddCdmaCall(number, opt) {
-  MockNavigatorMozTelephony.calls[0].secondNumber = number;
-  MockNavigatorMozTelephony.calls[0].state = 'connected';
-
-  if (opt && opt.trigger) {
-    MockNavigatorMozTelephony.mTriggerCallsChanged();
-  }
-}

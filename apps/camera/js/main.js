@@ -13,11 +13,9 @@ require(['config/require', 'config'], function() {
     var App = require('app');
     var Camera = require('lib/camera');
     var Sounds = require('lib/sounds');
-    var Config = require('lib/config');
     var Settings = require('lib/settings');
     var sounds = new Sounds(require('config/sounds'));
-    var config = new Config(require('config/app'));
-    var settings = new Settings(config.get());
+    var settings = new Settings(require('config/settings'));
     var GeoLocation = require('lib/geo-location');
     var Activity = require('lib/activity');
     var Storage = require('lib/storage');
@@ -48,7 +46,8 @@ require(['config/require', 'config'], function() {
       maxFileSizeBytes: 0,
       maxWidth: 0,
       maxHeight: 0,
-      container: document.body
+      container: document.body,
+      cafEnabled: settings.caf.enabled()
     });
 
     /**
@@ -61,7 +60,6 @@ require(['config/require', 'config'], function() {
       el: document.body,
       geolocation: new GeoLocation(),
       activity: new Activity(),
-      config: config,
       settings: settings,
       camera: camera,
       sounds: sounds,

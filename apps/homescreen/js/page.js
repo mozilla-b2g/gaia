@@ -490,39 +490,6 @@ Icon.prototype = {
   },
 
   /*
-   * Returns the url icon
-   */
-  getURL: function icon_getURL() {
-    return this.app.url || this.descriptor.manifestURL;
-  },
-
-  /*
-   * Sets the new URL
-   *
-   * @param{string} url
-   */
-  setURL: function icon_setURL(url) {
-    var descriptor = this.descriptor;
-    // The only kind of icons that supports changes in the URL are the bookmarks
-    if (descriptor.type !== GridItemsFactory.TYPE.BOOKMARK ||
-        descriptor.bookmarkURL === url) {
-      return;
-    }
-
-    // The grid manager will remove its reference when the URL changes
-    GridManager.forgetIcon(this);
-
-    this.app.setURL(url);
-    this.descriptor.bookmarkURL = this.container.dataset.bookmarkURL =
-                                  this.app.bookmarkURL;
-
-    // The grid manager will update the bookmark with its new url
-    GridManager.rememberIcon(this);
-
-    GridManager.markDirtyState();
-  },
-
-  /*
    * Sets the icon's image
    *
    * @param{string} the new icon

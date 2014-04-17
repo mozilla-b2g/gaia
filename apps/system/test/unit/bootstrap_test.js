@@ -13,14 +13,16 @@ requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
 requireApp('system/test/unit/mock_activities.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_devtools_view.js');
-requireApp('system/test/unit/mock_dialer_ringer.js');
+requireApp('system/test/unit/mock_dialer_agent.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_home_gesture.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_media_recording.js');
+requireApp('system/test/unit/mock_permission_manager.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_remote_debugger.js');
+requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_source_view.js');
@@ -33,6 +35,7 @@ requireApp('system/test/unit/mock_activity_window_factory.js');
 requireApp('system/test/unit/mock_visibility_manager.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_secure_window_manager.js');
+requireApp('system/test/unit/mock_lockscreen_window_manager.js');
 requireApp('system/test/unit/mock_secure_window_factory.js');
 requireApp('system/test/unit/mock_activity_window_factory.js');
 requireApp('system/test/unit/mock_app_window_factory.js');
@@ -46,9 +49,10 @@ mocha.globals([
   'cancelHomeClick',
   'secureWindowManager',
   'secureWindowFactory',
+  'lockScreenWindowManager',
   'systemDialogManager',
   'devtoolsView',
-  'dialerRinger',
+  'dialerAgent',
   'homeGesture',
   'mediaRecording',
   'remoteDebugger',
@@ -68,20 +72,23 @@ mocha.globals([
   'ActivityWindowFactory',
   'visibilityManager',
   'applications',
-  'layoutManager'
+  'layoutManager',
+  'permissionManager'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
   'Activities',
   'Applications',
   'DevtoolsView',
-  'DialerRinger',
+  'DialerAgent',
   'FtuLauncher',
   'HomeGesture',
   'HomescreenLauncher',
   'MediaRecording',
+  'PermissionManager',
   'Places',
   'RemoteDebugger',
+  'Rocketbar',
   'ScreenManager',
   'SettingsListener',
   'SettingsURL',
@@ -98,6 +105,7 @@ var mocksForBootstrap = new MocksHelper([
   'SecureWindowManager',
   'SecureWindowFactory',
   'ActivityWindowFactory',
+  'LockScreenWindowManager',
   'L10n'
 ]).init();
 

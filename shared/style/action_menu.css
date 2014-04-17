@@ -292,7 +292,7 @@ form[role="dialog"][data-type="object"] > menu > button:nth-last-child(2) {
 /* Press state */
 form[role="dialog"][data-type="action"] > menu > button:active,
 form[role="dialog"][data-type="object"] > menu > button:active {
-  background: #b2f2ff;
+  background: #00aacc;
   color: #fff;
 }
 

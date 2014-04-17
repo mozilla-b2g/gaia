@@ -17,24 +17,7 @@ marionette('day view', function() {
   test('header copy should not overflow', function() {
     // XXX: we don't use app.checkOverflow() because of Bug 971691
     // 20 chars is a "safe" limit if font-family is Fira Sans
-    assert.operator(app.currentTimeHeader.text().length, '<', 21);
-  });
-
-  suite('create event', function(){
-    setup(function() {
-      app.createEvent({
-        title: 'Foo',
-        location: 'Bar',
-        startHour: 1,
-        duration: 1
-      });
-      app.day.waitForDisplay();
-    });
-
-    test('should not create unnecessary day views', function() {
-      var events = client.findElements('#day-view .event');
-      assert.equal(events.length, 1);
-    });
+    assert.operator(app.headerContent.text().length, '<', 21);
   });
 
   suite('events longer than 2h', function() {

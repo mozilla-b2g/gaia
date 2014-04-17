@@ -470,19 +470,18 @@ contacts.Settings = (function() {
    * Loads the overlay class before showing
    */
   function requireOverlay(callback) {
-    Contacts.utility('Overlay', callback);
+    Contacts.utility('Overlay', callback, Contacts.SHARED_UTILITIES);
   }
 
   /**
    * Loads required libraries for sim import
    */
   function requireSimImport(callback) {
-
     var libraries = ['Overlay', 'Import_sim_contacts'];
     var pending = libraries.length;
 
     libraries.forEach(function onPending(library) {
-      Contacts.utility(library, next);
+      Contacts.utility(library, next, Contacts.SHARED_UTILITIES);
     });
 
     function next() {
@@ -691,7 +690,7 @@ contacts.Settings = (function() {
         resetWait(wakeLock);
         if (importedContacts > 0) {
           var source = 'sim-' + iccId;
-          window.importUtils.setTimestamp(source, function() {
+          utils.misc.setTimestamp(source, function() {
             // Once the timestamp is saved, update the list
             updateTimestamps();
             checkNoContacts();
@@ -794,7 +793,7 @@ contacts.Settings = (function() {
 
       importer.process(function import_finish() {
         window.setTimeout(function onfinish_import() {
-          window.importUtils.setTimestamp('sd', function() {
+          utils.misc.setTimestamp('sd', function() {
             // Once the timestamp is saved, update the list
             updateTimestamps();
             checkNoContacts();
@@ -961,7 +960,7 @@ contacts.Settings = (function() {
     var importSources =
       document.querySelectorAll('#import-options li[data-source]');
     Array.prototype.forEach.call(importSources, function(node) {
-      window.importUtils.getTimestamp(node.dataset.source,
+      utils.misc.getTimestamp(node.dataset.source,
                                       function(time) {
         var spanID = 'notImported';
         if (time) {

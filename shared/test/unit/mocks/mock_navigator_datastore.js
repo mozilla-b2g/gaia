@@ -8,6 +8,7 @@ var MockDatastore = {
   _records: Object.create(null),
   _nextId: 1,
   _inError: false,
+  _cb: null,
 
   _clone: function(obj) {
     var out = null;
@@ -43,8 +44,13 @@ var MockDatastore = {
     }
 
     this._records[dsId] = this._clone(obj);
+    var self = this;
     return new window.Promise(function(resolve, reject) {
       resolve();
+      self._cb && self._cb({
+        operation: 'updated',
+        id: dsId
+      });
     });
   },
 
@@ -59,8 +65,13 @@ var MockDatastore = {
       return this._reject('ConstraintError');
     }
     this._records[newId] = this._clone(obj);
+    var self = this;
     return new window.Promise(function(resolve, reject) {
       resolve(newId);
+      self._cb && self._cb({
+        operation: 'added',
+        id: newId
+      });
     });
   },
 
@@ -95,6 +106,12 @@ var MockDatastore = {
     return new window.Promise(function(resolve, reject) {
       resolve();
     });
+  },
+
+  addEventListener: function(type, cb) {
+    if (type === 'change') {
+      this._cb = cb;
+    }
   }
 };
 

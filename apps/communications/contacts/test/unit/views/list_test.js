@@ -365,7 +365,6 @@ suite('Render contacts list', function() {
       }
     };
 
-
     realContacts = window.Contacts;
     window.Contacts = MockContacts;
     realFb = window.fb;
@@ -1087,6 +1086,31 @@ suite('Render contacts list', function() {
       });
     });
 
+    test('Search gets updated if contact changes',
+        function(done) {
+      mockContacts = new MockContactsList();
+      var contact = mockContacts[0];
+
+      doLoad(subject, mockContacts, function() {
+        contacts.Search.enterSearchMode({preventDefault: function() {}});
+        // Search by the first character
+        searchBox.value = contact.givenName[0][0];
+        contacts.Search.search(function search_finished() {
+          assertContactFound(contact);
+          // Keep the first character to have the same search valid
+          contact.givenName[0] = contact.givenName[0][0] + ' New Name';
+          sinon.spy(contacts.Search, 'updateSearchList');
+          subject.refresh(contact, function() {
+            var listStr = list.textContent;
+            assert.isTrue(listStr.indexOf(contact.givenName[0]) !== -1);
+            var searchListStr = searchList.textContent;
+            assert.isTrue(searchListStr.indexOf(contact.givenName[0]) !== -1);
+            done();
+          });
+        });
+      });
+    });
+
     test('Search non-alphabetical characters', function(done) {
       mockContacts = new MockContactsList();
 
@@ -1390,17 +1414,6 @@ suite('Render contacts list', function() {
 
         done();
       }, mockNavigationStack, 'transition');
-    });
-
-    test('enter search mode', function() {
-      contacts.List.initSearch(function onInit() {
-        contacts.Search.enterSearchMode({preventDefault: function() {}});
-        assert.equal(mockNavigationStack.getCurrentView(),
-                     'search-view');
-        assert.equal(mockNavigationStack.getCurrentTransition(),
-                     'none');
-        contacts.Search.exitSearchMode({preventDefault: function() {}});
-      });
     });
 
     suite('Selection checks', function() {

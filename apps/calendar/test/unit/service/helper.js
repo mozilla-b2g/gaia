@@ -1,6 +1,6 @@
-var ServiceSupport = (function() {
+'use strict';
 
-  var support = testSupport.calendar;
+window.ServiceSupport = (function() {
 
   function request(file, cb) {
     var xhr = new XMLHttpRequest();
@@ -59,7 +59,7 @@ var ServiceSupport = (function() {
         }
         self.onready();
       }
-    };
+    }
 
     this.load = function loadFixture(file) {
       pending++;

@@ -32,7 +32,8 @@ function ZoomBarController(app) {
 
 ZoomBarController.prototype.bindEvents = function() {
   this.zoomBar.on('change', this.onChange);
-  this.camera.on('zoomChange', this.onZoomChange);
+  this.camera.on('zoomconfigured', this.onZoomConfigured);
+  this.camera.on('zoomchanged', this.onZoomChanged);
   this.viewfinder.on('pinchStart', this.onPinchStart);
   this.viewfinder.on('pinchEnd', this.onPinchEnd);
 };
@@ -45,7 +46,11 @@ ZoomBarController.prototype.onChange = function(value) {
   this.camera.setZoom(zoom);
 };
 
-ZoomBarController.prototype.onZoomChange = function(zoom) {
+ZoomBarController.prototype.onZoomConfigured = function() {
+  this.zoomBar.hide();
+};
+
+ZoomBarController.prototype.onZoomChanged = function(zoom) {
   var minimumZoom = this.camera.getMinimumZoom();
   var maximumZoom = this.camera.getMaximumZoom();
   var range = maximumZoom - minimumZoom;

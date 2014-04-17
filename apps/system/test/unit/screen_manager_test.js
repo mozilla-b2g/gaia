@@ -208,6 +208,16 @@ suite('system/ScreenManager', function() {
       assert.isTrue(stubTurnOn.called);
     });
 
+    test('Testing nfc-tech-discovered and nfc-tech-lost event', function() {
+      var stubReconfigScreenTimeout = this.sinon.stub(
+                                         ScreenManager,
+                                         '_reconfigScreenTimeout');
+      ScreenManager.handleEvent({'type': 'nfc-tech-discovered'});
+      assert.isTrue(stubReconfigScreenTimeout.called);
+      ScreenManager.handleEvent({'type': 'nfc-tech-lost'});
+      assert.isTrue(stubReconfigScreenTimeout.called);
+    });
+
     suite('Testing userproximity event', function() {
       var stubTelephony, stubBluetooth, stubStatusBar, stubTurnOn, stubTurnOff;
 

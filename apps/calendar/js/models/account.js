@@ -1,4 +1,5 @@
 Calendar.ns('Models').Account = (function() {
+  'use strict';
 
   function Account(options) {
     var key;

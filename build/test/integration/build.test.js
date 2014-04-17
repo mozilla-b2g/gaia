@@ -1,4 +1,3 @@
-var exec = require('child_process').exec;
 var assert = require('chai').assert;
 var rmrf = require('rimraf').sync;
 var fs = require('fs');
@@ -22,7 +21,7 @@ suite('ADB tests', function() {
                           'push test_media/Movies /sdcard/Movies\n' +
                           'push test_media/Music /sdcard/Music\n';
 
-    exec('ADB=build/test/bin/fake-adb make install-test-media',
+    helper.exec('ADB=build/test/bin/fake-adb make install-test-media',
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
         var presetsContent = fs.readFileSync(path.join(process.cwd(), 'build',
@@ -33,12 +32,56 @@ suite('ADB tests', function() {
   });
 });
 
+suite('Build GAIA from differece app list', function() {
+
+  suiteSetup(function() {
+    rmrf('profile');
+    rmrf('profile-debug');
+    rmrf('build_stage');
+  });
+
+  test('GAIA_DEVICE_TYPE=tablet make', function(done) {
+    helper.exec('GAIA_DEVICE_TYPE=tablet make', function(error, stdout, stderr) {
+      helper.checkError(error, stdout, stderr);
+
+      // zip path for system app
+      var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+        'sms.gaiamobile.org', 'application.zip');
+
+      // sms should not exists in Tablet builds
+      assert.isFalse(fs.existsSync(zipPath));
+      done();
+    });
+  });
+
+  test('GAIA_DEVICE_TYPE=phone make', function(done) {
+    helper.exec('GAIA_DEVICE_TYPE=phone make', function(error, stdout, stderr) {
+      helper.checkError(error, stdout, stderr);
+
+      // zip path for system app
+      var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+        'sms.gaiamobile.org', 'application.zip');
+
+      // sms should not exists in Tablet builds
+      assert.ok(fs.existsSync(zipPath));
+      done();
+    });
+  });
+
+  teardown(function() {
+    rmrf('profile');
+    rmrf('profile-debug');
+    rmrf('build_stage');
+  });
+
+});
+
 suite('Node modules tests', function() {
   test('make node_modules from git mirror', function(done) {
     rmrf('modules.tar');
     rmrf('node_modules');
     rmrf('git-gaia-node-modules');
-    exec('NODE_MODULES_GIT_URL=https://git.mozilla.org/b2g/gaia-node-modules.git make node_modules',
+    helper.exec('NODE_MODULES_GIT_URL=https://git.mozilla.org/b2g/gaia-node-modules.git make node_modules',
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 
@@ -58,7 +101,7 @@ suite('Node modules tests', function() {
     rmrf('modules.tar');
     rmrf('node_modules');
     rmrf('git-gaia-node-modules');
-    exec('make node_modules',
+    helper.exec('make node_modules',
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 
@@ -80,11 +123,12 @@ suite('Build Integration tests', function() {
   suiteSetup(function() {
     rmrf('profile');
     rmrf('profile-debug');
+    rmrf('build_stage');
     rmrf(localesDir);
   });
 
   test('make without rule & variable', function(done) {
-    exec('ROCKETBAR=none make', { maxBuffer: 400*1024 },
+    helper.exec('ROCKETBAR=none make', { maxBuffer: 400*1024 },
       function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -218,12 +262,25 @@ suite('Build Integration tests', function() {
 
       assert.equal(hsGalleryConfigJs, expectedScript,
         'Gallery config js is not expected');
+
+      var musicMetadataScriptPath = path.join(process.cwd(), 'build_stage',
+        'music', 'js', 'metadata_scripts.js');
+      assert.ok(fs.existsSync(musicMetadataScriptPath), 'metadata_scripts.js ' +
+        'should exist');
+      var galleryMetadataScriptPath = path.join(process.cwd(), 'build_stage',
+        'gallery', 'js', 'metadata_scripts.js');
+      assert.ok(fs.existsSync(galleryMetadataScriptPath),
+        'metadata_scripts.js should exist');
+      var galleryFrameScriptPath = path.join(process.cwd(), 'build_stage',
+        'gallery', 'js', 'frame_scripts.js');
+      assert.ok(fs.existsSync(galleryMetadataScriptPath),
+        'frame_scripts.js should exist');
       done();
     });
   });
 
   test('make with PRODUCTION=1', function(done) {
-    exec('PRODUCTION=1 make', function(error, stdout, stderr) {
+    helper.exec('PRODUCTION=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       var settingsPath = path.join(process.cwd(), 'profile', 'settings.json');
@@ -240,12 +297,19 @@ suite('Build Integration tests', function() {
 
       helper.checkSettings(settings, expectedSettings);
       assert.isUndefined(sandbox.prefs['dom.payment.skipHTTPSCheck']);
+
+      // zip path for system app
+      var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+        'uitest.gaiamobile.org', 'application.zip');
+
+      // uitest should not exists in production builds
+      assert.isFalse(fs.existsSync(zipPath));
       done();
     });
   });
 
   test('make with SIMULATOR=1', function(done) {
-    exec('SIMULATOR=1 make', { maxBuffer: 400*1024 },
+    helper.exec('SIMULATOR=1 make', { maxBuffer: 400*1024 },
     function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -300,9 +364,9 @@ suite('Build Integration tests', function() {
         'wifi.suspended': false,
         'font.default.x-western': 'sans-serif',
         'font.name.serif.x-western': 'Charis SIL Compact',
-        'font.name.sans-serif.x-western': 'Feura Sans',
+        'font.name.sans-serif.x-western': 'Fira Sans',
         'font.name.monospace.x-western': 'Source Code Pro',
-        'font.name-list.sans-serif.x-western': 'Feura Sans, Roboto',
+        'font.name-list.sans-serif.x-western': 'Fira Sans, Roboto',
         'extensions.autoDisableScopes': 0,
         'devtools.debugger.enable-content-actors': true,
         'devtools.debugger.prompt-connection': false,
@@ -323,7 +387,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with DEBUG=1', function(done) {
-    exec('DEBUG=1 make', { maxBuffer: 400*1024 },
+    helper.exec('DEBUG=1 make', { maxBuffer: 400*1024 },
     function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -377,9 +441,9 @@ suite('Build Integration tests', function() {
         'wifi.suspended': false,
         'font.default.x-western': 'sans-serif',
         'font.name.serif.x-western': 'Charis SIL Compact',
-        'font.name.sans-serif.x-western': 'Feura Sans',
+        'font.name.sans-serif.x-western': 'Fira Sans',
         'font.name.monospace.x-western': 'Source Code Pro',
-        'font.name-list.sans-serif.x-western': 'Feura Sans, Roboto',
+        'font.name-list.sans-serif.x-western': 'Fira Sans, Roboto',
         'docshell.device_size_is_page_size': true,
         'marionette.defaultPrefs.enabled': true,
         'nglayout.debug.disable_xul_cache': true,
@@ -432,7 +496,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with MOZILLA_OFFICIAL=1', function(done) {
-    exec('MOZILLA_OFFICIAL=1 make', { maxBuffer: 400*1024 },
+    helper.exec('MOZILLA_OFFICIAL=1 make', { maxBuffer: 400*1024 },
     function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
@@ -450,7 +514,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with ROCKETBAR=full', function(done) {
-    exec('ROCKETBAR=full make', { maxBuffer: 400*1024 },
+    helper.exec('ROCKETBAR=full make', { maxBuffer: 400*1024 },
       function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 
@@ -504,8 +568,23 @@ suite('Build Integration tests', function() {
     );
   });
 
+  suite('Build file inclusion tests', function() {
+    test('build includes elements folder and sim-picker', function(done) {
+      helper.exec('make', function(error, stdout, stderr) {
+        var pathInZip = 'shared/elements/sim-picker.html';
+        var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+          'communications.gaiamobile.org', 'application.zip');
+        var expectedSimPickerPath = path.join(process.cwd(),
+          'shared', 'elements', 'sim-picker.html');
+        helper.checkFileInZip(zipPath, pathInZip, expectedSimPickerPath);
+        done();
+      });
+    });
+  });
+
   teardown(function() {
     rmrf('profile');
     rmrf('profile-debug');
+    rmrf('build_stage');
   });
 });

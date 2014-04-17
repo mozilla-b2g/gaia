@@ -1,0 +1,36 @@
+html, body {
+  background-color: #f4f4f4;
+}
+
+#bookmark-entry-sheet {
+  width: 100%;
+  height: 100%;
+}
+
+#bookmark-form {
+  padding: 1.5rem;
+}
+
+#bookmark-form label {
+  text-transform: uppercase;
+  font-size: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+#bookmark-form input {
+  margin-bottom: 1.5rem;
+}
+
+menu[type="toolbar"], #add-button, #add-bookmark-header, #edit-bookmark-header {
+  display: none;
+}
+
+body[data-mode="add"] #add-bookmark-header,
+body[data-mode="add"] #add-button {
+  display: block;
+}
+
+body[data-mode="put"] #edit-bookmark-header,
+body[data-mode="put"] menu[type="toolbar"] {
+  display: block;
+}

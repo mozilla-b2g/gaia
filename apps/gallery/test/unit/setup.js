@@ -15,18 +15,8 @@
 
   // setup localization....
   require('/shared/js/l10n.js', function() {
-    // Massive hack to trick l10n to load... (TODO: upstream a fix to l10n.js)
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-
     suiteSetup(function(done) {
-      var state = navigator.mozL10n.readyState;
-      if (state !== 'complete' && state !== 'interactive') {
-        window.addEventListener('localized', function() {
-          done();
-        });
-      } else {
-        done();
-      }
+      navigator.mozL10n.ready(done);
     });
   });
 

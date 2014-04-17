@@ -491,6 +491,11 @@ aside.connecting {
   padding: 1rem 1.5rem;
 }
 
+#hidden-wifi-authentication [data-type="list"] li,
+#configure_network_params [data-type="list"] li {
+  height: auto;
+}
+
 #hidden-wifi-authentication form label,
 #configure_network_params form label {
   display: block;
@@ -500,14 +505,6 @@ aside.connecting {
   font-size: 1.5rem;
 }
 
-#hidden-wifi-authentication form select {
-  width: 100%;
-  padding: 0.5rem 1.5rem 0.5rem 1.5rem;
-  font-size: 1.5rem;
-}
-
-#hidden-wifi-authentication form select,
-#hidden-wifi-authentication form input,
 #configure_network_params form input {
   padding-left: 1.5rem;
 }
@@ -518,29 +515,12 @@ aside.connecting {
 }
 
 /* 'show password' checkboxes */
-#configure_network_params label:not([for]){
-  display: inline-block;
-  width: auto;
-  height: auto;
-}
-
-#hidden-wifi-authentication label span:after,
-#configure_network_params label span:after {
-  top: 2rem;
-  left: 3rem;
-}
-
-#hidden-wifi-authentication label p {
-  width: calc(100% - 2rem);
-  bottom: 0.4rem;
-  left: 3rem;
-}
-
-#configure_network_params label p {
-  width: auto;
-  float: right;
-  bottom: 0.4rem;
-  left: 3rem;
+#hidden-wifi-authentication .pack-checkbox,
+#configure_network_params .pack-checkbox {
+  position: relative;
+  transform: translateX(4rem);
+  padding: 1rem 0 1rem 3rem;
+  pointer-events: auto;
 }
 
 /*
@@ -793,22 +773,22 @@ aside.connecting {
 
 /* Extending icon types*/
 #import_contacts [data-type="list"] li button.icon-fb:before {
-  background-image: url('/contacts/style/images/f_logo.png');
+  background-image: url('images/f_logo.png');
 }
 
 #import_contacts [data-type="list"] li button.icon-sim:before {
-  background-image: url('/contacts/style/images/import_SIM.png');
+  background-image: url('images/import_sim.png');
 }
 #import_contacts [data-type="list"] li button.icon-sd:before {
-  background-image: url('/contacts/style/images/import_sd.png');
+  background-image: url('images/import_sd.png');
 }
 
 #import_contacts [data-type="list"] li button.icon-wlive:before {
-  background-image: url('/contacts/style/images/outlook_icon.png');
+  background-image: url('images/outlook_icon.png');
 }
 
 #import_contacts [data-type="list"] li button.icon-gmail:before {
-  background-image: url('/contacts/style/images/gmail_icon.png');
+  background-image: url('images/gmail_icon.png');
 }
 
 #import_contacts li button.icon {
@@ -949,6 +929,7 @@ aside.connecting {
 
 #browser_privacy input {
   margin-bottom: 2rem;
+  -moz-box-sizing: border-box;
 }
 
 .invisible {

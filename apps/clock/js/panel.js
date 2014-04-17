@@ -58,7 +58,6 @@ Object.defineProperties(Panel.prototype, {
         } else {
           this.element.classList.remove('active');
         }
-        this.emit('active', value);
       }
       return value;
     }

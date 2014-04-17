@@ -106,11 +106,12 @@ var GaiaApps = {
 
   locateWithName: function(name, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
-    let apps = window.wrappedJSObject.applications.installedApps;
+    let apps = window.wrappedJSObject.applications || window.wrappedJSObject.Applications;
+    let installedApps = apps.installedApps;
     let normalizedSearchName = GaiaApps.normalizeName(name);
 
-    for (let manifestURL in apps) {
-      let app = apps[manifestURL];
+    for (let manifestURL in installedApps) {
+      let app = installedApps[manifestURL];
       let origin = null;
       let entryPoints = app.manifest.entry_points;
       if (entryPoints) {
@@ -135,7 +136,8 @@ var GaiaApps = {
 
   locateWithManifestURL: function(manifestURL, entryPoint, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
-    var app = window.wrappedJSObject.applications.getByManifestURL(manifestURL);
+    var apps = window.wrappedJSObject.applications || window.wrappedJSObject.Applications;
+    var app = apps.getByManifestURL(manifestURL);
     var appName;
 
     if (entryPoint) {

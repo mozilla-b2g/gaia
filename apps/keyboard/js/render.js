@@ -119,10 +119,8 @@ const IMERender = (function() {
 
     if (activeIme !== container) {
       if (activeIme) {
-        activeIme.style.display = 'none';
         delete activeIme.dataset.active;
       }
-      container.style.display = 'block';
       container.dataset.active = true;
 
       activeIme = container;
@@ -312,9 +310,11 @@ const IMERender = (function() {
     }
   };
 
-  var toggleCandidatePanel = function(expand) {
+  var toggleCandidatePanel = function(expand, resetScroll) {
     var candidatePanel = activeIme.querySelector('.keyboard-candidate-panel');
-    candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
+    if (resetScroll) {
+      candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
+    }
 
     if (expand) {
       ime.classList.remove('candidate-panel');
@@ -438,7 +438,7 @@ const IMERender = (function() {
         candidatePanel.innerHTML = '';
 
         candidatePanelToggleButton.style.display = 'none';
-        toggleCandidatePanel(false);
+        toggleCandidatePanel(false, false);
         docFragment = candidatesFragmentCode(1, candidates, true);
         candidatePanel.appendChild(docFragment);
       }
@@ -870,14 +870,31 @@ const IMERender = (function() {
     if (!activeIme)
       return 0;
 
-    return ime.clientWidth;
+    return cachedWindowWidth;
   };
 
   var getHeight = function getHeight() {
     if (!activeIme)
       return 0;
 
-    return ime.clientHeight;
+    var scale = screenInPortraitMode() ?
+      cachedWindowWidth / 32 :
+      cachedWindowWidth / 64;
+
+    var height = (activeIme.querySelectorAll('.keyboard-row').length *
+      (5.1 * scale));
+
+    if (activeIme.classList.contains('candidate-panel')) {
+      if (activeIme.querySelector('.keyboard-candidate-panel')
+          .classList.contains('latin')) {
+        height += (3.1 * scale);
+      }
+      else {
+        height += (3.2 * scale);
+      }
+    }
+
+    return height | 0;
   };
 
   var getKeyArray = function getKeyArray() {

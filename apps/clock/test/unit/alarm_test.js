@@ -4,32 +4,17 @@ mocha.setup({ globals: ['GestureDetector'] });
 
 suite('Alarm Test', function() {
 
-  var Alarm, ActiveAlarm;
-  var nativeMozAlarms = navigator.mozAlarms;
+  var Alarm;
+  var activeAlarm;
 
   suiteSetup(function(done) {
-    testRequire(['alarm', 'panels/alarm/active_alarm', 'mocks/mock_moz_alarm'],
-      {
-        mocks: ['panels/alarm/active_alarm']
-      },
-      function(alarm, activeAlarm, mockMozAlarms) {
+    require(['alarm', 'panels/alarm/active_alarm'],
+      function(alarm, ActiveAlarm) {
         Alarm = alarm;
-        ActiveAlarm = activeAlarm;
-        navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
-          ActiveAlarm.handler
-        );
-
+        activeAlarm = new ActiveAlarm();
         done();
       }
     );
-  });
-
-  suiteTeardown(function() {
-    navigator.mozAlarms = nativeMozAlarms;
-  });
-
-  setup(function() {
-    this.sinon.stub(ActiveAlarm.singleton(), 'handler');
   });
 
   suite('Date handling', function() {
@@ -72,6 +57,11 @@ suite('Alarm Test', function() {
           tuesday: true, thursday: true,
           saturday: true, sunday: true
         });
+      });
+
+      test('Alarm vibrate === "0"', function() {
+        var alarm = new Alarm({ vibrate: '0' });
+        assert.equal(alarm.vibrate, false);
       });
     });
 

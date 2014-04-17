@@ -4,7 +4,7 @@
 'use strict';
 
 // handle Wi-Fi settings
-navigator.mozL10n.ready(function wifiSettings() {
+navigator.mozL10n.once(function wifiSettings() {
   var _ = navigator.mozL10n.get;
 
   var settings = window.navigator.mozSettings;
@@ -953,6 +953,9 @@ navigator.mozL10n.ready(function wifiSettings() {
       function submit() {
         if (dialogID === 'wifi-joinHidden') {
           network.ssid = dialog.querySelector('input[name=ssid]').value;
+          if (window.MozWifiNetwork !== undefined) {
+            network = new window.MozWifiNetwork(network);
+          }
         }
         if (key) {
           WifiHelper.setPassword(network,
@@ -979,13 +982,15 @@ navigator.mozL10n.ready(function wifiSettings() {
   // update network state, called only when wifi enabled.
   function updateNetworkState() {
     var networkStatus = gWifiManager.connection.status;
+    var networkProp = gWifiManager.connection.network ?
+        {ssid: gWifiManager.connection.network.ssid} : null;
 
     // networkStatus has one of the following values:
     // connecting, associated, connected, connectingfailed, disconnected.
     gNetworkList.display(gCurrentNetwork, networkStatus);
 
     gWifiInfoBlock.textContent =
-        _('fullStatus-' + networkStatus, gWifiManager.connection.network);
+        _('fullStatus-' + networkStatus, networkProp);
 
     if (networkStatus === 'connectingfailed' && gCurrentNetwork) {
       settings.createLock().set({'wifi.connect_via_settings': false});

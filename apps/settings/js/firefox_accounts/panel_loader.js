@@ -2,7 +2,7 @@
 
 'use strict';
 
-navigator.mozL10n.ready(function onL10nReady() {
+navigator.mozL10n.once(function onL10nReady() {
   function onPanelReady(evt) {
     if (evt.detail.current !== '#fxa') {
       return;

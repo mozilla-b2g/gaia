@@ -58,7 +58,7 @@ var MockContacts = {
   confirmDialog: function() {
     ConfirmDialog.show.apply(ConfirmDialog, arguments);
   },
-  utility: function(view, callback) {
+  utility: function(view, callback, type) {
     callback();
   },
   view: function(view, callback) {

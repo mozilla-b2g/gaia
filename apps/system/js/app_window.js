@@ -571,6 +571,31 @@
     'childWindowFactory': window.ChildWindowFactory
   };
 
+  /**
+   * The event list is coming from current implemented mozbrowser events.
+   * https://developer.mozilla.org/en-US/docs/WebAPI/Browser
+   *
+   * We need to stop them from propgating to this window's parent.
+   * @type {Array}
+   */
+  var SELF_MANAGED_EVENTS = [
+    'mozbrowserasyncscroll',
+    'mozbrowserclose',
+    'mozbrowsercontextmenu',
+    'mozbrowsererror',
+    'mozbrowsericonchange',
+    'mozbrowserloadend',
+    'mozbrowserloadstart',
+    'mozbrowserlocationchange',
+    'mozbrowseropenwindow',
+    'mozbrowsersecuritychange',
+    'mozbrowsershowmodalprompt',
+    'mozbrowsertitlechange',
+    'mozbrowserusernameandpasswordrequired',
+    'mozbrowseropensearch',
+    'mozbrowsertitlechange'
+  ];
+
   AppWindow.prototype.openAnimation = 'enlarge';
   AppWindow.prototype.closeAnimation = 'reduce';
 
@@ -761,6 +786,11 @@
     }
     this.constructor.REGISTERED_EVENTS.forEach(function iterator(evt) {
       this.element.addEventListener(evt, this);
+    }, this);
+    SELF_MANAGED_EVENTS.forEach(function iterator(evt) {
+      if (this.constructor.REGISTERED_EVENTS.indexOf(evt) < 0) {
+        this.element.addEventListener(evt, this);
+      }
     }, this);
   };
 
@@ -1086,11 +1116,7 @@
        */
       this.broadcast('withoutkeyboard');
     }
-    if (this.isFullScreen()) {
-      height = self.layoutManager.fullscreenHeight + this.calibratedHeight();
-    } else {
-      height = self.layoutManager.usualHeight + this.calibratedHeight();
-    }
+    height = self.layoutManager.height + this.calibratedHeight();
 
     // If we have sidebar in the future, change layoutManager then.
     width = self.layoutManager.width;

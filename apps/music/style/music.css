@@ -263,7 +263,7 @@ body.picker-mode #title-player {
 #search {
   position: relative;
   width: 100%;
-  height: calc(100% - 3.6rem);
+  height: calc(100% - 3.7rem);
   overflow-x: hidden;
   overflow-y: auto;
   background: -moz-linear-gradient(center top, #303030 0%, #000000 100%) repeat scroll 0 0 transparent;
@@ -294,7 +294,7 @@ body.picker-mode #title-player {
 }
 
 #views-tiles {
-  left: 0%;
+  left: 0;
 }
 
 #views-list {
@@ -313,7 +313,7 @@ body.picker-mode #title-player {
 }
 
 #views-player.open-mode {
-  left: 0%;
+  left: 0;
 }
 
 /* Make sure the tiles and list views are tall enough that we can scroll the
@@ -1087,26 +1087,8 @@ li.list-item a:active {
   border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
 }
 
-form[role="search"] {
-  background: url(/shared/style/headers/images/ui/dark/subheader.png);
-}
-
-form[role="search"] button {
-  background: url(/shared/style/headers/images/ui/dark/separator.png) no-repeat scroll 2rem center transparent;
-  border: none;
-  border-radius: 0;
-  padding: 0;
-  float: left;
-  width: calc(2rem + 2px);
-}
-
 .search-highlight {
   background-color: rgb(0, 138, 170);
-}
-
-form p input + button[type="reset"] {
-  width: 4rem;
-  padding: 1rem;
 }
 
 #info-banner {

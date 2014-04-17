@@ -12,6 +12,7 @@ class GmailLogin(Base):
     _email_locator = (By.ID, 'Email')
     _password_locator = (By.ID, 'Passwd')
     _sign_in_locator = (By.ID, 'signIn')
+    _grant_access_button_locator = (By.ID, 'submit_approve_access')
 
     def switch_to_gmail_login_frame(self):
         self.marionette.switch_to_frame()
@@ -25,5 +26,11 @@ class GmailLogin(Base):
         self.marionette.find_element(*self._password_locator).tap()
         self.marionette.find_element(*self._password_locator).send_keys(passwd)
         self.marionette.find_element(*self._sign_in_locator).tap()
+
+    def tap_grant_access(self):
+        grant_access_button = self.marionette.find_element(*self._grant_access_button_locator)
+        self.wait_for_condition(lambda m: grant_access_button.is_enabled())
+        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [grant_access_button])
+        grant_access_button.tap()
         from gaiatest.apps.contacts.app import Contacts
         return Contacts(self.marionette)

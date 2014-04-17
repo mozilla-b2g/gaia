@@ -1,14 +1,11 @@
 'use strict';
 suite('Timer', function() {
-  var Timer, MockMozAlarm;
+  var Timer;
   var now, duration;
 
   suiteSetup(function(done) {
-    testRequire(['timer', 'mocks/mock_moz_alarm'], {
-      mocks: ['moz_alarm']
-    }, function(timer, MozAlarm) {
+    require(['timer'], function(timer) {
       Timer = timer;
-      MockMozAlarm = MozAlarm.MockMozAlarms;
       done();
     });
   });
@@ -101,7 +98,6 @@ suite('Timer', function() {
 
   suite('commit', function() {
     setup(function() {
-      this.sinon.stub(navigator, 'mozAlarms', new MockMozAlarm());
       this.addSpy = this.sinon.spy(navigator.mozAlarms, 'add');
       this.removeSpy = this.sinon.spy(navigator.mozAlarms, 'remove');
       this.timer = getTimer();

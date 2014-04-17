@@ -31,14 +31,14 @@ suite('value selector/value selector', function() {
       document.querySelector('#time-picker .picker-container');
     timeSeparator = document.getElementById('hours-minutes-separator');
 
-    realKeyboard = window.navigator.mozKeyboard;
-    window.navigator.mozKeyboard = sinon.stub();
+    realKeyboard = window.navigator.mozInputMethod;
+    window.navigator.mozInputMethod = sinon.stub();
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realSettings;
     navigator.mozL10n = realL10n;
-    window.navigator.mozKeyboard = realKeyboard;
+    window.navigator.mozInputMethod = realKeyboard;
     document.body.innerHTML = '';
   });
 

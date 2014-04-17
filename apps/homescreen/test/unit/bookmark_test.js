@@ -11,7 +11,7 @@ suite('bookmark.js >', function() {
 
   suiteSetup(function() {
     bookmark = new Bookmark({
-      bookmarkURL: URL,
+      url: URL,
       name: name,
       icon: icon,
       iconable: false,
@@ -47,7 +47,7 @@ suite('bookmark.js >', function() {
 
   test('This bookmark defines the url correctly after rebooting >', function() {
     bookmark = new Bookmark({
-      bookmarkURL: 'bookmark/' + URL,
+      url: URL,
       name: name,
       icon: icon
     });

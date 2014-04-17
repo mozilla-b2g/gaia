@@ -1279,7 +1279,7 @@ FormNavigation.prototype = {
       // element is the last one and the form is valid, submit the form.
       var nextInput = this.focusNextInput(event);
       if (!nextInput && this.options.checkFormValidity()) {
-        this.options.onLast();
+        this.options.onLast(event);
       }
     }
   },

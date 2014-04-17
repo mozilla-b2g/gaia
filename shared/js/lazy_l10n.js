@@ -21,25 +21,25 @@
       }
 
       if (this._inDOM) {
-        this._waitForLoad(callback);
+        this._waitForLoadAndDate(callback);
         return;
       }
 
       // Add the l10n JS files to the DOM and wait for them to load.
       loader.load(['/shared/js/l10n.js']);
-      this._waitForLoad(function baseLoaded() {
-        loader.load('/shared/js/l10n_date.js', function cb() {
-          callback(navigator.mozL10n.get);
-        });
+      this._waitForLoadAndDate(function baseLoaded() {
+        callback(navigator.mozL10n.get);
       });
       this._inDOM = true;
     },
 
-    _waitForLoad: function ll10n_waitForLoad(callback) {
+    _waitForLoadAndDate: function ll10n_waitForLoadAndDate(callback) {
       var finalize = this._finalize.bind(this);
       window.addEventListener('localized', function onLocalized() {
         window.removeEventListener('localized', onLocalized);
-        finalize(callback);
+        loader.load('/shared/js/l10n_date.js', function() {
+          finalize(callback);
+        });
       });
     },
 

@@ -1,4 +1,5 @@
 (function() {
+  'use strict';
 
   var eventHelper = {
     setProviderCaps: function(provider, override) {

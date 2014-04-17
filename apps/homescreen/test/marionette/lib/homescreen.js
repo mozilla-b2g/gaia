@@ -8,6 +8,7 @@ function Homescreen(client) {
 }
 
 var BookmarkEditor = require('./bookmark_editor');
+var BookmarkRemover = require('./bookmark_remover');
 
 /**
  * @type String Origin of Homescreen app
@@ -24,6 +25,13 @@ Homescreen.prototype = {
       this._bookmarkEditor = new BookmarkEditor(this.client);
     }
     return this._bookmarkEditor;
+  },
+
+  get bookmarkRemover() {
+    if (!this._bookmarkRemover) {
+      this._bookmarkRemover = new BookmarkRemover(this.client);
+    }
+    return this._bookmarkRemover;
   },
 
   /**
@@ -53,8 +61,24 @@ Homescreen.prototype = {
     this.client.apps.switchToApp(Homescreen.URL);
   },
 
+  isHomescreenIcon: function(title) {
+    this.client.executeScript(function(titleArg) {
+      return !!document.querySelector('li.icon[aria-label="' + titleArg + '"]');
+    }, [title]);
+  },
+
   getHomescreenIcon: function(title) {
     return this.client.findElement('li.icon[aria-label="' + title + '"]');
+  },
+
+  getCrossElementForIcon: function(title) {
+    return this.client.helper.waitForElement(
+                      'li.icon[aria-label="' + title + '"] span.options');
+  },
+
+  waitForHomescreenIcon: function(title) {
+    return this.client.helper.waitForElement('li.icon[aria-label="' + title +
+                                             '"]');
   },
 
   getLabelOfBookmark: function(title) {
@@ -79,6 +103,10 @@ Homescreen.prototype = {
 
   switchToBookmarkEditorFrame: function() {
     this.bookmarkEditor.backToApp();
+  },
+
+  switchToBookmarkRemoverFrame: function() {
+    this.bookmarkRemover.backToApp();
   }
 };
 

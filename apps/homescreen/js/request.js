@@ -85,8 +85,7 @@ var ConfirmDialog = (function() {
       var confirm = {
         callback: function onAccept() {
           ConfirmDialog.hide();
-          if (app.type === GridItemsFactory.TYPE.COLLECTION ||
-              app.type === GridItemsFactory.TYPE.BOOKMARK) {
+          if (app.type === GridItemsFactory.TYPE.COLLECTION) {
             app.uninstall();
           } else {
             navigator.mozApps.mgmt.uninstall(app);
@@ -109,8 +108,7 @@ var ConfirmDialog = (function() {
         name: icon.getName()
       };
 
-      if (app.type === GridItemsFactory.TYPE.COLLECTION ||
-          app.type === GridItemsFactory.TYPE.BOOKMARK) {
+      if (app.type === GridItemsFactory.TYPE.COLLECTION) {
         title = _('remove-title-2', nameObj);
         body = _('remove-body', nameObj);
         confirm.title = _('remove');

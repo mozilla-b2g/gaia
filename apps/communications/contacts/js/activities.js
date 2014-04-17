@@ -80,8 +80,8 @@ var ActivityHandler = {
         activity.source.data &&
         activity.source.data.blob) {
       LazyLoader.load([
-        '/contacts/js/utilities/import_from_vcard.js',
-        '/contacts/js/utilities/overlay.js'
+        '/shared/js/contacts/import/utilities/import_from_vcard.js',
+        '/shared/js/contacts/import/utilities/overlay.js'
       ], function loaded() {
         utils.importFromVcard(activity.source.data.blob, function imported(id) {
           if (id) {

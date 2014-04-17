@@ -1310,7 +1310,13 @@ contacts.List = (function() {
   function refreshContact(contact, enriched, callback) {
     remove(contact.id);
     addToList(contact, enriched);
-    if (callback) {
+    if (contacts.Search) {
+      contacts.Search.updateSearchList(function() {
+        if (callback) {
+          callback(contact.id);
+        }
+      });
+    } else if (callback) {
       callback(contact.id);
     }
   }

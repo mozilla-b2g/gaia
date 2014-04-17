@@ -9,12 +9,14 @@ suite('controllers/battery', function() {
       'app',
       'controllers/battery',
       'lib/settings',
+      'lib/setting',
       'views/notification'
     ], function(
-      App, BatteryController, Settings, NotificationView) {
+      App, BatteryController, Settings, Setting, NotificationView) {
       self.BatteryController = BatteryController.BatteryController;
       self.NotificationView = NotificationView;
       self.Settings = Settings;
+      self.Setting = Setting;
       self.App = App;
       done();
     });
@@ -31,7 +33,7 @@ suite('controllers/battery', function() {
 
     this.app = sinon.createStubInstance(this.App);
     this.app.settings = sinon.createStubInstance(this.Settings);
-    this.app.settings.battery = sinon.createStubInstance(this.Settings);
+    this.app.settings.battery = sinon.createStubInstance(this.Setting);
     this.app.settings.battery.get.withArgs('levels').returns(levels);
     this.app.l10n = { get: sinon.stub() };
     this.app.views = {

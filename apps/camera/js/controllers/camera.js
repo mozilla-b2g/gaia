@@ -15,7 +15,6 @@ var bindAll = require('lib/bind-all');
 exports = module.exports = function(app) { return new CameraController(app); };
 exports.CameraController = CameraController;
 
-
 /**
  * Initialize a new `CameraController`
  *
@@ -46,15 +45,14 @@ CameraController.prototype.bindEvents = function() {
   // don't have to depend directly on camera
   camera.on('change:videoElapsed', app.firer('camera:recorderTimeUpdate'));
   camera.on('change:capabilities', this.app.setter('capabilities'));
+  camera.on('change:focus', this.app.firer('camera:focuschanged'));
+  camera.on('filesizelimitreached', this.onFileSizeLimitReached);
   camera.on('configured', app.firer('camera:configured'));
   camera.on('change:recording', app.setter('recording'));
   camera.on('shutter', app.firer('camera:shutter'));
   camera.on('loaded', app.firer('camera:loaded'));
   camera.on('ready', app.firer('camera:ready'));
   camera.on('busy', app.firer('camera:busy'));
-
-  // Camera
-  camera.on('filesizelimitreached', this.onFileSizeLimitReached);
   camera.on('newimage', this.onNewImage);
   camera.on('newvideo', this.onNewVideo);
 
@@ -66,15 +64,17 @@ CameraController.prototype.bindEvents = function() {
   app.on('blur', this.onBlur);
   app.on('settings:configured', this.onSettingsConfigured);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
+  app.on('previewgallery:opened', this.onPreviewGalleryOpened);
 
-  settings.pictureSizes.on('change:selected', this.onPictureSizeChange);
+  // Settings
   settings.recorderProfiles.on('change:selected', this.onRecorderProfileChange);
-  settings.flashModes.on('change:selected', this.setFlashMode);
+  settings.pictureSizes.on('change:selected', this.onPictureSizeChange);
   settings.flashModes.on('change:selected', this.onFlashModeChange);
-  settings.on('change:cameras', this.setCamera);
-  settings.on('change:mode', this.setMode);
-  settings.on('change:hdr', this.setHDR);
-  settings.on('change:hdr', this.onHDRChange);
+  settings.flashModes.on('change:selected', this.setFlashMode);
+  settings.cameras.on('change:selected', this.setCamera);
+  settings.mode.on('change:selected', this.setMode);
+  settings.hdr.on('change:selected', this.setHDR);
+  settings.hdr.on('change:selected', this.onHDRChange);
 
   this.storage.on('statechange', this.onStorageStateChange);
   debug('events bound');
@@ -94,7 +94,7 @@ CameraController.prototype.configure = function() {
 
   // Configure the 'cameras' setting using the
   // cameraList data given by the camera hardware
-  settings.cameras.resetOptions(camera.cameraList);
+  settings.cameras.filterOptions(camera.cameraList);
 
   // Give the camera a way to create video filepaths. This
   // is so that the camera can record videos directly to
@@ -229,9 +229,8 @@ CameraController.prototype.onPictureSizeChange = function() {
   this.setPictureSize(value);
 };
 
-CameraController.prototype.onRecorderProfileChange = function() {
-  var value = this.settings.recorderProfiles.selected('key');
-  this.camera.setRecorderProfile(value);
+CameraController.prototype.onRecorderProfileChange = function(key) {
+  this.setRecorderProfile(key);
 };
 
 CameraController.prototype.onFileSizeLimitReached = function() {
@@ -256,8 +255,19 @@ CameraController.prototype.setMode = function(mode) {
 };
 
 CameraController.prototype.setPictureSize = function(value) {
+  var pictureMode = this.settings.mode.selected('key') === 'picture';
+
+  // Only configure in video mode
   this.camera.setPictureSize(value);
-  this.viewfinder.fadeOut(this.camera.configure);
+  if (pictureMode) { this.viewfinder.fadeOut(this.camera.configure); }
+};
+
+CameraController.prototype.setRecorderProfile = function(value) {
+  var videoMode = this.settings.mode.selected('key') === 'video';
+
+  // Only configure in video mode
+  this.camera.setRecorderProfile(value);
+  if (videoMode) { this.viewfinder.fadeOut(this.camera.configure); }
 };
 
 CameraController.prototype.setCamera = function(value) {
@@ -271,20 +281,10 @@ CameraController.prototype.setFlashMode = function() {
 };
 
 CameraController.prototype.onBlur = function() {
-  var recording = this.camera.get('recording');
-  var camera = this.camera;
-
-  if (recording) {
-    camera.stopRecording();
-  }
-
-  this.viewfinder.stopPreview();
-  camera.set('previewActive', false);
-  camera.set('focus', 'none');
-  camera.release();
-
-  this.viewfinder.setPreviewStream(null);
-
+  this.camera.stopRecording();
+  this.camera.set('previewActive', false);
+  this.camera.set('focus', 'none');
+  this.camera.release();
   debug('torn down');
 };
 
@@ -334,6 +334,14 @@ CameraController.prototype.onStorageStateChange = function(value) {
   if (value === 'shared' && this.camera.get('recording')) {
     this.camera.stopRecording();
   }
+};
+
+/**
+ * Resets the camera zoom when the preview gallery
+ * is opened.
+ */
+CameraController.prototype.onPreviewGalleryOpened = function() {
+  this.camera.configureZoom(this.camera.previewSize());
 };
 
 });

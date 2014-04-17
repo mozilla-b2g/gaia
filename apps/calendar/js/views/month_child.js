@@ -12,7 +12,7 @@
   function Child() {
     Calendar.View.apply(this, arguments);
 
-    this.id = Calendar.Calc.getDayId(this.date);
+    this.id = this.date.valueOf();
     this.controller = this.app.timeController;
 
     this._days = Object.create(null);

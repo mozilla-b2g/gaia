@@ -1,5 +1,7 @@
 'use strict';
 
+/* global MockEventTarget */
+
 (function(exports) {
   /**
    * This is an reimplementation of DOMRequest in JavaScript,
@@ -13,14 +15,13 @@
    * explicitly invoking success/error in test script.
    *
    * @class MockDOMRequest
+   * @requires MockEventTarget
+   *
    */
   var MockDOMRequest = function MockDOMRequest() {
-    this._successCaptureCallbacks = [];
-    this._successBubbleCallbacks = [];
-
-    this._errorCaptureCallbacks = [];
-    this._errorBubbleCallbacks = [];
   };
+
+  MockDOMRequest.prototype = new MockEventTarget();
 
   /**
    * The operation's result.
@@ -41,7 +42,7 @@
    * @memberof MockDOMRequest.prototype
    * @type {Function}
    */
-  MockDOMRequest.prototype.onsuccess = undefined;
+  MockDOMRequest.prototype.onsuccess = null;
 
   /**
    * A callback handler that gets called when an error occurs while processing
@@ -49,7 +50,7 @@
    * @memberof MockDOMRequest.prototype
    * @type {Function}
    */
-  MockDOMRequest.prototype.onerror = undefined;
+  MockDOMRequest.prototype.onerror = null;
 
   /**
    * A string indicating whether or not the operation is finished running.
@@ -58,84 +59,6 @@
    * @type {String}
    */
   MockDOMRequest.prototype.readyState = 'pending';
-
-  /**
-   * Adding an event listener for the success/error event.
-   * @memberof MockDOMRequest.prototype
-   * @param {String}          type     Event type, success or error.
-   * @param {Function|Object} handler  Event handler.
-   * @param {Boolean}         capture  True if use capture mode.
-   */
-  MockDOMRequest.prototype.addEventListener = function(type, handler, capture) {
-    if (typeof handler !== 'function' && handler &&
-        typeof handler.handleEvent !== 'function') {
-      return;
-    }
-
-    switch (type) {
-      case 'success':
-        if (capture) {
-          this._successCaptureCallbacks.push(handler);
-        } else {
-          this._successBubbleCallbacks.push(handler);
-        }
-        break;
-
-      case 'error':
-        if (capture) {
-          this._errorCaptureCallbacks.push(handler);
-        } else {
-          this._errorBubbleCallbacks.push(handler);
-        }
-        break;
-    }
-  };
-  /**
-   * Remove an event listener for the success/error event.
-   * @memberof MockDOMRequest.prototype
-   * @param {String}          type     Event type, success or error.
-   * @param {Function|Object} handler  Event handler.
-   * @param {Boolean}         capture  True if use capture mode.
-   */
-  MockDOMRequest.prototype.removeEventListener = function(type, handler,
-                                                          capture) {
-    if (typeof handler !== 'function' && handler &&
-        typeof handler.handleEvent !== 'function') {
-      return;
-    }
-
-    var index;
-
-    switch (type) {
-      case 'success':
-        if (capture) {
-          index = this._successCaptureCallbacks.indexOf(handler);
-          if (index !== -1) {
-            this._successCaptureCallbacks.splice(index, 1);
-          }
-        } else {
-          index = this._successBubbleCallbacks.indexOf(handler);
-          if (index !== -1) {
-            this._successBubbleCallbacks.splice(index, 1);
-          }
-        }
-        break;
-
-      case 'error':
-        if (capture) {
-          index = this._errorCaptureCallbacks.indexOf(handler);
-          if (index !== -1) {
-            this._errorCaptureCallbacks.splice(index, 1);
-          }
-        } else {
-          index = this._errorBubbleCallbacks.indexOf(handler);
-          if (index !== -1) {
-            this._errorBubbleCallbacks.splice(index, 1);
-          }
-        }
-        break;
-    }
-  };
 
   /**
    * Fire success event with result given.
@@ -152,37 +75,14 @@
     // Fake event that only implements two properties.
     // I am not interested in writing MockDOMEvent :-/
     var evt = {
-      type: 'success',
-      target: this
+      type: 'success'
     };
 
-    var handler = this._successCaptureCallbacks.shift();
-    while (handler) {
-      if (typeof handler === 'function') {
-        handler.call(this, evt);
-      } else {
-        handler.handleEvent(evt);
-      }
+    this.dispatchEvent(evt);
 
-      handler = this._successCaptureCallbacks.shift();
-    }
-    if (this.onsuccess && typeof this.onsuccess === 'function') {
-      this.onsuccess(evt);
-    }
-
-    handler = this._successBubbleCallbacks.shift();
-    while (handler) {
-      if (typeof handler === 'function') {
-        handler.call(this, evt);
-      } else {
-        handler.handleEvent(evt);
-      }
-
-      handler = this._successBubbleCallbacks.shift();
-    }
-
-    this._errorCaptureCallbacks = [];
-    this._errorBubbleCallbacks = [];
+    // Remove callbacks since we will never file them again.
+    this._captureCallbacks = [];
+    this._bubbleCallbacks = [];
   };
 
   /**
@@ -200,36 +100,14 @@
     // Fake event that only implements two properties.
     // I am not interested in writing MockDOMEvent :-/
     var evt = {
-      type: 'error',
-      target: this
+      type: 'error'
     };
 
-    var handler = this._errorCaptureCallbacks.shift();
-    while (handler) {
-      if (typeof handler === 'function') {
-        handler.call(this, evt);
-      } else {
-        handler.handleEvent(evt);
-      }
+    this.dispatchEvent(evt);
 
-      handler = this._errorCaptureCallbacks.shift();
-    }
-    if (this.onerror && typeof this.onerror === 'function') {
-      this.onerror(evt);
-    }
-    handler = this._errorBubbleCallbacks.shift();
-    while (handler) {
-      if (typeof handler === 'function') {
-        handler.call(this, evt);
-      } else {
-        handler.handleEvent(evt);
-      }
-
-      handler = this._errorBubbleCallbacks.shift();
-    }
-
-    this._successCaptureCallbacks = [];
-    this._successBubbleCallbacks = [];
+    // Remove callbacks since we will never file them again.
+    this._captureCallbacks = [];
+    this._bubbleCallbacks = [];
   };
 
   exports.MockDOMRequest = MockDOMRequest;

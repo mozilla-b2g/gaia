@@ -65,6 +65,8 @@ var MockAppWindow = function AppWindow(config) {
   this.groupID = this.instanceID;
 };
 
+MockAppWindow.prototype.publish = function() {};
+
 MockAppWindow.mTeardown = function() {
   MockAppWindowHelper.mInstances = [];
   MockAppWindowHelper.mLatest = null;

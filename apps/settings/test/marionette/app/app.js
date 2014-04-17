@@ -1,5 +1,6 @@
 'use strict';
 var Base = require('./base'),
+    RootPanel = require('./regions/root'),
     BluetoothPanel = require('./regions/bluetooth'),
     DoNotTrackPanel = require('./regions/do_not_track'),
     HotspotPanel = require('./regions/hotspot'),
@@ -44,9 +45,9 @@ Settings.Selectors = {
   'batteryMenuItem': '#menuItem-battery',
   'notificationsMenuItem': '#menuItem-notifications',
   'improvePanel': '#menuItem-improveBrowserOS',
+  'improveSection': '#improveBrowserOS',
   'feedbackPanel': 'button[data-href="#improveBrowserOS-chooseFeedback"]',
   'soundMenuItem': '#menuItem-sound',
-  'languagePanel': '#languages',
   'languageMenuItem': '#menuItem-languageAndRegion',
   'screenLockMenuItem': '#menuItem-phoneLock',
   'appPermissionPanel': '#menuItem-appPermissions',
@@ -56,6 +57,12 @@ Settings.Selectors = {
 Settings.prototype = {
 
   __proto__: Base.prototype,
+
+  get rootPanel() {
+    this._rootPanel = this._rootPanel ||
+      new RootPanel(this.client);
+    return this._rootPanel;
+  },
 
   get bluetoothPanel() {
     this.openPanel('bluetoothMenuItem');
@@ -142,7 +149,7 @@ Settings.prototype = {
   },
 
   get feedbackPanel() {
-    this.openPanel.call(this, 'feedbackPanel');
+    this.openPanel.call(this, 'feedbackPanel', 'improveSection');
     this._feedbackPanel =
       this._feedbackPanel || new FeedbackPanel(this.client);
     return this._feedbackPanel;

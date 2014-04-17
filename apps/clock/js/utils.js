@@ -45,7 +45,7 @@ Utils.memoizedDomPropertyDescriptor = function(selector) {
   return {
     get: function() {
       if (memoizedValue === null) {
-        memoizedValue = document.querySelectorAll(selector)[0];
+        memoizedValue = document.querySelector(selector);
       }
       return memoizedValue;
     },
@@ -53,6 +53,18 @@ Utils.memoizedDomPropertyDescriptor = function(selector) {
       memoizedValue = value;
     }
   };
+};
+
+/**
+ * Extend the given prototype object with lazy getters.
+ * selectorMap is a mapping of { propertyName: selector }.
+ */
+Utils.extendWithDomGetters = function(proto, selectorMap) {
+  for (var property in selectorMap) {
+    Object.defineProperty(proto, property,
+      Utils.memoizedDomPropertyDescriptor(selectorMap[property]));
+  }
+  return proto;
 };
 
 Utils.dateMath = {
@@ -159,7 +171,8 @@ Utils.extend = function(initialObject, extensions) {
   for (var i = 0; i < extensions.length; i++) {
     var extender = extensions[i];
     for (var prop in extender) {
-      if (Object.prototype.hasOwnProperty.call(extender, prop)) {
+      var descriptor = Object.getOwnPropertyDescriptor(extender, prop);
+      if (descriptor && descriptor.value !== undefined) {
         initialObject[prop] = extender[prop];
       }
     }
@@ -226,8 +239,8 @@ Utils.getLocaleTime = function(d) {
   var f = new mozL10n.DateTimeFormat();
   var is12h = Utils.is12hFormat();
   return {
-    t: f.localeFormat(d, (is12h ? '%I:%M' : '%H:%M')).replace(/^0/, ''),
-    p: is12h ? f.localeFormat(d, '%p') : ''
+    time: f.localeFormat(d, (is12h ? '%I:%M' : '%H:%M')).replace(/^0/, ''),
+    ampm: is12h ? f.localeFormat(d, '%p') : ''
   };
 };
 
@@ -624,6 +637,14 @@ Utils.data = {
     }
     return removed;
   }
+};
+
+Utils.addEventListenerOnce = function(element, type, fn, useCapture) {
+  var handler = function(evt) {
+    element.removeEventListener(type, handler, useCapture);
+    fn(evt);
+  };
+  element.addEventListener(type, handler, useCapture);
 };
 
 return Utils;

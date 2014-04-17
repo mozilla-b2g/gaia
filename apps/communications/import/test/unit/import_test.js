@@ -1,10 +1,12 @@
+'use strict';
+
 require('/shared/js/text_normalizer.js');
+require('/shared/js/contacts/import/utilities/misc.js');
 requireApp('communications/import/test/unit/mock_import.html.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_search.js');
 requireApp('communications/contacts/test/unit/mock_oauthflow.js');
-requireApp('communications/contacts/js/import_utils.js');
 requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/js/fb/friends_list.js');
 requireApp('communications/contacts/js/utilities/templates.js');
