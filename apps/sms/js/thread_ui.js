@@ -532,7 +532,10 @@ var ThreadUI = global.ThreadUI = {
     // Handling user warning for max character reached
     // Only show the warning when the subject field has the focus
     if (this.subjectInput.value.length === Compose.subjectMaxLength) {
-      this.showMaxLengthNotice('messages-max-subject-length-text');
+      this.showMaxLengthNotice(
+        'messages-max-subject-length-text',
+        { transient: true }
+      );
     } else {
       this.hideMaxLengthNotice();
     }
@@ -541,15 +544,18 @@ var ThreadUI = global.ThreadUI = {
   onSubjectBlur: function thui_onSubjectBlur() {
     this.hideMaxLengthNotice();
   },
-  showMaxLengthNotice: function thui_showMaxLengthNotice(l10nKey) {
+  showMaxLengthNotice: function thui_showMaxLengthNotice(l10nKey, opts) {
     navigator.mozL10n.localize(
       this.maxLengthNotice.querySelector('p'), l10nKey);
     this.maxLengthNotice.classList.remove('hide');
-    if (this.timeouts.subjectLengthNotice) {
-      clearTimeout(this.timeouts.subjectLengthNotice);
+
+    if (opts && opts.transient) {
+      if (this.timeouts.subjectLengthNotice) {
+        clearTimeout(this.timeouts.subjectLengthNotice);
+      }
+      this.timeouts.subjectLengthNotice =
+        setTimeout(this.hideMaxLengthNotice.bind(this), this.BANNER_DURATION);
     }
-    this.timeouts.subjectLengthNotice =
-      setTimeout(this.hideMaxLengthNotice.bind(this), this.BANNER_DURATION);
   },
   hideMaxLengthNotice: function thui_hideMaxLengthNotice() {
     this.maxLengthNotice.classList.add('hide');
