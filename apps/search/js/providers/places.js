@@ -48,14 +48,6 @@
     }
   }
 
-  navigator.getDataStores(STORE_NAME).then(function(stores) {
-    store = stores[0];
-    store.onchange = function() {
-      doSync();
-    };
-    doSync();
-  });
-
   function saveIcon(url) {
     if (url in icons) {
       return;
@@ -83,11 +75,6 @@
       }
 
       var blob = xhr.response;
-
-      if (blob.type.split('/')[0] != 'image') {
-        return callback(new Error('not an image'));
-      }
-
       if (blob.size > this.MAX_ICON_SIZE) {
         return callback(new Error('image_to_large'));
       }
@@ -173,7 +160,8 @@
       div.appendChild(span);
 
       if (x.screenshot) {
-        var objectURL = URL.createObjectURL(x.screenshot);
+        var objectURL = typeof x.screenshot === 'string' ? x.screenshot :
+          URL.createObjectURL(x.screenshot);
         div.style.backgroundImage = 'url(' + objectURL + ')';
       }
       docFragment.appendChild(div);
@@ -282,6 +270,62 @@
       collect(renderResults);
     },
   };
+
+  // Add prepoulated history and top sites
+  // Will be replaced by configuration mechanism in
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=997829
+  var defaultHistory = [
+    {url: 'http://www.nytimes.com', visited: 0,
+     title: 'The New York Times - Breaking News, World News & Multimedia',
+     iconUri: '/style/preloaded/favicons/1_NYTimes.png'},
+    {url: 'http://www.behance.net', visited: 0,
+     title: 'Online Portfolios on Behance',
+     iconUri: '/style/preloaded/favicons/2_Behance.png'},
+    {url: 'http://gizmodo.com', visited: 0,
+     title: 'Gizmodo - Tech By Design',
+     iconUri: '/style/preloaded/favicons/3_Gizmodo.png'},
+    {url: 'http://www.vogue.com', visited: 0,
+     title: 'Fashion Magazine - Latest News, Catwalk Photos & Designers',
+     iconUri: '/style/preloaded/favicons/4_Vouge.png'},
+  ];
+
+  var defaultTopSites = [
+    {url: 'http://mozilla.org', frecency: 0,
+     title: 'Home of the Mozilla Project — Mozilla',
+     screenshot: '/style/preloaded/screenshots/1_Mozilla.jpg'},
+    {url: 'http://ign.com/', frecency: 0,
+     title: 'IGN - Walkthroughs, Reviews, News & Videos',
+     screenshot: '/style/preloaded/screenshots/2_IGN.jpg'},
+    {url: 'http://edition.cnn.com/', frecency: 0,
+     title: 'CNN.com International - Breaking News',
+     screenshot: '/style/preloaded/screenshots/3_CNN.jpg'},
+    {url: 'http://500px.com/', frecency: 0,
+     title: '500px | The Premier Photography Community.',
+     screenshot: '/style/preloaded/screenshots/4_500px.jpg'},
+    {url: 'http://www.49ers.com/', frecency: 0,
+     title: 'The Official Site of the San Francisco 49ers',
+     screenshot: '/style/preloaded/screenshots/5_49ers.jpg'},
+    {url: 'http://espn.go.com/', frecency: 0,
+     title: 'ESPN: The Worldwide Leader In Sports',
+     screenshot: '/style/preloaded/screenshots/6_ESPN.jpg'},
+  ];
+
+  defaultHistory.forEach(function (place) {
+    addToOrderedStore(history, place, 'visited', MAX_HISTORY_RESULTS);
+    saveIcon(place.iconUri);
+  });
+
+  defaultTopSites.forEach(function (place) {
+    addToOrderedStore(topSites, place, 'frecency', MAX_TOPSITES_RESULTS);
+  });
+
+  navigator.getDataStores(STORE_NAME).then(function(stores) {
+    store = stores[0];
+    store.onchange = function() {
+      doSync();
+    };
+    doSync();
+  });
 
   var places = new Places();
   Search.provider(places);
