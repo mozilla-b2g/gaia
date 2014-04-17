@@ -3,7 +3,7 @@
  * startup and eventually notifications.
  **/
 /*jshint browser: true */
-/*global define, requirejs, confirm, console, TestUrlResolver */
+/*global define, requirejs, console, TestUrlResolver */
 
 // Set up loading of scripts, but only if not in tests, which set up
 // their own config.
@@ -51,6 +51,7 @@ var appMessages = require('app_messages'),
     model = require('model'),
     headerCursor = require('header_cursor').cursor,
     Cards = common.Cards,
+    waitingForCreateAccountPrompt = false,
     activityCallback = null;
 
 require('sync');
@@ -266,6 +267,11 @@ evt.on('addAccount', function() {
 });
 
 function resetApp() {
+  // Clear any existing local state and reset UI/model state.
+  waitForAppMessage = false;
+  waitingForCreateAccountPrompt = false;
+  activityCallback = null;
+
   Cards.removeAllCards();
   model.init();
 }
@@ -308,7 +314,9 @@ evt.on('showLatestAccount', function() {
 
 model.on('acctsSlice', function() {
   if (!model.hasAccount()) {
-    resetCards('setup_account_info');
+    if (!waitingForCreateAccountPrompt) {
+      resetCards('setup_account_info');
+    }
   } else {
     model.latestOnce('foldersSlice', function() {
       if (waitForAppMessage)
@@ -324,7 +332,20 @@ model.on('acctsSlice', function() {
   }
 });
 
+var lastActivityTime = 0;
 appMessages.on('activity', function(type, data, rawActivity) {
+  // Rate limit rapid fire activity triggers, like an accidental
+  // double tap. While the card code adjusts for the taps, in
+  // the case of configured account, user can end up with multiple
+  // compose cards in the stack, which is probably confusing,
+  // and the rapid tapping is likely just an accident, or an
+  // incorrect user belief that double taps are needed for
+  // activation.
+  var activityTime = Date.now();
+  if (activityTime < lastActivityTime + 1000) {
+    return;
+  }
+  lastActivityTime = activityTime;
 
   function initComposer() {
     Cards.pushCard('compose', 'default', 'immediate', {
@@ -358,16 +379,24 @@ appMessages.on('activity', function(type, data, rawActivity) {
   }
 
   function promptEmptyAccount() {
-    var req = confirm(mozL10n.get('setup-empty-account-prompt'));
-    if (!req) {
-      rawActivity.postError('cancelled');
-    }
+    common.ConfirmDialog.show(mozL10n.get('setup-empty-account-prompt'),
+    function(confirmed) {
+      if (!confirmed) {
+        rawActivity.postError('cancelled');
+      }
 
-    // No longer need to wait for the activity to complete, it needs
-    // normal card flow
-    waitForAppMessage = false;
+      waitingForCreateAccountPrompt = false;
 
-    activityCallback = initComposer;
+      // No longer need to wait for the activity to complete, it needs
+      // normal card flow
+      waitForAppMessage = false;
+
+      activityCallback = initComposer;
+
+      // Always just reset to setup account in case the system does
+      // not properly close out the email app on a cancelled activity.
+      resetCards('setup_account_info');
+    });
   }
 
   // Remove previous cards because the card stack could get
@@ -389,6 +418,7 @@ appMessages.on('activity', function(type, data, rawActivity) {
     if (model.hasAccount()) {
       initComposer();
     } else {
+      waitingForCreateAccountPrompt = true;
       promptEmptyAccount();
     }
   } else {
@@ -397,6 +427,7 @@ appMessages.on('activity', function(type, data, rawActivity) {
     // account prompt will be triggered quickly in the next section.
     initComposer();
 
+    waitingForCreateAccountPrompt = true;
     model.latestOnce('acctsSlice', function activityOnAccount() {
       if (!model.hasAccount()) {
         promptEmptyAccount();
