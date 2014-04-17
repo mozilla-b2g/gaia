@@ -41,7 +41,6 @@ module.exports = View.extend({
     /*jshint maxlen:false*/
     return '' +
       '<div class="controls-left">' +
-        '<div class="controls-button controls-gallery-button test-gallery icon-gallery js-btn rotates" name="gallery"></div>' +
         '<div class="controls-button controls-thumbnail-button test-thumbnail js-thumbnail js-btn rotates" name="thumbnail"></div>' +
         '<div class="controls-button controls-cancel-pick-button test-cancel-pick icon-pick-cancel js-btn rotates" name="cancel"></div>' +
       '</div>' +
@@ -68,7 +67,6 @@ module.exports = View.extend({
       this.els.thumbnail.appendChild(this.els.image);
 
       this.set('thumbnail', true);
-      this.set('gallery', false);
     } else {
       window.URL.revokeObjectURL(this.els.image.src);
     }
@@ -81,8 +79,6 @@ module.exports = View.extend({
       window.URL.revokeObjectURL(this.els.image.src);
       this.els.image = null;
     }
-
-    this.set('gallery', true);
     this.set('thumbnail', false);
   }
 
