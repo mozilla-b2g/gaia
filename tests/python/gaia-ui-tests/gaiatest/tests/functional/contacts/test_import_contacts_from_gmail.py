@@ -36,7 +36,8 @@ class TestImportContactsFromGmail(GaiaTestCase):
 
         # Login to gmail account
         gmail.switch_to_gmail_login_frame()
-        contacts_import = gmail.gmail_login(email, password)
+        gmail.gmail_login(email, password)
+        contacts_import = gmail.tap_grant_access()
 
         # Import first contact
         contacts_import.switch_to_select_contacts_frame()
