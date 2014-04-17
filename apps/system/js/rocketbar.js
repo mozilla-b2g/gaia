@@ -265,6 +265,7 @@ var Rocketbar = {
     if (!this.expanded) {
       this.expand();
     }
+    this.clear();
     this.rocketbar.classList.add('on-homescreen');
   },
 
@@ -401,7 +402,6 @@ var Rocketbar = {
    * Handle press of hardware home button.
    */
   handleHome: function() {
-    this.clear();
     this.hideResults();
     this.enterHome();
     this.deactivate();
