@@ -26,6 +26,7 @@ html, body, .icons {
   text-align: center;
   background: no-repeat center;
   background-size: 8rem;
+  z-index: 3;
 }
 
 .icon .title {
@@ -43,10 +44,20 @@ html, body, .icons {
   margin: 2.3rem 1rem;
   background: rgba(255, 255, 255, 0.3);
   width: calc(100% - 2rem);
+  z-index: 2;
 }
 
 .divider:last-child {
   visibility: hidden;
+}
+
+.dragging .icon.active {
+  z-index: 4;
+}
+
+.dragging .divider,
+.dragging .icon:not(.active) {
+  transition: transform 0.35s;
 }
 
 .edit-mode .divider:last-child {

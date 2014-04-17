@@ -49,6 +49,7 @@
 
       this.active = true;
       this.exitEditMode();
+      container.classList.add('dragging');
       this.target.classList.add('active');
 
       // Testing with some extra offset (20)
@@ -253,6 +254,8 @@
             setTimeout(function nextTick() {
               app.start();
             });
+
+            container.classList.remove('dragging');
 
             // Event listeners for edit mode.
             container.classList.add('edit-mode');
