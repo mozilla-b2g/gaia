@@ -6,6 +6,34 @@
   function ApplicationSource() {
     this.entries = [];
     this.entriesByManifestUrl = {};
+
+    var appMgr = navigator.mozApps.mgmt;
+
+    appMgr.getAll().onsuccess = function onsuccess(event) {
+      for (var i = 0, iLen = event.target.result.length; i < iLen; i++) {
+        this.makeIcons(event.target.result[i]);
+      }
+    }.bind(this);
+
+    appMgr.oninstall = function oninstall(event) {
+      this.makeIcons(event.application);
+
+      var appObject = this.mapToApp({
+        manifestURL: event.application.manifestURL
+      });
+      app.icons[appObject.identifier] = appObject;
+      app.items.push(appObject);
+      app.render();
+      app.itemStore.save(app.items);
+    }.bind(this);
+
+    appMgr.onuninstall = function onuninstall(event) {
+      var appObject = app.icons[event.application.origin];
+      delete app.icons[appObject.identifier];
+      app.items.splice(appObject.index, 1);
+      app.itemStore.save(app.items);
+    };
+
   }
 
   ApplicationSource.prototype = {
@@ -13,22 +41,19 @@
     itemPosition: 0,
 
     /**
-     * Populates the initial applicaiton data from mozApps.
+     * Populates the initial application data from mozApps.
      */
     populate: function(success) {
-      navigator.mozApps.mgmt.getAll().onsuccess = function(event) {
-        for (var i = 0, iLen = event.target.result.length; i < iLen; i++) {
-          this.makeIcons(event.target.result[i]);
-        }
-        success(this.entries);
-      }.bind(this);
+      success(this.entries);
     },
 
     /**
      * Creates entries for an app based on hidden roles and entry points.
      */
     makeIcons: function(eachApp) {
-      if (app.HIDDEN_ROLES.indexOf(eachApp.manifest.role) !== -1) {
+      var manifest = eachApp.manifest || eachApp.updateManifest;
+
+      if (app.HIDDEN_ROLES.indexOf(manifest.role) !== -1) {
         return;
       }
 
@@ -48,8 +73,8 @@
 
       this.entriesByManifestUrl[eachApp.manifestURL] = eachApp;
 
-      if (eachApp.manifest.entry_points) {
-        for (var i in eachApp.manifest.entry_points) {
+      if (manifest.entry_points) {
+        for (var i in manifest.entry_points) {
           eachIcon.call(this, new Icon(eachApp, i));
         }
       } else {

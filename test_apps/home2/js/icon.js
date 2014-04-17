@@ -1,4 +1,5 @@
 'use strict';
+/* global UrlHelper */
 
 (function(exports) {
   // Icon container
@@ -54,14 +55,26 @@
           lastIcon = i;
         }
       }
-      return this.descriptor.icons[lastIcon];
+
+      var icon = this.descriptor.icons[lastIcon];
+
+      // Handle relative URLs
+      if (!UrlHelper.hasScheme(icon)) {
+        var a = document.createElement('a');
+        a.href = this.app.origin;
+        icon = a.protocol + '//' + a.host + icon;
+      }
+
+      return icon;
     },
 
     get descriptor() {
+      var manifest = this.app.manifest || this.app.updateManifest;
+
       if (this.entryPoint) {
-        return this.app.manifest.entry_points[this.entryPoint];
+        return manifest.entry_points[this.entryPoint];
       }
-      return this.app.manifest;
+      return manifest;
     },
 
     get identifier() {
@@ -69,8 +82,6 @@
 
       if (this.entryPoint) {
         identifier.push(this.entryPoint);
-      } else {
-        identifier.push(0);
       }
 
       return identifier.join('-');
@@ -97,7 +108,7 @@
         var tile = document.createElement('div');
         tile.className = 'icon';
         tile.dataset.identifier = this.identifier;
-        tile.style.backgroundImage = 'url(' + this.app.origin + this.icon + ')';
+        tile.style.backgroundImage = 'url(' + this.icon + ')';
 
         var nameEl = document.createElement('span');
         nameEl.className = 'title';
