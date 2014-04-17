@@ -148,6 +148,10 @@
     "sv-SE": [
         {"layoutId": "sv", "appManifestURL": "app://keyboard.gaiamobile.org/manifest.webapp"}
     ],
+    "ta": [
+        {"layoutId": "ta", "appManifestURL": "app://keyboard.gaiamobile.org/manifest.webapp"},
+        {"layoutId": "en", "appManifestURL": "app://keyboard.gaiamobile.org/manifest.webapp"}
+    ],
     "te": [
         {"layoutId": "en", "appManifestURL": "app://keyboard.gaiamobile.org/manifest.webapp"}
     ],
