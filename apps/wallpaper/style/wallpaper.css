@@ -40,23 +40,19 @@ html, body {
 }
 
 #buttons {
+  -moz-box-sizing: border-box;
   position: absolute;
+  bottom: 0;
   left: 0;
   width: 100%;
-  bottom: 0;
-  height: 5rem;
+  height: 7rem;
+  padding: 1.5rem 1rem;
+  font-size: 0;
+  white-space: nowrap;
 }
 
-#buttons > #set-wallpaper {
-  position: absolute;
-  left: 50%;
-  width: 50%;
-  height: 100%;
+#buttons button {
+  width: calc((100% - 2rem) / 2);
+  margin: 0 0.5rem;
 }
 
-#buttons > #cancel {
-  position: absolute;
-  left: 0;
-  width: 50%;
-  height: 100%;
-}
