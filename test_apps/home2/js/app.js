@@ -158,6 +158,13 @@
      */
     clickIcon: function(e) {
       var container = e.target;
+      var action = 'launch';
+
+      if (e.target.classList.contains('remove')) {
+        container = e.target.parentNode;
+        action = 'remove';
+      }
+
       var identifier = container.dataset.identifier;
       var icon = this.icons[identifier];
 
@@ -165,7 +172,7 @@
         return;
       }
 
-      icon.launch();
+      icon[action]();
     }
   };
 

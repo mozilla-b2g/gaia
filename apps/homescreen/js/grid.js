@@ -1391,8 +1391,7 @@ var GridManager = (function() {
   }
 
   function showRestartDownloadDialog(icon) {
-    LazyLoader.load(['shared/style/confirm.css',
-                     'style/request.css',
+    LazyLoader.load(['style/request.css',
                      document.getElementById('confirm-dialog'),
                      'js/request.js'], function loaded() {
       doShowRestartDownloadDialog(icon);

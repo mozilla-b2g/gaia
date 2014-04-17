@@ -27,6 +27,20 @@
     scale: 1,
 
     /**
+     * Returns true if this item is removable.
+     */
+    isRemovable: function() {
+      return false;
+    },
+
+    /**
+     * Returns true if this item is editable.
+     */
+    isEditable: function() {
+      return false;
+    },
+
+    /**
      * Sets the item position
      */
     setPosition: function(position) {
@@ -53,6 +67,13 @@
         nameEl.className = 'title';
         nameEl.textContent = this.name;
         tile.appendChild(nameEl);
+
+        // Add delete link if this icon is removable
+        if (this.isRemovable()) {
+          var removeEl = document.createElement('span');
+          removeEl.className = 'remove';
+          tile.appendChild(removeEl);
+        }
 
         this.element = tile;
 

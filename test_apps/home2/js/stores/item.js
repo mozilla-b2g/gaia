@@ -9,7 +9,7 @@
 
   const DB_VERSION = 1;
 
-  const DB_NAME = 'home2-alpha18';
+  const DB_NAME = 'home2-alpha20';
 
   const DB_ITEM_STORE = 'items';
 
