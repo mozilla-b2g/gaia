@@ -176,7 +176,7 @@
 .mode-switch .mode-icon {
   position: absolute;
   width: 2.4rem;
-  right: 1.2rem;
+  right: 1rem;
   line-height: 3.6rem;
 }
 
@@ -233,7 +233,7 @@
   content: "\e60f";
   display: block;
   text-align: center;
-  font-size: 1.8rem;
+  font-size: 2.1rem;
   line-height: 3.6rem;
   color: #00CAF2;
 }
