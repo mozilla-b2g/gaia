@@ -29,12 +29,6 @@
     dirty: false,
 
     /**
-     * Whether or not we are in edit mode.
-     * @type {boolean}
-     */
-    inEditMode: false,
-
-    /**
      * Begins the drag/drop interaction.
      * Enlarges the icon.
      * Sets additional data to make the touchmove handler faster.
@@ -48,7 +42,7 @@
       app.stop();
 
       this.active = true;
-      this.exitEditMode();
+      container.classList.add('edit-mode');
       this.target.classList.add('active');
 
       // Testing with some extra offset (20)
@@ -134,13 +128,6 @@
       }
     },
 
-    exitEditMode: function() {
-      this.inEditMode = false;
-      container.classList.remove('edit-mode');
-      window.removeEventListener('hashchange', this);
-      document.removeEventListener('visibilitychange', this);
-    },
-
     /**
      * General event handler.
      */
@@ -148,14 +135,6 @@
       var touch;
 
       switch(e.type) {
-          case 'hashchange':
-            this.exitEditMode();
-            break;
-          case 'visibilitychange':
-            if (document.hidden && this.inEditMode) {
-              this.exitEditMode();
-            }
-            break;
           case 'touchstart':
             // If we get a second touch, cancel everything.
             if (e.touches.length > 1) {
@@ -233,6 +212,7 @@
 
             this.currentTouch = null;
             this.active = false;
+            container.classList.remove('edit-mode');
 
             delete this.icon.noRender;
             this.icon = null;
@@ -253,12 +233,6 @@
             setTimeout(function nextTick() {
               app.start();
             });
-
-            // Event listeners for edit mode.
-            container.classList.add('edit-mode');
-            this.inEditMode = true;
-            window.addEventListener('hashchange', this);
-            document.addEventListener('visibilitychange', this);
 
             break;
         }

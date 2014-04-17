@@ -1,12 +1,8 @@
 'use strict';
-/* global ConfirmDialog */
 /* global GridItem */
-/* global LazyLoader */
 /* global UrlHelper */
 
 (function(exports) {
-
-  var _ = navigator.mozL10n.get;
 
   /**
    * Represents a single app icon on the homepage.
@@ -93,13 +89,6 @@
     },
 
     /**
-     * Returns true if this app is removable.
-     */
-    isRemovable: function() {
-      return this.app.removable;
-    },
-
-    /**
      * Launches the application for this icon.
      */
     launch: function() {
@@ -108,41 +97,6 @@
       } else {
         this.app.launch();
       }
-    },
-
-    /**
-     * Uninstalls the application.
-     */
-    remove: function() {
-
-      var nameObj = {
-        name: this.name
-      };
-
-      LazyLoader.load([
-        '/shared/js/confirm.js',
-        '/shared/style/animations.css',
-        '/shared/style/confirm.css',
-        document.getElementById('confirmation-message')
-        ],
-        function() {
-        ConfirmDialog.show(_('delete-title', nameObj),
-          _('delete-body', nameObj),
-        {
-          title: _('cancel'),
-          callback: function _cancel() {
-            ConfirmDialog.hide();
-          }
-        },
-        {
-          title: _('delete'),
-          isDanger: true,
-          callback: function _confirm() {
-            ConfirmDialog.hide();
-            navigator.mozApps.mgmt.uninstall(this.app);
-          }.bind(this)
-        });
-      }.bind(this));
     }
   };
 

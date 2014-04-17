@@ -52,21 +52,3 @@ html, body, .icons {
 .edit-mode .divider:last-child {
   visibility: visible;
 }
-
-.icon .remove {
-  display: none;
-}
-
-.edit-mode .icon .remove {
-  display: block;
-  position: absolute;
-  top: 0.1rem;
-  left: 0.5rem;
-  width: 2.6rem;
-  height: 2.6rem;
-  background: url(/style/images/remove.png) no-repeat;
-}
-
-#confirmation-message.fade-in {
-  position: fixed;
-}

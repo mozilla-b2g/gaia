@@ -29,7 +29,7 @@
     appMgr.onuninstall = function onuninstall(event) {
       this.removeIconFromGrid(event.application.manifestURL);
       app.itemStore.save(app.items);
-    }.bind(this);
+    };
 
   }
 
@@ -95,13 +95,8 @@
       delete app.icons[appObject.identifier];
 
       var itemIndex = app.items.indexOf(appObject);
-
       app.items.splice(itemIndex, 1);
       app.render();
-
-      if (appObject.element) {
-        appObject.element.parentNode.removeChild(appObject.element);
-      }
     },
 
     /**

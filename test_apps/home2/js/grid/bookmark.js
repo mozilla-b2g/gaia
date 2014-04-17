@@ -1,7 +1,5 @@
 'use strict';
 /* global GridItem */
-/* global MozActivity */
-/* jshint nonew: false */
 
 (function(exports) {
 
@@ -38,21 +36,7 @@
     },
 
     get identifier() {
-      return this.detail.id;
-    },
-
-    /**
-     * Bookmarks are always editable.
-     */
-    isEditable: function() {
-      return true;
-    },
-
-    /**
-     * Bookmarks are always removable.
-     */
-    isRemovable: function() {
-      return true;
+      return this.detail.url;
     },
 
     /**
@@ -71,19 +55,6 @@
         return encodeURIComponent(key) + '=' +
           encodeURIComponent(features[key]);
       }).join(','));
-    },
-
-    /**
-     * Opens a web activity to remove the bookmark.
-     */
-    remove: function() {
-      new MozActivity({
-        name: 'remove-bookmark',
-        data: {
-          type: 'url',
-          url: this.detail.id
-        }
-      });
     }
   };
 
