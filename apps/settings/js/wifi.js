@@ -953,6 +953,9 @@ navigator.mozL10n.once(function wifiSettings() {
       function submit() {
         if (dialogID === 'wifi-joinHidden') {
           network.ssid = dialog.querySelector('input[name=ssid]').value;
+          if (window.MozWifiNetwork !== undefined) {
+            network = new window.MozWifiNetwork(network);
+          }
         }
         if (key) {
           WifiHelper.setPassword(network,
