@@ -17,6 +17,7 @@ class Keypad(Phone):
     #locators
     _keyboard_container_locator = (By.ID, 'keyboard-container')
     _phone_number_view_locator = (By.ID, 'phone-number-view')
+    _keypad_delete_locator = (By.ID, 'keypad-delete')
     _call_bar_locator = (By.ID, 'keypad-callbar-call-action')
     _add_new_contact_button_locator = (By.ID, 'keypad-callbar-add-contact')
     _search_popup_locator = (By.CSS_SELECTOR, '#suggestion-bar .suggestion-item')
@@ -44,12 +45,27 @@ class Keypad(Phone):
                 self.marionette.find_element(By.CSS_SELECTOR, 'div.keypad-key[data-value="%s"]' % i).tap()
                 time.sleep(0.25)
 
+    def a11y_dial_phone_number(self, value):
+        for i in value:
+            self.accessibility.click(self.marionette.find_element(
+                By.CSS_SELECTOR, 'div.keypad-key[data-value="%s"]' % i))
+            time.sleep(0.25)
+
     def call_number(self, value):
         self.dial_phone_number(value)
         return self.tap_call_button()
 
+    def a11y_call_number(self, value):
+        self.a11y_dial_phone_number(value)
+        return self.a11y_click_call_button()
+
     def tap_call_button(self, switch_to_call_screen=True):
         self.marionette.find_element(*self._call_bar_locator).tap()
+        if switch_to_call_screen:
+            return CallScreen(self.marionette)
+
+    def a11y_click_call_button(self, switch_to_call_screen=True):
+        self.accessibility.click(self.marionette.find_element(*self._call_bar_locator))
         if switch_to_call_screen:
             return CallScreen(self.marionette)
 

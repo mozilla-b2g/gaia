@@ -600,6 +600,11 @@ class Accessibility(object):
             'return Accessibility.isHidden.apply(Accessibility, arguments)',
             [element], special_powers=True)
 
+    def is_disabled(self, element):
+        return self.marionette.execute_async_script(
+            'return Accessibility.isDisabled.apply(Accessibility, arguments)',
+            [element], special_powers=True)
+
     def click(self, element):
         self.marionette.execute_async_script(
             'Accessibility.click.apply(Accessibility, arguments)',
