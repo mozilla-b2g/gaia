@@ -38,7 +38,6 @@ button::-moz-focus-inner {
   bottom: 0;
   z-index: 15;
   width: 100%;
-  border-top: 0.1rem solid #a1a5a8;
   background-color: #606b6e;
   pointer-events: auto;
   visibility: visible;
@@ -46,6 +45,18 @@ button::-moz-focus-inner {
 
 #keyboard[data-hidden=true] {
   visibility: hidden;
+}
+
+.keyboard-type-container {
+  position: absolute;
+  bottom: 0;
+  background-color: #606b6e;
+  border-top: 0.1rem solid #a1a5a8;
+  transform: translateY(9999px);
+}
+
+.keyboard-type-container[data-active] {
+  transform: translateY(0);
 }
 
 /* Row styles */

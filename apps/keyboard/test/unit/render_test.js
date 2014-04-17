@@ -586,7 +586,7 @@ suite('Renderer', function() {
       });
     });
 
-    suite('Dimensions', function() {
+    suite.skip('Dimensions', function() {
       function createDimensionTest(rows, orientation, suggest, latin, next) {
         var layout = {
           width: (Math.random() * 8 | 0) + 2,
