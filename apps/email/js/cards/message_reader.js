@@ -917,15 +917,23 @@ MessageReaderCard.prototype = {
           var attachment = body.attachments[iAttach], state;
           var extension = attachment.filename.split('.').pop();
 
-          if (attachment.isDownloaded)
+          var MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
+          var attachmentDownloadable = true;
+
+          if (attachment.isDownloaded) {
             state = 'downloaded';
-          else if (!attachment.isDownloadable)
+          } else if (!attachment.isDownloadable) {
             state = 'nodownload';
-          else if (MimeMapper.isSupportedType(attachment.mimetype) ||
-                   MimeMapper.isSupportedExtension(extension))
+            attachmentDownloadable = false;
+          } else if (attachment.sizeEstimateInBytes > MAX_ATTACHMENT_SIZE) {
+            state = 'toolarge';
+            attachmentDownloadable = false;
+          } else if (MimeMapper.isSupportedType(attachment.mimetype) ||
+                   MimeMapper.isSupportedExtension(extension)) {
             state = 'downloadable';
-          else
+          } else {
             state = 'nodownload';
+          }
           attTemplate.setAttribute('state', state);
           filenameTemplate.textContent = attachment.filename;
           filesizeTemplate.textContent = prettyFileSize(
@@ -933,10 +941,15 @@ MessageReaderCard.prototype = {
 
           var attachmentNode = attTemplate.cloneNode(true);
           attachmentsContainer.replaceChild(attachmentNode, attNode);
-          attachmentNode.getElementsByClassName('msg-attachment-download')[0]
-            .addEventListener('click',
-                              this.onDownloadAttachmentClick.bind(
-                                this, attachmentNode, attachment));
+
+          var downloadButton = attachmentNode.getElementsByClassName(
+            'msg-attachment-download')[0];
+          downloadButton.disabled = !attachmentDownloadable;
+          if (attachmentDownloadable) {
+            downloadButton.addEventListener(
+              'click', this.onDownloadAttachmentClick.bind(
+                this, attachmentNode, attachment));
+          }
           attachmentNode.getElementsByClassName('msg-attachment-view')[0]
             .addEventListener('click',
                               this.onViewAttachmentClick.bind(
