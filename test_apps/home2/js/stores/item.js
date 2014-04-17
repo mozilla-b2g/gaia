@@ -1,5 +1,6 @@
 'use strict';
 /* global ApplicationSource */
+/* global Bookmark */
 /* global BookmarkSource */
 /* global dispatchEvent */
 /* global Divider */
@@ -8,7 +9,7 @@
 
   const DB_VERSION = 1;
 
-  const DB_NAME = 'home2-alpha5';
+  const DB_NAME = 'home2-alpha18';
 
   const DB_ITEM_STORE = 'items';
 
@@ -32,8 +33,8 @@
   }
 
   function ItemStore() {
-    this.applicationSource = new ApplicationSource();
-    this.bookmarkSource = new BookmarkSource();
+    this.applicationSource = new ApplicationSource(this);
+    this.bookmarkSource = new BookmarkSource(this);
 
     this.sources = [this.applicationSource, this.bookmarkSource];
 
@@ -48,10 +49,10 @@
 
       if (isEmpty) {
         this.populate(
-          this.fetch.bind(this));
+          this.fetch.bind(this, this.synchronize.bind(this)));
       } else {
         this.initSources(
-          this.fetch.bind(this));
+          this.fetch.bind(this, this.synchronize.bind(this)));
       }
     }.bind(this);
 
@@ -77,6 +78,11 @@
      * A list of all items. These are item objects (App, Bookmark, Divider)
      */
     _allItems: [],
+
+    /**
+     * Maintains the current index of the last grid item.
+     */
+    nextPosition: 0,
 
     /**
      * Fetches a list of all items in the store.
@@ -105,8 +111,9 @@
 
     /**
      * Fetches items from the database.
+     * @param {Function} callback A function to call after fetching all items.
      */
-    fetch: function() {
+    fetch: function(callback) {
       var collected = [];
 
       function iterator(value) {
@@ -136,10 +143,29 @@
           } else if (thisItem.type === 'divider') {
             var divider = new Divider(thisItem);
             this._allItems.push(divider);
+          } else if (thisItem.type === 'bookmark') {
+            var bookmark = new Bookmark(thisItem);
+            this._allItems.push(bookmark);
           }
         }
+
         this.notifyReady();
+
+        if (callback && typeof callback === 'function') {
+          callback();
+        }
       }
+    },
+
+    /**
+     * We have fetched data from our local database and displayed it,
+     * but data inside of our application or bookmark store may be outdated.
+     * We need to synchronize each source and delete/add records.
+     */
+    synchronize: function() {
+      this.sources.forEach(function eachSource(source) {
+        source.synchronize();
+      });
     },
 
     /**
@@ -150,15 +176,22 @@
       var pending = this.sources.length;
 
       var allEntries = [];
+      var self = this;
 
-      this.sources.forEach(function _eachSource(source) {
+      var current = 0;
+      function handleSource() {
+        var source = self.sources[current];
+        current++;
         source.populate(next);
-      });
+      }
+      handleSource();
 
       function next(entries) {
         allEntries = allEntries.concat(entries);
         if (!(--pending)) {
           callback(allEntries);
+        } else {
+          handleSource();
         }
       }
     },
@@ -173,9 +206,21 @@
       }.bind(this));
     },
 
+    /**
+     * Notifies consumers that the database is ready for queries to be makde.
+     */
     notifyReady: function() {
       this.ready = true;
       dispatchEvent(new CustomEvent('databaseready'));
+    },
+
+    /**
+     * Gets the next available position in the grid
+     */
+    getNextPosition: function() {
+      var nextPosition = this.nextPosition;
+      this.nextPosition++;
+      return nextPosition;
     }
 
   };

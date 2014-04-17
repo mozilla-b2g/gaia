@@ -1,4 +1,5 @@
 'use strict';
+/* global GridItem */
 
 (function() {
   // Icon container
@@ -15,6 +16,8 @@
   }
 
   Divider.prototype = {
+
+    __proto__: GridItem.prototype,
 
     x: 0,
     y: 0,

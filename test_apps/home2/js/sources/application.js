@@ -3,7 +3,13 @@
 
 (function(exports) {
 
-  function ApplicationSource() {
+  /**
+   * ApplicationSource is responsible for populating the iniial application
+   * results as well as mapping indexedDB records to app objects for launching.
+   * @param {Object} store The backing database store class.
+   */
+  function ApplicationSource(store) {
+    this.store = store;
     this.entries = [];
     this.entriesByManifestUrl = {};
 
@@ -16,21 +22,12 @@
     }.bind(this);
 
     appMgr.oninstall = function oninstall(event) {
-      this.makeIcons(event.application);
-
-      var appObject = this.mapToApp({
-        manifestURL: event.application.manifestURL
-      });
-      app.icons[appObject.identifier] = appObject;
-      app.items.push(appObject);
-      app.render();
+      this.addIconToGrid(event.application);
       app.itemStore.save(app.items);
     }.bind(this);
 
     appMgr.onuninstall = function onuninstall(event) {
-      var appObject = app.icons[event.application.origin];
-      delete app.icons[appObject.identifier];
-      app.items.splice(appObject.index, 1);
+      this.removeIconFromGrid(event.application.manifestURL);
       app.itemStore.save(app.items);
     };
 
@@ -38,10 +35,73 @@
 
   ApplicationSource.prototype = {
 
-    itemPosition: 0,
+    /**
+     * Synchronizes our local result set with mozApps.
+     */
+    synchronize: function() {
+      var storeItems = this.store._allItems;
+      var toAdd = [];
+
+      var appIconsByManifestUrl = {};
+      for (var i = 0, iLen = storeItems.length; i < iLen; i++) {
+        var item = storeItems[i];
+        if (!(item instanceof Icon)) {
+          continue;
+        }
+        appIconsByManifestUrl[item.detail.manifestURL] = item;
+      }
+
+      for (i = 0, iLen = this.entries.length; i < iLen; i++) {
+        var entry = this.entries[i];
+        if (!appIconsByManifestUrl[entry.detail.manifestURL] &&
+            !entry.app.manifest.entry_points) {
+          toAdd.push(entry);
+        } else {
+          delete appIconsByManifestUrl[entry.detail.manifestURL];
+        }
+      }
+
+      // Check for icons we need to delete
+      for (i in appIconsByManifestUrl) {
+        this.removeIconFromGrid(i);
+      }
+
+      toAdd.forEach(function _toAdd(newApp) {
+        this.addIconToGrid(newApp.app);
+      }, this);
+
+      app.itemStore.save(app.items);
+    },
+
+    /**
+     * Adds a new icon to the grid
+     */
+    addIconToGrid: function(application) {
+      this.makeIcons(application);
+      var appObject = this.mapToApp({
+        manifestURL: application.manifestURL
+      });
+      app.icons[appObject.identifier] = appObject;
+      app.items.push(appObject);
+      app.render();
+    },
+
+    /**
+     * Removes an icon from the grid.
+     * @param {String} manifestURL
+     */
+    removeIconFromGrid: function(manifestURL) {
+      var appObject = app.icons[manifestURL];
+      delete app.icons[appObject.identifier];
+
+      var itemIndex = app.items.indexOf(appObject);
+      app.items.splice(itemIndex, 1);
+      app.render();
+    },
 
     /**
      * Populates the initial application data from mozApps.
+     * @param {Function} success Called after we fetch all initial data.
      */
     populate: function(success) {
       success(this.entries);
@@ -64,10 +124,7 @@
         if (!icon.icon) {
           return;
         }
-
-        icon.setPosition(this.itemPosition);
-        this.itemPosition++;
-
+        icon.setPosition(this.store.getNextPosition());
         this.entries.push(icon);
       }
 
@@ -86,7 +143,18 @@
      * Maps a database entry to a mozApps application
      */
     mapToApp: function(entry) {
-      return new Icon(this.entriesByManifestUrl[entry.manifestURL],
+      // Handle non app objects for applications which exist in our local store
+      // but not mozApps.
+      var app = this.entriesByManifestUrl[entry.manifestURL];
+      app = app || {
+        manifestURL: entry.manifestURL,
+        manifest: {
+          name: '',
+          icons: []
+        }
+      };
+
+      return new Icon(app,
         entry.entryPoint);
     }
 

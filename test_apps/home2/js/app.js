@@ -1,4 +1,5 @@
 'use strict';
+/* global Bookmark */
 /* global Divider */
 /* global DragDrop */
 /* global Icon */
@@ -41,7 +42,7 @@
     addItem: function(item) {
       this.items.push(item);
 
-      if (item instanceof Icon) {
+      if (item instanceof Icon || item instanceof Bookmark) {
         this.icons[item.identifier] = item;
       }
     },
@@ -106,7 +107,6 @@
      * on the grid.
      */
     render: function() {
-
       app.cleanItems();
 
       // Reset offset steps
