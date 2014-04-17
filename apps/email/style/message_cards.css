@@ -321,6 +321,24 @@ input.msg-search-text-tease {
   right: 0;
 }
 
+.msg-attachment-too-large { display: none; }
+.msg-attachment-item[state="toolarge"] { height: auto; }
+.msg-attachment-item[state="toolarge"] > .msg-attachment-too-large {
+  display: block;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.5);
+  margin-top: -4rem;
+  margin-bottom: -2.5rem;
+  margin-right: 6rem;
+  padding-left: 2.2rem;
+}
+.msg-attachment-item[state="toolarge"]  > .msg-attachment-download {
+  display: inline-block;
+  opacity: 0.3;
+  background: none;
+  margin-top: 0.6rem;
+}
+
 .moz-external-link {
   color: blue;
   cursor: pointer;
