@@ -55,7 +55,7 @@ textarea[disabled] {
 .skin-dark textarea  {
   color: #fff;
   background-color: transparent;
-  border-color: #858585;
+  border-color: #454545;
 }
 
 form p {
@@ -152,7 +152,7 @@ fieldset[disabled] {
 .skin-dark input[type="datetime-local"] {
   color: #fff;
   background-color: transparent;
-  border-color: #858585;
+  border-color: #454545;
 }
 
 fieldset[disabled] legend,
@@ -177,7 +177,7 @@ input[type="datetime-local"]:focus {
 .skin-dark input[type="datetime"]:focus,
 .skin-dark input[type="datetime-local"]:focus {
   box-shadow: none;
-  border-bottom-color: #858585;
+  border-bottom-color: #454545;
 }
 
 input[type="date"]:active,

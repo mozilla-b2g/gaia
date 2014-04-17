@@ -49,42 +49,11 @@
   flex: auto;
 }
 
-#timer-edit {
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-  font-size: 1.5rem;
-  color: #CFE2E5;
-}
-
-ul#timer-edit li {
-  border-bottom: 1px solid rgba(115, 125, 128, 0.2);
-  position: relative;
-  padding-top: 4.5rem;
-  padding-bottom: 1.5rem;
-}
-
-ul#timer-edit li:first-child {
-  padding-top: 0;
-  padding-bottom: 0.25rem;
-}
-
-ul#timer-edit li:last-child {
-  border: none;
-}
-
-#timer-edit li {
-  border-color: #999;
-}
-
 #timer-create {
   text-align: center;
-}
-
-#timer-edit li > span {
-  vertical-align: middle;
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
+  background-color: #00caf2;
+  color: #fff;
+  border-radius: 2rem;
 }
 
 ul li > label.pack-switch {
@@ -103,23 +72,6 @@ ul li > label.pack-switch > input + span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-#timer-sound {
-  position: absolute;
-  opacity: 0;
-}
-
-#timer-sound-menu:before {
-  background: url("/shared/style/buttons/images/icons/dialog.png") no-repeat scroll 1.6rem -6rem / 1rem 9rem transparent;
-}
-
-#timer-sound-menu {
-  border-width: 0;
-
-  color: #FFF;
-  text-align: left;
-  background-color: #4D4D4D;
 }
 
 #timer-plus-time {

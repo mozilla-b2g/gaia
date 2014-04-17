@@ -13,35 +13,35 @@ ul, ol {
   margin-bottom: 1rem;
 }
 
+ul.compact {
+  padding: 1rem 1.5rem;
+  font-size: 1.5rem;
+}
+
 ul.compact li {
   position: relative;
-  min-height: 4rem;
-  border-bottom-color: #232626;
+  min-height: 5rem;
+  padding-top: 1rem;
+  border-top: 0.1rem solid #232626;
+}
+
+ul.compact li:first-child {
+  border: none;
 }
 
 ul.compact li:last-child {
-  border: none;
+  margin-bottom: 1rem;
 }
 
 ul.compact li label {
-  width: calc(100% - 3rem);
+  padding: 0 1.5rem 0.5rem;
   color: #9a9898;
-  font-size: 1.9rem;
+  font-size: 1.6rem;
+  display: block;
 }
 
-li button.icon-dialog {
-  border: none;
-  color: #fff;
-  background-color: #4d4d4d;
-  font-weight: normal;
-  font-size: 1.7rem;
-  text-shadow: none; /* override `button` */
-}
-
-li button.icon-dialog:before,
-li a[role="button"].icon-dialog:before,
-li .button.icon-dialog:before {
-  background-image: url(images/dialog.png);
+ul.compact li label:active {
+  background-color: transparent;
 }
 
 #alarm-new {
@@ -60,17 +60,15 @@ li .button.icon-dialog:before {
 }
 
 #edit-alarm {
-  overflow: auto;
-  width: calc(100% - 3rem);
-  height: calc(100% - 5rem);
-  padding: 0 1.5rem;
+  overflow-x: hidden;
+  height: calc(100% - 7rem);
 
   pointer-events: auto;
 }
 
 #alarm-volume-input {
-  width: calc(100% - 3rem);
-  margin: 0 0 1.5rem 1.5rem;
+  width: 100%;
+  margin: 1rem 0 1.5rem;
 }
 
 .new #delete-menu {
@@ -279,4 +277,9 @@ input[type=range]::-moz-range-thumb {
 
 input[type=range]:active::-moz-range-thumb {
   border: solid 0.4rem #01c5ed;
+}
+
+#alarm-delete {
+  border-radius: 2rem;
+  background-color: #e51e1e;
 }
