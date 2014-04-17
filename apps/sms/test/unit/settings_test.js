@@ -107,7 +107,7 @@ suite('Settings >', function() {
     function assertSettingIsRetrieved(prop, setting, value, expected) {
       triggerSettingsReqSuccess(setting, value);
 
-      if (expected === undefined) {
+      if (arguments.length <= 3) {
         expected = value;
       }
 
