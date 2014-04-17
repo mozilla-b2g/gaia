@@ -80,6 +80,7 @@
     this._fetchElements();
     this._registerEvents();
     this.element = document.getElementById(this.instanceID);
+    this.element.hidden = true;
   };
 
   /**
