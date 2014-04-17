@@ -3404,7 +3404,7 @@ suite('thread_ui.js >', function() {
       for (var i = MockOptionMenu.calls[0].length - 1; i >= 0; i--) {
           assert.notEqual(
             MockOptionMenu.calls[0].items[i].l10nId,
-            'resend'
+            'resend-message'
           );
         }
     });
