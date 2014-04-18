@@ -233,6 +233,44 @@ suite('Net errors', function() {
   ensureDnsNotFound('regular');
   ensureDnsNotFound('app');
 
+  function ensureFileNotFound(type) {
+    suite('FileNotFound - Type frame: ' + type, function() {
+      var reloadStub;
+
+      suiteSetup(function() {
+        document.documentURI = 'about:neterror?e=fileNotFound&f=' + type;
+        reloadStub = sinon.stub(window.NetError, 'reload');
+      });
+
+      setup(function() {
+        window.NetError.init();
+      });
+
+      suiteTeardown(function() {
+        reloadStub.restore();
+      });
+
+      test('Styles were initialized correctly ', function() {
+        assert.isTrue(document.body.classList.contains('fileNotFound'));
+      });
+
+      test('Messages were initialized correctly ', function() {
+        assert.equal(document.getElementById('error-title').textContent,
+                    'file-not-found');
+        assert.isTrue(document.getElementById('error-message').textContent.
+                      startsWith('file-not-found-error'));
+      });
+
+      test('Retry action was executed ', function() {
+        getRetryElement(type).click();
+        assert.isTrue(window.NetError.reload.called);
+      });
+    });
+  }
+
+  ensureFileNotFound('regular');
+  ensureFileNotFound('app');
+
   function ensureUnknownError(type) {
     suite('Unknown Error - Type frame: ' + type, function() {
       var reloadStub = null, errorName = 'XXXX', description = 'Unknown error';
