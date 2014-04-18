@@ -2058,7 +2058,8 @@ var ThreadUI = global.ThreadUI = {
           }
         );
 
-        if (lineClassList.contains('error')) {
+        if (lineClassList.contains('error') &&
+            lineClassList.contains('outgoing')){
           params.items.push({
             l10nId: 'resend-message',
             method: function resendMessage(messageId) {
