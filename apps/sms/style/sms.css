@@ -459,7 +459,7 @@ section.has-carrier .article-list header:first-child {
   background: #fff;
 }
 
-#messages-container[data-type="list"] ul {
+ul.message-list {
   background-color: #e4e4e4;
 }
 
