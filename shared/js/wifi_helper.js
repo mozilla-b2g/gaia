@@ -234,5 +234,68 @@ var WifiHelper = {
       reqProxy.onerror();
     };
     return reqProxy;
+  },
+
+  // create a network list item
+  newListItem: function(network, callback) {
+    var localize = navigator.mozL10n.localize;
+    /**
+     * A Wi-Fi list item has the following HTML structure:
+     *   <li>
+     *     <aside class="pack-end wifi-icon level-[?] [secured]"></aside>
+     *     <small> Network Security </small>
+     *     <a> Network SSID </a>
+     *   </li>
+     */
+
+    // icon
+    var icon = document.createElement('aside');
+    icon.classList.add('pack-end');
+    icon.classList.add('wifi-icon');
+    var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
+    icon.classList.add('level-' + level);
+
+    // ssid
+    var ssid = document.createElement('a');
+    ssid.textContent = network.ssid;
+
+    // supported authentication methods
+    var small = document.createElement('small');
+    var keys = WifiHelper.getSecurity(network);
+    if (keys && keys.length) {
+      localize(small, 'securedBy', { capabilities: keys.join(', ') });
+      icon.classList.add('secured');
+    } else {
+      localize(small, 'securityOpen');
+    }
+
+    // create list item
+    var li = document.createElement('li');
+    li.appendChild(icon);
+    li.appendChild(small);
+    li.appendChild(ssid);
+
+    // Show connection status
+    icon.classList.add('wifi-signal');
+    if (WifiHelper.isConnected(network)) {
+      localize(small, 'shortStatus-connected');
+      icon.classList.add('connected');
+      li.classList.add('active');
+    }
+
+    // bind connection callback
+    li.onclick = function() {
+      callback(network);
+    };
+    return li;
+  },
+
+  // create an explanatory list item
+  newExplanationItem: function(message) {
+    var _ = navigator.mozL10n.get;
+    var li = document.createElement('li');
+    li.className = 'explanation';
+    li.textContent = _(message);
+    return li;
   }
 };
