@@ -2,7 +2,7 @@
 
 mocha.globals(['NfcManager', 'ScreenManager']);
 
-/* globals MocksHelper,
+/* globals MockNfc, MocksHelper,
            MozNDEFRecord, NfcBuffer, NDEF, NfcUtils, NfcManagerUtils,
            NfcManager */
 
@@ -11,6 +11,7 @@ require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/nfc_utils.js');
 require('/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_activity.js');
+requireApp('system/test/unit/mock_nfc.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_settingslistener_installer.js');
 requireApp('system/js/nfc_manager_utils.js');
@@ -275,6 +276,36 @@ suite('Nfc Manager Functions', function() {
       stubDispatchEvent.restore();
     });
 
+  });
+
+  suite('NFC Manager changeHardwareState test', function () {
+    var realNfc = navigator.mozNfc;
+
+    setup(function() {
+      navigator.mozNfc = MockNfc;
+    });
+
+    teardown(function() {
+      navigator.mozNfc = realNfc;
+    });
+
+    test('NFC Manager startPoll', function() {
+      var stubStartPoll = sinon.spy(MockNfc, 'startPoll');
+      var stubStopPoll = sinon.spy(MockNfc, 'stopPoll');
+      var stubPowerOff = sinon.spy(MockNfc, 'powerOff');
+
+      NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_OFF);
+      assert.isTrue(stubPowerOff.calledOnce);
+
+      NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_ON);
+      assert.isTrue(stubStartPoll.calledOnce);
+
+      NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_ENABLE_DISCOVERY);
+      assert.isTrue(stubStartPoll.calledTwice);
+
+      NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_DISABLE_DISCOVERY);
+      assert.isTrue(stubStopPoll.calledOnce);
+    });
   });
 
 });
