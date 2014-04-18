@@ -461,7 +461,7 @@
         } else {
           return homescreenVisible ||
             (window.lockScreen && window.lockScreen.locked) ||
-            FtuLauncher.isFtuRunning() ? 'notification' : 'content';
+            ftuLauncher.isFtuRunning() ? 'notification' : 'content';
         }
     }
   }

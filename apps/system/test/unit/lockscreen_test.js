@@ -1,7 +1,7 @@
 'use strict';
 
 mocha.globals(['SecureWindowManager', 'SecureWindowFactory', 'LockScreen',
-               'LockScreenSlide', 'Clock', 'OrientationManager',
+               'LockScreenSlide', 'Clock', 'OrientationManager', 'ftuLauncher',
                'addEventListener', 'dispatchEvent', 'secureWindowManager',
                'secureWindowFactory', 'lockScreen', 'LockScreenConnInfoManager',
                'MediaPlaybackWidget', 'SettingsListener', 'SettingsURL']);
@@ -54,7 +54,7 @@ suite('system/LockScreen >', function() {
   var realMozTelephony;
   var realClock;
   var realOrientationManager;
-  var realFtuLauncher;
+  var realftuLauncher;
   var realSettingsListener;
   var domPasscodePad;
   var domEmergencyCallBtn;
@@ -88,8 +88,8 @@ suite('system/LockScreen >', function() {
     realOrientationManager = window.OrientationManager;
     window.OrientationManager = window.MockOrientationManager;
 
-    realFtuLauncher = window.FtuLauncher;
-    window.FtuLauncher = window.MockFtuLauncher;
+    realftuLauncher = window.ftuLauncher;
+    window.ftuLauncher = new MockFtuLauncher();
 
     realSettingsListener = window.SettingsListener;
     window.SettingsListener = window.MockSettingsListener;
@@ -257,7 +257,7 @@ suite('system/LockScreen >', function() {
     navigator.mozTelephony = realMozTelephony;
     window.Clock = window.realClock;
     window.OrientationManager = window.realOrientationManager;
-    window.FtuLauncher = realFtuLauncher;
+    window.ftuLauncher = realftuLauncher;
     window.SettingsListener = realSettingsListener;
 
     document.body.removeChild(domPasscodePad);

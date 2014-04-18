@@ -465,7 +465,7 @@ var StatusBar = {
   panelTouchHandler: function sb_panelTouchHandler(evt) {
 
     // Do not forward events if FTU is running
-    if (FtuLauncher.isFtuRunning()) {
+    if (ftuLauncher.isFtuRunning()) {
       return;
     }
 

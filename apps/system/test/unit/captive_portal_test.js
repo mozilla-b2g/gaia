@@ -12,6 +12,7 @@ requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_ftu_launcher.js');
 
 requireApp('system/js/browser_frame.js');
 requireApp('system/js/entry_sheet.js');
@@ -21,10 +22,11 @@ requireApp('system/js/ftu_launcher.js');
 var mocksForCaptivePortal = new MocksHelper([
   'SettingsListener',
   'NotificationScreen',
-  'AppWindowManager'
+  'AppWindowManager',
+  'FtuLauncher'
 ]).init();
 
-mocha.globals(['MozActivity']);
+mocha.globals(['MozActivity', 'ftuLauncher']);
 
 suite('captive portal > ', function() {
   var realWifiManager;
@@ -51,6 +53,7 @@ suite('captive portal > ', function() {
       console.log('Access MozActivity failed, passed realActivity assignment');
     }
     window.MozActivity = MockMozActivity;
+    window.ftuLauncher = new MockFtuLauncher();
 
     fakeScreenNode = document.createElement('div');
     fakeScreenNode.id = 'screen';
@@ -90,13 +93,13 @@ suite('captive portal > ', function() {
   });
 
   test('system/captive portal while FTU running..', function() {
-    FtuLauncher._isRunningFirstTime = true;
+    window.ftuLauncher.mIsRunning = true;
 
     CaptivePortal.handleEvent(event);
     assert.equal(CaptivePortal.hasOwnProperty('entrySheet'), true);
   });
 
   teardown(function() {
-    FtuLauncher._isRunningFirstTime = false;
+    window.ftuLauncher._isRunningFirstTime = false;
   });
 });

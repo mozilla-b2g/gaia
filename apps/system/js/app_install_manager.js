@@ -217,7 +217,7 @@ var AppInstallManager = {
   },
 
   showInstallSuccess: function ai_showInstallSuccess(app) {
-    if (FtuLauncher.isFtuRunning()) {
+    if (ftuLauncher.isFtuRunning()) {
       return;
     }
     var manifest = app.manifest || app.updateManifest;

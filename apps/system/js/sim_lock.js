@@ -117,7 +117,7 @@ var SimLock = {
 
         // Ignore first time usage (FTU) app which already asks for the PIN code
         // XXX: We should have a better way to detect this app is FTU or not.
-        if (app.origin == FtuLauncher.getFtuOrigin())
+        if (app.origin == ftuLauncher.getFtuOrigin())
           return;
 
         // Ignore apps that don't require a mobile connection
@@ -149,7 +149,7 @@ var SimLock = {
       return false;
 
     // FTU has its specific SIM PIN UI
-    if (FtuLauncher.isFtuRunning())
+    if (ftuLauncher.isFtuRunning())
       return false;
 
     if (this._duringCall) {

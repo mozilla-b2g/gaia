@@ -1,12 +1,22 @@
 'use strict';
 
-var MockFtuLauncher = {
-  mIsRunning: false,
+(function(exports) {
+  var MockFtuLauncher = function() { };
+  MockFtuLauncher.prototype = {
+    mIsRunning: false,
 
-  isFtuRunning: function() {
-    return this.mIsRunning;
-  },
+    isFtuRunning: function() {
+      return this.mIsRunning;
+    },
 
-  retrieve: function() {
-  }
-};
+    retrieve: function() {
+
+    },
+
+    start: function() {
+
+    }
+  };
+
+  exports.MockFtuLauncher = MockFtuLauncher;
+}(window));

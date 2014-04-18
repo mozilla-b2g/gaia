@@ -1,4 +1,4 @@
-/* global FxAccountsDialog, FtuLauncher */
+/* global FxAccountsDialog, ftuLauncher */
 
 'use strict';
 
@@ -76,7 +76,7 @@ var FxAccountsUI = {
     }
     this.iframe.setAttribute('src', url);
     this.panel.appendChild(this.iframe);
-    if (FtuLauncher.isFtuRunning()) {
+    if (ftuLauncher.isFtuRunning()) {
       this.panel.classList.add('isFTU');
     } else {
       this.panel.classList.remove('isFTU');
