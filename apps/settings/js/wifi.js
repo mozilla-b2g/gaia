@@ -164,83 +164,22 @@ require([
       }
 
       function wpsDialog(dialogID, callback) {
-        // hide dialog box
-        function pinChecksum(pin) {
-          var accum = 0;
-          while (pin > 0) {
-            accum += 3 * (pin % 10);
-            pin = Math.floor(pin / 10);
-            accum += pin % 10;
-            pin = Math.floor(pin / 10);
-          }
-          return (10 - accum % 10) % 10;
-        }
-
-        function isValidWpsPin(pin) {
-          if (pin.match(/[^0-9]+/))
-            return false;
-          if (pin.length === 4)
-            return true;
-          if (pin.length !== 8)
-            return false;
-          var num = pin - 0;
-          return pinChecksum(Math.floor(num / 10)) === (num % 10);
-        }
-
         var dialog = document.getElementById(dialogID);
         if (!dialog)
           return;
 
         var apSelectionArea = dialog.querySelector('#wifi-wps-pin-aps');
         var apSelect = apSelectionArea.querySelector('select');
-        for (var i = apSelect.childNodes.length - 1; i >= 0; i--) {
-          apSelect.removeChild(apSelect.childNodes[i]);
-        }
-        var option = document.createElement('option');
-        option.textContent = _('wpsAnyAp');
-        option.value = 'any';
-        apSelect.appendChild(option);
-        var wpsAvailableNetworks = gNetworkList.getWpsAvailableNetworks();
-        for (var i = 0; i < wpsAvailableNetworks.length; i++) {
-          option = document.createElement('option');
-          option.textContent = wpsAvailableNetworks[i].ssid;
-          option.value = wpsAvailableNetworks[i].bssid;
-          apSelect.appendChild(option);
-        }
-
-        var submitWpsButton = dialog.querySelector('button[type=submit]');
         var pinItem = document.getElementById('wifi-wps-pin-area');
-        var pinDesc = pinItem.querySelector('p');
         var pinInput = pinItem.querySelector('input');
-        pinInput.oninput = function() {
-          submitWpsButton.disabled = !isValidWpsPin(pinInput.value);
-        };
-
-        function onWpsMethodChange() {
-          var method =
-            dialog.querySelector("input[type='radio']:checked").value;
-          if (method === 'apPin') {
-            submitWpsButton.disabled = !isValidWpsPin(pinInput.value);
-            pinItem.hidden = false;
-          } else {
-            submitWpsButton.disabled = false;
-            pinItem.hidden = true;
-          }
-          apSelectionArea.hidden = method === 'pbc';
-        }
-
-        var radios = dialog.querySelectorAll('input[type="radio"]');
-        for (var i = 0; i < radios.length; i++) {
-          radios[i].onchange = onWpsMethodChange;
-        }
-        onWpsMethodChange();
 
         SettingsUtils.openDialog(dialogID, {
           onSubmit: function submit() {
             callback(apSelect.options[apSelect.selectedIndex].value,
               dialog.querySelector("input[type='radio']:checked").value,
               pinInput.value);
-          }
+          },
+          wpsAvailableNetworks: gNetworkList.getWpsAvailableNetworks()
         });
       }
     };
