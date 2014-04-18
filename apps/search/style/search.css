@@ -89,6 +89,15 @@ section .result * {
   text-decoration: underline;
 }
 
+#search-link {
+  color: #858585;
+  font-size: 1rem;
+  background: url(icons/google_favicon.png) 8px center no-repeat;
+  padding: 12px;
+  text-indent: 36px;
+  border-bottom: 1px solid #5A5A5A;
+}
+
 /* web */
 section.apps {
   padding-top: 1rem;

@@ -30,8 +30,11 @@
 
     providers: {},
 
+    currentSearch: '',
+
     searchResults: document.getElementById('search-results'),
     newTabPage: document.getElementById('newtab-page'),
+    searchLink: document.getElementById('search-link'),
 
     init: function() {
       // Initialize the parent port connection
@@ -66,6 +69,12 @@
           self.providers[i].init(self);
         }
       }
+
+      this.searchLink.addEventListener('click', function(e) {
+        if (e.target.dataset.url) {
+          window.open(e.target.dataset.url, '_blank', 'remote=true');
+        }
+      });
     },
 
     /**
@@ -90,9 +99,9 @@
     change: function(msg) {
       clearTimeout(this.changeTimeout);
 
+      this.hideGoogleSearchLink();
       this.showSearchResults();
-
-      var input = msg.data.input;
+      this.currentSearch = msg.data.input;
       var providers = this.providers;
 
       this.changeTimeout = setTimeout(function doSearch() {
@@ -101,7 +110,8 @@
 
         for (var i in providers) {
           var provider = providers[i];
-          provider.search(input, this.collect.bind(this, provider));
+          provider.search(this.currentSearch,
+                          this.collect.bind(this, provider));
         }
       }.bind(this), SEARCH_DELAY);
     },
@@ -117,6 +127,19 @@
         webProvider.render(results);
       });
       this.providers.BGImage.fetchImage(query);
+    },
+
+    /**
+     * Show a dedicated search link, used if google are within the e.me results
+     */
+    showGoogleSearchLink: function(result) {
+      this.searchLink.classList.remove('hidden');
+      this.searchLink.textContent = this.currentSearch + ' - Google search';
+      this.searchLink.dataset.url = result.dataset.url;
+    },
+
+    hideGoogleSearchLink: function() {
+      this.searchLink.classList.add('hidden');
     },
 
     /**
@@ -142,6 +165,11 @@
       results.forEach(function eachResult(result) {
         var found = false;
         var dedupeId = result.dedupeId.toLowerCase();
+
+        if (provider.name === 'WebResults' && result.title === 'Google') {
+          this.showGoogleSearchLink(result);
+          found = true;
+        }
 
         // Get the host of the dedupeId for the fuzzy result case
         var host;
@@ -235,6 +263,7 @@
       for (var i in this.providers) {
         this.providers[i].clear();
       }
+      this.hideGoogleSearchLink();
       this.showBlank();
     },
 
