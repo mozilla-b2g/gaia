@@ -42,17 +42,15 @@ suite('system/VisibilityManager', function() {
         type: 'lock'
       });
 
-      assert.isTrue(stubPublish.calledTwice);
-      assert.equal(stubPublish.getCall(0).args[0], 'hidewindows');
-      assert.equal(stubPublish.getCall(1).args[0], 'hidewindow');
+      assert.isTrue(stubPublish.calledOnce);
+      assert.equal(stubPublish.getCall(0).args[0], 'hidewindow');
 
       visibilityManager._normalAudioChannelActive = true;
       visibilityManager.handleEvent({
         type: 'lock'
       });
 
-      assert.isTrue(stubPublish.calledThrice);
-      assert.equal(stubPublish.getCall(2).args[0], 'hidewindows');
+      assert.isTrue(stubPublish.calledOnce);
 
       visibilityManager._normalAudioChannelActive = false;
     });
@@ -65,17 +63,15 @@ suite('system/VisibilityManager', function() {
         type: 'will-unlock'
       });
 
-      assert.isTrue(stubPublish.calledTwice);
-      assert.isTrue(stubPublish.getCall(0).args[0] === 'showwindows');
-      assert.isTrue(stubPublish.getCall(1).args[0] === 'showwindow');
+      assert.isTrue(stubPublish.calledOnce);
+      assert.isTrue(stubPublish.getCall(0).args[0] === 'showwindow');
 
       MockAttentionScreen.mFullyVisible = true;
       visibilityManager.handleEvent({
         type: 'will-unlock'
       });
 
-      assert.isTrue(stubPublish.calledThrice);
-      assert.isTrue(stubPublish.getCall(2).args[0] === 'showwindows');
+      assert.isTrue(stubPublish.calledOnce);
     });
 
     test('attentionscreenshow', function() {
@@ -94,14 +90,14 @@ suite('system/VisibilityManager', function() {
       assert.isTrue(stubPublish.getCall(1).args[1].origin === 'fake-dialer');
     });
 
-    test('attentionscreenhide', function() {
+    test('show lockscreen when screen is on.', function() {
+      MockLockScreen.locked = true;
       var stubPublish = this.sinon.stub(visibilityManager, 'publish');
       visibilityManager.handleEvent({
         type: 'attentionscreenhide'
       });
 
-      assert.isTrue(stubPublish.called);
-      assert.isTrue(stubPublish.getCall(0).args[0] === 'showwindows');
+      assert.isTrue(stubPublish.calledWith('showlockscreenwindow'));
     });
 
     test('Normal audio channel is on.', function() {
@@ -114,6 +110,14 @@ suite('system/VisibilityManager', function() {
       });
 
       assert.isTrue(visibilityManager._normalAudioChannelActive);
+    });
+
+    test('Discard normal audio channel if homescreen is opening', function() {
+      visibilityManager.handleEvent({
+        type: 'homescreenopening'
+      });
+
+      assert.isFalse(visibilityManager._normalAudioChannelActive);
     });
 
     test('Normal audio channel is off.', function() {

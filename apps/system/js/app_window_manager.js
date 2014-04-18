@@ -318,6 +318,7 @@
     },
 
     handleEvent: function awm_handleEvent(evt) {
+      this.debug('handling ' + evt.type);
       var activeApp = this._activeApp;
       switch (evt.type) {
         case 'system-resize':
@@ -359,7 +360,14 @@
           break;
 
         case 'ftuskip':
-          this.display();
+          // XXX: There's a race between lockscreenWindow and homescreenWindow.
+          // If lockscreenWindow is instantiated before homescreenWindow,
+          // we should not display the homescreen here.
+          if (!lockScreen.locked) {
+            this.display();
+          } else {
+            homescreenLauncher.getHomescreen().setVisible(false);
+          }
           break;
 
         case 'appopened':
@@ -426,7 +434,13 @@
             activeApp.setVisible(true);
           } else {
             var home = homescreenLauncher.getHomescreen(true); // jshint ignore:line
-            home && home.setVisible(true);
+            if (home) {
+              if (home.isActive()) {
+                home.setVisible(true);
+              } else {
+                this.display();
+              }
+            }
           }
           break;
 

@@ -4,7 +4,6 @@
    which is the first app the users would use, to configure their phone. */
 
 var FtuLauncher = {
-
   /* The application object of ftu got from Application module */
   _ftu: null,
 
