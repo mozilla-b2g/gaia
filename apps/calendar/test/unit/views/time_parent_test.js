@@ -46,6 +46,10 @@ suiteGroup('Views.TimeParent', function() {
 
     setScrollTop: function(scrollTop) {
       this.scrollTop = scrollTop;
+    },
+
+    getFirstEventRecord: function() {
+      return this.firstEventRecord;
     }
   };
 

@@ -111,6 +111,8 @@ Calendar.ns('Views').Week = (function() {
       scroll.scrollTop = scrollTop;
     },
 
+    getFirstEventRecord: function() { },
+
     _appendSidebarHours: function() {
       var element = this.element.querySelector('.sidebar');
 

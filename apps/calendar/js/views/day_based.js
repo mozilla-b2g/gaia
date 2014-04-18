@@ -189,7 +189,6 @@ Calendar.ns('Views').DayBased = (function() {
           );
         }
 
-
         // we ignore insertion order for now as the overlap &
         // placement logic can handle those things.
         eventArea.insertAdjacentHTML('beforeend', html);
@@ -661,6 +660,19 @@ Calendar.ns('Views').DayBased = (function() {
     setScrollTop: function(scrollTop) {
       var scroll = this.element.querySelectorAll('.day-events')[1];
       scroll.scrollTop = scrollTop;
+    },
+
+    /**
+     * @return  {value} first event hour element to which
+     * event is attached. If there is no event , null is returned.
+     */
+    getFirstEventRecord: function() {
+      for (var calId in this._idsToHours) {
+        var hour = this._idsToHours[calId];
+        var firstEventRecord = this.hours.get(hour);
+        return firstEventRecord.element;
+      }
+      return null;
     }
 
   };

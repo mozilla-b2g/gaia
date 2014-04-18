@@ -440,7 +440,9 @@
 
     getScrollTop: function() {},
 
-    setScrollTop: function(scrollTop) {}
+    setScrollTop: function(scrollTop) {},
+
+    getFirstEventRecord: function() {}
 
   };
 
