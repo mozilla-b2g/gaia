@@ -310,7 +310,7 @@ var NfcManager = {
       'P2P': 0,
       'NDEF': 1,
       'NDEF_WRITEABLE': 2,
-      'NDEF_FORMATTABLE': 3,
+      'NDEF_FORMATABLE': 3,
       'NFC_A': 4,
       'MIFARE_ULTRALIGHT': 5
     };
@@ -333,7 +333,7 @@ var NfcManager = {
       case 'NDEF_WRITEABLE':
         this.handleNdefDiscoveredEmpty(techList[0], command.sessionToken);
         break;
-      case 'NDEF_FORMATTABLE':
+      case 'NDEF_FORMATABLE':
         this.handleNdefDiscoveredUseConnect(techList[0], command.sessionToken);
         break;
       case 'NFC_A':
