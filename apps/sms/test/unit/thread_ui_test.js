@@ -3367,7 +3367,7 @@ suite('thread_ui.js >', function() {
         });
 
         // Retrieve the message node
-      link = document.getElementById('message-10').querySelector('.error');
+      link = document.querySelector('#message-10 section');
 
         // Dispatch custom event for testing long press
       link.dispatchEvent(contextMenuEvent);
