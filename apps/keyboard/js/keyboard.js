@@ -1,4 +1,4 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /**
@@ -680,9 +680,15 @@ function modifyLayout(keyboardName) {
 
         // adds @ and .
       case 'email':
-        space.ratio -= 2;
-        row.splice(c, 0, { value: '@', ratio: 1, keyCode: 64 });
-        row.splice(c + 2, 0, { value: '.', ratio: 1, keyCode: 46 });
+        if (altLayoutName !== 'alternateLayout') {
+          space.ratio -= 2;
+          row.splice(c, 0, { value: '@', ratio: 1, keyCode: 64 });
+          row.splice(c + 2, 0, { value: '.', ratio: 1, keyCode: 46 });
+        } else {
+          space.ratio -= 1;
+          row.splice(c + 1, 0, { value: '.', ratio: 1, keyCode: 46 });
+        }
+
         break;
 
         // adds . and , to both sides of the space bar
