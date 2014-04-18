@@ -3393,7 +3393,7 @@ suite('thread_ui.js >', function() {
       });
 
       // Retrieve the message node
-      elements = document.getElementById('message-11').
+      elements = document.getElementById('message-11');
       link = elements.querySelector('.not-downloaded-message');
 
       // Dispatch custom event for testing long press
