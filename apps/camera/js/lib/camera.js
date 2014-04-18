@@ -397,13 +397,19 @@ Camera.prototype.capture = function(options) {
 };
 
 Camera.prototype.takePicture = function(options) {
+  if (this.busy) {
+    return;
+  }
+
+  var self = this;
   var rotation = orientation.get();
   var selectedCamera = this.get('selectedCamera');
-  var self = this;
 
   rotation = selectedCamera === 'front' ? -rotation : rotation;
   debug('take picture');
   this.emit('busy');
+  this.busy = true;
+
   this.focus(onFocused);
 
   function onFocused(err) {
@@ -456,6 +462,7 @@ Camera.prototype.takePicture = function(options) {
 
     self.set('focus', 'none');
     self.emit('ready');
+    self.busy = false;
   }
 };
 
