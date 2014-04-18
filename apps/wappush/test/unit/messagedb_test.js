@@ -12,6 +12,7 @@ suite('MessageDB', function() {
     current: {
       type: 'text/vnd.wap.si',
       sender: '+31641600986',
+      serviceId: 0,
       timestamp: '1',
       href: 'http://www.mozilla.org',
       id: 'gaia-test@mozilla.org',
@@ -22,6 +23,7 @@ suite('MessageDB', function() {
     older: {
       type: 'text/vnd.wap.si',
       sender: '+31641600986',
+      serviceId: 0,
       timestamp: '2',
       href: 'http://www.mozilla.org',
       id: 'gaia-test@mozilla.org',
@@ -32,6 +34,7 @@ suite('MessageDB', function() {
     newer: {
       type: 'text/vnd.wap.si',
       sender: '+31641600986',
+      serviceId: 0,
       timestamp: '3',
       href: 'http://www.mozilla.org',
       id: 'gaia-test@mozilla.org',
@@ -42,6 +45,7 @@ suite('MessageDB', function() {
     delete: {
       type: 'text/vnd.wap.si',
       sender: '+31641600986',
+      serviceId: 0,
       timestamp: '3',
       href: 'http://www.mozilla.org',
       id: 'gaia-test@mozilla.org',
@@ -51,6 +55,7 @@ suite('MessageDB', function() {
     old_delete: {
       type: 'text/vnd.wap.si',
       sender: '+31641600986',
+      serviceId: 0,
       timestamp: '4',
       href: 'http://www.mozilla.org',
       id: 'gaia-test@mozilla.org',
@@ -61,6 +66,7 @@ suite('MessageDB', function() {
     low: {
       type: 'text/vnd.wap.si',
       sender: '+31641600986',
+      serviceId: 0,
       timestamp: '5',
       href: 'http://www.mozilla.org',
       id: 'http://www.mozilla.org',
@@ -70,6 +76,7 @@ suite('MessageDB', function() {
     medium: {
       type: 'text/vnd.wap.si',
       sender: '+31641600986',
+      serviceId: 0,
       timestamp: '6',
       href: 'http://www.mozilla.org',
       id: 'http://www.mozilla.org',
@@ -79,6 +86,7 @@ suite('MessageDB', function() {
     high: {
       type: 'text/vnd.wap.si',
       sender: '+31641600986',
+      serviceId: 0,
       timestamp: '7',
       href: 'http://www.mozilla.org',
       id: 'http://www.mozilla.org',
@@ -102,6 +110,7 @@ suite('MessageDB', function() {
               done(function checks() {
                 assert.equal(message.type, messages.current.type);
                 assert.equal(message.sender, messages.current.sender);
+                assert.equal(message.serviceId, messages.current.serviceId);
                 assert.equal(message.href, messages.current.href);
                 assert.equal(message.text, messages.current.text);
               });
@@ -145,7 +154,7 @@ suite('MessageDB', function() {
                           assert.equal(medium.action, messages.medium.action);
                           assert.equal(status_high, 'new');
                           assert.equal(high.id, 'http://www.mozilla.org');
-                          assert.equal(high.action, 'signal-high');
+                          assert.equal(high.action, messages.high.action);
                         });
                       });
                   });

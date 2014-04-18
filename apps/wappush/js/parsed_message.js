@@ -35,6 +35,7 @@
       var obj = {
         type: this.type,
         sender: this.sender,
+        serviceId: this.serviceId,
         timestamp: this.timestamp
       };
 
@@ -120,6 +121,7 @@
 
     obj.type = message.contentType;
     obj.sender = message.sender;
+    obj.serviceId = message.serviceId;
     obj.timestamp = timestamp.toString();
 
     if (message.contentType === 'text/vnd.wap.si') {
