@@ -1,6 +1,7 @@
 'use strict';
 
 var MockSheetsTransition = {
+  transitioning: false,
   begin: function st_begin() {
   },
 
@@ -18,5 +19,9 @@ var MockSheetsTransition = {
   snapInPlace: function st_snapInPlace() {
   },
   snapForward: function st_snapForward() {
+  },
+
+  mTeardown: function st_mTeardown() {
+    this.transitioning = false;
   }
 };

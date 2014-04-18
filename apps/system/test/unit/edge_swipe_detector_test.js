@@ -155,6 +155,14 @@ suite('system/EdgeSwipeDetector >', function() {
       assert.isTrue(screen.classList.contains('edges'));
     });
 
+    test('the screen should not go into edges mode if the setting if off',
+    function() {
+      MockSettingsListener.mCallbacks['edgesgesture.enabled'](false);
+      appLaunch(dialer);
+      launchTransitionEnd();
+      assert.isFalse(screen.classList.contains('edges'));
+    });
+
     test('the edges should be enabled if an app is launched from cards view',
     function() {
       launchTransitionEnd();
@@ -443,13 +451,6 @@ suite('system/EdgeSwipeDetector >', function() {
         assert.isTrue(moveSpy.lastCall.args[1] < 0.30);
       });
 
-      test('it should end the transition', function() {
-        var endSpy = this.sinon.spy(MockSheetsTransition, 'end');
-        swipe(this.sinon.clock, panel, 3, (width / 2), 240, 250);
-
-        assert.isTrue(endSpy.calledOnce);
-      });
-
       suite('> direction detection', function() {
         test('> events from the previous panel should be ltr', function() {
           var beginSpy = this.sinon.spy(MockSheetsTransition, 'begin');
@@ -522,7 +523,6 @@ suite('system/EdgeSwipeDetector >', function() {
         swipe(this.sinon.clock, panel, 3, 7, 20, halfScreen,
               25, true /* no touchend */);
         assert.isTrue(snapSpy.calledOnce);
-        assert.isTrue(endSpy.calledOnce);
       });
 
       test('it should forward the touchend event', function() {
@@ -705,12 +705,10 @@ suite('system/EdgeSwipeDetector >', function() {
             assert.isTrue(givenSpeed < 0.0020);
           });
 
-          test('it should go back in the stack after the transition',
+          test('it should go back in the stack',
           function() {
             var goSpy = this.sinon.spy(MockStackManager, 'goPrev');
             swipe(this.sinon.clock, panel, 3, (width / 8), 240, 250, 100);
-            assert.isFalse(goSpy.calledOnce);
-            this.sinon.clock.tick();
             assert.isTrue(goSpy.calledOnce);
           });
         });
@@ -733,12 +731,10 @@ suite('system/EdgeSwipeDetector >', function() {
           assert.isTrue(givenSpeed < 0.0024);
         });
 
-        test('it should snap go back in the stack after the transition',
+        test('it should snap go back in the stack',
         function() {
           var goSpy = this.sinon.spy(MockStackManager, 'goPrev');
           swipe(this.sinon.clock, panel, 3, (width / 1.4), 240, 250);
-          assert.isFalse(goSpy.calledOnce);
-          this.sinon.clock.tick();
           assert.isTrue(goSpy.calledOnce);
         });
 
@@ -771,12 +767,10 @@ suite('system/EdgeSwipeDetector >', function() {
           assert.isTrue(givenSpeed < 0.0024);
         });
 
-        test('it should snap go forward in the stack after the transition',
+        test('it should snap go forward in the stack',
         function() {
           var goSpy = this.sinon.spy(MockStackManager, 'goNext');
           swipe(this.sinon.clock, panel, width, (width / 2.5), 240, 250);
-          assert.isFalse(goSpy.calledOnce);
-          this.sinon.clock.tick();
           assert.isTrue(goSpy.calledOnce);
         });
 
