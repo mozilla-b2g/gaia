@@ -55,6 +55,14 @@
 
 /** events */
 
+#event-list #no-events {
+  padding: 0.2rem 1.5rem 0;
+  font-size: 1.3rem;
+  font-weight: 500;
+  line-height: 2.8rem;
+  color: #F93700;
+}
+
 .day-events .events {
   -moz-user-select: none;
   position: relative;

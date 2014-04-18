@@ -525,11 +525,21 @@ Calendar.ns('Views').DayBased = (function() {
         this.events.innerHTML = '';
       }
 
-      var records = this.controller.queryCache(this.timespan);
+      var _that = this;
+      setTimeout(function() {
+        var records = _that.controller.queryCache(_that.timespan);
+        if (records && records.length) {
+          _that._loadRecords(records);
+        } else if (controller.scale === 'month') {
+          var no_event_text = navigator.mozL10n.get('day-with-no-event');
+          var create_ont_text = navigator.mozL10n.get('create-one');
+          var event_list = document.getElementById('event-list');
+          event_list.innerHTML = "<span id='no-events'>" + no_event_text +
+          ' ' + "<a href='/event/add/'>" + create_ont_text + '</a></span>';
+        }
 
-      if (records && records.length) {
-        this._loadRecords(records);
-      }
+      },10);
+
     },
 
     /**

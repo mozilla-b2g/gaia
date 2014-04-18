@@ -325,6 +325,13 @@
     },
 
     _renderBusytime: function(busytime) {
+      // event is going to add , remove no event message
+      var event_list = document.querySelector('#event-list');
+      var no_events = document.querySelector('#no-events');
+      if (no_events) {
+        event_list.removeChild(no_events);
+      }
+
       // render out a busytime span
       var span = this.timespan;
 
