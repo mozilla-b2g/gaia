@@ -142,6 +142,27 @@ suite('system/LockScreenWindowManager', function() {
       assert.isTrue(stubOpenApp.called,
         'the LockScreenWindow is not instantiated after the FTU was closed.');
     });
+
+    test('Send lockscreen window to background while overlay is there.',
+      function() {
+        var app = new window.MockLockScreenWindow();
+        this.sinon.stub(app, 'isActive').returns(true);
+        window.lockScreenWindowManager.states.instance = app;
+        var stubSetVisible = this.sinon.stub(app, 'setVisible');
+        window.lockScreenWindowManager.handleEvent( { type: 'overlaystart' } );
+        assert.isTrue(stubSetVisible.calledWith(false));
+      });
+
+    test('Send lockscreen window to foreground.', function() {
+      var app = new window.MockLockScreenWindow();
+      this.sinon.stub(app, 'isActive').returns(true);
+      window.lockScreenWindowManager.states.instance = app;
+      var stubSetVisible = this.sinon.stub(app, 'setVisible');
+      window.lockScreenWindowManager.handleEvent({
+        type: 'showlockscreenwindow'
+      });
+      assert.isTrue(stubSetVisible.calledWith(true));
+    });
   });
 });
 

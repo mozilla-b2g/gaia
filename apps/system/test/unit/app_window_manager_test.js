@@ -10,7 +10,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
       'lockScreen', 'OrientationManager', 'BrowserFrame',
       'BrowserConfigHelper', 'System', 'BrowserMixin', 'TransitionMixin',
-      'homescreenLauncher', 'layoutManager']);
+      'homescreenLauncher', 'layoutManager', 'lockscreen']);
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_lock_screen.js');
@@ -33,7 +33,7 @@ var mocksForAppWindowManager = new MocksHelper([
   'ActivityWindow',
   'Applications', 'SettingsListener', 'HomescreenLauncher',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
-  'HomescreenWindow', 'AppWindow', 'LayoutManager'
+  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'LockScreen'
 ]).init();
 
 suite('system/AppWindowManager', function() {
@@ -217,6 +217,17 @@ suite('system/AppWindowManager', function() {
 
       AppWindowManager.handleEvent({ type: 'ftuskip' });
       assert.isTrue(stubDisplay.calledWith());
+    });
+
+    test('FTU is skipped when lockscreen is active', function() {
+      MockLockScreen.locked = true;
+      injectRunningApps();
+      var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
+      var stubSetVisible = this.sinon.stub(home, 'setVisible');
+
+      AppWindowManager.handleEvent({ type: 'ftuskip' });
+      assert.isFalse(stubDisplay.calledWith());
+      assert.isTrue(stubSetVisible.calledWith(false));
     });
 
     test('System resize', function() {

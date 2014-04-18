@@ -21,9 +21,11 @@
         fullscreen: true,
         orientation: ['default']
       },
+      name: 'Lockscreen',
       // No manifestURL + no chrome would cause a default chrome app
-      manifestURL: window.location.href + '/manifest.webapp',
-      origin: window.location.origin
+      manifestURL: window.location.href.replace('system', 'lockscreen') +
+                  '/manifest.webapp',
+      origin: window.location.origin.replace('system', 'lockscreen')
     };
 
     // Mock the iframe contains the elements with the existing
@@ -99,7 +101,7 @@
 
       dummy.innerHTML = html;
       var iframe = dummy.firstElementChild;
-
+      iframe.setVisible = function() {};
       // XXX: real iframes would own these methods.
       iframe.addNextPaintListener = function(cb) {
         cb();
@@ -118,11 +120,6 @@
         };
       };
       return iframe;
-    };
-
-  LockScreenWindow.prototype.setVisible =
-    function aw_setVisible(visible, screenshotIfInvisible) {
-      this.element.setAttribute('aria-hidden', !visible);
     };
   exports.LockScreenWindow = LockScreenWindow;
 })(window);
