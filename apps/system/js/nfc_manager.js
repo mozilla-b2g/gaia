@@ -41,8 +41,6 @@ var NfcManager = {
 
   init: function nm_init() {
     this._debug('Initializing NFC Message');
-    // Initialize nfc-dom so that it is ready to receive H/W state changes
-    var nfcdom = window.navigator.mozNfc;
 
     window.navigator.mozSetMessageHandler(
       'nfc-manager-tech-discovered',
@@ -56,11 +54,11 @@ var NfcManager = {
     var self = this;
     SettingsListener.observe('nfc.enabled', false, function(enabled) {
       var state = enabled ?
-                    (LockScreen.locked ?
+                    (lockScreen.locked ?
                        self.NFC_HW_STATE_DISABLE_DISCOVERY :
                        self.NFC_HW_STATE_ON) :
                     self.NFC_HW_STATE_OFF;
-      self.dispatchHardwareChangeEvt(state);
+      self.changeHardwareState(state);
     });
   },
 
@@ -73,17 +71,35 @@ var NfcManager = {
     }
   },
 
-  dispatchHardwareChangeEvt: function nm_dispatchHardwareChangeEvt(state) {
-    this._debug('dispatchHardwareChangeEvt - state : ' + state);
+  changeHardwareState: function nm_changeHardwareState(state) {
+    this._debug('changeHardwareState - state : ' + state);
     this.hwState = state;
-    var detail = {
-      type: 'nfc-hardware-state-change',
-      nfcHardwareState: state
+    var nfcdom = window.navigator.mozNfc;
+    if (!nfcdom) {
+      return;
+    }
+
+    var req;
+    switch (state) {
+      case this.NFC_HW_STATE_OFF:
+        req = nfcdom.powerOff();
+        break;
+      case this.NFC_HW_STATE_DISABLE_DISCOVERY:
+        req = nfcdom.stopPoll();
+        break;
+      case this.NFC_HW_STATE_ON:
+      case this.NFC_HW_STATE_ENABLE_DISCOVERY:
+        req = nfcdom.startPoll();
+        break;
+    }
+
+    var self = this;
+    req.onsuccess = function() {
+      self._debug('changeHardwareState ' + state + ' success');
     };
-    // Create the state-change event and dispatch
-    var event = document.createEvent('customEvent');
-    event.initCustomEvent('mozContentEvent', true, true, detail);
-    window.dispatchEvent(event);
+    req.onerror = function() {
+      self._debug('changeHardwareState ' + state + ' error ' + req.error.name);
+    };
   },
 
   handleEvent: function nm_handleEvent(evt) {
@@ -101,7 +117,7 @@ var NfcManager = {
         if (state == this.hwState) {
           return;
         }
-        this.dispatchHardwareChangeEvt(state);
+        this.changeHardwareState(state);
         break;
       case 'shrinking-sent':
         window.removeEventListener('shrinking-sent', this);
@@ -170,6 +186,9 @@ var NfcManager = {
 
       var connected = false;
       var nfcdom = window.navigator.mozNfc;
+      if (!nfcdom) {
+        return;
+      }
 
       var token = session;
       var nfctag = nfcdom.getNFCTag(token);
@@ -232,7 +251,12 @@ var NfcManager = {
 
   checkP2PRegistration:
     function nm_checkP2PRegistration(manifestURL) {
-      var status = window.navigator.mozNfc.checkP2PRegistration(manifestURL);
+      var nfcdom = window.navigator.mozNfc;
+      if (!nfcdom) {
+        return;
+      }
+
+      var status = nfcdom.checkP2PRegistration(manifestURL);
       var self = this;
       status.onsuccess = function() {
         // Top visible application's manifest Url is registered;
@@ -248,7 +272,12 @@ var NfcManager = {
   },
 
   dispatchP2PUserResponse: function nm_dispatchP2PUserResponse(manifestURL) {
-    window.navigator.mozNfc.notifyUserAcceptedP2P(manifestURL);
+    var nfcdom = window.navigator.mozNfc;
+    if (!nfcdom) {
+      return;
+    }
+
+    nfcdom.notifyUserAcceptedP2P(manifestURL);
   },
 
   fireTagDiscovered: function nm_fireTagDiscovered(command) {
