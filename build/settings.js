@@ -314,6 +314,9 @@ function execute(options) {
       config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
   }
 
+  // Set the ftu ping URL -- we set this regardless of NOFTU for now
+  settings['ftu.pingURL'] = config.FTU_PING_URL;
+
   if (config.PRODUCTION === '1') {
     settings['feedback.url'] = 'https://input.mozilla.org/api/v1/feedback/';
   }
