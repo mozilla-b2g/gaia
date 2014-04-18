@@ -828,3 +828,10 @@ html[dir="rtl"] ul li > label.range-icons.volume input {
   right: 0.35rem;
 }
 
+/**
+ * Remove outline of dropdown menu when clicked
+ */
+select:-moz-focusring {
+  color: transparent;
+  text-shadow: 0 0 0 #000;
+}
