@@ -3374,7 +3374,7 @@ suite('thread_ui.js >', function() {
         assert.ok(MockOptionMenu.calls.length, 1);
 
         // Confirm that the menu contained a "resend-message" option
-      assert.equal(MockOptionMenu.calls[0].items[2].l10nId, 'resend-message');
+      assert.equal(MockOptionMenu.calls[0].items[3].l10nId, 'resend-message');
     });
 
     test(' "long-press" on an incoming download error mms bubble should not '+
