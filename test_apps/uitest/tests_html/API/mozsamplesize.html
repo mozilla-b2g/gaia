@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <title>-moz-samplesize test</title>
+    <script defer src="../../js/API/mozsamplesize.js"></script>
+    <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
+    <link rel="stylesheet" type="text/css" href="../../style/API.css">
+  </head>
+  <body>
+    <h1>Various sample sizes</h1>
+   <button id="report">Report Image sizes</button>
+  <h2>no media fragment</h2>
+    <img id="image1" src="/style/images/canardpc.jpg">
+  <h2>samplesize 1</h2>
+    <img id="image1" src="/style/images/canardpc.jpg#-moz-samplesize=1">
+  <h2>samplesize 2</h2>
+    <img id="image2" src="/style/images/canardpc.jpg#-moz-samplesize=2">
+  <h2>samplesize 3</h2>
+    <img id="image2" src="/style/images/canardpc.jpg#-moz-samplesize=3">
+  <h2>samplesize 4</h2>
+    <img id="image3" src="/style/images/canardpc.jpg#-moz-samplesize=4">
+  <h2>samplesize 8</h2>
+    <img id="image3" src="/style/images/canardpc.jpg#-moz-samplesize=8">
+  <h2>samplesize 16</h2>
+    <img id="image3" src="/style/images/canardpc.jpg#-moz-samplesize=16">
+
+   <h1>Compare Image Quality</h1>
+   <button id="compare">Pick photo to compare</button>
+
+   <h2>Photo decoded full size</h2>
+     <img id="picked1" style="width: 300px; height:400px">
+
+   <h2>Photo sampled and decoded</h2>
+     <img id="picked2" style="width: 300px; height:400px">
+
+   <h1>Memory Test</h1>
+   <button id="memtest1">4 images, no sampling</button>
+   <button id="memtest2">4 images, samplesize=8</button>
+
+  </body>
+</html>
+
