@@ -158,19 +158,19 @@ body.rb-enabled #statusbar-label {
 #statusbar-connections {
   margin: 0;
   padding: 0;
+  font-family: 'Fira Sans', sans-serif;
 }
 
 #statusbar-connections > * {
   float: right;
   pointer-events: none;
-  margin: 0 0.2rem;
+  margin: 0 0.25rem;
 }
 
 #statusbar-connections .statusbar-data:not(.sb-icon-data-circle) {
   color: #fff;
   font-size: 1.49rem; /* 6.5pt */
-  position: relative;
-  bottom: 0.1rem;
+  line-height: 1.6rem;
 }
 
 #statusbar-connections .statusbar-data:not(.sb-icon-data-circle) {
@@ -185,6 +185,7 @@ body.rb-enabled #statusbar-label {
 #statusbar-connections[data-multiple="true"] .statusbar-signal::before {
   position: absolute;
   font-size: 0.8rem;
+  color: #00caf2;
   top: 0.5rem;
   left: -0.6rem;
 }
@@ -203,11 +204,11 @@ body.rb-enabled #statusbar-label {
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-data {
-  position: relative;
-  width: 1.3rem;
-  margin: 0;
-  font-size: 0.8rem;
-  text-align: right;
+  margin-right: 0.7rem;
+}
+
+#statusbar-connections[data-multiple="true"] .statusbar-data.sb-icon-data-circle {
+  margin-right: 0.5rem;
 }
 
 #statusbar-connections[data-multiple="true"] .statusbar-data.sb-icon-data-circle {
@@ -233,7 +234,8 @@ body.rb-enabled #statusbar-label {
 #statusbar-call-forwardings > * {
   float: right;
   pointer-events: none;
-  margin: 0 0.6rem;
+  margin-right: 0.1rem;
+  margin-left: 1rem;
 }
 
 #statusbar-call-forwardings .sb-icon-call-forwarding {
@@ -243,6 +245,7 @@ body.rb-enabled #statusbar-label {
 #statusbar-call-forwardings[data-multiple="true"] .sb-icon-call-forwarding::before {
   position: absolute;
   font-size: 0.8rem;
+  color: #00caf2;
   top: 0.5rem;
   left: -0.6rem;
 }

@@ -8,18 +8,35 @@
   var fakeNetwork = { shortName: 'Fake Orange F', mcc: '208', mnc: '1' };
   var fakeVoice = {
     network: fakeNetwork,
-    state: 'notSearching',
-    roaming: true,
+    state: 'registered',
+    roaming: false,
     connected: true,
+    relSignalStrength: 80,
     emergencyCallsOnly: false
   };
+  var fakeData = {
+    network: fakeNetwork,
+    type: 'umts',
+    connected: true,
+    roaming: false,
+    relSignalStrength: 80
+  };
+
   var fakeNetwork2 = { shortName: 'Verizon Fake', mcc: '208', mnc: '1' };
   var fakeVoice2 = {
     network: fakeNetwork2,
-    state: 'notSearching',
-    roaming: true,
+    state: 'registered',
+    roaming: false,
     connected: true,
-    emergencyCallsOnly: false
+    relSignalStrength: 80,
+    emergencyCallsOnly: true
+  };
+  var fakeData2 = {
+    network: fakeNetwork2,
+    type: 'edge',
+    connected: true,
+    roaming: true,
+    relSignalStrength: 60
   };
 
   function fakeEventListener(type, callback, bubble) {
@@ -56,7 +73,7 @@
     getPreferredNetworkType:  FFOS_RUNTIME.domRequest(),
     setPreferredNetworkType:  FFOS_RUNTIME.domRequest(),
     get data() {
-      return initialized ? { network: fakeNetwork } : null;
+      return initialized ? fakeData : null;
     },
     get voice() {
       return initialized ? fakeVoice : null;
@@ -81,7 +98,7 @@
       getPreferredNetworkType:  FFOS_RUNTIME.domRequest(),
       setPreferredNetworkType:  FFOS_RUNTIME.domRequest(),
       get data() {
-        return initialized ? { network: fakeNetwork2 } : null;
+        return initialized ? fakeData2 : null;
       },
       get voice() {
         return initialized ? fakeVoice2 : null;
