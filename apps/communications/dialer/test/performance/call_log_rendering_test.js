@@ -21,6 +21,10 @@ marionette(mozTestInfo.appPath + ' >', function() {
     client.setScriptTimeout(50000);
 
     MarionetteHelper.unlockScreen(client);
+
+    // inject performance helper
+    client.contentScript.inject(
+      GAIA_DIR + '/tests/performance/performance_testing_helper.js');
   });
 
   test('Dialer/callLog rendering time >', function() {

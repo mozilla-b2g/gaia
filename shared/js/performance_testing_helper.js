@@ -2,27 +2,13 @@
 
 (function(window) {
 
-  function dispatch(name) {
-    if (!window.mozPerfHasListener) {
-      return;
-    }
-
-    var now = window.performance.now();
-
-    setTimeout(function() {
-      //console.log('PerformanceTestingHelper: dispatching event', name);
-
-      var detail = {
-        name: name,
-        timestamp: now
-      };
-      var evt = new CustomEvent('x-moz-perf', { detail: detail });
-      window.dispatchEvent(evt);
-    });
+  // empty helper. Must not override the inserted one.
+  // See bug 846909
+  if (!window.PerformanceTestingHelper) {
+    window.PerformanceTestingHelper = {
+      dispatch: function() {
+      }
+    };
   }
-
-  window.PerformanceTestingHelper = {
-    dispatch: dispatch
-  };
 
 })(window);
