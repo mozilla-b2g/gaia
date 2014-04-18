@@ -14,10 +14,14 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
     _cost_control_widget_locator = (By.CSS_SELECTOR, '#cost-control-widget > iframe')
     _data_usage_view_locator = (By.ID, 'datausage-limit-view')
 
+    def setUp(self):
+        GaiaTestCase.setUp(self)
+        self.data_layer.disable_wifi()
+        self.data_layer.connect_to_cell_data()
+
     def test_cost_control_data_alert_mobile(self):
         """https://moztrap.mozilla.org/manage/case/8938/"""
 
-        self.data_layer.connect_to_cell_data()
         cost_control = CostControl(self.marionette)
         cost_control.launch()
 
@@ -37,7 +41,7 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         # open browser to get some data downloaded
         browser = Browser(self.marionette)
         browser.launch()
-        browser.go_to_url('http://www.mozilla.org/', timeout=120)
+        browser.go_to_url('http://www.mozilla.org/', timeout=180)
 
         # get the notification bar
         self.device.touch_home_button()

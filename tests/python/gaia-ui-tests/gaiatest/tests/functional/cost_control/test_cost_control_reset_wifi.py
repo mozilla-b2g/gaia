@@ -12,11 +12,10 @@ from gaiatest.apps.browser.app import Browser
 
 class TestCostControlReset(GaiaTestCase):
 
-    _page_title_locator = (By.ID, 'page-title')
-
     def test_cost_control_reset_wifi(self):
 
         self.data_layer.connect_to_wifi()
+
         cost_control = CostControl(self.marionette)
         cost_control.launch()
 
@@ -30,8 +29,6 @@ class TestCostControlReset(GaiaTestCase):
         browser = Browser(self.marionette)
         browser.launch()
         browser.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html')
-        browser.switch_to_content()
-        self.wait_for_element_present(*self._page_title_locator)
 
         # disable wifi and kill the browser before reset data, wait for wifi to be closed, and switch back to the app
         self.apps.kill(browser.app)
