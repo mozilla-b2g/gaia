@@ -9,7 +9,7 @@
   },
   "permissions": {
     "geolocation":{},
-    "device-storage:sdcard":{ "access": "readonly" }
+    "device-storage:sdcard":{ "access": "readwrite" }
   },
   "locales": {
     "en-US": {
