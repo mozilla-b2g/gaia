@@ -2,7 +2,11 @@
 
   var worker = new TestAgent.BrowserWorker({
         /* this is where your tests will be loaded into */
-        sandbox: '/test/unit/_sandbox.html'
+        sandbox: '/test/unit/_sandbox.html',
+        loader: {
+          /* httpd.js is giving adequate caching headers now */
+          bustCache: false
+        }
       });
 
   worker.use(TestAgent.BrowserWorker.PostMessage);
