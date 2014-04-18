@@ -285,6 +285,10 @@
    * @return {Boolean} The instance is active or not.
    */
   AppWindow.prototype.isActive = function aw_isActive() {
+    if (this.element.classList.contains('will-become-active')) {
+      return true;
+    }
+
     if (this.transitionController) {
       return (this.transitionController._transitionState == 'opened' ||
               this.transitionController._transitionState == 'opening');
@@ -329,8 +333,10 @@
     this.debug(' ...revived!');
     this.browser = new self.BrowserFrame(this.browser_config);
     this.element.appendChild(this.browser.element);
+    this.iframe = this.browser.element;
     this.launchTime = Date.now();
     this.suspended = false;
+    this.element.classList.remove('suspended');
     // Launch as background by default.
     this._setVisible(false);
     this.publish('resumed');
@@ -347,25 +353,10 @@
     this.loading = false;
     this.loaded = false;
     this.suspended = true;
-    this.setFrameBackgroundWithScreenshot();
+    this.element.classList.add('suspended');
     this.element.removeChild(this.browser.element);
     this.browser = null;
     this.publish('suspended');
-  };
-
-  /**
-   * Render the container background with cached screenshot.
-   * @fires AppWindow#resumed
-   */
-  AppWindow.prototype.setFrameBackgroundWithScreenshot = function() {
-    var screenshotURL = this.requestScreenshotURL();
-    if (!screenshotURL) {
-      return;
-    }
-    this.element.classList.remove('render');
-    this.element.style.backgroundImage =
-      'url(' + screenshotURL + ')';
-    this.element.style.backgroundSize = 'auto';
   };
 
   /**
@@ -482,7 +473,14 @@
     return '<div class=" ' + this.CLASS_LIST +
             ' " id="' + this.instanceID +
             '" transition-state="closed">' +
-              '<div class="screenshot-overlay"></div>' +
+              '<div class="screenshot-overlay">' +
+              '</div>' +
+              '<div class="identification-overlay">' +
+                '<div>' +
+                  '<div class="icon"></div>' +
+                  '<span class="title"></span>' +
+                '</div>' +
+              '</div>' +
               '<div class="fade-overlay"></div>' +
            '</div>';
   };
@@ -530,6 +528,13 @@
     this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
     this.fadeOverlay = this.element.querySelector('.fade-overlay');
 
+    var overlay = '.identification-overlay';
+    this.identificationOverlay = this.element.querySelector(overlay);
+    var icon = '.identification-overlay .icon';
+    this.identificationIcon = this.element.querySelector(icon);
+    var title = '.identification-overlay .title';
+    this.identificationTitle = this.element.querySelector(title);
+
     // Launched as background: set visibility and overlay screenshot.
     if (this.config.stayBackground) {
       this.setVisible(false);
@@ -541,6 +546,7 @@
      */
     this.publish('rendered');
     this._rendered = true;
+
     setTimeout(this.setFrameBackground.bind(this));
   };
 
@@ -663,6 +669,11 @@
       return;
     }
     this.name = new self.ManifestHelper(this.manifest).name;
+
+    if (this.identificationTitle) {
+      this.identificationTitle.textContent = this.name;
+    }
+
     // For uitest.
     this.element.dataset.localizedName = this.name;
     this.publish('namechanged');
@@ -720,6 +731,10 @@
     function aw__handle_handle_mozbrowsertitlechange(evt) {
       this.title = evt.detail;
       this.publish('titlechange');
+
+      if (this.identificationTitle) {
+        this.identificationTitle.textContent = this.title;
+      }
     };
 
   AppWindow.prototype._handle_mozbrowserloadend =
@@ -768,6 +783,10 @@
   AppWindow.prototype._handle_mozbrowsericonchange =
     function aw__handle_mozbrowsericonchange(evt) {
       this.config.favicon = evt.detail;
+      if (this.identificationIcon) {
+        this.identificationIcon.style.backgroundImage =
+          'url("' + evt.detail.href + '")';
+      }
       this.publish('iconchange');
     };
 
@@ -857,6 +876,18 @@
     }
   };
 
+  AppWindow.prototype.queueShow = function aw_queueShow() {
+    this.element.classList.add('will-become-active');
+  };
+
+  AppWindow.prototype.cancelQueuedShow = function aw_cancelQueuedShow() {
+    this.element.classList.remove('will-become-active');
+  };
+
+  AppWindow.prototype.queueHide = function aw_queueHide() {
+    this.element.classList.add('will-become-inactive');
+  };
+
   /**
    * Wait for a full repaint of the mozbrowser iframe.
    */
@@ -916,6 +947,11 @@
           return;
         }
 
+        this.screenshotOverlay.classList.add('visible');
+        if (this.identificationOverlay) {
+          this.identificationOverlay.classList.add('visible');
+        }
+
         if (!screenshotBlob) {
           // If no screenshot,
           // still hide the frame.
@@ -927,7 +963,6 @@
 
         this.screenshotOverlay.style.backgroundImage =
           'url(' + screenshotURL + ')';
-        this.screenshotOverlay.classList.add('visible');
 
         if (!this.iframe.classList.contains('hidden')) {
           this._hideFrame();
@@ -945,6 +980,16 @@
           this._screenshotOverlayState != 'screenshot' &&
           this.screenshotOverlay.classList.contains('visible')) {
         this.screenshotOverlay.classList.remove('visible');
+        this.screenshotOverlay.style.backgroundImage = '';
+      }
+
+      if (this.identificationOverlay) {
+        var overlay = this.identificationOverlay;
+        // A white flash can occur when removing the screenshot
+        // so we trigger this transition after a tick to hide it.
+        setTimeout(function nextTick() {
+          overlay.classList.remove('visible');
+        });
       }
     };
 
@@ -1359,14 +1404,24 @@
   AppWindow.prototype.setFrameBackground =
     function aw_setFrameBackground() {
       if (!this.isHomescreen &&
-          !this.loaded && !this.splashed && this.element && this._splash) {
-        this.splashed = true;
-        this.element.style.backgroundImage = 'url("' + this._splash + '")';
+          !this.loaded && !this.splashed && this.element) {
 
-        var iconCSSSize = 2 * (self.ScreenLayout.getCurrentLayout('tiny') ?
-        this.SPLASH_ICON_SIZE_TINY : this.SPLASH_ICON_SIZE_NOT_TINY);
-        this.element.style.backgroundSize =
-          iconCSSSize + 'px ' + iconCSSSize + 'px';
+        if (this._splash) {
+          this.splashed = true;
+          this.element.style.backgroundImage = 'url("' + this._splash + '")';
+
+          var iconCSSSize = 2 * (self.ScreenLayout.getCurrentLayout('tiny') ?
+          this.SPLASH_ICON_SIZE_TINY : this.SPLASH_ICON_SIZE_NOT_TINY);
+          this.element.style.backgroundSize =
+            iconCSSSize + 'px ' + iconCSSSize + 'px';
+
+          this.identificationIcon.style.backgroundImage =
+            'url("' + this._splash + '")';
+        }
+
+        if (this.identificationTitle) {
+          this.identificationTitle.textContent = this.name;
+        }
       }
     };
 

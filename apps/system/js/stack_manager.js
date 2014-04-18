@@ -1,5 +1,7 @@
 'use strict';
 
+/* global SheetsTransition */
+
 var StackManager = {
   init: function sm_init() {
     window.addEventListener('appcreated', this);
@@ -48,13 +50,11 @@ var StackManager = {
       return;
     }
 
-    newApp.broadcast('swipein');
-    oldApp.broadcast('swipeout');
+    this._queueBroadcast(newApp, oldApp);
 
     if (newApp.groupID !== oldApp.groupID) {
       this.position--;
     }
-    this._stackChanged();
   },
 
   goNext: function sm_goNext() {
@@ -64,13 +64,34 @@ var StackManager = {
       return;
     }
 
-    newApp.broadcast('swipein');
-    oldApp.broadcast('swipeout');
+    this._queueBroadcast(newApp, oldApp);
 
     if (newApp.groupID !== oldApp.groupID) {
       this.position++;
     }
-    this._stackChanged();
+  },
+
+  commit: function sm_commit() {
+    if (!this._broadcastTimeout) {
+      this._broadcast();
+    }
+  },
+
+  commitClose: function sm_commitClose() {
+    // TODO: make this transition pretty but at least we're
+    // fixing the race condition
+    clearTimeout(this._broadcastTimeout);
+    this._broadcastTimeout = null;
+
+    if (this._appIn) {
+      this._appIn.broadcast('closed');
+    }
+
+    if (this._appOut) {
+      this._appOut.transitionController.clearTransitionClasses();
+    }
+
+    this._cleanUp();
   },
 
   snapshot: function sm_snapshot() {
@@ -149,6 +170,7 @@ var StackManager = {
       case 'home':
         this._moveToTop(this.position);
         this.position = -1;
+        this.commitClose();
         break;
       case 'appterminated':
         var instanceID = e.detail.instanceID;
@@ -220,7 +242,6 @@ var StackManager = {
         if (i <= this.position && this.position > 0) {
           this.position--;
         }
-        this._dump();
         return;
       }
     }
@@ -235,6 +256,58 @@ var StackManager = {
     var evt = new CustomEvent('stackchanged', { detail: details });
 
     window.dispatchEvent(evt);
+  },
+
+  _broadcastTimeout: null,
+  _appIn: null,
+  _appOut: null,
+  _queueBroadcast: function sm_queueBroadcast(appIn, appOut) {
+    if (this._appIn) {
+      this._appIn.cancelQueuedShow();
+    }
+    this._appIn = appIn;
+    appIn.queueShow();
+
+    if (!this._appOut) {
+      this._appOut = appOut;
+      appOut.queueHide();
+    }
+
+    clearTimeout(this._broadcastTimeout);
+    this._broadcastTimeout = setTimeout(this._broadcast.bind(this), 800);
+  },
+
+  _broadcast: function sm_broadcast(close) {
+    clearTimeout(this._broadcastTimeout);
+    this._broadcastTimeout = null;
+
+    if (SheetsTransition.transitioning) {
+      return;
+    }
+
+    // We're back to the same place
+    if (this._appIn && this._appIn === this._appOut) {
+      this._appIn.transitionController.clearTransitionClasses();
+      this._cleanUp();
+      return;
+    }
+
+    if (this._appIn) {
+      this._appIn.broadcast('swipein');
+    }
+    if (this._appOut) {
+      this._appOut.broadcast('swipeout');
+    }
+
+    this._cleanUp();
+
+    this._stackChanged();
+  },
+
+
+  _cleanUp: function sm_cleanUp() {
+    this._appIn = null;
+    this._appOut = null;
   },
 
   /* Debug */
