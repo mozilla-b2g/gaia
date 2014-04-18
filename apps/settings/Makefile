@@ -14,7 +14,7 @@ else
 	GAIA_SETTINGS_MINIFY?=none
 endif
 
-.PHONY: all clean $(STAGE_APP_DIR)/resources/gaia_commit.txt $(STAGE_APP_DIR)/resources/support.json $(STAGE_APP_DIR)/resources/sensors.json $(STAGE_APP_DIR)/js/main.js
+.PHONY: all $(STAGE_APP_DIR)/resources/gaia_commit.txt $(STAGE_APP_DIR)/resources/support.json $(STAGE_APP_DIR)/resources/sensors.json $(STAGE_APP_DIR)/js/main.js
 
 all: $(STAGE_APP_DIR)/resources/gaia_commit.txt $(STAGE_APP_DIR)/resources/support.json $(STAGE_APP_DIR)/resources/sensors.json $(STAGE_APP_DIR)/js/main.js
 
@@ -33,11 +33,10 @@ else
 		date +%s >> $(STAGE_APP_DIR)/resources/gaia_commit.txt;
 endif
 
-$(STAGE_APP_DIR): clean
+$(STAGE_APP_DIR):
 	mkdir -p $(STAGE_APP_DIR)
 
 $(STAGE_APP_DIR)/js/main.js: | $(STAGE_APP_DIR)
-	cp -rp ../../shared $(STAGE_APP_DIR)/shared
 	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/settings.build.jslike optimize=$(GAIA_SETTINGS_MINIFY)
 
 $(STAGE_APP_DIR)/resources/support.json $(STAGE_APP_DIR)/resources/sensors.json: build/build.js $(STAGE_APP_DIR)

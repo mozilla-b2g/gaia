@@ -1,7 +1,7 @@
 include $(PWD)/build/common.mk
 
-.PHONY: all clean
-all: clean
+.PHONY: all
+all:
 	@echo Building findmydevice app to build_stage...
 	@mkdir -p $(STAGE_APP_DIR)
 	@cp -r * $(STAGE_APP_DIR)
