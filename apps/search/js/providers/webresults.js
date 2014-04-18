@@ -46,6 +46,8 @@
 
     googleLink: new GoogleLink(),
 
+    renderFullscreen: false,
+
     init: function() {
       Provider.prototype.init.apply(this, arguments);
       this.googleLink.init();
@@ -68,6 +70,18 @@
       this.googleLink.clear();
     },
 
+    /**
+     * Provides fullscreen search results.
+     * This happens when a suggestion is tapped or the enter key is pressed.
+     */
+    fullscreen: function(query) {
+      this.renderFullscreen = true;
+      this.search(query, function onCollect(results) {
+        this.render(results);
+        this.renderFullscreen = false;
+      }.bind(this));
+    },
+
     search: function(input, collect) {
       this.clear();
       this.googleLink.clear();
@@ -85,7 +99,7 @@
         if (response && response.apps && response.apps.length) {
           var results = [];
           response.apps.forEach(function each(app) {
-            if (app.name === 'Google') {
+            if (!this.renderFullscreen && app.name === 'Google') {
               this.googleLink.search(input);
               return;
             }
