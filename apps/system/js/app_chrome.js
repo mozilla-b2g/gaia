@@ -91,6 +91,10 @@
         this.handleLocationChanged(evt);
         break;
 
+      case 'mozbrowsertitlechange':
+        this.handleTitleChanged(evt);
+        break;
+
       case '_opened':
         this.handleOpened(evt);
         break;
@@ -169,6 +173,7 @@
     this.backButton.addEventListener('click', this);
     this.bookmarkButton.addEventListener('click', this);
     this.app.element.addEventListener('mozbrowserlocationchange', this);
+    this.app.element.addEventListener('mozbrowsertitlechange', this);
     this.app.element.addEventListener('_loading', this);
     this.app.element.addEventListener('_loaded', this);
     this.app.element.addEventListener('_opened', this);
@@ -189,6 +194,7 @@
     if (!this.app)
       return;
     this.app.element.removeEventListener('mozbrowserlocationchange', this);
+    this.app.element.removeEventListener('mozbrowsertitlechange', this);
     this.app.element.removeEventListener('_loading', this);
     this.app.element.removeEventListener('_loaded', this);
     this.app.element.removeEventListener('_opened', this);
@@ -275,9 +281,11 @@
     };
 
   AppChrome.prototype.handleLocationChanged =
-    function ac_handleLocationChange() {
+    function ac_handleLocationChange(evt) {
       if (!this.app)
         return;
+      this.app.currentUrl = evt.detail;
+      Places.addVisit(evt.detail);
       this.app.canGoForward(function forwardSuccess(result) {
         if (result === true) {
           delete this.forwardButton.dataset.disabled;
@@ -293,6 +301,13 @@
           this.backButton.dataset.disabled = true;
         }
       }.bind(this));
+    };
+
+  AppChrome.prototype.handleTitleChanged =
+    function ac_handleTitleChange(evt) {
+      if (!this.app)
+        return;
+      Places.setPlaceTitle(this.app.currentUrl, evt.detail);
     };
 
   AppChrome.prototype.addBookmark = function ac_addBookmark() {
