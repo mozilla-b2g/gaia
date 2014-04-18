@@ -441,6 +441,8 @@ suite('system/permission manager', function() {
         });
         assert.isTrue(spyToggleInfo.called);
         assert.isFalse(spyHidePermissionPrompt.called);
+        assert.isFalse(
+          permissionManager.moreInfoBox.classList.contains('hidden'));
       });
 
       test('should toggle info when hide info is clicked', function() {
@@ -449,6 +451,8 @@ suite('system/permission manager', function() {
         });
         assert.isTrue(spyToggleInfo.called);
         assert.isFalse(spyHidePermissionPrompt.called);
+        assert.isTrue(
+          permissionManager.moreInfoBox.classList.contains('hidden'));
       });
   });
 
