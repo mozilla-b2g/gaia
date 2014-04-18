@@ -656,6 +656,13 @@ ul li > label.range-icons.volume input {
   height: calc(100% - 5rem);
 }
 
+#os-license {
+  pointer-events: none;
+}
+
+#os-license.loaded {
+  pointer-events: auto;
+}
 
 /******************************************************************************
  * Help
@@ -827,4 +834,3 @@ html[dir="rtl"] ul li > label.range-icons.volume input {
   left: auto;
   right: 0.35rem;
 }
-
