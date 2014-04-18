@@ -3173,7 +3173,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     _coverageRunner: function _coverageRunner(worker) {
       var box = worker.sandbox.getWindow();
-      box.require(this.blanketUrl, null, this.blanketConfig);
+      box.require(this.blanketUrl, function() {
+        // Using custom reporter to replace blanket defaultReporter
+        // Send coverage result from each sandbox to the top window for aggregating the result
+        box.blanket.options('reporter', function(data) {
+          data = JSON.stringify(['coverage report', data]);
+          window.top.postMessage(data, "http://test-agent.gaiamobile.org:8080");
+        });
+      }, this.blanketConfig);
     },
 
     /**
@@ -3483,3 +3490,133 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   };
 
 }(this));
+
+(function() {
+  'use strict';
+
+  function BlanketReporter(options) {
+    var key;
+
+    if (typeof(options) === 'undefined') {
+      options = {};
+    }
+
+    for (key in options) {
+      if (options.hasOwnProperty(key)) {
+        this[key] = options[key];
+      }
+    }
+  }
+
+  BlanketReporter.prototype = {
+
+    enhance: function enhance(worker) {
+      this._receiveCoverageData();
+      worker.on('test runner end', this._aggregateReport.bind(this));
+    },
+
+    _coverageResults: [],
+
+    _templateResult: function() {
+      return { files: {}, instrumentation: 'blanket' };
+    },
+
+    _receiveCoverageData: function() {
+      var self = this;
+
+      if (typeof(window) !== 'undefined') {
+        window.addEventListener('message', function(event) {
+          var data = JSON.parse(event.data);
+
+          if (data[0] === 'coverage report') {
+            self._coverageResults.push(data[1]);
+          }
+        });
+      }
+    },
+
+    _splitReportByDomain: function(results) {
+      var multiDomainResults = [],
+          previousDomain,
+          currentDomain,
+          index = -1;
+
+      for (var file in results.files) {
+        currentDomain = new URL(file).hostname
+
+        if (currentDomain !== previousDomain) {
+          previousDomain = currentDomain;
+          multiDomainResults.push(this._templateResult());
+          index++;
+        }
+
+        multiDomainResults[index].files[file] = results.files[file];
+      }
+
+      multiDomainResults.forEach(function(domainResult) {
+        blanket.defaultReporter(domainResult);
+      }, this);
+    },
+
+    _aggregateReport: function() {
+      var coverageResults = this._coverageResults,
+          aggregateResult,
+          self = this;
+
+      aggregateResult = coverageResults.reduce(function(aggregateResult, coverageResult) {
+        var aggregateFiles = aggregateResult.files,
+            coverageFiles = coverageResult.files;
+
+        for (var file in coverageFiles) {
+          if (!(file in aggregateFiles)) {
+            aggregateFiles[file] = coverageFiles[file];
+          } else {
+            aggregateFiles[file] = self._accumulateCoverageFile(aggregateFiles[file], coverageFiles[file]);
+          }
+        }
+
+        if (!aggregateResult.stats) {
+          aggregateResult.stats = coverageResult.stats;
+        } else {
+          aggregateResult.stats = self._accumulateCoverageStats(aggregateResult.stats, coverageResult.stats);
+        }
+
+        return aggregateResult;
+      }, this._templateResult());
+
+      this._splitReportByDomain(aggregateResult);
+    },
+
+    _accumulateCoverageFile: function(aggregateFile, coverageFile) {
+      for (var key in coverageFile) {
+        if (coverageFile.hasOwnProperty(key) && key !== 'source') {
+          if (!aggregateFile[key]) {
+            aggregateFile[key] = coverageFile[key];
+          } else {
+            aggregateFile[key] += coverageFile[key];
+          }
+        }
+      }
+
+      return aggregateFile;
+    },
+
+    _accumulateCoverageStats: function(aggregateStats, coverageStats) {
+      for (var key in coverageStats) {
+        if (coverageStats.hasOwnProperty(key)) {
+          if (typeof coverageStats[key] === 'number') {
+            aggregateStats[key] += coverageStats[key];
+          } else {
+            aggregateStats.end = coverageStats.end;
+          }
+        }
+      }
+
+      return aggregateStats;
+    }
+
+  };
+
+  window.TestAgent.Common.BlanketReporter = BlanketReporter;
+
+})();
