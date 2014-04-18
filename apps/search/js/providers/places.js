@@ -1,6 +1,6 @@
 /* globals HtmlHelper, Provider, Search */
 
-(function() {
+(function(exports) {
 
   'use strict';
 
@@ -48,14 +48,6 @@
     }
   }
 
-  navigator.getDataStores(STORE_NAME).then(function(stores) {
-    store = stores[0];
-    store.onchange = function() {
-      doSync();
-    };
-    doSync();
-  });
-
   function saveIcon(url) {
     if (url in icons) {
       return;
@@ -83,10 +75,6 @@
       }
 
       var blob = xhr.response;
-
-      if (blob.type.split('/')[0] != 'image') {
-        return callback(new Error('not an image'));
-      }
 
       if (blob.size > this.MAX_ICON_SIZE) {
         return callback(new Error('image_to_large'));
@@ -139,6 +127,7 @@
 
   function addToStartPage(place) {
     place.visited = place.visited || 0;
+    place.frecency = place.frecency || 0;
 
     addToOrderedStore(history, place, 'visited', MAX_HISTORY_RESULTS);
 
@@ -152,13 +141,15 @@
           screenshotRequests[place.url] >= place.visited) {
         return;
       }
-      screenshotRequests[place.url] = place.visited;
-      places.searchObj.requestScreenshot(place.url);
+      if (exports.Places.searchObj) {
+        screenshotRequests[place.url] = place.visited;
+        exports.Places.searchObj.requestScreenshot(place.url);
+      }
     }
   }
 
   function showStartPage() {
-    var historyDom = places.buildResultsDom(history.map(function(x) {
+    var historyDom = exports.Places.buildResultsDom(history.map(function(x) {
       return formatPlace(x, '');
     }));
 
@@ -173,7 +164,8 @@
       div.appendChild(span);
 
       if (x.screenshot) {
-        var objectURL = URL.createObjectURL(x.screenshot);
+        var objectURL = typeof x.screenshot === 'string' ? x.screenshot :
+          URL.createObjectURL(x.screenshot);
         div.style.backgroundImage = 'url(' + objectURL + ')';
       }
       docFragment.appendChild(div);
@@ -200,22 +192,11 @@
         // to build an index
       case 'update':
       case 'add':
-        if (task.data.url.startsWith('app://') ||
-            task.data.url === 'about:blank') {
+        var place = task.data;
+        if (place.url.startsWith('app://') || place.url === 'about:blank') {
           break;
         }
-        results[task.data.url] = task.data;
-        if (task.data.iconUri) {
-          saveIcon(task.data.iconUri);
-        }
-        if (!(task.data.url in urls)) {
-          urls.unshift(task.data.url);
-        }
-        while (urls.length > MAX_URLS) {
-          var url = urls.pop();
-          delete results[url];
-        }
-        addToStartPage(task.data);
+        exports.Places.addPlace(place);
         break;
       case 'clear':
       case 'remove':
@@ -281,9 +262,34 @@
       }
       collect(renderResults);
     },
+
+    /**
+     * Add a place
+     */
+    addPlace: function(place) {
+      results[place.url] = place;
+      if (place.iconUri) {
+        saveIcon(place.iconUri);
+      }
+      if (!(place.url in urls)) {
+        urls.unshift(place.url);
+      }
+      while (urls.length > MAX_URLS) {
+        var url = urls.pop();
+        delete results[url];
+      }
+      addToStartPage(place);
+    }
+
   };
 
-  var places = new Places();
-  Search.provider(places);
+  exports.Places = new Places();
+  Search.provider(exports.Places);
 
-}());
+  navigator.getDataStores(STORE_NAME).then(function(stores) {
+    store = stores[0];
+    store.onchange = doSync;
+    doSync();
+  });
+
+}(window));
