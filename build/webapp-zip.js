@@ -25,19 +25,52 @@ const DEFAULT_TIME = 0;
 
 const MANIFEST_FILENAME = 'manifest.webapp';
 
+/**
+ * Add a file to a zip file with the specified time
+ */
+function addEntryFileWithTime(zip, pathInZip, file, time, compression) {
+  if (compression === undefined) {
+    compression = Ci.nsIZipWriter.COMPRESSION_BEST;
+  }
+  let fis = Cc['@mozilla.org/network/file-input-stream;1'].
+              createInstance(Ci.nsIFileInputStream);
+  fis.init(file, -1, -1, 0);
+
+  zip.addEntryStream(
+    pathInZip, time, compression, fis, false);
+  fis.close();
+}
+
+/**
+ * Add a string to a zip file with the specified time
+ */
+function addEntryStringWithTime(zip, pathInZip, data, time, compression) {
+  if (compression === undefined) {
+    compression = Ci.nsIZipWriter.COMPRESSION_BEST;
+  }
+  let converter = Cc['@mozilla.org/intl/scriptableunicodeconverter']
+                    .createInstance(Ci.nsIScriptableUnicodeConverter);
+  converter.charset = 'UTF-8';
+  let sis = converter.convertToInputStream(data);
+
+  zip.addEntryStream(
+    pathInZip, time, compression, sis, false);
+  sis.close();
+}
+
 function getCompression(pathInZip, webapp) {
   if (webapp.metaData && webapp.metaData.external === false &&
     webapp.metaData.zip && webapp.metaData.zip.mmap_files &&
     webapp.metaData.zip.mmap_files.indexOf(pathInZip) !== -1) {
-    return utils.getCompression('none');
+    return Ci.nsIZipWriter.COMPRESSION_NONE;
   } else {
     // Don't store some files compressed since that's not giving us any
     // benefit but costs cpu when reading from the zip.
     var ext = pathInZip.split('.').reverse()[0].toLowerCase();
     return (['gif', 'jpg', 'jpeg', 'png',
              'ogg', 'opus'].indexOf(ext) !== -1) ?
-            utils.getCompression('none') :
-            utils.getCompression('best');
+            Ci.nsIZipWriter.COMPRESSION_NONE :
+            Ci.nsIZipWriter.COMPRESSION_BEST;
   }
 }
 
@@ -65,7 +98,7 @@ function exclude(path, options, appPath) {
 
   // Ignore files from /shared directory (these files were created by
   // Makefile code). Also ignore files in the /test directory.
-  if (isTest) {
+  if (isShared || isTest) {
     return true;
   }
 
@@ -117,6 +150,10 @@ function addToZip(zip, pathInZip, file, compression) {
     }
   }
 
+  if (utils.isSubjectToBranding(file.path)) {
+    file.append((config.OFFICIAL == 1) ? 'official' : 'unofficial');
+  }
+
   if (!file.exists()) {
     throw new Error('Can\'t add inexistent file to zip : ' + file.path);
   }
@@ -134,7 +171,7 @@ function addToZip(zip, pathInZip, file, compression) {
         let l10nFile = file.parent.clone();
         l10nFile.append(file.leafName + '.' + config.GAIA_DEFAULT_LOCALE);
         if (l10nFile.exists()) {
-          utils.addEntryContentWithTime(zip, pathInZip, l10nFile, DEFAULT_TIME,
+          addEntryFileWithTime(zip, pathInZip, l10nFile, DEFAULT_TIME,
             compression);
           return;
         }
@@ -142,7 +179,7 @@ function addToZip(zip, pathInZip, file, compression) {
 
       let re = new RegExp('\\.html\\.' + config.GAIA_DEFAULT_LOCALE);
       if (!zip.hasEntry(pathInZip) && !re.test(file.leafName)) {
-        utils.addEntryContentWithTime(zip, pathInZip, file, DEFAULT_TIME, compression);
+        addEntryFileWithTime(zip, pathInZip, file, DEFAULT_TIME, compression);
       }
     } catch (e) {
       throw new Error('Unable to add following file in zip: ' +
@@ -159,66 +196,61 @@ function addToZip(zip, pathInZip, file, compression) {
   }
 }
 
-function getResource(distDir, path, resources, json, key) {
-  if (path) {
-    var file = utils.getFile(distDir, path);
-    if (!file.exists()) {
-      throw new Error('Invalid single variant configuration: ' +
-                      file.path + ' not found');
-    }
+/**
+ * Copy a "Building Block" (i.e. shared style resource)
+ *
+ * @param {nsIZipWriter} zip       zip xpcom instance.
+ * @param {String}       blockName name of the building block to copy.
+ * @param {String}       dirName   name of the shared directory to use.
+ */
+function copyBuildingBlock(zip, blockName, dirName, webapp) {
+  let dirPath = '/shared/' + dirName + '/';
 
-    resources.push(file);
-    json[key] = '/resources/' + file.leafName;
+  // Compute the nsIFile for this shared style
+  let styleFolder = utils.gaia.getInstance(config).sharedFolder.clone();
+  dirName.split('/').forEach(function(segment) {
+    styleFolder.append(segment);
+  });
+  let cssFile = styleFolder.clone();
+  if (!styleFolder.exists()) {
+    throw new Error('Using inexistent shared style: ' + blockName);
   }
+
+  cssFile.append(blockName + '.css');
+  var pathInZip = dirPath + blockName + '.css';
+  var compression = getCompression(pathInZip, webapp);
+  addToZip(zip, pathInZip, cssFile, compression);
+
+  // Copy everything but index.html and any other HTML page into the
+  // style/<block> folder.
+  let subFolder = styleFolder.clone();
+  subFolder.append(blockName);
+  utils.ls(subFolder, true).forEach(function(file) {
+      let relativePath = file.getRelativeDescriptor(styleFolder);
+      // Ignore HTML files at style root folder
+      if (relativePath.match(/^[^\/]+\.html$/)) {
+        return;
+      }
+      // Do not process directory as `addToZip` will add files recursively
+      if (file.isDirectory()) {
+        return;
+      }
+      addToZip(zip, dirPath + relativePath, file);
+    });
 }
 
-function getSingleVariantResources(conf) {
-  var distDir = utils.getGaia(config).distributionDir;
-  conf = utils.getJSON(conf);
-
-  let output = {};
-  let resources = [];
-  conf['operators'].forEach(function(operator) {
-    let object = {};
-
-    getResource(distDir, operator['wallpaper'], resources, object, 'wallpaper');
-    getResource(distDir, operator['default_contacts'],
-      resources, object, 'default_contacts');
-    getResource(distDir, operator['support_contacts'],
-      resources, object, 'support_contacts');
-
-    let ringtone = operator['ringtone'];
-    if (ringtone) {
-      let ringtoneName = ringtone['name'];
-      if (!ringtoneName) {
-        throw new Error('Missing name for ringtone in single variant conf.');
-      }
-
-      getResource(distDir, ringtone['path'], resources, object, 'ringtone');
-      if (!object.ringtone) {
-        throw new Error('Missing path for ringtone in single variant conf.');
-      }
-
-      // Generate ringtone JSON
-      let uuidGenerator = Cc['@mozilla.org/uuid-generator;1'].
-                            createInstance(Ci.nsIUUIDGenerator);
-      let ringtoneObj = { filename: uuidGenerator.generateUUID().toString() +
-                                    '.json',
-                          content: { uri: object['ringtone'],
-                                     name: ringtoneName }};
-
-      resources.push(ringtoneObj);
-      object['ringtone'] = '/resources/' + ringtoneObj.filename;
+function customizeFiles(zip, src, dest, webapp) {
+  // Add customize file to the zip
+  var distDir = utils.gaia.getInstance(config).distributionDir;
+  let files = utils.ls(utils.getFile(distDir, src));
+  files.forEach(function(file) {
+    let filename = dest + file.leafName;
+    if (zip.hasEntry(filename)) {
+      zip.removeEntry(filename, false);
     }
-
-    operator['mcc-mnc'].forEach(function(mcc) {
-      if (Object.keys(object).length !== 0) {
-        output[mcc] = object;
-      }
-    });
+    addEntryFileWithTime(zip, filename, file, DEFAULT_TIME,
+      getCompression(filename, webapp));
   });
-
-  return {'conf': output, 'files': resources};
 }
 
 function execute(options) {
@@ -280,12 +312,231 @@ function execute(options) {
       }
     });
 
+    // Put shared files, but copy only files actually used by the webapp.
+    // We search for shared file usage by parsing webapp source code.
+    let EXTENSIONS_WHITELIST = ['html'];
+    let SHARED_USAGE =
+        /<(?:script|link).+=['"]\.?\.?\/?shared\/([^\/]+)\/([^''\s]+)("|')/g;
+
+    let used = {
+      elements: [],        // List of HTML elements to copy
+      js: [],              // List of JS file paths to copy
+      locales: [],         // List of locale names to copy
+      resources: [],       // List of resources to copy
+      styles: [],          // List of stable style names to copy
+      unstable_styles: []  // List of unstable style names to copy
+    };
+
+    function sortResource(kind, path) {
+      switch (kind) {
+        case 'elements':
+          if (used.elements.indexOf(path) == -1) {
+            used.elements.push(path);
+          }
+          break;
+        case 'js':
+          if (used.js.indexOf(path) == -1) {
+            used.js.push(path);
+          }
+          break;
+        case 'locales':
+          if (config.GAIA_INLINE_LOCALES !== '1') {
+            let localeName = path.substr(0, path.lastIndexOf('.'));
+            if (used.locales.indexOf(localeName) == -1) {
+              used.locales.push(localeName);
+            }
+          }
+          break;
+        case 'resources':
+          if (used.resources.indexOf(path) == -1) {
+            used.resources.push(path);
+          }
+          break;
+        case 'style':
+          let styleName = path.substr(0, path.lastIndexOf('.'));
+          if (used.styles.indexOf(styleName) == -1) {
+            used.styles.push(styleName);
+          }
+          break;
+        case 'style_unstable':
+          let unstableStyleName = path.substr(0, path.lastIndexOf('.'));
+          if (used.unstable_styles.indexOf(unstableStyleName) == -1) {
+            used.unstable_styles.push(unstableStyleName);
+          }
+          break;
+      }
+    }
+
+    // Scan the files
+    let files = utils.ls(webapp.buildDirectoryFile, true);
+    files.filter(function(file) {
+        // Process only files that may require a shared file
+        let extension = utils.getExtension(file.leafName);
+        return file.isFile() && EXTENSIONS_WHITELIST.indexOf(extension) != -1;
+      }).
+      forEach(function(file) {
+        // Grep files to find shared/* usages
+        let content = utils.getFileContent(file);
+        while ((matches = SHARED_USAGE.exec(content)) !== null) {
+          let kind = matches[1]; // elements | js | locales | resources | style
+          let path = matches[2];
+          sortResource(kind, path);
+        }
+      });
+
     if (gaia.l10nManager) {
       // Only localize app manifest file if we inlined properties files.
       var inlineOrConcat = (config.GAIA_INLINE_LOCALES === '1' ||
         config.GAIA_CONCAT_LOCALES === '1');
       gaia.l10nManager.localize(files, zip, webapp, inlineOrConcat);
     }
+
+
+    // Look for gaia_shared.json in case app uses resources not specified
+    // in HTML
+    let sharedDataFile = webapp.buildDirectoryFile.clone();
+    sharedDataFile.append('gaia_shared.json');
+    if (sharedDataFile.exists()) {
+      let sharedData = JSON.parse(utils.getFileContent(sharedDataFile));
+      Object.keys(sharedData).forEach(function(kind) {
+        sharedData[kind].forEach(function(path) {
+          sortResource(kind, path);
+        });
+      });
+    }
+
+    used.elements.forEach(function(path) {
+      // Compute the nsIFile for this shared JS file
+      let file = gaia.sharedFolder.clone();
+      file.append('elements');
+      path.split('/').forEach(function(segment) {
+        file.append(segment);
+      });
+      if (!file.exists()) {
+        throw new Error('Using inexistent shared HTML file: ' + path +
+                        ' from: ' + webapp.domain);
+      }
+      var pathInZip = '/shared/elements/' + path;
+      var compression = getCompression(pathInZip, webapp);
+      addToZip(zip, pathInZip, file, compression);
+    });
+
+    used.js.forEach(function(path) {
+      // Compute the nsIFile for this shared JS file
+      let file = gaia.sharedFolder.clone();
+      file.append('js');
+      path.split('/').forEach(function(segment) {
+        file.append(segment);
+      });
+      if (!file.exists()) {
+        throw new Error('Using inexistent shared JS file: ' + path + ' from: ' +
+                        webapp.domain);
+      }
+      var pathInZip = '/shared/js/' + path;
+      var compression = getCompression(pathInZip, webapp);
+      addToZip(zip, pathInZip, file, compression);
+    });
+
+    used.locales.forEach(function(name) {
+      // Compute the nsIFile for this shared locale
+      let localeFolder = gaia.sharedFolder.clone();
+      localeFolder.append('locales');
+      let ini = localeFolder.clone();
+      localeFolder.append(name);
+      if (!localeFolder.exists()) {
+        throw new Error('Using inexistent shared locale: ' + name + ' from: ' +
+                        webapp.domain);
+      }
+      ini.append(name + '.ini');
+      if (!ini.exists()) {
+        throw new Error(name + ' locale doesn`t have `.ini` file.');
+      }
+      // And the locale folder itself
+      addToZip(zip, 'shared/locales/' + name, localeFolder);
+
+      // Add the .ini file
+      var pathInZip = 'shared/locales/' + name + '.ini';
+      var compression = getCompression(pathInZip, webapp);
+      if (!gaia.l10nManager) {
+        addToZip(zip, pathInZip, ini, compression);
+      } else {
+        gaia.l10nManager.localizeIni(zip, ini, webapp, pathInZip, compression);
+      }
+
+      utils.ls(localeFolder, true).forEach(function(fileInSharedLocales) {
+        var relativePath =
+          fileInSharedLocales.path.substr(config.GAIA_DIR.length);
+        var compression = getCompression(relativePath, webapp);
+        addToZip(zip, relativePath, fileInSharedLocales, compression);
+      });
+    });
+
+    used.resources.forEach(function(path) {
+      // Compute the nsIFile for this shared resource file
+      let file = gaia.sharedFolder.clone();
+      file.append('resources');
+      path.split('/').forEach(function(segment) {
+        file.append(segment);
+        if (utils.isSubjectToBranding(file.path)) {
+          file.append((config.OFFICIAL == 1) ? 'official' : 'unofficial');
+        }
+      });
+      if (!file.exists()) {
+        throw new Error('Using inexistent shared resource: ' + path +
+                        ' from: ' + webapp.domain + '\n');
+      }
+
+      if (path === 'languages.json') {
+        var pathInZip = 'shared/resources/languages.json';
+        return addToZip(zip, pathInZip, localesFile,
+          getCompression(pathInZip, webapp));
+      }
+
+      // Add not only file itself but all its hidpi-suffixed versions.
+      let fileNameRegexp = new RegExp(
+          '^' + file.leafName.replace(/(\.[a-z]+$)/, '(@.*x)?\\$1') + '$');
+      utils.ls(file.parent, false).forEach(function(listFile) {
+        if (fileNameRegexp.test(listFile.leafName)) {
+          var pathInZip = '/shared/resources/' + path;
+          addToZip(zip, pathInZip, listFile, getCompression(pathInZip, webapp));
+        }
+      });
+
+      if (file.isDirectory()) {
+        utils.ls(file, true).forEach(function(fileInResources) {
+          var pathInZip = 'shared' +
+            fileInResources.path.substr(gaia.sharedFolder.path.length);
+          addToZip(zip, pathInZip, fileInResources,
+            getCompression(pathInZip, webapp));
+        })
+      }
+
+      if (path === 'media/ringtones/' && gaia.distributionDir &&
+        utils.getFile(gaia.distributionDir, 'ringtones').exists()) {
+        customizeFiles(zip, 'ringtones', 'shared/resources/media/ringtones/',
+          webapp);
+      }
+    });
+
+    used.styles.forEach(function(name) {
+      try {
+        let segments = name.split('/');
+        name = segments.pop();
+        segments.unshift('style');
+        let dirName = segments.join('/');
+        copyBuildingBlock(zip, name, dirName, webapp);
+      } catch (e) {
+        throw new Error(e + ' from: ' + webapp.domain);
+      }
+    });
+
+    used.unstable_styles.forEach(function(name) {
+      try {
+        copyBuildingBlock(zip, name, 'style_unstable', webapp);
+      } catch (e) {
+        throw new Error(e + ' from: ' + webapp.domain);
+      }
+    });
 
     if (zip.alignStoredFiles) {
       zip.alignStoredFiles(4096);
@@ -295,3 +546,5 @@ function execute(options) {
 }
 
 exports.execute = execute;
+exports.addEntryFileWithTime = addEntryFileWithTime;
+exports.addEntryStringWithTime = addEntryStringWithTime;
