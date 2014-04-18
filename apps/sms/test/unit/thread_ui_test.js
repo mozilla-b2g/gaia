@@ -2091,6 +2091,10 @@ suite('thread_ui.js >', function() {
         subject = ThreadUI.getMessageContainer(+fiveMinAgo);
       });
 
+      test('New created block should have message-list class', function() {
+        assert.isTrue(subject.classList.contains('message-list'));
+      });
+
       test('has both the date and the time', function() {
         var header = subject.previousElementSibling;
         assert.notEqual(header.dataset.timeOnly, 'true');

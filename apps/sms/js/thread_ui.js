@@ -1216,6 +1216,7 @@ var ThreadUI = global.ThreadUI = {
     // Create DOM Elements
     header = document.createElement('header');
     messageContainer = document.createElement('ul');
+    messageContainer.classList.add('message-list');
 
     // Append 'time-update' state
     header.dataset.timeUpdate = 'repeat';
