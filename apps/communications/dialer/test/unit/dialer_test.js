@@ -117,25 +117,42 @@ suite('navigation bar', function() {
         };
       });
 
-      test('> One SIM', function() {
-        MockNavigatormozSetMessageHandler.mTrigger('telephony-call-ended',
-                                                   callEndedData);
-
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
-        sinon.assert.calledWith(Notification, 'missedCall');
-      });
-
-      test('> Two SIMs', function() {
-        MockNavigatorMozIccManager.addIcc('6789', {
-          'cardState': 'ready'
+      suite('> One SIM', function() {
+        setup(function() {
+          MockNavigatormozSetMessageHandler.mTrigger('telephony-call-ended',
+                                                     callEndedData);
+          MockNavigatormozApps.mTriggerLastRequestSuccess();
         });
 
-        MockNavigatormozSetMessageHandler.mTrigger('telephony-call-ended',
-                                                   callEndedData);
+        test('should localize the notification message', function() {
+          assert.deepEqual(MockLazyL10n.keys['from-contact'],
+            {contact: 'test name'});
+        });
 
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
-        sinon.assert.calledWith(Notification, 'missedCallMultiSims');
-        assert.deepEqual(MockLazyL10n.keys.missedCallMultiSims, {n: 2});
+        test('should send the notification', function() {
+          sinon.assert.calledWith(Notification, 'missedCall');
+        });
+      });
+
+      suite('> Two SIMs', function() {
+        setup(function() {
+          MockNavigatorMozIccManager.addIcc('6789', {
+            'cardState': 'ready'
+          });
+          MockNavigatormozSetMessageHandler.mTrigger('telephony-call-ended',
+                                                     callEndedData);
+          MockNavigatormozApps.mTriggerLastRequestSuccess();
+        });
+
+        test('should localize the notification message', function() {
+          assert.deepEqual(MockLazyL10n.keys['from-contact'],
+            {contact: 'test name'});
+        });
+
+        test('should send the notification', function() {
+          sinon.assert.calledWith(Notification, 'missedCallMultiSims');
+          assert.deepEqual(MockLazyL10n.keys.missedCallMultiSims, {n: 2});
+        });
       });
     });
 
