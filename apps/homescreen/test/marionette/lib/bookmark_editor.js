@@ -32,7 +32,7 @@ BookmarkEditor.prototype = {
   },
 
   get currentTabFrame() {
-    return this.client.findElement(
+    return this.client.helper.waitForElement(
       BookmarkEditor.Selectors['mozbrowser']);
   },
 
