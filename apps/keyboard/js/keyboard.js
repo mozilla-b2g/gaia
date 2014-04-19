@@ -390,25 +390,9 @@ function initKeyboard() {
   // Need to listen to both mozvisibilitychange and oninputcontextchange,
   // because we are not sure which will happen first and we will call
   // showKeyboard() when mozHidden is false and we got inputContext
-  window.addEventListener('mozvisibilitychange', function visibilityHandler() {
-    var inputMethodName = window.location.hash.substring(1);
-    setKeyboardName(inputMethodName, function() {
-      if (!document.mozHidden && inputContext) {
-        showKeyboard();
-      } else {
-        hideKeyboard();
-      }
-    });
-  });
-
-  window.navigator.mozInputMethod.oninputcontextchange = function() {
-    inputContext = navigator.mozInputMethod.inputcontext;
-    if (!document.mozHidden && inputContext) {
-      showKeyboard();
-    } else {
-      hideKeyboard();
-    }
-  };
+  window.addEventListener('mozvisibilitychange', handleEvent);
+  window.navigator.mozInputMethod.addEventListener('inputcontextchange',
+                                                   handleEvent);
 
   // Initialize the current layout according to
   // the hash this page is loaded with.
@@ -425,8 +409,6 @@ function initKeyboard() {
   if (!document.mozHidden && inputContext) {
     // show Keyboard after the input method has been initialized
     setKeyboardName(inputMethodName, showKeyboard);
-  } else {
-    setKeyboardName(inputMethodName);
   }
 }
 
@@ -1964,6 +1946,18 @@ function clearTouchedKeys() {
 
   hideAlternatives();
   touchedKeys = {};
+}
+
+// Handle the visibilitychange and inputcontextchange event.
+function handleEvent(evt) {
+  inputContext = navigator.mozInputMethod.inputcontext;
+
+  if (!document.mozHidden && inputContext) {
+    var inputMethodName = window.location.hash.substring(1);
+    setKeyboardName(inputMethodName, showKeyboard);
+  } else {
+    hideKeyboard();
+  }
 }
 /*
  * This is a helper to scroll the keyboard layout menu when the touch moves near
