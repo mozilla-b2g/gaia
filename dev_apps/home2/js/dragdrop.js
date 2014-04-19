@@ -138,7 +138,6 @@
     exitEditMode: function() {
       this.inEditMode = false;
       container.classList.remove('edit-mode');
-      window.removeEventListener('hashchange', this);
       document.removeEventListener('visibilitychange', this);
     },
 
@@ -149,9 +148,6 @@
       var touch;
 
       switch(e.type) {
-          case 'hashchange':
-            this.exitEditMode();
-            break;
           case 'visibilitychange':
             if (document.hidden && this.inEditMode) {
               this.exitEditMode();
@@ -260,7 +256,6 @@
             // Event listeners for edit mode.
             container.classList.add('edit-mode');
             this.inEditMode = true;
-            window.addEventListener('hashchange', this);
             document.addEventListener('visibilitychange', this);
 
             break;
