@@ -1435,8 +1435,11 @@
 
       // but we need the list of all locales in the ini, too
       if (iniPatterns.section.test(line)) {
-        genericSection = false;
         match = iniPatterns.section.exec(line);
+        if (match[1] === 'en-US') {
+          continue;
+        }
+        genericSection = false;
         locales.push(match[1]);
       }
     }
