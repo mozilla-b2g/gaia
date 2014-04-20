@@ -1429,7 +1429,9 @@
       if (genericSection && iniPatterns['import'].test(line)) {
         match = iniPatterns['import'].exec(line);
         var uri = relativePath(iniPath, match[1]);
-        uris.push(uri);
+        if (uris.indexOf(uri) < 0) {
+          uris.push(uri;
+        }
         continue;
       }
 
@@ -1437,7 +1439,9 @@
       if (iniPatterns.section.test(line)) {
         genericSection = false;
         match = iniPatterns.section.exec(line);
-        locales.push(match[1]);
+        if (locales.indexOf(match[1]) < 0) {
+          locales.push(match[1]);
+        }
       }
     }
     return {
