@@ -17,6 +17,28 @@
       var eventLength = this._eventListeners[type].length;
       this._eventListeners[type][eventLength] = callback;
     },
+    triggerEventListeners: function(type, evt) {
+      evt = evt || {};
+      evt.type = type;
+
+      if (!this._eventListeners[type]) {
+        return;
+      }
+      this._eventListeners[type].forEach(function(callback) {
+        if (typeof callback === 'function') {
+          callback(evt);
+        } else if (typeof callback == 'object' &&
+                   typeof callback.handleEvent === 'function') {
+          callback.handleEvent(evt);
+        }
+      });
+    },
+    removeEventListener: function(type, callback) {
+      if (this._eventListeners[type]) {
+        var idx = this._eventListeners[type].indexOf(callback);
+        this._eventListeners[type].splice(idx, 1);
+      }
+    },
     addIcc: function(id, object) {
       object = object || {};
       object.iccId = id;
