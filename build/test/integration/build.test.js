@@ -127,99 +127,6 @@ suite('Build Integration tests', function() {
     rmrf(localesDir);
   });
 
-  function verifyIncludedFilesFromHtml(appName) {
-    var used = {
-      js: [],
-      resources: [],
-      style: [],
-      style_unstable: [],
-      locales: []
-    };
-    var zipPath = path.join(process.cwd(), 'profile', 'webapps',
-        appName + '.gaiamobile.org', 'application.zip');
-    var zip = new AdmZip(zipPath);
-
-    var zipEntries = zip.getEntries();
-    if (zipEntries.length === 0) {
-      return;
-    }
-
-    for (var f = 0; f < zipEntries.length; f++) {
-      var fileName = zipEntries[f].entryName;
-      var extention =
-        fileName.substr(fileName.lastIndexOf('.') + 1).toLowerCase();
-      if (extention === 'html') {
-        var allShared = extractSharedFile(zip, zipEntries[f], appName);
-      }
-    }
-
-    function extractSharedFile(zip, file, appName) {
-      var SHARED_USAGE =
-        /<(?:script|link).+=['"]\.?\.?\/?(shared\/[^\/]+\/[^''\s]+)["']/g;
-      var content = zip.readAsText(file);
-      while((matches = SHARED_USAGE.exec(content))!== null) {
-        var filePathInHtml = matches[1];
-        var fileInZip = zip.readFile(zip.getEntry(filePathInHtml));
-        var fileInApps;
-        if (/\.(png|gif|jpg)$/.test(filePathInHtml)) {
-          continue;
-        }
-        if (filePathInHtml.indexOf('shared/') === 0) {
-          fileInApps = fs.readFileSync(path.join(process.cwd(), filePathInHtml));
-        } else {
-          fileInApps = fs.readFileSync(path.join(process.cwd(),
-            'apps', appName, filePathInHtml));
-        }
-        assert.deepEqual(fileInZip, fileInApps, filePathInHtml);
-      }
-    }
-  }
-
-  function verifyIncludedImagesSize(appName, reso, official) {
-    var zipPath = path.join(process.cwd(), 'profile', 'webapps',
-        appName + '.gaiamobile.org', 'application.zip');
-    var zip = new AdmZip(zipPath);
-    var zipEntries = zip.getEntries();
-    if (zipEntries.length === 0) {
-      return;
-    }
-
-    var images = [];
-    for (var f = 0; f < zipEntries.length; f++) {
-      var fileInZip = zipEntries[f];
-      var fileName = fileInZip.entryName;
-      if (/\.(png|gif|jpg)$/.test(fileName)) {
-        if (reso !== 1 && fileName.indexOf('Browser_') === -1) {
-          fileName = fileName.replace(
-            /(.*)(\.(png|gif|jpg))$/, "$1@" + reso + "x$2");
-        }
-        compareWithApps(appName, fileName, fileInZip, reso, official);
-      }
-    }
-
-    function compareWithApps(appName, filePath, fileEntry, reso, official) {
-      var fileInApps;
-      var fileOfZip = zip.readFile(fileEntry);
-      if (filePath.indexOf('/branding/') !== -1) {
-        filePath = filePath.replace('/branding/',
-          official ? '/branding/official/' : '/branding/unofficial/');
-      }
-      if (filePath.indexOf('shared/') === 0) {
-        filePath = path.join(process.cwd(), filePath);
-      } else {
-        filePath = path.join(process.cwd(), 'apps', appName, filePath)
-      }
-
-      if (path.existsSync(filePath)) {
-        fileInApps = fs.readFileSync(filePath);
-      } else {
-        filePath = filePath.replace('@' + reso + 'x', '');
-        fileInApps = fs.readFileSync(filePath);
-      }
-      assert.deepEqual(fileOfZip, fileInApps, filePath + ' no found');
-    }
-  }
-
   test('make without rule & variable', function(done) {
     helper.exec('ROCKETBAR=none make', { maxBuffer: 400*1024 },
       function(error, stdout, stderr) {
@@ -371,16 +278,6 @@ suite('Build Integration tests', function() {
       done();
     });
   });
-
-  test('make APP=system, checking all of the files are available',
-    function(done) {
-      helper.exec('make APP=system', function(error, stdout, stderr) {
-        helper.checkError(error, stdout, stderr);
-        verifyIncludedFilesFromHtml('system');
-        verifyIncludedImagesSize('system', 1, false);
-        done();
-      });
-    });
 
   test('make with PRODUCTION=1', function(done) {
     helper.exec('PRODUCTION=1 make', function(error, stdout, stderr) {
@@ -666,16 +563,6 @@ suite('Build Integration tests', function() {
         helper.checkSettings(hsIcc, expectedIcc);
         helper.checkSettings(hsWapuaprof, expectedWap);
         helper.checkSettings(hsSysManifest, expectedManifest);
-        done();
-      }
-    );
-  });
-
-  test('make with GAIA_DEV_PIXELS_PER_PX=1.5', function(done) {
-    helper.exec('GAIA_DEV_PIXELS_PER_PX=1.5 APP=system make ',
-      function(error, stdout, stderr) {
-        helper.checkError(error, stdout, stderr);
-        verifyIncludedImagesSize('system', 1.5, false);
         done();
       }
     );

@@ -1,8 +1,8 @@
 -include $(PWD)/build/common.mk
 
 
-.PHONY: all
-all:
+.PHONY: all clean
+all: clean
 	@echo Building keyboard app to build_stage...
 	@$(call run-js-command,app/build)
 clean:

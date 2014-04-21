@@ -497,7 +497,7 @@ $(STAGE_DIR):
 # FIXME: we use |STAGE_APP_DIR="../../build_stage/$$APP"| here because we got
 # some problem on Windows if use absolute path.
 .PHONY: app-makefiles
-app-makefiles: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts webapp-manifests svoperapps clear-stage-app webapp-shared | $(STAGE_DIR)
+app-makefiles: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts webapp-manifests svoperapps | $(STAGE_DIR)
 	@for appdir in $(GAIA_APPDIRS); \
 	do \
 		APP="`basename $$appdir`"; \
@@ -507,6 +507,7 @@ app-makefiles: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts webapp-manifests svo
     		STAGE_APP_DIR="../../build_stage/$$APP" make -C "$$appdir" ; \
     	else \
     		echo "copy $$APP to build_stage/" ; \
+    		rm -rf "$(STAGE_DIR)/$$APP" && \
     		cp -r "$$appdir" $(STAGE_DIR) && \
     		if [ -r "$$appdir/build/build.js" ]; then \
     			echo "execute $$APP/build/build.js"; \
@@ -517,17 +518,6 @@ app-makefiles: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts webapp-manifests svo
     	$(call clean-build-files,$(STAGE_DIR)/$$APP); \
     fi; \
   done
-
-.PHONY: clear-stage-app
-clear-stage-app:
-	@for appdir in $(GAIA_APPDIRS); \
-	do \
-		if [[ ("$$appdir" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
-			APP="`basename $$appdir`"; \
-			echo "clear $$APP in build_stage" ; \
-			rm -rf "$(STAGE_DIR)/$$APP/*"; \
-		fi; \
-	done
 
 svoperapps: $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,svoperapps)
@@ -554,11 +544,6 @@ ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command,webapp-zip)
 endif
-
-.PHONY: webapp-shared
-# Copy shared files to stage folders
-webapp-shared: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts $(STAGE_DIR) clear-stage-app
-	@$(call run-js-command, webapp-shared)
 
 .PHONY: webapp-optimize
 # Web app optimization steps (like precompling l10n, concatenating js files, etc..).
