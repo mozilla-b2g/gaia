@@ -264,7 +264,12 @@ suite('internet sharing > ', function() {
                              'pukRequired',
                              'networkLocked',
                              'corporateLocked',
-                             'serviceProviderLocked'];
+                             'serviceProviderLocked',
+                             'network1Locked',
+                             'network2Locked',
+                             'hrpdNetworkLocked',
+                             'ruimCorporateLocked',
+                             'ruimServiceProviderLocked'];
       // all states linked with null simcard.
       var testSet = [{'key': KEY_USB_TETHERING, 'result': true},
                      {'key': KEY_WIFI_HOTSPOT, 'result': false}];
