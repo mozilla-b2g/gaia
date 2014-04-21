@@ -556,19 +556,30 @@ function optimize_compile(webapp, file, callback) {
 
     function open(type, url, async) {
       debug('loadResource: ' + url);
-      this.readyState = 4;
       this.status = 200;
       this.responseText = optimize_getFileContent(webapp, file, url);
     }
 
+    function addEventListener(type, cb) {
+      if (type === 'load') {
+        this.onload = cb;
+      }
+    }
+
     function send() {
-      this.onreadystatechange();
+      this.onload({
+        'target': {
+          'status': this.status,
+          'responseText': this.responseText,
+        }
+      });
     }
 
     return {
       open: open,
       send: send,
-      onreadystatechange: null
+      addEventListener: addEventListener,
+      onload: null,
     };
   };
 
