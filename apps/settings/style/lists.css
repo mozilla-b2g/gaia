@@ -105,13 +105,25 @@ ul li > small, ul li > label > small {
   pointer-events: none;
 }
 
+ul li > label {
+  font-size: 1.9rem;
+  line-height: 1.9rem;
+  font-weight: 400;
+  margin: 0;
+  padding: 1.5rem 1.5rem 1rem;
+}
+
+ul li > label ~ input {
+  margin-bottom: 1.5rem;
+}
+
 ul li > label.pack-checkbox > small,
 ul li > label.pack-radio > small {
   right: 6.1rem;
 }
 
 ul li > label.pack-switch > small {
-   right: 9rem;
+  right: 9rem;
 }
 
 /* multiple line item */
@@ -188,16 +200,18 @@ ul li > label.pack-checkbox > .memory-item:before {
 
 
 /******************************************************************************
- * Boolean inputs
+ * Boolean buttons
  */
 
 ul li button,
 ul li a[role="button"] {
-  position: relative;
-  top: 1.1rem;
-  width: 100%;
-  margin-bottom: 1.2rem;
+  display: inline-block;
+  margin: 1rem 0;
 }
+
+/******************************************************************************
+ * Boolean inputs
+ */
 
 /* custom styles for boolean inputs (see /shared/style/switches.css) */
 ul li label {
@@ -211,6 +225,7 @@ ul li > label.pack-switch {
   width: 100%;
   height: 100%;
   margin: 0;
+  padding: 0;
   overflow: visible;
 }
 
@@ -259,14 +274,6 @@ ul li p {
 ul li p + label:not([for]) {
   top: 2.5rem;
   height: calc(100% - 2.5rem);
-}
-
-ul li p + input[type="text"],
-ul li p + input[type="number"],
-ul li p + input[type="tel"],
-ul li p + input[type="password"] {
-  width: 100%;
-  margin-bottom: 1.5rem;
 }
 
 
@@ -328,15 +335,6 @@ ul li#brightness-manual > label input[type="range"] {
   margin: 0 auto;
   width: calc(100% - 10rem);
   display: inline;
-}
-
-/******************************************************************************
- * Select boxes
- */
-.button.icon-dialog select {
-  border: none;
-  background: transparent;
-  font-size: 1.7rem;
 }
 
 /******************************************************************************
@@ -427,7 +425,7 @@ html[dir="rtl"] ul li > label.pack-switch > input ~ span:after {
 
 html[dir="rtl"] ul li > label.pack-checkbox > span {
   padding-left: 6.1rem;
-  
+
 }
 html[dir="rtl"] ul li > label.pack-checkbox > span:not(.menu-item) {
   padding-left: 6.1rem;

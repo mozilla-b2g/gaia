@@ -67,9 +67,7 @@ suite('about >', function() {
           '<small id="deviceInfo-msisdns"></small>' +
         '</li>' +
         '<li>' +
-          '<label>' +
-            '<button id="check-update-now">Check Now</button>' +
-          '</label>' +
+          '<button id="check-update-now">Check Now</button>' +
         '</li>' +
         '<li id="update-status" class="description">' +
           '<p class="general-information description">' +
@@ -77,10 +75,8 @@ suite('about >', function() {
           '<p class="system-update-status description"></p>' +
         '</li>' +
         '<li>' +
-          '<label>' +
-            '<button id="ftuLauncher" data-l10n-id="launch-ftu">' +
-            'Launch FTU</button>' +
-          '</label>' +
+          '<button id="ftuLauncher" data-l10n-id="launch-ftu">' +
+          'Launch FTU</button>' +
         '</li>' +
         '<li>' +
           '<small id="gaia-commit-hash"></small>' +
