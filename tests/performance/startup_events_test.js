@@ -30,6 +30,10 @@ marionette('startup event test > ' + mozTestInfo.appPath + ' >', function() {
       'ftu.manifestURL': null
     }
   });
+
+  // Do nothing on script timeout
+  client.onScriptTimeout = function() {};
+
   var lastEvent = 'startup-path-done';
 
   var app = new App(client, mozTestInfo.appPath);
