@@ -14,7 +14,7 @@
       ["apps", "gallery"],
       ["apps", "fm"],
       ["apps", "settings"],
-      ["external-apps", "marketplace.firefox.com"],
+      ["apps", "marketplace.firefox.com"],
       ["apps", "calendar"],
       ["apps", "clock"],
       ["apps", "costcontrol"],
