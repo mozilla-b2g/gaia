@@ -17,6 +17,8 @@
 
     this.container = document.getElementById('icons');
     this.iconLaunch = this.clickIcon.bind(this);
+
+    window.addEventListener('hashchange', this);
   }
 
   App.prototype = {
@@ -98,6 +100,43 @@
       var lastItem = this.items[this.items.length - 1];
       if (!(lastItem instanceof Divider)) {
         this.items.push(new Divider());
+      }
+    },
+
+    /**
+     * General event handler.
+     */
+    handleEvent: function(e) {
+      var step;
+      function doScroll() {
+        var scrollY = window.scrollY;
+        step = step || (scrollY / 20);
+
+        // If we are at the top we need to toggle scroll position to get around
+        // a platform bug. https://bugzilla.mozilla.org/show_bug.cgi?id=999162
+        if (!scrollY) {
+          window.scrollTo(0, 1);
+          window.scrollTo(0, 0);
+          return;
+        }
+
+        if (scrollY <= step) {
+          window.scrollTo(0, 0);
+          return;
+        }
+
+        window.scrollBy(0, -step);
+        window.requestAnimationFrame(doScroll);
+      }
+
+      switch(e.type) {
+        case 'hashchange':
+          if (this.dragdrop.inEditMode) {
+            this.dragdrop.exitEditMode();
+            return;
+          }
+          doScroll();
+          break;
       }
     },
 
