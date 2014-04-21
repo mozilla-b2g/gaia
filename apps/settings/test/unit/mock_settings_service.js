@@ -1,11 +1,11 @@
 /* global define */
 define(function() {
   'use strict';
-  var SettingsService = {
+  var MockSettingsService = {
     navigate: function(panelId) {
       return;
     }
   };
 
-  return SettingsService;
+  return MockSettingsService;
 });

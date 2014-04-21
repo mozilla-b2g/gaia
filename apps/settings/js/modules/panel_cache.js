@@ -26,7 +26,7 @@ define(function(require) {
                        'shared/style/input_areas.css',
                        'shared/style/progress_activity.css',
                        'style/apps.css',
-                       'style/phone_lock.css',
+                       'style/screen_lock.css',
                        'style/simcard.css',
                        'style/updates.css',
                        'style/downloads.css'],
