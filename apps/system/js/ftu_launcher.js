@@ -133,38 +133,41 @@ var FtuLauncher = {
   // Used by Bootstrap module.
   retrieve: function fl_retrieve() {
     var self = this;
-    FtuPing.ensurePing();
-    window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
-      if (launchFTU === false) {
-        self.skip();
-        return;
-      }
-      var lock = navigator.mozSettings.createLock();
-      var req = lock.get('ftu.manifestURL');
-      req.onsuccess = function() {
-        self._ftuManifestURL = this.result['ftu.manifestURL'];
-        if (!self._ftuManifestURL) {
-          dump('FTU manifest cannot be found skipping.\n');
+    function afterEnsurePing() {
+      window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
+        if (launchFTU === false) {
           self.skip();
           return;
         }
-        self._ftu = applications.getByManifestURL(self._ftuManifestURL);
-        if (!self._ftu) {
-          dump('Opps, bogus FTU manifest.\n');
+        var lock = navigator.mozSettings.createLock();
+        var req = lock.get('ftu.manifestURL');
+        req.onsuccess = function() {
+          self._ftuManifestURL = this.result['ftu.manifestURL'];
+          if (!self._ftuManifestURL) {
+            dump('FTU manifest cannot be found skipping.\n');
+            self.skip();
+            return;
+          }
+          self._ftu = applications.getByManifestURL(self._ftuManifestURL);
+          if (!self._ftu) {
+            dump('Opps, bogus FTU manifest.\n');
+            self.skip();
+            return;
+          }
+          self._ftuURL =
+            self._ftu.origin +
+            self._ftu.manifest.entry_points['ftu'].launch_path;
+          self._isRunningFirstTime = true;
+          // Open FTU
+          self._ftu.launch('ftu');
+        };
+        req.onerror = function() {
+          dump('Couldn\'t get the ftu manifestURL.\n');
           self.skip();
-          return;
-        }
-        self._ftuURL =
-          self._ftu.origin + self._ftu.manifest.entry_points['ftu'].launch_path;
-        self._isRunningFirstTime = true;
-        // Open FTU
-        self._ftu.launch('ftu');
-      };
-      req.onerror = function() {
-        dump('Couldn\'t get the ftu manifestURL.\n');
-        self.skip();
-      };
-    });
+        };
+      });
+    }
+    FtuPing.ensurePing(afterEnsurePing);
   }
 };
 
