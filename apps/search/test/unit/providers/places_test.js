@@ -6,6 +6,8 @@ require('/shared/js/utilities.js');
 requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');
 
+mocha.globals(['Places']);
+
 suite('search/providers/places', function() {
   var fakeElement, stubById, subject;
   var realDatastore;
