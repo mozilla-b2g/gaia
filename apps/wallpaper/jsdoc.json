@@ -1,0 +1,8 @@
+{
+  "wallpaper": {
+    "src": ["apps/wallpaper/js/**/*.js"],
+    "options": {
+      "destination": "docs/wallpaper"
+    }
+  }
+}

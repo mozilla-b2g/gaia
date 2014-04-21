@@ -1,0 +1,10 @@
+{
+  "sms": {
+    "src": ["apps/sms/js/**/*.js",
+            "!apps/sms/js/desktop-only/contacts.js"],
+    "options": {
+      "destination": "docs/sms"
+    }
+  }
+}
+
