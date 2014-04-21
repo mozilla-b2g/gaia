@@ -3,6 +3,7 @@
 
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
+/* globals dump, BluetoothTransfer, NfcManagerUtils */
 /* exported NfcHandoverManager */
 'use strict';
 
@@ -31,7 +32,7 @@ var NfcHandoverManager = {
    * actionQueue keeps a list of actions that need to be performed after
    * Bluetooth is turned on.
    */
-  actionQueue: new Array(),
+  actionQueue: [],
 
   /*
    * sendFileRequest is set whenever an app called peer.sendFile(blob).
@@ -110,7 +111,7 @@ var NfcHandoverManager = {
           var action = self.actionQueue[i];
           action.callback.apply(self, action.args);
         }
-        self.actionQueue = new Array();
+        self.actionQueue = [];
       };
     });
 
@@ -136,7 +137,7 @@ var NfcHandoverManager = {
     if (!this.bluetooth.enabled) {
       this.debug('Bluetooth: not yet enabled');
       this.actionQueue.push(action);
-      if (this.settingsNotified == false) {
+      if (this.settingsNotified === false) {
         this.settings.createLock().set({'bluetooth.enabled': true});
         this.settingsNotified = true;
       }
@@ -204,7 +205,6 @@ var NfcHandoverManager = {
       return;
     }
 
-    this.remoteMAC = mac;
     var nfcPeer = this.nfc.getNFCPeer(session);
     var carrierPowerState = this.bluetooth.enabled ? 1 : 2;
     var mac = this.defaultAdapter.address;
@@ -267,6 +267,8 @@ var NfcHandoverManager = {
     req.onsuccess = function() {
       var devices = req.result;
       self.debug('# devices: ' + devices.length);
+      var successCb = function() { self.debug('Connect succeeded'); };
+      var errorCb = function() { self.debug('Connect failed'); };
       for (var i = 0; i < devices.length; i++) {
         var device = devices[i];
         self.debug('Address: ' + device.address);
@@ -274,8 +276,8 @@ var NfcHandoverManager = {
         if (device.address.toLowerCase() == mac.toLowerCase()) {
               self.debug('Connecting to ' + mac);
               var r = self.defaultAdapter.connect(device);
-              r.onsuccess = function() { self.debug('Connect succeeded'); };
-              r.onerror = function() { self.debug('Connect failed'); };
+              r.onsuccess = successCb;
+              r.onerror = errorCb;
         }
       }
     };
@@ -330,14 +332,14 @@ var NfcHandoverManager = {
 
   isHandoverInProgress: function isHandoverInProgress() {
     return (this.sendFileRequest != null) ||
-           (this.incomingFileTransferInProgress == true);
+           (this.incomingFileTransferInProgress === true);
   },
 
   transferComplete: function transferComplete(succeeded) {
     this.debug('transferComplete');
     if (this.sendFileRequest != null) {
       // Completed an outgoing send file request. Call onsuccess/onerror
-      if (succeeded == true) {
+      if (succeeded) {
         this.sendFileRequest.onsuccess();
       } else {
         this.sendFileRequest.onerror();
