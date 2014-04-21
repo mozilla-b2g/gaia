@@ -108,7 +108,9 @@ var Awesomescreen = {
    * @param {Array} topSites Array of top site data.
    */
   populateTopSites: function awesomescreen_populateTopSites(topSites) {
-    this.topSites.innerHTML = '';
+    // Clean up any existing items.
+    this.clearList(this.topSites);
+
     var list = this.listTemplate.cloneNode(true);
     topSites.forEach(function(data) {
       list.appendChild(this.createListItem(data));
@@ -139,7 +141,14 @@ var Awesomescreen = {
    * @param {Array} visits An array of visit data.
    */
   populateHistory: function awesomescreen_populateHistory(visits) {
+    // Clean up any existing items.
+    var listItems = document.querySelectorAll('#history li');
+    for (var i = 0; i < listItems.length; i++) {
+      this.destroyResult(listItems[i]);
+    }
+
     this.history.innerHTML = '';
+
     var thresholds = [
       new Date().valueOf(),              // 0. Now
       DateHelper.todayStarted(),         // 1. Today
@@ -271,7 +280,7 @@ var Awesomescreen = {
    * @param {Array} bookmarks List of bookmark data objects.
    */
   populateBookmarks: function awesomescreen_populateBookmarks(bookmarks) {
-    this.bookmarks.innerHTML = '';
+    this.clearList(this.bookmarks);
     var list = this.listTemplate.cloneNode(true);
     bookmarks.forEach(function(data) {
       list.appendChild(this.createListItem(data, null, 'bookmarks'));
@@ -347,6 +356,12 @@ var Awesomescreen = {
     var oldList = this.results.firstElementChild;
 
     if (oldList) {
+      // Invalidate the background URLs.
+      var children = oldList.children;
+      for (var i = 0; i < children.length; i++) {
+        this.destroyResult(children[i]);
+      }
+
       this.results.replaceChild(list, oldList);
     } else {
       this.results.appendChild(list);
@@ -365,6 +380,24 @@ var Awesomescreen = {
       var item = this.createListItem(data, null, 'search');
       this.results.firstElementChild.appendChild(item);
     }
+  },
+
+  /**
+   * Clears a results list element.
+   *
+   * @param {Element} tab The result tab to clear.
+   */
+  clearList: function awesomescreen_clearList(tab) {
+    var list = tab.firstElementChild;
+    if (list) {
+      // Invalidate the background URLs.
+      var children = list.children;
+      for (var i = 0; i < children.length; i++) {
+        this.destroyResult(children[i]);
+      }
+    }
+
+    tab.innerHTML = '';
   },
 
   /**
@@ -470,6 +503,7 @@ var Awesomescreen = {
         if (icon && icon.failed !== true && icon.data) {
           var imgUrl = window.URL.createObjectURL(icon.data);
           link.style.backgroundImage = 'url(' + imgUrl + ')' + underlay;
+          listItem.dataset.backgroundImage = imgUrl;
         } else {
           link.style.backgroundImage =
             'url(' + this.DEFAULT_FAVICON + ')' + underlay;
@@ -478,6 +512,18 @@ var Awesomescreen = {
     }
 
     return listItem;
+  },
+
+  /**
+   * Cleans up an awesomescreen result.
+   *
+   * @param {Element} listItem DOM element representing result.
+   */
+  destroyResult: function awesomescreen_destroyResult(listItem) {
+    if (listItem.dataset.backgroundImage) {
+      window.URL.revokeObjectURL(listItem.dataset.backgroundImage);
+      delete listItem.dataset.backgroundImage;
+    }
   },
 
   /**
@@ -491,6 +537,7 @@ var Awesomescreen = {
   cacheResult: function awesomescreen_cacheResult(uri, listItem) {
     var keys = Object.keys(this.resultCache);
     if (keys.length >= this.RESULT_CACHE_SIZE) {
+      this.destroyResult(this.resultCache[keys[0]]);
       delete this.resultCache[keys[0]];
     }
     this.resultCache[uri] = listItem;
@@ -500,8 +547,15 @@ var Awesomescreen = {
    * Clear the cache of awesomescreen results to save memory.
    */
   clearResultCache: function awesomescreen_clearResultCache() {
+    if (this.resultCache.forEach) {
+      this.resultCache.forEach(this.destroyResult, this);
+    }
+
     this.resultCache = {};
-    this.searchTemplate = null;
+    if (this.searchTemplate) {
+      this.destroyResult(this.searchTemplate);
+      this.searchTemplate = null;
+    }
   },
 
   /**
