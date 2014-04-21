@@ -15,6 +15,7 @@
     'shared/lazy_loader': 'empty:',
     'shared/manifest_helper': 'empty:',
     'shared/settings_listener': 'empty:',
+    'utils': 'empty:'
   },
 
   findNestedDependencies: true,
