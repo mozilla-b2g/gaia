@@ -239,7 +239,6 @@ var Contacts = (function() {
 
   var init = function init() {
     _ = navigator.mozL10n.get;
-    initLanguages();
     initContainers();
     initEventListeners();
     window.addEventListener('hashchange', checkUrl);
@@ -293,11 +292,6 @@ var Contacts = (function() {
         appTitleElement.textContent = text;
       }
     }
-  };
-
-  var initLanguages = function initLanguages() {
-    document.documentElement.lang = navigator.mozL10n.language.code;
-    document.documentElement.dir = navigator.mozL10n.language.direction;
   };
 
 
@@ -833,7 +827,6 @@ var Contacts = (function() {
 
   var initContacts = function initContacts(evt) {
     window.setTimeout(Contacts.onLocalized);
-    window.removeEventListener('localized', initContacts);
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
       var actHandler = ActivityHandler.handle.bind(ActivityHandler);
       window.navigator.mozSetMessageHandler('activity', actHandler);
@@ -856,7 +849,7 @@ var Contacts = (function() {
     });
   };
 
-  window.addEventListener('localized', initContacts); // addEventListener
+  navigator.mozL10n.once(initContacts);
 
   function loadConfirmDialog() {
     var args = Array.slice(arguments);
