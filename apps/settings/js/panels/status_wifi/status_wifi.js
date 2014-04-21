@@ -18,7 +18,7 @@ define(function(require) {
         this._updateNetworkInfo();
         this._elements.ssid.textContent = options.network.ssid;
         this._elements.signal.textContent =
-          _('signalLevel' + options.network.sl);
+          _('signalLevel' + options.sl);
         this._elements.security.textContent =
           options.security || _('securityNone');
 

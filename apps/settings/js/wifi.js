@@ -692,7 +692,7 @@ require([
         switch (dialogID) {
           case 'wifi-status':
             dialogOptions.network = network;
-            dialogOptions.network.sl = sl;
+            dialogOptions.sl = sl;
             dialogOptions.security = security;
           break;
 
