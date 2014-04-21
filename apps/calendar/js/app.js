@@ -429,17 +429,9 @@ Calendar.App = (function(window) {
       // start the workers
       this.serviceController.start(false);
 
-      // localize && pre-initialize the database
-      if (navigator.mozL10n && (navigator.mozL10n.readyState == 'interactive' ||
-                                navigator.mozL10n.readyState == 'complete')) {
-        // document is already localized
+      navigator.mozL10n.once(function() {
         next();
-      } else {
-        // waiting for the document to be localized (= standard case)
-        window.addEventListener('localized', function() {
-          next();
-        });
-      }
+      });
 
       this.db.load(function() {
         next();
