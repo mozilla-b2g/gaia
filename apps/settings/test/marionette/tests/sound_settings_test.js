@@ -30,6 +30,16 @@ marionette('manipulate sound settings', function() {
   });
 
   /* Volume */
+  test('change media state', function() {
+    var value = soundPanel.contentValue;
+    soundPanel.tapOnMediaSlider();
+    var content_val = (value === soundPanel.contentValue);
+    assert.ok(
+      !content_val,
+      'media state is changed'
+    );
+  });
+
   test('change ringer state', function() {
     var value = soundPanel.ringerValue;
     soundPanel.tapOnRingerSlider();
