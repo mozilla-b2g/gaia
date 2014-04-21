@@ -336,7 +336,6 @@ var Rocketbar = {
   focus: function() {
     // Swallow keyboard change events so homescreen does not resize
     this.input.focus();
-    this.form.classList.remove('hidden');
     this.title.classList.add('hidden');
   },
 
@@ -345,7 +344,6 @@ var Rocketbar = {
    */
   blur: function() {
     this.input.blur();
-    this.form.classList.add('hidden');
     this.title.classList.remove('hidden');
     if (this.input.value === '' && !this.newTabPage) {
       this.deactivate();
