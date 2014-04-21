@@ -934,6 +934,18 @@ var GridManager = (function() {
   }
 
   /*
+   * It adds pending bookmarks installed while the homescreen was not running.
+   */
+  function addPendingBookmarks() {
+    BookmarksStorage.getAll(function(descriptors) {
+      descriptors.forEach(function(descriptor) {
+        processApp(new Bookmark(descriptor));
+      });
+      BookmarksStorage.clear();
+    });
+  }
+
+  /*
    * Initialize the mozApps event handlers and synchronize our grid
    * state with the applications known to the system.
    */
@@ -1387,6 +1399,11 @@ var GridManager = (function() {
 
     IconRetriever.init();
 
+    var _callback = function() {
+      setTimeout(addPendingBookmarks);
+      callback();
+    };
+
     // Initialize the grid from the state saved in IndexedDB.
     HomeState.init(function eachPage(pageState) {
       // First 'page' is the dock.
@@ -1404,12 +1421,12 @@ var GridManager = (function() {
 
       pageHelper.addPage(pageIcons, numberOfIcons);
     }, function onSuccess() {
-      initApps(callback);
+      initApps(_callback);
     }, function onError(error) {
       var dockContainer = document.querySelector(options.dockSelector);
       var dock = new Dock(dockContainer, []);
       DockManager.init(dockContainer, dock, tapThreshold);
-      initApps(callback);
+      initApps(_callback);
     }, function eachSVApp(svApp) {
       GridManager.svPreviouslyInstalledApps.push(svApp);
     });
