@@ -1,6 +1,6 @@
-/* global BalanceTab, ConfigManager, Common, NonReadyScreen, showSimErrorDialog,
+/* global BalanceTab, ConfigManager, Common, NonReadyScreen,
           debug, CostControl, SettingsListener, TelephonyTab, ViewManager,
-          LazyLoader, AirplaneModeHelper */
+          LazyLoader, AirplaneModeHelper, setNextReset */
 /* exported CostControlApp */
 
 'use strict';
@@ -62,20 +62,11 @@ var CostControlApp = (function() {
           waitForSIMReady(callback);
         };
 
-      // SIM is ready, but ICC info is not ready yet
-      } else if (!Common.isValidICCID(iccid)) {
-        showNonReadyScreen(cardState);
-        debug('ICC info not ready yet');
-        dataSimIccInfo.oniccinfochange = function() {
-          waitForSIMReady(callback);
-        };
-
-      // All ready
+      // SIM is ready
       } else {
         hideNotReadyScreen();
         debug('SIM ready. ICCID:', iccid);
         dataSimIccInfo.oncardstatechange = undefined;
-        dataSimIccInfo.oniccinfochange = undefined;
         callback && callback();
       }
 
@@ -199,29 +190,38 @@ var CostControlApp = (function() {
     (typeof callback === 'function') && callback();
   }
 
-  function startApp(callback) {
-
-    function _onNoICCID() {
-      console.error('checkSIM() failed. Impossible to ensure consistent' +
-                    'data. Aborting start up.');
-      showSimErrorDialog('no-sim2');
-    }
-
-    Common.checkSIM(function _onSIMChecked() {
-      CostControl.getInstance(function _onCostControlReady(instance) {
-        if (ConfigManager.option('fte')) {
-          startFTE();
-          return;
-        }
-        costcontrol = instance;
-        if (!initialized) {
-          setupApp(callback);
-        } else {
-          loadSettings();
-          updateUI(callback);
-        }
+  function loadMessageHandler() {
+    var messageHandlerFrame = document.getElementById('message-handler');
+    if (messageHandlerFrame.src.contains('message_handler.html')) {
+      if (ConfigManager.option('nextReset')) {
+        setNextReset(ConfigManager.option('nextReset'));
+      }
+    // message_handler has not been loaded
+    } else if (ConfigManager.option('nextReset')) {
+      window.addEventListener('messagehandlerready', function _setNextReset() {
+        window.removeEventListener('messagehandlerready', _setNextReset);
+        setNextReset(ConfigManager.option('nextReset'));
       });
-    }, _onNoICCID);
+      messageHandlerFrame.src = 'message_handler.html';
+    }
+  }
+
+  function startApp(callback) {
+    CostControl.getInstance(function _onCostControlReady(instance) {
+      if (ConfigManager.option('fte')) {
+        startFTE();
+        return;
+      }
+      loadMessageHandler();
+
+      costcontrol = instance;
+      if (!initialized) {
+        setupApp(callback);
+      } else {
+        loadSettings();
+        updateUI(callback);
+      }
+    });
   }
 
   var isApplicationLocalized = false;
@@ -410,12 +410,13 @@ var CostControlApp = (function() {
 
       if (type === 'fte_finished') {
         window.removeEventListener('message', handler_finished);
-
         document.getElementById('splash_section').
           setAttribute('aria-hidden', 'true');
 
         // Only hide the FTE view when everything in the UI is ready
-        startApp(Common.closeFTE);
+        ConfigManager.requestAll(function(){
+          startApp(Common.closeFTE);
+        });
       }
     });
 
@@ -425,10 +426,7 @@ var CostControlApp = (function() {
 
   function initApp() {
     vmanager = new ViewManager();
-    waitForSIMReady(function _onSIMReady() {
-      document.getElementById('message-handler').src = 'message_handler.html';
-      Common.waitForDOMAndMessageHandler(window, startApp);
-    });
+    waitForSIMReady(startApp);
   }
 
   return {

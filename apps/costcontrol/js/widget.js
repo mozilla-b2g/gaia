@@ -65,7 +65,6 @@ var Widget = (function() {
   }
 
   function loadMessageHandler() {
-    document.getElementById('message-handler').src = 'message_handler.html';
     if (ConfigManager.option('nextReset')) {
       window.addEventListener('messagehandlerready', function _setNextReset() {
         window.removeEventListener('messagehandlerready', _setNextReset);
@@ -76,6 +75,7 @@ var Widget = (function() {
         });
       });
     }
+    document.getElementById('message-handler').src = 'message_handler.html';
   }
 
   function startWidget() {

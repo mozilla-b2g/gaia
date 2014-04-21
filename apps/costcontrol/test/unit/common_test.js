@@ -117,14 +117,6 @@ suite('Cost Control Common >', function() {
     Common.dataSimIccId = null;
   });
 
-  test('isValidICCID', function() {
-    assert.isTrue(!Common.isValidICCID());
-    assert.isTrue(!Common.isValidICCID(null));
-    assert.isTrue(!Common.isValidICCID(undefined));
-    assert.isTrue(!Common.isValidICCID(12345));
-    assert.isFalse(!Common.isValidICCID('12334345'));
-  });
-
   test('loadNetworkInterfaces correctly', function(done) {
     Common.loadNetworkInterfaces(
       function() {

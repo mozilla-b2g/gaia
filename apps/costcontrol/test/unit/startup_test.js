@@ -184,7 +184,7 @@ suite('Application Startup Modes Test Suite >', function() {
   }
 
   function setupCardState(icc) {
-    window.Common = new MockCommon({ isValidICCID: true });
+    window.Common = new MockCommon();
     window.CostControl = new MockCostControl();
     Common.dataSimIcc = icc;
   }
@@ -274,7 +274,7 @@ suite('Application Startup Modes Test Suite >', function() {
 
   function setupLayoutMode(applicationMode) {
     loadBodyHTML('/index.html');
-    window.Common = new MockCommon({ isValidICCID: true });
+    window.Common = new MockCommon();
     window.CostControl = new MockCostControl();
     window.ConfigManager = new MockConfigManager({
       fakeSettings: { fte: false },

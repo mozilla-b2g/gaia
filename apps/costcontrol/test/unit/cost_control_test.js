@@ -39,7 +39,7 @@ suite('Cost Control Service Hub Suite >', function() {
     realConfigManager = window.ConfigManager;
 
     realCommon = window.Common;
-    window.Common = new MockCommon({ isValidICCID: true });
+    window.Common = new MockCommon();
 
     realMozMobileConnection = window.navigator.mozMobileConnection;
     window.navigator.mozMobileConnection = new MockMozMobileConnection();
