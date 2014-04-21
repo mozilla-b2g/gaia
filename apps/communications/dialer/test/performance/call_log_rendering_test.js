@@ -2,7 +2,7 @@
 
 var assert = require('assert');
 
-requireGaia('/test_apps/test-agent/common/test/synthetic_gestures.js');
+requireGaia('/dev_apps/test-agent/common/test/synthetic_gestures.js');
 var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
 var PerformanceHelper =

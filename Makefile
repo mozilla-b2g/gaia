@@ -410,7 +410,7 @@ TAR_WILDCARDS = tar --wildcards
 endif
 
 # Test agent setup
-TEST_COMMON=test_apps/test-agent/common
+TEST_COMMON=dev_apps/test-agent/common
 ifeq ($(strip $(NODEJS)),)
 	NODEJS := `which node`
 endif
@@ -419,7 +419,7 @@ ifeq ($(strip $(NPM)),)
 	NPM := `which npm`
 endif
 
-TEST_AGENT_CONFIG="./test_apps/test-agent/config.json"
+TEST_AGENT_CONFIG="./dev_apps/test-agent/config.json"
 
 #Marionette testing variables
 #make sure we're python 2.7.x
@@ -862,7 +862,7 @@ endif
 # Temp make file method until we can switch
 # over everything in test
 ifneq ($(strip $(APP)),)
-APP_TEST_LIST=$(shell find apps/$(APP) test_apps/$(APP) -name '*_test.js' 2> /dev/null | grep '/test/unit/')
+APP_TEST_LIST=$(shell find apps/$(APP) dev_apps/$(APP) -name '*_test.js' 2> /dev/null | grep '/test/unit/')
 endif
 .PHONY: test-agent-test
 test-agent-test: node_modules
@@ -914,7 +914,7 @@ ifdef APP
   JSHINTED_PATH = apps/$(APP)
   GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint/xfail.list | ( while read file ; do test -f "$$file" && echo $$file ; done ) )
 else
-  JSHINTED_PATH = apps shared build/test/unit test_apps/home2
+  JSHINTED_PATH = apps shared build/test/unit dev_apps/home2
   GJSLINTED_PATH = $(shell ( while read file ; do test -f "$$file" && echo $$file ; done ) < build/jshint/xfail.list )
 endif
 endif

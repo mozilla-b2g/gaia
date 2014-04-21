@@ -13,7 +13,7 @@ function updateFile(source, dest) {
 }
 
 exports.execute = function(options) {
-  var srcDir = utils.getFile(options.GAIA_DIR, 'test_apps', 'test-agent',
+  var srcDir = utils.getFile(options.GAIA_DIR, 'dev_apps', 'test-agent',
     'common', 'test', 'boilerplate');
   var proxyFile = srcDir.clone();
   proxyFile.append('_proxy.html');

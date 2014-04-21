@@ -15,5 +15,5 @@ apps/music
 apps/pdfjs
 apps/video
 apps/wallpaper
-external-apps/*
+apps/marketplace.firefox.com
 outoftree_apps/*

@@ -9,7 +9,7 @@ To generate these files:
     - generate CSV file from http://www.fakenamegenerator.com/
       - include: GivenName,MiddleInitial,Surname,StreetAddress,City,State,ZipCode,CountryFull,EmailAddress,TelephoneNumber,Birthday,Occupation,Company
     - convert CSV to JSON
-    - move JSON file to: gaia/test_apps/uitest/data/fakecontacts/fakecontacts.json
+    - move JSON file to: gaia/dev_apps/uitest/data/fakecontacts/fakecontacts.json
       - works best if you use b2g-desktop
     - if you're using b2g-desktop, cd gaia and run make
     - if you're using a real phone, rebuild, flash
