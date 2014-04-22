@@ -3,7 +3,7 @@
  * startup and eventually notifications.
  **/
 /*jshint browser: true */
-/*global define, requirejs, confirm, console, TestUrlResolver */
+/*global define, requirejs, console, TestUrlResolver */
 
 // Set up loading of scripts, but only if not in tests, which set up
 // their own config.
@@ -50,6 +50,7 @@ var appMessages = require('app_messages'),
     evt = require('evt'),
     model = require('model'),
     Cards = common.Cards,
+    waitingForCreateAccountPrompt = false,
     activityCallback = null;
 
 require('sync');
@@ -199,6 +200,17 @@ function resetCards(cardId, args) {
   }
 }
 
+/*
+ * Determines if current card is a nonsearch message_list
+ * card, which is the default kind of card.
+ */
+function isCurrentCardMessageList() {
+  var cardType = Cards.getCurrentCardType();
+  return (cardType &&
+          cardType[0] === 'message_list' &&
+          cardType[1] === 'nonsearch');
+}
+
 /**
  * Tracks what final card state should be shown. If the
  * app started up hidden for a cronsync, do not actually
@@ -254,6 +266,11 @@ evt.on('addAccount', function() {
 });
 
 function resetApp() {
+  // Clear any existing local state and reset UI/model state.
+  waitForAppMessage = false;
+  waitingForCreateAccountPrompt = false;
+  activityCallback = null;
+
   Cards.removeAllCards();
   model.init();
 }
@@ -296,7 +313,9 @@ evt.on('showLatestAccount', function() {
 
 model.on('acctsSlice', function() {
   if (!model.hasAccount()) {
-    resetCards('setup_account_info');
+    if (!waitingForCreateAccountPrompt) {
+      resetCards('setup_account_info');
+    }
   } else {
     model.latestOnce('foldersSlice', function() {
       if (waitForAppMessage)
@@ -312,7 +331,20 @@ model.on('acctsSlice', function() {
   }
 });
 
+var lastActivityTime = 0;
 appMessages.on('activity', function(type, data, rawActivity) {
+  // Rate limit rapid fire activity triggers, like an accidental
+  // double tap. While the card code adjusts for the taps, in
+  // the case of configured account, user can end up with multiple
+  // compose cards in the stack, which is probably confusing,
+  // and the rapid tapping is likely just an accident, or an
+  // incorrect user belief that double taps are needed for
+  // activation.
+  var activityTime = Date.now();
+  if (activityTime < lastActivityTime + 1000) {
+    return;
+  }
+  lastActivityTime = activityTime;
 
   function initComposer() {
     Cards.pushCard('compose', 'default', 'immediate', {
@@ -346,22 +378,46 @@ appMessages.on('activity', function(type, data, rawActivity) {
   }
 
   function promptEmptyAccount() {
-    var req = confirm(mozL10n.get('setup-empty-account-prompt'));
-    if (!req) {
-      rawActivity.postError('cancelled');
-    }
+    common.ConfirmDialog.show(mozL10n.get('setup-empty-account-prompt'),
+    function(confirmed) {
+      if (!confirmed) {
+        rawActivity.postError('cancelled');
+      }
 
-    // No longer need to wait for the activity to complete, it needs
-    // normal card flow
-    waitForAppMessage = false;
+      waitingForCreateAccountPrompt = false;
 
-    activityCallback = initComposer;
+      // No longer need to wait for the activity to complete, it needs
+      // normal card flow
+      waitForAppMessage = false;
+
+      activityCallback = initComposer;
+
+      // Always just reset to setup account in case the system does
+      // not properly close out the email app on a cancelled activity.
+      resetCards('setup_account_info');
+    });
+  }
+
+  // Remove previous cards because the card stack could get
+  // weird if inserting a new card that would not normally be
+  // at that stack level. Primary concern: going to settings,
+  // then trying to add a compose card at that stack level.
+  // More importantly, the added card could have a "back"
+  // operation that does not mean "back to previous state",
+  // but "back in application flowchart". Message list is a
+  // good known jump point, so do not needlessly wipe that one
+  // out if it is the current one. Message list is a good
+  // known jump point, so do not needlessly wipe that one out
+  // if it is the current one.
+  if (!isCurrentCardMessageList()) {
+    Cards.removeAllCards();
   }
 
   if (model.inited) {
     if (model.hasAccount()) {
       initComposer();
     } else {
+      waitingForCreateAccountPrompt = true;
       promptEmptyAccount();
     }
   } else {
@@ -370,6 +426,7 @@ appMessages.on('activity', function(type, data, rawActivity) {
     // account prompt will be triggered quickly in the next section.
     initComposer();
 
+    waitingForCreateAccountPrompt = true;
     model.latestOnce('acctsSlice', function activityOnAccount() {
       if (!model.hasAccount()) {
         promptEmptyAccount();
@@ -387,15 +444,27 @@ appMessages.on('notification', function(data) {
         waitForAppMessage = false;
       }
 
+      // Remove previous cards because the card stack could get
+      // weird if inserting a new card that would not normally be
+      // at that stack level. Primary concern: going to settings,
+      // then trying to add a reader or message list card at that
+      // stack level. More importantly, the added card could have
+      // a "back" operation that does not mean "back to previous
+      // state", but "back in application flowchart". Message
+      // list is a good known jump point, so do not needlessly
+      // wipe that one out if it is the current one.
+      if (!isCurrentCardMessageList()) {
+        Cards.removeAllCards();
+      }
+
       if (type === 'message_list') {
         showMessageList({
           onPushed: onPushed
         });
       } else if (type === 'message_reader') {
-        Cards.pushCard(data.type, 'default', 'immediate', {
-          messageSuid: data.messageSuid,
-          backOnMissingMessage: true,
-          onPushed: onPushed
+        Cards.pushCard(type, 'default', 'immediate', {
+            messageSuid: data.messageSuid,
+            onPushed: onPushed
         });
       } else {
         console.error('unhandled notification type: ' + type);
