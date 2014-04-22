@@ -322,8 +322,8 @@ else
 endif
 export GAIA_DISTRIBUTION_DIR
 
-SETTINGS_PATH := build/config/custom-settings.json
-KEYBOARD_LAYOUTS_PATH := build/config/keyboard-layouts.json
+SETTINGS_PATH ?= build/config/custom-settings.json
+KEYBOARD_LAYOUTS_PATH ?= build/config/keyboard-layouts.json
 
 ifdef GAIA_DISTRIBUTION_DIR
 	DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
