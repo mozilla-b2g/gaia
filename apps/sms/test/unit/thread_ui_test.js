@@ -3400,9 +3400,9 @@ suite('thread_ui.js >', function() {
       assert.ok(MockOptionMenu.calls.length, 1);
       
       // Confirm that the menu doesn't contained a "resend-message" option
-      assert.isTrue(MockOptionMenu.calls[0].every(function(item)
+      assert.isTrue(MockOptionMenu.calls[0].every(function(item){
          return item.l10nId !== 'resend-message';
-         ));
+         }));
     });
 
     test(' "long-press" on an not downloaded message ' +
