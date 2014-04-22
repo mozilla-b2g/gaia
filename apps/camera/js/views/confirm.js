@@ -25,8 +25,6 @@ module.exports = View.extend({
   render: function() {
     var l10n = navigator.mozL10n;
 
-    this.show();
-
     this.el.innerHTML = this.template({
       retake: l10n.get('retake-button'),
       select: l10n.get('select-button')
@@ -41,6 +39,10 @@ module.exports = View.extend({
     bind(this.els.retake, 'click', this.onButtonClick);
     bind(this.els.select, 'click', this.onButtonClick);
 
+    // Disable buttons on this view by default
+    // until an image/video is displayed
+    this.disableButtons();
+
     this.setupMediaFrame();
     return this;
   },
@@ -54,6 +56,7 @@ module.exports = View.extend({
 
   clearMediaFrame: function() {
     this.mediaFrame.clear();
+    this.disableButtons();
   },
 
   hide: function() {
@@ -66,7 +69,18 @@ module.exports = View.extend({
     orientation.unlock();
   },
 
+  disableButtons: function() {
+    this.els.retake.setAttribute('disabled', true);
+    this.els.select.setAttribute('disabled', true);
+  },
+
+  enableButtons: function() {
+    this.els.retake.removeAttribute('disabled');
+    this.els.select.removeAttribute('disabled');
+  },
+
   showImage: function(image) {
+    this.enableButtons();
     this.mediaFrame.displayImage(
       image.blob,
       image.width,
@@ -78,6 +92,7 @@ module.exports = View.extend({
   },
 
   showVideo: function(video) {
+    this.enableButtons();
     this.mediaFrame.displayVideo(
       video.blob,
       video.poster.blob,
