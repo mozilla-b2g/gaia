@@ -2296,7 +2296,7 @@ suite('thread_ui.js >', function() {
 
       test('last message block should not show the date', function() {
         // because there is another earlier block the same day
-        var header = fiveMinContainer.previousElementSibling;
+        var header = fiveMinContainer.previousSibling;
         assert.equal(header.dataset.timeOnly, 'true');
       });
 
@@ -3254,7 +3254,7 @@ suite('thread_ui.js >', function() {
 
   suite('Long press on the bubble >', function() {
     var messageId = 23;
-    var link, messageDOM, contextMenuEvent, elements;
+    var link, messageDOM, contextMenuEvent;
     setup(function() {
       contextMenuEvent = new CustomEvent('contextmenu', {
         'bubbles': true,
@@ -3400,8 +3400,8 @@ suite('thread_ui.js >', function() {
       assert.ok(MockOptionMenu.calls.length, 1);
       
       // Confirm that the menu doesn't contained a "resend-message" option
-      assert.isTrue(MockOptionMenu.calls[0].every(function(item){
-         return item.l10nId !== 'resend-message';
+      assert.isTrue(MockOptionMenu.calls[0].items.every(function(menuitem){
+         return menuitem.l10nId !== 'resend-message';
          }));
     });
 
