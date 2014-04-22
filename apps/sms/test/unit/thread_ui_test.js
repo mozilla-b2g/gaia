@@ -3356,14 +3356,14 @@ suite('thread_ui.js >', function() {
     test(' "long-press" on an error outgoing mms bubble shows a menu' +
       'with resend option',
      function() {
-      // Create a message with a download error:
+      // Create a message with a sending error:
         ThreadUI.appendMessage({
         id: 10,
           type: 'mms',
         delivery: 'error',
         deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
         attachments: [],
-        subject: 'error download'
+        subject: 'error sending'
         });
 
         // Retrieve the message node
@@ -3393,20 +3393,16 @@ suite('thread_ui.js >', function() {
       });
 
       // Retrieve the message node
-      elements = document.getElementById('message-11');
-      link = elements.querySelector('.not-downloaded-message');
+      link = document.querySelector('#message-11 section');
 
       // Dispatch custom event for testing long press
       link.dispatchEvent(contextMenuEvent);
       assert.ok(MockOptionMenu.calls.length, 1);
       
       // Confirm that the menu doesn't contained a "resend-message" option
-      for (var i = MockOptionMenu.calls[0].length - 1; i >= 0; i--) {
-          assert.notEqual(
-            MockOptionMenu.calls[0].items[i].l10nId,
-            'resend-message'
-          );
-        }
+      assert.isTrue(MockOptionMenu.calls[0].every(function(item)
+         return item.l10nId !== 'resend-message';
+         ));
     });
 
     test(' "long-press" on an not downloaded message ' +
