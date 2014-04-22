@@ -212,6 +212,76 @@ suite('Cost Control Common >', function() {
     );
   });
 
+  test('getTelephonyConnection() works ok without settings', function(done) {
+    MockNavigatorMozMobileConnections[0] = {
+      voice: { connected: true }
+    };
+    Common.getTelephonyConnection(
+      function(telephonyConnection) {
+        assert.isTrue(telephonyConnection.voice.connected);
+        done();
+      }
+    );
+  });
+
+  test('getTelephonyConnection fails, no settings, no MobileConnections',
+    function(done) {
+      sinon.stub(navigator.mozSettings, 'createLock', createLockRequestFails());
+      MockNavigatorMozMobileConnections[0] = null;
+      var consoleSpy = this.sinon.spy(console, 'error');
+
+      Common.getTelephonyConnection(function() { },
+        function _onError() {
+          assert.ok(consoleSpy.calledOnce);
+          consoleSpy.restore();
+          navigator.mozSettings.createLock.restore();
+          done();
+        }
+      );
+  });
+
+  test('getTelephonyConnection() works correctly', function(done) {
+    MockNavigatorSettings.mSettings['ril.telephony.defaultServiceId'] = 0;
+    MockNavigatorMozMobileConnections[0] = {
+      voice: { connected: true }
+    };
+    Common.getTelephonyConnection(
+      function(telephonyConnection) {
+        assert.isTrue(telephonyConnection.voice.connected);
+        done();
+      }
+    );
+  });
+
+  test('getTelephonyConnection() works ok when settings request fails',
+    function(done) {
+      sinon.stub(navigator.mozSettings, 'createLock', createLockRequestFails());
+      MockNavigatorMozMobileConnections[0] = {
+        voice: { connected: true }
+      };
+      Common.getTelephonyConnection(function _onSuccess(telephonyConnection) {
+        assert.isTrue(telephonyConnection.voice.connected);
+        navigator.mozSettings.createLock.restore();
+        done();
+      }
+    );
+  });
+
+  test('loadIccDataSIM() all fails', function(done) {
+    sinon.stub(navigator.mozSettings, 'createLock', createLockRequestFails());
+    MockNavigatorMozMobileConnections[0] = {
+      iccId: null
+    };
+
+    Common.loadDataSIMIccId(function() { },
+      function _onError() {
+        assert.isFalse(Common.dataSimIccIdLoaded);
+        navigator.mozSettings.createLock.restore();
+        done();
+      }
+    );
+  });
+
   suite('Reset Data>', function() {
     MockNavigatorSettings.mSettings['ril.data.defaultServiceId'] = 0;
     MockNavigatorMozMobileConnections[0] = {
