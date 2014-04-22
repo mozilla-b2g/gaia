@@ -595,6 +595,11 @@ require([
 
       // generic wifi property dialog
       function wifiDialog(dialogID, callback, key) {
+        // We have 3 ids
+        //   1. wifi-joinHidden
+        //   2. wifi-status
+        //   3. wifi-auth
+
         var dialog = document.getElementById(dialogID);
         var dialogOptions = {};
 
@@ -604,7 +609,7 @@ require([
 
         // TODO
         // we have to put this logic to each panel
-        if (dialogID != 'wifi-status') {
+        if (dialogID == 'wifi-auth' || dialogID == 'wifi-joinHidden') {
           identity = dialog.querySelector('input[name=identity]');
           identity.value = network.identity || '';
 
@@ -666,7 +671,7 @@ require([
           };
           eap.onchange = function() {
             checkPassword();
-            changeDisplay(key);
+            SettingsUtils.changeDisplay(dialogID, key);
           };
           password.oninput = checkPassword;
           identity.oninput = checkPassword;
@@ -677,17 +682,6 @@ require([
         var keys = WifiHelper.getSecurity(network);
         var security = (keys && keys.length) ? keys.join(', ') : '';
         var sl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
-        var updateBaseStationInfo = function update_base_station_info() {
-          dialog.querySelector('[data-ssid]').textContent = network.ssid;
-          dialog.querySelector('[data-signal]').textContent =
-              _('signalLevel' + sl);
-          dialog.querySelector('[data-security]').textContent =
-              security || _('securityNone');
-
-          // XXX
-          // keep this as global
-          dialog.dataset.security = security;
-        };
 
         switch (dialogID) {
           case 'wifi-status':
@@ -697,9 +691,10 @@ require([
           break;
 
           case 'wifi-auth':
-            // network info -- #wifi-auth
-            updateBaseStationInfo();
-            changeDisplay(security);
+            dialogOptions.network = network;
+            dialogOptions.sl = sl;
+            dialogOptions.security = security;
+            SettingsUtils.changeDisplay(dialogID, security);
             break;
 
           case 'wifi-joinHidden':
@@ -709,55 +704,16 @@ require([
               WifiHelper.setSecurity(network, [key]);
               dialog.dataset.security = key;
               checkPassword();
-              changeDisplay(key);
+              SettingsUtils.changeDisplay(dialogID, key);
             };
             security.onchange = onSecurityChange;
             onSecurityChange();
             break;
         }
 
-        // change element display
-        function changeDisplay(security) {
-          if (dialogID !== 'wifi-status') {
-            if (security === 'WEP' || security === 'WPA-PSK') {
-              identity.parentNode.style.display = 'none';
-              password.parentNode.style.display = 'block';
-              authPhase2.parentNode.parentNode.style.display = 'none';
-              certificate.parentNode.parentNode.style.display = 'none';
-              description.style.display = 'none';
-            } else if (security === 'WPA-EAP') {
-              if (eap) {
-                switch (eap.value) {
-                  case 'SIM':
-                    identity.parentNode.style.display = 'none';
-                    password.parentNode.style.display = 'none';
-                    authPhase2.parentNode.parentNode.style.display = 'none';
-                    certificate.parentNode.parentNode.style.display = 'none';
-                    description.style.display = 'none';
-                    break;
-                  case 'PEAP':
-                  case 'TLS':
-                  case 'TTLS':
-                    identity.parentNode.style.display = 'block';
-                    password.parentNode.style.display = 'block';
-                    authPhase2.parentNode.parentNode.style.display = 'block';
-                    certificate.parentNode.parentNode.style.display = 'block';
-                    description.style.display = 'block';
-                    break;
-                  default:
-                    break;
-                }
-              }
-            } else {
-              identity.parentNode.style.display = 'none';
-              password.parentNode.style.display = 'none';
-            }
-          }
-        }
-
         // reset dialog box
         function reset() {
-          if (dialogID != 'wifi-status') {
+          if (dialogID === 'wifi-auth' || dialogID === 'wifi-joinHidden') {
             identity.value = '';
             password.value = '';
             showPassword.checked = false;
@@ -879,5 +835,4 @@ require([
       }
     };
   });
-
 });

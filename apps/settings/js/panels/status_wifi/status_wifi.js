@@ -17,8 +17,7 @@ define(function(require) {
       onBeforeShow: function(panel, options) {
         this._updateNetworkInfo();
         this._elements.ssid.textContent = options.network.ssid;
-        this._elements.signal.textContent =
-          _('signalLevel' + options.sl);
+        this._elements.signal.textContent = _('signalLevel' + options.sl);
         this._elements.security.textContent =
           options.security || _('securityNone');
 

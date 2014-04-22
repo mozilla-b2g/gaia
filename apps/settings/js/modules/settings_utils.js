@@ -44,6 +44,54 @@ define(function(require) {
           SettingsService.navigate(origin);
         };
       }
+    },
+
+    // change element display
+    changeDisplay: function(dialogID, security) {
+      var dialog = document.getElementById(dialogID);
+      var eap = dialog.querySelector('li.eap select');
+      var identity = dialog.querySelector('input[name=identity]');
+      var password = dialog.querySelector('input[name=password]');
+      var authPhase2 = dialog.querySelector('li.auth-phase2 select');
+      var certificate = dialog.querySelector('li.server-certificate select');
+      var description =
+        dialog.querySelector('li.server-certificate-description');
+
+      if (dialogID !== 'wifi-status') {
+        if (security === 'WEP' || security === 'WPA-PSK') {
+          identity.parentNode.style.display = 'none';
+          password.parentNode.style.display = 'block';
+          authPhase2.parentNode.parentNode.style.display = 'none';
+          certificate.parentNode.parentNode.style.display = 'none';
+          description.style.display = 'none';
+        } else if (security === 'WPA-EAP') {
+          if (eap) {
+            switch (eap.value) {
+              case 'SIM':
+                identity.parentNode.style.display = 'none';
+                password.parentNode.style.display = 'none';
+                authPhase2.parentNode.parentNode.style.display = 'none';
+                certificate.parentNode.parentNode.style.display = 'none';
+                description.style.display = 'none';
+                break;
+              case 'PEAP':
+              case 'TLS':
+              case 'TTLS':
+                identity.parentNode.style.display = 'block';
+                password.parentNode.style.display = 'block';
+                authPhase2.parentNode.parentNode.style.display = 'block';
+                certificate.parentNode.parentNode.style.display = 'block';
+                description.style.display = 'block';
+                break;
+              default:
+                break;
+            }
+          }
+        } else {
+          identity.parentNode.style.display = 'none';
+          password.parentNode.style.display = 'none';
+        }
+      }
     }
   };
 
