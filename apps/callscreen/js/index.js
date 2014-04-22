@@ -7,4 +7,3 @@ window.addEventListener('load', function callSetup(evt) {
   CallScreen.init();
   KeypadManager.init(true);
 });
-
