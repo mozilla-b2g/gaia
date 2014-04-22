@@ -21,6 +21,8 @@ suite('voicemail notification', function() {
   var realSettingsHelper;
   var realMozTelephony;
 
+  var notificationSpy;
+
   suiteSetup(function() {
     realMozVoicemail = navigator.mozVoicemail;
     navigator.mozVoicemail = MockNavigatorMozVoicemail;
@@ -41,7 +43,7 @@ suite('voicemail notification', function() {
   setup(function() {
     Voicemail.init();
     this.notificationListenerSpy = sinon.spy('');
-    this.sinon.stub(window, 'Notification').returns({
+    notificationSpy = this.sinon.stub(window, 'Notification').returns({
       addEventListener: this.notificationListenerSpy,
       close: function() {}
     });
@@ -60,6 +62,7 @@ suite('voicemail notification', function() {
     MockSIMSlotManager.mTeardown();
     MockNavigatorMozVoicemail.mTeardown();
     window.Notification.restore();
+    notificationSpy = null;
   });
 
   test('no voicemail status change, no notification', function(done) {
@@ -154,6 +157,29 @@ suite('voicemail notification', function() {
                 Voicemail.showNotification.restore();
               });
 
+              test('should/should not display SIM indicator', function() {
+                var baseTitle = 'aaaa';
+                var multiSimTitle =
+                  '(' + MockL10n.get('sim-picker-button', { n: 2 }) + ') ' +
+                  baseTitle;
+
+                Voicemail.showNotification(
+                  baseTitle, 'bbbb', '1111', serviceId);
+
+                sinon.assert.calledWithNew(notificationSpy);
+                sinon.assert.calledOnce(notificationSpy);
+                assert.equal(notificationSpy.firstCall.args[1].body, 'bbbb');
+                assert.equal(notificationSpy.firstCall.args[1].tag,
+                             'voicemailNotification:' + serviceId);
+
+                if (this.isMultiSIM) {
+                  assert.equal(
+                    notificationSpy.firstCall.args[0], multiSimTitle);
+                } else {
+                  assert.equal(notificationSpy.firstCall.args[0], baseTitle);
+                }
+              });
+
               test('with returnMessage, with voicemail number', function(done) {
                 MockNavigatorMozVoicemail.mTriggerEvent('statuschanged');
                 setTimeout((function() {
@@ -162,12 +188,6 @@ suite('voicemail notification', function() {
                   // display the voice mail number as body
                   var expectedText = 'dialNumber{"number":"' +
                     this.voiceNumbers[serviceId] + '"}';
-
-                  // Add SIM number indicator in the multi sim case
-                  if (this.isMultiSIM) {
-                    expectedTitle =
-                      'SIM ' + (serviceId + 1) + ' - ' + expectedTitle;
-                  }
 
                   sinon.assert.calledWithExactly(Voicemail.showNotification,
                     expectedTitle, expectedText,
@@ -190,12 +210,6 @@ suite('voicemail notification', function() {
                     var expectedText = 'dialNumber{"number":"' +
                       MockNavigatorMozVoicemail.mNumbers[serviceId] + '"}';
 
-                    // Add SIM number indicator in the multi sim case
-                    if (this.isMultiSIM) {
-                      expectedTitle =
-                        'SIM ' + (serviceId + 1) + ' - ' + expectedTitle;
-                    }
-
                     sinon.assert.calledWithExactly(Voicemail.showNotification,
                       expectedTitle, expectedText,
                       this.voiceNumbers[serviceId], serviceId);
@@ -217,12 +231,6 @@ suite('voicemail notification', function() {
                     var expectedText = 'dialNumber{"number":"' +
                       MockNavigatorMozVoicemail.mNumbers[serviceId] + '"}';
 
-                    // Add SIM number indicator in the multi sim case
-                    if (this.isMultiSIM) {
-                      expectedTitle =
-                        'SIM ' + (serviceId + 1) + ' - ' + expectedTitle;
-                    }
-
                     sinon.assert.calledWithExactly(Voicemail.showNotification,
                       expectedTitle, expectedText,
                       this.voiceNumbers[serviceId], serviceId);
@@ -240,12 +248,6 @@ suite('voicemail notification', function() {
                   var expectedTitle = MockNavigatorMozVoicemail.mMessage;
                   // display the message as body
                   var expectedText = MockNavigatorMozVoicemail.mMessage;
-
-                  // Add SIM number indicator in the multi sim case
-                  if (this.isMultiSIM) {
-                    expectedTitle =
-                      'SIM ' + (serviceId + 1) + ' - ' + expectedTitle;
-                  }
 
                   sinon.assert.calledWithExactly(Voicemail.showNotification,
                     expectedTitle, expectedText, undefined, serviceId);
@@ -276,12 +278,6 @@ suite('voicemail notification', function() {
                       // display the message as body
                       var expectedText = 'dialNumber{"number":"' +
                         this.voiceNumbers[serviceId] + '"}';
-
-                      // Add SIM number indicator in the multi sim case
-                      if (this.isMultiSIM) {
-                        expectedTitle =
-                          'SIM ' + (serviceId + 1) + ' - ' + expectedTitle;
-                      }
 
                       sinon.assert.calledWithExactly(Voicemail.showNotification,
                         expectedTitle, expectedText,

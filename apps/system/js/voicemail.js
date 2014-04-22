@@ -65,9 +65,6 @@ var Voicemail = {
       }
 
       if (status.hasMessages) {
-        if (SIMSlotManager.isMultiSIM()) {
-          title = 'SIM ' + simIndex + ' - ' + title;
-        }
         Voicemail.showNotification(title, text, number, status.serviceId);
       } else {
         Voicemail.hideNotification(status.serviceId);
@@ -82,6 +79,12 @@ var Voicemail = {
     }
 
     serviceId = serviceId || 0;
+
+    if (SIMSlotManager.isMultiSIM()) {
+      var _ = window.navigator.mozL10n.get;
+      // FIXME/bug 998972: Create a new string instead of concatenating two.
+      title = '(' + _('sim-picker-button', { n: serviceId + 1 }) + ') ' + title;
+    }
 
     var notifOptions = {
       body: text,
