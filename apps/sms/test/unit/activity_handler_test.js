@@ -3,7 +3,7 @@
          Threads  */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
          MockNavigatorWakeLock, MockOptionMenu,
-         MockMessages, MockNavigatorSettings, MockL10n,
+         MockMessages, MockL10n,
          MockNavigatormozMobileMessage,
          Settings
 */
@@ -33,6 +33,7 @@ requireApp('sms/test/unit/mock_threads.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_action_menu.js');
 require('/test/unit/mock_settings.js');
+require('/test/unit/mock_notify.js');
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -48,6 +49,7 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'MessageManager',
   'Notification',
   'NotificationHelper',
+  'Notify',
   'OptionMenu',
   'Settings',
   'SettingsURL',
@@ -349,18 +351,6 @@ suite('ActivityHandler', function() {
     });
 
     suite('receive class-0 message', function() {
-      var realMozSettings;
-
-      suiteSetup(function(done) {
-        realMozSettings = navigator.mozSettings;
-        navigator.mozSettings = MockNavigatorSettings;
-        requireApp('sms/js/notify.js', done);
-      });
-
-      suiteTeardown(function() {
-        navigator.mozSettings = realMozSettings;
-      });
-
       setup(function() {
         this.sinon.stub(Notify, 'ringtone');
         this.sinon.stub(Notify, 'vibrate');
@@ -470,6 +460,24 @@ suite('ActivityHandler', function() {
 
       test('launches the app', function() {
         assert.ok(MockNavigatormozApps.mAppWasLaunched);
+      });
+    });
+
+    suite('receive message when in thread with the same id', function() {
+      setup(function() {
+        //mimic user clicking thread
+        Threads.currentId = 1;
+
+        this.sinon.stub(Notify, 'ringtone');
+        this.sinon.stub(Notify, 'vibrate');
+
+        var newMessage = MockMessages.sms();
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', newMessage);
+      });
+
+      test('play ringtone and vibrate even if in correct thread', function() {
+        sinon.assert.called(Notify.ringtone);
+        sinon.assert.called(Notify.vibrate);
       });
     });
 
