@@ -1405,6 +1405,11 @@ var Browser = {
   },
 
   showPageScreen: function browser_showPageScreen() {
+
+    if (this.currentTab.crashed) {
+      this.reviveCrashedTab(this.currentTab);
+    }
+
     if (this.currentScreen === this.TABS_SCREEN) {
       var switchLive = (function browser_switchLive() {
         this.mainScreen.removeEventListener('transitionend', switchLive, true);
@@ -1426,11 +1431,6 @@ var Browser = {
 
     this.switchScreen(this.PAGE_SCREEN);
     this.setUrlBar(this.currentTab.title || this.currentTab.url);
-    if (this.currentTab.crashed) {
-      this.showCrashScreen();
-    } else {
-      this.hideCrashScreen();
-    }
     this.updateTabsCount();
     this.inTransition = false;
   },
