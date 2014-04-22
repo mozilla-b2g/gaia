@@ -75,7 +75,8 @@
   "icons": {
     "60": "/style/icons/Settings_60.png",
     "90": "/style/icons/Settings_90.png",
-    "120": "/style/icons/Settings_120.png"
+    "120": "/style/icons/Settings_120.png",
+    "135": "/style/icons/Settings_135.png"
   },
   "orientation": "default"
 }
