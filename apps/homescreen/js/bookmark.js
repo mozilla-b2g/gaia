@@ -15,7 +15,7 @@ var Bookmark = function Bookmark(params) {
 Bookmark.prototype = {
   __proto__: GridItem.prototype,
 
-  _INDEX_PREFIX: 'bookmark/',
+  _INDEX_PREFIX: 'bookmark:',
 
   sanitizeURL: function bookmark_sanitizeURL(url) {
     url = url.trim();
