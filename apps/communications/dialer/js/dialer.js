@@ -1,144 +1,5 @@
 'use strict';
 
-/* global AccessibilityHelper, CallLog, CallLogDBManager, Contacts,
-          KeypadManager,LazyL10n, LazyLoader, MmiManager, Notification,
-          NotificationHelper, SettingsListener, SimSettingsHelper,
-          SuggestionBar, TelephonyHelper, TonePlayer, Utils, Voicemail */
-
-var NavbarManager = {
-  init: function nm_init() {
-    this.update();
-    var self = this;
-    window.addEventListener('hashchange' , function nm_hashChange(event) {
-      // TODO Implement it with building blocks:
-      // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.css
-      // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.html
-      self.update();
-    });
-
-    var contacts = document.getElementById('option-contacts');
-    contacts.addEventListener('click', this.contactsTabTap);
-  },
-  resourcesLoaded: false,
-  /*
-   * Ensures resources are loaded
-   */
-  ensureResources: function(cb) {
-    if (this.resourcesLoaded) {
-      if (cb && typeof cb === 'function') {
-        cb();
-      }
-      return;
-    }
-    var self = this;
-    LazyLoader.load(['/shared/js/accessibility_helper.js',
-                     '/shared/js/async_storage.js',
-                     '/shared/js/notification_helper.js',
-                     '/shared/js/simple_phone_matcher.js',
-                     '/shared/js/contact_photo_helper.js',
-                     '/shared/js/dialer/contacts.js',
-                     '/shared/js/dialer/voicemail.js',
-                     '/dialer/js/call_log.js',
-                     '/dialer/style/call_log.css'], function rs_loaded() {
-                    self.resourcesLoaded = true;
-                    if (cb && typeof cb === 'function') {
-                      cb();
-                    }
-                  });
-  },
-
-  update: function nm_update() {
-    var recent = document.getElementById('option-recents');
-    var contacts = document.getElementById('option-contacts');
-    var keypad = document.getElementById('option-keypad');
-    var tabs = [recent, contacts, keypad];
-
-    recent.classList.remove('toolbar-option-selected');
-    contacts.classList.remove('toolbar-option-selected');
-    keypad.classList.remove('toolbar-option-selected');
-
-    // XXX : Move this to whole activity approach, so far
-    // we don't have time to do a deep modification of
-    // contacts activites. Postponed to v2
-    var checkContactsTab = function() {
-      var contactsIframe = document.getElementById('iframe-contacts');
-      if (!contactsIframe) {
-        return;
-      }
-
-      var index = contactsIframe.src.indexOf('#add-parameters');
-      if (index != -1) {
-        contactsIframe.src = contactsIframe.src.substr(0, index);
-      }
-    };
-
-    var destination = window.location.hash;
-    switch (destination) {
-      case '#call-log-view':
-        checkContactsTab();
-        this.ensureResources(function() {
-          recent.classList.add('toolbar-option-selected');
-          AccessibilityHelper.setAriaSelected(recent, tabs);
-          CallLog.init();
-        });
-        break;
-      case '#contacts-view':
-        var frame = document.getElementById('iframe-contacts');
-        if (!frame) {
-          var view = document.getElementById('iframe-contacts-container');
-          frame = document.createElement('iframe');
-          frame.src = '/contacts/index.html';
-          frame.id = 'iframe-contacts';
-          frame.setAttribute('frameBorder', 'no');
-          frame.classList.add('grid-wrapper');
-
-          view.appendChild(frame);
-        }
-
-        contacts.classList.add('toolbar-option-selected');
-        AccessibilityHelper.setAriaSelected(contacts, tabs);
-        break;
-      case '#keyboard-view':
-        checkContactsTab();
-        keypad.classList.add('toolbar-option-selected');
-        this.ensureResources(function() {
-          AccessibilityHelper.setAriaSelected(keypad, tabs);
-        });
-        break;
-    }
-  },
-
-  hide: function() {
-    var views = document.getElementById('views');
-    views.classList.add('hide-toolbar');
-  },
-
-  show: function() {
-    var views = document.getElementById('views');
-    views.classList.remove('hide-toolbar');
-  },
-
-  contactsTabTap: function() {
-    // If we are not in the contacts-view, it's a first tap, do nothing
-    if (window.location.hash != '#contacts-view') {
-      return;
-    }
-    this._contactsHome();
-  },
-
-  _contactsHome: function() {
-    var contactsIframe = document.getElementById('iframe-contacts');
-    if (!contactsIframe) {
-      return;
-    }
-
-    var forceHashChange = new Date().getTime();
-    // Go back to contacts home
-    contactsIframe.src = '/contacts/index.html#home?forceHashChange=' +
-                         forceHashChange;
-  }
-};
-
 var CallHandler = (function callHandler() {
   var COMMS_APP_ORIGIN = document.location.protocol + '//' +
     document.location.host;
@@ -152,9 +13,8 @@ var CallHandler = (function callHandler() {
     // Workaround here until the bug 787415 is fixed
     // Gecko is sending an activity event in every multiple entry point
     // instead only the one that the href match.
-    if (activity.source.name != 'dial') {
+    if (activity.source.name != 'dial')
       return;
-    }
 
     var number = activity.source.data.number;
     if (number) {
@@ -166,7 +26,6 @@ var CallHandler = (function callHandler() {
       if (window.location.hash != '#contacts-view') {
         window.location.hash = '#contacts-view';
       }
-      NavbarManager._contactsHome();
     }
   }
 
@@ -240,6 +99,7 @@ var CallHandler = (function callHandler() {
 
   function callEnded(data) {
     var number = data.number;
+    var direction = data.direction;
     var incoming = data.direction === 'incoming';
 
     NavbarManager.ensureResources(function() {
@@ -302,7 +162,7 @@ var CallHandler = (function callHandler() {
 
   /* === Bluetooth Support === */
   function btCommandHandler(message) {
-    var command = message.command;
+    var command = message['command'];
     var isAtd = command.startsWith('ATD');
 
     // Not a dialing request
@@ -418,6 +278,135 @@ var CallHandler = (function callHandler() {
     call: call
   };
 })();
+
+var NavbarManager = {
+  init: function nm_init() {
+    this.update();
+    var self = this;
+    window.addEventListener('hashchange' , function nm_hashChange(event) {
+      // TODO Implement it with building blocks:
+      // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.css
+      // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.html
+      self.update();
+    });
+
+    var contacts = document.getElementById('option-contacts');
+    contacts.addEventListener('click', this.contactsTabTap);
+  },
+  resourcesLoaded: false,
+  /*
+   * Ensures resources are loaded
+   */
+  ensureResources: function(cb) {
+    if (this.resourcesLoaded) {
+      if (cb && typeof cb === 'function') {
+        cb();
+      }
+      return;
+    }
+    var self = this;
+    LazyLoader.load(['/shared/js/accessibility_helper.js',
+                     '/shared/js/async_storage.js',
+                     '/shared/js/notification_helper.js',
+                     '/shared/js/simple_phone_matcher.js',
+                     '/shared/js/contact_photo_helper.js',
+                     '/shared/js/dialer/contacts.js',
+                     '/shared/js/dialer/voicemail.js',
+                     '/dialer/js/call_log.js',
+                     '/dialer/style/call_log.css'], function rs_loaded() {
+                    self.resourcesLoaded = true;
+                    if (cb && typeof cb === 'function') {
+                      cb();
+                    }
+                  });
+  },
+
+  update: function nm_update() {
+    var recent = document.getElementById('option-recents');
+    var contacts = document.getElementById('option-contacts');
+    var keypad = document.getElementById('option-keypad');
+    var tabs = [recent, contacts, keypad];
+
+    recent.classList.remove('toolbar-option-selected');
+    contacts.classList.remove('toolbar-option-selected');
+    keypad.classList.remove('toolbar-option-selected');
+
+    // XXX : Move this to whole activity approach, so far
+    // we don't have time to do a deep modification of
+    // contacts activites. Postponed to v2
+    var checkContactsTab = function() {
+      var contactsIframe = document.getElementById('iframe-contacts');
+      if (!contactsIframe)
+        return;
+
+      var index = contactsIframe.src.indexOf('#add-parameters');
+      if (index != -1) {
+        contactsIframe.src = contactsIframe.src.substr(0, index);
+      }
+    };
+
+    var destination = window.location.hash;
+    switch (destination) {
+      case '#call-log-view':
+        checkContactsTab();
+        this.ensureResources(function() {
+          recent.classList.add('toolbar-option-selected');
+          AccessibilityHelper.setAriaSelected(recent, tabs);
+          CallLog.init();
+        });
+        break;
+      case '#contacts-view':
+        var frame = document.getElementById('iframe-contacts');
+        if (!frame) {
+          var view = document.getElementById('iframe-contacts-container');
+          frame = document.createElement('iframe');
+          frame.src = '/contacts/index.html';
+          frame.id = 'iframe-contacts';
+          frame.setAttribute('frameBorder', 'no');
+          frame.classList.add('grid-wrapper');
+
+          view.appendChild(frame);
+        }
+
+        contacts.classList.add('toolbar-option-selected');
+        AccessibilityHelper.setAriaSelected(contacts, tabs);
+        break;
+      case '#keyboard-view':
+        checkContactsTab();
+        keypad.classList.add('toolbar-option-selected');
+        this.ensureResources(function() {
+          AccessibilityHelper.setAriaSelected(keypad, tabs);
+        });
+        break;
+    }
+  },
+
+  hide: function() {
+    var views = document.getElementById('views');
+    views.classList.add('hide-toolbar');
+  },
+
+  show: function() {
+    var views = document.getElementById('views');
+    views.classList.remove('hide-toolbar');
+  },
+
+  contactsTabTap: function() {
+    // If we are not in the contacts-view, it's a first tap, do nothing
+    if (window.location.hash != '#contacts-view') {
+      return;
+    }
+    var contactsIframe = document.getElementById('iframe-contacts');
+    if (!contactsIframe) {
+      return;
+    }
+
+    var forceHashChange = new Date().getTime();
+    // Go back to contacts home
+    contactsIframe.src = '/contacts/index.html#home?forceHashChange=' +
+                         forceHashChange;
+  }
+};
 
 // Listening to the keyboard being shown
 // Waiting for issue 787444 being fixed

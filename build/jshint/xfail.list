@@ -34,6 +34,7 @@ apps/callscreen/test/unit/mock_mozbluetooth.js
 apps/callscreen/test/unit/mock_simple_phone_matcher.js
 apps/communications/dialer/js/call_log.js
 apps/communications/dialer/js/call_log_db.js
+apps/communications/dialer/js/dialer.js
 apps/communications/dialer/js/index.js
 apps/communications/dialer/js/mmi_ui.js
 apps/communications/dialer/js/newsletter_manager.js
