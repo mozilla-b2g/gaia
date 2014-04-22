@@ -94,6 +94,10 @@ textarea {
   padding: 1.2rem;
 }
 
+form p input:focus {
+  padding-right: 3rem;
+}
+
 form p input:focus + button[type="reset"],
 form p textarea:focus + button[type="reset"] {
   opacity: 1;
@@ -468,6 +472,10 @@ html[dir="rtl"] input[type="time"][disabled],
 html[dir="rtl"] input[type="datetime"][disabled],
 html[dir="rtl"] input[type="datetime-local"][disabled] {
   background-image: url(input_areas/images/dialog_disabled_rtl.svg);
+}
+
+html[dir="rtl"] form p input:focus {
+  padding: 0 1.5rem 0 3rem;
 }
 
 html[dir="rtl"] form p input + button[type="reset"],
