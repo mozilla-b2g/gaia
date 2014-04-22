@@ -169,7 +169,6 @@ reflows. Foreground/background colors should be safe.
   display: table-cell;
   width: -moz-min-content;
   white-space: nowrap;
-  margin-left: 1ch;
 }
 .msg-header-date-unread {
   color: #1D8399;

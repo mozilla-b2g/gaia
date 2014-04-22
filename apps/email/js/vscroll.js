@@ -104,6 +104,11 @@ define(function(require, exports, module) {
     this.nodeCacheId = 0;
 
     this.scrollTop = 0;
+
+    // Any visible height offset to where container sits in relation
+    // to scrollingContainer. Expected to be set by owner of the
+    // VScroll instance. In email, the search box height is an
+    // example of a visibleOffset.
     this.visibleOffset = 0;
 
     this.oldListSize = 0;
@@ -157,7 +162,7 @@ define(function(require, exports, module) {
     // duality could be removed, and just use onChange directly.
     // A non-zero value, like 50 subjectively seems to result in
     // more checkerboarding of half the screen every so often.
-    eventRateLimit: 0,
+    eventRateLimitMillis: 0,
 
     // How much to multiply the visible node range by to allow for
     // smoother scrolling transitions without white gaps.
@@ -272,13 +277,13 @@ define(function(require, exports, module) {
 
     /**
      * Handles events fired, and allows rate limiting the work if
-     * this.eventRateLimit has been set. Otherwise just calls
+     * this.eventRateLimitMillis has been set. Otherwise just calls
      * directly to onChange.
      */
     onEvent: function() {
       this._lastEventTime = Date.now();
 
-      if (!this.eventRateLimit) {
+      if (!this.eventRateLimitMillis) {
         return this.onChange();
       }
 
@@ -286,7 +291,7 @@ define(function(require, exports, module) {
         return;
       }
       this._limited = true;
-      setTimeout(this.onChange, this.eventRateLimit);
+      setTimeout(this.onChange, this.eventRateLimitMillis);
     },
 
     /**
@@ -357,7 +362,7 @@ define(function(require, exports, module) {
       var top = this.scrollTop;
 
       return [
-        Math.floor(top / this.itemHeight),
+        Math.floor((top - this.visibleOffset)/ this.itemHeight),
         Math.floor((top +
                     this.scrollingContainer.getBoundingClientRect().height -
                     this.visibleOffset) /
@@ -369,7 +374,7 @@ define(function(require, exports, module) {
      * Given the list index, scroll to the top of that item.
      * @param  {Number} index the list item index.
      */
-    scrollToIndex: function(index) {
+    jumpToIndex: function(index) {
       this.scrollingContainer.scrollTop = (index * this.itemHeight) +
                                           this.visibleOffset;
     },

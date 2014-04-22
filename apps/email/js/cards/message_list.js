@@ -367,12 +367,13 @@ MessageListCard.prototype = {
   sliceEvents: ['splice', 'change', 'status', 'complete'],
 
   postInsert: function() {
-    // Get the height of the search box and tell vScroll about it,
-    // but only do this once the DOM is displayed so the ClientRect
-    // gives an actual height.
-    this.vScroll.visibleOffset = this.searchBar.getBoundingClientRect().height;
-
     this._hideSearchBoxByScrolling();
+
+    // Now that _hideSearchBoxByScrolling has activated the display
+    // of the search box, get the height of the search box and tell
+    // vScroll about it, but only do this once the DOM is displayed
+    // so the ClientRect gives an actual height.
+    this.vScroll.visibleOffset = this.searchBar.getBoundingClientRect().height;
 
     if (this.mode === 'search') {
       this.searchInput.focus();
@@ -1373,7 +1374,7 @@ MessageListCard.prototype = {
     var visibleIndices = this.vScroll.getVisibleIndexRange();
     if (visibleIndices &&
         (index < visibleIndices[0] || index > visibleIndices[1])) {
-      this.vScroll.scrollToIndex(index);
+      this.vScroll.jumpToIndex(index);
     }
   },
 
