@@ -5,6 +5,7 @@ requireApp('homescreen/test/unit/mock_app.js');
 requireApp('homescreen/test/unit/mock_page.js');
 requireApp('homescreen/test/unit/mock_screen_layout.js');
 
+requireApp('homescreen/js/screen_helper.js');
 requireApp('homescreen/js/dock.js');
 
 var mocksHelper = new MocksHelper([
