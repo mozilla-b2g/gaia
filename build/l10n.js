@@ -142,7 +142,7 @@
     }
   }
 
-  navigator.mozL10n.getDictionary = function getDictionary(fragment) {
+  navigator.mozL10n.getDictionary = function getDictionary(skipLoc, fragment) {
     var ast = {};
 
     if (!fragment) {
@@ -159,8 +159,8 @@
     }
 
     // don't build inline JSON for default language
-    if (!requiresInlineLocale && this.ctx.supportedLocales[0] === 'en-US') {
-      return {};
+    if (!requiresInlineLocale && this.ctx.supportedLocales[0] === skipLoc) {
+      return null;
     }
 
     var elements = L10n.getTranslatableChildren(fragment);
