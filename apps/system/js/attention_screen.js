@@ -215,6 +215,8 @@ var AttentionScreen = {
 
     if (iframe.dataset.preloaded) {
       // Unload then preload again
+      iframe.setVisible(false);
+
       var src = iframe.src.split('#')[0];
       iframe.src = ''; // cocotte
       setTimeout(function nextTick() {
