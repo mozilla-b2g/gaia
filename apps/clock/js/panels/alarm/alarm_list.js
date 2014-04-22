@@ -82,7 +82,6 @@ AlarmListPanel.prototype = {
     var d = new Date();
     d.setHours(alarm.hour);
     d.setMinutes(alarm.minute);
-    var localeTime = Utils.getLocaleTime(d);
 
     li.id = 'alarm-' + alarm.id;
     li.dataset.id = alarm.id;
@@ -95,8 +94,7 @@ AlarmListPanel.prototype = {
     link.classList.toggle('with-repeat', alarm.isRepeating());
     link.dataset.id = alarm.id;
 
-    li.querySelector('.time-part').textContent = localeTime.time;
-    li.querySelector('.period').textContent = localeTime.ampm;
+    li.querySelector('.time').innerHTML = Utils.getLocalizedTimeHtml(d);
     li.querySelector('.label').textContent = alarm.label || _('alarm');
     li.querySelector('.repeat').textContent =
       (alarm.isRepeating() ? alarm.summarizeDaysOfWeek() : '');

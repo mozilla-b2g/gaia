@@ -113,9 +113,7 @@ ul#alarms li.alarm-cell > a:active {
   background-color: rgba(52,140,158, .6);
 }
 
-ul#alarms li.alarm-cell > a:active .period,
-ul#alarms li.alarm-cell > a:active .label,
-ul#alarms li.alarm-cell > a:active .repeat {
+ul#alarms li.alarm-cell > a:active {
   color: #cfe2e5;
 }
 
@@ -181,11 +179,10 @@ a.alarm-item > .time {
   color: #cfe2e5;
 }
 
-a.alarm-item .period {
+a.alarm-item small {
   font-size: 1.4rem;
   font-weight: normal;
   color: #5C6466;
-  margin-left: 0.2rem;
 }
 
 a.alarm-item > .label {

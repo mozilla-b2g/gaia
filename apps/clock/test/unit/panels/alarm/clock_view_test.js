@@ -78,31 +78,26 @@ suite('ClockView', function() {
 
     teardown(function() {
       ClockView.time.innerHTML = '';
-      ClockView.hourState.innerHTML = '';
       this.clock.restore();
     });
 
-    test('time and hourState elements are updated immediately',
+    test('time element is updated immediately',
       function() {
       ClockView.updateDigitalClock();
       assert.equal(Date.parse(ClockView.time.innerHTML), this.sixAm + 1000);
-      assert.equal(ClockView.hourState.innerHTML, '&nbsp;&nbsp;');
     });
 
-    test('time and hourState elements are not updated twice in the same ' +
-      'minute', function() {
+    test('time element is not updated twice in the same minute', function() {
       ClockView.updateDigitalClock();
       this.clock.tick(59 * 1000 - 1);
       assert.equal(Date.parse(ClockView.time.innerHTML), this.sixAm + 1000);
-      assert.equal(ClockView.hourState.innerHTML, '&nbsp;&nbsp;');
     });
 
-    test('time and hourState elements are updated each minute', function() {
+    test('time element is updated each minute', function() {
       ClockView.updateDigitalClock();
       this.clock.tick(59 * 1000);
       assert.equal(Date.parse(ClockView.time.innerHTML),
         this.sixAm + 60 * 1000);
-      assert.equal(ClockView.hourState.innerHTML, '&nbsp;&nbsp;');
     });
 
   });

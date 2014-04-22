@@ -229,19 +229,15 @@ Utils.escapeHTML = function(str, escapeQuotes) {
   return span.innerHTML;
 };
 
-Utils.is12hFormat = function() {
-  var localeTimeFormat = mozL10n.get('dateTimeFormat_%X');
-  var is12h = (localeTimeFormat.indexOf('%p') >= 0);
-  return is12h;
+Utils.getLocalizedTimeHtml = function(date) {
+  var f = new mozL10n.DateTimeFormat();
+  var shortFormat = mozL10n.get('shortTimeFormat');
+  return f.localeFormat(date, shortFormat.replace('%p', '<small>%p</small>'));
 };
 
-Utils.getLocaleTime = function(d) {
+Utils.getLocalizedTimeText = function(date) {
   var f = new mozL10n.DateTimeFormat();
-  var is12h = Utils.is12hFormat();
-  return {
-    time: f.localeFormat(d, (is12h ? '%I:%M' : '%H:%M')).replace(/^0/, ''),
-    ampm: is12h ? f.localeFormat(d, '%p') : ''
-  };
+  return f.localeFormat(date, mozL10n.get('shortTimeFormat'));
 };
 
 Utils.changeSelectByValue = function(selectElement, value) {
@@ -258,25 +254,6 @@ Utils.changeSelectByValue = function(selectElement, value) {
 
 Utils.getSelectedValueByIndex = function(selectElement) {
   return selectElement.options[selectElement.selectedIndex].value;
-};
-
-Utils.parseTime = function(time) {
-  var parsed = time.split(':');
-  var hour = +parsed[0]; // cast hour to int, but not minute yet
-  var minute = parsed[1];
-
-  // account for 'AM' or 'PM' vs 24 hour clock
-  var periodIndex = minute.indexOf('M') - 1;
-  if (periodIndex >= 0) {
-    hour = (hour == 12) ? 0 : hour;
-    hour += (minute.slice(periodIndex) == 'PM') ? 12 : 0;
-    minute = minute.slice(0, periodIndex);
-  }
-
-  return {
-    hour: hour,
-    minute: +minute // now cast minute to int
-  };
 };
 
 var wakeTarget = {
@@ -381,33 +358,6 @@ Utils.repeatString = function rep(str, times) {
 };
 
 Utils.format = {
-  time: function(hour, minute, opts) {
-    var period = '';
-    opts = opts || {};
-    opts.meridian = typeof opts.meridian === 'undefined' ? true : opts.meridian;
-    var padHours = typeof opts.padHours === 'undefined' ? false : opts.padHours;
-    opts.padHours = padHours;
-
-    if (opts.meridian && Utils.is12hFormat()) {
-      period = hour < 12 ? 'AM' : 'PM';
-      hour = hour % 12;
-      hour = (hour === 0) ? 12 : hour;
-    }
-
-    if (opts.padHours && hour < 10) {
-      hour = '0' + hour;
-    }
-
-    if (hour === 0) {
-      hour = '00';
-    }
-
-    if (minute < 10) {
-      minute = '0' + minute;
-    }
-
-    return hour + ':' + minute + period;
-  },
   hms: function(sec, format) {
     var hour = 0;
     var min = 0;

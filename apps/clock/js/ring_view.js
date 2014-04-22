@@ -113,9 +113,7 @@ RingView.prototype = {
     this.ringDisplay.dataset.ringType = alert.type;
 
     // Set the time to display.
-    var localeTime = Utils.getLocaleTime(alert.time);
-    this.time.textContent = localeTime.time;
-    this.hourState.textContent = localeTime.ampm;
+    this.time.innerHTML = Utils.getLocalizedTimeHtml(alert.time);
 
     if (alert.sound) {
       this.ringtonePlayer.playRingtone(alert.sound);
@@ -228,7 +226,6 @@ RingView.prototype = {
 
 Utils.extendWithDomGetters(RingView.prototype, {
   time: '#ring-clock-time',
-  hourState: '#ring-clock-hour24-state',
   ringLabel: '#ring-label',
   snoozeButton: '#ring-button-snooze',
   closeButton: '#ring-button-stop',
