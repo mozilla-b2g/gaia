@@ -232,6 +232,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
     var pairingMode = 'active';
     var userCanceledPairing = false;
+    var pendingPairing = null;
     var pairingAddress = null;
     var connectingAddress = null;
     var connectedAddress = null;
@@ -340,6 +341,27 @@ navigator.mozL10n.once(function bluetoothSettings() {
       startDiscovery();
     };
 
+    var incomingPairingTimeoutPrompt = {
+      dialog: document.getElementById('pairing-request-timeout'),
+      confirmBtn: document.getElementById('incoming-pairing-timeout-confirm'),
+
+      showConfirm: function showConfirm() {
+        var self = this;
+        this.confirmBtn.onclick = function() {
+          return self.close();
+        };
+        this.dialog.hidden = false;
+      },
+
+      isVisible: function isVisible() {
+        return (!this.dialog.hidden);
+      },
+
+      close: function closeMenu() {
+        this.dialog.hidden = true;
+      }
+    };
+
     // private DOM helper: create a device list item
     function newListItem(device, descL10nId) {
       var deviceName = document.createElement('a');
@@ -402,7 +424,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
       navigator.mozSetMessageHandler('bluetooth-cancel',
         function bt_gotCancelMessage(message) {
-          showDevicePaired(false, null);
+          showDevicePaired(false, null, true);
         }
       );
 
@@ -432,6 +454,11 @@ navigator.mozL10n.once(function bluetoothSettings() {
         restoreConnection();
       });
       startDiscovery();
+
+      // Observe screen lockscreen locked/unlocked state for show pending
+      // pairing request immediately.
+      settings.removeObserver('lockscreen.locked', showPendingPairing);
+      settings.addObserver('lockscreen.locked', showPendingPairing);
     }
 
     function restoreConnection() {
@@ -615,12 +642,40 @@ navigator.mozL10n.once(function bluetoothSettings() {
       };
     }
 
-    function showDevicePaired(paired, errorMessage) {
+    // Clean all notifications which are fired with tag 'pairing-request'.
+    function cleanNotifications() {
+      Notification.get().then(function(notifications) {
+        if (notifications) {
+          notifications.forEach(function(notification) {
+            // Compare tags, as the tag is based on the "pairing-request" and
+            // we only have one notification for the request. Plus, there
+            // is no "id" field on the notification.
+            if (notification.tag === 'pairing-request' &&
+                notification.close) {
+                notification.close();
+            }
+          });
+        }
+      });
+    }
+
+    function showDevicePaired(paired, errorMessage, isBTCancelSystemMsg) {
       // If we don't know the pairing device address,
       // it means the pair request is handled by interface level.
       // So we just need to update paired list.
       if (!pairingAddress) {
         getPairedDevice();
+
+        // If "bluetooth-cancel" system message is coming, and there is a
+        // pending pairing request, we have to update the notification title
+        // with some overdue message.
+        if (isBTCancelSystemMsg && pendingPairing) {
+          // The moment is fit to notify user that the later pairing request
+          // is timeout or canceled. According to user story, do nothing here.
+          // Clear the pending pairing request
+          pendingPairing = null;
+        }
+
         return;
       }
       // clear pairingAddress first to prevent execute
@@ -801,6 +856,24 @@ navigator.mozL10n.once(function bluetoothSettings() {
       }
     }
 
+    // If there is a pending pairing request while a user just unlocks screen,
+    // we will show pair view immediately. Then, we clear up the notification.
+    function showPendingPairing(event) {
+      var screenLocked = event.settingValue;
+      if (!screenLocked && pendingPairing) {
+        // show pair view from the callback function
+        if (pendingPairing.callback) {
+          pendingPairing.callback();
+        }
+
+        // Clear the pending pairing request
+        pendingPairing = null;
+
+        // Clear up the pairing request from notification.
+        cleanNotifications();
+      }
+    }
+
     function onRequestPairing(evt) {
       var evt = evt.detail;
       var showPairView = function bt_showPairView() {
@@ -828,7 +901,64 @@ navigator.mozL10n.once(function bluetoothSettings() {
 
       var req = navigator.mozSettings.createLock().get('lockscreen.locked');
       req.onsuccess = function bt_onGetLocksuccess() {
-        if (!req.result['lockscreen.locked']) {
+        if (req.result['lockscreen.locked']) {
+          // Notify user that we are receiving pairing request.
+          var address = evt.address;
+          // Once we received a pairing request in screen locked mode,
+          // overwrite the object with the latest pairing request. Because the
+          // later pairing request might be timeout and useless now.
+          pendingPairing = {
+            deviceName: evt.name,
+            callback: showPairView
+          };
+          // Prepare notification toast.
+          var title = _('bluetooth-pairing-request-now-title');
+          var body = evt.name || _('unnamed-device');
+          var iconUrl =
+            'app://settings.gaiamobile.org/style/images/icon_bluetooth.png';
+          // We always use tag "pairing-request" to manage these notifications.
+          var notificationId = 'pairing-request';
+          var notification = new Notification(title, {
+            body: body,
+            icon: iconUrl,
+            tag: notificationId
+          });
+
+          // According to user story, it won't notify user again
+          // while the pending pairing request is just timeout or canceled.
+          // So we have to set onClick handler in this moment.
+          // The handler will pop out a pairing request expired prompt.
+          notification.onclick =
+            function bt_pairingRequestExpiredNotificationOnClickHandler() {
+            var reqInOnClick =
+              navigator.mozSettings.createLock().get('lockscreen.locked');
+            reqInOnClick.onsuccess = function bt_onGetLocksuccess() {
+              // Avoid to do nothting while the notification toast is showing
+              // and a user is able to trigger onClick event. Make sure screen
+              // is unlocked, then show the prompt in settings app.
+              if (!reqInOnClick.result['lockscreen.locked']) {
+                // Clean the pairing request notficiation which is expired.
+                notification.close();
+
+                navigator.mozApps.getSelf().onsuccess = function(evt) {
+                  var app = evt.target.result;
+
+                  // launch settings app for showing the prompt
+                  if (document.hidden) {
+                    app.launch();
+                  }
+
+                  // Make sure the pairing request expired prompt is showing or
+                  // not before show it.
+                  if (!incomingPairingTimeoutPrompt.isVisible()) {
+                    incomingPairingTimeoutPrompt.showConfirm();
+                  }
+                };
+              }
+            };
+          };
+        } else {
+          // Show the pairing view directly while lock screen is unlocked.
           showPairView();
         }
       };
@@ -915,7 +1045,8 @@ navigator.mozL10n.once(function bluetoothSettings() {
       setConfirmation: setConfirmation,
       setPinCode: setPinCode,
       setPasskey: setPasskey,
-      onRequestPairing: onRequestPairing
+      onRequestPairing: onRequestPairing,
+      showPendingPairing: showPendingPairing
     };
 
   })();
@@ -965,6 +1096,7 @@ navigator.mozL10n.once(function bluetoothSettings() {
     initialDefaultAdapter();
     dispatchEvent(new CustomEvent('bluetooth-adapter-added'));
   });
+
   bluetooth.addEventListener('disabled', function() {
     gBluetoothCheckBox.disabled = false;  // enable UI toggle
     defaultAdapter = null;  // clear defaultAdapter
