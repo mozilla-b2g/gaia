@@ -879,20 +879,25 @@ void function() {
         icons = icons.concat(extraIcons).slice(0, iconsNeeded);
       }
 
-      // revert to default icon (if exists) instead of rendering an empty icon
-      // see bug 968918
-      if (!icons.length) {
-        useDefault();
-      } else {
+      if (icons.length) {
         Evme.IconGroup.get(icons, function onIconCreated(iconCanvas) {
           callback(iconCanvas.toDataURL());
         });
+      } else {
+        useDefault();
       }
     }, useDefault).catch(useDefault);
 
     function useDefault() {
+      // revert to default icon (if exists) instead of rendering an empty icon
+      // see bug 968918
       if (settings.defaultIcon) {
         callback(settings.defaultIcon);
+      } else {
+        // empty icon
+        Evme.IconGroup.get([], function onIconCreated(iconCanvas) {
+          callback(iconCanvas.toDataURL());
+        });
       }
     }
   }
