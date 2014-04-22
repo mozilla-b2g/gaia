@@ -17,6 +17,7 @@ requireApp('homescreen/test/unit/mock_configurator.js');
 requireApp('homescreen/test/unit/mock_hidden_apps.js');
 requireApp('homescreen/test/unit/mock_icon_retriever.js');
 
+requireApp('homescreen/js/bookmarks_storage.js');
 require('/shared/js/screen_layout.js');
 requireApp('homescreen/js/icon_manager.js');
 requireApp('homescreen/js/grid_components.js');
@@ -49,6 +50,7 @@ suite('grid.js >', function() {
   var wrapperNode, containerNode;
   var realMozApps;
   var realMozSettings;
+  var getAllStub, clearStub, preInstalledBookmarks = [];
 
   mocksHelperForGrid.attachTestHelpers();
 
@@ -85,12 +87,17 @@ suite('grid.js >', function() {
     };
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
-
+    getAllStub = sinon.stub(BookmarksStorage, 'getAll', function(cb) {
+      cb(preInstalledBookmarks);
+    });
+    clearStub = sinon.stub(BookmarksStorage, 'clear', function() {});
   });
 
   suiteTeardown(function() {
     window.navigator.mozApps = realMozApps;
     navigator.mozSettings = realMozSettings;
+    clearStub.restore();
+    getAllStub.restore();
   });
 
   setup(function(done) {
@@ -780,27 +787,43 @@ suite('grid.js >', function() {
   });
 
   suite('init', function() {
-    suite('old-style bookmarks', function() {
-      var subject;
 
+    var subject = 'http://splendid-site.com';
+    var descriptor = {
+      'bookmarkURL': subject,
+      'removable': true,
+      'name': 'Mock bookmark',
+      'icon': 'http://inexistant.name/default_icon.png',
+      'isHosted': false,
+      'hasOfflineCache': false
+    };
+
+    suite('old-style bookmarks', function() {
       setup(function(done) {
-        subject = 'http://splendid-site.com';
         MockHomeState.mTestGrids = [{
           index: 0,
-          icons: [{
-            'bookmarkURL': subject,
-            'removable': true,
-            'name': 'Mock bookmark',
-            'icon': 'http://inexistant.name/default_icon.png',
-            'isHosted': false,
-            'hasOfflineCache': false
-          }]
+          icons: [descriptor]
         }];
 
         initGridManager(done);
       });
 
       test('still have an associated app object', function() {
+        var icon = GridManager.getIconForBookmark(subject);
+        assert.ok(icon.app);
+      });
+    });
+
+    suite('pre-installed bookmarks', function() {
+      setup(function(done) {
+        this.sinon.useFakeTimers();
+        preInstalledBookmarks = [descriptor];
+        initGridManager(done);
+        this.sinon.clock.tick();
+      });
+
+      test('new bookmark installed ', function() {
+        this.sinon.clock.tick();
         var icon = GridManager.getIconForBookmark(subject);
         assert.ok(icon.app);
       });
