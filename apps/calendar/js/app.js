@@ -316,7 +316,9 @@ Calendar.App = (function(window) {
       var self = this;
       // quick hack for today button
       var today = document.querySelector('#view-selector .today');
+      var now = new Date();
 
+      today.querySelector('.today-label').innerHTML = now.getDate();
       today.addEventListener('click', function(e) {
         var date = new Date();
         self.timeController.move(date);
@@ -338,7 +340,7 @@ Calendar.App = (function(window) {
       // transparently. Defaults to off for tests.
       this.store('Alarm').autoQueue = true;
 
-      this.timeController.move(new Date());
+      this.timeController.move(now);
 
       this.view('TimeHeader', function(header) {
         header.render();
