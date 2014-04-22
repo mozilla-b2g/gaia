@@ -36,10 +36,5 @@
       "active_sync_username": ""
     }
 
-  },
-  "plivo": {
-    "auth_id": "",
-    "auth_token": "",
-    "phone_number": ""
   }
 }
