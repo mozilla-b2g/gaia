@@ -94,10 +94,7 @@
       this.debug(' current is ' + (appCurrent ? appCurrent.url : 'none') +
                   '; next is ' + (appNext ? appNext.url : 'none'));
 
-      // XXX: Do this in HomescreenWindow.
-      if (appCurrent === null) {
-        homescreenLauncher.getHomescreen().setVisible(false);
-      } else if (appCurrent.instanceID == appNext.instanceID) {
+      if (appCurrent && appCurrent.instanceID == appNext.instanceID) {
         // Do nothing.
         console.warn('the app has been displayed.');
         return;
