@@ -6,7 +6,7 @@ var Bookmark = function Bookmark(params) {
   var url = params.url && params.url.trim();
   if (!url) {
     // We are here because in pre-v2.0 the real url was not saved in indexedDB
-    // and we have to extract this one from bookmarkURL ('bookmark/' + url). It
+    // and we have to extract this one from bookmarkURL ('bookmark:' + url). It
     // happens only the first time before bookmarks migration
     url = this.sanitizeURL(params.bookmarkURL);
   }
@@ -20,7 +20,7 @@ var Bookmark = function Bookmark(params) {
 Bookmark.prototype = {
   __proto__: GridItem.prototype,
 
-  _INDEX_PREFIX: 'bookmark/',
+  _INDEX_PREFIX: 'bookmark:',
 
   sanitizeURL: function bookmark_sanitizeURL(url) {
     url = url.trim();
