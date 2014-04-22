@@ -1,5 +1,6 @@
 marionette_client==0.7.6
 mozdevice>=0.31
-requests
 moztest>=0.3
+plivo==0.9.6
+requests
 yoctopuce==1.01.12553
