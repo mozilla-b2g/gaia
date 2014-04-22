@@ -42,14 +42,10 @@ marionette('Rocketbar', function() {
   });
 
   test('Focus', function() {
+    rocketbar.waitForLoad();
     var screen = rocketbar.screen;
-    // Wait for Rocketbar to enter home state
-    client.waitFor(function() {
-      var screenClass = screen.getAttribute('class');
-      return screenClass.indexOf('on-homescreen') != -1;
-    });
-    rocketbar.focus();
     // Check that focussed Rocketbar is in the focused state
+    rocketbar.focus();
     client.waitFor(function() {
       var screenClass = screen.getAttribute('class');
       return screenClass.indexOf('rocketbar-focused') != -1;
@@ -57,6 +53,7 @@ marionette('Rocketbar', function() {
   });
 
   test('Navigate to URL', function() {
+    rocketbar.waitForLoad();
     var element = rocketbar.rocketbar;
     var url = server.url('sample.html');
     rocketbar.focus();
@@ -66,6 +63,24 @@ marionette('Rocketbar', function() {
     client.waitFor(function() {
       var rocketbarClass = element.getAttribute('class');
       return rocketbarClass.indexOf('expanded') != -1;
+    });
+  });
+
+  test('Cancel Rocketbar', function() {
+    rocketbar.waitForLoad();
+
+    // Check that cancel button appears
+    rocketbar.focus();
+    var cancel = rocketbar.cancel;
+    client.waitFor(function() {
+      return cancel.displayed();
+    });
+
+    // Check that clicking cancel returns to non-active state
+    cancel.click();
+    var title = rocketbar.title;
+    client.waitFor(function() {
+      return title.displayed();
     });
   });
 });

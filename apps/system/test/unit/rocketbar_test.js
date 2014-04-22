@@ -683,6 +683,14 @@ suite('system/Rocketbar', function() {
     Rocketbar.handleSubmit(event);
     assert.ok(MockIACPort.mNumberOfMessages() == 1);
   });
+  
+  test('handleCancel()', function() {
+    var deactivateStub = this.sinon.stub(Rocketbar, 'deactivate');
+    var hideResultsStub = this.sinon.stub(Rocketbar, 'hideResults');
+    Rocketbar.handleCancel();
+    assert.ok(deactivateStub.calledOnce);
+    assert.ok(hideResultsStub.calledOnce);
+  });
 
   test('handleKeyboardChange()', function(done) {
     var event = {
