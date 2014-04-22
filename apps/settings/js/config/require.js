@@ -9,17 +9,14 @@ require.config({
     'settings': {
       exports: 'Settings'
     },
-    'shared/keyboard_helper': {
-      exports: 'KeyboardHelper'
-    },
     'shared/lazy_loader': {
       exports: 'LazyLoader'
     },
-    'shared/omadrm/fl': {
-      exports: 'ForwardLock'
-    },
     'shared/screen_layout': {
       exports: 'ScreenLayout'
+    },
+    'shared/keyboard_helper': {
+      exports: 'KeyboardHelper'
     },
     'shared/settings_listener': {
       exports: 'SettingsListener'
@@ -47,13 +44,6 @@ require.config({
     {
       name: 'panels/help/panel',
       exclude: ['main']
-    },
-    {
-      name: 'panels/sound/panel',
-      exclude: [
-        'main',
-        'shared/settings_listener'
-      ]
     }
   ]
 });
