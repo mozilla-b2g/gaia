@@ -15,6 +15,10 @@
    * @module AppWindowManager
    */
   window.AppWindowManager = {
+
+    ftuIsDone: false,
+    homescreenIsOpened: false,
+
     continuousTransition: false,
 
     element: document.getElementById('windows'),
@@ -96,7 +100,7 @@
 
       // XXX: Do this in HomescreenWindow.
       if (appCurrent === null) {
-        homescreenLauncher.getHomescreen().setVisible(false);
+        //homescreenLauncher.getHomescreen().setVisible(false);
       } else if (appCurrent.instanceID == appNext.instanceID) {
         // Do nothing.
         console.warn('the app has been displayed.');
@@ -213,11 +217,13 @@
       window.addEventListener('home', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
+      window.addEventListener('ftudone', this);
       window.addEventListener('ftuskip', this);
       window.addEventListener('appopened', this);
       window.addEventListener('apprequestopen', this);
       window.addEventListener('apprequestclose', this);
       window.addEventListener('homescreenopened', this);
+      window.addEventListener('homescreenrendered', this);
       window.addEventListener('reset-orientation', this);
       window.addEventListener('homescreencreated', this);
       window.addEventListener('homescreen-changed', this);
@@ -289,11 +295,13 @@
       window.removeEventListener('home', this);
       window.removeEventListener('appcreated', this);
       window.removeEventListener('appterminated', this);
+      window.removeEventListener('ftudone', this);
       window.removeEventListener('ftuskip', this);
       window.removeEventListener('appopened', this);
       window.removeEventListener('apprequestopen', this);
       window.removeEventListener('apprequestclose', this);
       window.removeEventListener('homescreenopened', this);
+      window.removeEventListener('homescreenrendered', this);
       window.removeEventListener('reset-orientation', this);
       window.removeEventListener('homescreencreated', this);
       window.removeEventListener('homescreen-changed', this);
@@ -360,12 +368,18 @@
           }
           break;
 
+        case 'ftudone':
         case 'ftuskip':
+          this.ftuIsDone = true;
           this.display();
           break;
 
-        case 'appopened':
+        case 'homescreenrendered':
+          this.homescreenIsOpened = true;
+          break;
+
         case 'homescreenopened':
+        case 'appopened':
           // Someone else may open the app,
           // so we need to update active app.
           this._updateActiveApp(evt.detail.instanceID);
@@ -545,6 +559,21 @@
      * @memberOf module:AppWindowManager
      */
     launch: function awm_launch(config) {
+      // Bug 991262: support the runapp CLI argument.
+      // Delay launch of apps if the following conditions are met:
+      // The app is not the homescreen.
+      // The homescreen has not yet been rendered.
+      // FTU has either been skipped or completed.
+      if ((!this.ftuIsDone || !this.homescreenIsOpened) &&
+          config.origin !== homescreenLauncher.origin) {
+        var afterLoaded = this.launch.bind(this, config);
+        window.addEventListener('homescreenrendered', function _onhomescreen() {
+          window.removeEventListener('homescreenrendered', _onhomescreen);
+          afterLoaded();
+        });
+        return;
+      }
+
       if (config.stayBackground) {
         if (config.changeURL && this.isRunning(config.origin)) {
           // XXX: Potential problems here:
