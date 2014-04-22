@@ -18,7 +18,11 @@ if (!window.ImageLoader) {
       container = document.querySelector(pContainer);
 
       attachHandlers();
-      window.addEventListener('image-loader-resume', attachHandlers);
+      window.addEventListener('image-loader-resume', function resuming() {
+        window.clearTimeout(scrollTimer);
+        attachHandlers();
+        update();
+      });
       window.addEventListener('image-loader-pause', unload);
       load();
     }

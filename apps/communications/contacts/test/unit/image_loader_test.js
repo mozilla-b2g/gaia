@@ -12,34 +12,27 @@ var mocksHelperForImageLoader = new MocksHelper([
 
 suite('Image Loader Test Suite >', function() {
 
-  var imgLoader, item;
   var mocksHelper = mocksHelperForImageLoader;
+  var imageSpy, imgLoader;
+  mocksHelper.attachTestHelpers();
 
-  suiteSetup(function() {
-    mocksHelper.suiteSetup();
-
-    document.body.innerHTML = MockLinkHtml;
-    item = document.querySelector('#friends-list');
-    imgLoader = new ImageLoader('#mainContent',
-                                '.block-item:not([data-uuid="#uid#"])');
-  });
-
-  suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
+  setup(function() {
+    imageSpy = this.sinon.spy(window, 'Image');
   });
 
   suite('imgsLoading balance >', function() {
 
-    var imageSpy, stopSpy;
+    var stopSpy, item;
 
-    setup(function() {
-      imageSpy = this.sinon.spy(window, 'Image');
-      stopSpy = this.sinon.spy(window, 'stop');
-      mocksHelper.setup();
+    suiteSetup(function() {
+      document.body.innerHTML = MockLinkHtml;
+      item = document.querySelector('#friends-list');
+      imgLoader = new ImageLoader('#mainContent',
+                                  '.block-item:not([data-uuid="#uid#"])');
     });
 
-    teardown(function() {
-      mocksHelper.teardown();
+    setup(function() {
+      stopSpy = this.sinon.spy(window, 'stop');
     });
 
     function simulateImageCallback(evt) {
@@ -138,6 +131,23 @@ suite('Image Loader Test Suite >', function() {
       sinon.assert.callCount(containerSpy, 1);
       documentSpy.restore();
       containerSpy.restore();
+    });
+
+  });
+
+  suite('imgsLoader resuming >', function() {
+
+    suiteSetup(function() {
+      document.body.innerHTML =
+      '<ol>' +
+        '<li><span data-type="img" data-src="http://www.a.com"></span></li>' +
+      '</ol>';
+      imgLoader = new ImageLoader('ol','li');
+    });
+
+    test('resuming calls new Image()', function() {
+      window.dispatchEvent(new CustomEvent('image-loader-resume'));
+      sinon.assert.calledOnce(imageSpy);
     });
 
   });
