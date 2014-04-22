@@ -17,6 +17,9 @@ require.config({
     },
     'shared/keyboard_helper': {
       exports: 'KeyboardHelper'
+    },
+    'shared/settings_listener': {
+      exports: 'SettingsListener'
     }
   },
   modules: [
