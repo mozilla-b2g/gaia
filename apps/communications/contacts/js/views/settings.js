@@ -916,7 +916,8 @@ contacts.Settings = (function() {
       return;
     }
 
-    LazyLoader.load(['/contacts/js/utilities/http_rest.js'], function() {
+    LazyLoader.load(['/shared/js/contacts/utilities/http_rest.js'],
+    function() {
       window.asyncStorage.getItem(PENDING_LOGOUT_KEY, function(data) {
         if (!data) {
           return;

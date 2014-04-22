@@ -773,7 +773,7 @@ contacts.List = (function() {
   };
 
   var lazyLoadImages = function lazyLoadImages() {
-    LazyLoader.load(['/contacts/js/utilities/image_loader.js',
+    LazyLoader.load(['/shared/js/contacts/utilities/image_loader.js',
                      '/contacts/js/fb_resolver.js'], function() {
       if (!imgLoader) {
         imgLoader = new ImageLoader('#groups-container', 'li');

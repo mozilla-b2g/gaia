@@ -551,7 +551,8 @@ var Contacts = (function() {
       callback();
     } else {
       initDetails(function onDetails() {
-        LazyLoader.load(['/contacts/js/utilities/image_thumbnail.js'],
+        LazyLoader.load([
+          '/shared/js/contacts/utilities/image_thumbnail.js'],
         function() {
           Contacts.view('Form', function viewLoaded() {
             formReady = true;
@@ -707,7 +708,7 @@ var Contacts = (function() {
 
   var addAsyncScripts = function addAsyncScripts() {
     var lazyLoadFiles = [
-      '/contacts/js/utilities/templates.js',
+      '/shared/js/contacts/utilities/templates.js',
       '/contacts/js/contacts_shortcuts.js',
       '/contacts/js/contacts_tag.js',
       SHARED_UTILS_PATH + '/' + 'misc.js',
@@ -718,7 +719,7 @@ var Contacts = (function() {
       SHARED_UTILS_PATH + '/' + 'sdcard.js',
       SHARED_UTILS_PATH + '/' + 'vcard_parser.js',
       SHARED_UTILS_PATH + '/' + 'status.js',
-      '/contacts/js/utilities/dom.js'
+      '/shared/js/contacts/utilities/dom.js'
     ];
 
     // Lazyload nfc.js if NFC is available

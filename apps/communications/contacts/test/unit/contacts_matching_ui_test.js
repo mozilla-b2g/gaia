@@ -12,18 +12,19 @@
 /* global MockURL */
 
 require('/shared/js/lazy_loader.js');
+require('/shared/js/contacts/utilities/templates.js');
+require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
+
 requireApp('communications/contacts/test/unit/' +
                                         'mock_contacts_matching_controller.js');
 requireApp('communications/contacts/test/unit/mock_matching_contacts.html.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
-requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/test/unit/' +
            'contacts_matching_ui_test_data.js');
 
 requireApp('communications/contacts/js/contacts_matching_ui.js');
 
-require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 if (!window.ImageLoader) {
   window.ImageLoader = null;
