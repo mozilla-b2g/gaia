@@ -185,7 +185,11 @@ a {
  SIM info screen
 */
 #sim-info-screen {
-  z-index: 2000;
+  z-index: 100;
+}
+
+#sim-info-screen article {
+  padding-top: 1.5rem;
 }
 
 #sim-info-screen .sim-info {
@@ -258,7 +262,7 @@ a {
   Pin code screen
 */
 #unlock-sim-screen {
-  z-index: 2000;
+  z-index: 100;
 }
 
 #unlock-sim-screen .unlock_container {
@@ -321,6 +325,13 @@ a {
 #unlock-sim-screen [role=navigation] button,
 #unlock-sim-screen [role=navigation] .recommend {
   text-align: center;
+}
+
+/*
+  General
+*/
+#activation-screen {
+    display: block;
 }
 
 /*
@@ -1158,6 +1169,10 @@ html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input
 /*
   FxAccounts
 */
+
+.tutorial-screen-base {
+    z-index: 200;
+}
 
 .fxa-logo {
   background-image: url('images/fxa_logo.png');
