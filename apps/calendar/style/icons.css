@@ -69,3 +69,15 @@ PS: We could use any other font software for this, but IcoMoon is a web app
 .icon-dot:before {
   content: "\e603";
 }
+.icon-right-arrow:before {
+  content: "\e604";
+}
+.icon-today:before {
+  content: "\e605";
+}
+.icon-attachment:before {
+  content: "\e606";
+}
+.icon-download:before {
+  content: "\e607";
+}
