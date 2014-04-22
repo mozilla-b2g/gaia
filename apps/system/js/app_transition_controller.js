@@ -180,7 +180,6 @@
       if (!this.app || !this.app.element) {
         return;
       }
-      this.app.element.setAttribute('aria-hidden', 'true');
       this.switchTransitionState('closing');
     };
 
@@ -191,7 +190,6 @@
       }
 
       this.app.setVisible(false, true);
-      this.app.element.setAttribute('aria-hidden', 'true');
       this.app.element.classList.remove('active');
     };
 
@@ -203,7 +201,6 @@
       this.app.reviveBrowser();
       this.app.launchTime = Date.now();
       this.app.fadeIn();
-      this.app.element.removeAttribute('aria-hidden');
       this.app.setVisible(true);
 
       // TODO:
@@ -229,7 +226,6 @@
       }
 
       this.resetTransition();
-      this.app.element.removeAttribute('aria-hidden');
       this.app.element.classList.add('active');
       this.app.setVisible(true);
 

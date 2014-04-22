@@ -120,5 +120,9 @@
       return iframe;
     };
 
+  LockScreenWindow.prototype.setVisible =
+    function aw_setVisible(visible, screenshotIfInvisible) {
+      this.element.setAttribute('aria-hidden', !visible);
+    };
   exports.LockScreenWindow = LockScreenWindow;
 })(window);
