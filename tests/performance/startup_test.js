@@ -21,6 +21,9 @@ marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
     }
   });
 
+  // Do nothing on script timeout
+  client.onScriptTimeout = function() {};
+
   var performanceHelper;
   var isHostRunner = (process.env.MARIONETTE_RUNNER_HOST == 'marionette-device-host');
 
