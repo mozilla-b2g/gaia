@@ -109,3 +109,7 @@
 .evme-suggest-collections-loading #evme-fullscreen-loading {
   display: none;
 }
+
+#bgimage-overlay {
+  opacity: 0;
+}

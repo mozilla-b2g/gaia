@@ -18,7 +18,6 @@ void function() {
         elClose = null,
         elAppsContainer = null,
         elImage = null,
-        elImageFullscreen = null,
         resultsManager = null,
         isFullScreenVisible = false,
 
@@ -388,7 +387,6 @@ void function() {
     };
 
     function showUI() {
-      el.style.display = 'block';
       window.setTimeout(function() {
         el.addEventListener('transitionend', function end(e) {
           e.target.removeEventListener('transitionend', end);
@@ -400,10 +398,11 @@ void function() {
     }
 
     function hideUI() {
-      elHeader.addEventListener('transitionend', function end(e) {
-        e.target.removeEventListener('transitionend', end);
+      Evme.EventHandler.trigger(NAME, 'beforeHide');
 
-        el.style.display = 'none';
+      el.addEventListener('transitionend', function end() {
+        el.removeEventListener('transitionend', end);
+
         Evme.EventHandler.trigger(NAME, 'hide');
       });
 
@@ -429,9 +428,7 @@ void function() {
 
       elImage.style.backgroundImage = 'url(' + newBg.image + ')';
 
-      elImageFullscreen =
-        Evme.BackgroundImage.getFullscreenElement(newBg, self.hideFullscreen);
-      el.appendChild(elImageFullscreen);
+      Evme.BackgroundImage.update(newBg);
 
       self.update(currentSettings, {'bg': newBg});
 
@@ -441,8 +438,7 @@ void function() {
     this.clearBackground = function clearBackground() {
       el.style.backgroundImage = 'none';
       elImage.style.backgroundImage = 'none';
-
-      Evme.$remove(elImageFullscreen);
+      Evme.BackgroundImage.clear();
 
       resultsManager.changeFadeOnScroll(false);
     };
@@ -459,6 +455,9 @@ void function() {
 
       isFullScreenVisible = true;
       el.classList.add(CLASS_WHEN_ANIMATING);
+
+      Evme.BackgroundImage.showFullScreen(self.hideFullscreen.bind(self));
+
       window.setTimeout(function onTimeout() {
         self.fadeImage(0);
         el.classList.add(CLASS_WHEN_IMAGE_FULLSCREEN);
@@ -477,16 +476,23 @@ void function() {
         e.stopPropagation();
       }
 
-      isFullScreenVisible = false;
-      el.classList.add(CLASS_WHEN_ANIMATING);
-      window.setTimeout(function onTimeout() {
-        self.fadeImage(1);
-        el.classList.remove(CLASS_WHEN_IMAGE_FULLSCREEN);
+      Evme.BackgroundImage.closeFullScreen();
 
+      var elFullScreen = Evme.BackgroundImage.elFullScreen;
+      elFullScreen.addEventListener('transitionend', function end() {
+        elFullScreen.removeEventListener('transitionend', end);
+
+        el.classList.add(CLASS_WHEN_ANIMATING);
         window.setTimeout(function onTimeout() {
-          el.classList.remove(CLASS_WHEN_ANIMATING);
-        }, TRANSITION_DURATION);
-      }, 10);
+          el.classList.remove(CLASS_WHEN_IMAGE_FULLSCREEN);
+
+          window.setTimeout(function onTimeout() {
+            el.classList.remove(CLASS_WHEN_ANIMATING);
+          }, TRANSITION_DURATION);
+        }, 10);
+      });
+
+      isFullScreenVisible = false;
 
       return true;
     };
