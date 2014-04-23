@@ -4,6 +4,7 @@
 
 import json
 import os
+import re
 import time
 
 from marionette import MarionetteTestCase, EnduranceTestCaseMixin, \
@@ -141,6 +142,10 @@ class GaiaData(object):
     def sim_contacts(self):
         self.marionette.switch_to_frame()
         return self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts();', special_powers=True)
+
+    @property
+    def gaia_version(self):
+        return re.search('(\d+.\d+).*', self.get_setting('deviceinfo.os')).group(1)
 
     def insert_contact(self, contact):
         self.marionette.switch_to_frame()
