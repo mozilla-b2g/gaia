@@ -209,24 +209,19 @@ h3 {
 
 .fxa-logo {
   background-image: url('fxa_logo.png');
-  background-size: 100% auto;
-  margin: 0 auto;
-  width: 28rem;
-  height: 19.4rem;
+  background-repeat: no-repeat;
+  margin: 1.4rem auto 0;
+  width: 17rem;
+  height: 17.5rem;
 }
 
-.fxa-logo.small {
-  width: 10rem;
-  height: 7rem;
-}
-
-.fxa-envelope {
+p.fxa-envelope {
   background-image: url('fxa_envelope.png');
   background-repeat: no-repeat;
-  background-size: 5.3rem 3.4rem;
-  background-position: center left;
-  padding-left: 6.3rem;
-  min-height: 3.4rem; /* short email addresses will only take up one line*/
+  padding-left: 8rem;
+  padding-top: 1rem;
+  line-height: 2rem;
+  min-height: 6.4rem; /* short email addresses will only take up one line*/
                       /* force the entire envelope image to be displayed */
 }
 
