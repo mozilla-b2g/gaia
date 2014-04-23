@@ -16,7 +16,7 @@
 /**
  * hidden
  */
-
+.hud.hidden,
 .hud[timer=active],
 .hud[recording=true] {
   pointer-events: none;
