@@ -40,10 +40,10 @@ html, body, .icons {
 
 .divider {
   position: absolute;
-  height: 0.4rem;
-  margin: 2.3rem 1rem;
-  background: rgba(255, 255, 255, 0.3);
-  width: calc(100% - 2rem);
+  height: 0.2rem;
+  margin: 2.3rem 25%;
+  background: #fff;
+  width: 50%;
   z-index: 2;
 }
 
