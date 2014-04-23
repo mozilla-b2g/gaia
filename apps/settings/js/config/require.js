@@ -12,17 +12,14 @@ require.config({
     'shared/lazy_loader': {
       exports: 'LazyLoader'
     },
-    'shared/settings_listener': {
-      exports: 'SettingsListener'
-    },
-    'shared/manifest_helper': {
-      exports: 'ManifestHelper'
-    },
     'shared/screen_layout': {
       exports: 'ScreenLayout'
     },
     'shared/keyboard_helper': {
       exports: 'KeyboardHelper'
+    },
+    'shared/settings_listener': {
+      exports: 'SettingsListener'
     }
   },
   modules: [
@@ -46,14 +43,6 @@ require.config({
     },
     {
       name: 'panels/help/panel',
-      exclude: ['main']
-    },
-    {
-      name: 'panels/app_permissions_detail/panel',
-      exclude: ['main']
-    },
-    {
-      name: 'panels/app_permissions_list/panel',
       exclude: ['main']
     }
   ]
