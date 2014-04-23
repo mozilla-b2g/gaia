@@ -203,7 +203,6 @@ apps/gallery/test/unit/GestureDetector_test.js
 apps/gallery/test/unit/asyncStorage_test.js
 apps/gallery/test/unit/format_test.js
 apps/gallery/test/unit/input_parser_test.js
-apps/gallery/test/unit/l10n/l10n_date_test.js
 apps/gallery/test/unit/l10n/l10n_test.js
 apps/gallery/test/unit/lazy_loader_test.js
 apps/gallery/test/unit/mediadb_test.js
