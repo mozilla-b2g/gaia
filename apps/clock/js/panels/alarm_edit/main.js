@@ -214,6 +214,16 @@ Utils.extend(AlarmEdit.prototype, {
     this.initSnoozeSelect();
     this.checkboxes.vibrate.checked = this.alarm.vibrate;
 
+    // Update the labels for any FormButton dropdowns that have
+    // changed, because setting <select>.value does not fire a change
+    // event.
+    for (var key in this.buttons) {
+      var button = this.buttons[key];
+      if (button instanceof FormButton) {
+        button.refresh();
+      }
+    }
+
     location.hash = '#alarm-edit-panel';
   },
 
