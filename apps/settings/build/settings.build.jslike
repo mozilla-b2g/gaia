@@ -3,8 +3,17 @@
   baseUrl: 'js',
   mainConfigFile: '../js/config/require.js',
   dir: '../../../build_stage/settings',
+
+  // Set the path to "empty" to prevent the scripts defining global objects
+  // from being merged or they are removed after the optimization process,
+  // which makes the objects inaccessible by reference.
   paths: {
-    prim: 'empty:'
+    'prim': 'empty:',
+    'settings': 'empty:',
+    'shared/lazy_loader': 'empty:',
+    'shared/settings_listener': 'empty:',
+    'shared/manifest_helper': 'empty:',
+    'shared/keyboard_helper': 'empty:'
   },
 
   findNestedDependencies: true,
