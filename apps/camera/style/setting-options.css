@@ -106,3 +106,12 @@
 .setting-option.selected:before {
   visibility: visible;
 }
+
+/*
+ *@active
+ */
+
+.setting-options .settings_title:active {
+  background-color: #008eab;
+  color: white;
+}
