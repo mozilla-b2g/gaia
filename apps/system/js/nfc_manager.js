@@ -16,7 +16,8 @@
  * limitations under the License.
  */
 
-/* globals dump, MozNDEFRecord, NDEF, NfcUtils */
+/* globals dump, lockScreen, CustomEvent, MozActivity, MozNDEFRecord,
+   NfcHandoverManager, NfcUtils, NDEF, ScreenManager */
 'use strict';
 
 var NfcManager = {
@@ -52,7 +53,7 @@ var NfcManager = {
     window.addEventListener('lock', this);
     window.addEventListener('unlock', this);
     var self = this;
-    SettingsListener.observe('nfc.enabled', false, function(enabled) {
+    window.SettingsListener.observe('nfc.enabled', false, function(enabled) {
       var state = enabled ?
                     (lockScreen.locked ?
                        self.NFC_HW_STATE_DISABLE_DISCOVERY :
@@ -156,6 +157,7 @@ var NfcManager = {
       case NDEF.TNF_UNKNOWN:
       case NDEF.TNF_UNCHANGED:
       case NDEF.TNF_RESERVED:
+        /* falls through */
       default:
         this._debug('Unknown or unimplemented tnf or rtd subtype.');
         break;
@@ -184,7 +186,6 @@ var NfcManager = {
     function nm_handleNdefDiscoveredUseConnect(tech, session) {
       var self = this;
 
-      var connected = false;
       var nfcdom = window.navigator.mozNfc;
       if (!nfcdom) {
         return;
@@ -220,6 +221,9 @@ var NfcManager = {
         action.data.tech = tech;
         action.data.sessionToken = session;
         var a = new MozActivity(action);
+        a.onerror = function() {
+          self._debug('Firing nfc-ndef-discovered failed');
+        };
       }
   },
 
@@ -518,7 +522,6 @@ var NfcManager = {
   },
 
   formatMimeMedia: function nm_formatMimeMedia(record) {
-    var type = 'mime-media';
     var activityText = null;
 
     this._debug('HandleMimeMedia');
