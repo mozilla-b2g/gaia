@@ -208,9 +208,13 @@ Calendar.prototype = {
     editEvent.location = opts.location || '';
     editEvent.description = opts.description || '';
     editEvent.startDate = startDate;
-    editEvent.startTime = startDate;
     editEvent.endDate = endDate;
-    editEvent.endTime = endDate;
+    if (opts.allDay) {
+      editEvent.allDay = opts.allDay;
+    } else {
+      editEvent.startTime = startDate;
+      editEvent.endTime = endDate;
+    }
     editEvent.reminders = opts.reminders || [];
     editEvent.save();
 
