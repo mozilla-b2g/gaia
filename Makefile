@@ -482,7 +482,7 @@ export BUILD_CONFIG
 include build/common.mk
 
 # Generate profile/
-$(PROFILE_FOLDER): preferences app-makefiles keyboard-layouts copy-build-stage-manifest test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences app-makefiles keyboard-layouts copy-build-stage-data test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -544,7 +544,7 @@ LANG=POSIX # Avoiding sort order differences between OSes
 # in that case.  Right now this is just making sure we don't race app-makefiles
 # in case someone does decide to get fancy.
 .PHONY: webapp-manifests
-webapp-manifests: $(XULRUNNER_BASE_DIRECTORY)
+webapp-manifests: $(XULRUNNER_BASE_DIRECTORY) $(STAGE_DIR)
 	@$(call run-js-command,webapp-manifests)
 
 .PHONY: webapp-zip
@@ -1074,11 +1074,14 @@ really-clean: clean
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
 
-# Generally we got manifest from webapp-manifest.js unless manifest is generated
-# from Makefile of app. so we will copy manifest.webapp if it's avaiable in
-# build_stage/
-copy-build-stage-manifest: app-makefiles
-	@$(call run-js-command,copy-build-stage-manifest)
+# This task will do three things.
+# 1. Copy manifest to profile: generally we got manifest from webapp-manifest.js
+# 	 unless manifest is generated from Makefile of app. so we will copy
+#		 manifest.webapp if it's avaiable inbuild_stage/ .
+# 2. Copy external app to profile dir.
+# 3. Generate webapps.json from webapps_stage.json and copy to profile dir.
+copy-build-stage-data: app-makefiles
+	@$(call run-js-command,copy-build-stage-data)
 
 build-test-unit: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-test, $(shell find build/test/unit/*.test.js))

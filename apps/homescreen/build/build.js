@@ -13,9 +13,9 @@ HomescreenAppBuilder.prototype.BASE_ICON_SIZE = 60;
 HomescreenAppBuilder.prototype.setOptions = function(options) {
   this.stageDir = utils.getFile(options.STAGE_APP_DIR);
 
-  let mappingFile = utils.getFile(options.STAGE_DIR, 'webapps-mapping.json');
+  let mappingFile = utils.getFile(options.STAGE_DIR, 'webapps_stage.json');
   if (!mappingFile.exists()) {
-    throw new Error('build_stage/webapps-mapping.json not found.');
+    throw new Error('build_stage/webapps_stage.json not found.');
   }
   this.webappsMapping = utils.getJSON(mappingFile);
 
