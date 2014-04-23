@@ -175,7 +175,7 @@ NfcUtils = {
   },
 
   /**
-   * toUTF8: returns a Uint8Array representation of a string
+   * fromUTF8: returns a Uint8Array representation of a string
    */
   fromUTF8: function fromUTF8(str) {
     var buf = new Uint8Array(str.length);
@@ -201,9 +201,13 @@ NfcUtils = {
   },
 
   /**
-   * fromUTF8: returns a string representation of a Uint8Array.
+   * toUTF8: returns a string representation of a Uint8Array.
    */
   toUTF8: function toUTF8(a) {
+    if (!a) {
+      return null;
+    }
+
     var str = '';
     for (var i = 0; i < a.length; i++) {
       str += String.fromCharCode(a[i]);
