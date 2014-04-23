@@ -630,9 +630,6 @@ class GaiaDevice(object):
         self.marionette = marionette
         self.testvars = testvars or {}
         self.update_checker = FakeUpdateChecker(self.marionette)
-        self.lockscreen_atom = os.path.abspath(
-            os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
-        self.marionette.import_script(self.lockscreen_atom)
 
     def add_device_manager(self, device_manager):
         self._manager = device_manager
@@ -656,9 +653,15 @@ class GaiaDevice(object):
 
     @property
     def is_emulator(self):
-        if not hasattr(self, '_is_emulator'):
-            self._is_emulator = self.marionette.session_capabilities['device'] == 'qemu'
-        return self._is_emulator
+        if self.testvars.get('is_emulator') is None:
+            self.testvars['is_emulator'] = self.marionette.session_capabilities['device'] == 'qemu'
+        return self.testvars['is_emulator']
+
+    @property
+    def is_desktop_b2g(self):
+        if self.testvars.get('is_desktop_b2g') is None:
+            self.testvars['is_desktop_b2g'] = self.marionette.session_capabilities['device'] == 'desktop'
+        return self.testvars['is_desktop_b2g']
 
     @property
     def is_online(self):
@@ -720,7 +723,6 @@ class GaiaDevice(object):
         Wait(marionette=self.marionette, timeout=timeout, ignored_exceptions=NoSuchElementException)\
             .until(lambda m: m.find_element(*locator).is_displayed())
 
-        self.marionette.import_script(self.lockscreen_atom)
         self.update_checker.check_updates()
 
     def stop_b2g(self):
@@ -807,12 +809,20 @@ class GaiaDevice(object):
 
     def lock(self):
         self.marionette.switch_to_frame()
+        self.lockscreen_atom = os.path.abspath(
+            os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
+        self.marionette.import_script(self.lockscreen_atom)
+
         result = self.marionette.execute_async_script('GaiaLockScreen.lock()')
         assert result, 'Unable to lock screen'
         Wait(self.marionette).until(lambda m: m.find_element(By.CSS_SELECTOR, 'div.lockScreenWindow.active'))
 
     def unlock(self):
         self.marionette.switch_to_frame()
+        self.lockscreen_atom = os.path.abspath(
+            os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
+        self.marionette.import_script(self.lockscreen_atom)
+
         result = self.marionette.execute_async_script('GaiaLockScreen.unlock()')
         assert result, 'Unable to unlock screen'
 
@@ -831,7 +841,10 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             MarionetteTestCase.setUp(self)
         except InvalidResponseException:
             if self.restart:
-                pass
+                # we've likely seen a crash here so let's wait for Gecko to restart and initiate a marionette session
+                self.marionette.wait_for_port()
+                # self.marionette.start_session()
+                #pass
 
         if self.yocto:
             """ with the yocto ammeter we only get amp measurements
@@ -846,7 +859,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.device = GaiaDevice(self.marionette, self.testvars)
         if self.device.is_android_build:
             self.device.add_device_manager(self.get_device_manager())
-        if self.restart and (self.device.is_android_build or self.marionette.instance):
+        if self.restart and (self.device.is_android_build or self.device.is_desktop_b2g):
             self.device.stop_b2g()
             if self.device.is_android_build:
                 self.cleanup_data()
@@ -1070,8 +1083,16 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def tearDown(self):
         self.apps = None
         self.data_layer = None
-        MarionetteTestCase.tearDown(self)
 
+        # If we've crashed we might not be able to teardown properly
+        try:
+            MarionetteTestCase.tearDown(self)
+        # except (InvalidResponseException, MarionetteException):
+        #     # Device and desktopb2g can each raise different exceptions in similar scenarios
+        #     pass
+        except IOError:
+            if self.restart:
+                pass
 
 class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranceTestCaseMixin):
 
