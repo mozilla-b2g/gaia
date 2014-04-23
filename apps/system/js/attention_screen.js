@@ -46,6 +46,8 @@ var AttentionScreen = {
 
     window.addEventListener('appforeground',
       this.appForegroundHandler.bind(this));
+
+    window.addEventListener('mozmemorypressure', this.freePreloaded.bind(this));
   },
 
   resize: function as_resize(evt) {
@@ -361,6 +363,14 @@ var AttentionScreen = {
     // attention screen we should display it
     var app = evt.detail;
     this.showForOrigin(app.origin);
+  },
+
+  freePreloaded: function as_freePreloaded() {
+    var selector = 'iframe[data-hidden][data-preloaded]';
+    var frames = this.attentionScreen.querySelectorAll(selector);
+    Array.prototype.forEach.call(frames, function resetFrame(frame) {
+      frame.src = '';
+    });
   },
 
   getAttentionScreenOrigins: function as_getAttentionScreenOrigins() {
