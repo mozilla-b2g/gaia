@@ -844,10 +844,14 @@ MessageReaderCard.prototype = {
           var attachment = body.attachments[iAttach], state;
           var extension = attachment.filename.split('.').pop();
 
+          var MAX_ATTACHMENT_SIZE = 1024 * 1024;
+
           if (attachment.isDownloaded)
             state = 'downloaded';
           else if (!attachment.isDownloadable)
             state = 'nodownload';
+          else if (attachment.sizeEstimateInBytes > MAX_ATTACHMENT_SIZE)
+            state = 'toolarge';
           else if (MimeMapper.isSupportedType(attachment.mimetype) ||
                    MimeMapper.isSupportedExtension(extension))
             state = 'downloadable';
