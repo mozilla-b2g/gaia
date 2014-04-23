@@ -135,7 +135,8 @@ suite('system/Rocketbar', function() {
   });
 
   test('expand() - collapsed', function(done) {
-    window.addEventListener('rocketbarexpand', function() {
+    window.addEventListener('rocketbarexpand', function onrocketbarexpanded() {
+      window.removeEventListener('rocketbarexpand', onrocketbarexpanded);
       done();
     });
     Rocketbar.expand();
@@ -180,15 +181,22 @@ suite('system/Rocketbar', function() {
   });
 
   test('enterHome() - not already home', function() {
+    navigator.mozL10n = {
+      'get': function() {
+        return 'Search';
+      }
+    };
     Rocketbar.onHomescreen = false;
+    var clearStub = this.sinon.stub(Rocketbar, 'clear');
     var expandStub = this.sinon.stub(Rocketbar, 'expand');
     Rocketbar.enterHome();
     assert.ok(Rocketbar.onHomescreen);
     assert.ok(expandStub.calledOnce);
+    assert.ok(clearStub.calledOnce);
     Rocketbar.rocketbar.classList.contains('on-homescreen');
   });
 
-  test ('enterHome() - already home', function() {
+  test('enterHome() - already home', function() {
     var expandStub = this.sinon.stub(Rocketbar, 'expand');
     Rocketbar.onHomescreen = true;
     Rocketbar.enterHome();
@@ -197,7 +205,7 @@ suite('system/Rocketbar', function() {
     expandStub.restore();
   });
 
-  test ('exitHome()', function() {
+  test('exitHome()', function() {
     Rocketbar.onHomescreen = true;
     Rocketbar.exitHome();
     assert.ok(!Rocketbar.onHomescreen);
@@ -371,23 +379,15 @@ suite('system/Rocketbar', function() {
   });
 
   test('handleHome()', function() {
-    navigator.mozL10n = {
-      'get': function() {
-        return 'Search';
-      }
-    };
     var hideResultsStub = this.sinon.stub(Rocketbar, 'hideResults');
-    var enterHomeStub = this.sinon.stub(Rocketbar, 'enterHome');
     var blurStub = this.sinon.stub(Rocketbar, 'deactivate');
     Rocketbar.input.value = 'value to clear';
     Rocketbar.handleHome();
     assert.ok(hideResultsStub.calledOnce);
     assert.equal(Rocketbar.input.value, '');
     assert.equal(Rocketbar.titleContent.textContent, 'Search');
-    assert.ok(enterHomeStub.called);
     assert.ok(blurStub.calledOnce);
     hideResultsStub.restore();
-    enterHomeStub.restore();
     blurStub.restore();
   });
 
