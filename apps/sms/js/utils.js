@@ -322,6 +322,7 @@
         blob: blob,
         limit: limit,
         ratio: ratio,
+        mozSamplesize: Math.ceil(ratio),
         callback: callback
       });
     },
@@ -335,6 +336,7 @@
       var limit = obj.limit;
       var ratio = obj.ratio;
       var qualities = [0.75, 0.5, 0.25];
+      var mozSamplesize = blob.type === 'image/jpeg' && obj.mozSamplesize;
 
       if (blob.size < limit) {
         setTimeout(function blobCb() {
@@ -345,13 +347,15 @@
 
       var img = document.createElement('img');
       var url = window.URL.createObjectURL(blob);
-      img.src = url;
+      img.src = mozSamplesize ? url + '#-moz-samplesize=' + mozSamplesize : url;
       img.onload = function onBlobLoaded() {
-        window.URL.revokeObjectURL(url);
+        window.URL.revokeObjectURL(img.src);
         var imageWidth = img.width;
         var imageHeight = img.height;
-        var targetWidth = imageWidth / ratio;
-        var targetHeight = imageHeight / ratio;
+        var targetWidth =
+          mozSamplesize ? imageWidth : imageWidth / ratio;
+        var targetHeight =
+          mozSamplesize ? imageHeight : imageHeight / ratio;
 
         var canvas = document.createElement('canvas');
         canvas.width = targetWidth;
@@ -359,6 +363,7 @@
         var context = canvas.getContext('2d', { willReadFrequently: true });
 
         context.drawImage(img, 0, 0, targetWidth, targetHeight);
+        img.src = '';
         // Bug 889765: Since we couldn't know the quality of the original jpg
         // The 'resized' image might have a bigger size because it was saved
         // with quality or dpi. Here we will adjust the jpg quality(or resize
@@ -368,6 +373,8 @@
 
         function ensureSizeLimit(resizedBlob) {
           if (resizedBlob.size < limit) {
+            canvas.width = canvas.height = 0;
+            canvas = null;
             callback(resizedBlob);
           } else {
             // Reduce image quality for match limitation. Here we set quality
@@ -379,12 +386,25 @@
             } else {
               // We will resize the blob if image quality = 0.25 still exceed
               // size limitation.
-              Utils.resizeImageBlobWithRatio({
-                blob: blob,
-                limit: limit,
-                ratio: ratio * 2,
-                callback: callback
-              });
+              canvas.width = canvas.height = 0;
+              canvas = null;
+              // The max downsample ratio could set to 16
+              if (mozSamplesize && mozSamplesize <= 8) {
+                Utils.resizeImageBlobWithRatio({
+                  blob: blob,
+                  limit: limit,
+                  mozSamplesize: mozSamplesize * 2,
+                  ratio: ratio,
+                  callback: callback
+                });
+              } else {
+                Utils.resizeImageBlobWithRatio({
+                  blob: blob,
+                  limit: limit,
+                  ratio: ratio * 2,
+                  callback: callback
+                });
+              }
             }
           }
         }
