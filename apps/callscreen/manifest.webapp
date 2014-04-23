@@ -15,7 +15,7 @@
     "contacts":{ "access": "readonly" },
     "mobileconnection":{},
     "attention":{},
-    "settings":{ "access": "readonly" },
+    "settings":{ "access": "readwrite" },
     "time": {},
     "audio-channel-telephony":{},
     "idle":{},
