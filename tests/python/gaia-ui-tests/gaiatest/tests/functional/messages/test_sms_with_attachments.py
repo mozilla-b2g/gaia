@@ -31,7 +31,7 @@ class TestSmsWithAttachments(GaiaTestCase):
 
         camera.switch_to_camera_frame()
         camera.tap_capture()
-        camera.wait_for_select_button_displayed()
+        camera.wait_for_select_button_enabled()
         camera.tap_select_button()
 
         # switch back to messages app frame
