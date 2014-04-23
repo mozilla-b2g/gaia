@@ -60,7 +60,8 @@ var WifiHelper = {
   },
 
   getCapabilities: function(network) {
-    return network.capabilities === undefined ? [] : network.capabilities;
+    return network.capabilities === undefined || network.capabilities === null ?
+           [] : network.capabilities;
   },
 
   getKeyManagement: function(network) {
