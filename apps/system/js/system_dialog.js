@@ -65,6 +65,9 @@
   /**
    * System Dialog html view
    * Override me. It's able to customize your layout.
+   *
+   * The SystemDialog module expects the returned DOM element is set with
+   * hidden attribute, so the UI begin with closed state.
    */
   SystemDialog.prototype.view = function sd_view() {
     return '';

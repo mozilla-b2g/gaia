@@ -1,13 +1,17 @@
 'use strict';
-/* global MocksHelper, FxAccountsDialog */
+/* global MocksHelper, FxAccountsDialog, SystemDialog */
 
 mocha.globals(['BaseUI', 'AppWindowManager', 'LayoutManager',
                'System', 'SystemDialog', 'FxAccountsDialog',
-               'dispatchEvent', 'stubById']);
+               'dispatchEvent']);
 
-requireApp('system/test/unit/mock_app_window_manager.js');
-requireApp('system/test/unit/mock_layout_manager.js');
-requireApp('system/test/unit/mock_system_dialog_manager.js');
+require('/test/unit/mock_app_window_manager.js');
+require('/test/unit/mock_layout_manager.js');
+require('/test/unit/mock_system_dialog_manager.js');
+require('/js/system.js');
+require('/js/base_ui.js');
+require('/js/system_dialog.js');
+require('/js/fxa_dialog.js');
 
 var mocksForFxAccountsDialog = new MocksHelper([
   'AppWindowManager',
@@ -16,25 +20,25 @@ var mocksForFxAccountsDialog = new MocksHelper([
 ]).init();
 
 suite('system/FxAccountsDialog', function() {
-  var stubById, stubDispatch,
+  var stubDispatch, container,
       fakeOptions = {
         onShow: function() {},
         onHide: function() {}
       };
   mocksForFxAccountsDialog.attachTestHelpers();
 
-  setup(function(done) {
-    stubById = this.sinon.stub(document, 'getElementById');
-    stubById.returns(document.createElement('div'));
+  setup(function() {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    SystemDialog.prototype.containerElement = container;
+
     stubDispatch = this.sinon.stub(window, 'dispatchEvent');
-    requireApp('system/js/system.js');
-    requireApp('system/js/base_ui.js');
-    requireApp('system/js/system_dialog.js');
-    requireApp('system/js/fxa_dialog.js', done);
   });
 
   teardown(function() {
-    stubById.restore();
+    document.body.removeChild(container);
+    SystemDialog.prototype.containerElement = container = null;
+
     stubDispatch.restore();
   });
 
@@ -110,6 +114,12 @@ suite('system/FxAccountsDialog', function() {
          'would get dialog element.', function() {
       var fxAccountsDialog = new window.FxAccountsDialog(fakeOptions);
       assert.isNotNull(fxAccountsDialog.element);
+    });
+
+    test('Created system dialog should be hidden', function() {
+      var fxAccountsDialog = new window.FxAccountsDialog(fakeOptions);
+      assert.isTrue(fxAccountsDialog.element.hidden,
+        'Element is created hidden.');
     });
   });
 
