@@ -47,7 +47,6 @@
     this._player.mozAudioChannelType = 'ringer';
     this._player.preload = 'metadata';
     this._player.loop = true;
-    this._callScreen = this._createCallScreen();
   };
 
   DialerAgent.prototype.start = function da_start() {
@@ -87,11 +86,14 @@
     window.addEventListener('sleep', this);
     window.addEventListener('volumedown', this);
 
+    this._callScreen = this._createCallScreen();
     var callScreen = this._callScreen;
     callScreen.src = CSORIGIN + 'index.html';
     callScreen.dataset.preloaded = true;
     // We need the iframe in the DOM
     AttentionScreen.attentionScreen.appendChild(callScreen);
+
+    callScreen.setVisible(false);
 
     return this;
   };
@@ -192,6 +194,7 @@
               (LockScreen.locked ? 'locked' : '');
     src = src + '&timestamp=' + timestamp;
     callScreen.src = src;
+    callScreen.setVisible(true);
 
     var asRequest = {
       target: callScreen,
