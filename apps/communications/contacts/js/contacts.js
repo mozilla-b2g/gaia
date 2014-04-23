@@ -46,6 +46,7 @@ var Contacts = (function() {
   var settingsReady = false;
   var detailsReady = false;
   var formReady = false;
+  var valueselectorReady = false;
   var displayed = false;
 
   var currentContact = {},
@@ -583,15 +584,30 @@ var Contacts = (function() {
     if (detailsReady) {
       callback();
     } else {
-      Contacts.view('Details', function viewLoaded() {
+      initValueSelector(function onValueSelector() {
         var simPickerNode = document.getElementById('sim-picker');
-        LazyLoader.load([simPickerNode], function() {
-          navigator.mozL10n.translate(simPickerNode);
-          detailsReady = true;
-          contactsDetails = contacts.Details;
-          contactsDetails.init();
-          callback();
+        LazyLoader.load([simPickerNode],
+        function() {
+          Contacts.view('Details', function viewLoaded() {
+            navigator.mozL10n.translate(simPickerNode);
+            detailsReady = true;
+            contactsDetails = contacts.Details;
+            contactsDetails.init();
+            callback();
+          });
         });
+      });
+    }
+  };
+
+  var initValueSelector = function c_initValueSelector(callback) {
+    if (valueselectorReady) {
+      callback();
+    } else {
+      Contacts.view('value_selector', function viewLoaded() {
+        valueselectorReady = true;
+        contacts.ValueSelector.init();
+        callback();
       });
     }
   };
@@ -882,7 +898,8 @@ var Contacts = (function() {
     settings: 'settings-wrapper',
     search: 'search-view',
     overlay: 'loading-overlay',
-    confirm: 'confirmation-message'
+    confirm: 'confirmation-message',
+    value_selector: 'view-contact-valueselector'
   };
 
   function load(type, file, callback, path) {

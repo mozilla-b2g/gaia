@@ -245,6 +245,7 @@ suite('Test Activities', function() {
     test('webcontacts/contact, 1 result', function() {
       activity.source.data.type = 'webcontacts/contact';
       ActivityHandler._currentActivity = activity;
+      contact.tel.pop();
       ActivityHandler.dataPickHandler(contact);
       assert.isFalse(ConfirmDialog.showing);
       assert.equal(result.number, contact.tel[0].value);
@@ -286,5 +287,4 @@ suite('Test Activities', function() {
       assert.equal(result.email, contact.email[0].value);
     });
   });
-
 });

@@ -1,25 +1,27 @@
 'use strict';
 /* exported ValueSelector */
+var contacts = window.contacts || {};
 
-function ValueSelector() {
+contacts.ValueSelector = (function() {
+
+
   return {
     data: {
       list: []
     },
-    show: function() {},
-    hide: function() {},
-    addToList: function(label, value) {
+    show: function() {
+     this.data.list[0].callback();
+    },
+    hide: function() {
+            this.data.list = [];
+          },
+    addToList: function(label, value, callback) {
       this.data.list.push({
         'type': [label],
-        'value': value
+        'value': value,
+        'callback': callback
       });
-    },
-    set onchange(callback) {
-      // we always return the first value added
-      if (callback) {
-        callback(this.data.list[0].value);
-      }
     }
   };
-}
+})();
 
