@@ -570,7 +570,7 @@ suite('Render contact form', function() {
     setup(function() {
       // Bypass the contacts matcher when saving contact
       LazyLoader.load(['/shared/js/simple_phone_matcher.js',
-                       '/contacts/js/contacts_matcher.js'], function() {
+                       '/shared/js/contacts/contacts_matcher.js'], function() {
           contacts.Matcher.match = function() {};
       });
     });
