@@ -293,7 +293,7 @@ define(function(require, exports, module) {
         window.dispatchEvent(new CustomEvent('alarm-removed', {
           detail: { alarm: this }
         }));
-        callback(err, this);
+        callback && callback(err, this);
       });
     },
 
