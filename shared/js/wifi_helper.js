@@ -10,8 +10,7 @@ var WifiHelper = {
     return navigator.mozWifiManager;
   }(),
 
-  setPassword: function(network, password, identity,
-                        eap, phase2, certificate) {
+  setPassword: function(network, password, identity, eap, phase2, certificate) {
     var encType = this.getKeyManagement(network);
     switch (encType) {
       case 'WPA-PSK':
@@ -297,5 +296,20 @@ var WifiHelper = {
     li.className = 'explanation';
     li.textContent = _(message);
     return li;
+  },
+
+  checkPassword: function(dialog, options) {
+    var key = options.key;
+    var password = options.password;
+    var identity = options.identity;
+    var eap = options.eap;
+    dialog.querySelector('button[type=submit]').disabled =
+      !WifiHelper.isValidInput(key, password.value, identity.value, eap.value);
+  },
+
+    // use ssid + security as a composited key
+  getNetworkKey: function(network) {
+    var key = network.ssid + '+' + WifiHelper.getSecurity(network).join('+');
+    return key;
   }
 };

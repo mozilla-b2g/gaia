@@ -17,7 +17,6 @@ require([
     var gWifiInfoBlock = document.querySelector('#wifi-desc');
     var gWpsInfoBlock = document.querySelector('#wps-column small');
     var gWpsPbcLabelBlock = document.querySelector('#wps-column a');
-
     var gCurrentNetwork = gWifiManager.connection.network;
 
     // auto-scan networks when the Wi-Fi panel gets visible
@@ -165,8 +164,9 @@ require([
 
       function wpsDialog(dialogID, callback) {
         var dialog = document.getElementById(dialogID);
-        if (!dialog)
+        if (!dialog) {
           return;
+        }
 
         var apSelectionArea = dialog.querySelector('#wifi-wps-pin-aps');
         var apSelect = apSelectionArea.querySelector('select');
@@ -217,8 +217,9 @@ require([
 
       // scan wifi networks and display them in the list
       function scan() {
-        if (scanning)
+        if (scanning) {
           return;
+        }
 
         // stop auto-scanning if wifi disabled or the app is hidden
         if (!gWifiManager.enabled || document.hidden) {
@@ -235,9 +236,7 @@ require([
           var allNetworks = req.result;
           for (var i = 0; i < allNetworks.length; ++i) {
             var network = allNetworks[i];
-            // use ssid + security as a composited key
-            var key = network.ssid + '+' +
-              WifiHelper.getSecurity(network).join('+');
+            var key = WifiHelper.getNetworkKey(network);
             // keep connected network first, or select the highest strength
             if (!networks[key] || network.connected) {
               networks[key] = network;
@@ -307,8 +306,7 @@ require([
           return;
         }
 
-        var key = network.ssid + '+' +
-          WifiHelper.getSecurity(network).join('+');
+        var key = WifiHelper.getNetworkKey(network);
         var listItem = index[key];
         var active = list.querySelector('.active');
         if (active && active != listItem) {
@@ -530,9 +528,8 @@ require([
     };
 
     // join hidden network
-    document.getElementById('joinHidden').onclick =
-      function joinHiddenNetwork() {
-        toggleNetwork();
+    document.getElementById('joinHidden').onclick = function() {
+      toggleNetwork();
     };
 
     // load the imported certificates into select options
@@ -644,31 +641,16 @@ require([
 
         if (dialogID === 'wifi-joinHidden') {
           network.hidden = true;
-
-          // Make sure ssid length is less then 32 bytes.
-          var ssid = dialog.querySelector('input[name=ssid]');
-          ssid.oninput = function() {
-            var ssidStr = ssid.value;
-            // Non-ASCII chars in SSID will be encoded by UTF-8, and length of
-            // each char might be longer than 1 byte.
-            // Use encodeURIComponent() to encode ssid, then calculate correct
-            // length.
-            if (encodeURIComponent(ssidStr).replace(/%[\w\d]{2}/g, '1')
-                  .length > 32) {
-              ssid.value = ssidStr.substring(0, ssidStr.length - 1);
-            }
-          };
         }
 
         // disable the "OK" button if the password is too short
         if (password) {
-          var checkPassword = function checkPassword() {
-            dialog.querySelector('button[type=submit]').disabled =
-              !WifiHelper.isValidInput(key,
-                                       password.value,
-                                       identity.value,
-                                       eap.value);
-          };
+          var checkPassword = WifiHelper.checkPassword.bind(null, dialog, {
+            key: key,
+            password: password.value,
+            identity: identity.value,
+            eap: eap.value
+          });
           eap.onchange = function() {
             checkPassword();
             SettingsUtils.changeDisplay(dialogID, key);
@@ -698,16 +680,8 @@ require([
             break;
 
           case 'wifi-joinHidden':
-            var security = dialog.querySelector('select');
-            var onSecurityChange = function() {
-              key = security.selectedIndex ? security.value : '';
-              WifiHelper.setSecurity(network, [key]);
-              dialog.dataset.security = key;
-              checkPassword();
-              SettingsUtils.changeDisplay(dialogID, key);
-            };
-            security.onchange = onSecurityChange;
-            onSecurityChange();
+            dialogOptions.network = network;
+            dialogOptions.security = security;
             break;
         }
 
@@ -729,12 +703,8 @@ require([
             }
           }
           if (key) {
-            WifiHelper.setPassword(network,
-                                   password.value,
-                                   identity.value,
-                                   eap.value,
-                                   authPhase2.value,
-                                   certificate.value);
+            WifiHelper.setPassword(network, password.value, identity.value,
+              eap.value, authPhase2.value, certificate.value);
           }
           if (callback) {
             callback();
