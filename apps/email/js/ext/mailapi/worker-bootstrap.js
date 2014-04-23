@@ -6518,7 +6518,7 @@ FolderStorage.prototype = {
       return false;
     }
     function maybeDiscard(blockType, blockInfoList, loadedBlockInfos,
-                          blockMap, dirtyMap, filterFunc) {
+                          blockMap, dirtyMap, shouldDiscardFunc) {
       // console.warn('!! flushing', blockType, 'blocks because:', debugLabel);
 
       // Go backwards in array, to allow code to keep a count of
@@ -6531,7 +6531,7 @@ FolderStorage.prototype = {
           continue;
         }
 
-        if (filterFunc(blockInfo)) {
+        if (shouldDiscardFunc(blockInfo)) {
           // console.log('discarding', blockType, 'block', blockInfo.blockId);
           delete blockMap[blockInfo.blockId];
           loadedBlockInfos.splice(i, 1);
@@ -6564,7 +6564,7 @@ FolderStorage.prototype = {
         // For bodies, want to always purge as front end may decide to
         // never shrink a messages slice, but keep one block around to
         // avoid wasteful DB IO for commonly grouped operations, for
-        // example, a next/pervious message navigation direction change.
+        // example, a next/previous message navigation direction change.
         foundCount += 1;
         return foundCount > keepCount;
       }
@@ -7301,6 +7301,10 @@ FolderStorage.prototype = {
       if (self._mutexQueue.length === 0 && !self._flushExcessTimeoutId) {
         self._flushExcessTimeoutId = setTimeout(
           self._bound_flushExcessOnTimeout,
+          // Choose 5 seconds, since it is a human-scale value around
+          // the order of how long we expect it would take the user
+          // to realize they hit the opposite arrow navigation button
+          // from what they meant.
           5000
         );
       }
@@ -8892,7 +8896,13 @@ FolderStorage.prototype = {
           slice.desiredHeaders++;
         }
 
-        slice.headerCount = this.headerCount;
+        if (slice.type === 'folder') {
+          // TODO: make sure the slice knows the true offset of its
+          // first header in the folder. Currently the UI never
+          // shrinks its slice so this number is always 0 and we can
+          // get away without providing that offset for now.
+          slice.headerCount = this.headerCount;
+        }
 
         if (slice._onAddingHeader) {
           try {
@@ -9104,10 +9114,13 @@ FolderStorage.prototype = {
       for (var iSlice = 0; iSlice < this._slices.length; iSlice++) {
         var slice = this._slices[iSlice];
 
-        // TODO: this section continues over some slices that
-        // should at least get a notification of new headerCount
-        // and header positions.
-        slice.headerCount = this.headerCount;
+        if (slice.type === 'folder') {
+          // TODO: make sure the slice knows the true offset of its
+          // first header in the folder. Currently the UI never
+          // shrinks its slice so this number is always 0 and we can
+          // get away without providing that offset for now.
+          slice.headerCount = this.headerCount;
+        }
 
         if (slice === this._curSyncSlice)
           continue;
@@ -13229,11 +13242,17 @@ SearchSlice.prototype = {
   set atBottom(val) {
     this._bridgeHandle.atBottom = val;
   },
+  set headerCount(val) {
+    if (this._bridgeHandle)
+      this._bridgeHandle.headerCount = val;
+    return val;
+  },
 
   reset: function() {
     // misnomer but simplifies cutting/pasting/etc.  Really an array of
     // { header: header, matches: matchObj }
     this.headers = [];
+    this.headerCount = 0;
     // Track when we are still performing the initial database scan so that we
     // can ignore dynamic additions/modifications.  The initial database scan
     // is currently not clever enough to deal with concurrent manipulation, so
@@ -13303,11 +13322,15 @@ console.log('sf: gotMessages', headers.length);
 console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', wantMore);
         var insertAt = dir === -1 ? 0 : this.headers.length;
         this._LOG.headersAppended(insertAt, matchPairs);
+
+        this.headers.splice.apply(this.headers,
+                                  [insertAt, 0].concat(matchPairs));
+        this.headerCount = this.headers.length;
+
         this._bridgeHandle.sendSplice(
           insertAt, 0, matchPairs, true,
           moreMessagesComing || wantMore);
-        this.headers.splice.apply(this.headers,
-                                  [insertAt, 0].concat(matchPairs));
+
         if (wantMore) {
           this.reqGrow(dir, false, true);
         }
@@ -13432,8 +13455,9 @@ console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', w
     this.desiredHeaders = this.headers.length;
 
     this._LOG.headerAdded(idx, wrappedHeader);
-    this._bridgeHandle.sendSplice(idx, 0, [wrappedHeader], false, false);
     this.headers.splice(idx, 0, wrappedHeader);
+    this.headerCount = this.headers.length;
+    this._bridgeHandle.sendSplice(idx, 0, [wrappedHeader], false, false);
   },
 
   /**
@@ -13527,8 +13551,9 @@ console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', w
                                  cmpMatchHeadersYoungToOld);
     if (idx !== null) {
       this._LOG.headerRemoved(idx, wrappedHeader);
-      this._bridgeHandle.sendSplice(idx, 1, [], false, false);
       this.headers.splice(idx, 1);
+      this.headerCount = this.headers.length;
+      this._bridgeHandle.sendSplice(idx, 1, [], false, false);
     }
   },
 
@@ -13568,11 +13593,15 @@ console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', w
       this.userCanGrowDownwards = false;
       var delCount = this.headers.length - lastIndex  - 1;
       this.desiredHeaders -= delCount;
+
+      this.headers.splice(lastIndex + 1, this.headers.length - lastIndex - 1);
+      this.headerCount = this.headers.length;
+
       this._bridgeHandle.sendSplice(
         lastIndex + 1, delCount, [],
         // This is expected; more coming if there's a low-end splice
         true, firstIndex > 0);
-      this.headers.splice(lastIndex + 1, this.headers.length - lastIndex - 1);
+
       var lastHeader = this.headers[lastIndex].header;
       this.startTS = lastHeader.date;
       this.startUID = lastHeader.id;
@@ -13580,8 +13609,12 @@ console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', w
     if (firstIndex > 0) {
       this.atTop = false;
       this.desiredHeaders -= firstIndex;
-      this._bridgeHandle.sendSplice(0, firstIndex, [], true, false);
+
       this.headers.splice(0, firstIndex);
+      this.headerCount = this.headers.length;
+
+      this._bridgeHandle.sendSplice(0, firstIndex, [], true, false);
+
       var firstHeader = this.headers[0].header;
       this.endTS = firstHeader.date;
       this.endUID = firstHeader.id;
