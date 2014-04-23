@@ -101,13 +101,12 @@ var DeviceStorageWatcher = {
 
     var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
     var i = 0;
-    while (size >= 1024 && i < units.length) {
+    while (size >= 1024 && i < (units.length) - 1) {
       size /= 1024;
       ++i;
     }
 
-    var sizeString = size.toFixed((size < 1024 * 1024) ? 0 : 1);
-    var sizeDecimal = parseFloat(sizeString);
+    var sizeDecimal = i < 2 ? Math.round(size) : Math.round(size * 10) / 10;
 
     return {
       size: sizeDecimal,
