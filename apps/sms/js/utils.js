@@ -333,8 +333,10 @@
         });
         return;
       }
-      var ratio = Math.sqrt(blob.size / limit);
-      Utils.resizeImageBlobWithRatio({
+
+      // at least ratio = 2;
+      var ratio = Math.max(Math.sqrt(blob.size / limit), 2);
+      Utils._resizeImageBlobWithRatio({
         blob: blob,
         limit: limit,
         ratio: ratio,
@@ -345,27 +347,48 @@
     //  resizeImageBlobWithRatio have additional ratio to force image
     //  resize to smaller size to avoid edge case about quality adjustment
     //  not working.
-    resizeImageBlobWithRatio: function ut_resizeImageBlobWithRatio(obj) {
+    //  for jpg, we support ratio = 2, 4, 8, and more than 8.
+    _resizeImageBlobWithRatio: function ut_resizeImageBlobWithRatio(obj) {
       var blob = obj.blob;
       var callback = obj.callback;
       var limit = obj.limit;
-      var ratio = obj.ratio;
-      var qualities = [0.75, 0.5, 0.25];
+      var ratio = Math.floor(obj.ratio);
+      var qualities = [0.65, 0.5, 0.25];
 
-      if (blob.size < limit) {
+      var sampleSize = 1;
+      var sampleSizeHash = '';
+
+      if (blob.size < limit || ratio < 2) {
         setTimeout(function blobCb() {
           callback(blob);
         });
         return;
       }
 
+      if (blob.type === 'image/jpeg') {
+        // for moz-samplesize, Gecko uses only power 2, 4 or 8.
+        switch (ratio) {
+          case 3:
+            ratio = 2;
+            break;
+          case 5:
+          case 6:
+          case 7:
+            ratio = 4;
+        }
+
+        sampleSize = Math.min(ratio, 8);
+        sampleSizeHash = '#-moz-samplesize=' + sampleSize;
+      }
+
       var img = document.createElement('img');
       var url = window.URL.createObjectURL(blob);
-      img.src = url;
+      img.src = url + sampleSizeHash;
+
       img.onload = function onBlobLoaded() {
         window.URL.revokeObjectURL(url);
-        var imageWidth = img.width;
-        var imageHeight = img.height;
+        var imageWidth = img.width * sampleSize;
+        var imageHeight = img.height * sampleSize;
         var targetWidth = imageWidth / ratio;
         var targetHeight = imageHeight / ratio;
 
@@ -375,6 +398,7 @@
         var context = canvas.getContext('2d', { willReadFrequently: true });
 
         context.drawImage(img, 0, 0, targetWidth, targetHeight);
+        img.src = '';
         // Bug 889765: Since we couldn't know the quality of the original jpg
         // The 'resized' image might have a bigger size because it was saved
         // with quality or dpi. Here we will adjust the jpg quality(or resize
@@ -384,8 +408,14 @@
 
         function ensureSizeLimit(resizedBlob) {
           if (resizedBlob.size < limit) {
-            callback(resizedBlob);
+            canvas.width = canvas.height = 0;
+            canvas = null;
+
+            // using a setTimeout so that used objects can be garbage collected
+            // right now
+            setTimeout(callback.bind(null, resizedBlob));
           } else {
+            resizedBlob = null; // we don't need it anymore
             // Reduce image quality for match limitation. Here we set quality
             // to 0.75, 0.5 and 0.25 for image blob resizing.
             // (Default image quality is 0.92 for jpeg)
@@ -395,15 +425,23 @@
             } else {
               // We will resize the blob if image quality = 0.25 still exceed
               // size limitation.
-              Utils.resizeImageBlobWithRatio({
-                blob: blob,
-                limit: limit,
-                ratio: ratio * 2,
-                callback: callback
-              });
+              canvas.width = canvas.height = 0;
+              canvas = null;
+
+              // using a setTimeout so that used objects can be garbage
+              // collected right now
+              setTimeout(
+                Utils._resizeImageBlobWithRatio.bind(Utils, {
+                  blob: blob,
+                  limit: limit,
+                  ratio: ratio * 2,
+                  callback: callback
+                })
+              );
             }
           }
         }
+
         canvas.toBlob(ensureSizeLimit, blob.type);
       };
     },
