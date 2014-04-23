@@ -69,6 +69,10 @@ HudController.prototype.bindEvents = function() {
   this.app.on('timer:cleared', this.hud.setter('timer', 'inactive'));
   this.app.on('timer:started', this.hud.setter('timer', 'active'));
   this.app.on('timer:ended', this.hud.setter('timer', 'inactive'));
+
+  // Settings
+  this.app.on('settings:opened', this.hud.hide);
+  this.app.on('settings:closed', this.hud.show);
 };
 
 HudController.prototype.onModeChange = function() {
