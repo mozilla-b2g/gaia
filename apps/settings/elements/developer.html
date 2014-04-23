@@ -12,14 +12,20 @@
       </header>
       <ul>
         <li>
-          <p data-l10n-id="remote-debugging">Remote Debugging</p>
+          <p data-l10n-id="remote-debugging-usb">Debugging via USB</p>
           <span class="button icon icon-dialog">
             <select name="debugger.remote-mode" data-value-type="string">
               <option value="disabled" data-l10n-id="debugger-disabled" selected>Disabled</option>
               <option value="adb-only" data-l10n-id="debugger-adb-only">ADB Only</option>
-              <option value="adb-devtools" data-l10n-id="debugger-adb-and-devtools">ADB and Devtools</option>
+              <option value="adb-devtools" data-l10n-id="debugger-adb-and-devtools">ADB and DevTools</option>
             </select>
           </span>
+        </li>
+        <li data-show-name="devtools.remote.wifi.visible" hidden>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="devtools.remote.wifi.enabled">
+            <span data-l10n-id="dev-tools-wifi">DevTools via Wi-Fi</span>
+          </label>
         </li>
         <li>
           <button class="icon icon-view" data-href="#developer-hud" data-l10n-id="hud-button">Developer HUD</button>
