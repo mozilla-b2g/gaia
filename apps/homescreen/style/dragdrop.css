@@ -27,6 +27,10 @@
   margin-left: -0.15rem;
 }
 
+#collection .draggable img {
+  display: block;
+}
+
 #collection .draggable > div > span {
   margin-left: 0.2rem;
   margin-top: -0.2rem;

@@ -12,10 +12,19 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
     left: 0;
     right: 0;
     bottom: 0;
-    display: none;
     overflow: hidden;
     z-index: 10001;
     color: #fff;
+    transform: translateY(-100%);
+     /* this is exact as long as the header takes to animate.
+        we don't want to hide ourselves before header anim is done... */
+    transition: transform 380ms step-end;
+}
+
+.evmeScope #collection.visible {
+  transform: translateY(0);
+  /* if we go from hidden -> visible, don't animate */
+  transition: none;
 }
 
 .evmeScope #collection.renaming:before {
@@ -58,7 +67,7 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
       not all e.me assets are loaded
     */
     #icongrid.evme-collection-visible {
-      display: none;
+      transform: translateY(-100%); /* move out of viewport */
     }
 
     .evmeScope #collection .header {
@@ -165,6 +174,7 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
       }
         .evmeScope #collection .evme-apps ul.static li .icon {
             transform: scale(1);
+            /* dimensions get set from code */
         }
 
     .evmeScope #collection #bgimage-overlay {
