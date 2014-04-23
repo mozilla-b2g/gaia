@@ -68,9 +68,6 @@ const LAYOUT_MODE = {
 
 var currentView;
 
-// This will be set to "ltr" or "rtl" when we get our localized event
-var languageDirection;
-
 // Register orientation watcher in ScreenLayout
 ScreenLayout.watch('portrait', '(orientation: portrait)');
 var isPortrait = ScreenLayout.getCurrentLayout('portrait');
@@ -122,13 +119,8 @@ var lastFocusedThumbnail = null;
 
 var currentOverlay;  // The id of the current overlay or null if none.
 
-// The localized event is the main entry point for the app.
-// We don't do anything until we receive it.
-navigator.mozL10n.ready(function showBody() {
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-
+// mozL10n.once is the main entry point for the app.
+navigator.mozL10n.once(function showBody() {
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 
@@ -137,10 +129,8 @@ navigator.mozL10n.ready(function showBody() {
     loader.load('js/frame_scripts.js');
   }
 
-  // Now initialize the rest of the app. But don't re-initialize if the user
-  // switches languages when the app is already running
-  if (!photodb)
-    init();
+  // Now initialize the rest of the app.
+  init();
 });
 
 function init() {

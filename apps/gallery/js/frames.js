@@ -286,7 +286,7 @@ function swipeHandler(event) {
   var direction = (frameOffset < 0) ? 1 : -1;
 
   // If we're in a right-to-left locale, reverse those directions
-  if (languageDirection === 'rtl')
+  if (navigator.mozL10n.language.direction === 'rtl')
     direction *= -1;
 
   // Did we pan far enough or swipe fast enough to transition to
