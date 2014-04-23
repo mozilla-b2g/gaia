@@ -137,12 +137,14 @@
 
   // Core.js
   this.Core = new function Core() {
-    var self = this;
-
     this.init = function init() {
-      Searcher.empty();
-      Evme.Searchbar.clear();
-      Brain.Searchbar.setEmptyClass();
+      if (Evme.Searchbar.getValue() === '') {
+        Searcher.empty();
+        Brain.Searchbar.setEmptyClass();
+      }
+      if (Evme.Searchbar.isFocused()) {
+        Evme.Utils.setKeyboardVisibility(true);
+      }
       document.body.classList.add(CLASS_WHEN_EVME_READY);
     };
   };
