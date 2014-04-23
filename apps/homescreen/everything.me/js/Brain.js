@@ -22,7 +22,6 @@
       TIMEOUT_BEFORE_REQUESTING_APPS_AGAIN = 500,
       TIMEOUT_BEFORE_SHOWING_DEFAULT_IMAGE = 3000,
       TIMEOUT_BEFORE_SHOWING_HELPER = 3000,
-      TIMEOUT_BEFORE_RENDERING_AC = 300,
       TIMEOUT_BEFORE_RUNNING_APPS_SEARCH = 600,
       TIMEOUT_BEFORE_RUNNING_IMAGE_SEARCH = 800,
       TIMEOUT_BEFORE_AUTO_RENDERING_MORE_APPS = 200,
@@ -1413,14 +1412,12 @@
         requestSearch = null,
         requestImage = null,
         requestIcons = null,
-        requestAutocomplete = null,
 
         timeoutShowDefaultImage = null,
         timeoutHideHelper = null,
         timeoutSearchImageWhileTyping = null,
         timeoutSearch = null,
         timeoutSearchWhileTyping = null,
-        timeoutAutocomplete = null,
         timeoutShowAppsLoading = null;
 
     function resetLastSearch(bKeepImageQuery) {
@@ -1700,35 +1697,52 @@
       Evme.Features.stopTimingFeature('typingImage');
     }
 
+    this._lastQuery = null;
+    this._lastQueryRequest = null;
+
     this.getAutocomplete = function getAutocomplete(query) {
+      this._lastQuery = query;
+
       if (autocompleteCache[query]) {
-        getAutocompleteComplete(autocompleteCache[query]);
+        this.getAutocompleteComplete(autocompleteCache[query], query);
         return;
       }
 
-      requestAutocomplete = Evme.DoATAPI.suggestions({
+      // Make sure we show the users input immediately
+      this.getAutocompleteComplete([query], query);
+
+      if (this._lastQueryRequest && this._lastQueryRequest.abort) {
+        this._lastQueryRequest.abort();
+        this._lastQueryRequest = null;
+      }
+
+      // Then do the actual call to e.me
+      var xhr = this._lastQueryRequest = Evme.DoATAPI.suggestions({
         'query': query
       }, function onSuccess(data) {
+        if (xhr === this._lastQueryRequest) {
+          this._lastQueryRequest = null;
+        }
         if (!data) {
           return;
         }
         var items = data.response || [];
         autocompleteCache[query] = items;
-        getAutocompleteComplete(items, query);
-      });
+        this.getAutocompleteComplete(items, query);
+      }.bind(this));
     };
 
-    function getAutocompleteComplete(items, querySentWith) {
-      window.clearTimeout(timeoutAutocomplete);
-      timeoutAutocomplete = window.setTimeout(function onTimeout() {
-        if (Evme.Utils.isKeyboardVisible && !requestSearch) {
-          Evme.Helper.loadSuggestions(items);
-          Evme.Helper.showSuggestions(querySentWith);
-          requestAutocomplete = null;
-        }
-      }, TIMEOUT_BEFORE_RENDERING_AC);
-    }
+    this.getAutocompleteComplete = function(items, querySentWith) {
+      // If querySentWith is not the same as current query, don't update UI
+      if (querySentWith !== this._lastQuery) {
+        return;
+      }
 
+      if (Evme.Utils.isKeyboardVisible && !requestSearch) {
+        Evme.Helper.loadSuggestions(items);
+        Evme.Helper.showSuggestions(querySentWith);
+      }
+    };
 
     function setTimeoutForShowingDefaultImage() {
       Searcher.clearTimeoutForShowingDefaultImage();
@@ -1909,7 +1923,9 @@
       Evme.Features.stopTimingFeature('typingImage');
 
       Searcher.cancelSearch();
-      cancelAutocomplete();
+      if (Searcher._lastQueryRequest && Searcher._lastQueryRequest.abort) {
+        Searcher._lastQueryRequest.abort();
+      }
 
       Searcher.cancelImageSearch();
 
@@ -1931,13 +1947,6 @@
       requestSearch && requestSearch.abort && requestSearch.abort();
       requestSearch = null;
     };
-
-    function cancelAutocomplete() {
-      window.clearTimeout(timeoutAutocomplete);
-      requestAutocomplete && requestAutocomplete.abort &&
-                                                  requestAutocomplete.abort();
-      requestAutocomplete = null;
-    }
 
     this.setLastQuery = function setLastQuery() {
       Evme.Searchbar.setValue(lastSearch.query, false, true);
