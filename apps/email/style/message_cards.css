@@ -233,6 +233,10 @@ input.msg-search-text-tease {
   margin: 0 auto;
 }
 
+.card-message-reader .scrollregion-below-header {
+  height: calc(100% - 9.5rem);
+}
+
 .msg-attachments-container {
   padding: 0 1.5rem;
   font-size: 1.2rem;
