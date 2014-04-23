@@ -590,7 +590,7 @@ suite('Renderer', function() {
       });
     });
 
-    suite.skip('Dimensions', function() {
+    suite('Dimensions', function() {
       function createDimensionTest(rows, orientation, suggest, latin, next) {
         var layout = {
           width: (Math.random() * 8 | 0) + 2,
