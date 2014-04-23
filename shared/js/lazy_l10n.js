@@ -20,32 +20,26 @@
         return;
       }
 
+      var loadDate = this._loadDate.bind(this, callback);
+
       if (this._inDOM) {
-        this._waitForLoadAndDate(callback);
+        navigator.mozL10n.once(loadDate);
         return;
       }
 
       // Add the l10n JS files to the DOM and wait for them to load.
-      loader.load(['/shared/js/l10n.js']);
-      this._waitForLoadAndDate(function baseLoaded() {
-        callback(navigator.mozL10n.get);
+      loader.load(['/shared/js/l10n.js'], function baseLoaded() {
+        navigator.mozL10n.once(loadDate);
       });
       this._inDOM = true;
     },
 
-    _waitForLoadAndDate: function ll10n_waitForLoadAndDate(callback) {
-      var finalize = this._finalize.bind(this);
-      window.addEventListener('localized', function onLocalized() {
-        window.removeEventListener('localized', onLocalized);
-        loader.load('/shared/js/l10n_date.js', function() {
-          finalize(callback);
-        });
-      });
+    _loadDate: function ll10n_loadDate(callback) {
+      loader.load('/shared/js/l10n_date.js',
+                  this._finalize.bind(this, callback));
     },
 
     _finalize: function ll10n_finalize(callback) {
-      document.documentElement.lang = navigator.mozL10n.language.code;
-      document.documentElement.dir = navigator.mozL10n.language.direction;
       this._loaded = true;
       callback(navigator.mozL10n.get);
     }

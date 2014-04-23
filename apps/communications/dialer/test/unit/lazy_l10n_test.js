@@ -13,9 +13,15 @@ suite('LazyL10n', function() {
       get: function get(key) {
         return key;
       },
-      language: {
-        code: 'US',
-        direction: 'ltr'
+      once: function once(callback) {
+        this._callbacks.push(callback);
+      },
+      _callbacks: [],
+      _fire: function() {
+        for (var callback of this._callbacks) {
+          setTimeout(callback);
+        }
+        this._callbacks = [];
       }
     };
   });
@@ -87,9 +93,7 @@ suite('LazyL10n', function() {
 
       LazyL10n.get(callback);
 
-      var evtObject = document.createEvent('Event');
-      evtObject.initEvent('localized', false, false);
-      window.dispatchEvent(evtObject);
+      navigator.mozL10n._fire();
     });
 
     test('should insert then wait for the localized event if not loaded',
@@ -107,9 +111,7 @@ suite('LazyL10n', function() {
 
       LazyL10n.get(callback);
 
-      var evtObject = document.createEvent('Event');
-      evtObject.initEvent('localized', false, false);
-      window.dispatchEvent(evtObject);
+      navigator.mozL10n._fire();
     });
 
     test('subsequent gets should have all dependencies loaded', function(done) {
@@ -127,9 +129,9 @@ suite('LazyL10n', function() {
       LazyL10n.get(this.sinon.stub());
       LazyL10n.get(callback);
 
-      var evtObject = document.createEvent('Event');
-      evtObject.initEvent('localized', false, false);
-      window.dispatchEvent(evtObject);
+      // No need to explicitly fire the callbacks since on subsequent gets
+      // navigator.mozL10n is the real mozL10n object and has the proper once
+      // method relying on its internal event emitter.
     });
 
   });
