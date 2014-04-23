@@ -69,6 +69,14 @@
           self.entries.push(new Bookmark(systemBookmarks[id]));
         });
 
+        self.entries.push(new Bookmark({
+          name: 'Browser',
+          url: "http://mozilla.org",
+          icon: "app://home2.gaiamobile.org/style/icons/aurora.png",
+          features: "rocketbarstartpage",
+          removable: false
+        }));
+
         success(self.entries);
       }, success);
     },
