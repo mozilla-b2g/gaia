@@ -176,8 +176,11 @@ var FtuPing = (function() {
     });
   }
 
-  function ensurePing() {
+  function ensurePing(callback) {
     initSettings(function() {
+      if (callback) {
+        callback();
+      }
       FtuPing.startPing();
     });
   }
