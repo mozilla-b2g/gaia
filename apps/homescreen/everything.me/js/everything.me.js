@@ -22,9 +22,14 @@ var EverythingME = {
         // And move the container into the searchPage thing
         gridPage.appendChild(searchPage.querySelector('#evmeContainer'));
 
-        var input = document.querySelector('#search-q');
-        input.addEventListener('focus', function onFocus(e) {
-          input.removeEventListener('focus', onFocus);
+        var inputBg = document.querySelector('#search-q-bg');
+        inputBg.addEventListener('click', function onFocus(e) {
+          inputBg.removeEventListener('click', onFocus);
+
+          e.stopPropagation();
+          e.preventDefault();
+
+          inputBg.querySelector('#search-q').focus();
 
           triggerActivateFromInput(e);
         });

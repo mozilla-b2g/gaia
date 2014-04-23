@@ -388,12 +388,7 @@
     this.showDefault = function showDefault() {
       Evme.BackgroundImage.loadDefault();
 
-      if (Evme.Searchbar.getValue() == '' && !Evme.Utils.isKeyboardVisible) {
-        Evme.Helper.setTitle();
-        Evme.Helper.showTitle();
-      } else {
-        self.loadHistory();
-      }
+      self.loadHistory();
     };
 
     // transition to history items
