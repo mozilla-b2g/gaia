@@ -25,6 +25,7 @@ suite('system/DialerAgent', function() {
   var realTelephony, realVibrate, realLockscreen;
 
   var subject;
+  var setVisibleSpy;
 
   function callschanged() {
     MockNavigatorMozTelephony.mTriggerEvent(new CustomEvent('callschanged'));
@@ -64,6 +65,11 @@ suite('system/DialerAgent', function() {
   var CSORIGIN = window.location.origin.replace('system', 'callscreen') + '/';
 
   setup(function() {
+    if (!('setVisible' in HTMLIFrameElement.prototype)) {
+      HTMLIFrameElement.prototype.setVisible = function stub() {};
+    }
+    setVisibleSpy = this.sinon.spy(HTMLIFrameElement.prototype, 'setVisible');
+
     this.sinon.useFakeTimers();
     subject = new DialerAgent().start();
   });
@@ -142,6 +148,8 @@ suite('system/DialerAgent', function() {
 
     test('it should be hidden at first', function() {
       assert.equal(csFrame.dataset.hidden, 'true');
+      sinon.assert.calledOnce(setVisibleSpy);
+      sinon.assert.calledWith(setVisibleSpy, false);
     });
 
     test('it should be preloaded', function() {
@@ -202,6 +210,12 @@ suite('system/DialerAgent', function() {
           var src = CSORIGIN + 'index.html#locked&timestamp=0';
           assertAttentionScreen(src, attentionSpy);
         });
+      });
+
+      test('it should set the callscreen visibility to true', function() {
+        callschanged();
+        sinon.assert.calledTwice(setVisibleSpy);
+        assert.isTrue(setVisibleSpy.lastCall.args[0]);
       });
     });
 
