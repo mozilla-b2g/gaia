@@ -20,8 +20,6 @@
       PAGEVIEW_SOURCES = {},
 
       TIMEOUT_BEFORE_REQUESTING_APPS_AGAIN = 500,
-      TIMEOUT_BEFORE_SHOWING_DEFAULT_IMAGE = 3000,
-      TIMEOUT_BEFORE_SHOWING_HELPER = 3000,
       TIMEOUT_BEFORE_RUNNING_APPS_SEARCH = 600,
       TIMEOUT_BEFORE_RUNNING_IMAGE_SEARCH = 800,
       TIMEOUT_BEFORE_AUTO_RENDERING_MORE_APPS = 200,
@@ -1411,7 +1409,6 @@
         requestIcons = null,
 
         timeoutShowDefaultImage = null,
-        timeoutHideHelper = null,
         timeoutSearchImageWhileTyping = null,
         timeoutSearch = null,
         timeoutSearchWhileTyping = null,
@@ -1451,6 +1448,9 @@
         return;
       }
 
+      // Clear current results
+      Evme.SearchResults.clear();
+
       // perform search
       var type = options.type,
         index = options.index,
@@ -1471,7 +1471,6 @@
          source !== SEARCH_SOURCES.SPELLING);
 
       if (exact && appsCurrentOffset === 0) {
-        window.clearTimeout(timeoutHideHelper);
 
         if (!onlyDidYouMean) {
           if (!options.automaticSearch) {
@@ -1484,8 +1483,7 @@
             Evme.SearchHistory.save(query, type);
           }
 
-          timeoutHideHelper = window.setTimeout(Evme.Helper.showTitle,
-                                                TIMEOUT_BEFORE_SHOWING_HELPER);
+          Evme.Helper.showTitle();
         }
       }
 
@@ -1545,8 +1543,6 @@
       if (requestAppsTime < lastRequestAppsTime) {
         return;
       }
-
-      window.clearTimeout(timeoutHideHelper);
 
       var _query = options.query,
       _type = options.type,
@@ -1651,7 +1647,7 @@
         return;
       }
 
-      setTimeoutForShowingDefaultImage();
+      Evme.BackgroundImage.loadDefault();
 
       requestImage && requestImage.abort && requestImage.abort();
       requestImage = Evme.DoATAPI.bgimage({
@@ -1740,13 +1736,6 @@
         Evme.Helper.showSuggestions(querySentWith);
       }
     };
-
-    function setTimeoutForShowingDefaultImage() {
-      Searcher.clearTimeoutForShowingDefaultImage();
-      timeoutShowDefaultImage =
-        window.setTimeout(Evme.BackgroundImage.loadDefault,
-                            TIMEOUT_BEFORE_SHOWING_DEFAULT_IMAGE);
-    }
 
     this.clearTimeoutForShowingDefaultImage =
       function clearTimeoutForShowingDefaultImage() {
@@ -1895,6 +1884,7 @@
         'source': source
       };
 
+      /*
       requestSearch && requestSearch.abort && requestSearch.abort();
       window.clearTimeout(timeoutSearchWhileTyping);
       timeoutSearchWhileTyping = window.setTimeout(function onTimeout() {
@@ -1913,6 +1903,7 @@
           Searcher.getBackgroundImage(searchOptions);
         }, TIMEOUT_BEFORE_RUNNING_IMAGE_SEARCH);
       }
+      */
     };
 
     this.cancelRequests = function cancelRequests() {

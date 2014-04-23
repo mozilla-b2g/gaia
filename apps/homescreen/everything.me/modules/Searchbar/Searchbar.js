@@ -51,6 +51,8 @@ Evme.Searchbar = new function Evme_Searchbar() {
       clearButtonClick();
     });
 
+    isFocused = this.isFocused();
+
     Evme.EventHandler.trigger(NAME, 'init');
   };
 
