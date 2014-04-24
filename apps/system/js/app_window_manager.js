@@ -542,16 +542,15 @@
      * @memberOf module:AppWindowManager
      */
     launch: function awm_launch(config) {
-      if (config.stayBackground) {
-        if (config.changeURL && this.isRunning(config.origin)) {
-          // XXX: Potential problems here:
-          // there may be more than one app window instances
-          // have the same origin running,
-          // and we may change the wrong one.
-          this.getApp(config.origin).modifyURLatBackground(config.url);
-        }
-        return;
-      } else {
+      if (config.changeURL && this.isRunning(config)) {
+        // XXX: Potential problems here:
+        // there may be more than one app window instances
+        // have the same origin running,
+        // and we may change the wrong one.
+        this.getApp(config.origin).modifyURLatBackground(config.url);
+      }
+
+      if (!config.stayBackground) {
         // Link the window before displaying it to avoid race condition.
         if (config.isActivity && this._activeApp) {
           this.linkWindowActivity(config);
