@@ -62,6 +62,7 @@ suite('Nfc Manager Functions', function() {
       var backStr = NfcUtils.toUTF8(u8a);
       var backU8a = NfcUtils.fromUTF8(str);
       var nullObj = NfcUtils.toUTF8(null);
+      var nullStr = NfcUtils.fromUTF8(null);
 
       var u1 = NfcUtils.equalArrays(u8a, uint8array1);
       var s1 = NfcUtils.equalArrays(str, string1);
@@ -77,6 +78,7 @@ suite('Nfc Manager Functions', function() {
       assert.equal(bu1, true);
       assert.equal(bu2, true);
       assert.equal(nullObj, null);
+      assert.equal(nullStr, null);
     });
 
   });
