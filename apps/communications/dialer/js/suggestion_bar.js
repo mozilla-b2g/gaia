@@ -301,7 +301,6 @@ var SuggestionBar = {
           this._allMatched.allMatches[i][j], node);
       }
     }
-    this.overlay.hidden = false;
     this.overlay.classList.add('display');
   },
 
@@ -323,7 +322,6 @@ var SuggestionBar = {
     }
     var self = this;
     this.overlay.classList.remove('display');
-    this.overlay.hidden = true;
     self.list.innerHTML = '';
   }
 };

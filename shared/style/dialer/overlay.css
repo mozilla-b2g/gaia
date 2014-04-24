@@ -1,26 +1,30 @@
 /*
  * Extend action menu as an overlay
+ * Using only form[role="dialog"][data-type="action"] when we need to override BB
  */
-form.overlay {
+form[role="dialog"][data-type="action"].overlay {
   font-size: 1.5rem;
-  opacity: 1;
-  transform: translateY(-100%);
-  transition: transform 0.4s ease-in-out;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease 0s;
 }
 
 form.overlay > menu {
   height: 100%;
+  padding: 0;
+  max-height: calc(100% - 12rem);
 }
 
-form.overlay.display {
-  transform: translateY(0%);
+form[role="dialog"][data-type="action"].overlay.display {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 form.overlay menu ul {
-  height: calc(100% - 13rem);
+  height: 100%;
   overflow: auto;
-  margin-top: 5rem;
-  padding: 0 2rem 0 2rem;
+  padding: 0 1.5rem;
   line-height: 2.4rem;
   list-style: none outside none;
 }
@@ -44,8 +48,25 @@ form.overlay menu ul > section:after {
   bottom: 0;
 }
 
-form.overlay menu ul > li:active,
-form.overlay menu ul > section:active {
-  background-color: #00ABCC;
-  transition: background-color 0.2s ease;
+
+form.overlay menu ul > li:last-child,
+form.overlay menu ul > section:last-child,
+form.overlay menu ul > li:last-child::after,
+form.overlay menu ul > section:last-child::after{
+  border: none;
+}
+
+form.overlay  .suggestion-item > div {
+  margin: auto 1.5rem;
+}
+
+form.overlay .suggestion-item,
+form.overlay .suggestion-item .name,
+form.overlay .suggestion-item div .tel-type,
+form.overlay .suggestion-item div .tel {
+  color: #fff;
+}
+
+form.overlay .suggestion-item .tel > span {
+  color: #3cc;
 }
