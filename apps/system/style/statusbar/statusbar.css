@@ -583,3 +583,7 @@ body.rb-enabled #statusbar-label {
 .sb-icon-playing {
   background-position: -18.9rem -8rem;
 }
+
+.sb-icon-nfc {
+  background-position: -27.3rem -8rem;
+}
