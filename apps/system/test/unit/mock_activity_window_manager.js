@@ -1,16 +1,16 @@
-/* exported MockActivityWindowFactory */
+/* exported MockActivityWindowManager */
 
 'use strict';
 
 (function(exports) {
-  var MockActivityWindowFactory = function() {
+  var MockActivityWindowManager = function() {
     this._lastActivity = null;
     this._activeActivity = null;
     this._activities = [];
     return this;
   };
 
-  MockActivityWindowFactory.prototype = {
+  MockActivityWindowManager.prototype = {
     getActiveWindow: function() {
       return this._activeActivity;
     },
@@ -33,5 +33,5 @@
     }
   };
 
-  exports.MockActivityWindowFactory = MockActivityWindowFactory;
+  exports.MockActivityWindowManager = MockActivityWindowManager;
 }(window));

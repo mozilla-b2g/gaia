@@ -1,3 +1,5 @@
+/* global StackManager, AppWindow, Event, MocksHelper,
+          HomescreenLauncher */
 'use strict';
 
 mocha.globals(['homescreenLauncher', 'layoutManager']);
@@ -61,7 +63,7 @@ suite('system/StackManager >', function() {
       manifestURL:
         'app://communications.gaiamobile.org/contact/manifest.webapp',
       name: 'Contact',
-      parentWindow: contact
+      previousWindow: contact
     });
 
     contact_sheet_2 = new AppWindow({
@@ -70,7 +72,7 @@ suite('system/StackManager >', function() {
       manifestURL:
         'app://communications.gaiamobile.org/contact/manifest.webapp',
       name: 'Contact',
-      parentWindow: contact_sheet_1
+      previousWindow: contact_sheet_1
     });
 
     settings_sheet_1 = new AppWindow({
@@ -78,7 +80,7 @@ suite('system/StackManager >', function() {
       origin: 'app://settings.gaiamobile.org/',
       manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
       name: 'Settings',
-      parentWindow: settings
+      previousWindow: settings
     });
 
     settings_sheet_2 = new AppWindow({
@@ -86,7 +88,7 @@ suite('system/StackManager >', function() {
       origin: 'app://settings.gaiamobile.org/',
       manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
       name: 'Settings',
-      parentWindow: settings_sheet_1
+      previousWindow: settings_sheet_1
     });
 
     settings_sheet_3 = new AppWindow({
@@ -94,7 +96,7 @@ suite('system/StackManager >', function() {
       origin: 'app://settings.gaiamobile.org/',
       manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
       name: 'Settings',
-      parentWindow: settings_sheet_2
+      previousWindow: settings_sheet_2
     });
 
     contact_sheet_1.groupID = contact.groupID;
@@ -116,9 +118,9 @@ suite('system/StackManager >', function() {
       window.dispatchEvent(evt);
     }
 
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('launchapp', true, false, app.config);
-    window.dispatchEvent(evt);
+    var evt2 = document.createEvent('CustomEvent');
+    evt2.initCustomEvent('launchapp', true, false, app.config);
+    window.dispatchEvent(evt2);
   }
 
   function wrapperLaunch(app, warm) {
@@ -128,9 +130,9 @@ suite('system/StackManager >', function() {
       window.dispatchEvent(evt);
     }
 
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('launchapp', true, false, app.config);
-    window.dispatchEvent(evt);
+    var evt2 = document.createEvent('CustomEvent');
+    evt2.initCustomEvent('launchapp', true, false, app.config);
+    window.dispatchEvent(evt2);
   }
 
   function appCrash(app) {
@@ -151,17 +153,6 @@ suite('system/StackManager >', function() {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appopening', true, false, app);
     window.dispatchEvent(evt);
-  }
-
-  function configify(app) {
-    var config = {};
-    for (var key in app) {
-      if (key != 'frame' && key != 'iframe') {
-        config[key] = app[key];
-      }
-    }
-
-    return config;
   }
 
   suite('Homescreen', function() {

@@ -37,7 +37,7 @@ requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_secure_window_manager.js');
 requireApp('system/test/unit/mock_lockscreen_window_manager.js');
 requireApp('system/test/unit/mock_secure_window_factory.js');
-requireApp('system/test/unit/mock_activity_window_factory.js');
+requireApp('system/test/unit/mock_activity_window_manager.js');
 requireApp('system/test/unit/mock_app_window_factory.js');
 
 mocha.globals([
@@ -62,18 +62,18 @@ mocha.globals([
   'telephonySettings',
   'ttlView',
   'title',
-  'appWindowFactory',
   'LayoutManager',
   'activityWindowFactory',
   'visibilityManager',
   'Applications',
-  'activityWindowFactory',
+  'activityWindowManager',
   'homescreenLauncher',
   'ActivityWindowFactory',
   'visibilityManager',
   'applications',
   'layoutManager',
-  'permissionManager'
+  'permissionManager',
+  'appWindowFactory'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
@@ -104,7 +104,7 @@ var mocksForBootstrap = new MocksHelper([
   'LayoutManager',
   'SecureWindowManager',
   'SecureWindowFactory',
-  'ActivityWindowFactory',
+  'ActivityWindowManager',
   'LockScreenWindowManager',
   'L10n'
 ]).init();

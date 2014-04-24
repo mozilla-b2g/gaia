@@ -1,7 +1,10 @@
+/* global AppWindowManager, AppWindow, homescreenLauncher,
+          MockAttentionScreen, HomescreenWindow, MocksHelper,
+          MockSettingsListener, MockLockScreen, HomescreenLauncher */
 'use strict';
 
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
-      'dispatchEvent', 'ActivityWindow', 'activityWindowFactory',
+      'dispatchEvent', 'ActivityWindow',
       'AppWindowManager', 'Applications', 'ManifestHelper',
       'KeyboardManager', 'StatusBar', 'HomescreenWindow',
       'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
@@ -14,7 +17,6 @@ requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_activity_window.js');
-requireApp('system/test/unit/mock_activity_window_factory.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_attention_screen.js');
@@ -28,7 +30,7 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForAppWindowManager = new MocksHelper([
   'OrientationManager', 'AttentionScreen',
-  'ActivityWindow', 'ActivityWindowFactory',
+  'ActivityWindow',
   'Applications', 'SettingsListener', 'HomescreenLauncher',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
   'HomescreenWindow', 'AppWindow', 'LayoutManager'
@@ -43,9 +45,7 @@ suite('system/AppWindowManager', function() {
     stubById.returns(document.createElement('div'));
 
     window.lockScreen = MockLockScreen;
-    window.activityWindowFactory = new ActivityWindowFactory();
-    window.activityWindowFactory.start();
-    window.layoutManager = new LayoutManager().start();
+    window.layoutManager = new window.LayoutManager();
 
     home = new HomescreenWindow('fakeHome');
     window.homescreenLauncher = new HomescreenLauncher().start();
@@ -69,8 +69,6 @@ suite('system/AppWindowManager', function() {
   teardown(function() {
     AppWindowManager.uninit();
     delete window.lockScreen;
-    window.activityWindowFactory.stop();
-    delete window.activityWindowFactory;
     delete window.layoutManager;
     // MockHelper won't invoke mTeardown() for us
     // since MockHomescreenLauncher is instantiable now
@@ -146,7 +144,7 @@ suite('system/AppWindowManager', function() {
     Array.slice(arguments).forEach(function iterator(app) {
       AppWindowManager._apps[app.instanceID] = app;
     });
-  };
+  }
 
   suite('Handle events', function() {
     test('Home Gesture enabled', function() {
@@ -523,11 +521,11 @@ suite('system/AppWindowManager', function() {
     });
 
     test('Launch app is running and change URL', function() {
-      injectRunningApps();
+      injectRunningApps(app5);
       var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
       var stubChangeURL = this.sinon.stub(app5, 'modifyURLatBackground');
-      AppWindowManager._apps[app5.instanceID] = app5;
       AppWindowManager.launch(fakeAppConfig5Background);
+      assert.isTrue(stubChangeURL.called);
       assert.isFalse(stubDisplay.called);
     });
 
@@ -546,23 +544,8 @@ suite('system/AppWindowManager', function() {
       AppWindowManager.launch(fakeAppConfig7Activity);
 
       assert.isTrue(stubDisplay.called);
-      assert.equal(app7.activityCaller, app1);
-      assert.equal(app1.activityCallee, app7);
-    });
-
-    test('Launch activity from inline activity', function() {
-      injectRunningApps(app1, app7);
-      AppWindowManager._updateActiveApp(app1.instanceID);
-
-      var activity = new ActivityWindow({});
-      activityWindowFactory._activeActivity = activity;
-
-      var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
-      AppWindowManager.launch(fakeAppConfig7Activity);
-
-      assert.isTrue(stubDisplay.called);
-      assert.equal(app7.activityCaller, activity);
-      assert.equal(activity.activityCallee, app7);
+      assert.equal(app7.callerWindow, app1);
+      assert.equal(app1.calleeWindow, app7);
     });
   });
 

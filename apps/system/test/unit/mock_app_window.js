@@ -1,74 +1,89 @@
-var _id = 0;
+'use strict';
 
-var MockAppWindowHelper = {
-  mInstances: [],
-  mLatest: null
-};
+(function(exports) {
+  var _id = 0;
 
-var MockAppWindow = function AppWindow(config) {
-  this.open = function() {};
-  this.close = function() {};
-  this.kill = function() {};
-  this.toggle = function() {};
-  this.ready = function() {};
-  this.isActive = function() {};
-  this.changeURL = function() {};
-  this.resize = function() {};
-  this.setVisible = function() {};
-  this.blur = function() {};
-  this.publish = function() {};
-  this.broadcast = function() {};
-  this.fadeIn = function() {};
-  this.fadeOut = function() {};
-  this.setOrientation = function() {};
-  this.focus = function() {};
-  this.blur = function() {};
-  this.debug = function() {};
-  this.tryWaitForFullRepaint = function() {};
-  this.waitForNextPaint = function() {};
-  this.forward = function() {};
-  this.canGoForward = function() {};
-  this.canGoBack = function() {};
-  this.back = function() {};
-  this.reload = function() {};
-  this.isFullScreen = function() {};
-  this._changeState = function() {};
-  this._setVisible = function() {};
-  this.modifyURLatBackground = function() {};
-  if (config) {
-    for (var key in config) {
-      this[key] = config[key];
-    }
-  }
-  this.isHomescreen = false;
-  this.config = config;
-  this.element = document.createElement('div');
-  this.browser = {
-    element: document.createElement('iframe')
+  var MockAppWindowHelper = {
+    mInstances: [],
+    mLatest: null
   };
-  MockAppWindowHelper.mInstances.push(this);
-  MockAppWindowHelper.mLatest = this;
-  this.determineClosingRotationDegree = function() { return 0; };
-  this.isTransitioning = function() { return false; };
-  this.calibratedHeight = function() { return false; };
-  this.isOOP = function() { return true; };
-  this.isDead = function() { return false };
-  this.reviveBrowser = function() {};
-  this.getPrev = function() { return undefined; };
-  this.getNext = function() { return undefined; };
-  var self = this;
-  this.getRootWindow = function() { return self; };
-  this.getLeafWindow = function() { return self; };
-  this.getActiveWindow = function() { return self; };
-  this.requestOpen = function() {};
-  this.instanceID = _id++;
-  this.groupID = this.instanceID;
-};
-
-MockAppWindow.prototype.publish = function() {};
-
-MockAppWindow.mTeardown = function() {
-  MockAppWindowHelper.mInstances = [];
-  MockAppWindowHelper.mLatest = null;
-  _id = 0;
-};
+  var MockAppWindow = function AppWindow(config) {
+    if (config) {
+      for (var key in config) {
+        this[key] = config[key];
+      }
+      this.config = config;
+    }
+    this.instanceID = _id++;
+    this.groupID = this.instanceID;
+    MockAppWindowHelper.mInstances.push(this);
+    MockAppWindowHelper.mLatest = this;
+  };
+  MockAppWindow.prototype = {
+    isHomescreen: false,
+    get element() {
+      if (!this._element) {
+        this._element = document.createElement('div');
+      }
+      return this._element;
+    },
+    get browser() {
+      if (!this._iframe) {
+        this._iframe = document.createElement('iframe');
+      }
+      return {
+        element: this._iframe
+      };
+    },
+    render: function() {},
+    open: function() {},
+    close: function() {},
+    kill: function() {},
+    toggle: function() {},
+    ready: function() {},
+    isActive: function() {},
+    changeURL: function() {},
+    resize: function() {},
+    setVisible: function() {},
+    blur: function() {},
+    publish: function() {},
+    broadcast: function() {},
+    fadeIn: function() {},
+    fadeOut: function() {},
+    setOrientation: function() {},
+    focus: function() {},
+    debug: function() {},
+    tryWaitForFullRepaint: function() {},
+    waitForNextPaint: function() {},
+    forward: function() {},
+    canGoForward: function() {},
+    canGoBack: function() {},
+    back: function() {},
+    reload: function() {},
+    isFullScreen: function() {},
+    _changeState: function() {},
+    _setVisible: function() {},
+    modifyURLatBackground: function() {},
+    getFrameForScreenshot: function() { return this.browser.element; },
+    getTopMostWindow: function() { return this; },
+    determineClosingRotationDegree: function() { return 0; },
+    isTransitioning: function() { return false; },
+    calibratedHeight: function() { return false; },
+    isOOP: function() { return true; },
+    isDead: function() { return false; },
+    reviveBrowser: function() {},
+    getPrev: function() { return undefined; },
+    getNext: function() { return undefined; },
+    getRootWindow: function() { return this; },
+    getLeafWindow: function() { return this; },
+    getActiveWindow: function() { return this; },
+    requestOpen: function() {}
+  };
+  MockAppWindow.mTeardown = function() {
+    MockAppWindowHelper.mInstances = [];
+    MockAppWindowHelper.mLatest = null;
+    _id = 0;
+  };
+  exports.MockAppWindow = MockAppWindow;
+  exports.MockAppWindowHelper = MockAppWindowHelper;
+}(window));

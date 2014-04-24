@@ -1,7 +1,34 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/*global ActivityWindowManager, SecureWindowFactory,
+         SecureWindowManager, HomescreenLauncher,
+         FtuLauncher, SourceView, ScreenManager, Places, Activities,
+         DialerAgent, DevtoolsView, RemoteDebugger, HomeGesture,
+         SettingsURL, SettingsListener, VisibilityManager, Storage,
+         TelephonySettings, SuspendingAppPriorityManager, TTLView,
+         MediaRecording, AppWindowFactory, SystemDialogManager,
+         applications, Rocketbar, LayoutManager, PermissionManager,
+         SoftwareButtonManager */
+
 'use strict';
+
+
+/* === Shortcuts === */
+/* For hardware key handling that doesn't belong to anywhere */
+var Shortcuts = {
+  init: function rm_init() {
+    window.addEventListener('keyup', this);
+  },
+
+  handleEvent: function rm_handleEvent(evt) {
+    if (!ScreenManager.screenEnabled || evt.keyCode !== evt.DOM_VK_F6) {
+      return;
+    }
+
+    document.location.reload();
+  }
+};
 
 window.addEventListener('load', function startup() {
 
@@ -12,9 +39,8 @@ window.addEventListener('load', function startup() {
     /** @global */
     window.appWindowFactory = new AppWindowFactory();
     window.appWindowFactory.start();
-    /** @global */
-    window.activityWindowFactory = new ActivityWindowFactory();
-    window.activityWindowFactory.start();
+    window.activityWindowManager = new ActivityWindowManager();
+    window.activityWindowManager.start();
     /** @global */
     window.secureWindowManager = window.secureWindowManager ||
       new SecureWindowManager();
@@ -111,21 +137,6 @@ window.addEventListener('load', function startup() {
 
 window.storage = new Storage();
 
-/* === Shortcuts === */
-/* For hardware key handling that doesn't belong to anywhere */
-var Shortcuts = {
-  init: function rm_init() {
-    window.addEventListener('keyup', this);
-  },
-
-  handleEvent: function rm_handleEvent(evt) {
-    if (!ScreenManager.screenEnabled || evt.keyCode !== evt.DOM_VK_F6)
-      return;
-
-    document.location.reload();
-  }
-};
-
 /* === Localization === */
 /* set the 'lang' and 'dir' attributes to <html> when the page is translated */
 window.addEventListener('localized', function onlocalized() {
@@ -150,8 +161,9 @@ navigator.mozSettings.addObserver(
   'clear.remote-windows.data',
   function clearRemoteWindowsData(setting) {
     var shouldClear = setting.settingValue;
-    if (!shouldClear)
+    if (!shouldClear) {
       return;
+    }
 
     // Delete all storage and cookies from our content processes
     var request = navigator.mozApps.getSelf();

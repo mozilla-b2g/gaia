@@ -115,7 +115,7 @@ var StackManager = {
         }
 
         // If the app is a child window of other window, do not insert it.
-        if (app.parentWindow) {
+        if (app.previousWindow) {
           return;
         }
 
@@ -138,12 +138,12 @@ var StackManager = {
         }
         break;
       case 'appopening':
-        var app = e.detail;
+        var app = e.detail; // jshint ignore: line
         var root = app.getRootWindow();
 
-        var idx = this._indexOfInstanceID(root.instanceID);
-        if (idx !== undefined && idx !== this._current) {
-          this._current = idx;
+        var id = this._indexOfInstanceID(root.instanceID);
+        if (id !== undefined && id !== this._current) {
+          this._current = id;
         }
         break;
       case 'home':
@@ -186,7 +186,7 @@ var StackManager = {
   },
 
   _indexOfURL: function sm_indexOfURL(url) {
-    var result = undefined;
+    var result;
     this._stack.some(function(app, idx) {
       if (app.url == url) {
         result = idx;
@@ -199,8 +199,7 @@ var StackManager = {
   },
 
   _indexOfInstanceID: function sm_indexOfIntanceID(instanceID) {
-    var result = undefined;
-    var self = this;
+    var result;
     this._stack.some(function(app, idx) {
       if (app.instanceID == instanceID) {
         result = idx;
@@ -245,12 +244,12 @@ var StackManager = {
       var separator = (i == this.position) ? ' * ' : ' - ';
       console.log(prefix + separator + i + ' -> ' + this._stack[i].name +
         '/' + this._stack[i].instanceID);
-      var child = this._stack[i].childWindow;
+      var child = this._stack[i].nextWindow;
       while (child) {
-        var separator = (child.isActive()) ? ' @ ' : ' = ';
-        console.log(prefix + separator + i + ' ---> ' + this._stack[i].name +
+        var separator2 = (child.isActive()) ? ' @ ' : ' = ';
+        console.log(prefix + separator2 + i + ' ---> ' + this._stack[i].name +
                   '/' + this._stack[i].instanceID);
-        child = child.childWindow;
+        child = child.nextWindow;
       }
     }
   },

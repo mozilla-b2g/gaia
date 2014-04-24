@@ -1,12 +1,14 @@
 'use strict';
-/* global Rocketbar, MocksHelper, MockAppWindow, MockIACPort, SearchWindow */
+/* global Rocketbar, MocksHelper, MockAppWindow, MockIACPort */
 
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_search_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_iac_handler.js');
 
 var mocksForRocketbar = new MocksHelper([
   'AppWindow',
+  'SearchWindow',
   'SettingsListener',
   'IACPort'
 ]).init();
@@ -26,7 +28,6 @@ suite('system/Rocketbar', function() {
       }
     });
 
-    requireApp('system/js/search_window.js');
     requireApp('system/js/rocketbar.js', function() {
       Rocketbar.init();
       Rocketbar._port = MockIACPort;
@@ -690,16 +691,16 @@ suite('system/Rocketbar', function() {
     Rocketbar._searchManifestURL = 'http://search.example.com/manifest.webapp';
 
     Rocketbar.searchWindow = null;
-
-    var publishStub = this.sinon.stub(SearchWindow.prototype, 'publish');
+    var spy = this.sinon.spy(window, 'MockSearchWindow');
 
     Rocketbar.loadSearchApp();
-    assert.ok(publishStub.calledOnce);
+    assert.ok(spy.calledWithNew);
+    spy.restore();
 
     // Dispatch a crash event.
     window.dispatchEvent(new CustomEvent('searchcrashed'));
     Rocketbar.loadSearchApp();
-    assert.ok(publishStub.calledTwice);
+    assert.ok(spy.calledWithNew);
   });
 
 });
