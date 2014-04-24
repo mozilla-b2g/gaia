@@ -13,10 +13,6 @@
 
   var widgetContainer = document.getElementById('cost-control-widget');
 
-  // XXX Tarako workaround to remove the widget
-  // until bug 991831 gets resolved
-  return;
-
   var widgetFrame;
   function _ensureWidget() {
     if (!Applications.ready) {
