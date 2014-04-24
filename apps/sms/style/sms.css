@@ -921,7 +921,7 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
    * discussion of this behavior, see "Bug 905260 - [messages] padding issues
    * in the recipient panel". */
   padding-left: 0;
-  padding-right: 1.6rem;
+  padding-right: 0rem;
 
   background: none;
   border-color: transparent;
