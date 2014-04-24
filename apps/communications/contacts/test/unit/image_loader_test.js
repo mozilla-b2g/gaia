@@ -2,9 +2,10 @@
 
 /* globals MocksHelper, MockLinkHtml, ImageLoader, UIEvent */
 
+require('/shared/js/contacts/utilities/image_loader.js');
+
 requireApp('communications/contacts/test/unit/mock_link.html.js');
 requireApp('communications/contacts/test/unit/mock_image.js');
-requireApp('communications/contacts/js/utilities/image_loader.js');
 
 var mocksHelperForImageLoader = new MocksHelper([
   'Image'
