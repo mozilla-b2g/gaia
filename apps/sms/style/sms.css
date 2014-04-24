@@ -943,7 +943,7 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
 
 .recipient[contenteditable=true]:empty:focus {
   margin-right: 0.5rem;
-  padding: 0 0.8rem;
+  padding-right: 0.8rem;
   border-width: 0.1rem;
 }
 
