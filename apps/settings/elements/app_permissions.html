@@ -9,11 +9,12 @@
     </header>
 
     <div>
-      <ul></ul>
+      <ul class="app-list"></ul>
 
       <ul>
         <li>
           <button id="clear-bookmarks-app"
+                  class="clear-bookmarks-app"
                   style="visibility: hidden"
                   data-l10n-id="clearBookmarkAppsData">
             Clear bookmarks data
@@ -35,8 +36,7 @@
       </menu>
     </form>
 
-    <script type="application/javascript" src="shared/js/manifest_helper.js"></script>
-    <script src="js/apps.js"></script>
+    <panel data-path="panels/app_permissions_list/panel"></panel>
 
   </template>
 </element>

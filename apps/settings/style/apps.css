@@ -12,7 +12,7 @@
   filter: url('shadow.svg#drop-shadow');
 }
 
-#uninstall-app {
+.uninstall-app {
   display: block;
   margin: auto;
   position: relative;
