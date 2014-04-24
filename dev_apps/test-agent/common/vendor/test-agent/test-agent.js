@@ -2298,6 +2298,80 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   }
 
 }());
+(function() {
+
+  var isNode = typeof(window) === 'undefined';
+
+  if (!isNode) {
+    if (typeof(TestAgent.Common) === 'undefined') {
+      TestAgent.Common = {};
+    }
+  }
+
+  function Blanket() {
+
+  }
+
+  Blanket.prototype = {
+
+    enhance: function enhance(server) {
+      server.on('coverage data', this._onCoverageData.bind(this));
+
+      if (typeof(window) !== 'undefined') {
+        window.addEventListener('message', function(event) {
+          var data = event.data;
+          if (/coverage info/.test(data)) {
+            server.send('coverage data', data);
+          }
+        });
+      }
+    },
+
+    _onCoverageData: function _onCoverageData(data) {
+      var data = JSON.parse(data);
+      data.shift();
+      this._printCoverageResult(data.shift());
+    },
+
+    _printCoverageResult: function _printCoverageResult(coverResults) {
+      var key,
+          titleColor = '\033[1;36m',
+          fileNameColor = '\033[0;37m',
+          stmtColor = '\033[0;33m',
+          percentageColor = '\033[0;36m',
+          originColor = '\033[0m';
+
+      // Print title
+      console.info('\n' + titleColor + '-- Blanket.js Test Coverage Result --' + originColor + '\n');
+      console.info(fileNameColor + 'File Name' + originColor +
+        ' - ' + stmtColor + 'Covered/Total Smts' + originColor +
+        ' - ' + percentageColor + 'Coverage (\%)\n' + originColor);
+
+      // Print coverage result for each file
+      coverResults.forEach(function(dataItem) {
+        var filename = dataItem.filename,
+            formatPrefix = (filename === "Global Total" ? "\n" : "  "),
+            seperator = ' - ';
+
+        filename = (filename === "Global Total" ? filename :
+          (filename.substr(0, filename.indexOf('?')) || filename));
+        outputFormat = formatPrefix;
+        outputFormat += fileNameColor + filename + originColor + seperator;
+        outputFormat += stmtColor + dataItem.stmts + originColor  + seperator;
+        outputFormat += percentageColor + dataItem.percentage + originColor;
+
+        console.info(outputFormat);
+      });
+    }
+  }
+
+  if (isNode) {
+    module.exports = Blanket;
+  } else {
+    TestAgent.Common.BlanketCoverEvents = Blanket;
+  }
+
+}());
 (function(window) {
   'use strict';
 
@@ -3278,13 +3352,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     get execButton() {
       if (!this._execButton) {
-        this._execButton = document.getElementById('test-agent-execute-button');
+        this._execButton = document.querySelector('#test-agent-execute-button');
       }
       return this._execButton;
     },
 
     get command() {
-      var covCheckbox = document.getElementById('test-agent-coverage-checkbox'),
+      var covCheckbox = document.querySelector('#test-agent-coverage-checkbox'),
           covFlag = covCheckbox ? covCheckbox.checked : false;
 
       if (covFlag) {
@@ -3345,7 +3419,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     onConfig: function onConfig(data) {
       //purge elements
-      var elements = document.getElementsByClassName('.test-list'),
+      var elements = document.querySelectorAll('.test-list'),
           element,
           templates = this.templates,
           parent;
@@ -3416,13 +3490,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   };
 
 }(this));
+
 (function() {
   'use strict';
 
-  function BlanketReportCollector(options) {
+  function BlanketReporter(options) {
     var key;
 
-    options = options || {};
+    if (typeof(options) === 'undefined') {
+      options = {};
+    }
 
     for (key in options) {
       if (options.hasOwnProperty(key)) {
@@ -3431,12 +3508,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     }
   }
 
-  BlanketReportCollector.prototype = {
+  BlanketReporter.prototype = {
 
-    enhance: function enhance(server) {
-      this.server = server;
+    enhance: function enhance(worker) {
       this._receiveCoverageData();
-      server.on('test runner end', this._onTestRunnerEnd.bind(this));
+      worker.on('test runner end', this._aggregateReport.bind(this));
     },
 
     _coverageResults: [],
@@ -3448,7 +3524,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     _receiveCoverageData: function() {
       var self = this;
 
-      if (window) {
+      if (typeof(window) !== 'undefined') {
         window.addEventListener('message', function(event) {
           var data = JSON.parse(event.data);
 
@@ -3459,51 +3535,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       }
     },
 
-    _onTestRunnerEnd: function() {
-      this._aggregateReport();
-      this._coverageResults = [];
-    },
-
-    _aggregateReport: function() {
-      var data = this._coverageResults,
-          aggregateResult,
-          self = this;
-
-      aggregateResult = data.reduce(function(aggregateResult, coverageResult) {
-        var aggregateFiles = aggregateResult.files,
-            coverageFiles = coverageResult.files;
-
-        for (var file in coverageFiles) {
-          if (!(file in aggregateFiles)) {
-            aggregateFiles[file] = coverageFiles[file];
-          } else {
-            aggregateFiles[file] = self._accumulateCoverageFile(
-              aggregateFiles[file], coverageFiles[file]);
-          }
-        }
-
-        if (!aggregateResult.stats) {
-          aggregateResult.stats = coverageResult.stats;
-        } else {
-          aggregateResult.stats = self._accumulateCoverageStats(
-            aggregateResult.stats, coverageResult.stats);
-        }
-
-        return aggregateResult;
-      }, this._templateResult());
-
-      this._splitReportByDomain(aggregateResult);
-    },
-
     _splitReportByDomain: function(results) {
       var multiDomainResults = [],
           previousDomain,
           currentDomain,
-          index = -1,
-          self = this;
+          index = -1;
 
       for (var file in results.files) {
-        currentDomain = new URL(file).hostname;
+        currentDomain = new URL(file).hostname
 
         if (currentDomain !== previousDomain) {
           previousDomain = currentDomain;
@@ -3514,12 +3553,38 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         multiDomainResults[index].files[file] = results.files[file];
       }
 
-      // After aggregated every coverage result for each domain, we invoke
-      // blanket's default reporter
       multiDomainResults.forEach(function(domainResult) {
-        window.blanket.defaultReporter(domainResult);
-        self.server.send('coverage report', domainResult);
+        blanket.defaultReporter(domainResult);
       }, this);
+    },
+
+    _aggregateReport: function() {
+      var coverageResults = this._coverageResults,
+          aggregateResult,
+          self = this;
+
+      aggregateResult = coverageResults.reduce(function(aggregateResult, coverageResult) {
+        var aggregateFiles = aggregateResult.files,
+            coverageFiles = coverageResult.files;
+
+        for (var file in coverageFiles) {
+          if (!(file in aggregateFiles)) {
+            aggregateFiles[file] = coverageFiles[file];
+          } else {
+            aggregateFiles[file] = self._accumulateCoverageFile(aggregateFiles[file], coverageFiles[file]);
+          }
+        }
+
+        if (!aggregateResult.stats) {
+          aggregateResult.stats = coverageResult.stats;
+        } else {
+          aggregateResult.stats = self._accumulateCoverageStats(aggregateResult.stats, coverageResult.stats);
+        }
+
+        return aggregateResult;
+      }, this._templateResult());
+
+      this._splitReportByDomain(aggregateResult);
     },
 
     _accumulateCoverageFile: function(aggregateFile, coverageFile) {
@@ -3539,7 +3604,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     _accumulateCoverageStats: function(aggregateStats, coverageStats) {
       for (var key in coverageStats) {
         if (coverageStats.hasOwnProperty(key)) {
-          if (typeof(coverageStats[key]) === 'number') {
+          if (typeof coverageStats[key] === 'number') {
             aggregateStats[key] += coverageStats[key];
           } else {
             aggregateStats.end = coverageStats.end;
@@ -3552,6 +3617,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
   };
 
-  window.TestAgent.Common.BlanketReportCollector = BlanketReportCollector;
+  window.TestAgent.Common.BlanketReporter = BlanketReporter;
 
 })();

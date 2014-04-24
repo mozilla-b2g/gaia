@@ -7371,10 +7371,103 @@ blanket.defaultReporter = function(coverage) {
     var BlanketReporter = function(runner) {
         runner.on('start', function() {
             blanket.setupCoverage();
+
+            function parse(json) {
+                var reISO = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/;
+                var reMsAjax = /^\/Date\((d|-|.*)\)\/$/;
+                var str;
+                try {
+                    json = (json.forEach) ? json : JSON.parse(json, function(key, value) {
+                        if (typeof value === 'string') {
+                            str = reISO.exec(value);
+                            if (str) {
+                                return new Date(Date.UTC(+str[1], +str[2] - 1, +str[3], +str[4], +str[5], +str[6]));
+                            }
+                            str = reMsAjax.exec(value);
+                            if (str) {
+                                str = str[1].split(/[-,.]/);
+                                return new Date(+str[0]);
+                            }
+                        }
+                        return value;
+                    });
+                } catch (e) {
+                    throw new Error("Could not parse json: '" + json + '"');
+                }
+
+                return json;
+            }
+
+            function appendTag (type, element, id, str) {
+                var dom = document.createElement(type);
+                dom.id = id;
+                dom.innerHTML = str;
+                element.appendChild(dom);
+            };
+
+            if (window.location.pathname === '/') {
+                window.addEventListener('message', function(event) {
+                    var data = parse(event.data);
+
+                    function blanket_toggleSource(id) {
+                        var element = document.getElementById(id);
+
+                        if(element.style.display === 'block') {
+                            element.style.display = 'none';
+                        } else {
+                            element.style.display = 'block';
+                        }
+                    }
+
+                    if (data.shift() === 'coverage html') {
+                        var cssStyle = "#blanket-main {margin:2px;background:#EEE;color:#333;clear:both;font-family:'Helvetica Neue Light', 'HelveticaNeue-Light', 'Helvetica Neue', Calibri, Helvetica, Arial, sans-serif; font-size:17px;} #blanket-main a {color:#333;text-decoration:none;}  #blanket-main a:hover {text-decoration:underline;} .blanket {margin:0;padding:5px;clear:both;border-bottom: 1px solid #FFFFFF;} .bl-error {color:red;}.bl-success {color:#5E7D00;} .bl-file{width:auto;} .bl-cl{float:left;} .blanket div.rs {margin-left:50px; width:150px; float:right} .bl-nb {padding-right:10px;} #blanket-main a.bl-logo {color: #EB1764;cursor: pointer;font-weight: bold;text-decoration: none} .bl-source{ overflow-x:scroll; background-color: #FFFFFF; border: 1px solid #CBCBCB; color: #363636; margin: 25px 20px; width: 80%;} .bl-source div{white-space: pre;font-family: monospace;} .bl-source > div > span:first-child{background-color: #EAEAEA;color: #949494;display: inline-block;padding: 0 10px;text-align: center;width: 30px;} .bl-source .miss{background-color:#e6c3c7} .bl-source span.branchWarning{color:#000;background-color:yellow;} .bl-source span.branchOkay{color:#000;background-color:transparent;}";
+                        appendTag('style', document.head, '', cssStyle);
+                        appendTag('script', document.body, '', blanket_toggleSource.toString());
+                        appendTag('div', document.body, 'blanket-main', data.shift());
+                    }
+                });
+            }
         });
 
         runner.on('end', function() {
             blanket.onTestsDone();
+
+            if (window.location.pathname === '/test/unit/_sandbox.html') {
+                var reportDiv = document.querySelector('#blanket-main');
+                var data,
+                    coverFiles,
+                    coverResults,
+                    fileNames = [],
+                    result = [],
+                    i, j;
+
+                if (reportDiv) {
+                    // Generate result for node server
+                    coverFiles = reportDiv.querySelectorAll('a:not([class="bl-logo"])');
+                    coverResults = reportDiv.querySelectorAll('div[class="bl-cl rs"]');
+
+                    for (i = 0; i < coverFiles.length; i++) {
+                        fileNames.push(coverFiles[i].innerHTML);
+                    }
+                    fileNames.push('Global Total')
+
+                    for (i = 0, j = 2; i < fileNames.length; i++, j += 2) {
+                        result.push({
+                            filename: fileNames[i],
+                            percentage: coverResults[j].innerHTML,
+                            stmts: coverResults[j + 1].innerHTML
+                        });
+                    }
+
+                    result = JSON.stringify(['coverage info', result]);
+                    window.top.postMessage(result, "http://test-agent.gaiamobile.org:8080");
+
+                    // Generate result for browser
+                    data = reportDiv.innerHTML;
+                    data = JSON.stringify(['coverage html', data]);
+                    window.top.postMessage(data, "http://test-agent.gaiamobile.org:8080");
+                }
+            }
         });
 
         runner.on('suite', function() {
