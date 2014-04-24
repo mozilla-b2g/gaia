@@ -120,6 +120,7 @@ var CallHandler = (function callHandler() {
   }
 
   function callEnded(data) {
+    var highPriorityWakeLock = navigator.requestWakeLock('high-priority');
     var number = data.number;
     var direction = data.direction;
     var incoming = data.direction === 'incoming';
@@ -142,6 +143,7 @@ var CallHandler = (function callHandler() {
         };
 
         CallLogDBManager.add(entry, function(logGroup) {
+          highPriorityWakeLock.unlock();
           CallLog.appendGroup(logGroup);
         });
       });
