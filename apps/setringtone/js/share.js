@@ -1,8 +1,6 @@
-window.onload = function() {
-  navigator.mozL10n.ready(function() {
-    navigator.mozSetMessageHandler('activity', share);
-  });
-};
+navigator.mozL10n.once(function() {
+  navigator.mozSetMessageHandler('activity', share);
+});
 
 function share(activity) {
   var data = activity.source.data;
