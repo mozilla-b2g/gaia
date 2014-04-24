@@ -1433,8 +1433,10 @@ suite('calls handler', function() {
           MockNavigatorMozTelephony.mTriggerCallsChanged();
 
           var hangUpSpy = this.sinon.spy(call1, 'hangUp');
+          var answerSpy = this.sinon.spy(call2, 'answer');
           triggerCommand('CHLD=1');
           sinon.assert.calledOnce(hangUpSpy);
+          sinon.assert.calledOnce(answerSpy);
         });
       });
 

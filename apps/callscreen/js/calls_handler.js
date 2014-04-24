@@ -472,8 +472,20 @@ var CallsHandler = (function callsHandler() {
       var callToEnd = telephony.active ||           // connected, incoming
         handledCalls[handledCalls.length - 2].call; // held, incoming
 
+      var callToAnswer;
+      handledCalls.some(function(handledCall) {
+        if (handledCall.call !== callToEnd) {
+          callToAnswer = handledCall.call;
+          return true;
+        }
+      });
+
       if (callToEnd) {
-        callToEnd.hangUp(); // the incoming call is answered by gecko
+        callToEnd.hangUp(); // hangup the active call
+      }
+
+      if (callToAnswer) {
+        callToAnswer.answer(); // answer the incoming call
       }
     }
 
