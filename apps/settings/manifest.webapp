@@ -23,7 +23,6 @@
     "systemXHR": {},
     "settings":{ "access": "readwrite" },
     "wifi-manage":{},
-    "attention":{},
     "time":{},
     "desktop-notification":{},
     "power":{},
@@ -41,8 +40,6 @@
       "disposition": "window"
     }
   },
-  "messages": ["bluetooth-pairing-request",
-               "bluetooth-cancel"],
   "locales": {
     "ar": {
       "name": "الضبط",
