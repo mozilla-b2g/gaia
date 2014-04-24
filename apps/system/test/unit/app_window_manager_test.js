@@ -147,6 +147,16 @@ suite('system/AppWindowManager', function() {
   }
 
   suite('Handle events', function() {
+    test('If cardview will open, keyboard should be dismissed', function() {
+      var stubBlur = this.sinon.stub(app1, 'blur');
+      this.sinon.stub(app1, 'getTopMostWindow').returns(app1);
+      AppWindowManager._activeApp = app1;
+      AppWindowManager.handleEvent({
+        type: 'cardviewbeforeshow'
+      });
+      assert.isTrue(stubBlur.called);
+    });
+
     test('Home Gesture enabled', function() {
       var stubBroadcastMessage =
         this.sinon.stub(AppWindowManager, 'broadcastMessage');
