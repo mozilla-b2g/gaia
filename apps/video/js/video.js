@@ -22,11 +22,13 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
            'thumbnails-single-info-button', 'info-view', 'info-close-button',
            'player', 'overlay', 'overlay-title', 'overlay-text',
            'overlay-menu', 'overlay-action-button',
-           'video-container', 'videoControls', 'videoBar', 'videoActionBar',
+           'video-container', 'videoControls', 'videoBar', 'videoControlBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
            'slider-wrapper', 'throbber', 'delete-video-button',
-           'picker-close', 'picker-title', 'picker-done'];
+           'picker-close', 'picker-title', 'picker-done', 'options',
+           'options-view', 'options-cancel-button', 'seek-backward',
+           'seek-forward'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -162,6 +164,7 @@ function init() {
   }
 
   initPlayerControls();
+  ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward);
 
   // We get headphoneschange event when the headphones is plugged or unplugged
   var acm = navigator.mozAudioChannelManager;
@@ -236,6 +239,7 @@ function initPlayerControls() {
   dom.play.addEventListener('click', handlePlayButtonClick);
   dom.close.addEventListener('click', handleCloseButtonClick);
   dom.pickerDone.addEventListener('click', postPickResult);
+  dom.options.addEventListener('click', showOptionsView);
 }
 
 function initOptionsButtons() {
@@ -250,6 +254,8 @@ function initOptionsButtons() {
 
   // info buttons
   dom.infoCloseButton.addEventListener('click', hideInfoView);
+  // option button cancel
+  dom.optionsCancelButton.addEventListener('click', hideOptionsView);
   // fullscreen player
   dom.fullscreenButton.addEventListener('click', toggleFullscreenPlayer);
   // fullscreen toolbar
@@ -380,6 +386,7 @@ function handleActivityEvents(a) {
 }
 
 function showInfoView() {
+  hideOptionsView();
   //Get the length of the playing video
   var length = isFinite(currentVideo.metadata.duration) ?
       MediaUtils.formatDuration(currentVideo.metadata.duration) : '';
@@ -444,6 +451,14 @@ function hideSelectView() {
                              false, /* enterFullscreen */
                              true); /* keepControls */
   }
+}
+
+function showOptionsView() {
+  dom.optionsView.classList.remove('hidden');
+}
+
+function hideOptionsView() {
+  dom.optionsView.classList.add('hidden');
 }
 
 function clearSelection() {
@@ -805,6 +820,7 @@ function setVideoPlaying(playing) {
 }
 
 function deleteCurrentVideo() {
+  hideOptionsView();
   // We need to disable NFC sharing when showing delete confirmation dialog
   setNFCSharing(false);
   // If we're deleting the file shown in the player we've got to
@@ -851,6 +867,7 @@ function postPickResult() {
 }
 
 function shareCurrentVideo() {
+  hideOptionsView();
   videodb.getFile(currentVideo.name, function(blob) {
     share([blob]);
   });

@@ -44,7 +44,7 @@ suite('Video App Unit Tests', function() {
     dom.elapsedText = document.getElementById('elapsed-text');
     dom.elapsedTime = document.getElementById('elapsedTime');
     dom.playHead = document.getElementById('playHead');
-
+    dom.optionsView = document.getElementById('options-view');
     nativeMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     MediaUtils._ = MockL10n.get;
@@ -91,6 +91,19 @@ suite('Video App Unit Tests', function() {
     test('#Test hide info view', function() {
       hideInfoView();
       assert.isTrue(dom.infoView.classList[0] === 'hidden');
+    });
+  });
+
+suite('#Video Action Menu Test', function() {
+
+    test('#Test show option view', function() {
+      showOptionsView();
+      assert.isFalse(dom.optionsView.classList[0] === 'hidden');
+    });
+
+    test('#Test hide option view', function() {
+      hideOptionsView();
+      assert.isTrue(dom.optionsView.classList[0] === 'hidden');
     });
   });
 

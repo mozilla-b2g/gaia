@@ -6,6 +6,7 @@ function MockVideoPlayer() {
   this.readyState = 0;
   this.seeking = false;
   this.duration = 0;
+  this.currentTime = 0;
   this.classList = [];
 }
 
