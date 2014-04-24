@@ -85,8 +85,11 @@
       var protocol = document.location.protocol + '//';
       var browserManifestUrl =
         protocol + 'browser.' + domain + '/manifest.webapp';
+      var bluetoothManifestUrl =
+        protocol + 'bluetooth.' + domain + '/manifest.webapp';
       var outOfProcessBlackList = [
-        browserManifestUrl
+        browserManifestUrl,
+        bluetoothManifestUrl
         // Requires nested content processes (bug 761935).  This is not
         // on the schedule for v1.
       ];
