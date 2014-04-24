@@ -423,6 +423,9 @@ var Common = {
       Common.dataSimIccId = iccId;
       Common.dataSimIccIdLoaded = true;
       Common.dataSimIcc = Common.getIccInfo(iccId);
+      if (!Common.dataSimIcc) {
+        (typeof onerror === 'function') && onerror();
+      }
       if (onsuccess) {
         onsuccess(iccId);
       }
