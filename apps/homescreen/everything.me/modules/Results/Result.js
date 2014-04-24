@@ -15,8 +15,7 @@
   var NAME = 'Result';
 
   Evme.Result = function Evme_Result() {
-    var self = this,
-        image = new Image();
+    var self = this;
 
     this.type = 'NOT_SET';
     this.cfg = {};
@@ -24,42 +23,36 @@
     this.elName = null;
 
     this.drawAppName = function drawAppName() {
-      var canvas = document.createElement('canvas'),
-          context = canvas.getContext('2d');
-
-      canvas.width = TEXT_WIDTH;
-      canvas.height = APP_NAME_HEIGHT;
-
-      Evme.Utils.writeTextToCanvas({
-        'text': self.cfg.name,
-        'context': context,
-        'offset': TEXT_MARGIN
-      });
-
-      self.elName.src = canvas.toDataURL();
+      this.elName.textContent = self.cfg.name;
     };
 
-    this.draw = function draw(iconObj) {
+    this.draw = function draw(iconObj, callback) {
       self.cfg.icon = iconObj;
 
       if (self.el) {
         self.el.setAttribute('data-name', self.cfg.name);
 
+        var a = +new Date;
         self.drawAppName();
+
+        self.elIcon.onload = self.elIcon.onerror = function() {
+          self.el.dataset.loaded = true;
+
+          if (callback) {
+            callback();
+          }
+        };
 
         if (Evme.Utils.isBlob(iconObj)) {
           Evme.Utils.blobToDataURI(iconObj, function onDataReady(src) {
-            setImageSrc(src);
+            self.elIcon.src = src;
           });
         } else {
-          var src = Evme.Utils.formatImageData(iconObj);
-          setImageSrc(src);
+          self.elIcon.src = Evme.Utils.formatImageData(iconObj);
         }
       }
-
-      function setImageSrc(src) {
-        image.onload = self.onAppIconLoad;
-        image.src = src;
+      else {
+        callback();
       }
     };
 
@@ -70,51 +63,6 @@
     this.setIconSrc = function(src) {
       self.el.dataset.iconId = this.cfg.id;
       self.el.dataset.iconSrc = src;
-    };
-
-    // @default
-    this.onAppIconLoad = function onAppIconLoad() {
-      var canvas = self.initIcon(Evme.Utils.getOSIconSize()),
-          context = canvas.getContext('2d'),
-          width = canvas.width,
-          height = canvas.height,
-          SHADOW = INSTALLED_APPS_SHADOW_OFFSET;
-
-      // account for shadow - pad the canvas from the bottom,
-      // and move the name back up
-      canvas.height += SHADOW;
-
-      context.drawImage(image,
-          (width - image.width) / 2,
-          (height - image.height) / 2);
-
-      self.finalizeIcon(canvas);
-      self.setIconSrc(image.src);
-    };
-
-    // @default
-    this.initIcon = function initIcon(height) {
-      var canvas = document.createElement('canvas'),
-          context = canvas.getContext('2d');
-
-      canvas.width = TEXT_WIDTH;
-      canvas.height = height;
-
-      return canvas;
-    };
-
-    // @default
-    this.finalizeIcon = function finalizeIcon(canvas) {
-      var icon = self.elIcon;
-
-      var img = new Image();
-      img.addEventListener('load', function load() {
-        img.removeEventListener('load', load);
-
-        icon.style.backgroundImage = 'url(' + img.src + ')';
-        self.el.dataset.loaded = true;
-      });
-      img.src = canvas.toDataURL();
     };
 
     // @default
@@ -204,23 +152,22 @@
   Evme.Result.prototype.init = function Result_init(cfg) {
     this.cfg = cfg;
 
-    var el = this.el = Evme.$create('li', {
-      'id': 'app_' + cfg.id,
-      'data-name': cfg.name
-    }, '<img class="icon" />' +
-       '<img class="name" />');
+    // Create Elements
+    var el = this.el = document.createElement('li');
+    el.id = 'app_' + cfg.id;
+    el.dataset.name = cfg.name;
 
-    this.elIcon = el.querySelector('.icon');
-    this.elName = el.querySelector('.name');
+    var elIcon = this.elIcon = document.createElement('img');
+    elIcon.classList.add('icon');
+    el.appendChild(elIcon);
 
-    this.elName.setAttribute('width', TEXT_WIDTH);
-    this.elName.setAttribute('height', APP_NAME_HEIGHT);
+    var elName = this.elName = document.createElement('div');
+    elName.classList.add('name');
+    el.appendChild(elName);
 
-    this.elIcon.setAttribute('width', TEXT_WIDTH);
-    this.elIcon.setAttribute('height',
-      Evme.Utils.getOSIconSize() + INSTALLED_APPS_SHADOW_OFFSET);
-
-    this.elIcon.style.marginBottom = (-INSTALLED_APPS_SHADOW_OFFSET) + 'px';
+    // Apply styles and event handlers
+    this.elName.style.width = TEXT_WIDTH + 'px';
+    this.elName.style.height = (APP_NAME_HEIGHT - TEXT_MARGIN) + 'px';
 
     this.elIcon.setAttribute('aria-label', cfg.name);
     this.elName.setAttribute('aria-label', cfg.name);

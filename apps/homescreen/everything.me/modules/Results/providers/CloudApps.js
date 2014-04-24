@@ -15,58 +15,9 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
   this.init = function CloudResult_init() {
     var res = Evme.Result.prototype.init.apply(this, arguments);
 
-    this.elIcon.setAttribute('height', Evme.Utils.getOSIconSize());
     this.elIcon.style.marginBottom = '0';
 
     return res;
-  };
-
-  // @override
-  // manipulate the icon (clipping, shadow, resize)
-  this.onAppIconLoad = function CloudResult_onAppIconLoad() {
-    // only round if the app is below the line
-    // apps above the line (pinned) are already round
-    if (self.cfg.staticType) {
-      renderIcon(this.src);
-    } else {
-      Evme.Utils.getRoundIcon({
-        'src': this.src,
-        'size': this.width
-      }, renderIcon);
-    }
-
-    function renderIcon(roundedIcon) {
-      var fixedImage = new Image();
-
-      // save a reference to the clipped icon
-      self.setIconSrc(roundedIcon);
-      // override the original with the round icon,
-      // for later use throughout the app
-      self.cfg.icon = roundedIcon;
-
-      fixedImage.onload = function onImageLoad() {
-        var osIconSize = Evme.Utils.getOSIconSize(),
-            width = osIconSize,
-            height = osIconSize,
-            padding = 0,
-            canvas = self.initIcon(height),
-            context = canvas.getContext('2d'),
-            canvasHeight = canvas.height,
-            canvasWidth = canvas.width;
-
-        // shadow
-        context.shadowOffsetX = 0;
-        context.shadowOffsetY = SHADOW_OFFSET;
-        context.shadowBlur = SHADOW_BLUR;
-        context.shadowColor = SHADOW_COLOR;
-        context.drawImage(fixedImage,
-          (canvasWidth - width) / 2, 0, width, height);
-
-        self.finalizeIcon(canvas);
-      };
-
-      fixedImage.src = roundedIcon;
-    }
   };
 
   // @override
@@ -149,43 +100,56 @@ Evme.CloudAppsRenderer = function Evme_CloudAppsRenderer() {
 
     function _render(apps, query, requestMissingIcons) {
       var docFrag = document.createDocumentFragment(),
-      noIconAppIds = [];  // ids of apps received without an icon
+        noIconAppIds = []; // ids of apps received without an icon
+
+      // Render into new element so we can hide the current loading apps
+      // but not hide the full container
+      var fragmentDiv = document.createElement('div');
+
+      fragmentDiv.classList.add('loading-images');
+
+      var loaded = 0;
+      function next() {
+        if (++loaded === apps.length) {
+          fragmentDiv.classList.remove('loading-images');
+        }
+      }
 
       for (var i = 0, app; app = apps[i++];) {
         var result = new Evme.CloudAppResult(query),
-        el = result.init(app);
+          el = result.init(app);
 
-      if (app.icon) {  // app with icon url from API response
-        result.draw(app.icon);
-        Evme.IconManager.add(app.id, app.icon, iconFormat);
+        if (app.icon) { // app with icon url from API response
+          result.draw(app.icon, next);
+          Evme.IconManager.add(app.id, app.icon, iconFormat);
+        }
+        else if (isWebLink(app)) { // no id for weblinks so generate one
+          app.id = 'app-' + Evme.Utils.uuid();
+          app.icon = getDefaultIcon();
+          result.draw(app.icon, next);
+        }
+        else { // icon will be drawn from cache (or requested if missing)
+          noIconAppIds.push(app.id);
+        }
 
-      } else if (isWebLink(app)) {  // no id for weblinks so generate one
-        app.id = 'app-' + Evme.Utils.uuid();
-        app.icon = getDefaultIcon();
-        result.draw(app.icon);
+        // used for result filtering
+        if (el) {
+          el.dataset.url = app.appUrl;
+        }
 
-      } else {  // icon will be drawn from cache (or requested if missing)
-        noIconAppIds.push(app.id);
+        lastRenderedResults[app.id] = result;
+
+        docFrag.appendChild(el);
       }
 
-      // used for result filtering
-      var el = result.getElement();
-      if (el) {
-        el.dataset.url = app.appUrl;
-      }
+      fragmentDiv.appendChild(docFrag);
+      containerEl.appendChild(fragmentDiv);
 
-      lastRenderedResults[app.id] = result;
-
-      docFrag.appendChild(el);
+      noIconAppIds.length && getCachedIconsAsync(noIconAppIds,
+                                                 requestMissingIcons, next);
     }
 
-    containerEl.appendChild(docFrag);
-
-    noIconAppIds.length &&
-      getCachedIconsAsync(noIconAppIds, requestMissingIcons);
-  }
-
-  function getCachedIconsAsync(appIds, requestMissingIcons) {
+  function getCachedIconsAsync(appIds, requestMissingIcons, appCallback) {
     var idsMissing = [], // ids of apps which have no cached icon
     pendingRequests = appIds.length;
 
@@ -204,10 +168,10 @@ Evme.CloudAppsRenderer = function Evme_CloudAppsRenderer() {
 
         if (iconFromCache) {
           app.icon = iconFromCache;
-          app.draw(iconFromCache);
+          app.draw(iconFromCache, appCallback);
         } else {
           idsMissing.push(appId);
-          app.draw(getDefaultIcon());
+          app.draw(getDefaultIcon(), appCallback);
         }
 
         pendingRequests--;

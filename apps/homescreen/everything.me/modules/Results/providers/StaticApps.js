@@ -62,7 +62,7 @@ Evme.StaticAppsRenderer = function Evme_StaticAppsRenderer() {
     containerEl.appendChild(el);
   }
 
-  function renderApp(app) {
+  function renderApp(app, callback) {
     app.isRemovable = true;
     app.isStatic = true;
 
@@ -80,7 +80,7 @@ Evme.StaticAppsRenderer = function Evme_StaticAppsRenderer() {
     }
 
     el = result.init(app);
-    result.draw(app.icon || DEFAULT_ICON);
+    result.draw(app.icon || DEFAULT_ICON, callback);
 
     return el;
   }
@@ -88,8 +88,17 @@ Evme.StaticAppsRenderer = function Evme_StaticAppsRenderer() {
   function renderDocFrag(apps) {
     var docFrag = document.createDocumentFragment();
 
+    containerEl.classList.add('loading-images');
+
+    var loaded = 0;
+    function next() {
+      if (++loaded === apps.length) {
+        containerEl.classList.remove('loading-images');
+      }
+    }
+
     for (var i = 0, app; app = apps[i++];) {
-      var el = renderApp(app);
+      var el = renderApp(app, next);
       docFrag.appendChild(el);
     }
 

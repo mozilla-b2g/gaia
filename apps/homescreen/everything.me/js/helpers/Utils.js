@@ -102,8 +102,8 @@ Evme.Utils = new function Evme_Utils() {
       ms < 10 && (ms = '00' + ms) ||
         ms < 100 && (ms = '0' + ms);
 
-      console[level]('[%s EVME]: %s', [h, m, s, ms].join(':'),
-                                        Array.prototype.slice.call(arguments));
+      // console[level]('[%s EVME]: %s', [h, m, s, ms].join(':'),
+      //                                   Array.prototype.slice.call(arguments));
     };
   };
 
@@ -406,90 +406,6 @@ Evme.Utils = new function Evme_Utils() {
         });
       })(id, src);
     }
-  };
-
-  this.writeTextToCanvas = function writeTextToCanvas(options) {
-    var context = options.context,
-      text = options.text ? options.text.split(' ') : [],
-      offset = options.offset || 0,
-      lineWidth = 0,
-      currentLine = 0,
-      textToDraw = [],
-
-      WIDTH = context.canvas.width,
-      FONT_SIZE = options.fontSize || self.APPS_FONT_SIZE,
-      LINE_HEIGHT = FONT_SIZE + window.devicePixelRatio;
-
-    if (!context || !text.length) {
-      return false;
-    }
-
-    context.save();
-
-    context.textAlign = 'center';
-    context.textBaseline = 'top';
-    context.fillStyle = 'rgba(255,255,255,1)';
-    context.font = '500 ' + self.rem(FONT_SIZE) + ' sans-serif';
-
-    // text shadow
-    context.shadowOffsetX = self.APP_NAMES_SHADOW_OFFSET_X;
-    context.shadowOffsetY = self.APP_NAMES_SHADOW_OFFSET_Y;
-    context.shadowBlur = self.APP_NAMES_SHADOW_BLUR;
-    context.shadowColor = self.APP_NAMES_SHADOW_COLOR;
-
-    for (var i = 0, word; word = text[i++];) {
-      // add 1 to the word with because of the space between words
-      var size = context.measureText(word + ' ').width,
-        draw = false,
-        pushed = false;
-
-      if (lineWidth + size >= WIDTH) {
-        draw = true;
-        if (textToDraw.length === 0) {
-          textToDraw.push(word);
-          pushed = true;
-        }
-      }
-
-      if (draw) {
-        drawText(textToDraw, WIDTH / 2, offset + currentLine * LINE_HEIGHT);
-        currentLine++;
-        textToDraw = [];
-        lineWidth = 0;
-      }
-
-      if (!pushed) {
-        textToDraw.push(word);
-        lineWidth += size;
-      }
-    }
-
-    if (textToDraw.length > 0) {
-      drawText(textToDraw, WIDTH / 2, offset + currentLine * LINE_HEIGHT);
-    }
-
-    function drawText(text, x, y) {
-      var isSingleWord, size;
-
-      isSingleWord = text.length === 1;
-      text = text.join(' ');
-      size = context.measureText(text).width;
-
-      if (isSingleWord && size >= WIDTH) {
-        while (size >= WIDTH) {
-          text = text.substring(0, text.length - 1);
-          size = context.measureText(text + '…').width;
-        }
-
-        text += '…';
-      }
-
-      context.fillText(text, x, y);
-    }
-
-    context.restore();
-
-    return true;
   };
 
   this.isNewUser = function isNewUser() {

@@ -3,7 +3,6 @@
 
   function NativeScroll(el, initOptions) {
     var self = this,
-        startPos,
         startPointer,
         positionKey,
         dirProperty,
@@ -60,8 +59,6 @@
       'onEnd': onScrollEnd
     });
 
-    updateXY();
-
     this.distY = 0;
     this.distX = 0;
     this.maxX = 0;
@@ -94,7 +91,6 @@
       el.dataset.touched = true;
 
       reportedDirection = false;
-      startPos = [el.scrollLeft, el.scrollTop];
       startPointer = [touch.pageX, touch.pageY];
       self.maxX = el.scrollWidth - el.offsetWidth;
       self.maxY = el.scrollHeight - el.offsetHeight;
@@ -113,8 +109,7 @@
       // messages panning handler to prevent it
       e.preventPanning = true;
 
-      var currPos = [el.scrollLeft, el.scrollTop],
-          touch = 'touches' in e ? e.touches[0] : e;
+      var touch = 'touches' in e ? e.touches[0] : e;
 
       self.distX = touch.pageX - startPointer[0];
       self.distY = touch.pageY - startPointer[1];

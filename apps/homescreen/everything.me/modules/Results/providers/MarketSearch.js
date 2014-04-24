@@ -20,8 +20,8 @@
     this.init = function CloudResult_init() {
       var res = Evme.Result.prototype.init.apply(this, arguments);
 
-      this.elName.setAttribute('height',
-        APP_NAME_HEIGHT + TEXT_MARGIN + DOWNLOAD_LABEL_FONT_SIZE);
+      this.elName.style.height =
+        (APP_NAME_HEIGHT + TEXT_MARGIN + DOWNLOAD_LABEL_FONT_SIZE) + 'px';
 
       return res;
     };
@@ -29,30 +29,20 @@
 
     // @override
     this.drawAppName = function drawAppName() {
-      var canvas = document.createElement('canvas'),
-          context = canvas.getContext('2d'),
-          downloadLabel = Evme.Utils.l10n('apps', 'market-download');
+      var downloadLabel = Evme.Utils.l10n('apps', 'market-download');
+      var download = document.createElement('span');
+      download.classList.add('download');
+      download.textContent = downloadLabel;
 
-      canvas.width = TEXT_WIDTH;
-      canvas.height = APP_NAME_HEIGHT + TEXT_MARGIN + DOWNLOAD_LABEL_FONT_SIZE;
+      var text = document.createTextNode(label);
 
-      Evme.Utils.writeTextToCanvas({
-        'text': downloadLabel,
-        'context': context,
-        'offset': TEXT_MARGIN,
-        'fontSize': DOWNLOAD_LABEL_FONT_SIZE
-      });
-
-      Evme.Utils.writeTextToCanvas({
-        'text': label,
-        'context': context,
-        'offset': TEXT_MARGIN + DOWNLOAD_LABEL_FONT_SIZE + SCALE_RATIO
-      });
+      self.elName.appendChild(download);
+      self.elName.appendChild(document.createElement('br'));
+      self.elName.appendChild(text);
 
       var ariaLabel = downloadLabel + ' ' + label;
       self.elIcon.setAttribute('aria-label', ariaLabel);
       self.elName.setAttribute('aria-label', ariaLabel);
-      self.elName.src = canvas.toDataURL();
     };
 
     // @override
@@ -98,12 +88,17 @@
     };
 
     function render(data) {
+      containerEl.classList.add('loading-images');
+
       self.clear();
 
       var marketSearchResult = new Evme.MarketSearchResult(data),
       el = marketSearchResult.init(app);
 
-      marketSearchResult.draw(app.icon);
+      marketSearchResult.draw(app.icon, function() {
+        containerEl.classList.remove('loading-images');
+      });
+
       containerEl.appendChild(el);
     }
   };

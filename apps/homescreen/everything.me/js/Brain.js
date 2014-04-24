@@ -1449,7 +1449,8 @@
       }
 
       // Clear current results
-      Evme.SearchResults.clear();
+      if (options.source !== 'more')
+        Evme.SearchResults.clear();
 
       // perform search
       var type = options.type,

@@ -424,11 +424,7 @@ void function() {
     this.setBackground = function setBackground(newBg) {
       if (!currentSettings) { return; }
 
-      self.clearBackground();
-
       elImage.style.backgroundImage = 'url(' + newBg.image + ')';
-
-      Evme.BackgroundImage.update(newBg);
 
       self.update(currentSettings, {'bg': newBg});
 

@@ -74,7 +74,7 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
       border-right: 0.8rem solid transparent;
       border-bottom: 0.8rem solid #fff;
     }
-    
+
     /*
       This relates to e.me Searchbar, but have to be in grid.css
       since when a user opens a collection for the first time
