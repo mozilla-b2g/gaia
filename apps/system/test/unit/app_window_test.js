@@ -73,6 +73,12 @@ suite('system/AppWindow', function() {
     origin: 'app://www.fake3'
   };
 
+  var fakeAppConfig4 = {
+    url: 'app://www.fake4/index.html',
+    manifest: {},
+    origin: 'app://www.fake4'
+  };
+
   var fakeAppConfigWithIcon = {
     url: 'app://www.fake4/index.html',
     manifest: {
@@ -1093,6 +1099,20 @@ suite('system/AppWindow', function() {
 
       assert.equal(app1.config.url, 'http://fakeURL.changed');
       app1.config.url = url;
+    });
+
+    test('Scroll event', function() {
+      var app4 = new AppWindow(fakeAppConfig4);
+      app4.manifest = null;
+
+      app4.handleEvent({
+        type: 'mozbrowserasyncscroll',
+        detail: {
+          top: 7
+        }
+      });
+
+      assert.equal(app4.scrollPosition, 7);
     });
 
     test('VisibilityChange event', function() {

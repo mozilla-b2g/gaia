@@ -9,6 +9,7 @@ var Rocketbar = {
   /* Configuration */
   EXPANSION_THRESHOLD: 5, // How many pixels of swipe triggers expand/collapse
   TASK_MANAGER_THRESHOLD: 200, // How many pixels of swipe triggers card view
+  SCROLL_THRESHOLD: 5, // How many pixels of scroll triggers expand
 
   /**
    * Initialise Rocketbar
@@ -17,6 +18,8 @@ var Rocketbar = {
     // States
     this.enabled = false;
     this.expanded = false;
+    this.transitioning = false;
+    this.focused = false;
     this.active = false;
     this.onHomescreen = false;
     this.newTabPage = false;
@@ -67,6 +70,12 @@ var Rocketbar = {
     this.enabled = false;
   },
 
+  /**
+   * Put Rocketbar in the active state.
+   *
+   * Input is displayed, title is hidden and search app is loaded, input
+   * not always focused.
+   */
   activate: function(callback) {
     if (this.active) {
       if (callback) {
@@ -74,29 +83,31 @@ var Rocketbar = {
       }
       return;
     }
-    this.body.addEventListener('keyboardchange',
-                               this.handleKeyboardChange, true);
     this.active = true;
     this.rocketbar.classList.add('active');
+    this.form.classList.remove('hidden');
+    this.title.classList.add('hidden');
     this.loadSearchApp(callback);
-    var event = new CustomEvent('rocketbarfocus');
-    window.dispatchEvent(event);
+    this.screen.classList.add('rocketbar-focused');
   },
 
+  /**
+   * Take Rocketbar out of active state.
+   *
+   * Title is displayed, input is hidden, input is always blurred.
+   */
   deactivate: function() {
     if (!this.active) {
       return;
     }
-    // Stop swallowing keyboard change events
-    this.body.removeEventListener('keyboardchange',
-      this.handleKeyboardChange, true);
     this.active = false;
     this.cardView = false;
     this.newTabPage = false;
     this.rocketbar.classList.remove('active');
+    this.form.classList.add('hidden');
+    this.title.classList.remove('hidden');
     this.blur();
-    var event = new CustomEvent('rocketbarblur');
-    window.dispatchEvent(event);
+    this.screen.classList.remove('rocketbar-focused');
   },
 
   /**
@@ -108,10 +119,11 @@ var Rocketbar = {
     window.addEventListener('appforeground', this);
     window.addEventListener('apptitlechange', this);
     window.addEventListener('applocationchange', this);
+    window.addEventListener('appscroll', this);
     window.addEventListener('home', this);
     window.addEventListener('cardviewclosedhome', this);
     window.addEventListener('appopened', this);
-    window.addEventListener('homescreenopened', this);
+    window.addEventListener('homescreenopening', this);
     window.addEventListener('stackchanged', this);
     window.addEventListener('searchcrashed', this);
 
@@ -120,6 +132,7 @@ var Rocketbar = {
     this.rocketbar.addEventListener('touchmove', this);
     this.rocketbar.addEventListener('touchend', this);
     this.rocketbar.addEventListener('transitionend', this);
+    this.input.addEventListener('focus', this);
     this.input.addEventListener('blur', this);
     this.input.addEventListener('input', this);
     this.form.addEventListener('submit', this);
@@ -140,6 +153,7 @@ var Rocketbar = {
     switch(e.type) {
       case 'apploading':
       case 'appforeground':
+      case 'appopened':
         this.handleAppChange(e);
         break;
       case 'apptitlechange':
@@ -148,12 +162,12 @@ var Rocketbar = {
       case 'applocationchange':
         this.handleLocationChange(e);
         break;
+      case 'appscroll':
+        this.handleScroll(e);
+        break;
       case 'home':
       case 'cardviewclosedhome':
         this.handleHome(e);
-        break;
-      case 'appopened':
-        this.collapse(e);
         break;
       case 'searchcrashed':
         this.handleSearchCrashed(e);
@@ -166,8 +180,11 @@ var Rocketbar = {
       case 'transitionend':
         this.handleTransitionEnd(e);
         break;
+      case 'focus':
+        this.handleFocus(e);
+        break;
       case 'blur':
-        this.blur(e);
+        this.handleBlur(e);
         break;
       case 'input':
         this.handleInput(e);
@@ -181,7 +198,7 @@ var Rocketbar = {
       case 'ftudone':
         this.handleFTUDone(e);
         break;
-      case 'homescreenopened':
+      case 'homescreenopening':
         this.enterHome(e);
         break;
       case 'stackchanged':
@@ -202,7 +219,7 @@ var Rocketbar = {
     window.removeEventListener('home', this);
     window.removeEventListener('cardviewclosedhome', this);
     window.removeEventListener('appopened', this);
-    window.removeEventListener('homescreenopened', this);
+    window.removeEventListener('homescreenopening', this);
     window.removeEventListener('stackchanged', this);
 
     // Stop listening for events from Rocketbar
@@ -210,6 +227,7 @@ var Rocketbar = {
     this.rocketbar.removeEventListener('touchmove', this);
     this.rocketbar.removeEventListener('touchend', this);
     this.rocketbar.removeEventListener('transitionend', this);
+    this.input.removeEventListener('focus', this);
     this.input.removeEventListener('blur', this);
     this.input.removeEventListener('input', this);
     this.form.removeEventListener('submit', this);
@@ -231,27 +249,29 @@ var Rocketbar = {
    * Put Rocketbar in expanded state.
    */
   expand: function() {
-    if (this.expanded) {
+    if (this.expanded || this.transitioning) {
       return;
     }
+    this.transitioning = true;
     this.rocketbar.classList.add('expanded');
+    this.screen.classList.add('rocketbar-expanded');
     this.expanded = true;
-    window.dispatchEvent(new CustomEvent('rocketbarexpand'));
   },
 
   /**
    * Take Rocketbar out of expanded state, into status state.
    */
   collapse: function() {
-    if (!this.expanded) {
+    if (!this.expanded || this.transitioning) {
       return;
     }
+    this.transitioning = true;
     this.expanded = false;
     this.rocketbar.classList.remove('expanded');
+    this.screen.classList.remove('rocketbar-expanded');
     this.exitHome();
     this.hideResults();
     this.deactivate();
-    window.dispatchEvent(new CustomEvent('rocketbarcollapse'));
   },
 
   /**
@@ -266,7 +286,6 @@ var Rocketbar = {
       this.expand();
     }
     this.clear();
-    this.rocketbar.classList.add('on-homescreen');
   },
 
   /**
@@ -277,7 +296,6 @@ var Rocketbar = {
       return;
     }
     this.onHomescreen = false;
-    this.rocketbar.classList.remove('on-homescreen');
   },
 
   /**
@@ -301,7 +319,7 @@ var Rocketbar = {
   },
 
   /**
-   * Reset the Rocketbar to its initial empty state
+   * Reset the Rocketbar to its initial empty state.
    */
   clear: function() {
     this.input.value = '';
@@ -319,6 +337,9 @@ var Rocketbar = {
     this.clear();
   },
 
+  /**
+   * Show New Tab Page.
+   */
   showNewTabPage: function() {
     this.newTabPage = true;
     this.activate((function() {
@@ -332,23 +353,42 @@ var Rocketbar = {
   },
 
   /**
-   * Put Rocketbar in focused state.
+   * Focus Rocketbar input.
    */
   focus: function() {
-    // Swallow keyboard change events so homescreen does not resize
     this.input.focus();
-    this.form.classList.remove('hidden');
-    this.title.classList.add('hidden');
+    this.input.select();
   },
 
   /**
-   * Take Rocketbar out of focused state.
+   * Handle a focus event.
+   */
+  handleFocus: function() {
+    this.focused = true;
+    // Swallow keyboard change events so homescreen does not resize
+    // To be removed in bug 999463
+    this.body.addEventListener('keyboardchange',
+      this.handleKeyboardChange, true);
+  },
+
+  /**
+   * Blur Rocketbar input.
    */
   blur: function() {
     this.input.blur();
-    this.form.classList.add('hidden');
-    this.title.classList.remove('hidden');
-    if (this.input.value === '' && !this.newTabPage) {
+  },
+
+  /**
+   * Handle a blur event.
+   */
+  handleBlur: function() {
+    this.focused = false;
+    // Stop swallowing keyboard change events
+    // To be removed in bug 999463
+    this.body.removeEventListener('keyboardchange',
+      this.handleKeyboardChange, true);
+    // Deactivate unless on new tab page or results
+    if (this.active && this.results.classList.contains('hidden')) {
       this.deactivate();
     }
   },
@@ -359,10 +399,15 @@ var Rocketbar = {
    * @param {Event} e Window manager event.
    */
   handleAppChange: function(e) {
+    this.currentScrollPosition = 0;
     this.handleLocationChange(e);
     this.handleTitleChange(e);
     this.exitHome();
-    this.collapse();
+    if (e.detail.manifestURL) {
+      this.collapse();
+    } else {
+      this.expand();
+    }
     this.hideResults();
   },
 
@@ -384,6 +429,25 @@ var Rocketbar = {
   },
 
   /**
+   * Handle scroll of web content.
+   *
+   * @param {Event} e mozbrowserasyncscroll event.
+   */
+  handleScroll: function(e) {
+    if (e.detail.manifestURL) {
+      return;
+    }
+    if (this.expanded && !this.focused &&
+        e.detail.scrollPosition > this.currentScrollPosition) {
+      this.collapse();
+    } else if (!this.expanded && e.detail.scrollPosition <
+      (this.currentScrollPosition - this.SCROLL_THRESHOLD)) {
+      this.expand();
+    }
+    this.currentScrollPosition = e.detail.scrollPosition;
+  },
+
+  /**
   * Update the Rocketbar's input field.
   *
   * @param {Event} e Window manager event.
@@ -396,6 +460,7 @@ var Rocketbar = {
     }
     this.titleContent.textContent = '';
     this.updateSearchIndex();
+    this.deactivate();
   },
 
   /**
@@ -449,14 +514,11 @@ var Rocketbar = {
   handleClick: function() {
     if (this.active) {
       this.focus();
-      this.input.select();
       return;
     }
-
     if (this.expanded) {
       this.activate((function() {
         this.focus();
-        this.input.select();
       }).bind(this));
     } else {
       this._wasClicked = true;
@@ -468,10 +530,10 @@ var Rocketbar = {
    * Focus the Rocketbar once expanded if was clicked.
    */
   handleTransitionEnd: function() {
+    this.transitioning = false;
     if (this.expanded && this._wasClicked) {
       this.activate((function() {
         this.focus();
-        this.input.select();
       }).bind(this));
       this._wasClicked = false;
     }
@@ -524,6 +586,8 @@ var Rocketbar = {
 
   /**
    * Handle keyboard change.
+   *
+   * To be removed in bug 999463.
    */
   handleKeyboardChange: function(e) {
     // Swallow event to prevent app being resized
