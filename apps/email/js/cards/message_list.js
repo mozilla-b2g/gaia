@@ -924,6 +924,8 @@ MessageListCard.prototype = {
         this._isCacheableCardState() &&
         // if the scroll area is at the top (otherwise the
         // virtual scroll may be showing non-top messages)
+        // XXX this is overly conservative since a non-current NodeCache may
+        // have dataIndex === 0.
         this.vScroll.currentIndex === 0 &&
         // if actually got a numeric index and
         (index || index === 0) &&

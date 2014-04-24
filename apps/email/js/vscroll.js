@@ -39,11 +39,26 @@ define(function(require, exports, module) {
     this.nodes = [];
     this.useTransform = useTransform;
 
+    /**
+     * Index of the first node/item in the backing data-store.  This will is -1
+     * if we are invalid.
+     */
     this.dataIndex = -1;
 
-    // Used by VScroll to track position so DOM
-    // does not have to be queried for it.
+    /**
+     * Cached absolute position in CSS pixels within our parent element as set
+     * by `setTop`.  Note that our parent element does not define the scrolling
+     * region, so if you are comparing this to scrollTop you need to be doing
+     * math first!
+     */
     this.topPx = 0;
+
+    /**
+     * Height in CSS pixels.  This will usually be the same as VScroll's
+     * `cacheContainerHeight`, but it's scary to :asuth to just assume that and
+     * arguably limits us.
+     */
+    this.height = 0;
   }
 
   /**
@@ -59,10 +74,20 @@ define(function(require, exports, module) {
   NodeCache.Node.className = 'vscroll-cachelist';
 
   NodeCache.prototype = {
+    /**
+     * Set our absolution position.  Note that this positions us relative to our
+     * parent element, but that our parent element does not define the scrolling
+     * region.
+     */
     setTop: function(top) {
       setTop(this.container, top, this.useTransform);
       this.topPx = top;
-    }
+    },
+
+    setHeight: function(height) {
+      this.height = height;
+      this.container.style.height = height + 'px';
+    },
   };
 
   // VScroll --------------------------------------------------------
@@ -95,20 +120,45 @@ define(function(require, exports, module) {
     this.template = template;
     this.defaultData = defaultData;
 
+    /**
+     * The index of the first item in the currently displayed NodeCache.  This
+     * should be equivalent to `this.currentNodeCache.dataIndex`.
+     */
     this.currentIndex = 0;
 
+    /**
+     * Suppression flag to indicate if event limiting controlled by
+     * `eventRateLimitMillis` has been triggered, causing a call to onChange to
+     * be scheduled.
+     */
     this._limited = false;
 
-    // Stores the list of DOM nodes to reuse.
+    /** Stores the list of DOM nodes to reuse. */
     this.nodeCacheList = [];
+    /**
+     * Index of the `currentNodeCache` in `nodeCacheList`.
+     */
     this.nodeCacheId = 0;
+    /**
+     * The "current" NodeCache instance; this is the NodeCache that was most
+     * recently populated via `_render`.  This matters because this is the
+     * NodeCache that is used for scroll buffering logic in `onChange`.
+     */
+    this.currentNodeCache = null;
 
+    /**
+     * The scrollTop of the `scrollingContainer` the last time `onChange`
+     * triggered.  Used to derive the direction and amount scrolled.  Updated
+     * during `onChange` processing.
+     */
     this.scrollTop = 0;
 
-    // Any visible height offset to where container sits in relation
-    // to scrollingContainer. Expected to be set by owner of the
-    // VScroll instance. In email, the search box height is an
-    // example of a visibleOffset.
+    /**
+     * Any visible height offset to where container sits in relation
+     * to scrollingContainer. Expected to be set by owner of the
+     * VScroll instance. In email, the search box height is an
+     * example of a visibleOffset.
+     */
     this.visibleOffset = 0;
 
     this.oldListSize = 0;
@@ -155,40 +205,106 @@ define(function(require, exports, module) {
   };
 
   VScroll.prototype = {
-    // rate limit for event handler, in milliseconds, so that
-    // it does not do work for every event received. If set to
-    // zero, it means always do the work for every scroll event.
-    // If this code continues to use 0, then the onEvent/onChange
-    // duality could be removed, and just use onChange directly.
-    // A non-zero value, like 50 subjectively seems to result in
-    // more checkerboarding of half the screen every so often.
+    /**
+     * Rate limit for event handler, in milliseconds, so that
+     * it does not do work for every event received. If set to
+     * zero, it means always do the work for every scroll event.
+     * If this code continues to use 0, then the onEvent/onChange
+     * duality could be removed, and just use onChange directly.
+     * A non-zero value, like 50 subjectively seems to result in
+     * more checkerboarding of half the screen every so often.
+     */
     eventRateLimitMillis: 0,
 
-    // How much to multiply the visible node range by to allow for
-    // smoother scrolling transitions without white gaps.
+    /**
+     * The height of the rendered items in CSS pixels as determined by the
+     * clientHeight which includes padding but not border or margin.
+     * Accordingly all styling of items should either avoid use of border/margin
+     * or internalize the use.  Automatically initialized once in `_init`.
+     */
+    itemHeight: undefined,
+
+    /**
+     * The (rounded up) maximum number of items that can be displayed at the
+     * same time on our screen.  Automatically initialized once in `_init`.
+     */
+    itemsPerDisplay: undefined,
+
+    /**
+     * How many display pages worth of items should be in each NodeCache?  This
+     * number wants to be low since it is the knob to control `nodeRange` and
+     * `nodeRange` is the "batch size" for our `prepareData` requests and some
+     * operations are performed on all the items in a NodeCache.  ex: `_render`
+     * and `_scrollTimeoutPoll`.  In other words, increasing this number may
+     * result in us dominating the main thread for longer periods of time but
+     * setting it too low may be wasteful since we'll need more smaller bites.
+     *
+     * `nodeCacheListSize` is the number to increase if decreasing this in order
+     * to still maintain the same effective amount of DOM buffering.
+     */
     rangeMultipler: 2,
 
-    // What fraction of the height to use to trigger the render of
-    // the next node cache. If scroll position goes past this point,
-    // the next node cache work is triggered.
-    heightFractionTrigger: 8 / 10,
+    /**
+     * The number of items to display in each NodeCache, derived by multiplying
+     * `itemsPerDisplay` by `rangeMultipler` at `_init` time.
+     */
+    nodeRange: undefined,
+
+    /**
+     * The expected/calculated height of eached NodeCache in CSS pixels, derived
+     * by multiplying `nodeRange` by `itemHeight`.  This is used to explicitly
+     * size NodeCaches and for calculations relating to visibility, etc.  This
+     * is automatically initialized once in `_init`.
+     *
+     * XXX audit risk relating to assuming all NodeCaches have `nodeRange` items
+     * present.
+     */
+    cacheContainerHeight: undefined,
+
+    /**
+     * How far along a NodeCache should we scroll before we trigger the
+     * population of an adjacent NodeCache?  If set to 0.2 that means we do this
+     * once 20%
+     */
+    heightFractionTrigger: 0.2,
+
+    /**
+     * `heightFractionTrigger` multiplied by `cacheContainerHeight` to give us
+     * a height in CSS pixels.
+     */
+    cacheTriggerHeight: undefined,
 
     // Detach cache dom when doing item updates and reattach when done.
     // If this value stays at false for a while, it can be removed later.
     detachForUpdates: false,
 
-    // number of NodeCache objects to use
+    /**
+     * Number of NodeCache objects to use.  Increase this if you want more nodes
+     * pre-rendered/buffered into the DOM but don't want to increase the size of
+     * the bites we use to do this as altering `rangeMultipler` does.
+     */
     nodeCacheListSize: 3,
 
-    // The class to find items that have their default data set,
-    // in the case where a scroll into a cache has skipped updates
-    // because a previous fast scroll skipped the updates since they
-    // were not visible at the time of that fast scroll.
+    /**
+     * The class to find items that have their default data set,
+     * in the case where a scroll into a cache has skipped updates
+     * because a previous fast scroll skipped the updates since they
+     * were not visible at the time of that fast scroll.
+     */
     itemDefaultDataClass: 'default-data',
 
-    // Use transformY instead of top to position node caches. If this
-    // value stays as false, this code and its use can be removed.
+    /**
+     * Use transformY instead of top to position node caches. If this
+     * value stays as false, this code and its use can be removed.
+     */
     useTransform: false,
+
+    /**
+     * Have we emptied our `container` of all its children and zeroed its
+     * height?  Tracked so that `_render` can re-append the NodeCaches in
+     * `nodeCacheList`.
+     */
+    _cleared: undefined,
 
     /**
      * Hook that is implemented by the creator of a VScroll instance.
@@ -248,6 +364,8 @@ define(function(require, exports, module) {
       if (this.oldListSize !== this.list.size() || removedCount) {
         if (!this.waitingForRecalculate) {
           this.waitingForRecalculate = true;
+          // NB: our 'on' implementation has special magic so that scrollStopped
+          // will fire even if we are completely at rest.
           this.once('scrollStopped', function() {
             this._recalculate(index);
           }.bind(this));
@@ -302,20 +420,47 @@ define(function(require, exports, module) {
       this._limited = false;
 
       var startDataIndex,
+          // The most recently rendered NodeCache
           cache = this.currentNodeCache,
+          // Current reported DOM scroll position (because of async pan/zoom,
+          // the actual scroll position may be somewhat different)
           scrollTop = this.scrollingContainer.scrollTop,
-          topDistance = scrollTop - cache.topPx,
-          bottomDistance = (cache.topPx + this.cacheContainerHeight) -
-                            scrollTop,
+          // How many pixels below the top of the `cache` are we scrolled?
+          // (Negative if we are above it.)
+          topDistance = (scrollTop - this.visibleOffset) - cache.topPx,
+          // How many pixels from the top of our scrolling container to
+          // the bottom of the current NodeCache?  AKA how many pixels would
+          // we need to scroll down for it to be scrolled so it's off screen
+          // above the top of the display.
+          bottomDistance = (cache.topPx + cache.height) -
+                            (scrollTop - this.visibleOffset),
+          // Did we scroll down? (boolean)
           scrollDown = scrollTop >= this.scrollTop;
 
       this.scrollTop = scrollTop;
 
-      // If topDistance is past the triggerHeight, send out an event
-      // about needing more data, in the appropriate direction.
-
-      if (scrollDown && (topDistance > 0 &&
-          topDistance > this.cacheTriggerHeight)) {
+      // ## SCROLLING DOWN ##
+      //
+      // If scrolling down, populate another NodeCache in this direction iff
+      // we have scrolled beyond the cacheTriggerHeight threshold (and we aren't
+      // already at the bottom).
+      //
+      // For example, if heightFractionTrigger is 0.2, then if we scroll more
+      // than 20% along our NodeCache (so that 20% of it is scrolled off the
+      // screen above us), we will trigger.
+      //
+      // Note: Once triggered, this will call `_render`.  This will change the
+      // `currentNodeCache` to be the newly rendered NodeCache which will be
+      // *way* below us, so it will take until we scroll a full
+      // `cacheContainerHeight` to want to trigger again on this code path.
+      //
+      // However, if we scroll up, even just by a pixel, we will immediately
+      // trigger the scroll up case since we are by definition way far scrolled
+      // up above that newly rendered NodeCache.
+      //
+      // XXX the above seems bad/inefficient
+      if (scrollDown &&
+          (topDistance > this.cacheTriggerHeight)) {
         startDataIndex = cache.dataIndex + this.nodeRange;
 
         // Render next cache segment but only if not already at the end.
@@ -330,8 +475,26 @@ define(function(require, exports, module) {
 
           this._render(startDataIndex);
         }
-      } else if (!scrollDown && (bottomDistance > 0 &&
-                 bottomDistance > this.cacheTriggerHeight)) {
+      // ## SCROLLING UP ##
+      //
+      // If scrolling up, populate another NodeCache in this direction iff
+      // we have scrolled beyond the cacheTriggerHeight threshold (and we aren't
+      // already at the top).
+      //
+      // For example, if heightFractionTrigger is 0.2, then if we scroll the
+      // screen down so that a NodeCache that previously was totally above us
+      // so that now >= 20% of it is below the top of the screen (or < 80% of it
+      // is above the top of the screen), we will trigger.
+      //
+      // Note: Once triggered, this will call `_render`.  This will change the
+      // `currentNodeCache` to be the newly rendered NodeCache which will be
+      // *way* above us so it will take until we scroll a full
+      // `cacheContainerHeight` to wait to trigger again on this code path.
+      //
+      // However, if we scroll down, even just by a pixel, we will immediately
+      // trigger the scroll down case.
+      } else if (!scrollDown &&
+                 (bottomDistance > this.cacheTriggerHeight)) {
         startDataIndex = cache.dataIndex - this.nodeRange;
         if (startDataIndex < 0) {
           startDataIndex = 0;
@@ -531,9 +694,8 @@ define(function(require, exports, module) {
       this.nodeRange = Math.floor(this.itemsPerDisplay * this.rangeMultipler);
       this.cacheContainerHeight = this.nodeRange * this.itemHeight;
 
-      this.cacheTriggerHeight = this.cacheContainerHeight -
-                                (this.cacheContainerHeight *
-                                 this.heightFractionTrigger);
+      this.cacheTriggerHeight = this.cacheContainerHeight *
+                                this.heightFractionTrigger;
 
       // Generate as set of DOM nodes to reuse.
       // The - 1 is because the init node used to calculate itemHeight
@@ -551,7 +713,7 @@ define(function(require, exports, module) {
 
         // Set explicit height on on the cache container, in the hopes
         // that this helps layout, but not proven yet.
-        cache.container.style.height = this.cacheContainerHeight + 'px';
+        cache.setHeight(nodes.length * this.itemHeight);
         cache.setTop(cacheIndex * this.cacheContainerHeight);
 
         if (cacheIndex > 0) {
@@ -643,8 +805,9 @@ define(function(require, exports, module) {
     },
 
     /**
-     * Indicates if the NodeCache at the given index is visible in
+     * Indicates if the NodeCache at the given index is (partially) visible in
      * the container.
+     *
      * @param  {number}  index the index of the NodeCache in
      * the VScroll's set of NodeCache instances.
      * @return {Boolean}
@@ -707,6 +870,12 @@ define(function(require, exports, module) {
       if (Date.now() > this._lastEventTime + 300) {
         // Scan for items that have default data but maybe should
         // have real data by now.
+        //
+        // XXX This seems inefficient and not required if we trust our user to
+        // call updateDataBind correctly.  updateDataBind will synchronously
+        // update when invoked if there's no index-adjustments needed, otherwise
+        // _recalculate will be queued on scrollStopped which is the event we
+        // emit below.
         this.nodeCacheList.forEach(function(cache, i) {
           if (this._isCacheVisible(i) && cache.dataIndex > -1) {
             var nodes = cache.nodes;
