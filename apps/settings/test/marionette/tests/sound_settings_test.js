@@ -60,6 +60,16 @@ marionette('manipulate sound settings', function() {
     );
   });
 
+  test('check default ringtone name', function() {
+    var ringtone_name = soundPanel.ringtoneButtonText;
+    assert.equal(ringtone_name, 'Classic Courier');
+  });
+
+  test('check default alerttone name', function() {
+    var alerttone_name = soundPanel.alerttoneButtonText;
+    assert.equal(alerttone_name, 'Bell');
+  });
+
   /* Other sounds */
   test('check keypad initial state', function() {
     assert.ok(
