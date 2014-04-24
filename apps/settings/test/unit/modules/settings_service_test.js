@@ -7,7 +7,9 @@ mocha.setup({
     'startupLocale',
     'initLocale',
     'ScreenLayout',
-    'MockL10n'
+    'MockL10n',
+    'MockSettings',
+    'MockNavigatorSettings'
   ]
 });
 
@@ -21,7 +23,8 @@ suite('SettingsService', function() {
       'unit/mock_l10n',
       'modules/settings_service',
       'modules/panel_cache',
-      'unit/mock_settings_panel'
+      'unit/mock_settings_panel',
+      'settings'
     ];
 
     // Use map to mock the dependencies.
@@ -32,32 +35,28 @@ suite('SettingsService', function() {
         'modules/settings_panel': 'unit/mock_settings_panel'
       },
       'modules/settings_service': {
-        'modules/page_transitions': 'unit/mock_page_transitions'
-      }
+        'modules/page_transitions': 'unit/mock_page_transitions',
+      },
+      'settings': 'unit/mock_settings'
     };
 
     testRequire(modules, map,
-      (function(MockL10n, SettingsService, PanelCache, MockSettingsPanel) {
-        this.SettingsService = SettingsService;
-        this.PanelCache = PanelCache;
-        // Mock of the SettingsPanel function
-        this.MockSettingsPanel = MockSettingsPanel;
+      (function(MockL10n, SettingsService, PanelCache,
+        MockSettingsPanel, MockSettings) {
+          this.SettingsService = SettingsService;
+          this.PanelCache = PanelCache;
+          // Mock of the SettingsPanel function
+          this.MockSettingsPanel = MockSettingsPanel;
+          this.MockSettings = MockSettings;
 
-        realL10n = window.navigator.mozL10n;
-        window.navigator.mozL10n = MockL10n;
-
-        // XXX: As we use 'require' function of requirejs in PanelCache and it
-        //      conflicts to the original require function, we replace it here.
-        this.originalRequire = window.require;
-        window.require = testRequire;
-        done();
+          realL10n = window.navigator.mozL10n;
+          window.navigator.mozL10n = MockL10n;
+          done();
     }).bind(this));
   });
 
   suiteTeardown(function() {
     window.navigator.mozL10n = realL10n;
-    window.require = this.originalRequire;
-    this.originalRequire = null;
   });
 
   suite('navigate()', function() {
@@ -214,6 +213,13 @@ suite('SettingsService', function() {
         assert.ok(this.callCount == 2,
           'only two panel instances should be created');
         done();
+      }).bind(this));
+    });
+
+    test('should override Settings._currentPanel', function() {
+      var fakePanelId = 'id0';
+      this.SettingsService.navigate(fakePanelId, {}, (function() {
+        assert.equal(this.MockSettings._currentPanel, '#' + fakePanelId);
       }).bind(this));
     });
   });
