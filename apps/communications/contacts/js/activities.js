@@ -80,14 +80,15 @@ var ActivityHandler = {
         activity.source.data &&
         activity.source.data.blob) {
       LazyLoader.load([
+        document.querySelector('#loading-overlay'),
         '/shared/js/contacts/import/utilities/import_from_vcard.js',
         '/shared/js/contacts/import/utilities/overlay.js'
       ], function loaded() {
         utils.importFromVcard(activity.source.data.blob, function imported(id) {
-          if (id) {
-            activity.source.data.params = {id: id};
-          }
-          self.launch_activity(activity, 'view-contact-details');
+          // We don't have ID anymore as described in
+          // https://bugzilla.mozilla.org/show_bug.cgi?id=996527#c13
+          // so we open contact-list instead of contact-details
+          self.launch_activity(activity, 'view-contact-list');
         });
       });
     } else {
