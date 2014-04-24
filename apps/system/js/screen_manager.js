@@ -282,11 +282,11 @@ var ScreenManager = {
 
       case 'statechange':
         var call = evt.target;
-        if (call.state !== 'connected' && call.state !== 'alerting') {
+        if (['connected', 'alerting', 'dialing'].indexOf(call.state) === -1) {
           break;
         }
 
-        // The call is connected (MT call) or alerting (MO call).
+        // The call is connected (MT call) or alerting/dialing (MO call).
         // Remove the statechange listener and enable the user proximity
         // sensor.
         call.removeEventListener('statechange', this);
