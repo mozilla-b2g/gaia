@@ -342,6 +342,11 @@ var Rocketbar = {
    */
   showTaskManager: function() {
     this.cardView = true;
+    if (this._port) {
+      this._port.postMessage({
+        action: 'showTaskManager'
+      });
+    }
     this.showResults();
     window.dispatchEvent(new CustomEvent('taskmanagershow'));
     this.clear();
@@ -502,7 +507,8 @@ var Rocketbar = {
           !this.onHomescreen) {
           this.collapse();
         }
-        if (dy > this.TASK_MANAGER_THRESHOLD && !this.active) {
+        if (dy > this.TASK_MANAGER_THRESHOLD &&
+            !this.active && !this.cardView) {
           this.showTaskManager();
         }
         break;
