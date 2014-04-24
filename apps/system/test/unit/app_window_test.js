@@ -1494,6 +1494,17 @@ suite('system/AppWindow', function() {
     assert.isNull(app2.frontWindow);
   });
 
+  test('showDefaultContextMenu', function() {
+    var app = new AppWindow(fakeAppConfig1);
+    // Nothing goes wrong if contextmenu is undefined
+    app.showDefaultContextMenu();
+
+    app.contextmenu = {'showDefaultMenu': function() {}};
+    var stubCtx = this.sinon.stub(app.contextmenu, 'showDefaultMenu');
+    app.showDefaultContextMenu();
+    assert.isTrue(stubCtx.called);
+  });
+
   function genFakeConfig(id) {
     return {
       url: 'app://www.fake' + id + '/index.html',
