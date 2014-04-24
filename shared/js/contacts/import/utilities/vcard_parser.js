@@ -598,6 +598,7 @@ var VCFReader = (function _VCFReader() {
      * change in case there are vcards with syntax errors or that our processor
      * can't parse.
      */
+
     var match = this.contents.match(/end:vcard/gi);
     // If there are no matches, then this probably isn't a vcard and we should
     // stop processing.
@@ -607,17 +608,19 @@ var VCFReader = (function _VCFReader() {
       }
       return;
     }
+
+    this.importedContacts = [];
     this.total = match.length;
     this.onread && this.onread(this.total);
     this.ondone = cb;
 
     LazyLoader.load(['/shared/js/simple_phone_matcher.js',
       '/shared/js/contacts/import/utilities/misc.js',
-      '/contacts/js/contacts_matcher.js',
-      '/contacts/js/contacts_merger.js',
-      '/contacts/js/utilities/image_thumbnail.js',
-      '/contacts/js/merger_adapter.js',
-      '/contacts/js/utilities/http_rest.js'
+      '/shared/js/contacts/contacts_matcher.js',
+      '/shared/js/contacts/contacts_merger.js',
+      '/shared/js/contacts/utilities/image_thumbnail.js',
+      '/shared/js/contacts/merger_adapter.js',
+      '/shared/js/contacts/utilities/http_rest.js'
     ], function() {
       // Start processing the text
       // The data pump flows as follows:
@@ -644,9 +647,11 @@ var VCFReader = (function _VCFReader() {
    */
   VCFReader.prototype.onParsed = function(err, ct) {
     this.processed += 1;
+    this.importedContacts.push(ct);
+
     this.onimported && this.onimported(ct && ct.name);
     if (this.finished || this.processed === this.total) {
-      this.ondone(this.total);
+      this.ondone(this.importedContacts);
       return;
     }
 
