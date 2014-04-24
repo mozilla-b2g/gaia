@@ -89,8 +89,8 @@ class Camera(Base):
     def tap_toggle_flash_button(self):
         self.marionette.find_element(*self._toggle_flash_button_locator).tap()
 
-    def wait_for_select_button_displayed(self):
-        self.wait_for_element_displayed(*self._select_button_locator)
+    def wait_for_select_button_enabled(self):
+        self.wait_for_condition(lambda m: self.marionette.find_element(*self._select_button_locator).is_enabled())
 
     def wait_for_capture_ready(self):
         self.wait_for_condition(
