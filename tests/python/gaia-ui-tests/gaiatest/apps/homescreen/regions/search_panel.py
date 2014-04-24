@@ -17,8 +17,6 @@ class SearchPanel(Base):
     _search_title_query_locator = (By.CSS_SELECTOR, '#search-title > .query')
     _search_title_first_word_locator = (By.CSS_SELECTOR, '#search-title [data-l10n-id="evme-helper-title-prefix"]')
     _search_results_from_everything_me_locator = (By.CSS_SELECTOR, '#search .evme-apps ul.cloud li[data-name]')
-    _search_results_installed_app_locator = (By.CSS_SELECTOR, '#search .evme-apps ul.installed li[data-name]')
-    _app_icon_locator = (By.CSS_SELECTOR, 'ul.cloud li[data-name]')
 
     def type_into_search_box(self, search_term):
         self.keyboard.send(search_term)
@@ -35,21 +33,10 @@ class SearchPanel(Base):
     def wait_for_everything_me_results_to_load(self):
         self.wait_for_element_displayed(*self._search_results_from_everything_me_locator)
 
-    def wait_for_app_icons_displayed(self):
-        self.wait_for_element_displayed(*self._app_icon_locator)
-
-    def wait_for_installed_apps_displayed(self):
-        self.wait_for_element_displayed(*self._search_results_installed_app_locator)
-
     @property
     def results(self):
         return [self.Result(marionette=self.marionette, element=result)
                 for result in self.marionette.find_elements(*self._search_results_from_everything_me_locator)]
-
-    @property
-    def installed_apps(self):
-        return [self.InstalledApp(self.marionette, root_el) for root_el in
-                self.marionette.find_elements(*self._search_results_installed_app_locator)]
 
     class Result(PageRegion):
 
@@ -67,16 +54,3 @@ class SearchPanel(Base):
 
             # Wait for title to load (we cannot be more specific because the aut may change)
             self.wait_for_condition(lambda m: bool(m.title))
-
-    class InstalledApp(PageRegion):
-
-        @property
-        def name(self):
-            return self.root_element.get_attribute('data-name')
-
-        def tap(self):
-            expected_name = self.name
-            self.root_element.tap()
-            Wait(self.marionette, ignored_exceptions=StaleElementException).until(
-                lambda m: self.apps.displayed_app.name.lower() == expected_name.lower())
-            self.apps.switch_to_displayed_app()
