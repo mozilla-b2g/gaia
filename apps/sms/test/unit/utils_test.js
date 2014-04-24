@@ -34,6 +34,26 @@ suite('Utils', function() {
     navigator.mozL10n = nativeMozL10n;
   });
 
+  setup(function() {
+    // Override generic mozL10n.get for this test
+    this.sinon.stub(navigator.mozL10n, 'get',
+      function get(key, params) {
+        if (params) {
+          if (key == 'thread-header') {
+            return params.numberType + ' | ' + params.numberDetail;
+          }
+          return key + JSON.stringify(params);
+        }
+        if (key == 'thread-separator') {
+          return ' | ';
+        }
+        if (key == 'carrier-separator') {
+          return ', ';
+        }
+        return key;
+    });
+  });
+
   suite('Utils.escapeRegex', function() {
 
     test('functional', function() {
@@ -1008,7 +1028,23 @@ suite('getDisplayObject', function() {
   var nativeMozL10n = navigator.mozL10n;
   setup(function() {
     navigator.mozL10n = MockL10n;
-    this.sinon.spy(navigator.mozL10n, 'get');
+    // Override generic mozL10n.get for this test
+    this.sinon.stub(navigator.mozL10n, 'get',
+      function get(key, params) {
+        if (params) {
+          if (key == 'thread-header') {
+            return params.numberType + ' | ' + params.numberDetail;
+          }
+          return key + JSON.stringify(params);
+        }
+        if (key == 'thread-separator') {
+          return ' | ';
+        }
+        if (key == 'carrier-separator') {
+          return ', ';
+        }
+        return key;
+    });
   });
 
   teardown(function() {
@@ -1078,6 +1114,58 @@ suite('getDisplayObject', function() {
     assert.equal(data.separator, ' | ');
     assert.equal(data.type, type);
     assert.equal(data.carrier, carrier + ', ');
+    assert.equal(data.number, value);
+  });
+});
+
+suite('getDisplayObject l10n values', function() {
+  var nativeMozL10n;
+
+  setup(function() {
+    nativeMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+  });
+
+  teardown(function() {
+    navigator.mozL10n = nativeMozL10n;
+    nativeMozL10n = null;
+  });
+
+  test('(l10n) Empty separator (l10n)', function() {
+    this.sinon.stub(navigator.mozL10n, 'get').returns('');
+    var type = 'Mobile';
+    var carrier = 'Carrier';
+    var value = 111111;
+    var data = Utils.getDisplayObject(null, {
+      'value': value,
+      'carrier': carrier,
+      'type': [type]
+    });
+
+    assert.equal(data.name, value);
+    assert.equal(data.separator, ' | ');
+    assert.equal(data.type, type);
+    assert.equal(data.carrier, carrier + ', ');
+    assert.equal(data.number, value);
+  });
+
+  test('(l10n) Different separators (l10n)', function() {
+    var l10nStub = this.sinon.stub(navigator.mozL10n, 'get');
+    l10nStub.withArgs('thread-separator').returns(' # ');
+    l10nStub.withArgs('carrier-separator').returns(': ');
+    var type = 'Mobile';
+    var carrier = 'Carrier';
+    var value = 111111;
+    var data = Utils.getDisplayObject(null, {
+      'value': value,
+      'carrier': carrier,
+      'type': [type]
+    });
+
+    assert.equal(data.name, value);
+    assert.equal(data.separator, ' # ');
+    assert.equal(data.type, type);
+    assert.equal(data.carrier, carrier + ': ');
     assert.equal(data.number, value);
   });
 });
