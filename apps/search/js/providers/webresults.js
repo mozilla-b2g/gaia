@@ -4,35 +4,6 @@
 
   'use strict';
 
-  function GoogleLink() {}
-
-  GoogleLink.prototype = {
-
-    __proto__: Provider.prototype,
-
-    name: 'GoogleLink',
-
-    init: function() {
-      Provider.prototype.init.apply(this, arguments);
-    },
-
-    click: function(e) {
-      if (e.target.dataset.url) {
-        window.open(e.target.dataset.url, '_blank', 'remote=true');
-      }
-    },
-
-    search: function(input, collect) {
-      this.render([{
-        title: input + ' - Google search',
-        dataset: {
-          url: 'http://google.com?q=' + input
-        }
-      }]);
-    }
-  };
-
-
   function WebResults(eme) {}
 
   WebResults.prototype = {
@@ -44,13 +15,10 @@
     dedupes: true,
     dedupeStrategy: 'fuzzy',
 
-    googleLink: new GoogleLink(),
-
     renderFullscreen: false,
 
     init: function() {
       Provider.prototype.init.apply(this, arguments);
-      this.googleLink.init();
       eme.init();
     },
 
@@ -63,11 +31,6 @@
           originName: e.target.dataset.title
         });
       }
-    },
-
-    clear: function() {
-      Provider.prototype.clear.apply(this, arguments);
-      this.googleLink.clear();
     },
 
     /**
@@ -84,7 +47,6 @@
 
     search: function(input, collect) {
       this.clear();
-      this.googleLink.clear();
 
       if (!eme.api.Apps) {
         return;
@@ -99,10 +61,6 @@
         if (response && response.apps && response.apps.length) {
           var results = [];
           response.apps.forEach(function each(app) {
-            if (!this.renderFullscreen && app.name === 'Google') {
-              this.googleLink.search(input);
-              return;
-            }
             results.push({
               title: app.name,
               icon: app.icon,
