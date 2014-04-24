@@ -10,7 +10,7 @@ require('/apps/settings/test/unit/mock_l10n.js');
 mocha.globals(['DsdsSettings', 'reopenSettings', 'openLink', 'openDialog',
   'loadJSON', 'FileSizeFormatter', 'DeviceStorageHelper', 'getMobileConnection',
   'getBluetooth', 'getNfc', 'getSupportedNetworkInfo', 'isIP', 'getIccByIndex',
-  'sanitizeAddress', 'getTruncated', 'getIccByIndexalize', 'localize']);
+  'sanitizeAddress', 'getIccByIndexalize', 'localize']);
 
 suite('Utils', function() {
   var realDsDsSettings, realMozMobileConnections, realMozIccManager, realL10n;
