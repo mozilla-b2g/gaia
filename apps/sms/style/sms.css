@@ -1082,3 +1082,16 @@ section[role="region"].information > header:first-child .icon.icon-back {
 #messages-back-button:hover:after {
   background-color: transparent;
 }
+
+/* Activity mode specific style */
+#messages-close-button {
+  display: none;
+}
+
+.request-activity-mode #messages-close-button {
+  display: block;
+}
+
+.request-activity-mode #messages-back-button {
+  display: none;
+}
