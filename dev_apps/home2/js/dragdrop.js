@@ -48,7 +48,7 @@
       app.stop();
 
       this.active = true;
-      this.exitEditMode();
+      this.enterEditMode();
       container.classList.add('dragging');
       this.target.classList.add('active');
 
@@ -138,9 +138,15 @@
       }
     },
 
+    enterEditMode: function() {
+      this.inEditMode = true;
+      document.body.classList.add('edit-mode');
+      document.addEventListener('visibilitychange', this);
+    },
+
     exitEditMode: function() {
       this.inEditMode = false;
-      container.classList.remove('edit-mode');
+      document.body.classList.remove('edit-mode');
       document.removeEventListener('visibilitychange', this);
     },
 
@@ -255,12 +261,6 @@
             });
 
             container.classList.remove('dragging');
-
-            // Event listeners for edit mode.
-            container.classList.add('edit-mode');
-            this.inEditMode = true;
-            document.addEventListener('visibilitychange', this);
-
             break;
         }
     }

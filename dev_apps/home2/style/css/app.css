@@ -8,14 +8,6 @@ html, body, .icons {
   margin: 0;
 }
 
-.icons {
-  overflow-y: scroll;
-  overflow-x: hidden;
-  width: 100%;
-  height: 100%;
-  will-change: scroll-position;
-}
-
 .icon {
   position: absolute;
   transform-origin: 0 0;
@@ -68,6 +60,20 @@ html, body, .icons {
   display: none;
 }
 
+.edit-mode #edit-mode-curtain {
+  background: #000;
+  opacity: 0.5;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  z-index: 2;
+}
+
+.edit-mode .icon:not(.active) {
+  opacity: 0.8;
+}
+
 .edit-mode .icon .remove {
   display: block;
   position: absolute;
@@ -76,6 +82,10 @@ html, body, .icons {
   width: 2.6rem;
   height: 2.6rem;
   background: url(/style/images/remove.png) no-repeat;
+}
+
+.edit-mode .icon.active .remove {
+  display: none;
 }
 
 #confirmation-message.fade-in {
