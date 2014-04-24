@@ -8,7 +8,7 @@ var Rocketbar = {
 
   /* Configuration */
   EXPANSION_THRESHOLD: 5, // How many pixels of swipe triggers expand/collapse
-  TASK_MANAGER_THRESHOLD: 200, // How many pixels of swipe triggers card view
+  TASK_MANAGER_THRESHOLD: 100, // How many pixels of swipe triggers card view
   SCROLL_THRESHOLD: 5, // How many pixels of scroll triggers expand
 
   /**
