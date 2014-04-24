@@ -10,14 +10,17 @@ from gaiatest import GaiaTestCase
 class TestKill(GaiaTestCase):
 
     def test_kill(self):
-        app = self.apps.launch('Clock')
+        app_name = 'Clock'
+        app = self.apps.launch(app_name)
         self.apps.kill(app)
-        self.check_no_apps_running()
+        self.assertNotIn(app_name, [a.name.lower() for a in self.apps.running_apps])
 
     def test_kill_multiple(self):
+
+        apps = ['Calendar', 'Clock']
         running_apps = []
 
-        for app in ['Calendar', 'Clock']:
+        for app in apps:
             running_apps.append(self.apps.launch(app))
             time.sleep(1)
 
@@ -27,8 +30,4 @@ class TestKill(GaiaTestCase):
             self.apps.kill(app)
             time.sleep(1)
 
-        self.check_no_apps_running()
-
-    def check_no_apps_running(self):
-        self.assertEqual(
-            [a.name.lower() for a in self.apps.running_apps], ['homescreen'])
+        self.assertNotIn(apps, [a.name.lower() for a in self.apps.running_apps])
