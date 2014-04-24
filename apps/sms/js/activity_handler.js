@@ -312,22 +312,19 @@ var ActivityHandler = {
       }
     };
 
-    if (!document.documentElement.lang) {
-      navigator.mozL10n.ready(function waitLocalized() {
-        showAction();
-      });
-    } else {
+    navigator.mozL10n.once(function waitLocalized() {
       if (!document.hidden) {
         // Case of calling from Notification
         showAction();
         return;
       }
+
       document.addEventListener('visibilitychange',
         function waitVisibility() {
           document.removeEventListener('visibilitychange', waitVisibility);
           showAction();
       });
-    }
+    });
   },
 
   /* === Incoming SMS support === */
