@@ -76,6 +76,12 @@ var MediaAppAgent = {
       return;
     }
 
+    // If the media app is killed before we received the call, then the last
+    // play status should be STOPPED.
+    if (this.killedOrigin) {
+      this.playStatus = 'STOPPED';
+    }
+
     // When a incoming call comes, the media app should be interrupted, so stop
     // the recording and we can know the interrupted position.
     this._stopRecording();
