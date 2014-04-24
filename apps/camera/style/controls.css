@@ -32,6 +32,7 @@
 .switch-button span,
 .capture-button span,
 .gallery-button span,
+.gallery-button progress,
 .cancel-pick span {
   -moz-transition: -moz-transform 0.2s ease-in-out;
   pointer-events: none;
@@ -46,6 +47,10 @@
   margin-top: -1.5rem;
   width: 3rem;
   height: 3rem;
+}
+
+.gallery-button progress {
+  display: none;
 }
 
 .switch-button {
@@ -77,8 +82,12 @@
   background-image: url(images/grid.png);
 }
 
-.gallery-button[disabled=disabled] {
+.gallery-button[disabled=disabled] span {
   display: none;
+}
+
+.gallery-button[disabled=disabled] progress {
+  display: block;
 }
 
 .cancel-pick {
