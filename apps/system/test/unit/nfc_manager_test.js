@@ -4,7 +4,7 @@ mocha.globals(['NfcManager', 'ScreenManager']);
 
 /* globals MockNfc, MocksHelper,
            MozNDEFRecord, NfcBuffer, NDEF, NfcUtils, NfcManagerUtils,
-           NfcManager */
+           NfcManager, ScreenManager */
 
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -280,7 +280,7 @@ suite('Nfc Manager Functions', function() {
 
   });
 
-  suite('NFC Manager changeHardwareState test', function () {
+  suite('NFC Manager changeHardwareState test', function() {
     var realNfc = navigator.mozNfc;
 
     setup(function() {
@@ -291,23 +291,70 @@ suite('Nfc Manager Functions', function() {
       navigator.mozNfc = realNfc;
     });
 
-    test('NFC Manager startPoll', function() {
+    test('NFC Manager startPoll/stopPoll/powerOff test', function() {
       var stubStartPoll = sinon.spy(MockNfc, 'startPoll');
       var stubStopPoll = sinon.spy(MockNfc, 'stopPoll');
       var stubPowerOff = sinon.spy(MockNfc, 'powerOff');
 
+      // The default hwState in NfcManager is OFF, so if we trigger another OFF
+      // request, it should be ignored.
       NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_OFF);
-      assert.isTrue(stubPowerOff.calledOnce);
+      assert.isFalse(stubPowerOff.calledOnce);
+      assert.equal(NfcManager.hwState, NfcManager.NFC_HW_STATE_OFF);
 
       NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_ON);
       assert.isTrue(stubStartPoll.calledOnce);
+      assert.equal(NfcManager.hwState, NfcManager.NFC_HW_STATE_ON);
 
       NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_ENABLE_DISCOVERY);
       assert.isTrue(stubStartPoll.calledTwice);
+      assert.equal(NfcManager.hwState,
+                   NfcManager.NFC_HW_STATE_ENABLE_DISCOVERY);
 
       NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_DISABLE_DISCOVERY);
       assert.isTrue(stubStopPoll.calledOnce);
+      assert.equal(NfcManager.hwState,
+                   NfcManager.NFC_HW_STATE_DISABLE_DISCOVERY);
+
+      NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_OFF);
+      assert.isTrue(stubPowerOff.calledOnce);
+      assert.equal(NfcManager.hwState, NfcManager.NFC_HW_STATE_OFF);
     });
   });
 
+  suite('NFC Manager handleEvent test', function() {
+    setup(function() {
+    });
+
+    teardown(function() {
+    });
+
+    test('check if calling changeHardwareState correctly', function() {
+      var stubChangeHw = sinon.spy(NfcManager, 'changeHardwareState');
+
+      // enable hwState, otherwise events will be ignored if hwState is OFF.
+      NfcManager.hwState = NfcManager.NFC_HW_STATE_ENABLE_DISCOVERY;
+
+      ScreenManager.screenEnabled = true;
+      NfcManager.handleEvent({type: 'screenchange'});
+      assert.equal(stubChangeHw.getCall(0).args[0],
+                   NfcManager.NFC_HW_STATE_ENABLE_DISCOVERY);
+
+      NfcManager.handleEvent({type: 'lock'});
+      assert.equal(stubChangeHw.getCall(1).args[0],
+                   NfcManager.NFC_HW_STATE_DISABLE_DISCOVERY);
+      assert.isTrue(NfcManager.screenLocked);
+
+      NfcManager.handleEvent({type: 'screenchange'});
+      // Screen is still locked,
+      // changeHwstate should be called with DISABLE_DISCOVERY.
+      assert.equal(stubChangeHw.getCall(2).args[0],
+                   NfcManager.NFC_HW_STATE_DISABLE_DISCOVERY);
+
+      NfcManager.handleEvent({type: 'unlock'});
+      assert.equal(stubChangeHw.getCall(3).args[0],
+                NfcManager.NFC_HW_STATE_ENABLE_DISCOVERY);
+      assert.isFalse(NfcManager.screenLocked);
+    });
+  });
 });
