@@ -1,6 +1,6 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager,
-      LayoutManager, MocksHelper, MockAttentionScreen,
-          AppChrome, ActivityWindow, PopupWindow, layoutManager */
+      LayoutManager, MocksHelper, MockAttentionScreen, MockContextMenu,
+      AppChrome, ActivityWindow, PopupWindow, layoutManager */
 'use strict';
 
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
@@ -15,6 +15,7 @@ requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/test/unit/mock_context_menu.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
@@ -1492,6 +1493,17 @@ suite('system/AppWindow', function() {
     app2.frontWindow = popup;
     app2.navigate(url);
     assert.isNull(app2.frontWindow);
+  });
+
+  test('showDefaultContextMenu', function() {
+    var app = new AppWindow(fakeAppConfig1);
+    // Nothing goes wrong if contextmenu is undefined
+    app.showDefaultContextMenu();
+
+    app.contextmenu = MockContextMenu;
+    var stubCtx = this.sinon.stub(app.contextmenu, 'showDefaultMenu');
+    app.showDefaultContextMenu();
+    assert.isTrue(stubCtx.called);
   });
 
   function genFakeConfig(id) {

@@ -16,7 +16,6 @@
   var BrowserContextMenu = window.BrowserContextMenu = function(app) {
     this.app = app;
     this.containerElement = app.element;
-    this.event = null;
     // One to one mapping.
     this.instanceID = _id++;
     this._injected = false;
@@ -37,12 +36,11 @@
   };
 
   BrowserContextMenu.prototype.handleEvent = function bcm_handleEvent(evt) {
-    this.event = evt;
-    if (!this._injected) {
-      this.render();
+    switch (evt.type) {
+      case 'mozbrowsercontextmenu':
+        this.show(evt);
+        break;
     }
-    this.show();
-    this._injected = true;
   };
 
   BrowserContextMenu.prototype._fetchElements = function bcm__fetchElements() {
@@ -85,8 +83,7 @@
     this.containerElement.removeChild(this.element);
   };
 
-  BrowserContextMenu.prototype.show = function() {
-    var evt = this.event;
+  BrowserContextMenu.prototype.show = function(evt) {
     var detail = evt.detail;
 
     var hasContextMenu = detail.contextmenu &&
@@ -103,9 +100,17 @@
     // Notify the embedder we are handling the context menu
     evt.preventDefault();
 
-    this.buildMenu(this._listItems(detail));
-    this.element.classList.add('visible');
+    this.showMenu(this._listItems(detail));
   };
+
+  BrowserContextMenu.prototype.showMenu = function(menu) {
+    if (!this._injected) {
+      this.render();
+    }
+    this._injected = true;
+    this.buildMenu(menu);
+    this.element.classList.add('visible');
+  },
 
   BrowserContextMenu.prototype.buildMenu = function(items) {
     var self = this;
@@ -184,19 +189,26 @@
   };
 
   BrowserContextMenu.prototype.shareUrl = function(url) {
-    var activity = new MozActivity({
+    /*jshint -W031 */
+    new MozActivity({
       name: 'share',
-      data: {type: 'url', url: url}
+      data: {
+        type: 'url',
+        url: url
+      }
     });
-    activity.onsuccess = function() {};
   };
 
-  BrowserContextMenu.prototype.bookmarkUrl = function(url) {
-    var activity = new MozActivity({
+  BrowserContextMenu.prototype.bookmarkUrl = function(url, name) {
+    /*jshint -W031 */
+    new MozActivity({
       name: 'save-bookmark',
-      data: {type: 'url', url: url}
+      data: {
+        type: 'url',
+        url: url,
+        name: name
+      }
     });
-    activity.onsuccess = function() {};
   };
 
   BrowserContextMenu.prototype.generateSystemMenuItem = function(item) {
@@ -221,6 +233,16 @@
       default:
         return [];
     }
+  };
+
+  BrowserContextMenu.prototype.showDefaultMenu = function() {
+    this.showMenu([{
+      label: _('add-to-home-screen'),
+      callback: this.bookmarkUrl.bind(this, this.app.config.url, this.app.title)
+    }, {
+      label: _('share'),
+      callback: this.shareUrl.bind(this, this.app.config.url)
+    }]);
   };
 
 }(this));
