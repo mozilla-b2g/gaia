@@ -1,10 +1,5 @@
 /* FIRST TIME EXPERIENCE VIEW */
 
-/* Remove this rule when new BB are applied */
-body[role="application"] [role="dialog"] {
-  position: fixed;
-}
-
 #firsttime-view, #firsttime-view .view {
   top: 0;
   transform: translate(0, 0);
@@ -97,6 +92,15 @@ body[role="application"] [role="dialog"] {
 
 #firsttime-view .step menu button {
   text-align: right;
+  margin: 0 0 0 1rem;
+}
+
+#firsttime-view .step menu button:first-child {
+  margin-left: 0;
+}
+
+#firsttime-view .step menu[data-items="2"] button {
+  width: calc(50% - 0.75rem);
 }
 
 #firsttime-view .step menu button.recommend {
@@ -118,51 +122,31 @@ body[role="application"] [role="dialog"] {
 
 /* Choices */
 #firsttime-view .choices li {
-    margin: 0;
-    list-style: none;
-    border-bottom: 0.1rem solid #E7E7E7;
-    position: relative;
-    color: #000;
-    font-weight: lighter;
-    font-size: 1.6rem;
-    height: 6rem;
-    line-height: 5.9rem;
-    color: #000;
-    transition: background 0.2s ease;
-  }
+  margin: 0;
+  list-style: none;
+  border-bottom: 0.1rem solid #E7E7E7;
+  position: relative;
+  color: #000;
+  height: 6rem;
+  padding-left: 1.5rem;
+}
 
-  #firsttime-view .choices li:active,
-  #firsttime-view .choices li:active label span {
-    background: rgba(0, 171, 204, 0.1);
-  }
+#firsttime-view .choices li label {
+  width: 100%;
+  height: 100%;
+  font-size: 1.9rem;
+  font-weight: normal;
+}
 
-  #firsttime-view .choices li input {
-    position: absolute;
-    left: 0;
-    top: 0;
-    opacity: 0;
-    pointer-events: none;
-  }
+#firsttime-view .choices li label > input ~ span {
+  line-height: 6rem;
+}
 
-  #firsttime-view .choices li input:checked + span,
-  #firsttime-view .choices li[aria-checked="true"] span {
-    font-weight: 600;
-    padding-right: 0.5rem;
-    background: url(../images/app/icons/checked.png) content-box right center no-repeat;
-    background-size: 1.9rem;
-  }
+#firsttime-view .choices li label > input ~ span:after {
+  left: auto;
+  right: 0;
+}
 
-  #firsttime-view .choices li label {
-    text-indent: 0.5rem;
-    outline: none;
-  }
-
-  #firsttime-view .choices li label,
-  #firsttime-view .choices li label span {
-    text-decoration: none;
-    display: block;
-    color: #000;
-  }
 
 /* Settings */
 #firsttime-view .settings li {

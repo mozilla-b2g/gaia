@@ -5,17 +5,10 @@
   <meta charset="utf-8">
   <title data-l10n-id="fte">Usage First Time Experience</title>
 
-  <!-- Building blocks Temporal -->
-  <link rel="stylesheet" type="text/css" href="style/bb/filters/style.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/input-areas/style.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/core.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/prompt/style.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/valueselector/style.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/valueselector/date/style.css">
-
   <!-- Building blocks -->
   <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
   <link rel="stylesheet" type="text/css" href="shared/style_unstable/buttons.css">
+  <link rel="stylesheet" type="text/css" href="shared/style_unstable/input_areas.css">
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
 
   <!-- App and Views -->
@@ -81,13 +74,13 @@
       </header>
       <ul class="content choices">
         <li>
-          <label for="prepaid-plan">
+          <label for="prepaid-plan" class="pack-radio">
             <input type="radio" name="plan" id="prepaid-plan" value="prepaid">
             <span data-l10n-id="im-prepaid">I’m Pre-paid</span>
           </label>
         </li>
         <li>
-          <label for="postpaid-plan">
+          <label for="postpaid-plan" class="pack-radio">
             <input type="radio" name="plan" id="postpaid-plan" value="postpaid">
             <span data-l10n-id="im-postpaid">I’m Post-paid</span>
           </label>
@@ -123,7 +116,7 @@
           <li>
             <label class="end" for="low-limit-input">
               <span id="currency"></span>
-              <input id="low-limit-input" class="settings-option" data-option="lowLimitThreshold" data-disable-on="lowLimit=false" type="number">
+              <input id="low-limit-input" class="settings-option" data-option="lowLimitThreshold" data-disable-on="lowLimit=false" type="number" step="any">
             </label>
             <p data-l10n-id="low-balance-explanation2">When balance is below</p>
           </li>
@@ -498,13 +491,13 @@
     <form>
       <ul class="buttons-list">
         <li>
-          <button type="button" class="icon icon-dialog switch-unit-button">
+          <button class="icon icon-dialog switch-unit-button">
             <span class="tag"></span>
           </button>
         </li>
       </ul>
       <label for="data-limit-input">
-        <input id="data-limit-input" type="number" />
+        <input id="data-limit-input" type="number" step="any" />
       </label>
     </form>
   </section>

@@ -5,21 +5,14 @@
     <meta charset="utf-8">
     <title>Usage Settings</title>
 
-    <!-- Building blocks Temporal -->
-    <link rel="stylesheet" type="text/css" href="style/bb/input-areas/style.css">
-    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/valueselector/date/style.css">
-    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/valueselector/style.css">
-    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/core.css">
-    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/prompt/style.css">
-
     <!-- Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/buttons.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
-
-    <!-- Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
 
     <!-- App and Views -->
     <link rel="stylesheet" type="text/css" href="style/app.css">
@@ -96,7 +89,7 @@
             <li>
               <label class="end" for="low-limit-input">
                 <span id="settings-low-limit-currency"></span>
-                <input class="settings-option" data-option="lowLimitThreshold" data-disable-on="lowLimit=false" id="low-limit-input" type="number" />
+                <input class="settings-option" data-option="lowLimitThreshold" data-disable-on="lowLimit=false" id="low-limit-input" type="number" step="any" />
               </label>
               <p data-l10n-id="low-balance-explanation2">When balance is below</p>
             </li>
@@ -229,36 +222,33 @@
             </li>
           </ul>
           <label for="data-limit-input">
-            <input id="data-limit-input" type="number" />
+            <input id="data-limit-input" type="number" step="any" />
           </label>
         </form>
       </section>
 
       <!-- Reset confirmation -->
-      <section role="dialog" class="view" data-viewport="ethereal" id="reset-data-dialog">
-        <form role="dialog" data-type="action">
-              <header data-l10n-id="reset-data-usage">Reset Data usage</header>
-              <menu>
-                <br/><button id="reset-data-mobile-usage" data-l10n-id="reset-mobile">Reset mobile data</button>
-                <br/><button id="reset-data-wifi-usage" data-l10n-id="reset-wifi">Reset Wi-Fi data</button>
-                <br/><button id="reset-all-data-usage" data-l10n-id="reset-all-data-usage">Reset mobile & Wi-Fi data</button>
+      <form role="dialog" class="view" data-type="action" data-viewport="ethereal" id="reset-data-dialog" >
+        <header data-l10n-id="reset-data-usage">Reset Data usage</header>
+        <menu>
+          <button id="reset-data-mobile-usage" data-l10n-id="reset-mobile">Reset mobile data</button>
+          <button id="reset-data-wifi-usage" data-l10n-id="reset-wifi">Reset Wi-Fi data</button>
+          <button id="reset-all-data-usage" data-l10n-id="reset-all-data-usage">Reset mobile & Wi-Fi data</button>
 
-                <button type="button" data-l10n-id="cancel" class="close-reset-dialog">Cancel</button>
-
-              </menu>
-          </form>
-      </section>
+          <button type="button" data-l10n-id="cancel" class="close-reset-dialog">Cancel</button>
+        </menu>
+      </form>
     <!-- Reset confirmation -->
-      <section role="dialog" class="view" data-viewport="ethereal" id="reset-telephony-dialog">
-          <div class="center">
-              <h3 data-l10n-id="confirmation">Confirmation</h3>
+      <form role="dialog" class="view" data-type="confirm" data-viewport="ethereal" id="reset-telephony-dialog">
+          <section>
+              <h1 data-l10n-id="confirmation">Confirmation</h1>
               <p data-l10n-id="reset-confirmation-warning">All current data will be deleted. Are you sure you want to reset?</p>
-          </div>
-          <menu data-items="2">
+          </section>
+          <menu>
               <button data-l10n-id="cancel" class="close-reset-dialog">Cancel</button>
               <button data-l10n-id="yes" class="danger">Yes</button>
           </menu>
-      </section>
+      </form>
     </section>
   </body>
 </html>

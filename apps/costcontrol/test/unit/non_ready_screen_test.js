@@ -53,7 +53,7 @@ suite('SIM non-ready waiting screen >', function() {
 
     buttonContainer = document.createElement('div');
     button = document.createElement('button');
-    header = document.createElement('h3');
+    header = document.createElement('h1');
     message = document.createElement('p');
     progress = document.createElement('progress');
 

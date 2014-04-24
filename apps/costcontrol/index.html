@@ -7,20 +7,15 @@
       Usage
     </title>
 
-    <!-- Building blocks Temporal -->
-    <link rel="stylesheet" type="text/css" href="style/bb/input-areas/style.css">
-    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/valueselector/date/style.css">
-    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/valueselector/style.css">
-    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/core.css">
-    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/prompt/style.css">
-
     <!-- Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/buttons.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/tabs.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
 
     <!-- App and Views -->
     <link rel="stylesheet" type="text/css" href="style/app.css">
@@ -107,15 +102,15 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
   <iframe id="fte_view" class="window non-ready"></iframe>
 
   <!-- SIM non ready screen -->
-  <section role="dialog" class="view" data-viewport="ethereal" id="non-ready-screen">
-    <div class="center">
-      <h3>Card is not ready</h3>
+  <form role="dialog" class="view" data-type="confirm" data-viewport="ethereal" id="non-ready-screen">
+    <section>
+      <h1>Card is not ready</h1>
       <p>The button will close the application.</p>
       <progress></progress>
-    </div>
+    </section>
     <menu>
       <button class="full" data-l10n-id="ok">Ok</button>
     </menu>
-  </section>
+  </form>
 </body>
 </html>
