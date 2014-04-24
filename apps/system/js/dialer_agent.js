@@ -190,7 +190,7 @@
     var callScreen = this._callScreen;
     var timestamp = new Date().getTime();
 
-    var src = callScreen.src.split('#')[0] + '#' +
+    var src = CSORIGIN + 'index.html' + '#' +
               (LockScreen.locked ? 'locked' : '');
     src = src + '&timestamp=' + timestamp;
     callScreen.src = src;
