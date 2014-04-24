@@ -66,6 +66,7 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
       xhr.onload = function() {
         activity.postResult({
           name: selectedSoundName,
+          filepath: selectedSoundURL,
           blob: xhr.response
         });
       };

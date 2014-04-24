@@ -44,7 +44,8 @@ function share(activity) {
 
     var settings = {
       'dialer.ringtone': blob,
-      'dialer.ringtone.name': name
+      'dialer.ringtone.name': name,
+      'dialer.ringtone.filepath': data.filenames[0]
     };
 
     navigator.mozSettings.createLock().set(settings).onsuccess = function() {
