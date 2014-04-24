@@ -187,6 +187,7 @@
   };
 
   DialerAgent.prototype._openCallScreen = function da_openCallScreen() {
+    window.dispatchEvent(new CustomEven('callscreewillnopen'));
     var callScreen = this._callScreen;
     var timestamp = new Date().getTime();
 

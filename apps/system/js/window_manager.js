@@ -1065,13 +1065,16 @@ var WindowManager = (function() {
     windows.setAttribute('aria-hidden', 'false');
   });
 
-  window.addEventListener('hidewindow', function() {
+  var hideCurrentWindow = function() {
     if (displayedApp !== HomescreenLauncher.origin) {
       runningApps[displayedApp].setVisible(false);
     } else {
       HomescreenLauncher.getHomescreen().setVisible(false);
     }
-  });
+  };
+
+  window.addEventListener('hidewindow', hideCurrentWindow);
+  window.addEventListener('callscreenwillopen', hideCurrentWindow);
 
   window.addEventListener('showwindow', function() {
     // XXX: Refine this in AttentionWindow

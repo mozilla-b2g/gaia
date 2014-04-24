@@ -24,6 +24,7 @@
       window.addEventListener('activityterminated', this);
       window.addEventListener('activitywillopen', this);
       window.addEventListener('activitywillclose', this);
+      window.addEventListener('callscreenwillopen', this);
       window.addEventListener('hidewindow', this);
       window.addEventListener('showwindow', this);
       window.addEventListener('appopen', this);
@@ -65,10 +66,10 @@
           }, this);
           break;
 
+        case 'callscreenwillopen':
         case 'hidewindow':
           if (this._activeActivity) {
             this._activeActivity.setVisible(false);
-            evt.stopImmediatePropagation();
           }
           break;
 
