@@ -1,4 +1,4 @@
-/* global ModalDialog, MozActivity */
+/* global ModalDialog, MozActivity, Rocketbar */
 
 'use strict';
 
@@ -17,6 +17,9 @@
    * @extends BaseUI
    */
   var AppChrome = function AppChrome(app) {
+    if (Rocketbar.enabled) {
+      return;
+    }
     this.app = app;
     this.instanceID = _id++;
     this.containerElement = app.element;

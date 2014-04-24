@@ -30,11 +30,14 @@ var Rocketbar = {
     this._touchStart = -1;
     this._wasClicked = false; // Remember when transition triggered by a click
     this._pendingMessage = null;
+    this._currentApp = null;
 
     // Get DOM elements
     this.body = document.body;
     this.screen = document.getElementById('screen');
     this.rocketbar = document.getElementById('rocketbar');
+    this.back = document.getElementById('rocketbar-back-button');
+    this.forward = document.getElementById('rocketbar-forward-button');
     this.title = document.getElementById('rocketbar-title');
     this.titleContent = document.getElementById('rocketbar-title-content');
     this.form = document.getElementById('rocketbar-form');
@@ -133,6 +136,8 @@ var Rocketbar = {
     this.rocketbar.addEventListener('touchmove', this);
     this.rocketbar.addEventListener('touchend', this);
     this.rocketbar.addEventListener('transitionend', this);
+    this.back.addEventListener('click', this);
+    this.forward.addEventListener('click', this);
     this.input.addEventListener('focus', this);
     this.input.addEventListener('blur', this);
     this.input.addEventListener('input', this);
@@ -154,7 +159,7 @@ var Rocketbar = {
   handleEvent: function(e) {
     switch(e.type) {
       case 'apploading':
-      case 'appforeground':
+      //case 'appforeground':
       case 'appopened':
         this.handleAppChange(e);
         break;
@@ -177,7 +182,9 @@ var Rocketbar = {
       case 'touchstart':
       case 'touchmove':
       case 'touchend':
-        if (e.target != this.cancel) {
+        if (e.target != this.cancel &&
+            e.target != this.back &&
+            e.target != this.forward) {
           this.handleTouch(e);
         }
         break;
@@ -194,8 +201,16 @@ var Rocketbar = {
         this.handleInput(e);
         break;
       case 'click':
-        if (e.target == this.cancel) {
-          this.handleCancel(e);
+        switch(e.target) {
+          case this.cancel:
+            this.handleCancel(e);
+            break;
+          case this.back:
+            this.handleBackClick();
+            break;
+          case this.forward:
+            this.handleForwardClick();
+            break;
         }
         break;
       case 'submit':
@@ -236,6 +251,8 @@ var Rocketbar = {
     this.rocketbar.removeEventListener('touchmove', this);
     this.rocketbar.removeEventListener('touchend', this);
     this.rocketbar.removeEventListener('transitionend', this);
+    this.back.removeEventListener('click', this);
+    this.forward.removeEventListener('click', this);
     this.input.removeEventListener('focus', this);
     this.input.removeEventListener('blur', this);
     this.input.removeEventListener('input', this);
@@ -296,6 +313,8 @@ var Rocketbar = {
       this.expand();
     }
     this.clear();
+    this.disableNavigation();
+    this._currentApp = null;
   },
 
   /**
@@ -409,19 +428,36 @@ var Rocketbar = {
   },
 
   /**
+   * Enable back button.
+   */
+  enableNavigation: function() {
+    this.rocketbar.classList.add('navigation');
+  },
+
+  /**
+   * Disable back button.
+   */
+  disableNavigation: function() {
+    this.rocketbar.classList.remove('navigation');
+  },
+
+  /**
    * Handle app being opened or switched to.
    *
    * @param {Event} e Window manager event.
    */
   handleAppChange: function(e) {
+    this._currentApp = e.detail;
     this.currentScrollPosition = 0;
     this.handleLocationChange(e);
     this.handleTitleChange(e);
     this.exitHome();
     if (e.detail.manifestURL) {
       this.collapse();
+      this.disableNavigation();
     } else {
       this.expand();
+      this.enableNavigation();
     }
     this.hideResults();
   },
@@ -476,6 +512,26 @@ var Rocketbar = {
     this.titleContent.textContent = '';
     this.updateSearchIndex();
     this.deactivate();
+    if (e.detail.canGoBack && e.detail.canGoForward) {
+      try {
+        e.detail.canGoBack((function(result) {
+          if (result) {
+            this.back.removeAttribute('disabled');
+          } else {
+            this.back.setAttribute('disabled', 'true');
+          }
+        }).bind(this));
+        e.detail.canGoForward((function(result) {
+          if (result) {
+            this.forward.removeAttribute('disabled');
+          } else {
+            this.forward.setAttribute('disabled', 'true');
+          }
+        }).bind(this));
+      } catch (evt) {
+        console.error('Caught exception when calling canGoBack' + evt);
+      }
+    }
   },
 
   /**
@@ -606,6 +662,20 @@ var Rocketbar = {
       action: 'submit',
       input: this.input.value
     });
+  },
+
+  /**
+   * Handle click on back button.
+   */
+  handleBackClick: function() {
+    this._currentApp.back();
+  },
+
+  /**
+   * Handle click on forward button.
+   */
+  handleForwardClick: function() {
+    this._currentApp.forward();
   },
 
   /**
