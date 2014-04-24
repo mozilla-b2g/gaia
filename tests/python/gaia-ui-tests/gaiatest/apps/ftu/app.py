@@ -156,8 +156,9 @@ class Ftu(Base):
     def tap_import_from_sim(self):
         self.marionette.find_element(*self._import_from_sim_locator).tap()
 
-    def wait_for_contacts_imported(self):
+    def wait_for_contacts_imported(self, number_of_sim_contacts=1):
         self.wait_for_condition(lambda m: self._pattern_contacts.match(m.find_element(*self._sim_import_feedback_locator).text) is not None,
+                                timeout=number_of_sim_contacts * self.marionette.timeout,
                                 message='Contact did not import from sim before timeout')
 
     @property
