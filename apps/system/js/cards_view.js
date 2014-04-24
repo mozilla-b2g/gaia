@@ -10,10 +10,6 @@ var CardsView = (function() {
   // use screenshots in cards view? tracks setting value
   var useAppScreenshotPreviews = true;
 
-  // if 'true' user can close the app
-  // by dragging it upwards
-  var MANUAL_CLOSING = true;
-
   var cardsView = document.getElementById('cards-view');
   var screenElement = document.getElementById('screen');
   var cardsList = document.getElementById('cards-list');
@@ -217,9 +213,9 @@ var CardsView = (function() {
       });
     });
 
-    if (MANUAL_CLOSING) {
-      cardsView.addEventListener('touchstart', CardsView);
-    }
+    // Track touch events to enable switching to an application
+    // via swipe-up.
+    cardsView.addEventListener('touchstart', CardsView);
 
     // If there is no running app, show "no recent apps" message
     if (stack.length) {
@@ -690,7 +686,7 @@ var CardsView = (function() {
     deltaX = initialTouchPosition[0] - touchPosition[0];
     var deltaY = initialTouchPosition[1] - touchPosition[1];
 
-    if (MANUAL_CLOSING && deltaY > moveCardThreshold &&
+    if (deltaY > moveCardThreshold &&
         evt.target.classList.contains('card')) {
         // We don't want user to scroll the CardsView when one of the card is
         // already dragger upwards
@@ -760,11 +756,7 @@ var CardsView = (function() {
     }
 
     // if the element we start dragging on is a card
-    if (
-      element.classList.contains('card') &&
-      MANUAL_CLOSING &&
-      draggingCardUp
-    ) {
+    if (element.classList.contains('card') && draggingCardUp) {
       draggingCardUp = false;
       var origin = stack[element.dataset.position].origin;
       if (-dy > openCardThreshold) {
