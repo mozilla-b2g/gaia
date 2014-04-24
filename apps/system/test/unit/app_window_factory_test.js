@@ -4,7 +4,7 @@
 /* global MocksHelper, MockApplications, MockAppWindowManager,
           AppWindow, HomescreenLauncher, AppWindowFactory, appWindowFactory */
 
-mocha.globals(['AppWindowManager', 'applications',
+mocha.globals(['AppWindowManager', 'applications', 'dispatchEvent',
       'ManifestHelper', 'AppWindow', 'System', 'AppWindowFactory',
       'BrowserConfigHelper', 'homescreenLauncher', 'appWindowFactory']);
 
@@ -142,6 +142,7 @@ suite('system/AppWindowFactory', function() {
   suite('handle event', function() {
     test('classic app launch', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+      appWindowFactory._readyToLaunch = true;
       appWindowFactory.handleEvent({
         type: 'webapps-launch',
         detail: fakeLaunchConfig1
@@ -154,6 +155,7 @@ suite('system/AppWindowFactory', function() {
 
     test('a second applaunch', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+      appWindowFactory._readyToLaunch = true;
       appWindowFactory.handleEvent({
         type: 'webapps-launch',
         detail: fakeLaunchConfig2
@@ -164,8 +166,30 @@ suite('system/AppWindowFactory', function() {
         fakeLaunchConfig2.url);
     });
 
+    test('queues app launch until after homescreen is ready', function() {
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+      var queueLength = appWindowFactory._launchQueue.length;
+      appWindowFactory._readyToLaunch = false;
+      appWindowFactory.handleEvent({
+        type: 'webapps-launch',
+        detail: fakeLaunchConfig1
+      });
+      assert.isTrue(stubDispatchEvent.notCalled);
+      assert.equal(appWindowFactory._launchQueue.length, queueLength + 1);
+      appWindowFactory.handleEvent({
+        type: 'homescreencreated',
+        detail: fakeLaunchConfig1
+      });
+      assert.isTrue(stubDispatchEvent.called);
+      assert.equal(stubDispatchEvent.getCall(0).args[0].type, 'launchapp');
+      assert.equal(stubDispatchEvent.getCall(0).args[0].detail.url,
+        fakeLaunchConfig1.url);
+      assert.ok(appWindowFactory._readyToLaunch);
+    });
+
     test('opening from a system message', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+      appWindowFactory._readyToLaunch = true;
       appWindowFactory.handleEvent({
         type: 'open-app',
         detail: fakeLaunchConfig3
@@ -190,6 +214,7 @@ suite('system/AppWindowFactory', function() {
 
     test('opening a second activity', function() {
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+      appWindowFactory._readyToLaunch = true;
       appWindowFactory.handleEvent({
         type: 'open-app',
         detail: fakeLaunchConfig5
@@ -214,6 +239,7 @@ suite('system/AppWindowFactory', function() {
       var app = new AppWindow();
       var stubReviveBrowser = this.sinon.stub(app, 'reviveBrowser');
       spy.returns(app);
+      appWindowFactory._readyToLaunch = true;
       appWindowFactory.handleEvent({
         type: 'open-app',
         detail: fakeLaunchConfig5
