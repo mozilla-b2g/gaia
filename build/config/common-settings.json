@@ -47,6 +47,8 @@
    "device.storage.writable.name": "sdcard",
    "devtools.overlay": false,
    "devtools.eventlooplag.threshold": 100,
+   "devtools.remote.wifi.visible": false,
+   "devtools.remote.wifi.enabled": false,
    "feedback.url": "https://input.allizom.org/api/v1/feedback/",
    "findmydevice.ui.enabled": true,
    "gaia.system.checkForUpdates": false,
