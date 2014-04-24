@@ -81,7 +81,8 @@ Calendar.Selector = Object.freeze({
   viewEventViewDescriptionContent: '#event-view .description .content',
   viewEventViewCancelButton: '#event-view button.cancel',
   weekButton: '#view-selector .week a',
-  weekViewEvent: '#week-view .event'
+  weekViewEvent: '#week-view .event',
+  weekViewWeekDayDateToday: '#week-view .weekday.active h1.is-today'
 });
 
 Calendar.prototype = {

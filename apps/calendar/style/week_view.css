@@ -15,6 +15,12 @@
   font-weight: normal;
   white-space: nowrap;
   overflow: hidden;
+  font-weight: 400;
+}
+
+#week-view h1.is-today {
+  font-weight: 500;
+  color: #008eab;
 }
 
 #week-view {

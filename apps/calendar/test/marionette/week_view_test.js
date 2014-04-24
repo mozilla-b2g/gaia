@@ -13,6 +13,7 @@ marionette('week view', function() {
 
     // Go to week view.
     app.findElement('weekButton').click();
+    app.waitForWeekView();
   });
 
   test('multiple months (eg. "Dec 2013 Jan 2014")', function() {
@@ -29,6 +30,19 @@ marionette('week view', function() {
     // environment (Travis uses a wider font) which would make test to fail
     // https://groups.google.com/forum/#!topic/mozilla.dev.gaia/DrQzv7qexw4
     assert.operator(headerText.length, '<', 21, 'header should not overflow');
+  });
+
+  test('today', function() {
+    var dates = app.findElements('weekViewWeekDayDateToday');
+
+    assert.equal(dates.length, 1, 'single date marked as today');
+
+    // checking for style is usually a bad idea but since the class name
+    // doesn't guarantee that it's being applied properly we make sure to
+    // test for it as well
+    var date = dates[0];
+    assert.equal(date.cssProperty('font-weight'), '500', 'font-weight');
+    assert.equal(date.cssProperty('color'), 'rgb(0, 142, 171)', 'text color');
   });
 
 });
