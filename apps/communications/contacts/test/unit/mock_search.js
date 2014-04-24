@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockSearch */
 
 var MockSearch = {
   init: function() {},

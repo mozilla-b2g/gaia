@@ -1,6 +1,7 @@
 var assert = require('chai').assert;
 var fs = require('fs');
 var AdmZip = require('adm-zip');
+var exec = require('child_process').exec;
 
 function getPrefsSandbox() {
   var sandbox = {
@@ -30,7 +31,7 @@ function checkError(error, stdout, stderr) {
 function checkSettings(settings, expectedSettings) {
   Object.keys(expectedSettings).forEach(function(key) {
     assert.isDefined(settings[key], 'key ' + key + ' is defined');
-    assert.deepEqual(expectedSettings[key], settings[key],
+    assert.deepEqual(settings[key], expectedSettings[key],
       'value of settings key ' + key + ' equal ' + expectedSettings[key]);
   });
 }
@@ -67,11 +68,32 @@ function checkFileContentInZip(zipPath, pathInZip, expectedContent, isJSON) {
   assert.deepEqual(actual, expectedContent);
 }
 
+function checkFileContentByPathInZip(zipPath, pathInZip,
+  expectedFilePath,isJSON) {
+    var actual;
+    try {
+      actual =
+        isJSON ? JSON.parse(fs.readFileSync(expectedFilePath)) :
+        fs.readFileSync(expectedFilePath);
+    } catch (e) {
+      actual = isJSON ? {} : null;
+    }
+    checkFileContentInZip(zipPath, pathInZip, actual, isJSON);
+}
+
 function checkFileContentInZip(zipPath, pathInZip, expectedContent, isJSON) {
   var zip = new AdmZip(zipPath);
   var entry = zip.getEntry(pathInZip);
   var actual = isJSON ? JSON.parse(zip.readAsText(entry)) : zip.readFile(entry);
   assert.deepEqual(actual, expectedContent);
+}
+
+function exec(command, callback) {
+  var options = {
+    maxBuffer: 400*1024
+  };
+
+  exec(command, options, callback);
 }
 
 exports.getPrefsSandbox = getPrefsSandbox;
@@ -81,3 +103,5 @@ exports.checkPrefs = checkPrefs;
 exports.checkWebappsScheme = checkWebappsScheme;
 exports.checkFileInZip = checkFileInZip;
 exports.checkFileContentInZip = checkFileContentInZip;
+exports.checkFileContentByPathInZip = checkFileContentByPathInZip;
+exports.exec = exec;

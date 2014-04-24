@@ -1,12 +1,11 @@
+/* exported  ImageLoader */
 'use strict';
 
 if (!window.ImageLoader) {
   var ImageLoader = function ImageLoader(pContainer, pItems) {
     var container, items, itemsSelector, lastScrollTime, scrollLatency = 100,
-        scrollTimer, lastViewTop = 0, itemHeight, total, imgsLoading = 0,
+        scrollTimer, itemHeight, total, imgsLoading = 0,
         loadImage = defaultLoadImage, self = this;
-
-    var forEach = Array.prototype.forEach;
 
     init(pContainer, pItems);
 
@@ -18,9 +17,13 @@ if (!window.ImageLoader) {
       itemsSelector = pItems;
       container = document.querySelector(pContainer);
 
-      container.addEventListener('scroll', onScroll);
-      document.addEventListener('onupdate', onUpdate);
-
+      attachHandlers();
+      window.addEventListener('image-loader-resume', function resuming() {
+        window.clearTimeout(scrollTimer);
+        attachHandlers();
+        update();
+      });
+      window.addEventListener('image-loader-pause', unload);
       load();
     }
 
@@ -38,6 +41,11 @@ if (!window.ImageLoader) {
       total = items.length;
       // Initial check if items should appear
       window.setTimeout(update, 0);
+    }
+
+    function attachHandlers() {
+      container.addEventListener('scroll', onScroll);
+      document.addEventListener('onupdate', onUpdate);
     }
 
     function unload() {
@@ -138,18 +146,18 @@ if (!window.ImageLoader) {
 
       // Goes forward
       for (var j = index + 1; j < total; j++) {
-        var item = items[j];
-        if (!item) {
+        var theItem = items[j];
+        if (!theItem) {
           // Returning because of index out of bound
           return;
         }
 
-        if (item.offsetTop > viewTop + containerHeight) {
+        if (theItem.offsetTop > viewTop + containerHeight) {
           return; // Below
         }
 
-        if (item.dataset.visited !== 'true') {
-          loadImage(item, self);
+        if (theItem.dataset.visited !== 'true') {
+          loadImage(theItem, self);
         }
       }
     } // update
@@ -170,4 +178,5 @@ if (!window.ImageLoader) {
     this.defaultLoad = defaultLoadImage;
     this.releaseImage = releaseImage;
   };
+
 }

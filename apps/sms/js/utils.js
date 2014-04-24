@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* globals ContactPhotoHelper */
+/* globals ContactPhotoHelper, Notification, Threads*/
 
 (function(exports) {
   'use strict';
@@ -9,6 +9,13 @@
   var rescape = /[.?*+^$[\]\\(){}|-]/g;
   var rparams = /([^?=&]+)(?:=([^&]*))?/g;
   var rnondialablechars = /[^,#+\*\d]/g;
+  var downsamplingRefSize = {
+    // Estimate average Thumbnail size:
+    // 120 X 60 (max pixel) X 3 (full color) / 20 (average jpeg compress ratio)
+    // = 1080 (byte)
+    'thumbnail' : 1080
+    // TODO: For mms resizing
+  };
 
   var Utils = {
     date: {
@@ -272,9 +279,9 @@
      * Check multi-repients without regard to order
      *
      * @param {(String|string[])} a First recipient field.
-     * @param {(String|string[])} b Second recipient field
+     * @param {(String|string[])} b Second recipient field.
      *
-     * @return {Boolean} Return true if all recipients match
+     * @return {Boolean} Return true if all recipients match.
      */
     multiRecipientMatch: function ut_multiRecipientMatch(a, b) {
       // When ES6 syntax is allowed, replace with
@@ -296,13 +303,13 @@
       });
     },
 
-    // Default image size limitation is set to 300KB for MMS user story.
-    // If limit is not given or bigger than default 300KB, default value need
+    // Default image size limitation is set to 295KB for MMS user story.
+    // If limit is not given or bigger than default 295KB, default value need
     // to be applied here for size checking. Parameters could be:
-    // (blob, callback) : Resizing image to default limit 300k.
+    // (blob, callback) : Resizing image to default limit 295k.
     // (blob, limit, callback) : Resizing image to given limitation.
     getResizedImgBlob: function ut_getResizedImgBlob(blob, limit, callback) {
-      var defaultLimit = 300 * 1024;
+      var defaultLimit = 295 * 1024;
       if (typeof limit === 'function') {
         callback = limit;
         limit = defaultLimit;
@@ -388,6 +395,23 @@
         }
         canvas.toBlob(ensureSizeLimit, blob.type);
       };
+    },
+    // Return the url path with #-moz-samplesize postfix and downsampled image
+    // could be loaded directly from backend graphics lib.
+    getDownsamplingSrcUrl: function ut_getDownsamplingSrcUrl(options) {
+      var newUrl = options.url;
+      var size = options.size;
+      var ref = downsamplingRefSize[options.type];
+
+      if (size && ref) {
+        // Estimate average Thumbnail size
+        var ratio = Math.min(Math.sqrt(size / ref), 16);
+
+        if (ratio >= 2) {
+          newUrl += '#-moz-samplesize=' + Math.floor(ratio);
+        }
+      }
+      return newUrl;
     },
     camelCase: function ut_camelCase(str) {
       return str.replace(rdashes, function replacer(str, p1) {
@@ -518,6 +542,31 @@
           window.URL.revokeObjectURL(this.src);
         };
       });
+    },
+
+    /*
+      Helper function for removing notifications. It will fetch the notification
+      using the current threadId or the parameter if provided, and close them
+       from the returned list.
+    */
+    closeNotificationsForThread: function ut_closeNotificationsForThread(tid) {
+      var threadId = tid ? tid : Threads.currentId;
+      if (!threadId) {
+        return;
+      }
+
+      var targetTag = 'threadId:' + threadId;
+
+      return Notification.get({tag: targetTag})
+        .then(
+          function onSuccess(notifications) {
+            for (var i = 0; i < notifications.length; i++) {
+              notifications[i].close();
+            }
+          }
+        ).catch(function onError(reason) {
+          console.error('Notification.get(tag: ' + targetTag + '): ', reason);
+        });
     }
   };
 

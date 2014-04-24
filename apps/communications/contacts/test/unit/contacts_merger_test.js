@@ -3,7 +3,7 @@
 'use strict';
 
 require('/shared/js/simple_phone_matcher.js');
-requireApp('communications/contacts/js/utilities/misc.js');
+require('/shared/js/contacts/import/utilities/misc.js');
 requireApp('communications/contacts/test/unit/mock_find_matcher.js');
 requireApp('communications/contacts/test/unit/mock_image_thumbnail.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');

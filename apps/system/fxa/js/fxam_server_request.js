@@ -21,8 +21,11 @@
   });
 
   function _setAccountDetails(response) {
-    if (response && response.user.accountId) {
-      FxaModuleManager.setParam('email', response.user.accountId);
+    // XXX FxAccountsIACHelper currently is inconsistent about response format
+    //     fix this after 981210 lands (e.accountId vs e.email)
+    if(response && response.user &&
+       response.user.accountId || response.user.email) {
+      FxaModuleManager.setParam('done', true);
       FxaModuleManager.setParam('verified', response.user.verified);
     }
   }

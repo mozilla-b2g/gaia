@@ -1,4 +1,5 @@
 Calendar.ns('Provider').Abstract = (function() {
+  'use strict';
 
   function Abstract(options) {
     var key;
@@ -10,8 +11,6 @@ Calendar.ns('Provider').Abstract = (function() {
   }
 
   Abstract.prototype = {
-
-    defaultColor: '#D2642A',
 
     /**
      * Does this provider require credentials.

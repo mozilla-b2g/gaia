@@ -16,7 +16,7 @@
 }
 
 #icc-input {
-  padding: 2rem 0px 20rem;
+  padding: 2rem 0 20rem;
 }
 
 #icc-input menu button:first-child,
@@ -57,7 +57,7 @@
 }
 
 #icc-input .yesnodisabled button[disabled] {
-  background: none repeat scroll 0% 0% rgb(95, 95, 95);
+  background: none repeat scroll 0 0 rgb(95, 95, 95);
   color: rgb(77, 77, 77);
   text-shadow: none;
   border-color: rgb(77, 77, 77);

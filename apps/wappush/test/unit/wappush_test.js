@@ -2,33 +2,32 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global loadBodyHTML, mocha, MockL10n, MockMessageDB, MockNavigatormozApps,
-          MockNavigatormozSetMessageHandler, MockNavigatorSettings,
-          MockNotification, MocksHelper, Notification, ParsedMessage,
-          WapPushManager */
+          MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
+          MockNavigatorSettings, MockNotification, MocksHelper, Notification,
+          ParsedMessage, WapPushManager */
 
 'use strict';
 
 mocha.globals(['close']);
 
-requireApp('wappush/shared/test/unit/mocks/mock_navigator_moz_apps.js');
-requireApp(
-  'wappush/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
-);
-requireApp('wappush/shared/test/unit/mocks/mock_notification.js');
-requireApp('wappush/shared/test/unit/mocks/mock_notification_helper.js');
-requireApp('wappush/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/shared/test/unit/mocks/mock_notification.js');
+require('/shared/test/unit/mocks/mock_notification_helper.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
-requireApp('wappush/js/cp_screen_helper.js');
-requireApp('wappush/js/parsed_message.js');
-requireApp('wappush/js/provisioning.js');
-requireApp('wappush/js/si_sl_screen_helper.js');
-requireApp('wappush/js/utils.js');
-requireApp('wappush/js/wappush.js');
+require('/js/cp_screen_helper.js');
+require('/js/parsed_message.js');
+require('/js/provisioning.js');
+require('/js/si_sl_screen_helper.js');
+require('/js/utils.js');
+require('/js/wappush.js');
 
-requireApp('wappush/test/unit/mock_l10n.js');
-requireApp('wappush/test/unit/mock_link_action_handler.js');
-requireApp('wappush/test/unit/mock_messagedb.js');
-requireApp('wappush/test/unit/mock_whitelist.js');
+require('/test/unit/mock_l10n.js');
+require('/test/unit/mock_link_action_handler.js');
+require('/test/unit/mock_messagedb.js');
+require('/test/unit/mock_whitelist.js');
 
 var mocksHelperWapPush = new MocksHelper([
   'LinkActionHandler',
@@ -40,6 +39,7 @@ var mocksHelperWapPush = new MocksHelper([
 
 suite('WAP Push', function() {
   var realMozApps;
+  var realMozIccManager;
   var realMozSettings;
   var realSetMessageHandler;
   var realMozL10n;
@@ -50,6 +50,9 @@ suite('WAP Push', function() {
   suiteSetup(function() {
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
+
+    realMozIccManager = navigator.mozIccManager;
+    navigator.mozIccManager = MockNavigatorMozIccManager;
 
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -68,7 +71,7 @@ suite('WAP Push', function() {
     navigator.mozSetMessageHandler = realSetMessageHandler;
   });
 
-  setup(function() {
+  setup(function(done) {
     var notificationGetStub = function notificationGet() {
       var options = {};
       options.icon = 'icon';
@@ -93,25 +96,23 @@ suite('WAP Push', function() {
         return isDocumentHidden;
       }
     });
+
+    MockNavigatorMozIccManager.addIcc(0, {});
+    MockNavigatormozSetMessageHandler.mSetup();
+    WapPushManager.init().then(done, done);
+    MockNavigatormozApps.mTriggerLastRequestSuccess();
   });
 
   teardown(function() {
     delete document.hidden;
+    MockNavigatormozSetMessageHandler.mTeardown();
+    MockNavigatorMozIccManager.mTeardown();
     MockNavigatormozApps.mTeardown();
     MockNavigatorSettings.mTeardown();
     mocksHelperWapPush.teardown();
   });
 
   suite('init', function() {
-    setup(function(done) {
-      MockNavigatormozSetMessageHandler.mSetup();
-      WapPushManager.init(done);
-    });
-
-    teardown(function() {
-      MockNavigatormozSetMessageHandler.mTeardown();
-    });
-
     test('the message handlers are bound', function() {
       var handlers = MockNavigatormozSetMessageHandler.mMessageHandlers;
       assert.ok(handlers.notification);
@@ -123,22 +124,14 @@ suite('WAP Push', function() {
     var message = {
       sender: '+31641600986',
       contentType: 'text/foobar',
-      content: ''
+      content: '',
+      serviceId: 0
     };
 
-    setup(function(done) {
-      MockNavigatormozSetMessageHandler.mSetup();
-      WapPushManager.init(done);
-    });
-
-    suiteTeardown(function() {
-      MockNavigatormozSetMessageHandler.mTeardown();
-    });
-
     test('unsupported messages are discarded', function() {
-      var putSpy = this.sinon.spy(MockMessageDB, 'put');
+      this.sinon.spy(MockMessageDB, 'put');
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
-      assert.isTrue(putSpy.notCalled);
+      sinon.assert.notCalled(MockMessageDB.put);
     });
   });
 
@@ -155,31 +148,23 @@ suite('WAP Push', function() {
       sender: '+31641600986',
       contentType: 'text/vnd.wap.si',
       content: '<si><indication href="http://www.mozilla.org">' +
-               'check this out</indication></si>'
+               'check this out</indication></si>',
+      serviceId: 0
     };
 
-    setup(function(done) {
-      MockNavigatormozSetMessageHandler.mSetup();
-      WapPushManager.init(done);
-    });
-
-    teardown(function() {
-      MockNavigatormozApps.mTeardown();
-      MockNavigatormozSetMessageHandler.mTeardown();
-    });
-
-    test('the notification is sent', function() {
-      var notificationSpy = this.sinon.spy(window, 'Notification');
+    test('the notification is sent and populated correctly', function() {
+      this.sinon.spy(window, 'Notification');
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
-      assert.isTrue(notificationSpy.calledOnce);
+      sinon.assert.calledOnce(Notification);
+      sinon.assert.calledWithMatch(Notification, message.sender, {
+        body: 'check this out http://www.mozilla.org'
+      });
     });
 
     test('Notification.get() called with correct tag', function() {
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
       WapPushManager.displayWapPushMessage(0);
-      assert.ok(Notification.get.calledWith({tag: 0}));
+      sinon.assert.calledWith(Notification.get, {tag: 0});
     });
 
     test('the display is populated with the message contents', function() {
@@ -193,7 +178,6 @@ suite('WAP Push', function() {
       var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
 
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
       WapPushManager.displayWapPushMessage(0);
       retrieveSpy.yield(ParsedMessage.from(message, 0));
       assert.equal(title.textContent, message.sender);
@@ -204,17 +188,68 @@ suite('WAP Push', function() {
     });
 
     test('Notification is closed', function() {
-      var closeSpy = this.sinon.spy(MockNotification.prototype, 'close');
+      this.sinon.spy(MockNotification.prototype, 'close');
 
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
       WapPushManager.displayWapPushMessage(0);
-      sinon.assert.calledOnce(closeSpy);
+      sinon.assert.calledOnce(MockNotification.prototype.close);
+    });
+
+    suite('DSDS scenarios', function() {
+      setup(function() {
+        MockNavigatorMozIccManager.addIcc(1, {});
+      });
+
+      test('the notification is populated correctly for SIM1', function() {
+        this.sinon.spy(window, 'Notification');
+        MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+        sinon.assert.calledOnce(Notification);
+        sinon.assert.calledWithMatch(Notification, /1/, {
+          body: 'check this out http://www.mozilla.org'
+        });
+      });
+
+      test('the notification is populated correctly for SIM2', function() {
+        this.sinon.spy(window, 'Notification');
+        message.serviceId = 1;
+        MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+        sinon.assert.calledOnce(Notification);
+        sinon.assert.calledWithMatch(Notification, /2/, {
+          body: 'check this out http://www.mozilla.org'
+        });
+      });
     });
   });
 
   suite('receiving and displaying a CP message', function() {
-    var messages;
+    var messages = {
+      netwpin: {
+        sender: '22997',
+        contentType: 'text/vnd.wap.connectivity-xml',
+        content: '<wap-provisioningdoc></wap-provisioningdoc>',
+        authInfo: {
+           pass: true,
+           checked: true,
+           sec: 'NETWPIN',
+           mac: 'FAKEMAC',
+           data: 'FAKEDATA'
+        },
+        serviceId: 0
+      },
+      userpin: {
+        sender: '22997',
+        contentType: 'text/vnd.wap.connectivity-xml',
+        content: '<wap-provisioningdoc></wap-provisioningdoc>',
+        authInfo: {
+           pass: true,
+           checked: true,
+           sec: 'USERPIN',
+           mac: 'FAKEMAC',
+           data: 'FAKEDATA'
+        },
+        serviceId: 0
+      }
+    };
 
      // UI elements
     var screen;
@@ -223,60 +258,13 @@ suite('WAP Push', function() {
     var acceptButton;
     var pin;
 
-    suiteSetup(function(done) {
-      MockNavigatormozSetMessageHandler.mSetup();
-      MockNavigatorSettings.createLock().set(
-        { 'wap.push.enabled': 'true' }
-      );
-      WapPushManager.init(done);
-
-      messages = {
-        netwpin: {
-          sender: '22997',
-          contentType: 'text/vnd.wap.connectivity-xml',
-          content: '<wap-provisioningdoc></wap-provisioningdoc>',
-          authInfo: {
-             pass: true,
-             checked: true,
-             sec: 'NETWPIN',
-             mac: 'FAKEMAC',
-             data: 'FAKEDATA'
-          }
-        },
-        userpin: {
-          sender: '22997',
-          contentType: 'text/vnd.wap.connectivity-xml',
-          content: '<wap-provisioningdoc></wap-provisioningdoc>',
-          authInfo: {
-             pass: true,
-             checked: true,
-             sec: 'USERPIN',
-             mac: 'FAKEMAC',
-             data: 'FAKEDATA'
-          }
-        }
-      };
-    });
-
-    setup(function(done) {
-      MockNavigatormozSetMessageHandler.mSetup();
-      WapPushManager.init(done);
-    });
-
-    teardown(function() {
-      MockNavigatormozApps.mTeardown();
-      MockNavigatorSettings.mTeardown();
-      MockNavigatormozSetMessageHandler.mTeardown();
-    });
-
     test('the notification is sent', function() {
-      var notificationSpy = this.sinon.spy(window, 'Notification');
+      this.sinon.spy(window, 'Notification');
       MockNavigatormozSetMessageHandler.mTrigger(
         'wappush-received',
         messages.netwpin
       );
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
-      assert.isTrue(notificationSpy.calledOnce);
+      sinon.assert.calledOnce(Notification);
     });
 
     test('Notification.get() called with correct tag', function() {
@@ -284,9 +272,8 @@ suite('WAP Push', function() {
         'wappush-received',
         messages.netwpin
       );
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
       WapPushManager.displayWapPushMessage(0);
-      assert.ok(Notification.get.calledWith({tag: 0}));
+      sinon.assert.calledWith(Notification.get, {tag: 0});
     });
 
     test('the display is populated with the NETWPIN message contents',
@@ -303,7 +290,6 @@ suite('WAP Push', function() {
           'wappush-received',
           messages.netwpin
         );
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
         WapPushManager.displayWapPushMessage(0);
         retrieveSpy.yield(ParsedMessage.from(messages.netwpin, 0));
         assert.equal(title.textContent, messages.netwpin.sender);
@@ -325,7 +311,6 @@ suite('WAP Push', function() {
           'wappush-received',
           messages.netwpin
         );
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
         WapPushManager.displayWapPushMessage(0);
         retrieveSpy.yield(ParsedMessage.from(messages.userpin, 0));
         assert.equal(title.textContent, messages.netwpin.sender);
@@ -340,7 +325,6 @@ suite('WAP Push', function() {
         'wappush-received',
         messages.netwpin
       );
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
       WapPushManager.displayWapPushMessage(0);
       sinon.assert.called(closeSpy);
     });
@@ -356,7 +340,8 @@ suite('WAP Push', function() {
                  '            created="2013-09-03T10:35:33Z">' +
                  'oldest message' +
                  '</indication>' +
-                 '</si>'
+                 '</si>',
+        serviceId: 0
       },
       old: {
         sender: '+31641600986',
@@ -366,7 +351,8 @@ suite('WAP Push', function() {
                  '            created="2013-09-03T12:35:33Z">' +
                  'old message' +
                  '</indication>' +
-                 '</si>'
+                 '</si>',
+        serviceId: 0
       },
       current: {
         sender: '+31641600986',
@@ -376,7 +362,8 @@ suite('WAP Push', function() {
                  '            created="2013-09-03T14:35:33Z">' +
                  'current message' +
                  '</indication>' +
-                 '</si>'
+                 '</si>',
+        serviceId: 0
       }
     };
 
@@ -385,43 +372,33 @@ suite('WAP Push', function() {
     var container;
     var text;
 
-    setup(function(done) {
+    setup(function() {
       this.sinon.stub(MockMessageDB, 'put');
       this.sinon.stub(MockMessageDB, 'retrieve');
-
-      MockNavigatormozSetMessageHandler.mSetup();
-      WapPushManager.init(done);
 
       screen = document.getElementById('si-sl-screen');
       container = screen.querySelector('.container');
       text = container.querySelector('p');
     });
 
-    teardown(function() {
-      MockNavigatormozSetMessageHandler.mTeardown();
-      MockNavigatormozApps.mTeardown();
-    });
-
     test('the old message is expired', function() {
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received',
                                                  messages.oldest);
       MockMessageDB.put.yield('new');
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received',
                                                  messages.current);
       MockMessageDB.put.yield('new');
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
       WapPushManager.displayWapPushMessage(0);
       MockMessageDB.retrieve.yield(null);
       assert.equal(text.textContent, 'this-message-has-expired');
     });
 
     test('an outdated message does not replace a newer one', function() {
-      var notificationSpy = this.sinon.spy(window, 'Notification');
+      this.sinon.spy(window, 'Notification');
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received',
                                                  messages.old);
       MockMessageDB.put.yield('discarded');
-      assert.isTrue(notificationSpy.notCalled);
+      sinon.assert.notCalled(Notification);
     });
 
     test('the current message is displayed', function() {
@@ -439,23 +416,14 @@ suite('WAP Push', function() {
                '<indication si-expires="2013-09-03T10:35:33Z">' +
                'check this out' +
                '</indication>' +
-               '</si>'
+               '</si>',
+      serviceId: 0
     };
 
-    setup(function(done) {
-      MockNavigatormozSetMessageHandler.mSetup();
-      WapPushManager.init(done);
-    });
-
-    teardown(function() {
-      MockNavigatormozApps.mTeardown();
-      MockNavigatormozSetMessageHandler.mTeardown();
-    });
-
     test('the message was not stored in the database', function() {
-      var putSpy = this.sinon.spy(MockMessageDB, 'put');
+      this.sinon.spy(MockMessageDB, 'put');
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
-      assert.isTrue(putSpy.notCalled);
+      sinon.assert.notCalled(MockMessageDB.put);
     });
   });
 
@@ -469,26 +437,22 @@ suite('WAP Push', function() {
                  '            action="signal-none">' +
                  'check this out' +
                  '</indication>' +
-                 '</si>'
+                 '</si>',
+        serviceId: 0
       }
     };
 
-    setup(function(done) {
-      MockNavigatormozSetMessageHandler.mSetup();
-      WapPushManager.init(done);
-    });
-
-    teardown(function() {
-      MockNavigatormozApps.mTeardown();
-      MockNavigatormozSetMessageHandler.mTeardown();
-    });
-
-    test('action=signal-none does not send a notification', function() {
-      var getSelfSpy = this.sinon.spy(MockNavigatormozApps, 'getSelf');
-
+    /* XXX: Workaround for bug 981521. We shouldn't send notifications for
+     * signal-none messages but we do until we'll have another way for the user
+     * to find & display them. */
+    test('action=signal-none sends a notification', function() {
+      this.sinon.spy(window, 'Notification');
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received',
                                                  messages.none);
-      assert.isTrue(getSelfSpy.notCalled);
+      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      sinon.assert.calledOnce(Notification);
+      sinon.assert.calledWithMatch(Notification, messages.none.sender,
+        { body: 'check this out' });
     });
   });
 
@@ -497,28 +461,23 @@ suite('WAP Push', function() {
       sender: '+31641600986',
       contentType: 'text/vnd.wap.si',
       content: '<si><indication href="http://www.mozilla.org">' +
-               'check this out</indication></si>'
+               'check this out</indication></si>',
+      serviceId: 0
     };
 
-    setup(function(done) {
-      MockNavigatormozSetMessageHandler.mSetup();
-      WapPushManager.init(done);
-
+    setup(function() {
       this.clock = this.sinon.useFakeTimers();
       this.sinon.spy(window, 'close');
     });
 
     teardown(function() {
       this.clock.restore();
-      MockNavigatormozApps.mTeardown();
-      MockNavigatormozSetMessageHandler.mTeardown();
     });
 
     test('the app is closed after displaying a notification', function() {
       isDocumentHidden = true;
 
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
       this.clock.tick(100);
       sinon.assert.calledOnce(window.close);
     });
@@ -527,7 +486,6 @@ suite('WAP Push', function() {
       isDocumentHidden = false;
 
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
       this.clock.tick(100);
       sinon.assert.notCalled(window.close);
     });
@@ -536,11 +494,9 @@ suite('WAP Push', function() {
       isDocumentHidden = true;
 
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
-      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
-      this.clock.tick(100);
       sinon.assert.notCalled(window.close);
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      sinon.assert.notCalled(window.close);
       this.clock.tick(100);
       sinon.assert.calledOnce(window.close);
     });
@@ -549,13 +505,13 @@ suite('WAP Push', function() {
       isDocumentHidden = true;
 
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      sinon.assert.notCalled(window.close);
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
-      this.clock.tick(100);
-      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      sinon.assert.notCalled(window.close);
+      this.clock.tick(50);
       isDocumentHidden = false;
       WapPushManager.onVisibilityChange();
-      this.clock.tick(100);
+      this.clock.tick(50);
       sinon.assert.notCalled(window.close);
     });
 

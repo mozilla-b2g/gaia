@@ -1,0 +1,160 @@
+.preview-gallery {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  bottom: 0;
+  background: #000;
+  z-index: 100;
+  overflow: hidden;
+  opacity: 1;
+  visibility: visible;
+  transition: all 0.5s ease-in-out;
+  background-color: #333333;
+}
+
+.preview-gallery.offscreen {
+  opacity: 0;
+  visibility: hidden;
+  transition: all 200ms ease-in-out;
+}
+
+/** Frame Container
+ ---------------------------------------------------------*/
+
+.frame-container {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  overflow: hidden;
+  -moz-user-select: none;
+}
+
+.media-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #333333;
+}
+
+.media-frame > img {
+  top: 0;
+  left: 0;
+  position: absolute;
+  pointer-events: none;
+  -moz-user-select: none;
+}
+
+.media-frame > video {
+  transform-origin: 0 0;
+}
+
+/** Preview Menu
+ ---------------------------------------------------------*/
+
+.preview-menu {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: visibility 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.preview-menu.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.preview-gallery[secure-mode=true] .preview-share-icon,
+.preview-gallery[secure-mode=true] .preview-option-icon {
+  display: none;
+}
+
+.count-text {
+  position: absolute;
+  bottom: 83px;
+  width: 100%;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 500;
+  text-shadow:
+    1px 1px 2px rgba(0,0,0,0.4),
+    0 0 29px rgba(0,0,0,0.2);
+  color: #FFF;
+}
+
+/** Preview Controls
+ ---------------------------------------------------------*/
+
+.preview-controls {
+  position: absolute;
+  display: flex;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 4.5rem;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+/**
+  Overriding default styles from shared/style/headers.css
+ */
+section[role="region"].skin-dark > header:first-child > button:active,
+section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:not(:disabled):active {
+  background-color: rgba(0, 142, 171, 0.3);
+}
+
+section[role="region"].skin-dark > header:first-child > button,
+section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:not(:disabled) {
+  vertical-align: middle;
+  text-align: center;
+}
+
+section[role="region"].skin-dark > header:first-child > button {
+  width: 3rem;
+}
+
+section[role="region"] > header:first-child h1 {
+  font-weight: normal;
+  padding: 0 1rem 0 2.8rem;
+}
+
+section[role="region"].skin-dark > header:first-child,
+.skin-dark > section[role="region"] > header:first-child {
+   background: rgba(0, 0, 0, 0.75);
+}
+
+section[role="region"] > header:first-child > button:after,
+section[role="region"] > header:first-child > a:after {
+  width: 100%;
+}
+
+/**
+  Button icon styles
+ */
+.preview-menu button > span {
+  color: #ffffff;
+  font-size: 3.0rem;
+  text-align: center;
+  text-shadow: none;
+}
+
+.preview-back-icon {
+  margin-left: -0.1rem;
+  vertical-align: -1.9rem;
+}
+
+.preview-share-icon {
+  margin-right: -0.1rem;
+  vertical-align: -0.9rem;
+}
+
+.preview-option-icon {
+  vertical-align: -0.9rem;
+}

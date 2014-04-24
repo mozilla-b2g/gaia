@@ -1,4 +1,6 @@
+/*global Calendar*/
 Calendar.ns('Views').Week = (function() {
+  'use strict';
 
   var Parent = Calendar.Views.Day;
   var template = Calendar.Templates.Week;
@@ -119,7 +121,7 @@ Calendar.ns('Views').Week = (function() {
 
       for (; i < 24; i++) {
         hour = String(i);
-        displayHour = Calendar.Calc.formatHour(i);
+        displayHour = Calendar.Calc.formatHourAbbr(i);
 
         element.insertAdjacentHTML(
           'beforeend',

@@ -1,4 +1,8 @@
 'use strict';
+/* global _ */
+/* global ConfirmDialog */
+/* global contacts */
+/* global fb */
 
 var Contacts = window.Contacts || {};
 
@@ -68,6 +72,8 @@ if (typeof Contacts.extServices === 'undefined') {
     }
 
     function unload() {
+      // Attaching again scrolling handlers on the contact list's image loader
+      window.dispatchEvent(new CustomEvent('image-loader-resume'));
       extensionFrame.src = currentURI = null;
     }
 
@@ -91,7 +97,7 @@ if (typeof Contacts.extServices === 'undefined') {
     }
 
     function openURL(url) {
-      window.open(url);
+      window.open(url, '', 'dialog');
     }
 
     extServices.showProfile = function(cid) {
@@ -143,8 +149,9 @@ if (typeof Contacts.extServices === 'undefined') {
 
       // Add extra info too
       var extras = {};
-      extras['fb_is_linked'] = linked;
+      extras.fb_is_linked = linked;
 
+      /* jshint loopfunc:true */
       for (var nodeName in elements) {
         var node = socialNode.querySelector(nodeName);
         var variables = elements[nodeName].elems;
@@ -157,7 +164,7 @@ if (typeof Contacts.extServices === 'undefined') {
     };
 
     function onClickWithId(evt, callback) {
-      var contactId = evt.target.dataset['id'];
+      var contactId = evt.target.dataset.id;
       callback(contactId);
     }
 
@@ -180,8 +187,8 @@ if (typeof Contacts.extServices === 'undefined') {
 
     // Note this is slightly different
     function onLinkClick(evt) {
-      var contactId = evt.target.dataset['id'];
-      var linked = evt.target.dataset['fb_is_linked'];
+      var contactId = evt.target.dataset.id;
+      var linked = evt.target.dataset.fb_is_linked;
 
       linked = (linked === 'true');
       extServices.startLink(contactId, linked);
@@ -264,7 +271,7 @@ if (typeof Contacts.extServices === 'undefined') {
     }
 
     function notifySettings(evtype) {
-       // Notify observers that a change from FB could have happened
+      // Notify observers that a change from FB could have happened
       var eventType = evtype || 'fb_changed';
 
       var event = new CustomEvent(eventType, {
@@ -294,6 +301,9 @@ if (typeof Contacts.extServices === 'undefined') {
                 type: 'dom_transition_end',
                 data: ''
               }, fb.CONTACTS_APP_ORIGIN);
+              // Stop scrolling listeners on the contact list's image loader to
+              // prevent images cancelled while friends are being imported
+              window.dispatchEvent(new CustomEvent('image-loader-pause'));
             });
           }, 0);
         break;
@@ -359,10 +369,12 @@ if (typeof Contacts.extServices === 'undefined') {
             type: 'token',
             data: access_token
           }, fb.CONTACTS_APP_ORIGIN);
+          break;
 
         case 'show_duplicate_contacts':
           extensionFrame.contentWindow.postMessage(data,
                                                     fb.CONTACTS_APP_ORIGIN);
+          break;
 
         case 'duplicate_contacts_merged':
           extensionFrame.contentWindow.postMessage(data,

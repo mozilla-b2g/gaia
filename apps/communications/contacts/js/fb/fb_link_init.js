@@ -1,5 +1,7 @@
 'use strict';
 
+/* global fb, utils */
+
 (function(document) {
   var cid = window.location.search.substring(fb.link.CID_PARAM.length + 2);
 
@@ -32,10 +34,5 @@
       type: 'messaging_ready',
       data: ''
     }, fb.CONTACTS_APP_ORIGIN);
-  });
-
-  window.addEventListener('localized', function initContacts(evt) {
-    document.documentElement.lang = navigator.mozL10n.language.code;
-    document.documentElement.dir = navigator.mozL10n.language.direction;
   });
 })(document);

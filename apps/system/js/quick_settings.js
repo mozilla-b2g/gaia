@@ -233,7 +233,7 @@ var QuickSettings = {
             var host = document.location.host;
             var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
             var protocol = document.location.protocol + '//';
-            Applications.getByManifestURL(protocol + 'settings.' +
+            applications.getByManifestURL(protocol + 'settings.' +
                                           domain + '/manifest.webapp').launch();
 
             UtilityTray.hide();

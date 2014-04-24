@@ -10,6 +10,10 @@
 var CardsView = (function() {
   //display icon of an app on top of app's card
   var DISPLAY_APP_ICON = false;
+  var SCREENSHOT_PREVIEWS_SETTING_KEY = 'app.cards_view.screenshots.enabled';
+  // use screenshots in cards view? tracks setting value
+  var useAppScreenshotPreviews = true;
+
   // if 'true' user can close the app
   // by dragging it upwards
   var MANUAL_CLOSING = true;
@@ -37,28 +41,58 @@ var CardsView = (function() {
   var gd = new GestureDetector(cardsView);
   gd.startDetecting();
 
+  // get initial setting value for screenshot previews
+  // and watch for changes
+  var settingRequest = SettingsListener.getSettingsLock()
+                       .get(SCREENSHOT_PREVIEWS_SETTING_KEY);
+
+  settingRequest.onsuccess = function() {
+    var settingValue = settingRequest.result[SCREENSHOT_PREVIEWS_SETTING_KEY];
+    useAppScreenshotPreviews = settingValue;
+  };
+
+  SettingsListener.observe(SCREENSHOT_PREVIEWS_SETTING_KEY,
+                           useAppScreenshotPreviews, function(settingValue) {
+    useAppScreenshotPreviews = settingValue;
+  });
+
+
   /*
    * Returns an icon URI
    *
    * @param{String} the position of the app in our cache
    */
   function getIconURI(position) {
-    var icons = stack[position].manifest.icons;
-    if (!icons) {
+    var app = stack[position];
+    if (!app) {
+      return null;
+    }
+    var icons = app.manifest && app.manifest.icons;
+    var iconPath;
+
+    if (icons) {
+      var sizes = Object.keys(icons).map(function parse(str) {
+        return parseInt(str, 10);
+      });
+
+      sizes.sort(function(x, y) { return y - x; });
+
+      var index = sizes[(HVGA) ? sizes.length - 1 : 0];
+      iconPath = icons[index];
+    } else {
+      iconPath = app.icon;
+    }
+
+    if (!iconPath) {
       return null;
     }
 
-    var sizes = Object.keys(icons).map(function parse(str) {
-      return parseInt(str, 10);
-    });
-
-    sizes.sort(function(x, y) { return y - x; });
-
-    var index = sizes[(HVGA) ? sizes.length - 1 : 0];
-    var iconPath = icons[index];
-
     if (iconPath.indexOf('data:') !== 0) {
-      iconPath = origin + iconPath;
+      // We need to resolve iconPath as a relative url to origin, since
+      // origin can be a full url in some apps.
+      var base = getOriginObject(app.origin);
+      var port = base.port ? (':' + base.port) : '';
+      iconPath = base.protocol + '//' + base.hostname + port + iconPath;
     }
 
     return iconPath;
@@ -77,10 +111,22 @@ var CardsView = (function() {
     return stringHTML;
   }
 
-  function fireCardViewShown() {
+  function fireEventNextTick(eventName) {
     setTimeout(function nextTick() {
-      window.dispatchEvent(new CustomEvent('cardviewshown'));
+      window.dispatchEvent(new CustomEvent(eventName));
     });
+  }
+
+  function fireCardViewBeforeShow() {
+    fireEventNextTick('cardviewbeforeshow');
+  }
+
+  function fireCardViewShown() {
+    fireEventNextTick('cardviewshown');
+  }
+
+  function fireCardViewBeforeClose() {
+    fireEventNextTick('cardviewbeforeclose');
   }
 
   function fireCardViewClosed(newStackPosition) {
@@ -146,8 +192,11 @@ var CardsView = (function() {
       SC_SCALE = 0.6;
     }
 
-    // Switch to homescreen
+    // Ensure homescreen is already faded when we switch to it.
+    fireCardViewBeforeShow();
+    // Now we can switch to the homescreen.
     AppWindowManager.display(null, null, 'to-cardview');
+    // Now we're showing!
     cardsViewShown = true;
 
     // First add an item to the cardsList for each running app
@@ -159,7 +208,7 @@ var CardsView = (function() {
     });
 
     if (MANUAL_CLOSING) {
-      cardsView.addEventListener('mousedown', CardsView);
+      cardsView.addEventListener('touchstart', CardsView);
     }
 
     // If there is no running app, show "no recent apps" message
@@ -172,8 +221,8 @@ var CardsView = (function() {
     // Make sure we're in default orientation
     screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
-    // Make sure the keyboard isn't showing by blurring the active app.
-    if (stack.length) {
+    // If there is a displayed app, take keyboard focus away
+    if (currentPosition) {
       stack[currentPosition].blur();
     }
 
@@ -208,45 +257,45 @@ var CardsView = (function() {
       screenshotView.classList.add('screenshotView');
       card.appendChild(screenshotView);
 
-      //display app icon on the tab
-      if (DISPLAY_APP_ICON) {
-        var iconURI = getIconURI(position);
-        if (iconURI) {
-          var appIcon = document.createElement('img');
-          appIcon.classList.add('appIcon');
-          appIcon.src = iconURI;
-          card.appendChild(appIcon);
-        }
+      // app icon overlays screenshot by default
+      // and will be removed if/when we display the screenshot
+      var iconURI = getIconURI(position);
+      var appIconView = document.createElement('div');
+      appIconView.classList.add('appIconView');
+      card.appendChild(appIconView);
+      if (iconURI) {
+          appIconView.style.backgroundImage = 'url(' + iconURI + ')';
       }
+      card.classList.add('appIconPreview');
 
       var title = document.createElement('h1');
       title.textContent = app.name;
       card.appendChild(title);
 
-      var frameForScreenshot = app.iframe;
-
+      // only take the frame reference if we need to
+      var frameForScreenshot = useAppScreenshotPreviews && app.iframe;
       var origin = stack[position].origin;
       if (PopupManager.getPopupFromOrigin(origin)) {
         var popupFrame =
           PopupManager.getPopupFromOrigin(origin);
-        frameForScreenshot = popupFrame;
+        frameForScreenshot = useAppScreenshotPreviews && popupFrame;
 
         var subtitle = document.createElement('p');
         subtitle.textContent =
-          PopupManager.getOpenedOriginFromOpener(origin);
+          PopupManager.getOpenedOriginFromOpener(app.origin);
         card.appendChild(subtitle);
         card.classList.add('popup');
       } else if (getOffOrigin(app.iframe.dataset.url ?
-            app.iframe.dataset.url : app.iframe.src, origin)) {
+            app.iframe.dataset.url : app.iframe.src, app.origin)) {
         var subtitle = document.createElement('p');
         subtitle.textContent = getOffOrigin(app.iframe.dataset.url ?
-            app.iframe.dataset.url : app.iframe.src, origin);
+            app.iframe.dataset.url : app.iframe.src, app.origin);
         card.appendChild(subtitle);
       }
 
-      if (TrustedUIManager.hasTrustedUI(origin)) {
-        var popupFrame = TrustedUIManager.getDialogFromOrigin(origin);
-        frameForScreenshot = popupFrame.frame;
+      if (TrustedUIManager.hasTrustedUI(app.origin)) {
+        var popupFrame = TrustedUIManager.getDialogFromOrigin(app.origin);
+        frameForScreenshot = useAppScreenshotPreviews && popupFrame.frame;
         var header = document.createElement('section');
         header.setAttribute('role', 'region');
         header.classList.add('skin-organic');
@@ -256,7 +305,7 @@ var CardsView = (function() {
         header.innerHTML += '</h1></header>';
         card.appendChild(header);
         card.classList.add('trustedui');
-      } else if (attentionScreenApps.indexOf(origin) == -1) {
+      } else if (attentionScreenApps.indexOf(app.origin) == -1) {
         var closeButton = document.createElement('div');
         closeButton.setAttribute('role', 'button');
         closeButton.classList.add('close-card');
@@ -271,8 +320,13 @@ var CardsView = (function() {
 
       card.addEventListener('onviewport', function onviewport() {
         card.style.display = 'block';
-        if (screenshotView.style.backgroundImage) {
-          return;
+        if (useAppScreenshotPreviews) {
+          card.classList.remove('appIconPreview');
+          if (screenshotView.style.backgroundImage) {
+            return;
+          }
+        } else {
+          card.classList.add('appIconPreview');
         }
 
         // Handling cards in different orientations
@@ -282,8 +336,14 @@ var CardsView = (function() {
             degree == 270) {
           isLandscape = true;
         }
+
         // Rotate screenshotView if needed
         screenshotView.classList.add('rotate-' + degree);
+
+        if (!useAppScreenshotPreviews) {
+          return;
+        }
+
         if (isLandscape) {
           // We must exchange width and height if it's landscape mode
           var width = card.clientHeight;
@@ -314,27 +374,34 @@ var CardsView = (function() {
           var rect = card.getBoundingClientRect();
           var width = isLandscape ? rect.height : rect.width;
           var height = isLandscape ? rect.width : rect.height;
-          frameForScreenshot.getScreenshot(
-            width, height).onsuccess =
-            function gotScreenshot(screenshot) {
-              var blob = screenshot.target.result;
-              if (blob) {
-                var objectURL = URL.createObjectURL(blob);
+          var request = frameForScreenshot.getScreenshot(
+            width, height);
+          request.onsuccess = function gotScreenshot(screenshot) {
+            var blob = screenshot.target.result;
+            if (blob) {
+              var objectURL = URL.createObjectURL(blob);
 
-                // Overwrite the cached image to prevent flickering
-                screenshotView.style.backgroundImage =
-                  'url(' + objectURL + '), url(' + cachedLayer + ')';
+              // Overwrite the cached image to prevent flickering
+              screenshotView.style.backgroundImage =
+                'url(' + objectURL + '), url(' + cachedLayer + ')';
 
-                app.renewCachedScreenshotBlob(blob);
+              app.renewCachedScreenshotBlob(blob);
 
-                // setTimeout is needed to ensure that the image is fully drawn
-                // before we remove it. Otherwise the rendering is not smooth.
-                // See: https://bugzilla.mozilla.org/show_bug.cgi?id=844245
-                setTimeout(function() {
-                  URL.revokeObjectURL(objectURL);
-                }, 200);
-              }
-            };
+              // setTimeout is needed to ensure that the image is fully drawn
+              // before we remove it. Otherwise the rendering is not smooth.
+              // See: https://bugzilla.mozilla.org/show_bug.cgi?id=844245
+              setTimeout(function() {
+                URL.revokeObjectURL(objectURL);
+              }, 200);
+            } else {
+              // failed to get screenshot, fallback to using icon
+              card.classList.add('appIconPreview');
+            }
+          };
+          request.onerror = function screenshotError() {
+            // failed to get screenshot, fallback to using icon
+            card.classList.add('appIconPreview');
+          };
         }
       });
     }
@@ -349,7 +416,7 @@ var CardsView = (function() {
       closeApp(card, true);
     } else if ('position' in e.target.dataset) {
       AppWindowManager.display(
-        stack[e.target.dataset.position].origin,
+        stack[e.target.dataset.position],
         'from-cardview',
         null
       );
@@ -442,8 +509,12 @@ var CardsView = (function() {
     if (removeImmediately) {
       cardsView.classList.add('no-transition');
     }
+
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
+    // Let everyone know we're about to close the cards view
+    fireCardViewBeforeClose();
+    // Now we can consider ourselves hidden again.
     cardsViewShown = false;
 
     // And remove all the cards from the document after the transition
@@ -467,6 +538,10 @@ var CardsView = (function() {
 
   function cardSwitcherIsShown() {
     return cardsViewShown;
+  }
+
+  function screenshotPreviewsEnabled() {
+    return useAppScreenshotPreviews;
   }
 
   //scrolling cards (Positon 0 is x-coord and position 1 is y-coord)
@@ -503,9 +578,6 @@ var CardsView = (function() {
     addEventListener: function() {}
   };
 
-  var onViewPortEvent = new CustomEvent('onviewport');
-  var outViewPortEvent = new CustomEvent('outviewport');
-
   // Scale for current card
   var CC_SCALE = 0.8;
   // Scale for current card's siblings
@@ -524,16 +596,16 @@ var CardsView = (function() {
       return;
     }
 
-    currentCard.dispatchEvent(onViewPortEvent);
+    currentCard.dispatchEvent(new CustomEvent('onviewport'));
     // Link to the style objects of the cards
     currentCardStyle = currentCard.style;
 
     prevCard = currentCard.previousElementSibling || pseudoCard;
-    prevCard.dispatchEvent(onViewPortEvent);
+    prevCard.dispatchEvent(new CustomEvent('onviewport'));
     prevCardStyle = prevCard.style;
 
     nextCard = currentCard.nextElementSibling || pseudoCard;
-    nextCard.dispatchEvent(onViewPortEvent);
+    nextCard.dispatchEvent(new CustomEvent('onviewport'));
     nextCardStyle = nextCard.style;
 
     // Scaling and translating cards to reach target positions
@@ -553,9 +625,9 @@ var CardsView = (function() {
   function alignCurrentCard(noTransition) {
     // We're going to release memory hiding card out of screen
     if (deltaX < 0) {
-      prevCard && prevCard.dispatchEvent(outViewPortEvent);
+      prevCard && prevCard.dispatchEvent(new CustomEvent('outviewport'));
     } else {
-      nextCard && nextCard.dispatchEvent(outViewPortEvent);
+      nextCard && nextCard.dispatchEvent(new CustomEvent('outviewport'));
     }
 
     // Disable previous current card
@@ -632,8 +704,8 @@ var CardsView = (function() {
   function onStartEvent(evt) {
     evt.stopPropagation();
     evt.target.setCapture(true);
-    cardsView.addEventListener('mousemove', CardsView);
-    cardsView.addEventListener('mouseup', CardsView);
+    cardsView.addEventListener('touchmove', CardsView);
+    cardsView.addEventListener('touchend', CardsView);
     cardsView.addEventListener('swipe', CardsView);
 
     if (evt.touches) {
@@ -657,15 +729,15 @@ var CardsView = (function() {
         // We don't want user to scroll the CardsView when one of the card is
         // already dragger upwards
         draggingCardUp = true;
-        cardsView.removeEventListener('mousemove', CardsView);
-        document.addEventListener('mousemove', onMoveEventForDeleting);
+        cardsView.removeEventListener('touchmove', CardsView);
+        document.addEventListener('touchmove', onMoveEventForDeleting);
         onMoveEventForDeleting(evt, deltaY);
     } else {
       // If we are not removing Cards now and Snapping
       // Scrolling is enabled, we want to scroll the CardList
       if (Math.abs(deltaX) > switchingCardThreshold) {
-        cardsView.removeEventListener('mousemove', CardsView);
-        document.addEventListener('mousemove', onMoveEventForScrolling);
+        cardsView.removeEventListener('touchmove', CardsView);
+        document.addEventListener('touchmove', onMoveEventForScrolling);
       }
 
       moveCards();
@@ -678,10 +750,10 @@ var CardsView = (function() {
     var eventDetail = evt.detail;
 
     document.releaseCapture();
-    cardsView.removeEventListener('mousemove', CardsView);
-    document.removeEventListener('mousemove', onMoveEventForDeleting);
-    document.removeEventListener('mousemove', onMoveEventForScrolling);
-    cardsView.removeEventListener('mouseup', CardsView);
+    cardsView.removeEventListener('touchmove', CardsView);
+    document.removeEventListener('touchmove', onMoveEventForDeleting);
+    document.removeEventListener('touchmove', onMoveEventForScrolling);
+    cardsView.removeEventListener('touchend', CardsView);
     cardsView.removeEventListener('swipe', CardsView);
 
     var eventDetailEnd = eventDetail.end;
@@ -692,9 +764,9 @@ var CardsView = (function() {
       dy = eventDetail.dy;
       direction = eventDetail.direction;
     } else {
-      if (evt.touches) {
-        dx = evt.touches[0].pageX - initialTouchPosition[0];
-        dy = evt.touches[0].pageY - initialTouchPosition[1];
+      if (evt.changedTouches) {
+        dx = evt.changedTouches[0].pageX - initialTouchPosition[0];
+        dy = evt.changedTouches[0].pageY - initialTouchPosition[1];
       } else {
         dx = evt.pageX - initialTouchPosition[0];
         dy = evt.pageY - initialTouchPosition[1];
@@ -749,14 +821,6 @@ var CardsView = (function() {
     }
   }
 
-  function maybeShowInRocketbar() {
-    if (Rocketbar.enabled) {
-      Rocketbar.render(true);
-    } else {
-      showCardSwitcher();
-    }
-  }
-
   function goToHomescreen(evt) {
     if (!cardSwitcherIsShown())
       return;
@@ -769,17 +833,20 @@ var CardsView = (function() {
 
   function cv_handleEvent(evt) {
     switch (evt.type) {
-      case 'mousedown':
+      case 'touchstart':
         onStartEvent(evt);
+        evt.preventDefault();
         break;
 
-      case 'mousemove':
+      case 'touchmove':
         onMoveEvent(evt);
+        evt.preventDefault();
         break;
 
-      case 'mouseup':
+      case 'touchend':
       case 'swipe':
         onEndEvent(evt);
+        evt.preventDefault();
         break;
 
       case 'opencurrentcard':
@@ -822,11 +889,11 @@ var CardsView = (function() {
         SleepMenu.hide();
         var app = AppWindowManager.getActiveApp();
         if (!app) {
-          maybeShowInRocketbar();
+          showCardSwitcher();
         } else {
           app.getScreenshot(function onGettingRealtimeScreenshot() {
             lastInTimeCapture = true;
-            maybeShowInRocketbar();
+            showCardSwitcher();
           });
         }
         break;
@@ -844,6 +911,8 @@ var CardsView = (function() {
     showCardSwitcher: showCardSwitcher,
     hideCardSwitcher: hideCardSwitcher,
     cardSwitcherIsShown: cardSwitcherIsShown,
+    _screenshotPreviewsEnabled: screenshotPreviewsEnabled,
+    _getIconURI: getIconURI,
     handleEvent: cv_handleEvent,
     _escapeHTML: escapeHTML
   };

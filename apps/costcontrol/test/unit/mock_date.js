@@ -1,3 +1,5 @@
+/* exported MockDateFactory */
+
 'use strict';
 
 /*
@@ -27,11 +29,11 @@ var MockDateFactory = (function(realDate) {
       } else {
         return realDate.apply(this, arguments);
       }
-    };
+    }
     return FakeDate;
   }
   buildFakeDateConstructor.realDate = realDate;
 
   return buildFakeDateConstructor;
 
-}(this.Date));
+}(window.Date));

@@ -1,0 +1,8 @@
+{
+  "video": {
+    "src": ["apps/video/js/**/*.js"],
+    "options": {
+      "destination": "docs/video"
+    }
+  }
+}

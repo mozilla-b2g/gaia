@@ -1,0 +1,8 @@
+{
+  "homescreen": {
+    "src": ["apps/homescreen/js/**/*.js"],
+    "options": {
+      "destination": "docs/homescreen"
+    }
+  }
+}

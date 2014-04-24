@@ -1,3 +1,7 @@
+
+
+      <link rel="resource" type="application/l10n" href="/contacts/locales/locales.ini"/>
+      <link rel="resource" type="application/l10n" href="/shared/locales/import_contacts.ini"/>
         <!-- Contacts List Section -->
       <section id='view-contacts-list' role="region" data-state="active" class="view view-noscroll view-contacts-list">
         <header>
@@ -454,6 +458,16 @@
               </button>
               <p id="renew-pwd-msg" data-l10n-id="renewPwdMsg" class="fb-error"></p>
               <p id="no-connection" data-l10n-id="noConnection11"></p>
+            </li>
+          </ul>
+          <header>
+            <h2 data-l10n-id="ContactManagementTitle">Contacts Management</h2>
+          </header>
+          <ul data-type="list" id="contactsManagement">
+            <li>
+              <button id="bulkDelete" class=" fillflow-row action action-delete danger bulkdelete">
+                 <b data-l10n-id="bulkDeleteButton">Bulk delete</b>
+              </button>
             </li>
           </ul>
         </section>

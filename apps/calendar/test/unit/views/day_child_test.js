@@ -7,6 +7,8 @@ requireLib('views/day_child.js');
 requireLib('timespan.js');
 
 suiteGroup('Views.DayChild', function() {
+  'use strict';
+
   var subject;
   var app;
   var db;
@@ -62,8 +64,7 @@ suiteGroup('Views.DayChild', function() {
     var event = Factory('event', {
       remote: {
         title: 'UX',
-        location: 'Paris',
-        attendees: ['zoo', 'barr']
+        location: 'Paris'
       }
     });
 
@@ -72,11 +73,9 @@ suiteGroup('Views.DayChild', function() {
     var result = subject._renderEvent(busytime, event);
     assert.ok(result);
 
-    assert.include(result, 'has-alarms');
+    assert.include(result, 'icon-alarm');
     assert.include(result, 'UX');
     assert.include(result, 'Paris');
-    assert.include(result, '>zoo<');
-    assert.include(result, '>barr<');
   });
 
   test('#_renderEvent without alarms', function() {
@@ -91,7 +90,7 @@ suiteGroup('Views.DayChild', function() {
     var result = subject._renderEvent(busytime, event);
     assert.ok(result);
 
-    assert.ok(result.indexOf('has-alarms') === -1);
+    assert.ok(result.indexOf('icon-alarm') === -1);
   });
 
   test('#_renderEvent undefined alarms, bug 868600', function() {

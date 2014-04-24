@@ -11,8 +11,8 @@
 
     var deviceId = null;
 
-    this.init = function init(config) {
-      deviceId = config.deviceId;
+    this.init = function init(configDeviceId) {
+      deviceId = configDeviceId;
 
       this.Apps = Apps();
       this.Search = Search();

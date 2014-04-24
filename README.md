@@ -1,4 +1,4 @@
-# Gaia [![Build Status](https://travis-ci.org/mozilla-b2g/gaia.png)](https://travis-ci.org/mozilla-b2g/gaia)
+# Gaia [![Build Status](https://travis-ci.org/mozilla-b2g/gaia.svg)](https://travis-ci.org/mozilla-b2g/gaia)
 
 Gaia is Mozilla's Phone UX for the Boot to Gecko (B2G) project.
 
@@ -99,12 +99,12 @@ make test-integration TEST_FILES=<test>
 
 For example, we could run the `day_view_test.js` test in calendar app with the below command.
 ```
-make test-integration TEST_FILES=./apps/calendar/test/marionette/day_view_test.js
+make test-integration TEST_FILES=apps/calendar/test/marionette/day_view_test.js
 ```
 
 If you would like to run more than one test, we could do the below command.
 ```
-make test-integration TEST_FILES="./apps/calendar/test/marionette/day_view_test.js ./apps/calendar/test/marionette/today_test.js"
+make test-integration TEST_FILES="apps/calendar/test/marionette/day_view_test.js apps/calendar/test/marionette/today_test.js"
 ```
 
 #### Invoking tests for a specific app
@@ -114,6 +114,22 @@ make test-integration APP=<APP>
 ```
 
 For example, we could run all tests for the calendar app with `make test-integration APP=calendar`.
+
+#### Skipping a test file
+```sh
+make test-integration SKIP_TEST_FILES=<test>
+```
+For example, we could skip the `day_view_test.js` test in calendar app with the below command.
+```
+make test-integration SKIP_TEST_FILES=apps/calendar/test/marionette/day_view_test.js
+```
+
+If you would like to skip more than one test, we could do the below command.
+```
+make test-integration SKIP_TEST_FILES="apps/calendar/test/marionette/day_view_test.js apps/calendar/test/marionette/today_test.js"
+```
+
+Notice that we could not use the `TEST_FILES` and `SKIP_TEST_FILES` parameters at the same time.
 
 #### Running tests while working
 
@@ -176,11 +192,11 @@ make test-integration VERBOSE=1
   things may be stale.
 
 - To get debug information from the b2g desktop client, run this:
-`DEBUG=b2g-desktop ./bin/gaia-marionette name/of/test.js`
+`DEBUG=b2g-desktop TEST_FILES=name/of/test.js ./bin/gaia-marionette`
 
 - To get debug information from b2g desktop and all of the marionette
 plugins, run this:
-`DEBUG=* ./bin/gaia-marionette name/of/test.js`
+`DEBUG=* TEST_FILES=name/of/test.js ./bin/gaia-marionette`
 
 ### UI Tests
 
@@ -196,7 +212,15 @@ See [how to run the Gaia endurance tests](https://developer.mozilla.org/en-US/do
 
 To generate API reference locally, you have to install grunt with following command:
 
-    $ npm -g grunt-cli
+```sh
+$ npm -g grunt-cli
+```
 
 then run `make docs` command to generate docs.
 The generated API docs will be located in `docs` folder.
+
+You could generate single app doc with this:
+
+```sh
+$ grunt jsdoc:system
+```

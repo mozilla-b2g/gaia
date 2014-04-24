@@ -88,7 +88,7 @@ var PairView = {
     }
 
     // show() only until the page is localized.
-    navigator.mozL10n.ready(PairView.show.bind(PairView));
+    navigator.mozL10n.once(PairView.show.bind(PairView));
   },
 
   close: function() {

@@ -1,10 +1,20 @@
+'use strict';
+/* global fb */
+/* global MockAllFacebookContacts:true */
+/* global MockasyncStorage */
+/* global Mockfb */
+/* global MockImageLoader */
+/* global MockLinkedContacts:true */
+/* global MockLinkHtml */
+/* global MockOauthflow */
+
 require('/shared/js/text_normalizer.js');
+require('/shared/js/contacts/import/utilities/misc.js');
 requireApp('communications/contacts/test/unit/mock_link.html.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/facebook/test/unit/mock_curtain.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
-requireApp('communications/contacts/js/import_utils.js');
 requireApp('communications/contacts/js/utilities/dom.js');
 require('/shared/js/binary_search.js');
 requireApp('communications/contacts/js/utilities/templates.js');
@@ -21,23 +31,25 @@ var realImageLoader,
     linkProposalChild;
 
 
-if (!this.asyncStorage) {
-  this.asyncStorage = null;
+if (!window.asyncStorage) {
+  window.asyncStorage = null;
 }
 
-if (!this.ImageLoader) {
-  this.ImageLoader = null;
+if (!window.ImageLoader) {
+  window.ImageLoader = null;
 }
 
-if (!this.fb) {
-  this.fb = null;
+if (!window.fb) {
+  window.fb = null;
 }
 
-if (!this.oauthflow) {
-  this.oauthflow = null;
+if (!window.oauthflow) {
+  window.oauthflow = null;
 }
 
 suite('Link Friends Test Suite', function() {
+
+  var spy;
 
   suiteSetup(function() {
     realImageLoader = window.ImageLoader;
@@ -53,6 +65,9 @@ suite('Link Friends Test Suite', function() {
     realOauthflow = window.oauthflow;
     window.oauthflow = MockOauthflow;
 
+    spy = sinon.spy(fb.utils, 'setCachedNumFriends').withArgs(
+                                      MockAllFacebookContacts.data.length);
+
     document.body.innerHTML = MockLinkHtml;
 
     linkProposal = document.body.querySelector('#friends-list');
@@ -62,6 +77,9 @@ suite('Link Friends Test Suite', function() {
     fb.link.init();
   });
 
+  teardown(function() {
+    spy.reset();
+  });
 
   test('Link UI. Proposal Calculated', function(done) {
     linkProposal.innerHTML = '';
@@ -85,6 +103,9 @@ suite('Link Friends Test Suite', function() {
                        querySelector('li[data-uuid="1xz"]'));
       assert.isNotNull(document.
                        querySelector('li[data-uuid="2abc"]'));
+
+      // Check that the total number of friends is properly cached (bug 838605)
+      assert.isTrue(spy.calledOnce);
 
       done();
     });
@@ -117,6 +138,9 @@ suite('Link Friends Test Suite', function() {
                        querySelector('li[data-uuid="aa45bb"]'));
 
       MockLinkedContacts = oldMockLinkedContacts;
+
+      // Check that the total number of friends is properly cached (bug 838605)
+      assert.isTrue(spy.calledOnce);
 
       done();
     });
@@ -199,7 +223,6 @@ suite('Link Friends Test Suite', function() {
   suiteTeardown(function() {
     window.ImageLoader = realImageLoader;
     window.asyncStorage = realAsyncStorage;
-    window.navigator.mozL10n = realL10n;
     window.fb = realFb;
     window.oauthflow = realOauthflow;
   });

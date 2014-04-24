@@ -1,9 +1,13 @@
 'use strict';
+/* global contacts */
+/* global utils */
 
 (function() {
   var CHUNK_SIZE = 5;
 
   window.ContactsImporter = function(pContacts, pAccessToken, pConnector) {
+    /* jshint validthis:true */
+
     this.contacts = Object.keys(pContacts);
     var contactsHash = pContacts;
     var access_token = pAccessToken;

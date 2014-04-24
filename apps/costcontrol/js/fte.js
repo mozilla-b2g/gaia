@@ -1,3 +1,6 @@
+/* global AutoSettings, BalanceLowLimitView, Common, ConfigManager, CostControl,
+          dataLimitConfigurer, LazyLoader, debug, ViewManager */
+
 /*
  * First time experience is in charge of set up the application.
  */
@@ -13,9 +16,32 @@
   var DEFAULT_LOW_LIMIT_THRESHOLD = 3;
   var defaultLowLimitThreshold = DEFAULT_LOW_LIMIT_THRESHOLD;
   window.addEventListener('DOMContentLoaded', function _onDomReady() {
-    Common.loadDataSIMIccId(_onIccReady);
-    Common.loadNetworkInterfaces();
+    initLazyFTE();
   });
+
+  function initLazyFTE() {
+    var SCRIPTS_NEEDED = [
+      'js/utils/debug.js',
+      'js/utils/formatting.js',
+      'js/utils/toolkit.js',
+      'js/common.js',
+      'js/costcontrol.js',
+      'js/config/config_manager.js',
+      'js/views/BalanceLowLimitView.js',
+      'js/view_manager.js',
+      'js/settings/limitdialog.js',
+      'js/settings/autosettings.js'
+    ];
+    LazyLoader.load(SCRIPTS_NEEDED, function onScriptsLoaded() {
+      Common.loadDataSIMIccId(_onIccReady);
+      parent.postMessage({
+        type: 'fte_ready',
+        data: ''
+      }, Common.COST_CONTROL_APP);
+
+      window.addEventListener('localized', _onLocalize);
+    });
+  }
 
   function _onIccReady(iccid) {
     var stepsLeft = 2;
@@ -45,7 +71,7 @@
 
     function trySetup() {
       if (!(--stepsLeft)) {
-        setupFTE();
+        Common.loadNetworkInterfaces(setupFTE);
       }
     }
   }
@@ -123,10 +149,13 @@
     });
   }
 
-  window.addEventListener('localized', function _onLocalize() {
-    localizeWeekdaySelector(document.getElementById('pre3-select-weekday'));
-    localizeWeekdaySelector(document.getElementById('post2-select-weekday'));
-    localizeWeekdaySelector(document.getElementById('non2-select-weekday'));
+  function _onLocalize() {
+    Common.localizeWeekdaySelector(
+      document.getElementById('pre3-select-weekday'));
+    Common.localizeWeekdaySelector(
+      document.getElementById('post2-select-weekday'));
+    Common.localizeWeekdaySelector(
+      document.getElementById('non2-select-weekday'));
 
     function _setResetTimeToDefault(evt) {
       var firstWeekDay = parseInt(navigator.mozL10n.get('weekStartsOnMonday'),
@@ -141,11 +170,10 @@
     [].forEach.call(trackingPeriodSelector, function _reset(tPeriodSel) {
       tPeriodSel.addEventListener('change', _setResetTimeToDefault);
     });
-
-  });
+  }
 
   if (window.location.hash) {
-    var wizard = document.getElementById('firsttime-view');
+    wizard = document.getElementById('firsttime-view');
 
     if (window.location.hash === '#PREPAID' ||
         window.location.hash === '#POSTPAID') {
@@ -154,11 +182,6 @@
       wizard.querySelector('.nonauthed-sim').setAttribute('aria-hidden', false);
     }
   }
-
-  parent.postMessage({
-    type: 'fte_ready',
-    data: ''
-  }, Common.COST_CONTROL_APP);
 
   // TRACK SETUP
 
@@ -204,9 +227,12 @@
     newStartScreen.dataset.viewport = 'right';
     delete newStartScreen.dataset.viewport;
 
-    for (var i = 1, id; id = track[i]; i += 1) {
-      var screen = document.getElementById(id);
-      screen.dataset.viewport = 'right';
+    for (var i = 1; i < track.lenght; i += 1) {
+      var id = track[i];
+      if (id) {
+        var screen = document.getElementById(id);
+        screen.dataset.viewport = 'right';
+      }
     }
 
     // Reset state
@@ -265,9 +291,10 @@
 
   function onFinish(evt) {
     evt.target.disabled = true;
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestSettings(Common.dataSimIccId,
+                                  function _onSettings(settings) {
       ConfigManager.setOption({ fte: false }, function _returnToApp() {
-        updateNextReset(settings.trackingPeriod, settings.resetTime,
+        Common.updateNextReset(settings.trackingPeriod, settings.resetTime,
           function _returnToTheApplication() {
             Common.startApp();
           }

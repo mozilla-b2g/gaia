@@ -10,6 +10,12 @@ window.addEventListener('load', function startup() {
    */
   function registerGlobalEntries() {
     /** @global */
+    window.appWindowFactory = new AppWindowFactory();
+    window.appWindowFactory.start();
+    /** @global */
+    window.activityWindowFactory = new ActivityWindowFactory();
+    window.activityWindowFactory.start();
+    /** @global */
     window.secureWindowManager = window.secureWindowManager ||
       new SecureWindowManager();
     /** @global */
@@ -19,7 +25,11 @@ window.addEventListener('load', function startup() {
       window.suspendingAppPriorityManager = new SuspendingAppPriorityManager();
     }
     /** @global */
-    window.activityWindowFactory = new ActivityWindowFactory();
+    window.systemDialogManager = window.systemDialogManager ||
+      new SystemDialogManager();
+
+    /** @global */
+    window.lockScreenWindowManager = new window.LockScreenWindowManager();
   }
 
   function safelyLaunchFTU() {
@@ -27,10 +37,11 @@ window.addEventListener('load', function startup() {
       window.removeEventListener('homescreen-ready', onHomescreenReady);
       FtuLauncher.retrieve();
     });
-    HomescreenLauncher.init();
+    /** @global */
+    window.homescreenLauncher = new HomescreenLauncher().start();
   }
 
-  if (Applications.ready) {
+  if (applications.ready) {
     registerGlobalEntries();
     safelyLaunchFTU();
   } else {
@@ -57,23 +68,30 @@ window.addEventListener('load', function startup() {
   // Enable checkForUpdate as well if booted without FTU
   window.addEventListener('ftuskip', doneWithFTU);
 
-
-  SourceView.init();
+  window.sourceView = new SourceView();
   Shortcuts.init();
   ScreenManager.turnScreenOn();
   Places.init();
+  Rocketbar.init();
 
   // Please sort it alphabetically
   window.activities = new Activities();
   window.devtoolsView = new DevtoolsView();
-  window.dialerComms = new DialerComms();
+  window.dialerAgent = new DialerAgent().start();
+  window.homeGesture = new HomeGesture().start();
+  window.layoutManager = new LayoutManager().start();
+  window.permissionManager = new PermissionManager();
+  window.permissionManager.start();
   window.remoteDebugger = new RemoteDebugger();
-
+  window.softwareButtonManager = new SoftwareButtonManager().start();
   window.telephonySettings = new TelephonySettings();
   window.telephonySettings.start();
-
-  window.title = new Title();
   window.ttlView = new TTLView();
+  window.visibilityManager = new VisibilityManager().start();
+
+  navigator.mozL10n.ready(function l10n_ready() {
+    window.mediaRecording = new MediaRecording().start();
+  });
 
   // We need to be sure to get the focus in order to wake up the screen
   // if the phone goes to sleep before any user interaction.
@@ -145,14 +163,6 @@ navigator.mozSettings.addObserver(
     var lock = navigator.mozSettings.createLock();
     lock.set({'clear.remote-windows.data': false});
   });
-
-// Cancel dragstart event to workaround
-// https://bugzilla.mozilla.org/show_bug.cgi?id=783076
-// which stops OOP home screen pannable with left mouse button on
-// B2G/Desktop.
-window.addEventListener('dragstart', function(evt) {
-  evt.preventDefault();
-}, true);
 
 /* === XXX Bug 900512 === */
 // On some devices touching the hardware home button triggers

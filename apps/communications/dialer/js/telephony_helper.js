@@ -6,7 +6,7 @@
 var TelephonyHelper = (function() {
   var confirmLoaded = false;
 
-  var call = function t_call(number, oncall, onconnected,
+  var call = function t_call(number, cardIndex, oncall, onconnected,
                              ondisconnected, onerror) {
     var sanitizedNumber = number.replace(/(\s|-|\.|\(|\))/g, '');
     if (!isValid(sanitizedNumber)) {
@@ -14,36 +14,39 @@ var TelephonyHelper = (function() {
       return;
     }
 
-    getConnection(function gotConnection(conn) {
-      if (!conn || !conn.voice) {
-        // No voice connection, the call won't make it
-        displayMessage('NoNetwork');
-        return;
-      }
+    var conn = navigator.mozMobileConnection ||
+               (navigator.mozMobileConnections &&
+                navigator.mozMobileConnections[cardIndex]);
 
-      var telephony = navigator.mozTelephony;
-      var openLines = telephony.calls.length +
-          (telephony.conferenceGroup.calls.length ? 1 : 0);
-      // User can make call only when there are less than 2 calls by spec.
-      // If the limit reached, return early to prevent holding active call.
-      if (openLines >= 2) {
-        displayMessage('UnableToCall');
-        return;
-      }
+    if (!conn || !conn.voice) {
+      // No voice connection, the call won't make it
+      displayMessage('NoNetwork');
+      return;
+    }
 
-      var activeCall = telephony.active;
-      if (!activeCall) {
-        startDial(
-          conn, sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
-        return;
-      }
-      activeCall.onheld = function activeCallHeld() {
-        activeCall.onheld = null;
-        startDial(
-          conn, sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
-      };
-      activeCall.hold();
-    });
+    var telephony = navigator.mozTelephony;
+    var openLines = telephony.calls.length +
+        ((telephony.conferenceGroup &&
+          telephony.conferenceGroup.calls.length) ? 1 : 0);
+    // User can make call only when there are less than 2 calls by spec.
+    // If the limit reached, return early to prevent holding active call.
+    if (openLines >= 2) {
+      displayMessage('UnableToCall');
+      return;
+    }
+
+    var activeCall = telephony.active;
+    if (!activeCall) {
+      startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
+                ondisconnected, onerror);
+      return;
+    }
+    activeCall.onheld = function activeCallHeld() {
+      activeCall.onheld = null;
+      startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
+                ondisconnected, onerror);
+    };
+    activeCall.hold();
   };
 
   function notifyBusyLine() {
@@ -57,8 +60,8 @@ var TelephonyHelper = (function() {
     TonePlayer.playSequence(sequence);
   }
 
-  function startDial(
-    conn, sanitizedNumber, oncall, onconnected, ondisconnected, onerror) {
+  function startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
+                     ondisconnected, onerror) {
 
     var telephony = navigator.mozTelephony;
     if (!telephony) {
@@ -77,7 +80,7 @@ var TelephonyHelper = (function() {
       var cardState = IccHelper.cardState;
       var emergencyOnly = conn.voice.emergencyCallsOnly;
       var hasCard = (conn.iccId !== null);
-      var promiseOrCall;
+      var callPromise;
 
       // Note: no need to check for cardState null. While airplane mode is on
       // cardState is null and we handle that situation in call() above.
@@ -88,46 +91,35 @@ var TelephonyHelper = (function() {
       } else if (emergencyOnly) {
         // If the mobileConnection has a sim card we let gecko take the
         // default service, otherwise we force the first slot.
-        var serviceId = hasCard ? undefined : 0;
-        promiseOrCall = telephony.dialEmergency(sanitizedNumber, serviceId);
+        cardIndex = hasCard ? undefined : 0;
+        callPromise = telephony.dialEmergency(sanitizedNumber, cardIndex);
       } else {
-        promiseOrCall = telephony.dial(sanitizedNumber);
+        callPromise = telephony.dial(sanitizedNumber, cardIndex);
       }
 
-      /* XXX: Temporary fix to handle old and new telephony API
-         To remove when bug 969218 lands */
-      if (promiseOrCall && promiseOrCall.then) {
-        promiseOrCall.then(function(call) {
-          installHandlers(call, emergencyOnly, oncall, onconnected,
-                          ondisconnected, onerror);
-        }).catch(function(errorName) {
-          displayMessage('UnableToCall');
-        });
-      } else {
-        installHandlers(promiseOrCall, emergencyOnly, oncall, onconnected,
-                        ondisconnected, onerror);
-      }
+      callPromise.then(function(call) {
+        installHandlers(call, sanitizedNumber, emergencyOnly, oncall,
+                        onconnected, ondisconnected, onerror);
+      }).catch(function(errorName) {
+        handleError(errorName, sanitizedNumber, emergencyOnly, onerror);
+      });
     });
   }
 
-  function installHandlers(call, emergencyOnly, oncall, onconnected,
+  function installHandlers(call, number, emergencyOnly, oncall, onconnected,
                            ondisconnected, onerror) {
-    if (call) {
-      if (oncall) {
-        oncall();
-      }
-      call.onconnected = onconnected;
-      call.ondisconnected = ondisconnected;
-      call.onerror = function errorCB(evt) {
-        var errorName = evt.call.error.name;
-        handleError(errorName, emergencyOnly, onerror);
-      };
-    } else {
-      displayMessage('UnableToCall');
+    if (oncall) {
+      oncall();
     }
+    call.onconnected = onconnected;
+    call.ondisconnected = ondisconnected;
+    call.onerror = function errorCB(evt) {
+      var errorName = evt.call.error.name;
+      handleError(errorName, number, emergencyOnly, onerror);
+    };
   }
 
-  function handleError(errorName, emergencyOnly, onerror) {
+  function handleError(errorName, number, emergencyOnly, onerror) {
     if (onerror) {
       onerror();
     }
@@ -146,48 +138,20 @@ var TelephonyHelper = (function() {
       displayMessage('NumberIsBusy');
     } else if (errorName === 'FDNBlockedError' ||
                errorName === 'FdnCheckFailure') {
-      displayMessage('FixedDialingNumbers');
+      displayMessage('FixedDialingNumbers', number);
+    } else if (errorName == 'OtherConnectionInUse') {
+      displayMessage('OtherConnectionInUse');
     } else {
       // If the call failed for some other reason we should still
       // display something to the user. See bug 846403.
       console.error('Unexpected error: ', errorName);
+      displayMessage('UnableToCall');
     }
   }
 
   var isValid = function t_isValid(sanitizedNumber) {
     var validExp = /^[0-9#+*]{1,50}$/;
     return validExp.test(sanitizedNumber);
-  };
-
-  var getConnection = function t_getConnection(callback) {
-    var conn = window.navigator.mozMobileConnection;
-    if (conn) {
-      callback(conn);
-      return;
-    }
-
-    var connections = navigator.mozMobileConnections;
-    var settings = navigator.mozSettings;
-    if (!settings || !connections) {
-      callback(null);
-      return;
-    }
-
-    if (connections.length === 1) {
-      callback(connections[0]);
-      return;
-    }
-
-    var req = settings.createLock().get('ril.telephony.defaultServiceId');
-
-    req.onsuccess = function getDefaultServiceId() {
-      var id = req.result['ril.telephony.defaultServiceId'] || 0;
-      callback(connections[id]);
-    };
-
-    req.onerror = function getDefaultServiceIdError() {
-      callback(null);
-    };
   };
 
   var loadConfirm = function t_loadConfirm(cb) {
@@ -198,14 +162,14 @@ var TelephonyHelper = (function() {
 
     var confMsg = document.getElementById('confirmation-message');
 
-    LazyLoader.load(['/contacts/js/utilities/confirm.js', confMsg], function() {
+    LazyLoader.load(['/shared/js/confirm.js', confMsg], function() {
       navigator.mozL10n.translate(confMsg);
       confirmLoaded = true;
       cb();
     });
   };
 
-  var displayMessage = function t_displayMessage(message) {
+  var displayMessage = function t_displayMessage(message, number) {
     var showDialog = function fm_showDialog(_) {
       var dialogTitle, dialogBody;
       switch (message) {
@@ -234,8 +198,12 @@ var TelephonyHelper = (function() {
         dialogBody = 'numberIsBusyMessage';
         break;
       case 'FixedDialingNumbers':
-        dialogTitle = 'fdnIsEnabledTitle';
-        dialogBody = 'fdnIsEnabledMessage';
+        dialogTitle = 'fdnIsActiveTitle';
+        dialogBody = 'fdnIsActiveMessage';
+        break;
+      case 'OtherConnectionInUse':
+        dialogTitle = 'otherConnectionInUseTitle';
+        dialogBody = 'otherConnectionInUseMessage';
         break;
       default:
         console.error('Invalid message argument'); // Should never happen
@@ -245,7 +213,7 @@ var TelephonyHelper = (function() {
       loadConfirm(function() {
         ConfirmDialog.show(
           _(dialogTitle),
-          _(dialogBody),
+          _(dialogBody, {number: number}),
           {
             title: _('emergencyDialogBtnOk'), // Just 'ok' would be better.
             callback: function() {
@@ -265,8 +233,27 @@ var TelephonyHelper = (function() {
     }
   };
 
+  var getInUseSim = function t_getInUseSim() {
+    var telephony = navigator.mozTelephony;
+    if (telephony) {
+      var isInCall = !!telephony.calls.length;
+      var isInConference = !!telephony.conferenceGroup.calls.length;
+
+      if (isInCall || isInConference) {
+        return isInCall ?
+          navigator.mozTelephony.calls[0].serviceId :
+          navigator.mozTelephony.conferenceGroup.calls[0].serviceId;
+      }
+    }
+
+    return null;
+  };
+
+  window.TelephonyHelper = TelephonyHelper;
+
   return {
-    call: call
+    call: call,
+    getInUseSim: getInUseSim
   };
 
 })();

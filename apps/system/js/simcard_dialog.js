@@ -1,36 +1,18 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* global SIMSlotManager, SystemDialog */
+/* global SIMSlotManager, SimPinSystemDialog */
 
 'use strict';
 
 var SimPinDialog = {
   _currentSlot: null,
-  dialogTitle: document.querySelector('#simpin-dialog header h1'),
-  dialogDone: document.querySelector('#simpin-dialog button[type="submit"]'),
-  dialogSkip: document.querySelector('#simpin-dialog button[type="reset"]'),
-  dialogBack: document.querySelector('#simpin-dialog button.back'),
-
-  pinArea: document.getElementById('pinArea'),
-  pukArea: document.getElementById('pukArea'),
-  xckArea: document.getElementById('xckArea'),
-  desc: document.querySelector('#xckArea div[name="xckDesc"]'),
-  newPinArea: document.getElementById('newPinArea'),
-  confirmPinArea: document.getElementById('confirmPinArea'),
+  simPinSystemDialog: null,
 
   pinInput: null,
   pukInput: null,
   xckInput: null,
   newPinInput: null,
   confirmPinInput: null,
-
-  triesLeftMsg: document.getElementById('triesLeft'),
-
-  errorMsg: document.getElementById('errorMsg'),
-  errorMsgHeader: document.getElementById('messageHeader'),
-  errorMsgBody: document.getElementById('messageBody'),
-
-  containerDiv: document.querySelector('#simpin-dialog .container'),
 
   lockType: 'pin',
 
@@ -39,7 +21,37 @@ var SimPinDialog = {
     'pukRequired': 'puk',
     'networkLocked': 'nck',
     'corporateLocked': 'cck',
-    'serviceProviderLocked': 'spck'
+    'serviceProviderLocked': 'spck',
+    'network1Locked': 'nck1',
+    'network2Locked': 'nck2',
+    'hrpdNetworkLocked': 'hnck',
+    'ruimCorporateLocked': 'rcck',
+    'ruimServiceProviderLocked': 'rspck'
+  },
+
+  initElements: function spl_initElements() {
+    // All of the simpin dialog elements are appended via SimPinSystemDialog.
+    this.dialogTitle = document.querySelector('#simpin-dialog header h1');
+    this.dialogDone =
+      document.querySelector('#simpin-dialog button[type="submit"]');
+    this.dialogSkip =
+      document.querySelector('#simpin-dialog button[type="reset"]');
+    this.dialogBack = document.querySelector('#simpin-dialog button.back');
+
+    this.pinArea = document.getElementById('pinArea');
+    this.pukArea = document.getElementById('pukArea');
+    this.xckArea = document.getElementById('xckArea');
+    this.desc = document.querySelector('#xckArea div[name="xckDesc"]');
+    this.newPinArea = document.getElementById('newPinArea');
+    this.confirmPinArea = document.getElementById('confirmPinArea');
+
+    this.triesLeftMsg = document.getElementById('triesLeft');
+
+    this.errorMsg = document.getElementById('errorMsg');
+    this.errorMsgHeader = document.getElementById('messageHeader');
+    this.errorMsgBody = document.getElementById('messageBody');
+
+    this.containerDiv = document.querySelector('#simpin-dialog .container');
   },
 
   getNumberPasswordInputField: function spl_wrapNumberInput(name) {
@@ -113,6 +125,11 @@ var SimPinDialog = {
       case 'nck':
       case 'cck':
       case 'spck':
+      case 'nck1':
+      case 'nck2':
+      case 'hnck':
+      case 'rcck':
+      case 'rspck':
         this.lockType = lockType;
         this.errorMsg.hidden = true;
         this.inputFieldControl(false, false, true, false);
@@ -264,7 +281,7 @@ var SimPinDialog = {
 
   /**
    * Show the SIM pin dialog
-   * @param {Object} slot SIMSlot instance
+   * @param {Object} slot SIMSlot instance.
    * @param {Function} [onclose] Optional function called when dialog is closed.
    *                            Receive a single argument being the reason of
    *                            dialog closing: success, skip, home or holdhome.
@@ -277,7 +294,7 @@ var SimPinDialog = {
 
     window.dispatchEvent(new CustomEvent('simpinshow'));
 
-    this.systemDialog.show();
+    this.simPinSystemDialog.show();
     this._visible = true;
     this.lockType = 'pin';
     this.handleCardState();
@@ -306,7 +323,7 @@ var SimPinDialog = {
     window.dispatchEvent(new CustomEvent('simpinclose', {
       detail: this
     }));
-    this.systemDialog.hide(reason);
+    this.simPinSystemDialog.hide(reason);
     this._visible = false;
   },
 
@@ -336,13 +353,17 @@ var SimPinDialog = {
   },
 
   init: function spl_init() {
-    this.systemDialog = SystemDialog('simpin-dialog', {
-                                       onHide: this.onHide.bind(this)
-                                     });
+    if (!this.simPinSystemDialog) {
+      this.simPinSystemDialog = new SimPinSystemDialog({
+                                      onHide: this.onHide.bind(this)
+                                    });
+    }
 
     if (!SIMSlotManager.length) {
       return;
     }
+
+    this.initElements();
 
     this.dialogDone.onclick = this.verify.bind(this);
     this.dialogSkip.onclick = this.skip.bind(this);

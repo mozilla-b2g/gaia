@@ -1,3 +1,7 @@
+/* global MockNavigatorSettings */
+/* exported MockSettingsListener */
+'use strict';
+
 requireApp('costcontrol/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 var MockSettingsListener = {

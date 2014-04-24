@@ -17,6 +17,28 @@
       var eventLength = this._eventListeners[type].length;
       this._eventListeners[type][eventLength] = callback;
     },
+    triggerEventListeners: function(type, evt) {
+      evt = evt || {};
+      evt.type = type;
+
+      if (!this._eventListeners[type]) {
+        return;
+      }
+      this._eventListeners[type].forEach(function(callback) {
+        if (typeof callback === 'function') {
+          callback(evt);
+        } else if (typeof callback == 'object' &&
+                   typeof callback.handleEvent === 'function') {
+          callback.handleEvent(evt);
+        }
+      });
+    },
+    removeEventListener: function(type, callback) {
+      if (this._eventListeners[type]) {
+        var idx = this._eventListeners[type].indexOf(callback);
+        this._eventListeners[type].splice(idx, 1);
+      }
+    },
     addIcc: function(id, object) {
       object = object || {};
       object.iccId = id;
@@ -45,6 +67,21 @@
     // we will wrap icc to add some internal
     // methods that will be called outside
     _wrapIcc: function(object) {
+
+      object.setCardLock = function(options) {
+        var handlers = {
+          error: {
+            lockType: options.lockType,
+            retryCount: object.retryCount
+          }
+        };
+
+        // We can manipulate object here
+        object._setCardLockOptions = options;
+        object._setCardLockCachedHandlers = handlers;
+        return handlers;
+      };
+
       object.getCardLock = function(type) {
         object._getCardLockType = type;
         var obj = {

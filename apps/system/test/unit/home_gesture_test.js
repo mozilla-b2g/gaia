@@ -1,4 +1,9 @@
 'use strict';
+/* global HomeGesture */
+/* global MocksHelper */
+/* global MockNavigatorSettings */
+/* global MockScreenLayout */
+/* global ScreenLayout */
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -11,30 +16,32 @@ var mocksForHomegesture = new MocksHelper([
   'ScreenLayout'
 ]).init();
 
-
 suite('enable/disable homegesture', function() {
-  var realSettingsListener;
   var realScreenLayout;
   var realSettings;
   var fakeHomebar;
+  var subject;
   mocksForHomegesture.attachTestHelpers();
 
   suiteSetup(function() {
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
-    realSettingsListener = window.SettingsListener;
-    window.SettingsListener = MockSettingsListener;
     realScreenLayout = window.ScreenLayout;
     window.ScreenLayout = MockScreenLayout;
   });
 
   suiteTeardown(function() {
-    window.SettingsListener = realSettingsListener;
     window.ScreenLayout = realScreenLayout;
     navigator.mozSettings = realSettings;
   });
 
   setup(function() {
+    MockNavigatorSettings.mSetup();
+    MockNavigatorSettings.mSet({
+      'homegesture.enabled': false,
+      'software-button.enabled': false
+    });
+    MockNavigatorSettings.mSyncRepliesOnly = true;
     fakeHomebar = document.createElement('div');
     fakeHomebar.id = 'bottom-panel';
     document.body.appendChild(fakeHomebar);
@@ -52,7 +59,7 @@ suite('enable/disable homegesture', function() {
     ScreenLayout.setDefault({
       tiny: true
     });
-    HomeGesture.init();
+    subject = new HomeGesture().start();
     assert.equal(
       MockNavigatorSettings.mSettings['homegesture.enabled'], false);
   });
@@ -61,15 +68,15 @@ suite('enable/disable homegesture', function() {
     ScreenLayout.setDefault({
       tiny: false
     });
-    HomeGesture.init();
+    subject = new HomeGesture().start();
     assert.equal(
-      HomeGesture.homeBar.classList.contains('visible'),
+      subject.homeBar.classList.contains('visible'),
       true);
   });
 
   test('enable software button when homegesture is enabled', function() {
-    HomeGesture.enable = true;
-    HomeGesture.handleEvent({
+    subject.enabled = true;
+    subject.handleEvent({
       type: 'software-button-enabled'
     });
     assert.equal(
@@ -78,9 +85,9 @@ suite('enable/disable homegesture', function() {
 
   test('disable sw btn when homegesture is disabled without hardware homebtn',
     function() {
-    HomeGesture.enable = false;
-    HomeGesture.hasHardwareHomeButton = false;
-    HomeGesture.handleEvent({
+    subject.enabled = false;
+    subject.hasHardwareHomeButton = false;
+    subject.handleEvent({
       type: 'software-button-disabled'
     });
     assert.equal(
@@ -88,38 +95,38 @@ suite('enable/disable homegesture', function() {
   });
 
   test('when utility tray display', function() {
-    HomeGesture.handleEvent({
+    subject.handleEvent({
       type: 'utilitytrayshow'
     });
     assert.equal(
-      HomeGesture.homeBar.classList.contains('visible'),
+      subject.homeBar.classList.contains('visible'),
       false);
   });
 
   test('when utility tray hide', function() {
-    HomeGesture.handleEvent({
+    subject.handleEvent({
       type: 'utilitytrayhide'
     });
     assert.equal(
-      HomeGesture.homeBar.classList.contains('visible'),
+      subject.homeBar.classList.contains('visible'),
       true);
   });
 
   test('when lockscreen is enabled', function() {
-    HomeGesture.handleEvent({
+    subject.handleEvent({
       type: 'lock'
     });
     assert.equal(
-      HomeGesture.homeBar.classList.contains('visible'),
+      subject.homeBar.classList.contains('visible'),
       false);
   });
 
   test('when lockscreen is disabled', function() {
-    HomeGesture.handleEvent({
+    subject.handleEvent({
       type: 'will-unlock'
     });
     assert.equal(
-      HomeGesture.homeBar.classList.contains('visible'),
+      subject.homeBar.classList.contains('visible'),
       true);
   });
 });

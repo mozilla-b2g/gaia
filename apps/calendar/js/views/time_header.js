@@ -30,7 +30,7 @@ Calendar.ns('Views').TimeHeader = (function() {
     },
 
     scales: {
-      month: 'month-view-header-format',
+      month: 'month-view-header-format-2',
       day: 'day-view-header-format',
       // when week starts in one month and ends
       // in another, we need both of them

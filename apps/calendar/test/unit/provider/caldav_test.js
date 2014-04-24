@@ -1,3 +1,5 @@
+/*global Factory */
+
 requireLib('ext/ical.js');
 requireApp('calendar/test/unit/service/helper.js');
 requireApp('calendar/test/unit/provider/mock_stream.js');
@@ -5,6 +7,7 @@ requireLib('models/account.js');
 requireLib('models/calendar.js');
 
 suiteGroup('Provider.Caldav', function() {
+  'use strict';
 
   var subject;
   var app;
@@ -209,7 +212,7 @@ suiteGroup('Provider.Caldav', function() {
         canCreate: false
       };
 
-      var actual = subject.eventCapabilities(event, function(err, actual) {
+      subject.eventCapabilities(event, function(err, actual) {
         done(function() {
           assert.deepEqual(actual, expected);
         });
@@ -229,7 +232,7 @@ suiteGroup('Provider.Caldav', function() {
         canDelete: true
       };
 
-      var actual = subject.eventCapabilities(event, function(err, actual) {
+      subject.eventCapabilities(event, function(err, actual) {
         done(function() {
           assert.deepEqual(actual, expected);
         });
@@ -285,8 +288,9 @@ suiteGroup('Provider.Caldav', function() {
       var pending = 2;
       function next() {
         --pending;
-        if (pending === 0)
+        if (pending === 0) {
           Calendar.nextTick(done);
+        }
       }
 
       // mock out real markWith Error
@@ -341,7 +345,7 @@ suiteGroup('Provider.Caldav', function() {
 
       test('offline handling', function(done) {
         var realOffline = app.offline;
-        app.offline = function() { return true };
+        app.offline = function() { return true; };
         subject.getAccount(input, function cb(cbError, cbResult) {
           done(function() {
             app.offline = realOffline;
@@ -369,21 +373,12 @@ suiteGroup('Provider.Caldav', function() {
 
         subject.findCalendars(input, function cb(cbError, cbResult) {
           done(function() {
-            assert.equal(
-              cbResult.one,
-              result.one,
-              'does not process events with color'
-            );
+            assert.equal(cbResult.one, result.one, 'in place one');
+            assert.equal(cbResult.two, result.two, 'in place two');
 
-            // hack clone
-            var withColor = JSON.parse(JSON.stringify(result.two));
-            withColor.color = subject.defaultColor;
-
-            assert.deepEqual(
-              cbResult.two,
-              withColor,
-              'adds color'
-            );
+            var validColors = Calendar.Provider.Caldav.COLOR_PALETTE;
+            assert.include(validColors, cbResult.one.color, 'color one');
+            assert.include(validColors, cbResult.two.color, 'color two');
 
             assert.equal(cbError, error);
           });
@@ -392,7 +387,7 @@ suiteGroup('Provider.Caldav', function() {
 
       test('offline handling', function(done) {
         var realOffline = app.offline;
-        app.offline = function() { return true };
+        app.offline = function() { return true; };
         subject.findCalendars(input, function cb(cbError, cbResult) {
           done(function() {
             app.offline = realOffline;
@@ -456,7 +451,7 @@ suiteGroup('Provider.Caldav', function() {
 
       test('offline handling', function(done) {
         var realOffline = app.offline;
-        app.offline = function() { return true };
+        app.offline = function() { return true; };
         subject.createEvent(event, function cb(cbError, cbResult) {
           done(function() {
             app.offline = realOffline;
@@ -544,7 +539,7 @@ suiteGroup('Provider.Caldav', function() {
 
       test('offline handling', function(done) {
         var realOffline = app.offline;
-        app.offline = function() { return true };
+        app.offline = function() { return true; };
         subject.updateEvent(event, function cb(cbError, cbResult) {
           done(function() {
             app.offline = realOffline;
@@ -605,7 +600,7 @@ suiteGroup('Provider.Caldav', function() {
         var event = Factory('event', {
           calendarId: calendar._id
         });
-        app.offline = function() { return true };
+        app.offline = function() { return true; };
         subject.deleteEvent(event, function cb(cbError, cbResult) {
           done(function() {
             app.offline = realOffline;
@@ -614,6 +609,59 @@ suiteGroup('Provider.Caldav', function() {
         });
       });
     });
+  });
+
+  suite('#formatRemoteCalendar', function() {
+    var nColors = Calendar.Provider.Caldav.COLOR_PALETTE.length;
+
+    function getColors(n) {
+      var calendars = [];
+      while (n--) {
+        calendars.push(Factory.build('caldav.calendar'));
+      }
+      calendars.forEach(subject.formatRemoteCalendar, subject);
+
+      return calendars.map(function(cal) {
+        return cal.color;
+      });
+    }
+
+    function unique(items) {
+      return items.filter(function(item, i, arr) {
+        return arr.indexOf(item, i + 1) === -1;
+      });
+    }
+
+    test('should not contain duplicate colors', function() {
+      var colors = getColors(nColors - 2);
+      // we make sure the remote color is not used
+      colors.push(
+        subject.formatRemoteCalendar(
+          Factory.build('caldav.calendar', {color: '#f00'})
+        ),
+        subject.formatRemoteCalendar(
+          Factory.build('caldav.calendar', {color: '#0fc'})
+        )
+      );
+      var uniqueColors = unique(colors);
+      assert.operator(colors.length, '>', 1, 'should contain multiple colors');
+      assert.deepEqual(colors.sort(), uniqueColors.sort());
+      assert.equal(colors.indexOf('#f00'), -1, 'not contain remote color');
+      assert.equal(colors.indexOf('#0fc'), -1, 'not contain remote color');
+    });
+
+    test('shoul loop colors after limit', function() {
+      var colors = getColors(nColors * 4);
+      var uniqueColors = unique(colors);
+      assert.equal(colors.length, uniqueColors.length * 4, 'loop colors');
+      assert.equal(colors[0], colors[nColors]);
+      assert.equal(colors[2], colors[nColors + 2]);
+      assert.equal(colors[nColors], colors[nColors * 2]);
+      assert.equal(colors[nColors + 2], colors[nColors * 2 + 2]);
+      assert.equal(colors[nColors * 2], colors[nColors * 3]);
+      assert.equal(colors[nColors * 2 + 2], colors[nColors * 3 + 2]);
+    });
+
   });
 
   suite('#_cachedEventsFor', function() {
@@ -628,6 +676,7 @@ suiteGroup('Provider.Caldav', function() {
 
     // create some events
     var i = 0;
+    /*jshint loopfunc: true */
     for (; i < 2; i++) {
       setup(function(done) {
         var event = Factory('event', {
@@ -721,7 +770,7 @@ suiteGroup('Provider.Caldav', function() {
 
       test('offline handling', function(done) {
         var realOffline = app.offline;
-        app.offline = function() { return true };
+        app.offline = function() { return true; };
         subject.syncEvents(account, calendar, function cb(cbError, cbResult) {
           done(function() {
             app.offline = realOffline;
@@ -750,7 +799,7 @@ suiteGroup('Provider.Caldav', function() {
 
       test('offline handling', function(done) {
         var realOffline = app.offline;
-        app.offline = function() { return true };
+        app.offline = function() { return true; };
         subject.syncEvents(account, calendar, function cb(cbError, cbResult) {
           done(function() {
             app.offline = realOffline;
@@ -778,12 +827,13 @@ suiteGroup('Provider.Caldav', function() {
       subject.service.stream = function() {
         var args = Array.slice(arguments);
 
-        if (!args.shift() === 'caldav')
+        if (args.shift() !== 'caldav') {
           throw new Error('expected caldav service');
+        }
 
-        if (!args.shift() === 'streamEvents')
+        if (args.shift() !== 'streamEvents') {
           throw new Error('expected streamEvents');
-
+        }
 
         calledWith = args;
         var stream = new Calendar.Responder();
@@ -950,12 +1000,14 @@ suiteGroup('Provider.Caldav', function() {
       });
 
       componentStore.persist(comp, function(err) {
-        if (err)
+        if (err) {
           return done(err);
+        }
 
         subject.ensureRecurrencesExpanded(maxDate, function(err, didExpand) {
-          if (err)
+          if (err) {
             return done(err);
+          }
 
           done(function() {
             assert.isFalse(didExpand, 'expanded');
@@ -965,6 +1017,7 @@ suiteGroup('Provider.Caldav', function() {
     });
 
     suite('with simulated pre-expansion component', function() {
+      /*jshint -W027 */
       // this test still is a little too much for travis
       // CI... we need to ensure it is more reliable soon.
       return;
@@ -1015,8 +1068,9 @@ suiteGroup('Provider.Caldav', function() {
         var results = {};
 
         function next() {
-          if (!(--pending))
+          if (!(--pending)) {
             done(complete);
+          }
         }
 
         stores.forEach(function(store) {

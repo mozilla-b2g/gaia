@@ -1,5 +1,5 @@
 /*jshint browser: true */
-/*global define, console */
+/*global define, console, Notification */
 define(function(require) {
   var appSelf = require('app_self'),
       evt = require('evt'),
@@ -77,6 +77,25 @@ define(function(require) {
       // interesting, at least for the purposes here.
       if (!msg.clicked)
         return;
+
+      // Need to manually get all notifications and close the one
+      // that triggered this event due to fallout from 890440 and
+      // 966481.
+      if (typeof Notification !== 'undefined' && Notification.get) {
+        Notification.get().then(function(notifications) {
+          if (notifications) {
+            notifications.some(function(notification) {
+              // Compare tags, as the tag is based on the account ID and
+              // we only have one notification per account. Plus, there
+              // is no "id" field on the notification.
+              if (notification.tag === msg.tag && notification.close) {
+                notification.close();
+                return true;
+              }
+            });
+          }
+        });
+      }
 
       // icon url parsing is a cray cray way to pass day day
       var data = queryString.toObject((msg.imageURL || '').split('#')[1]);

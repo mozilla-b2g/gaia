@@ -1,4 +1,5 @@
 'use strict';
+mocha.globals(['homescreenLauncher']);
 
 requireApp('system/js/sheets_transition.js');
 
@@ -35,6 +36,7 @@ suite('system/SheetsTransition >', function() {
   var getPrevStub, getNextStub;
 
   setup(function() {
+    window.homescreenLauncher = new MockHomescreenLauncher().start();
     getPrevStub = this.sinon.stub(MockStackManager, 'getPrev');
     getPrevStub.returns(dialer);
     dialerFrame = document.createElement('div');
@@ -48,6 +50,10 @@ suite('system/SheetsTransition >', function() {
     getNextStub.returns(contacts);
     contactsFrame = document.createElement('div');
     contacts.element = contactsFrame;
+  });
+
+  teardown(function() {
+    window.homescreenLauncher = undefined;
   });
 
   suite('Begining the transition', function() {

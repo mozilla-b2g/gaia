@@ -1,6 +1,8 @@
 requireLib('utils/uri.js');
 
 suite('uri', function() {
+  'use strict';
+
   suite('#getPort', function() {
     test('with port', function() {
       var port = Calendar.Utils.URI.getPort('lolcats.com:1337');

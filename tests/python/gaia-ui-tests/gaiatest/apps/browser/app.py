@@ -69,7 +69,7 @@ class Browser(Base):
     def tap_go_button(self, timeout=30):
         self.marionette.find_element(*self._url_button_locator).tap()
         # TODO wait_for_throbber can resolve before the page has started loading
-        time.sleep(1)
+        time.sleep(2)
         self.wait_for_throbber_not_visible(timeout=timeout)
         self.wait_for_element_displayed(*self._bookmark_button_locator)
 

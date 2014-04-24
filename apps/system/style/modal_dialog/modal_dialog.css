@@ -28,6 +28,19 @@
   display: block;
 }
 
+.appWindow > .modal-dialog .modal-dialog-custom-prompt {
+  height: auto;
+  padding: 0 0 7rem;
+}
+
+.appWindow > .modal-dialog .modal-dialog-custom-prompt p {
+  display: block !important;
+}
+
+.modal-dialog-custom-prompt.visible .hidden {
+  display: none;
+}
+
 #modal-dialog-error {
   background-color: black;
   background-image: url(images/error_bk.png);
@@ -44,6 +57,7 @@
 .modal-dialog-message-container p {
   display:inline !important;
   word-wrap: break-word;
+  padding: 0;
 }
 
 /* Select one dialog */

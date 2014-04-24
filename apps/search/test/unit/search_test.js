@@ -215,7 +215,8 @@ suite('search/search', function() {
         WebResults: {
           clear: function() {},
           abort: function() {},
-          search: function() {}
+          search: function() {},
+          fullscreen: function() {}
         },
         BGImage: {
           clear: function() {},
@@ -227,9 +228,9 @@ suite('search/search', function() {
     });
 
     test('calls search for WebResults', function() {
-      var searchStub = this.sinon.stub(Search.providers.WebResults, 'search');
+      var stub = this.sinon.stub(Search.providers.WebResults,'fullscreen');
       Search.expandSearch();
-      assert.ok(searchStub.calledOnce);
+      assert.ok(stub.calledOnce);
     });
 
     test('calls fetchImage for BGImage', function() {
@@ -245,7 +246,7 @@ suite('search/search', function() {
       var stub = this.sinon.stub(Search._port, 'postMessage');
       this.sinon.stub(Search, 'expandSearch');
       Search.setInput('foo');
-      assert.ok(stub.calledWith({input: 'foo'}));
+      assert.ok(stub.calledWith({action: 'input', input: 'foo'}));
     });
   });
 

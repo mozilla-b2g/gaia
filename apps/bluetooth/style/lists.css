@@ -1,5 +1,5 @@
 /**
- * Reference these style sheet from Settings app 
+ * Reference these style sheet from Settings app
  */
 
 /**
@@ -114,13 +114,26 @@ ul li > small {
   pointer-events: none;
 }
 
+ul li > label {
+  font-size: 1.9rem;
+  line-height: 1.9rem;
+  font-weight: 400;
+  margin: 0;
+  padding: 1.5rem 1.5rem 1rem;
+}
+
+ul li > label ~ input {
+
+  margin-bottom: 1.5rem;
+}
+
 ul li > label.pack-checkbox + small,
 ul li > label.pack-radio + small {
   right: 6.1rem;
 }
 
 ul li > label.pack-switch + small {
-   right: 9rem;
+  right: 9rem;
 }
 
 /* required for empty elements like Bluetooth */
@@ -132,18 +145,19 @@ ul li > small:not(:empty) + span {
 
 
 /******************************************************************************
- * Boolean inputs
+ * Boolean buttons
  */
 
 ul li button,
 ul li a[role="button"] {
-  position: relative;
-  top: 1.1rem;
-  left: 1.5rem;
-  width: calc(100% - 3rem);
+  display: inline-block;
+  margin: 1rem 0;
 }
 
-/* custom styles for boolean inputs (see /shared/style/switches.css) */
+/******************************************************************************
+ * Boolean inputs (see /shared/style/switches.css)
+ */
+
 ul li label {
   text-transform: none;
 }

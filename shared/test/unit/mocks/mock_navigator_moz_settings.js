@@ -1,15 +1,8 @@
 'use strict';
 
 (function(window) {
-  var observers = {},
-      // Set default message size with 300KB
-      settings = {
-        'dom.mms.operatorSizeLimitation' : 300,
-        'homegesture.enabled': false,
-        'software-button.enabled': false
-      },
-      removedObservers = {},
-      requests = [];
+  var observers, settings, removedObservers, requests;
+  var _mSyncRepliesOnly, _onsettingchange;
 
   function mns_mLockSet(obj) {
     // Set values.
@@ -18,7 +11,7 @@
     }
 
     // Trigger observers to mimic real mozSettings implementation.
-    for (var key in obj) {
+    for (key in obj) {
       mns_mTriggerObservers(
         key,
         { settingName: key, settingValue: obj[key] }
@@ -60,7 +53,11 @@
 
   function mns_mLockGet(key) {
     var resultObj = {};
-    resultObj[key] = settings[key];
+    if (key === '*') {
+      resultObj = settings;
+    } else {
+      resultObj[key] = settings[key];
+    }
     var settingsRequest = {
       result: resultObj,
       addEventListener: function(name, cb) {
@@ -68,7 +65,7 @@
       }
     };
 
-    if (!MockNavigatorSettings.mSyncRepliesOnly) {
+    if (!_mSyncRepliesOnly) {
       setTimeout(function() {
         if (settingsRequest.onsuccess) {
           settingsRequest.onsuccess();
@@ -105,22 +102,33 @@
 
   function mns_mTriggerObservers(name, args) {
     var theseObservers = observers[name];
-
-    if (!theseObservers) {
-      return;
+    if (theseObservers) {
+      theseObservers.forEach(function(func) {
+        func(args);
+      });
     }
 
-    theseObservers.forEach(function(func) {
-      func(args);
-    });
+    if (_onsettingchange) {
+      _onsettingchange(args);
+    }
   }
 
-  function mns_teardown() {
+  function mns_reset() {
     observers = {};
     settings = {};
     removedObservers = {};
     requests = [];
+    _mSyncRepliesOnly = false;
+    _onsettingchange = null;
   }
+
+  function mns_set(obj) {
+    for (var p in obj) {
+      settings[p] = obj[p];
+    }
+  }
+
+  mns_reset();
 
   window.MockNavigatorSettings = {
     addObserver: mns_addObserver,
@@ -130,9 +138,22 @@
     mClearRequests: mns_clearRequests,
     mReplyToRequests: mns_mReplyToRequests,
     mTriggerObservers: mns_mTriggerObservers,
-    mTeardown: mns_teardown,
-    mSyncRepliesOnly: false,
+    mSetup: mns_reset,
+    mTeardown: mns_reset,
+    mSet: mns_set,
 
+    get onsettingchange() {
+      return _onsettingchange;
+    },
+    set onsettingchange(value) {
+      _onsettingchange = value;
+    },
+    get mSyncRepliesOnly() {
+      return _mSyncRepliesOnly;
+    },
+    set mSyncRepliesOnly(value) {
+      _mSyncRepliesOnly = value;
+    },
     get mObservers() {
       return observers;
     },
@@ -147,4 +168,4 @@
     }
   };
 
-})(this);
+})(window);

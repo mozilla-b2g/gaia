@@ -1,4 +1,5 @@
 Calendar.App = (function(window) {
+  'use strict';
 
   function PendingManager() {
     this.objects = [];
@@ -42,7 +43,6 @@ Calendar.App = (function(window) {
       var idx = this.objects.indexOf(object);
 
       if (idx !== -1) {
-        var object = this.objects[idx];
         this.objects.splice(idx, 1);
         return true;
       }
@@ -54,8 +54,9 @@ Calendar.App = (function(window) {
       var i = 0;
 
       for (; i < len; i++) {
-        if (this.objects[i].pending)
+        if (this.objects[i].pending) {
           return true;
+        }
       }
 
       return false;
@@ -81,7 +82,7 @@ Calendar.App = (function(window) {
     /**
      * Localizes all elements with data-l10n-date-format.
      */
-    localizeElements: function(parent) {
+    localizeElements: function() {
       var elements = document.querySelectorAll(
         '[data-l10n-date-format]'
       );
@@ -210,6 +211,7 @@ Calendar.App = (function(window) {
     loadObject: function initializeLoadObject(name, callback) {
 
       function loadObject(name, callback) {
+        /*jshint validthis:true */
         this._loader.load('group', name, callback);
       }
 
@@ -315,7 +317,9 @@ Calendar.App = (function(window) {
     _init: function() {
       var self = this;
       // quick hack for today button
-      var today = document.querySelector('#view-selector .today');
+      var tablist = document.querySelector('#view-selector');
+      var today = tablist.querySelector('.today a');
+      var tabs = tablist.querySelectorAll('[role="tab"]');
 
       today.addEventListener('click', function(e) {
         var date = new Date();
@@ -323,6 +327,13 @@ Calendar.App = (function(window) {
         self.timeController.selectedDay = date;
 
         e.preventDefault();
+      });
+
+      // Handle aria-selected attribute for tabs.
+      tablist.addEventListener('click', function(event) {
+        if (event.target !== today) {
+          AccessibilityHelper.setAriaSelected(event.target, tabs);
+        }
       });
 
       this.dateFormat = navigator.mozL10n.DateTimeFormat();

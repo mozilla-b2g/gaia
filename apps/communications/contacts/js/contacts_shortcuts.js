@@ -122,7 +122,10 @@ if (!utils.alphaScroll) {
       }
 
       var currentY = getY(evt);
-      if (Math.abs(lastY - currentY) < offset) {
+      // We set the threshold of updating the shortcut to half of the offset
+      // to avoid when touch already moved to center of the certain letter but
+      // shows another letter.
+      if (Math.abs(lastY - currentY) < offset / 2) {
         return;
       }
 
@@ -154,8 +157,16 @@ if (!utils.alphaScroll) {
     }
 
     function scrollStart(evt) {
+      var dataset = getTarget(evt).dataset;
       evt.preventDefault();
       evt.stopPropagation();
+
+      // There is no need to show overlay if the target doesn't contain
+      // any valid data for overlay block.
+      if (!dataset.letter && !dataset.img) {
+        return;
+      }
+
       offset = offset || jumper.querySelector('[data-anchor]').offsetHeight;
       overlayStyle.MozTransitionDelay = RESET_TRANSITION;
       overlayStyle.MozTransitionDuration = RESET_TRANSITION;
@@ -172,6 +183,7 @@ if (!utils.alphaScroll) {
       overlayStyle.opacity = '0';
       overlay.textContent = null;
       isScrolling = false;
+      lastY = 0;
     }
 
     // Cache images refered in 'data-img'es

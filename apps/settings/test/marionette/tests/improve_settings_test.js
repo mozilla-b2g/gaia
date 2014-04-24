@@ -85,7 +85,8 @@ marionette('improve b2g', function() {
         );
     });
 
-    test('open email column but left it empty', function() {
+    // disabled at bug #981993 because of intermittent failures
+    test.skip('open email column but left it empty', function() {
       feedbackPanel.inputMsgToDialog('test');
       feedbackPanel.openEmailCol();
       feedbackPanel.sendFeedback();

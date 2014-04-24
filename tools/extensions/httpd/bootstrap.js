@@ -128,7 +128,7 @@ function startup(data, reason) {
     server.registerPathHandler('/marionette', MarionetteHandler);
 
     server.registerDirectory(
-      '/common/', new LocalFile(baseDir + '/test_apps/test-agent/common')
+      '/common/', new LocalFile(baseDir + '/dev_apps/test-agent/common')
     );
     server.registerDirectory('/shared/', new LocalFile(baseDir + '/shared'));
 

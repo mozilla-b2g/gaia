@@ -19,6 +19,8 @@ module.exports = View.extend({
   name: 'settings',
 
   initialize: function(options) {
+    this.OptionsView = options.OptionsView || OptionsView;
+    this.l10n = options.l10n || navigator.mozL10n;
     this.items = options.items;
     this.children = [];
     this.on('destroy', this.onDestroy);
@@ -30,13 +32,15 @@ module.exports = View.extend({
   },
 
   onItemClick: function(view) {
-    var model = view.model;
+    this.showSetting(view.model);
+  },
 
-    this.optionsView = new OptionsView({ model: model })
+  showSetting: function(model) {
+    this.optionsView = new this.OptionsView({ model: model })
       .render()
       .appendTo(this.els.pane2)
-      .on('tap:option', this.firer('tap:option'))
-      .on('tap:back', this.goBack);
+      .on('click:option', this.firer('click:option'))
+      .on('click:back', this.goBack);
 
     this.showPane(2);
   },
@@ -52,7 +56,7 @@ module.exports = View.extend({
     this.els.items = this.find('.js-items');
     this.els.pane2 = this.find('.js-pane-2');
     this.els.close = this.find('.js-close');
-    bind(this.els.close, 'click', this.firer('tap:close'));
+    bind(this.els.close, 'click', this.firer('click:close'));
     this.items.forEach(this.addItem);
     debug('rendered');
     return this;
@@ -60,7 +64,7 @@ module.exports = View.extend({
 
   goBack: function() {
     this.showPane(1);
-    setTimeout(this.destroyOptionsView, 400);
+    this.destroyOptionsView();
   },
 
   destroyChild: function(view) {
@@ -72,6 +76,7 @@ module.exports = View.extend({
     if (this.optionsView) {
       this.optionsView.destroy();
       this.optionsView = null;
+      debug('options view destroyed');
     }
   },
 
@@ -92,7 +97,7 @@ module.exports = View.extend({
   template: function() {
     return '<div class="pane pane-1">' +
       '<div class="settings_inner">' +
-        '<h2 class="settings_title">Options</h2>' +
+        '<h2 class="settings_title">' + this.l10n.get('options') + '</h2>' +
         '<div class="settings_items"><ul class="inner js-items"></ul></div>' +
       '</div>' +
     '</div>' +

@@ -16,8 +16,6 @@
     "open-remote-window":{},
     "storage":{},
     "geolocation": {},
-    "alarms": {},
-    "power":{},
     "contacts":{ "access": "readonly" }
   },
   "locales": {
@@ -40,27 +38,16 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "30": "/style/icons/HomeScreen.png"
+    "30": "/style/icons/HomeScreen.png",
+    "45": "/style/icons/HomeScreen_45.png",
+    "60": "/style/icons/HomeScreen_60.png",
+    "68": "/style/icons/HomeScreen_68.png"
   },
   "orientation": "default",
-  "activities": {
-    "save-bookmark": {
-      "filters": {
-        "type": "url",
-        "url": { "required":true, "pattern":"https?:.{1,16384}" }
-      },
-      "disposition": "inline",
-      "href": "/save-bookmark.html",
-      "returnValue": true
-    }
-  },
-  "messages": [
-    { "alarm": "/index.html" }
-  ],
-  "datastores-owned": {
-    "eme_store": {
-      "access": "readwrite",
-      "description": "Stores Everything.me data"
+  "datastores-access": {
+    "bookmarks_store": {
+      "readonly": false,
+      "description": "Read and migrate bookmarks"
     }
   }
 }

@@ -1,4 +1,6 @@
 (function(window) {
+  'use strict';
+
   var CALENDAR_PREFIX = 'calendar-';
 
   var template = Calendar.Templates.Calendar;
@@ -73,7 +75,7 @@
       function handle(method) {
         return function() {
           self[method].apply(self, arguments);
-        }
+        };
       }
 
       // calendar store events
@@ -115,9 +117,7 @@
 
     _onCalendarDisplayToggle: function(e) {
       var input = e.target;
-      var self = this;
       var id = input.value;
-      var timeoutId = this._updateTimeouts[id];
 
       if (this._updateTimeouts[id]) {
         clearTimeout(this._updateTimeouts[id]);
@@ -217,7 +217,9 @@
       var self = this;
 
       store.syncableAccounts(function(err, list) {
-        if (err) return callback(err);
+        if (err) {
+          return callback(err);
+        }
 
         if (list.length === 0) {
           element.classList.remove(Calendar.ACTIVE);

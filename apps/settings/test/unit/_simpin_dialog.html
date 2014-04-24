@@ -1,0 +1,43 @@
+<div id="simpin-dialog-mock">
+  <header>
+    <button type="reset">
+      <span data-l10n-id="back" class="icon icon-back">Back</span>
+    </button>
+    <menu type="toolbar">
+    <button data-l10n-id="done" type="submit">Done</button>
+    </menu>
+    <h1></h1>
+  </header>
+
+  <div class="pin-dialog">
+    <div class="sim-errorMsg error" hidden>
+      <div class="sim-messageHeader"></div>
+      <span class="sim-messageBody"></span>
+    </div>
+    <div class="sim-triesLeft" data-l10-id="inputCodeRetriesLeft" hidden></div>
+
+    <div class="sim-code-area sim-pinArea">
+      <div data-l10n-id="simPin">SIM PIN</div>
+      <input type="password" x-inputmode="digit" size="8" maxlength="8" />
+    </div>
+
+    <div class="sim-code-area sim-pukArea">
+      <div data-l10n-id="pukCode">PUK Code</div>
+      <input type="password" x-inputmode="digit" size="8" maxlength="8" />
+    </div>
+
+    <div class="sim-code-area sim-newPinArea">
+      <div data-l10n-id="newSimPinMsg">
+        Create PIN (must contain 4 to 8 digits)
+      </div>
+      <input type="password" x-inputmode="digit" size="8" maxlength="8" />
+    </div>
+
+    <div class="sim-code-area sim-confirmPinArea">
+      <div data-l10n-id="confirmNewSimPinMsg">
+        Confirm New PIN
+      </div>
+      <input type="password" x-inputmode="digit" size="8" maxlength="8" />
+    </div>
+  </div>
+</div>

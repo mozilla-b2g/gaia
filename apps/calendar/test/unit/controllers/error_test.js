@@ -1,8 +1,11 @@
+/*global Factory */
+
 requireLib('controllers/error.js');
 requireLib('models/account.js');
 requireLib('notification.js');
 
 suite('controllers/error', function() {
+  'use strict';
 
   /**
    * Because of uplifting difficulties I chose to copy/paste
@@ -103,7 +106,6 @@ suite('controllers/error', function() {
   suite('#handleAuthenticate', function() {
     var sent;
     var account;
-    var onNotificationSent;
     var lock;
 
     mockRequestWakeLock(function(_lock) {

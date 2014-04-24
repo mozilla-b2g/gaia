@@ -3,6 +3,7 @@
 
 var MockDownloadUI = {
 
+  ERRORS: {},
   TYPE: {},
 
   show: function() {

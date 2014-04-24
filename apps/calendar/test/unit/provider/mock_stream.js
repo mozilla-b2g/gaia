@@ -1,3 +1,6 @@
+/*exported MockStream */
+'use strict';
+
 var MockStream = (function() {
 
   function MockStream() {
@@ -24,8 +27,9 @@ var MockStream = (function() {
     },
 
     request: function(callback) {
-      if (this._requestCallback)
+      if (this._requestCallback) {
         throw new Error('request may only be called once.');
+      }
 
       this._requestCallback = callback;
       if (this.mockonrequest) {

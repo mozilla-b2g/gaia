@@ -4,6 +4,7 @@
 
 from marionette.by import By
 from marionette.marionette import Actions
+from marionette import Wait
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
@@ -19,6 +20,11 @@ class FmRadio(Base):
     _favorite_button_locator = (By.ID, 'bookmark-button')
     _next_button_locator = (By.ID, 'frequency-op-seekup')
     _prev_button_locator = (By.ID, 'frequency-op-seekdown')
+
+    def launch(self):
+        Base.launch(self)
+        Wait(self.marionette).until(
+            lambda m: m.find_element(*self._power_button_locator).get_attribute('data-enabled') == "true")
 
     def flick_frequency_dialer_up(self):
         dialer = self.marionette.find_element(*self._frequency_dialer_locator)

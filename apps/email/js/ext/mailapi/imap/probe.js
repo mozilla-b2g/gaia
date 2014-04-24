@@ -199,11 +199,12 @@ var util = require('util'), $log = require('rdcommon/log'),
 var emptyFn = function() {}, CRLF = '\r\n',
     CRLF_BUFFER = Buffer(CRLF),
     STATES = {
-      NOCONNECT: 0,
-      NOAUTH: 1,
-      AUTH: 2,
-      BOXSELECTING: 3,
-      BOXSELECTED: 4
+      NOCONNECT: 0, // not connected yet
+      NOGREET: 1, // waiting for a greeting / anything from the server
+      NOAUTH: 2, // not yet authenticated
+      AUTH: 3, // authenticated but we're not currently "in" a folder
+      BOXSELECTING: 4, // authenticated, trying to select/examine a folder
+      BOXSELECTED: 5 // authetnciated, successfully selected/examined a folder
     }, BOX_ATTRIBS = ['NOINFERIORS', 'NOSELECT', 'MARKED', 'UNMARKED'],
     MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
               'Oct', 'Nov', 'Dec'],
@@ -363,8 +364,8 @@ function ImapConnection (options) {
     requests: [],
     unsentRequests: [],
     activeRequests: 0,
+    postGreetingCallback: null,
     numCapRecvs: 0,
-    isReady: false,
     isIdle: true,
     tmrConn: null,
     curData: null,
@@ -481,9 +482,7 @@ ImapConnection.prototype._findFetchRequest = function(uid, bodyPart) {
 ImapConnection.prototype.connect = function(loginCb) {
   var self = this,
       fnInit = function() {
-        // First get pre-auth capabilities, including server-supported auth
-        // mechanisms
-        self._send('CAPABILITY', null, function() {
+        var attemptLogin = function() {
           // Next, attempt to login
           var checkedNS = false;
           var redo = function(err, reentry) {
@@ -504,7 +503,16 @@ ImapConnection.prototype.connect = function(loginCb) {
             self._send('LIST "" ""', null, loginCb);
           };
           self._login(redo);
-        });
+        };
+
+        // Get pre-auth capabilities, including server-supported auth mechanisms
+        // if we didn't hear them in the server greeting.
+        if (self._state.numCapRecvs === 0) {
+          self._send('CAPABILITY', null, attemptLogin);
+        }
+        else {
+          attemptLogin();
+        }
       };
   loginCb = loginCb || emptyFn;
   this._reset();
@@ -523,9 +531,18 @@ ImapConnection.prototype.connect = function(loginCb) {
       clearTimeoutFunc(self._state.tmrConn);
       self._state.tmrConn = null;
     }
-    self._state.status = STATES.NOAUTH;
+    if (self._state.status === STATES.NOCONNECT) {
+      self._state.status = STATES.NOGREET;
+    }
+  });
 
+  this._state.postGreetingCallback = function() {
     if (self._options.crypto === 'starttls') {
+      // we don't need to issue an explicit CAPABILITY request before issuing
+      // STARTTLS because it's game over if there is no STARTTLS.
+      // Coincidentally, we also want to ignore any insecure unsolicited
+      // CAPABILITY we got in the server greeting.
+      self._state.numCapRecvs = 0;
       self._send('STARTTLS', null, function(err) {
         if (err) {
           var securityErr = new Error('Server does not support STARTTLS');
@@ -540,7 +557,7 @@ ImapConnection.prototype.connect = function(loginCb) {
     }
 
     fnInit();
-  });
+  };
 
   this._state.conn.on('data', function(buffer) {
     try {
@@ -561,20 +578,43 @@ ImapConnection.prototype.connect = function(loginCb) {
     var curReq = null;
     // -- Untagged server responses
     if (data[0] === '*') {
-      if (self._state.status === STATES.NOAUTH) {
-        if (data[1] === 'PREAUTH') { // the server pre-authenticated us
+      // We haven't heard anything from the server yet, this should be the
+      // greeting.
+      if (self._state.status === STATES.NOGREET) {
+        // The greeting is one of 3 things:
+        // - Pre-authentication indication, jump to being authenticated.
+        if (data[1] === 'PREAUTH') {
           self._state.status = STATES.AUTH;
-          if (self._state.numCapRecvs === 0)
+          if (self._state.numCapRecvs === 0) {
             self._state.numCapRecvs = 1;
+          }
+          return;
+        // - The server hates us, hang up.
         } else if (data[1] === 'NO' || data[1] === 'BAD' || data[1] === 'BYE') {
           if (self._LOG && data[1] === 'BAD')
             self._LOG.bad(data[2]);
           self._state.conn.end();
           return;
         }
-        if (!self._state.isReady)
-          self._state.isReady = true;
-        // Restrict the type of server responses when unauthenticated
+        // - The server is okay with us
+        // Check if we got an inline CAPABILITY like dovecot likes to do.
+        if (data[2].startsWith('[CAPABILITY ')) {
+          self._state.numCapRecvs = 1;
+          self.capabilities = data[2].substring(12, data[2].lastIndexOf(']'))
+                                     .split(' ').map(up);
+        }
+        // Advance to STARTTLS/CAPABILITY request
+        self._state.status = STATES.NOAUTH;
+        if (self._state.postGreetingCallback) {
+          var callback = self._state.postGreetingCallback;
+          self._state.postGreetingCallback = null;
+          callback();
+        }
+        return;
+      }
+      if (self._state.status === STATES.NOAUTH) {
+        // Since we explicitly break out the pre-greeting state now, this
+        // state really just exists to filter out weird unsolicited responses.
         if (data[1] !== 'CAPABILITY' && data[1] !== 'ALERT')
           return;
       }
@@ -1163,7 +1203,9 @@ ImapConnection.prototype.die = function() {
     this._state.conn.end();
   }
   this._reset();
-  this._LOG.__die();
+  if (this._LOG) {
+    this._LOG.__die();
+  }
 };
 
 ImapConnection.prototype.isAuthenticated = function() {
@@ -1742,8 +1784,8 @@ ImapConnection.prototype._reset = function() {
   this._state.numCapRecvs = 0;
   this._state.requests = [];
   this._state.unsentRequests = [];
+  this._state.postGreetingCallback = null;
   this._state.isIdle = true;
-  this._state.isReady = false;
   this._state.ext.idle.state = IDLE_NONE;
   this._state.ext.idle.timeWaited = 0;
 

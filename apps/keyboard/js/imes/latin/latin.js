@@ -365,7 +365,7 @@
         break;
 
       case BACKSPACE:
-        handler = handleBackspace();
+        handler = handleBackspace(repeat);
         break;
 
       default:
@@ -397,9 +397,9 @@
   // Handle any key (including backspace) and do the right thing even if
   // there is a selection in the text field. This method does not perform
   // auto-correction or auto-punctuation.
-  function handleKey(keycode) {
+  function handleKey(keycode, repeat) {
     // Generate the key event
-    return keyboard.sendKey(keycode).then(function() {
+    return keyboard.sendKey(keycode, repeat).then(function() {
       // First, update our internal state
       if (keycode === BACKSPACE) {
         if (selection) {
@@ -460,7 +460,7 @@
 
   // If we just did auto correction or auto punctuation, then backspace
   // should undo it. Otherwise it is just an ordinary backspace.
-  function handleBackspace() {
+  function handleBackspace(repeat) {
     // If we made a correction and haven't changed it at all yet,
     // then revert it.
     var len = revertFrom ? revertFrom.length : 0;
@@ -480,7 +480,7 @@
       });
     }
     else {
-      return handleKey(BACKSPACE);
+      return handleKey(BACKSPACE, repeat);
     }
   }
 

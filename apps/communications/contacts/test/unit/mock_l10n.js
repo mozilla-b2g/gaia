@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockMozL10n */
+
 window.realL10n = window.navigator.mozL10n;
 
 var MockMozL10n = window.navigator.mozL10n = {
@@ -22,5 +25,7 @@ var MockMozL10n = window.navigator.mozL10n = {
   },
   localize: function localize(element, key, params) {
     element.textContent = this.get(key, params);
-  }
+  },
+  translate: function() {},
+  once: function() {},
 };

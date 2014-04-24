@@ -7,18 +7,18 @@
   <!-- Common style -->
   <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
+  <link rel="stylesheet" type="text/css" href="/shared/style_unstable/input_areas.css">
+  <link rel="stylesheet" type="text/css" href="/shared/style_unstable/buttons.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/lists.css">
   <link rel="stylesheet" type="text/css" href="/shared/style/progress_activity.css">
-  <link  rel="stylesheet"type="text/css" href="/shared/style/status.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="/shared/style/status.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="/shared/style/animations.css">
 
   <!-- Specific style -->
-  <link rel="stylesheet" type="text/css" href="/contacts/style/animations.css">
-  <link rel="stylesheet" type="text/css" href="/contacts/style/overlay.css">
-  <link rel="stylesheet" type="text/css" href="/contacts/style/status.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/style.css">
+  <link rel="stylesheet" type="text/css" href="css/status.css">
+  <link rel="stylesheet" type="text/css" href="css/overlay.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/responsive.css">
   <link rel="stylesheet" type="text/css" href="/facebook/style/curtain_frame.css">
@@ -31,7 +31,7 @@
   <link rel="resource" type="image/png" href="/shared/resources/branding/privacy_sprite.png"/>
   <link rel="resource" type="application/l10n" href="/shared/locales/branding.ini"/>
   <!-- This is needed for not duplicating SIM Import and FB Import locales -->
-  <link rel="resource" type="application/l10n" href="/contacts/locales/locales.ini"/>
+  <link rel="resource" type="application/l10n" href="/shared/locales/import_contacts.ini"/>
   <link rel="resource" type="application/l10n" href="/ftu/locales/locales.ini"/>
   <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
   <link rel="resource" type="application/l10n" href="/shared/locales/tz.ini"/>
@@ -45,18 +45,22 @@
   <script type="text/javascript" src="/shared/js/tz_select.js"></script>
   <script defer type="text/javascript" src="/shared/js/keyboard_helper.js"></script>
 
+  <!-- Import contacts help files -->
+  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/status.js"></script>
+  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/overlay.js"></script>
+  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/config.js"></script>
+  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/misc.js"></script>
+  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/sdcard.js"></script>
+  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/vcard_parser.js"></script>
+  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/import_from_vcard.js"></script>
+  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/import_sim_contacts.js"></script>
+
   <!-- Code for the FTU App -->
   <script defer type="text/javascript" src="/shared/js/screen_layout.js"></script>
   <script defer type="text/javascript" src="/shared/js/text_normalizer.js"></script>
   <script defer type="text/javascript" src="/shared/js/lazy_loader.js"></script>
   <script defer type="text/javascript" src="/ftu/js/basket-client.js"></script>
-  <script defer type="text/javascript" src="/contacts/js/utilities/sdcard.js"></script>
-  <script defer type="text/javascript" src="/contacts/js/utilities/status.js"></script>
-  <script defer type="text/javascript" src="/contacts/js/utilities/overlay.js"></script>
   <script defer type="text/javascript" src="/ftu/js/services_launcher.js"></script>
-  <script defer type="text/javascript" src="/contacts/js/utilities/config.js"></script>
-  <script defer type="text/javascript" src="/contacts/js/utilities/vcard_parser.js"></script>
-  <script defer type="text/javascript" src="/contacts/js/utilities/misc.js"></script>
   <script defer type="text/javascript" src="/shared/js/fb/fb_request.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_data.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_utils.js"></script>
@@ -67,26 +71,25 @@
   <script defer type="text/javascript" src="/shared/js/mobile_operator.js"></script>
   <script defer type="text/javascript" src="/shared/js/icc_helper.js"></script>
   <script defer type="text/javascript" src="/shared/js/wifi_helper.js"></script>
+  <script defer type="text/javascript" src="/shared/js/fxa_iac_client.js"></script>
   <script defer type="text/javascript" src="/ftu/js/sim_manager.js"></script>
-  <script defer type="text/javascript" src="/contacts/js/import_utils.js"></script>
   <script defer type="text/javascript" src="/ftu/js/memcard_manager.js"></script>
   <script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
   <script defer type="text/javascript" src="/ftu/js/import_services.js"></script>
   <script defer type="text/javascript" src="/ftu/js/utils.js"></script>
   <script defer type="text/javascript" src="/ftu/js/tutorial_steps.js"></script>
   <script defer type="text/javascript" src="/ftu/js/tutorial.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/external_links.js"></script>
   <script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
   <script defer type="text/javascript" src="/ftu/js/data_mobile.js"></script>
   <script defer type="text/javascript" src="/ftu/js/time.js"></script>
   <script defer type="text/javascript" src="/ftu/js/ui.js"></script>
   <script defer type="text/javascript" src="/ftu/js/language.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/resources.js"></script>
   <script defer type="text/javascript" src="/ftu/js/app.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/variant.js"></script>
-  <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
   <script defer type="text/javascript" src="/ftu/js/operatorVariant.js"></script>
+
   <!-- Confirm dialogs BB library -->
-  <script defer type="text/javascript" src="/contacts/js/utilities/confirm.js"></script>
+  <script defer type="text/javascript" src="/shared/js/confirm.js"></script>
 </head>
 <body>
   <section id="splash-screen" role="region" class="show">
@@ -252,54 +255,69 @@
       </section>
       <section role="region" id="configure_network">
         <section id="configure_network_params">
-          <form>
-            <input type="text" id="wifi_ssid" class="hidden" value=""></input>
-            <label id="label_wifi_user" for="wifi_user" data-l10n-id="identity">User</label>
-            <input type="text" id="wifi_user" data-l10n-id="identityInput" placeholder="User" x-inputmode="verbatim"></input>
-            <label for="wifi_password" data-l10n-id="password">Password</label>
-            <input type="password" id="wifi_password" data-l10n-id="passwordInput" placeholder="Password" value="" x-inputmode="verbatim"></input>
-            <label class="pack-checkbox" id="label_show_password">
-              <input type="checkbox" data-ignore name="show_password" />
-              <span></span>
-              <p id="wifi_show_password" data-l10n-id="showPassword">Show Password</p>
-            </label>
+          <form data-type="list">
+            <ul>
+              <li class="hidden">
+                <input type="text" id="wifi_ssid" value=""></input>
+              </li>
+              <li>
+                <label id="label_wifi_user" for="wifi_user" data-l10n-id="identity">User</label>
+                <input type="text" id="wifi_user" data-l10n-id="identityInput" placeholder="User" x-inputmode="verbatim"></input>
+              </li>
+              <li>
+                <label for="wifi_password" data-l10n-id="password">Password</label>
+                <input type="password" id="wifi_password" data-l10n-id="passwordInput" placeholder="Password" value="" x-inputmode="verbatim"></input>
+                <label class="pack-checkbox" id="label_show_password">
+                  <input type="checkbox" data-ignore name="show_password" />
+                  <span id="wifi_show_password" data-l10n-id="showPassword">Show Password</span>
+                </label>
+              </li>
+            </ul>
           </form>
         </section>
       </section>
       <section role="region" id="hidden-wifi-authentication">
         <div>
-          <form>
-            <label id="label_wifi_ssid" for="wifi_ssid" data-l10n-id="ssid-name">
-              SSID Network Name
-            </label>
-            <input type="text" name="wifi_ssid" id="hidden-wifi-ssid"/>
-
-            <label id="label_wifi_security" for="wifi_security" data-l10n-id="security">
-              Security
-            </label>
-            <select id="hidden-wifi-security">
-              <option data-l10n-id="securityNone">none</option>
-              <option data-l10n-id="securityWEP">WEP</option>
-              <option data-l10n-id="securityWPA-PSK" selected>WPA-PSK</option>
-              <option data-l10n-id="securityWPA-EAP">WPA-EAP</option>
-            </select>
-
-            <div class="hidden" id="hidden-wifi-identity-box">
-              <label id="label_wifi_identity" for="wifi_identity" data-l10n-id="identity">
-                Identity
-              </label>
-              <input type="text" name="wifi_identity" id="hidden-wifi-identity"/>
-            </div>
-
-            <label id="label_hidden_wifi_password" for="wifi_hidden_password" data-l10n-id="password">
-              Password
-            </label>
-            <input type="password" name="wifi_hidden_password" id="hidden-wifi-password" value=""/>
-            <label class="pack-checkbox" id="label_show_password">
-              <input type="checkbox" id="hidden-wifi-show-password">
-              <span></span>
-              <p data-l10n-id="showPassword">Show Password</p>
-            </label>
+          <form data-type="list">
+            <ul>
+              <li>
+                <label id="label_wifi_ssid" for="wifi_ssid" data-l10n-id="ssid-name">
+                  SSID Network Name
+                </label>
+                <input type="text" name="wifi_ssid" id="hidden-wifi-ssid"/>
+              </li>
+              <li>
+                <label id="label_wifi_security" for="wifi_security" data-l10n-id="security">
+                  Security
+                </label>
+                <span class="button icon icon-dialog">
+                  <select id="hidden-wifi-security">
+                    <option data-l10n-id="securityNone">none</option>
+                    <option data-l10n-id="securityWEP">WEP</option>
+                    <option data-l10n-id="securityWPA-PSK" selected>WPA-PSK</option>
+                    <option data-l10n-id="securityWPA-EAP">WPA-EAP</option>
+                  </select>
+                </span>
+              </li>
+              <li class="hidden" id="hidden-wifi-identity-box">
+                <label id="label_wifi_identity" for="wifi_identity" data-l10n-id="identity">
+                  Identity
+                </label>
+                <input type="text" name="wifi_identity" id="hidden-wifi-identity"/>
+              </li>
+              <li>
+                <label id="label_hidden_wifi_password" for="wifi_hidden_password" data-l10n-id="password">
+                  Password
+                </label>
+                <input type="password" name="wifi_hidden_password" id="hidden-wifi-password" value=""/>
+                <label class="pack-checkbox" id="label_show_password">
+                  <input type="checkbox" id="hidden-wifi-show-password">
+                  <span data-l10n-id="showPassword">
+                    Show Password
+                  </span>
+                </label>
+              </li>
+            </ul>
           </form>
         </div>
       </section>
@@ -421,6 +439,23 @@
           </ul>
         </article>
       </section>
+
+      <section role="region" id="firefox_accounts">
+        <div class="fxa-logo"></div>
+
+        <p data-l10n-id="fxa-overview" id="fxa-intro">
+          A Firefox Account lets you use features like Find My Device and apps
+          like the Firefox Marketplace.
+        </p>
+
+        <p>
+          <button id="fxa-create-account" data-l10n-id="fxa-create-account-or-sign-in">
+            Create Account or Sign In
+          </button>
+        </p>
+
+      </section>
+
       <section role="region" id="about-your-rights">
         <p data-l10n-id="about-your-rights-0">
           Browser OS is built on free and open source software
@@ -492,22 +527,11 @@
           this to make our products better, faster and more responsive.
         </p>
         <!-- Links destinations are discussed in https://bugzilla.mozilla.org/show_bug.cgi?id=812956 -->
-        <p data-l10n-id='learn-more-at'>Learn more at
-        <a class='external'
-           data-l10n-id='external-telemetry'
-           href='http://www.mozilla.org/telemetry/'
-           title='Telemetry'>
-             www.mozilla.org/telemetry/
-        </a>
+        <p id='external-link-telemetry'>
+          Learn more at www.mozilla.org/telemetry
         </p>
-        <p data-l10n-id='learn-about-information'>Learn how Mozilla handles your
-        information at
-          <a class='external'
-             data-l10n-id='external-privacy'
-             title='Privacy'
-             href='http://www.mozilla.org/privacy/'>
-               www.mozilla.org/privacy/
-          </a>
+        <p id='external-link-information'>Learn how Mozilla handles your
+          information at www.mozilla.org/privacy
         </p>
       </section>
       <section role="region" id="SIM_mandatory">
@@ -533,12 +557,8 @@
             Email successfully added!
           </p>
         </section>
-        <p data-l10n-id="learnHow">
-          Learn how Mozilla handle your information in our
-          <a data-l10n-id="privacyPolicy" class="external"
-            href="https://www.mozilla.org/privacy/firefox-os/" title="Privacy policy">
-            privacy policy
-         </a>.
+        <p id="external-link-privacy">
+          Learn how Mozilla handles your information in our privacy policy.
         </p>
       </section>
       <section role="region" id="welcome_browser">

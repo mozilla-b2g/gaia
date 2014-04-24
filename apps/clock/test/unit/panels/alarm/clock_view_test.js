@@ -1,8 +1,6 @@
 'use strict';
 suite('ClockView', function() {
-  var nativeMozAlarms = navigator.mozAlarms;
   var ClockView;
-  var AlarmList;
   var asyncStorage;
   var panel;
 
@@ -11,45 +9,27 @@ suite('ClockView', function() {
     // system's time zone
     this.sixAm = new Date(2013, 5, 16, 6).getTime();
 
-    testRequire([
-        'panels/alarm/main',
-        'panels/alarm/clock_view',
-        'mocks/mock_panels/alarm/alarm_list',
-        'mocks/mock_shared/js/async_storage',
-        'mocks/mock_moz_alarm'
-      ], {
-        mocks: [
-          'panels/alarm/alarm_list',
-          'shared/js/async_storage',
-          'panels/alarm/active_alarm'
-        ]
-      }, function(
-          AlarmPanel,
-          clockView,
-          mockAlarmList,
-          mockAsyncStorage,
-          mockMozAlarms
-        ) {
-        navigator.mozAlarms = new mockMozAlarms.MockMozAlarms();
+    require([
+      'panels/alarm/main',
+      'panels/alarm/clock_view',
+      'shared/js/async_storage'
+    ], function(
+      AlarmPanel,
+      clockView,
+      mockAsyncStorage
+    ) {
 
-        AlarmList = mockAlarmList;
+      // Instantiate an Alarm Panel to ensure that elements are initialized
+      // properly
+      var div = document.createElement('div');
+      document.body.appendChild(div);
+      panel = new AlarmPanel(div);
 
-        // Instantiate an Alarm Panel to ensure that elements are initialized
-        // properly
-        var div = document.createElement('div');
-        document.body.appendChild(div);
-        panel = new AlarmPanel(div);
+      ClockView = clockView;
 
-        ClockView = clockView;
-        AlarmList = mockAlarmList;
-
-        asyncStorage = mockAsyncStorage;
-        done();
-      });
-  });
-
-  suiteTeardown(function() {
-    navigator.mozAlarms = nativeMozAlarms;
+      asyncStorage = mockAsyncStorage;
+      done();
+    });
   });
 
   test('ClockView.isInitialized ', function() {
@@ -98,31 +78,26 @@ suite('ClockView', function() {
 
     teardown(function() {
       ClockView.time.innerHTML = '';
-      ClockView.hourState.innerHTML = '';
       this.clock.restore();
     });
 
-    test('time and hourState elements are updated immediately',
+    test('time element is updated immediately',
       function() {
       ClockView.updateDigitalClock();
       assert.equal(Date.parse(ClockView.time.innerHTML), this.sixAm + 1000);
-      assert.equal(ClockView.hourState.innerHTML, '&nbsp;&nbsp;');
     });
 
-    test('time and hourState elements are not updated twice in the same ' +
-      'minute', function() {
+    test('time element is not updated twice in the same minute', function() {
       ClockView.updateDigitalClock();
       this.clock.tick(59 * 1000 - 1);
       assert.equal(Date.parse(ClockView.time.innerHTML), this.sixAm + 1000);
-      assert.equal(ClockView.hourState.innerHTML, '&nbsp;&nbsp;');
     });
 
-    test('time and hourState elements are updated each minute', function() {
+    test('time element is updated each minute', function() {
       ClockView.updateDigitalClock();
       this.clock.tick(59 * 1000);
       assert.equal(Date.parse(ClockView.time.innerHTML),
         this.sixAm + 60 * 1000);
-      assert.equal(ClockView.hourState.innerHTML, '&nbsp;&nbsp;');
     });
 
   });
@@ -378,7 +353,7 @@ suite('ClockView', function() {
     });
 
     setup(function() {
-      this.getAlarmCountStub = this.sinon.stub(AlarmList, 'getAlarmCount');
+      this.getAlarmCountStub = this.sinon.stub(ClockView, 'getAlarmCount');
     });
 
     test('large size when no alarms in alarms list', function() {

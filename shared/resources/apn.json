@@ -4690,6 +4690,9 @@
     {"carrier":"NoBearer","apn":"nobearer","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","mmsc":"http://127.0.0.1","mmsproxy":"127.0.0.1","mmsport":"8080","authtype":"0","type":["default","supl","mms","dun","ims"]},
     {"carrier":"Evdo0Bearer","apn":"evdo0bearer","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","mmsc":"http://127.0.0.1","mmsproxy":"127.0.0.1","mmsport":"8080","authtype":"0","type":["default","supl","mms","dun","ims"],"bearer":"7"},
     {"carrier":"ZeroBearer","apn":"zerobearer","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","mmsc":"http://127.0.0.1","mmsproxy":"127.0.0.1","mmsport":"8080","authtype":"0","type":["default","supl","mms","dun","ims"],"bearer":"0"}
+  ],
+  "03": [
+    {"carrier":"No type test","apn":"internet","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","mmsc":"http://127.0.0.1","mmsproxy":"127.0.0.1","mmsport":"8080","authtype":"0"}
   ]
 }
 }

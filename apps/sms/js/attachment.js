@@ -77,7 +77,11 @@
       // as soon as the image width and height are known, the container can be
       // extended up to 120px, either horizontally or vertically.
       var img = new Image();
-      img.src = window.URL.createObjectURL(this.blob);
+      img.src = Utils.getDownsamplingSrcUrl({
+        url: window.URL.createObjectURL(this.blob),
+        size: this.blob.size,
+        type: 'thumbnail'
+      });
       img.onload = function onBlobLoaded() {
         window.URL.revokeObjectURL(img.src);
 
@@ -99,7 +103,8 @@
         canvas.width = Math.round(img.width / ratio);
         canvas.height = Math.round(img.height / ratio);
         var context = canvas.getContext('2d', { willReadFrequently: true });
-        context.drawImage(img, 0, 0, width, height);
+        // Using canvas width and height with correct image proportions
+        context.drawImage(img, 0, 0, canvas.width, canvas.height);
         var data = canvas.toDataURL(type);
 
         callback({
@@ -158,7 +163,7 @@
 
         var hasPreview = (thumbnail.data && !thumbnail.error);
         if (hasPreview) {
-          var borderWidth = 1; // px
+          var borderWidth = 2; // px
           container.style.width = (thumbnail.width + 2 * borderWidth) + 'px';
           container.style.height = (thumbnail.height + 2 * borderWidth) + 'px';
         }

@@ -107,14 +107,30 @@
       this.manifest.chrome :
       this.config.chrome;
 
+    if (!this.manifestURL && !this.config.chrome) {
+      this.config.chrome = {
+        navigation: true
+      };
+    }
+
     if (!this.manifest && this.config && this.config.title) {
       this.updateName(this.config.title);
+    } else {
+      this.name = new self.ManifestHelper(this.manifest).name;
     }
 
     // Get icon splash
     this.getIconForSplash();
 
     this.generateID();
+    /**
+     * The instanceID of the root window of this window.
+     * @type {String}
+     */
+    this.groupID = this.getRootWindow().instanceID;
+    if (this.parentWindow) {
+      this.parentWindow.setChildWindow(this);
+    }
   };
 
   /**
@@ -391,6 +407,14 @@
       }
     }
 
+    if (this.childWindow) {
+      this.childWindow.kill();
+      this.childWindow = null;
+    }
+    if (this.parentWindow) {
+      this.parentWindow = null;
+    }
+
     // If the app is the currently displayed app, switch to the homescreen
     if (this.isActive() && !this.isHomescreen) {
       // XXX: Refine this in transition state controller.
@@ -430,8 +454,7 @@
      */
     this.publish('willdestroy');
     this.uninstallSubComponents();
-    if (this.element) {
-      this.debug(' removing element... ');
+    if (this.element && this.element.parentNode) {
       this.element.parentNode.removeChild(this.element);
       this.element = null;
     }
@@ -468,7 +491,14 @@
      */
     this.publish('willrender');
     this.containerElement.insertAdjacentHTML('beforeend', this.view());
-    this.browser = new self.BrowserFrame(this.browser_config);
+    // window.open would offer the iframe so we don't need to generate.
+    if (this.iframe) {
+      this.browser = {
+        element: this.iframe
+      };
+    } else {
+      this.browser = new self.BrowserFrame(this.browser_config);
+    }
     this.element = document.getElementById(this.instanceID);
 
     // For gaiauitest usage.
@@ -537,8 +567,34 @@
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
     'authDialog': window.AppAuthenticationDialog,
-    'contextmenu': window.BrowserContextMenu
+    'contextmenu': window.BrowserContextMenu,
+    'childWindowFactory': window.ChildWindowFactory
   };
+
+  /**
+   * The event list is coming from current implemented mozbrowser events.
+   * https://developer.mozilla.org/en-US/docs/WebAPI/Browser
+   *
+   * We need to stop them from propgating to this window's parent.
+   * @type {Array}
+   */
+  var SELF_MANAGED_EVENTS = [
+    'mozbrowserasyncscroll',
+    'mozbrowserclose',
+    'mozbrowsercontextmenu',
+    'mozbrowsererror',
+    'mozbrowsericonchange',
+    'mozbrowserloadend',
+    'mozbrowserloadstart',
+    'mozbrowserlocationchange',
+    'mozbrowseropenwindow',
+    'mozbrowsersecuritychange',
+    'mozbrowsershowmodalprompt',
+    'mozbrowsertitlechange',
+    'mozbrowserusernameandpasswordrequired',
+    'mozbrowseropensearch',
+    'mozbrowsertitlechange'
+  ];
 
   AppWindow.prototype.openAnimation = 'enlarge';
   AppWindow.prototype.closeAnimation = 'reduce';
@@ -615,13 +671,36 @@
         var caller = this.activityCaller;
         this.activityCaller.activityCallee = null;
         this.activityCaller = null;
-        caller.requestOpen();
+        caller.open('in-from-left');
+        this.close('out-to-right');
       }
     };
 
   AppWindow.prototype._handle_mozbrowserclose =
     function aw__handle_mozbrowserclose(evt) {
-      this.kill();
+      if (this._closed) {
+        return;
+      }
+      this._closed = true;
+      if (this.childWindow) {
+        this.childWindow.kill();
+        this.childWindow = null;
+      }
+      // If this is an active child window which has its parent window,
+      // perform proper closing transitions to both to make transitoning nice.
+      if (this.parentWindow && this.isActive()) {
+        this.element.addEventListener('_closed', (function onClosed() {
+          this.element.removeEventListener('_closed', onClosed);
+          this.destroy();
+        }).bind(this));
+        this.parentWindow.open('in-from-left');
+        this.close('out-to-right');
+        this.parentWindow.childWindow = null;
+        this.parentWindow = null;
+        this.publish('terminated');
+      } else {
+        this.kill();
+      }
     };
 
   AppWindow.prototype._handle_mozbrowsererror =
@@ -708,6 +787,11 @@
     this.constructor.REGISTERED_EVENTS.forEach(function iterator(evt) {
       this.element.addEventListener(evt, this);
     }, this);
+    SELF_MANAGED_EVENTS.forEach(function iterator(evt) {
+      if (this.constructor.REGISTERED_EVENTS.indexOf(evt) < 0) {
+        this.element.addEventListener(evt, this);
+      }
+    }, this);
   };
 
   /**
@@ -717,6 +801,17 @@
    */
   AppWindow.prototype.handleEvent = function aw_handleEvent(evt) {
     this.debug(' Handling ' + evt.type + ' event...');
+    // We are rendering inline activities inside this element too,
+    // so we need to prevent ourselves to be affected
+    // by the mozbrowser events of the callee.
+
+    // WebAPI testing is using mozbrowserloadend event to know
+    // the first app is loaded so we cannot stop the propagation here.
+    // XXX: Use this.bottomWindow to check if it has a layout parent instead
+    // in bug 916709.
+    if (this.CLASS_NAME == 'ActivityWindow') {
+      evt.stopPropagation();
+    }
     if (this['_handle_' + evt.type]) {
       this.debug(' Handling ' + evt.type + ' event...');
       this['_handle_' + evt.type](evt);
@@ -737,6 +832,7 @@
     if (DEBUG || this._DEBUG) {
       console.log('[Dump: ' + this.CLASS_NAME + ']' +
         '[' + (this.name || this.origin) + ']' +
+        '[' + this.instanceID + ']' +
         '[' + self.System.currentTime() + ']' +
         Array.slice(arguments).concat());
     }
@@ -1003,7 +1099,7 @@
   AppWindow.prototype._resize = function aw__resize() {
     var height, width;
     this.debug('force RESIZE...');
-    if (self.LayoutManager.keyboardEnabled) {
+    if (self.layoutManager.keyboardEnabled) {
       /**
        * The event is dispatched on the app window only when keyboard is up.
        *
@@ -1020,14 +1116,10 @@
        */
       this.broadcast('withoutkeyboard');
     }
-    if (this.isFullScreen()) {
-      height = self.LayoutManager.fullscreenHeight + this.calibratedHeight();
-    } else {
-      height = self.LayoutManager.usualHeight + this.calibratedHeight();
-    }
+    height = self.layoutManager.height + this.calibratedHeight();
 
-    // If we have sidebar in the future, change LayoutManager then.
-    width = self.LayoutManager.width;
+    // If we have sidebar in the future, change layoutManager then.
+    width = self.layoutManager.width;
 
     this.width = width;
     this.height = height;
@@ -1050,7 +1142,7 @@
     }
   };
 
- /**
+  /**
   * Set the size of the app's iframe to match the size of the screen.
   * We have to call this on resize events (which happen when the
   * phone orientation is changed). And also when an app is launched
@@ -1390,6 +1482,92 @@
     if (this.suspended) {
       this.kill();
     }
+  };
+
+  /**
+   * Link child window to this app window instance.
+   * If there's already one, kill it at first.
+   * @param {ChildWindow} childWindow The child window instance.
+   */
+  AppWindow.prototype.setChildWindow = function aw_setChildWindow(childWindow) {
+    if (this.childWindow) {
+      this.childWindow.kill();
+    }
+    this.childWindow = childWindow;
+  };
+
+  AppWindow.prototype.unsetChildWindow = function aw_unsetChildWindow() {
+    if (this.childWindow) {
+      this.childWindow = null;
+    }
+  };
+
+  /**
+   * Get the previous window reference of current active one.
+   * @return {AppWindow} The previous one in the app sheet chain.
+   */
+  AppWindow.prototype.getPrev = function() {
+    var current = this.getActiveWindow();
+    if (current) {
+      return current.parentWindow;
+    } else {
+      return null;
+    }
+  };
+
+  /**
+   * Get the next window reference of current active one.
+   * @return {AppWindow} The next one in the app sheet chain.
+   */
+  AppWindow.prototype.getNext = function() {
+    var current = this.getActiveWindow();
+    if (current) {
+      return current.childWindow;
+    } else {
+      return null;
+    }
+  };
+
+  /**
+   * Get the active window reference in the app sheet chain.
+   * If there's no active window, return null.
+   * @return {AppWindow} The active window in the app sheet chain.
+   */
+  AppWindow.prototype.getActiveWindow = function() {
+    var app = this;
+    while (app) {
+      if (app.isActive()) {
+        return app;
+      }
+      app = app.childWindow;
+    }
+    return null;
+  };
+
+  /**
+   * Get the root window reference.
+   * If there's no parent, return ourself.
+   * @return {AppWindow} The first one in the app sheet chain.
+   */
+  AppWindow.prototype.getRootWindow = function() {
+    var app = this;
+    while (app.parentWindow) {
+      app = app.parentWindow;
+    }
+    return app;
+  };
+
+  /**
+   * Get the leaf window reference.
+   * If there's no child, return ourself.
+   * @return {AppWindow} The last one in the app sheet chain.
+   */
+  AppWindow.prototype.getLeafWindow = function() {
+    var app = this;
+    while (app.childWindow) {
+      app = app.childWindow;
+    }
+    return app;
   };
 
   exports.AppWindow = AppWindow;

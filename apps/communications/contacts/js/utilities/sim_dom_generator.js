@@ -1,3 +1,4 @@
+/* global _ */
 'use strict';
 
 // Generates the DOM for each button, depending

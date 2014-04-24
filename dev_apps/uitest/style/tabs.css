@@ -1,0 +1,78 @@
+/* ----------------------------------
+* Tabs
+* ---------------------------------- */
+
+@media (orientation: landscape)
+{
+  .bb-tablist {
+    right: 0;
+    width: 3.5rem;
+    height: 100%;
+  }
+
+  .bb-tablist > li {
+    width: 100%;
+    height: calc(100% / 3);
+  }
+}
+
+@media (orientation: portrait)
+{
+  .bb-tablist {
+    bottom: 0;
+    width: 100%;
+    height: 3.5rem;
+  }
+
+  .bb-tablist > li {
+    width: calc(100% / 3);
+    height: 100%;
+    float: left;
+  }
+}
+
+.bb-tablist {
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  bottom: 0;
+}
+
+.bb-tablist > li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bb-tablist > li > a {
+  font-size: 1.7rem;
+  text-decoration: none;
+  text-align: center;
+  color: #FFF;
+  float: left;
+  width: 100%;
+  height: 100%;
+  background: #000 no-repeat center top;
+  position: relative;
+  color: #fff;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.bb-tablist > li > a:active {
+  background-color: #00bbff;
+}
+
+/* Selected state */
+.bb-tablist > li > a:target,
+.bb-tablist > li > a[aria-selected="true"] {
+  color: #62c6f5
+}
+
+.bb-tablist a:target ~.bb-tabpanel,
+.bb-tablist a[aria-selected="true"] ~.bb-tabpanel {
+  z-index: 1;
+  visibility: visible;
+}

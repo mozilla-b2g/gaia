@@ -5,9 +5,6 @@ var CALENDAR_APP_MANIFEST = CALENDAR_APP + '/manifest.webapp';
 
 marionette('Notification.get():', function() {
 
-  // Disabled: bug 974734
-  return;
-
   var client = marionette.client({
     settings: {
       'ftu.manifestURL': null
@@ -210,6 +207,57 @@ marionette('Notification.get():', function() {
       });
     });
     assert.equal(error, false, 'empty title returned error: ' + error);
+    done();
+  });
+
+  test('desktop-notification-close removes notification', function(done) {
+    var notificationTitle = 'Title:' + Date.now();
+
+    // switch to calendar app and send notification
+    client.apps.launch(CALENDAR_APP);
+    client.apps.switchToApp(CALENDAR_APP);
+    client.executeScript(function(title) {
+      var notification = new Notification(title);
+    }, [notificationTitle]);
+
+    // switch to system app and send desktop-notification-close
+    client.switchToFrame();
+    var error = client.executeAsyncScript(function(manifest) {
+      var container =
+        document.getElementById('desktop-notifications-container');
+      var selector = '[data-manifest-u-r-l="' + manifest + '"]';
+      var nodes = container.querySelectorAll(selector);
+      if (nodes.length === 0) {
+        marionetteScriptFinished('no node to query');
+      }
+      for (var i = nodes.length - 1; i >= 0; i--) {
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('mozContentEvent', true, true, {
+          type: 'desktop-notification-close',
+          id: nodes[i].dataset.notificationId
+        });
+        window.dispatchEvent(event);
+      }
+      marionetteScriptFinished(false);
+    }, [CALENDAR_APP_MANIFEST]);
+    assert.equal(error, false, 'desktop-notification-close error: ' + error);
+
+    // switch back to calendar, and fetch notifications
+    client.apps.launch(CALENDAR_APP);
+    client.apps.switchToApp(CALENDAR_APP);
+    var error = client.executeAsyncScript(function() {
+      var promise = Notification.get();
+      promise.then(function(notifications) {
+        if (notifications && notifications.length !== 0) {
+          marionetteScriptFinished('notification still present');
+        }
+        // success, return no error
+        marionetteScriptFinished(false);
+      }, function(error) {
+        marionetteScriptFinished('promise.then error: ' + error);
+      });
+    });
+    assert.equal(error, false, 'desktop-notification-close error: ' + error);
     done();
   });
 

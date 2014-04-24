@@ -12,9 +12,15 @@ var IccHandlerForCallSettings = (function(window, document, undefined) {
   var CARDSTATE_MAPPING = {
    'pinRequired' : 'simCardLockedMsg',
    'pukRequired' : 'simCardLockedMsg',
+   'permanentBlocked': 'simCardBlockedMsg',
    'networkLocked' : 'simLockedPhone',
    'serviceProviderLocked' : 'simLockedPhone',
    'corporateLocked' : 'simLockedPhone',
+   'network1Locked' : 'simLockedPhone',
+   'network2Locked' : 'simLockedPhone',
+   'hrpdNetworkLocked' : 'simLockedPhone',
+   'ruimCorporateLocked' : 'simLockedPhone',
+   'ruimServiceProviderLocked' : 'simLockedPhone',
    'unknown' : 'unknownSimCardState',
    'illegal' : 'simCardIllegal',
    'absent' : 'noSimCard',
@@ -265,7 +271,7 @@ var IccHandlerForCallSettings = (function(window, document, undefined) {
 /**
  * Startup.
  */
-navigator.mozL10n.ready(function loadWhenIdle() {
+navigator.mozL10n.once(function loadWhenIdle() {
   var idleObserver = {
     time: 3,
     onidle: function() {

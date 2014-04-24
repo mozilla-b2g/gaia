@@ -5,7 +5,10 @@
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
          MockContacts, ActivityHandler, Recipients, MockMozActivity,
          ThreadListUI, ContactRenderer, UIEvent, Drafts, OptionMenu,
-         ActivityPicker, KeyEvent, MockNavigatorSettings, Draft */
+         ActivityPicker, KeyEvent, MockNavigatorSettings, MockContactRenderer,
+         Draft, ErrorDialog, MockStickyHeader, MultiSimActionButton,
+         MockLazyLoader
+*/
 
 'use strict';
 
@@ -13,49 +16,54 @@ mocha.setup({ globals: ['alert'] });
 
 // For Desktop testing
 if (!navigator.mozContacts) {
-  requireApp('sms/js/desktop_contact_mock.js');
+  require('/js/desktop_contact_mock.js');
 }
 
-requireApp('sms/js/compose.js');
-requireApp('sms/js/drafts.js');
-requireApp('sms/js/threads.js');
-requireApp('sms/js/thread_ui.js');
-requireApp('sms/js/thread_list_ui.js');
-requireApp('sms/js/fixed_header.js');
-requireApp('sms/js/utils.js');
-requireApp('sms/js/message_manager.js');
-require('/shared/js/async_storage.js');
+require('/js/compose.js');
+require('/js/drafts.js');
+require('/js/threads.js');
+require('/js/thread_ui.js');
+require('/js/thread_list_ui.js');
+require('/js/utils.js');
 
-requireApp('sms/test/unit/mock_time_headers.js');
-requireApp('sms/test/unit/mock_alert.js');
-requireApp('sms/test/unit/mock_link_action_handler.js');
-requireApp('sms/test/unit/mock_attachment.js');
-requireApp('sms/test/unit/mock_attachment_menu.js');
-requireApp('sms/test/unit/mock_l10n.js');
-requireApp('sms/test/unit/mock_utils.js');
-requireApp('sms/test/unit/mock_navigatormoz_sms.js');
-requireApp('sms/test/unit/mock_moz_sms_filter.js');
-requireApp('sms/test/unit/mock_link_helper.js');
-requireApp('sms/test/unit/mock_moz_activity.js');
-requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('sms/test/unit/mock_messages.js');
-requireApp('sms/test/unit/mock_contact.js');
-requireApp('sms/test/unit/mock_contacts.js');
-requireApp('sms/test/unit/mock_recipients.js');
-requireApp('sms/test/unit/mock_settings.js');
-requireApp('sms/test/unit/mock_activity_picker.js');
-requireApp('sms/test/unit/mock_action_menu.js');
-requireApp('sms/test/unit/mock_dialog.js');
-requireApp('sms/test/unit/mock_smil.js');
-requireApp('sms/test/unit/mock_custom_dialog.js');
-requireApp('sms/test/unit/mock_url.js');
-requireApp('sms/test/unit/mock_compose.js');
-requireApp('sms/test/unit/mock_activity_handler.js');
-requireApp('sms/test/unit/mock_information.js');
+require('/test/unit/mock_time_headers.js');
+require('/test/unit/mock_alert.js');
+require('/test/unit/mock_link_action_handler.js');
+require('/test/unit/mock_attachment.js');
+require('/test/unit/mock_attachment_menu.js');
+require('/test/unit/mock_l10n.js');
+require('/test/unit/mock_utils.js');
+require('/test/unit/mock_navigatormoz_sms.js');
+require('/test/unit/mock_moz_sms_filter.js');
+require('/test/unit/mock_link_helper.js');
+require('/test/unit/mock_moz_activity.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/test/unit/mock_messages.js');
+require('/test/unit/mock_contact.js');
+require('/test/unit/mock_contacts.js');
+require('/test/unit/mock_recipients.js');
+require('/test/unit/mock_settings.js');
+require('/test/unit/mock_activity_picker.js');
+require('/test/unit/mock_action_menu.js');
+require('/test/unit/mock_dialog.js');
+require('/test/unit/mock_smil.js');
+require('/test/unit/mock_custom_dialog.js');
+require('/test/unit/mock_url.js');
+require('/test/unit/mock_compose.js');
+require('/test/unit/mock_activity_handler.js');
+require('/test/unit/mock_information.js');
 require('/test/unit/mock_contact_renderer.js');
+require('/test/unit/mock_message_manager.js');
+
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
+require('/shared/test/unit/mocks/mock_sticky_header.js');
+require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
+require('/shared/test/unit/mocks/mock_audio.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_async_storage.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
+  'asyncStorage',
   'Attachment',
   'AttachmentMenu',
   'Utils',
@@ -75,7 +83,12 @@ var mocksHelperForThreadUI = new MocksHelper([
   'TimeHeaders',
   'ContactRenderer',
   'Information',
-  'ContactPhotoHelper'
+  'ContactPhotoHelper',
+  'MessageManager',
+  'StickyHeader',
+  'MultiSimActionButton',
+  'Audio',
+  'LazyLoader'
 ]);
 
 mocksHelperForThreadUI.init();
@@ -84,9 +97,10 @@ suite('thread_ui.js >', function() {
   var input;
   var subject;
   var container;
-  var sendButton;
+  var sendButton, sendButtonSimInfo;
   var composeForm;
   var recipientsList;
+  var sticky;
 
   var realMozL10n;
   var realMozMobileMessage;
@@ -167,6 +181,8 @@ suite('thread_ui.js >', function() {
     subject = document.getElementById('messages-subject-input');
     container = document.getElementById('messages-container');
     sendButton = document.getElementById('messages-send-button');
+    sendButtonSimInfo =
+      document.getElementById('messages-dual-sim-information');
     composeForm = document.getElementById('messages-compose-form');
     recipientsList = document.getElementById('messages-recipients-list');
 
@@ -177,6 +193,7 @@ suite('thread_ui.js >', function() {
     ThreadListUI.init();
     realMozMobileMessage = ThreadUI._mozMobileMessage;
     ThreadUI._mozMobileMessage = MockNavigatormozMobileMessage;
+    sticky = MockStickyHeader;
   });
 
   teardown(function() {
@@ -185,6 +202,7 @@ suite('thread_ui.js >', function() {
     MockNavigatormozMobileMessage.mTeardown();
     mocksHelper.teardown();
     ThreadUI._mozMobileMessage = realMozMobileMessage;
+    sticky = null;
   });
 
   suite('scrolling', function() {
@@ -300,8 +318,30 @@ suite('thread_ui.js >', function() {
     });
 
     suite('rendering suggestions list', function() {
+      var suggestionRenderer, unknownRenderer;
+      var contact, unknown;
       setup(function() {
-        this.sinon.spy(ContactRenderer.prototype, 'render');
+        suggestionRenderer = new MockContactRenderer();
+        unknownRenderer = new MockContactRenderer();
+        sinon.spy(suggestionRenderer, 'render');
+        sinon.spy(unknownRenderer, 'render');
+
+        this.sinon.stub(ContactRenderer, 'flavor').throws();
+        ContactRenderer.flavor.withArgs('suggestion')
+          .returns(suggestionRenderer);
+        ContactRenderer.flavor.withArgs('suggestionUnknown')
+          .returns(unknownRenderer);
+
+        // create a normal and an unknown contact
+        contact = new MockContact();
+        unknown = {
+          name: ['unknown '],
+          tel: ['+33123456999 '],
+          source: 'unknown'
+        };
+
+        this.sinon.stub(Contacts, 'findByString').yields([contact, unknown]);
+
         ThreadUI.recipients.add({
           number: '888'
         });
@@ -318,15 +358,26 @@ suite('thread_ui.js >', function() {
       });
 
       test('does display found contacts', function() {
-        sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
+        sinon.assert.calledWithMatch(suggestionRenderer.render, {
+          contact: contact,
           input: '999',
           target: container.querySelector('ul.contact-list')
+        });
+
+        sinon.assert.calledWithMatch(unknownRenderer.render, {
+          contact: unknown,
+           input: '999',
+           target: container.querySelector('ul.contact-list')
         });
       });
 
       test('does not display entered recipients', function() {
-        sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
-          skip: ['888']
+
+        sinon.assert.calledWithMatch(suggestionRenderer.render, {
+            skip: ['888']
+        });
+        sinon.assert.calledWithMatch(unknownRenderer.render, {
+           skip: ['888']
         });
       });
     });
@@ -528,7 +579,7 @@ suite('thread_ui.js >', function() {
             number: '999'
           });
 
-          Compose.append(mockAttachment(300 * 1024));
+          Compose.append(mockAttachment(295 * 1024));
 
           assert.isFalse(sendButton.disabled);
           Compose.append('Hola');
@@ -1073,7 +1124,7 @@ suite('thread_ui.js >', function() {
       test('banner localized', function() {
         assert.ok(
           localize.calledWith(banner.querySelector('p'),
-            'messages-exceeded-length-text')
+            'message-exceeded-max-length')
         );
       });
 
@@ -2080,6 +2131,10 @@ suite('thread_ui.js >', function() {
         subject = ThreadUI.getMessageContainer(+fiveMinAgo);
       });
 
+      test('New created block should have message-list class', function() {
+        assert.isTrue(subject.classList.contains('message-list'));
+      });
+
       test('has both the date and the time', function() {
         var header = subject.previousElementSibling;
         assert.notEqual(header.dataset.timeOnly, 'true');
@@ -2351,11 +2406,20 @@ suite('thread_ui.js >', function() {
         subject: 'subject'
       }));
     });
+
+    test('correctly sets the iccId in the dataset', function() {
+      var node;
+
+      node = ThreadUI.buildMessageDOM(MockMessages.sms({ iccId: 'A' }));
+      assert.equal(node.dataset.iccId, 'A');
+
+      node = ThreadUI.buildMessageDOM(MockMessages.mms({ iccId: 'A' }));
+      assert.equal(node.dataset.iccId, 'A');
+    });
   });
 
   suite('renderMessages()', function() {
     setup(function() {
-      // todo: use the MessageManager mock instead
       this.sinon.stub(MessageManager, 'getMessages');
       this.sinon.stub(MessageManager, 'markThreadRead');
       ThreadUI.renderMessages(1);
@@ -2377,6 +2441,7 @@ suite('thread_ui.js >', function() {
         id: 1,
         threadId: 8,
         sender: '123456',
+        iccId: 'A',
         type: 'mms',
         delivery: 'not-downloaded',
         deliveryInfo: [{receiver: null, deliveryStatus: 'pending'}],
@@ -2388,6 +2453,7 @@ suite('thread_ui.js >', function() {
         id: 2,
         threadId: 8,
         sender: '123456',
+        iccId: 'B',
         type: 'mms',
         delivery: 'not-downloaded',
         deliveryInfo: [{receiver: null, deliveryStatus: 'manual'}],
@@ -2399,6 +2465,7 @@ suite('thread_ui.js >', function() {
         id: 3,
         threadId: 8,
         sender: '123456',
+        iccId: 'B',
         type: 'mms',
         delivery: 'not-downloaded',
         deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
@@ -2410,6 +2477,7 @@ suite('thread_ui.js >', function() {
         id: 4,
         threadId: 8,
         sender: '123456',
+        iccId: 'B',
         type: 'mms',
         delivery: 'not-downloaded',
         deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
@@ -2576,8 +2644,8 @@ suite('thread_ui.js >', function() {
             assert.equal(showMessageErrorSpy.called, false);
           });
         });
-        suite('response non-active sim card error', function() {
 
+        suite('response non-active sim card error', function() {
           setup(function() {
             MessageManager.retrieveMMS.returnValues[0].error =
             {
@@ -2585,10 +2653,12 @@ suite('thread_ui.js >', function() {
             };
             MessageManager.retrieveMMS.returnValues[0].onerror();
           });
+
           test('Message ID code/option for dialog', function() {
             sinon.assert.calledWithMatch(showMessageErrorSpy,
               'NonActiveSimCardError', { messageId: message.id });
           });
+
           test('Error dialog params and show', function() {
             var code = MockErrorDialog.calls[0][0];
             var opts = MockErrorDialog.calls[0][1];
@@ -2599,14 +2669,30 @@ suite('thread_ui.js >', function() {
           });
 
           test('confirmHandler called with correct state', function() {
-            this.sinon.spy(Settings, 'switchSimHandler');
+            this.sinon.spy(Settings, 'switchMmsSimHandler');
+            this.sinon.stub(Settings, 'getServiceIdByIccId').returns(null);
+            Settings.getServiceIdByIccId.withArgs('A').returns(0);
+            Settings.getServiceIdByIccId.withArgs('B').returns(1);
+
             MockErrorDialog.calls[0][1].confirmHandler();
             assert.isTrue(element.classList.contains('pending'));
             assert.isFalse(element.classList.contains('error'));
             sinon.assert.calledWith(localize, button, 'downloading');
-            sinon.assert.called(Settings.switchSimHandler);
+            sinon.assert.calledWith(Settings.switchMmsSimHandler, 1);
+          });
+
+          test('fail if the SIM is not present anymore', function() {
+            this.sinon.spy(Settings, 'switchMmsSimHandler');
+            this.sinon.stub(Settings, 'getServiceIdByIccId').returns(null);
+
+            MockErrorDialog.calls[0][1].confirmHandler();
+            assert.isFalse(element.classList.contains('pending'));
+            assert.isTrue(element.classList.contains('error'));
+            sinon.assert.notCalled(Settings.switchMmsSimHandler);
+            assert.equal(MockErrorDialog.calls[1][0], 'NoSimCardError');
           });
         });
+
         suite('response error with other errorCode', function() {
           setup(function() {
             MessageManager.retrieveMMS.returnValues[0].error =
@@ -3026,7 +3112,6 @@ suite('thread_ui.js >', function() {
       ThreadUI.appendMessage(message);
 
       this.sinon.stub(window, 'confirm');
-      // TODO use MockMessageManager instead
       request = {};
       this.sinon.stub(MessageManager, 'getMessage').returns(request);
       this.sinon.stub(MessageManager, 'resendMessage');
@@ -3206,18 +3291,21 @@ suite('thread_ui.js >', function() {
       link = null;
       MockOptionMenu.mTeardown();
     });
+
     test(' "click" on bubble (not in link-action) has no effect', function() {
       messageDOM.click();
       assert.ok(LinkActionHandler.onClick.calledOnce);
       // As there is no action, we are not going to show any menu
       assert.isFalse(ThreadUI.promptContact.calledOnce);
     });
+
     test(' "long-press" on link-action is not redirected to "onClick"',
       function() {
       // Dispatch custom event for testing long press
       link.dispatchEvent(contextMenuEvent);
       assert.isFalse(LinkActionHandler.onClick.calledOnce);
     });
+
     test(' "long-press" on link-action shows the option menu from the bubble',
       function() {
       // Dispatch custom event for testing long press
@@ -3225,43 +3313,79 @@ suite('thread_ui.js >', function() {
       // It should show the list of options of the bubble (forward, delete...)
       assert.ok(MockOptionMenu.calls.length, 1);
     });
-    test(' "long-press" on bubble shows a menu with delete as first option',
+
+    test(' "long-press" on bubble shows a menu with forward as first option',
       function() {
       // Dispatch custom event for testing long press
       link.dispatchEvent(contextMenuEvent);
       assert.ok(MockOptionMenu.calls.length, 1);
       // Is first element of the menu 'forward'?
-      assert.equal(MockOptionMenu.calls[0].items[0].l10nId, 'forward');
-    });
-    test(' "long-press" on bubble shows a menu with delete option',
-      function() {
-      // Dispatch custom event for testing long press
-      link.dispatchEvent(contextMenuEvent);
-      assert.ok(MockOptionMenu.calls.length, 1);
+      assert.equal(
+        MockOptionMenu.calls[0].items[0].l10nId,
+        'forward');
       // Show menu with 'delete' option
-      assert.equal(MockOptionMenu.calls[0].items[2].l10nId, 'delete');
+      assert.equal(
+        MockOptionMenu.calls[0].items[1].l10nId,
+        'view-message-report'
+      );
+      // Show menu with 'delete' option
+      assert.equal(
+        MockOptionMenu.calls[0].items[2].l10nId,
+        'delete'
+      );
     });
+
     test(' "long-press" on an error bubble shows a menu with resend option',
       function() {
+        // Create a message with a delivery error:
+        ThreadUI.appendMessage({
+          id: 9,
+          type: 'sms',
+          body: 'This is a test with 123123123',
+          delivery: 'error',
+          timestamp: Date.now()
+        });
 
-      // Create a message with a delivery error:
-      ThreadUI.appendMessage({
-        id: 9,
-        type: 'sms',
-        body: 'This is a test with 123123123',
-        delivery: 'error',
-        timestamp: Date.now()
-      });
+        // Retrieve the message node
+        link = document.getElementById('message-9').querySelector('a');
 
-      // Retrieve the message node
-      link = document.getElementById('message-9').querySelector('a');
+        // Dispatch custom event for testing long press
+        link.dispatchEvent(contextMenuEvent);
+        assert.ok(MockOptionMenu.calls.length, 1);
 
-      // Dispatch custom event for testing long press
-      link.dispatchEvent(contextMenuEvent);
-      assert.ok(MockOptionMenu.calls.length, 1);
+        // Confirm that the menu contained a "resend-message" option
+        assert.equal(MockOptionMenu.calls[0].items[3].l10nId, 'resend-message');
+    });
 
-      // Confirm that the menu contained a "resend-message" option
-      assert.equal(MockOptionMenu.calls[0].items[2].l10nId, 'resend-message');
+    test(' "long-press" on an not downloaded message ' +
+      'bubble shows a menu without forward option',
+      function() {
+        // Create a message with an undownloaded attachment:
+        ThreadUI.appendMessage({
+          id: 9,
+          type: 'mms',
+          body: 'This is mms message test without attachment',
+          delivery: 'received',
+          subject:'',
+          attachments: null,
+          timestamp: Date.now()
+        });
+
+        // Retrieve the message node
+        var messageNode = document.querySelector('#message-9 section');
+
+        // Dispatch custom event for testing long press
+        messageNode.dispatchEvent(contextMenuEvent);
+        assert.ok(MockOptionMenu.calls.length, 1);
+        assert.ok(MockOptionMenu.calls[0].items.length, 4);
+
+        // Confirm that the menu contained a "resend-message" option
+        for (var i = MockOptionMenu.calls[0].length - 1; i >= 0; i--) {
+          assert.notEqual(
+            MockOptionMenu.calls[0].items[i].l10nId,
+            'forward'
+          );
+        }
     });
   });
 
@@ -3288,29 +3412,34 @@ suite('thread_ui.js >', function() {
         sentMsg: ThreadUI.container.querySelector('.sent')
       };
     });
+
     test('clicking on "pack-end" aside in an error message' +
       'triggers a confirmation dialog',
       function() {
       this.elems.errorMsg.querySelector('.pack-end').click();
       assert.equal(window.confirm.callCount, 1);
     });
+
     test('clicking on p element in an error message' +
       'does not triggers a confirmation  dialog',
       function() {
       this.elems.errorMsg.querySelector('.bubble p').click();
       assert.equal(window.confirm.callCount, 0);
     });
+
     test('clicking on an error message does not trigger a confirmation dialog',
       function() {
       this.elems.errorMsg.click();
       assert.equal(window.confirm.callCount, 0);
     });
+
     test('clicking on "pack-end" aside in an error message and accepting the ' +
       'confirmation dialog triggers a message re-send operation', function() {
       window.confirm.returns(true);
       this.elems.errorMsg.querySelector('.pack-end').click();
       assert.equal(ThreadUI.resendMessage.callCount, 1);
     });
+
     test('clicking on an error message bubble and rejecting the ' +
       'confirmation dialog does not trigger a message re-send operation',
       function() {
@@ -3318,6 +3447,7 @@ suite('thread_ui.js >', function() {
       this.elems.errorMsg.querySelector('.bubble').click();
       assert.equal(ThreadUI.resendMessage.callCount, 0);
     });
+
     test('clicking on a sent message does not trigger a confirmation dialog ' +
       'nor a message re-send operation', function() {
       this.elems.sentMsg.click();
@@ -3848,141 +3978,263 @@ suite('thread_ui.js >', function() {
   });
 
   suite('Sending Behavior (onSendClick)', function() {
-    var realComposeisEmpty;
-    var realMessageManager;
-    var realEnableSend;
     var spy;
 
-    suiteSetup(function() {
-      realEnableSend = ThreadUI.enableSend;
-      realComposeisEmpty = Compose.isEmpty;
-      realMessageManager = MessageManager;
+    function clickButton() {
+      clickButtonAndSelectSim(0);
+    }
 
-      ThreadUI.enableSend = function() {
-        ThreadUI.sendButton.disabled = false;
-      };
-
-      Compose.isEmpty = function() {
-        return false;
-      };
-
-      var MockMessageManager = {
-        activity: {
-          recipients: []
-        }
-      };
-
-      ['sendMMS', 'sendSMS'].forEach(function(prop) {
-        MockMessageManager[prop] = function() {
-          MockMessageManager[prop].called = true;
-          MockMessageManager[prop].calledWith = [].slice.call(arguments);
-        };
-
-        MockMessageManager[prop].mSetup = function() {
-          MockMessageManager[prop].called = false;
-          MockMessageManager[prop].calledWith = null;
-        };
-
-        MockMessageManager[prop].mTeardown = function() {
-          delete MockMessageManager[prop].called;
-          delete MockMessageManager[prop].calledWith;
-        };
-      });
-
-      window.MessageManager = MockMessageManager;
-    });
-
-    suiteTeardown(function() {
-      ThreadUI.enableSend = realEnableSend;
-      Compose.isEmpty = realComposeisEmpty;
-      window.MessageManager = realMessageManager;
-      realMessageManager = null;
-    });
+    function clickButtonAndSelectSim(serviceId) {
+      ThreadUI.onSendClick();
+      // we get a string from the MultiSimActionButton
+      ThreadUI.simSelectedCallback(undefined, '' + serviceId);
+    }
 
     setup(function() {
       window.location.hash = '#new';
-      MessageManager.sendMMS.mSetup();
-      MessageManager.sendSMS.mSetup();
-    });
+      this.sinon.stub(MessageManager, 'sendSMS');
+      this.sinon.stub(MessageManager, 'sendMMS');
 
-    teardown(function() {
-      MessageManager.sendMMS.mTeardown();
-      MessageManager.sendSMS.mTeardown();
-    });
-
-    test('SMS, 1 Recipient, stays in view', function() {
-      ThreadUI.recipients.add({
-        number: '999'
+      this.sinon.stub(ThreadUI, 'enableSend', function() {
+        ThreadUI.sendButton.disabled = false;
       });
 
-      Compose.append('foo');
-
-      ThreadUI.onSendClick();
-
-      var calledWith = MessageManager.sendSMS.calledWith;
-      assert.ok(MessageManager.sendSMS.called);
-      assert.deepEqual(calledWith[0], ['999']);
-      assert.deepEqual(calledWith[1], 'foo');
-      assert.equal(window.location.hash, '#new');
+      this.sinon.stub(Compose, 'isEmpty').returns(false);
+      this.sinon.stub(Settings, 'hasSeveralSim').returns(false);
+      this.sinon.stub(Settings, 'isDualSimDevice').returns(false);
     });
 
-    test('MMS, 1 Recipient, stays in view', function() {
+    test('SMS, 1 Recipient, moves to thread', function() {
+      var body = 'foo';
+      var recipient = '999';
+
       ThreadUI.recipients.add({
-        number: '999'
+        number: recipient
+      });
+
+      Compose.append(body);
+
+      clickButton();
+
+      sinon.assert.calledWithMatch(MessageManager.sendSMS, {
+        recipients: [recipient],
+        content: body,
+        serviceId: 0
+      });
+
+      var sentMessage = MockMessages.sms({
+        body: body,
+        receiver: recipient
+      });
+      ThreadUI.onMessageSending(sentMessage);
+
+      assert.equal(window.location.hash, '#thread=' + sentMessage.threadId);
+    });
+
+    test('MMS, 1 Recipient, moves to thread', function() {
+      var recipient = '999';
+
+      ThreadUI.recipients.add({
+        number: recipient
       });
 
       Compose.append(mockAttachment(512));
 
-      ThreadUI.onSendClick();
+      clickButton();
 
-      assert.ok(MessageManager.sendMMS.called);
-      assert.deepEqual(MessageManager.sendMMS.calledWith[0].recipients,
-                       ['999']);
-      assert.equal(window.location.hash, '#new');
+      sinon.assert.calledWithMatch(MessageManager.sendMMS, {
+        recipients: [recipient],
+        serviceId: 0
+      });
+
+      var sentMessage = MockMessages.mms({
+        receivers: [recipient]
+      });
+      ThreadUI.onMessageSending(sentMessage);
+
+      assert.equal(window.location.hash, '#thread=' + sentMessage.threadId);
     });
 
-    test('SMS, >1 Recipient, moves to thread list', function(done) {
+    suite('SMS, >1 Recipient,', function() {
+      function sendSmsToSeveralRecipients() {
+        var recipients = ['999', '888'];
+        var body = 'foo';
 
-      ThreadUI.recipients.add({
-        number: '999'
-      });
-      ThreadUI.recipients.add({
-        number: '888'
-      });
+        recipients.forEach(function(recipient) {
+          ThreadUI.recipients.add({
+            number: recipient
+          });
+        });
 
-      Compose.append('foo');
+        Compose.append(body);
 
-      window.onhashchange = function() {
+        clickButton();
+
+        sinon.assert.calledWithMatch(
+          MessageManager.sendSMS, {
+          recipients: recipients,
+          content: body,
+          serviceId: 0
+        });
+
+        recipients.forEach(function(recipient) {
+          var sentMessage = MockMessages.sms({
+            body: body,
+            receiver: recipient
+          });
+
+          ThreadUI.onMessageSending(sentMessage);
+        });
+      }
+
+      test('moves to thread list', function() {
+        sendSmsToSeveralRecipients();
         assert.equal(window.location.hash, '#thread-list');
-        window.onhashchange = null;
-        done();
-      };
+      });
 
-      ThreadUI.onSendClick();
+      test('then closes the activity if we\'re in an an activity', function() {
+        var mockActivity = {
+          postResult: sinon.stub()
+        };
 
-      var calledWith = MessageManager.sendSMS.calledWith;
-      assert.ok(MessageManager.sendSMS.called);
-      assert.deepEqual(calledWith[0], ['999', '888']);
-      assert.deepEqual(calledWith[1], 'foo');
+        ActivityHandler.currentActivity.new = mockActivity;
+        ThreadUI.enableActivityRequestMode();
+
+        sendSmsToSeveralRecipients();
+        assert.equal(window.location.hash, '#thread-list');
+        this.sinon.clock.tick(3000);
+        sinon.assert.called(mockActivity.postResult);
+      });
     });
 
-    test('MMS, >1 Recipient, stays in view', function() {
-      ThreadUI.recipients.add({
-        number: '999'
-      });
-      ThreadUI.recipients.add({
-        number: '888'
+    test('MMS, >1 Recipient, moves to thread', function() {
+      var recipients = ['999', '888'];
+
+      recipients.forEach(function(recipient) {
+        ThreadUI.recipients.add({
+          number: recipient
+        });
       });
 
       Compose.append(mockAttachment(512));
 
-      ThreadUI.onSendClick();
+      clickButton();
 
-      assert.ok(MessageManager.sendMMS.called);
-      assert.deepEqual(MessageManager.sendMMS.calledWith[0].recipients,
-                       ['999', '888']);
       assert.equal(window.location.hash, '#new');
+      sinon.assert.calledWithMatch(MessageManager.sendMMS, {
+        recipients: recipients,
+        serviceId: 0
+      });
+
+      var sentMessage = MockMessages.mms({
+        receivers: recipients
+      });
+
+      ThreadUI.onMessageSending(sentMessage);
+
+      assert.equal(window.location.hash, '#thread=' + sentMessage.threadId);
     });
+
+    suite('DSDS behavior', function() {
+      setup(function() {
+        Settings.hasSeveralSim.returns(true);
+        Settings.isDualSimDevice.returns(true);
+      });
+
+      test('MMS, SMS serviceId is the same than the MMS serviceId, sends asap',
+      function() {
+        Settings.mmsServiceId = 1;
+        var targetServiceId = 1;
+
+        var recipient = '999';
+
+        ThreadUI.recipients.add({
+          number: recipient
+        });
+
+        Compose.append(mockAttachment(512));
+
+        clickButtonAndSelectSim(targetServiceId);
+
+        sinon.assert.calledWithMatch(MessageManager.sendMMS, {
+          recipients: [recipient],
+          serviceId: 1
+        });
+      });
+
+      test('SMS, SMS serviceId is different than MMS serviceId, sends asap',
+      function() {
+        Settings.mmsServiceId = 1;
+        var targetServiceId = 0;
+
+        var recipient = '999';
+        var body = 'some useless text';
+
+        ThreadUI.recipients.add({
+          number: recipient
+        });
+
+        Compose.append(body);
+
+        clickButtonAndSelectSim(targetServiceId);
+
+        sinon.assert.calledWithMatch(MessageManager.sendSMS, {
+          recipients: [recipient],
+          content: body,
+          serviceId: 0
+        });
+      });
+
+      suite('MMS, SMS serviceId is different than MMS serviceId,', function() {
+        var recipient, targetServiceId;
+
+        setup(function() {
+          this.sinon.spy(window, 'ErrorDialog');
+
+          Settings.mmsServiceId = 1;
+          targetServiceId = 0;
+
+          recipient = '999';
+
+          ThreadUI.recipients.add({
+            number: recipient
+          });
+
+          Compose.append(mockAttachment(512));
+
+          clickButtonAndSelectSim(targetServiceId);
+        });
+
+        test('asks user', function() {
+          sinon.assert.calledWith(
+            ErrorDialog, 'NonActiveSimCardToSendError'
+          );
+        });
+
+        test('user accepts, send the message with switching', function() {
+          ErrorDialog.yieldTo('confirmHandler');
+
+          sinon.assert.calledWithMatch(MessageManager.sendMMS, {
+            recipients: [recipient],
+            serviceId: targetServiceId
+          });
+        });
+      });
+
+      suite('SIM picker', function() {
+        test('loads and translates SIM picker', function() {
+          var simPickerElt = document.getElementById('sim-picker');
+          var translateSpy = this.sinon.spy(MockL10n, 'translate');
+          var loadSpy = this.sinon.spy(MockLazyLoader, 'load');
+
+          ThreadUI.onBeforeEnter();
+
+          sinon.assert.calledWith(translateSpy, simPickerElt);
+          sinon.assert.calledWith(loadSpy, [simPickerElt]);
+        });
+      });
+    });
+
 
     test('Deletes draft if there was a draft', function() {
       this.sinon.spy(Drafts, 'delete');
@@ -3994,7 +4246,7 @@ suite('thread_ui.js >', function() {
       });
       Compose.append('foo');
 
-      ThreadUI.onSendClick();
+      clickButton();
 
       sinon.assert.calledOnce(Drafts.delete);
       sinon.assert.calledOnce(Drafts.store);
@@ -4012,14 +4264,13 @@ suite('thread_ui.js >', function() {
       });
       Compose.append('foo');
 
-      ThreadUI.onSendClick();
+      clickButton();
 
       assert.isTrue(spy.calledOnce);
     });
 
     suite('sendMMS errors', function() {
       setup(function() {
-        this.sinon.spy(MessageManager, 'sendMMS');
         this.sinon.spy(MockErrorDialog.prototype, 'show');
 
         ThreadUI.recipients.add({
@@ -4028,16 +4279,16 @@ suite('thread_ui.js >', function() {
 
         Compose.append(mockAttachment(512));
 
-        sendButton.click();
+        clickButton();
       });
 
       test('NotFoundError', function() {
-        MessageManager.sendMMS.callArg(2, { name: 'NotFoundError' });
+        MessageManager.sendMMS.yieldTo('onerror', { name: 'NotFoundError' });
         sinon.assert.notCalled(MockErrorDialog.prototype.show);
       });
 
       test('Generic error', function() {
-        MessageManager.sendMMS.callArg(2, { name: 'GenericError' });
+        MessageManager.sendMMS.yieldTo('onerror', { name: 'GenericError' });
         sinon.assert.called(MockErrorDialog.prototype.show);
       });
     });
@@ -4054,6 +4305,13 @@ suite('thread_ui.js >', function() {
     test('assimilate called after mousedown on picker button', function() {
       ThreadUI.contactPickButton.dispatchEvent(new CustomEvent('mousedown'));
       assert.ok(ThreadUI.assimilateRecipients.called);
+    });
+
+    test('Click event on picker button should not be propagate', function() {
+      var event = new MouseEvent('click', { bubbles: true, cancelable: true });
+      this.sinon.spy(event, 'stopPropagation');
+      ThreadUI.contactPickButton.dispatchEvent(event);
+      sinon.assert.called(event.stopPropagation);
     });
 
     suite('Recipients.View.isFocusable', function() {
@@ -4152,6 +4410,12 @@ suite('thread_ui.js >', function() {
   suite('initSentAudio', function() {
     test('calling function does not throw uncaught exception ', function() {
       assert.doesNotThrow(ThreadUI.initSentAudio);
+    });
+
+    test('correctly creates the audio element', function() {
+      ThreadUI.initSentAudio();
+      assert.isTrue(ThreadUI.sentAudio.src.endsWith('/sounds/sent.opus'));
+      assert.equal(ThreadUI.sentAudio.mozAudioChannelType, 'notification');
     });
   });
 
@@ -4495,6 +4759,7 @@ suite('thread_ui.js >', function() {
       setup(function() {
         this.sinon.stub(ThreadUI, 'isKeyboardDisplayed').returns(false);
         this.sinon.stub(ThreadUI, 'stopRendering');
+        ThreadUI.enableActivityRequestMode();
       });
 
       test('Call postResult when there is an activity', function() {
@@ -4505,7 +4770,7 @@ suite('thread_ui.js >', function() {
         ActivityHandler.currentActivity.new = mockActivity;
 
         ThreadUI.back();
-        assert.isTrue(mockActivity.postResult.called);
+        sinon.assert.called(mockActivity.postResult);
       });
     });
 
@@ -4791,9 +5056,8 @@ suite('thread_ui.js >', function() {
         ThreadUI.showOptions();
         options = MockOptionMenu.calls[0].items;
         assert.equal(MockOptionMenu.calls.length, 1);
-        assert.equal(options.length, 3);
+        assert.equal(options.length, 2);
         assert.equal(options[0].l10nId, 'add-subject');
-        assert.equal(options[1].l10nId, 'settings');
       });
     });
 
@@ -4815,9 +5079,6 @@ suite('thread_ui.js >', function() {
       });
       test('should show option for deleting messages', function() {
         assert.equal(options[1].l10nId, 'deleteMessages-label');
-      });
-      test('should show settings options last', function() {
-        assert.equal(options[options.length - 2].l10nId, 'settings');
       });
     });
   });
@@ -4889,6 +5150,84 @@ suite('thread_ui.js >', function() {
       ThreadUI.cancelEdit();
       assert.isTrue(!mainWrapper.classList.contains('edit'));
       assert.isTrue(!mainWrapper.classList.contains('edit'));
+    });
+  });
+
+  suite('onMessageSending()', function() {
+    // some more tests are in the "sending behavior" part
+
+    setup(function() {
+      this.sinon.stub(ThreadUI, 'appendMessage');
+
+      window.location.hash = '#thread=1';
+    });
+
+    teardown(function() {
+      Threads.clear();
+    });
+
+
+    test('should append message if the user is in correct thread', function() {
+      var message = MockMessages.sms({
+        threadId: 1
+      });
+
+      ThreadUI.onMessageSending(message);
+      sinon.assert.called(ThreadUI.appendMessage);
+    });
+
+    test('should do nothing if the user is not in correct thread', function() {
+      var originalHash = window.location.hash;
+      var message = MockMessages.sms({
+        threadId: 2
+      });
+
+      ThreadUI.onMessageSending(message);
+      sinon.assert.notCalled(ThreadUI.appendMessage);
+
+      // should not change the panel since we didn't click the send button
+      assert.equal(window.location.hash, originalHash);
+    });
+
+    test('should not change panel if the user is in the composer', function() {
+      window.location.hash = '#new';
+      var message = MockMessages.sms({
+        threadId: 1
+      });
+
+      ThreadUI.onMessageSending(message);
+
+      sinon.assert.notCalled(ThreadUI.appendMessage);
+
+      // should not change the panel since we didn't click the send button
+      assert.equal(window.location.hash, '#new');
+    });
+  });
+
+  suite('onBeforeEnter()', function() {
+    setup(function() {
+      this.sinon.spy(window, 'MultiSimActionButton');
+      ThreadUI.onBeforeEnter();
+    });
+
+    test('initializes MultiSimActionButton', function() {
+      sinon.assert.calledWith(
+        MultiSimActionButton,
+        sendButton,
+        sinon.match.func,
+        Settings.SERVICE_ID_KEYS.smsServiceId
+      );
+    });
+
+    test('initializes only once', function() {
+      ThreadUI.onBeforeEnter();
+      sinon.assert.calledOnce(MultiSimActionButton);
+    });
+
+    test('Should set the isFocusable value to \'true\'', function() {
+      Recipients.View.isFocusable = false;
+      ThreadUI.onBeforeEnter();
+      assert.isTrue(Recipients.View.isFocusable);
     });
   });
 });

@@ -126,6 +126,17 @@ function ensureFolderExists(file) {
   }
 }
 
+function concatenatedScripts(scriptsPaths, targetPath) {
+  var concatedScript = scriptsPaths.map(function(path) {
+    return getFileContent(getFile.apply(this, path));
+  }).join('\n');
+
+  var targetFile = getFile(targetPath);
+  ensureFolderExists(targetFile.parent);
+
+  writeContent(targetFile, concatedScript);
+}
+
 function getJSON(file) {
   try {
     let content = getFileContent(file);
@@ -185,7 +196,7 @@ function readZipManifest(appDir) {
                   ' app (' + appDir.leafName + ')\n');
 }
 
-function getWebapp(app, domain, scheme, port) {
+function getWebapp(app, domain, scheme, port, stageDir) {
   let appDir = getFile(app);
   if (!appDir.exists()) {
     throw new Error(' -*- build/utils.js: file not found (' +
@@ -228,36 +239,18 @@ function getWebapp(app, domain, scheme, port) {
   }
 
   // Some webapps control their own build
-  let buildMetaData = webapp.sourceDirectoryFile.clone();
-  buildMetaData.append('gaia_build.json');
-  if (buildMetaData.exists()) {
-    webapp.build = getJSON(buildMetaData);
-
-    if (webapp.build.dir) {
-      let buildDirectoryFile = webapp.sourceDirectoryFile.clone();
-      webapp.build.dir.split('/').forEach(function(segment) {
-        if (segment == '..')
-          buildDirectoryFile = buildDirectoryFile.parent;
-        else
-          buildDirectoryFile.append(segment);
-      });
-
-      webapp.buildDirectoryFile = buildDirectoryFile;
-
-      let buildManifestFile = buildDirectoryFile.clone();
-      buildManifestFile.append('manifest.webapp');
-
-      webapp.buildManifestFile = buildManifestFile;
-    }
-  }
+  webapp.buildDirectoryFile = utils.getFile(stageDir,
+    webapp.sourceDirectoryName);
+  webapp.buildManifestFile = utils.getFile(webapp.buildDirectoryFile.path,
+    'manifest.webapp');
 
   return webapp;
 }
 
-function makeWebappsObject(appdirs, domain, scheme, port) {
+function makeWebappsObject(appdirs, domain, scheme, port, stageDir) {
   var apps = [];
   appdirs.forEach(function(app) {
-    var webapp = getWebapp(app, domain, scheme, port);
+    var webapp = getWebapp(app, domain, scheme, port, stageDir);
     if (webapp) {
       apps.push(webapp);
     }
@@ -286,28 +279,34 @@ function registerProfileDirectory(profileDir) {
     .registerProvider(directoryProvider);
 }
 
-function getGaia(options) {
-  var gaia = {
-    engine: options.GAIA_ENGINE,
-    sharedFolder: getFile(options.GAIA_DIR, 'shared'),
-    webapps: makeWebappsObject(options.GAIA_APPDIRS.split(' '),
-      options.GAIA_DOMAIN, options.GAIA_SCHEME, options.GAIA_PORT),
-    aggregatePrefix: 'gaia_build_',
-    distributionDir: options.GAIA_DISTRIBUTION_DIR
-  };
-
-  if (options.LOCALE_BASEDIR) {
-    // Bug 952901: remove getLocaleBasedir() if bug 952900 fixed.
-    var localeBasedir = getLocaleBasedir(options.LOCALE_BASEDIR);
-    gaia.l10nManager = new multilocale.L10nManager(
-      options.GAIA_DIR,
-      gaia.sharedFolder.path,
-      options.LOCALES_FILE,
-      localeBasedir);
+var gaia = {
+  config: {},
+  getInstance: function(config) {
+    if (JSON.stringify(this.config) !== JSON.stringify(config) ||
+      !this.instance) {
+      this.config = config;
+      this.instance = {
+        engine: this.config.GAIA_ENGINE,
+        sharedFolder: getFile(this.config.GAIA_DIR, 'shared'),
+        webapps: makeWebappsObject(this.config.GAIA_APPDIRS.split(' '),
+          this.config.GAIA_DOMAIN, this.config.GAIA_SCHEME,
+          this.config.GAIA_PORT, this.config.STAGE_DIR),
+        aggregatePrefix: 'gaia_build_',
+        distributionDir: this.config.GAIA_DISTRIBUTION_DIR
+      };
+    }
+    if (this.config.LOCALE_BASEDIR) {
+      // Bug 952901: remove getLocaleBasedir() if bug 952900 fixed.
+      var localeBasedir = getLocaleBasedir(this.config.LOCALE_BASEDIR);
+      this.instance.l10nManager = new multilocale.L10nManager(
+        this.config.GAIA_DIR,
+        this.instance.sharedFolder.path,
+        this.config.LOCALES_FILE,
+        localeBasedir);
+    }
+    return this.instance;
   }
-
-  return gaia;
-}
+};
 
 // FIXME (Bug 952901): because TBPL use path style like C:/path1/path2 for
 // LOCALE_BASEDIR but we expect C:\path1\path2, so we need convert it if this
@@ -411,6 +410,14 @@ function joinPath() {
   return OS.Path.join.apply(OS.Path, arguments);
 }
 
+function dirname(path) {
+  return OS.Path.dirname(path);
+}
+
+function basename(path) {
+  return OS.Path.basename(path);
+}
+
 /**
  * copy path to parentPath/name.
  * @param  {string}  path       directory to be copied,
@@ -421,7 +428,7 @@ function joinPath() {
  * Note: this function is a wrapper function for node.js
  */
 function copyFileTo(path, toParent, name, override) {
-  var file = getFile(path);
+  var file = ((typeof path === 'string') ? getFile(path) : path);
   var parentFile = getFile(toParent);
   ensureFolderExists(parentFile);
   if (override) {
@@ -431,6 +438,22 @@ function copyFileTo(path, toParent, name, override) {
     }
   }
   file.copyTo(parentFile, name);
+}
+
+function copyDirTo(path, toParent, name, override) {
+  var dir = ((typeof path === 'string') ? getFile(path) : path);
+  var parentFile = getFile(toParent);
+  ensureFolderExists(parentFile);
+  ensureFolderExists(dir);
+  var newFolderName = joinPath(toParent, name);
+  var files = ls(dir, false);
+  files.forEach(function(file) {
+    if (file.isFile()) {
+      copyFileTo(file.path, newFolderName, file.leafName, true);
+    } else if (file.isDirectory()) {
+      copyDirTo(file.path, newFolderName, file.leafName, true);
+    }
+  });
 }
 
 /**
@@ -733,6 +756,62 @@ function getDocument(content) {
   return document = (new DOMParser()).parseFromString(content, 'text/html');
 }
 
+/**
+ * Add a file to a zip file with the specified time
+ */
+function addEntryFileWithTime(zip, pathInZip, file, time, compression) {
+  if (compression === undefined) {
+    compression = Ci.nsIZipWriter.COMPRESSION_BEST;
+  }
+
+  addToZip(
+    pathInZip, time, compression, fis, false);
+  fis.close();
+}
+
+function addToZip(zip, pathInZip, file, time, compression) {
+  zip.addEntryStream(
+    pathInZip, time || 0, compression, fis, false);
+}
+
+function addEntryContentWithTime(zip, pathInZip, data, time, compression) {
+  if (!data) {
+    return;
+  }
+
+  if (compression === undefined) {
+    compression = Ci.nsIZipWriter.COMPRESSION_BEST;
+  }
+
+  var input;
+  if (typeof data === 'string') {
+    let converter = Cc['@mozilla.org/intl/scriptableunicodeconverter']
+                      .createInstance(Ci.nsIScriptableUnicodeConverter);
+    converter.charset = 'UTF-8';
+    input = converter.convertToInputStream(data);
+  } else if (typeof data === 'object' && data.isFile()) {
+    input = Cc['@mozilla.org/network/file-input-stream;1'].
+                createInstance(Ci.nsIFileInputStream);
+    input.init(data, -1, -1, 0);
+  }
+
+  zip.addEntryStream(
+    pathInZip, time || 0, compression, input, false);
+  input.close();
+
+}
+
+function getCompression(type) {
+  switch(type) {
+    case 'none':
+      return Ci.nsIZipWriter.COMPRESSION_NONE;
+      break;
+    case 'best':
+      return Ci.nsIZipWriter.COMPRESSION_BEST;
+      break;
+  }
+}
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -744,7 +823,6 @@ exports.getFileAsDataURI = getFileAsDataURI;
 exports.makeWebappsObject = makeWebappsObject;
 exports.getDistributionFileContent = getDistributionFileContent;
 exports.resolve = resolve;
-exports.getGaia = getGaia;
 exports.getBuildConfig = getBuildConfig;
 exports.getAppsByList = getAppsByList;
 exports.getApp = getApp;
@@ -755,6 +833,7 @@ exports.normalizeString = normalizeString;
 exports.Commander = Commander;
 exports.getEnvPath = getEnvPath;
 exports.getLocaleBasedir = getLocaleBasedir;
+exports.getOsType = getOsType;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;
@@ -762,6 +841,7 @@ exports.fileExists = fileExists;
 exports.mkdirs = mkdirs;
 exports.joinPath = joinPath;
 exports.copyFileTo = copyFileTo;
+exports.copyDirTo = copyDirTo;
 exports.createXMLHttpRequest = createXMLHttpRequest;
 exports.downloadJSON = downloadJSON;
 exports.readJSONFromPath = readJSONFromPath;
@@ -774,3 +854,10 @@ exports.getEnv = getEnv;
 exports.isExternalApp = isExternalApp;
 exports.getDocument = getDocument;
 exports.getWebapp = getWebapp;
+exports.Services = Services;
+exports.gaia = gaia;
+exports.concatenatedScripts = concatenatedScripts;
+exports.dirname = dirname;
+exports.basename = basename;
+exports.addEntryContentWithTime = addEntryContentWithTime;
+exports.getCompression = getCompression;

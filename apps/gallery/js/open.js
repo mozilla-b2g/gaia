@@ -12,15 +12,6 @@ window.addEventListener('localized', function() {
 
   function $(id) { return document.getElementById(id); }
 
-  // If the image is bigger than this, decoding it will take too much
-  // memory, and we don't want to cause an OOM, so we won't display it.
-  //
-  // XXX: see bug 847060: we ought to be able to handle images bigger
-  // than 5 megapixels. But I'm getting OOMs on 8mp images, so I'm
-  // keeping this small.
-  //
-  var MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-
   // If we can't figure out the image size in megapixels, then we have to base
   // our decision whether or not to display it on the file size. Note that
   // this is a very, very imperfect test. imagesize.js has code to determine
@@ -94,8 +85,13 @@ window.addEventListener('localized', function() {
     function success(metadata) {
       var pixels = metadata.width * metadata.height;
 
-      // If the image is too large, display an error
-      if (pixels > MAX_IMAGE_SIZE) {
+      // If the image is too big, reject it now so we don't have
+      // memory trouble later.
+      // CONFIG_MAX_IMAGE_PIXEL_SIZE is maximum image resolution we can handle.
+      // It's from config.js which is generated in build time, 5 megapixels by
+      // default (see build/application-data.js). It should be synced with
+      // Camera app and update carefully.
+      if (pixels > CONFIG_MAX_IMAGE_PIXEL_SIZE) {
         displayError('imagetoobig');
         return;
       }
@@ -161,12 +157,19 @@ window.addEventListener('localized', function() {
   }
 
   function checkFilename() {
-    var dotIdx = activityData.filename.lastIndexOf('.');
-    if (dotIdx > -1) {
-      var ext = activityData.filename.substr(dotIdx + 1);
-      return MimeMapper.guessTypeFromExtension(ext) === blob.type;
-    } else {
+    // Hide save button for file names having hidden
+    // .gallery/ directories. See Bug 992426
+    if (activityData.filename.indexOf('.gallery/') != -1) {
       return false;
+    }
+    else {
+      var dotIdx = activityData.filename.lastIndexOf('.');
+      if (dotIdx > -1) {
+        var ext = activityData.filename.substr(dotIdx + 1);
+        return MimeMapper.guessTypeFromExtension(ext) === blob.type;
+      } else {
+        return false;
+      }
     }
   }
 

@@ -1,0 +1,55 @@
+{
+  "tasks": {
+    "marionette integration tests": {
+      "task": {
+        "metadata": {
+          "name": "Gaia Marionette JS integration testing"
+        },
+        "payload": {
+          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
+          "command": [
+            "./bin/github make test-integration REPORTER=mocha-tbpl-reporter"
+          ]
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "GI"
+        }
+      }
+    },
+    "build tests": {
+      "task": {
+        "metadata": {
+          "name": "Gaia build system tests"
+        },
+        "payload": {
+          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
+          "command": [
+            "./bin/github ./tests/travis_ci/build_tests/script"
+          ]
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "GB"
+        }
+      }
+    },
+    "lint": {
+      "task": {
+        "metadata": {
+          "name": "Gaia code linters"
+        },
+        "payload": {
+          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
+          "command": [
+            "./bin/github make hint"
+          ]
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "HINT"
+        }
+      }
+    }
+  }
+}

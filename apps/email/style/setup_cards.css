@@ -42,16 +42,6 @@ input:focus:invalid {
   width: calc(100% - 3rem);
 }
 
-.sup-manual-config-btn {
-  display: inline-block;
-  color: black;
-  font-size: 1.4rem;
-  line-height: 1.2rem;
-  padding: 1.5rem;
-  margin-left: 1.5rem;
-  background: none; /* Overrides UA :active background-color */
-}
-
 .sup-form-link {
   color: black;
   font-size: 1.4rem;
@@ -248,7 +238,7 @@ li.align-center {
 .settings-input-title {
   display: block;
   font-size: 1.8rem;
-  padding: 1rem 1rem 0rem 3rem;
+  padding: 1rem 1rem 0 3rem;
 }
 
 li.settings-input-list {

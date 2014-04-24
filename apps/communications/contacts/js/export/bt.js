@@ -1,10 +1,12 @@
+/* global getStorageIfAvailable, getUnusedFilename, ContactToVcardBlob,
+    MozActivity */
+
+/* exported ContactsBTExport */
 'use strict';
 
 var ContactsBTExport = function ContactsBTExport() {
   var contacts;
   var progressStep;
-  var exported = [];
-  var notExported = [];
   var _ = navigator.mozL10n.get;
 
   var _setContactsToExport = function btex_setContactsToExport(cts) {
@@ -127,18 +129,21 @@ var ContactsBTExport = function ContactsBTExport() {
     ContactToVcardBlob(contacts, function onContacts(blob) {
       _getStorage(_getFileName(), blob,
       function onStorage(error, storage, filename) {
-        if (checkError(error))
+        if (checkError(error)) {
           return;
+        }
 
         _saveToSdcard(storage, filename, blob,
         function onVcardSaved(error, filepath) {
-          if (checkError(error))
+          if (checkError(error)) {
             return;
+          }
 
           _getFile(storage, filepath,
           function onFileRetrieved(error, file) {
-            if (checkError(error))
+            if (checkError(error)) {
               return;
+            }
 
             var a = new MozActivity({
               name: 'share',
@@ -170,7 +175,7 @@ var ContactsBTExport = function ContactsBTExport() {
 
   return {
     'setContactsToExport': _setContactsToExport,
-    'shouldShowProgress': function btex_shouldShowProgress() { return true },
+    'shouldShowProgress': function btex_shouldShowProgress() { return true; },
     'hasDeterminativeProgress': _hasDeterminativeProgress,
     'getExportTitle': _getExportTitle,
     'setProgressStep': _setProgressStep,

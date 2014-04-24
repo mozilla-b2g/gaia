@@ -13,32 +13,35 @@ ul, ol {
   margin-bottom: 1rem;
 }
 
+ul.compact {
+  padding: 1rem 1.5rem;
+  font-size: 1.5rem;
+}
+
 ul.compact li {
-  border-bottom-color: #232626;
+  position: relative;
+  min-height: 5rem;
+  padding-top: 1rem;
+  border-top: 0.1rem solid #232626;
+}
+
+ul.compact li:first-child {
+  border: none;
 }
 
 ul.compact li:last-child {
-  border: none;
+  margin-bottom: 1rem;
 }
 
 ul.compact li label {
+  padding: 0 1.5rem 0.5rem;
   color: #9a9898;
-  font-size: 1.9rem;
+  font-size: 1.6rem;
+  display: block;
 }
 
-li button.icon-dialog {
-  border: none;
-  color: #fff;
-  background-color: #4d4d4d;
-  font-weight: normal;
-  font-size: 1.7rem;
-  text-shadow: none !important; /* override `button` */
-}
-
-li button.icon-dialog:before,
-li a[role="button"].icon-dialog:before,
-li .button.icon-dialog:before {
-  background-image: url(images/dialog.png);
+ul.compact li label:active {
+  background-color: transparent;
 }
 
 #alarm-new {
@@ -57,12 +60,15 @@ li .button.icon-dialog:before {
 }
 
 #edit-alarm {
-  overflow: auto;
-  width: calc(100% - 3rem);
-  height: calc(100% - 5rem);
-  padding: 0 1.5rem;
+  overflow-x: hidden;
+  height: calc(100% - 7rem);
 
   pointer-events: auto;
+}
+
+#alarm-volume-input {
+  width: 100%;
+  margin: 1rem 0 1.5rem;
 }
 
 .new #delete-menu {
@@ -78,7 +84,7 @@ li .button.icon-dialog:before {
 /* ----------- Alarm List ---------- */
 #alarms {
   position: absolute;
-  bottom: 0rem;
+  bottom: 0;
 
   width: 100%;
   height: auto;
@@ -107,9 +113,7 @@ ul#alarms li.alarm-cell > a:active {
   background-color: rgba(52,140,158, .6);
 }
 
-ul#alarms li.alarm-cell > a:active .period,
-ul#alarms li.alarm-cell > a:active .label,
-ul#alarms li.alarm-cell > a:active .repeat {
+ul#alarms li.alarm-cell > a:active {
   color: #cfe2e5;
 }
 
@@ -175,11 +179,10 @@ a.alarm-item > .time {
   color: #cfe2e5;
 }
 
-a.alarm-item .period {
+a.alarm-item small {
   font-size: 1.4rem;
   font-weight: normal;
   color: #5C6466;
-  margin-left: 0.2rem;
 }
 
 a.alarm-item > .label {
@@ -219,4 +222,61 @@ a.alarm-item.with-repeat > .repeat {
 
 #digital-clock.visible ~ #alarms.count4 li:first-child {
   background: none;
+}
+
+
+/**
+ * These range input values were taken from the System App and
+ * retooled for the dark theme currently used by Clock. When
+ * changing to a light theme in the UI overhaul, it may make
+ * sense to pull this directly from System again.
+ */
+
+input[type=range] {
+  -moz-appearance: none;
+  border: none;
+  background: none;
+}
+
+input[type=range]:-moz-focusring {
+  outline: none;
+}
+
+ul li > label input[type="range"] {
+  position: relative;
+  top: calc(50% - 1.5rem);
+  left: 5rem;
+  right: 7rem;
+  height: 3rem;
+  width: calc(100% - 15rem);
+}
+
+input[type=range]::-moz-range-track {
+  height: 0.1rem;
+  background-color: #7e7e7e;
+}
+
+input[type=range]::-moz-range-progress {
+  height: 0.3rem;
+  background-color: #01c5ed;
+}
+
+input[type=range]::-moz-range-thumb {
+  width: 2.8rem;
+  height: 2.8rem;
+  border: solid 0.1rem transparent;
+  border-radius: 3rem;
+  transition: border 0.15s ease;
+  -moz-box-sizing: border-box;
+  background: #fff no-repeat 50% 50%;
+  background-size: 2.8rem 2.8rem;
+}
+
+input[type=range]:active::-moz-range-thumb {
+  border: solid 0.4rem #01c5ed;
+}
+
+#alarm-delete {
+  border-radius: 2rem;
+  background-color: #e51e1e;
 }

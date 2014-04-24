@@ -14,7 +14,7 @@
       ["apps", "gallery"],
       ["apps", "fm"],
       ["apps", "settings"],
-      ["external-apps", "marketplace.firefox.com"],
+      ["apps", "marketplace.firefox.com"],
       ["apps", "calendar"],
       ["apps", "clock"],
       ["apps", "costcontrol"],
@@ -29,11 +29,10 @@
   "bookmarks": [
     {
       "name": "Browser",
-      "bookmarkURL": "http://mozilla.org",
+      "url": "http://mozilla.org",
       "icon": "app://homescreen.gaiamobile.org/style/icons/Aurora.png",
       "iconable": false,
-      "useAsyncPanZoom": true,
-      "features": "toolbar=yes,location=yes",
+      "features": "rocketbarstartpage",
       "removable": false
     }
   ]

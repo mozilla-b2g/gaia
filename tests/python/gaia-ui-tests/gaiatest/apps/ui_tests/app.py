@@ -14,10 +14,8 @@ class UiTests(Base):
     _api_page_locator = (By.CSS_SELECTOR, 'a[href="#API"]')
     _hw_page_locator = (By.CSS_SELECTOR, 'a[href="#HW"]')
 
-    _moz_id_tests_button_locator = (By.LINK_TEXT, 'navigator.mozId')
+    _moz_id_persona_tests_button_locator = (By.ID, 'mozId-persona')
     _keyboard_locator = (By.LINK_TEXT, 'Keyboard')
-    _context_menu_locator = (By.LINK_TEXT, 'Contextmenu')
-    _window_open_menu_locator = (By.LINK_TEXT, 'window.open')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -39,9 +37,9 @@ class UiTests(Base):
         self.marionette.find_element(*self._hw_page_locator).tap()
 
     def tap_moz_id_button(self):
-        self.wait_for_element_displayed(*self._moz_id_tests_button_locator, timeout=120)
+        self.wait_for_element_displayed(*self._moz_id_persona_tests_button_locator, timeout=120)
         # Hack to make the identity button visible from underneath the toolbar
-        mozId_button = self.marionette.find_element(*self._moz_id_tests_button_locator)
+        mozId_button = self.marionette.find_element(*self._moz_id_persona_tests_button_locator)
         self.marionette.execute_script('arguments[0].scrollIntoView(false);', [mozId_button])
         mozId_button.tap()
 
@@ -59,18 +57,3 @@ class UiTests(Base):
         from gaiatest.apps.ui_tests.regions.keyboard import KeyboardPage
 
         return KeyboardPage(self.marionette)
-
-    def tap_context_menu_option(self):
-        self.wait_for_element_displayed(*self._context_menu_locator, timeout=120)
-        self.marionette.find_element(*self._context_menu_locator).tap()
-
-        from gaiatest.apps.ui_tests.regions.context_menu import ContextMenuPage
-
-        return ContextMenuPage(self.marionette)
-
-    def tap_window_open_menu_option(self):
-        self.wait_for_element_displayed(*self._window_open_menu_locator)
-        self.marionette.find_element(*self._window_open_menu_locator).tap()
-
-        from gaiatest.apps.ui_tests.regions.window_open import WindowOpenPage
-        return WindowOpenPage(self.marionette)

@@ -600,6 +600,11 @@ class Accessibility(object):
             'return Accessibility.isHidden.apply(Accessibility, arguments)',
             [element], special_powers=True)
 
+    def is_disabled(self, element):
+        return self.marionette.execute_async_script(
+            'return Accessibility.isDisabled.apply(Accessibility, arguments)',
+            [element], special_powers=True)
+
     def click(self, element):
         self.marionette.execute_async_script(
             'Accessibility.click.apply(Accessibility, arguments)',
@@ -711,7 +716,7 @@ class GaiaDevice(object):
         self.marionette.start_session()
 
         # Wait for the AppWindowManager to have registered the frame as active (loaded)
-        locator = (By.CSS_SELECTOR, 'div.appWindow.active')
+        locator = (By.CSS_SELECTOR, 'div.appWindow.active.render')
         Wait(marionette=self.marionette, timeout=timeout, ignored_exceptions=NoSuchElementException)\
             .until(lambda m: m.find_element(*locator).is_displayed())
 
@@ -804,6 +809,7 @@ class GaiaDevice(object):
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('GaiaLockScreen.lock()')
         assert result, 'Unable to lock screen'
+        Wait(self.marionette).until(lambda m: m.find_element(By.CSS_SELECTOR, 'div.lockScreenWindow.active'))
 
     def unlock(self):
         self.marionette.switch_to_frame()
@@ -868,8 +874,14 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.cleanup_gaia(full_reset=True)
 
     def cleanup_data(self):
-        self.device.manager.removeDir('/data/local/storage/persistent')
+        self.device.manager.removeDir('/cache/*')
         self.device.manager.removeDir('/data/b2g/mozilla')
+        self.device.manager.removeDir('/data/local/debug_info_trigger')
+        self.device.manager.removeDir('/data/local/indexedDB')
+        self.device.manager.removeDir('/data/local/OfflineCache')
+        self.device.manager.removeDir('/data/local/permissions.sqlite')
+        self.device.manager.removeDir('/data/local/storage/persistent')
+        self.device.manager.removeDir('/data/local/webapps')
 
     def cleanup_sdcard(self):
         for item in self.device.manager.listFiles('/sdcard/'):
@@ -898,6 +910,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
         # unlock
         self.device.unlock()
+
+        # kill any open apps
+        self.apps.kill_all()
 
         if full_reset:
             # disable passcode
@@ -938,9 +953,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
             # reset to home screen
             self.device.touch_home_button()
-
-        # kill any open apps
-        self.apps.kill_all()
 
         # disable sound completely
         self.data_layer.set_volume(0)

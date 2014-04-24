@@ -1,9 +1,14 @@
+/* global utils, tzSelect,
+          Basket, ConfirmDialog, ScreenLayout,
+          DataMobile, SimManager, SdManager,
+          Tutorial, TimeManager, WifiManager,
+          WifiUI, WifiHelper, FxAccountsIACHelper  */
+/* exported UIManager */
 'use strict';
 
 var _;
 
 var UIManager = {
-
   // As in other Gaia apps, we store all the dom selectors in one
   // place and then camelCase them and attach to the main object,
   // eg. instead of calling document.getElementById('splash-screen')
@@ -62,6 +67,8 @@ var UIManager = {
     'no-sim',
     'sd-import-button',
     'no-memorycard',
+    // Fxa Intro
+    'fxa-create-account',
     // Wifi
     'networks',
     'wifi-refresh-button',
@@ -155,6 +162,8 @@ var UIManager = {
 
     this.geolocationSwitch.addEventListener('click', this);
 
+    this.fxaCreateAccount.addEventListener('click', this);
+
     // Prevent form submit in case something tries to send it
     this.timeForm.addEventListener('submit', function(event) {
       event.preventDefault();
@@ -171,28 +180,6 @@ var UIManager = {
         }, 30);
       });
     });
-
-    // Browser privacy newsletter subscription
-    var basketCallback = function(err, data) {
-      utils.overlay.hide();
-      if (err || data.status !== 'ok') {
-        // We don't have any error numbers etc, so we are looking for
-        // 'email address' string in the error description.
-        if (err.desc.indexOf('email address') > -1) {
-          this.invalidEmailErrorDialog.classList.add('visible');
-        } else {
-          // Store locally
-          Basket.store(this.newsletterInput.value, function stored() {
-            UIManager.newsletterSuccessScreen.classList.add('visible');
-          });
-        }
-        return;
-      }
-      // if properly sent, remove stored email (in case of any)
-      window.asyncStorage.removeItem('newsletter_email');
-      this.newsletterForm.classList.add('hidden');
-      this.newsletterSuccessScreen.classList.add('visible');
-    };
 
     this.offlineNewsletterErrorDialog
       .querySelector('button')
@@ -305,7 +292,6 @@ var UIManager = {
         SimManager.back();
         break;
       case 'unlock-sim-button':
-        Navigation.skipped = false;
         SimManager.unlock();
         break;
       case 'unlock-sim-back':
@@ -362,6 +348,10 @@ var UIManager = {
       case 'share-performance':
         this.updateSetting(event.target.name, event.target.checked);
         break;
+      // Fxa Intro
+      case 'fxa-create-account':
+        this.createFirefoxAccount();
+        break;
       default:
         // wifi selection
         if (event.target.parentNode.id === 'networks-list') {
@@ -378,6 +368,41 @@ var UIManager = {
     }
     var cset = {}; cset[name] = value;
     settings.createLock().set(cset);
+  },
+
+  createFirefoxAccount: function ui_createFirefoxAccount() {
+    var fxaDescription = document.getElementById('fxa-intro');
+    var showResponse = function ui_showResponse(response) {
+      if (response && response.done) {
+        // Update the email
+        UIManager.newsletterInput.value = response.email;
+        // Update the string
+        fxaDescription.innerHTML = '';
+        navigator.mozL10n.localize(
+          fxaDescription,
+          'fxa-logged',
+          {
+            email: response.email
+          }
+        );
+        // Disable the button
+        UIManager.fxaCreateAccount.disabled = true;
+      }
+    };
+    var showError = function ui_showError(response) {
+      console.error('Create FxA Error: ' + JSON.stringify(response));
+      // Clean fields
+      UIManager.newsletterInput.value = '';
+      // Reset the field
+      navigator.mozL10n.localize(
+        fxaDescription,
+        'fxa-overview'
+      );
+      // Enable the button
+      UIManager.fxaCreateAccount.disabled = false;
+    };
+
+    FxAccountsIACHelper.openFlow(showResponse, showError);
   },
 
   displayOfflineDialog: function ui_displayOfflineDialog(href, title) {
@@ -432,7 +457,7 @@ var UIManager = {
   setTimeZone: function ui_stz(timezone) {
     var utcOffset = timezone.utcOffset;
     document.getElementById('time_zone_overlay').className =
-      utcOffset.replace(/[+:]/g, '');
+      'UTC' + utcOffset.replace(/[+:]/g, '');
     var timezoneTitle = document.getElementById('time-zone-title');
     navigator.mozL10n.localize(timezoneTitle, 'timezoneTitle', {
       utcOffset: utcOffset,

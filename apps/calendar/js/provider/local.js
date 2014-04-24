@@ -1,6 +1,8 @@
+/* global uuid */
 Calendar.ns('Provider').Local = (function() {
+  'use strict';
 
-  const LOCAL_CALENDAR_ID = 'local-first';
+  var LOCAL_CALENDAR_ID = 'local-first';
 
   function Local() {
     Calendar.Provider.Abstract.apply(this, arguments);
@@ -11,6 +13,7 @@ Calendar.ns('Provider').Local = (function() {
   }
 
   Local.calendarId = LOCAL_CALENDAR_ID;
+  Local.defaultColor = '#f97c17';
 
   /**
    * Returns the details for the default calendars.
@@ -18,7 +21,6 @@ Calendar.ns('Provider').Local = (function() {
   Local.defaultCalendar = function() {
     //XXX: Make async
     var l10nId = 'calendar-local';
-    var list = {};
     var name;
 
     if ('mozL10n' in window.navigator) {
@@ -36,7 +38,7 @@ Calendar.ns('Provider').Local = (function() {
       // XXX localize this name somewhere
       name: name,
       id: LOCAL_CALENDAR_ID,
-      color: Local.prototype.defaultColor
+      color: Local.defaultColor
     };
 
   };

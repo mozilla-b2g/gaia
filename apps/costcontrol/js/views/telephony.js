@@ -1,14 +1,13 @@
-
+/* global _, CostControl, ConfigManager, debug, Common, Formatting */
 /*
  * The telephony tab is in charge of show telephony and billing cycle
  * information.
  *
  * It has two areas of drawing: one for the counters and another for
  */
-
+'use strict';
 
 var TelephonyTab = (function() {
-  'use strict';
   var costcontrol, initialized = false;
   var view, smscount, calltime, time, resetDate;
   function setupTab() {
@@ -66,7 +65,8 @@ var TelephonyTab = (function() {
 
   function updateUI() {
     var requestObj = { type: 'telephony' };
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestSettings(Common.dataSimIccId,
+                                  function _onSettings(settings) {
       costcontrol.request(requestObj, function _afterRequest(result) {
         var telephonyActivity = result.data;
         debug('Last telephony activity:', telephonyActivity);
@@ -79,7 +79,7 @@ var TelephonyTab = (function() {
 
   function updateTimePeriod(lastReset, old, key, settings) {
     time.innerHTML = '';
-    time.appendChild(formatTimeHTML(lastReset,
+    time.appendChild(Formatting.formatTimeHTML(lastReset,
                                     settings.lastTelephonyActivity.timestamp));
 
   }
@@ -90,7 +90,7 @@ var TelephonyTab = (function() {
       unit: 'SMS'
     });
     calltime.textContent = _('magnitude', {
-      value: computeTelephonyMinutes(activity),
+      value: Formatting.computeTelephonyMinutes(activity),
       unit: 'min.'
     });
   }
@@ -101,9 +101,8 @@ var TelephonyTab = (function() {
       billingCycle.setAttribute('aria-hidden', true);
     } else {
       billingCycle.setAttribute('aria-hidden', false);
-      var dateFormatter = new navigator.mozL10n.DateTimeFormat();
-      var content = dateFormatter.localeFormat(settings.nextReset,
-        _('short-date-format'));
+      var content = Formatting.getFormattedDate(settings.nextReset,
+                                                _('short-date-format'));
       resetDate.textContent = content;
     }
   }

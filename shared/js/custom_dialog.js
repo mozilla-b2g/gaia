@@ -1,3 +1,4 @@
+/* exported CustomDialog */
 //XXX: Waiting for the window.showModalDialog support in B2G
 
 'use strict';
@@ -13,8 +14,9 @@ var CustomDialog = (function() {
 
   return {
     hide: function dialog_hide() {
-      if (screen === null)
+      if (screen === null) {
         return;
+      }
 
       document.body.removeChild(screen);
       screen = null;
@@ -81,7 +83,7 @@ var CustomDialog = (function() {
 
         header = document.createElement('h1');
         header.id = 'dialog-title';
-        if (title && title != '') {
+        if (title && title !== '') {
           header = decorateWithOptions('title', title, header, dialog);
         }
         dialog.appendChild(header);
@@ -92,7 +94,7 @@ var CustomDialog = (function() {
         dialog.appendChild(message);
 
         var menu = document.createElement('menu');
-        menu.dataset['items'] = 1;
+        menu.dataset.items = 1;
 
         no = document.createElement('button');
 
@@ -107,7 +109,7 @@ var CustomDialog = (function() {
         menu.appendChild(no);
 
         if (confirm) {
-          menu.dataset['items'] = 2;
+          menu.dataset.items = 2;
           yes = document.createElement('button');
 
           // The default type of button element is "Submit",

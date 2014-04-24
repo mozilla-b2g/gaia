@@ -1,3 +1,4 @@
+/* exported MockMozMobileConnection */
 'use strict';
 
 var MockMozMobileConnection = function(state) {

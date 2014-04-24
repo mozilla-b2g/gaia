@@ -5,7 +5,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'KeyboardManager', 'StatusBar', 'BrowserMixin',
       'SoftwareButtonManager', 'AppWindow', 'AppChrome',
       'OrientationManager', 'SettingsListener', 'BrowserFrame',
-      'BrowserConfigHelper', 'System', 'LayoutManager',
+      'BrowserConfigHelper', 'System', 'layoutManager',
       'AppTransitionController', 'AppWindowManager']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -29,6 +29,8 @@ suite('system/AppWindow', function() {
   setup(function(done) {
     this.sinon.useFakeTimers();
 
+    window.layoutManager = new LayoutManager().start();
+
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/system.js');
@@ -39,6 +41,8 @@ suite('system/AppWindow', function() {
   });
 
   teardown(function() {
+    delete window.layoutManager;
+
     stubById.restore();
   });
 
@@ -118,6 +122,11 @@ suite('system/AppWindow', function() {
     assert.isTrue(app1.instanceID !== app2.instanceID);
   });
 
+  test('Automatically enable navigation for a brower window.', function() {
+    var app1 = new AppWindow(fakeWrapperConfig);
+    assert.equal(app1.config.chrome.navigation, true);
+  });
+
   suite('Resize', function() {
     var app1;
     setup(function() {
@@ -145,7 +154,7 @@ suite('system/AppWindow', function() {
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
       app1.resize();
-      assert.equal(app1.height, MockLayoutManager.fullscreenHeight);
+      assert.equal(app1.height, layoutManager.height);
     });
 
     test('Resize if we are not fullscreen', function() {
@@ -154,11 +163,11 @@ suite('system/AppWindow', function() {
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
       app1.resize();
-      assert.equal(app1.height, MockLayoutManager.usualHeight);
+      assert.equal(app1.height, layoutManager.height);
     });
 
     test('Send message to appChrome: w/o keyboard', function() {
-      MockLayoutManager.keyboardEnabled = false;
+      layoutManager.keyboardEnabled = false;
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       var stubbroadcast = this.sinon.stub(app1, 'broadcast');
       stubIsActive.returns(true);
@@ -167,7 +176,7 @@ suite('system/AppWindow', function() {
     });
 
     test('Send message to appChrome: w/ keyboard', function() {
-      MockLayoutManager.keyboardEnabled = true;
+      layoutManager.keyboardEnabled = true;
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       var stubbroadcast = this.sinon.stub(app1, 'broadcast');
       stubIsActive.returns(true);
@@ -835,8 +844,8 @@ suite('system/AppWindow', function() {
     test('ActivityDone event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       var app2 = new AppWindow(fakeAppConfig2);
-      var spyRequestOpen = this.sinon.spy(app1, 'requestOpen');
-      var stubPublish = this.sinon.stub(app1, 'publish');
+      var spyOpen = this.sinon.spy(app1, 'open');
+      var spyClose = this.sinon.spy(app2, 'close');
       var stubIsActive = this.sinon.stub(app2, 'isActive');
       app1.setActivityCallee(app2);
       stubIsActive.returns(true);
@@ -850,8 +859,8 @@ suite('system/AppWindow', function() {
 
       assert.isNull(app1.activityCallee);
       assert.isNull(app2.activityCaller);
-      assert.isTrue(spyRequestOpen.called);
-      assert.isTrue(stubPublish.calledWith('requestopen'));
+      assert.isTrue(spyOpen.calledWith('in-from-left'));
+      assert.isTrue(spyClose.calledWith('out-to-right'));
     });
 
     test('Error event', function() {
@@ -916,6 +925,37 @@ suite('system/AppWindow', function() {
       });
 
       assert.isTrue(stubKill.called);
+      assert.isTrue(app1._closed);
+    });
+
+    test('Close event to a child window.', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var app1parent = new AppWindow(fakeAppConfig2);
+      var app1child = new AppWindow(fakeAppConfig3);
+      app1.childWindow = app1child;
+      app1child.parentWindow = app1;
+      app1.parentWindow = app1parent;
+      app1parent.childWindow = app1;
+
+      var stubIsActive = this.sinon.stub(app1, 'isActive');
+      var stubKillChild = this.sinon.stub(app1child, 'kill');
+      var stubOpenParent = this.sinon.stub(app1parent, 'open');
+      var stubCloseSelf = this.sinon.stub(app1, 'close');
+      stubIsActive.returns(true);
+
+      app1.handleEvent({
+        type: 'mozbrowserclose'
+      });
+      assert.isTrue(stubOpenParent.calledWith('in-from-left'));
+      assert.isTrue(stubCloseSelf.calledWith('out-to-right'));
+      assert.isTrue(stubKillChild.called);
+      assert.isNull(app1.parentWindow);
+      assert.isNull(app1parent.childWindow);
+      assert.isNull(app1.childWindow);
+
+      var stubDestroy = this.sinon.stub(app1, 'destroy');
+      app1.element.dispatchEvent(new Event('_closed'));
+      assert.isTrue(stubDestroy.called);
     });
 
     test('Load event', function() {
@@ -979,28 +1019,28 @@ suite('system/AppWindow', function() {
 
     test('Localized event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var spy = this.sinon.spy(window, 'ManifestHelper');
+      var spyManifestHelper = this.sinon.spy(window, 'ManifestHelper');
       var stubPublish = this.sinon.stub(app1, 'publish');
 
       app1.handleEvent({
         type: '_localized'
       });
 
-      assert.isTrue(spy.calledWithNew());
-      assert.isTrue(spy.calledWithExactly(app1.manifest));
+      assert.isTrue(spyManifestHelper.calledWithNew());
+      assert.isTrue(spyManifestHelper.calledWithExactly(app1.manifest));
       assert.isTrue(stubPublish.calledWithExactly('namechanged'));
     });
 
     test('Localized event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var spy = this.sinon.spy(window, 'ManifestHelper');
+      var spyManifestHelper = this.sinon.spy(window, 'ManifestHelper');
 
       app1.handleEvent({
         type: '_localized'
       });
 
-      assert.isTrue(spy.calledWithNew());
-      assert.isTrue(spy.calledWithExactly(app1.manifest));
+      assert.isTrue(spyManifestHelper.calledWithNew());
+      assert.isTrue(spyManifestHelper.calledWithExactly(app1.manifest));
     });
 
     test('Swipe in event', function() {
@@ -1008,15 +1048,16 @@ suite('system/AppWindow', function() {
       var atc1 = {
         switchTransitionState: function() {}
       };
-      var spy = this.sinon.spy(atc1, 'switchTransitionState');
-      var revive = this.sinon.spy(app1, 'reviveBrowser');
+      var switchTransitionState =
+        this.sinon.stub(atc1, 'switchTransitionState');
+      var revive = this.sinon.stub(app1, 'reviveBrowser');
       app1.transitionController = atc1;
 
       app1.handleEvent({
         type: '_swipein'
       });
 
-      assert.isTrue(spy.calledWith('opened'));
+      assert.isTrue(switchTransitionState.calledWith('opened'));
       assert.isTrue(revive.called);
     });
 
@@ -1025,14 +1066,15 @@ suite('system/AppWindow', function() {
       var atc1 = {
         switchTransitionState: function() {}
       };
-      var spy = this.sinon.spy(atc1, 'switchTransitionState');
+      var switchTransitionState =
+        this.sinon.stub(atc1, 'switchTransitionState');
       app1.transitionController = atc1;
 
       app1.handleEvent({
         type: '_swipeout'
       });
 
-      assert.isTrue(spy.calledWith('closed'));
+      assert.isTrue(switchTransitionState.calledWith('closed'));
     });
   });
 
@@ -1070,11 +1112,87 @@ suite('system/AppWindow', function() {
     var app1 = new AppWindow(fakeWrapperConfig);
     var stubPublish = this.sinon.stub(app1, 'publish');
     var stub_setFrameBackgroundWithScreenshot =
-      this.sinon.spy(app1, 'setFrameBackgroundWithScreenshot');
+      this.sinon.stub(app1, 'setFrameBackgroundWithScreenshot');
     app1.destroyBrowser();
     assert.isNull(app1.browser);
     assert.isTrue(app1.suspended);
     assert.isTrue(stub_setFrameBackgroundWithScreenshot.called);
     assert.isTrue(stubPublish.calledWith('suspended'));
+  });
+
+  test('set child window', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var child = new AppWindow(fakeAppConfig2);
+    app1.setChildWindow(child);
+    assert.deepEqual(app1.childWindow, child);
+    var childNew = new AppWindow(fakeAppConfig3);
+    var stubKillOldChild = this.sinon.stub(child, 'kill');
+    app1.setChildWindow(childNew);
+    assert.isTrue(stubKillOldChild.called);
+    assert.deepEqual(app1.childWindow, childNew);
+  });
+
+  function genFakeConfig(id) {
+    return {
+      url: 'app://www.fake' + id + '/index.html',
+      manifest: {},
+      manifestURL: 'app://wwww.fake' + id + '/ManifestURL',
+      origin: 'app://www.fake' + id
+    };
+  }
+
+  function openSheets(count) {
+    var sheets = [];
+    for (var i = 0; i < count; i++) {
+      sheets.push(new AppWindow(genFakeConfig(i)));
+      if (i > 0) {
+        sheets[i - 1].childWindow = sheets[i];
+        sheets[i].parentWindow = sheets[i - 1];
+      }
+    }
+    return sheets;
+  }
+
+  suite('Test child windows', function() {
+    test('kill chain from root', function() {
+      var sheets = openSheets(3);
+      var stubKill = this.sinon.stub(sheets[2], 'kill');
+      sheets[0].kill();
+      assert.isTrue(stubKill.called);
+    });
+
+    test('kill chain from a node', function() {
+      var sheets = openSheets(5);
+      var stubKill = this.sinon.stub(sheets[4], 'kill');
+      sheets[2].kill();
+      assert.isTrue(stubKill.called);
+    });
+
+    test('get root and leaf window', function() {
+      var sheets = openSheets(7);
+      assert.equal(sheets[0].getLeafWindow(), sheets[6]);
+      assert.equal(sheets[3].getRootWindow(), sheets[0]);
+    });
+
+    test('get active window', function() {
+      var sheets = openSheets(7);
+      var stubIsActive = this.sinon.stub(sheets[2], 'isActive');
+      stubIsActive.returns(true);
+      assert.equal(sheets[0].getActiveWindow(), sheets[2]);
+    });
+
+    test('get next window', function() {
+      var sheets = openSheets(7);
+      var stubIsActive = this.sinon.stub(sheets[2], 'isActive');
+      stubIsActive.returns(true);
+      assert.equal(sheets[0].getNext(), sheets[3]);
+    });
+
+    test('get previous window', function() {
+      var sheets = openSheets(7);
+      var stubIsActive = this.sinon.stub(sheets[2], 'isActive');
+      stubIsActive.returns(true);
+      assert.equal(sheets[0].getPrev(), sheets[1]);
+    });
   });
 });

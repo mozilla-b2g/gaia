@@ -1,506 +1,111 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+(function(window, undefined) {
+  'use strict';
 
-'use strict';
+  /* jshint validthis:true */
+  /* jshint browser:true */
 
-/**
- * This library exposes a `navigator.mozL10n' object to handle client-side
- * application localization. See: https://github.com/fabi1cazenave/webL10n
- */
-
-(function(window) {
-  var gL10nData = {};
-  var gLanguage = '';
-  var gMacros = {};
-  var gReadyState = 'loading';
-
-  // DOM element properties that may be localized with a key:value pair.
-  var gNestedProps = ['style', 'dataset'];
-
-
-  /**
-   * Localization resources are declared in the HTML document with <link> nodes:
-   *   <link rel="prefetch" type="application/l10n" href="locales.ini" />
-   * Such *.ini files are multi-locale dictionaries where all supported locales
-   * are listed / defined / imported, and where a fallback locale can easily be
-   * defined.
-   *
-   * These *.ini files can also be compiled to locale-specific JSON dictionaries
-   * with the `getDictionary()' method.  Such JSON dictionaries can be used:
-   *  - either with a <link> node:
-   *   <link rel="prefetch" type="application/l10n" href="{{locale}}.json" />
-   *   (in which case, {{locale}} will be replaced by `navigator.language')
-   *  - or with an inline <script> node:
-   *   <script type="application/l10n" lang="fr"> ... </script>
-   *   (in which case, the script matching `navigator.language' will be parsed)
-   *
-   * This is where `gDefaultLocale' comes in: if a JSON dictionary for the
-   * current `navigator.language' value can't be found, use the one matching the
-   * default locale.  Note that if the <html> element has a `lang' attribute,
-   * its value becomes the default locale.
-   */
-
-  var gDefaultLocale = 'en-US';
-
-
-  /**
-   * Synchronously loading l10n resources significantly minimizes flickering
-   * from displaying the app with non-localized strings and then updating the
-   * strings. Although this will block all script execution on this page, we
-   * expect that the l10n resources are available locally on flash-storage.
-   *
-   * As synchronous XHR is generally considered as a bad idea, we're still
-   * loading l10n resources asynchronously -- but we keep this in a setting,
-   * just in case... and applications using this library should hide their
-   * content until the `localized' event happens.
-   */
-
-  var gAsyncResourceLoading = true; // read-only
-
-
-  /**
-   * Debug helpers
-   *
-   *   gDEBUG == 0: don't display any console message
-   *   gDEBUG == 1: display only warnings, not logs
-   *   gDEBUG == 2: display all console messages
-   */
-
-  var gDEBUG = 1;
-
-  function consoleLog() {
-    if (gDEBUG >= 2) {
-      var args = [].slice.apply(arguments);
-      args.unshift('[l10n] ');
-      console.log(args.join(''));
-    }
-  };
-
-  function consoleWarn() {
-    if (gDEBUG) {
-      var args = [].slice.apply(arguments);
-      args.unshift('[l10n] ');
-      console.warn(args.join(''));
-    }
-  };
-
-  function consoleWarn_missingKeys(untranslatedElements, lang) {
-    var len = untranslatedElements.length;
-    if (!len || !gDEBUG) {
-      return;
-    }
-
-    var missingIDs = [];
-    for (var i = 0; i < len; i++) {
-      var l10nId = untranslatedElements[i].getAttribute('data-l10n-id');
-      if (missingIDs.indexOf(l10nId) < 0) {
-        missingIDs.push(l10nId);
-      }
-    }
-    console.warn('[l10n] ' +
-        missingIDs.length + ' missing key(s) for [' + lang + ']: ' +
-        missingIDs.join(', '));
-  }
-
-
-  /**
-   * DOM helpers for the so-called "HTML API".
-   *
-   * These functions are written for modern browsers. For old versions of IE,
-   * they're overridden in the 'startup' section at the end of this file.
-   */
-
-  function getL10nResourceLinks() {
-    return document.querySelectorAll('link[type="application/l10n"]');
-  }
-
-  function getL10nDictionary(lang) {
-    var getInlineDict = function(locale) {
-      var sel = 'script[type="application/l10n"][lang="' + locale + '"]';
-      return document.querySelector(sel);
-    };
-    // TODO: support multiple internal JSON dictionaries
-    var script = getInlineDict(lang) || getInlineDict(gDefaultLocale);
-    return script ? JSON.parse(script.innerHTML) : null;
-  }
-
-  function getTranslatableChildren(element) {
-    return element ? element.querySelectorAll('*[data-l10n-id]') : [];
-  }
-
-  function getL10nAttributes(element) {
-    if (!element) {
-      return {};
-    }
-
-    var l10nId = element.getAttribute('data-l10n-id');
-    var l10nArgs = element.getAttribute('data-l10n-args');
-    var args = {};
-    if (l10nArgs) {
-      try {
-        args = JSON.parse(l10nArgs);
-      } catch (e) {
-        consoleWarn('could not parse arguments for #', l10nId);
-      }
-    }
-    return { id: l10nId, args: args };
-  }
-
-  function setTextContent(element, text) {
-    // standard case: no element children
-    if (!element.firstElementChild) {
-      element.textContent = text;
-      return;
-    }
-
-    // this element has element children: replace the content of the first
-    // (non-blank) child textNode and clear other child textNodes
-    var found = false;
-    var reNotBlank = /\S/;
-    for (var child = element.firstChild; child; child = child.nextSibling) {
-      if (child.nodeType === 3 && reNotBlank.test(child.nodeValue)) {
-        if (found) {
-          child.nodeValue = '';
-        } else {
-          child.nodeValue = text;
-          found = true;
-        }
-      }
-    }
-    // if no (non-empty) textNode is found, insert a textNode before the
-    // element's first child.
-    if (!found) {
-      element.insertBefore(document.createTextNode(text), element.firstChild);
-    }
-  }
-
-  function fireL10nReadyEvent() {
-    var evtObject = document.createEvent('Event');
-    evtObject.initEvent('localized', false, false);
-    evtObject.language = gLanguage;
-    window.dispatchEvent(evtObject);
-  }
-
-
-  /**
-   * l10n resource parser:
-   *  - reads (async XHR) the l10n resource matching `lang';
-   *  - imports linked resources (synchronously) when specified;
-   *  - parses the text data (fills `gL10nData');
-   *  - triggers success/failure callbacks when done.
-   *
-   * @param {string} href
-   *    URL of the l10n resource to parse.
-   *
-   * @param {string} lang
-   *    locale (language) to parse.
-   *
-   * @param {Function} successCallback
-   *    triggered when the l10n resource has been successully parsed.
-   *
-   * @param {Function} failureCallback
-   *    triggered when the an error has occured.
-   *
-   * @return {void}
-   *    fills gL10nData.
-   */
-
-  function parseResource(href, lang, successCallback, failureCallback) {
-    var baseURL = href.replace(/\/[^\/]*$/, '/');
-
-    // handle escaped characters (backslashes) in a string
-    function evalString(text) {
-      if (text.lastIndexOf('\\') < 0) {
-        return text;
-      }
-      return text.replace(/\\\\/g, '\\')
-                 .replace(/\\n/g, '\n')
-                 .replace(/\\r/g, '\r')
-                 .replace(/\\t/g, '\t')
-                 .replace(/\\b/g, '\b')
-                 .replace(/\\f/g, '\f')
-                 .replace(/\\{/g, '{')
-                 .replace(/\\}/g, '}')
-                 .replace(/\\"/g, '"')
-                 .replace(/\\'/g, "'");
-    }
-
-    // parse *.properties text data into an l10n dictionary
-    function parseProperties(text) {
-      var dictionary = [];
-
-      // token expressions
-      var reBlank = /^\s*|\s*$/;
-      var reComment = /^\s*#|^\s*$/;
-      var reSection = /^\s*\[(.*)\]\s*$/;
-      var reImport = /^\s*@import\s+url\((.*)\)\s*$/i;
-      var reSplit = /^([^=\s]*)\s*=\s*(.+)$/;
-      var reUnicode = /\\u([0-9a-fA-F]{1,4})/g;
-      var reMultiline = /[^\\]\\$/;
-
-      // parse the *.properties file into an associative array
-      function parseRawLines(rawText, extendedSyntax) {
-        var entries = rawText.replace(reBlank, '').split(/[\r\n]+/);
-        var currentLang = '*';
-        var genericLang = lang.replace(/-[a-z]+$/i, '');
-        var skipLang = false;
-        var match = '';
-
-        for (var i = 0; i < entries.length; i++) {
-          var line = entries[i];
-
-          // comment or blank line?
-          if (reComment.test(line)) {
-            continue;
-          }
-
-          // multi-line?
-          while (reMultiline.test(line) && i < entries.length) {
-            line = line.slice(0, line.length - 1) +
-              entries[++i].replace(reBlank, '');
-          }
-
-          // the extended syntax supports [lang] sections and @import rules
-          if (extendedSyntax) {
-            if (reSection.test(line)) { // section start?
-              match = reSection.exec(line);
-              currentLang = match[1];
-              skipLang = (currentLang !== '*') &&
-                  (currentLang !== lang) && (currentLang !== genericLang);
-              continue;
-            } else if (skipLang) {
-              continue;
-            }
-            if (reImport.test(line)) { // @import rule?
-              match = reImport.exec(line);
-              loadImport(baseURL + match[1]); // load the resource synchronously
-            }
-          }
-
-          // key-value pair
-          var tmp = line.match(reSplit);
-          if (tmp && tmp.length == 3) {
-            // unescape unicode char codes if needed (e.g. '\u00a0')
-            var val = tmp[2].replace(reUnicode, function(match, token) {
-              return unescape('%u' + '0000'.slice(token.length) + token);
-            });
-            dictionary[tmp[1]] = evalString(val);
-          }
-        }
-      }
-
-      // import another *.properties file
-      function loadImport(url) {
-        loadResource(url, function(content) {
-          parseRawLines(content, false); // don't allow recursive imports
-        }, null, false); // load synchronously
-      }
-
-      // fill the dictionary
-      parseRawLines(text, true);
-      return dictionary;
-    }
-
-    // load the specified resource file
-    function loadResource(url, onSuccess, onFailure, asynchronous) {
-      onSuccess = onSuccess || function _onSuccess(data) {};
-      onFailure = onFailure || function _onFailure() {
-        consoleWarn(url, ' not found.');
-      };
-
+  var io = {
+    load: function load(url, callback, sync) {
       var xhr = new XMLHttpRequest();
-      xhr.open('GET', url, asynchronous);
-      if (xhr.overrideMimeType) {
-        xhr.overrideMimeType('text/plain; charset=utf-8');
-      }
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4) {
-          if (xhr.status == 200 || xhr.status === 0) {
-            onSuccess(xhr.responseText);
-          } else {
-            onFailure();
-          }
-        }
-      };
-      xhr.onerror = onFailure;
-      xhr.ontimeout = onFailure;
 
-      // in Firefox OS with the app:// protocol, trying to XHR a non-existing
-      // URL will raise an exception here -- hence this ugly try...catch.
+      if (xhr.overrideMimeType) {
+        xhr.overrideMimeType('text/plain');
+      }
+
+      xhr.open('GET', url, !sync);
+
+      xhr.addEventListener('load', function io_load(e) {
+        if (e.target.status === 200 || e.target.status === 0) {
+          callback(null, e.target.responseText);
+        } else {
+          callback(new Error('Not found: ' + url));
+        }
+      });
+      xhr.addEventListener('error', callback);
+      xhr.addEventListener('timeout', callback);
+
+      // the app: protocol throws on 404, see https://bugzil.la/827243
       try {
         xhr.send(null);
       } catch (e) {
-        onFailure();
+        callback(new Error('Not found: ' + url));
+      }
+    },
+
+    loadJSON: function loadJSON(url, callback) {
+      var xhr = new XMLHttpRequest();
+
+      if (xhr.overrideMimeType) {
+        xhr.overrideMimeType('application/json');
+      }
+
+      xhr.open('GET', url);
+
+      xhr.responseType = 'json';
+      xhr.addEventListener('load', function io_loadjson(e) {
+        if (e.target.status === 200 || e.target.status === 0) {
+          callback(null, e.target.response);
+        } else {
+          callback(new Error('Not found: ' + url));
+        }
+      });
+      xhr.addEventListener('error', callback);
+      xhr.addEventListener('timeout', callback);
+
+      // the app: protocol throws on 404, see https://bugzil.la/827243
+      try {
+        xhr.send(null);
+      } catch (e) {
+        callback(new Error('Not found: ' + url));
       }
     }
-
-    // load and parse l10n data (warning: global variables are used here)
-    loadResource(href, function(response) {
-      if (/\.json$/.test(href)) {
-        gL10nData = JSON.parse(response); // TODO: support multiple JSON files
-      } else { // *.ini or *.properties file
-        var data = parseProperties(response);
-        for (var key in data) {
-          var id, prop, nestedProp, index = key.lastIndexOf('.');
-          if (index > 0) { // a property name has been specified
-            id = key.slice(0, index);
-            prop = key.slice(index + 1);
-            index = id.lastIndexOf('.');
-            if (index > 0) { // a nested property may have been specified
-              nestedProp = id.substr(index + 1);
-              if (gNestedProps.indexOf(nestedProp) > -1) {
-                id = id.substr(0, index);
-                prop = nestedProp + '.' + prop;
-              }
-            }
-          } else { // no property name: assuming text content by default
-            index = key.lastIndexOf('[');
-            if (index > 0) { // we have a macro index
-              id = key.slice(0, index);
-              prop = '_' + key.slice(index);
-            } else {
-              id = key;
-              prop = '_';
-            }
-          }
-          if (!gL10nData[id]) {
-            gL10nData[id] = {};
-          }
-          gL10nData[id][prop] = data[key];
-        }
-      }
-
-      // trigger callback
-      if (successCallback) {
-        successCallback();
-      }
-    }, failureCallback, gAsyncResourceLoading);
   };
 
-  // load and parse all resources for the specified locale
-  function loadLocale(lang, translationRequired) {
-    clear();
-    gReadyState = 'loading';
-    gLanguage = lang;
+  function EventEmitter() {}
 
-    var untranslatedElements = [];
-
-    // if there is an inline / pre-compiled dictionary,
-    // the current HTML document can be translated right now
-    var inlineDict = getL10nDictionary(lang);
-    if (inlineDict) {
-      gL10nData = inlineDict;
-      if (translationRequired) {
-        untranslatedElements = translateFragment();
-      }
+  EventEmitter.prototype.emit = function ee_emit() {
+    if (!this._listeners) {
+      return;
     }
 
-    // translate the document if required and fire a `localized' event
-    function finish() {
-      if (translationRequired) {
-        if (!inlineDict) {
-          // no inline dictionary has been used: translate the whole document
-          untranslatedElements = translateFragment();
-        } else if (untranslatedElements.length) {
-          // the document should have been already translated but the inline
-          // dictionary didn't include all necessary l10n keys:
-          // try to translate all remaining elements now
-          untranslatedElements = translateElements(untranslatedElements);
-        }
-      }
-      // tell the rest of the world we're done
-      // -- note that `gReadyState' must be set before the `localized' event is
-      //    fired for `localizeElement()' to work as expected
-      gReadyState = 'complete';
-      fireL10nReadyEvent(lang);
-      consoleWarn_missingKeys(untranslatedElements, lang);
+    var args = Array.prototype.slice.call(arguments);
+    var type = args.shift();
+    if (!this._listeners[type]) {
+      return;
     }
 
-    // l10n resource loader
-    function l10nResourceLink(link) {
-      /**
-       * l10n resource links can use the following syntax for href:
-       * <link type="application/l10n" href="resources/{{locale}}.json" />
-       * -- in which case, {{locale}} will be replaced by `navigator.language'.
-       */
-      var re = /\{\{\s*locale\s*\}\}/;
+    var typeListeners = this._listeners[type].slice();
+    for (var i = 0; i < typeListeners.length; i++) {
+      typeListeners[i].apply(this, args);
+    }
+  };
 
-      var parse = function(locale, onload, onerror) {
-        var href = unescape(link.href).replace(re, locale);
-        parseResource(href, locale, onload, function notFound() {
-          consoleWarn(href, ' not found.');
-          onerror();
-        });
-      };
+  EventEmitter.prototype.addEventListener = function ee_add(type, listener) {
+    if (!this._listeners) {
+      this._listeners = {};
+    }
+    if (!(type in this._listeners)) {
+      this._listeners[type] = [];
+    }
+    this._listeners[type].push(listener);
+  };
 
-      this.load = function(locale, onload, onerror) {
-        onerror = onerror || function() {};
-        parse(locale, onload, function parseFallbackLocale() {
-          /**
-           * For links like <link href="resources/{{locale}}.json" />,
-           * there's no way to know if the resource file matching the current
-           * language has been found... before trying to fetch it with XHR
-           * => if something went wrong, try the default locale as fallback.
-           */
-          if (re.test(unescape(link.href)) && gDefaultLocale != locale) {
-            consoleLog('Trying the fallback locale: ', gDefaultLocale);
-            parse(gDefaultLocale, onload, onerror);
-          } else {
-            onerror();
-          }
-        });
-      };
+  EventEmitter.prototype.removeEventListener = function ee_rm(type, listener) {
+    if (!this._listeners) {
+      return;
     }
 
-    // check all <link type="application/l10n" href="..." /> nodes
-    // and load the resource files
-    var resourceLinks = getL10nResourceLinks();
-    var resourceCount = resourceLinks.length;
-    if (!resourceCount) {
-      consoleLog('no resource to load, early way out');
-      translationRequired = false;
-      finish();
-    } else {
-      var onResourceCallback = function() {
-        if (--resourceCount <= 0) { // <=> all resources have been XHR'ed
-          finish();
-        }
-      };
-      for (var i = 0, l = resourceCount; i < l; i++) {
-        var resource = new l10nResourceLink(resourceLinks[i]);
-        resource.load(lang, onResourceCallback, onResourceCallback);
-      }
+    var typeListeners = this._listeners[type];
+    var pos = typeListeners.indexOf(listener);
+    if (pos === -1) {
+      return;
     }
-  }
 
-  // clear all l10n data
-  function clear() {
-    gL10nData = {};
-    gLanguage = '';
-    // TODO: clear all non predefined macros.
-    // There's no such macro /yet/ but we're planning to have some...
-  }
+    typeListeners.splice(pos, 1);
+  };
 
 
-  /**
-   * Get rules for plural forms (shared with JetPack), see:
-   * http://unicode.org/repos/cldr-tmp/trunk/diff/supplemental/language_plural_rules.html
-   * https://github.com/mozilla/addon-sdk/blob/master/python-lib/plural-rules-generator.p
-   *
-   * @param {string} lang
-   *    locale (language) used.
-   *
-   * @return {Function}
-   *    returns a function that gives the plural form name for a given integer:
-   *       var fun = getPluralRules('en');
-   *       fun(1)    -> 'one'
-   *       fun(0)    -> 'other'
-   *       fun(1000) -> 'other'.
-   */
-
-  var kPluralForms = ['zero', 'one', 'two', 'few', 'many', 'other'];
-
-  function getPluralRules(lang) {
+  function getPluralRule(lang) {
     var locales2rules = {
       'af': 3,
       'ak': 4,
@@ -685,203 +290,261 @@
     // list of all plural rules methods:
     // map an integer to the plural form name to use
     var pluralRules = {
-      '0': function(n) {
+      '0': function() {
         return 'other';
       },
       '1': function(n) {
-        if ((isBetween((n % 100), 3, 10)))
+        if ((isBetween((n % 100), 3, 10))) {
           return 'few';
-        if (n === 0)
+        }
+        if (n === 0) {
           return 'zero';
-        if ((isBetween((n % 100), 11, 99)))
+        }
+        if ((isBetween((n % 100), 11, 99))) {
           return 'many';
-        if (n == 2)
+        }
+        if (n === 2) {
           return 'two';
-        if (n == 1)
+        }
+        if (n === 1) {
           return 'one';
+        }
         return 'other';
       },
       '2': function(n) {
-        if (n !== 0 && (n % 10) === 0)
+        if (n !== 0 && (n % 10) === 0) {
           return 'many';
-        if (n == 2)
+        }
+        if (n === 2) {
           return 'two';
-        if (n == 1)
+        }
+        if (n === 1) {
           return 'one';
+        }
         return 'other';
       },
       '3': function(n) {
-        if (n == 1)
+        if (n === 1) {
           return 'one';
+        }
         return 'other';
       },
       '4': function(n) {
-        if ((isBetween(n, 0, 1)))
+        if ((isBetween(n, 0, 1))) {
           return 'one';
+        }
         return 'other';
       },
       '5': function(n) {
-        if ((isBetween(n, 0, 2)) && n != 2)
+        if ((isBetween(n, 0, 2)) && n !== 2) {
           return 'one';
+        }
         return 'other';
       },
       '6': function(n) {
-        if (n === 0)
+        if (n === 0) {
           return 'zero';
-        if ((n % 10) == 1 && (n % 100) != 11)
+        }
+        if ((n % 10) === 1 && (n % 100) !== 11) {
           return 'one';
+        }
         return 'other';
       },
       '7': function(n) {
-        if (n == 2)
+        if (n === 2) {
           return 'two';
-        if (n == 1)
+        }
+        if (n === 1) {
           return 'one';
+        }
         return 'other';
       },
       '8': function(n) {
-        if ((isBetween(n, 3, 6)))
+        if ((isBetween(n, 3, 6))) {
           return 'few';
-        if ((isBetween(n, 7, 10)))
+        }
+        if ((isBetween(n, 7, 10))) {
           return 'many';
-        if (n == 2)
+        }
+        if (n === 2) {
           return 'two';
-        if (n == 1)
+        }
+        if (n === 1) {
           return 'one';
+        }
         return 'other';
       },
       '9': function(n) {
-        if (n === 0 || n != 1 && (isBetween((n % 100), 1, 19)))
+        if (n === 0 || n !== 1 && (isBetween((n % 100), 1, 19))) {
           return 'few';
-        if (n == 1)
+        }
+        if (n === 1) {
           return 'one';
+        }
         return 'other';
       },
       '10': function(n) {
-        if ((isBetween((n % 10), 2, 9)) && !(isBetween((n % 100), 11, 19)))
+        if ((isBetween((n % 10), 2, 9)) && !(isBetween((n % 100), 11, 19))) {
           return 'few';
-        if ((n % 10) == 1 && !(isBetween((n % 100), 11, 19)))
+        }
+        if ((n % 10) === 1 && !(isBetween((n % 100), 11, 19))) {
           return 'one';
+        }
         return 'other';
       },
       '11': function(n) {
-        if ((isBetween((n % 10), 2, 4)) && !(isBetween((n % 100), 12, 14)))
+        if ((isBetween((n % 10), 2, 4)) && !(isBetween((n % 100), 12, 14))) {
           return 'few';
+        }
         if ((n % 10) === 0 ||
             (isBetween((n % 10), 5, 9)) ||
-            (isBetween((n % 100), 11, 14)))
+            (isBetween((n % 100), 11, 14))) {
           return 'many';
-        if ((n % 10) == 1 && (n % 100) != 11)
+        }
+        if ((n % 10) === 1 && (n % 100) !== 11) {
           return 'one';
+        }
         return 'other';
       },
       '12': function(n) {
-        if ((isBetween(n, 2, 4)))
+        if ((isBetween(n, 2, 4))) {
           return 'few';
-        if (n == 1)
+        }
+        if (n === 1) {
           return 'one';
+        }
         return 'other';
       },
       '13': function(n) {
-        if ((isBetween((n % 10), 2, 4)) && !(isBetween((n % 100), 12, 14)))
+        if ((isBetween((n % 10), 2, 4)) && !(isBetween((n % 100), 12, 14))) {
           return 'few';
-        if (n != 1 && (isBetween((n % 10), 0, 1)) ||
+        }
+        if (n !== 1 && (isBetween((n % 10), 0, 1)) ||
             (isBetween((n % 10), 5, 9)) ||
-            (isBetween((n % 100), 12, 14)))
+            (isBetween((n % 100), 12, 14))) {
           return 'many';
-        if (n == 1)
+        }
+        if (n === 1) {
           return 'one';
+        }
         return 'other';
       },
       '14': function(n) {
-        if ((isBetween((n % 100), 3, 4)))
+        if ((isBetween((n % 100), 3, 4))) {
           return 'few';
-        if ((n % 100) == 2)
+        }
+        if ((n % 100) === 2) {
           return 'two';
-        if ((n % 100) == 1)
+        }
+        if ((n % 100) === 1) {
           return 'one';
+        }
         return 'other';
       },
       '15': function(n) {
-        if (n === 0 || (isBetween((n % 100), 2, 10)))
+        if (n === 0 || (isBetween((n % 100), 2, 10))) {
           return 'few';
-        if ((isBetween((n % 100), 11, 19)))
+        }
+        if ((isBetween((n % 100), 11, 19))) {
           return 'many';
-        if (n == 1)
+        }
+        if (n === 1) {
           return 'one';
+        }
         return 'other';
       },
       '16': function(n) {
-        if ((n % 10) == 1 && n != 11)
+        if ((n % 10) === 1 && n !== 11) {
           return 'one';
+        }
         return 'other';
       },
       '17': function(n) {
-        if (n == 3)
+        if (n === 3) {
           return 'few';
-        if (n === 0)
+        }
+        if (n === 0) {
           return 'zero';
-        if (n == 6)
+        }
+        if (n === 6) {
           return 'many';
-        if (n == 2)
+        }
+        if (n === 2) {
           return 'two';
-        if (n == 1)
+        }
+        if (n === 1) {
           return 'one';
+        }
         return 'other';
       },
       '18': function(n) {
-        if (n === 0)
+        if (n === 0) {
           return 'zero';
-        if ((isBetween(n, 0, 2)) && n !== 0 && n != 2)
+        }
+        if ((isBetween(n, 0, 2)) && n !== 0 && n !== 2) {
           return 'one';
+        }
         return 'other';
       },
       '19': function(n) {
-        if ((isBetween(n, 2, 10)))
+        if ((isBetween(n, 2, 10))) {
           return 'few';
-        if ((isBetween(n, 0, 1)))
+        }
+        if ((isBetween(n, 0, 1))) {
           return 'one';
+        }
         return 'other';
       },
       '20': function(n) {
-        if ((isBetween((n % 10), 3, 4) || ((n % 10) == 9)) && !(
+        if ((isBetween((n % 10), 3, 4) || ((n % 10) === 9)) && !(
             isBetween((n % 100), 10, 19) ||
             isBetween((n % 100), 70, 79) ||
             isBetween((n % 100), 90, 99)
-            ))
+            )) {
           return 'few';
-        if ((n % 1000000) === 0 && n !== 0)
+        }
+        if ((n % 1000000) === 0 && n !== 0) {
           return 'many';
-        if ((n % 10) == 2 && !isIn((n % 100), [12, 72, 92]))
+        }
+        if ((n % 10) === 2 && !isIn((n % 100), [12, 72, 92])) {
           return 'two';
-        if ((n % 10) == 1 && !isIn((n % 100), [11, 71, 91]))
+        }
+        if ((n % 10) === 1 && !isIn((n % 100), [11, 71, 91])) {
           return 'one';
+        }
         return 'other';
       },
       '21': function(n) {
-        if (n === 0)
+        if (n === 0) {
           return 'zero';
-        if (n == 1)
+        }
+        if (n === 1) {
           return 'one';
+        }
         return 'other';
       },
       '22': function(n) {
-        if ((isBetween(n, 0, 1)) || (isBetween(n, 11, 99)))
+        if ((isBetween(n, 0, 1)) || (isBetween(n, 11, 99))) {
           return 'one';
+        }
         return 'other';
       },
       '23': function(n) {
-        if ((isBetween((n % 10), 1, 2)) || (n % 20) === 0)
+        if ((isBetween((n % 10), 1, 2)) || (n % 20) === 0) {
           return 'one';
+        }
         return 'other';
       },
       '24': function(n) {
-        if ((isBetween(n, 3, 10) || isBetween(n, 13, 19)))
+        if ((isBetween(n, 3, 10) || isBetween(n, 13, 19))) {
           return 'few';
-        if (isIn(n, [2, 12]))
+        }
+        if (isIn(n, [2, 12])) {
           return 'two';
-        if (isIn(n, [1, 11]))
+        }
+        if (isIn(n, [1, 11])) {
           return 'one';
+        }
         return 'other';
       }
     };
@@ -889,243 +552,919 @@
     // return a function that gives the plural form name for a given integer
     var index = locales2rules[lang.replace(/-.*$/, '')];
     if (!(index in pluralRules)) {
-      consoleWarn('plural form unknown for [', lang, ']');
       return function() { return 'other'; };
     }
     return pluralRules[index];
   }
 
-  // pre-defined 'plural' macro
-  gMacros.plural = function(str, param, key, prop) {
-    var n = parseFloat(param);
-    if (isNaN(n)) {
-      return str;
+
+
+  var nestedProps = ['style', 'dataset'];
+
+  var parsePatterns;
+
+  function parse(ctx, source) {
+    var ast = {};
+
+    if (!parsePatterns) {
+      parsePatterns = {
+        comment: /^\s*#|^\s*$/,
+        entity: /^([^=\s]+)\s*=\s*(.+)$/,
+        multiline: /[^\\]\\$/,
+        macro: /\{\[\s*(\w+)\(([^\)]*)\)\s*\]\}/i,
+        unicode: /\\u([0-9a-fA-F]{1,4})/g,
+        entries: /[\r\n]+/,
+        controlChars: /\\([\\\n\r\t\b\f\{\}\"\'])/g
+      };
     }
 
-    var data = gL10nData[key];
-    if (!data) {
-      return str;
-    }
+    var entries = source.split(parsePatterns.entries);
+    for (var i = 0; i < entries.length; i++) {
+      var line = entries[i];
 
-    // initialize _pluralRules
-    if (!gMacros._pluralRules) {
-      gMacros._pluralRules = getPluralRules(gLanguage);
-    }
-    var index = '[' + gMacros._pluralRules(n) + ']';
-
-    // try to find a [zero|one|two] form if it's defined
-    if (n === 0 && (prop + '[zero]') in data) {
-      str = data[prop + '[zero]'];
-    } else if (n == 1 && (prop + '[one]') in data) {
-      str = data[prop + '[one]'];
-    } else if (n == 2 && (prop + '[two]') in data) {
-      str = data[prop + '[two]'];
-    } else if ((prop + index) in data) {
-      str = data[prop + index];
-    } else if ((prop + '[other]') in data) {
-      str = data[prop + '[other]'];
-    }
-
-    return str;
-  };
-
-
-  /**
-   * l10n dictionary functions
-   */
-
-  var reArgs = /\{\{\s*(.+?)\s*\}\}/;                       // arguments
-  var reIndex = /\{\[\s*([a-zA-Z]+)\(([a-zA-Z]+)\)\s*\]\}/; // index macros
-
-  // fetch an l10n object, warn if not found, apply `args' if possible
-  function getL10nData(key, args) {
-    var data = gL10nData[key];
-    if (!data) {
-      return null;
-    }
-
-    /**
-     * This is where l10n expressions should be processed.
-     * The plan is to support C-style expressions from the l20n project;
-     * until then, only two kinds of simple expressions are supported:
-     *   {[ index ]} and {{ arguments }}.
-     */
-    var rv = {};
-    for (var prop in data) {
-      var str = data[prop];
-      str = substIndexes(str, args, key, prop);
-      str = substArguments(str, args, key);
-      rv[prop] = str;
-    }
-    return rv;
-  }
-
-  // return an array of all {{arguments}} found in a string
-  function getL10nArgs(str) {
-    var args = [];
-    var match = reArgs.exec(str);
-    while (match && match.length >= 2) {
-      args.push({
-        name: match[1], // name of the argument
-        subst: match[0] // substring to replace (including braces and spaces)
-      });
-      str = str.substr(match.index + match[0].length);
-      match = reArgs.exec(str);
-    }
-    return args;
-  }
-
-  // return a sub-dictionary sufficient to translate a given fragment
-  function getSubDictionary(fragment) {
-    if (!fragment) { // by default, return a clone of the whole dictionary
-      return JSON.parse(JSON.stringify(gL10nData));
-    }
-
-    var dict = {};
-    var elements = getTranslatableChildren(fragment);
-
-    function checkGlobalArguments(str) {
-      var match = getL10nArgs(str);
-      for (var i = 0; i < match.length; i++) {
-        var arg = match[i].name;
-        if (arg in gL10nData) {
-          dict[arg] = gL10nData[arg];
-        }
-      }
-    }
-
-    for (var i = 0, l = elements.length; i < l; i++) {
-      var id = getL10nAttributes(elements[i]).id;
-      var data = gL10nData[id];
-      if (!id || !data) {
+      if (parsePatterns.comment.test(line)) {
         continue;
       }
 
-      dict[id] = data;
-      for (var prop in data) {
-        var str = data[prop];
-        checkGlobalArguments(str);
+      while (parsePatterns.multiline.test(line) && i < entries.length) {
+        line = line.slice(0, -1) + entries[++i].trim();
+      }
 
-        if (reIndex.test(str)) { // macro index
-          for (var j = 0; j < kPluralForms.length; j++) {
-            var key = id + '[' + kPluralForms[j] + ']';
-            if (key in gL10nData) {
-              dict[key] = gL10nData[key];
-              checkGlobalArguments(gL10nData[key]);
-            }
+      var entityMatch = line.match(parsePatterns.entity);
+      if (entityMatch) {
+        try {
+          parseEntity(entityMatch[1], entityMatch[2], ast);
+        } catch (e) {
+          if (ctx) {
+            ctx._emitter.emit('error', e);
+          } else {
+            throw e;
           }
         }
       }
     }
-
-    return dict;
+    return ast;
   }
 
-  // replace {[macros]} with their values
-  function substIndexes(str, args, key, prop) {
-    var reMatch = reIndex.exec(str);
-    if (!reMatch || !reMatch.length) {
-      return str;
-    }
+  function setEntityValue(id, attr, key, value, ast) {
+    var obj = ast;
+    var prop = id;
 
-    // an index/macro has been found
-    // Note: at the moment, only one parameter is supported
-    var macroName = reMatch[1];
-    var paramName = reMatch[2];
-    var param;
-    if (args && paramName in args) {
-      param = args[paramName];
-    } else if (paramName in gL10nData) {
-      param = gL10nData[paramName];
-    }
-
-    // there's no macro parser yet: it has to be defined in gMacros
-    if (macroName in gMacros) {
-      var macro = gMacros[macroName];
-      str = macro(str, param, key, prop);
-    }
-    return str;
-  }
-
-  // replace {{arguments}} with their values
-  function substArguments(str, args, key) {
-    var match = getL10nArgs(str);
-    for (var i = 0; i < match.length; i++) {
-      var sub, arg = match[i].name;
-      if (args && arg in args) {
-        sub = args[arg];
-      } else if (arg in gL10nData) {
-        sub = gL10nData[arg]['_'];
-      } else {
-        consoleLog('argument {{', arg, '}} for #', key, ' is undefined.');
-        return str;
+    if (attr) {
+      if (!(id in obj)) {
+        obj[id] = {};
       }
-      if (typeof sub == 'string') {
-        // dollar signs would be interpreted as replacement patterns
-        sub = sub.replace(/\$/g, '$$$$');
+      if (typeof(obj[id]) === 'string') {
+        obj[id] = {'_': obj[id]};
       }
-      str = str.replace(match[i].subst, sub);
+      obj = obj[id];
+      prop = attr;
     }
-    return str;
+
+    if (!key) {
+      obj[prop] = value;
+      return;
+    }
+
+    if (!(prop in obj)) {
+      obj[prop] = {'_': {}};
+    } else if (typeof(obj[prop]) === 'string') {
+      obj[prop] = {'_index': parseMacro(obj[prop]), '_': {}};
+    }
+    obj[prop]._[key] = value;
   }
 
-  // translate an HTML element
-  // -- returns true if the element could be translated, false otherwise
-  function translateElement(element) {
-    var l10n = getL10nAttributes(element);
-    if (!l10n.id) {
-      return true;
+  function parseEntity(id, value, ast) {
+    var name, key;
+
+    var pos = id.indexOf('[');
+    if (pos !== -1) {
+      name = id.substr(0, pos);
+      key = id.substring(pos + 1, id.length - 1);
+    } else {
+      name = id;
+      key = null;
     }
 
-    // get the related l10n object
-    var data = getL10nData(l10n.id, l10n.args);
-    if (!data) {
-      return false;
+    var nameElements = name.split('.');
+
+    var attr;
+    if (nameElements.length > 1) {
+      var attrElements = [];
+      attrElements.push(nameElements.pop());
+      if (nameElements.length > 1) {
+        // Usually the last dot separates an attribute from an id
+        //
+        // In case when there are more than one dot in the id
+        // and the second to last item is "style" or "dataset" then the last two
+        // items are becoming the attribute.
+        //
+        // ex.
+        // id.style.color = foo =>
+        //
+        // id:
+        //   style.color: foo
+        //
+        // id.other.color = foo =>
+        //
+        // id.other:
+        //   color: foo
+        if (nestedProps.indexOf(nameElements[nameElements.length - 1]) !== -1) {
+          attrElements.push(nameElements.pop());
+        }
+      }
+      name = nameElements.join('.');
+      attr = attrElements.reverse().join('.');
+    } else {
+      attr = null;
     }
 
-    // translate element (TODO: security checks?)
-    for (var k in data) {
-      if (k === '_') {
-        setTextContent(element, data._);
-      } else {
-        var idx = k.lastIndexOf('.');
-        var nestedProp = k.substr(0, idx);
-        if (gNestedProps.indexOf(nestedProp) > -1) {
-          element[nestedProp][k.substr(idx + 1)] = data[k];
-        } else if (k === 'ariaLabel') {
-          element.setAttribute('aria-label', data[k]);
-        } else {
-          element[k] = data[k];
+    setEntityValue(name, attr, key, unescapeString(value), ast);
+  }
+
+  function unescapeControlCharacters(str) {
+    return str.replace(parsePatterns.controlChars, '$1');
+  }
+
+  function unescapeUnicode(str) {
+    return str.replace(parsePatterns.unicode, function(match, token) {
+      return unescape('%u' + '0000'.slice(token.length) + token);
+    });
+  }
+
+  function unescapeString(str) {
+    if (str.lastIndexOf('\\') !== -1) {
+      str = unescapeControlCharacters(str);
+    }
+    return unescapeUnicode(str);
+  }
+
+  function parseMacro(str) {
+    var match = str.match(parsePatterns.macro);
+    if (!match) {
+      throw new Error('Malformed macro');
+    }
+    return [match[1], match[2]];
+  }
+
+
+  var MAX_PLACEABLE_LENGTH = 2500;
+  var MAX_PLACEABLES = 100;
+  var rePlaceables = /\{\{\s*(.+?)\s*\}\}/g;
+
+  function Entity(id, node, env) {
+    this.id = id;
+    this.env = env;
+    // the dirty guard prevents cyclic or recursive references from other
+    // Entities; see Entity.prototype.resolve
+    this.dirty = false;
+    if (typeof node === 'string') {
+      this.value = node;
+    } else {
+      // it's either a hash or it has attrs, or both
+      for (var key in node) {
+        if (node.hasOwnProperty(key) && key[0] !== '_') {
+          if (!this.attributes) {
+            this.attributes = {};
+          }
+          this.attributes[key] = new Entity(this.id + '.' + key, node[key],
+                                            env);
+        }
+      }
+      this.value = node._ || null;
+      this.index = node._index;
+    }
+  }
+
+  Entity.prototype.resolve = function E_resolve(ctxdata) {
+    if (this.dirty) {
+      return undefined;
+    }
+
+    this.dirty = true;
+    var val;
+    // if resolve fails, we want the exception to bubble up and stop the whole
+    // resolving process;  however, we still need to clean up the dirty flag
+    try {
+      val = resolve(ctxdata, this.env, this.value, this.index);
+    } finally {
+      this.dirty = false;
+    }
+    return val;
+  };
+
+  Entity.prototype.toString = function E_toString(ctxdata) {
+    try {
+      return this.resolve(ctxdata);
+    } catch (e) {
+      return undefined;
+    }
+  };
+
+  Entity.prototype.valueOf = function E_valueOf(ctxdata) {
+    if (!this.attributes) {
+      return this.toString(ctxdata);
+    }
+
+    var entity = {
+      value: this.toString(ctxdata),
+      attributes: {}
+    };
+
+    for (var key in this.attributes) {
+      if (this.attributes.hasOwnProperty(key)) {
+        entity.attributes[key] = this.attributes[key].toString(ctxdata);
+      }
+    }
+
+    return entity;
+  };
+
+  function subPlaceable(ctxdata, env, match, id) {
+    if (ctxdata && ctxdata.hasOwnProperty(id) &&
+        (typeof ctxdata[id] === 'string' ||
+         (typeof ctxdata[id] === 'number' && !isNaN(ctxdata[id])))) {
+      return ctxdata[id];
+    }
+
+    if (env.hasOwnProperty(id)) {
+      if (!(env[id] instanceof Entity)) {
+        env[id] = new Entity(id, env[id], env);
+      }
+      var value = env[id].resolve(ctxdata);
+      if (typeof value === 'string') {
+        // prevent Billion Laughs attacks
+        if (value.length >= MAX_PLACEABLE_LENGTH) {
+          throw new Error('Too many characters in placeable (' + value.length +
+                          ', max allowed is ' + MAX_PLACEABLE_LENGTH + ')');
+        }
+        return value;
+      }
+    }
+    return match;
+  }
+
+  function interpolate(ctxdata, env, str) {
+    var placeablesCount = 0;
+    var value = str.replace(rePlaceables, function(match, id) {
+      // prevent Quadratic Blowup attacks
+      if (placeablesCount++ >= MAX_PLACEABLES) {
+        throw new Error('Too many placeables (' + placeablesCount +
+                        ', max allowed is ' + MAX_PLACEABLES + ')');
+      }
+      return subPlaceable(ctxdata, env, match, id);
+    });
+    placeablesCount = 0;
+    return value;
+  }
+
+  function resolve(ctxdata, env, expr, index) {
+    if (typeof expr === 'string') {
+      return interpolate(ctxdata, env, expr);
+    }
+
+    if (typeof expr === 'boolean' ||
+        typeof expr === 'number' ||
+        !expr) {
+      return expr;
+    }
+
+    // otherwise, it's a dict
+
+    if (index && ctxdata && ctxdata.hasOwnProperty(index[1])) {
+      var argValue = ctxdata[index[1]];
+
+      // special cases for zero, one, two if they are defined on the hash
+      if (argValue === 0 && 'zero' in expr) {
+        return resolve(ctxdata, env, expr.zero);
+      }
+      if (argValue === 1 && 'one' in expr) {
+        return resolve(ctxdata, env, expr.one);
+      }
+      if (argValue === 2 && 'two' in expr) {
+        return resolve(ctxdata, env, expr.two);
+      }
+
+      var selector = env.__plural(argValue);
+      if (expr.hasOwnProperty(selector)) {
+        return resolve(ctxdata, env, expr[selector]);
+      }
+    }
+
+    // if there was no index or no selector was found, try 'other'
+    if ('other' in expr) {
+      return resolve(ctxdata, env, expr.other);
+    }
+
+    return undefined;
+  }
+
+  function compile(env, ast) {
+    env = env || {};
+    for (var id in ast) {
+      if (ast.hasOwnProperty(id)) {
+        env[id] = new Entity(id, ast[id], env);
+      }
+    }
+    return env;
+  }
+
+
+
+  function Locale(id, ctx) {
+    this.id = id;
+    this.ctx = ctx;
+    this.isReady = false;
+    this.entries = {
+      __plural: getPluralRule(id)
+    };
+  }
+
+  Locale.prototype.getEntry = function L_getEntry(id) {
+    /* jshint -W093 */
+
+    var entries = this.entries;
+
+    if (!entries.hasOwnProperty(id)) {
+      return undefined;
+    }
+
+    if (entries[id] instanceof Entity) {
+      return entries[id];
+    }
+
+    return entries[id] = new Entity(id, entries[id], entries);
+  };
+
+  Locale.prototype.build = function L_build(callback) {
+    var sync = !callback;
+    var ctx = this.ctx;
+    var self = this;
+
+    var l10nLoads = ctx.resLinks.length;
+
+    function onL10nLoaded(err) {
+      if (err) {
+        ctx._emitter.emit('error', err);
+      }
+      if (--l10nLoads <= 0) {
+        self.isReady = true;
+        if (callback) {
+          callback();
         }
       }
     }
+
+    if (l10nLoads === 0) {
+      onL10nLoaded();
+      return;
+    }
+
+    function onJSONLoaded(err, json) {
+      if (!err && json) {
+        self.addAST(json);
+      }
+      onL10nLoaded(err);
+    }
+
+    function onPropLoaded(err, source) {
+      if (!err && source) {
+        var ast = parse(ctx, source);
+        self.addAST(ast);
+      }
+      onL10nLoaded(err);
+    }
+
+
+    for (var i = 0; i < ctx.resLinks.length; i++) {
+      var path = ctx.resLinks[i].replace('{{locale}}', this.id);
+      var type = path.substr(path.lastIndexOf('.') + 1);
+
+      switch (type) {
+        case 'json':
+          io.loadJSON(path, onJSONLoaded, sync);
+          break;
+        case 'properties':
+          io.load(path, onPropLoaded, sync);
+          break;
+      }
+    }
+  };
+
+  Locale.prototype.addAST = function(ast) {
+    for (var id in ast) {
+      if (ast.hasOwnProperty(id)) {
+        this.entries[id] = ast[id];
+      }
+    }
+  };
+
+  Locale.prototype.getEntity = function(id, ctxdata) {
+    var entry = this.getEntry(id);
+
+    if (!entry) {
+      return null;
+    }
+    return entry.valueOf(ctxdata);
+  };
+
+
+
+  function Context(id) {
+
+    this.id = id;
+    this.isReady = false;
+    this.isLoading = false;
+
+    this.supportedLocales = [];
+    this.resLinks = [];
+    this.locales = {};
+
+    this._emitter = new EventEmitter();
+
+
+    // Getting translations
+
+    function getWithFallback(id) {
+      /* jshint -W084 */
+
+      if (!this.isReady) {
+        throw new ContextError('Context not ready');
+      }
+
+      var cur = 0;
+      var loc;
+      var locale;
+      while (loc = this.supportedLocales[cur]) {
+        locale = this.getLocale(loc);
+        if (!locale.isReady) {
+          // build without callback, synchronously
+          locale.build(null);
+        }
+        var entry = locale.getEntry(id);
+        if (entry === undefined) {
+          cur++;
+          warning.call(this, new ContextError(id + ' not found in ' + loc, id,
+                                              loc));
+          continue;
+        }
+        return entry;
+      }
+
+      error.call(this, new ContextError(id + ' not found', id));
+      return null;
+    }
+
+    this.get = function get(id, ctxdata) {
+      var entry = getWithFallback.call(this, id);
+      if (entry === null) {
+        return '';
+      }
+
+      return entry.toString(ctxdata) || '';
+    };
+
+    this.getEntity = function getEntity(id, ctxdata) {
+      var entry = getWithFallback.call(this, id);
+      if (entry === null) {
+        return null;
+      }
+
+      return entry.valueOf(ctxdata);
+    };
+
+
+    // Helpers
+
+    this.getLocale = function getLocale(code) {
+      /* jshint -W093 */
+
+      var locales = this.locales;
+      if (locales[code]) {
+        return locales[code];
+      }
+
+      return locales[code] = new Locale(code, this);
+    };
+
+
+    // Getting ready
+
+    function negotiate(available, requested, defaultLocale) {
+      if (available.indexOf(requested[0]) === -1 ||
+          requested[0] === defaultLocale) {
+        return [defaultLocale];
+      } else {
+        return [requested[0], defaultLocale];
+      }
+    }
+
+    function freeze(supported) {
+      var locale = this.getLocale(supported[0]);
+      if (locale.isReady) {
+        setReady.call(this, supported);
+      } else {
+        locale.build(setReady.bind(this, supported));
+      }
+    }
+
+    function setReady(supported) {
+      this.supportedLocales = supported;
+      this.isReady = true;
+      this._emitter.emit('ready');
+    }
+
+    this.requestLocales = function requestLocales() {
+      if (this.isLoading && !this.isReady) {
+        throw new ContextError('Context not ready');
+      }
+
+      this.isLoading = true;
+      var requested = Array.prototype.slice.call(arguments);
+
+      var supported = negotiate(requested.concat('en-US'), requested, 'en-US');
+      freeze.call(this, supported);
+    };
+
+
+    // Events
+
+    this.addEventListener = function addEventListener(type, listener) {
+      this._emitter.addEventListener(type, listener);
+    };
+
+    this.removeEventListener = function removeEventListener(type, listener) {
+      this._emitter.removeEventListener(type, listener);
+    };
+
+    this.ready = function ready(callback) {
+      if (this.isReady) {
+        setTimeout(callback);
+      }
+      this.addEventListener('ready', callback);
+    };
+
+    this.once = function once(callback) {
+      /* jshint -W068 */
+      if (this.isReady) {
+        setTimeout(callback);
+        return;
+      }
+
+      var callAndRemove = (function() {
+        this.removeEventListener('ready', callAndRemove);
+        callback();
+      }).bind(this);
+      this.addEventListener('ready', callAndRemove);
+    };
+
+
+    // Errors
+
+    function warning(e) {
+      this._emitter.emit('warning', e);
+      return e;
+    }
+
+    function error(e) {
+      this._emitter.emit('error', e);
+      return e;
+    }
+  }
+
+  Context.Error = ContextError;
+
+  function ContextError(message, id, loc) {
+    this.name = 'ContextError';
+    this.message = message;
+    this.id = id;
+    this.loc = loc;
+  }
+  ContextError.prototype = Object.create(Error.prototype);
+  ContextError.prototype.constructor = ContextError;
+
+
+  /* jshint -W104 */
+
+  var DEBUG = false;
+  var isPretranslated = false;
+  var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
+
+  // Public API
+
+  navigator.mozL10n = {
+    ctx: new Context(),
+    get: function get(id, ctxdata) {
+      return navigator.mozL10n.ctx.get(id, ctxdata);
+    },
+    localize: function localize(element, id, args) {
+      return localizeElement.call(navigator.mozL10n, element, id, args);
+    },
+    translate: function translate(element) {
+      return translateFragment.call(navigator.mozL10n, element);
+    },
+    ready: function ready(callback) {
+      if (!callback) {
+        return;
+      }
+
+      // XXX full compatibility with webL10n, which means that the callback may
+      // be invoked once or multiple times, depending on when mozL10n.ready()
+      // was called.
+      // This should just use ctx.ready. See https://bugzil.la/882592
+      if (navigator.mozL10n.ctx.isReady) {
+        window.setTimeout(callback);
+      } else {
+        navigator.mozL10n.ctx.addEventListener('ready', callback);
+      }
+    },
+    once: function once(callback) {
+      return navigator.mozL10n.ctx.once(callback);
+    },
+    get readyState() {
+      return navigator.mozL10n.ctx.isReady ? 'complete' : 'loading';
+    },
+    language: {
+      set code(lang) {
+        navigator.mozL10n.ctx.requestLocales(lang);
+      },
+      get code() {
+        return navigator.mozL10n.ctx.supportedLocales[0];
+      },
+      get direction() {
+        return getDirection(navigator.mozL10n.ctx.supportedLocales[0]);
+      }
+    },
+    _getInternalAPI: function() {
+      return {
+        Context: Context,
+        Locale: Locale,
+        getPluralRule: getPluralRule,
+        rePlaceables: rePlaceables,
+        getTranslatableChildren:  getTranslatableChildren,
+        getL10nAttributes: getL10nAttributes,
+        loadINI: loadINI,
+        fireLocalizedEvent: fireLocalizedEvent,
+        parse: parse,
+        compile: compile
+      };
+    }
+  };
+
+  navigator.mozL10n.ctx.ready(onReady.bind(navigator.mozL10n));
+
+  if (DEBUG) {
+    navigator.mozL10n.ctx.addEventListener('error', console.error);
+    navigator.mozL10n.ctx.addEventListener('warning', console.warn);
+  }
+
+  function getDirection(lang) {
+    return (rtlList.indexOf(lang) >= 0) ? 'rtl' : 'ltr';
+  }
+
+  var readyStates = {
+    'loading': 0,
+    'interactive': 1,
+    'complete': 2
+  };
+
+  function waitFor(state, callback) {
+    state = readyStates[state];
+    if (readyStates[document.readyState] >= state) {
+      callback();
+      return;
+    }
+
+    document.addEventListener('readystatechange', function l10n_onrsc() {
+      if (readyStates[document.readyState] >= state) {
+        document.removeEventListener('readystatechange', l10n_onrsc);
+        callback();
+      }
+    });
+  }
+
+  if (window.document) {
+    isPretranslated = (document.documentElement.lang === navigator.language);
+
+    // this is a special case for netError bug; see https://bugzil.la/444165
+    if (document.documentElement.dataset.noCompleteBug) {
+      pretranslate.call(navigator.mozL10n);
+      return;
+    }
+
+
+    if (isPretranslated) {
+      waitFor('interactive', function() {
+        window.setTimeout(initResources.bind(navigator.mozL10n));
+      });
+    } else {
+      if (document.readyState === 'complete') {
+        window.setTimeout(initResources.bind(navigator.mozL10n));
+      } else {
+        waitFor('interactive', pretranslate.bind(navigator.mozL10n));
+      }
+    }
+
+  }
+
+  function pretranslate() {
+    /* jshint -W068 */
+    if (inlineLocalization.call(this)) {
+      waitFor('interactive', (function() {
+        window.setTimeout(initResources.bind(this));
+      }).bind(this));
+    } else {
+      initResources.call(this);
+    }
+  }
+
+  function inlineLocalization() {
+    var script = document.documentElement
+                         .querySelector('script[type="application/l10n"]' +
+                         '[lang="' + navigator.language + '"]');
+    if (!script) {
+      return false;
+    }
+
+    var locale = this.ctx.getLocale(navigator.language);
+    // the inline localization is happenning very early, when the ctx is not
+    // yet ready and when the resources haven't been downloaded yet;  add the
+    // inlined JSON directly to the current locale
+    locale.addAST(JSON.parse(script.innerHTML));
+    // localize the visible DOM
+    var l10n = {
+      ctx: locale,
+      language: {
+        code: locale.id,
+        direction: getDirection(locale.id)
+      }
+    };
+    translateFragment.call(l10n);
+    // the visible DOM is now pretranslated
+    isPretranslated = true;
     return true;
   }
 
-  // translate an array of HTML elements
-  // -- returns an array of elements that could not be translated
-  function translateElements(elements) {
-    var untranslated = [];
-    for (var i = 0, l = elements.length; i < l; i++) {
-      if (!translateElement(elements[i])) {
-        untranslated.push(elements[i]);
+  function initResources() {
+    var resLinks = document.head
+                           .querySelectorAll('link[type="application/l10n"]');
+    var iniLinks = [];
+    var link;
+
+    for (link of resLinks) {
+      var url = link.getAttribute('href');
+      var type = url.substr(url.lastIndexOf('.') + 1);
+      if (type === 'ini') {
+        iniLinks.push(url);
+      }
+      this.ctx.resLinks.push(url);
+    }
+
+    var iniLoads = iniLinks.length;
+    if (iniLoads === 0) {
+      initLocale.call(this);
+      return;
+    }
+
+    function onIniLoaded(err) {
+      if (err) {
+        this.ctx._emitter.emit('error', err);
+      }
+      if (--iniLoads === 0) {
+        initLocale.call(this);
       }
     }
-    return untranslated;
-  }
 
-  // translate an HTML subtree
-  // -- returns an array of elements that could not be translated
-  function translateFragment(element) {
-    element = element || document.documentElement;
-    var untranslated = translateElements(getTranslatableChildren(element));
-    if (!translateElement(element)) {
-      untranslated.push(element);
+    for (link of iniLinks) {
+      loadINI.call(this, link, onIniLoaded.bind(this));
     }
-    return untranslated;
   }
 
-  // localize an element as soon as mozL10n is ready
+  function initLocale() {
+    this.ctx.requestLocales(navigator.language);
+    // mozSettings won't be required here when https://bugzil.la/780953 lands
+    if (navigator.mozSettings) {
+      navigator.mozSettings.addObserver('language.current', function(event) {
+        navigator.mozL10n.language.code = event.settingValue;
+      });
+    }
+  }
+
+  function onReady() {
+    if (!isPretranslated) {
+      this.translate();
+    }
+    isPretranslated = false;
+
+    fireLocalizedEvent.call(this);
+  }
+
+  function fireLocalizedEvent() {
+    var event = new CustomEvent('localized', {
+      'bubbles': false,
+      'cancelable': false,
+      'detail': {
+        'language': this.ctx.supportedLocales[0]
+      }
+    });
+    window.dispatchEvent(event);
+  }
+
+  /* jshint -W104 */
+
+  function loadINI(url, callback) {
+    var ctx = this.ctx;
+    io.load(url, function(err, source) {
+      var pos = ctx.resLinks.indexOf(url);
+
+      if (err) {
+        // remove the ini link from resLinks
+        ctx.resLinks.splice(pos, 1);
+        return callback(err);
+      }
+
+      if (!source) {
+        ctx.resLinks.splice(pos, 1);
+        return callback(new Error('Empty file: ' + url));
+      }
+
+      var patterns = parseINI(source, url).resources.map(function(x) {
+        return x.replace('en-US', '{{locale}}');
+      });
+      ctx.resLinks.splice.apply(ctx.resLinks, [pos, 1].concat(patterns));
+      callback();
+    });
+  }
+
+  function relativePath(baseUrl, url) {
+    if (url[0] === '/') {
+      return url;
+    }
+
+    var dirs = baseUrl.split('/')
+      .slice(0, -1)
+      .concat(url.split('/'))
+      .filter(function(path) {
+        return path !== '.';
+      });
+
+    return dirs.join('/');
+  }
+
+  var iniPatterns = {
+    'section': /^\s*\[(.*)\]\s*$/,
+    'import': /^\s*@import\s+url\((.*)\)\s*$/i,
+    'entry': /[\r\n]+/
+  };
+
+  function parseINI(source, iniPath) {
+    var entries = source.split(iniPatterns.entry);
+    var locales = ['en-US'];
+    var genericSection = true;
+    var uris = [];
+    var match;
+
+    for (var line of entries) {
+      // we only care about en-US resources
+      if (genericSection && iniPatterns['import'].test(line)) {
+        match = iniPatterns['import'].exec(line);
+        var uri = relativePath(iniPath, match[1]);
+        uris.push(uri);
+        continue;
+      }
+
+      // but we need the list of all locales in the ini, too
+      if (iniPatterns.section.test(line)) {
+        genericSection = false;
+        match = iniPatterns.section.exec(line);
+        locales.push(match[1]);
+      }
+    }
+    return {
+      locales: locales,
+      resources: uris
+    };
+  }
+
+  /* jshint -W104 */
+
+  function translateFragment(element) {
+    if (!element) {
+      element = document.documentElement;
+      document.documentElement.lang = this.language.code;
+      document.documentElement.dir = this.language.direction;
+    }
+    translateElement.call(this, element);
+
+    for (var node of getTranslatableChildren(element)) {
+      translateElement.call(this, node);
+    }
+  }
+
+  function getTranslatableChildren(element) {
+    return element ? element.querySelectorAll('*[data-l10n-id]') : [];
+  }
+
   function localizeElement(element, id, args) {
     if (!element) {
       return;
@@ -1138,7 +1477,6 @@
       return;
     }
 
-    // set the data-l10n-[id|args] attributes
     element.setAttribute('data-l10n-id', id);
     if (args && typeof args === 'object') {
       element.setAttribute('data-l10n-args', JSON.stringify(args));
@@ -1146,104 +1484,92 @@
       element.removeAttribute('data-l10n-args');
     }
 
-    // if l10n resources are ready, translate now;
-    // if not, the element will be translated along with the document anyway.
-    if (gReadyState === 'complete') {
-      translateElement(element);
+    if (this.ctx.isReady) {
+      translateElement.call(this, element);
     }
   }
 
-
-  /**
-   * Startup & Public API
-   *
-   * This section is quite specific to the B2G project: old browsers are not
-   * supported and the API is slightly different from the standard webl10n one.
-   */
-
-  // load the default locale on startup
-  function l10nStartup() {
-    gDefaultLocale = document.documentElement.lang || gDefaultLocale;
-    gReadyState = 'interactive';
-    consoleLog('loading [', navigator.language, '] resources, ',
-        (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
-
-    // load the default locale and translate the document if required
-    var translationRequired =
-      (document.documentElement.lang !== navigator.language);
-    loadLocale(navigator.language, translationRequired);
-  }
-
-  // the B2G build system doesn't expose any `document'...
-  if (typeof(document) !== 'undefined') {
-    if (document.readyState === 'complete' ||
-      document.readyState === 'interactive') {
-      window.setTimeout(l10nStartup);
-    } else {
-      document.addEventListener('DOMContentLoaded', l10nStartup);
+  function getL10nAttributes(element) {
+    if (!element) {
+      return {};
     }
+
+    var l10nId = element.getAttribute('data-l10n-id');
+    var l10nArgs = element.getAttribute('data-l10n-args');
+
+    var args = l10nArgs ? JSON.parse(l10nArgs) : null;
+
+    return {id: l10nId, args: args};
   }
 
-  // load the appropriate locale if the language setting has changed
-  if ('mozSettings' in navigator && navigator.mozSettings) {
-    navigator.mozSettings.addObserver('language.current', function(event) {
-      loadLocale(event.settingValue, true);
-    });
-  }
 
-  // public API
-  navigator.mozL10n = {
-    // get a localized string
-    get: function l10n_get(key, args) {
-      var data = getL10nData(key, args);
-      if (!data) {
-        consoleWarn('#', key, ' is undefined.');
-        return '';
-      } else {
-        return data._;
-      }
-    },
 
-    // get|set the document language and direction
-    get language() {
-      return {
-        // get|set the document language (ISO-639-1)
-        get code() { return gLanguage; },
-        set code(lang) { loadLocale(lang, true); },
+  function translateElement(element) {
+    var l10n = getL10nAttributes(element);
 
-        // get the direction (ltr|rtl) of the current language
-        get direction() {
-          // http://www.w3.org/International/questions/qa-scripts
-          // Arabic, Hebrew, Farsi, Pashto, Urdu
-          var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
-          return (rtlList.indexOf(gLanguage) >= 0) ? 'rtl' : 'ltr';
+    if (!l10n.id) {
+      return;
+    }
+
+    var entity = this.ctx.getEntity(l10n.id, l10n.args);
+
+    if (!entity) {
+      return;
+    }
+
+    if (typeof entity === 'string') {
+      setTextContent(element, entity);
+      return true;
+    }
+
+    if (entity.value) {
+      setTextContent(element, entity.value);
+    }
+
+    for (var key in entity.attributes) {
+      if (entity.attributes.hasOwnProperty(key)) {
+        var attr = entity.attributes[key];
+        var pos = key.indexOf('.');
+        if (pos !== -1) {
+          element[key.substr(0, pos)][key.substr(pos + 1)] = attr;
+        } else if (key === 'ariaLabel') {
+          element.setAttribute('aria-label', attr);
+        } else {
+          element[key] = attr;
         }
-      };
-    },
-
-    // translate an element or document fragment
-    translate: translateFragment,
-
-    // localize an element (= set its data-l10n-* attributes and translate it)
-    localize: localizeElement,
-
-    // get (a part of) the dictionary for the current locale
-    getDictionary: getSubDictionary,
-
-    // this can be used to prevent race conditions
-    get readyState() { return gReadyState; },
-    ready: function l10n_ready(callback) {
-      if (!callback) {
-        return;
-      }
-      if (gReadyState == 'complete') {
-        window.setTimeout(callback);
-      } else {
-        window.addEventListener('localized', callback);
       }
     }
-  };
 
-  consoleLog('library loaded.');
+    return true;
+  }
+
+  function setTextContent(element, text) {
+    // standard case: no element children
+    if (!element.firstElementChild) {
+      element.textContent = text;
+      return;
+    }
+
+    // this element has element children: replace the content of the first
+    // (non-blank) child textNode and clear other child textNodes
+    var found = false;
+    var reNotBlank = /\S/;
+    for (var child = element.firstChild; child; child = child.nextSibling) {
+      if (child.nodeType === Node.TEXT_NODE &&
+          reNotBlank.test(child.nodeValue)) {
+        if (found) {
+          child.nodeValue = '';
+        } else {
+          child.nodeValue = text;
+          found = true;
+        }
+      }
+    }
+    // if no (non-empty) textNode is found, insert a textNode before the
+    // element's first child.
+    if (!found) {
+      element.insertBefore(document.createTextNode(text), element.firstChild);
+    }
+  }
+
 })(this);
-

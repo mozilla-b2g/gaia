@@ -1,12 +1,15 @@
+'use strict';
+
 requireCommon('test/synthetic_gestures.js');
 require('/shared/js/gesture_detector.js');
 requireLib('timespan.js');
 
 suiteGroup('Views.Week', function() {
+  'use strict';
+
   var subject;
   var app;
   var controller;
-  var busytimes;
   var triggerEvent;
   var testEl;
 
@@ -295,7 +298,7 @@ suiteGroup('Views.Week', function() {
       for (; i < 24; i++) {
         assert.include(html, i, 'has hour #' + i);
         assert.include(
-          html, Calendar.Calc.formatHour(i),
+          html, Calendar.Calc.formatHourAbbr(i),
           'has display hour #' + i
         );
       }

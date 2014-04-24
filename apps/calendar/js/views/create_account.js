@@ -1,4 +1,5 @@
 (function(window) {
+  'use strict';
 
   var template = Calendar.Templates.Account;
 
@@ -74,8 +75,9 @@
 
         available.forEach(renderPreset);
 
-        if (this.onrender)
+        if (this.onrender) {
           this.onrender();
+        }
 
       }.bind(this));
     },

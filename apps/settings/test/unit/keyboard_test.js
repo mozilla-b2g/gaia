@@ -1,13 +1,15 @@
 'use strict';
 
-mocha.globals(['openDialog', 'Settings']);
+mocha.globals([
+  'openDialog',
+  'Settings',
+  'KeyboardContext',
+  'DefaultKeyboardEnabledDialog',
+  'InstalledLayoutsPanel'
+]);
 requireApp('settings/test/unit/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
-
-requireApp('settings/js/mvvm/models.js');
-requireApp('settings/js/mvvm/views.js');
-requireApp('settings/js/keyboard.js');
 
 suite('keyboard >', function() {
   var suiteSandbox = sinon.sandbox.create();
@@ -18,15 +20,26 @@ suite('keyboard >', function() {
   mockHelper.attachTestHelpers();
   var realL10n;
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    suiteSandbox.stub(MockL10n, 'ready');
+    suiteSandbox.stub(MockL10n, 'once');
+
+    // XXX: As we use 'require' function of requirejs in PanelCache and it
+    //      conflicts to the original require function, we replace it here.
+    this.originalRequire = window.require;
+    window.require = testRequire;
+
+    this.originalRequire('/apps/settings/js/keyboard.js');
+    this.loadedHandler = function() { done(); };
+    window.addEventListener('keyboardcontextloaded', this.loadedHandler);
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
     suiteSandbox.restore();
+    window.require = this.originalRequire;
+    window.removeEventListener('keyboardcontextloaded', this.loadedHandler);
   });
 
   suite('KeyboardContext', function() {
@@ -280,7 +293,9 @@ suite('keyboard >', function() {
         setup(function() {
           layouts[0][0].enabled = false;
           this.defaultCallback = this.sinon.spy();
-          KeyboardContext.defaultKeyboardEnabled(this.defaultCallback);
+          this.missingTypes = [];
+          KeyboardContext.defaultKeyboardEnabled(this.defaultCallback,
+            this.missingTypes);
         });
         test('calls checkDefaults', function() {
           assert.isTrue(this.checkDefaults.called);
@@ -288,7 +303,7 @@ suite('keyboard >', function() {
         suite('default enabled', function() {
           setup(function() {
             this.layout = {};
-            this.checkDefaults.yield([this.layout]);
+            this.checkDefaults.yield([this.layout], [this.missingTypes]);
           });
           test('calls callback with enabled layout', function() {
             assert.ok(this.defaultCallback.calledWith(this.layout));
@@ -331,7 +346,7 @@ suite('keyboard >', function() {
             types: ['url', 'text'],
             name: 'layoutName'
           }
-        });
+        }, ['text']);
       });
       teardown(function() {
         document.body.removeChild(this.title);

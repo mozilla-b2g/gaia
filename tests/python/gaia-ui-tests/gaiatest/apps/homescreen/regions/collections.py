@@ -7,22 +7,16 @@ from marionette.marionette import Actions
 
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
+from gaiatest.apps.homescreen.regions.bookmark_menu import BookmarkMenu
 
 
 class Collection(Base):
 
     _apps_locator = (By.CSS_SELECTOR, '.evme-apps ul.cloud li[data-name]')
     _homescreen_status_notification = (By.CSS_SELECTOR, "section[role='status'] > p")
-    _close_collection_locator = (By.CSS_SELECTOR, '#collection div.header .close')
 
     def wait_for_collection_screen_visible(self):
         self.wait_for_element_displayed(*self._apps_locator)
-
-    def tap_exit(self):
-        self.marionette.find_element(*self._close_collection_locator).tap()
-        self.wait_for_element_not_displayed(*self._close_collection_locator)
-        from gaiatest.apps.homescreen.app import Homescreen
-        return Homescreen(self.marionette)
 
     @property
     def notification_message(self):
@@ -59,3 +53,4 @@ class Collection(Base):
         def tap_save_to_home_screen(self):
             self.wait_for_element_displayed(*self._modal_dialog_save_locator)
             self.marionette.find_element(*self._modal_dialog_save_locator).tap()
+            return BookmarkMenu(self.marionette)

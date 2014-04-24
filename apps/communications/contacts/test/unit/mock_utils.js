@@ -1,4 +1,7 @@
 'use strict';
+/* exported MockImageLoader */
+/* exported MockURL */
+/* exported MockUtils */
 
 var MockURL = {
   createObjectURL: function(url) {
@@ -23,5 +26,11 @@ var MockUtils = {
     'toMozContact': function(c) {
       return c;
     }
+  },
+  listeners: {
+    add: function() {}
+  },
+  cookie: {
+
   }
 };

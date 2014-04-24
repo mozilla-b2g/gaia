@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockContactsExporter */
 
 var MockContactsExporter = function() {
   return {

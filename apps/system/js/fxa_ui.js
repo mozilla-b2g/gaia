@@ -1,4 +1,4 @@
-/* global SystemDialog */
+/* global FxAccountsDialog, FtuLauncher */
 
 'use strict';
 
@@ -12,8 +12,10 @@ var FxAccountsUI = {
     var dialogOptions = {
       onHide: this.reset.bind(this)
     };
-    this.dialog = SystemDialog('fxa-dialog', dialogOptions);
-    this.panel = document.getElementById('fxa-dialog');
+    if (!this.dialog) {
+      this.dialog = new FxAccountsDialog(dialogOptions);
+    }
+    this.panel = this.dialog.getView();
     this.iframe = document.createElement('iframe');
     this.iframe.id = 'fxa-iframe';
   },
@@ -74,6 +76,11 @@ var FxAccountsUI = {
     }
     this.iframe.setAttribute('src', url);
     this.panel.appendChild(this.iframe);
+    if (FtuLauncher.isFtuRunning()) {
+      this.panel.classList.add('isFTU');
+    } else {
+      this.panel.classList.remove('isFTU');
+    }
     this.dialog.show();
   },
 

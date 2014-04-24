@@ -122,7 +122,6 @@ suite('KeyboardHelper', function() {
     navigator.mozApps = MockNavigatormozApps;
 
     realMozSettings = navigator.mozSettings;
-    MockNavigatorSettings.mSyncRepliesOnly = true;
     navigator.mozSettings = MockNavigatorSettings;
 
     // ensure the default settings are indeed default
@@ -131,12 +130,12 @@ suite('KeyboardHelper', function() {
   });
 
   suiteTeardown(function() {
-    MockNavigatorSettings.mSyncRepliesOnly = false;
     navigator.mozApps = realMozApps;
     navigator.mozSettings = realMozSettings;
   });
 
   setup(function() {
+    MockNavigatorSettings.mSyncRepliesOnly = true;
     // reset KeyboardHelper each time
     KeyboardHelper.settings.enabled = {};
     KeyboardHelper.settings['default'] = defaultSettings['default'];
@@ -216,19 +215,6 @@ suite('KeyboardHelper', function() {
             'app://keyboard.example.com/hello.gaiamobile.org/manifest.webapp',
           manifest: {
             type: 'privileged',
-            role: 'input',
-            inputs: {},
-            permissions: {
-              input: {}
-            }
-          }
-        },
-        // invalid because it's system
-        {
-          origin: 'app://system.gaiamobile.org',
-          manifestURL: 'app://system.gaiamobile.org/manifest.webapp',
-          manifest: {
-            type: 'certified',
             role: 'input',
             inputs: {},
             permissions: {

@@ -38,10 +38,15 @@ section[role="region"] {
  * bug 976299 non-visible regions take an extra layer
  * in the layer tree. Remove them to improve scroll performance
  * in exchange for a reflow on section transitions.
+ *
+ * bug 976630 non-visible regions should have a visibility of hidden
+ * for accessibility purposes. Removing the visibility transition
+ * in hidden->visible avoids flashing.
  */
 section[role="region"] {
   transform: translateX(+100%);
-  transition: transform .4s ease, visibility .4s ease;
+  transition: transform .4s ease, visibility .4s;
+  visibility: hidden;
   height: 0;
 }
 
@@ -52,6 +57,8 @@ section[role="region"].previous {
 
 section[role="region"].current {
   transform: translateX(0);
+  visibility: visible;
+  transition: transform .4s ease;
   height: 100%;
 }
 
@@ -81,6 +88,28 @@ section[role="region"] > div {
 section[role="region"],
 section[role="region"] > div > ul {
   background-color: #f4f4f4;
+}
+
+/******************************************************************************
+ * Activities section = "root" and filtered by category
+ */
+#activityDoneButton {
+  display: none;
+}
+
+body[data-filter-by] #activityDoneButton {
+  display: block;
+}
+
+body[data-filter-by] #root > div header,
+body[data-filter-by] #root > div li {
+  display: none;
+}
+
+/* These rules show the "Network & Connectivity" header and items related to
+   connectivity (airplane mode, Wi-Fi and cellular & data) */
+body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
+  display: block;
 }
 
 /******************************************************************************
@@ -369,18 +398,6 @@ section ul.operate-certificate {
   pointer-events: none;
 }
 
-
-/******************************************************************************
- * Cellular and Data
- */
-
-#carrier-operatorSettings-content:not(.cdma) #operator-roaming-preference,
-#carrier-operatorSettings-content:not(.gsm) #operator-autoSelect,
-#carrier-operatorSettings-content:not(.gsm) #availableOperatorsHeader,
-#carrier-operatorSettings-content:not(.gsm) #availableOperators {
-  display: none;
-}
-
 /******************************************************************************
  * APN settings
  */
@@ -482,6 +499,22 @@ ul li > label.range-icons.brightness:before {
   width: calc(100% - 10.7rem);
 }
 
+ul li > label.range-icons.volume:before {
+  background:
+    url(images/range_icons_volume_min.png) no-repeat 0 50%,
+    url(images/range_icons_volume_max.png) no-repeat 100% 50%;
+  background-size: 3rem;
+  left: 1.4rem;
+  right: auto;
+  width: calc(100% - 2.1rem);
+  top: calc(50% + .6rem);
+}
+
+ul li > label.range-icons.volume input {
+  width: calc(100% - 10.5rem);
+  top: 0.2rem;
+  left: 0.35rem;
+}
 
 /******************************************************************************
  * SIM Toolkit
@@ -560,7 +593,7 @@ ul li > label.range-icons.brightness:before {
   display: block;
   background: url(images/feedback_faces.png);
   width: 10rem;
-  height: 10rem;
+  min-height: 10rem;
   background-repeat: no-repeat;
   background-color: transparent;
   background-size: 20rem;
@@ -572,6 +605,16 @@ ul li > label.range-icons.brightness:before {
 
 #feedback-mood li {
   display: inline-block;
+  max-width: 11rem;
+}
+
+.feedback-face-caption {
+  overflow: visible;
+  white-space: normal;
+  line-height: 2.6rem;
+  padding-top: 1rem;
+  min-height: 6rem;
+  height: auto;
 }
 
 #feedback-happy {
@@ -587,7 +630,8 @@ ul li > label.range-icons.brightness:before {
   background-position: 0;
 }
 
-#feedback-sad .feedback-choose-face{
+#feedback-sad .feedback-choose-face {
+  display: inline-block;
   background-position: 100%;
 }
 
@@ -639,11 +683,8 @@ ul li > label.range-icons.brightness:before {
 /******************************************************************************
  * Bluetooth
  */
-#update-device-name > section p {
-  border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
-  margin-top: 1rem;
-  padding: 0.5rem 1.2rem 0;
-  line-height: 1.2;
+#update-device-name > section input {
+  margin: 1rem 0;
 }
 
 /* Web activity handling */
@@ -776,5 +817,14 @@ html[dir="rtl"] #feedback-happy {
 
 html[dir="rtl"] #feedback-sad {
   float: left;
+}
+
+html[dir="rtl"] ul li > label.range-icons.volume:before {
+  background-position: 100% 50%, 0 50%;
+}
+
+html[dir="rtl"] ul li > label.range-icons.volume input {
+  left: auto;
+  right: 0.35rem;
 }
 

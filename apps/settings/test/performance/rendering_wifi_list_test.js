@@ -16,6 +16,8 @@ marionette(mozTestInfo.appPath + ' >', function() {
       'ftu.manifestURL': null
     }
   });
+  // Do nothing on script timeout. Bug 987383
+  client.onScriptTimeout = null;
 
   app = new SettingsIntegration(client, mozTestInfo.appPath);
 
@@ -44,10 +46,15 @@ marionette(mozTestInfo.appPath + ' >', function() {
         wifiSubpanel.tap();
       });
 
-      performanceHelper.waitForPerfEvent(function(runResults) {
-        performanceHelper.reportRunDurations(runResults);
-        assert.ok(Object.keys(runResults).length, 'empty results');
-        app.close();
+      performanceHelper.waitForPerfEvent(function(runResults, error) {
+        if (error) {
+          app.close();
+          throw error;
+        } else {
+          performanceHelper.reportRunDurations(runResults);
+          assert.ok(Object.keys(runResults).length, 'empty results');
+          app.close();
+        }
       });
     });
 

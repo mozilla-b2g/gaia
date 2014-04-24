@@ -1,7 +1,11 @@
+/*global Factory */
+
 // Timespan is always loaded but not in the test
 requireLib('timespan.js');
 
 suiteGroup('EventMutations', function() {
+  'use strict';
+
   var subject;
   var app;
   var db;
@@ -252,9 +256,9 @@ suiteGroup('EventMutations', function() {
       alarmStore.findAllByBusytimeId(busyId, function(err, values) {
         done(function() {
           assert.equal(values.length, expectedAlarms.length);
-          for (var i = 0, alarm; alarm = expectedAlarms[i]; i++) {
+          for (var i = 0; i < expectedAlarms.length; i++) {
             assert.equal(
-              event.remote.start.utc + alarm.trigger * 1000,
+              event.remote.start.utc + expectedAlarms[i].trigger * 1000,
               values[i].trigger.utc
             );
           }

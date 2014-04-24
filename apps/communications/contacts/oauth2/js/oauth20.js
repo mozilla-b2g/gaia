@@ -1,3 +1,4 @@
+/* global asyncStorage, oauthflow, Curtain */
 'use strict';
 
 var fb = window.fb || {};
@@ -83,12 +84,6 @@ if (typeof window.oauth2 === 'undefined') {
       });
     };
 
-    function getLocation(href) {
-      var l = document.createElement('a');
-      l.href = href;
-      return l;
-    };
-
     /**
      *  Starts a OAuth 2.0 flow to obtain the user information
      *
@@ -105,8 +100,6 @@ if (typeof window.oauth2 === 'undefined') {
       if (!parameters || !parameters.access_token) {
         return;
       }
-      var location = getLocation(oauthflow.params[accessTokenCbData.service].
-        redirectURI);
       if (e.origin !== APP_ORIGIN) {
         return;
       }

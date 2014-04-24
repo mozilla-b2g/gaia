@@ -1,3 +1,5 @@
+'use strict';
+
 var Contacts = require('./lib/contacts'),
     Dialer = require('../../../dialer/test/marionette/lib/dialer'),
     assert = require('assert'),
@@ -7,6 +9,7 @@ marionette('Contacts > Form', function() {
   var client = marionette.client(Contacts.config),
     subject,
     dialerSubject,
+    dialerSelectors,
     selectors;
 
   setup(function() {
@@ -38,7 +41,8 @@ marionette('Contacts > Form', function() {
       assert.notEqual(listElementText.indexOf(familyName), -1);
     });
 
-    test('Can create custom label', function() {
+    // disabled bug 989394
+    test.skip('Can create custom label', function() {
       subject.addContact({
         givenName: 'Custom Label Test',
         tel: 1231231234

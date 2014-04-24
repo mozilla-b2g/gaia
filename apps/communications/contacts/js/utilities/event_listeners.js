@@ -1,3 +1,4 @@
+/*jshint loopfunc: true */
 'use strict';
 
 var utils = window.utils || {};

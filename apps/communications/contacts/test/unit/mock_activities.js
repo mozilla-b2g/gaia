@@ -1,5 +1,9 @@
 'use strict';
+/* exported MockActivities */
 
 var MockActivities = {
-  currentlyHandling: false
+  currentlyHandling: false,
+  activityName: 'view',
+  postPickSuccess: function(data) {
+  }
 };

@@ -9,8 +9,9 @@ requireApp('homescreen/test/unit/mock_grid_manager.js');
 requireApp('homescreen/test/unit/mock_pagination_bar.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('homescreen/js/grid_components.js');
-requireApp('homescreen/js/message.js');
 requireApp('homescreen/js/request.js');
+requireApp('homescreen/test/unit/mock_moz_activity.js');
+requireApp('homescreen/test/unit/mock_icon.js');
 
 requireApp('homescreen/js/homescreen.js');
 
@@ -18,25 +19,30 @@ var mocksHelperForHome = new MocksHelper([
   'PaginationBar',
   'GridManager',
   'ManifestHelper',
-  'LazyLoader'
+  'LazyLoader',
+  'MozActivity'
 ]);
 mocksHelperForHome.init();
 
 suite('homescreen.js >', function() {
 
-  var dialog;
+  var dialog, icon;
+
+  mocksHelperForHome.attachTestHelpers();
 
   suiteSetup(function() {
-    mocksHelperForHome.suiteSetup();
     dialog = document.createElement('section');
     dialog.id = 'confirm-dialog';
     dialog.innerHTML = MockRequestHtml;
     document.body.appendChild(dialog);
     ConfirmDialog.init();
+    icon = new MockIcon(null, {
+      id: 'test',
+      type: GridItemsFactory.TYPE.BOOKMARK
+    });
   });
 
   suiteTeardown(function() {
-    mocksHelperForHome.suiteTeardown();
     document.body.removeChild(dialog);
   });
 
@@ -68,6 +74,33 @@ suite('homescreen.js >', function() {
   test(' Homescreen is listening offline event ', function() {
     window.dispatchEvent(new CustomEvent('offline'));
     assert.equal(document.body.dataset.online, 'offline');
+  });
+
+  test(' Homescreen showEditBookmarkDialog ', function() {
+    var activities = MockMozActivity.calls;
+    assert.equal(activities.length, 0);
+
+    Homescreen.showEditBookmarkDialog(icon);
+
+    assert.equal(activities.length, 1);
+    var activity = activities[0];
+    assert.equal(activity.name, 'save-bookmark');
+    assert.equal(activity.data.type, 'url');
+    assert.equal(activity.data.url, icon.app.id);
+  });
+
+  test(' Homescreen showAppDialog for bookmarks ', function() {
+    var activities = MockMozActivity.calls;
+    assert.equal(activities.length, 0);
+
+    Homescreen.showAppDialog(icon);
+
+    assert.equal(activities.length, 1);
+    // Activity data
+    var activity = activities[0];
+    assert.equal(activity.name, 'remove-bookmark');
+    assert.equal(activity.data.type, 'url');
+    assert.equal(activity.data.url, icon.app.id);
   });
 
 });

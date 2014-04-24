@@ -1,3 +1,4 @@
+/* exported WifiHelper */
 'use strict';
 
 var WifiHelper = {
@@ -59,17 +60,21 @@ var WifiHelper = {
   },
 
   getCapabilities: function(network) {
-    return network.capabilities === undefined ? [] : network.capabilities;
+    return network.capabilities === undefined || network.capabilities === null ?
+           [] : network.capabilities;
   },
 
   getKeyManagement: function(network) {
     var key = this.getSecurity(network)[0];
-    if (/WEP$/.test(key))
+    if (/WEP$/.test(key)) {
       return 'WEP';
-    if (/PSK$/.test(key))
+    }
+    if (/PSK$/.test(key)) {
       return 'WPA-PSK';
-    if (/EAP$/.test(key))
+    }
+    if (/EAP$/.test(key)) {
       return 'WPA-EAP';
+    }
     return '';
   },
 
@@ -81,8 +86,9 @@ var WifiHelper = {
      * the network is already connected or not.
      */
     var currentNetwork = this.wifiManager.connection.network;
-    if (!currentNetwork || !network)
+    if (!currentNetwork || !network) {
       return false;
+    }
     var key = network.ssid + '+' + this.getSecurity(network).join('+');
     var curkey = currentNetwork.ssid + '+' +
         this.getSecurity(currentNetwork).join('+');
@@ -109,8 +115,9 @@ var WifiHelper = {
 
     switch (key) {
       case 'WPA-PSK':
-        if (!password || password.length < 8)
+        if (!password || password.length < 8) {
           return false;
+        }
         break;
       case 'WPA-EAP':
         switch (eap) {
@@ -119,16 +126,19 @@ var WifiHelper = {
           case 'PEAP':
           case 'TLS':
           case 'TTLS':
+            /* falls through */
           default:
             if (!password || password.length < 1 ||
-                !identity || identity.length < 1)
+                !identity || identity.length < 1) {
               return false;
+            }
             break;
         }
         break;
       case 'WEP':
-        if (!password || !isValidWepKey(password))
+        if (!password || !isValidWepKey(password)) {
           return false;
+        }
         break;
     }
     return true;
@@ -160,8 +170,9 @@ var WifiHelper = {
     var allNetworks = available || {};
     var result = [];
     Object.keys(known).forEach(function(key) {
-      if (!allNetworks[key])
+      if (!allNetworks[key]) {
         allNetworks[key] = known[key];
+      }
     });
     // However, people who use getAvailableAndKnownNetworks expect
     // getAvailableAndKnownNetworks.result to be an array of network

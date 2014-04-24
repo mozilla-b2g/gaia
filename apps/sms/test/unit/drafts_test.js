@@ -1,11 +1,10 @@
 /*global Drafts, Draft, asyncStorage, MocksHelper */
 'use strict';
 
-requireApp('sms/js/drafts.js');
-requireApp('sms/js/utils.js');
-require('/shared/js/async_storage.js');
+require('/js/drafts.js');
+require('/js/utils.js');
 
-requireApp('sms/test/unit/mock_async_storage.js');
+require('/shared/test/unit/mocks/mock_async_storage.js');
 
 
 var MocksHelperForDraftsTest = new MocksHelper([
@@ -450,10 +449,6 @@ suite('Drafts', function() {
   });
 
   suite('Storage and Retrieval', function() {
-    suiteTeardown(function() {
-      asyncStorage.removeItem('draft index');
-    });
-
     setup(function() {
       Drafts.clear();
       this.sinon.spy(Drafts, 'store');

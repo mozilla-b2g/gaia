@@ -237,10 +237,10 @@ body {
 
 #dialog-overlay {
   position: absolute;
-  top: 2rem;
+  top: 2.4rem;
   left: 0;
   width: 100%;
-  height: calc(100% - 2rem);
+  height: calc(100% - 2.4rem);
   visibility: hidden;
   pointer-events: none;
 }
@@ -248,13 +248,13 @@ body {
 @media not all and (-moz-physical-home-button) {
   #dialog-overlay {
     bottom: 5rem;
-    height: calc(100% - 2rem - 5rem);
+    height: calc(100% - 2.4rem - 5rem);
   }
 }
 
 #screen.software-button-enabled #windows > #dialog-overlay {
   bottom: 5rem;
-  height: calc(100% - 2rem - 5rem);
+  height: calc(100% - 2.4rem - 5rem);
 }
 
 #screen.active-statusbar #dialog-overlay,

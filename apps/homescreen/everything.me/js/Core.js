@@ -169,7 +169,8 @@ window.Evme = new function Evme_Core() {
     var collectionSettings = new Evme.CollectionSettings({
       'id': collection.id,
       'experienceId': collection.providerId,
-      'apps': apps
+      'apps': apps,
+      'defaultIcon': collection.getFeatures().icon
     });
 
     Evme.CollectionStorage.add(collectionSettings, done);

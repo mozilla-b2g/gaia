@@ -1,4 +1,6 @@
 (function(window) {
+  'use strict';
+
   var NUMERIC = /^([0-9]+)$/;
 
   /**
@@ -297,7 +299,7 @@
       };
 
       req.onerror = function(event) {
-        callback(e);
+        callback(event);
       };
     },
 
@@ -325,7 +327,7 @@
       var store = trans.objectStore(this._store);
       id = this._parseId(id);
 
-      var req = store.delete(id);
+      store.delete(id);
 
       this._removeDependents(id, trans);
       self.emit('preRemove', id);

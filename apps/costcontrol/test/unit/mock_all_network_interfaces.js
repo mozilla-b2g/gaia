@@ -1,3 +1,5 @@
+/* exported MockAllNetworkInterfaces */
+'use strict';
 var WifiInterfaceType = 0;
 var MobileInterfaceType = 1;
 

@@ -7,7 +7,12 @@
     'pukRequired': 'emergencyCallsOnly-pukRequired',
     'networkLocked': 'emergencyCallsOnly-networkLocked',
     'serviceProviderLocked': 'emergencyCallsOnly-serviceProviderLocked',
-    'corporateLocked': 'emergencyCallsOnly-corporateLocked'
+    'corporateLocked': 'emergencyCallsOnly-corporateLocked',
+    'network1Locked': 'emergencyCallsOnly-network1Locked',
+    'network2Locked': 'emergencyCallsOnly-network2Locked',
+    'hrpdNetworkLocked' : 'emergencyCallsOnly-hrpdNetworkLocked',
+    'ruimCorporateLocked' : 'emergencyCallsOnly-ruimCorporateLocked',
+    'ruimServiceProviderLocked' : 'emergencyCallsOnly-ruimServiceProviderLocked'
   };
 
   /*
@@ -97,11 +102,11 @@
         var req2 =
           SettingsListener.getSettingsLock()
             .get('ril.telephony.defaultServiceId');
-        req.onsuccess = function() {
+        req2.onsuccess = (function() {
           this._telephonyDefaultServiceId =
             req2.result['ril.telephony.defaultServiceId'] || 0;
           this.updateConnStates();
-        };
+        }).bind(this);
       }).bind(this);
   };
 
@@ -213,6 +218,12 @@
         }
         simIDLine.hidden = true;
         return;
+      } else if (SIMSlotManager.noSIMCardConnectedToNetwork()) {
+        if (index == 0) {
+          localize(nextLine(), 'emergencyCallsOnly');
+        }
+        simIDLine.hidden = true;
+        return;
       }
 
       // If there are multiple sim slots and only one sim card inserted, we
@@ -245,8 +256,10 @@
       if (voice.emergencyCallsOnly) {
         if (this._telephonyDefaultServiceId == index) {
           localize(nextLine(), 'emergencyCallsOnly');
+          localize(nextLine(), _lockedStateMsgMap[iccObj.cardState]);
+        } else {
+          connstate.hidden = true;
         }
-        localize(nextLine(), _lockedStateMsgMap[iccObj.cardState]);
         return;
       }
 

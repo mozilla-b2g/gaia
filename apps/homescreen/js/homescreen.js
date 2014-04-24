@@ -121,9 +121,6 @@ var Homescreen = (function() {
     if (typeof ConfirmDialog !== 'undefined') {
       ConfirmDialog.hide();
     }
-    if (typeof EditDialog !== 'undefined') {
-      EditDialog.hide();
-    }
   }
 
   document.addEventListener('visibilitychange', function mozVisChange() {
@@ -135,20 +132,6 @@ var Homescreen = (function() {
       setTimeout(function forceRepaint() {
         var helper = document.getElementById('repaint-helper');
         helper.classList.toggle('displayed');
-      });
-    }
-  });
-
-  window.addEventListener('message', function hs_onMessage(event) {
-    if (event.origin === origin) {
-      var message = event.data;
-      LazyLoader.load('js/message.js', function loaded() {
-        switch (message.type) {
-          case Message.Type.ADD_BOOKMARK:
-            var app = new Bookmark(message.data);
-            GridManager.install(app);
-            break;
-        }
       });
     }
   });
@@ -180,9 +163,18 @@ var Homescreen = (function() {
      *
      */
     showAppDialog: function h_showAppDialog(icon) {
-      LazyLoader.load(['shared/style/buttons.css',
-                       'shared/style/headers.css',
-                       'shared/style/confirm.css',
+      if (icon.app.type === GridItemsFactory.TYPE.BOOKMARK) {
+        new MozActivity({
+          name: 'remove-bookmark',
+          data: {
+            type: 'url',
+            url: icon.app.id
+          }
+        });
+        return;
+      }
+
+      LazyLoader.load(['shared/style/confirm.css',
                        'style/request.css',
                        document.getElementById('confirm-dialog'),
                        'js/request.js'], function loaded() {
@@ -191,15 +183,12 @@ var Homescreen = (function() {
     },
 
     showEditBookmarkDialog: function h_showEditBookmarkDialog(icon) {
-      var dialog = document.getElementById('edit-dialog');
-      LazyLoader.load(['style/edit_dialog.css',
-                       'shared/style/headers.css',
-                       'shared/style/input_areas.css',
-                       'shared/js/url_helper.js',
-                       dialog,
-                       'js/edit_dialog.js'], function loaded() {
-        navigator.mozL10n.translate(dialog);
-        EditDialog.show(icon);
+      new MozActivity({
+        name: 'save-bookmark',
+        data: {
+          type: 'url',
+          url: icon.app.id
+        }
       });
     },
 

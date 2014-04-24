@@ -1,13 +1,18 @@
+/* global getIccByIndex */
+
 'use strict';
 
 var FdnAuthorizedNumbers = {
   fdnContacts: null,
 
   getContacts: function(er, cb) {
-    if (!IccHelper) {
+    var icc = getIccByIndex();
+    if (!icc) {
+      er && er(new Error('Could not retrieve ICC object'));
       return;
     }
-    var request = IccHelper.readContacts('fdn');
+
+    var request = icc.readContacts('fdn');
     request.onerror = er;
     request.onsuccess = (function onsuccess() {
       var result = this.fdnContacts = request.result;

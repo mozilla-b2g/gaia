@@ -1,3 +1,5 @@
+'use strict';
+
 var Contacts = require('./lib/contacts');
 var assert = require('assert');
 

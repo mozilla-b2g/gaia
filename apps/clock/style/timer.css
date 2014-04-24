@@ -30,6 +30,11 @@
 #timer-active {
   z-index: 1;
   background-size: 100% 100%;
+  visibility: hidden;
+}
+
+#timer-dialog.hidden + #timer-active {
+  visibility: visible;
 }
 
 #timer-controls {
@@ -44,68 +49,29 @@
   flex: auto;
 }
 
-#timer-edit {
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
-  font-size: 1.5rem;
-  color: #CFE2E5;
-}
-
-ul#timer-edit li {
-  border-bottom: 1px solid rgba(115, 125, 128, 0.2);
-  position: relative;
-  padding-top: 4.5rem;
-  padding-bottom: 1.5rem;
-}
-
-ul#timer-edit li:first-child {
-  padding-top: 0rem;
-  padding-bottom: 0.25rem;
-}
-
-#timer-edit li {
-  border-color: #999;
-}
-
 #timer-create {
   text-align: center;
-}
-
-#timer-edit li > span {
-  vertical-align: middle;
-  position: absolute;
-  top: 1.5rem;
-  left: 0;
+  background-color: #00caf2;
+  color: #fff;
+  border-radius: 2rem;
 }
 
 ul li > label.pack-switch {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
+  width: calc(100% - 3rem);
   height: 100%;
+  padding: 0 1.5rem 0;
 }
 
 ul li > label.pack-switch > input + span {
-  left: auto !important;
-  right: 0 !important;
-}
-
-#timer-sound {
-  position: absolute;
-  opacity: 0;
-}
-
-#timer-sound-menu:before {
-  background: url("/shared/style/buttons/images/icons/dialog.png") no-repeat scroll 1.6rem -6rem / 1rem 9rem transparent;
-}
-
-#timer-sound-menu {
-  border-width: 0;
-
-  color: #FFF;
-  text-align: left;
-  background-color: #4D4D4D;
+  display: block;
+  line-height: 6rem;
+  padding-right: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #timer-plus-time {
@@ -117,11 +83,18 @@ ul li > label.pack-switch > input + span {
   margin-bottom: 3rem;
 }
 
-#timer-plus-time a {
+#timer-plus-time button {
+  background: #101111;
+  border: none;
   color: #CFE2E6;
   font: 2.5rem sans-serif;
   font-weight: normal;
   text-decoration: none;
+}
+
+html[dir="rtl"] ul li > label.pack-switch > span {
+  padding-right: 0;
+  padding-left: 9rem;
 }
 
 @media (min-width: 768px) {

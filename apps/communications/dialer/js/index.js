@@ -9,7 +9,8 @@ window.addEventListener('load', function dialerSetup() {
   setTimeout(function nextTick() {
     var lazyPanels = ['add-contact-action-menu',
                       'confirmation-message',
-                      'edit-mode'];
+                      'edit-mode',
+                      'sim-picker'];
 
     var lazyPanelsElements = lazyPanels.map(function toElement(id) {
       return document.getElementById(id);
@@ -22,7 +23,7 @@ window.addEventListener('load', function dialerSetup() {
                        '/shared/js/fb/fb_data_reader.js',
                        '/shared/js/fb/fb_reader_utils.js',
                        '/shared/style/confirm.css',
-                       '/contacts/js/utilities/confirm.js',
+                       '/shared/js/confirm.js',
                        '/dialer/js/newsletter_manager.js',
                        '/shared/style/edit_mode.css',
                        '/shared/style/headers.css']);

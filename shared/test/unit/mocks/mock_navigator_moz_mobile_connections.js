@@ -14,7 +14,8 @@
         'voicechange': [],
         'iccinfochange': [],
         'radiostatechange': [],
-        'datachange': []
+        'datachange': [],
+        'cfstatechange': []
       };
       radioEnabledReq = {};
     }
@@ -40,8 +41,8 @@
         if (typeof callback === 'function') {
           callback(evt);
         } else if (typeof callback == 'object' &&
-                   typeof callback['handleEvent'] === 'function') {
-          callback['handleEvent'](evt);
+                   typeof callback.handleEvent === 'function') {
+          callback.handleEvent(evt);
         }
       });
 
@@ -54,11 +55,14 @@
       return radioEnabledReq;
     }
 
+    function mnmmc_sendMMI() {}
+
     var _mock = {
       addEventListener: mnmmc_addEventListener,
       removeEventListener: mnmmc_removeEventListener,
       triggerEventListeners: mnmmc_triggerEventListeners,
       setRadioEnabled: mnmmc_setRadioEnabled,
+      sendMMI: mnmmc_sendMMI,
       mTeardown: mnmmc_init,
       get mCachedRadioEnabledReq() {
         return radioEnabledReq;
@@ -88,8 +92,9 @@
     }
 
     function _mRemoveMobileConnection(index) {
-      if (!_mobileConnections.length)
+      if (!_mobileConnections.length) {
         return;
+      }
 
       if (index) {
         _mobileConnections.splice(index, 1);

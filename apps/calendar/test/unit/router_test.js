@@ -3,6 +3,7 @@ requireSupport('mock_view.js');
 requireLib('router.js');
 
 suite('router', function() {
+  'use strict';
 
   var subject;
   var page;
@@ -53,8 +54,6 @@ suite('router', function() {
   });
 
   test('#clearObjects', function() {
-    var calledNext = false;
-
     var one = new View();
     var two = new View();
 

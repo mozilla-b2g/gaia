@@ -12,7 +12,6 @@ var GridManager = (function() {
 
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
-  var DEVICE_HEIGHT = window.innerHeight;
 
   var HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
 
@@ -35,7 +34,24 @@ var GridManager = (function() {
 
   var container;
 
+  var DEVICE_HEIGHT = window.innerHeight;
   var windowWidth = window.innerWidth;
+
+  // This value is used in order to keep the layers onscreen when they are
+  // moved on a panel changes. This prevent the layers to be destroyed and
+  // recreated on the next move.
+  var windowWidthMinusOne = windowWidth - 0.001;
+
+  // This prevents that windowWidth and DEVICE_HEIGHT get 0 when screen is off
+  // and homescreen is relaunched.
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden === false) {
+      windowWidth = window.innerWidth;
+      DEVICE_HEIGHT = window.innerHeight;
+      windowWidthMinusOne = windowWidth - 0.001;
+    }
+  });
+
   var swipeThreshold, swipeFriction, tapThreshold;
 
   var dragging = false;
@@ -43,6 +59,8 @@ var GridManager = (function() {
   var defaultAppIcon, defaultBookmarkIcon;
 
   var kPageTransitionDuration;
+
+  var kPageMinTransitionDuration = 100;
 
   var pages = [];
   var currentPage = 0;
@@ -262,7 +280,7 @@ var GridManager = (function() {
           refresh = function(e) {
             if (deltaX <= 0) {
               next.MozTransform =
-                'translateX(' + (windowWidth + deltaX) + 'px)';
+                'translateX(' + (windowWidthMinusOne + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
             } else {
               startX = currentX;
@@ -273,7 +291,7 @@ var GridManager = (function() {
           refresh = function(e) {
             if (deltaX >= 0) {
               previous.MozTransform =
-                'translateX(' + (-windowWidth + deltaX) + 'px)';
+                'translateX(' + (-windowWidthMinusOne + deltaX) + 'px)';
               current.MozTransform = 'translateX(' + deltaX + 'px)';
             } else {
               startX = currentX;
@@ -285,23 +303,24 @@ var GridManager = (function() {
           refresh = function(e) {
             if (deltaX >= 0) {
               previous.MozTransform =
-                'translateX(' + (-windowWidth + deltaX) + 'px)';
+                'translateX(' + (-windowWidthMinusOne + deltaX) + 'px)';
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
               if (forward) {
                 forward = false;
-                next.MozTransform = 'translateX(' + windowWidth + 'px)';
+                next.MozTransform = 'translateX(' + windowWidthMinusOne + 'px)';
               }
             } else {
               next.MozTransform =
-                'translateX(' + (windowWidth + deltaX) + 'px)';
+                'translateX(' + (windowWidthMinusOne + deltaX) + 'px)';
 
               // If we change direction make sure there isn't any part
               // of the page on the other side that stays visible.
               if (!forward) {
                 forward = true;
-                previous.MozTransform = 'translateX(-' + windowWidth + 'px)';
+                previous.MozTransform =
+                  'translateX(-' + windowWidthMinusOne + 'px)';
               }
             }
 
@@ -437,17 +456,6 @@ var GridManager = (function() {
     }, SAVE_STATE_TIMEOUT);
   }
 
-  function togglePagesVisibility(start, end) {
-    for (var i = 0; i < pages.length; i++) {
-      var pagediv = pages[i].container;
-      if (i < start || i > end) {
-        pagediv.style.display = 'none';
-      } else {
-        pagediv.style.display = 'block';
-      }
-    }
-  }
-
   function goToPageCallback(index, fromPage, toPage, dispatchEvents, callback) {
     delete document.body.dataset.transitioning;
 
@@ -462,13 +470,13 @@ var GridManager = (function() {
     if (index) {
       var previous = pages[index - 1].container.style;
       previous.MozTransition = '';
-      previous.MozTransform = 'translateX(-' + windowWidth + 'px)';
+      previous.MozTransform = 'translateX(-' + windowWidthMinusOne + 'px)';
     }
 
     if (index < pages.length - 1) {
       var next = pages[index + 1].container.style;
       next.MozTransition = '';
-      next.MozTransform = 'translateX(' + windowWidth + 'px)';
+      next.MozTransform = 'translateX(' + windowWidthMinusOne + 'px)';
     }
 
     var current = toPage.container.style;
@@ -477,8 +485,6 @@ var GridManager = (function() {
 
     fromPage.container.setAttribute('aria-hidden', true);
     toPage.container.removeAttribute('aria-hidden');
-
-    togglePagesVisibility(index - 1, index + 1);
 
     if (callback) {
       setTimeout(callback, 0);
@@ -496,9 +502,23 @@ var GridManager = (function() {
     touchEndTimestamp = touchEndTimestamp || lastGoingPageTimestamp;
     var delay = touchEndTimestamp - lastGoingPageTimestamp ||
                 kPageTransitionDuration;
+
+    // Fetch the user's swiping velocity, but make sure it's more
+    // than 1 so when we factor this with the duration, we don't
+    // end up with a slower swipe
+    var velocity = Math.max(1, Math.abs(panningResolver.getVelocity() || 0));
+
     lastGoingPageTimestamp += delay;
-    var duration = delay < kPageTransitionDuration ?
-                   delay : kPageTransitionDuration;
+
+    // Bug 979396:
+    // For the non-velocity-factored duration, use either the computed
+    // delay or the configured duration, whichever is smaller. Once
+    // velocity is factored in, don't allow the transition to be
+    // quicker than kPageMinTransitionDuration
+    var duration = Math.max(
+      Math.min(delay, kPageTransitionDuration) / velocity,
+      kPageMinTransitionDuration
+    );
 
     var previousPage = pages[currentPage];
     var newPage = pages[index];
@@ -517,16 +537,18 @@ var GridManager = (function() {
     updatePaginationBar();
 
     if (previousPage === newPage) {
-      if (newPage.container.getBoundingClientRect().left !== 0) {
+      // Has the page been translated?
+      if (currentX - startX) {
+        currentX = startX = 0;
         // Pages are translated in X
         if (index > 0) {
-          pages[index - 1].moveByWithEffect(-windowWidth, duration);
+          pages[index - 1].moveByWithEffect(-windowWidthMinusOne, duration);
         }
 
         newPage.moveByWithEffect(0, duration);
 
         if (index < pages.length - 1) {
-          pages[index + 1].moveByWithEffect(windowWidth, duration);
+          pages[index + 1].moveByWithEffect(windowWidthMinusOne, duration);
         }
 
         container.addEventListener('transitionend', function transitionEnd(e) {
@@ -541,11 +563,9 @@ var GridManager = (function() {
       return;
     }
 
-    togglePagesVisibility(start, end);
-
     previousPage.container.dispatchEvent(new CustomEvent('gridpagehidestart'));
     newPage.container.dispatchEvent(new CustomEvent('gridpageshowstart'));
-    previousPage.moveByWithEffect(-forward * windowWidth, duration);
+    previousPage.moveByWithEffect(-forward * windowWidthMinusOne, duration);
     newPage.moveByWithEffect(0, duration);
 
     container.addEventListener('transitionend', function transitionEnd(e) {
@@ -797,8 +817,8 @@ var GridManager = (function() {
   var appIcons;
   // Map 'origin' -> app object.
   var appsByOrigin;
-  // Map 'origin' for bookmarks -> bookmark object.
-  var bookmarksByOrigin;
+  // Map 'id' for bookmarks -> bookmark object.
+  var bookmarksById;
 
   function rememberIcon(icon) {
     var descriptor = icon.descriptor;
@@ -937,6 +957,72 @@ var GridManager = (function() {
     });
   }
 
+  function processBookmarks(done) {
+    BookmarksManager.getHomescreenRevisionId(function(homescreenRevisionId) {
+      if (!homescreenRevisionId) {
+        // We have to populate the datastore with bookmarks already installed.
+        // Just the first time after updating the device from 1.4 to 2.0 version
+        var bookmarks = Object.keys(bookmarksById);
+        var numberBookmarks = bookmarks.length;
+        if (numberBookmarks === 0) {
+          // No bookmarks to migrate to the datastore. Basically it means that
+          // user had no bookmarks in 1.4 or it is a new device 2.0
+          mergeBookmarks(done);
+          return;
+        }
+
+        var onProccessed = function() {
+          if (--numberBookmarks === 0) {
+            mergeBookmarks(done);
+          }
+        };
+
+        // At this point we are going to propagate our bookmarks to system
+        bookmarks.forEach(function(id) {
+          BookmarksDatabase.add(bookmarksById[id].getDescriptor()).
+                            then(onProccessed, onProccessed);
+        });
+      } else {
+        BookmarksDatabase.getRevisionId().then(function(systemRevisionId) {
+          if (homescreenRevisionId !== systemRevisionId) {
+            // Not synchronized (bookmarks added/modified/deleted while it was
+            // not running)
+            mergeBookmarks(done);
+          } else {
+            // Same revision in system and home, nothing to do here...
+            done();
+          }
+        }, done);
+      }
+    });
+  }
+
+  function mergeBookmarks(done) {
+    BookmarksDatabase.getAll().then(function(systemBookmarks) {
+      // We are going to iterate over system bookmarks
+      Object.keys(systemBookmarks).forEach(function(id) {
+        if (bookmarksById[id]) {
+          // Deleting from the list because it should not be removed from grid
+          delete bookmarksById[id];
+        }
+        // Adding or updating bookmark
+        processApp(new Bookmark(systemBookmarks[id]));
+      });
+
+      // Deleting bookmarks that are not stored in the datastore. The
+      // homescreen won't show bookmarks that are not in the system
+      Object.keys(bookmarksById).forEach(function(id) {
+        var icon = getIconForBookmark(bookmarksById[id].bookmarkURL);
+        if (icon) {
+          icon.remove();
+          markDirtyState();
+        }
+      });
+
+      done();
+    }, done);
+  }
+
   /*
    * Initialize the mozApps event handlers and synchronize our grid
    * state with the applications known to the system.
@@ -948,6 +1034,13 @@ var GridManager = (function() {
       setTimeout(callback);
       return;
     }
+
+    processBookmarks(function done() {
+      BookmarksManager.updateHomescreenRevisionId();
+      BookmarksManager.attachListeners();
+      bookmarksById = null;
+      ensurePagesOverflow(removeEmptyPages);
+    });
 
     appMgr.oninstall = function oninstall(event) {
       if (Configurator.isSingleVariantReady) {
@@ -978,11 +1071,6 @@ var GridManager = (function() {
         delete iconsByManifestURL[app.manifestURL];
         processApp(app, null, EVME_PAGE_STATE_INDEX);
       });
-
-      for (var origin in bookmarksByOrigin) {
-        appsByOrigin[origin] = bookmarksByOrigin[origin];
-      }
-      bookmarksByOrigin = null;
 
       for (var manifestURL in iconsByManifestURL) {
         var iconsForApp = iconsByManifestURL[manifestURL];
@@ -1025,10 +1113,14 @@ var GridManager = (function() {
           descriptor.type = GridItemsFactory.TYPE.COLLECTION;
         }
         app = GridItemsFactory.create(descriptor);
-        if (haveLocale && app.type === GridItemsFactory.TYPE.COLLECTION) {
-          descriptor.localizedName = _(app.manifest.name);
+        if (app.type === GridItemsFactory.TYPE.COLLECTION) {
+          appsByOrigin[app.origin] = app;
+          if (haveLocale) {
+            descriptor.localizedName = _(app.manifest.name);
+          }
+        } else {
+          bookmarksById[app.id] = app;
         }
-        bookmarksByOrigin[app.origin] = app;
       }
 
       var icon = icons[i] = new Icon(descriptor, app);
@@ -1159,6 +1251,7 @@ var GridManager = (function() {
 
     var descriptor = {
       bookmarkURL: app.bookmarkURL,
+      url: app.url,
       manifestURL: app.manifestURL,
       entry_point: entryPoint,
       updateTime: app.updateTime,
@@ -1298,9 +1391,7 @@ var GridManager = (function() {
   }
 
   function showRestartDownloadDialog(icon) {
-    LazyLoader.load(['shared/style/buttons.css',
-                     'shared/style/headers.css',
-                     'shared/style/confirm.css',
+    LazyLoader.load(['shared/style/confirm.css',
                      'style/request.css',
                      document.getElementById('confirm-dialog'),
                      'js/request.js'], function loaded() {
@@ -1378,7 +1469,7 @@ var GridManager = (function() {
     bookmarkIcons = Object.create(null);
     appIcons = Object.create(null);
     appsByOrigin = Object.create(null);
-    bookmarksByOrigin = Object.create(null);
+    bookmarksById = Object.create(null);
 
     initUI(options.gridSelector);
 

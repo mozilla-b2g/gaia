@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockasyncStorage */
 
 var MockasyncStorage = {
   keys: {},

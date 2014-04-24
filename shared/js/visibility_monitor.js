@@ -1,3 +1,4 @@
+/* exported monitorChildVisibility */
 /*
  * visibility_monitor.js
  *
@@ -143,26 +144,29 @@ function monitorChildVisibility(container,
     // If there are any pending callbacks, call them now before handling
     // the mutations so that we start off in sync, with the onscreen range
     // equal to the notified range.
-    if (pendingCallbacks)
+    if (pendingCallbacks) {
       callCallbacks();
+    }
 
     for (var i = 0; i < mutations.length; i++) {
       var mutation = mutations[i];
       if (mutation.addedNodes) {
         for (var j = 0; j < mutation.addedNodes.length; j++) {
           var child = mutation.addedNodes[j];
-          if (child.nodeType === Node.ELEMENT_NODE)
+          if (child.nodeType === Node.ELEMENT_NODE) {
             childAdded(child);
+          }
         }
       }
 
       if (mutation.removedNodes) {
         for (var j = 0; j < mutation.removedNodes.length; j++) {
           var child = mutation.removedNodes[j];
-          if (child.nodeType === Node.ELEMENT_NODE)
+          if (child.nodeType === Node.ELEMENT_NODE) {
             childRemoved(child,
                          mutation.previousSibling,
                          mutation.nextSibling);
+          }
         }
       }
     }
@@ -177,8 +181,9 @@ function monitorChildVisibility(container,
     // doesn't affect us at all.
     if (lastOnscreen &&
         after(child, lastOnscreen) &&
-        child.offsetTop > container.clientHeight + scrollmargin)
+        child.offsetTop > container.clientHeight + scrollmargin) {
       return;
+    }
 
     // Otherwise, if this is the first element added or if it is after
     // the first onscreen element, then it is onscreen and we need to
@@ -214,8 +219,9 @@ function monitorChildVisibility(container,
     else {
       // If the removed child was after the last onscreen child, then
       // this removal doesn't affect us at all.
-      if (previous !== null && after(previous, lastOnscreen))
+      if (previous !== null && after(previous, lastOnscreen)) {
         return;
+      }
 
       // If the first onscreen element was the one removed
       // use the next or previous element as a starting point instead.
@@ -311,23 +317,26 @@ function monitorChildVisibility(container,
     function position(child) {
       var childTop = child.offsetTop;
       var childBottom = childTop + child.offsetHeight;
-      if (childBottom < screenTop)
+      if (childBottom < screenTop) {
         return BEFORE;
-      if (childTop > screenBottom)
+      }
+      if (childTop > screenBottom) {
         return AFTER;
+      }
       return ON;
     }
 
     // If we don't have a first onscreen element yet, start with the first.
-    if (!firstOnscreen)
+    if (!firstOnscreen) {
       firstOnscreen = container.firstElementChild;
+    }
 
     // Check the position of the top
     var toppos = position(firstOnscreen);
-
+    var prev;
     // If the first element is onscreen, see if there are earlier ones
     if (toppos === ON) {
-      var prev = firstOnscreen.previousElementSibling;
+      prev = firstOnscreen.previousElementSibling;
       while (prev && position(prev) === ON) {
         firstOnscreen = prev;
         prev = prev.previousElementSibling;
@@ -350,8 +359,9 @@ function monitorChildVisibility(container,
 
       // Loop until we find an onscreen element
       lastOnscreen = firstOnscreen.previousElementSibling;
-      while (lastOnscreen && position(lastOnscreen) !== ON)
+      while (lastOnscreen && position(lastOnscreen) !== ON) {
         lastOnscreen = lastOnscreen.previousElementSibling;
+      }
 
       // Now loop from there to find the first onscreen element
       firstOnscreen = lastOnscreen;
@@ -366,8 +376,9 @@ function monitorChildVisibility(container,
     // Now make the same adjustment on the bottom of the onscreen region
     // If we don't have a lastOnscreen value to start with, use the newly
     // computed firstOnscreen value.
-    if (lastOnscreen === null)
+    if (lastOnscreen === null) {
       lastOnscreen = firstOnscreen;
+    }
 
     var bottompos = position(lastOnscreen);
     if (bottompos === ON) {
@@ -381,8 +392,9 @@ function monitorChildVisibility(container,
     else if (bottompos === AFTER) {
       // the last element is now below the visible part of the screen
       lastOnscreen = lastOnscreen.previousElementSibling;
-      while (position(lastOnscreen) !== ON)
+      while (position(lastOnscreen) !== ON) {
         lastOnscreen = lastOnscreen.previousElementSibling;
+      }
     }
     else {
       // First and last are now both above the visible portion of the screen
@@ -458,8 +470,9 @@ function monitorChildVisibility(container,
 
     // If the two ranges are the same, return immediately
     if (firstOnscreen === firstNotifiedOnscreen &&
-        lastOnscreen === lastNotifiedOnscreen)
+        lastOnscreen === lastNotifiedOnscreen) {
       return;
+    }
 
     // If the last notified range is null, then we just add the new range
     if (firstNotifiedOnscreen === null) {

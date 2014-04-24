@@ -1,0 +1,135 @@
+/* Handling the status bar mode */
+@media (max-height: 4.5em) {
+  html {
+    font-size: 10px;
+  }
+
+  body {
+    margin: 0;
+  }
+
+  .handled-call,
+  #group-call {
+    background-color: #82af00;
+    background-image: url('images/green-noise-bg.png');
+    background-repeat: repeat-x;
+    background-size: auto 4rem;
+    color: white;
+    font-size: 1.8rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    height: 40px;
+  }
+
+  .handled-call.held,
+  #group-call.held {
+    background-color: #333;
+    background-image: none;
+  }
+
+  #main-container,
+  #incoming-container,
+  #views,
+  #lockscreen-header,
+  #group-call-details,
+  .additionalContactInfo,
+  .merge-button {
+    display: none;
+  }
+
+  /* This transition is needed to trigger a transitionend event in */
+  /* call_screen.js */
+  #call-screen {
+    transform: translateY(-100%);
+    transition: transform 0.5s ease;
+  }
+
+  #call-screen.displayed {
+    transform: translateY(0);
+  }
+
+  #calls .handled-call,
+  #calls #group-call:not([hidden]) {
+    display: flex;
+    align-items: center;
+  }
+
+  .numberWrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+
+  .number {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .direction-status-bar:before {
+    content: "";
+    display: block;
+    width: 1.6rem;
+    height: 1.6rem;
+    background-repeat: no-repeat;
+    background-size: 1.6rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+  }
+
+  .incoming .direction-status-bar:before {
+    background-image: url('images/status_bar/incoming_icon.png');
+  }
+
+  .outgoing .direction-status-bar:before {
+    background-image: url('images/status_bar/outgoing_icon.png');
+  }
+
+  .held .direction-status-bar:before {
+    background-image: url('images/status_bar/hold_icon.png');
+  }
+
+  .isTimer {
+    display: flex;
+    align-items: center;
+  }
+
+  .muted .isTimer:before {
+    content: "";
+    display: block;
+    width: 1.6rem;
+    height: 1.8rem;
+    background-repeat: no-repeat;
+    background-size: contain;
+    margin-right: 1rem;
+    background-image: url('images/status_bar/muted_icon.png');
+  }
+
+  .font-light {
+    max-height: 3rem;
+  }
+
+  .fake-number {
+    position: absolute;
+    line-height: 0;
+    visibility: hidden;
+    white-space: nowrap;
+  }
+
+  /* Don't display held calls unless there is only one call */
+  #calls:not(.single-line) .handled-call.held {
+    display: none;
+  }
+
+  #calls > section .switch-calls {
+    display: none;
+  }
+
+  #bluetooth-menu {
+    display: none;
+  }
+
+  .sim {
+    display: none;
+  }
+}

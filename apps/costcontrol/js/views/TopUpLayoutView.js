@@ -1,3 +1,4 @@
+/* exported TopUpLayoutView */
 'use strict';
 
 function TopUpLayoutView(ussdTopUpButton, codeTopUpButton) {

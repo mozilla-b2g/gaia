@@ -38,6 +38,7 @@ section,footer,nav,a,img {
   background-color: #ff7f02;
   transition: transform .35s ease;
   visibility: hidden;
+  will-change: transform;
 }
 
 #icongrid {
@@ -50,7 +51,7 @@ section,footer,nav,a,img {
 }
 
 button:focus::-moz-focus-inner {
-  border-color: transparent !important;
+  border-color: transparent;
 }
 
 button::-moz-focus-inner {
@@ -68,16 +69,17 @@ html[dir=rtl] #footer li {
 }
 
 li:active {
-  background-color: transparent !important;
+  background-color: transparent;
 }
 
 #bg-overlay {
   width: 100%;
-  height: calc(100% - 7.5rem);
+  height: 100%;
   position: fixed;
   top: 0;
   left: 0;
   background-color: rgba(0,0,0,0.1);
+  transform: translateY(-7.5rem);
 }
 
 /* === Repaint Helper === */
@@ -130,10 +132,6 @@ body[data-mode = 'edit'] .apps ol > li[data-type = "bookmark"] > div > span > sp
   padding: .1rem .6rem .3rem .6rem;
 }
 
-#edit-dialog {
-  display: none;
-}
-
 /* For WVGA (800 x 480), adjust the padding to make app icons fit in 4 x 5 grid */
 @media all and (min-device-width: 320px) and (max-device-width: 359px) and (max-aspect-ratio: 4 / 6) {
   #paginationBar {
@@ -142,7 +140,7 @@ body[data-mode = 'edit'] .apps ol > li[data-type = "bookmark"] > div > span > sp
 }
 @media (min-width: 768px) {
   #bg-overlay {
-    height: calc(100% - 16.9rem);
+    transform: translateY(-16.9rem);
   }
 }
 /* This is a dirty hack to hide the bottom toolbar while
@@ -164,9 +162,9 @@ body[data-mode = 'edit'] .apps ol > li[data-type = "bookmark"] > div > span > sp
        /* For the Twist , 960x540 */
        (device-height: 540px) and (max-height: 450px),
        (device-height: 960px) and (max-height: 870px) {
-  footer { display: none !important; }
-  .apps > div { height: 100% !important; }
-  #bg-overlay { height: 100%;}
+  footer { opacity: 0; pointer-events: none; }
+  .apps > div { height: 100%; }
+  #bg-overlay { transform: translateY(0); }
 }
 
 /* Default state for the dialogs.

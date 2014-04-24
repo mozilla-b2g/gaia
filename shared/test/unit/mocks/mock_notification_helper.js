@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockNotificationHelper */
 
 var MockNotificationHelper = {
   send: function(title, body, icon, clickCB, closeCB) {

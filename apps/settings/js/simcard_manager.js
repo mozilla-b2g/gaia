@@ -7,11 +7,6 @@
 
 (function(exports) {
 
-  // track used constants here
-  const EMPTY_OPTION_TEXT = '--';
-  const EMPTY_OPTION_VALUE = '-2';
-  const ALWAYS_ASK_OPTION_VALUE = '-1';
-
   var _ = window.navigator.mozL10n.get;
 
   /*
@@ -33,10 +28,15 @@
       // `handleEvent` is used to handle these sim related changes
       this.simManagerOutgoingCallSelect.addEventListener('change', this);
       this.simManagerOutgoingMessagesSelect.addEventListener('change', this);
-      this.simManagerOutgoingDataSelect.addEventListener('change', this);
+
+      // XXX because we handle `onchange` event differently in value selector,
+      // in order to show confirm dialog after users changing value, the better
+      // way right now is to check values when `onblur` event triggered.
+      this.addOutgoingDataSelectEvent();
 
       this.addVoiceChangeEventOnConns();
       this.addCardStateChangeEventOnIccs();
+      this.addLocalizedChangeEventOnIccs();
 
       // because in fugu, airplaneMode will not change cardState
       // but we still have to make UI consistent. In this way,
@@ -67,7 +67,7 @@
 
       // it means users is seleting '--' options
       // when simcards are all disabled
-      if (cardIndex == EMPTY_OPTION_VALUE) {
+      if (cardIndex == SimSettingsHelper.EMPTY_OPTION_VALUE) {
         return;
       }
 
@@ -79,21 +79,34 @@
         case this.simManagerOutgoingMessagesSelect:
           SimSettingsHelper.setServiceOnCard('outgoingMessages', cardIndex);
           break;
-
-        case this.simManagerOutgoingDataSelect:
-
-          // UX needs additional hint for users to make sure
-          // they really want to change data connection
-          var wantToChange = window.confirm(_('change-outgoing-data-confirm'));
-
-          if (wantToChange) {
-            SimSettingsHelper.setServiceOnCard('outgoingData', cardIndex);
-          } else {
-            var previousCardIndex = (cardIndex === 0) ? 1 : 0;
-            this.simManagerOutgoingDataSelect.selectedIndex = previousCardIndex;
-          }
-          break;
       }
+    },
+    addOutgoingDataSelectEvent: function() {
+      var prevCardIndex;
+      var newCardIndex;
+
+      // initialize these two variables when focus
+      this.simManagerOutgoingDataSelect.addEventListener('focus', function() {
+          prevCardIndex = this.selectedIndex;
+          newCardIndex = this.selectedIndex;
+      });
+
+      this.simManagerOutgoingDataSelect.addEventListener('blur', function() {
+          newCardIndex = this.selectedIndex;
+          if (prevCardIndex !== newCardIndex) {
+            // UX needs additional hint for users to make sure
+            // they really want to change data connection
+            var wantToChange =
+              window.confirm(_('change-outgoing-data-confirm'));
+
+            if (wantToChange) {
+              SimSettingsHelper.setServiceOnCard('outgoingData',
+                newCardIndex);
+            } else {
+              this.selectedIndex = prevCardIndex;
+            }
+          }
+      });
     },
     getSimCardsCount: function() {
       return this.simcards.length;
@@ -161,7 +174,7 @@
     },
     initSimCardManagerUI: function() {
       this.initSimCardsUI();
-      this.initSelectOptionsUI();
+      this.updateSelectOptionsUI();
 
       // we only inject basic DOM from templates before
       // , so we have to map UI to its info
@@ -196,8 +209,7 @@
         localize(this.simManagerSecurityDesc);
       }
     },
-    initSelectOptionsUI: function() {
-
+    updateSelectOptionsUI: function() {
       var firstCardInfo = this.simcards[0].getInfo();
       var secondCardInfo = this.simcards[1].getInfo();
 
@@ -205,19 +217,19 @@
       if (!firstCardInfo.absent && !secondCardInfo.absent) {
         SimSettingsHelper.getCardIndexFrom('outgoingCall',
           function(cardIndex) {
-            this.initSelectOptionUI('outgoingCall', cardIndex,
+            this.updateSelectOptionUI('outgoingCall', cardIndex,
               this.simManagerOutgoingCallSelect);
         }.bind(this));
 
         SimSettingsHelper.getCardIndexFrom('outgoingMessages',
           function(cardIndex) {
-            this.initSelectOptionUI('outgoingMessages', cardIndex,
+            this.updateSelectOptionUI('outgoingMessages', cardIndex,
               this.simManagerOutgoingMessagesSelect);
         }.bind(this));
 
         SimSettingsHelper.getCardIndexFrom('outgoingData',
           function(cardIndex) {
-            this.initSelectOptionUI('outgoingData', cardIndex,
+            this.updateSelectOptionUI('outgoingData', cardIndex,
               this.simManagerOutgoingDataSelect);
         }.bind(this));
       } else {
@@ -245,15 +257,21 @@
         this.simManagerOutgoingDataSelect.disabled = true;
 
         // then change related UI
-        this.initSelectOptionUI('outgoingCall', selectedCardIndex,
+        this.updateSelectOptionUI('outgoingCall', selectedCardIndex,
           this.simManagerOutgoingCallSelect);
-        this.initSelectOptionUI('outgoingMessages', selectedCardIndex,
+        this.updateSelectOptionUI('outgoingMessages', selectedCardIndex,
           this.simManagerOutgoingMessagesSelect);
-        this.initSelectOptionUI('outgoingData', selectedCardIndex,
+        this.updateSelectOptionUI('outgoingData', selectedCardIndex,
           this.simManagerOutgoingDataSelect);
       }
     },
-    initSelectOptionUI: function(storageKey, selectedCardIndex, selectDOM) {
+    updateSelectOptionUI: function(storageKey, selectedCardIndex, selectDOM) {
+      // We have to remove old options first
+      while (selectDOM.firstChild) {
+        selectDOM.removeChild(selectDOM.firstChild);
+      }
+
+      // then insert the new ones
       this.simcards.forEach(function(simcard, index) {
         var simcardInfo = simcard.getInfo();
         var option = document.createElement('option');
@@ -261,8 +279,8 @@
         option.text = simcardInfo.name;
 
         if (simcardInfo.absent) {
-          option.value = EMPTY_OPTION_VALUE;
-          option.text = EMPTY_OPTION_TEXT;
+          option.value = SimSettingsHelper.EMPTY_OPTION_VALUE;
+          option.text = SimSettingsHelper.EMPTY_OPTION_TEXT;
         }
 
         if (index == selectedCardIndex) {
@@ -275,27 +293,37 @@
       // we will add `always ask` option these two select
       if (storageKey === 'outgoingCall' || storageKey === 'outgoingMessages') {
         var option = document.createElement('option');
-        option.value = ALWAYS_ASK_OPTION_VALUE;
+        option.value = SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE;
         localize(option, 'sim-manager-always-ask');
 
-        if (ALWAYS_ASK_OPTION_VALUE == selectedCardIndex) {
+        if (SimSettingsHelper.ALWAYS_ASK_OPTION_VALUE == selectedCardIndex) {
           option.selected = true;
         }
         selectDOM.add(option);
       }
     },
     isSimCardLocked: function(cardState) {
-
       var lockedState = [
         'pinRequired',
         'pukRequired',
         'networkLocked',
         'serviceProviderLocked',
-        'corporateLocked'
+        'corporateLocked',
+        'network1Locked',
+        'network2Locked',
+        'hrpdNetworkLocked',
+        'ruimCorporateLocked',
+        'ruimServiceProviderLocked'
       ];
 
       // make sure the card is in locked mode or not
       return lockedState.indexOf(cardState) !== -1;
+    },
+    isSimCardBlocked: function(cardState) {
+      var uselessState = [
+        'permanentBlocked'
+      ];
+      return uselessState.indexOf(cardState) !== -1;
     },
     addVoiceChangeEventOnConns: function() {
       var conns = window.navigator.mozMobileConnections;
@@ -316,6 +344,15 @@
         }
       }
     },
+    addLocalizedChangeEventOnIccs: function() {
+      var conns = window.navigator.mozMobileConnections;
+      window.addEventListener('localized', function() {
+        for (var i = 0; i < conns.length; i++) {
+          var iccId = conns[i].iccId;
+          this.updateCardStateWithUI(i, iccId);
+        }
+      }.bind(this));
+    },
     addChangeEventOnIccByIccId: function(iccId) {
       var self = this;
       var icc = window.navigator.mozIccManager.getIccById(iccId);
@@ -323,6 +360,13 @@
         icc.addEventListener('cardstatechange', function() {
           var cardIndex = self.getCardIndexByIccId(iccId);
           self.updateCardStateWithUI(cardIndex, iccId);
+
+          // If we make PUK locked for more than 10 times,
+          // we sould get `permanentBlocked` state, in this way
+          // we have to update select/options
+          if (self.isSimCardBlocked(icc.cardState)) {
+            self.updateSelectOptionsUI();
+          }
         });
       }
     },
@@ -363,6 +407,8 @@
 
         if (this.isSimCardLocked(cardState)) {
           simcard.setState('locked');
+        } else if (this.isSimCardBlocked(cardState)) {
+          simcard.setState('blocked');
         } else {
           // TODO:
           // we have to call Gecko API here to make sure the
@@ -395,4 +441,8 @@
 
 })(window);
 
-window.navigator.mozL10n.ready(SimCardManager.init.bind(SimCardManager));
+window.navigator.mozL10n.once(function() {
+  AirplaneModeHelper.ready(function() {
+    SimCardManager.init();
+  });
+});

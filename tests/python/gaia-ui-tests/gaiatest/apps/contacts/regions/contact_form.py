@@ -140,7 +140,7 @@ class EditContact(ContactForm):
 
     def __init__(self, marionette):
         ContactForm.__init__(self, marionette)
-        update = self.marionette.find_element(*self._update_locator)
+        update = self.wait_for_element_present(*self._update_locator)
         self.wait_for_condition(lambda m: update.location['y'] == 0)
 
     def tap_update(self):

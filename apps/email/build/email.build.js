@@ -12,6 +12,27 @@
     end: 'plog("@@@ END OF BUILD LAYER");'
   },
 */
+
+  // Be sure to normalize all define() calls by extracting
+  // dependencies so Function toString is not needed, and
+  // lower capability devices like Tarako can optimize
+  // memory by discarding function sources. This is
+  // automatically done when an 'optimize' value other than
+  // 'none' is used. This setting makes sure it happens for
+  // builds where 'none' is used for 'optimize'.
+  normalizeDirDefines: 'all',
+
+  // Rewrite the waitSeconds config so that we never time out
+  // waiting for modules to load in production. See js/mail_app.js
+  // for more details.
+  onBuildWrite: function(id, url, contents) {
+    if (id === 'mail_app') {
+      return contents.replace(/waitSeconds:\s*\d+/, 'waitSeconds: 0');
+    } else {
+      return contents;
+    }
+  },
+
   modules: [
     {
       name: 'mail_app',

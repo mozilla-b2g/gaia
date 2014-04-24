@@ -4,15 +4,21 @@ var BookmarkEditor = function b_ctor(client) {
 
 BookmarkEditor.Selectors = {
   'mozbrowser': '.inline-activity.active > iframe[mozbrowser]',
-  'bookmarkAddButton': '#button-bookmark-add',
+  'bookmarkAddButton': '#add-button',
+  'bookmarkEditButton': '#edit-button',
   'bookmarkTitleField': '#bookmark-title',
-  'bookmarkEntrySheetHead': '#bookmark-entry-sheet > header > h1'
+  'bookmarkEntrySheetHead': '#bookmark-entry-sheet > header'
 };
 
 BookmarkEditor.prototype = {
   get bookmarkAddButton() {
     return this.client.findElement(
       BookmarkEditor.Selectors['bookmarkAddButton']);
+  },
+
+  get bookmarkEditButton() {
+    return this.client.findElement(
+      BookmarkEditor.Selectors['bookmarkEditButton']);
   },
 
   get bookmarkTitleField() {
@@ -26,7 +32,7 @@ BookmarkEditor.prototype = {
   },
 
   get currentTabFrame() {
-    return this.client.findElement(
+    return this.client.helper.waitForElement(
       BookmarkEditor.Selectors['mozbrowser']);
   },
 

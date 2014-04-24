@@ -289,7 +289,6 @@ form[role="search"] button.icon {
               url(input_areas/images/ui/background.png) repeat-x 0 100%;
   background-size: auto 100%;
   border-radius: 0;
-  margin: 0;
   padding: 0;
   margin: 0;
   position: relative;
@@ -322,7 +321,6 @@ form[role="search"] button[type="submit"] {
   line-height: 3.7rem;
   background: url(input_areas/images/ui/separator.png) no-repeat 0 50%;
   background-size: auto 100%;
-  border-radius: 0;
   width: auto;
   border-radius: 0;
   margin: 0;

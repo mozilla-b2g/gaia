@@ -7,10 +7,11 @@
 
 var MockSourceView = (function() {
 
-  function init() {
-  }
+  function start() {}
+  function stop() {}
 
   return {
-    init: init
+    start: start,
+    stop: stop
   };
-})();
+});

@@ -1,4 +1,6 @@
 suiteGroup('Templates.Account', function() {
+  'use strict';
+
   var subject;
 
   suiteSetup(function() {

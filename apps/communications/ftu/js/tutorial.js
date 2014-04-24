@@ -1,3 +1,9 @@
+/* global ScreenLayout,
+          TutorialSteps,
+          Utils, _,
+          UIManager,
+          WifiManager */
+/* exported Tutorial */
 'use strict';
 
 var Tutorial = {

@@ -37,7 +37,8 @@ marionette('manipulate screenLock settings', function() {
       'passcode is not checked');
   });
 
-  test(
+  // Disabled for intermittent failures. Bug 983171
+  test.skip(
     'passcode is enabled, and we want to disable passcode ' +
     'but failed to enter the right code',
     function() {
@@ -66,7 +67,8 @@ marionette('manipulate screenLock settings', function() {
         'passcode is still checked');
   });
 
-  test('passcode is enabled, and get disabled successfully', function() {
+  // Disabled for intermittent failures. Bug 983171
+  test.skip('passcode is enabled, and get disabled successfully', function() {
     var rightCode = '1234';
     screenLockPanel.toggleScreenLock();
     screenLockPanel.togglePasscodeLock();
@@ -108,7 +110,8 @@ marionette('manipulate screenLock settings', function() {
         'passcode is still checked');
   });
 
-  test(
+  // Disabled for intermittent failures. Bug 983171
+  test.skip(
     'passcode is enabled and won\'t get disabled if you tap back button ' +
     'when we try to disable screenlock directly',
     function() {
@@ -174,7 +177,8 @@ marionette('manipulate screenLock settings', function() {
         'passcode is still checked');
   });
 
-  test('passcode is enabled, then get changed successfully', function() {
+  // Disabled for intermittent failures. Bug 983171
+  test.skip('passcode is enabled, then get changed successfully', function() {
     var oldCode = '1234';
     var newCode = '4567';
     screenLockPanel.toggleScreenLock();
@@ -197,7 +201,8 @@ marionette('manipulate screenLock settings', function() {
       'passcode is right (with new code)');
   });
 
-  test(
+  // Disabled for intermittent failures. Bug 983171
+  test.skip(
     'passcode is enabled, and we want to disable lockscreen directly ' +
     'but failed to enter the right code',
     function() {
@@ -219,7 +224,8 @@ marionette('manipulate screenLock settings', function() {
         'passcode is still checked');
   });
 
-  test('passcode is enabled, and we want to disable lockscreen directly',
+  // Disabled for intermittent failures. Bug 983171
+  test.skip('passcode is enabled, and we want to disable lockscreen directly',
     function() {
       var code = '1234';
       screenLockPanel.toggleScreenLock();

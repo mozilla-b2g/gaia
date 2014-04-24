@@ -1,6 +1,5 @@
-'use strict';
-
 (function(exports) {
+  'use strict';
   /**
    * SettingsHelper simplifies mozSettings access. It provides getter and setter
    * a specified setting. It iscreated by passing a setting key and an
@@ -35,8 +34,9 @@
     };
 
     var _ready = function sh_ready(callback) {
-      if (!callback)
+      if (!callback) {
         return;
+      }
 
       if (_isReady) {
         callback();

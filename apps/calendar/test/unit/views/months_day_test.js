@@ -1,6 +1,8 @@
 requireLib('timespan.js');
 
 suiteGroup('Views.MonthsDay', function() {
+  'use strict';
+
   var subject,
       app,
       controller,

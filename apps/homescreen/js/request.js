@@ -21,8 +21,16 @@ var ConfirmDialog = (function() {
 
   return {
     hide: function dialog_hide() {
-      dialog.classList.remove('visible');
       cancelButton.onclick = confirmButton.onclick = null;
+
+      var classList = dialog.classList;
+      if (classList.contains('show')) {
+        dialog.addEventListener('transitionend', function transitionend() {
+          dialog.removeEventListener('transitionend', transitionend);
+          classList.remove('visible');
+        });
+        classList.remove('show');
+      }
     },
 
     show: function dialog_show(title, msg, cancel, confirm) {
@@ -42,14 +50,19 @@ var ConfirmDialog = (function() {
         confirmButton.classList.add(confirm.applyClass);
       }
 
-      cancelButton.onclick = confirmButton.onclick = clickHandler;
-
       function clickHandler(evt) {
         evt.target === confirmButton ? confirm.callback() : cancel.callback();
         return false;
       }
 
       dialog.classList.add('visible');
+      setTimeout(function animate() {
+        dialog.addEventListener('transitionend', function transitionend() {
+          dialog.removeEventListener('transitionend', transitionend);
+          cancelButton.onclick = confirmButton.onclick = clickHandler;
+        });
+        dialog.classList.add('show');
+      }, 50); // Give the opportunity to paint the UI component
     },
 
     showApp: function dialog_showApp(icon) {
@@ -72,8 +85,7 @@ var ConfirmDialog = (function() {
       var confirm = {
         callback: function onAccept() {
           ConfirmDialog.hide();
-          if (app.type === GridItemsFactory.TYPE.COLLECTION ||
-              app.type === GridItemsFactory.TYPE.BOOKMARK) {
+          if (app.type === GridItemsFactory.TYPE.COLLECTION) {
             app.uninstall();
           } else {
             navigator.mozApps.mgmt.uninstall(app);
@@ -96,8 +108,7 @@ var ConfirmDialog = (function() {
         name: icon.getName()
       };
 
-      if (app.type === GridItemsFactory.TYPE.COLLECTION ||
-          app.type === GridItemsFactory.TYPE.BOOKMARK) {
+      if (app.type === GridItemsFactory.TYPE.COLLECTION) {
         title = _('remove-title-2', nameObj);
         body = _('remove-body', nameObj);
         confirm.title = _('remove');

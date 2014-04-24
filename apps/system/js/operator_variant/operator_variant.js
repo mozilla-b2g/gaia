@@ -124,6 +124,7 @@
               (function onFinishCb(filteredApnList) {
                 this.buildApnSettings(filteredApnList);
             }).bind(this));
+            this.applyVoicemailSettings(result, /*isUpdate*/ true);
           }).bind(this)
         );
       }
@@ -319,7 +320,10 @@
       for (var type in apnPrefNames) {
         var apn = {};
         for (var i = 0; i < result.length; i++) {
-          if (result[i] && result[i].type.indexOf(type) != -1) {
+          if (typeof result[i].type === 'undefined') {
+            result[i].type = 'default';
+          }
+          if (result[i].type.indexOf(type) != -1) {
             apn = result[i];
             break;
           }
@@ -329,6 +333,9 @@
           var name = apnPrefNames[type][key];
           var item = {};
           switch (name) {
+            case 'voicemail':
+              this.applyVoicemailSettings(result, /*isUpdate*/ false);
+              break;
             // load values from the AUTH_TYPES
             case 'authtype':
               item[key] = apn[name] ? AUTH_TYPES[apn[name]] : 'notDefined';
@@ -347,7 +354,10 @@
               }
               break;
           }
-          transaction.set(item);
+
+          if (Object.keys(item)) {
+            transaction.set(item);
+          }
         }
       }
 
@@ -355,6 +365,74 @@
         (function onFinishCb(filteredApnList) {
           this.buildApnSettings(filteredApnList);
       }).bind(this));
+    },
+
+    /**
+     * Store the voicemail settings into the settings database.
+     *
+     * @param {Array} allSettings Carrier settings.
+     * @param {Boolean} isSystemUpdate Indicating whether the function is called
+     *                                 due to system update or a new icc card is
+     *                                 detected.
+     */
+    applyVoicemailSettings:
+      function ovh_applyVoicemailSettings(allSettings, isSystemUpdate) {
+        var number = this.getVMNumberFromOperatorVariantSettings(allSettings);
+        this.updateVoicemailSettings(number, isSystemUpdate);
+    },
+
+    getVMNumberFromOperatorVariantSettings:
+      function ovh_getVMNumberFromOperatorVariantSettings(allSettings) {
+        var operatorVariantSettings = {};
+        for (var i = 0; i < allSettings.length; i++) {
+          if (allSettings[i] &&
+              allSettings[i].type.indexOf('operatorvariant') != -1) {
+            operatorVariantSettings = allSettings[i];
+            break;
+          }
+        }
+
+        // Load the voicemail number stored in the apn.json database.
+        return operatorVariantSettings['voicemail'] || '';
+    },
+
+    updateVoicemailSettings:
+      function ovh_updateVoicemailSettings(number, isSystemUpdate) {
+        // Store settings into the database.
+        var settings = window.navigator.mozSettings;
+        var transaction = settings.createLock();
+
+        var request = transaction.get('ril.iccInfo.mbdn');
+        request.onsuccess = (function() {
+          var originalSetting = request.result['ril.iccInfo.mbdn'];
+          var newSetting;
+          var newNumber;
+
+          // Create an empty setting if needed
+          if (!originalSetting || !Array.isArray(originalSetting)) {
+            newSetting = ['', ''];
+          } else {
+            newSetting = originalSetting;
+          }
+
+          // Determine the new value:
+          // - Use the original value when the function is called due to
+          //   system update
+          // - Use the passed in number when the function is called due to
+          //   new icc cards detected (not system update)
+          if (isSystemUpdate) {
+            if (!Array.isArray(originalSetting)) {
+              newNumber = originalSetting;
+            } else {
+              newNumber = originalSetting[this._iccCardIndex];
+            }
+          } else {
+            newNumber = number;
+          }
+
+          newSetting[this._iccCardIndex] = newNumber;
+          transaction.set({'ril.iccInfo.mbdn': newSetting});
+        }).bind(this);
     },
 
     /**

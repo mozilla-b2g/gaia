@@ -1,4 +1,4 @@
-var assert = require('assert');
+'use strict';
 
 /**
  * Abstraction around contacts app.
@@ -33,11 +33,17 @@ Contacts.Selectors = {
   detailsEditContact: '#edit-contact-button',
   detailsTelLabelFirst: '#phone-details-template-0 h2',
   detailsTelButtonFirst: 'button.icon-call[data-tel]',
+  detailsFindDuplicate: '#contact-detail-inner #find-merge-button',
+  detailsFavoriteButton: '#toggle-favorite',
+  detailsContactName: '#contact-name-title',
 
   duplicateFrame: 'iframe[src*="matching_contacts.html"]',
   duplicateHeader: '#title',
+  duplicateClose: '#merge-close',
+  duplicateMerge: '#merge-action',
 
   form: '#view-contact-form',
+  formTitle: '#contact-form-title',
   formCustomTag: '#custom-tag',
   formCustomTagPage: '#view-select-tag',
   formCustomTagDone: '#view-select-tag #settings-done',
@@ -58,17 +64,11 @@ Contacts.Selectors = {
   searchLabel: '#search-start',
   searchInput: '#search-contact',
   searchCancel: '#cancel-search',
-  searchResultFirst: '#search-list .contact-item'
-};
+  searchResultFirst: '#search-list .contact-item',
 
-/**
- * @private
- * @param {Marionette.Client} client for selector.
- * @param {String} name of selector [its a key in Contacts.Selectors].
- */
-function findElement(client, name) {
-  return client.findElement(Contacts.Selectors[name]);
-}
+  scrollbar: 'nav[data-type="scrollbar"]',
+  overlay: 'nav[data-type="scrollbar"] p'
+};
 
 Contacts.prototype = {
   /**
@@ -102,32 +102,58 @@ Contacts.prototype = {
       return data;
     }, [file, key]);
 
-    return string[key]['_'];
+    return string[key];
   },
 
   waitSlideLeft: function(elementKey) {
-    this.client.waitFor(function() {
-      var location = this.client.findElement(Contacts.Selectors[elementKey])
-        .location();
-      return location.x === 0;
-    });
+    var element = this.client.findElement(Contacts.Selectors[elementKey]),
+        location;
+    var test = function() {
+      location = element.location();
+      return location.x <= 0;
+    };
+    this.client.waitFor(test);
+  },
+
+  waitForSlideDown: function(element) {
+    var bodyHeight = this.client.findElement(Contacts.Selectors.body).
+      size().height;
+    var test = function() {
+      return element.location().y >= bodyHeight;
+    };
+    this.client.waitFor(test);
+  },
+
+  waitForSlideUp: function(element) {
+    var test = function() {
+      return element.location().y <= 0;
+    };
+    this.client.waitFor(test);
   },
 
   waitForFormShown: function() {
-    this.client.waitFor(function() {
-      var location = this.client.findElement(Contacts.Selectors.form)
-        .location();
-      return location.y === 0;
-    });
+    var form = this.client.helper.waitForElement(Contacts.Selectors.form),
+        location;
+    var test = function() {
+      location = form.location();
+      return location.y <= 0;
+    };
+    this.client.waitFor(test);
   },
 
   waitForFormTransition: function() {
-    var selectors = Contacts.Selectors;
-    var bodyHeight = client.findElement(selectors.body).size().height;
-    this.client.waitFor(function() {
-      var location = client.findElement(selectors.form).location();
-      return location.y >= bodyHeight;
-    });
+    var selectors = Contacts.Selectors,
+        bodyHeight = this.client.findElement(selectors.body).size().height,
+        form = this.client.findElement(selectors.form);
+    var test = function() {
+      var location = form.location();
+      // Since only checking form position could not guarantee
+      // the transition is ended, add z-index checking because
+      // it will be removed after transition.
+      var zIndex = this.getElementStyle(selectors.form, 'zIndex');
+      return location.y >= bodyHeight && !zIndex;
+    };
+    this.client.waitFor(test.bind(this));
   },
 
   enterContactDetails: function(details) {
@@ -149,7 +175,7 @@ Contacts.prototype = {
         .sendKeys(details[i]);
     }
 
-    this.client.helper.waitForElement(selectors.formSave).click();
+    this.client.findElement(selectors.formSave).click();
 
     this.waitForFormTransition();
   },
@@ -163,6 +189,28 @@ Contacts.prototype = {
     this.enterContactDetails(details);
 
     this.client.helper.waitForElement(selectors.list);
+  },
+
+  /**
+   * Helper method to simulate clicks on iFrames which is not currently
+   *  working in the Marionette JS Runner.
+   * @param {Marionette.Element} element The element to simulate the click on.
+   **/
+  clickOn: function(element) {
+    element.scriptWith(function(elementEl) {
+      var event = new MouseEvent('click', {
+        'view': window,
+        'bubbles': true,
+        'cancelable': true
+      });
+      elementEl.dispatchEvent(event);
+    });
+  },
+
+  getElementStyle: function(selector, type) {
+    return this.client.executeScript(function(selector, type) {
+      return document.querySelector(selector).style[type];
+    }, [selector, type]);
   }
 };
 

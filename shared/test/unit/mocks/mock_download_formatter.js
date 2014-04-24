@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockDownloadFormatter */
 
 var MockDownloadFormatter = {
   getFormattedSize: function(bytes) {

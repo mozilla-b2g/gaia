@@ -1,3 +1,9 @@
+/* global BalanceTab, ConfigManager, Common, NonReadyScreen, showSimErrorDialog,
+          debug, CostControl, SettingsListener, TelephonyTab, ViewManager,
+          LazyLoader, AirplaneModeHelper */
+/* exported CostControlApp */
+
+'use strict';
 
 /*
  * The application is in charge of display detailed information about the usage.
@@ -37,8 +43,6 @@
 
 var CostControlApp = (function() {
 
-  'use strict';
-
   var costcontrol, initialized = false;
   var vmanager;
 
@@ -47,7 +51,6 @@ var CostControlApp = (function() {
   // SIM. Once ready, callback is executed.
   function waitForSIMReady(callback) {
     Common.loadDataSIMIccId(function _onIccId(iccid) {
-      var iccid = Common.dataSimIccId;
       var dataSimIccInfo = Common.dataSimIcc;
       var cardState = dataSimIccInfo && dataSimIccInfo.cardState;
 
@@ -78,8 +81,23 @@ var CostControlApp = (function() {
 
     // In case we can not get a valid ICCID.
     }, function _errorNoSim() {
-        console.warn('Error when trying to get the ICC ID');
-        showNonReadyScreen(null);
+      console.warn('Error when trying to get the ICC, SIM not detected.');
+      LazyLoader.load(['/shared/js/airplane_mode_helper.js'], function() {
+        AirplaneModeHelper.ready(function() {
+          var fakeState = null;
+          if (AirplaneModeHelper.getStatus() === 'enabled') {
+            console.warn('The airplaneMode is enabled.');
+            fakeState = 'airplaneMode';
+            var iccManager = window.navigator.mozIccManager;
+            iccManager.addEventListener('iccdetected',
+              function _oniccdetected() {
+                iccManager.removeEventListener('iccdetected', _oniccdetected);
+                waitForSIMReady(callback);
+              });
+          }
+          showNonReadyScreen(fakeState);
+        });
+      });
     });
   }
 
@@ -314,7 +332,8 @@ var CostControlApp = (function() {
 
   var currentMode;
   function updateUI(callback) {
-    ConfigManager.requestSettings(function _onSettings(settings) {
+    ConfigManager.requestSettings(Common.dataSimIccId,
+                                  function _onSettings(settings) {
       var mode = ConfigManager.getApplicationMode();
       debug('App UI mode: ', mode);
 
@@ -402,17 +421,45 @@ var CostControlApp = (function() {
     Common.startFTE(mode);
   }
 
+  function initApp() {
+    vmanager = new ViewManager();
+    waitForSIMReady(function _onSIMReady() {
+      document.getElementById('message-handler').src = 'message_handler.html';
+      Common.waitForDOMAndMessageHandler(window, startApp);
+    });
+  }
+
   return {
     init: function() {
-      vmanager = new ViewManager();
-      waitForSIMReady(function _onSIMReady() {
-        document
-          .getElementById('message-handler').src = 'message_handler.html';
-        Common.waitForDOMAndMessageHandler(window, startApp);
-      });
-      // XXX: See bug 944342 -[Cost control] move all the process related to the
-      // network and data interfaces loading to the start-up process of CC
-      Common.loadNetworkInterfaces();
+      var SCRIPTS_NEEDED = [
+        'js/utils/debug.js',
+        'js/common.js',
+        'js/views/NonReadyScreen.js',
+        'js/utils/toolkit.js',
+        'js/view_manager.js'
+      ];
+      // Check if the mandatory APIs to work  exist.
+      if (!window.navigator.mozMobileConnections ||
+          !window.navigator.mozIccManager ||
+          !window.navigator.mozNetworkStats) {
+        LazyLoader.load(SCRIPTS_NEEDED, function _showError() {
+          vmanager = new ViewManager();
+          showNonReadyScreen(null);
+        });
+      } else {
+        SCRIPTS_NEEDED = [
+          'js/utils/debug.js',
+          'js/utils/formatting.js',
+          'js/utils/toolkit.js',
+          'js/settings/networkUsageAlarm.js',
+          'js/common.js',
+          'js/costcontrol.js',
+          'js/config/config_manager.js',
+          'js/views/NonReadyScreen.js',
+          'js/view_manager.js'
+        ];
+        LazyLoader.load(SCRIPTS_NEEDED, initApp);
+      }
     },
     reset: function() {
       costcontrol = null;

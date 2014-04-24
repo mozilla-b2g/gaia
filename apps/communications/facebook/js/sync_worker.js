@@ -46,6 +46,13 @@ importScripts('/shared/js/fb/fb_request.js',
     ')'
   ];
 
+  // Query to know the total amount of friends
+  var COUNT_QUERY = 'SELECT uid FROM user WHERE uid IN ' +
+                    '(SELECT uid1 FROM friend WHERE uid2=me())';
+
+  // Indicates whether the worker started with or without data
+  var withData = false;
+
   function debug() {
     function getString(a) {
       var out = '';
@@ -119,6 +126,15 @@ importScripts('/shared/js/fb/fb_request.js',
       query2: REMOVED_QUERY.join('')
     };
 
+    // In any sync without data (periodic one) we also request the total amount
+    // of friends in order to update it
+    // Please take into account that that cannot be done with a friend_count
+    // query as it also returns those friends who are deactivated
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=838605
+    if (!withData) {
+      outQueries.query3 = COUNT_QUERY;
+    }
+
     return JSON.stringify(outQueries);
   }
 
@@ -126,6 +142,8 @@ importScripts('/shared/js/fb/fb_request.js',
     var message = e.data;
 
     if (message.type === 'start') {
+      withData = false;
+
       uids = message.data.uids;
       access_token = message.data.access_token;
       timestamp = message.data.timestamp;
@@ -142,6 +160,7 @@ importScripts('/shared/js/fb/fb_request.js',
       getFriendsToBeUpdated(Object.keys(uids), Object.keys(forceUpdateUids));
     }
     else if (message.type === 'startWithData') {
+      withData = true;
       debug('worker Acks start with data');
 
       fb.operationsTimeout = message.data.operationsTimeout;
@@ -176,12 +195,22 @@ importScripts('/shared/js/fb/fb_request.js',
       var removeList = response.data[1].fql_result_set;
       // removeList = [{target_id: '100001127136581'}];
 
+      var theData = {
+        totalToChange: updateList.length + removeList.length,
+        queryTimestamp: qts
+      };
+
+      if (!withData) {
+        if (response.data[2] &&
+            Array.isArray(response.data[2].fql_result_set)) {
+          var friendCount = response.data[2].fql_result_set.length;
+          theData.newFriendNumber = friendCount;
+        }
+      }
+
       wutils.postMessage({
         type: 'totals',
-        data: {
-          totalToChange: updateList.length + removeList.length,
-          queryTimestamp: qts
-        }
+        data: theData
       });
 
       syncUpdatedFriends(updateList);

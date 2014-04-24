@@ -1,15 +1,10 @@
+/* globals LazyLoader, LiveConnector, GmailConnector, FacebookConnector,
+  utils, importer, contacts*/
 'use strict';
 
 (function(document) {
   var serviceName = getServiceName();
   var allowedOrigin = location.origin;
-
-  function notifyParent(message, origin) {
-    parent.postMessage({
-      type: message.type || '',
-      data: message.data || ''
-    }, origin);
-  }
 
   function parseParams(paramsStr) {
     var out = {};
@@ -72,12 +67,6 @@
     }
   }
 
-  function cancelCb() {
-    Curtain.hide(notifyParent.bind(null, {
-      type: 'abort'
-    }, allowedOrigin));
-  }
-
   function tokenReady(access_token) {
     if (document.readyState === 'complete') {
       onLoad(access_token);
@@ -115,11 +104,6 @@
       importer.start(access_token, connector, allowedOrigin);
     });
   }
-
-  window.addEventListener('localized', function fb_localized(evt) {
-    document.documentElement.lang = navigator.mozL10n.language.code;
-    document.documentElement.dir = navigator.mozL10n.language.direction;
-  });
 
   window.addEventListener('message', function getAccessToken(e) {
     if (e.origin !== allowedOrigin) {

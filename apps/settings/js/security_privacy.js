@@ -45,10 +45,7 @@ var Security = {
 
   updateSimLockDesc: function updateSimLockDesc() {
     var _ = navigator.mozL10n.get;
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var mobileConnection = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
+    var mobileConnection = window.navigator.mozMobileConnections &&
         window.navigator.mozMobileConnections[0];
 
     if (!mobileConnection)
@@ -91,7 +88,7 @@ var Security = {
 };
 
 // starting when we get a chance
-navigator.mozL10n.ready(function loadWhenIdle() {
+navigator.mozL10n.once(function loadWhenIdle() {
   var idleObserver = {
     time: 5,
     onidle: function() {

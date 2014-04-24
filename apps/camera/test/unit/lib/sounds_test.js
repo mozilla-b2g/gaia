@@ -1,4 +1,10 @@
-suite.skip('Sounds', function() {
+require('/shared/test/unit/mocks/mock_audio.js')
+
+var mocksHelperForSounds = new MocksHelper([
+  'Audio'
+]).init();
+
+suite('Sounds', function() {
   /*jshint maxlen:false*/
   /*global req*/
   'use strict';
@@ -26,6 +32,8 @@ suite.skip('Sounds', function() {
     }
   ];
 
+  mocksHelperForSounds.attachTestHelpers();
+
   suiteSetup(function(done) {
     req(['lib/sounds'], function(sounds) {
       Sounds = sounds;
@@ -35,6 +43,7 @@ suite.skip('Sounds', function() {
 
   setup(function() {
     this.sandbox = sinon.sandbox.create();
+    this.clock = sinon.useFakeTimers();
     this.sounds = new Sounds();
 
     // A sound to pass to APIs
@@ -54,6 +63,7 @@ suite.skip('Sounds', function() {
   teardown(function() {
     navigator.mozSettings = this.backup.mozSettings;
     this.sandbox.restore();
+    this.clock.restore();
   });
 
   suite('Sounds()', function() {
@@ -100,6 +110,7 @@ suite.skip('Sounds', function() {
 
   suite('Sounds#isEnabled()', function() {
     setup(function() {
+      var self = this;
 
       // Mock object that mimicks
       // mozSettings get API. Inside
@@ -117,7 +128,7 @@ suite.skip('Sounds', function() {
                 result: result
               }
             });
-          }, 1);
+          });
           return this;
         }
       };
@@ -128,11 +139,14 @@ suite.skip('Sounds', function() {
       this.sounds.isEnabled(this.mockSound);
     });
 
-    test('Should return the result from mozSettings API', function(done) {
+    test('Should return the result from mozSettings API', function() {
       this.sounds.isEnabled(this.mockSound, function(result) {
         assert.ok(result === 'the-result');
-        done();
       });
+
+      // Move time forwards
+      // so the callback fires
+      this.clock.tick(1);
     });
   });
 
@@ -167,7 +181,7 @@ suite.skip('Sounds', function() {
     test('Should return an Audio object with the given src', function() {
       var url = this.mockSound.url;
       var audio = this.sounds.createAudio(url);
-      assert.ok(audio instanceof window.HTMLAudioElement);
+      assert.ok(audio instanceof window.Audio);
       assert.ok(~audio.src.indexOf(url));
     });
 
@@ -179,7 +193,10 @@ suite.skip('Sounds', function() {
 
   suite('Sounds#playSound()', function() {
     setup(function() {
-      this.mockSound.audio = { play: sinon.spy() };
+      this.mockSound.audio = {
+        play: sinon.spy(),
+        cloneNode: function() { return this; }
+      };
     });
 
     test('Should *not* play the sound if it\'s not enabled', function() {

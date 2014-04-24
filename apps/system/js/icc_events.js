@@ -194,7 +194,7 @@ var icc_events = {
         DUMP('icc_events_register - Browser termination event');
         window.addEventListener('appterminated',
           function icc_events_browsertermination(e) {
-            var app = Applications.getByManifestURL(e.detail.origin +
+            var app = applications.getByManifestURL(e.detail.origin +
               '/manifest.webapp');
             if (!app) {
               return;

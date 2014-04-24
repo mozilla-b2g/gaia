@@ -21,7 +21,7 @@ form[role="dialog"].no-overlay button {
 
 /* BB lists */
 .import-list header {
-  padding-left: 0 0 0 1.5rem;
+  padding-left: 1.5rem;
   position: sticky;
   top: -3.7rem;
   background: #fff;
@@ -106,6 +106,10 @@ p#friends-msg {
   height: calc(100% - 6.9rem);
   padding-top: 3.7rem; /* Equal to search form height */
   position: relative;
+}
+
+.link #mainContent {
+  padding-top: 0; /* Remove search form height  */
 }
 
 #main.no-proposal #mainContent {

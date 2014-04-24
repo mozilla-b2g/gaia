@@ -17,10 +17,19 @@ suite('Operator variant', function() {
   const FAKE_ICC_CARD_INDEX = '0';
   const TEST_NETWORK_MCC = '001';
 
+  const ORIGINAL_VOICEMAIL_NUMBER = '9999';
+  const FAKE_VOICEMAIL_NUMBER = '1234';
+
   const EXPECTED_MNC = '01';
   const EXPECTED_ICC_INFO = {
     mcc: TEST_NETWORK_MCC,
     mnc: EXPECTED_MNC
+  };
+
+  const EXPECTED_MNC2 = '03';
+  const EXPECTED_ICC_INFO2 = {
+    mcc: TEST_NETWORK_MCC,
+    mnc: EXPECTED_MNC2
   };
 
   const T_MOBILE_US_MCC = '310';
@@ -74,8 +83,18 @@ suite('Operator variant', function() {
     { key: 'ril.mms.mmsproxy', value: '127.0.0.1' },
     { key: 'ril.mms.mmsport', value: '8080' },
     { key: 'ril.data.carrier', value: 'Test Network' },
-    { key: 'ril.iccInfo.mbdn', value: '999999' },
+    { key: 'ril.iccInfo.mbdn', value: [ORIGINAL_VOICEMAIL_NUMBER, ''] },
     { key: 'ril.cellbroadcast.searchlist', value: '0,1,2,3' }
+  ];
+
+  const KEYS_VALUES2 = [
+    { key: 'ril.data.carrier', value: 'No type test' },
+    { key: 'ril.data.apn', value: 'internet' },
+    { key: 'ril.data.user', value: 'user' },
+    { key: 'ril.data.passwd', value: 'password' },
+    { key: 'ril.data.httpProxyHost', value: '127.0.0.1' },
+    { key: 'ril.data.httpProxyPort', value: '8080' },
+    { key: 'ril.data.authtype', value: 'none' }
   ];
 
   var realMozSettings, realMozIccManager, realMozMobileConnections;
@@ -182,6 +201,37 @@ suite('Operator variant', function() {
     OperatorVariantHandler.handleICCCard(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
   });
 
+  test('Apply default operator variant for undefined types', function(done) {
+    var observer = {
+      bound: null,
+      expected: KEYS_VALUES2.length,
+      seen: 0,
+      func: function(event) {
+        KEYS_VALUES2.forEach(function(data) {
+          if (data.key == event.settingName) {
+            assert.equal(
+              event.settingValue,
+              data.value,
+              'Wrong Data setting value'
+            );
+            ++this.seen;
+          }
+        }, this);
+
+        if (this.seen == this.expected) {
+          setObservers(KEYS_VALUES2, this, true);
+          done();
+        }
+      }
+    };
+
+    setObservers(KEYS_VALUES2, observer);
+
+    MockNavigatorMozIccManager.getIccById(FAKE_ICC_ID).iccInfo =
+      EXPECTED_ICC_INFO2;
+    OperatorVariantHandler.handleICCCard(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
+  });
+
   test('operator variant apply once per boot', function() {
     var observer = {
       bound: null,
@@ -254,6 +304,151 @@ suite('Operator variant', function() {
 
         done();
       });
+    });
+  });
+
+  suite('updateVoicemailSettings', function() {
+    suiteSetup(function() {
+      this.clock = sinon.useFakeTimers();
+    });
+
+    suiteTeardown(function() {
+      this.clock.restore();
+    });
+
+    setup(function() {
+      this.ovh = new OperatorVariantHandler(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
+    });
+
+    teardown(function() {
+      MockNavigatorSettings.mTeardown();
+    });
+
+    suite('without value in "ril.iccInfo.mbdn"', function() {
+      setup(function() {
+        MockNavigatorSettings.mSet({ 'ril.iccInfo.mbdn': null });
+      });
+
+      test('system update is true', function() {
+        this.ovh.updateVoicemailSettings(
+          FAKE_VOICEMAIL_NUMBER, true);
+        this.clock.tick(1000);
+        assert.deepEqual(MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
+          [null, '']);
+      });
+
+      test('system update is false', function() {
+        this.ovh.updateVoicemailSettings(
+          FAKE_VOICEMAIL_NUMBER, false);
+        this.clock.tick(1000);
+        assert.deepEqual(MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
+          [FAKE_VOICEMAIL_NUMBER, '']);
+      });
+    });
+
+    suite('with string type value in "ril.iccInfo.mbdn"', function() {
+      test('system update is true', function() {
+        MockNavigatorSettings.mSet({
+          'ril.iccInfo.mbdn': ORIGINAL_VOICEMAIL_NUMBER
+        });
+        this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, true);
+        this.clock.tick(1000);
+        assert.deepEqual(
+          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
+          [ORIGINAL_VOICEMAIL_NUMBER, '']
+        );
+      });
+
+      test('system update is false', function() {
+        MockNavigatorSettings.mSet({
+          'ril.iccInfo.mbdn': ORIGINAL_VOICEMAIL_NUMBER
+        });
+        this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, false);
+        this.clock.tick(1000);
+        assert.deepEqual(
+          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
+          [FAKE_VOICEMAIL_NUMBER, '']
+        );
+      });
+    });
+
+    suite('with array type value in "ril.iccInfo.mbdn"', function() {
+      test('system update is true', function() {
+        MockNavigatorSettings.mSet({
+          'ril.iccInfo.mbdn': [ORIGINAL_VOICEMAIL_NUMBER, '']
+        });
+        this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, true);
+        this.clock.tick(1000);
+        assert.deepEqual(
+          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
+          [ORIGINAL_VOICEMAIL_NUMBER, '']
+        );
+      });
+
+      test('system update is false', function() {
+        MockNavigatorSettings.mSet({
+          'ril.iccInfo.mbdn': [ORIGINAL_VOICEMAIL_NUMBER, '']
+        });
+        this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, false);
+        this.clock.tick(1000);
+        assert.deepEqual(
+          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
+          [FAKE_VOICEMAIL_NUMBER, '']
+        );
+      });
+    });
+
+    suite('should set to correct field based on icc card index', function() {
+      setup(function() {
+        this.ovh._iccCardIndex = 1;
+      });
+
+      test('system update is true', function() {
+        MockNavigatorSettings.mSet({
+          'ril.iccInfo.mbdn': ['', ORIGINAL_VOICEMAIL_NUMBER]
+        });
+        this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, true);
+        this.clock.tick(1000);
+        assert.deepEqual(
+          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
+          ['', ORIGINAL_VOICEMAIL_NUMBER]
+        );
+      });
+
+      test('system update is false', function() {
+        MockNavigatorSettings.mSet({
+          'ril.iccInfo.mbdn': ['', ORIGINAL_VOICEMAIL_NUMBER]
+        });
+        this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, false);
+        this.clock.tick(1000);
+        assert.deepEqual(
+          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
+          ['', FAKE_VOICEMAIL_NUMBER]
+        );
+      });
+    });
+  });
+
+  suite('getVMNumberFromOperatorVariantSettings', function() {
+    setup(function() {
+      this.ovh = new OperatorVariantHandler(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
+    });
+
+    test('with operator variant voicemail number', function() {
+      this.allSettings = [{
+        'type': 'operatorvariant',
+        'voicemail': FAKE_VOICEMAIL_NUMBER
+      }];
+      var number =
+        this.ovh.getVMNumberFromOperatorVariantSettings(this.allSettings);
+      assert.equal(number, FAKE_VOICEMAIL_NUMBER);
+    });
+
+    test('without operator variant voicemail number', function() {
+      this.allSettings = [];
+      var number =
+        this.ovh.getVMNumberFromOperatorVariantSettings(this.allSettings);
+      assert.equal(number, '');
     });
   });
 });

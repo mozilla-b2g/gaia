@@ -63,19 +63,8 @@ body[data-path^='/settings'] #time-views {
   width: 100%;
   height: 3.9rem;
   line-height: 3.9rem;
-}
-
-#settings .calendars .calendar-color {
-  float: left;
-  width: 0.5rem;
-  display: block;
-  height: 100%;
-  background-image: linear-gradient(
-    to bottom,
-    rgba(255,255,255,0.2) 0%,
-    rgba(255,255,255,0) 40%,
-    rgba(0, 0, 0, 0.3) 100%
-  )
+  border-left-style: solid;
+  border-left-width: 0.5rem;
 }
 
 #settings > menu {

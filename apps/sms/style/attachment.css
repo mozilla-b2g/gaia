@@ -10,8 +10,8 @@
 
   display: block;
   border: none;
-  height: 82px; /* default size = 80 px + border */
-  width: 82px;
+  height: 84px; /* default size = 80 px + border */
+  width: 124px;
 }
 
 .attachment-draft {
@@ -28,13 +28,15 @@
 }
 
 .attachment-container.nopreview { /* 80x80 px placeholder + filename below */
-  height: calc(82px + 2.7rem); /* font-size = 1.7rem + 1rem margin */
-  width: 122px;
+  height: calc(80px + 2.7rem); /* font-size = 1.7rem + 1rem margin */
+  width: 120px;
 }
 
-.attachment-container.preview { /* 80x80 px thumbnail, no filename shown */
-  /* thumbnail size is defined dynamically, extensible to 80x120 or 120x80 */
-}
+/*.attachment-container.preview {
+ * 80x80 px thumbnail, no filename shown
+ * thumbnail size is defined dynamically, extensible to 80x120 or 120x80 
+ *}
+ */
 
 .article-list[data-type="list"] .message .attachment-container {
   margin: 1rem 0;
@@ -61,10 +63,8 @@
   top: 0;
   left: 0;
 
-  width: 80px;
+  width: 120px;
   height: 80px;
-  border: 1px solid #018eac;
-  border-radius: 2px;
 }
 
 .outgoing .attachment {
@@ -73,17 +73,17 @@
 }
 
 .preview .attachment {
-  -moz-box-sizing: border-box;
-       box-sizing: border-box;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
 
-  background-color: rgba(0, 170, 205, 0.45);
+  background-color: #ececec;
+  border: 2px solid #fff;
 }
 
 .preview .attachment:active,
 .preview .attachment:hover {
-  background-color: rgba(0, 140, 170, 1);
+  background-color: #b2f2ff;
 }
 
 .size-indicator {
@@ -142,10 +142,10 @@
   width: 100%;
   height: 100%;
 
-  background-image: url('icons/attachments.png');
+  background-image: url('images/attachments.png');
   background-repeat: no-repeat;
   background-position: left top;
-  background-size: 160px;
+  background-size: 120px;
 }
 
 .attachment-container .thumbnail,
@@ -158,7 +158,8 @@
 .attachment-draft:active .thumbnail-placeholder,
 .attachment-container:hover .thumbnail-placeholder,
 .attachment-container:active .thumbnail-placeholder {
-  background-position: right top;
+  background-color: #33cccc;
+  background-blend-mode: luminosity;
 }
 
 .img-placeholder {

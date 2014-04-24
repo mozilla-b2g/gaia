@@ -1,37 +1,34 @@
 'use strict';
 
-require('/shared/js/fxa_iac_client.js');
 requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_app.js');
+mocha.globals(['FxAccountsIACHelper']);
+
+// XXX consider moving this to a separate file if it gets much more complex
+
+// arthurcc's suggested replacement:
+var port = {
+  postMessage: function(message) {
+    var msg = {
+      data: {
+        data: {},
+        methodName: message.name
+      }
+    };
+    setTimeout(function() {
+      port._onmessage(msg);
+    });
+  },
+  _onmessage: null,
+  set onmessage(cb) {
+    port._onmessage = cb;
+  }
+};
 
 suite('FirefoxOS Accounts IAC Client Suite', function() {
   var realMozApps;
 
-  var port = {
-    postMessage: function() {},
-
-    methodName: null,
-
-    _onmessage: null,
-
-    set onmessage(cb) {
-      port._onmessage = cb;
-      setTimeout(function() {
-        var msg = {
-          data: {
-            data: {}
-          }
-        };
-
-        if (port.methodName !== null) {
-          msg.data.methodName = port.methodName;
-        }
-
-        cb(msg);
-      }, 0);
-    }
-  };
-  var postMessageStub;
+  var postMessageSpy;
 
   suiteSetup(function() {
     realMozApps = navigator.mozApps;
@@ -42,7 +39,7 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
     navigator.mozApps = realMozApps;
   });
 
-  setup(function() {
+  setup(function(done) {
     // For each test, setup the 'self' app, able to
     // do IAC
     var app = new MockApp({
@@ -57,11 +54,14 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
       }
     });
     navigator.mozApps.setSelf(app);
+    // XXX we have to require() the system under test *after* we define the
+    //     MockApp, because the code calls app.connect() as soon as it is loaded
+    require('/shared/js/fxa_iac_client.js', done);
   });
 
   teardown(function() {
-    if (postMessageStub && postMessageStub.restore) {
-       postMessageStub.restore();
+    if (postMessageSpy && postMessageSpy.restore) {
+       postMessageSpy.restore();
     }
   });
 
@@ -73,7 +73,7 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
   ['getAccounts', 'openFlow', 'logout'].forEach(function(method) {
     suite(method + ' suite', function() {
       setup(function() {
-        postMessageStub = sinon.stub(port, 'postMessage');
+        postMessageSpy = sinon.spy(port, 'postMessage');
       });
 
       test('Check that we send the ' + method + ' message', function(done) {
@@ -81,8 +81,8 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
         port.methodName = method;
         FxAccountsIACHelper[method](
           function() {
-            assert.ok(postMessageStub.called);
-            var arg = postMessageStub.args[0][0];
+            assert.ok(postMessageSpy.called);
+            var arg = postMessageSpy.args[0][0];
             // We do have an id for this message
             assert.isNotNull(arg.id);
             assert.isNotNull(arg);
@@ -103,14 +103,14 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
       });
 
       teardown(function() {
-        postMessageStub.restore();
+        postMessageSpy.restore();
       });
     });
   });
 
   suite('refreshAuthentication suite', function() {
     setup(function() {
-      postMessageStub = sinon.stub(port, 'postMessage');
+      postMessageSpy = sinon.spy(port, 'postMessage');
     });
 
     test('Check that we send the refreshAuth message', function(done) {
@@ -118,8 +118,8 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
       port.methodName = 'refreshAuthentication';
       FxAccountsIACHelper.refreshAuthentication('dummy@domain.org',
         function() {
-          assert.ok(postMessageStub.called);
-          var arg = postMessageStub.args[0][0];
+          assert.ok(postMessageSpy.called);
+          var arg = postMessageSpy.args[0][0];
           // We do have an id for this message
           assert.isNotNull(arg.id);
           assert.isNotNull(arg);
@@ -141,7 +141,7 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
     });
 
     teardown(function() {
-      postMessageStub.restore();
+      postMessageSpy.restore();
     });
   });
 
@@ -216,6 +216,75 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
     test('Check that we trigger the appropriate callback', function() {
       assert.ok(!callbackCalled);
       assert.ok(otherCallbackCalled);
+    });
+  });
+
+
+  suite('Startup race condition tests - bug 974108', function() {
+    var callbackCalled, otherCallbackCalled;
+
+    var listener = function() {
+      callbackCalled = true;
+    };
+
+    var otherListener = function() {
+      otherCallbackCalled = true;
+    };
+
+    setup(function() {
+      this.clock = sinon.useFakeTimers();
+      var callbackCalled = false;
+      var otherCallbackCalled = false;
+      // we are testing that postmessage requests are queued, not overwritten,
+      // during the period between starting the Helper and the port being open.
+      // we need to clear out the port, add 2 new subscribers, then check both
+      // are called.
+      var app = new MockApp({
+        'connect': function(keyword) {
+          var future = {
+            'then': function(cb) {}
+          };
+          var connectStub = sinon.stub(future, 'then', function(cb) {
+            // wait a turn so that we can queue up multiple requests
+            setTimeout(function() {
+              cb([port]);
+            }, 0);
+          });
+          return future;
+        }
+      });
+      navigator.mozApps.setSelf(app);
+      FxAccountsIACHelper.reset();
+    });
+
+    teardown(function() {
+      this.clock.restore();
+    });
+
+    test('Should queue multiple requests until port is opened', function() {
+      callbackCalled = false;
+      otherCallbackCalled = false;
+      // reset() will destroy the existing port, forcing message requests
+      // to be queued up.
+      FxAccountsIACHelper.reset();
+      // two requests -- one to be sent as soon as the connection's ready,
+      // the other after that.
+      FxAccountsIACHelper.logout(otherListener);
+      FxAccountsIACHelper.getAccounts(listener);
+      this.clock.tick(1000);
+      assert.isTrue(callbackCalled);
+      assert.isTrue(otherCallbackCalled);
+    });
+
+    test('Should queue multiple callbacks for one request', function() {
+      callbackCalled = false;
+      otherCallbackCalled = false;
+      FxAccountsIACHelper.reset();
+      FxAccountsIACHelper.getAccounts(listener);
+      FxAccountsIACHelper.getAccounts(otherListener);
+      this.clock.tick(1000);
+      assert.isTrue(callbackCalled);
+      assert.isTrue(otherCallbackCalled);
     });
   });
 });

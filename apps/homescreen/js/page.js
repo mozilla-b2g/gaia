@@ -43,7 +43,7 @@ Icon.prototype = {
   // App icons shadow settings
   SHADOW_BLUR: 5,
   SHADOW_OFFSET_Y: 2,
-  SHADOW_COLOR: 'rgba(0,0,0,0.15)',
+  SHADOW_COLOR: 'rgba(0,0,0,0.05)',
 
   // These properties will be copied from the descriptor onto the icon's HTML
   // element dataset and allow us to uniquely look up the Icon object from
@@ -487,39 +487,6 @@ Icon.prototype = {
   getName: function icon_getName() {
     var desc = this.descriptor;
     return desc.customName || desc.localizedName || desc.name;
-  },
-
-  /*
-   * Returns the url icon
-   */
-  getURL: function icon_getURL() {
-    return this.app.url || this.descriptor.manifestURL;
-  },
-
-  /*
-   * Sets the new URL
-   *
-   * @param{string} url
-   */
-  setURL: function icon_setURL(url) {
-    var descriptor = this.descriptor;
-    // The only kind of icons that supports changes in the URL are the bookmarks
-    if (descriptor.type !== GridItemsFactory.TYPE.BOOKMARK ||
-        descriptor.bookmarkURL === url) {
-      return;
-    }
-
-    // The grid manager will remove its reference when the URL changes
-    GridManager.forgetIcon(this);
-
-    this.app.setURL(url);
-    this.descriptor.bookmarkURL = this.container.dataset.bookmarkURL =
-                                  this.app.bookmarkURL;
-
-    // The grid manager will update the bookmark with its new url
-    GridManager.rememberIcon(this);
-
-    GridManager.markDirtyState();
   },
 
   /*

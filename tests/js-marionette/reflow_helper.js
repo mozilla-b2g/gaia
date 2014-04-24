@@ -3,6 +3,10 @@
 /*
  * You need the following pref for this to work.
  * 'devtools.debugger.forbid-certified-apps': false
+ *
+ * And also the follow settings.
+ * 'devtools.overlay': true
+ * 'hud.reflows': true
  */
 
 var fs = require('fs');
@@ -13,20 +17,20 @@ var ReflowHelper = function(client) {
   chrome.executeScript(atom);
 
   this.startTracking = function(manifestURL) {
-    chrome.executeAsyncScript(function(url) {
-      window.MozReflowAtom.startTracking(url, marionetteScriptFinished);
+    chrome.executeScript(function(url) {
+      window.MozReflowAtom.startTracking(url);
     }, [manifestURL]);
   };
 
   this.stopTracking = function() {
-    chrome.executeAsyncScript(function() {
-      window.MozReflowAtom.stopTracking(marionetteScriptFinished);
+    chrome.executeScript(function() {
+      window.MozReflowAtom.stopTracking();
     });
   };
 
   this.getCount = function() {
     return chrome.executeScript(function() {
-      return window.MozReflowAtom.getCount();
+      return window.MozReflowAtom.count;
     });
   };
 };

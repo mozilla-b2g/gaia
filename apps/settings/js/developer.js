@@ -56,4 +56,4 @@ var Developer = {
   }
 };
 
-navigator.mozL10n.ready(Developer.init.bind(Developer));
+navigator.mozL10n.once(Developer.init.bind(Developer));

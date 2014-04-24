@@ -323,7 +323,7 @@ class Keyboard(Base):
 
     def dismiss(self):
         self.marionette.switch_to_frame()
-        self.marionette.execute_script('navigator.mozKeyboard.removeFocus();')
+        self.marionette.execute_script('navigator.mozInputMethod.removeFocus();')
         keyboards = self.marionette.find_element(*self._keyboards_locator)
         Wait(self.marionette).until(
             lambda m: 'hide' in keyboards.get_attribute('class') and

@@ -1,4 +1,5 @@
 (function(window) {
+  'use strict';
 
   var POSSIBLE_HTML = /[&<>"'`]/;
 

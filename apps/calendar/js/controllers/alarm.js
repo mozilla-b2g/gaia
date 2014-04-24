@@ -1,4 +1,5 @@
 Calendar.ns('Controllers').Alarm = (function() {
+  'use strict';
 
   var debug = Calendar.debug('alarm controller');
 
@@ -26,7 +27,7 @@ Calendar.ns('Controllers').Alarm = (function() {
 
         // request sync frequency
         settings.getValue('syncFrequency', getSyncFrequency);
-      };
+      }
 
       function getSyncFrequency(err, result) {
         if (err) {

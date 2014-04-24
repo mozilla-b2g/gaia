@@ -12,7 +12,7 @@
   left: 0;
   right: 0;
   bottom: calc(10rem + 1px);
-  height: 12rem;
+  height: auto;
   background: rgba(0, 0, 0, 0.75);
   border-top: 1px solid #9c9a9c;
   border-bottom: 1px solid black;
@@ -28,7 +28,7 @@
 
 .media-playback-nowplaying {
   height: 4rem;
-  margin: 1rem 1rem 0rem 1rem;
+  margin: 1rem;
 }
 
 .media-playback-nowplaying > .icon {
@@ -76,6 +76,7 @@
 
 .media-playback-controls {
   height: 4.5rem;
+  margin-top: -1rem;
   overflow: hidden;
   text-align: center;
   font-size: 0; /* ensure there's no space between the buttons */

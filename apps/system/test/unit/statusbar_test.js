@@ -4,8 +4,8 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_mobile_operator.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/test/unit/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_lock_screen.js', function() {
 
   // Because we can't see it while we attach helpers,
@@ -33,7 +33,8 @@ var mocksForStatusBar = new MocksHelper([
 mocha.globals(['Clock', 'StatusBar', 'lockScreen', 'System']);
 suite('system/Statusbar', function() {
   var mobileConnectionCount = 2;
-  var fakeStatusBarNode, fakeTopPanel;
+  var fakeStatusBarNode, fakeTopPanel, fakeStatusBarBackground,
+    fakeStatusBarIcons;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [];
   var originalLocked;
 
@@ -71,6 +72,14 @@ suite('system/Statusbar', function() {
     fakeTopPanel.id = 'top-panel';
     document.body.appendChild(fakeTopPanel);
 
+    fakeStatusBarBackground = document.createElement('div');
+    fakeStatusBarBackground.id = 'statusbar-background';
+    document.body.appendChild(fakeStatusBarBackground);
+
+    fakeStatusBarIcons = document.createElement('div');
+    fakeStatusBarIcons.id = 'statusbar-icons';
+    document.body.appendChild(fakeStatusBarIcons);
+
     StatusBar.ELEMENTS.forEach(function testAddElement(elementName) {
       var elt;
       if (elementName == 'system-downloads' ||
@@ -106,6 +115,13 @@ suite('system/Statusbar', function() {
     MockNavigatorMozMobileConnections.mTeardown();
   });
 
+  suite('airplane mode icon', function() {
+    test('turning on airplane mode makes icon appear', function() {
+      MockSettingsListener.mCallbacks['airplaneMode.enabled'](true);
+      assert.isFalse(StatusBar.icons.flightMode.hidden);
+    });
+  });
+
   suite('init', function() {
     test('signal and data icons are created correctly', function() {
       assert.equal(Object.keys(fakeIcons.signals).length,
@@ -115,8 +131,9 @@ suite('system/Statusbar', function() {
   });
 
   suite('StatusBar height', function() {
+    var app;
     setup(function() {
-      var app = {
+      app = {
         isFullScreen: function() {
           return true;
         }
@@ -229,11 +246,14 @@ suite('system/Statusbar', function() {
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
     });
-    test('moztime change', function() {
+    test('moztime change while lockscreen is unlocked', function() {
+      var originalLocked = window.lockScreen.locked;
+      window.lockScreen.locked = false;
       var evt = new CustomEvent('moztimechange');
       StatusBar.handleEvent(evt);
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
+      window.lockScreen.locked = originalLocked;
     });
     test('screen enable but screen is unlocked', function() {
       var evt = new CustomEvent('screenchange', {
@@ -522,6 +542,26 @@ suite('system/Statusbar', function() {
             assert.notEqual(dataset.searching, 'true');
           });
 
+          test('airplane mode', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: true,
+              relSignalStrength: 80,
+              emergencyCallsOnly: false,
+              state: 'notSearching',
+              roaming: false,
+              network: {}
+            };
+
+            mockSimSlots[slotIndex].simCard.cardState = 'ready';
+            mockSimSlots[slotIndex].simCard.iccInfo = {};
+            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+
+            MockSettingsListener.mCallbacks['airplaneMode.enabled'](true);
+
+            assert.isFalse(StatusBar.icons.flightMode.hidden);
+            assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+          });
+
           test('roaming', function() {
             MockNavigatorMozMobileConnections[slotIndex].voice = {
               connected: true,
@@ -732,6 +772,34 @@ suite('system/Statusbar', function() {
     });
   });
 
+  suite('call forwarding', function() {
+    setup(function() {
+      var defaultValue = [];
+      for (var i = 0; i < mobileConnectionCount; i++) {
+        defaultValue.push(false);
+      }
+      StatusBar.settingValues['ril.cf.enabled'] = defaultValue;
+    });
+
+    for (var i = 0; i < mobileConnectionCount; i++) {
+      (function(slotIndex) {
+        suite('slot: ' + slotIndex, function() {
+          test('call forwarding enabled', function() {
+            StatusBar.settingValues['ril.cf.enabled'][slotIndex] = true;
+            StatusBar.update.callForwarding.call(StatusBar);
+            assert.isFalse(StatusBar.icons.callForwardings[slotIndex].hidden);
+          });
+
+          test('call forwarding disabled', function() {
+            StatusBar.settingValues['ril.cf.enabled'][slotIndex] = false;
+            StatusBar.update.callForwarding.call(StatusBar);
+            assert.isTrue(StatusBar.icons.callForwardings[slotIndex].hidden);
+          });
+        });
+      })(i);
+    }
+  });
+
   suite('data connection', function() {
     for (var i = 0; i < mobileConnectionCount; i++) {
       (function(slotIndex) {
@@ -745,6 +813,9 @@ suite('system/Statusbar', function() {
               StatusBar.settingValues['ril.radio.disabled'] = true;
               StatusBar.update.data.call(StatusBar);
               assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+              // Just because radio is disabled doesn't mean we're in airplane
+              // mode.
+              assert.isTrue(StatusBar.icons.flightMode.hidden);
             });
 
             test('data disabled', function() {
@@ -1225,6 +1296,77 @@ suite('system/Statusbar', function() {
       assert.isFalse(StatusBar.element.classList.contains('invisible'));
     });
 
+    test('the status bar should show when utilitytray is showing',
+    function() {
+      this.sinon.stub(app, 'isFullScreen').returns(true);
+      StatusBar.hide();
+
+      var evt = new CustomEvent('utilitytrayshow');
+      StatusBar.handleEvent(evt);
+
+      assert.isFalse(StatusBar.element.classList.contains('invisible'));
+    });
+
+    test('homescreenopened should set classes and call show()', function() {
+      var showStub = this.sinon.stub(StatusBar, 'show');
+      var evt = new CustomEvent('homescreenopened');
+      StatusBar.handleEvent(evt);
+      assert.ok(showStub.calledOnce);
+      assert.ok(StatusBar.element.classList.contains('on-homescreen'));
+      assert.ok(StatusBar.background.classList.contains('on-homescreen'));
+      showStub.restore();
+
+    });
+
+    test('homescreenclosing should unset classes', function() {
+      StatusBar.element.classList.add('on-homescreen');
+      StatusBar.background.classList.add('on-homescreen');
+      var evt = new CustomEvent('homescreenclosing');
+      StatusBar.handleEvent(evt);
+      assert.isFalse(StatusBar.element.classList.contains('on-homescreen'));
+      assert.isFalse(StatusBar.background.classList.contains('on-homescreen'));
+    });
+
+    test('rocketbarfocus', function() {
+      var evt = new CustomEvent('rocketbarfocus');
+      StatusBar.handleEvent(evt);
+      assert.ok(StatusBar.element.classList.contains('rocketbar-focused'));
+      assert.ok(StatusBar.background.classList.contains('rocketbar-focused'));
+    });
+
+    test('rocketbarblur', function() {
+      StatusBar.element.classList.add('rocketbar-focused');
+      StatusBar.background.classList.add('rocketbar-focused');
+      var evt = new CustomEvent('rocketbarblur');
+      StatusBar.handleEvent(evt);
+      assert.isFalse(StatusBar.element.classList.
+        contains('rocketbar-focused'));
+      assert.isFalse(StatusBar.background.classList.
+        contains('rocketbar-focused'));
+    });
+
+    test('the status bar should show when attentionscreen is showing',
+    function() {
+      this.sinon.stub(app, 'isFullScreen').returns(true);
+      StatusBar.hide();
+
+      var evt = new CustomEvent('attentionscreenshow');
+      StatusBar.handleEvent(evt);
+
+      assert.isFalse(StatusBar.element.classList.contains('invisible'));
+    });
+
+    test('the status bar should be hidden when attentionscreen is hidden',
+    function() {
+      this.sinon.stub(app, 'isFullScreen').returns(true);
+      StatusBar.show();
+
+      var evt = new CustomEvent('attentionscreenhide');
+      StatusBar.handleEvent(evt);
+
+      assert.isTrue(StatusBar.element.classList.contains('invisible'));
+    });
+
     suite('Revealing the StatusBar >', function() {
       var transitionEndSpy;
       setup(function() {
@@ -1395,6 +1537,32 @@ suite('system/Statusbar', function() {
         call = forwardSpy.getCall(3);
         assert.equal(call.args[0], touchend);
       });
+    });
+  });
+
+  suite('not fullscreen mode >', function() {
+    var app;
+    setup(function() {
+      app = {
+        isFullScreen: function() {
+          return true;
+        },
+        iframe: document.createElement('iframe')
+      };
+
+      this.sinon.stub(MockAppWindowManager, 'getActiveApp').returns(app);
+      StatusBar.screen = document.createElement('div');
+    });
+
+    test('the status bar should not be hidden when attentionscreen is hidden',
+    function() {
+      this.sinon.stub(app, 'isFullScreen').returns(false);
+      StatusBar.show();
+
+      var evt = new CustomEvent('attentionscreenhide');
+      StatusBar.handleEvent(evt);
+
+      assert.isFalse(StatusBar.element.classList.contains('invisible'));
     });
   });
 });

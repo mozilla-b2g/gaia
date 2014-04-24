@@ -36,9 +36,10 @@ class Contacts(Base):
 
     def switch_to_contacts_frame(self):
         self.marionette.switch_to_frame()
-        self.wait_for_element_present(*self._contacts_frame_locator)
-        contacts_frame = self.marionette.find_element(*self._contacts_frame_locator)
+        contacts_frame = self.wait_for_element_present(*self._contacts_frame_locator)
         self.marionette.switch_to_frame(contacts_frame)
+        Wait(self.marionette, ignored_exceptions=JavascriptException).until(
+            lambda m: m.execute_script('return window.wrappedJSObject.Contacts.asyncScriptsLoaded') is True)
 
     def switch_to_select_contacts_frame(self):
         self.switch_to_contacts_frame()

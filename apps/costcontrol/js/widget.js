@@ -1,9 +1,10 @@
-/* global _, debug, BalanceView, checkDataUsageNotification,
-         ConfigManager, Common, computeTelephonyMinutes, CostControl,
-          formatTimeHTML, getDataLimit, MozActivity, roundData, SettingsListener
+/* global _, debug, BalanceView, AirplaneModeHelper, SettingsListener,
+          ConfigManager, Common, CostControl, MozActivity, LazyLoader,
+          Formatting, setNextReset
 */
-
 /* exported activity */
+
+'use strict';
 /*
  * The widget is in charge of show balance, telephony data and data usage
  * statistics depending on the SIM inserted.
@@ -15,43 +16,28 @@
 
 var Widget = (function() {
 
-  'use strict';
-
-  var costcontrol;
+  var costcontrol, activity;
   function checkSIMStatus() {
 
-    var mobileConnection = window.navigator.mozMobileConnections;
-
-    if (!mobileConnection) {
-      console.error('No mozMobileConnection available');
-      return;
-    }
     var iccid = Common.dataSimIccId;
     var dataSimIccInfo = Common.dataSimIcc;
     var cardState = checkCardState();
 
-    if (!dataSimIccInfo || !dataSimIccInfo.iccInfo) {
-      debug('ICC info not ready yet.');
-      dataSimIccInfo.oniccinfochange = checkSIMStatus;
-
-    // SIM not ready
-    } else if (cardState !== 'ready') {
+    if (cardState !== 'ready') {
       debug('SIM not ready:', dataSimIccInfo.cardState);
       initialized = false;
       dataSimIccInfo.oncardstatechange = checkSIMStatus;
-
-    // SIM is ready, but ICC info is not ready yet
-    } else if (!Common.isValidICCID(iccid)) {
-      debug('ICC info not ready yet');
-      dataSimIccInfo.oniccinfochange = checkSIMStatus;
-
-    // All ready
+    // SIM ready
     } else {
       debug('SIM ready. ICCID:', iccid);
       dataSimIccInfo.oncardstatechange = undefined;
       dataSimIccInfo.oniccinfochange = undefined;
-      document.getElementById('message-handler').src = 'message_handler.html';
-      Common.waitForDOMAndMessageHandler(window, startWidget);
+      var SCRIPTS_NEEDED_TO_START = [
+        'js/costcontrol.js',
+        'js/config/config_manager.js'
+      ];
+      LazyLoader.load(SCRIPTS_NEEDED_TO_START, startWidget);
+
     }
   }
 
@@ -64,45 +50,50 @@ var Widget = (function() {
     // SIM is absent
     if (!cardState || cardState === 'absent') {
       debug('There is no SIM');
-      showSimError('no-sim2');
+      Widget.showSimError('no-sim2');
 
     // SIM is locked
     } else if (
       cardState === 'pinRequired' ||
       cardState === 'pukRequired'
     ) {
-      showSimError('sim-locked');
+      Widget.showSimError('sim-locked');
       state = 'locked';
     }
 
     return state;
   }
 
-  function startWidget() {
-
-    function _onNoICCID() {
-      console.error('checkSIM() failed. Impossible to ensure consistent' +
-                    'data. Aborting start up.');
-      showSimError('no-sim2');
-    }
-
-    Common.checkSIM(function _onSIMChecked() {
-      CostControl.getInstance(function _onCostControlReady(instance) {
-        costcontrol = instance;
-        setupWidget();
+  function loadMessageHandler() {
+    document.getElementById('message-handler').src = 'message_handler.html';
+    if (ConfigManager.option('nextReset')) {
+      window.addEventListener('messagehandlerready', function _setNextReset() {
+        window.removeEventListener('messagehandlerready', _setNextReset);
+        LazyLoader.load('js/settings/networkUsageAlarm.js', function() {
+          Common.loadNetworkInterfaces(function() {
+            setNextReset(ConfigManager.option('nextReset'));
+          });
+        });
       });
-    }, _onNoICCID);
+    }
   }
 
-  window.addEventListener('localized', function _onLocalize() {
-    if (initialized) {
-      updateUI();
-    }
-  });
+  function startWidget() {
+    CostControl.getInstance(function _onCostControlReady(instance) {
+      costcontrol = instance;
+      loadMessageHandler();
+      setupWidget();
+    });
+  }
 
   var initialized, widget, leftPanel, rightPanel, fte, views = {};
   var balanceView;
+
   function setupWidget() {
+    var mode = ConfigManager.getApplicationMode();
+    var isDataUsageOnly = (mode === 'DATA_USAGE_ONLY');
+    var isBalanceEnabled = !isDataUsageOnly;
+
     // HTML entities
     widget = document.getElementById('cost-control');
     leftPanel = document.getElementById('left-panel');
@@ -113,28 +104,49 @@ var Widget = (function() {
     views.telephony = document.getElementById('telephony-view');
     views.balance = document.getElementById('balance-view');
 
+    if (isBalanceEnabled) {
+      // Use observers to handle not on-demand updates
+      ConfigManager.observe('lastBalance', onBalance, true);
+      ConfigManager.observe('waitingForBalance', onErrors, true);
+      ConfigManager.observe('errors', onErrors, true);
+
+      LazyLoader.load('js/views/BalanceView.js', function() {
+        // Subviews
+        var balanceConfig = ConfigManager.configuration.balance;
+        balanceView = new BalanceView(
+          document.getElementById('balance-credit'),
+          document.querySelector('#balance-credit + .meta'),
+          balanceConfig ? balanceConfig.minimum_delay : undefined
+        );
+      });
+
+      // Open application with the proper view
+      views.balance.addEventListener('click',
+        function _openCCBalance() {
+          activity = new MozActivity({ name: 'costcontrol/balance' });
+        }
+      );
+      views.telephony.addEventListener('click',
+        function _openCCTelephony() {
+          activity = new MozActivity({ name: 'costcontrol/telephony' });
+        }
+      );
+    }
+
     // Use observers to handle not on-demand updates
-    ConfigManager.observe('lastBalance', onBalance, true);
-    ConfigManager.observe('waitingForBalance', onErrors, true);
-    ConfigManager.observe('errors', onErrors, true);
     ConfigManager.observe('lastCompleteDataReset', onReset, true);
     ConfigManager.observe('lastTelephonyReset', onReset, true);
-
-    // Subviews
-    var balanceConfig = ConfigManager.configuration.balance;
-    balanceView = new BalanceView(
-      document.getElementById('balance-credit'),
-      document.querySelector('#balance-credit + .meta'),
-      balanceConfig ? balanceConfig.minimum_delay : undefined
-    );
 
     // Update UI when visible
     document.addEventListener('visibilitychange',
       function _onVisibilityChange(evt) {
-        if (!document.hidden && initialized) {
-          checkCardState(Common.dataSimIccId);
-          updateUI();
-        }
+        AirplaneModeHelper.ready(function() {
+          if (!document.hidden && initialized &&
+              (AirplaneModeHelper.getStatus() === 'disabled')) {
+            checkCardState(Common.dataSimIccId);
+            updateUI();
+          }
+        });
       }
     );
 
@@ -145,28 +157,32 @@ var Widget = (function() {
       }
     });
 
+    window.addEventListener('localized', function _onLocalize() {
+      if (initialized) {
+        updateUI();
+      }
+    });
+
     // Open application with the proper view
-    views.balance.addEventListener('click',
-      function _openCCBalance() {
-        var activity = new MozActivity({ name: 'costcontrol/balance' });
-      }
-    );
-    views.telephony.addEventListener('click',
-      function _openCCTelephony() {
-        var activity = new MozActivity({ name: 'costcontrol/telephony' });
-      }
-    );
     rightPanel.addEventListener('click',
       function _openCCDataUsage() {
-        var activity = new MozActivity({ name: 'costcontrol/data_usage' });
+        activity = new MozActivity({ name: 'costcontrol/data_usage' });
       }
     );
 
-    updateUI();
+    LazyLoader.load(['js/utils/formatting.js'], function() {
+      updateUI();
+    });
 
+    // Avoid reload data sim info on the application startup
+    var isFirstCall = true;
     // Refresh UI when the user changes the SIM for data connections
     SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
-      Common.loadDataSIMIccId(updateUI.bind(null, true));
+      if (!isFirstCall) {
+        Common.loadDataSIMIccId(updateUI.bind(null, true));
+      } else {
+        isFirstCall = false;
+      }
     });
 
     initialized = true;
@@ -184,13 +200,13 @@ var Widget = (function() {
 
   // On balance update fail
   function onErrors(errors, old, key, settings) {
-    if (!errors || !errors['BALANCE_TIMEOUT']) {
+    if (!errors || !errors.BALANCE_TIMEOUT) {
       return;
     }
     debug('Balance timeout!');
 
     setBalanceMode('warning');
-    errors['BALANCE_TIMEOUT'] = false;
+    errors.BALANCE_TIMEOUT = false;
     ConfigManager.setOption({errors: errors});
   }
 
@@ -202,13 +218,15 @@ var Widget = (function() {
   // USER INTERFACE
 
   // Reuse fte panel to display errors
-  function showSimError(status) {
+  function _showSimError(status) {
     // Wait to l10n resources are ready
     navigator.mozL10n.ready(function showErrorStatus() {
+      var widget = document.getElementById('cost-control');
       var fte = document.getElementById('fte-view');
       var leftPanel = document.getElementById('left-panel');
       var rightPanel = document.getElementById('right-panel');
 
+      widget.setAttribute('aria-hidden', false);
       fte.setAttribute('aria-hidden', false);
       leftPanel.setAttribute('aria-hidden', true);
       rightPanel.setAttribute('aria-hidden', true);
@@ -223,13 +241,14 @@ var Widget = (function() {
 
   function setupFte(provider, mode) {
 
+    widget.setAttribute('aria-hidden', false);
     fte.setAttribute('aria-hidden', false);
     leftPanel.setAttribute('aria-hidden', true);
     rightPanel.setAttribute('aria-hidden', true);
 
     fte.addEventListener('click', function launchFte() {
       fte.removeEventListener('click', launchFte);
-      var activity = new MozActivity({ name: 'costcontrol/balance' });
+      activity = new MozActivity({ name: 'costcontrol/balance' });
     });
 
     var keyLookup = {
@@ -266,6 +285,7 @@ var Widget = (function() {
       }
 
       // Layout
+      widget.setAttribute('aria-hidden', true);
       fte.setAttribute('aria-hidden', true);
       leftPanel.setAttribute('aria-hidden', false);
       rightPanel.setAttribute('aria-hidden', false);
@@ -280,11 +300,13 @@ var Widget = (function() {
       // And the other view if applies...
       if (isDataUsageOnly) {
         widget.classList.add('full');
+        widget.setAttribute('aria-hidden', false);
 
       } else {
         widget.classList.remove('full');
         views.balance.setAttribute('aria-hidden', !isPrepaid);
         views.telephony.setAttribute('aria-hidden', isPrepaid);
+        widget.setAttribute('aria-hidden', false);
       }
 
       // Content for data statistics
@@ -292,7 +314,7 @@ var Widget = (function() {
       costcontrol.request(requestObj, function _onDataStatistics(result) {
         debug(result);
         var stats = result.data;
-        var data = roundData(stats.mobile.total);
+        var data = Formatting.roundData(stats.mobile.total);
         if (isLimited) {
 
           // UI elements
@@ -304,7 +326,7 @@ var Widget = (function() {
 
           // Progress bar
           var current = stats.mobile.total;
-          var limit = getDataLimit(settings);
+          var limit = Common.getDataLimit(settings);
           debug(limit);
           progress.setAttribute('value', Math.min(current, limit));
           progress.setAttribute('max', Math.max(current, limit));
@@ -324,12 +346,12 @@ var Widget = (function() {
           }
 
           // Texts
-          var currentText = roundData(current);
+          var currentText = Formatting.roundData(current);
           currentText = _('magnitude', {
             value: currentText[0],
             unit: currentText[1]
           });
-          var limitText = roundData(limit);
+          var limitText = Formatting.roundData(limit);
           limitText = _('magnitude', {
             value: limitText[0],
             unit: limitText[1]
@@ -351,7 +373,7 @@ var Widget = (function() {
             _('magnitude', { value: data[0], unit: data[1] });
           var meta = views.dataUsage.querySelector('.meta');
           meta.innerHTML = '';
-          meta.appendChild(formatTimeHTML(stats.timestamp));
+          meta.appendChild(Formatting.formatTimeHTML(stats.timestamp));
         }
         // inform driver in system we are finished to update the widget
         hashMark = 1 - hashMark; // toogle between 0 and 1
@@ -377,22 +399,22 @@ var Widget = (function() {
         } else if (mode === 'POSTPAID') {
           requestObj = { type: 'telephony' };
           costcontrol.request(requestObj, function _onRequest(result) {
-            var activity = result.data;
+            var dataActivity = result.data;
             document.getElementById('telephony-calltime').textContent =
               _('magnitude', {
-                value: computeTelephonyMinutes(activity),
+                value: Formatting.computeTelephonyMinutes(dataActivity),
                 unit: 'min'
               }
             );
             document.getElementById('telephony-smscount').textContent =
               _('magnitude', {
-                value: activity.smscount,
+                value: dataActivity.smscount,
                 unit: 'SMS'
               }
             );
             var meta = views.telephony.querySelector('.meta');
             meta.innerHTML = '';
-            meta.appendChild(formatTimeHTML(activity.timestamp));
+            meta.appendChild(Formatting.formatTimeHTML(dataActivity.timestamp));
           });
         }
       }
@@ -447,31 +469,63 @@ var Widget = (function() {
     }
   }
 
+  function initWidget() {
+    var isWaitingForIcc = false;
+    function waitForIccAndCheckSim() {
+      if (!isWaitingForIcc) {
+        var iccManager = window.navigator.mozIccManager;
+        iccManager.addEventListener('iccdetected',
+          function _oniccdetected() {
+            isWaitingForIcc = false;
+            iccManager.removeEventListener('iccdetected', _oniccdetected);
+            Common.loadDataSIMIccId(checkSIMStatus);
+          }
+        );
+        isWaitingForIcc = true;
+      }
+    }
+    Common.loadDataSIMIccId(checkSIMStatus, function _errorNoSim() {
+      AirplaneModeHelper.ready(function() {
+        waitForIccAndCheckSim();
+        var errorMessageId = (AirplaneModeHelper.getStatus() === 'enabled') ?
+                             'airplane-mode' : 'no-sim2';
+        console.warn('Error when trying to get the ICC ID');
+        Widget.showSimError(errorMessageId);
+      });
+    });
+    AirplaneModeHelper.addEventListener('statechange',
+      function _onAirplaneModeChange(state) {
+        if (state === 'enabled') {
+          waitForIccAndCheckSim();
+          Widget.showSimError('airplane-mode');
+        }
+      }
+    );
+  }
+
   return {
     init: function() {
-      Common.loadDataSIMIccId(checkSIMStatus, function _errorNoSim() {
-        console.warn('Error when trying to get the ICC ID');
-        showSimError('no-sim2');
-      });
-      AirplaneModeHelper.addEventListener('statechange',
-        function _onAirplaneModeChange(state) {
-          if (state === 'enabled') {
-            var iccManager = window.navigator.mozIccManager;
-            iccManager.addEventListener('iccdetected',
-              function _oniccdetected() {
-                iccManager.removeEventListener('iccdetected', _oniccdetected);
-                Common.loadDataSIMIccId(checkSIMStatus);
-              }
-            );
-            showSimError('no-sim2');
-          }
-        }
-      );
-
-      // XXX: See bug 944342 -[Cost control] move all the process related to the
-      // network and data interfaces loading to the start-up process of CC
-      Common.loadNetworkInterfaces();
-    }
+      var SCRIPTS_NEEDED = [
+        'js/common.js',
+        'js/utils/toolkit.js'
+      ];
+      // Check if the mandatory APIs to work  exist.
+      if (!window.navigator.mozMobileConnections ||
+          !window.navigator.mozIccManager ||
+          !window.navigator.mozNetworkStats) {
+        LazyLoader.load(SCRIPTS_NEEDED, function _showError() {
+          Widget.showSimError('no-sim2');
+        });
+      } else {
+        SCRIPTS_NEEDED = [
+          'js/common.js',
+          'js/utils/toolkit.js',
+          'js/utils/debug.js'
+        ];
+        LazyLoader.load(SCRIPTS_NEEDED, initWidget);
+      }
+    },
+    showSimError: _showSimError
   };
 
 }());

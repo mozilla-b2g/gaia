@@ -21,7 +21,7 @@ suite('ContactRenderer', function() {
 
   var ul, contact;
   var testImageBlob;
-  var renderer;
+  var renderer, unknownRender;
 
   mocksHelperForContactRenderer.attachTestHelpers();
 
@@ -301,6 +301,95 @@ suite('ContactRenderer', function() {
       assert.equal(li.querySelector(selector).lastElementChild, block);
     });
   });
+
+  suite('suggestionUnknown', function() {
+    var html;
+    var unknownContact = {
+      name: ['unknown'],
+      tel: [{value: '+346578888888'}]
+    };
+    setup(function() {
+      unknownRender = ContactRenderer.flavor('suggestionUnknown');
+    });
+
+    test('Rendered unknownContact "number"', function() {
+
+      unknownContact.tel[0].carrier = null;
+      unknownContact.tel[0].type = null;
+
+      unknownRender.render({
+        contact: unknownContact,
+        input: 'foo',
+        target: ul
+      });
+
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(html.contains('+346578888888'));
+    });
+
+    test('Rendered unknownContact highlighted "number"', function() {
+
+      unknownContact.tel[0].carrier = null;
+      unknownContact.tel[0].type = null;
+
+      unknownRender.render({
+        contact: unknownContact,
+        input: '346578888888',
+        target: ul
+      });
+
+      sinon.assert.calledWithMatch(Template.prototype.interpolate, {
+        carrier: '',
+        name: 'unknown',
+        nameHTML: 'unknown',
+        number: '+346578888888',
+        numberHTML: '+<span class="highlight">346578888888</span>',
+        photoHTML: '',
+        separator: '',
+        type: ''
+      });
+
+      html = ul.firstElementChild.innerHTML;
+
+      assert.ok(
+        html.contains('+<span class="highlight">346578888888</span>')
+      );
+    });
+
+    test('Rendered unknownContact omit numbers already in recipient list',
+    function() {
+
+      var skip = ['+346578888888'];
+
+      // This unknownContact has two tel entries.
+      unknownRender.render({
+        contact: unknownContact,
+        input: '+346578888888',
+        target: ul,
+        skip: skip
+      });
+
+      html = ul.innerHTML;
+
+      assert.ok(!html.contains('346578888888'));
+      assert.equal(ul.children.length, 0);
+    });
+
+    test('does not include photo', function() {
+
+      unknownRender.render({
+        contact: unknownContact,
+        input: 'foo',
+        target: ul
+      });
+      html = ul.firstElementChild.innerHTML;
+
+      assert.isFalse(html.contains('span[data-type=img]'));
+     });
+
+   });
+
 
   suite('prompt', function() {
     setup(function() {

@@ -1,4 +1,5 @@
 Calendar.ns('Views').EventBase = (function() {
+  'use strict';
 
   function EventBase(options) {
     Calendar.View.apply(this, arguments);
@@ -124,8 +125,6 @@ Calendar.ns('Views').EventBase = (function() {
       var changeToken = ++this._changeToken;
 
       var self = this;
-      var model = this.event;
-      var calendar;
 
       this.store.ownersOf(event, fetchOwners);
 
@@ -143,8 +142,9 @@ Calendar.ns('Views').EventBase = (function() {
       }
 
       function fetchEventCaps(err, caps) {
-        if (self._changeToken !== changeToken)
+        if (self._changeToken !== changeToken) {
           return;
+        }
 
         if (err) {
           console.log('Failed to fetch events capabilities', err);

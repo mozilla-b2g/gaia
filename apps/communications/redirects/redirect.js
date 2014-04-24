@@ -21,6 +21,8 @@ var Redirect = function Redirect() {
 
       window.opener.postMessage(parameters, COMMS_APP_ORIGIN);
       window.close();
+    } else {
+      window.close();
     }
 
   };

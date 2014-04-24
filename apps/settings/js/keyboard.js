@@ -36,6 +36,11 @@
  * in terms of ObservableArrays. It listens to the changes of installed apps
  * and keyboard.enabled-layouts, and update the ObservableArrays.
  */
+require(['modules/mvvm/observable',
+         'modules/mvvm/observable_array',
+         'modules/mvvm/list_view'],
+(function(exports, Observable, ObservableArray, ListView) {
+
 var KeyboardContext = (function() {
   // stores layout indexed by app manifestURL and layoutId
   var _layoutDict = null;
@@ -87,9 +92,9 @@ var KeyboardContext = (function() {
 
   var _waitForLayouts;
 
-  function notifyDefaultEnabled(layouts) {
+  function notifyDefaultEnabled(layouts, missingTypes) {
     _defaultEnabledCallbacks.forEach(function withCallbacks(callback) {
-      callback(layouts[0]);
+      callback(layouts[0], missingTypes[0]);
     });
   }
 
@@ -254,7 +259,6 @@ var KeyboardPanel = (function() {
       container = document.createElement('li');
       span = document.createElement('span');
 
-      container.classList.add('keyboard-menuItem');
       container.appendChild(span);
     }
 
@@ -448,14 +452,13 @@ var InstalledLayoutsPanel = (function() {
 })();
 
 var DefaultKeyboardEnabledDialog = (function() {
-  function showDialog(layout) {
+  function showDialog(layout, missingType) {
     var l10n = navigator.mozL10n;
     l10n.localize(
       document.getElementById('keyboard-default-title'),
       'mustHaveOneKeyboard',
       {
-        type: l10n.get('keyboardType-' +
-          layout.inputManifest.types.sort()[0])
+        type: l10n.get('keyboardType-' + missingType)
       }
     );
     l10n.localize(
@@ -477,9 +480,18 @@ var DefaultKeyboardEnabledDialog = (function() {
   };
 })();
 
-navigator.mozL10n.ready(function keyboard_init() {
+navigator.mozL10n.once(function keyboard_init() {
   KeyboardPanel.init('#keyboard');
   EnabledLayoutsPanel.init('#keyboard-selection');
   DefaultKeyboardEnabledDialog.init();
   InstalledLayoutsPanel.init('#keyboard-selection-addMore');
 });
+
+// XXX: Export the objects for unit testing. The following should be removed
+//      after turning the all panels and modules to AMD modules.
+exports.KeyboardContext = KeyboardContext;
+exports.DefaultKeyboardEnabledDialog = DefaultKeyboardEnabledDialog;
+exports.InstalledLayoutsPanel = InstalledLayoutsPanel;
+window.dispatchEvent(new Event('keyboardcontextloaded'));
+
+}).bind(null, this));

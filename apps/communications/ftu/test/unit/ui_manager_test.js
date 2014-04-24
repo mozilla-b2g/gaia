@@ -80,6 +80,7 @@ suite('UI Manager > ', function() {
 
     suite('change Time Zone >', function() {
       var timezoneTitle,
+          timezoneOverlay,
           regionLabel,
           cityLabel,
           timeLabel,
@@ -95,6 +96,7 @@ suite('UI Manager > ', function() {
         };
 
         timezoneTitle = document.getElementById('time-zone-title');
+        timezoneOverlay = document.getElementById('time_zone_overlay');
         regionLabel = document.getElementById('tz-region-label');
         cityLabel = document.getElementById('tz-city-label');
         timeLabel = document.getElementById('time-configuration-label');
@@ -115,6 +117,11 @@ suite('UI Manager > ', function() {
 
       test('should update region', function() {
         assert.equal(regionLabel.textContent, FAKE_TIMEZONE.region);
+      });
+
+      test('should highlight timezone in map', function() {
+        assert.equal(timezoneOverlay.className,
+                     'UTC' + FAKE_TIMEZONE.utcOffset.replace(/[+:]/g, ''));
       });
 
       test('should update city', function() {

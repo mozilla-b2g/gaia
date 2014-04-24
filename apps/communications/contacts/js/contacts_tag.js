@@ -1,4 +1,6 @@
 'use strict';
+/* global utils */
+/* exported ContactsTag */
 
 var ContactsTag = (function() {
   var originalTag = null;
@@ -38,6 +40,7 @@ var ContactsTag = (function() {
     originalTag = _originalTag;
 
     var selectedLink;
+    /* jshint loopfunc:true */
     for (var option in options) {
       var tagLink = document.createElement('button');
       tagLink.dataset.index = option;
@@ -114,6 +117,7 @@ var ContactsTag = (function() {
 
     var sameType = document.querySelectorAll('.' + type + '-template');
     if (sameType.length > 1) {
+      /* jshint loopfunc:true */
       for (var j = 0; j < sameType.length; j++) {
         var itemSame = sameType.item(j);
         var tagNode = itemSame.querySelector('[data-field="type"]');

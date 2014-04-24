@@ -2,7 +2,6 @@
 
 var CallLog = {
   _: null,
-  _groupCounter: 0,
   _initialized: false,
   _headersInterval: null,
   _empty: true,
@@ -21,9 +20,10 @@ var CallLog = {
       '/shared/style/confirm.css',
       '/shared/style/switches.css',
       '/shared/style/lists.css',
-      '/contacts/js/utilities/confirm.js',
+      '/shared/js/confirm.js',
+      '/shared/js/dialer/utils.js',
       '/dialer/js/phone_action_menu.js',
-      '/dialer/js/utils.js'
+      '/shared/js/sticky_header.js'
     ];
     var self = this;
 
@@ -77,6 +77,9 @@ var CallLog = {
         this[Utils.toCamelCase(id)] = document.getElementById(id);
       }, self);
 
+      var dualSim = navigator.mozIccManager.iccIds.length > 1;
+      self.callLogContainer.classList.toggle('dual-sim', dualSim);
+
       LazyL10n.get(function localized(_) {
         self._ = _;
         self.render();
@@ -104,6 +107,9 @@ var CallLog = {
             self.updateHeadersContinuously();
           }
         });
+
+        self.sticky = new StickyHeader(self.callLogContainer,
+                                       document.getElementById('sticky'));
       });
     });
 
@@ -185,9 +191,9 @@ var CallLog = {
     var prevDate;
     var startDate = new Date().getTime();
     var screenRendered = false;
-    var MAX_GROUPS_FOR_FIRST_RENDER = 6;
-    var MAX_DAYS_TO_BATCH_RENDER = 60;
-    this._groupCounter = 0;
+    var MAX_GROUPS_FOR_FIRST_RENDER = 8;
+    var MAX_GROUPS_TO_BATCH_RENDER = 100;
+    var batchGroupCounter = 0;
 
     CallLogDBManager.getGroupList(function logGroupsRetrieved(cursor) {
       if (!cursor.value) {
@@ -204,6 +210,7 @@ var CallLog = {
             PerformanceTestingHelper.dispatch('first-chunk-ready');
           }
           self.enableEditMode();
+          self.sticky.refresh();
           self.updateHeadersContinuously();
           PerformanceTestingHelper.dispatch('call-log-ready');
         }
@@ -212,25 +219,27 @@ var CallLog = {
 
       self._empty = false;
       var currDate = new Date(cursor.value.date);
-      self._groupCounter++;
+      batchGroupCounter++;
       if (!prevDate || (currDate.getTime() == prevDate.getTime())) {
         chunk.push(cursor.value);
       } else {
+        daysToRender.push(chunk);
+        chunk = [cursor.value];
+
         var renderNow = false;
-        if (self._groupCounter >= MAX_GROUPS_FOR_FIRST_RENDER &&
+        if (batchGroupCounter >= MAX_GROUPS_FOR_FIRST_RENDER &&
             !screenRendered) {
           renderNow = true;
           screenRendered = true;
           PerformanceTestingHelper.dispatch('first-chunk-ready');
-        } else if (daysToRender.length >= MAX_DAYS_TO_BATCH_RENDER) {
+        } else if (batchGroupCounter >= MAX_GROUPS_TO_BATCH_RENDER) {
           renderNow = true;
         }
         if (renderNow) {
           self.renderSeveralDays(daysToRender);
           daysToRender = [];
+          batchGroupCounter = 0;
         }
-        daysToRender.push(chunk);
-        chunk = [cursor.value];
       }
       prevDate = currDate;
       cursor.continue();
@@ -362,6 +371,8 @@ var CallLog = {
       }
       container.appendChild(callLogSection);
     }
+
+    this.sticky.refresh();
   },
 
   // Method that places a log group in the right place inside a section
@@ -391,21 +402,22 @@ var CallLog = {
   //  id="1369695600000-6136112351-dialing" data-type="dialing"
   //  data-phone-number="6136112351" data-timestamp="1369731559902"
   //  class="log-item">
-  //    <label class="call-log-selection danger">
-  //      <input value="1369695600000-6136112351-dialing" type="checkbox">
+  //    <label class="pack-checkbox call-log-selection danger">
+  //      <input value="1369695600000-6136112351-dialing" type="checkbox"
+  //       aria-labelledby="1369695600000-6136112351-dialing-label">
   //      <span></span>
   //    </label>
   //    <aside class="pack-end">
   //      <span data-type="img" class="call-log-contact-photo">
   //    </aside>
-  //    <a>
+  //    <a role="button" id="1369695600000-6136112351-dialing-label">
   //      <aside class="icon call-type-icon icon icon-outgoing">
   //      </aside>
-  //      <p class="primary-info">
+  //      <p aria-hidden="true" class="primary-info">
   //        <span class="primary-info-main">David R. Chichester</span>
   //      </p>
-  //      <p class="call-additional-info">Mobile, O2</p>
-  //      <p>
+  //      <p aria-hidden="true" class="call-additional-info">Mobile, O2</p>
+  //      <p aria-hidden="true">
   //        <span class="call-time">9:59 AM </span>
   //        <span class="retry-count">(1)</span>
   //      </p>
@@ -446,11 +458,18 @@ var CallLog = {
         break;
     }
 
+    if (typeof group.serviceId !== 'undefined') {
+      var serviceClass = (group.serviceId == 0) ? 'first-sim' : 'second-sim';
+      iconStyle += ' ' + serviceClass;
+    }
+
     var label = document.createElement('label');
     label.className = 'pack-checkbox call-log-selection danger';
     var input = document.createElement('input');
     input.setAttribute('type', 'checkbox');
     input.value = group.id;
+    var editLabel = group.id + '-label';
+    input.setAttribute('aria-labelledby', editLabel);
     var span = document.createElement('span');
 
     label.appendChild(input);
@@ -470,11 +489,14 @@ var CallLog = {
     aside.appendChild(img);
 
     var main = document.createElement('a');
+    main.setAttribute('role', 'button');
+    main.id = editLabel;
     var icon = document.createElement('aside');
     icon.className = 'icon call-type-icon ' + iconStyle;
 
     var primInfo = document.createElement('p');
     primInfo.className = 'primary-info';
+    primInfo.setAttribute('aria-hidden', 'true');
 
     var primInfoMain = document.createElement('span');
     primInfoMain.className = 'primary-info-main';
@@ -503,9 +525,11 @@ var CallLog = {
       addInfo = document.createElement('p');
       addInfo.className = 'call-additional-info';
       addInfo.textContent = phoneNumberAdditionalInfo;
+      addInfo.setAttribute('aria-hidden', 'true');
     }
 
     var thirdInfo = document.createElement('p');
+    thirdInfo.setAttribute('aria-hidden', 'true');
     var callTime = document.createElement('span');
     callTime.className = 'call-time';
     callTime.textContent = Utils.prettyDate(date) + ' ';
@@ -562,16 +586,26 @@ var CallLog = {
   },
 
   enableEditMode: function cl_enableEditMode() {
-    CallLog.callLogIconEdit.classList.remove('disabled');
+    var icon = CallLog.callLogIconEdit;
+    icon.removeAttribute('disabled');
+    icon.setAttribute('aria-disabled', false);
   },
 
-  disableEditMode: function cl_enableEditMode() {
-    CallLog.callLogIconEdit.classList.add('disabled');
+  disableEditMode: function cl_disableEditMode() {
+    var icon = CallLog.callLogIconEdit;
+    icon.setAttribute('disabled', 'disabled');
+    icon.setAttribute('aria-disabled', true);
   },
 
-  showEditMode: function cl_showEditMode() {
+  showEditMode: function cl_showEditMode(event) {
+    if (this.callLogIconEdit.hasAttribute('disabled')) {
+      // Disabled does not have effect on an anchor.
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     this.headerEditModeText.textContent = this._('edit');
-    this.deleteButton.classList.add('disabled');
+    this.deleteButton.setAttribute('disabled', 'disabled');
     this.selectAllThreads.removeAttribute('disabled');
     this.selectAllThreads.textContent = this._('selectAll');
     this.deselectAllThreads.setAttribute('disabled', 'disabled');
@@ -608,7 +642,12 @@ var CallLog = {
       this.updateHeaderCount();
       return;
     }
-    var dataset = evt.target.dataset;
+    var logItem = evt.target;
+    if (!evt.target.classList.contains('log-item')) {
+      // Landed on the link (when using the screen reader).
+      logItem = logItem.parentNode;
+    }
+    var dataset = logItem.dataset;
     var phoneNumber = dataset.phoneNumber;
     if (phoneNumber) {
       var contactIds = (dataset.contactId) ? dataset.contactId : null;
@@ -626,8 +665,9 @@ var CallLog = {
     }
 
     this.callLogContainer.classList.add('filter');
-    this.allFilter.setAttribute('aria-selected', 'false');
-    this.missedFilter.setAttribute('aria-selected', 'true');
+    AccessibilityHelper.setAriaSelected(this.missedFilter.firstElementChild, [
+      this.allFilter.firstElementChild, this.missedFilter.firstElementChild]);
+    this.callLogContainer.setAttribute('aria-labelledby', 'missed-filter-tab');
 
     var containers = this.callLogContainer.getElementsByTagName('ol');
     var totalMissedCalls = 0;
@@ -665,8 +705,9 @@ var CallLog = {
     }
 
     this.callLogContainer.classList.remove('filter');
-    this.allFilter.setAttribute('aria-selected', 'true');
-    this.missedFilter.setAttribute('aria-selected', 'false');
+    AccessibilityHelper.setAriaSelected(this.allFilter.firstElementChild, [
+      this.allFilter.firstElementChild, this.missedFilter.firstElementChild]);
+    this.callLogContainer.setAttribute('aria-labelledby', 'all-filter-tab');
 
     var hiddenContainers = document.getElementsByClassName('groupFiltered');
     // hiddenContainers is a live list, so let's iterate on the list in the
@@ -691,12 +732,12 @@ var CallLog = {
       this.selectAllThreads.removeAttribute('disabled');
       this.selectAllThreads.textContent = this._('selectAll');
       this.deselectAllThreads.setAttribute('disabled', 'disabled');
-      this.deleteButton.classList.add('disabled');
+      this.deleteButton.setAttribute('disabled', 'disabled');
       return;
     }
     this.headerEditModeText.textContent = this._('edit-selected',
                                             {n: selected});
-    this.deleteButton.classList.remove('disabled');
+    this.deleteButton.removeAttribute('disabled');
     if (selected === allInputs) {
       this.deselectAllThreads.removeAttribute('disabled');
       this.selectAllThreads.setAttribute('disabled', 'disabled');

@@ -142,8 +142,13 @@ define(function(require) {
         // If already initialized before, clear out previous state.
         this.die();
 
-        var acctsSlice = this.acctsSlice = MailAPI.viewAccounts(false);
+        var acctsSlice = MailAPI.viewAccounts(false);
         acctsSlice.oncomplete = (function() {
+          // To prevent a race between Model.init() and
+          // acctsSlice.oncomplete, only assign model.acctsSlice when
+          // the slice has actually loaded (i.e. after
+          // acctsSlice.oncomplete fires).
+          model.acctsSlice = acctsSlice;
           if (acctsSlice.items.length) {
             // For now, just use the first one; we do attempt to put unified
             // first so this should generally do the right thing.

@@ -1,19 +1,5 @@
 'use strict';
 
-var MockNavigatorDatastore = {
-  getDataStores: function() {
-    if (MockNavigatorDatastore._notFound === true) {
-      return new window.Promise(function(resolve, reject) {
-        resolve([]);
-      });
-    }
-
-    return new window.Promise(function(resolve, reject) {
-      resolve([MockDatastore]);
-    });
-  }
-};
-
 var MockDatastore = {
   readOnly: false,
   revisionId: '123456',
@@ -22,6 +8,7 @@ var MockDatastore = {
   _records: Object.create(null),
   _nextId: 1,
   _inError: false,
+  _cb: null,
 
   _clone: function(obj) {
     var out = null;
@@ -57,8 +44,13 @@ var MockDatastore = {
     }
 
     this._records[dsId] = this._clone(obj);
+    var self = this;
     return new window.Promise(function(resolve, reject) {
       resolve();
+      self._cb && self._cb({
+        operation: 'updated',
+        id: dsId
+      });
     });
   },
 
@@ -73,8 +65,13 @@ var MockDatastore = {
       return this._reject('ConstraintError');
     }
     this._records[newId] = this._clone(obj);
+    var self = this;
     return new window.Promise(function(resolve, reject) {
       resolve(newId);
+      self._cb && self._cb({
+        operation: 'added',
+        id: newId
+      });
     });
   },
 
@@ -108,6 +105,26 @@ var MockDatastore = {
     this._records = {};
     return new window.Promise(function(resolve, reject) {
       resolve();
+    });
+  },
+
+  addEventListener: function(type, cb) {
+    if (type === 'change') {
+      this._cb = cb;
+    }
+  }
+};
+
+var MockNavigatorDatastore = {
+  getDataStores: function() {
+    if (MockNavigatorDatastore._notFound === true) {
+      return new window.Promise(function(resolve, reject) {
+        resolve([]);
+      });
+    }
+
+    return new window.Promise(function(resolve, reject) {
+      resolve([MockDatastore]);
     });
   }
 };

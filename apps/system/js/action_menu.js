@@ -8,12 +8,14 @@
    * a list of several activities. Each ActionMenu instance maintains its own
    * dom and event listeners.
    * @class ActionMenu
-   * @return {Array} listItems An array of objects to display.
-   * @return {String} title The content of the header.
-   * @return {Function} successCb Called when the user selects an option.
-   * @return {Function} cancelCb Called when the menu is cancelled.
+   * @param {Array} listItems An array of objects to display.
+   * @param {String} title The content of the header.
+   * @param {Function} successCb Called when the user selects an option.
+   * @param {Function} cancelCb Called when the menu is cancelled.
+   * @param {Boolean} preventFocusChange Set to true to prevent focus changing.
    */
-  function ActionMenu(listItems, title, successCb, cancelCb) {
+  function ActionMenu(listItems, title, successCb, cancelCb,
+  preventFocusChange) {
     this.onselected = successCb || function() {};
     this.oncancel = cancelCb || function() {};
     this.listItems = listItems;
@@ -74,9 +76,9 @@
       window.addEventListener('home', this);
       window.addEventListener('holdhome', this);
 
-      // Firing when the keyboard and the IME switcher shows/hides.
-      window.addEventListener('keyboardimeswitchershow', this);
-      window.addEventListener('keyboardimeswitcherhide', this);
+      if (this.preventFocusChange) {
+        this.menu.addEventListener('mousedown', this.preventFocusChange);
+      }
     },
 
     /**
@@ -91,8 +93,9 @@
       window.removeEventListener('home', this);
       window.removeEventListener('holdhome', this);
 
-      window.removeEventListener('keyboardimeswitchershow', this);
-      window.removeEventListener('keyboardimeswitcherhide', this);
+      if (this.preventFocusChange) {
+        this.menu.removeEventListener('mousedown', this.preventFocusChange);
+      }
     },
 
     /**
@@ -135,7 +138,7 @@
      * @memberof ActionMenu.prototype
      * @param  {DOMEvent} evt The event.
      */
-    _pdIMESwitcherShow: function(evt) {
+    preventFocusChange: function(evt) {
        evt.preventDefault();
     },
 
@@ -192,15 +195,6 @@
 
         case 'attentionscreenshow':
           this.hide();
-          break;
-
-        // When IME switcher shows, prevent the keyboard focus getting changed
-        case 'keyboardimeswitchershow':
-          this.menu.addEventListener('mousedown', this._pdIMESwitcherShow);
-          break;
-
-        case 'keyboardimeswitcherhide':
-          this.menu.removeEventListener('mousedown', this._pdIMESwitcherShow);
           break;
       }
     }

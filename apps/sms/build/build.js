@@ -6,13 +6,9 @@ var utils = require('utils');
 var SmsAppBuilder = function() {
 };
 
-SmsAppBuilder.prototype.STAGE_DIR = 'build_stage/sms';
-
 // set options
 SmsAppBuilder.prototype.setOptions = function(options) {
-  var stageDirPath = [options.GAIA_DIR].concat(this.STAGE_DIR.split('/'));
-  this.stageDir = utils.getFile.apply(utils, stageDirPath);
-
+  this.stageDir = utils.getFile(options.STAGE_APP_DIR);
   this.distDirPath = options.GAIA_DISTRIBUTION_DIR;
 };
 

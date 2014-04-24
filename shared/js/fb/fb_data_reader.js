@@ -367,6 +367,11 @@ this.fb = fb;
    *
    */
   contacts.init = function(cb, errorCb) {
+    if (!navigator.getDataStores) {
+      handleInitError({ name: 'DatastoreNotFound' }, errorCb);
+      return;
+    }
+
     if (readyState === 'initialized') {
       cb();
       return;

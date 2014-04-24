@@ -21,11 +21,14 @@
     };
   }
 
+  function getFrameType(error) {
+    return isFramed(error) ? 'framed' : 'no-frame';
+  }
+
   /**
    * Check if net_error is coming from within an iframe
    */
-  function isFramed() {
-    var error = getErrorFromURI();
+  function isFramed(error) {
     var manifestURL = error.m;
 
     // frame type values (regular, browser, app)
@@ -40,45 +43,15 @@
       case 'app':
         return false;
 
-      // If we are in a "browser" frame, we are either in a browser tab
-      // or a mozbrowser iframe within in app. Since browser tabs are
-      // considered unframed, we must perform a check here to distinguish
-      // between the two cases.
+      // If we are in a "browser" frame, we are either in a browser tab/system 
+      // bookmark, or mozbrowser iframe within in app. Since system
+      // bookmarks are considered unframed, we must perform a check here to 
+      // distinguish between the two cases.
       case 'browser':
-        return manifestURL !== window.BROWSER_MANIFEST;
+        return manifestURL !== window.SYSTEM_MANIFEST;
 
       default:
         throw new Error('about:netError: invalid frame type - ' + frameType);
-    }
-  }
-
-  /**
-   * Set up event handlers for a net_error iframe
-   */
-  function addFrameHandlers() {
-    document.body.onclick = function bodyClick() {
-      document.getElementById('retry-icon').classList.remove('still');
-      NetError.reload(true);
-    };
-  }
-
-  /**
-   * Set up event handlers for an app net_error page
-   */
-  function addAppHandlers() {
-    var closeBtn = document.getElementById('close-btn');
-    if (closeBtn) {
-      closeBtn.onclick = function closeClick(evt) {
-        evt.preventDefault();
-        window.close();
-      };
-    }
-    var retryBtn = document.getElementById('retry-btn');
-    if (retryBtn) {
-      retryBtn.onclick = function retryClick(evt) {
-        evt.preventDefault();
-        NetError.reload(true);
-      };
     }
   }
 
@@ -101,99 +74,6 @@
    */
   function localizeElement(el, key, args) {
     el.textContent = navigator.mozL10n.get(key, args);
-  }
-
-  /**
-   * Display messages for a net_error iframe
-   */
-  function populateFrameMessages() {
-    var title = document.getElementById('error-title');
-    var message = document.getElementById('error-message');
-
-    var error = getErrorFromURI();
-    switch (error.e) {
-      case 'dnsNotFound': {
-        localizeElement(title, 'server-not-found');
-        localizeElement(message, 'server-not-found-error', {
-          name: location.host
-        });
-      }
-      break;
-
-      case 'netOffline': {
-        localizeElement(title, 'unable-to-connect');
-        localizeElement(message, 'tap-to-retry');
-      }
-      break;
-
-      default: {
-        // When we're a browser iframe used for generic content we'll use
-        // the default error message from gecko for all errors that are
-        // not directly dealt with.
-        localizeElement(title, 'unable-to-connect');
-        // The error message is already localized. Set it directly.
-        message.textContent = error.d;
-      }
-    }
-  }
-
-  /**
-   * Display messages for an app net_error
-   */
-  function populateAppMessages() {
-    var title = document.getElementById('error-title');
-    var message = document.getElementById('error-message');
-
-    var error = getErrorFromURI();
-    switch (error.e) {
-      case 'dnsNotFound': {
-        localizeElement(title, 'server-not-found');
-        localizeElement(message, 'server-not-found-error', {
-          name: location.host
-        });
-      }
-      break;
-
-      case 'netOffline': {
-        getAppName(function(appName) {
-          localizeElement(title, 'network-connection-unavailable');
-          localizeElement(message, 'network-error', {
-            name: appName
-          });
-        });
-      }
-      break;
-
-      default: {
-        getAppName(function(appName) {
-          // Same thing when we're an iframe for an application.
-          localizeElement(title, 'unable-to-connect');
-          // The error message is already localized. Set it directly.
-          message.textContent = error.d;
-        });
-      }
-    }
-  }
-
-  /**
-   * Mark this page as being in an iframe
-   */
-  function applyFrameStyle() {
-    document.body.classList.add('framed');
-  }
-
-  /**
-   * Sets the error type for this page
-   */
-  function applyCommonStyles() {
-    document.body.classList.add(getErrorFromURI().e);
-  }
-
-  /**
-   * Mark this page as being an app
-   */
-  function applyAppStyle() {
-    document.body.classList.add('no-frame');
   }
 
   /**
@@ -232,6 +112,21 @@
       }
     );
 
+    switch (_error.e) {
+      case 'connectionFailure':
+      case 'netInterrupt':
+      case 'netTimeout':
+      case 'netReset':
+        _error.e = 'connectionFailed';
+        break;
+
+      case 'unknownSocketType':
+      case 'unknownProtocolFound':
+      case 'cspFrameAncestorBlocked':
+        _error.e = 'invalidConnection';
+        break;
+    }
+
     return _error;
   }
 
@@ -239,7 +134,7 @@
    * This method reloads the window if the device is online and in the
    * foreground
    */
-  function checkConnection() {
+  function reloadIfOnline() {
     if (navigator.onLine && !document.hidden &&
         !document.body.classList.contains('hidden')) {
       document.body.classList.add('hidden');
@@ -251,35 +146,318 @@
     }
   }
 
-  function addConnectionHandlers() {
-    var error = getErrorFromURI();
-    if (error.e === 'netOffline') {
-      document.addEventListener('visibilitychange', checkConnection);
-      window.addEventListener('online', checkConnection);
-    }
+  function showSettingsView() {
+    var activity = new window.MozActivity({
+      name: 'configure',
+      data: {
+        target: 'device',
+        section: 'root',
+        filterBy: 'connectivity'
+      }
+    });
+
+    activity.onerror = function() {
+      console.warn('Configure activity error:', activity.error.name);
+    };
   }
+
+  function hasHistory() {
+    return window.history.length > 1;
+  }
+
+  function cancel() {
+    hasHistory() ? goBack() : closeWindow();
+  }
+
+  function goBack() {
+    window.history.back();
+  }
+
+  function closeWindow() {
+    window.close();
+  }
+
+  function addConnectionHandlers() {
+    document.addEventListener('visibilitychange', reloadIfOnline);
+    window.addEventListener('online', reloadIfOnline);
+  }
+
+  var ErrorView = function(error, title, message) {
+    this.error = error;
+    this.titleText = title || 'unable-to-connect';
+    this.messageText = message || this.error.d;
+    this.node = document.getElementById('net-error-confirm-dialog');
+  };
+
+  ErrorView.prototype = {
+    applyStyle: function ew_applyStyle() {
+      document.body.classList.add(this.error.e);
+    },
+
+    addHandlers: function ew_addHandlers() {
+      // Subclasses should add the handlers
+    },
+
+    populateMessages: function ew_populateMessages() {
+      localizeElement(this.title, this.titleText);
+      localizeElement(this.message, this.messageText);
+    },
+
+    init: function ew_init() {
+      window.LazyLoader.load(this.node, (function loaded() {
+        navigator.mozL10n.translate(this.node);
+        this.title = document.getElementById('error-title');
+        this.message = document.getElementById('error-message');
+        this.applyStyle();
+        this.populateMessages();
+        this.addHandlers();
+      }).bind(this));
+    }
+  };
+
+  var FramedErrorView = function(error, title, message) {
+    ErrorView.call(this, error, title, message);
+  };
+
+  FramedErrorView.prototype = {
+    __proto__: ErrorView.prototype,
+
+    applyStyle: function few_applyStyle() {
+      ErrorView.prototype.applyStyle.call(this);
+      document.body.classList.add('framed');
+    },
+
+    addHandlers: function few_addHandlers() {
+      document.body.onclick = function bodyClick() {
+        document.getElementById('retry-icon').classList.remove('still');
+        NetError.reload(true);
+      };
+    }
+  };
+
+  var AppErrorView = function(error, title, message) {
+    ErrorView.call(this, error, title, message);
+  };
+
+  AppErrorView.prototype = {
+    __proto__: ErrorView.prototype,
+
+    applyStyle: function few_applyStyle() {
+      ErrorView.prototype.applyStyle.call(this);
+      document.body.classList.add('no-frame');
+    },
+
+    addHandlers: function aew_addHandlers() {
+      document.getElementById('retry-btn').onclick = function retryClick() {
+        NetError.reload(true);
+      };
+      document.getElementById('close-btn').onclick = closeWindow;
+    }
+  };
+
+  // Offline view
+  var NetOfflineAppErrorView = function(error) {
+    AppErrorView.call(this, error);
+    this.node = document.getElementById('net-error-action-menu');
+  };
+
+  NetOfflineAppErrorView.prototype = {
+    __proto__: AppErrorView.prototype,
+
+    populateMessages: function noew_populateMessages() {
+      if (hasHistory()) {
+        localizeElement(this.title, 'network-error-in-app');
+      } else {
+        getAppName((function localizeTitle(appName) {
+          localizeElement(this.title, 'network-error-launching', {
+            name: appName
+          });
+        }).bind(this));
+      }
+    },
+
+    addHandlers: function noew_addHandlers() {
+      addConnectionHandlers();
+      document.getElementById('settings-btn').onclick = showSettingsView;
+      document.getElementById('cancel-btn').onclick = cancel;
+    }
+  };
+
+  var NetOfflineFramedErrorView = function(error) {
+    FramedErrorView.call(this, error);
+  };
+
+  NetOfflineFramedErrorView.prototype = {
+    __proto__: FramedErrorView.prototype,
+
+    populateMessages: function noew_populateMessages() {
+      localizeElement(this.title, 'unable-to-connect');
+      localizeElement(this.message, 'tap-to-check-settings');
+    },
+
+    addHandlers: function noew_addHandlers() {
+      addConnectionHandlers();
+      document.body.onclick = showSettingsView;
+    }
+  };
+
+  // Confirm views
+  var ConfirmAppErrorView = function(error, title, message) {
+    AppErrorView.call(this, error, title, message);
+  };
+
+  ConfirmAppErrorView.prototype = {
+    __proto__: AppErrorView.prototype,
+
+    applyStyle: function caew_applyStyle() {
+      AppErrorView.prototype.applyStyle.call(this);
+      document.body.classList.add('dialog');
+    }
+  };
+
+  // Alert view
+  var AlertAppErrorView = function(error, title, message) {
+    AppErrorView.call(this, error, title, message);
+  };
+
+  AlertAppErrorView.prototype = {
+    __proto__: AppErrorView.prototype,
+
+    applyStyle: function aaew_applyStyle() {
+      AppErrorView.prototype.applyStyle.call(this);
+      document.body.classList.add('dialog', 'alert');
+    },
+  };
+
+  var views = {
+    netOffline: {
+      'framed': NetOfflineFramedErrorView,
+      'no-frame': NetOfflineAppErrorView
+    },
+    dnsNotFound: {
+      'framed': FramedErrorView,
+      'no-frame': ConfirmAppErrorView,
+      'title': 'server-not-found',
+      'message': 'server-not-found-error'
+    },
+    connectionFailed: {
+      'framed': FramedErrorView,
+      'no-frame': ConfirmAppErrorView,
+      'title': 'connection-failed',
+      'message': 'connection-failed-error'
+    },
+    notCached: {
+      'framed': FramedErrorView,
+      'no-frame': ConfirmAppErrorView,
+      'title': 'not-cached',
+      'message': 'not-cached-error'
+    },
+    fileNotFound: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'file-not-found',
+      'message': 'file-not-found-error'
+    },
+    invalidConnection: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'invalid-connection',
+      'message': 'invalid-connection-error'
+    },
+    malformedURI: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'malformed-uri',
+      'message': 'malformed-uri-error'
+    },
+    redirectLoop: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'redirect-loop',
+      'message': 'redirect-loop-error'
+    },
+    isprinting: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'message': 'is-printing-error'
+    },
+    deniedPortAccess: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'denied-port-access',
+      'message': 'denied-port-access-error'
+    },
+    proxyResolveFailure: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'proxy-resolve-failure',
+      'message': 'proxy-resolve-failure-error'
+    },
+    proxyConnectFailure: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'proxy-connect-failure',
+      'message': 'proxy-connect-failure-error'
+    },
+    contentEncodingError: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'content-encoding',
+      'message': 'content-encoding-error'
+    },
+    remoteXUL: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'remote-xul',
+      'message': 'remote-xul-error'
+    },
+    unsafeContentType: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'unsafe-content-type',
+      'message': 'unsafe-content-type-error'
+    },
+    corruptedContentError: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'corrupted-content',
+      'message': 'corrupted-content-error'
+    },
+    phishingBlocked: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'phishing-blocked',
+      'message': 'phishing-blocked-error'
+    },
+    malwareBlocked: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'malware-blocked',
+      'message': 'malware-blocked-error'
+    },
+    byDefault: {
+      'framed': FramedErrorView,
+      'no-frame': AppErrorView
+    }
+  };
+
+  var ErrorViewFactory = {
+    create: function nef_create() {
+      var error = getErrorFromURI();
+      var view = views[error.e] || views.byDefault;
+      return new view[getFrameType(error)](error, view.title,
+                                           view.message);
+    }
+  };
 
   /**
    * Initialize the page
    */
   function initPage() {
-    // net_error.html will either be loaded in the browser,
-    // in a top level app (hosted/bookmarked), or an iFrame.
-    // We need to display different information/user flows
-    // based on these states.
-    applyCommonStyles();
-
-    if (isFramed()) {
-      applyFrameStyle();
-      populateFrameMessages();
-      addFrameHandlers();
-    } else {
-      applyAppStyle();
-      populateAppMessages();
-      addAppHandlers();
-    }
-
-    addConnectionHandlers();
+    _error = _app = null;
+    // Display detailed info about the error.
+    console.error('net-error');
+    ErrorViewFactory.create().init();
   }
 
   navigator.mozL10n.ready(initPage);
@@ -288,7 +466,22 @@
     init: initPage,
 
     reload: function reload(forcedReload) {
+
+      // When reloading a page with POSTDATA the user will be prompted to
+      // confirm if he wants to resend the data. If the user accepted to resend
+      // the data, during the reload function call the onbeforeunload event is
+      // fired, otherwise if the event is not triggered then the last url from
+      // the history is loaded.
+      var isReloading = false;
+      window.addEventListener('beforeunload', function onBeforeunload() {
+        isReloading = true;
+      });
+
       window.location.reload(forcedReload);
+
+      if (!isReloading) {
+        history.back();
+      }
     }
   };
 

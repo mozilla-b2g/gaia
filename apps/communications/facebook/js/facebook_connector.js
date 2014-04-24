@@ -261,7 +261,7 @@ if (!window.FacebookConnector) {
 
       adaptDataForShowing: function(source) {
 
-        var box = importUtils.getPreferredPictureBox();
+        var box = utils.misc.getPreferredPictureBox();
         var picWidth = box.width;
         var picHeight = box.height;
 
@@ -331,7 +331,7 @@ if (!window.FacebookConnector) {
 
       downloadContactPicture: function(contact, access_token, callbacks) {
         return fb.utils.getFriendPicture(contact.uid, callbacks.success,
-                        access_token, importUtils.getPreferredPictureDetail());
+                        access_token, utils.misc.getPreferredPictureDetail());
       },
 
       oncontactsloaded: function(lfriends) {

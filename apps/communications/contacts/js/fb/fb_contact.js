@@ -1,5 +1,7 @@
 'use strict';
 
+/* global utils */
+
 var fb = window.fb || {};
 
 // Encapsulates all the logic to obtain the data for a FB contact
@@ -10,10 +12,6 @@ fb.Contact = function(deviceContact, cid) {
 
   function doGetFacebookUid(data) {
     return fb.getFriendUid(data);
-  }
-
-  function getLinkedTo(c) {
-    return fb.getLinkedTo(c);
   }
 
   function getFacebookUid() {
@@ -345,7 +343,7 @@ fb.Contact = function(deviceContact, cid) {
               });
             }
             else if (key === 'photo') {
-              out2['hasPhoto'] = true;
+              out2.hasPhoto = true;
             }
             else if (dataElement) {
               out2[dataElement] = true;
@@ -420,8 +418,9 @@ fb.Contact = function(deviceContact, cid) {
       contact.name[0] = contact.givenName[0] + ' ';
     }
 
-    if (Array.isArray(contact.familyName))
+    if (Array.isArray(contact.familyName)) {
       contact.name[0] += contact.familyName[0];
+    }
   }
 
   function propagateNames(from, to) {
@@ -430,11 +429,13 @@ fb.Contact = function(deviceContact, cid) {
 
     if (isGivenNamePropagated || isFamilyNamePropagated) {
       //  We are going to mark the propagation in the category field
-      if (isGivenNamePropagated)
+      if (isGivenNamePropagated) {
         fb.setPropagatedFlag('givenName', to);
+      }
 
-      if (isFamilyNamePropagated)
+      if (isFamilyNamePropagated) {
         fb.setPropagatedFlag('familyName', to);
+      }
 
       createName(to);
     }
@@ -442,11 +443,13 @@ fb.Contact = function(deviceContact, cid) {
 
   // This method copies names to a contact when they are propagated from fb
   function revisitPropagatedNames(from, to) {
-    if (fb.isPropagated('givenName', to))
-      to['givenName'] = from['givenName'];
+    if (fb.isPropagated('givenName', to)) {
+      to.givenName = from.givenName;
+    }
 
-    if (fb.isPropagated('familyName', to))
-      to['familyName'] = from['familyName'];
+    if (fb.isPropagated('familyName', to)) {
+      to.familyName = from.familyName;
+    }
 
     createName(to);
   }
@@ -574,11 +577,11 @@ fb.Contact = function(deviceContact, cid) {
               doSetFacebookUid(data, uid);
 
               // The FB contact is restored
-              var reqRestore = navigator.mozContacts.save(
-                utils.misc.toMozContact(data));
+              var aMozContact = utils.misc.toMozContact(data);
+              var reqRestore = navigator.mozContacts.save(aMozContact);
 
               reqRestore.onsuccess = function(e) {
-                out.done(mcontact.id);
+                out.done(aMozContact.id);
               };
 
               reqRestore.onerror = function(e) {
@@ -595,7 +598,7 @@ fb.Contact = function(deviceContact, cid) {
 
         fbNumReq.onerror = function() {
           window.console.error('FB: Error while unlinking contact data');
-          out.failed(fbDataReq.error);
+          out.failed(fbNumReq.error);
         };
       }
       else {
@@ -627,11 +630,12 @@ fb.Contact = function(deviceContact, cid) {
 
       var fbNumReq = fb.utils.getNumberMozContacts(uid);
       fbNumReq.onsuccess = function num_onsuccess() {
+        var removeReq;
         // If there is only one Device Contact associated
         // Then corresponding FB Data is removed otherwise only
         // the device contact is removed
         if (fbNumReq.result === 1) {
-          var removeReq = navigator.mozContacts.remove(
+          removeReq = navigator.mozContacts.remove(
             utils.misc.toMozContact(devContact));
           removeReq.onsuccess = function(e) {
             var fbReq = fb.contacts.remove(uid, forceFlush);
@@ -648,7 +652,7 @@ fb.Contact = function(deviceContact, cid) {
           };
         }
         else {
-          var removeReq = navigator.mozContacts.remove(
+          removeReq = navigator.mozContacts.remove(
             utils.misc.toMozContact(devContact));
           removeReq.onsuccess = function(e) {
             out.done();

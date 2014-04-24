@@ -6,7 +6,8 @@ suite('Stopwatch.Panel', function() {
   var panel;
   var clock;
   var Stopwatch;
-  var MockL10n, localize;
+  var localize;
+  var mozL10n;
 
   suiteSetup(function(done) {
     var threeMin = 3 * 60 * 1000 + 130;
@@ -59,12 +60,12 @@ suite('Stopwatch.Panel', function() {
       return element.className.contains('hidden');
     };
 
-    testRequire([
-      'stopwatch', 'panels/stopwatch/main', 'mocks/mock_shared/js/l10n'
-      ], function(stopwatch, stopwatchPanel, mockL10n) {
+    require([
+      'stopwatch', 'panels/stopwatch/main', 'l10n'
+      ], function(stopwatch, stopwatchPanel, l10n) {
         Stopwatch = stopwatch;
         Stopwatch.Panel = stopwatchPanel;
-        MockL10n = mockL10n;
+        mozL10n = l10n;
         panel = new Stopwatch.Panel(
           document.createElement('div')
         );
@@ -75,7 +76,7 @@ suite('Stopwatch.Panel', function() {
 
   setup(function() {
     clock = this.sinon.useFakeTimers();
-    localize = this.sinon.spy(MockL10n, 'localize');
+    localize = this.sinon.spy(mozL10n, 'localize');
   });
 
   test('Default', function() {
@@ -222,6 +223,17 @@ suite('Stopwatch.Panel', function() {
     assert.equal(laps.length, 0);
     assert.equal(panel.nodes.time.textContent, '00:00.00');
 
+  });
+
+  test('Stopwatch 100 minutes display', function() {
+    panel.setStopwatch(runningSw());
+
+    assert.ok(!panel.nodes.time.classList.contains('over-100-minutes'));
+
+    clock.tick(1000 * 60 * 105); // over 100 minutes
+    panel.update(); // required due to requestAnimationFrame not being called
+
+    assert.ok(panel.nodes.time.classList.contains('over-100-minutes'));
   });
 
 });

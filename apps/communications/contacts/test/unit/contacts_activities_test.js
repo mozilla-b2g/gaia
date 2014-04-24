@@ -5,7 +5,7 @@
 
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('communications/contacts/js/utilities/misc.js');
+require('/shared/js/contacts/import/utilities/misc.js');
 requireApp('communications/contacts/js/activities.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
@@ -60,6 +60,7 @@ suite('Test Activities', function() {
     window._ = real_;
     window.utils.importFromVcard = realImport;
     mocksHelperForActivities.suiteTeardown();
+    window.utils.misc.toMozContact.restore();
   });
 
   suite('Activity launching', function() {
@@ -216,6 +217,8 @@ suite('Test Activities', function() {
       // we need to create a object from data to compare prototypes
       // check activities.js > function copyContactData
       var newContact = Object.create(contact);
+      sinon.stub(window.utils.misc, 'toMozContact',
+        function() {return newContact;});
       ActivityHandler.dataPickHandler(newContact);
       assert.isFalse(ConfirmDialog.showing);
       // Mock returns always the first option from the select, so we need
@@ -283,4 +286,5 @@ suite('Test Activities', function() {
       assert.equal(result.email, contact.email[0].value);
     });
   });
+
 });

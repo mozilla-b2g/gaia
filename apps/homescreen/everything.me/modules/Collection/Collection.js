@@ -1,4 +1,9 @@
 'use strict';
+/* globals Evme, EvmeManager, Promise */
+
+// Mute jshint errors about the weird syntax used in this file
+/* jshint -W057 */// Weird construction. Is 'new' necessary?
+/* jshint -W058 */// Missing '()' invoking a constructor.
 
 /**
  * Collection.js
@@ -169,7 +174,6 @@ void function() {
 
     this.create = function create(options) {
       var query = options.query,
-          apps = options.apps,
           callback = options.callback || Evme.Utils.NOOP,
           extra = {'extraIconsData': options.extraIconsData};
 
@@ -537,6 +541,8 @@ void function() {
       return true;
     };
 
+    this.createCollectionIcon = createCollectionIcon;
+
     function onVisibilityChange() {
       if (document.mozHidden) {
         self.toggleEditMode(false);
@@ -558,6 +564,7 @@ void function() {
       var queries = Evme.InstalledAppsService.getMatchingQueries(appInfo);
       var gridCollections = EvmeManager.getCollections();
 
+      /* jshint -W084 */
       for (var i = 0, gridCollection; gridCollection = gridCollections[i++];) {
         nominateApp(gridCollection, appInfo, queries);
       }
@@ -566,6 +573,7 @@ void function() {
     function onAppUninstall(e) {
       var gridCollections = EvmeManager.getCollections();
 
+      /* jshint -W084, -W083 */
       for (var i = 0, gridCollection; gridCollection = gridCollections[i++];) {
         Evme.CollectionStorage.get(gridCollection.id,
           function removeApp(settings) {
@@ -607,6 +615,12 @@ void function() {
   Evme.CollectionSettings = function Evme_CollectionSettings(args) {
     this.id = args.id;
 
+    // default icon defined in manifest.collection
+    // only avaiable on init of pre-installed collections
+    if (args.defaultIcon) {
+      this.defaultIcon = args.defaultIcon;
+    }
+
     // object containing backgound information (image, query, source, setByUser)
     this.bg = args.bg || null;
 
@@ -621,6 +635,7 @@ void function() {
     // list of {"id": 3, "icon": "base64icon"}
     this.extraIconsData = [];
     if (args.extraIconsData) {
+      /* jshint -W084 */
       for (var i = 0, iconData; iconData = args.extraIconsData[i++]; ) {
         if (iconData.id && iconData.icon) {
           this.extraIconsData.push(iconData);
@@ -656,8 +671,6 @@ void function() {
         'query': query
       });
 
-      var installedIcons = Evme.Utils.pluck(installedApps, 'icon');
-
       var settings = new Evme.CollectionSettings({
         id: Evme.Utils.uuid(),
         query: query,
@@ -681,6 +694,7 @@ void function() {
       cleanData.apps = Evme.Utils.unique(data.apps, 'id');
 
       // cloudapps: convert ids to strings
+      /* jshint -W084 */
       for (var k = 0, app; app = cleanData.apps[k++]; ) {
         if (typeof app.id === 'number') {
           app.id = '' + app.id;
@@ -749,6 +763,7 @@ void function() {
    */
   function populateAllCollections() {
     var gridCollections = EvmeManager.getCollections();
+    /* jshint -W084 */
     for (var i = 0, gridCollection; gridCollection = gridCollections[i++];) {
       Evme.CollectionStorage.get(gridCollection.id, populateCollection);
     }
@@ -776,6 +791,7 @@ void function() {
 
   function depopulateAllCollections() {
     var gridCollections = EvmeManager.getCollections();
+    /* jshint -W084, -W083 */
     for (var i = 0, gridCollection; gridCollection = gridCollections[i++];) {
       Evme.CollectionStorage.get(gridCollection.id,
         function depopulate(settings) {
@@ -816,13 +832,12 @@ void function() {
    * Add a collection to the homescreen.
    */
   function addToGrid(settings, gridPageOffset, extra) {
-    createCollectionIcon(settings, function onIconCreated(canvas) {
-      EvmeManager.addGridItem({
+    createCollectionIcon(settings, function onIconCreated(icon) {
+      EvmeManager.addCollection({
         'id': settings.id,
         'originUrl': settings.id,
         'name': settings.query,
-        'icon': canvas.toDataURL(),
-        'isCollection': true,
+        'icon': icon,
         'gridPageOffset': gridPageOffset
       }, extra);
     });
@@ -832,23 +847,59 @@ void function() {
    * Update a collection's icon on the homescreen
    */
   function updateGridIconImage(settings) {
-    createCollectionIcon(settings, function iconCreated(iconCanvas) {
-      EvmeManager.setIconImage(iconCanvas.toDataURL(), settings.id);
+    createCollectionIcon(settings, function iconCreated(icon) {
+      EvmeManager.setIconImage(icon, settings.id);
     });
   }
 
   function createCollectionIcon(settings, callback) {
-    var icons = Evme.Utils.pluck(settings.apps, 'icon');
+    var
+    iconsNeeded = Evme.Config.numberOfAppInCollectionIcon,
+    iconPromises =
+      settings.apps.slice(0, iconsNeeded).map(function getIcon(app) {
+        return new Promise(function done(resolve) {
+          if (app.staticType === Evme.STATIC_APP_TYPE.CLOUD) {
+            resolve(app.icon);
+          } else {
+            // try to use the un-manipulated app icon so we can apply
+            // the shadow and sizing needed for the collection icon
+            EvmeManager.retrieveAppIcon(app, function success(blob) {
+              resolve(blob);
+            }, function error() {
+              // fallback to homescreen manipulated icon
+              resolve(app.icon);
+            });
+          }
+        });
+      });
 
-    if (icons.length < Evme.Config.numberOfAppInCollectionIcon) {
-      var extraIcons = Evme.Utils.pluck(settings.extraIconsData, 'icon');
-      icons = icons.concat(extraIcons).slice(0,
-                                      Evme.Config.numberOfAppInCollectionIcon);
+    Promise.all(iconPromises).then(function iconsReady(icons) {
+      if (icons.length < iconsNeeded) {
+        var extraIcons = Evme.Utils.pluck(settings.extraIconsData, 'icon');
+        icons = icons.concat(extraIcons).slice(0, iconsNeeded);
+      }
+
+      if (icons.length) {
+        Evme.IconGroup.get(icons, function onIconCreated(iconCanvas) {
+          callback(iconCanvas.toDataURL());
+        });
+      } else {
+        useDefault();
+      }
+    }, useDefault).catch(useDefault);
+
+    function useDefault() {
+      // revert to default icon (if exists) instead of rendering an empty icon
+      // see bug 968918
+      if (settings.defaultIcon) {
+        callback(settings.defaultIcon);
+      } else {
+        // empty icon
+        Evme.IconGroup.get([], function onIconCreated(iconCanvas) {
+          callback(iconCanvas.toDataURL());
+        });
+      }
     }
-
-    Evme.IconGroup.get(icons, function onIconCreated(iconCanvas) {
-      callback(iconCanvas);
-    });
   }
 
   /**
@@ -857,8 +908,7 @@ void function() {
    *
    */
   Evme.CollectionStorage = new function Evme_CollectionStorage() {
-    var NAME = 'CollectionStorage',
-        PREFIX = 'collectionsettings_',
+    var PREFIX = 'collectionsettings_',
         self = this;
 
     this.init = function init() {

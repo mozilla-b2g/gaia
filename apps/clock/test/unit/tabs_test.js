@@ -1,9 +1,10 @@
 'use strict';
+
 suite('Tabs', function() {
   var Tabs;
 
   suiteSetup(function(done) {
-    testRequire(['tabs'], function(tabs) {
+    require(['tabs'], function(tabs) {
       Tabs = tabs;
       done();
     });
@@ -29,9 +30,10 @@ suite('Tabs', function() {
     setup(function() {
       this.links[1].click();
     });
-    test('moved aria-selected', function() {
-      assert.isTrue(this.links[1].parentNode.hasAttribute('aria-selected'));
-      assert.equal(this.element.querySelectorAll('[aria-selected]').length, 1);
+    test('test aria-selected set', function() {
+      ['false', 'true', 'false'].forEach(function(value, index) {
+        assert.equal(this.links[index].getAttribute('aria-selected'), value);
+      }, this);
     });
   });
 });

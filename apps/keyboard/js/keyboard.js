@@ -98,7 +98,7 @@
  *      End composition, clear the composing text and commit given text to
  *      current input field.
  *
- *    sendKey(keycode):
+ *    sendKey(keycode, isRepeat):
  *      Generate output. Typically the keyboard will just pass this
  *      keycode to inputcontext.sendKey(). The IM could call
  *      inputcontext.sendKey() directly, but doing it this way allows
@@ -191,6 +191,11 @@ var menuLockedArea = null;
 var isKeyboardRendered = false;
 var currentCandidates = [];
 var candidatePanelScrollTimer = null;
+
+var cachedIMEDimensions = {
+  height: 0,
+  width: 0
+};
 
 // Show accent char menu (if there is one) after ACCENT_CHAR_MENU_TIMEOUT
 const ACCENT_CHAR_MENU_TIMEOUT = 700;
@@ -873,8 +878,9 @@ function setLayoutPage(newpage) {
 // Inform about a change in the displayed application via mutation observer
 // http://hacks.mozilla.org/2012/05/dom-mutationobserver-reacting-to-dom-changes-without-killing-browser-performance/
 function updateTargetWindowHeight(hide) {
-  var imeHeight = IMERender.ime.scrollHeight;
-  var imeWidth = IMERender.getWidth();
+  // height of the current active IME + 1px for the borderTop
+  var imeHeight = cachedIMEDimensions.height = IMERender.getHeight() + 1;
+  var imeWidth = cachedIMEDimensions.width = IMERender.getWidth();
   window.resizeTo(imeWidth, imeHeight);
 }
 
@@ -1140,7 +1146,7 @@ function onTouchEnd(evt) {
       var dt = evt.timeStamp - touchStartCoordinate.timeStamp;
       var vy = dy / dt;
 
-      var keyboardHeight = IMERender.ime.scrollHeight;
+      var keyboardHeight = cachedIMEDimensions.height;
       var hasCandidateScrolled = (IMERender.isFullCandidataPanelShown() &&
                                   (Math.abs(dx) > 3 || Math.abs(dy) > 3));
 
@@ -1237,14 +1243,11 @@ function startPress(target, coords, touchId) {
   // Furthermore, delete key has a repetition behavior
   if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
 
-    // First, just pressing (without feedback)
-    sendDelete(false);
-
-    // Second, after a delay (with feedback)
+    // First repetition, after a delay (with feedback)
     deleteTimeout = window.setTimeout(function() {
       sendDelete(true);
 
-      // Third, after shorter delay (with feedback too)
+      // Second, after shorter delay (with feedback too)
       deleteInterval = setInterval(function() {
         sendDelete(true);
       }, REPEAT_RATE);
@@ -1375,7 +1378,7 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
   var dataset = target.dataset;
   if (dataset.selection) {
     if (!hasCandidateScrolled) {
-      IMERender.toggleCandidatePanel(false);
+      IMERender.toggleCandidatePanel(false, true);
 
       if (inputMethod.select) {
         // We use dataset.data instead of target.textContent because the
@@ -1401,8 +1404,11 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
   var keyCode = getKeyCodeFromTarget(target);
 
   // Delete is a special key, it reacts when pressed not released
-  if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
+  if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
+    // The backspace key pressing is regarded as non-repetitive behavior.
+    sendDelete(false);
     return;
+  }
 
   // Reset the flag when a non-space key is pressed,
   // used in space key double tap handling
@@ -1457,7 +1463,7 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
           candidatePanel.addEventListener('scroll', candidatePanelOnScroll);
         }
 
-        IMERender.toggleCandidatePanel(true);
+        IMERender.toggleCandidatePanel(true, true);
       };
 
       if (candidatePanel.dataset.rowCount == 1) {
@@ -1496,7 +1502,7 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
         }
       }
 
-      IMERender.toggleCandidatePanel(false);
+      IMERender.toggleCandidatePanel(false, true);
     }
     break;
 
@@ -1591,6 +1597,7 @@ function switchToNextIME() {
 }
 
 function showIMEList() {
+  clearTouchedKeys();
   var mgmt = navigator.mozInputMethod.mgmt;
   mgmt.showAll();
 }
@@ -1609,9 +1616,13 @@ function resetKeyboard() {
 // This is a wrapper around inputContext.sendKey()
 // We use it in the defaultInputMethod and in the interface object
 // we pass to real input methods
-function sendKey(keyCode) {
+function sendKey(keyCode, isRepeat) {
   switch (keyCode) {
   case KeyEvent.DOM_VK_BACK_SPACE:
+    if (inputContext) {
+      return inputContext.sendKey(keyCode, 0, 0, isRepeat);
+    }
+    break;
   case KeyEvent.DOM_VK_RETURN:
     if (inputContext) {
       return inputContext.sendKey(keyCode, 0, 0);
@@ -1636,7 +1647,7 @@ function replaceSurroundingText(text, offset, length) {
 }
 
 // Set up the keyboard and its input method.
-// This is called when we get an event from mozKeyboard.
+// This is called when we get an event from mozInputMethod.
 // The state argument is the data passed with that event, and includes
 // the input field type, its inputmode, its content, and the cursor position.
 function showKeyboard() {
@@ -1938,6 +1949,28 @@ function needsCandidatePanel() {
 function isGreekSMS() {
   return (currentInputMode === '-moz-sms' &&
           keyboardName === 'el');
+}
+
+// Remove the event listeners on the touched keys and the highlighting.
+// This is because sometimes DOM element is removed before
+// touchend is fired.
+function clearTouchedKeys() {
+  for (var id in touchedKeys) {
+    if (!touchedKeys[id]) {
+      continue;
+    }
+
+    var target = touchedKeys[id].target;
+    if (target) {
+      target.removeEventListener('touchmove', onTouchMove);
+      target.removeEventListener('touchend', onTouchEnd);
+      target.removeEventListener('touchcancel', onTouchEnd);
+      IMERender.unHighlightKey(target);
+    }
+  }
+
+  hideAlternatives();
+  touchedKeys = {};
 }
 /*
  * This is a helper to scroll the keyboard layout menu when the touch moves near

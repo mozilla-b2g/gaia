@@ -8,6 +8,15 @@
   },
   findNestedDependencies: true,
 
+  // Be sure to normalize all define() calls by extracting
+  // dependencies so Function toString is not needed, and
+  // lower capability devices like Tarako can optimize
+  // memory by discarding function sources. This is
+  // automatically done when an 'optimize' value other than
+  // 'none' is used. This setting makes sure it happens for
+  // builds where 'none' is used for 'optimize'.
+  normalizeDirDefines: 'all',
+
   // Build a separate module for each panel. Because the application
   // consistently initializes with the `startup` module, this module and all
   // its dependencies do not need to be included by the "secondary" panels
@@ -48,6 +57,17 @@
     },
     compress: false,
     mangle: false
+  },
+
+  // Rewrite the waitSeconds directive so that we never time out
+  // waiting for modules to load in production. See
+  // js/require_config.js for more details.
+  onBuildWrite: function(id, url, contents) {
+    if (id === 'require_config') {
+      return contents.replace(/waitSeconds:\s*\d+/, 'waitSeconds: 0');
+    } else {
+      return contents;
+    }
   },
 
   fileExclusionRegExp: /^\.|^test$|^build$/,

@@ -12,6 +12,7 @@ class Activities(Base):
 
     _actions_menu_locator = (By.CSS_SELECTOR, 'body > form[data-type="action"]')
     _settings_button_locator = (By.XPATH, '//*[text()="Settings"]')
+    _add_subject_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="add-subject"]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -25,3 +26,6 @@ class Activities(Base):
         self.apps.switch_to_displayed_app()
         from gaiatest.apps.messages.regions.messaging_settings import MessagingSettings
         return MessagingSettings(self.marionette)
+
+    def tap_add_subject(self):
+        self.marionette.find_element(*self._add_subject_button_locator).tap()

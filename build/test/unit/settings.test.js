@@ -197,7 +197,8 @@ suite('settings.js', function() {
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
-          'notification.ringtone': undefined },
+          'notification.ringtone': undefined,
+          'ftu.pingURL': config.FTU_PING_URL },
           result);
         done();
       });
@@ -221,7 +222,8 @@ suite('settings.js', function() {
             '/manifest.webapp',
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
-          'notification.ringtone': undefined },
+          'notification.ringtone': undefined,
+          'ftu.pingURL': config.FTU_PING_URL },
           result);
         done();
       });
@@ -243,7 +245,8 @@ suite('settings.js', function() {
           'debugger.remote-mode': 'disabled',
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
-          'notification.ringtone': undefined },
+          'notification.ringtone': undefined,
+          'ftu.pingURL': config.FTU_PING_URL },
           result);
         done();
       });
@@ -268,7 +271,8 @@ suite('settings.js', function() {
           'lockscreen.locked': false,
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
-          'notification.ringtone': undefined },
+          'notification.ringtone': undefined,
+          'ftu.pingURL': config.FTU_PING_URL },
           result);
         done();
       });
@@ -276,6 +280,69 @@ suite('settings.js', function() {
 
     teardown(function() {
       config = {};
+    });
+  });
+
+  suite('setDefaultKeyboardLayouts', function() {
+    var config;
+    var settings = {};
+    var defaultManifestURL = 'app://keyboard.gaiamobile.org/manifest.webapp';
+    var expectedLayouts = {};
+    expectedLayouts[defaultManifestURL] = {en: true, number: true};
+
+    setup(function() {
+      config = {
+        GAIA_DISTRIBUTION_DIR: 'testDistributionDir',
+        GAIA_DIR: 'testGaia',
+        SETTINGS_PATH: 'testSettingsPath'
+      };
+      mockUtils.resolve = function(file, baseLink) {
+        return {
+          exists: function() {
+            return true;
+          },
+          path: baseLink + '/' + file
+        };
+      };
+
+      mockUtils.getJSON = function() {
+        return {
+          'layout': {
+            'en-US': [
+              {'layoutId': 'en', 'appManifestURL': defaultManifestURL}
+            ],
+            'zh-TW': [
+              {'layoutId': 'zhuyin', 'appManifestURL': defaultManifestURL},
+              {'layoutId': 'en', 'appManifestURL': defaultManifestURL}
+            ]
+          },
+          'langIndependentLayouts':
+            [{'layoutId': 'number', 'appManifestURL': defaultManifestURL}]
+        };
+
+      };
+    });
+
+    test('Set default keyboard layouts, lang = en-US', function() {
+      app.setDefaultKeyboardLayouts('en-US', settings, config);
+      assert.deepEqual(settings['keyboard.enabled-layouts'],
+                       expectedLayouts);
+    });
+
+    test('Set default keyboard layouts, lang = zh-TW', function() {
+      app.setDefaultKeyboardLayouts('zh-TW', settings, config);
+
+      var expectedLayoutsChinese = {};
+      expectedLayoutsChinese[defaultManifestURL] = {zhuyin: true, en: true,
+        number: true};
+        assert.deepEqual(settings['keyboard.enabled-layouts'],
+                         expectedLayoutsChinese);
+    });
+
+    test('Fall back to default keyboard layouts as en, lang = de', function() {
+      app.setDefaultKeyboardLayouts('de', settings, config);
+      assert.deepEqual(settings['keyboard.enabled-layouts'],
+                       expectedLayouts);
     });
   });
 });

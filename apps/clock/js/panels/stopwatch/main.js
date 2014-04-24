@@ -2,7 +2,6 @@ define(function(require) {
   'use strict';
 
   var Panel = require('panel');
-  var View = require('view');
   var Stopwatch = require('stopwatch');
   var Utils = require('utils');
   var Template = require('template');
@@ -61,10 +60,10 @@ define(function(require) {
       e.addEventListener('click', this);
     }, this);
 
-    View.instance(element).on(
-      'visibilitychange',
-      this.onvisibilitychange.bind(this)
-    );
+    element.addEventListener(
+      'panel-visibilitychange', this.onvisibilitychange.bind(this));
+
+    mozL10n.translate(this.element);
 
     this.setStopwatch(new Stopwatch());
 
@@ -72,11 +71,13 @@ define(function(require) {
 
   Stopwatch.Panel.prototype = Object.create(Panel.prototype);
 
+
   Stopwatch.Panel.prototype.update = function() {
     var swp = priv.get(this);
     var e = swp.stopwatch.getElapsedTime();
     var time = Utils.format.durationMs(e);
     this.nodes.time.textContent = time;
+    this.nodes.time.classList.toggle('over-100-minutes', e >= 1000 * 60 * 100);
     this.activeLap(false);
   };
 
@@ -126,9 +127,9 @@ define(function(require) {
     this.checkLapButton();
   };
 
-  Stopwatch.Panel.prototype.onvisibilitychange = function(isVisible) {
+  Stopwatch.Panel.prototype.onvisibilitychange = function(evt) {
     var stopwatch = priv.get(this).stopwatch;
-    if (isVisible) {
+    if (evt.detail.isVisible) {
       this.setState(stopwatch.getState());
     }
   };

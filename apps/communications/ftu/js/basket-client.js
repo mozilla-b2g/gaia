@@ -1,3 +1,4 @@
+/* exported Basket */
 'use strict';
 
 // Simple Javascript client for Mozilla Basket newsletters

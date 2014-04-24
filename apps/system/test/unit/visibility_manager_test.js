@@ -1,3 +1,5 @@
+/* globals MocksHelper, MockLockScreen, VisibilityManager,
+           MockAttentionScreen */
 'use strict';
 
 mocha.globals(['VisibilityManager', 'System', 'lockScreen']);
@@ -13,6 +15,7 @@ var mocksForVisibilityManager = new MocksHelper([
 
 suite('system/VisibilityManager', function() {
   var stubById;
+  var visibilityManager;
   mocksForVisibilityManager.attachTestHelpers();
   setup(function(done) {
     window.lockScreen = MockLockScreen;
@@ -21,7 +24,10 @@ suite('system/VisibilityManager', function() {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/system.js');
-    requireApp('system/js/visibility_manager.js', done);
+    requireApp('system/js/visibility_manager.js', function() {
+      visibilityManager = new VisibilityManager().start();
+      done();
+    });
   });
 
   teardown(function() {
@@ -30,9 +36,9 @@ suite('system/VisibilityManager', function() {
 
   suite('handle events', function() {
     test('lock', function() {
-      VisibilityManager._normalAudioChannelActive = false;
-      var stubPublish = this.sinon.stub(VisibilityManager, 'publish');
-      VisibilityManager.handleEvent({
+      visibilityManager._normalAudioChannelActive = false;
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
         type: 'lock'
       });
 
@@ -40,22 +46,22 @@ suite('system/VisibilityManager', function() {
       assert.equal(stubPublish.getCall(0).args[0], 'hidewindows');
       assert.equal(stubPublish.getCall(1).args[0], 'hidewindow');
 
-      VisibilityManager._normalAudioChannelActive = true;
-      VisibilityManager.handleEvent({
+      visibilityManager._normalAudioChannelActive = true;
+      visibilityManager.handleEvent({
         type: 'lock'
       });
 
       assert.isTrue(stubPublish.calledThrice);
       assert.equal(stubPublish.getCall(2).args[0], 'hidewindows');
 
-      VisibilityManager._normalAudioChannelActive = false;
+      visibilityManager._normalAudioChannelActive = false;
     });
 
     test('will-unlock', function() {
       MockAttentionScreen.mFullyVisible = false;
-      var stubPublish = this.sinon.stub(VisibilityManager, 'publish');
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
 
-      VisibilityManager.handleEvent({
+      visibilityManager.handleEvent({
         type: 'will-unlock'
       });
 
@@ -64,7 +70,7 @@ suite('system/VisibilityManager', function() {
       assert.isTrue(stubPublish.getCall(1).args[0] === 'showwindow');
 
       MockAttentionScreen.mFullyVisible = true;
-      VisibilityManager.handleEvent({
+      visibilityManager.handleEvent({
         type: 'will-unlock'
       });
 
@@ -73,8 +79,8 @@ suite('system/VisibilityManager', function() {
     });
 
     test('attentionscreenshow', function() {
-      var stubPublish = this.sinon.stub(VisibilityManager, 'publish');
-      VisibilityManager.handleEvent({
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
         type: 'attentionscreenshow',
         detail: {
           origin: 'fake-dialer'
@@ -89,8 +95,8 @@ suite('system/VisibilityManager', function() {
     });
 
     test('attentionscreenhide', function() {
-      var stubPublish = this.sinon.stub(VisibilityManager, 'publish');
-      VisibilityManager.handleEvent({
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
         type: 'attentionscreenhide'
       });
 
@@ -99,7 +105,7 @@ suite('system/VisibilityManager', function() {
     });
 
     test('Normal audio channel is on.', function() {
-      VisibilityManager.handleEvent({
+      visibilityManager.handleEvent({
         type: 'mozChromeEvent',
         detail: {
           type: 'visible-audio-channel-changed',
@@ -107,11 +113,11 @@ suite('system/VisibilityManager', function() {
         }
       });
 
-      assert.isTrue(VisibilityManager._normalAudioChannelActive);
+      assert.isTrue(visibilityManager._normalAudioChannelActive);
     });
 
     test('Normal audio channel is off.', function() {
-      VisibilityManager.handleEvent({
+      visibilityManager.handleEvent({
         type: 'mozChromeEvent',
         detail: {
           type: 'visible-audio-channel-changed',
@@ -119,7 +125,7 @@ suite('system/VisibilityManager', function() {
         }
       });
 
-      assert.isFalse(VisibilityManager._normalAudioChannelActive);
+      assert.isFalse(visibilityManager._normalAudioChannelActive);
     });
   });
 });

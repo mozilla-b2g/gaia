@@ -19,6 +19,7 @@ require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
 requireApp('system/js/app_install_manager.js');
+mocha.globals(['applications']);
 
 var mocksForAppInstallManager = new MocksHelper([
   'StatusBar',
@@ -48,6 +49,8 @@ suite('system/AppInstallManager >', function() {
   var lastL10nParams = null;
   var lastDispatchedResponse = null;
 
+  var realApplications;
+
   mocksForAppInstallManager.attachTestHelpers();
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
@@ -62,6 +65,9 @@ suite('system/AppInstallManager >', function() {
         return key;
       }
     };
+
+    realApplications = window.applications;
+    window.applications = MockApplications;
 
     realDispatchResponse = AppInstallManager.dispatchResponse;
     AppInstallManager.dispatchResponse = function fakeDispatch(id, type) {
@@ -97,6 +103,8 @@ suite('system/AppInstallManager >', function() {
 
     navigator.mozApps = realMozApps;
     realMozApps = null;
+    window.applications = realApplications;
+    realApplications = null;
   });
 
   setup(function() {
@@ -143,7 +151,7 @@ suite('system/AppInstallManager >', function() {
         'Are you sure you want to cancel this install?</p>',
         '<menu>',
           '<button id="app-install-confirm-cancel-button" type="reset" ' +
-          'data-l10n-id="cancel-install">Cancel Install</button>',
+          'data-l10n-id="cancel-install-button">Cancel Install</button>',
           '<button id="app-install-resume-button" type="submit" ' +
           'data-l10n-id="resume">Resume</button>',
         '</menu>',

@@ -5,12 +5,13 @@ var Panel = require('panel');
 var Picker = require('picker/picker');
 var View = require('view');
 
+var mozL10n = require('l10n');
 var Utils = require('utils');
 var Timer = require('timer');
 var Sounds = require('sounds');
-var mozL10n = require('l10n');
 var FormButton = require('form_button');
 var html = require('text!panels/timer/panel.html');
+var AudioManager = require('audio_manager');
 
 var priv = new WeakMap();
 
@@ -43,19 +44,18 @@ Timer.Panel = function(element) {
     element: this.element.querySelector('#time-picker'),
     pickers: {
       hours: {
-        range: [0, 23]
+        range: [0, 23],
+        valueText: 'nSpinnerHours'
       },
       minutes: {
         range: [0, 59],
-        isPadded: true
+        isPadded: true,
+        valueText: 'nSpinnerMinutes'
       }
     }
   });
 
-  Timer.singleton(function(err, timer) {
-    this.timer = timer;
-    timer.on('end', this.dialog.bind(this));
-  }.bind(this));
+  this.ringtonePlayer = AudioManager.createAudioPlayer();
 
   // Gather elements
   [
@@ -83,6 +83,8 @@ Timer.Panel = function(element) {
     element.addEventListener('click', this.onclick.bind(this), false);
   }, this);
 
+  mozL10n.translate(this.element);
+
   var sound = this.nodes.sound;
 
   sound.addEventListener('blur', this.pauseAlarm.bind(this), false);
@@ -95,20 +97,25 @@ Timer.Panel = function(element) {
   this.soundButton = new FormButton(sound, soundMenuConfig);
   this.soundButton.refresh();
 
-  mozL10n.translate(this.element);
+  element.addEventListener('panel-visibilitychange',
+                           this.onvisibilitychange.bind(this));
 
-  View.instance(element, Timer.Panel).on(
-    'visibilitychange', this.onvisibilitychange.bind(this)
-  );
-
-  View.instance(element, Timer.Panel).once(
-    'visibilitychange',
-    setTimeout.bind(window, this.picker.reset.bind(this.picker), 0));
+  Timer.singleton(function(err, timer) {
+    this.timer = timer;
+    timer.onend = this.dialog.bind(this);
+    if (this.visible) {
+      // If the timer panel already became visible before we fetched
+      // the timer, we must update the display to show the proper
+      // timer status.
+      this.onvisibilitychange({ detail: { isVisible: true } });
+    }
+  }.bind(this));
 };
 
 Timer.Panel.prototype = Object.create(Panel.prototype);
 
-Timer.Panel.prototype.onvisibilitychange = function(isVisible) {
+Timer.Panel.prototype.onvisibilitychange = function(evt) {
+  var isVisible = evt.detail.isVisible;
   var nodes = this.nodes;
   var timer = this.timer;
 
@@ -198,26 +205,15 @@ Timer.Panel.prototype.toggle = function(show, hide) {
  * previewAlarm Plays the currently selected alarm value on a loop.
  */
 Timer.Panel.prototype.previewAlarm = function() {
-  if (!this.ringtonePlayer) {
-    this.ringtonePlayer = new Audio();
-    this.ringtonePlayer.mozAudioChannelType = 'alarm';
-    this.ringtonePlayer.loop = true;
-  }
-  this.ringtonePlayer.pause();
-
   var ringtoneName = Utils.getSelectedValueByIndex(this.nodes.sound);
-  var previewRingtone = 'shared/resources/media/alarms/' + ringtoneName;
-  this.ringtonePlayer.src = previewRingtone;
-  this.ringtonePlayer.play();
+  this.ringtonePlayer.playRingtone(ringtoneName);
 };
 
 /**
  * pauseAlarm stops the alarm if it is playing
  */
 Timer.Panel.prototype.pauseAlarm = function() {
-  if (this.ringtonePlayer) {
-    this.ringtonePlayer.pause();
-  }
+  this.ringtonePlayer.pause();
 };
 
 /**

@@ -1,0 +1,8 @@
+{
+  "costcontrol": {
+    "src": ["apps/costcontrol/js/**/*.js"],
+    "options": {
+      "destination": "docs/costcontrol"
+    }
+  }
+}

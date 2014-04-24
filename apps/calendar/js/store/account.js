@@ -1,4 +1,5 @@
 (function(window) {
+  'use strict';
 
   function Account() {
     Calendar.Store.Abstract.apply(this, arguments);
@@ -242,8 +243,9 @@
         trans = null;
       }
 
-      if (!account._id)
+      if (!account._id) {
         throw new Error('given account must be persisted');
+      }
 
       if (!account.error) {
         account.error = {
@@ -299,7 +301,9 @@
      */
     syncableAccounts: function(callback) {
       this.all(function(err, list) {
-        if (err) return callback(err);
+        if (err) {
+          return callback(err);
+        }
 
         var results = [];
         for (var key in list) {

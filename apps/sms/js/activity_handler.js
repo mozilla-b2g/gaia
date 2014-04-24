@@ -90,16 +90,30 @@ var ActivityHandler = {
       function insertAttachments() {
         window.removeEventListener('hashchange', insertAttachments);
 
-        blobs.forEach(function(blob, idx) {
+        var attachments = blobs.map(function(blob, idx) {
           var attachment = new Attachment(blob, {
             name: names[idx],
             isDraft: true
           });
-          // TODO: We only allow sharing one item in a single action now.
-          //       Keeping the same sequence while adding the multiple items
-          //       should be considered in the future.
-          Compose.append(attachment);
+
+          return attachment;
         });
+
+        var size = attachments.reduce(function(size, attachment) {
+          if (attachment.type !== 'img') {
+            size += attachment.size;
+          }
+
+          return size;
+        }, 0);
+
+        if (size > Settings.mmsSizeLimitation) {
+          alert(navigator.mozL10n.get('files-too-large', { n: blobs.length }));
+          return;
+        }
+
+        ThreadUI.cleanFields(true);
+        Compose.append(attachments);
       }
 
       // Navigating to the 'New Message' page is an asynchronous operation that
@@ -234,6 +248,7 @@ var ActivityHandler = {
     if (!message) {
       return;
     }
+
     this.isLocked = false;
     var threadId = message.threadId ? message.threadId : null;
     var body = message.body ? Template.escape(message.body) : '';
@@ -356,7 +371,8 @@ var ActivityHandler = {
       // The SMS app is already displayed
       if (!document.hidden) {
         if (threadId === Threads.currentId) {
-          navigator.vibrate([200, 200, 200]);
+          Notify.ringtone();
+          Notify.vibrate();
           releaseWakeLock();
           return;
         }
@@ -399,6 +415,16 @@ var ActivityHandler = {
           var notification = new Notification(title, options);
           notification.addEventListener('click', goToMessage);
           releaseWakeLock();
+
+          // Close notification if we are already in thread view and view become
+          // visible.
+          if (document.hidden && threadId === Threads.currentId) {
+            document.addEventListener('visibilitychange',
+              function onVisible() {
+                document.removeEventListener('visibilitychange', onVisible);
+                notification.close();
+            });
+          }
         }
 
         function getTitleFromMms(callback) {

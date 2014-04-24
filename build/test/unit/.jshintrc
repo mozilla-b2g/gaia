@@ -3,9 +3,11 @@
   "predef": [
     "exports",
     "require",
-    "setup",
     "suite",
     "test",
-    "teardown"
+    "setup",
+    "teardown",
+    "suiteSetup",
+    "suiteTeardown"
   ]
 }

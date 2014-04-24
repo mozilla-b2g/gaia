@@ -1,4 +1,5 @@
 Calendar.ns('Store').IcalComponent = (function() {
+  'use strict';
 
   function IcalComponent() {
     Calendar.Store.Abstract.apply(this, arguments);

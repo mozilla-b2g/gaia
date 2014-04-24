@@ -1,7 +1,7 @@
-requireApp('communications/dialer/js/voicemail.js');
+require('/shared/js/dialer/voicemail.js');
 
-requireApp('communications/dialer/test/unit/mock_mozVoicemail.js');
-requireApp('communications/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/dialer/test/unit/mock_mozVoicemail.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 suite('dialer/voicemail', function() {
   var realMozVoicemail;
@@ -24,7 +24,7 @@ suite('dialer/voicemail', function() {
     setup(function() {
       MockMozVoicemail._number = '123';
       MockNavigatorSettings.createLock().set(
-        { 'ril.iccInfo.mbdn': '123' }
+        { 'ril.iccInfo.mbdn': ['123'] }
       );
     });
 
@@ -53,7 +53,7 @@ suite('dialer/voicemail', function() {
     setup(function() {
       MockMozVoicemail._number = null;
       MockNavigatorSettings.createLock().set(
-        { 'ril.iccInfo.mbdn': '123' }
+        { 'ril.iccInfo.mbdn': ['123'] }
       );
     });
 
@@ -82,7 +82,7 @@ suite('dialer/voicemail', function() {
     setup(function() {
       MockMozVoicemail._number = null;
       MockNavigatorSettings.createLock().set(
-        { 'ril.iccInfo.mbdn': '123' }
+        { 'ril.iccInfo.mbdn': ['123'] }
       );
     });
 
@@ -110,7 +110,7 @@ suite('dialer/voicemail', function() {
     setup(function() {
       MockMozVoicemail._number = null;
       MockNavigatorSettings.createLock().set(
-        { 'ril.iccInfo.mbdn': '' }
+        { 'ril.iccInfo.mbdn': null }
       );
     });
 

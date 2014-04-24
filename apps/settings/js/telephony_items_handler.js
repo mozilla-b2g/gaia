@@ -31,9 +31,15 @@ var TelephonyItemsHandler = (function(window, document, undefined) {
   var CARD_STATE_MAPPING = {
     'pinRequired' : 'simCardLockedMsg',
     'pukRequired' : 'simCardLockedMsg',
+    'permanentBlocked': 'simCardBlockedMsg',
     'networkLocked' : 'simLockedPhone',
     'serviceProviderLocked' : 'simLockedPhone',
     'corporateLocked' : 'simLockedPhone',
+    'network1Locked' : 'simLockedPhone',
+    'network2Locked' : 'simLockedPhone',
+    'hrpdNetworkLocked' : 'simLockedPhone',
+    'ruimCorporateLocked' : 'simLockedPhone',
+    'ruimServiceProviderLocked' : 'simLockedPhone',
     'unknown' : 'unknownSimCardState',
     'illegal' : 'simCardIllegal',
     'absent' : 'noSimCard',
@@ -245,6 +251,10 @@ var TelephonyItemsHandler = (function(window, document, undefined) {
   // Public API.
   return {
     init: tih_init,
-    handleItems: tih_handleItems
+    handleItems: function() {
+      AirplaneModeHelper.ready(function() {
+        tih_handleItems();
+      });
+    }
   };
 })(this, document);

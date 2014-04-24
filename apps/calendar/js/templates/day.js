@@ -1,12 +1,15 @@
+/*globals Calendar*/
 (function(window) {
+  'use strict';
 
   var Day = Calendar.Template.create({
     hour: function() {
       var hour = this.h('hour');
       var l10n = '';
       var displayHour;
+      var isAllDay = hour === Calendar.Calc.ALLDAY;
 
-      if (hour === Calendar.Calc.ALLDAY) {
+      if (isAllDay) {
         l10n = ' data-l10n-id="hour-allday" ';
         displayHour = navigator.mozL10n.get('hour-allday');
       } else {
@@ -22,6 +25,7 @@
 
       return '<section class="' + classes + '" data-hour="' + hour + '">' +
           '<h4>' +
+            (isAllDay ? '<i class="icon-allday"></i>' : '') +
             '<span ' + l10n + 'class="display-hour ' + hour + '">' +
               displayHour +
             '</span>' +
@@ -37,19 +41,28 @@
 
     event: function() {
       var calendarId = this.h('calendarId');
-      return '<section class="event calendar-id-' + calendarId + ' ' +
-        this.h('classes') + ' calendar-display" ' +
+      var hasAlarm = this.arg('hasAlarm');
+
+      var eventClassName = 'event calendar-id-' + calendarId +
+        ' calendar-display calendar-bg-color ' +
+        this.h('classes');
+
+      var containerClassName = 'container calendar-border-color ' +
+        'calendar-id-' + calendarId;
+
+      if (hasAlarm) {
+        containerClassName += ' has-alarm';
+      }
+
+      return '<section class="' + eventClassName + '" ' +
         'data-id="' + this.h('busytimeId') + '">' +
-          '<div class="container calendar-id-' + calendarId +
-              ' calendar-color">' +
+          '<div class="' + containerClassName + '">' +
             '<h5>' + this.h('title') + '</h5>' +
-            '<span class="details">' +
-              '<span class="location">' +
-                this.h('location') +
-              '</span>' +
-              this.s('attendees') +
+            '<span class="location">' +
+              this.h('location') +
             '</span>' +
           '</div>' +
+          (hasAlarm ? '<i class="icon-alarm calendar-text-color"></i>' : '') +
         '</section>';
     }
   });

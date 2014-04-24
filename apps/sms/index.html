@@ -6,15 +6,16 @@
     <title>Messages</title>
     <!-- Stable Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
     <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
-    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="shared/style/lists.css">
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/sim_picker.css">
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/root.css">
     <link rel="stylesheet" type="text/css" href="style/common.css">
@@ -25,6 +26,7 @@
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/sim_picker.ini">
     <!-- Shared code -->
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/l10n.js"></script>
@@ -36,6 +38,9 @@
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/contact_photo_helper.js"></script>
     <script defer src="shared/js/mobile_operator.js"></script>
+    <script defer src="shared/js/settings_listener.js"></script>
+    <script defer src="shared/js/sim_picker.js"></script>
+    <script defer src="shared/js/multi_sim_action_button.js"></script>
     <script defer src="js/dialog.js"></script>
     <script defer src="js/blacklist.js"></script>
     <script defer src="js/contacts.js"></script>
@@ -66,7 +71,12 @@
     <script defer src="shared/js/fb/fb_data_reader.js"></script>
     <script defer src="shared/js/fb/fb_reader_utils.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/performance_testing_helper.js"></script>
+    <script defer src="shared/js/sticky_header.js"></script>
+    <script defer src="js/app.js"></script>
     <script defer src="js/startup.js"></script>
+    <!-- Elements -->
+    <link rel="import" href="/shared/elements/sim-picker.html">
   </head>
 
   <body role="application">
@@ -94,7 +104,7 @@
         </div>
 
         <form id="threads-edit-form" role="dialog" data-type="edit">
-          <section>
+          <section role="region">
             <header>
               <button id="threads-cancel-button">
                 <span data-l10n-id="cancel" class="icon icon-close">close</span>
@@ -118,6 +128,8 @@
         <section id="threads-draft-saved-banner" class="hide" role="status">
           <p data-l10n-id="message-draft-saved">Message saved as draft</p>
         </section>
+
+        <div id="sticky"></div>
       </section>
 
       <section id="thread-messages" class="panel" role="region">
@@ -231,15 +243,18 @@
           </div>
         </article>
         <form role="search" id="messages-compose-form" class="bottom messages-compose-form" data-message-type="sms">
-          <button id="messages-send-button" disabled data-l10n-id="send" type="submit">Send</button>
+          <button id="messages-send-button" disabled data-l10n-id="send" type="submit">
+            <div class="js-sim-indication"></div>
+            Send
+          </button>
           <textarea id="messages-subject-input" placeholder="Subject" name="subject"
             data-l10n-id="composeSubject" class="hide" maxlength="40"></textarea>
           <!-- The <br> is needed because of 414223, which is a WONTFIX. It's just because of how contentEditable works. https://bugzilla.mozilla.org/show_bug.cgi?id=414223 -->
           <div id="messages-input" contentEditable="true" name="message"
             data-l10n-id="composeMessage" x-inputmode="-moz-sms"><br></div>
         </form>
-        <form role="dialog" id="messages-edit-form" role="dialog" data-type="edit" >
-          <section>
+        <form role="dialog" id="messages-edit-form" role="dialog" data-type="edit">
+          <section role="region">
             <header>
               <button id="messages-cancel-button">
                 <span data-l10n-id="cancel" class="icon icon-close">close</span>
@@ -305,6 +320,22 @@
         </a>
       </li>
       -->
+    </div>
+
+    <div id="contact-suggestion-unknown-tmpl" class="hide">
+    <!--
+    <li>
+      <a class="suggestion"
+        data-number="${number}" data-source="contacts" data-name="${name}"
+        data-type="${type}" data-separator="${separator}" data-carrier="${carrier}">
+        ${photoHTML}
+        <p class="name">${numberHTML}</p>
+        <p class="number">
+          <span data-l10n-id="${type}">Unknown Contact</span>
+        </p>
+     </a>
+    </li>
+    -->
     </div>
 
     <div id="contact-prompt-tmpl" class="hide">
@@ -469,5 +500,9 @@
       }
       -->
     </div>
+
+    <article>
+      <form is="sim-picker" id="sim-picker" role="dialog" data-type="action" tabindex="-1" hidden></form>
+    </article>
   </body>
 </html>

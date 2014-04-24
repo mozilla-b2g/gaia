@@ -1,3 +1,6 @@
+/* global DataMobile, Navigation, SimManager, TimeManager,
+          UIManager, WifiManager, ImportIntegration */
+/* exported AppManager */
 'use strict';
 
 var _ = navigator.mozL10n.get;
@@ -5,7 +8,7 @@ var _ = navigator.mozL10n.get;
 var AppManager = {
 
   init: function init() {
-    this.isLocalized = true;
+    this.isInitialized = true;
     SimManager.init();
     WifiManager.init();
     ImportIntegration.init();
@@ -13,13 +16,10 @@ var AppManager = {
     UIManager.init();
     Navigation.init();
     DataMobile.init();
-    VariantManager.init();
     var kSplashTimeout = 700;
     // Retrieve mobile connection if available
-    // XXX: check bug-926169
     // this is used to keep all tests passing while introducing multi-sim APIs
-    var conn = window.navigator.mozMobileConnection ||
-               window.navigator.mozMobileConnections &&
+    var conn = window.navigator.mozMobileConnections &&
                window.navigator.mozMobileConnections[0];
 
     if (!conn) {
@@ -47,9 +47,7 @@ var AppManager = {
 };
 
 navigator.mozL10n.ready(function showBody() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-  if (!AppManager.isLocalized) {
+  if (!AppManager.isInitialized) {
     AppManager.init();
   } else {
     UIManager.initTZ();

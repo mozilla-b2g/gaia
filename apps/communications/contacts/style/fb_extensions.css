@@ -26,11 +26,6 @@ p.facebook.removed input {
   border: 1px solid #3b5998;
 }
 
-.facebook.removed a,
-.facebook.removed input {
-  color: #969696;
-}
-
 .facebook.removed dl dd p:last-child {
   border-bottom: none;
 }
@@ -46,7 +41,11 @@ p.facebook.removed input {
 }
 
 .with-photo.removed.facebook {
-  border: none;
+  padding-right: 0
+}
+
+.with-photo.removed.facebook .edit-photo  {
+  right: 0
 }
 
 #settingsFb li p {

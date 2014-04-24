@@ -1,0 +1,11 @@
+{
+  "operatorvariant": {
+    "src": ["apps/operatorvariant/js/**/*.js",
+            "!apps/operatorvariant/js/operator_variant.js"
+    ],
+    "options": {
+      "destination": "docs/operatorvariant"
+    }
+  }
+}
+

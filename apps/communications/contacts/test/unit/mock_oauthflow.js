@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockOauthflow */
 
 var MockOauthflow = {
   params: {

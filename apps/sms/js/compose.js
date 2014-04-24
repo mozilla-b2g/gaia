@@ -95,8 +95,9 @@ var Compose = (function() {
       ThreadUI.draft.isEdited = true;
     }
 
-    // if the duck is an image attachment, handle resizes
-    if (duck instanceof Attachment && duck.type === 'img') {
+    // if the duck is an image attachment or object, handle resizes
+    if ((duck instanceof Attachment && duck.type === 'img') ||
+       (duck && duck.containsImage)) {
       return imageAttachmentsHandling();
     }
 
@@ -216,11 +217,12 @@ var Compose = (function() {
       if (++done === images) {
         state.resizing = false;
         onContentChanged();
+      } else {
+        resizedImg(imgNodes[done]);
       }
     }
 
-    state.resizing = true;
-    imgNodes.forEach(function(node) {
+    function resizedImg(node) {
       var item = attachments.get(node);
       if (item.blob.size < limit) {
         imageSized();
@@ -239,7 +241,9 @@ var Compose = (function() {
           imageSized();
         });
       }
-    });
+    }
+    state.resizing = true;
+    resizedImg(imgNodes[done]);
     onContentChanged();
   }
 
@@ -409,13 +413,15 @@ var Compose = (function() {
             if (element.text) {
               this.append(element.text);
             }
-          }, Compose);
-        });
+          }, this);
+          this.ignoreEvents = false;
+          this.focus();
+        }.bind(this));
+        this.ignoreEvents = true;
       } else {
-        this.append(message.body);
+        this.append(message.body ? message.body : '');
+        this.focus();
       }
-
-      this.focus();
     },
 
     getText: function() {
@@ -493,24 +499,39 @@ var Compose = (function() {
       return this;
     },
 
-    append: function(item) {
-      var fragment = insert(item);
-
-      if (document.activeElement === dom.message) {
-        // insert element at caret position
-        var range = window.getSelection().getRangeAt(0);
-        var firstNodes = fragment.firstChild;
-        range.deleteContents();
-        range.insertNode(fragment);
-        this.scrollToTarget(range);
-        dom.message.focus();
-        range.setStartAfter(firstNodes);
+    // if item is an array,ignore calling onContentChanged for each item
+    append: function(item, options) {
+      options = options || {};
+      if (Array.isArray(item)) {
+        var containsImage = false;
+        item.forEach(function(content) {
+          if (content.type === 'img') {
+            containsImage = true;
+          }
+          this.append(content, {ignoreChange: true});
+        }, this);
+        onContentChanged({containsImage: containsImage});
       } else {
-        // insert element at the end of the Compose area
-        dom.message.insertBefore(fragment, dom.message.lastChild);
-        this.scrollToTarget(dom.message.lastChild);
+        var fragment = insert(item);
+
+        if (document.activeElement === dom.message) {
+          // insert element at caret position
+          var range = window.getSelection().getRangeAt(0);
+          var firstNodes = fragment.firstChild;
+          range.deleteContents();
+          range.insertNode(fragment);
+          this.scrollToTarget(range);
+          dom.message.focus();
+          range.setStartAfter(firstNodes);
+        } else {
+          // insert element at the end of the Compose area
+          dom.message.insertBefore(fragment, dom.message.lastChild);
+          this.scrollToTarget(dom.message.lastChild);
+        }
+        if (!options.ignoreChange) {
+          onContentChanged(item);
+        }
       }
-      onContentChanged(item);
       return this;
     },
 
@@ -538,14 +559,18 @@ var Compose = (function() {
       }
     },
 
+    _onAttachmentRequestError: function c_onAttachmentRequestError(err) {
+      if (err === 'file too large') {
+        alert(navigator.mozL10n.get('files-too-large', { n: 1 }));
+      } else {
+        console.warn('Unhandled error spawning activity:', err);
+      }
+    },
+
     onAttachClick: function thui_onAttachClick(event) {
       var request = this.requestAttachment();
       request.onsuccess = this.append.bind(this);
-      request.onerror = function(err) {
-        if (err === 'file too large') {
-          alert(navigator.mozL10n.get('file-too-large'));
-        }
-      };
+      request.onerror = this._onAttachmentRequestError;
     },
 
     onAttachmentClick: function thui_onAttachmentClick(event) {
@@ -580,11 +605,7 @@ var Compose = (function() {
             onContentChanged(newAttachment);
             AttachmentMenu.close();
           }).bind(this);
-          request.onerror = function(err) {
-            if (err === 'file too large') {
-              alert(navigator.mozL10n.get('file-too-large'));
-            }
-          };
+          request.onerror = this._onAttachmentRequestError;
           break;
         case 'attachment-options-cancel':
           AttachmentMenu.close();
@@ -705,6 +726,12 @@ var Compose = (function() {
   Object.defineProperty(compose, 'subjectMaxLength', {
     get: function composeGetResizeState() {
       return subject.getMaxLength();
+    }
+  });
+
+  Object.defineProperty(compose, 'ignoreEvents', {
+    set: function composeIgnoreEvents(value) {
+      dom.message.classList.toggle('ignoreEvents', value);
     }
   });
 

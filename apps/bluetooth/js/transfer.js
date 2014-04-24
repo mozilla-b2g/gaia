@@ -18,6 +18,7 @@ window.addEventListener('localized', function showPanel() {
         (activity.source.name == 'share') &&
         (activity.source.data.blobs &&
          activity.source.data.blobs.length > 0)) {
+      observeBluetoothEnabled();
       isBluetoothEnabled();
     } else {
       var msg = 'Cannot transfer without blobs data!';
@@ -39,6 +40,33 @@ window.addEventListener('localized', function showPanel() {
       return;
 
     console.log('[Bluetooth APP Send File]: ' + msg);
+  }
+
+  function observeBluetoothEnabled() {
+    // enable Bluetooth if the related settings says so
+    // register an observer to monitor bluetooth.enabled changes
+    settings.addObserver('bluetooth.enabled', function(event) {
+      var enabled = event.settingValue;
+      var msg = 'bluetooth.enabled = ' + enabled;
+      debug(msg);
+
+      // clear deviceList and defaultAdapter,
+      // we have to acquire it again when enabled.
+      if (!enabled) {
+        msg = 'clear deviceList and defaultAdapter';
+        debug(msg);
+        gDeviceList.update(false);
+        defaultAdapter = null;
+
+        // Make sure turn Bluetooth on confirmation dialog is hidden or not,
+        // Then, require user to confirm for turn Bluetooth on again.
+        if (dialogConfirmBluetooth.hidden) {
+          msg = 'require user to confirm for turn Bluetooth on';
+          debug(msg);
+          confirmTurnBluetoothOn();
+        }
+      }
+    });
   }
 
   function isBluetoothEnabled() {

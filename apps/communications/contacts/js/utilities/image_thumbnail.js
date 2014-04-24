@@ -16,13 +16,19 @@ var utils = window.utils || {};
     var img = document.createElement('img');
     var url = URL.createObjectURL(blob);
     img.src = url;
-    img.onload = function onBlobLoad() {
+
+    function cleanupImg() {
+      img.src = '';
       URL.revokeObjectURL(url);
+    }
+
+    img.onload = function onBlobLoad() {
 
       var width = img.width;
       var height = img.height;
 
       if (width <= thumbnailEdge && height <= thumbnailEdge) {
+        cleanupImg();
         callback(blob);
         return;
       }
@@ -36,10 +42,17 @@ var utils = window.utils || {};
       canvas.height = height * factor;
       var context = canvas.getContext('2d', { willReadFrequently: true });
       context.drawImage(img, 0, 0, width * factor, height * factor);
-      canvas.toBlob(callback);
+      cleanupImg();
+      canvas.toBlob(function onCanvasToBlob(canvasBlob) {
+        context = null;
+        canvas.width = canvas.height = 0;
+        canvas = null;
+        callback(canvasBlob);
+      });
     };
 
     img.onerror = function onError() {
+      cleanupImg();
       callback(blob);
     };
   };

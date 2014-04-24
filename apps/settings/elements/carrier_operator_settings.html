@@ -15,7 +15,7 @@
             </select>
           </span>
         </li>
-        <li id="operator-roaming-preference">
+        <li id="operator-roaming-preference" hidden>
           <p data-l10n-id="operator-roamingPreference">Roaming preference</p>
           <span class="button icon icon-dialog">
             <select id="operator-roaming-preference-selector">
@@ -24,7 +24,7 @@
             </select>
           </span>
         </li>
-        <li id="operator-autoSelect">
+        <li id="operator-autoSelect" hidden>
           <label class="pack-switch">
             <input type="checkbox" data-ignore>
             <small></small>
@@ -33,10 +33,10 @@
         </li>
       </ul>
 
-      <header id="availableOperatorsHeader">
+      <header id="availableOperatorsHeader" hidden>
         <h2 data-l10n-id="availableOperators"> Network Operators in the Area </h2>
       </header>
-      <ul id="availableOperators" data-state="off">
+      <ul id="availableOperators" data-state="off" hidden>
         <li class="explanation" data-state="off" data-l10n-id="operator-turnAutoSelectOff">
           Turn Automatic Selection off to view available network operators.
         </li>
@@ -44,9 +44,7 @@
           Searching…
         </li>
         <li data-state="ready">
-          <label>
-            <button data-l10n-id="scanNetworks">Search Again</button>
-          </label>
+          <button data-l10n-id="scanNetworks">Search Again</button>
         </li>
       </ul>
     </div>

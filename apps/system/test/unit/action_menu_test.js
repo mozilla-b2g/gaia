@@ -181,4 +181,15 @@ suite('ActionMenu', function() {
       assert.isTrue(menu.hide.called);
     });
   });
+
+  suite('preventFocusChange', function() {
+    test('focus is not changed when specified', function() {
+      var menu = new ActionMenu(genericActionsMockup, title, null, null, true);
+      this.sinon.spy(menu, 'preventFocusChange');
+      menu.start();
+      menu.menu.dispatchEvent(new CustomEvent('mousedown',
+        { bubbles: true, cancelable: true }));
+      assert.isTrue(menu.preventFocusChange.called);
+    });
+  });
 });

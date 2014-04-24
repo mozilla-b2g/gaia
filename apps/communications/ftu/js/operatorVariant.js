@@ -1,3 +1,5 @@
+/* global IccHelper */
+/* exported OperatorVariant */
 'use strict';
 
 var OperatorVariant = (function() {
@@ -22,6 +24,11 @@ var OperatorVariant = (function() {
   *   'networkLocked',
   *   'corporateLocked',
   *   'serviceProviderLocked',
+  *   'network1Locked',
+  *   'network2Locked',
+  *   'hrpdNetworkLocked',
+  *   'ruimCorporateLocked',
+  *   'ruimServiceProviderLocked'
   */
   function setSIMOnFirstBootState() {
     var cardState;

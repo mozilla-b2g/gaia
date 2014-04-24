@@ -51,6 +51,50 @@ function setNotification(settings, config) {
   settings['notification.ringtone'] = utils.getFileAsDataURI(notification);
 }
 
+/* Setup the default keyboard layouts according to the current language */
+function setDefaultKeyboardLayouts(lang, settings, config) {
+  let layoutConfigFile = utils.resolve(
+    utils.joinPath('shared', 'resources', 'keyboard_layouts.json'),
+    config.GAIA_DIR);
+
+  let layoutConfig = utils.getJSON(layoutConfigFile);
+  let keyboardLayouts = layoutConfig['layout'];
+
+  if (!keyboardLayouts) {
+    utils.log('default keyboard layouts are not defined: ' +
+              layoutConfigFile.path + '\n');
+    return;
+  }
+
+  // Get the default layouts for the specified language
+  let defaultLayoutList = keyboardLayouts[lang];
+  if (!defaultLayoutList) {
+    utils.log('Cannot find default layout list for language: ' + lang + '\n');
+    defaultLayoutList = keyboardLayouts['en-US'];
+  }
+
+  let keyboardSettings = {};
+
+  function addLayoutEntry(layout) {
+    let manifestURL = layout.appManifestURL;
+
+    if (!keyboardSettings[manifestURL]) {
+      keyboardSettings[manifestURL] = {};
+    }
+
+    keyboardSettings[manifestURL][layout.layoutId] = true;
+  }
+
+  defaultLayoutList.forEach(addLayoutEntry);
+
+  // Also add language-independent layouts into the sets
+  let langIndependentLayoutList = layoutConfig['langIndependentLayouts'];
+  langIndependentLayoutList.forEach(addLayoutEntry);
+
+  settings['keyboard.enabled-layouts'] = keyboardSettings;
+  settings['keyboard.default-layouts'] = keyboardSettings;
+}
+
 function overrideSettings(settings, config) {
   // See if any override file exists and eventually override settings
   let override = utils.resolve(config.SETTINGS_PATH,
@@ -104,6 +148,9 @@ function execute(config) {
       config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
   }
 
+  // Set the ftu ping URL -- we set this regardless of NOFTU for now
+  settings['ftu.pingURL'] = config.FTU_PING_URL;
+
   // Set the rocketbar URL
   settings['rocketbar.searchAppURL'] = utils.gaiaOriginURL('search',
     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/index.html';
@@ -132,12 +179,14 @@ function execute(config) {
     settings['lockscreen.locked'] = false;
   }
 
+  setDefaultKeyboardLayouts(config.GAIA_DEFAULT_LOCALE, settings, config);
+
   // Ensure not quitting xpcshell before all asynchronous code is done
   utils.processEvents(function(){return {wait : false}});
   var queue = utils.Q.defer();
   queue.resolve();
 
-  return queue.promise.then(function() {
+  var result = queue.promise.then(function() {
     setWallpaper(settings, config);
   }).then(function() {
     setRingtone(settings, config);
@@ -149,6 +198,11 @@ function execute(config) {
     writeSettings(settings, config);
     return settings;
   });
+
+  // Ensure not quitting xpcshell before all asynchronous code is done
+  utils.processEvents(function(){return {wait : false}});
+
+  return result;
 }
 exports.execute = execute;
 exports.setWallpaper = setWallpaper;
@@ -156,3 +210,4 @@ exports.setRingtone = setRingtone;
 exports.setNotification = setNotification;
 exports.overrideSettings = overrideSettings;
 exports.writeSettings = writeSettings;
+exports.setDefaultKeyboardLayouts = setDefaultKeyboardLayouts;

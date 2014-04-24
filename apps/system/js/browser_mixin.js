@@ -90,10 +90,8 @@
       }
 
       var req = this.iframe.getScreenshot(
-        width || this.width || LayoutManager.width,
-        height || this.height || (this.isFullScreen() ?
-                                  LayoutManager.fullscreenHeight :
-                                  LayoutManager.usualHeight));
+        width || this.width || layoutManager.width,
+        height || this.height || layoutManager.height);
 
       req.onsuccess = function gotScreenshotFromFrame(evt) {
         var result = evt.target.result;

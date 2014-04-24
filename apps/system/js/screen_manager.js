@@ -106,6 +106,8 @@ var ScreenManager = {
   init: function scm_init() {
     window.addEventListener('sleep', this);
     window.addEventListener('wake', this);
+    window.addEventListener('nfc-tech-discovered', this);
+    window.addEventListener('nfc-tech-lost', this);
     window.addEventListener('requestshutdown', this);
 
     // User is unlocking by sliding or other methods.
@@ -209,6 +211,11 @@ var ScreenManager = {
 
       case 'wake':
         this.turnScreenOn();
+        break;
+
+      case 'nfc-tech-discovered':
+      case 'nfc-tech-lost':
+        this._reconfigScreenTimeout();
         break;
 
       case 'unlocking-start':
@@ -434,7 +441,7 @@ var ScreenManager = {
     // Remove idle timer if screen wake lock is acquired or
     // if no app has been displayed yet.
     if (this._screenWakeLocked || typeof(AppWindowManager) !== 'object' ||
-        !AppWindowManager.getDisplayedApp()) {
+        !AppWindowManager.getActiveApp()) {
       this._setIdleTimeout(0);
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.

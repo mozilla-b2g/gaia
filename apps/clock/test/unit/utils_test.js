@@ -1,14 +1,14 @@
 'use strict';
-/* global MockRequestWakeLock */
-requireApp('clock/test/unit/mocks/mock_request_wake_lock.js');
 
 suite('Time functions', function() {
   var Utils;
+  var MockRequestWakeLock;
 
   suiteSetup(function(done) {
-    testRequire(['utils'],
-      function(utils) {
+    require(['utils', 'mocks/mock_request_wake_lock'],
+      function(utils, _MockRequestWakeLock) {
         Utils = utils;
+        MockRequestWakeLock = _MockRequestWakeLock;
         done();
     });
   });
@@ -36,45 +36,6 @@ suite('Time functions', function() {
       assert.equal(selectDOM.selectedIndex, 2);
     });
 
-  });
-
-  suite('#parseTime', function() {
-
-    var parseTime;
-
-    suiteSetup(function() {
-      parseTime = Utils.parseTime;
-    });
-
-    test('12:10am', function() {
-      var time = parseTime('12:10AM');
-      assert.equal(time.hour, 0);
-      assert.equal(time.minute, 10);
-    });
-
-    test('12:00pm', function() {
-      var time = parseTime('12:00PM');
-      assert.equal(time.hour, 12);
-      assert.equal(time.minute, 0);
-    });
-
-    test('11:30pm', function() {
-      var time = parseTime('11:30PM');
-      assert.equal(time.hour, 23);
-      assert.equal(time.minute, 30);
-    });
-
-    test('00:15', function() {
-      var time = parseTime('12:15AM');
-      assert.equal(time.hour, 0);
-      assert.equal(time.minute, 15);
-    });
-
-    test('23:45', function() {
-      var time = parseTime('23:45');
-      assert.equal(time.hour, 23);
-      assert.equal(time.minute, 45);
-    });
   });
 
   suite('#dateMath', function() {
@@ -535,59 +496,6 @@ suite('Time functions', function() {
   });
 
   suite('format', function() {
-    suite('time(hh, mm) ', function() {
-      var is12hStub, formatTime;
-
-      setup(function() {
-        formatTime = Utils.format.time;
-        is12hStub = sinon.stub(Utils, 'is12hFormat');
-      });
-
-      teardown(function() {
-        is12hStub.restore();
-      });
-
-      test('12:00am, with 12 hour clock settings', function() {
-        is12hStub.returns(true);
-        assert.equal(formatTime(0, 0), '12:00AM');
-      });
-
-      test('12:30pm, with 12 hour clock settings', function() {
-        is12hStub.returns(true);
-        assert.equal(formatTime(12, 30), '12:30PM');
-      });
-
-      test('11:30pm, with 12 hour clock settings', function() {
-        is12hStub.returns(true);
-        assert.equal(formatTime(23, 30), '11:30PM');
-      });
-
-      test('12:30am, with 24 hour clock settings', function() {
-        is12hStub.returns(false);
-        assert.equal(formatTime(0, 30), '00:30');
-      });
-
-      test('12:30pm, with 24 hour clock settings', function() {
-        is12hStub.returns(false);
-        assert.equal(formatTime(12, 30), '12:30');
-      });
-
-      test('11:30pm, with 24 hour clock settings', function() {
-        is12hStub.returns(false);
-        assert.equal(formatTime(23, 30), '23:30');
-      });
-
-      test('2:30, disable meridian', function() {
-        var opts = {meridian: false};
-        assert.equal(formatTime(2, 30, opts), '2:30');
-      });
-
-      test('02:30, pad hours option', function() {
-        var opts = {padHours: true};
-        assert.equal(formatTime(2, 30, opts), '02:30');
-      });
-    });
-
     suite('hms()', function() {
       var hms;
 

@@ -5,8 +5,9 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
 
   this.type = Evme.RESULT_TYPE.CLOUD;
 
-  var SHADOW_OFFSET = 2 * window.devicePixelRatio,
-      SHADOW_BLUR = 2 * window.devicePixelRatio,
+  var SHADOW_OFFSET = Icon.prototype.SHADOW_OFFSET_Y,
+      SHADOW_BLUR = Icon.prototype.SHADOW_BLUR,
+      SHADOW_COLOR = Icon.prototype.SHADOW_COLOR,
 
       self = this;
 
@@ -37,26 +38,20 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
         var osIconSize = Evme.Utils.getOSIconSize(),
             width = osIconSize,
             height = osIconSize,
-            padding = Evme.Utils.OS_ICON_PADDING,
-            canvas = self.initIcon(height + padding),
+            padding = 0,
+            canvas = self.initIcon(height),
             context = canvas.getContext('2d'),
             canvasHeight = canvas.height,
             canvasWidth = canvas.width,
             SHADOW_SIZE = (SHADOW_OFFSET + SHADOW_BLUR);
 
-        // account for shadow - pad the canvas from the bottom,
-        // and move the name back up
-        canvas.height += SHADOW_SIZE;
-        self.elIcon.style.cssText += 'margin-bottom: ' + -SHADOW_SIZE + 'px;';
-
         // shadow
         context.shadowOffsetX = 0;
         context.shadowOffsetY = SHADOW_OFFSET;
         context.shadowBlur = SHADOW_BLUR;
-        context.shadowColor = 'rgba(0, 0, 0, 0.6)';
+        context.shadowColor = SHADOW_COLOR;
         context.drawImage(fixedImage,
-                          (canvasWidth - width + padding) / 2, padding,
-                          width - padding, height - padding);
+          (canvasWidth - width) / 2, 0, width, height);
 
         self.finalizeIcon(canvas);
       };
@@ -67,21 +62,13 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
 
   // @override
   this.launch = function launchCloudApp() {
-    // first resize the icon to the OS size
-    // this includes a 2px padding around the icon
-    Evme.Utils.padIconForOS({
+    EvmeManager.openCloudApp({
+      'url': self.cfg.appUrl,
+      'originUrl': self.getFavLink(),
+      'title': self.cfg.name,
       'icon': self.cfg.icon,
-      'resize': true,
-      'callback': function onIconResized(icon) {
-        EvmeManager.openCloudApp({
-          'url': self.cfg.appUrl,
-          'originUrl': self.getFavLink(),
-          'title': self.cfg.name,
-          'icon': icon,
-          'urlTitle': query,
-          'useAsyncPanZoom': self.cfg.isWeblink
-        });
-      }
+      'urlTitle': query,
+      'useAsyncPanZoom': self.cfg.isWeblink
     });
   };
 };

@@ -1,7 +1,9 @@
+/*global Factory */
+
 suiteGroup('Models.Event', function() {
+  'use strict';
 
   var subject;
-  var provider;
   var rawEvent;
   var remote;
 

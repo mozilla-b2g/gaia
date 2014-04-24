@@ -1,19 +1,41 @@
 'use strict';
 
-var MockHomescreenLauncher = {
-  getHomescreen: function mhl_getHomescreen() {
-    return this.mHomescreenWindow;
-  },
+(function(exports) {
+  var mHomescreenInstance = undefined;
+  var mOrigin;
+  var mReady;
 
-  mHomescreenWindow: null,
+  var MockHomescreenLauncher = function() {
+    return this;
+  };
 
-  origin: 'home',
+  MockHomescreenLauncher.prototype = {
+    start: function mhl_start() {
+      return this;
+    },
 
-  ready: true,
+    getHomescreen: function mhl_getHomescreen() {
+      return mHomescreenInstance;
+    },
 
-  mTeardown: function mhl_mTeardown() {
-    this.mHomescreenWindow = null;
-    this.origin = 'home';
-    this.ready = true;
-  }
-};
+    mFeedFixtures: function mhl_feedFixtures(options) {
+      mHomescreenInstance = options.mHomescreenWindow;
+      mOrigin = options.origin || 'home';
+      mReady = options.ready;
+    },
+
+    mHomescreenWindow: null,
+
+    origin: 'home',
+
+    ready: true,
+
+    mTeardown: function mhl_mTeardown() {
+      this.mHomescreenWindow = null;
+      this.origin = 'home';
+      this.ready = true;
+    }
+  };
+
+  exports.MockHomescreenLauncher = MockHomescreenLauncher;
+}(window));

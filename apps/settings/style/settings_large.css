@@ -60,7 +60,7 @@
   }
 
   section[role="region"]#root header {
-    background: url("images/ui/tablet_menu_header.png") repeat-x scroll 0% 0% / auto 100% transparent;
+    background: url("images/ui/tablet_menu_header.png") repeat-x scroll 0 0 / auto 100% transparent;
   }
 
   section[role="region"]#root header:after {
@@ -140,11 +140,11 @@
   }
 
   section[role="region"]:not([id='root']) ul li > a span {
-    right: 0rem;
+    right: 0;
   }
 
   section[role="region"]:not([id='root']) ul li > small {
-    left: 0rem;
+    left: 0;
   }
 
   section[role="region"]:not([id='root']) ul li.hint .explanation {
@@ -379,7 +379,7 @@
   .skin-dark  section[role="region"] > header:first-child,
   section[role="region"].skin-organic > header:first-child,
   .skin-organic section[role="region"] > header:first-child {
-    background: url("images/ui/tablet_header.png") repeat-x scroll 0% 0% / auto 100% transparent;
+    background: url("images/ui/tablet_header.png") repeat-x scroll 0 0 / auto 100% transparent;
   }
 
   section[role="region"].skin-dark > header:first-child a:after,

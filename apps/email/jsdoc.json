@@ -1,0 +1,11 @@
+{
+  "email": {
+    "src": ["apps/email/js/**/*.js",
+            "!apps/email/js/ext/mailapi/activesync/configurator.js"
+    ],
+    "options": {
+      "destination": "docs/email"
+    }
+  }
+}
+

@@ -1,4 +1,5 @@
 'use strict';
+/* exported MockContactsListObj */
 
 var MockContactsListObj = {
     init: function() {},
@@ -11,5 +12,6 @@ var MockContactsListObj = {
     remove: function() {},
     loaded: true,
     clearClickHandlers: function() {},
-    setOrderByLastName: function() {}
+    setOrderByLastName: function() {},
+    initAlphaScroll: function() {}
 };

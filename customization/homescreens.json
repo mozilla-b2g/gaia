@@ -1,8 +1,17 @@
-{"homescreens": [
-  [
-    ["apps", "communications", "dialer"],
-    ["apps", "sms"],
-    ["apps", "browser"],
-    ["apps", "camera"]
+{
+  "homescreens": [
+    [
+      ["apps", "camera"],
+      ["apps", "communications", "dialer"],
+      ["apps", "sms"],
+      ["external-apps", "marketplace.firefox.com"]
+    ], [
+      ["apps", "gallery"],
+      ["apps", "fm"],
+      ["apps", "settings"]
+    ], [
+      ["apps", "calendar"],
+      ["apps", "clock"]
+    ]
   ]
-]}
+}

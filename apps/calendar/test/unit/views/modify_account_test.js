@@ -1,8 +1,12 @@
+/*global Factory */
+
 requireLib('oauth_window.js');
 requireLib('provider/abstract.js');
 requireLib('provider/local.js');
 
 suiteGroup('Views.ModifyAccount', function() {
+  'use strict';
+
   var subject;
   var account;
   var triggerEvent;
@@ -46,12 +50,12 @@ suiteGroup('Views.ModifyAccount', function() {
         return req;
       }
     };
-  };
+  }
 
   function teardownOauth() {
     Calendar.OAuthWindow = RealOAuth;
     navigator.mozApps = realMozApps;
-  };
+  }
 
   suiteSetup(function() {
     triggerEvent = testSupport.calendar.triggerEvent;
@@ -276,7 +280,7 @@ suiteGroup('Views.ModifyAccount', function() {
     });
 
     test('with updateModel option', function() {
-      subject.fields['user'].value = 'iupdatedu';
+      subject.fields.user.value = 'iupdatedu';
       subject.save({ updateModel: true });
       assert.equal(subject.model.user, 'iupdatedu');
     });
@@ -344,8 +348,6 @@ suiteGroup('Views.ModifyAccount', function() {
     account.fullUrl = 'http://google.com/path/';
 
     subject.updateForm();
-
-    var fields = subject.fields;
 
     assert.equal(fieldValue('user'), 'james');
     assert.equal(fieldValue('password'), '');
@@ -441,7 +443,6 @@ suiteGroup('Views.ModifyAccount', function() {
       });
 
       test('save button', function(done) {
-        var called;
         subject.fields.user.value = 'updated';
 
         subject.accountHandler.send = function(model) {

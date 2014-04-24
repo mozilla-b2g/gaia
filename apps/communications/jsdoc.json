@@ -1,0 +1,20 @@
+{
+  "contacts": {
+    "src": ["apps/communications/contacts/js/**/*.js"],
+    "options": {
+      "destination": "docs/contacts"
+    }
+  },
+  "dialer": {
+    "src": ["apps/communications/dialer/js/**/*.js"],
+    "options": {
+      "destination": "docs/dialer"
+    }
+  },
+  "ftu": {
+    "src": ["apps/communications/ftu/js/**/*.js"],
+    "options": {
+      "destination": "docs/ftu"
+    }
+  }
+}

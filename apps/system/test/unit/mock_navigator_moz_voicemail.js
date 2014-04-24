@@ -1,17 +1,34 @@
 'use strict';
 
 var MockNavigatorMozVoicemail = {
-  number: '123',
-  mActive: false,
+  mNumbers: ['111'],
+  mHasMessages: false,
+  mServiceId: 0,
   mCallbacks: {},
+  mMessage: 'message',
+  mMessageCount: 1,
 
-  setActive: function(bool) {
-    this.mActive = bool;
+  mTeardown: function() {
+    this.numbers = ['111'];
+    this.mHasMessages = false;
+    this.mServiceId = 0;
+    this.mCallbacks = {};
+    this.mMessage = 'message';
+    this.mMessageCount = 1;
+  },
+
+  mTriggerEvent: function(name) {
+    this.mCallbacks[name].handleEvent({
+      status: this.getStatus()
+    });
   },
 
   getStatus: function() {
     return {
-      hasMessages: this.mActive
+      serviceId: this.mServiceId,
+      hasMessages: this.mHasMessages,
+      messageCount: this.mMessageCount,
+      returnMessage: this.mMessage
     };
   },
 
@@ -20,7 +37,7 @@ var MockNavigatorMozVoicemail = {
     return;
   },
 
-  triggerEvent: function(name) {
-    this.mCallbacks[name].handleEvent();
+  getNumber: function(serviceId) {
+    return this.mNumbers[serviceId || 0];
   }
 };

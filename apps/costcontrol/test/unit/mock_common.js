@@ -1,3 +1,5 @@
+/* global MockAllNetworkInterfaces, Common  */
+/* exported MockCommon */
 'use strict';
 
 requireApp('costcontrol/test/unit/mock_all_network_interfaces.js');
@@ -21,6 +23,9 @@ var MockCommon = function(config) {
     allNetworkInterfaces: {},
     dataSimIccId: null,
     dataSimIcc: null,
+    localize: function (element, label, args) {
+      element.textContent = label;
+    },
     isValidICCID: function(iccid) {
       assert.isDefined(
         config.isValidICCID,
@@ -66,9 +71,10 @@ var MockCommon = function(config) {
       return wifiInterface;
     },
     getIccInfo: function() { return;},
-    loadNetworkInterfaces: function() {
+    loadNetworkInterfaces: function(onsuccess, onerror) {
       setTimeout(function() {
         Common.allNetworkInterfaces = allInterfacesFake;
+        (typeof onsuccess === 'function') && onsuccess();
       }, 0);
     },
     loadDataSIMIccId: function(onsuccess, onerror) {

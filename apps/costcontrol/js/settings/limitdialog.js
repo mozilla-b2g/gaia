@@ -1,14 +1,14 @@
-
+/* global _, addNetworkUsageAlarm, Common, Formatting */
+/* exported dataLimitConfigurer */
 'use strict';
 
 function dataLimitConfigurer(guiWidget, settings, viewManager) {
 
   var dialog = document.getElementById('data-limit-dialog');
-  var switchUnitButton = document.getElementById('switch-unit-button');
   var dataLimitInput = dialog.querySelector('input');
   var format = function ccal_formatterDataUnit(value) {
     var unit = settings.option('dataLimitUnit');
-    return formatData([value, _(unit)]);
+    return Formatting.formatData([value, _(unit)]);
   };
 
   // Configure dialog
@@ -18,8 +18,8 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
       var value = parseFloat(dataLimitInput.value);
       settings.option('dataLimitValue', value);
       settings.option('dataLimitUnit', currentUnit);
-      var dataLimit = getDataLimit({'dataLimitValue': value,
-                                    'dataLimitUnit': currentUnit});
+      var dataLimit = Common.getDataLimit({'dataLimitValue': value,
+                                           'dataLimitUnit': currentUnit});
       addNetworkUsageAlarm(Common.getDataSIMInterface(), dataLimit);
       viewManager.closeCurrentView();
     });

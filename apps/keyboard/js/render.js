@@ -41,6 +41,9 @@ const IMERender = (function() {
     isSpecialKey = keyTest;
     ime = document.getElementById('keyboard');
     menu = document.getElementById('keyboard-accent-char-menu');
+
+    cachedWindowHeight = window.innerHeight;
+    cachedWindowWidth = window.innerWidth;
   };
 
   var setInputMethodName = function(name) {
@@ -309,9 +312,11 @@ const IMERender = (function() {
     }
   };
 
-  var toggleCandidatePanel = function(expand) {
+  var toggleCandidatePanel = function(expand, resetScroll) {
     var candidatePanel = activeIme.querySelector('.keyboard-candidate-panel');
-    candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
+    if (resetScroll) {
+      candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
+    }
 
     if (expand) {
       ime.classList.remove('candidate-panel');
@@ -340,21 +345,27 @@ const IMERender = (function() {
     if (candidatePanel) {
       candidatePanel.dataset.candidateIndicator = 0;
 
-      candidatePanel.innerHTML = '';
-      candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
-
       var docFragment = document.createDocumentFragment();
 
       if (inputMethodName == 'latin') {
-        if (candidates.length) {
-          var dismissButton = document.createElement('div');
-          dismissButton.classList.add('dismiss-suggestions-button');
-          candidatePanel.appendChild(dismissButton);
-          var candidateWidth =
-            (candidatePanel.clientWidth - dismissButton.clientWidth);
-          candidateWidth /= candidates.length;
-          candidateWidth -= 6; // 3px margin on each side
+        var dismissButton =
+          candidatePanel.querySelector('.dismiss-suggestions-button');
+        dismissButton.classList.add('hide');
+
+        // hide dismiss button
+        if (candidates.length > 0) {
+          dismissButton.classList.remove('hide');
         }
+
+        var suggestContainer =
+          candidatePanel.querySelector('.suggestions-container');
+
+        // we want to do all width calculation in CSS, so add a class here
+        suggestContainer.innerHTML = '';
+        for (var i = 0; i < 4; i++) {
+          suggestContainer.classList.remove('has' + i);
+        }
+        suggestContainer.classList.add('has' + candidates.length);
 
         candidates.forEach(function buildCandidateEntry(candidate) {
           // Make sure all of the candidates are defined
@@ -362,11 +373,7 @@ const IMERender = (function() {
 
           // Each candidate gets its own div
           var div = document.createElement('div');
-
-          // Size the div based on the # of candidates
-          div.style.width = candidateWidth + 'px';
-
-          candidatePanel.appendChild(div);
+          suggestContainer.appendChild(div);
 
           var text, data, correction = false;
           if (typeof candidate === 'string') {
@@ -397,7 +404,7 @@ const IMERender = (function() {
             container.appendChild(span);
 
             var limit = .6;  // Dont use a scale smaller than this
-            var scale = IMERender.getScale(span, container);
+            var scale = IMERender.getScale(span, candidates.length);
 
             // If the text does not fit within the scaling limit,
             // reduce the length of the text by replacing characters in
@@ -410,7 +417,7 @@ const IMERender = (function() {
                 span.textContent = text.substring(0, halflen) +
                   '…' +
                   text.substring(text.length - halflen);
-                scale = IMERender.getScale(span, container);
+                scale = IMERender.getScale(span, candidates.length);
               }
             }
 
@@ -430,8 +437,10 @@ const IMERender = (function() {
           }
         });
       } else {
+        candidatePanel.innerHTML = '';
+
         candidatePanelToggleButton.style.display = 'none';
-        toggleCandidatePanel(false);
+        toggleCandidatePanel(false, false);
         docFragment = candidatesFragmentCode(1, candidates, true);
         candidatePanel.appendChild(docFragment);
       }
@@ -635,51 +644,41 @@ const IMERender = (function() {
   var resizeUI = function(layout, callback) {
     var RESIZE_UI_TIMEOUT = 0;
 
-    // This function consists of three actual functions
+    // This function consists of two actual functions
     // 1. setKeyWidth (sets the correct width for every key)
-    // 2. firstAndLastKeyLarger (makes sure all keys fill up available space)
-    // 3. getVisualData (stores visual offsets in internal array)
+    // 2. getVisualData (stores visual offsets in internal array)
     // these are seperated into separate groups because they do similar
     // operations and minimizing reflow causes because of this
-
     function setKeyWidth() {
-      var ratio, keys;
+      [].forEach.call(rows, function(rowEl, rIx) {
+        var rowLayoutWidth = parseInt(rowEl.dataset.layoutWidth, 10);
+        var keysInRow = rowEl.childNodes.length;
 
-      for (var r = 0, row; row = rows[r]; r += 1) {
-        keys = row.childNodes;
-        for (var k = 0, key; key = keys[k]; k += 1) {
-          ratio = layout.keys[r][k].ratio || 1;
+        [].forEach.call(rowEl.childNodes, function(keyEl, kIx) {
+          var key = layout.keys[rIx][kIx];
+          var wrapperRatio = key.ratio || 1;
+          var keyRatio = wrapperRatio;
 
-          key.style.width = Math.floor(placeHolderWidth * ratio) + 'px';
-        }
-      }
+          // First and last keys should fill up space
+          if (kIx === 0) {
+            keyEl.classList.add('float-key-first');
+            keyRatio = wrapperRatio + ((layoutWidth - rowLayoutWidth) / 2);
+          }
+          else if (kIx === keysInRow - 1) {
+            keyEl.classList.add('float-key-last');
+            keyRatio = wrapperRatio + ((layoutWidth - rowLayoutWidth) / 2);
+          }
 
-      setTimeout(firstAndLastKeyLarger, RESIZE_UI_TIMEOUT);
-    }
+          keyEl.style.width = (placeHolderWidth * keyRatio | 0) + 'px';
 
-    function firstAndLastKeyLarger() {
-      for (var r = 0, row = rows[r]; r < rows.length; row = rows[++r]) {
-        // Only do rows that have space on left or right side
-        var rowLayoutWidth = parseInt(row.dataset.layoutWidth, 10);
-        if (rowLayoutWidth === layoutWidth) {
-          continue;
-        }
-
-        var allKeys = row.childNodes;
-        var keys = [allKeys[0], allKeys[allKeys.length - 1]];
-
-        for (var k = 0, key = keys[k]; k < keys.length; key = keys[++k]) {
-          var visualKey = key.querySelector('.visual-wrapper');
-          var ratio = layout.keys[r][k].ratio || 1;
-          // keep visual key width
-          visualKey.style.width = visualKey.offsetWidth + 'px';
-
-          // calculate new tap area
-          var newRatio = ratio + ((layoutWidth - rowLayoutWidth) / 2);
-          key.style.width = Math.floor(placeHolderWidth * newRatio) + 'px';
-          key.classList.add('float-key-' + (k === 0 ? 'first' : 'last'));
-        }
-      }
+          // Default aligns 100%, if they differ set width on the wrapper
+          if (keyRatio !== wrapperRatio) {
+            var wrapperEl = keyEl.querySelector('.visual-wrapper');
+            wrapperEl.style.width =
+              (placeHolderWidth * wrapperRatio | 0) + 'px';
+          }
+        });
+      });
 
       setTimeout(getVisualData, RESIZE_UI_TIMEOUT);
     }
@@ -781,6 +780,15 @@ const IMERender = (function() {
     if (inputMethodName)
       candidatePanel.classList.add(inputMethodName);
 
+    var dismissButton = document.createElement('div');
+    dismissButton.classList.add('dismiss-suggestions-button');
+    dismissButton.classList.add('hide');
+    candidatePanel.appendChild(dismissButton);
+
+    var suggestionContainer = document.createElement('div');
+    suggestionContainer.classList.add('suggestions-container');
+    candidatePanel.appendChild(suggestionContainer);
+
     return candidatePanel;
   };
 
@@ -854,14 +862,31 @@ const IMERender = (function() {
     if (!activeIme)
       return 0;
 
-    return ime.clientWidth;
+    return cachedWindowWidth;
   };
 
   var getHeight = function getHeight() {
     if (!activeIme)
       return 0;
 
-    return ime.clientHeight;
+    var scale = screenInPortraitMode() ?
+      cachedWindowWidth / 32 :
+      cachedWindowWidth / 64;
+
+    var height = (activeIme.querySelectorAll('.keyboard-row').length *
+      (5.1 * scale));
+
+    if (activeIme.classList.contains('candidate-panel')) {
+      if (activeIme.querySelector('.keyboard-candidate-panel')
+          .classList.contains('latin')) {
+        height += (3.1 * scale);
+      }
+      else {
+        height += (3.2 * scale);
+      }
+    }
+
+    return height | 0;
   };
 
   var getKeyArray = function getKeyArray() {
@@ -894,9 +919,21 @@ const IMERender = (function() {
   // we use in Gaia.
   //
   // Note that this only works if the element is display:inline
-  var getScale = function(element, container) {
-    var elementWidth = element.getBoundingClientRect().width;
-    var s = container.clientWidth / elementWidth;
+  var scaleContext = null;
+  var getScale = function(element, noOfSuggestions) {
+    if (!scaleContext) {
+      scaleContext = document.createElement('canvas').getContext('2d');
+      scaleContext.font = '2rem sans-serif';
+    }
+
+    var elementWidth = scaleContext.measureText(element.textContent).width;
+
+    // container width is window width - 36 (for the dismiss button) and then
+    // depending on the number of suggestions there are
+    var cw = (cachedWindowWidth - 36) / noOfSuggestions | 0;
+    cw -= 6; // 6 pixels margin on both sides
+
+    var s = cw / elementWidth;
     if (s >= 1)
       return 1;    // 10pt font "Body Large"
     if (s >= .8)
@@ -954,6 +991,7 @@ const IMERender = (function() {
     'toggleCandidatePanel': toggleCandidatePanel,
     'isFullCandidataPanelShown': isFullCandidataPanelShown,
     'getNumberOfCandidatesPerRow': getNumberOfCandidatesPerRow,
+    'candidatePanelCode': candidatePanelCode,
     get activeIme() {
       return activeIme;
     },

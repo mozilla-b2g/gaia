@@ -16,34 +16,30 @@ var CarrierSettings = (function(window, document, undefined) {
   var NETWORK_TYPE_SETTING = 'operatorResources.data.icon';
   var networkTypeMapping = {};
 
-  var NETWORK_GSM_MAP = {
-    'wcdma/gsm': 'operator-networkType-auto',
-    'gsm': 'operator-networkType-2G',
-    'wcdma': 'operator-networkType-3G',
-    'wcdma/gsm-auto': 'operator-networkType-prefer2G'
+  var _networkTypeCategory = {
+    'gprs': 'gsm',
+    'edge': 'gsm',
+    'umts': 'gsm',
+    'hsdpa': 'gsm',
+    'hsupa': 'gsm',
+    'hspa': 'gsm',
+    'hspa+': 'gsm',
+    'lte': 'gsm',
+    'gsm': 'gsm',
+    'is95a': 'cdma',
+    'is95b': 'cdma',
+    '1xrtt': 'cdma',
+    'evdo0': 'cdma',
+    'evdoa': 'cdma',
+    'evdob': 'cdma',
+    'ehrpd': 'cdma'
   };
 
-  var NETWORK_CDMA_MAP = {
-    'cdma/evdo': 'operator-networkType-auto',
-    'cdma': 'operator-networkType-CDMA',
-    'evdo': 'operator-networkType-EVDO'
-  };
-
-  var NETWORK_DUALSTACK_MAP = {
-    'wcdma/gsm': 'operator-networkType-preferWCDMA',
-    'gsm': 'operator-networkType-GSM',
-    'wcdma': 'operator-networkType-WCDMA',
-    'wcdma/gsm-auto': 'operator-networkType-preferGSM',
-    'cdma/evdo': 'operator-networkType-preferEVDO',
-    'cdma': 'operator-networkType-CDMA',
-    'evdo': 'operator-networkType-EVDO',
-    'wcdma/gsm/cdma/evdo': 'operator-networkType-auto'
-  };
-
-  var _ = window.navigator.mozL10n.get;
-  var _settings = window.navigator.mozSettings;
-  var _mobileConnections = window.navigator.mozMobileConnections;
-  var _iccManager = window.navigator.mozIccManager;
+  var _;
+  var _settings;
+  var _mobileConnections;
+  var _iccManager;
+  var _voiceTypes;
 
   /** mozMobileConnection instance the panel settings rely on */
   var _mobileConnection = null;
@@ -72,6 +68,13 @@ var CarrierSettings = (function(window, document, undefined) {
    * Init function.
    */
   function cs_init() {
+    _ = window.navigator.mozL10n.get;
+    _settings = window.navigator.mozSettings;
+    _mobileConnections = window.navigator.mozMobileConnections;
+    _iccManager = window.navigator.mozIccManager;
+    _voiceTypes = Array.prototype.map.call(_mobileConnections,
+      function() { return null; });
+
     // Get the mozMobileConnection instace for this ICC card.
     _mobileConnection = _mobileConnections[
       DsdsSettings.getIccCardIndexForCellAndDataSettings()
@@ -79,6 +82,10 @@ var CarrierSettings = (function(window, document, undefined) {
     if (!_mobileConnection) {
       return;
     }
+
+    cs_addVoiceTypeChangeListeners();
+    cs_updateNetworkTypeLimitedItemsVisibility(
+      _mobileConnection.voice && _mobileConnection.voice.type);
 
     // Show carrier name.
     cs_showCarrierName();
@@ -103,14 +110,8 @@ var CarrierSettings = (function(window, document, undefined) {
       var content =
         document.getElementById('carrier-operatorSettings-content');
 
-      if (result.gsm) {
-        cs_initOperatorSelector();
-        content.classList.add('gsm');
-      }
-      if (result.cdma) {
-        cs_initRoamingPreferenceSelector();
-        content.classList.add('cdma');
-      }
+      cs_initOperatorSelector();
+      cs_initRoamingPreferenceSelector();
 
       // Init warnings the user sees before enabling data calls and roaming.
       cs_initWarnings();
@@ -141,11 +142,7 @@ var CarrierSettings = (function(window, document, undefined) {
         }
 
         if (currentHash === '#carrier-operatorSettings') {
-          if (result.networkTypes) {
-            cs_updateNetworkTypeSelector(result.networkTypes,
-                                         result.gsm,
-                                         result.cdma);
-          }
+          cs_updateNetworkTypeSelector(result);
           cs_updateAutomaticOperatorSelectionCheckbox();
           return;
         }
@@ -168,6 +165,44 @@ var CarrierSettings = (function(window, document, undefined) {
         });
       });
     });
+  }
+
+  /**
+   * Add listeners on 'voicechange' for show/hide network type limited items.
+   */
+  function cs_addVoiceTypeChangeListeners() {
+    Array.prototype.forEach.call(_mobileConnections, function(conn, index) {
+      _voiceTypes[index] = conn.voice.type;
+      conn.addEventListener('voicechange', function() {
+        var newType = conn.voice.type;
+        if (index !== DsdsSettings.getIccCardIndexForCellAndDataSettings() ||
+            _voiceTypes[index] === newType) {
+          return;
+        }
+        _voiceTypes[index] = newType;
+        cs_updateNetworkTypeLimitedItemsVisibility(newType);
+      });
+    });
+  }
+
+  /**
+   * Update the network type limited items' visibility based on the voice type.
+   */
+  function cs_updateNetworkTypeLimitedItemsVisibility(voiceType) {
+    // The following features are limited to GSM types.
+    var autoSelectOperatorItem = document.getElementById('operator-autoSelect');
+    var availableOperatorsHeader =
+      document.getElementById('availableOperatorsHeader');
+    var availableOperators = document.getElementById('availableOperators');
+    // The following feature is limited to CDMA types.
+    var roamingPreferenceItem =
+      document.getElementById('operator-roaming-preference');
+
+    autoSelectOperatorItem.hidden = availableOperatorsHeader.hidden =
+      availableOperators.hidden = (_networkTypeCategory[voiceType] !== 'gsm');
+
+    roamingPreferenceItem.hidden =
+      (_networkTypeCategory[voiceType] !== 'cdma');
   }
 
   /**
@@ -300,24 +335,28 @@ var CarrierSettings = (function(window, document, undefined) {
       return;
 
     var alertDialog = document.getElementById('preferredNetworkTypeAlert');
+    var message = document.getElementById('preferredNetworkTypeAlertMessage');
     var continueButton = alertDialog.querySelector('button');
     continueButton.addEventListener('click', function onClickHandler() {
       alertDialog.hidden = true;
-      getSupportedNetworkInfo(_mobileConnection,
-        function getSupportedNetworkInfoCb(result) {
-        if (result.networkTypes) {
-          cs_updateNetworkTypeSelector(result.networkTypes,
-                                       result.gsm,
-                                       result.cdma);
-        }
-      });
+      getSupportedNetworkInfo(_mobileConnection, cs_updateNetworkTypeSelector);
     });
 
+    var preferredNetworkTypeHelper =
+      SettingsHelper('ril.radio.preferredNetworkType');
+
     var selector = document.getElementById('preferredNetworkType');
-    selector.addEventListener('change', function evenHandler() {
+    selector.addEventListener('blur', function evenHandler() {
+      var targetIndex = DsdsSettings.getIccCardIndexForCellAndDataSettings();
       var type = selector.value;
       var request = _mobileConnection.setPreferredNetworkType(type);
-      var message = document.getElementById('preferredNetworkTypeAlertMessage');
+
+      request.onsuccess = function onSuccessHandler() {
+        preferredNetworkTypeHelper.get(function gotPNT(values) {
+          values[targetIndex] = type;
+          preferredNetworkTypeHelper.set(values);
+        });
+      };
       request.onerror = function onErrorHandler() {
         message.textContent = _('preferredNetworkTypeAlertErrorMessage');
         alertDialog.hidden = false;
@@ -328,20 +367,24 @@ var CarrierSettings = (function(window, document, undefined) {
   /**
    * Update network type selector.
    */
-  function cs_updateNetworkTypeSelector(networkTypes, gsm, cdma) {
-    if (!_mobileConnection.getPreferredNetworkType)
+  function cs_updateNetworkTypeSelector(supportedNetworkTypeResult) {
+    if (!_mobileConnection.getPreferredNetworkType ||
+        !supportedNetworkTypeResult.networkTypes) {
       return;
+    }
+
+    var selector = document.getElementById('preferredNetworkType');
+    // Clean up all option before updating again.
+    while (selector.hasChildNodes()) {
+      selector.removeChild(selector.lastChild);
+    }
 
     var request = _mobileConnection.getPreferredNetworkType();
     request.onsuccess = function onSuccessHandler() {
+      var supportedNetworkTypes = supportedNetworkTypeResult.networkTypes;
       var networkType = request.result;
       if (networkType) {
-        var selector = document.getElementById('preferredNetworkType');
-        // Clean up all option before updating again.
-        while (selector.hasChildNodes()) {
-          selector.removeChild(selector.lastChild);
-        }
-        networkTypes.forEach(function(type) {
+        supportedNetworkTypes.forEach(function(type) {
           var option = document.createElement('option');
           option.value = type;
           option.selected = (networkType === type);
@@ -349,19 +392,10 @@ var CarrierSettings = (function(window, document, undefined) {
           if (type in networkTypeMapping) {
             option.text = networkTypeMapping[type];
           } else {
-            if (gsm && cdma) {
-              if (type in NETWORK_DUALSTACK_MAP) {
-                localize(option, NETWORK_DUALSTACK_MAP[type]);
-              }
-            } else if (gsm) {
-              if (type in NETWORK_GSM_MAP) {
-                localize(option, NETWORK_GSM_MAP[type]);
-              }
-            } else if (cdma) {
-              if (type in NETWORK_CDMA_MAP) {
-                localize(option, NETWORK_CDMA_MAP[type]);
-              }
-            } else { //failback only
+            var l10nId = supportedNetworkTypeResult.l10nIdForType(type);
+            localize(option, l10nId);
+            // fallback to the network type
+            if (!l10nId) {
               option.textContent = type;
             }
           }
@@ -658,10 +692,6 @@ var CarrierSettings = (function(window, document, undefined) {
 
     req.onerror = function() {
       console.warn('carrier: ' + req.error.name);
-      if (req.error.name === 'RequestNotSupported' ||
-          req.error.name === 'GenericFailure') {
-        document.getElementById('operator-roaming-preference').hidden = true;
-      }
     };
 
     selector.addEventListener('blur', function() {
@@ -894,6 +924,19 @@ var CarrierSettings = (function(window, document, undefined) {
   }
 
   /**
+   * Helper function. Ensure only one radio button is selected at any time.
+   *
+   * @param {Element} apnList Element list.
+   *
+   * @param {String} carrier Carrier value (either code or name) whose check
+   *                         button element needs to be selected.
+   */
+  function cs_switchRadioButtons(apnList, carrier) {
+    var selector = 'input[type="radio"][value="' + carrier + '"]';
+    apnList.querySelector(selector).checked = true;
+  }
+
+  /**
    * Update APN list.
    *
    * @param {Array} apnItems Array of APNs.
@@ -933,14 +976,18 @@ var CarrierSettings = (function(window, document, undefined) {
     ];
 
     /**
-     * Helper function. Ensure only one radio button is selected at any time.
+     * Helper function. Given a string, return a hash code.
      *
-     * @param {String} carrier Carrier name whose check button element needs to
-     *                         be selected.
+     * @param {String} s Given string.
+     *
+     * @return {Numeric} Hash code.
      */
-    function switchRadioButtons(carrier) {
-      var selector = 'input[type="radio"][value="' + carrier + '"]';
-      apnList.querySelector(selector).checked = true;
+    function _getHashCode(s) {
+      return s.split('').reduce(
+        function(a, b) {
+          a = ((a << 5) - a) + b.charCodeAt(0);
+          return a & a;
+        }, 0);
     }
 
     /**
@@ -972,16 +1019,18 @@ var CarrierSettings = (function(window, document, undefined) {
      * Create a button to apply <apn> data to the current fields.
      *
      */
-    function createAPNItem(item) {
+    function createAPNItem(index, item) {
       // create an <input type="radio"> element
       var input = document.createElement('input');
       input.type = 'radio';
       input.name = currentType + 'Apn';
-      input.value = item.carrier;
+      var s = item.carrier + index;
+      var hashCode = _getHashCode(s);
+      input.value = hashCode;
       input.dataset.item = item;
       input.onclick = function onClickHandler() {
         fillApnForm(item);
-        switchRadioButtons(item.carrier);
+        cs_switchRadioButtons(apnList, hashCode);
       };
 
       // include the radio button element in a list item
@@ -1004,7 +1053,7 @@ var CarrierSettings = (function(window, document, undefined) {
 
     // fill the APN list
     for (var i = 0; i < apnItems.length; i++) {
-      apnList.insertBefore(createAPNItem(apnItems[i]), lastItem);
+      apnList.insertBefore(createAPNItem(i, apnItems[i]), lastItem);
     }
 
     // maps for UI fields(current settings key) to new apn setting keys.
@@ -1178,9 +1227,12 @@ var CarrierSettings = (function(window, document, undefined) {
         }
 
         var apnSelected = false;
+        var s, hashCode;
         var radioApnItems = apnList.querySelectorAll('input[type="radio"]');
         for (var j = 0; (j < radioApnItems.length) && apn; j++) {
-          radioApnItems[j].checked = (radioApnItems[j].value === apn.carrier);
+          s = apn.carrier + j;
+          hashCode = _getHashCode(s);
+          radioApnItems[j].checked = (radioApnItems[j].value == hashCode);
           apnSelected = apnSelected || radioApnItems[j].checked;
           if (apnSelected) {
             break;
@@ -1193,16 +1245,16 @@ var CarrierSettings = (function(window, document, undefined) {
               break;
             }
           }
-          switchRadioButtons(apn.carrier);
+          cs_switchRadioButtons(apnList, hashCode);
         } else {
           fillCustomAPNSettingFields();
-          switchRadioButtons('_custom_');
+          cs_switchRadioButtons(apnList, '_custom_');
         }
 
         lastItem.querySelector('input').addEventListener('click',
           function() {
             fillCustomAPNSettingFields();
-            switchRadioButtons('_custom_');
+            cs_switchRadioButtons(apnList, '_custom_');
         });
       };
 
@@ -1210,7 +1262,7 @@ var CarrierSettings = (function(window, document, undefined) {
       // and sanitize addresses
       advForm.onchange = function onCustomInput(event) {
         lastItem.querySelector('input').checked = true;
-        switchRadioButtons('_custom_');
+        cs_switchRadioButtons(apnList, '_custom_');
 
         var addresskeys = ['mmsproxy', 'httpProxyHost'];
         addresskeys.forEach(function(addresskey) {
@@ -1280,19 +1332,21 @@ var CarrierSettings = (function(window, document, undefined) {
   } // cs_updateApnList function
 
   return {
-    init: cs_init
+    init: cs_init,
+    switchRadioButtons: cs_switchRadioButtons,
+    updateApnList: cs_updateApnList
   };
 })(this, document);
 
 /**
  * Startup.
  */
-navigator.mozL10n.ready(function loadWhenIdle() {
+navigator.mozL10n.once(function loadWhenIdle() {
   var idleObserver = {
     time: 3,
     onidle: function() {
-      CarrierSettings.init();
       navigator.removeIdleObserver(idleObserver);
+      CarrierSettings.init();
     }
   };
   navigator.addIdleObserver(idleObserver);

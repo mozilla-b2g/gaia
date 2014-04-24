@@ -105,18 +105,43 @@ ul li > small, ul li > label > small {
   pointer-events: none;
 }
 
+ul li > label {
+  font-size: 1.9rem;
+  line-height: 1.9rem;
+  font-weight: 400;
+  margin: 0;
+  padding: 1.5rem 1.5rem 1rem;
+}
+
+ul li > label ~ input {
+  margin-bottom: 1.5rem;
+}
+
 ul li > label.pack-checkbox > small,
 ul li > label.pack-radio > small {
   right: 6.1rem;
 }
 
 ul li > label.pack-switch > small {
-   right: 9rem;
+  right: 9rem;
+}
+
+/* multiple line item */
+ul li.multiline > small {
+  position: relative;
+  top: -3rem;
+  margin-bottom: -2.3rem;
+}
+
+ul li.multiline > small > span {
+  display: block;
+  padding-bottom: 0.2rem;
 }
 
 /* required for empty elements like Bluetooth */
 ul li small:not(:empty) + a,
-ul li small:not(:empty) + span {
+ul li small:not(:empty) + span,
+ul li.multiline > span {
   line-height: 4.4rem;
   padding-bottom: 0.1rem; /* Bug 903438 */
 }
@@ -130,12 +155,16 @@ ul li > label.pack-checkbox > .color-preview:before {
   margin: 0 1rem -0.2rem -1rem;
 }
 
+ul li > label.pack-checkbox > .warning-counter:before {
+  background-color: orange;
+}
+
 ul li > label.pack-checkbox > .error-counter:before {
   background-color: red;
 }
 
-ul li > label.pack-checkbox > .warning-counter:before {
-  background-color: orange;
+ul li > label.pack-checkbox > .security-counter:before {
+  background-color: black;
 }
 
 ul li > label.pack-checkbox > .reflow-counter:before {
@@ -171,16 +200,18 @@ ul li > label.pack-checkbox > .memory-item:before {
 
 
 /******************************************************************************
- * Boolean inputs
+ * Boolean buttons
  */
 
 ul li button,
 ul li a[role="button"] {
-  position: relative;
-  top: 1.1rem;
-  width: 100%;
-  margin-bottom: 1.2rem;
+  display: inline-block;
+  margin: 1rem 0;
 }
+
+/******************************************************************************
+ * Boolean inputs
+ */
 
 /* custom styles for boolean inputs (see /shared/style/switches.css) */
 ul li label {
@@ -194,6 +225,7 @@ ul li > label.pack-switch {
   width: 100%;
   height: 100%;
   margin: 0;
+  padding: 0;
   overflow: visible;
 }
 
@@ -242,14 +274,6 @@ ul li p {
 ul li p + label:not([for]) {
   top: 2.5rem;
   height: calc(100% - 2.5rem);
-}
-
-ul li p + input[type="text"],
-ul li p + input[type="number"],
-ul li p + input[type="tel"],
-ul li p + input[type="password"] {
-  width: 100%;
-  margin-bottom: 1.5rem;
 }
 
 
@@ -311,15 +335,6 @@ ul li#brightness-manual > label input[type="range"] {
   margin: 0 auto;
   width: calc(100% - 10rem);
   display: inline;
-}
-
-/******************************************************************************
- * Select boxes
- */
-.button.icon-dialog select {
-  border: none;
-  background: transparent;
-  font-size: 1.7rem;
 }
 
 /******************************************************************************
@@ -410,7 +425,7 @@ html[dir="rtl"] ul li > label.pack-switch > input ~ span:after {
 
 html[dir="rtl"] ul li > label.pack-checkbox > span {
   padding-left: 6.1rem;
-  
+
 }
 html[dir="rtl"] ul li > label.pack-checkbox > span:not(.menu-item) {
   padding-left: 6.1rem;
@@ -457,5 +472,10 @@ html[dir="rtl"] dl dt {
 html[dir="rtl"] ul li.bluetooth-device > a{
   padding-left: 1rem;
   padding-right: 1rem;
+}
+
+html[dir="rtl"] ul li > label.pack-checkbox > .color-preview:before {
+  margin-left: 1rem;
+  margin-right: -1rem;
 }
 

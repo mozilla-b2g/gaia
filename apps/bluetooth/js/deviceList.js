@@ -125,6 +125,16 @@ navigator.mozL10n.ready(function deviceList() {
       if (show) {
         openList.show(true);
         searchingItem.hidden = false;
+      } else {
+        openList.show(false);
+        pairList.show(false);
+        searchingItem.hidden = true;
+        pairingAddress = null;
+        connectingAddress = null;
+        connectedAddress = null;
+        // clear discoverTimeout
+        clearTimeout(discoverTimeout);
+        discoverTimeout = null;
       }
     }
 
@@ -337,7 +347,7 @@ navigator.mozL10n.ready(function deviceList() {
         searchingItem.hidden = true;
       };
       req.onerror = function bt_discoveryStopFailed() {
-        console.error('Can not stop discover nearby device');
+        console.error('Failed to stop discovery of nearby devices');
         searchAgainBtn.disabled = true;
         searchingItem.hidden = false;
       };

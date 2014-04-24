@@ -24,21 +24,24 @@ suite('ParsedMessage', function() {
       si_text_only: {
         sender: '+31641600986',
         contentType: 'text/vnd.wap.si',
-        content: '<si><indication>check this out</indication></si>'
+        content: '<si><indication>check this out</indication></si>',
+        serviceId: 0
       },
 
       si_href_only: {
         sender: '+31641600986',
         contentType: 'text/vnd.wap.si',
         content: '<si><indication href="http://www.mozilla.org"></indication>' +
-                 '</si>'
+                 '</si>',
+        serviceId: 0
       },
 
       si_text_and_href: {
         sender: '+31641600986',
         contentType: 'text/vnd.wap.si',
         content: '<si><indication href="http://www.mozilla.org">' +
-                 'check this out</indication></si>'
+                 'check this out</indication></si>',
+        serviceId: 0
       },
 
       si_id: {
@@ -49,7 +52,8 @@ suite('ParsedMessage', function() {
                  '            href="http://www.mozilla.org">' +
                  'check this out' +
                  '</indication>' +
-                 '</si>'
+                 '</si>',
+        serviceId: 0
       },
 
       created: {
@@ -61,7 +65,8 @@ suite('ParsedMessage', function() {
                  '            created="2013-09-03T10:35:33Z">' +
                  'check this out' +
                  '</indication>' +
-                 '</si>'
+                 '</si>',
+        serviceId: 0
       },
 
       expires: {
@@ -73,7 +78,8 @@ suite('ParsedMessage', function() {
                  '            si-expires="2013-09-03T10:35:33Z">' +
                  'check this out' +
                  '</indication>' +
-                 '</si>'
+                 '</si>',
+        serviceId: 0
       },
 
       action: {
@@ -83,25 +89,29 @@ suite('ParsedMessage', function() {
                  '<indication action="signal-none">' +
                  'check this out' +
                  '</indication>' +
-                 '</si>'
+                 '</si>',
+        serviceId: 0
       },
 
       sl: {
         sender: '+31641600986',
         contentType: 'text/vnd.wap.sl',
-        content: '<sl href="http://www.mozilla.org"/>'
+        content: '<sl href="http://www.mozilla.org"/>',
+        serviceId: 0
       },
 
       sl_action: {
         sender: '+31641600986',
         contentType: 'text/vnd.wap.sl',
-        content: '<sl href="http://www.mozilla.org" action="execute-high"/>'
+        content: '<sl href="http://www.mozilla.org" action="execute-high"/>',
+        serviceId: 0
       },
 
       unsupported: {
         sender: '+31641600986',
         contentType: 'text/foobar',
-        content: ''
+        content: '',
+        serviceId: 0
       }
     };
   });
@@ -116,6 +126,7 @@ suite('ParsedMessage', function() {
       assert.equal(message.text, 'check this out');
       assert.equal(message.href, undefined);
       assert.equal(message.action, 'signal-medium');
+      assert.equal(message.serviceId, 0);
     });
 
     test('HREF only', function() {

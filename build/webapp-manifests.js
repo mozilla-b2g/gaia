@@ -3,7 +3,8 @@ var config;
 const { Cc, Ci, Cr, Cu } = require('chrome');
 Cu.import('resource://gre/modules/Services.jsm');
 
-const INSTALL_TIME = 132333986000;
+const INSTALL_TIME = Date.now();
+const UPDATE_TIME = Date.now();
 const DEBUG = false;
 // Match this to value in applications-data.js
 
@@ -109,7 +110,8 @@ function fillAppManifest(webapp) {
   // Copy webapp's manifest to the profile
   let webappTargetDir = webappsTargetDir.clone();
   webappTargetDir.append(webappTargetDirName);
-  let gaia = utils.getGaia(config);
+  utils.ensureFolderExists(webappTargetDir);
+  let gaia = utils.gaia.getInstance(config);
 
   if (gaia.l10nManager) {
     let manifest = gaia.l10nManager.localizeManifest(webapp);
@@ -136,6 +138,7 @@ function fillAppManifest(webapp) {
     installOrigin: url,
     receipt: null,
     installTime: INSTALL_TIME,
+    updateTime: UPDATE_TIME,
     manifestURL: url + '/manifest.webapp',
     appStatus: getAppStatus(webapp.manifest.type),
     localId: localId
@@ -225,7 +228,7 @@ function fillExternalAppManifest(webapp) {
 
   // In case of packaged app, just copy `application.zip` and `update.webapp`
   if (isPackaged) {
-    let updateManifest = webapp.buildDirectoryFile.clone();
+    let updateManifest = webapp.sourceDirectoryFile.clone();
     updateManifest.append('update.webapp');
     if (!updateManifest.exists()) {
       errors.push('External packaged webapp `' + webapp.domain + '  is ' +
@@ -236,7 +239,7 @@ function fillExternalAppManifest(webapp) {
       return;
     }
 
-    let appPackage = webapp.buildDirectoryFile.clone();
+    let appPackage = webapp.sourceDirectoryFile.clone();
     appPackage.append('application.zip');
     appPackage.copyTo(webappTargetDir, 'application.zip');
     updateManifest.copyTo(webappTargetDir, 'update.webapp');
@@ -248,7 +251,7 @@ function fillExternalAppManifest(webapp) {
                                                     true;
 
     // This is an hosted app. Check if there is an offline cache.
-    let srcCacheFolder = webapp.buildDirectoryFile.clone();
+    let srcCacheFolder = webapp.sourceDirectoryFile.clone();
     srcCacheFolder.append('cache');
     if (srcCacheFolder.exists()) {
       let cacheManifest = srcCacheFolder.clone();
@@ -274,7 +277,8 @@ function fillExternalAppManifest(webapp) {
     origin: origin,
     installOrigin: installOrigin,
     receipt: null,
-    installTime: 132333986000,
+    installTime: INSTALL_TIME,
+    updateTime: UPDATE_TIME,
     manifestURL: manifestURL,
     removable: removable,
     localId: id++,
@@ -314,7 +318,7 @@ function execute(options) {
     cleanProfile(webappsTargetDir);
   }
 
-  utils.getGaia(config).webapps.forEach(function(webapp) {
+  utils.gaia.getInstance(config).webapps.forEach(function(webapp) {
     if (utils.isExternalApp(webapp)) {
       fillExternalAppManifest(webapp);
     } else {
@@ -346,12 +350,8 @@ function execute(options) {
     mapping[appname].manifestURL = webapps[appname].webappsJson.manifestURL;
   }
 
-  let stageFolder = utils.getEnv('STAGE_FOLDER');
-  let stageDir;
-  if (stageFolder) {
-    stageDir = utils.getFile(config.GAIA_DIR, stageFolder);
-    utils.ensureFolderExists(stageDir);
-  }
+  let stageDir = utils.getFile(config.STAGE_DIR);
+  utils.ensureFolderExists(stageDir);
   let mappingFile = stageDir.clone();
   mappingFile.append('webapps-mapping.json');
   utils.writeContent(mappingFile, JSON.stringify(mapping, null, 2));

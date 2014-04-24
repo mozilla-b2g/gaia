@@ -1,5 +1,7 @@
 'use strict';
 
+var MockMozContacts;
+
 function MockMozContactsObj(contacts) {
   this.contacts = contacts;
 }
@@ -84,7 +86,10 @@ MockMozContactsObj.prototype = {
 
     return {
       set onsuccess(callback) {
-        callback();
+        var self = this;
+        setTimeout(function() {
+          callback.call(self);
+        }, 0);
       },
       set onerror(callback) {
 
@@ -93,4 +98,4 @@ MockMozContactsObj.prototype = {
   }
 };
 
-var MockMozContacts = new MockMozContactsObj([]);
+MockMozContacts = new MockMozContactsObj([]);

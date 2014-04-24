@@ -288,4 +288,85 @@ suite('system/NotificationScreen >', function() {
     });
   });
 
+  suite('tap a notification using the obsolete API >', function() {
+    var notificationNode, notifClickedStub, contentEventStub;
+    var details = {
+      type: 'desktop-notification',
+      id: 'app-notif-1',
+      title: '',
+      message: ''
+    };
+
+    setup(function() {
+      notificationNode = NotificationScreen.addNotification(details);
+
+      notifClickedStub = sinon.stub();
+      contentEventStub = sinon.stub();
+
+      window.addEventListener('notification-clicked', notifClickedStub);
+      window.addEventListener('mozContentEvent', contentEventStub);
+    });
+
+    teardown(function() {
+      window.removeEventListener('notification-clicked', notifClickedStub);
+      window.removeEventListener('mozContentEvent', contentEventStub);
+    });
+
+    test('tapping on the notification', function() {
+      var event = new CustomEvent('tap', { bubbles: true, cancelable: true });
+      notificationNode.dispatchEvent(event);
+
+      sinon.assert.calledOnce(notifClickedStub);
+      sinon.assert.calledTwice(contentEventStub);
+
+      sinon.assert.calledWithMatch(notifClickedStub, {
+        detail: {
+          id: details.id
+        }
+      });
+
+      sinon.assert.calledWithMatch(contentEventStub, {
+        detail: {
+          type: 'desktop-notification-click',
+          id: details.id
+        }
+      });
+
+      sinon.assert.calledWithMatch(contentEventStub, {
+        detail: {
+          type: 'desktop-notification-close',
+          id: details.id
+        }
+      });
+    });
+
+    test('tapping on the toaster', function() {
+      var event = new CustomEvent('tap', { bubbles: true, cancelable: true });
+      fakeToaster.dispatchEvent(event);
+
+      sinon.assert.calledOnce(notifClickedStub);
+      sinon.assert.calledTwice(contentEventStub);
+
+      sinon.assert.calledWithMatch(notifClickedStub, {
+        detail: {
+          id: details.id
+        }
+      });
+
+      sinon.assert.calledWithMatch(contentEventStub, {
+        detail: {
+          type: 'desktop-notification-click',
+          id: details.id
+        }
+      });
+
+      sinon.assert.calledWithMatch(contentEventStub, {
+        detail: {
+          type: 'desktop-notification-close',
+          id: details.id
+        }
+      });
+    });
+  });
+
 });

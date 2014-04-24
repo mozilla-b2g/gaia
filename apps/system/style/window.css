@@ -1,14 +1,23 @@
-#windows > .appWindow,
-#windows > .activityWindow {
+.appWindow,
+.activityWindow {
   position: absolute;
   left: 0;
   border: 0;
   margin: 0;
   padding: 0;
   overflow: hidden;
-
+  top: 2.4rem;
+  width: 100%;
+  height: 100%;
   background-repeat: no-repeat;
   background-position: center center;
+}
+
+.appWindow > .appWindow {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 @media not all and (-moz-physical-home-button) {
@@ -29,11 +38,11 @@
   pointer-events: none;
 }
 
-#windows > .appWindow:not(.homescreen) {
+.appWindow:not(.homescreen) {
   background-color: black;
 }
 
-#windows > .appWindow:not(.homescreen).render {
+.appWindow:not(.homescreen).render {
   background-image: none !important;
   background-color: transparent;
 }
@@ -75,7 +84,7 @@
 }
 
 
-#windows > .appWindow:not(.homescreen).render > iframe {
+.appWindow:not(.homescreen).render > iframe {
   background-color: #fff;
 }
 
@@ -90,11 +99,11 @@
   animation: openApp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-#windows > .appWindow.transition-closing.perpendicular {
+.appWindow.transition-closing.perpendicular {
   animation-duration: 0.1s;
 }
 
-#windows > .appWindow.from-cardview {
+.appWindow.from-cardview {
   animation: openAppFromCardView 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
@@ -108,7 +117,7 @@
   100% { transform: scale(1.0);}
 }
 
-#windows > .appWindow.zoom-in {
+.appWindow.zoom-in {
   transform: scale(1);
   animation: zoom-in 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
@@ -188,27 +197,28 @@
        }
 }
 
-#windows.slow-transition > .appWindow.transition-closing,
-#windows.slow-transition > .appWindow.transition-opening {
+#windows.slow-transition .appWindow.transition-closing,
+#windows.slow-transition .appWindow.transition-opening {
   animation-duration: 3s;
 }
 
-#windows > .appWindow.transition-closing,
-#windows > .appWindow.transition-opening {
+.appWindow.transition-closing,
+.appWindow.transition-opening {
   /* The animation takes .3 seconds so users cannot touch the app while the
    * closing animation is performing */
   pointer-events: none;
 }
 
-#windows > .appWindow.reduce {
+.appWindow.reduce {
   animation: closeApp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-#windows > .appWindow.transition-closing.perpendicular {
+.appWindow.transition-opening.perpendicular {
   animation-duration: 0.1s;
+  opacity: 0;
 }
 
-#windows > .appWindow.zoom-out {
+.appWindow.zoom-out {
   transform: scale(5);
   animation: zoom-out 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
@@ -218,7 +228,7 @@
   100% { transform: scale(1);}
 }
 
-#windows > .appWindow.to-cardview {
+.appWindow.to-cardview {
   animation: closeAppTowardsCardView 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
@@ -229,8 +239,8 @@
 /* Prebuild width/height */
 #screen:not(.active-statusbar):not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow:not(.fullscreen-app),
 .appWindow.homescreen {
-  top: 2rem;
-  height: calc(100% - 2rem);
+  top: 2.4rem;
+  height: calc(100% - 2.4rem);
   width: 100%;
 }
 
@@ -254,9 +264,9 @@
 }
 
 #screen.software-button-enabled:not(:-moz-full-screen-ancestor) > #windows > .appWindow {
-  top: 2rem;
+  top: 2.4rem;
   bottom: 5rem;
-  height: calc(100% - 5rem - 2rem);
+  height: calc(100% - 5rem - 2.4rem);
   width: 100%;
 }
 
@@ -264,6 +274,13 @@
   top: 0;
   bottom: 5rem;
   height: calc(100% - 5rem);
+  width: 100%;
+}
+
+#screen.active-statusbar:not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
+  top: 4rem;
+  bottom: 0;
+  height: calc(100% - 4rem);
   width: 100%;
 }
 
@@ -297,24 +314,7 @@
 }
 
 .appWindow > iframe {
-  z-index: 1;
   visibility: visible;
-}
-
-.appWindow > .contextmenu {
-  z-index: 2;
-}
-
-.appWindow > .modal-dialog {
-  z-index: 3;
-}
-
-.appWindow > .authentication-dialog {
-  z-index: 4;
-}
-
-.appWindow > .chrome {
-  z-index: 5;
 }
 
 .appWindow > .fade-overlay {
@@ -325,7 +325,11 @@
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1024;
+  opacity: 0.8;
+}
+
+.appWindow.homescreen.fadeout > .fade-overlay.hidden {
+  visibility: hidden;
 }
 
 .appWindow.fadeout > .fade-overlay {
@@ -384,13 +388,7 @@
   visibility: visible;
 }
 
-.appWindow > form[role="dialog"][data-type="action"],
-.appWindow > form[role="dialog"][data-type="object"] {
-  position: absolute;
-}
-
 .appWindow > .screenshot-overlay {
-  z-index: -1;
   visibility: hidden;
   position: absolute;
   top: 0;
@@ -404,7 +402,6 @@
 }
 
 .appWindow > .screenshot-overlay.visible {
-  z-index: 2;
   visibility: visible;
 }
 
@@ -412,27 +409,93 @@
   visibility: hidden;
 }
 
-/* inline activity */
+/* inline components */
 
-
-/* animation */
-
-#windows > .activityWindow.slideleft {
-  animation: slideLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+.appWindow > .appWindow {
+  z-index: 65536;
 }
 
-#windows > .activityWindow.slideright {
-  animation: slideRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+.appWindow > .fade-overlay {
+  z-index: 1024;
+}
+
+.appWindow > .chrome {
+  z-index: 5;
+}
+
+.appWindow > .authentication-dialog {
+  z-index: 4;
+}
+
+.appWindow.in-from-left {
+  animation: inFromLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.out-to-right {
+  animation: outToRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes slideLeft {
-  0%   { transform: translateX(calc(100% + 20px)); }
+  0%   { transform: translateX(100%); }
   100% { transform: translateX(0); }
 }
 
-@keyframes slideRight {
+.appWindow > .contextmenu {
+  z-index: 2;
+}
+
+@keyframes inFromLeft {
+  0%   {
+    transform: translateX(-20%);
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1.0;
+  }
+}
+
+@keyframes outToRight {
   0%   { transform: translateX(0); }
-  100% { transform: translateX(calc(100% + 20px)); }
+  100% { transform: translateX(100%); }
+}
+
+.appWindow.slidedown {
+  animation: slideDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+@keyframes slideUp {
+  0%   { transform: translateY(calc(100%)); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(calc(100%)); }
+}
+
+.appWindow.in-from-left {
+  animation: inFromLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.out-to-right {
+  animation: outToRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+@keyframes inFromLeft {
+  0%   {
+    transform: translateX(-20%);
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1.0;
+  }
+}
+
+@keyframes outToRight {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(100%); }
 }
 
 /* Edges */
@@ -443,7 +506,7 @@
   will-change: transform;
 }
 
-#screen.edges #windows > .appWindow.active {
+#screen:not(:-moz-full-screen-ancestor).edges #windows > .appWindow.active {
   will-change: transform;
 }
 
@@ -462,7 +525,7 @@
   transform: translateX(calc(100% + 20px));
 }
 
-#screen:-moz-full-screen-ancestor > #windows > .appWindow.active {
+#screen:-moz-full-screen-ancestor > #windows .appWindow.active {
   top: 0;
   height: 100%;
 }

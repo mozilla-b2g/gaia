@@ -1,5 +1,5 @@
 <header>
-  <button id="alarm-close"><span class="icon icon-close"></span></button>
+  <button id="alarm-close" data-l10n-id="closeButton"><span class="icon icon-close"></span></button>
   <menu type="toolbar">
     <button id="alarm-done" data-l10n-id="done"></button>
   </menu>
@@ -46,11 +46,10 @@
     </select>
   </li>
   <li>
-    <label data-l10n-id="vibrate">Vibrate</label>
-    <select id="vibrate-select">
-      <option value="1" data-l10n-id="vibrateOn">On</option>
-      <option value="0" data-l10n-id="vibrateOff">Off</option>
-    </select>
+    <label class="pack-switch">
+      <input type="checkbox" id="vibrate-checkbox" checked class="uninit" />
+      <span data-l10n-id="vibrate">Vibrate</span>
+   </label>
   </li>
   <li>
     <label class="view-alarm-lbl snooze-lbl" data-l10n-id="snooze-label">Snooze</label>
@@ -60,6 +59,14 @@
       <option data-l10n-id="nMinutes" data-l10n-args='{"n": "15"}' value="15">15 minutes</option>
       <option data-l10n-id="nMinutes" data-l10n-args='{"n": "20"}' value="20">20 minutes</option>
     </select>
+  </li>
+  <li>
+    <label class="alarm-volume-lbl"
+           id="alarm-volume-lbl"
+           data-l10n-id="alarm-volume-label">Alarm Volume</label>
+    <!-- 0.0625 is 1/16th, which matches the step size in System Settings. -->
+    <input id="alarm-volume-input" step="0.0625" min="0" value="1" max="1"
+           type="range">
   </li>
   <li id="delete-menu">
     <button id="alarm-delete" class="danger full" data-l10n-id="delete">Delete</button>

@@ -1,4 +1,9 @@
 'use strict';
+/* global ContactPhotoHelper */
+/* global ImageLoader */
+/* global LazyLoader */
+/* global utils */
+/* jshint nonew: false */
 
 var contacts = window.contacts || {};
 
@@ -156,14 +161,14 @@ if (!contacts.MatchingUI) {
       }
 
       return name[0];
-    };
+    }
 
     function hasName(contact) {
       return (Array.isArray(contact.givenName) && contact.givenName[0] &&
                 contact.givenName[0].trim()) ||
               (Array.isArray(contact.familyName) && contact.familyName[0] &&
                 contact.familyName[0].trim());
-    };
+    }
 
     function selectMainReason(matchings) {
       var out = '';
@@ -339,6 +344,7 @@ if (!contacts.MatchingUI) {
             return;
           }
 
+          var item;
           switch (aField) {
             case 'name':
               matchingName.textContent = fieldValue;
@@ -351,7 +357,7 @@ if (!contacts.MatchingUI) {
             break;
             case 'tel':
             case 'email':
-              var item = document.createElement('li');
+              item = document.createElement('li');
               if (isMatch(matchings, aField, fieldValue)) {
                 item.classList.add('selected');
               }
@@ -362,7 +368,7 @@ if (!contacts.MatchingUI) {
               matchingDetailList.appendChild(item);
             break;
             case 'adr':
-              var item = document.createElement('li');
+              item = document.createElement('li');
               if (isMatch(matchings, aField, fieldValue)) {
                 item.classList.add('selected');
               }
@@ -378,7 +384,7 @@ if (!contacts.MatchingUI) {
               matchingDetailList.appendChild(item);
             break;
             default:
-              var item = document.createElement('li');
+              item = document.createElement('li');
               item.textContent = fieldValue.value || fieldValue || '';
               matchingDetailList.appendChild(item);
             break;

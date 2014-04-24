@@ -130,8 +130,8 @@ var Browser = {
     var filesToLoad = [
       // css files
       'shared/style/headers.css',
-      'shared/style/buttons.css',
-      'shared/style/input_areas.css',
+      'shared/style_unstable/buttons.css',
+      'shared/style_unstable/input_areas.css',
       'shared/style/status.css',
       'shared/style/confirm.css',
       'style/modal_dialog/modal_dialog.css',
@@ -584,7 +584,8 @@ var Browser = {
   handleCrashedTab: function browser_handleCrashedTab(tab) {
     // No need to show the crash screen for background tabs,
     // they will be revived when selected
-    if (tab.id === this.currentTab.id && !document.hidden) {
+    if (tab.id === this.currentTab.id && !document.hidden &&
+        this.currentTab.url != null) {
       this.showCrashScreen();
     }
     tab.loading = false;
@@ -832,9 +833,9 @@ var Browser = {
 
       this.bookmarkUrl.addEventListener('keydown', (function() {
         if (UrlHelper.isURL(this.bookmarkUrl.value)) {
-          this.bookmarkEntrySheetDone.disabled = 'disabled';
+          this.bookmarkEntrySheetDone.removeAttribute('disabled');
         } else {
-          this.bookmarkEntrySheetDone.disabled = '';
+          this.bookmarkEntrySheetDone.disabled = 'disabled';
         }
       }).bind(this), false);
     }).bind(this));
@@ -1421,6 +1422,11 @@ var Browser = {
   },
 
   showPageScreen: function browser_showPageScreen() {
+
+    if (this.currentTab.crashed) {
+      this.reviveCrashedTab(this.currentTab);
+    }
+
     if (this.currentScreen === this.TABS_SCREEN) {
       var switchLive = (function browser_switchLive() {
         this.mainScreen.removeEventListener('transitionend', switchLive, true);
@@ -1442,11 +1448,6 @@ var Browser = {
 
     this.switchScreen(this.PAGE_SCREEN);
     this.setUrlBar(this.currentTab.title || this.currentTab.url);
-    if (this.currentTab.crashed) {
-      this.showCrashScreen();
-    } else {
-      this.hideCrashScreen();
-    }
     this.updateTabsCount();
     this.inTransition = false;
   },

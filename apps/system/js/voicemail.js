@@ -6,7 +6,7 @@
 var Voicemail = {
 
   icon: null,
-  notification: null,
+  notifications: {},
 
   init: function vm_init() {
     var voicemail = window.navigator.mozVoicemail;
@@ -17,14 +17,12 @@ var Voicemail = {
 
     this.icon = window.location.protocol + '//' +
       window.location.hostname + '/style/icons/voicemail.png';
+    this.voiceMailNumberHelper = SettingsHelper('ril.iccInfo.mbdn', null);
   },
 
   handleEvent: function vm_handleEvent(evt) {
-    // TODO: remove this backward compatibility check
-    // after bug-814634 is landed
     var voicemail = window.navigator.mozVoicemail;
-    var status = voicemail.status ||
-      voicemail.getStatus && voicemail.getStatus();
+    var status = evt.status;
 
     if (!status)
       return;
@@ -36,6 +34,7 @@ var Voicemail = {
     var _ = window.navigator.mozL10n.get;
     var title = status.returnMessage;
     var showCount = status.hasMessages && status.messageCount > 0;
+    var simIndex = status.serviceId + 1;
 
     if (!title) {
       title = showCount ? _('newVoicemails', { n: status.messageCount }) :
@@ -53,65 +52,116 @@ var Voicemail = {
     // looking up |navigator.mozVoicemail.number|.
     // Some SIM card may not provide MBDN info
     // but we could still use settings to overload that.
-    var transaction = settings.createLock();
-    var request = transaction.get('ril.iccInfo.mbdn');
-    request.onsuccess = function() {
-      var number = request.result['ril.iccInfo.mbdn'];
+    this.voiceMailNumberHelper.get(function gotVMNumbers(numbers) {
       var voicemail = navigator.mozVoicemail;
-      // TODO: remove this backward compatibility check
-      // after bug-814634 is landed
+      var number = numbers && numbers[status.serviceId];
+
       if (!number && voicemail) {
-        number = voicemail.number ||
-          voicemail.getNumber && voicemail.getNumber();
+       number = voicemail.getNumber(status.serviceId);
       }
+
       if (number) {
         text = _('dialNumber', { number: number });
       }
 
       if (status.hasMessages) {
-        Voicemail.showNotification(title, text, number);
+        Voicemail.showNotification(title, text, number, status.serviceId);
       } else {
-        Voicemail.hideNotification();
+        Voicemail.hideNotification(status.serviceId);
       }
-    };
-    request.onerror = function() {};
+    });
   },
 
-  showNotification: function vm_showNotification(title, text, voicemailNumber) {
+  showNotification:
+  function vm_showNotification(title, text, voicemailNumber, serviceId) {
     if (!('Notification' in window)) {
       return;
+    }
+
+    serviceId = serviceId || 0;
+
+    if (SIMSlotManager.isMultiSIM()) {
+      var _ = window.navigator.mozL10n.get;
+      // FIXME/bug 998972: Create a new string instead of concatenating two.
+      title = '(' + _('sim-picker-button', { n: serviceId + 1 }) + ') ' + title;
     }
 
     var notifOptions = {
       body: text,
       icon: this.icon,
-      tag: 'voicemailNotification'
+      tag: 'voicemailNotification:' + serviceId
     };
 
-    this.notification = new Notification(title, notifOptions);
+    var notification = new Notification(title, notifOptions);
 
-    if (!voicemailNumber) {
-      return;
-    }
-
-    this.notification.addEventListener('click',
-      function vmNotification_onClick(event) {
-        var telephony = window.navigator.mozTelephony;
-        if (!telephony) {
-          return;
-        }
-        telephony.dial(voicemailNumber);
+    var callVoicemail = function vmNotificationCall_onClick(event) {
+      var telephony = window.navigator.mozTelephony;
+      if (!telephony) {
+        return;
       }
-    );
+
+      var openLines = telephony.calls.length +
+          ((telephony.conferenceGroup &&
+            telephony.conferenceGroup.calls.length) ? 1 : 0);
+
+      // User can make call only when there are less than 2 calls by spec.
+      // If the limit reached, return early to prevent holding active call.
+      if (openLines >= 2) {
+        return;
+      }
+
+      telephony.dial(voicemailNumber, serviceId);
+    };
+
+    var showNoVoicemail = (function vmNotificationNoCall_onClick(event) {
+      var _ = window.navigator.mozL10n.get;
+
+      var voicemailDialog = {
+        title: _('voicemailNoNumberTitle'),
+        text: _('voicemailNoNumberText'),
+        confirm: {
+          title: _('voicemailNoNumberSettings'),
+          callback: this.showVoicemailSettings
+        },
+        cancel: {
+          title: _('voicemailNoNumberCancel'),
+          callback: function() {}
+        }
+      };
+
+      ModalDialog.confirm(
+        voicemailDialog.title, voicemailDialog.text,
+        voicemailDialog.confirm, voicemailDialog.cancel
+      );
+    }).bind(this);
+
+    notification.addEventListener('click',
+      voicemailNumber ? callVoicemail : showNoVoicemail);
+
+    this.notifications[serviceId] = notification;
   },
 
-  hideNotification: function vm_hideNotification() {
-    if (!this.notification) {
+  hideNotification: function vm_hideNotification(serviceId) {
+    if (!this.notifications[serviceId]) {
       return;
     }
 
-    this.notification.close();
-    this.notification = null;
+    this.notifications[serviceId].close();
+    this.notifications[serviceId] = null;
+  },
+
+  showVoicemailSettings: function vm_showVoicemailSettings() {
+    var activity = new window.MozActivity({
+      name: 'configure',
+      data: {
+        target: 'device',
+        section: 'call'
+      }
+    });
+
+    activity.onerror = function() {
+      console.warn('Configure activity error:', activity.error.name);
+    };
   }
 };
 

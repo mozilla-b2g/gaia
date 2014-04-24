@@ -38,12 +38,13 @@
     "permissions":{},
     "audio-channel-notification":{},
     "audio-channel-content":{},
+    "audio-channel-ringer":{},
     "cellbroadcast":{},
-    "input":{},
     "input-manage":{},
     "nfc":{ "access": "readonly" },
     "nfc-manager":{},
-    "downloads":{}
+    "downloads":{},
+    "systemXHR":{}
   },
   "locales": {
     "ar": {
@@ -65,7 +66,10 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "30": "/style/icons/System.png"
+    "30": "/style/icons/System.png",
+    "45": "/style/icons/System_45.png",
+    "60": "/style/icons/System_60.png",
+    "68": "/style/icons/System_68.png"
   },
   "messages": [
      { "alarm": "/index.html" },
@@ -94,10 +98,6 @@
     },
     "bluetoothTransfercomms": {
       "description": "Communication with bluetooth apps for sending files info",
-      "rules": {}
-    },
-    "dialercomms": {
-      "description": "Communication with dialer app for sleep message",
       "rules": {}
     },
     "fxa-mgmt": {

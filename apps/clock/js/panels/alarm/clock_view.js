@@ -2,7 +2,6 @@ define(function(require) {
 'use strict';
 
 var asyncStorage = require('shared/js/async_storage');
-var AlarmList = require('panels/alarm/alarm_list');
 var Utils = require('utils');
 var SETTINGS_CLOCKMODE = 'settings_clockoptions_mode';
 var mozL10n = require('l10n');
@@ -69,11 +68,6 @@ var ClockView = {
     return (this.time = document.getElementById('clock-time'));
   },
 
-  get hourState() {
-    delete this.hourState;
-    return (this.hourState = document.getElementById('clock-hour24-state'));
-  },
-
   get dayDate() {
     delete this.dayDate;
     return (this.dayDate = document.getElementById('clock-day-date'));
@@ -93,6 +87,9 @@ var ClockView = {
 
     this.analog.addEventListener('click', handler, false);
     this.digital.addEventListener('click', handler, false);
+    window.addEventListener('alarm-list-changed',
+                            this.resizeAnalogClock.bind(this));
+
     this.hands = {};
     ['second', 'minute', 'hour'].forEach(function(hand) {
       this.hands[hand] = document.getElementById(hand + 'hand');
@@ -151,10 +148,7 @@ var ClockView = {
     opts = opts || {};
 
     var d = new Date();
-    var time = Utils.getLocaleTime(d);
-    this.time.textContent = time.t;
-    this.hourState.textContent = time.p || '  '; // 2 non-break spaces
-
+    this.time.innerHTML = Utils.getLocalizedTimeHtml(d);
     this.timeouts.digital = setTimeout(
       this.updateDigitalClock.bind(this), (60 - d.getSeconds()) * 1000
     );
@@ -175,6 +169,10 @@ var ClockView = {
     this.setTransform('second', sec);
     this.setTransform('minute', min);
     this.setTransform('hour', hour);
+
+    // Update aria label for analog view.
+    this.container.setAttribute('aria-label', Utils.getLocalizedTimeText(now));
+
     // update again in one second
     this.timeouts.analog = setTimeout(
       this.updateAnalogClock.bind(this), 1000 - now.getMilliseconds()
@@ -264,8 +262,12 @@ var ClockView = {
     return type;
   },
 
+  getAlarmCount: function() {
+    return document.querySelectorAll('#alarms .alarm-item').length;
+  },
+
   resizeAnalogClock: function cv_resizeAnalogClock() {
-    var type = this.calAnalogClockType(AlarmList.getAlarmCount());
+    var type = this.calAnalogClockType(this.getAlarmCount());
     this.container.className = type;
     document.getElementById('alarms').className = 'count' + type;
   },

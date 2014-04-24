@@ -100,15 +100,11 @@ var Dialog = function(params) {
   if (params.options.confirm) {
     var confirmOption = params.options.confirm;
     var confirmButton = createLocalizedElement('button', confirmOption.text);
-    confirmButton.className = 'recommend';
+    confirmButton.className = params.options.confirm.className || 'recommend';
     handlers.set(confirmButton, confirmOption);
 
     menu.appendChild(cancelButton);
-    if (confirmOption.position === 'left') {
-      menu.insertBefore(confirmButton, cancelButton);
-    } else {
-      menu.appendChild(confirmButton);
-    }
+    menu.appendChild(confirmButton);
   } else {
     // If there is only one item, we take the 100% of the space available
     cancelButton.style.width = '100%';
@@ -178,10 +174,16 @@ var ERRORS = {
     hasHandler: false
   },
   FdnCheckError: {
-    prefix: 'fdnBlocked',
+    prefix: 'fdnBlocked2',
     showRecipient: true,
     showDsdsStatus: false,
     hasHandler: false
+  },
+  NonActiveSimCardToSendError: {
+    prefix: 'nonActiveSimToSend',
+    showRecipient: false,
+    showDsdsStatus: true,
+    hasHandler: true
   },
   NonActiveSimCardError: {
     prefix: 'nonActiveSim',
@@ -282,7 +284,7 @@ function errorParamsGenerator(actions, opts) {
 
 function ErrorDialog(errorName, opts) {
   var actions = ERRORS[errorName] || {
-    prefix: 'sendGeneralError',
+    prefix: 'sendDefaultError',
     showRecipient: false,
     showDsdsStatus: false,
     hasHandler: false
