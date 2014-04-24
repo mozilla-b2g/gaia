@@ -3,11 +3,12 @@
 /* global CallHandler, MocksHelper, MockLazyL10n, MockNavigatormozApps,
    MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
    NavbarManager, Notification, MockKeypadManager, MockVoicemail,
-   MockCallLog, MockCallLogDBManager */
+   MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock */
 
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
 );
+require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 require('/dialer/test/unit/mock_call_log.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/dialer/test/unit/mock_lazy_loader.js');
@@ -51,6 +52,7 @@ suite('navigation bar', function() {
   var realMozApps;
   var realMozIccManager;
   var realSetMessageHandler;
+  var realWakeLock;
 
   mocksHelperForDialer.attachTestHelpers();
 
@@ -64,6 +66,9 @@ suite('navigation bar', function() {
     realSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
     MockNavigatormozSetMessageHandler.mSetup();
+
+    realWakeLock = navigator.requestWakeLock;
+    navigator.requestWakeLock = MockNavigatorWakeLock.requestWakeLock;
 
     domViews = document.createElement('section');
     domViews.id = 'views';
@@ -99,6 +104,9 @@ suite('navigation bar', function() {
 
     MockNavigatormozApps.mTeardown();
     navigator.mozApps = realMozApps;
+
+    MockNavigatorWakeLock.mTeardown();
+    navigator.requestWakeLock = realWakeLock;
 
     document.body.removeChild(domViews);
   });
@@ -177,6 +185,12 @@ suite('navigation bar', function() {
 
       setup(function() {
         addSpy = this.sinon.spy(MockCallLogDBManager, 'add');
+      });
+
+      test('should require a high priority wake lock', function() {
+        triggerSysMsg(sysMsg);
+        var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+        assert.equal(wakeLock.topic, 'high-priority');
       });
 
       suite('> voicemail', function() {
@@ -268,6 +282,12 @@ suite('navigation bar', function() {
         addSpy.yield(fakeGroup);
 
         sinon.assert.calledWith(appendSpy, fakeGroup);
+      });
+
+      test('should release the wake lock', function() {
+        triggerSysMsg(sysMsg);
+        var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+        assert.isTrue(wakeLock.released);
       });
     });
 
