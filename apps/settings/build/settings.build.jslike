@@ -4,9 +4,7 @@
   mainConfigFile: '../js/config/require.js',
   dir: '../../../build_stage/settings',
   paths: {
-    'prim': 'empty:',
-    'shared/settings_listener': 'empty:',
-    'shared/manifest_helper': 'empty:',
+    prim: 'empty:'
   },
 
   findNestedDependencies: true,
