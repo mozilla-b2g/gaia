@@ -19,6 +19,16 @@ function HandledCall(aCall) {
     }
   }).bind(this);
 
+  this.recentsEntry = {
+    date: Date.now(),
+    type: this.call.state,
+    number: this.call.number,
+    serviceId: this.call.serviceId,
+    emergency: this.call.emergency || false,
+    voicemail: false,
+    status: null
+  };
+
   this._initialState = this.call.state;
   this._cachedInfo = '';
   this._cachedAdditionalInfo = '';
@@ -146,6 +156,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
         node.textContent = _('voiceMail');
         self._cachedInfo = _('voiceMail');
       });
+      self.recentsEntry.voicemail = true;
     } else {
       Contacts.findByNumber(number, lookupContact);
       checkICCMessage();
@@ -201,6 +212,11 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
         contactCopy.photo = [thumbnail];
       }
 
+      self.recentsEntry.contactInfo = {
+        matchingTel: JSON.stringify(matchingTel),
+        contact: JSON.stringify(contactCopy),
+        contactsWithSameNumber: contactsWithSameNumber || 0
+      };
       return;
     }
 
@@ -295,6 +311,10 @@ HandledCall.prototype.remove = function hc_remove() {
 };
 
 HandledCall.prototype.connected = function hc_connected() {
+  if (this.recentsEntry.type === 'incoming') {
+    this.recentsEntry.status = 'connected';
+  }
+
   this.show();
   this.node.classList.remove('held');
 
@@ -317,6 +337,19 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
     });
     self._leftGroup = false;
   }
+
+  var entry = this.recentsEntry;
+  if (entry.contactInfo) {
+    if (typeof entry.contactInfo.contact === 'string') {
+      entry.contactInfo.contact = JSON.parse(entry.contactInfo.contact);
+    }
+    if (typeof entry.contactInfo.matchingTel === 'string') {
+      var tel = entry.contactInfo.matchingTel;
+      entry.contactInfo.matchingTel = JSON.parse(tel);
+    }
+  }
+
+  CallsHandler.addRecentEntry(entry);
 
   this.remove();
 };
