@@ -48,7 +48,7 @@ mocha.globals([
 ]);
 
 suite('Screen: Enter password', function() {
-  var realL10n;
+  var realL10n, fxaDialog;
   suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -56,6 +56,10 @@ suite('Screen: Enter password', function() {
     mocksHelperForEnterPasswordModule.suiteSetup();
     // Load real HTML
     loadBodyHTML('/fxa/fxa_module.html');
+    // wrap the body in an 'fxa-dialog' node for ftu testing
+    document.body.innerHTML =
+      '<div id="fxa-dialog">' + document.body.innerHTML + '</div>';
+    fxaDialog = document.getElementById('fxa-dialog');
     // Load element to test
     LoadElementHelper.load('fxa-enter-password.html');
     // Import the element and execute the right init
@@ -124,13 +128,13 @@ suite('Screen: Enter password', function() {
     });
 
     test(' > Forgot password link shows error overlay when in FTE', function() {
-      FtuLauncher.mIsRunning = true;
+      fxaDialog.classList.add('isFTU');
       forgotPasswordEl.dispatchEvent(clickEvent);
       assert.ok(showErrorOverlaySpy.calledOnce);
     });
 
     test(' > Forgot password link opens web flow when not in FTE', function() {
-      FtuLauncher.mIsRunning = false;
+      fxaDialog.classList.remove('isFTU');
       FxModuleServerRequest.resetSuccess = true;
       forgotPasswordEl.dispatchEvent(clickEvent);
       assert.ok(resetSpy.calledOnce);
