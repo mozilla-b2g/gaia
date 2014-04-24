@@ -31,12 +31,8 @@ var CellBroadcastSystem = {
   },
 
   show: function cbs_show(event) {
-
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var conn = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
+    var conn = window.navigator.mozMobileConnections &&
+               window.navigator.mozMobileConnections[0];
 
     var msg = event.message;
 

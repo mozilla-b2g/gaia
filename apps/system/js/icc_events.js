@@ -146,12 +146,8 @@ var icc_events = {
       case icc._iccManager.STK_EVENT_TYPE_LOCATION_STATUS:
         DUMP('icc_events_register - Location changes event');
 
-        // XXX: check bug-926169
-        // this is used to keep all tests passing while introducing
-        // multi-sim APIs
-        var conn = window.navigator.mozMobileConnection ||
-          window.navigator.mozMobileConnections &&
-            window.navigator.mozMobileConnections[0];
+        var conn = window.navigator.mozMobileConnections &&
+                   window.navigator.mozMobileConnections[0];
 
         conn.addEventListener('voicechange',
           function register_icc_event_voicechange(evt) {

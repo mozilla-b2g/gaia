@@ -45,8 +45,7 @@ var QuickSettings = {
   },
 
   monitorDataChange: function() {
-    var conns = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections;
+    var conns = window.navigator.mozMobileConnections;
 
     if (!conns) {
       // hide data icon without mozMobileConnection object
