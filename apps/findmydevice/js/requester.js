@@ -67,4 +67,4 @@ var Requester = {
   }
 };
 
-navigator.mozL10n.ready(Requester.init.bind(Requester));
+navigator.mozL10n.once(Requester.init.bind(Requester));
