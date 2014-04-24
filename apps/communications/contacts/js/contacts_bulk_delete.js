@@ -1,4 +1,4 @@
-/* globals Contacts, _, utils, contactsRemover */
+/* globals Contacts, utils, contactsRemover, Promise, ConfirmDialog */
 'use strict';
 
 var contacts = window.contacts || {};
@@ -6,6 +6,8 @@ var contacts = window.contacts || {};
 contacts.BulkDelete = (function() {
 
   var cancelled = false;
+
+  var _ = navigator.mozL10n.get;
 
   /**
    * Loads the overlay class before showing
@@ -16,8 +18,27 @@ contacts.BulkDelete = (function() {
 
   // Shows a dialog to confirm the bulk delete
   var showConfirm = function showConfirm(n) {
-    var response = confirm(_('ContactConfirmDel', {n: n}));
-    return response;
+    return new Promise(function doShowConfirm(resolve, reject) {
+      var cancelObject = {
+        title: _('cancel'),
+        callback: function onCancel() {
+          ConfirmDialog.hide();
+          reject();
+        }
+      };
+
+      var removeObject = {
+        title: _('remove'),
+        isDanger: true,
+        callback: function onRemove() {
+          ConfirmDialog.hide();
+          resolve();
+        }
+      };
+
+      Contacts.confirmDialog(null, _('ContactConfirmDel', {n: n}), cancelObject,
+                             removeObject);
+    });
   };
 
   var doDelete = function doDelete(ids) {
@@ -72,12 +93,8 @@ contacts.BulkDelete = (function() {
       utils.overlay.show(_('preparing-contacts'), 'spinner');
       promise.onsuccess = function onSucces(ids) {
         Contacts.hideOverlay();
-        var confirmDelete = showConfirm(ids.length);
-        if (confirmDelete) {
-          doDelete(ids);
-        } else {
-          Contacts.showStatus(_('BulkDelCancel'));
-        }
+        showConfirm(ids.length).then(contacts.BulkDelete.doDelete.bind(null,
+                                                                       ids));
       };
       promise.onerror = function onError() {
         Contacts.hideOverlay();

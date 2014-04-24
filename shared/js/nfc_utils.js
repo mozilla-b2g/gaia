@@ -210,6 +210,10 @@ NfcUtils = {
    * @return {String}
    */
   toUTF8: function toUTF8(a) {
+    if (!a) {
+      return null;
+    }
+
     var str = '';
     for (var i = 0; i < a.length; i++) {
       str += String.fromCharCode(a[i]);

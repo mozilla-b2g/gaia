@@ -8,7 +8,7 @@ var _ = navigator.mozL10n.get;
 var AppManager = {
 
   init: function init() {
-    this.isLocalized = true;
+    this.isInitialized = true;
     SimManager.init();
     WifiManager.init();
     ImportIntegration.init();
@@ -47,9 +47,7 @@ var AppManager = {
 };
 
 navigator.mozL10n.ready(function showBody() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-  if (!AppManager.isLocalized) {
+  if (!AppManager.isInitialized) {
     AppManager.init();
   } else {
     UIManager.initTZ();

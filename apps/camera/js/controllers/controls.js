@@ -54,7 +54,6 @@ ControlsController.prototype.bindEvents = function() {
 
   // Controls
   this.controls.on('click:thumbnail', this.app.firer('preview'));
-  this.controls.on('click:gallery', this.onGalleryButtonClick);
   this.controls.on('click:switch', this.onSwitchButtonClick);
   this.controls.on('click:cancel', this.onCancelButtonClick);
   this.controls.on('click:capture', this.onCaptureClick);
@@ -75,16 +74,13 @@ ControlsController.prototype.configure = function() {
   // The gallery button should not
   // be shown if an activity is pending
   // or the application is in 'secure mode'.
-  var showGallery = !this.app.activity.active && !this.app.inSecureMode;
 
-  this.controls.set('gallery', showGallery);
   this.controls.set('cancel', isCancellable);
   this.controls.set('switchable', isSwitchable);
   this.controls.set('mode', initialMode);
 
   debug('cancelable: %s', isCancellable);
   debug('switchable: %s', isSwitchable);
-  debug('gallery: %s', showGallery);
   debug('mode: %s', initialMode);
 };
 

@@ -4,6 +4,7 @@ html, body {
   overflow: hidden !important;
   background-image: url(images/attention_background.png);
   background-size: 100% 100%;
+  -moz-user-select: none;
 }
 
 html {
@@ -55,11 +56,10 @@ html.ready {
   width: 100%;
 }
 
-#ring-clock-hour24-state {
+#ring-clock-time small {
   font-weight: lighter;
-  font-size: 3.13rem;
+  font-size: inherit;
   line-height: 5rem;
-  padding-left: 0.94rem;
 }
 
 #ring-label {
@@ -206,7 +206,7 @@ html.ready {
     line-height: 1.38rem;
   }
 
-  #ring-clock-hour24-state {
+  #ring-clock-time small {
     display: none;
   }
 

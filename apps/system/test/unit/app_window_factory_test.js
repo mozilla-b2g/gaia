@@ -1,3 +1,5 @@
+/* global MocksHelper, AppWindowFactory, MockApplications,
+          MockAppWindowManager, AppWindow, HomescreenLauncher */
 'use strict';
 /* global MocksHelper, MockApplications, MockAppWindowManager,
           AppWindow, HomescreenLauncher, AppWindowFactory, appWindowFactory */

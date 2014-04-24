@@ -42,7 +42,7 @@ class DeviceInfo(Base):
         _iccid_locator = (By.ID, 'deviceInfo-iccids')
         _platform_version_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.platform_version"]')
         _build_id_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.platform_build_id"]')
-        _update_channel_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="deviceinfo.update_channel"]')
+        _update_channel_locator = (By.CSS_SELECTOR, '#about-moreInfo small[data-name="app.update.channel"]')
         _git_commit_timestamp_locator = (By.ID, 'gaia-commit-date')
         _git_commit_hash_locator = (By.ID, 'gaia-commit-hash')
 

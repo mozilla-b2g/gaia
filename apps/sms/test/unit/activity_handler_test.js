@@ -3,7 +3,7 @@
          Threads  */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
          MockNavigatorWakeLock, MockOptionMenu,
-         MockMessages, MockNavigatorSettings, MockL10n,
+         MockMessages, MockL10n,
          MockNavigatormozMobileMessage,
          Settings
 */
@@ -33,6 +33,7 @@ requireApp('sms/test/unit/mock_threads.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_action_menu.js');
 require('/test/unit/mock_settings.js');
+require('/test/unit/mock_notify.js');
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -48,6 +49,7 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'MessageManager',
   'Notification',
   'NotificationHelper',
+  'Notify',
   'OptionMenu',
   'Settings',
   'SettingsURL',
@@ -132,12 +134,14 @@ suite('ActivityHandler', function() {
             filenames: ['testBlob1', 'testBlob2', 'testBlob3', 'testBlob4',
                         'testBlob5']
           }
-        }
+        },
+        postResult: sinon.stub()
       };
     });
 
     teardown(function() {
       window.location.hash = this.prevHash;
+      ActivityHandler.leaveActivity();
     });
 
     test('test for pushing an attachments to an array', function() {
@@ -205,10 +209,18 @@ suite('ActivityHandler', function() {
       sinon.assert.notCalled(window.alert);
     });
 
-    test('share shouldn\'t change the ThreadUI back button', function() {
-      this.sinon.stub(ThreadUI, 'enableActivityRequestMode');
+    test('share message should switch application to request activity mode',
+      function() {
+        MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+        assert.isTrue(document.body.classList.contains(
+          ActivityHandler.REQUEST_ACTIVITY_MODE_CLASS_NAME)
+        );
+      }
+    );
+
+    test('share message should set the current activity', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
-      assert.isFalse(ThreadUI.enableActivityRequestMode.called);
+      assert.isTrue(ActivityHandler.isInActivity());
     });
   });
 
@@ -349,18 +361,6 @@ suite('ActivityHandler', function() {
     });
 
     suite('receive class-0 message', function() {
-      var realMozSettings;
-
-      suiteSetup(function(done) {
-        realMozSettings = navigator.mozSettings;
-        navigator.mozSettings = MockNavigatorSettings;
-        requireApp('sms/js/notify.js', done);
-      });
-
-      suiteTeardown(function() {
-        navigator.mozSettings = realMozSettings;
-      });
-
       setup(function() {
         this.sinon.stub(Notify, 'ringtone');
         this.sinon.stub(Notify, 'vibrate');
@@ -473,6 +473,24 @@ suite('ActivityHandler', function() {
       });
     });
 
+    suite('receive message when in thread with the same id', function() {
+      setup(function() {
+        //mimic user clicking thread
+        Threads.currentId = 1;
+
+        this.sinon.stub(Notify, 'ringtone');
+        this.sinon.stub(Notify, 'vibrate');
+
+        var newMessage = MockMessages.sms();
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', newMessage);
+      });
+
+      test('play ringtone and vibrate even if in correct thread', function() {
+        sinon.assert.called(Notify.ringtone);
+        sinon.assert.called(Notify.vibrate);
+      });
+    });
+
     suite('class-0 message', function() {
       setup(function() {
         var notification = {
@@ -510,7 +528,8 @@ suite('ActivityHandler', function() {
           number: '123',
           body: 'foo'
         }
-      }
+      },
+      postResult: sinon.stub()
     };
 
     var newActivity_empty = {
@@ -519,7 +538,8 @@ suite('ActivityHandler', function() {
         data: {
           number: '123'
         }
-      }
+      },
+      postResult: sinon.stub()
     };
 
     setup(function() {
@@ -529,6 +549,7 @@ suite('ActivityHandler', function() {
 
     teardown(function() {
       MessageManager.activity = null;
+      ActivityHandler.leaveActivity();
     });
 
     suiteSetup(function() {
@@ -625,14 +646,17 @@ suite('ActivityHandler', function() {
 
     test('new message should set the current activity', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      assert.equal(ActivityHandler.currentActivity.new, newActivity);
+      assert.isTrue(ActivityHandler.isInActivity());
     });
 
-    test('new message should change the ThreadUI back button', function() {
-      this.sinon.stub(ThreadUI, 'enableActivityRequestMode');
-      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
-      assert.isTrue(ThreadUI.enableActivityRequestMode.called);
-    });
+    test('new message should switch application to request activity mode',
+      function() {
+        MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+        assert.isTrue(document.body.classList.contains(
+          ActivityHandler.REQUEST_ACTIVITY_MODE_CLASS_NAME)
+        );
+      }
+    );
 
   });
 
@@ -685,6 +709,49 @@ suite('ActivityHandler', function() {
         assert.isTrue(ThreadUI.cleanFields.called);
         assert.isTrue(window.confirm.called);
       });
+    });
+  });
+
+  suite('setActivity', function() {
+    teardown(function() {
+      ActivityHandler.leaveActivity();
+    });
+
+    test('setting current activity should switch on activity mode', function() {
+      ActivityHandler.setActivity({
+        postResult: sinon.stub()
+      });
+      assert.isTrue(document.body.classList.contains(
+          ActivityHandler.REQUEST_ACTIVITY_MODE_CLASS_NAME)
+      );
+    });
+
+    test('setting current activity as null or undefined should throw exception',
+      function() {
+        assert.throws(function() {
+          ActivityHandler.setActivity(null);
+        });
+        assert.throws(function() {
+          ActivityHandler.setActivity();
+        });
+        assert.isFalse(document.body.classList.contains(
+          ActivityHandler.REQUEST_ACTIVITY_MODE_CLASS_NAME)
+        );
+      }
+    );
+  });
+
+  suite('leaveActivity', function() {
+    test('should call postResult on current activity', function() {
+      var mockActivity = {
+        postResult: sinon.stub()
+      };
+      ActivityHandler.setActivity(mockActivity);
+      assert.isTrue(ActivityHandler.isInActivity());
+
+      ActivityHandler.leaveActivity();
+      sinon.assert.called(mockActivity.postResult);
+      assert.isFalse(ActivityHandler.isInActivity());
     });
   });
 });

@@ -9,8 +9,18 @@ from gaiatest.apps.phone.app import Phone
 class CallLog(Phone):
 
     _upgrade_progress_locator = (By.ID, 'call-log-upgrading')
+    _call_log_edit_button_locator = (By.ID, 'call-log-icon-edit')
+
+    _call_log_edit_dialog_locator = (By.ID, 'edit-mode')
+    _call_log_edit_delete_button_locator = (By.ID, 'delete-button')
+    _call_log_edit_close_button_locator = (By.ID, 'call-log-icon-close')
+    _call_log_edit_deselect_all_button_locator = (By.ID, 'deselect-all-threads')
+    _call_log_edit_select_all_button_locator = (By.ID, 'select-all-threads')
+
     _all_calls_tab_link_locator = (By.CSS_SELECTOR, '#all-filter a')
     _all_calls_list_item_locator = (By.CSS_SELECTOR, 'li.log-item')
+    _all_calls_list_item_button_locator = (By.CSS_SELECTOR, 'li.log-item a')
+    _all_calls_list_item_checkbox_locator = (By.CSS_SELECTOR, 'li.log-item input[type="checkbox"]')
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
@@ -19,6 +29,9 @@ class CallLog(Phone):
 
     def tap_all_calls_tab(self):
         self.marionette.find_element(*self._all_calls_tab_link_locator).tap()
+
+    def a11y_click_all_calls_tab(self):
+        self.accessibility.click(self.marionette.find_element(*self._all_calls_tab_link_locator))
 
     @property
     def is_all_calls_tab_selected(self):

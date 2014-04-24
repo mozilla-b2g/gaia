@@ -371,11 +371,22 @@ var MessageManager = {
     }
     */
 
-    var cursor = this._mozMobileMessage.getThreads();
-
     var each = options.each;
     var end = options.end;
     var done = options.done;
+    var cursor = null;
+
+    // WORKAROUND for bug 958738. We can remove 'try\catch' block once this bug
+    // is resolved
+    try {
+      cursor = this._mozMobileMessage.getThreads();
+    } catch(e) {
+      console.error('Error occurred while retrieving threads: ' + e.name);
+      end && end();
+      done && done();
+
+      return;
+    }
 
     cursor.onsuccess = function onsuccess() {
       if (this.result) {

@@ -1,5 +1,6 @@
 'use strict';
 var Base = require('./base'),
+    RootPanel = require('./regions/root'),
     BluetoothPanel = require('./regions/bluetooth'),
     DoNotTrackPanel = require('./regions/do_not_track'),
     HotspotPanel = require('./regions/hotspot'),
@@ -47,7 +48,6 @@ Settings.Selectors = {
   'improveSection': '#improveBrowserOS',
   'feedbackPanel': 'button[data-href="#improveBrowserOS-chooseFeedback"]',
   'soundMenuItem': '#menuItem-sound',
-  'languageDesc': '#language-desc',
   'languageMenuItem': '#menuItem-languageAndRegion',
   'screenLockMenuItem': '#menuItem-phoneLock',
   'appPermissionPanel': '#menuItem-appPermissions',
@@ -58,16 +58,10 @@ Settings.prototype = {
 
   __proto__: Base.prototype,
 
-  _languageMap: {
-    english: {
-      desc: 'English (US)',
-    },
-    traditionalChinese: {
-      desc: '正體中文',
-    },
-    french: {
-      desc: 'Français',
-    }
+  get rootPanel() {
+    this._rootPanel = this._rootPanel ||
+      new RootPanel(this.client);
+    return this._rootPanel;
   },
 
   get bluetoothPanel() {
@@ -131,20 +125,6 @@ Settings.prototype = {
     this._languagePanel = this._languagePanel ||
       new LanguagePanel(this.client);
     return this._languagePanel;
-  },
-
-  get currentLanguageDesc() {
-    return this.findElement('languageDesc').text();
-  },
-
-  isLanguageDescTranslated: function(languageKey) {
-    if (this._languageMap[languageKey]) {
-      var desc = this._languageMap[languageKey].desc;
-      if (this.currentLanguageDesc === desc) {
-        return true;
-      }
-    }
-    return false;
   },
 
   get screenLockPanel() {

@@ -59,7 +59,10 @@ suite('controllers/preview-gallery', function() {
 
   suite('PreviewGalleryController()', function() {
     setup(function() {
-      var mozL10n = { get: function() {} };
+      var mozL10n = {
+        get: function() {},
+        translate: function() {}
+      };
       if (!navigator.mozL10n) { navigator.mozL10n = mozL10n; }
       sinon.stub(window, 'confirm');
       window.confirm.returns(true);
@@ -72,6 +75,11 @@ suite('controllers/preview-gallery', function() {
         deleteVideo: sinon.spy(),
         on: sinon.spy()
       };
+
+      CustomDialog.show = function(title, msg, cancelCb, deleteCb) {
+        deleteCb.callback();
+      };
+
     });
 
     teardown(function() {
@@ -136,6 +144,35 @@ suite('controllers/preview-gallery', function() {
       assert.ok(arg.data.blobs[0] === item.blob);
       assert.ok(arg.data.filenames[0] === 'fileName');
       assert.ok(arg.data.filepaths[0] === item.filepath);
+    });
+
+    test('Should deleteCurrentItem which is image', function() {
+      var item = {
+        blob: {},
+        filepath: 'root/fileName',
+        isVideo: false
+      };
+      this.previewGalleryController.items = [item];
+      this.previewGalleryController.currentItemIndex = 0;
+
+      this.previewGalleryController.deleteCurrentItem();
+
+      assert.ok(this.previewGalleryController.storage.deleteImage
+                .calledWith('root/fileName'));
+    });
+
+    test('Should deleteCurrentItem which is video', function() {
+      var item = {
+        blob: {},
+        filepath: 'root/fileName',
+        isVideo: true
+      };
+      this.previewGalleryController.items = [item];
+      this.previewGalleryController.currentItemIndex = 0;
+      this.previewGalleryController.deleteCurrentItem();
+
+      assert.ok(this.previewGalleryController.storage.deleteVideo
+                .calledWith('root/fileName'));
     });
 
     test('Check onNewMedia callback', function() {
@@ -279,4 +316,17 @@ suite('controllers/preview-gallery', function() {
       assert.isTrue(this.app.set.calledWith('previewGalleryOpen', false));
     });
   });
+
+  suite('PreviewGalleryController#onPreviewOptionClick()', function() {
+    setup(function() {
+     this.controller.view = new this.PreviewGalleryView();
+     this.controller.view.showOptionsMenu = sinon.spy();
+     this.controller.onOptionsClick();
+    });
+
+    test('Should open previewOption on onPreviewOptionClick', function() {
+      assert.isTrue(this.controller.view.showOptionsMenu.called);
+    });
+  });
+
 });

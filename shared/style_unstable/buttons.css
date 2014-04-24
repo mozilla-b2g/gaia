@@ -59,9 +59,9 @@ button:active,
 }
 
 /* Pressed with dark skin */
-.dark button:active,
-.dark [role="button"]:active,
-.dark .button:active {
+.skin-dark button:active,
+.skin-dark [role="button"]:active,
+.skin-dark .button:active {
   background-color: #00aacc;
 }
 
@@ -89,22 +89,22 @@ button[disabled].danger,
 }
 
 /* Disabled with dark background */
-.dark button[disabled],
-.dark .button[aria-disabled="true"],
-.dark [role="button"][aria-disabled="true"] {
+.skin-dark button[disabled],
+.skin-dark .button[aria-disabled="true"],
+.skin-dark [role="button"][aria-disabled="true"] {
   background-color: #565656;
   color: rgba(255,255,255,0.4);
 }
 
-.dark button[disabled].recommend,
-.dark .button[aria-disabled="true"].recommend,
-.dark [role="button"][aria-disabled="true"].recommend {
+.skin-dark button[disabled].recommend,
+.skin-dark .button[aria-disabled="true"].recommend,
+.skin-dark [role="button"][aria-disabled="true"].recommend {
   background-color: #006579;
 }
 
-.dark button[disabled].danger,
-.dark .button[aria-disabled="true"].danger,
-.dark [role="button"][aria-disabled="true"].danger {
+.skin-dark button[disabled].danger,
+.skin-dark .button[aria-disabled="true"].danger,
+.skin-dark [role="button"][aria-disabled="true"].danger {
   background-color: #730f0f;
 }
 
@@ -213,42 +213,47 @@ li .button[aria-disabled="true"].icon-dialog:before {
  * Theme: Dark
  * ---------------------------------- */
 
-.dark li button,
-.dark li [role="button"],
-.dark li .button {
-  background-color: rgba(87,87,87,0.8);
+.skin-dark li button,
+.skin-dark li [role="button"],
+.skin-dark li .button {
+  background-color: #454545;
   border: none;
   color: #fff;
   font-weight: normal;
 }
 
-.dark li button:active,
-.dark li [role="button"]:active {
+.skin-dark li button:active,
+.skin-dark li [role="button"]:active {
   background-color: #00aacc;
 }
 
-.dark li button.icon-view,
-.dark li [role="button"].icon-view {
+.skin-dark li button.icon-view,
+.skin-dark li [role="button"].icon-view {
   background-color: transparent;
   border: none;
 }
 
-.dark li button.icon-view:active,
-.dark li [role="button"].icon-view:active {
+.skin-dark li button.icon-view:active,
+.skin-dark li [role="button"].icon-view:active {
   background-color: #00aacc;
 }
 
-.dark li button.icon-dialog:active:before,
-.dark li [role="button"].icon-dialog:active:before,
-.dark li .button.icon-dialog:active:before {
+.skin-dark li button.icon-dialog:active:before,
+.skin-dark li [role="button"].icon-dialog:active:before,
+.skin-dark li .button.icon-dialog:active:before {
   border-left: 0.7rem solid #b2f2ff;
 }
 
-.dark li button:disabled,
-.dark li [role="button"][aria-disabled="true"],
-.dark li .button[aria-disabled="true"] {
-  background-color: rgba(87,87,87,0.8);
+.skin-dark li button:disabled,
+.skin-dark li [role="button"][aria-disabled="true"],
+.skin-dark li .button[aria-disabled="true"] {
+  background-color: #454545;
   opacity: 0.5;
+}
+
+.skin-dark li button.icon-view:disabled,
+.skin-dark li [role="button"].icon-view[aria-disabled="true"] {
+  background-color: transparent;
 }
 
 
@@ -275,7 +280,7 @@ select {
   height: 4rem;
 }
 
-.dark select {
+.skin-dark select {
   background-color: rgba(87, 87, 87, 0.8);
   border: none;
   color: #fff;
@@ -287,7 +292,7 @@ select:-moz-focusring {
   text-shadow: 0 0 0 #333;
 }
 
-.dark select:-moz-focusring {
+.skin-dark select:-moz-focusring {
   text-shadow: 0 0 0 #fff;
 }
 
@@ -324,7 +329,7 @@ select:-moz-focusring {
   overflow: hidden;
 }
 
-.dark .button.icon-dialog[aria-disabled="true"] select {
+.skin-dark .button.icon-dialog[aria-disabled="true"] select {
   color: rgba(255, 255, 255, 0.4);
 }
 

@@ -1,8 +1,6 @@
 /* global require, marionette, setup, suite, test, __dirname */
 'use strict';
 
-// This test is disabled in travis, bug 989644
-
 var assert = require('assert');
 var Music = require('./lib/music.js');
 var FakeRingtones = require('./lib/fakeringtones.js');
@@ -44,7 +42,8 @@ marionette('Music player tests', function() {
   });
 
   suite('Audio channels tests', function() {
-    test('Interrupted by a higher priority channel', function() {
+    // This test is skipped for not failing tpbl, please see bug 997360.
+    test.skip('Interrupted by a higher priority channel', function() {
       // Launch Music app and wait for the first tile to come out. Switch to
       // the all songs view then tap on the first song to play, also make sure
       // the playing icon in the status bar shows up.

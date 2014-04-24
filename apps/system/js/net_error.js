@@ -112,6 +112,21 @@
       }
     );
 
+    switch (_error.e) {
+      case 'connectionFailure':
+      case 'netInterrupt':
+      case 'netTimeout':
+      case 'netReset':
+        _error.e = 'connectionFailed';
+        break;
+
+      case 'unknownSocketType':
+      case 'unknownProtocolFound':
+      case 'cspFrameAncestorBlocked':
+        _error.e = 'invalidConnection';
+        break;
+    }
+
     return _error;
   }
 
@@ -167,8 +182,10 @@
     window.addEventListener('online', reloadIfOnline);
   }
 
-  var ErrorView = function(error) {
+  var ErrorView = function(error, title, message) {
     this.error = error;
+    this.titleText = title || 'unable-to-connect';
+    this.messageText = message || this.error.d;
     this.node = document.getElementById('net-error-confirm-dialog');
   };
 
@@ -182,8 +199,8 @@
     },
 
     populateMessages: function ew_populateMessages() {
-      localizeElement(this.title, 'unable-to-connect');
-      this.message.textContent = this.error.d;
+      localizeElement(this.title, this.titleText);
+      localizeElement(this.message, this.messageText);
     },
 
     init: function ew_init() {
@@ -198,8 +215,8 @@
     }
   };
 
-  var FramedErrorView = function(error) {
-    ErrorView.call(this, error);
+  var FramedErrorView = function(error, title, message) {
+    ErrorView.call(this, error, title, message);
   };
 
   FramedErrorView.prototype = {
@@ -218,8 +235,8 @@
     }
   };
 
-  var AppErrorView = function(error) {
-    ErrorView.call(this, error);
+  var AppErrorView = function(error, title, message) {
+    ErrorView.call(this, error, title, message);
   };
 
   AppErrorView.prototype = {
@@ -236,37 +253,6 @@
       };
       document.getElementById('close-btn').onclick = closeWindow;
     }
-  };
-
-  // Server not found views
-
-  var DnsNotFoundHelper = {
-    populateMessages: function dnfh_populateMessages() {
-      localizeElement(this.title, 'server-not-found');
-      localizeElement(this.message, 'server-not-found-error', {
-        name: location.host
-      });
-    }
-  };
-
-  var DnsNotFoundFramedErrorView = function(error) {
-    FramedErrorView.call(this, error);
-  };
-
-  DnsNotFoundFramedErrorView.prototype = {
-    __proto__: FramedErrorView.prototype,
-
-    populateMessages: DnsNotFoundHelper.populateMessages
-  };
-
-  var DnsNotFoundAppErrorView = function(error) {
-    AppErrorView.call(this, error);
-  };
-
-  DnsNotFoundAppErrorView.prototype = {
-    __proto__: AppErrorView.prototype,
-
-    populateMessages: DnsNotFoundHelper.populateMessages
   };
 
   // Offline view
@@ -315,14 +301,139 @@
     }
   };
 
-  var views = {
-    dnsNotFound: {
-      'framed': DnsNotFoundFramedErrorView,
-      'no-frame': DnsNotFoundAppErrorView
+  // Confirm views
+  var ConfirmAppErrorView = function(error, title, message) {
+    AppErrorView.call(this, error, title, message);
+  };
+
+  ConfirmAppErrorView.prototype = {
+    __proto__: AppErrorView.prototype,
+
+    applyStyle: function caew_applyStyle() {
+      AppErrorView.prototype.applyStyle.call(this);
+      document.body.classList.add('dialog');
+    }
+  };
+
+  // Alert view
+  var AlertAppErrorView = function(error, title, message) {
+    AppErrorView.call(this, error, title, message);
+  };
+
+  AlertAppErrorView.prototype = {
+    __proto__: AppErrorView.prototype,
+
+    applyStyle: function aaew_applyStyle() {
+      AppErrorView.prototype.applyStyle.call(this);
+      document.body.classList.add('dialog', 'alert');
     },
+  };
+
+  var views = {
     netOffline: {
       'framed': NetOfflineFramedErrorView,
       'no-frame': NetOfflineAppErrorView
+    },
+    dnsNotFound: {
+      'framed': FramedErrorView,
+      'no-frame': ConfirmAppErrorView,
+      'title': 'server-not-found',
+      'message': 'server-not-found-error'
+    },
+    connectionFailed: {
+      'framed': FramedErrorView,
+      'no-frame': ConfirmAppErrorView,
+      'title': 'connection-failed',
+      'message': 'connection-failed-error'
+    },
+    notCached: {
+      'framed': FramedErrorView,
+      'no-frame': ConfirmAppErrorView,
+      'title': 'not-cached',
+      'message': 'not-cached-error'
+    },
+    fileNotFound: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'file-not-found',
+      'message': 'file-not-found-error'
+    },
+    invalidConnection: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'invalid-connection',
+      'message': 'invalid-connection-error'
+    },
+    malformedURI: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'malformed-uri',
+      'message': 'malformed-uri-error'
+    },
+    redirectLoop: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'redirect-loop',
+      'message': 'redirect-loop-error'
+    },
+    isprinting: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'message': 'is-printing-error'
+    },
+    deniedPortAccess: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'denied-port-access',
+      'message': 'denied-port-access-error'
+    },
+    proxyResolveFailure: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'proxy-resolve-failure',
+      'message': 'proxy-resolve-failure-error'
+    },
+    proxyConnectFailure: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'proxy-connect-failure',
+      'message': 'proxy-connect-failure-error'
+    },
+    contentEncodingError: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'content-encoding',
+      'message': 'content-encoding-error'
+    },
+    remoteXUL: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'remote-xul',
+      'message': 'remote-xul-error'
+    },
+    unsafeContentType: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'unsafe-content-type',
+      'message': 'unsafe-content-type-error'
+    },
+    corruptedContentError: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'corrupted-content',
+      'message': 'corrupted-content-error'
+    },
+    phishingBlocked: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'phishing-blocked',
+      'message': 'phishing-blocked-error'
+    },
+    malwareBlocked: {
+      'framed': FramedErrorView,
+      'no-frame': AlertAppErrorView,
+      'title': 'malware-blocked',
+      'message': 'malware-blocked-error'
     },
     byDefault: {
       'framed': FramedErrorView,
@@ -334,7 +445,8 @@
     create: function nef_create() {
       var error = getErrorFromURI();
       var view = views[error.e] || views.byDefault;
-      return new view[getFrameType(error)](error);
+      return new view[getFrameType(error)](error, view.title,
+                                           view.message);
     }
   };
 
@@ -343,6 +455,8 @@
    */
   function initPage() {
     _error = _app = null;
+    // Display detailed info about the error.
+    console.error('net-error');
     ErrorViewFactory.create().init();
   }
 

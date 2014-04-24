@@ -72,8 +72,10 @@ if (!contacts.MatchingUI) {
       renderList(results, cb);
     }
 
-    var listDependencies = ['/contacts/js/utilities/image_loader.js',
-                            '/contacts/js/utilities/templates.js'];
+    var listDependencies = [
+      '/shared/js/contacts/utilities/image_loader.js',
+      '/shared/js/contacts/utilities/templates.js'
+    ];
 
     function renderList(contacts, success) {
       LazyLoader.load(listDependencies, function loaded() {

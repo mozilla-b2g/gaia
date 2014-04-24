@@ -151,7 +151,7 @@ suite('system/AppInstallManager >', function() {
         'Are you sure you want to cancel this install?</p>',
         '<menu>',
           '<button id="app-install-confirm-cancel-button" type="reset" ' +
-          'data-l10n-id="cancel-install">Cancel Install</button>',
+          'data-l10n-id="cancel-install-button">Cancel Install</button>',
           '<button id="app-install-resume-button" type="submit" ' +
           'data-l10n-id="resume">Resume</button>',
         '</menu>',

@@ -18,6 +18,7 @@ module.exports = SoundPanel;
 SoundPanel.Selectors = {
   'vibrateCheckbox': '#sound input[name="vibration.enabled"]',
   'vibrateLabel': '#sound label.pack-switch',
+  'mediaSlider': '#sound input[name="audio.volume.content"]',
   'ringerSlider': '#sound input[name="audio.volume.notification"]',
   'alarmSlider': '#sound input[name="audio.volume.alarm"]',
   'keypadCheckbox': '#sound input[name="phone.ring.keypad"]',
@@ -52,6 +53,14 @@ SoundPanel.prototype = {
   },
 
   /* Volume */
+  get contentValue() {
+    return this.client.settings.get('audio.volume.content');
+  },
+
+  tapOnMediaSlider: function() {
+    this.waitForElement('mediaSlider').tap();
+  },
+
   get ringerValue() {
     return this.client.settings.get('audio.volume.notification');
   },

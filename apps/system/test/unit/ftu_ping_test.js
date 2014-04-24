@@ -74,7 +74,7 @@ suite('FtuPing', function() {
     test('returns expected url', function(done) {
       var mockSettings = MockNavigatorSettings.mSettings;
       mockSettings['deviceinfo.platform_version'] = 'test_version';
-      mockSettings['deviceinfo.update_channel'] = 'test_channel';
+      mockSettings['app.update.channel'] = 'test_channel';
       mockSettings['deviceinfo.platform_build_id'] = 'test_build_id';
 
       FtuPing.initSettings(function() {
@@ -97,7 +97,7 @@ suite('FtuPing', function() {
     test('encodes URI parameters', function(done) {
       var mockSettings = MockNavigatorSettings.mSettings;
       mockSettings['deviceinfo.platform_version'] = 'i have/';
-      mockSettings['deviceinfo.update_channel'] = 'lots of:';
+      mockSettings['app.update.channel'] = 'lots of:';
       mockSettings['deviceinfo.platform_build_id'] = 'spaces man?';
       FtuPing.initSettings(function() {
         var url = FtuPing.generatePingURL();
@@ -207,7 +207,7 @@ suite('FtuPing', function() {
       mockSettings['deviceinfo.product_model'] = 'test_model';
       mockSettings['deviceinfo.firmware_revision'] = 'test_revision';
       mockSettings['deviceinfo.hardware'] = 'test_hardware';
-      mockSettings['deviceinfo.update_channel'] = 'test_channel';
+      mockSettings['app.update.channel'] = 'test_channel';
 
       doneCallback = function() {
         var pingData = FtuPing.getPingData();
@@ -227,7 +227,7 @@ suite('FtuPing', function() {
         assert.equal(pingData['deviceinfo.product_model'], 'test_model');
         assert.equal(pingData['deviceinfo.firmware_revision'], 'test_revision');
         assert.equal(pingData['deviceinfo.hardware'], 'test_hardware');
-        assert.equal(pingData['deviceinfo.update_channel'], 'test_channel');
+        assert.equal(pingData['app.update.channel'], 'test_channel');
         done();
       };
       FtuPing.ensurePing();

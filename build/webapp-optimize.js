@@ -423,6 +423,11 @@ function optimize_embedL10nResources(doc, dictionary) {
   // split the l10n dictionary on a per-locale basis,
   // and embed it in the HTML document by enclosing it in <script> nodes.
   for (let lang in dictionary) {
+    // skip to the next language if the dictionary is null
+    if (!dictionary[lang]) {
+      continue;
+    }
+
     let script = doc.createElement('script');
     script.type = 'application/l10n';
     script.lang = lang;
@@ -539,6 +544,11 @@ function optimize_compile(webapp, file, callback) {
   let subDict = newDictionary();
   let fullDict = newDictionary();
 
+  // configure mozL10n.getDictionary to skip the default locale when populating
+  // subDicts
+  let getDictionary = mozL10n.getDictionary.bind(mozL10n,
+                                                 config.GAIA_DEFAULT_LOCALE);
+
   // catch console.[log|warn|info] calls and redirect them to `dump()'
   // XXX for some reason, this won't work if gDEBUG >= 2 in l10n.js
   function optimize_dump(str) {
@@ -556,19 +566,30 @@ function optimize_compile(webapp, file, callback) {
 
     function open(type, url, async) {
       debug('loadResource: ' + url);
-      this.readyState = 4;
       this.status = 200;
       this.responseText = optimize_getFileContent(webapp, file, url);
     }
 
+    function addEventListener(type, cb) {
+      if (type === 'load') {
+        this.onload = cb;
+      }
+    }
+
     function send() {
-      this.onreadystatechange();
+      this.onload({
+        'target': {
+          'status': this.status,
+          'responseText': this.responseText,
+        }
+      });
     }
 
     return {
       open: open,
       send: send,
-      onreadystatechange: null
+      addEventListener: addEventListener,
+      onload: null,
     };
   };
 
@@ -583,6 +604,11 @@ function optimize_compile(webapp, file, callback) {
       L10N_OPTIMIZATION_BLACKLIST.indexOf(webapp.sourceDirectoryName) < 0) {
     // selecting a language triggers `XMLHttpRequest' and `dispatchEvent' above
     debug('localizing: ' + file.path);
+
+    // if LOCALE_BASEDIR is set, we're going to show missing strings at 
+    // buildtime.
+    var debugL10n = config.LOCALE_BASEDIR != "";
+
     // since l10n.js was read before the document was created, we need to
     // explicitly initialize it again via mozL10n.bootstrap, which looks for
     // *.ini links in the HTML and sets up the localization context
@@ -598,8 +624,8 @@ function optimize_compile(webapp, file, callback) {
 
         // create JSON dicts for the current language; one for the <script> tag
         // embedded in HTML and one for locales-obj/
-        subDict[mozL10n.language.code] = mozL10n.getDictionary(docElt);
-        fullDict[mozL10n.language.code] = mozL10n.getDictionary();
+        subDict[mozL10n.language.code] = getDictionary(docElt);
+        fullDict[mozL10n.language.code] = getDictionary();
 
         processedLocales++;
       }
@@ -621,7 +647,7 @@ function optimize_compile(webapp, file, callback) {
 
       // notify the world that this HTML document has been optimized
       callback();
-    });
+    }, debugL10n);
   } else {
     callback();
   }

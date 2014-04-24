@@ -50,13 +50,19 @@ class HTML5Player(PageRegion):
 
     def play(self):
         self.invoke_controls()
-        self.root_element.tap()
+        # We cannot actually tap on the elements because they are not HTML elements
+        # but we can tap where we anticipate them to be.
+        y_tap_location = int(self.root_element.size['height']/3)
+        self.root_element.tap(y=y_tap_location)
         self.wait_for_condition(lambda m: not self.is_paused)
         self._disable_controls()
 
     def pause(self):
         self.invoke_controls()
-        self.root_element.tap()
+        # We cannot actually tap on the elements because they are not HTML elements
+        # but we can tap where we anticipate them to be.
+        y_tap_location = int(self.root_element.size['height']/3)
+        self.root_element.tap(y=y_tap_location)
         self.wait_for_condition(lambda m: self.is_paused)
         self._disable_controls()
 

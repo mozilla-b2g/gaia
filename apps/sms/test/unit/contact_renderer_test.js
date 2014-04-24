@@ -58,6 +58,12 @@ suite('ContactRenderer', function() {
   setup(function() {
     loadBodyHTML('/index.html');
 
+    // Override generic mozL10n.get for this test
+    var l10nStub = this.sinon.stub(navigator.mozL10n, 'get');
+    l10nStub.withArgs('thread-separator').returns(' | ');
+    l10nStub.withArgs('carrier-separator').returns(', ');
+    l10nStub.returnsArg(0);
+
     this.sinon.spy(Template.prototype, 'interpolate');
     ul = document.createElement('ul');
     contact = MockContact();

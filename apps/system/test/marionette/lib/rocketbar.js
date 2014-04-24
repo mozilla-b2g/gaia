@@ -46,6 +46,19 @@ Rocketbar.prototype = {
   focus: function() {
     var rocketbar = this.client.findElement(this.selectors.rocketbar);
     this.client.waitFor(rocketbar.displayed.bind(rocketbar));
+
+    // Poll the page to ensure rocketbar is enabled before tapping on it.
+    var lastVal = false;
+    this.client.waitFor(function() {
+      this.client.executeScript(function() {
+        var win = window.wrappedJSObject;
+        return win.Rocketbar && win.Rocketbar.enabled;
+      }, function(err, value) {
+        lastVal = value;
+      });
+      return lastVal;
+    }.bind(this));
+
     rocketbar.tap();
     var rocketbarInput =
       this.client.findElement(this.selectors.rocketbarInput);

@@ -42,6 +42,8 @@
 
     _ready: false,
 
+    _screen: document.getElementById('screen'),
+
     /**
      * Homescreen launcher is ready or not. Homescreen launcher is ready
      * only when it is done retrieving 'homescreen.manifestURL'
@@ -129,6 +131,8 @@
       window.addEventListener('cardviewbeforeclose', this);
       window.addEventListener('shrinking-start', this);
       window.addEventListener('shrinking-stop', this);
+      window.addEventListener('homescreenopening', this);
+      window.addEventListener('homescreenclosing', this);
       return this;
     },
 
@@ -155,6 +159,8 @@
       window.removeEventListener('cardviewbeforeclose', this);
       window.removeEventListener('shrinking-start', this);
       window.removeEventListener('shrinking-stop', this);
+      window.removeEventListener('homescreenopening', this);
+      window.removeEventListener('homescreenclosing', this);
       this._started = false;
     },
 
@@ -167,8 +173,8 @@
     handleEvent: function hl_handleEvent(evt) {
       switch (evt.type) {
         case 'trusteduishow':
-          this.getHomescreen().toggle(true);
-          this.getHomescreen().fadeIn();
+          this.getHomescreen(true).toggle(true);
+          this.getHomescreen(true).fadeIn();
           break;
         case 'trusteduihide':
           this.getHomescreen().toggle(false);
@@ -209,6 +215,12 @@
           // To resume the homescreen after shrinking UI is over.
           this.getHomescreen().showFadeOverlay();
           break;
+        case 'homescreenopening':
+          this._screen.classList.add('on-homescreen');
+          break;
+        case 'homescreenclosing':
+          this._screen.classList.remove('on-homescreen');
+          break;
       }
     },
 
@@ -216,10 +228,11 @@
      * Get instance of homescreen window singleton
      *
      * @memberOf HomescreenLauncher.prototype
+     * @params {Boolean} ensure Ensure the homescreen app is alive.
      * @returns {HomescreenWindow} Instance of homescreen window singleton, or
      *                             null if HomescreenLauncher is not ready
      */
-    getHomescreen: function hl_getHomescreen() {
+    getHomescreen: function hl_getHomescreen(ensure) {
       if (this._currentManifestURL === '') {
         console.warn('HomescreenLauncher: not ready right now.');
         return null;
@@ -228,7 +241,9 @@
         this._instance = new HomescreenWindow(this._currentManifestURL);
         return this._instance;
       } else {
-        this._instance.ensure();
+        if (ensure) {
+          this._instance.ensure();
+        }
         return this._instance;
       }
     }

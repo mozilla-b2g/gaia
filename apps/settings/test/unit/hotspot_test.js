@@ -30,10 +30,8 @@ suite('Hotspot', function() {
       '<div id="hotspot">' +
         '<ul>' +
           '<li id="hotspot-settings-section">' +
-            '<label>' +
-              '<button class="icon icon-view"' +
-              'data-l10n-id="hotspotSettings">Hotspot Settings</button>' +
-            '</label>' +
+            '<button class="icon icon-view"' +
+            'data-l10n-id="hotspotSettings">Hotspot Settings</button>' +
           '</li>' +
           '<li class="password-item" hidden>' +
             '<a data-l10n-id="wifi-password">Password' +

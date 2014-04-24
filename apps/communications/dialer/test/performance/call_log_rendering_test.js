@@ -2,7 +2,7 @@
 
 var assert = require('assert');
 
-requireGaia('/test_apps/test-agent/common/test/synthetic_gestures.js');
+requireGaia('/dev_apps/test-agent/common/test/synthetic_gestures.js');
 var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
 var PerformanceHelper =
@@ -15,6 +15,8 @@ marionette(mozTestInfo.appPath + ' >', function() {
       'ftu.manifestURL': null
     }
   });
+  // Do nothing on script timeout. Bug 987383
+  client.onScriptTimeout = null;
 
   setup(function() {
     this.timeout(500000);

@@ -1,0 +1,8 @@
+{
+  "findmydevice": {
+    "src": ["apps/findmydevice/js/**/*.js"],
+    "options": {
+      "destination": "docs/findmydevice"
+    }
+  }
+}

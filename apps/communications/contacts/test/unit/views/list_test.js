@@ -20,12 +20,12 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/tag_visibility_monitor.js');
+require('/shared/js/contacts/utilities/dom.js');
+require('/shared/js/contacts/utilities/templates.js');
+require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 requireApp('communications/contacts/js/views/search.js');
 requireApp('communications/contacts/js/views/list.js');
-requireApp('communications/contacts/js/utilities/dom.js');
-requireApp('communications/contacts/js/utilities/event_listeners.js');
-requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/test/unit/mock_cookie.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');

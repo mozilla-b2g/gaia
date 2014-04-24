@@ -1,5 +1,7 @@
+/* global BrowserConfigHelper, AppWindow */
+
 'use strict';
-(function(window) {
+(function(exports) {
   /**
    * HomescreenWindow creates a instance of homescreen by give manifestURL.
    *
@@ -60,7 +62,7 @@
    * @event HomescreenWindow#homescreenbackground
    */
 
-  HomescreenWindow.prototype.__proto__ = window.AppWindow.prototype;
+  HomescreenWindow.prototype.__proto__ = AppWindow.prototype;
 
   HomescreenWindow.prototype._DEBUG = false;
 
@@ -78,7 +80,7 @@
       this.url = app.origin + '/index.html#root';
 
       this.browser_config =
-        new window.BrowserConfigHelper(this.origin, this.manifestURL);
+        new BrowserConfigHelper(this.origin, this.manifestURL);
 
       // Necessary for b2gperf now.
       this.name = this.browser_config.name;
@@ -98,7 +100,8 @@
   HomescreenWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
     'modalDialog': window.AppModalDialog,
-    'authDialog': window.AppAuthenticationDialog
+    'authDialog': window.AppAuthenticationDialog,
+    'childWindowFactory': window.ChildWindowFactory
   };
 
   HomescreenWindow.prototype.openAnimation = 'zoom-out';
@@ -167,9 +170,11 @@
 
   // Ensure the homescreen is loaded and return its frame.  Restarts
   // the homescreen app if it was killed in the background.
-  // Note: this function would not invoke openWindow(homescreen),
-  // which should be handled in setDisplayedApp and in closeWindow()
   HomescreenWindow.prototype.ensure = function hw_ensure(reset) {
+    this.debug('ensuring homescreen...', this.frontWindow);
+    if (this.frontWindow) {
+      this.frontWindow.kill();
+    }
     if (!this.element) {
       this.render();
     } else if (reset) {
@@ -199,5 +204,5 @@
     this.fadeOverlay.classList.remove('hidden');
   };
 
-  window.HomescreenWindow = HomescreenWindow;
+  exports.HomescreenWindow = HomescreenWindow;
 }(window));

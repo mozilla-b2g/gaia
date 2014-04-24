@@ -42,16 +42,19 @@ function ConfirmController(app) {
 }
 
 ConfirmController.prototype.renderView = function() {
+  if (!this.activity.active) {
+    return;
+  }
+
   if (this.confirmView) {
     this.confirmView.show();
     return;
   }
+
   this.confirmView = new this.ConfirmView();
-  this.confirmView.hide();
   this.confirmView.render().appendTo(this.container);
   this.confirmView.on('click:select', this.onSelectMedia);
   this.confirmView.on('click:retake', this.onRetakeMedia);
-  this.camera.resumePreview();
 };
 
 /**
@@ -59,6 +62,17 @@ ConfirmController.prototype.renderView = function() {
  *
  */
 ConfirmController.prototype.bindEvents = function() {
+
+  // Render/Show the view on the `newimage` and `newvideo` events
+  // since they are fired immediately when tapping 'Capture'/'Stop'.
+  // This prevents the 'Capture'/'Stop' button from being able to be
+  // triggered multiple times before the confirm view appears.
+  this.camera.on('newimage', this.renderView);
+  this.camera.on('newvideo', this.renderView);
+
+  // Update the MediaFrame contents with the image/video upon
+  // receiving the `newmedia` event. This event is slightly delayed
+  // since it waits for the storage callback to complete.
   this.app.on('newmedia', this.onNewMedia);
 };
 
@@ -76,7 +90,6 @@ ConfirmController.prototype.onNewMedia = function(newMedia) {
   if (!this.activity.active) { return; }
 
   this.newMedia = newMedia;
-  this.renderView();
   if (newMedia.isVideo) { // Is video
     this.confirmView.showVideo(newMedia);
   } else { // Is Image

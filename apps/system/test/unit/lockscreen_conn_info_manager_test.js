@@ -316,7 +316,9 @@ suite('system/LockScreenConnInfoManager >', function() {
       });
 
       ['pinRequired', 'pukRequired', 'networkLocked',
-       'serviceProviderLocked', 'corporateLocked'].forEach(function(cardState) {
+       'serviceProviderLocked', 'corporateLocked', 'network1Locked',
+       'network2Locked', 'hrpdNetworkLocked', 'ruimCorporateLocked',
+       'ruimServiceProviderLocked'].forEach(function(cardState) {
         test(cardState, function() {
           mockMobileConnection.voice = {
             connected: false,

@@ -117,8 +117,6 @@
   overflow: scroll;
 }
 
-.settings_items > .inner {}
-
 /**
  * @deg90
  */
@@ -146,7 +144,7 @@
   position: absolute;
   top: 0; right: 0;
   margin: 0;
-  border-width: 1.9rem 1.5rem;
+  border-width: 2rem 1.5rem;
   background-color: #008eab;
 }
 

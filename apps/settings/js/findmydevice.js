@@ -57,9 +57,11 @@ var FindMyDevice = {
     var settings = document.getElementById('findmydevice-settings');
     settings.hidden = !loggedIn;
 
-    SettingsListener.getSettingsLock().set({
-      'findmydevice.enabled': loggedIn && this._interactiveLogin
-    });
+    if (this._interactiveLogin) {
+      SettingsListener.getSettingsLock().set({
+        'findmydevice.enabled': loggedIn
+      });
+    }
 
     this._interactiveLogin = false;
   },

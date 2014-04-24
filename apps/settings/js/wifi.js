@@ -675,7 +675,7 @@ navigator.mozL10n.once(function wifiSettings() {
       // API is not ready yet.
       // Hide the "Manage certificates" button since API is not ready yet.
       var manageCertificatesBtn = document.getElementById('manageCertificates');
-      manageCertificatesBtn.parentNode.parentNode.hidden = true;
+      manageCertificatesBtn.parentNode.hidden = true;
       console.warn('Import certificate API is not ready yet!');
     }
 
@@ -953,6 +953,9 @@ navigator.mozL10n.once(function wifiSettings() {
       function submit() {
         if (dialogID === 'wifi-joinHidden') {
           network.ssid = dialog.querySelector('input[name=ssid]').value;
+          if (window.MozWifiNetwork !== undefined) {
+            network = new window.MozWifiNetwork(network);
+          }
         }
         if (key) {
           WifiHelper.setPassword(network,

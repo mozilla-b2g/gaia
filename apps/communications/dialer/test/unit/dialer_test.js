@@ -8,10 +8,10 @@
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
 );
-requireApp('communications/dialer/test/unit/mock_call_log.js');
-requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
-requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
-requireApp('communications/dialer/test/unit/mock_voicemail.js');
+require('/dialer/test/unit/mock_call_log.js');
+require('/dialer/test/unit/mock_call_log_db_manager.js');
+require('/dialer/test/unit/mock_lazy_loader.js');
+require('/dialer/test/unit/mock_voicemail.js');
 
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
@@ -24,7 +24,7 @@ require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
 
-requireApp('communications/dialer/js/dialer.js');
+require('/dialer/js/dialer.js');
 
 var mocksHelperForDialer = new MocksHelper([
   'AccessibilityHelper',
@@ -117,25 +117,42 @@ suite('navigation bar', function() {
         };
       });
 
-      test('> One SIM', function() {
-        MockNavigatormozSetMessageHandler.mTrigger('telephony-call-ended',
-                                                   callEndedData);
-
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
-        sinon.assert.calledWith(Notification, 'missedCall');
-      });
-
-      test('> Two SIMs', function() {
-        MockNavigatorMozIccManager.addIcc('6789', {
-          'cardState': 'ready'
+      suite('> One SIM', function() {
+        setup(function() {
+          MockNavigatormozSetMessageHandler.mTrigger('telephony-call-ended',
+                                                     callEndedData);
+          MockNavigatormozApps.mTriggerLastRequestSuccess();
         });
 
-        MockNavigatormozSetMessageHandler.mTrigger('telephony-call-ended',
-                                                   callEndedData);
+        test('should localize the notification message', function() {
+          assert.deepEqual(MockLazyL10n.keys['from-contact'],
+            {contact: 'test name'});
+        });
 
-        MockNavigatormozApps.mTriggerLastRequestSuccess();
-        sinon.assert.calledWith(Notification, 'missedCallMultiSims');
-        assert.deepEqual(MockLazyL10n.keys.missedCallMultiSims, {n: 2});
+        test('should send the notification', function() {
+          sinon.assert.calledWith(Notification, 'missedCall');
+        });
+      });
+
+      suite('> Two SIMs', function() {
+        setup(function() {
+          MockNavigatorMozIccManager.addIcc('6789', {
+            'cardState': 'ready'
+          });
+          MockNavigatormozSetMessageHandler.mTrigger('telephony-call-ended',
+                                                     callEndedData);
+          MockNavigatormozApps.mTriggerLastRequestSuccess();
+        });
+
+        test('should localize the notification message', function() {
+          assert.deepEqual(MockLazyL10n.keys['from-contact'],
+            {contact: 'test name'});
+        });
+
+        test('should send the notification', function() {
+          sinon.assert.calledWith(Notification, 'missedCallMultiSims');
+          assert.deepEqual(MockLazyL10n.keys.missedCallMultiSims, {n: 2});
+        });
       });
     });
 
@@ -332,11 +349,17 @@ suite('navigation bar', function() {
       suite('> dial without a number', function() {
         setup(function() {
           activity.source.data.number = '';
+          triggerActivity(activity);
         });
 
         test('should show the contacts view', function() {
-          triggerActivity(activity);
           assert.equal(window.location.hash, '#contacts-view');
+        });
+
+        test('should go to home of contacts', function() {
+          assert.isTrue(
+            domContactsIframe.src.contains('/contacts/index.html#home')
+          );
         });
       });
     });

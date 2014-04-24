@@ -16,8 +16,6 @@
     "open-remote-window":{},
     "storage":{},
     "geolocation": {},
-    "alarms": {},
-    "power":{},
     "contacts":{ "access": "readonly" }
   },
   "locales": {
@@ -46,9 +44,6 @@
     "68": "/style/icons/HomeScreen_68.png"
   },
   "orientation": "default",
-  "messages": [
-    { "alarm": "/index.html" }
-  ],
   "datastores-access": {
     "bookmarks_store": {
       "readonly": false,

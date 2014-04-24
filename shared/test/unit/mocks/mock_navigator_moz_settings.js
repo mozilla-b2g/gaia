@@ -115,10 +115,7 @@
 
   function mns_reset() {
     observers = {};
-    // Set default message size with 300KB
-    settings = {
-      'dom.mms.operatorSizeLimitation' : 300
-    };
+    settings = {};
     removedObservers = {};
     requests = [];
     _mSyncRepliesOnly = false;

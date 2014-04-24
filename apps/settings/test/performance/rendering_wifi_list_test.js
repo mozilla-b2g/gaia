@@ -16,6 +16,8 @@ marionette(mozTestInfo.appPath + ' >', function() {
       'ftu.manifestURL': null
     }
   });
+  // Do nothing on script timeout. Bug 987383
+  client.onScriptTimeout = null;
 
   app = new SettingsIntegration(client, mozTestInfo.appPath);
 

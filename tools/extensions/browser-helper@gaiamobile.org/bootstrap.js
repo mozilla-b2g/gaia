@@ -234,7 +234,28 @@ function startup(data, reason) {
                                 browserWindow.outerWidth - 550);
       gDevToolsBrowser.selectToolCommand(browserWindow.gBrowser);
 
-      Cu.import('resource://gre/modules/Keyboard.jsm');
+      let KeyboardGlobal = Cu.import('resource://gre/modules/Keyboard.jsm');
+
+      // SystemAppProxy.jsm doesn't ship into Firefox.
+      // Keyboard.jsm is the only one user of it outside of b2g/ folder.
+      // So hack it, in order to allow keyboard to send events to the system app
+      Object.defineProperty(KeyboardGlobal, "SystemAppProxy", {
+        value: {
+          dispatchEvent: function (detail) {
+            let contentWindow = browserWindow.content;
+            var contentDetail = Components.utils.createObjectIn(contentWindow);
+            for (var i in detail) {
+              contentDetail[i] = detail[i];
+            }
+            Components.utils.makeObjectPropsNormal(contentDetail);
+
+            var customEvt = contentWindow.document.createEvent('CustomEvent');
+            customEvt.initCustomEvent('mozChromeEvent', true, true, contentDetail);
+            contentWindow.dispatchEvent(customEvt);
+          }
+        }
+      });
+
       Keyboard.initFormsFrameScript(mm);
       mm.loadFrameScript('chrome://global/content/forms.js', true);
     }, 'sessionstore-windows-restored', false);
@@ -267,4 +288,8 @@ function startup(data, reason) {
   } catch (e) {
     debug('Something went wrong while trying to start browser-helper: ' + e);
   }
+}
+
+function shutdown(data, reason) {
+  // prevent stdout warnings
 }

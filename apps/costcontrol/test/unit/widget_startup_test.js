@@ -239,7 +239,6 @@ suite('Widget Startup Modes Test Suite >', function() {
         // Restore the spy/stub
         Common.loadDataSIMIccId.restore();
         MockMozL10n.ready.restore();
-        showSimErrorSpy.reset();
 
         // Send a iccdetected event to restart the widget
         AirplaneModeHelper._status = 'disabled';
@@ -251,7 +250,7 @@ suite('Widget Startup Modes Test Suite >', function() {
         // In a normal start-up, when the cardState ready, the widget tries to
         // recover de configuration with the method getInstance
         sinon.stub(CostControl, 'getInstance', function(window, callback) {
-          assert.equal(showSimErrorSpy.callCount, 0);
+          assert.equal(showSimErrorSpy.callCount, 1);
           assert.equal(Common.dataSimIcc.cardState, 'ready');
 
           CostControl.getInstance.restore();

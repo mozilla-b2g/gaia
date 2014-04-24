@@ -212,7 +212,15 @@ See [how to run the Gaia endurance tests](https://developer.mozilla.org/en-US/do
 
 To generate API reference locally, you have to install grunt with following command:
 
-    $ npm -g grunt-cli
+```sh
+$ npm -g grunt-cli
+```
 
 then run `make docs` command to generate docs.
 The generated API docs will be located in `docs` folder.
+
+You could generate single app doc with this:
+
+```sh
+$ grunt jsdoc:system
+```

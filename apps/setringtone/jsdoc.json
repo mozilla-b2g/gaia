@@ -1,0 +1,8 @@
+{
+  "setringtone": {
+    "src": ["apps/setringtone/js/**/*.js"],
+    "options": {
+      "destination": "docs/setringtone"
+    }
+  }
+}

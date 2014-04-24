@@ -15,15 +15,18 @@ var Settings = {
     smsServiceId: 'ril.sms.defaultServiceId'
   },
 
+  // we evaluate to 5KB the size overhead of wrapping a payload in a MMS
+  MMS_SIZE_OVERHEAD: 5 * 1024,
+
   _serviceIds: null,
 
-  mmsSizeLimitation: 300 * 1024, // Default mms message size limitation is 300K.
+  mmsSizeLimitation: 295 * 1024, // Default mms message size limitation is 295K
   mmsServiceId: null, // Default mms service SIM ID
   smsServiceId: null, // Default sms service SIM ID
 
   init: function settings_init() {
     var keyHandlerSet = {
-      'dom.mms.operatorSizeLimitation': Settings.initMmsSizeLimitation
+      'dom.mms.operatorSizeLimitation': this.initMmsSizeLimitation.bind(this)
     };
     var settings = navigator.mozSettings;
     var conns = navigator.mozMobileConnections;
@@ -65,7 +68,7 @@ var Settings = {
   // MessageManager and return nothing if we can't get size limitation from db
   initMmsSizeLimitation: function initMmsSizeLimitation(size) {
     if (size && !isNaN(size)) {
-      Settings.mmsSizeLimitation = size;
+      this.mmsSizeLimitation = size - this.MMS_SIZE_OVERHEAD;
     }
   },
 

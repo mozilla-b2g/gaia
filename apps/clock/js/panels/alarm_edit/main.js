@@ -47,8 +47,12 @@ var AlarmEdit = function() {
 
   this.buttons.time = new FormButton(this.selects.time, {
     formatLabel: function(value) {
-      var time = Utils.parseTime(value);
-      return Utils.format.time(time.hour, time.minute);
+      var date = new Date();
+      // This split(':') is locale-independent per HTML5 <input type=time>
+      var splitValue = value.split(':');
+      date.setHours(splitValue[0]);
+      date.setMinutes(splitValue[1]);
+      return Utils.getLocalizedTimeText(date);
     }.bind(this)
   });
   this.buttons.repeat = new FormButton(this.selects.repeat, {
@@ -68,6 +72,9 @@ var AlarmEdit = function() {
       return _('nMinutes', {n: snooze});
     }
   });
+
+  this.scrollList = this.element.querySelector('#edit-alarm');
+  this.sundayListItem = this.element.querySelector('#repeat-select-sunday');
 
   // When the system pops up the ValueSelector, it inadvertently
   // messes with the scrollTop of the current panel. This is a
@@ -104,47 +111,9 @@ var AlarmEdit = function() {
 
 AlarmEdit.prototype = Object.create(Panel.prototype);
 
-var selectors = {
-  scrollList: '#edit-alarm',
-  labelInput: 'input[name="alarm.label"]',
-  timeSelect: '#time-select',
-  timeMenu: '#time-menu',
-  alarmTitle: '#alarm-title',
-  repeatMenu: '#repeat-menu',
-  repeatSelect: '#repeat-select',
-  sundayListItem: '#repeat-select-sunday',
-  soundMenu: '#sound-menu',
-  soundSelect: '#sound-select',
-  snoozeMenu: '#snooze-menu',
-  snoozeSelect: '#snooze-select',
-  deleteButton: '#alarm-delete',
-  backButton: '#alarm-close',
-  doneButton: '#alarm-done'
-};
-Object.keys(selectors).forEach(function(attr) {
-  var selector = selectors[attr];
-  Object.defineProperty(AlarmEdit.prototype, attr, {
-    get: function() {
-      var element = this.element.querySelector(selector);
-      Object.defineProperty(this, attr, {
-        value: element
-      });
-      return element;
-    },
-    configurable: true
-  });
-});
-
 Utils.extend(AlarmEdit.prototype, {
 
   alarm: null,
-  alarmRef: null,
-  timePicker: {
-    hour: null,
-    minute: null,
-    hour24State: null,
-    is12hFormat: false
-  },
   ringtonePlayer: AudioManager.createAudioPlayer(),
 
   handleNameInput: function(evt) {
@@ -249,15 +218,19 @@ Utils.extend(AlarmEdit.prototype, {
   },
 
   initTimeSelect: function aev_initTimeSelect() {
-    // The format of input type="time" should be in HH:MM
-    var opts = { meridian: false, padHours: true };
-    var time = Utils.format.time(this.alarm.hour, this.alarm.minute, opts);
-    this.buttons.time.value = time;
+    // HTML5 <input type=time> expects 24-hour HH:MM format.
+    var hour = parseInt(this.alarm.hour, 10);
+    var minute = parseInt(this.alarm.minute, 10);
+    this.selects.time.value = (hour < 10 ? '0' : '') + hour +
+      ':' + (minute < 10 ? '0' : '') + minute;
   },
 
   getTimeSelect: function aev_getTimeSelect() {
-    return Utils.parseTime(this.selects.time.value);
+    // HTML5 <input type=time> returns data in 24-hour HH:MM format.
+    var splitTime = this.selects.time.value.split(':');
+    return { hour: splitTime[0], minute: splitTime[1] };
   },
+
   initRepeatSelect: function aev_initRepeatSelect() {
     this.buttons.repeat.value = this.alarm.repeat;
   },

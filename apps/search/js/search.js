@@ -112,10 +112,7 @@
      */
     expandSearch: function(query) {
       this.clear();
-      var webProvider = this.providers.WebResults;
-      webProvider.search(query, function onCollect(results) {
-        webProvider.render(results);
-      });
+      this.providers.WebResults.fullscreen(query);
       this.providers.BGImage.fetchImage(query);
     },
 
@@ -235,7 +232,6 @@
       for (var i in this.providers) {
         this.providers[i].clear();
       }
-      this.showBlank();
     },
 
     showBlank: function() {

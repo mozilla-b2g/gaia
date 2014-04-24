@@ -332,20 +332,17 @@ contacts.List = (function() {
       return;
     }
 
-    var req = utils.config.load('/contacts/config.json');
-    req.onload = function configReady(configData) {
+    utils.config.load('/contacts/config.json').then(function ready(configData) {
       orderByLastName = (configData.defaultContactsOrder ===
                 ORDER_BY_FAMILY_NAME ? true : false);
       utils.cookie.update({order: orderByLastName});
       callback();
-    };
-
-    req.onerror = function configError() {
-      window.console.error('Error while reading configuration file');
-      orderByLastName = utils.cookie.getDefault('order');
-      utils.cookie.update({order: orderByLastName});
-      callback();
-    };
+    }, function configError(err) {
+        window.console.error('Error while reading configuration file');
+        orderByLastName = utils.cookie.getDefault('order');
+        utils.cookie.update({order: orderByLastName});
+        callback();
+    });
   };
 
   var renderGroupHeader = function renderGroupHeader(group, letter) {
@@ -776,7 +773,7 @@ contacts.List = (function() {
   };
 
   var lazyLoadImages = function lazyLoadImages() {
-    LazyLoader.load(['/contacts/js/utilities/image_loader.js',
+    LazyLoader.load(['/shared/js/contacts/utilities/image_loader.js',
                      '/contacts/js/fb_resolver.js'], function() {
       if (!imgLoader) {
         imgLoader = new ImageLoader('#groups-container', 'li');

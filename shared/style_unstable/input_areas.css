@@ -55,7 +55,7 @@ textarea[disabled] {
 .skin-dark textarea  {
   color: #fff;
   background-color: transparent;
-  border-color: #858585;
+  border-color: #454545;
 }
 
 form p {
@@ -92,6 +92,10 @@ li textarea + button[type="reset"]:after {
 
 textarea {
   padding: 1.2rem;
+}
+
+form p input:focus {
+  padding-right: 3rem;
 }
 
 form p input:focus + button[type="reset"],
@@ -152,7 +156,7 @@ fieldset[disabled] {
 .skin-dark input[type="datetime-local"] {
   color: #fff;
   background-color: transparent;
-  border-color: #858585;
+  border-color: #454545;
 }
 
 fieldset[disabled] legend,
@@ -177,7 +181,7 @@ input[type="datetime-local"]:focus {
 .skin-dark input[type="datetime"]:focus,
 .skin-dark input[type="datetime-local"]:focus {
   box-shadow: none;
-  border-bottom-color: #858585;
+  border-bottom-color: #454545;
 }
 
 input[type="date"]:active,
@@ -468,6 +472,10 @@ html[dir="rtl"] input[type="time"][disabled],
 html[dir="rtl"] input[type="datetime"][disabled],
 html[dir="rtl"] input[type="datetime-local"][disabled] {
   background-image: url(input_areas/images/dialog_disabled_rtl.svg);
+}
+
+html[dir="rtl"] form p input:focus {
+  padding: 0 1.5rem 0 3rem;
 }
 
 html[dir="rtl"] form p input + button[type="reset"],

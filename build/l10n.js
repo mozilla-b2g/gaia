@@ -4,15 +4,19 @@
   /* jshint validthis:true */
   /* jshint -W104 */
 
-  var DEBUG = true;
+  var DEBUG = false;
   var requiresInlineLocale = false; // netError requires inline locale
 
   var L10n = navigator.mozL10n._getInternalAPI();
 
-  navigator.mozL10n.bootstrap = function bootstrap(callback) {
+  navigator.mozL10n.bootstrap = function bootstrap(callback, debug) {
     var ctx = navigator.mozL10n.ctx = new L10n.Context();
     ctx.ready(onReady.bind(this));
     requiresInlineLocale = false;
+
+    if (debug) {
+      DEBUG = true;
+    }
 
     if (DEBUG) {
       ctx.addEventListener('error', addBuildMessage.bind(this, 'error'));
@@ -138,7 +142,7 @@
     }
   }
 
-  navigator.mozL10n.getDictionary = function getDictionary(fragment) {
+  navigator.mozL10n.getDictionary = function getDictionary(skipLoc, fragment) {
     var ast = {};
 
     if (!fragment) {
@@ -155,8 +159,8 @@
     }
 
     // don't build inline JSON for default language
-    if (!requiresInlineLocale && this.ctx.supportedLocales[0] === 'en-US') {
-      return {};
+    if (!requiresInlineLocale && this.ctx.supportedLocales[0] === skipLoc) {
+      return null;
     }
 
     var elements = L10n.getTranslatableChildren(fragment);

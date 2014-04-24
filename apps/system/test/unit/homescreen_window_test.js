@@ -1,3 +1,6 @@
+/* global MocksHelper, HomescreenWindow, MockApplications,
+          HomescreenLauncher */
+
 'use strict';
 
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
@@ -61,7 +64,7 @@ suite('system/HomescreenWindow', function() {
       });
 
       homescreenWindow = new HomescreenWindow('fakeManifestURL');
-      if (!'setVisible' in homescreenWindow.browser.element) {
+      if (!('setVisible' in homescreenWindow.browser.element)) {
         homescreenWindow.browser.element.setVisible = function() {};
       }
     });

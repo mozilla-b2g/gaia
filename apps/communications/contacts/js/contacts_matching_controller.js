@@ -172,7 +172,8 @@ if (!contacts.MatchingController) {
       }
 
       LazyLoader.load(['/contacts/js/contacts_merger.js',
-                       '/contacts/js/utilities/image_thumbnail.js'],
+                       '/shared/js/contacts/utilities/image_thumbnail.js'
+                      ],
       function loaded() {
         var cb = function cb() {
           Curtain.hide(function() {

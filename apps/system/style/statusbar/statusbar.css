@@ -16,11 +16,11 @@
   transform-origin: left top;
 }
 
-#statusbar-background.expanded {
+#screen.rocketbar-expanded #statusbar-background {
   transform: scaleY(1);
 }
 
-body.rb-enabled #screen:not(.cards-view) #statusbar-background.on-homescreen:not(.rocketbar-focused) {
+body.rb-enabled #screen.on-homescreen:not(.cards-view):not(.rocketbar-focused) #statusbar-background {
   transform: scaleY(1.5);
 }
 
@@ -72,12 +72,9 @@ body.rb-enabled #screen:not(.cards-view) #statusbar-background.on-homescreen:not
   white-space: nowrap;
 }
 
-#statusbar.expanded:not(.on-homescreen) #statusbar-icons,
-#statusbar.on-homescreen.rocketbar-focused #statusbar-icons {
-  opacity: 0;
-}
-
-#screen.cards-view #statusbar.expanded #statusbar-icons {
+#screen.rocketbar-expanded:not(.on-homescreen):not(.locked) #statusbar-icons,
+#screen.rocketbar-expanded.on-homescreen.rocketbar-focused:not(.locked) #statusbar-icons,
+#screen.rocketbar-expanded.cards-view #statusbar-icons {
   opacity: 0;
 }
 

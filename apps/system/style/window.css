@@ -42,10 +42,16 @@
   background-color: black;
 }
 
+.appWindow.popupWindow {
+  background-color: white;
+}
+
 .appWindow:not(.homescreen).render {
   background-image: none !important;
   background-color: transparent;
 }
+
+/* mozbrowser iframe layout */
 
 .appWindow > iframe {
   position: absolute;
@@ -83,10 +89,17 @@
   height: calc(100% - 6rem);
 }
 
+.appWindow .throbber.loading {
+  height: 0.3rem;
+  background-image: url('../shared/progress.gif');
+  background-size: auto 0.3rem;
+}
 
 .appWindow:not(.homescreen).render > iframe {
   background-color: #fff;
 }
+
+/* app window layout */
 
 #screen.active-statusbar > #windows > .appWindow,
 #screen.active-statusbar > #windows > .appWindow.fullscreen-app {
@@ -427,6 +440,22 @@
   z-index: 4;
 }
 
+.appWindow.slideleft {
+  animation: slideLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.slideright {
+  animation: slideRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.slideup {
+  animation: slideUp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.slidedown {
+  animation: slideDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
 .appWindow.in-from-left {
   animation: inFromLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
@@ -482,6 +511,16 @@
   animation: outToRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
+@keyframes slideUp {
+  0%   { transform: translateY(100%); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(100%); }
+}
+
 @keyframes inFromLeft {
   0%   {
     transform: translateX(-20%);
@@ -525,7 +564,26 @@
   transform: translateX(calc(100% + 20px));
 }
 
-#screen:-moz-full-screen-ancestor > #windows .appWindow.active {
+#windows .appWindow.active iframe {
+  transition-property: transform;
+  transition-duration: 0.5s;
+}
+
+#screen.locked #windows .appWindow.active iframe,
+#screen.on-homescreen #windows .appWindow.active iframe {
+  transition-property: none;
+}
+
+#screen.rocketbar-expanded .appWindow:not(.fullscreen-app).active iframe {
+  transform: translateY(2.4rem);
+}
+
+#screen.locked.rocketbar-expanded .appWindow.active iframe,
+#screen.on-homescreen.rocketbar-expanded .appWindow.active iframe {
+  transform: none;
+}
+
+#screen:-moz-full-screen-ancestor > #windows .appWindow.active iframe {
   top: 0;
   height: 100%;
 }

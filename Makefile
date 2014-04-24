@@ -410,7 +410,7 @@ TAR_WILDCARDS = tar --wildcards
 endif
 
 # Test agent setup
-TEST_COMMON=test_apps/test-agent/common
+TEST_COMMON=dev_apps/test-agent/common
 ifeq ($(strip $(NODEJS)),)
 	NODEJS := `which node`
 endif
@@ -419,7 +419,7 @@ ifeq ($(strip $(NPM)),)
 	NPM := `which npm`
 endif
 
-TEST_AGENT_CONFIG="./test_apps/test-agent/config.json"
+TEST_AGENT_CONFIG="./dev_apps/test-agent/config.json"
 
 #Marionette testing variables
 #make sure we're python 2.7.x
@@ -497,7 +497,7 @@ $(STAGE_DIR):
 # FIXME: we use |STAGE_APP_DIR="../../build_stage/$$APP"| here because we got
 # some problem on Windows if use absolute path.
 .PHONY: app-makefiles
-app-makefiles: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts webapp-manifests svoperapps | $(STAGE_DIR)
+app-makefiles: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts webapp-manifests svoperapps clear-stage-app webapp-shared | $(STAGE_DIR)
 	@for appdir in $(GAIA_APPDIRS); \
 	do \
 		APP="`basename $$appdir`"; \
@@ -507,7 +507,6 @@ app-makefiles: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts webapp-manifests svo
     		STAGE_APP_DIR="../../build_stage/$$APP" make -C "$$appdir" ; \
     	else \
     		echo "copy $$APP to build_stage/" ; \
-    		rm -rf "$(STAGE_DIR)/$$APP" && \
     		cp -r "$$appdir" $(STAGE_DIR) && \
     		if [ -r "$$appdir/build/build.js" ]; then \
     			echo "execute $$APP/build/build.js"; \
@@ -518,6 +517,17 @@ app-makefiles: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts webapp-manifests svo
     	$(call clean-build-files,$(STAGE_DIR)/$$APP); \
     fi; \
   done
+
+.PHONY: clear-stage-app
+clear-stage-app:
+	@for appdir in $(GAIA_APPDIRS); \
+	do \
+		if [[ ("$$appdir" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
+			APP="`basename $$appdir`"; \
+			echo "clear $$APP in build_stage" ; \
+			rm -rf "$(STAGE_DIR)/$$APP/*"; \
+		fi; \
+	done
 
 svoperapps: $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,svoperapps)
@@ -544,6 +554,11 @@ ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command,webapp-zip)
 endif
+
+.PHONY: webapp-shared
+# Copy shared files to stage folders
+webapp-shared: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts $(STAGE_DIR) clear-stage-app
+	@$(call run-js-command, webapp-shared)
 
 .PHONY: webapp-optimize
 # Web app optimization steps (like precompling l10n, concatenating js files, etc..).
@@ -807,13 +822,10 @@ common-install:
 update-common: common-install
 	# common testing tools
 	mkdir -p $(TEST_COMMON)/vendor/test-agent/
-	mkdir -p $(TEST_COMMON)/vendor/chai/
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.js
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.css
-	rm -f $(TEST_COMMON)/vendor/chai/chai.js
 	cp node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
 	cp node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
-	cp node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
 
 # Create the json config file
 # for use with the test agent GUI
@@ -847,7 +859,7 @@ endif
 # Temp make file method until we can switch
 # over everything in test
 ifneq ($(strip $(APP)),)
-APP_TEST_LIST=$(shell find apps/$(APP) test_apps/$(APP) -name '*_test.js' 2> /dev/null | grep '/test/unit/')
+APP_TEST_LIST=$(shell find apps/$(APP) dev_apps/$(APP) -name '*_test.js' 2> /dev/null | grep '/test/unit/')
 endif
 .PHONY: test-agent-test
 test-agent-test: node_modules
@@ -899,7 +911,7 @@ ifdef APP
   JSHINTED_PATH = apps/$(APP)
   GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint/xfail.list | ( while read file ; do test -f "$$file" && echo $$file ; done ) )
 else
-  JSHINTED_PATH = apps shared build/test/unit test_apps/home2
+  JSHINTED_PATH = apps shared build/test/unit dev_apps/home2
   GJSLINTED_PATH = $(shell ( while read file ; do test -f "$$file" && echo $$file ; done ) < build/jshint/xfail.list )
 endif
 endif
@@ -955,6 +967,10 @@ forward:
 	$(ADB) shell killall rilproxy
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
 
+# install-gaia is alias to build & push to device.
+.PHONY: install-gaia
+install-gaia: $(PROFILE_FOLDER) push
+
 # If your gaia/ directory is a sub-directory of the B2G directory, then
 # you should use:
 #
@@ -962,9 +978,11 @@ forward:
 #
 # But if you're working on just gaia itself, and you already have B2G firmware
 # on your phone, and you have adb in your path, then you can use the
-# install-gaia target to update the gaia files and reboot b2g
-install-gaia: adb-remount $(PROFILE_FOLDER)
-	@$(call run-js-command,install-gaia)
+# push target to update the gaia files and reboot b2g
+.PHONY: push
+push: $(XULRUNNER_BASE_DIRECTORY)
+	@$(ADB) remount
+	@$(call run-js-command,push-to-device)
 
 # Copy demo media to the sdcard.
 # If we've got old style directories on the phone, rename them first.
@@ -1052,10 +1070,6 @@ really-clean: clean
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
-
-.PHONY: adb-remount
-adb-remount:
-	$(ADB) remount
 
 # Generally we got manifest from webapp-manifest.js unless manifest is generated
 # from Makefile of app. so we will copy manifest.webapp if it's avaiable in
