@@ -71,11 +71,13 @@
           ' (' + menu[SIMNumber].iccId + ') - ', menu[SIMNumber].entries);
 
         var li = document.createElement('li');
-        var small = document.createElement('small');
         // XXX this line requires a better l10n support, see bug 968853
-        small.textContent = 'SIM ' + SIMNumber;
-        small.classList.add('menu-item-desc');
-        li.appendChild(small);
+        if (Object.keys(menu).length > 1) {
+          var small = document.createElement('small');
+          small.textContent = 'SIM ' + SIMNumber;
+          small.classList.add('menu-item-desc');
+          li.appendChild(small);
+        }
         var a = document.createElement('a');
         a.textContent = menu[SIMNumber].entries.title;
         a.id = 'menuItem-icc-' + menu[SIMNumber].iccId;
