@@ -81,7 +81,8 @@ var ThreadUI = global.ThreadUI = {
     var templateIds = [
       'message',
       'not-downloaded',
-      'recipient'
+      'recipient',
+      'date-group'
     ];
 
     Compose.init('messages-compose-form');
@@ -299,8 +300,6 @@ var ThreadUI = global.ThreadUI = {
     this.shouldChangePanelNextEvent = false;
 
     this.showErrorInFailedEvent = '';
-
-    this.inActivity = false;
   },
 
   onVisibilityChange: function mm_onVisibilityChange(e) {
@@ -1070,36 +1069,19 @@ var ThreadUI = global.ThreadUI = {
     return true;
   },
 
-  findNextContainer: function thui_findNextContainer(container) {
-    if (!container) {
-      return null;
-    }
-
-    var nextContainer = container;
-    do {
-      nextContainer = nextContainer.nextElementSibling;
-    } while (nextContainer && nextContainer.tagName !== 'UL');
-
-    return nextContainer;
-  },
-
-  findFirstContainer: function thui_findFirstLastContainer() {
-    var container = this.container.firstElementChild;
-    if (container && container.tagName !== 'UL') {
-      container = this.findNextContainer(container);
-    }
-    return container;
-  },
-
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   getMessageContainer:
     function thui_getMessageContainer(messageTimestamp, hidden) {
     var startOfDayTimestamp = Utils.getDayDate(messageTimestamp);
-    var header;
-    var messageContainer = document.getElementById('mc_' + startOfDayTimestamp);
+    var messageDateGroup = document.getElementById('mc_' + startOfDayTimestamp);
 
-    if (messageContainer) {
-      header = messageContainer.previousElementSibling;
+    var header,
+        messageContainer;
+
+    if (messageDateGroup) {
+      header = messageDateGroup.firstElementChild;
+      messageContainer = messageDateGroup.lastElementChild;
+
       if (messageTimestamp < header.dataset.time) {
         header.dataset.time = messageTimestamp;
       }
@@ -1107,19 +1089,16 @@ var ThreadUI = global.ThreadUI = {
     }
 
     // If there is no messageContainer we have to create it
-    // Create DOM Elements
-    header = document.createElement('header');
-    messageContainer = document.createElement('ul');
-    messageContainer.classList.add('message-list');
-
-    // Append 'time-update' state
-    header.dataset.timeUpdate = 'repeat';
-    header.dataset.time = messageTimestamp;
-    header.dataset.dateOnly = true;
-
-    // Add timestamp text
-    messageContainer.id = 'mc_' + startOfDayTimestamp;
-    messageContainer.dataset.timestamp = startOfDayTimestamp;
+    messageDateGroup = this._htmlStringToDomNode(
+      this.tmpl.dateGroup.interpolate({
+        id: 'mc_' + startOfDayTimestamp,
+        timestamp: startOfDayTimestamp.toString(),
+        headerTimeUpdate: 'repeat',
+        headerTime: messageTimestamp.toString(),
+        headerDateOnly: true
+    }));
+    header = messageDateGroup.firstElementChild;
+    messageContainer = messageDateGroup.lastElementChild;
 
     if (hidden) {
       header.classList.add('hidden');
@@ -1127,23 +1106,7 @@ var ThreadUI = global.ThreadUI = {
       TimeHeaders.update(header);
     }
 
-    // In other case we have to look for the right place for appending
-    // the message
-    var insertBeforeContainer;
-    var curContainer = this.findFirstContainer();
-
-    while (curContainer &&
-           +curContainer.dataset.timestamp < startOfDayTimestamp) {
-      curContainer = this.findNextContainer(curContainer);
-    }
-
-    insertBeforeContainer = curContainer;
-
-    // Finally we append the container & header in the right position
-    // With this function, "inserting before 'null'" means "appending"
-    this.container.insertBefore(messageContainer,
-      insertBeforeContainer ? insertBeforeContainer.previousSibling : null);
-    this.container.insertBefore(header, messageContainer);
+    this._insertTimestampedNodeToContainer(messageDateGroup, this.container);
 
     return messageContainer;
   },
@@ -1248,14 +1211,12 @@ var ThreadUI = global.ThreadUI = {
     }.bind(this));
   },
 
-  initializeRendering: function thui_initializeRendering(messages, callback) {
+  initializeRendering: function thui_initializeRendering() {
     // Clean fields
     this.cleanFields();
     this.checkInputs();
     // Clean list of messages
     this.container.innerHTML = '';
-    // Init readMessages array
-    this.readMessages = [];
     // Initialize infinite scroll params
     this.messageIndex = 0;
     // reset stopRendering boolean
@@ -1532,28 +1493,46 @@ var ThreadUI = global.ThreadUI = {
     messageDOM = this.buildMessageDOM(message, hidden);
 
     messageDOM.dataset.timestamp = timestamp;
+
     // Add to the right position
     var messageContainer = this.getMessageContainer(timestamp, hidden);
-    if (!messageContainer.firstElementChild) {
-      messageContainer.appendChild(messageDOM);
-    } else {
-      var messages = messageContainer.children;
-      var appended = false;
-      for (var i = 0, l = messages.length; i < l; i++) {
-        if (timestamp < messages[i].dataset.timestamp) {
-          messageContainer.insertBefore(messageDOM, messages[i]);
-          appended = true;
-          break;
-        }
-      }
-      if (!appended) {
-        messageContainer.appendChild(messageDOM);
-      }
-    }
+    this._insertTimestampedNodeToContainer(messageDOM, messageContainer);
 
     if (this.mainWrapper.classList.contains('edit')) {
       this.checkInputs();
     }
+  },
+
+  /**
+   * Inserts DOM node to the container respecting 'timestamp' data attribute of
+   * the node to insert and sibling nodes in ascending order.
+   * @param {Node} nodeToInsert DOM node to insert.
+   * @param {Node} container Container DOM node to insert to.
+   * @private
+   */
+  _insertTimestampedNodeToContainer: function(nodeToInsert, container) {
+    var currentNode = container.firstElementChild,
+        nodeTimestamp = nodeToInsert.dataset.timestamp;
+
+    while (currentNode && nodeTimestamp > +currentNode.dataset.timestamp) {
+      currentNode = currentNode.nextElementSibling;
+    }
+
+    // With this function, "inserting before 'null'" means "appending"
+    container.insertBefore(nodeToInsert, currentNode || null);
+  },
+
+  /**
+   * Parses html string to DOM node. Works with html string wrapped into single
+   * element only.
+   * @param {string} htmlString Valid html string.
+   * @returns {Node} DOM node create from the specified html string.
+   * @private
+   */
+  _htmlStringToDomNode: function(htmlString) {
+    var tempContainer = document.createElement('div');
+    tempContainer.innerHTML = htmlString;
+    return tempContainer.firstElementChild;
   },
 
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
@@ -1675,8 +1654,9 @@ var ThreadUI = global.ThreadUI = {
       window.location.hash = '#thread-list';
     } else {
       // Retrieve latest message in the UI
-      var lastMessage =
-        ThreadUI.container.querySelector('ul:last-child li:last-child');
+      var lastMessage = ThreadUI.container.lastElementChild.querySelector(
+        '.message-list li:last-child'
+      );
       // We need to make Thread-list to show the same info
       var request = MessageManager.getMessage(+lastMessage.dataset.messageId);
       request.onsuccess = function() {
@@ -1720,31 +1700,27 @@ var ThreadUI = global.ThreadUI = {
   },
 
   chooseMessage: function thui_chooseMessage(target) {
-    if (!target.checked) {
-      // Removing red bubble
-      target.parentNode.parentNode.classList.remove('selected');
-    } else {
-      // Adding red bubble
-      target.parentNode.parentNode.classList.add('selected');
-    }
+    // Toggling red bubble
+    // TODO(azasypkin): Can we replace that 'parentNode.parentNode' with
+    // something more readable?
+    target.parentNode.parentNode.classList.toggle('selected', target.checked);
   },
 
   checkInputs: function thui_checkInputs() {
     var selected = this.selectedInputs;
     var allInputs = this.allInputs;
-    if (selected.length == allInputs.length) {
-      this.checkAllButton.disabled = true;
-    } else {
-      this.checkAllButton.disabled = false;
-    }
-    if (selected.length > 0) {
-      this.uncheckAllButton.disabled = false;
-      this.deleteButton.disabled = false;
+
+    var isAnySelected = selected.length > 0;
+
+    // Manage buttons enabled\disabled state
+    this.checkAllButton.disabled = selected.length === allInputs.length;
+    this.uncheckAllButton.disabled = !isAnySelected;
+    this.deleteButton.disabled = !isAnySelected;
+
+    if (isAnySelected) {
       navigator.mozL10n.localize(this.editMode, 'selected',
         {n: selected.length});
     } else {
-      this.uncheckAllButton.disabled = true;
-      this.deleteButton.disabled = true;
       navigator.mozL10n.localize(this.editMode, 'deleteMessages-title');
     }
   },
@@ -1803,7 +1779,6 @@ var ThreadUI = global.ThreadUI = {
    * Given an element of a message, this function will dive into
    * the DOM for getting the bubble container of this message.
    */
-
   getMessageBubble: function thui_getMessageContainer(element) {
     var node = element;
     var bubble;
@@ -1943,6 +1918,8 @@ var ThreadUI = global.ThreadUI = {
       this.composeForm.dataset.messageType = 'sms';
 
       Compose.clear();
+
+      document.getElementById('messages-to-field').className = '';
 
       // reset the counter
       this.sendButton.dataset.counter = '';
@@ -2193,17 +2170,14 @@ var ThreadUI = global.ThreadUI = {
   },
 
   removeMessageDOM: function thui_removeMessageDOM(messageDOM) {
-    // store the parent so we can check emptiness later
     var messagesContainer = messageDOM.parentNode;
 
-    messagesContainer.removeChild(messageDOM);
-
-    // was this the last one in the ul?
-    if (!messagesContainer.firstElementChild) {
-      // we remove header & container
-      var header = messagesContainer.previousSibling;
-      this.container.removeChild(header);
-      this.container.removeChild(messagesContainer);
+    // If we have more messages left in the list, just remove specified message,
+    // otherwise remove entire date group (date header + messages container).
+    if (messagesContainer.childElementCount > 1) {
+      messagesContainer.removeChild(messageDOM);
+    } else {
+      this.container.removeChild(messagesContainer.parentNode);
     }
   },
 
