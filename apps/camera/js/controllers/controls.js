@@ -42,6 +42,7 @@ function ControlsController(app) {
  */
 ControlsController.prototype.bindEvents = function() {
   this.app.settings.mode.on('change:selected', this.controls.setter('mode'));
+  this.app.settings.mode.on('change:options', this.configureMode);
 
   // App
   this.app.on('change:recording', this.onRecordingChange);
@@ -67,21 +68,24 @@ ControlsController.prototype.bindEvents = function() {
  * @private
  */
 ControlsController.prototype.configure = function() {
-  var isSwitchable = this.app.settings.mode.get('options').length > 1;
   var initialMode = this.app.settings.mode.selected('key');
   var isCancellable = !!this.app.activity.pick;
 
   // The gallery button should not
   // be shown if an activity is pending
   // or the application is in 'secure mode'.
-
   this.controls.set('cancel', isCancellable);
-  this.controls.set('switchable', isSwitchable);
   this.controls.set('mode', initialMode);
 
+  this.configureMode();
+
   debug('cancelable: %s', isCancellable);
-  debug('switchable: %s', isSwitchable);
   debug('mode: %s', initialMode);
+};
+
+ControlsController.prototype.configureMode = function() {
+  var isSwitchable = this.app.settings.mode.get('options').length > 1;
+  this.controls.set('switchable', isSwitchable);
 };
 
 /**
@@ -193,19 +197,9 @@ ControlsController.prototype.onSwitchButtonClick = function() {
   this.app.settings.mode.next();
 };
 
-/**
- * Cancel the current activity
- * when the cancel button is
- * pressed.
- *
- * This means the device will
- * navigate back to the app
- * that initiated the activity.
- *
- * @private
- */
+
 ControlsController.prototype.onCancelButtonClick = function() {
-  this.activity.cancel();
+  this.app.emit('activitycanceled');
 };
 
 /**

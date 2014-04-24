@@ -5,7 +5,7 @@ suite('lib/picture-sizes/format-picture-sizes', function() {
 
   suiteSetup(function(done) {
     var self = this;
-    req(['lib/picture-sizes/format-picture-sizes'], function(formatPictureSizes) {
+    req(['lib/format-picture-sizes'], function(formatPictureSizes) {
       self.formatPictureSizes = formatPictureSizes;
       done();
     });
@@ -44,8 +44,14 @@ suite('lib/picture-sizes/format-picture-sizes', function() {
   });
 
   test('Should exlude given keys', function() {
-    var options = this.formatPictureSizes(this.sizes, { exclude: ['2048x1536'] });
+    var options = this.formatPictureSizes(this.sizes, { exclude: { keys: ['2048x1536'] }});
     var found = options.some(function(size) { return size.key === '2048x1536'; });
+    assert.isFalse(found);
+  });
+
+  test('Should exlude given aspects', function() {
+    var options = this.formatPictureSizes(this.sizes, { exclude: { aspects: ['11:9'] }});
+    var found = options.some(function(size) { return size.data.aspect === '11:9'; });
     assert.isFalse(found);
   });
 

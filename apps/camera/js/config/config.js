@@ -80,8 +80,14 @@ module.exports = {
     ]
   },
 
-  geolocation: {
-    promptDelay: 2000
+  activity: {
+
+    // The amount to scale pixelSize derived from
+    // 'pick' activities that define `width` or `height`
+    // parameters. The larger the scale factor, the larger
+    // the activity `maxPixelSize` icreasing the probability
+    // that a larger pictureSize will be chosen for the activity.
+    maxPixelSizeScaleFactor: 2.5
   },
 
   mode: {
@@ -93,7 +99,7 @@ module.exports = {
         key: 'video'
       }
     ],
-    persistent: true
+    persistent: false
   },
 
   isoModes: {
@@ -125,7 +131,7 @@ module.exports = {
         key: 'front'
       }
     ],
-    persistent: true
+    persistent: false
   },
 
   pictureSizesFront: {
@@ -137,6 +143,9 @@ module.exports = {
       //   key: '2048x1536'
       // }
     ],
+    exclude: {
+      aspects: ['5:3', '11:9', '16:9']
+    },
     persistent: true
   },
 
@@ -149,7 +158,10 @@ module.exports = {
       //   key: '2048x1536'
       // }
     ],
-    exclude: ['1920x1088'],
+    exclude: {
+      keys: ['1920x1088'],
+      aspects: ['5:3', '11:9', '16:9'],
+    },
     persistent: true
   },
 

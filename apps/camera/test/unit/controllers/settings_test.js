@@ -39,7 +39,11 @@ suite('controllers/settings', function() {
     this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.settings.mode = sinon.createStubInstance(this.Setting);
     this.app.settings.pictureSizes = sinon.createStubInstance(this.Setting);
+    this.app.settings.pictureSizesFront = sinon.createStubInstance(this.Setting);
+    this.app.settings.pictureSizesBack = sinon.createStubInstance(this.Setting);
     this.app.settings.recorderProfiles = sinon.createStubInstance(this.Setting);
+    this.app.settings.recorderProfilesFront = sinon.createStubInstance(this.Setting);
+    this.app.settings.recorderProfilesBack = sinon.createStubInstance(this.Setting);
     this.app.settings.flashModesPicture = sinon.createStubInstance(this.Setting);
     this.app.settings.flashModesVideo = sinon.createStubInstance(this.Setting);
     this.app.settings.hdr = sinon.createStubInstance(this.Setting);
@@ -89,14 +93,6 @@ suite('controllers/settings', function() {
     test('Should listen to \'camera:newcamera\'', function() {
       assert.isTrue(this.app.on.calledWith('camera:newcamera', this.controller.onNewCamera));
     });
-
-    test('Should not save settings changes when in \'pick\' activity', function() {
-      sinon.assert.notCalled(this.settings.dontSave);
-
-      this.app.activity.pick = true;
-      this.controller = new this.SettingsController(this.app);
-      sinon.assert.called(this.settings.dontSave);
-    });
   });
 
   suite('SettingsController#configurePictureSizes()', function() {
@@ -136,18 +132,16 @@ suite('controllers/settings', function() {
 
       assert.equal(options.exclude, this.exclude);
     });
-
-    test('Should fire a \'configured\' event once done', function() {
-      assert.isTrue(this.settings.pictureSizes.emit.calledWith('configured'));
-    });
   });
 
 suite('SettingsController#configureRecorderProfiles()', function() {
   setup(function() {
     this.recorderProfiles = {};
+    this.formatted = ['a', 'b', 'c'];
     this.exclude = ['1080p'];
 
-    this.app.formatRecorderProfiles.returns('formatted');
+    this.app.formatRecorderProfiles
+      .returns(this.formatted);
 
     this.settings.recorderProfiles.get
       .withArgs('exclude')
@@ -157,12 +151,12 @@ suite('SettingsController#configureRecorderProfiles()', function() {
     this.controller.configureRecorderProfiles(this.recorderProfiles);
   });
 
-  test('Should format the raw pictureSizes list', function() {
+  test('Should format the raw recorderProfiles list', function() {
     assert.isTrue(this.app.formatRecorderProfiles.calledWith(this.recorderProfiles));
   });
 
-  test('Should reset pictureSize options with formatted list', function() {
-    assert.isTrue(this.settings.recorderProfiles.resetOptions.calledWith('formatted'));
+  test('Should reset recorderProfiles options with formatted list', function() {
+    assert.isTrue(this.settings.recorderProfiles.resetOptions.calledWith(this.formatted));
   });
 
   test('Should pass the raw recorderProfiles into formatRecorderProfiles', function() {
@@ -175,8 +169,17 @@ suite('SettingsController#configureRecorderProfiles()', function() {
     assert.equal(options.exclude, this.exclude);
   });
 
-  test('Should fire a \'configured\' event once done', function() {
-    assert.isTrue(this.settings.recorderProfiles.emit.calledWith('configured'));
+  test('Should pick the last formatted recorderProfile if `maxFileSize` is defined', function() {
+    this.settings.recorderProfiles.resetOptions.reset();
+
+    this.settings.recorderProfiles.get
+      .withArgs('maxFileSizeBytes')
+      .returns(100);
+
+    this.controller.configureRecorderProfiles(this.recorderProfiles);
+    var arg = this.settings.recorderProfiles.resetOptions.args[0][0];
+
+    assert.deepEqual(arg, ['c']);
   });
 });
 
@@ -265,16 +268,6 @@ suite('SettingsController#configureRecorderProfiles()', function() {
 
       assert.ok(recorderProfiles.resetOptions.called);
       assert.ok(pictureSizes.resetOptions.called);
-    });
-
-    test('Should emit \'configured\' event when done', function() {
-      var recorderProfiles = this.settings.recorderProfiles;
-      var pictureSizes = this.settings.pictureSizes;
-
-      this.controller.onNewCamera(this.capabilities);
-
-      assert.ok(recorderProfiles.emit.calledWith('configured'));
-      assert.ok(pictureSizes.emit.calledWith('configured'));
     });
   });
 
@@ -431,6 +424,29 @@ suite('SettingsController#configureRecorderProfiles()', function() {
 
       this.controller.formatPictureSizeTitles();
       assert.equal(this.options[0].title, undefined);
+    });
+  });
+
+  suite('SettingsController#onPickActivity()', function() {
+    setup(function() {
+      this.onPickActivity = this.app.on.withArgs('activity:pick').args[0][1];
+    });
+
+    test('Should not save settings changes when in \'pick\' activity', function() {
+      this.onPickActivity({});
+      sinon.assert.called(this.settings.dontSave);
+    });
+
+    test('Should set maxPixelSize on pictureSizes settings', function() {
+      this.onPickActivity({ maxPixelSize: 100 });
+      sinon.assert.calledWith(this.settings.pictureSizesFront.set, 'maxPixelSize', 100);
+      sinon.assert.calledWith(this.settings.pictureSizesBack.set, 'maxPixelSize', 100);
+    });
+
+    test('Should set maxPixelSize on pictureSizes settings', function() {
+      this.onPickActivity({ maxFileSizeBytes: 100 });
+      sinon.assert.calledWith(this.settings.recorderProfilesFront.set, 'maxFileSizeBytes', 100);
+      sinon.assert.calledWith(this.settings.recorderProfilesBack.set, 'maxFileSizeBytes', 100);
     });
   });
 });

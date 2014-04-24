@@ -1,4 +1,5 @@
 suite('controllers/hud', function() {
+  /*jshint maxlen:false*/
   /*global req*/
   'use strict';
 
@@ -70,8 +71,8 @@ suite('controllers/hud', function() {
       assert.ok(this.app.on.calledWith('change:recording'));
     });
 
-    test('Should update the flash once the settings are configured', function() {
-      assert.ok(this.app.on.calledWith('settings:configured', this.controller.updateFlash));
+    test('Should update the flash support once settings are configured', function() {
+      sinon.assert.calledWith(this.app.on, 'settings:configured', this.controller.updateFlashSupport);
     });
 
     test('Should set \'camera\' to \'busy\' on view when busy', function() {
@@ -98,6 +99,25 @@ suite('controllers/hud', function() {
     test('Should set `recording` state on hud', function() {
       assert.ok(this.hud.setter.calledWith('recording'));
       assert.ok(this.app.on.calledWith('change:recording'));
+    });
+
+    test('Should enable camera button depending on support', function() {
+      this.settings.cameras.get
+        .withArgs('options')
+        .returns(['back']);
+
+      sinon.assert.calledWith(this.hud.enable, 'camera', false);
+
+      this.settings.cameras.get
+        .withArgs('options')
+        .returns(['back', 'front']);
+
+      this.controller = new this.HudController(this.app);
+      sinon.assert.calledWith(this.hud.enable, 'camera', true);
+    });
+
+    test('Should disable flash initially until support is known', function() {
+      sinon.assert.calledWith(this.hud.enable, 'flash', false);
     });
   });
 
@@ -132,7 +152,7 @@ suite('controllers/hud', function() {
         selected: sinon.spy()
       };
     });
-    
+
     test('Should display a notification', function() {
       this.controller.onFlashClick();
       assert.ok(this.notification.display.called);
@@ -140,9 +160,18 @@ suite('controllers/hud', function() {
   });
 
   suite('HudController#onModeChange()', function() {
+    setup(function() {
+      sinon.spy(this.controller, 'updateFlashMode');
+    });
+
     test('Should hide the displayed notification when the camera mode changes', function() {
       this.controller.onModeChange();
       assert.ok(this.notification.clear.called);
+    });
+
+    test('Should update the flashMode', function() {
+      this.controller.onModeChange();
+      sinon.assert.called(this.controller.updateFlashMode);
     });
   });
 

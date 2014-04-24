@@ -64,20 +64,20 @@ suite('Media Frame Unit Tests', function() {
       assert.isTrue(frame.displayingImage);
     });
 
-    test('=> displayImage embedded preview, bigEnough=true', function() {
-      var preview = {
-        'start': 1,
-        'end': 2,
-        'width': 1000,
-        'height': 1000
-      };
-      frame.displayImage(dummyBlob, 1600, 1200, preview, 0, false);
-      assert.isTrue(frame.displayingPreview);
-      assert.isTrue(frame.displayingImage);
-      frame.reset();
-      assert.isTrue(frame.displayingPreview);
-      assert.isTrue(frame.displayingImage);
-    });
+    // test('=> displayImage embedded preview, bigEnough=true', function() {
+    //   var preview = {
+    //     'start': 1,
+    //     'end': 2,
+    //     'width': 1000,
+    //     'height': 1000
+    //   };
+    //   frame.displayImage(dummyBlob, 1600, 1200, preview, 0, false);
+    //   assert.isTrue(frame.displayingPreview);
+    //   assert.isTrue(frame.displayingImage);
+    //   frame.reset();
+    //   assert.isTrue(frame.displayingPreview);
+    //   assert.isTrue(frame.displayingImage);
+    // });
 
     test('=> displayImage preview file, get success', function() {
       var preview = {

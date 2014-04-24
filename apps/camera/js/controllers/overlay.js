@@ -80,13 +80,11 @@ OverlayController.prototype.onBatteryChanged = function(state) {
 
 OverlayController.prototype.createOverlay = function(type) {
   var data = this.getOverlayData(type);
-  var activity = this.activity;
+  var self = this;
 
-  if (!data) {
-    return;
-  }
+  if (!data) { return; }
 
-  var isClosable = activity.pick;
+  var isClosable = this.activity.pick;
   var overlay = new Overlay({
     type: type,
     closable: isClosable,
@@ -96,7 +94,7 @@ OverlayController.prototype.createOverlay = function(type) {
   overlay
     .appendTo(document.body)
     .on('click:close-btn', function() {
-      activity.cancel();
+      self.app.emit('activitycanceled');
     });
 
   debug('inserted \'%s\' overlay', type);

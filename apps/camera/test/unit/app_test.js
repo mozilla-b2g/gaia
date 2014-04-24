@@ -131,7 +131,6 @@ suite('app', function() {
       assert.ok(app.el === options.el);
       assert.ok(app.inSecureMode === false);
       assert.ok(app.geolocation === options.geolocation);
-      assert.ok(app.activity === options.activity);
       assert.ok(app.camera === options.camera);
       assert.ok(app.storage === options.storage);
       assert.ok(app.settings === options.settings);
@@ -204,22 +203,7 @@ suite('app', function() {
     });
 
     suite('App#geolocationWatch()', function() {
-      setup(function() {
-        this.options.settings.geolocation.get
-          .withArgs('promptDelay')
-          .returns(2000);
-      });
-
-      test('Should watch geolocation after given delay', function() {
-        this.app.geolocationWatch();
-
-        assert.isFalse(this.app.geolocation.watch.called);
-        this.clock.tick(2000);
-
-        assert.isTrue(this.app.geolocation.watch.called);
-      });
-
-      test('Should *not* watch location if not in activity', function() {
+      test('Should *not* watch location if in activity', function() {
         this.app.hidden = false;
         this.app.activity.pick = true;
 
