@@ -36,6 +36,7 @@
         }, {});
 
       if (features.features === 'rocketbarstartpage') {
+        evt.stopImmediatePropagation();
         Rocketbar.showNewTabPage();
         return;
       }
