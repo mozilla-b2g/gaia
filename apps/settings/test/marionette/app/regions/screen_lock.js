@@ -18,18 +18,18 @@ module.exports = ScreenLockPanel;
 
 ScreenLockPanel.Selectors = {
   'screenLockLabel': 'span[data-l10n-id="lockScreen"]',
-  'screenLockCheckbox': '#lockscreen-enable',
-  'backButton': 'a[href="#phoneLock"]',
+  'screenLockCheckbox': '.lockscreen-enable',
+  'backButton': 'a[href="#screenLock"]',
   'passcodeLockLabel': 'span[data-l10n-id="passcode-lock"]',
-  'passcodeInput': '#passcode-input',
-  'passcodeCheckbox': '#passcode-enable',
+  'passcodeInput': '.passcode-input',
+  'passcodeCheckbox': '.passcode-enable',
   'passcodeIsNotMatchedLabel': 'div[data-l10n-id="passcode-doesnt-match"]',
   'passcodeIncorrectLabel': 'div[data-l10n-id="incorrect-passcode"]',
-  'passcodeCreateButton': '#passcode-create',
-  'passcodeEditButton': '#passcode-edit',
-  'passcodeChangeButton': '#passcode-change',
-  'passcodePanel': '#phoneLock-passcode',
-  'phoneLockHeaderLabel': 'h1[data-l10n-id="phoneLock-header"]'
+  'passcodeCreateButton': '.passcode-create',
+  'passcodeEditButton': '.passcode-edit',
+  'passcodeChangeButton': '.passcode-change',
+  'passcodePanel': '#screenLock-passcode',
+  'screenLockHeaderLabel': 'h1[data-l10n-id="screenLock-header"]'
 };
 
 ScreenLockPanel.prototype = {
@@ -64,8 +64,8 @@ ScreenLockPanel.prototype = {
     return this.findElement('passcodePanel').displayed();
   },
 
-  isPhoneLockHeaderLabelVisible: function() {
-    return this.findElement('phoneLockHeaderLabel').displayed();
+  isScreenLockHeaderLabelVisible: function() {
+    return this.findElement('screenLockHeaderLabel').displayed();
   },
 
   getPasscode: function() {
@@ -133,7 +133,7 @@ ScreenLockPanel.prototype = {
 
     // we have to make sure transition is done
     this.client.waitFor(function() {
-      return this.isPhoneLockHeaderLabelVisible();
+      return this.isScreenLockHeaderLabelVisible();
     }.bind(this));
   },
 
