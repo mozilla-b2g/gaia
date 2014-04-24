@@ -42,6 +42,7 @@ requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_screen_manager.js');
+requireApp('system/test/unit/mock_task_manager.js');
 
 mocha.globals([
   'accessibility',
@@ -72,6 +73,7 @@ mocha.globals([
   'softwareButtonManager',
   'storage',
   'systemDialogManager',
+  'taskManager',
   'telephonySettings',
   'ttlView',
   'visibilityManager',
@@ -85,6 +87,7 @@ var mocksForBootstrap = new MocksHelper([
   'Places',
   'SettingsListener',
   'SettingsURL',
+  'TaskManager',
   'L10n'
 ]).init();
 

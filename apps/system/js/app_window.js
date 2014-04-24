@@ -1783,5 +1783,71 @@
       }
     };
 
+  /**
+   * Make adjustments to display inside the task manager
+   */
+  AppWindow.prototype.enterTaskManager = function aw_enterTaskManager() {
+    this._dirtyStyleProperties = {};
+    if (this.element) {
+      this.element.classList.add('in-task-manager');
+    }
+  };
+
+  /**
+   * Remove adjustments made to display inside the task manager
+   */
+  AppWindow.prototype.leaveTaskManager = function aw_leaveTaskManager() {
+    if (this.element) {
+      this.element.classList.remove('in-task-manager');
+      this.unapplyStyle(this._dirtyStyleProperties);
+      this._dirtyStyleProperties = null;
+    }
+  };
+
+  /**
+   * Apply a transform to the element
+   * @param {Object} nameValues object with transform property names as keys
+   *                            and values to apply to the element
+   * @memberOf AppWindow.prototype
+   */
+  AppWindow.prototype.transform = function(nameValues) {
+    var strFunctions = Object.keys(nameValues).map(function(key) {
+      return key + '(' + nameValues[key] + ')';
+    }, this).join(' ');
+    this.applyStyle({ MozTransform: strFunctions });
+  };
+
+  /**
+   * Batch apply style properties
+   * @param {Object} nameValues object with style property names as keys
+   *                            and values to apply to the element
+   * @memberOf AppWindow.prototype
+   */
+  AppWindow.prototype.applyStyle = function(nameValues) {
+    var dirty = this._dirtyStyleProperties || (this._dirtyStyleProperties = {});
+    var style = this.element.style;
+    for (var property in nameValues) {
+      if (undefined === nameValues[property]) {
+        delete style[[property]];
+      } else {
+        style[property] = nameValues[property];
+      }
+      dirty[property] = true;
+    }
+  };
+
+  /**
+   * Remove inline style properties
+   * @param {Object} nameValues object with style property names as keys
+   * @memberOf AppWindow.prototype
+   */
+  AppWindow.prototype.unapplyStyle = function(nameValues) {
+    var style = this.element.style;
+    for (var pname in nameValues) {
+      style[pname] = '';
+      delete style[pname];
+    }
+  };
+
   exports.AppWindow = AppWindow;
 }(window));

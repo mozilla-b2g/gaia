@@ -1021,6 +1021,82 @@ suite('system/AppWindow', function() {
     });
   });
 
+  suite('apply and unapplyStyle', function() {
+    test('applyStyle', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      app.element.style.opacity = '0.5';
+
+      app.applyStyle({
+        MozTransform: 'scale(2)',
+        fontSize: 'large'
+      });
+      assert.equal(app.element.style.MozTransform, 'scale(2)');
+      assert.equal(app.element.style.fontSize, 'large');
+      // is non-destructive
+      assert.equal(app.element.style.opacity, '0.5');
+    });
+    test('unapplyStyle', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      app.applyStyle({
+        MozTransform: 'scale(2)',
+        fontSize: 'large',
+        scale: '0.5'
+      });
+      app.unapplyStyle({ MozTransform: true, fontSize: true });
+      assert.ok(!app.element.style.MozTransform);
+      assert.ok(!app.element.style.fontSize);
+      assert.equal(app.element.style.scale, '0.5');
+    });
+
+  });
+
+  suite('enter/leaveTaskManager', function() {
+    test('class gets added and removed', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      assert.isFalse(app.element.classList.contains('in-task-manager'));
+      app.enterTaskManager();
+      assert.isTrue(app.element.classList.contains('in-task-manager'));
+      app.leaveTaskManager();
+      assert.isFalse(app.element.classList.contains('in-task-manager'));
+    });
+
+    test('leaveTaskManager: element.style cleanup', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var unapplyStyleStub = sinon.stub(app, 'unapplyStyle');
+      app.applyStyle({
+        fontSize: '11',
+        MozTransform: 'scale(2)'
+      });
+      app.applyStyle({
+        pointerEvents: 'none'
+      });
+      app.leaveTaskManager();
+
+      // ensure unapplyStyle gets called with aggregated property list
+      assert.isTrue(unapplyStyleStub.calledOnce);
+      var unapplyProps = unapplyStyleStub.getCall(0).args[0];
+      assert.equal(Object.keys(unapplyProps).length, 3);
+      assert.ok('fontSize' in unapplyProps);
+      assert.ok('MozTransform' in unapplyProps);
+      assert.ok('pointerEvents' in unapplyProps);
+    });
+  });
+
+  suite('transform', function(){
+    test('transform composes correct string value', function(){
+      var app = new AppWindow(fakeAppConfig1);
+      var transformProps = {
+        scale: 0.5,
+        translateX: '10px',
+        rotateY: '10deg'
+      };
+      // although order isn't important, it should come out looking like this:
+      var expectedStr = 'scale(0.5) translateX(10px) rotateY(10deg)';
+      app.transform(transformProps);
+      assert.equal(app.element.style.MozTransform, expectedStr);
+    });
+  });
+
   suite('Event handlers', function() {
     test('ActivityDone event', function() {
       var app1 = new AppWindow(fakeAppConfig1);

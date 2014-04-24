@@ -59,8 +59,10 @@ class CardsView(Base):
         current_frame = self.apps.displayed_app.frame
 
         final_x_position = current_frame.size['width']
+        # start swipe from center of window
+        start_x_position = final_x_position // 2
         start_y_position = current_frame.size['height'] // 2
 
         # swipe forward to get previous app card
         Actions(self.marionette).flick(
-            current_frame, 0, start_y_position, final_x_position, start_y_position).perform()
+            current_frame, start_x_position, start_y_position, final_x_position, start_y_position).perform()
