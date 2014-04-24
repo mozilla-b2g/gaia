@@ -49,7 +49,7 @@ Settings.Selectors = {
   'feedbackPanel': 'button[data-href="#improveBrowserOS-chooseFeedback"]',
   'soundMenuItem': '#menuItem-sound',
   'languageMenuItem': '#menuItem-languageAndRegion',
-  'screenLockMenuItem': '#menuItem-screenLock',
+  'screenLockMenuItem': '#menuItem-phoneLock',
   'appPermissionPanel': '#menuItem-appPermissions',
   'displayMenuItem': '#menuItem-display'
 };

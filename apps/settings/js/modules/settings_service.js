@@ -12,7 +12,6 @@ define(function(require) {
     var PanelCache = require('modules/panel_cache');
     var ScreenLayout = require('shared/screen_layout');
     var LazyLoader = require('shared/lazy_loader');
-    var Settings = require('settings');
 
     var _rootPanelId = null;
     var _currentPanelId = null;
@@ -92,10 +91,6 @@ define(function(require) {
                   _currentPanelId = panelId;
                   _currentPanel = panel;
 
-                  // XXX we need to remove this line in the future
-                  // to make sure we won't manipulate Settings
-                  // directly
-                  Settings._currentPanel = '#' + panelId;
                   callback();
               });
             });

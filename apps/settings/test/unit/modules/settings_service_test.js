@@ -13,7 +13,6 @@ mocha.setup({
 
 suite('SettingsService', function() {
   var realL10n;
-  var realSettings;
 
   suiteSetup(function(done) {
     navigator.addIdleObserver = sinon.spy();
@@ -38,25 +37,27 @@ suite('SettingsService', function() {
     };
 
     testRequire(modules, map,
-      (function(MockL10n, SettingsService, PanelCache,
-        MockSettingsPanel) {
-          this.SettingsService = SettingsService;
-          this.PanelCache = PanelCache;
-          // Mock of the SettingsPanel function
-          this.MockSettingsPanel = MockSettingsPanel;
+      (function(MockL10n, SettingsService, PanelCache, MockSettingsPanel) {
+        this.SettingsService = SettingsService;
+        this.PanelCache = PanelCache;
+        // Mock of the SettingsPanel function
+        this.MockSettingsPanel = MockSettingsPanel;
 
-          realSettings = window.Settings;
-          window.Settings = {};
+        realL10n = window.navigator.mozL10n;
+        window.navigator.mozL10n = MockL10n;
 
-          realL10n = window.navigator.mozL10n;
-          window.navigator.mozL10n = MockL10n;
-          done();
+        // XXX: As we use 'require' function of requirejs in PanelCache and it
+        //      conflicts to the original require function, we replace it here.
+        this.originalRequire = window.require;
+        window.require = testRequire;
+        done();
     }).bind(this));
   });
 
   suiteTeardown(function() {
-    window.Settings = realSettings;
     window.navigator.mozL10n = realL10n;
+    window.require = this.originalRequire;
+    this.originalRequire = null;
   });
 
   suite('navigate()', function() {
@@ -214,13 +215,6 @@ suite('SettingsService', function() {
           'only two panel instances should be created');
         done();
       }).bind(this));
-    });
-
-    test('should override Settings._currentPanel', function() {
-      var fakePanelId = 'id0';
-      this.SettingsService.navigate(fakePanelId, {}, function() {
-        assert.equal(window.Settings._currentPanel, '#' + fakePanelId);
-      });
     });
   });
 });

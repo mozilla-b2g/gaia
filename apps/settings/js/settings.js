@@ -139,8 +139,7 @@ var Settings = {
         'js/nfc.js',
         'js/dsds_settings.js',
         'js/telephony_settings.js',
-        'js/telephony_items_handler.js',
-        'js/screen_lock.js'
+        'js/telephony_items_handler.js'
       ], function() {
         TelephonySettingHelper.init();
       });

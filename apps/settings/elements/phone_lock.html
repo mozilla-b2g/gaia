@@ -1,22 +1,22 @@
-<element name="screenLock" extends="section">
+<element name="phoneLock" extends="section">
   <template>
 
     <header>
       <a href="#root"><span class="icon icon-back">back</span></a>
-      <h1 data-l10n-id="screenLock-header"> Screen Lock </h1>
+      <h1 data-l10n-id="phoneLock-header"> Phone Lock </h1>
     </header>
 
     <div>
       <ul>
         <li>
           <label class="pack-switch">
-            <input type="checkbox" name="lockscreen.enabled" class="lockscreen-enable" class="uninit">
+            <input type="checkbox" name="lockscreen.enabled" id="lockscreen-enable" class="uninit">
             <span data-l10n-id="lockScreen">Lock Screen</span>
           </label>
         </li>
         <li class="lockscreen-enabled">
           <label class="pack-switch">
-            <input type="checkbox" name="lockscreen.passcode-lock.enabled" class="passcode-enable" class="uninit">
+            <input type="checkbox" name="lockscreen.passcode-lock.enabled" id="passcode-enable" class="uninit">
             <span data-l10n-id="passcode-lock">Passcode Lock</span>
           </label>
         </li>
@@ -40,14 +40,16 @@
           </span>
         </li>
         <li class="passcode-enabled">
-          <button class="passcode-edit icon icon-view" data-l10n-id="change-passcode">
+          <button class="icon icon-view"
+                  data-l10n-id="change-passcode"
+                  id="passcode-edit">
             Change Passcode
           </button>
         </li>
       </ul>
     </div>
 
-    <panel data-path="panels/screen_lock/panel"></panel>
+    <script src="js/phone_lock.js"></script>
 
   </template>
 </element>

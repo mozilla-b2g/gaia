@@ -26,7 +26,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/input_areas.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
     <link rel="stylesheet" type="text/css" href="style/apps.css"/>
-    <link rel="stylesheet" type="text/css" href="style/screen_lock.css"/>
+    <link rel="stylesheet" type="text/css" href="style/phone_lock.css"/>
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
     <link rel="stylesheet" type="text/css" href="style/updates.css"/>
     <link rel="stylesheet" type="text/css" href="style/downloads.css"/>
@@ -129,8 +129,8 @@
     <link rel="import" href="/elements/keyboard_enabled_default.html">
     <link rel="import" href="/elements/keyboard_selection_add_more.html">
     <link rel="import" href="/elements/keyboard_selection.html">
-    <link rel="import" href="/elements/screen_lock_passcode.html">
-    <link rel="import" href="/elements/screen_lock.html">
+    <link rel="import" href="/elements/phone_lock_passcode.html">
+    <link rel="import" href="/elements/phone_lock.html">
     <link rel="import" href="/elements/simpin_dialog.html">
     <link rel="import" href="/elements/simpin.html">
     <link rel="import" href="/elements/app_permissions_details.html">
@@ -280,10 +280,10 @@
     <!-- Accounts :: Find My Device -->
     <section is="findmydevice" role="region" id="findmydevice"></section>
 
-    <!-- Security :: Screen Lock :: PIN Input -->
-    <section is="screenLock-passcode" role="region" id="screenLock-passcode"></section>
-    <!-- Security :: Screen Lock -->
-    <section is="screenLock" role="region" id="screenLock" data-passcode-enabled="false" data-lockscreen-enabled="false" data-require-sub-panels="true"></section>
+    <!-- Security :: Phone Lock :: PIN Input -->
+    <section is="phoneLock-passcode" role="region" id="phoneLock-passcode"></section>
+    <!-- Security :: Phone Lock -->
+    <section is="phoneLock" role="region" id="phoneLock" data-passcode-enabled="false" data-lockscreen-enabled="false" data-require-sub-panels="true"></section>
     <!-- Security :: SIM Security :: SIM PIN Input -->
     <section is="simpin-dialog" role="region" id="simpin-dialog"></section>
     <!-- Security :: SIM Security -->
@@ -457,8 +457,8 @@
         </header>
         <ul>
           <li>
-            <small id="screenLock-desc" class="menu-item-desc"></small>
-            <a id="menuItem-screenLock" class="menu-item" href="#screenLock" data-l10n-id="screenLock">Screen Lock</a>
+            <small id="phoneLock-desc" class="menu-item-desc"></small>
+            <a id="menuItem-phoneLock" class="menu-item" href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
           </li>
           <li id="simSecurity-settings" aria-disabled="true">
             <small id="simCardLock-desc" class="menu-item-desc"></small>
