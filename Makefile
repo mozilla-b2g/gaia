@@ -789,13 +789,10 @@ common-install:
 update-common: common-install
 	# common testing tools
 	mkdir -p $(TEST_COMMON)/vendor/test-agent/
-	mkdir -p $(TEST_COMMON)/vendor/chai/
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.js
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.css
-	rm -f $(TEST_COMMON)/vendor/chai/chai.js
 	cp node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
 	cp node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
-	cp node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
 
 # Create the json config file
 # for use with the test agent GUI
