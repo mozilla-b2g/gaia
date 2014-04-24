@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-/* globals dump, lockScreen, CustomEvent, MozActivity, MozNDEFRecord,
+/* globals dump, CustomEvent, MozActivity, MozNDEFRecord,
    NfcHandoverManager, NfcUtils, NDEF, ScreenManager */
 'use strict';
 
@@ -29,6 +29,8 @@ var NfcManager = {
   NFC_HW_STATE_DISABLE_DISCOVERY: 3,
 
   hwState: 0,
+
+  screenLocked: false,
 
   _debug: function nm_debug(msg, optObject) {
     if (this.DEBUG) {
@@ -55,7 +57,7 @@ var NfcManager = {
     var self = this;
     window.SettingsListener.observe('nfc.enabled', false, function(enabled) {
       var state = enabled ?
-                    (lockScreen.locked ?
+                    (self.screenLocked ?
                        self.NFC_HW_STATE_DISABLE_DISCOVERY :
                        self.NFC_HW_STATE_ON) :
                     self.NFC_HW_STATE_OFF;
@@ -64,17 +66,16 @@ var NfcManager = {
   },
 
   isScreenUnlockAndEnabled: function nm_isScreenUnlockAndEnabled() {
-    // Policy:
-    if (ScreenManager.screenEnabled && lockScreen && !lockScreen.locked) {
-      return true;
-    } else {
-      return false;
-    }
+    return !this.screenLocked && ScreenManager.screenEnabled;
   },
 
   changeHardwareState: function nm_changeHardwareState(state) {
     this._debug('changeHardwareState - state : ' + state);
+    if (state == this.hwState) {
+      return;
+    }
     this.hwState = state;
+
     var nfcdom = window.navigator.mozNfc;
     if (!nfcdom) {
       return;
@@ -104,20 +105,23 @@ var NfcManager = {
   },
 
   handleEvent: function nm_handleEvent(evt) {
-    var state;
+    if (this.hwState == this.NFC_HW_STATE_OFF) {
+      return;
+    }
+
     switch (evt.type) {
-      case 'lock': // Fall through
+      case 'lock':
+        this.screenLocked = true;
+        this.changeHardwareState(this.NFC_HW_STATE_DISABLE_DISCOVERY);
+        break;
       case 'unlock':
+        this.screenLocked = false;
+        this.changeHardwareState(this.NFC_HW_STATE_ENABLE_DISCOVERY);
+        break;
       case 'screenchange':
-        if (this.hwState == this.NFC_HW_STATE_OFF) {
-          return;
-        }
-        state = this.isScreenUnlockAndEnabled() ?
-                this.NFC_HW_STATE_ENABLE_DISCOVERY :
-                this.NFC_HW_STATE_DISABLE_DISCOVERY;
-        if (state == this.hwState) {
-          return;
-        }
+        var state = this.isScreenUnlockAndEnabled() ?
+                    this.NFC_HW_STATE_ENABLE_DISCOVERY :
+                    this.NFC_HW_STATE_DISABLE_DISCOVERY;
         this.changeHardwareState(state);
         break;
       case 'shrinking-sent':
