@@ -50,26 +50,38 @@
     // The button looks like a select element. By default it just reads
     // "change". But we want it to display the name of the current tone.
     // So we look up that name in the settings database.
-    SettingsListener.observe(pathkey, '', function(filepath) {
+    SettingsListener.observe(pathkey, '', checkToneFilepath);
+
+    // Use the file path as id to check what type the tone is, it could be:
+    // 1. Preloaded. 2. None. 3. Customized(set from the music app).
+    function checkToneFilepath(filepath) {
       // Check the filepath to see if the tone is from the preloaded pool.
       if (filepath.indexOf('/shared/resources/media') !== -1) {
         var filename = filepath.split('/').pop();
         var key = filename.replace('.', '_');
 
-        navigator.mozL10n.ready(function() {
-          tone.button.textContent = _(key);
-          tone.button.dataset.l10nId = key;
-        });
+        displayToneName(_(key), key);
+      }
+      else if (filepath === 'none') {
+        displayToneName(_('none'), 'none');
       }
       else {
-        SettingsListener.observe(namekey, '', function setToneName(tonename) {
-          SettingsListener.unobserve(namekey, setToneName);
-
-          tone.button.textContent = tonename || _('change');
-          tone.button.dataset.l10nId = '';
-        });
+        SettingsListener.observe(namekey, '', setCustomizedToneName);
       }
-    });
+
+      function setCustomizedToneName(tonename) {
+        SettingsListener.unobserve(namekey, setCustomizedToneName);
+        // If the user selected a ringtone without title from the music app,
+        // then we display "Change" instead of an empty string?
+        displayToneName(tonename || _('change'), '');
+      }
+    }
+
+    // Also assign the L10n id because the preloaded tones have localized names.
+    function displayToneName(name, id) {
+      tone.button.textContent = name;
+      tone.button.dataset.l10nId = id;
+    }
 
     // When the user clicks the button, we launch an activity that lets
     // the user select new ringtone.

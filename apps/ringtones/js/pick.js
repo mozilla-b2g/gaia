@@ -74,6 +74,7 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
     else if (allowNone && selectedSoundURL === '') {  // Handle the 'None' case
       activity.postResult({
         name: selectedSoundName,
+        filepath: 'none',
         blob: null
       });
     }
