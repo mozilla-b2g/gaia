@@ -689,11 +689,11 @@ ul li > label.range-icons.volume input {
 
 /* Web activity handling */
 .skin-organic section[data-dialog] > header:first-child .icon.icon-back {
-  background-image: url(/shared/style/headers/images/icons/organic/close.png);
+  background-image: url(/shared/style/headers/images/icons/organic/close.svg);
 }
 
 section[data-dialog] > header:first-child .icon.icon-back {
-  background-image: url(/shared/style/headers/images/icons/close.png);
+  background-image: url(/shared/style/headers/images/icons/close.svg);
 }
 
 /******************************************************************************

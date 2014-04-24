@@ -361,7 +361,7 @@ suite('ActivityPicker', function() {
 
   suite('openSettings', function() {
     var params = {
-      name: 'configure',
+      name: 'configure_inline',
       data: {
         target: 'device',
         section: 'messaging'

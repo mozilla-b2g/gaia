@@ -148,7 +148,7 @@
 
   function showSettingsView() {
     var activity = new window.MozActivity({
-      name: 'configure',
+      name: 'configure_inline',
       data: {
         target: 'device',
         section: 'root',
