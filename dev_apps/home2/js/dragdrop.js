@@ -2,7 +2,7 @@
 
 (function(exports) {
 
-  const activateDelay = 600;
+  const activateDelay = 400;
 
   const activeScaleAdjust = 0.4;
 
@@ -99,13 +99,16 @@
 
     /**
      * Positions an icon on the grid.
-     * @param {Integer} pageX
-     * @param {Integer} posY
+     * @param {Integer} pageX The X coordinate of the touch.
+     * @param {Integer} pageY The Y coordinate of the touch.
      */
     positionIcon: function(pageX, pageY) {
+      pageX = pageX - this.xAdjust;
+      pageY = pageY - this.xAdjust;
+
       this.icon.transform(
-        pageX - this.xAdjust,
-        pageY - this.yAdjust,
+        pageX,
+        pageY,
         this.icon.scale + activeScaleAdjust);
 
       // Reposition in the icons array if necessary.
