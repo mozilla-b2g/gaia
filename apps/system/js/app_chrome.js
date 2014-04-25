@@ -17,21 +17,15 @@
    * @extends BaseUI
    */
   var AppChrome = function AppChrome(app) {
-    if (Rocketbar.enabled) {
-      return;
-    }
     this.app = app;
     this.instanceID = _id++;
     this.containerElement = app.element;
     this.render();
 
-    if (this.app.config.chrome && this.app.config.chrome.navigation) {
+    // Navigation disabled when Rocketbar enabled.
+    if (this.app.config.chrome && this.app.config.chrome.navigation &&
+      !Rocketbar.enabled) {
       this.app.element.classList.add('navigation');
-    }
-
-    if (this.app.config.chrome && this.app.config.chrome.rocketbar) {
-      this.app.element.classList.add('rocketbar');
-      this.rocketbar.classList.add('visible');
     }
   };
 
