@@ -844,7 +844,9 @@ MessageReaderCard.prototype = {
           var attachment = body.attachments[iAttach], state;
           var extension = attachment.filename.split('.').pop();
 
-          var MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
+          // This constant is a temporary fix for devices with limited
+          // memory; it intentionally does not match the constant on master.
+          var MAX_ATTACHMENT_SIZE = 1 * 1024 * 1024;
           var attachmentDownloadable = true;
 
           if (attachment.isDownloaded) {
