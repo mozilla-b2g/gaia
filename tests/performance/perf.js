@@ -46,3 +46,5 @@ global.requireGaia = function(path)  {
 if (mozPerfVerbose) {
   console.error('testing "' + mozTestInfo.appPath + '"');
 }
+
+marionette.plugin('contentScript', require('marionette-content-script'));

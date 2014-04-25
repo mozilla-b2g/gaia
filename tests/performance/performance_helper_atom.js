@@ -1,6 +1,8 @@
-'use strict';
+Components.utils.import('resource://gre/modules/Services.jsm');
 
-(function(window) {
+function _registerListener(document) {
+  let window = document.defaultView.wrappedJSObject;
+
   var PERF_EVENT_NAME = 'x-moz-perf';
   var PERF_FLAG_NAME = 'mozPerfHasListener';
   var perfMeasurements;
@@ -11,14 +13,14 @@
   function debug() {
     if (DEBUG) {
       var msg = Array.slice(arguments).join(' ');
-      console.log(
+      dump(
         'PerformanceHelperAtom: ' + msg + ' (' + Date.now() / 1000 + ')'
       );
     }
   }
 
   // FIXME: we have to find why this gets imported several times for one test
-  if ('PerformanceHelperAtom' in window) {
+  if ('mozPerfGetMeasurements' in window) {
     debug('FIXME We got called twice');
     return;
   }
@@ -52,41 +54,55 @@
     }
   }
 
-  window.PerformanceHelperAtom = {
-    getMeasurements: function() {
+  function init() {
+    if (hasRegistered) {
+      return;
+    }
+    debug('registering');
+    perfMeasurements = Object.create(null);
+    perfMeasurements.start = window.performance.now();
+
+    window.addEventListener(PERF_EVENT_NAME, handlePerfEvent);
+    window[PERF_FLAG_NAME] = hasRegistered = true;
+
+    debug('end registering');
+  }
+
+  window.__defineGetter__('mozPerfGetMeasurements', function() {
+    return function() {
+      dump('OMFG getMeasurements');
       return perfMeasurements;
-    },
+    };
+  });
 
-    init: function() {
-      if (hasRegistered) {
-        return;
-      }
+  window.__defineGetter__('mozPerfRegisterListener', function() {
+    return init;
+  });
 
-      debug('registering');
-      perfMeasurements = Object.create(null);
-      perfMeasurements.start = window.performance.now();
-
-      window.addEventListener(PERF_EVENT_NAME, handlePerfEvent);
-      window[PERF_FLAG_NAME] = hasRegistered = true;
-
-      debug('end registering');
-    },
-
-    unregister: function() {
+  window.__defineGetter__('mozPerfUnregisterListener', function() {
+    return function() {
+      dump('OMFG unregister');
       // note: we're not reseting mozPerfHasListener to false here because at
       // this point we basically don't mind if the app keeps sending perf
       // events.
       window.removeEventListener(PERF_EVENT_NAME, handlePerfEvent);
       hasRegistered = false;
+    };
+  });
 
-      marionetteScriptFinished();
-    },
-
-    waitForEvent: function(name, cb) {
+  window.__defineGetter__('mozPerfWaitForEvent', function() {
+    return function(name, cb) {
       checkFinish(name, cb);
-    }
-  };
+    };
+  });
 
-  window.PerformanceHelperAtom.init();
-})(window.wrappedJSObject);
+  init();
+}
+
+Services.obs.addObserver(function(document) {
+  if (!document || !document.location)
+    return;
+
+  _registerListener(document);
+}, 'document-element-inserted', false);
 
