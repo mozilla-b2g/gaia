@@ -195,7 +195,7 @@ window.SMIL = {
 
     function exitPoint() {
       if (!activeReaders) {
-        callback(slides);
+        setTimeout(callback.bind(null, slides));
       }
     }
 

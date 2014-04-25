@@ -105,6 +105,31 @@ suite('SMIL', function() {
         done();
       });
     });
+
+    test('Image only message without smil', function(done) {
+      // minimal fake data for text only message without smil
+      var messageData = {
+        attachments: [
+          {
+            content: testImageBlob,
+            location: 'example.jpg'
+          }
+        ]
+      };
+      var stub = sinon.stub();
+      SMIL.parse(messageData, function(output) {
+        // one slide returned
+        assert.equal(output.length, 1);
+        // no text in this slide !
+        assert.ok(!output[0].text);
+        assert.equal(output[0].blob, testImageBlob);
+        assert.equal(output[0].name, 'example.jpg');
+        sinon.assert.called(stub);
+        done();
+      });
+      stub();
+    });
+
     test('Minimal SMIL doc', function(done) {
       var testText = 'Testing 1 2 3';
       var message = {
