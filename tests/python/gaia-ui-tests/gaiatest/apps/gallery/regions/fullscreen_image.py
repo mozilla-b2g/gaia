@@ -16,7 +16,6 @@ class FullscreenImage(Base):
     _confirm_delete_locator = (By.ID, 'confirm-ok')
     _edit_photo_locator = (By.ID, 'fullscreen-edit-button-tiny')
     _tile_view_locator = (By.ID, 'fullscreen-back-button-tiny')
-    _share_button_locator = (By.ID, 'fullscreen-share-button-tiny')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -76,18 +75,9 @@ class FullscreenImage(Base):
         from gaiatest.apps.gallery.app import Gallery
         return Gallery(self.marionette)
 
-    def tap_share_button(self):
-        self.marionette.find_element(*self._share_button_locator).tap()
-        from gaiatest.apps.system.regions.activities import Activities
-        return Activities(self.marionette)
-
     @property
     def photo_toolbar_width(self):
         return self.marionette.execute_script('return document.getElementById("fullscreen-toolbar").offsetWidth')
-
-    @property
-    def is_image_displayed(self):
-        return self.is_element_displayed(*self._current_image_locator)
 
     @property
     def current_scale(self):
