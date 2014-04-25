@@ -70,7 +70,7 @@
        *
        * @listens webapps-launch
        */
-      window.addEventListener('homescreencreated', this);
+      window.addEventListener('appwindowmanagerready', this);
       if (applications.ready) {
         window.addEventListener('webapps-launch', this);
         window.addEventListener('webapps-close', this);
@@ -96,7 +96,7 @@
       }
       this._started = false;
 
-      window.removeEventListener('homescreencreated', this);
+      window.removeEventListener('appwindowmanagerready', this);
       window.removeEventListener('webapps-launch', this);
       window.removeEventListener('webapps-close', this);
       window.removeEventListener('open-app', this);
@@ -115,7 +115,7 @@
         return;
       }
       switch (evt.type) {
-        case 'homescreencreated':
+        case 'appwindowmanagerready':
           this._readyToLaunch = true;
           this.processLaunchQueue();
           break;
