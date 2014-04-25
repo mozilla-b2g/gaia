@@ -238,7 +238,7 @@ module.exports = {
   timer: {
     title: 'self-timer',
     header: 'self-timer-header',
-    icon: 'icon-timer',
+    icon: 'icon-self-timer',
     options: [
       {
         key: 'off',
@@ -246,17 +246,17 @@ module.exports = {
         value: 0
       },
       {
-        key: '2secs',
+        key: 'secs2',
         value: 2,
         title: 'self-timer-2-seconds'
       },
       {
-        key: '5secs',
+        key: 'secs5',
         value: 5,
         title: 'self-timer-5-seconds'
       },
       {
-        key: '10secs',
+        key: 'secs10',
         value: 10,
         title: 'self-timer-10-seconds'
       }
@@ -306,7 +306,7 @@ module.exports = {
   grid: {
     title: 'grid',
     header: 'grid-header',
-    icon: 'icon-frame-grid',
+    icon: 'icon-grid',
     options: [
       {
         key: 'off',
