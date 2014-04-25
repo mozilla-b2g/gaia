@@ -195,8 +195,8 @@ var Camera = {
   // Number of bytes left on disk to let us stop recording.
   RECORD_SPACE_PADDING: 1024 * 1024 * 1,
 
-  // An estimated JPEG file size is caluclated from 90% quality 24bit/pixel
-  ESTIMATED_JPEG_FILE_SIZE: 300 * 1024,
+  // Approximate bytes per pixel for compressed jpeg files
+  JPEG_BYTES_PER_PIXEL: 0.375,
 
   // Minimum video duration length for creating a video that contains at least
   // few samples, see bug 899864.
@@ -289,6 +289,8 @@ var Camera = {
         '/shared/js/async_storage.js',
         '/shared/js/blobview.js',
         '/shared/js/media/jpeg_metadata_parser.js',
+        '/shared/js/media/image_size.js',
+        '/shared/js/media/crop_resize_rotate.js',
         '/shared/js/media/get_video_rotation.js',
         '/shared/js/media/video_player.js',
         '/shared/js/media/media_frame.js',
@@ -1261,7 +1263,7 @@ var Camera = {
     var media = this._savedMedia;
     this._savedMedia = null;
     if (this._captureMode === this.CAMERA) {
-      this._resizeBlobIfNeeded(media.blob, function(resized_blob) {
+      this._resizeAndRotate(media.blob, function(resized_blob) {
         this._pendingPick.postResult({
           type: 'image/jpeg',
           blob: resized_blob
@@ -1300,35 +1302,52 @@ var Camera = {
     };
   },
 
-  _resizeBlobIfNeeded: function camera_resizeBlobIfNeeded(blob, callback) {
-    var pickWidth = this._pendingPick.source.data.width;
-    var pickHeight = this._pendingPick.source.data.height;
-    if (!pickWidth || !pickHeight) {
-      callback(blob);
-      return;
+  _resizeAndRotate: function camera_resizeAndRotate(blob, callback) {
+    var outputSize = null;
+    if (this._pendingPick.source.data.width) {
+      outputSize = {
+        width: this._pendingPick.source.data.width,
+        height: this._pendingPick.source.data.height
+      };
     }
 
-    var img = new Image();
-    img.onload = function resizeImg() {
-      window.URL.revokeObjectURL(img.src);
-      var canvas = document.createElement('canvas');
-      canvas.width = pickWidth;
-      canvas.height = pickHeight;
-      var ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, pickWidth, pickHeight);
-      canvas.toBlob(function toBlobSuccess(resized_blob) {
-        // If the original blob was a File, propagate the name to a new File.
-        // Note that the file is still going to be memory-backed.  (Although
-        // technically the Canvas implementation may opt to use a disk-backed
-        // cache.)
-        if (blob.name) {
-          resized_blob = new File([resized_blob], blob.name,
-                                  { type: resized_blob.type });
-        }
-        callback(resized_blob);
-      }, blob.type);
-    };
-    img.src = window.URL.createObjectURL(blob);
+    var self = this;
+
+    var spinner = document.getElementById('spinner');
+    spinner.classList.remove('hidden');
+
+    cropResizeRotate(blob, null, outputSize, null, function(error, newBlob) {
+      spinner.classList.add('hidden');
+      if (error) {
+        // If we couldn't resize or rotate it, use the original
+        console.error('Error while resizing or rotate photo: ' + error);
+        callback(blob);
+        return;
+      }
+
+      // If the image was cropped and/or rotated, then newBlob will be a
+      // memory backed blob instead of a file-backed blob. We need to send
+      // a file-backed blob as the result of a pick activity (see bug 975599)
+      // so we'll overwrite the old blob with the new one. This will mean
+      // that the photo stored on the sdcard will actually match the one
+      // passed to the app that initiated the pick activity.
+      // We delete the old file, then save the new blob with the same name,
+      // and then read the file and pass that to the callback.
+      if (newBlob !== blob) {
+        var storage = self._pictureStorage;
+        var filename = blob.name;
+        storage.delete(filename).onsuccess = function() {
+          storage.addNamed(newBlob, filename).onsuccess = function() {
+            storage.get(filename).onsuccess = function(e) {
+              callback(e.target.result);
+            };
+          };
+        };
+      }
+      else {
+        callback(blob);
+      }
+    });
   },
 
   hideFocusRing: function camera_hideFocusRing() {
@@ -1610,18 +1629,23 @@ var Camera = {
     // They come from config.js which is generated in build time,
     // 5 megapixels by default (see build/application-data.js).
     var maxRes = Math.min(CONFIG_MAX_IMAGE_PIXEL_SIZE,
-      CONFIG_MAX_SNAPSHOT_PIXEL_SIZE);
-    var estimatedJpgSize = this.ESTIMATED_JPEG_FILE_SIZE;
+                          CONFIG_MAX_SNAPSHOT_PIXEL_SIZE);
+
+    if (this._pendingPick && CONFIG_MAX_PICK_PIXEL_SIZE) {
+      maxRes = Math.min(maxRes, CONFIG_MAX_PICK_PIXEL_SIZE);
+    }
+
+    var self = this;
     var size = pictureSizes.reduce(function(acc, size) {
       var mp = size.width * size.height;
       // we don't need the resolution larger than maxRes
       if (mp > maxRes) {
         return acc;
       }
-      // We assume the relationship between MP to file size is linear.
-      // This may be inaccurate on all cases.
-      var estimatedFileSize = mp * estimatedJpgSize / maxRes;
-      if (targetFileSize > 0 && estimatedFileSize > targetFileSize) {
+
+      // If a target file size was specfied, and this image size is likely
+      // to produce images larger than that size, then skip it
+      if (targetFileSize && mp * self.JPEG_BYTES_PER_PIXEL > targetFileSize) {
         return acc;
       }
 
@@ -1631,7 +1655,7 @@ var Camera = {
           return acc;
         }
         // it's first pictureSize.
-        if (!acc.width || acc.height) {
+        if (!acc.width || !acc.height) {
           return size;
         }
         // find large enough but as small as possible.

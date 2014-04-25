@@ -203,19 +203,39 @@ var Filmstrip = (function() {
     var item = items[currentItemIndex];
     var type = item.isImage ? 'image/*' : 'video/*';
     var nameonly = item.filename.substring(item.filename.lastIndexOf('/') + 1);
-    var activity = new MozActivity({
-      name: 'share',
-      data: {
-        type: type,
-        number: 1,
-        blobs: [item.blob],
-        filenames: [nameonly],
-        filepaths: [item.filename] /* temporary hack for bluetooth app */
-      }
-    });
-    activity.onerror = function(e) {
-      console.warn('Share activity error:', activity.error.name);
-    };
+
+    if (item.isImage) {
+      var spinner = document.getElementById('spinner');
+      spinner.classList.remove('hidden');
+      cropResizeRotate(item.blob, null, CONFIG_MAX_PICK_PIXEL_SIZE || null,
+                       function(error, rotatedBlob) {
+                         spinner.classList.add('hidden');
+                         if (error) {
+                           console.error('Error while rotating image:', error);
+                           rotatedBlob = item.blob;
+                         }
+                         share(rotatedBlob);
+                       });
+    }
+    else {
+      share(item.blob);
+    }
+
+    function share(blob) {
+      var activity = new MozActivity({
+        name: 'share',
+        data: {
+          type: type,
+          number: 1,
+          blobs: [blob],
+          filenames: [nameonly],
+          filepaths: [item.filename] /* temporary hack for bluetooth app */
+        }
+      });
+      activity.onerror = function(e) {
+        console.warn('Share activity error:', activity.error.name);
+      };
+    }
   }
 
   function handleSwipe(e) {
