@@ -8,6 +8,7 @@ from gaiatest import GaiaTestCase
 from gaiatest.apps.email.app import Email
 from gaiatest.mocks.mock_email import MockEmail
 from gaiatest.utils.email.email_util import EmailUtil
+from gaiatest.apps.system.app import System
 
 
 class TestReceiveActiveSyncEmail(GaiaTestCase):
@@ -33,30 +34,34 @@ class TestReceiveActiveSyncEmail(GaiaTestCase):
         # wait for sync to complete
         email.wait_for_emails_to_sync()
 
+        # Touch home button to exit email app
+        self.device.touch_home_button()
+
         # send email to active sync account
         mock_email = MockEmail(senders_email=self.testvars['email']['IMAP']['email'],
                                recipients_email=self.testvars['email']['ActiveSync']['email'])
         EmailUtil().send(self.testvars['email']['IMAP'], mock_email)
 
-        # wait for the email to arrive
-        email.wait_for_email(mock_email.subject)
+        self.marionette.switch_to_frame()
 
-        # check if the sender's email address is fine
-        self.assertEqual(email.mails[0].senders_email,
-                         mock_email.senders_email,
-                         'Senders\'s email on the inbox screen is incorrect. '
-                         'Expected email is %s. Actual email is %s.' % (
-                             mock_email.senders_email,
-                             email.mails[0].senders_email))
+        system = System(self.marionette)
 
-        # check if the subject is fine
-        self.assertEqual(email.mails[0].subject, mock_email.subject,
-                         'Senders\'s email on the inbox scrseen is incorrect. '
-                         'Expected subject is %s. Actual subject is %s.' % (
-                             mock_email.subject, email.mails[0].subject))
+        # Wait for email notification
+        system.wait_for_notification_toaster_displayed(timeout=30)
+        system.wait_for_notification_toaster_not_displayed()
 
-        # open the email to read it
-        email = email.mails[0].tap_subject()
+        # Expand the notification bar
+        system.wait_for_status_bar_displayed()
+        utility_tray = system.open_utility_tray()
+
+        utility_tray.wait_for_notification_container_displayed()
+
+        # Assert there is one notification is listed in notifications-container
+        notifications = utility_tray.notifications
+        self.assertEqual(1, len(notifications), 'Expected one notification.')
+        email = notifications[0].tap_notification()
+
+        self.apps.switch_to_displayed_app()
 
         # check if the sender's email address is fine
         self.assertEqual(email.senders_email,

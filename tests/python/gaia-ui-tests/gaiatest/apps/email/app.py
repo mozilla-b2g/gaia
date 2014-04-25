@@ -75,7 +75,8 @@ class Email(Base):
 
         setup.tap_next()
 
-        setup.tap_account_prefs_next()
+        setup.change_check_for_emails_interval()
+        setup.tap_account_prefs_next('Every 5 minutes')
 
         setup.wait_for_setup_complete()
         setup.tap_continue()

@@ -158,8 +158,13 @@ class ManualSetupEmail(Base):
         self.wait_for_condition(lambda m: m.find_element(
             *self._account_prefs_section_locator).location['x'] == 0)
 
-    def tap_account_prefs_next(self):
+    def change_check_for_emails_interval(self):
+        self.marionette.execute_script('document.querySelector("[data-l10n-id = settings-check-every-5min]").value = "20000";')
+
+    def tap_account_prefs_next(self, value):
         self.wait_for_element_displayed(*self._account_prefs_next_locator, timeout=120)
+        self.marionette.find_element(*self._check_for_new_messages_locator).tap()
+        self.select(value)
         self.marionette.find_element(*self._account_prefs_next_locator).tap()
 
     def wait_for_setup_complete(self):
