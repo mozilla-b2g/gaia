@@ -647,7 +647,8 @@ nav[data-type="scrollbar"] ol > li > * {
   display: block !important;
 }
 
-#groups-list.selecting .group-section li {
+#groups-list.selecting .group-section li,
+#search-list.selecting li {
   padding-left: 2rem;
 }
 
