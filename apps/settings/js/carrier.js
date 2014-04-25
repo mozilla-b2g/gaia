@@ -72,6 +72,10 @@ var CarrierSettings = (function(window, document, undefined) {
     _settings = window.navigator.mozSettings;
     _mobileConnections = window.navigator.mozMobileConnections;
     _iccManager = window.navigator.mozIccManager;
+    if (!_ || !_settings || !_mobileConnections || !_iccManager) {
+      return;
+    }
+
     _voiceTypes = Array.prototype.map.call(_mobileConnections,
       function() { return null; });
 
@@ -918,7 +922,7 @@ var CarrierSettings = (function(window, document, undefined) {
   /**
    * Helper function.
    */
-  function cs_rilData(usage, name) {
+  function cs_formInputElement(usage, name) {
     var id = 'ril.' + usage + '.' + name;
     return document.getElementById(id);
   }
@@ -928,11 +932,14 @@ var CarrierSettings = (function(window, document, undefined) {
    *
    * @param {Element} apnList Element list.
    *
-   * @param {String} carrier Carrier value (either code or name) whose check
-   *                         button element needs to be selected.
+   * @param {String} target This parameter holds the input element value for the
+   *                        element in the list to switch to. If might be either
+   *                        an id as '_custom_' (when switching to the custom
+   *                        APN or a hash code (when switching to any other
+   *                        APN).
    */
-  function cs_switchRadioButtons(apnList, carrier) {
-    var selector = 'input[type="radio"][value="' + carrier + '"]';
+  function cs_switchRadioButtons(apnList, target) {
+    var selector = 'input[type="radio"][value="' + target + '"]';
     apnList.querySelector(selector).checked = true;
   }
 
@@ -941,8 +948,11 @@ var CarrierSettings = (function(window, document, undefined) {
    *
    * @param {Array} apnItems Array of APNs.
    * @param {String} usage The usage for the APNs in the panel.
+   * @param {Function} callback Callback function to be called once the list
+   *                            gets updated. This callback is useful for unit
+   *                            testing.
    */
-  function cs_updateApnList(apnItems, usage) {
+  function cs_updateApnList(apnItems, usage, callback) {
     var apnPanel = document.getElementById('carrier-' + usage + 'Settings');
     if (!apnPanel) {
       // unsupported APN type
@@ -964,6 +974,7 @@ var CarrierSettings = (function(window, document, undefined) {
 
     /* Keys for the APN properties in the UI elements */
     var UI_KEYS = [
+      'hashCode',
       'carrier',
       'apn',
       'user',
@@ -996,22 +1007,23 @@ var CarrierSettings = (function(window, document, undefined) {
      * @param {Object} item Object containing APN properties.
      */
     function fillApnForm(item) {
-      cs_rilData(usage, 'carrier').value = item.carrier || '';
-      cs_rilData(usage, 'apn').value = item.apn || '';
-      cs_rilData(usage, 'user').value = item.user || '';
-      cs_rilData(usage, 'passwd').value = item.password || '';
-      cs_rilData(usage, 'httpProxyHost').value = item.proxy || '';
-      cs_rilData(usage, 'httpProxyPort').value = item.port || '';
+      cs_formInputElement(usage, 'hashCode').value = item.hashCode || '';
+      cs_formInputElement(usage, 'carrier').value = item.carrier || '';
+      cs_formInputElement(usage, 'apn').value = item.apn || '';
+      cs_formInputElement(usage, 'user').value = item.user || '';
+      cs_formInputElement(usage, 'passwd').value = item.password || '';
+      cs_formInputElement(usage, 'httpProxyHost').value = item.proxy || '';
+      cs_formInputElement(usage, 'httpProxyPort').value = item.port || '';
       if (usage == 'mms') {
-        cs_rilData(usage, 'mmsc').value = item.mmsc || '';
-        cs_rilData(usage, 'mmsproxy').value = item.mmsproxy || '';
-        cs_rilData(usage, 'mmsport').value = item.mmsport || '';
+        cs_formInputElement(usage, 'mmsc').value = item.mmsc || '';
+        cs_formInputElement(usage, 'mmsproxy').value = item.mmsproxy || '';
+        cs_formInputElement(usage, 'mmsport').value = item.mmsport || '';
       }
-      cs_rilData(usage, 'authType').value =
+      cs_formInputElement(usage, 'authType').value =
         AUTH_TYPES[item.authtype] || 'notDefined';
-      cs_rilData(usage, 'protocol').value =
+      cs_formInputElement(usage, 'protocol').value =
         item.protocol || 'notDefined';
-      cs_rilData(usage, 'roaming_protocol').value =
+      cs_formInputElement(usage, 'roaming_protocol').value =
         item.roaming_protocol || 'notDefined';
     }
 
@@ -1027,7 +1039,7 @@ var CarrierSettings = (function(window, document, undefined) {
       var s = item.carrier + index;
       var hashCode = _getHashCode(s);
       input.value = hashCode;
-      input.dataset.item = item;
+      item.hashCode = hashCode;
       input.onclick = function onClickHandler() {
         fillApnForm(item);
         cs_switchRadioButtons(apnList, hashCode);
@@ -1056,6 +1068,28 @@ var CarrierSettings = (function(window, document, undefined) {
       apnList.insertBefore(createAPNItem(i, apnItems[i]), lastItem);
     }
 
+    // fill the APN form in case the user clicks on the 'custom' APN radio
+    lastItem.querySelector('input').addEventListener('click',
+      function() {
+        fillCustomAPNSettingFields();
+        cs_switchRadioButtons(apnList, '_custom_');
+    });
+
+    // set current APN to 'custom' on user modification and sanitize addresses
+    advForm.onchange = function onCustomInput(event) {
+      var addresskeys = ['mmsproxy', 'httpProxyHost'];
+      addresskeys.forEach(function(addresskey) {
+        if (event.target.dataset.setting ==
+            'ril.' + usage + '.' + addresskey) {
+          event.target.value = sanitizeAddress(event.target.value);
+        }
+      });
+
+      storeCustomAPNSettingFields();
+      cs_switchRadioButtons(apnList, '_custom_');
+      fillCustomAPNSettingFields();
+    };
+
     // maps for UI fields(current settings key) to new apn setting keys.
     var kKeyMappings = {
       'passwd': 'password',
@@ -1078,14 +1112,16 @@ var CarrierSettings = (function(window, document, undefined) {
         asyncStorage.getItem(
           'ril.' + usage + '.custom.ICC' + iccCardIndex + key,
           function(value) {
-            if (key === 'carrier') {
-              cs_rilData(usage, key).value = '_custom_';
+            if (key === 'hashCode') {
+              cs_formInputElement(usage, key).value = _getHashCode('_custom_');
+            } else if (key === 'carrier') {
+              cs_formInputElement(usage, key).value = '_custom_';
             } else if (key === 'authType' ||
                        key === 'protocol' ||
                        key === 'roaming_protocol') {
-              cs_rilData(usage, key).value = value || 'notDefined';
+              cs_formInputElement(usage, key).value = value || 'notDefined';
             } else {
-              cs_rilData(usage, key).value = value || '';
+              cs_formInputElement(usage, key).value = value || '';
             }
         });
       });
@@ -1104,7 +1140,7 @@ var CarrierSettings = (function(window, document, undefined) {
       keys.forEach(function(key) {
         asyncStorage.setItem(
           'ril.' + usage + '.custom.ICC' + iccCardIndex + key,
-          cs_rilData(usage, key).value
+          cs_formInputElement(usage, key).value
         );
       });
     }
@@ -1129,7 +1165,7 @@ var CarrierSettings = (function(window, document, undefined) {
       }
       keys.forEach(function(key) {
         apnToBeMerged[(kKeyMappings[key] || key)] =
-          cs_rilData(usage, key).value;
+          cs_formInputElement(usage, key).value;
       });
 
       var newApnsForIccCards = [[], []];
@@ -1227,52 +1263,27 @@ var CarrierSettings = (function(window, document, undefined) {
         }
 
         var apnSelected = false;
-        var s, hashCode;
         var radioApnItems = apnList.querySelectorAll('input[type="radio"]');
         for (var j = 0; (j < radioApnItems.length) && apn; j++) {
-          s = apn.carrier + j;
-          hashCode = _getHashCode(s);
-          radioApnItems[j].checked = (radioApnItems[j].value == hashCode);
-          apnSelected = apnSelected || radioApnItems[j].checked;
-          if (apnSelected) {
+          var s = apn.carrier + j;
+          var hashCode = apn.hashCode || _getHashCode(s);
+          if (radioApnItems[j].value == hashCode) {
+            apn.hashCode = apn.hashCode || hashCode;
+            fillApnForm(apn);
+            cs_switchRadioButtons(apnList, hashCode);
+            apnSelected = true;
             break;
           }
         }
-        if (apnSelected && (apn.carrier !== '_custom_')) {
-          for (var k = 0; k < apnItems.length; k++) {
-            if (apnItems[k].carrier === apn.carrier) {
-              fillApnForm(apnItems[k]);
-              break;
-            }
-          }
-          cs_switchRadioButtons(apnList, hashCode);
-        } else {
+
+        if (!apnSelected) {
           fillCustomAPNSettingFields();
           cs_switchRadioButtons(apnList, '_custom_');
         }
 
-        lastItem.querySelector('input').addEventListener('click',
-          function() {
-            fillCustomAPNSettingFields();
-            cs_switchRadioButtons(apnList, '_custom_');
-        });
-      };
-
-      // set current APN to 'custom' on user modification
-      // and sanitize addresses
-      advForm.onchange = function onCustomInput(event) {
-        lastItem.querySelector('input').checked = true;
-        cs_switchRadioButtons(apnList, '_custom_');
-
-        var addresskeys = ['mmsproxy', 'httpProxyHost'];
-        addresskeys.forEach(function(addresskey) {
-          if (event.target.dataset.setting ==
-              'ril.' + usage + '.' + addresskey) {
-            event.target.value = sanitizeAddress(event.target.value);
-          }
-        });
-
-        storeCustomAPNSettingFields();
+        if (callback && (typeof callback === 'function')) {
+          callback();
+        }
       };
     }
 
@@ -1326,6 +1337,9 @@ var CarrierSettings = (function(window, document, undefined) {
       // Add the event handler. We might force data connection to restart if
       // changes are validated
       var submitButton = apnPanel.querySelector('button[type=submit]');
+      if (!submitButton) {
+        return;
+      }
       submitButton.addEventListener('click', onSubmit);
       _onSubmitEventListenerAdded[usage] = true;
     }
