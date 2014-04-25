@@ -48,6 +48,13 @@
     },
 
     /**
+     * Displays the icon as a background of the element.
+     */
+    displayIcon: function() {
+      this.element.style.backgroundImage = 'url(' + this.icon + ')';
+    },
+
+    /**
      * Renders the icon to the container.
      * @param {Object} coordinates Grid coordinates to render to.
      * @param {Number} index The index of the items list of this item.
@@ -61,7 +68,6 @@
         var tile = document.createElement('div');
         tile.className = 'icon';
         tile.dataset.identifier = this.identifier;
-        tile.style.backgroundImage = 'url(' + this.icon + ')';
 
         var nameEl = document.createElement('span');
         nameEl.className = 'title';
@@ -76,6 +82,7 @@
         }
 
         this.element = tile;
+        this.displayIcon();
 
         container.appendChild(tile);
       }

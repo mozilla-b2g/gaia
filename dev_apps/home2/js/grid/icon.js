@@ -21,6 +21,10 @@
       entryPoint: entryPoint,
       index: 0
     };
+
+    app.ondownloadapplied = function(event) {
+      this.displayIcon();
+    }.bind(this);
   }
 
   Icon.prototype = {
