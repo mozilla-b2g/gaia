@@ -41,7 +41,6 @@ suite('multilocale Integration tests', function() {
     var cnTzIni = 'shared/locales/tz.ini';
     var langPathInZip = 'shared/resources/languages.json';
 
-
     fs.writeFileSync(localesFilePath, JSON.stringify(localesFileObj));
     var command = 'LOCALES_FILE=' + localesFilePath +
       ' LOCALE_BASEDIR=' + localesDir +

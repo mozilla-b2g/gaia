@@ -11,8 +11,10 @@ endif
 all: $(STAGE_APP_DIR)/js/startup.js
 
 $(STAGE_APP_DIR)/js/startup.js:
-	@rm -rf $(STAGE_APP_DIR)
 	@mkdir -p $(STAGE_APP_DIR)
-	cp -rp ../../shared $(STAGE_APP_DIR)/shared
 	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/require_config.jslike
 	$(XULRUNNERSDK) $(XPCSHELLSDK) build/make_gaia_shared.js
+	@rm -rf $(BUILD_DIR)/shared
+
+clean:
+	@rm -rf $(STAGE_APP_DIR)
