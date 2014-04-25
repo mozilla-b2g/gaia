@@ -9,9 +9,7 @@
   var container = document.getElementById('icons');
 
   function DragDrop() {
-    container.addEventListener('touchstart', this);
-    container.addEventListener('touchmove', this);
-    container.addEventListener('touchend', this);
+    container.addEventListener('contextmenu', this);
   }
 
   DragDrop.prototype = {
@@ -58,8 +56,8 @@
 
       // Make the icon larger
       this.icon.transform(
-        e.touches[0].pageX - this.xAdjust,
-        e.touches[0].pageY - this.yAdjust,
+        e.pageX - this.xAdjust,
+        e.pageY - this.yAdjust,
         this.icon.scale + activeScaleAdjust);
     },
 
@@ -154,28 +152,14 @@
      * General event handler.
      */
     handleEvent: function(e) {
-      var touch;
-
       switch(e.type) {
           case 'visibilitychange':
             if (document.hidden && this.inEditMode) {
               this.exitEditMode();
             }
             break;
-          case 'touchstart':
-            // If we get a second touch, cancel everything.
-            if (e.touches.length > 1) {
-              clearTimeout(this.timeout);
-              return;
-            }
-
-            touch = e.touches[0];
-            this.startTouch = {
-              pageX: touch.pageX,
-              pageY: touch.pageY
-            };
-
-            this.target = touch.target;
+          case 'contextmenu':
+            this.target = e.target;
 
             var identifier = this.target.dataset.identifier;
             this.icon = app.icons[identifier];
@@ -187,22 +171,13 @@
             this.timeout = setTimeout(this.begin.bind(this, e),
               activateDelay);
 
+            container.addEventListener('touchmove', this);
+            container.addEventListener('touchend', this);
+
             break;
           case 'touchmove':
-            if (!this.startTouch) {
-              return;
-            }
-
-            // If we have an activate timeout, and our finger has moved past
-            // some threshold, cancel it.
-            touch = e.touches[0];
-            var distance = Math.sqrt(
-              (touch.pageX - this.startTouch.pageX) *
-              (touch.pageX - this.startTouch.pageX) +
-              (touch.pageY - this.startTouch.pageY) *
-              (touch.pageY - this.startTouch.pageY));
-
-            if (!this.active && this.timeout && distance > 20) {
+            var touch = e.touches[0];
+            if (!this.active && this.timeout) {
               clearTimeout(this.timeout);
               return;
             }
@@ -210,9 +185,6 @@
             if (!this.active || !this.icon) {
               return;
             }
-
-            e.stopImmediatePropagation();
-            e.preventDefault();
 
             this.currentTouch = {
               pageX: touch.pageX,
@@ -261,6 +233,8 @@
             });
 
             container.classList.remove('dragging');
+            container.addEventListener('touchmove', this);
+            container.addEventListener('touchend', this);
             break;
         }
     }
