@@ -43,19 +43,19 @@ module.exports = App;
  * @constructor
  */
 function App(options) {
+  debug('initialize');
   bindAll(this);
   this.views = {};
   this.el = options.el;
   this.win = options.win;
   this.doc = options.doc;
+  this.require = options.require || window.requirejs;
   this.inSecureMode = (this.win.location.hash === '#secure');
   this.controllers = options.controllers;
   this.geolocation = options.geolocation;
   this.activity = options.activity;
   this.settings = options.settings;
-  this.storage = options.storage;
   this.camera = options.camera;
-  this.sounds = options.sounds;
   debug('initialized');
 }
 
@@ -66,13 +66,12 @@ function App(options) {
  * @public
  */
 App.prototype.boot = function() {
+  debug('boot');
   if (this.didBoot) { return; }
+  this.bindEvents();
   this.initializeViews();
   this.runControllers();
   this.injectViews();
-  this.bindEvents();
-  this.configureL10n();
-  this.emit('boot');
   this.didBoot = true;
   debug('booted');
 };
@@ -88,7 +87,7 @@ App.prototype.teardown = function() {
  * @private
  */
 App.prototype.runControllers = function() {
-  debug('running controllers');
+  debug('run controllers');
   this.controllers.settings(this);
   this.controllers.activity(this);
   this.controllers.timer(this);
@@ -96,15 +95,23 @@ App.prototype.runControllers = function() {
   this.controllers.viewfinder(this);
   this.controllers.recordingTimer(this);
   this.controllers.indicators(this);
-  this.controllers.previewGallery(this);
   this.controllers.controls(this);
-  this.controllers.confirm(this);
   this.controllers.overlay(this);
-  this.controllers.sounds(this);
   this.controllers.hud(this);
   this.controllers.zoomBar(this);
-  this.controllers.battery(this);
   debug('controllers run');
+};
+
+/**
+ * Lazy load and run a controller.
+ *
+ * @param  {String} path
+ */
+App.prototype.loadController = function(path) {
+  var self = this;
+  this.require([path], function(controller) {
+    controller(self);
+  });
 };
 
 /**
@@ -145,23 +152,33 @@ App.prototype.injectViews = function() {
  * @private
  */
 App.prototype.bindEvents = function() {
-  this.storage.once('checked:healthy', this.geolocationWatch);
+  debug('binding events');
+
+  // App
+  this.once('viewfinder:visible', this.onCriticalPathDone);
+  this.once('storage:checked:healthy', this.geolocationWatch);
+  this.on('visible', this.onVisible);
+  this.on('hidden', this.onHidden);
+
+  // DOM
   bind(this.doc, 'visibilitychange', this.onVisibilityChange);
+  bind(this.win, 'localized', this.firer('localized'));
   bind(this.win, 'beforeunload', this.onBeforeUnload);
   bind(this.el, 'click', this.onClick);
-  this.on('focus', this.onFocus);
-  this.on('blur', this.onBlur);
+
   debug('events bound');
 };
 
 /**
  * Detaches event handlers.
+ *
+ * @private
  */
 App.prototype.unbindEvents = function() {
   unbind(this.doc, 'visibilitychange', this.onVisibilityChange);
   unbind(this.win, 'beforeunload', this.onBeforeUnload);
-  this.off('focus', this.onFocus);
-  this.off('blur', this.onBlur);
+  this.off('visible', this.onVisible);
+  this.off('hidden', this.onHidden);
   debug('events unbound');
 };
 
@@ -173,26 +190,54 @@ App.prototype.unbindEvents = function() {
  * may have made changes since the
  * app was minimised
  */
-App.prototype.onFocus = function() {
+App.prototype.onVisible = function() {
   this.geolocationWatch();
-  this.storage.check();
   orientation.start();
-  debug('focus');
+  debug('visible');
 };
 
 /**
  * Tasks to run when the
  * app is minimised/hidden.
+ *
+ * @private
  */
-App.prototype.onBlur = function() {
+App.prototype.onHidden = function() {
   this.geolocation.stopWatching();
   orientation.stop();
-  debug('blur');
+  debug('hidden');
 };
 
+/**
+ * Emit a click event that other
+ * modules can listen to.
+ *
+ * @private
+ */
 App.prototype.onClick = function() {
   debug('click');
   this.emit('click');
+};
+
+/**
+ * Log when critical path has completed.
+ *
+ * @private
+ */
+App.prototype.onCriticalPathDone = function() {
+  var start = window.performance.timing.domLoading;
+  var took = Date.now() - start;
+
+  console.log('critical-path took %s', took + 'ms');
+  this.loadController(this.controllers.previewGallery);
+  this.loadController(this.controllers.storage);
+  this.loadController(this.controllers.confirm);
+  this.loadController(this.controllers.battery);
+  this.loadController(this.controllers.sounds);
+  this.loadL10n();
+
+  this.criticalPathDone = true;
+  this.emit('criticalpathdone');
 };
 
 /**
@@ -207,7 +252,7 @@ App.prototype.onClick = function() {
  */
 App.prototype.geolocationWatch = function() {
   var delay = this.settings.geolocation.get('promptDelay');
-  var shouldWatch = !this.activity.active && !this.doc.hidden;
+  var shouldWatch = !this.activity.pick && !this.hidden;
   if (shouldWatch) { setTimeout(this.geolocation.watch, delay); }
 };
 
@@ -220,8 +265,8 @@ App.prototype.geolocationWatch = function() {
  * @private
  */
 App.prototype.onVisibilityChange = function() {
-  if (this.doc.hidden) { this.emit('blur'); }
-  else { this.emit('focus'); }
+  this.hidden = this.doc.hidden;
+  this.emit(this.hidden ? 'hidden' : 'visible');
 };
 
 /**
@@ -247,10 +292,31 @@ App.prototype.onBeforeUnload = function() {
  *
  * @private
  */
-App.prototype.configureL10n = function() {
-  var complete = navigator.mozL10n.readyState === 'complete';
-  bind(this.win, 'localized', this.firer('localized'));
-  if (complete) { this.emit('localized'); }
+App.prototype.loadL10n = function() {
+  this.require(['l10n']);
+};
+
+/**
+ * States whether localization
+ * has completed or not.
+ *
+ * @return {Boolean}
+ * @public
+ */
+App.prototype.localized = function() {
+  var l10n = navigator.mozL10n;
+  return l10n && l10n.readyState === 'complete';
+};
+
+/**
+ * Central place to localize a string.
+ *
+ * @param  {String} key
+ * @public
+ */
+App.prototype.localize = function(key) {
+  var l10n = navigator.mozL10n;
+  return (l10n && l10n.get(key)) || key;
 };
 
 });

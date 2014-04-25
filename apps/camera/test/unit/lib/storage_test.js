@@ -1,0 +1,158 @@
+suite('lib/storage', function() {
+  'use strict';
+  var require = window.req;
+
+  suiteSetup(function(done) {
+    var self = this;
+    require([
+      'lib/storage'
+    ], function(Storage) {
+      self.Storage = Storage;
+      done();
+    });
+  });
+
+  setup(function() {
+    this.clock = sinon.useFakeTimers();
+
+    this.video = {};
+    this.video.addEventListener = sinon.spy();
+    this.video.delete = sinon.stub().returns(this.video);
+
+    this.picture = {};
+    this.picture.addEventListener = sinon.spy();
+    this.picture.delete = sinon.stub().returns(this.picture);
+
+    // Stub getDeviceStorage
+    if (!navigator.getDeviceStorage) { navigator.getDeviceStorage = function() {}; }
+    sinon.stub(navigator, 'getDeviceStorage');
+
+    navigator.getDeviceStorage
+      .withArgs('pictures')
+      .returns(this.picture);
+
+    navigator.getDeviceStorage
+      .withArgs('videos')
+      .returns(this.video);
+
+    var options = {
+      createFilename: sinon.stub().callsArgWith(2, 'filename.file')
+    };
+
+    // The test instance
+    this.storage = new this.Storage(options);
+
+    // For convenience
+    this.createFilename = options.createFilename;
+  });
+
+  teardown(function() {
+    navigator.getDeviceStorage.restore();
+    this.clock.restore();
+  });
+
+  suite('Storage()', function() {
+    test('Should listen for change events', function() {
+      assert.isTrue(this.picture.addEventListener.calledWith('change'));
+    });
+  });
+
+  suite('Storage#addPicture()', function() {
+    setup(function() {
+      var self = this;
+
+      this.picture.addNamed = sinon.spy(function() { return this.addNamed.req; });
+      this.picture.addNamed.req = { result: '/path/to/picture.jpg' };
+
+      this.picture.get = sinon.spy(function() { return this.get.req; });
+      this.picture.get.req = { result: 'memory-backed-blob' };
+
+      this.callback = sinon.spy();
+
+      // Happy path
+      this.storage.addPicture('fake-blob', this.callback);
+      this.picture.addNamed.req.onsuccess({ target: this.picture.addNamed.req });
+      this.picture.get.req.onsuccess({ target: this.picture.get.req });
+    });
+
+    test('Should create a filename if one not given', function() {
+      assert.isTrue(this.createFilename.calledWith(this.picture, 'image'));
+    });
+
+    test('Should add the given blob to picture storage', function() {
+      assert.isTrue(this.picture.addNamed.calledWith('fake-blob', 'filename.file'));
+    });
+
+    test('Should refetch the memory-backed-blob', function() {
+      assert.isTrue(this.picture.get.calledWith('filename.file'));
+    });
+
+    test('Should callback passing the relative path, absolute path and memory-backed-blob', function() {
+      assert.isTrue(this.callback.calledWith(
+        'filename.file',
+        '/path/to/picture.jpg',
+        'memory-backed-blob'));
+    });
+  });
+
+  suite('Settings#isSpace()', function() {
+    setup(function() {
+      var picture = this.picture;
+      var self = this;
+      this.event = { target: { result: 100 } };
+      this.picture.freeSpace = function() {
+        setTimeout(function() { picture.onsuccess(self.event); });
+        return picture;
+      };
+    });
+
+    test('Should return false if space < `maxFileSize` value', function() {
+      this.storage.maxFileSize = 50;
+      this.storage.isSpace(function(result) {
+        assert.isTrue(result);
+      });
+
+      this.clock.tick(1);
+    });
+
+    test('Should return true if space > `maxFileSize` value', function() {
+      this.storage.maxFileSize = 200;
+      this.storage.isSpace(function(result) {
+        assert.isFalse(result);
+      });
+
+      this.clock.tick(1);
+    });
+  });
+
+  suite('Settings#deletePicture()', function() {
+    test('Should call the deviceStorageAPI', function() {
+      this.storage.deletePicture('path/to/picture.jpg');
+      assert.isTrue(this.picture.delete.calledWith('path/to/picture.jpg'));
+    });
+
+    test('Should work when called out of context', function() {
+      var fn = this.storage.deletePicture;
+      fn('path/to/picture.jpg');
+      assert.isTrue(this.picture.delete.calledWith('path/to/picture.jpg'));
+    });
+  });
+
+  suite('Settings#deleteVideo()', function() {
+    test('Should call the deviceStorageAPI', function() {
+      this.storage.deleteVideo('path/video.3gp');
+      assert.isTrue(this.video.delete.calledWith('path/video.3gp'));
+    });
+
+    test('Should delete matching poster image', function() {
+      this.storage.deleteVideo('path/video.3gp');
+      assert.isTrue(this.picture.delete.calledWith('path/video.jpg'));
+    });
+
+    test('Should work when called out of context', function() {
+      var fn = this.storage.deleteVideo;
+      fn('path/video.3gp');
+      assert.isTrue(this.video.delete.calledWith('path/video.3gp'));
+    });
+  });
+});

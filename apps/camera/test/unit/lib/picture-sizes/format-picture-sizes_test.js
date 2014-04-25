@@ -56,24 +56,4 @@ suite('lib/picture-sizes/format-picture-sizes', function() {
 
     assert.isFalse(someGreater, 'should be none greater than: ' + maxPixelSize);
   });
-
-  suite('title', function() {
-    test('Should include the apect ratio', function() {
-      assert.ok(this.options[0].title.indexOf('4:3') > -1);
-    });
-
-    test('Should include MP value for > 1MP', function() {
-      assert.isTrue(this.options[0].title.indexOf('3MP') > -1);
-      assert.isFalse(this.options[4].title.indexOf('MP') > -1);
-    });
-
-    test('Should include the resolution', function() {
-      assert.isTrue(this.options[0].title.indexOf('2048x1536') > -1);
-    });
-
-    test('Should allow \'MP\' string to be localized', function() {
-      this.options = this.formatPictureSizes(this.sizes, { mp: 'REPLACED' });
-      assert.isTrue(this.options[0].title.indexOf('REPLACED') > -1);
-    });
-  });
 });

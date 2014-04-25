@@ -5,6 +5,7 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var debug = require('debug')('setting-alias');
 var evt = require('vendor/evt');
 
 /**
@@ -39,12 +40,14 @@ evt(SettingAlias.prototype);
  * @param {Object} options
  */
 function SettingAlias(options) {
+  debug('initialize');
   this.settings = options.settings;
   this.key = options.key;
   this.map = options.map || {};
   this.setting = options.get.bind(this);
   forwardMethods.forEach(this.forward, this);
   this.propagate = this.propagator();
+  debug('initialized');
 }
 
 /**
