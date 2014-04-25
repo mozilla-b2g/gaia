@@ -23,7 +23,8 @@
       "filters": {
         "type": ["photos", "videos"]
        },
-      "disposition": "window"
+      "disposition": "window",
+      "href": "/index.html#record"
     },
     "pick": {
       "filters": {

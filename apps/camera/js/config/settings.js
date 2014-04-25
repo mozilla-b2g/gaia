@@ -5,14 +5,17 @@ module.exports = {
   zoom: {
     disabled: false
   },
+
   caf: {
     // Set this property to true if you want to disable continuous auto focus
     // even on hardware that supports it.
     disabled: false
   },
+
   viewfinder: {
     scaleType: 'fill'
   },
+
   battery: {
     levels: {
       low: 15,
@@ -22,9 +25,31 @@ module.exports = {
       healthy: 100
     }
   },
+
+  sounds: {
+    list: [
+      {
+        name: 'shutter',
+        setting: 'camera.shutter.enabled',
+        url: './resources/sounds/shutter.ogg'
+      },
+      {
+        name: 'recordingStart',
+        url: './resources/sounds/camcorder_start.opus',
+        setting: 'camera.recordingsound.enabled'
+      },
+      {
+        name: 'recordingEnd',
+        url: './resources/sounds/camcorder_end.opus',
+        setting: 'camera.recordingsound.enabled'
+      }
+    ]
+  },
+
   geolocation: {
     promptDelay: 2000
   },
+
   mode: {
     options: [
       {
@@ -34,7 +59,7 @@ module.exports = {
         key: 'video'
       }
     ],
-    persistent: false
+    persistent: true
   },
 
   isoModes: {
@@ -66,7 +91,7 @@ module.exports = {
         key: 'front'
       }
     ],
-    persistent: false
+    persistent: true
   },
 
   pictureSizesFront: {

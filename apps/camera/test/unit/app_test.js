@@ -1,25 +1,24 @@
-/*global req*/
-'use strict';
+/*jshint maxlen:false*/
 
 suite('app', function() {
+  'use strict';
+
   suiteSetup(function(done) {
     var self = this;
 
-    req([
+    window.req([
       'app',
       'lib/camera',
       'vendor/view',
       'lib/geo-location',
       'lib/activity',
-      'lib/storage',
       'lib/setting',
-    ], function(App, Camera, View, GeoLocation, Activity, Storage, Setting) {
+    ], function(App, Camera, View, GeoLocation, Activity, Setting) {
       self.App = App;
       self.View = View;
       self.Camera = Camera;
       self.Geolocation = GeoLocation;
       self.Activity = Activity;
-      self.Storage = Storage;
       self.Setting = Setting;
       done();
     });
@@ -60,8 +59,7 @@ suite('app', function() {
       geolocation: sinon.createStubInstance(this.Geolocation),
       activity: new this.Activity(),
       camera: sinon.createStubInstance(this.Camera),
-      sounds: {},
-      storage: sinon.createStubInstance(this.Storage),
+      require: sinon.stub(),
       settings: {
         geolocation: sinon.createStubInstance(this.Setting)
       },
@@ -76,17 +74,20 @@ suite('app', function() {
         timer: sinon.spy(),
         controls: sinon.spy(),
         viewfinder: sinon.spy(),
-        previewGallery: sinon.spy(),
         overlay: sinon.spy(),
-        confirm: sinon.spy(),
         camera: sinon.spy(),
         settings: sinon.spy(),
         activity: sinon.spy(),
-        sounds: sinon.spy(),
         recordingTimer: sinon.spy(),
         zoomBar: sinon.spy(),
         indicators: sinon.spy(),
-        battery: sinon.spy()
+
+        // Lazy loaded
+        previewGallery: 'controllers/preview-gallery',
+        storage: 'controllers/storage',
+        confirm: 'controllers/confirm',
+        battery: 'controllers/battery',
+        sounds: 'controllers/sounds'
       }
     };
 
@@ -111,6 +112,7 @@ suite('app', function() {
 
     this.sandbox.spy(this.app, 'on');
     this.sandbox.spy(this.app, 'set');
+    this.sandbox.spy(this.app, 'once');
     this.sandbox.spy(this.app, 'emit');
     this.sandbox.spy(this.app, 'firer');
   });
@@ -162,11 +164,9 @@ suite('app', function() {
       assert.ok(controllers.hud.calledWith(app));
       assert.ok(controllers.controls.calledWith(app));
       assert.ok(controllers.viewfinder.calledWith(app));
-      assert.ok(controllers.previewGallery.calledWith(app));
       assert.ok(controllers.overlay.calledWith(app));
       assert.ok(controllers.camera.calledWith(app));
       assert.ok(controllers.zoomBar.calledWith(app));
-      assert.ok(controllers.battery.calledWith(app));
     });
 
     test('Should put each of the views into the root element', function() {
@@ -200,8 +200,7 @@ suite('app', function() {
 
     test('Should watch location only once storage confirmed healthy', function() {
       var geolocationWatch = this.app.geolocationWatch;
-      var storage = this.app.storage;
-      assert.ok(storage.once.calledWith('checked:healthy', geolocationWatch));
+      assert.ok(this.app.once.calledWith('storage:checked:healthy', geolocationWatch));
     });
 
     suite('App#geolocationWatch()', function() {
@@ -221,8 +220,8 @@ suite('app', function() {
       });
 
       test('Should *not* watch location if not in activity', function() {
-        this.app.doc.hidden = false;
-        this.app.activity.active = true;
+        this.app.hidden = false;
+        this.app.activity.pick = true;
 
         this.app.geolocationWatch();
         this.clock.tick(2000);
@@ -231,8 +230,8 @@ suite('app', function() {
       });
 
       test('Should *not* watch location if app hidden', function() {
-        this.app.doc.hidden = true;
-        this.app.activity.active = false;
+        this.app.hidden = true;
+        this.app.activity.pick = false;
 
         this.app.geolocationWatch();
         this.clock.tick(2000);
@@ -240,11 +239,91 @@ suite('app', function() {
         assert.isFalse(this.app.geolocation.watch.called);
       });
     });
+
+    suite('once(\'viewfinder:visible\')', function() {
+      setup(function() {
+
+        // Stop annoying logs
+        this.sandbox.stub(console, 'log');
+
+        this.spy = this.app.once.withArgs('viewfinder:visible');
+        this.callback = this.spy.args[0][1];
+
+        sinon.spy(this.app, 'loadController');
+        sinon.spy(this.app, 'loadL10n');
+
+        // Call the callback to test
+        this.callback();
+      });
+
+      test('Should fire a `criticalpathdone` event', function() {
+        assert.isTrue(this.app.emit.calledWith('criticalpathdone'));
+      });
+
+      test('Should flag `this.criticalPathDone`', function() {
+        assert.isTrue(this.app.criticalPathDone);
+      });
+
+      test('Should load l10n', function() {
+        assert.isTrue(this.app.loadL10n.calledOnce);
+      });
+
+      test('Should load non-critical controllers', function() {
+        var loadController = this.app.loadController;
+        var controllers = this.app.controllers;
+
+        assert.isTrue(loadController.calledWith(controllers.previewGallery));
+        assert.isTrue(loadController.calledWith(controllers.storage));
+        assert.isTrue(loadController.calledWith(controllers.confirm));
+        assert.isTrue(loadController.calledWith(controllers.battery));
+        assert.isTrue(loadController.calledWith(controllers.sounds));
+      });
+    });
   });
 
-  suite('App#onBlur', function() {
+  suite('App#bindEvents()', function() {
     setup(function() {
-      this.app.onBlur();
+      this.app.bindEvents();
+    });
+
+    test('Should listen for visibilitychange on document', function() {
+      assert.isTrue(this.app.doc.addEventListener.calledWith('visibilitychange'));
+    });
+
+    test('Should relay window \'localized\' event', function() {
+      assert.isTrue(this.app.win.addEventListener.calledWith('localized'));
+      assert.isTrue(this.app.firer.calledWith('localized'));
+    });
+  });
+
+  suite('App#onVisibilityChange', function() {
+
+    test('Should update the `app.hidden` property', function() {
+      this.app.doc.hidden = true;
+      this.app.onVisibilityChange();
+      assert.equal(this.app.hidden, true);
+
+      this.app.doc.hidden = false;
+      this.app.onVisibilityChange();
+      assert.equal(this.app.hidden, false);
+    });
+
+    test('Should emit a \'visible\' event when the document is not hidden', function() {
+      this.app.doc.hidden = false;
+      this.app.onVisibilityChange();
+      assert.isTrue(this.app.emit.calledWith('visible'));
+    });
+
+    test('Should emit a \'hidden\' event when the document is hidden', function() {
+      this.app.doc.hidden = true;
+      this.app.onVisibilityChange();
+      assert.isTrue(this.app.emit.calledWith('hidden'));
+    });
+  });
+
+  suite('App#onHidden', function() {
+    setup(function() {
+      this.app.onHidden();
     });
 
     test('Should stop watching location', function() {
@@ -252,14 +331,10 @@ suite('app', function() {
     });
   });
 
-  suite('App#onFocus()', function() {
+  suite('App#onVisible()', function() {
     setup(function() {
       sinon.spy(this.app, 'geolocationWatch');
-      this.app.onFocus();
-    });
-
-    test('Should run a storage check', function() {
-      assert.ok(this.app.storage.check.called);
+      this.app.onVisible();
     });
 
     test('Should begin watching location again', function() {
@@ -267,21 +342,10 @@ suite('app', function() {
     });
   });
 
-  suite('App#configureL10n()', function() {
-    test('Should fire a `localized` event if l10n is already complete', function() {
-      navigator.mozL10n.readyState = 'complete';
-      this.app.configureL10n();
-      assert.ok(this.app.emit.calledWith('localized'));
-    });
-
-    test('Should not fire a `localized` event if l10n is not \'complete\'', function() {
-      this.app.configureL10n();
-      assert.ok(!this.app.emit.calledWith('localized'));
-    });
-
-    test('Should always listen for \'localized\' events', function() {
-      this.app.configureL10n();
-      assert.ok(!this.app.win.addEventListener('localized'));
+  suite('App#loadL10n()', function() {
+    test('Should require l10n', function() {
+      this.app.loadL10n();
+      assert.equal(this.app.require.args[0][0][0], 'l10n');
     });
   });
 });
