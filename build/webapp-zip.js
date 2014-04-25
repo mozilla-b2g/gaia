@@ -324,11 +324,17 @@ function execute(options) {
       locales: [],         // List of locale names to copy
       resources: [],       // List of resources to copy
       styles: [],          // List of stable style names to copy
-      unstable_styles: []  // List of unstable style names to copy
+      unstable_styles: [], // List of unstable style names to copy
+      pages: []            // List of page names to copy
     };
 
     function sortResource(kind, path) {
       switch (kind) {
+        case 'pages':
+          if (used.pages.indexOf(path) == -1) {
+            used.pages.push(path);
+          }
+          break;
         case 'elements':
           if (used.elements.indexOf(path) == -1) {
             used.elements.push(path);
@@ -365,6 +371,41 @@ function execute(options) {
           }
           break;
       }
+    }
+
+    // Process a page shared file
+    function processPageFile(path) {
+      // Compute the nsIFile for this shared JS file
+      let file = gaia.sharedFolder.clone();
+      file.append('pages');
+      path.split('/').forEach(function(segment) {
+        file.append(segment);
+      });
+      if (!file.exists()) {
+        throw new Error('Using inexistent shared HTML file: ' + path +
+                        ' from: ' + webapp.domain);
+      }
+      let extension = utils.getExtension(file.leafName);
+
+      // If it is an HTML file we need to check for the referenced shared
+      // resources
+      if (extension === 'html') {
+        let content = utils.getFileContent(file);
+        while ((matches = SHARED_USAGE.exec(content)) !== null) {
+          let kind = matches[1]; // elements | js | locales | resources | style
+          let path = matches[2];
+          if (kind === 'pages') {
+            processPageFile(path);
+          }
+          else {
+            sortResource(kind, path);
+          }
+        }
+      }
+
+      var pathInZip = '/shared/pages/' + path;
+      var compression = getCompression(pathInZip, webapp);
+      addToZip(zip, pathInZip, file, compression);
     }
 
     // Scan the files
@@ -404,6 +445,8 @@ function execute(options) {
         });
       });
     }
+
+    used.pages.forEach(processPageFile);
 
     used.elements.forEach(function(path) {
       // Compute the nsIFile for this shared JS file
