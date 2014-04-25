@@ -1,10 +1,5 @@
 /* FIRST TIME EXPERIENCE VIEW */
 
-/* Remove this rule when new BB are applied */
-body[role="application"] [role="dialog"] {
-  position: fixed;
-}
-
 #firsttime-view, #firsttime-view .view {
   top: 0;
   transform: translate(0, 0);
@@ -17,7 +12,7 @@ body[role="application"] [role="dialog"] {
 /* Steps state */
 #firsttime-view .step-state {
   height: 0;
-  font: 0/0 a;
+  font-size: 0;
   border-top: solid 0.1rem #b7b7b7;
   border-bottom: solid 0.1rem #fff;
   position: absolute;
@@ -62,15 +57,15 @@ body[role="application"] [role="dialog"] {
 
 /* Content */
 #firsttime-view .content {
-  padding: 0 1.5rem 0;
-  margin-top: 3.5rem;
+  padding: 1.5rem 3rem;
+  margin-top: 1.5rem;
   list-style: none;
 }
 
 /* Wrapper with scroll */
 #firsttime-view section.content {
   -moz-box-sizing: border-box;
-  max-height: calc(100% - 5rem - 3.5rem - 6.8rem); /* window height - header height - steps progress - menu height  */
+  max-height: calc(100% - 5rem - 1.5rem - 7rem); /* window height - header height - steps progress - menu height  */
   overflow-x: auto;
 }
 
@@ -79,8 +74,13 @@ body[role="application"] [role="dialog"] {
   margin-bottom: 1.6rem;
 }
 
+#firsttime-view ul.content {
+  margin: 1.5rem -3rem;
+}
+
 #firsttime-view .content p {
   font-size: 1.6rem;
+  line-height: 1.8rem;
 }
 
 /* General menu */
@@ -117,6 +117,7 @@ body[role="application"] [role="dialog"] {
 }
 
 /* Choices */
+/*
 #firsttime-view .choices li {
     margin: 0;
     list-style: none;
@@ -163,17 +164,20 @@ body[role="application"] [role="dialog"] {
     display: block;
     color: #000;
   }
+*/
 
 /* Settings */
+/*
 #firsttime-view .settings li {
   padding-left: 0;
   padding-right: 0;
 }
+*/
 
 .step-hint {
   color: #999;
   font-size: 1.6rem;
-  font-weight: bold;
-  margin: 2rem;
+  line-height: 2rem;
   text-shadow: 0 0.2rem 0 #FFF;
+  margin: 1.5rem;
 }

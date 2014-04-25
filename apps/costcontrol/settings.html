@@ -52,7 +52,7 @@
         <section class="view-scroll" role="region">
           <ul id="plantype-settings" class="settings" aria-hidden="true">
            <li>
-            <span class="button icon icon-dialog fake-select">
+            <span class="button icon icon-dialog">
               <select id="widget-plantype" class="settings-option" data-option="plantype">
                <option value="prepaid" data-l10n-id="prepaid">Prepaid</option>
                <option value="postpaid" data-l10n-id="postpaid">Postpaid</option>
@@ -66,7 +66,7 @@
             <h2 data-l10n-id="phone-activity">Phone Activity</h2>
           </header>
           <ul class="settings" aria-hidden="true">
-            <li>
+            <li class="column">
               <div class="end buttons-list">
                 <button data-l10n-id="reset" id="reset-telephony">Reset</button>
               </div>
@@ -82,7 +82,7 @@
             <h2 data-l10n-id="balance">Balance</h2>
           </header>
           <ul class="settings" aria-hidden="true">
-            <li>
+            <li class="column">
                 <p id="balance"></p>
                 <p class="meta"></p>
             </li>
@@ -93,7 +93,7 @@
               </label>
               <p data-l10n-id="low-balance-alert">Low balance alert</p>
             </li>
-            <li>
+            <li class="column">
               <label class="end" for="low-limit-input">
                 <span id="settings-low-limit-currency"></span>
                 <input class="settings-option" data-option="lowLimitThreshold" data-disable-on="lowLimit=false" id="low-limit-input" type="number" />
@@ -107,7 +107,7 @@
             <h2 data-l10n-id="data-usage">Data Usage</h2>
           </header>
           <ul class="settings">
-            <li>
+            <li class="column">
               <p id="mobile-data-usage">
                 <span class="usage"></span> <span data-l10n-id="mobile-usage-settings">Mobile usage</span>
               </p>
@@ -124,7 +124,7 @@
               </label>
               <p data-l10n-id="data-limit-alert">Data use alert</p>
             </li>
-            <li>
+            <li class="column">
               <p data-l10n-id="data-limit-value2">When use is above</p>
               <button class="settings-option icon icon-dialog" data-widget-type="data-limit" data-disable-on="dataLimit=false">
                 <span class="tag"></span>
@@ -137,9 +137,9 @@
             <h2 data-l10n-id="phone-and-internet-data-report">Phone and Internet data report</h2>
           </header>
           <ul class="settings">
-            <li class="reset-entry">
+            <li class="reset-entry column">
               <p data-l10n-id="reset-report">Reset report</p>
-              <span class="button icon icon-dialog fake-select">
+              <span class="button icon icon-dialog">
                  <select class="settings-option" data-option="trackingPeriod">
                    <option value="monthly" data-l10n-id="monthly">Monthly</option>
                    <option value="weekly" data-l10n-id="weekly">Weekly</option>
@@ -147,9 +147,9 @@
                  </select>
               </span>
             </li>
-            <li class="reset-entry">
+            <li class="reset-entry column">
               <p data-l10n-id="starting-on">Starting on</p>
-              <span class="button icon icon-dialog fake-select">
+              <span class="button icon icon-dialog">
                 <select id="select-weekday" class="settings-option" data-option="resetTime" data-hide-on="trackingPeriod!=weekly" data-disable-on="trackingPeriod!=weekly">
                   <option class="monday" value="1" data-l10n-id="monday">Monday</option>
                   <option value="2" data-l10n-id="tuesday">Tuesday</option>
@@ -161,9 +161,9 @@
                 </select>
               </span>
             </li>
-            <li class="reset-entry">
+            <li class="reset-entry column">
               <p data-l10n-id="starting-on">Starting on</p>
-              <span class="button icon icon-dialog fake-select">
+              <span class="button icon icon-dialog">
                 <select class="settings-option icon icon-dialog" data-option="resetTime" data-hide-on="trackingPeriod!=monthly" data-disable-on="trackingPeriod!=monthly">
                   <option value="1">1</option>
                   <option value="2">2</option>

@@ -92,8 +92,10 @@
             <span data-l10n-id="im-postpaid">I’m Post-paid</span>
           </label>
         </li>
+        <li>
+          <p class="step-hint" data-l10n-id="fte-plantype-hint">Select the type of contract you have with your mobile service provider.</p>
+        </li>
       </ul>
-      <p class="step-hint" data-l10n-id="fte-plantype-hint">Select the type of contract you have with your mobile service provider.</p>
       <menu data-items="2">
         <button data-navigation="back">
           <span></span>
@@ -127,8 +129,10 @@
             </label>
             <p data-l10n-id="low-balance-explanation2">When balance is below</p>
           </li>
+          <li>
+            <p class="step-hint" data-l10n-id="fte-prepaid2-hint">Set an alert to avoid running out of credit.</p>
+          </li>
         </ul>
-        <p class="step-hint" data-l10n-id="fte-prepaid2-hint">Set an alert to avoid running out of credit.</p>
       </section>
       <menu data-items="2">
         <button data-navigation="back">
@@ -149,9 +153,9 @@
       </header>
       <section class="content">
         <ul class="settings">
-          <li>
+          <li class="column">
             <p data-l10n-id="reset-report">Reset report</p>
-            <span class="button icon icon-dialog fake-select">
+            <span class="button icon icon-dialog">
               <select class="settings-option" data-option="trackingPeriod">
                 <option value="monthly" data-l10n-id="monthly">Monthly</option>
                 <option value="weekly" data-l10n-id="weekly">Weekly</option>
@@ -159,9 +163,9 @@
               </select>
             </span>
           </li>
-          <li>
+          <li class="column">
             <p data-l10n-id="starting-on">Starting on</p>
-            <span class="button icon icon-dialog fake-select">
+            <span class="button icon icon-dialog">
               <select id="pre3-select-weekday" class="settings-option" data-option="resetTime" data-hide-on="trackingPeriod!=weekly" data-disable-on="trackingPeriod!=weekly">
                 <option class="monday" value="1" data-l10n-id="monday">Monday</option>
                 <option value="2" data-l10n-id="tuesday">Tuesday</option>
@@ -175,7 +179,7 @@
           </li>
           <li>
             <div class="end buttons-list">
-              <span class="button icon icon-dialog fake-select">
+              <span class="button icon icon-dialog">
                 <select class="settings-option icon icon-dialog" data-option="resetTime" data-hide-on="trackingPeriod!=monthly" data-disable-on="trackingPeriod!=monthly">
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -220,14 +224,16 @@
             </label>
             <p data-l10n-id="data-limit-alert">Data use alert</p>
           </li>
-          <li>
+          <li class="column">
             <p data-l10n-id="data-limit-value2">When use is above</p>
             <button class="settings-option icon icon-dialog" data-widget-type="data-limit"  data-disable-on="dataLimit=false" data-hide-on="dataLimit=false">
               <span class="tag"></span>
             </button>
           </li>
+          <li>
+            <p class="step-hint" data-l10n-id="fte-prepaid3-hint">Receive reports about your Internet usage and set an alert to avoid using too much.</p>
+          </li>
         </ul>
-        <p class="step-hint" data-l10n-id="fte-prepaid3-hint">Receive reports about your Internet usage and set an alert to avoid using too much.</p>
       </section>
       <menu data-items="2">
         <button data-navigation="back">
@@ -247,9 +253,9 @@
         <h1 data-l10n-id="fte-postpaid2-title">Phone and Data Report</h1>
       </header>
        <ul class="content settings">
-        <li>
+          <li class="column">
           <p data-l10n-id="reset-report">Reset report</p>
-          <span class="button icon icon-dialog fake-select">
+          <span class="button icon icon-dialog">
             <select class="settings-option" data-option="trackingPeriod">
               <option value="monthly" data-l10n-id="monthly">Monthly</option>
               <option value="weekly" data-l10n-id="weekly">Weekly</option>
@@ -257,9 +263,9 @@
             </select>
           </span>
         </li>
-        <li>
+          <li class="column">
           <p data-l10n-id="starting-on">Starting on</p>
-          <span class="button icon icon-dialog fake-select">
+          <span class="button icon icon-dialog">
             <select id="post2-select-weekday" class="settings-option" data-option="resetTime" data-hide-on="trackingPeriod!=weekly" data-disable-on="trackingPeriod!=weekly">
               <option class="monday" value="1" data-l10n-id="monday">Monday</option>
               <option value="2" data-l10n-id="tuesday">Tuesday</option>
@@ -273,7 +279,7 @@
         </li>
         <li>
           <div class="end buttons-list">
-            <span class="button icon icon-dialog fake-select">
+            <span class="button icon icon-dialog">
               <select class="settings-option icon icon-dialog" data-option="resetTime" data-hide-on="trackingPeriod!=monthly" data-disable-on="trackingPeriod!=monthly">
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -311,8 +317,10 @@
           </div>
           <p data-l10n-id="starting-on">Starting on</p>
         </li>
+        <li>
+          <p class="step-hint" data-l10n-id="fte-postpaid2-hint">Receive reports about your phone and Internet usage.</p>
+        </li>
       </ul>
-      <p class="step-hint" data-l10n-id="fte-postpaid2-hint">Receive reports about your phone and Internet usage.</p>
       <menu data-items="2">
         <button data-navigation="back">
           <span></span>
@@ -339,14 +347,16 @@
             </label>
             <p data-l10n-id="data-limit-alert">Data use alert</p>
           </li>
-          <li>
+          <li class="column">
             <p data-l10n-id="data-limit-value2">When use is above</p>
             <button class="settings-option icon icon-dialog" data-widget-type="data-limit" data-disable-on="dataLimit=false" data-hide-on="dataLimit=false">
               <span class="tag"></span>
             </button>
           </li>
+          <li>
+            <p class="step-hint" data-l10n-id="fte-postpaid3-hint">Set an alert to avoid using too much data.</p>
+          </li>
         </ul>
-        <p class="step-hint" data-l10n-id="fte-postpaid3-hint">Set an alert to avoid using too much data.</p>
       </section>
       <menu data-items="2">
         <button data-navigation="back">
@@ -366,9 +376,9 @@
         <h1 data-l10n-id="fte-onlydata2-title">Data Report</h1>
       </header>
       <ul class="content settings">
-        <li>
+        <li class="column">
           <p data-l10n-id="reset-report">Reset report</p>
-          <span class="button icon icon-dialog fake-select">
+          <span class="button icon icon-dialog">
             <select class="settings-option" data-option="trackingPeriod">
               <option value="monthly" data-l10n-id="monthly">Monthly</option>
               <option value="weekly" data-l10n-id="weekly">Weekly</option>
@@ -376,9 +386,9 @@
             </select>
           </span>
         </li>
-        <li>
+        <li class="column">
           <p data-l10n-id="starting-on">Starting on</p>
-          <span class="button icon icon-dialog fake-select">
+          <span class="button icon icon-dialog">
             <select id="non2-select-weekday" class="settings-option" data-option="resetTime" data-hide-on="trackingPeriod!=weekly" data-disable-on="trackingPeriod!=weekly">
               <option class="monday" value="1" data-l10n-id="monday">Monday</option>
               <option value="2" data-l10n-id="tuesday">Tuesday</option>
@@ -392,7 +402,7 @@
         </li>
         <li>
           <div class="end buttons-list">
-            <span class="button icon icon-dialog fake-select">
+            <span class="button icon icon-dialog">
               <select class="settings-option icon icon-dialog" data-option="resetTime" data-hide-on="trackingPeriod!=monthly" data-disable-on="trackingPeriod!=monthly">
                 <option value="1">1</option>
                 <option value="2">2</option>
@@ -430,8 +440,10 @@
           </div>
           <p data-l10n-id="starting-on">Starting on</p>
         </li>
+        <li>
+          <p class="step-hint" data-l10n-id="fte-onlydata2-hint">Set an alert to avoid using too much data.</p>
+        </li>
       </ul>
-      <p class="step-hint" data-l10n-id="fte-onlydata2-hint">Set an alert to avoid using too much data.</p>
       <menu data-items="2">
         <button data-navigation="back">
           <span></span>
@@ -457,14 +469,16 @@
           </label>
           <p data-l10n-id="data-limit-alert">Data use alert</p>
         </li>
-        <li>
+        <li class="column">
           <p data-l10n-id="data-limit-value2">When use is above</p>
           <button class="settings-option icon icon-dialog" data-widget-type="data-limit" data-disable-on="dataLimit=false" data-hide-on="dataLimit=false">
             <span class="tag"></span>
           </button>
         </li>
+        <li>
+          <p class="step-hint" data-l10n-id="fte-onlydata3-hint">Set an alert to avoid using too much data.</p>
+        </li>
       </ul>
-      <p class="step-hint" data-l10n-id="fte-onlydata3-hint">Set an alert to avoid using too much data.</p>
       <menu data-items="2">
         <button data-navigation="back">
           <span></span>

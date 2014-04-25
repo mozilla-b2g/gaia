@@ -74,7 +74,7 @@ input.error {
 }
 
 .view {
-  top: 9.3rem;
+/*  top: 9.3rem;*/
   background: #f4f4f4;
   transform: translate(0, 0);
   transition: transform 0.5s ease,
@@ -146,35 +146,10 @@ body[role="application"] section[role="region"] > header .icon.config {
   background-size: 3rem;
 }
 
-body[role="application"] section[role="region"] > header button {
-  text-shadow: none;
-  font-weight: normal;
-}
-
 
 /* BB BUTTONS ICONS */
 .buttons-list {
   list-style: none;
-}
-
-li button {
-  text-align: center;
-}
-
-li button.icon {
-  text-align: left;
-}
-
-li button:after {
-  top: calc(100% + 0.1rem);
-}
-
-.fake-select select {
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
 }
 
 li button.icon-reload:before {
