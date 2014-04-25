@@ -7,7 +7,7 @@ function NonReadyScreen(container) {
   this.id = container.id;
   this.container = container;
   this.activity = container.querySelector('progress');
-  this.header = container.querySelector('h3');
+  this.header = container.querySelector('h1');
   this.message = container.querySelector('p');
   this.button = container.querySelector('button');
 
