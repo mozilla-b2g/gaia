@@ -280,3 +280,29 @@ input[type=range]:active::-moz-range-thumb {
   border-radius: 2rem;
   background-color: #e51e1e;
 }
+
+html[dir=rtl]#alarm-new {
+  margin-right: 1.5rem;
+  left: 0px;
+  right: auto;
+}
+
+html[dir=rtl]#alarms .alarmEnable {
+  left: 0px;
+  right: auto;
+}
+
+html[dir=rtl]a.alarm-item > .time {
+  right: 1.7rem;
+  left: auto;
+}
+
+html[dir=rtl]a.alarm-item > .label {
+  right: 12.5rem;
+  left: 4.5rem;
+}
+
+html[dir=rtl]a.alarm-item > .repeat {
+  left: auto;
+  right: 1.7rem;
+}
