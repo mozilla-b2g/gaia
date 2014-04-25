@@ -11,7 +11,7 @@ var Timer = require('timer');
 var Sounds = require('sounds');
 var FormButton = require('form_button');
 var html = require('text!panels/timer/panel.html');
-var AudioPlayer = require('audio_player');
+var AudioManager = require('audio_manager');
 
 var priv = new WeakMap();
 
@@ -55,7 +55,7 @@ Timer.Panel = function(element) {
     }
   });
 
-  this.ringtonePlayer = new AudioPlayer();
+  this.ringtonePlayer = AudioManager.createAudioPlayer();
 
   // Gather elements
   [

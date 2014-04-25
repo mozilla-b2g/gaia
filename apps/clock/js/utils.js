@@ -256,23 +256,93 @@ Utils.getSelectedValueByIndex = function(selectElement) {
   return selectElement.options[selectElement.selectedIndex].value;
 };
 
-Utils.parseTime = function(time) {
-  var parsed = time.split(':');
-  var hour = +parsed[0]; // cast hour to int, but not minute yet
-  var minute = parsed[1];
-
-  // account for 'AM' or 'PM' vs 24 hour clock
-  var periodIndex = minute.indexOf('M') - 1;
-  if (periodIndex >= 0) {
-    hour = (hour == 12) ? 0 : hour;
-    hour += (minute.slice(periodIndex) == 'PM') ? 12 : 0;
-    minute = minute.slice(0, periodIndex);
+var wakeTarget = {
+  requests: {
+    cpu: new Map(), screen: new Map(), wifi: new Map()
+  },
+  locks: {
+    cpu: null, screen: null, wifi: null
+  },
+  timeouts: {
+    cpu: null, screen: null, wifi: null
   }
-
+};
+function getLongestLock(type) {
+  var max = 0;
+  for (var i of wakeTarget.requests[type]) {
+    var request = i[1];
+    if (request.time > max) {
+      max = request.time;
+    }
+  }
   return {
-    hour: hour,
-    minute: +minute // now cast minute to int
+    time: max,
+    lock: wakeTarget.locks[type],
+    timeout: wakeTarget.timeouts[type]
   };
+}
+Utils.safeWakeLock = function(opts, fn) {
+    /*
+     * safeWakeLock
+     *
+     * Create a Wake lock that is automatically released after
+     * timeoutMs. Locks are reentrant, and have no meaningful mutual
+     * exclusion behavior.
+     *
+     * @param {Object} options - an object containing
+     *                 [type] {string} a string passed to requestWakeLock
+     *                                 default = 'cpu'. This string can be any
+     *                                 resource exposed by the environment that
+     *                                 this application was designed to run in.
+     *                                 Gaia exposes three of them: 'cpu',
+     *                                 'screen', and 'wifi'. Certified apps may
+     *                                 expose more.
+     *                 timeoutMs {number} number of milliseconds to hold
+     *                                    the lock.
+     * @param {Function} callback - a function to be called after all other
+     *                              generated callbacks have been called.
+     *                              function ([err]) -> undefined.
+     */
+  opts = opts || {};
+  var type = opts.type || 'cpu';
+  var timeoutMs = opts.timeoutMs | 0;
+  var now = Date.now();
+  var myKey = {};
+  wakeTarget.requests[type].set(myKey, {
+    time: now + timeoutMs
+  });
+  var max = getLongestLock(type);
+  var unlockFn = function() {
+    if (!myKey) {
+      return;
+    }
+    wakeTarget.requests[type]. delete(myKey);
+    var now = Date.now();
+    var max = getLongestLock(type);
+    if (max.time > now) {
+      clearTimeout(wakeTarget.timeouts[type]);
+      wakeTarget.timeouts[type] = setTimeout(unlockFn, max.time - now);
+    } else {
+      if (wakeTarget.locks[type]) {
+        wakeTarget.locks[type].unlock();
+      }
+      wakeTarget.locks[type] = null;
+      clearTimeout(wakeTarget.timeouts[type]);
+      wakeTarget.timeouts[type] = null;
+    }
+    myKey = null;
+  };
+  clearTimeout(wakeTarget.timeouts[type]);
+  wakeTarget.timeouts[type] = setTimeout(unlockFn, max.time - now);
+  try {
+    if (!wakeTarget.locks[type] && max.time > now) {
+      wakeTarget.locks[type] = navigator.requestWakeLock(type);
+    }
+    fn(unlockFn);
+  } catch (err) {
+    unlockFn();
+    throw err;
+  }
 };
 
 Utils.repeatString = function rep(str, times) {
@@ -526,40 +596,6 @@ Utils.addEventListenerOnce = function(element, type, fn, useCapture) {
   };
   element.addEventListener(type, handler, useCapture);
 };
-
-/**
- * Call several `addEventListener` methods at once, returning a
- * function that can be called to remove all bound listeners.
- *
- * `items` is an array of objects, each with the following format:
- *
- *   [object, eventName, handlerFunc]
- *
- * A second argument, `scope`, may be passed to bind all handler
- * functions to the given scope.
- *
- * Example:
- *
- *   var unbindFunc = bindListeners([
- *     [window, 'resize', this.onResize]
- *   ], this);
- */
-Utils.bindListeners = function(items, scope) {
-  for (var i = 0; i < items.length; i++) {
-    var item = items[i];
-    item[0].addEventListener(item[1], (item[2] = item[2].bind(scope)));
-  }
-  return function() {
-    items.forEach((item) => {
-      var [obj, name, handler] = item;
-      if (obj.removeEventListener) {
-        obj.removeEventListener(name, handler);
-      }
-    });
-  };
-};
-
-
 
 return Utils;
 

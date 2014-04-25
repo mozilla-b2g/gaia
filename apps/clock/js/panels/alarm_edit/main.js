@@ -3,7 +3,7 @@
 define(function(require) {
 var Alarm = require('alarm');
 var ClockView = require('panels/alarm/clock_view');
-var AudioPlayer = require('audio_player');
+var AudioManager = require('audio_manager');
 var FormButton = require('form_button');
 var Sounds = require('sounds');
 var Utils = require('utils');
@@ -114,7 +114,7 @@ AlarmEdit.prototype = Object.create(Panel.prototype);
 Utils.extend(AlarmEdit.prototype, {
 
   alarm: null,
-  ringtonePlayer: new AudioPlayer(),
+  ringtonePlayer: AudioManager.createAudioPlayer(),
 
   handleNameInput: function(evt) {
     // If the user presses enter on the name label, dismiss the
@@ -177,7 +177,7 @@ Utils.extend(AlarmEdit.prototype, {
         break;
       case this.inputs.volume:
         // Alarm Volume is applied to all alarms.
-        AudioPlayer.setSystemAlarmVolume(this.getAlarmVolumeValue());
+        AudioManager.setAlarmVolume(this.getAlarmVolumeValue());
         break;
     }
   },
@@ -205,7 +205,7 @@ Utils.extend(AlarmEdit.prototype, {
     // to be "undefined" rather than "".
     this.element.dataset.id = this.alarm.id || '';
     this.inputs.name.value = this.alarm.label;
-    this.inputs.volume.value = AudioPlayer.getSystemAlarmVolume();
+    this.inputs.volume.value = AudioManager.getAlarmVolume();
 
     // Init time, repeat, sound, snooze selection menu.
     this.initTimeSelect();
@@ -283,7 +283,7 @@ Utils.extend(AlarmEdit.prototype, {
     this.alarm.sound = this.getSoundSelect();
     this.alarm.vibrate = this.checkboxes.vibrate.checked;
     this.alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
-    AudioPlayer.setSystemAlarmVolume(this.getAlarmVolumeValue());
+    AudioManager.setAlarmVolume(this.getAlarmVolumeValue());
 
     this.alarm.cancel();
 

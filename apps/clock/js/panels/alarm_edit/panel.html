@@ -64,7 +64,9 @@
     <label class="alarm-volume-lbl"
            id="alarm-volume-lbl"
            data-l10n-id="alarm-volume-label">Alarm Volume</label>
-    <input id="alarm-volume-input" step="1" min="0" value="15" max="15" type="range">
+    <!-- 0.0625 is 1/16th, which matches the step size in System Settings. -->
+    <input id="alarm-volume-input" step="0.0625" min="0" value="1" max="1"
+           type="range">
   </li>
   <li id="delete-menu">
     <button id="alarm-delete" class="danger full" data-l10n-id="delete">Delete</button>

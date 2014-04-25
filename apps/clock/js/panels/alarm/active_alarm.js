@@ -4,6 +4,7 @@ define(function(require) {
   var App = require('app');
   var AlarmsDB = require('alarmsdb');
   var Timer = require('timer');
+  var Utils = require('utils');
   var ChildWindowManager = require('./child_window_manager');
   var PostMessageProxy = require('./post_message_proxy');
 
@@ -39,16 +40,17 @@ define(function(require) {
       var data = message.data || message.detail;
       data.date = message.date || new Date();
 
-      var lock = navigator.requestWakeLock('cpu');
-      switch (data.type) {
-      case 'normal':
-      case 'snooze':
-        this.onAlarmFired(data, lock.unlock.bind(lock));
-        break;
-      case 'timer':
-        this.onTimerFired(data, lock.unlock.bind(lock));
-        break;
-      }
+      Utils.safeWakeLock({ timeoutMs: 30000 }, (done) => {
+        switch (data.type) {
+        case 'normal':
+        case 'snooze':
+          this.onAlarmFired(data, done);
+          break;
+        case 'timer':
+          this.onTimerFired(data, done);
+          break;
+        }
+      });
     },
 
     /**
@@ -99,8 +101,7 @@ define(function(require) {
           sound: alarm.sound,
           vibrate: alarm.vibrate,
           time: date,
-          id: alarm.id,
-          testOpts: data.testOpts
+          id: alarm.id
         });
 
         if (type === 'normal') {
@@ -128,8 +129,7 @@ define(function(require) {
           label: timer.label,
           sound: timer.sound,
           vibrate: timer.vibrate,
-          time: new Date(timer.startTime + timer.duration),
-          testOpts: data.testOpts
+          time: new Date(timer.startTime + timer.duration)
         });
         done();
       });

@@ -14,7 +14,7 @@ function ClockAppActions() {
   });
 
   this.stopwatch = new StopwatchActions(this._client);
-  this.timer = new TimerActions(this._client, this);
+  this.timer = new TimerActions(this._client);
   this.alarm = new AlarmActions(this._client, this);
 }
 
@@ -36,39 +36,6 @@ ClockAppActions.prototype = {
     // Wait until everything has loaded.
     this._client.waitFor(function() {
       return !!this.currentPanelId;
-    }.bind(this));
-  },
-
-  withSystemFrame: function(handler) {
-    this._client.switchToFrame();
-    var ret = handler();
-    this._client.apps.switchToApp(this.origin);
-    return ret;
-  },
-
-  executeScriptInSystemFrame: function(handler /* , args */) {
-    var args = Array.prototype.slice.call(arguments);
-    return this.withSystemFrame(function() {
-      return this._client.executeScript.apply(this._client, args);
-    }.bind(this));
-  },
-
-  withAttentionFrame: function(handler) {
-    return this.withSystemFrame(function() {
-      // Switch to the Attention Screen
-      this._client.switchToFrame(
-        $('iframe[data-frame-name="_blank"]').el);
-      var ret = handler();
-      // Now switch back to the system, then to the clock.
-      this._client.switchToFrame();
-      return ret;
-    }.bind(this));
-  },
-
-  executeScriptInAttentionFrame: function(handler /* , args */) {
-    var args = Array.prototype.slice.call(arguments);
-    return this.withAttentionFrame(function() {
-      return this._client.executeScript.apply(this._client, args);
     }.bind(this));
   },
 
