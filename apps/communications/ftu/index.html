@@ -22,7 +22,7 @@
   <link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/tutorial.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/responsive.css">
-  <link rel="stylesheet" type="text/css" href="/facebook/style/curtain_frame.css">
+  <link rel="stylesheet" type="text/css" href="/shared/pages/import/style/curtain_frame.css">
 
   <title>Welcome to Browser OS</title>
 
@@ -91,6 +91,8 @@
 
   <!-- Confirm dialogs BB library -->
   <script defer type="text/javascript" src="/shared/js/confirm.js"></script>
+
+  <link rel="import" href="/shared/pages/import/import.html">
 </head>
 <body>
   <section id="splash-screen" role="region" class="show">
@@ -687,7 +689,7 @@
       </p>
     </section>
   </section>
-  
+
   <form role='dialog' data-type='confirm' id='offline-error-dialog'>
     <section>
       <h1 data-l10n-id='offline-dialog-title'>You must be connected to the Internet to view the page.</h1>
@@ -749,8 +751,8 @@
     <p></p>
   </section>
 
-  <iframe id="fb-curtain" src="/facebook/curtain.html"></iframe>
-  <iframe id="fb-oauth" hidden src="/facebook/fb_oauth.html"></iframe>
+  <iframe id="fb-curtain" src="/shared/pages/import/curtain.html"></iframe>
+  <iframe id="fb-oauth" hidden src="/shared/pages/import/oauth.html"></iframe>
   <iframe id="fb-extensions"></iframe>
 </body>
 </html>
