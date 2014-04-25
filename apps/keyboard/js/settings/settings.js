@@ -5,6 +5,12 @@
     panel.style.display = 'block';
   });
 
+  document.addEventListener('visibilitychange', function() {
+    if (document.mozHidden) {
+      window.close();
+    }
+  });
+
   // Until Haida lands this is how users could go back to Settings app
   document.getElementById('back').addEventListener('click', function() {
     var activity = new MozActivity({
@@ -14,11 +20,6 @@
         postback: false
       }
     });
-
-    // Close ourself after the activity transition is completed.
-    setTimeout(function() {
-      window.close();
-    }, 1000);
   });
 
   /**
