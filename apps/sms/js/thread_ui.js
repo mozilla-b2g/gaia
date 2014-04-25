@@ -97,7 +97,8 @@ var ThreadUI = global.ThreadUI = {
       'attach-button', 'delete-button', 'cancel-button', 'subject-input',
       'new-message-notice', 'options-icon', 'edit-mode', 'edit-form',
       'tel-form', 'header-text', 'max-length-notice', 'convert-notice',
-      'resize-notice', 'dual-sim-information'
+      'resize-notice', 'dual-sim-information',
+      'new-message-notice', 'subject-max-length-notice'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -522,27 +523,40 @@ var ThreadUI = global.ThreadUI = {
     // Handling user warning for max character reached
     // Only show the warning when the subject field has the focus
     if (this.subjectInput.value.length === Compose.subjectMaxLength) {
-      this.showMaxLengthNotice('messages-max-subject-length-text');
+      this.showSubjectMaxLengthNotice();
     } else {
-      this.hideMaxLengthNotice();
+      this.hideSubjectMaxLengthNotice();
     }
   },
 
   onSubjectBlur: function thui_onSubjectBlur() {
-    this.hideMaxLengthNotice();
+    this.hideSubjectMaxLengthNotice();
   },
+
   showMaxLengthNotice: function thui_showMaxLengthNotice(l10nKey) {
     navigator.mozL10n.localize(
       this.maxLengthNotice.querySelector('p'), l10nKey);
     this.maxLengthNotice.classList.remove('hide');
+  },
+
+  hideMaxLengthNotice: function thui_hideMaxLengthNotice() {
+    this.maxLengthNotice.classList.add('hide');
+  },
+
+  showSubjectMaxLengthNotice: function thui_showSubjectMaxLengthNotice() {
+    this.subjectMaxLengthNotice.classList.remove('hide');
+
     if (this.timeouts.subjectLengthNotice) {
       clearTimeout(this.timeouts.subjectLengthNotice);
     }
-    this.timeouts.subjectLengthNotice =
-      setTimeout(this.hideMaxLengthNotice.bind(this), this.BANNER_DURATION);
+    this.timeouts.subjectLengthNotice = setTimeout(
+      this.hideSubjectMaxLengthNotice.bind(this),
+      this.BANNER_DURATION
+    );
   },
-  hideMaxLengthNotice: function thui_hideMaxLengthNotice() {
-    this.maxLengthNotice.classList.add('hide');
+
+  hideSubjectMaxLengthNotice: function thui_hideSubjectMaxLengthNotice() {
+    this.subjectMaxLengthNotice.classList.add('hide');
     this.timeouts.subjectLengthNotice &&
       clearTimeout(this.timeouts.subjectLengthNotice);
   },
