@@ -107,6 +107,24 @@
       }],
       timestamp: now
     });
+    messagesDb.messages.push({
+      id: messagesDb.id++,
+      threadId: 6,
+      sender: '052780',
+      type: 'mms',
+      read: true,
+      delivery: 'received',
+      deliveryInfo: [{deliveryStatus: 'success'}],
+      subject: 'Test MMS Image message',
+      smil: '<smil><body><par><img src="example.jpg"/>' +
+            '</par></body></smil>',
+      attachments: [{
+        location: 'example.jpg',
+        content: testImageBlob
+      }],
+      timestamp: now,
+      sentTimestamp: now - 100000
+    });
   });
 
   getTestFile('/test/unit/media/video.ogv', function(testVideoBlob) {
