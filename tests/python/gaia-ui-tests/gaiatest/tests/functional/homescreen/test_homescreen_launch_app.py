@@ -28,8 +28,7 @@ class TestLaunchApp(GaiaTestCase):
         if not self.apps.is_app_installed(self.APP_NAME):
 
             # Install app
-            self.marionette.execute_script(
-                'navigator.mozApps.install("%s")' % self.MANIFEST)
+            self.apps.install(self.MANIFEST)
 
             # Confirm the installation and wait for the app icon to be present
             confirm_install = ConfirmInstall(self.marionette)

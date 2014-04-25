@@ -77,6 +77,11 @@ class GaiaApps(object):
         self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("GaiaApps.locateWithName('%s')" % app_name)
 
+    def install(self, manifest_url):
+        self.marionette.switch_to_frame()
+        result = self.marionette.execute_async_script("return GaiaApps.installWithManifestURL('%s')" % manifest_url)
+        assert result, "Failed to install with manifestURL '%s'" % manifest_url
+
     def uninstall(self, name):
         self.marionette.switch_to_frame()
         self.marionette.execute_async_script("GaiaApps.uninstallWithName('%s')" % name)
