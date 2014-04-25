@@ -21,6 +21,14 @@ marionette('Alarm', function() {
     assert.ok($('#clock-day-date').displayed());
   });
 
+  test('Deleting an alarm works between app launches', function() {
+    alarm.create();
+    alarm.openEditForm(0);
+    alarm.delete();
+    actions.restart();
+    assert.equal(alarm.list.length, 0);
+  });
+
   // PythonTests: functional/test_clock_set_alarm
   test('Blank "New Alarm" form mutates properly', function() {
     alarm.openNewForm();

@@ -63,6 +63,10 @@ AlarmActions.prototype = {
     this.actions.tapAndTransition('#alarm-close');
   },
 
+  delete: function() {
+    this.actions.tapAndTransition('#alarm-delete');
+  },
+
   saveForm: function() {
     this.actions.tapAndTransition('#alarm-done');
   },
