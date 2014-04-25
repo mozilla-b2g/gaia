@@ -22,6 +22,10 @@
 
     element: document.getElementById('windows'),
 
+    displayQueue: [],
+
+    ftuIsDone: false,
+
     /**
      * Test the app is already running.
      * @param {AppConfig} app The configuration of app.
@@ -73,6 +77,19 @@
     _settingsObserveHandler: null,
 
     /**
+     * Process cached display callbacks.
+     * This should be run only ftu has been completed.
+     */
+    processDisplayQueue: function() {
+      if (this.ftuIsDone && this.displayQueue.length) {
+        var eachCb;
+        while(eachCb = this.displayQueue.shift()) {
+          eachCb();
+        }
+      }
+    },
+
+    /**
      * Switch to a different app
      * @param {AppWindow} newApp The new app window instance.
      * @param {String} [openAnimation] The open animation for opening app.
@@ -86,6 +103,17 @@
 
       if (!appNext) {
         console.warn('no next app.');
+        return;
+      }
+
+      // Bug 991262: support the runapp CLI argument.
+      // Delay launch of apps if the following conditions are met:
+      // The app is not the homescreen.
+      // The homescreen has not yet been rendered.
+      // FTU has either been skipped or completed.
+      if (!this.ftuIsDone && appNext.origin !== homescreenLauncher.origin) {
+        this.displayQueue.push(
+          this.launch.bind(this, newApp, openAnimation, closeAnimation));
         return;
       }
 
@@ -215,6 +243,7 @@
       window.addEventListener('home', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
+      window.addEventListener('ftudone', this);
       window.addEventListener('ftuskip', this);
       window.addEventListener('appopened', this);
       window.addEventListener('apprequestopen', this);
@@ -293,6 +322,7 @@
       window.removeEventListener('home', this);
       window.removeEventListener('appcreated', this);
       window.removeEventListener('appterminated', this);
+      window.removeEventListener('ftudone', this);
       window.removeEventListener('ftuskip', this);
       window.removeEventListener('appopened', this);
       window.removeEventListener('apprequestopen', this);
@@ -364,8 +394,11 @@
           }
           break;
 
+        case 'ftudone':
         case 'ftuskip':
+          this.ftuIsDone = true;
           this.display();
+          this.processDisplayQueue();
           break;
 
         case 'appopened':
