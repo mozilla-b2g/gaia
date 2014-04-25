@@ -1,6 +1,7 @@
 'use strict';
 
 require('/shared/js/text_normalizer.js');
+require('/shared/js/contacts/import/importer_ui.js');
 require('/shared/js/contacts/import/utilities/misc.js');
 require('/shared/js/contacts/utilities/dom.js');
 require('/shared/js/contacts/utilities/templates.js');
@@ -17,7 +18,6 @@ requireApp('communications/facebook/test/unit/mock_curtain.js');
 requireApp('communications/import/test/unit/mock_connector.js');
 requireApp('communications/import/test/unit/mock_imported_contacts.js');
 requireApp('communications/contacts/js/views/search.js');
-requireApp('communications/contacts/js/importer_ui.js');
 
 var realSearch,
     realImageLoader,

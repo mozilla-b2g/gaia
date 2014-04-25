@@ -4,11 +4,12 @@
 
 require('/shared/js/simple_phone_matcher.js');
 require('/shared/js/contacts/import/utilities/misc.js');
+require('/shared/js/contacts/contacts_merger.js');
+
 requireApp('communications/contacts/test/unit/mock_find_matcher.js');
 requireApp('communications/contacts/test/unit/mock_image_thumbnail.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
-requireApp('communications/contacts/js/contacts_merger.js');
 
 var mocksHelperForContactsMerger = new MocksHelper([
   'ContactPhotoHelper'

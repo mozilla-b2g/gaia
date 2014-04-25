@@ -709,7 +709,7 @@ var Contacts = (function() {
   var addAsyncScripts = function addAsyncScripts() {
     var lazyLoadFiles = [
       '/shared/js/contacts/utilities/templates.js',
-      '/contacts/js/contacts_shortcuts.js',
+      '/shared/js/contacts/contacts_shortcuts.js',
       '/contacts/js/contacts_tag.js',
       SHARED_UTILS_PATH + '/' + 'misc.js',
       '/contacts/js/utilities/normalizer.js',

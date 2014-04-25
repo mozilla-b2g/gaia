@@ -827,8 +827,8 @@ contacts.Form = (function() {
       }
     };
 
-    LazyLoader.load(['/contacts/js/contacts_merger.js',
-                     '/contacts/js/merger_adapter.js'], function() {
+    LazyLoader.load(['/shared/js/contacts/contacts_merger.js',
+                     '/shared/js/contacts/merger_adapter.js'], function() {
       contacts.Merger.merge(contact, list, callbacks);
     });
   };
@@ -847,7 +847,7 @@ contacts.Form = (function() {
   var doMatch = function doMatch(contact, callbacks) {
     LazyLoader.load(['/shared/js/text_normalizer.js',
                      '/shared/js/simple_phone_matcher.js',
-                     '/contacts/js/contacts_matcher.js'], function() {
+                     '/shared/js/contacts/contacts_matcher.js'], function() {
       contacts.Matcher.match(contact, 'active', callbacks);
     });
   };
