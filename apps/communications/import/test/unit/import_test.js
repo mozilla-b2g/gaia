@@ -11,13 +11,13 @@ requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_search.js');
 requireApp('communications/contacts/test/unit/mock_oauthflow.js');
-requireApp('communications/contacts/js/fb/friends_list.js');
+require('/shared/js/contacts/import/friends_list.js');
 requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/facebook/test/unit/mock_curtain.js');
 requireApp('communications/import/test/unit/mock_connector.js');
 requireApp('communications/import/test/unit/mock_imported_contacts.js');
-requireApp('communications/contacts/js/views/search.js');
+require('/shared/js/contacts/search.js');
 
 var realSearch,
     realImageLoader,

@@ -1,3 +1,5 @@
+@import url("root.css");
+
 .hide, *[data-template] {
   display: none !important;
 }
