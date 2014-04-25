@@ -1,0 +1,22 @@
+{
+  "name": "Sideloader",
+  "description": "Import and export apps from and to the SD card.",
+  "launch_path": "/index.html#panel1",
+  "icons": {
+    "128": "/img/icon-128.png"
+  },
+  "developer": {
+    "name": "Mozilla",
+    "url": "http://www.mozilla.com"
+  },
+  "default_locale": "en",
+  "type": "certified",
+  "permissions": {
+    "webapps-manage": {
+      "description": "Required for import and export of apps from and to the SD card."
+    },
+    "device-storage:apps": {
+      "access": "readwrite"
+    }
+  }
+}

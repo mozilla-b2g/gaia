@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+
+  <link rel="stylesheet" type="text/css" href="shared/style/tabs.css"/>
+  <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+  <link rel="stylesheet" type="text/css" href="shared/style/lists.css" />
+</head>
+
+<body role="application">
+
+  <ul role="tablist" class="bb-tablist">
+
+    <!-- tab: import -->
+    <li id="panel1" role="presentation">
+      <a id="tab1" href="#panel1" role="tab" aria-controls="tabpanel1">Import</a>
+      <div id="tabpanel1" class="bb-tabpanel" role="tabpanel" aria-labelledby="tab1">
+        List of apps detected on SD card, touch one to import.
+        <section data-type="list">
+          <ul id="importAppList"></ul>
+        </section>
+      </div>
+    </li>
+
+    <!-- tab: export -->
+    <li id="panel2" role="presentation">
+      <a id="tab2" href="#panel2" role="tab" aria-controls="tabpanel2">Export</a>
+      <div id="tabpanel2" class="bb-tabpanel" role="tabpanel" aria-labelledby="tab2">
+        List of installed apps, touch one to export.
+        <section data-type="list">
+          <ul id="exportAppList"></ul>
+        </section>
+      </div>
+    </li>
+  </ul>
+
+  <template id="appListEntry">
+    <li>
+      <a href="#">
+        <aside class="icon icon-apps"></aside>
+        <p class="appListEntryName"></p>
+      </a>
+    </li>
+  </template>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
