@@ -126,7 +126,7 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
       zip.removeEntry(IniPathInZip, false);
     }
 
-    utils.addEntryContentWithTime(zip, IniPathInZip, iniContent,
+    webappZip.addEntryStringWithTime(zip, IniPathInZip, iniContent,
       DEFAULT_TIME, compression);
 
     localesClone.forEach(function(locale) {
@@ -141,41 +141,12 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
         if (zip.hasEntry(propsFilePathInZip)) {
           zip.removeEntry(propsFilePathInZip, false);
         }
-        utils.addEntryContentWithTime(zip, propsFilePathInZip, propFile,
+        webappZip.addEntryFileWithTime(zip, propsFilePathInZip, propFile,
           DEFAULT_TIME, compression);
       });
     });
   }
 
-  function localizeIniShared(target, iniFile, webapp, callback) {
-    var localesClone = JSON.parse(JSON.stringify(self.locales));
-    var enIndex = localesClone.indexOf('en-US');
-    if (enIndex !== -1) {
-      localesClone.splice(enIndex, 1);
-    }
-
-    var origin = utils.getFileContent(iniFile);
-    var ini = modifyLocaleIni(origin, localesClone);
-    var iniContent = serializeIni(ini);
-    var targetIni = utils.getFile(webapp.sourceDirectoryFile.path,
-      target);
-    utils.writeContent(targetIni, iniContent);
-
-    localesClone.forEach(function(locale) {
-      ini[locale].forEach(function(path) {
-        var origin = utils.getFile(iniFile.parent.path, path);
-        var propFile = getPropertiesFile(webapp, origin.path);
-        if (!propFile.exists()) {
-          utils.log(MODNAME, 'Properties file not found: ' + propFile.path);
-          return;
-        }
-        var propsFilePathInZip = getPropertiesPathInZip(origin.path, webapp);
-        log(propFile.path);
-        log(propsFilePathInZip);
-        callback(propFile, propsFilePathInZip);
-      });
-    });
-  }
   /**
    * For a given properties file from gaia repo, returns the matching properties
    * file from multilocale repos being hosted in LOCALE_BASEDIR
@@ -265,7 +236,7 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
     if (zip.hasEntry('manifest.webapp')) {
       zip.removeEntry('manifest.webapp', false);
     }
-    utils.addEntryContentWithTime(zip, 'manifest.webapp',
+    webappZip.addEntryStringWithTime(zip, 'manifest.webapp',
       JSON.stringify(manifest, undefined, 2));
 
     // Ignore l10n files if they have been inlined or concatenated
@@ -439,7 +410,6 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
   this.localize = localize;
   this.localizeManifest = localizeManifest;
   this.serializeIni = serializeIni;
-  this.localizeIniShared = localizeIniShared;
 }
 
 exports.L10nManager = L10nManager;

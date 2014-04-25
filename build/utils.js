@@ -96,7 +96,6 @@ exports.normalizeString = utils.normalizeString;
 exports.Commander = utils.Commander;
 exports.getEnvPath = utils.getEnvPath;
 exports.getLocaleBasedir = utils.getLocaleBasedir;
-exports.getOsType = utils.getOsType;
 // ===== the following functions support node.js compitable interface.
 exports.FILE_TYPE_FILE = FILE_TYPE_FILE;
 exports.FILE_TYPE_DIRECTORY = FILE_TYPE_DIRECTORY;
@@ -124,6 +123,3 @@ exports.Services = utils.Services;
 exports.concatenatedScripts = utils.concatenatedScripts;
 exports.dirname = utils.dirname;
 exports.basename = utils.basename;
-exports.addEntryContentWithTime = utils.addEntryContentWithTime;
-exports.copyDirTo = utils.copyDirTo;
-exports.getCompression = utils.getCompression;

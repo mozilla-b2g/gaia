@@ -428,7 +428,7 @@ function basename(path) {
  * Note: this function is a wrapper function for node.js
  */
 function copyFileTo(path, toParent, name, override) {
-  var file = ((typeof path === 'string') ? getFile(path) : path);
+  var file = getFile(path);
   var parentFile = getFile(toParent);
   ensureFolderExists(parentFile);
   if (override) {
@@ -438,22 +438,6 @@ function copyFileTo(path, toParent, name, override) {
     }
   }
   file.copyTo(parentFile, name);
-}
-
-function copyDirTo(path, toParent, name, override) {
-  var dir = ((typeof path === 'string') ? getFile(path) : path);
-  var parentFile = getFile(toParent);
-  ensureFolderExists(parentFile);
-  ensureFolderExists(dir);
-  var newFolderName = joinPath(toParent, name);
-  var files = ls(dir, false);
-  files.forEach(function(file) {
-    if (file.isFile()) {
-      copyFileTo(file.path, newFolderName, file.leafName, true);
-    } else if (file.isDirectory()) {
-      copyDirTo(file.path, newFolderName, file.leafName, true);
-    }
-  });
 }
 
 /**
@@ -756,62 +740,6 @@ function getDocument(content) {
   return document = (new DOMParser()).parseFromString(content, 'text/html');
 }
 
-/**
- * Add a file to a zip file with the specified time
- */
-function addEntryFileWithTime(zip, pathInZip, file, time, compression) {
-  if (compression === undefined) {
-    compression = Ci.nsIZipWriter.COMPRESSION_BEST;
-  }
-
-  addToZip(
-    pathInZip, time, compression, fis, false);
-  fis.close();
-}
-
-function addToZip(zip, pathInZip, file, time, compression) {
-  zip.addEntryStream(
-    pathInZip, time || 0, compression, fis, false);
-}
-
-function addEntryContentWithTime(zip, pathInZip, data, time, compression) {
-  if (!data) {
-    return;
-  }
-
-  if (compression === undefined) {
-    compression = Ci.nsIZipWriter.COMPRESSION_BEST;
-  }
-
-  var input;
-  if (typeof data === 'string') {
-    let converter = Cc['@mozilla.org/intl/scriptableunicodeconverter']
-                      .createInstance(Ci.nsIScriptableUnicodeConverter);
-    converter.charset = 'UTF-8';
-    input = converter.convertToInputStream(data);
-  } else if (typeof data === 'object' && data.isFile()) {
-    input = Cc['@mozilla.org/network/file-input-stream;1'].
-                createInstance(Ci.nsIFileInputStream);
-    input.init(data, -1, -1, 0);
-  }
-
-  zip.addEntryStream(
-    pathInZip, time || 0, compression, input, false);
-  input.close();
-
-}
-
-function getCompression(type) {
-  switch(type) {
-    case 'none':
-      return Ci.nsIZipWriter.COMPRESSION_NONE;
-      break;
-    case 'best':
-      return Ci.nsIZipWriter.COMPRESSION_BEST;
-      break;
-  }
-}
-
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -833,7 +761,6 @@ exports.normalizeString = normalizeString;
 exports.Commander = Commander;
 exports.getEnvPath = getEnvPath;
 exports.getLocaleBasedir = getLocaleBasedir;
-exports.getOsType = getOsType;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;
@@ -841,7 +768,6 @@ exports.fileExists = fileExists;
 exports.mkdirs = mkdirs;
 exports.joinPath = joinPath;
 exports.copyFileTo = copyFileTo;
-exports.copyDirTo = copyDirTo;
 exports.createXMLHttpRequest = createXMLHttpRequest;
 exports.downloadJSON = downloadJSON;
 exports.readJSONFromPath = readJSONFromPath;
@@ -859,5 +785,3 @@ exports.gaia = gaia;
 exports.concatenatedScripts = concatenatedScripts;
 exports.dirname = dirname;
 exports.basename = basename;
-exports.addEntryContentWithTime = addEntryContentWithTime;
-exports.getCompression = getCompression;
