@@ -3,7 +3,17 @@ var Settings = require('../app/app'),
     assert = require('assert');
 
 marionette('manipulate sound settings', function() {
-  var client = marionette.client();
+  var ringtonePath = '/shared/resources/media/ringtones/' +
+    'ringer_classic_courier.opus';
+  var alerttonePath = '/shared/resources/media/notifications/' +
+    'notifier_bell.opus';
+
+  var client = marionette.client({
+    settings: {
+      'dialer.ringtone.filepath': ringtonePath,
+      'notification.ringtone.filepath': alerttonePath
+    }
+  });
   var settingsApp;
   var soundPanel;
 

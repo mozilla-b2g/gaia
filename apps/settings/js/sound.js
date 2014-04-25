@@ -9,13 +9,15 @@
   var _ = navigator.mozL10n.get;
   (function() {
     var mobileConnections = window.navigator.mozMobileConnections;
-    // Show the touch tone selector if and only if we're on a CDMA network
-    var toneSelector = document.getElementById('touch-tone-selector');
-    Array.prototype.forEach.call(mobileConnections, function(mobileConnection) {
-      getSupportedNetworkInfo(mobileConnection, function(result) {
-        toneSelector.hidden = toneSelector.hidden && !result.cdma;
+    if (mobileConnections) {
+      // Show the touch tone selector if and only if we're on a CDMA network
+      var toneSelector = document.getElementById('touch-tone-selector');
+      Array.prototype.forEach.call(mobileConnections, function(connection) {
+        getSupportedNetworkInfo(connection, function(result) {
+          toneSelector.hidden = toneSelector.hidden && !result.cdma;
+        });
       });
-    });
+    }
   })();
   // Now initialize the ring tone and alert tone menus.
 
@@ -27,17 +29,17 @@
       settingsKey: 'notification.ringtone',
       allowNone: true,  // Allow "None" as a choice for alert tones.
       button: document.getElementById('alert-tone-selection')
+    },
+    {
+      pickType: 'ringtone',
+      settingsKey: 'dialer.ringtone',
+      allowNone: false, // The ringer must always have an actual sound.
+      button: document.getElementById('ring-tone-selection')
     }
   ];
 
   // If we're a telephone, then show the section for ringtones, too.
   if (navigator.mozTelephony) {
-    tones.push({
-      pickType: 'ringtone',
-      settingsKey: 'dialer.ringtone',
-      allowNone: false, // The ringer must always have an actual sound.
-      button: document.getElementById('ring-tone-selection')
-    });
     document.getElementById('ringer').hidden = false;
   }
 
@@ -56,7 +58,7 @@
     // 1. Preloaded. 2. None. 3. Customized(set from the music app).
     function checkToneFilepath(filepath) {
       // Check the filepath to see if the tone is from the preloaded pool.
-      if (filepath.indexOf('/shared/resources/media') !== -1) {
+      if (filepath.indexOf('shared/resources/media') !== -1) {
         var filename = filepath.split('/').pop();
         var key = filename.replace('.', '_');
 
