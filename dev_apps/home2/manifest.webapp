@@ -10,6 +10,7 @@
   },
   "permissions": {
     "open-remote-window":{},
+    "settings":{ "access": "readonly" },
     "storage": {},
     "webapps-manage": {}
   },

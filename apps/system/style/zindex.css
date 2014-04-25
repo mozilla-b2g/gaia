@@ -51,6 +51,8 @@
 
 /* Promote the transitioning appWindow to this level as the entry and exiting
  * transition of the cards view. */
+/* XXXAus: This should no longer be needed (I think?) once we turn the Rocketbar on always. */
+/*
 #screen.cards-view > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
 #screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-opening:not(.homescreen),
 #screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-closing.to-cardview:not(.homescreen),
@@ -58,6 +60,7 @@
 #screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-closing.fullscreen-app.to-cardview:not(.homescreen) {
   z-index: 65537;
 }
+*/
 
 #screen.cards-view > [data-z-index-level="cards-view"] {
   z-index: 65535;
@@ -198,7 +201,6 @@
  * - app frame must be on top of homescreen frame, inactive or active.
  * - finally, everything else needs to be on top of them (hence the lowest nums)
  */
-#screen > [data-z-index-level="app"] > .appWindow[data-z-index-level="top-app"],
 #screen > [data-z-index-level="app"] > .appWindow.out-to-right {
   z-index: 8;
 }
@@ -211,11 +213,12 @@
   z-index: 6;
 }
 
-#screen > [data-z-index-level="app"] > .appWindow.active:not(.homescreen) {
+#screen > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
+#screen.edges > [data-z-index-level="app"] > .appWindow:not(.homescreen),
+#screen > [data-z-index-level="app"] > .appWindow.will-become-active {
   z-index: 6;
 }
 
-#screen > [data-z-index-level="app"] > .appWindow[data-z-index-level="bottom-app"],
 #screen > [data-z-index-level="app"] > .appWindow.in-from-left {
   z-index: 5;
 }

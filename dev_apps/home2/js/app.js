@@ -4,6 +4,7 @@
 /* global DragDrop */
 /* global Icon */
 /* global ItemStore */
+/* global SettingsListener */
 /* global Zoom */
 
 (function(exports) {
@@ -222,5 +223,14 @@
 
   exports.app = new App();
   exports.app.init();
+
+  SettingsListener.observe('rocketbar.enabled', false,
+    function(value) {
+    if (value) {
+      document.body.classList.add('rb-enabled');
+    } else {
+      document.body.classList.remove('rb-enabled');
+    }
+  }.bind(this));
 
 }(window));

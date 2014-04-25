@@ -32,6 +32,11 @@
   pointer-events: none;
   visibility: hidden;
   z-index: 1000;
+  transition: transform 0.5s;
+}
+
+#screen.rocketbar-expanded .chrome .progress {
+  transform: translateY(2.4rem);
 }
 
 .chrome > .rocketbar {

@@ -297,7 +297,7 @@
         'invoking', 'invoked', 'zoom-in', 'zoom-out', 'fade-in', 'fade-out',
         'transition-opening', 'transition-closing', 'immediate',
         'slideleft', 'slideright', 'in-from-left', 'out-to-right',
-        'slideup', 'slidedown'];
+        'slideup', 'slidedown', 'will-become-active', 'will-become-inactive'];
 
       classes.forEach(function iterator(cls) {
         this.app.element.classList.remove(cls);
