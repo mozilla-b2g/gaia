@@ -5265,6 +5265,8 @@ function MailSlice(bridgeHandle, storage, _parentLog) {
    */
   this.headers = [];
   this.desiredHeaders = $sync.INITIAL_FILL_SIZE;
+
+  this.headerCount = storage.headerCount;
 }
 exports.MailSlice = MailSlice;
 MailSlice.prototype = {
@@ -5291,6 +5293,11 @@ MailSlice.prototype = {
   set userCanGrowDownwards(val) {
     if (this._bridgeHandle)
       this._bridgeHandle.userCanGrowDownwards = val;
+    return val;
+  },
+  set headerCount(val) {
+    if (this._bridgeHandle)
+      this._bridgeHandle.headerCount = val;
     return val;
   },
 
@@ -5952,6 +5959,15 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
    * }
    */
   this._headerBlockInfos = persistedFolderInfo.headerBlocks;
+
+  // Calculate total number of messages
+  this.headerCount = 0;
+  if (this._headerBlockInfos) {
+    this._headerBlockInfos.forEach(function(headerBlockInfo) {
+      this.headerCount += headerBlockInfo.count;
+    }.bind(this));
+  }
+
   /**
    * @listof[FolderBlockInfo]{
    *   Newest-to-oldest (numerically decreasing time and ID) sorted list of
@@ -6005,6 +6021,9 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
    */
   this._loadedBodyBlockInfos = [];
 
+  this._flushExcessTimeoutId = 0;
+
+  this._bound_flushExcessOnTimeout = this._flushExcessOnTimeout.bind(this);
   this._bound_makeHeaderBlock = this._makeHeaderBlock.bind(this);
   this._bound_insertHeaderInBlock = this._insertHeaderInBlock.bind(this);
   this._bound_splitHeaderBlock = this._splitHeaderBlock.bind(this);
@@ -6014,6 +6033,7 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
   this._bound_insertBodyInBlock = this._insertBodyInBlock.bind(this);
   this._bound_splitBodyBlock = this._splitBodyBlock.bind(this);
   this._bound_deleteBodyFromBlock = this._deleteBodyFromBlock.bind(this);
+
 
   /**
    * Has our internal state altered at all and will need to be persisted?
@@ -6460,13 +6480,18 @@ FolderStorage.prototype = {
    * Flush cached blocks that are unlikely to be used again soon.  Our
    * heuristics for deciding what to keep is simple:
    * - Dirty blocks are always kept; this is required for correctness.
-   * - Blocks that overlap with live `MailSlice` instances are kept.
+   * - Header blocks that overlap with live `MailSlice` instances are kept.
    *
    * It could also make sense to support some type of MRU tracking, but the
    * complexity is not currently justified since the live `MailSlice` should
    * lead to a near-perfect hit rate on immediate actions and the UI's
    * pre-emptive slice growing should insulate it from any foolish discards
    * we might make.
+   *
+   * For bodies, since they are larger, and the UI may not always shrink a
+   * slice, only keep around one blockInfo of them, which contain the most
+   * likely immediately needed blockInfos, for instance a direction reversal
+   * in a next/previous navigation.
    */
   flushExcessCachedBlocks: function(debugLabel) {
     // We only care about explicitly folder-backed slices for cache eviction
@@ -6493,30 +6518,69 @@ FolderStorage.prototype = {
       return false;
     }
     function maybeDiscard(blockType, blockInfoList, loadedBlockInfos,
-                          blockMap, dirtyMap) {
+                          blockMap, dirtyMap, shouldDiscardFunc) {
       // console.warn('!! flushing', blockType, 'blocks because:', debugLabel);
-      for (var i = 0; i < loadedBlockInfos.length; i++) {
+
+      // Go backwards in array, to allow code to keep a count of
+      // blockInfos to keep that favor the most current ones.
+      for (var i = loadedBlockInfos.length - 1; i > -1; i--) {
         var blockInfo = loadedBlockInfos[i];
         // do not discard dirty blocks
         if (dirtyMap.hasOwnProperty(blockInfo.blockId)) {
           // console.log('  dirty block:', blockInfo.blockId);
           continue;
         }
-        // do not discard blocks that overlap mail slices
-        if (blockIntersectsAnySlice(blockInfo))
-          continue;
-        // console.log('discarding', blockType, 'block', blockInfo.blockId);
-        delete blockMap[blockInfo.blockId];
-        loadedBlockInfos.splice(i--, 1);
+
+        if (shouldDiscardFunc(blockInfo)) {
+          // console.log('discarding', blockType, 'block', blockInfo.blockId);
+          delete blockMap[blockInfo.blockId];
+          loadedBlockInfos.splice(i, 1);
+        }
       }
     }
 
     maybeDiscard(
-      'header', this._headerBlockInfos, this._loadedHeaderBlockInfos,
-      this._headerBlocks, this._dirtyHeaderBlocks);
+      'header',
+      this._headerBlockInfos,
+      this._loadedHeaderBlockInfos,
+      this._headerBlocks,
+      this._dirtyHeaderBlocks,
+      function (blockInfo) {
+        // Do not discard blocks that overlap mail slices.
+        return !blockIntersectsAnySlice(blockInfo);
+      }
+    );
+
+    var keepCount = 1,
+        foundCount = 0;
+
     maybeDiscard(
-      'body', this._bodyBlockInfos, this._loadedBodyBlockInfos,
-      this._bodyBlocks, this._dirtyBodyBlocks);
+      'body',
+      this._bodyBlockInfos,
+      this._loadedBodyBlockInfos,
+      this._bodyBlocks,
+      this._dirtyBodyBlocks,
+      function(blockInfo) {
+        // For bodies, want to always purge as front end may decide to
+        // never shrink a messages slice, but keep one block around to
+        // avoid wasteful DB IO for commonly grouped operations, for
+        // example, a next/previous message navigation direction change.
+        foundCount += 1;
+        return foundCount > keepCount;
+      }
+    );
+  },
+
+  /**
+   * Called after a timeout to do cleanup of cached blocks to keep memory
+   * low. However, only do the cleanup if there is no more mutex-controlled
+   * work so as to keep likely useful cache items still in memory.
+   */
+  _flushExcessOnTimeout: function() {
+    this._flushExcessTimeoutId = 0;
+    if (!this.isDead && this._mutexQueue.length === 0) {
+      this.flushExcessCachedBlocks('flushExcessOnTimeout');
+    }
   },
 
   /**
@@ -7231,6 +7295,19 @@ FolderStorage.prototype = {
 
       if (self._pendingLoads.length === 0)
         self._runDeferredCalls();
+
+      // Ask for cleanup of old blocks in case the UI is not shrinking
+      // any slices.
+      if (self._mutexQueue.length === 0 && !self._flushExcessTimeoutId) {
+        self._flushExcessTimeoutId = setTimeout(
+          self._bound_flushExcessOnTimeout,
+          // Choose 5 seconds, since it is a human-scale value around
+          // the order of how long we expect it would take the user
+          // to realize they hit the opposite arrow navigation button
+          // from what they meant.
+          5000
+        );
+      }
     }
 
     this._LOG.loadBlock_begin(type, blockId);
@@ -7694,6 +7771,15 @@ FolderStorage.prototype = {
         $sync.INITIAL_SYNC_GROWTH_DAYS,
         doneCallback, progressCallback);
     }.bind(this);
+
+    // The front end may not be calling shrink any more, to reduce
+    // complexity for virtual scrolling. So be sure to clear caches
+    // that are not needed, to avoid a large memory growth from
+    // keeping the header bodies as the user does next/previous
+    // navigation.
+    if (this._mutexQueue.length === 0) {
+      this.flushExcessCachedBlocks('grow');
+    }
 
     // --- request messages
     if (dirMagnitude < 0) {
@@ -8761,8 +8847,12 @@ FolderStorage.prototype = {
     }
     this._LOG.addMessageHeader(header.date, header.id, header.srvid);
 
-    if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders)
+    this.headerCount += 1;
+
+    if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders) {
       this._curSyncSlice.onHeaderAdded(header, body, true, true);
+    }
+
     // - Generate notifications for (other) interested slices
     if (this._slices.length > (this._curSyncSlice ? 1 : 0)) {
       var date = header.date, uid = header.id;
@@ -8804,6 +8894,14 @@ FolderStorage.prototype = {
           // Make sure to increase the number of desired headers so the
           // truncating heuristic won't rule the header out.
           slice.desiredHeaders++;
+        }
+
+        if (slice.type === 'folder') {
+          // TODO: make sure the slice knows the true offset of its
+          // first header in the folder. Currently the UI never
+          // shrinks its slice so this number is always 0 and we can
+          // get away without providing that offset for now.
+          slice.headerCount = this.headerCount;
         }
 
         if (slice._onAddingHeader) {
@@ -9008,11 +9106,22 @@ FolderStorage.prototype = {
       return;
     }
 
+    this.headerCount -= 1;
+
     if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders)
       this._curSyncSlice.onHeaderRemoved(header);
     if (this._slices.length > (this._curSyncSlice ? 1 : 0)) {
       for (var iSlice = 0; iSlice < this._slices.length; iSlice++) {
         var slice = this._slices[iSlice];
+
+        if (slice.type === 'folder') {
+          // TODO: make sure the slice knows the true offset of its
+          // first header in the folder. Currently the UI never
+          // shrinks its slice so this number is always 0 and we can
+          // get away without providing that offset for now.
+          slice.headerCount = this.headerCount;
+        }
+
         if (slice === this._curSyncSlice)
           continue;
         if (BEFORE(header.date, slice.startTS) ||
@@ -9023,6 +9132,7 @@ FolderStorage.prototype = {
             (header.date === slice.endTS &&
              header.id > slice.endUID))
           continue;
+
         slice.onHeaderRemoved(header);
       }
     }
@@ -13132,11 +13242,17 @@ SearchSlice.prototype = {
   set atBottom(val) {
     this._bridgeHandle.atBottom = val;
   },
+  set headerCount(val) {
+    if (this._bridgeHandle)
+      this._bridgeHandle.headerCount = val;
+    return val;
+  },
 
   reset: function() {
     // misnomer but simplifies cutting/pasting/etc.  Really an array of
     // { header: header, matches: matchObj }
     this.headers = [];
+    this.headerCount = 0;
     // Track when we are still performing the initial database scan so that we
     // can ignore dynamic additions/modifications.  The initial database scan
     // is currently not clever enough to deal with concurrent manipulation, so
@@ -13206,11 +13322,15 @@ console.log('sf: gotMessages', headers.length);
 console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', wantMore);
         var insertAt = dir === -1 ? 0 : this.headers.length;
         this._LOG.headersAppended(insertAt, matchPairs);
+
+        this.headers.splice.apply(this.headers,
+                                  [insertAt, 0].concat(matchPairs));
+        this.headerCount = this.headers.length;
+
         this._bridgeHandle.sendSplice(
           insertAt, 0, matchPairs, true,
           moreMessagesComing || wantMore);
-        this.headers.splice.apply(this.headers,
-                                  [insertAt, 0].concat(matchPairs));
+
         if (wantMore) {
           this.reqGrow(dir, false, true);
         }
@@ -13335,8 +13455,9 @@ console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', w
     this.desiredHeaders = this.headers.length;
 
     this._LOG.headerAdded(idx, wrappedHeader);
-    this._bridgeHandle.sendSplice(idx, 0, [wrappedHeader], false, false);
     this.headers.splice(idx, 0, wrappedHeader);
+    this.headerCount = this.headers.length;
+    this._bridgeHandle.sendSplice(idx, 0, [wrappedHeader], false, false);
   },
 
   /**
@@ -13430,8 +13551,9 @@ console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', w
                                  cmpMatchHeadersYoungToOld);
     if (idx !== null) {
       this._LOG.headerRemoved(idx, wrappedHeader);
-      this._bridgeHandle.sendSplice(idx, 1, [], false, false);
       this.headers.splice(idx, 1);
+      this.headerCount = this.headers.length;
+      this._bridgeHandle.sendSplice(idx, 1, [], false, false);
     }
   },
 
@@ -13471,11 +13593,15 @@ console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', w
       this.userCanGrowDownwards = false;
       var delCount = this.headers.length - lastIndex  - 1;
       this.desiredHeaders -= delCount;
+
+      this.headers.splice(lastIndex + 1, this.headers.length - lastIndex - 1);
+      this.headerCount = this.headers.length;
+
       this._bridgeHandle.sendSplice(
         lastIndex + 1, delCount, [],
         // This is expected; more coming if there's a low-end splice
         true, firstIndex > 0);
-      this.headers.splice(lastIndex + 1, this.headers.length - lastIndex - 1);
+
       var lastHeader = this.headers[lastIndex].header;
       this.startTS = lastHeader.date;
       this.startUID = lastHeader.id;
@@ -13483,8 +13609,12 @@ console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', w
     if (firstIndex > 0) {
       this.atTop = false;
       this.desiredHeaders -= firstIndex;
-      this._bridgeHandle.sendSplice(0, firstIndex, [], true, false);
+
       this.headers.splice(0, firstIndex);
+      this.headerCount = this.headers.length;
+
+      this._bridgeHandle.sendSplice(0, firstIndex, [], true, false);
+
       var firstHeader = this.headers[0].header;
       this.endTS = firstHeader.date;
       this.endUID = firstHeader.id;
@@ -16321,6 +16451,8 @@ function SliceBridgeProxy(bridge, ns, handle) {
   this.progress = 0.0;
   this.atTop = false;
   this.atBottom = false;
+  this.headerCount = 0;
+
   /**
    * Can we potentially grow the slice in the negative direction if explicitly
    * desired by the user or UI desires to be up-to-date?  For example,
@@ -16359,7 +16491,14 @@ SliceBridgeProxy.prototype = {
       requested: requested,
       moreExpected: moreExpected,
       newEmailCount: newEmailCount,
-      type: 'slice',
+      // send header count here instead of batchSlice,
+      // since need an accurate count for each splice
+      // call: there could be two splices for the 0
+      // index in a row, and setting count on the
+      // batchSlice will not give an accurate picture
+      // that the slice actions are growing the slice.
+      headerCount: this.headerCount,
+      type: 'slice'
     };
     this.addUpdate(updateSplice);
   },

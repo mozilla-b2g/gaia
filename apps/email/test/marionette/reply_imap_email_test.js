@@ -29,7 +29,7 @@ marionette('reply to an e-mail', function() {
     app.sendAndReceiveMessages([
       { to: 'testy@localhost', subject: 'test email', body: BODY_TEXT }
     ]);
-    app.tapEmailAtIndex(0);
+    app.tapEmailWithId('0/0/0');
   });
 
   test('should be able to reply to an email', function() {
