@@ -1164,19 +1164,7 @@
       return translateFragment.call(navigator.mozL10n, element);
     },
     ready: function ready(callback) {
-      if (!callback) {
-        return;
-      }
-
-      // XXX full compatibility with webL10n, which means that the callback may
-      // be invoked once or multiple times, depending on when mozL10n.ready()
-      // was called.
-      // This should just use ctx.ready. See https://bugzil.la/882592
-      if (navigator.mozL10n.ctx.isReady) {
-        window.setTimeout(callback);
-      } else {
-        navigator.mozL10n.ctx.addEventListener('ready', callback);
-      }
+      return navigator.mozL10n.ctx.ready(callback);
     },
     once: function once(callback) {
       return navigator.mozL10n.ctx.once(callback);
