@@ -37,7 +37,9 @@ Rocketbar.prototype = {
     activeBrowserFrame: '#windows .appWindow.active',
     screen: '#screen',
     rocketbar: '#rocketbar',
-    rocketbarInput: '#rocketbar-input'
+    title: '#rocketbar-title',
+    input: '#rocketbar-input',
+    cancel: '#rocketbar-cancel'
   },
 
   /**
@@ -60,20 +62,20 @@ Rocketbar.prototype = {
     }.bind(this));
 
     rocketbar.tap();
-    var rocketbarInput =
-      this.client.findElement(this.selectors.rocketbarInput);
-    this.client.waitFor(rocketbarInput.displayed.bind(rocketbarInput));
+    var input =
+      this.client.findElement(this.selectors.input);
+    this.client.waitFor(input.displayed.bind(input));
   },
 
   /**
    * Send keys to the Rocketbar (needs to be focused first).
    */
-  enterText: function(input) {
-    var rocketbarInput =
-      this.client.findElement(this.selectors.rocketbarInput);
-    rocketbarInput.clear();
-    this.client.waitFor(rocketbarInput.displayed.bind(rocketbarInput));
-    rocketbarInput.sendKeys(input);
+  enterText: function(text) {
+    var input =
+      this.client.findElement(this.selectors.input);
+    input.clear();
+    this.client.waitFor(input.displayed.bind(input));
+    input.sendKeys(text);
   },
 
   /**
@@ -82,6 +84,17 @@ Rocketbar.prototype = {
   switchToBrowserFrame: function(url) {
     var browserFrame = this.client.findElement('iframe[src="' + url + '"]');
     this.client.switchToFrame(browserFrame);
+  },
+
+  /**
+   * Wait for Rocketbar to initialise and expand.
+   */
+  waitForLoad: function() {
+    var element = this.rocketbar;
+    this.client.waitFor(function() {
+      var rocketbarClass = element.getAttribute('class');
+      return rocketbarClass.indexOf('expanded') != -1;
+    });
   },
 
   /**
@@ -100,17 +113,23 @@ Rocketbar.prototype = {
     });
   },
 
-  /**
-   * Get the Rocketbar element.
-   */
   get rocketbar() {
     return this.client.findElement(this.selectors.rocketbar);
   },
 
-  /**
-   * Get screen element.
-   */
   get screen() {
     return this.client.findElement(this.selectors.screen);
+  },
+
+  get title() {
+    return this.client.findElement(this.selectors.title);
+  },
+
+  get input() {
+    return this.client.findElement(this.selectors.input);
+  },
+
+  get cancel() {
+    return this.client.findElement(this.selectors.cancel);
   }
 };

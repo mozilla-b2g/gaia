@@ -33,7 +33,6 @@ body:not(.rb-enabled) #rocketbar {
 
 #rocketbar-title, #rocketbar-form {
   position: absolute;
-  width: calc(100% - 3.2rem);
   height: 3.6rem;
   background-color: #333;
   border-radius: 1.8rem;
@@ -42,6 +41,16 @@ body:not(.rb-enabled) #rocketbar {
   overflow: hidden;
   white-space: nowrap;
 }
+
+#rocketbar-title {
+  width: calc(100% - 3.2rem);
+}
+
+#rocketbar-form {
+  display: flex;
+  flex-direction: row;
+}
+
 
 #rocketbar-title-content, #rocketbar-input {
   display: block;
@@ -73,6 +82,19 @@ body:not(.rb-enabled) #rocketbar {
   font-size: 1.8rem;
   background: none;
   border: none;
+}
+
+#rocketbar-input, #rocketbar-cancel {
+  flex: auto;
+}
+
+#rocketbar-cancel {
+  background: none;
+  border: none;
+  border-left: solid 1px rgba(255, 255, 255, 0.08);
+  color: #00AACC;
+  font-size: 1.4rem;
+  line-height: 1.8rem;
 }
 
 #rocketbar-title.hidden, #rocketbar-form.hidden {
