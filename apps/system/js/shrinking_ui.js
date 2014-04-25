@@ -212,10 +212,10 @@
         // After it tilted done, turn it to the screenshot mode.
         var currentWindow = this.apps[this.currentAppURL];
         currentWindow.setVisible(false, true);
-        this._setState(true);
       }).bind(this);
 
       this._setTip();
+      this._setState(true);
       this._shrinkingTilt(afterTilt);
     }).bind(ShrinkingUI);
 
@@ -240,7 +240,7 @@
    * @this {ShrinkingUI}
    */
   ShrinkingUI.stop =
-    (function su_start() {
+    (function su_stop() {
       if (! this._state())
         return;
       var afterTiltBack = (function() {
