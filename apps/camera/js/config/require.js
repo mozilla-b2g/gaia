@@ -12,7 +12,8 @@ require.config({
     'MediaFrame': '../shared/js/media/media_frame',
     'BlobView': '../shared/js/blobview',
     'CustomDialog': '../shared/js/custom_dialog',
-    'debug': 'vendor/debug'
+    'debug': 'vendor/debug',
+    'fastclick': 'vendor/fastclick'
   },
   shim: {
     'format': {

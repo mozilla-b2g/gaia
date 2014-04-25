@@ -1,4 +1,4 @@
-require(['config/require', 'config'], function() {
+require(['config/require', 'config', 'fastclick'], function() {
   'use strict';
 
   define('boot', function(require) {
@@ -75,6 +75,10 @@ require(['config/require', 'config'], function() {
     // Check for activities, then boot
     app.activity.check(app.boot);
   });
+
+  // Use FastClick instead of *real* `click` events
+  var FastClick = require('fastclick');
+  FastClick.attach(document.body);
 
   require(['boot']);
 });
