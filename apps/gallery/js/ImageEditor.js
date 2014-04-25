@@ -65,13 +65,13 @@ function editPhoto(n) {
     // EXIF orientation flags, we alter the image in place before starting
     // to edit it.
     //
-    // XXX: if this causes memory issues (on Tarako, e.g.) we might want
-    // to modify this to reduce the image size with #-moz-samplefactor.
-    // (maybe modify the method so that if we pass a number as the outputSize
-    // instead of an object it is treated as a scale or as a sample factor)
-    if (metadata.rotation || metadata.mirrored) {
+    // For low-memory devices like Tarako, CONFIG_MAX_EDIT_PIXEL_SIZE
+    // will be set to a non-zero value, and this may cause us to downsample
+    // the image before allowing the user to edit it.
+    if (metadata.rotation || metadata.mirrored || CONFIG_MAX_EDIT_PIXEL_SIZE) {
       showSpinner();
-      cropResizeRotate(file, null, null, null, metadata,
+      cropResizeRotate(file, null, CONFIG_MAX_EDIT_PIXEL_SIZE || null,
+                       null, metadata,
                        function(error, rotatedBlob) {
                          hideSpinner();
                          if (error) {

@@ -528,6 +528,12 @@ function execute(options) {
       // Reduce the size of images returned by pick activities because
       // we have to rotate many images on Tarako
       defaultValue.maxPickPixelSize = 800 * 600;
+      // On Tarako devices we can't reliably edit full-size photos.
+      // This setting reduces them to quarter size before editing.
+      // This should make the editor UI more responsive and less prone
+      // to crashing. But it also means that edited photos will be .5
+      // megapixel instead of 2 megapixel
+      defaultValue.maxEditPixelSize = 800 * 600;
     }
 
     let customize = JSON.parse(utils.getDistributionFileContent('camera',
@@ -578,7 +584,9 @@ function execute(options) {
       'var CONFIG_MAX_GIF_IMAGE_FILE_SIZE = ' +
         customize.maxGifImageFileSize + ';\n' +
       'var CONFIG_MAX_PICK_PIXEL_SIZE = ' +
-        (customize.maxPickPixelSize || 0) + ';\n';
+        (customize.maxPickPixelSize || 0) + ';\n' +
+      'var CONFIG_MAX_EDIT_PIXEL_SIZE = ' +
+        (customize.maxEditPixelSize || 0) + ';\n';
 
     if (customize.requiredEXIFPreviewSize) {
       content +=
