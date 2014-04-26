@@ -4,14 +4,13 @@
 var assert = require('assert');
 var Music = require('./lib/music.js');
 var FakeRingtones = require('./lib/fakeringtones.js');
+var FakeControls = require('./lib/fakecontrols.js');
 var Statusbar = require('./lib/statusbar.js');
-
-var MUSIC_ORIGIN = 'music.gaiamobile.org';
-var FAKERINGTONES_ORIGIN = 'fakeringtones.gaiamobile.org';
 
 marionette('Music player tests', function() {
   var apps = {};
-  apps[FAKERINGTONES_ORIGIN] = __dirname + '/fakeringtones';
+  apps[FakeRingtones.DEFAULT_ORIGIN] = __dirname + '/fakeringtones';
+  apps[FakeControls.DEFAULT_ORIGIN] = __dirname + '/fakecontrols';
 
   var client = marionette.client({
     prefs: {
@@ -28,12 +27,10 @@ marionette('Music player tests', function() {
     apps: apps
   });
 
-  var music, ringtones, statusbar;
+  var music;
 
   setup(function() {
-    music = new Music(client, 'app://' + MUSIC_ORIGIN);
-    ringtones = new FakeRingtones(client, 'app://' + FAKERINGTONES_ORIGIN);
-    statusbar = new Statusbar(client);
+    music = new Music(client);
 
     client.fileManager.removeAllFiles();
     client.fileManager.add([
@@ -42,13 +39,19 @@ marionette('Music player tests', function() {
   });
 
   suite('Audio channels tests', function() {
+    var ringtones, statusbar;
+    setup(function() {
+      ringtones = new FakeRingtones(client);
+      statusbar = new Statusbar(client);
+    });
+
     test('Interrupted by a higher priority channel', function() {
       // Launch Music app and wait for the first tile to come out. Switch to
       // the all songs view then tap on the first song to play, also make sure
       // the playing icon in the status bar shows up.
       music.launch();
       music.waitForFirstTile();
-      music.swtichToSongsView();
+      music.switchToSongsView();
       music.playFirstSong();
       statusbar.waitForPlayingIndicatorShown(true);
 
@@ -77,6 +80,35 @@ marionette('Music player tests', function() {
       music.tapPlayButton();
       assert.equal(music.isPlaying, true);
       statusbar.waitForPlayingIndicatorShown(true);
+    });
+  });
+
+  suite('Playback tests', function() {
+    var controls;
+    setup(function() {
+      controls = new FakeControls(client);
+    });
+
+    test('Check that progress bar updates when re-shown', function() {
+      music.launch();
+      music.waitForFirstTile();
+      music.switchToSongsView();
+      music.playFirstSong();
+
+      var t0 = music.songProgress;
+      var dt = 5.0;
+
+      // We want to wait a few seconds while the music app is in the background.
+      controls.launch();
+      client.helper.wait(dt * 1000); // Convert to ms
+      controls.playPause();
+      controls.close();
+
+      // Make sure the progress bar got updated when the music app is brought to
+      // the foreground.
+      music.switchToMe();
+      var t1 = music.songProgress;
+      assert(t1 - t0 > dt * 0.9, 'Progress bar not updated!');
     });
   });
 });
