@@ -215,6 +215,7 @@
       window.addEventListener('home', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
+      window.addEventListener('ftudone', this);
       window.addEventListener('ftuskip', this);
       window.addEventListener('appopened', this);
       window.addEventListener('apprequestopen', this);
@@ -293,6 +294,7 @@
       window.removeEventListener('home', this);
       window.removeEventListener('appcreated', this);
       window.removeEventListener('appterminated', this);
+      window.removeEventListener('ftudone', this);
       window.removeEventListener('ftuskip', this);
       window.removeEventListener('appopened', this);
       window.removeEventListener('apprequestopen', this);
@@ -365,7 +367,9 @@
           break;
 
         case 'ftuskip':
+        case 'ftudone':
           this.display();
+          this.publish('appwindowmanagerready');
           break;
 
         case 'appopened':
