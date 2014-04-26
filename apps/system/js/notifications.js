@@ -55,7 +55,9 @@ var NotificationScreen = {
   vibrates: true,
 
   init: function ns_init() {
+    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
     window.addEventListener('mozChromeEvent', this);
+    window.addEventListener('mozChromeNotificationEvent', this);
     this.container =
       document.getElementById('desktop-notifications-container');
     this.lockScreenContainer =
@@ -109,7 +111,9 @@ var NotificationScreen = {
 
   handleEvent: function ns_handleEvent(evt) {
     switch (evt.type) {
+      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
       case 'mozChromeEvent':
+      case 'mozChromeNotificationEvent':
         var detail = evt.detail;
         switch (detail.type) {
           case 'desktop-notification':
@@ -225,8 +229,16 @@ var NotificationScreen = {
     var notificationNode = this.container.querySelector(
       '[data-notification-id="' + notificationId + '"]');
 
+    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
+    var contentEvent = document.createEvent('CustomEvent');
+    contentEvent.initCustomEvent('mozContentEvent', true, true, {
+      type: 'desktop-notification-click',
+      id: notificationId
+    });
+    window.dispatchEvent(contentEvent);
+
     var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentEvent', true, true, {
+    event.initCustomEvent('mozContentNotificationEvent', true, true, {
       type: 'desktop-notification-click',
       id: notificationId
     });
@@ -241,7 +253,7 @@ var NotificationScreen = {
     // Desktop notifications are removed when they are clicked (see bug 890440)
     if (notificationNode.dataset.type === 'desktop-notification' &&
         notificationNode.dataset.obsoleteAPI === 'true') {
-      this.removeNotification(notificationId, false);
+      this.closeNotification(notificationNode);
     }
 
     if (node == this.toaster) {
@@ -360,8 +372,16 @@ var NotificationScreen = {
           this.container.firstElementChild);
     }
 
+    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
+    var contentEvent = document.createEvent('CustomEvent');
+    contentEvent.initCustomEvent('mozContentEvent', true, true, {
+      type: 'desktop-notification-show',
+      id: detail.id
+    });
+    window.dispatchEvent(contentEvent);
+
     var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentEvent', true, true, {
+    event.initCustomEvent('mozContentNotificationEvent', true, true, {
       type: 'desktop-notification-show',
       id: detail.id
     });
@@ -459,17 +479,24 @@ var NotificationScreen = {
 
   closeNotification: function ns_closeNotification(notificationNode) {
     var notificationId = notificationNode.dataset.notificationId;
-    this.removeNotification(notificationNode.dataset.notificationId);
-  },
+    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
+    var contentEvent = document.createEvent('CustomEvent');
+    contentEvent.initCustomEvent('mozContentEvent', true, true, {
+      type: 'desktop-notification-close',
+      id: notificationId
+    });
+    window.dispatchEvent(contentEvent);
 
-  removeNotification: function ns_removeNotification(notificationId) {
     var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentEvent', true, true, {
+    event.initCustomEvent('mozContentNotificationEvent', true, true, {
       type: 'desktop-notification-close',
       id: notificationId
     });
     window.dispatchEvent(event);
+    this.removeNotification(notificationId);
+  },
 
+  removeNotification: function ns_removeNotification(notificationId) {
     var notifSelector = '[data-notification-id="' + notificationId + '"]';
     var notificationNode = this.container.querySelector(notifSelector);
     this.lockScreenContainer = this.lockScreenContainer ||
