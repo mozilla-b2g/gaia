@@ -1,18 +1,8 @@
+requireApp('shared/js/airplane_mode_helper.js');
 requireApp('fm/js/fm.js');
 
 var PerformanceTestingHelper = {
   dispatch: function() { }
-};
-
-// fake mozSettings at the global level because fm.js uses it before any `setup`
-// function is called.
-navigator.mozSettings = {
-  addObserver: function() {},
-  createLock: function() {
-    return {
-      get: function() {}
-    };
-  }
 };
 
 suite('FM', function() {
@@ -229,7 +219,7 @@ suite('FM', function() {
 
     suite('airplane mode on', function() {
       setup(function() {
-        rilDisabled = true;
+        airplaneModeEnabled = true;
         updateAirplaneModeUI();
       });
 
@@ -240,7 +230,7 @@ suite('FM', function() {
 
     suite('airplane mode off', function() {
       setup(function() {
-        rilDisabled = false;
+        airplaneModeEnabled = false;
         updateAirplaneModeUI();
       });
 

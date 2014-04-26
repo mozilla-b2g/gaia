@@ -130,29 +130,6 @@ var mozFMRadio = navigator.mozFM || navigator.mozFMRadio || {
   }
 };
 
-// XXX fake mozSetting object for UI testing on PC
-var mozSettings = navigator.mozSettings || {
-  addObserver: function settings_addObserver(key, callback) {},
-  createLock: function settings_createLock() {
-    return {
-      get: function() {
-        var request = {
-          result: {}
-        };
-
-        window.setTimeout(function() {
-          if (request.onsuccess) {
-            request.result['ril.radio.disabled'] = false;
-            request.onsuccess();
-          }
-        }, 500);
-
-        return request;
-      }
-    };
-  }
-};
-
 // XXX fake SpeakerManager object for UI testing on PC
 (function(aGlobal) {
   aGlobal.SpeakerManager = aGlobal.SpeakerManager || aGlobal.MozSpeakerManager;
@@ -203,7 +180,7 @@ function updateAntennaUI() {
 }
 
 function updateAirplaneModeUI() {
-  $('airplane-mode-warning').hidden = !rilDisabled;
+  $('airplane-mode-warning').hidden = !airplaneModeEnabled;
 }
 
 var enabling = false;
@@ -222,9 +199,9 @@ function updateEnablingState(enablingState) {
   updateFrequencyBarUI();
 }
 
-var rilDisabled = false;
+var airplaneModeEnabled = false;
 function enableFMRadio(frequency) {
-  if (rilDisabled)
+  if (airplaneModeEnabled)
     return;
 
   var request = mozFMRadio.enable(frequency);
@@ -822,8 +799,9 @@ function init() {
 
   // Disable the power button and the fav list when the airplane mode is on.
   updateAirplaneModeUI();
-  mozSettings.addObserver('ril.radio.disabled', function(event) {
-    rilDisabled = event.settingValue;
+
+  AirplaneModeHelper.addEventListener('statechange', function(status) {
+    airplaneModeEnabled = status === 'enabled';
     updateAirplaneModeUI();
   });
 
@@ -849,14 +827,10 @@ function init() {
 }
 
 window.addEventListener('load', function(e) {
-  var req = mozSettings.createLock().get('ril.radio.disabled');
-  req.onsuccess = function() {
-    rilDisabled = req.result['ril.radio.disabled'];
+  AirplaneModeHelper.ready(function() {
+    airplaneModeEnabled = AirplaneModeHelper.getStatus() == 'enabled';
     init();
-  };
-  req.onerror = function() {
-    init();
-  };
+  });
 }, false);
 
 // Turn off radio immediately when window is unloaded.
