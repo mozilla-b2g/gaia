@@ -94,10 +94,8 @@ window.addEventListener('load', function startup() {
   // Enable checkForUpdate as well if booted without FTU
   window.addEventListener('ftuskip', doneWithFTU);
 
-  window.sourceView = new SourceView();
   Shortcuts.init();
   ScreenManager.turnScreenOn();
-  Places.init();
   Rocketbar.init();
 
   // Please sort it alphabetically
@@ -108,8 +106,11 @@ window.addEventListener('load', function startup() {
   window.layoutManager = new LayoutManager().start();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
+  window.places = new Places();
+  window.places.start();
   window.remoteDebugger = new RemoteDebugger();
   window.softwareButtonManager = new SoftwareButtonManager().start();
+  window.sourceView = new SourceView();
   window.telephonySettings = new TelephonySettings();
   window.telephonySettings.start();
   window.ttlView = new TTLView();
