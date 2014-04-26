@@ -5,17 +5,20 @@ var Actions = require('marionette-client').Actions;
 
 function Music(client, origin) {
   this.client = client;
-  this.origin = origin;
+  this.origin = origin || ('app://' + Music.DEFAULT_ORIGIN);
   this.actions = new Actions(client);
 }
 
 module.exports = Music;
 
+Music.DEFAULT_ORIGIN = 'music.gaiamobile.org';
+
 Music.Selector = Object.freeze({
   firstTile: '.tile',
   songsTab: '#tabs-songs',
   firstSong: '.list-item',
-  playButton: '#player-controls-play'
+  playButton: '#player-controls-play',
+  progressBar: '#player-seek-bar-progress'
 });
 
 Music.prototype = {
@@ -37,8 +40,16 @@ Music.prototype = {
     return this.client.findElement(Music.Selector.playButton);
   },
 
+  get progressBar() {
+    return this.client.findElement(Music.Selector.progressBar);
+  },
+
   get isPlaying() {
     return this.playButton.getAttribute('class').indexOf('is-pause') === -1;
+  },
+
+  get songProgress() {
+    return parseFloat(this.progressBar.getAttribute('value'));
   },
 
   launch: function() {
@@ -56,7 +67,7 @@ Music.prototype = {
     this.client.helper.waitForElement(this.firstTile);
   },
 
-  swtichToSongsView: function() {
+  switchToSongsView: function() {
     this.songsTab.click();
   },
 

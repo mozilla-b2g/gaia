@@ -3,10 +3,12 @@
 
 function FakeRingtones(client, origin) {
   this.client = client;
-  this.origin = origin;
+  this.origin = origin || ('app://' + FakeRingtones.DEFAULT_ORIGIN);
 }
 
 module.exports = FakeRingtones;
+
+FakeRingtones.DEFAULT_ORIGIN = 'fakeringtones.gaiamobile.org';
 
 FakeRingtones.prototype = {
   client: null,
