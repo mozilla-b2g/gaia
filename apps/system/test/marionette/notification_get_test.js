@@ -97,7 +97,8 @@ marionette('Notification.get():', function() {
     done();
   });
 
-  test('should work across domains', function(done) {
+  // skip until gecko part of bug 1000337 lands
+  test.skip('should work across domains', function(done) {
     var sharedTag = 'shared tag:' + Date.now();
     var emailTitle = 'email title:' + Date.now();
     var systemTitle = 'system tite:' + Date.now();
@@ -153,7 +154,7 @@ marionette('Notification.get():', function() {
       }, function(error) {
         marionetteScriptFinished('promise.then error: ' + error);
       });
-    }, [emailTitle, sharedTag]);
+    }, [systemTitle, sharedTag]);
     assert.equal(error, false, 'system domain error: ' + error);
     done();
   });
