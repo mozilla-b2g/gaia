@@ -82,8 +82,8 @@ var Voicemail = {
 
     if (SIMSlotManager.isMultiSIM()) {
       var _ = window.navigator.mozL10n.get;
-      // FIXME/bug 998972: Create a new string instead of concatenating two.
-      title = '(' + _('sim-picker-button', { n: serviceId + 1 }) + ') ' + title;
+      title =
+        _('voicemailNotificationMultiSim', { n: serviceId + 1, title: title });
     }
 
     var notifOptions = {
