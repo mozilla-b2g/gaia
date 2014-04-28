@@ -281,10 +281,6 @@ suite('Renderer', function() {
       ime.id = 'keyboard';
       document.body.appendChild(ime);
 
-      activeIme = document.createElement('div');
-      ime.appendChild(activeIme);
-      IMERender.activeIme = activeIme;
-
       IMERender.init(function(key) {
         return key.value.toUpperCase();
       }, function() {
@@ -598,10 +594,12 @@ suite('Renderer', function() {
           keyboardName: 'test'
         };
 
-        for (var ri = 0; ri < rows.length; ri++) {
+        for (var ri = 0; ri < rows; ri++) {
           var r = [];
-          for (var ki = 0, kl = (Math.random() * 8 | 0) + 2; ki < kl; ki++) {
-            r.push({ value: (Math.random() * 26 | 0) + 97 });
+          for (var ki = 0, kl = layout.width; ki < kl; ki++) {
+            r.push({
+              value: String.fromCharCode((Math.random() * 26 | 0) + 97)
+            });
           }
           layout.keys.push(r);
         }
@@ -620,12 +618,15 @@ suite('Renderer', function() {
           {};
 
         IMERender.draw(layout, flags, function() {
-          if (latin) {
-            IMERender.setInputMethodName('latin');
-          }
+          IMERender.setInputMethodName(latin ? 'latin' : 'something');
 
+          // Allow 1px too much to be reported due to rounding errors.
+          // On devices it's less of a problem.
           assert.equal(
-            IMERender.activeIme.scrollHeight, IMERender.getHeight());
+            IMERender.getHeight() - IMERender.activeIme.offsetHeight <= 1,
+            true,
+            'Calculated ' + IMERender.getHeight() + ', but is ' +
+              IMERender.activeIme.offsetHeight);
           next();
         });
       }
@@ -653,14 +654,6 @@ suite('Renderer', function() {
             });
           });
         });
-      });
-
-      test('Container has a one pixel extra offset', function(next) {
-        var comp = getComputedStyle(document.querySelector('#keyboard'));
-        assert.equal(comp.paddingTop, '0px');
-        assert.equal(comp.marginTop, '0px');
-        assert.equal(comp.borderTopWidth, '1px');
-        next();
       });
     });
   });
