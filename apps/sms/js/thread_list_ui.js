@@ -158,7 +158,13 @@ var ThreadListUI = {
         n: others
       });
 
-      photo.style.backgroundImage = 'url(' + src + ')';
+      if (src === '') {
+        photo.style.backgroundImage = null;
+        photo.parentNode.classList.add('empty');
+      } else {
+        photo.style.backgroundImage = 'url(' + src + ')';
+        photo.parentNode.classList.remove('empty');
+      }
     });
   },
 

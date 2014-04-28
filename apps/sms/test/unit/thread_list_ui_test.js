@@ -1,7 +1,7 @@
 /*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
          MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI,
-         MockOptionMenu, Utils
+         MockOptionMenu, Utils, Contacts, MockContact
          */
 
 'use strict';
@@ -17,6 +17,7 @@ requireApp('sms/js/threads.js');
 requireApp('sms/js/thread_list_ui.js');
 
 require('/shared/test/unit/mocks/mock_async_storage.js');
+requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_l10n.js');
@@ -1026,4 +1027,51 @@ suite('thread_list_ui', function() {
     });
   });
 
+  suite.only('setContact', function() {
+    var node, pictureContainer;
+
+    setup(function() {
+      this.sinon.stub(Contacts, 'findByPhoneNumber');
+      var thread = {
+        id: 1,
+        participants: ['555'],
+        lastMessageType: 'sms',
+        body: 'Hello 555',
+        timestamp: Date.now(),
+        unreadCount: 0
+      };
+
+      Threads.set(1, thread);
+      node = ThreadListUI.createThread(thread);
+      pictureContainer = node.querySelector('.pack-end');
+
+      ThreadListUI.setContact(node);
+    });
+
+    teardown(function() {
+      ThreadListUI.container.textContent = '';
+    });
+
+    test('display the picture of a contact', function() {
+      pictureContainer.classList.add('empty');
+
+      var contactInfo = MockContact.list();
+      contactInfo[0].photo = [new Blob(['test'], { type: 'image/jpeg' })];
+      Contacts.findByPhoneNumber.yield(contactInfo);
+
+      var photo = node.querySelector('span[data-type=img]');
+      assert.include(photo.style.backgroundImage, 'blob:');
+      assert.isFalse(pictureContainer.classList.contains('empty'));
+    });
+
+
+    test('display correctly a contact without a picture', function() {
+      var contactInfo = MockContact.list();
+      Contacts.findByPhoneNumber.yield(contactInfo);
+
+      var photo = node.querySelector('span[data-type=img]');
+      assert.isFalse(photo.style.backgroundImage.contains('blob:'));
+      assert.isTrue(pictureContainer.classList.contains('empty'));
+    });
+  });
 });
