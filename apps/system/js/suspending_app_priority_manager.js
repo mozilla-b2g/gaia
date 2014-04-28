@@ -10,10 +10,10 @@
    * it would remain in the task manager if 'app-suspending.enabled'
    * is turned on.
    *
-   * It depends on the app stack managed by StackManager.
+   * It depends on the app stack managed by stackManager.
    *
    * @module  SuspendingAppPriorityManager
-   * @requires module:StackManager
+   * @requires module:stackManager
    * @requires module:System
    */
   var SuspendingAppPriorityManager = function() {
@@ -58,8 +58,8 @@
       if (this.suspendedCount > this.MAXIMUM_SUSPENDED_COUNT) {
         this.debug('exceed maximum suspending count, find someone to kill..');
         // XXX: Maintain our own suspending app stack.
-        var stack = self.StackManager._stack;
-        var current = self.StackManager._current;
+        var stack = self.stackManager._stack;
+        var current = self.stackManager._current;
         this.debug(stack.length, current);
         // Go through the stack to find the eldest app which is suspended.
         for (var i = current; i < current + stack.length; i++) {

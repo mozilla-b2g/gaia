@@ -177,7 +177,6 @@
       window.addEventListener('cardviewshown', this);
       window.addEventListener('appopened', this);
       window.addEventListener('homescreenopening', this);
-      window.addEventListener('stackchanged', this);
       window.addEventListener('searchcrashed', this);
 
       // Listen for events from Rocketbar
@@ -282,9 +281,6 @@
         case 'homescreenopening':
           this.enterHome(e);
           break;
-        case 'stackchanged':
-          this.handleStackChanged(e);
-          break;
       }
     },
 
@@ -303,7 +299,6 @@
       window.removeEventListener('cardviewclosedhome', this);
       window.removeEventListener('appopened', this);
       window.removeEventListener('homescreenopening', this);
-      window.removeEventListener('stackchanged', this);
 
       // Stop listening for events from Rocketbar
       this.rocketbar.removeEventListener('touchstart', this);

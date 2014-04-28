@@ -131,6 +131,9 @@
 
   AppTransitionController.prototype._do_closing =
     function atc_do_closing() {
+      // Clear sheet commit timer because we don't want
+      // the sheet to be opened at background.
+      this.app.clearCommitTimer();
       this._closingTimeout = window.setTimeout(function() {
         this.app.broadcast('closingtimeout');
       }.bind(this),
@@ -142,6 +145,8 @@
 
   AppTransitionController.prototype._do_closed =
     function atc_do_closed() {
+      this.app.resetTransform();
+      this.app.resetDuration();
     };
 
   AppTransitionController.prototype.getAnimationName = function(type) {
@@ -155,6 +160,7 @@
 
   AppTransitionController.prototype._do_opening =
     function atc_do_opening() {
+      this.app.element.classList.add('active');
       this._openingTimeout = window.setTimeout(function() {
         this.app.broadcast('openingtimeout');
       }.bind(this),
@@ -234,13 +240,18 @@
       }
 
       this.resetTransition();
-      this.app.element.removeAttribute('aria-hidden');
+      this.app.resetTransform();
+      this.app.resetDuration();
       this.app.element.classList.add('active');
       this.app.setVisible(true);
 
       // TODO:
       // May have orientation manager to deal with lock orientation request.
-      this.app.setOrientation();
+      if (!this.app.isHomescreen) {
+        this.app.setOrientation();
+      }
+
+      this.app.resize();
 
       this.app.waitForNextPaint(function() {
         if (this._transitionState !== 'opened' || !this.app.loaded) {
@@ -292,7 +303,8 @@
         'invoking', 'invoked', 'zoom-in', 'zoom-out', 'fade-in', 'fade-out',
         'transition-opening', 'transition-closing', 'immediate',
         'slideleft', 'slideright', 'in-from-left', 'out-to-right',
-        'slideup', 'slidedown', 'will-become-active', 'will-become-inactive'];
+        'slideup', 'slidedown', 'will-become-active', 'will-become-inactive',
+        'edge-transitioning'];
 
       classes.forEach(function iterator(cls) {
         this.app.element.classList.remove(cls);

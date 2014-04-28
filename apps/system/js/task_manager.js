@@ -1,7 +1,7 @@
 /* global Card, TaskCard,
           AppWindowManager, sleepMenu, SettingsListener, AttentionScreen,
           OrientationManager,
-          GestureDetector, UtilityTray, StackManager, Event */
+          GestureDetector, UtilityTray, Event */
 
 'use strict';
 
@@ -295,8 +295,8 @@
     // than trying to keep it in sync with app launches.
 
     // Apps info from Stack Manager.
-    var stack = this.stack = StackManager.snapshot();
-    this.currentPosition = StackManager.position;
+    var stack = this.stack = window.stackManager.snapshot();
+    this.currentPosition = window.stackManager.position;
 
     // If we are currently displaying the homescreen but we have apps in the
     // stack we will display the most recently used application.

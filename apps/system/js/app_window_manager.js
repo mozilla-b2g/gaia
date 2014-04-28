@@ -173,7 +173,7 @@
 
         if (appNext.resized &&
             !layoutManager.match(appNext.width,
-              appNext.height - appNext.calibratedHeight())) {
+              appNext.height)) {
           immediateTranstion = true;
         }
 
@@ -237,7 +237,7 @@
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
       window.addEventListener('system-resize', this);
-      window.addEventListener('sheetstransitionstart', this);
+      window.addEventListener('appsheet-transitionstart', this);
 
       this._settingsObserveHandler = {
         // update app name when language setting changes
@@ -311,7 +311,7 @@
       window.removeEventListener('homegesture-enabled', this);
       window.removeEventListener('homegesture-disabled', this);
       window.removeEventListener('system-resize', this);
-      window.removeEventListener('sheetstransitionstart', this);
+      window.removeEventListener('appsheet-transitionstart', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -523,7 +523,7 @@
             this._activeApp.getTopMostWindow().blur();
           }
           break;
-        case 'sheetstransitionstart':
+        case 'appsheet-transitionstart':
           if (document.mozFullScreen) {
             document.mozCancelFullScreen();
           }
@@ -667,6 +667,21 @@
 
       this.debug('publish: ' + event);
       window.dispatchEvent(evt);
+    },
+
+    setActiveApp: function awm_setActiveApp(instanceID) {
+      if (!this._apps[instanceID]) {
+        console.warn('no active app alive for id: ', instanceID);
+        return;
+      }
+      for (var aid in this._apps) {
+        var app = this._apps[aid];
+        if (app.isActive() && app.instanceID !== instanceID) {
+          app.broadcast('closed');
+        }
+      }
+      this._activeApp = this._apps[instanceID];
+      this._activeApp.broadcast('opened');
     },
 
     _updateActiveApp: function awm__changeActiveApp(instanceID) {

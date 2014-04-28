@@ -27,10 +27,12 @@ suite('system/AppWindowManager', function() {
   mocksForSuspendingAppPriorityManager.attachTestHelpers();
 
   setup(function(done) {
+    window.stackManager = MockStackManager;
     requireApp('system/js/suspending_app_priority_manager.js', done);
   });
 
   teardown(function() {
+    window.stackManager = undefined;
   });
 
   test('increasing zombie count', function() {
