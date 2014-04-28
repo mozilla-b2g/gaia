@@ -37,6 +37,10 @@ function ls(dir, recursive, exclude) {
   return results;
 }
 
+function getNewURI(uriString, uriCharset, baseURI) {
+  return Services.io.newURI(uriString, uriCharset, baseURI);
+}
+
 function getOsType() {
   return Cc['@mozilla.org/xre/app-info;1']
           .getService(Ci.nsIXULRuntime).OS;
@@ -833,6 +837,7 @@ exports.normalizeString = normalizeString;
 exports.Commander = Commander;
 exports.getEnvPath = getEnvPath;
 exports.getLocaleBasedir = getLocaleBasedir;
+exports.getNewURI = getNewURI;
 exports.getOsType = getOsType;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;

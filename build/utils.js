@@ -96,6 +96,7 @@ exports.normalizeString = utils.normalizeString;
 exports.Commander = utils.Commander;
 exports.getEnvPath = utils.getEnvPath;
 exports.getLocaleBasedir = utils.getLocaleBasedir;
+exports.getNewURI = utils.getNewURI;
 exports.getOsType = utils.getOsType;
 // ===== the following functions support node.js compitable interface.
 exports.FILE_TYPE_FILE = FILE_TYPE_FILE;
