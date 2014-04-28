@@ -190,19 +190,19 @@ ol, ul {
 }
 
 .log-item:not(.hasPhoto) .pack-end {
-  width: 0;
+  display: none;
 }
 
 .log-item .primary-info {
   text-overflow: clip;
 }
 
-.log-item.hasPhoto a > p {
-  width: 19rem;
+.log-item a > p {
+  width: calc(100% - 9.5rem);
 }
 
 .log-item:not(.hasPhoto) a > p {
-  width: 25rem;
+  width: calc(100% - 3.5rem);
 }
 
 .log-item .primary-info span {
@@ -245,11 +245,10 @@ ol, ul {
 }
 
 .recents-edit .log-item a > p {
-  width: 22rem;
+  width: calc(100% - 6.5rem);
 }
-
 .recents-edit .pack-end {
-  transform: translateX(6rem);
+  display: none
 }
 
 .recents-edit .call-log-contact-photo {
