@@ -396,7 +396,6 @@ apps/settings/test/unit/toaster_test.js
 apps/settings/test/unit/wifi_helper_test.js
 apps/system/js/accessibility.js
 apps/system/js/airplane_mode.js
-apps/system/js/app_authentication_dialog.js
 apps/system/js/app_install_manager.js
 apps/system/js/app_modal_dialog.js
 apps/system/js/async_semaphore.js
@@ -469,7 +468,6 @@ apps/system/test/marionette/net_error_test.js
 apps/system/test/marionette/notification_get_test.js
 apps/system/test/marionette/notification_launch_app.js
 apps/system/test/marionette/notification_test.js
-apps/system/test/unit/app_authentication_dialog_test.js
 apps/system/test/unit/app_install_manager_test.js
 apps/system/test/unit/app_modal_dialog_test.js
 apps/system/test/unit/async_semaphore_test.js
