@@ -50,6 +50,11 @@
     broadcast: function() {},
     fadeIn: function() {},
     fadeOut: function() {},
+    show: function() {},
+    hide: function() {},
+    queueShow: function() {},
+    cancelQueuedShow: function() {},
+    queueHide: function() {},
     setOrientation: function() {},
     focus: function() {},
     debug: function() {},
@@ -77,7 +82,10 @@
     getRootWindow: function() { return this; },
     getLeafWindow: function() { return this; },
     getActiveWindow: function() { return this; },
-    requestOpen: function() {}
+    requestOpen: function() {},
+    transitionController: {
+      clearTransitionClasses: function() {}
+    }
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];
