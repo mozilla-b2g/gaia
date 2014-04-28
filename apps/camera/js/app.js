@@ -15,6 +15,7 @@ var bindAll = require('lib/bind-all');
 var model = require('vendor/model');
 var debug = require('debug')('app');
 var HudView = require('views/hud');
+var Pinch = require('lib/pinch');
 var bind = require('lib/bind');
 
 /**
@@ -157,6 +158,10 @@ App.prototype.bindEvents = function() {
   bind(this.win, 'localized', this.firer('localized'));
   bind(this.win, 'beforeunload', this.onBeforeUnload);
   bind(this.el, 'click', this.onClick);
+
+  // Pinch
+  this.pinch = new Pinch(this.el);
+  this.pinch.on('pinchchanged', this.firer('pinchchanged'));
 
   debug('events bound');
 };

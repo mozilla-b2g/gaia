@@ -14,44 +14,10 @@ var View = require('vendor/view');
  * Locals
  */
 
-var lastTouchA = null;
-var lastTouchB = null;
-var isScaling = false;
 var isZoomEnabled = false;
-var sensitivity;
 var scaleSizeTo = {
   fill: CameraUtils.scaleSizeToFillViewport,
   fit: CameraUtils.scaleSizeToFitViewport
-};
-
-var getNewTouchA = function(touches) {
-  if (!lastTouchA) { return null; }
-  for (var i = 0, length = touches.length, touch; i < length; i++) {
-    touch = touches[i];
-    if (touch.identifier === lastTouchA.identifier) { return touch; }
-  }
-  return null;
-};
-
-var getNewTouchB = function(touches) {
-  if (!lastTouchB) { return null; }
-  for (var i = 0, length = touches.length, touch; i < length; i++) {
-    touch = touches[i];
-    if (touch.identifier === lastTouchB.identifier) { return touch; }
-  }
-  return null;
-};
-
-var getDeltaZoom = function(touchA, touchB) {
-  if (!touchA || !lastTouchA || !touchB || !lastTouchB) { return 0; }
-
-  var oldDistance = Math.sqrt(
-                      Math.pow(lastTouchB.pageX - lastTouchA.pageX, 2) +
-                      Math.pow(lastTouchB.pageY - lastTouchA.pageY, 2));
-  var newDistance = Math.sqrt(
-                      Math.pow(touchB.pageX - touchA.pageX, 2) +
-                      Math.pow(touchB.pageY - touchA.pageY, 2));
-  return newDistance - oldDistance;
 };
 
 var clamp = function(value, minimum, maximum) {
@@ -67,9 +33,6 @@ module.exports = View.extend({
     this.render();
 
     bind(this.el, 'click', this.onClick);
-    bind(this.el, 'touchstart', this.onTouchStart);
-    bind(this.el, 'touchmove', this.onTouchMove);
-    bind(this.el, 'touchend', this.onTouchEnd);
     bind(this.el, 'animationend', this.onShutterEnd);
 
     this.getSize();
@@ -82,8 +45,6 @@ module.exports = View.extend({
     this.els.frame = this.find('.js-frame');
     this.els.video = this.find('.js-video');
     this.els.videoContainer = this.find('.js-video-container');
-
-    sensitivity = window.ZOOM_GESTURE_SENSITIVITY * window.innerWidth;
   },
 
   /**
@@ -102,48 +63,6 @@ module.exports = View.extend({
 
   onClick: function(e) {
     this.emit('click');
-  },
-
-  onTouchStart: function(evt) {
-    var touchCount = evt.targetTouches.length;
-    if (touchCount === 2) {
-      lastTouchA = evt.targetTouches[0];
-      lastTouchB = evt.targetTouches[1];
-      isScaling = true;
-      this.emit('pinchStart');
-
-      evt.preventDefault();
-    }
-  },
-
-  onTouchMove: function(evt) {
-    if (!isScaling) {
-      return;
-    }
-
-    var touchA = getNewTouchA(evt.targetTouches);
-    var touchB = getNewTouchB(evt.targetTouches);
-
-    var deltaZoom = getDeltaZoom(touchA, touchB);
-    var zoom = this._zoom * (1 + (deltaZoom / sensitivity));
-
-    this.setZoom(zoom);
-
-    this.emit('pinchChange', this._zoom);
-
-    lastTouchA = touchA;
-    lastTouchB = touchB;
-  },
-
-  onTouchEnd: function(evt) {
-    if (!isScaling) {
-      return;
-    }
-
-    if (evt.targetTouches.length < 2) {
-      isScaling = false;
-      this.emit('pinchEnd');
-    }
   },
 
   enableZoom: function(minimumZoom, maximumZoom) {
