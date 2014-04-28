@@ -151,7 +151,7 @@ suite('Sound > ', function() {
 
       var blob = new Blob(['empty-ringtone'], {'type': 'audio/ogg'});
       this.sinon.stub(window.URL, 'createObjectURL');
-      sound._checkRingtone(blob, 'mock_name', sound.tones[0]);
+      sound._checkRingtone(blob, 'mock_name', 'mock_path', sound.tones[0]);
     });
 
     teardown(function() {
@@ -166,10 +166,17 @@ suite('Sound > ', function() {
   suite('_setRingtone', function() {
     var blob;
     var sound;
+    var tone = {
+      pickType: 'alerttone',
+      settingsKey: 'notification.ringtone',
+      allowNone: true,
+      button: document.createElement('div')
+    };
+
     setup(function() {
       sound = Sound();
       blob = new Blob(['empty-ringtone'], {'type': 'audio/ogg'});
-      sound._setRingtone(blob, 'aloha', 'notification.ringtone');
+      sound._setRingtone(blob, 'aloha', 'mock_path', tone);
     });
 
     test('we would set ringtone value via _setRingtone', function() {

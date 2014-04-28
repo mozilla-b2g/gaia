@@ -73,13 +73,13 @@ define(function(require) {
       // For each kind of tone, hook up the button that will allow the user
       // to select a sound for that kind of tone.
       this.tones.forEach(function(tone) {
-        var namekey = tone.settingsKey + '.name';
+        var pathkey = tone.settingsKey + '.filepath';
         // The button looks like a select element. By default it just reads
         // "change". But we want it to display the name of the current tone.
         // So we look up that name in the settings database.
-        SettingsListener.observe(namekey, '', function(tonename) {
-          tone.button.textContent = tonename || _('change');
-        });
+        SettingsListener.observe(
+          pathkey, '', self._checkToneFilepath.bind(self, tone)
+        );
 
         // When the user clicks the button, we launch an activity that lets
         // the user select new ringtone.
@@ -107,11 +107,12 @@ define(function(require) {
             activity.onsuccess = function() {
               var blob = activity.result.blob;  // The returned ringtone sound
               var name = activity.result.name;  // The name of this ringtone
+              var filepath = activity.result.filepath;  // The filepath
 
               if (!blob) {
                 if (tone.allowNone) {
                   // If we allow a null blob, then everything is okay
-                  self._setRingtone(blob, name, tone.settingsKey);
+                  self._setRingtone(blob, name, filepath, tone);
                 } else {
                   // Otherwise this is an error and we should not change the
                   // current setting. (The ringtones app should never return
@@ -124,22 +125,57 @@ define(function(require) {
               // If we got a locked ringtone, we have to unlock it first
               if (blob.type.split('/')[1] === ForwardLock.mimeSubtype) {
                 ForwardLock.unlockBlob(secret, blob, function(unlocked) {
-                  self._checkRingtone(unlocked, name, tone);
+                  self._checkRingtone(unlocked, name, filepath, tone);
                 });
               } else {  // Otherwise we can just use the blob directly.
-                self._checkRingtone(blob, name, tone);
+                self._checkRingtone(blob, name, filepath, tone);
               }
             };
           });
         };
       });
     },
+
+    // Use the file path as id to check what type the tone is, it could be:
+    // 1. Preloaded. 2. None. 3. Customized(set from the music app).
+    _checkToneFilepath: function sound_checkToneFilepath(tone, filepath) {
+      var self = this;
+      var _ = navigator.mozL10n.get;
+      var namekey = tone.settingsKey + '.name';
+      // Check the filepath to see if the tone is from the preloaded pool.
+      if (filepath.indexOf('shared/resources/media') !== -1) {
+        var filename = filepath.split('/').pop();
+        var key = filename.replace('.', '_');
+
+        self._displayToneName(tone, _(key), key);
+      }
+      else if (filepath === 'none') {
+        self._displayToneName(tone, _('none'), 'none');
+      }
+      else {
+        SettingsListener.observe(
+          namekey, '', function setCustomizedToneName(tonename) {
+            SettingsListener.unobserve(namekey, setCustomizedToneName);
+            // If the user selected a ringtone without title from the music app,
+            // then we display "Change" instead of an empty string?
+            self._displayToneName(tone, tonename || _('change'), '');
+          }
+        );
+      }
+    },
+
+    // Also assign the L10n id because the preloaded tones have localized names.
+    _displayToneName: function sound_displayToneName(tone, name, id) {
+      tone.button.textContent = name;
+      tone.button.dataset.l10nId = id;
+    },
+
     /**
      * Make sure that the blob we got from the activity is actually
      * a playable audio file. It would be very bad to set an corrupt
      * blob as a ringtone because then the phone wouldn't ring!
      */
-    _checkRingtone: function sound_checkRingtone(blob, name, tone) {
+    _checkRingtone: function sound_checkRingtone(blob, name, filepath, tone) {
       var _ = navigator.mozL10n.get;
       var oldRingtoneName = tone.button.textContent;
       tone.button.textContent = _('savingringtone');
@@ -150,7 +186,7 @@ define(function(require) {
       player.oncanplay = function() {
         release();
         // this will update the button text
-        this._setRingtone(blob, name, tone.settingsKey);
+        this._setRingtone(blob, name, filepath, tone);
       }.bind(this);
       player.onerror = function() {
         release();
@@ -170,12 +206,13 @@ define(function(require) {
      * Also save the sound name in the db so we can display it in the future.
      * And update the button text to the new name now.
      */
-    _setRingtone: function sound_setRingtone(blob, name, settingsKey) {
+    _setRingtone: function sound_setRingtone(blob, name, filepath, tone) {
       // Update the settings database. This will cause the button
       // text to change as well because of the SettingsListener above.
       var values = {};
-      values[settingsKey] = blob;
-      values[settingsKey + '.name'] = name || '';
+      values[tone.settingsKey] = blob;
+      values[tone.settingsKey + '.name'] = name || '';
+      values[tone.settingsKey + '.filepath'] = filepath;
       navigator.mozSettings.createLock().set(values);
     }
   };
