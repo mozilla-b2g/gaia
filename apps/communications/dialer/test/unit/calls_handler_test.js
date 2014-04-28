@@ -462,17 +462,24 @@ suite('calls handler', function() {
         var secondConfCall = new MockCall('12334', 'held');
         extraCall = new MockCall('424242', 'incoming');
 
+        /**
+         * Don't add all 3 calls at once since |CallsHandler.addCall|
+         * would hangup the 3rd call
+         */
         telephonyAddCall.call(this, firstConfCall, {trigger: true});
         telephonyAddCall.call(this, secondConfCall, {trigger: true});
-        telephonyAddCall.call(this, extraCall, {trigger: true});
 
-        MockNavigatorMozTelephony.calls = [extraCall];
+        // Merge calls
         MockNavigatorMozTelephony.conferenceGroup.calls = [firstConfCall,
                                                   secondConfCall];
         firstConfCall.group = MockNavigatorMozTelephony.conferenceGroup;
         secondConfCall.group = MockNavigatorMozTelephony.conferenceGroup;
-
+        MockNavigatorMozTelephony.calls = [];
         MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+
+        // Add extra call
+        telephonyAddCall.call(this, extraCall, {trigger: true});
+        MockNavigatorMozTelephony.calls = [extraCall];
         MockNavigatorMozTelephony.mTriggerCallsChanged();
       });
 
@@ -789,11 +796,15 @@ suite('calls handler', function() {
             telephonyAddCall.call(this, incomingCall, {trigger: true});
           });
 
-          test('should hang up the active call', function() {
+          test('should hang up the active call and answer the incoming call',
+          function() {
             var hangUpSpy =
               this.sinon.spy(MockNavigatorMozTelephony.active, 'hangUp');
+            var answerSpy = this.sinon.spy(incomingCall, 'answer');
+
             CallsHandler.endAndAnswer();
             assert.isTrue(hangUpSpy.calledOnce);
+            assert.isTrue(answerSpy.calledOnce);
           });
 
           test('should hide the call waiting UI', function() {
@@ -816,10 +827,14 @@ suite('calls handler', function() {
             telephonyAddCall.call(this, incomingCall, {trigger: true});
           });
 
-          test('should hang up the held call', function() {
+          test('should hang up the held call and answer the incoming call',
+          function() {
             var hangUpSpy = this.sinon.spy(heldCall, 'hangUp');
+            var answerSpy = this.sinon.spy(incomingCall, 'answer');
+
             CallsHandler.endAndAnswer();
             assert.isTrue(hangUpSpy.calledOnce);
+            assert.isTrue(answerSpy.calledOnce);
           });
 
           test('should hide the call waiting UI', function() {
