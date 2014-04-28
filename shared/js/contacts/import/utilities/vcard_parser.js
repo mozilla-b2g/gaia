@@ -615,6 +615,8 @@ var VCFReader = (function _VCFReader() {
     this.ondone = cb;
 
     LazyLoader.load(['/shared/js/simple_phone_matcher.js',
+      '/shared/js/mime_mapper.js',
+      '/shared/js/contact_photo_helper.js',
       '/shared/js/contacts/import/utilities/misc.js',
       '/shared/js/contacts/contacts_matcher.js',
       '/shared/js/contacts/contacts_merger.js',
