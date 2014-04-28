@@ -50,6 +50,7 @@
        *
        * @listens webapps-launch
        */
+      window.addEventListener('homescreencreated', this);
       if (applications.ready) {
         window.addEventListener('webapps-launch', this);
         window.addEventListener('webapps-close', this);
@@ -75,6 +76,7 @@
       }
       this._started = false;
 
+      window.removeEventListener('homescreencreated', this);
       window.removeEventListener('webapps-launch', this);
       window.removeEventListener('webapps-close', this);
       window.removeEventListener('open-app', this);
@@ -94,6 +96,15 @@
       }
 
       switch (evt.type) {
+        case 'homescreencreated':
+          // Bug 999574 - We need to wait for the homescreen to be created
+          // before launching applications. Send an event to gecko to let it
+          // know that we are ready to launch webapps.
+          var systemMessage = new CustomEvent('mozContentEvent',
+            { bubbles: true, cancelable: false,
+              detail: { type: 'system-message-launch-ready' } });
+          window.dispatchEvent(systemMessage);
+          break;
         case 'webapps-launch':
           // TODO: Look up current opened window list,
           // and then create a new instance here.
