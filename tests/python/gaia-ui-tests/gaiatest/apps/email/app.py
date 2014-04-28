@@ -75,6 +75,7 @@ class Email(Base):
 
         setup.tap_next()
 
+        setup.check_for_emails_interval('20000')
         setup.tap_account_prefs_next()
 
         setup.wait_for_setup_complete()
