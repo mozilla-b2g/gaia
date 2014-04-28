@@ -60,4 +60,10 @@ marionette('today', function() {
       );
     });
   });
+
+  test('should show correct date in the today icon', function() {
+    var todayDate =
+      client.findElement('#view-selector a[href="#today"] .icon-today');
+    assert.equal(todayDate.text(), new Date().getDate());
+  });
 });

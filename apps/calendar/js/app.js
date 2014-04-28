@@ -321,6 +321,8 @@ Calendar.App = (function(window) {
       var today = tablist.querySelector('.today a');
       var tabs = tablist.querySelectorAll('[role="tab"]');
 
+      this._showTodayDate();
+      this._syncTodayDate();
       today.addEventListener('click', function(e) {
         var date = new Date();
         self.timeController.move(date);
@@ -382,6 +384,25 @@ Calendar.App = (function(window) {
       setTimeout(function nextTick() {
         this.view('Errors');
       }.bind(this), 0);
+    },
+
+    _showTodayDate: function() {
+      document.querySelector('#today .icon-today').innerHTML =
+        new Date().getDate();
+    },
+
+    _syncTodayDate: function() {
+      var now = new Date();
+      var midnight = new Date(
+        now.getFullYear(), now.getMonth(), now.getDate() + 1,
+        0, 0, 0
+      );
+      var timeout = midnight.getTime() - now.getTime();
+
+      setTimeout(function() {
+        this._showTodayDate();
+        this._syncTodayDate();
+      }.bind(this), timeout);
     },
 
     /**
