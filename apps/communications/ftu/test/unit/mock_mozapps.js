@@ -1,3 +1,4 @@
+/* exported MockMozApps*/
 'use strict';
 
 var MockMozApps = {

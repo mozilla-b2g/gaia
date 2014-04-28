@@ -1155,75 +1155,9 @@ html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input
   height: 100%;
 }
 
-
 /*
-  Tutorial
+  FxAccounts
 */
-
-.tutorial-screen-base [role=main] > [role=region] {
-  background: url(images/bg_grey-noise.png);
-  color: white;
-}
-
-.tutorial-screen-base [role=main] {
-  top: 0;
-  bottom: 0;
-}
-
-.tutorial-screen-base header {
-  height: 5rem;
-  font-size: 1.4rem;
-  padding: 3rem 1.5rem 1rem 1.5rem;
-  text-align: left;
-}
-
-.tutorial-screen-base section {
-  text-align: center;
-}
-
-/* Tutorial Steps state */
-.tutorial-screen-base .step-state {
-  border-bottom: none;
-  top: 1.5rem;
-}
-
-/* if you want to add your steps, you have to change the denominator */
-.tutorial-screen-base .step-state:before {
-  width: calc(100% / 5);
-  background: #FFFFFF;
-}
-
-#tutorial-progress.step-1.step-state:before {
-  transform: translateX(0);
-}
-
-#tutorial-progress.step-2.step-state:before {
-  transform: translateX(100%);
-}
-
-#tutorial-progress.step-3.step-state:before {
-  transform: translateX(200%);
-}
-
-#tutorial-progress.step-4.step-state:before {
-  transform: translateX(300%);
-}
-
-#tutorial-progress.step-5.step-state:before {
-  transform: translateX(400%);
-}
-
-#tutorial-progress.step-6.step-state:before {
-  transform: translateX(500%);
-}
-
-#tutorial-progress.step-7.step-state:before {
-  transform: translateX(600%);
-}
-
-#tutorial-progress.step-8.step-state:before {
-  transform: translateX(700%);
-}
 
 .fxa-logo {
   background-image: url('images/fxa_logo.png');
@@ -1237,4 +1171,5 @@ html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input
   padding: 1rem 1rem 0;
   font-size: 1.5rem;
 }
+
 
