@@ -32,7 +32,10 @@ contacts.NFC = (function() {
 
   var handlePeerReady = function(event) {
     mozNfcPeer = mozNfc.getNFCPeer(event.detail);
-      LazyLoader.load('/shared/js/contact2vcard.js', function() {
+      LazyLoader.load([
+        '/shared/js/contact2vcard.js',
+        '/shared/js/setImmediate.js'
+        ], function() {
         ContactToVcard(
           [currentContact],
           function append(vcard) {

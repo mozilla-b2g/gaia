@@ -48,10 +48,11 @@ suite('Test Activities', function() {
       hide: function() {}
     };
 
+    window.utils.importedCount = null;
     window.utils.importedID = null;
     realImport = window.utils.importFromVcard;
     window.utils.importFromVcard = function(file, callback) {
-      callback(this.importedID);
+      callback(this.importedCount, this.importedID);
     };
     mocksHelperForActivities.suiteSetup();
   });
@@ -128,6 +129,7 @@ suite('Test Activities', function() {
           }
         }
       };
+      window.utils.importedCount = 1;
       window.utils.importedID = '1';
       ActivityHandler.handle(activity);
       assert.equal(ActivityHandler._currentActivity, activity);
@@ -144,9 +146,10 @@ suite('Test Activities', function() {
           }
         }
       };
+      window.utils.importedCount = 2;
       ActivityHandler.handle(activity);
       assert.equal(ActivityHandler._currentActivity, activity);
-      assert.include(document.location.hash, 'view-contact-details');
+      assert.include(document.location.hash, 'view-contact-list');
       assert.equal(document.location.hash.indexOf('id'), -1);
     });
   });
