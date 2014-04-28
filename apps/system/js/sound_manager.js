@@ -302,6 +302,10 @@
     homescreenVisible = true;
     CustomDialog.hide();
   });
+  window.addEventListener('homescreenopened', function() {
+    homescreenVisible = true;
+    CustomDialog.hide();
+  });
 
   function onCall() {
     if (currentChannel == 'telephony')
