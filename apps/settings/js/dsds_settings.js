@@ -4,8 +4,8 @@
 'use strict';
 
 var DsdsSettings = (function(window, document, undefined) {
-  var _settings = window.navigator.mozSettings;
-  var _iccManager = window.navigator.mozIccManager;
+  var _settings = null;
+  var _iccManager = null;
   var _mobileConnections = null;
 
   /** */
@@ -18,6 +18,8 @@ var DsdsSettings = (function(window, document, undefined) {
    * Init function.
    */
   function ds_init() {
+    _settings = window.navigator.mozSettings;
+    _iccManager = window.navigator.mozIccManager;
     _mobileConnections = window.navigator.mozMobileConnections;
     if (!_settings || !_mobileConnections || !_iccManager) {
       return;
