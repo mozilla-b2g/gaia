@@ -119,10 +119,8 @@ const IMERender = (function() {
 
     if (activeIme !== container) {
       if (activeIme) {
-        activeIme.style.display = 'none';
         delete activeIme.dataset.active;
       }
-      container.style.display = 'block';
       container.dataset.active = true;
 
       activeIme = container;
