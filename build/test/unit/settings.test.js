@@ -93,6 +93,8 @@ suite('settings.js', function() {
       app.setRingtone(settings, config);
       assert.equal(settings['dialer.ringtone'], config.GAIA_DIR + '/' +
         ringtoneLink);
+      assert.equal(settings['dialer.ringtone.filepath'], '/' +
+        ringtoneLink);
     });
 
     test('setNotification', function () {
@@ -107,6 +109,8 @@ suite('settings.js', function() {
       app.setNotification(settings, config);
       assert.equal(settings['notification.ringtone'],
         config.GAIA_DIR + '/' + notificationLink);
+      assert.equal(settings['notification.ringtone.filepath'],
+        '/' + notificationLink);
     });
 
     test('overrideSettings', function () {
@@ -154,6 +158,13 @@ suite('settings.js', function() {
   });
   suite('execute', function() {
     var config;
+    var defaultRingtoneLink = '/' +
+      'shared/resources/media/ringtones/' +
+      'ringer_classic_courier.opus';
+    var defaultNotificationLink = '/' +
+      'shared/resources/media/notifications/' +
+      'notifier_bell.opus';
+
     setup(function() {
       config = {
         GAIA_DISTRIBUTION_DIR: 'testDistributionDir',
@@ -197,7 +208,9 @@ suite('settings.js', function() {
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
+          'dialer.ringtone.filepath': defaultRingtoneLink,
           'notification.ringtone': undefined,
+          'notification.ringtone.filepath': defaultNotificationLink,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
         done();
@@ -222,7 +235,9 @@ suite('settings.js', function() {
             '/manifest.webapp',
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
+          'dialer.ringtone.filepath': defaultRingtoneLink,
           'notification.ringtone': undefined,
+          'notification.ringtone.filepath': defaultNotificationLink,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
         done();
@@ -245,7 +260,9 @@ suite('settings.js', function() {
           'debugger.remote-mode': 'disabled',
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
+          'dialer.ringtone.filepath': defaultRingtoneLink,
           'notification.ringtone': undefined,
+          'notification.ringtone.filepath': defaultNotificationLink,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
         done();
@@ -271,7 +288,9 @@ suite('settings.js', function() {
           'lockscreen.locked': false,
           'wallpaper.image': undefined,
           'dialer.ringtone': undefined,
+          'dialer.ringtone.filepath': defaultRingtoneLink,
           'notification.ringtone': undefined,
+          'notification.ringtone.filepath': defaultNotificationLink,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
         done();
