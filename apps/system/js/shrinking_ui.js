@@ -64,6 +64,7 @@
   ShrinkingUI.initialize =
     (function su_initialize() {
       window.addEventListener('home', this);
+      window.addEventListener('holdhome', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
       window.addEventListener('appopen', this);
@@ -89,8 +90,9 @@
         case 'appcreated':
         case 'appterminated':
         case 'appopen':
-          if (!evt.detail || !evt.detail.manifestURL)
+          if (!evt.detail || !evt.detail.manifestURL) {
             return;
+          }
       }
 
       switch (evt.type) {
@@ -101,8 +103,10 @@
         // This require that the shrinking file must be loaded before
         // the AppWindowManager.
         case 'home':
-          if (this._state())
+        case 'holdhome':
+          if (this._state()) {
             evt.stopImmediatePropagation();
+          }
           break;
         case 'appcreated':
           var app = evt.detail;
@@ -110,8 +114,9 @@
           break;
         case 'appterminated':
           if (this._state() &&
-              evt.detail.manifestURL === this.current.manifestURL)
+              evt.detail.manifestURL === this.current.manifestURL) {
             this._cleanEffects();
+          }
           this._unregister(evt.detail.manifestURL);
           break;
         case 'appopen':
@@ -136,13 +141,11 @@
           break;
         case 'check-p2p-registration-for-active-app':
           if (evt.detail && evt.detail.checkP2PRegistration) {
-            var manifestURL = this.current.manifestURL;
             evt.detail.checkP2PRegistration(this.currentAppURL);
           }
           break;
         case 'dispatch-p2p-user-response-on-active-app':
           if (evt.detail && evt.detail.dispatchP2PUserResponse) {
-            var manifestURL = this.current.manifestURL;
             evt.detail.dispatchP2PUserResponse(this.currentAppURL);
           }
           break;
@@ -205,8 +208,9 @@
     (function su_start() {
 
       // Already shrunk.
-      if (this._state())
+      if (this._state()) {
         return;
+      }
 
       var afterTilt = (function() {
         // After it tilted done, turn it to the screenshot mode.
@@ -241,8 +245,9 @@
    */
   ShrinkingUI.stop =
     (function su_stop() {
-      if (! this._state())
+      if (! this._state()) {
         return;
+      }
       var afterTiltBack = (function() {
         // Turn off the screenshot mode.
         var currentWindow = this.apps[this.currentAppURL];
@@ -276,8 +281,9 @@
    */
   ShrinkingUI._state =
     (function su_state() {
-      if (!this.current.appFrame) // Has been setup or not.
+      if (!this.current.appFrame) {// Has been setup or not.
         return false;
+      }
       return 'true' === this.current.appFrame.dataset.shrinkingState;
      }).bind(ShrinkingUI);
 
@@ -350,8 +356,9 @@
       } else if ('BOTTOM' === y) {
         y = 0;
       }
-      if (y < 0)
+      if (y < 0) {
         y = 0;
+      }
 
       var cbDone = (function on_cbDone(evt) {
         this.current.appFrame.removeEventListener('transitionend', cbDone);
@@ -475,8 +482,9 @@
         this.current.appFrame.removeEventListener('transitionend',
           bounceBackEnd);
         this.current.appFrame.style.transition = 'transform 0.5s ease';
-        if (cb)
+        if (cb) {
           cb();
+        }
       }).bind(this);
 
       this.current.appFrame.addEventListener('transitionend', bounceBack);
@@ -504,8 +512,9 @@
       if (!instant) {
         var tsEnd = (function _tsEnd(evt) {
             this.current.appFrame.removeEventListener('transitionend', tsEnd);
-            if (cb)
+            if (cb) {
               cb();
+            }
         }).bind(this);
         this.current.appFrame.style.transition = 'transform 0.3s ease';
         this.current.appFrame.addEventListener('transitionend', tsEnd);
@@ -513,8 +522,9 @@
       } else {
         this.current.appFrame.style.transition = '';
         this.current.appFrame.style.transform = 'rotateX(0.0deg)';
-        if (cb)
+        if (cb) {
           cb();
+        }
       }
     }).bind(ShrinkingUI);
 
@@ -560,8 +570,9 @@
       this.state.toward = (this.state.touch.prevY < slideY) ? 'TOP' : 'BOTTOM';
 
       // Don't set new sliding callback if we're suspended.
-      if (this.state.suspended)
+      if (this.state.suspended) {
         return;
+      }
 
       var handleDelaySliding = (function su_handleDelaySliding() {
           this._sendingSlideTo(slideY);
@@ -591,7 +602,6 @@
       clearTimeout(this.state.delaySlidingID);
 
       if (this.state.overThreshold && 'TOP' === this.state.toward) {
-        var cover = this.cover;
         this._sendingSlideTo('TOP' , (function() {
           // When it got sent, freeze it at the top.
           this._disableSlidingCover();
