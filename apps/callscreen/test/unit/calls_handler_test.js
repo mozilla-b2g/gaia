@@ -447,17 +447,24 @@ suite('calls handler', function() {
         var secondConfCall = new MockCall('12334', 'held');
         extraCall = new MockCall('424242', 'incoming');
 
+        /**
+         * Don't add all 3 calls at once since |CallsHandler.addCall|
+         * would hangup the 3rd call
+         */
         telephonyAddCall.call(this, firstConfCall, {trigger: true});
         telephonyAddCall.call(this, secondConfCall, {trigger: true});
-        telephonyAddCall.call(this, extraCall, {trigger: true});
 
-        MockNavigatorMozTelephony.calls = [extraCall];
+        // Merge calls
         MockNavigatorMozTelephony.conferenceGroup.calls = [firstConfCall,
                                                   secondConfCall];
         firstConfCall.group = MockNavigatorMozTelephony.conferenceGroup;
         secondConfCall.group = MockNavigatorMozTelephony.conferenceGroup;
-
+        MockNavigatorMozTelephony.calls = [];
         MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+
+        // Add extra call
+        telephonyAddCall.call(this, extraCall, {trigger: true});
+        MockNavigatorMozTelephony.calls = [extraCall];
         MockNavigatorMozTelephony.mTriggerCallsChanged();
       });
 
@@ -1433,8 +1440,11 @@ suite('calls handler', function() {
           MockNavigatorMozTelephony.mTriggerCallsChanged();
 
           var hangUpSpy = this.sinon.spy(call1, 'hangUp');
+          var answerSpy = this.sinon.spy(call2, 'answer');
+
           triggerCommand('CHLD=1');
           sinon.assert.calledOnce(hangUpSpy);
+          sinon.assert.calledOnce(answerSpy);
         });
       });
 
