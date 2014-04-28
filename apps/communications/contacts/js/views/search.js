@@ -39,7 +39,8 @@ contacts.Search = (function() {
       imgLoader,
       searchEnabled = false,
       source = null,
-      navigationController = null;
+      navigationController = null,
+      highlightClass = 'highlight';
 
   // The _source argument should be an adapter object that provides access
   // to the contact nodes in the app.  This is done by defining the following
@@ -131,6 +132,34 @@ contacts.Search = (function() {
     });
   };
 
+  var clearHighlights = function(node) {
+    // We travers the DOM tree and remove highlighting spans.
+    // getElements instead of querySelector here because of
+    // performance.
+    var highlights = node.getElementsByClassName(highlightClass);
+    while(highlights.length) {
+      var parent = highlights[0].parentNode;
+      while(highlights[0].firstChild) {
+          parent.insertBefore(highlights[0].firstChild, highlights[0]);
+      }
+
+      // This removes the item from 'highlights' HTMLCollection as well
+      // via live DOM updating.
+      parent.removeChild(highlights[0]);
+    }
+  };
+
+  var highlightNode = function(node) {
+    // This regexp match against everything except HTML tags
+    // 'currentTextToSearch' should be relatively safe from
+    // regex symbols getting passed through since it was previously normalized
+    var hRegEx = new RegExp('(' + currentTextToSearch + ')(?=[^>]*<)', 'gi');
+    node.innerHTML = node.innerHTML.replace(
+      hRegEx,
+      '<span class="' + highlightClass + '">$1</span>'
+    );
+  };
+
   var updateSearchList = function updateSearchList(cb) {
     if (!inSearchMode) {
       if (cb) {
@@ -204,6 +233,7 @@ contacts.Search = (function() {
     for (var i = from; i < hardLimit && i < nodes.length; i++) {
       var node = nodes[i].node;
       var clon = getClone(node);
+      highlightNode(clon);
       fragment.appendChild(clon);
       currentSet[node.dataset.uuid] = clon;
     }
@@ -348,6 +378,13 @@ contacts.Search = (function() {
           var clonedNode = getClone(contact);
           currentSet[contact.dataset.uuid] = clonedNode;
           searchList.appendChild(clonedNode);
+        }
+
+        if (currentSet[contact.dataset.uuid]) {
+          // We clear the highlights here because parts of the node could
+          // been already highlighted from a previous, more general search.
+          clearHighlights(currentSet[contact.dataset.uuid]);
+          highlightNode(currentSet[contact.dataset.uuid]);
         }
 
         state.searchables.push({
@@ -577,6 +614,9 @@ contacts.Search = (function() {
     'isInSearchMode': isInSearchMode,
     'enableSearch': enableSearch,
     'selectRow': selectRow,
-    'updateSearchList': updateSearchList
+    'updateSearchList': updateSearchList,
+    'getHighlightClass': function(){
+      return highlightClass;
+    }
   };
 })();
