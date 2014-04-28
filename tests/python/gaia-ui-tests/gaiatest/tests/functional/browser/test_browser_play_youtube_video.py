@@ -31,12 +31,12 @@ class TestYouTube(GaiaTestCase):
         browser.go_to_url(self.video_URL)
         browser.switch_to_content()
 
-        # Tap the video container
-        self.wait_for_element_present(*self._video_container_locator)
+        # Tap the video container to load the <video> element and start playing
+        self.wait_for_element_displayed(*self._video_container_locator)
         self.marionette.find_element(*self._video_container_locator).tap()
 
         # Wait HTML5 player to appear
-        self.wait_for_element_present(*self._video_element_locator)
+        self.wait_for_element_displayed(*self._video_element_locator)
         video = self.marionette.find_element(*self._video_element_locator)
         player = HTML5Player(self.marionette, video)
 
