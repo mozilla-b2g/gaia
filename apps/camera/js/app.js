@@ -17,6 +17,7 @@ var debug = require('debug')('app');
 var HudView = require('views/hud');
 var Pinch = require('lib/pinch');
 var bind = require('lib/bind');
+var Tap = require('vendor/tap');
 
 /**
  * Exports
@@ -162,6 +163,9 @@ App.prototype.bindEvents = function() {
   // Pinch
   this.pinch = new Pinch(this.el);
   this.pinch.on('pinchchanged', this.firer('pinchchanged'));
+
+  // Tap
+  Tap.attach(this.el);
 
   debug('events bound');
 };
