@@ -1,13 +1,20 @@
-/* globals CarrierSettings, MockL10n */
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+/* globals loadBodyHTML, CarrierSettings, DsdsSettings, MockL10n,
+           MockNavigatorSettings */
 
 'use strict';
 
+requireApp('settings/shared/test/unit/load_body_html_helper.js');
+requireApp('settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('settings/test/unit/mock_l10n.js');
 requireApp('settings/js/carrier.js');
+requireApp('settings/js/dsds_settings.js');
 
 suite('Carrier settings', function() {
+  var realMozSettings;
   var realMozL10n;
-  var carrierNames;
 
   function _getHashCode(s) {
     return s.split('').reduce(
@@ -21,51 +28,28 @@ suite('Carrier settings', function() {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    var apnPanel =
-      '<div>' +
-        '<ul class="apnSettings-list">' +
-          '<li>' +
-            '<label class="pack-radio">' +
-              '<input type="radio" name="defaultApn" value="69952602">' +
-              '<span>Carrier</span>' +
-            '</label>' +
-          '</li>' +
-          '<li>' +
-            '<label class="pack-radio">' +
-              '<input type="radio" name="defaultApn" value="69952601">' +
-              '<span>Carrier</span>' +
-            '</label>' +
-          '</li>' +
-          '<li>' +
-            '<label class="pack-radio">' +
-              '<input type="radio" name="defaultApn" value="69952600">' +
-              '<span>Carrier</span>' +
-            '</label>' +
-          '</li>' +
-          '<li class="apnSettings-custom">' +
-            '<label class="pack-radio">' +
-              '<input type="radio" name="defaultApn" value="_custom_">' +
-              '<span data-l10n-id="custom">(custom settings)</span>' +
-            '</label>' +
-          '</li>' +
-        '</ul>';
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
 
-    // Insert the nodes just inside the body, after its last child.
-    document.body.insertAdjacentHTML('beforeend', apnPanel);
+    loadBodyHTML('./_carrier_data_settings.html');
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
-  });
-
-  setup(function() {
-    // All the carriers have the same name on purpose.
-    carrierNames = ['Carrier', 'Carrier', 'Carrier'];
+    navigator.mozSettings = realMozSettings;
   });
 
   suite('Default APNs panel, switchRadioButtons function', function() {
+    var carrierNames;
+
+    setup(function() {
+      // All the carriers have the same name on purpose.
+      carrierNames = ['Carrier', 'Carrier', 'Carrier'];
+    });
+
     test('Different APNs with same name are correctly selected', function() {
-      var apnList = document.querySelector('.apnSettings-list');
+      var apnPanel = document.getElementById('carrier-dataSettings');
+      var apnList = apnPanel.querySelector('.apnSettings-list');
 
       for (var i = 0; i < carrierNames.length; i++) {
         var name = carrierNames[i];
@@ -74,10 +58,160 @@ suite('Carrier settings', function() {
 
         CarrierSettings.switchRadioButtons(apnList, hashCode);
 
-        var selector = 'input:checked';
+        var selector = 'input[type="radio"]:checked';
         var item = apnList.querySelector(selector);
         assert.equal(hashCode, item.value);
       }
+    });
+  });
+
+  suite('Preselect APN', function() {
+    var APNS_KEY = 'ril.data.apnSettings';
+    var apnListElement;
+    var apnList;
+    var preferredApnList;
+    var apns;
+
+    setup(function() {
+      MockNavigatorSettings.mSettings[APNS_KEY] = '[[], []]';
+      preferredApnList = [
+        [{
+          carrier: 'Movistar',
+          apn: 'telefonica.es',
+          user: 'telefonica',
+          password: 'telefonica',
+          proxy: '10.138.255.133',
+          port: '8080',
+          mmsc: 'http://mms.movistar.com',
+          mmsproxy: '10.138.255.5',
+          mmsport: '8080',
+          authtype: 'pap',
+          types: ['default']
+        },
+        {
+          carrier: 'Movistar',
+          apn: 'telefonica.es',
+          user: 'telefonica',
+          password: 'telefonica',
+          proxy: '10.138.255.133',
+          port: '8080',
+          mmsc: 'http://mms.movistar.com',
+          mmsproxy: '10.138.255.5',
+          mmsport: '8080',
+          authtype: 'pap',
+          types: ['mms']
+        },
+        {
+          carrier: 'Movistar',
+          apn: 'telefonica.es',
+          user: 'telefonica',
+          password: 'telefonica',
+          proxy: '10.138.255.133',
+          port: '8080',
+          mmsc: 'http://mms.movistar.com',
+          mmsproxy: '10.138.255.5',
+          mmsport: '8080',
+          authtype: 'pap',
+          types: ['supl']
+        }],
+        []
+      ];
+
+      apnList = [
+        {
+          carrier: 'Movistar',
+          apn: 'telefonica.es',
+          user: 'telefonica',
+          password: 'telefonica',
+          proxy: '10.138.255.133',
+          port: '8080',
+          mmsc: 'http://mms.movistar.com',
+          mmsproxy: '10.138.255.5',
+          mmsport: '8080',
+          authtype: 'pap',
+          types: ['default', 'supl', 'mms']
+        },
+        {
+          carrier: 'Jazztel Internet',
+          apn: 'jazzinternet',
+          type: ['default', 'supl'],
+          mvno_match_data: 'JAZZTEL',
+          mvno_type: 'spn'
+      }];
+
+      var apnPanel = document.getElementById('carrier-dataSettings');
+      apnListElement = apnPanel.querySelector('.apnSettings-list');
+      DsdsSettings.init();
+      CarrierSettings.init();
+    });
+
+    teardown(function() {
+      MockNavigatorSettings.mTeardown();
+    });
+
+    suite('Default APNs panel', function() {
+      setup(function() {
+        MockNavigatorSettings.mSettings[APNS_KEY] = preferredApnList;
+      });
+
+      test('Preselect Movistar w/o hash code', function(done) {
+        CarrierSettings.updateApnList(apnList, 'data',
+          function onUpdated() {
+            var selector = 'input[type="radio"]:checked';
+            var input = apnListElement.querySelector(selector);
+            assert.equal(input.value, _getHashCode('Movistar0'));
+            done();
+        });
+      });
+    });
+
+    suite('Default APNs panel', function() {
+      setup(function() {
+        preferredApnList[0][0].hashCode = _getHashCode('Movistar0');
+        MockNavigatorSettings.mSettings[APNS_KEY] = preferredApnList;
+      });
+
+      test('Preselect Movistar with hash code', function(done) {
+        CarrierSettings.updateApnList(apnList, 'data',
+          function onUpdated() {
+            var selector = 'input[type="radio"]:checked';
+            var input = apnListElement.querySelector(selector);
+            assert.equal(input.value, _getHashCode('Movistar0'));
+            done();
+        });
+      });
+    });
+
+    suite('Default APNs panel', function() {
+      setup(function() {
+        preferredApnList[0][0].hashCode = _getHashCode('Movistar1');
+        MockNavigatorSettings.mSettings[APNS_KEY] = preferredApnList;
+
+        apns = [{
+          carrier: 'Movistar',
+          apn: 'telefonica.es',
+          user: 'telefonica',
+          password: 'telefonica',
+          proxy: '10.138.255.133',
+          port: '8080',
+          mmsc: 'http://mms.movistar.com',
+          mmsproxy: '10.138.255.5',
+          mmsport: '8080',
+          authtype: 'pap',
+          types: ['default', 'supl', 'mms']
+        }];
+      });
+
+      test('Preselect Movistar (second APN in the list) with hash code',
+        function(done) {
+          CarrierSettings.updateApnList(apns.concat(apnList), 'data',
+          function onUpdated() {
+            var selector = 'input[type="radio"]:checked';
+            var input = apnListElement.querySelector(selector);
+            assert.equal(input.value, _getHashCode('Movistar1'));
+            done();
+          });
+      });
     });
   });
 });
