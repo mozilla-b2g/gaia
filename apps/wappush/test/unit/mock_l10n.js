@@ -23,6 +23,9 @@
     ready: function ready(handler) {
       setTimeout(handler);
     },
+    once: function ready(handler) {
+      setTimeout(handler);
+    },
     translate: function translate(element) {},
     localize: function localize(element, id, args) {
       element.innerText = MockL10n.get(id, args);
