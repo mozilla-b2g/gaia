@@ -29,7 +29,7 @@ window.addEventListener('localized', function() {
       $('save').addEventListener('click', save);
 
       // And register event handlers for gestures
-      frame = new MediaFrame($('frame'), false);
+      frame = new MediaFrame($('frame'), false, CONFIG_MAX_IMAGE_PIXEL_SIZE);
 
       if (CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH) {
         frame.setMinimumPreviewSize(CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH,
@@ -83,13 +83,18 @@ window.addEventListener('localized', function() {
     // Called if we get an image size
     function success(metadata) {
       var pixels = metadata.width * metadata.height;
+
+      //
       // If the image is too big, reject it now so we don't have
-      // memory trouble later.
-      // CONFIG_MAX_IMAGE_PIXEL_SIZE is maximum image resolution we can handle.
-      // It's from config.js which is generated in build time, 5 megapixels by
-      // default (see build/application-data.js). It should be synced with
-      // Camera app and update carefully.
-      if (pixels > CONFIG_MAX_IMAGE_PIXEL_SIZE) {
+      // memory trouble later. We don't have to reject jpeg files
+      // because the MediaFrame will downsample them while decoding
+      // as needed using the #-moz-samplesize media fragment.
+      //
+      // CONFIG_MAX_IMAGE_PIXEL_SIZE is maximum image resolution we
+      // can handle.  It's from config.js which is generated at build
+      // time (see build/application-data.js).
+      //
+      if (blob.type !== 'image/jpeg' && pixels > CONFIG_MAX_IMAGE_PIXEL_SIZE) {
         displayError('imagetoobig');
         return;
       }
@@ -139,7 +144,11 @@ window.addEventListener('localized', function() {
                             // just display full-size.
                             frame.displayImage(blob,
                                                metadata.width,
-                                               metadata.height);
+                                               metadata.height,
+                                               null,
+                                               metadata.rotation,
+                                               metadata.mirrored);
+
                           });
       }
     }

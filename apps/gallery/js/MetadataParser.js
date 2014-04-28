@@ -15,6 +15,11 @@ var metadataParser = (function() {
                             window.devicePixelRatio / 4);
   var THUMBNAIL_HEIGHT = THUMBNAIL_WIDTH;
 
+  var thumbnailSize = {
+    width: THUMBNAIL_WIDTH,
+    height: THUMBNAIL_HEIGHT
+  };
+
   // Don't try to decode image files of unknown type if bigger than this
   var MAX_UNKNOWN_IMAGE_FILE_SIZE = .5 * 1024 * 1024; // half a megabyte
 
@@ -181,13 +186,17 @@ var metadataParser = (function() {
     }
 
     function gotImageSize(metadata) {
+      //
       // If the image is too big, reject it now so we don't have
-      // memory trouble later.
-      // CONFIG_MAX_IMAGE_PIXEL_SIZE is maximum image resolution we can handle.
-      // It's from config.js which is generated in build time, 5 megapixels by
-      // default (see build/application-data.js). It should be synced with
-      // Camera app and update carefully.
-      if (metadata.width * metadata.height > CONFIG_MAX_IMAGE_PIXEL_SIZE) {
+      // memory trouble later. We don't have to do this for jpeg images
+      // however because MediaFrame will downsample them as needed.
+      //
+      // CONFIG_MAX_IMAGE_PIXEL_SIZE is maximum image resolution we
+      // can handle.  It's from config.js which is generated at build
+      // time (see build/application-data.js).
+      //
+      if (file.type !== 'image/jpeg' &&
+          metadata.width * metadata.height > CONFIG_MAX_IMAGE_PIXEL_SIZE) {
         metadataError('Ignoring high-resolution image ' + file.name);
         return;
       }
@@ -223,15 +232,38 @@ var metadataParser = (function() {
         useFullsizeImage();
       }
 
+      // If we can't find a valid embedded EXIF preview image then we come here
       function useFullsizeImage() {
-        // Since a number of different cases use the same fallback method
-        // define it in one place for easier code flow.
-        createThumbnailAndPreview(file,
-                                  metadataCallback,
-                                  metadataError,
-                                  false,
-                                  bigFile,
-                                  metadata);
+        // If the full size image is a JPEG then we'll just skip the
+        // preview generation because we can downsample and decode it
+        // at preview size when needed. So in this case, we just need
+        // to create a thumbnail for the image.  On the other hand, if
+        // this is not a JPEG image then we have to create both a
+        // thumbnail and an external preview image.
+        if (file.type === 'image/jpeg') {
+          cropResizeRotate(file, null, thumbnailSize, null, metadata,
+                           function gotThumbnail(error, thumbnailBlob) {
+                             if (error) {
+                               var msg = 'Failed to create thumbnail for' +
+                                 file.name;
+                               console.error(msg);
+                               metadataError(msg);
+                               return;
+                             }
+
+                             metadata.preview = null;
+                             metadata.thumbnail = thumbnailBlob;
+                             metadataCallback(metadata);
+                           });
+        }
+        else {
+          createThumbnailAndPreview(file,
+                                    metadataCallback,
+                                    metadataError,
+                                    false,
+                                    bigFile,
+                                    metadata);
+        }
       }
 
       function previewsuccess(previewmetadata) {
@@ -258,17 +290,35 @@ var metadataParser = (function() {
           bigenough = (pw >= sw || ph >= sh) && (pw >= sh || ph >= sw);
         }
 
-        // If the preview is big enough, use it to create a thumbnail.
-        if (bigenough) {
+        // Does the aspect ratio of the preview match the aspect ratio of
+        // the full-size image? If not we have to assume it is distorted
+        // and should not be used.
+        var aspectRatioMatches =
+          Math.abs(pw / ph - metadata.width / metadata.height) < 0.01;
+
+        // If the preview is good, use it to create a thumbnail.
+        if (bigenough && aspectRatioMatches) {
           metadata.preview.width = pw;
           metadata.preview.height = ph;
-          // The 4th argument true means don't actually create a preview
-          createThumbnailAndPreview(previewblob,
-                                    metadataCallback,
-                                    previewerror,
-                                    true,
-                                    bigFile,
-                                    metadata);
+
+          // This is the most common case. We've got a JPEG image with a
+          // JPEG preview. All we need is a thumbnail, and we can create that
+          // most efficiently with cropResizeRotate which will use
+          // #-moz-samplesize to save memory while decoding the image.
+          // Note that we apply the EXIF orientation information from
+          // the full size image to the preview image.
+          previewmetadata.rotation = metadata.rotation;
+          previewmetadata.mirrored = metadata.mirrored;
+          cropResizeRotate(previewblob, null, thumbnailSize, null,
+                           previewmetadata,
+                           function gotThumbnailBlob(error, thumbnailBlob) {
+                             if (error) {
+                               previewerror(error);
+                               return;
+                             }
+                             metadata.thumbnail = thumbnailBlob;
+                             metadataCallback(metadata);
+                           });
         } else {
           // Preview isn't big enough so get one the hard way
           useFullsizeImage();
@@ -282,6 +332,11 @@ var metadataParser = (function() {
   // a metadata object, and pass the object to the callback function.
   // If anything goes wrong, pass an error message to the error function.
   // If it is a large image, create and save a preview for it as well.
+  //
+  // We used to call this function for every image. Now that gecko supports
+  // the #-moz-samplesize media fragment, however, we handle jpeg images
+  // with cropResizeRotate() for memory efficiency, and this function is
+  // used only for non-jpeg files.
   function createThumbnailAndPreview(file, callback, error, nopreview,
                                      bigFile, metadata) {
     var url = URL.createObjectURL(file);
