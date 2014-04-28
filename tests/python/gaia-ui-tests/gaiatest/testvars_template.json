@@ -34,6 +34,17 @@
       "password": "",
       "active_sync_hostname": "",
       "active_sync_username": ""
+    },
+    "POP3":{
+      "name": "",
+      "email": "",
+      "password": "",
+      "pop3_hostname": "",
+      "pop3_name": "",
+      "pop3_port": "",
+      "smtp_hostname": "",
+      "smtp_name": "",
+      "smtp_port": ""
     }
 
   },
