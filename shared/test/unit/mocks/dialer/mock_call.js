@@ -13,7 +13,9 @@ function MockCall(aNumber, aState, aServiceId) {
   this.state = aState;
 
   this.answer = function() {};
-  this.hangUp = function() {};
+  this.hangUp = function() {
+    this._disconnect();
+  };
   this.hold = function() {};
   this.resume = function() {};
 
