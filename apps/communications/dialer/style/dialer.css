@@ -75,17 +75,14 @@ body.hidden *[data-l10n-id] {
 
 .icon-recents {
   background-image: url("images/recents.png");
-  background-size: 3rem;
 }
 
 .icon-contacts {
   background-image: url("images/contacts.png");
-  background-size: 3rem;
 }
 
 .icon-keypad {
   background-image: url("images/dialpad.png");
-  background-size: 3rem;
 }
 
 .with-keyboard #views, .with-keyboard #contacts-view,

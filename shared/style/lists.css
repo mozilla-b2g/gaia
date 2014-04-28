@@ -51,7 +51,7 @@
 
 /* Pressed State */
 li a:active {
-  background: none; /* remove default color for active state */
+  background-color: transparent; /* remove default color for active state */
 }
 
 [data-type="list"] li > a {
