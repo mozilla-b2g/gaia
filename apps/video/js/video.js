@@ -1091,6 +1091,12 @@ function pause() {
   // Switch the button icon
   dom.play.classList.add('paused');
 
+  // Check the dragging is true or not before pausing
+  if (dragging) {
+    dragging = false;
+    dom.playHead.classList.remove('active');
+  }
+
   // Stop playing the video
   dom.player.pause();
   playing = false;
