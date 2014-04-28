@@ -306,7 +306,6 @@ var NavbarManager = {
     }
     var self = this;
     LazyLoader.load(['/shared/js/async_storage.js',
-                     '/shared/js/notification_helper.js',
                      '/shared/js/simple_phone_matcher.js',
                      '/shared/js/contact_photo_helper.js',
                      '/shared/js/dialer/contacts.js',

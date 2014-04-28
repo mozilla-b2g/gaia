@@ -168,10 +168,11 @@ var MmiUI = {
           if (data.message == null) {
             data.message = this._('mmi-session-expired');
           }
+          NotificationHelper.send(data.title, data.message);
         } else {
           this.showResponseForm();
+          this.showMessage(data.message, data.title);
         }
-        this.showMessage(data.message, data.title);
         break;
       case 'mmi-loading':
         this.showLoading();
