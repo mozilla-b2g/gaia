@@ -89,18 +89,24 @@
     },
 
     setConfirmation: function(address, confirmed) {
-      this.bluetoothHelper.setPairingConfirmation(address, confirmed);
+      if (this.bluetoothHelper && this.bluetoothHelper.setPairingConfirmation) {
+        this.bluetoothHelper.setPairingConfirmation(address, confirmed);
+      }
       window.close();
     },
 
     setPinCode: function(address, pincode) {
-      this.bluetoothHelper.setPinCode(address, pincode);
+      if (this.bluetoothHelper && this.bluetoothHelper.setPinCode) {
+        this.bluetoothHelper.setPinCode(address, pincode);
+      }
       window.close();
     },
 
     setPasskey: function(address, passkey) {
-      var key = parseInt(passkey, 10);
-      this.bluetoothHelper.setPasskey(address, key);
+      if (this.bluetoothHelper && this.bluetoothHelper.setPasskey) {
+        var key = parseInt(passkey, 10);
+        this.bluetoothHelper.setPasskey(address, key);
+      }
       window.close();
     },
 

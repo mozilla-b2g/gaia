@@ -94,7 +94,11 @@ var Pairview = {
   },
 
   close: function() {
-    window.opener.PairManager.setConfirmation(this._device.address, false);
+    if (window.opener && window.opener.PairManager &&
+        window.opener.PairManager.setConfirmation) {
+      window.opener.PairManager.setConfirmation(this._device.address, false);
+    }
+
     window.close();
   },
 
@@ -122,18 +126,27 @@ var Pairview = {
             this.closeButton.disabled = true;
             switch (this._pairMethod) {
               case 'confirmation':
-                window.opener.PairManager.setConfirmation(this._device.address,
-                                                          true);
+                if (window.opener && window.opener.PairManager &&
+                    window.opener.PairManager.setConfirmation) {
+                  window.opener.PairManager.setConfirmation(
+                    this._device.address, true);
+                }
                 break;
               case 'pincode':
                 var value = this.pinInput.value;
-                window.opener.PairManager.setPinCode(this._device.address,
-                                                     value);
+                if (window.opener && window.opener.PairManager &&
+                    window.opener.PairManager.setPinCode) {
+                  window.opener.PairManager.setPinCode(this._device.address,
+                                                       value);
+                }
                 break;
               case 'passkey':
                 var value = this.passkeyInput.value;
-                window.opener.PairManager.setPasskey(this._device.address,
-                                                     value);
+                if (window.opener && window.opener.PairManager &&
+                    window.opener.PairManager.setPasskey) {
+                  window.opener.PairManager.setPasskey(this._device.address,
+                                                       value);
+                }
                 break;
             }
             window.close();
