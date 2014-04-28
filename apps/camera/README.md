@@ -119,6 +119,18 @@ Our `Makefile` has two tasks, one to **'build'** and one to **'clean'** (delete 
 3. Copy all the entire `shared/` directory into our build directory. This is so that any shared dependencies that we are using are available in `build_stage/camera/shared/`, mimicking the magically resolved `/shared/` HTTP requests in development.
 4. Run the `r.js` (RequireJS optimizer), pointing it at our `require_config.jslike` file (`.jslike` because we don't want Gaia builds to mess with it [I think]). This copies our entire application (JS and all) and bundles our JS (tracing `require()` calls) and CSS (tracing `@import`) in two single files.
 
+## Camera configuration
+
+All the configuration variables are included in js/config/config.js. To customize your camera there are two options:
+
+1. Edit js/config/config.js and change the desired values
+2. '''Build time configuration''' It is also possible to create an external config.js file that will be used at build time instead of the default one. Two steps:
+
+- Copy js/config/config.js to any location and modify the desired values
+- Especify the env variable GAIA_DISTRIBUTION_DIR that points to the location of your custom config.js before building the app e.g:
+
+GAIA_DISTRIBUTION_DIR=~/CUSTOM/CONFIG/DIRECTORY make APP=camera
+
 ## Debug messages in javascript console
 
 - To enable debug messages for all modules
@@ -202,3 +214,4 @@ Browser: `input[type="file"][accept="image/*"]`, `input[type="file"][accept="ima
   }
 }
 ```
+

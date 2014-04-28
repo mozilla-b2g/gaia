@@ -6,6 +6,12 @@ ifndef XPCSHELLSDK
 $(error This Makefile needs to be run by the root gaia makefile. Use `make APP=camera` from the root gaia directory.)
 endif
 
+ifdef GAIA_DISTRIBUTION_DIR
+	ifneq ($(wildcard $(GAIA_DISTRIBUTION_DIR)/camera-settings.js),)
+		CP_USER_SETTINGS = cp $(GAIA_DISTRIBUTION_DIR)/camera-config.js js/config/config.js
+	endif
+endif
+
 -include $(PWD)/build/common.mk
 
 .PHONY: all $(STAGE_APP_DIR)/js/main.js
@@ -15,6 +21,6 @@ $(STAGE_APP_DIR):
 	mkdir -p $(STAGE_APP_DIR)
 
 $(STAGE_APP_DIR)/js/main.js: | $(STAGE_APP_DIR)
-	@$(call run-js-command,app/build)
+	$(CP_USER_SETTINGS)
 	rm -rf $(STAGE_APP_DIR)/style
 	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/require_config.jslike

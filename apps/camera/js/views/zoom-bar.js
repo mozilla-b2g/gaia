@@ -7,7 +7,6 @@ define(function(require, exports, module) {
 
 var View = require('vendor/view');
 var bind = require('lib/bind');
-var constants = require('config/camera');
 var orientation = require('lib/orientation');
 
 /**
@@ -76,7 +75,7 @@ module.exports = View.extend({
     var deltaY = lastTouch.pageY - touch.pageY;
 
     var scale = 100 / this._innerHeight;
-    
+
     deltaX *= scale;
     deltaY *= scale;
 
@@ -109,13 +108,13 @@ module.exports = View.extend({
   },
 
   onIncrement: function(evt) {
-    this.setValue(this._value + constants.ZOOM_BAR_INDICATOR_INTERVAL, true);
+    this.setValue(this._value + window.ZOOM_BAR_INDICATOR_INTERVAL, true);
     this.flashScrubberActive();
     evt.stopPropagation();
   },
 
   onDecrement: function(evt) {
-    this.setValue(this._value - constants.ZOOM_BAR_INDICATOR_INTERVAL, true);
+    this.setValue(this._value - window.ZOOM_BAR_INDICATOR_INTERVAL, true);
     this.flashScrubberActive();
     evt.stopPropagation();
   },
@@ -197,7 +196,7 @@ module.exports = View.extend({
     var self = this;
     this._inactivityTimeout = window.setTimeout(function() {
       self.hide();
-    }, constants.ZOOM_BAR_INACTIVITY_TIMEOUT);
+    }, window.ZOOM_BAR_INACTIVITY_TIMEOUT);
   },
 
   show: function() {

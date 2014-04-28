@@ -110,10 +110,6 @@ suite('controllers/settings', function() {
         .withArgs('exclude')
         .returns(this.exclude);
 
-      this.settings.pictureSizes
-        .get.withArgs('maxPixelSize')
-        .returns(123);
-
       this.app.l10n.get
         .withArgs('mp')
         .returns('mp');
@@ -135,11 +131,10 @@ suite('controllers/settings', function() {
       assert.equal(arg1, this.pictureSizes);
     });
 
-    test('Should pass the `exclude` and `maxPixelSize`', function() {
+    test('Should pass the `exclude`', function() {
       var options = this.app.formatPictureSizes.args[0][1];
 
       assert.equal(options.exclude, this.exclude);
-      assert.equal(options.maxPixelSize, 123);
     });
 
     test('Should fire a \'configured\' event once done', function() {
