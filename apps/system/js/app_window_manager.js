@@ -210,6 +210,7 @@
       } else {
         this.element.classList.remove('slow-transition');
       }
+      window.addEventListener('cardviewbeforeshow', this);
       window.addEventListener('launchapp', this);
       window.addEventListener('launchactivity', this);
       window.addEventListener('home', this);
@@ -501,6 +502,12 @@
         case 'launchactivity':
           if (evt.detail.isActivity && evt.detail.inline) {
             this.launchActivity(evt);
+          }
+          break;
+
+        case 'cardviewbeforeshow':
+          if (this._activeApp) {
+            this._activeApp.getTopMostWindow().blur();
           }
           break;
       }

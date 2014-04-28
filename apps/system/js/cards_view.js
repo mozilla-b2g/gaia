@@ -218,11 +218,6 @@ var CardsView = (function() {
     // Make sure we're in default orientation
     screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
-    // If there is a displayed app, take keyboard focus away
-    if (currentPosition) {
-      stack[currentPosition].blur();
-    }
-
     placeCards();
     // At the beginning only the current card can listen to tap events
     currentCardStyle.pointerEvents = 'auto';
