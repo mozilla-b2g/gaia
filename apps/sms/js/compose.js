@@ -47,7 +47,13 @@ var Compose = (function() {
   var subject = {
     isVisible: false,
     toggle: function sub_toggle() {
-      this.isVisible ? this.hide() : this.show();
+      if (!this.isVisible) {
+        this.show();
+      } else {
+        this.hide();
+        dom.message.focus();
+      }
+      return this;
     },
     show: function sub_show() {
       dom.subject.classList.remove('hide');
@@ -55,38 +61,98 @@ var Compose = (function() {
       dom.subject.focus();
       Compose.updateType();
       onContentChanged();
+      return this;
     },
     hide: function sub_hide() {
       dom.subject.classList.add('hide');
       this.isVisible = false;
-      dom.message.focus();
       Compose.updateType();
       onContentChanged();
+      return this;
     },
     clear: function sub_clear() {
-      dom.subject.value = '';
-      dom.subject.classList.add('hide');
-      this.isVisible = false;
+      dom.subject.innerHTML = '<br>';
+      return this;
     },
     getContent: function sub_getContent() {
-      // Only send value if subject is showing. If not, send empty string
-      // We need to transform any linebreak or into a single space
-      return subject.isShowing ?
-             dom.subject.value.replace(/\n\s*/g, ' ') : '';
+      return this.isVisible ?
+        getTextFromContent(getContentFromDOM(dom.subject)) : '';
     },
     setContent: function sub_setContent(content) {
-      dom.subject.value = content;
+      if (typeof content !== 'string') {
+        return;
+      }
+      dom.subject.insertBefore(
+        insert(content),
+        dom.subject.lastChild
+      );
+      return this;
     },
     getMaxLength: function sub_getMaxLength() {
-      return dom.subject.maxLength;
+      return +dom.subject.dataset.maxLength;
     },
     get isEmpty() {
-      return !dom.subject.value.length;
+      return dom.subject.textContent.length === 0;
     },
     get isShowing() {
       return this.isVisible;
     }
   };
+
+  // Given a DOM element, we will extract an array of the
+  // relevant nodes as attachment or text
+  function getContentFromDOM(domElement) {
+    var content = [];
+    var node;
+
+    for (node = domElement.firstChild; node; node = node.nextSibling) {
+      // hunt for an attachment in the WeakMap and append it
+      var attachment = attachments.get(node);
+      if (attachment) {
+        content.push(attachment);
+        continue;
+      }
+
+      var last = content.length - 1;
+      var text = node.textContent;
+
+      // Bug 877141 - contenteditable wil insert non-break spaces when
+      // multiple consecutive spaces are entered, we don't want them.
+      if (text) {
+        text = text.replace(/\u00A0/g, ' ');
+      }
+
+      if (node.nodeName == 'BR') {
+        if (node === domElement.lastChild) {
+          continue;
+        }
+        text = '\n';
+      }
+
+      // append (if possible) text to the last entry
+      if (text.length) {
+        if (typeof content[last] === 'string') {
+          content[last] += text;
+        } else {
+          content.push(text);
+        }
+      }
+    }
+
+    return content;
+  }
+
+  // Given a content array, we will get a String with the text
+  // concatenated, without line breaks.
+  function getTextFromContent(contentArray) {
+    var text = '';
+    for (var i = contentArray.length - 1; i >= 0; i--) {
+      if (typeof contentArray[i] === 'string') {
+        text += contentArray[i];
+      }
+    }
+    return text.replace(/\n\s*/g, ' ');
+  }
 
   // anytime content changes - takes a parameter to check for image resizing
   function onContentChanged(duck) {
@@ -121,6 +187,12 @@ var Compose = (function() {
     if (!placeholding && isEmptyMessage) {
       dom.message.classList.add(placeholderClass);
     }
+
+    // Subject placeholder management
+    dom.subject.classList.toggle(
+      placeholderClass,
+      subject.isShowing && isEmptySubject
+    );
 
     // Send button management
     /* The send button should be enabled only in the situations where:
@@ -250,7 +322,7 @@ var Compose = (function() {
   var compose = {
     init: function composeInit(formId) {
       dom.form = document.getElementById(formId);
-      dom.message = dom.form.querySelector('[contenteditable]');
+      dom.message = document.getElementById('messages-input');
       dom.subject = document.getElementById('messages-subject-input');
       dom.sendButton = document.getElementById('messages-send-button');
       dom.attachButton = document.getElementById('messages-attach-button');
@@ -305,48 +377,19 @@ var Compose = (function() {
     },
 
     getContent: function() {
-      var content = [];
-      var node;
-
-      for (node = dom.message.firstChild; node; node = node.nextSibling) {
-        // hunt for an attachment in the WeakMap and append it
-        var attachment = attachments.get(node);
-        if (attachment) {
-          content.push(attachment);
-          continue;
-        }
-
-        var last = content.length - 1;
-        var text = node.textContent;
-
-        // Bug 877141 - contenteditable wil insert non-break spaces when
-        // multiple consecutive spaces are entered, we don't want them.
-        if (text) {
-          text = text.replace(/\u00A0/g, ' ');
-        }
-
-        if (node.nodeName == 'BR') {
-          if (node === dom.message.lastChild) {
-            continue;
-          }
-          text = '\n';
-        }
-
-        // append (if possible) text to the last entry
-        if (text.length) {
-          if (typeof content[last] === 'string') {
-            content[last] += text;
-          } else {
-            content.push(text);
-          }
-        }
-      }
-
-      return content;
+      return getContentFromDOM(dom.message);
     },
 
     getSubject: function() {
       return subject.getContent();
+    },
+
+    isSubjectMaxLength: function() {
+      return subject.getContent().length >= subject.getMaxLength();
+    },
+
+    isSubjectEmpty: function() {
+      return subject.isEmpty;
     },
 
     toggleSubject: function() {
@@ -367,7 +410,7 @@ var Compose = (function() {
       }
 
       if (draft.subject) {
-        dom.subject.value = draft.subject;
+        subject.setContent(draft.subject);
         subject.toggle();
       }
 
@@ -537,7 +580,7 @@ var Compose = (function() {
 
     clear: function() {
       dom.message.innerHTML = '<br>';
-      subject.clear();
+      subject.clear().hide();
       state.resizing = state.full = false;
       state.size = 0;
       state.empty = true;

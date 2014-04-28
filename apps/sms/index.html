@@ -24,6 +24,7 @@
     <link rel="stylesheet" type="text/css" href="style/notification.css">
     <link rel="stylesheet" type="text/css" href="style/report_view.css">
     <link rel="stylesheet" type="text/css" href="style/attachment.css">
+    <link rel="stylesheet" type="text/css" href="style/composer.css">
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
@@ -213,8 +214,6 @@
             </section>
           </div>
         </div>
-        <article id="messages-container" class="view-body article-list edit-container" data-type="list">
-        </article>
         <article id="information-participants" class="view-body article-list hide" data-type="list">
           <ul class="contact-list"></ul>
         </article>
@@ -251,18 +250,25 @@
             <span class="size"></span>
           </div>
         </article>
-        <form role="search" id="messages-compose-form" class="bottom messages-compose-form" data-message-type="sms">
-          <button id="messages-send-button" disabled data-l10n-id="send" type="submit">
-            <div class="js-sim-indication"></div>
-            Send
-          </button>
-          <textarea id="messages-subject-input" placeholder="Subject" name="subject"
-            data-l10n-id="composeSubject" class="hide" maxlength="40"></textarea>
-          <!-- The <br> is needed because of 414223, which is a WONTFIX. It's just because of how contentEditable works. https://bugzilla.mozilla.org/show_bug.cgi?id=414223 -->
-          <div id="messages-input" contentEditable="true" name="message"
-            data-l10n-id="composeMessage" x-inputmode="-moz-sms"><br></div>
-        </form>
-        <form role="dialog" id="messages-edit-form" role="dialog" data-type="edit">
+        <article id="composer-container" class="view-body" data-composer-layout="">
+          <div class="flex-composer">
+            <div id="composer-messages-container">
+              <div id="messages-container" data-type="list" class="article-list">
+              </div>
+            </div>
+            <form id="messages-compose-form" role="search" class="bottom" data-message-type="sms">
+              <button id="messages-send-button" type="submit">Send</button>
+              <div class="message-complete">
+                <div id="messages-subject-input" contentEditable="true" class="placeholder" data-l10n-id="composeSubject" data-max-length="40">
+                </div>
+                <div id="messages-input" contentEditable="true" name="message"
+            data-l10n-id="composeMessage" x-inputmode="-moz-sms">
+                </div>
+              </div>
+            </form>
+          </div>
+        </article>
+        <form role="dialog" id="messages-edit-form" data-type="edit" >
           <section role="region">
             <header>
               <button id="messages-cancel-button">
@@ -499,14 +505,6 @@
       <body class="attachment-draft ${previewClass}">
         ${attachmentHTML}
       </body>
-      -->
-    </div>
-
-    <div id="height-rule-tmpl" class="hide">
-      <!--
-      #messages-recipients-list.multiline {
-        max-height: ${height}px;
-      }
       -->
     </div>
 

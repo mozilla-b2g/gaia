@@ -93,7 +93,7 @@ suite('compose_test.js', function() {
     setup(function() {
       loadBodyHTML('/index.html');
       Compose.init('messages-compose-form');
-      message = document.querySelector('[contenteditable]');
+      message = document.getElementById('messages-input');
       subject = document.getElementById('messages-subject-input');
       sendButton = document.getElementById('messages-send-button');
       attachButton = document.getElementById('messages-attach-button');
@@ -116,7 +116,7 @@ suite('compose_test.js', function() {
 
       test('Get content from subject field', function() {
         var content = 'Title';
-        subject.value = content;
+        subject.textContent = content;
         // We need to show the subject to get content
         Compose.toggleSubject();
         assert.equal(Compose.getSubject(), content);
@@ -138,11 +138,45 @@ suite('compose_test.js', function() {
 
       test('Sent subject doesnt have line breaks (spaces instead)', function() {
         // Set the value
-        subject.value = 'Line 1\nLine 2\n\n\n\nLine 3';
+        subject.innerHTML = 'Line 1<br>Line 2<br><br><br><br>Line 3<br>';
         // We need to show the subject to get content
         Compose.toggleSubject();
         var text = Compose.getSubject();
         assert.equal(text, 'Line 1 Line 2 Line 3');
+      });
+
+      suite('Subject methods in Compose object', function() {
+        setup(function() {
+          Compose.clear();
+        });
+
+        test('> isSubjectMaxLength:false', function() {
+          subject.textContent = 'foo text';
+          Compose.toggleSubject();
+          assert.isFalse(Compose.isSubjectMaxLength());
+        });
+
+        test('> isSubjectMaxLength:true', function() {
+          subject.textContent = '1234567890123456789012345678901234567890' +
+          '123456789012345678901234567890123456789012345678901234567890' +
+          '123456789012345678901234567890123456789012345678901234567890' +
+          '123456789012345678901234567890123456789012345678901234567890' +
+          '123456789012345678901234567890123456789012345678901234567890';
+          Compose.toggleSubject();
+          assert.isTrue(Compose.isSubjectMaxLength());
+        });
+
+        test('> isSubjectEmpty:true', function() {
+          subject.innerHTML = '<br><br><br>';
+          Compose.toggleSubject();
+          assert.isTrue(Compose.isSubjectEmpty());
+        });
+
+        test('> isSubjectEmpty:false', function() {
+          subject.innerHTML = '<br><br><br>foo';
+          Compose.toggleSubject();
+          assert.isFalse(Compose.isSubjectEmpty());
+        });
       });
     });
 
@@ -197,7 +231,7 @@ suite('compose_test.js', function() {
         assert.equal(txt.length, 0, 'No lines in the txt');
       });
       test('Clear removes subject', function() {
-        subject.value = 'Title';
+        subject.textContent = 'Title';
         Compose.toggleSubject();
         var txt = Compose.getSubject();
         assert.equal(txt, 'Title', 'Something in the txt');
@@ -215,9 +249,7 @@ suite('compose_test.js', function() {
       });
 
       test('Message appended with html', function() {
-        var message = document.querySelector(
-          '#messages-compose-form [contenteditable]'
-        );
+        var message = document.getElementById('messages-input');
 
         Compose.append('<b>hi!</b>\ntest');
         var txt = Compose.getContent();
@@ -722,7 +754,7 @@ suite('compose_test.js', function() {
         function() {
         expectType = 'mms';
         Compose.toggleSubject();
-        subject.value = 'foo';
+        subject.textContent = 'foo';
         subject.dispatchEvent(new CustomEvent('input'));
         assert.equal(typeChange.called, 1);
 
