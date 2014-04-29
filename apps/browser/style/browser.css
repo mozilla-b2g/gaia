@@ -144,10 +144,6 @@ input[type="image"] {
   margin-right: 1rem;
 }
 
-.preview.crashed {
-  background-image: url(images/tab-icon-crashedtab.png);
-}
-
 #tabs-list span {
   pointer-events: none;
   display: block;
