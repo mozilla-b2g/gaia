@@ -605,7 +605,7 @@ function optimize_compile(webapp, file, callback) {
     // selecting a language triggers `XMLHttpRequest' and `dispatchEvent' above
     debug('localizing: ' + file.path);
 
-    // if LOCALE_BASEDIR is set, we're going to show missing strings at 
+    // if LOCALE_BASEDIR is set, we're going to show missing strings at
     // buildtime.
     var debugL10n = config.LOCALE_BASEDIR != "";
 
@@ -724,6 +724,14 @@ function execute(options) {
 
     // optimize all HTML documents in the webapp
     let files = utils.ls(webapp.buildDirectoryFile, true, /^(shared|tests?)$/);
+
+    // We need to optimize shared pages as well
+    let sharedPagesDir = webapp.buildDirectoryFile.clone();
+    sharedPagesDir.append('shared');
+    sharedPagesDir.append('pages');
+    let filesSharedPages = utils.ls(sharedPagesDir, true);
+    files = files.concat(filesSharedPages);
+
     files.forEach(function(file) {
       if (/\.html$/.test(file.leafName)) {
         filesToProcess.push(file);
