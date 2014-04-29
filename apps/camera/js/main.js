@@ -13,9 +13,19 @@ debug('domloaded in %s', domLoaded + 'ms');
 var Activity = require('lib/activity');
 var Settings = require('lib/settings');
 var GeoLocation = require('lib/geo-location');
-var settings = new Settings(require('config/settings'));
+var settingsData = require('config/config');
+var settings = new Settings(settingsData);
 var Camera = require('lib/camera');
 var App = require('app');
+
+/**
+  * Create globals specified in the config file
+  */
+if (settingsData.globals) {
+  for (var key in settingsData.globals) {
+    window[key] = settingsData.globals[key];
+  }
+}
 
 /**
  * Create new `App`

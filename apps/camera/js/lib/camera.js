@@ -8,7 +8,6 @@ define(function(require, exports, module) {
 var CameraUtils = require('lib/camera-utils');
 var getVideoMetaData = require('lib/get-video-meta-data');
 var orientation = require('lib/orientation');
-var constants = require('config/camera');
 var debug = require('debug')('camera');
 var bindAll = require('lib/bind-all');
 var model = require('vendor/model');
@@ -18,8 +17,8 @@ var mix = require('lib/mixin');
  * Locals
  */
 
-var recordSpaceMin = constants.RECORD_SPACE_MIN;
-var recordSpacePadding = constants.RECORD_SPACE_PADDING;
+var recordSpaceMin = window.RECORD_SPACE_MIN;
+var recordSpacePadding = window.RECORD_SPACE_PADDING;
 
 // More explicit names for the focus modes we care about
 var MANUAL_AUTO_FOCUS = 'auto';
@@ -708,7 +707,7 @@ Camera.prototype.stopRecording = function() {
   //
   // TODO: There should be a better way of handling this or a fix for
   // this should be addressed in the Gecko API.
-  if (notRecording || elapsedTime < constants.MIN_RECORDING_TIME) {
+  if (notRecording || elapsedTime < window.MIN_RECORDING_TIME) {
     return;
   }
 

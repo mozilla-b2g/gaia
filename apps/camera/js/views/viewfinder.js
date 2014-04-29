@@ -8,7 +8,6 @@ define(function(require, exports, module) {
 var bind = require('lib/bind');
 var CameraUtils = require('lib/camera-utils');
 var debug = require('debug')('view:viewfinder');
-var constants = require('config/camera');
 var View = require('vendor/view');
 
 /**
@@ -84,7 +83,7 @@ module.exports = View.extend({
     this.els.video = this.find('.js-video');
     this.els.videoContainer = this.find('.js-video-container');
 
-    sensitivity = constants.ZOOM_GESTURE_SENSITIVITY * window.innerWidth;
+    sensitivity = window.ZOOM_GESTURE_SENSITIVITY * window.innerWidth;
   },
 
   /**

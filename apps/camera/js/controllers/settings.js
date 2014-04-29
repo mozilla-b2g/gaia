@@ -191,7 +191,7 @@ SettingsController.prototype.onNewCamera = function(capabilities) {
  */
 SettingsController.prototype.configurePictureSizes = function(sizes) {
   var setting = this.settings.pictureSizes;
-  var maxPixelSize = setting.get('maxPixelSize');
+  var maxPixelSize = window.CONFIG_MAX_IMAGE_PIXEL_SIZE;
   var exclude = setting.get('exclude');
   var options = {
     exclude: exclude,
