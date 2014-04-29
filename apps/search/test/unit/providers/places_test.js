@@ -66,9 +66,14 @@ suite('search/providers/places', function() {
 
     test('renders data url', function() {
       subject.search('mozilla', Search.collect.bind(Search, subject));
-      
+
       var place = subject.container.querySelector('.result');
       assert.equal(place.dataset.url, 'http://mozilla.org');
+      assert.equal(place.querySelector('.title').innerHTML, 'homepage');
+      assert.equal(place.getAttribute('aria-label'), 'homepage');
+      assert.equal(place.getAttribute('role'), 'link');
+      assert.equal(place.querySelector('.icon').getAttribute('role'),
+        'presentation');
     });
   });
 

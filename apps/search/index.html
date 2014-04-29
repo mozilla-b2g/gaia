@@ -29,22 +29,22 @@
   <body>
 
     <div id="search-results" class="hidden">
-      <section id="suggestions" class="suggestions"></section>
-      <section id="contacts" class="local"></section>
-      <section id="places" class="local"></section>
+      <section id="suggestions" class="suggestions" data-l10n-id="suggestions" aria-label="Suggestions"></section>
+      <section id="contacts" class="local" data-l10n-id="contacts" aria-label="Contacts"></section>
+      <section id="places" class="local" data-l10n-id="places" aria-label="Places"></section>
       <section id="googlelink"></section>
-      <section class="apps">
-        <section id="localapps"></section>
-        <section id="marketplace"></section>
-        <section id="webresults"></section>
+      <section class="apps" data-l10n-id="apps" aria-label="Apps">
+        <section id="localapps" role="presentation"></section>
+        <section id="marketplace" role="presentation"></section>
+        <section id="webresults" role="presentation"></section>
       </section>
     </div>
 
     <div id="newtab-page" class="hidden">
-      <h2><span data-l10n-id="top-sites">TOP SITES</span></h2>
-      <section id="top-sites"></section>
-      <h2><span data-l10n-id="history">HISTORY</span></h2>
-      <section id="history" class="local"></section>
+      <h2 id="top-sites-header"><span data-l10n-id="top-sites">TOP SITES</span></h2>
+      <section id="top-sites" aria-labelledby="top-sites-header"></section>
+      <h2 id="history-header"><span data-l10n-id="history">HISTORY</span></h2>
+      <section id="history" class="local" aria-labelledby="history-header"></section>
     </div>
 
   </body>
