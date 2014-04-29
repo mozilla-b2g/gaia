@@ -916,7 +916,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.device.manager.removeDir('/data/local/OfflineCache')
         self.device.manager.removeDir('/data/local/permissions.sqlite')
         self.device.manager.removeDir('/data/local/storage/persistent')
-        self.device.manager.removeDir('/data/local/webapps')
         # remove remembered networks
         self.device.manager.removeFile('/data/misc/wifi/wpa_supplicant.conf')
 
