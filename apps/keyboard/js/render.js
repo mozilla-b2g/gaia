@@ -119,10 +119,8 @@ const IMERender = (function() {
 
     if (activeIme !== container) {
       if (activeIme) {
-        activeIme.style.display = 'none';
         delete activeIme.dataset.active;
       }
-      container.style.display = 'block';
       container.dataset.active = true;
 
       activeIme = container;
@@ -865,6 +863,12 @@ const IMERender = (function() {
     return cachedWindowWidth;
   };
 
+  // browser round 0.45 up to 1...
+  function browserRound(a) {
+    var af = a | 0;
+    return (a - af) >= 0.449 ? (af + 1) : af; // JS float
+  }
+
   var getHeight = function getHeight() {
     if (!activeIme)
       return 0;
@@ -879,14 +883,17 @@ const IMERender = (function() {
     if (activeIme.classList.contains('candidate-panel')) {
       if (activeIme.querySelector('.keyboard-candidate-panel')
           .classList.contains('latin')) {
-        height += (3.1 * scale);
+        height += browserRound(2.5 * scale);
       }
       else {
-        height += (3.2 * scale);
+        height += browserRound(3.4 * scale);
       }
     }
 
-    return height | 0;
+    // border-top
+    height += browserRound(0.1 * scale);
+
+    return browserRound(height);
   };
 
   var getKeyArray = function getKeyArray() {
