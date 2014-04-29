@@ -7,8 +7,8 @@ $(error This Makefile needs to be run by the root gaia makefile. Use `make APP=c
 endif
 
 ifdef GAIA_DISTRIBUTION_DIR
-	ifneq ($(wildcard $(GAIA_DISTRIBUTION_DIR)/camera-settings.js),)
-		CP_USER_SETTINGS = cp $(GAIA_DISTRIBUTION_DIR)/camera-config.js js/config/config.js
+	ifneq ($(wildcard $(GAIA_DISTRIBUTION_DIR)/camera-config.js),)
+		CP_USER_CONFIGURATION = cp $(GAIA_DISTRIBUTION_DIR)/camera-config.js js/config/config.js
 	endif
 endif
 
@@ -21,6 +21,6 @@ $(STAGE_APP_DIR):
 	mkdir -p $(STAGE_APP_DIR)
 
 $(STAGE_APP_DIR)/js/main.js: | $(STAGE_APP_DIR)
-	$(CP_USER_SETTINGS)
+	$(CP_USER_CONFIGURATION)
 	rm -rf $(STAGE_APP_DIR)/style
 	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/require_config.jslike
