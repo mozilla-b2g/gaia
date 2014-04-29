@@ -10,10 +10,6 @@
     'config/require',
   ],
 
-  exclude: ['l10n'],
-
-  findNestedDependencies: true,
-
   // Be sure to normalize all define() calls by extracting
   // dependencies so Function toString is not needed, and
   // lower capability devices like Tarako can optimize

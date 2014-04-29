@@ -18,19 +18,16 @@ var HudView = require('views/hud');
 var bind = require('lib/bind');
 
 /**
- * Locals
- */
-
-var unbind = bind.unbind;
-
-// Mixin model methods
-model(App.prototype);
-
-/**
  * Exports
  */
 
 module.exports = App;
+
+/**
+ * Mixin `Model` API
+ */
+
+model(App.prototype);
 
 /**
  * Initialize a new `App`
@@ -53,9 +50,9 @@ function App(options) {
   this.inSecureMode = (this.win.location.hash === '#secure');
   this.controllers = options.controllers;
   this.geolocation = options.geolocation;
-  this.activity = options.activity;
   this.settings = options.settings;
   this.camera = options.camera;
+  this.activity = {};
   debug('initialized');
 }
 
@@ -67,17 +64,13 @@ function App(options) {
  */
 App.prototype.boot = function() {
   debug('boot');
-  if (this.didBoot) { return; }
+  if (this.booted) { return; }
   this.bindEvents();
   this.initializeViews();
   this.runControllers();
   this.injectViews();
-  this.didBoot = true;
+  this.booted = true;
   debug('booted');
-};
-
-App.prototype.teardown = function() {
-  this.unbindEvents();
 };
 
 /**
@@ -90,7 +83,6 @@ App.prototype.runControllers = function() {
   debug('run controllers');
   this.controllers.settings(this);
   this.controllers.activity(this);
-  this.controllers.timer(this);
   this.controllers.camera(this);
   this.controllers.viewfinder(this);
   this.controllers.recordingTimer(this);
@@ -170,19 +162,6 @@ App.prototype.bindEvents = function() {
 };
 
 /**
- * Detaches event handlers.
- *
- * @private
- */
-App.prototype.unbindEvents = function() {
-  unbind(this.doc, 'visibilitychange', this.onVisibilityChange);
-  unbind(this.win, 'beforeunload', this.onBeforeUnload);
-  this.off('visible', this.onVisible);
-  this.off('hidden', this.onHidden);
-  debug('events unbound');
-};
-
-/**
  * Tasks to run when the
  * app becomes visible.
  *
@@ -234,6 +213,7 @@ App.prototype.onCriticalPathDone = function() {
   this.loadController(this.controllers.confirm);
   this.loadController(this.controllers.battery);
   this.loadController(this.controllers.sounds);
+  this.loadController(this.controllers.timer);
   this.loadL10n();
 
   this.criticalPathDone = true;
@@ -251,9 +231,8 @@ App.prototype.onCriticalPathDone = function() {
  * @private
  */
 App.prototype.geolocationWatch = function() {
-  var delay = this.settings.geolocation.get('promptDelay');
   var shouldWatch = !this.activity.pick && !this.hidden;
-  if (shouldWatch) { setTimeout(this.geolocation.watch, delay); }
+  if (shouldWatch) { this.geolocation.watch(); }
 };
 
 /**

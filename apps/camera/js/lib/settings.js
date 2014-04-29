@@ -32,6 +32,7 @@ function Settings(items) {
   this.items = [];
   this.aliases = {};
   this.SettingAlias = SettingAlias; // Test hook
+  this.dontSave = this.dontSave.bind(this);
   this.addEach(items);
 }
 

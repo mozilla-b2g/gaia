@@ -16,8 +16,11 @@ define(function(require, exports, module) {
  */
 module.exports = function(sizes, options) {
   var maxPixelSize = options && options.maxPixelSize;
-  var exclude = options && options.exclude || [];
+  var exclude = options && options.exclude || {};
   var formatted = [];
+
+  exclude.aspects = exclude.aspects || [];
+  exclude.keys = exclude.keys || [];
 
   sizes.forEach(function(size) {
     var w = size.width;
@@ -25,13 +28,16 @@ module.exports = function(sizes, options) {
     var key = w + 'x' + h;
     var pixelSize = w * h;
 
-    // Don't include picture size if marked as excluded
-    if (exclude.indexOf(key) > -1) { return; }
+    size.aspect = getAspect(w, h);
 
     // Don't include pictureSizes above the maxPixelSize limit
     if (maxPixelSize && pixelSize > maxPixelSize) { return; }
 
-    size.aspect = getAspect(w, h);
+    // Don't include picture size if marked as excluded
+    if (exclude.keys.indexOf(key) > -1) { return; }
+    if (exclude.aspects.indexOf(size.aspect) > -1) { return; }
+
+
     size.mp = getMP(w, h);
 
     formatted.push({

@@ -5,8 +5,8 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var formatPictureSizes = require('lib/picture-sizes/format-picture-sizes');
 var formatRecorderProfiles = require('lib/format-recorder-profiles');
+var formatPictureSizes = require('lib/format-picture-sizes');
 var debug = require('debug')('controller:settings');
 var SettingsView = require('views/settings');
 var bindAll = require('lib/bind-all');
@@ -45,8 +45,21 @@ function SettingsController(app) {
   debug('initialized');
 }
 
+/**
+ * Registers settings 'aliases' that provide
+ * a single interface for settings such as
+ * `flashModes` where we have `flashModesPicture`
+ * and `flashModesVideo`.
+ *
+ * This means that we can just use settings.flashModes,
+ * and be confident that it will interface with the
+ * correct setting depending on the value of `mode`.
+ *
+ * You can always use the underlying settings
+ * directly if you need that kind of control.
+ * @return {[type]} [description]
+ */
 SettingsController.prototype.configure = function() {
-  if (this.activity.pick) { this.settings.dontSave(); }
   this.settings.alias('recorderProfiles', this.aliases.recorderProfiles);
   this.settings.alias('pictureSizes', this.aliases.pictureSizes);
   this.settings.alias('flashModes', this.aliases.flashModes);
@@ -61,6 +74,7 @@ SettingsController.prototype.bindEvents = function() {
   this.app.on('localized', this.formatPictureSizeTitles);
   this.app.on('settings:toggle', this.toggleSettings);
   this.app.on('camera:newcamera', this.onNewCamera);
+  this.app.on('activity:pick', this.onPickActivity);
 };
 
 /**
@@ -130,6 +144,36 @@ SettingsController.prototype.onOptionTap = function(key, setting) {
 };
 
 /**
+ * Adjusts settings to meet requirements
+ * on new pick activity.
+ *
+ * @param  {Object} data
+ * @private
+ */
+SettingsController.prototype.onPickActivity = function(data) {
+  debug('pick activity', data);
+
+  var maxFileSize = data.maxFileSizeBytes;
+  var maxPixelSize = data.maxPixelSize;
+
+  // Settings changes made in 'pick'
+  // sessions shouldn't persist.
+  this.settings.dontSave();
+
+  if (maxPixelSize) {
+    this.settings.pictureSizesFront.set('maxPixelSize', maxPixelSize);
+    this.settings.pictureSizesBack.set('maxPixelSize', maxPixelSize);
+    debug('set maxPixelSize: %s', maxPixelSize);
+  }
+
+  if (maxFileSize) {
+    this.settings.recorderProfilesFront.set('maxFileSizeBytes', maxFileSize);
+    this.settings.recorderProfilesBack.set('maxFileSizeBytes', maxFileSize);
+    debug('set maxFileSize: %s', maxFileSize);
+  }
+};
+
+/**
  * Display a notifcation showing the
  * current state of the given setting.
  *
@@ -175,8 +219,7 @@ SettingsController.prototype.onNewCamera = function(capabilities) {
   this.configurePictureSizes(capabilities.pictureSizes);
   this.configureRecorderProfiles(capabilities.recorderProfiles);
 
-  // Let the rest of the app
-  // know we're good to go.
+  // Let the rest of the app know we're good to go.
   this.app.emit('settings:configured');
   debug('settings configured to new capabilities');
 };
@@ -190,6 +233,7 @@ SettingsController.prototype.onNewCamera = function(capabilities) {
  * @param  {Array} sizes
  */
 SettingsController.prototype.configurePictureSizes = function(sizes) {
+  debug('configuring picture sizes');
   var setting = this.settings.pictureSizes;
   var maxPixelSize = window.CONFIG_MAX_IMAGE_PIXEL_SIZE;
   var exclude = setting.get('exclude');
@@ -197,11 +241,11 @@ SettingsController.prototype.configurePictureSizes = function(sizes) {
     exclude: exclude,
     maxPixelSize: maxPixelSize
   };
-  var formatted = this.formatPictureSizes(sizes, options);
 
+  var formatted = this.formatPictureSizes(sizes, options);
   setting.resetOptions(formatted);
   this.formatPictureSizeTitles();
-  setting.emit('configured');
+  debug('configured pictureSizes', setting.selected('key'));
 };
 
 /**
@@ -214,14 +258,33 @@ SettingsController.prototype.configurePictureSizes = function(sizes) {
  */
 SettingsController.prototype.configureRecorderProfiles = function(sizes) {
   var setting = this.settings.recorderProfiles;
+  var maxFileSize = setting.get('maxFileSizeBytes');
   var exclude = setting.get('exclude');
   var options = { exclude: exclude };
   var formatted = this.formatRecorderProfiles(sizes, options);
 
+  // If a file size limit has been imposed,
+  // pick the lowest-res (last) profile only.
+  if (maxFileSize) { formatted = [formatted[formatted.length - 1]]; }
+
   setting.resetOptions(formatted);
-  setting.emit('configured');
 };
 
+/**
+ * Creates a localized `title` property
+ * on each pictureSize option. This is
+ * used within the settings-menu.
+ *
+ * This is run each time `configurePictureSizes`
+ * is run and each time the app recieves a
+ * 'localized' event.
+ *
+ * If the app isn't 'localized' yet, we don't do
+ * anything and wait for the 'localized'
+ * event binding to run the function.
+ *
+ * @private
+ */
 SettingsController.prototype.formatPictureSizeTitles = function() {
   if (!this.app.localized()) { return; }
   var options = this.settings.pictureSizes.get('options');
@@ -239,10 +302,7 @@ SettingsController.prototype.formatPictureSizeTitles = function() {
 /**
  * Returns a list of settings
  * based on the `settingsMenu`
- * cofiguration.
- *
- * If any `conditions` are defined
- * they must pass to be in the list.
+ * configuration.
  *
  * @return {Array}
  */
@@ -255,11 +315,6 @@ SettingsController.prototype.menuItems = function() {
 /**
  * Tests if the passed `settingsMenu`
  * item is allowed in the settings menu.
- *
- * Should:
- *
- *   1. Be a currently supported setting
- *   2. Pass a defined condition
  *
  * @param  {Object} item
  * @return {Boolean}

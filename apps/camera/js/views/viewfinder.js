@@ -211,11 +211,13 @@ module.exports = View.extend({
   },
 
   fadeOut: function(done) {
+    debug('fade-out');
     this.el.classList.remove('visible');
     if (done) { setTimeout(done, this.fadeTime);}
   },
 
   fadeIn: function(done) {
+    debug('fade-in');
     this.el.classList.add('visible');
     if (done) { setTimeout(done, this.fadeTime); }
   },
