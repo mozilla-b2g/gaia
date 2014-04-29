@@ -35,7 +35,8 @@
       });
     },
     'gmail': function gmailLoader(cb) {
-      LazyLoader.load('/gmail/js/gmail_connector.js', function onLoad() {
+      LazyLoader.load('/shared/js/contacts/import/gmail/gmail_connector.js',
+      function onLoad() {
         cb(GmailConnector);
       });
     },
