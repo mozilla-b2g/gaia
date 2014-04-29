@@ -9,6 +9,7 @@ var bind = require('lib/bind');
 var CameraUtils = require('lib/camera-utils');
 var debug = require('debug')('view:viewfinder');
 var View = require('vendor/view');
+var FocusRingView = require('views/focus-ring');
 
 /**
  * Locals
@@ -77,7 +78,9 @@ module.exports = View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-
+    //append focus ring
+    this.focusRing = new FocusRingView();
+    this.focusRing.appendTo(this.el);
     // Find elements
     this.els.frame = this.find('.js-frame');
     this.els.video = this.find('.js-video');
@@ -349,7 +352,37 @@ module.exports = View.extend({
           '</div>' +
         '</div>' +
     '</div>';
+  },
+
+  setFocusRingDafaultPotion: function() {
+    var offsetLeft = this.els.frame.offsetLeft;
+    var offsetTop = this.els.frame.offsetTop;
+    var x = this.els.frame.clientWidth / 2 + offsetLeft;
+    var y = this.els.frame.clientHeight / 2 + offsetTop;
+    this.setFocusRingPosition(x, y);
+  },
+
+  setFocusRingPosition: function(x, y) {
+    this.focusRing.changePosition(x, y);
+  },
+
+  clearFaceRings: function() {
+    this.focusRing.clearFaceRings();
+  },
+
+  setMainFace: function(mainFace) {
+    this.focusRing.setMainFace(mainFace);
+  },
+
+  setOtherFaces: function(otherFace) {
+    this.focusRing.tranformRing(
+      otherFace.pointX,
+      otherFace.pointY,
+      otherFace.length,
+      otherFace.index
+    );
   }
+
 });
 
 });

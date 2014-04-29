@@ -28,7 +28,8 @@ function ViewfinderController(app) {
   this.activity = app.activity;
   this.settings = app.settings;
   this.viewfinder = app.views.viewfinder;
-  this.focusRing = app.views.focusRing;
+  this.focusRing = this.viewfinder.focusRing;
+  this.focusTimeout = null;
   this.bindEvents();
   this.configure();
   debug('initialized');
@@ -94,6 +95,13 @@ ViewfinderController.prototype.bindEvents = function() {
   this.app.on('settings:closed', this.configureGrid);
   this.app.on('settings:opened', this.hideGrid);
   this.app.on('hidden', this.stopStream);
+  // moved to a focusRing controller
+  this.camera.on('change:focus', this.onFocusChange);
+  // moved to a focusRing controller
+  this.camera.on('change:focusMode', this.onFocusModeChange);
+  //Focus facetracking
+  this.camera.on('facedetected', this.onFacedetected);
+  this.camera.on('nofacedetected', this.camera.setDefaultFocusmode);
 };
 
 /**
@@ -120,6 +128,7 @@ ViewfinderController.prototype.onCameraConfigured = function() {
 ViewfinderController.prototype.show = function() {
   this.viewfinder.fadeIn();
   this.app.emit('viewfinder:visible');
+  this.viewfinder.setFocusRingDafaultPotion();
 };
 
 ViewfinderController.prototype.onShutter = function() {
@@ -234,4 +243,123 @@ ViewfinderController.prototype.onZoomChanged = function(zoom) {
   this.viewfinder.setZoom(zoom);
 };
 
+ViewfinderController.prototype.onFocusChange = function(value) {
+  this.focusRing.setState(value);
+  if (this.focusTimeout) {
+    clearTimeout(this.focusTimeout);
+    this.focusTimeout = null;
+  }
+  var self = this;
+    if (value === 'fail') {
+      this.focusTimeout = setTimeout(function() {
+        self.focusRing.setState(null);
+      }, 1000);
+    }
+  };
+
+ViewfinderController.prototype.onFocusModeChange = function(value) {
+  this.focusRing.setMode(value);
+  if (value === 'continuousFocus') {
+    this.viewfinder.setFocusRingDafaultPotion();
+  }
+  this.faceFocusTimeout = false;
+};
+
+
+ViewfinderController.prototype.onFacedetected = function(faces) {
+  if (!this.camera.focusModes.faceTracking ||
+     this.faceFocusTimeout) { return ;}
+  this.clearFocusTimeOut();
+  this.camera.set('focus', 'none');
+  this.faceFocusTimeout = true;
+  this.viewfinder.clearFaceRings();
+  var calFaces = this.calculateFaceBounderies(faces);
+  if (calFaces.mainFace) {
+    this.viewfinder.setMainFace(calFaces.mainFace);
+  }
+  var otherFaces = calFaces.otherFaces;
+  for(var i in otherFaces) {
+    this.viewfinder.setOtherFaces(otherFaces[i]);
+  }
+  this.camera.onFacedetected(faces[calFaces.mainFace.index],focusDone);
+  var self = this;
+  function focusDone() {
+    self.clearFocusTimeOut();
+    setTimeout(function() {
+      self.camera.set('focus', 'none');
+        self.faceFocusTimeout = false;
+        self.viewfinder.clearFaceRings();
+        self.setFocusTimeOut();
+    }, 3000);
+  }
+  this.setFocusTimeOut();
+};
+
+ViewfinderController.prototype.calculateFaceBounderies = function(faces) {
+  var scaling = {
+    width: this.viewfinder.els.frame.clientWidth / 2000,
+    height: this.viewfinder.els.frame.clientHeight / 2000
+  };
+  var minFaceScore = 20;
+  var maxID = -1;
+  var maxArea = 0;
+  var area = 0;
+  var transformedFaces = [];
+  var mainFace = null;
+
+  for (var i = 0; i < faces.length; i++) {
+    if (faces[i].score < minFaceScore) {
+      continue;
+    }
+    area = faces[i].bounds.width * faces[i].bounds.height;
+    var radius = Math.round(Math.max(faces[i].bounds.height,
+      faces[i].bounds.width) * scaling.width);
+    var errFactor = Math.round(radius / 2);
+    var px = Math.round((faces[i].bounds.left +
+      faces[i].bounds.right)/2 * scaling.height) - errFactor;
+    var py = Math.round((-1) * ((faces[i].bounds.top +
+      faces[i].bounds.bottom)/2) * scaling.width) - errFactor;
+     transformedFaces[i] = {
+      pointX: px,
+      pointY: py,
+      length: radius,
+      index: i
+    };
+    if (area > maxArea) {
+      maxArea = area;
+      maxID = i;
+      mainFace = transformedFaces[i];
+    }
+  }
+  // remove maximum area face from the array.
+  if (maxID > -1) {
+    transformedFaces.splice(maxID, 1);
+  }
+  return {
+    mainFace: mainFace,
+    otherFaces: transformedFaces
+  };
+};
+
+ViewfinderController.prototype.setFocusTimeOut = function() {
+  var self = this;
+  this.focusRingTimeOut = setTimeout(function() {
+    self.camera.set('focus', 'none');
+    self.faceFocusTimeout = false;
+    self.viewfinder.clearFaceRings();
+    self.camera.setDefaultFocusmode();
+  }, 3000);
+};
+
+ViewfinderController.prototype.clearFocusTimeOut = function () {
+  if (this.focusRingTimeOut) {
+    clearTimeout(this.focusRingTimeOut);
+    this.focusRingTimeOut = null;
+  }
+};
+
+ViewfinderController.prototype.clearFocusRing = function () {
+  this.camera.set('focus', 'none');
+  this.clearFocusTimeOut();
+};
 });
