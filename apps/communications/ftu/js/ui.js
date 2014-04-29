@@ -378,7 +378,7 @@ var UIManager = {
         fxaDescription.innerHTML = '';
         navigator.mozL10n.localize(
           fxaDescription,
-          'fxa-logged',
+          'fxa-email-sent',
           {
             email: response.email
           }
