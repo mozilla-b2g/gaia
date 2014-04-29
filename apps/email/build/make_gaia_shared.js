@@ -145,17 +145,12 @@ requirejs.tools.useLib(function(require) {
 
     // Update the cache value based on digest values of all files.
     var finalDigest = getDigest(digests.join(',')),
-        cacheRegExp = /var\s*CACHE_VERSION\s*=\s*'[^']+'/;
-
-    [
-      buildDir + 'js/html_cache_restore.js',
-      buildDir + 'js/mail_app.js'
-    ].forEach(function (fileName) {
-      var contents = file.readFile(fileName);
-      contents = contents.replace(cacheRegExp,
-                                 'var CACHE_VERSION = \'' + finalDigest + '\'');
-      file.saveFile(fileName, contents);
-    });
+        cacheRegExp = /HTML_COOKIE_CACHE_VERSION\s*=\s*["'][^"']+["']/,
+        cacheFileName = buildDir + 'js/html_cache_restore.js',
+        contents = file.readFile(cacheFileName);
+    contents = contents.replace(cacheRegExp,
+                               'HTML_COOKIE_CACHE_VERSION = \'' + finalDigest + '\'');
+    file.saveFile(cacheFileName, contents);
 
   });
 });
