@@ -6,9 +6,9 @@ define(function(require, exports, module) {
  */
 
 var NotificationView = require('views/notification');
+var LoadingView = require('views/loading-screen');
 var ViewfinderView = require('views/viewfinder');
 var orientation = require('lib/orientation');
-var ControlsView = require('views/controls');
 var FocusRing = require('views/focus-ring');
 var ZoomBarView = require('views/zoom-bar');
 var bindAll = require('lib/bind-all');
@@ -48,6 +48,7 @@ function App(options) {
   this.win = options.win;
   this.doc = options.doc;
   this.require = options.require || window.requirejs;
+  this.LoadingView = options.LoadingView || LoadingView; // test hook
   this.inSecureMode = (this.win.location.hash === '#secure');
   this.controllers = options.controllers;
   this.geolocation = options.geolocation;
@@ -71,6 +72,7 @@ App.prototype.boot = function() {
   this.runControllers();
   this.injectViews();
   this.booted = true;
+  this.showLoading();
   debug('booted');
 };
 
@@ -116,7 +118,6 @@ App.prototype.initializeViews = function() {
   debug('initializing views');
   this.views.viewfinder = new ViewfinderView();
   this.views.focusRing = new FocusRing();
-  this.views.controls = new ControlsView();
   this.views.hud = new HudView();
   this.views.zoomBar = new ZoomBarView();
   this.views.notification = new NotificationView();
@@ -132,7 +133,6 @@ App.prototype.injectViews = function() {
   debug('injecting views');
   this.views.viewfinder.appendTo(this.el);
   this.views.focusRing.appendTo(this.el);
-  this.views.controls.appendTo(this.el);
   this.views.hud.appendTo(this.el);
   this.views.zoomBar.appendTo(this.el);
   this.views.notification.appendTo(this.el);
@@ -213,6 +213,7 @@ App.prototype.onCriticalPathDone = function() {
   var took = Date.now() - start;
 
   console.log('critical-path took %s', took + 'ms');
+  this.clearLoading();
   this.loadController(this.controllers.previewGallery);
   this.loadController(this.controllers.storage);
   this.loadController(this.controllers.confirm);
@@ -301,6 +302,38 @@ App.prototype.localized = function() {
 App.prototype.localize = function(key) {
   var l10n = navigator.mozL10n;
   return (l10n && l10n.get(key)) || key;
+};
+
+/**
+ * Shows the loading screen after the
+ * number of ms defined in config.js
+ *
+ * @private
+ */
+App.prototype.showLoading = function() {
+  debug('show loading');
+  var ms = this.settings.loadingScreen.get('delay');
+  var self = this;
+  clearTimeout(this.loadingTimout);
+  setTimeout(function() {
+    self.views.loading = new self.LoadingView();
+    self.views.loading.appendTo(self.el).show();
+    debug('loading shown');
+  }, ms);
+};
+
+/**
+ * Clears the loadings screen, or
+ * any pending loading screen.
+ *
+ * @private
+ */
+App.prototype.clearLoading = function() {
+  var view = this.views.loading;
+  clearTimeout(this.loadingTimout);
+  if (!view) { return; }
+  view.hide(view.destroy);
+  debug('loading cleared');
 };
 
 });
