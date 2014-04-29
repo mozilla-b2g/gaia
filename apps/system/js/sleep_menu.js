@@ -11,10 +11,6 @@ var SleepMenu = {
   isDeveloperMenuEnabled: false,
 
   developerOptions: {
-    asyncpanzoom: {
-      value: false,
-      setting: 'apz.force-enable'
-    }
   },
 
   // Indicate setting status of volume
@@ -92,14 +88,6 @@ var SleepMenu = {
       power: {
         label: _('power'),
         value: 'power'
-      },
-      asyncpanzoom: {
-        label: _('asyncpanzoom'),
-        value: 'asyncpanzoom'
-      },
-      asyncpanzoomOff: {
-        label: _('asyncpanzoomOff'),
-        value: 'asyncpanzoom'
       }
     };
 
@@ -212,17 +200,6 @@ var SleepMenu = {
         // It should also save the status of the latter 4 items
         // so when leaving the airplane mode we could know which one to turn on.
         AirplaneMode.enabled = !this.isFlightModeEnabled;
-        break;
-
-      case 'asyncpanzoom':
-        this.hide();
-
-        var option = this.developerOptions[action];
-        var data = {};
-        data[option.setting] = !option.value;
-
-        var lock = window.navigator.mozSettings.createLock();
-        lock.set(data);
         break;
 
       // About silent and silentOff
