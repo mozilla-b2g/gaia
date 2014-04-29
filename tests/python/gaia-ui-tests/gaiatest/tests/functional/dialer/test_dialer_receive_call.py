@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette import SkipTest
 from marionette.wait import Wait
 
 from gaiatest import GaiaTestCase
@@ -10,6 +11,14 @@ from gaiatest.utils.plivo.plivo_util import PlivoUtil
 
 
 class TestReceiveCall(GaiaTestCase):
+
+    def setUp(self):
+        try:
+            self.testvars['plivo']
+        except KeyError:
+            raise SkipTest('Plivo account details not present in test variables')
+
+        GaiaTestCase.setUp(self)
 
     def test_receive_call(self):
         """Make a phone call from Plivo to the phone."""
