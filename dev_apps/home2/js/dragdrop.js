@@ -68,7 +68,8 @@
      * @param {Object} e A touch object from a touchmove event.
      */
     scrollIfNeeded: function() {
-      var scrollStep = 2;
+      var screenHeight = window.innerHeight;
+      var scrollStep = Math.round(screenHeight / 100);
 
       var touch = this.currentTouch;
       if (!touch) {
