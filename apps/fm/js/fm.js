@@ -837,10 +837,3 @@ window.addEventListener('load', function(e) {
 window.addEventListener('unload', function(e) {
   mozFMRadio.disable();
 }, false);
-
-// Set the 'lang' and 'dir' attributes to <html> when the page is translated
-window.addEventListener('localized', function showBody() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-});
-
