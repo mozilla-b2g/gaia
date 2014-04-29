@@ -137,3 +137,7 @@ form.search button[type="submit"] {
 #search-list label.pack-checkbox {
   display: none !important;
 }
+
+span.highlight {
+  background-color: #b2f2ff;
+}
