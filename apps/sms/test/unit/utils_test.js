@@ -677,9 +677,17 @@ suite('Utils', function() {
         // half the image size, or 100k, whichever is smaller
         var limit = Math.min(100000, (blob.size / 2));
 
+        this.sinon.spy(window.URL, 'revokeObjectURL');
         Utils.getResizedImgBlob(blob, limit, function(resizedBlob) {
           assert.isTrue(resizedBlob.size < limit,
             'resizedBlob is smaller than ' + limit);
+          if (blob.type === 'image/jpeg') {
+            sinon.assert.calledWith(window.URL.revokeObjectURL,
+              sinon.match(/#-moz-samplesize=/));
+          } else {
+            assert.isNull(window.URL.revokeObjectURL.firstCall.args[0]
+              .match(/#-moz-samplesize=/));
+          }
           done();
         });
       });
@@ -725,7 +733,8 @@ suite('Utils', function() {
       });
     });
 
-    test('Decrease image quality not working', function(done) {
+    test('Decrease image quality not working, change down sample size',
+      function(done) {
       var blob = qualityTestData['low_quality.jpg'];
       var resizedBlob = qualityTestData['low_quality_resized.jpg'];
       var defaultBlob = qualityTestData['default_quality_resized.jpg'];
@@ -736,9 +745,9 @@ suite('Utils', function() {
 
       this.sinon.stub(HTMLCanvasElement.prototype,
         'toBlob', function(callback, type, quality) {
-          var firstRatio = resizeSpy.firstCall.args[0].ratio;
-          var lastRatio = resizeSpy.lastCall.args[0].ratio;
-          if (lastRatio > firstRatio) {
+          var firstSamplesize = resizeSpy.firstCall.args[0].mozSamplesize;
+          var lastSamplesize = resizeSpy.lastCall.args[0].mozSamplesize;
+          if (lastSamplesize > firstSamplesize) {
             callback(resizedBlob);
           } else {
             callback(defaultBlob);
@@ -759,11 +768,48 @@ suite('Utils', function() {
         assert.equal(toBlobSpy.args[3][2], 0.25);
         assert.equal(toBlobSpy.args[4][2], undefined);
 
-        // Verify getResizedImgBlob is called twice and resizeRatio
-        // parameter is set in sencond calls
+        // Verify getResizedImgBlob is called twice and mozSamplesize
+        // parameter is changed in sencond calls
         assert.equal(resizeSpy.callCount, 2);
+        assert.ok(resizeSpy.firstCall.args[0].mozSamplesize <
+          resizeSpy.lastCall.args[0].mozSamplesize);
+        done();
+      });
+    });
+
+    test('Both decrease image quality and down sample not working',
+      function(done) {
+      var blob = qualityTestData['low_quality.jpg'];
+      var resizedBlob = qualityTestData['low_quality_resized.jpg'];
+      var defaultBlob = qualityTestData['default_quality_resized.jpg'];
+      var limit = blob.size / 2;
+
+      this.sinon.spy(Utils, 'resizeImageBlobWithRatio');
+      this.sinon.spy(window.URL, 'revokeObjectURL');
+      var resizeSpy = Utils.resizeImageBlobWithRatio;
+
+      this.sinon.stub(HTMLCanvasElement.prototype,
+        'toBlob', function(callback, type, quality) {
+          var firstRatio = resizeSpy.firstCall.args[0].ratio;
+          var lastRatio = resizeSpy.lastCall.args[0].ratio;
+          if (lastRatio > firstRatio) {
+            callback(resizedBlob);
+          } else {
+            callback(defaultBlob);
+          }
+      });
+
+      Utils.getResizedImgBlob(blob, limit, function(resizedBlob) {
+        assert.isTrue(resizedBlob.size < limit,
+          'resizedBlob is smaller than ' + limit);
+        var toBlobSpy = HTMLCanvasElement.prototype.toBlob;
+
+        // Verify resizeRatio parameter is changed and no sample size postfix
+        // set in the last call
         assert.ok(resizeSpy.firstCall.args[0].ratio <
           resizeSpy.lastCall.args[0].ratio);
+        assert.isNull(window.URL.revokeObjectURL.lastCall.args[0]
+          .match(/#-moz-samplesize=/));
         done();
       });
     });

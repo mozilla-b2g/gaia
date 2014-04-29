@@ -317,7 +317,9 @@
         });
         return;
       }
-      var ratio = Math.sqrt(blob.size / limit);
+
+      // at least ratio = 2;
+      var ratio = Math.max(Math.sqrt(blob.size / limit), 2);
       Utils.resizeImageBlobWithRatio({
         blob: blob,
         limit: limit,
@@ -329,27 +331,49 @@
     //  resizeImageBlobWithRatio have additional ratio to force image
     //  resize to smaller size to avoid edge case about quality adjustment
     //  not working.
+    //  for jpg, we support ratio = 2, 4, 8, and more than 8.
     resizeImageBlobWithRatio: function ut_resizeImageBlobWithRatio(obj) {
       var blob = obj.blob;
       var callback = obj.callback;
       var limit = obj.limit;
-      var ratio = obj.ratio;
+      var ratio = Math.floor(obj.ratio);
       var qualities = [0.75, 0.5, 0.25];
 
-      if (blob.size < limit) {
+      var sampleSize = 0;
+      var sampleSizeHash = '';
+
+      if (blob.size < limit || ratio < 2) {
         setTimeout(function blobCb() {
           callback(blob);
         });
         return;
       }
 
+
+      if (blob.type === 'image/jpeg') {
+        // for moz-samplesize, Gecko uses only power 2, 4 or 8.
+        switch(ratio) {
+          case 3:
+            ratio = 2;
+            break;
+          case 5:
+          case 6:
+          case 7:
+            ratio = 4;
+        }
+
+        sampleSize = Math.min(ratio, 8);
+        sampleSizeHash = '#-moz-samplesize=' + sampleSize;
+      }
+
       var img = document.createElement('img');
       var url = window.URL.createObjectURL(blob);
-      img.src = url;
+      img.src = url + sampleSizeHash;
+
       img.onload = function onBlobLoaded() {
-        window.URL.revokeObjectURL(url);
-        var imageWidth = img.width;
-        var imageHeight = img.height;
+        window.URL.revokeObjectURL(img.src);
+        var imageWidth = img.width * sampleSize;
+        var imageHeight = img.height * sampleSize;
         var targetWidth = imageWidth / ratio;
         var targetHeight = imageHeight / ratio;
 
@@ -359,6 +383,7 @@
         var context = canvas.getContext('2d', { willReadFrequently: true });
 
         context.drawImage(img, 0, 0, targetWidth, targetHeight);
+        img.src = '';
         // Bug 889765: Since we couldn't know the quality of the original jpg
         // The 'resized' image might have a bigger size because it was saved
         // with quality or dpi. Here we will adjust the jpg quality(or resize
@@ -368,6 +393,8 @@
 
         function ensureSizeLimit(resizedBlob) {
           if (resizedBlob.size < limit) {
+            canvas.width = canvas.height = 0;
+            canvas = null;
             callback(resizedBlob);
           } else {
             // Reduce image quality for match limitation. Here we set quality
@@ -379,6 +406,9 @@
             } else {
               // We will resize the blob if image quality = 0.25 still exceed
               // size limitation.
+              canvas.width = canvas.height = 0;
+              canvas = null;
+
               Utils.resizeImageBlobWithRatio({
                 blob: blob,
                 limit: limit,
