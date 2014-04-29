@@ -187,7 +187,6 @@ suite('settings.js', function() {
         assert.deepEqual({
           'debug.console.enabled': true,
           'developer.menu.enabled': true,
-          'apz.force-enable': true,
           'homescreen.manifestURL': config.GAIA_SCHEME +
             'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
