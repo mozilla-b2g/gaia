@@ -25,8 +25,8 @@ class Keypad(Phone):
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
-        keypad_toolbar_button = self.marionette.find_element(*self._keypad_toolbar_button_locator)
-        self.wait_for_condition(lambda m: 'toolbar-option-selected' in keypad_toolbar_button.get_attribute('class'))
+        # TODO sometimes we may tap before the click handlers are ready
+        time.sleep(0.5)
 
     @property
     def phone_number(self):
