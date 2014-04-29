@@ -52,7 +52,7 @@
 
 // Wait until we're loaded, localized, and get an activity request
 window.addEventListener('load', function() {
-  navigator.mozL10n.ready(function() {
+  navigator.mozL10n.once(function() {
     navigator.mozSetMessageHandler('activity', view);
   });
 });
