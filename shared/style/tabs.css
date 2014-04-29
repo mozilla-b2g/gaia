@@ -179,6 +179,7 @@
 .bb-tablist.skin-dark > li > a[disabled],
 .bb-tablist.skin-dark > li > button[disabled] {
   opacity: 0.35;
+  background-color: transparent;
 }
 
 .bb-tablist .bb-tabpanel {
