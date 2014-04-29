@@ -1,4 +1,7 @@
-kFontStep = 4;
+'use strict';
+/* exported MockKeypadManager */
+
+window.kFontStep = 4;
 
 var MockKeypadManager = {
   _phoneNumber: '',

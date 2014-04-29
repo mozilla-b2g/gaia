@@ -620,7 +620,3 @@ shared/js/simple_phone_matcher.js
 shared/js/tag_visibility_monitor.js
 shared/js/visibility_monitor.js
 shared/resources/apn/query.js
-shared/test/unit/mocks/dialer/mock_calls_handler.js
-shared/test/unit/mocks/dialer/mock_contacts.js
-shared/test/unit/mocks/dialer/mock_keypad.js
-shared/test/unit/mocks/dialer/mock_utils.js
