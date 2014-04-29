@@ -525,7 +525,7 @@ clear-stage-app:
 		if [[ ("$$appdir" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
 			APP="`basename $$appdir`"; \
 			echo "clear $$APP in build_stage" ; \
-			rm -rf "$(STAGE_DIR)/$$APP/*"; \
+			rm -rf $(STAGE_DIR)/$$APP/*; \
 		fi; \
 	done
 
