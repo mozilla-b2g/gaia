@@ -31,6 +31,9 @@
   // (see bug 805114 for a similar issue in Gallery)
   var MAX_THUMBNAIL_GENERATION_SIZE = 1.5 * 1024 * 1024; // 1.5MB
 
+  // Path to the folder that stores all saved attachments
+  const ATTACHMENT_FOLDER_PATH = 'sms-attachments/';
+
 
   function Attachment(blob, options) {
     options = options || {};
@@ -233,6 +236,11 @@
       var mimetype =
         MimeMapper.guessTypeFromFileProperties(this.name, this.blob.type);
       var filename = MimeMapper.ensureFilenameMatchesType(this.name, mimetype);
+
+      // Override filename, so that every attachment that is saved via "open"
+      // activity will be placed in the single location.
+      filename = ATTACHMENT_FOLDER_PATH + getBaseName(filename);
+
       var activity = new MozActivity({
         name: 'open',
         data: {
@@ -260,6 +268,16 @@
     iframe.removeEventListener('load', iframeLoad);
     navigator.mozL10n.translate(iframe.contentDocument.body);
     iframe.contentDocument.addEventListener('click', clickOnFrame);
+  }
+
+  /**
+   * Gets actual base file name (name.extension) from its path.
+   */
+  function getBaseName(filePath) {
+    if (!filePath) {
+      throw new Error('Filepath is not defined!');
+    }
+    return filePath.substring(filePath.lastIndexOf('/') + 1);
   }
 
   exports.Attachment = Attachment;
