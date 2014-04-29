@@ -249,10 +249,7 @@ suite('Render contacts list', function() {
     containerSection.innerHTML += '<menu id="standard-menu" type="toolbar">' +
       '<button id="add-contact-button"><span></span></button>' +
       '<button id="settings-button"><span></span></button>' +
-      '<button id="select-action" class="hide"><span></span></button>' +
-      '</menu>' + '<menu id="select-menu" type="toolbar" class="hide">' +
-      '<button role="menuitem" id="select-action"></button>' +
-      '</menu>';
+    '</menu>';
     document.body.appendChild(containerSection);
 
     container = document.createElement('div');
@@ -315,10 +312,19 @@ suite('Render contacts list', function() {
 
     selectSection = document.createElement('form');
     selectSection.id = 'selectable-form';
-    selectSection.innerHTML = '<menu id="select-all-wrapper">' +
+    selectSection.innerHTML = '<section role="region">' +
+    '<header>' +
+      '<button><span class="icon icon-close">close</span></button>' +
+      '<menu type="toolbar">' +
+        '<button type="button" id="select-action"></button>' +
+      '</menu>' +
+      '<h1 id="edit-title" data-l10n-id="contacts"></h1>' +
+      '</header>' +
+    '</section>' +
+    '<menu id="select-all-wrapper">' +
       '<button id="deselect-all" disabled="disabled"></button>' +
       '<button id="select-all"></button>' +
-      '</menu>';
+    '</menu>';
 
     document.body.appendChild(selectSection);
 
@@ -1348,30 +1354,10 @@ suite('Render contacts list', function() {
 
   suite('Select mode', function() {
     var elements = {
-      'standardMenu': {
-        'id': 'standard-menu',
-        'selectMode': 'hide',
-        'normalMode': 'show'
-      },
-      'selectMenu': {
-        'id': 'select-menu',
+      'selectForm': {
+        'id': 'selectable-form',
         'selectMode': 'show',
         'normalMode': 'hide'
-      },
-      'closeButton': {
-        'id': 'cancel_activity',
-        'selectMode': 'show',
-        'normalMode': 'hide'
-      },
-      'selectAllButton': {
-        'id': 'select-all',
-        'selectMode': 'show',
-        'normalMode': 'show' // We don't care, the form will be hide
-      },
-      'deselectAllButton': {
-        'id': 'deselect-all',
-        'selectMode': 'show',
-        'normalMode': 'show' // We don't care, the form will be hide
       }
     };
     var mockNavigationStack;
@@ -1413,7 +1399,7 @@ suite('Render contacts list', function() {
         assert.isTrue(selectActionButton.disabled);
 
         done();
-      }, mockNavigationStack, 'transition');
+      }, mockNavigationStack);
     });
 
     suite('Selection checks', function() {
@@ -1422,7 +1408,7 @@ suite('Render contacts list', function() {
         doLoad(subject, mockContacts, function() {
           subject.selectFromList('', null, function() {
             done();
-          }, new MockNavigationStack(), 'transition');
+          }, new MockNavigationStack());
         });
       });
 
@@ -1454,6 +1440,24 @@ suite('Render contacts list', function() {
         for (var check of checks) {
           assert.include(uuids, check.value);
         }
+      });
+
+      test('danger class is not present in checks', function() {
+        var checks = list.querySelectorAll('input[type="checkbox"]');
+        for (var check of checks) {
+          assert.isFalse(check.parentNode.classList.contains('danger'));
+        }
+      });
+
+      test('danger class is present if options.isDanger is true',
+        function(done) {
+          subject.selectFromList('', null, function() {
+            var checks = list.querySelectorAll('input[type="checkbox"]');
+            for (var check of checks) {
+              assert.isTrue(check.parentNode.classList.contains('danger'));
+            }
+            done();
+          }, new MockNavigationStack(), { isDanger: true });
       });
 
       test('if no contact is selected, action button is disabled',
@@ -1493,45 +1497,26 @@ suite('Render contacts list', function() {
 
     suite('Exit select mode', function() {
       function checkVisibilityExit() {
-        // Buttons visibility
-        for (var i in elements) {
-          var element = elements[i];
-
-          if (typeof element != 'object') {
-            return;
-          }
-          var node = document.getElementById(element.id);
-          if (element.normalMode == 'show') {
-            assert.isFalse(node.classList.contains('hide'));
-          } else {
-            assert.isTrue(node.classList.contains('hide'));
-          }
-        }
-
         // We still have the check boxes, but they are hidden
         assert.isFalse(list.classList.contains('selecting'));
         assert.isFalse(searchList.classList.contains('selecting'));
       }
+
       setup(function(done) {
         mockContacts = new MockContactsList();
         doLoad(subject, mockContacts, function() {
           subject.selectFromList('', null, function() {
-            // Simulate the click to close
             done();
-          }, new MockNavigationStack(), 'transition');
+          }, new MockNavigationStack());
         });
-      });
-
-      test('Exit select mode by dismissing', function() {
-        var close = document.querySelector('#cancel_activity');
-        close.click();
-
-        checkVisibilityExit();
       });
 
       test('check visibility of components', function() {
         contacts.List.exitSelectMode();
+
         checkVisibilityExit();
+        assert.isFalse(selectSection.classList.contains('in-edit-mode'));
+        assert.isFalse(selectSection.classList.contains('contacts-select'));
       });
     });
 
@@ -1544,7 +1529,7 @@ suite('Render contacts list', function() {
             var close = document.querySelector('#cancel_activity');
             close.click();
             done();
-          }, new MockNavigationStack(), 'transition');
+          }, new MockNavigationStack(), { isDanger: true });
         });
 
       });
@@ -1554,8 +1539,11 @@ suite('Render contacts list', function() {
           var contactsRows = list.querySelectorAll('li');
           var checks = list.querySelectorAll('input[type="checkbox"]');
           assert.equal(contactsRows.length, checks.length);
+          for (var check of checks) {
+            assert.isFalse(check.parentNode.classList.contains('danger'));
+          }
           done();
-        }, new MockNavigationStack(), 'transition');
+        }, new MockNavigationStack(), { isDanger: false });
       });
     });
   });
