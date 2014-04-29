@@ -9,21 +9,23 @@ debug('domloaded in %s', domLoaded + 'ms');
 /**
  * Module Dependencies
  */
-
 var Activity = require('lib/activity');
 var Settings = require('lib/settings');
 var GeoLocation = require('lib/geo-location');
-var settingsData = require('config/config');
-var settings = new Settings(settingsData);
+var deepMix = require('lib/mixin-deep');
+var defaultConfigData = require('config/config-default');
+var userConfigData = require('config/config-user');
+var configData = deepMix(defaultConfigData, userConfigData);
+var settings = new Settings(configData);
 var Camera = require('lib/camera');
 var App = require('app');
 
 /**
   * Create globals specified in the config file
   */
-if (settingsData.globals) {
-  for (var key in settingsData.globals) {
-    window[key] = settingsData.globals[key];
+if (configData.globals) {
+  for (var key in configData.globals) {
+    window[key] = configData.globals[key];
   }
 }
 
@@ -69,7 +71,6 @@ var app = window.app = new App({
     sounds: 'controllers/sounds'
   }
 });
-
 // Fetch persistent settings,
 // Check for activities, then boot
 app.settings.fetch();

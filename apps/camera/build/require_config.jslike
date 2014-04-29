@@ -10,7 +10,7 @@
     'config/require',
   ],
 
-  exclude: ['l10n'],
+  exclude: ['l10n', 'config/config-user'],
 
   findNestedDependencies: true,
 
