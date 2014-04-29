@@ -60,6 +60,23 @@ marionette('manipulate sound settings', function() {
     );
   });
 
+  test('check default ringtone name', function() {
+    // XXX Because b2g desktop client does not have the mozTelephony api, so
+    // here we force the ringtone area to be visible then the text on the button
+    // can be get by the marionette Element.text() api.
+    client.executeScript(function() {
+      document.getElementById('ringer').hidden = false;
+    });
+
+    var ringtone_name = soundPanel.ringtoneButtonText;
+    assert.equal(ringtone_name, 'Classic Courier');
+  });
+
+  test('check default alerttone name', function() {
+    var alerttone_name = soundPanel.alerttoneButtonText;
+    assert.equal(alerttone_name, 'Bell');
+  });
+
   /* Other sounds */
   test('check keypad initial state', function() {
     assert.ok(

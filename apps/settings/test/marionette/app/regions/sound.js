@@ -21,6 +21,8 @@ SoundPanel.Selectors = {
   'mediaSlider': '#sound input[name="audio.volume.content"]',
   'ringerSlider': '#sound input[name="audio.volume.notification"]',
   'alarmSlider': '#sound input[name="audio.volume.alarm"]',
+  'ringtoneButton': '#ring-tone-selection',
+  'alerttoneButton': '#alert-tone-selection',
   'keypadCheckbox': '#sound input[name="phone.ring.keypad"]',
   'keypadSpan': '#sound span[data-l10n-id="keypad"]',
   'cameraShutterCheckbox': '#sound input[name="camera.shutter.enabled"]',
@@ -75,6 +77,14 @@ SoundPanel.prototype = {
 
   tapOnAlarmSlider: function() {
     this.waitForElement('alarmSlider').tap();
+  },
+
+  get ringtoneButtonText() {
+    return this.findElement('ringtoneButton').text();
+  },
+
+  get alerttoneButtonText() {
+    return this.findElement('alerttoneButton').text();
   },
 
   /* Other sounds */
