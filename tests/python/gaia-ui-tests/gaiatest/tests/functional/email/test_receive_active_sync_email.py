@@ -46,7 +46,7 @@ class TestReceiveActiveSyncEmail(GaiaTestCase):
         system = System(self.marionette)
 
         # Wait for email notification
-        system.wait_for_notification_toaster_displayed(timeout=30)
+        system.wait_for_notification_toaster_displayed(timeout=300)
         system.wait_for_notification_toaster_not_displayed()
 
         # Expand the notification bar
