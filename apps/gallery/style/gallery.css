@@ -230,21 +230,8 @@ body.pickView #thumbnails {
   padding: 0;
   /* default to left-to-right, but overridden for rtl languages below */
   float: left;
-  /* no list item bullets */
-  list-style-type: none;
   /* don't let the user select the items */
   -moz-user-select: none;
-  /* thumbnail images will be displayed with background-image */
-  /* these properties scale and position the images correctly */
-  background-position: center;   /* keep the cropping at the edges */
-  background-size: contain;
-  background-repeat: no-repeat;
-  /*
-   * When we have a background image it will cover the whole thumbnail
-   * but when we're swapping that image in it might be visible before
-   * the image. So we want a color that contrasts with the border so we
-   * at least get the effect of a grid rather than a black screen
-   */
   background-color: #444;
 
   /*
@@ -274,7 +261,11 @@ body.pickView #thumbnails {
   margin-right: 0;
 }
 
-.thumbnail.selected {
+.thumbnailImage{
+  width: 100%;
+}
+
+.thumbnailImage.selected {
   outline: solid #00aacc 0.3rem;
   outline-offset: -0.2rem;
 }
