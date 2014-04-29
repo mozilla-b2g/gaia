@@ -468,6 +468,33 @@ suite('attachment_test.js', function() {
       assert.equal(MockMozActivity.calls.length, 1);
     });
 
+    test('Filename is overridden using single attachment folder', function() {
+      var attachment1 = new Attachment(testImageBlob, {
+        name: '/some_path/.hidden_folder/attachment1.jpg'
+      });
+
+      attachment1.view();
+
+      assert.equal(MockMozActivity.calls.length, 1);
+      assert.equal(
+        MockMozActivity.calls[0].data.filename,
+        'sms-attachments/attachment1.jpg'
+      );
+
+      var attachment2 = new Attachment(testImageBlob, {
+        name: 'attachment2.jpg'
+      });
+
+      attachment2.view();
+
+      assert.equal(MockMozActivity.calls.length, 2);
+      assert.equal(
+        MockMozActivity.calls[1].data.filename,
+        'sms-attachments/attachment2.jpg'
+      );
+
+    });
+
     suite('Activity errors >', function() {
       var activity;
       setup(function() {
