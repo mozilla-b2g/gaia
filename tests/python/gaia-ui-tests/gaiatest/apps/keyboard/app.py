@@ -282,6 +282,8 @@ class Keyboard(Base):
         self.apps.switch_to_displayed_app()
 
     def dismiss(self):
+        if self.is_displayed() != True :
+            return
         self.wait_for_condition(lambda m: self.is_displayed())
         self.marionette.switch_to_frame()
         self.marionette.execute_script('navigator.mozKeyboard.removeFocus();')
