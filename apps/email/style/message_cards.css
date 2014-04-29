@@ -4,6 +4,11 @@
   overflow-x: hidden;
   will-change: scroll-position;
 }
+
+[data-mode="search"] .msg-list-scrollouter {
+  height: calc(100% - 13.5rem);
+}
+
 .msg-list-scrollinner {
   /* Give it a z-index of 0 so that all its contents are forced into a single stacking
      context. This simplifies display list construction because our many positioned
@@ -65,12 +70,32 @@ input.msg-search-text-tease {
  */
 .msg-header-item {
   display: block;
-  position: relative;
+  position: absolute;
+  width: 100%;
   height: 8rem;
 }
 .msg-header-item:active {
   background-color: #b1f1ff;
 }
+
+/*
+Default data placeholder items. To limit scrolling
+impact, these styles should not be ones that trigger
+reflows. Foreground/background colors should be safe.
+ */
+.msg-header-item.default-data .msg-header-author {
+  color: #e7e8e9;
+}
+.msg-header-item.default-data .msg-header-subject {
+  color: #e7e8e9;
+}
+.msg-header-item.default-data .msg-header-snippet {
+  color: #e7e8e9;
+}
+.msg-header-item.default-data .msg-header-date {
+  color: white;
+}
+
 .msg-header-unread-section {
   position: absolute;
   top: 50%;
@@ -136,7 +161,6 @@ input.msg-search-text-tease {
   display: table-cell;
   width: -moz-min-content;
   white-space: nowrap;
-  margin-left: 1ch;
 }
 .msg-header-date-unread {
   color: #1D8399;
@@ -463,7 +487,9 @@ input.msg-search-text-tease {
   * opaque background to optimize Gecko.
   * See Bug 962699. */
 .msg-messages-container {
-   background-color: #fff;
+  position: relative;
+  background-color: #fff;
+  overflow: hidden;
 }
 
 .msg-delete-btn {
