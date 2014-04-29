@@ -117,6 +117,7 @@ exports.getOsType = utils.getOsType;
 exports.generateUUID = utils.generateUUID;
 exports.copyRec = utils.copyRec;
 exports.getAppStatus = getAppStatus;
+exports.createZip = utils.createZip;
 // ===== the following functions support node.js compitable interface.
 exports.FILE_TYPE_FILE = FILE_TYPE_FILE;
 exports.FILE_TYPE_DIRECTORY = FILE_TYPE_DIRECTORY;
