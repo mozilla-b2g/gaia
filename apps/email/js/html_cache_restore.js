@@ -6,6 +6,12 @@ function plog(msg) {
   console.log(msg + ' ' + (performance.now() - _xstart));
 }
 
+/**
+ * Version number for cache, allows expiring cache.
+ * Set by build process. Set as a global because it
+ * is also used in html_cache.js.
+ */
+var HTML_COOKIE_CACHE_VERSION = '1';
 
 // Use a global to work around issue with
 // navigator.mozHasPendingMessage only returning
@@ -13,13 +19,7 @@ function plog(msg) {
 window.htmlCacheRestorePendingMessage = [];
 
 (function() {
-  /**
-   * Version number for cache, allows expiring cache.
-   * Set by build process, value must match the value
-   * in html_cache.js.
-   */
-  var CACHE_VERSION = '1',
-      selfNode = document.querySelector('[data-loadsrc]'),
+  var selfNode = document.querySelector('[data-loadsrc]'),
       loader = selfNode.dataset.loader,
       loadSrc = selfNode.dataset.loadsrc;
 
@@ -51,7 +51,9 @@ window.htmlCacheRestorePendingMessage = [];
       value = value.substring(index + 1);
     }
 
-    if (version !== CACHE_VERSION) {
+    if (version !== HTML_COOKIE_CACHE_VERSION) {
+      console.log('Skipping cookie cache, out of date. Expected ' +
+                  HTML_COOKIE_CACHE_VERSION + ' but found ' + version);
       value = '';
     }
 
