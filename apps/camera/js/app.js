@@ -9,7 +9,6 @@ var NotificationView = require('views/notification');
 var ViewfinderView = require('views/viewfinder');
 var orientation = require('lib/orientation');
 var ControlsView = require('views/controls');
-var FocusRing = require('views/focus-ring');
 var ZoomBarView = require('views/zoom-bar');
 var bindAll = require('lib/bind-all');
 var model = require('vendor/model');
@@ -122,7 +121,6 @@ App.prototype.loadController = function(path) {
 App.prototype.initializeViews = function() {
   debug('initializing views');
   this.views.viewfinder = new ViewfinderView();
-  this.views.focusRing = new FocusRing();
   this.views.controls = new ControlsView();
   this.views.hud = new HudView();
   this.views.zoomBar = new ZoomBarView();
@@ -138,7 +136,6 @@ App.prototype.initializeViews = function() {
 App.prototype.injectViews = function() {
   debug('injecting views');
   this.views.viewfinder.appendTo(this.el);
-  this.views.focusRing.appendTo(this.el);
   this.views.controls.appendTo(this.el);
   this.views.hud.appendTo(this.el);
   this.views.zoomBar.appendTo(this.el);

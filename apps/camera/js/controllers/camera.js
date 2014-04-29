@@ -55,6 +55,8 @@ CameraController.prototype.bindEvents = function() {
   camera.on('loaded', app.firer('camera:loaded'));
   camera.on('ready', app.firer('camera:ready'));
   camera.on('busy', app.firer('camera:busy'));
+  //focus events  got-camera
+  camera.on('got-camera', this.configureFocus);
 
   // App
   app.on('previewgallery:opened', this.onPreviewGalleryOpened);
@@ -206,8 +208,10 @@ CameraController.prototype.showSizeLimitAlert = function() {
 
 CameraController.prototype.setMode = function(mode) {
   this.setFlashMode();
+  this.disableSupportedFocus();
   this.camera.setMode(mode);
   this.viewfinder.fadeOut(this.camera.configure);
+  this.configureFocus();
 };
 
 CameraController.prototype.setPictureSize = function(value) {
@@ -227,6 +231,7 @@ CameraController.prototype.setRecorderProfile = function(value) {
 };
 
 CameraController.prototype.setCamera = function(value) {
+  this.disableSupportedFocus();
   this.camera.set('selectedCamera', value);
   this.viewfinder.fadeOut(this.camera.load);
 };
@@ -237,6 +242,7 @@ CameraController.prototype.setFlashMode = function() {
 };
 
 CameraController.prototype.onHidden = function() {
+  this.disableSupportedFocus();
   this.camera.stopRecording();
   this.camera.set('previewActive', false);
   this.camera.set('focus', 'none');
@@ -301,4 +307,69 @@ CameraController.prototype.onPreviewGalleryOpened = function() {
   this.camera.configureZoom(this.camera.previewSize());
 };
 
+CameraController.prototype.configureFocus = function() {
+  var selectedCamera = this.camera.get('selectedCamera');
+  var focusModes = (selectedCamera === 'back') ?
+  this.settings.focusModes.get('modes') : { fixedFocus: true };
+  var cameraMode = this.camera.mode;
+  this.camera.focusModes = {};
+  for (var mode in focusModes) {
+    if (!focusModes[mode]) { continue; }
+    var supportedMode = this.supportedfocusModes(mode, cameraMode);
+    if (supportedMode && supportedMode.supported) {
+      this.camera.focusModes[mode] = supportedMode;
+      this.camera.focusModes[mode].key = mode;
+      console.log(' Supported Focus Mode :: '+ mode);
+    }
+  }
+
+  this.camera.setDefaultFocusmode();
+};
+
+CameraController.prototype.supportedfocusModes = function(mode, cameraMode) {
+  var focusObject = null;
+  switch (mode) {
+    case 'continuousFocus':
+      focusObject = {
+        supported: this.camera.continuousFocusModeCheck(),
+        enable: this.camera.setContinuousFocusMode,
+        disable: this.camera.disableAutoFocusMove
+      };
+    break;
+    case 'faceTracking':
+      focusObject = {
+        supported: (cameraMode !== 'video') ?
+         this.camera.faceTrackingModeCheck() : false,
+        enable: this.camera.startFaceDetection,
+        disable: this.camera.stopFaceDetection
+      };
+    break;
+    case 'touchFocus':
+      focusObject = {
+        supported: this.camera.touchFocusModeCheck(),
+      };
+    break;
+    case 'autoFocus':
+      focusObject = {
+        supported: (cameraMode !== 'video') ?
+         this.camera.autoFocusModeCheck() : false,
+      };
+    break;
+    case 'fixedFocus':
+      focusObject = {
+        supported: true,
+        enable: this.camera.setFixedFocusMode
+      };
+    break;
+  }
+ return focusObject;
+};
+
+CameraController.prototype.disableSupportedFocus = function() {
+  if (this.focusTimeOut) {
+    clearTimeout(this.focusTimeOut);
+    this.focusTimeOut = null;
+  }
+  this.camera.disableSupportedFocus();
+};
 });

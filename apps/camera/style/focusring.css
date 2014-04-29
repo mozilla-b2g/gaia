@@ -1,0 +1,61 @@
+.focusring{
+  position: absolute;
+  top: 50%; left: 50%;
+  pointer-events: none;
+  opacity: 0.8;
+  font-size: 92px;
+  background: transparent;
+  transform: translate(-50%, -50%);
+}
+
+.focus-ring[focus-state=none] .focusring:before {
+  opacity: 0;
+}
+
+.focus-ring[focus-state=focusing] .focusring:before {
+  display: block;
+  color: white;
+  animation: 2s ring-animation infinite steps(180);
+}
+
+.focus-ring[focus-state=focused] .focusring:before {
+  color: #AFFF3D;
+  content: "\e615";
+}
+
+.focus-ring[focus-state=fail] .focusring:before {
+  color: red;
+  content: "\e615";
+  transform-origin:center center;
+}
+
+.focus-ring[focus-state=focused][focus-mode=continuousFocus] .focusring,
+.focus-ring[focus-state=focused][focus-mode=touchFocus] .focusring {
+  font-size: 78px;
+}
+
+.focusring-yellow {
+  position: absolute;
+  top: 0px; left: 0px;
+  pointer-events: none;
+  opacity: 0.8;
+  background: transparent;
+  color: yellow;
+}
+
+.focus-ring[focus-mode=continuousFocus] .focusring,
+.focus-ring[focus-mode=touchFocus] .focusring {
+  margin-left: 0px;
+  margin-top: 0px;
+  transform: translate(-50%, -50%);
+}
+
+.focus-ring[focus-mode=faceTracking] .focusring {
+  transform: translate(0px, 0px);
+}
+
+@keyframes ring-animation {
+  0% { transform: rotate(0deg) }
+  50% { transform: rotate(45deg)}
+  100% { transform: rotate(0deg) }
+}
