@@ -233,10 +233,6 @@ return View.extend({
     this.frame.clear();
   },
 
-  isPreviewOpened: function() {
-    return !this.el.classList.contains('offscreen');
-  },
-
   updateCountText: function(current, total) {
     this.currentIndex = current;
     this.lastIndex = total;
