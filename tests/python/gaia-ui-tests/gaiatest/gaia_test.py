@@ -3,7 +3,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import json
-import re
 import os
 import time
 
@@ -716,25 +715,10 @@ class GaiaDevice(object):
         self.marionette.wait_for_port()
         self.marionette.start_session()
 
-        # v1.3 requires a different wait
-        gaia_version = re.search('(\d+.\d+).*',
-                                 GaiaData(self.marionette, self.testvars).get_setting('deviceinfo.os')).group(1)
-        if float(gaia_version) <= 1.3:
-            if self.is_android_build:
-                self.marionette.execute_async_script("""
-window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
-  if (aEvent.target.src.indexOf('ftu') != -1 || aEvent.target.src.indexOf('homescreen') != -1) {
-    window.removeEventListener('mozbrowserloadend', loaded);
-    marionetteScriptFinished();
-  }
-});""", script_timeout=timeout*1000)
-                # TODO: Remove this sleep when Bug 924912 is addressed
-                time.sleep(5)
-        else:
-            # Wait for the AppWindowManager to have registered the frame as active (loaded)
-            locator = (By.CSS_SELECTOR, 'div.appWindow.active')
-            Wait(marionette=self.marionette, timeout=timeout, ignored_exceptions=NoSuchElementException)\
-                .until(lambda m: m.find_element(*locator).is_displayed())
+        # Wait for the AppWindowManager to have registered the frame as active (loaded)
+        locator = (By.CSS_SELECTOR, 'div.appWindow.active')
+        Wait(marionette=self.marionette, timeout=timeout, ignored_exceptions=NoSuchElementException)\
+            .until(lambda m: m.find_element(*locator).is_displayed())
 
         self.marionette.import_script(self.lockscreen_atom)
         self.update_checker.check_updates()
