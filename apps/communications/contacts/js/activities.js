@@ -1,4 +1,5 @@
-/* globals _, ConfirmDialog, Contacts, LazyLoader, utils, ValueSelector */
+/* globals _, ConfirmDialog, Contacts, LazyLoader, utils */
+/* globals contacts */
 /* exported ActivityHandler */
 
 'use strict';
@@ -103,6 +104,7 @@ var ActivityHandler = {
 
   dataPickHandler: function ah_dataPickHandler(theContact) {
     var type, dataSet, noDataStr;
+    var result = {};
 
     switch (this.activityDataType) {
       case 'webcontacts/tel':
@@ -124,7 +126,6 @@ var ActivityHandler = {
     var hasData = dataSet && dataSet.length;
     var numOfData = hasData ? dataSet.length : 0;
 
-    var result = {};
     result.name = theContact.name;
     switch (numOfData) {
       case 0:
@@ -141,7 +142,8 @@ var ActivityHandler = {
         // if one required type of data
         if (this.activityDataType == 'webcontacts/tel') {
           result = utils.misc.toMozContact(theContact);
-        } else {
+        }
+        else {
           result[type] = dataSet[0].value;
         }
 
@@ -149,36 +151,36 @@ var ActivityHandler = {
         break;
       default:
         // if more than one required type of data
-        var prompt1 = new ValueSelector();
-        var data;
-        for (var i = 0; i < dataSet.length; i++) {
-          data = dataSet[i].value;
-          var carrier = dataSet[i].carrier || '';
-          prompt1.addToList(data + ' ' + carrier, data);
-        }
+        var itemData, self = this;
+        var capture = function(itemData) {
+          return function() {
+            if (self.activityDataType == 'webcontacts/tel') {
+                // filter phone from data.tel to take out the rest
+                result = utils.misc.toMozContact(theContact);
+                result.tel = self.filterAddressForActivity(
+                               itemData, result.tel);
+            }
+            else {
+              result[type] = itemData;
+            }
+            contacts.ValueSelector.hide();
+            self.postPickSuccess(result);
+          };
+        };
 
-        prompt1.onchange = (function onchange(itemData) {
-          if (this.activityDataType == 'webcontacts/tel') {
-            // filter phone from data.tel to take out the rest
-            result = utils.misc.toMozContact(theContact);
-            result.tel =
-              this.filterPhoneNumberForActivity(itemData, result.tel);
-          } else {
-            result[type] = itemData;
-          }
-          prompt1.hide();
-          this.postPickSuccess(result);
-        }).bind(this);
-        prompt1.show();
+        for (var i = 0; i < dataSet.length; i++) {
+          itemData = dataSet[i].value;
+          var carrier = dataSet[i].carrier || '';
+          contacts.ValueSelector.addToList(itemData + ' ' + carrier, itemData,
+              capture(itemData));
+        }
+        contacts.ValueSelector.show();
     } // switch
   },
 
-  /*
-   * We only need to return the phone number that user chose from the select
-   * Hence we filter out the rest of the phones from the contact
-   */
-  filterPhoneNumberForActivity:
-  function ah_filterPhoneNumberForActivity(itemData, dataSet) {
+
+  filterAddressForActivity:
+  function ah_filterAddressForActivity(itemData, dataSet) {
     return dataSet.filter(function isSamePhone(item) {
       return item.value == itemData;
     });
