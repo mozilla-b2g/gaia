@@ -36,7 +36,9 @@ module.exports = {
     ],
     persistent: false
   },
-
+  loadingScreen: {
+    delay: 600
+  },
   isoModes: {
     disabled: false,
     options: [
