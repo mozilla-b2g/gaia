@@ -381,6 +381,10 @@ suite('call screen', function() {
       CallScreen._wallpaperReady = false;
     });
 
+    teardown(function() {
+      CallScreen._transitioning = false;
+    });
+
     test('it should wait for the wallpaper to load', function(done) {
       var toggleSpy = this.sinon.spy(screen.classList, 'toggle');
       CallScreen.toggle();
@@ -451,6 +455,30 @@ suite('call screen', function() {
         test('should call the callback', function(done) {
           setTimeout(function() {
             assert.isTrue(spyCallback.called);
+            done();
+          });
+        });
+      });
+
+      suite('when toggling again in the middle of a transition', function() {
+        var addEventListenerSpy;
+        var spyCallback;
+
+        setup(function() {
+          addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
+          spyCallback = this.sinon.spy();
+
+          CallScreen.toggle(spyCallback);
+          CallScreen.toggle(spyCallback);
+        });
+
+        test('should not wait for transitionend the second time', function() {
+          assert.isTrue(addEventListenerSpy.calledOnce);
+        });
+
+        test('should call the callback once', function(done) {
+          setTimeout(function() {
+            assert.isTrue(spyCallback.calledOnce);
             done();
           });
         });
