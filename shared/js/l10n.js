@@ -3,7 +3,6 @@
 
   /* jshint validthis:true */
   /* jshint browser:true */
-
   var io = {
     load: function load(url, callback, sync) {
       var xhr = new XMLHttpRequest();
@@ -1452,7 +1451,12 @@
     if (!element) {
       element = document.documentElement;
       document.documentElement.lang = this.language.code;
-      document.documentElement.dir = this.language.direction;
+      if(window.RTL_CAPABLE == false){
+        element.dir = "ltr";
+      }
+      else {
+        element.dir = this.language.direction;
+      }
     }
     translateElement.call(this, element);
 

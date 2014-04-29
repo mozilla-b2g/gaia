@@ -192,6 +192,8 @@ var isKeyboardRendered = false;
 var currentCandidates = [];
 var candidatePanelScrollTimer = null;
 
+window.RTL_CAPABLE = false;
+
 var cachedIMEDimensions = {
   height: 0,
   width: 0
