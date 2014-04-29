@@ -8,6 +8,12 @@ else ifndef JS_RUN_ENVIRONMENT
 	JS_RUN_ENVIRONMENT := $(NODEJS)
 endif
 
+ifdef GAIA_DISTRIBUTION_DIR
+	ifneq ($(wildcard $(GAIA_DISTRIBUTION_DIR)/camera-config.js),)
+		CP_USER_CONFIGURATION = cp $(GAIA_DISTRIBUTION_DIR)/camera-config.js js/config/app.js
+	endif
+endif
+
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
 SHARED_SOURCES := $(call rwildcard,../../shared/,*)
@@ -35,6 +41,7 @@ $(BUILD_DIR)/js/main.js: manifest.webapp index.html $(SHARED_SOURCES) $(JS_SOURC
 	@rm -rf $(BUILD_DIR)
 	@mkdir -p $(BUILD_DIR)
 	cp -rp ../../shared $(BUILD_DIR)/shared
+	$(CP_USER_CONFIGURATION)
 	$(JS_RUN_ENVIRONMENT) ../../build/r.js -o build/require_config.jslike
 
 camera_configuration:
