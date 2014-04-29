@@ -75,6 +75,7 @@ body.rb-enabled #screen.on-homescreen:not(.cards-view):not(.rocketbar-focused) #
 #screen.rocketbar-expanded:not(.on-homescreen):not(.locked) #statusbar-icons,
 #screen.rocketbar-expanded.on-homescreen.rocketbar-focused:not(.locked) #statusbar-icons,
 #screen.rocketbar-expanded.cards-view #statusbar-icons {
+  visibility: hidden;
   opacity: 0;
 }
 
