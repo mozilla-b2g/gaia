@@ -227,6 +227,7 @@ var CallScreen = {
     }
   },
 
+  _transitioning: false,
   _transitionDone: false,
   _contactBackgroundWaiting: false,
   _contactImage: null,
@@ -242,23 +243,28 @@ var CallScreen = {
     var screen = this.screen;
     screen.classList.toggle('displayed');
 
-    var self = this;
+    // If we toggle the class during the transition we'll loose the
+    // transitionend ; and we have no opening transition for incoming locked
+    var skipTransition = this._transitioning ||
+                         (this.screen.dataset.layout === 'incoming-locked');
 
-    // We have no opening transition for incoming locked
-    if (this.screen.dataset.layout === 'incoming-locked') {
+    if (skipTransition) {
       if (callback && typeof(callback) == 'function') {
         setTimeout(callback);
       }
-      self._onTransitionDone();
+      this._onTransitionDone();
       return;
     }
 
     /* We need CSS transitions for the status bar state and the regular state */
+    var self = this;
+    self._transitioning = true;
     screen.addEventListener('transitionend', function trWait(evt) {
       if (evt.target != screen) {
         return;
       }
       screen.removeEventListener('transitionend', trWait);
+      self._transitioning = false;
       if (callback && typeof(callback) == 'function') {
         callback();
       }
