@@ -103,6 +103,7 @@ ViewfinderController.prototype.bindEvents = function() {
  * @private
  */
 ViewfinderController.prototype.onCameraConfigured = function() {
+  var self = this;
   this.startStream();
   this.configurePreview();
   this.configureZoom();
@@ -112,7 +113,9 @@ ViewfinderController.prototype.onCameraConfigured = function() {
   // video element appears not to have painted the
   // newly set dimensions before fading in.
   // https://bugzilla.mozilla.org/show_bug.cgi?id=982230
-  setTimeout(this.viewfinder.fadeIn, 300);
+  setTimeout(function() {
+    self.viewfinder.fadeIn(self.app.firer('viewfinder:visible'));
+  }, 300);
 };
 
 ViewfinderController.prototype.onShutter = function() {
