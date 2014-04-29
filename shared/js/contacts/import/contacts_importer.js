@@ -13,11 +13,9 @@
     var access_token = pAccessToken;
     var total = this.contacts.length;
 
-    var numResponses = 0;
-    var next = 0;
     var self = this;
     var serviceConnector = pConnector;
-    var totalImported = 0;
+    var numImported = 0;
 
     var mustHold = false;
     var holded = false;
@@ -102,7 +100,7 @@
       mustHold = false;
       holded = false;
       mustFinish = false;
-      importContacts(next);
+      importContacts(numImported);
     };
 
     this.hold = function() {
@@ -123,7 +121,7 @@
       mustFinish = false;
 
       window.setTimeout(function resume_import() {
-        importContacts(next);
+        importContacts(numImported);
       }, 0);
     };
 
@@ -154,40 +152,42 @@
 
     function importContacts(from) {
       for (var i = from; i < from + CHUNK_SIZE && i < total; i++) {
-        var serviceContact = contactsHash[self.contacts[i]];
-        // We need to get the picture
-        var callbacks = {
-          success: pictureReady.bind(serviceContact),
-          error: pictureError.bind(serviceContact),
-          timeout: pictureTimeout.bind(serviceContact)
-        };
+        importContact(i);
+      }
+    }
 
-        if (isOnLine === true) {
-          serviceConnector.downloadContactPicture(serviceContact,
-                                             access_token, callbacks);
-        }
-        else {
-          callbacks.success(null);
-        }
+    function importContact(index) {
+      var serviceContact = contactsHash[self.contacts[index]];
+      // We need to get the picture
+      var callbacks = {
+        success: pictureReady.bind(serviceContact),
+        error: pictureError.bind(serviceContact),
+        timeout: pictureTimeout.bind(serviceContact)
+      };
+
+      if (isOnLine === true) {
+        serviceConnector.downloadContactPicture(serviceContact,
+                                           access_token, callbacks);
+      }
+      else {
+        callbacks.success(null);
       }
     }
 
     function notifySuccess() {
       if (typeof self.onsuccess === 'function') {
         window.setTimeout(function do_success() {
-          self.onsuccess(totalImported);
+          self.onsuccess(numImported);
         }, 0);
       }
     }
 
     function continueCb() {
-      next++;
-      numResponses++;
-      totalImported++;
-      if (next < total && numResponses === CHUNK_SIZE) {
-        numResponses = 0;
+      numImported++;
+      var next = numImported + CHUNK_SIZE - 1;
+      if (next < total) {
         if (!mustHold && !mustFinish) {
-          importContacts(next);
+          importContact(next);
         }
         else if (mustFinish && !holded) {
           notifySuccess();
@@ -197,7 +197,7 @@
           holded = true;
         }
       }
-      else if (next >= total) {
+      else if (numImported >= total) {
         // End has been reached
         notifySuccess();
       }
