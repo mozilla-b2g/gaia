@@ -1,4 +1,4 @@
-/* global MocksHelper, MockNavigatorMozIccManager, icc, MockIccHelper,
+/* global MocksHelper, MockNavigatorMozIccManager, icc,
           MockNavigatorMozMobileConnections, MockNavigatormozSetMessageHandler,
           MockL10n, MockFtuLauncher, MockNavigatorSettings */
 'use strict';
@@ -7,7 +7,6 @@ requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_system_icc_worker.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
-require('/shared/test/unit/mocks/mock_icc_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
@@ -15,7 +14,7 @@ require('/shared/test/unit/mocks/mock_dump.js');
 require('/shared/test/unit/load_body_html_helper.js');
 
 
-mocha.globals(['FtuLaucher', 'icc_worker', 'icc', 'IccHelper']);
+mocha.globals(['FtuLaucher', 'icc_worker', 'icc']);
 
 var mocksForIcc = new MocksHelper([
   'Dump',
@@ -25,7 +24,7 @@ var mocksForIcc = new MocksHelper([
 
 suite('STK (icc) >', function() {
   mocksForIcc.attachTestHelpers();
-  var realMozIccManager, realSettings, realL10n, realIccHelper,
+  var realMozIccManager, realSettings, realL10n,
       realNavigatormozSetMessageHandler, realNavigatormozMobileConnections;
   var stkTestCommands = {};
 
@@ -47,10 +46,6 @@ suite('STK (icc) >', function() {
 
     realNavigatormozMobileConnections = navigator.mozMobileConnections;
     navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
-
-    MockIccHelper.mSuiteSetup();
-    realIccHelper = window.IccHelper;
-    window.IccHelper = MockIccHelper;
   });
 
   suiteTeardown(function() {
@@ -66,9 +61,6 @@ suite('STK (icc) >', function() {
 
     MockNavigatorMozMobileConnections.mTeardown();
     navigator.mozMobileConnections = realNavigatormozMobileConnections;
-
-    window.IccHelper = realIccHelper;
-    MockIccHelper.mSuiteTeardown();
   });
 
   setup(function(done) {
@@ -84,21 +76,52 @@ suite('STK (icc) >', function() {
   setup(function() {
     window.navigator.mozIccManager.addIcc('1010011010');
 
-    stkTestCommands.STK_CMD_GET_INPUT = {
-        commandNumber: 1,
-        typeOfCommand: navigator.mozIccManager.STK_CMD_GET_INPUT,
-        commandQualifier: 0,
-        options: {
-          text: 'stk Input test text',
-          duration: {
-            timeUnit: navigator.mozIccManager.STK_TIME_UNIT_TENTH_SECOND,
-            timeInterval: 5
-          },
-          minLength: 2,
-          maxLength: 10,
-          defaultText: 'default'
+    stkTestCommands = {
+      STK_CMD_GET_INPUT: {
+        iccId: '1010011010',
+        command: {
+          commandNumber: 1,
+          typeOfCommand: navigator.mozIccManager.STK_CMD_GET_INPUT,
+          commandQualifier: 0,
+          options: {
+            text: 'stk Input test text',
+            duration: {
+              timeUnit: navigator.mozIccManager.STK_TIME_UNIT_TENTH_SECOND,
+              timeInterval: 5
+            },
+            minLength: 2,
+            maxLength: 10,
+            defaultText: 'default'
+          }
         }
-      };
+      },
+
+      STK_CMD_SET_UP_IDLE_MODE_TEXT: {
+        iccId: '1010011010',
+        command: {
+          commandNumber: 1,
+          typeOfCommand: navigator.mozIccManager.STK_CMD_SET_UP_IDLE_MODE_TEXT,
+          commandQualifier: 0,
+          options: {
+            text: 'STK_CMD_SET_UP_IDLE_MODE_TEXT Unit Test'
+          }
+        }
+      },
+
+      STK_CMD_REFRESH: {
+        iccId: '1010011010',
+        command: {
+          commandNumber: 1,
+          typeOfCommand: navigator.mozIccManager.STK_CMD_REFRESH,
+          commandQualifier: 0,
+          options: {}
+        }
+      }
+    };
+  });
+
+  test('getIcc', function() {
+    assert.isObject(window.icc.getIcc('1010011010'));
   });
 
   test('getIccInfo', function(done) {
@@ -122,15 +145,15 @@ suite('STK (icc) >', function() {
   });
 
   test('responseSTKCommand', function(done) {
-    window.IccHelper.sendStkResponse = function(cmd, res) {
+    window.icc.getIcc('1010011010').sendStkResponse = function(msg, res) {
       assert.equal(res, 'dummy');
       done();
     };
-    icc.responseSTKCommand('dummy');
+    icc.responseSTKCommand(stkTestCommands.STK_CMD_GET_INPUT, 'dummy');
   });
 
   test('terminateResponse', function(done) {
-    window.IccHelper.sendStkResponse = function(cmd, res) {
+    window.icc.getIcc('1010011010').sendStkResponse = function(msg, res) {
       assert.equal(res.resultCode,
         navigator.mozIccManager.STK_RESULT_UICC_SESSION_TERM_BY_USER);
       done();
@@ -139,7 +162,7 @@ suite('STK (icc) >', function() {
   });
 
   test('backResponse', function(done) {
-    window.IccHelper.sendStkResponse = function(cmd, res) {
+    window.icc.getIcc('1010011010').sendStkResponse = function(msg, res) {
       assert.equal(res.resultCode,
         navigator.mozIccManager.STK_RESULT_BACKWARD_MOVE_BY_USER);
       done();
@@ -172,25 +195,49 @@ suite('STK (icc) >', function() {
     }
   });
 
+  test('Sending incomplete message (empty object)', function() {
+    icc.handleSTKCommand({});
+  });
+
+  test('Sending incomplete message (null)', function() {
+    icc.handleSTKCommand(null);
+  });
+
+  test('Sending incomplete message (without iccId)', function() {
+    icc.handleSTKCommand({ command: { typeOfCommand: 0, options: {} } });
+  });
+
+  test('Sending incomplete message (without command)', function() {
+    icc.handleSTKCommand({ iccId: '1234' });
+  });
+
+  test('Sending incomplete message (without command.typeOfCommand)',
+    function() {
+      icc.handleSTKCommand({ command: { options: {} } });
+    });
+
+  test('Sending incomplete message (without command.options)', function() {
+    icc.handleSTKCommand({ command: { typeOfCommand: 0 } });
+  });
+
   test('UI: Input (timeout 1sec)', function(done) {
     var testCmd = stkTestCommands.STK_CMD_GET_INPUT;
-    window.icc.input(testCmd.options.text, 1000,
-      stkTestCommands.STK_CMD_GET_INPUT.options, function(res, value) {
-        assert.isTrue(true);
+    window.icc.input(testCmd, testCmd.command.options.text, 1000,
+      stkTestCommands.STK_CMD_GET_INPUT.command.options, function(res, value) {
         done();
       });
   });
 
   test('UI: Input (contents)', function(done) {
     var testCmd = stkTestCommands.STK_CMD_GET_INPUT;
-    window.icc.input(testCmd.options.text, 0,
-      stkTestCommands.STK_CMD_GET_INPUT.options, function() {});
+    window.icc.input(testCmd, testCmd.command.options.text, 0,
+      stkTestCommands.STK_CMD_GET_INPUT.command.options, function() {});
 
     // We need to wait because workaround. See bug #818270. Followup: #895314
     // See function workaround_bug818270 in icc.js
     setTimeout(function() {
       assert.equal(document.getElementById('icc-input-msg').textContent,
-        testCmd.options.text);
+        testCmd.command.options.text);
       assert.equal(document.getElementById('icc-input-btn').textContent, 'OK');
       assert.equal(document.getElementById('icc-input-btn').disabled, false);
       assert.equal(document.getElementById('icc-input-btn_back').textContent,
@@ -203,8 +250,8 @@ suite('STK (icc) >', function() {
 
   test('UI: Input (checkInputLengthValid)', function() {
     var testCmd = stkTestCommands.STK_CMD_GET_INPUT;
-    window.icc.input(testCmd.options.text, 0,
-      stkTestCommands.STK_CMD_GET_INPUT.options, function() {});
+    window.icc.input(testCmd, testCmd.command.options.text, 0,
+      stkTestCommands.STK_CMD_GET_INPUT.command.options, function() {});
 
     var button = document.getElementById('icc-input-btn');
     var inputbox = document.getElementById('icc-input-box');
@@ -238,4 +285,19 @@ suite('STK (icc) >', function() {
     launchStkCommand(stkTestCommands.STK_CMD_GET_INPUT);
   });
 
+  test('launchStkCommand: STK_CMD_SET_UP_IDLE_MODE_TEXT', function(done) {
+    window.icc_worker.onmessagereceived = function(message) {
+      assert.equal(message, stkTestCommands.STK_CMD_SET_UP_IDLE_MODE_TEXT);
+      done();
+    };
+    launchStkCommand(stkTestCommands.STK_CMD_SET_UP_IDLE_MODE_TEXT);
+  });
+
+  test('launchStkCommand: STK_CMD_REFRESH', function(done) {
+    window.icc_worker.onmessagereceived = function(message) {
+      assert.equal(message, stkTestCommands.STK_CMD_REFRESH);
+      done();
+    };
+    launchStkCommand(stkTestCommands.STK_CMD_REFRESH);
+  });
 });

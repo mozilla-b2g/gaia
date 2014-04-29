@@ -41,6 +41,7 @@
     },
     addIcc: function(id, object) {
       object = object || {};
+      object.iccId = id;
 
       // override by default
       if (iccIds.indexOf(id) == -1) {
@@ -107,6 +108,19 @@
         return req;
       };
 
+      object.unlockCardLock = function(options) {
+        var req = {
+          // fires success handler immediately
+          set onsuccess(handler) {
+            return handler();
+          },
+          get onsuccess() {
+            return function() {};
+          }
+        };
+        return req;
+      };
+
       object.iccInfo = object.iccInfo || { msisdn: '0912345678' };
       object._eventListeners = {};
 
@@ -133,8 +147,8 @@
           if (typeof callback === 'function') {
             callback(evt);
           } else if (typeof callback == 'object' &&
-                     typeof callback['handleEvent'] === 'function') {
-            callback['handleEvent'](evt);
+                     typeof callback.handleEvent === 'function') {
+            callback.handleEvent(evt);
           }
         });
 
@@ -246,6 +260,7 @@
     STK_TIMER_START: 0x00,
     STK_TIMER_DEACTIVATE: 0x01,
     STK_TIMER_GET_CURRENT_VALUE: 0x02
+
   };
 
   // add default Icc instance at first

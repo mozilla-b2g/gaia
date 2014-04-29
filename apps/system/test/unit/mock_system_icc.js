@@ -1,7 +1,6 @@
 'use strict';
 
 /* exported MockSystemICC */
-
 function MockSystemICC(iccManager) {
   return {
     onresponse: function() {},
@@ -9,8 +8,8 @@ function MockSystemICC(iccManager) {
     getSIMNumber: function() {
       return 1;
     },
-    responseSTKCommand: function(response) {
-      this.onresponse(response);
+    responseSTKCommand: function(message, response) {
+      this.onresponse(message, response);
     },
 
     calculateDurationInMS: function icc_calculateDurationInMS(timeUnit,
