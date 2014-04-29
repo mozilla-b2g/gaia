@@ -262,6 +262,8 @@ var CallHandler = (function callHandler() {
                                                btCommandHandler);
 
         window.navigator.mozSetMessageHandler('ussd-received', function(evt) {
+          console.log('[999356] ussd-received: ' + evt.message +
+            ', ' + evt.sessionEnded);
           if (document.hidden) {
             var request = window.navigator.mozApps.getSelf();
             request.onsuccess = function() {

@@ -163,6 +163,7 @@ var MmiUI = {
         this.handleError(data);
         break;
       case 'mmi-received-ui':
+        console.log('[999356] SHOW ' + data.title + ' - ' + data.message);
         if (data.sessionEnded) {
           this.hideResponseForm();
           if (data.message == null) {

@@ -260,6 +260,7 @@ var MmiManager = {
   },
 
   handleMMIReceived: function mm_handleMMIReceived(message, sessionEnded) {
+    console.log('[999356] ' + message + ', ' + sessionEnded);
     this.init((function() {
       this._pendingRequest = null;
       // Do not notify the UI if no message to show.
