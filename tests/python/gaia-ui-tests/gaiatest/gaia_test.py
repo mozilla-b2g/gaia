@@ -629,10 +629,8 @@ class GaiaDevice(object):
     def __init__(self, marionette, testvars=None):
         self.marionette = marionette
         self.testvars = testvars or {}
-        self.update_checker = FakeUpdateChecker(self.marionette)
         self.lockscreen_atom = os.path.abspath(
             os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
-        self.marionette.import_script(self.lockscreen_atom)
 
     def add_device_manager(self, device_manager):
         self._manager = device_manager
@@ -720,8 +718,8 @@ class GaiaDevice(object):
         Wait(marionette=self.marionette, timeout=timeout, ignored_exceptions=NoSuchElementException)\
             .until(lambda m: m.find_element(*locator).is_displayed())
 
-        self.marionette.import_script(self.lockscreen_atom)
-        self.update_checker.check_updates()
+        # Run the fake update checker
+        FakeUpdateChecker(self.marionette).check_updates()
 
     @property
     def is_b2g_running(self):
@@ -813,12 +811,14 @@ class GaiaDevice(object):
         return self.marionette.execute_script('return window.wrappedJSObject.lockScreen.locked')
 
     def lock(self):
+        self.marionette.import_script(self.lockscreen_atom)
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('GaiaLockScreen.lock()')
         assert result, 'Unable to lock screen'
         Wait(self.marionette).until(lambda m: m.find_element(By.CSS_SELECTOR, 'div.lockScreenWindow.active'))
 
     def unlock(self):
+        self.marionette.import_script(self.lockscreen_atom)
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('GaiaLockScreen.unlock()')
         assert result, 'Unable to unlock screen'
