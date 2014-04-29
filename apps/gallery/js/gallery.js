@@ -395,6 +395,17 @@ function initThumbnails() {
       if (pendingPick && fileinfo.metadata.video)
         return;
 
+      // Bug 1003036 fixed an issue where explicitly created preview
+      // images could be saved with fractional sizes. We don't do that
+      // anymore, but we still need to clean up existing bad data here.
+      var metadata = fileinfo.metadata;
+      if (metadata &&
+          metadata.preview &&
+          metadata.preview.filename) {
+        metadata.preview.width = Math.floor(metadata.preview.width);
+        metadata.preview.height = Math.floor(metadata.preview.height);
+      }
+
       batch.push(fileinfo);
       if (batch.length >= batchsize) {
         flush();
@@ -826,25 +837,33 @@ function cropPickedImage(fileinfo) {
     }
 
     function cropAndEndPick() {
+      // First, figure out what kind of image to return to the requesting app.
+      // If the activity request specifically included 'image/jpeg' or
+      // 'image/png', then we'll use that type. Otherwise, if a generic
+      // 'image/*' was requested (or if an unsupported type was requested)
+      // then we use null as the type. This value is passed to
+      // cropResizeRotate() and will leave the image unchanged if possible
+      // or will use jpeg if changes are needed.
       if (Array.isArray(pickType)) {
-        if (pickType.length === 0 ||
-            pickType.indexOf(pickedFileInfo.type) !== -1 ||
-            pickType.indexOf('image/*') !== -1) {
+        if (pickType.indexOf(pickedFileInfo.type) !== -1) {
           pickType = pickedFileInfo.type;
+        }
+        else if (pickType.indexOf('image/jpeg') !== -1) {
+          pickType = 'image/jpeg';
         }
         else if (pickType.indexOf('image/png') !== -1) {
           pickType = 'image/png';
         }
         else {
-          pickType = 'image/jpeg';
+          pickType = null; // Return unchanged or convert to JPEG
         }
       }
       else if (pickType === 'image/*') {
-        pickType = pickedFileInfo.type;
+        pickType = null;   // Return unchanged or convert to JPEG
       }
 
-      if (pickType !== 'image/jpeg' && pickType !== 'image/png')
-        pickType = 'image/jpeg';
+      if (pickType && pickType !== 'image/jpeg' && pickType !== 'image/png')
+        pickType = null;   // Return unchanged or convert to JPEG
 
       // In order to determine the cropRegion and outputSize arguments to
       // cropResizeRotate() below we need to know the actual image size.
@@ -981,7 +1000,7 @@ function convertToFileBackedBlob(memoryBackedBlob) {
 
 function endPick(blob) {
   pendingPick.postResult({
-    type: pickType,
+    type: blob.type,
     blob: blob
   });
   cleanupPick();
