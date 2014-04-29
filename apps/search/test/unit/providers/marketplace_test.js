@@ -97,7 +97,12 @@ suite('search/providers/marketplace', function() {
       var req = requests[0];
       req.responseText = JSON.stringify(marketplaceContent);
       req.onload();
-      assert.equal(subject.container.querySelectorAll('.result').length, 2);
+      var apps = subject.container.getElementsByClassName('result');
+      assert.equal(apps.length, 2);
+      var app = apps[1];
+      assert.equal(app.getAttribute('role'), 'link');
+      assert.equal(app.querySelector('.icon').getAttribute('role'),
+        'presentation');
     });
   });
 });

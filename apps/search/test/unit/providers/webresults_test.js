@@ -83,8 +83,12 @@ suite('search/providers/webresults', function() {
 
     test('renders text in result', function() {
       subject.render([{title: 'mozilla'}]);
-      var container = subject.container;
-      assert.notEqual(container.innerHTML.indexOf('mozilla'), -1);
+      var webResult = subject.container.querySelector('.result');
+      assert.equal(webResult.querySelector('.title').innerHTML, 'mozilla');
+      assert.equal(webResult.getAttribute('aria-label'), 'mozilla');
+      assert.equal(webResult.getAttribute('role'), 'link');
+      assert.equal(webResult.querySelector('.icon').getAttribute('role'),
+        'presentation');
     });
   });
 
