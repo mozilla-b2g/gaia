@@ -137,7 +137,13 @@ var icc = {
       return DUMP('FTU is running, delaying STK...');
     }
 
-    var cmdId = '0x' + message.command.typeOfCommand.toString(16);
+    /* TODO: cleanup branching after bug 819831 landed */
+    var cmdId;
+    if (typeof message.command.typeOfCommand === 'string') {
+      cmdId = message.command.typeOfCommand;
+    } else {
+      cmdId = '0x' + message.command.typeOfCommand.toString(16);
+    }
     if (icc_worker[cmdId]) {
       return icc_worker[cmdId](message);
     }
