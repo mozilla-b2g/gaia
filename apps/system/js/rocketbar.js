@@ -41,6 +41,7 @@ var Rocketbar = {
     this.input = document.getElementById('rocketbar-input');
     this.cancel = document.getElementById('rocketbar-cancel');
     this.results = document.getElementById('rocketbar-results');
+    this.backdrop = document.getElementById('rocketbar-backdrop');
 
     // Listen for settings changes
     SettingsListener.observe('rocketbar.enabled', false,
@@ -88,6 +89,7 @@ var Rocketbar = {
     this.rocketbar.classList.add('active');
     this.form.classList.remove('hidden');
     this.title.classList.add('hidden');
+    this.backdrop.classList.remove('hidden');
     this.loadSearchApp(callback);
     this.screen.classList.add('rocketbar-focused');
   },
@@ -107,6 +109,7 @@ var Rocketbar = {
     this.rocketbar.classList.remove('active');
     this.form.classList.add('hidden');
     this.title.classList.remove('hidden');
+    this.backdrop.classList.add('hidden');
     this.blur();
     this.screen.classList.remove('rocketbar-focused');
   },
@@ -138,6 +141,7 @@ var Rocketbar = {
     this.input.addEventListener('input', this);
     this.cancel.addEventListener('click', this);
     this.form.addEventListener('submit', this);
+    this.backdrop.addEventListener('click', this);
 
     // Listen for messages from search app
     window.addEventListener('iac-search-results', this);
@@ -196,6 +200,8 @@ var Rocketbar = {
       case 'click':
         if (e.target == this.cancel) {
           this.handleCancel(e);
+        } else if (e.target == this.backdrop) {
+          this.deactivate();
         }
         break;
       case 'submit':
@@ -241,6 +247,7 @@ var Rocketbar = {
     this.input.removeEventListener('input', this);
     this.cancel.removeEventListener('click', this);
     this.form.removeEventListener('submit', this);
+    this.backdrop.removeEventListener('click', this);
 
     // Stop listening for messages from search app
     window.removeEventListener('iac-search-results', this);
@@ -402,10 +409,6 @@ var Rocketbar = {
     // To be removed in bug 999463
     this.body.removeEventListener('keyboardchange',
       this.handleKeyboardChange, true);
-    // Deactivate unless on new tab page or results
-    if (this.active && this.results.classList.contains('hidden')) {
-      this.deactivate();
-    }
   },
 
   /**
