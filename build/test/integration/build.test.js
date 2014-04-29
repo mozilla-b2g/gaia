@@ -536,6 +536,7 @@ suite('Build Integration tests', function() {
         'dom.mozContacts.enabled': true,
         'dom.navigator-property.disable.mozContacts': false,
         'dom.global-constructor.disable.mozContact': false,
+        'image.mozsamplesize.enabled': true,
         'dom.experimental_forms': true,
         'dom.webapps.useCurrentProfile': true,
         'bluetooth.enabled': true,
