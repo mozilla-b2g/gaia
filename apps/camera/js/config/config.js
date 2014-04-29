@@ -90,6 +90,10 @@ module.exports = {
     maxPixelSizeScaleFactor: 2.5
   },
 
+  loadingScreen: {
+    delay: 600
+  },
+
   mode: {
     options: [
       {
