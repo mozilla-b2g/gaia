@@ -104,7 +104,8 @@ fb.utils.getFriendPicture = function(uid, callback, access_token,
 
   var params = [
     'width=' + targetPictureSize,
-    'access_token' + '=' + access_token
+    'access_token=' + access_token,
+    't=' + Date.now()
   ];
 
   var imgService = imgSrc + params.join('&');
