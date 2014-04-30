@@ -1297,9 +1297,10 @@
     var resLinks = document.head
                            .querySelectorAll('link[type="application/l10n"]');
     var iniLinks = [];
-    var link;
+    var i;
 
-    for (link of resLinks) {
+    for (i = 0; i < resLinks.length; i++) {
+      var link = resLinks[i];
       var url = link.getAttribute('href');
       var type = url.substr(url.lastIndexOf('.') + 1);
       if (type === 'ini') {
@@ -1323,8 +1324,8 @@
       }
     }
 
-    for (link of iniLinks) {
-      loadINI.call(this, link, onIniLoaded.bind(this));
+    for (i = 0; i < iniLinks.length; i++) {
+      loadINI.call(this, iniLinks[i], onIniLoaded.bind(this));
     }
   }
 
@@ -1412,7 +1413,8 @@
     var uris = [];
     var match;
 
-    for (var line of entries) {
+    for (var i = 0; i < entries.length; i++) {
+      var line = entries[i];
       // we only care about en-US resources
       if (genericSection && iniPatterns['import'].test(line)) {
         match = iniPatterns['import'].exec(line);
@@ -1444,8 +1446,9 @@
     }
     translateElement.call(this, element);
 
-    for (var node of getTranslatableChildren(element)) {
-      translateElement.call(this, node);
+    var nodes = getTranslatableChildren(element);
+    for (var i = 0; i < nodes.length; i++ ) {
+      translateElement.call(this, nodes[i]);
     }
   }
 
