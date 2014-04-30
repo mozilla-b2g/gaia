@@ -13,7 +13,7 @@ class Gallery(Base):
     name = 'Gallery'
 
     _gallery_frame_locator = (By.CSS_SELECTOR, "iframe[src^='app://gallery'][src$='index.html#pick']")
-    _gallery_items_locator = (By.CSS_SELECTOR, 'li.thumbnail')
+    _gallery_items_locator = (By.CSS_SELECTOR, 'div.thumbnail')
     _empty_gallery_title_locator = (By.ID, 'overlay-title')
     _empty_gallery_text_locator = (By.ID, 'overlay-text')
     _progress_bar_locator = (By.ID, 'progress')
