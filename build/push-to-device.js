@@ -78,9 +78,10 @@ function getRemoteInstallPath(adb) {
   var tempFile = tempDir.clone();
   tempFile.append('webapps.json');
 
-  sh.run(['-c', adb + ' pull /data/local/webapps/webapps.json ' +
+  // Use |adb shell cat| instead of |adb pull| so we don't run into
+  // error and exit when the file does not exist.
+  sh.run(['-c', adb + ' shell cat /data/local/webapps/webapps.json > ' +
     tempFile.path]);
-
 
   // Read the file as JSON
   // If there were no webapps ever installed on the device (likely purged in
