@@ -6,7 +6,6 @@ mocha.setup({
     'Root',
     'MockL10n',
     'LazyLoader',
-    'startupLocale',
     'initLocale'
   ]
 });

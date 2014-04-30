@@ -4,7 +4,6 @@ mocha.setup({
   globals: [
     'Settings',
     'LazyLoader',
-    'startupLocale',
     'initLocale',
     'ScreenLayout',
     'MockL10n',
