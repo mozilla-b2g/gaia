@@ -128,7 +128,7 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
 
           assert.deepEqual(arg, {
             'name': 'refreshAuthentication',
-            'accountId': 'dummy@domain.org'
+            'email': 'dummy@domain.org'
           });
           done();
         },

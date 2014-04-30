@@ -205,12 +205,12 @@ var FxAccountsIACHelper = function FxAccountsIACHelper() {
     }, successCb, errorCb);
   };
 
-  var refreshAuthentication = function refreshAuthentication(accountId,
+  var refreshAuthentication = function refreshAuthentication(email,
                                                              successCb,
                                                              errorCb) {
     sendMessage({
       'name': 'refreshAuthentication',
-      'accountId': accountId
+      'email': email
     }, successCb, errorCb);
   };
 
