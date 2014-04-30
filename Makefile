@@ -320,8 +320,8 @@ else
 endif
 export GAIA_DISTRIBUTION_DIR
 
-SETTINGS_PATH := build/config/custom-settings.json
-KEYBOARD_LAYOUTS_PATH := build/config/keyboard-layouts.json
+SETTINGS_PATH ?= build/config/custom-settings.json
+KEYBOARD_LAYOUTS_PATH ?= build/config/keyboard-layouts.json
 
 ifdef GAIA_DISTRIBUTION_DIR
 	DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
@@ -467,7 +467,7 @@ define BUILD_CONFIG
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
 	"ROCKETBAR" : "$(ROCKETBAR)", \
 	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
-	"SETTINGS_PATH" : "$(SETTINGS_PATH)", \
+	"SETTINGS_PATH" : "$(subst \,\\,$(SETTINGS_PATH))", \
 	"FTU_PING_URL": "$(FTU_PING_URL)", \
 	"KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)", \
 	"STAGE_DIR" : "$(STAGE_DIR)", \
