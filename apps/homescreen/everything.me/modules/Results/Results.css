@@ -29,9 +29,24 @@
     display: none;
 }
 .evmeScope .evme-apps ul li img {
-  visibility: hidden;
-	transition: transform .2s linear;
+    visibility: hidden;
+    transition: transform .2s linear;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 6.4rem;
+    height: 6.4rem;
 }
+
+.evmeScope .evme-apps ul.cloud li img {
+    border-radius: 50%;
+    width: 6rem;
+    height: 6rem;
+
+    /* todo, make sure this is correct */
+    box-shadow: 0.2rem 0.2rem 0.4rem rgba(0, 0, 0, 0.9);
+}
+
 .evmeScope .evme-apps ul li[data-loaded="true"] img {
   visibility: visible;
 }
@@ -58,6 +73,12 @@
   margin: 0;
   display: inline;
 }
+
+.evmeScope .evme-apps .loading-images, 
+.evmeScope .evme-apps .loading-images li[data-loaded="true"] img {
+  visibility: hidden;
+}
+
 .evmeScope .evme-apps ul.cloud {
   min-height: 0.1rem; /* meant for when there's no content */
 }
@@ -73,6 +94,18 @@
   z-index: 2;
   background: url(/resources/images/delete.png) no-repeat left top;
   display: none;
+}
+
+.evmeScope .evme-apps li .name {
+  text-shadow: 0 0.1rem 0.4rem rgba(0, 0, 0, 0.9);
+  font-size: 1.3rem;
+  margin-top: 0.6rem;
+  color: white;
+  overflow: hidden;
+}
+
+.evmeScope .evme-apps li .name .download {
+  font-size: 1.1rem;
 }
 
 /* Loading an app */

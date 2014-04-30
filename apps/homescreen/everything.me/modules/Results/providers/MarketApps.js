@@ -17,31 +17,32 @@
     this.slug = slug;
 
     // @override
+    this.init = function CloudResult_init() {
+      var res = Evme.Result.prototype.init.apply(this, arguments);
+
+      this.elName.style.height =
+        (APP_NAME_HEIGHT + TEXT_MARGIN + DOWNLOAD_LABEL_FONT_SIZE) + 'px';
+
+      return res;
+    };
+
+    // @override
     this.drawAppName = function drawAppName() {
-      var canvas = document.createElement('canvas'),
-          context = canvas.getContext('2d'),
-          downloadLabel = Evme.Utils.l10n('apps', 'market-download');
+      var downloadLabel = Evme.Utils.l10n('apps', 'market-download');
 
-      canvas.width = TEXT_WIDTH;
-      canvas.height = APP_NAME_HEIGHT + TEXT_MARGIN + DOWNLOAD_LABEL_FONT_SIZE;
+      var download = document.createElement('span');
+      download.classList.add('download');
+      download.textContent = downloadLabel;
 
-      Evme.Utils.writeTextToCanvas({
-        'text': downloadLabel,
-        'context': context,
-        'offset': TEXT_MARGIN,
-        'fontSize': DOWNLOAD_LABEL_FONT_SIZE
-      });
+      var text = document.createTextNode(this.cfg.name);
 
-      Evme.Utils.writeTextToCanvas({
-        'text': this.cfg.name,
-        'context': context,
-        'offset': TEXT_MARGIN + DOWNLOAD_LABEL_FONT_SIZE + SCALE_RATIO
-      });
+      self.elName.appendChild(download);
+      self.elName.appendChild(document.createElement('br'));
+      self.elName.appendChild(text);
 
       var ariaLabel = downloadLabel + ' ' + this.cfg.name;
       self.elIcon.setAttribute('aria-label', ariaLabel);
       self.elName.setAttribute('aria-label', ariaLabel);
-      self.elName.src = canvas.toDataURL();
     };
 
     // @override
@@ -101,15 +102,24 @@
     function _render(apps) {
       var docFrag = document.createDocumentFragment();
 
+      containerEl.classList.add('loading-images');
+
+      var loaded = 0;
+      function next() {
+        if (++loaded === apps.length) {
+          containerEl.classList.remove('loading-images');
+        }
+      }
+
       for (var i = 0, app; app = apps[i++];) {
         var result = new Evme.MarketResult(app.slug),
         el = result.init(app);
 
         if (app.icon) {
-          getMarketIcon(app, result);
+          getMarketIcon(app, result, next);
         } else {
           app.icon = DEFAULT_ICON;
-          result.draw(app.icon);
+          result.draw(app.icon, next);
         }
 
         // used for result filtering
@@ -127,17 +137,17 @@
      * see http://www.w3.org/TR/2011/WD-html5-20110525/
      *                     the-canvas-element.html#security-with-canvas-elements
      */
-    function getMarketIcon(app, result) {
+    function getMarketIcon(app, result, appDrawCallback) {
       Evme.Utils.systemXHR({
         'url': app.icon.data,
         'responseType': 'blob',
         'onSuccess': function onIconSuccess(response) {
           app.icon = response;
-          result.draw(app.icon);
+          result.draw(app.icon, appDrawCallback);
         },
         'onError': function onIconError(e) {
           app.icon = DEFAULT_ICON;
-          result.draw(app.icon);
+          result.draw(app.icon, appDrawCallback);
         }
       });
     }

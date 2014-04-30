@@ -3,7 +3,6 @@
 
   function NativeScroll(el, initOptions) {
     var self = this,
-        startPos,
         startPointer,
         positionKey,
         dirProperty,
@@ -60,14 +59,14 @@
       'onEnd': onScrollEnd
     });
 
-    updateY();
-
     this.distY = 0;
     this.distX = 0;
     this.maxX = 0;
     this.maxY = 0;
     this.hScroll = options.hScroll;
     this.vScroll = options.vScroll;
+    this.x = 0;
+    this.y = 0;
 
     this.refresh = function refresh() {
       // for backwrads compitability with iScroll
@@ -75,8 +74,15 @@
     };
 
     this.scrollTo = function scrollTo(x, y) {
-      x !== undefined && (el.scrollLeft = x);
-      y !== undefined && (el.scrollTop = y);
+      if (x !== undefined && self.x !== x) {
+        el.scrollLeft = x;
+        self.x = x;
+      }
+
+      if (y !== undefined && self.y !== y) {
+        el.scrollTop = y;
+        self.y = y;
+      }
     };
 
     function onTouchStart(e) {
@@ -85,7 +91,6 @@
       el.dataset.touched = true;
 
       reportedDirection = false;
-      startPos = [el.scrollLeft, el.scrollTop];
       startPointer = [touch.pageX, touch.pageY];
       self.maxX = el.scrollWidth - el.offsetWidth;
       self.maxY = el.scrollHeight - el.offsetHeight;
@@ -104,10 +109,8 @@
       // messages panning handler to prevent it
       e.preventPanning = true;
 
-      var currPos = [el.scrollLeft, el.scrollTop],
-          touch = 'touches' in e ? e.touches[0] : e;
+      var touch = 'touches' in e ? e.touches[0] : e;
 
-      updateY();
       self.distX = touch.pageX - startPointer[0];
       self.distY = touch.pageY - startPointer[1];
 
@@ -133,7 +136,6 @@
 
       scrollEventListener.stop();
 
-      updateY();
       optionsOnTouchEnd && optionsOnTouchEnd(e);
     }
 
@@ -143,7 +145,7 @@
     }
 
     function onScrollMove(e, first) {
-      updateY();
+      updateXY();
       first && onScrollStart(e);
       optionsOnScrollMove && optionsOnScrollMove(e);
     }
@@ -153,7 +155,8 @@
       optionsOnScrollEnd && optionsOnScrollEnd(e);
     }
 
-    function updateY() {
+    function updateXY() {
+      self.x = el.scrollLeft;
       self.y = el.scrollTop;
     }
   }

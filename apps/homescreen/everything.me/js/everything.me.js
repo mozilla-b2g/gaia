@@ -12,28 +12,33 @@ var EverythingME = {
     var gridPage = document.querySelector('#icongrid > div:first-child');
     gridPage.classList.add('evmePage');
 
-
-    // pre-evme-load pseudo searchbar
-    var activationIcon = document.createElement('div');
-    activationIcon.id = 'evme-activation-icon';
-    activationIcon.innerHTML =
-      '<input type="text" x-inputmode="verbatim"' +
-      ' data-l10n-id="evme-searchbar-default2" />';
-
-    // insert into first page
-    gridPage.insertBefore(activationIcon, gridPage.firstChild);
-
     // Append appropriate placeholder translation to pseudo searchbar
     navigator.mozL10n.ready(function loadSearchbarValue() {
-      var input = activationIcon.querySelector('input'),
-          defaultText = navigator.mozL10n.get('evme-searchbar-default2') || '';
+      // Load the searchPage HTML already
+      var searchPage = document.getElementById('search-page');
+      LazyLoader.load(searchPage, function loaded() {
+        navigator.mozL10n.translate(searchPage);
 
-      input.setAttribute('placeholder', defaultText);
+        // And move the container into the searchPage thing
+        gridPage.appendChild(searchPage.querySelector('#evmeContainer'));
+
+        var inputBg = document.querySelector('#search-q-bg');
+        inputBg.addEventListener('click', function onFocus(e) {
+          inputBg.removeEventListener('click', onFocus);
+
+          e.stopPropagation();
+          e.preventDefault();
+
+          inputBg.querySelector('#search-q').focus();
+
+          triggerActivateFromInput(e);
+        });
+
+        document.body.classList.add('evme-ready');
+      });
     });
 
     // add event listeners that trigger evme load
-    activationIcon.addEventListener('contextmenu', onContextMenu);
-    activationIcon.addEventListener('click', triggerActivateFromInput);
     window.addEventListener('collectionlaunch', triggerActivate);
     window.addEventListener('collectiondropapp', triggerActivate);
     window.addEventListener('suggestcollections', triggerActivate);
@@ -44,10 +49,6 @@ var EverythingME = {
       document.body.classList.add('evme-loading-from-input');
       document.body.classList.add('evme-keyboard-visible');
 
-      var activationInput = activationIcon.querySelector('input');
-      activationInput.addEventListener('blur',
-                                        EverythingME.onActivationIconBlur);
-
       triggerActivate(e);
     }
 
@@ -56,8 +57,6 @@ var EverythingME = {
       EverythingME.pendingEvent = e;
 
       // remove pre-evme-load listeners
-      activationIcon.removeEventListener('click', triggerActivateFromInput);
-      activationIcon.removeEventListener('contextmenu', onContextMenu);
       window.removeEventListener('collectionlaunch', triggerActivate);
       window.removeEventListener('collectiondropapp', triggerActivate);
       window.removeEventListener('suggestcollections', triggerActivate);
@@ -73,25 +72,12 @@ var EverythingME = {
     function loadCollectionAssets() {
       var e = EverythingME.pendingEvent;
 
-      // load styles required for Collection styling
-      LazyLoader.load([
-        'shared/style_unstable/progress_activity.css',
-        'everything.me/css/common.css',
-        'everything.me/modules/Collection/Collection.css',
-        document.getElementById('search-page')],
-        function assetsLoaded() {
-          // Activate evme load
-          // But wait a tick, so there's no flash of unstyled progress indicator
-          window.setTimeout(function() {
-            // open the collection immediately
-            if (e && e.type === 'collectionlaunch') {
-              onCollectionOpened(e.detail.id);
-            }
+      // open the collection immediately
+      if (e && e.type === 'collectionlaunch') {
+        onCollectionOpened(e.detail.id);
+      }
 
-            EverythingME.activate();
-          }, 0);
-        }
-      );
+      EverythingME.activate();
     }
 
     // show Collection loading
@@ -141,13 +127,6 @@ var EverythingME = {
     EverythingME.migrateStorage();
   },
 
-  onActivationIconBlur: function onActivationIconBlur(e) {
-    EverythingME.pendingEvent = null;
-    e.target.removeEventListener('blur', onActivationIconBlur);
-    document.body.classList.remove('evme-keyboard-visible');
-    document.body.classList.remove('evme-loading-from-input');
-  },
-
   // remove pre-evme-load changes
   onCollectionClosed: function onCollectionClosed() {
     var appsEl = document.getElementById('icongrid');
@@ -169,12 +148,8 @@ var EverythingME = {
   },
 
   activate: function EverythingME_activate() {
-    var searchPage = document.getElementById('search-page');
-    LazyLoader.load(searchPage, function loaded() {
-      document.body.classList.add('evme-loading');
-      navigator.mozL10n.translate(searchPage);
-      EverythingME.load();
-    });
+    document.body.classList.add('evme-loading');
+    EverythingME.load();
   },
 
   load: function EverythingME_load(callback) {
@@ -220,8 +195,7 @@ var EverythingME = {
           'css/common.css',
           'modules/BackgroundImage/BackgroundImage.css',
           'modules/Helper/Helper.css',
-          'modules/Results/Results.css',
-          'modules/Searchbar/Searchbar.css'
+          'modules/Results/Results.css'
         ];
 
     var head = document.head;
@@ -291,44 +265,17 @@ var EverythingME = {
   },
 
   onEvmeLoaded: function onEvmeLoaded() {
-    var page = document.getElementById('evmeContainer'),
-        gridPage = document.querySelector('#icongrid > div:first-child'),
-        activationIcon = document.getElementById('evme-activation-icon'),
-        activationIconInput = activationIcon.querySelector('input'),
-        existingQuery = activationIconInput && activationIconInput.value,
-        evmeInput = document.getElementById('search-q'),
-        closeButton = document.querySelector('#collection .close');
-
-    activationIconInput.removeEventListener('blur',
-                                            EverythingME.onActivationIconBlur);
-
-    // add evme into the first grid page
-    gridPage.appendChild(page.parentNode.removeChild(page));
+    var closeButton = document.querySelector('#collection .close');
 
     EvmeFacade.onShow();
 
     var e = EverythingME.pendingEvent;
 
-    if (e && evmeInput &&
-        (e.target === activationIcon || e.target === activationIconInput)) {
-      // set the query the user entered before loaded
-      if (existingQuery) {
-        EvmeFacade.searchFromOutside(existingQuery);
-      }
-
-      EvmeFacade.Searchbar &&
-        EvmeFacade.Searchbar.focus && EvmeFacade.Searchbar.focus();
-      evmeInput.setSelectionRange(existingQuery.length, existingQuery.length);
-    }
-
     closeButton.removeEventListener('click', EverythingME.onCollectionClosed);
-
     window.removeEventListener('hashchange', EverythingME.onCollectionClosed);
 
     document.body.classList.remove('evme-loading');
     document.body.classList.remove('evme-loading-from-input');
-
-    activationIcon.parentNode.removeChild(activationIcon);
 
     if (e && e.target) {
       e.target.dispatchEvent(e);

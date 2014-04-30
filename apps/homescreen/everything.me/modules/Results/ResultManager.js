@@ -88,9 +88,9 @@ Evme.ResultManager = function Evme_ResultsManager() {
       });
 
       scroll = new Scroll(el, {
-        'onTouchStart': touchStart,
-        'onTouchMove': touchMove,
-        'onTouchEnd': touchEnd,
+        // 'onTouchStart': touchStart,
+        // 'onTouchMove': touchMove,
+        // 'onTouchEnd': touchEnd,
         'onScrollEnd': scrollEnd
       });
 
@@ -370,8 +370,8 @@ Evme.ResultManager = function Evme_ResultsManager() {
     if (apiHasMoreCloudApps) {
 
       // kept separate for performance reasons
-      var reachedBottom =
-        scrollableEl.offsetHeight - el.offsetHeight <= scroll.y;
+      var reachedBottom = scroll.maxY === scroll.y;
+
       if (reachedBottom) {
         cbScrolledToEnd();
       }

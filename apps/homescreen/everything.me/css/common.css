@@ -84,6 +84,10 @@ section[role="status"] {
     display: none;
 }
 
+.evmeScope .evme-apps section[role="notification"].loading-more.show > div {
+  height: 4.1rem; /* max height of the progress, otherwise constant reflow */
+}
+
 .evmeScope:not(.connection-error) .evme-apps section[role="notification"].show progress {
   display: inline-block;
 }
