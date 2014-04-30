@@ -84,6 +84,7 @@ class Contacts(Base):
         return SettingsForm(self.marionette)
 
     def tap_select_all(self):
+        self.wait_for_element_displayed(*self._select_all_button_locator)
         self.marionette.find_element(*self._select_all_button_locator).tap()
 
     def tap_export(self):
