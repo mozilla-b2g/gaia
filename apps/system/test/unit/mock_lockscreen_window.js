@@ -9,6 +9,7 @@
     this.close =
     this.kill =
     this.setVisible =
+    this.isActive =
     function() {};
 
     this.isFullScreen =

@@ -10,7 +10,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
       'lockScreen', 'OrientationManager', 'BrowserFrame',
       'BrowserConfigHelper', 'System', 'BrowserMixin', 'TransitionMixin',
-      'homescreenLauncher', 'layoutManager']);
+      'homescreenLauncher', 'layoutManager', 'lockscreen']);
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_lock_screen.js');
@@ -33,7 +33,7 @@ var mocksForAppWindowManager = new MocksHelper([
   'ActivityWindow',
   'Applications', 'SettingsListener', 'HomescreenLauncher',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'SoftwareButtonManager',
-  'HomescreenWindow', 'AppWindow', 'LayoutManager'
+  'HomescreenWindow', 'AppWindow', 'LayoutManager', 'LockScreen'
 ]).init();
 
 suite('system/AppWindowManager', function() {
@@ -219,6 +219,17 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubDisplay.calledWith());
     });
 
+    test('FTU is skipped when lockscreen is active', function() {
+      MockLockScreen.locked = true;
+      injectRunningApps();
+      var stubDisplay = this.sinon.stub(AppWindowManager, 'display');
+      var stubSetVisible = this.sinon.stub(home, 'setVisible');
+
+      AppWindowManager.handleEvent({ type: 'ftuskip' });
+      assert.isFalse(stubDisplay.calledWith());
+      assert.isTrue(stubSetVisible.calledWith(false));
+    });
+
     test('System resize', function() {
       AppWindowManager._activeApp = app1;
       var stubResize = this.sinon.stub(app1, 'resize');
@@ -288,22 +299,6 @@ suite('system/AppWindowManager', function() {
       AppWindowManager.handleEvent({ type: 'displayapp', detail: app1 });
       assert.isTrue(stubDisplay.calledWith(app1));
 
-    });
-
-    test('Hide whole windows', function() {
-      var stubSetAttribute =
-        this.sinon.stub(AppWindowManager.element, 'setAttribute');
-
-      AppWindowManager.handleEvent({ type: 'hidewindows' });
-      assert.isTrue(stubSetAttribute.calledWith('aria-hidden', 'true'));
-    });
-
-    test('Show whole windows', function() {
-      var stubSetAttribute =
-        this.sinon.stub(AppWindowManager.element, 'setAttribute');
-
-      AppWindowManager.handleEvent({ type: 'showwindows' });
-      assert.isTrue(stubSetAttribute.calledWith('aria-hidden', 'false'));
     });
 
     test('Launch app', function() {

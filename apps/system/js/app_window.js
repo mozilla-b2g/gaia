@@ -213,13 +213,14 @@
    */
   AppWindow.prototype.setVisible =
     function aw_setVisible(visible, screenshotIfInvisible) {
-      this.debug('Dump: set visibility -> ', visible);
+      this.debug('set visibility -> ', visible);
+      this.element.setAttribute('aria-hidden', !visible);
       if (visible) {
-        this.element.removeAttribute('aria-hidden');
+        // If this window is not the lockscreen, and the screen is locked,
+        // we need to aria-hide the window.
         this._screenshotOverlayState = 'frame';
         this._showFrame();
       } else {
-        this.element.setAttribute('aria-hidden', 'true');
         if (screenshotIfInvisible && !this.isHomescreen) {
           this._screenshotOverlayState = 'screenshot';
           this._showScreenshotOverlay();
@@ -681,7 +682,6 @@
 
   AppWindow.prototype._handle_mozbrowservisibilitychange =
     function aw__handle_mozbrowservisibilitychange(evt) {
-
       var type = evt.detail.visible ? 'foreground' : 'background';
       this.publish(type);
     };
@@ -900,6 +900,8 @@
       setTimeout(callback);
       return;
     }
+
+    this.debug('trying wait for full repaint by screenshot enforcing..');
 
     this.getScreenshot(function() {
       setTimeout(callback);
