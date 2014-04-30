@@ -65,6 +65,7 @@
     (function su_initialize() {
       window.addEventListener('home', this);
       window.addEventListener('holdhome', this);
+      window.addEventListener('homescreenopened', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
       window.addEventListener('appopen', this);
@@ -107,6 +108,9 @@
           if (this._state()) {
             evt.stopImmediatePropagation();
           }
+          break;
+        case 'homescreenopened':
+          this._switchTo(null);
           break;
         case 'appcreated':
           var app = evt.detail;
