@@ -664,7 +664,11 @@ section[role="region"] > header .icon.icon-settings {
 }
 
 .remark {
-  color: #ff4e00;
+  color: #339999;
+}
+
+.remark-missed {
+  color: #CC0000;
 }
 
 .valueselector {

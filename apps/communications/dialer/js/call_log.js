@@ -655,7 +655,14 @@ var CallLog = {
       if (contactIds !== null) {
         contactId = contactIds.split(',')[0];
       }
-      PhoneNumberActionMenu.show(contactId, phoneNumber);
+
+      var isMissedCall = logItem.classList.contains('missed-call');
+      PhoneNumberActionMenu.show(
+        contactId,
+        phoneNumber,
+        null,
+        isMissedCall
+      );
     }
   },
 

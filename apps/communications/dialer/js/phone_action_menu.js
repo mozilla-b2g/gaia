@@ -87,7 +87,7 @@ var PhoneNumberActionMenu = (function() {
    * @param {Array} options Possible entries are: 'call', 'new-contact',
    * 'add-to-existent'. If no options, include all possible options.
   */
-  var _show = function _show(contactId, phoneNumber, options) {
+  var _show = function _show(contactId, phoneNumber, options, isMissedCall) {
     if (options) {
       for (opt in _optionToMenuItem) {
         var item = _optionToMenuItem[opt];
@@ -111,6 +111,9 @@ var PhoneNumberActionMenu = (function() {
         src += '&tel=' + phoneNumber;
         // Enable the function of receiving the messages posted from the iframe.
         src += '&back_to_previous_tab=1';
+        // Contacts app needs to know if it's a missed call for different
+        // highlight color of the phone number in contacts details
+        src += '&isMissedCall=' + isMissedCall;
         var timestamp = new Date().getTime();
         contactsIframe.src = src + '&timestamp=' + timestamp;
       });
@@ -159,13 +162,13 @@ var PhoneNumberActionMenu = (function() {
      * @param {Array} options Possible entries are: 'call', 'new-contact',
      * 'add-to-existent'. If no options, include all possible options.
     */
-    show: function show(contactId, phoneNumber, options) {
+    show: function show(contactId, phoneNumber, options, isMissedCall) {
       LazyLoader.load([
         '/shared/style/action_menu.css',
         '/dialer/style/phone_action_menu.css'
       ], function pnam_show() {
         _init();
-        _show(contactId, phoneNumber, options);
+        _show(contactId, phoneNumber, options, isMissedCall);
       });
     }
   };

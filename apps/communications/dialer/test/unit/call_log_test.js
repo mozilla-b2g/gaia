@@ -7,6 +7,7 @@ require('/shared/js/dialer/utils.js');
 
 requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
 requireApp('communications/dialer/test/unit/mock_performance_testing_helper.js');
+requireApp('communications/dialer/test/unit/mock_phone_action_menu.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
@@ -21,6 +22,7 @@ var mocksHelperForCallLog = new MocksHelper([
   'asyncStorage',
   'CallLogDBManager',
   'AccessibilityHelper',
+  'PhoneNumberActionMenu',
   'PerformanceTestingHelper',
   'LazyLoader',
   'LazyL10n',
@@ -690,6 +692,41 @@ suite('dialer/call_log', function() {
       CallLog.filter();
       CallLog.unfilter();
       assert.equal(document.getElementsByClassName('groupFiltered').length, 0);
+    });
+  });
+
+  suite('Opening contact details', function() {
+    var groupDOM;
+    var phoneNumberActionMenuSpy;
+
+    setup(function() {
+      phoneNumberActionMenuSpy = this.sinon.spy(PhoneNumberActionMenu, 'show');
+    });
+
+    test('regular number', function() {
+      groupDOM = CallLog.createGroup(incomingGroup);
+      CallLog.handleEvent({target: groupDOM});
+
+      sinon.assert.calledWith(
+        phoneNumberActionMenuSpy,
+        incomingGroup.contact.id,
+        incomingGroup.contact.matchingTel.value,
+        null,
+        false
+      );
+    });
+
+    test('missed number', function() {
+      groupDOM = CallLog.createGroup(missedGroup);
+      CallLog.handleEvent({target: groupDOM});
+
+      sinon.assert.calledWith(
+        phoneNumberActionMenuSpy,
+        incomingGroup.contact.id,
+        incomingGroup.contact.matchingTel.value,
+        null,
+        true
+      );
     });
   });
 
