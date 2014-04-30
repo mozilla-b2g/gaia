@@ -746,8 +746,10 @@ function killAppByPid(appName, gaiaDir) {
   var content = getFileContent(tempFile);
   var pidMap = utils.psParser(content);
   sh.run(['-c', 'rm ' + tempFileName]);
-  if (pidMap[appName] && pidMap[appName].PID) {
-    sh.run(['-c', 'adb shell kill ' + pidMap[appName].PID]);
+  // b2g-ps only show first 15 letters of app name
+  var truncatedAppName = appName.substr(0, 15);
+  if (pidMap[truncatedAppName] && pidMap[truncatedAppName].PID) {
+    sh.run(['-c', 'adb shell kill ' + pidMap[truncatedAppName].PID]);
   }
 }
 
