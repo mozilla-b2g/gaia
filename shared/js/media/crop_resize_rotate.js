@@ -37,8 +37,13 @@
 // the specified value.
 //
 // The outputType argument specifies the type of the output image. Legal
-// values are "image/jpeg" and "image/png". If not specified, the default is
-// "image/jpeg".
+// values are "image/jpeg" and "image/png". If not specified, and if the
+// input image does not need to be cropped resized or rotated, then it
+// will be returned unchanged regardless of the type. If no output type
+// is specified and a new blob needs to be created then "image/jpeg" will
+// be used. If a type is explicitly specified, and does not match the type
+// of the input image, then a new blob will be created even if no other
+// changes to the image are necessary.
 //
 // The optional metadata argument provides a way to pass in image size and
 // rotation metadata if you already have it. If this argument is omitted
@@ -235,11 +240,8 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
       sampleSize = Math.min(8, Math.floor(1 / scaleX));
     }
 
-    // If the outputType was not specified, use jpeg
-    if (!outputType) {
-      outputType = JPEG;
-    }
-    else if (outputType !== JPEG && outputType !== PNG) {
+    // Make sure the outputType is valid, if one was specified
+    if (outputType && outputType !== JPEG && outputType !== PNG) {
       callback('unsupported outputType: ' + outputType);
       return;
     }
@@ -249,7 +251,8 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
     // we can just pass the input blob unchanged through to the callback
     if (rotation === 0 &&                      // No need to rotate
         !mirrored &&                           // or to mirror the image.
-        blob.type === outputType &&            // Type stays the same.
+        (!outputType ||                        // Don't care about output type
+         blob.type === outputType) &&          // or type is unchanged.
         outputSize.width === rawImageWidth &&  // Doesn't need crop or resize.
         outputSize.height == rawImageHeight) {
       callback(null, blob);
@@ -470,7 +473,7 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
       URL.revokeObjectURL(baseURL);
 
       // Finally, encode the image into a blob
-      canvas.toBlob(gotEncodedBlob, outputType);
+      canvas.toBlob(gotEncodedBlob, outputType || JPEG);
 
       function gotEncodedBlob(blob) {
         // We have the encoded image but before we pass it to the callback
