@@ -491,7 +491,7 @@ require([
         // Hide the "Manage certificates" button since API is not ready yet.
         var manageCertificatesBtn =
           document.getElementById('manageCertificates');
-        manageCertificatesBtn.parentNode.parentNode.hidden = true;
+        manageCertificatesBtn.parentNode.hidden = true;
         console.warn('Import certificate API is not ready yet!');
       }
 
