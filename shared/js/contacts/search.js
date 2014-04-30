@@ -160,7 +160,10 @@ contacts.Search = (function() {
       evt.preventDefault();
     }
     searchView.classList.remove('insearchmode');
-    selectableForm.classList.remove('insearchmode');
+    if (selectableForm) {
+      selectableForm.classList.remove('insearchmode');
+    }
+
     if (navigationController) {
       navigationController.back();
     }
@@ -279,7 +282,9 @@ contacts.Search = (function() {
     if (!inSearchMode) {
       window.addEventListener('input', onInput);
       searchView.classList.add('insearchmode');
-      selectableForm.classList.add('insearchmode');
+      if (selectableForm) {
+        selectableForm.classList.add('insearchmode');
+      }
 
       doInit();
       fillInitialSearchPage();
