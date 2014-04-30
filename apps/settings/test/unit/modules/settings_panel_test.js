@@ -3,6 +3,7 @@
 mocha.setup({
   globals: [
     'Settings',
+    'Root',
     'MockL10n',
     'LazyLoader',
     'startupLocale',
