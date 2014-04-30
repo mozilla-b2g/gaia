@@ -51,7 +51,6 @@ body:not(.rb-enabled) #rocketbar {
   flex-direction: row;
 }
 
-
 #rocketbar-title-content, #rocketbar-input {
   display: block;
   width: 100%;
@@ -101,13 +100,20 @@ body:not(.rb-enabled) #rocketbar {
   display: none;
 }
 
-#rocketbar-results {
+#rocketbar-results, #rocketbar-backdrop {
   position: fixed;
   width: 100%;
   height: calc(100% - 4.8rem);
   top: 4.8rem;
   left: 0;
+}
+
+#rocketbar-results {
   background-color: #212121;
+}
+
+#rocketbar-backdrop {
+  background: rgba(0, 0, 0, 0.5);
 }
 
 #screen.software-button-enabled #rocketbar-results {
@@ -120,7 +126,8 @@ body:not(.rb-enabled) #rocketbar {
   height: 100%;
 }
 
-#rocketbar-results.hidden, #rocketbar-results iframe.hidden {
+#rocketbar-results.hidden, #rocketbar-results iframe.hidden,
+#rocketbar-backdrop.hidden {
   display: none;
 }
 

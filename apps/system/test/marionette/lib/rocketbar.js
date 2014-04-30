@@ -39,7 +39,8 @@ Rocketbar.prototype = {
     rocketbar: '#rocketbar',
     title: '#rocketbar-title',
     input: '#rocketbar-input',
-    cancel: '#rocketbar-cancel'
+    cancel: '#rocketbar-cancel',
+    backdrop: '#rocketbar-backdrop'
   },
 
   /**
@@ -131,5 +132,9 @@ Rocketbar.prototype = {
 
   get cancel() {
     return this.client.findElement(this.selectors.cancel);
+  },
+
+  get backdrop() {
+    return this.client.findElement(this.selectors.backdrop);
   }
 };
