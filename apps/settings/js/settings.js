@@ -233,10 +233,11 @@ var Settings = {
       // display of default panel(#wifi) must wait for
       // lazy-loaded script - wifi_helper.js - loaded
       if (this.isTabletAndLandscape()) {
+        var self = this;
         this.LazyLoader.load([
           'shared/js/wifi_helper.js'
           ], function() {
-            this.currentPanel = this.defaultPanelForTablet;
+            self.currentPanel = self.defaultPanelForTablet;
         });
       }
 
