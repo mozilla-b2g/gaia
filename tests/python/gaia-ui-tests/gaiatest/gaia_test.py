@@ -659,6 +659,12 @@ class GaiaDevice(object):
         return self._is_emulator
 
     @property
+    def is_desktop_b2g(self):
+        if self.testvars.get('is_desktop_b2g') is None:
+            self.testvars['is_desktop_b2g'] = self.marionette.session_capabilities['device'] == 'desktop'
+        return self.testvars['is_desktop_b2g']
+
+    @property
     def is_online(self):
         # Returns true if the device has a network connection established (cell data, wifi, etc)
         return self.marionette.execute_script('return window.navigator.onLine;')
@@ -859,14 +865,35 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                 self.cleanup_data()
             self.device.start_b2g()
 
-        # we need to set the default timeouts because we may have a new session
-        if self.marionette.timeout is not None:
+        # We need to set the default timeouts because we may have a new session
+        if self.marionette.timeout is None:
+            # if no timeout is passed in, we detect the hardware type and set reasonable defaults
+            timeouts = {}
+            if self.device.is_desktop_b2g:
+                self.marionette.timeout = 5000
+                timeouts[self.marionette.TIMEOUT_SEARCH] = 5000
+                timeouts[self.marionette.TIMEOUT_SCRIPT] = 10000
+                timeouts[self.marionette.TIMEOUT_PAGE] = 10000
+            elif self.device.is_emulator:
+                self.marionette.timeout = 30000
+                timeouts[self.marionette.TIMEOUT_SEARCH] = 30000
+                timeouts[self.marionette.TIMEOUT_SCRIPT] = 60000
+                timeouts[self.marionette.TIMEOUT_PAGE] = 60000
+            else:
+                # else, it is a device, the type of which is difficult to detect
+                self.marionette.timeout = 10000
+                timeouts[self.marionette.TIMEOUT_SEARCH] = 10000
+                timeouts[self.marionette.TIMEOUT_SCRIPT] = 20000
+                timeouts[self.marionette.TIMEOUT_PAGE] = 20000
+
+            for k, v in timeouts.items():
+                self.marionette.timeouts(k, v)
+
+        else:
+            # if the user has passed in --timeout then we override everything
             self.marionette.timeouts(self.marionette.TIMEOUT_SEARCH, self.marionette.timeout)
             self.marionette.timeouts(self.marionette.TIMEOUT_SCRIPT, self.marionette.timeout)
             self.marionette.timeouts(self.marionette.TIMEOUT_PAGE, self.marionette.timeout)
-        else:
-            self.marionette.timeouts(self.marionette.TIMEOUT_SEARCH, 10000)
-            self.marionette.timeouts(self.marionette.TIMEOUT_PAGE, 30000)
 
         self.apps = GaiaApps(self.marionette)
         self.data_layer = GaiaData(self.marionette, self.testvars)
