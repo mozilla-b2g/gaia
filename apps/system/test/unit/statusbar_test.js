@@ -1527,4 +1527,26 @@ suite('system/Statusbar', function() {
       assert.isFalse(StatusBar.element.classList.contains('invisible'));
     });
   });
+
+  suite('NFC', function() {
+    test('NFC is off', function() {
+      var evt = new CustomEvent('nfc-state-changed', {
+        detail: {
+          active: false
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.equal(StatusBar.icons.nfc.hidden, true);
+    });
+
+    test('NFC is on', function() {
+      var evt = new CustomEvent('nfc-state-changed', {
+        detail: {
+          active: true
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.equal(StatusBar.icons.nfc.hidden, false);
+    });
+  });
 });

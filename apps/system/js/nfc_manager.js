@@ -94,6 +94,14 @@ var NfcManager = {
         break;
     }
 
+    // update statusbar status via custom event
+    var event = new CustomEvent('nfc-state-changed', {
+      detail: {
+        active: (state > 0) ? true : false
+      }
+    });
+    window.dispatchEvent(event);
+
     var self = this;
     req.onsuccess = function() {
       self._debug('changeHardwareState ' + state + ' success');

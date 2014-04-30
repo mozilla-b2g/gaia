@@ -322,7 +322,7 @@ suite('Nfc Manager Functions', function() {
 
       activityInjection1 = {
         type: 'techDiscovered',
-        techList: ['P2P','NDEF'],
+        techList: ['P2P', 'NDEF'],
         records: [{
           tnf: NDEF.TNF_MIME_MEDIA,
           type: NfcUtils.fromUTF8('text/vcard'),
@@ -333,7 +333,7 @@ suite('Nfc Manager Functions', function() {
       };
       activityInjection2 = {
         type: 'techDiscovered',
-        techList: ['P2P','NDEF'],
+        techList: ['P2P', 'NDEF'],
         records: [{
           tnf: NDEF.TNF_MIME_MEDIA,
           type: NfcUtils.fromUTF8('text/x-vcard'),
@@ -344,7 +344,7 @@ suite('Nfc Manager Functions', function() {
       };
       activityInjection3 = {
         type: 'techDiscovered',
-        techList: ['P2P','NDEF'],
+        techList: ['P2P', 'NDEF'],
         records: [{
           tnf: NDEF.TNF_MIME_MEDIA,
           type: NfcUtils.fromUTF8('text/x-vCard'),
@@ -422,12 +422,15 @@ suite('Nfc Manager Functions', function() {
       var stubStartPoll = this.sinon.spy(MockNfc, 'startPoll');
       var stubStopPoll = this.sinon.spy(MockNfc, 'stopPoll');
       var stubPowerOff = this.sinon.spy(MockNfc, 'powerOff');
+      var stubDispatchEvent = this.sinon.spy(window, 'dispatchEvent');
 
       NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_OFF);
       assert.isTrue(stubPowerOff.calledOnce);
+      assert.isTrue(stubDispatchEvent.calledOnce);
 
       NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_ON);
       assert.isTrue(stubStartPoll.calledOnce);
+      assert.isTrue(stubDispatchEvent.calledTwice);
 
       NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_ENABLE_DISCOVERY);
       assert.isTrue(stubStartPoll.calledTwice);
