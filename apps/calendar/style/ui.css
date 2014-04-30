@@ -39,10 +39,6 @@ ol.link-list li:only-child a {
   border-bottom: 0;
 }
 
-#today:active {
-  color: #FFFFFF;
-}
-
 #today .icon-today {
   font-size: 1.4rem;
   line-height: 4.6rem;
@@ -57,7 +53,7 @@ ol.link-list li:only-child a {
 }
 
 #view-selector > .today {
-  border-right: 0.1rem solid #CECECE;
+  border-right: 0.1rem solid #F2F2F2;
 }
 
 body[data-path="/month/"] #view-selector > .month > a,
@@ -81,9 +77,8 @@ body[data-path="/day/"] #view-selector > .day > a:after {
 
 body[data-path="/month/"] #view-selector > .month a:active,
 body[data-path="/week/"] #view-selector > .week a:active,
-body[data-path="/day/"] #view-selector > .day > a:active,
-#view-selector > [role="tab"] > a:active {
-  color: #FFFFFF;
+body[data-path="/day/"] #view-selector > .day > a:active {
+  color: #5F5F5F;
 }
 
 .bb-tablist > li > a:after,
