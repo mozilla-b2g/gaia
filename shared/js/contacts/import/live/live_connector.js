@@ -1,3 +1,7 @@
+'use strict';
+
+/* global Rest */
+
 if (!window.LiveConnector) {
   window.LiveConnector = (function() {
     var LIVE_ENDPOINT = 'https://apis.live.net/v5.0/';

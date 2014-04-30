@@ -1,5 +1,7 @@
 'use strict';
 
+/* exported MockGoogleListing */
+
 /*
 
   This mock represents the following google contacts response
@@ -9,7 +11,7 @@
 
 var MockGoogleListing = (function MockGoogleListing() {
   var req = new XMLHttpRequest();
-  req.open('GET', '/gmail/test/unit/mock_listing.xml', false);
+  req.open('GET', '/contacts/test/unit/import/gmail/mock_listing.xml', false);
   req.send(null);
 
   var entryBuffer = req.responseText;

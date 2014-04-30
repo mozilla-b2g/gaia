@@ -1,5 +1,7 @@
 'use strict';
 
+/* exported MockRest */
+
 /*
   Mocking the Rest utility class, it's configurable to behave
   differently via the configure method
@@ -30,6 +32,8 @@ var MockRest = (function MockRest() {
         callbacks.error(config[url]);
       break;
       case 'timeout':
+        callbacks.timeout(config[url]);
+        break;
       default:
         callbacks.timeout(config[url]);
       break;

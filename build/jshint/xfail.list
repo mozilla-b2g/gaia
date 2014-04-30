@@ -89,10 +89,6 @@ apps/communications/ftu/test/unit/operatorVariant_test.js
 apps/communications/ftu/test/unit/tutorial_steps_test.js
 apps/communications/ftu/test/unit/tutorial_test.js
 apps/communications/ftu/test/unit/wifi_test.js
-apps/communications/gmail/test/unit/mock_contact1.js
-apps/communications/gmail/test/unit/mock_groups.js
-apps/communications/gmail/test/unit/mock_listing.js
-apps/communications/gmail/test/unit/mock_rest.js
 apps/communications/import/test/unit/import_test.js
 apps/communications/import/test/unit/mock_connector.js
 apps/communications/import/test/unit/mock_import.html.js

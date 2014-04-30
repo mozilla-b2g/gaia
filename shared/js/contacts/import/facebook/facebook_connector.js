@@ -1,3 +1,8 @@
+'use strict';
+
+/* global fb, utils, contacts */
+
+
 if (!window.FacebookConnector) {
   window.FacebookConnector = (function() {
 
@@ -13,6 +18,7 @@ if (!window.FacebookConnector) {
     reusedFbContact.ready = true;
 
     function createFbImporter(clist, access_token) {
+      /* jshint validthis:true */
       var out = new window.ContactsImporter(clist, access_token, this);
 
       out.persist = persistFbData;
@@ -140,8 +146,7 @@ if (!window.FacebookConnector) {
       if (!response.error) {
         // Just in case this is the first contact imported
         nextUpdateTime = Date.now();
-        var photoTimeout = false;
-
+        /* jshint validthis:true */
         var successCb = this.success;
 
         var friend = response.data[0];
@@ -169,16 +174,19 @@ if (!window.FacebookConnector) {
         } // if friend
         else {
           window.console.error('FB: No Friend data found');
+          /* jshint validthis:true */
           this.error('No friend data found');
         }
       }
       else {
+        /* jshint validthis:true */
         this.error(response.error);
       }
     }
 
     function pictureLoaded(friend, options, success) {
       var data = self.adaptDataForSaving(friend);
+      /* jshint validthis:true */
       persistFbData(data, function() {
                                       success({
                                         uid: friend.uid,
