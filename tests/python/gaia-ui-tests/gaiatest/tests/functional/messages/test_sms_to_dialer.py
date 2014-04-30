@@ -27,8 +27,7 @@ class TestDialerFromMessage(GaiaTestCase):
 
         self.messages.wait_for_message_received(timeout=180)
 
-        # The received message causes thread to open
-        message_thread = MessageThread(self.marionette)
+        message_thread = self.messages.tap_first_received_message()
 
         # Check the phone number
         message_thread.tap_header()
