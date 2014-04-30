@@ -184,13 +184,29 @@ suite('Render contacts list', function() {
   }
 
   function assertContactFound(contact) {
-    var selectorStr = 'li';
-    selectorStr = 'li.contact-item';
+    var selectorStr = 'li.contact-item';
 
     var showContact = searchList.querySelectorAll(selectorStr);
     assert.length(showContact, 1);
     assert.equal(showContact[0].dataset.uuid, contact.id);
     assert.isTrue(noResults.classList.contains('hide'));
+  }
+
+  function assertHighlight(phrase) {
+    var selectorStr = 'li.contact-item';
+    var showContact = searchList.querySelectorAll(selectorStr);
+    assert.isTrue(showContact.length > 0);
+
+    var regExp = new RegExp('^' + phrase + '$', 'i');
+    var highlightClass = contacts.Search.getHighlightClass();
+    var highlightedNodes = searchList.getElementsByClassName(highlightClass);
+    for (var i = 0, l = highlightedNodes.length; i < l; i++) {
+      // we want to be non-case-sensitive so simple comparision
+      // of string will not work here. There could also be problems
+      // with different languages when using String.toLowerCase(),
+      // thats why we use Regular Expressions
+      assert.isTrue(regExp.test(highlightedNodes[i].innerHTML));
+    }
   }
 
   function getStringToBeOrdered(contact, orderByLastName) {
@@ -1250,6 +1266,40 @@ suite('Render contacts list', function() {
             contacts.Search.exitSearchMode({preventDefault: function() {}});
             done();
           });
+        });
+      });
+    });
+
+    test('Search phrase highlightded correctly for first letter',
+        function(done) {
+      mockContacts = new MockContactsList();
+      var contactIndex = Math.floor(Math.random() * mockContacts.length);
+      var contact = mockContacts[contactIndex];
+
+      doLoad(subject, mockContacts, function() {
+        var firstLetter = contact.givenName[0].charAt(0);
+        searchBox.value = firstLetter;
+        contacts.Search.search(function search_finished() {
+          assertHighlight(firstLetter);
+          contacts.Search.invalidateCache();
+          done();
+        });
+      });
+    });
+
+    test('Search phrase highlightded correctly for more than one letter',
+        function(done) {
+      mockContacts = new MockContactsList();
+      var contactIndex = Math.floor(Math.random() * mockContacts.length);
+      var contact = mockContacts[contactIndex];
+
+      doLoad(subject, mockContacts, function() {
+        var firstLetter = contact.givenName[0];
+        searchBox.value = firstLetter;
+        contacts.Search.search(function search_finished() {
+          assertHighlight(firstLetter);
+          contacts.Search.invalidateCache();
+          done();
         });
       });
     });
