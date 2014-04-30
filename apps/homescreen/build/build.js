@@ -229,16 +229,13 @@ HomescreenAppBuilder.prototype.customizeHomescreen = function() {
     }
   }
 
-  var search_page_debug;
-  try {
-    let local_settings_file =
-      utils.getFile(config.APP_DIR, 'everything.me', 'config', 'local.json');
+  var search_page_debug = false;
 
+  let local_settings_file =
+    utils.getFile(config.APP_DIR, 'everything.me', 'config', 'local.json');
+  if (local_settings_file.exists()) {
     let local_settings = utils.getJSON(local_settings_file);
     search_page_debug = local_settings.debug;
-  }
-  catch(e) {
-    search_page_debug = false;
   }
 
   let content = {
