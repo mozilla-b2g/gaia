@@ -323,6 +323,14 @@ var NfcHandoverManager = {
    *****************************************************************************
    ****************************************************************************/
 
+  handleSimplifiedPairingRecord: function handleSimplifiedPairingRecord(ndef) {
+    this.debug('handleSimplifiedPairingRecord');
+    var pairingRecord = ndef[0];
+    var btssp = NfcManagerUtils.parseBluetoothSSP(pairingRecord);
+    this.debug('Simplified pairing with: ' + btssp.mac);
+    this.onRequestConnect(btssp);
+  },
+
   handleHandoverSelect: function handleHandoverSelect(ndef) {
     this.debug('handleHandoverSelect');
     var btssp = this.getBluetoothSSP(ndef);
