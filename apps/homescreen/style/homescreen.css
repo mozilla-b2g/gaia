@@ -71,11 +71,12 @@ li:active {
 
 #bg-overlay {
   width: 100%;
-  height: calc(100% - 7.5rem);
+  height: 100%;
   position: fixed;
   top: 0;
   left: 0;
   background-color: rgba(0,0,0,0.1);
+  transform: translateY(-7.5rem);
 }
 
 /* === Repaint Helper === */
@@ -129,7 +130,7 @@ body[data-mode = 'normal'] ol > li span.options {
 }
 @media (min-width: 768px) {
   #bg-overlay {
-    height: calc(100% - 16.9rem);
+    transform: translateY(-16.9rem);
   }
 }
 /* This is a dirty hack to hide the bottom toolbar while
@@ -151,7 +152,7 @@ body[data-mode = 'normal'] ol > li span.options {
        /* For the Twist , 960x540 */
        (device-height: 540px) and (max-height: 450px),
        (device-height: 960px) and (max-height: 870px) {
-  footer { display: none !important; }
+  footer { opacity: 0; pointer-events: none; }
   .apps > div { height: 100% !important; }
-  #bg-overlay { height: 100%;}
+  #bg-overlay { transform: translateY(0); }
 }

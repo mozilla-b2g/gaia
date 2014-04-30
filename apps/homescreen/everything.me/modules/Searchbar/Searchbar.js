@@ -23,6 +23,7 @@ Evme.Searchbar = new function Evme_Searchbar() {
 
     el = options.el;
     elForm = options.elForm;
+    value = options.el.value;
 
     if (typeof options.setFocusOnClear === 'boolean') {
       SET_FOCUS_ON_CLEAR = options.setFocusOnClear;
@@ -50,6 +51,8 @@ Evme.Searchbar = new function Evme_Searchbar() {
       clearButtonClick();
     });
 
+    isFocused = this.isFocused();
+
     Evme.EventHandler.trigger(NAME, 'init');
   };
 
@@ -58,7 +61,7 @@ Evme.Searchbar = new function Evme_Searchbar() {
   };
 
   this.isFocused = function getIsFocused() {
-    return isFocused;
+    return document.activeElement === el;
   };
 
   this.setValue = function setValue(newValue, bPerformSearch, bDontBlur) {

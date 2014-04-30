@@ -29,8 +29,11 @@
     display: none;
 }
 .evmeScope .evme-apps ul li img {
-  visibility: hidden;
-	transition: transform .2s linear;
+    visibility: hidden;
+    transition: transform .2s linear;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 .evmeScope .evme-apps ul li[data-loaded="true"] img {
   visibility: visible;
