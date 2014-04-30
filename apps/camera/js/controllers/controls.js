@@ -10,6 +10,7 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('controller:controls');
+var ControlsView = require('views/controls');
 var bindAll = require('lib/bind-all');
 
 /**
@@ -29,7 +30,8 @@ function ControlsController(app) {
   bindAll(this);
   this.app = app;
   this.activity = app.activity;
-  this.controls = app.views.controls;
+  this.view = app.views.controls || new ControlsView();
+  this.app.views.controls = this.view;
   this.bindEvents();
   this.configure();
   debug('initialized');
@@ -41,23 +43,23 @@ function ControlsController(app) {
  * @private
  */
 ControlsController.prototype.bindEvents = function() {
-  this.app.settings.mode.on('change:selected', this.controls.setter('mode'));
+  this.app.settings.mode.on('change:selected', this.view.setter('mode'));
   this.app.settings.mode.on('change:options', this.configureMode);
 
   // App
   this.app.on('change:recording', this.onRecordingChange);
   this.app.on('camera:shutter', this.captureHighlightOff);
-  this.app.on('camera:busy', this.controls.disable);
+  this.app.on('camera:busy', this.view.disable);
   this.app.on('timer:started', this.onTimerStarted);
   this.app.on('newthumbnail', this.onNewThumbnail);
   this.app.on('timer:cleared', this.restore);
   this.app.on('camera:ready', this.restore);
 
-  // Controls
-  this.controls.on('click:thumbnail', this.app.firer('preview'));
-  this.controls.on('click:switch', this.onSwitchButtonClick);
-  this.controls.on('click:cancel', this.onCancelButtonClick);
-  this.controls.on('click:capture', this.onCaptureClick);
+  // View
+  this.view.on('click:thumbnail', this.app.firer('preview'));
+  this.view.on('click:switch', this.onSwitchButtonClick);
+  this.view.on('click:cancel', this.onCancelButtonClick);
+  this.view.on('click:capture', this.onCaptureClick);
 
   debug('events bound');
 };
@@ -74,10 +76,18 @@ ControlsController.prototype.configure = function() {
   // The gallery button should not
   // be shown if an activity is pending
   // or the application is in 'secure mode'.
-  this.controls.set('cancel', isCancellable);
-  this.controls.set('mode', initialMode);
+  this.view.set('cancel', isCancellable);
+  this.view.set('mode', initialMode);
+
+  // Disable view until camera
+  // 'ready' enables it.
+  this.view.set('faded');
+  this.view.disable();
 
   this.configureMode();
+
+  // Put it in the DOM
+  this.view.appendTo(this.app.el);
 
   debug('cancelable: %s', isCancellable);
   debug('mode: %s', initialMode);
@@ -85,7 +95,7 @@ ControlsController.prototype.configure = function() {
 
 ControlsController.prototype.configureMode = function() {
   var isSwitchable = this.app.settings.mode.get('options').length > 1;
-  this.controls.set('switchable', isSwitchable);
+  this.view.set('switchable', isSwitchable);
 };
 
 /**
@@ -114,7 +124,7 @@ ControlsController.prototype.onCaptureClick = function() {
  * @private
  */
 ControlsController.prototype.onRecordingChange = function(recording) {
-  this.controls.set('recording', recording);
+  this.view.set('recording', recording);
   if (!recording) { this.onRecordingEnd(); }
 };
 
@@ -137,9 +147,9 @@ ControlsController.prototype.onRecordingEnd = function() {
  */
 ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
   if (thumbnailBlob) {
-    this.controls.setThumbnail(thumbnailBlob);
+    this.view.setThumbnail(thumbnailBlob);
   } else {
-    this.controls.removeThumbnail();
+    this.view.removeThumbnail();
   }
 };
 
@@ -152,7 +162,7 @@ ControlsController.prototype.onNewThumbnail = function(thumbnailBlob) {
  */
 ControlsController.prototype.onTimerStarted = function() {
   this.captureHighlightOn();
-  this.controls.disable();
+  this.view.disable();
 };
 
 /**
@@ -163,7 +173,8 @@ ControlsController.prototype.onTimerStarted = function() {
  */
 ControlsController.prototype.restore = function() {
   this.captureHighlightOff();
-  this.controls.enable();
+  this.view.unset('faded');
+  this.view.enable();
 };
 
 /**
@@ -173,7 +184,7 @@ ControlsController.prototype.restore = function() {
  * @private
  */
 ControlsController.prototype.captureHighlightOn = function() {
-  this.controls.set('capture-active', true);
+  this.view.set('capture-active');
 };
 
 /**
@@ -183,7 +194,7 @@ ControlsController.prototype.captureHighlightOn = function() {
  * @private
  */
 ControlsController.prototype.captureHighlightOff = function() {
-  this.controls.set('capture-active', false);
+  this.view.unset('capture-active');
 };
 
 /**
@@ -193,7 +204,7 @@ ControlsController.prototype.captureHighlightOff = function() {
  * @private
  */
 ControlsController.prototype.onSwitchButtonClick = function() {
-  this.controls.disable();
+  this.view.disable();
   this.app.settings.mode.next();
 };
 
@@ -210,9 +221,7 @@ ControlsController.prototype.onCancelButtonClick = function() {
  */
 ControlsController.prototype.onGalleryButtonClick = function(event) {
   event.stopPropagation();
-
   var MozActivity = window.MozActivity;
-  var controls = this.controls;
 
   // Can't launch the gallery if the lockscreen is locked.
   // The button shouldn't even be visible in this case, but
@@ -227,8 +236,8 @@ ControlsController.prototype.onGalleryButtonClick = function(event) {
 
   // Wait 2000ms before re-enabling the
   // Gallery to be launched (Bug 957709)
-  controls.disable();
-  setTimeout(controls.enable, 2000);
+  this.view.disable();
+  setTimeout(this.view.enable, 2000);
 };
 
 });

@@ -7,6 +7,7 @@
 @import url("../shared/style/buttons.css");
 @import url("../shared/style/action_menu.css");
 @import url("../shared/style/headers.css");
+@import url("../shared/style/progress_activity.css");
 
 /**
  * App
@@ -30,3 +31,4 @@
 @import url("zoom-bar.css");
 @import url("indicators.css");
 @import url("notification.css");
+@import url("loading-screen.css");
