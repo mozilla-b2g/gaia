@@ -26,6 +26,9 @@ HomescreenAppBuilder.prototype.setOptions = function(options) {
   this.preferredIconSize =
     this.BASE_ICON_SIZE * parseFloat(options.GAIA_DEV_PIXELS_PER_PX);
 
+  options.configPath =
+    utils.joinPath(options.APP_DIR, 'build', options.GAIA_DEVICE_TYPE);
+
   this.options = options;
 };
 
@@ -175,8 +178,22 @@ HomescreenAppBuilder.prototype.customizeHomescreen = function() {
     customize.homescreens[0].push(['dogfood_apps', 'feedback']);
   }
 
-  customize = JSON.parse(utils.getDistributionFileContent('homescreens',
-    customize, config.GAIA_DISTRIBUTION_DIR));
+  // Load device specific configuration
+  if (config.GAIA_DEVICE_TYPE !== '') {
+    var deviceCustom =
+      JSON.parse(utils.getDistributionFileContent('homescreens',
+        customize, config.configPath));
+    customize = this.customizeSettings(customize, deviceCustom);
+  }
+
+  // Load distribution specific configuration
+  if (config.GAIA_DISTRIBUTION_DIR !== '') {
+    var distributionCustom =
+      JSON.parse(utils.getDistributionFileContent('homescreens',
+        customize, config.GAIA_DISTRIBUTION_DIR));
+    customize = this.customizeSettings(customize, distributionCustom);
+  }
+
   // keep e.me on by default
   let search_page_enabled = (customize.search_page) ?
                             customize.search_page.enabled : true;
@@ -296,6 +313,13 @@ HomescreenAppBuilder.prototype.execute = function(options) {
   if (options.VARIANT_PATH) {
     svoperapps.execute(options, homescreen, this.stageDir);
   }
+};
+
+HomescreenAppBuilder.prototype.customizeSettings = function(origin, custom) {
+  Object.keys(custom).forEach(function(key) {
+    origin[key] = custom[key];
+  });
+  return origin;
 };
 
 exports.execute = function(options) {
