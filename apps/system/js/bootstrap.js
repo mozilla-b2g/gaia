@@ -96,7 +96,6 @@ window.addEventListener('load', function startup() {
 
   Shortcuts.init();
   ScreenManager.turnScreenOn();
-  Rocketbar.init();
 
   // Please sort it alphabetically
   window.activities = new Activities();
@@ -109,6 +108,7 @@ window.addEventListener('load', function startup() {
   window.places = new Places();
   window.places.start();
   window.remoteDebugger = new RemoteDebugger();
+  window.rocketbar = new Rocketbar();
   window.softwareButtonManager = new SoftwareButtonManager().start();
   window.sourceView = new SourceView();
   window.telephonySettings = new TelephonySettings();
