@@ -148,7 +148,7 @@ suite('Net errors', function() {
         var element = type === 'app' ? document.getElementById('settings-btn') :
                                        document.body;
         element.click();
-        assert.equal(mockMozActivityInstance.name, 'configure');
+        assert.equal(mockMozActivityInstance.name, 'configure_inline');
         assert.equal(mockMozActivityInstance.data.target, 'device');
         assert.equal(mockMozActivityInstance.data.section, 'root');
         assert.equal(mockMozActivityInstance.data.filterBy, 'connectivity');
