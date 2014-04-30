@@ -1,0 +1,189 @@
+<element name="root" extends="section">
+  <template>
+
+    <header>
+      <menu id="activityDoneButton" type="toolbar">
+        <a href="#home" role="menuitem" data-l10n-id="done">Done</a>
+      </menu>
+      <h1 data-l10n-id="settings"> Settings </h1>
+    </header>
+
+    <div>
+      <header data-category="connectivity">
+        <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
+      </header>
+      <ul>
+        <li data-category="connectivity">
+          <label class="pack-switch">
+            <input id="airplaneMode-input" class="uninit" type="checkbox" disabled>
+            <span id="menuItem-airplaneMode" class="menu-item" data-l10n-id="airplaneMode">Airplane Mode</span>
+          </label>
+        </li>
+        <li>
+          <label class="pack-switch">
+            <input name="geolocation.enabled" class="uninit" type="checkbox">
+            <span id="menuItem-gps" class="menu-item" data-l10n-id="geolocation">Geolocation</span>
+          </label>
+        </li>
+        <li data-category="connectivity">
+          <small id="wifi-desc" class="menu-item-desc"></small>
+          <a id="menuItem-wifi" class="menu-item" href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
+        </li>
+        <li id="simCardManager-settings" aria-disabled="true">
+          <small id="simmanager-desc" class="menu-item-desc"></small>
+          <a id="menuItem-simManager" class="menu-item" href="#sim-manager" data-l10n-id="simManager">SIM manager</a>
+        </li>
+        <li id="call-settings" aria-disabled="true">
+          <small id="call-desc" class="menu-item-desc"></small>
+          <a id="menuItem-callSettings" class="menu-item" href="#call" data-l10n-id="callSettings">Call Settings</a>
+        </li>
+        <li id="messaging-settings" aria-disabled="true">
+          <small id="messaging-desc" class="menu-item-desc"></small>
+          <a id="menuItem-messagingSettings" class="menu-item" href="#messaging" data-l10n-id="messagingSettings">Messaging Settings</a>
+        </li>
+        <li id="data-connectivity" data-category="connectivity" aria-disabled="true">
+          <small id="data-desc" class="menu-item-desc"></small>
+          <a id="menuItem-cellularAndData" class="menu-item" href="#carrier" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
+        </li>
+        <li>
+          <small id="bluetooth-desc" class="menu-item-desc"></small>
+          <a id="menuItem-bluetooth" class="menu-item" href="#bluetooth" data-l10n-id="bluetooth">Bluetooth</a>
+        </li>
+        <li id="nfc-settings" hidden>
+          <label class="pack-switch">
+            <input id="nfc-input" name="nfc.enabled" class="uninit" type="checkbox">
+            <span id="menuItem-nfc" class="menu-item" data-l10n-id="nfc">NFC</span>
+          </label>
+        </li>
+        <li>
+          <small id="internetSharing-desc" class="menu-item-desc"></small>
+          <a id="menuItem-internetSharing" class="menu-item" href="#hotspot" data-l10n-id="internetSharing">Internet Sharing</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="personalization">Personalization</h2>
+      </header>
+      <ul>
+        <li>
+          <a id="menuItem-sound" class="menu-item" href="#sound" data-l10n-id="sound">Sound</a>
+        </li>
+        <li>
+          <a id="menuItem-display" class="menu-item" href="#display" data-l10n-id="display">Display</a>
+        </li>
+        <li>
+          <a id="menuItem-notifications" class="menu-item" href="#notifications" data-l10n-id="notifications">Notifications</a>
+        </li>
+        <li>
+          <small id="time-desc" class="menu-item-desc"></small>
+          <a id="menuItem-dateAndTime" class="menu-item" href="#dateTime" data-l10n-id="dateAndTime">Date &amp; Time</a>
+        </li>
+        <li>
+          <small id="language-desc" class="menu-item-desc"></small>
+          <a id="menuItem-languageAndRegion" class="menu-item" href="#languages" data-l10n-id="language">Language</a>
+        </li>
+        <li id="homescreen-section" hidden>
+          <a id="menuItem-homescreen" class="menu-item" href="#homescreen" data-l10n-id="homescreen">Homescreen</a>
+        </li>
+        <li>
+          <small id="keyboard-desc" class="menu-item-desc"></small>
+          <a id="menuItem-keyboard" class="menu-item" href="#keyboard" data-l10n-id="keyboards">Keyboards</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="accounts">Accounts</h2>
+      </header>
+      <ul>
+        <li>
+          <small id="fxa-desc" class="menu-item-desc"></small>
+          <a id="menuItem-fxa" class="menu-item" href="#fxa" data-l10n-id="fxa-accounts">Firefox Accounts</a>
+        </li>
+        <li data-show-name="findmydevice.ui.enabled" hidden>
+          <small id="findmydevice-desc" class="menu-item-desc"></small>
+          <a id="menuItem-findmydevice" class="menu-item" href="#findmydevice"
+            data-l10n-id="findmydevice">Find My Device</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="privacyAndSecurity">Privacy &amp; Security</h2>
+      </header>
+      <ul>
+        <li>
+          <small id="screenLock-desc" class="menu-item-desc"></small>
+          <a id="menuItem-screenLock" class="menu-item" href="#screenLock" data-l10n-id="screenLock">Screen Lock</a>
+        </li>
+        <li id="simSecurity-settings" aria-disabled="true">
+          <small id="simCardLock-desc" class="menu-item-desc"></small>
+          <a id="menuItem-simSecurity" class="menu-item" href="#simpin" data-l10n-id="simSecurity">SIM security</a>
+        </li>
+        <li>
+          <a id="menuItem-appPermissions" class="menu-item" href="#appPermissions" data-l10n-id="appPermissions">App permissions</a>
+        </li>
+        <li>
+          <small id="doNotTrack-desc" class="menu-item-desc"></small>
+          <a id="menuItem-doNotTrack" class="menu-item" href="#doNotTrack" data-l10n-id="doNotTrack">Do Not Track</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="storage">Storage</h2>
+      </header>
+      <ul>
+        <li>
+          <label class="pack-switch">
+            <input id="ums-switch-root" data-ignore type="checkbox">
+            <small id="ums-desc-root" class="menu-item-desc">Disabled</small>
+            <span id="menuItem-enableStorage" class="menu-item" data-l10n-id="enableUSBStorage1">USB storage</span>
+          </label>
+        </li>
+        <li>
+          <small id="application-storage-desc" class="menu-item-desc"></small>
+          <a id="menuItem-applicationStorage" class="menu-item" href="#applicationStorage" data-l10n-id="appStorage">Application Storage</a>
+        </li>
+        <li id="media-storage-section">
+          <small id="media-storage-desc" class="menu-item-desc"></small>
+          <a id="menuItem-mediaStorage" class="menu-item" href="#mediaStorage" data-l10n-id="mediaStorage">Media Storage</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="device">Device</h2>
+      </header>
+      <ul>
+        <li>
+          <a id="menuItem-deviceInfo" class="menu-item" href="#about" data-l10n-id="deviceInfo">Device Information</a>
+        </li>
+        <li>
+          <a id="menuItem-downloads" class="menu-item" href="#downloads" data-l10n-id="downloads">Downloads</a>
+        </li>
+        <li>
+          <small id="battery-desc" class="menu-item-desc" hidden></small>
+          <a id="menuItem-battery" class="menu-item" href="#battery" data-l10n-id="battery">Battery</a>
+        </li>
+        <li data-show-name="accessibility.show-settings" hidden>
+          <a id="menuItem-accessibility" class="menu-item" href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
+        </li>
+        <li data-show-name="developer.menu.enabled" hidden>
+          <a id="menuItem-developer" class="menu-item" href="#developer" data-l10n-id="developer">Developer</a>
+        </li>
+        <li>
+          <a id="menuItem-improveBrowserOS" class="menu-item" href="#improveBrowserOS" data-l10n-id="improveBrowserOS">Improve Browser OS</a>
+        </li>
+        <li>
+          <a id="menuItem-help" class="menu-item" href="#help" data-l10n-id="help">Help</a>
+        </li>
+      </ul>
+
+      <header id="icc-mainheader">
+        <h2 data-l10n-id="operatorServices">Operator Services</h2>
+      </header>
+      <ul id="icc-entries">
+      </ul>
+    </div>
+
+    <panel data-path="panels/root/panel"><panel>
+
+  </template>
+</element>

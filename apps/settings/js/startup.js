@@ -8,5 +8,4 @@
   }
 
   window.addEventListener('load', startApp, false);
-
 }());
