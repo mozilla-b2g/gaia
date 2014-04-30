@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsListener, AppWindow, SearchWindow, Places */
+/* global SettingsListener, AppWindow, SearchWindow, places */
 
 /**
  * The Rocketbar is a system-wide URL/search/title bar.
@@ -707,7 +707,7 @@ var Rocketbar = {
         Rocketbar.input.value = e.detail.input;
         break;
       case 'request-screenshot':
-        Places.screenshotRequested(e.detail.url);
+        places.screenshotRequested(e.detail.url);
         break;
       case 'hide':
         this.hideResults();

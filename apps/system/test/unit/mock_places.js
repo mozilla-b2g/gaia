@@ -1,16 +1,8 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
-/*exported MockPlaces*/
-
 'use strict';
+/* exported MockPlaces */
 
-var MockPlaces = (function() {
+function MockPlaces() {}
 
-  function init() {
-  }
-
-  return {
-    init: init
-  };
-})();
+MockPlaces.prototype = {
+  start: function() {}
+};
