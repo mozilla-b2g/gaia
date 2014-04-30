@@ -58,6 +58,14 @@ require.config({
     {
       name: 'panels/app_permissions_list/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/screen_lock/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/screen_lock_passcode/panel',
+      exclude: ['main']
     }
   ]
 });
