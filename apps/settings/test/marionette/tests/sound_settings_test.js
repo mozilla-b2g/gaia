@@ -3,7 +3,17 @@ var Settings = require('../app/app'),
     assert = require('assert');
 
 marionette('manipulate sound settings', function() {
-  var client = marionette.client();
+  var ringtonePath = '/shared/resources/media/ringtones/' +
+    'ringer_classic_courier.opus';
+  var alerttonePath = '/shared/resources/media/notifications/' +
+    'notifier_bell.opus';
+
+  var client = marionette.client({
+    settings: {
+      'dialer.ringtone.filepath': ringtonePath,
+      'notification.ringtone.filepath': alerttonePath
+    }
+  });
   var settingsApp;
   var soundPanel;
 
@@ -58,6 +68,16 @@ marionette('manipulate sound settings', function() {
       !alarm_val,
       'alarm state is changed'
     );
+  });
+
+  test('check default ringtone name', function() {
+    var ringtone_name = soundPanel.ringtoneButtonText;
+    assert.equal(ringtone_name, 'Classic Courier');
+  });
+
+  test('check default alerttone name', function() {
+    var alerttone_name = soundPanel.alerttoneButtonText;
+    assert.equal(alerttone_name, 'Bell');
   });
 
   /* Other sounds */
