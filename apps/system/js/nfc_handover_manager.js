@@ -3,7 +3,7 @@
 
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
-/* globals dump, BluetoothTransfer, NfcManagerUtils */
+/* globals dump, BluetoothTransfer, NfcManagerUtils, NfcConnectSystemDialog */
 /* exported NfcHandoverManager */
 'use strict';
 
@@ -22,9 +22,9 @@ var NfcHandoverManager = {
 
   DEBUG: false,
 
-  settings: window.navigator.mozSettings,
-  bluetooth: window.navigator.mozBluetooth,
-  nfc: window.navigator.mozNfc,
+  settings: null,
+  bluetooth: null,
+  nfc: null,
 
   defaultAdapter: null,
 
@@ -91,6 +91,10 @@ var NfcHandoverManager = {
   init: function init() {
     var self = this;
 
+    this.settings = navigator.mozSettings;
+    this.bluetooth = navigator.mozBluetooth;
+    this.nfc = navigator.mozNfc;
+
     if (this.bluetooth.enabled) {
       this.debug('Bluetooth already enabled on boot');
       var req = this.bluetooth.getDefaultAdapter();
@@ -152,7 +156,7 @@ var NfcHandoverManager = {
     }
   },
 
-  getBluetoothMAC: function getBluetoothMAC(ndef) {
+  getBluetoothSSP: function getBluetoothSSP(ndef) {
     var handover = NfcManagerUtils.parseHandoverNDEF(ndef);
     if (handover == null) {
       // Bad handover message. Just ignore.
@@ -167,8 +171,7 @@ var NfcHandoverManager = {
       this.debug('No BT AC');
       return null;
     }
-    var btssp = NfcManagerUtils.parseBluetoothSSP(btsspRecord);
-    return btssp.mac;
+    return NfcManagerUtils.parseBluetoothSSP(btsspRecord);
   },
 
   doPairing: function doPairing(mac) {
@@ -203,7 +206,7 @@ var NfcHandoverManager = {
 
   doHandoverRequest: function doHandoverRequest(ndef, session) {
     this.debug('doHandoverRequest');
-    if (this.getBluetoothMAC(ndef) == null) {
+    if (this.getBluetoothSSP(ndef) == null) {
       /*
        * The handover request didn't contain a valid MAC address. Simply
        * ignore the request.
@@ -298,6 +301,22 @@ var NfcHandoverManager = {
                          this.sendFileRequest.requestId);
   },
 
+  onRequestConnect: function onRequestConnect(btssp) {
+    var self = this;
+    var onconfirm = function() {
+      self.debug('Connect confirmed');
+      self.doAction({callback: self.doPairing, args: [btssp.mac]});
+    };
+    var onabort = function() {
+      self.debug('Connect aborted');
+    };
+    if (!this.nfcConnectSystemDialog) {
+      this.nfcConnectSystemDialog = new NfcConnectSystemDialog();
+    }
+    this.nfcConnectSystemDialog.show(btssp.localName, onconfirm, onabort);
+  },
+
+
   /*****************************************************************************
    *****************************************************************************
    * Handover API
@@ -306,22 +325,16 @@ var NfcHandoverManager = {
 
   handleHandoverSelect: function handleHandoverSelect(ndef) {
     this.debug('handleHandoverSelect');
-    var mac = this.getBluetoothMAC(ndef);
-    var self = this;
-
-    if (mac == null) {
+    var btssp = this.getBluetoothSSP(ndef);
+    if (btssp == null) {
       return;
     }
     if (this.sendFileRequest != null) {
       // This is the response to a file transfer request (negotiated handover)
-      this.doAction({callback: this.doFileTransfer, args: [mac]});
+      this.doAction({callback: this.doFileTransfer, args: [btssp.mac]});
     } else {
       // This is a static handover
-      this.debug('Pair with: ' + mac);
-      var onsuccess = function() { self.debug('Pairing succeeded'); };
-      var onerror = function() { self.debug('Pairing failed'); };
-      this.doAction({callback: this.doPairing,
-                     args: [mac, onsuccess, onerror]});
+      this.onRequestConnect(btssp);
     }
   },
 
