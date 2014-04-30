@@ -775,6 +775,9 @@
         return;
       }
       switch (e.detail.action) {
+        case 'render':
+          this.activate(this.focus.bind(this));
+          break;
         case 'input':
           this.input.value = e.detail.input;
           break;

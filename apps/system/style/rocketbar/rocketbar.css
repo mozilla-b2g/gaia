@@ -134,3 +134,47 @@ body:not(.rb-enabled) #rocketbar {
 #search.appWindow {
   top: 0;
 }
+
+
+/**
+ * Style overrides for the HomeSearchbar
+ */
+body.homesearch-enabled #rocketbar {
+  transition: none;
+}
+
+body.homesearch-enabled #rocketbar.active {
+  display: block;
+}
+
+body.homesearch-enabled #rocketbar-input {
+  height: 3.7rem;
+}
+
+/* Expand the rocketbar when it's active */
+body.homesearch-enabled #screen.on-homescreen #rocketbar.active {
+  transform: scale(1) translateY(2.4rem);
+}
+
+/* Do not expand the statusbar background on homescreen. We have our own markup in the homescreen. */
+body.homesearch-enabled #screen.on-homescreen.rocketbar-expanded #statusbar-background {
+  transform: scaleY(0.5);
+}
+
+/* Size the rocketbar form to cover the homescreen one exactly */
+body.homesearch-enabled #screen.on-homescreen #rocketbar-form {
+  width: calc(100% - 1.2rem);
+  box-sizing: border-box;
+}
+
+/* Move the search results up and resize as we display the statusbar still for 2.0 */
+body.homesearch-enabled #rocketbar-backdrop,
+body.homesearch-enabled #rocketbar-results {
+  top: 7rem;
+  height: calc(100% - 7rem);
+}
+
+body.homesearch-enabled #screen.software-button-enabled #rocketbar-results,
+body.homesearch-enabled #screen.software-button-enabled #rocketbar-backdrop {
+  height: calc(100% - 12rem);
+}
