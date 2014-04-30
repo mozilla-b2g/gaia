@@ -1,4 +1,4 @@
-/* global SettingsListener, System, layoutManager, SimPinDialog, Rocketbar */
+/* global SettingsListener, System, layoutManager, SimPinDialog, rocketbar */
 'use strict';
 
 (function(exports) {
@@ -253,7 +253,7 @@
         // See https://bugzilla.mozilla.org/show_bug.cgi?id=938979
         // XXX: Rocketbar losing input focus
         // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
-        if (!SimPinDialog.visible && !Rocketbar.shown) {
+        if (!SimPinDialog.visible && !rocketbar.shown) {
           this.app.focus();
         }
       }.bind(this));

@@ -58,6 +58,7 @@ mocha.globals([
   'permissionManager',
   'places',
   'remoteDebugger',
+  'rocketbar',
   'secureWindowFactory',
   'secureWindowManager',
   'Shortcuts',
