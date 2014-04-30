@@ -1161,10 +1161,10 @@ html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input
 
 .fxa-logo {
   background-image: url('images/fxa_logo.png');
-  background-size: 100% auto;
-  margin: 0 auto;
-  width: 28rem;
-  height: 19.4rem;
+  background-repeat: no-repeat;
+  margin: 3rem auto 0;
+  width: 17rem;
+  height: 17.5rem;
 }
 
 #firefox_accounts {
