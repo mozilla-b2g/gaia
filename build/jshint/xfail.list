@@ -19,15 +19,11 @@ apps/browser/test/unit/browser_db_test.js
 apps/callscreen/js/bluetooth_helper.js
 apps/callscreen/js/call_screen.js
 apps/callscreen/js/calls_handler.js
-apps/callscreen/js/conference_group_handler.js
 apps/callscreen/js/fake-oncall-desktop.js
-apps/callscreen/js/handled_call.js
 apps/callscreen/js/index.js
 apps/callscreen/test/unit/bluetooth_helper_test.js
 apps/callscreen/test/unit/call_screen_test.js
 apps/callscreen/test/unit/calls_handler_test.js
-apps/callscreen/test/unit/conference_group_handler_test.js
-apps/callscreen/test/unit/handled_call_test.js
 apps/callscreen/test/unit/mock_bluetooth_helper.js
 apps/callscreen/test/unit/mock_call_screen.js
 apps/callscreen/test/unit/mock_mozbluetooth.js

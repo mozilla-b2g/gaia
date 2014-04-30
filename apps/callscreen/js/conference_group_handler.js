@@ -1,3 +1,7 @@
+/* globals CallsHandler, CallScreen, LazyL10n */
+
+/* exported ConferenceGroupHandler */
+
 'use strict';
 
 var ConferenceGroupHandler = (function() {
@@ -5,8 +9,11 @@ var ConferenceGroupHandler = (function() {
   var groupLabel = document.getElementById('group-call-label');
   var groupDetails = document.getElementById('group-call-details');
   var groupDetailsHeader = groupDetails.querySelector('header');
+  // FIXME/bug 1007148: Refactor duration element structure
   var groupDuration = document.querySelector('#group-call > .duration');
   var groupDurationChildNode = groupDuration.querySelector('span');
+  var groupTotalDurationChildNode =
+    groupDuration.querySelector('.total-duration');
   var mergeButton = groupLine.querySelector('.merge-button');
   mergeButton.onclick = function(evt) {
     if (evt) {
@@ -53,6 +60,8 @@ var ConferenceGroupHandler = (function() {
   }
 
   function end() {
+    groupTotalDurationChildNode.textContent =
+      groupDurationChildNode.textContent;
     LazyL10n.get(function localized(_) {
       groupDurationChildNode.textContent = _('callEnded');
     });
@@ -62,6 +71,7 @@ var ConferenceGroupHandler = (function() {
 
     setTimeout(function(evt) {
       groupLine.hidden = true;
+      CallScreen.updateCallsDisplay();
     }, CallScreen.callEndPromptTime);
   }
 
