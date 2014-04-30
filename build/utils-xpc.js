@@ -701,9 +701,9 @@ function Commander(cmd) {
     var process = Cc['@mozilla.org/process/util;1']
                   .createInstance(Ci.nsIProcess);
     try {
+      log('cmd', command + ' ' + args.join(' '));
       process.init(_file);
       process.run(true, args, args.length);
-      log(command + ' ' + args.join(' '));
     } catch (e) {
       throw new Error('having trouble when execute ' + command +
         ' ' + args.join(' '));

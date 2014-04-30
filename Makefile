@@ -173,8 +173,6 @@ MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 TEST_MANIFEST?=./shared/test/integration/local-manifest.json
 MOZPERFOUT?=""
 
-GAIA_INSTALL_PARENT?=/system/b2g
-
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
 GAIA_APP_TARGET=demo
@@ -435,7 +433,7 @@ TEST_DIRS ?= $(GAIA_DIR)/tests
 
 define BUILD_CONFIG
 { \
-	"ADB" : "$(adb)", \
+	"ADB" : "$(ADB)", \
 	"GAIA_DIR" : "$(GAIA_DIR)", \
 	"PROFILE_DIR" : "$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)", \
 	"PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
@@ -981,7 +979,6 @@ install-gaia: $(PROFILE_FOLDER) push
 # push target to update the gaia files and reboot b2g
 .PHONY: push
 push: $(XULRUNNER_BASE_DIRECTORY)
-	@$(ADB) remount
 	@$(call run-js-command,push-to-device)
 
 # Copy demo media to the sdcard.
