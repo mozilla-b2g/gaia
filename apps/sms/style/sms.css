@@ -795,7 +795,7 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
   max-width: calc(100% - .5rem);
   height: 2.4rem;
   border: .1rem solid #4d4d4d;
-  padding: 0 0.8rem;
+  padding: 0 1.5rem;
 
   background: -moz-linear-gradient(#fff, #f1f1f1);
   white-space: nowrap;
@@ -823,7 +823,31 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
   color: black;
   font-size: 1.8rem;
 }
+.recipient[contenteditable=false].select {
+  background: #F97C17;
+  color: #ffffff;
+}
 
+.recipient[contenteditable=false].email {
+  padding-top: 0rem;
+  padding-right: 3.8rem;
+  padding-left: 1.5rem;
+  background-color: -moz-linear-gradient(#fff, #f1f1f1);
+  background-image: url(images/icons/icon_sms_compose_email.png);
+  background-repeat: no-repeat;
+  background-position: calc(100% - 1.5rem) center;
+}
+
+.recipient[contenteditable=false].email.select {
+  padding-top: 0rem;
+  padding-right: 3.8rem;
+  padding-left: 1.5rem;
+  background-color: #F97C17;
+  background-image: url(images/icons/icon_sms_compose_email_select.png);
+  background-repeat: no-repeat;
+  background-position: calc(100% - 1.5rem) center;
+  color: #ffffff;
+}
 /* Disable padding and margin on empty contenteditable recipients when they do
  * not have focus. This allows the Recipients List to intelligently collapse
  * when the final row contains no "assimilated" (i.e. non-contenteditable)
@@ -836,7 +860,7 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
 
 .recipient[contenteditable=true]:empty:focus {
   margin-right: 0.5rem;
-  padding-right: 0.8rem;
+  padding: 0 0.8rem;
   border-width: 0.1rem;
 }
 

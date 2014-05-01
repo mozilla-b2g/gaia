@@ -309,7 +309,7 @@ Information.prototype = {
       } else {
         number = participant;
       }
-      Contacts.findByPhoneNumber(number, function(results) {
+      Contacts.findByAddress(number, function(results) {
         var isContact = results !== null && !!results.length;
 
         if (isContact) {

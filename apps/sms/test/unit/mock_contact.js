@@ -32,7 +32,8 @@ function MockContact(name) {
 
   this.email = [
     {
-      'value': 'a@b.com'
+      'value': 'a@b.com',
+      'type': ['Personal']
     }
   ];
 

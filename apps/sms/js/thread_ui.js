@@ -788,8 +788,8 @@ var ThreadUI = global.ThreadUI = {
   },
 
   showNewMessageNotice: function thui_showNewMessageNotice(message) {
-    Contacts.findByPhoneNumber(message.sender, (function gotContact(contact) {
-      var sender = message.sender;
+    Contacts.findByAddress(message.sender, (function gotContact(contact) {
+    var sender = message.sender;
       if (contact && contact.length) {
         var details = Utils.getContactDetails(sender, contact[0]);
         sender = details.title || sender;
@@ -1209,12 +1209,11 @@ var ThreadUI = global.ThreadUI = {
     var number = thread.participants[0];
     var isCarrierTagShown = false;
     var carrierText;
-
+      
     // The carrier banner is meaningless and confusing in
     // group message mode.
     if (thread.participants.length === 1 &&
         (contacts && contacts.length)) {
-
 
       carrierText = Utils.getCarrierTag(
         number, contacts[0].tel, details
@@ -1283,7 +1282,7 @@ var ThreadUI = global.ThreadUI = {
     //
     //    Jane Doe (+2)
     //
-    Contacts.findByPhoneNumber(number, function gotContact(contacts) {
+    Contacts.findByAddress(number, function gotContact(contacts) {
       var details = Utils.getContactDetails(number, contacts);
       // Bug 867948: contacts null is a legitimate case, and
       // getContactDetails is okay with that.
@@ -2383,7 +2382,7 @@ var ThreadUI = global.ThreadUI = {
     var last = this.recipientsList.lastElementChild;
     var typed = last && last.textContent.trim();
     var isContact = false;
-    var record, tel, length, number, contact;
+    var record, tel, length, number, contact, target;
 
     if (index < 0) {
       index = 0;
@@ -2395,20 +2394,33 @@ var ThreadUI = global.ThreadUI = {
     if (contacts && contacts.length) {
       isInvalid = false;
       record = contacts[0];
-      length = record.tel.length;
-
+ 
+      if(!Utils.isEmailAddress(fValue)){
+        length = record.tel.length;
+      } else {
+        length = record.email.length;
+      }
+       
       // Received an exact match with a single tel record
       if (source.isLookupable && !source.isQuestionable && length === 1) {
         if (Utils.probablyMatches(record.tel[0].value, fValue)) {
           isContact = true;
-          number = record.tel[0].value;
+          if (!Utils.isEmailAddress(fValue) && Utils.probablyMatches(record.tel[0].value, fValue)) {
+            number = record.tel[0].value;
+          } else if (Utils.isEmailAddress(fValue) && Utils.probablyMatches(record.email[0].value, fValue)) {
+            number = record.email[0].value;
+          }        
         }
-      } else {
+     } else {
         // Received an exact match that may have multiple tel records
         for (var i = 0; i < length; i++) {
-          tel = record.tel[i];
-          if (this.recipients.numbers.indexOf(tel.value) === -1) {
-            number = tel.value;
+          if(!Utils.isEmailAddress(fValue)){
+            target = record.tel[i];
+          } else {
+            target = record.email[i];
+          }
+          if (this.recipients.numbers.indexOf(target.value) === -1) {
+            number = target.value;
             break;
           }
         }
@@ -2543,7 +2555,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     var number = this.headerText.dataset.number;
-
+      
     if (this.headerText.dataset.isContact === 'true') {
       this.promptContact({
         number: number
@@ -2562,11 +2574,10 @@ var ThreadUI = global.ThreadUI = {
     var inMessage = opts.inMessage || false;
     var number = opts.number || '';
 
-    Contacts.findByPhoneNumber(number, function(results) {
+    Contacts.findByAddress(number, function(results) {
       var isContact = results && results.length;
       var contact = results[0];
       var id;
-
       var fragment;
 
       if (isContact) {
@@ -2580,7 +2591,6 @@ var ThreadUI = global.ThreadUI = {
           target: fragment
         });
       }
-
       this.prompt({
         number: number,
         header: fragment || number,

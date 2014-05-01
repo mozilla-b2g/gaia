@@ -31,7 +31,10 @@ var MockContacts = {
     var result = MockContact.list();
     this.mCallCallback(callback, result);
   },
-
+  findByAddress: function mc_findByAddress(value, callback) {
+    var result = MockContact.list();
+    this.mCallCallback(callback, result);
+  },
   findExact: function mc_findByString(value, callback) {
     var result = MockContact.list();
     this.mCallCallback(callback, result);

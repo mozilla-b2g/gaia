@@ -92,7 +92,7 @@ suite('LinkActionHandler', function() {
 
     test('dial-link: (known) delegates to promptContact ', function() {
       this.sinon.stub(ThreadUI, 'promptContact');
-      this.sinon.stub(Contacts, 'findByPhoneNumber')
+      this.sinon.stub(Contacts, 'findByAddress')
         .callsArgWith(1, [{
           name: ['Huey'],
           tel: {
@@ -113,7 +113,7 @@ suite('LinkActionHandler', function() {
 
     test('dial-link: (unknown) delegates to promptContact ', function() {
       this.sinon.stub(ThreadUI, 'promptContact');
-      this.sinon.stub(Contacts, 'findByPhoneNumber')
+      this.sinon.stub(Contacts, 'findByAddress')
         .callsArgWith(1, []);
 
       LinkActionHandler.onClick(events.phone);
