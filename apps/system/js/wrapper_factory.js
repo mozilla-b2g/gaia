@@ -1,5 +1,5 @@
 'use strict';
-/*global applications, AppWindowManager, AppWindow, Rocketbar */
+/*global applications, AppWindowManager, AppWindow, rocketbar */
 
 (function(window) {
   /**
@@ -37,7 +37,7 @@
 
       if (features.features === 'rocketbarstartpage') {
         evt.stopImmediatePropagation();
-        Rocketbar.showNewTabPage();
+        rocketbar.showNewTabPage();
         return;
       }
 

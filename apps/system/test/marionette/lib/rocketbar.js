@@ -55,7 +55,7 @@ Rocketbar.prototype = {
     this.client.waitFor(function() {
       this.client.executeScript(function() {
         var win = window.wrappedJSObject;
-        return win.Rocketbar && win.Rocketbar.enabled;
+        return win.rocketbar && win.rocketbar.enabled;
       }, function(err, value) {
         lastVal = value;
       });
