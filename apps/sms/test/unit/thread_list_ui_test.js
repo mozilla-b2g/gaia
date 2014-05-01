@@ -1031,7 +1031,7 @@ suite('thread_list_ui', function() {
     var node, pictureContainer;
 
     setup(function() {
-      this.sinon.stub(Contacts, 'findByPhoneNumber');
+      this.sinon.stub(Contacts, 'findByAddress');
       var thread = {
         id: 1,
         participants: ['555'],
@@ -1057,7 +1057,7 @@ suite('thread_list_ui', function() {
 
       var contactInfo = MockContact.list();
       contactInfo[0].photo = [new Blob(['test'], { type: 'image/jpeg' })];
-      Contacts.findByPhoneNumber.yield(contactInfo);
+      Contacts.findByAddress.yield(contactInfo);
 
       var photo = node.querySelector('span[data-type=img]');
       assert.include(photo.style.backgroundImage, 'blob:');
@@ -1067,7 +1067,7 @@ suite('thread_list_ui', function() {
 
     test('display correctly a contact without a picture', function() {
       var contactInfo = MockContact.list();
-      Contacts.findByPhoneNumber.yield(contactInfo);
+      Contacts.findByAddress.yield(contactInfo);
 
       var photo = node.querySelector('span[data-type=img]');
       assert.isFalse(photo.style.backgroundImage.contains('blob:'));
