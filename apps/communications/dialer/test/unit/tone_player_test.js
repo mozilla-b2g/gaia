@@ -2,7 +2,7 @@
 
 /* global MocksHelper, MockAudioContext, TonePlayer */
 
-require('/dialer/js/tone_player.js');
+require('/shared/js/dialer/tone_player.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 
 var mocksForTonePlayer = new MocksHelper([
