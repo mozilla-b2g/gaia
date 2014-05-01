@@ -224,5 +224,43 @@ suite('ParsedProvisioningDoc >', function() {
       parsedProvisioningDoc = ParsedProvisioningDoc.from(provisioningDoc);
       assert.lengthOf(parsedProvisioningDoc.getApns(), 0);
     });
+
+    test('DT document without TO-PROXY nodes in the APPLICATION nodes',
+      function() {
+        var parsedProvisioningDoc;
+        var provisioningDoc =
+          '<wap-provisioningdoc version="1.0">' +
+            '<characteristic type="BOOTSTRAP">' +
+              '<parm name="NAME" value="T-Mobile Internet"/>' +
+            '</characteristic>' +
+            '<characteristic type="NAPDEF">' +
+              '<parm name="NAPID" value="internet-apn"/>' +
+              '<parm name="BEARER" value="GSM-GPRS"/>' +
+              '<parm name="NAME" value="T-Mobile Internet"/>' +
+              '<parm name="NAP-ADDRTYPE" value="APN"/>' +
+              '<parm name="NAP-ADDRESS" value="internet.t-mobile"/>' +
+              '<parm name="LINGER" value="150"/>' +
+              '<parm name="DNS-ADDR" value="193.254.160.001"/>' +
+              '<parm name="DNS-ADDR" value="193.254.160.130"/>' +
+              '<characteristic type="NAPAUTHINFO">' +
+                '<parm name="AUTHTYPE" value="PAP"/>' +
+                '<parm name="AUTHNAME" value="t-mobile"/>' +
+                '<parm name="AUTHSECRET" value="tm"/>' +
+              '</characteristic>' +
+            '</characteristic>' +
+            '<characteristic type="APPLICATION">' +
+              '<parm name="APPID" value="w2"/>' +
+              '<parm name="TO-NAPID" value="internet-apn"/>' +
+              '<parm name="NAME" value="T-Mobile Internet"/>' +
+              '<characteristic type="RESOURCE">' +
+                '<parm name="NAME" value="Start page"/>' +
+                '<parm name="URI" value="http://www.t-mobile-favoriten.de"/>' +
+                '<parm name="STARTPAGE"/>' +
+              '</characteristic>' +
+            '</characteristic>' +
+          '</wap-provisioningdoc>';
+        parsedProvisioningDoc = ParsedProvisioningDoc.from(provisioningDoc);
+        assert.lengthOf(parsedProvisioningDoc.getApns(), 1);
+    });
   });
 });
