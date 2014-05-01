@@ -314,8 +314,8 @@ App.prototype.showLoading = function() {
   debug('show loading');
   var ms = this.settings.loadingScreen.get('delay');
   var self = this;
-  clearTimeout(this.loadingTimout);
-  setTimeout(function() {
+  clearTimeout(this.loadingTimeout);
+  this.loadingTimeout = setTimeout(function() {
     self.views.loading = new self.LoadingView();
     self.views.loading.appendTo(self.el).show();
     debug('loading shown');
@@ -329,11 +329,11 @@ App.prototype.showLoading = function() {
  * @private
  */
 App.prototype.clearLoading = function() {
+  debug('clear loading');
   var view = this.views.loading;
-  clearTimeout(this.loadingTimout);
+  clearTimeout(this.loadingTimeout);
   if (!view) { return; }
   view.hide(view.destroy);
-  debug('loading cleared');
 };
 
 });
