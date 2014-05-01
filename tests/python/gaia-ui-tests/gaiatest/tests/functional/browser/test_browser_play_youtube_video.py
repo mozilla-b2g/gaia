@@ -28,7 +28,7 @@ class TestYouTube(GaiaTestCase):
         """
         browser = Browser(self.marionette)
         browser.launch()
-        browser.go_to_url(self.video_URL)
+        browser.go_to_url(self.video_URL, timeout=180)
         browser.switch_to_content()
 
         # Tap the video container to load the <video> element and start playing
