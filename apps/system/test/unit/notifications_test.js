@@ -83,12 +83,6 @@ suite('system/NotificationScreen >', function() {
     });
 
     function sendChromeNotificationEvent(detail) {
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      var chromeEvent = new CustomEvent('mozChromeEvent', {
-        detail: detail
-      });
-
-      window.dispatchEvent(chromeEvent);
       var event = new CustomEvent('mozChromeNotificationEvent', {
         detail: detail
       });
@@ -249,9 +243,7 @@ suite('system/NotificationScreen >', function() {
   });
 
   suite('tap a notification >', function() {
-    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-    var notificationNode, notifClickedStub, contentEventStub,
-        contentNotificationEventStub;
+    var notificationNode, notifClickedStub, contentNotificationEventStub;
     var details = {
       type: 'desktop-notification',
       id: 'id-1',
@@ -263,13 +255,9 @@ suite('system/NotificationScreen >', function() {
       notificationNode = NotificationScreen.addNotification(details);
 
       notifClickedStub = sinon.stub();
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      contentEventStub = sinon.stub();
       contentNotificationEventStub = sinon.stub();
 
       window.addEventListener('notification-clicked', notifClickedStub);
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      window.addEventListener('mozContentEvent', contentEventStub);
       window.addEventListener(
         'mozContentNotificationEvent', contentNotificationEventStub);
 
@@ -279,28 +267,16 @@ suite('system/NotificationScreen >', function() {
 
     teardown(function() {
       window.removeEventListener('notification-clicked', notifClickedStub);
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      window.removeEventListener('mozContentEvent', contentEventStub);
       window.removeEventListener(
         'mozContentNotificationEvent', contentNotificationEventStub);
     });
 
     test('dispatch events once with the expected parameters', function() {
       sinon.assert.calledOnce(notifClickedStub);
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledOnce(contentEventStub);
       sinon.assert.calledOnce(contentNotificationEventStub);
 
       sinon.assert.calledWithMatch(notifClickedStub, {
         detail: {
-          id: details.id
-        }
-      });
-
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledWithMatch(contentEventStub, {
-        detail: {
-          type: 'desktop-notification-click',
           id: details.id
         }
       });
@@ -315,9 +291,7 @@ suite('system/NotificationScreen >', function() {
   });
 
   suite('tap a notification using the obsolete API >', function() {
-    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-    var notificationNode, notifClickedStub, contentEventStub,
-        contentNotificationEventStub;
+    var notificationNode, notifClickedStub, contentNotificationEventStub;
     var details = {
       type: 'desktop-notification',
       id: 'app-notif-1',
@@ -329,21 +303,15 @@ suite('system/NotificationScreen >', function() {
       notificationNode = NotificationScreen.addNotification(details);
 
       notifClickedStub = sinon.stub();
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      contentEventStub = sinon.stub();
       contentNotificationEventStub = sinon.stub();
 
       window.addEventListener('notification-clicked', notifClickedStub);
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      window.addEventListener('mozContentEvent', contentEventStub);
       window.addEventListener(
         'mozContentNotificationEvent', contentNotificationEventStub);
     });
 
     teardown(function() {
       window.removeEventListener('notification-clicked', notifClickedStub);
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      window.removeEventListener('mozContentEvent', contentEventStub);
       window.removeEventListener(
         'mozContentNotificationEvent', contentNotificationEventStub);
     });
@@ -353,28 +321,10 @@ suite('system/NotificationScreen >', function() {
       notificationNode.dispatchEvent(event);
 
       sinon.assert.calledOnce(notifClickedStub);
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledTwice(contentEventStub);
       sinon.assert.calledTwice(contentNotificationEventStub);
 
       sinon.assert.calledWithMatch(notifClickedStub, {
         detail: {
-          id: details.id
-        }
-      });
-
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledWithMatch(contentEventStub, {
-        detail: {
-          type: 'desktop-notification-click',
-          id: details.id
-        }
-      });
-
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledWithMatch(contentEventStub, {
-        detail: {
-          type: 'desktop-notification-close',
           id: details.id
         }
       });
@@ -399,28 +349,10 @@ suite('system/NotificationScreen >', function() {
       fakeToaster.dispatchEvent(event);
 
       sinon.assert.calledOnce(notifClickedStub);
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledTwice(contentEventStub);
       sinon.assert.calledTwice(contentNotificationEventStub);
 
       sinon.assert.calledWithMatch(notifClickedStub, {
         detail: {
-          id: details.id
-        }
-      });
-
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledWithMatch(contentEventStub, {
-        detail: {
-          type: 'desktop-notification-click',
-          id: details.id
-        }
-      });
-
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledWithMatch(contentEventStub, {
-        detail: {
-          type: 'desktop-notification-close',
           id: details.id
         }
       });

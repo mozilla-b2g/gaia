@@ -55,8 +55,6 @@ var NotificationScreen = {
   vibrates: true,
 
   init: function ns_init() {
-    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-    window.addEventListener('mozChromeEvent', this);
     window.addEventListener('mozChromeNotificationEvent', this);
     this.container =
       document.getElementById('desktop-notifications-container');
@@ -111,8 +109,6 @@ var NotificationScreen = {
 
   handleEvent: function ns_handleEvent(evt) {
     switch (evt.type) {
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      case 'mozChromeEvent':
       case 'mozChromeNotificationEvent':
         var detail = evt.detail;
         switch (detail.type) {
@@ -228,14 +224,6 @@ var NotificationScreen = {
     var notificationId = node.dataset.notificationId;
     var notificationNode = this.container.querySelector(
       '[data-notification-id="' + notificationId + '"]');
-
-    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-    var contentEvent = document.createEvent('CustomEvent');
-    contentEvent.initCustomEvent('mozContentEvent', true, true, {
-      type: 'desktop-notification-click',
-      id: notificationId
-    });
-    window.dispatchEvent(contentEvent);
 
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentNotificationEvent', true, true, {
@@ -372,14 +360,6 @@ var NotificationScreen = {
           this.container.firstElementChild);
     }
 
-    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-    var contentEvent = document.createEvent('CustomEvent');
-    contentEvent.initCustomEvent('mozContentEvent', true, true, {
-      type: 'desktop-notification-show',
-      id: detail.id
-    });
-    window.dispatchEvent(contentEvent);
-
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentNotificationEvent', true, true, {
       type: 'desktop-notification-show',
@@ -479,14 +459,6 @@ var NotificationScreen = {
 
   closeNotification: function ns_closeNotification(notificationNode) {
     var notificationId = notificationNode.dataset.notificationId;
-    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-    var contentEvent = document.createEvent('CustomEvent');
-    contentEvent.initCustomEvent('mozContentEvent', true, true, {
-      type: 'desktop-notification-close',
-      id: notificationId
-    });
-    window.dispatchEvent(contentEvent);
-
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentNotificationEvent', true, true, {
       type: 'desktop-notification-close',

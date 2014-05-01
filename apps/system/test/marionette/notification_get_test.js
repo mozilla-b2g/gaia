@@ -232,13 +232,6 @@ marionette('Notification.get():', function() {
         marionetteScriptFinished('no node to query');
       }
       for (var i = nodes.length - 1; i >= 0; i--) {
-        // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-        var contentEvent = document.createEvent('CustomEvent');
-        contentEvent.initCustomEvent('mozContentEvent', true, true, {
-          type: 'desktop-notification-close',
-          id: nodes[i].dataset.notificationId
-        });
-        window.dispatchEvent(contentEvent);
         var event = document.createEvent('CustomEvent');
         event.initCustomEvent('mozContentNotificationEvent', true, true, {
           type: 'desktop-notification-close',
