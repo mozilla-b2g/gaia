@@ -248,7 +248,9 @@ var NDEFUtils = {
    * @returns {Boolean} True when cps valid. False otherwise.
    */
   validateCPS: function validateCPS(cps) {
-    return ([0, 1, 2, 3].indexOf(cps) >= 0);
+    var allowedValues = [NDEF.CPS_INACTIVE, NDEF.CPS_ACTIVE,
+                         NDEF.CPS_ACTIVATING, NDEF.CPS_UNKNOWN];
+    return (allowedValues.indexOf(cps) >= 0);
   },
 
   /**

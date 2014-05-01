@@ -2,7 +2,7 @@
 
 /* global MockMozNfc, contacts */
 
-requireApp('communications/contacts/test/unit/mock_mozNfc.js');
+require('/shared/test/unit/mocks/mock_moz_nfc.js');
 
 if (!window.contacts) {
   window.contacts = null;
