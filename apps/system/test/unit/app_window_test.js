@@ -134,6 +134,7 @@ suite('system/AppWindow', function() {
 
   test('App created with instanceID', function() {
     var app1 = new AppWindow(fakeAppConfig1);
+    console.log('app1.element', app1.element.outerHTML)
     var app2 = new AppWindow(fakeAppConfig2);
     assert.isTrue(app1.instanceID !== app2.instanceID);
   });
