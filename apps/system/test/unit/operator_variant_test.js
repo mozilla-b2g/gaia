@@ -119,6 +119,8 @@ suite('Operator variant', function() {
   });
 
   setup(function() {
+    // Ensure the default value for 'ril.iccInfo.mbdn'.
+    MockNavigatorSettings.mSet({ 'ril.iccInfo.mbdn': ['', ''] });
     mozIcc = {
       'cardState': 'ready',
       matchMvno: function mi_matchMvno(mvnoType, matchData) {
@@ -318,114 +320,35 @@ suite('Operator variant', function() {
 
     setup(function() {
       this.ovh = new OperatorVariantHandler(FAKE_ICC_ID, FAKE_ICC_CARD_INDEX);
+      this.ovh._iccCardIndex = 1;
     });
 
     teardown(function() {
       MockNavigatorSettings.mTeardown();
     });
 
-    suite('without value in "ril.iccInfo.mbdn"', function() {
-      setup(function() {
-        MockNavigatorSettings.mSet({ 'ril.iccInfo.mbdn': null });
+    test('system update is true', function() {
+      MockNavigatorSettings.mSet({
+        'ril.iccInfo.mbdn': ['', ORIGINAL_VOICEMAIL_NUMBER]
       });
-
-      test('system update is true', function() {
-        this.ovh.updateVoicemailSettings(
-          FAKE_VOICEMAIL_NUMBER, true);
-        this.clock.tick(1000);
-        assert.deepEqual(MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
-          [null, '']);
-      });
-
-      test('system update is false', function() {
-        this.ovh.updateVoicemailSettings(
-          FAKE_VOICEMAIL_NUMBER, false);
-        this.clock.tick(1000);
-        assert.deepEqual(MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
-          [FAKE_VOICEMAIL_NUMBER, '']);
-      });
+      this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, true);
+      this.clock.tick(1000);
+      assert.deepEqual(
+        MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
+        ['', ORIGINAL_VOICEMAIL_NUMBER]
+      );
     });
 
-    suite('with string type value in "ril.iccInfo.mbdn"', function() {
-      test('system update is true', function() {
-        MockNavigatorSettings.mSet({
-          'ril.iccInfo.mbdn': ORIGINAL_VOICEMAIL_NUMBER
-        });
-        this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, true);
-        this.clock.tick(1000);
-        assert.deepEqual(
-          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
-          [ORIGINAL_VOICEMAIL_NUMBER, '']
-        );
+    test('system update is false', function() {
+      MockNavigatorSettings.mSet({
+        'ril.iccInfo.mbdn': ['', ORIGINAL_VOICEMAIL_NUMBER]
       });
-
-      test('system update is false', function() {
-        MockNavigatorSettings.mSet({
-          'ril.iccInfo.mbdn': ORIGINAL_VOICEMAIL_NUMBER
-        });
-        this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, false);
-        this.clock.tick(1000);
-        assert.deepEqual(
-          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
-          [FAKE_VOICEMAIL_NUMBER, '']
-        );
-      });
-    });
-
-    suite('with array type value in "ril.iccInfo.mbdn"', function() {
-      test('system update is true', function() {
-        MockNavigatorSettings.mSet({
-          'ril.iccInfo.mbdn': [ORIGINAL_VOICEMAIL_NUMBER, '']
-        });
-        this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, true);
-        this.clock.tick(1000);
-        assert.deepEqual(
-          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
-          [ORIGINAL_VOICEMAIL_NUMBER, '']
-        );
-      });
-
-      test('system update is false', function() {
-        MockNavigatorSettings.mSet({
-          'ril.iccInfo.mbdn': [ORIGINAL_VOICEMAIL_NUMBER, '']
-        });
-        this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, false);
-        this.clock.tick(1000);
-        assert.deepEqual(
-          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
-          [FAKE_VOICEMAIL_NUMBER, '']
-        );
-      });
-    });
-
-    suite('should set to correct field based on icc card index', function() {
-      setup(function() {
-        this.ovh._iccCardIndex = 1;
-      });
-
-      test('system update is true', function() {
-        MockNavigatorSettings.mSet({
-          'ril.iccInfo.mbdn': ['', ORIGINAL_VOICEMAIL_NUMBER]
-        });
-        this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, true);
-        this.clock.tick(1000);
-        assert.deepEqual(
-          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
-          ['', ORIGINAL_VOICEMAIL_NUMBER]
-        );
-      });
-
-      test('system update is false', function() {
-        MockNavigatorSettings.mSet({
-          'ril.iccInfo.mbdn': ['', ORIGINAL_VOICEMAIL_NUMBER]
-        });
-        this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, false);
-        this.clock.tick(1000);
-        assert.deepEqual(
-          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
-          ['', FAKE_VOICEMAIL_NUMBER]
-        );
-      });
+      this.ovh.updateVoicemailSettings(FAKE_VOICEMAIL_NUMBER, false);
+      this.clock.tick(1000);
+      assert.deepEqual(
+        MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'],
+        ['', FAKE_VOICEMAIL_NUMBER]
+      );
     });
   });
 
