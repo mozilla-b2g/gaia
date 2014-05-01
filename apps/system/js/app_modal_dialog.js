@@ -446,15 +446,14 @@
       // titles which are important to the user for context in diagnosing
       // issues.
       //
-      // However, we will ignore all titles containing the application url or
-      // origin url. These types of titles simply indicate that the active
+      // However, we will ignore all titles containing a URL using the app
+      // protocol. These types of titles simply indicate that the active
       // application is prompting and are more confusing to the user than
       // useful. Instead we will return the application name if there is one
       // or an empty string.
       //
-      var appURL = new URL(this.app.config.url);
       if (!title ||
-          title.contains(appURL.origin)) {
+          title.contains('app://')) {
         return this.app.name || '';
       }
 
