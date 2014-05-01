@@ -43,6 +43,8 @@ suite('app', function() {
   };
 
   setup(function() {
+    var self = this;
+
     if (!navigator.mozCameras) {
       navigator.mozCameras = {
         getListOfCameras: function() { return []; },
@@ -63,12 +65,12 @@ suite('app', function() {
       sounds: {},
       storage: sinon.createStubInstance(this.Storage),
       settings: {
-        geolocation: sinon.createStubInstance(this.Setting)
+        geolocation: sinon.createStubInstance(this.Setting),
+        loadingScreen: sinon.createStubInstance(this.Setting)
       },
       views: {
         viewfinder: new this.View({ name: 'viewfinder' }),
         focusRing: new this.View({ name: 'focus-ring' }),
-        controls: new this.View({ name: 'controls' }),
         hud: new this.View({ name: 'hud' })
       },
       controllers: {
@@ -90,6 +92,10 @@ suite('app', function() {
       }
     };
 
+    this.loadingView = sinon.createStubInstance(this.View);
+    this.loadingView.appendTo.returns(this.loadingView);
+    options.LoadingView = function() { return self.loadingView; };
+
     // Sandbox to put all our stubs in
     this.sandbox = sinon.sandbox.create();
 
@@ -106,10 +112,14 @@ suite('app', function() {
     options.activity.check.callsArg(0);
     this.sandbox.spy(this.App.prototype, 'boot');
 
+    // Aliases
+    this.settings = options.settings;
+
     // Create the app
     this.app = new this.App(options);
 
     this.sandbox.spy(this.app, 'on');
+    this.sandbox.spy(this.app, 'once');
     this.sandbox.spy(this.app, 'set');
     this.sandbox.spy(this.app, 'emit');
     this.sandbox.spy(this.app, 'firer');
@@ -174,7 +184,6 @@ suite('app', function() {
 
       assert.ok(el.querySelector('.viewfinder'));
       assert.ok(el.querySelector('.focus-ring'));
-      assert.ok(el.querySelector('.controls'));
       assert.ok(el.querySelector('.hud'));
     });
 
@@ -201,7 +210,11 @@ suite('app', function() {
     test('Should watch location only once storage confirmed healthy', function() {
       var geolocationWatch = this.app.geolocationWatch;
       var storage = this.app.storage;
-      assert.ok(storage.once.calledWith('checked:healthy', geolocationWatch));
+      sinon.assert.calledWith(storage.once, 'checked:healthy', geolocationWatch);
+    });
+
+    test('Should clear loading screen once viewfinder is visible', function() {
+      sinon.assert.calledWith(this.app.once, 'viewfinder:visible');
     });
 
     suite('App#geolocationWatch()', function() {
@@ -282,6 +295,50 @@ suite('app', function() {
     test('Should always listen for \'localized\' events', function() {
       this.app.configureL10n();
       assert.ok(!this.app.win.addEventListener('localized'));
+    });
+  });
+
+  suite('App#showLoading()', function() {
+    setup(function() {
+      this.settings.loadingScreen.get.withArgs('delay').returns(400);
+      this.sandbox.spy(window, 'clearTimeout');
+    });
+
+    test('Should append a loading view to the app element and show', function() {
+      this.app.showLoading();
+      this.clock.tick(400);
+      sinon.assert.calledWith(this.app.views.loading.appendTo, this.app.el);
+      sinon.assert.called(this.app.views.loading.show);
+    });
+
+    test('Should clear any existing timeouts', function() {
+      this.sandbox.stub(window, 'setTimeout').returns('<timeout-id>');
+      this.app.showLoading();
+      this.app.showLoading();
+      sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
+    });
+  });
+
+  suite('App#clearLoading()', function() {
+    setup(function() {
+      this.sandbox.spy(window, 'clearTimeout');
+      this.sandbox.stub(window, 'setTimeout').returns('<timeout-id>');
+      this.app.views.loading = sinon.createStubInstance(this.View);
+      this.app.views.loading.hide.callsArg(0);
+    });
+
+    test('Should clear loadingTimeout', function() {
+      this.app.showLoading();
+      this.app.clearLoading();
+      sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
+    });
+
+    test('Should hide, then destroy the view', function() {
+      var view = this.app.views.loading;
+      this.app.clearLoading();
+
+      sinon.assert.called(view.hide);
+      assert.ok(view.destroy.calledAfter(view.hide));
     });
   });
 });

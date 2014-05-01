@@ -3,23 +3,35 @@
  * Controls
  *
  * The main camera control bar.
+ *
+ * 1. Must be stacked above viewfinder view
  */
 
 .controls {
   display: flex;
   position: absolute;
   bottom: 0; left: 0;
+  z-index: 1; /* 1 */
   width: 100%;
   padding-bottom: 1rem;
   overflow: hidden;
+  transition: opacity 100ms;
 }
 
 /**
- * enabled=false
+ * disabled
  */
 
-.controls[enabled=false] {
+.controls.disabled {
   pointer-events: none;
+}
+
+/**
+ * faded
+ */
+
+.controls.faded {
+  opacity: 0.7;
 }
 
 /** Left and Right
@@ -46,7 +58,7 @@
  * recording=true
  */
 
-.controls[recording=true] .controls-left {
+.controls.recording .controls-left {
   opacity: 0;
   pointer-events: none;
 }
@@ -94,7 +106,7 @@
   display: none;
 }
 
-.controls[thumbnail=true] .controls-thumbnail-button {
+.controls.thumbnail .controls-thumbnail-button {
   display: block;
 }
 
@@ -133,7 +145,7 @@
  * @cancel
  */
 
-.controls[cancel=true] .controls-cancel-pick-button {
+.controls.cancel .controls-cancel-pick-button {
   display: block;
 }
 
@@ -162,11 +174,11 @@
  * switchable=true
  */
 
-.controls[switchable=true] .mode-switch {
+.controls.switchable .mode-switch {
   visibility: visible;
 }
 
-.controls[recording=true] .mode-switch {
+.controls.recording .mode-switch {
   visibility: hidden;
 }
 
@@ -190,11 +202,11 @@
  * mode=video
  */
 
-.controls[mode=video] .mode-switch .mode-icon {
+.controls.mode-video .mode-switch .mode-icon {
   left: 1.1rem;
 }
 
-.controls[mode=video] .mode-switch .mode-icon:before {
+.controls.mode-video .mode-switch .mode-icon:before {
   content: "\e60f";
 }
 
@@ -222,7 +234,7 @@
  * mode=video
  */
 
-.controls[mode=video] .mode-switch .selected-mode {
+.controls.mode-video .mode-switch .selected-mode {
   transform: translateX(4rem);
 }
 
@@ -242,7 +254,7 @@
  * mode=video
  */
 
-.controls[mode=video] .mode-switch .selected-mode-icon:before {
+.controls.mode-video .mode-switch .selected-mode-icon:before {
   content: "\e602";
   color: #D92E2E;
 }
@@ -276,7 +288,7 @@
   opacity: 0.35;
 }
 
-.controls[mode=video] .outer-circle {
+.controls.mode-video .outer-circle {
   background: #D92E2E;
 }
 
@@ -304,8 +316,8 @@
  */
 
 .capture-button:active .inner-circle,
-[recording=true] .capture-button .inner-circle,
-[capture-active=true] .capture-button .inner-circle {
+.recording .capture-button .inner-circle,
+.capture-active .capture-button .inner-circle {
   background-color: #00caf2;
   color: white;
   transform: scale(1.0);
@@ -315,7 +327,7 @@
  * mode=video
  */
 
-.controls[mode=video] .inner-circle {
+.controls.mode-video .inner-circle {
   position: relative;
 }
 
@@ -325,9 +337,9 @@
  * mode=vide & recording=true
  */
 
-.controls[mode=video] .capture-button:active .inner-circle,
-.controls[mode=video][capture-active=true] .capture-button .inner-circle,
-.controls[mode=video][recording=true] .capture-button .inner-circle {
+.controls.mode-video .capture-button:active .inner-circle,
+.controls.mode-video.capture-active .capture-button .inner-circle,
+.controls.mode-video.recording .capture-button .inner-circle {
   background-color: #D92E2E;
 }
 
@@ -348,13 +360,13 @@
 
 /**
  * :active,
- * recording=true,
- * capture-active=true & mode=picture
+ * recording,
+ * capture-active && mode-picture
  */
 
 .capture-button:active .center:before,
-[recording=true] .capture-button .center:before,
-[capture-active=true] .capture-button .center:before {
+.recording .capture-button .center:before,
+.capture-active .capture-button .center:before {
   color: white;
 }
 
@@ -362,7 +374,7 @@
  * mode=video
  */
 
-.controls[mode=video] .capture-button .center:before {
+.controls.mode-video .capture-button .center:before {
   content: '';
   top: calc(50% - 1rem);
   left: calc(50% - 1rem);
@@ -374,14 +386,14 @@
 }
 
 /**
- * mode=video & :active,
- * mode=video & recording=true,
- * mode=vide & capture-active=true
+ * mode-video & :active,
+ * mode-video & recording,
+ * mode-video & capture-active
  */
 
-.controls[mode=video] .capture-button:active .center:before,
-.controls[mode=video][recording=true] .capture-button .center:before,
-.controls[mode=video][capture-active=true] .capture-button .center:before {
+.controls.mode-video .capture-button:active .center:before,
+.controls.mode-video.recording .capture-button .center:before,
+.controls.mode-video.capture-active .capture-button .center:before {
   border-radius: 3px;
   background-color: white;
 }

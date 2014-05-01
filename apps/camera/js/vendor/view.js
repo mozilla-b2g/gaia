@@ -37,7 +37,7 @@ define(function(require, exports, module) {
     this.els = {};
 
     if (!this.el.className) {
-      if (this.name) this.el.className += ' ' + this.name;
+      if (this.name) this.el.className = this.name;
       if (this.className) this.el.className += ' ' + this.className;
     }
 

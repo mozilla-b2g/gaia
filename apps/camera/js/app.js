@@ -6,9 +6,9 @@ define(function(require, exports, module) {
  */
 
 var NotificationView = require('views/notification');
+var LoadingView = require('views/loading-screen');
 var ViewfinderView = require('views/viewfinder');
 var orientation = require('lib/orientation');
-var ControlsView = require('views/controls');
 var FocusRing = require('views/focus-ring');
 var ZoomBarView = require('views/zoom-bar');
 var bindAll = require('lib/bind-all');
@@ -48,6 +48,7 @@ function App(options) {
   this.el = options.el;
   this.win = options.win;
   this.doc = options.doc;
+  this.LoadingView = options.LoadingView || LoadingView; // test hook
   this.inSecureMode = (this.win.location.hash === '#secure');
   this.controllers = options.controllers;
   this.geolocation = options.geolocation;
@@ -72,6 +73,7 @@ App.prototype.boot = function() {
   this.injectViews();
   this.bindEvents();
   this.configureL10n();
+  this.showLoading();
   this.emit('boot');
   this.didBoot = true;
   debug('booted');
@@ -116,7 +118,6 @@ App.prototype.initializeViews = function() {
   debug('initializing views');
   this.views.viewfinder = new ViewfinderView();
   this.views.focusRing = new FocusRing();
-  this.views.controls = new ControlsView();
   this.views.hud = new HudView();
   this.views.zoomBar = new ZoomBarView();
   this.views.notification = new NotificationView();
@@ -132,7 +133,6 @@ App.prototype.injectViews = function() {
   debug('injecting views');
   this.views.viewfinder.appendTo(this.el);
   this.views.focusRing.appendTo(this.el);
-  this.views.controls.appendTo(this.el);
   this.views.hud.appendTo(this.el);
   this.views.zoomBar.appendTo(this.el);
   this.views.notification.appendTo(this.el);
@@ -145,6 +145,7 @@ App.prototype.injectViews = function() {
  * @private
  */
 App.prototype.bindEvents = function() {
+  this.once('viewfinder:visible', this.clearLoading);
   this.storage.once('checked:healthy', this.geolocationWatch);
   bind(this.doc, 'visibilitychange', this.onVisibilityChange);
   bind(this.win, 'beforeunload', this.onBeforeUnload);
@@ -251,6 +252,38 @@ App.prototype.configureL10n = function() {
   var complete = navigator.mozL10n.readyState === 'complete';
   bind(this.win, 'localized', this.firer('localized'));
   if (complete) { this.emit('localized'); }
+};
+
+/**
+ * Shows the loading screen after the
+ * number of ms defined in config.js
+ *
+ * @private
+ */
+App.prototype.showLoading = function() {
+  debug('show loading');
+  var ms = this.settings.loadingScreen.get('delay');
+  var self = this;
+  clearTimeout(this.loadingTimeout);
+  this.loadingTimeout = setTimeout(function() {
+    self.views.loading = new self.LoadingView();
+    self.views.loading.appendTo(self.el).show();
+    debug('loading shown');
+  }, ms);
+};
+
+/**
+ * Clears the loadings screen, or
+ * any pending loading screen.
+ *
+ * @private
+ */
+App.prototype.clearLoading = function() {
+  debug('clear loading');
+  var view = this.views.loading;
+  clearTimeout(this.loadingTimeout);
+  if (!view) { return; }
+  view.hide(view.destroy);
 };
 
 });
