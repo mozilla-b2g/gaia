@@ -289,7 +289,11 @@
         }
         if (toNapIdNodes) {
           for (var o = 0; o < toNapIdNodes.length; o++) {
-            napDefNode = this.getNapDefNode(proxy['TO-NAPID'][o]);
+            var toNapId = toNapIdNodes[o].getAttribute('value');
+            if (!toNapId) {
+              continue;
+            }
+            napDefNode = this.getNapDefNode(toNapId);
             apn = parseNapDefNode(napDefNode);
             // Add type property.
             apn.type = type;
