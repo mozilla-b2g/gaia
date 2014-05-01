@@ -68,32 +68,40 @@ function _registerListener(document) {
     debug('end registering');
   }
 
-  window.__defineGetter__('mozPerfGetMeasurements', function() {
-    return function() {
-      dump('OMFG getMeasurements');
+  Object.defineProperty(window, 'mozPerfGetMeasurements', {
+    writable: false,
+    enumerable : true,
+    value: function() {
       return perfMeasurements;
-    };
+    }
   });
 
-  window.__defineGetter__('mozPerfRegisterListener', function() {
-    return init;
+  Object.defineProperty(window, 'mozPerfRegisterListener', {
+    writable: false,
+    enumerable : true,
+    value: function() {
+      return init;
+    }
   });
 
-  window.__defineGetter__('mozPerfUnregisterListener', function() {
-    return function() {
-      dump('OMFG unregister');
+  Object.defineProperty(window, 'mozPerfUnregisterListener', {
+    writable: false,
+    enumerable : true,
+    value: function() {
       // note: we're not reseting mozPerfHasListener to false here because at
       // this point we basically don't mind if the app keeps sending perf
       // events.
       window.removeEventListener(PERF_EVENT_NAME, handlePerfEvent);
       hasRegistered = false;
-    };
+    }
   });
 
-  window.__defineGetter__('mozPerfWaitForEvent', function() {
-    return function(name, cb) {
+  Object.defineProperty(window, 'mozPerfWaitForEvent', {
+    writable: false,
+    enumerable : true,
+    value: function(name, cb) {
       checkFinish(name, cb);
-    };
+    }
   });
 
   init();
