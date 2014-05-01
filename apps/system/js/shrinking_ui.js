@@ -25,9 +25,12 @@
  * interrupted, and the 'shrinking-stop' is necessary in such situation.
  *
  */
+
+/* globals dump */
 (function(exports) {
 
   var ShrinkingUI = {
+    DEBUG: false,
     THRESHOLD: 50,
     SUSPEND_INTERVAL: 100,
     apps: {},
@@ -46,7 +49,9 @@
       touch: {
         initY: -1,
         prevY: -1
-      }
+      },
+      slideTransitionCb: null, // Last slide transition
+      tiltTransitionCb: null // Last tilt transition
     },
     configs: {
       degreeLandscape: '1.2deg',
@@ -55,6 +60,17 @@
       overDegreePortrait: '0.7deg'
     }
   };
+
+  ShrinkingUI.debug =
+    (function su_debug(msg, optObject) {
+      if (this.DEBUG) {
+        var output = '[DEBUG] ShrinkingUI: ' + msg;
+        if (optObject) {
+          output += JSON.stringify(optObject);
+        }
+        dump(output);
+      }
+  }).bind(ShrinkingUI);
 
   /**
    * Bind events and do some necessary initialization.
@@ -210,7 +226,6 @@
    */
   ShrinkingUI.start =
     (function su_start() {
-
       // Already shrunk.
       if (this._state()) {
         return;
@@ -249,7 +264,7 @@
    */
   ShrinkingUI.stop =
     (function su_stop() {
-      if (! this._state()) {
+      if (!this._state()) {
         return;
       }
       var afterTiltBack = (function() {
@@ -306,6 +321,35 @@
       // setting/getting the attribute directly in shrinking UI.
       this.current.appFrame.setAttribute('data-shrinking-state',
         state.toString());
+      this.debug('Setting shrink state to: ' + state);
+    }).bind(ShrinkingUI);
+
+  /**
+   * Update the current 'transitionend' callback for the slide animation.
+   * @param {cb} transitioned callback
+   * @this {ShrinkingUI}
+   */
+  ShrinkingUI._updateSlideTransition =
+    (function su_updateSlideTransition(cb) {
+      if (this.current.tip && this.state.slideTransitionCb) {
+        this.current.tip.removeEventListener('transitionend',
+                                             this.state.slideTransitionCb);
+      }
+      this.state.slideTransitionCb = cb;
+    }).bind(ShrinkingUI);
+
+  /**
+   * Update the current 'transitionend' callback for the tilt animation.
+   * @param {cb} transitioned callback
+   * @this {ShrinkingUI}
+   */
+  ShrinkingUI._updateTiltTransition =
+    (function su_updateTiltTransition(cb) {
+      if (this.current.appFrame && this.state.tiltTransitionCb) {
+        this.current.appFrame.removeEventListener('transitionend',
+                                                  this.state.tiltTransitionCb);
+      }
+      this.state.tiltTransitionCb = cb;
     }).bind(ShrinkingUI);
 
   /**
@@ -315,7 +359,6 @@
    */
   ShrinkingUI._receivingEffects =
     (function su_receivingEffects() {
-
       // Hide it before we move it.
       // Visibility won't work.
       this.current.appFrame.style.opacity = '0';
@@ -371,6 +414,7 @@
         }
       }).bind(this);
       this.current.appFrame.addEventListener('transitionend', cbDone);
+      this._updateTiltTransition(cbDone);
       this.current.appFrame.style.transform =
         'rotateX(' + this._getTiltingDegree() + ') ' +
         'translateY(-' + y + 'px)';
@@ -477,6 +521,7 @@
       var bounceBack = (function on_bounceBack(evt) {
         this.current.appFrame.removeEventListener('transitionend', bounceBack);
         this.current.appFrame.addEventListener('transitionend', bounceBackEnd);
+        this._updateTiltTransition(bounceBackEnd);
         this.current.appFrame.style.transition = 'transform 0.3s ease';
         this.current.appFrame.style.transform =
           'rotateX(' + this._getTiltingDegree() + ') ';
@@ -492,6 +537,7 @@
       }).bind(this);
 
       this.current.appFrame.addEventListener('transitionend', bounceBack);
+      this._updateTiltTransition(bounceBack);
 
       // After set up, trigger the transition.
       this.current.appFrame.style.transformOrigin = '50% 100% 0';
@@ -522,6 +568,7 @@
         }).bind(this);
         this.current.appFrame.style.transition = 'transform 0.3s ease';
         this.current.appFrame.addEventListener('transitionend', tsEnd);
+        this._updateTiltTransition(tsEnd);
         this.current.appFrame.style.transform = 'rotateX(0.0deg)';
       } else {
         this.current.appFrame.style.transition = '';
@@ -540,6 +587,7 @@
    */
   ShrinkingUI._handleSendingStart =
     (function su_handleSendingStart(evt) {
+      this.debug('_handleSendingStart(): ', this._state());
       // Stop the touch event to affect the inner elements.
       evt.stopImmediatePropagation();
 
@@ -549,6 +597,7 @@
       }).bind(this);
       this.current.tip.classList.add('hide');
       this.current.tip.addEventListener('transitionend', tsEnd);
+      this._updateSlideTransition(tsEnd);
 
       return false;
     }).bind(ShrinkingUI);
@@ -561,7 +610,6 @@
    */
   ShrinkingUI._handleSendingSlide =
     (function su_handleSendingSlide(evt) {
-
       var pgy = evt.touches[0].pageY;
       var slideY = this.current.appFrame.parentElement.clientHeight - pgy;
       if ('undefined' === typeof this.state.touch.initY) {
@@ -601,6 +649,7 @@
    */
   ShrinkingUI._handleSendingOut =
     (function su_handleSendingOut(evt) {
+      this.debug('_handleSendingOut(): ', this._state());
       // Clear the last sliding timeout callback to force
       // it slide to TOP or BOTTOM.
       clearTimeout(this.state.delaySlidingID);
@@ -631,14 +680,16 @@
    */
   ShrinkingUI._cleanEffects =
     (function su_cleanEffects() {
+      this.debug('_cleanEffects(): ', this._state());
       this.current.appFrame.style.transition = '';
       this.current.appFrame.style.transform = '';
       this.current.appFrame.style.transformOrigin = '50% 50% 0';
       this._setState(false);
 
-      // After trasitionend, clean this handler.
-      this.current.appFrame.removeEventListener('transitionend',
-        this._cleanEffects);
+      // Clear the 'transitionend' animation listener callbacks
+      this._updateTiltTransition(null);
+      this._updateSlideTransition(null);
+
       this.current.wrapper.classList.remove('shrinking-wrapper');
       this._disableSlidingCover().remove();
 
