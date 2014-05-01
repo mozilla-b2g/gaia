@@ -44,6 +44,7 @@ body.rb-enabled #screen.on-homescreen:not(.cards-view):not(.rocketbar-focused) #
 #screen.locked:not(.attention) #statusbar,
 #screen.locked:not(.attention) #statusbar-background {
   background-color: transparent;
+  display: block;
 }
 
 #screen:not(.locked) #statusbar.invisible.dragged {
