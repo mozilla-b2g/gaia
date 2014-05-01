@@ -457,6 +457,8 @@ suite('jspinyin', function() {
     jspinyin.click(KeyEvent.DOM_VK_RETURN);
   });
 
+  /*
+  // Disabled for bug 985237
   test('deactivate', function(done) {
     this.sinon.spy(jspinyin, 'empty');
 
@@ -474,6 +476,7 @@ suite('jspinyin', function() {
       }
     });
   });
+*/
 
   test('uninit', function() {
     this.sinon.spy(jspinyin, 'empty');
