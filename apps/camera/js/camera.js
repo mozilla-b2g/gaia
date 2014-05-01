@@ -1175,13 +1175,17 @@ var Camera = {
   },
 
   startPreview: function camera_startPreview() {
+    this.showSpinner();
     this.requestScreenWakeLock();
+    this.viewfinder.hidden = true;
     this.viewfinder.play();
     this.loadCameraPreview(this._cameraNumber, this.previewEnabled.bind(this));
     this._previewActive = true;
   },
 
   previewEnabled: function() {
+    this.viewfinder.hidden = false;
+    this.hideSpinner();
     this.enableButtons();
     if (!this._pendingPick) {
       setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
@@ -1313,11 +1317,9 @@ var Camera = {
 
     var self = this;
 
-    var spinner = document.getElementById('spinner');
-    spinner.classList.remove('hidden');
-
+    this.showSpinner();
     cropResizeRotate(blob, null, outputSize, null, function(error, newBlob) {
-      spinner.classList.add('hidden');
+      self.hideSpinner();
       if (error) {
         // If we couldn't resize or rotate it, use the original
         console.error('Error while resizing or rotate photo: ' + error);
@@ -1758,6 +1760,14 @@ var Camera = {
         callback();
       }
     }.bind(this));
+  },
+
+  showSpinner: function showSpinner() {
+    document.getElementById('spinner').classList.remove('hidden');
+  },
+
+  hideSpinner: function hideSpinner() {
+    document.getElementById('spinner').classList.add('hidden');
   }
 };
 

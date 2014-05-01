@@ -105,7 +105,12 @@ var Filmstrip = (function() {
     // If we're showing previews be sure we're showing the filmstrip
     // with no timeout and be sure that the viewfinder video is paused.
     show();
-    Camera.viewfinder.pause();
+    // If there is not already a preview on screen, bring it onscreen
+    // and stop the camera
+    if (preview.classList.contains('offscreen')) {
+      preview.classList.remove('offscreen');
+      Camera.stopPreview();
+    }
   };
 
   function previewItem(index) {
@@ -125,8 +130,6 @@ var Filmstrip = (function() {
                          item.rotation);
     }
 
-    preview.classList.remove('offscreen');
-    Camera.releaseScreenWakeLock();
     currentItemIndex = index;
 
     // Highlight the border of the thumbnail we're previewing
@@ -144,11 +147,16 @@ var Filmstrip = (function() {
   }
 
   function hidePreview() {
-    Camera.viewfinder.play();        // Restart the viewfinder
-    show(Camera.FILMSTRIP_DURATION); // Fade the filmstrip after a delay
+    // Hide the preview
     preview.classList.add('offscreen');
-    Camera.requestScreenWakeLock();
     frame.clear();
+
+    // Restart the camera
+    Camera.startPreview();
+
+    // Make the filmstrip visible for a few seconds
+    show(Camera.FILMSTRIP_DURATION);
+
     if (items.length > 0)
       items[currentItemIndex].element.classList.remove('previewed');
     currentItemIndex = null;
