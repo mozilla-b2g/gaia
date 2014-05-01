@@ -12,6 +12,7 @@
     "apps/email/test/marionette/notification_set_interval_test.js",
     "apps/email/test/marionette/reply_imap_email_test.js",
     "apps/email/test/marionette/send_imap_email_test.js",
+    "apps/search/test/marionette/places_search_test.js",
     "apps/settings/test/marionette/tests/app_permission_settings_test.js"
   ]
 }
