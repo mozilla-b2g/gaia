@@ -27,11 +27,8 @@
  */
 
 .setting:active {
-  background: #008eab;
-}
-
-.setting:active .setting_title {
-  color: rgba(255,255,255, 1);
+  background: rgba(0,142,171,0.3);
+  border-color: transparent;
 }
 
 /** Icon
@@ -51,6 +48,10 @@
   font-size: 1.9rem;
   margin-bottom: 0.6rem;
   color: rgba(255,255,255,0.5);
+}
+
+.setting:active .setting_title {
+  color: #fff;
 }
 
 /** Value
