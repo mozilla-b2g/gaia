@@ -2,6 +2,7 @@
 
 var MockBluetooth = {
   defaultAdapter: null,
+  enabled: true,
   init: function mbt_init() {
     var MockGetPairedDevices = {
       getPairedDevices: function mbt_getPairedDevices() {
@@ -22,6 +23,10 @@ var MockBluetooth = {
   },
 
   getAdapter: function mbt_getAdapter() {
+    return this.defaultAdapter;
+  },
+
+  getDefaultAdapter: function mbt_getDefaultAdapter() {
     return this.defaultAdapter;
   }
 };
