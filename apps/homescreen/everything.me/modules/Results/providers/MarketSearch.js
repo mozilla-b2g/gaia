@@ -46,7 +46,18 @@
 
     // @override
     this.launch = function launchMarketSearch() {
-      EvmeManager.openMarketplaceSearch({'query' : query});
+      // Tarako: open marketplace category instead of search
+      var
+      category = 'tarako-' + query,
+      activity = new MozActivity({
+        name: 'marketplace-category',
+        data: {slug: category}
+      });
+
+      activity.onerror = function() {
+        window.open(
+          'https://marketplace.firefox.com/category/' + category, 'e.me');
+      };
     };
   };
   Evme.MarketSearchResult.prototype = Object.create(Evme.Result.prototype);

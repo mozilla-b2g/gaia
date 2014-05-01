@@ -185,5 +185,7 @@ Evme.Config = Evme.__config = {
       '211': 'video',
       '249': 'weather',
       '357': 'utilities'
-    }
+    },
+
+    'tarakoCategories': ['games', 'tools', 'lifestyle']
   };
