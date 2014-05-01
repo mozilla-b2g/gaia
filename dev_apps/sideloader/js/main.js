@@ -27,22 +27,23 @@ function displayInstalledApps() {
 }
 
 function exportAppToSDCard(app) {
-  // TODO: uncomment once import/export patch lands
-  //var blob = navigator.mozApps.mgmt.export(app);
-  var blob = new Blob(['dummy text'], {type: 'x-application/webapp-package'});
+  navigator.mozApps.mgmt.export(app).then(function(blob) {
+    var filename = app.origin.split('/')[2].split(':')[0] + '.wpk';
+    console.log('writing', filename, blob)
+    var sdcard = navigator.getDeviceStorage('sdcard');
+    var request = sdcard.addNamed(blob, 'backup/apps/' + filename);
 
-  var filename = app.origin.split('/')[2].split(':')[0] + '.wpk';
-  console.log('writing', filename)
-  var sdcard = navigator.getDeviceStorage('sdcard');
-  var request = sdcard.addNamed(blob, 'backup/apps/' + filename);
+    request.onsuccess = function () {
+      // Yay.
+      console.log('Wrote ', filename, 'to SD card');
+    };
 
-  request.onsuccess = function () {
-    // Yay.
-  }
-
-  request.onerror = function () {
-    console.warn('Unable to write the file: ' + this.error);
-  }
+    request.onerror = function () {
+      console.warn('Unable to write the file: ' + this.error.name);
+    };
+  }, function(reason) {
+    console.log('Broken promise exporting ', app.manifest.name, ':', reason);
+  });
 }
 
 function fileIsApp(file) {
@@ -70,6 +71,7 @@ function getSDCardApps(cb) {
   }
 
   cursor.onerror = function () {
+    // And that's fine.
     console.warn("No backup/apps found on SD card: " + this.error);
   };
 }
@@ -81,8 +83,15 @@ function displaySDCardApps() {
     files.forEach(function(file) {
       var entryNode = createFileEntryNode(file);
       entryNode.querySelector('a').onclick = function() {
-        alert("Import dat app.");
-        //navigator.mozApps.mgmt.import(file.getFile());
+        navigator.mozApps.mgmt.import(file).then(function(nada) {
+          // Yay.
+          console.log('Imported ', filename, 'from SD card');
+        }, function(reason) {
+          // TODO: enumerate reasons -> user feedback
+          // * already installed
+          // * what else?
+          console.log('Broken promise importing app', file.name, reason);
+        });
       }
       fragment.appendChild(entryNode);
     });

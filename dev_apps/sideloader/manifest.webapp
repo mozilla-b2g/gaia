@@ -17,6 +17,9 @@
     },
     "device-storage:apps": {
       "access": "readwrite"
+    },
+    "device-storage:sdcard": {
+      "access": "readwrite"
     }
   }
 }
