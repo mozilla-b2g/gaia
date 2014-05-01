@@ -49,6 +49,9 @@ suite('Screen: COPPA', function() {
     mocksHelperForCoppaModule.suiteSetup();
     // Load real HTML
     loadBodyHTML('/fxa/fxa_module.html');
+    // wrap the body in an 'fxa-dialog' node for ftu testing
+    document.body.innerHTML =
+      '<div id="fxa-dialog">' + document.body.innerHTML + '</div>';
     // Load element to test
     LoadElementHelper.load('fxa-coppa.html');
     // Import the element and execute the right init
