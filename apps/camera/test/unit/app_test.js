@@ -360,21 +360,25 @@ suite('app', function() {
     });
 
     test('Should clear any existing timeouts', function() {
+      this.sandbox.stub(window, 'setTimeout').returns('<timeout-id>');
       this.app.showLoading();
-      sinon.assert.called(window.clearTimeout);
+      this.app.showLoading();
+      sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
     });
   });
 
   suite('App#clearLoading()', function() {
     setup(function() {
       this.sandbox.spy(window, 'clearTimeout');
+      this.sandbox.stub(window, 'setTimeout').returns('<timeout-id>');
       this.app.views.loading = sinon.createStubInstance(this.View);
       this.app.views.loading.hide.callsArg(0);
     });
 
     test('Should clear loadingTimeout', function() {
+      this.app.showLoading();
       this.app.clearLoading();
-      sinon.assert.called(window.clearTimeout);
+      sinon.assert.calledWith(window.clearTimeout, '<timeout-id>');
     });
 
     test('Should hide, then destroy the view', function() {
