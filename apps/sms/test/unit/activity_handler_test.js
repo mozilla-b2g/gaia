@@ -197,7 +197,7 @@ suite('ActivityHandler', function() {
 
     test('Should append images even when they are big', function() {
       shareActivity.source.data.blobs = [
-        new Blob(['test'], { type: 'image/jpeg' }),
+        new Blob(['test'], { type: 'image/jpeg' })
       ];
 
       Settings.mmsSizeLimitation = 1;
@@ -243,7 +243,7 @@ suite('ActivityHandler', function() {
       var sendSpy;
       setup(function() {
         sendSpy = this.sinon.spy(window, 'Notification');
-        this.sinon.stub(Contacts, 'findByPhoneNumber')
+        this.sinon.stub(Contacts, 'findByAddress')
           .yields([{name: [contactName]}]);
 
         MockNavigatormozApps.mTriggerLastRequestSuccess();
@@ -263,7 +263,7 @@ suite('ActivityHandler', function() {
       setup(function() {
         sendSpy = this.sinon.spy(window, 'Notification');
         message.sender = phoneNumber;
-        this.sinon.stub(Contacts, 'findByPhoneNumber')
+        this.sinon.stub(Contacts, 'findByAddress')
           .yields([{
             name: [''],
             tel: {'value': phoneNumber}
@@ -316,7 +316,7 @@ suite('ActivityHandler', function() {
       var closeSpy;
       var isDocumentHidden;
 
-      suiteSetup(function(){
+      suiteSetup(function() {
         Object.defineProperty(document, 'hidden', {
           configurable: true,
           get: function() {
@@ -325,7 +325,7 @@ suite('ActivityHandler', function() {
         });
       });
 
-      suiteTeardown(function(){
+      suiteTeardown(function() {
         delete document.hidden;
       });
 
@@ -401,7 +401,7 @@ suite('ActivityHandler', function() {
     suite('contact retrieved (after getSelf)', function() {
       var contactName = 'contact';
       setup(function() {
-        this.sinon.stub(Contacts, 'findByPhoneNumber')
+        this.sinon.stub(Contacts, 'findByAddress')
           .yields([{name: [contactName]}]);
 
         MockNavigatormozApps.mTriggerLastRequestSuccess();
@@ -419,7 +419,7 @@ suite('ActivityHandler', function() {
 
       setup(function() {
         message.sender = phoneNumber;
-        this.sinon.stub(Contacts, 'findByPhoneNumber')
+        this.sinon.stub(Contacts, 'findByAddress')
           .yields([{
             name: [''],
             tel: {value: phoneNumber}
@@ -544,7 +544,7 @@ suite('ActivityHandler', function() {
 
     setup(function() {
       // find no contact in here
-      this.sinon.stub(Contacts, 'findByPhoneNumber').callsArgWith(1, []);
+      this.sinon.stub(Contacts, 'findByAddress').callsArgWith(1, []);
     });
 
     teardown(function() {

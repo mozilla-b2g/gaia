@@ -154,7 +154,7 @@ var MessageManager = {
       // Recipients will exist for draft messages in threads
       // Otherwise find them from draft recipient numbers
       draft.recipients.forEach(function(number) {
-        Contacts.findByPhoneNumber(number, function(records) {
+        Contacts.findByAddress(number, function(records) {
           if (records.length) {
             ThreadUI.recipients.add(
               Utils.basicContact(number, records[0])
@@ -214,10 +214,10 @@ var MessageManager = {
      *  - if we have a contact object and no phone number, just use a dummy
      *    source that returns the contact.
      */
-    var findByPhoneNumber = Contacts.findByPhoneNumber.bind(Contacts);
+    var findByAddress = Contacts.findByAddress.bind(Contacts);
     var number = activity.number;
     if (activity.contact && !number) {
-      findByPhoneNumber = function dummySource(contact, cb) {
+      findByAddress = function dummySource(contact, cb) {
         cb(activity.contact);
       };
       number = activity.contact.number || activity.contact.tel[0].value;
@@ -226,7 +226,7 @@ var MessageManager = {
     // Add recipients and fill+focus the Compose area.
     if (activity.contact && number) {
       Utils.getContactDisplayInfo(
-        findByPhoneNumber, number, function onData(data) {
+        findByAddress, number, function onData(data) {
           data.source = 'contacts';
           ThreadUI.recipients.add(data);
           Compose.fromMessage(activity);
@@ -388,7 +388,7 @@ var MessageManager = {
     // is resolved
     try {
       cursor = this._mozMobileMessage.getThreads();
-    } catch(e) {
+    } catch (e) {
       console.error('Error occurred while retrieving threads: ' + e.name);
       end && end();
       done && done();

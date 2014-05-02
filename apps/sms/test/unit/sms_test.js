@@ -181,7 +181,7 @@ suite('SMS App Unit-Test', function() {
       }
     });
 
-    this.sinon.stub(Contacts, 'findByPhoneNumber', function(tel, callback) {
+    this.sinon.stub(Contacts, 'findByAddress', function(tel, callback) {
       // Get the contact
       if (tel === '1977') {
         callback(MockContact.list());
@@ -281,7 +281,8 @@ suite('SMS App Unit-Test', function() {
         var threadWithContact = document.getElementById('thread-1');
         var contactName = threadWithContact.getElementsByClassName('name')[0];
         assert.deepEqual(navigator.mozL10n.localize.args[0],
-          [contactName, 'thread-header-text', {name: 'Pepito O\'Hare', n: 0}]);
+          [contactName, 'thread-header-text',
+           {name: 'Pepito O\'Hare | 1977', n: 0}]);
       });
     });
 

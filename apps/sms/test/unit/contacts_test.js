@@ -5,6 +5,7 @@ mocha.globals(['SimplePhoneMatcher', 'fb']);
 
 require('/shared/test/unit/mocks/mock_moz_phone_number_service.js');
 require('/shared/test/unit/mocks/mock_fb_reader_utils.js');
+requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/js/contacts.js');
 
@@ -15,8 +16,10 @@ suite('Contacts', function(done) {
   var targetFbNumber = '+34658789147';
   var fbContactName = 'Carlos Facebook';
   var targetLocalNumber = '+34698745123';
+  var targetLocalEmail = 'a@b.com';
   var localContactName = 'Jose Local';
   var notFoundNumber = '+34633789102';
+  var notFoundEmail = 'a@c.com';
 
   suiteSetup(function() {
     // Do not use the native API.
@@ -64,20 +67,23 @@ suite('Contacts', function(done) {
                     return null;
                   }
 
-                  if (filter.filterValue === targetLocalNumber) {
+                  if (filter.filterValue === targetLocalNumber ||
+                      filter.filterValue === targetLocalEmail) {
                     return [{
                       name: [localContactName]
                     }];
                   }
 
                   if (filter.filterValue === targetFbNumber ||
-                      filter.filterValue === notFoundNumber) {
+                      filter.filterValue === notFoundNumber ||
+                      filter.filterValue === notFoundEmail) {
                     return [];
                   }
 
                   // Supports two "no match" cases
                   if (filter.filterValue === '911' ||
-                      filter.filterValue === 'wontmatch') {
+                      filter.filterValue === 'wontmatch' ||
+                      filter.filterValue === 'z@y.com') {
                     return [];
                   }
 
@@ -196,7 +202,7 @@ suite('Contacts', function(done) {
 
   suite('Contacts.findContactByString, single-term', function() {
 
-    test('(string[tel,givenName,familyName], ...) Match', function(done) {
+    test('(string[tel,email,givenName,familyName], ...) Match', function(done) {
       var mozContacts = navigator.mozContacts;
 
       Contacts.findContactByString('O\'Hare', function(contacts) {
@@ -215,7 +221,8 @@ suite('Contacts', function(done) {
       });
     });
 
-    test('(string[tel,givenName,familyName], ...) No Match', function(done) {
+    test('(string[tel,email,givenName,familyName], ...) No Match',
+           function(done) {
       var mozContacts = navigator.mozContacts;
 
       Contacts.findContactByString('wontmatch', function(contacts) {
@@ -265,6 +272,44 @@ suite('Contacts', function(done) {
         // navigator.mozContacts.find was called?
         assert.equal(mHistory.length, 1);
         assert.equal(mHistory[0].filter.filterValue, '911');
+        assert.isNull(mHistory[0].request.error);
+
+        done();
+      });
+    });
+
+    test('(string[email], ...) Match', function(done) {
+      var mozContacts = navigator.mozContacts;
+
+      Contacts.findByString('a@b.com', function(contacts) {
+        var mHistory = mozContacts.mHistory;
+
+        // contacts were found
+        assert.ok(Array.isArray(contacts));
+        assert.equal(contacts.length, 1);
+
+        // navigator.mozContacts.find was called?
+        assert.equal(mHistory.length, 1);
+        assert.equal(mHistory[0].filter.filterValue, 'a@b.com');
+        assert.isNull(mHistory[0].request.error);
+
+        done();
+      });
+    });
+
+    test('(string[email], ...) No Match', function(done) {
+      var mozContacts = navigator.mozContacts;
+
+      Contacts.findByString('z@y.com', function(contacts) {
+        var mHistory = mozContacts.mHistory;
+
+        // contacts were not found
+        assert.ok(Array.isArray(contacts));
+        assert.equal(contacts.length, 0);
+
+        // navigator.mozContacts.find was called?
+        assert.equal(mHistory.length, 1);
+        assert.equal(mHistory[0].filter.filterValue, 'z@y.com');
         assert.isNull(mHistory[0].request.error);
 
         done();
@@ -418,6 +463,38 @@ suite('Contacts', function(done) {
       });
     });
 
+    test('name first, part of email address last', function(done) {
+      var mozContacts = navigator.mozContacts;
+
+      Contacts.findByString('Pepito a@b', function(contacts) {
+        var mHistory = mozContacts.mHistory;
+
+        // contacts were found
+        assert.ok(Array.isArray(contacts));
+        assert.equal(contacts.length, 1);
+
+        // navigator.mozContacts.find was called?
+        assert.equal(mHistory.length, 1);
+        done();
+      });
+    });
+
+    test('part of email address first, name last', function(done) {
+      var mozContacts = navigator.mozContacts;
+
+      Contacts.findByString('a@b Pepito', function(contacts) {
+        var mHistory = mozContacts.mHistory;
+
+        // contacts were found
+        assert.ok(Array.isArray(contacts));
+        assert.equal(contacts.length, 1);
+
+        // navigator.mozContacts.find was called?
+        assert.equal(mHistory.length, 1);
+        done();
+      });
+    });
+
     test('string search yields a contact without familyName', function(done) {
       Contacts.findContactByString('julien 123', function(contacts) {
         done();
@@ -506,12 +583,11 @@ suite('Contacts', function(done) {
     });
   });
 
-  suite('Contacts.findByPhoneNumber', function() {
-
+  suite('Contacts.findByAddress', function() {
     test('removes spaces', function(done) {
       var mozContacts = navigator.mozContacts;
 
-      Contacts.findByPhoneNumber('+33 1 23 45 67 89', function(contacts) {
+      Contacts.findByAddress('+33 1 23 45 67 89', function(contacts) {
         assert.equal(
           mozContacts.mHistory[0].filter.filterValue, '+33123456789'
         );
@@ -520,14 +596,23 @@ suite('Contacts', function(done) {
     });
 
     test('The mozContacts find() call returned an error', function(done) {
-      Contacts.findByPhoneNumber('callonerror', function(contacts) {
+      Contacts.findByAddress('callonerror', function(contacts) {
         assert.equal(contacts.length, 0);
         done();
       });
     });
 
     test('Local number found.', function(done) {
-      Contacts.findByPhoneNumber(targetLocalNumber, function(contacts) {
+     Contacts.findByAddress(targetLocalNumber, function(contacts) {
+       assert.equal(contacts.length, 1);
+       assert.isTrue(!contacts[0].isFbContact);
+       assert.equal(contacts[0].name[0], localContactName);
+       done();
+     });
+   });
+
+   test('Local email found.', function(done) {
+     Contacts.findByAddress(targetLocalEmail, function(contacts) {
         assert.equal(contacts.length, 1);
         assert.isTrue(!contacts[0].isFbContact);
         assert.equal(contacts[0].name[0], localContactName);
@@ -536,7 +621,7 @@ suite('Contacts', function(done) {
     });
 
     test('Local number not found. FB Number found', function(done) {
-      Contacts.findByPhoneNumber(targetFbNumber, function(contacts) {
+      Contacts.findByAddress(targetFbNumber, function(contacts) {
         assert.equal(contacts.length, 1);
         assert.equal(contacts[0].name[0], fbContactName);
         assert.equal(contacts[0].isFbContact, true);
@@ -545,7 +630,14 @@ suite('Contacts', function(done) {
     });
 
     test('Local number not found. FB Number not found either', function(done) {
-      Contacts.findByPhoneNumber(notFoundNumber, function(contacts) {
+      Contacts.findByAddress(notFoundNumber, function(contacts) {
+        assert.equal(contacts.length, 0);
+        done();
+      });
+    });
+
+    test('Local email not found. FB Number not found either', function(done) {
+      Contacts.findByAddress(notFoundEmail, function(contacts) {
         assert.equal(contacts.length, 0);
         done();
       });
@@ -554,7 +646,7 @@ suite('Contacts', function(done) {
     test('Local number not found. FB returns error', function(done) {
       fb.inError = true;
 
-      Contacts.findByPhoneNumber(targetFbNumber, function(contacts) {
+      Contacts.findByAddress(targetFbNumber, function(contacts) {
         assert.equal(contacts.length, 0);
         delete window.fb.inError;
         done();

@@ -644,7 +644,7 @@ suite('Recipients', function() {
 
           // No changes
           assert.equal(recipients.length, 1);
-          assert.equal(view.children.length, 1);
+          assert.equal(view.children.length, 2);
         });
 
         test('focusing with no placeholder at the end add one', function() {

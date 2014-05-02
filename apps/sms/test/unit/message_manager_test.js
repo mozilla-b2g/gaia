@@ -40,7 +40,6 @@ var mocksHelperForMessageManager = new MocksHelper([
   'Contacts',
   'Draft',
   'Drafts',
-  'LinkActionHandler',
   'MozSmsFilter',
   'GroupView',
   'ReportView',
@@ -1011,8 +1010,8 @@ suite('message_manager.js >', function() {
   suite('onDeliverySuccess', function() {
     suiteSetup(function() {
       this.mockEvent = {
-        message : {
-          id : 1
+        message: {
+          id: 1
         }
       };
     });
@@ -1047,8 +1046,8 @@ suite('message_manager.js >', function() {
   suite('onReadSuccess', function() {
     suiteSetup(function() {
       this.mockEvent = {
-        message : {
-          id : 1
+        message: {
+          id: 1
         }
       };
     });

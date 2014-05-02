@@ -99,12 +99,12 @@ function showSimInfo(element, iccId) {
     return;
   }
 
-  var info =[];
+  var info = [];
   // TODO: we might need to re-localize Sim name manually when language changes
   var simId = Settings.getSimNameByIccId(iccId);
   var operator = Settings.getOperatorByIccId(iccId);
   var number = iccManager.getIccById(iccId).iccInfo.msisdn;
-  info = [simId, operator, number].filter(function(value){
+  info = [simId, operator, number].filter(function(value) {
     return value;
   });
 
@@ -309,7 +309,7 @@ Information.prototype = {
       } else {
         number = participant;
       }
-      Contacts.findByPhoneNumber(number, function(results) {
+      Contacts.findByAddress(number, function(results) {
         var isContact = results !== null && !!results.length;
 
         if (isContact) {
