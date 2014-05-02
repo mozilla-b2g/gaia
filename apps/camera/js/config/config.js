@@ -236,9 +236,9 @@ module.exports = {
         value: 0
       },
       {
-        key: '3secs',
-        value: 3,
-        title: 'self-timer-3-seconds'
+        key: '2secs',
+        value: 2,
+        title: 'self-timer-2-seconds'
       },
       {
         key: '5secs',
