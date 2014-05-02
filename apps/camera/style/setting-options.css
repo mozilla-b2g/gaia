@@ -74,7 +74,8 @@
  */
 
 .setting-option:active {
-  background-color: #008eab;
+  background: rgba(0,142,171,0.3);
+  border-color: transparent;
   color: white;
 }
 
