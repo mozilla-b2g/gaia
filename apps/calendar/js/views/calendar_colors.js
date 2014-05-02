@@ -98,77 +98,94 @@ Calendar.ns('Views').CalendarColors = (function() {
      */
     updateRule: function(calendar) {
       var id = this.getId(calendar);
-      var color = calendar.color;
-      var rules = this._styles.cssRules;
-      var map;
+      var method = id in this.colorMap ? '_updateRules' : '_createRules';
+      this[method](calendar, id, calendar.color);
+    },
 
-      // Check for an existing color rule
-      if (id in this.colorMap) {
+    _updateRules: function(calendar, id, color) {
+      var map = this._ruleMap[id];
 
-        // when found we can simply mutate
-        // the properties on the rules.
-        map = this._ruleMap[id];
+      var bgStyle = map.background.style;
+      var borderStyle = map.border.style;
+      var textStyle = map.text.style;
+      var displayStyle = map.display.style;
 
-        var bgStyle = map.bg.style;
-        var displayStyle = map.display.style;
+      bgStyle.backgroundColor = this._hexToBackgroundColor(color);
+      borderStyle.borderColor = color;
+      textStyle.color = color;
 
-        bgStyle.backgroundColor = color;
-        bgStyle.borderColor = color;
-
-        if (!calendar.localDisplayed) {
-          displayStyle.setProperty('display', 'none');
-        } else {
-          displayStyle.setProperty('display', 'inherit', 'important');
-        }
-
+      if (calendar.localDisplayed) {
+        displayStyle.setProperty('display', 'inherit', 'important');
       } else {
-
-        // increment index for rule...
-        var ruleId = this._styles.cssRules.length;
-
-        // We need to store the ids of created
-        // rules for deletion later on.
-        var ruleIds = [ruleId, ruleId + 1];
-        this.colorMap[id] = color;
-
-        map = this._ruleMap[id] = {
-          ruleIds: ruleIds
-        };
-
-        // calendar coloring
-        var bgBlock = '.' + id + '.calendar-color ';
-        bgBlock += '{';
-        // some visual elements like busy bars work better with background
-        bgBlock += '  background-color: ' + color + ';';
-        // others like the event views work better with borders
-        bgBlock += '  border-color: ' + color + ';';
-        bgBlock += '}';
-
-        // insert rule save it for later so we don't
-        // need to lookup the id
-        // XXX: Better to not save the rule definition?
-        this._styles.insertRule(bgBlock, ruleId);
-        map.bg = rules[ruleId];
-
-        // Increment the rule id so we can
-        // use the incremented value for the next rule.
-        ruleId += 1;
-
-        var displayBlock = '.' + id + '.calendar-display';
-
-        if (!calendar.localDisplayed) {
-          displayBlock += '{ display: none; }';
-        } else {
-          displayBlock += '{ display: inherit; }';
-        }
-
-        this._styles.insertRule(
-          displayBlock,
-          ruleId
-        );
-
-        map.display = rules[ruleId];
+        displayStyle.setProperty('display', 'none');
       }
+    },
+
+    _createRules: function(calendar, id, color) {
+      // We need to store the ids of created rules for deletion later on.
+      var map = this._ruleMap[id] = {
+        ruleIds: []
+      };
+      this.colorMap[id] = color;
+
+      // calendar coloring
+      var bg = 'background-color: ' + this._hexToBackgroundColor(color) + ';';
+      map.background = this._insertRule(id, 'calendar-bg-color', bg);
+
+      var border = 'border-color: ' + color + ';';
+      map.border = this._insertRule(id, 'calendar-border-color', border);
+
+      var textColor = 'color: ' + color + ';';
+      map.text = this._insertRule(id, 'calendar-text-color', textColor);
+
+      var displayBody = calendar.localDisplayed ?
+        'display: inherit !important;' :
+        'display: none;';
+      map.display = this._insertRule(id, 'calendar-display', displayBody);
+    },
+
+    _hexToBackgroundColor: function(hex) {
+      // we need 20% opacity for background; it's simpler to use rgba than to
+      // create a new layer and set opacity:20%
+      var rgb = this._hexToChannels(hex);
+      return 'rgba(' +
+        rgb.r + ',' +
+        rgb.g + ',' +
+        rgb.b + ', 0.2)';
+    },
+
+    _hexToChannels: function(hex) {
+      hex = hex.replace(/#/, '');
+      // we slice in case calendar hex also includes opacity (#rrggbbaa)
+      hex = hex.slice(0, 6);
+      if (hex.length === 3) {
+        // expand "abc" into "aabbcc"
+        hex = hex.replace(/(\w)/g, '$1$1');
+      }
+      var val = parseInt(hex, 16);
+      return {
+        r: val >> 16,
+        g: val >> 8 & 0xFF,
+        b: val & 0xFF
+      };
+    },
+
+    _insertRule: function(calendarId, className, body) {
+      // affects root element and child elements as well
+      var block = ('.%calId.%className, .%calId .%className { %body }')
+        .replace(/%calId/g, calendarId)
+        .replace(/%className/g, className)
+        .replace(/%body/g, body);
+
+      // increment index for rule...
+      var ruleId = this._styles.cssRules.length;
+      this._styles.insertRule(block, ruleId);
+
+      // store the rule into cache
+      var map = this._ruleMap[calendarId];
+      map.ruleIds.push(ruleId);
+
+      return this._styles.cssRules[ruleId];
     },
 
     /**

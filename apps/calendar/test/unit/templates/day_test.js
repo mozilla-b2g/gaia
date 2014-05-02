@@ -39,8 +39,7 @@ suiteGroup('Templates.Day', function() {
   test('event', function() {
     var result = renderHTML('event', {
       title: 'titlez',
-      location: 'sos',
-      attendees: a()
+      location: 'sos'
     });
 
     assert.ok(result);
@@ -48,7 +47,6 @@ suiteGroup('Templates.Day', function() {
     assert.ok(result.indexOf(dynamicClass) === -1);
     assert.include(result, 'titlez');
     assert.include(result, 'sos');
-    assert.include(result, a());
   });
 
   test('event with classes', function() {

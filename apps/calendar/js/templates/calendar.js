@@ -12,8 +12,8 @@
         l10n = 'data-l10n-id="calendar-local"';
       }
 
-      return '<li id="calendar-' + id + '">' +
-          '<div class="calendar-id-' + id + ' calendar-color"></div>' +
+      return '<li id="calendar-' + id + '" class="calendar-id-' + id + '">' +
+          '<div class="icon-dot calendar-text-color"></div>' +
           '<label class="pack-checkbox">' +
             '<input ' +
               'value="' + id + '" ' +

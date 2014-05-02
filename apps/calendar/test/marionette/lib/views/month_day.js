@@ -1,6 +1,7 @@
 'use strict';
 
-var View = require('./view');
+var View = require('./view'),
+    DayEvent = require('./day_event');
 
 function MonthDay() {
   View.apply(this, arguments);
@@ -17,18 +18,20 @@ MonthDay.prototype = {
   },
 
   get events() {
-    return this.findElements('.event');
+    return this.findElements('.event').map(function(el) {
+      return new DayEvent(this.client, el);
+    }, this);
   },
 
   getTitle: function(event) {
     return event
-      .findElement('h5')
+      .findElement('.event-title')
       .text();
   },
 
   getLocation: function(event) {
     return event
-      .findElement('.location')
+      .findElement('.event-location')
       .text();
   },
 

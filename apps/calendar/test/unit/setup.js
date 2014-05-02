@@ -334,6 +334,7 @@
   requireLib('store/setting.js');
   requireLib('store/ical_component.js');
   requireLib('provider/abstract.js');
+  requireLib('provider/local.js');
   requireSupport('mock_provider.js');
   requireLib('worker/manager.js');
   requireLib('controllers/service.js');
