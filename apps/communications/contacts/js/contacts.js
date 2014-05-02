@@ -415,7 +415,7 @@ var Contacts = (function() {
     if (!customTag) {
       customTag = document.querySelector('#custom-tag');
       customTag.addEventListener('keydown', handleCustomTag);
-      customTag.addEventListener('touchend', handleCustomTag);
+      customTag.addEventListener('mouseup', handleCustomTag);
     }
     if (!customTagReset) {
       customTagReset = document.getElementById('custom-tag-reset');
