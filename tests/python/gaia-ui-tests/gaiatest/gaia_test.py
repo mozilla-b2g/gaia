@@ -724,9 +724,6 @@ class GaiaDevice(object):
         Wait(marionette=self.marionette, timeout=timeout, ignored_exceptions=NoSuchElementException)\
             .until(lambda m: m.find_element(*locator).is_displayed())
 
-        # Run the fake update checker
-        FakeUpdateChecker(self.marionette).check_updates()
-
     @property
     def is_b2g_running(self):
         return 'b2g' in self.manager.shellCheckOutput(['toolbox', 'ps'])
@@ -864,6 +861,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             if self.device.is_android_build:
                 self.cleanup_data()
             self.device.start_b2g()
+
+        # Run the fake update checker
+        FakeUpdateChecker(self.marionette).check_updates()
 
         # We need to set the default timeouts because we may have a new session
         if self.marionette.timeout is None:
