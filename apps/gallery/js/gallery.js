@@ -216,7 +216,8 @@ function initDB() {
       return;
     }
 
-    loader.load('js/metadata_scripts.js', function() {
+    loader.load(['js/metadata_scripts.js',
+                 'shared/js/media/crop_resize_rotate.js'], function() {
       loaded = true;
       metadataParser(file, onsuccess, onerror, bigFile);
     });

@@ -14,9 +14,10 @@ var frames = $('frames');
 // element, and video player controls within the div, and you can refer to
 // those as currentFrame.image and currentFrame.video.player and
 // currentFrame.video.controls.
-var previousFrame = new MediaFrame($('frame1'));
-var currentFrame = new MediaFrame($('frame2'));
-var nextFrame = new MediaFrame($('frame3'));
+var maxImageSize = CONFIG_MAX_IMAGE_PIXEL_SIZE;
+var previousFrame = new MediaFrame($('frame1'), true, maxImageSize);
+var currentFrame = new MediaFrame($('frame2'), true, maxImageSize);
+var nextFrame = new MediaFrame($('frame3'), true, maxImageSize);
 
 if (CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH) {
   previousFrame.setMinimumPreviewSize(CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH,

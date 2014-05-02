@@ -15,6 +15,10 @@ var Filmstrip = (function() {
   var MAX_THUMBNAILS = 5;
   var THUMBNAIL_WIDTH = 46 * DEVICE_RATIO;  // size of each thumbnail
   var THUMBNAIL_HEIGHT = 46 * DEVICE_RATIO;
+  var thumbnailSize = {  // thumbnail size in form needed by cropResizeRotate()
+    width: THUMBNAIL_WIDTH,
+    height: THUMBNAIL_HEIGHT
+  };
 
   // Timer for auto-hiding the filmstrip
   var hideTimer = null;
@@ -43,8 +47,20 @@ var Filmstrip = (function() {
   // listener seems to prevent this behaviour :-/
   preview.onclick = function() {};
 
+  // Compute the maximum size image that the MediaFrame will decode. If this
+  // is a low-memory device then CONFIG_MAX_PICK_PIXEL_SIZE will be set to
+  // a value smaller than the normal max image size.
+  //
+  // XXX: On the Tarako device, using an extra-small image size seems
+  // to be necessary to prevent OOMs when swapping between multiple
+  // images and zooming in. This may be because on the Tarako our EXIF
+  // previews are bad so we're displaying previews by downsampling the
+  // full image with #-moz-samplesize.
+  //
+  var maxImageSize = CONFIG_MAX_PICK_PIXEL_SIZE || CONFIG_MAX_IMAGE_PIXEL_SIZE;
+
   // Create the MediaFrame for previews
-  var frame = new MediaFrame(mediaFrame);
+  var frame = new MediaFrame(mediaFrame, true, maxImageSize);
   if (CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH) {
     frame.setMinimumPreviewSize(CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH,
                                 CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT);
@@ -282,24 +298,57 @@ var Filmstrip = (function() {
         parseJPEGMetadata(previewBlob, function(thumbnailMetadata) {
           metadata.preview.width = thumbnailMetadata.width;
           metadata.preview.height = thumbnailMetadata.height;
-          createThumbnail(
-            previewBlob,
-            false,
-            metadata.rotation,
-            metadata.mirrored,
-            function(thumbnail) {
-              addItem({
-                isImage: true,
-                filename: filename,
-                thumbnail: thumbnail,
-                blob: blob,
-                width: metadata.width,
-                height: metadata.height,
-                preview: metadata.preview,
-                rotation: metadata.rotation,
-                mirrored: metadata.mirrored
-              });
-          });
+
+          // The Tarako may produce EXIF previews that have the wrong
+          // aspect ratio and are distorted. Check for that, and if the
+          // aspect ratio is not right, then create a thumbnail from the
+          // full size image
+          var fullRatio = metadata.width / metadata.height;
+          var previewRatio = thumbnailMetadata.width / thumbnailMetadata.height;
+          if (Math.abs(fullRatio - previewRatio) < 0.01) {
+            // Aspect ratios match: create thumbnail from preview
+            var previewMetadata = {
+              width: thumbnailMetadata.width,
+              height: thumbnailMetadata.height,
+              rotation: metadata.rotation,
+              mirrored: metadata.mirrored
+            };
+
+            cropResizeRotate(previewBlob, null, thumbnailSize, null,
+                             previewMetadata, gotThumbnailBlob);
+          }
+          else {
+            // In this case the preview was no good
+            createThumbnailFromFullImage();
+          }
+        });
+      }
+      else {
+        // No preview at all, so use the full image
+        createThumbnailFromFullImage();
+      }
+
+      function createThumbnailFromFullImage() {
+        cropResizeRotate(blob, null, thumbnailSize, null, metadata,
+                         gotThumbnailBlob);
+      }
+
+      function gotThumbnailBlob(error, thumbnailBlob) {
+        if (error) {
+          console.error('Failed to create thumbnail', error);
+          return;
+        }
+
+        addItem({
+          isImage: true,
+          filename: filename,
+          thumbnail: thumbnailBlob,
+          blob: blob,
+          width: metadata.width,
+          height: metadata.height,
+          preview: metadata.preview,
+          rotation: metadata.rotation,
+          mirrored: metadata.mirrored
         });
       }
     }, function logerr(msg) { console.warn(msg); });

@@ -293,6 +293,7 @@ var Camera = {
         '/shared/js/media/crop_resize_rotate.js',
         '/shared/js/media/get_video_rotation.js',
         '/shared/js/media/video_player.js',
+        '/shared/js/media/downsample.js',
         '/shared/js/media/media_frame.js',
         '/shared/js/gesture_detector.js',
         '/shared/js/lazy_l10n.js',
