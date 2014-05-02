@@ -970,13 +970,13 @@ suite('Utils', function() {
       Threads.currentId = 'currentId';
       Utils.closeNotificationsForThread().then(function() {
         sinon.assert.calledWith(Notification.get,
-          {tag : 'threadId:' + Threads.currentId});
+          {tag: 'threadId:' + Threads.currentId});
       }).then(done, done);
     });
 
     test('notification matched with specific threadId', function(done) {
       Utils.closeNotificationsForThread('targetId').then(function() {
-        sinon.assert.calledWith(Notification.get, {tag : 'threadId:targetId'});
+        sinon.assert.calledWith(Notification.get, {tag: 'threadId:targetId'});
       }).then(done, done);
     });
 
@@ -1116,6 +1116,52 @@ suite('getDisplayObject', function() {
     assert.equal(data.carrier, carrier + ', ');
     assert.equal(data.number, value);
   });
+  test('Tel object with title, type and value of email', function() {
+    var type = 'Personal';
+    var myTitle = 'My title';
+    var value = 'a@b.com';
+    var data = Utils.getDisplayObject(myTitle, {
+      'value': value,
+      'type': [type]
+    });
+
+    assert.equal(data.name, myTitle);
+    assert.equal(data.separator, ' | ');
+    assert.equal(data.type, type);
+    assert.equal(data.carrier, '');
+    assert.equal(data.number, value);
+    assert.equal(data.email, value);
+  });
+  test('Tel object with title, NO type and value of email', function() {
+    var myTitle = 'My title';
+    var value = 'a@b.com';
+    var data = Utils.getDisplayObject(myTitle, {
+      'value': value
+    });
+
+    assert.equal(data.name, myTitle);
+    assert.equal(data.separator, '');
+    assert.equal(data.type, '');
+    assert.equal(data.carrier, '');
+    assert.equal(data.number, value);
+    assert.equal(data.email, value);
+  });
+
+  test('Tel object with NO title, type and value of email', function() {
+    var type = 'Personal';
+    var value = 'a@b.com';
+    var data = Utils.getDisplayObject(null, {
+      'value': value,
+      'type': [type]
+    });
+
+    assert.equal(data.name, value);
+    assert.equal(data.separator, ' | ');
+    assert.equal(data.type, type);
+    assert.equal(data.carrier, '');
+    assert.equal(data.number, value);
+    assert.equal(data.email, value);
+  });
 });
 
 suite('getDisplayObject l10n values', function() {
@@ -1187,7 +1233,7 @@ suite('getContactDisplayInfo', function() {
 
   test('Valid contact with phonenumber', function(done) {
     Utils.getContactDisplayInfo(
-      MockContacts.findByPhoneNumber.bind(MockContacts),
+      MockContacts.findByAddress.bind(MockContacts),
       '+346578888888',
       function onData(data) {
         var tel = MockContact.list()[0].tel[0];
@@ -1258,5 +1304,13 @@ suite('getContactDisplayInfo', function() {
         done();
       }
     );
+  });
+});
+suite('isEmailAddress', function() {
+  test('check +348888888888', function() {
+    assert.equal(Utils.isEmailAddress('+348888888888'), false);
+  });
+  test('check a@b.com', function() {
+    assert.equal(Utils.isEmailAddress('a@b.com'), true);
   });
 });

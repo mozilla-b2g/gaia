@@ -52,7 +52,8 @@
     // is questionable and may be invalid.
     number = this.number[0] === '+' ? this.number.slice(1) : this.number;
 
-    if (this.source === 'manual' && !rdigit.test(number)) {
+    if (this.source === 'manual' && !rdigit.test(number) &&
+        !Utils.isEmailAddress(number)) {
       this.isQuestionable = true;
     }
 
@@ -61,6 +62,9 @@
     //
     if (this.isQuestionable || this.isInvalid) {
       this.className += ' attention';
+    }
+    if (Utils.isEmailAddress(this.number)) {
+      this.className += ' email';
     }
   }
 
@@ -802,6 +806,11 @@
           //
           recipient = relation.get(target);
 
+          if ((recipient.className === 'recipient') ||
+              (recipient.className === 'recipient email')) {
+            recipient.className += ' select';
+            this.render();
+          }
           if (recipient) {
             // If the target was added via Contacts, prompt to delete.
             if (recipient.source === 'contacts') {
@@ -840,6 +849,13 @@
                 // #1 & #2
                 this.focus();
 
+                if (recipient.className === 'recipient select') {
+                  recipient.className = 'recipient';
+                  this.render();
+                } else if (recipient.className === 'recipient email select') {
+                  recipient.className = 'recipient email';
+                  this.render();
+                }
               }.bind(this));
 
             // If the target was added Manually, move to edit mode

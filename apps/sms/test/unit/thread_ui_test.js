@@ -3184,13 +3184,19 @@ suite('thread_ui.js >', function() {
   });
 
   suite('updateCarrier', function() {
-    var contacts = [], details, number;
+    var contacts = [], details, number, detailsEmail, email;
     var threadMessages, carrierTag;
 
     suiteSetup(function() {
       contacts.push(new MockContact());
       number = contacts[0].tel[0].value;
+// Bug 974870 Start
+      email = contacts[0].email[0].value;
+// Bug 974870 End
       details = Utils.getContactDetails(number, contacts);
+// Bug 974870 Start
+      detailsEmail = Utils.getContactDetails(email, contacts);
+// Bug 974870 End
     });
 
     setup(function() {
@@ -3356,7 +3362,7 @@ suite('thread_ui.js >', function() {
         assert.equal(MockOptionMenu.calls[0].items[3].l10nId, 'resend-message');
     });
 
-    test(' "long-press" on an incoming download error mms bubble should not '+
+    test(' "long-press" on an incoming download error mms bubble should not ' +
       'show a menu with resend option',
       function() {
         // Create a message with a download error
@@ -3377,9 +3383,9 @@ suite('thread_ui.js >', function() {
         // Dispatch custom event for testing long press
         link.dispatchEvent(contextMenuEvent);
         assert.ok(MockOptionMenu.calls.length, 1);
-      
+
         // Confirm that the menu doesn't contained a "resend-message" option
-        assert.isTrue(MockOptionMenu.calls[0].items.every(function(item){
+        assert.isTrue(MockOptionMenu.calls[0].items.every(function(item) {
           return item.l10nId !== 'resend-message';
         }));
     });
@@ -3393,7 +3399,7 @@ suite('thread_ui.js >', function() {
           type: 'mms',
           body: 'This is mms message test without attachment',
           delivery: 'received',
-          subject:'',
+          subject: '',
           attachments: null,
           timestamp: Date.now()
         });
@@ -3654,12 +3660,57 @@ suite('thread_ui.js >', function() {
           assert.equal(items[3].l10nId, 'cancel');
         });
 
+        test('Single known (email)', function() {
+
+          this.sinon.spy(ActivityPicker, 'email');
+
+          var contact = new MockContact();
+
+          Threads.set(1, {
+            participants: ['a@b.com']
+          });
+
+          window.location.hash = '#thread=1';
+
+          var header = document.createElement('div');
+
+          ThreadUI.prompt({
+            email: 'a@b.com',
+            contactId: contact.id,
+            isContact: true,
+            header: header
+          });
+
+          assert.equal(MockOptionMenu.calls.length, 1);
+
+          var call = MockOptionMenu.calls[0];
+          var items = call.items;
+
+          // Ensures that the OptionMenu was given
+          // the email address to diplay
+          assert.equal(call.header, header);
+
+          // Only known Contact details should appear in the "section"
+          assert.isUndefined(call.section);
+
+          assert.equal(items.length, 3);
+
+          // The first item is a "sendEmail" option
+          assert.equal(items[0].l10nId, 'sendEmail');
+
+          // The second item is a "createNewContact" option
+          assert.equal(items[1].l10nId, 'viewContact');
+
+          // The fourth and last item is a "cancel" option
+          assert.equal(items[2].l10nId, 'cancel');
+        });
+
         test('Single unknown (email)', function() {
 
           this.sinon.spy(ActivityPicker, 'email');
 
           Threads.set(1, {
-            participants: ['999']
+            participants: ['a@b.com']
           });
 
           window.location.hash = '#thread=1';
@@ -3700,7 +3751,7 @@ suite('thread_ui.js >', function() {
           // The fourth and last item is a "cancel" option
           assert.equal(items[3].l10nId, 'cancel');
         });
-        test('Multiple known', function() {
+        test('Multiple known (phone)', function() {
 
           Threads.set(1, {
             participants: ['999', '888']
@@ -3738,7 +3789,7 @@ suite('thread_ui.js >', function() {
           assert.equal(items[2].l10nId, 'cancel');
         });
 
-        test('Multiple unknown', function() {
+        test('Multiple unknown (phone)', function() {
 
           Threads.set(1, {
             participants: ['999', '888']
@@ -3777,10 +3828,81 @@ suite('thread_ui.js >', function() {
           // The fifth and last item is a "cancel" option
           assert.equal(items[4].l10nId, 'cancel');
         });
+        test('Multiple known (email)', function() {
+
+          Threads.set(1, {
+            participants: ['a@b.com', 'a@c.com']
+          });
+
+          window.location.hash = '#thread=1';
+
+          var header = document.createElement('div');
+          ThreadUI.prompt({
+            email: 'a@b.com',
+            header: header,
+            isContact: true
+          });
+
+          assert.equal(MockOptionMenu.calls.length, 1);
+
+          var call = MockOptionMenu.calls[0];
+          var items = call.items;
+
+          // ensure that we display no body
+          assert.isUndefined(call.section);
+
+          // ensures we'll show a contact header
+          assert.equal(call.header, header);
+
+          assert.equal(items.length, 2);
+
+          // The first item is a "call" option
+          assert.equal(items[0].l10nId, 'sendEmail');
+
+          // The third and last item is a "cancel" option
+          assert.equal(items[1].l10nId, 'cancel');
+        });
+
+        test('Multiple unknown (email)', function() {
+
+          Threads.set(1, {
+            participants: ['a@b.com', 'a@c.com']
+          });
+
+          window.location.hash = '#thread=1';
+
+          ThreadUI.prompt({
+            email: 'a@b.com',
+            isContact: false
+          });
+
+          assert.equal(MockOptionMenu.calls.length, 1);
+
+          var call = MockOptionMenu.calls[0];
+          var items = call.items;
+
+          // Ensures that the OptionMenu was given
+          // the phone number to diplay
+          assert.equal(call.header, 'a@b.com');
+
+          assert.equal(items.length, 4);
+
+          // The first item is a "call" option
+          assert.equal(items[0].l10nId, 'sendEmail');
+
+          // The third item is a "createNewContact" option
+          assert.equal(items[1].l10nId, 'createNewContact');
+
+          // The fourth item is a "addToExistingContact" option
+          assert.equal(items[2].l10nId, 'addToExistingContact');
+
+          // The fifth and last item is a "cancel" option
+          assert.equal(items[3].l10nId, 'cancel');
+        });
       });
 
       suite('onHeaderActivation', function() {
-        test('Single known', function() {
+        test('Single known (phone)', function() {
           this.sinon.spy(ContactRenderer.prototype, 'render');
 
           Threads.set(1, {
@@ -3811,8 +3933,38 @@ suite('thread_ui.js >', function() {
           assert.equal(typeof calls[0].complete, 'function');
         });
 
-        test('Single unknown', function() {
+        test('Single known (email)', function() {
+          this.sinon.spy(ContactRenderer.prototype, 'render');
 
+          Threads.set(1, {
+            participants: ['a@b.com']
+          });
+
+          window.location.hash = '#thread=1';
+
+
+          ThreadUI.headerText.dataset.isContact = true;
+          ThreadUI.headerText.dataset.number = 'a@b.com';
+
+          ThreadUI.onHeaderActivation();
+
+          var calls = MockOptionMenu.calls;
+
+          assert.equal(calls.length, 1);
+
+          // contacts do not show up in the body
+          assert.isUndefined(calls[0].section);
+
+          // contacts show up in the header
+          sinon.assert.calledWithMatch(ContactRenderer.prototype.render, {
+            target: calls[0].header
+          });
+
+          assert.equal(calls[0].items.length, 3);
+          assert.equal(typeof calls[0].complete, 'function');
+        });
+
+        test('Single unknown (phone)', function() {
           Threads.set(1, {
             participants: ['777']
           });
@@ -3831,6 +3983,26 @@ suite('thread_ui.js >', function() {
           assert.equal(calls[0].items.length, 4);
           assert.equal(typeof calls[0].complete, 'function');
         });
+       test('Single unknown (email)', function() {
+
+         Threads.set(1, {
+           participants: ['b@c.com']
+         });
+
+         window.location.hash = '#thread=1';
+
+         ThreadUI.headerText.dataset.isContact = false;
+         ThreadUI.headerText.dataset.number = 'b@c.com';
+
+         ThreadUI.onHeaderActivation();
+
+         var calls = MockOptionMenu.calls;
+
+         assert.equal(calls.length, 1);
+         assert.equal(calls[0].header, 'b@c.com');
+         assert.equal(calls[0].items.length, 4);
+         assert.equal(typeof calls[0].complete, 'function');
+       });
       });
     });
 
@@ -3867,8 +4039,7 @@ suite('thread_ui.js >', function() {
           });
 
           this.sinon.stub(
-            MockContacts, 'findByPhoneNumber', function(phone, fn) {
-
+            MockContacts, 'findByAddress', function(phone, fn) {
             fn([new MockContact()]);
 
             var threadMessages = document.getElementById('thread-messages');
@@ -3893,7 +4064,7 @@ suite('thread_ui.js >', function() {
           });
 
           this.sinon.stub(
-            MockContacts, 'findByPhoneNumber', function(phone, fn) {
+            MockContacts, 'findByAddress', function(phone, fn) {
 
             fn([new MockContact()]);
 
