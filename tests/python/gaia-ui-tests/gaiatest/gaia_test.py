@@ -720,7 +720,7 @@ class GaiaDevice(object):
         self.marionette.start_session()
 
         # Wait for the AppWindowManager to have registered the frame as active (loaded)
-        locator = (By.CSS_SELECTOR, 'div.appWindow.active')
+        locator = (By.CSS_SELECTOR, 'div.appWindow.active.render')
         Wait(marionette=self.marionette, timeout=timeout, ignored_exceptions=NoSuchElementException)\
             .until(lambda m: m.find_element(*locator).is_displayed())
 
