@@ -742,11 +742,12 @@ form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(110%);
 }
 
-form[role="dialog"][data-type="edit"].contacts-select.in-edit-mode header {
+form[role="dialog"][data-type="edit"].contacts-select.in-edit-mode header,
+form[role="dialog"][data-type="edit"].contacts-select.in-edit-mode > menu {
   transition: 0s;
 }
 
-form[role="dialog"][data-type="edit"].contacts-select > menu {
+form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) > menu {
   transform: translateY(0);
 }
 
