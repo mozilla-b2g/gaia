@@ -26,6 +26,8 @@ Contacts.Selectors = {
   body: 'body',
   bodyReady: 'body .view-body',
 
+  settingsButton: '#settings-button',
+
   confirmHeader: '#confirmation-message h1',
   confirmBody: '#confirmation-message p',
 
@@ -67,7 +69,12 @@ Contacts.Selectors = {
   searchResultFirst: '#search-list .contact-item',
 
   scrollbar: 'nav[data-type="scrollbar"]',
-  overlay: 'nav[data-type="scrollbar"] p'
+  overlay: 'nav[data-type="scrollbar"] p',
+
+  settingsView: '#view-settings',
+  bulkDelete: '#bulkDelete',
+
+  editMenu: '#select-all-wrapper'
 };
 
 Contacts.prototype = {
