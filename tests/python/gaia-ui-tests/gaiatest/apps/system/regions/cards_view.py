@@ -27,10 +27,15 @@ class CardsView(Base):
     def is_cards_view_displayed(self):
         return self.is_element_displayed(*self._cards_view_locator)
 
+    def _is_element_displayed_and_not_in_transition(self, by, locator):
+        element = self.marionette.find_element(by, locator)
+        return element.is_displayed() and 'transition' not in element.get_attribute('style')
+
     def is_app_displayed(self, app):
-        card = self.marionette.find_element(*self._app_card_locator(app))
-        # card is displayed and not in transition
-        return card.is_displayed() and 'transition' not in card.get_attribute('style')
+        # Close button needs also to be waited as it may be still moving
+        # see https://bugzilla.mozilla.org/show_bug.cgi?id=1003175 for details
+        return self._is_element_displayed_and_not_in_transition(*self._app_card_locator(app)) \
+            and self._is_element_displayed_and_not_in_transition(*self._close_button_locator(app))
 
     def is_app_present(self, app):
         return self.is_element_present(*self._app_card_locator(app))
