@@ -433,7 +433,7 @@ TEST_DIRS ?= $(GAIA_DIR)/tests
 
 define BUILD_CONFIG
 { \
-	"ADB" : "$(ADB)", \
+	"ADB" : "$(patsubst "%",%,$(ADB))", \
 	"GAIA_DIR" : "$(GAIA_DIR)", \
 	"PROFILE_DIR" : "$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)", \
 	"PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
