@@ -96,12 +96,16 @@ module.exports = View.extend({
 
   template: function() {
     return '<div class="pane pane-1">' +
-      '<div class="settings_inner">' +
-        '<h2 class="settings_title">' + this.l10n.get('options') + '</h2>' +
-        '<div class="settings_items"><ul class="inner js-items"></ul></div>' +
+      '<div class="inner">' +
+        '<div class="settings_inner">' +
+          '<h2 class="settings_title">' + this.l10n.get('options') + '</h2>' +
+          '<div class="settings_items"><ul class="inner js-items"></ul></div>' +
+        '</div>' +
       '</div>' +
     '</div>' +
-    '<div class="pane pane-2 js-pane-2"></div>' +
+    '<div class="pane pane-2">' +
+      '<div class="inner js-pane-2"></div>' +
+    '</div>' +
     '<div class="settings_close icon-settings js-close"></div>';
   }
 });
