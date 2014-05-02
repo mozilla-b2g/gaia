@@ -131,6 +131,10 @@
     "places": {
       "access": "readwrite",
       "description": "Stores data about browsing history."
+    },
+    "messages": {
+      "access": "readwrite",
+      "description": "Stores sms and mms messages."
     }
   },
   "datastores-access": {

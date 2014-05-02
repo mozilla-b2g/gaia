@@ -87,6 +87,10 @@
   "datastores-access": {
     "Gaia_Facebook_Friends": {
       "description": "Facebook Friends"
+    },
+    "messages": {
+      "readonly": false,
+      "description": "Manages sms and mms."
     }
   }
 }
