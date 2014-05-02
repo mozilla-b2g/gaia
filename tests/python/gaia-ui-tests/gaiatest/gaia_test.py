@@ -649,7 +649,8 @@ class GaiaDevice(object):
     @property
     def is_android_build(self):
         if self.testvars.get('is_android_build') is None:
-            self.testvars['is_android_build'] = 'android' in self.marionette.session_capabilities['platformName'].lower()
+            platform = self.marionette.session_capabilities['platform']
+            self.testvars['is_android_build'] = 'android' in self.marionette.session_capabilities.get('platformName', platform).lower()
         return self.testvars['is_android_build']
 
     @property
