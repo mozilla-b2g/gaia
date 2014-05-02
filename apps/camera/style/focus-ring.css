@@ -1,108 +1,51 @@
-
-/** Focus Ring
- ---------------------------------------------------------*/
-
-.focus-ring {
+.focusring{
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 10rem;
-  height: 10rem;
-  margin-top: -5rem;
-  margin-left: -5rem;
-  font-size: 92px;
-  line-height: 1em;
-  text-align: center;
-  color: #ffffff;
-  text-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+  top: 50%; left: 50%;
   pointer-events: none;
-  opacity: 0;
-  transform: rotate(0deg) scale(1);
-  transition: transform 0.2s ease-in;
-}
-
-/**
- * data-state="focusing",
- * data-state="focused",
- * data-state="fail"
- */
-
-.focus-ring[data-state="focusing"],
-.focus-ring[data-state="focused"],
-.focus-ring[data-state="fail"] {
   opacity: 0.8;
+  font-size: 92px;
+  background: transparent;
+  transform: translate(-50%, -50%);
 }
 
-/** Icon
- ---------------------------------------------------------*/
+.focus-ring[state=none] .focusring:before {
+  opacity: 0;
+}
 
-.focus-ring:before,
-.focus-ring:after {
-  font-family: 'gaia-camera';
+.focus-ring[state=focusing] .focusring:before {
   display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.focus-ring:before {
-  content: "\e616";
-}
-
-.focus-ring:after {
-  content: "\e615";
-}
-
-/**
- * data-state="focusing"
- */
-
-.focus-ring[data-state="focusing"] {
+  color: white;
   animation: 0.35s ring-animation 1 ease-in forwards;
 }
 
-.focus-ring[data-state="focusing"]:before {
-  opacity: 1;
+.focus-ring[state=focused] .focusring:before {
+  color: #AFFF3D;
+  content: "\e615";
 }
 
-.focus-ring[data-state="focusing"]:after {
-  opacity: 0;
+.focus-ring[state=fail] .focusring:before {
+  color: red;
+  content: "\e615";
+  transform-origin:center center;
 }
 
-/**
- * data-state="focused"
- */
-
-.focus-ring[data-state="focused"] {
-  color: #afff3d;
-  transform: rotate(45deg) scale(0.8478);
-  transition-duration: 0.1s;
+.focus-ring[state=focused][mode=continuousFocus] .focusring,
+.focus-ring[state=focused][mode=touchFocus] .focusring {
+  font-size: 78px;
 }
 
-.focus-ring[data-state="focused"]:before {
-  opacity: 0;
+.focusring-yellow {
+  position: absolute;
+  top: 0px; left: 0px;
+  pointer-events: none;
+  opacity: 0.8;
+  background: transparent;
+  color: yellow;
 }
 
-.focus-ring[data-state="focused"]:after {
-  opacity: 1;
-}
 
-/**
- * data-state="fail"
- */
-
-.focus-ring[data-state="fail"] {
-  color: #ff0000;
-  transform: rotate(45deg) scale(1);
-  transition-duration: 0.1s;
-}
-
-.focus-ring[data-state="fail"]:before {
-  opacity: 0;
-}
-
-.focus-ring[data-state="fail"]:after {
-  opacity: 1;
+.focus-ring[mode=faceTracking] .focusring {
+  transform: translate(0px, 0px);
 }
 
 @keyframes ring-animation {

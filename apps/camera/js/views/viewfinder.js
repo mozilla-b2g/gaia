@@ -9,6 +9,7 @@ var bind = require('lib/bind');
 var CameraUtils = require('lib/camera-utils');
 var debug = require('debug')('view:viewfinder');
 var View = require('vendor/view');
+var FocusRingView = require('views/focus-ring');
 
 /**
  * Locals
@@ -40,7 +41,9 @@ module.exports = View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-
+    //append focus ring
+    this.focusRing = new FocusRingView();
+    this.focusRing.appendTo(this.el);
     // Find elements
     this.els.frame = this.find('.js-frame');
     this.els.video = this.find('.js-video');
@@ -270,7 +273,15 @@ module.exports = View.extend({
           '</div>' +
         '</div>' +
     '</div>';
-  }
+  },
+
+  setFocusMode: function(value) {
+    this.focusRing.setMode(value);
+  },
+
+  setFocusState: function(value) {
+    this.focusRing.setState(value);
+  },
 });
 
 });

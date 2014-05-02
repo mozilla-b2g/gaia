@@ -55,7 +55,8 @@ CameraController.prototype.bindEvents = function() {
   camera.on('loaded', app.firer('camera:loaded'));
   camera.on('ready', app.firer('camera:ready'));
   camera.on('busy', app.firer('camera:busy'));
-
+  camera.on('change:focusMode', app.firer('camera:focusMode'));
+  camera.on('newcamera', this.configureFocus);
   // App
   app.on('previewgallery:opened', this.onPreviewGalleryOpened);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
@@ -196,9 +197,11 @@ CameraController.prototype.showSizeLimitAlert = function() {
 CameraController.prototype.setMode = function(mode) {
   var self = this;
   this.setFlashMode();
+  this.camera.disableSupportedFocus();
   this.viewfinder.fadeOut(function() {
     self.camera.setMode(mode);
   });
+  this.configureFocus();
 };
 
 CameraController.prototype.updatePictureSize = function() {
@@ -242,6 +245,7 @@ CameraController.prototype.updateRecorderProfile = function() {
  */
 CameraController.prototype.setCamera = function(camera) {
   var self = this;
+   this.camera.disableSupportedFocus();
   this.viewfinder.fadeOut(function() {
     self.camera.setCamera(camera);
   });
@@ -253,6 +257,7 @@ CameraController.prototype.setFlashMode = function() {
 };
 
 CameraController.prototype.onHidden = function() {
+ this.camera.disableSupportedFocus();
   this.camera.stopRecording();
   this.camera.set('focus', 'none');
   this.camera.release();
@@ -314,6 +319,13 @@ CameraController.prototype.onStorageChanged = function(state) {
  */
 CameraController.prototype.onPreviewGalleryOpened = function() {
   this.camera.configureZoom(this.camera.previewSize());
+};
+
+CameraController.prototype.configureFocus = function() {
+  var selectedCamera = this.settings.cameras.selected('key');
+  var focusModes = (selectedCamera === 'back') ?
+  this.settings.focus.get('modes') : { fixedFocus: true };
+  this.camera.configureFocus(focusModes);
 };
 
 });
