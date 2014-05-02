@@ -32,6 +32,7 @@ class TestSettingsGPS(GaiaTestCase):
 
         # should be off
         self.assertFalse(self.data_layer.get_setting('geolocation.enabled'), "GPS was not enabled via Settings app")
+        self.apps.switch_to_displayed_app()
 
         # turn back on
         settings.enable_gps()
