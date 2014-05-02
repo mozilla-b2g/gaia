@@ -44,6 +44,7 @@ PreferencesBuilder.prototype.preparePref = function() {
   this.prefs['network.http.max-connections-per-server'] = 15;
   this.prefs['dom.mozInputMethod.enabled'] = true;
   this.prefs['layout.css.sticky.enabled'] = true;
+  this.prefs['intl.accept_languages'] = this.config.GAIA_DEFAULT_LOCALE;
 
   // for https://bugzilla.mozilla.org/show_bug.cgi?id=811605 to let user know
   //what prefs is for ril debugging

@@ -312,6 +312,7 @@ suite('preferences.js', function() {
         'network.http.max-connections-per-server': 15,
         'dom.mozInputMethod.enabled': true,
         'layout.css.sticky.enabled': true,
+        'intl.accept_languages': preferences.config.GAIA_DEFAULT_LOCALE,
         'ril.debugging.enabled': false,
         'dom.mms.version': 0x11,
         'b2g.wifi.allow_unsafe_wpa_eap': true
