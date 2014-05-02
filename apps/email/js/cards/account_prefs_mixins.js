@@ -9,7 +9,6 @@ define(function(require) {
    * mixin properties for cards that share similar actions around the account
    * preferences.
    * ASSUMES the following properties have been initialized on the object
-   * - this.domNode
    * - this.account
    */
 
@@ -66,7 +65,7 @@ define(function(require) {
     },
 
     nodeFromClass: function(className) {
-      return this.domNode.getElementsByClassName(className)[0];
+      return this.getElementsByClassName(className)[0];
     },
 
     onChangeSyncInterval: function(event) {

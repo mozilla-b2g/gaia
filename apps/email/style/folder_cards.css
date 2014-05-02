@@ -33,8 +33,8 @@
   padding: 0 1rem;
 }
 
-.card-folder-picker,
-.card-account-picker {
+cards-folder-picker,
+cards-account-picker {
   box-shadow: inset 0 0 1rem black;
   background-color: rgba(0, 0, 0, 0.6);
   color: white;

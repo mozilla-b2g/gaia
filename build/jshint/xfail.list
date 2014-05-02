@@ -102,6 +102,7 @@ apps/communications/live/js/live_connector.js
 apps/email/js/app_messages.js
 apps/email/js/app_self.js
 apps/email/js/array.js
+apps/email/js/cards.js
 apps/email/js/cards/account_picker.js
 apps/email/js/cards/account_prefs_mixins.js
 apps/email/js/cards/compose.js

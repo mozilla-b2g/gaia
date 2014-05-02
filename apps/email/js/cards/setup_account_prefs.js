@@ -1,46 +1,26 @@
-/*global define*/
-define(function(require) {
-
-var templateNode = require('tmpl!./setup_account_prefs.html'),
-    prefsMixin = require('./account_prefs_mixins'),
-    mix = require('mix'),
-    common = require('mail_common'),
-    Cards = common.Cards;
-
 /**
  * Setup is done; add another account?
  */
-function SetupAccountPrefsCard(domNode, mode, args) {
-  this.domNode = domNode;
-  this.account = args.account;
+'use strict';
+define(function(require) {
 
-  this.nextButton = this.nodeFromClass('sup-info-next-btn');
-  this.nextButton.addEventListener('click', this.onNext.bind(this), false);
+var cards = require('cards');
 
-  this._bindPrefs('tng-account-check-interval', 'tng-notify-mail');
-}
+return [
+  require('./base')(require('template!./setup_account_prefs.html')),
+  require('./account_prefs_mixins'),
+  {
+    onArgs: function(args) {
+      this.account = args.account;
+      this._bindPrefs('tng-account-check-interval', 'tng-notify-mail');
+    },
 
-SetupAccountPrefsCard.prototype = {
-  onNext: function(event) {
-    Cards.pushCard(
-      'setup_done', 'default', 'animate',
-      {});
-  },
+    onNext: function(event) {
+      cards.pushCard('setup_done', 'animate');
+    },
 
-  die: function() {
+    die: function() {
+    }
   }
-};
-
-// Wire up some common pref handlers.
-mix(SetupAccountPrefsCard.prototype, prefsMixin);
-
-Cards.defineCardWithDefaultMode(
-    'setup_account_prefs',
-    { tray: false },
-    SetupAccountPrefsCard,
-    templateNode
-);
-
-return SetupAccountPrefsCard;
-
+];
 });
