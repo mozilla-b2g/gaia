@@ -32,11 +32,20 @@ body.rb-enabled #screen.on-homescreen:not(.cards-view):not(.rocketbar-focused) #
   left: 0;
 }
 
-#statusbar-background.hidden, #statusbar.invisible {
-  display: none;
+body:not(.rb-enabled) #statusbar {
+  transition: transform 0.2s linear;
+  will-change: transform;
 }
 
 #screen.lockscreen-camera > #statusbar,
+#statusbar.invisible {
+  transform: translateY(-100%);
+}
+
+#statusbar-background.hidden {
+  display: none;
+}
+
 #screen.lockscreen-camera > #statusbar-background {
   display: none;
 }
@@ -45,6 +54,7 @@ body.rb-enabled #screen.on-homescreen:not(.cards-view):not(.rocketbar-focused) #
 #screen.locked:not(.attention) #statusbar-background {
   background-color: transparent;
   display: block;
+  transform: translateY(0);
 }
 
 #screen:not(.locked) #statusbar.invisible.dragged {

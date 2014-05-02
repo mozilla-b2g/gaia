@@ -1,13 +1,16 @@
 'use strict';
-/* global Rocketbar, MocksHelper, MockAppWindow, MockIACPort */
+/* global Rocketbar, MocksHelper, MockAppWindow, MockAppWindowManager,
+          MockIACPort */
 
 requireApp('system/test/unit/mock_app_window.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_search_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_iac_handler.js');
 
 var mocksForRocketbar = new MocksHelper([
   'AppWindow',
+  'AppWindowManager',
   'SearchWindow',
   'SettingsListener',
   'IACPort'
@@ -152,6 +155,17 @@ suite('system/Rocketbar', function() {
 
   test('expand() - transitioning', function() {
     subject.transitioning = true;
+    subject.expand();
+    assert.equal(subject.rocketbar.classList.contains('expanded'), false);
+  });
+
+  test('expand() - in fullscreen - not implemented', function() {
+    var stubApp = {
+      isFullScreen: function() { return true; }
+    };
+
+    MockAppWindowManager.mActiveApp = stubApp;
+
     subject.expand();
     assert.equal(subject.rocketbar.classList.contains('expanded'), false);
   });
