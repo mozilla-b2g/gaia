@@ -7,12 +7,8 @@
          Settings, LazyLoader, TimeHeaders, Information,
          PerformanceTestingHelper, App */
 
-window.addEventListener('localized', function localized() {
+navigator.mozL10n.ready(function localized() {
   // This will be called during startup, and any time the languange is changed
-
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
 
   // Look for any iframes and localize them - mozL10n doesn't do this
   Array.prototype.forEach.call(document.querySelectorAll('iframe'),
