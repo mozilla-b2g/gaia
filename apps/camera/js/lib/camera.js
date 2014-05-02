@@ -21,8 +21,11 @@ var recordSpaceMin = window.RECORD_SPACE_MIN;
 var recordSpacePadding = window.RECORD_SPACE_PADDING;
 
 // More explicit names for the focus modes we care about
-var MANUAL_AUTO_FOCUS = 'auto';
-var CONTINUOUS_AUTO_FOCUS = 'continuous-picture';
+
+  MANUAL_AUTO_FOCUS = 'auto';
+  CONTINUOUS_CAMERA = 'continuous-picture';
+  CONTINUOUS_VIDEO = 'continuous-video';
+  FIXED_FOCUS = 'fixed';
 
 /**
  * Locals
@@ -59,6 +62,7 @@ function Camera(options) {
 
   this.cameraList = navigator.mozCameras.getListOfCameras();
   this.mozCamera = null;
+  this.focusModes = {};
   this.video = {
     storage: navigator.getDeviceStorage('videos'),
     filepath: null,
@@ -318,10 +322,6 @@ Camera.prototype.setupNewCamera = function(mozCamera) {
 
   this.capabilities = this.formatCapabilities(capabilities);
   this.emit('newcamera', this.capabilities);
-
-  // Configure focus
-  this.configureFocus(this.mode);
-
   debug('configured new camera');
 };
 
@@ -713,7 +713,11 @@ Camera.prototype.takePicture = function(options) {
   var self = this;
 
   rotation = selectedCamera === 'front' ? -rotation : rotation;
-  this.focus(onFocused);
+  if (this.get('focusMode') === 'autoFocus') {
+    this.focus(onFocused);
+  } else {
+    onFocused(false);
+  }
 
   function onFocused(err) {
     var position = options && options.position;
@@ -759,7 +763,8 @@ Camera.prototype.takePicture = function(options) {
   function complete() {
     // If we are in C-AF mode, we have to call resumeContinuousFocus() in
     // order to get the camera to resume focusing on what we point it at.
-    if (self.mozCamera.focusMode === CONTINUOUS_AUTO_FOCUS) {
+    if (self.mozCamera.focusMode === CONTINUOUS_CAMERA ||
+       self.mozCamera.focusMode === CONTINUOUS_VIDEO) {
       self.mozCamera.resumeContinuousFocus();
     }
 
@@ -784,7 +789,8 @@ Camera.prototype.focus = function(done) {
   var self = this;
   var focusMode = this.mozCamera.focusMode;
 
-  if (focusMode === MANUAL_AUTO_FOCUS || focusMode === CONTINUOUS_AUTO_FOCUS) {
+  if (focusMode === MANUAL_AUTO_FOCUS || focusMode === CONTINUOUS_CAMERA ||
+     focusMode === CONTINUOUS_VIDEO) {
     //
     // In either focus mode, we call autoFocus() to ensure that the user gets
     // a sharp picture. The difference between the two modes is that if
@@ -1241,35 +1247,17 @@ Camera.prototype.setSceneMode = function(value){
   }
 };
 
-Camera.prototype.configureFocus = function(captureMode) {
-  var focusModes = this.capabilities.focusModes;
-
-  // If we're taking still pictures, and C-AF is enabled and supported
-  // (and gecko supports resumeContinuousFocus) then use C-AF.
-  // XXX: once bug 986024 has landed and been uplifted we can remove
-  // the check for resumeContinuousFocus support
-  if (captureMode === 'picture') {
-    if (this.cafEnabled &&
-        focusModes.indexOf(CONTINUOUS_AUTO_FOCUS) >= 0 &&
-        this.mozCamera.resumeContinuousFocus) {
-      this.mozCamera.focusMode = CONTINUOUS_AUTO_FOCUS;
-      return;
+Camera.prototype.configureFocus = function(focusMode) {
+  for (var mode in focusMode) {
+    if (!focusMode[mode]) { continue; }
+    var supportedMode = this.supportedfocusModes(mode, this.mode);
+    if (supportedMode && supportedMode.supported) {
+      this.focusModes[mode] = supportedMode;
+      this.focusModes[mode].key = mode;
+      console.log(' Supported Focus Mode :: '+ mode);
     }
   }
-
-  // Otherwise, we'll use 'auto' mode, if it is supported.
-  // We do this for video and still pictures. For videos, this mode
-  // actually does continous focus and it seems to work better than
-  // the actual 'continuous-video' mode.
-  if (focusModes.indexOf(MANUAL_AUTO_FOCUS) >= 0) {
-    this.mozCamera.focusMode = MANUAL_AUTO_FOCUS;
-  }
-  else {
-    // If auto mode is not supported then we presumably have a fixed focus
-    // camera. Just use the first available focus mode, and don't call
-    // auto focus. This happens with the front-facing camera, typically
-    this.mozCamera.focusMode = focusModes[0];
-  }
+  this.setDefaultFocusmode();
 };
 
 /**
@@ -1400,5 +1388,105 @@ function debounce(fn, ms) {
     timeout = setTimeout(fn, ms || 0);
   };
 }
+
+Camera.prototype.setDefaultFocusmode = function() {
+  var defaultFocus = this.focusModes.continuousFocus ||
+   this.focusModes.autoFocus || this.focusModes.fixedFocus;
+   this.set('focusMode', defaultFocus.key);
+  if (defaultFocus && defaultFocus.enable) {
+    defaultFocus.enable();
+  }
+  if (this.focusModes.faceTracking &&
+     this.focusModes.faceTracking.enable) {
+    this.focusModes.faceTracking.enable();
+  }
+};
+
+Camera.prototype.setFixedFocusMode = function() {
+  if (this.focusModes.fixedFocus.focus) {
+    this.mozCamera.focusMode = this.focusModes.fixedFocus.focus;
+  }
+};
+
+Camera.prototype.disableDefaultModes = function() {
+  var defaultFocus = this.focusModes.continuousFocus ||
+   this.focusModes.autoFocus || this.focusModes.fixedFocus;
+  if (defaultFocus && defaultFocus.disable) {
+    defaultFocus.disable();
+  }
+  if (this.focusModes.faceTracking) {
+    this.focusModes.faceTracking.disable();
+  }
+};
+
+Camera.prototype.disableSupportedFocus = function() {
+  this.set('focusMode', 'none');
+  for (var mode in this.focusModes) {
+    if (this.focusModes[mode].disable) {
+      this.focusModes[mode].disable();
+    }
+  }
+};
+
+Camera.prototype.supportedfocusModes = function(mode, cameraMode) {
+  var focusObject = null;
+  var focusCapabilities = this.capabilities.focusModes;
+  switch (mode) {
+    case 'continuousFocus':
+      var focus = cameraMode === 'video' ?
+          CONTINUOUS_VIDEO : CONTINUOUS_CAMERA;
+      focus = focusCapabilities.indexOf(focus) > -1 ?
+        focus : null;
+      focusObject = {
+        focus: focus,
+        supported: this.continuousFocusModeCheck(),
+        enable: this.setContinuousFocusMode,
+        disable: this.disableAutoFocusMove
+      };
+    break;
+    case 'faceTracking':
+      var focus = MANUAL_AUTO_FOCUS;
+      focus = focusCapabilities.indexOf(focus) > -1 ?
+        focus : null;
+      focusObject = {
+        focus: focus,
+        supported: (cameraMode !== 'video') ?
+         this.faceTrackingModeCheck() : false,
+        enable: this.startFaceDetection,
+        disable: this.stopFaceDetection
+      };
+    break;
+    case 'touchFocus':
+      var focus = MANUAL_AUTO_FOCUS;
+      focus = focusCapabilities.indexOf(focus) > -1 ?
+        focus : null;
+      focusObject = {
+        focus: focus,
+        supported: this.touchFocusModeCheck(),
+      };
+    break;
+    case 'autoFocus':
+      var focus = MANUAL_AUTO_FOCUS;
+      focus = focusCapabilities.indexOf(focus) > -1 ?
+        focus : null;
+      focusObject = {
+        focus: focus,
+        supported: (cameraMode !== 'video') ?
+         this.autoFocusModeCheck() : false,
+      };
+    break;
+    case 'fixedFocus':
+      var focus = FIXED_FOCUS;
+      focus = focusCapabilities.indexOf(focus) > -1 ?
+        focus : focusCapabilities[0];
+      focusObject = {
+        focus: focus,
+        supported: true,
+        enable: this.setFixedFocusMode
+      };
+    break;
+  }
+  return focusObject;
+};
 
 });

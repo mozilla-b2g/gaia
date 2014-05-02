@@ -28,7 +28,7 @@ function ViewfinderController(app) {
   this.activity = app.activity;
   this.settings = app.settings;
   this.viewfinder = app.views.viewfinder;
-  this.focusRing = app.views.focusRing;
+  this.focusTimeout = null;
   this.bindEvents();
   this.configure();
   debug('initialized');
@@ -88,12 +88,15 @@ ViewfinderController.prototype.bindEvents = function() {
   this.viewfinder.on('click', this.app.firer('viewfinder:click'));
   this.camera.on('zoomchanged', this.onZoomChanged);
   this.app.on('camera:shutter', this.onShutter);
-  this.app.on('camera:focuschanged', this.focusRing.setState);
+  this.app.on('camera:focuschanged', this.viewfinder.setFocusState);
   this.app.on('camera:configured', this.onCameraConfigured);
   this.app.on('previewgallery:closed', this.onPreviewGalleryClosed);
   this.app.on('previewgallery:opened', this.stopStream);
   this.app.on('settings:closed', this.configureGrid);
   this.app.on('settings:opened', this.hideGrid);
+  // when we set FocusMode eg. faceTracking or Fixed ect.
+  //this event will called.
+  this.app.on('camera:focusMode', this.onFocusModeChange);
   this.app.on('hidden', this.stopStream);
   this.app.on('pinchchanged', this.onPinchChanged);
 };
@@ -125,7 +128,7 @@ ViewfinderController.prototype.show = function() {
 };
 
 ViewfinderController.prototype.onShutter = function() {
-  this.focusRing.setState('none');
+  this.viewfinder.setFocusState('none');
   this.viewfinder.shutter();
 };
 
@@ -236,6 +239,18 @@ ViewfinderController.prototype.onZoomChanged = function(zoom) {
   var zoomPreviewAdjustment = this.camera.getZoomPreviewAdjustment();
   this.viewfinder.setZoomPreviewAdjustment(zoomPreviewAdjustment);
   this.viewfinder.setZoom(zoom);
+};
+
+/**
+ * Responds to changes of the `Focus mode` 
+ * @param {String} [faceTracking,fixedFocus,continuousFocus,touchFocus]
+ * set the Mode for view
+ */
+ViewfinderController.prototype.onFocusModeChange = function(value) {
+  this.viewfinder.setFocusMode(value);
+  if (value === 'continuousFocus') {
+    this.setFocusRingPosition();
+  }
 };
 
 });
