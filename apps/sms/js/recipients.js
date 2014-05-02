@@ -1,4 +1,4 @@
-/*global GestureDetector, Dialog */
+/*global Utils, GestureDetector, Dialog */
 
 (function(exports) {
   'use strict';

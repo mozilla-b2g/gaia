@@ -2382,7 +2382,7 @@ var ThreadUI = global.ThreadUI = {
     var last = this.recipientsList.lastElementChild;
     var typed = last && last.textContent.trim();
     var isContact = false;
-    var record, tel, length, number, contact, target;
+    var record, length, number, contact, target;
 
     if (index < 0) {
       index = 0;

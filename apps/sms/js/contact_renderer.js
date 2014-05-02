@@ -240,7 +240,7 @@ ContactRenderer.prototype = {
             }
             data[key + 'HTML'] = escapedData;
         });
-        data['numberHTML'] = data['emailHTML'];
+        data.numberHTML = data.emailHTML;
       } else {
         ['name', 'number'].forEach(function(key) {
            var escapedData = Template.escape(data[key]);

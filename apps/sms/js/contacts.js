@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 (function(exports) {
   'use strict';
-  /*global fb */
+  /*global Utils, fb */
   var unknownNumbers = [];
 
   var filterFns = {
