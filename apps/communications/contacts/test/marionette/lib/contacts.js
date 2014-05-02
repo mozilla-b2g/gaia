@@ -74,6 +74,7 @@ Contacts.Selectors = {
   settingsView: '#view-settings',
   bulkDelete: '#bulkDelete',
 
+  editForm: '#selectable-form',
   editMenu: '#select-all-wrapper'
 };
 
