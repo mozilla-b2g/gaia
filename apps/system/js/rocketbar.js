@@ -1,5 +1,5 @@
 'use strict';
-/* global SettingsListener, AppWindow, SearchWindow, places */
+/* global SettingsListener, AppWindow, AppWindowManager, SearchWindow, places */
 
 (function(exports) {
 
@@ -305,6 +305,13 @@
       if (this.expanded || this.transitioning) {
         return;
       }
+
+      //TODO: support fullscreen apps in the rocketbar
+      var app = AppWindowManager.getActiveApp();
+      if (app && app.isFullScreen()) {
+        return;
+      }
+
       this.transitioning = true;
       this.rocketbar.classList.add('expanded');
       this.screen.classList.add('rocketbar-expanded');
