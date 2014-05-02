@@ -857,6 +857,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         if self.device.is_android_build:
             self.device.add_device_manager(self.get_device_manager())
         if self.restart and (self.device.is_android_build or self.marionette.instance):
+            # Restart if it's a device, or we have passed a binary instance with --binary command arg
             self.device.stop_b2g()
             if self.device.is_android_build:
                 self.cleanup_data()
