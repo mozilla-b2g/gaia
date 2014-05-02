@@ -7,6 +7,7 @@ define(function(require, exports, module) {
 
 var debug = require('debug')('controller:viewfinder');
 var bindAll = require('lib/bind-all');
+var constants = require('config/camera');
 
 /**
  * Exports
@@ -40,6 +41,8 @@ function ViewfinderController(app) {
  * @private
  */
 ViewfinderController.prototype.configure = function() {
+  this.sensitivity = constants.ZOOM_GESTURE_SENSITIVITY * window.innerWidth;
+
   this.configureScaleType();
   this.configureGrid();
 };
@@ -84,7 +87,6 @@ ViewfinderController.prototype.hideGrid = function() {
 ViewfinderController.prototype.bindEvents = function() {
   this.app.settings.grid.on('change:selected', this.viewfinder.setter('grid'));
   this.viewfinder.on('click', this.app.firer('viewfinder:click'));
-  this.viewfinder.on('pinchChange', this.onPinchChange);
   this.camera.on('zoomchanged', this.onZoomChanged);
   this.app.on('camera:focuschanged', this.focusRing.setState);
   this.app.on('camera:configured', this.onCameraConfigured);
@@ -94,6 +96,7 @@ ViewfinderController.prototype.bindEvents = function() {
   this.app.on('settings:closed', this.configureGrid);
   this.app.on('settings:opened', this.hideGrid);
   this.app.on('blur', this.stopStream);
+  this.app.on('pinchchanged', this.onPinchChanged);
 };
 
 /**
@@ -200,7 +203,9 @@ ViewfinderController.prototype.configureZoom = function() {
  *
  * @private
  */
-ViewfinderController.prototype.onPinchChange = function(zoom) {
+ViewfinderController.prototype.onPinchChanged = function(deltaPinch) {
+  var zoom = this.viewfinder._zoom * (1 + (deltaPinch / this.sensitivity));
+  this.viewfinder.setZoom(zoom);
   this.camera.setZoom(zoom);
 };
 
