@@ -4,7 +4,7 @@
 require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/test/unit/mock_screen_manager.js');
-requireApp('system/js/remote_debugger.js');
+requireApp('system/js/devtools/remote_debugger.js');
 
 var mocksForRemoteDebugger = new MocksHelper([
   'ModalDialog',
