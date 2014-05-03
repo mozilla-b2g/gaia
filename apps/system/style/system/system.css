@@ -255,14 +255,7 @@ body {
   pointer-events: none;
 }
 
-@media not all and (-moz-physical-home-button) {
-  #dialog-overlay {
-    bottom: 5rem;
-    height: calc(100% - 2.4rem - 5rem);
-  }
-}
-
-#screen.software-button-enabled #windows > #dialog-overlay {
+#screen.software-button-enabled #windows + #dialog-overlay {
   bottom: 5rem;
   height: calc(100% - 2.4rem - 5rem);
 }
