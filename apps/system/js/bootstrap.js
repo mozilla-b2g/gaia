@@ -15,7 +15,8 @@
          ExternalStorageMonitor, TrustedWindowManager,
          BrowserSettings, AppMigrator, SettingsMigrator,
          CpuManager, CellBroadcastSystem, EdgeSwipeDetector, QuickSettings,
-         BatteryOverlay, BaseModule, AppWindowManager, KeyboardManager */
+         BatteryOverlay, BaseModule, AppWindowManager, KeyboardManager,
+         DevToolsAuth */
 'use strict';
 
 /* === Shortcuts === */
@@ -154,6 +155,7 @@ window.addEventListener('load', function startup() {
   window.cpuManager.start();
   window.developerHUD = new DeveloperHUD();
   window.developerHUD.start();
+  window.devToolsAuth = new DevToolsAuth();
   /** @global */
   window.attentionWindowManager = new window.AttentionWindowManager();
   window.attentionWindowManager.start();
