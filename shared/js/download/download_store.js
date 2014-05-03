@@ -1,8 +1,7 @@
+'use strict';
 /* jshint moz:true */
 /* global Promise */
 /* global indexedDB */
-
-'use strict';
 
 /*
  * DownloadStore.js: Allows to store download finished ordered by timestamp
