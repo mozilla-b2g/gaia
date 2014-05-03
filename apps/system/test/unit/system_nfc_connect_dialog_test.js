@@ -88,4 +88,101 @@ suite('NfcConnectSystemDialog', function() {
         'system-dialog-hide');
     });
   });
+
+  suite('Buttons', function() {
+    var nfcDialog;
+    var stubConfirm;
+    var stubCancel;
+
+    setup(function() {
+      stubConfirm = this.sinon.spy();
+      stubCancel = this.sinon.spy();
+
+      nfcDialog = new NfcConnectSystemDialog();
+      nfcDialog.show(null, stubConfirm, stubCancel);
+    });
+
+    teardown(function() {
+      nfcDialog.hide();
+    });
+
+    test('Cancel button calls only cancel callback', function() {
+      nfcDialog.buttonCancel.click();
+      assert.isTrue(stubCancel.calledOnce);
+      assert.isTrue(stubConfirm.notCalled);
+    });
+
+    test('Confirm button calls only confirm callback', function() {
+      nfcDialog.buttonOK.click();
+      assert.isTrue(stubCancel.notCalled);
+      assert.isTrue(stubConfirm.calledOnce);
+    });
+  });
+
+  suite('L10n', function() {
+    var realL10n;
+    var nfcDialog;
+
+    setup(function() {
+      realL10n = navigator.mozL10n;
+      navigator.mozL10n = MockL10n;
+
+      nfcDialog = new NfcConnectSystemDialog();
+    });
+
+    teardown(function() {
+      navigator.mozL10n = realL10n;
+      nfcDialog.hide();
+    });
+
+    var assertTextContent = function(btEnabled, btName, el, expected) {
+      MockBluetooth.enabled = btEnabled;
+      nfcDialog.show(btName);
+      assert.equal(nfcDialog[el].textContent, expected);
+    };
+
+    test('BT enabled, button OK', function() {
+      assertTextContent(true, null, 'buttonOK', 'yes');
+    });
+
+    test('BT disabled, button OK', function() {
+      assertTextContent(false, null, 'buttonOK',
+        'confirmNFCConnectBTdisabled');
+    });
+
+    test('BT enabled, button cancel', function() {
+      assertTextContent(true, null, 'buttonCancel', 'no');
+    });
+
+    test('BT disabled, button cancel', function() {
+      assertTextContent(false, null, 'buttonCancel',
+        'dismissNFCConnectBTdisabled');
+    });
+
+    test('BT enabled, no BT name, message', function() {
+      assertTextContent(true, null, 'confirmNFCConnectMsg',
+        'confirmNFCConnectBTenabledNameUnknown{"deviceName":null}');
+    });
+
+    test('BT enabled, with BT name, message', function() {
+      assertTextContent(true, 'xyz 123', 'confirmNFCConnectMsg',
+        'confirmNFCConnectBTenabledNameKnown{"deviceName":"xyz 123"}');
+    });
+
+    test('BT disabled, no BT name, message', function() {
+      assertTextContent(false, null, 'confirmNFCConnectMsg',
+        'confirmNFCConnectBTdisabledNameUnknown{"deviceName":null}');
+    });
+
+    test('BT disabled, with BT name, message', function() {
+      assertTextContent(false, 'xyz 123', 'confirmNFCConnectMsg',
+        'confirmNFCConnectBTdisabledNameKnown{"deviceName":"xyz 123"}');
+    });
+
+    test('Dialog title', function() {
+      var spyTranslate = this.sinon.spy(MockL10n, 'translate');
+      nfcDialog.show();
+      assert.isTrue(spyTranslate.calledOnce);
+    });
+  });
 });
