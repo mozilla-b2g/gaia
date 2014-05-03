@@ -434,6 +434,14 @@ return [
       // UXXX do we want to disable the buttons if nothing is selected?
     },
 
+    setEditModeStart: function() {
+      this.setEditMode(true);
+    },
+
+    setEditModeDone: function() {
+      this.setEditMode(false);
+    },
+
     /**
      * Update the edit mode UI bits sensitive to a change in the set of selected
      * messages.  This means: the label that says how many messages are
@@ -510,7 +518,14 @@ return [
     onShowFolders: function() {
       var query = 'folder_picker';
       if (cards.hasCard(query)) {
-        cards.moveToCard(query);
+        //XXX hack until email drawer arrives.
+        var currentCard = cards._cardStack[cards.activeCardIndex];
+        if (currentCard.domNode.dataset.type === query) {
+          cards.moveToCard('message_list');
+        } else {
+          // Original code before the hack.
+          cards.moveToCard(query);
+        }
       } else {
         // Add navigation, but before the message list.
         cards.pushCard(

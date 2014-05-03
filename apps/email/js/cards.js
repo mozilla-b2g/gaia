@@ -441,46 +441,6 @@ var cards = {
   },
 
   /**
-   * Create a mask that shows only the given node by creating 2 or 4 div's,
-   * returning the container that holds those divs.  It's not clear if a single
-   * div with some type of fancy clipping would be better.
-   */
-  _createMaskForNode: function(domNode, bounds) {
-    var anchorIn = this._rootNode, cleanupDivs = [];
-    var uiWidth = this._containerNode.offsetWidth,
-        uiHeight = this._containerNode.offsetHeight;
-
-    // inclusive pixel coverage
-    function addMask(left, top, right, bottom) {
-      var node = document.createElement('div');
-      node.classList.add('popup-mask');
-      node.style.left = left + 'px';
-      node.style.top = top + 'px';
-      node.style.width = (right - left + 1) + 'px';
-      node.style.height = (bottom - top + 1) + 'px';
-      cleanupDivs.push(node);
-      anchorIn.appendChild(node);
-    }
-    if (bounds.left > 1) {
-      addMask(0, bounds.top, bounds.left - 1, bounds.bottom);
-    }
-    if (bounds.top > 0) {
-      addMask(0, 0, uiWidth - 1, bounds.top - 1);
-    }
-    if (bounds.right < uiWidth - 1) {
-      addMask(bounds.right + 1, bounds.top, uiWidth - 1, bounds.bottom);
-    }
-    if (bounds.bottom < uiHeight - 1) {
-      addMask(0, bounds.bottom + 1, uiWidth - 1, uiHeight - 1);
-    }
-    return function() {
-      for (var i = 0; i < cleanupDivs.length; i++) {
-        anchorIn.removeChild(cleanupDivs[i]);
-      }
-    };
-  },
-
-  /**
    * Remove the card identified by its DOM node and all the cards to its right.
    * Pass null to remove all of the cards! If cardDomNode passed, but there
    * are no cards before it, cards.getDefaultCard is called to set up a before

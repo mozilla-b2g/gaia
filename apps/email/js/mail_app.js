@@ -143,8 +143,11 @@ var startCardArgs = {
   'setup_account_info': [
     'setup_account_info', 'immediate',
     {
-      onPushed: function(impl) {
-        htmlCache.delayedSaveFromNode(impl.domNode.cloneNode(true));
+      onPushed: function(cardNode) {
+        if (htmlCache) {
+          //XXX enable htmlCache later
+          //htmlCache.delayedSaveFromNode(cardNode.cloneNode(true));
+        }
       }
     }
   ],

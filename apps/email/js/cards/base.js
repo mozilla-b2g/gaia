@@ -3,6 +3,7 @@ define(function(require) {
   var mozL10n = require('l10n!'),
       Emitter = require('evt').Emitter;
 
+  // Set up the global time updates for all nodes.
   (function() {
     var formatter = new mozL10n.DateTimeFormat();
     var updatePrettyDate = function updatePrettyDate() {
@@ -32,12 +33,21 @@ define(function(require) {
     });
   })();
 
-  return function(templateMixins) {
+
+  return function cardBase(templateMixins) {
+    // Set up the base mixin
     return [
+      // Mix in the template first, so that its createdCallback is
+      // called before the other createdCallbacks, so that the
+      // template is there for things like l10n mixing and node
+      // binding inside the template.
       templateMixins ? templateMixins : {},
+
+      // Wire up support for auto-node binding
       require('./mixins/data-prop'),
       require('./mixins/data-event'),
 
+      // Every custom element is an evt Emitter!
       Emitter.prototype,
 
       {

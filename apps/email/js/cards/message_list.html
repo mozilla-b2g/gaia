@@ -18,7 +18,7 @@
 <section data-prop="editHeader"
          class="msg-listedit-header collapsed" role="region">
   <header>
-    <a href="#" data-event="click:setEditMode"
+    <a href="#" data-event="click:setEditModeDone"
        class="msg-listedit-cancel-btn">
       <span class="icon icon-close"></span>
     </a>
@@ -89,7 +89,9 @@
       <p data-prop="syncingNode" class="msg-messages-syncing collapsed">
         <span data-l10n-id="messages-syncing">Message loadinG</span>
       </p>
-      <p data-prop="syncMoreNode" class="msg-messages-sync-more collapsed">
+      <p data-prop="syncMoreNode"
+         data-event="click:onGetMoreMessages"
+         class="msg-messages-sync-more collapsed">
         <span data-l10n-id="messages-sync-more">SynC MorE</span>
       </p>
     </div>
@@ -112,7 +114,7 @@
             class="icon msg-search-btn"></button>
   </li>
   <li role="presentation">
-    <button data-prop="editBtn" data-event="click:setEditMode"
+    <button data-prop="editBtn" data-event="click:setEditModeStart"
             class="icon msg-edit-btn"></button>
   </li>
 </ul>
