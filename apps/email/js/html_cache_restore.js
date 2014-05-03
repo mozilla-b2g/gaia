@@ -1,5 +1,6 @@
 /*jshint browser: true */
 /*global performance, console */
+'use strict';
 var _xstart = performance.timing.fetchStart -
               performance.timing.navigationStart;
 function plog(msg) {
@@ -31,6 +32,8 @@ window.htmlCacheRestorePendingMessage = [];
    * Be prepared.
    */
   function retrieve() {
+    return '';
+    /*
     var value = document.cookie;
     var pairRegExp = /htmlc(\d+)=([^;]+)/g;
     var segments = [];
@@ -58,6 +61,7 @@ window.htmlCacheRestorePendingMessage = [];
     }
 
     return value;
+    */
   }
 
   /*
@@ -83,12 +87,15 @@ window.htmlCacheRestorePendingMessage = [];
   // TODO: mozHasPendingMessage can only be called once?
   // Need to set up variable to delay normal code logic later
   if (navigator.mozHasPendingMessage) {
-    if (navigator.mozHasPendingMessage('activity'))
+    if (navigator.mozHasPendingMessage('activity')) {
       window.htmlCacheRestorePendingMessage.push('activity');
-    if (navigator.mozHasPendingMessage('alarm'))
+    }
+    if (navigator.mozHasPendingMessage('alarm')) {
       window.htmlCacheRestorePendingMessage.push('alarm');
-    if (navigator.mozHasPendingMessage('notification'))
+    }
+    if (navigator.mozHasPendingMessage('notification')) {
       window.htmlCacheRestorePendingMessage.push('notification');
+    }
   }
 
   if (window.htmlCacheRestorePendingMessage.length) {

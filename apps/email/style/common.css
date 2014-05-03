@@ -44,6 +44,15 @@ body {
 
 }
 
+/*
+ * Temp shim because building blocks target a section element for some styles,
+ * where we now use a custom element instead. Ideally bb would use a class
+ * target instead.
+ */
+.card > section.bbshim {
+  height: 100%;
+}
+
 .card.anim-up center {
   transform: translateX(0);
 }
@@ -77,13 +86,13 @@ body {
 }
 
 
-.card.center.card-folder-picker,
-.card.center.card-account-picker,
-.card.card-account-picker {
+cards-folder-picker.card.center,
+cards-account-picker.card.center,
+cards-account-picker.card {
   width: calc(100% - 5em);
 }
 
-.card.center.card-folder-picker + .card.after {
+cards-folder-picker.card.center + .card.after {
   transform: translateX(calc(100% - 5em));
 }
 

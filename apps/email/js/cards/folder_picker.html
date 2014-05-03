@@ -1,23 +1,26 @@
-<div class="card-folder-picker card">
-  <section class="fld-folders-header skin-dark" role="region">
-    <header>
-      <a href="#" class="fld-accounts-btn">
-        <span class="icon icon-back"></span>
-      </a>
-      <h1 class="fld-folders-header-account-label"></h1>
-    </header>
-  </section>
-  <div class="scrollregion-below-header folder-scroller-region">
-    <div class="fld-folders-container">
-    </div>
+<section class="fld-folders-header skin-dark" role="region">
+  <header>
+    <a href="#" data-prop="accountButton" data-event="click:onShowAccounts"
+       class="fld-accounts-btn">
+      <span class="icon icon-back"></span>
+    </a>
+    <h1 data-prop="headerAccountLabel"
+        class="fld-folders-header-account-label"></h1>
+  </header>
+</section>
+<div class="scrollregion-below-header folder-scroller-region">
+  <div data-prop="foldersContainer" class="fld-folders-container">
   </div>
-  <div class="fld-nav-toolbar bottom-toolbar">
-    <button class="fld-nav-settings-btn bottom-btn"></button>
-    <h3 class="fld-nav-last-synced">
-      <span class="fld-nav-last-synced-label"
-            data-l10n-id="account-last-synced-label"></span>
-      <span class="fld-nav-last-synced-value"></span>
-    </h3>
-    <span class="fld-nav-account-problem icon collapsed">!</span>
-  </div>
+</div>
+<div class="fld-nav-toolbar bottom-toolbar">
+  <button data-event="click:onShowSettings"
+          class="fld-nav-settings-btn bottom-btn"></button>
+  <h3 class="fld-nav-last-synced">
+    <span class="fld-nav-last-synced-label"
+          data-l10n-id="account-last-synced-label"></span>
+    <span data-prop="lastSyncedAtNode"
+          class="fld-nav-last-synced-value"></span>
+  </h3>
+  <span data-prop="toolbarAccountProblemNode"
+        class="fld-nav-account-problem icon collapsed">!</span>
 </div>

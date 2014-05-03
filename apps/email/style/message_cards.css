@@ -42,8 +42,8 @@
    be sure any inputs do not accept clicks/taps that would
    mess up the transition back to the message list. Also
    disable scrolling of the list */
-.card-message-list.after input,
-.card-message-list.after .msg-list-scrollouter {
+cards-message-list.after input,
+cards-message-list.after .msg-list-scrollouter {
   pointer-events: none;
 }
 
@@ -252,12 +252,12 @@ reflows. Foreground/background colors should be safe.
   margin: 1rem 1.5rem;
 }
 
-.card-message-reader .msg-body-container > progress {
+cards-message-reader .msg-body-container > progress {
   display: block;
   margin: 0 auto;
 }
 
-.card-message-reader .scrollregion-below-header {
+cards-message-reader .scrollregion-below-header {
   height: calc(100% - 9.5rem);
 }
 
