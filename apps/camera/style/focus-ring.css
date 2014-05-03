@@ -1,112 +1,42 @@
-
-/** Focus Ring
- ---------------------------------------------------------*/
-
-.focus-ring {
+.focus-ring{
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 10rem;
-  height: 10rem;
-  margin-top: -5rem;
-  margin-left: -5rem;
-  font-size: 92px;
-  line-height: 1em;
-  text-align: center;
-  color: #ffffff;
-  text-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
   pointer-events: none;
-  opacity: 0;
-  transform: rotate(0deg) scale(1);
-  transition: transform 0.2s ease-in;
-}
-
-/**
- * data-state="focusing",
- * data-state="focused",
- * data-state="fail"
- */
-
-.focus-ring[data-state="focusing"],
-.focus-ring[data-state="focused"],
-.focus-ring[data-state="fail"] {
   opacity: 0.8;
+  font-size: 92px;
+  background: transparent;
+  margin-left: 0px;
+  margin-top: 0px;
+  transform: translate(-50%, -50%);
 }
 
-/** Icon
- ---------------------------------------------------------*/
+.focus[state=none] .focus-ring:before {
+  opacity: 0;
+}
 
-.focus-ring:before,
-.focus-ring:after {
-  font-family: 'gaia-camera';
+.focus[state=focusing] .focus-ring:before {
   display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.focus-ring:before {
-  content: "\e616";
-}
-
-.focus-ring:after {
-  content: "\e615";
-}
-
-/**
- * data-state="focusing"
- */
-
-.focus-ring[data-state="focusing"] {
+  color: white;
   animation: 0.35s ring-animation 1 ease-in forwards;
 }
 
-.focus-ring[data-state="focusing"]:before {
-  opacity: 1;
+.focus[state=focused] .focus-ring:before {
+  color: #AFFF3D;
+  content: "\e615";
 }
 
-.focus-ring[data-state="focusing"]:after {
-  opacity: 0;
+.focus[state=fail] .focus-ring:before {
+  color: red;
+  content: "\e615";
 }
 
-/**
- * data-state="focused"
- */
-
-.focus-ring[data-state="focused"] {
-  color: #afff3d;
-  transform: rotate(45deg) scale(0.8478);
-  transition-duration: 0.1s;
+.focus[state=focused][mode=continuousFocus] .focus-ring,
+.focus[state=focused][mode=touchFocus] .focus-ring {
+  font-size: 78px;
 }
 
-.focus-ring[data-state="focused"]:before {
-  opacity: 0;
-}
-
-.focus-ring[data-state="focused"]:after {
-  opacity: 1;
-}
-
-/**
- * data-state="fail"
- */
-
-.focus-ring[data-state="fail"] {
-  color: #ff0000;
-  transform: rotate(45deg) scale(1);
-  transition-duration: 0.1s;
-}
-
-.focus-ring[data-state="fail"]:before {
-  opacity: 0;
-}
-
-.focus-ring[data-state="fail"]:after {
-  opacity: 1;
-}
 
 @keyframes ring-animation {
-  0% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(60deg) scale(1.1); }
-  100% { transform: rotate(45deg) scale(1); }
+  0% { transform: rotate(0deg) }
+  50% { transform: rotate(45deg)}
+  100% { transform: rotate(0deg) }
 }

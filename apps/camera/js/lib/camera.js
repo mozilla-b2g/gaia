@@ -21,8 +21,11 @@ var recordSpaceMin = window.RECORD_SPACE_MIN;
 var recordSpacePadding = window.RECORD_SPACE_PADDING;
 
 // More explicit names for the focus modes we care about
-var MANUAL_AUTO_FOCUS = 'auto';
-var CONTINUOUS_AUTO_FOCUS = 'continuous-picture';
+
+  MANUAL_AUTO_FOCUS = 'auto';
+  CONTINUOUS_CAMERA = 'continuous-picture';
+  CONTINUOUS_VIDEO = 'continuous-video';
+  FIXED_FOCUS = 'fixed';
 
 /**
  * Locals
@@ -59,6 +62,7 @@ function Camera(options) {
 
   this.cameraList = navigator.mozCameras.getListOfCameras();
   this.mozCamera = null;
+  this.focusModes = {};
   this.video = {
     storage: navigator.getDeviceStorage('videos'),
     filepath: null,
@@ -318,10 +322,6 @@ Camera.prototype.setupNewCamera = function(mozCamera) {
 
   this.capabilities = this.formatCapabilities(capabilities);
   this.emit('newcamera', this.capabilities);
-
-  // Configure focus
-  this.configureFocus(this.mode);
-
   debug('configured new camera');
 };
 
@@ -759,10 +759,7 @@ Camera.prototype.takePicture = function(options) {
   function complete() {
     // If we are in C-AF mode, we have to call resumeContinuousFocus() in
     // order to get the camera to resume focusing on what we point it at.
-    if (self.mozCamera.focusMode === CONTINUOUS_AUTO_FOCUS) {
-      self.mozCamera.resumeContinuousFocus();
-    }
-
+    self.setDefaultFocusmode();
     self.set('focus', 'none');
     self.ready();
   }
@@ -784,7 +781,8 @@ Camera.prototype.focus = function(done) {
   var self = this;
   var focusMode = this.mozCamera.focusMode;
 
-  if (focusMode === MANUAL_AUTO_FOCUS || focusMode === CONTINUOUS_AUTO_FOCUS) {
+  if (focusMode === MANUAL_AUTO_FOCUS || focusMode === CONTINUOUS_CAMERA ||
+     focusMode === CONTINUOUS_VIDEO) {
     //
     // In either focus mode, we call autoFocus() to ensure that the user gets
     // a sharp picture. The difference between the two modes is that if
@@ -1241,35 +1239,17 @@ Camera.prototype.setSceneMode = function(value){
   }
 };
 
-Camera.prototype.configureFocus = function(captureMode) {
-  var focusModes = this.capabilities.focusModes;
-
-  // If we're taking still pictures, and C-AF is enabled and supported
-  // (and gecko supports resumeContinuousFocus) then use C-AF.
-  // XXX: once bug 986024 has landed and been uplifted we can remove
-  // the check for resumeContinuousFocus support
-  if (captureMode === 'picture') {
-    if (this.cafEnabled &&
-        focusModes.indexOf(CONTINUOUS_AUTO_FOCUS) >= 0 &&
-        this.mozCamera.resumeContinuousFocus) {
-      this.mozCamera.focusMode = CONTINUOUS_AUTO_FOCUS;
-      return;
+Camera.prototype.configureFocus = function(focusMode) {
+  for (var mode in focusMode) {
+    if (!focusMode[mode]) { continue; }
+    var supportedMode = this.supportedfocusModes(mode, this.mode);
+    if (supportedMode && supportedMode.supported) {
+      this.focusModes[mode] = supportedMode;
+      this.focusModes[mode].key = mode;
+      console.log(' Supported Focus Mode :: '+ mode);
     }
   }
-
-  // Otherwise, we'll use 'auto' mode, if it is supported.
-  // We do this for video and still pictures. For videos, this mode
-  // actually does continous focus and it seems to work better than
-  // the actual 'continuous-video' mode.
-  if (focusModes.indexOf(MANUAL_AUTO_FOCUS) >= 0) {
-    this.mozCamera.focusMode = MANUAL_AUTO_FOCUS;
-  }
-  else {
-    // If auto mode is not supported then we presumably have a fixed focus
-    // camera. Just use the first available focus mode, and don't call
-    // auto focus. This happens with the front-facing camera, typically
-    this.mozCamera.focusMode = focusModes[0];
-  }
+  this.setDefaultFocusmode();
 };
 
 /**
@@ -1400,5 +1380,329 @@ function debounce(fn, ms) {
     timeout = setTimeout(fn, ms || 0);
   };
 }
+
+Camera.prototype.setDefaultFocusmode = function() {
+  var defaultFocus = this.focusModes.continuousFocus ||
+   this.focusModes.autoFocus || this.focusModes.fixedFocus;
+   this.set('focusMode', defaultFocus.key);
+  if (defaultFocus && defaultFocus.enable) {
+    defaultFocus.enable();
+  }
+  if (this.focusModes.faceTracking &&
+     this.focusModes.faceTracking.enable) {
+    this.focusModes.faceTracking.enable();
+  }
+};
+
+Camera.prototype.setFixedFocusMode = function() {
+  if (this.focusModes.fixedFocus.focus) {
+    this.mozCamera.focusMode = this.focusModes.fixedFocus.focus;
+  }
+};
+
+Camera.prototype.disableDefaultModes = function() {
+  var defaultFocus = this.focusModes.continuousFocus ||
+   this.focusModes.autoFocus || this.focusModes.fixedFocus;
+  if (defaultFocus && defaultFocus.disable) {
+    defaultFocus.disable();
+  }
+  if (this.focusModes.faceTracking) {
+    this.focusModes.faceTracking.disable();
+  }
+};
+
+/**
+* Check whether continuous auto
+* focus modes are support or not.
+**/
+Camera.prototype.checkContinuousFocusSupport = function(done) {
+  if (!this.focusModes.continuousFocus.focus) {
+    done('null');
+  } else {
+    done();
+  }
+};
+
+Camera.prototype.disableCurrentMode = function() {
+  var currentFocusMode = this.focusModes[this.get('focusMode')];
+  if (currentFocusMode && currentFocusMode.disable) {
+    currentFocusMode.disable();
+  }
+};
+
+/**
+* Set default focus mode as continuous Auto.
+* Later when Face tracking is landed the default
+* mode will be changed to Face tracking mode on availability.
+**/
+Camera.prototype.setContinuousFocusMode = function() {
+  // Start continuous Auto Focus mode
+  this.setContinuousAutoFocus();
+  // Enable Gecko callbacks of success
+  this.enableAutoFocusMove();
+};
+
+/**
+* Set focus mode as continuous auto
+* based on the mode selected
+**/
+Camera.prototype.setContinuousAutoFocus = function() {
+  if (this.focusModes.continuousFocus.focus) {
+    this.mozCamera.focusMode = this.focusModes.continuousFocus.focus;
+  }
+};
+
+/**
+* Enable auto focus move to make camera
+* adjusts the focus of new scene or
+* postion.
+**/
+Camera.prototype.enableAutoFocusMove = function() {
+  var self = this;
+  var timer = null;
+  var isVideo = this.mode === 'video';
+  if (!isVideo) {
+    this.mozCamera.onAutoFocusMoving = onAutoFocusMoving;
+  }
+  
+  /**
+  * Focus move callbacks from gecko:
+  * During continuous auto focus, when
+  * camera moves to a new scene or location,
+  * it has to refocus to get the clear view.
+  * Gecko sends the call back when camera
+  * is refocusing on to a new scene.
+  *
+  * @param {bool} isMoving
+  * isMoving is true when focusing on new scene.
+  * isMoving is false when focus is complete.
+  * for that particular scene.
+  **/
+
+  // we can use the state concept of face tracking here.
+  // starting, focusing, focused.
+  // if consecutive states are same, ignore.
+  // wait fot focused state when taking picture.
+  function onAutoFocusMoving(isMoving) {
+    var visibleZoombar = self.get('zoombar');
+    if (visibleZoombar) {
+      self.set('focus','none');
+      return;
+    }
+
+    function clearFocusState() {
+    timer = setTimeout(function() {
+        self.set('focus', 'none');
+      }, 3000);
+    }
+    function focused() {
+      console.log('C-AF focus done');
+      setTimeout(function() {
+        self.set('focus','focused');
+        clearFocusState();
+      }, 50);
+    }
+    if (isMoving === true) {
+      self.set('focus','focusing');
+    } else {
+      focused();
+    }
+  }
+};
+
+/**
+*set focus Area
+* To focus on user specified region
+* of viewfinder set focus areas.
+*
+* @param  {object} rect
+* The argument is an object that
+* contains boundaries of focus area
+* in camera coordinate system, where
+* the top-left of the camera field
+* of view is at (-1000, -1000), and
+* bottom-right of the field at
+* (1000, 1000).
+*
+**/
+Camera.prototype.setFocusArea = function(rect) {
+  this.mozCamera.focusAreas = [{
+    top: rect.top,
+    bottom: rect.bottom,
+    left: rect.left,
+    right: rect.right,
+    weight: 1
+  }];
+};
+
+/**
+* Set the metering area.
+*
+* @param  {object} rect
+* The argument is an object that
+* contains boundaries of metering area
+* in camera coordinate system, where
+* the top-left of the camera field
+* of view is at (-1000, -1000), and
+* bottom-right of the field at
+* (1000, 1000).
+*
+**/
+Camera.prototype.setMeteringArea = function(rect) {
+  this.mozCamera.meteringAreas = [{
+    top: rect.top,
+    bottom: rect.bottom,
+    left: rect.left,
+    right: rect.right,
+    weight: 1
+  }];
+};
+
+Camera.prototype.continuousFocusModeCheck = function() {
+  if (!this.checkFocusCapability()) {
+    return false;
+  }
+  if (this.capabilities.focusModes.indexOf(CONTINUOUS_VIDEO) < 0 ||
+     this.capabilities.focusModes.indexOf(CONTINUOUS_CAMERA) < 0){
+    return false;
+  } else {
+    return true;
+  }
+};
+
+Camera.prototype.touchFocusModeCheck = function() {
+  return this.checkFocusCapability();
+};
+
+Camera.prototype.autoFocusModeCheck = function() {
+  if (this.capabilities.focusModes.indexOf(MANUAL_AUTO_FOCUS) < 0) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
+Camera.prototype.checkFocusCapability = function() {
+  var maxfocusAreas = this.mozCamera.capabilities.maxfocusAreas;
+  var maxMeteringAreas = this.mozCamera.capabilities.maxMeteringAreas;
+  if (maxfocusAreas < 1 && maxMeteringAreas < 1) {
+    return false;
+  } else {
+    return true;
+  }
+};
+
+/**
+* Once touch focus is done
+* clear the ring UI.
+*
+* Timeout is needed to show
+* the focused UI for sometime
+* before making it disappear.
+**/
+Camera.prototype.clearFocusRing = function() {
+  var self = this;
+  setTimeout(function() {
+    self.set('focus', 'none');
+  }, 1000);
+};
+
+Camera.prototype.onFocusPointChange = function(rect,focusDone) {
+  this.set('focus', 'none');
+  if (this.get('focusMode') !== 'touchFocus') {
+    this.disableDefaultModes();
+    this.set('focusMode', 'touchFocus');
+  }
+  // Set focus and metering areas
+  this.setFocusArea(rect);
+  this.setMeteringArea(rect);
+  // Call auto focus to focus on focus area.
+  this.focus(focusDone);
+};
+
+/**
+* Disable auto focus move
+* and change focus mode.
+**/
+Camera.prototype.disableAutoFocusMove = function() {
+  this.mozCamera.onAutoFocusMoving = this.diableFocusCall;
+  if (this.focusModes.autoFocus) {
+    this.mozCamera.focusMode = this.focusModes.autoFocus.focus;
+  } else {
+    this.mozCamera.focusMode = MANUAL_AUTO_FOCUS;
+  }
+};
+
+Camera.prototype.diableFocusCall = function() { return; };
+
+Camera.prototype.disableSupportedFocus = function() {
+  this.set('focusMode', 'none');
+  for (var mode in this.focusModes) {
+    if (this.focusModes[mode].disable) {
+      this.focusModes[mode].disable();
+    }
+  }
+};
+
+Camera.prototype.supportedfocusModes = function(mode, cameraMode) {
+  var focusObject = null;
+  var focusCapabilities = this.capabilities.focusModes;
+  switch (mode) {
+    case 'continuousFocus':
+      var focus = cameraMode === 'video' ?
+          CONTINUOUS_VIDEO : CONTINUOUS_CAMERA;
+      focus = focusCapabilities.indexOf(focus) > -1 ?
+        focus : null;
+      focusObject = {
+        focus: focus,
+        supported: this.continuousFocusModeCheck(),
+        enable: this.setContinuousFocusMode,
+        disable: this.disableAutoFocusMove
+      };
+    break;
+    case 'faceTracking':
+      var focus = MANUAL_AUTO_FOCUS;
+      focus = focusCapabilities.indexOf(focus) > -1 ?
+        focus : null;
+      focusObject = {
+        focus: focus,
+        supported: (cameraMode !== 'video') ?
+         this.faceTrackingModeCheck() : false,
+        enable: this.startFaceDetection,
+        disable: this.stopFaceDetection
+      };
+    break;
+    case 'touchFocus':
+      var focus = MANUAL_AUTO_FOCUS;
+      focus = focusCapabilities.indexOf(focus) > -1 ?
+        focus : null;
+      focusObject = {
+        focus: focus,
+        supported: this.touchFocusModeCheck(),
+      };
+    break;
+    case 'autoFocus':
+      var focus = MANUAL_AUTO_FOCUS;
+      focus = focusCapabilities.indexOf(focus) > -1 ?
+        focus : null;
+      focusObject = {
+        focus: focus,
+        supported: (cameraMode !== 'video') ?
+         this.autoFocusModeCheck() : false,
+      };
+    break;
+    case 'fixedFocus':
+      var focus = FIXED_FOCUS;
+      focus = focusCapabilities.indexOf(focus) > -1 ?
+        focus : focusCapabilities[0];
+      focusObject = {
+        focus: focus,
+        supported: true,
+        enable: this.setFixedFocusMode
+      };
+    break;
+  }
+  return focusObject;
+};
 
 });

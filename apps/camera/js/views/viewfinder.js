@@ -9,6 +9,7 @@ var bind = require('lib/bind');
 var CameraUtils = require('lib/camera-utils');
 var debug = require('debug')('view:viewfinder');
 var View = require('vendor/view');
+var FocusView = require('views/focus');
 
 /**
  * Locals
@@ -34,13 +35,15 @@ module.exports = View.extend({
 
     bind(this.el, 'click', this.onClick);
     bind(this.el, 'animationend', this.onShutterEnd);
-
+    bind(this.els.frame, 'touchstart', this.onFrameClick);
     this.getSize();
   },
 
   render: function() {
     this.el.innerHTML = this.template();
-
+    //append focus ring
+    this.focusRing = new FocusView();
+    this.focusRing.appendTo(this.el);
     // Find elements
     this.els.frame = this.find('.js-frame');
     this.els.video = this.find('.js-video');
@@ -63,6 +66,138 @@ module.exports = View.extend({
 
   onClick: function(e) {
     this.emit('click');
+  },
+
+  onFrameClick: function(evt) {
+    if (evt.targetTouches.length < 2) {
+      var focusPoint = evt.touches[0];
+      this.findFocusArea(focusPoint.pageX, focusPoint.pageY);
+    }
+  },
+
+  onTouchStart: function(evt) {
+    var touchCount = evt.targetTouches.length;
+    if (touchCount === 2) {
+      lastTouchA = evt.targetTouches[0];
+      lastTouchB = evt.targetTouches[1];
+      isScaling = true;
+      this.emit('pinchStart');
+
+      evt.preventDefault();
+    }
+  },
+
+  onTouchMove: function(evt) {
+    if (!isScaling) {
+      return;
+    }
+
+    var touchA = getNewTouchA(evt.targetTouches);
+    var touchB = getNewTouchB(evt.targetTouches);
+
+    var deltaZoom = getDeltaZoom(touchA, touchB);
+    var zoom = this._zoom * (1 + (deltaZoom / sensitivity));
+
+    this.setZoom(zoom);
+
+    this.emit('pinchChange', this._zoom);
+
+    lastTouchA = touchA;
+    lastTouchB = touchB;
+  },
+
+  onTouchEnd: function(evt) {
+    if (!isScaling) {
+      return;
+    }
+
+    if (evt.targetTouches.length < 2) {
+      isScaling = false;
+      this.emit('pinchEnd');
+    }
+  },
+    /**
+  * Scale the point to fit focus area
+  * defined by camera coordinate system.
+  *
+  **/
+  findFocusArea: function(pointX, pointY) {
+    // In camera coordinate system,
+    // (-1000, -1000) represents the
+    // top-left of the camera field of
+    // view, and (1000, 1000) represents
+    // the bottom-right of the field of
+    // view. So, the Focus area should
+    // start at -1000 and end at -1000.
+    var MIN = -1000;
+    var MAX = 1000;
+
+    // Using Square Focus area
+    var FOCUS_AREA_HALF_SIDE = 50;
+
+    // as per gecko left, top: -1000
+    // right and bottom: 1000.
+    var focusAreaSize = MAX - MIN;
+
+    // For smaller and square image and video
+    // resolutions add the offset.
+    var sw = focusAreaSize / (this.els.frame.clientWidth +
+      (this.el.clientWidth - this.els.frame.clientWidth));
+    var sh = focusAreaSize / (this.els.frame.clientHeight +
+      (this.el.clientHeight - this.els.frame.clientHeight));
+
+    // As per camera coordinate system the
+    // values of focus region is fixed.
+    var horizontalMargin = FOCUS_AREA_HALF_SIDE * sw;
+    var VerticalMargin = FOCUS_AREA_HALF_SIDE * sh;
+
+    // Apply scaling on each
+    // row and column
+    var cx = MIN + pointX * sw;
+    var cy = MIN + pointY * sh;
+    var focusPosition = this.checkBoundries(pointX, pointY);
+    // Emit event with new focus point and rect.
+    // Set left, right, top, bottom of rect
+    // and check boundary conditions
+    this.emit('focus-point', focusPosition, {
+      left: clamps(cx - horizontalMargin),
+      right: clamps(cx + horizontalMargin),
+      top: clamps(cy - VerticalMargin),
+      bottom: clamps(cy + VerticalMargin)
+    });
+    function clamps(position) {
+      if (position < MIN) {
+        position = MIN;
+      } else if (position > MAX) {
+        position = MAX;
+      }
+      return position;
+    }
+  },
+
+  checkBoundries: function(pointX, pointY) {
+    // Using Square Focus area
+    var FOCUS_AREA_HALF_SIDE = 50;
+    var leftX = this.els.frame.offsetLeft;
+    var rightX = leftX + this.els.frame.clientWidth;
+    var topY = this.els.frame.offsetTop;
+    var bottomY = topY + this.els.frame.clientHeight;
+    if ((pointX - FOCUS_AREA_HALF_SIDE) < leftX) {
+      pointX = leftX + FOCUS_AREA_HALF_SIDE;
+    } else if((pointX + FOCUS_AREA_HALF_SIDE) > rightX) {
+      pointX = rightX - FOCUS_AREA_HALF_SIDE;
+    }
+
+    if ((pointY - FOCUS_AREA_HALF_SIDE) < topY) {
+      pointY = topY + FOCUS_AREA_HALF_SIDE;
+    } else if((pointY + FOCUS_AREA_HALF_SIDE) > bottomY) {
+      pointY = bottomY - FOCUS_AREA_HALF_SIDE;
+    }
+
+    return {
+      x: pointX,
+      y: pointY
+    };
   },
 
   enableZoom: function(minimumZoom, maximumZoom) {
@@ -270,7 +405,30 @@ module.exports = View.extend({
           '</div>' +
         '</div>' +
     '</div>';
-  }
+  },
+  setFocusRingDafaultPotion: function() {
+    var offsetLeft = this.els.frame.offsetLeft;
+    var offsetTop = this.els.frame.offsetTop;
+    var x = this.els.frame.clientWidth / 2 + offsetLeft;
+    var y = this.els.frame.clientHeight / 2 + offsetTop;
+    this.setFocusRingPosition(x, y);
+  },
+
+  setFocusRingPosition: function(x, y) {
+    this.focusRing.changePosition(x, y);
+  },
+
+  clearFaceRings: function() {
+    this.focusRing.clearFaceRings();
+  },
+  
+  setFocusMode: function(value) {
+    this.focusRing.setMode(value);
+  },
+
+  setFocusState: function(value) {
+    this.focusRing.setState(value);
+  },
 });
 
 });
