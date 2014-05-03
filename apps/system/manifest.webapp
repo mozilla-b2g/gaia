@@ -91,6 +91,12 @@
     "bluetoothTransfercomms": {
       "description": "Communication with bluetooth apps for sending files info",
       "rules": {}
+    },
+    "validationtools-request": {
+      "description": "Communication between validationtools and System",
+      "rules": {
+        "manifestURLs": ["app://validationtools.gaiamobile.org/manifest.webapp"]
+      }
     }
   }
 }
