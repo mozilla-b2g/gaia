@@ -122,9 +122,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  /* Replace this with radical gradient */
-  background: transparent url('./images/mask.png') 50% 50% no-repeat;
-  background-size: cover;
+  background: rgba(0,0,0,0.35);
 }
 
 [data-panel="main"] #lockscreen-panel-main,

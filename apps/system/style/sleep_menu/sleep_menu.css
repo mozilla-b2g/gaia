@@ -118,7 +118,6 @@
   overflow: hidden;
   white-space: nowrap;
   background-color: #2D2D2D;
-  background-image: url("../themes/default/images/ui/pattern.png");
   border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
 }
 
