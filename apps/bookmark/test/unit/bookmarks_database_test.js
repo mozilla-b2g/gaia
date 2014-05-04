@@ -252,6 +252,20 @@ suite('bookmarks_database.js >', function() {
     BookmarksDatabase.add(data);
   });
 
+  test('testing addEventListener for context >', function(done) {
+    var myObject = {
+      handleEvent: function(event) {
+        BookmarksDatabase.removeEventListener('added', myObject);
+        assert.equal(this, myObject);
+        assertEvent('added', event);
+        done();
+      }
+    };
+
+    BookmarksDatabase.addEventListener('added', myObject);
+    BookmarksDatabase.add(data);
+  });
+
   test('testing addEventListener for "updated" event >', function(done) {
     // Testing handleEvent instead of a callback directly
     var handler = {
