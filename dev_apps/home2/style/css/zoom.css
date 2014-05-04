@@ -27,8 +27,11 @@
   background-repeat: no-repeat;
   background-size: 100% auto;
   background-position: center;
-  transition: transform 0.5s;
   will-change: transform;
+}
+
+#zoom .arrows.zooming {
+  transition: transform 0.5s;
 }
 
 #zoom .arrows.grow {

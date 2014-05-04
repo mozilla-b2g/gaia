@@ -12,6 +12,8 @@
 
   const windowWidth = window.innerWidth;
 
+  const pinchThreshold = Math.round(windowWidth / 12);
+
   function Zoom() {
     this.touches = 0;
     this.zoomStartTouches = [];
@@ -104,8 +106,7 @@
 
         this.container.hidden = true;
         this.indicator.classList.remove('active');
-        this.arrows.classList.remove('shrink');
-        this.arrows.classList.remove('grow');
+        this.arrows.classList.remove('zooming', 'grow', 'shrink');
         this.arrows.style.transform = '';
 
         window.addEventListener('touchstart', this);
@@ -141,17 +142,29 @@
           this.zoomStartTouches = touches;
           this.zoomStartDistance = touchDistance;
 
+          if (this.perRow < maxIconsPerRow) {
+            this.arrows.classList.add('grow');
+          } else {
+            this.arrows.classList.add('shrink');
+          }
+
+          this.indicator.dataset.cols = this.perRow;
+
           window.addEventListener('touchmove', this);
           window.addEventListener('touchend', this);
           break;
         case 'touchmove':
           if (this.perRow < maxIconsPerRow &&
-              touchDistance < this.zoomStartDistance) {
+              touchDistance < this.zoomStartDistance &&
+              Math.abs(touchDistance - this.zoomStartDistance) >
+                pinchThreshold) {
               this.percent = 0.75;
               this.zoomInProgress = true;
               stopGestureListeners();
           } else if (this.perRow > minIconsPerRow &&
-                     touchDistance > this.zoomStartDistance) {
+                     touchDistance > this.zoomStartDistance &&
+                     Math.abs(touchDistance - this.zoomStartDistance) >
+                       pinchThreshold) {
             this.percent = 1;
             this.zoomInProgress = true;
             stopGestureListeners();
@@ -179,12 +192,12 @@
           this.indicator.dataset.cols = this.perRow;
 
           if (this.zoomInProgress && touchDistance < this.zoomStartDistance) {
-            this.arrows.classList.add('grow');
+            this.arrows.classList.add('zooming');
             // Force a sync reflow
             document.body.clientHeight;
             this.arrows.style.transform = 'scale(0.4)';
           } else {
-            this.arrows.classList.add('shrink');
+            this.arrows.classList.add('zooming');
             // Force a sync reflow
             document.body.clientHeight;
             this.arrows.style.transform = 'scale(1)';
