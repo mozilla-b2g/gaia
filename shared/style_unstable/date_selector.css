@@ -4,7 +4,7 @@
 
 /* Main dialog setup */
 [role="dialog"][data-type="date-selector"] {
-  background: url(date_selector/images/ui/pattern.png) repeat left top, url(date_selector/images/ui/gradient.png) no-repeat left top / 100% 100%;
+  background: #2d2d2d;
   overflow: hidden;
   position: absolute;
   z-index: 100;
@@ -186,7 +186,7 @@
   margin: 0;
   padding: 1.5rem;
   border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
-  background: #2d2d2d url(date_selector/images/ui/pattern.png) repeat left top;
+  background: #2d2d2d;
   display: block;
   overflow: hidden;
   position: absolute;
