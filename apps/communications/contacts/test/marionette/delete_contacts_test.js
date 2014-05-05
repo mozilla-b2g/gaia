@@ -13,7 +13,7 @@ marionette('Contacts > Delete', function() {
     selectors = Contacts.Selectors;
   });
 
-  test.skip(' > Edit menu is not visible on search mode', function() {
+  test(' > Edit menu is not visible on search mode', function() {
     subject.addContact({
       givenName: 'Hello',
       tel: 1231231234
@@ -27,12 +27,16 @@ marionette('Contacts > Delete', function() {
     // Click on delete button and wait for slide down animation
     client.helper.waitForElement(selectors.bulkDelete).click();
     subject.waitForSlideDown(settings);
+    
+    var editForm = client.findElement(selectors.editForm);
+    editForm.displayed(function onDisplayed() {
+      var editMenu = client.helper.waitForElement(selectors.editMenu);
 
-    // Enter in search mode
-    client.helper.waitForElement(selectors.searchLabel).click();
+      // Enter in search mode
+      client.helper.waitForElement(selectors.searchLabel).click();
 
-    // Check that edit menu goes down
-    var editMenu = client.helper.waitForElement(selectors.editMenu);
-    subject.waitForSlideDown(editMenu);
+      // Check that edit menu goes down
+      subject.waitForSlideDown(editMenu);
+    });
   });
 });
