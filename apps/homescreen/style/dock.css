@@ -45,17 +45,6 @@
   margin-top: 0.8rem;
 }
 
-/* Option to delete apps */
-#footer li span.options {
-  position: absolute;
-  top: .1rem;
-  left: .5rem;
-  width: calc(100% - .5rem);
-  height: 2.6rem;
-  z-index: 2;
-  background: url(../resources/images/delete.png) no-repeat left top / 2.4rem;
-}
-
 #footer li > div > *:not(img) {
   display: none;
 }
@@ -88,11 +77,5 @@
   #footer > div li,
   #footer > div.scrollable li {
     width: 17.5rem;
-  }
-
-  #footer li span.options {
-    width: calc(50% - .5rem);
-    height: 4.5rem;
-    background: url(../resources/images/delete.png) no-repeat left top / 4.5rem;
   }
 }

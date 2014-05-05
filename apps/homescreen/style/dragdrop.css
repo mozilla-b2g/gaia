@@ -14,6 +14,12 @@
   -moz-transition: -moz-transform .4s;
 }
 
+.draggable > div > span.options {
+  left: .5rem;
+  top: -0.3rem;
+  margin: 0;
+}
+
 /* label wrapper */
 .draggable > div > span {
   margin-top: -0.05rem;
@@ -41,7 +47,7 @@
   margin-left: -106%;
 }
 
-.overDock > div > *:not(img) {
+.overDock > div > span:not(.options) {
   opacity: 0;
 }
 
@@ -77,7 +83,7 @@ body[data-dragging] ol > li > div > img,
 }
 
 /* for elementFromPoint to return the draggable li and not child nodes */
-body[data-dragging] ol > li span.options,
+body[data-dragging] span.options,
 #collection[data-dragging] .evme-apps ul.static li img,
 #collection[data-dragging] .evme-apps ul.static li span {
   pointer-events: none;
