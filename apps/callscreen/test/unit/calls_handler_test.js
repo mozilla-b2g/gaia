@@ -201,14 +201,15 @@ suite('calls handler', function() {
         assert.equal(CallScreen.incomingNumber.textContent, 'test name');
         assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
         assert.equal(CallScreen.incomingNumberAdditionalInfo.textContent,
-                     extraCall.number);
+                     extraCall.id.number);
       });
 
       test('should show the number of a unknown contact', function() {
         // 111 is a special case for unknown contacts in MockContacts
-        extraCall.number = '111';
+        extraCall.id = { number: '111' };
         MockNavigatorMozTelephony.mTriggerCallsChanged();
-        assert.equal(CallScreen.incomingNumber.textContent, extraCall.number);
+        assert.equal(CallScreen.incomingNumber.textContent,
+                     extraCall.id.number);
         assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
         assert.equal(CallScreen.incomingNumberAdditionalInfo.textContent, '');
       });
@@ -722,7 +723,7 @@ suite('calls handler', function() {
 
             telephonyAddCall.call(this, call, {trigger: true});
             MockNavigatorMozTelephony.active = call;
-            call.secondNumber = '12345';
+            call.secondId = { number: '12345' };
             call.state = 'connected';
           });
 
@@ -1578,8 +1579,8 @@ suite('calls handler', function() {
     });
 
     test('getActiveCall should return active call', function() {
-      assert.equal(CallsHandler.activeCall.call.number,
-                   MockNavigatorMozTelephony.active.number);
+      assert.equal(CallsHandler.activeCall.call.id.number,
+                   MockNavigatorMozTelephony.active.id.number);
     });
 
     suite('> getActiveCallForContactImage', function() {
@@ -1588,13 +1589,13 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.active = mockCalls[0];
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
-        assert.equal(CallsHandler.activeCallForContactImage.call.number,
-                     MockNavigatorMozTelephony.active.number);
+        assert.equal(CallsHandler.activeCallForContactImage.call.id.number,
+                     MockNavigatorMozTelephony.active.id.number);
       });
 
       test('should return first already connected call', function() {
-        assert.equal(CallsHandler.activeCallForContactImage.call.number,
-                     MockNavigatorMozTelephony.active.number);
+        assert.equal(CallsHandler.activeCallForContactImage.call.id.number,
+                     MockNavigatorMozTelephony.active.id.number);
       });
 
       test('should return null if no active call', function() {
@@ -1641,8 +1642,8 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
         MockNavigatorMozTelephony.mTriggerCallsChanged();
 
-        assert.equal(CallsHandler.activeCallForContactImage.call.number,
-                     MockNavigatorMozTelephony.active.number);
+        assert.equal(CallsHandler.activeCallForContactImage.call.id.number,
+                     MockNavigatorMozTelephony.active.id.number);
       });
     });
   });

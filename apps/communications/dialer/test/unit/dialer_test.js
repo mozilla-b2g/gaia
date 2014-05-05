@@ -123,7 +123,7 @@ suite('navigation bar', function() {
         this.sinon.spy(window, 'Notification');
         MockNavigatorMozIccManager.addIcc('12345', {'cardState': 'ready'});
         callEndedData = {
-          number: '123',
+          id: { number: '123' },
           serviceId: 1,
           direction: 'incoming'
         };
@@ -179,7 +179,7 @@ suite('navigation bar', function() {
 
       setup(function() {
         sysMsg = {
-          number: '12345',
+          id: { number: '12345' },
           serviceId: 1,
           emergency: false,
           duration: 1200,

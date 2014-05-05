@@ -233,7 +233,13 @@ var CallsHandler = (function callsHandler() {
 
   function handleCallWaiting(call) {
     LazyL10n.get(function localized(_) {
-      var number = (call.secondNumber ? call.secondNumber : call.number);
+      var number;
+
+      if (call.id) {
+        number = call.secondId ? call.secondId.number : call.id.number;
+      } else {
+        number = call.secondNumber ? call.secondNumber : call.number;
+      }
 
       if (!number) {
         CallScreen.incomingNumber.textContent = _('withheld-number');
@@ -723,7 +729,7 @@ var CallsHandler = (function callsHandler() {
   function cdmaCallWaiting() {
     return ((telephony.calls.length == 1) &&
             (telephony.calls[0].state == 'connected') &&
-            telephony.calls[0].secondNumber);
+            (telephony.calls[0].secondNumber || telephony.calls[0].secondId));
   }
 
   function mergeActiveCallWith(call) {

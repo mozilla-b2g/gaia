@@ -234,7 +234,9 @@ var KeypadManager = {
     TonePlayer.init('normal');
     var channel = this._onCall ? 'telephony' : 'normal';
     window.addEventListener('visibilitychange', (function() {
-      TonePlayer.setChannel(document.mozHidden ? 'normal' : channel);
+      if (TonePlayer) {
+        TonePlayer.setChannel(document.mozHidden ? 'normal' : channel);
+      }
     }).bind(this));
 
     this.render();
