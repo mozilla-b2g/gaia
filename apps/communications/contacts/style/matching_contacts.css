@@ -99,3 +99,11 @@ form[role="dialog"][data-type="edit"] #main {
 #footer button:not([disabled]) {
   pointer-events: auto;
 }
+
+[data-type="list"] aside img {
+  border-style: hidden;
+}
+
+[data-type="list"] li[data-visited="true"] aside img {
+  border-style: solid;
+}
