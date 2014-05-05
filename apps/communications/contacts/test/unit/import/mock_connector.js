@@ -1,5 +1,8 @@
 'use strict';
 
+/* global MockImportedContacts */
+/* exported MockConnector */
+
 var MockConnector = {
   listAllContacts: function(access_token, callbacks) {
     callbacks.success(MockImportedContacts);
