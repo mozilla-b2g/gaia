@@ -93,7 +93,10 @@ if (!window.ImageLoader) {
     function defaultLoadImage(item) {
       var image = item.querySelector('span[data-type=img][data-src]');
       if (!image) {
-        return;
+        image = item.querySelector('img[data-src]');
+        if (!image) {
+          return;
+        }
       }
 
       ++imgsLoading;
