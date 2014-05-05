@@ -13,7 +13,7 @@ if (typeof Contacts.extServices === 'undefined') {
 
     var extensionFrame = document.querySelector('#fb-extensions');
     var oauthFrame = document.querySelector('#fb-oauth');
-    oauthFrame.src = '/facebook/fb_oauth.html';
+    oauthFrame.src = '/shared/pages/import/oauth.html';
     var currentURI, access_token;
     var canClose = true, canCloseLogout = true;
     var closeRequested = false;
@@ -57,7 +57,8 @@ if (typeof Contacts.extServices === 'undefined') {
       closeRequested = false;
       canClose = false;
       canCloseLogout = false;
-      load('import.html?service=' + serviceName, 'friends', serviceName);
+      load('/shared/pages/import/import.html?service=' + serviceName,
+           'friends', serviceName);
     }
 
     function load(uri, from, serviceName) {

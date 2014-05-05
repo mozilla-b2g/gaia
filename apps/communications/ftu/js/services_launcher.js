@@ -9,7 +9,7 @@ var ServicesLauncher = (function(document) {
     var extensionFrame = document.querySelector('#fb-extensions');
     var oauthFrame = document.querySelector('#fb-oauth');
 
-    var BASE_IMPORT = '/contacts/import.html?ftu=1';
+    var BASE_IMPORT = '/shared/pages/import/import.html?ftu=1';
     function getServiceURI(service) {
       return BASE_IMPORT + '&service=' + service;
     }
