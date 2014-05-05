@@ -448,8 +448,6 @@ var NfcManager = {
       return this.formatURIRecord(record);
     } else if (NfcUtils.equalArrays(record.type, NDEF.RTD_SMART_POSTER)) {
       return this.formatSmartPosterRecord(record);
-    } else if (NfcUtils.equalArrays(record.type, NDEF.SMARTPOSTER_ACTION)) {
-      return this.formatSmartPosterAction(record);
     } else {
       console.log('Unknown record type: ' + JSON.stringify(record));
     }
@@ -583,19 +581,6 @@ var NfcManager = {
       name: 'nfc-ndef-discovered',
       data: {
         type: 'smartposter'
-      }
-    };
-    return activityText;
-  },
-
-  formatSmartPosterAction: function nm_formatSmartPosterAction(record) {
-    // The recommended action has an application specific meaning:
-    var smartaction = record.payload[0];
-    var activityText = {
-      name: 'nfc-ndef-discovered',
-      data: {
-        type: 'smartposter-action',
-        action: smartaction
       }
     };
     return activityText;
