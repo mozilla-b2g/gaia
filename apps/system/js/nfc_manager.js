@@ -574,8 +574,7 @@ var NfcManager = {
     var activityText = {
       name: 'nfc-ndef-discovered',
       data: {
-        type: 'external-type',
-        rtd: record.type
+        type: NfcUtils.toUTF8(record.type)
       }
     };
     return activityText;

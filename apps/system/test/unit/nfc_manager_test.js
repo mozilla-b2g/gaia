@@ -234,6 +234,21 @@ suite('Nfc Manager Functions', function() {
       
       execCommonTest(dummyNdefMsg, 'text/plain');
     });
+
+    test('TNF external type', function() {
+      var type = new Uint8Array([0x6D, 0x6F, 0x7A, 0x69,
+                                 0x6C, 0x6C, 0x61, 0x2E,
+                                 0x6F, 0x72, 0x67, 0x3A,
+                                 0x62, 0x75, 0x67]);
+      var payload = new Uint8Array([0x31, 0x30, 0x30, 0x30,
+                                    0x39, 0x38, 0x31]);
+      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_EXTERNAL_TYPE,
+                                            type,
+                                            new Uint8Array(),
+                                            payload)];
+
+      execCommonTest(dummyNdefMsg, 'mozilla.org:bug');
+    });
   });
 
   suite('Activity Routing', function() {
@@ -465,25 +480,6 @@ suite('Nfc Manager Functions', function() {
       var activityOptions = NfcManager.handleNdefMessage(dummyNdefMsg);
       assert.equal(activityOptions.name, 'nfc-ndef-discovered');
       assert.equal(activityOptions.data.type, 'http://mozilla.org');
-      assert.equal(activityOptions.data.records, dummyNdefMsg);
-    });
-
-    // Bug 1004967 TNF External Type should be handled properly in NfcManager
-    test('TNF external type', function() {
-      var type = new Uint8Array([0x6D, 0x6F, 0x7A, 0x69,
-                                 0x6C, 0x6C, 0x61, 0x2E,
-                                 0x6F, 0x72, 0x67, 0x3A,
-                                 0x62, 0x75, 0x67]);
-      var payload = new Uint8Array([0x31, 0x30, 0x30, 0x30,
-                                    0x39, 0x38, 0x31]);
-      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_EXTERNAL_TYPE,
-                                            type,
-                                            new Uint8Array(),
-                                            payload)];
-
-      var activityOptions = NfcManager.handleNdefMessage(dummyNdefMsg);
-      assert.equal(activityOptions.name, 'nfc-ndef-discovered');
-      assert.equal(activityOptions.data.type, 'mozilla.org:bug');
       assert.equal(activityOptions.data.records, dummyNdefMsg);
     });
 
