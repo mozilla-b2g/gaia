@@ -113,6 +113,26 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   display: block;
 }
 
+#time-views .icon-invitation {
+  color: #FFFFFF;
+  font-size: 1.5rem;
+  line-height: 5rem;
+}
+
+#time-views .icon-invitation:before {
+  color: #C95B02;
+  font-size: 3rem;
+  line-height: 5rem;
+  position: absolute;
+  width: 100%;
+  display: block;
+  left: 0;
+}
+
+#time-views .invitation-number {
+  position: absolute;
+}
+
 /* view loading */
 
 .during-progress {
@@ -460,7 +480,6 @@ section.month li .busy-indicator:before {
 section.month li .busy-indicator > span {
   top: 0;
   position: absolute;
-  text-indent: -1000em;
 }
 
 /**
