@@ -230,10 +230,6 @@
   AppWindow.prototype._transitionState = 'closed';
 
   AppWindow.prototype.render = function aw_render() {
-    if (this.element) {
-      return;
-    }
-
     var screenshotOverlay = document.createElement('div');
     screenshotOverlay.classList.add('screenshot-overlay');
 
