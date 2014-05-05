@@ -92,11 +92,9 @@ NODE_MODULES_SRC?=modules.tar
 # tv
 GAIA_DEVICE_TYPE?=phone
 
-# Rocketbar customization
-# none - Do not enable rocketbar
-# half - Rocketbar is enabled, and so is browser app
-# full - Rocketbar is enabled, no browser app
-ROCKETBAR?=none
+# Haida customization
+# Pass 1 to enable haida features
+HAIDA?=0
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
@@ -465,7 +463,7 @@ define BUILD_CONFIG
 	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
 	"NOFTU" : "$(NOFTU)", \
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
-	"ROCKETBAR" : "$(ROCKETBAR)", \
+	"HAIDA" : $(HAIDA), \
 	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
 	"SETTINGS_PATH" : "$(subst \,\\,$(SETTINGS_PATH))", \
 	"FTU_PING_URL": "$(FTU_PING_URL)", \

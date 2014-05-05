@@ -167,7 +167,7 @@ HomescreenAppBuilder.prototype.customizeHomescreen = function() {
   let customize = this.defaultConfig;
 
   // Add the browser icon if rocketbar is not enabled
-  if (config.ROCKETBAR !== 'full') {
+  if (!config.HAIDA) {
     customize.homescreens[0].push(['apps', 'browser']);
   }
 
@@ -277,7 +277,7 @@ HomescreenAppBuilder.prototype.customizeHomescreen = function() {
   };
 
   // Only enable configurable bookmarks for dogfood devices
-  if (config.ROCKETBAR !== 'none') {
+  if (config.HAIDA) {
     content.bookmarks = customize.bookmarks;
   }
 
