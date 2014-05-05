@@ -3,19 +3,22 @@
 mocha.globals(['NfcManager', 'ScreenManager', 'SettingsListener',
       'lockScreen']);
 
-/* globals MockNfc, MocksHelper,
-           MozNDEFRecord, NfcBuffer, NDEF, NfcUtils, NfcManagerUtils,
-           NfcManager */
+/* globals MockDOMRequest, MockNfc, MocksHelper,
+           MozNDEFRecord, NDEF, NfcBuffer, NfcUtils, NfcManager,
+           NfcManagerUtils */
 
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/nfc_utils.js');
+require('/shared/test/unit/mocks/mock_event_target.js');
+require('/shared/test/unit/mocks/mock_dom_request.js');
 require('/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_nfc.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_settingslistener_installer.js');
 requireApp('system/js/nfc_manager_utils.js');
+requireApp('system/js/nfc_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 
 var mocksForNfcManager = new MocksHelper([
@@ -232,7 +235,7 @@ suite('Nfc Manager Functions', function() {
                                0x03, // NDEF.URIS[0x03] = 'http://';
                                0x6d, 0x6f, 0x7a, 0x69, 0x6c, 0x6c, 0x61,
                                0x2e,
-                               0x6f, 0x72, 0x67]); // SR: mozilla.org
+                               0x6f, 0x72, 0x67]); // mozilla.org
 
     });
 
@@ -356,28 +359,37 @@ suite('Nfc Manager Functions', function() {
     });
 
     test('text/vcard', function() {
-      var stubFormatVCardRecord = this.sinon.spy(NfcManager,
-                                                 'formatVCardRecord');
+      var spyFormatVCardRecord = this.sinon.spy(NfcManager,
+                                                'formatVCardRecord');
 
       NfcManager.handleTechnologyDiscovered(activityInjection1);
-      assert.isTrue(stubFormatVCardRecord.calledOnce);
+      assert.isTrue(spyFormatVCardRecord.calledOnce);
 
       NfcManager.handleTechnologyDiscovered(activityInjection2);
-      assert.isTrue(stubFormatVCardRecord.calledTwice);
+      assert.isTrue(spyFormatVCardRecord.calledTwice);
 
       NfcManager.handleTechnologyDiscovered(activityInjection3);
-      assert.isTrue(stubFormatVCardRecord.calledThrice);
+      assert.isTrue(spyFormatVCardRecord.calledThrice);
     });
   });
 
   suite('NFC Manager Dispatch Events', function() {
     var aUUID = '{4f4787c4-51f0-4288-8caf-55d440303b0b}';
     var vcard;
+    var realMozNfc;
 
     setup(function() {
       vcard = 'BEGIN:VCARD\n';
       vcard += 'VERSION:2.1\n';
       vcard += 'END:VCARD';
+
+      // realMozNfc requires platform support, use a Mock
+      realMozNfc = navigator.mozNfc;
+      navigator.mozNfc = MockNfc;
+    });
+
+    teardown(function() {
+      navigator.mozNfc = realMozNfc;
     });
 
     test('NFC Manager Outgoing DispatchEvents', function() {
@@ -405,6 +417,49 @@ suite('Nfc Manager Functions', function() {
       assert.equal(stubDispatchEvent.getCall(2).args[0].type, 'shrinking-stop');
     });
 
+    test('NFC Manager P2P: checkP2PRegistration success', function() {
+      // Setup Fake DOMRequest to stub with:
+      var fakeDOMRequest = new MockDOMRequest();
+      this.sinon.stub(navigator.mozNfc, 'checkP2PRegistration',
+                                        function(manifest) {
+                                          return fakeDOMRequest;
+                                        });
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+      var spyAddEventListener = this.sinon.spy(window, 'addEventListener');
+
+      // An unprivilaged P2P UI would send message to NFC Manager to validate
+      // P2P registration in the stubbed DOM.
+      NfcManager.checkP2PRegistration('dummyManifestUrl');
+
+      fakeDOMRequest.fireSuccess(true);
+      stubDispatchEvent.getCall(0).calledWith({ type: 'shrinking-start',
+                                                bubbles: false });
+      assert.isTrue(spyAddEventListener.withArgs('shrinking-sent').calledOnce);
+    });
+
+    test('NFC Manager P2P: checkP2PRegistration error', function() {
+      // Setup Fake DOMRequest to stub with:
+      var fakeDOMRequest = new MockDOMRequest();
+      this.sinon.stub(navigator.mozNfc, 'checkP2PRegistration',
+                                        function(manifestURL) {
+                                          return fakeDOMRequest;
+                                        });
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+      var spyRemoveEventListener = this.sinon.spy(window,
+                                                  'removeEventListener');
+
+      // An unprivilaged P2P UI would send message to NFC Manager to validate
+      // P2P registration in the stubbed DOM.
+      NfcManager.checkP2PRegistration('dummyManifestUrl');
+
+      // Note: Error status is fired through the success code path.
+      fakeDOMRequest.fireSuccess(false);
+      stubDispatchEvent.getCall(0).calledWith({ type: 'shrinking-stop',
+                                                bubbles: false });
+      assert.isTrue(
+        spyRemoveEventListener.withArgs('shrinking-sent').calledOnce);
+    });
+
   });
 
   suite('NFC Manager changeHardwareState test', function() {
@@ -419,24 +474,24 @@ suite('Nfc Manager Functions', function() {
     });
 
     test('NFC Manager startPoll', function() {
-      var stubStartPoll = this.sinon.spy(MockNfc, 'startPoll');
-      var stubStopPoll = this.sinon.spy(MockNfc, 'stopPoll');
-      var stubPowerOff = this.sinon.spy(MockNfc, 'powerOff');
-      var stubDispatchEvent = this.sinon.spy(window, 'dispatchEvent');
+      var spyStartPoll = this.sinon.spy(MockNfc, 'startPoll');
+      var spyStopPoll = this.sinon.spy(MockNfc, 'stopPoll');
+      var spyPowerOff = this.sinon.spy(MockNfc, 'powerOff');
+      var spyDispatchEvent = this.sinon.spy(window, 'dispatchEvent');
 
       NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_OFF);
-      assert.isTrue(stubPowerOff.calledOnce);
-      assert.isTrue(stubDispatchEvent.calledOnce);
+      assert.isTrue(spyPowerOff.calledOnce);
+      assert.isTrue(spyDispatchEvent.calledOnce);
 
       NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_ON);
-      assert.isTrue(stubStartPoll.calledOnce);
-      assert.isTrue(stubDispatchEvent.calledTwice);
+      assert.isTrue(spyStartPoll.calledOnce);
+      assert.isTrue(spyDispatchEvent.calledTwice);
 
       NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_ENABLE_DISCOVERY);
-      assert.isTrue(stubStartPoll.calledTwice);
+      assert.isTrue(spyStartPoll.calledTwice);
 
       NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_DISABLE_DISCOVERY);
-      assert.isTrue(stubStopPoll.calledOnce);
+      assert.isTrue(spyStopPoll.calledOnce);
     });
   });
 

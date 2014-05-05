@@ -271,15 +271,20 @@ var NfcManager = {
       var status = nfcdom.checkP2PRegistration(manifestURL);
       var self = this;
       status.onsuccess = function() {
-        // Top visible application's manifest Url is registered;
-        // Start Shrink / P2P UI and wait for user to accept P2P event
-        window.dispatchEvent(new CustomEvent('shrinking-start'));
+        if (status.result) {
+          // Top visible application's manifest Url is registered;
+          // Start Shrink / P2P UI and wait for user to accept P2P event
+          window.dispatchEvent(new CustomEvent('shrinking-start'));
 
-        // Setup listener for user response on P2P UI now
-        window.addEventListener('shrinking-sent', self);
-      };
-      status.onerror = function() {
-        // Do nothing!
+          // Setup listener for user response on P2P UI now
+          window.addEventListener('shrinking-sent', self);
+        } else {
+          // Clean up P2P UI events
+          self._debug('Error checking P2P Registration: ' +
+                      JSON.stringify(status.result));
+          window.removeEventListener('shrinking-sent', self);
+          window.dispatchEvent(new CustomEvent('shrinking-stop'));
+        }
       };
   },
 
