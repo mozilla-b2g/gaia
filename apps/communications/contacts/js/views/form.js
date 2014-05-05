@@ -305,7 +305,7 @@ contacts.Form = (function() {
     deleteContactButton.onclick = function deleteClicked(event) {
       var msg = _('deleteConfirmMsg');
       var yesObject = {
-        title: _('remove'),
+        title: _('delete'),
         isDanger: true,
         callback: function onAccept() {
           deleteContact(currentContact);

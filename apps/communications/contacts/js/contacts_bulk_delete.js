@@ -28,7 +28,7 @@ contacts.BulkDelete = (function() {
       };
 
       var removeObject = {
-        title: _('remove'),
+        title: _('delete'),
         isDanger: true,
         callback: function onRemove() {
           ConfirmDialog.hide();
