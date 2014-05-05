@@ -122,6 +122,11 @@ var GridManager = (function() {
     var lookahead, lastPrediction, x0, t0, x1, t1 = 0, dx, velocity;
 
     function calculateVelocity(evt) {
+      if (t1 === evt.timeStamp) {
+        // We already calculated a velocity for this timestamp, reuse it.
+        return;
+      }
+
       if (t1 < touchStartTimestamp) {
         // If this is the first move of this series, use the start event
         x0 = startX;
