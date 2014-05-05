@@ -706,11 +706,20 @@ var GridManager = (function() {
      */
     addPage: function(icons, numberOficons) {
       var pageElement = document.createElement('div');
+      // first page (provider page): pre-evme-load pseudo searchbar
+      if (pages.length === 0) {
+        var searchPage = Configurator.getSection('search_page');
+        if (searchPage && searchPage.enabled && window[searchPage.provider] &&
+            typeof window[searchPage.provider].preInit === 'function') {
+          window[searchPage.provider].preInit(pageElement);
+          pageElement.classList.add('providerPage');
+        }
+      }
       var page = new Page(pageElement, icons, numberOficons ||
                           MAX_ICONS_PER_PAGE);
       pages.push(page);
 
-      pageElement.className = 'page';
+      pageElement.classList.add('page');
       container.appendChild(pageElement);
 
       // If the new page is situated right after the current displayed page,
