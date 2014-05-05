@@ -170,15 +170,15 @@
   ],
   "redirects": [
     {"from": "facebook",
-    "to": "/redirects/redirect.html"},
+    "to": "/shared/pages/import/redirects/redirect.html"},
     {"from": "facebook_dialogs",
-    "to": "/redirects/dialogs_end.html"},
+    "to": "/shared/pages/import/redirects/dialogs_end.html"},
     {"from": "facebook_logout",
-    "to": "/redirects/dialogs_end.html"},
+    "to": "/shared/pages/import/redirects/dialogs_end.html"},
     {"from": "live",
-    "to": "/redirects/redirect.html"},
+    "to": "/shared/pages/import/redirects/redirect.html"},
     {"from": "gmail",
-    "to": "/redirects/redirect.html"}
+    "to": "/shared/pages/import/redirects/redirect.html"}
   ],
   "datastores-owned": {
     "Gaia_Facebook_Friends": {
