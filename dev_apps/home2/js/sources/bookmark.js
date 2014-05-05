@@ -16,7 +16,7 @@
     this.entries = [];
 
     eventTypesToListenFor.forEach(function iterateTypes(type) {
-      BookmarksDatabase.addEventListener(type, this.handleEvent.bind(this));
+      BookmarksDatabase.addEventListener(type, this);
     }, this);
   }
 
