@@ -224,8 +224,10 @@ suite('voicemail notification', function() {
               test('should/should not display SIM indicator', function() {
                 var baseTitle = 'aaaa';
                 var multiSimTitle =
-                  '(' + MockL10n.get('sim-picker-button', { n: 2 }) + ') ' +
-                  baseTitle;
+                  MockL10n.get('voicemailNotificationMultiSim', {
+                    n: 2,
+                    title: baseTitle
+                  });
 
                 Voicemail.showNotification(
                   baseTitle, 'bbbb', '1111', serviceId);

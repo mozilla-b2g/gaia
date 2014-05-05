@@ -2,7 +2,7 @@
   Message app settings related value and utilities.
 */
 
-/* global MobileOperator*/
+/* global MobileOperator, Promise */
 
 /* exported Settings */
 
@@ -93,21 +93,30 @@ var Settings = {
     });
   },
 
-  switchMmsSimHandler: function switchSimHandler(targetId, callback) {
+  switchMmsSimHandler: function switchSimHandler(targetId) {
     var conn = window.navigator.mozMobileConnections[targetId];
-    if (conn && conn.data.state !== 'registered') {
-      // Listen to MobileConnections datachange to make sure we can start
-      // to retrieve mms only when data.state is registered. But we can't
-      // guarantee datachange event will work in other device.
-      conn.addEventListener('datachange', function onDataChange() {
+    return new Promise(function(resolve, reject) {
+      if (conn) {
         if (conn.data.state === 'registered') {
-          conn.removeEventListener('datachange', onDataChange);
-          callback();
-        }
-      });
+          // Call resolve directly if state is registered already
+          resolve();
+        } else {
+          // Listen to MobileConnections datachange to make sure we can start
+          // to retrieve mms only when data.state is registered. But we can't
+          // guarantee datachange event will work in other device.
+          conn.addEventListener('datachange', function onDataChange() {
+            if (conn.data.state === 'registered') {
+              conn.removeEventListener('datachange', onDataChange);
+              resolve();
+            }
+          });
 
-      this.setMmsSimServiceId(targetId);
-    }
+          this.setMmsSimServiceId(targetId);
+        }
+      } else {
+        reject('Invalid connection');
+      }
+    }.bind(this));
   },
 
   /**

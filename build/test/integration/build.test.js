@@ -221,8 +221,7 @@ suite('Build Integration tests', function() {
   }
 
   test('make without rule & variable', function(done) {
-    helper.exec('ROCKETBAR=none make', { maxBuffer: 400*1024 },
-      function(error, stdout, stderr) {
+    helper.exec('make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       // expected values for prefs and user_prefs
@@ -412,8 +411,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with SIMULATOR=1', function(done) {
-    helper.exec('SIMULATOR=1 make', { maxBuffer: 400*1024 },
-    function(error, stdout, stderr) {
+    helper.exec('SIMULATOR=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       var settingsPath = path.join(process.cwd(), 'profile-debug',
@@ -490,8 +488,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with DEBUG=1', function(done) {
-    helper.exec('DEBUG=1 make', { maxBuffer: 400*1024 },
-    function(error, stdout, stderr) {
+    helper.exec('DEBUG=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       var installedExtsPath = path.join('profile-debug',
@@ -536,6 +533,7 @@ suite('Build Integration tests', function() {
         'dom.mozContacts.enabled': true,
         'dom.navigator-property.disable.mozContacts': false,
         'dom.global-constructor.disable.mozContact': false,
+        'image.mozsamplesize.enabled': true,
         'dom.experimental_forms': true,
         'dom.webapps.useCurrentProfile': true,
         'bluetooth.enabled': true,
@@ -599,8 +597,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with MOZILLA_OFFICIAL=1', function(done) {
-    helper.exec('MOZILLA_OFFICIAL=1 make', { maxBuffer: 400*1024 },
-    function(error, stdout, stderr) {
+    helper.exec('MOZILLA_OFFICIAL=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       // path in zip for unofficial branding
@@ -616,9 +613,8 @@ suite('Build Integration tests', function() {
     });
   });
 
-  test('make with ROCKETBAR=full', function(done) {
-    helper.exec('ROCKETBAR=full make', { maxBuffer: 400*1024 },
-      function(error, stdout, stderr) {
+  test('make with HAIDA=1', function(done) {
+    helper.exec('HAIDA=1 make', function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 
         var hsBroZip = new AdmZip(path.join(process.cwd(), 'profile',

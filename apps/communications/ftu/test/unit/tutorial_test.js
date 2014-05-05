@@ -1,128 +1,104 @@
-/* global Tutorial, ScreenLayout, TutorialSteps */
+/* global Tutorial, MockFinishScreen*/
 'use strict';
 
+requireApp('communications/ftu/test/unit/mock_l10n.js');
 requireApp('communications/ftu/test/unit/mock_screenlayout.js');
-requireApp('communications/ftu/test/unit/mock_ui_manager.js');
-requireApp('communications/ftu/test/unit/mock_tutorial_navigator.js');
+requireApp('communications/ftu/test/unit/mock_finish_screen.js');
+
+requireApp('communications/ftu/js/finish_screen.js');
 requireApp('communications/ftu/js/utils.js');
-requireApp('communications/ftu/js/tutorial_steps.js');
 requireApp('communications/ftu/js/tutorial.js');
 
-mocha.globals(['_', 'WifiManager']);
-
-var mocksHelperForFTU = new MocksHelper([
-  'UIManager',
-  'ScreenLayout'
-]).init();
-
 suite('Tutorial >', function() {
+  var mocksHelperForFTU = new MocksHelper([
+    'ScreenLayout',
+    'FinishScreen'
+  ]).init();
 
-  var mocksHelper = mocksHelperForFTU;
-  var real_ = null;
-  var realMozApps;
-  var realWifiManager;
-  var stubById;
+  mocksHelperForFTU.attachTestHelpers();
+
+  var realL10n;
 
   suiteSetup(function() {
-    stubById = sinon.stub(document, 'getElementById').returns(
-      document.createElement('div'));
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
-    real_ = window._;
-    window._ = function() { };
+    loadBodyHTML('/ftu/index.html');
 
-    realMozApps = window.navigator.mozApps;
-    window.navigator.mozApps = {
-      isExecuted: false,
-      getSelf: function() {
-        this.isExecuted = true;
-        return {};
-      }
-    };
-
-    realWifiManager = window.WifiManager;
-    window.WifiManager = {
-      finish: function() {}
-    };
-
-    mocksHelper.suiteSetup();
+    Tutorial.init();
   });
 
   suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
-    stubById.restore();
-    Tutorial.exit();
+    navigator.mozL10n = realL10n;
+    realL10n = null;
 
-    window.navigator.mozApps = realMozApps;
-    window._ = real_;
-    window.WifiManager = realWifiManager;
-
+    document.body.innerHTML = '';
   });
 
-  suite('tiny device > ', function() {
-
-    suiteSetup(function() {
-      Tutorial.init();
-      Tutorial.numTutorialSteps = Object.keys(TutorialSteps.tiny).length;
-    });
-
-    suiteTeardown(function() {
-      Tutorial.jumpTo(1);
-    });
-
-    test('forward', function() {
-      Tutorial.forward();
-      assert.equal(Tutorial.currentStep, 2);
-    });
-
-    test('back', function() {
-      Tutorial.jumpTo(2);
-      Tutorial.back();
-      assert.equal(Tutorial.currentStep, 1);
-    });
-
-    test('jumpTo 2', function() {
-      Tutorial.jumpTo(2);
-      assert.equal(Tutorial.currentStep, 2);
-    });
-
-    test('jumpToExitStep', function() {
-      Tutorial.jumpToExitStep();
-      assert.include(Tutorial.tutorialScreen.Finish, 'show');
-    });
+  test(' is shown properly after Tutorial.init', function() {
+    // Is the tutorial shown?
+    assert.isTrue(
+      document.getElementById('tutorial').classList.contains('show')
+    );
   });
 
-  suite('large device > ', function() {
+  test(' check dataset after Tutorial.init', function() {
+    // Are we in Step 1?
+    assert.equal(
+      document.getElementById('tutorial').dataset.step,
+      1
+    );
+  });
 
-    suiteSetup(function() {
-      ScreenLayout.setDevice('large');
-      Tutorial.init();
-      Tutorial.numTutorialSteps = Object.keys(TutorialSteps.large).length;
-      });
+  test(' forward', function() {
+    Tutorial.next();
+     // Are we in Step 2?
+    assert.equal(
+      document.getElementById('tutorial').dataset.step,
+      2
+    );
+  });
 
-    suiteTeardown(function() {
-      Tutorial.jumpTo(1);
-    });
+  test(' back', function() {
+    Tutorial.back();
+     // Are we in Step 1?
+    assert.equal(
+      document.getElementById('tutorial').dataset.step,
+      1
+    );
+  });
 
-    test('forward', function() {
-      Tutorial.forward();
-      assert.equal(Tutorial.currentStep, 2);
-    });
+  test(' text & image are the right ones for the current step (2)', function() {
+    // Spy the l10n
+    this.sinon.spy(navigator.mozL10n, 'localize');
+    // Move forwad again
+    Tutorial.next();
+     // Are we in Step 2?
+    assert.equal(
+      document.getElementById('tutorial').dataset.step,
+      2
+    );
+    // We are in step 2 and taking into account the current layout
+    var l10nKey = 'tutorial-step2-' + MockScreenLayout._currentDevice;
+    assert.equal(navigator.mozL10n.localize.args[0][1], l10nKey);
+    // Now we check the image. As we are in 'tiny' (default layout in the mock)
+    // there is no prefix
+    var imgSRC =
+      document.getElementById('tutorial-step-image').querySelector('img').src;
+    assert.isTrue(imgSRC.contains('2.png'));
+  });
 
-    test('back', function() {
-      Tutorial.jumpTo(2);
-      Tutorial.back();
-      assert.equal(Tutorial.currentStep, 1);
-    });
-
-    test('jumpTo 2', function() {
-      Tutorial.jumpTo(2);
-      assert.equal(Tutorial.currentStep, 2);
-    });
-
-    test('jumpToExitStep', function() {
-      Tutorial.jumpToExitStep();
-      assert.ok(navigator.mozApps.isExecuted);
-      assert.include(Tutorial.tutorialScreen.Finish, 'show');
-    });
+  test(' hide the tutorial when done and move to FinishScreen', function() {
+    this.sinon.spy(FinishScreen, 'init');
+    // Call to 'done' method
+    Tutorial.done();
+    // Is the tutorial hidden now?
+    assert.isFalse(
+      document.getElementById('tutorial').classList.contains('show')
+    );
+    // Have we called to FinishScreen?
+    assert.isTrue(FinishScreen.init.calledOnce);
+    // Reset the spy
+    FinishScreen.init.reset();
   });
 });

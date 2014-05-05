@@ -1,3 +1,5 @@
+'use strict';
+
 /**
  * Tests for the shared l10n date code
  * TODO: Shared code unit tests should not be in gallery
@@ -76,6 +78,36 @@ suite('l10n date', function(done) {
       var result = l10nDate.fromNow(time, true);
 
       assert.equal(result, '5d ago');
+    });
+
+    test('now', function() {
+      var time = Date.now() - 29 * 1000;
+      var result = l10nDate.fromNow(time);
+      assert.equal(result, 'just now');
+
+      time = Date.now() + 29 * 1000;
+      result = l10nDate.fromNow(time);
+      assert.equal(result, 'now');
+    });
+
+    test('in a minute', function() {
+      var time = Date.now() + 35 * 1000;
+      var result = l10nDate.fromNow(time);
+      assert.equal(result, 'in a minute');
+
+      time = Date.now() + 1.8 * 60 * 1000;
+      result = l10nDate.fromNow(time);
+      assert.equal(result, 'in a minute');
+    });
+
+    test('should discard ms if diff is over 1 minute', function() {
+      var time = Date.now() + 2 * 60 * 1000 - 500;
+      var result = l10nDate.fromNow(time);
+      assert.equal(result, 'in 2 minutes');
+
+      time = Date.now() + 2 * 60 * 60 * 1000 - 500;
+      result = l10nDate.fromNow(time);
+      assert.equal(result, 'in 2 hours');
     });
   });
 

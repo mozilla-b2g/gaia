@@ -29,36 +29,77 @@ marionette('Rocketbar', function() {
   test('Rocketbar is expanded on homescreen', function() {
     // Check that Rocketbar is expanded
     var element = rocketbar.rocketbar;
+    var screen = rocketbar.screen;
     client.waitFor(function() {
       var rocketbarClass = element.getAttribute('class');
       return rocketbarClass.indexOf('expanded') != -1;
     });
     // Check that Rocketbar is in the home state
     client.waitFor(function() {
-      var rocketbarClass = element.getAttribute('class');
-      return rocketbarClass.indexOf('on-homescreen') != -1;
+      var screenClass = screen.getAttribute('class');
+      return screenClass.indexOf('on-homescreen') != -1;
     });
   });
 
   test('Focus', function() {
-    // Wait for Rocketbar to enter home state
-    var element = rocketbar.rocketbar;
-    client.waitFor(function() {
-      var rocketbarClass = element.getAttribute('class');
-      return rocketbarClass.indexOf('on-homescreen') != -1;
-    });
-    rocketbar.focus();
+    rocketbar.waitForLoad();
+    var screen = rocketbar.screen;
     // Check that focussed Rocketbar is in the focused state
+    rocketbar.focus();
     client.waitFor(function() {
-      var rocketbarClass = element.getAttribute('class');
-      return rocketbarClass.indexOf('active') != -1;
+      var screenClass = screen.getAttribute('class');
+      return screenClass.indexOf('rocketbar-focused') != -1;
     });
   });
 
   test('Navigate to URL', function() {
+    rocketbar.waitForLoad();
+    var element = rocketbar.rocketbar;
     var url = server.url('sample.html');
     rocketbar.focus();
     rocketbar.enterText(url + '\uE006'); // Enter the URL with enter key
     rocketbar.switchToBrowserFrame(url);
+    client.switchToFrame();
+    client.waitFor(function() {
+      var rocketbarClass = element.getAttribute('class');
+      return rocketbarClass.indexOf('expanded') != -1;
+    });
   });
+
+  test('Cancel Rocketbar', function() {
+    rocketbar.waitForLoad();
+
+    // Check that cancel button appears
+    rocketbar.focus();
+    var cancel = rocketbar.cancel;
+    client.waitFor(function() {
+      return cancel.displayed();
+    });
+
+    // Check that clicking cancel returns to non-active state
+    cancel.click();
+    var title = rocketbar.title;
+    client.waitFor(function() {
+      return title.displayed();
+    });
+  });
+
+  test('Cancel Rocketbar with backdrop', function() {
+    rocketbar.waitForLoad();
+
+    // Check that scrim appears
+    rocketbar.focus();
+    var backdrop = rocketbar.backdrop;
+    client.waitFor(function() {
+      return backdrop.displayed();
+    });
+
+    // Check that clicking scrim returns to non-active state
+    backdrop.click();
+    var title = rocketbar.title;
+    client.waitFor(function() {
+      return title.displayed();
+    });
+  });
+
 });

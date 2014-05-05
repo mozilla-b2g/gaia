@@ -159,6 +159,7 @@ PreferencesBuilder.prototype.setDebugPref = function() {
   this.prefs['dom.w3c_touch_events.enabled'] = 1;
   this.prefs['dom.promise.enabled'] = true;
   this.prefs['dom.wakelock.enabled'] = true;
+  this.prefs['image.mozsamplesize.enabled'] = true;
   this.prefs['webgl.verbose'] = true;
 
   // Turn off unresponsive script dialogs so test-agent can keep running...

@@ -1,13 +1,8 @@
-/*global document, console, setTimeout, define: true */
+// HTML_COOKIE_CACHE_VERSION is set in html_cache_restore as a global.
+/*global document, console, setTimeout, HTML_COOKIE_CACHE_VERSION,
+  define: true */
 
 define(function(require, exports) {
-
-/**
- * Version number for cache, allows expiring cache.
- * Set by build process, value must match the value
- * in html_cache_restore.js.
- */
-var CACHE_VERSION = '1';
 
 /**
  * Saves a JS object to document.cookie using JSON.stringify().
@@ -15,7 +10,7 @@ var CACHE_VERSION = '1';
  * /htmlc(\d+)/
  */
 exports.save = function htmlCacheSave(html) {
-  html = encodeURIComponent(CACHE_VERSION + ':' + html);
+  html = encodeURIComponent(HTML_COOKIE_CACHE_VERSION + ':' + html);
 
   // Set to 20 years from now.
   var expiry = Date.now() + (20 * 365 * 24 * 60 * 60 * 1000);

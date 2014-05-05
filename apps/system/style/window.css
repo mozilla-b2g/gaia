@@ -26,8 +26,9 @@
   }
 }
 
-.appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen):not(.edge-candidate) {
+.appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen) {
   opacity: 0;
+  transform: translateX(0);
 }
 
 #screen.software-button-enabled #windows > .appWindow {
@@ -42,10 +43,16 @@
   background-color: black;
 }
 
+.appWindow.popupWindow {
+  background-color: white;
+}
+
 .appWindow:not(.homescreen).render {
   background-image: none !important;
   background-color: transparent;
 }
+
+/* mozbrowser iframe layout */
 
 .appWindow > iframe {
   position: absolute;
@@ -83,10 +90,17 @@
   height: calc(100% - 6rem);
 }
 
+.appWindow .throbber.loading {
+  height: 0.3rem;
+  background-image: url('../shared/progress.gif');
+  background-size: auto 0.3rem;
+}
 
 .appWindow:not(.homescreen).render > iframe {
   background-color: #fff;
 }
+
+/* app window layout */
 
 #screen.active-statusbar > #windows > .appWindow,
 #screen.active-statusbar > #windows > .appWindow.fullscreen-app {
@@ -405,6 +419,63 @@
   visibility: visible;
 }
 
+.appWindow > .identification-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+
+  background: rgba(255, 255, 255, 0.8);
+
+  opacity: 0;
+  transition: opacity 0.2s ease-in;
+  will-change: opacity;
+}
+
+.appWindow.suspended > .identification-overlay,
+#screen.edges .appWindow:not(.active) .identification-overlay.visible {
+  opacity: 1;
+}
+
+.identification-overlay > div {
+  position: absolute;
+  top: calc(50% - 4.65rem);
+  left: 1.5rem;
+  width: calc(100% - 3rem);
+  height: 9.3rem;
+}
+
+.identification-overlay > div .icon {
+  position: absolute;
+  top: 0;
+  left: calc(50% - 3rem);
+  width: 6rem;
+  height: 6rem;
+
+  background-size: contain;
+}
+
+.identification-overlay > div .title {
+  display: block;
+  position: absolute;
+  top: 7.5rem;
+  left: 0;
+  width: 100%;
+  padding: 0;
+
+  color: #4d4d4d;
+  text-align: center;
+  font-size: 1.6rem;
+  font-style: italic;
+  line-height: 1.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  overflow: hidden;
+}
+
 .appWindow > iframe.hidden {
   visibility: hidden;
 }
@@ -416,7 +487,15 @@
 }
 
 .appWindow > .fade-overlay {
+  z-index: 1025;
+}
+
+.appWindow > .identification-overlay {
   z-index: 1024;
+}
+
+.appWindow > .screenshot-overlay {
+  z-index: 1023;
 }
 
 .appWindow > .chrome {
@@ -425,6 +504,22 @@
 
 .appWindow > .authentication-dialog {
   z-index: 4;
+}
+
+.appWindow.slideleft {
+  animation: slideLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.slideright {
+  animation: slideRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.slideup {
+  animation: slideUp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+}
+
+.appWindow.slidedown {
+  animation: slideDown 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.in-from-left {
@@ -482,6 +577,16 @@
   animation: outToRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
+@keyframes slideUp {
+  0%   { transform: translateY(100%); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(100%); }
+}
+
 @keyframes inFromLeft {
   0%   {
     transform: translateX(-20%);
@@ -499,33 +604,60 @@
 }
 
 /* Edges */
-.edge-candidate:not(.active) {
-  /* needs to be outside the viewport */
-  transform: translateX(-100%);
+#screen.edges #windows > .appWindow:not(.homescreen) {
+  /* in the viewport but not really */
+  transform: translateX(99.9999%);
   opacity: 1;
-  will-change: transform;
+  will-change: transform, opacity;
 }
 
-#screen:not(:-moz-full-screen-ancestor).edges #windows > .appWindow.active {
-  will-change: transform;
+#screen:-moz-full-screen-ancestor > #windows .appWindow.active {
+  top: 0;
+  height: 100%;
+  will-change: auto;
 }
 
-#windows > .appWindow.inside-edges {
+#screen.edges .appWindow.will-become-inactive {
+  opacity: 0;
+}
+
+#screen.edges #windows > .appWindow.active:not(.will-become-inactive),
+#screen.edges #windows > .appWindow.will-become-active,
+#screen.edges #windows > .appWindow.inside-edges {
   opacity: 1;
   transform: translateX(0);
 }
 
-#windows > .appWindow.outside-edges-left {
+#screen.edges #windows > .appWindow.outside-edges-left {
   opacity: 1;
-  transform: translateX(calc(-100% - 20px));
+  transform: translateX(calc(-100% - 2rem));
 }
 
-#windows > .appWindow.outside-edges-right {
+#screen.edges #windows > .appWindow.outside-edges-right {
   opacity: 1;
-  transform: translateX(calc(100% + 20px));
+  transform: translateX(calc(100% + 2rem));
 }
 
-#screen:-moz-full-screen-ancestor > #windows .appWindow.active {
+#windows .appWindow.active iframe {
+  transition-property: transform;
+  transition-duration: 0.5s;
+}
+
+#screen.locked #windows .appWindow.active iframe,
+#screen.on-homescreen #windows .appWindow.active iframe {
+  transition-property: none;
+}
+
+#screen.rocketbar-expanded .appWindow:not(.fullscreen-app).active iframe {
+  transform: translateY(2.4rem);
+}
+
+#screen.locked.rocketbar-expanded .appWindow.active iframe,
+#screen.on-homescreen.rocketbar-expanded .appWindow.active iframe {
+  transform: none;
+}
+
+#screen:-moz-full-screen-ancestor > #windows .appWindow.active iframe {
   top: 0;
   height: 100%;
 }

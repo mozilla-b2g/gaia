@@ -19,6 +19,7 @@ requireApp('homescreen/test/unit/mock_icon_retriever.js');
 requireApp('homescreen/test/unit/mock_bookmarks_manager.js');
 requireApp('homescreen/test/unit/mock_bookmarks_database.js');
 
+requireApp('homescreen/js/screen_helper.js');
 require('/shared/js/screen_layout.js');
 requireApp('homescreen/js/icon_manager.js');
 requireApp('homescreen/js/grid_components.js');

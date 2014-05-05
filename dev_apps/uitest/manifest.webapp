@@ -27,8 +27,8 @@
     "desktop-notification":{},
     "device-storage:sdcard":{ "access": "readwrite" },
     "settings":{ "access": "readwrite" },
-    "audio-capture": {},
-    "video-capture": {},
+    "audio-capture":{},
+    "video-capture":{},
     "bluetooth":{},
     "downloads":{}
   }

@@ -130,7 +130,8 @@ marionette('manipulate screenLock settings', function() {
         'passcode is still checked');
   });
 
-  test(
+  // Disabled for intermittent failures. Bug 983171
+  test.skip(
     'passcode is enabled and won\'t get disabled if you tap back button ' +
     'when we try to edit passcode',
     function() {

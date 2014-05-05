@@ -145,13 +145,5 @@ class NewAlarm(Clock):
 
 class EditAlarm(NewAlarm):
 
-    _alarm_delete_button_locator = (By.ID, 'alarm-delete')
-
     def __init__(self, marionette):
         NewAlarm.__init__(self, marionette)
-
-    def tap_delete(self):
-        self.marionette.find_element(*self._alarm_delete_button_locator).tap()
-        view = self.marionette.find_element(*self._alarm_view_locator)
-        self.wait_for_condition(lambda m: view.location['x'] == view.size['width'])
-        return Clock(self.marionette)

@@ -74,12 +74,7 @@ suite('L10n', function() {
     document.head.appendChild(inline);
 
     navigator.mozL10n.language.code = lang;
-    navigator.mozL10n.ready(function suiteSetup_ready() {
-      // Make sure to remove this event listener in case we re-translate
-      // below.
-      window.removeEventListener('localized', suiteSetup_ready);
-      done();
-    });
+    navigator.mozL10n.once(done);
   });
 
   suiteTeardown(function() {
@@ -220,14 +215,11 @@ suite('L10n', function() {
   });
 
   suite('translate existing', function() {
-    function setLang(lang, done, callback) {
+    function setLang(lang, callback) {
+      // we want onLocalized to be invoked only *after* the language change
       window.addEventListener('localized', function onLocalized() {
         window.removeEventListener('localized', onLocalized);
-        try {
-          callback();
-        } catch (e) {
-          done(e);
-        }
+        callback();
       });
       navigator.mozL10n.language.code = lang;
     }
@@ -246,9 +238,9 @@ suite('L10n', function() {
     test('inline translation', function(done) {
       elem.dataset.l10nId = 'inline-translation-test';
       assert.equal(elem.textContent, '');
-      setLang('zh-TW', done, function() {
+      setLang('zh-TW', function() {
         assert.equal(elem.textContent,
-            'static content provided by inlined JSON');
+                     'static content provided by inlined JSON');
         done();
       });
     });
@@ -256,7 +248,7 @@ suite('L10n', function() {
     test('downloaded translation', function(done) {
       elem.dataset.l10nId = 'cropimage';
       assert.equal(elem.textContent, '');
-      setLang('ar', done, function() {
+      setLang('ar', function() {
         assert.equal(elem.textContent, 'Crop');
         done();
       });

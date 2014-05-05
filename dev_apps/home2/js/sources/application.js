@@ -22,7 +22,16 @@
     }.bind(this);
 
     appMgr.oninstall = function oninstall(event) {
+
+      // There is a last divider that is always in the list, but not rendered
+      // unless in edit mode.
+      // Remove this divider, append the app, then re-append the divider.
+      var divider = app.items.pop();
+
       this.addIconToGrid(event.application);
+      app.items.push(divider);
+      app.render();
+
       app.itemStore.save(app.items);
     }.bind(this);
 

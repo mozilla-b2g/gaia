@@ -1,13 +1,7 @@
 define(function(require, exports, module) {
 'use strict';
 
-/**
- * Expose `bindAll`
- */
-
-module.exports = bindAll;
-
-function bindAll(object) {
+module.exports = function(object) {
   var key;
   var fn;
   for (key in object) {
@@ -16,6 +10,6 @@ function bindAll(object) {
       object[key] = fn.bind(object);
     }
   }
-}
+};
 
 });

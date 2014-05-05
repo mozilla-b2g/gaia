@@ -1,4 +1,7 @@
 'use strict';
+/* global AppAuthenticationDialog */
+/* global AppWindow */
+/* global MocksHelper */
 
 mocha.globals(['AppWindow', 'System', 'BaseUI', 'AppAuthenticationDialog']);
 
@@ -38,6 +41,8 @@ suite('system/AppAuthenticationDialog', function() {
   test('new', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var auth1 = new AppAuthenticationDialog(app1);
+    assert.ok(app1);
+    assert.ok(auth1);
   });
 
   test('show/hide', function() {
@@ -45,7 +50,7 @@ suite('system/AppAuthenticationDialog', function() {
 
     var auth1 = new AppAuthenticationDialog(app1);
     auth1.handleEvent({
-      type: 'mozbrowserrequireusernameandpassword',
+      type: 'mozbrowserusernameandpasswordrequired',
       preventDefault: function() {},
       detail: {
         host: '',

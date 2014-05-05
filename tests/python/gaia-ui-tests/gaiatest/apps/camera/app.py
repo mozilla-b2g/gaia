@@ -47,7 +47,7 @@ class Camera(Base):
         # Wait for camera to be ready to take a picture
         self.wait_for_condition(
             lambda m: m.find_element(
-                *self._controls_locator).get_attribute('enabled') == 'true', 20)
+                *self._controls_locator).get_attribute('data-enabled') == 'true', 20)
 
         self.tap_capture()
 
@@ -83,14 +83,14 @@ class Camera(Base):
         self.marionette.find_element(*self._switch_button_locator).tap()
         self.wait_for_condition(
             lambda m: m.find_element(
-                *self._controls_locator).get_attribute('enabled') == 'true')
+                *self._controls_locator).get_attribute('data-enabled') == 'true')
         self.wait_for_capture_ready()
 
     def tap_toggle_flash_button(self):
         self.marionette.find_element(*self._toggle_flash_button_locator).tap()
 
-    def wait_for_select_button_displayed(self):
-        self.wait_for_element_displayed(*self._select_button_locator)
+    def wait_for_select_button_enabled(self):
+        self.wait_for_condition(lambda m: self.marionette.find_element(*self._select_button_locator).is_enabled())
 
     def wait_for_capture_ready(self):
         self.wait_for_condition(
@@ -99,7 +99,7 @@ class Camera(Base):
 
     def wait_for_video_capturing(self):
         self.wait_for_condition(lambda m: self.marionette.find_element(
-            *self._controls_locator).get_attribute('recording') == 'true')
+            *self._controls_locator).get_attribute('data-recording') == 'true')
 
     def wait_for_video_timer_not_visible(self):
         self.wait_for_element_not_displayed(*self._video_timer_locator)

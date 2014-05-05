@@ -26,7 +26,10 @@ var FxaModuleCoppa = (function() {
 
   var Module = Object.create(FxaModule);
   Module.init = function init() {
-    this.importElements('fxa-age-select');
+    this.importElements(
+      'fxa-age-select',
+      'fxa-dialog'
+    );
 
     _enableNext(this.fxaAgeSelect.value);
 
@@ -48,8 +51,9 @@ var FxaModuleCoppa = (function() {
 
   Module.onNext = function onNext(gotoNextStepCallback) {
     if (new Date().getFullYear() - this.fxaAgeSelect.value < MINIMUM_AGE) {
+      var isFTU = this.fxaDialog.classList.contains('isFTU');
       this.showErrorResponse({
-        error: 'COPPA_ERROR'
+        error: isFTU ? 'COPPA_FTU_ERROR' : 'COPPA_ERROR'
       });
       return;
     }

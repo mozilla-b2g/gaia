@@ -15,7 +15,8 @@ WebappShared.prototype.setOptions = function(options) {
     resources: [],       // List of resources to copy
     styles: [],          // List of stable style names to copy
     unstable_styles: [], // List of unstable style names to copy
-    elements: []         // List of elements names to copy
+    elements: [],         // List of elements names to copy,
+    pages: []            // List of pages to copy
   };
   this.localesFile = utils.resolve(this.config.LOCALES_FILE,
     this.config.GAIA_DIR);
@@ -154,6 +155,29 @@ WebappShared.prototype.pushJS = function(path) {
   this.moveToBuildDir(file, pathInStage);
 };
 
+WebappShared.prototype.copyPage = function(path) {
+  var file = this.gaia.sharedFolder.clone();
+  file.append('pages');
+  path.split('/').forEach(function(segment) {
+    file.append(segment);
+  });
+
+  if (!file.exists()) {
+    throw new Error('Using inexistent shared page file: ' + path +
+                    ' from: ' + webapp.domain);
+  }
+
+  var pathInStage = 'shared/pages/' + path;
+  this.moveToBuildDir(file, pathInStage);
+
+  let extension = utils.getExtension(file.leafName);
+  // If it is an HTML file we need to check for the referenced shared
+  // resources
+  if (extension === 'html') {
+    this.filterSharedUsage(file);
+  }
+}
+
 WebappShared.prototype.pushResource = function(path) {
   let file = this.gaia.sharedFolder.clone();
   file.append('resources');
@@ -249,6 +273,12 @@ WebappShared.prototype.pushFileByType = function(kind, path) {
   }
 
   switch (kind) {
+    case 'pages':
+      if (this.used.pages.indexOf(path) === -1) {
+        this.used.pages.push(path);
+        this.copyPage(path);
+      }
+      break;
     case 'js':
       if (this.used.js.indexOf(path) === -1) {
         this.used.js.push(path);

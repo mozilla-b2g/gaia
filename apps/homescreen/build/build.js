@@ -167,7 +167,7 @@ HomescreenAppBuilder.prototype.customizeHomescreen = function() {
   let customize = this.defaultConfig;
 
   // Add the browser icon if rocketbar is not enabled
-  if (config.ROCKETBAR !== 'full') {
+  if (!config.HAIDA) {
     customize.homescreens[0].push(['apps', 'browser']);
   }
 
@@ -229,16 +229,13 @@ HomescreenAppBuilder.prototype.customizeHomescreen = function() {
     }
   }
 
-  var search_page_debug;
-  try {
-    let local_settings_file =
-      utils.getFile(config.APP_DIR, 'everything.me', 'config', 'local.json');
+  var search_page_debug = false;
 
+  let local_settings_file =
+    utils.getFile(config.APP_DIR, 'everything.me', 'config', 'local.json');
+  if (local_settings_file.exists()) {
     let local_settings = utils.getJSON(local_settings_file);
     search_page_debug = local_settings.debug;
-  }
-  catch(e) {
-    search_page_debug = false;
   }
 
   let content = {
@@ -280,7 +277,7 @@ HomescreenAppBuilder.prototype.customizeHomescreen = function() {
   };
 
   // Only enable configurable bookmarks for dogfood devices
-  if (config.ROCKETBAR !== 'none') {
+  if (config.HAIDA) {
     content.bookmarks = customize.bookmarks;
   }
 

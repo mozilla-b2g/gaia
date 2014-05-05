@@ -53,7 +53,9 @@
                 'lockscreen-appclose',
                 'screenchange',
                 'ftuopen',
-                'ftudone'
+                'ftudone',
+                'overlaystart',
+                'showlockscreenwindow'
                ]
     }
   };
@@ -75,6 +77,16 @@
     function lwm_handleEvent(evt) {
       var app = null;
       switch (evt.type) {
+        case 'overlaystart':
+          if (this.states.instance && this.states.instance.isActive()) {
+            this.states.instance.setVisible(false);
+          }
+          break;
+        case 'showlockscreenwindow':
+          if (this.states.instance && this.states.instance.isActive()) {
+            this.states.instance.setVisible(true);
+          }
+          break;
         case 'ftuopen':
           this.states.FTUOccurs = true;
           if (!this.states.instance) {

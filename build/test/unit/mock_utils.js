@@ -40,6 +40,18 @@ exports.getEnvPath = function() {
 exports.processEvents = function() {
 };
 
+var mockNSIFile = function() {
+  return {
+    clone: mockNSIFile,
+    remove: function() {},
+    append: function() {}
+  };
+};
+
+exports.getTempFolder = function() {
+  return mockNSIFile();
+};
+
 exports.getJSON = function() {
 };
 

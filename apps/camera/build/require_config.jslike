@@ -3,9 +3,12 @@
   baseUrl: 'js',
   mainConfigFile: '../js/config/require.js',
   dir: '../../../build_stage/camera',
+  insertRequire: ['main'],
   name: 'main',
-
-  findNestedDependencies: true,
+  include: [
+    'vendor/alameda',
+    'config/require',
+  ],
 
   // Be sure to normalize all define() calls by extracting
   // dependencies so Function toString is not needed, and

@@ -215,8 +215,8 @@ suite('vCard parsing settings', function() {
       reader.onread = stub();
       reader.onimported = stub();
       reader.onerror = stub();
-      reader.process(function import_finish(total) {
-        assert.strictEqual(1, total);
+      reader.process(function import_finish(result) {
+        assert.strictEqual(1, result.length);
         assert.strictEqual(1, reader.onread.callCount);
         assert.strictEqual(1, reader.onimported.callCount);
 
@@ -271,8 +271,8 @@ suite('vCard parsing settings', function() {
       reader.onimported = stub();
       reader.onerror = stub();
 
-      reader.process(function import_finish(total) {
-        assert.strictEqual(1, total);
+      reader.process(function import_finish(result) {
+        assert.strictEqual(1, result.length);
 
         assert.strictEqual(1, reader.onread.callCount);
         assert.strictEqual(1, reader.onimported.callCount);
@@ -328,8 +328,8 @@ suite('vCard parsing settings', function() {
       reader.onimported = stub();
       reader.onerror = stub();
 
-      reader.process(function import_finish(total) {
-        assert.strictEqual(1, total);
+      reader.process(function import_finish(result) {
+        assert.strictEqual(1, result.length);
         assert.strictEqual(1, reader.onread.callCount);
         assert.strictEqual(1, reader.onimported.callCount);
         assert.strictEqual(0, reader.onerror.callCount);
@@ -384,8 +384,8 @@ suite('vCard parsing settings', function() {
         reader.onimported = stub();
         reader.onerror = stub();
 
-        reader.process(function import_finish(total) {
-          assert.strictEqual(2, total);
+        reader.process(function import_finish(result) {
+          assert.strictEqual(2, result.length);
 
           assert.strictEqual(1, reader.onread.callCount);
           assert.strictEqual(2, reader.onimported.callCount);
@@ -456,8 +456,8 @@ suite('vCard parsing settings', function() {
         reader.onimported = stub();
         reader.onerror = stub();
 
-        reader.process(function import_finish(total) {
-          assert.equal(1, total);
+        reader.process(function import_finish(result) {
+          assert.equal(1, result.length);
           var req = navigator.mozContacts.find();
           req.onsuccess = function(contacts) {
             var contact = req.result[0];
@@ -475,8 +475,8 @@ suite('vCard parsing settings', function() {
         reader.onimported = stub();
         reader.onerror = stub();
 
-        reader.process(function import_finish(total) {
-          assert.equal(6, total);
+        reader.process(function import_finish(result) {
+          assert.equal(6, result.length);
           done();
         });
       });
@@ -487,8 +487,8 @@ suite('vCard parsing settings', function() {
         reader.onimported = stub();
         reader.onerror = stub();
 
-        reader.process(function import_finish(total) {
-          assert.equal(3, total);
+        reader.process(function import_finish(result) {
+          assert.equal(3, result.length);
           var req = navigator.mozContacts.find();
           req.onsuccess = function() {
             var contact = req.result[0];
@@ -508,8 +508,8 @@ suite('vCard parsing settings', function() {
         reader.onimported = stub();
         reader.onerror = stub();
 
-        reader.process(function import_finish(total) {
-          assert.equal(3, total);
+        reader.process(function import_finish(result) {
+          assert.equal(3, result.length);
           var req = navigator.mozContacts.find();
           req.onsuccess = function() {
             var contact = req.result[1];
@@ -529,8 +529,8 @@ suite('vCard parsing settings', function() {
         reader.onimported = stub();
         reader.onerror = stub();
 
-        reader.process(function import_finish(total) {
-          assert.equal(3, total);
+        reader.process(function import_finish(result) {
+          assert.equal(3, result.length);
           var req = navigator.mozContacts.find();
           req.onsuccess = function() {
             var contact = req.result[2];

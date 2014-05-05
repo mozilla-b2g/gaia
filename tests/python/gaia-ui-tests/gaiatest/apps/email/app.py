@@ -15,7 +15,7 @@ class Email(Base):
 
     name = 'E-Mail'
 
-    _email_locator = (By.CSS_SELECTOR, '#cardContainer .msg-header-item')
+    _email_locator = (By.CSS_SELECTOR, '#cardContainer .msg-header-item:not([data-index="-1"])')
     _syncing_locator = (By.CSS_SELECTOR, '#cardContainer .msg-messages-syncing > .small')
     _manual_setup_locator = (By.CSS_SELECTOR, '#cardContainer .sup-manual-config-btn')
     _message_list_locator = (By.CSS_SELECTOR, '.card-message-list')
@@ -75,6 +75,7 @@ class Email(Base):
 
         setup.tap_next()
 
+        setup.check_for_emails_interval('20000')
         setup.tap_account_prefs_next()
 
         setup.wait_for_setup_complete()

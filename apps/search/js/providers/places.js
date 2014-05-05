@@ -1,4 +1,4 @@
-/* globals HtmlHelper, Provider, Search */
+/* globals HtmlHelper, Provider, Search, GoogleLink */
 
 (function(exports) {
 
@@ -162,6 +162,7 @@
       div.dataset.url = x.url;
       div.classList.add('top-site');
       div.appendChild(span);
+      div.setAttribute('role', 'link');
 
       if (x.screenshot) {
         var objectURL = typeof x.screenshot === 'string' ? x.screenshot :
@@ -222,6 +223,8 @@
     var renderObj = {
       title: HtmlHelper.createHighlightHTML(titleText, filter),
       meta: HtmlHelper.createHighlightHTML(placeObj.url, filter),
+      description: placeObj.url,
+      label: titleText,
       dataset: {
         url: placeObj.url
       }
@@ -244,6 +247,13 @@
 
     click: itemClicked,
 
+    googleLink: new GoogleLink(),
+
+    init: function() {
+      Provider.prototype.init.apply(this, arguments);
+      this.googleLink.init();
+    },
+
     search: function(filter, collect) {
       this.clear();
       var matched = 0;
@@ -260,7 +270,18 @@
           break;
         }
       }
+
+      if (matched < 3) {
+        this.googleLink.search(filter);
+      }
+
       collect(renderResults);
+    },
+
+
+    clear: function() {
+      Provider.prototype.clear.apply(this, arguments);
+      this.googleLink.clear();
     },
 
     /**

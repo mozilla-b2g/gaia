@@ -37,43 +37,40 @@ requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_secure_window_manager.js');
 requireApp('system/test/unit/mock_lockscreen_window_manager.js');
 requireApp('system/test/unit/mock_secure_window_factory.js');
-requireApp('system/test/unit/mock_activity_window_factory.js');
+requireApp('system/test/unit/mock_activity_window_manager.js');
 requireApp('system/test/unit/mock_app_window_factory.js');
 
 mocha.globals([
-  'Shortcuts',
-  'wallpaperURL',
+  'activityWindowManager',
   'activities',
+  'applications',
+  'appWindowFactory',
   'cancelHomeTouchstart',
   'cancelHomeTouchend',
   'cancelHomeClick',
-  'secureWindowManager',
-  'secureWindowFactory',
-  'lockScreenWindowManager',
-  'systemDialogManager',
   'devtoolsView',
   'dialerAgent',
   'homeGesture',
-  'mediaRecording',
-  'remoteDebugger',
-  'sourceView',
-  'storage',
-  'softwareButtonManager',
-  'telephonySettings',
-  'ttlView',
-  'title',
-  'appWindowFactory',
-  'LayoutManager',
-  'activityWindowFactory',
-  'visibilityManager',
-  'Applications',
-  'activityWindowFactory',
   'homescreenLauncher',
-  'ActivityWindowFactory',
-  'visibilityManager',
-  'applications',
   'layoutManager',
-  'permissionManager'
+  'lockScreenWindowManager',
+  'mediaRecording',
+  'permissionManager',
+  'places',
+  'remoteDebugger',
+  'rocketbar',
+  'secureWindowFactory',
+  'secureWindowManager',
+  'Shortcuts',
+  'sourceView',
+  'softwareButtonManager',
+  'storage',
+  'systemDialogManager',
+  'telephonySettings',
+  'title',
+  'ttlView',
+  'visibilityManager',
+  'wallpaperURL'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
@@ -104,7 +101,7 @@ var mocksForBootstrap = new MocksHelper([
   'LayoutManager',
   'SecureWindowManager',
   'SecureWindowFactory',
-  'ActivityWindowFactory',
+  'ActivityWindowManager',
   'LockScreenWindowManager',
   'L10n'
 ]).init();

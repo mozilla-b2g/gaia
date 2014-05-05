@@ -2,22 +2,22 @@
   <template>
 
     <header>
-      <a href="#appPermissions"><span class="icon icon-back">back</span></a>
+      <a class="app-permissions-back"><span class="icon icon-back">back</span></a>
       <h1> </h1>
     </header>
 
     <div>
-      <header id="developer-header">
+      <header id="developer-header" class="developer-header">
         <h2 data-l10n-id="author">Author</h2>
       </header>
       <ul>
-        <li id="developer-infos">
+        <li id="developer-infos" class="developer-infos">
           <small><a target="_blank" href="http://github.com/mozilla-b2g/gaia/" data-href="http://github.com/mozilla-b2g/gaia/">http://github.com/mozilla-b2g/gaia/</a></small>
           <a target="_blank" data-href="http://github.com/mozilla-b2g/gaia/"> The Gaia Team </a>
         </li>
       </ul>
 
-      <header id="permissionsListHeader">
+      <header id="permissionsListHeader" class="permissionsListHeader">
         <h2 data-l10n-id="permissions">Permissions</h2>
       </header>
       <ul>
@@ -26,8 +26,10 @@
       <header>
         <h2 data-l10n-id="uninstallApp">Uninstall App</h2>
       </header>
-      <button id="uninstall-app" data-l10n-id="uninstallApp" class="danger">Uninstall App</button>
+      <button id="uninstall-app" data-l10n-id="uninstallApp" class="uninstall-app danger">Uninstall App</button>
     </div>
+
+    <panel data-path="panels/app_permissions_detail/panel"></panel>
 
   </template>
 </element>

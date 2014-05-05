@@ -113,8 +113,8 @@ suite('system/HomescreenLauncher', function() {
       MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
       homescreen = window.homescreenLauncher.getHomescreen();
       var stubEnsure = this.sinon.stub(homescreen, 'ensure');
-      homescreen = window.homescreenLauncher.getHomescreen();
-      homescreen = window.homescreenLauncher.getHomescreen();
+      homescreen = window.homescreenLauncher.getHomescreen(true);
+      homescreen = window.homescreenLauncher.getHomescreen(true);
       assert.isTrue(stubEnsure.calledTwice);
       stubEnsure.restore();
     });
@@ -214,6 +214,27 @@ suite('system/HomescreenLauncher', function() {
       });
       assert.isTrue(isSuccessCalled, 'the method not got called');
       stubGetHomescreen.restore();
+    });
+
+    test('homescreenopening', function() {
+      window.homescreenLauncher._screen = document.createElement('div');
+      window.homescreenLauncher.handleEvent({
+        type: 'homescreenopening'
+      });
+      assert.ok(window.homescreenLauncher._screen.classList.
+        contains('on-homescreen'));
+      window.homescreenLauncher._screen = null;
+    });
+
+    test('homescreenclosing', function() {
+      window.homescreenLauncher._screen = document.createElement('div');
+      window.homescreenLauncher._screen.classList.add('on-homescreen');
+      window.homescreenLauncher.handleEvent({
+        type: 'homescreenclosing'
+      });
+      assert.ok(!window.homescreenLauncher._screen.classList.
+        contains('on-homescreen'));
+      window.homescreenLauncher._screen = null;
     });
   });
 });

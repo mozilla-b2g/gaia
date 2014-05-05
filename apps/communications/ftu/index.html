@@ -20,6 +20,7 @@
   <link rel="stylesheet" type="text/css" href="css/status.css">
   <link rel="stylesheet" type="text/css" href="css/overlay.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
+  <link rel="stylesheet" type="text/css" href="/ftu/css/tutorial.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/responsive.css">
   <link rel="stylesheet" type="text/css" href="/facebook/style/curtain_frame.css">
 
@@ -77,7 +78,7 @@
   <script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
   <script defer type="text/javascript" src="/ftu/js/import_services.js"></script>
   <script defer type="text/javascript" src="/ftu/js/utils.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/tutorial_steps.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/finish_screen.js"></script>
   <script defer type="text/javascript" src="/ftu/js/tutorial.js"></script>
   <script defer type="text/javascript" src="/ftu/js/external_links.js"></script>
   <script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
@@ -639,85 +640,18 @@
     </section>
   </section>
 
-  <section id="tutorial-screen" class="tutorial-screen-base" role="region">
+  <section id="tutorial" role="region" data-step="1" data-maxsteps-tiny="6" data-maxsteps-large="4">
     <ol id="tutorial-progress" class="step-state">
-      <li id="tutorial-progress-state" class="step-state-bar"></li>
-      <li>step 1</li>
-      <li>step 2</li>
-      <li>step 3</li>
-      <li>step 4</li>
-      <li>step 5</li>
-      <li>step 6</li>
-      <li>step 7</li>
-      <li>step 8</li>
+      <li id="tutorial-progress-bar" class="step-state-bar"></li>
     </ol>
-    <article role="main">
-      <section role="region" id="step1">
-        <div>
-          <header id="step1Header"></header>
-        </div>
-        <section>
-          <img id="step1Img" class="step-img-base">
-        </section>
+    <article id="tutorial-steps-container" role="main">
+      <section id="tutorial-step-title">
       </section>
-      <section role="region" id="step2">
-        <div>
-          <header id="step2Header"></header>
-        </div>
-        <section>
-          <img id="step2Img" class="step-img-base">
-        </section>
-      </section>
-      <section role="region" id="step3">
-        <div>
-          <header id="step3Header"></header>
-        </div>
-        <section>
-          <img id="step3Img" class="step-img-base">
-        </section>
-      </section>
-      <section role="region" id="step4">
-        <div>
-          <header id="step4Header"></header>
-        </div>
-        <section>
-          <img id="step4Img" class="step-img-base">
-        </section>
-      </section>
-      <section role="region" id="step5">
-        <div>
-          <header id="step5Header"></header>
-        </div>
-        <section>
-          <img id="step5Img" class="step-img-base">
-        </section>
-      </section>
-      <section role="region" id="step6">
-        <div>
-          <header id="step6Header"></header>
-        </div>
-        <section>
-          <img id="step6Img" class="step-img-base">
-        </section>
-      </section>
-      <section role="region" id="step7">
-        <div>
-          <header id="step7Header"></header>
-        </div>
-        <section>
-          <img id="step7Img" class="step-img-base">
-        </section>
-      </section>
-      <section role="region" id="step8">
-        <div>
-          <header id="step8Header"></header>
-        </div>
-        <section>
-          <img id="step8Img" class="step-img-base">
-        </section>
+      <section id="tutorial-step-image">
+        <img class="step-img-base">
       </section>
     </article>
-    <nav role="navigation" id="tutorial-nav-bar" class="forward-only">
+    <nav role="navigation" id="tutorial-nav-bar">
       <button id="back-tutorial" class="button-left back" data-l10n-id="navbar-back">
         Back
         <span></span>
@@ -728,7 +662,6 @@
       </button>
     </nav>
   </section>
-
   <section id="tutorial-finish-tiny" class="tutorial-finish-base" role="region">
     <section class="content">
       <h1 data-l10n-id="thatsIt">
@@ -744,23 +677,17 @@
       </menu>
     </section>
   </section>
-  <!-- end of tiny devices -->
-
-  <!-- for large devices -->
   <section id="tutorial-finish-large" class="tutorial-finish-base" role="region">
     <section class="content">
-      <header>
-        <p data-l10n-id="thatsIt1Tablet-2">
-          You can always swipe from the bottom edge to enter home screen.
-        </p>
-        <p data-l10n-id="thatsIt2Tablet-2">
-          Let's do it !
-        </p>
-      </header>
+      <p data-l10n-id="thatsIt1Tablet-2">
+        You can always swipe from the bottom edge to enter home screen.
+      </p>
+      <p data-l10n-id="thatsIt2Tablet-2">
+        Let's do it !
+      </p>
     </section>
   </section>
-  <!-- end of large devices -->
-
+  
   <form role='dialog' data-type='confirm' id='offline-error-dialog'>
     <section>
       <h1 data-l10n-id='offline-dialog-title'>You must be connected to the Internet to view the page.</h1>

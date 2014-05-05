@@ -6,13 +6,18 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('activity');
-var model = require('vendor/model');
+var events = require('vendor/evt');
+
+var supported = {
+  pick: true,
+  record: true
+};
 
 /**
- * Mixin `Model` methods
+ * Mixin event emitter
  */
 
-model(Activity.prototype);
+events(Activity.prototype);
 
 /**
  * Exports
@@ -25,10 +30,11 @@ module.exports = Activity;
  *
  * @constructor
  */
-function Activity() {
+function Activity(options) {
+  this.win = options && options.win || window; // test hook
+  this.modes = ['picture', 'video'];
   this.active = false;
   this.data = {};
-  this.modes = ['picture', 'video'];
   debug('initialized');
 }
 
@@ -46,14 +52,19 @@ function Activity() {
  * @param  {Function} done
  */
 Activity.prototype.check = function(done) {
-  var hasMessage = navigator.mozHasPendingMessage('activity');
+  debug('checking');
+
+  var isPending = this.isPending();
   var self = this;
 
   navigator.mozSetMessageHandler('activity', onActivity);
+  debug('isPending: %s', isPending);
 
-  if (!hasMessage) {
-    debug('none');
-    setTimeout(done);
+  // When there is no pending message
+  // we call the callback sync, so we
+  // can complete App startup ASAP.
+  if (!isPending) {
+    done();
     return;
   }
 
@@ -65,11 +76,12 @@ Activity.prototype.check = function(done) {
     self.activity = activity;
     self.name = name;
     self.data = data;
+    self.active = true;
+    self[name] = true;
 
     switch (name) {
       case 'pick':
         debug('Received \'pick\' activity for types: %s', data.type);
-        self.active = true;
         self.modes = self.getModesForPickActivity(activity);
         self.emit('activityreceived');
         break;
@@ -83,8 +95,15 @@ Activity.prototype.check = function(done) {
         break;
     }
 
+    debug('activity parsed', self);
     done();
   }
+};
+
+Activity.prototype.isPending = function() {
+  var hash = this.win.location.hash;
+  var name = hash && hash.substr(1);
+  return supported[name];
 };
 
 Activity.prototype.getModesForPickActivity = function(activity) {

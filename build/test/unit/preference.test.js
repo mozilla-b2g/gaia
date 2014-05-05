@@ -234,6 +234,7 @@ suite('preferences.js', function() {
           'dom.w3c_touch_events.enabled': 1,
           'dom.promise.enabled': true,
           'dom.wakelock.enabled': true,
+          'image.mozsamplesize.enabled': true,
           'webgl.verbose': true,
           'dom.max_script_run_time': 0,
           'network.http.use-cache': false,

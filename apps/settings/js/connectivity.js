@@ -16,6 +16,7 @@ var Connectivity = (function(window, document, undefined) {
   var _initialized = false;
   var _macAddress = '';
   var _ = navigator.mozL10n.get;
+  var SettingsCache = require('modules/settings_cache');
 
   // in desktop helper we fake these device interfaces if they don't exist.
   var wifiManager = WifiHelper.getWifiManager();
@@ -147,18 +148,29 @@ var Connectivity = (function(window, document, undefined) {
     }
   }
 
+  // Keep the setting in sync with the hardware state.  We need to do this
+  // because b2g/dom/wifi/WifiWorker.js can turn the hardware on and off.
+  function syncWifiEnabled(enabled, callback) {
+    SettingsCache.getSettings(function(results) {
+      var wifiEnabled = results['wifi.enabled'];
+      if (wifiEnabled !== enabled) {
+        settings.createLock().set({'wifi.enabled': enabled});
+      }
+      callback();
+    });
+  }
+
   function wifiEnabled() {
-    // Keep the setting in sync with the hardware state.  We need to do this
-    // because b2g/dom/wifi/WifiWorker.js can turn the hardware on and off.
-    settings.createLock().set({'wifi.enabled': true});
-    wifiEnabledListeners.forEach(function(listener) { listener(); });
-    storeMacAddress();
+    syncWifiEnabled(true, function() {
+      wifiEnabledListeners.forEach(function(listener) { listener(); });
+      storeMacAddress();
+    });
   }
 
   function wifiDisabled() {
-    // Keep the setting in sync with the hardware state.
-    settings.createLock().set({'wifi.enabled': false});
-    wifiDisabledListeners.forEach(function(listener) { listener(); });
+    syncWifiEnabled(false, function() {
+      wifiDisabledListeners.forEach(function(listener) { listener(); });
+    });
   }
 
   function wifiStatusChange(event) {

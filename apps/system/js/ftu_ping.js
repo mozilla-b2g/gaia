@@ -68,7 +68,7 @@ var FtuPing = (function() {
                          'deviceinfo.product_model',
                          'deviceinfo.firmware_revision',
                          'deviceinfo.hardware',
-                         'deviceinfo.update_channel'];
+                         'app.update.channel'];
 
   function reset() {
     pingReady = false;
@@ -272,7 +272,7 @@ var FtuPing = (function() {
 
   function generatePingURL() {
     var version = pingData['deviceinfo.platform_version'] || 'unknown';
-    var updateChannel = pingData['deviceinfo.update_channel'] || 'unknown';
+    var updateChannel = pingData['app.update.channel'] || 'unknown';
     var buildId = pingData['deviceinfo.platform_build_id'] || 'unknown';
 
     var uriParts = [

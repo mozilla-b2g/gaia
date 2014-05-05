@@ -289,3 +289,7 @@ function startup(data, reason) {
     debug('Something went wrong while trying to start browser-helper: ' + e);
   }
 }
+
+function shutdown(data, reason) {
+  // prevent stdout warnings
+}

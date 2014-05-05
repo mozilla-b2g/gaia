@@ -269,7 +269,8 @@ if (!window.FacebookConnector) {
         out.contactPictureUri = 'https://graph.facebook.com/' +
                                   source.uid + '/picture?type=square' +
                                   '&width=' + picWidth +
-                                  '&height=' + picHeight;
+                                  '&height=' + picHeight +
+                                  '&t=' + Date.now();
         return out;
       },
 

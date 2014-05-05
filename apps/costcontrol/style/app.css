@@ -19,11 +19,6 @@ body {
   background-color: #000;
 }
 
-form {
-  padding: 1.5rem;
-  background: #49525c;
-}
-
 iframe {
   border: none;
   width: 100%;
@@ -98,10 +93,6 @@ input.error {
   top: 0;
   left: 0;
   right: 0;
-}
-
-.view[role="dialog"] {
-  bottom: 0;
 }
 
 /* VIEWPORTS */

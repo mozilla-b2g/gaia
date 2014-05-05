@@ -36,7 +36,7 @@ BrowserAppBuilder.prototype.generateManifest = function() {
 BrowserAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
   this.initJSON();
-  if (options.ROCKETBAR == 'full') {
+  if (options.HAIDA) {
     this.generateManifest();
   }
 };

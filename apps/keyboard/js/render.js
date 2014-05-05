@@ -337,6 +337,14 @@ const IMERender = (function() {
     if (!activeIme)
       return;
 
+    if (inputMethodName == 'vietnamese' && candidates.length) {
+      // In the Vietnamese IM, the candidates correspond to tones.
+      // There will be either 2 or 5. All must appear.
+      numberOfCandidatesPerRow = candidates.length;
+      candidateUnitWidth =
+        Math.floor(ime.clientWidth / numberOfCandidatesPerRow);
+    }
+
     // TODO: Save the element
     var candidatePanel = activeIme.querySelector('.keyboard-candidate-panel');
     var candidatePanelToggleButton =
@@ -487,11 +495,20 @@ const IMERender = (function() {
     var candidatesLength = candidates.length;
 
     for (var i = 0; i < candidatesLength; i++) {
-      var cand = candidates[i][0];
-      var data = candidates[i][1];
-      var span = document.createElement('span');
-      var unit = (cand.length >> 1) + 1;
+      var cand, data;
+      if (typeof candidates[i] == 'string') {
+        cand = data = candidates[i];
+      } else {
+        cand = candidates[i][0];
+        data = candidates[i][1];
+      }
 
+      var unit = (cand.length >> 1) + 1;
+      if (inputMethodName == 'vietnamese') {
+        unit = 1;
+      }
+
+      var span = document.createElement('span');
       span.textContent = cand;
       span.dataset.selection = true;
       span.dataset.data = data;
@@ -708,6 +725,9 @@ const IMERender = (function() {
         ime.querySelectorAll('.candidate-row span'),
         function(item) {
           var unit = (item.textContent.length >> 1) + 1;
+          if (inputMethodName == 'vietnamese') {
+            unit = 1;
+          }
           item.style.width = (unit * candidateUnitWidth - 2) + 'px';
         }
       );

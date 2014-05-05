@@ -218,6 +218,14 @@ li a[role="button"].activity > b em{
   font-style: normal;
 }
 
+[data-type="list"] aside span[data-type="img"] {
+  border-style: hidden;
+}
+
+[data-type="list"] li[data-visited="true"] aside span[data-type="img"] {
+  border-style: solid;
+}
+
 [data-type="list"] li p {
   margin-left: 1.5rem;
 }
@@ -647,7 +655,8 @@ nav[data-type="scrollbar"] ol > li > * {
   display: block !important;
 }
 
-#groups-list.selecting .group-section li {
+#groups-list.selecting .group-section li,
+#search-list.selecting li {
   padding-left: 2rem;
 }
 

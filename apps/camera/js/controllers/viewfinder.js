@@ -40,6 +40,8 @@ function ViewfinderController(app) {
  * @private
  */
 ViewfinderController.prototype.configure = function() {
+  this.sensitivity = window.ZOOM_GESTURE_SENSITIVITY * window.innerWidth;
+
   this.configureScaleType();
   this.configureGrid();
 };
@@ -84,16 +86,16 @@ ViewfinderController.prototype.hideGrid = function() {
 ViewfinderController.prototype.bindEvents = function() {
   this.app.settings.grid.on('change:selected', this.viewfinder.setter('grid'));
   this.viewfinder.on('click', this.app.firer('viewfinder:click'));
-  this.viewfinder.on('pinchChange', this.onPinchChange);
   this.camera.on('zoomchanged', this.onZoomChanged);
+  this.app.on('camera:shutter', this.onShutter);
   this.app.on('camera:focuschanged', this.focusRing.setState);
   this.app.on('camera:configured', this.onCameraConfigured);
-  this.app.on('camera:shutter', this.onShutter);
-  this.app.on('previewgallery:closed', this.startStream);
+  this.app.on('previewgallery:closed', this.onPreviewGalleryClosed);
   this.app.on('previewgallery:opened', this.stopStream);
   this.app.on('settings:closed', this.configureGrid);
   this.app.on('settings:opened', this.hideGrid);
-  this.app.on('blur', this.stopStream);
+  this.app.on('hidden', this.stopStream);
+  this.app.on('pinchchanged', this.onPinchChanged);
 };
 
 /**
@@ -103,6 +105,7 @@ ViewfinderController.prototype.bindEvents = function() {
  * @private
  */
 ViewfinderController.prototype.onCameraConfigured = function() {
+  debug('configuring');
   this.startStream();
   this.configurePreview();
   this.configureZoom();
@@ -112,12 +115,29 @@ ViewfinderController.prototype.onCameraConfigured = function() {
   // video element appears not to have painted the
   // newly set dimensions before fading in.
   // https://bugzilla.mozilla.org/show_bug.cgi?id=982230
-  setTimeout(this.viewfinder.fadeIn, 300);
+  if (!this.app.criticalPathDone) { this.show(); }
+  else { setTimeout(this.show, 280); }
+};
+
+ViewfinderController.prototype.show = function() {
+  this.viewfinder.fadeIn();
+  this.app.emit('viewfinder:visible');
 };
 
 ViewfinderController.prototype.onShutter = function() {
   this.focusRing.setState('none');
   this.viewfinder.shutter();
+};
+
+/**
+ * Starts the stream, only if
+ * the app is currently visible.
+ *
+ * @private
+ */
+ViewfinderController.prototype.onPreviewGalleryClosed = function() {
+  if (this.app.hidden) { return; }
+  this.startStream();
 };
 
 /**
@@ -197,7 +217,9 @@ ViewfinderController.prototype.configureZoom = function() {
  *
  * @private
  */
-ViewfinderController.prototype.onPinchChange = function(zoom) {
+ViewfinderController.prototype.onPinchChanged = function(deltaPinch) {
+  var zoom = this.viewfinder._zoom * (1 + (deltaPinch / this.sensitivity));
+  this.viewfinder.setZoom(zoom);
   this.camera.setZoom(zoom);
 };
 

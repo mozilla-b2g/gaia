@@ -41,6 +41,7 @@ var Contacts = (function() {
       cancelButton,
       addButton,
       appTitleElement,
+      editModeTitleElement,
       asyncScriptsLoaded = false;
 
   var settingsReady = false;
@@ -188,7 +189,8 @@ var Contacts = (function() {
     settingsButton = document.getElementById('settings-button');
     cancelButton = document.getElementById('cancel_activity');
     addButton = document.getElementById('add-contact-button');
-    appTitleElement = cancelButton.parentNode.querySelector('h1');
+    editModeTitleElement = document.getElementById('edit-title');
+    appTitleElement = document.getElementById('app-title');
 
     TAG_OPTIONS = {
       'phone-type' : [
@@ -469,8 +471,8 @@ var Contacts = (function() {
     }
   };
 
-  var handleBack = function handleBack() {
-    navigation.back();
+  var handleBack = function handleBack(cb) {
+    navigation.back(cb);
   };
 
   var handleCancel = function handleCancel() {
@@ -551,7 +553,8 @@ var Contacts = (function() {
       callback();
     } else {
       initDetails(function onDetails() {
-        LazyLoader.load(['/contacts/js/utilities/image_thumbnail.js'],
+        LazyLoader.load([
+          '/shared/js/contacts/utilities/image_thumbnail.js'],
         function() {
           Contacts.view('Form', function viewLoaded() {
             formReady = true;
@@ -707,8 +710,8 @@ var Contacts = (function() {
 
   var addAsyncScripts = function addAsyncScripts() {
     var lazyLoadFiles = [
-      '/contacts/js/utilities/templates.js',
-      '/contacts/js/contacts_shortcuts.js',
+      '/shared/js/contacts/utilities/templates.js',
+      '/shared/js/contacts/contacts_shortcuts.js',
       '/contacts/js/contacts_tag.js',
       SHARED_UTILS_PATH + '/' + 'misc.js',
       '/contacts/js/utilities/normalizer.js',
@@ -718,7 +721,7 @@ var Contacts = (function() {
       SHARED_UTILS_PATH + '/' + 'sdcard.js',
       SHARED_UTILS_PATH + '/' + 'vcard_parser.js',
       SHARED_UTILS_PATH + '/' + 'status.js',
-      '/contacts/js/utilities/dom.js'
+      '/shared/js/contacts/utilities/dom.js'
     ];
 
     // Lazyload nfc.js if NFC is available
@@ -947,7 +950,7 @@ var Contacts = (function() {
   }
 
   var updateSelectCountTitle = function updateSelectCountTitle(count) {
-    appTitleElement.textContent = _('SelectedTxt', {n: count});
+    editModeTitleElement.textContent = _('SelectedTxt', {n: count});
   };
 
   return {

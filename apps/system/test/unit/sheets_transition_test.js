@@ -83,9 +83,8 @@ suite('system/SheetsTransition >', function() {
       assert.equal(dialerFrame.style.transition, transition);
     });
 
-    test('it should bump the zIndex of the new sheet',
-    function() {
-      assert.equal(dialerFrame.dataset.zIndexLevel, 'bottom-app');
+    test('it should set the transitioning flag', function() {
+      assert.isTrue(SheetsTransition.transitioning);
     });
 
     test('it should not fail when we\'re at the beginning of the stack',
@@ -111,11 +110,6 @@ suite('system/SheetsTransition >', function() {
         assert.equal(contactsFrame.style.transition, transition);
       });
 
-      test('it should bump the zIndex of the new sheet',
-      function() {
-        assert.equal(contactsFrame.dataset.zIndexLevel, 'top-app');
-      });
-
       test('it should not fail when we\'re at the end of the stack',
       function() {
         getNextStub.returns(null);
@@ -139,7 +133,7 @@ suite('system/SheetsTransition >', function() {
     test('it should set the transform property on the new sheet',
     function() {
       assert.equal(dialerFrame.style.transform,
-                   'translateX(calc(-70% - 20px))');
+                   'translateX(calc(-70% - 2rem))');
     });
 
     suite('if the direction is rtl', function() {
@@ -156,7 +150,7 @@ suite('system/SheetsTransition >', function() {
       test('it should set the transform property on the new sheet',
       function() {
         assert.equal(contactsFrame.style.transform,
-                     'translateX(calc(70% + 20px))');
+                     'translateX(calc(70% + 2rem))');
       });
     });
 
@@ -322,17 +316,15 @@ suite('system/SheetsTransition >', function() {
   });
 
   suite('Ending the transition', function() {
-    var currentTrSpy, prevTrSpy, callbackSpy;
+    var currentTrSpy, prevTrSpy;
 
     setup(function() {
       currentTrSpy = this.sinon.spy(settingsFrame, 'addEventListener');
       prevTrSpy = this.sinon.spy(dialerFrame, 'addEventListener');
-      callbackSpy = this.sinon.spy();
 
       SheetsTransition.begin('ltr');
       SheetsTransition.moveInDirection('ltr', 0.2);
       SheetsTransition.snapInPlace();
-      SheetsTransition.end(callbackSpy);
     });
 
     test('it should clear the transform property on the current sheet',
@@ -340,17 +332,23 @@ suite('system/SheetsTransition >', function() {
       assert.equal(settingsFrame.style.transform, '');
     });
 
+    test('it should ignore opasity transitionend', function() {
+      assert.isTrue(settingsFrame.classList.contains('inside-edges'));
+      currentTrSpy.yield({propertyName: 'opacity'});
+      assert.isTrue(settingsFrame.classList.contains('inside-edges'));
+    });
+
     test('it should clean the current sheet css classes after the transition',
     function() {
       assert.isTrue(settingsFrame.classList.contains('inside-edges'));
-      currentTrSpy.yield();
+      currentTrSpy.yield({propertyName: 'transform'});
       assert.isFalse(settingsFrame.classList.contains('inside-edges'));
     });
 
     test('it should clear the current transition property after the transition',
     function() {
       assert.ok(settingsFrame.style.transition);
-      currentTrSpy.yield();
+      currentTrSpy.yield({propertyName: 'transform'});
       assert.equal(settingsFrame.style.transition, '');
     });
 
@@ -362,22 +360,15 @@ suite('system/SheetsTransition >', function() {
     test('it should clean the new sheet css classes after the transition',
     function() {
       assert.isTrue(dialerFrame.classList.contains('outside-edges-left'));
-      prevTrSpy.yield();
+      prevTrSpy.yield({propertyName: 'transform'});
       assert.isFalse(dialerFrame.classList.contains('outside-edges-left'));
     });
 
     test('it should clear the new transition property after the transition',
     function() {
       assert.ok(dialerFrame.style.transition);
-      prevTrSpy.yield();
+      prevTrSpy.yield({propertyName: 'transform'});
       assert.equal(dialerFrame.style.transition, '');
-    });
-
-    test('it should trigger the callback once after the transition',
-    function() {
-      prevTrSpy.yield();
-      currentTrSpy.yield();
-      assert.isTrue(callbackSpy.calledOnce);
     });
 
     test('it should not fail when we\'re at the beginning of the stack',
@@ -388,11 +379,15 @@ suite('system/SheetsTransition >', function() {
       assert.isTrue(true, 'did not fail');
     });
 
+    test('it should update the transitioning flag', function() {
+      assert.isFalse(SheetsTransition.transitioning);
+    });
+
     suite('if the sheets didn\'t move', function() {
       setup(function() {
         SheetsTransition.begin('ltr');
         SheetsTransition.snapInPlace();
-        SheetsTransition.end(callbackSpy);
+        SheetsTransition.end();
       });
 
       test('it should cleanup without waiting',
@@ -402,11 +397,6 @@ suite('system/SheetsTransition >', function() {
 
         assert.isFalse(dialerFrame.classList.contains('outside-edges-left'));
         assert.equal(dialerFrame.style.transition, '');
-      });
-
-      test('it should trigger the callback once without waiting',
-      function() {
-        assert.isTrue(callbackSpy.calledOnce);
       });
     });
 
@@ -430,113 +420,22 @@ suite('system/SheetsTransition >', function() {
       test('it should clean the new sheet css classes after the transition',
       function() {
         assert.isTrue(contactsFrame.classList.contains('outside-edges-right'));
-        nextTrSpy.yield();
+        nextTrSpy.yield({propertyName: 'transform'});
         assert.isFalse(contactsFrame.classList.contains('outside-edges-right'));
       });
 
       test('it should clear the new transition property after the transition',
       function() {
         assert.ok(contactsFrame.style.transition);
-        nextTrSpy.yield();
+        nextTrSpy.yield({propertyName: 'transform'});
         assert.equal(contactsFrame.style.transition, '');
       });
-
-      test('it should clear the new zIndex property after the transition',
-      function() {
-        assert.ok(contactsFrame.dataset.zIndexLevel);
-        nextTrSpy.yield();
-        assert.isUndefined(contactsFrame.dataset.zIndexLevel);
-      });
-
 
       test('it should not fail when we\'re at the end of the stack',
       function() {
         getNextStub.returns(null);
         SheetsTransition.begin('rtl');
         assert.isTrue(true, 'did not fail');
-      });
-    });
-  });
-
-  suite('Preparing edge candidates >', function() {
-    function dispatchStackChanged(apps, position) {
-      var details = {
-        position: position,
-        sheets: apps
-      };
-
-      var evt = new CustomEvent('stackchanged', { detail: details });
-      window.dispatchEvent(evt);
-    };
-
-    setup(function() {
-      SheetsTransition.init();
-      MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
-    });
-
-    suite('Going back to the homescreen', function() {
-      setup(function() {
-        dialerFrame.classList.add('edge-candidate');
-        dispatchStackChanged([dialer, contacts, settings], null);
-      });
-
-      test('it should remove the css class', function() {
-        assert.isFalse(dialerFrame.classList.contains('edge-candidate'));
-        assert.isFalse(contactsFrame.classList.contains('edge-candidate'));
-        assert.isFalse(settingsFrame.classList.contains('edge-candidate'));
-      });
-    });
-
-    suite('With one sheet before and one after', function() {
-      setup(function() {
-        dispatchStackChanged([dialer, contacts, settings], 1);
-      });
-
-      test('it should put the css class on all of them', function() {
-        assert.isTrue(dialerFrame.classList.contains('edge-candidate'));
-        assert.isTrue(contactsFrame.classList.contains('edge-candidate'));
-        assert.isTrue(settingsFrame.classList.contains('edge-candidate'));
-      });
-    });
-
-    suite('With sheets only after', function() {
-      setup(function() {
-        dispatchStackChanged([dialer, contacts, settings], 0);
-      });
-
-      test('it should put the css class on the next one', function() {
-        assert.isTrue(dialerFrame.classList.contains('edge-candidate'));
-        assert.isTrue(contactsFrame.classList.contains('edge-candidate'));
-        assert.isFalse(settingsFrame.classList.contains('edge-candidate'));
-      });
-    });
-
-    suite('With sheets only before', function() {
-      setup(function() {
-        dispatchStackChanged([dialer, contacts, settings], 2);
-      });
-
-      test('it should put the css class on the previous one', function() {
-        assert.isFalse(dialerFrame.classList.contains('edge-candidate'));
-        assert.isTrue(contactsFrame.classList.contains('edge-candidate'));
-        assert.isTrue(settingsFrame.classList.contains('edge-candidate'));
-      });
-    });
-
-    suite('If the edge gestures are disabled', function() {
-      setup(function() {
-        MockSettingsListener.mCallbacks['edgesgesture.enabled'](false);
-        dispatchStackChanged([dialer, contacts, settings], 1);
-      });
-
-      teardown(function() {
-        MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
-      });
-
-      test('it should not touch the sheets', function() {
-        assert.isFalse(dialerFrame.classList.contains('edge-candidate'));
-        assert.isFalse(contactsFrame.classList.contains('edge-candidate'));
-        assert.isFalse(settingsFrame.classList.contains('edge-candidate'));
       });
     });
   });

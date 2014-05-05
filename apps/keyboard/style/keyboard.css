@@ -441,6 +441,10 @@ bubble above the key when you tap and hold. */
   border: none;
 }
 
+.keyboard-candidate-panel.vietnamese .candidate-row span {
+  font-size: 1.7rem;
+}
+
 /* for latin suggestions we don't need such a tall box */
 /* and in latin we hide the toggle button, so we can be full-width */
 .candidate-panel .keyboard-candidate-panel.latin {

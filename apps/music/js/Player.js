@@ -37,14 +37,6 @@ if (acm) {
   });
 }
 
-window.addEventListener('visibilitychange', function() {
-  if (document.hidden) {
-    PlayerView.audio.removeEventListener('timeupdate', PlayerView);
-  } else {
-    PlayerView.audio.addEventListener('timeupdate', PlayerView);
-  }
-});
-
 // View of Player
 var PlayerView = {
   get view() {
@@ -148,6 +140,10 @@ var PlayerView = {
     // media playback widget to reflect the playing status.
     this.audio.addEventListener('mozinterruptbegin', this);
     this.audio.addEventListener('mozinterruptend', this);
+
+    // Listen to visiblitychange to know when to stop listening to the
+    // 'timeupdate' event.
+    window.addEventListener('visibilitychange', this);
 
     // XXX: We use localstorage event as a workaround solution in music app
     // to resolve audio channel competetion between regular mode and pick mode.
@@ -733,8 +729,7 @@ var PlayerView = {
     // updating the UI will slow down the other pages, such as the scrolling in
     // ListView.
     if (typeof ModeManager === 'undefined' ||
-      ModeManager.currentMode === MODE_PLAYER &&
-      this.playStatus === PLAYSTATUS_PLAYING) {
+        ModeManager.currentMode === MODE_PLAYER) {
       this.seekAudio();
     }
   },
@@ -1037,6 +1032,17 @@ var PlayerView = {
         // events if we already have a timer set to emulate them
         if (!this.endedTimer)
           this.next(true);
+        break;
+
+      case 'visibilitychange':
+        if (document.hidden) {
+          this.audio.removeEventListener('timeupdate', this);
+        } else {
+          this.audio.addEventListener('timeupdate', this);
+          // Ensure that the scrubber is synced up. It can get out of sync if we
+          // paused while the music app was in the background.
+          this.updateSeekBar();
+        }
         break;
 
       case 'mozinterruptbegin':

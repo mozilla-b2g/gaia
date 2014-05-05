@@ -11,6 +11,11 @@
 'use strict';
 
 var MessageManager = {
+  LAYOUT: {
+    DEFAULT: '',
+    COMPOSER: 'composer',
+    THREAD: 'thread'
+  },
   activity: null,
   forward: null,
   init: function mm_init(callback) {
@@ -38,7 +43,7 @@ var MessageManager = {
 
     // Initialize DOM elements which will be used in this code
     [
-      'main-wrapper', 'thread-messages'
+      'main-wrapper', 'thread-messages', 'composer-container'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById(id);
     }, this);
@@ -262,6 +267,7 @@ var MessageManager = {
     switch (window.location.hash.split('=')[0]) {
       case '#new':
         ThreadUI.inThread = false;
+        this.composerContainer.dataset.composerLayout = this.LAYOUT.COMPOSER;
         MessageManager.launchComposer(function() {
           this.handleActivity(this.activity);
           this.handleForward(this.forward);
@@ -272,6 +278,7 @@ var MessageManager = {
         }.bind(this));
         break;
       case '#thread-list':
+        this.composerContainer.dataset.composerLayout = this.LAYOUT.DEFAULT;
         ThreadUI.inThread = false;
 
         //Keep the visible button the :last-child
@@ -305,9 +312,10 @@ var MessageManager = {
         ReportView.show();
         break;
       default:
+
         var threadId = Threads.currentId;
         var willSlide = true;
-
+        this.composerContainer.dataset.composerLayout = this.LAYOUT.THREAD;
         var finishTransition = (function finishTransition() {
           // hashchanges from #group-view back to #thread=n
           // are considered "in thread" and should not
@@ -588,25 +596,13 @@ var MessageManager = {
    * - onerror (optional func): called only once if there is an error.
    *
    */
+
   sendMMS: function mm_sendMMS(opts) {
-    var serviceId = opts.serviceId = this._sanitizeServiceId(opts.serviceId);
-
-    if (serviceId !== null &&
-        Settings.hasSeveralSim() &&
-        serviceId !== Settings.mmsServiceId) {
-      // TODO give a feedback, Bug 983315 
-      Settings.switchMmsSimHandler(serviceId, this._doSendMMS.bind(this, opts));
-    } else {
-      this._doSendMMS(opts);
-    }
-  },
-
-  _doSendMMS: function mm_doSendMMS(opts) {
     var request;
     var recipients = opts.recipients,
         subject = opts.subject,
         content = opts.content,
-        serviceId = opts.serviceId,
+        serviceId = opts.serviceId = this._sanitizeServiceId(opts.serviceId),
         onsuccess = opts.onsuccess,
         onerror = opts.onerror;
 
@@ -635,10 +631,16 @@ var MessageManager = {
   },
 
   // takes a formatted message in case you happen to have one
-  resendMessage: function mm_resendMessage(message, callback) {
+  resendMessage: function mm_resendMessage(message, opts) {
     var request;
+    var serviceId = Settings.getServiceIdByIccId(message.iccId);
+    var sendOpts = this._getSendOptionsFromServiceId(serviceId);
+    var onsuccess = opts.onsuccess;
+    var onerror = opts.onerror;
+
     if (message.type === 'sms') {
-      request = this._mozMobileMessage.send(message.receiver, message.body);
+      request = this._mozMobileMessage.send(
+        message.receiver, message.body, sendOpts);
     }
     if (message.type === 'mms') {
       request = this._mozMobileMessage.sendMMS({
@@ -646,24 +648,18 @@ var MessageManager = {
         subject: message.subject,
         smil: message.smil,
         attachments: message.attachments
-      });
+      }, sendOpts);
     }
 
     request.onsuccess = function onSuccess(evt) {
       MessageManager.deleteMessage(message.id);
-      if (callback) {
-        callback(null, evt.target.result);
-      }
+      onsuccess && onsuccess(evt.target.result);
     };
 
     request.onerror = function onError(evt) {
       MessageManager.deleteMessage(message.id);
-      if (callback) {
-        callback(evt.target.error);
-      }
+      onerror && onerror(evt.target.error);
     };
-
-    return request;
   },
 
   deleteMessage: function mm_deleteMessage(id, callback) {

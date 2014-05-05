@@ -141,6 +141,13 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
       return _('incorrectDate');
     }
 
+    if (Math.abs(secDiff) > 60) {
+      // round milliseconds up if difference is over 1 minute so the result is
+      // closer to what the user would expect (1h59m59s300ms diff should return
+      // "in 2 hours" instead of "in an hour")
+      secDiff = secDiff > 0 ? Math.ceil(secDiff) : Math.floor(secDiff);
+    }
+
     if (secDiff > maxDiff) {
       return localeFormat(new Date(time), '%x');
     }

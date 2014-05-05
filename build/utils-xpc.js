@@ -37,6 +37,10 @@ function ls(dir, recursive, exclude) {
   return results;
 }
 
+function getNewURI(uriString, uriCharset, baseURI) {
+  return Services.io.newURI(uriString, uriCharset, baseURI);
+}
+
 function getOsType() {
   return Cc['@mozilla.org/xre/app-info;1']
           .getService(Ci.nsIXULRuntime).OS;
@@ -701,9 +705,9 @@ function Commander(cmd) {
     var process = Cc['@mozilla.org/process/util;1']
                   .createInstance(Ci.nsIProcess);
     try {
+      log('cmd', command + ' ' + args.join(' '));
       process.init(_file);
       process.run(true, args, args.length);
-      log(command + ' ' + args.join(' '));
     } catch (e) {
       throw new Error('having trouble when execute ' + command +
         ' ' + args.join(' '));
@@ -746,8 +750,10 @@ function killAppByPid(appName, gaiaDir) {
   var content = getFileContent(tempFile);
   var pidMap = utils.psParser(content);
   sh.run(['-c', 'rm ' + tempFileName]);
-  if (pidMap[appName] && pidMap[appName].PID) {
-    sh.run(['-c', 'adb shell kill ' + pidMap[appName].PID]);
+  // b2g-ps only show first 15 letters of app name
+  var truncatedAppName = appName.substr(0, 15);
+  if (pidMap[truncatedAppName] && pidMap[truncatedAppName].PID) {
+    sh.run(['-c', 'adb shell kill ' + pidMap[truncatedAppName].PID]);
   }
 }
 
@@ -833,6 +839,7 @@ exports.normalizeString = normalizeString;
 exports.Commander = Commander;
 exports.getEnvPath = getEnvPath;
 exports.getLocaleBasedir = getLocaleBasedir;
+exports.getNewURI = getNewURI;
 exports.getOsType = getOsType;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;

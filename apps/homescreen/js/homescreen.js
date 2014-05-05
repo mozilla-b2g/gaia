@@ -5,13 +5,7 @@ var Homescreen = (function() {
   var mode = 'normal';
   var origin = document.location.protocol + '//homescreen.' +
     document.location.host.replace(/(^[\w\d]+.)?([\w\d]+.[a-z]+)/, '$2');
-  setLocale();
   var iconGrid = document.getElementById('icongrid');
-
-  navigator.mozL10n.ready(function localize() {
-    setLocale();
-    GridManager.localize();
-  });
 
   var initialized = false;
   onConnectionChange(navigator.onLine);
@@ -38,6 +32,8 @@ var Homescreen = (function() {
     };
 
     GridManager.init(options, function gm_init() {
+      navigator.mozL10n.ready(GridManager.localize.bind(GridManager));
+
       window.addEventListener('hashchange', function() {
         if (!window.location.hash.replace('#', '')) {
           return;
@@ -135,12 +131,6 @@ var Homescreen = (function() {
       });
     }
   });
-
-  function setLocale() {
-    // set the 'lang' and 'dir' attributes to <html> when the page is translated
-    document.documentElement.lang = navigator.mozL10n.language.code;
-    document.documentElement.dir = navigator.mozL10n.language.direction;
-  }
 
   function onConnectionChange(isOnline) {
     var mode = isOnline ? 'online' : 'offline';

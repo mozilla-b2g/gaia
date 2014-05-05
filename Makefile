@@ -92,11 +92,9 @@ NODE_MODULES_SRC?=modules.tar
 # tv
 GAIA_DEVICE_TYPE?=phone
 
-# Rocketbar customization
-# none - Do not enable rocketbar
-# half - Rocketbar is enabled, and so is browser app
-# full - Rocketbar is enabled, no browser app
-ROCKETBAR?=none
+# Haida customization
+# Pass 1 to enable haida features
+HAIDA?=0
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
@@ -172,8 +170,6 @@ export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 TEST_MANIFEST?=./shared/test/integration/local-manifest.json
 MOZPERFOUT?=""
-
-GAIA_INSTALL_PARENT?=/system/b2g
 
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
@@ -322,8 +318,8 @@ else
 endif
 export GAIA_DISTRIBUTION_DIR
 
-SETTINGS_PATH := build/config/custom-settings.json
-KEYBOARD_LAYOUTS_PATH := build/config/keyboard-layouts.json
+SETTINGS_PATH ?= build/config/custom-settings.json
+KEYBOARD_LAYOUTS_PATH ?= build/config/keyboard-layouts.json
 
 ifdef GAIA_DISTRIBUTION_DIR
 	DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
@@ -435,7 +431,7 @@ TEST_DIRS ?= $(GAIA_DIR)/tests
 
 define BUILD_CONFIG
 { \
-	"ADB" : "$(adb)", \
+	"ADB" : "$(patsubst "%",%,$(ADB))", \
 	"GAIA_DIR" : "$(GAIA_DIR)", \
 	"PROFILE_DIR" : "$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)", \
 	"PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
@@ -467,9 +463,9 @@ define BUILD_CONFIG
 	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
 	"NOFTU" : "$(NOFTU)", \
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
-	"ROCKETBAR" : "$(ROCKETBAR)", \
+	"HAIDA" : $(HAIDA), \
 	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
-	"SETTINGS_PATH" : "$(SETTINGS_PATH)", \
+	"SETTINGS_PATH" : "$(subst \,\\,$(SETTINGS_PATH))", \
 	"FTU_PING_URL": "$(FTU_PING_URL)", \
 	"KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)", \
 	"STAGE_DIR" : "$(STAGE_DIR)", \
@@ -525,7 +521,7 @@ clear-stage-app:
 		if [[ ("$$appdir" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
 			APP="`basename $$appdir`"; \
 			echo "clear $$APP in build_stage" ; \
-			rm -rf "$(STAGE_DIR)/$$APP/*"; \
+			rm -rf $(STAGE_DIR)/$$APP/*; \
 		fi; \
 	done
 
@@ -822,13 +818,10 @@ common-install:
 update-common: common-install
 	# common testing tools
 	mkdir -p $(TEST_COMMON)/vendor/test-agent/
-	mkdir -p $(TEST_COMMON)/vendor/chai/
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.js
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.css
-	rm -f $(TEST_COMMON)/vendor/chai/chai.js
 	cp node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
 	cp node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
-	cp node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
 
 # Create the json config file
 # for use with the test agent GUI
@@ -984,7 +977,6 @@ install-gaia: $(PROFILE_FOLDER) push
 # push target to update the gaia files and reboot b2g
 .PHONY: push
 push: $(XULRUNNER_BASE_DIRECTORY)
-	@$(ADB) remount
 	@$(call run-js-command,push-to-device)
 
 # Copy demo media to the sdcard.

@@ -2,9 +2,10 @@
 /* global MockSelectionDom */
 /* global triggerEvent */
 
+require('/shared/js/contacts/utilities/dom.js');
+
 requireApp('communications/contacts/test/unit/helper.js');
 requireApp('communications/contacts/test/unit/mock_selection_dom.js.html');
-requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/js/contacts_tag.js');
 
 suite('Fill tag options', function() {

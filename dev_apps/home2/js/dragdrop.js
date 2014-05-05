@@ -2,16 +2,14 @@
 
 (function(exports) {
 
-  const activateDelay = 600;
+  const activateDelay = 400;
 
   const activeScaleAdjust = 0.4;
 
   var container = document.getElementById('icons');
 
   function DragDrop() {
-    container.addEventListener('touchstart', this);
-    container.addEventListener('touchmove', this);
-    container.addEventListener('touchend', this);
+    container.addEventListener('contextmenu', this);
   }
 
   DragDrop.prototype = {
@@ -48,7 +46,7 @@
       app.stop();
 
       this.active = true;
-      this.exitEditMode();
+      this.enterEditMode();
       container.classList.add('dragging');
       this.target.classList.add('active');
 
@@ -58,8 +56,8 @@
 
       // Make the icon larger
       this.icon.transform(
-        e.touches[0].pageX - this.xAdjust,
-        e.touches[0].pageY - this.yAdjust,
+        e.pageX - this.xAdjust,
+        e.pageY - this.yAdjust,
         this.icon.scale + activeScaleAdjust);
     },
 
@@ -70,7 +68,8 @@
      * @param {Object} e A touch object from a touchmove event.
      */
     scrollIfNeeded: function() {
-      var scrollStep = 2;
+      var screenHeight = window.innerHeight;
+      var scrollStep = Math.round(screenHeight / 100);
 
       var touch = this.currentTouch;
       if (!touch) {
@@ -99,13 +98,16 @@
 
     /**
      * Positions an icon on the grid.
-     * @param {Integer} pageX
-     * @param {Integer} posY
+     * @param {Integer} pageX The X coordinate of the touch.
+     * @param {Integer} pageY The Y coordinate of the touch.
      */
     positionIcon: function(pageX, pageY) {
+      pageX = pageX - this.xAdjust;
+      pageY = pageY - this.xAdjust;
+
       this.icon.transform(
-        pageX - this.xAdjust,
-        pageY - this.yAdjust,
+        pageX,
+        pageY,
         this.icon.scale + activeScaleAdjust);
 
       // Reposition in the icons array if necessary.
@@ -135,9 +137,15 @@
       }
     },
 
+    enterEditMode: function() {
+      this.inEditMode = true;
+      document.body.classList.add('edit-mode');
+      document.addEventListener('visibilitychange', this);
+    },
+
     exitEditMode: function() {
       this.inEditMode = false;
-      container.classList.remove('edit-mode');
+      document.body.classList.remove('edit-mode');
       document.removeEventListener('visibilitychange', this);
     },
 
@@ -145,28 +153,14 @@
      * General event handler.
      */
     handleEvent: function(e) {
-      var touch;
-
       switch(e.type) {
           case 'visibilitychange':
             if (document.hidden && this.inEditMode) {
               this.exitEditMode();
             }
             break;
-          case 'touchstart':
-            // If we get a second touch, cancel everything.
-            if (e.touches.length > 1) {
-              clearTimeout(this.timeout);
-              return;
-            }
-
-            touch = e.touches[0];
-            this.startTouch = {
-              pageX: touch.pageX,
-              pageY: touch.pageY
-            };
-
-            this.target = touch.target;
+          case 'contextmenu':
+            this.target = e.target;
 
             var identifier = this.target.dataset.identifier;
             this.icon = app.icons[identifier];
@@ -178,22 +172,13 @@
             this.timeout = setTimeout(this.begin.bind(this, e),
               activateDelay);
 
+            container.addEventListener('touchmove', this);
+            container.addEventListener('touchend', this);
+
             break;
           case 'touchmove':
-            if (!this.startTouch) {
-              return;
-            }
-
-            // If we have an activate timeout, and our finger has moved past
-            // some threshold, cancel it.
-            touch = e.touches[0];
-            var distance = Math.sqrt(
-              (touch.pageX - this.startTouch.pageX) *
-              (touch.pageX - this.startTouch.pageX) +
-              (touch.pageY - this.startTouch.pageY) *
-              (touch.pageY - this.startTouch.pageY));
-
-            if (!this.active && this.timeout && distance > 20) {
+            var touch = e.touches[0];
+            if (!this.active && this.timeout) {
               clearTimeout(this.timeout);
               return;
             }
@@ -201,9 +186,6 @@
             if (!this.active || !this.icon) {
               return;
             }
-
-            e.stopImmediatePropagation();
-            e.preventDefault();
 
             this.currentTouch = {
               pageX: touch.pageX,
@@ -252,12 +234,8 @@
             });
 
             container.classList.remove('dragging');
-
-            // Event listeners for edit mode.
-            container.classList.add('edit-mode');
-            this.inEditMode = true;
-            document.addEventListener('visibilitychange', this);
-
+            container.addEventListener('touchmove', this);
+            container.addEventListener('touchend', this);
             break;
         }
     }

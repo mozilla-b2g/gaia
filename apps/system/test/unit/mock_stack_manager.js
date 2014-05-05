@@ -18,6 +18,9 @@ var MockStackManager = {
   goNext: function sm_goNext() {
   },
 
+  commit: function() {},
+  commitClose: function() {},
+
   snapshot: function sm_snapshot() {
     return this.mStack.slice(0);
   },

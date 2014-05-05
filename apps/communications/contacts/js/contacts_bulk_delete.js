@@ -1,4 +1,4 @@
-/* globals Contacts, _, utils, contactsRemover */
+/* globals Contacts, utils, contactsRemover, Promise, ConfirmDialog */
 'use strict';
 
 var contacts = window.contacts || {};
@@ -6,6 +6,8 @@ var contacts = window.contacts || {};
 contacts.BulkDelete = (function() {
 
   var cancelled = false;
+
+  var _ = navigator.mozL10n.get;
 
   /**
    * Loads the overlay class before showing
@@ -16,11 +18,30 @@ contacts.BulkDelete = (function() {
 
   // Shows a dialog to confirm the bulk delete
   var showConfirm = function showConfirm(n) {
-    var response = confirm(_('ContactConfirmDel', {n: n}));
-    return response;
+    return new Promise(function doShowConfirm(resolve, reject) {
+      var cancelObject = {
+        title: _('cancel'),
+        callback: function onCancel() {
+          ConfirmDialog.hide();
+          reject();
+        }
+      };
+
+      var removeObject = {
+        title: _('delete'),
+        isDanger: true,
+        callback: function onRemove() {
+          ConfirmDialog.hide();
+          resolve();
+        }
+      };
+
+      Contacts.confirmDialog(null, _('ContactConfirmDel', {n: n}), cancelObject,
+                             removeObject);
+    });
   };
 
-  var doDelete = function doDelete(ids) {
+  var doDelete = function doDelete(ids, done) {
     cancelled = false;
     var progress = utils.overlay.show(_('DeletingContacts'), 'progressBar');
     progress.setTotal(ids.length);
@@ -63,21 +84,21 @@ contacts.BulkDelete = (function() {
       Contacts.showStatus(_('DeletedTxt',
         {n: contactsRemoverObj.getDeletedCount()}));
       contacts.Settings.refresh();
+
+      if (typeof done === 'function') {
+        done();
+      }
     };
 
   };
   // Start the delete of the contacts
-  var performDelete = function performDelete(promise) {
+  var performDelete = function performDelete(promise, done) {
     requireOverlay(function onOverlay() {
       utils.overlay.show(_('preparing-contacts'), 'spinner');
-      promise.onsuccess = function onSucces(ids) {
+      promise.onsuccess = function onSuccess(ids) {
         Contacts.hideOverlay();
-        var confirmDelete = showConfirm(ids.length);
-        if (confirmDelete) {
-          doDelete(ids);
-        } else {
-          Contacts.showStatus(_('BulkDelCancel'));
-        }
+        showConfirm(ids.length).then(
+                          contacts.BulkDelete.doDelete.bind(null, ids, done));
       };
       promise.onerror = function onError() {
         Contacts.hideOverlay();
@@ -91,4 +112,3 @@ contacts.BulkDelete = (function() {
   };
 
 })();
-

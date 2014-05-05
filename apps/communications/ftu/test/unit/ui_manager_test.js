@@ -9,8 +9,7 @@ requireApp('communications/ftu/js/navigation.js');
 
 requireApp('communications/ftu/test/unit/mock_l10n.js');
 requireApp('communications/ftu/test/unit/mock_tutorial.js');
-requireApp('communications/ftu/test/unit/mock_tutorial_steps.js');
-requireApp('communications/ftu/test/unit/mock_tutorial_navigator.js');
+requireApp('communications/ftu/test/unit/mock_mozapps.js');
 requireApp('communications/ftu/test/unit/mock_time_manager.js');
 requireApp('communications/ftu/test/unit/mock_wifi_manager.js');
 requireApp('communications/ftu/test/unit/mock_tz_select.js');
@@ -18,7 +17,6 @@ requireApp('communications/ftu/test/unit/mock_operatorVariant.js');
 
 var mocksHelperForUI = new MocksHelper([
   'Tutorial',
-  'TutorialSteps',
   'TimeManager',
   'WifiManager',
   'OperatorVariant'

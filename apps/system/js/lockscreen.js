@@ -661,8 +661,7 @@
     if (wasAlreadyUnlocked) {
       return;
     }
-    this.dispatchEvent('will-unlock', detail);
-    this.dispatchEvent('secure-modeoff');
+
     this.writeSetting(false);
 
     if (this.unlockSoundEnabled) {
@@ -672,10 +671,9 @@
 
     this.overlay.classList.toggle('no-transition', instant);
 
-    // Actually begin unlock until the foreground app is painted
-    var repaintTimeout = 0;
-    var nextPaint = (function() {
-      clearTimeout(repaintTimeout);
+    var nextPaint = function() {
+      this.dispatchEvent('will-unlock', detail);
+      this.dispatchEvent('secure-modeoff');
       this.overlay.classList.add('unlocked');
 
       // If we don't unlock instantly here,
@@ -687,17 +685,12 @@
       } else {
         this.unlockDetail = detail;
       }
-    }).bind(this);
+    }.bind(this);
     if (app) {
-      app.tryWaitForFullRepaint(nextPaint);
-    }
-
-    // Give up waiting for nextpaint after 400ms
-    // XXX: Does not consider the situation where the app is painted already
-    // behind the lock screen (why?).
-    repaintTimeout = setTimeout(function ensureUnlock() {
+      app.ready(nextPaint);
+    } else {
       nextPaint();
-    }, 400);
+    }
   };
 
   LockScreen.prototype.lock =

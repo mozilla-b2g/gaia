@@ -63,7 +63,9 @@ marionette('creating an event', function() {
       assert.equal(readEvent.endTime, format('%d:00 AM', startHour + duration));
     });
 
-    test('should not overflow title, location, or description', function() {
+    // disabled bug 1001166
+    test.skip('should not overflow title, location, or description',
+      function() {
       var readEvent = app.readEvent;
       app.checkOverflow(readEvent.titleContainer, 'title');
       app.checkOverflow(readEvent.descriptionContainer, 'description');

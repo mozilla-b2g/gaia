@@ -143,20 +143,26 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
 
 class GaiaUnitTestRunner(object):
 
-    def __init__(self, binary=None, profile=None, symbols_path=None):
+    def __init__(self, binary=None, profile=None, symbols_path=None,
+                 browser_arg=()):
         self.binary = binary
         self.profile = profile
         self.symbols_path = symbols_path
+        self.browser_arg = browser_arg
 
     def run(self):
         self.profile_dir = os.path.join(tempfile.mkdtemp(suffix='.gaiaunittest'),
                                         'profile')
         shutil.copytree(self.profile, self.profile_dir)
 
+        cmdargs = ['--runapp', 'Test Agent']
+        if self.browser_arg:
+            cmdargs += list(self.browser_arg)
+
         self.runner = Runner.create(binary=self.binary,
                                     profile_args={'profile': self.profile_dir},
                                     clean_profile=False,
-                                    cmdargs=['--runapp', 'Test Agent'],
+                                    cmdargs=cmdargs,
                                     symbols_path=self.symbols_path)
         self.runner.start()
 
@@ -184,6 +190,10 @@ def cli():
                       action="store", dest="symbols_path",
                       default=None,
                       help="path or url to breakpad symbols")
+    parser.add_option("--browser-arg",
+                      action="append", dest="browser_arg",
+                      default=[],
+                      help="optional command-line arg to pass to the browser")
 
     options, tests = parser.parse_args()
 
@@ -220,7 +230,8 @@ def cli():
 
     runner = GaiaUnitTestRunner(binary=options.binary,
                                 profile=options.profile,
-                                symbols_path=options.symbols_path)
+                                symbols_path=options.symbols_path,
+                                browser_arg=options.browser_arg)
     runner.run()
 
     # Lame but necessary hack to prevent tornado's logger from duplicating

@@ -8,30 +8,73 @@ suite('LazyL10n', function() {
     if (window.Contacts && window.Contacts.close) {
       window.Contacts.close();
     }
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      get: function get(key) {
-        return key;
-      },
-      language: {
-        code: 'US',
-        direction: 'ltr'
-      }
-    };
-  });
-
-  suiteTeardown(function() {
-    navigator.mozL10n = realL10n;
   });
 
   teardown(function() {
-    LazyL10n._inDOM = false;
-    LazyL10n._loaded = false;
+    LazyL10n._baseLoaded = false;
+    LazyL10n._ready = false;
     LazyLoader._loaded = {};
     LazyLoader._isLoading = {};
   });
 
+  suite('get when partly or fully loaded', function() {
+    // these tests test early-exit scenarios in LazyL10n by manipulating
+    // _baseLoaded and _ready;  in those scenarios LazyL10n will not
+    // actually load shared/js/l10n.js so we need to mock it
+    suiteSetup(function() {
+      realL10n = navigator.mozL10n;
+      navigator.mozL10n = {
+        get: function get(id) {
+          return id;
+        },
+        once: function once(callback) {
+          setTimeout(callback);
+        }
+      };
+    });
+
+    suiteTeardown(function() {
+      navigator.mozL10n = realL10n;
+    });
+
+    test('should call the callback directly if loaded', function(done) {
+      LazyL10n._ready = true;
+
+      var callback = function(_) {
+        assert.equal(navigator.mozL10n.get, _);
+        done();
+      };
+      LazyL10n.get(callback);
+    });
+
+    test('should wait for mozL10n.once if not loaded', function(done) {
+      LazyL10n._baseLoaded = true;
+      LazyL10n._ready = false;
+
+      var callback = function(_) {
+        assert.equal(navigator.mozL10n.get, _);
+        done();
+      };
+
+      LazyL10n.get(callback);
+    });
+  });
+
   suite('get', function() {
+
+    suiteSetup(function() {
+      realL10n = navigator.mozL10n;
+    });
+
+    suiteTeardown(function() {
+      navigator.mozL10n = realL10n;
+    });
+
+    setup(function() {
+      // for each test we need to simulate shared/js/l10n.js not being loaded
+      navigator.mozL10n = undefined;
+    });
+
     var checkLinkedScripts = function(scripts) {
       if (!scripts) {
         return true;
@@ -66,38 +109,12 @@ suite('LazyL10n', function() {
       return numLoaded == scripts.length;
     };
 
-    test('should call the callback directly if loaded', function(done) {
-      LazyL10n._loaded = true;
-
-      var callback = function(_) {
-        assert.equal(navigator.mozL10n.get, _);
-        done();
-      };
-      LazyL10n.get(callback);
-    });
-
-    test('should wait for the localized event if not loaded', function(done) {
-      LazyL10n._loaded = false;
-      LazyL10n._inDOM = true;
-
-      var callback = function(_) {
-        assert.equal(navigator.mozL10n.get, _);
-        done();
-      };
-
-      LazyL10n.get(callback);
-
-      var evtObject = document.createEvent('Event');
-      evtObject.initEvent('localized', false, false);
-      window.dispatchEvent(evtObject);
-    });
-
-    test('should insert then wait for the localized event if not loaded',
-    function(done) {
+    test('should insert then wait for mozL10n.once if not loaded',
+      function(done) {
       var headCount = document.head.childNodes.length;
 
       var callback = function() {
-        assert.isTrue(LazyL10n._inDOM);
+        assert.isTrue(LazyL10n._baseLoaded);
         assert.isTrue(checkLinkedScripts(['/shared/js/l10n.js',
           '/shared/js/l10n_date.js']));
         assert.isTrue(checkLoadedScripts(['/shared/js/l10n.js',
@@ -106,17 +123,13 @@ suite('LazyL10n', function() {
       };
 
       LazyL10n.get(callback);
-
-      var evtObject = document.createEvent('Event');
-      evtObject.initEvent('localized', false, false);
-      window.dispatchEvent(evtObject);
     });
 
     test('subsequent gets should have all dependencies loaded', function(done) {
       var headCount = document.head.childNodes.length;
 
       var callback = function() {
-        assert.isTrue(LazyL10n._inDOM);
+        assert.isTrue(LazyL10n._baseLoaded);
         assert.isTrue(checkLinkedScripts(['/shared/js/l10n.js',
           '/shared/js/l10n_date.js']));
         assert.isTrue(checkLoadedScripts(['/shared/js/l10n.js',
@@ -126,10 +139,6 @@ suite('LazyL10n', function() {
 
       LazyL10n.get(this.sinon.stub());
       LazyL10n.get(callback);
-
-      var evtObject = document.createEvent('Event');
-      evtObject.initEvent('localized', false, false);
-      window.dispatchEvent(evtObject);
     });
 
   });

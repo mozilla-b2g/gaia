@@ -1,4 +1,4 @@
-/* global SettingsListener, System, layoutManager, SimPinDialog, Rocketbar */
+/* global SettingsListener, System, layoutManager, SimPinDialog, rocketbar */
 'use strict';
 
 (function(exports) {
@@ -44,7 +44,7 @@
         this.openAnimation = this.app.openAnimation;
       }
 
-      if (this.app.closeAnimation){
+      if (this.app.closeAnimation) {
         this.closeAnimation = this.app.closeAnimation;
       }
 
@@ -180,7 +180,6 @@
       if (!this.app || !this.app.element) {
         return;
       }
-      this.app.element.setAttribute('aria-hidden', 'true');
       this.switchTransitionState('closing');
     };
 
@@ -190,8 +189,8 @@
         return;
       }
 
+      this.resetTransition();
       this.app.setVisible(false, true);
-      this.app.element.setAttribute('aria-hidden', 'true');
       this.app.element.classList.remove('active');
     };
 
@@ -203,7 +202,6 @@
       this.app.reviveBrowser();
       this.app.launchTime = Date.now();
       this.app.fadeIn();
-      this.app.element.removeAttribute('aria-hidden');
       this.app.setVisible(true);
 
       // TODO:
@@ -229,7 +227,6 @@
       }
 
       this.resetTransition();
-      this.app.element.removeAttribute('aria-hidden');
       this.app.element.classList.add('active');
       this.app.setVisible(true);
 
@@ -252,7 +249,7 @@
         // See https://bugzilla.mozilla.org/show_bug.cgi?id=938979
         // XXX: Rocketbar losing input focus
         // See: https://bugzilla.mozilla.org/show_bug.cgi?id=961557
-        if (!SimPinDialog.visible && !Rocketbar.shown) {
+        if (!SimPinDialog.visible && !rocketbar.shown) {
           this.app.focus();
         }
       }.bind(this));
@@ -296,7 +293,8 @@
       var classes = ['enlarge', 'reduce', 'to-cardview', 'from-cardview',
         'invoking', 'invoked', 'zoom-in', 'zoom-out', 'fade-in', 'fade-out',
         'transition-opening', 'transition-closing', 'immediate',
-        'slideleft', 'slideright', 'in-from-left', 'out-to-right'];
+        'slideleft', 'slideright', 'in-from-left', 'out-to-right',
+        'slideup', 'slidedown', 'will-become-active', 'will-become-inactive'];
 
       classes.forEach(function iterator(cls) {
         this.app.element.classList.remove(cls);

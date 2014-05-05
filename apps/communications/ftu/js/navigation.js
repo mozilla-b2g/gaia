@@ -2,7 +2,6 @@
           SdManager, UIManager, WifiManager, WifiUI,
           ImportIntegration,
           OperatorVariant,
-          Tutorial,
           getLocalizedLink,
           utils */
 /* exported Navigation */
@@ -134,7 +133,6 @@ var Navigation = {
           if (result) { // sending process ok, we advance
             UIManager.activationScreen.classList.remove('show');
             UIManager.finishScreen.classList.add('show');
-            Tutorial.init();
           } else { // error on sending, we stay where we are
             self.currentStep--;
           }

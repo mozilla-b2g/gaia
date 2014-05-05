@@ -38,6 +38,8 @@ class TestFtu(GaiaTestCase):
         self.ftu.tap_tour_next()
         self.assertEqual(self.ftu.step5_header_text, "Tap and hold the home button to browse and close recent apps.")
         self.ftu.tap_tour_next()
+        self.assertEqual(self.ftu.step6_header_text, "Swipe from the side of the screen to move back and forth between recent apps.")
+        self.ftu.tap_tour_next()
         self.ftu.wait_for_finish_tutorial_section()
         self.ftu.tap_lets_go_button()
 

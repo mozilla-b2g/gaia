@@ -8,14 +8,6 @@ html, body, .icons {
   margin: 0;
 }
 
-.icons {
-  overflow-y: scroll;
-  overflow-x: hidden;
-  width: 100%;
-  height: 100%;
-  will-change: scroll-position;
-}
-
 .icon {
   position: absolute;
   transform-origin: 0 0;
@@ -40,10 +32,10 @@ html, body, .icons {
 
 .divider {
   position: absolute;
-  height: 0.4rem;
-  margin: 2.3rem 1rem;
-  background: rgba(255, 255, 255, 0.3);
-  width: calc(100% - 2rem);
+  height: 0.2rem;
+  margin: 2.3rem 25%;
+  background: #fff;
+  width: 50%;
   z-index: 2;
 }
 
@@ -68,6 +60,20 @@ html, body, .icons {
   display: none;
 }
 
+.edit-mode #edit-mode-curtain {
+  background: #000;
+  opacity: 0.5;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  z-index: 2;
+}
+
+.edit-mode .icon:not(.active) {
+  opacity: 0.8;
+}
+
 .edit-mode .icon .remove {
   display: block;
   position: absolute;
@@ -78,6 +84,16 @@ html, body, .icons {
   background: url(/style/images/remove.png) no-repeat;
 }
 
+.edit-mode .icon.active .remove {
+  display: none;
+}
+
 #confirmation-message.fade-in {
   position: fixed;
+}
+
+/* The confirmation message can not successfully fade out as implemented due
+   to our vertical layout and position: fixed assignment */
+#confirmation-message.fade-out {
+  display: none;
 }

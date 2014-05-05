@@ -77,7 +77,7 @@
   }
 
   .finish-screen-base .content {
-    background: url(images/start_for_large.png) no-repeat center 18.6rem,
+    background: url(images/start_for_large.png) no-repeat center center,
                 url(images/bg_for_large.png) no-repeat;
   }
 
@@ -89,7 +89,7 @@
     display: block;
     text-align: center;
     position: relative;
-    top: 42.1rem;
+    top: calc(50% + 13rem);
   }
 
   .finish-screen-base .content p[data-l10n-id="startYourTablet"] {
@@ -110,7 +110,7 @@
     height: 100%;
     width: 100%;
     padding: 0;
-    background: url(images/thumb_up2.png) no-repeat center 17rem / 20rem 20rem,
+    background: url(images/thumb_up2.png) no-repeat center 40%,
                 url(images/arrow_up.png) no-repeat center bottom;
   }
 
@@ -124,12 +124,12 @@
   .tutorial-finish-base p[data-l10n-id="thatsIt1Tablet-2"] {
     font-size: 2.5rem;
     width: 52rem;
-    top: 40.5rem;
+    top: calc(40% + 14rem);
   }
 
   .tutorial-finish-base p[data-l10n-id="thatsIt2Tablet-2"] {
     font-size: 4.7rem;
-    top: 56.1rem;
+    top: calc(100% + 2rem);
   }
 
   .tutorial-screen-base header {

@@ -57,7 +57,6 @@ utils.importFromVcard = function(file, callback) {
       importer.onread = import_read;
       importer.onimported = imported_contact;
       importer.onerror = import_error;
-
       importer.process(function import_finish(result) {
         utils.overlay.hide();
         if (!cancelled) {
@@ -68,7 +67,7 @@ utils.importFromVcard = function(file, callback) {
         }
 
         if (result && result.length) {
-          callback(result[0].id);
+          callback(result.length, result[0].id);
         } else {
           callback();
         }

@@ -20,7 +20,8 @@ var OperatorVariantManager = {
     '/js/customizers/default_contacts_customizer.js',
     '/js/customizers/power_customizer.js',
     '/js/customizers/known_networks_customizer.js',
-    '/js/customizers/data_ftu_customizer.js'
+    '/js/customizers/data_ftu_customizer.js',
+    '/js/customizers/nfc_customizer.js'
   ],
 
   init: function ovm_init() {

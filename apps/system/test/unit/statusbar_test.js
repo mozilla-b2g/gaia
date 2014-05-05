@@ -5,6 +5,7 @@ requireApp('system/shared/test/unit/mocks/mock_mobile_operator.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+requireApp('system/shared/test/unit/mocks/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_lock_screen.js', function() {
 
@@ -1307,44 +1308,6 @@ suite('system/Statusbar', function() {
       assert.isFalse(StatusBar.element.classList.contains('invisible'));
     });
 
-    test('homescreenopened should set classes and call show()', function() {
-      var showStub = this.sinon.stub(StatusBar, 'show');
-      var evt = new CustomEvent('homescreenopened');
-      StatusBar.handleEvent(evt);
-      assert.ok(showStub.calledOnce);
-      assert.ok(StatusBar.element.classList.contains('on-homescreen'));
-      assert.ok(StatusBar.background.classList.contains('on-homescreen'));
-      showStub.restore();
-
-    });
-
-    test('homescreenclosing should unset classes', function() {
-      StatusBar.element.classList.add('on-homescreen');
-      StatusBar.background.classList.add('on-homescreen');
-      var evt = new CustomEvent('homescreenclosing');
-      StatusBar.handleEvent(evt);
-      assert.isFalse(StatusBar.element.classList.contains('on-homescreen'));
-      assert.isFalse(StatusBar.background.classList.contains('on-homescreen'));
-    });
-
-    test('rocketbarfocus', function() {
-      var evt = new CustomEvent('rocketbarfocus');
-      StatusBar.handleEvent(evt);
-      assert.ok(StatusBar.element.classList.contains('rocketbar-focused'));
-      assert.ok(StatusBar.background.classList.contains('rocketbar-focused'));
-    });
-
-    test('rocketbarblur', function() {
-      StatusBar.element.classList.add('rocketbar-focused');
-      StatusBar.background.classList.add('rocketbar-focused');
-      var evt = new CustomEvent('rocketbarblur');
-      StatusBar.handleEvent(evt);
-      assert.isFalse(StatusBar.element.classList.
-        contains('rocketbar-focused'));
-      assert.isFalse(StatusBar.background.classList.
-        contains('rocketbar-focused'));
-    });
-
     test('the status bar should show when attentionscreen is showing',
     function() {
       this.sinon.stub(app, 'isFullScreen').returns(true);
@@ -1563,6 +1526,28 @@ suite('system/Statusbar', function() {
       StatusBar.handleEvent(evt);
 
       assert.isFalse(StatusBar.element.classList.contains('invisible'));
+    });
+  });
+
+  suite('NFC', function() {
+    test('NFC is off', function() {
+      var evt = new CustomEvent('nfc-state-changed', {
+        detail: {
+          active: false
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.equal(StatusBar.icons.nfc.hidden, true);
+    });
+
+    test('NFC is on', function() {
+      var evt = new CustomEvent('nfc-state-changed', {
+        detail: {
+          active: true
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.equal(StatusBar.icons.nfc.hidden, false);
     });
   });
 });

@@ -73,5 +73,10 @@ var MockContacts = {
     };
   },
   showStatus: function(status) {},
-  updateSelectCountTitle: function(count) {}
+  updateSelectCountTitle: function(count) {},
+  goBack: function(cb) {
+    if (typeof cb === 'function') {
+      cb();
+    }
+  }
 };

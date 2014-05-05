@@ -56,6 +56,7 @@
 
     render: function(input, items) {
       var ul = document.createElement('ul');
+      ul.setAttribute('role', 'listbox');
 
       items.forEach(function each(item) {
         var text = getSuggestionText(item);
@@ -64,6 +65,10 @@
         if (text !== input) {
           var li = document.createElement('li');
           li.dataset.suggestion = li.textContent = text;
+          li.setAttribute('role', 'option');
+          // Can not simply read the text since we also have the bullet
+          // character that the screen reader should avoid.
+          li.setAttribute('aria-label', text);
           ul.appendChild(li);
         }
       });

@@ -68,6 +68,7 @@
   vertical-align: top;
   width: 100%;
   height: 100%;
+  padding: 0 1.5rem;
   transform: translateX(0);
   /*transition: transform 300ms;*/
 }
@@ -78,6 +79,26 @@
 
 [show-pane=pane-2] .pane {
   transform: translateX(-100%);
+}
+
+.pane > .inner {
+  height: 100%;
+}
+
+/**
+ * @deg90
+ */
+
+.deg90 .pane > .inner {
+  padding-right: 7rem;
+}
+
+/**
+ * @deg270
+ */
+
+.deg270 .pane > .inner {
+  padding-left: 7rem;
 }
 
 /** Inner
@@ -93,11 +114,12 @@
  ---------------------------------------------------------*/
 
 .settings_title {
+  position: relative;
   height: 9rem;
+  padding: 0 1.5rem;
   font-size: 2.4rem;
   font-weight: 100;
   line-height: 9rem;
-  padding-left: 3rem;
   color: rgba(255,255,255,0.8);
 }
 
@@ -105,9 +127,9 @@
  * @deg270
  */
 
-.deg270 .settings_title {
+/*.deg270 .settings_title {
   padding-left: 10.5rem;
-}
+}*/
 
 /** Items
  ---------------------------------------------------------*/
@@ -115,24 +137,6 @@
 .settings_items {
   flex: 1;
   overflow: scroll;
-}
-
-.settings_items > .inner {}
-
-/**
- * @deg90
- */
-
-.deg90 .settings_items > .inner {
-  padding-right: 7.5rem;
-}
-
-/**
- * @deg270
- */
-
-.deg270 .settings_items > .inner {
-  padding-left: 7.5rem;
 }
 
 /** Close
@@ -146,7 +150,7 @@
   position: absolute;
   top: 0; right: 0;
   margin: 0;
-  border-width: 1.9rem 1.5rem;
+  border-width: 2rem 1.5rem;
   background-color: #008eab;
 }
 

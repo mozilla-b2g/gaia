@@ -46,5 +46,6 @@ class Wifi(Base):
             password_input.send_keys(password)
             ok_button.tap()
 
-        Wait(self.marionette, timeout=60, ignored_exceptions=StaleElementException).until(
+        timeout = max(self.marionette.timeout and self.marionette.timeout / 1000, 60)
+        Wait(self.marionette, timeout, ignored_exceptions=StaleElementException).until(
             lambda m: m.find_element(*self._connected_message_locator).text == "Connected")

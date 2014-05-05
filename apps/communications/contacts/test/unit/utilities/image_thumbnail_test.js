@@ -2,7 +2,7 @@
 
 /* global utils */
 
-requireApp('communications/contacts/js/utilities/image_thumbnail.js');
+require('/shared/js/contacts/utilities/image_thumbnail.js');
 
 suite('Contacts/utilities/thumbnailImage >', function() {
   var imageData = {

@@ -44,6 +44,16 @@ form[role="dialog"].no-overlay button {
   left: 0;
 }
 
+[data-type="list"].import-list aside span[data-type="img"],
+[data-type="list"].link-list aside span[data-type="img"] {
+  border-style: hidden;
+}
+
+[data-type="list"].import-list li[data-visited="true"] aside span[data-type="img"],
+[data-type="list"].link-list li[data-visited="true"] aside span[data-type="img"] {
+  border-style: solid;
+}
+
 #groups-list.import-list li,
 .import #search-list[data-type="list"] li {
   padding-left: 3.5rem;

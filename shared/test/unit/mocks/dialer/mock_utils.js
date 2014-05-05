@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockUtils */
+
 var MockUtils = {
   mCalledPrettyDate: false,
   mCalledHeaderDate: false,
@@ -25,7 +28,7 @@ var MockUtils = {
                                                                 matchingTel) {
     this.mCalledGetPhoneNumberAdditionalInfo = true;
 
-    return matchingTel.value % 2 == 0 ? matchingTel.value : undefined;
+    return matchingTel.value % 2 === 0 ? matchingTel.value : undefined;
   },
 
   addEllipsis: function ut_addEllipsis() {},

@@ -32,6 +32,7 @@ function Settings(items) {
   this.items = [];
   this.aliases = {};
   this.SettingAlias = SettingAlias; // Test hook
+  this.dontSave = this.dontSave.bind(this);
   this.addEach(items);
 }
 
@@ -51,11 +52,28 @@ Settings.prototype.add = function(data) {
   var setting = new Setting(data);
   this.items.push(setting);
   this.ids[setting.key] = this[setting.key] = setting;
-  debug('added setting: %', setting.key);
+  debug('added setting: %s', setting.key);
 };
 
 Settings.prototype.fetch = function(done) {
   this.items.forEach(function(setting) { setting.fetch(); });
+};
+
+/**
+ * Prevent all settings from saving
+ * when they are changed.
+ *
+ * This is used in activity sessions
+ * whereby we don't want any settings
+ * changes to persist to future camera
+ * sessions.
+ *
+ * @public
+ */
+Settings.prototype.dontSave = function() {
+  this.items.forEach(function(setting) {
+    setting.off('change:selected', setting.save);
+  });
 };
 
 Settings.prototype.alias = function(key, options) {

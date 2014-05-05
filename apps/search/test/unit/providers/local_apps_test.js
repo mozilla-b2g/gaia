@@ -83,8 +83,13 @@ suite('search/providers/local_apps', function() {
       };
 
       subject.search('moz', Search.collect.bind(Search, subject));
-      assert.notEqual(subject.container.innerHTML.indexOf('Mozilla Fake'), -1);
-      assert.equal(subject.container.innerHTML.indexOf('Without Icon'), -1);
+      var app = subject.container.querySelector('.result');
+      assert.equal(app.querySelector('.title').innerHTML, 'Mozilla Fake App');
+      assert.equal(app.getAttribute('aria-label'), 'Mozilla Fake App');
+      assert.equal(app.getAttribute('role'), 'link');
+      assert.equal(app.querySelector('.icon').getAttribute('role'),
+        'presentation');
+      assert.equal(app.innerHTML.indexOf('Without Icon'), -1);
     });
   });
 

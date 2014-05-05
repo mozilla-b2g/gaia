@@ -33,8 +33,6 @@ var MockThreadUI = {
     });
   },
   initSentAudio: function() {},
-  enableActivityRequestMode: function() {},
-  resetActivityRequestMode: function() {},
   getAllInputs: function() {},
   getSelectedInputs: function() {},
   messageComposerInputHandler: function() {},

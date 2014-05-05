@@ -22,6 +22,7 @@ suite('Thumbnail Item Unit Tests', function() {
     var filedata;
     var thumbnail;
     var domNode;
+    var imgNode;
 
     suiteSetup(function() {
       filedata = {
@@ -34,23 +35,19 @@ suite('Thumbnail Item Unit Tests', function() {
 
       thumbnail = new ThumbnailItem(filedata);
       domNode = thumbnail.htmlNode;
+      imgNode = thumbnail.imgNode;
     });
 
     test('#htmlNode', function() {
       assert.equal(thumbnail.htmlNode, domNode);
     });
 
-    test('#data', function() {
-      assert.deepEqual(thumbnail.data, filedata);
+    test('#imgNode dataset name', function() {
+      assert.equal(thumbnail.imgNode.dataset.filename, filedata.name);
     });
 
-    test('#htmlNode dataset name', function() {
-      assert.equal(thumbnail.htmlNode.dataset.filename, filedata.name);
-    });
-
-    test('#htmlNode dataset backgroundImage', function() {
-      assert.notEqual(thumbnail.htmlNode.dataset.backgroundImage, '');
-      assert.equal(thumbnail.htmlNode.style.backgroundImage, '');
+    test('#imgNode src', function() {
+      assert.notEqual(thumbnail.imgNode.src, '');
     });
   });
 });

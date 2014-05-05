@@ -1,4 +1,5 @@
 /*global define */
+'use strict';
 /**
  * @fileoverview Bug 918303 - HeaderCursor added to provide MessageListCard and
  *     MessageReaderCard the current message and whether there are adjacent
@@ -23,6 +24,12 @@ define(function(require) {
   function HeaderCursor() {
     // Inherit from evt.Emitter.
     evt.Emitter.call(this);
+
+    // Need to distinguish between search and nonsearch slices,
+    // since there can be two cards that both are listening for
+    // slice changes, but one is for search output, and one is
+    // for nonsearch output. The message_list is an example.
+    this.searchMode = 'nonsearch';
 
     // Listen for some slice events to do some special work.
     this.on('messages_splice', this.onMessagesSplice.bind(this));
@@ -155,7 +162,7 @@ define(function(require) {
         hasNext: index !== messages.length - 1    // Can't be last
       });
 
-      this.emit('currentMessage', currentMessage);
+      this.emit('currentMessage', currentMessage, index);
       this.currentMessage = currentMessage;
     },
 
@@ -189,6 +196,7 @@ define(function(require) {
     },
 
     startSearch: function(phrase, whatToSearch) {
+      this.searchMode = 'search';
       this.bindToSlice(model.api.searchFolderMessages(model.folder,
                                                       phrase,
                                                       whatToSearch));
@@ -196,6 +204,7 @@ define(function(require) {
 
     endSearch: function() {
       this.die();
+      this.searchMode = 'nonsearch';
       this.freshMessagesSlice();
     },
 
@@ -251,7 +260,7 @@ define(function(require) {
       var messages = this.messagesSlice.items;
       if (messages.length === 0) {
         // No more messages... sad!
-        return this.currentMessage = null;
+        return (this.currentMessage = null);
       }
 
       var index = Math.min(removedFromIndex, messages.length - 1);

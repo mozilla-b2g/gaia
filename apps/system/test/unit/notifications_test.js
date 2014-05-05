@@ -82,8 +82,8 @@ suite('system/NotificationScreen >', function() {
       this.sinon.stub(NotificationScreen, 'removeNotification');
     });
 
-    function sendChromeEvent(detail) {
-      var event = new CustomEvent('mozChromeEvent', {
+    function sendChromeNotificationEvent(detail) {
+      var event = new CustomEvent('mozChromeNotificationEvent', {
         detail: detail
       });
 
@@ -91,7 +91,7 @@ suite('system/NotificationScreen >', function() {
     }
 
     test('showing a notification', function() {
-      sendChromeEvent({
+      sendChromeNotificationEvent({
         type: 'desktop-notification',
         id: 'id-1'
       });
@@ -101,7 +101,7 @@ suite('system/NotificationScreen >', function() {
     });
 
     test('closing a notification', function() {
-      sendChromeEvent({
+      sendChromeNotificationEvent({
         type: 'desktop-notification-close',
         id: 'id-1'
       });
@@ -243,7 +243,7 @@ suite('system/NotificationScreen >', function() {
   });
 
   suite('tap a notification >', function() {
-    var notificationNode, notifClickedStub, contentEventStub;
+    var notificationNode, notifClickedStub, contentNotificationEventStub;
     var details = {
       type: 'desktop-notification',
       id: 'id-1',
@@ -255,10 +255,11 @@ suite('system/NotificationScreen >', function() {
       notificationNode = NotificationScreen.addNotification(details);
 
       notifClickedStub = sinon.stub();
-      contentEventStub = sinon.stub();
+      contentNotificationEventStub = sinon.stub();
 
       window.addEventListener('notification-clicked', notifClickedStub);
-      window.addEventListener('mozContentEvent', contentEventStub);
+      window.addEventListener(
+        'mozContentNotificationEvent', contentNotificationEventStub);
 
       var event = new CustomEvent('tap', { bubbles: true, cancelable: true });
       notificationNode.dispatchEvent(event);
@@ -266,12 +267,13 @@ suite('system/NotificationScreen >', function() {
 
     teardown(function() {
       window.removeEventListener('notification-clicked', notifClickedStub);
-      window.removeEventListener('mozContentEvent', contentEventStub);
+      window.removeEventListener(
+        'mozContentNotificationEvent', contentNotificationEventStub);
     });
 
     test('dispatch events once with the expected parameters', function() {
       sinon.assert.calledOnce(notifClickedStub);
-      sinon.assert.calledOnce(contentEventStub);
+      sinon.assert.calledOnce(contentNotificationEventStub);
 
       sinon.assert.calledWithMatch(notifClickedStub, {
         detail: {
@@ -279,7 +281,7 @@ suite('system/NotificationScreen >', function() {
         }
       });
 
-      sinon.assert.calledWithMatch(contentEventStub, {
+      sinon.assert.calledWithMatch(contentNotificationEventStub, {
         detail: {
           type: 'desktop-notification-click',
           id: details.id
@@ -289,7 +291,7 @@ suite('system/NotificationScreen >', function() {
   });
 
   suite('tap a notification using the obsolete API >', function() {
-    var notificationNode, notifClickedStub, contentEventStub;
+    var notificationNode, notifClickedStub, contentNotificationEventStub;
     var details = {
       type: 'desktop-notification',
       id: 'app-notif-1',
@@ -301,15 +303,17 @@ suite('system/NotificationScreen >', function() {
       notificationNode = NotificationScreen.addNotification(details);
 
       notifClickedStub = sinon.stub();
-      contentEventStub = sinon.stub();
+      contentNotificationEventStub = sinon.stub();
 
       window.addEventListener('notification-clicked', notifClickedStub);
-      window.addEventListener('mozContentEvent', contentEventStub);
+      window.addEventListener(
+        'mozContentNotificationEvent', contentNotificationEventStub);
     });
 
     teardown(function() {
       window.removeEventListener('notification-clicked', notifClickedStub);
-      window.removeEventListener('mozContentEvent', contentEventStub);
+      window.removeEventListener(
+        'mozContentNotificationEvent', contentNotificationEventStub);
     });
 
     test('tapping on the notification', function() {
@@ -317,7 +321,7 @@ suite('system/NotificationScreen >', function() {
       notificationNode.dispatchEvent(event);
 
       sinon.assert.calledOnce(notifClickedStub);
-      sinon.assert.calledTwice(contentEventStub);
+      sinon.assert.calledTwice(contentNotificationEventStub);
 
       sinon.assert.calledWithMatch(notifClickedStub, {
         detail: {
@@ -325,14 +329,14 @@ suite('system/NotificationScreen >', function() {
         }
       });
 
-      sinon.assert.calledWithMatch(contentEventStub, {
+      sinon.assert.calledWithMatch(contentNotificationEventStub, {
         detail: {
           type: 'desktop-notification-click',
           id: details.id
         }
       });
 
-      sinon.assert.calledWithMatch(contentEventStub, {
+      sinon.assert.calledWithMatch(contentNotificationEventStub, {
         detail: {
           type: 'desktop-notification-close',
           id: details.id
@@ -345,7 +349,7 @@ suite('system/NotificationScreen >', function() {
       fakeToaster.dispatchEvent(event);
 
       sinon.assert.calledOnce(notifClickedStub);
-      sinon.assert.calledTwice(contentEventStub);
+      sinon.assert.calledTwice(contentNotificationEventStub);
 
       sinon.assert.calledWithMatch(notifClickedStub, {
         detail: {
@@ -353,14 +357,14 @@ suite('system/NotificationScreen >', function() {
         }
       });
 
-      sinon.assert.calledWithMatch(contentEventStub, {
+      sinon.assert.calledWithMatch(contentNotificationEventStub, {
         detail: {
           type: 'desktop-notification-click',
           id: details.id
         }
       });
 
-      sinon.assert.calledWithMatch(contentEventStub, {
+      sinon.assert.calledWithMatch(contentNotificationEventStub, {
         detail: {
           type: 'desktop-notification-close',
           id: details.id

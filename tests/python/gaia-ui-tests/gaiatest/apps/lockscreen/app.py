@@ -12,6 +12,8 @@ from gaiatest.apps.lockscreen.regions.passcode_pad import PasscodePad
 
 class LockScreen(Base):
 
+    _lockscreen_window_locator = (By.CLASS_NAME, 'lockScreenWindow')
+
     _lockscreen_locator = (By.ID, 'lockscreen')
     _lockscreen_handle_locator = (By.ID, 'lockscreen-area-slide')
     _lockscreen_passcode_panel_locator = (By.ID, 'lockscreen-panel-passcode')

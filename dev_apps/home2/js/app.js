@@ -211,6 +211,11 @@
         return;
       }
 
+      // We do not allow users to launch icons in edit mode
+      if (action === 'launch' && this.dragdrop.inEditMode) {
+        return;
+      }
+
       icon[action]();
     }
   };

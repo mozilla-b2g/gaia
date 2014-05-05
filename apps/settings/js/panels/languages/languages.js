@@ -1,3 +1,4 @@
+/* global getSupportedLanguages */
 define(function(require) {
   'use strict';
 
@@ -9,7 +10,7 @@ define(function(require) {
   Languages.prototype = {
     init: function() {
       this.langSel.innerHTML = '';
-      Settings.getSupportedLanguages(function fillLanguageList(languages) {
+      getSupportedLanguages(function fillLanguageList(languages) {
         for (var lang in languages) {
           var option = document.createElement('option');
           option.value = lang;

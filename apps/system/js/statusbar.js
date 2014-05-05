@@ -73,7 +73,7 @@ var StatusBar = {
     'battery', 'wifi', 'data', 'flight-mode', 'network-activity', 'tethering',
     'alarm', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
     'bluetooth-transferring', 'recording', 'sms', 'geolocation', 'usb', 'label',
-    'system-downloads', 'call-forwardings', 'playing'],
+    'system-downloads', 'call-forwardings', 'playing', 'nfc'],
 
   /* Timeout for 'recently active' indicators */
   kActiveIndicatorTimeout: 5 * 1000,
@@ -112,6 +112,8 @@ var StatusBar = {
 
   recordingActive: false,
   recordingTimer: null,
+
+  nfcActive: false,
 
   umsActive: false,
 
@@ -155,16 +157,6 @@ var StatusBar = {
     this._releaseBar();
     this.background.classList.add('hidden');
     this.element.classList.add('invisible');
-  },
-
-  expand: function sb_expand() {
-    this.element.classList.add('expanded');
-    this.background.classList.add('expanded');
-  },
-
-  collapse: function sb_collapse() {
-    this.element.classList.remove('expanded');
-    this.background.classList.remove('expanded');
   },
 
   init: function sb_init() {
@@ -217,13 +209,6 @@ var StatusBar = {
 
     window.addEventListener('utilitytrayshow', this);
     window.addEventListener('utilitytrayhide', this);
-    window.addEventListener('home', this);
-    window.addEventListener('homescreenopened', this);
-    window.addEventListener('homescreenclosing', this);
-    window.addEventListener('rocketbarexpand', this);
-    window.addEventListener('rocketbarcollapse', this);
-    window.addEventListener('rocketbarfocus', this);
-    window.addEventListener('rocketbarblur', this);
 
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
@@ -241,6 +226,8 @@ var StatusBar = {
     window.addEventListener('mozChromeEvent', this);
     // Listen to Custom event send by 'media_recording.js'
     window.addEventListener('recordingEvent', this);
+    // Listen to Custom event send by 'nfc_manager.js'
+    window.addEventListener('nfcEvent', this);
 
     // 'bluetoothconnectionchange' fires when the overall bluetooth connection
     //  changes.
@@ -260,6 +247,7 @@ var StatusBar = {
     window.addEventListener('lockpanelchange', this);
 
     window.addEventListener('appopened', this);
+    window.addEventListener('homescreenopened', this.show.bind(this));
 
     var touchEvents = ['touchstart', 'touchmove', 'touchend'];
     touchEvents.forEach(function bindEvents(name) {
@@ -322,36 +310,6 @@ var StatusBar = {
         if (app && app.isFullScreen()) {
           this.hide();
         }
-        break;
-
-      case 'home':
-      case 'homescreenopened':
-        this.element.classList.add('on-homescreen');
-        this.background.classList.add('on-homescreen');
-        this.show();
-        break;
-
-      case 'homescreenclosing':
-        this.element.classList.remove('on-homescreen');
-        this.background.classList.remove('on-homescreen');
-        break;
-
-      case 'rocketbarexpand':
-        this.expand();
-        break;
-
-      case 'rocketbarcollapse':
-        this.collapse();
-        break;
-
-      case 'rocketbarfocus':
-        this.element.classList.add('rocketbar-focused');
-        this.background.classList.add('rocketbar-focused');
-        break;
-
-      case 'rocketbarblur':
-        this.element.classList.remove('rocketbar-focused');
-        this.background.classList.remove('rocketbar-focused');
         break;
 
       case 'lockpanelchange':
@@ -422,6 +380,11 @@ var StatusBar = {
             this.update.recording.call(this);
             break;
         }
+        break;
+
+      case 'nfc-state-changed':
+        this.nfcActive = evt.detail.active;
+        this.update.nfc.call(this);
         break;
 
       case 'mozChromeEvent':
@@ -559,7 +522,7 @@ var StatusBar = {
 
       window.removeEventListener('touchstart', closeOnTap);
       self._releaseBar();
-    };
+    }
     window.addEventListener('touchstart', closeOnTap);
   },
 
@@ -683,7 +646,6 @@ var StatusBar = {
     time: function sb_updateTime(now) {
       var _ = navigator.mozL10n.get;
       var f = new navigator.mozL10n.DateTimeFormat();
-      var sec = now.getSeconds();
 
       var timeFormat = _('shortTimeFormat').replace('%p', '<span>%p</span>');
       var formatted = f.localeFormat(now, timeFormat);
@@ -698,8 +660,9 @@ var StatusBar = {
 
     battery: function sb_updateBattery() {
       var battery = window.navigator.battery;
-      if (!battery)
+      if (!battery) {
         return;
+      }
 
       var icon = this.icons.battery;
 
@@ -745,8 +708,9 @@ var StatusBar = {
 
         var _ = navigator.mozL10n.get;
 
-        if (!voice)
+        if (!voice) {
           continue;
+        }
 
         if (self.settingValues['ril.radio.disabled']) {
           icon.hidden = true;
@@ -795,8 +759,9 @@ var StatusBar = {
 
     data: function sb_updateSignal() {
       var conns = window.navigator.mozMobileConnections;
-      if (!conns)
+      if (!conns) {
         return;
+      }
 
       var self = this;
       for (var index = 0; index < conns.length; index++) {
@@ -804,8 +769,9 @@ var StatusBar = {
         var data = conn.data;
         var icon = self.icons.data[index];
 
-        if (!data)
+        if (!data) {
           continue;
+        }
 
         if (self.settingValues['ril.radio.disabled'] ||
             !self.settingValues['ril.data.enabled'] ||
@@ -843,16 +809,18 @@ var StatusBar = {
 
     wifi: function sb_updateWifi() {
       var wifiManager = window.navigator.mozWifiManager;
-      if (!wifiManager)
+      if (!wifiManager) {
         return;
+      }
 
       var icon = this.icons.wifi;
       var wasHidden = icon.hidden;
 
       if (!this.settingValues['wifi.enabled']) {
         icon.hidden = true;
-        if (!wasHidden)
+        if (!wasHidden) {
           this.update.data.call(this);
+        }
 
         return;
       }
@@ -884,8 +852,9 @@ var StatusBar = {
           break;
       }
 
-      if (icon.hidden !== wasHidden)
+      if (icon.hidden !== wasHidden) {
         this.update.data.call(this);
+      }
     },
 
     tethering: function sb_updateTethering() {
@@ -922,11 +891,11 @@ var StatusBar = {
 
     mute: function sb_updateMute() {
       this.icons.mute.hidden =
-        (this.settingValues['audio.volume.notification'] != 0);
+        (this.settingValues['audio.volume.notification'] !== 0);
     },
 
     vibration: function sb_vibration() {
-      var vibrate = (this.settingValues['vibration.enabled'] == true);
+      var vibrate = (this.settingValues['vibration.enabled'] === true);
       if (vibrate) {
         this.icons.mute.classList.add('vibration');
       } else {
@@ -1007,6 +976,11 @@ var StatusBar = {
     playing: function sb_updatePlaying() {
       var icon = this.icons.playing;
       icon.hidden = !this.playingActive;
+    },
+
+    nfc: function sb_updateNfc() {
+      var icon = this.icons.nfc;
+      icon.hidden = !this.nfcActive;
     }
   },
 
@@ -1020,8 +994,9 @@ var StatusBar = {
     // Listen to callschanged only when connected to CDMA networks and emergency
     // calls.
     var conns = window.navigator.mozMobileConnections;
-    if (!conns)
+    if (!conns) {
       return;
+    }
 
     var emergencyCallsOnly = false;
     var cdmaConnection = false;

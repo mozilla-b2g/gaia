@@ -34,8 +34,7 @@ function getCompression(pathInZip, webapp) {
     // Don't store some files compressed since that's not giving us any
     // benefit but costs cpu when reading from the zip.
     var ext = pathInZip.split('.').reverse()[0].toLowerCase();
-    return (['gif', 'jpg', 'jpeg', 'png',
-             'ogg', 'opus'].indexOf(ext) !== -1) ?
+    return (['jpg', 'jpeg'].indexOf(ext) !== -1) ?
             utils.getCompression('none') :
             utils.getCompression('best');
   }

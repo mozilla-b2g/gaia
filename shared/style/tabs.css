@@ -179,6 +179,7 @@
 .bb-tablist.skin-dark > li > a[disabled],
 .bb-tablist.skin-dark > li > button[disabled] {
   opacity: 0.35;
+  background-color: transparent;
 }
 
 .bb-tablist .bb-tabpanel {
@@ -226,7 +227,7 @@
 
 .bb-tablist[data-type="filter"] > li:before,
 .bb-tablist[data-type="filter"] > li:target > a:after,
-.bb-tablist[data-type="filter"] > li:target > button:after
+.bb-tablist[data-type="filter"] > li:target > button:after,
 .bb-tablist[data-type="filter"] > li > a[aria-selected="true"]:after,
 .bb-tablist[data-type="filter"] > li > button[aria-selected="true"]:after {
   display: none;

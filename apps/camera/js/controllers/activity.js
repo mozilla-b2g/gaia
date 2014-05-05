@@ -5,9 +5,9 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
-var lessThanFileSize = require('lib/picture-sizes/less-than-file-size');
-var closestToSize = require('lib/picture-sizes/closest-to-size');
 var debug = require('debug')('controller:activity');
+var bytesToPixels = require('lib/bytes-to-pixels');
+var resizeImage = require('lib/resize-image');
 var bindAll = require('lib/bind-all');
 
 /**
@@ -24,18 +24,22 @@ module.exports.ActivityController = ActivityController;
  */
 function ActivityController(app) {
   bindAll(this);
-  this.activity = app.activity;
   this.settings = app.settings;
   this.app = app;
-
-  // Allow these methods to be overridden
-  this.closestToSize = app.closestToSize || closestToSize;
-  this.lessThanFileSize = app.lessThanFileSize || lessThanFileSize;
-
   this.configure();
   this.bindEvents();
   debug('initialized');
 }
+
+/**
+ * Supported activity types.
+ *
+ * @type {Object}
+ */
+ActivityController.prototype.types = {
+  pick: 'pick',
+  record: 'record'
+};
 
 /**
  * Initial configuration.
@@ -43,7 +47,7 @@ function ActivityController(app) {
  * @private
  */
 ActivityController.prototype.configure = function() {
-  this.configureMode();
+  this.app.activity[this.getName()] = true;
 };
 
 /**
@@ -55,84 +59,218 @@ ActivityController.prototype.configure = function() {
  * @private
  */
 ActivityController.prototype.bindEvents = function() {
-  this.activity.on('activityreceived', this.onActivityReceived);
-  this.settings.recorderProfiles.on('configured', this.filterRecorderProfiles);
-  this.settings.pictureSizes.on('configured', this.filterPictureSize);
+  navigator.mozSetMessageHandler('activity', this.onMessage);
+  this.app.on('activitycanceled', this.onActivityCanceled);
+  this.app.on('confirm:selected', this.onActivityConfirmed);
 };
 
 /**
- * Set filter the capture mode options
- * @return {[type]} [description]
+ * Get activity name from the hash fragment.
+ *
+ * This is used only so that some parts
+ * of the app can prepare for an incoming
+ * activity before the message arrives.
+ *
+ * @private
  */
-ActivityController.prototype.configureMode = function() {
-  var modes = this.activity.modes;
+ActivityController.prototype.getName = function() {
+  var hash = location.hash;
+  var name = hash && hash.substr(1);
+  return this.types[name];
+};
+
+/**
+ * Responds to incoming activity message.
+ *
+ * Configures the mode then emits an
+ * event so that other parts of
+ * the app can update accordingly.
+ *
+ * @param  {MozActivity} activity
+ */
+ActivityController.prototype.onMessage = function(activity) {
+  debug('incoming activity', activity);
+  var name = activity.source.name;
+  var supported = this.types[name];
+
+  // Exit if this activity isn't supported
+  if (!supported) { return; }
+
+  var data = {
+    name: name,
+    maxPixelSize: this.getMaxPixelSize(activity),
+    maxFileSizeBytes: activity.source.data.maxFileSizeBytes
+  };
+
+  this.activity = activity;
+  this.configureMode(activity);
+  this.app.emit('activity', data);
+  this.app.emit('activity:' + name, data);
+};
+
+/**
+ * Configures the mode setting based
+ * on the parameters supplied by
+ * the incoming activity.
+ *
+ * @param  {MozActivity} activity
+ * @private
+ */
+ActivityController.prototype.configureMode = function(activity) {
+  var type = activity.source.data.type;
+  var name = activity.source.name;
+  var modes = (name === 'pick') ?
+    this.getModesForPick(type) :
+    this.getModesForRecord(type);
+
   this.settings.mode.filterOptions(modes);
-
-  var mode = modes[0];
-  if (mode) {
-    this.settings.mode.select(mode);
-  }
-
+  this.settings.mode.select(modes[0]);
   debug('configured mode', modes);
 };
 
-ActivityController.prototype.onActivityReceived = function() {
-  this.configure();
+/**
+ * Get a max pixel size estimate based
+ * on the parameters supplied by the
+ * incoming activity.
+ *
+ * Activities don't always supply pixel
+ * size restrictions.
+ *
+ * NOTE: There
+ *
+ * @param  {MozActivity} activity
+ * @return {Number|null}
+ */
+ActivityController.prototype.getMaxPixelSize = function(activity) {
+  var data = activity.source.data;
+  var bytes = data.maxFileSizeBytes;
+  var maxPixelSize;
+
+  // If bytes were specified then derive
+  // a maxPixelSize from that, else we
+  // calculate the maxPixelSize using
+  // supplied dimensions.
+  if (bytes) {
+    maxPixelSize = bytesToPixels(bytes);
+  } else if (data.width || data.height) {
+    maxPixelSize = this.getMaxPixelsFromSize(data);
+  }
+
+  debug('maxPixelsSize: %s', maxPixelSize);
+  return maxPixelSize;
+};
+
+ActivityController.prototype.getMaxPixelsFromSize = function(size) {
+  var scale = this.settings.activity.get('maxPixelSizeScaleFactor');
+  var aspect = 4 / 3;
+
+  // In the event that only one dimension has
+  // been supplied, calculate the largest the
+  // other edge could be based on a 4:3 aspect.
+  var width = size.width || size.height * aspect;
+  var height = size.height || size.width * aspect;
+  var pixels = width * height;
+
+  // Take the actual total number of
+  // pixels asked for and bump it by the
+  // `scale` to cover pictureSizes above
+  // the pixels asked for. We later resize
+  // the image post-capture to the exact size
+  // requested (data.width * data.height).
+  //
+  // This is to avoid us picking a pictureSize
+  // smaller than the number of pixels requested
+  // and then to scaling up post-capture,
+  // resulting in a shitty image.
+  return pixels * scale;
 };
 
 /**
- * If `maxFileSizeBytes` is specified,
- * we filter down the available picture
- * sizes to just those less than the
- * given number of bytes (estimated).
+ * Parse types given by 'pick' activity
+ * and return a list of modes.
  *
- * Else, if a `width` or `height` is
- * defined by the activity, we find
- * the picture size that is closest to,
- * but still larger than, the given size.
- *
- * @private
+ * @param  {Array|String} types
+ * @return {Array}
  */
-ActivityController.prototype.filterPictureSize = function() {
-  var setting = this.settings.pictureSizes;
-  var options = setting.get('options');
-  var data = this.activity.data;
-  var maxFileSize = data.maxFileSizeBytes;
-  var filtered;
-  var keys;
+ActivityController.prototype.getModesForPick = function(types) {
+  types = [].concat(types || []);
+  var modes = [];
 
-  // By file-size
-  if (maxFileSize) {
-    filtered = this.lessThanFileSize(maxFileSize, options);
-    keys = filtered.map(function(option) { return option.key; });
-    setting.filterOptions(keys);
-    debug('picture sizes less than \'%s\' bytes', maxFileSize);
+  types.forEach(function(item) {
+    var type = item.split('/')[0];
+    var mode = type === 'image' ? 'picture' : type;
+
+    if (modes.indexOf(mode) === -1) {
+      modes.push(mode);
+    }
+  });
+
+  if (modes.length === 0) {
+    modes = ['picture', 'video'];
   }
 
-  // By width/height
-  else if (data.width || data.height) {
-    filtered = this.closestToSize(data, options);
-    if (filtered) { setting.filterOptions([filtered.key]); }
-    debug('picked picture size', filtered);
-  }
+  return modes;
 };
 
 /**
- * If an activity has specified `maxFileSizeBytes`
- * we filter down to just the the lowest (last)
- * resolution recorder profile.
+ * Parse types given by 'record' activity
+ * and return a list of modes.
+ *
+ * @param  {String} type
+ * @return {Array}
+ */
+ActivityController.prototype.getModesForRecord = function(type) {
+  return type === 'videos' ?
+    ['video', 'picture'] :
+    ['picture', 'video'];
+};
+
+/**
+ * Respond to activity cancelation
+ * events and send the error call
+ * via the original acitity object.
  *
  * @private
  */
-ActivityController.prototype.filterRecorderProfiles = function() {
-  var maxFileSize = this.activity.data.maxFileSizeBytes;
-  var setting = this.settings.recorderProfiles;
-  var options = setting.get('options');
+ActivityController.prototype.onActivityCanceled = function() {
+  if (!this.activity) { return; }
+  this.activity.postError('pick cancelled');
+};
 
-  if (!maxFileSize) { return; }
+// TODO: Messy, tidy up!
+ActivityController.prototype.onActivityConfirmed = function(newMedia) {
+  var activity = this.activity;
+  var needsResizing;
+  var media = {
+    blob: newMedia.blob
+  };
 
-  var last = options[options.length - 1];
-  setting.filterOptions([last.key]);
+  // Video
+  if (newMedia.isVideo) {
+    media.type = 'video/3gpp';
+    media.poster = newMedia.poster.blob;
+  }
+
+  // Image
+  else {
+    media.type = 'image/jpeg';
+    needsResizing = activity.source.data.width || activity.source.data.height;
+    debug('needs resizing: %s', needsResizing);
+
+    if (needsResizing) {
+      resizeImage({
+        blob: newMedia.blob,
+        width: activity.source.data.width,
+        height: activity.source.data.height
+      }, function(newBlob) {
+        media.blob = newBlob;
+        activity.postResult(media);
+      });
+      return;
+    }
+  }
+
+  this.activity.postResult(media);
 };
 
 });
