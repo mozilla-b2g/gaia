@@ -2,9 +2,13 @@
 'use strict';
 
 var MockMessageManager = {
+  _message: null,
   getThreads: function() {},
   getMessages: function() {},
-  getMessage: function() {},
+  getMessage: function() {
+    this._message = {};
+    return this._message;
+  },
   deleteMessage: function(messageId, callback) {
     if (callback) {
       callback();
@@ -24,5 +28,15 @@ var MockMessageManager = {
   resendMessage: function() {},
   retrieveMMS: function() {},
   markMessagesRead: function() {},
-  markThreadRead: function() {}
+  markThreadRead: function() {},
+  mTriggerOnSuccess: function() {
+    if (this._message.onsuccess) {
+      this._message.onsuccess();
+    }
+  },
+  mTriggerOnError: function() {
+    if (this._message.onerror) {
+      this._message.onerror();
+    }
+  }
 };
