@@ -3,26 +3,24 @@ function displayInstalledApps() {
   function clickHandler(app) {
     return function() {
       exportAppToSDCard(app);
-    }
+    };
   }
 
   var appMgr = navigator.mozApps.mgmt;
   appMgr.getAll().onsuccess = function(event) {
     var apps = event.target.result;
     var container = document.querySelector("#exportAppList");
-    var fragment = document.createDocumentFragment();
+    container.innerHTML = "";
     for (var app of apps) {
       if (app.manifest.type == 'certified')
         continue;
 
-      var entryNode = createAppEntryNode(app);
+      var entryNode = createAppEntryNode(app.manifest);
 
       entryNode.querySelector('a').onclick = clickHandler(app)
 
-      fragment.appendChild(entryNode);
+      container.appendChild(entryNode);
     }
-    container.innerHTML = "";
-    container.appendChild(fragment);
   }
 }
 
@@ -77,56 +75,47 @@ function getSDCardApps(cb) {
 }
 
 function displaySDCardApps() {
+
+  var appMgr = navigator.mozApps.mgmt;
+
+  function clickHandler(file) {
+    return function() {
+      appMgr.import(file).then(function(nada) {
+        // Yay.
+        console.log('Imported ', file.name, 'from SD card');
+      }, function(reason) {
+        // TODO: enumerate reasons -> user feedback
+        // * already installed
+        // * what else?
+        console.log('Broken promise importing app', file.name, reason);
+      });
+    };
+  }
+
   getSDCardApps(function(files) {
     var container = document.querySelector("#importAppList");
-    var fragment = document.createDocumentFragment();
-    files.forEach(function(file) {
-      var entryNode = createFileEntryNode(file);
-      entryNode.querySelector('a').onclick = function() {
-        navigator.mozApps.mgmt.import(file).then(function(nada) {
-          // Yay.
-          console.log('Imported ', filename, 'from SD card');
-        }, function(reason) {
-          // TODO: enumerate reasons -> user feedback
-          // * already installed
-          // * what else?
-          console.log('Broken promise importing app', file.name, reason);
-        });
-      }
-      fragment.appendChild(entryNode);
-    });
     container.innerHTML = "";
-    container.appendChild(fragment);
+    files.forEach(function(file) {
+      appMgr.getAppManifest(file).then(function(manifest) {
+        var entryNode = createAppEntryNode(manifest);
+        entryNode.querySelector('a').onclick = clickHandler(file);
+        container.appendChild(entryNode);
+      });
+    });
   });
 }
 
-function createFileEntryNode(file) {
+function createAppEntryNode(manifest) {
   var template = document.querySelector('#appListEntry').
                           content.cloneNode(true);
 
-  var name = file.name.split('/').reverse().shift();
-  template.querySelector('.appListEntryName').textContent = name;
-
-  // TODO: add icon
-  // TODO: add developer
-  // TODO: add description
+  template.appendChild(document.createTextNode(manifest.name));
+  template.querySelector('img').src = getBestIconURL(manifest, manifest.icons);
 
   return template;
 }
 
-function createAppEntryNode(app) {
-  var template = document.querySelector('#appListEntry').
-                          content.cloneNode(true);
-
-  template.querySelector('.appListEntryName').textContent = app.manifest.name;
-
-  // TODO: add icon
-  // TODO: add developer
-  // TODO: add description
-
-  return template;
-}
-
+// TODO: hook up displays to tab events, remove install/uninstall listeners
 document.addEventListener('DOMContentLoaded', function() {
   var appMgr = navigator.mozApps.mgmt;
   appMgr.oninstall = displayInstalledApps;
@@ -134,3 +123,41 @@ document.addEventListener('DOMContentLoaded', function() {
   displayInstalledApps();
   displaySDCardApps();
 });
+
+// Copied from app permissions list in Settings
+// TODO: move into shared?
+function getBestIconURL(app, icons) {
+  if (!icons || !Object.keys(icons).length) {
+    return '../style/images/default.png';
+  }
+
+  // The preferred size is 30 by the default. If we use HDPI device, we may
+  // use the image larger than 30 * 1.5 = 45 pixels.
+  var preferredIconSize = 30 * (window.devicePixelRatio || 1);
+  var preferredSize = Number.MAX_VALUE;
+  var max = 0;
+
+  for (var size in icons) {
+    size = parseInt(size, 10);
+    if (size > max) {
+      max = size;
+    }
+
+    if (size >= preferredIconSize && size < preferredSize) {
+      preferredSize = size;
+    }
+  }
+  // If there is an icon matching the preferred size, we return the result,
+  // if there isn't, we will return the maximum available size.
+  if (preferredSize === Number.MAX_VALUE) {
+    preferredSize = max;
+  }
+
+  var url = icons[preferredSize];
+
+  if (url) {
+    return !(/^(http|https|data):/.test(url)) ? app.origin + url : url;
+  } else {
+    return '../style/images/default.png';
+  }
+}

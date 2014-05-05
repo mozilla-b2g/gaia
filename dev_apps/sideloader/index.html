@@ -7,9 +7,19 @@
   <link rel="stylesheet" type="text/css" href="shared/style/tabs.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/lists.css" />
+
+  <link rel="stylesheet" type="text/css" href="style/main.css"/>
 </head>
 
 <body role="application">
+  
+  <!--
+  <header>
+    <h1 data-l10n-id="appImportExport-header">
+      App Import/Export
+    </h1>
+  </header>
+  -->
 
   <ul role="tablist" class="bb-tablist">
 
@@ -19,7 +29,7 @@
       <div id="tabpanel1" class="bb-tabpanel" role="tabpanel" aria-labelledby="tab1">
         List of apps detected on SD card, touch one to import.
         <section data-type="list">
-          <ul id="importAppList"></ul>
+          <ul id="importAppList" class="app-list"></ul>
         </section>
       </div>
     </li>
@@ -30,7 +40,7 @@
       <div id="tabpanel2" class="bb-tabpanel" role="tabpanel" aria-labelledby="tab2">
         List of installed apps, touch one to export.
         <section data-type="list">
-          <ul id="exportAppList"></ul>
+          <ul id="exportAppList" class="app-list"></ul>
         </section>
       </div>
     </li>
@@ -39,8 +49,7 @@
   <template id="appListEntry">
     <li>
       <a href="#">
-        <aside class="icon icon-apps"></aside>
-        <p class="appListEntryName"></p>
+        <img class="icon icon-apps"></img>
       </a>
     </li>
   </template>
