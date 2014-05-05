@@ -1,8 +1,3 @@
-/**
- * Tests for the shared settings url code
- * TODO: Shared code unit tests should not be in gallery
- * Bug #841422 has been filed to move these tests
- */
 require('/shared/js/settings_url.js');
 
 suite('SettingsURL', function() {
