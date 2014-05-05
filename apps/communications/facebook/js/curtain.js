@@ -1,7 +1,5 @@
 'use strict';
 
-/* exported Curtain */
-
 var Curtain = (function() {
 
   var _ = navigator.mozL10n.get;
@@ -60,7 +58,7 @@ var Curtain = (function() {
     progressElement.setAttribute('value', 0);
 
     function showMessage() {
-      messages.progress.textContent = _('progressFB', {
+      messages['progress'].textContent = _('progressFB', {
         current: counter,
         total: total
       });

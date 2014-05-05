@@ -16,7 +16,7 @@ var fbLoader = (function() {
 
     var curtain = document.createElement('iframe');
     curtain.id = 'fb-curtain';
-    curtain.src = '/shared/pages/import/curtain.html';
+    curtain.src = '/facebook/curtain.html';
     iframesFragment.appendChild(curtain);
 
     var oauth = document.createElement('iframe');

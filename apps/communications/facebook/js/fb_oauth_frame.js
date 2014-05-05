@@ -1,12 +1,11 @@
 'use strict';
 
-/* globals Curtain, oauth2 */
-
 if (typeof window.oauthFrame === 'undefined') {
   (function() {
 
     var targetService;
     var oauthFrame = window.oauthFrame = {};
+    var oauthParams = oauthflow.params;
     var CONTACTS_APP_ORIGIN = location.origin;
 
     function notifyParent(message, origin) {

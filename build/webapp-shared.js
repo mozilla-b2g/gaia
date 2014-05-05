@@ -164,7 +164,7 @@ WebappShared.prototype.copyPage = function(path) {
 
   if (!file.exists()) {
     throw new Error('Using inexistent shared page file: ' + path +
-                    ' from: ' + this.webapp.domain);
+                    ' from: ' + webapp.domain);
   }
 
   var pathInStage = 'shared/pages/' + path;

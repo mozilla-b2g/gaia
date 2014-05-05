@@ -24,7 +24,7 @@ require('/shared/js/contacts/utilities/dom.js');
 require('/shared/js/contacts/utilities/templates.js');
 require('/shared/js/contacts/utilities/event_listeners.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
-require('/shared/js/contacts/search.js');
+requireApp('communications/contacts/js/views/search.js');
 requireApp('communications/contacts/js/views/list.js');
 requireApp('communications/contacts/test/unit/mock_cookie.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
