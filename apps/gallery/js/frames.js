@@ -126,6 +126,8 @@ function deleteSingleItem() {
   else {
     msg = navigator.mozL10n.get('delete-photo?');
   }
+  // We need to disable NFC sharing when showing delete confirmation dialog
+  setNFCSharing(false);
 
   Dialogs.confirm({
     message: msg,
@@ -138,6 +140,11 @@ function deleteSingleItem() {
     fullscreenButtons.share.classList.add('disabled');
 
     deleteFile(currentFileIndex);
+    // Enable NFC sharing when done deleting and returns to fullscreen view
+    setNFCSharing(true);
+  }, function() { // onCancel
+    // Enable NFC sharing when cancels delete and returns to fullscreen view
+    setNFCSharing(true);
   });
 }
 
