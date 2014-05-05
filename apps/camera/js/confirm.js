@@ -17,7 +17,7 @@ var ConfirmDialog = (function() {
   var selectButton = document.getElementById('select-button');
 
   // Create the MediaFrame for confirmations
-  var frame = new MediaFrame(mediaFrame);
+  var frame = new MediaFrame(mediaFrame, true, CONFIG_MAX_IMAGE_PIXEL_SIZE);
 
   // Enable panning and zooming for images
   addPanAndZoomHandlers(frame);

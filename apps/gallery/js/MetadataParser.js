@@ -188,18 +188,24 @@ var metadataParser = (function() {
     function gotImageSize(metadata) {
       //
       // If the image is too big, reject it now so we don't have
-      // memory trouble later. We don't have to do this for jpeg images
-      // however because MediaFrame will downsample them as needed.
+      // memory trouble later.
       //
       // CONFIG_MAX_IMAGE_PIXEL_SIZE is maximum image resolution we
       // can handle.  It's from config.js which is generated at build
       // time (see build/application-data.js).
       //
-      if (file.type !== 'image/jpeg' &&
-          metadata.width * metadata.height > CONFIG_MAX_IMAGE_PIXEL_SIZE) {
+      // For jpeg images we can downsample while decoding which means that
+      // we can handle images that are quite a bit larger.
+      //
+      var sizelimit = CONFIG_MAX_IMAGE_PIXEL_SIZE;
+      if (file.type === 'image/jpeg')
+        sizelimit *= Downsample.MAX_AREA_REDUCTION;
+
+      if (metadata.width * metadata.height > sizelimit) {
         metadataError('Ignoring high-resolution image ' + file.name);
         return;
       }
+
       // If the image is lower resolution but with large file size, like
       // animated GIF, we should not decode it.
       if ((file.type === 'image/gif' || file.name.endsWith('.gif')) &&
