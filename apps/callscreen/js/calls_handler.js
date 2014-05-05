@@ -1,14 +1,45 @@
-'use strict';
+/* globals CallScreen, Contacts, BluetoothHelper, HandledCall, KeypadManager,
+           LazyL10n, SimplePhoneMatcher, TonePlayer, Utils */
 
-var CallsHandler = (function callsHandler() {
+/* exported CallsHandler */
+
+(function(exports) {
+  'use strict';
+
+  var CallsHandler = {
+    setup: setup,
+
+    answer: answer,
+    holdAndAnswer: holdAndAnswer,
+    endAndAnswer: endAndAnswer,
+    toggleCalls: toggleCalls,
+    ignore: ignore,
+    end: end,
+    updateKeypadEnabled: updateKeypadEnabled,
+    toggleMute: toggleMute,
+    toggleSpeaker: toggleSpeaker,
+    unmute: unmute,
+    switchToReceiver: switchToReceiver,
+    switchToSpeaker: switchToSpeaker,
+    switchToDefaultOut: switchToDefaultOut,
+
+    checkCalls: onCallsChanged,
+    mergeActiveCallWith: mergeActiveCallWith,
+    mergeConferenceGroupWithActiveCall: mergeConferenceGroupWithActiveCall,
+    updateAllPhoneNumberDisplays: updateAllPhoneNumberDisplays,
+
+    get activeCall() {
+      return activeCall();
+    }
+  };
+
   // Changing this will probably require markup changes
   var CALLS_LIMIT = 2;
 
   var handledCalls = [];
 
   var toneInterval = null; // Timer used to play the waiting tone
-  var telephony = window.navigator.mozTelephony;
-  telephony.oncallschanged = onCallsChanged;
+  var telephony = null;
 
   var displayed = false;
   var closing = false;
@@ -24,12 +55,15 @@ var CallsHandler = (function callsHandler() {
     SimplePhoneMatcher.mcc = conn.voice.network.mcc;
   }
 
-  var btHelper = new BluetoothHelper();
+  var btHelper = null;
 
   var screenLock;
 
   /* === Setup === */
   function setup() {
+    telephony = window.navigator.mozTelephony;
+    btHelper = new BluetoothHelper();
+
     if (telephony) {
       // Somehow the muted property appears to true after initialization.
       // Set it to false.
@@ -63,8 +97,10 @@ var CallsHandler = (function callsHandler() {
       }
     };
 
+    telephony.oncallschanged = onCallsChanged;
     navigator.mozSetMessageHandler('headset-button', handleHSCommand);
     navigator.mozSetMessageHandler('bluetooth-dialer-command', handleBTCommand);
+    window.addEventListener('resize', updateAllPhoneNumberDisplays);
   }
 
   /* === Handled calls === */
@@ -75,7 +111,7 @@ var CallsHandler = (function callsHandler() {
     if (!highPriorityWakeLock && telephony.calls.length > 0) {
       highPriorityWakeLock = navigator.requestWakeLock('high-priority');
     }
-    if (highPriorityWakeLock && telephony.calls.length == 0) {
+    if (highPriorityWakeLock && telephony.calls.length === 0) {
       highPriorityWakeLock.unlock();
       highPriorityWakeLock = null;
     }
@@ -92,17 +128,16 @@ var CallsHandler = (function callsHandler() {
     });
 
     // Removing any ended calls to handledCalls
+    function hcIterator(call) {
+      return (call == hc.call);
+    }
+
     for (var index = (handledCalls.length - 1); index >= 0; index--) {
       var hc = handledCalls[index];
 
-      var stillHere = telephony.calls.some(function hcIterator(call) {
-        return (call == hc.call);
-      });
+      var stillHere = telephony.calls.some(hcIterator);
 
-      stillHere = stillHere ||
-        telephony.conferenceGroup.calls.some(function hcIterator(call) {
-        return (call == hc.call);
-      });
+      stillHere = stillHere || telephony.conferenceGroup.calls.some(hcIterator);
 
       if (!stillHere) {
         removeCall(index);
@@ -130,13 +165,13 @@ var CallsHandler = (function callsHandler() {
 
     // No more room
     if (telephony.calls.length > CALLS_LIMIT) {
-      new HandledCall(call);
+      HandledCall(call);
       call.hangUp();
       return;
     }
 
     // First incoming or outgoing call, reset mute and speaker.
-    if (handledCalls.length == 0) {
+    if (handledCalls.length === 0) {
       CallScreen.unmute();
 
       /**
@@ -183,7 +218,6 @@ var CallsHandler = (function callsHandler() {
   }
 
   function removeCall(index) {
-    var removedCall = handledCalls[index];
     handledCalls.splice(index, 1);
 
     if (handledCalls.length === 0) {
@@ -317,11 +351,10 @@ var CallsHandler = (function callsHandler() {
       call.restorePhoneNumber();
     });
   }
-  window.addEventListener('resize', updateAllPhoneNumberDisplays);
 
   /* === Bluetooth Headset support ===*/
   function handleBTCommand(message) {
-    var command = message['command'];
+    var command = message.command;
     switch (command) {
       case 'CHUP':
         end();
@@ -385,10 +418,10 @@ var CallsHandler = (function callsHandler() {
       case 'headset-button-press':
         lastHeadsetPress = Date.now();
         return;
-        break;
       case 'headset-button-release':
-        if ((Date.now() - lastHeadsetPress) > 1000)
+        if ((Date.now() - lastHeadsetPress) > 1000) {
           return;
+        }
         break;
       default:
         return;
@@ -655,9 +688,9 @@ var CallsHandler = (function callsHandler() {
 
   function toggleSpeaker() {
     if (telephony.speakerEnabled) {
-      CallsHandler.switchToDefaultOut();
+      switchToDefaultOut();
     } else {
-      CallsHandler.switchToSpeaker();
+      switchToSpeaker();
     }
   }
 
@@ -692,15 +725,13 @@ var CallsHandler = (function callsHandler() {
 
   function activeCall() {
     var telephonyActiveCall = telephony.active;
-    var activeCall = null;
     for (var i = 0; i < handledCalls.length; i++) {
       var handledCall = handledCalls[i];
       if (telephonyActiveCall === handledCall.call) {
-        activeCall = handledCall;
-        break;
+        return handledCall;
       }
     }
-    return activeCall;
+    return null;
   }
 
   /**
@@ -726,31 +757,6 @@ var CallsHandler = (function callsHandler() {
     telephony.conferenceGroup.add(telephony.active);
   }
 
-  return {
-    setup: setup,
-
-    answer: answer,
-    holdAndAnswer: holdAndAnswer,
-    endAndAnswer: endAndAnswer,
-    toggleCalls: toggleCalls,
-    ignore: ignore,
-    end: end,
-    updateKeypadEnabled: updateKeypadEnabled,
-    toggleMute: toggleMute,
-    toggleSpeaker: toggleSpeaker,
-    unmute: unmute,
-    switchToReceiver: switchToReceiver,
-    switchToSpeaker: switchToSpeaker,
-    switchToDefaultOut: switchToDefaultOut,
-
-    checkCalls: onCallsChanged,
-    mergeActiveCallWith: mergeActiveCallWith,
-    mergeConferenceGroupWithActiveCall: mergeConferenceGroupWithActiveCall,
-    updateAllPhoneNumberDisplays: updateAllPhoneNumberDisplays,
-
-    get activeCall() {
-      return activeCall();
-    }
-  };
-})();
+  exports.CallsHandler = CallsHandler;
+})(this);
 

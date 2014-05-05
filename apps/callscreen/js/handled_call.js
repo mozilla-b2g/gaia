@@ -1,3 +1,6 @@
+/* globals CallScreen, CallsHandler, ContactPhotoHelper, Contacts,
+           KeypadManager, kFontStep, LazyL10n, Utils, Voicemail */
+
 'use strict';
 
 function HandledCall(aCall) {
@@ -101,7 +104,6 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var number = this.call.number;
   var secondNumber = this.call.secondNumber;
   var node = this.numberNode;
-  var additionalInfoNode = this.additionalInfoNode;
   var self = this;
 
   CallScreen.setCallerContactImage(null);
@@ -139,7 +141,6 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     return;
   }
 
-  var self = this;
   Voicemail.check(number, function(isVoicemailNumber) {
     if (isVoicemailNumber) {
       LazyL10n.get(function localized(_) {
@@ -160,7 +161,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       if (self._iccCallMessage) {
         self.replacePhoneNumber(self._iccCallMessage, 'end', true);
         self._cachedInfo = self._iccCallMessage;
-        var clearReq = navigator.mozSettings.createLock().set({
+        navigator.mozSettings.createLock().set({
           'icc.callmessage': null
         });
       }

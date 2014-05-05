@@ -1,4 +1,14 @@
+/* global CallScreen, CallsHandler, HandledCall, MockBluetoothHelperInstance,
+          MockCall, MockCallScreen, MockLazyL10n, MockNavigatormozApps,
+          MockNavigatorMozIccManager,
+          MockNavigatorMozTelephony, MockNavigatormozSetMessageHandler,
+          MockNavigatorWakeLock,
+          MocksHelper, MockTonePlayer, MockUtils, telephonyAddCall,
+          telephonyAddCdmaCall */
+
 'use strict';
+
+mocha.globals(['CallsHandler']);
 
 require('/test/unit/mock_call_screen.js');
 require('/test/unit/mock_bluetooth_helper.js');
@@ -19,12 +29,6 @@ require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
 );
-
-// The CallsHandler binds stuff when evaluated so we load it
-// after the mocks and we don't want it to show up as a leak.
-if (!this.CallsHandler) {
-  this.CallsHandler = null;
-}
 
 var mocksHelperForCallsHandler = new MocksHelper([
   'HandledCall',
@@ -80,6 +84,7 @@ suite('calls handler', function() {
   setup(function() {
     this.sinon.useFakeTimers();
     MockNavigatormozSetMessageHandler.mSetup();
+    CallsHandler.setup();
   });
 
   teardown(function() {
@@ -137,7 +142,7 @@ suite('calls handler', function() {
     suite('> hanging up the last incoming call', function() {
       setup(function() {
         var mockCall = new MockCall('12334', 'incoming');
-        var mockHC = telephonyAddCall.call(this, mockCall, {trigger: true});
+        telephonyAddCall.call(this, mockCall, { trigger: true});
 
         MockNavigatorMozTelephony.calls = [];
       });
@@ -1146,8 +1151,7 @@ suite('calls handler', function() {
       });
 
       test('should get active call', function() {
-        var activeHandlerCall = CallsHandler.activecall;
-          assert.equal(CallsHandler.activeCall.call, activeCall);
+        assert.equal(CallsHandler.activeCall.call, activeCall);
       });
     });
 
@@ -1344,7 +1348,6 @@ suite('calls handler', function() {
       setup(function() {
         acmStub.headphones = true;
         headphonesChange = this.sinon.stub(acmStub, 'addEventListener');
-        CallsHandler.setup();
       });
 
       test('should switch sound to default out', function() {
@@ -1361,7 +1364,6 @@ suite('calls handler', function() {
           MockBluetoothHelperInstance, 'getConnectedDevicesByProfile')
           .yields(['dummyDevice']);
         var setIconStub = this.sinon.stub(MockCallScreen, 'setBTReceiverIcon');
-        CallsHandler.setup();
         sinon.assert.calledOnce(setIconStub);
       });
 
@@ -1371,12 +1373,10 @@ suite('calls handler', function() {
           MockBluetoothHelperInstance, 'getConnectedDevicesByProfile')
           .yields([]);
         var setIconStub = this.sinon.stub(MockCallScreen, 'setBTReceiverIcon');
-        CallsHandler.setup();
         sinon.assert.calledOnce(setIconStub);
       });
 
       test('should switch sound to BT receiver when connected', function() {
-        CallsHandler.setup();
         var BTSpy = this.sinon.spy(MockCallScreen, 'switchToDefaultOut');
         MockBluetoothHelperInstance.onscostatuschanged({status: true});
         assert.isTrue(BTSpy.calledOnce);
@@ -1398,7 +1398,6 @@ suite('calls handler', function() {
         call1 = new MockCall('111111', 'outgoing');
         call2 = new MockCall('222222', 'incoming');
         call3 = new MockCall('333333', 'incoming');
-        CallsHandler.setup();
       });
 
       suite('> CHUP', function() {
@@ -1517,7 +1516,6 @@ suite('calls handler', function() {
       var mockCall;
 
       setup(function() {
-        CallsHandler.setup();
         mockCall = new MockCall('12334', 'incoming');
       });
 
