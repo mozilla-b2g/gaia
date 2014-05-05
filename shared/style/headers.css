@@ -184,15 +184,15 @@ section[role="region"] > header:first-child .icon.icon-send {
 }
 
 section[role="region"] > header:first-child .icon.icon-close {
-  background-image: url(headers/images/icons/close.svg);
+  background-image: url(headers/images/icons/close.png);
 }
 
 section[role="region"] > header:first-child .icon.icon-back {
-  background-image: url(headers/images/icons/back.svg);
+  background-image: url(headers/images/icons/back.png);
 }
 
 section[role="region"] > header:first-child .icon.icon-menu {
-  background-image: url(headers/images/icons/menu.svg);
+  background-image: url(headers/images/icons/menu.png);
 }
 
 section[role="region"] > header:first-child .icon.icon-user {
@@ -323,12 +323,12 @@ section[role="region"].skin-organic > header:first-child h1,
 
 section[role="region"].skin-organic > header:first-child .icon.icon-back,
 .skin-organic section[role="region"] > header:first-child .icon.icon-back {
-  background-image: url(headers/images/icons/organic/back.svg);
+  background-image: url(headers/images/icons/organic/back.png);
 }
 
 section[role="region"].skin-organic > header:first-child .icon.icon-close,
 .skin-organic section[role="region"] > header:first-child .icon.icon-close {
-  background-image: url(headers/images/icons/organic/close.svg);
+  background-image: url(headers/images/icons/organic/close.png);
 }
 
 section[role="region"].skin-organic > header:first-child .icon.icon-add,
@@ -361,7 +361,7 @@ section[role="region"].skin-organic > header:first-child button,
  * ---------------------------------- */
 
 .skin-comms section[role="region"] > header:first-child  {
-  background-color: #33cccc;
+  background-color: #00adad;
 }
 
 .skin-comms section[role="region"] > header:first-child > a:not([aria-disabled="true"]):active:after,
