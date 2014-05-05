@@ -78,3 +78,6 @@ PS: We could use any other font software for this, but IcoMoon is a web app
 .icon-download:before {
   content: "\e607";
 }
+.icon-invitation:before {
+  content: "\e608";
+}
