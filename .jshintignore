@@ -20,7 +20,6 @@ apps/keyboard/js/imes/jspinyin/libpinyin.js
 apps/keyboard/js/imes/jszhuyin/lib/**
 shared/js/setImmediate.js
 shared/test/unit/test-agent-server.js
-apps/sharedtest/test/unit/setImmediate_test.js
 apps/wappush/js/ext/**
 apps/keyboard/js/imes/jsavrophonetic/jsavrophonetic.js
 apps/camera/js/vendor/alameda.js
@@ -36,3 +35,4 @@ apps/settings/js/vendor/alameda.js
 apps/findmydevice/js/lib/*
 apps/findmydevice/js/config.js
 apps/system/js/uuid.js
+dev_apps/sharedtest/test/unit/setImmediate_test.js
