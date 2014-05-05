@@ -336,6 +336,13 @@ var NfcManager = {
        * are handled by the handover manager.
        */
       var firstRecord = records[0];
+      if ((firstRecord.tnf == NDEF.TNF_MIME_MEDIA) &&
+            NfcUtils.equalArrays(firstRecord.type,
+            NfcUtils.fromUTF8('application/vnd.bluetooth.ep.oob'))) {
+        this._debug('Handle simplified pairing record');
+        NfcHandoverManager.handleSimplifiedPairingRecord(records);
+        return;
+      }
       if ((firstRecord.tnf == NDEF.TNF_WELL_KNOWN) &&
           NfcUtils.equalArrays(firstRecord.type, NDEF.RTD_HANDOVER_SELECT)) {
         this._debug('Handle Handover Select');

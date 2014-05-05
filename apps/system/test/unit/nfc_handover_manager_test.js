@@ -48,6 +48,7 @@ suite('Nfc Handover Manager Functions', function() {
 
   suite('Activity Routing for NfcHandoverManager', function() {
     var activityInjection1;
+    var activityInjection2;
 
     setup(function() {
       /*
@@ -77,6 +78,30 @@ suite('Nfc Handover Manager Functions', function() {
         }],
         sessionToken: '{e9364a8b-538c-4c9d-84e2-e6ce524afd17}'
       };
+
+      /*
+       * The next NDEF message contains a simplified pairing record
+       * according to Section 4.2.1 Simplified Tag Format for a Single
+       * Bluetooth Carrier. The NDEF message encodes the
+       * MAC address (4C:21:D0:9F:12:F1) and its name (MBH10).
+       * Both parameters are checked via appropriate spies.
+       */
+      activityInjection2 = {
+        type: 'techDiscovered',
+        techList: ['NDEF'],
+        records: [{
+          tnf: NDEF.TNF_MIME_MEDIA,
+          type: new Uint8Array([97, 112, 112, 108, 105, 99, 97, 116, 105,
+                                111, 110, 47, 118, 110, 100, 46, 98, 108, 117,
+                                101, 116, 111, 111, 116, 104, 46, 101, 112,
+                                46, 111, 111, 98]),
+          id: new Uint8Array(),
+          payload: new Uint8Array([26, 0, 241, 18, 159, 208, 33, 76, 4, 13, 4,
+                                   4, 32, 5, 3, 30, 17, 11, 17, 6, 9, 77, 66,
+                                   72, 49, 48])
+        }],
+        sessionToken: '{e9364a8b-538c-4c9d-84e2-e6ce524afd18}'
+      };
     });
 
     test('nfc/HandoverSelect', function() {
@@ -86,9 +111,15 @@ suite('Nfc Handover Manager Functions', function() {
       NfcManager.handleTechnologyDiscovered(activityInjection1);
       assert.isTrue(spyName.withArgs('UE MINI BOOM').calledOnce);
       assert.isTrue(spyPairing.withArgs('00:0D:44:E7:95:AB').calledOnce);
+    });
 
-      spyName.restore();
-      spyPairing.restore();
+    test('nfc/SimplifiedPairingRecord', function() {
+      var spyName = this.sinon.spy(NfcConnectSystemDialog.prototype, 'show');
+      var spyPairing = this.sinon.spy(NfcHandoverManager, 'doPairing');
+
+      NfcManager.handleTechnologyDiscovered(activityInjection2);
+      assert.isTrue(spyName.withArgs('MBH10').calledOnce);
+      assert.isTrue(spyPairing.withArgs('4C:21:D0:9F:12:F1').calledOnce);
     });
   });
 
