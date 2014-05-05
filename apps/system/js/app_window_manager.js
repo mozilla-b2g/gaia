@@ -474,9 +474,18 @@
     linkWindowActivity: function awm_linkWindowActivity(config) {
       // Caller should be either the current active inline activity window,
       // or the active app.
-      var caller = activityWindowFactory.getActiveWindow() || this._activeApp;
-      this.runningApps[config.origin].activityCaller = caller;
-      caller.activityCallee = this.runningApps[config.origin];
+      var caller;
+      var callee = this.runningApps[config.origin];
+      var origin = window.location.origin;
+
+      if (config.parentApp && config.parentApp.match(origin)) {
+        caller = HomescreenLauncher.getHomescreen();
+      } else {
+        caller = activityWindowFactory.getActiveWindow() || this._activeApp;
+      }
+
+      callee.activityCaller = caller;
+      caller.activityCallee = callee;
     },
 
     debug: function awm_debug() {

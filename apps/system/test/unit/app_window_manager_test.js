@@ -125,7 +125,8 @@ suite('system/AppWindowManager', function() {
     manifest: {},
     manifestURL: 'app://wwww.fake7/ManifestURL',
     origin: 'app://www.fake7',
-    isActivity: true
+    isActivity: true,
+    parentApp: ''
   };
 
   function injectRunningApps() {
@@ -596,6 +597,40 @@ suite('system/AppWindowManager', function() {
     test('continuous-transition.enabled', function() {
       MockSettingsListener.mCallbacks['continuous-transition.enabled'](true);
       assert.isTrue(AppWindowManager.continuousTransition);
+    });
+  });
+
+  suite('linkWindowActivity', function() {
+    var fakeAppConfig = Object.create(fakeAppConfig7Activity);
+
+    setup(function() {
+      // we fake getHomescreen as app2
+      this.sinon.stub(MockHomescreenLauncher, 'getHomescreen').returns(app2);
+    });
+
+    test('caller is system app, we would go to homescreen', function() {
+      // callee is app7, caller is homescreen
+      injectRunningApps(app7);
+      fakeAppConfig.parentApp = window.location.origin;
+
+      AppWindowManager.linkWindowActivity(fakeAppConfig);
+
+      assert.deepEqual(app7.activityCaller, app2);
+      assert.deepEqual(app2.activityCallee, app7);
+      assert.isTrue(MockHomescreenLauncher.getHomescreen.called);
+    });
+
+    test('caller is not system app, we would go the original app', function() {
+      // callee is app7, caller is app1
+      injectRunningApps(app7);
+      fakeAppConfig.parentApp = '';
+      AppWindowManager._activeApp = app1;
+
+      AppWindowManager.linkWindowActivity(fakeAppConfig);
+
+      assert.deepEqual(app7.activityCaller, app1);
+      assert.deepEqual(app1.activityCallee, app7);
+      assert.isFalse(MockHomescreenLauncher.getHomescreen.called);
     });
   });
 });
