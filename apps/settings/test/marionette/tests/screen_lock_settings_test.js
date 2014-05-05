@@ -1,4 +1,3 @@
-/* global require, test, setup, marionette */
 'use strict';
 var Settings = require('../app/app'),
     assert = require('assert');
