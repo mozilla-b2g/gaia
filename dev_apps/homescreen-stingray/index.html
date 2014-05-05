@@ -7,6 +7,12 @@
     <link rel="stylesheet" type="text/css" href="style/homescreen.css">
     <link rel="stylesheet" type="text/css" href="style/app_list.css">
     <link rel="stylesheet" type="text/css" href="style/widget_editor.css">
+    <link rel="stylesheet" type="text/css" href="style/widget.css">
+
+    <!-- Shared libraries -->
+    <script defer type="text/javascript" src="shared/js/manifest_helper.js"></script>
+    <script defer type="text/javascript" src="shared/js/l10n.js"></script>
+
     <script defer type="text/javascript" src="js/vendor/evt.js"></script>
     <script defer type="text/javascript" src="js/applications.js"></script>
     <script defer type="text/javascript" src="js/layout_editor.js"></script>
@@ -15,6 +21,15 @@
     <script defer type="text/javascript" src="js/widget_editor.js"></script>
     <script defer type="text/javascript" src="js/homescreen.js"></script>
     <script defer type="text/javascript" src="js/bootstrap.js"></script>
+
+    <!-- Widget configuration -->
+    <script defer type="text/javascript" src="js/browser_config_helper.js"></script>
+    <script defer type="text/javascript" src="js/browser_frame.js"></script>
+
+    <!-- Widget lifecycle management -->
+    <script defer type="text/javascript" src="js/widget_factory.js"></script>
+    <script defer type="text/javascript" src="js/widget_manager.js"></script>
+    <script defer type="text/javascript" src="js/widget_window.js"></script>
   </head>
   <body>
     <section role="region" class="skin-dark" id="main-section">
@@ -40,5 +55,6 @@
       </header>
       <div id="layout-container"></div>
     </section>
+    <div class="widget-overlay"></div>
   </body>
 </html>

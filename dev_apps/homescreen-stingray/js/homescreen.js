@@ -21,6 +21,10 @@
       // Applications
       Applications.init();
 
+      // Widget lifecycle management
+      window.widgetFactory = new WidgetFactory();
+      window.widgetManager = new WidgetManager().start();
+
       // App List
       this.appList = new AppList({
         appList: $('app-list'),

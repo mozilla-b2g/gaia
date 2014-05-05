@@ -4,6 +4,7 @@
   exports.MockApplications = {
     mCallbacks: {},
     mEntries: [],
+    mApps: {},
     init: function() {
       this._inited = true;
     },
@@ -48,7 +49,9 @@
     launch: function() {
       return true;
     },
-    getEntryManifest: function() {},
+    getEntryManifest: function(manifestURL) {
+      return this.mApps[manifestURL]
+    },
     getName: function() {},
     getIconBlob: function(origin, entryPoint, preferredSize, callback) {
       callback(this.mIconBlob);
