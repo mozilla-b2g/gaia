@@ -285,6 +285,8 @@ function execute(options) {
    'ums.status': 0,
    'ums.volume.sdcard.enabled': true,
    'ums.volume.extsdcard.enabled': false,
+   'ums.volume.sdcard.mountable': false,
+   'ums.volume.extsdcard.mountable': true,
    'vibration.enabled': true,
    'wifi.enabled': true,
    'wifi.screen_off_timeout': 600000,
