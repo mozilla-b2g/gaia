@@ -36,23 +36,39 @@ suite('STK (icc_worker) >', function() {
 
   setup(function() {
     stkTestCommands.STK_CMD_GET_INPUT = {
-        iccId: '1010011010',
-        command: {
-          commandNumber: 1,
-          typeOfCommand: navigator.mozIccManager.STK_CMD_GET_INPUT,
-          commandQualifier: 0,
-          options: {
-            text: 'stk Input test text',
-            duration: {
-              timeUnit: navigator.mozIccManager.STK_TIME_UNIT_TENTH_SECOND,
-              timeInterval: 5
-            },
-            minLength: 2,
-            maxLength: 10,
-            defaultText: 'default'
+      iccId: '1010011010',
+      command: {
+        commandNumber: 1,
+        typeOfCommand: navigator.mozIccManager.STK_CMD_GET_INPUT,
+        commandQualifier: 0,
+        options: {
+          text: 'stk Input test text',
+          duration: {
+            timeUnit: navigator.mozIccManager.STK_TIME_UNIT_TENTH_SECOND,
+            timeInterval: 5
+          },
+          minLength: 2,
+          maxLength: 10,
+          defaultText: 'default'
+        }
+      }
+    };
+
+    stkTestCommands.STK_CMD_PLAY_TONE = {
+      iccId: '1010011010',
+      command: {
+        commandNumber: 1,
+        typeOfCommand: navigator.mozIccManager.STK_CMD_PLAY_TONE,
+        commandQualifier: 0,
+        options: {
+          tone: '\u0001',
+          duration: {
+            timeUnit: navigator.mozIccManager.STK_TIME_UNIT_SECOND,
+            timeInterval: 5
           }
         }
-      };
+      }
+    };
   });
 
   function launchStkCommand(cmd) {
@@ -97,5 +113,14 @@ suite('STK (icc_worker) >', function() {
       done();
     };
     launchStkCommand(stkTestCommands.STK_CMD_GET_INPUT);
+  });
+
+
+  test('STK_CMD_PLAY_TONE', function(done) {
+    window.icc.onresponse = function(message, response) {
+      assert.equal(response.resultCode, navigator.mozIccManager.STK_RESULT_OK);
+      done();
+    };
+    launchStkCommand(stkTestCommands.STK_CMD_PLAY_TONE);
   });
 });
