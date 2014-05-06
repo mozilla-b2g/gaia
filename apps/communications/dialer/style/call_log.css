@@ -267,13 +267,14 @@ ol, ul {
 #no-result-container {
   background: url('images/ComLog_200x200_clock.png') fixed no-repeat center / 20rem;
   height: 100%;
+  margin: 0 1.5rem;
 }
 
 #no-result-message {
   position: relative;
   top: 11.5rem;
   border-top: .1rem solid rgba(96,96,96,.5);
-  padding: 1rem 0.5rem;
+  padding: 1rem 1.5rem;
 }
 
 #no-result-message > p {
