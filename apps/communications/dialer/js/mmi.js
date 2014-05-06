@@ -11,7 +11,6 @@ var MmiManager = {
   _: null,
   _conn: null,
   _ready: false,
-  _operator: null,
   // In some cases, the RIL doesn't provide the expected order of events
   // while sending an MMI that triggers an interactive USSD request (specially
   // while roaming), which should be DOMRequest.onsuccess (or .onerror) +
@@ -32,23 +31,12 @@ var MmiManager = {
     var lazyFiles = ['/shared/js/icc_helper.js',
                      '/shared/js/mobile_operator.js'];
     LazyLoader.load(lazyFiles, function resourcesLoaded() {
+      for (var i = 0; i < navigator.mozMobileConnections.length; i++) {
+        var conn = navigator.mozMobileConnections[i];
 
-      // XXX: check bug-926169
-      // this is used to keep all tests passing while introducing multi-sim APIs
-      self._conn = window.navigator.mozMobileConnection ||
-                   window.navigator.mozMobileConnections &&
-                   window.navigator.mozMobileConnections[0];
-
-      if (self._conn.voice) {
-        self._operator = MobileOperator.userFacingInfo(self._conn).operator;
-      }
-
-      if (self._conn) {
-        // We cancel any active session if one exists to avoid sending any new
+        // We cancel any active sessions if one exists to avoid sending any new
         // USSD message within an invalid session.
-        self._conn.cancelMMI();
-        self._conn.addEventListener('ussdreceived', self);
-        window.addEventListener('message', self);
+        conn.cancelMMI();
       }
 
       LazyL10n.get(function localized(_) {
@@ -59,7 +47,16 @@ var MmiManager = {
     });
   },
 
-  send: function mm_send(message) {
+  send: function mm_send(message, cardIndex) {
+    var conn = navigator.mozMobileConnections[cardIndex || 0];
+    if (this._conn && (this._conn != conn)) {
+      console.error('Starting a new MMI session before the previous has ' +
+                    'finished is not permitted');
+      return;
+    }
+
+    this._conn = conn;
+
     this.init((function onInitDone() {
       if (this._conn) {
         var request = this._pendingRequest = this._conn.sendMMI(message);
@@ -263,7 +260,9 @@ var MmiManager = {
     }).bind(this));
   },
 
-  handleMMIReceived: function mm_handleMMIReceived(message, sessionEnded) {
+  handleMMIReceived: function mm_handleMMIReceived(message, sessionEnded,
+                                                   cardIndex)
+  {
     this.init((function() {
       this._pendingRequest = null;
       // Do not notify the UI if no message to show.
@@ -271,22 +270,34 @@ var MmiManager = {
         return;
       }
 
+      var conn = navigator.mozMobileConnections[cardIndex || 0];
+      var title = MobileOperator.userFacingInfo(conn).operator;
+
+      /* If the phone has more than one SIM prepend the number of the SIM on
+       * which this message was received */
+      if (window.navigator.mozIccManager &&
+          window.navigator.mozIccManager.iccIds.length > 1) {
+        var simName = this._('sim-number', { n: +cardIndex + 1 });
+
+        title = this._(
+          'mmi-notification-title-with-sim',
+          { sim: simName, title: title }
+        );
+      }
+
       var data = {
         type: 'mmi-received-ui',
         message: message,
-        title: this._operator,
+        title: title,
         sessionEnded: sessionEnded
       };
       window.postMessage(data, this.COMMS_APP_ORIGIN);
     }).bind(this));
   },
 
-  isMMI: function mm_isMMI(number) {
-    // XXX: workaround until bug 889737 gets fixed and we can drop this function
+  isMMI: function mm_isMMI(number, cardIndex) {
     var cdmaTypes = ['evdo0', 'evdoa', 'evdob', '1xrtt', 'is95a', 'is95b'];
-    var conn = window.navigator.mozMobileConnection ||
-               window.navigator.mozMobileConnections &&
-               window.navigator.mozMobileConnections[0];
+    var conn = navigator.mozMobileConnections[cardIndex || 0];
     var voiceType = conn.voice ? conn.voice.type : null;
     var supportedNetworkTypes = conn.supportedNetworkTypes;
     var imeiWhitelist = function mm_imeiWhitelist(element) {
@@ -310,7 +321,6 @@ var MmiManager = {
       return;
     }
 
-    var message;
     switch (evt.type) {
       case 'message':
         if (evt.origin !== this.COMMS_APP_ORIGIN) {
@@ -318,19 +328,28 @@ var MmiManager = {
         }
         switch (evt.data.type) {
           case 'mmi-reply':
-            this.send(evt.data.message);
+            this.send(evt.data.message,
+                      this.cardIndexForConnection(this._conn));
             break;
           case 'mmi-cancel':
             if (this._conn) {
               this._conn.cancelMMI();
+              this._conn = null;
             }
             break;
         }
+
         return;
     }
+  },
 
-    if (message) {
-      window.postMessage(message, this.COMMS_APP_ORIGIN);
+  cardIndexForConnection: function mm_cardIndexForConnection(conn) {
+    for (var i = 0; i < navigator.mozMobileConnections.length; i++) {
+      if (conn == navigator.mozMobileConnections[i]) {
+        return i;
+      }
     }
+
+    return 0;
   }
 };

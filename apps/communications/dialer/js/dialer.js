@@ -335,8 +335,8 @@ var CallHandler = (function callHandler() {
 
   /* === Calls === */
   function call(number, cardIndex) {
-    if (MmiManager.isMMI(number)) {
-      MmiManager.send(number);
+    if (MmiManager.isMMI(number, cardIndex)) {
+      MmiManager.send(number, cardIndex);
       // Clearing the code from the dialer screen gives the user immediate
       // feedback.
       KeypadManager.updatePhoneNumber('', 'begin', true);
@@ -400,7 +400,9 @@ var CallHandler = (function callHandler() {
               request.result.launch('dialer');
             };
           }
-          MmiManager.handleMMIReceived(evt.message, evt.sessionEnded);
+
+          MmiManager.handleMMIReceived(evt.message, evt.sessionEnded,
+                                       evt.serviceId);
         });
       }
     });
