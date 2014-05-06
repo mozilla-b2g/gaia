@@ -21,6 +21,7 @@ require.config({
     'model': '../bower_components/model/index',
     'view': '../bower_components/view/index',
     'evt': '../bower_components/evt/index',
+    'drag': '../bower_components/drag/index',
     'device-orientation': '../bower_components/device-orientation/index'
   },
   shim: {

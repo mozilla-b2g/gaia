@@ -22,6 +22,7 @@
     "attach": "gaia-components/attach#~0.1.1",
     "device-orientation": "gaia-components/device-orientation",
     "view": "gaia-components/view#~0.1.1",
-    "model": "gaia-components/model#~0.1.0"
+    "model": "gaia-components/model#~0.1.0",
+    "drag": "gaia-components/drag"
   }
 }
