@@ -159,6 +159,10 @@ suite('ActivityHandler', function() {
     var message;
 
     setup(function() {
+      this.sinon.stub(window, 'close');
+      this.sinon.stub(ActivityHandler, 'getEntryPoint')
+        .returns('/message-sms-received.html');
+
       message = MockMessages.sms();
       MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
     });
@@ -179,6 +183,7 @@ suite('ActivityHandler', function() {
 
       test('passes contact name in plain text', function() {
         assert.equal(MockNotificationHelper.mTitle, contactName);
+        sinon.assert.calledOnce(window.close);
       });
     });
 
@@ -203,6 +208,7 @@ suite('ActivityHandler', function() {
 
       test('phone in notification title when contact without name', function() {
         assert.equal(MockNotificationHelper.mTitle, phoneNumber);
+        sinon.assert.calledOnce(window.close);
       });
     });
 
@@ -218,10 +224,12 @@ suite('ActivityHandler', function() {
           message.sender + '&id=' + message.id;
 
         assert.equal(MockNotificationHelper.mIcon, expectedicon);
+        sinon.assert.calledOnce(window.close);
       });
 
       test('the lock is released', function() {
         assert.ok(MockNavigatorWakeLock.mLastWakeLock.released);
+        sinon.assert.calledOnce(window.close);
       });
 
       suite('click on the notification', function() {
@@ -233,6 +241,7 @@ suite('ActivityHandler', function() {
 
         test('launches the app', function() {
           assert.ok(MockNavigatormozApps.mAppWasLaunched);
+          sinon.assert.calledOnce(window.close);
         });
       });
     });
@@ -264,12 +273,29 @@ suite('ActivityHandler', function() {
         assert.ok(spied.called);
         spied = Notify.vibrate;
         assert.ok(spied.called);
+        sinon.assert.calledOnce(window.close);
       });
 
       test('vibrate', function() {
         var spied = Notify.vibrate;
         assert.ok(spied.called);
+        sinon.assert.calledOnce(window.close);
       });
+    });
+  });
+
+  suite('sms recieved, system message on main entry point', function() {
+    setup(function() {
+      this.sinon.stub(window, 'close');
+      this.sinon.stub(ActivityHandler, 'getEntryPoint')
+        .returns('/index.html');
+
+      var message = MockMessages.sms();
+      MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
+    });
+
+    test('window.close() not called', function() {
+      sinon.assert.notCalled(window.close);
     });
   });
 

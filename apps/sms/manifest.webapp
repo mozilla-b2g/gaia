@@ -63,7 +63,7 @@
     }
   },
   "messages": [
-     { "sms-received": "/index.html" },
+     { "sms-received": "/message-sms-received.html" },
      { "notification": "/index.html" }
   ]
 }
