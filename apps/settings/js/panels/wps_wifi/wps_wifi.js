@@ -92,7 +92,7 @@ define(function(require) {
       },
       _onWpsMethodChange: function() {
         var method = this._elements.panel.querySelector(
-          "input[type='radio']:checked").value;
+          'input[type=\'radio\']:checked').value;
 
         if (method === 'apPin') {
           this._elements.submitWpsButton.disabled =
