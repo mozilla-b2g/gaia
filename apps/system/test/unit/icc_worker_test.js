@@ -87,6 +87,7 @@ suite('STK (icc_worker) >', function() {
           typeOfCommand: navigator.mozIccManager.STK_CMD_PLAY_TONE,
           commandQualifier: 0,
           options: {
+            text: 'abc',
             tone: '\u0001',
             duration: {
               timeUnit: navigator.mozIccManager.STK_TIME_UNIT_SECOND,
