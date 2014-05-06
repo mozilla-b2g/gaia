@@ -65,6 +65,46 @@ suite('mozContact to vCard', function() {
       });
     });
 
+    test('Convert a single contact to a vcard without photo', function(done) {
+      var mc = new MockContactAllFields();
+      mc.anniversary = new Date(0);
+      var contacts = [mc];
+      var str = '';
+      var count = 0;
+
+      ContactToVcard([mc], function append(vcards, nCards) {
+        str += vcards;
+        count += nCards;
+      }, function success() {
+        done(function() {
+          var _contains = contains(str);
+
+          assert.equal(count, contacts.length);
+          assert.ok(_contains('version:3.0'));
+          assert.ok(_contains('fn:pepito grillo'));
+          assert.ok(_contains('n:grillo;pepito;green;mr.;;'));
+          assert.ok(_contains('nickname:pg'));
+          assert.ok(_contains('category:favorite'));
+          assert.ok(_contains('org:test org'));
+          assert.ok(_contains('title:sr. software architect'));
+          assert.ok(_contains('note:note 1'));
+          assert.ok(_contains('bday:1970-01-01T00:00:00Z'));
+          assert.ok(_contains('anniversary:1970-01-01T00:00:00Z'));
+          assert.ok(!_contains('photo;encoding=b;type=image/gif:' + b64));
+          assert.ok(_contains('email;type=home:test@test.com'));
+          assert.ok(_contains('email;type=work,pref:test@work.com'));
+          assert.ok(_contains('tel;type=cell,pref:+346578888888'));
+          assert.ok(_contains('tel;type=home:+3120777777'));
+          assert.ok(_contains('adr;type=home,pref:;;gotthardstrasse 22;' +
+                              'chemnitz;chemnitz;09034;germany'));
+          assert.ok(!_contains('url;type=fb_profile_photo:https://abcd1.jpg'));
+        });
+      },
+      null,
+      true
+    );
+    });
+
     test('Convert multiple contacts to a vcard', function(done) {
       var mc = new MockContactAllFields();
       mc.anniversary = new Date(0);
