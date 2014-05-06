@@ -171,13 +171,20 @@
 
 [role="dialog"][data-type="date-selector"]  .picker-unit {
   position: relative;
-  font: 2.2rem/5.6rem 'MozTT',sans-serif;
+  font: 2.2rem/5.6rem sans-serif;
   color: #fff;
   text-align: center;
   vertical-align: middle;
   width: 100%;
   height: 5.6rem;
   pointer-events: none;
+  opacity: 0.6;
+  transform: scale(0.8);
+}
+
+[role="dialog"][data-type="date-selector"]  .picker-unit.selected {
+  opacity: 1;
+  transform: scale(1);
 }
 
 /* Menu & buttons setup */

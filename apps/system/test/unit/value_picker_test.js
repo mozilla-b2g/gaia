@@ -3,8 +3,9 @@
 requireApp('system/js/value_selector/value_picker.js');
 
 suite('value selector/value picker', function() {
-  var subject;
-  var stubByQuery;
+  var subject,
+    stubByQuery,
+    monthUnitStyle;
 
   teardown(function() {
     stubByQuery.restore();
@@ -16,8 +17,10 @@ suite('value selector/value picker', function() {
                                   appendChild(document.createElement('div')));
 
     // month value picker
-    var monthUnitStyle = {
-      valueDisplayedText: ['1', '2', '3', '4'],
+    monthUnitStyle = {
+      valueDisplayedText: ['January', 'February', 'March', 'April', 'May',
+                           'June', 'July', 'August', 'September', 'October',
+                           'November', 'December'],
       className: 'value-picker-month'
     };
 
@@ -36,20 +39,29 @@ suite('value selector/value picker', function() {
     assert.equal(subject.getSelectedIndex(), 2);
   });
 
+  test('setSelectedIndex', function() {
+    var currentlySelected =
+      subject.element.querySelector('.selected');
+    subject.setSelectedIndex(3);
+    assert.isFalse(currentlySelected.classList.contains('selected'));
+    assert.equal(subject.element.querySelector('.selected').textContent,
+      monthUnitStyle.valueDisplayedText[3]);
+  });
+
   test('getSelectedDisplayedText', function() {
-    assert.equal(subject.getSelectedDisplayedText(), '1');
+    assert.equal(subject.getSelectedDisplayedText(),
+      monthUnitStyle.valueDisplayedText[0]);
   });
 
   test('setSelectedDisplayedText', function() {
     subject._currentIndex = 3;
-    assert.equal(subject.getSelectedDisplayedText(), '4');
+    assert.equal(subject.getSelectedDisplayedText(),
+    monthUnitStyle.valueDisplayedText[3]);
   });
 
   test('setRange', function() {
-    var GLOBAL_MIN_YEAR = 1900;
-    subject.setRange(1998 - GLOBAL_MIN_YEAR,
-                               2013 - GLOBAL_MIN_YEAR);
-    assert.equal(subject._lower, 98);
-    assert.equal(subject._upper, 113);
+    subject.setRange(0, 11);
+    assert.equal(subject._lower, 0);
+    assert.equal(subject._upper, 11);
   });
 });
