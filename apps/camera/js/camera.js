@@ -1376,11 +1376,12 @@ var Camera = {
       return;
     }
 
-    // Now verify that there is enough space to store a picture
-    // 4 bytes per pixel plus some room for a header should be more
-    // than enough for a JPEG image.
-    var MAX_IMAGE_SIZE =
-      (this._pictureSize.width * this._pictureSize.height * 4) + 4096;
+    // It is very unlikely that a JPEG file will have a file size that is
+    // more than half a byte per pixel. There is some fixed EXIF overhead
+    // that is the same for small and large pictures, however, so we add
+    // an additional 25,000 bytes of padding.
+    var MAX_FILE_SIZE =
+      (this._pictureSize.width * this._pictureSize.height / 2) + 25000;
 
     this._pictureStorage.freeSpace().onsuccess = (function(e) {
       // XXX
@@ -1390,7 +1391,7 @@ var Camera = {
       // not be enough to get back to the STORAGE_AVAILABLE state.
       // To fix this, we need an else clause here, and also a change
       // in the updateOverlay() method.
-      if (e.target.result < MAX_IMAGE_SIZE) {
+      if (e.target.result < MAX_FILE_SIZE) {
         this._storageState = this.STORAGE_CAPACITY;
       }
       this.updateOverlay();
