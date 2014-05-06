@@ -99,7 +99,7 @@
       // If there is a pre-existing icon, just update it.
       var existing = app.icons[detail.id];
       if (existing) {
-        existing.detail = detail;
+        existing.update(detail);
         app.render();
         return;
       }

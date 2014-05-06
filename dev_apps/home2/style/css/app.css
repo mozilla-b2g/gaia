@@ -22,7 +22,7 @@ html, body, .icons {
 }
 
 .icon .title {
-  display: block;
+  display: inline-block;
   margin-top: 9rem;
   pointer-events: none;
   color: #fff;
@@ -86,6 +86,12 @@ html, body, .icons {
 
 .edit-mode .icon.active .remove {
   display: none;
+}
+
+.edit-mode .icon.bookmark .title {
+  background-color: rgba(132, 132, 132, 0.7);
+  border-radius: 2rem;
+  padding: .2rem .6rem .2rem .6rem;
 }
 
 #confirmation-message.fade-in {

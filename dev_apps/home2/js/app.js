@@ -213,7 +213,11 @@
 
       // We do not allow users to launch icons in edit mode
       if (action === 'launch' && this.dragdrop.inEditMode) {
-        return;
+        if (icon.detail.type !== 'bookmark') {
+          return;
+        }
+        // Editing a bookmark in edit mode
+        action = 'edit';
       }
 
       icon[action]();
