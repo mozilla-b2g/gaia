@@ -671,22 +671,6 @@ suite('dialer/call_log', function() {
         }
       });
     });
-
-    test('Filtering should exit edit mode', function() {
-      CallLog.showEditMode();
-      CallLog.filter();
-
-      assert.isFalse(document.body.classList.contains('recents-edit'));
-    });
-
-    test('Unfiltering should exit edit mode', function() {
-      CallLog.filter();
-      CallLog.callLogIconEdit.removeAttribute('disabled');
-      CallLog.showEditMode();
-      CallLog.unfilter();
-
-      assert.isFalse(document.body.classList.contains('recents-edit'));
-    });
   });
 
   suite('Filter', function() {
