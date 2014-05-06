@@ -5,12 +5,14 @@
 
 (function(exports) {
 
+  const TYPE = 'bookmark';
+
   /**
    * Represents a single bookmark icon on the homepage.
    */
   function Bookmark(record) {
     this.detail = record;
-    this.detail.type = 'bookmark';
+    this.detail.type = TYPE;
   }
 
   Bookmark.prototype = {
@@ -41,6 +43,11 @@
       return this.detail.id;
     },
 
+    update: function(record) {
+      this.detail = record;
+      this.detail.type = TYPE;
+    },
+
     /**
      * Bookmarks are always editable.
      */
@@ -53,6 +60,14 @@
      */
     isRemovable: function() {
       return true;
+    },
+
+    /**
+     * This method overrides the GridItem.render function.
+     */
+    render: function(coordinates, index) {
+      GridItem.prototype.render.call(this, coordinates, index);
+      this.element.classList.add('bookmark');
     },
 
     /**
@@ -79,6 +94,19 @@
     remove: function() {
       new MozActivity({
         name: 'remove-bookmark',
+        data: {
+          type: 'url',
+          url: this.detail.id
+        }
+      });
+    },
+
+    /**
+     * Opens a web activity to edit the bookmark.
+     */
+    edit: function() {
+      new MozActivity({
+        name: 'save-bookmark',
         data: {
           type: 'url',
           url: this.detail.id

@@ -67,6 +67,7 @@
     render: function(coordinates, index) {
       var x = coordinates.x * app.zoom.gridItemWidth;
       var y = app.zoom.offsetY;
+      var nameEl = null;
 
       // Generate an element if we need to
       if (!this.element) {
@@ -74,9 +75,8 @@
         tile.className = 'icon';
         tile.dataset.identifier = this.identifier;
 
-        var nameEl = document.createElement('span');
+        nameEl = document.createElement('span');
         nameEl.className = 'title';
-        nameEl.textContent = this.name;
         tile.appendChild(nameEl);
 
         // Add delete link if this icon is removable
@@ -90,7 +90,11 @@
         this.isRemoteIcon() ? IconRetriever.get(this) : this.displayIcon();
 
         container.appendChild(tile);
+      } else {
+        nameEl = this.element.querySelector('.title');
       }
+
+      nameEl.textContent = this.name;
 
       this.setPosition(index);
       this.x = x;
