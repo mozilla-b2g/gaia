@@ -168,24 +168,27 @@ suite('system/HomescreenWindow', function() {
     });
     suite('homescreen is crashed', function() {
       var stubRender;
-      var stubKill;
+      var spyKill;
       var stubOpen;
+      var stubRemoveChild;
       setup(function() {
         stubRender = this.sinon.stub(homescreenWindow, 'render');
-        stubKill = this.sinon.stub(homescreenWindow, 'kill');
+        spyKill = this.sinon.spy(homescreenWindow, 'kill');
         stubOpen = this.sinon.stub(homescreenWindow, 'open');
+        stubRemoveChild = this.sinon.stub(homescreenWindow.containerElement,
+          'removeChild');
       });
 
       teardown(function() {
         stubRender.restore();
-        stubKill.restore();
+        spyKill.restore();
       });
 
       test('Homescreen is crashed at foreground:' +
           'rerender right away.', function() {
         homescreenWindow._selfVisibilityState = 'foreground';
         homescreenWindow.restart();
-        assert.isTrue(stubKill.called);
+        assert.isTrue(spyKill.called);
         clock.tick(1);
         assert.isTrue(stubRender.called);
         assert.isTrue(stubOpen.called);
@@ -194,7 +197,7 @@ suite('system/HomescreenWindow', function() {
       test('Homescreen is crashed at background: killed', function() {
         homescreenWindow._selfVisibilityState = 'background';
         homescreenWindow.restart();
-        assert.isTrue(stubKill.called);
+        assert.isTrue(spyKill.called);
       });
     });
   });
