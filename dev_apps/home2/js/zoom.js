@@ -1,18 +1,9 @@
 'use strict';
+/* global Layout */
 
 (function(exports) {
 
-  const maxIconsPerCol = 4;
-
-  const maxIconsPerRow = 4;
-
-  const minIconsPerRow = 3;
-
-  const windowHeight = window.innerHeight;
-
-  const windowWidth = window.innerWidth;
-
-  const pinchThreshold = Math.round(windowWidth / 12);
+  const pinchThreshold = Math.round(window.innerWidth / 12);
 
   function Zoom() {
     this.touches = 0;
@@ -28,96 +19,35 @@
   }
 
   Zoom.prototype = {
-
-    perRow: minIconsPerRow,
-
-    minIconsPerRow: minIconsPerRow,
-
-    maxIconsPerRow: maxIconsPerRow,
-
-    _offsetY: 0,
-
-    _percent: minIconsPerRow / minIconsPerRow,
-
-    get percent() {
-      return this._percent;
+    _attachGestureListeners: function() {
+      window.addEventListener('touchmove', this);
+      window.addEventListener('touchend', this);
     },
 
-    set percent(value) {
-
-      // Reset the y-offset because we will re-render everything anyway.
-      this._offsetY = 0;
-
-      this._percent = value;
-      this.perRow = maxIconsPerRow + minIconsPerRow - maxIconsPerRow * value;
+    _stopGestureListeners: function() {
+      window.removeEventListener('touchmove', this);
+      window.removeEventListener('touchend', this);
     },
 
-    /**
-     * The height of each grid item.
-     * This number changes based on current zoom level.
-     */
-    get gridItemHeight() {
-      return windowHeight / maxIconsPerCol * this.percent;
-    },
+    _resetState: function() {
+      this.zoomInProgress = false;
 
-    /**
-     * The width of each grid item.
-     * This number changes based on current zoom level.
-     */
-    get gridItemWidth() {
-      return windowWidth / this.perRow;
-    },
-
-    /**
-     * Gets the current offset of the Y-axis for the current zoom level.
-     * This value is updated by calling zoom.stepYAxis. For example, each
-     * group of three icons, or a divider, should increment this value.
-     * The value is reset and recalculated when the zoom level changes.
-     */
-    get offsetY() {
-      return this._offsetY;
-    },
-
-    set offsetY(value) {
-      this._offsetY = value;
-    },
-
-    /**
-     * After we render a row we need to store the current position of the y-axis
-     */
-    stepYAxis: function(value) {
-      this._offsetY += value;
+      this.container.hidden = true;
+      this.indicator.classList.remove('active');
+      this.arrows.classList.remove('zooming', 'grow', 'shrink');
+      this.arrows.style.transform = '';
     },
 
     /**
      * General Event Handler
      */
     handleEvent: function(e) {
-
-      function stopGestureListeners() {
-        /* jshint validthis: true */
-        window.removeEventListener('touchmove', this);
-        window.removeEventListener('touchend', this);
-      }
-
-      function resetState() {
-        /* jshint validthis: true */
-        this.zoomInProgress = false;
-
-        this.container.hidden = true;
-        this.indicator.classList.remove('active');
-        this.arrows.classList.remove('zooming', 'grow', 'shrink');
-        this.arrows.style.transform = '';
-
-        window.addEventListener('touchstart', this);
-      }
-
       if (e.type === 'touchend' && this.zoomStartTouches) {
         if (!this.zoomInProgress) {
-          resetState.call(this);
+          this._resetState();
         }
 
-        stopGestureListeners();
+        this._stopGestureListeners();
         return;
       }
 
@@ -142,66 +72,60 @@
           this.zoomStartTouches = touches;
           this.zoomStartDistance = touchDistance;
 
-          if (this.perRow < maxIconsPerRow) {
+          if (Layout.perRow < Layout.maxIconsPerRow) {
             this.arrows.classList.add('grow');
           } else {
             this.arrows.classList.add('shrink');
           }
 
-          this.indicator.dataset.cols = this.perRow;
-
-          window.addEventListener('touchmove', this);
-          window.addEventListener('touchend', this);
+          this.indicator.dataset.cols = Layout.perRow;
+          this._attachGestureListeners();
           break;
+
         case 'touchmove':
-          if (this.perRow < maxIconsPerRow &&
+          if (Layout.perRow < Layout.maxIconsPerRow &&
               touchDistance < this.zoomStartDistance &&
               Math.abs(touchDistance - this.zoomStartDistance) >
                 pinchThreshold) {
-              this.percent = 0.75;
+              Layout.percent = 0.75;
               this.zoomInProgress = true;
-              stopGestureListeners();
-          } else if (this.perRow > minIconsPerRow &&
+          } else if (Layout.perRow > Layout.minIconsPerRow &&
                      touchDistance > this.zoomStartDistance &&
                      Math.abs(touchDistance - this.zoomStartDistance) >
                        pinchThreshold) {
-            this.percent = 1;
+            Layout.percent = 1;
             this.zoomInProgress = true;
-            stopGestureListeners();
           } else {
             return;
           }
 
           // For now just implement a canned animation
-          stopGestureListeners();
+          this._stopGestureListeners();
 
-          this.arrows.addEventListener('transitionend',
-            function ontransitionend() {
+          var ontransitionend = function() {
             this.arrows.removeEventListener('transitionend', ontransitionend);
-
             // Change the indicator color at the end.
             this.indicator.classList.add('active');
 
-            // Reset zoom element state after a set time.
             app.render();
 
+            // Reset zoom element state after a set time.
             var zoomHideTime = 400;
-            setTimeout(resetState.bind(this), zoomHideTime);
-          }.bind(this));
+            setTimeout(this._resetState.bind(this), zoomHideTime);
+          }.bind(this);
 
-          this.indicator.dataset.cols = this.perRow;
+          this.arrows.addEventListener('transitionend', ontransitionend);
 
+          this.indicator.dataset.cols = Layout.perRow;
+
+          this.arrows.classList.add('zooming');
+          // Force a sync reflow
+          document.body.clientHeight;
+          var scaleTransform = 'scale(1)';
           if (this.zoomInProgress && touchDistance < this.zoomStartDistance) {
-            this.arrows.classList.add('zooming');
-            // Force a sync reflow
-            document.body.clientHeight;
-            this.arrows.style.transform = 'scale(0.4)';
-          } else {
-            this.arrows.classList.add('zooming');
-            // Force a sync reflow
-            document.body.clientHeight;
-            this.arrows.style.transform = 'scale(1)';
+            scaleTransform = 'scale(0.4)';
           }
+          this.arrows.style.transform = scaleTransform;
 
           break;
       }
@@ -209,6 +133,6 @@
 
   };
 
-  exports.Zoom = Zoom;
+  exports.Zoom = new Zoom();
 
 }(window));
