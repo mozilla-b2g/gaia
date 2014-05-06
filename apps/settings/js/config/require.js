@@ -26,6 +26,9 @@ require.config({
     },
     'shared/settings_listener': {
       exports: 'SettingsListener'
+    },
+    'shared/wifi_helper': {
+      exports: 'WifiHelper'
     }
   },
   modules: [
