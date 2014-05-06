@@ -95,6 +95,18 @@ function setDefaultKeyboardLayouts(lang, settings, config) {
   settings['keyboard.default-layouts'] = keyboardSettings;
 }
 
+function deviceTypeSettings(settings, config) {
+  // See if any override file exists and eventually override settings
+  let override = utils.getFile(config.GAIA_DIR,
+                  'build', 'config', config.GAIA_DEVICE_TYPE, 'settings.json');
+  if (override.exists()) {
+    let content = utils.getJSON(override);
+    for (let key in content) {
+      settings[key] = content[key];
+    }
+  }
+}
+
 function overrideSettings(settings, config) {
   // See if any override file exists and eventually override settings
   let override = utils.resolve(config.SETTINGS_PATH,
@@ -189,6 +201,8 @@ function execute(config) {
   }).then(function() {
     setNotification(settings, config);
   }).then(function() {
+    deviceTypeSettings(settings, config);
+  }).then(function() {
     overrideSettings(settings, config);
   }).then(function() {
     writeSettings(settings, config);
@@ -204,6 +218,7 @@ exports.execute = execute;
 exports.setWallpaper = setWallpaper;
 exports.setRingtone = setRingtone;
 exports.setNotification = setNotification;
+exports.deviceTypeSettings = deviceTypeSettings;
 exports.overrideSettings = overrideSettings;
 exports.writeSettings = writeSettings;
 exports.setDefaultKeyboardLayouts = setDefaultKeyboardLayouts;
