@@ -37,7 +37,7 @@ suite('everything.me.js >', function() {
     wrapperNode = document.createElement('section');
     wrapperNode.innerHTML = MockEverythingMeHtml;
     document.body.appendChild(wrapperNode);
-
+    EverythingME.preInit(document.getElementById('icongrid').firstChild);
     EverythingME.init();
   });
 

@@ -27,6 +27,10 @@
   transition: opacity 200ms linear;
 }
 
+.apps > .providerPage > ol {
+  margin-top: 5.3rem;
+}
+
 .apps ol > li {
   position: relative;
   width: 25%;
