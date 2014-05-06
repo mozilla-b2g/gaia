@@ -1,5 +1,10 @@
 'use strict';
 
+/**
+ * Tests for the shared l10n date code
+ * TODO: Shared code unit tests should not be in gallery
+ * Bug #841422 has been filed to move these tests
+ */
 require('/shared/js/l10n.js');
 require('/shared/js/l10n_date.js');
 //mocha.setup({globals: ['jsCount', 'totalResult']});

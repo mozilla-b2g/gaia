@@ -1,3 +1,8 @@
+/**
+ * Tests for the shared formatters
+ * TODO: Shared code unit tests should not be in gallery
+ * Bug #841422 has been filed to move these tests
+ */
 require('/shared/js/format.js');
 
 suite('format', function() {

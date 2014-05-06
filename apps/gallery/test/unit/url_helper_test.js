@@ -1,3 +1,8 @@
+/**
+ * Tests for the shared url helpercode
+ * TODO: Shared code unit tests should not be in gallery
+ * Bug #841422 has been filed to move these tests
+ */
 require('/shared/js/url_helper.js');
 
 suite('URL Helper', function() {

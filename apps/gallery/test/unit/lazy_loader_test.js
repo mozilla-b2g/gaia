@@ -1,3 +1,8 @@
+/**
+ * Tests for the shared lazy loader code
+ * TODO: Shared code unit tests should not be in gallery
+ * Bug #841422 has been filed to move these tests
+ */
 require('/shared/js/lazy_loader.js');
 require('/shared/js/html_imports.js');
 
