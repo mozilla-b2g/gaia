@@ -1,5 +1,6 @@
 'use strict';
 /* global IconRetriever */
+/* global LazyLoader */
 
 (function(exports) {
   // Icon container
@@ -87,7 +88,14 @@
         }
 
         this.element = tile;
-        this.isRemoteIcon() ? IconRetriever.get(this) : this.displayIcon();
+        if (this.isRemoteIcon()) {
+          LazyLoader.load(['shared/js/async_storage.js',
+                           'js/icon_retrivier.js'], function() {
+            IconRetriever.get(this);
+          }.bind(this));
+        } else {
+          this.displayIcon();
+        }
 
         container.appendChild(tile);
       } else {
