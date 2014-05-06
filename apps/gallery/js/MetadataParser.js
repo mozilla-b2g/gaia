@@ -195,8 +195,7 @@ var metadataParser = (function() {
       // can handle.  It's from config.js which is generated at build
       // time (see build/application-data.js).
       //
-      if (file.type !== 'image/jpeg' &&
-          metadata.width * metadata.height > CONFIG_MAX_IMAGE_PIXEL_SIZE) {
+      if (metadata.width * metadata.height > CONFIG_MAX_IMAGE_PIXEL_SIZE) {
         metadataError('Ignoring high-resolution image ' + file.name);
         return;
       }
