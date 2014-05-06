@@ -1057,7 +1057,7 @@ endif
 
 # clean out build products
 clean:
-	rm -rf profile profile-debug profile-test $(PROFILE_FOLDER) $(STAGE_DIR) docs
+	rm -rf profile profile-debug profile-test profile-gaia-test-b2g profile-gaia-test-firefox $(PROFILE_FOLDER) $(STAGE_DIR) docs
 
 # clean out build products and tools
 really-clean: clean
