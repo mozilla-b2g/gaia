@@ -27,6 +27,10 @@ function MockSystemICC(iccManager) {
           break;
       }
       return timeout;
+    },
+
+    confirm: function icc_confirm(stkMessage, message, timeout, callback) {
+      callback(true);   // User accepted the message
     }
   };
 }
