@@ -20,19 +20,19 @@
     var msg = null;
     var _ = navigator.mozL10n.get;
     var enabled = window.navigator.mozBluetooth.enabled;
-    var l10nArgs = { n: name };
+    var l10nArgs = { deviceName: name };
 
     if (enabled && !name) {
-      msg = _('confirmNFCConnectMsg1');
+      msg = _('confirmNFCConnectBTenabledNameUnknown');
     }
     if (!enabled && !name) {
-      msg = _('confirmNFCConnectMsg2');
+      msg = _('confirmNFCConnectBTdisabledNameUnknown');
     }
     if (enabled && name) {
-      msg = _('confirmNFCConnectMsg3', l10nArgs);
+      msg = _('confirmNFCConnectBTenabledNameKnown', l10nArgs);
     }
     if (!enabled && name) {
-      msg = _('confirmNFCConnectMsg4', l10nArgs);
+      msg = _('confirmNFCConnectBTdisabledNameKnown', l10nArgs);
     }
 
     this.confirmNFCConnectMsg.textContent = msg;
