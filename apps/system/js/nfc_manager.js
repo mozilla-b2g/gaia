@@ -153,14 +153,14 @@ var NfcManager = {
       case NDEF.TNF_WELL_KNOWN:
         action = this.formatWellKnownRecord(record);
         break;
-      case NDEF.TNF_ABSOLUTE_URI:
-        action = this.formatURIRecord(record);
-        break;
       case NDEF.TNF_MIME_MEDIA:
         action = this.formatMimeMedia(record);
         break;
+      case NDEF.TNF_ABSOLUTE_URI:
       case NDEF.TNF_EXTERNAL_TYPE:
-        action = this.formatExternalType(record);
+        // Absolute URI and External payload handling is application specific,
+        // in terms of creating activity they should be handled alike
+        action = this.formatWithRecordTypeOnly(record);
         break;
       case NDEF.TNF_UNKNOWN:
       case NDEF.TNF_UNCHANGED:
@@ -547,12 +547,7 @@ var NfcManager = {
                          ['text/vcard', 'text/x-vCard', 'text/x-vcard'])) {
       activityText = this.formatVCardRecord(record);
     } else {
-      activityText = {
-        name: 'nfc-ndef-discovered',
-        data: {
-          type: NfcUtils.toUTF8(record.type)
-        }
-      };
+      activityText = this.formatWithRecordTypeOnly(record);
     }
     return activityText;
   },
@@ -570,16 +565,6 @@ var NfcManager = {
     return activityText;
   },
 
-  formatExternalType: function nm_formatExternalType(record) {
-    var activityText = {
-      name: 'nfc-ndef-discovered',
-      data: {
-        type: NfcUtils.toUTF8(record.type)
-      }
-    };
-    return activityText;
-  },
-
   // Smartposters can be multipart NDEF messages.
   // The meaning and actions are application dependent.
   formatSmartPosterRecord: function nm_formatSmartPosterRecord(record) {
@@ -590,6 +575,13 @@ var NfcManager = {
       }
     };
     return activityText;
+  },
+
+  formatWithRecordTypeOnly: function nm_formatWithRecordTypeOnly(record) {
+    return {
+      name: 'nfc-ndef-discovered',
+      data: { type: NfcUtils.toUTF8(record.type) }
+    };
   }
 };
 NfcManager.init();
