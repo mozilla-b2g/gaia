@@ -251,35 +251,85 @@ var NfcManagerUtils = {
   },
 
   /**
-   * encodeHandoverSelect(): returns a NDEF message containing a Handover
-   * Select. Only a Bluetooth AC will be added to the Handover Select.
-   * 'mac': MAC address (string). 'cps': Carrier Power State.
-   * 'cps': Carrier Power State
+   * Returns a Bluetooth Handover Select message. This method
+   * DOES NOT implement the full spec as defined in
+   * NFCForum-AD-BTSSP_1.0.1. In particular, this method supports
+   * only Bluetooth device MAC address and Local Name in the Bluetooth
+   * Carrier Configuration Record.
+   *
+   * First record is Handover Select Record (type="Hs"). It contains,
+   * among other things, the CPS (Carrier Power State). According to [CH]
+   * (Connection Handover Technical Specification), it can be one 
+   * of the following:
+   *  - 0 - Inactive
+   *  - 1 - Active
+   *  - 2 - Activating
+   *  - 3 - Unknown
+   *
+   * Second record of this message contains Bluetooth Out of Band (OOB) data.
+   * It contains following fields:
+   *  - [2 octets] OOB Data Length - Mandatory. Total length of OOB data,
+   *                                 including this field itself.
+   *  - [6 octets] BT Device Address - Mandatory. BT device address (MAC).
+   *  - [N octets] OOB Optional Data - The remaining data in EIR format.
+   *                                   This method supports only device name
+   *                                   here.
+   *
+   * EIR data, as of this implementation, is optional. It will be ommited
+   * if you do not pass btDeviceName parameter. If you do, OOB Optional
+   * Data will be in a form:
+   *   - [1  octet] EIR Data Length   - Does not include this field.
+   *   - [1  octet] EIR Data Type     - only 0x09 (BT Local Name) supported.
+   *   - [N octets] Contents          - BT Local Name
+   *
+   * @param {String}      mac           MAC address, ie.: "01:23:45:67:89:AB".
+   * @param {Integer}     cps           Carrier Power State.
+   * @param {UInt8Array}  btDeviceName  Optional, user-friendly name
+   *                                    of Bluetooth device.
+   * @returns {Array} NDEF records for handover select message.
+   *
    */
-  encodeHandoverSelect: function encodeHandoverSelect(mac, cps) {
+  encodeHandoverSelect: function encodeHandoverSelect(mac, cps, btDeviceName) {
     var macVals = mac.split(':');
     if (macVals.length != 6) {
+      this.debug('Invalid BT MAC address: ' + mac);
       return null;
     }
     var m = [];
     for (var i = 5; i >= 0; i--) {
       m.push(parseInt(macVals[i], 16));
     }
+
+    if ([0, 1, 2, 3].indexOf(cps) < 0) {
+      this.debug('Invalid CPS: ' + cps);
+      return null;
+    }
+
+    // OOB Data Length
+    var OOBLength = 2 + m.length;
+
+    // OOB = [Data Length | BT Device Address]
+    var OOB = [OOBLength, 0].concat(m);
+
+    // If btDeviceName supplied, attach EIR with it as OOB Optional Data
+    // and update OOB Data Length accordingly.
+    if (btDeviceName) {
+      var EIRLength = 1 + btDeviceName.length;
+      OOB[0] += EIRLength + 1;
+      OOB = OOB.concat(EIRLength, 0x09, Array.apply([], btDeviceName));
+    }
+
     var hs = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
                                 NDEF.RTD_HANDOVER_SELECT,
                                 new Uint8Array([]),
                                 new Uint8Array([0x12, 0xD1, 0x02, 0x04, 0x61,
                                               0x63, cps, 0x01, 0x30, 0x00])),
               new MozNDEFRecord(NDEF.TNF_MIME_MEDIA,
-                                new Uint8Array([97, 112, 112, 108, 105, 99,
-                                                97, 116, 105, 111, 110, 47,
-                                                118, 110, 100, 46, 98, 108,
-                                                117, 101, 116, 111, 111, 116,
-                                                104, 46, 101, 112, 46, 111,
-                                                111, 98]),
-                                new Uint8Array([0x30]),
-                                new Uint8Array([8, 0, m[0], m[1], m[2], m[3],
-                                                m[4], m[5]]))];
+                                NfcUtils.fromUTF8(
+                                  'application/vnd.bluetooth.ep.oob'),
+                                NfcUtils.fromUTF8('0'),
+                                new Uint8Array(OOB))];
+
     return hs;
   }
 };
