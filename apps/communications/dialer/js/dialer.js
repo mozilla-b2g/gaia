@@ -262,6 +262,8 @@ var CallHandler = (function callHandler() {
                                                btCommandHandler);
 
         window.navigator.mozSetMessageHandler('ussd-received', function(evt) {
+          console.log('[999356] ussd-received: ' + evt.message +
+            ', ' + evt.sessionEnded);
           if (document.hidden) {
             var request = window.navigator.mozApps.getSelf();
             request.onsuccess = function() {
@@ -306,7 +308,6 @@ var NavbarManager = {
     }
     var self = this;
     LazyLoader.load(['/shared/js/async_storage.js',
-                     '/shared/js/notification_helper.js',
                      '/shared/js/simple_phone_matcher.js',
                      '/shared/js/contact_photo_helper.js',
                      '/shared/js/dialer/contacts.js',
