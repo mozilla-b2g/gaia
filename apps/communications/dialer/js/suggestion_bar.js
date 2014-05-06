@@ -236,7 +236,9 @@ var SuggestionBar = {
     var nameTag = node.querySelector('.name');
 
     nameTag.textContent = name ? name : null;
-    typeTag.textContent = type ? type : null;
+    LazyL10n.get(function localized(_) {
+      typeTag.textContent = _(type) || type;
+    });
     telTag.innerHTML = tel ? tel : null;
   },
 

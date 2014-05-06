@@ -1,5 +1,5 @@
 /* globals MockCallHandler, MockContacts, MockFbContacts, MocksHelper,
-           MockNavigatorMozIccManager, SuggestionBar */
+           MockLazyL10n, MockNavigatorMozIccManager, SuggestionBar */
 
 'use strict';
 
@@ -53,7 +53,7 @@ suite('suggestion Bar', function() {
       tel: [
         { type: 'mobile',
           value: '111111111' },
-        { type: 'home',
+        { type: 'my-custom-type',
           value: '1234567890' }]
     }];
 
@@ -153,18 +153,34 @@ suite('suggestion Bar', function() {
     subject.overlayCancel =
         document.getElementById('suggestion-overlay-cancel');
     subject.init();
+    this.sinon.stub(MockLazyL10n, 'get', function(callback) {
+      callback(function(prop) {
+        switch(prop) {
+          case'my-custom-type':
+            return undefined;
+          default:
+            return prop;
+        }
+      });
+    });
   });
 
   test('#update suggestions by contact data - 1 data', function() {
     var mockNumber = '1234567890';
     var enteredNumber = '1234';
     var tel = domSuggestionBar.querySelector('.tel');
+    var telType = domSuggestionBar.querySelector('.tel-type');
 
     MockContacts.mResult = mockResult1;
     subject.update(enteredNumber);
 
     assert.equal(tel.textContent, mockNumber,
                 'should got number 1234567890 from mozContact');
+    assert.isTrue(MockLazyL10n.get.called,
+                  'should lazy load the localization library');
+    assert.equal(telType.textContent, 'my-custom-type',
+                 'should default to the type string when there is no ' +
+                 'localization');
     assert.isFalse(domSuggestionCount.classList.contains('more'),
                 '#suggestion-count shouldn\'t contain "more" style');
     assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
@@ -174,12 +190,17 @@ suite('suggestion Bar', function() {
     var mockNumber = '111111111';
     var enteredNumber = '1111';
     var tel = domSuggestionBar.querySelector('.tel');
+    var telType = domSuggestionBar.querySelector('.tel-type');
 
     MockContacts.mResult = mockResult2;
     subject.update(enteredNumber);
 
     assert.equal(tel.textContent, mockNumber,
                 'should got number 111111111 from mozContact');
+    assert.isTrue(MockLazyL10n.get.called,
+                  'should lazy load the localization library');
+    assert.equal(telType.textContent, 'mobile',
+                 'should localize the phone type');
     assert.isTrue(domSuggestionCount.classList.contains('more'),
                 '#suggestion-count should contain "more" style');
     assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
@@ -190,6 +211,7 @@ suite('suggestion Bar', function() {
       var mockNumber = '12349999';
       var enteredNumber = '1234';
       var tel = domSuggestionBar.querySelector('.tel');
+      var telType = domSuggestionBar.querySelector('.tel-type');
 
       MockContacts.mResult = [];
       MockFbContacts.mResult = mockResultFb.slice(0, 1);
@@ -197,6 +219,10 @@ suite('suggestion Bar', function() {
 
       assert.equal(tel.textContent, mockNumber,
                   'should got number 12349999 from Facebook');
+      assert.isTrue(MockLazyL10n.get.called,
+                  'should lazy load the localization library');
+      assert.equal(telType.textContent, 'mobile',
+                 'should localize the phone type');
       assert.isFalse(domSuggestionCount.classList.contains('more'),
                   '#suggestion-count should not contain "more" style');
       assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
@@ -210,6 +236,7 @@ suite('suggestion Bar', function() {
       var mockNumber = '1234567890';
       var enteredNumber = '1234';
       var tel = domSuggestionBar.querySelector('.tel');
+      var telType = domSuggestionBar.querySelector('.tel-type');
 
       MockContacts.mResult = mockResult1;
       MockFbContacts.mResult = mockResultFb.slice(0, 1);
@@ -217,6 +244,11 @@ suite('suggestion Bar', function() {
 
       assert.equal(tel.textContent, mockNumber,
                   'should got number 1234567890 from mozContact');
+      assert.isTrue(MockLazyL10n.get.called,
+                    'should lazy load the localization library');
+      assert.equal(telType.textContent, 'my-custom-type',
+                 'should default to the type string when there is no ' +
+                 'localization');
       assert.isTrue(domSuggestionCount.classList.contains('more'),
                   '#suggestion-count should contain "more" style');
       assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
@@ -227,6 +259,7 @@ suite('suggestion Bar', function() {
       var mockNumber = '12349999';
       var enteredNumber = '1234';
       var tel = domSuggestionBar.querySelector('.tel');
+      var telType = domSuggestionBar.querySelector('.tel-type');
 
       MockContacts.mResult = [];
       MockFbContacts.mResult = mockResultFb;
@@ -234,6 +267,10 @@ suite('suggestion Bar', function() {
 
       assert.equal(tel.textContent, mockNumber,
                   'should got number 12349999 from Facebook');
+      assert.isTrue(MockLazyL10n.get.called,
+                  'should lazy load the localization library');
+      assert.equal(telType.textContent, 'mobile',
+                 'should localize the phone type');
       assert.isTrue(domSuggestionCount.classList.contains('more'),
                   '#suggestion-count should contain "more" style');
       assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
