@@ -83,6 +83,13 @@ suite('system/AppWindow', function() {
     origin: 'app://www.fake4'
   };
 
+  var fakeAppConfigBackground = {
+    url: 'app://www.fakebackground/index.html',
+    manifest: {},
+    origin: 'app://www.fakebackground',
+    stayBackground: true
+  };
+
   var fakeAppConfigWithIcon = {
     url: 'app://www.fake4/index.html',
     manifest: {
@@ -227,6 +234,19 @@ suite('system/AppWindow', function() {
       popups[1].resize();
       assert.isTrue(stubTopResize.called);
       assert.isTrue(stubBottomRealResize.called);
+    });
+  });
+
+  suite('Render', function() {
+    var visibleSpy;
+
+    setup(function() {
+      visibleSpy = this.sinon.stub(AppWindow.prototype, 'setVisible');
+    });
+
+    test('display screenshot for apps launched in background', function() {
+      new AppWindow(fakeAppConfigBackground); // jshint ignore:line
+      sinon.assert.calledWith(visibleSpy, false, true);
     });
   });
 

@@ -540,7 +540,7 @@
 
     // Launched as background: set visibility and overlay screenshot.
     if (this.config.stayBackground) {
-      this.setVisible(false);
+      this.setVisible(false, true /* screenshot */);
     }
 
     /**
