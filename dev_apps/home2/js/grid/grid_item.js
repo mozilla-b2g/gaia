@@ -1,6 +1,6 @@
 'use strict';
 /* global IconRetriever */
-/* global Layout */
+/* global layout */
 /* global LazyLoader */
 
 (function(exports) {
@@ -67,8 +67,8 @@
      * @param {Number} index The index of the items list of this item.
      */
     render: function(coordinates, index) {
-      var x = coordinates.x * Layout.gridItemWidth;
-      var y = Layout.offsetY;
+      var x = coordinates.x * layout.gridItemWidth;
+      var y = layout.offsetY;
       var nameEl = null;
 
       // Generate an element if we need to
@@ -108,14 +108,14 @@
       this.setPosition(index);
       this.x = x;
       this.y = y;
-      this.scale = Layout.percent;
+      this.scale = layout.percent;
 
       // Avoid rendering the icon during a drag to prevent jumpiness
       if (this.noRender) {
         return;
       }
 
-      this.transform(x, y, Layout.percent);
+      this.transform(x, y, layout.percent);
     },
 
     /**

@@ -1,5 +1,5 @@
 'use strict';
-/* global Layout */
+/* global layout */
 
 (function(exports) {
 
@@ -52,8 +52,8 @@
       this.target.classList.add('active');
 
       // Testing with some extra offset (20)
-      this.xAdjust = Layout.gridItemHeight / 2 + 20;
-      this.yAdjust = Layout.gridItemWidth / 2 + 20;
+      this.xAdjust = layout.gridItemHeight / 2 + 20;
+      this.yAdjust = layout.gridItemWidth / 2 + 20;
 
       // Make the icon larger
       this.icon.transform(
