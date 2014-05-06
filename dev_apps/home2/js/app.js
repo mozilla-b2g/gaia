@@ -4,7 +4,7 @@
 /* global DragDrop */
 /* global Icon */
 /* global ItemStore */
-/* global Zoom */
+/* global Layout */
 
 (function(exports) {
 
@@ -12,7 +12,6 @@
   const HIDDEN_ROLES = ['system', 'keyboard', 'homescreen', 'search'];
 
   function App() {
-    this.zoom = new Zoom();
     this.dragdrop = new DragDrop();
 
     this.container = document.getElementById('icons');
@@ -149,7 +148,7 @@
       app.cleanItems();
 
       // Reset offset steps
-      this.zoom.offsetY = 0;
+      Layout.offsetY = 0;
 
       // Grid render coordinates
       var x = 0;
@@ -160,7 +159,7 @@
        * @param {Object} item
        */
       function step(item) {
-        app.zoom.stepYAxis(item.pixelHeight);
+        Layout.stepYAxis(item.pixelHeight);
 
         x = 0;
         y++;
@@ -171,7 +170,7 @@
         // If the item would go over the boundary before rendering,
         // step the y-axis.
         if (x > 0 && item.gridWidth > 1 &&
-            x + item.gridWidth >= this.zoom.perRow) {
+            x + item.gridWidth >= Layout.perRow) {
           // Step the y-axis by the size of the last row.
           // For now we just check the height of the last item.
           var lastItem = this.items[idx - 1];
@@ -186,7 +185,7 @@
         // Increment the x-step by the sizing of the item.
         // If we go over the current boundary, reset it, and step the y-axis.
         x += item.gridWidth;
-        if (x >= this.zoom.perRow) {
+        if (x >= Layout.perRow) {
           step(item);
         }
       }, this);

@@ -1,5 +1,5 @@
 'use strict';
-/* global IconRetriever */
+/* global IconRetriever, Layout */
 
 (function(exports) {
   // Icon container
@@ -65,8 +65,8 @@
      * @param {Number} index The index of the items list of this item.
      */
     render: function(coordinates, index) {
-      var x = coordinates.x * app.zoom.gridItemWidth;
-      var y = app.zoom.offsetY;
+      var x = coordinates.x * Layout.gridItemWidth;
+      var y = Layout.offsetY;
 
       // Generate an element if we need to
       if (!this.element) {
@@ -95,14 +95,14 @@
       this.setPosition(index);
       this.x = x;
       this.y = y;
-      this.scale = app.zoom.percent;
+      this.scale = Layout.percent;
 
       // Avoid rendering the icon during a drag to prevent jumpiness
       if (this.noRender) {
         return;
       }
 
-      this.transform(x, y, app.zoom.percent);
+      this.transform(x, y, Layout.percent);
     },
 
     /**
