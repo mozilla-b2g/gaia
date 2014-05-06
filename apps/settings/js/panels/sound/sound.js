@@ -139,35 +139,29 @@ define(function(require) {
     // Use the file path as id to check what type the tone is, it could be:
     // 1. Preloaded. 2. None. 3. Customized(set from the music app).
     _checkToneFilepath: function sound_checkToneFilepath(tone, filepath) {
-      var self = this;
-      var _ = navigator.mozL10n.get;
       var namekey = tone.settingsKey + '.name';
       // Check the filepath to see if the tone is from the preloaded pool.
       if (filepath.indexOf('shared/resources/media') !== -1) {
         var filename = filepath.split('/').pop();
         var key = filename.replace('.', '_');
 
-        self._displayToneName(tone, _(key), key);
-      }
-      else if (filepath === 'none') {
-        self._displayToneName(tone, _('none'), 'none');
-      }
-      else {
-        SettingsListener.observe(
-          namekey, '', function setCustomizedToneName(tonename) {
-            SettingsListener.unobserve(namekey, setCustomizedToneName);
+        navigator.mozL10n.localize(tone.button, key);
+      } else if (filepath === 'none') {
+        navigator.mozL10n.localize(tone.button, 'none');
+      } else {
+        navigator.mozSettings.createLock().get(namekey).onsuccess =
+          function(e) {
+            var tonename = e.target.result[namekey];
             // If the user selected a ringtone without title from the music app,
             // then we display "Change" instead of an empty string?
-            self._displayToneName(tone, tonename || _('change'), '');
-          }
-        );
+            if (tonename) {
+              tone.button.textContent = tonename;
+              tone.button.dataset.l10nId = '';
+            } else {
+              navigator.mozL10n.localize(tone.button, 'change');
+            }
+          };
       }
-    },
-
-    // Also assign the L10n id because the preloaded tones have localized names.
-    _displayToneName: function sound_displayToneName(tone, name, id) {
-      tone.button.textContent = name;
-      tone.button.dataset.l10nId = id;
     },
 
     /**
