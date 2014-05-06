@@ -74,6 +74,60 @@ suite('phone action menu', function() {
     MockNavigatorSettings.mTeardown();
   });
 
+  suite('Open contact details', function() {
+    var contactsIframe;
+    var testContact = {
+      id: '456',
+      matchingTel: {
+        value: '111222333'
+      }
+    };
+
+    setup(function() {
+      contactsIframe = document.createElement('iframe');
+      contactsIframe.id = 'iframe-contacts';
+      window.document.body.appendChild(contactsIframe);
+      this.sinon.useFakeTimers();
+    });
+
+    teardown(function() {
+      window.document.body.removeChild(contactsIframe);
+      contactsIframe = null;
+    });
+
+    test('regular call', function() {
+      contactsIframe = document.getElementById('iframe-contacts');
+      PhoneNumberActionMenu.show(
+        testContact.id,
+        testContact.matchingTel.value,
+        null,
+        false
+      );
+      var url = 'index.html#view-contact-details?id=' + testContact.id +
+                '&tel=' + testContact.matchingTel.value +
+                '&back_to_previous_tab=1&isMissedCall=false';
+
+      this.sinon.clock.tick();
+      assert.include(contactsIframe.src, url);
+    });
+
+    test('missed call', function() {
+      contactsIframe = document.getElementById('iframe-contacts');
+      PhoneNumberActionMenu.show(
+        testContact.id,
+        testContact.matchingTel.value,
+        null,
+        true
+      );
+      var url = 'index.html#view-contact-details?id=' + testContact.id +
+                '&tel=' + testContact.matchingTel.value +
+                '&back_to_previous_tab=1&isMissedCall=true';
+
+      this.sinon.clock.tick();
+      assert.include(contactsIframe.src, url);
+    });
+  });
+
   suite('call option', function() {
     function chooseCall() {
       var callOptionItem = document.getElementById('call-menuitem');

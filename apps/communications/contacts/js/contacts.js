@@ -87,7 +87,12 @@ var Contacts = (function() {
             currentContact = savedContact;
             contactsDetails.render(currentContact, TAG_OPTIONS);
             if (params.tel) {
-              contactsDetails.reMark('tel', params.tel);
+
+              contactsDetails.reMark(
+                'tel',
+                params.tel,
+                JSON.parse(params.isMissedCall) ? 'remark-missed' : 'remark'
+              );
             }
             navigation.go(sectionId, 'right-left');
             showApp();
