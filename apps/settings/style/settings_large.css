@@ -49,6 +49,7 @@
     transition: none;
     left: 0;
     width: 40rem;
+    visibility: visible;
   }
 
   section[role="region"],
