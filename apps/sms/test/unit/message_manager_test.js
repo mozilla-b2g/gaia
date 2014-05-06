@@ -13,7 +13,6 @@ requireApp('sms/test/unit/mock_link_action_handler.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_thread_list_ui.js');
 requireApp('sms/test/unit/mock_threads.js');
-requireApp('sms/test/unit/mock_activity_handler.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_moz_sms_filter.js');
 requireApp('sms/test/unit/mock_smil.js');
@@ -31,7 +30,6 @@ var mocksHelperForMessageManager = new MocksHelper([
   'ThreadUI',
   'ThreadListUI',
   'Threads',
-  'ActivityHandler',
   'SMIL',
   'Recipients',
   'Compose',
@@ -234,27 +232,6 @@ suite('message_manager.js >', function() {
 
       MockNavigatormozMobileMessage.mTriggerMmsOnError();
       assert.equal(onErrorCalledTimes, 1);
-    });
-  });
-
-  suite('onMessageRecieved() >', function() {
-
-    setup(function() {
-      this.sinon.spy(ActivityHandler, 'onSmsReceived');
-    });
-
-    test('invokes ActivityHandler.onSmsReceived', function() {
-      var evt = {
-        message: {
-          recipients: ['123', '456'],
-          subject: null,
-          content: 'hola'
-        }
-      };
-
-      MessageManager.onMessageReceived(evt);
-
-      sinon.assert.calledWith(ActivityHandler.onSmsReceived, evt.message);
     });
   });
 

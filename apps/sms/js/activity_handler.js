@@ -115,11 +115,6 @@ var ActivityHandler = {
     }
   },
 
-  getEntryPoint: function ah_getEntryPoint() {
-    var href = window.location.href;
-    return href.substr(href.lastIndexOf('/'));
-  },
-
   resetActivity: function ah_resetActivity() {
     this.currentActivity.new = null;
     ThreadUI.resetActivityRequestMode();
@@ -320,16 +315,6 @@ var ActivityHandler = {
     }
     timeoutID = setTimeout(releaseWakeLock, 30 * 1000);
 
-    function onSmsHandlerComplete() {
-      releaseWakeLock();
-      // If we are in the system message entry point, we close the app upon
-      // completion of handling the sms so that we can open the launch_path
-      // the next time we open open the app or get a notification event.
-      if (ActivityHandler.getEntryPoint() == '/message-sms-received.html') {
-        window.close();
-      }
-    }
-
     // The black list includes numbers for which notifications should not
     // progress to the user. Se blackllist.js for more information.
     var number = message.sender;
@@ -355,13 +340,13 @@ var ActivityHandler = {
           Notify.ringtone();
           Notify.vibrate();
           alert(number + '\n' + message.body);
-          onSmsHandlerComplete();
+          releaseWakeLock();
         });
       };
       return;
     }
     if (BlackList.has(message.sender)) {
-      onSmsHandlerComplete();
+      releaseWakeLock();
       return;
     }
 
@@ -370,7 +355,7 @@ var ActivityHandler = {
       if (!document.hidden) {
         if (threadId === Threads.currentId) {
           navigator.vibrate([200, 200, 200]);
-          onSmsHandlerComplete();
+          releaseWakeLock();
           return;
         }
       }
@@ -437,12 +422,13 @@ var ActivityHandler = {
           }
 
           if (message.type === 'sms') {
-            NotificationHelper.send(sender, message.body, iconURL, goToMessage);
-            onSmsHandlerComplete();
+            NotificationHelper.send(sender, message.body, iconURL,
+                                                          goToMessage);
+            releaseWakeLock();
           } else { // mms
             getTitleFromMms(function textCallback(text) {
               NotificationHelper.send(sender, text, iconURL, goToMessage);
-              onSmsHandlerComplete();
+              releaseWakeLock();
             });
           }
         });
@@ -460,7 +446,6 @@ var ActivityHandler = {
       // message status from sender.
       var status = message.deliveryInfo[0].deliveryStatus;
       if (status === 'pending') {
-        onSmsHandlerComplete();
         return;
       }
 

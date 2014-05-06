@@ -19,7 +19,6 @@ requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_attachment_menu.js');
-requireApp('sms/test/unit/mock_activity_handler.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
 requireApp('sms/js/link_helper.js');
@@ -41,8 +40,7 @@ requireApp('sms/js/startup.js');
 var MocksHelperForSmsUnitTest = new MocksHelper([
   'AttachmentMenu',
   'TimeHeaders',
-  'ContactPhotoHelper',
-  'ActivityHandler'
+  'ContactPhotoHelper'
 ]).init();
 
 suite('SMS App Unit-Test', function() {
