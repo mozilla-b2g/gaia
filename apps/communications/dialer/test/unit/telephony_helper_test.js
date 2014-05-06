@@ -1,19 +1,19 @@
 /* global ConfirmDialog, MocksHelper, MockIccHelper, MockLazyL10n, MockMozL10n,
-   MockMozMobileConnection, MockNavigatorMozTelephony, MockNavigatorSettings,
-   MockTonePlayer, Promise, TelephonyHelper */
+   MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
+   MockNavigatorSettings, MockTonePlayer, Promise, TelephonyHelper */
 
 'use strict';
 
 
 require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_confirm_dialog.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 
-require('/dialer/test/unit/mock_mozMobileConnection.js');
 require('/dialer/test/unit/mock_icc_helper.js');
 
 require('/dialer/js/telephony_helper.js');
@@ -31,14 +31,12 @@ suite('telephony helper', function() {
   var subject;
   var realMozSettings;
   var realMozTelephony;
-  var realMozMobileConnection;
   var realMozMobileConnections;
   var realMozL10n;
   var spyConfirmShow;
   var mockTelephony;
   var mockCall;
   var mockPromise;
-
 
   mocksHelperForTelephonyHelper.attachTestHelpers();
 
@@ -51,11 +49,8 @@ suite('telephony helper', function() {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
 
-    realMozMobileConnection = navigator.mozMobileConnection;
-    navigator.mozMobileConnection = MockMozMobileConnection;
-
     realMozMobileConnections = navigator.mozMobileConnections;
-    navigator.mozMobileConnections = [];
+    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
 
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
@@ -64,7 +59,6 @@ suite('telephony helper', function() {
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
     navigator.mozTelephony = realMozTelephony;
-    navigator.mozMobileConnection = realMozMobileConnection;
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozL10n = realMozL10n;
   });
@@ -73,6 +67,7 @@ suite('telephony helper', function() {
     spyConfirmShow = this.sinon.spy(ConfirmDialog, 'show');
     mockTelephony = this.sinon.mock(MockNavigatorMozTelephony);
     mockCall = {};
+    MockNavigatorMozMobileConnections[0].voice = {};
     mockPromise = Promise.resolve(mockCall);
     this.sinon.stub(MockNavigatorMozTelephony, 'dial',
                     function() { return mockPromise;});
@@ -81,7 +76,7 @@ suite('telephony helper', function() {
   });
 
   teardown(function() {
-    MockMozMobileConnection.mTeardown();
+    MockNavigatorMozMobileConnections.mTeardown();
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatorSettings.mTeardown();
     MockLazyL10n.keys = {};
@@ -112,7 +107,7 @@ suite('telephony helper', function() {
     setup(function() {
       initialState = MockIccHelper.mCardState;
       MockIccHelper.mCardState = 'unknown';
-      MockMozMobileConnection.voice.emergencyCallsOnly = true;
+      MockNavigatorMozMobileConnections[0].voice = { emergencyCallsOnly: true };
     });
 
     teardown(function() {
@@ -120,10 +115,6 @@ suite('telephony helper', function() {
     });
 
     suite('when there is no sim card', function() {
-      setup(function() {
-        MockMozMobileConnection.iccId = null;
-      });
-
       test('it should always dial emergency with the first service',
       function() {
         var dialNumber = '112';
@@ -133,6 +124,10 @@ suite('telephony helper', function() {
     });
 
     suite('when there is a sim card', function() {
+      setup(function() {
+        MockNavigatorMozMobileConnections[0].iccId = 12;
+      });
+
       test('it should dial emergency with the default service', function() {
         var dialNumber = '112';
         subject.call(dialNumber, 0);
@@ -144,7 +139,7 @@ suite('telephony helper', function() {
 
   test('should dialEmergency if the connection is emergency only',
   function() {
-    MockMozMobileConnection.voice.emergencyCallsOnly = true;
+    MockNavigatorMozMobileConnections[0].voice = { emergencyCallsOnly: true };
     var dialNumber = '112';
     subject.call(dialNumber, 0);
     sinon.assert.calledWith(navigator.mozTelephony.dialEmergency, '112');
@@ -224,8 +219,8 @@ suite('telephony helper', function() {
   });
 
   test('should display an error if there is no network', function() {
+    MockNavigatorMozMobileConnections[0].voice = null;
     var dialNumber = '01 45 34 55 20';
-    MockMozMobileConnection.voice = null;
     subject.call(dialNumber, 0);
     assert.isTrue(spyConfirmShow.calledWith('emergencyDialogTitle',
                                             'emergencyDialogBodyBadNumber'));
@@ -288,7 +283,9 @@ suite('telephony helper', function() {
 
         test('should display the NoNetwork message in emergency mode',
         function(done) {
-          MockMozMobileConnection.voice.emergencyCallsOnly = true;
+          MockNavigatorMozMobileConnections[0].voice = {
+            emergencyCallsOnly: true
+          };
           subject.call('123', 0);
           mockPromise.then(function() {
             mockCall.onerror(createCallError('BadNumberError'));
@@ -363,7 +360,9 @@ suite('telephony helper', function() {
         test('should display the NoNetwork message in emergency mode',
         function(done) {
           mockPromise = Promise.reject('BadNumberError');
-          MockMozMobileConnection.voice.emergencyCallsOnly = true;
+          MockNavigatorMozMobileConnections[0].voice = {
+            emergencyCallsOnly: true
+          };
           subject.call('123', 0);
           mockPromise.catch(function() {
             sinon.assert.calledWith(spyConfirmShow,'emergencyDialogTitle',
@@ -414,6 +413,8 @@ suite('telephony helper', function() {
   });
 
   test('should dial with correct card index', function() {
+    MockNavigatorMozMobileConnections.mAddMobileConnection();
+    MockNavigatorMozMobileConnections[1].voice = {};
     subject.call('123', 1);
     sinon.assert.calledWith(navigator.mozTelephony.dial, '123', 1);
   });
