@@ -68,6 +68,8 @@ var MessageManager = {
   onMessageReceived: function mm_onMessageReceived(e) {
     var message = e.message;
 
+    ActivityHandler.onSmsReceived(message);
+
     if (message.messageClass && message.messageClass === 'class-0') {
       return;
     }
