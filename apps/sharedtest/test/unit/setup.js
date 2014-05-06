@@ -21,5 +21,6 @@
   });
 
   require('/shared/js/l10n_date.js');
+  require('/shared/test/unit/mocks/mocks_helper.js');
 
 }(this));
