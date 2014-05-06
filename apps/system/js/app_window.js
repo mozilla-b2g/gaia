@@ -456,8 +456,10 @@
      */
     this.publish('willdestroy');
     this.uninstallSubComponents();
-    if (this.element && this.element.parentNode) {
-      this.element.parentNode.removeChild(this.element);
+    if (this.element) {
+      if (this.element.parentNode) {
+        this.element.parentNode.removeChild(this.element);
+      }
       this.element = null;
     }
 
