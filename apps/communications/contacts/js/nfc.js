@@ -43,7 +43,13 @@ contacts.NFC = (function() {
           },
           function success() {
             sendContact();
-          }
+          },
+          // use default batch size
+          null,
+          // We don't want to share a profile photo via NFC,
+          // like on Android:
+          // https://bugzilla.mozilla.org/show_bug.cgi?id=1003767#c5
+          true
         );
       });
   };
