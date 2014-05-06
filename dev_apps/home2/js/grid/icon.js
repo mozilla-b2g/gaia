@@ -55,7 +55,7 @@
 
     get icon() {
       if (!this.descriptor.icons) {
-        return '';
+        return 'style/images/default_icon.png';
       }
 
       var lastIcon = 0;

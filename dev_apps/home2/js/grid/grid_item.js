@@ -1,4 +1,5 @@
 'use strict';
+/* global IconRetriever */
 
 (function(exports) {
   // Icon container
@@ -40,6 +41,10 @@
       return false;
     },
 
+    isRemoteIcon: function() {
+      return this.icon.startsWith('http');
+    },
+
     /**
      * Sets the item position
      */
@@ -50,8 +55,8 @@
     /**
      * Displays the icon as a background of the element.
      */
-    displayIcon: function() {
-      this.element.style.backgroundImage = 'url(' + this.icon + ')';
+    displayIcon: function(url) {
+      this.element.style.backgroundImage = 'url(' + (url || this.icon) + ')';
     },
 
     /**
@@ -82,7 +87,7 @@
         }
 
         this.element = tile;
-        this.displayIcon();
+        this.isRemoteIcon() ? IconRetriever.get(this) : this.displayIcon();
 
         container.appendChild(tile);
       }

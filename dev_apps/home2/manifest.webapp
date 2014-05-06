@@ -11,7 +11,8 @@
   "permissions": {
     "open-remote-window":{},
     "storage": {},
-    "webapps-manage": {}
+    "webapps-manage": {},
+    "systemXHR": {}
   },
   "default_locale": "en-US",
   "icons": {

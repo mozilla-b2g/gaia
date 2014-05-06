@@ -34,7 +34,7 @@
     },
 
     get icon() {
-      return this.detail.icon;
+      return this.detail.icon || 'style/images/default_icon.png';
     },
 
     get identifier() {
