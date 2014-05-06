@@ -139,6 +139,9 @@
       // we need this here and not in other situations
       // as it is expected that homescreen frame is available.
       setTimeout(function() {
+        if (this.element) {
+          return;
+        }
         this.render();
         this.open();
       }.bind(this));
