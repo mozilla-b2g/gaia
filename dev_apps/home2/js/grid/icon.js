@@ -3,6 +3,7 @@
 /* global GridItem */
 /* global LazyLoader */
 /* global UrlHelper */
+/* global Layout */
 
 (function(exports) {
 
@@ -35,7 +36,7 @@
      * Returns the height in pixels of each icon.
      */
     get pixelHeight() {
-      return app.zoom.gridItemHeight;
+      return Layout.gridItemHeight;
     },
 
     /**
