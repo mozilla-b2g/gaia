@@ -1026,20 +1026,22 @@ var CallLog = {
   },
 
   loadBackgroundImage: function cl_loadBackgroundImage(element, url) {
+    var REVOKE_TIMEOUT = 60000;
+
     if (typeof url === 'string') {
       element.style.backgroundImage = 'url(' + url + ')';
     } else if (url instanceof Blob) {
       url = URL.createObjectURL(url);
       element.style.backgroundImage = 'url(' + url + ')';
 
-      // Revoke the blob once it's ready.
-      setTimeout(function() {
-        var image = new Image();
-        image.src = url;
-        image.onload = image.onerror = function() {
-          URL.revokeObjectURL(this.src);
-        };
-      });
+      // Revoke the blob once it's ready. A 1 min timeout is added in order
+      // to avoid a race condition between the revoke an the assignment of
+      // the background image
+      var image = new Image();
+      image.src = url;
+      image.onload = image.onerror = function() {
+        setTimeout(URL.revokeObjectURL, REVOKE_TIMEOUT, image.src);
+      };
     }
   },
 

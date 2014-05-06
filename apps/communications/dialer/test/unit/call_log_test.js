@@ -23,6 +23,7 @@ require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/mock_notification.js');
+require('/shared/test/unit/mocks/mock_image.js');
 
 var mocksHelperForCallLog = new MocksHelper([
   'asyncStorage',
@@ -451,11 +452,41 @@ suite('dialer/call_log', function() {
     });
   });
 
+  suite('Contacts image rendering and revoke', function() {
+    var revokeURLSpy, clock, realImage;
+    var REVOKE_TIMEOUT = 60000;
+
+    setup(function() {
+      clock = this.sinon.useFakeTimers();
+      revokeURLSpy = this.sinon.spy(window.URL, 'revokeObjectURL');
+      realImage = window.Image;
+      window.Image = MockImage;
+    });
+
+    teardown(function() {
+      revokeURLSpy.restore();
+      clock.restore();
+    });
+
+    test('Contact image is properly revoked after timeout', function(done) {
+      var incomingWithPhoto = Object.create(incomingGroup);
+      incomingWithPhoto.contact.photo = new Blob(['1234'], {type: 'image/png'});
+
+      checkGroupDOM(CallLog.createGroup(incomingWithPhoto), incomingWithPhoto,
+        function() {
+          MockImage.triggerEvent('onload');
+          clock.tick(REVOKE_TIMEOUT);
+          sinon.assert.calledOnce(revokeURLSpy);
+          done();
+        });
+    });
+  });
+
   suite('render', function() {
     var renderSeveralDaysSpy;
 
     setup(function() {
-        renderSeveralDaysSpy = this.sinon.spy(CallLog, 'renderSeveralDays');
+      renderSeveralDaysSpy = this.sinon.spy(CallLog, 'renderSeveralDays');
     });
 
     teardown(function(done) {
