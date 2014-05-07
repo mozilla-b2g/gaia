@@ -12,7 +12,7 @@ var GridManager = (function() {
 
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
-  var DEVICE_HEIGHT = window.innerHeight;
+  var DEVICE_HEIGHT = 460; // XXX: Tarako height (Bug 995886)
 
   var HIDDEN_ROLES = ['system', 'input', 'homescreen'];
 
@@ -40,13 +40,7 @@ var GridManager = (function() {
 
   var container;
 
-  var windowWidth = window.innerWidth;
-  document.addEventListener('visibilitychange', function() {
-    if (document.hidden == false) {
-      windowWidth = window.innerWidth;
-      DEVICE_HEIGHT = window.innerHeight;
-    }
-  });
+  var windowWidth = 320; // XXX: Tarako width (Bug 995886)
 
   var swipeThreshold, swipeFriction, tapThreshold;
 

@@ -9,7 +9,7 @@ var DockManager = (function() {
   var MAX_NUM_ICONS = notTinyLayout ? 8 : 7;
   var maxNumAppInViewPort = notTinyLayout ? 6 : 4, maxOffsetLeft;
 
-  var windowWidth = window.innerWidth;
+  var windowWidth = 320; // XXX: Tarako width (Bug 995886)
   var duration = 300;
 
   var initialOffsetLeft, initialOffsetRight, numApps, cellWidth = 0;
@@ -19,12 +19,6 @@ var DockManager = (function() {
   var touchstart = isTouch ? 'touchstart' : 'mousedown';
   var touchmove = isTouch ? 'touchmove' : 'mousemove';
   var touchend = isTouch ? 'touchend' : 'mouseup';
-
-  document.addEventListener('visibilitychange', function() {
-    if (document.hidden == false) {
-      windowWidth = window.innerWidth;
-    }
-  });
 
   var getX = (function getXWrapper() {
     return isTouch ? function(e) { return e.touches[0].pageX } :
