@@ -1,7 +1,5 @@
 /**
  * Tests for the shared text utils helper
- * TODO: Shared code unit tests should not be in gallery
- * Bug #841422 has been filed to move these tests
  */
 
 /* global TextUtils */
