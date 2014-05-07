@@ -15,7 +15,7 @@ function displayInstalledApps() {
       if (app.manifest.type == 'certified')
         continue;
 
-      var entryNode = createAppEntryNode(app.manifest);
+      var entryNode = createAppEntryNode(app);
 
       entryNode.querySelector('a').onclick = clickHandler(app)
 
@@ -97,7 +97,7 @@ function displaySDCardApps() {
     container.innerHTML = "";
     files.forEach(function(file) {
       appMgr.getAppManifest(file).then(function(manifest) {
-        var entryNode = createAppEntryNode(manifest);
+        var entryNode = createAppEntryNode({manifest: manifest});
         entryNode.querySelector('a').onclick = clickHandler(file);
         container.appendChild(entryNode);
       });
@@ -105,13 +105,15 @@ function displaySDCardApps() {
   });
 }
 
-function createAppEntryNode(manifest) {
+function createAppEntryNode(app) {
   var template = document.querySelector('#appListEntry').
-                          content.cloneNode(true);
+                          content.cloneNode(true),
+      link = template.querySelector('a'),
+      manifest = app.manifest,
+      iconURL = getBestIconURL(app, manifest.icons);
 
-  template.appendChild(document.createTextNode(manifest.name));
-  template.querySelector('img').src = getBestIconURL(manifest, manifest.icons);
-
+  link.appendChild(document.createTextNode(manifest.name));
+  template.querySelector('img').src = iconURL;
   return template;
 }
 
@@ -128,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // TODO: move into shared?
 function getBestIconURL(app, icons) {
   if (!icons || !Object.keys(icons).length) {
-    return '../style/images/default.png';
+    return 'style/images/default.png';
   }
 
   // The preferred size is 30 by the default. If we use HDPI device, we may
@@ -158,6 +160,6 @@ function getBestIconURL(app, icons) {
   if (url) {
     return !(/^(http|https|data):/.test(url)) ? app.origin + url : url;
   } else {
-    return '../style/images/default.png';
+    return 'style/images/default.png';
   }
 }

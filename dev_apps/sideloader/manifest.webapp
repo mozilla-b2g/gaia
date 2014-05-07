@@ -1,7 +1,7 @@
 {
   "name": "Sideloader",
   "description": "Import and export apps from and to the SD card.",
-  "launch_path": "/index.html#panel1",
+  "launch_path": "/index.html#panel2",
   "icons": {
     "128": "/img/icon-128.png"
   },

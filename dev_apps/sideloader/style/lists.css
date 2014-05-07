@@ -1,0 +1,116 @@
+/**
+ * Table View
+ * line height = 6rem, border included
+ */
+
+ul {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+ul li {
+  margin: 0 1.5rem;
+  border-bottom: 0.1rem solid #e6e6e3;
+  color: #000;
+}
+
+ul li:last-child {
+  border-bottom: none;
+}
+
+ul li > a,
+ul li > span,
+ul li > label > span {
+  display: block;
+  text-decoration: none;
+  outline: 0;
+  color: #000;
+  -moz-box-sizing: border-box;
+  height: 6rem;
+  font-size: 1.9rem;
+  line-height: 6rem;
+  padding: 0 3rem;
+  margin: 0 -1.5rem;
+}
+
+ul li.active a,
+ul li.active span,
+ul li:not([aria-disabled="true"]) > small + a:active,
+ul li:not([aria-disabled="true"]) > a[href]:active,
+ul li:not([aria-disabled="true"]) > small + a:focus,
+ul li:not([aria-disabled="true"]) > a[href]:focus {
+  background-color: #b2f2ff;
+  color: #222;
+}
+
+ul li[aria-disabled="true"] > a {
+  color: #797e80;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* description + value on the same line */
+ul li > a span {
+  position: absolute;
+  right: 1.5rem;
+  color: #505859;
+}
+
+/* text ellipsis */
+ul li > *, ul li > label > * {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* sublines */
+ul li > small, ul li > label > small {
+  position: absolute;
+  left: 1.5rem;
+  right: 1.5rem;
+  top: 50%;
+  padding-top: 0.4rem;
+  font-size: 1.4rem;
+  color: #505859;
+  /* click/tap events should be caught by the <a> element below the <small> */
+  pointer-events: none;
+}
+
+ul li > label {
+  font-size: 1.9rem;
+  line-height: 1.9rem;
+  font-weight: 400;
+  margin: 0;
+  padding: 1.5rem 1.5rem 1rem;
+}
+
+/* multiple line item */
+ul li.multiline > small {
+  position: relative;
+  top: -3rem;
+  margin-bottom: -2.3rem;
+}
+
+ul li.multiline > small > span {
+  display: block;
+  padding-bottom: 0.2rem;
+}
+
+
+/******************************************************************************
+ * Right-to-Left layout
+ */
+
+html[dir="rtl"] ul > li > progress + span {
+  padding-left: 0;
+  padding-right: 1rem;
+}
+
+html[dir="rtl"] ul li > a span {
+  left: 1.5rem;
+  right: auto;
+}
+

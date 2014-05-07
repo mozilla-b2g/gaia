@@ -1,0 +1,67 @@
+/**
+ * Copied from Settings style & layout
+ * note: `lists.css' must be loaded before this stylesheet
+ */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 10px;
+  overflow: hidden;
+  background-color: #f4f4f4;
+}
+
+
+/******************************************************************************
+ * Setting panels: full-size <section role="region"> blocks
+ */
+
+/* Setting panels: full-size <section role="region"> blocks */
+section[role="region"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  overflow: hidden;
+}
+
+/**
+ * Headers should not scroll with the rest of the page, except for #root.
+ */
+section[role="region"] > header {
+  position: absolute;
+}
+
+section[role="region"] > div {
+  position: absolute;
+  top: 5rem;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 5rem);
+  overflow-y: scroll;
+  will-change: scroll-position;
+}
+
+/*
+ * Need this for scrollable background layer
+ * optimization in gecko. See Bug 950250
+ */
+section[role="region"],
+section[role="region"] > div > ul {
+  background-color: #f4f4f4;
+}
+
+/******************************************************************************
+ * Right-To-Left layout
+ */
+
+html[dir="rtl"] section[role="region"] {
+  transform: translateX(-100%);
+}
+

@@ -1,0 +1,21 @@
+/**
+ * App lists
+ */
+
+#import-export-apps ul li img {
+  margin-top: calc(3rem - 1.5rem);
+  margin-right: 1.4rem;
+  width: 3rem;
+  height: 3rem;
+}
+
+/**
+ * Right To Left Layout
+ */
+
+html[dir="rtl"] #import-export-apps ul li img {
+  float: right;
+  margin-left: 1.4rem;
+  margin-right: auto;
+}
+
