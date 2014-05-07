@@ -34,6 +34,13 @@
     inEditMode: false,
 
     /**
+     * Returns the maximum active scale value.
+     */
+    get maxActiveScale() {
+      return 1 + activeScaleAdjust;
+    },
+
+    /**
      * Begins the drag/drop interaction.
      * Enlarges the icon.
      * Sets additional data to make the touchmove handler faster.
@@ -52,8 +59,8 @@
       this.target.classList.add('active');
 
       // Testing with some extra offset (20)
-      this.xAdjust = layout.gridItemHeight / 2 + 20;
-      this.yAdjust = layout.gridItemWidth / 2 + 20;
+      this.xAdjust = layout.gridItemWidth / 2 + 20;
+      this.yAdjust = layout.gridItemHeight + 20;
 
       // Make the icon larger
       this.icon.transform(
@@ -104,7 +111,7 @@
      */
     positionIcon: function(pageX, pageY) {
       pageX = pageX - this.xAdjust;
-      pageY = pageY - this.xAdjust;
+      pageY = pageY - this.yAdjust;
 
       this.icon.transform(
         pageX,
