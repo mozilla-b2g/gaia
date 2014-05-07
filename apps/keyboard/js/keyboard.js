@@ -264,10 +264,8 @@ var eventHandlers = {
   'mousemove': onMouseMove
 };
 
-// For "swipe down to hide" feature
+// For tracking "scrolling the full candidate panel".
 var touchStartCoordinate;
-var toShowKeyboardFTU = false;
-const SWIPE_VELOCICTY_THRESHOLD = 0.4;
 
 // Before we can initialize the keyboard we need to know the current
 // value of all keyboard-related settings. These are the settings
@@ -277,7 +275,6 @@ var settingsQuery = {
   'keyboard.autocorrect': true,
   'keyboard.vibration': false,
   'keyboard.clicksound': false,
-  'keyboard.ftu.enabled': false,
   'audio.volume.notification': 7
 };
 
@@ -289,9 +286,6 @@ getSettings(settingsQuery, function gotSettings(values) {
   vibrationEnabled = values['keyboard.vibration'];
   clickEnabled = values['keyboard.clicksound'];
   isSoundEnabled = !!values['audio.volume.notification'];
-
-  // To see if this is first time the user launches the keyboard
-  toShowKeyboardFTU = values['keyboard.ftu.enabled'];
 
   handleKeyboardSound();
 
@@ -328,11 +322,6 @@ function initKeyboard() {
     handleKeyboardSound();
   });
 
-  // Gaia UI Test may change this setting to disable keyboard FTU
-  navigator.mozSettings.addObserver('keyboard.ftu.enabled', function(e) {
-    toShowKeyboardFTU = e.settingValue;
-  });
-
   // Initialize the rendering module
   IMERender.init(getUpperCaseValue, isSpecialKeyObj);
 
@@ -340,33 +329,6 @@ function initKeyboard() {
   for (var event in eventHandlers) {
     IMERender.ime.addEventListener(event, eventHandlers[event]);
   }
-
-  // Prevent focus being taken away by tip window
-  var tipWindow = document.getElementById('confirm-dialog');
-  function tipFocusHandler(evt) {
-    evt.preventDefault();
-  }
-
-  tipWindow.addEventListener('mousedown', tipFocusHandler);
-
-  var tipButton = document.getElementById('ftu-ok');
-  tipButton.addEventListener('click', function(evt) {
-    // Need to preventDefault or it will make the input lose the focus
-    evt.preventDefault();
-    tipWindow.hidden = true;
-  });
-
-  /* To simulate :active effect for button */
-  tipButton.addEventListener('mousedown', function mouseDownHandler(evt) {
-    tipButton.classList.add('active');
-  });
-
-  var inActiveHandlers = ['mouseup', 'mouseleave'];
-  inActiveHandlers.forEach(function addInActiveHandler(evtName) {
-    tipButton.addEventListener(evtName, function inActiveHandler(evt) {
-      tipButton.classList.remove('active');
-    });
-  });
 
   dimensionsObserver = new MutationObserver(function() {
     updateTargetWindowHeight();
@@ -965,6 +927,12 @@ function showAlternatives(key) {
     return;
   }
 
+  // Hide the keyboard
+  if (keyObj.keyCode === KeyEvent.DOM_VK_SPACE) {
+    dismissKeyboard();
+    return;
+  }
+
   // Handle key alternatives
   altMap = currentLayout.alt || {};
   value = keyObj.value;
@@ -1139,36 +1107,13 @@ function onTouchEnd(evt) {
 
   handleTouches(evt, function handleTouchEnd(touch, touchId) {
 
-    // Swipe down can trigger hiding the keyboard
     if (touchStartCoordinate && touchStartCoordinate.touchId == touchId) {
       var dx = touch.pageX - touchStartCoordinate.pageX;
       var dy = touch.pageY - touchStartCoordinate.pageY;
-      var dt = evt.timeStamp - touchStartCoordinate.timeStamp;
-      var vy = dy / dt;
 
-      var keyboardHeight = cachedIMEDimensions.height;
       var hasCandidateScrolled = (IMERender.isFullCandidataPanelShown() &&
                                   (Math.abs(dx) > 3 || Math.abs(dy) > 3));
 
-      // hide the keyboard if:
-      // 1. swipe down
-      // 2. the distance is longer than half of the keyboard
-      // 3. not in candidate panel
-      if ((dy > keyboardHeight / 2 && dy > dx) &&
-          vy > SWIPE_VELOCICTY_THRESHOLD &&
-          !hasCandidateScrolled) {
-
-        // de-activate the highlighted effect
-        if (touchedKeys[touchId] && touchedKeys[touchId].target)
-          IMERender.unHighlightKey(touchedKeys[touchId].target);
-
-        clearTimeout(deleteTimeout);
-        clearInterval(deleteInterval);
-        clearTimeout(menuTimeout);
-
-        navigator.mozInputMethod.mgmt.hide();
-        return;
-      }
     }
 
     // Because of bug 822558, we sometimes get two touchend events,
@@ -1657,16 +1602,6 @@ function showKeyboard() {
 
   resetKeyboard();
 
-  if (toShowKeyboardFTU) {
-    var dialog = document.getElementById('confirm-dialog');
-    dialog.hidden = false;
-    toShowKeyboardFTU = false;
-
-    navigator.mozSettings.createLock().set({
-      'keyboard.ftu.enabled': false
-    });
-  }
-
   if (inputContext) {
     currentInputMode = inputContext.inputMode;
     currentInputType = mapInputType(inputContext.inputType);
@@ -1972,6 +1907,16 @@ function clearTouchedKeys() {
   hideAlternatives();
   touchedKeys = {};
 }
+
+// Hide the keyboard via input method API
+function dismissKeyboard() {
+  clearTimeout(deleteTimeout);
+  clearInterval(deleteInterval);
+  clearTimeout(menuTimeout);
+
+  navigator.mozInputMethod.mgmt.hide();
+}
+
 /*
  * This is a helper to scroll the keyboard layout menu when the touch moves near
  * the edge of the top or bottom of the menu

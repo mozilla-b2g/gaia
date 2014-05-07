@@ -12,16 +12,20 @@ Keyboard.prototype = {
    * Wait for keyboard frame trasition end.
    */
   waitForDisplayed: function() {
-    var client = this.client;
+    client.waitFor(function() {
+      return this.keyboardFrameDisplayed();
+    }.bind(this));
+  },
+
+  keyboardFrameDisplayed: function() {
     // Switch to System app.
     client.switchToFrame();
+
     // Wait for the keyboard pop up and switch to it.
-    client.waitFor(function() {
-      var keyboards = client.findElement('#keyboards'),
-          classes = keyboards.getAttribute('class'),
-          transitionIn = keyboards.getAttribute('data-transition-in');
-      return ( classes.indexOf('hide') == -1 ) && transitionIn !== 'true';
-    });
+    var keyboards = client.findElement('#keyboards'),
+    classes = keyboards.getAttribute('class'),
+    transitionIn = keyboards.getAttribute('data-transition-in');
+    return ( classes.indexOf('hide') == -1 ) && transitionIn !== 'true';
   },
 
   /**

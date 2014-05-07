@@ -146,7 +146,6 @@ button::-moz-focus-inner {
 
 .keyboard-key.highlighted > .visual-wrapper > span {
   color: #00caf2;
-  background-color: #4a5255;
 }
 
 /* Show the bubble text when the button is highlighted. */
@@ -559,46 +558,6 @@ bubble above the key when you tap and hold. */
   text-align: left;
 }
 
-/* For FTU tip dialog */
-#confirm-dialog {
-  pointer-events: auto;
-  text-align: center;
-}
-
-#confirm-dialog .tip-section {
-  background-position: center center;
-  display: inline-block;
-  height: 31rem;
-}
-
-@media (orientation:landscape) {
-  #confirm-dialog .tip-section {
-    background: url(images/ftu_keyboard_landscape.png) no-repeat top left;
-    width:47rem;
-  }
-}
-
-@media (orientation:portrait) {
-  #confirm-dialog .tip-section {
-    background: url(images/ftu_keyboard.png) no-repeat top left;
-    width:28.9rem;
-  }
-}
-
-@media (min-width:768px) and (orientation:landscape) {
-  #confirm-dialog .tip-section {
-    width: 35rem;
-    height: 23rem;
-  }
-}
-
-@media (min-width:768px) and (orientation:portrait) {
-  #confirm-dialog .tip-section {
-    width: 23rem;
-    height: 25rem;
-  }
-}
-
 #keyboard.landscape .keyboard-key > .visual-wrapper > span {
   font-size: 2.8rem
 }
@@ -614,12 +573,6 @@ bubble above the key when you tap and hold. */
     height: 7rem;
     line-height: 7rem;
     font-size: 3.5rem
-}
-
-#confirm-dialog button.recommend.active {
-  border-color: #008aaa;
-  background: #008aaa;
-  color: #333;
 }
 
 .suggestions-container {
@@ -677,6 +630,15 @@ bubble above the key when you tap and hold. */
 }
 .keyboard-candidate-panel.latin > .suggestions-container.has3 > div {
   width: calc(33% - 0.6rem);
+}
+
+/* Indicator for keyboard hiding action */
+.keyboard-key[data-keycode="32"] {
+  background: url('images/icon_hide_keyboard.png') right 0.4rem top 0.4rem / 1.6rem no-repeat;
+}
+
+.keyboard-key.highlighted[data-keycode="32"] {
+  background-color: #4a5255;
 }
 
 /*
