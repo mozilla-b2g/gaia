@@ -104,7 +104,7 @@ var WindowManager = (function() {
 
   // Make the specified app the displayed app.
   // Public function.  Pass null to make the homescreen visible
-  function launch(origin) {
+  function launch(origin, app) {
     // If the origin is indeed valid we make that app as the displayed app.
     if (isRunning(origin)) {
       setDisplayedApp(origin);
@@ -114,6 +114,21 @@ var WindowManager = (function() {
     // If the origin is null, make the homescreen visible.
     if (origin == null) {
       setDisplayedApp(HomescreenLauncher.origin);
+      return;
+    }
+
+    if (app) {
+      var config = {
+        origin: app.origin,
+        url: app.url,
+        name: app.name,
+        manifest: app.manifest,
+        manifestURL: app.manifestURL
+      }
+      var e = {
+        detail: config
+      };
+      windowLauncher(e);
       return;
     }
 
