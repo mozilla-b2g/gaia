@@ -1,4 +1,4 @@
-Keyboards['dz-BT.js'] = {
+Keyboards['dz-BT'] = {
   label: 'Dzongkha',
   menuLabel: 'Dzongkha',
   alternateLayoutKey: '༡༢༣',
