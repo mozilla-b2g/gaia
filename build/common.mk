@@ -36,3 +36,7 @@ endef
 define clean-build-files
   rm -rf "$(1)$(SEP)Makefile" "$(1)$(SEP)build" "$(1)$(SEP)build.txt" "$(1)$(SEP)test" "$(1)$(SEP)README.md"
 endef
+
+define get-apps-list
+$(shell cat $(STAGE_APPS_LIST) | sed -e 's|\\|\\\\|g')
+endef
