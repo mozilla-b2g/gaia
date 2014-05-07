@@ -6,14 +6,6 @@ requireApp('costcontrol/test/unit/mock_all_network_interfaces.js');
 
 var MockCommon = function(config) {
 
-  function getMockRequiredMessage(mocking, parameter, isAFunction) {
-    var whatIsBeingAccesed = mocking + (isAFunction ? '() is being called' :
-                                                      'is being accessed');
-
-    return 'Please, ' + whatIsBeingAccesed + '. Provide the key `' +
-           parameter + '` in the constructor config object to mock it.';
-  }
-
   config = config || {};
 
   var allInterfacesFake = MockAllNetworkInterfaces;
@@ -26,17 +18,7 @@ var MockCommon = function(config) {
     localize: function (element, label, args) {
       element.textContent = label;
     },
-    isValidICCID: function(iccid) {
-      assert.isDefined(
-        config.isValidICCID,
-        getMockRequiredMessage('isValidICCID', 'isValidICCID', true)
-      );
-      return config.isValidICCID;
-    },
     waitForDOMAndMessageHandler: function(window, callback) {
-      callback();
-    },
-    checkSIM: function(callback) {
       callback();
     },
     startFTE: function(mode) {
