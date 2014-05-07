@@ -730,17 +730,14 @@ var KeyboardManager = {
         var label = layout.appName + ' ' + layout.name;
         var item = {
           label: label,
-          value: index
+          value: index,
+          selected: (index === activeLayout)
         };
-        if (index === activeLayout) {
-          item.iconClass = 'tail-icon';
-          item.icon = 'style/icons/checkmark.png';
-        }
         items.push(item);
       });
       self.hideKeyboard();
 
-      var menu = new ActionMenu(items, actionMenuTitle,
+      var menu = new ImeMenu(items, actionMenuTitle,
         function(selectedIndex) {
         if (!self.keyboardLayouts[showed.type])
           showed.type = 'text';
@@ -767,7 +764,7 @@ var KeyboardManager = {
         // Hide the tray to show the app directly after
         // user canceled.
         window.dispatchEvent(new CustomEvent('keyboardchangecanceled'));
-      }, true /* preventFocusChange */);
+      });
       menu.start();
     }, SWITCH_CHANGE_DELAY);
   },
