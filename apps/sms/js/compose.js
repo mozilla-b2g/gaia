@@ -315,7 +315,7 @@ var Compose = (function() {
       }
     }
     state.resizing = true;
-    resizedImg(imgNodes[done]);
+    resizedImg(imgNodes[0]);
     onContentChanged();
   }
 

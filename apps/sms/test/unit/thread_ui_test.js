@@ -644,6 +644,7 @@ suite('thread_ui.js >', function() {
       test('disabled while resizing oversized image and ' +
         'enabled when resize complete ',
         function(done) {
+        this.sinon.stub(Utils, 'getResizedImgBlob');
 
         ThreadUI.recipients.add({
           number: '999'
@@ -659,6 +660,7 @@ suite('thread_ui.js >', function() {
         Compose.on('input', onInput);
         Compose.append(mockImgAttachment(true));
         assert.isTrue(sendButton.disabled);
+        Utils.getResizedImgBlob.yield(testImageBlob);
       });
     });
   });
