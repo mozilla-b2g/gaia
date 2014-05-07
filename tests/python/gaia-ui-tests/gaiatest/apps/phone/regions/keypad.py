@@ -90,8 +90,7 @@ class Keypad(Phone):
 
     def wait_for_phone_number_ready(self):
         # Entering dialer and expecting a phone number there is js that sets the phone value and enables this button
-        self.wait_for_condition(lambda m:
-            'true' not in m.find_element(*self._add_new_contact_button_locator).get_attribute('aria-disabled'))
+        self.wait_for_condition(lambda m: m.find_element(*self._add_new_contact_button_locator).is_enabled())
 
     def switch_to_keypad_frame(self):
         app = self.apps.displayed_app
