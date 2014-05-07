@@ -210,11 +210,12 @@ var Compose = (function() {
       if (++done === images) {
         state.resizing = false;
         onContentChanged();
+      } else {
+        resizedImg(imgNodes[done]);
       }
     }
 
-    state.resizing = true;
-    imgNodes.forEach(function(node) {
+    function resizedImg(node) {
       var item = attachments.get(node);
       if (item.blob.size < limit) {
         imageSized();
@@ -233,7 +234,9 @@ var Compose = (function() {
           imageSized();
         });
       }
-    });
+    }
+    state.resizing = true;
+    resizedImg(imgNodes[0]);
     onContentChanged();
   }
 
