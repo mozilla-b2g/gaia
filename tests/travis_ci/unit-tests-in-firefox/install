@@ -8,5 +8,10 @@ echo 'Downloading Firefox'
 echo 'Downloading & installing node dependencies'
 make common-install
 
+echo 'Create all app list file'
+TEMP_APP_LIST=`mktemp /tmp/app.list.XXXXXX`
+echo $TEMP_APP_LIST
+echo -e 'apps/*\ndev_apps/*\noutoftree_apps/*' > $TEMP_APP_LIST
+
 echo 'Downloading xulrunner-sdk and making profile for testing (more than 5 minutes)'
-DEBUG=1 DESKTOP=0 WGET_OPTS=-nv make
+DEBUG=1 DESKTOP=0 WGET_OPTS=-nv GAIA_APP_CONFIG=$TEMP_APP_LIST make
