@@ -929,9 +929,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             for filename in self.data_layer.media_files:
                 self.device.manager.removeFile(filename)
 
-        # switch off keyboard FTU screen
-        self.data_layer.set_setting("keyboard.ftu.enabled", False)
-
         # restore settings from testvars
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
 
