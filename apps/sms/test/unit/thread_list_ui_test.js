@@ -1027,7 +1027,7 @@ suite('thread_list_ui', function() {
     });
   });
 
-  suite.only('setContact', function() {
+  suite('setContact', function() {
     var node, pictureContainer;
 
     setup(function() {
