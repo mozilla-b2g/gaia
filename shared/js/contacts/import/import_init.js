@@ -29,8 +29,9 @@
   }
 
   var servicesConnectors = {
-    'live': function(cb) {
-      LazyLoader.load('/live/js/live_connector.js', function() {
+    'live': function liveLoader(cb) {
+      LazyLoader.load('/shared/js/contacts/import/live/live_connector.js',
+      function() {
         cb(LiveConnector);
       });
     },
