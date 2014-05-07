@@ -105,7 +105,37 @@ var Contacts = (function() {
         });
         break;
       default:
-        showApp();
+        asyncStorage.getItem('draft', function onDraftGot(draft) {
+          if (!draft) {
+            showApp();
+            return;
+          }
+          initForm(function onInitForm() {
+            var id = draft.id;
+            if (!id || id === 'undefined') {
+              delete draft.id;
+              contactsForm.render(draft, goToForm);
+              showApp();
+            } else {
+              cList.getContactById(id, function onSuccess(savedContact) {
+                currentContact = savedContact;
+                var readOnly = ['id', 'updated', 'published'];
+                for (var field in draft) {
+                  if (readOnly.indexOf(field) == -1) {
+                    currentContact[field] = draft[field];
+                  }
+                }
+                contactsForm.render(currentContact, goToForm, null, false,
+                  true);
+                showApp();
+              }, function onError() {
+                delete draft.id;
+                contactsForm.render(draft, goToForm);
+                showApp();
+              });
+            }
+          });
+        });
     }
 
   };

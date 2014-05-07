@@ -159,8 +159,10 @@ contacts.Form = (function() {
 
     thumbAction.addEventListener(touchstart, function click(event) {
       // Removing current photo
-      if (event.target.tagName == 'BUTTON')
+      if (event.target.tagName == 'BUTTON') {
         saveButton.removeAttribute('disabled');
+        saveDraft();
+      }
     });
 
     formView.addEventListener('ValueModified', function onValueModified(event) {
@@ -170,19 +172,21 @@ contacts.Form = (function() {
 
       if (event.detail.prevValue !== event.detail.newValue) {
         saveButton.removeAttribute('disabled');
+        saveDraft();
       }
     });
 
     // Add listeners
     utils.listeners.add({
-      '#cancel-edit': Contacts.cancel, // Cancel edition
+      '#cancel-edit': cancelEdit, // Cancel edition
       '#save-button': saveContact,
       '#contact-form button[data-field-type]': newField
     });
   };
 
-  var saveContact = function saveContact() {
-    return contacts.Form.saveContact();
+  var cancelEdit = function cancelEdit() {
+    asyncStorage.removeItem('draft');
+    Contacts.cancel();
   };
 
   var newField = function newField(evt) {
@@ -190,7 +194,7 @@ contacts.Form = (function() {
   };
 
   var render = function cf_render(contact, callback, pFbContactData,
-                                  fromUpdateActivity) {
+                                  fromUpdateActivity, fromDraft) {
     var fbContactData = pFbContactData || [];
 
     fbContact = fbContactData[2] || {};
@@ -200,18 +204,19 @@ contacts.Form = (function() {
 
     resetForm();
     (renderedContact && renderedContact.id) ?
-       showEdit(renderedContact, fromUpdateActivity) : showAdd(renderedContact);
+       showEdit(renderedContact, fromUpdateActivity, fromDraft) :
+       showAdd(renderedContact);
     if (callback) {
       callback();
     }
   };
 
-  var showEdit = function showEdit(contact, fromUpdateActivity) {
+  var showEdit = function showEdit(contact, fromUpdateActivity, fromDraft) {
     mode = 'edit';
     if (!contact || !contact.id) {
       return;
     }
-    if (!fromUpdateActivity)
+    if (!fromUpdateActivity && !fromDraft)
       saveButton.setAttribute('disabled', 'disabled');
     saveButton.setAttribute('data-l10n-id', 'update');
     saveButton.textContent = _('update');
@@ -275,6 +280,7 @@ contacts.Form = (function() {
 
       Contacts.confirmDialog(null, msg, noObject, yesObject);
     };
+    saveDraft();
   };
 
   var showAdd = function showAdd(params) {
@@ -293,14 +299,18 @@ contacts.Form = (function() {
     params = params || {};
 
     givenName.value = params.givenName || '';
-    familyName.value = params.lastName || '';
+    familyName.value = params.familyName || params.lastName || '';
     company.value = params.company || '';
 
     var toRender = ['tel', 'email', 'adr', 'note'];
     for (var i = 0; i < toRender.length; i++) {
       var current = toRender[i];
       var rParams = params[current] || '';
-      renderTemplate(current, [{value: rParams}]);
+      if (Array.isArray(rParams)) {
+        renderTemplate(current, rParams);
+      } else {
+        renderTemplate(current, [{value: rParams}]);
+      }
     }
     checkDisableButton();
   };
@@ -506,9 +516,19 @@ contacts.Form = (function() {
     });
   };
 
+  var saveDraft = function saveDraft() {
+    saveContactOrDraft(true);
+  };
+
   var saveContact = function saveContact() {
-    saveButton.setAttribute('disabled', 'disabled');
-    showThrobber();
+    saveContactOrDraft(false);
+  };
+
+  var saveContactOrDraft = function saveContactOrDraft(draft) {
+    if (!draft) {
+      saveButton.setAttribute('disabled', 'disabled');
+      showThrobber();
+    }
 
     currentContact = currentContact || {};
     currentContact = deviceContact || currentContact;
@@ -547,6 +567,9 @@ contacts.Form = (function() {
       var fields = ['givenName', 'familyName', 'org', 'tel',
         'email', 'note', 'adr'];
       if (Contacts.isEmpty(myContact, fields)) {
+        if (draft) {
+          asyncStorage.setItem('draft', myContact);
+        }
         return;
       }
 
@@ -578,12 +601,17 @@ contacts.Form = (function() {
             createName(contact);
           }
         }
-
       } else {
         contact = utils.misc.toMozContact(myContact);
       }
 
       updateCategoryForImported(contact);
+
+      if (draft) {
+        asyncStorage.setItem('draft', myContact);
+        return;
+      }
+      asyncStorage.removeItem('draft');
 
       var callbacks = cookMatchingCallbacks(contact);
       cancelHandler = doCancel.bind(callbacks);
@@ -983,6 +1011,7 @@ contacts.Form = (function() {
     } else {
       saveButton.removeAttribute('disabled');
     }
+    saveDraft();
   };
 
 

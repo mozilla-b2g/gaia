@@ -9,6 +9,7 @@ requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/js/utilities/event_listeners.js');
 requireApp('communications/contacts/js/utilities/misc.js');
+requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
@@ -34,7 +35,8 @@ var subject,
 
 var mocksForm = new MocksHelper([
   'ConfirmDialog',
-  'ContactPhotoHelper'
+  'ContactPhotoHelper',
+  'asyncStorage'
 ]).init();
 
 suite('Render contact form', function() {
