@@ -16,6 +16,7 @@ requireApp('system/test/unit/mock_devtools_view.js');
 requireApp('system/test/unit/mock_dialer_agent.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_home_gesture.js');
+requireApp('system/test/unit/mock_home_searchbar.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_media_recording.js');
@@ -51,6 +52,7 @@ mocha.globals([
   'devtoolsView',
   'dialerAgent',
   'homeGesture',
+  'homeSearchbar',
   'homescreenLauncher',
   'layoutManager',
   'lockScreenWindowManager',
@@ -80,6 +82,7 @@ var mocksForBootstrap = new MocksHelper([
   'DialerAgent',
   'FtuLauncher',
   'HomeGesture',
+  'HomeSearchbar',
   'HomescreenLauncher',
   'MediaRecording',
   'PermissionManager',

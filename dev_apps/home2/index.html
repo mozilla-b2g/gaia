@@ -8,6 +8,7 @@
     <link rel="import" href="elements/confirm.html">
 
     <link rel="stylesheet" href="style/css/app.css">
+    <link rel="stylesheet" href="style/css/search.css">
     <link rel="stylesheet" href="style/css/zoom.css">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
 
@@ -37,9 +38,17 @@
     <script defer src="js/dragdrop.js"></script>
     <script defer src="js/zoom.js"></script>
     <script defer src="js/app.js"></script>
+    <script defer src="js/search.js"></script>
   </head>
   <body>
     <div id="edit-mode-curtain"></div>
+    <div id="search">
+      <form id="search-form">
+        <input id="search-input" type="text" x-inputmode="verbatim"
+          placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="">
+        </input>
+      </form>
+    </div>
     <div id="icons"></div>
     <div id="zoom" hidden>
       <div class="curtain"></div>
