@@ -1,0 +1,287 @@
+/* -------------------------------------------------------------------
+  HEADERS: layout
+  This is our base CSS file.
+  Form factor or Skin dependent styles should NOT be defined here.
+------------------------------------------------------------------- */
+
+section[role="region"] > header:first-child,
+gaia-header {
+  position: relative;
+  display: block;
+  z-index: 10;
+  padding: 0;
+  height: 5rem;
+  border: none;
+}
+
+section[role="region"] > header:first-child h1,
+gaia-header h1 {
+  font-size: 2.3rem;
+  line-height: 5rem;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+  overflow: hidden;
+  margin: 0;
+  padding: 0 1rem 0 3rem;
+  height: 100%;
+  font-weight: lighter;
+  font-style: italic;
+}
+
+section[role="region"] > header:first-child h1 em,
+gaia-header h1 em {
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1em;
+  font-style: normal;
+}
+
+/**
+  * Forms in header are only used in email app.
+  * Incorrect UI style.
+  * Sould be removed after landing bug 1001298
+  */
+
+section[role="region"] > header:first-child form {
+  display: block;
+  overflow: hidden;
+  position: relative;
+  padding: 1rem 1rem 0 0.5rem ;
+  margin-left: 3.5rem;
+}
+
+section[role="region"] > header:first-child input[type="text"] {
+  width: 100%;
+  height: 3rem;
+  box-sizing: border-box;
+  padding: 0 0.8rem;
+  border: solid 0.1rem #9d4123;
+  border-top-color: #a6501e;
+  border-radius: 0;
+  background: #fff;
+  font-size: 1.5rem;
+  line-height: 3em;
+  box-shadow: none;
+}
+
+section[role="region"] > header:first-child form button[type="reset"] {
+  font-size: 0;
+  overflow: hidden;
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  bottom: 0;
+  width: 3rem;
+  height: auto;
+  margin: 0;
+  display: none;
+  border: none;
+  background: url(images/icons/clear.png) no-repeat center center / 1.7rem auto;
+}
+
+section[role="region"] > header:first-child input[type="text"]:valid + button[type="reset"] {
+  display: block;
+}
+
+section[role="region"] > header:first-child menu {
+  height: 100%;
+  float: right;
+  padding: 0;
+  margin: 0;
+}
+
+/* ----------------------------------
+  Buttons
+---------------------------------- */
+
+section[role="region"] > header:first-child a,
+section[role="region"] > header:first-child button,
+gaia-header a,
+gaia-header button {
+  box-sizing: border-box;
+  position: absolute;
+  display: block;
+  overflow: hidden;
+  float: left;
+  width: 5rem;
+  height: 5rem;
+  border: none;
+  background: none;
+  padding: 0;
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1.1em;
+  border-radius: 0;
+  text-decoration: none;
+  margin: 0 -5rem 0 0;
+}
+
+section[role="region"] > header:first-child button:after,
+section[role="region"] > header:first-child a:after,
+gaia-header a:after,
+gaia-header button:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  width: 2.6rem;
+  height: 5rem;
+}
+
+section[role="region"] > header:first-child menu a,
+section[role="region"] > header:first-child menu button,
+gaia-header a,
+gaia-header button {
+  position: relative;
+  float: left;
+  width: auto;
+  min-width: 5rem;
+  padding: 0 1rem;
+  margin: 0;
+  line-height: 5rem;
+  text-align: center;
+  text-shadow: none;
+  z-index: 5;
+  font-style: italic;
+}
+
+section[role="region"] > header:first-child menu a:after,
+section[role="region"] > header:first-child menu button:after,
+gaia-header a:after,
+gaia-header button:after {
+  width: 100%;
+}
+
+/* Pressed state */
+section[role="region"] > header:first-child a:focus,
+gaia-header a:focus {
+  outline: none;
+}
+
+section[role="region"] > header:first-child button::-moz-focus-inner,
+gaia-header button::-moz-focus-inner {
+  outline: none;
+  border: none;
+  margin-top: -0.2rem; /* To fix line-height bug (697451) */
+  padding: 0;
+}
+
+/* Disabled state */
+section[role="region"] > header:first-child a[aria-disabled="true"],
+section[role="region"] > header:first-child button[disabled],
+gaia-header a[aria-disabled="true"],
+gaia-header button[disabled] {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* ----------------------------------
+  Icons
+---------------------------------- */
+
+section[role="region"] > header:first-child .icon {
+  display: block;
+  width: 3rem;
+  height: 5rem;
+  background: transparent no-repeat -0.2rem center / 3rem auto;
+  font-size: 0;
+}
+
+section[role="region"] > header:first-child menu .icon,
+gaia-header [data-icon] {
+  background-position: center;
+}
+
+gaia-header [data-icon] {
+  font-size: 0;
+}
+
+gaia-header [data-icon]:before {
+  position: absolute;
+  content: "";
+  width: 3rem;
+  height: 3rem;
+  background: transparent no-repeat center / 3rem auto;
+  top: 1rem;
+  left: 1rem;
+}
+
+/* ----------------------------------
+  Subheader
+---------------------------------- */
+
+section[role="region"] > header {
+  z-index: 0;
+  height: auto;
+}
+
+section[role="region"] header h2 {
+  margin: 0;
+  padding: 0.8rem 3rem;
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1.8rem;
+}
+
+/* ----------------------------------
+  right-to-left
+---------------------------------- */
+
+html[dir="rtl"] section[role="region"] > header:first-child h1,
+html[dir="rtl"] gaia-header h1 {
+  text-align: right;
+  padding: 0 3rem 0 1rem;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child form {
+  padding: 1rem .5rem 0 1rem;
+  margin-right: 3.5rem;
+  margin-left:0;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child form button[type="reset"] {
+  left: 1rem;
+  right: inherit;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child menu {
+  float: left;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child button,
+html[dir="rtl"] section[role="region"] > header:first-child a,
+html[dir="rtl"] gaia-header button,
+html[dir="rtl"] gaia-header a {
+  float: right;
+  margin: 0 0 0 -5rem;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child menu a,
+html[dir="rtl"] section[role="region"] > header:first-child menu button,
+html[dir="rtl"] gaia-header button,
+html[dir="rtl"] gaia-header a {
+  margin: 0;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child button:after,
+html[dir="rtl"] section[role="region"] > header:first-child a:after,
+html[dir="rtl"] gaia-header button:after,
+html[dir="rtl"] gaia-header a:after {
+  right: 0;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child .icon {
+  background-position: 0.2rem center;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child menu .icon {
+  background-position: center;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child .icon.icon-back {
+  background-position: -0.2rem center;
+  transform: rotate(180deg);
+}
