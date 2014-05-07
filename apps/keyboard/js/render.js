@@ -206,6 +206,8 @@ const IMERender = (function() {
         var ratio = key.ratio || 1;
         rowLayoutWidth += ratio;
 
+        var outputChar = flags.uppercase ? upperCaseKeyChar : keyChar;
+
         var keyWidth = placeHolderWidth * ratio;
         var dataset = [{'key': 'row', 'value': nrow}];
         dataset.push({'key': 'column', 'value': ncolumn});
@@ -222,7 +224,9 @@ const IMERender = (function() {
             value: 'true'
           });
         }
-        var outputChar = flags.uppercase ? upperCaseKeyChar : keyChar;
+
+        dataset.push({'key': 'lowercaseLabel', 'value': keyChar });
+
         kbRow.appendChild(buildKey(outputChar, className, keyWidth + 'px',
           dataset, key.altNote, attributeList));
       }));
@@ -259,19 +263,21 @@ const IMERender = (function() {
     ime.dataset.hidden = 'true';
   };
 
-  // Highlight a key
-  var highlightKey = function kr_updateKeyHighlight(key, alternativeKey) {
+  // Highlight the key according to the case.
+  var highlightKey = function kr_updateKeyHighlight(key, options) {
     key.classList.add('highlighted');
 
-    if (alternativeKey) {
-      var spanToReplace = key.querySelector('.visual-wrapper span');
-      spanToReplace.textContent = alternativeKey;
+    // Show lowercase pop.
+    if (options &&
+        (!options.isUpperCase && !options.isUpperCaseLocked)) {
+      key.classList.add('lowercase');
     }
   };
 
   // Unhighlight a key
   var unHighlightKey = function kr_unHighlightKey(key) {
     key.classList.remove('highlighted');
+    key.classList.remove('lowercase');
   };
 
   // Show pending symbols with highlight (selection) if provided
@@ -867,9 +873,21 @@ const IMERender = (function() {
     // Using innerHTML here because some labels (so far only the &nbsp; in the
     // space key) can be HTML entities.
     labelNode.innerHTML = label;
+    labelNode.className = 'key-element';
     labelNode.dataset.label = label;
-
     vWrapperNode.appendChild(labelNode);
+
+    // Add uppercase and lowercase pop-up for highlighted key
+    labelNode = document.createElement('span');
+    labelNode.innerHTML = label;
+    labelNode.className = 'uppercase popup';
+    vWrapperNode.appendChild(labelNode);
+
+    labelNode = document.createElement('span');
+    labelNode.innerHTML = contentNode.dataset.lowercaseLabel;
+    labelNode.className = 'lowercase popup';
+    vWrapperNode.appendChild(labelNode);
+
     if (altNoteNode) {
       vWrapperNode.appendChild(altNoteNode);
     }

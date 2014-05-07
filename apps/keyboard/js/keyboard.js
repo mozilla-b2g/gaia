@@ -1180,7 +1180,10 @@ function startPress(target, coords, touchId) {
   // Feedback
   var isSpecialKey = specialCodes.indexOf(keyCode) >= 0 || keyCode < 0;
   triggerFeedback(isSpecialKey);
-  IMERender.highlightKey(target);
+  IMERender.highlightKey(target, {
+    isUpperCase: isUpperCase,
+    isUpperCaseLocked: isUpperCaseLocked
+  });
 
   setMenuTimeout(target, coords, touchId);
 
@@ -1267,8 +1270,12 @@ function movePress(target, coords, touchId) {
   var keyCode = getKeyCodeFromTarget(target);
 
   // Update highlight: add to the new (Ignore if moving over delete key)
-  if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
-    IMERender.highlightKey(target);
+  if (keyCode != KeyEvent.DOM_VK_BACK_SPACE) {
+    IMERender.highlightKey(target, {
+      isUpperCase: isUpperCase,
+      isUpperCaseLocked: isUpperCaseLocked
+    });
+  }
 
   setCurrentKey(target, touchId);
 

@@ -65,19 +65,19 @@ button::-moz-focus-inner {
   background-color: #525c5e;
 }
 
-.row0 > .keyboard-key > .visual-wrapper > span {
+.row0 > .keyboard-key > .visual-wrapper > .key-element {
   border-right-color: #525b5e;
 }
 
-.row1 > .keyboard-key > .visual-wrapper > span {
+.row1 > .keyboard-key > .visual-wrapper > .key-element {
   border-right-color: #4c5657;
 }
 
-.row2 > .keyboard-key > .visual-wrapper > span {
+.row2 > .keyboard-key > .visual-wrapper > .key-element {
   border-right-color: #475052;
 }
 
-.row3 > .keyboard-key > .visual-wrapper > span {
+.row3 > .keyboard-key > .visual-wrapper > .key-element {
   border-right-color: #434b4d;
 }
 
@@ -106,7 +106,7 @@ button::-moz-focus-inner {
 }
 
 /* Standard key styles. */
-.keyboard-key > .visual-wrapper > span {
+.keyboard-key > .visual-wrapper > .key-element {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -121,8 +121,7 @@ button::-moz-focus-inner {
   border-left: 0.1rem solid transparent;
 }
 
-.keyboard-key > .visual-wrapper > span:after {
-  content: attr(data-label);
+.popup {
   position: absolute;
   top: -5.8rem;
   left: calc(50% - 2.8rem);
@@ -134,41 +133,56 @@ button::-moz-focus-inner {
   border-radius: 50%;
   background-color: #00aacc;
   visibility: hidden;
+
+  /* To override the text-align in .float-key-first and .float-key-last */
+  text-align: center;
 }
 
 .keyboard-key.highlighted {
   background-color: #4a5255;
 }
 
-.keyboard-key:last-child > .visual-wrapper > span {
+.keyboard-key:last-child > .visual-wrapper > .key-element {
   border-right: transparent;
 }
 
-.keyboard-key.highlighted > .visual-wrapper > span {
+.keyboard-key.highlighted > .visual-wrapper > .key-element {
   color: #00caf2;
 }
 
 /* Show the bubble text when the button is highlighted. */
-.keyboard-key.highlighted > .visual-wrapper > span:after {
+.keyboard-key.highlighted > .visual-wrapper > .popup {
   z-index: 1;
   visibility: visible;
 }
 
-.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span:after {
-  display: none;
+/* Special rules for lowercase and uppercase popups */
+
+/* Default is uppercase, so hide the lowercase popup */
+.keyboard-key.highlighted > .visual-wrapper > .popup.lowercase {
+  visibility: hidden;
 }
 
-.keyboard-row button:last-child.highlighted > .visual-wrapper > span:after {
+/* For lowercase, hide the uppercase popup and show the lowercase one */
+.keyboard-key.highlighted.lowercase > .visual-wrapper > .popup.lowercase {
+  visibility: visible;
+}
+
+.keyboard-key.highlighted.lowercase > .visual-wrapper > .popup.uppercase {
+  visibility: hidden;
+}
+
+.keyboard-row button:last-child.highlighted > .visual-wrapper > .popup {
   left: -2.4rem;
 }
 
-.keyboard-row button:first-child.highlighted > .visual-wrapper > span:after {
+.keyboard-row button:first-child.highlighted > .visual-wrapper > .popup {
   left: 0;
 }
 
 
 /* Special keys */
-.keyboard-key.special-key > .visual-wrapper > span {
+.keyboard-key.special-key > .visual-wrapper > .key-element {
   top: 0;
   right: 0;
   bottom: 0;
@@ -178,14 +192,14 @@ button::-moz-focus-inner {
 }
 
 /* Highlight for special keys */
-.keyboard-key.special-key.highlighted > .visual-wrapper > span {
+.keyboard-key.special-key.highlighted > .visual-wrapper > .key-element {
   color: #00b8d6;
 }
 
 .keyboard-key.special-key.highlighted > .visual-wrapper:before,
 .keyboard-key.special-key.highlighted > .visual-wrapper:after,
-.keyboard-key.special-key.highlighted > .visual-wrapper > span:after,
-.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span:after,
+.keyboard-key.special-key.highlighted > .visual-wrapper > .popup,
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > .popup,
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper:before {
   opacity: 0;
 }
@@ -203,12 +217,12 @@ button::-moz-focus-inner {
   background-color:  #585D5D;
 }
 
-.keyboard-key.special-key[disabled="true"] > .visual-wrapper > span {
+.keyboard-key.special-key[disabled="true"] > .visual-wrapper > .key-element {
   color: #888;
 }
 
 /* Special keys - text */
-.keyboard-key.special-key.text > .visual-wrapper > span {
+.keyboard-key.special-key.text > .visual-wrapper > .key-element {
   font-family: Sans-serif;
 }
 
@@ -218,14 +232,14 @@ button::-moz-focus-inner {
   display: inherit;
 }
 
-.keyboard-key.special-key.highlighted.kbr-menu-on .visual-wrapper > span {
+.keyboard-key.special-key.highlighted.kbr-menu-on .visual-wrapper > .key-element {
   font-size: 0;
 }
 
 /* Key states */
 /* Active key, used for caps Lock key */
-.keyboard-key.kbr-key-active > .visual-wrapper > span,
-.keyboard-key.special-key.kbr-key-hold > .visual-wrapper > span {
+.keyboard-key.kbr-key-active > .visual-wrapper > .key-element,
+.keyboard-key.special-key.kbr-key-hold > .visual-wrapper > .key-element {
   color: #00caf2;
 }
 
@@ -235,15 +249,15 @@ button::-moz-focus-inner {
 
 
 /* Alt menu enabled */
-.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span {
+.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > .key-element {
   background: none;
 }
 
-.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span:after {
+.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > .popup {
   display: none;
 }
 
-.keyboard-key.pinyin-ch-ellipsis > .visual-wrapper > span {
+.keyboard-key.pinyin-ch-ellipsis > .visual-wrapper > .key-element {
   font-size: 1.6rem;
 }
 
@@ -302,35 +316,35 @@ and displays the list of alternatives. */
   border-right: 1px solid #0099b8;
 }
 
-#keyboard-accent-char-menu .keyboard-key > .visual-wrapper span {
+#keyboard-accent-char-menu .keyboard-key > .visual-wrapper .key-element {
   background: none;
   border-radius: 0;
 }
 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:after,
-#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span:after {
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > .popup {
   display: none;
 }
 
 /* Styles for keys in accent menu (not highlighted). */
-#keyboard-accent-char-menu .keyboard-key > .visual-wrapper > span {
+#keyboard-accent-char-menu .keyboard-key > .visual-wrapper > .key-element {
   border: none;
   line-height: 6rem;
   font-weight: 500;
   color: #fff;
 }
 
-#keyboard-accent-char-menu .keyboard-key:first-child > .visual-wrapper > span {
+#keyboard-accent-char-menu .keyboard-key:first-child > .visual-wrapper > .key-element {
   padding-left: 0.5rem;
 }
 
-#keyboard-accent-char-menu .keyboard-key:last-child > .visual-wrapper > span {
+#keyboard-accent-char-menu .keyboard-key:last-child > .visual-wrapper > .key-element {
   padding-right: 0.5rem;
 }
 
 /* Highlighted special accent characters. These keys appear in the popover
 bubble above the key when you tap and hold. */
-#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span {
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > .key-element {
   background-color: #0099b8;
 }
 
@@ -532,7 +546,7 @@ bubble above the key when you tap and hold. */
   visibility: hidden;
 }
 
-.keyboard-key.big-key > .visual-wrapper span {
+.keyboard-key.big-key > .visual-wrapper .key-element {
   font-size: 3rem;
   font-weight: normal;
   color: #fff;
@@ -558,15 +572,15 @@ bubble above the key when you tap and hold. */
   text-align: left;
 }
 
-#keyboard.landscape .keyboard-key > .visual-wrapper > span {
+#keyboard.landscape .keyboard-key > .visual-wrapper > .key-element {
   font-size: 2.8rem
 }
 
-#keyboard.landscape .keyboard-key.special-key > .visual-wrapper > span {
+#keyboard.landscape .keyboard-key.special-key > .visual-wrapper > .key-element {
   font: 500 2.1rem/4.3rem 'Keyboard Symbols', sans-serif;
 }
 
-#keyboard.landscape .keyboard-key.highlighted > .visual-wrapper > span:after {
+#keyboard.landscape .keyboard-key.highlighted > .visual-wrapper > .popup {
     top: -7rem;
     left: calc(50% - 3.5rem);
     width: 7rem;
@@ -648,7 +662,7 @@ bubble above the key when you tap and hold. */
  */
 
 /* Arabic */
-.ar .keyboard-key > .visual-wrapper > span{
+.ar .keyboard-key > .visual-wrapper > .key-element {
   font-size: 1.8rem;
 }
 
@@ -683,7 +697,7 @@ bubble above the key when you tap and hold. */
 }
 
 /* Tamil */
-.keyboard-key.tamil > .visual-wrapper > span:after {
+.keyboard-key.tamil > .visual-wrapper > .popup {
   width: auto;
   min-width: 4.4rem;
   padding-left: 0.6rem;
@@ -692,7 +706,7 @@ bubble above the key when you tap and hold. */
 }
 
 .keyboard-row button:last-child.tamil.highlighted >
-  .visual-wrapper > span:after {
+  .visual-wrapper > .popup {
   left: auto;
   right: 0;
 }
@@ -702,7 +716,7 @@ bubble above the key when you tap and hold. */
     font-size: 1.1rem;
   }
 
-  .keyboard-key.tamil > .visual-wrapper > span {
+  .keyboard-key.tamil > .visual-wrapper > .key-element {
     font-size: 2rem;
   }
 
@@ -739,7 +753,7 @@ bubble above the key when you tap and hold. */
   }
 
   #keyboard.landscape .keyboard-key.tamil.highlighted >
-    .visual-wrapper > span:after {
+    .visual-wrapper > .popup {
     top: -7rem;
     left: calc(50% - 3.5rem);
     width: auto;
@@ -753,7 +767,7 @@ bubble above the key when you tap and hold. */
   }
 
   #keyboard.landscape .keyboard-row button:last-child.tamil.highlighted >
-    .visual-wrapper > span:after {
+    .visual-wrapper > .popup {
     left: auto;
     right: 0;
   }
