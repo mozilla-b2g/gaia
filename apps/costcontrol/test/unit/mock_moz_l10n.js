@@ -19,6 +19,9 @@ var MockMozL10n = {
         return 'just now';
       }
     }
+    if (key === 'weekStartsOnMonday') {
+      return '0';
+    }
     return key;
   },
   ready: function(cb) {

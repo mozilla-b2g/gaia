@@ -25,9 +25,12 @@ var MockConfigManager = function(config) {
 
   var fakeSettings = config.fakeSettings || {};
   var fakeConfiguration = config.fakeConfiguration || {};
-
+  var mCallbacks = {};
   return {
-    option: function(key) {
+    option: function(key, value) {
+      if (value) {
+        fakeSettings[key] = value;
+      }
       return fakeSettings[key];
     },
     requestAll: function(callback) {
@@ -45,9 +48,17 @@ var MockConfigManager = function(config) {
       callback(JSON.parse(JSON.stringify(fakeSettings), settingsReviver));
     },
     setOption: function(options, callback) {
+      Object.keys(options).forEach(function (name) {
+        fakeSettings[name] = options[name];
+      });
       (typeof callback === 'function') && callback();
     },
-    observe: function() {},
+    observe: function(name, callback, avoidInitialCall) {
+      if (typeof mCallbacks[name] !== 'function') {
+        mCallbacks[name] = [];
+      }
+      mCallbacks[name] = callback;
+    },
     getApplicationMode: function() {
       assert.isDefined(
         config.applicationMode,
@@ -55,6 +66,14 @@ var MockConfigManager = function(config) {
       );
       return config.applicationMode;
     },
-    get configuration() { return config; }
+    get configuration() { return config; },
+    mTriggerCallback: function(name, value, settings) {
+      if (typeof mCallbacks[name] === 'function') {
+        mCallbacks[name](value, null, name, settings);
+      }
+    },
+    mRemoveObservers: function() {
+      mCallbacks = {};
+    }
   };
 };

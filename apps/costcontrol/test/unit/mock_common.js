@@ -84,6 +84,26 @@ var MockCommon = function(config) {
           onsuccess(Common.dataSimIccId);
         }
       }, 0);
+    },
+    localizeWeekdaySelector: function _localizeWeekdaySelector(selector) {
+      var weekStartsOnMonday =
+        !!parseInt(navigator.mozL10n.get('weekStartsOnMonday'), 10);
+
+      var monday = selector.querySelector('.monday');
+      var sunday = selector.querySelector('.sunday');
+      var list = monday.parentNode;
+      if (weekStartsOnMonday) {
+        list.insertBefore(monday, list.childNodes[0]); // monday is the first
+        list.appendChild(sunday); // sunday is the last
+      } else {
+        list.insertBefore(sunday, list.childNodes[0]); // sunday is the first
+        list.insertBefore(monday, sunday.nextSibling); // monday is the second
+      }
+    },
+    getDataLimit: function _getDataLimit(settings) {
+      var multiplier = (settings.dataLimitUnit === 'MB') ?
+                       1000000 : 1000000000;
+      return settings.dataLimitValue * multiplier;
     }
   };
 };

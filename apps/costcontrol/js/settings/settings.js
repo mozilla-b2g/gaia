@@ -136,7 +136,7 @@ var Settings = (function() {
 
       initialized = true;
 
-      updateUI();
+      Settings.updateUI();
     });
   }
 
