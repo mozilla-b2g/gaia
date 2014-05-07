@@ -254,8 +254,9 @@ ComposeCard.prototype = {
                                                             folder,
                                                             data.options,
                                                             function() {
-            if (data.onComposer)
-              data.onComposer(this.composer);
+            if (data.onComposer) {
+              data.onComposer(this.composer, this);
+            }
 
             this._loadStateFromComposer();
           }.bind(this));
@@ -293,7 +294,7 @@ ComposeCard.prototype = {
     }
 
     // Add attachments
-    this.insertAttachments();
+    this.renderAttachments();
 
     this.subjectNode.value = this.composer.subject;
     this.populateEditor(this.composer.body.text);
@@ -546,7 +547,78 @@ ComposeCard.prototype = {
     focusInputAndPositionCursorFromContainerClick(evt, input);
   },
 
-  insertAttachments: function() {
+  /**
+   * Helper to show the appropriate error when we refuse to add attachments.
+   */
+  _warnAttachmentSizeExceeded: function(numAttachments) {
+    var dialog = msgAttachConfirmNode.cloneNode(true);
+    var title = dialog.getElementsByTagName('h1')[0];
+    var content = dialog.getElementsByTagName('p')[0];
+
+    if (numAttachments > 1) {
+      title.textContent = mozL10n.get('composer-attachments-large');
+      content.textContent = mozL10n.get('compose-attchments-size-exceeded');
+    } else {
+      title.textContent = mozL10n.get('composer-attachment-large');
+      content.textContent = mozL10n.get('compose-attchment-size-exceeded');
+    }
+    ConfirmDialog.show(dialog,
+     {
+      // ok
+      id: 'msg-attach-ok',
+      handler: function() {
+        // There is nothing to do.
+      }.bind(this)
+     }
+    );
+  },
+
+  /**
+   * Given a list of Blobs/Files that we want to attach, attach as many as
+   * possible and generate an error message for any we can't attach.  This will
+   * update the UI as a side-effect; you do not need to do it.
+   */
+  addAttachmentsSubjectToSizeLimits: function(toAttach) {
+    var totalSize = 0;
+    // Tally the size of the already-attached attachments.
+    if (this.composer.attachments) {
+      this.composer.attachments.forEach(function(attachment) {
+        totalSize += attachment.blob.size;
+      });
+    }
+
+    // Keep attaching until we find one that puts us over the limit.  Then
+    // generate an error whose plurality is based on the number of attachments
+    // we are not attaching.  We do not do any bin-packing smarts where we try
+    // and see if any of the attachments in `toAttach` might fit.
+    //
+    // This specific behaviour is potentially a little odd; we're going with
+    // consistency of the original implementation of bug 871852 but without the
+    // horrible bug introduced by bug 871897 and being addressed by this in bug
+    // 1006271.
+    var attachedAny = false;
+    while (toAttach.length) {
+      var attachment = toAttach.shift();
+      totalSize += attachment.blob.size;
+      if (totalSize >= MAX_ATTACHMENT_SIZE) {
+        this._warnAttachmentSizeExceeded(1 + toAttach.length);
+        break;
+      }
+
+      this.composer.addAttachment(attachment);
+      attachedAny = true;
+    }
+
+    if (attachedAny) {
+      this.renderAttachments();
+    }
+  },
+
+  /**
+   * Build the UI that displays the current attachments.  Invokes
+   * `updateAttachmentsSize` too so you don't have to.
+   */
+  renderAttachments: function() {
     var attachmentsContainer =
       this.domNode.getElementsByClassName('cmp-attachment-container')[0];
 
@@ -559,41 +631,9 @@ ComposeCard.prototype = {
             attTemplate.getElementsByClassName('cmp-attachment-filename')[0],
           filesizeTemplate =
             attTemplate.getElementsByClassName('cmp-attachment-filesize')[0];
-      var totalSize = 0;
+
       for (var i = 0; i < this.composer.attachments.length; i++) {
         var attachment = this.composer.attachments[i];
-        //check for attachment max size
-        if ((totalSize + attachment.blob.size) > MAX_ATTACHMENT_SIZE) {
-
-          /*Remove all the remaining attachments from composer*/
-          while (this.composer.attachments.length > i) {
-            this.composer.removeAttachment(this.composer.attachments[i]);
-          }
-          var dialog = msgAttachConfirmNode.cloneNode(true);
-          var title = dialog.getElementsByTagName('h1')[0];
-          var content = dialog.getElementsByTagName('p')[0];
-
-          if (this.composer.attachments.length > 0) {
-            title.textContent = mozL10n.get('composer-attachments-large');
-            content.textContent =
-            mozL10n.get('compose-attchments-size-exceeded');
-          } else {
-            title.textContent = mozL10n.get('composer-attachment-large');
-            content.textContent =
-            mozL10n.get('compose-attchment-size-exceeded');
-          }
-          ConfirmDialog.show(dialog,
-           {
-            // ok
-            id: 'msg-attach-ok',
-            handler: function() {
-              this.updateAttachmentsSize();
-            }.bind(this)
-           }
-          );
-          return;
-        }
-        totalSize = totalSize + attachment.blob.size;
         filenameTemplate.textContent = attachment.name;
         filesizeTemplate.textContent = prettyFileSize(attachment.blob.size);
         var attachmentNode = attTemplate.cloneNode(true);
@@ -614,6 +654,10 @@ ComposeCard.prototype = {
     }
   },
 
+  /**
+   * Update the summary that says how many attachments we have and the aggregate
+   * attachment size.
+   */
   updateAttachmentsSize: function() {
     var attachmentLabel =
       this.domNode.getElementsByClassName('cmp-attachment-label')[0];
@@ -646,10 +690,11 @@ ComposeCard.prototype = {
     }
 
     // Only display the total size when the number of attachments is more than 1
-    if (this.composer.attachments.length > 1)
+    if (this.composer.attachments.length > 1) {
       attachmentTotal.classList.remove('collapsed');
-    else
+    } else {
       attachmentTotal.classList.add('collapsed');
+    }
   },
 
   onClickRemoveAttachment: function(node, attachment) {
@@ -857,12 +902,10 @@ ComposeCard.prototype = {
 
           name = name.substring(name.lastIndexOf('/') + 1);
 
-          this.composer.addAttachment({
+          this.addAttachmentsSubjectToSizeLimits([{
             name: name,
             blob: activity.result.blob
-          });
-
-          this.insertAttachments();
+          }]);
         }.bind(this));
       }).bind(this);
     } catch (e) {
