@@ -237,6 +237,24 @@ const specialCodes = [
   KeyEvent.DOM_VK_SPACE
 ];
 
+const ariaLabelMap = {
+  '⇪': 'upperCaseKey',
+  '⌫': 'backSpaceKey',
+  '&nbsp': 'spaceKey',
+  '↵': 'returnKey',
+  '.': 'periodKey',
+  ',': 'commaKey',
+  ':': 'colonKey',
+  ';': 'semicolonKey',
+  '?': 'questionMarkKey',
+  '!': 'exclamationPointKey',
+  '(': 'leftBracketKey',
+  ')': 'rightBracketKey',
+  '"': 'doubleQuoteKey',
+  '«': 'leftDoubleAngleQuoteKey',
+  '»': 'rightDoubleAngleQuoteKey'
+};
+
 // These values are initialized with user settings
 var suggestionsEnabled;
 var correctionsEnabled;
@@ -323,7 +341,7 @@ function initKeyboard() {
   });
 
   // Initialize the rendering module
-  IMERender.init(getUpperCaseValue, isSpecialKeyObj);
+  IMERender.init(getUpperCaseValue, isSpecialKeyObj, getAriaLabel);
 
   // Attach event listeners to the element that does rendering
   for (var event in eventHandlers) {
@@ -456,6 +474,11 @@ function setKeyboardName(name, callback) {
       callback(keyboard);
     }
   }
+}
+
+function getAriaLabel(key) {
+  var _ = navigator.mozL10n.get;
+  return _(key.ariaLabel || ariaLabelMap[key.value] || key.value);
 }
 
 // Support function for render
@@ -596,14 +619,16 @@ function modifyLayout(keyboardName) {
         row.splice(c, 0, {
           keyCode: ALTERNATE_LAYOUT,
           value: alternateLayoutKey,
-          ratio: 1.5
+          ratio: 1.5,
+          ariaLabel: 'alternateLayoutKey'
         });
 
       } else {
         row.splice(c, 0, {
           keyCode: BASIC_LAYOUT,
           value: basicLayoutKey,
-          ratio: 1.5
+          ratio: 1.5,
+          ariaLabel: 'basicLayoutKey'
         });
       }
       c += 1;

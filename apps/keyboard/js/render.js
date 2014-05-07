@@ -14,7 +14,7 @@
 const IMERender = (function() {
 
   var ime, activeIme, menu;
-  var getUpperCaseValue, isSpecialKey;
+  var getUpperCaseValue, isSpecialKey, getAriaLabel;
 
   var _menuKey, _altContainer;
 
@@ -36,9 +36,10 @@ const IMERender = (function() {
   // Initialize the render. It needs some business logic to determine:
   //   1- The uppercase for a key object
   //   2- When a key is a special key
-  var init = function kr_init(uppercaseFunction, keyTest) {
+  var init = function kr_init(uppercaseFunction, keyTest, labelGetter) {
     getUpperCaseValue = uppercaseFunction;
     isSpecialKey = keyTest;
+    getAriaLabel = labelGetter || function() { return ''; };
     ime = document.getElementById('keyboard');
     menu = document.getElementById('keyboard-accent-char-menu');
 
@@ -87,6 +88,8 @@ const IMERender = (function() {
       capsLockKey.classList.remove('kbr-key-active');
       capsLockKey.classList.remove('kbr-key-hold');
     }
+
+    capsLockKey.setAttribute('aria-pressed', !!state);
   };
 
   // Draw the keyboard and its components. Meat is here.
@@ -228,7 +231,7 @@ const IMERender = (function() {
         dataset.push({'key': 'lowercaseLabel', 'value': keyChar });
 
         kbRow.appendChild(buildKey(outputChar, className, keyWidth + 'px',
-          dataset, key.altNote, attributeList));
+          dataset, key.altNote, attributeList, getAriaLabel(key)));
       }));
 
       kbRow.dataset.layoutWidth = rowLayoutWidth;
@@ -594,7 +597,8 @@ const IMERender = (function() {
       // characters in the original and the alternative
       var width = 0.75 * key.offsetWidth / keycharwidth * alt.length;
 
-      content.appendChild(buildKey(alt, '', width + 'px', dataset));
+      content.appendChild(buildKey(alt, '', width + 'px', dataset, null, null,
+        getAriaLabel(key)));
     });
     menu.innerHTML = '';
     menu.appendChild(content);
@@ -834,7 +838,7 @@ const IMERender = (function() {
   };
 
   var buildKey = function buildKey(label, className, width, dataset, altNote,
-                                   attributeList) {
+                                   attributeList, ariaLabel) {
 
     var altNoteNode;
     if (altNote) {
@@ -857,14 +861,16 @@ const IMERender = (function() {
       contentNode.dataset[data.key] = data.value;
     });
 
-    if (contentNode.dataset.keycode != KeyboardEvent.DOM_VK_RETURN &&
-        contentNode.dataset.keycode != KeyboardEvent.DOM_VK_BACK_SPACE) {
+    if (!contentNode.classList.contains('special-key')) {
       // The 'key' role tells an assistive technology that these buttons
       // are used for composing text or numbers, and should be easier to
-      // activate than usual buttons. We keep return and backspace as
+      // activate than usual buttons. We keep special keys, like backsapce, as
       // buttons so that their activation is not performed by mistake.
       contentNode.setAttribute('role', 'key');
     }
+
+    // Set aria-label
+    contentNode.setAttribute('aria-label', ariaLabel);
 
     var vWrapperNode = document.createElement('span');
     vWrapperNode.className = 'visual-wrapper';
