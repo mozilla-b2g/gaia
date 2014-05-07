@@ -58,6 +58,7 @@
      * Displays the icon as a background of the element.
      */
     displayIcon: function(url) {
+      this.element.style.height = layout.gridIconSize + 'px';
       this.element.style.backgroundSize = layout.gridIconSize + 'px';
       this.element.style.backgroundImage = 'url(' + (url || this.icon) + ')';
     },

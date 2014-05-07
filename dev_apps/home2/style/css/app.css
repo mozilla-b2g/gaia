@@ -14,7 +14,6 @@ html, body, .icons {
   will-change: transform;
   display: inline-block;
   width: calc(100% / 3);
-  height: 9rem;
   text-align: center;
   background: no-repeat top center;
   z-index: 3;
@@ -22,11 +21,15 @@ html, body, .icons {
 
 .icon .title {
   display: inline-block;
-  margin-top: 9rem;
   pointer-events: none;
   color: #fff;
   font-size: 1.2rem;
   text-shadow: 0 0 0.5rem rgba(0,0,0,0.5);
+  position: absolute;
+  bottom: -2rem;
+  left: 0;
+  width: 100%;
+  white-space: nowrap;
 }
 
 .divider {
