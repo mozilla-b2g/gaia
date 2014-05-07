@@ -10,37 +10,38 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
-requireApp('system/test/unit/mock_accessibility.js');
-requireApp('system/test/unit/mock_activities.js');
+
+requireApp('system/js/accessibility.js');
+requireApp('system/js/activities.js');
+requireApp('system/js/activity_window_factory.js');
+requireApp('system/js/activity_window_manager.js');
+requireApp('system/js/app_window_factory.js');
+requireApp('system/js/devtools_view.js');
+requireApp('system/js/dialer_agent.js');
+requireApp('system/js/rocketbar.js');
+requireApp('system/js/home_searchbar.js');
+requireApp('system/js/homescreen_launcher.js');
+requireApp('system/js/layout_manager.js');
+requireApp('system/js/lockscreen_window_manager.js');
+requireApp('system/js/media_recording.js');
+requireApp('system/js/remote_debugger.js');
+requireApp('system/js/secure_window_factory.js');
+requireApp('system/js/secure_window_manager.js');
+requireApp('system/js/visibility_manager.js');
+requireApp('system/js/source_view.js');
+requireApp('system/js/storage.js');
+requireApp('system/js/system_dialog_manager.js');
+requireApp('system/js/telephony_settings.js');
+requireApp('system/js/ttlview.js');
+
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_devtools_view.js');
-requireApp('system/test/unit/mock_dialer_agent.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_home_gesture.js');
-requireApp('system/test/unit/mock_home_searchbar.js');
-requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/test/unit/mock_media_recording.js');
 requireApp('system/test/unit/mock_permission_manager.js');
 requireApp('system/test/unit/mock_places.js');
-requireApp('system/test/unit/mock_remote_debugger.js');
-requireApp('system/test/unit/mock_rocketbar.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
-requireApp('system/test/unit/mock_source_view.js');
-requireApp('system/test/unit/mock_storage.js');
-requireApp('system/test/unit/mock_telephony_settings.js');
-requireApp('system/test/unit/mock_system_dialog_manager.js');
-requireApp('system/test/unit/mock_ttl_view.js');
-requireApp('system/test/unit/mock_title.js');
-requireApp('system/test/unit/mock_activity_window_factory.js');
-requireApp('system/test/unit/mock_visibility_manager.js');
-requireApp('system/test/unit/mock_layout_manager.js');
-requireApp('system/test/unit/mock_secure_window_manager.js');
-requireApp('system/test/unit/mock_lockscreen_window_manager.js');
-requireApp('system/test/unit/mock_secure_window_factory.js');
-requireApp('system/test/unit/mock_activity_window_manager.js');
-requireApp('system/test/unit/mock_app_window_factory.js');
 
 mocha.globals([
   'accessibility',
@@ -71,44 +72,21 @@ mocha.globals([
   'storage',
   'systemDialogManager',
   'telephonySettings',
-  'title',
   'ttlView',
   'visibilityManager',
   'wallpaperURL'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
-  'Accessibility',
-  'Activities',
   'Applications',
-  'DevtoolsView',
-  'DialerAgent',
   'FtuLauncher',
   'HomeGesture',
-  'HomeSearchbar',
-  'HomescreenLauncher',
-  'MediaRecording',
+  'ScreenManager',
   'PermissionManager',
   'Places',
-  'RemoteDebugger',
-  'Rocketbar',
-  'ScreenManager',
   'SettingsListener',
   'SettingsURL',
   'SoftwareButtonManager',
-  'SourceView',
-  'Storage',
-  'TelephonySettings',
-  'SystemDialogManager',
-  'TTLView',
-  'Title',
-  'AppWindowFactory',
-  'VisibilityManager',
-  'LayoutManager',
-  'SecureWindowManager',
-  'SecureWindowFactory',
-  'ActivityWindowManager',
-  'LockScreenWindowManager',
   'L10n'
 ]).init();
 
