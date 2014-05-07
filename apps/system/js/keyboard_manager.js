@@ -740,7 +740,7 @@ var KeyboardManager = {
       });
       self.hideKeyboard();
 
-      var menu = new ActionMenu(items, actionMenuTitle,
+      var menu = new ImeMenu(items, actionMenuTitle,
         function(selectedIndex) {
         if (!self.keyboardLayouts[showed.type])
           showed.type = 'text';
