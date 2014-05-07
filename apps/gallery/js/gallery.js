@@ -776,35 +776,49 @@ function cropPickedImage(fileinfo) {
     }
 
     function startCrop(previewBlob) {
-      // If there is a preview, use that. Otherwise use the full-size image.
-      // If there is no preview blob, then the original image is a small one
-      var blob = previewBlob || pickedFile;
+      // Before the user can crop the image we have to create a
+      // preview of the image at the correct size and orientation
+      // if we do not already have one.
+      var blob, metadata, outputSize, useSpinner;
 
-      // We already know the size of both the full image and the preview
-      // image, so we can pass the metadata to cropResizeRotate() and save
-      // a step. The only tricky thing is that if we're using a preview
-      // we need to pass the size of the preview, but the EXIF orientation
-      // data from the fullsize image.
-      var metadata;
       if (previewBlob) {
+        // If there is a preview, use it at full size. If we're using
+        // a preview we need to pass the size of the preview, but the
+        // EXIF orientation data from the fullsize image.
+        blob = previewBlob;
         metadata = {
           width: previewData.width,
           height: previewData.height,
           rotation: pickedFileInfo.metadata.rotation,
           mirrored: pickedFileInfo.metadata.mirrored
         };
+        outputSize = null;
+        useSpinner = false;
       }
       else {
+        // If there is no preview, use the picked file, but specify a maximum
+        // size so we don't decode at a size larger than needed.
+        blob = pickedFile;
         metadata = pickedFileInfo.metadata;
+        var windowSize = window.innerWidth * window.innerHeight *
+          window.devicePixelRatio * window.devicePixelRatio;
+        outputSize = Math.min(windowSize,
+                              CONFIG_MAX_PICK_PIXEL_SIZE ||
+                              CONFIG_MAX_IMAGE_PIXEL_SIZE);
+        useSpinner = metadata.width * metadata.height > outputSize;
       }
 
       // Make sure the image is rotated correctly so that it appears
-      // right side up in the crop UI. We don't display a spinner here
-      // because this is a small image and rotation is quick.
-      cropResizeRotate(blob, null, null, null, metadata, gotRotatedBlob);
+      // right side up in the crop UI. Note that we only display a spinner
+      // here if we have to downsample a large image.
+      if (useSpinner) {
+        showSpinner();
+      }
+      cropResizeRotate(blob, null, outputSize, null, metadata, gotRotatedBlob);
     }
 
     function gotRotatedBlob(error, rotatedBlob) {
+      hideSpinner();
       if (error) {
         console.error('Error while rotating image:', error);
         rotatedBlob = pickedFile;

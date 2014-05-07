@@ -290,10 +290,10 @@ var Camera = {
         '/shared/js/blobview.js',
         '/shared/js/media/jpeg_metadata_parser.js',
         '/shared/js/media/image_size.js',
+        '/shared/js/media/downsample.js',
         '/shared/js/media/crop_resize_rotate.js',
         '/shared/js/media/get_video_rotation.js',
         '/shared/js/media/video_player.js',
-        '/shared/js/media/downsample.js',
         '/shared/js/media/media_frame.js',
         '/shared/js/gesture_detector.js',
         '/shared/js/lazy_l10n.js',
@@ -611,7 +611,9 @@ var Camera = {
 
     this.toggleFlashBtn.setAttribute('data-mode', flashModeName);
     this.flashName.textContent = flashModeName;
-    this._cameraObj.flashMode = flashModeName;
+    if (this._cameraObj) {
+      this._cameraObj.flashMode = flashModeName;
+    }
   },
 
   setFocusMode: function camera_setFocusMode() {

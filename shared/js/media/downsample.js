@@ -26,19 +26,30 @@
 // The returned objects have a dimensionScale property that specifies how
 // they affect the dimensions of the image and an areaScale property that
 // specifies how much they affect the area (number of pixels) in an
-// image. (The areaScale is just the square of the scale.) They also
-// have a scale() method that scales a dimension with proper rounding
-// (it rounds up to the nearest integer just as libjpeg does). Each object
-// also has a toString() method that returns the required media fragment
-// (including the hash mark) so you can simply use string concatentation
-// to append one of these objects to the URL of the image you want to
-// decode.
+// image. (The areaScale is just the square of the scale.) To avoid
+// floating-point rounding issues, the vaulues of these scale properties
+// are rounded to the nearest hundredth.
+//
+// The returned objects also have a scale() method that scales a
+// dimension with proper rounding (it rounds up to the nearest integer
+// just as libjpeg does).
+//
+// Each object also has a toString() method that returns the required
+// media fragment (including the hash mark) so you can simply use
+// string concatentation to append one of these objects to the URL of
+// the image you want to decode.
 //
 // Downsample.NONE is a no-op media fragment object with scale set to
 // 1, and a toString() method that returns the empty string.
 //
 (function(exports) {
   'use strict';
+
+  // Round to the nearest hundredth to combat floating point rounding errors
+  function round(x) {
+    return Math.round(x * 100) / 100;
+  }
+
 
   //
   // A factory method for returning an object that represents a
@@ -48,8 +59,8 @@
   //
   function MozSampleSize(n, scale) {
     return Object.freeze({
-      dimensionScale: scale,
-      areaScale: scale * scale,
+      dimensionScale: round(scale),
+      areaScale: round(scale * scale),
       toString: function() { return '#-moz-samplesize=' + n; },
       scale: function(x) { return Math.ceil(x * scale); }
     });
@@ -64,12 +75,13 @@
   });
 
   //
-  // The four meaningful  #-moz-samplesize fragments
+  // The five possible #-moz-samplesize values.
   // The mapping from sample size to scale comes from:
   // the moz-samplesize code in /image/decoders/nsJPEGDecoder.cpp and
   // the jpeg_core_output_dimensions() function in media/libjpeg/jdmaster.c
   //
   var fragments = [
+    NONE,
     MozSampleSize(2, 1 / 2), // samplesize=2 reduces size by 1/2 and area by 1/4
     MozSampleSize(3, 3 / 8), // etc.
     MozSampleSize(4, 1 / 4),
@@ -80,6 +92,7 @@
   // dimensions of an image at least as much as the specified scale.
   // If none of the choices scales enough, return the one that comes closest
   function sizeAtLeast(scale) {
+    scale = round(scale);
     for (var i = 0; i < fragments.length; i++) {
       var f = fragments[i];
       if (f.dimensionScale <= scale) {
@@ -92,6 +105,7 @@
   // Return the fragment object that downsamples an image as far as possible
   // without going beyond the specified scale. This might return NONE.
   function sizeNoMoreThan(scale) {
+    scale = round(scale);
     for (var i = fragments.length - 1; i >= 0; i--) {
       var f = fragments[i];
       if (f.dimensionScale >= scale) {
@@ -105,6 +119,7 @@
   // area of an image at least as much as the specified scale.
   // If none of the choices scales enough, return the one that comes closest
   function areaAtLeast(scale) {
+    scale = round(scale);
     for (var i = 0; i < fragments.length; i++) {
       var f = fragments[i];
       if (f.areaScale <= scale) {
@@ -118,6 +133,7 @@
   // as far as possible without going beyond the specified scale. This
   // might return NONE.
   function areaNoMoreThan(scale) {
+    scale = round(scale);
     for (var i = fragments.length - 1; i >= 0; i--) {
       var f = fragments[i];
       if (f.areaScale >= scale) {
@@ -132,6 +148,8 @@
     sizeNoMoreThan: sizeNoMoreThan,
     areaAtLeast: areaAtLeast,
     areaNoMoreThan: areaNoMoreThan,
-    NONE: NONE
+    NONE: NONE,
+    MAX_SIZE_REDUCTION: 1 / fragments[fragments.length - 1].dimensionScale,
+    MAX_AREA_REDUCTION: 1 / fragments[fragments.length - 1].areaScale
   };
 }(window));

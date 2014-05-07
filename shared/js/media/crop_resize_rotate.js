@@ -1,5 +1,6 @@
 /* exported cropResizeRotate */
 /* global getImageSize */
+/* global Downsample */
 
 //
 // Given a blob that represents an encoded image, decode the image, crop it,
@@ -28,13 +29,21 @@
 // largest area of the input region that fits the output size without
 // letterboxing will be used. If the output size is larger than the
 // crop region, then the output size is reduced to match the crop
-// region. If outputSize is a number, then it specifies the maxiumum
-// number of pixels in the returned image. The #-moz-samplesize media
-// fragment will be used to ensure that the input image is decoded at
-// the specified size or smaller. Note that #-moz-samplesize gives
-// only coarse control over image size, so passing a number for this
-// argument can result in images that are substantially smaller than
-// the specified value.
+// region.
+//
+// If outputSize is a number, then the #-moz-samplesize media fragment
+// will be used, if necessary, to ensure that the input image is
+// decoded at the specified size or smaller. Note that this media
+// fragment gives only coarse control over image size, so passing a
+// number for this argument can result in the image being decoded at a
+// size substantially smaller than the specified value. If outputSize
+// is a number and a crop region is specified, the image will
+// typically be downsampled and then cropped, further reducing the
+// size of the resulting image. On the other hand, if the crop region
+// is small enough, then the function may be able to use the #xywh=
+// media fragment to extract just the desired region of the rectangle
+// without downsampling. Whichever approach requires less image memory
+// is used.
 //
 // The outputType argument specifies the type of the output image. Legal
 // values are "image/jpeg" and "image/png". If not specified, and if the
@@ -66,6 +75,7 @@
 //    shared/js/blobview.js
 //    shared/js/media/image_size.js
 //    shared/js/media/jpeg_metadata_parser.js
+//    shared/js/media/downsample.js
 //
 function cropResizeRotate(blob, cropRegion, outputSize, outputType,
                           metadata, callback)
@@ -122,7 +132,6 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
     var fullsize = rawImageWidth * rawImageHeight;
     var rotation = metadata.rotation || 0;
     var mirrored = metadata.mirrored || false;
-    var sampleSize = 1;
 
     // Compute the full size of the image in the output coordinate system
     // I.e. if the image is sideways, swap the width and height
@@ -171,15 +180,12 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
         return;
       }
 
-      var outputWidth = cropRegion.width;
-      var outputHeight = cropRegion.height;
-
-      if (outputWidth * outputHeight < outputSize) {
+      if (cropRegion.width * cropRegion.height < outputSize) {
         // If the image (or cropped region of the image) is smaller than
-        // the maximum size then we can just use the region at full size.
+        // the maximum size then we can just use the crop region at full size.
         outputSize = {
-          width: outputWidth,
-          height: outputHeight
+          width: cropRegion.width,
+          height: cropRegion.height
         };
       }
       else {
@@ -190,12 +196,13 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
         // of the image, because we can't use the #-moz-samplesize media
         // fragment along with the #xywh media fragment, so if we're using
         // samplesize we're going to have to decode the full image.
-        var sampleSize = Math.ceil(Math.sqrt(fullsize / outputSize));
-        sampleSize = Math.min(sampleSize, 8);
+        var ds = Downsample.areaAtLeast(outputSize / fullsize);
 
+        // Now that we've figured out how much the full image will be
+        // downsampled, scale the crop region to match.
         outputSize = {
-          width: Math.floor(outputWidth / sampleSize),
-          height: Math.floor(outputHeight / sampleSize)
+          width: ds.scale(cropRegion.width),
+          height: ds.scale(cropRegion.height)
         };
       }
     }
@@ -229,15 +236,11 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
       var oldCropWidth = cropRegion.width;
       cropRegion.width = Math.round(outputSize.width / scaleY);
       cropRegion.left += (oldCropWidth - cropRegion.width) >> 1;
-      sampleSize = Math.min(8, Math.floor(1 / scaleY));
     }
-    else {
-      if (scaleX > scaleY) { // adjust height of crop region
-        var oldCropHeight = cropRegion.height;
-        cropRegion.height = Math.round(outputSize.height / scaleX);
-        cropRegion.top += (oldCropHeight - cropRegion.height) >> 1;
-      }
-      sampleSize = Math.min(8, Math.floor(1 / scaleX));
+    else if (scaleX > scaleY) { // adjust height of crop region
+      var oldCropHeight = cropRegion.height;
+      cropRegion.height = Math.round(outputSize.height / scaleX);
+      cropRegion.top += (oldCropHeight - cropRegion.height) >> 1;
     }
 
     // Make sure the outputType is valid, if one was specified
@@ -335,14 +338,29 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
     // best memory savings.
     var croppedsize = cropRegion.width * cropRegion.height;
     var sampledsize;
+    var downsample;
 
     // If we decode the image with a #-moz-samplesize media fragment, both
     // the x and y dimensions are reduced by the sample size, so the total
     // number of pixels is reduced by the square of the sample size.
-    if (blob.type === JPEG && sampleSize > 1) {
-      sampledsize = fullsize / (sampleSize * sampleSize);
+    if (blob.type === JPEG) {
+      // What media fragment can we use to downsample the crop region
+      // so that it is as small as possible without being smaller than
+      // the output size? We know that the output size and crop
+      // region have the same aspect ratio now, so we only have to
+      // consider one dimension. If we passed in a single number outputSize
+      // up above then we Downsample.areaAtLeast() to compute the outputSize.
+      // We should now get the same media fragment value here.
+      downsample =
+        Downsample.sizeNoMoreThan(outputSize.width / cropRegion.width);
+
+      // And if apply that media fragment to the entire image, how big is
+      // the result?
+      sampledsize = downsample.scale(rawImageWidth) *
+        downsample.scale(rawImageHeight);
     }
     else {
+      downsample = Downsample.NONE;
       sampledsize = fullsize;
     }
 
@@ -365,8 +383,7 @@ function cropResizeRotate(blob, cropRegion, outputSize, outputType,
     }
     else {
       // Use a #-moz-samplesize media fragment to downsample while decoding
-      url = baseURL + '#-moz-samplesize=' + sampleSize;
-
+      url = baseURL + downsample;
       resizedWithMediaFragment = true;
     }
 

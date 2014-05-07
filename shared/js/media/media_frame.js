@@ -32,10 +32,6 @@ function MediaFrame(container, includeVideo, maxImageSize) {
     container = document.getElementById(container);
   this.container = container;
   this.maximumImageSize = maxImageSize || 0;
-  this.image = document.createElement('img');
-  this.image.style.transformOrigin = 'center center';
-  this.container.appendChild(this.image);
-  this.image.style.display = 'none';
   if (includeVideo !== false) {
     this.video = new VideoPlayer(container);
     this.video.hide();
@@ -49,10 +45,6 @@ function MediaFrame(container, includeVideo, maxImageSize) {
   this.url = null;
 
   var self = this;
-  this.image.onerror = function(e) {
-    if (self.onerror)
-      self.onerror(e);
-  };
 }
 
 MediaFrame.prototype.displayImage = function displayImage(blob,
@@ -64,7 +56,6 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
 {
   var self = this;
   this.clear();  // Reset everything
-
   // Remember what we're displaying
   this.imageblob = blob;
   this.preview = preview;
@@ -209,6 +200,15 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
 MediaFrame.prototype._displayImage = function _displayImage(blob, isPreview) {
   var self = this;
 
+  // Get rid of any existing image and its event handlers
+  this._clearImage();
+
+  // And create a fresh new one
+  this.image = document.createElement('img');
+  this.image.style.transformOrigin = 'center center';
+  this.image.style.display = 'none';
+  this.container.appendChild(this.image);
+
   this.displayingPreview = isPreview;
 
   // Create a URL for the blob (or preview blob)
@@ -216,43 +216,30 @@ MediaFrame.prototype._displayImage = function _displayImage(blob, isPreview) {
     URL.revokeObjectURL(this.url);
   this.url = URL.createObjectURL(blob);
 
-  if (!this.preload) {
-    // Make preload image as object wide variable so that we can cancel the
-    // loading by setting src.
-    this.preload = new Image();
-    // If user gives us a dummy blob, we also need to handle the error case.
-    this.preload.addEventListener('error', function onerror(e) {
-      if (self.onerror)
-        self.onerror(e);
-    });
+  this.image.onerror = function(e) {
+    console.error('failed to load image', self.image.url, e);
+    if (self.onerror)
+      self.onerror(e);
+  };
+  this.image.onload = function(e) {
+    self.image.onload = null;
 
-    this.preload.addEventListener('load', function onload() {
-      self.image.src = self.preload.src;
+    // Switch height & width for rotated images
+    if (self.rotation == 0 || self.rotation == 180) {
+      self.itemWidth = self.image.width;
+      self.itemHeight = self.image.height;
+    } else {
+      self.itemWidth = self.image.height;
+      self.itemHeight = self.image.width;
+    }
 
-      // Switch height & width for rotated images
-      if (self.rotation == 0 || self.rotation == 180) {
-        self.itemWidth = self.preload.width;
-        self.itemHeight = self.preload.height;
-      } else {
-        self.itemWidth = self.preload.height;
-        self.itemHeight = self.preload.width;
-      }
+    self.computeFit();
+    self.setPosition();
+    self.image.style.display = 'block';
+  };
 
-      self.computeFit();
-      self.setPosition();
-      self.image.style.display = 'block';
-    });
-  }
-
-  var fragment;
-  if (isPreview) {
-    fragment = this.previewSampleSize;
-  }
-  else {
-    fragment = this.fullSampleSize;
-  }
-
-  this.preload.src = this.url + fragment;
+  this.image.src = this.url +
+    (isPreview ? this.previewSampleSize : this.fullSampleSize);
 };
 
 MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
@@ -304,13 +291,15 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
   }
 
   // When the new image is loaded we can begin to remove the preview image
-  newimage.addEventListener('load', function imageLoaded() {
-    newimage.removeEventListener('load', imageLoaded);
+  newimage.onload = function imageLoaded() {
+    newimage.onload = null;
 
     // If the image we got has a different size than what we predicted
     // then make an adjustment now. This might happen if we use a
     // #-moz-samplesize fragment and it does not do what we expect.
     if (newimage.width !== self.fullsizeWidth) {
+      console.warn('#-moz-samplesize did not scale as expected',
+                  newimage.width, self.fullsizeWidth);
       self.itemWidth = self.fullsizeWidth = newimage.width;
       self.itemHeight = self.fullsizeHeight = newimage.height;
     }
@@ -319,14 +308,16 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
     // it is loaded, so we wait a second here before removing the preview.
     // XXX: This is a hack. There really ought to be an event we can listen for
     // to know when the image is ready to display onscreen. See Bug 844245.
-    setTimeout(function() {
-      mozRequestAnimationFrame(function() {
-        self.container.removeChild(oldimage);
+    self.imageSwitchTimeout = setTimeout(function() {
+      self.imageSwitchTimeout = null;
+      if (self.oldimage) {
+        self.container.removeChild(self.oldimage);
+        self.oldimage.onload = null;
+        self.oldimage.src = '';
         self.oldimage = null;
-        oldimage.src = ''; // Use '' instead of null. See Bug 901410
-      });
+      }
     }, 1000);
-  });
+  };
 };
 
 MediaFrame.prototype._switchToPreviewImage = function _switchToPreview() {
@@ -367,6 +358,18 @@ MediaFrame.prototype.displayVideo = function displayVideo(videoblob, posterblob,
   this.video.show();
 };
 
+
+// Get rid of the image if we have one
+MediaFrame.prototype._clearImage = function _clearImage() {
+  if (this.image) {
+    this.container.removeChild(this.image);
+    this.image.onload = null;
+    this.image.onerror = null;
+    this.image.src = '';
+    this.image = null;
+  }
+};
+
 // Reset the frame state, release any urls and and hide everything
 MediaFrame.prototype.clear = function clear() {
   // Reset the saved state
@@ -386,13 +389,21 @@ MediaFrame.prototype.clear = function clear() {
     this.url = null;
   }
 
-  if (this.preload) {
-    this.preload.src = '';
-  }
+  this._clearImage();
 
-  // Hide the image
-  this.image.style.display = 'none';
-  this.image.src = '';  // Use '' instead of null. See Bug 901410
+  // If we were in the middle of switching from a preview image to a
+  // fullsize image, then clean up from that, too.
+  if (this.imageSwitchTimeout) {
+    clearTimeout(this.imageSwitchTimeout);
+    this.imageSwitchTimeout = null;
+  }
+  if (this.oldimage) {
+    this.container.removeChild(this.oldimage);
+    this.oldimage.onload = null;
+    this.oldimage.onerror = null;
+    this.oldimage.src = '';
+    this.oldimage = null;
+  }
 
   // Hide the video player
   if (this.video) {

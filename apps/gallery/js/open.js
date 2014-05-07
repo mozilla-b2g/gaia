@@ -86,15 +86,20 @@ window.addEventListener('localized', function() {
 
       //
       // If the image is too big, reject it now so we don't have
-      // memory trouble later. We don't have to reject jpeg files
-      // because the MediaFrame will downsample them while decoding
-      // as needed using the #-moz-samplesize media fragment.
+      // memory trouble later.
       //
       // CONFIG_MAX_IMAGE_PIXEL_SIZE is maximum image resolution we
       // can handle.  It's from config.js which is generated at build
       // time (see build/application-data.js).
       //
-      if (blob.type !== 'image/jpeg' && pixels > CONFIG_MAX_IMAGE_PIXEL_SIZE) {
+      // For jpeg images, we can downsample while decoding so we can
+      // handle images that are quite a bit larger
+      //
+      var sizelimit = CONFIG_MAX_IMAGE_PIXEL_SIZE;
+      if (blob.type === 'image/jpeg')
+        sizelimit *= Downsample.MAX_AREA_REDUCTION;
+
+      if (pixels > sizelimit) {
         displayError('imagetoobig');
         return;
       }
