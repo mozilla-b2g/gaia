@@ -1,6 +1,7 @@
 'use strict';
 /* global Bookmark */
 /* global BookmarksDatabase */
+/* global Divider */
 
 (function(exports) {
 
@@ -109,8 +110,17 @@
       this.entries.push(bookmark);
 
       // Manually inject this book mark into the app item list for now.
+      // Remove and re-append a divider if the last item is a divider
+      var lastItem = app.items[app.items.length - 1];
+      if ((lastItem instanceof Divider)) {
+        var divider = app.items.pop();
+        app.items.push(bookmark);
+        app.items.push(divider);
+      } else {
+        app.items.push(bookmark);
+      }
+
       app.icons[bookmark.identifier] = bookmark;
-      app.items.push(bookmark);
       app.render();
     },
 
