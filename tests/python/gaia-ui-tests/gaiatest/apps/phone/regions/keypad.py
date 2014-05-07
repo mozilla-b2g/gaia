@@ -16,7 +16,7 @@ class Keypad(Phone):
 
     #locators
     _keyboard_container_locator = (By.ID, 'keyboard-container')
-    _phone_number_view_locator = (By.ID, 'phone-number-view')
+    _fake_phone_number_view_locator = (By.ID, 'fake-phone-number-view')
     _keypad_delete_locator = (By.ID, 'keypad-delete')
     _call_bar_locator = (By.ID, 'keypad-callbar-call-action')
     _add_new_contact_button_locator = (By.ID, 'keypad-callbar-add-contact')
@@ -31,10 +31,11 @@ class Keypad(Phone):
 
     @property
     def phone_number(self):
-        return self.marionette.find_element(*self._phone_number_view_locator).get_attribute('value')
+        # TODO Bug 1006999 - The HTMLElement.text doesn't work
+        return self.marionette.find_element(*self._fake_phone_number_view_locator).get_attribute('innerHTML')
 
     def tap_phone_number(self):
-        self.marionette.find_element(*self._phone_number_view_locator).tap()
+        self.marionette.find_element(*self._fake_phone_number_view_locator).tap()
 
     def dial_phone_number(self, value):
         for i in value:
@@ -91,7 +92,7 @@ class Keypad(Phone):
     def wait_for_phone_number_ready(self):
         # Entering dialer and expecting a phone number there is js that sets the phone value and enables this button
         self.wait_for_condition(lambda m:
-            'true' not in m.find_element(*self._add_new_contact_button_locator).get_attribute('aria-disabled'))
+            'disabled' not in m.find_element(*self._add_new_contact_button_locator).get_attribute('disabled'))
 
     def switch_to_keypad_frame(self):
         app = self.apps.displayed_app
