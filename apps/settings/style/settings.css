@@ -525,6 +525,8 @@ ul li > label.range-icons.volume input {
   position: inherit;
   margin-left: 5.8rem;
   width: calc(100% - 7.5rem);
+  opacity: 0;
+  transition: opacity .6s ease 0s;
 }
 
 /******************************************************************************

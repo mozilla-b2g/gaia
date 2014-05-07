@@ -29,6 +29,7 @@
     "idle":{},
     "telephony":{},
     "audio-channel-notification":{},
+    "audio-channel-alarm":{},
     "downloads":{},
     "nfc":{ "access": "readonly" }
   },

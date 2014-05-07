@@ -18,9 +18,9 @@ module.exports = SoundPanel;
 SoundPanel.Selectors = {
   'vibrateCheckbox': '#sound input[name="vibration.enabled"]',
   'vibrateLabel': '#sound label.pack-switch',
-  'mediaSlider': '#sound input[name="audio.volume.content"]',
-  'ringerSlider': '#sound input[name="audio.volume.notification"]',
-  'alarmSlider': '#sound input[name="audio.volume.alarm"]',
+  'mediaSlider': '#sound .media input',
+  'ringerSlider': '#sound .notification input',
+  'alarmSlider': '#sound .alarm input',
   'keypadCheckbox': '#sound input[name="phone.ring.keypad"]',
   'keypadSpan': '#sound span[data-l10n-id="keypad"]',
   'cameraShutterCheckbox': '#sound input[name="camera.shutter.enabled"]',
