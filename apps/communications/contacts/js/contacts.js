@@ -26,8 +26,12 @@ var SCALE_RATIO = window.innerWidth / 320;
 var Contacts = (function() {
   var SHARED = 'shared';
   var SHARED_PATH = '/' + SHARED + '/' + 'js';
+
   var SHARED_UTILS = 'sharedUtilities';
   var SHARED_UTILS_PATH = SHARED_PATH + '/contacts/import/utilities';
+
+  var SHARED_CONTACTS = 'sharedContacts';
+  var SHARED_CONTACTS_PATH = SHARED_PATH + '/' + 'contacts';
 
   var navigation = new navigationStack('view-contacts-list');
 
@@ -676,7 +680,7 @@ var Contacts = (function() {
       contacts.List.initSearch(function onInit() {
         contacts.Search.enterSearchMode(evt);
       });
-    });
+    }, SHARED_CONTACTS);
   };
 
   var initEventListeners = function initEventListener() {
@@ -909,6 +913,9 @@ var Contacts = (function() {
         case SHARED_UTILS:
           finalPath = SHARED_UTILS_PATH;
           break;
+        case SHARED_CONTACTS:
+          finalPath = SHARED_CONTACTS_PATH;
+          break;
         default:
           finalPath = 'js' + '/' + type;
       }
@@ -941,8 +948,8 @@ var Contacts = (function() {
    * @param {String} view name.
    * @param {Function} callback.
    */
-  function loadView(view, callback) {
-    load('views', view, callback);
+  function loadView(view, callback, type) {
+    load('views', view, callback, type);
   }
 
   /**
@@ -991,6 +998,9 @@ var Contacts = (function() {
     },
     get SHARED_UTILITIES() {
       return SHARED_UTILS;
+    },
+    get SHARED_CONTACTS() {
+      return SHARED_CONTACTS;
     }
   };
 })();

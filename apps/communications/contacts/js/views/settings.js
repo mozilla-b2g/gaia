@@ -206,7 +206,7 @@ contacts.Settings = (function() {
           importSettingsPanel.classList.add('export');
           updateImportTitle('exportContactsTitle');
           navigationHandler.go('import-settings', 'right-left');
-        });
+        }, Contacts.SHARED_CONTACTS);
       }
   }
 
@@ -262,7 +262,7 @@ contacts.Settings = (function() {
               transitionLevel: DELETE_TRANSITION_LEVEL
             }
           );
-        });
+        }, Contacts.SHARED_CONTACTS);
       }
     );
   };
