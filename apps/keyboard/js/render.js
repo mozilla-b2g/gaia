@@ -16,6 +16,9 @@ const IMERender = (function() {
   var ime, activeIme, menu;
   var getUpperCaseValue, isSpecialKey, getAriaLabel;
 
+  var _ = navigator.mozL10n ?
+    navigator.mozL10n.get : function(x) { return x };
+
   var _menuKey, _altContainer;
 
   var layoutWidth = 10;
@@ -390,6 +393,7 @@ const IMERender = (function() {
 
           // Each candidate gets its own div
           var div = document.createElement('div');
+          div.setAttribute('role', 'presentation');
           suggestContainer.appendChild(div);
 
           var text, data, correction = false;
@@ -406,6 +410,7 @@ const IMERender = (function() {
           }
 
           var span = fitText(div, text);
+          span.setAttribute('role', 'option');
           span.dataset.selection = true;
           span.dataset.data = data;
           if (correction)
@@ -806,6 +811,8 @@ const IMERender = (function() {
 
   var candidatePanelCode = function() {
     var candidatePanel = document.createElement('div');
+    candidatePanel.setAttribute('role', 'group');
+    candidatePanel.setAttribute('aria-label', _('wordSuggestions'));
     candidatePanel.classList.add('keyboard-candidate-panel');
     if (inputMethodName)
       candidatePanel.classList.add(inputMethodName);
@@ -813,10 +820,13 @@ const IMERender = (function() {
     var dismissButton = document.createElement('div');
     dismissButton.classList.add('dismiss-suggestions-button');
     dismissButton.classList.add('hide');
+    dismissButton.setAttribute('role', 'button');
+    dismissButton.setAttribute('aria-label', _('dismiss'));
     candidatePanel.appendChild(dismissButton);
 
     var suggestionContainer = document.createElement('div');
     suggestionContainer.classList.add('suggestions-container');
+    suggestionContainer.setAttribute('role', 'listbox');
     candidatePanel.appendChild(suggestionContainer);
 
     return candidatePanel;
