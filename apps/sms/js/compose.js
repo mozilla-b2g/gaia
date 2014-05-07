@@ -343,6 +343,37 @@ var Compose = (function() {
       subject.toggle();
     },
 
+    fromDraft: function(draft) {
+      // Clear out the composer
+      this.clear();
+
+      // If we don't have a draft, return only having cleared the composer
+      if (!draft) {
+        return;
+      }
+
+      if (draft.subject) {
+        subject.setContent(draft.subject);
+        subject.toggle();
+      }
+
+      // draft content is an array
+      draft.content.forEach(function(fragment) {
+        // If the fragment is an attachment
+        // use the stored content to instantiate a new Attachment object
+        // to be properly rendered after a cold start for the app
+        if (fragment.blob) {
+          fragment = new Attachment(fragment.blob, {
+            isDraft: true
+          });
+        }
+        // Append each fragment in order to the composer
+        Compose.append(fragment);
+      }, Compose);
+
+      this.focus();
+    },
+
     /** Render message (sms or mms)
      *
      * @param {message} message Full message to be loaded into the composer.

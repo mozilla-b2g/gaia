@@ -28,6 +28,7 @@ var MockCompose = {
   getSubject: function() {},
   toggleSubject: function() {},
   fromMessage: function() {},
+  fromDraft: function() {},
 
   mEmpty: true,
   mSubjectEmpty: true,
