@@ -121,6 +121,7 @@
       this.backdrop.classList.remove('hidden');
       this.loadSearchApp(callback);
       this.screen.classList.add('rocketbar-focused');
+      window.dispatchEvent(new CustomEvent('rocketbar-overlayopened'));
     },
 
     /**
@@ -142,6 +143,7 @@
       this.backdrop.classList.add('hidden');
       this.blur();
       this.screen.classList.remove('rocketbar-focused');
+      window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
     },
 
     /**
