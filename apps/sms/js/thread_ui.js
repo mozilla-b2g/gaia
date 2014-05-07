@@ -982,7 +982,9 @@ var ThreadUI = global.ThreadUI = {
     }
 
     var value = Compose.getText();
-    var kMaxConcatenatedMessages = Settings.maxConcatenatedMessages;
+    // We set maximum concatenated number of our SMS app to 10 based on:
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=813686#c0
+    var kMaxConcatenatedMessages = 10;
 
     // Use backend api for precise sms segmentation information.
     var smsInfoRequest = this._mozMobileMessage.getSegmentInfoForText(value);

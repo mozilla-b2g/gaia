@@ -34,7 +34,6 @@ suite('Settings >', function() {
     MockNavigatorSettings.mTeardown();
     navigator.mozSettings = nativeSettings;
     Settings.mmsSizeLimitation = 295 * 1024;
-    Settings.maxConcatenatedMessages = 10;
   });
 
   test('getSimNameByIccId returns the empty string before init', function() {
@@ -49,15 +48,10 @@ suite('Settings >', function() {
     setup(function() {
       navigator.mozSettings = null;
       Settings.mmsSizeLimitation = 'whatever is default';
-      Settings.maxConcatenatedMessages = 'whatever is default';
       Settings.mmsServiceId = 'no service ID';
       Settings.smsServiceId = 'no service ID';
 
       Settings.init();
-    });
-
-    test('Query size limitation without settings', function() {
-      assert.equal(Settings.maxConcatenatedMessages, 'whatever is default');
     });
 
     test('Query size limitation without settings', function() {
@@ -131,7 +125,6 @@ suite('Settings >', function() {
       navigator.mozSettings = MockNavigatorSettings;
 
       Settings.mmsSizeLimitation = 'whatever is default';
-      Settings.maxConcatenatedMessages = 'whatever is default';
       Settings.mmsServiceId = 'no service ID';
 
       this.sinon.stub(navigator.mozSettings, 'createLock', function() {
@@ -154,15 +147,12 @@ suite('Settings >', function() {
       realSettings = null;
     });
 
-    test('Query size limitation with settings exist ' +
-         '(Size Limitation = 500KB and maxConcat = 10)', function() {
+    test('Query size limitation with settings exist(500KB)', function() {
       Settings.init();
       assert.equal(Settings.mmsSizeLimitation, 'whatever is default');
-      assert.equal(Settings.maxConcatenatedMessages, 'whatever is default');
 
-      // only made two calls (maxConcatenatedMessages/mmsSizeLimitation)
-      // to get settings(non-DSDS case)
-      sinon.assert.calledTwice(navigator.mozSettings.createLock);
+      // only made one call to get settings(non-DSDS case)
+      sinon.assert.calledOnce(navigator.mozSettings.createLock);
 
       var setting = 512 * 1024;
       var expected = setting - 5 * 1024;
@@ -173,12 +163,6 @@ suite('Settings >', function() {
         setting,
         expected
       );
-      assertSettingIsRetrieved(
-        'maxConcatenatedMessages',
-        'operatorResource.sms.maxConcat',
-        10
-      );
-
       assert.isFalse(Settings.hasSeveralSim());
     });
 
@@ -196,9 +180,8 @@ suite('Settings >', function() {
       test('init is correctly executed', function() {
         assert.equal(Settings.mmsServiceId, 'no service ID');
 
-        // Four calls for
-        // maxConcatenatedMessages/mmsSizeLimitation/mmsServiceId/smsServiceId
-        sinon.assert.callCount(navigator.mozSettings.createLock, 4);
+        // Three calls for mmsSizeLimitation/mmsServiceId/smsServiceId
+        sinon.assert.calledThrice(navigator.mozSettings.createLock);
       });
 
       test('Dual SIM state is correctly reported', function() {
@@ -249,9 +232,7 @@ suite('Settings >', function() {
       navigator.mozMobileConnections = [{ iccId: 'SIM 1' }];
       Settings.init();
 
-      // Two calls for
-      // maxConcatenatedMessages/mmsSizeLimitation
-      sinon.assert.calledTwice(navigator.mozSettings.createLock);
+      sinon.assert.calledOnce(navigator.mozSettings.createLock);
       for (var prop in Settings.SERVICE_ID_KEYS) {
         var setting = Settings.SERVICE_ID_KEYS[prop];
         assert.isNull(findSettingsReq(setting));
@@ -266,10 +247,7 @@ suite('Settings >', function() {
       navigator.mozMobileConnections = [{ iccId: 'SIM 1' }, { iccId: null }];
       Settings.init();
 
-      // Four calls for
-      // maxConcatenatedMessages/mmsSizeLimitation/mmsServiceId/smsServiceId
-      sinon.assert.callCount(navigator.mozSettings.createLock, 4);
-
+      sinon.assert.calledThrice(navigator.mozSettings.createLock);
       for (var prop in Settings.SERVICE_ID_KEYS) {
         var setting = Settings.SERVICE_ID_KEYS[prop];
         assert.ok(findSettingsReq(setting));

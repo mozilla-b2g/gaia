@@ -7,7 +7,6 @@ var MockSettings = {
     smsServiceId: 'ril.sms.defaultServiceId'
   },
   mmsSizeLimitation: 295 * 1024,
-  maxConcatenatedMessages: 10,
   mmsServiceId: null,
   smsServiceId: null,
   switchMmsSimHandler: function() {},
@@ -19,7 +18,6 @@ var MockSettings = {
 
   mSetup: function() {
     MockSettings.mmsSizeLimitation = 295 * 1024;
-    MockSettings.maxConcatenatedMessages = 10;
     MockSettings.mmsServiceId = null;
     MockSettings.smsServiceId = null;
   }
