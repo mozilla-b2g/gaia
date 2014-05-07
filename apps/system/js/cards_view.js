@@ -375,9 +375,7 @@ var CardsView = (function() {
       cardsList.removeChild(element);
       closeApp(element, true);
     } else if ('origin' in e.target.dataset) {
-      var origin = e.target.dataset.origin;
-      var app = runningApps[origin];
-      WindowManager.launch(origin, app);
+      WindowManager.launch(e.target.dataset.origin);
     }
   }
 
