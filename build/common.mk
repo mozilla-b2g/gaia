@@ -9,7 +9,7 @@ export APP_DIR
 define run-build-test
   ./node_modules/.bin/mocha \
     --harmony \
-    --reporter spec \
+    --reporter $(REPORTER) \
     --ui tdd \
     --timeout 0 \
     $(strip $1)
