@@ -50,6 +50,16 @@ module.exports = {
     scaleType: 'fill'
   },
 
+  focus: {
+    modes: {
+      continuousFocus: true,
+      faceTracking: false,
+      touchFocus: true,
+      autoFocus: false,
+      fixedFocus: true
+    }
+  },
+
   battery: {
     levels: {
       low: 15,

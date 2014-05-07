@@ -28,7 +28,7 @@ function ViewfinderController(app) {
   this.activity = app.activity;
   this.settings = app.settings;
   this.viewfinder = app.views.viewfinder;
-  this.focusRing = app.views.focusRing;
+  this.focusTimeout = null;
   this.bindEvents();
   this.configure();
   debug('initialized');
@@ -88,14 +88,20 @@ ViewfinderController.prototype.bindEvents = function() {
   this.viewfinder.on('click', this.app.firer('viewfinder:click'));
   this.camera.on('zoomchanged', this.onZoomChanged);
   this.app.on('camera:shutter', this.onShutter);
-  this.app.on('camera:focuschanged', this.focusRing.setState);
+  this.app.on('camera:focuschanged', this.viewfinder.setFocusState);
   this.app.on('camera:configured', this.onCameraConfigured);
   this.app.on('previewgallery:closed', this.onPreviewGalleryClosed);
   this.app.on('previewgallery:opened', this.stopStream);
   this.app.on('settings:closed', this.configureGrid);
   this.app.on('settings:opened', this.hideGrid);
+  // when we set FocusMode eg. faceTracking or Fixed ect.
+  //this event will called.
+  this.app.on('camera:focusMode', this.onFocusModeChange);
   this.app.on('hidden', this.stopStream);
   this.app.on('pinchchanged', this.onPinchChanged);
+  //Touch focus Event register 
+  this.viewfinder.on('focus-point', this.onFocusPointChange);
+  this.app.on('touchFocus:disable', this.disableTouchFocus);
 };
 
 /**
@@ -125,7 +131,7 @@ ViewfinderController.prototype.show = function() {
 };
 
 ViewfinderController.prototype.onShutter = function() {
-  this.focusRing.setState('none');
+  this.viewfinder.setFocusState('none');
   this.viewfinder.shutter();
 };
 
@@ -238,4 +244,67 @@ ViewfinderController.prototype.onZoomChanged = function(zoom) {
   this.viewfinder.setZoom(zoom);
 };
 
+/**
+ * Responds to changes of the `Focus mode` 
+ * @param {String} [faceTracking,fixedFocus,continuousFocus,touchFocus]
+ * set the Mode for view
+ */
+ViewfinderController.prototype.onFocusModeChange = function(value) {
+  this.viewfinder.setFocusMode(value);
+  if (value === 'continuousFocus') {
+    this.viewfinder.setFocusRingDafaultPotion();
+  }
+};
+
+
+ViewfinderController.prototype.onFocusPointChange = function(focusPoint, rect) {
+  // change focus ring positon with pixel values
+  console.log(' focusMode :: '+this.camera.get('focusMode'));
+  if (!this.camera.focusModes.touchFocus ||
+    this.app.get('timerActive')) { return; }
+  this.clearFocusTimeOut();
+  console.log('Touch Focus called ');
+  var isVideo = this.camera.mode === 'video';
+  this.viewfinder.setFocusRingPosition(focusPoint.x, focusPoint.y);
+  this.camera.onFocusPointChange(rect,focusDone);
+  var self = this;
+  function focusDone(err) {
+    // Need to clear ring UI when focused.
+    // Timeout is needed to show the focused ring.
+    // Set focus-mode to touch-focus
+    if (!isVideo) {
+      self.clearFocusTimeOut();
+      self.setFocusTimeOut();
+    }
+  }
+  if (!isVideo) {
+    this.setFocusTimeOut();
+  }
+};
+
+ViewfinderController.prototype.setFocusTimeOut = function() {
+  var self = this;
+  this.focusRingTimeOut = setTimeout(function() {
+    self.camera.set('focus', 'none');
+    self.faceFocusTimeout = false;
+    self.camera.setDefaultFocusmode();
+  }, 3000);
+};
+
+ViewfinderController.prototype.clearFocusTimeOut = function () {
+  if (this.focusRingTimeOut) {
+    clearTimeout(this.focusRingTimeOut);
+    this.focusRingTimeOut = null;
+  }
+};
+
+ViewfinderController.prototype.clearFocusRing = function () {
+  this.camera.set('focus', 'none');
+  this.clearFocusTimeOut();
+};
+
+ViewfinderController.prototype.disableTouchFocus = function() {
+   this.clearFocusRing();
+   this.camera.setDefaultFocusmode();
+};
 });
