@@ -4,7 +4,7 @@
 /* global DragDrop */
 /* global Icon */
 /* global ItemStore */
-/* global Layout */
+/* global layout */
 
 (function(exports) {
 
@@ -148,7 +148,7 @@
       app.cleanItems();
 
       // Reset offset steps
-      Layout.offsetY = 0;
+      layout.offsetY = 0;
 
       // Grid render coordinates
       var x = 0;
@@ -159,7 +159,7 @@
        * @param {Object} item
        */
       function step(item) {
-        Layout.stepYAxis(item.pixelHeight);
+        layout.stepYAxis(item.pixelHeight);
 
         x = 0;
         y++;
@@ -170,7 +170,7 @@
         // If the item would go over the boundary before rendering,
         // step the y-axis.
         if (x > 0 && item.gridWidth > 1 &&
-            x + item.gridWidth >= Layout.perRow) {
+            x + item.gridWidth >= layout.perRow) {
           // Step the y-axis by the size of the last row.
           // For now we just check the height of the last item.
           var lastItem = this.items[idx - 1];
@@ -185,7 +185,7 @@
         // Increment the x-step by the sizing of the item.
         // If we go over the current boundary, reset it, and step the y-axis.
         x += item.gridWidth;
-        if (x >= Layout.perRow) {
+        if (x >= layout.perRow) {
           step(item);
         }
       }, this);

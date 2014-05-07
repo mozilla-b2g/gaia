@@ -1,7 +1,7 @@
 'use strict';
 /* global GridItem */
 /* global MozActivity */
-/* global Layout */
+/* global layout */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -24,7 +24,7 @@
      * Returns the height in pixels of each icon.
      */
     get pixelHeight() {
-      return Layout.gridItemHeight;
+      return layout.gridItemHeight;
     },
 
     /**

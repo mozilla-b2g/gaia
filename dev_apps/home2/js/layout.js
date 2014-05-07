@@ -78,6 +78,6 @@
     }
   };
 
-  exports.Layout = new Layout();
+  exports.layout = new Layout();
 
 }(window));

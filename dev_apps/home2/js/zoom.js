@@ -1,5 +1,5 @@
 'use strict';
-/* global Layout */
+/* global layout */
 
 (function(exports) {
 
@@ -72,28 +72,28 @@
           this.zoomStartTouches = touches;
           this.zoomStartDistance = touchDistance;
 
-          if (Layout.perRow < Layout.maxIconsPerRow) {
+          if (layout.perRow < layout.maxIconsPerRow) {
             this.arrows.classList.add('grow');
           } else {
             this.arrows.classList.add('shrink');
           }
 
-          this.indicator.dataset.cols = Layout.perRow;
+          this.indicator.dataset.cols = layout.perRow;
           this._attachGestureListeners();
           break;
 
         case 'touchmove':
-          if (Layout.perRow < Layout.maxIconsPerRow &&
+          if (layout.perRow < layout.maxIconsPerRow &&
               touchDistance < this.zoomStartDistance &&
               Math.abs(touchDistance - this.zoomStartDistance) >
                 pinchThreshold) {
-              Layout.percent = 0.75;
+              layout.percent = 0.75;
               this.zoomInProgress = true;
-          } else if (Layout.perRow > Layout.minIconsPerRow &&
+          } else if (layout.perRow > layout.minIconsPerRow &&
                      touchDistance > this.zoomStartDistance &&
                      Math.abs(touchDistance - this.zoomStartDistance) >
                        pinchThreshold) {
-            Layout.percent = 1;
+            layout.percent = 1;
             this.zoomInProgress = true;
           } else {
             return;
@@ -116,7 +116,7 @@
 
           this.arrows.addEventListener('transitionend', ontransitionend);
 
-          this.indicator.dataset.cols = Layout.perRow;
+          this.indicator.dataset.cols = layout.perRow;
 
           this.arrows.classList.add('zooming');
           // Force a sync reflow
@@ -133,6 +133,6 @@
 
   };
 
-  exports.Zoom = new Zoom();
+  exports.zoom = new Zoom();
 
 }(window));
