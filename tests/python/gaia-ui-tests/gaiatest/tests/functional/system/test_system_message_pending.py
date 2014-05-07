@@ -11,25 +11,31 @@ class TestSystemMessage(GaiaTestCase):
     _testing_message_id = 'message'
     _testing_message_text = 'System message test powered by gaia-ui-tests'
 
-    def test_app_launched_by_system_message(self):
-        """
-        Two basic functions are going to be tested here:
-        1. The testing app must be launched after broadcasting the testing
-           system message.
-        2. The testing app must show the same text that we broadcast together
-           with the testing system message.
+    def test_pending_system_message(self):
+        """"
+        The scenario we want to test is:
+
+        1) Launch an app.
+        2) Create DOM side SystemMessageManager without setting the handler.
+        3) Broadcast system message internally. The message will be pending
+           until the app sets the message handler.
+        4) The app sets the message handler and the message should be signalled
+           right away.
         """
 
         test_container = TestContainer(self.marionette)
 
-        # Broadcast a system message to bring up the test app.
+        # Launch the app and call mozHasPendingMessage to ensure the
+        # existence of SystemMessageManager in DOM side.
+        test_container.launch()
+        self.marionette.execute_script("""
+            navigator.mozHasPendingMessage('whatever');
+        """)
+
+        # Broadcast the system message and the test app shouldn't receive it
+        # since the hanlder is not set yet.
         test_container.broadcast_dummy_system_message(
             self._testing_message_text)
-
-        test_container.wait_until_launched()
-
-        # Bring the app to foreground first.
-        test_container.launch()
 
         # Set the handler and test if the message is delivered correctly.
         test_container.set_dummy_system_message_handler(
