@@ -57,6 +57,7 @@ window.addEventListener('load', function() {
 
     // Fetch mmsSizeLimitation
     Settings.init();
+    SMSDraft.init();
   }
 
   if (!navigator.mozMobileMessage) {
