@@ -755,6 +755,16 @@ var KeyboardManager = {
         // Refresh the switcher, or the labled type and layout name
         // won't change.
       }, function() {
+
+        var activity = new MozActivity({
+          name: 'configure',
+          data: {
+            target: 'device',
+            section: 'keyboard'
+          }
+        });
+
+        /*
         var showed = self.showingLayout;
         if (!self.keyboardLayouts[showed.type])
           showed.type = 'text';
@@ -763,6 +773,7 @@ var KeyboardManager = {
         // when user canceled it.
         self.setKeyboardToShow(showed.type);
         self.showKeyboard();
+        */
 
         // Hide the tray to show the app directly after
         // user canceled.
