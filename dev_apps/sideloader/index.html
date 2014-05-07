@@ -2,7 +2,8 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1">
 
   <!-- shared styles --> 
   <link rel="stylesheet" type="text/css" href="shared/style/tabs.css"/>
@@ -27,8 +28,10 @@
 
     <!-- tab: import -->
     <li id="panel1" role="presentation">
-      <a id="tab1" href="#panel1" role="tab" aria-controls="tabpanel1">Import</a>
-      <div id="tabpanel1" class="bb-tabpanel" role="tabpanel" aria-labelledby="tab1">
+      <a id="tab1" href="#panel1" role="tab" aria-controls="tabpanel1"
+         data-l10n-id="appImportExport-import">Import</a>
+        <div id="tabpanel1" class="bb-tabpanel" role="tabpanel"
+             aria-labelledby="tab1">
         <section data-type="list">
           <ul id="importAppList" class="app-list"></ul>
         </section>
@@ -37,8 +40,10 @@
 
     <!-- tab: export -->
     <li id="panel2" role="presentation">
-      <a id="tab2" href="#panel2" role="tab" aria-controls="tabpanel2">Export</a>
-      <div id="tabpanel2" class="bb-tabpanel" role="tabpanel" aria-labelledby="tab2">
+      <a id="tab2" href="#panel2" role="tab" aria-controls="tabpanel2"
+         data-l10n-id="appImportExport-export">Export</a>
+        <div id="tabpanel2" class="bb-tabpanel" role="tabpanel"
+             aria-labelledby="tab2">
         <section data-type="list">
           <ul id="exportAppList" class="app-list"></ul>
         </section>
@@ -48,8 +53,8 @@
 
   <template id="appListEntry">
     <li>
-      <a href="#">
-        <img class="icon icon-apps">
+      <a>
+        <img>
       </a>
     </li>
   </template>
