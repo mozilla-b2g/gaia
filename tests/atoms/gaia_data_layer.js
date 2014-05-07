@@ -433,9 +433,8 @@ var GaiaDataLayer = {
     req.onsuccess = function() {
       var file = req.result;
       if (file) {
-        if (aType === 'music' &&
-            file.name.slice(0, 13) === '/sdcard/DCIM/' &&
-            file.name.slice(-4) === '.3gp') {
+        if (aType === 'music' && file.name.slice(-4) === '.3gp') {
+          // 3gp is both music and video; we skip the music definition
           req.continue();
         }
         else {
