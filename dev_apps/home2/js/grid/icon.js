@@ -9,6 +9,8 @@
 
   var _ = navigator.mozL10n.get;
 
+  const ICON_PATH_BY_DEFAULT = 'style/images/default_icon.png';
+
   /**
    * Represents a single app icon on the homepage.
    */
@@ -54,25 +56,57 @@
       return name;
     },
 
-    get icon() {
-      if (!this.descriptor.icons) {
-        return 'style/images/default_icon.png';
+    _icon: function() {
+      var icons = this.descriptor.icons;
+      if (!icons) {
+        return ICON_PATH_BY_DEFAULT;
+      }
+      
+      // Create a list with the sizes and order it by descending size
+      var list = Object.keys(icons).map(function(size) {
+        return size;
+      }).sort(function(a, b) {
+        return b - a;
+      });
+
+      var length = list.length;
+      if (length === 0) {
+        // No icons -> icon by default
+        return ICON_PATH_BY_DEFAULT;
       }
 
-      var lastIcon = 0;
-      for (var i in this.descriptor.icons) {
-        if (i > lastIcon) {
-          lastIcon = i;
+      var maxSize = layout.gridMaxIconSize; // The goal size
+      var accurateSize = list[0]; // The biggest icon available
+      for (var i = 0; i < length; i++) {
+        var size = list[i];
+        
+        if (size < maxSize) {
+          break;
         }
+
+        accurateSize = size;
       }
 
-      var icon = this.descriptor.icons[lastIcon];
+      var icon = icons[accurateSize];
 
       // Handle relative URLs
       if (!UrlHelper.hasScheme(icon)) {
         var a = document.createElement('a');
         a.href = this.app.origin;
         icon = a.protocol + '//' + a.host + icon;
+      }
+
+      return icon;
+    },
+
+    /**
+     * Returns the icon image path.
+     */
+    get icon() {
+      var icon = this.accurateIcon;
+
+      if (!icon) {
+        icon = this.accurateIcon = this._icon();
       }
 
       return icon;

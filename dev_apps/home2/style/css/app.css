@@ -16,8 +16,7 @@ html, body, .icons {
   width: calc(100% / 3);
   height: 9rem;
   text-align: center;
-  background: no-repeat center;
-  background-size: 8rem;
+  background: no-repeat top center;
   z-index: 3;
 }
 
