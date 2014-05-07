@@ -171,22 +171,10 @@ li [role="button"].icon-view:active {
   background-color: #b2f2ff;
 }
 
-li button.icon-view,
-li [role="button"].icon-view {
-  background: none;
-  border: none;
-  margin: 0 -1.5rem;
-  padding: 0 2.7rem;
-  height: 6rem;
-  line-height: 6rem;
-  width: calc(100% + 3rem);
-  font-size: 1.7rem;
-}
-
 li button.icon-view:before,
 li [role="button"].icon-view:before {
-  background-image: url(buttons/images/next.svg);
-  right: 0.5rem;
+  background-image: url(buttons/images/next.png);
+  right: 0rem;
 }
 
 li button.icon-dialog:before,
@@ -227,12 +215,6 @@ li .button[aria-disabled="true"].icon-dialog:before {
   background-color: #00aacc;
 }
 
-.skin-dark li button.icon-view,
-.skin-dark li [role="button"].icon-view {
-  background-color: transparent;
-  border: none;
-}
-
 .skin-dark li button.icon-view:active,
 .skin-dark li [role="button"].icon-view:active {
   background-color: #00aacc;
@@ -250,12 +232,6 @@ li .button[aria-disabled="true"].icon-dialog:before {
   background-color: #454545;
   opacity: 0.5;
 }
-
-.skin-dark li button.icon-view:disabled,
-.skin-dark li [role="button"].icon-view[aria-disabled="true"] {
-  background-color: transparent;
-}
-
 
 /* Inputs inside of .button */
 .button input,
@@ -356,7 +332,7 @@ html[dir="rtl"] li .icon-view[role="button"] {
 
 html[dir="rtl"] li button.icon-view:before,
 html[dir="rtl"] li .icon-view[role="button"]:before {
-  left: 0.6rem;
+  left: 0rem;
   right: auto;
   transform: rotate(180deg);
 }
