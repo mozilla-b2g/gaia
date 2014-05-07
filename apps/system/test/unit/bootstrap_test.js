@@ -10,6 +10,7 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
+requireApp('system/test/unit/mock_accessibility.js');
 requireApp('system/test/unit/mock_activities.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_devtools_view.js');
@@ -42,6 +43,7 @@ requireApp('system/test/unit/mock_activity_window_manager.js');
 requireApp('system/test/unit/mock_app_window_factory.js');
 
 mocha.globals([
+  'accessibility',
   'activityWindowManager',
   'activities',
   'applications',
@@ -76,6 +78,7 @@ mocha.globals([
 ]);
 
 var mocksForBootstrap = new MocksHelper([
+  'Accessibility',
   'Activities',
   'Applications',
   'DevtoolsView',
