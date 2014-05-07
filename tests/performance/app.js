@@ -1,5 +1,6 @@
 var fs = require('fs'),
-    util = require('util');
+    util = require('util'),
+    assert = require('assert');
 
 /* This is a helper to for perftesting apps. */
 function PerfTestApp(client, origin) {
@@ -31,6 +32,9 @@ PerfTestApp.prototype = {
 
   selectors: {},
 
+  /** the Webapp instance. */
+  instance: null,
+
   PERFORMANCE_ATOM: 'window.wrappedJSObject.PerformanceHelperAtom',
 
   defaultCallback: function() {
@@ -40,7 +44,12 @@ PerfTestApp.prototype = {
    * Launches app, switches to frame, and waits for it to be loaded.
    */
   launch: function() {
-    this.client.apps.launch(this.origin, this.entryPoint);
+    var self = this;
+    this.client.apps.launch(this.origin, this.entryPoint, function(err, app) {
+      if (app) {
+        self.instance = app;
+      }
+    });
     this.client.apps.switchToApp(this.origin);
     this.client.helper.waitForElement('body');
   },
@@ -94,7 +103,13 @@ PerfTestApp.prototype = {
     this.client.executeAsyncScript(
       this.PERFORMANCE_ATOM + '.waitForEvent("' + stopEventName +
         '", function() { marionetteScriptFinished(); });',
-      function() {
+      function(error) {
+
+        if (error) {
+          callback(null, error);
+          return;
+        }
+
         var runResults = client.executeScript(
           'return ' + self.PERFORMANCE_ATOM + '.getMeasurements();'
         );
