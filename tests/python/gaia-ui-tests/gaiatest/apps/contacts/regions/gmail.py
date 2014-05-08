@@ -8,7 +8,7 @@ from gaiatest.apps.base import Base
 
 class GmailLogin(Base):
 
-    _gmail_sign_in_frame_locator = (By.CSS_SELECTOR, '#frame-container > iframe[data-url*="google"]')
+    _gmail_sign_in_frame_locator = (By.CSS_SELECTOR, 'iframe[data-url*="google"]')
     _email_locator = (By.ID, 'Email')
     _password_locator = (By.ID, 'Passwd')
     _sign_in_locator = (By.ID, 'signIn')
