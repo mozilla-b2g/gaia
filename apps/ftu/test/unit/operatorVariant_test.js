@@ -1,9 +1,9 @@
 'use strict';
 
-requireApp('communications/shared/test/unit/mocks/mock_icc_helper.js');
-requireApp('communications/ftu/test/unit/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_icc_helper.js');
+requireApp('ftu/test/unit/mock_navigator_moz_settings.js');
 
-requireApp('communications/ftu/js/operatorVariant.js');
+requireApp('ftu/js/operatorVariant.js');
 
 var mocksHelper = new MocksHelper([
   'IccHelper'

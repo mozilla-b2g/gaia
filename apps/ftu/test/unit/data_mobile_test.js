@@ -1,9 +1,8 @@
 'use strict';
 
-requireApp(
-  'communications/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp('communications/ftu/js/navigation.js');
-requireApp('communications/ftu/js/data_mobile.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('ftu/js/navigation.js');
+requireApp('ftu/js/data_mobile.js');
 
 suite('mobile data >', function() {
   var realSettings,

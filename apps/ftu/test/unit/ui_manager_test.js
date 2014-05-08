@@ -4,16 +4,16 @@
 
 require('/shared/test/unit/load_body_html_helper.js');
 
-requireApp('communications/ftu/js/ui.js');
-requireApp('communications/ftu/js/navigation.js');
+requireApp('ftu/js/ui.js');
+requireApp('ftu/js/navigation.js');
 
-requireApp('communications/ftu/test/unit/mock_l10n.js');
-requireApp('communications/ftu/test/unit/mock_tutorial.js');
-requireApp('communications/ftu/test/unit/mock_mozapps.js');
-requireApp('communications/ftu/test/unit/mock_time_manager.js');
-requireApp('communications/ftu/test/unit/mock_wifi_manager.js');
-requireApp('communications/ftu/test/unit/mock_tz_select.js');
-requireApp('communications/ftu/test/unit/mock_operatorVariant.js');
+requireApp('ftu/test/unit/mock_l10n.js');
+requireApp('ftu/test/unit/mock_tutorial.js');
+requireApp('ftu/test/unit/mock_mozapps.js');
+requireApp('ftu/test/unit/mock_time_manager.js');
+requireApp('ftu/test/unit/mock_wifi_manager.js');
+requireApp('ftu/test/unit/mock_tz_select.js');
+requireApp('ftu/test/unit/mock_operatorVariant.js');
 
 var mocksHelperForUI = new MocksHelper([
   'Tutorial',
@@ -43,7 +43,7 @@ suite('UI Manager > ', function() {
     navigator.mozApps = MockMozApps;
 
     mocksHelper.suiteSetup();
-    loadBodyHTML('/ftu/index.html');
+    loadBodyHTML('/index.html');
 
     UIManager.init();
     Navigation.init();
