@@ -155,25 +155,8 @@ var CardsView = (function() {
       return;
     }
 
-    // events to handle
-    window.addEventListener('lock', CardsView);
-
-    screenElement.classList.add('cards-view');
-
-    // Close utility tray if it is opened.
-    UtilityTray.hide(true);
-
     // Apps info from Stack Manager.
     stack = StackManager.snapshot();
-
-    currentPosition = StackManager.position;
-
-    // If we are currently displaying the homescreen but we have apps in the
-    // stack we will display the most recently used application.
-    if (currentPosition == -1 && stack.length) {
-      currentPosition = stack.length - 1;
-    }
-    currentDisplayed = currentPosition;
 
     // Return early if inRocketbar and there are no apps.
     if (!stack.length && inRocketbar) {
@@ -188,6 +171,23 @@ var CardsView = (function() {
       CC_SCALE = 0.8;
       SC_SCALE = 0.6;
     }
+
+    // events to handle
+    window.addEventListener('lock', CardsView);
+
+    screenElement.classList.add('cards-view');
+
+    // Close utility tray if it is opened.
+    UtilityTray.hide(true);
+
+    currentPosition = StackManager.position;
+
+    // If we are currently displaying the homescreen but we have apps in the
+    // stack we will display the most recently used application.
+    if (currentPosition == -1 && stack.length) {
+      currentPosition = stack.length - 1;
+    }
+    currentDisplayed = currentPosition;
 
     // Ensure homescreen is already faded when we switch to it.
     fireCardViewBeforeShow();

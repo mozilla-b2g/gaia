@@ -255,16 +255,13 @@ suite('system/Rocketbar', function() {
     assert.ok(MockIACPort.mNumberOfMessages() == 1);
   });
 
-  test('showTaskManager()', function(done) {
+  test('showTaskManager()', function() {
     var showResultsStub = this.sinon.stub(subject, 'showResults');
     navigator.mozL10n = {
       'get': function() {
         return 'Search';
       }
     };
-    window.addEventListener('taskmanagershow', function() {
-      done();
-    });
     subject.showTaskManager();
     assert.ok(showResultsStub.calledOnce);
     assert.equal(subject.input.value, '');
@@ -540,7 +537,7 @@ suite('system/Rocketbar', function() {
     assert.equal(subject._touchStart, 3);
   });
 
-  test('handleTouch() - touchmove', function() {
+  test('handleTouch() - touchmove', function(done) {
     // Assumes EXPANSION_THRESHOLD: 5, TASK_MANAGER_THRESHOLD: 200
     var expandStub = this.sinon.stub(subject, 'expand');
     var collapseStub = this.sinon.stub(subject, 'collapse');
@@ -583,8 +580,13 @@ suite('system/Rocketbar', function() {
         }
       ]
     };
+
+    window.addEventListener('taskmanagershow', function taskmanagershow() {
+      window.removeEventListener('taskmanagershow', taskmanagershow);
+      done();
+    });
+
     subject.handleTouch(event);
-    assert.ok(showTaskManagerStub.calledOnce);
 
     expandStub.restore();
     collapseStub.restore();

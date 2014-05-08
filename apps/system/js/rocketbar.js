@@ -19,6 +19,7 @@
     this.onHomescreen = false;
     this.newTabPage = false;
     this.cardView = false;
+    this.waitingOnCardViewLaunch = false;
 
     // Properties
     this._port = null; // Inter-app communications port
@@ -159,6 +160,8 @@
       window.addEventListener('appscroll', this);
       window.addEventListener('home', this);
       window.addEventListener('cardviewclosedhome', this);
+      window.addEventListener('cardviewclosed', this);
+      window.addEventListener('cardviewshown', this);
       window.addEventListener('appopened', this);
       window.addEventListener('homescreenopening', this);
       window.addEventListener('stackchanged', this);
@@ -209,6 +212,19 @@
         case 'cardviewclosedhome':
           this.handleHome(e);
           break;
+        case 'cardviewshown':
+          if (this.waitingOnCardViewLaunch) {
+            this.showTaskManager();
+            this.waitingOnCardViewLaunch = false;
+          }
+          break;
+        case 'cardviewclosed':
+          this.cardView = false;
+          if (this.waitingOnCardViewLaunch) {
+            this.handleClick();
+            this.waitingOnCardViewLaunch = false;
+          }
+        break;
         case 'searchcrashed':
           this.handleSearchCrashed(e);
           break;
@@ -267,6 +283,8 @@
       window.removeEventListener('apptitlechange', this);
       window.removeEventListener('applocationchange', this);
       window.removeEventListener('home', this);
+      window.removeEventListener('cardviewclosed', this);
+      window.removeEventListener('cardviewshown', this);
       window.removeEventListener('cardviewclosedhome', this);
       window.removeEventListener('appopened', this);
       window.removeEventListener('homescreenopening', this);
@@ -401,6 +419,14 @@
     },
 
     /**
+     * Send event to the system app to show the task manager.
+     */
+    fireTaskManagerShow: function() {
+      this.waitingOnCardViewLaunch = true;
+      window.dispatchEvent(new CustomEvent('taskmanagershow'));
+    },
+
+    /**
      * Show the task manager and clear Rocketbar.
      * @memberof Rocketbar.prototype
      */
@@ -412,7 +438,6 @@
         });
       }
       this.showResults();
-      window.dispatchEvent(new CustomEvent('taskmanagershow'));
       this.clear();
     },
 
@@ -579,15 +604,15 @@
             this.collapse();
           }
           if (dy > this.TASK_MANAGER_THRESHOLD &&
-              !this.active && !this.cardView) {
-            this.showTaskManager();
+              !this.active && !this.cardView && !this.waitingOnCardViewLaunch) {
+            this.fireTaskManagerShow();
           }
           break;
         case 'touchend':
           dy = parseInt(e.changedTouches[0].pageY) -
             parseInt(this._touchStart);
           if (dy > (this.EXPANSION_THRESHOLD * -1) &&
-            dy < this.EXPANSION_THRESHOLD) {
+              dy < this.EXPANSION_THRESHOLD) {
             this.handleClick();
           }
           this._touchStart = -1;
