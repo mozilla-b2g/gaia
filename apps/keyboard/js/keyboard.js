@@ -223,7 +223,6 @@ const HIDE_KEYBOARD_TIMEOUT = 500;
 var deleteTimeout = 0;
 var deleteInterval = 0;
 var menuTimeout = 0;
-var redrawTimeout = 0;
 var hideKeyboardTimeout = 0;
 
 // Special key codes
@@ -817,8 +816,6 @@ function renderKeyboard(keyboardName, callback) {
       callback();
     }
   }
-
-  clearTimeout(redrawTimeout);
 
   drawKeyboard();
 }
