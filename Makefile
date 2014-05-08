@@ -790,7 +790,7 @@ test-integration-test:
 
 .PHONY: caldav-server-install
 caldav-server-install:
-	pip install virtualenv
+	pip install --user virtualenv
 	virtualenv js-marionette-env; \
   source ./js-marionette-env/bin/activate; \
 				export LC_ALL=en_US.UTF-8; \
