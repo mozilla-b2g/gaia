@@ -1,3 +1,7 @@
+'use strict';
+
+/* exported MockImportedContacts */
+
 var MockImportedContacts = {
   data: [
     {

@@ -1,13 +1,18 @@
 'use strict';
 
+/* global utils, importer, MockAlphaScroll, MockImageLoader */
+/* global MockSearch, MockasyncStorage, MockOauthflow, MockImportHtml */
+/* global MockConnector, MockImportedContacts */
+
 require('/shared/js/text_normalizer.js');
+require('/shared/js/contacts/search.js');
+requireApp('communications/contacts/test/unit/mock_l10n.js');
 require('/shared/js/contacts/import/importer_ui.js');
 require('/shared/js/contacts/import/utilities/misc.js');
 require('/shared/js/contacts/utilities/dom.js');
 require('/shared/js/contacts/utilities/templates.js');
 
-requireApp('communications/import/test/unit/mock_import.html.js');
-requireApp('communications/contacts/test/unit/mock_l10n.js');
+requireApp('communications/contacts/test/unit/import/mock_import.html.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_search.js');
 requireApp('communications/contacts/test/unit/mock_oauthflow.js');
@@ -15,9 +20,9 @@ require('/shared/js/contacts/import/friends_list.js');
 requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/facebook/test/unit/mock_curtain.js');
-requireApp('communications/import/test/unit/mock_connector.js');
-requireApp('communications/import/test/unit/mock_imported_contacts.js');
-require('/shared/js/contacts/search.js');
+requireApp('communications/contacts/test/unit/import/mock_connector.js');
+requireApp(
+        'communications/contacts/test/unit/import/mock_imported_contacts.js');
 
 var realSearch,
     realImageLoader,
@@ -26,24 +31,24 @@ var realSearch,
     realOauthflow,
     groupsListChild, groupsList;
 
-if (!this.asyncStorage) {
-  this.asyncStorage = null;
+if (!window.asyncStorage) {
+  window.asyncStorage = null;
 }
 
-if (!this.ImageLoader) {
-  this.ImageLoader = null;
+if (!window.ImageLoader) {
+  window.ImageLoader = null;
 }
 
-if (!this.contacts) {
-  this.contacts = null;
+if (!window.contacts) {
+  window.contacts = null;
 }
 
-if (!this.onrendered) {
-  this.onrendered = true;
+if (!window.onrendered) {
+  window.onrendered = true;
 }
 
-if (!this.oauthflow) {
-  this.oauthflow = null;
+if (!window.oauthflow) {
+  window.oauthflow = null;
 }
 
 setup(function() {
@@ -53,9 +58,6 @@ setup(function() {
 
 
 suite('Import Friends Test Suite', function() {
-  // disabled because of perma-red: bug 909630
-  return;
-
   suiteSetup(function() {
     realAlphaScroll = utils.AlphaScroll;
     utils.alphaScroll = MockAlphaScroll;
@@ -91,7 +93,7 @@ suite('Import Friends Test Suite', function() {
 
     importer.start('mock_token', MockConnector, '*', function() {
       assert.equal(document.querySelectorAll('#groups-list li').length,
-                   MockImportedContacts.length);
+                   MockImportedContacts.data.length);
 
       // MockAsyncStorage is ordering by first name
       assert.isNotNull(document.
