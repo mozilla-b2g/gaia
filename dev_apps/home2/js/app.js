@@ -5,6 +5,8 @@
 /* global Icon */
 /* global ItemStore */
 /* global layout */
+/* global MozActivity */
+/*jshint nonew: false */
 
 (function(exports) {
 
@@ -19,6 +21,7 @@
 
     window.addEventListener('hashchange', this);
     window.addEventListener('appzoom', this);
+    window.addEventListener('contextmenu', this);
   }
 
   App.prototype = {
@@ -95,7 +98,7 @@
         removed.remove();
       }, this);
 
-      // There should always be a divider at the end, it's hidden in CSS when 
+      // There should always be a divider at the end, it's hidden in CSS when
       // not in edit mode.
       var lastItem = this.items[this.items.length - 1];
       if (!(lastItem instanceof Divider)) {
@@ -108,12 +111,22 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+        case 'contextmenu':
+          // Todo: Show options menu with option to add smart collection
+          // For now we just launch the new smart collection activity.
+          new MozActivity({
+            name: 'create-collection',
+            data: {
+              type: 'folder'
+            }
+          });
+          break;
         case 'hashchange':
           if (this.dragdrop.inEditMode) {
             this.dragdrop.exitEditMode();
             return;
           }
-          
+
           var step;
           var doScroll = function() {
             var scrollY = window.scrollY;
@@ -180,7 +193,7 @@
         }
 
         item.render([x, y], idx);
-        
+
         // Increment the x-step by the sizing of the item.
         // If we go over the current boundary, reset it, and step the y-axis.
         x += item.gridWidth;
