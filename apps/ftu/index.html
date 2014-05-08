@@ -16,12 +16,12 @@
   <link rel="stylesheet" type="text/css" href="/shared/style/animations.css">
 
   <!-- Specific style -->
-  <link rel="stylesheet" type="text/css" href="/ftu/css/style.css">
+  <link rel="stylesheet" type="text/css" href="css/style.css">
   <link rel="stylesheet" type="text/css" href="css/status.css">
   <link rel="stylesheet" type="text/css" href="css/overlay.css">
-  <link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
-  <link rel="stylesheet" type="text/css" href="/ftu/css/tutorial.css">
-  <link rel="stylesheet" type="text/css" href="/ftu/css/responsive.css">
+  <link rel="stylesheet" type="text/css" href="css/fb_extensions.css">
+  <link rel="stylesheet" type="text/css" href="css/tutorial.css">
+  <link rel="stylesheet" type="text/css" href="css/responsive.css">
   <link rel="stylesheet" type="text/css" href="/shared/pages/import/style/curtain_frame.css">
 
   <title>Welcome to Browser OS</title>
@@ -33,7 +33,7 @@
   <link rel="resource" type="application/l10n" href="/shared/locales/branding.ini"/>
   <!-- This is needed for not duplicating SIM Import and FB Import locales -->
   <link rel="resource" type="application/l10n" href="/shared/locales/import_contacts.ini"/>
-  <link rel="resource" type="application/l10n" href="/ftu/locales/locales.ini"/>
+  <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
   <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
   <link rel="resource" type="application/l10n" href="/shared/locales/tz.ini"/>
   <link rel="resource" type="application/json" href="/shared/resources/tz.json"/>
@@ -60,8 +60,8 @@
   <script defer type="text/javascript" src="/shared/js/screen_layout.js"></script>
   <script defer type="text/javascript" src="/shared/js/text_normalizer.js"></script>
   <script defer type="text/javascript" src="/shared/js/lazy_loader.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/basket-client.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/services_launcher.js"></script>
+  <script defer type="text/javascript" src="js/basket-client.js"></script>
+  <script defer type="text/javascript" src="js/services_launcher.js"></script>
   <script defer type="text/javascript" src="/shared/js/fb/fb_request.js"></script>
   <script defer type="text/javascript" src="/shared/js/contacts/import/facebook/fb_data.js"></script>
   <script defer type="text/javascript" src="/shared/js/contacts/import/facebook/fb_utils.js"></script>
@@ -73,26 +73,41 @@
   <script defer type="text/javascript" src="/shared/js/icc_helper.js"></script>
   <script defer type="text/javascript" src="/shared/js/wifi_helper.js"></script>
   <script defer type="text/javascript" src="/shared/js/fxa_iac_client.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/sim_manager.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/memcard_manager.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/import_services.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/utils.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/finish_screen.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/tutorial.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/external_links.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/data_mobile.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/time.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/ui.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/language.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/app.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/operatorVariant.js"></script>
+  <script defer type="text/javascript" src="js/sim_manager.js"></script>
+  <script defer type="text/javascript" src="js/memcard_manager.js"></script>
+  <script defer type="text/javascript" src="js/wifi.js"></script>
+  <script defer type="text/javascript" src="js/import_services.js"></script>
+  <script defer type="text/javascript" src="js/utils.js"></script>
+  <script defer type="text/javascript" src="js/finish_screen.js"></script>
+  <script defer type="text/javascript" src="js/tutorial.js"></script>
+  <script defer type="text/javascript" src="js/external_links.js"></script>
+  <script defer type="text/javascript" src="js/navigation.js"></script>
+  <script defer type="text/javascript" src="js/data_mobile.js"></script>
+  <script defer type="text/javascript" src="js/time.js"></script>
+  <script defer type="text/javascript" src="js/ui.js"></script>
+  <script defer type="text/javascript" src="js/language.js"></script>
+  <script defer type="text/javascript" src="js/app.js"></script>
+  <script defer type="text/javascript" src="js/operatorVariant.js"></script>
 
   <!-- Confirm dialogs BB library -->
   <script defer type="text/javascript" src="/shared/js/confirm.js"></script>
 
-  <link rel="import" href="/shared/pages/import/import.html">
+  <!--
+    <link href="/shared/pages/import/import.html">
+    <link href="/shared/pages/import/curtain.html">
+    <link href="/shared/pages/import/oauth.html">
+  -->
+
+  <!--
+    <link href="/shared/js/simple_phone_matcher.js">
+    <link href="/shared/js/mime_mapper.js">
+    <link href="/shared/js/contact_photo_helper.js">
+    <link href="/shared/js/contacts/contacts_matcher.js">
+    <link href="/shared/js/contacts/contacts_merger.js">
+    <link href="/shared/js/contacts/utilities/image_thumbnail.js">
+    <link href="/shared/js/contacts/merger_adapter.js">
+    <link href="/shared/js/contacts/utilities/http_rest.js">
+  -->
 </head>
 <body>
   <section id="splash-screen" role="region" class="show">
