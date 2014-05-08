@@ -22,7 +22,7 @@
       title: 'fxa-reset-password-in-settings-title',
       message: 'fxa-reset-password-in-settings-message'
     },
-    INVALID_ACCOUNTID: {
+    INVALID_EMAIL: {
       title: 'fxa-invalid-email-title',
       message: 'fxa-invalid-email-message'
     },

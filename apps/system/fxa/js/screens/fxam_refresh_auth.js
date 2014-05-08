@@ -54,7 +54,7 @@ var FxaModuleRefreshAuth = (function() {
     FxaModuleOverlay.show(_('fxa-requesting-password-reset'));
     _requestPasswordReset.call(
       this,
-      this.accountId,
+      this.email,
       function(isRequestHandled) {
         FxaModuleOverlay.hide();
         if (!isRequestHandled) {
@@ -96,13 +96,13 @@ var FxaModuleRefreshAuth = (function() {
       this.initialized = true;
     }
 
-    if (!options || !options.accountId) {
+    if (!options || !options.email) {
       console.error('Options are not sent properly. Email not available');
       return;
     }
 
-    this.fxaUserEmailRefresh.textContent = options.accountId;
-    this.accountId = options.accountId;
+    this.fxaUserEmailRefresh.textContent = options.email;
+    this.email = options.email;
 
     _cleanForm(this.fxaPwInputRefresh, this.fxaShowPwRefresh);
     _enableDone(this.fxaPwInputRefresh);
@@ -112,7 +112,7 @@ var FxaModuleRefreshAuth = (function() {
     FxaModuleOverlay.show(_('fxa-authenticating'));
 
     FxModuleServerRequest.signIn(
-      this.accountId,
+      this.email,
       this.fxaPwInputRefresh.value,
       function onServerResponse(response) {
         FxaModuleOverlay.hide();

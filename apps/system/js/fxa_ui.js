@@ -42,12 +42,12 @@ var FxAccountsUI = {
   },
 
   // Refresh authentication flow.
-  refreshAuthentication: function fxa_ui_refreshAuth(accountId,
+  refreshAuthentication: function fxa_ui_refreshAuth(email,
                                                      onsuccess,
                                                      onerror) {
     this.onsuccessCb = onsuccess;
     this.onerrorCb = onerror;
-    this.loadFlow('refresh_auth', ['accountId=' + accountId]);
+    this.loadFlow('refresh_auth', ['email=' + email]);
   },
 
   // Method which close the dialog.
