@@ -1,3 +1,7 @@
+// Notice: 
+// shim should be the same as build/settings.build.jslike::paths
+// in alphabet order.
+// every required file in shared should be explicitly exclude in modules
 require.config({
   baseUrl: '/js',
   paths: {
@@ -20,6 +24,9 @@ require.config({
     },
     'shared/manifest_helper': {
       exports: 'ManifestHelper'
+    },
+    'shared/omadrm/fl': {
+      exports: 'ForwardLock'
     },
     'shared/screen_layout': {
       exports: 'ScreenLayout'
@@ -53,7 +60,10 @@ require.config({
     },
     {
       name: 'panels/app_permissions_detail/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'shared/manifest_helper'
+      ]
     },
     {
       name: 'panels/app_permissions_list/panel',
@@ -65,7 +75,19 @@ require.config({
     },
     {
       name: 'panels/screen_lock_passcode/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'shared/manifest_helper',
+        'shared/settings_listener'
+      ]
+    },
+    {
+      name: 'panels/sound/panel',
+      exclude: [
+        'main',
+        'shared/omadrm/fl',
+        'shared/settings_listener'
+      ]
     }
   ]
 });
