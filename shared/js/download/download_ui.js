@@ -1,5 +1,8 @@
-
 'use strict';
+/* exported DownloadUI */
+/* global DownloadFormatter */
+/* global LazyLoader */
+/* global MimeMapper */
 
 /**
  *  This file defines a component to show download confirmations

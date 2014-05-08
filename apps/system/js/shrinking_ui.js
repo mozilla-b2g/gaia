@@ -25,9 +25,12 @@
  * interrupted, and the 'shrinking-stop' is necessary in such situation.
  *
  */
+
+/* globals dump */
 (function(exports) {
 
   var ShrinkingUI = {
+    DEBUG: false,
     THRESHOLD: 50,
     SUSPEND_INTERVAL: 100,
     apps: {},
@@ -46,7 +49,9 @@
       touch: {
         initY: -1,
         prevY: -1
-      }
+      },
+      slideTransitionCb: null, // Last slide transition
+      tiltTransitionCb: null // Last tilt transition
     },
     configs: {
       degreeLandscape: '1.2deg',
@@ -56,6 +61,17 @@
     }
   };
 
+  ShrinkingUI.debug =
+    (function su_debug(msg, optObject) {
+      if (this.DEBUG) {
+        var output = '[DEBUG] ShrinkingUI: ' + msg;
+        if (optObject) {
+          output += JSON.stringify(optObject);
+        }
+        dump(output);
+      }
+  }).bind(ShrinkingUI);
+
   /**
    * Bind events and do some necessary initialization.
    *
@@ -64,6 +80,8 @@
   ShrinkingUI.initialize =
     (function su_initialize() {
       window.addEventListener('home', this);
+      window.addEventListener('holdhome', this);
+      window.addEventListener('homescreenopened', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
       window.addEventListener('appopen', this);
@@ -89,8 +107,9 @@
         case 'appcreated':
         case 'appterminated':
         case 'appopen':
-          if (!evt.detail || !evt.detail.manifestURL)
+          if (!evt.detail || !evt.detail.manifestURL) {
             return;
+          }
       }
 
       switch (evt.type) {
@@ -101,8 +120,13 @@
         // This require that the shrinking file must be loaded before
         // the AppWindowManager.
         case 'home':
-          if (this._state())
+        case 'holdhome':
+          if (this._state()) {
             evt.stopImmediatePropagation();
+          }
+          break;
+        case 'homescreenopened':
+          this._switchTo(null);
           break;
         case 'appcreated':
           var app = evt.detail;
@@ -110,8 +134,9 @@
           break;
         case 'appterminated':
           if (this._state() &&
-              evt.detail.manifestURL === this.current.manifestURL)
+              evt.detail.manifestURL === this.current.manifestURL) {
             this._cleanEffects();
+          }
           this._unregister(evt.detail.manifestURL);
           break;
         case 'appopen':
@@ -136,13 +161,11 @@
           break;
         case 'check-p2p-registration-for-active-app':
           if (evt.detail && evt.detail.checkP2PRegistration) {
-            var manifestURL = this.current.manifestURL;
             evt.detail.checkP2PRegistration(this.currentAppURL);
           }
           break;
         case 'dispatch-p2p-user-response-on-active-app':
           if (evt.detail && evt.detail.dispatchP2PUserResponse) {
-            var manifestURL = this.current.manifestURL;
             evt.detail.dispatchP2PUserResponse(this.currentAppURL);
           }
           break;
@@ -203,10 +226,10 @@
    */
   ShrinkingUI.start =
     (function su_start() {
-
       // Already shrunk.
-      if (this._state())
+      if (this._state()) {
         return;
+      }
 
       var afterTilt = (function() {
         // After it tilted done, turn it to the screenshot mode.
@@ -241,8 +264,9 @@
    */
   ShrinkingUI.stop =
     (function su_stop() {
-      if (! this._state())
+      if (!this._state()) {
         return;
+      }
       var afterTiltBack = (function() {
         // Turn off the screenshot mode.
         var currentWindow = this.apps[this.currentAppURL];
@@ -276,8 +300,9 @@
    */
   ShrinkingUI._state =
     (function su_state() {
-      if (!this.current.appFrame) // Has been setup or not.
+      if (!this.current.appFrame) {// Has been setup or not.
         return false;
+      }
       return 'true' === this.current.appFrame.dataset.shrinkingState;
      }).bind(ShrinkingUI);
 
@@ -296,6 +321,35 @@
       // setting/getting the attribute directly in shrinking UI.
       this.current.appFrame.setAttribute('data-shrinking-state',
         state.toString());
+      this.debug('Setting shrink state to: ' + state);
+    }).bind(ShrinkingUI);
+
+  /**
+   * Update the current 'transitionend' callback for the slide animation.
+   * @param {cb} transitioned callback
+   * @this {ShrinkingUI}
+   */
+  ShrinkingUI._updateSlideTransition =
+    (function su_updateSlideTransition(cb) {
+      if (this.current.tip && this.state.slideTransitionCb) {
+        this.current.tip.removeEventListener('transitionend',
+                                             this.state.slideTransitionCb);
+      }
+      this.state.slideTransitionCb = cb;
+    }).bind(ShrinkingUI);
+
+  /**
+   * Update the current 'transitionend' callback for the tilt animation.
+   * @param {cb} transitioned callback
+   * @this {ShrinkingUI}
+   */
+  ShrinkingUI._updateTiltTransition =
+    (function su_updateTiltTransition(cb) {
+      if (this.current.appFrame && this.state.tiltTransitionCb) {
+        this.current.appFrame.removeEventListener('transitionend',
+                                                  this.state.tiltTransitionCb);
+      }
+      this.state.tiltTransitionCb = cb;
     }).bind(ShrinkingUI);
 
   /**
@@ -305,7 +359,6 @@
    */
   ShrinkingUI._receivingEffects =
     (function su_receivingEffects() {
-
       // Hide it before we move it.
       // Visibility won't work.
       this.current.appFrame.style.opacity = '0';
@@ -350,8 +403,9 @@
       } else if ('BOTTOM' === y) {
         y = 0;
       }
-      if (y < 0)
+      if (y < 0) {
         y = 0;
+      }
 
       var cbDone = (function on_cbDone(evt) {
         this.current.appFrame.removeEventListener('transitionend', cbDone);
@@ -360,6 +414,7 @@
         }
       }).bind(this);
       this.current.appFrame.addEventListener('transitionend', cbDone);
+      this._updateTiltTransition(cbDone);
       this.current.appFrame.style.transform =
         'rotateX(' + this._getTiltingDegree() + ') ' +
         'translateY(-' + y + 'px)';
@@ -466,6 +521,7 @@
       var bounceBack = (function on_bounceBack(evt) {
         this.current.appFrame.removeEventListener('transitionend', bounceBack);
         this.current.appFrame.addEventListener('transitionend', bounceBackEnd);
+        this._updateTiltTransition(bounceBackEnd);
         this.current.appFrame.style.transition = 'transform 0.3s ease';
         this.current.appFrame.style.transform =
           'rotateX(' + this._getTiltingDegree() + ') ';
@@ -475,11 +531,13 @@
         this.current.appFrame.removeEventListener('transitionend',
           bounceBackEnd);
         this.current.appFrame.style.transition = 'transform 0.5s ease';
-        if (cb)
+        if (cb) {
           cb();
+        }
       }).bind(this);
 
       this.current.appFrame.addEventListener('transitionend', bounceBack);
+      this._updateTiltTransition(bounceBack);
 
       // After set up, trigger the transition.
       this.current.appFrame.style.transformOrigin = '50% 100% 0';
@@ -504,17 +562,20 @@
       if (!instant) {
         var tsEnd = (function _tsEnd(evt) {
             this.current.appFrame.removeEventListener('transitionend', tsEnd);
-            if (cb)
+            if (cb) {
               cb();
+            }
         }).bind(this);
         this.current.appFrame.style.transition = 'transform 0.3s ease';
         this.current.appFrame.addEventListener('transitionend', tsEnd);
+        this._updateTiltTransition(tsEnd);
         this.current.appFrame.style.transform = 'rotateX(0.0deg)';
       } else {
         this.current.appFrame.style.transition = '';
         this.current.appFrame.style.transform = 'rotateX(0.0deg)';
-        if (cb)
+        if (cb) {
           cb();
+        }
       }
     }).bind(ShrinkingUI);
 
@@ -526,6 +587,7 @@
    */
   ShrinkingUI._handleSendingStart =
     (function su_handleSendingStart(evt) {
+      this.debug('_handleSendingStart(): ', this._state());
       // Stop the touch event to affect the inner elements.
       evt.stopImmediatePropagation();
 
@@ -535,6 +597,7 @@
       }).bind(this);
       this.current.tip.classList.add('hide');
       this.current.tip.addEventListener('transitionend', tsEnd);
+      this._updateSlideTransition(tsEnd);
 
       return false;
     }).bind(ShrinkingUI);
@@ -547,7 +610,6 @@
    */
   ShrinkingUI._handleSendingSlide =
     (function su_handleSendingSlide(evt) {
-
       var pgy = evt.touches[0].pageY;
       var slideY = this.current.appFrame.parentElement.clientHeight - pgy;
       if ('undefined' === typeof this.state.touch.initY) {
@@ -560,8 +622,9 @@
       this.state.toward = (this.state.touch.prevY < slideY) ? 'TOP' : 'BOTTOM';
 
       // Don't set new sliding callback if we're suspended.
-      if (this.state.suspended)
+      if (this.state.suspended) {
         return;
+      }
 
       var handleDelaySliding = (function su_handleDelaySliding() {
           this._sendingSlideTo(slideY);
@@ -586,12 +649,12 @@
    */
   ShrinkingUI._handleSendingOut =
     (function su_handleSendingOut(evt) {
+      this.debug('_handleSendingOut(): ', this._state());
       // Clear the last sliding timeout callback to force
       // it slide to TOP or BOTTOM.
       clearTimeout(this.state.delaySlidingID);
 
       if (this.state.overThreshold && 'TOP' === this.state.toward) {
-        var cover = this.cover;
         this._sendingSlideTo('TOP' , (function() {
           // When it got sent, freeze it at the top.
           this._disableSlidingCover();
@@ -617,14 +680,16 @@
    */
   ShrinkingUI._cleanEffects =
     (function su_cleanEffects() {
+      this.debug('_cleanEffects(): ', this._state());
       this.current.appFrame.style.transition = '';
       this.current.appFrame.style.transform = '';
       this.current.appFrame.style.transformOrigin = '50% 50% 0';
       this._setState(false);
 
-      // After trasitionend, clean this handler.
-      this.current.appFrame.removeEventListener('transitionend',
-        this._cleanEffects);
+      // Clear the 'transitionend' animation listener callbacks
+      this._updateTiltTransition(null);
+      this._updateSlideTransition(null);
+
       this.current.wrapper.classList.remove('shrinking-wrapper');
       this._disableSlidingCover().remove();
 

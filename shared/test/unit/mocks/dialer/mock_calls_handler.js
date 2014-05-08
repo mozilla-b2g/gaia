@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockCallsHandler */
+
 var MockCallsHandler = {
   mActiveCall: null,
   mUpdateKeypadEnabledCalled: true,

@@ -79,7 +79,12 @@ suite('search/providers/contacts', function() {
 
     test('contact is rendered', function() {
       subject.search('stub content', Search.collect.bind(Search, subject));
-      assert.notEqual(subject.container.innerHTML.indexOf('Antonio CC'), -1);
+      var contact = subject.container.querySelector('.result');
+      assert.equal(contact.querySelector('.title').innerHTML, 'Pepito A');
+      assert.equal(contact.getAttribute('aria-label'), 'Pepito A');
+      assert.equal(contact.getAttribute('role'), 'link');
+      assert.equal(contact.querySelector('.icon').getAttribute('role'),
+        'presentation');
     });
   });
 

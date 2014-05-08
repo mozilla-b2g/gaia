@@ -87,6 +87,10 @@ suite('search/providers/suggestions', function() {
       subject.render('moz', ['[moz]illa']);
       var container = subject.container;
       assert.notEqual(container.innerHTML.indexOf('mozilla'), -1);
+      assert.equal(container.querySelector('ul').getAttribute('role'),
+        'listbox');
+      assert.equal(container.querySelector('li').getAttribute('role'),
+        'option');
     });
   });
 

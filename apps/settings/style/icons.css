@@ -9,6 +9,16 @@
   background-position: 1.4rem center;
 }
 
+a.menu-item::after  {
+  content: "";
+  width: 3rem;
+  height: 3rem;
+  position: absolute;
+  top: calc(50% - 1.5rem);
+  right: -0.5rem;
+  background: url(/shared/style_unstable/buttons/images/next.png) no-repeat;
+}
+
 .menu-item-desc {
   left: 4rem;
 }
@@ -97,7 +107,7 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -9rem -6rem;
 }
 
-#menuItem-phoneLock::before {
+#menuItem-screenLock::before {
   background-position: -12rem -6rem;
 }
 
@@ -391,6 +401,12 @@ aside.connecting {
 html[dir="rtl"] .menu-item {
   padding-left: 0;
   padding-right: 5.5rem;
+}
+
+html[dir="rtl"] a.menu-item::after  {
+  right: auto;
+  left: -0.5rem;
+  transform: rotate(180deg);
 }
 
 html[dir="rtl"] .menu-item-desc {

@@ -1,5 +1,6 @@
 'use strict';
 /* global GridItem */
+/* global layout */
 
 (function() {
   // Icon container
@@ -49,7 +50,7 @@
         container.appendChild(divider);
       }
 
-      var y = app.zoom.offsetY;
+      var y = layout.offsetY;
       this.divider.style.transform = 'translate(0 ,' + y + 'px)';
 
       this.detail.index = index;

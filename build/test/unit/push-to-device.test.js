@@ -36,7 +36,7 @@ suite('push-to-device.js', function() {
           path: profileFolder + '/indexedDB'
         };
       };
-      var queue = app.pushToDevice(profileFolder, remotePath);
+      var queue = app.pushToDevice(profileFolder, remotePath, 'adb');
       queue.done(function() {
         assert.deepEqual(
           mockUtils.hasRunCommands,
@@ -68,7 +68,7 @@ suite('push-to-device.js', function() {
           path: profileFolder + '/indexedDB'
         };
       };
-      var queue = app.pushToDevice(profileFolder, remotePath);
+      var queue = app.pushToDevice(profileFolder, remotePath, 'adb');
       queue.done(function() {
         assert.deepEqual(
           mockUtils.hasRunCommands,
@@ -88,7 +88,7 @@ suite('push-to-device.js', function() {
     });
 
     test('installSvoperapps', function(done) {
-      var queue = app.installSvoperapps(profileFolder);
+      var queue = app.installSvoperapps(profileFolder, 'adb');
       queue.done(function() {
         assert.deepEqual(mockUtils.hasRunCommands, {
           sh: [
@@ -107,6 +107,7 @@ suite('push-to-device.js', function() {
     var appID;
     setup(function() {
       options = {
+        ADB: 'adb',
         GAIA_DIR: 'testGaia',
         PROFILE_DIR: 'testProfileFolder',
         GAIA_INSTALL_PARENT: '/system/b2g',
@@ -141,8 +142,10 @@ suite('push-to-device.js', function() {
         assert.deepEqual(mockUtils.hasRunCommands, {
           sh: [
             '-c adb start-server',
+            '-c adb wait-for-device',
             '-c adb shell stop b2g',
             '-c adb shell rm -r //cache/*',
+            '-c adb remount',
             '-c adb shell rm -r /' + options.GAIA_INSTALL_PARENT +
                 '/webapps',
             '-c adb shell rm //data/local/user.js',
@@ -169,7 +172,9 @@ suite('push-to-device.js', function() {
         assert.deepEqual(mockUtils.hasRunCommands, {
           sh: [
             '-c adb start-server',
+            '-c adb wait-for-device',
             '-c adb shell rm -r //cache/*',
+            '-c adb remount',
             '-c adb push "' + options.PROFILE_DIR + '/webapps/' +
                 options.BUILD_APP_NAME + '.' + options.GAIA_DOMAIN +
                 '/manifest.webapp" /' + options.GAIA_INSTALL_PARENT +
@@ -185,4 +190,62 @@ suite('push-to-device.js', function() {
       });
     });
   });
+
+  suite('getRemoteInstallPath', function() {
+    test('Return /system/b2g if no profile on device', function() {
+      var realGetJSON = mockUtils.getJSON;
+      mockUtils.getJSON = function(file) {
+        // getJSON should throw in this case because the content of the
+        // tempFile will be an adb error message.
+        return JSON.parse(
+          'remote object \'' + file.path + '\' does not exist');
+      };
+      var path = app.getRemoteInstallPath('adb');
+      assert.equal(path, '/system/b2g');
+
+      mockUtils.getJSON = realGetJSON;
+    });
+    test('Return /data/local if no app was installed on /system/b2g',
+      function() {
+        var realGetJSON = mockUtils.getJSON;
+        mockUtils.getJSON = function(file) {
+          return {
+            'app1.gaiamobile.org': {
+              'basePath': '/data/local/webapps'
+            },
+            'app2.gaiamobile.org': {
+              'basePath': '/data/local/webapps'
+            },
+            'app3.gaiamobile.org': {
+              'basePath': '/data/local/webapps'
+            }
+          };
+        };
+        var path = app.getRemoteInstallPath('adb');
+        assert.equal(path, '/data/local');
+
+        mockUtils.getJSON = realGetJSON;
+      });
+    test('Return /system/b2g if any app was installed there', function() {
+      var realGetJSON = mockUtils.getJSON;
+      mockUtils.getJSON = function(file) {
+        return {
+          'app1.gaiamobile.org': {
+            'basePath': '/data/local/webapps'
+          },
+          'app2.gaiamobile.org': {
+            'basePath': '/system/b2g/webapps'
+          },
+          'app3.gaiamobile.org': {
+            'basePath': '/system/b2g/webapps'
+          }
+        };
+      };
+      var path = app.getRemoteInstallPath('adb');
+      assert.equal(path, '/system/b2g');
+
+      mockUtils.getJSON = realGetJSON;
+    });
+  });
+
 });

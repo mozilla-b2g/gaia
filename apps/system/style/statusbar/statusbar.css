@@ -32,11 +32,20 @@ body.rb-enabled #screen.on-homescreen:not(.cards-view):not(.rocketbar-focused) #
   left: 0;
 }
 
-#statusbar-background.hidden, #statusbar.invisible {
-  display: none;
+body:not(.rb-enabled) #statusbar {
+  transition: transform 0.2s linear;
+  will-change: transform;
 }
 
 #screen.lockscreen-camera > #statusbar,
+#statusbar.invisible {
+  transform: translateY(-100%);
+}
+
+#statusbar-background.hidden {
+  display: none;
+}
+
 #screen.lockscreen-camera > #statusbar-background {
   display: none;
 }
@@ -44,6 +53,8 @@ body.rb-enabled #screen.on-homescreen:not(.cards-view):not(.rocketbar-focused) #
 #screen.locked:not(.attention) #statusbar,
 #screen.locked:not(.attention) #statusbar-background {
   background-color: transparent;
+  display: block;
+  transform: translateY(0);
 }
 
 #screen:not(.locked) #statusbar.invisible.dragged {
@@ -75,6 +86,7 @@ body.rb-enabled #screen.on-homescreen:not(.cards-view):not(.rocketbar-focused) #
 #screen.rocketbar-expanded:not(.on-homescreen):not(.locked) #statusbar-icons,
 #screen.rocketbar-expanded.on-homescreen.rocketbar-focused:not(.locked) #statusbar-icons,
 #screen.rocketbar-expanded.cards-view #statusbar-icons {
+  visibility: hidden;
   opacity: 0;
 }
 
@@ -581,4 +593,8 @@ body.rb-enabled #statusbar-label {
 
 .sb-icon-playing {
   background-position: -18.9rem -8rem;
+}
+
+.sb-icon-nfc {
+  background-position: -27.3rem -8rem;
 }

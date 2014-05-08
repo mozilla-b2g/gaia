@@ -233,7 +233,7 @@ marionette('Notification.get():', function() {
       }
       for (var i = nodes.length - 1; i >= 0; i--) {
         var event = document.createEvent('CustomEvent');
-        event.initCustomEvent('mozContentEvent', true, true, {
+        event.initCustomEvent('mozContentNotificationEvent', true, true, {
           type: 'desktop-notification-close',
           id: nodes[i].dataset.notificationId
         });

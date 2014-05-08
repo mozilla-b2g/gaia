@@ -232,9 +232,6 @@
     <!-- Radio  -->
     <script defer src="js/radio.js"></script>
 
-    <!-- Voicemail -->
-    <script defer src="js/voicemail.js"></script>
-
     <!-- Update Manager -->
     <script defer src="js/updatable.js"></script>
     <script defer src="js/update_manager.js"></script>
@@ -256,7 +253,6 @@
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/download.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/voicemail.ini">
-    <link rel="resource" type="application/l10n" href="shared/locales/sim_picker.ini">
 
     <!-- Payment -->
     <script defer src="js/payment.js"></script>
@@ -268,6 +264,9 @@
     <script defer src="shared/js/operator_variant_helper.js"></script>
     <script defer src="js/operator_variant/operator_variant.js"></script>
     <script defer src="js/operator_variant/operator_variant_iccs.js"></script>
+
+    <!-- Voicemail -->
+    <script defer src="js/voicemail.js"></script>
 
     <!-- Crash Reporter -->
     <link rel="stylesheet" type="text/css" href="style/crash_reporter/crash_reporter.css">
@@ -314,6 +313,7 @@
     <script defer src="js/system_dialog.js"></script>
     <script defer src="js/system_dialog_manager.js"></script>
     <script defer src="js/system_simcard_dialog.js"></script>
+    <script defer src="js/system_nfc_connect_dialog.js"></script>
     <script defer src="js/fxa_dialog.js"></script>
     <script defer src="js/lockscreen_window.js"></script>
     <script defer src="js/lockscreen_window_manager.js"></script>
@@ -357,6 +357,7 @@
     <!-- Rocketbar -->
     <script defer src="js/browser.js"></script>
     <script defer src="js/rocketbar.js"></script>
+    <script defer src="js/home_searchbar.js"></script>
     <script defer src="js/search_window.js"></script>
     <script defer src="shared/js/url_helper.js"></script>
     <link rel="stylesheet" type="text/css" href="style/rocketbar/rocketbar.css">
@@ -365,6 +366,9 @@
     <script defer src="js/sim_lock.js"></script>
     <link rel="stylesheet" type="text/css" href="style/simcard.css">
     <script defer src="js/simcard_dialog.js"></script>
+
+    <!-- Bluetooth Connect via NFC -->
+    <link rel="stylesheet" type="text/css" href="style/nfcconnect.css">
 
     <!-- Firefox Accounts -->
     <link rel="stylesheet" type="text/css" href="style/firefox_account/firefox_account_container.css">
@@ -505,6 +509,7 @@
       </div>
 
       <!-- Rocketbar Results -->
+      <div id="rocketbar-backdrop" class="hidden" data-z-index-level="rocketbar-results"></div>
       <div id="rocketbar-results" class="hidden" data-z-index-level="rocketbar-results"></div>
 
       <!-- Utility Tray -->

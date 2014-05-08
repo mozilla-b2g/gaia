@@ -48,12 +48,11 @@ class SettingsForm(Base):
         self.marionette.find_element(*self._export_contacts_locator).tap()
         self.wait_for_condition(lambda m: m.find_element(*self._import_settings_locator).location['x'] == 0)
 
-    def tap_import_from_sim(self, number_of_contacts=1):
+    def tap_import_from_sim(self):
         self.wait_for_element_displayed(*self._import_from_sim_button_locator)
         self.marionette.find_element(*self._import_from_sim_button_locator).tap()
         from gaiatest.apps.contacts.app import Contacts
-        self.wait_for_element_displayed(*Contacts._status_message_locator,
-                                        timeout=number_of_contacts * self.marionette.timeout)
+        self.wait_for_element_displayed(*Contacts._status_message_locator)
 
     @property
     def gmail_imported_contacts(self):

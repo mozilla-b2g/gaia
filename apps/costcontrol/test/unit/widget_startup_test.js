@@ -66,7 +66,7 @@ suite('Widget Startup Modes Test Suite >', function() {
   suiteSetup(function() {
 
     realCommon = window.Common;
-    window.Common = new MockCommon({ isValidICCID: true });
+    window.Common = new MockCommon();
 
     realMozMobileConnections = window.navigator.mozMobileConnections;
 

@@ -129,7 +129,7 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
   // each of the sound filenames, and invoke the callback with an object
   // that maps human-readable sound names to sound URLs
   function getSoundNames(filenames, callback) {
-    navigator.mozL10n.ready(function() {
+    navigator.mozL10n.once(function() {
       var sounds = {};
       filenames.forEach(function(filename) {
         var key = filename.replace('.', '_');

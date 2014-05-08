@@ -33,7 +33,7 @@ suite('FindMyDevice >', function() {
   setup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
-      ready: function(callback) {
+      once: function(callback) {
         callback();
       }
     };

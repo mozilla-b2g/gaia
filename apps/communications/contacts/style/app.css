@@ -218,6 +218,14 @@ li a[role="button"].activity > b em{
   font-style: normal;
 }
 
+[data-type="list"] aside span[data-type="img"] {
+  border-style: hidden;
+}
+
+[data-type="list"] li[data-visited="true"] aside span[data-type="img"] {
+  border-style: solid;
+}
+
 [data-type="list"] li p {
   margin-left: 1.5rem;
 }

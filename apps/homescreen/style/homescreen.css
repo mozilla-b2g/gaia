@@ -121,7 +121,17 @@ li:active {
   transform: scale(1);
 }
 
-body[data-mode = 'normal'] ol > li span.options {
+span.options {
+  position: absolute;
+  top: .1rem;
+  left: .5rem;
+  width: calc(100% - .5rem);
+  height: 2.6rem;
+  z-index: 15; /* So the Delete button will be above the collections' circle */
+  background: url(../resources/images/delete.png) no-repeat left top / 2.4rem;
+}
+
+body[data-mode = 'normal'] span.options {
   display: none;
 }
 
@@ -141,6 +151,11 @@ body[data-mode = 'edit'] .apps ol > li[data-type = "bookmark"] > div > span > sp
 @media (min-width: 768px) {
   #bg-overlay {
     transform: translateY(-16.9rem);
+  }
+
+  span.options {
+    height: 4.5rem;
+    background: url(../resources/images/delete.png) no-repeat left top / 4.5rem;
   }
 }
 /* This is a dirty hack to hide the bottom toolbar while

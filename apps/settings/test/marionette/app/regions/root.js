@@ -37,7 +37,7 @@ RootPanel.prototype = {
   },
 
   get isBatteryDescValid() {
-    return this.findElement('batteryDesc').text().search(/\d+%/) !== -1;
+    return this.waitForElement('batteryDesc').text().search(/\d+%/) !== -1;
   },
 
   get currentLanguageDesc() {

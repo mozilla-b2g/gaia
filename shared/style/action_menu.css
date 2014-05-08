@@ -3,8 +3,8 @@
  * ---------------------------------- */
 
 /* Main dialog setup */
-form[role="dialog"][data-type="action"],
-form[role="dialog"][data-type="object"] {
+[role="dialog"][data-type="action"],
+[role="dialog"][data-type="object"] {
   background:
     url(action_menu/images/ui/pattern.png) repeat left top,
     url(action_menu/images/ui/gradient.png) no-repeat left top / 100% 100%;
@@ -24,8 +24,8 @@ form[role="dialog"][data-type="object"] {
   color: #fff;
 }
 
-form[role="dialog"][data-type="action"]:before,
-form[role="dialog"][data-type="object"]:before {
+[role="dialog"][data-type="action"]:before,
+[role="dialog"][data-type="object"]:before {
   content: '';
   display: inline-block;
   vertical-align: top;
@@ -34,8 +34,8 @@ form[role="dialog"][data-type="object"]:before {
   margin-left: -0.1rem;
 }
 
-form[role="dialog"][data-type="action"] > header,
-form[role="dialog"][data-type="object"] > header {
+[role="dialog"][data-type="action"] > header,
+[role="dialog"][data-type="object"] > header {
   -moz-box-sizing: border-box;
   font-size: 1.6rem;
   background: url(action_menu/images/ui/alpha.png) repeat 0 0;
@@ -56,8 +56,8 @@ form[role="dialog"][data-type="object"] > header {
   border-bottom: 0.1rem solid #616262;
 }
 
-form[role="dialog"][data-type="action"] > header h1,
-form[role="dialog"][data-type="object"] > header h1 {
+[role="dialog"][data-type="action"] > header h1,
+[role="dialog"][data-type="object"] > header h1 {
   font-size: 1.6rem;
   line-height: 4.9rem;
   text-align: left;
@@ -72,15 +72,15 @@ form[role="dialog"][data-type="object"] > header h1 {
 }
 
 /* Generic set of actions in toolbar */
-form[role="dialog"][data-type="action"] > header menu[type="toolbar"] {
+[role="dialog"][data-type="action"] > header menu[type="toolbar"] {
   height: 100%;
   float: right;
   margin: 0 -3rem 0 1rem;
   padding: 0;
 }
 
-form[role="dialog"][data-type="action"] > header menu[type="toolbar"] a,
-form[role="dialog"][data-type="action"] > header menu[type="toolbar"] button {
+[role="dialog"][data-type="action"] > header menu[type="toolbar"] a,
+[role="dialog"][data-type="action"] > header menu[type="toolbar"] button {
   -moz-box-sizing: border-box;
   position: relative;
   float: left;
@@ -97,8 +97,8 @@ form[role="dialog"][data-type="action"] > header menu[type="toolbar"] button {
   z-index: 5;
 }
 
-form[role="dialog"][data-type="action"] > header a,
-form[role="dialog"][data-type="action"] > header button {
+[role="dialog"][data-type="action"] > header a,
+[role="dialog"][data-type="action"] > header button {
   border: none;
   padding: 0;
   overflow: hidden;
@@ -110,29 +110,29 @@ form[role="dialog"][data-type="action"] > header button {
   text-decoration: none;
 }
 
-form[role="dialog"][data-type="action"] button::-moz-focus-inner,
-form[role="dialog"][data-type="object"] button::-moz-focus-inner {
+[role="dialog"][data-type="action"] button::-moz-focus-inner,
+[role="dialog"][data-type="object"] button::-moz-focus-inner {
   outline: none;
   border: none;
 }
 
 /* Pressed state */
-form[role="dialog"][data-type="action"] > header a:active .icon:after,
-form[role="dialog"][data-type="action"] > header button:active .icon:after,
-form[role="dialog"][data-type="action"] > header menu[type="toolbar"] a:active,
-form[role="dialog"][data-type="action"] > header menu[type="toolbar"] button:active  {
+[role="dialog"][data-type="action"] > header a:active .icon:after,
+[role="dialog"][data-type="action"] > header button:active .icon:after,
+[role="dialog"][data-type="action"] > header menu[type="toolbar"] a:active,
+[role="dialog"][data-type="action"] > header menu[type="toolbar"] button:active  {
   background: #008aaa !important;
 }
 
 /* Disabled state */
-form[role="dialog"][data-type="action"] > header menu[type="toolbar"] a[aria-disabled="true"],
-form[role="dialog"][data-type="action"] > header menu[type="toolbar"] button[disabled]  {
+[role="dialog"][data-type="action"] > header menu[type="toolbar"] a[aria-disabled="true"],
+[role="dialog"][data-type="action"] > header menu[type="toolbar"] button[disabled]  {
   opacity: 0.5;
   pointer-events: none;
 }
 
 /* Icon definitions */
-form[role="dialog"][data-type="action"] > header .icon {
+[role="dialog"][data-type="action"] > header .icon {
   position: relative;
   float: none;
   display: inline-block;
@@ -145,17 +145,17 @@ form[role="dialog"][data-type="action"] > header .icon {
   overflow: hidden;
 }
 
-form[role="dialog"][data-type="action"] > header .icon.icon-close {
+[role="dialog"][data-type="action"] > header .icon.icon-close {
   background-image: url(action_menu/images/icons/close.png);
 }
 
-form[role="dialog"][data-type="action"] > header .icon.icon-back {
+[role="dialog"][data-type="action"] > header .icon.icon-back {
   background-image: url(action_menu/images/icons/back.png);
 }
 
 /* Navigation links (back, cancel, etc) */
-form[role="dialog"][data-type="action"] > header > button,
-form[role="dialog"][data-type="action"] > header > a {
+[role="dialog"][data-type="action"] > header > button,
+[role="dialog"][data-type="action"] > header > a {
   float: left;
   width: 5rem;
   height: 4.9rem;
@@ -165,8 +165,8 @@ form[role="dialog"][data-type="action"] > header > a {
   position: relative;
 }
 
-form[role="dialog"][data-type="action"] > header > button:after,
-form[role="dialog"][data-type="action"] > header > a:after {
+[role="dialog"][data-type="action"] > header > button:after,
+[role="dialog"][data-type="action"] > header > a:after {
   content: "";
   position: absolute;
   left: 0;
@@ -176,13 +176,13 @@ form[role="dialog"][data-type="action"] > header > a:after {
   background: url(action_menu/images/ui/separator.png) no-repeat 3rem top / 0.1rem 4.8rem;
 }
 
-form[role="dialog"][data-type="action"] > header > button::-moz-focus-inner {
+[role="dialog"][data-type="action"] > header > button::-moz-focus-inner {
   border: 0;
   padding: 0;
 }
 
-form[role="dialog"][data-type="action"] > header > button .icon,
-form[role="dialog"][data-type="action"] > header > a .icon {
+[role="dialog"][data-type="action"] > header > button .icon,
+[role="dialog"][data-type="action"] > header > a .icon {
   position: static;
   display: block;
   width: 3rem;
@@ -192,8 +192,8 @@ form[role="dialog"][data-type="action"] > header > a .icon {
   font-size: 0;
 }
 
-form[role="dialog"][data-type="action"] > header > button .icon:after,
-form[role="dialog"][data-type="action"] > header > a .icon:after {
+[role="dialog"][data-type="action"] > header > button .icon:after,
+[role="dialog"][data-type="action"] > header > a .icon:after {
   content: "";
   position: absolute;
   left: 0;
@@ -204,8 +204,8 @@ form[role="dialog"][data-type="action"] > header > a .icon:after {
 }
 
 /* Content */
-form[role="dialog"][data-type="action"] > section,
-form[role="dialog"][data-type="object"] > section {
+[role="dialog"][data-type="action"] > section,
+[role="dialog"][data-type="object"] > section {
   color: #fff;
   position: absolute;
   top: 7rem;
@@ -217,11 +217,12 @@ form[role="dialog"][data-type="object"] > section {
 }
 
 /* Specific component code */
-form[role="dialog"][data-type="action"] > menu,
-form[role="dialog"][data-type="object"] > menu {
+[role="dialog"][data-type="action"] > menu,
+[role="dialog"][data-type="object"] > menu {
   margin: 0;
   padding: 0;
   max-height: calc(100% - 13.5rem); /*header(5rem) + footer(7rem) + padding(1.5rem)*/
+  height: auto;
   padding-top: 1.5rem;
   overflow: auto;
   width: auto;
@@ -233,8 +234,8 @@ form[role="dialog"][data-type="object"] > menu {
   bottom: 7rem;
 }
 
-form[role="dialog"][data-type="action"] > menu > button,
-form[role="dialog"][data-type="object"] > menu > button {
+[role="dialog"][data-type="action"] > menu > button,
+[role="dialog"][data-type="object"] > menu > button {
   width: calc(100% - 3rem);
   height: 4rem;
   -moz-box-sizing: border-box;
@@ -259,8 +260,8 @@ form[role="dialog"][data-type="object"] > menu > button {
   font-style: italic;
 }
 
-form[role="dialog"][data-type="action"] > menu > button:last-child,
-form[role="dialog"][data-type="object"] > menu > button:last-child {
+[role="dialog"][data-type="action"] > menu > button:last-child,
+[role="dialog"][data-type="object"] > menu > button:last-child {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -272,8 +273,8 @@ form[role="dialog"][data-type="object"] > menu > button:last-child {
   border-radius: 2rem;
 }
 
-form[role="dialog"][data-type="action"] > menu > button:last-child:before,
-form[role="dialog"][data-type="object"] > menu > button:last-child:before {
+[role="dialog"][data-type="action"] > menu > button:last-child:before,
+[role="dialog"][data-type="object"] > menu > button:last-child:before {
   content: '';
   position: fixed;
   width: 100%;
@@ -284,29 +285,29 @@ form[role="dialog"][data-type="object"] > menu > button:last-child:before {
   z-index: -1;
 }
 
-form[role="dialog"][data-type="action"] > menu > button:nth-last-child(2),
-form[role="dialog"][data-type="object"] > menu > button:nth-last-child(2) {
+[role="dialog"][data-type="action"] > menu > button:nth-last-child(2),
+[role="dialog"][data-type="object"] > menu > button:nth-last-child(2) {
   margin-bottom: 1.5rem;
 }
 
 /* Press state */
-form[role="dialog"][data-type="action"] > menu > button:active,
-form[role="dialog"][data-type="object"] > menu > button:active {
+[role="dialog"][data-type="action"] > menu > button:active,
+[role="dialog"][data-type="object"] > menu > button:active {
   background: #00aacc;
   color: #fff;
 }
 
 /* Disabled */
-form[role="dialog"][data-type="action"] > menu > button[disabled],
-form[role="dialog"][data-type="object"] > menu > button[disabled] {
+[role="dialog"][data-type="action"] > menu > button[disabled],
+[role="dialog"][data-type="object"] > menu > button[disabled] {
   background-color: rgba(87, 87, 87, 0.8);
   color: rgba(255, 255, 255, 0.4);
   opacity: 0.5;
   pointer-events: none;
 }
 
-form[role="dialog"][data-type="action"] > menu > button[disabled]:last-child,
-form[role="dialog"][data-type="object"] > menu > button[disabled]:last-child {
+[role="dialog"][data-type="action"] > menu > button[disabled]:last-child,
+[role="dialog"][data-type="object"] > menu > button[disabled]:last-child {
   background-color: #e7e7e7;
   color: #a6a6a6;
   opacity: 1;
@@ -316,68 +317,68 @@ form[role="dialog"][data-type="object"] > menu > button[disabled]:last-child {
  * Right to Left view
  */
 
-html[dir="rtl"] form[role="dialog"][data-type="action"]:before,
-form[role="dialog"][data-type="object"]:before {
+html[dir="rtl"] [role="dialog"][data-type="action"]:before,
+[role="dialog"][data-type="object"]:before {
   margin-left: auto;
   margin-right: -0.1rem;
 }
 
-html[dir="rtl"] form[role="dialog"][data-type="action"] > header h1,
-html[dir="rtl"] form[role="dialog"][data-type="object"] > header h1 {
+html[dir="rtl"] [role="dialog"][data-type="action"] > header h1,
+html[dir="rtl"] [role="dialog"][data-type="object"] > header h1 {
   text-align: right;
 }
 
-html[dir="rtl"] form[role="dialog"][data-type="action"] > header menu[type="toolbar"] {
+html[dir="rtl"] [role="dialog"][data-type="action"] > header menu[type="toolbar"] {
   float: left;
   margin-left: -3rem;
   margin-right: 1rem;
 }
 
-html[dir="rtl"] form[role="dialog"][data-type="action"] > header menu[type="toolbar"] a,
-html[dir="rtl"] form[role="dialog"][data-type="action"] > header menu[type="toolbar"] button {
+html[dir="rtl"] [role="dialog"][data-type="action"] > header menu[type="toolbar"] a,
+html[dir="rtl"] [role="dialog"][data-type="action"] > header menu[type="toolbar"] button {
   float: right;
 }
 
-html[dir="rtl"] form[role="dialog"][data-type="action"] > header menu[type="toolbar"] a:last-child,
-html[dir="rtl"] form[role="dialog"][data-type="action"] > header menu[type="toolbar"] button:last-child {
+html[dir="rtl"] [role="dialog"][data-type="action"] > header menu[type="toolbar"] a:last-child,
+html[dir="rtl"] [role="dialog"][data-type="action"] > header menu[type="toolbar"] button:last-child {
   background-position: right center;
   margin-left: auto;
   margin-right: -0.1rem;
 }
 
-html[dir="rtl"] form[role="dialog"][data-type="action"] > header > button,
-html[dir="rtl"] form[role="dialog"][data-type="action"] > header > a {
+html[dir="rtl"] [role="dialog"][data-type="action"] > header > button,
+html[dir="rtl"] [role="dialog"][data-type="action"] > header > a {
   float: right;
   margin-left: -1rem;
   margin-right: -3rem;
 }
 
-html[dir="rtl"] form[role="dialog"][data-type="action"] > header > button:after,
-html[dir="rtl"] form[role="dialog"][data-type="action"] > header > a:after {
+html[dir="rtl"] [role="dialog"][data-type="action"] > header > button:after,
+html[dir="rtl"] [role="dialog"][data-type="action"] > header > a:after {
   left: auto;
   right: 0;
   background-position: 0 top;
 }
 
-html[dir="rtl"] form[role="dialog"][data-type="action"] > header > button .icon:after,
-html[dir="rtl"] form[role="dialog"][data-type="action"] > header > a .icon:after {
+html[dir="rtl"] [role="dialog"][data-type="action"] > header > button .icon:after,
+html[dir="rtl"] [role="dialog"][data-type="action"] > header > a .icon:after {
   left: auto;
   right: 0;
 }
 
-html[dir="rtl"] form[role="dialog"][data-type="action"] > menu > button,
-html[dir="rtl"] form[role="dialog"][data-type="object"] > menu > button {
+html[dir="rtl"] [role="dialog"][data-type="action"] > menu > button,
+html[dir="rtl"] [role="dialog"][data-type="object"] > menu > button {
   text-align: right;
 }
 
-html[dir="rtl"] form[role="dialog"][data-type="action"] > menu > button:last-child,
-html[dir="rtl"] form[role="dialog"][data-type="object"] > menu > button:last-child {
+html[dir="rtl"] [role="dialog"][data-type="action"] > menu > button:last-child,
+html[dir="rtl"] [role="dialog"][data-type="object"] > menu > button:last-child {
   left: auto;
   right: 0;
 }
 
-html[dir="rtl"] form[role="dialog"][data-type="action"] > menu > button:last-child:before,
-html[dir="rtl"] form[role="dialog"][data-type="object"] > menu > button:last-child:before {
+html[dir="rtl"] [role="dialog"][data-type="action"] > menu > button:last-child:before,
+html[dir="rtl"] [role="dialog"][data-type="object"] > menu > button:last-child:before {
   left: auto;
   right: 0;
 }

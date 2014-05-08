@@ -109,7 +109,7 @@ function overrideSettings(settings, config) {
 
 function writeSettings(settings, config) {
   // Finally write the settings file
-  let settingsFile = utils.getFile(config.PROFILE_DIR, 'settings.json');
+  let settingsFile = utils.getFile(config.STAGE_DIR, 'settings_stage.json');
   let content = JSON.stringify(settings);
   utils.writeContent(settingsFile, content + '\n');
 }
@@ -131,11 +131,6 @@ function execute(config) {
     // Activate developer menu under the system menu when long pressing
     // the power button by default for devs.
     settings['developer.menu.enabled'] = true;
-
-    // Turn on APZ for developers. The final activation for everything will
-    // be done in bug 909877, but it will be good to get as many regressions
-    // and bugs as possible before turning it on definitively.
-    settings['apz.force-enable'] = true;
   }
 
   // Set the homescreen URL
@@ -155,8 +150,9 @@ function execute(config) {
   settings['rocketbar.searchAppURL'] = utils.gaiaOriginURL('search',
     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT) + '/index.html';
 
-  if (config.ROCKETBAR && config.ROCKETBAR !== 'none') {
+  if (config.HAIDA) {
     settings['rocketbar.enabled'] = true;
+    settings['edgesgesture.enabled'] = true;
   }
 
   settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER ? 'adb-only'

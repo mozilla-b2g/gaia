@@ -4,24 +4,39 @@
  *
  */
 
+.reset-button {
+  border: 0;
+  background: none;
+}
+
+.reset-button::-moz-focus-inner {
+  border: 0;
+  outline: none;
+}
+
 #fake-phone-number-view {
   font-size: 3rem;
   position: absolute;
+  left: 0;
   line-height: 0;
   visibility: hidden;
 }
 
 #phone-number-view-container {
   width: 100%;
-  height: -moz-calc(100% - 34.5rem);
-  background: #2C3743;
+  height: 28%;
+  background: #00ADAD;
   text-align: center;
-  display: table;
-  table-layout: fixed;
-  border-spacing: 1.5rem 0;
+  display: flex;
   font-weight: 300;
   overflow: hidden;
-  padding-bottom: 4.5rem;
+}
+
+#phone-number-view-container .phone-number-view-wrapper-input {
+  margin-bottom: 4.5rem;
+  display: flex;
+  align-items: center;
+  padding-left: 2rem;
 }
 
 #phone-number-view-container.keypad-visible {
@@ -40,9 +55,21 @@
 }
 
 #keypad-delete {
-  text-align: center;
-  width: 4rem;
+  width: 10rem;
+  margin-bottom: 4.5rem;
+  padding: 0;
   visibility: hidden;
+  text-align: right;
+}
+
+#keypad-delete::before {
+  content: "";
+  background: url('keypad/images/keypad/actionicon_dialer_delete.png') no-repeat;
+  width: 3rem;
+  height: 2rem;
+  display: inline-block;
+  margin-right: 2.5rem;
+  background-size: 100%;
 }
 
 li:not(:target) #keypad-delete,
@@ -50,78 +77,58 @@ article:not(:target) #keypad-delete {
   display: none;
 }
 
-#keypad-delete > div {
-  width: 3.3rem;
-  height: 2.4rem;
-  background: url('keypad/images/dialer_icon_delete.png');
-  background-size: 3.3rem;
-  background-repeat: no-repeat;
+#keypad-delete:active {
+  opacity: 0.6;
 }
-
-#keypad-delete:active > div {
-  background-position: 0 -2.4rem;
-}
-
 
 #keyboard-container {
-  width: 100%;
-  height: 30rem;
+  height: 72%;
   background-color: white;
+  margin: 0 1rem;
 }
 
 #keypad {
-  background: rgba(24,24,24,.92);
-  height: -moz-calc(100% - 10rem);
+  background: #fff;
   width: 100%;
+  height: 80%;
   display: table;
   table-layout: fixed;
 }
 
-.keypad-cell {
+.keypad-row {
   display: table-row;
-}
-
-.keypad-key:first-child {
-  border-left: 0;
-}
-
-.keypad-key:last-child {
-  border-right: 0;
 }
 
 .keypad-key {
   display: table-cell;
-  border: solid 0.1rem rgba(255, 255, 255, 0.2);
-  border-right-color: rgba(0, 0, 0, 0.4);
-  border-bottom-color: rgba(0, 0, 0, 0.4);
-  padding: 1.3rem 0 0 1.5rem;
+  padding: 1.3rem 0 0 2rem;
   -moz-box-sizing: border-box;
-  height: 6rem;
+  height: 20%;
   vertical-align: middle;
-  color: white;
-  font-weight: 400;
+  color: #333;
+  font-weight: 300;
   font-size: 5rem;
   line-height: 1rem;
+  overflow: hidden;
+}
+
+.keypad-key span {
+  width: 2rem;
+  display: inline-block;
 }
 
 .keypad-key em {
-  margin-left: 0.3rem;
-  font-weight: normal;
+  display: inline-block;
+  font-weight: 300;
   font-size: 1.5rem;
-  color: #96AAB4;
+  color: #038282;
   font-style: normal;
+  width: 4.5rem;
 }
 
 .keypad-key:active {
-  background: #00aacc;
-}
-
-.keypad-key:active em {
-  color: #FFF;
-}
-
-.keypad-key:active .voicemail {
-  background-image: url('keypad/images/voicemail_.png');
+  background: #94eee9;
+  color: #fff;
 }
 
 .keypad-key * {
@@ -132,14 +139,8 @@ article:not(:target) #keypad-delete {
   pointer-events: none;
 }
 
-.keypad-key-centered {
-  padding: 0.9rem 0 0 0;
-  text-align: center;
-}
-
 .keypad-key .font-size-plus {
   font-size: 2rem;
-  font-weight: normal;
 }
 
 .keypad-subicon {
@@ -150,66 +151,55 @@ article:not(:target) #keypad-delete {
   pointer-events: none;
 
   display: inline-block;
-  width: 2.2rem;
-  height: 1.1rem;
+  width: 3rem;
+  height: 2rem;
 }
 
 .voicemail {
-  background-image: url('keypad/images/voicemail.png');
-  background-size: 2.2rem;
+  background-image: url('keypad/images/keypad/actionicon_dialer_voicemail.png');
+  background-size: 3rem;
+  background-position: -0.4rem -0.1rem;
 }
 
 .asterisk {
-  background-image: url('keypad/images/asterisk.png');
-  background-repeat: no-repeat;
-  height: 3rem;
-  width: 3rem;
-  background-size: 3rem 3rem;
-  background-position: center;
-  margin: auto 1.5rem;
-  pointer-events: none;
+  width: 4rem;
+  margin-top: 1rem;
+  margin-left: 0.2rem;
 }
 
 .sharp {
-  background-image: url('keypad/images/sharp.png');
-  background-repeat: no-repeat;
-  height: 3rem;
-  width: 3rem;
-  background-size: 3rem 3rem;
-  background-position: center;
-  margin: auto 1.5rem;
-  pointer-events: none;
+  font-size: 4.5rem;
+  width: 4rem;
+  line-height: 0;
+  margin-top: -0.5rem;
+  margin-left: 0.2rem;
 }
 
 #keypad-callbar {
-  background: rgba(24,24,24,.92);
-  height: 6rem;
+  background: #fff;
+  height: 20%;
   display: flex;
   flex-direction: row;
+  align-items: center;
   width: 100%;
-  border: solid 0.1rem rgba(255, 255, 255, 0.2);
-  border-right-color: rgba(0, 0, 0, 0.4);
   border-bottom: 0;
   border-left: 0;
   -moz-box-sizing: border-box;
 }
 
-#keypad-callbar-add-contact,
-#keypad-callbar-cancel {
+#keypad-callbar-cancel,
+.keypad-callbar-button {
+  position: relative;
   width: 9rem;
-  background: url('keypad/images/btn_generic.png') repeat-x;
+  background: #e7e7e7;
   background-size: auto 100%;
-  border-radius: .2rem;
-  margin: 0.8rem 0 0.8rem 0.8rem;
+  border-radius: 2rem;
+  overflow: hidden;
+  height: 4rem;
 }
-
-#keypad-callbar-add-contact[disabled] {
-  opacity: 0.2;
-}
-
 
 #keypad-callbar-add-contact:active {
-  background: #333333;
+  background: #94eee9;
 }
 
 #keypad-callbar-cancel {
@@ -231,36 +221,47 @@ article:not(:target) #keypad-delete {
   flex-grow: 1;
   align-items: center;
   flex-direction: row-reverse;
-  background-image: url('keypad/images/ActionIcon_40x40_pickup.png'),
-                    url('keypad/images/btn_pick_up.png');
-  background-color: #4B780A;
-  background-repeat: no-repeat, repeat-x;
+  background-image: url("keypad/images/keypad/actionicon_activecall_pickup.png");
+  background-color: #00ADAD;
+  background-repeat: no-repeat;
   background-position: center;
-  background-size: 4rem 4rem, auto 100%;
-  border: 0;
-  border-radius: .2rem;
-  margin: 0.8em;
+  background-size: 4rem 4rem;
+  border-radius: 2rem;
+  margin-left: 1rem;
+  height: 4rem;
 }
 
 #keypad-callbar-call-action:active {
-  background-image: url('keypad/images/ActionIcon_40x40_pickup.png');
+  background-color: #94eee9;
 }
 
-.icon-add-contact {
-  margin: auto;
-  width: 4rem;
-  height: 4.2rem;
-  background-image: url('keypad/images/ActionIcon_40x40_addcontact.png');
+.icon-add-contact::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-image: url("keypad/images/keypad/actionicon_activecall_addcontact_40x80.png");
   background-repeat: no-repeat;
-  background-size: 4rem 4rem;
-  background-position: center;
+  background-position: top center;
+  background-size: 4rem 8rem;
+}
+
+.icon-add-contact:disabled::before {
+  opacity: 0.4;
+}
+
+.icon-add-contact:active::before {
+  background-position: center -4rem;
 }
 
 .js-sim-indication {
   display: none;
-
   font-size: 1.3rem;
-  margin-right: 10px;
+  text-align: right;
+  margin-right: 0.6rem;
+  color: #fff;
 }
 
 .has-preferred-sim .js-sim-indication {
@@ -273,7 +274,7 @@ article:not(:target) #keypad-delete {
   width: 1.4rem;
   height: 1rem;
   bottom: 0;
-  right: 0.9rem;
+  right: 1.7rem;
   background-image: url("/shared/style/sim_picker/images/long-tap-indicator.png");
   background-repeat: no-repeat;
   background-size: 1.4rem 1rem;
@@ -302,7 +303,7 @@ article:not(:target) #keypad-delete {
 .keypad-hidebar-button {
   height: 4rem;
   border: 0;
-  border-radius:.3rem;
+  border-radius:.2rem;
   display: block;
 }
 
@@ -363,7 +364,7 @@ article:not(:target) #keypad-delete {
   overflow: hidden;
   -moz-box-sizing: border-box;
   position: absolute;
-  border-top: 1px solid rgba(255,255,255,0.2);
+  color: #033B37;
 }
 
 #suggestion-count {
@@ -371,42 +372,39 @@ article:not(:target) #keypad-delete {
   top: 0;
   bottom: 0;
   right: 0;
-  width: 5.3rem;
+  width: 5.5rem;
   text-align: center;
-  line-height: 4.3rem;
-  margin: 0.2rem 0.2rem 0.4rem 0.2rem;
-  color: white;
-  font-weight: bold;
+  line-height: 3.7rem;
+  margin-bottom: 0.2rem;
+  margin-top: 0.2rem;
+  font-weight: 400;
   border-left: 1px solid rgba(255,255,255,0.2);
 }
 
 #suggestion-count.more {
-  background: url(keypad/images/icon_arrow_white.png) no-repeat right 0.3rem bottom / 1rem;
+  background: url('keypad/images/icon_arrow_white.png') no-repeat scroll right 0.5rem bottom 0.3rem / 1rem auto transparent;
 }
 
 #suggestion-bar > .suggestion-item {
-  height: 4.5rem;
-  padding: 0.2rem;
+  height: 3.7rem;
   margin-right: 5.3rem;
-  margin-left: 0.5rem;
-  padding-right: 1rem;
-  color: white;
+  padding: 0.2rem 1rem 0.2rem 2rem;
   white-space: nowrap;
 }
 
 #suggestion-bar > .suggestion-item:active,
 #suggestion-count:active {
-  background-color: #00ABCC;
+  background-color: #94eee9;
   transition: background-color 0.2s ease;
 }
 
 /* Matched item inside suggestion bar and suggestion overlay */
 .suggestion-item .name {
   display: block;
-  line-height: 1.8rem;
+  line-height: 1.9rem;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: bold;
+  font-weight: normal;
 }
 
 .suggestion-item .tel-type:not(:empty):after {
@@ -415,21 +413,19 @@ article:not(:target) #keypad-delete {
 }
 
 .suggestion-item .tel {
-  font-size: 1.5rem;
   overflow: hidden;
 }
 
 .suggestion-item .tel > span {
-  color: #00CAF4;
-  font-size: 1.5rem;
+  background-color: #94eee9;
 }
 
 .suggestion-item > div {
+  line-height: 1.7rem;
   pointer-events: none;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-left: 1rem;
 }
 
 .suggestion-item .avatar {

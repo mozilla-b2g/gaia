@@ -1,4 +1,7 @@
 'use strict';
+/* global IconRetriever */
+/* global layout */
+/* global LazyLoader */
 
 (function(exports) {
   // Icon container
@@ -40,6 +43,10 @@
       return false;
     },
 
+    isRemoteIcon: function() {
+      return this.icon.startsWith('http');
+    },
+
     /**
      * Sets the item position
      */
@@ -50,8 +57,10 @@
     /**
      * Displays the icon as a background of the element.
      */
-    displayIcon: function() {
-      this.element.style.backgroundImage = 'url(' + this.icon + ')';
+    displayIcon: function(url) {
+      this.element.style.height = layout.gridIconSize + 'px';
+      this.element.style.backgroundSize = layout.gridIconSize + 'px';
+      this.element.style.backgroundImage = 'url(' + (url || this.icon) + ')';
     },
 
     /**
@@ -60,8 +69,9 @@
      * @param {Number} index The index of the items list of this item.
      */
     render: function(coordinates, index) {
-      var x = coordinates.x * app.zoom.gridItemWidth;
-      var y = app.zoom.offsetY;
+      var x = coordinates.x * layout.gridItemWidth;
+      var y = layout.offsetY;
+      var nameEl = null;
 
       // Generate an element if we need to
       if (!this.element) {
@@ -69,9 +79,8 @@
         tile.className = 'icon';
         tile.dataset.identifier = this.identifier;
 
-        var nameEl = document.createElement('span');
+        nameEl = document.createElement('span');
         nameEl.className = 'title';
-        nameEl.textContent = this.name;
         tile.appendChild(nameEl);
 
         // Add delete link if this icon is removable
@@ -82,22 +91,33 @@
         }
 
         this.element = tile;
-        this.displayIcon();
+        if (this.isRemoteIcon()) {
+          LazyLoader.load(['shared/js/async_storage.js',
+                           'js/icon_retrivier.js'], function() {
+            IconRetriever.get(this);
+          }.bind(this));
+        } else {
+          this.displayIcon();
+        }
 
         container.appendChild(tile);
+      } else {
+        nameEl = this.element.querySelector('.title');
       }
+
+      nameEl.textContent = this.name;
 
       this.setPosition(index);
       this.x = x;
       this.y = y;
-      this.scale = app.zoom.percent;
+      this.scale = layout.percent;
 
       // Avoid rendering the icon during a drag to prevent jumpiness
       if (this.noRender) {
         return;
       }
 
-      this.transform(x, y, app.zoom.percent);
+      this.transform(x, y, layout.percent);
     },
 
     /**

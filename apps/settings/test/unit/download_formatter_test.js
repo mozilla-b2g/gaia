@@ -4,10 +4,17 @@
 require('/shared/test/unit/mocks/mock_download.js');
 requireApp('settings/test/unit/mock_l10n.js');
 require('/shared/js/download/download_formatter.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 
 
 suite('DownloadFormatter', function() {
   var realL10n;
+
+  var mocksHelperForDownloadFormatter = new MocksHelper([
+    'LazyLoader'
+  ]).init();
+
+  mocksHelperForDownloadFormatter.attachTestHelpers();
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
@@ -207,5 +214,27 @@ suite('DownloadFormatter', function() {
     );
     var retrievedUUID = DownloadFormatter.getUUID(mockDownload);
     assert.equal(retrievedUUID, expectedUUID);
+  });
+
+  test(' getDate', function(done) {
+    var now = new Date();
+    var expectedPrettyDate = 'pretty' + now.toString();
+    var stub = sinon.stub(navigator.mozL10n, 'DateTimeFormat', function(date) {
+      return {
+        fromNow: function(date, useCompactFormat) {
+          assert.isUndefined(useCompactFormat);
+          return 'pretty' + date.toString();
+        }
+      };
+    });
+
+    var mockDownload = new MockDownload({
+      startTime: now
+    });
+
+    DownloadFormatter.getDate(mockDownload, function(date) {
+      assert.equal(date, expectedPrettyDate);
+      done();
+    });
   });
 });

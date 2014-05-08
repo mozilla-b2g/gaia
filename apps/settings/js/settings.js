@@ -1,3 +1,5 @@
+/* global PerformanceTestingHelper, TelephonySettingHelper,
+   getSupportedLanguages */
 'use strict';
 
 /**
@@ -6,6 +8,104 @@
  * `uncaught exception: 2147500033' message (= 0x80004001).
  */
 
+/**
+ * Handle root panel functionality
+ */
+define('Root', function() {
+  var LazyLoader = require('shared/lazy_loader');
+
+  var Root = function() {};
+
+  Root.prototype = {
+    init: function root_init() {
+      // hide telephony panels
+      if (!navigator.mozTelephony) {
+        var elements = ['call-settings',
+                        'data-connectivity',
+                        'messaging-settings',
+                        'simSecurity-settings'];
+        elements.forEach(function(el) {
+          document.getElementById(el).hidden = true;
+        });
+      }
+
+      // hide unused panel
+      if (navigator.mozMobileConnections) {
+        if (navigator.mozMobileConnections.length == 1) { // single sim
+          document.getElementById('simCardManager-settings').hidden = true;
+        } else { // dsds
+          document.getElementById('simSecurity-settings').hidden = true;
+        }
+      }
+
+      setTimeout((function nextTick() {
+        LazyLoader.load(['js/utils.js'], function() {
+          this.startupLocale();
+        }.bind(this));
+
+        /**
+         * Enable or disable the menu items related to the ICC card
+         * relying on the card and radio state.
+         */
+        LazyLoader.load([
+          'shared/js/wifi_helper.js',
+          'js/firefox_accounts/menu_loader.js',
+          'shared/js/airplane_mode_helper.js',
+          'js/airplane_mode.js',
+          'js/battery.js',
+          'shared/js/async_storage.js',
+          'js/storage.js',
+          'js/try_show_homescreen_section.js',
+          'shared/js/mobile_operator.js',
+          'shared/js/icc_helper.js',
+          'shared/js/settings_listener.js',
+          'shared/js/toaster.js',
+          'js/connectivity.js',
+          'js/security_privacy.js',
+          'js/icc_menu.js',
+          'js/nfc.js',
+          'js/dsds_settings.js',
+          'js/telephony_settings.js',
+          'js/telephony_items_handler.js',
+          'js/screen_lock.js'
+        ], function() {
+          TelephonySettingHelper.init();
+        });
+      }).bind(this));
+    },
+
+    // startup & language switching
+    startupLocale: function root_startupLocale() {
+      // XXX change to mozL10n.ready when https://bugzil.la/993188 is fixed
+      navigator.mozL10n.once(function startupLocale() {
+        this.initLocale();
+        window.addEventListener('localized', this.initLocale);
+      }.bind(this));
+    },
+
+    initLocale: function root_initLocale() {
+      var lang = navigator.mozL10n.language.code;
+
+      // set the 'lang' and 'dir' attributes to <html>
+      // when the page is translated
+      document.documentElement.lang = lang;
+      document.documentElement.dir = navigator.mozL10n.language.direction;
+
+      // display the current locale in the main panel
+      getSupportedLanguages(function displayLang(languages) {
+        document.getElementById('language-desc').textContent = languages[lang];
+      });
+    }
+  };
+
+  return function ctor_root() {
+    return new Root();
+  };
+});
+
+/**
+ * Main entrance of Settings App
+ */
 var Settings = {
   get mozSettings() {
     // return navigator.mozSettings when properly supported, null otherwise
@@ -19,11 +119,6 @@ var Settings = {
     return this.ScreenLayout.getCurrentLayout('tabletAndLandscaped');
   },
 
-  _panelsWithClass: function pane_with_class(targetClass) {
-    return document.querySelectorAll(
-      'section[role="region"].' + targetClass);
-  },
-
   _isTabletAndLandscapeLastTime: null,
 
   rotate: function rotate(evt) {
@@ -31,7 +126,8 @@ var Settings = {
     var panelsWithCurrentClass;
     if (Settings._isTabletAndLandscapeLastTime !==
         isTabletAndLandscapeThisTime) {
-      panelsWithCurrentClass = Settings._panelsWithClass('current');
+      panelsWithCurrentClass = document.querySelectorAll(
+        'section[role="region"].current');
       // in two column style if we have only 'root' panel displayed,
       // (left: root panel, right: blank)
       // then show default panel too
@@ -112,82 +208,42 @@ var Settings = {
     this.LazyLoader = options.LazyLoader;
     this.ScreenLayout = options.ScreenLayout;
 
+    // register web activity handler
+    navigator.mozSetMessageHandler('activity', this.webActivityHandler);
+
+    // open root panel
+    require(['Root'], function(Root) {
+      var root = Root();
+      root.init();
+    });
+
+    this.currentPanel = 'root';
+
+    // make operations not block the load time
     setTimeout((function nextTick() {
-      this.LazyLoader.load(['js/utils.js'], startupLocale);
-
-      this.LazyLoader.load(['shared/js/wifi_helper.js'], displayDefaultPanel);
-
-      /**
-       * Enable or disable the menu items related to the ICC card relying on the
-       * card and radio state.
-       */
-      this.LazyLoader.load([
-        'js/firefox_accounts/menu_loader.js',
-        'shared/js/airplane_mode_helper.js',
-        'js/airplane_mode.js',
-        'js/battery.js',
-        'shared/js/async_storage.js',
-        'js/storage.js',
-        'js/try_show_homescreen_section.js',
-        'shared/js/mobile_operator.js',
-        'shared/js/icc_helper.js',
-        'shared/js/settings_listener.js',
-        'shared/js/toaster.js',
-        'js/connectivity.js',
-        'js/security_privacy.js',
-        'js/icc_menu.js',
-        'js/nfc.js',
-        'js/dsds_settings.js',
-        'js/telephony_settings.js',
-        'js/telephony_items_handler.js'
-      ], function() {
-        TelephonySettingHelper.init();
-      });
-    }).bind(this));
-
-    function displayDefaultPanel() {
       // With async pan zoom enable, the page starts with a viewport
       // of 980px before beeing resize to device-width. So let's delay
       // the rotation listener to make sure it is not triggered by fake
       // positive.
-      Settings.ScreenLayout.watch(
+      this.ScreenLayout.watch(
         'tabletAndLandscaped',
         '(min-width: 768px) and (orientation: landscape)');
-      window.addEventListener('screenlayoutchange', Settings.rotate);
+      window.addEventListener('screenlayoutchange', this.rotate);
 
       // display of default panel(#wifi) must wait for
       // lazy-loaded script - wifi_helper.js - loaded
-      if (Settings.isTabletAndLandscape()) {
-        Settings.currentPanel = Settings.defaultPanelForTablet;
+      if (this.isTabletAndLandscape()) {
+        var self = this;
+        this.LazyLoader.load([
+          'shared/js/wifi_helper.js'
+          ], function() {
+            self.currentPanel = self.defaultPanelForTablet;
+        });
       }
-    }
 
-    if (!navigator.mozTelephony) {
-      var elements = ['call-settings',
-                      'data-connectivity',
-                      'messaging-settings',
-                      'simSecurity-settings'];
-      elements.forEach(function(el) {
-        document.getElementById(el).hidden = true;
-      });
-    }
+      window.addEventListener('keydown', this.handleSpecialKeys);
+    }).bind(this));
 
-    // we hide all entry points by default,
-    // so we have to detect and show them up
-    if (navigator.mozMobileConnections) {
-      if (navigator.mozMobileConnections.length == 1) {
-        // single sim
-        document.getElementById('simCardManager-settings').hidden = true;
-      } else {
-        // dsds
-        document.getElementById('simSecurity-settings').hidden = true;
-      }
-    }
-
-    // register web activity handler
-    navigator.mozSetMessageHandler('activity', this.webActivityHandler);
-
-    this.currentPanel = 'root';
   },
 
   // An activity can be closed either by pressing the 'X' button
@@ -244,7 +300,7 @@ var Settings = {
     switch (name) {
       case 'configure':
         section = Settings._currentActivitySection =
-                                          activityRequest.source.data.section;
+                  activityRequest.source.data.section;
 
         if (!section) {
           // If there isn't a section specified,
@@ -285,65 +341,27 @@ var Settings = {
     }
   },
 
-  getSupportedLanguages: function settings_getLanguages(callback) {
-    if (!callback)
-      return;
+  /**
+   * back button = close dialog || back to the root page
+   * + prevent the [Return] key to validate forms
+   */
+  handleSpecialKeys: function settings_handleSpecialKeys(event) {
+    if (Settings.currentPanel != '#root' &&
+        event.keyCode === event.DOM_VK_ESCAPE) {
+      event.preventDefault();
+      event.stopPropagation();
 
-    if (this._languages) {
-      callback(this._languages);
-    } else {
-      var self = this;
-      var LANGUAGES = '/shared/resources/languages.json';
-      loadJSON(LANGUAGES, function loadLanguages(data) {
-        if (data) {
-          self._languages = data;
-          callback(self._languages);
-        }
-      });
+      var dialog = document.querySelector('#dialogs .active');
+      if (dialog) {
+        dialog.classList.remove('active');
+        document.body.classList.remove('dialog');
+      } else {
+        Settings.currentPanel = '#root';
+      }
+    } else if (event.keyCode === event.DOM_VK_RETURN) {
+      event.target.blur();
+      event.stopPropagation();
+      event.preventDefault();
     }
   }
 };
-
-// back button = close dialog || back to the root page
-// + prevent the [Return] key to validate forms
-window.addEventListener('keydown', function handleSpecialKeys(event) {
-  if (Settings.currentPanel != '#root' &&
-      event.keyCode === event.DOM_VK_ESCAPE) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    var dialog = document.querySelector('#dialogs .active');
-    if (dialog) {
-      dialog.classList.remove('active');
-      document.body.classList.remove('dialog');
-    } else {
-      Settings.currentPanel = '#root';
-    }
-  } else if (event.keyCode === event.DOM_VK_RETURN) {
-    event.target.blur();
-    event.stopPropagation();
-    event.preventDefault();
-  }
-});
-
-// startup & language switching
-function startupLocale() {
-  // XXX change to mozL10n.ready when https://bugzil.la/993188 is fixed
-  navigator.mozL10n.once(function startupLocale() {
-    initLocale();
-    window.addEventListener('localized', initLocale);
-  });
-}
-
-function initLocale() {
-  var lang = navigator.mozL10n.language.code;
-
-  // set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = lang;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-
-  // display the current locale in the main panel
-  Settings.getSupportedLanguages(function displayLang(languages) {
-    document.getElementById('language-desc').textContent = languages[lang];
-  });
-}

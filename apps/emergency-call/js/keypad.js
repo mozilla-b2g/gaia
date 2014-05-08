@@ -484,7 +484,11 @@ var KeypadManager = {
   }
 };
 
-navigator.mozL10n.once(() => {
+// Set the 'lang' and 'dir' attributes to <html> when the page is translated
+window.addEventListener('localized', function showBody() {
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 });
+

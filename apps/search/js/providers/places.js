@@ -162,6 +162,7 @@
       div.dataset.url = x.url;
       div.classList.add('top-site');
       div.appendChild(span);
+      div.setAttribute('role', 'link');
 
       if (x.screenshot) {
         var objectURL = typeof x.screenshot === 'string' ? x.screenshot :
@@ -222,6 +223,8 @@
     var renderObj = {
       title: HtmlHelper.createHighlightHTML(titleText, filter),
       meta: HtmlHelper.createHighlightHTML(placeObj.url, filter),
+      description: placeObj.url,
+      label: titleText,
       dataset: {
         url: placeObj.url
       }

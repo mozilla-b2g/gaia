@@ -185,7 +185,7 @@ suiteGroup('Controllers.Alarm', function() {
 
     suite('#_sendAlarmNotification', function() {
       var realApi;
-      var sent = [];
+      var sent;
       var MockNotifications = {
         send: function() {
           var args = Array.slice(arguments);
@@ -197,6 +197,10 @@ suiteGroup('Controllers.Alarm', function() {
         }
       };
 
+      setup(function() {
+        sent = [];
+      });
+
       suiteSetup(function() {
         realApi = Calendar.Notification;
         Calendar.Notification = MockNotifications;
@@ -207,8 +211,16 @@ suiteGroup('Controllers.Alarm', function() {
       });
 
       test('issues notification', function(done) {
-        var event = Factory('event');
-        var busytime = Factory('busytime', { _id: '1' });
+        var event = Factory('event', {
+          remote: {
+            title: 'Lorem Ipsum'
+          }
+        });
+        var busytime = Factory('busytime', {
+          _id: '1',
+          // 2 hours in the future to catch edge case (Bug 987427)
+          startDate: new Date(Date.now() + 2 * 60 * 60 * 1000)
+        });
         var url = subject.displayURL + busytime._id;
 
         subject._sendAlarmNotification(
@@ -219,7 +231,9 @@ suiteGroup('Controllers.Alarm', function() {
             done(function() {
               var notification = sent[0];
               assert.ok(notification, 'sends notification');
-              assert.ok(notification[0], 'has title');
+              assert.equal(
+                notification[0], 'Lorem Ipsum starting in 2 hours'
+              );
               assert.equal(
                 notification[1], event.remote.description, 'description'
               );

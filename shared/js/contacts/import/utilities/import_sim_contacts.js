@@ -79,10 +79,10 @@ function SimContactsImporter(targetIcc) {
 
     LazyLoader.load([
       '/shared/js/simple_phone_matcher.js',
-      '/contacts/js/contacts_matcher.js',
-      '/contacts/js/contacts_merger.js',
-      '/contacts/js/utilities/image_thumbnail.js',
-      '/contacts/js/merger_adapter.js'
+      '/shared/js/contacts/contacts_matcher.js',
+      '/shared/js/contacts/contacts_merger.js',
+      '/shared/js/contacts/utilities/image_thumbnail.js',
+      '/shared/js/contacts/merger_adapter.js'
     ], function loaded() {
       loadedMatch = true;
       document.dispatchEvent(new CustomEvent('matchLoaded'));

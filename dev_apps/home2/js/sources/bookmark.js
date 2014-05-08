@@ -1,6 +1,7 @@
 'use strict';
 /* global Bookmark */
 /* global BookmarksDatabase */
+/* global Divider */
 
 (function(exports) {
 
@@ -16,7 +17,7 @@
     this.entries = [];
 
     eventTypesToListenFor.forEach(function iterateTypes(type) {
-      BookmarksDatabase.addEventListener(type, this.handleEvent.bind(this));
+      BookmarksDatabase.addEventListener(type, this);
     }, this);
   }
 
@@ -99,7 +100,7 @@
       // If there is a pre-existing icon, just update it.
       var existing = app.icons[detail.id];
       if (existing) {
-        existing.detail = detail;
+        existing.update(detail);
         app.render();
         return;
       }
@@ -109,8 +110,17 @@
       this.entries.push(bookmark);
 
       // Manually inject this book mark into the app item list for now.
+      // Remove and re-append a divider if the last item is a divider
+      var lastItem = app.items[app.items.length - 1];
+      if ((lastItem instanceof Divider)) {
+        var divider = app.items.pop();
+        app.items.push(bookmark);
+        app.items.push(divider);
+      } else {
+        app.items.push(bookmark);
+      }
+
       app.icons[bookmark.identifier] = bookmark;
-      app.items.push(bookmark);
       app.render();
     },
 

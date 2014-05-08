@@ -8,7 +8,7 @@ html,body {
   overflow: hidden;
   margin: 0;
   color: white;
-  background-color: black;
+  background-color: #fff;
 }
 
 #call-log-view > div {
@@ -46,27 +46,6 @@ a:hover, a:active, a:focus {
   height: 100%;
 }
 
-.grid-v-align {
-  vertical-align: middle;
-}
-
-.grid-row {
-  display: table-row;
-}
-
-.grid-cell {
-  display: table-cell;
-}
-
-.grid {
-  display: table;
-  table-layout: fixed;
-}
-
-.center {
-  text-align: center;
-}
-
 body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
@@ -75,17 +54,14 @@ body.hidden *[data-l10n-id] {
 
 .icon-recents {
   background-image: url("images/recents.png");
-  background-size: 3rem;
 }
 
 .icon-contacts {
   background-image: url("images/contacts.png");
-  background-size: 3rem;
 }
 
 .icon-keypad {
   background-image: url("images/dialpad.png");
-  background-size: 3rem;
 }
 
 .with-keyboard #views, .with-keyboard #contacts-view,

@@ -1,3 +1,6 @@
+'use strict';
+/* exported MockContacts */
+
 var MockContacts = {
 
   // We need to test calls without contact information

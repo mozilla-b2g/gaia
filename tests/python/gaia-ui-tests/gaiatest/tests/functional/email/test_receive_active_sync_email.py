@@ -43,7 +43,6 @@ class TestReceiveActiveSyncEmail(GaiaTestCase):
         EmailUtil().send(self.testvars['email']['IMAP'], mock_email)
 
         self.marionette.switch_to_frame()
-
         system = System(self.marionette)
 
         # Wait for email notification
@@ -53,7 +52,6 @@ class TestReceiveActiveSyncEmail(GaiaTestCase):
         # Expand the notification bar
         system.wait_for_status_bar_displayed()
         utility_tray = system.open_utility_tray()
-
         utility_tray.wait_for_notification_container_displayed()
 
         # Assert there is one notification is listed in notifications-container

@@ -9,14 +9,20 @@ require.config({
     'settings': {
       exports: 'Settings'
     },
-    'shared/lazy_loader': {
-      exports: 'LazyLoader'
-    },
-    'shared/screen_layout': {
-      exports: 'ScreenLayout'
+    'shared/async_storage': {
+      exports: 'AsyncStorage'
     },
     'shared/keyboard_helper': {
       exports: 'KeyboardHelper'
+    },
+    'shared/lazy_loader': {
+      exports: 'LazyLoader'
+    },
+    'shared/manifest_helper': {
+      exports: 'ManifestHelper'
+    },
+    'shared/screen_layout': {
+      exports: 'ScreenLayout'
     },
     'shared/settings_listener': {
       exports: 'SettingsListener'
@@ -43,6 +49,22 @@ require.config({
     },
     {
       name: 'panels/help/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/app_permissions_detail/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/app_permissions_list/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/screen_lock/panel',
+      exclude: ['main']
+    },
+    {
+      name: 'panels/screen_lock_passcode/panel',
       exclude: ['main']
     }
   ]

@@ -33,11 +33,6 @@
      */
     slowTransition: false,
 
-    publish: function sys_publish(eventName, detail) {
-      var evt = new CustomEvent(eventName, { detail: detail });
-      window.dispatchEvent(evt);
-    },
-
     debug: function sys_debug() {
       if (DEBUG) {
         console.log('[System]' +

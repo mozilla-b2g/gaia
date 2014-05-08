@@ -190,19 +190,19 @@ ol, ul {
 }
 
 .log-item:not(.hasPhoto) .pack-end {
-  width: 0;
+  display: none;
 }
 
 .log-item .primary-info {
   text-overflow: clip;
 }
 
-.log-item.hasPhoto a > p {
-  width: 19rem;
+.log-item a > p {
+  width: calc(100% - 9.5rem);
 }
 
 .log-item:not(.hasPhoto) a > p {
-  width: 25rem;
+  width: calc(100% - 3.5rem);
 }
 
 .log-item .primary-info span {
@@ -245,11 +245,10 @@ ol, ul {
 }
 
 .recents-edit .log-item a > p {
-  width: 22rem;
+  width: calc(100% - 6.5rem);
 }
-
 .recents-edit .pack-end {
-  transform: translateX(6rem);
+  display: none
 }
 
 .recents-edit .call-log-contact-photo {
@@ -268,13 +267,14 @@ ol, ul {
 #no-result-container {
   background: url('images/ComLog_200x200_clock.png') fixed no-repeat center / 20rem;
   height: 100%;
+  margin: 0 1.5rem;
 }
 
 #no-result-message {
   position: relative;
   top: 11.5rem;
   border-top: .1rem solid rgba(96,96,96,.5);
-  padding: 1rem 0.5rem;
+  padding: 1rem 1.5rem;
 }
 
 #no-result-message > p {
@@ -288,6 +288,14 @@ ol, ul {
 
 .recents-edit #edit-mode {
   display: block;
+}
+
+.recents-edit .recents-filter-container {
+  display: none;
+}
+
+.recents-edit .view-body {
+  height: calc(100% - 7.6rem);
 }
 
 .filter .log-item:not(.missed-call) {

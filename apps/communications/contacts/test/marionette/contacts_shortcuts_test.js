@@ -41,7 +41,9 @@ marionette('Contacts shortcuts > touch', function() {
       assert.equal(overlayOpacity(), '0');
     });
 
-    test('shortcut text should change after moving some distance', function() {
+    // Disabled bug 1005708
+    test.skip('shortcut text should change after moving some distance',
+      function() {
       var letter, nextLetter, lastLetter;
 
       var action = actions.press(scrollbar, 10, 100).perform();

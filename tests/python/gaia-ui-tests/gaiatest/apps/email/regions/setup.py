@@ -146,25 +146,20 @@ class ManualSetupEmail(Base):
         el.clear()
         el.send_keys(value)
 
-    def type_activesync_port(self, value):
-        el = self.marionette.find_element(*self._activesync_port_locator)
-        el.clear()
-        el.send_keys(value)
-
     def tap_next(self):
         self.wait_for_condition(lambda m: m.find_element(*self._next_locator).get_attribute('disabled') != 'true')
         self.marionette.execute_script("arguments[0].scrollIntoView(false);", [self.marionette.find_element(*self._next_locator)])
         self.marionette.find_element(*self._next_locator).tap()
         self.wait_for_condition(lambda m: m.find_element(
             *self._account_prefs_section_locator).location['x'] == 0)
-
-    def change_check_for_emails_interval(self):
-        self.marionette.execute_script('document.querySelector("[data-l10n-id = settings-check-every-5min]").value = "20000";')
-
-    def tap_account_prefs_next(self, value):
         self.wait_for_element_displayed(*self._account_prefs_next_locator, timeout=120)
+
+    def check_for_emails_interval(self, value):
+        self.marionette.execute_script('document.querySelector("[data-l10n-id = settings-check-every-5min]").value = "%s";' % value)
         self.marionette.find_element(*self._check_for_new_messages_locator).tap()
-        self.select(value)
+        self.select('Every 5 minutes')
+
+    def tap_account_prefs_next(self):
         self.marionette.find_element(*self._account_prefs_next_locator).tap()
 
     def wait_for_setup_complete(self):

@@ -5,6 +5,7 @@ requireApp('system/shared/test/unit/mocks/mock_mobile_operator.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+requireApp('system/shared/test/unit/mocks/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_lock_screen.js', function() {
 
@@ -1525,6 +1526,28 @@ suite('system/Statusbar', function() {
       StatusBar.handleEvent(evt);
 
       assert.isFalse(StatusBar.element.classList.contains('invisible'));
+    });
+  });
+
+  suite('NFC', function() {
+    test('NFC is off', function() {
+      var evt = new CustomEvent('nfc-state-changed', {
+        detail: {
+          active: false
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.equal(StatusBar.icons.nfc.hidden, true);
+    });
+
+    test('NFC is on', function() {
+      var evt = new CustomEvent('nfc-state-changed', {
+        detail: {
+          active: true
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.equal(StatusBar.icons.nfc.hidden, false);
     });
   });
 });

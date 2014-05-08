@@ -49,6 +49,8 @@
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "ff": [
+        {"layoutId": "ff", "app": ["apps", "keyboard"]},
+        {"layoutId": "fr", "app": ["apps", "keyboard"]},
         {"layoutId": "en", "app": ["apps", "keyboard"]}
     ],
     "fr": [
@@ -163,6 +165,10 @@
     ],
     "ur": [
         {"layoutId": "en", "app": ["apps", "keyboard"]}
+    ],
+    "vi": [
+        {"layoutId": "vi-Typewriter", "app": ["apps", "keyboard"]},
+        {"layoutId": "fr", "app": ["apps", "keyboard"]}
     ],
     "zh-CN": [
         {"layoutId": "zh-Hans-Pinyin", "app": ["apps", "keyboard"]},

@@ -26,7 +26,9 @@
       'attentionscreenhide',
       'status-active',
       'status-inactive',
-      'mozChromeEvent'
+      'mozChromeEvent',
+      'appclosing',
+      'homescreenopening'
     ];
   };
 
@@ -47,21 +49,28 @@
       clearTimeout(this._attentionScreenTimer);
     }
     switch (evt.type) {
+      // XXX: See Bug 999318.
+      // Audio channel is always normal without going back to none.
+      // We are actively discard audio channel state when homescreen
+      // is opened.
+      case 'appclosing':
+      case 'homescreenopening':
+        this._normalAudioChannelActive = false;
+        break;
       case 'status-active':
       case 'attentionscreenhide':
       case 'will-unlock':
         if (window.lockScreen && window.lockScreen.locked) {
+          this.publish('showlockscreenwindow');
           return;
         }
 
-        this.publish('showwindows');
         if (!AttentionScreen.isFullyVisible()) {
           this.publish('showwindow', { type: evt.type });
         }
         this._resetDeviceLockedTimer();
         break;
       case 'lock':
-        this.publish('hidewindows');
         // If the audio is active, the app should not set non-visible
         // otherwise it will be muted.
         // TODO: Remove this hack.

@@ -428,6 +428,12 @@ suite('webapp-shared.js', function() {
         blockName + '2.css');
     });
 
+    test('copySharedPage', function() {
+      var path = 'import/test_page.html';
+      webappShared.copyPage(path);
+      assert.equal(result[0].path, 'shared/pages' + '/' + path);
+    });
+
     teardown(function() {
       lsFiles.length = 0;
       result.length = 0;

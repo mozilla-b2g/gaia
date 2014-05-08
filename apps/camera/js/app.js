@@ -6,31 +6,29 @@ define(function(require, exports, module) {
  */
 
 var NotificationView = require('views/notification');
+var LoadingView = require('views/loading-screen');
 var ViewfinderView = require('views/viewfinder');
 var orientation = require('lib/orientation');
-var ControlsView = require('views/controls');
 var FocusRing = require('views/focus-ring');
 var ZoomBarView = require('views/zoom-bar');
 var bindAll = require('lib/bind-all');
 var model = require('vendor/model');
 var debug = require('debug')('app');
 var HudView = require('views/hud');
+var Pinch = require('lib/pinch');
 var bind = require('lib/bind');
-
-/**
- * Locals
- */
-
-var unbind = bind.unbind;
-
-// Mixin model methods
-model(App.prototype);
 
 /**
  * Exports
  */
 
 module.exports = App;
+
+/**
+ * Mixin `Model` API
+ */
+
+model(App.prototype);
 
 /**
  * Initialize a new `App`
@@ -50,12 +48,13 @@ function App(options) {
   this.win = options.win;
   this.doc = options.doc;
   this.require = options.require || window.requirejs;
+  this.LoadingView = options.LoadingView || LoadingView; // test hook
   this.inSecureMode = (this.win.location.hash === '#secure');
   this.controllers = options.controllers;
   this.geolocation = options.geolocation;
-  this.activity = options.activity;
   this.settings = options.settings;
   this.camera = options.camera;
+  this.activity = {};
   debug('initialized');
 }
 
@@ -67,17 +66,14 @@ function App(options) {
  */
 App.prototype.boot = function() {
   debug('boot');
-  if (this.didBoot) { return; }
+  if (this.booted) { return; }
   this.bindEvents();
   this.initializeViews();
   this.runControllers();
   this.injectViews();
-  this.didBoot = true;
+  this.booted = true;
+  this.showLoading();
   debug('booted');
-};
-
-App.prototype.teardown = function() {
-  this.unbindEvents();
 };
 
 /**
@@ -90,7 +86,6 @@ App.prototype.runControllers = function() {
   debug('run controllers');
   this.controllers.settings(this);
   this.controllers.activity(this);
-  this.controllers.timer(this);
   this.controllers.camera(this);
   this.controllers.viewfinder(this);
   this.controllers.recordingTimer(this);
@@ -123,7 +118,6 @@ App.prototype.initializeViews = function() {
   debug('initializing views');
   this.views.viewfinder = new ViewfinderView();
   this.views.focusRing = new FocusRing();
-  this.views.controls = new ControlsView();
   this.views.hud = new HudView();
   this.views.zoomBar = new ZoomBarView();
   this.views.notification = new NotificationView();
@@ -139,7 +133,6 @@ App.prototype.injectViews = function() {
   debug('injecting views');
   this.views.viewfinder.appendTo(this.el);
   this.views.focusRing.appendTo(this.el);
-  this.views.controls.appendTo(this.el);
   this.views.hud.appendTo(this.el);
   this.views.zoomBar.appendTo(this.el);
   this.views.notification.appendTo(this.el);
@@ -166,20 +159,11 @@ App.prototype.bindEvents = function() {
   bind(this.win, 'beforeunload', this.onBeforeUnload);
   bind(this.el, 'click', this.onClick);
 
-  debug('events bound');
-};
+  // Pinch
+  this.pinch = new Pinch(this.el);
+  this.pinch.on('pinchchanged', this.firer('pinchchanged'));
 
-/**
- * Detaches event handlers.
- *
- * @private
- */
-App.prototype.unbindEvents = function() {
-  unbind(this.doc, 'visibilitychange', this.onVisibilityChange);
-  unbind(this.win, 'beforeunload', this.onBeforeUnload);
-  this.off('visible', this.onVisible);
-  this.off('hidden', this.onHidden);
-  debug('events unbound');
+  debug('events bound');
 };
 
 /**
@@ -229,11 +213,13 @@ App.prototype.onCriticalPathDone = function() {
   var took = Date.now() - start;
 
   console.log('critical-path took %s', took + 'ms');
+  this.clearLoading();
   this.loadController(this.controllers.previewGallery);
   this.loadController(this.controllers.storage);
   this.loadController(this.controllers.confirm);
   this.loadController(this.controllers.battery);
   this.loadController(this.controllers.sounds);
+  this.loadController(this.controllers.timer);
   this.loadL10n();
 
   this.criticalPathDone = true;
@@ -251,9 +237,8 @@ App.prototype.onCriticalPathDone = function() {
  * @private
  */
 App.prototype.geolocationWatch = function() {
-  var delay = this.settings.geolocation.get('promptDelay');
   var shouldWatch = !this.activity.pick && !this.hidden;
-  if (shouldWatch) { setTimeout(this.geolocation.watch, delay); }
+  if (shouldWatch) { this.geolocation.watch(); }
 };
 
 /**
@@ -317,6 +302,38 @@ App.prototype.localized = function() {
 App.prototype.localize = function(key) {
   var l10n = navigator.mozL10n;
   return (l10n && l10n.get(key)) || key;
+};
+
+/**
+ * Shows the loading screen after the
+ * number of ms defined in config.js
+ *
+ * @private
+ */
+App.prototype.showLoading = function() {
+  debug('show loading');
+  var ms = this.settings.loadingScreen.get('delay');
+  var self = this;
+  clearTimeout(this.loadingTimeout);
+  this.loadingTimeout = setTimeout(function() {
+    self.views.loading = new self.LoadingView();
+    self.views.loading.appendTo(self.el).show();
+    debug('loading shown');
+  }, ms);
+};
+
+/**
+ * Clears the loadings screen, or
+ * any pending loading screen.
+ *
+ * @private
+ */
+App.prototype.clearLoading = function() {
+  debug('clear loading');
+  var view = this.views.loading;
+  clearTimeout(this.loadingTimeout);
+  if (!view) { return; }
+  view.hide(view.destroy);
 };
 
 });

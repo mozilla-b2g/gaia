@@ -1,0 +1,29 @@
+{
+  "name": "Stingray Homescreen",
+  "description": "Homescreen with Widgets",
+  "launch_path": "/index.html",
+  "type": "certified",
+  "role": "homescreen",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "webapps-manage":{},
+    "embed-apps":{},
+    "open-remote-window":{},
+    "systemXHR":{},
+    "settings":{ "access": "readwrite" }
+  },
+  "locales": {
+    "en-US": {
+      "name": "Stingray Homescreen",
+      "description": "Homescreen with Widgets"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "60": "/style/icons/homescreen.png"
+  },
+  "orientation": "default"
+}

@@ -32,7 +32,10 @@ contacts.NFC = (function() {
 
   var handlePeerReady = function(event) {
     mozNfcPeer = mozNfc.getNFCPeer(event.detail);
-      LazyLoader.load('/shared/js/contact2vcard.js', function() {
+      LazyLoader.load([
+        '/shared/js/contact2vcard.js',
+        '/shared/js/setImmediate.js'
+        ], function() {
         ContactToVcard(
           [currentContact],
           function append(vcard) {
@@ -40,7 +43,13 @@ contacts.NFC = (function() {
           },
           function success() {
             sendContact();
-          }
+          },
+          // use default batch size
+          null,
+          // We don't want to share a profile photo via NFC,
+          // like on Android:
+          // https://bugzilla.mozilla.org/show_bug.cgi?id=1003767#c5
+          true
         );
       });
   };

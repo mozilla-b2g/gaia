@@ -1,6 +1,5 @@
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
 const { btoa } = Cu.import('resource://gre/modules/Services.jsm', {});
-const multilocale = require('./multilocale');
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');
@@ -35,6 +34,10 @@ function ls(dir, recursive, exclude) {
     }
   }
   return results;
+}
+
+function getNewURI(uriString, uriCharset, baseURI) {
+  return Services.io.newURI(uriString, uriCharset, baseURI);
 }
 
 function getOsType() {
@@ -236,6 +239,9 @@ function getWebapp(app, domain, scheme, port, stageDir) {
   if (metaData.exists()) {
     webapp.pckManifest = readZipManifest(webapp.sourceDirectoryFile);
     webapp.metaData = getJSON(metaData);
+    webapp.appStatus = utils.getAppStatus(webapp.metaData.type || 'web');
+  } else {
+    webapp.appStatus = utils.getAppStatus(webapp.manifest.type);
   }
 
   // Some webapps control their own build
@@ -286,6 +292,7 @@ var gaia = {
       !this.instance) {
       this.config = config;
       this.instance = {
+        stageDir: getFile(this.config.STAGE_DIR),
         engine: this.config.GAIA_ENGINE,
         sharedFolder: getFile(this.config.GAIA_DIR, 'shared'),
         webapps: makeWebappsObject(this.config.GAIA_APPDIRS.split(' '),
@@ -294,15 +301,6 @@ var gaia = {
         aggregatePrefix: 'gaia_build_',
         distributionDir: this.config.GAIA_DISTRIBUTION_DIR
       };
-    }
-    if (this.config.LOCALE_BASEDIR) {
-      // Bug 952901: remove getLocaleBasedir() if bug 952900 fixed.
-      var localeBasedir = getLocaleBasedir(this.config.LOCALE_BASEDIR);
-      this.instance.l10nManager = new multilocale.L10nManager(
-        this.config.GAIA_DIR,
-        this.instance.sharedFolder.path,
-        this.config.LOCALES_FILE,
-        localeBasedir);
     }
     return this.instance;
   }
@@ -368,7 +366,7 @@ function deleteFile(path, recursive) {
  * Note: this function is a wrapper function  for node.js
  */
 function listFiles(path, type, recursive, exclude) {
-  var file = getFile(path);
+  var file = (typeof path === 'string' ? getFile(path) : path);
   if (!file.isDirectory()) {
     throw new Error('the path is not a directory.');
   }
@@ -701,9 +699,9 @@ function Commander(cmd) {
     var process = Cc['@mozilla.org/process/util;1']
                   .createInstance(Ci.nsIProcess);
     try {
+      log('cmd', command + ' ' + args.join(' '));
       process.init(_file);
       process.run(true, args, args.length);
-      log(command + ' ' + args.join(' '));
     } catch (e) {
       throw new Error('having trouble when execute ' + command +
         ' ' + args.join(' '));
@@ -746,8 +744,10 @@ function killAppByPid(appName, gaiaDir) {
   var content = getFileContent(tempFile);
   var pidMap = utils.psParser(content);
   sh.run(['-c', 'rm ' + tempFileName]);
-  if (pidMap[appName] && pidMap[appName].PID) {
-    sh.run(['-c', 'adb shell kill ' + pidMap[appName].PID]);
+  // b2g-ps only show first 15 letters of app name
+  var truncatedAppName = appName.substr(0, 15);
+  if (pidMap[truncatedAppName] && pidMap[truncatedAppName].PID) {
+    sh.run(['-c', 'adb shell kill ' + pidMap[truncatedAppName].PID]);
   }
 }
 
@@ -812,6 +812,30 @@ function getCompression(type) {
   }
 }
 
+function generateUUID() {
+  var uuidGenerator = Cc['@mozilla.org/uuid-generator;1']
+                      .createInstance(Ci.nsIUUIDGenerator);
+  return uuidGenerator.generateUUID();
+}
+
+function copyRec(source, target) {
+  var results = [];
+  var files = source.directoryEntries;
+  if (!target.exists())
+    target.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+
+  while (files.hasMoreElements()) {
+    var file = files.getNext().QueryInterface(Ci.nsILocalFile);
+    if (file.isDirectory()) {
+      var subFolder = target.clone();
+      subFolder.append(file.leafName);
+      copyRec(file, subFolder);
+    } else {
+      file.copyTo(target, file.leafName);
+    }
+  }
+}
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -833,7 +857,10 @@ exports.normalizeString = normalizeString;
 exports.Commander = Commander;
 exports.getEnvPath = getEnvPath;
 exports.getLocaleBasedir = getLocaleBasedir;
+exports.getNewURI = getNewURI;
 exports.getOsType = getOsType;
+exports.generateUUID = generateUUID;
+exports.copyRec = copyRec;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;

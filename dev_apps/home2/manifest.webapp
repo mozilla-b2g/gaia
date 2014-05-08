@@ -1,6 +1,6 @@
 {
-  "name": "homescreen2",
-  "description": "A FirefoxOS vertical homepage.",
+  "name": "Vertical",
+  "description": "A vertical homescreen for FirefoxOS.",
   "launch_path": "/index.html",
   "type": "certified",
   "role": "homescreen",
@@ -11,11 +11,15 @@
   "permissions": {
     "open-remote-window":{},
     "storage": {},
-    "webapps-manage": {}
+    "webapps-manage": {},
+    "systemXHR": {}
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/blank.png"
+    "30": "/style/icons/vertical_30.png",
+    "45": "/style/icons/vertical_45.png",
+    "60": "/style/icons/vertical_60.png",
+    "68": "/style/icons/vertical_68.png"
   },
   "orientation": "portrait-primary",
   "activities": {},

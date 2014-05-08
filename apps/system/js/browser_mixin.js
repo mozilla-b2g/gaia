@@ -84,6 +84,7 @@
         timer = window.setTimeout(function() {
           if (invoked)
             return;
+          self.debug('getScreenshot timeout!');
           invoked = true;
           callback();
         }, timeout);
@@ -99,6 +100,8 @@
           // Refresh _screenshotBlob when no width/height is specified.
           self._screenshotBlob = result;
         }
+
+        self.debug('getScreenshot succeed!');
         if (invoked)
           return;
         invoked = true;
@@ -109,6 +112,8 @@
       };
 
       req.onerror = function gotScreenshotFromFrameError(evt) {
+
+        self.debug('getScreenshot failed!');
         if (invoked)
           return;
         invoked = true;

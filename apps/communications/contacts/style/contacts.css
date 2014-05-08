@@ -1,3 +1,5 @@
+@import url("root.css");
+
 /* Contact detail header */
 .contact-header {
   margin: -1.4rem -2rem 1rem;
@@ -384,6 +386,10 @@ section[role="region"] > header .icon.icon-settings {
   background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png);
 }
 
+#view-settings {
+  z-index: 101;
+}
+
 #view-settings .view-body-inner {
   padding: 0;
 }
@@ -660,7 +666,11 @@ section[role="region"] > header .icon.icon-settings {
 }
 
 .remark {
-  color: #ff4e00;
+  color: #339999;
+}
+
+.remark-missed {
+  color: #CC0000;
 }
 
 .valueselector {
@@ -728,4 +738,25 @@ section[role="region"] > header .icon.icon-settings {
 .hidden-input {
   /* visibility: hidden; will avoid events to reach the <input> */
   opacity: 0;
+}
+
+form[role="dialog"][data-type="edit"] header {
+  transform: translateY(-5rem);
+}
+
+form[role="dialog"][data-type="edit"] > menu {
+  transform: translateY(110%);
+}
+
+form[role="dialog"][data-type="edit"].contacts-select.in-edit-mode header,
+form[role="dialog"][data-type="edit"].contacts-select.in-edit-mode > menu {
+  transition: 0s;
+}
+
+form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) > menu {
+  transform: translateY(0);
+}
+
+form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) header {
+  transform: translateY(0);
 }

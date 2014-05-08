@@ -233,35 +233,6 @@ suite('thread_ui.js >', function() {
       assert.ok(ThreadUI.isScrolledManually);
     });
 
-    suite('when adding a line in the composer >', function() {
-      setup(function() {
-        this.sinon.spy(HTMLElement.prototype, 'scrollIntoView');
-      });
-
-      test('when scrolled up, should not scroll', function() {
-        container.scrollTop = 100;
-        dispatchScrollEvent(container);
-
-        // scrolledManually is true (see above)
-        Compose.append('\n');
-
-        sinon.assert.notCalled(HTMLElement.prototype.scrollIntoView);
-      });
-
-      test('when scrolled to the bottom, should scroll', function() {
-        container.scrollTop = container.scrollTopMax;
-        dispatchScrollEvent(container);
-
-        // scrolledManually is false (see above)
-        Compose.append('\n');
-
-        sinon.assert.calledOn(
-          HTMLElement.prototype.scrollIntoView,
-          container.lastElementChild
-        );
-      });
-    });
-
     test('scroll to bottom, should be detected as an automatic scroll',
     function() {
       ThreadUI.isScrolledManually = false;
@@ -310,7 +281,7 @@ suite('thread_ui.js >', function() {
 
     test('composer cleared', function() {
       Compose.append('foo');
-      subject.value = 'foo';
+      subject.textContent = 'foo';
       ThreadUI.cleanFields(true);
       assert.equal(Compose.getContent(), '');
       assert.equal(Compose.getSubject(), '');
@@ -414,14 +385,14 @@ suite('thread_ui.js >', function() {
       });
 
       test('enabled when there is subject input and is visible', function() {
-        subject.value = 'Title';
+        subject.textContent = 'Title';
         Compose.toggleSubject(); // show the subject
         subject.dispatchEvent(new CustomEvent('input'));
         assert.isFalse(sendButton.disabled);
       });
 
       test('disabled when there is subject input, but is hidden', function() {
-        subject.value = 'Title';
+        subject.textContent = 'Title';
         subject.dispatchEvent(new CustomEvent('input'));
         assert.isTrue(sendButton.disabled);
       });
@@ -500,7 +471,7 @@ suite('thread_ui.js >', function() {
 
         suite('when there is visible subject with input...', function() {
           setup(function() {
-            subject.value = 'Title';
+            subject.textContent = 'Title';
             Compose.toggleSubject();
           });
 
@@ -554,7 +525,7 @@ suite('thread_ui.js >', function() {
 
           test('after adding subject input', function() {
             Compose.toggleSubject();
-            subject.value = 'Title';
+            subject.textContent = 'Title';
             subject.dispatchEvent(new CustomEvent('input'));
             assert.isFalse(sendButton.disabled);
           });
@@ -620,7 +591,7 @@ suite('thread_ui.js >', function() {
         suite('when there is subject input...', function() {
           setup(function() {
             sendButton.disabled = false;
-            subject.value = 'Title';
+            subject.textContent = 'Title';
             subject.dispatchEvent(new CustomEvent('input'));
           });
 
@@ -673,6 +644,7 @@ suite('thread_ui.js >', function() {
       test('disabled while resizing oversized image and ' +
         'enabled when resize complete ',
         function(done) {
+        this.sinon.stub(Utils, 'getResizedImgBlob');
 
         ThreadUI.recipients.add({
           number: '999'
@@ -688,6 +660,7 @@ suite('thread_ui.js >', function() {
         Compose.on('input', onInput);
         Compose.append(mockImgAttachment(true));
         assert.isTrue(sendButton.disabled);
+        Utils.getResizedImgBlob.yield(testImageBlob);
       });
     });
   });
@@ -1168,7 +1141,8 @@ suite('thread_ui.js >', function() {
         var clock;
         setup(function() {
           clock = this.sinon.useFakeTimers();
-          subject.value = '1234567890123456789012345678901234567890'; // 40 char
+          subject.textContent = '1234567890123456789012345678901234567890';
+          // 40 char
           clock.tick(0);
           // Event is launched on keypress
           subject.dispatchEvent(new CustomEvent('keyup'));
@@ -1229,7 +1203,7 @@ suite('thread_ui.js >', function() {
         // entered some text into the subject. This ensures that
         // Compose.type is correctly updated as it would be if
         // the user had actually typed into the field.
-        subject.value = 'Howdy!';
+        subject.textContent = 'Howdy!';
 
         Compose.toggleSubject();
 
@@ -1244,7 +1218,7 @@ suite('thread_ui.js >', function() {
 
         // 3. To simulate the user "deleting" the subject,
         // set the value to an empty string.
-        subject.value = '';
+        subject.textContent = '';
 
         // 4. Simulate backspace on the subject field
         backspace();
@@ -1265,7 +1239,7 @@ suite('thread_ui.js >', function() {
         // entered some text into the subject. This ensures that
         // Compose.type is correctly updated as it would be if
         // the user had actually typed into the field.
-        subject.value = 'Howdy!';
+        subject.textContent = 'Howdy!';
 
         Compose.toggleSubject();
 
@@ -1286,7 +1260,7 @@ suite('thread_ui.js >', function() {
         // entered some text into the subject. This ensures that
         // Compose.type is correctly updated as it would be if
         // the user had actually typed into the field.
-        subject.value = 'Howdy!';
+        subject.textContent = 'Howdy!';
 
         Compose.toggleSubject();
 
@@ -1312,7 +1286,7 @@ suite('thread_ui.js >', function() {
         // entered some text into the subject. This ensures that
         // Compose.type is correctly updated as it would be if
         // the user had actually typed into the field.
-        subject.value = 'Howdy!';
+        subject.textContent = 'Howdy!';
 
         Compose.toggleSubject();
 
@@ -1330,7 +1304,7 @@ suite('thread_ui.js >', function() {
 
         // 5. To simulate the user "deleting" the subject,
         // set the value to an empty string.
-        subject.value = '';
+        subject.textContent = '';
 
         // 6. Simulate backspace on the subject field.
         backspace();
@@ -3225,7 +3199,6 @@ suite('thread_ui.js >', function() {
       loadBodyHTML('/index.html');
       threadMessages = document.getElementById('thread-messages');
       carrierTag = document.getElementById('contact-carrier');
-      this.sinon.spy(ThreadUI, 'updateElementsHeight');
     });
 
     teardown(function() {
@@ -3257,31 +3230,6 @@ suite('thread_ui.js >', function() {
 
       ThreadUI.updateCarrier(thread, [], details);
       assert.isFalse(threadMessages.classList.contains('has-carrier'));
-    });
-
-    test(' input height are updated properly', function() {
-      var thread = {
-        participants: [number]
-      };
-
-      ThreadUI.updateCarrier(thread, contacts, details);
-      assert.ok(ThreadUI.updateElementsHeight.calledOnce);
-
-      // Change number of recipients,so now there should be no carrier
-      thread.participants.push('123123');
-
-      ThreadUI.updateCarrier(thread, contacts, details);
-      assert.ok(ThreadUI.updateElementsHeight.calledTwice);
-    });
-
-    test(' input height are not updated if its not needed', function() {
-      var thread = {
-        participants: [number]
-      };
-
-      ThreadUI.updateCarrier(thread, contacts, details);
-      ThreadUI.updateCarrier(thread, contacts, details);
-      assert.isFalse(ThreadUI.updateElementsHeight.calledTwice);
     });
   });
 
@@ -3366,7 +3314,7 @@ suite('thread_ui.js >', function() {
 
     test(' "long-press" on an error bubble shows a menu with resend option',
       function() {
-        // Create a message with a delivery error:
+        // Create a message with a delivery error
         ThreadUI.appendMessage({
           id: 9,
           type: 'sms',
@@ -3386,12 +3334,64 @@ suite('thread_ui.js >', function() {
         assert.equal(MockOptionMenu.calls[0].items[3].l10nId, 'resend-message');
     });
 
+    test(' "long-press" on an error outgoing mms bubble shows a menu' +
+      'with resend option',
+      function() {
+        // Create a message with a sending error
+        ThreadUI.appendMessage({
+          id: 10,
+          type: 'mms',
+          delivery: 'error',
+          deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
+          attachments: [],
+          subject: 'error sending'
+        });
+
+        // Retrieve the message node
+        link = document.querySelector('#message-10 section');
+
+        // Dispatch custom event for testing long press
+        link.dispatchEvent(contextMenuEvent);
+        assert.ok(MockOptionMenu.calls.length, 1);
+
+        // Confirm that the menu contained a "resend-message" option
+        assert.equal(MockOptionMenu.calls[0].items[3].l10nId, 'resend-message');
+    });
+
+    test(' "long-press" on an incoming download error mms bubble should not '+
+      'show a menu with resend option',
+      function() {
+        // Create a message with a download error
+        ThreadUI.appendMessage({
+          id: 11,
+          sender: '123456',
+          iccId: 'B',
+          type: 'mms',
+          delivery: 'not-downloaded',
+          deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
+          attachments: [],
+          subject: 'error download'
+        });
+
+        // Retrieve the message node
+        link = document.querySelector('#message-11 section');
+
+        // Dispatch custom event for testing long press
+        link.dispatchEvent(contextMenuEvent);
+        assert.ok(MockOptionMenu.calls.length, 1);
+      
+        // Confirm that the menu doesn't contained a "resend-message" option
+        assert.isTrue(MockOptionMenu.calls[0].items.every(function(item){
+          return item.l10nId !== 'resend-message';
+        }));
+    });
+
     test(' "long-press" on an not downloaded message ' +
       'bubble shows a menu without forward option',
       function() {
         // Create a message with an undownloaded attachment:
         ThreadUI.appendMessage({
-          id: 9,
+          id: 12,
           type: 'mms',
           body: 'This is mms message test without attachment',
           delivery: 'received',
@@ -3401,7 +3401,7 @@ suite('thread_ui.js >', function() {
         });
 
         // Retrieve the message node
-        var messageNode = document.querySelector('#message-9 section');
+        var messageNode = document.querySelector('#message-12 section');
 
         // Dispatch custom event for testing long press
         messageNode.dispatchEvent(contextMenuEvent);

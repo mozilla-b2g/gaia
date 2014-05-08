@@ -655,15 +655,18 @@ var CallLog = {
       if (contactIds !== null) {
         contactId = contactIds.split(',')[0];
       }
-      PhoneNumberActionMenu.show(contactId, phoneNumber);
+
+      var isMissedCall = logItem.classList.contains('missed-call');
+      PhoneNumberActionMenu.show(
+        contactId,
+        phoneNumber,
+        null,
+        isMissedCall
+      );
     }
   },
 
   filter: function cl_filter() {
-    if (document.body.classList.contains('recents-edit')) {
-      this.hideEditMode();
-    }
-
     this.callLogContainer.classList.add('filter');
     AccessibilityHelper.setAriaSelected(this.missedFilter.firstElementChild, [
       this.allFilter.firstElementChild, this.missedFilter.firstElementChild]);
@@ -690,10 +693,6 @@ var CallLog = {
   },
 
   unfilter: function cl_unfilter() {
-    if (document.body.classList.contains('recents-edit')) {
-      this.hideEditMode();
-    }
-
     // If the call log is empty display the appropriate message, otherwise hide
     // the empty call log message and enable edit mode
     if (this._empty) {

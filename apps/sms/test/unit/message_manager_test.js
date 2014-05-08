@@ -730,6 +730,7 @@ suite('message_manager.js >', function() {
     setup(function() {
       this.sinon.spy(document.activeElement, 'blur');
       MessageManager.threadMessages = document.createElement('div');
+      MessageManager.composerContainer = document.createElement('div');
       this.sinon.spy(ThreadUI, 'cancelEdit');
       this.sinon.spy(ThreadUI, 'renderMessages');
       this.sinon.spy(ThreadUI, 'cleanFields');

@@ -94,6 +94,14 @@ var NfcManager = {
         break;
     }
 
+    // update statusbar status via custom event
+    var event = new CustomEvent('nfc-state-changed', {
+      detail: {
+        active: (state > 0) ? true : false
+      }
+    });
+    window.dispatchEvent(event);
+
     var self = this;
     req.onsuccess = function() {
       self._debug('changeHardwareState ' + state + ' success');
@@ -263,15 +271,20 @@ var NfcManager = {
       var status = nfcdom.checkP2PRegistration(manifestURL);
       var self = this;
       status.onsuccess = function() {
-        // Top visible application's manifest Url is registered;
-        // Start Shrink / P2P UI and wait for user to accept P2P event
-        window.dispatchEvent(new CustomEvent('shrinking-start'));
+        if (status.result) {
+          // Top visible application's manifest Url is registered;
+          // Start Shrink / P2P UI and wait for user to accept P2P event
+          window.dispatchEvent(new CustomEvent('shrinking-start'));
 
-        // Setup listener for user response on P2P UI now
-        window.addEventListener('shrinking-sent', self);
-      };
-      status.onerror = function() {
-        // Do nothing!
+          // Setup listener for user response on P2P UI now
+          window.addEventListener('shrinking-sent', self);
+        } else {
+          // Clean up P2P UI events
+          self._debug('Error checking P2P Registration: ' +
+                      JSON.stringify(status.result));
+          window.removeEventListener('shrinking-sent', self);
+          window.dispatchEvent(new CustomEvent('shrinking-stop'));
+        }
       };
   },
 
@@ -323,6 +336,13 @@ var NfcManager = {
        * are handled by the handover manager.
        */
       var firstRecord = records[0];
+      if ((firstRecord.tnf == NDEF.TNF_MIME_MEDIA) &&
+            NfcUtils.equalArrays(firstRecord.type,
+            NfcUtils.fromUTF8('application/vnd.bluetooth.ep.oob'))) {
+        this._debug('Handle simplified pairing record');
+        NfcHandoverManager.handleSimplifiedPairingRecord(records);
+        return;
+      }
       if ((firstRecord.tnf == NDEF.TNF_WELL_KNOWN) &&
           NfcUtils.equalArrays(firstRecord.type, NDEF.RTD_HANDOVER_SELECT)) {
         this._debug('Handle Handover Select');
@@ -435,8 +455,6 @@ var NfcManager = {
       return this.formatURIRecord(record);
     } else if (NfcUtils.equalArrays(record.type, NDEF.RTD_SMART_POSTER)) {
       return this.formatSmartPosterRecord(record);
-    } else if (NfcUtils.equalArrays(record.type, NDEF.SMARTPOSTER_ACTION)) {
-      return this.formatSmartPosterAction(record);
     } else {
       console.log('Unknown record type: ' + JSON.stringify(record));
     }
@@ -556,8 +574,7 @@ var NfcManager = {
     var activityText = {
       name: 'nfc-ndef-discovered',
       data: {
-        type: 'external-type',
-        rtd: record.type
+        type: NfcUtils.toUTF8(record.type)
       }
     };
     return activityText;
@@ -570,19 +587,6 @@ var NfcManager = {
       name: 'nfc-ndef-discovered',
       data: {
         type: 'smartposter'
-      }
-    };
-    return activityText;
-  },
-
-  formatSmartPosterAction: function nm_formatSmartPosterAction(record) {
-    // The recommended action has an application specific meaning:
-    var smartaction = record.payload[0];
-    var activityText = {
-      name: 'nfc-ndef-discovered',
-      data: {
-        type: 'smartposter-action',
-        action: smartaction
       }
     };
     return activityText;

@@ -427,21 +427,55 @@ suite('app', function() {
     });
   });
 
-  suite('Delayed DOM Loading', function() {
-
+  suite('#_showTodayDate', function() {
     var container;
 
     suiteSetup(function() {
       container = document.createElement('div');
-      container.innerHTML = '<div class="delay"><!-- ' +
-          '<div class="lazynode first">i love</div>' +
-          '<div class="lazynode second">bacon</div>' +
-        ' --></div>';
+      container.innerHTML = '<a id="today" href="#today">' +
+        '<span class="icon-today"></span></a>';
       document.body.appendChild(container);
     });
 
     suiteTeardown(function() {
       container.parentNode.removeChild(container);
+    });
+
+    test('show current date on the .icon-today span', function() {
+      subject._showTodayDate();
+      assert.equal(
+        document.querySelector('#today .icon-today').innerHTML,
+        new Date().getDate()
+      );
+    });
+  });
+
+  suite('#_syncTodayDate', function() {
+    var clock;
+    var container;
+
+    suiteSetup(function() {
+      var baseTimestamp = new Date(1991, 9, 7, 23, 59, 59).getTime();
+      clock = sinon.useFakeTimers(baseTimestamp);
+
+      container = document.createElement('div');
+      container.innerHTML = '<a id="today" href="#today">' +
+        '<span class="icon-today">7</span></a>';
+      document.body.appendChild(container);
+    });
+
+    suiteTeardown(function() {
+      container.parentNode.removeChild(container);
+      clock.restore();
+    });
+
+    test('Update the date on the .icon-today span after midnight', function() {
+      subject._syncTodayDate();
+      clock.tick(1500);
+      assert.equal(
+        document.querySelector('#today .icon-today').innerHTML,
+        8
+      );
     });
   });
 });

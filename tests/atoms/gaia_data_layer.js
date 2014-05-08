@@ -496,12 +496,10 @@ var GaiaDataLayer = {
 
     let msgList = new Array();
     let filter = new MozSmsFilter();
-    let request = sms.getMessages(filter, false);
+    let cursor = sms.getMessages(filter, false);
 
-    request.onsuccess = function(event) {
-      var cursor = event.target;
-
-      if(!cursor.done) {
+    cursor.onsuccess = function(event) {
+      if(cursor.result) {
         // Add the sms to the list
         msgList.push(cursor.result);
         // Now get the next in the list
@@ -513,7 +511,7 @@ var GaiaDataLayer = {
       }
     };
 
-    request.onerror = function(event) {
+    cursor.onerror = function(event) {
       console.log('sms.getMessages error: ' + event.target.error.name);
       disableSms();
       callback(false);
@@ -535,13 +533,12 @@ var GaiaDataLayer = {
 
     let msgList = new Array();
     let filter = new MozSmsFilter;
-    let request = sms.getMessages(filter, false);
+    let cursor = sms.getMessages(filter, false);
 
-    request.onsuccess = function(event) {
-      var cursor = event.target.result;
+    cursor.onsuccess = function(event) {
       // Check if message was found
-      if (cursor && cursor.message) {
-        msgList.push(cursor.message.id);
+      if (cursor.result) {
+        msgList.push(cursor.result.id);
         // Now get next message in the list
         cursor.continue();
       } else {
@@ -557,7 +554,7 @@ var GaiaDataLayer = {
       }
     };
 
-    request.onerror = function(event) {
+    cursor.onerror = function(event) {
       console.log('sms.getMessages error: ' + event.target.error.name);
       disableSms();
       callback(false);

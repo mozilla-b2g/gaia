@@ -100,9 +100,9 @@ var ValuePicker = (function() {
     this.initUI();
     this.setSelectedIndex(0); // Default Index is zero
     this.keypressHandler = vp_keypress.bind(this);
-    this.mousedonwHandler = vp_mousedown.bind(this);
-    this.mousemoveHandler = vp_mousemove.bind(this);
-    this.mouseupHandler = vp_mouseup.bind(this);
+    this.touchstartHandler = vp_touchstart.bind(this);
+    this.touchmoveHandler = vp_touchmove.bind(this);
+    this.touchendHandler = vp_touchend.bind(this);
     this.addEventListeners();
   };
 
@@ -142,19 +142,20 @@ var ValuePicker = (function() {
 
   VP.prototype.addEventListeners = function() {
     this.container.addEventListener('keypress', this.keypressHandler, false);
-    this.element.addEventListener('mousedown', this.mousedonwHandler, false);
+    this.element.addEventListener('touchstart', this.touchstartHandler, false);
   };
 
   VP.prototype.removeEventListeners = function() {
-    this.element.removeEventListener('mouseup', this.mouseupHandler, false);
-    this.element.removeEventListener('mousemove', this.mousemoveHandler, false);
+    this.element.removeEventListener('touchend', this.touchendHandler, false);
+    this.element.removeEventListener('touchmove', this.touchmoveHandler, false);
   };
 
   VP.prototype.uninit = function() {
     this._top = 0;
-    this.element.removeEventListener('mousedown', this.mousedonwHandler, false);
-    this.element.removeEventListener('mouseup', this.mouseupHandler, false);
-    this.element.removeEventListener('mousemove', this.mousemoveHandler, false);
+    this.element.removeEventListener(
+      'touchstart', this.touchstartHandler, false);
+    this.element.removeEventListener('touchend', this.touchendHandler, false);
+    this.element.removeEventListener('touchmove', this.touchmoveHandler, false);
     this.element.style.transform = 'translateY(0px)';
     this.container.removeEventListener('keypress', this.keypressHandler, false);
     this.container.removeAttribute('role');
@@ -169,9 +170,11 @@ var ValuePicker = (function() {
   VP.prototype.onselectedindexchange = function(index) {};
 
   function cloneEvent(evt) {
-    if ('touches' in evt)
-      evt = evt.touches[0];
-    return { x: evt.pageX, y: evt.pageY, timestamp: evt.timeStamp };
+    return {
+      x: evt.touches[0].pageX,
+      y: evt.touches[0].pageY,
+      timestamp: evt.timeStamp
+    };
   }
 
   function empty(element) {
@@ -211,7 +214,7 @@ var ValuePicker = (function() {
     return reValue;
   }
 
-  function vp_mousemove(event) {
+  function vp_touchmove(event) {
     event.stopPropagation();
     event.target.setCapture(true);
     currentEvent = cloneEvent(event);
@@ -231,7 +234,7 @@ var ValuePicker = (function() {
     startEvent = currentEvent;
   }
 
-  function vp_mouseup(event) {
+  function vp_touchend(event) {
     event.stopPropagation();
     this.removeEventListeners();
 
@@ -247,7 +250,7 @@ var ValuePicker = (function() {
     currentSpeed = 0;
   }
 
-  function vp_mousedown(event) {
+  function vp_touchstart(event) {
     event.stopPropagation();
 
     // Stop animation
@@ -257,8 +260,8 @@ var ValuePicker = (function() {
     tunedIndex = this._currentIndex;
 
     this.removeEventListeners();
-    this.element.addEventListener('mousemove', this.mousemoveHandler, false);
-    this.element.addEventListener('mouseup', this.mouseupHandler, false);
+    this.element.addEventListener('touchmove', this.touchmoveHandler, false);
+    this.element.addEventListener('touchend', this.touchendHandler, false);
   }
 
   function vp_keypress(event) {

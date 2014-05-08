@@ -14,20 +14,22 @@ html, body, .icons {
   will-change: transform;
   display: inline-block;
   width: calc(100% / 3);
-  height: 9rem;
   text-align: center;
-  background: no-repeat center;
-  background-size: 8rem;
+  background: no-repeat top center;
   z-index: 3;
 }
 
 .icon .title {
-  display: block;
-  margin-top: 9rem;
+  display: inline-block;
   pointer-events: none;
   color: #fff;
   font-size: 1.2rem;
   text-shadow: 0 0 0.5rem rgba(0,0,0,0.5);
+  position: absolute;
+  bottom: -2rem;
+  left: 0;
+  width: 100%;
+  white-space: nowrap;
 }
 
 .divider {
@@ -39,7 +41,7 @@ html, body, .icons {
   z-index: 2;
 }
 
-.divider:last-child {
+.divider:last-of-type {
   visibility: hidden;
 }
 
@@ -86,6 +88,12 @@ html, body, .icons {
 
 .edit-mode .icon.active .remove {
   display: none;
+}
+
+.edit-mode .icon.bookmark .title {
+  background-color: rgba(132, 132, 132, 0.7);
+  border-radius: 2rem;
+  padding: .2rem .6rem .2rem .6rem;
 }
 
 #confirmation-message.fade-in {

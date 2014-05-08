@@ -9,7 +9,7 @@
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
-         SoftwareButtonManager */
+         HomeSearchbar, SoftwareButtonManager */
 
 'use strict';
 
@@ -94,22 +94,24 @@ window.addEventListener('load', function startup() {
   // Enable checkForUpdate as well if booted without FTU
   window.addEventListener('ftuskip', doneWithFTU);
 
-  window.sourceView = new SourceView();
   Shortcuts.init();
   ScreenManager.turnScreenOn();
-  Places.init();
-  Rocketbar.init();
 
   // Please sort it alphabetically
   window.activities = new Activities();
   window.devtoolsView = new DevtoolsView();
   window.dialerAgent = new DialerAgent().start();
   window.homeGesture = new HomeGesture().start();
+  window.homeSearchbar = new HomeSearchbar();
   window.layoutManager = new LayoutManager().start();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
+  window.places = new Places();
+  window.places.start();
   window.remoteDebugger = new RemoteDebugger();
+  window.rocketbar = new Rocketbar();
   window.softwareButtonManager = new SoftwareButtonManager().start();
+  window.sourceView = new SourceView();
   window.telephonySettings = new TelephonySettings();
   window.telephonySettings.start();
   window.ttlView = new TTLView();

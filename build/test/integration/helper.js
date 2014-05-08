@@ -45,8 +45,15 @@ function checkPrefs(actual, expected) {
 }
 
 function checkWebappsScheme(webapps) {
+  var configKeys = ['origin', 'installOrigin', 'receipt', 'installTime',
+                    'updateTime', 'manifestURL', 'localId', 'appStatus'];
+
   Object.keys(webapps).forEach(function(key) {
     var webapp = webapps[key];
+    configKeys.forEach(function(configKey) {
+      assert.equal((configKey in webapp), true,
+        key + ' of webapps.json has not defined ' + configKey);
+    });
     var scheme =
       webapp.origin.indexOf('mochi.test') !== -1 ||
       webapp.origin.indexOf('marketplace.allizom.org') !== -1 ||

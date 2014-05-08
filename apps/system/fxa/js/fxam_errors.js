@@ -51,8 +51,12 @@
       message: 'fxa-generic-error-message'
     },
     COPPA_ERROR: {
+      title: 'fxa-coppa-failure-error-title',
+      message: 'fxa-coppa-failure-error-message'
+    },
+    COPPA_FTU_ERROR: {
       title: 'fxa-coppa-error-title',
-      message: 'fxa-coppa-error-message'
+      message: 'fxa-coppa-ftu-error-message'
     },
     OFFLINE: {
       title: 'fxa-offline-error-title',

@@ -3,6 +3,7 @@ mocha.globals([
   'ScreenLayout',
   'LazyLoader',
   'Settings',
+  'Root',
   'startupLocale',
   'initLocale',
   'MockL10n',

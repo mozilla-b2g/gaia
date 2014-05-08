@@ -18,9 +18,9 @@ utils.status = (function() {
   };
 
   var hideStatus = function() {
+    statusMsg.addEventListener('transitionend', hideAnimationDone);
     statusMsg.classList.remove('opening');
     statusMsg.classList.remove('bannerStart');
-    statusMsg.addEventListener('transitionend', hideAnimationDone);
   };
 
   var showStatus = function(text) {
@@ -39,11 +39,11 @@ utils.status = (function() {
       }
 
       statusMsg.classList.remove('hidden');
+      statusMsg.addEventListener('transitionend', showAnimationDone);
       setTimeout(function displaying() {
         statusMsg.classList.add('opening');
         statusMsg.classList.add('bannerStart');
-        statusMsg.addEventListener('transitionend', showAnimationDone);
-      }, 0);
+      }, 10); // Give the opportunity to paint the UI component
     });
   };
   return {

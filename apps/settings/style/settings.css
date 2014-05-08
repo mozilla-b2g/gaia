@@ -689,11 +689,35 @@ ul li > label.range-icons.volume input {
 
 /* Web activity handling */
 .skin-organic section[data-dialog] > header:first-child .icon.icon-back {
-  background-image: url(/shared/style/headers/images/icons/organic/close.png);
+  background-image: url(/shared/style/headers/images/icons/organic/close.svg);
 }
 
 section[data-dialog] > header:first-child .icon.icon-back {
-  background-image: url(/shared/style/headers/images/icons/close.png);
+  background-image: url(/shared/style/headers/images/icons/close.svg);
+}
+
+/******************************************************************************
+ * Firefox Accounts
+ */
+
+.fxa-logo {
+  background-image: url('images/fxa_logo.png');
+  background-repeat: no-repeat;
+  margin: 3rem auto 0;
+  width: 17rem;
+  height: 19.5rem;
+}
+
+#fxa-unverified .description {
+  background-image: url('images/fxa_envelope.png');
+  background-repeat: no-repeat;
+  background-position: 0 1.5rem;
+  padding-top: 1.5rem;
+}
+
+#fxa-unverified-text {
+  padding-top: 0.8rem;
+  margin-left: 6rem;
 }
 
 /******************************************************************************

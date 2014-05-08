@@ -1,4 +1,4 @@
-/* global SIMSlot, System, SIMSlotManager */
+/* global SIMSlot, SIMSlotManager */
 'use strict';
 
 (function(window) {
@@ -180,7 +180,7 @@
     publishSIMSlotIsReady: function() {
       if (!this.ready) {
         this.ready = true;
-        System.publish('simslotready');
+        window.dispatchEvent(new CustomEvent('simslotready'));
       }
     },
 

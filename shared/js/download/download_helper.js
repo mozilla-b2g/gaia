@@ -1,5 +1,12 @@
-
 'use strict';
+/* exported DownloadHelper */
+/* global DownloadFormatter */
+/* global DownloadStore */
+/* global DownloadUI */
+/* global LazyLoader */
+/* global MimeMapper */
+/* global MozActivity */
+/* global SettingsListener */
 
 /*
  * DownloadHelper.js: Perform some utility functions with DOMDownload
@@ -443,7 +450,7 @@ var DownloadHelper = (function() {
     };
 
     return req;
-  };
+  }
 
   function handlerError(error, download, cb) {
     LazyLoader.load('shared/js/download/download_ui.js', (function loaded() {

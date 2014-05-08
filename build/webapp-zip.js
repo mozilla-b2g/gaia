@@ -223,11 +223,6 @@ function getSingleVariantResources(conf) {
 function execute(options) {
   config = options;
   var gaia = utils.gaia.getInstance(config);
-  var localesFile = utils.resolve(config.LOCALES_FILE,
-    config.GAIA_DIR);
-  if (!localesFile.exists()) {
-    throw new Error('LOCALES_FILE doesn\'t exists: ' + localesFile.path);
-  }
 
   let webappsTargetDir = Cc['@mozilla.org/file/local;1']
                            .createInstance(Ci.nsILocalFile);
@@ -238,7 +233,6 @@ function execute(options) {
 
   // Create webapps folder if doesn't exists
   webappsTargetDir.append('webapps');
-  utils.ensureFolderExists(webappsTargetDir);
 
   gaia.webapps.forEach(function(webapp) {
     // If config.BUILD_APP_NAME isn't `*`, we only accept one webapp
@@ -247,14 +241,14 @@ function execute(options) {
       return;
     }
 
-    // Zip generation is not needed for external apps, aaplication data
-    // is copied to profile webapps folder in webapp-manifests.js
+    // Compute webapp folder name in profile
+    let webappTargetDir = webappsTargetDir.clone();
+
+    // Zip generation is not needed for external apps.
     if (utils.isExternalApp(webapp)) {
       return;
     }
 
-    // Compute webapp folder name in profile
-    let webappTargetDir = webappsTargetDir.clone();
     webappTargetDir.append(webapp.domain);
     utils.ensureFolderExists(webappTargetDir);
 
@@ -279,18 +273,12 @@ function execute(options) {
       }
     });
 
-    if (gaia.l10nManager) {
-      // Only localize app manifest file if we inlined properties files.
-      var inlineOrConcat = (config.GAIA_INLINE_LOCALES === '1' ||
-        config.GAIA_CONCAT_LOCALES === '1');
-      gaia.l10nManager.localize(files, zip, webapp, inlineOrConcat);
-    }
-
     if (zip.alignStoredFiles) {
       zip.alignStoredFiles(4096);
     }
     zip.close();
   });
+
 }
 
 exports.execute = execute;

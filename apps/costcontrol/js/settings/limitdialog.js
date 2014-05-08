@@ -3,6 +3,9 @@
 'use strict';
 
 function dataLimitConfigurer(guiWidget, settings, viewManager) {
+  var MINUS_CHAR_CODE = 45,
+      COMMA_CHAR_CODE = 44,
+      DOT_CHAR_CODE = 46;
 
   var dialog = document.getElementById('data-limit-dialog');
   var dataLimitInput = dialog.querySelector('input');
@@ -39,13 +42,49 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
     );
   }
 
+  // Prevent undesired characters like '-'
+  dataLimitInput.addEventListener('keypress',
+    function cc_onKeypress(event) {
+      if ((event.charCode === MINUS_CHAR_CODE) ||
+          (event.charCode === COMMA_CHAR_CODE) ||
+          (event.charCode === DOT_CHAR_CODE &&
+           event.target.value.indexOf('.') !== -1)) {
+
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+    }
+  );
+
+  function isValidFormat(lowLimitValue) {
+    var numberDataLimit = Number(lowLimitValue);
+    return (numberDataLimit < 1000 &&
+            numberDataLimit > 0 &&
+            Number.isInteger(numberDataLimit * 100));
+  }
   // Disable OK button when dataLimitInput not matches any positive real number
   // (up to three digits length), with optional decimal point, accepting up
   // to 2 decimal places.
   dataLimitInput.addEventListener('input',
     function cc_ondataLimitInputChange(evt) {
-      var limitRegexp = new RegExp('^[0-9]{1,3}(\\.[0-9]{1,2})?$');
-      okButton.disabled = (!limitRegexp.test(evt.target.value.trim()));
+      var lowLimitValue = evt.target.value.trim();
+      var isNumericLowLimit = !Number.isNaN(lowLimitValue);
+
+      if (isNumericLowLimit &&
+          lowLimitValue.indexOf('.0') !== lowLimitValue.length - 2 &&
+          lowLimitValue.indexOf('.') !== lowLimitValue.length - 1) {
+        dataLimitInput.value = Number(lowLimitValue);
+      }
+
+      var isValidValue = (isNumericLowLimit && isValidFormat(lowLimitValue));
+
+      if (isValidValue) {
+        dataLimitInput.classList.remove('error');
+      } else {
+        dataLimitInput.classList.add('error');
+      }
+      okButton.disabled = (!isValidValue);
     }
   );
 
@@ -72,7 +111,6 @@ function dataLimitConfigurer(guiWidget, settings, viewManager) {
   // Keep the widget and the dialog synchronized
   settings.observe('dataLimitValue',
     function ccld_onValueChange(value) {
-
       // Use default value if no value
       if (value === null || typeof value === 'undefined') {
         value = settings.defaultValue('dataLimitValue');

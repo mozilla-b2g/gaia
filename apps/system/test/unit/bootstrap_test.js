@@ -16,6 +16,7 @@ requireApp('system/test/unit/mock_devtools_view.js');
 requireApp('system/test/unit/mock_dialer_agent.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 requireApp('system/test/unit/mock_home_gesture.js');
+requireApp('system/test/unit/mock_home_searchbar.js');
 requireApp('system/test/unit/mock_homescreen_launcher.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_media_recording.js');
@@ -41,39 +42,37 @@ requireApp('system/test/unit/mock_activity_window_manager.js');
 requireApp('system/test/unit/mock_app_window_factory.js');
 
 mocha.globals([
-  'Shortcuts',
-  'wallpaperURL',
+  'activityWindowManager',
   'activities',
+  'applications',
+  'appWindowFactory',
   'cancelHomeTouchstart',
   'cancelHomeTouchend',
   'cancelHomeClick',
-  'secureWindowManager',
-  'secureWindowFactory',
-  'lockScreenWindowManager',
-  'systemDialogManager',
   'devtoolsView',
   'dialerAgent',
   'homeGesture',
-  'mediaRecording',
-  'remoteDebugger',
-  'sourceView',
-  'storage',
-  'softwareButtonManager',
-  'telephonySettings',
-  'ttlView',
-  'title',
-  'LayoutManager',
-  'activityWindowFactory',
-  'visibilityManager',
-  'Applications',
-  'activityWindowManager',
+  'homeSearchbar',
   'homescreenLauncher',
-  'ActivityWindowFactory',
-  'visibilityManager',
-  'applications',
   'layoutManager',
+  'lockScreenWindowManager',
+  'mediaRecording',
   'permissionManager',
-  'appWindowFactory'
+  'places',
+  'remoteDebugger',
+  'rocketbar',
+  'secureWindowFactory',
+  'secureWindowManager',
+  'Shortcuts',
+  'sourceView',
+  'softwareButtonManager',
+  'storage',
+  'systemDialogManager',
+  'telephonySettings',
+  'title',
+  'ttlView',
+  'visibilityManager',
+  'wallpaperURL'
 ]);
 
 var mocksForBootstrap = new MocksHelper([
@@ -83,6 +82,7 @@ var mocksForBootstrap = new MocksHelper([
   'DialerAgent',
   'FtuLauncher',
   'HomeGesture',
+  'HomeSearchbar',
   'HomescreenLauncher',
   'MediaRecording',
   'PermissionManager',

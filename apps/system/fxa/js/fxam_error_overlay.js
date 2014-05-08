@@ -35,7 +35,7 @@ var FxaModuleErrorOverlay = {
     this.init();
 
     this.fxaErrorTitle.textContent = title || '';
-    this.fxaErrorMsg.textContent = message || '';
+    this.fxaErrorMsg.innerHTML = message || '';
 
     this.fxaErrorOverlay.classList.add('show');
   },

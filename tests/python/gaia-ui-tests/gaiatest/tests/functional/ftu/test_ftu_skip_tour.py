@@ -16,8 +16,6 @@ class TestFtu(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        self.number_of_sim_contacts = len(self.data_layer.sim_contacts)
-
         self.ftu = Ftu(self.marionette)
         self.ftu.launch()
 
@@ -34,7 +32,7 @@ class TestFtu(GaiaTestCase):
         psk = self.testvars['wifi'].get('psk')
         keymanagement = self.testvars['wifi'].get('keyManagement')
 
-        self.assertGreater(self.ftu.languages_list, 0, "No languages listed on screen")
+        self.wait_for_condition(lambda m: self.ftu.languages_list > 0, message="No languages listed on screen")
 
         # select en-US due to the condition of this test is only for en-US
         self.ftu.tap_language("en-US")
@@ -80,7 +78,7 @@ class TestFtu(GaiaTestCase):
         # Tap import from SIM
         # You can do this as many times as you like without db conflict
         self.ftu.tap_import_from_sim()
-        self.ftu.wait_for_contacts_imported(self.number_of_sim_contacts)
+        self.ftu.wait_for_contacts_imported()
         self.assertEqual(self.ftu.count_imported_contacts, len(self.data_layer.all_contacts))
 
         # all_contacts switches to top frame; Marionette needs to be switched back to ftu

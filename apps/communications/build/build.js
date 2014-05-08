@@ -80,8 +80,10 @@ CommAppBuilder.prototype.generateContactsConfig = function() {
 };
 
 CommAppBuilder.prototype.generateServicesConfig = function() {
-  var commsServicesFile = utils.getFile(this.stageDir.path, 'contacts',
-    'oauth2', 'js', 'parameters.js');
+  var commsServicesFile = utils.getFile(this.stageDir.path, 'contacts', 'js',
+                                        'parameters.js');
+  var commsServicesFile2 = utils.getFile(this.stageDir.path, 'shared',
+    'pages', 'import', 'js', 'parameters.js');
 
   // Bug 883344 Only use default facebook app id if is mozilla partner build
   if (this.official === '1') {
@@ -94,6 +96,10 @@ CommAppBuilder.prototype.generateServicesConfig = function() {
     this.commsServices, this.gaia.distributionDir);
 
   utils.writeContent(commsServicesFile,
+    'var oauthflow = this.oauthflow || {}; oauthflow.params = ' +
+    commsServices + ';');
+
+  utils.writeContent(commsServicesFile2,
     'var oauthflow = this.oauthflow || {}; oauthflow.params = ' +
     commsServices + ';');
 };

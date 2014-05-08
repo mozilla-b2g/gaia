@@ -87,14 +87,33 @@ if (!utils.sdcard) {
    * @param {Function} cb Callback.
    */
   SdCard.retrieveFiles = function retrieveFilesContent(mimes, exts, cb) {
-    var storage = navigator.getDeviceStorage('sdcard');
     var fileArray = [];
 
-    var cursor = storage.enumerate();
-    cursor.onsuccess = function(e) {
+    // getDeviceStorages('sdcard') can return more than one storage unit
+    // in different order, depends on the default media storage setting,
+    // so we need to iterate though them to be sure we checked the proper
+    // SD Card
+    var storages = navigator.getDeviceStorages('sdcard');
+    var numberOfStorages = storages.length;
+    var currentStorage = 0;
+
+    var cursorOnError = function() {
+      cb(this.error.name);
+    };
+
+    var cursorOnSuccess = function(e) {
       var file = e.target.result;
+      // If we don't have any more files on the storage...
       if (!file) {
-        cb(null, fileArray);
+        // ... but we have more storages...
+        if (++currentStorage < numberOfStorages) {
+          // ... check the next one
+          cursor = storages[currentStorage].enumerate();
+          cursor.onsuccess = cursorOnSuccess;
+          cursor.onerror = cursorOnError;
+        } else {
+          cb(null, fileArray);
+        }
       } else {
         if ((mimes.indexOf(file.type) === -1) &&
           file.name.search(new RegExp('.(' + exts.join('|') + ')$')) === -1) {
@@ -106,9 +125,9 @@ if (!utils.sdcard) {
       }
     };
 
-    cursor.onerror = function() {
-      cb(this.error.name);
-    };
+    var cursor = storages[currentStorage].enumerate();
+    cursor.onsuccess = cursorOnSuccess;
+    cursor.onerror = cursorOnError;
   };
 
   /**

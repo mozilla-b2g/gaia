@@ -3,6 +3,8 @@ define(function(require) {
 
   var SettingsService = require('modules/settings_service');
   var SettingsCache = require('modules/settings_cache');
+  require('shared/async_storage');
+
   var SendFeedback = function(){};
   SendFeedback.prototype = {
     _SettingsCache: SettingsCache,

@@ -45,14 +45,11 @@ contacts.List = (function() {
       inSelectMode = false,
       selectForm = null,
       selectActionButton = null,
-      selectMenu = null,
-      standardMenu = null,
       groupList = null,
       searchList = null,
       currentlySelected = 0,
       selectNavigationController = null,
       boundSelectAction4Select = null,
-      boundSelectAction4Close = null,
       // Dictionary by contact id with the rows on screen
       rowsOnScreen = {},
       selectedContacts = {};
@@ -60,6 +57,9 @@ contacts.List = (function() {
   // Possible values for the configuration field 'defaultContactsOrder'
   // config.json file (see bug 841693)
   var ORDER_BY_FAMILY_NAME = 'familyName';
+
+  var EXPORT_TRANSITION_LEVEL = 2;
+  var isDangerSelectList = false;
 
   var MAX_INT = 0x7fffffff;
 
@@ -456,7 +456,7 @@ contacts.List = (function() {
     container.appendChild(check);
 
     // contactInner is a link with 3 p elements:
-    // name, socaial marks and org
+    // name, social marks and org
     var display = getDisplayName(contact);
     var nameElement = getHighlightedName(display);
     container.appendChild(nameElement);
@@ -1396,6 +1396,7 @@ contacts.List = (function() {
     var label = document.createElement('label');
     label.classList.add('contact-checkbox');
     label.classList.add('pack-checkbox');
+
     var input = document.createElement('input');
     input.name = 'selectIds[]';
     input.type = 'checkbox';
@@ -1433,7 +1434,7 @@ contacts.List = (function() {
     // and remove from the final result those one that
     // were unchecked (if any)
     if (selectAllPending) {
-      action(selectionPromise);
+      action(selectionPromise, exitSelectMode);
       selectionPromise.resolve();
       return;
     }
@@ -1449,7 +1450,7 @@ contacts.List = (function() {
       return;
     }
 
-    action(selectionPromise);
+    action(selectionPromise, exitSelectMode);
     selectionPromise.resolve(ids);
   };
 
@@ -1584,41 +1585,25 @@ contacts.List = (function() {
     return promise;
   };
 
-  function toggleMenus() {
-    selectMenu.classList.toggle('hide');
-    standardMenu.classList.toggle('hide');
-  }
-
-  /*
-    Set the list in select mode, allowing you to configure an action to
-    be executed when the user does the selection as well as a title to
-    identify such action.
-
-    Also provide a callback to be invoqued when we enter in select mode.
-  */
-  var selectFromList = function selectFromList(title, action, callback,
-      navigationController, transitionType) {
-    inSelectMode = true;
-    selectNavigationController = navigationController;
-
+  function doSelectFromList(title, action, callback, options) {
     if (selectForm === null) {
       selectForm = document.getElementById('selectable-form');
-
-      selectMenu = document.getElementById('select-menu');
-      standardMenu = document.getElementById('standard-menu');
       selectActionButton = document.getElementById('select-action');
       selectActionButton.disabled = true;
       selectAll = document.getElementById('select-all');
       selectAll.addEventListener('click', handleSelection);
       deselectAll = document.getElementById('deselect-all');
       deselectAll.addEventListener('click', handleSelection);
+
+      selectForm.querySelector('.icon.icon-close').parentNode.
+                    addEventListener('click', exitSelectMode.bind(null, true));
     }
+
+    isDangerSelectList = options && options.isDanger;
 
     scrollable.classList.add('selecting');
     fastScroll.classList.add('selecting');
     utils.alphaScroll.toggleFormat('short');
-
-    toggleMenus();
 
     selectActionButton.textContent = title;
     // Clear any previous click action and setup the current one
@@ -1626,8 +1611,17 @@ contacts.List = (function() {
     boundSelectAction4Select = selectAction.bind(null, action);
     selectActionButton.addEventListener('click', boundSelectAction4Select);
 
-    // Show the select all/ deselecta ll butons
+    updateSelectCount(0);
     selectForm.classList.remove('hide');
+    selectForm.addEventListener('transitionend', function handler() {
+      selectForm.removeEventListener('transitionend', handler);
+      selectForm.classList.add('in-edit-mode');
+    });
+
+    // Give the opportunity to paint
+    window.setTimeout(function() {
+      selectForm.classList.add('contacts-select');
+    });
 
     // Setup the list in selecting mode (the search one as well)
     if (groupList == null) {
@@ -1640,15 +1634,6 @@ contacts.List = (function() {
     searchList.classList.add('selecting');
 
     updateRowsOnScreen();
-
-    // Setup cancel select mode
-    var close = document.getElementById('cancel_activity');
-    close.removeEventListener('click', Contacts.cancel);
-    if (!boundSelectAction4Close) {
-      boundSelectAction4Close = selectAction.bind(null, null);
-    }
-    close.addEventListener('click', boundSelectAction4Close);
-    close.classList.remove('hide');
 
     clearClickHandlers();
     handleClick(function handleSelectClick(id, row) {
@@ -1664,11 +1649,35 @@ contacts.List = (function() {
       callback();
     }
 
-    selectNavigationController.go('view-contacts-list', transitionType);
-
     if (contacts.List.total === 0) {
       var emptyPromise = createSelectPromise();
       emptyPromise.resolve([]);
+    }
+  }
+
+  /*
+    Set the list in select mode, allowing you to configure an action to
+    be executed when the user does the selection as well as a title to
+    identify such action.
+
+    Also provide a callback to be invoked when we enter in select mode.
+  */
+  var selectFromList = function selectFromList(title, action, callback,
+      navigationController, options) {
+    inSelectMode = true;
+    selectNavigationController = navigationController;
+
+    if (options && options.transitionLevel === EXPORT_TRANSITION_LEVEL) {
+      selectNavigationController.back(function() {
+        Contacts.goBack(function() {
+          doSelectFromList(title, action, callback, options);
+        });
+      });
+    }
+    else {
+      Contacts.goBack(function() {
+        doSelectFromList(title, action, callback, options);
+      });
     }
   };
 
@@ -1701,6 +1710,14 @@ contacts.List = (function() {
         utils.dom.addClassToNodes(row, '.contact-text',
                              'contact-text-selecting');
         row.dataset.selectStyleSet = true;
+      }
+      
+      var label = row.querySelector('label');
+      if (isDangerSelectList) {
+        label.classList.add('danger');
+      }
+      else {
+        label.classList.remove('danger');
       }
     } else if (row.dataset.selectStyleSet) {
       utils.dom.removeClassFromNodes(row, '.contact-checkbox-selecting',
@@ -1761,20 +1778,27 @@ contacts.List = (function() {
     Returns back the list to it's normal behaviour
   */
   var exitSelectMode = function exitSelectMode(canceling) {
+    isDangerSelectList = false;
+
+    selectForm.addEventListener('transitionend', function handler() {
+      selectForm.removeEventListener('transitionend', handler);
+      window.setTimeout(function() {
+        selectForm.classList.add('hide');
+      });
+    });
+
+    selectForm.classList.remove('in-edit-mode');
+    selectForm.classList.remove('contacts-select');
+
     inSelectMode = false;
     selectAllPending = false;
     currentlySelected = 0;
-    selectNavigationController.back();
     deselectAllContacts();
 
-    // Hide and show buttons
-    selectForm.classList.add('hide');
     deselectAll.disabled = true;
     selectAll.disabled = false;
 
     selectActionButton.disabled = true;
-
-    toggleMenus();
 
     // Not in select mode
     groupList.classList.remove('selecting');
@@ -1788,12 +1812,6 @@ contacts.List = (function() {
     // Restore contact list default click handler
     clearClickHandlers();
     handleClick(Contacts.showContactDetail);
-
-    // Restore close button
-    var close = document.getElementById('cancel_activity');
-    close.removeEventListener('click', boundSelectAction4Close);
-    close.addEventListener('click', Contacts.cancel);
-    close.classList.add('hide');
   };
 
   var refreshFb = function resfreshFb(uid) {

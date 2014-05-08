@@ -92,11 +92,9 @@ NODE_MODULES_SRC?=modules.tar
 # tv
 GAIA_DEVICE_TYPE?=phone
 
-# Rocketbar customization
-# none - Do not enable rocketbar
-# half - Rocketbar is enabled, and so is browser app
-# full - Rocketbar is enabled, no browser app
-ROCKETBAR?=none
+# Haida customization
+# Pass 1 to enable haida features
+HAIDA?=0
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
@@ -172,8 +170,6 @@ export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 TEST_MANIFEST?=./shared/test/integration/local-manifest.json
 MOZPERFOUT?=""
-
-GAIA_INSTALL_PARENT?=/system/b2g
 
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
@@ -322,8 +318,8 @@ else
 endif
 export GAIA_DISTRIBUTION_DIR
 
-SETTINGS_PATH := build/config/custom-settings.json
-KEYBOARD_LAYOUTS_PATH := build/config/keyboard-layouts.json
+SETTINGS_PATH ?= build/config/custom-settings.json
+KEYBOARD_LAYOUTS_PATH ?= build/config/keyboard-layouts.json
 
 ifdef GAIA_DISTRIBUTION_DIR
 	DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
@@ -435,7 +431,7 @@ TEST_DIRS ?= $(GAIA_DIR)/tests
 
 define BUILD_CONFIG
 { \
-	"ADB" : "$(adb)", \
+	"ADB" : "$(patsubst "%",%,$(ADB))", \
 	"GAIA_DIR" : "$(GAIA_DIR)", \
 	"PROFILE_DIR" : "$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)", \
 	"PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
@@ -467,9 +463,9 @@ define BUILD_CONFIG
 	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
 	"NOFTU" : "$(NOFTU)", \
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
-	"ROCKETBAR" : "$(ROCKETBAR)", \
+	"HAIDA" : $(HAIDA), \
 	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
-	"SETTINGS_PATH" : "$(SETTINGS_PATH)", \
+	"SETTINGS_PATH" : "$(subst \,\\,$(SETTINGS_PATH))", \
 	"FTU_PING_URL": "$(FTU_PING_URL)", \
 	"KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)", \
 	"STAGE_DIR" : "$(STAGE_DIR)", \
@@ -482,7 +478,7 @@ export BUILD_CONFIG
 include build/common.mk
 
 # Generate profile/
-$(PROFILE_FOLDER): preferences app-makefiles keyboard-layouts copy-build-stage-manifest test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences post-manifest app-makefiles keyboard-layouts copy-build-stage-data test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -497,7 +493,7 @@ $(STAGE_DIR):
 # FIXME: we use |STAGE_APP_DIR="../../build_stage/$$APP"| here because we got
 # some problem on Windows if use absolute path.
 .PHONY: app-makefiles
-app-makefiles: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts webapp-manifests svoperapps clear-stage-app webapp-shared | $(STAGE_DIR)
+app-makefiles: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts $(STAGE_DIR)/settings_stage.json webapp-manifests svoperapps clear-stage-app webapp-shared | $(STAGE_DIR)
 	@for appdir in $(GAIA_APPDIRS); \
 	do \
 		APP="`basename $$appdir`"; \
@@ -525,7 +521,7 @@ clear-stage-app:
 		if [[ ("$$appdir" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
 			APP="`basename $$appdir`"; \
 			echo "clear $$APP in build_stage" ; \
-			rm -rf "$(STAGE_DIR)/$$APP/*"; \
+			rm -rf $(STAGE_DIR)/$$APP/*; \
 		fi; \
 	done
 
@@ -544,7 +540,7 @@ LANG=POSIX # Avoiding sort order differences between OSes
 # in that case.  Right now this is just making sure we don't race app-makefiles
 # in case someone does decide to get fancy.
 .PHONY: webapp-manifests
-webapp-manifests: $(XULRUNNER_BASE_DIRECTORY)
+webapp-manifests: $(XULRUNNER_BASE_DIRECTORY) $(STAGE_DIR)
 	@$(call run-js-command,webapp-manifests)
 
 .PHONY: webapp-zip
@@ -564,7 +560,7 @@ webapp-shared: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts $(STAGE_DIR) clear-s
 # Web app optimization steps (like precompling l10n, concatenating js files, etc..).
 # You need xulrunner ($(XULRUNNER_BASE_DIRECTORY)) to do this, and you need the app
 # to have been built (app-makefiles).
-webapp-optimize: app-makefiles $(XULRUNNER_BASE_DIRECTORY)
+webapp-optimize: multilocale app-makefiles $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,webapp-optimize)
 
 .PHONY: optimize-clean
@@ -576,8 +572,13 @@ optimize-clean: webapp-zip $(XULRUNNER_BASE_DIRECTORY)
 
 .PHONY: keyboard-layouts
 # A separate step for shared/ folder to generate its content in build time
- keyboard-layouts: webapp-manifests $(XULRUNNER_BASE_DIRECTORY)
+keyboard-layouts: webapp-manifests $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,keyboard-layouts)
+
+.PHONY: post-manifest
+# Updates hostnames for InterApp Communication APIs.
+post-manifest: app-makefiles $(XULRUNNER_BASE_DIRECTORY)
+	@$(call run-js-command,post-manifest)
 
 # Get additional extensions
 $(PROFILE_FOLDER)/installed-extensions.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
@@ -794,7 +795,7 @@ test-integration-test:
 
 .PHONY: caldav-server-install
 caldav-server-install:
-	pip install virtualenv
+	pip install --user virtualenv
 	virtualenv js-marionette-env; \
   source ./js-marionette-env/bin/activate; \
 				export LC_ALL=en_US.UTF-8; \
@@ -981,7 +982,6 @@ install-gaia: $(PROFILE_FOLDER) push
 # push target to update the gaia files and reboot b2g
 .PHONY: push
 push: $(XULRUNNER_BASE_DIRECTORY)
-	@$(ADB) remount
 	@$(call run-js-command,push-to-device)
 
 # Copy demo media to the sdcard.
@@ -1029,7 +1029,9 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 	$(ADB) shell 'if test -d $(MSYS_FIX)/persist/svoperapps; then rm -r $(MSYS_FIX)/persist/svoperapps; fi'
 
-$(PROFILE_FOLDER)/settings.json: profile-dir keyboard-layouts $(XULRUNNER_BASE_DIRECTORY)
+$(PROFILE_FOLDER)/settings.json: $(XULRUNNER_BASE_DIRECTORY) profile-dir keyboard-layouts $(STAGE_DIR)/settings_stage.json copy-build-stage-data
+
+$(STAGE_DIR)/settings_stage.json: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts
 ifeq ($(BUILD_APP_NAME),*)
 	@$(call run-js-command,settings)
 endif
@@ -1062,7 +1064,7 @@ endif
 
 # clean out build products
 clean:
-	rm -rf profile profile-debug profile-test $(PROFILE_FOLDER) $(STAGE_DIR) docs
+	rm -rf profile profile-debug profile-test profile-gaia-test-b2g profile-gaia-test-firefox $(PROFILE_FOLDER) $(STAGE_DIR) docs
 
 # clean out build products and tools
 really-clean: clean
@@ -1071,11 +1073,15 @@ really-clean: clean
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
 
-# Generally we got manifest from webapp-manifest.js unless manifest is generated
-# from Makefile of app. so we will copy manifest.webapp if it's avaiable in
-# build_stage/
-copy-build-stage-manifest: app-makefiles
-	@$(call run-js-command,copy-build-stage-manifest)
+
+# This task will do three things.
+# 1. Copy manifest to profile: generally we got manifest from webapp-manifest.js
+#    unless manifest is generated from Makefile of app. so we will copy
+#    manifest.webapp if it's avaiable in build_stage/ .
+# 2. Copy external app to profile dir.
+# 3. Generate webapps.json from webapps_stage.json and copy to profile dir.
+copy-build-stage-data: app-makefiles post-manifest multilocale
+	@$(call run-js-command,copy-build-stage-data)
 
 build-test-unit: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-test, $(shell find build/test/unit/*.test.js))
@@ -1090,3 +1096,9 @@ docs: $(NPM_INSTALLED_PROGRAMS)
 .PHONY: watch
 watch: $(NPM_INSTALLED_PROGRAMS)
 	node build/watcher.js
+
+.PHONY: multilocale
+multilocale: app-makefiles webapp-shared $(XULRUNNER_BASE_DIRECTORY)
+ifneq ($(LOCALE_BASEDIR),)
+	@$(call run-js-command,multilocale)
+endif

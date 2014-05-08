@@ -579,11 +579,9 @@ var KeypadManager = {
       if (phoneNumber.length > 0) {
         visibility = 'visible';
         this.callBarAddContact.removeAttribute('disabled');
-        this.callBarAddContact.setAttribute('aria-disabled', false);
       } else {
         visibility = 'hidden';
         this.callBarAddContact.setAttribute('disabled', 'disabled');
-        this.callBarAddContact.setAttribute('aria-disabled', true);
       }
       this.deleteButton.style.visibility = visibility;
 

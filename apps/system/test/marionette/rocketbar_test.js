@@ -83,4 +83,23 @@ marionette('Rocketbar', function() {
       return title.displayed();
     });
   });
+
+  test('Cancel Rocketbar with backdrop', function() {
+    rocketbar.waitForLoad();
+
+    // Check that scrim appears
+    rocketbar.focus();
+    var backdrop = rocketbar.backdrop;
+    client.waitFor(function() {
+      return backdrop.displayed();
+    });
+
+    // Check that clicking scrim returns to non-active state
+    backdrop.click();
+    var title = rocketbar.title;
+    client.waitFor(function() {
+      return title.displayed();
+    });
+  });
+
 });

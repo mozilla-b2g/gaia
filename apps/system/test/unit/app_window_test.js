@@ -39,6 +39,10 @@ suite('system/AppWindow', function() {
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
+    this.sinon.stub(HTMLElement.prototype, 'querySelector',
+    function() {
+      return document.createElement('div');
+    });
     requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
@@ -77,6 +81,13 @@ suite('system/AppWindow', function() {
     url: 'app://www.fake4/index.html',
     manifest: {},
     origin: 'app://www.fake4'
+  };
+
+  var fakeAppConfigBackground = {
+    url: 'app://www.fakebackground/index.html',
+    manifest: {},
+    origin: 'app://www.fakebackground',
+    stayBackground: true
   };
 
   var fakeAppConfigWithIcon = {
@@ -223,6 +234,19 @@ suite('system/AppWindow', function() {
       popups[1].resize();
       assert.isTrue(stubTopResize.called);
       assert.isTrue(stubBottomRealResize.called);
+    });
+  });
+
+  suite('Render', function() {
+    var visibleSpy;
+
+    setup(function() {
+      visibleSpy = this.sinon.stub(AppWindow.prototype, 'setVisible');
+    });
+
+    test('display screenshot for apps launched in background', function() {
+      new AppWindow(fakeAppConfigBackground); // jshint ignore:line
+      sinon.assert.calledWith(visibleSpy, false, true);
     });
   });
 
@@ -485,8 +509,6 @@ suite('system/AppWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
-      // The DOM is not appended exactly so we create a fake one.
-      app1.screenshotOverlay = document.createElement('div');
 
       var stub_setVisible = this.sinon.stub(app1, '_setVisible');
       app1._screenshotOverlayState = 'frame';
@@ -511,8 +533,6 @@ suite('system/AppWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
-      // The DOM is not appended exactly so we create a fake one.
-      app1.screenshotOverlay = document.createElement('div');
 
       var stub_setVisible = this.sinon.stub(app1, '_setVisible');
       app1._screenshotOverlayState = 'frame';
@@ -537,8 +557,6 @@ suite('system/AppWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
-      // The DOM is not appended exactly so we create a fake one.
-      app1.screenshotOverlay = document.createElement('div');
 
       var stubGetScreenshot = this.sinon.stub(app1, 'getScreenshot');
       var stubHideFrame = this.sinon.stub(app1, '_hideFrame');
@@ -566,9 +584,11 @@ suite('system/AppWindow', function() {
 
       app1._screenshotOverlayState = 'none';
       app1._showScreenshotOverlay();
-      stubGetScreenshot.getCall(2).args[0]('');
+      stubGetScreenshot.yield('');
       assert.isTrue(stubHideFrame.called);
-      stubGetScreenshot.getCall(2).args[0]('fakeBlob');
+      stubGetScreenshot.yield('fakeblob');
+      assert.isTrue(app1.screenshotOverlay.classList.contains('visible'));
+      assert.isTrue(app1.identificationOverlay.classList.contains('visible'));
       assert.isTrue(stubRequestScreenshotURL.called);
     });
 
@@ -576,12 +596,16 @@ suite('system/AppWindow', function() {
       var app1 = new AppWindow(fakeAppConfig1);
       // Inject mozBrowser API to app iframe
       injectFakeMozBrowserAPI(app1.browser.element);
-      // The DOM is not appended exactly so we create a fake one.
-      app1.screenshotOverlay = document.createElement('div');
+
       app1._screenshotOverlayState = 'none';
       app1.screenshotOverlay.classList.add('visible');
+      app1.identificationOverlay.classList.add('visible');
       app1._hideScreenshotOverlay();
       assert.isFalse(app1.screenshotOverlay.classList.contains('visible'));
+
+      assert.isTrue(app1.identificationOverlay.classList.contains('visible'));
+      this.sinon.clock.tick(); // We wait for the next tick
+      assert.isFalse(app1.identificationOverlay.classList.contains('visible'));
     });
 
     test('Request screenshotURL', function() {
@@ -673,10 +697,12 @@ suite('system/AppWindow', function() {
     this.sinon.clock.tick(0);
     var background = app.element.style.backgroundImage;
     var backgroundSize = app.element.style.backgroundSize;
+    var idBackground = app.identificationIcon.style.backgroundImage;
     assert.isTrue(app.splashed);
     assert.isDefined(app._splash);
     assert.equal(background, 'url("' + app._splash + '")');
     assert.equal(backgroundSize, '120px 120px');
+    assert.equal(idBackground, 'url("' + app._splash + '")');
   });
 
   test('get Icon Splash with Multi Icons, dppx=1', function() {
@@ -1140,7 +1166,10 @@ suite('system/AppWindow', function() {
 
     test('Localized event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var spyManifestHelper = this.sinon.spy(window, 'ManifestHelper');
+      var spyManifestHelper = this.sinon.stub(window, 'ManifestHelper');
+      spyManifestHelper.returns({
+        name: 'Mon Application'
+      });
       var stubPublish = this.sinon.stub(app1, 'publish');
 
       app1.handleEvent({
@@ -1150,18 +1179,7 @@ suite('system/AppWindow', function() {
       assert.isTrue(spyManifestHelper.calledWithNew());
       assert.isTrue(spyManifestHelper.calledWithExactly(app1.manifest));
       assert.isTrue(stubPublish.calledWithExactly('namechanged'));
-    });
-
-    test('Localized event', function() {
-      var app1 = new AppWindow(fakeAppConfig1);
-      var spyManifestHelper = this.sinon.spy(window, 'ManifestHelper');
-
-      app1.handleEvent({
-        type: '_localized'
-      });
-
-      assert.isTrue(spyManifestHelper.calledWithNew());
-      assert.isTrue(spyManifestHelper.calledWithExactly(app1.manifest));
+    assert.equal(app1.identificationTitle.textContent, 'Mon Application');
     });
 
     test('Swipe in event', function() {
@@ -1200,7 +1218,7 @@ suite('system/AppWindow', function() {
 
     test('activity opened event', function() {
       var app1 = new AppWindow(fakeAppConfig1);
-      var spySetVisible = this.sinon.spy(app1, 'setVisible');
+      var spySetVisible = this.sinon.stub(app1, 'setVisible');
       var stubIsOOP = this.sinon.stub(app1, 'isOOP');
       stubIsOOP.returns(false);
       app1.handleEvent({
@@ -1294,7 +1312,9 @@ suite('system/AppWindow', function() {
 
   test('Launch wrapper should have name from title config', function() {
     var app1 = new AppWindow(fakeWrapperConfig);
+    this.sinon.clock.tick();
     assert.equal(app1.name, 'Fakebook');
+    assert.equal(app1.identificationTitle.textContent, 'Fakebook');
   });
 
   test('revive browser', function() {
@@ -1312,12 +1332,9 @@ suite('system/AppWindow', function() {
   test('destroy browser', function() {
     var app1 = new AppWindow(fakeWrapperConfig);
     var stubPublish = this.sinon.stub(app1, 'publish');
-    var stub_setFrameBackgroundWithScreenshot =
-      this.sinon.stub(app1, 'setFrameBackgroundWithScreenshot');
     app1.destroyBrowser();
     assert.isNull(app1.browser);
     assert.isTrue(app1.suspended);
-    assert.isTrue(stub_setFrameBackgroundWithScreenshot.called);
     assert.isTrue(stubPublish.calledWith('suspended'));
   });
 

@@ -23,11 +23,10 @@ class Settings(Base):
     _language_menu_item_locator = (By.ID, 'menuItem-languageAndRegion')
     _do_not_track_menu_item_locator = (By.ID, 'menuItem-doNotTrack')
     _media_storage_menu_item_locator = (By.ID, 'menuItem-mediaStorage')
-    _phone_lock_menu_item_locator = (By.ID, 'menuItem-phoneLock')
+    _screen_lock_menu_item_locator = (By.ID, 'menuItem-screenLock')
     _display_menu_item_locator = (By.ID, 'menuItem-display')
     _wifi_menu_item_locator = (By.ID, 'menuItem-wifi')
     _device_info_menu_item_locator = (By.ID, 'menuItem-deviceInfo')
-    _app_permissions_menu_item_locator = (By.ID, 'menuItem-appPermissions')
     _battery_menu_item_locator = (By.ID, 'menuItem-battery')
     _sim_manager_menu_item_locator = (By.ID, 'menuItem-simManager')
 
@@ -109,10 +108,10 @@ class Settings(Base):
         self._tap_menu_item(self._media_storage_menu_item_locator)
         return MediaStorage(self.marionette)
 
-    def open_phone_lock_settings(self):
-        from gaiatest.apps.settings.regions.phone_lock import PhoneLock
-        self._tap_menu_item(self._phone_lock_menu_item_locator)
-        return PhoneLock(self.marionette)
+    def open_screen_lock_settings(self):
+        from gaiatest.apps.settings.regions.screen_lock import ScreenLock
+        self._tap_menu_item(self._screen_lock_menu_item_locator)
+        return ScreenLock(self.marionette)
 
     def open_display_settings(self):
         from gaiatest.apps.settings.regions.display import Display
@@ -128,11 +127,6 @@ class Settings(Base):
         from gaiatest.apps.settings.regions.device_info import DeviceInfo
         self._tap_menu_item(self._device_info_menu_item_locator)
         return DeviceInfo(self.marionette)
-
-    def open_app_permissions_settings(self):
-        from gaiatest.apps.settings.regions.app_permissions import AppPermissions
-        self._tap_menu_item(self._app_permissions_menu_item_locator)
-        return AppPermissions(self.marionette)
 
     def open_battery_settings(self):
         from gaiatest.apps.settings.regions.battery import Battery

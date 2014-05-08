@@ -1,4 +1,5 @@
 'use strict';
+/* global layout */
 
 (function(exports) {
 
@@ -33,6 +34,13 @@
     inEditMode: false,
 
     /**
+     * Returns the maximum active scale value.
+     */
+    get maxActiveScale() {
+      return 1 + activeScaleAdjust;
+    },
+
+    /**
      * Begins the drag/drop interaction.
      * Enlarges the icon.
      * Sets additional data to make the touchmove handler faster.
@@ -51,8 +59,8 @@
       this.target.classList.add('active');
 
       // Testing with some extra offset (20)
-      this.xAdjust = app.zoom.gridItemHeight / 2 + 20;
-      this.yAdjust = app.zoom.gridItemWidth / 2 + 20;
+      this.xAdjust = layout.gridItemWidth / 2 + 20;
+      this.yAdjust = layout.gridItemHeight + 20;
 
       // Make the icon larger
       this.icon.transform(
@@ -68,7 +76,8 @@
      * @param {Object} e A touch object from a touchmove event.
      */
     scrollIfNeeded: function() {
-      var scrollStep = 2;
+      var screenHeight = window.innerHeight;
+      var scrollStep = Math.round(screenHeight / 100);
 
       var touch = this.currentTouch;
       if (!touch) {
@@ -102,7 +111,7 @@
      */
     positionIcon: function(pageX, pageY) {
       pageX = pageX - this.xAdjust;
-      pageY = pageY - this.xAdjust;
+      pageY = pageY - this.yAdjust;
 
       this.icon.transform(
         pageX,

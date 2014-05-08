@@ -24,7 +24,6 @@
     <script defer src="shared/js/device_storage/enumerate_all.js"></script>
     <script defer src="shared/js/mediadb.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
-    <script defer src="shared/js/tag_visibility_monitor.js"></script>
     <script defer src="shared/js/media/media_utils.js"></script>
     <script defer src="shared/js/screen_layout.js"></script>
     <script defer src="shared/js/scroll_detector.js"></script>
@@ -40,7 +39,7 @@
   </head>
 
   <body role="application">
-    <section role="region" id="thumbnail-list-view" class="skin-organic">
+    <section role="region" id="thumbnail-list-view" class="skin-dark">
       <header id="thumbnails-list-top">
         <h1 id="thumbnail-list-title" data-l10n-id="gallery">Gallery</h1>
       </header>
@@ -61,7 +60,7 @@
         <a id="thumbnails-share-button" class="button"></a>
       </footer>
     </section>
-    <section role="region" id="fullscreen-view" class="skin-organic">
+    <section role="region" id="fullscreen-view" class="skin-dark">
       <header id="fullscreen-toolbar-header" class="large-only">
         <menu type="toolbar">
           <a id="fullscreen-camera-button-large">
@@ -118,14 +117,14 @@
                 data-l10n-id="close-button" class="full"></button>
       </menu>
     </form>
-    <section role="region" id="pick-view" class="skin-organic">
+    <section role="region" id="pick-view" class="skin-dark">
       <header id="pick-top">
         <button id="pick-back-button"><span class="icon icon-back"></span></button>
         <h1 id="pick-header" data-l10n-id="pickoneimage2"></h1>
       </header>
     </section>
 
-    <section role="region" id="crop-view" class="skin-organic">
+    <section role="region" id="crop-view" class="skin-dark">
       <header id="crop-top">
         <button id="crop-back-button"><span class="icon icon-back"></span></button>
         <menu type="toolbar">
@@ -219,7 +218,7 @@
       <!--
         <li>
           <div class="thumbnail-group-header">${group-header}</div>
-          <ul class="thumbnail-group-container"></ul>
+          <div class="thumbnail-group-container"></div>
         </li>
       -->
     </div>

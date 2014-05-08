@@ -629,10 +629,8 @@ class GaiaDevice(object):
     def __init__(self, marionette, testvars=None):
         self.marionette = marionette
         self.testvars = testvars or {}
-        self.update_checker = FakeUpdateChecker(self.marionette)
         self.lockscreen_atom = os.path.abspath(
             os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
-        self.marionette.import_script(self.lockscreen_atom)
 
     def add_device_manager(self, device_manager):
         self._manager = device_manager
@@ -659,6 +657,12 @@ class GaiaDevice(object):
         if not hasattr(self, '_is_emulator'):
             self._is_emulator = self.marionette.session_capabilities['device'] == 'qemu'
         return self._is_emulator
+
+    @property
+    def is_desktop_b2g(self):
+        if self.testvars.get('is_desktop_b2g') is None:
+            self.testvars['is_desktop_b2g'] = self.marionette.session_capabilities['device'] == 'desktop'
+        return self.testvars['is_desktop_b2g']
 
     @property
     def is_online(self):
@@ -716,12 +720,9 @@ class GaiaDevice(object):
         self.marionette.start_session()
 
         # Wait for the AppWindowManager to have registered the frame as active (loaded)
-        locator = (By.CSS_SELECTOR, 'div.appWindow.active')
+        locator = (By.CSS_SELECTOR, 'div.appWindow.active.render')
         Wait(marionette=self.marionette, timeout=timeout, ignored_exceptions=NoSuchElementException)\
             .until(lambda m: m.find_element(*locator).is_displayed())
-
-        self.marionette.import_script(self.lockscreen_atom)
-        self.update_checker.check_updates()
 
     @property
     def is_b2g_running(self):
@@ -813,12 +814,14 @@ class GaiaDevice(object):
         return self.marionette.execute_script('return window.wrappedJSObject.lockScreen.locked')
 
     def lock(self):
+        self.marionette.import_script(self.lockscreen_atom)
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('GaiaLockScreen.lock()')
         assert result, 'Unable to lock screen'
         Wait(self.marionette).until(lambda m: m.find_element(By.CSS_SELECTOR, 'div.lockScreenWindow.active'))
 
     def unlock(self):
+        self.marionette.import_script(self.lockscreen_atom)
         self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('GaiaLockScreen.unlock()')
         assert result, 'Unable to unlock screen'
@@ -854,19 +857,44 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         if self.device.is_android_build:
             self.device.add_device_manager(self.get_device_manager())
         if self.restart and (self.device.is_android_build or self.marionette.instance):
+            # Restart if it's a device, or we have passed a binary instance with --binary command arg
             self.device.stop_b2g()
             if self.device.is_android_build:
                 self.cleanup_data()
             self.device.start_b2g()
 
-        # we need to set the default timeouts because we may have a new session
-        if self.marionette.timeout is not None:
+        # Run the fake update checker
+        FakeUpdateChecker(self.marionette).check_updates()
+
+        # We need to set the default timeouts because we may have a new session
+        if self.marionette.timeout is None:
+            # if no timeout is passed in, we detect the hardware type and set reasonable defaults
+            timeouts = {}
+            if self.device.is_desktop_b2g:
+                self.marionette.timeout = 5000
+                timeouts[self.marionette.TIMEOUT_SEARCH] = 5000
+                timeouts[self.marionette.TIMEOUT_SCRIPT] = 10000
+                timeouts[self.marionette.TIMEOUT_PAGE] = 10000
+            elif self.device.is_emulator:
+                self.marionette.timeout = 30000
+                timeouts[self.marionette.TIMEOUT_SEARCH] = 30000
+                timeouts[self.marionette.TIMEOUT_SCRIPT] = 60000
+                timeouts[self.marionette.TIMEOUT_PAGE] = 60000
+            else:
+                # else, it is a device, the type of which is difficult to detect
+                self.marionette.timeout = 10000
+                timeouts[self.marionette.TIMEOUT_SEARCH] = 10000
+                timeouts[self.marionette.TIMEOUT_SCRIPT] = 20000
+                timeouts[self.marionette.TIMEOUT_PAGE] = 20000
+
+            for k, v in timeouts.items():
+                self.marionette.timeouts(k, v)
+
+        else:
+            # if the user has passed in --timeout then we override everything
             self.marionette.timeouts(self.marionette.TIMEOUT_SEARCH, self.marionette.timeout)
             self.marionette.timeouts(self.marionette.TIMEOUT_SCRIPT, self.marionette.timeout)
             self.marionette.timeouts(self.marionette.TIMEOUT_PAGE, self.marionette.timeout)
-        else:
-            self.marionette.timeouts(self.marionette.TIMEOUT_SEARCH, 10000)
-            self.marionette.timeouts(self.marionette.TIMEOUT_PAGE, 30000)
 
         self.apps = GaiaApps(self.marionette)
         self.data_layer = GaiaData(self.marionette, self.testvars)
@@ -888,7 +916,8 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.device.manager.removeDir('/data/local/OfflineCache')
         self.device.manager.removeDir('/data/local/permissions.sqlite')
         self.device.manager.removeDir('/data/local/storage/persistent')
-        self.device.manager.removeDir('/data/local/webapps')
+        # remove remembered networks
+        self.device.manager.removeFile('/data/misc/wifi/wpa_supplicant.conf')
 
     def cleanup_sdcard(self):
         for item in self.device.manager.listFiles('/sdcard/'):
