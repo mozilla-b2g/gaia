@@ -35,6 +35,7 @@ window.onload = function() {
       var scalex = window.innerWidth / previewImage.width;
       var scaley = window.innerHeight / previewImage.height;
 
+      previewImage.hidden = false;
       scale = Math.max(scalex, scaley);
 
       // The width is unsigned long. When assigning to width, we need to round
