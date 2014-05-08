@@ -28,6 +28,10 @@
     <script defer src="shared/js/screen_layout.js"></script>
     <script defer src="shared/js/scroll_detector.js"></script>
 
+    <!-- Web Components -->
+    <script defer src="shared/js/component_utils.js"></script>
+    <script defer src="shared/elements/gaia_header/script.js"></script>
+
     <!-- Specific code -->
     <script defer src="js/config.js"></script>
     <script defer src="js/thumbnail_item.js"></script>
@@ -40,6 +44,7 @@
 
   <body role="application">
     <section role="region" id="thumbnail-list-view" class="skin-dark">
+      <!-- Header only shown on tablet view  -->
       <header id="thumbnails-list-top">
         <h1 id="thumbnail-list-title" data-l10n-id="gallery">Gallery</h1>
       </header>
@@ -50,11 +55,9 @@
     </section>
 
     <section role="region" id="thumbnail-select-view" class="skin-dark">
-      <header id="thumbnails-select-top">
-        <button id="thumbnails-cancel-button"><span class="icon icon-close"></span></button>
+      <gaia-header id="selected-header" action="close" skin="dark">
         <h1 id="thumbnails-number-selected"></h1>
-      </header>
-
+      </gaia-header>
       <footer id="thumbnails-select-bottom">
         <a id="thumbnails-delete-button" class="button"></a>
         <a id="thumbnails-share-button" class="button"></a>
@@ -117,11 +120,10 @@
                 data-l10n-id="close-button" class="full"></button>
       </menu>
     </form>
-    <section role="region" id="pick-view" class="skin-dark">
-      <header id="pick-top">
-        <button id="pick-back-button"><span class="icon icon-back"></span></button>
+    <section role="region" id="pick-view">
+      <gaia-header id="pick-header" skin="dark" action="back">
         <h1 id="pick-header" data-l10n-id="pickoneimage2"></h1>
-      </header>
+      </gaia-header>
     </section>
 
     <section role="region" id="crop-view" class="skin-dark">
@@ -138,13 +140,10 @@
     </section>
 
     <section role="region" id="edit-view" class="skin-dark">
-      <header id="edit-header">
-        <button id="edit-cancel-button"><span class="icon icon-close"></span></button>
-        <menu type="toolbar">
-          <button id="edit-save-button" data-l10n-id="done">done</button>
-        </menu>
+      <gaia-header id="edit-header" action="close" skin="dark">
         <h1 id="edit-title" data-l10n-id="edit"></h1>
-      </header>
+        <button id="edit-save-button" data-l10n-id="done">done</button>
+      </gaia-header>
 
       <!-- Indicates progress when saving -->
       <progress id="save-progress" value="0" max="120" class="hidden"></progress>

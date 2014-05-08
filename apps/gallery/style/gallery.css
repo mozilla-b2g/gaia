@@ -527,7 +527,7 @@ footer {
   opacity: 0;
 }
 
-#pick-top {
+#pick-header {
   /*
    * we want the user to be able to push the back button even if
    * an overlay is displayed, so be sure that this titlebar/toolbar
