@@ -44,8 +44,8 @@
     */
     chooseActivity: function(detail) {
       this._id = detail.id;
-
       var choices = detail.choices;
+      this.publish('activityrequesting');
       if (choices.length === 1) {
         this.choose('0');
       } else {
@@ -100,6 +100,11 @@
 
       this._sendEvent(returnedChoice);
       delete this._id;
+    },
+
+    publish: function(eventName) {
+      var event = new CustomEvent(eventName);
+      window.dispatchEvent(event);
     },
 
     /**
