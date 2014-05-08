@@ -21,7 +21,6 @@ section[role="region"] > header:first-child h1 {
   display: block;
   overflow: hidden;
   margin: 0;
-  padding: 0 1rem 0 3rem;
   height: 100%;
   font-weight: lighter;
   font-style: italic;
@@ -38,14 +37,14 @@ section[role="region"] > header:first-child form {
   display: block;
   overflow: hidden;
   position: relative;
-  padding: 1rem 1rem 0 0.5rem ;
-  margin-left: 3.5rem;
+  padding: 1rem 1rem 0 0.5rem;
+  margin-left: 5.5rem;
 }
 
 section[role="region"] > header:first-child input[type="text"] {
+  -moz-box-sizing: border-box;
   width: 100%;
   height: 3rem;
-  -moz-box-sizing: border-box;
   padding: 0 0.8rem;
   border: solid 0.1rem #9d4123;
   border-top-color: #a6501e;
@@ -63,7 +62,7 @@ section[role="region"] > header:first-child form button[type="reset"] {
   right: 1rem;
   top: 1rem;
   bottom: 0;
-  width: 3rem;
+  min-width: 3rem;
   height: auto;
   margin: 0;
   display: none;
@@ -77,46 +76,42 @@ section[role="region"] > header:first-child input[type="text"]:valid + button[ty
 
 /* Generic set of actions in toolbar */
 section[role="region"] > header:first-child menu[type="toolbar"] {
-  height: 100%;
   float: right;
+  height: 100%;
 }
 
 section[role="region"] > header:first-child menu[type="toolbar"] a,
 section[role="region"] > header:first-child menu[type="toolbar"] button {
-  -moz-box-sizing: border-box;
-  position: relative;
-  float: left;
-  width: auto;
   min-width: 5rem;
-  height: 5rem;
-  margin-bottom: 0;
   padding: 0 1rem;
-  border-radius: 0;
-  line-height: 5rem;
-  background: none;
-  text-align: center;
-  text-shadow: none;
   z-index: 5;
-  font-style: italic;
 }
 
 
 section[role="region"] > header:first-child menu[type="toolbar"] {
-  padding: 0;
   margin: 0;
+  padding: 0;
 }
 
 section[role="region"] > header:first-child a,
 section[role="region"] > header:first-child button {
-  border: none;
+  -moz-box-sizing: border-box;
+  float: left;
+  position: relative;
+  min-width: 5rem;
+  height: 100%;
   padding: 0;
-  overflow: hidden;
-  font-weight: 400;
+  color: rgba(0,0,0,.6);
   font-size: 1.5rem;
-  line-height: 1.1em;
-  color: rgba(0,0,0,0.6);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 5rem;
+  text-align: center;
+  border: none;
   border-radius: 0;
-  text-decoration: none;
+  background: none;
+  text-shadow: none;
+  overflow: hidden;
 }
 
 /* Pressed state */
@@ -127,7 +122,6 @@ section[role="region"] > header:first-child a:focus {
 section[role="region"] > header:first-child button::-moz-focus-inner {
   outline: none;
   border: none;
-  margin-top: -0.2rem; /* To fix line-height bug (697451) */
   padding: 0;
 }
 
@@ -152,19 +146,12 @@ section[role="region"] > header:first-child menu[type="toolbar"] button[disabled
 /* Icon definitions */
 section[role="region"] > header:first-child .icon {
   position: relative;
-  float: none;
   display: inline-block;
-  width: 3rem;
-  height: 5rem;
+  width: 100%;
   margin: 0 -1rem;
   background: transparent no-repeat center / 3rem auto;
   font-size: 0;
   overflow: hidden;
-}
-
-section[role="region"] > header:first-child > a .icon,
-section[role="region"] > header:first-child > button .icon {
-  background-position: -0.2rem center;
 }
 
 section[role="region"] > header:first-child .icon.icon-add {
@@ -221,33 +208,20 @@ section[role="region"] > header:first-child .icon.icon-options {
 }
 
 /* Navigation links (back, cancel, etc) */
-section[role="region"] > header:first-child > button,
-section[role="region"] > header:first-child > a {
-  position: relative;
-  width: 5rem;
-  height: 5rem;
-  background: none;
-  float: left;
-  overflow: visible;
-  margin: 0 -5rem 0 0;
-}
-
 section[role="region"] > header:first-child > button:after,
 section[role="region"] > header:first-child > a:after {
   content: "";
   position: absolute;
-  left: 0;
   top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: -1;
-  width: 2.6rem;
-  height: 5rem;
 }
 
 section[role="region"] > header:first-child > button .icon,
 section[role="region"] > header:first-child > a .icon {
-  display: block;
   margin: 0;
-  font-size: 0;
 }
 
 /* ----------------------------------
@@ -301,7 +275,7 @@ section[role="region"].skin-dark header h2,
 .skin-dark > section[role="region"] header h2 {
   background-color: #2c353b;
   color: #fff;
-  border: none;
+  border-color: transparent;
 }
 
 
@@ -345,7 +319,7 @@ section[role="region"].skin-organic header h2,
 .skin-organic section[role="region"] header h2 {
   background-color: #e7e7e7;
   color: #4D4D4D;
-  border: none;
+  border-color: transparent;
 }
 
 section[role="region"].skin-organic > header:first-child a,
@@ -386,39 +360,37 @@ section[role="region"].skin-organic > header:first-child button,
 
 html[dir="rtl"] section[role="region"] > header:first-child h1 {
   text-align: right;
-  padding: 0 3rem 0 1rem;
 }
 html[dir="rtl"] section[role="region"] > header:first-child form {
   padding: 1rem .5rem 0 1rem ;
-  margin-right: 3.5rem;
-  margin-left:0;
+  margin-right: 5.5rem;
+  margin-left: 0;
 }
 
 html[dir="rtl"] section[role="region"] > header:first-child form button[type="reset"] {
   left: 1rem;
-  right:inherit;
+  right: inherit;
 }
+
 html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] {
   float: left;
 }
+
 html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] a,
 html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] button {
   float: right;
 }
+
 html[dir="rtl"] section[role="region"] > header:first-child > button,
 html[dir="rtl"] section[role="region"] > header:first-child > a {
   float: right;
-  margin: 0 0 0 -5rem;
 }
+
 html[dir="rtl"] section[role="region"] > header:first-child > button:after,
 html[dir="rtl"] section[role="region"] > header:first-child > a:after {
   right: 0;
 }
-html[dir="rtl"] section[role="region"] > header:first-child > a .icon,
-html[dir="rtl"] section[role="region"] > header:first-child > button .icon {
-  background-position: 0.2rem center;
-}
+
 html[dir="rtl"] section[role="region"] > header:first-child .icon.icon-back {
   transform: rotate(180deg);
-  background-position: -0.2rem center;
 }
