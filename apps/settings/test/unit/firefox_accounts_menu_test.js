@@ -56,7 +56,7 @@ suite('firefox accounts menu item > ', function() {
 
   test('show the correct status on FxaMenu init', function() {
     MockFxAccountsIACHelper.setCurrentState({
-      accountId: 'init@ialization.com',
+      email: 'init@ialization.com',
       verified: true
     });
     // init app code
@@ -81,7 +81,7 @@ suite('firefox accounts menu item > ', function() {
 
   test('show the correct status after onlogin event', function() {
     MockFxAccountsIACHelper.setCurrentState({
-      accountId: 'on@log.in',
+      email: 'on@log.in',
       verified: false
     });
     FxaMenu.init(MockFxAccountsIACHelper);
@@ -95,7 +95,7 @@ suite('firefox accounts menu item > ', function() {
 
   test('show the correct status after onverifiedlogin event', function() {
     MockFxAccountsIACHelper.setCurrentState({
-      accountId: 'on@verifiedlog.in',
+      email: 'on@verifiedlog.in',
       verified: true
     });
     FxaMenu.init(MockFxAccountsIACHelper);

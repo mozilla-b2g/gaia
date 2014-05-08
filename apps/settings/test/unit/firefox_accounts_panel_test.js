@@ -74,7 +74,7 @@ suite('firefox accounts panel > ', function() {
   test('show the correct panel and email on FxaPanel init', function() {
     // set the state in the mock
     MockFxAccountsIACHelper.setCurrentState({
-      accountId: 'init@ialization.com',
+      email: 'init@ialization.com',
       verified: true
     });
     // init FxaPanel
@@ -104,7 +104,7 @@ suite('firefox accounts panel > ', function() {
 
   test('show the correct panel and email after onlogin event', function() {
     MockFxAccountsIACHelper.setCurrentState({
-      accountId: 'on@log.in',
+      email: 'on@log.in',
       verified: false
     });
     FxaPanel.init(MockFxAccountsIACHelper);
@@ -124,7 +124,7 @@ suite('firefox accounts panel > ', function() {
   test('show the correct panel and email after onverifiedlogin event',
     function() {
       MockFxAccountsIACHelper.setCurrentState({
-        accountId: 'on@verifiedlog.in',
+        email: 'on@verifiedlog.in',
         verified: true
       });
       FxaPanel.init(MockFxAccountsIACHelper);
