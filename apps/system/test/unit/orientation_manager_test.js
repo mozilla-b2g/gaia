@@ -72,5 +72,13 @@ suite('system/OrientationManager >', function() {
       });
       assert.isFalse(stubPublish.called);
     });
+
+    test('shrinking-stop', function() {
+      var stubPublish = this.sinon.stub(OrientationManager, 'publish');
+      OrientationManager.handleEvent({
+        type: 'shrinking-stop'
+      });
+      assert.isTrue(stubPublish.calledWith('reset-orientation'));
+    });
   });
 });
