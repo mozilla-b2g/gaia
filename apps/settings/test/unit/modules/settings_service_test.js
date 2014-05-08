@@ -78,20 +78,20 @@ suite('SettingsService', function() {
           beforeHide: function() {}
         };
       };
-
+console.log('XXX 1');
       for (var i = 0; i < 4; i++) {
-        this.options.push({ value: i });
+        this.options.push({ value: i });console.log('XXX 2');
         this.mockSettingsPanelInstances.push(panelInstance());
-
+console.log('XXX 3');
         // create panel elements
         var panelElement = document.createElement('div');
         panelElement.id = 'id' + i;
         document.body.appendChild(panelElement);
         this.panelElements.push(panelElement);
       }
-
+console.log('XXX 5');
       this.callCount = 0;
-      this.MockSettingsPanel.mInnerFunction = (function() {
+      this.MockSettingsPanel.mInnerFunction = (function() {console.log('XXX 6');
         return this.mockSettingsPanelInstances[this.callCount++];
       }).bind(this);
     });
@@ -103,6 +103,7 @@ suite('SettingsService', function() {
     });
 
     test('should call to panel functions correctly', function(done) {
+      console.log('XXX 7');
       var mockInstances = [];
 
       this.SettingsService.init();
