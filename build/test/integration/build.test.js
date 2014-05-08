@@ -469,9 +469,9 @@ suite('Build Integration tests', function() {
         'font.name.monospace.x-western': 'Source Code Pro',
         'font.name-list.sans-serif.x-western': 'Fira Sans, Roboto',
         'extensions.autoDisableScopes': 0,
-        'devtools.debugger.enable-content-actors': true,
         'devtools.debugger.prompt-connection': false,
         'devtools.debugger.forbid-certified-apps': false,
+        'javascript.options.discardSystemSource': false,
         'b2g.adb.timeout': 0
       };
       var userjs = fs.readFileSync(
