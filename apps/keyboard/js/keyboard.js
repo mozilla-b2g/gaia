@@ -768,56 +768,51 @@ function renderKeyboard(keyboardName, callback) {
   // Add meta keys and type-specific keys to the base layout
   currentLayout = modifyLayout(keyboardName);
 
-  function drawKeyboard() {
-    perfTimer.printTime('drawKeyboard');
-    var keyboard = Keyboards[keyboardName];
+  var keyboard = Keyboards[keyboardName];
 
-    IMERender.ime.classList.remove('full-candidate-panel');
+  IMERender.ime.classList.remove('full-candidate-panel');
 
-    // Rule of thumb: always render uppercase, unless secondLayout has been
-    // specified (for e.g. arabic, then depending on shift key)
-    var needsUpperCase = currentLayout.secondLayout ?
-      (isUpperCaseLocked || isUpperCase) :
-      true;
+  // Rule of thumb: always render uppercase, unless secondLayout has been
+  // specified (for e.g. arabic, then depending on shift key)
+  var needsUpperCase = currentLayout.secondLayout ?
+    (isUpperCaseLocked || isUpperCase) :
+    true;
 
-    // And draw the layout
-    IMERender.draw(currentLayout, {
-      uppercase: needsUpperCase,
-      inputType: currentInputType,
-      showCandidatePanel: needsCandidatePanel()
-    }, function() {
-      perfTimer.printTime('IMERender.draw:callback');
-      perfTimer.startTimer('IMERender.draw:callback');
-      // So there are a couple of things that we want don't want to block
-      // on here, so we can do it if resizeUI is fully finished
-      IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+  // And draw the layout
+  IMERender.draw(currentLayout, {
+    uppercase: needsUpperCase,
+    inputType: currentInputType,
+    showCandidatePanel: needsCandidatePanel()
+  }, function() {
+    perfTimer.printTime('IMERender.draw:callback');
+    perfTimer.startTimer('IMERender.draw:callback');
+    // So there are a couple of things that we want don't want to block
+    // on here, so we can do it if resizeUI is fully finished
+    IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
 
-      // Tell the input method about the new keyboard layout
-      updateLayoutParams();
+    // Tell the input method about the new keyboard layout
+    updateLayoutParams();
 
-      IMERender.showCandidates(currentCandidates);
-      perfTimer.printTime(
-        'BLOCKING IMERender.draw:callback', 'IMERender.draw:callback');
-    });
+    IMERender.showCandidates(currentCandidates);
+    perfTimer.printTime(
+      'BLOCKING IMERender.draw:callback', 'IMERender.draw:callback');
+  });
 
-    // Tell the renderer what input method we're using. This will set a CSS
-    // classname that can be used to style the keyboards differently
-    IMERender.setInputMethodName(keyboard.imEngine || 'default');
+  // Tell the renderer what input method we're using. This will set a CSS
+  // classname that can be used to style the keyboards differently
+  IMERender.setInputMethodName(keyboard.imEngine || 'default');
 
-    // If needed, empty the candidate panel
-    if (inputMethod.empty)
-      inputMethod.empty();
+  // If needed, empty the candidate panel
+  if (inputMethod.empty)
+    inputMethod.empty();
 
-    isKeyboardRendered = true;
+  isKeyboardRendered = true;
 
-    perfTimer.printTime('BLOCKING renderKeyboard', 'renderKeyboard');
+  perfTimer.printTime('BLOCKING renderKeyboard', 'renderKeyboard');
 
-    if (callback) {
-      callback();
-    }
+  if (callback) {
+    callback();
   }
-
-  drawKeyboard();
 }
 
 function setUpperCase(upperCase, upperCaseLocked) {
