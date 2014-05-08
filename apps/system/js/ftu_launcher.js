@@ -10,8 +10,8 @@ var FtuLauncher = {
   /* The manifest URL of FTU */
   _ftuManifestURL: '',
 
-  /* The url of FTU */
-  _ftuURL: '',
+  /* The origin of FTU */
+  _ftuOrigin: '',
 
   /* Store that if FTU is currently running */
   _isRunningFirstTime: false,
@@ -23,7 +23,7 @@ var FtuLauncher = {
   },
 
   getFtuOrigin: function fl_getFtuOrigin() {
-    return this._ftuURL;
+    return this._ftuOrigin;
   },
 
   setBypassHome: function fl_setBypassHome(value) {
@@ -57,7 +57,7 @@ var FtuLauncher = {
   handleEvent: function fl_init(evt) {
     switch (evt.type) {
       case 'appopened':
-        if (evt.detail.origin == this._ftuURL && this._isRunningFirstTime) {
+        if (evt.detail.origin == this._ftuOrigin && this._isRunningFirstTime) {
           // FTU starting, letting everyone know
           var evt = document.createEvent('CustomEvent');
           evt.initCustomEvent('ftuopen',
@@ -76,7 +76,7 @@ var FtuLauncher = {
             var killEvent = document.createEvent('CustomEvent');
             killEvent.initCustomEvent('killapp',
               /* canBubble */ true, /* cancelable */ false, {
-              origin: this._ftuURL
+              origin: this._ftuOrigin
             });
             window.dispatchEvent(killEvent);
           }
@@ -97,7 +97,7 @@ var FtuLauncher = {
         break;
 
       case 'appterminated':
-        if (evt.detail.origin == this._ftuURL) {
+        if (evt.detail.origin == this._ftuOrigin) {
           this.close();
         }
         break;
@@ -153,11 +153,10 @@ var FtuLauncher = {
           self.skip();
           return;
         }
-        self._ftuURL =
-          self._ftu.origin + self._ftu.manifest.entry_points['ftu'].launch_path;
         self._isRunningFirstTime = true;
+        self._ftuOrigin = self._ftu.origin;
         // Open FTU
-        self._ftu.launch('ftu');
+        self._ftu.launch();
       };
       req.onerror = function() {
         dump('Couldn\'t get the ftu manifestURL.\n');
