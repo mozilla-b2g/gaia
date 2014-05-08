@@ -177,6 +177,9 @@
               return;
             }
 
+            e.stopImmediatePropagation();
+            e.preventDefault();
+
             container.addEventListener('touchmove', this);
             container.addEventListener('touchend', this);
 
