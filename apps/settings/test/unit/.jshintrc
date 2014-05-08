@@ -4,6 +4,7 @@
     "assert",
     "suite",
     "test",
+    "define",
     "setup",
     "teardown",
     "suiteSetup",

@@ -66,6 +66,43 @@ require.config({
     {
       name: 'panels/screen_lock_passcode/panel',
       exclude: ['main']
+    },
+    {
+      name: 'panels/keyboard/panel',
+      exclude: [
+        'main',
+        'modules/mvvm/list_view',
+        'modules/mvvm/observable',
+        'modules/mvvm/observable_array',
+        'modules/keyboard_context'
+      ]
+    },
+    {
+      name: 'panels/keyboard_add_layouts/panel',
+      exclude: [
+        'main',
+        'modules/mvvm/list_view',
+        'modules/mvvm/observable',
+        'modules/mvvm/observable_array',
+        'modules/keyboard_context',
+        'shared/keyboard_helper'
+      ]
+    },
+    {
+      name: 'panels/keyboard_enabled_layouts/panel',
+      exclude: [
+        'main',
+        'modules/mvvm/list_view',
+        'modules/mvvm/observable',
+        'modules/mvvm/observable_array',
+        'modules/keyboard_context'
+      ]
+    },
+    {
+      name: 'panels/keyboard_enabled_default/dialog',
+      exclude: [
+        'main'
+      ]
     }
   ]
 });
