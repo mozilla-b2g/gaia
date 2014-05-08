@@ -52,6 +52,8 @@
       // Initialize resetTime and trackingPeriod to default values
       ConfigManager.setOption({resetTime: 1, trackingPeriod: 'monthly' });
 
+      var mode = ConfigManager.getApplicationMode();
+
       var SCRIPTS_NEEDED = [
         'js/settings/limitdialog.js',
         'js/utils/formatting.js'
@@ -59,6 +61,10 @@
       LazyLoader.load(SCRIPTS_NEEDED, function onScriptsLoaded() {
         Common.loadNetworkInterfaces(function() {
           AutoSettings.addType('data-limit', dataLimitConfigurer);
+          if (mode === 'DATA_USAGE_ONLY') {
+            AutoSettings.initialize(ConfigManager, vmanager,
+                                    '#non-vivo-step-2');
+          }
         });
       });
       // Currency is set by config as well
@@ -69,14 +75,11 @@
           configuration.credit.currency;
       }
 
-      var mode = ConfigManager.getApplicationMode();
-
       if (mode === 'DATA_USAGE_ONLY') {
         debug('FTE for non supported SIM');
         wizard.dataset.steps = '3';
         reset(['step-1', 'non-vivo-step-1', 'non-vivo-step-2']);
         AutoSettings.initialize(ConfigManager, vmanager, '#non-vivo-step-1');
-        AutoSettings.initialize(ConfigManager, vmanager, '#non-vivo-step-2');
 
       } else {
         wizard.dataset.steps = '4';
@@ -116,7 +119,6 @@
         var messageHandlerFrame = document.getElementById('message-handler');
         messageHandlerFrame.src = 'message_handler.html';
       });
-
     });
   }
 
