@@ -16,6 +16,7 @@ html, body, .icons {
   width: calc(100% / 3);
   text-align: center;
   background: no-repeat top center;
+  overflow: hidden;
   z-index: 3;
 }
 
