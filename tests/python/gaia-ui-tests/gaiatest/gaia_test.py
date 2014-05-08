@@ -972,8 +972,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             # change language back to english
             self.data_layer.set_setting("language.current", "en-US")
 
-            # switch off spanish keyboard
-            self.data_layer.set_setting("keyboard.layouts.spanish", False)
+            # reset keyboard to default values
+            self.data_layer.set_setting("keyboard.enabled-layouts",
+                                        "{'app://keyboard.gaiamobile.org/manifest.webapp': {'en': True, 'number': True}}")
 
             # reset do not track
             self.data_layer.set_setting('privacy.donottrackheader.value', '-1')
