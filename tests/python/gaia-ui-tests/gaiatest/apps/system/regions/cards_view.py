@@ -41,7 +41,8 @@ class CardsView(Base):
         return self.is_element_present(*self._app_card_locator(app))
 
     def tap_app(self, app):
-        return self.marionette.find_element(*self._app_card_locator(app)).tap()
+        self.wait_for_condition(lambda m: self.is_app_displayed(app))
+        self.marionette.find_element(*self._app_card_locator(app)).tap()
 
     def close_app(self, app):
         self.wait_for_condition(lambda m: self.is_app_displayed(app))
@@ -54,12 +55,12 @@ class CardsView(Base):
     def wait_for_cards_view_not_displayed(self):
         self.wait_for_element_not_displayed(*self._cards_view_locator)
 
-    def swipe_to_next_app(self):
+    def swipe_to_previous_app(self):
         current_frame = self.apps.displayed_app.frame
 
-        start_x_position = current_frame.size['width']
+        final_x_position = current_frame.size['width']
         start_y_position = current_frame.size['height'] // 2
 
-        # swipe backward to get next app card
+        # swipe forward to get previous app card
         Actions(self.marionette).flick(
-            current_frame, start_x_position, start_y_position, 0, start_y_position).perform()
+            current_frame, 0, start_y_position, final_x_position, start_y_position).perform()

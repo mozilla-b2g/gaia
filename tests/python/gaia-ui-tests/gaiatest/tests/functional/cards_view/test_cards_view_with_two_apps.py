@@ -31,10 +31,10 @@ class TestCardsView(GaiaTestCase):
         cards_view.wait_for_cards_view()
 
         for app in self._test_apps:
-            self.assertTrue(cards_view.is_app_displayed(app),
-                            '%s app should be visible in cards view' % app)
+            self.assertTrue(cards_view.is_app_present(app),
+                            '%s app should be present in cards view' % app)
 
-        cards_view.swipe_to_next_app()
+        cards_view.swipe_to_previous_app()
         cards_view.tap_app(self._test_apps[0])
         cards_view.wait_for_cards_view_not_displayed()
 
