@@ -96,13 +96,13 @@ var DownloadHelper = (function() {
   /*
    * Returns the relative path from the file absolute path
    *
-   * @param{String} Absolute path
+   * @param{String} Absolute path.
+   * @param{String} Root directory of sdcard.
    *
    * @returns(String) Relative path
    */
-  function getRelativePath(path) {
-    var storagePath = storageName + '/';
-    return path.substring(path.indexOf(storagePath) + storagePath.length);
+  function getRelativePath(path, rootDirectory) {
+    return path.substring(path.indexOf(rootDirectory.name) + rootDirectory.name.length);
   }
 
  /*
@@ -142,23 +142,29 @@ var DownloadHelper = (function() {
           break;
 
         default:
-          try {
-            path = getRelativePath(path);
-            var storeGetReq = storage.get(path);
+          storage.getRoot().then(
+            function(rootDirectory) {
+              console.log(rootDirectory);
+              console.log(rootDirectory.name);
+              path = getRelativePath(path, rootDirectory);
+              console.log(path);
+              var storeGetReq = storage.get(path);
 
-            storeGetReq.onsuccess = function store_onsuccess() {
-              req.done(storeGetReq.result);
-            };
+              storeGetReq.onsuccess = function store_onsuccess() {
+                req.done(storeGetReq.result);
+              };
 
-            storeGetReq.onerror = function store_onerror() {
-              sendError(req, storeGetReq.error.name +
-                        ' Could not open the file: ' + path + ' from ' +
-                        storageName, CODE.FILE_NOT_FOUND);
-            };
-          } catch (ex) {
-            sendError(req, 'Error getting the file ' + path + ' from ' +
-                      storageName, CODE.DEVICE_STORAGE);
-          }
+              storeGetReq.onerror = function store_onerror() {
+                sendError(req, storeGetReq.error.name +
+                          ' Could not open the file: ' + path + ' from ' +
+                          storageName, CODE.FILE_NOT_FOUND);
+              };
+            },
+            function() {
+              sendError(req, 'Error getting the file ' + path + ' from ' +
+                        storageName, CODE.DEVICE_STORAGE);
+            }
+          );
       }
     };
 
@@ -218,7 +224,7 @@ var DownloadHelper = (function() {
    */
   var OpenAction = function OpenAction(params) {
     Action.call(this, params);
-
+    console.log('OpenAction > download.path =', params.download.path);
     this.data = {
       url: params.download.path,
       filename: DownloadFormatter.getFileName(params.download),
