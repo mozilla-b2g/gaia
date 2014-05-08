@@ -2,8 +2,6 @@
 
 (function(exports) {
 
-  const maxIconsPerCol = 4;
-
   const maxIconsPerRow = 4;
 
   // 320 / 5 = 64px | 480 / 5 = 96px | 540 / 5 = 108px | ...
@@ -14,7 +12,9 @@
   // 320 / 3.8 = 84px | 480 / 3.8 = 126px | 540 / 3.8 = 142px | ...
   const iconScaleFactorMinIconsPerRow = 3.8;
 
-  const windowHeight = window.innerHeight;
+  const distanceBetweenIconsWithMinIconsPerRow = 32;
+
+  const distanceBetweenIconsWithMaxIconsPerRow = 44;
 
   const windowWidth = window.innerWidth;
 
@@ -48,10 +48,12 @@
 
     /**
      * The height of each grid item.
-     * This number changes based on current zoom level.
      */
     get gridItemHeight() {
-      return windowHeight / maxIconsPerCol * this.percent;
+      return this.gridIconSize +
+            (this.perRow === minIconsPerRow ?
+                             distanceBetweenIconsWithMinIconsPerRow :
+                             distanceBetweenIconsWithMaxIconsPerRow);
     },
 
     /**
