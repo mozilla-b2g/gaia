@@ -30,6 +30,27 @@
 
   var Alarm = Calendar.Template.create({
 
+    reminder: function() {
+      var alarmContent = '';
+      var alarms = this.arg('alarms');
+      var isAllDay = this.arg('isAllDay');
+
+      var i = 0;
+      var alarm;
+      while ((alarm = alarms[i])) {
+        i++;
+        alarmContent +=
+          '<div>' +
+            Calendar.Templates.Alarm.description.render({
+              trigger: alarm.trigger,
+              layout: isAllDay ? 'allday' : 'standard'
+            }) +
+          '</div>';
+      }
+
+      return alarmContent;
+    },
+
     /**
      * Generates a human readable form of an alarm
      * based on the relative time to that alarm.
