@@ -58,7 +58,8 @@ marionette('toggle calendar', function() {
         waitForElementToDisappear(app.week.events[0]);
       });
 
-      test('day view', function() {
+      // Disabled bug 1007519
+      test.skip('day view', function() {
         app.openDayView();
         var event = app.day.events[0];
         waitForElementToDisappear(event);
