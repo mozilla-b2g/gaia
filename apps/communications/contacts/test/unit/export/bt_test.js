@@ -29,6 +29,14 @@ if (!window.ContactToVcardBlob) {
   window.ContactToVcardBlob = null;
 }
 
+var realUtils = null;
+
+if (!window.utils) {
+  window.utils = null;
+} else {
+  realUtils = window.utils;
+}
+
 var mocksHelperForExportBT = new MocksHelper([
   'MozActivity'
 ]).init();
@@ -80,6 +88,13 @@ suite('BT export', function() {
     realContactToVcardBlob = window.ContactToVcardBlob;
     window.ContactToVcardBlob = MockContactToVcarBlob;
 
+    if (!window.utils) {
+      window.utils = {};
+    }
+    window.utils.overlay = {
+      hideMenu: function() {}
+    };
+
     mockProgress = function() {};
   });
 
@@ -90,6 +105,7 @@ suite('BT export', function() {
     window.getStorageIfAvailable = realgetStorageIfAvailable;
     window.getUnusedFilename = realgetUnusedFilename;
     window.ContactToVcardBlob = realContactToVcardBlob;
+    window.utils = realUtils;
   });
 
   setup(function() {
@@ -120,6 +136,17 @@ suite('BT export', function() {
     subject.doExport(function onFinish(error, exported, msg) {
       assert.isNull(error);
       assert.equal(contacts.length, exported);
+      done();
+    });
+  });
+
+  test('Calling with cancel flag activated', function(done) {
+    var contacts = [mockContact1, mockContact2];
+    subject.setContactsToExport(contacts);
+    subject.cancelExport();
+    subject.doExport(function onFinish(error, exported, msg) {
+      assert.isNull(error);
+      assert.equal(0, exported);
       done();
     });
   });

@@ -1,5 +1,5 @@
 /* global getStorageIfAvailable, getUnusedFilename, ContactToVcardBlob,
-    MozActivity */
+    MozActivity, utils */
 
 /* exported ContactsBTExport */
 'use strict';
@@ -7,6 +7,7 @@
 var ContactsBTExport = function ContactsBTExport() {
   var contacts;
   var progressStep;
+  var cancelled = false;
   var _ = navigator.mozL10n.get;
 
   var _setContactsToExport = function btex_setContactsToExport(cts) {
@@ -89,6 +90,7 @@ var ContactsBTExport = function ContactsBTExport() {
     if (typeof callback !== 'function') {
       throw new Error('saveToSDcard requires a callback function');
     }
+
     var request = storage.addNamed(blob, name);
     request.onsuccess = function(evt) {
       callback(null, evt.target.result); // returns the full filepath
@@ -104,6 +106,10 @@ var ContactsBTExport = function ContactsBTExport() {
       callback(null, request.result); // returns a File object
     };
     request.onerror = callback;
+  };
+
+  var cancelExport = function cancelExport() {
+    cancelled = true;
   };
 
   var _doExport = function btex_doExport(finishCallback) {
@@ -127,12 +133,20 @@ var ContactsBTExport = function ContactsBTExport() {
     };
 
     ContactToVcardBlob(contacts, function onContacts(blob) {
+      if (cancelled) {
+        finishCallback(null, 0);
+        return;
+      }
       _getStorage(_getFileName(), blob,
       function onStorage(error, storage, filename) {
         if (checkError(error)) {
           return;
         }
-
+        if (cancelled) {
+            finishCallback(null, 0);
+            return;
+        }
+        utils.overlay.hideMenu();
         _saveToSdcard(storage, filename, blob,
         function onVcardSaved(error, filepath) {
           if (checkError(error)) {
@@ -180,6 +194,7 @@ var ContactsBTExport = function ContactsBTExport() {
     'getExportTitle': _getExportTitle,
     'setProgressStep': _setProgressStep,
     'doExport': _doExport,
+    'cancelExport' : cancelExport,
     get name() { return 'BT';} // handling error messages on contacts_exporter
   };
 };
