@@ -109,56 +109,67 @@ var AttentionScreen = {
     if (!app || !this._hasAttentionPermission(app))
       return;
 
-    // Hide sleep menu/list menu if it is shown now
-    SleepMenu.hide();
+    var self = this;
+    navigator.mozApps.getSelf().onsuccess = function() {
+      var app = this.result;
+      app.connect('visibility-notifications');
+      // Todo: bad hack. Iac is async, so we need the camera to shoot a message back when it's done.
+      setTimeout(doAttentionScreenShow.bind(self), 100);
+    };
 
-    // We want the user attention, so we need to turn the screen on
-    // if it's off. The lockscreen will grab the focus when we do that
-    // so we need to do it before adding the new iframe to the dom
-    if (!ScreenManager.screenEnabled)
-      ScreenManager.turnScreenOn();
+    function doAttentionScreenShow() {
+      // Hide sleep menu/list menu if it is shown now
+      SleepMenu.hide();
 
-    var attentionFrame = evt.detail.frameElement;
-    attentionFrame.dataset.frameType = 'attention';
-    attentionFrame.dataset.frameName = evt.detail.name;
-    attentionFrame.dataset.frameOrigin = evt.target.dataset.frameOrigin;
-    attentionFrame.dataset.manifestURL = manifestURL;
-    delete attentionFrame.dataset.hidden;
-    attentionFrame.addEventListener('mozbrowserresize', this.toggle.bind(this));
+      // We want the user attention, so we need to turn the screen on
+      // if it's off. The lockscreen will grab the focus when we do that
+      // so we need to do it before adding the new iframe to the dom
+      if (!ScreenManager.screenEnabled)
+        ScreenManager.turnScreenOn();
 
-    // We would like to put the dialer call screen on top of all other
-    // attention screens by ensure it is the last iframe in the DOM tree
-    if (this._hasTelephonyPermission(app)) {
-      if (attentionFrame.parentNode !== this.attentionScreen) {
-        this.attentionScreen.appendChild(attentionFrame);
+      var attentionFrame = evt.detail.frameElement;
+      attentionFrame.dataset.frameType = 'attention';
+      attentionFrame.dataset.frameName = evt.detail.name;
+      attentionFrame.dataset.frameOrigin = evt.target.dataset.frameOrigin;
+      attentionFrame.dataset.manifestURL = manifestURL;
+      delete attentionFrame.dataset.hidden;
+      attentionFrame.addEventListener('mozbrowserresize',
+        this.toggle.bind(this));
+
+      // We would like to put the dialer call screen on top of all other
+      // attention screens by ensure it is the last iframe in the DOM tree
+      if (this._hasTelephonyPermission(app)) {
+        if (attentionFrame.parentNode !== this.attentionScreen) {
+          this.attentionScreen.appendChild(attentionFrame);
+        }
+
+        // This event is for SIM PIN lock module.
+        // Because we don't need SIM PIN dialog during call
+        // but the IccHelper cardstatechange event could
+        // be invoked by airplane mode toggle before the call is established.
+        this.dispatchEvent('callscreenwillopen');
+      } else {
+        this.attentionScreen.insertBefore(attentionFrame,
+                                          this.bar.nextElementSibling);
       }
 
-      // This event is for SIM PIN lock module.
-      // Because we don't need SIM PIN dialog during call
-      // but the IccHelper cardstatechange event could
-      // be invoked by airplane mode toggle before the call is established.
-      this.dispatchEvent('callscreenwillopen');
-    } else {
-      this.attentionScreen.insertBefore(attentionFrame,
-                                        this.bar.nextElementSibling);
-    }
+      this._updateAttentionFrameVisibility();
 
-    this._updateAttentionFrameVisibility();
+      // Make the overlay visible if we are not displayed yet.
+      // alternatively, if the newly appended frame is the visible frame
+      // and we are in the status bar mode, expend to full screen mode.
+      if (!this.isVisible()) {
+        this.tryLockOrientation();
 
-    // Make the overlay visible if we are not displayed yet.
-    // alternatively, if the newly appended frame is the visible frame
-    // and we are in the status bar mode, expend to full screen mode.
-    if (!this.isVisible()) {
-      this.tryLockOrientation();
-
-      this.attentionScreen.classList.add('displayed');
-      this.mainScreen.classList.add('attention');
-      this.dispatchEvent('attentionscreenshow', {
-        origin: attentionFrame.dataset.frameOrigin
-      });
-    } else if (!this.isFullyVisible() &&
-      this.attentionScreen.lastElementChild === attentionFrame) {
-      this.show();
+        this.attentionScreen.classList.add('displayed');
+        this.mainScreen.classList.add('attention');
+        this.dispatchEvent('attentionscreenshow', {
+          origin: attentionFrame.dataset.frameOrigin
+        });
+      } else if (!this.isFullyVisible() &&
+        this.attentionScreen.lastElementChild === attentionFrame) {
+        this.show();
+      }
     }
   },
 
