@@ -59,7 +59,15 @@ suite('smsdraft.js', function() {
     this.sinon.stub(ThreadUI.recipients, 'add');
 
     var draft = {
-      recipients: ['recipient1', 'recipient2'],
+      recipients: [{
+        name: 'recipient1',
+        number: '0000000001',
+        isLookupable: true
+      }, {
+        name: 'recipient2',
+        number: '0000000002',
+        isQuestionable: true
+      }],
       content: 'something useful'
     };
 
@@ -72,8 +80,14 @@ suite('smsdraft.js', function() {
     SMSDraft.recoverDraft();
 
     sinon.assert.calledWith(Compose.fromDraft, draft);
+
     draft.recipients.forEach(function(recipient) {
-      sinon.assert.calledWith(ThreadUI.recipients.add, recipient);
+      sinon.assert.calledWith(ThreadUI.recipients.add, {
+        name: recipient.name,
+        number: recipient.number,
+        isLookupable: false,
+        isQuestionable: false
+      });
     });
 
   });
@@ -192,14 +206,12 @@ suite('smsdraft.js', function() {
         window.location.hash = '#thread-list';
         window.dispatchEvent(new HashChangeEvent('hashchange'));
 
-        Compose.on.yield();
-        this.sinon.clock.tick(2000);
-
         sinon.assert.called(
           asyncStorage.removeItem,
           SMSDraft.DRAFT_MESSAGE_KEY
         );
-        sinon.assert.notCalled(asyncStorage.setItem);
+
+        sinon.assert.called(Compose.off);
       });
 
     });
