@@ -1,6 +1,5 @@
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
 const { btoa } = Cu.import('resource://gre/modules/Services.jsm', {});
-const multilocale = require('./multilocale');
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');
@@ -298,15 +297,6 @@ var gaia = {
         aggregatePrefix: 'gaia_build_',
         distributionDir: this.config.GAIA_DISTRIBUTION_DIR
       };
-    }
-    if (this.config.LOCALE_BASEDIR) {
-      // Bug 952901: remove getLocaleBasedir() if bug 952900 fixed.
-      var localeBasedir = getLocaleBasedir(this.config.LOCALE_BASEDIR);
-      this.instance.l10nManager = new multilocale.L10nManager(
-        this.config.GAIA_DIR,
-        this.instance.sharedFolder.path,
-        this.config.LOCALES_FILE,
-        localeBasedir);
     }
     return this.instance;
   }

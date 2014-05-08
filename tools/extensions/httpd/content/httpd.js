@@ -1463,9 +1463,13 @@ RequestReader.prototype =
               }
 
               if (!file || !file.exists()) {
-                // find the file path in build_stage instead.
-                var stageFilePath = this._findStageRealPath(applicationName);
-                request._path = stageFilePath + oldPath;
+                request._path = filePath + oldPath;
+                let foundL10nFile = this._findLocalizationPath();
+                if (!foundL10nFile) {
+                  // find the file path in build_stage instead.
+                  var stageFilePath = this._findStageRealPath(applicationName);
+                  request._path = stageFilePath + oldPath;
+                }
               } else {
                 request._path = filePath + oldPath;
               }
@@ -1473,7 +1477,6 @@ RequestReader.prototype =
 
             // TODO refactor this to a "filter" style
             this._findHidpiPath();
-            this._findLocalizationPath();
           }
         } catch (e) {
           dump(e);
@@ -1513,8 +1516,9 @@ RequestReader.prototype =
     // Handle localization files
     if (oldPath.indexOf(".properties") !== -1 &&
         oldPath.indexOf("en-US.properties") === -1) {
-      this._findPropertiesPath();
+      return this._findPropertiesPath();
     }
+    return false;
   },
 
   /**
@@ -1562,12 +1566,12 @@ RequestReader.prototype =
     // browser.fr.properties, date/date.fr.properties
     var resource = path.split("/locales/")[1];
     if (!resource) {
-      return;
+      return false;
     }
 
     var resourceParts = resource.split(".");
     if (!resourceParts.length) {
-      return;
+      return false;
     }
 
     var resourceName = resourceParts[0]; // browser, date/date
@@ -1586,7 +1590,7 @@ RequestReader.prototype =
       let appName = path.split("/")[2]; // browser
       debugPath += "/apps/" + appName + "/" + resourceName + ".properties";
     } else {
-      return;
+      return false;
     }
 
     dumpn("l10n: try loading " + debugPath + " instead of " + path);
@@ -1595,7 +1599,9 @@ RequestReader.prototype =
     var file = this._connection.server._handler._getFileForPath(debugPath);
     if (file.exists() && file.isFile()) {
       request._path = debugPath;
+      return true;
     }
+    return false;
   },
 
   /**
