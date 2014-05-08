@@ -4,7 +4,6 @@ mocha.globals([
   'LazyLoader',
   'Settings',
   'Root',
-  'startupLocale',
   'initLocale',
   'MockL10n',
   'asyncStorage',

@@ -40,7 +40,7 @@ define('Root', function() {
 
       setTimeout((function nextTick() {
         LazyLoader.load(['js/utils.js'], function() {
-          this.startupLocale();
+          this.initLocale();
         }.bind(this));
 
         /**
@@ -75,25 +75,13 @@ define('Root', function() {
     },
 
     // startup & language switching
-    startupLocale: function root_startupLocale() {
-      // XXX change to mozL10n.ready when https://bugzil.la/993188 is fixed
-      navigator.mozL10n.once(function startupLocale() {
-        this.initLocale();
-        window.addEventListener('localized', this.initLocale);
-      }.bind(this));
-    },
-
     initLocale: function root_initLocale() {
-      var lang = navigator.mozL10n.language.code;
-
-      // set the 'lang' and 'dir' attributes to <html>
-      // when the page is translated
-      document.documentElement.lang = lang;
-      document.documentElement.dir = navigator.mozL10n.language.direction;
-
-      // display the current locale in the main panel
-      getSupportedLanguages(function displayLang(languages) {
-        document.getElementById('language-desc').textContent = languages[lang];
+      navigator.mozL10n.ready(function onLocaleChange() {
+        // display the current locale in the main panel
+        getSupportedLanguages(function displayLang(languages) {
+          document.getElementById('language-desc').textContent =
+            languages[navigator.mozL10n.language.code];
+        });
       });
     }
   };
