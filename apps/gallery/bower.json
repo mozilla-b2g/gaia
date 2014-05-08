@@ -1,0 +1,7 @@
+{
+  "name": "gallery",
+  "dependencies": {
+    "gaia-header": "gaia-components/gaia-header#master",
+    "gaia-theme": "gaia-components/gaia-theme#master"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "gaia-header",
+  "version": "0.1.6",
+  "homepage": "https://github.com/gaia-components/gaia-header",
+  "authors": [
+    "Wilson Page <wilsonpage@me.com>"
+  ],
+  "main": "script.js",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "karma.conf.js",
+    "package.json",
+    "README.md",
+    "examples"
+  ],
+  "dependencies": {
+    "gaia-icons": "gaia-components/gaia-icons"
+  }
+}
