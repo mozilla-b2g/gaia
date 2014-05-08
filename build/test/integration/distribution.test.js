@@ -8,12 +8,44 @@ var helper = require('./helper');
 var path = require('path');
 var assert = require('chai').assert;
 var fs = require('fs');
+var http = require('http');
 
 suite('Distribution mechanism', function() {
   var cusDir;
-  suiteSetup(function() {
+  var server;
+  var variantPath;
+  var originalVariant;
+
+  setup(function() {
     rmrf('profile');
     rmrf('build_stage');
+
+    // Setup local server and handle manifest downloading to avoid remote
+    // server dependency
+    var fakeManifest = {
+      "version": "1.0",
+      "name": "Fake",
+      "description": "Fake app"
+    };
+
+    server = http.createServer(function(req, res) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(fakeManifest));
+    });
+
+    // Change manifestURL from
+    // https://mobile.twitter.com/cache/twitter.webapp
+    // to
+    // http://localhost:9999/manifest.webapp
+    cusDir = path.join(process.cwd(), 'customization');
+    variantPath = path.join(cusDir, 'variant.json');
+    var port = 9999;
+    originalVariant = fs.readFileSync(variantPath, { encoding: 'utf8' });
+    var variant = JSON.parse(originalVariant);
+    variant.apps.Twitter.manifestURL = 'http://localhost:' + port +
+      '/manifest.webapp';
+    fs.writeFileSync(variantPath, JSON.stringify(variant));
+    server.listen(port);
   });
 
   function validatePreloadSettingDB() {
@@ -227,7 +259,7 @@ suite('Distribution mechanism', function() {
   test('build with GAIA_DISTRIBUTION_DIR', function(done) {
     cusDir = path.join(process.cwd(), 'customization');
     var cmd = 'GAIA_DISTRIBUTION_DIR=' + cusDir + ' make';
-    helper.exec(cmd, { maxBuffer: 400*1024 }, function(error, stdout, stderr) {
+    helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
       validatePreloadSettingDB();
       validateSettings();
@@ -248,5 +280,9 @@ suite('Distribution mechanism', function() {
   teardown(function() {
     rmrf('profile');
     rmrf('build_stage');
+
+    // Close server and restore file to original.
+    server.close();
+    fs.writeFileSync(variantPath, originalVariant);
   });
 });
