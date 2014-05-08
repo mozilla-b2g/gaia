@@ -29,7 +29,8 @@ suite('settings.js', function() {
       config = {
         GAIA_DISTRIBUTION_DIR: 'testDistributionDir',
         GAIA_DIR: 'testGaia',
-        SETTINGS_PATH: 'testSettingsPath'
+        SETTINGS_PATH: 'testSettingsPath',
+        STAGE_DIR: 'testStageDir'
       };
       mockUtils.resolve = function(file, baseLink) {
         var fileExist = false;
@@ -143,7 +144,7 @@ suite('settings.js', function() {
         };
       };
       mockUtils.writeContent = function(target, string) {
-        if (target.path === config.PROFILE_DIR + '/settings.json') {
+        if (target.path === config.STAGE_DIR + '/settings_stage.json') {
           settingsFile.result = string;
         }
       };

@@ -239,6 +239,9 @@ function getWebapp(app, domain, scheme, port, stageDir) {
   if (metaData.exists()) {
     webapp.pckManifest = readZipManifest(webapp.sourceDirectoryFile);
     webapp.metaData = getJSON(metaData);
+    webapp.appStatus = utils.getAppStatus(webapp.metaData.type || 'web');
+  } else {
+    webapp.appStatus = utils.getAppStatus(webapp.manifest.type);
   }
 
   // Some webapps control their own build
@@ -289,6 +292,7 @@ var gaia = {
       !this.instance) {
       this.config = config;
       this.instance = {
+        stageDir: getFile(this.config.STAGE_DIR),
         engine: this.config.GAIA_ENGINE,
         sharedFolder: getFile(this.config.GAIA_DIR, 'shared'),
         webapps: makeWebappsObject(this.config.GAIA_APPDIRS.split(' '),
@@ -362,7 +366,7 @@ function deleteFile(path, recursive) {
  * Note: this function is a wrapper function  for node.js
  */
 function listFiles(path, type, recursive, exclude) {
-  var file = getFile(path);
+  var file = (typeof path === 'string' ? getFile(path) : path);
   if (!file.isDirectory()) {
     throw new Error('the path is not a directory.');
   }
@@ -808,6 +812,30 @@ function getCompression(type) {
   }
 }
 
+function generateUUID() {
+  var uuidGenerator = Cc['@mozilla.org/uuid-generator;1']
+                      .createInstance(Ci.nsIUUIDGenerator);
+  return uuidGenerator.generateUUID();
+}
+
+function copyRec(source, target) {
+  var results = [];
+  var files = source.directoryEntries;
+  if (!target.exists())
+    target.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+
+  while (files.hasMoreElements()) {
+    var file = files.getNext().QueryInterface(Ci.nsILocalFile);
+    if (file.isDirectory()) {
+      var subFolder = target.clone();
+      subFolder.append(file.leafName);
+      copyRec(file, subFolder);
+    } else {
+      file.copyTo(target, file.leafName);
+    }
+  }
+}
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -831,6 +859,8 @@ exports.getEnvPath = getEnvPath;
 exports.getLocaleBasedir = getLocaleBasedir;
 exports.getNewURI = getNewURI;
 exports.getOsType = getOsType;
+exports.generateUUID = generateUUID;
+exports.copyRec = copyRec;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;

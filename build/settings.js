@@ -109,7 +109,7 @@ function overrideSettings(settings, config) {
 
 function writeSettings(settings, config) {
   // Finally write the settings file
-  let settingsFile = utils.getFile(config.PROFILE_DIR, 'settings.json');
+  let settingsFile = utils.getFile(config.STAGE_DIR, 'settings_stage.json');
   let content = JSON.stringify(settings);
   utils.writeContent(settingsFile, content + '\n');
 }
