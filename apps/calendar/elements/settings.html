@@ -1,33 +1,28 @@
 <element name="settings" extends="section">
   <template>
     <header>
-      <menu type="toolbar">
-        <a href="/select-preset/">
-          <span class="icon icon-add">Create Account</span>
-        </a>
-      </menu>
-      <h1 data-l10n-id="settings-header">Calendars</h1>
+      <button data-l10n-id="back"
+              class="settings-back"></button>
     </header>
 
-    <ol class="calendars">
-    </ol>
+    <div class="settings-shield"></div>
 
-    <div role="toolbar">
-      <ul>
-        <li>
-          <a class="settings" href="/advanced-settings/" data-l10n-id="advanced-settings">
-            Account Settings
-          </a>
-        </li>
-      </ul>
+    <div class="settings-drawer-container">
+      <div class="settings-drawer">
+        <ol class="calendars">
+        </ol>
 
-      <ul class="end">
-        <li>
-          <button class="sync update">
-            <span class="icon">Sync</span>
+        <div role="toolbar">
+          <button class="settings toolbar-item">
+            <span class="icon"
+                  data-l10n-id="advanced-settings-short">Settings</span>
           </button>
-        </li>
-      </ul>
+          <button class="sync update toolbar-item">
+            <span class="icon"
+                  data-l10n-id="drawer-sync-button">Sync</span>
+          </button>
+        </div>
+      </div>
     </div>
   </template>
 </element>
