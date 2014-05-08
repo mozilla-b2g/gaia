@@ -29,6 +29,10 @@
     "bookmarks_store": {
       "readonly": true,
       "description": "Display bookmarks"
+    },
+    "collections_store": {
+      "readonly": true,
+      "description": "Display collections"
     }
   }
 }

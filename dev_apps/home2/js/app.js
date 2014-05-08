@@ -52,7 +52,7 @@
             this.grid._grid.dragdrop.exitEditMode();
             return;
           }
-          
+
           var step;
           var doScroll = function() {
             var scrollY = window.scrollY;

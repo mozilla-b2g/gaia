@@ -4,6 +4,7 @@ dev_apps/in_app_pay_test
 dev_apps/marketplace.allizom.org
 dev_apps/mochitest
 dev_apps/bookmarks-reader
+dev_apps/collection
 dev_apps/ds-test
 dev_apps/demo-keyboard
 dev_apps/geoloc

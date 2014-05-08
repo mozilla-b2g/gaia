@@ -1,5 +1,8 @@
 'use strict';
-/* global LazyLoader, wallpaper */
+/* global LazyLoader */
+/* global MozActivity */
+/* global wallpaper */
+/* jshint nonew: false */
 
 (function(exports) {
 
@@ -54,6 +57,17 @@
             this.hide(wallpaper.change);
           }.bind(this));
 
+          break;
+
+        case 'create-smart-collection':
+          this.hide(function onhide() {
+            new MozActivity({
+              name: 'create-collection',
+              data: {
+                type: 'folder'
+              }
+            });
+          });
           break;
 
         case 'cancel-action':
