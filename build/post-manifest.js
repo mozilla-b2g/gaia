@@ -52,7 +52,6 @@ function execute(options) {
     }
     var manifestContent = utils.getJSON(stageManifest);
     if (manifestContent.connections) {
-      utils.log('modified');
       manifestContent =
         manifestInterAppHostnames(manifestContent, options);
       utils.writeContent(stageManifest, JSON.stringify(manifestContent));

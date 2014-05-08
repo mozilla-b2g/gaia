@@ -1,6 +1,6 @@
 'use strict';
 
-/* global require, Services, dump, FileUtils, exports, OS, Promise */
+/* global require, Services, dump, FileUtils, exports, OS, Promise, Reflect */
 /* jshint -W079, -W118 */
 
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
@@ -11,6 +11,7 @@ Cu.import('resource://gre/modules/FileUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/osfile.jsm');
 Cu.import('resource://gre/modules/Promise.jsm');
+Cu.import('resource://gre/modules/reflect.jsm');
 
 var utils = require('./utils.js');
 /**
@@ -838,6 +839,21 @@ function removeFiles(dir, filenames) {
     }
   });
 }
+var scriptLoader = {
+  scripts: {},
+  load: function(path, exportObj) {
+    try {
+      if (this.scripts[path]) {
+        return;
+      }
+      Services.scriptloader.loadSubScript(path, exportObj);
+      this.scripts[path] = true;
+    } catch(e) {
+      delete this.scripts[path];
+      throw 'cannot load script from ' + path;
+    }
+  }
+};
 
 exports.Q = Promise;
 exports.ls = ls;
@@ -865,6 +881,8 @@ exports.getOsType = getOsType;
 exports.generateUUID = generateUUID;
 exports.copyRec = copyRec;
 exports.createZip = createZip;
+exports.scriptLoader = scriptLoader;
+exports.scriptParser = Reflect.parse;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;
