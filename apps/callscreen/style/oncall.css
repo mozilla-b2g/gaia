@@ -140,7 +140,7 @@
   /* call_screen.js */
   #call-screen:not([data-layout="incoming-locked"]) {
     transform: translateY(-100%);
-    transition: transform 0.5s ease 1.5s;
+    transition: transform 0.5s ease;
   }
 
   #call-screen:not([data-layout="incoming-locked"]).displayed {
