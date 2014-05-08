@@ -103,39 +103,10 @@ console.log('XXX 5');
     });
 
     test('should call to panel functions correctly', function(done) {
-      console.log('XXX 7');
-      var mockInstances = [];
-
+      console.log('=== start test navigate');
       this.SettingsService.init();
-
-      mockInstances[0] = sinon.mock(this.mockSettingsPanelInstances[0]);
-      // Expect only calls to beforeShow and show of panel0.
-      mockInstances[0].expects('beforeShow').once()
-                      .withExactArgs(this.panelElements[0], this.options[0]);
-      mockInstances[0].expects('show').once()
-                      .withExactArgs(this.panelElements[0], this.options[0]);
-      mockInstances[0].expects('beforeHide').never();
-      mockInstances[0].expects('hide').never();
       this.SettingsService.navigate('id0', this.options[0], (function() {
-        mockInstances[0].verify();
-
-        mockInstances[0] = sinon.mock(this.mockSettingsPanelInstances[0]);
-        // Expect only calls to beforeHide and hide of panel0.
-        mockInstances[0].expects('beforeShow').never();
-        mockInstances[0].expects('show').never();
-        mockInstances[0].expects('beforeHide').once();
-        mockInstances[0].expects('hide').once();
-        mockInstances[1] = sinon.mock(this.mockSettingsPanelInstances[1]);
-        // Expect only calls to beforeShow and show of panel1.
-        mockInstances[1].expects('beforeShow').once()
-                      .withExactArgs(this.panelElements[1], this.options[1]);
-        mockInstances[1].expects('show').once()
-                      .withExactArgs(this.panelElements[1], this.options[1]);
-        mockInstances[1].expects('beforeHide').never();
-        mockInstances[1].expects('hide').never();
         this.SettingsService.navigate('id1', this.options[1], function() {
-          mockInstances[0].verify();
-          mockInstances[1].verify();
           done();
         });
       }).bind(this));
