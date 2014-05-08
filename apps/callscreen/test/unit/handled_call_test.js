@@ -1,3 +1,8 @@
+/* global CallsHandler, HandledCall, MockCall, MockCallScreen, MockCallsHandler,
+          MockContactPhotoHelper, MockContacts, MockLazyL10n,
+          MockNavigatorSettings, MocksHelper, MockNavigatorMozIccManager,
+          MockUtils, Voicemail */
+
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -837,8 +842,6 @@ suite('dialer/handled_call', function() {
   });
 
   suite('merge button', function() {
-    var addEventListenerSpy;
-
     test('should listen for click', function() {
       var mergeActiveCallWithSpy = this.sinon.spy(CallsHandler,
                                                   'mergeActiveCallWith');
