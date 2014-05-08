@@ -1,5 +1,7 @@
 'use strict';
 /* global ItemStore */
+/* global MozActivity */
+/*jshint nonew: false */
 
 (function(exports) {
 
@@ -12,6 +14,7 @@
     window.addEventListener('hashchange', this);
     window.addEventListener('appzoom', this);
     window.addEventListener('gaiagrid-saveitems', this);
+    window.addEventListener('contextmenu', this);
   }
 
   App.prototype = {
@@ -47,12 +50,22 @@
         case 'gaiagrid-saveitems':
           this.itemStore.save(this.grid.getItems());
           break;
+        case 'contextmenu':
+          // Todo: Show options menu with option to add smart collection
+          // For now we just launch the new smart collection activity.
+          new MozActivity({
+            name: 'create-collection',
+            data: {
+              type: 'folder'
+            }
+          });
+          break;
         case 'hashchange':
           if (this.grid._grid.dragdrop.inEditMode) {
             this.grid._grid.dragdrop.exitEditMode();
             return;
           }
-          
+
           var step;
           var doScroll = function() {
             var scrollY = window.scrollY;
