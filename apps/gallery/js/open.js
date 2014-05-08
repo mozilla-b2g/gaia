@@ -25,8 +25,9 @@ navigator.mozL10n.once(function() {
 
     // Set up the UI, if it is not already set up
     if (!frame) {
+
       // Hook up the buttons
-      $('back').addEventListener('click', done);
+      $('header').addEventListener('action', done);
       $('save').addEventListener('click', save);
 
       // And register event handlers for gestures
@@ -56,10 +57,6 @@ navigator.mozL10n.once(function() {
     title = baseName(activityData.filename || '');
     $('filename').textContent = title;
 
-    // Start off with the Save button hidden.
-    // We'll enable it below in the open() function if needed.
-    $('menu').hidden = true;
-
     blob = activityData.blob;
     open(blob);
   }
@@ -73,7 +70,7 @@ navigator.mozL10n.once(function() {
     if (activityData.allowSave && activityData.filename && checkFilename()) {
       getStorageIfAvailable('pictures', blob.size, function(ds) {
         storage = ds;
-        $('menu').hidden = false;
+        showSaveButton();
       });
     }
 
@@ -243,10 +240,9 @@ navigator.mozL10n.once(function() {
   }
 
   function save() {
-    // Hide the menu that holds the save button: we can only save once
-    $('menu').hidden = true;
-    // XXX work around bug 870619
-    $('filename').textContent = $('filename').textContent;
+
+    // Hides the save button: we can only save once
+    hideSaveButton();
 
     getUnusedFilename(storage, activityData.filename, function(filename) {
       var savereq = storage.addNamed(blob, filename);
@@ -263,6 +259,18 @@ navigator.mozL10n.once(function() {
         console.error('Error saving', filename, e);
       };
     });
+  }
+
+  function showSaveButton() {
+    $('save').classList.remove('hidden');
+    // XXX work around bug 870619
+    $('filename').textContent = $('filename').textContent;
+  }
+
+  function hideSaveButton() {
+    $('save').classList.add('hidden');
+    // XXX work around bug 870619
+    $('filename').textContent = $('filename').textContent;
   }
 
   function showBanner(msg) {
