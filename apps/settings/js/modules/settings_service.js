@@ -136,6 +136,7 @@ define(function(require) {
        * @param {Function} callback
        */
       navigate: function ss_navigate(panelId, options, callback) {
+        console.log('=== navigate to: ' + panelId);
         // Cache the navigation request if it is navigating.
         if (_navigating) {
           _pendingNavigation = arguments;
@@ -144,6 +145,7 @@ define(function(require) {
 
         _navigating = true;
         _navigate(panelId, options, (function() {
+          console.log('=== inner navigate to: ' + panelId);
           _navigating = false;
 
           // Navigate to the pending navigation if any.
