@@ -16,7 +16,7 @@ a.menu-item::after  {
   position: absolute;
   top: calc(50% - 1.5rem);
   right: -0.5rem;
-  background: url(/shared/style_unstable/buttons/images/next.png) no-repeat;
+  background: url(/shared/style_unstable/buttons/images/next.png) no-repeat center / 3rem auto;
 }
 
 .menu-item-desc {
