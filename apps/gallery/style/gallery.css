@@ -28,7 +28,7 @@ section {
 }
 
 .large-only {
-  display: none;
+  display: none !important;
 }
 
 .hidden {
@@ -305,8 +305,17 @@ body.pickView #thumbnails {
   font-size: 0;
   border-radius: 50%;
   border: none;
-  background: rgba(95, 95, 95, 0.3) url(images/back.png) no-repeat 50% 50% / 3rem auto;
+  background: rgba(95, 95, 95, 0.3);
+  color: inherit;
   transition: opacity 0.2s linear;
+}
+
+/**
+ * 1. Make sure icon is aligned inside circle
+ */
+
+#fullscreen-back-button-tiny:before {
+  margin-left: -0.3rem; /* 1 */
 }
 
 #fullscreen-back-button-tiny:active {
@@ -465,7 +474,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 0;
-  background-image: url('images/iconaction_camera_30x30.png');
   border-right: 0.1rem solid #000;
 }
 
@@ -474,7 +482,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 50%;
-  background-image: url('images/iconaction_select_30x30.png');
 }
 
 #thumbnails-delete-button {
@@ -482,7 +489,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 0;
-  background-image: url('images/iconaction_delete_30x30.png');
   border-right: 0.1rem solid #000;
 }
 
@@ -491,7 +497,6 @@ footer {
   width: 50%;
   height: 100%;
   left: 50%;
-  background-image: url('images/iconaction_share_30x30.png');
 }
 
 #fullscreen-toolbar {
@@ -540,7 +545,7 @@ footer {
   pointer-events: none;
 }
 
-#pick-top {
+#pick-header {
   /*
    * we want the user to be able to push the back button even if
    * an overlay is displayed, so be sure that this titlebar/toolbar
@@ -648,7 +653,6 @@ footer {
   border-width: 0;
   border-right: solid black 0.1rem;
   overflow: hidden;
-  padding-top: 1.6rem;
   font-size: 1.4rem;
   background-position: center;
 }
@@ -660,7 +664,6 @@ footer {
 
 #edit-crop-none {
   left: 0;
-  background-image: url('images/iconaction_undo_30x30.png');
 }
 #edit-crop-aspect-free {
   left: 20%;
@@ -759,8 +762,13 @@ a.filter-faded {
 /* all buttons in the toolbar share these styles */
 #edit-toolbar > a {
   display: inline-block;
+  vertical-align: top;
   width: 25%;
   height: 100%;
+}
+
+#edit-toolbar > a.selected {
+  color: #00CAF2;
 }
 
 #edit-exposure-button {
@@ -787,33 +795,6 @@ a.filter-faded {
   line-height: 5.5rem;
   text-align: center;
 }
-#fullscreen-camera-button-tiny {
-  background-image: url('images/iconaction_camera_30x30.png');
-}
-
-#fullscreen-edit-button-tiny {
-  background-image: url('images/iconaction_camera_editphoto_30x30.png');
-}
-
-#fullscreen-share-button-tiny {
-  background-image: url('images/iconaction_share_30x30.png');
-}
-
-#fullscreen-info-button-tiny {
-  background-image: url('images/iconaction_media_info_30x30.png');
-}
-
-#fullscreen-delete-button-tiny {
-  background-image: url('images/iconaction_delete_30x30.png');
-}
-
-#edit-exposure-button {
-  background-image: url('images/actionicon_gallery_edit_exposure_30x30.png');
-}
-
-#edit-crop-button {
-  background-image: url('images/actionicon_gallery_edit_crop_30x30.png');
-}
 
 #edit-effect-button {
   background-image: url('images/actionicon_gallery_edit_effects_30x30.png');
@@ -831,13 +812,7 @@ a.filter-faded {
   background-image: url('images/actionicon_gallery_edit_effect_selected_30x30.png');
 }
 
-#edit-crop-button.selected {
-  background-image: url('images/actionicon_gallery_edit_crop_selected_30x30.png');
-}
 
-#edit-exposure-button.selected {
-  background-image: url('images/actionicon_gallery_edit_exposure_selected_30x30.png');
-}
 
 #edit-enhance-button.selected {
   background-image: url('images/actionicon_gallery_edit_enhance_selected_30x30.png');

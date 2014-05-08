@@ -26,7 +26,7 @@ navigator.mozL10n.once(function() {
     // Set up the UI, if it is not already set up
     if (!frame) {
       // Hook up the buttons
-      $('back').addEventListener('click', done);
+      $('header').addEventListener('action', done);
       $('save').addEventListener('click', save);
 
       // And register event handlers for gestures
