@@ -94,7 +94,7 @@
     };
 
   HomescreenWindow.REGISTERED_EVENTS =
-    ['_opening', 'mozbrowserclose', 'mozbrowsererror',
+    ['_opening', '_localized', 'mozbrowserclose', 'mozbrowsererror',
       'mozbrowservisibilitychange', 'mozbrowserloadend'];
 
   HomescreenWindow.SUB_COMPONENTS = {
