@@ -262,7 +262,8 @@ suite('system/Rocketbar', function() {
         return 'Search';
       }
     };
-    window.addEventListener('taskmanagershow', function() {
+    window.addEventListener('taskmanagershow', function taskmanagershow() {
+      window.removeEventListener('taskmanagershow', taskmanagershow);
       done();
     });
     subject.showTaskManager();
@@ -545,6 +546,7 @@ suite('system/Rocketbar', function() {
     var expandStub = this.sinon.stub(subject, 'expand');
     var collapseStub = this.sinon.stub(subject, 'collapse');
     var showTaskManagerStub = this.sinon.stub(subject, 'showTaskManager');
+    var handleClickStub = this.sinon.stub(subject, 'handleClick');
 
     // Expand
     subject._touchStart = 1;
@@ -574,7 +576,25 @@ suite('system/Rocketbar', function() {
     assert.ok(collapseStub.calledOnce);
     assert.ok(showTaskManagerStub.notCalled);
 
+    // Swipe to focus (no tasks in the stack)
+    event = {
+      type: 'touchmove',
+      touches: [
+        {
+          pageY: 202 // More than 1+200
+        }
+      ]
+    };
+    subject.handleTouch(event);
+    assert.ok(handleClickStub.calledOnce);
+
     // Show task manager
+    subject.handleStackChanged({
+      detail: {
+        sheets: ['a', 'b', 'c']
+      }
+    });
+
     event = {
       type: 'touchmove',
       touches: [
@@ -589,6 +609,7 @@ suite('system/Rocketbar', function() {
     expandStub.restore();
     collapseStub.restore();
     showTaskManagerStub.restore();
+    handleClickStub.restore();
   });
 
   test('handleTouch() - touchend', function() {
