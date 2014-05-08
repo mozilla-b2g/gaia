@@ -59,13 +59,16 @@ var Selector = {
   replyMenuReply: '.msg-reply-menu-reply',
   replyMenuForward: '.msg-reply-menu-forward',
   replyMenuAll: '.msg-reply-menu-reply-all',
-  searchButton: '.msg-search-btn',
+  searchTextTease: '.msg-search-text-tease',
   searchCard: '.card[data-mode="search"]',
   folderListButton: '.msg-list-header .msg-folder-list-btn',
-  settingsButton: '.fld-nav-toolbar .fld-nav-settings-btn',
+  folderListCloseButton: '.card-folder-picker .fld-header-back',
+  folderListContents: '.card-folder-picker .fld-acct-scrollinner',
+  settingsButton: '.fld-nav-toolbar',
   settingsDoneButton: '.card-settings-main [data-l10n-id="settings-done"]',
   addAccountButton: '.tng-accounts-container .tng-account-add',
-  accountListButton: '.fld-folders-header .fld-accounts-btn',
+  accountListButton: '.fld-acct-header',
+  accountListContainer: '.fld-accountlist-container',
   settingsMainAccountItems: '.tng-accounts-container .tng-account-item',
   syncIntervalSelect: '.tng-account-check-interval ',
   // Checkboxes are weird: hidden to marionette, but the associated label
@@ -202,11 +205,11 @@ Email.prototype = {
     this._tapSelector(Selector.folderListButton);
     this._waitForElementNoTransition(Selector.settingsButton);
     this._waitForTransitionEnd('folder_picker');
+    this.client.helper.waitForElement(Selector.folderListContents);
   },
 
   tapFolderListCloseButton: function() {
-    this._tapSelector(Selector.folderListButton);
-    this._waitForElementNoTransition(Selector.settingsButton);
+    this._tapSelector(Selector.folderListCloseButton);
     this.waitForMessageList();
   },
 
@@ -214,8 +217,9 @@ Email.prototype = {
     // XXX: Workaround util http://bugzil.la/912873 is fixed.
     // Wait for 500ms to let the element be clickable
     this.client.helper.wait(500);
-    this._waitForElementNoTransition(Selector.accountListButton).tap();
-    this._waitForTransitionEnd('account_picker');
+
+    this.client.helper.waitForElement(Selector.accountListButton).tap();
+    this.client.helper.waitForElement(Selector.accountListContainer);
   },
 
   tapLocalDraftsItem: function() {
@@ -227,7 +231,7 @@ Email.prototype = {
   },
 
   switchAccount: function(number) {
-    var accountSelector = '.acct-list-container ' +
+    var accountSelector = '.fld-accountlist-container ' +
                           'a:nth-child(' + number + ')';
     this.client.helper
       .waitForElement(accountSelector)
@@ -396,10 +400,27 @@ Email.prototype = {
       .tap();
   },
 
-  tapSearchButton: function() {
+  tapSearchArea: function() {
     this.client.helper
-      .waitForElement(Selector.searchButton)
-      .tap();
+      .waitForElement(Selector.searchTextTease)
+      .sendKeys('a');
+
+
+    var client = this.client;
+    client.waitFor(function() {
+      return client.executeScript(function(selector) {
+        var doc = window.wrappedJSObject.document,
+            selectNode = doc.querySelector(selector);
+
+        // Synthesize an event since focus does not work
+        // through marionette API
+        var event = document.createEvent('Event');
+        event.initEvent('focus', true, true);
+        selectNode.dispatchEvent(event);
+
+        return true;
+      }, [Selector.searchTextTease]);
+    });
 
     this.client.helper
       .waitForElement(Selector.searchCard);
