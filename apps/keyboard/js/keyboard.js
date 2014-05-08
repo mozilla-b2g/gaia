@@ -296,6 +296,15 @@ var touchStartCoordinate;
 
 initKeyboard();
 
+// We cannot listen to resize event right at start because of
+// https://bugzil.la/1007595 ;
+// only attach the event listener after 600ms.
+setTimeout(function attachResizeListener() {
+  perfTimer.printTime('attachResizeListener');
+  // Handle resize events
+  window.addEventListener('resize', onResize);
+}, 600);
+
 function initKeyboard() {
   perfTimer.startTimer('initKeyboard');
   perfTimer.printTime('initKeyboard');
@@ -351,9 +360,6 @@ function initKeyboard() {
       showKeyboard();
     });
   }, false);
-
-  // Handle resize events
-  window.addEventListener('resize', onResize);
 
   // Need to listen to both mozvisibilitychange and oninputcontextchange,
   // because we are not sure which will happen first and we will call
