@@ -1,5 +1,6 @@
 'use strict';
 /* global layout */
+/* global zoom */
 
 (function(exports) {
 
@@ -52,6 +53,7 @@
 
       // Stop icon launching while we are in active state
       app.stop();
+      zoom.stop();
 
       this.active = true;
       this.enterEditMode();
@@ -239,6 +241,7 @@
 
             setTimeout(function nextTick() {
               app.start();
+              zoom.start();
             });
 
             container.classList.remove('dragging');
