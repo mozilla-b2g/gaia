@@ -58,7 +58,7 @@
      * Displays the icon as a background of the element.
      */
     displayIcon: function(url) {
-      this.element.style.height = layout.gridIconSize + 'px';
+      this.element.style.height = layout.gridItemHeight + 'px';
       this.element.style.backgroundSize = layout.gridIconSize + 'px';
       this.element.style.backgroundImage = 'url(' + (url || this.icon) + ')';
     },
@@ -79,9 +79,15 @@
         tile.className = 'icon';
         tile.dataset.identifier = this.identifier;
 
+        // This <p> has been added in order to place the title with respect
+        // to this container via CSS without touching JS.
+        var nameContainerEl = document.createElement('p');
+        nameContainerEl.style.marginTop = layout.gridIconSize + 'px';
+        tile.appendChild(nameContainerEl);
+
         nameEl = document.createElement('span');
         nameEl.className = 'title';
-        tile.appendChild(nameEl);
+        nameContainerEl.appendChild(nameEl);
 
         // Add delete link if this icon is removable
         if (this.isRemovable()) {

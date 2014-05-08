@@ -19,17 +19,32 @@ html, body, .icons {
   z-index: 3;
 }
 
+.icon p {
+  pointer-events: none;
+  height: 3.2rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 .icon .title {
   display: inline-block;
-  pointer-events: none;
+  /* Space between icon and title .1rem + .2rem = .3rem as spec says */
+  margin-top: .1rem;
+  /* We need this rule in order not to hide the drop shadow */
+  padding: .2rem .8rem 1rem .8rem;
+  text-shadow: 0 0.2rem 0.8rem #000;
+  font-size: 1.4rem;
   color: #fff;
-  font-size: 1.2rem;
-  text-shadow: 0 0 0.5rem rgba(0,0,0,0.5);
-  position: absolute;
-  bottom: -2rem;
-  left: 0;
-  width: 100%;
   white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+body[data-cols="4"] .icon .title {
+  /* Font size is the same independent on grid configuration */
+  font-size: calc(1.4rem * 1.333);
 }
 
 .divider {
@@ -93,7 +108,7 @@ html, body, .icons {
 .edit-mode .icon.bookmark .title {
   background-color: rgba(132, 132, 132, 0.7);
   border-radius: 2rem;
-  padding: .2rem .6rem .2rem .6rem;
+  padding-bottom: .2rem;
 }
 
 #confirmation-message.fade-in {

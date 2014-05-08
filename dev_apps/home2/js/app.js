@@ -146,6 +146,7 @@
      */
     render: function() {
       app.cleanItems();
+      document.body.dataset.cols = layout.perRow;
 
       // Reset offset steps
       layout.offsetY = 0;
