@@ -21,8 +21,7 @@ marionette('Vertical - Search', function() {
   });
 
   test('Search for app', function() {
-    client.helper.waitForElement('body.homesearch-enabled');
-    client.apps.switchToApp(Home2.URL);
+    home.waitForLaunch();
     client.helper.waitForElement(Home2.Selectors.search).tap();
     client.switchToFrame();
 
@@ -33,8 +32,7 @@ marionette('Vertical - Search', function() {
   });
 
   test('Home button returns to homescreen', function() {
-    client.helper.waitForElement('body.homesearch-enabled');
-    client.apps.switchToApp(Home2.URL);
+    home.waitForLaunch();
     client.helper.waitForElement(Home2.Selectors.search).tap();
     client.switchToFrame();
     rocketbar.enterText('Phone');

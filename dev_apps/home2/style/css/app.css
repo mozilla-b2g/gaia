@@ -41,7 +41,7 @@ html, body, .icons {
   z-index: 2;
 }
 
-.divider:last-child {
+.divider:last-of-type {
   visibility: hidden;
 }
 

@@ -1,4 +1,5 @@
 'use strict';
+/* global Divider */
 /* global Icon */
 
 (function(exports) {
@@ -26,10 +27,15 @@
       // There is a last divider that is always in the list, but not rendered
       // unless in edit mode.
       // Remove this divider, append the app, then re-append the divider.
-      var divider = app.items.pop();
+      var lastItem = app.items[app.items.length - 1];
+      if ((lastItem instanceof Divider)) {
+        var divider = app.items.pop();
+        this.addIconToGrid(event.application);
+        app.items.push(divider);
+      } else {
+        this.addIconToGrid(event.application);
+      }
 
-      this.addIconToGrid(event.application);
-      app.items.push(divider);
       app.render();
 
       app.itemStore.save(app.items);
