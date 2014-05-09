@@ -109,9 +109,7 @@ suite('FTE Test Suite >', function() {
 
   function assertDataUsageOnlyInit(autoSettingsSpy, testTeardown) {
     assert.equal(fteWizard.dataset.steps, 3);
-    assert.equal(autoSettingsSpy.callCount, 2);
     assert.equal(autoSettingsSpy.getCall(0).args[2], '#non-vivo-step-1');
-    assert.equal(autoSettingsSpy.getCall(1).args[2], '#non-vivo-step-2');
     testTeardown();
   }
 
