@@ -12,7 +12,7 @@ PerformanceTimer.prototype.start = function() {
   this._startTime = Date.now();
 };
 
-PerformanceTimer.prototype.PRINT_LOG = true;
+PerformanceTimer.prototype.PRINT_LOG = false;
 
 PerformanceTimer.prototype.TAG = 'kbdTime';
 
