@@ -124,7 +124,8 @@ suite('STK (App menu) >', function() {
           options: {
             'title': 'Dummy Test Menu',
             'defaultItem': 1,
-            'items': this.items
+            'items': this.items,
+            'isHelpAvailable': true
           }
         }
       }}});
@@ -175,7 +176,22 @@ suite('STK (App menu) >', function() {
   });
 
   test('Correct number of entries into the STK options list', function() {
-    assert.equal(document.getElementById('icc-stk-list').childElementCount, 18);
+    // The list contains all the items plus the help entry
+    assert.equal(document.getElementById('icc-stk-list').childElementCount,
+      this.items.length + 1);
+  });
+
+  test('All items with correct data', function() {
+    this.items.forEach(function(item, index) {
+      assert.equal(document.querySelector('#icc-stk-list li:nth-child(' +
+        (index + 1) + ') a').textContent, item.text);
+    });
+  });
+
+  test('Help entry showed (isHelpAvailable)', function() {
+    assert.equal(document.querySelector('#icc-stk-list li:nth-child(' +
+      (this.items.length + 1) + ') a').textContent,
+      'operatorServices-helpmenu');
   });
 
   test('STK Header', function() {
