@@ -100,6 +100,26 @@ suite('system/VisibilityManager', function() {
       assert.isTrue(stubPublish.calledWith('showlockscreenwindow'));
     });
 
+    test('rocketbar-overlayopened', function() {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'rocketbar-overlayopened'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('hidewindowforscreenreader'));
+    });
+
+    test('rocketbar-overlayclosed', function() {
+      var stubPublish = this.sinon.stub(visibilityManager, 'publish');
+      visibilityManager.handleEvent({
+        type: 'rocketbar-overlayclosed'
+      });
+
+      assert.isTrue(stubPublish.called);
+      assert.isTrue(stubPublish.calledWith('showwindowforscreenreader'));
+    });
+
     test('Normal audio channel is on.', function() {
       visibilityManager.handleEvent({
         type: 'mozChromeEvent',

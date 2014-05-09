@@ -28,7 +28,9 @@
       'status-inactive',
       'mozChromeEvent',
       'appclosing',
-      'homescreenopening'
+      'homescreenopening',
+      'rocketbar-overlayopened',
+      'rocketbar-overlayclosed'
     ];
   };
 
@@ -92,6 +94,12 @@
         break;
       case 'attentionscreenshow':
         this._setAttentionScreenVisibility(evt);
+        break;
+      case 'rocketbar-overlayopened':
+        this.publish('hidewindowforscreenreader');
+        break;
+      case 'rocketbar-overlayclosed':
+        this.publish('showwindowforscreenreader');
         break;
       case 'mozChromeEvent':
         if (evt.detail.type == 'visible-audio-channel-changed') {

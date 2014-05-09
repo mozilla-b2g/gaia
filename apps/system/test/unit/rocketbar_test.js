@@ -698,7 +698,7 @@ suite('system/Rocketbar', function() {
     subject.handleSubmit(event);
     assert.ok(MockIACPort.mNumberOfMessages() == 1);
   });
-  
+
   test('handleCancel()', function() {
     var deactivateStub = this.sinon.stub(subject, 'deactivate');
     var hideResultsStub = this.sinon.stub(subject, 'hideResults');

@@ -765,6 +765,7 @@ suite('system/AppWindow', function() {
     focus: function() {},
     blur: function() {},
     setVisible: function() {},
+    setVisibleForScreenReader: function() {},
     goBack: function() {},
     goForward: function() {},
     reload: function() {},
@@ -974,6 +975,23 @@ suite('system/AppWindow', function() {
 
       app1.setVisible(false);
       assert.isTrue(stubApp2SetVisible.calledWith(false));
+    });
+  });
+
+  suite('setVisibleForScreenReader', function() {
+    test('setVisibleForScreenReader: false', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+
+      app1.setVisibleForScreenReader(false);
+      assert.equal(app1.element.getAttribute('aria-hidden'), 'true');
+    });
+    test('setVisibleForScreenReader: true', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+
+      app1.setVisibleForScreenReader(true);
+      assert.equal(app1.element.getAttribute('aria-hidden'), 'false');
     });
   });
 

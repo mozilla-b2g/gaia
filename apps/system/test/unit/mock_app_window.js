@@ -45,6 +45,7 @@
     changeURL: function() {},
     resize: function() {},
     setVisible: function() {},
+    setVisibleForScreenReader: function() {},
     blur: function() {},
     publish: function() {},
     broadcast: function() {},

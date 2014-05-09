@@ -336,6 +336,32 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubSetVisible.calledWith(false));
     });
 
+    test('Show for screen reader top window', function() {
+      injectRunningApps(app1);
+      AppWindowManager._activeApp = app1;
+      var stubSetVisibleForScreenReader = this.sinon.stub(app1,
+        'setVisibleForScreenReader');
+
+      AppWindowManager.handleEvent({
+        type: 'showwindowforscreenreader'
+      });
+
+      assert.isTrue(stubSetVisibleForScreenReader.calledWith(true));
+    });
+
+    test('Hide for screen reader top window', function() {
+      injectRunningApps(app1);
+      AppWindowManager._activeApp = app1;
+      var stubSetVisibleForScreenReader = this.sinon.stub(app1,
+        'setVisibleForScreenReader');
+
+      AppWindowManager.handleEvent({
+        type: 'hidewindowforscreenreader'
+      });
+
+      assert.isTrue(stubSetVisibleForScreenReader.calledWith(false));
+    });
+
     test('Overlay start on top of in process app', function() {
       injectRunningApps(app6);
       AppWindowManager._activeApp = app6;

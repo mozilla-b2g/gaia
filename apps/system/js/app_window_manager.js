@@ -231,6 +231,8 @@
       window.addEventListener('applicationuninstall', this);
       window.addEventListener('hidewindow', this);
       window.addEventListener('showwindow', this);
+      window.addEventListener('hidewindowforscreenreader', this);
+      window.addEventListener('showwindowforscreenreader', this);
       window.addEventListener('overlaystart', this);
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
@@ -302,6 +304,8 @@
       window.removeEventListener('applicationuninstall', this);
       window.removeEventListener('hidewindow', this);
       window.removeEventListener('showwindow', this);
+      window.removeEventListener('hidewindowforscreenreader', this);
+      window.removeEventListener('showwindowforscreenreader', this);
       window.removeEventListener('overlaystart', this);
       window.removeEventListener('homegesture-enabled', this);
       window.removeEventListener('homegesture-disabled', this);
@@ -427,6 +431,14 @@
             var home = homescreenLauncher.getHomescreen(); // jshint ignore:line
             home && home.setVisible(false);
           }
+          break;
+
+        case 'hidewindowforscreenreader':
+          activeApp.setVisibleForScreenReader(false);
+          break;
+
+        case 'showwindowforscreenreader':
+          activeApp.setVisibleForScreenReader(true);
           break;
 
         case 'showwindow':

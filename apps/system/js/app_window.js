@@ -214,7 +214,7 @@
   AppWindow.prototype.setVisible =
     function aw_setVisible(visible, screenshotIfInvisible) {
       this.debug('set visibility -> ', visible);
-      this.element.setAttribute('aria-hidden', !visible);
+      this.setVisibleForScreenReader(visible);
       if (visible) {
         // If this window is not the lockscreen, and the screen is locked,
         // we need to aria-hide the window.
@@ -235,6 +235,16 @@
       if (this.frontWindow) {
         this.frontWindow.setVisible(visible, screenshotIfInvisible);
       }
+    };
+
+  /**
+   * Set screen reader visibility.
+   * @type {Boolean} A flag indicating if it should be visible to the screen
+   * reader.
+   */
+  AppWindow.prototype.setVisibleForScreenReader =
+    function aw_setVisibleForScreenReader(visible) {
+      this.element.setAttribute('aria-hidden', !visible);
     };
 
   /**
