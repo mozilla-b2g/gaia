@@ -796,6 +796,23 @@ suite('system/AppWindow', function() {
     }
   }
 
+  test('we do not need to wait if there is screenshot layer covered',
+    function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var callback = this.sinon.spy();
+      var stubWaitForNextPaint = this.sinon.stub(app1, 'waitForNextPaint');
+      var stubEnsureFullRepaint =
+        this.sinon.stub(app1, 'tryWaitForFullRepaint');
+
+      app1.loaded = true;
+      app1._screenshotOverlayState = 'screenshot';
+      app1.ready(callback);
+      assert.isFalse(stubEnsureFullRepaint.called);
+      assert.isFalse(stubWaitForNextPaint.called);
+      this.sinon.clock.tick(0);
+      assert.isTrue(callback.calledOnce);
+    });
+
   test('ready', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var callback = this.sinon.spy();
