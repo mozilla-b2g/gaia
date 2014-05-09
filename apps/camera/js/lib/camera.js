@@ -90,6 +90,15 @@ function Camera(options) {
     this.cafEnabled = true;
   }
 
+  navigator.mozSetMessageHandler('connection',
+    function(connectionRequest) {
+      var keyword = connectionRequest.keyword;
+      var port = connectionRequest.port;
+      if (keyword === 'visibility-notifications') {
+        this.stopRecording();
+      }
+    }.bind(this));
+
   debug('initialized');
 }
 

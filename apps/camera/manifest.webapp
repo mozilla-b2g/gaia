@@ -34,6 +34,12 @@
       "href": "/index.html#pick"
     }
   },
+  "connections": {
+    "visibility-notifications": {
+      "description": "Bug 995540 - Be warned about when the attention screen is appearing.",
+      "rules": {}
+    }
+  },
   "locales": {
     "ar": {
       "name": "الكاميرا",
