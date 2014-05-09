@@ -188,11 +188,13 @@ if (!window.FacebookConnector) {
       var data = self.adaptDataForSaving(friend);
       /* jshint validthis:true */
       persistFbData(data, function() {
-                                      success({
-                                        uid: friend.uid,
-                                        url: friend.pic_big
-                                      });
-                                }, this.error, options);
+        success({
+          uid: friend.uid,
+          url: friend.pic_big
+        });
+      }, function error(err) {
+            console.error('Error while persisting: ', err);
+      }, options);
 
       // If there is no an alarm set it has to be set
       window.asyncStorage.getItem(fb.utils.ALARM_ID_KEY, function(data) {
