@@ -247,10 +247,8 @@ var NfcHandoverManager = {
                               onsuccess: onsuccess, onerror: onerror};
       var nfcPeer = this.nfc.getNFCPeer(session);
       var carrierPowerState = this.bluetooth.enabled ? 1 : 2;
-      var rnd = Math.floor(Math.random() * 0xffff);
       var mac = this.defaultAdapter.address;
-      var hr = NfcManagerUtils.encodeHandoverRequest(mac, carrierPowerState,
-                                                    rnd);
+      var hr = NfcManagerUtils.encodeHandoverRequest(mac, carrierPowerState);
       var req = nfcPeer.sendNDEF(hr);
       req.onsuccess = function() {
         self.debug('sendNDEF(hr) succeeded');

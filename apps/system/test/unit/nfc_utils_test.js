@@ -123,8 +123,7 @@ suite('NFC Utils', function() {
      test('Encode and Parse Handover Request', function() {
       var mac = '01:02:03:04:05:06';
       var cps = 0x2;
-      var rnd = 3141592654;
-      var hrNDEFs1 = NfcManagerUtils.encodeHandoverRequest(mac, cps, rnd);
+      var hrNDEFs1 = NfcManagerUtils.encodeHandoverRequest(mac, cps);
       assert.equal(!!hrNDEFs1, true);
       var hrNDEFU8a1 = NfcUtils.encodeNDEF(hrNDEFs1);
       assert.equal(!!hrNDEFU8a1, true);
