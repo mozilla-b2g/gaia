@@ -13,7 +13,7 @@ requireApp('communications/contacts/test/unit/mock_contacts_match.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('/shared/test/unit/mocks/mock_moz_contact.js');
-requireApp('communications/gmail/test/unit/mock_rest.js');
+requireApp('communications/contacts/test/unit/import/mock_rest.js');
 requireApp('communications/contacts/test/unit/base64_photo.js');
 
 function toDataUri(photo, cb) {

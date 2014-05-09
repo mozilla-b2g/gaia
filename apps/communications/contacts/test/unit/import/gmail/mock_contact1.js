@@ -1,10 +1,13 @@
 'use strict';
 
+/* exported MockGoogleEntry, MockGoogleEntryNoName,
+            MockGoogleEntryInvalidDate */
+
 // refer to mock_contact1.xml for the entry XML we are getting.
 
 var MockGoogleEntry = (function MockGoogleEntry() {
   var req = new XMLHttpRequest();
-  req.open('GET', '/gmail/test/unit/mock_contact1.xml', false);
+  req.open('GET', '/contacts/test/unit/import/gmail/mock_contact1.xml', false);
   req.send(null);
 
   var entryBuffer = req.responseText;
@@ -14,7 +17,7 @@ var MockGoogleEntry = (function MockGoogleEntry() {
 
 var MockGoogleEntryNoName = (function MockGoogleEntryNoName() {
   var req = new XMLHttpRequest();
-  req.open('GET', '/gmail/test/unit/mock_contact2.xml', false);
+  req.open('GET', '/contacts/test/unit/import/gmail/mock_contact2.xml', false);
   req.send(null);
 
   var entryBuffer = req.responseText;
@@ -24,7 +27,7 @@ var MockGoogleEntryNoName = (function MockGoogleEntryNoName() {
 
 var MockGoogleEntryInvalidDate = (function MockGoogleEntryWoName() {
   var req = new XMLHttpRequest();
-  req.open('GET', '/gmail/test/unit/mock_contact3.xml', false);
+  req.open('GET', '/contacts/test/unit/import/gmail/mock_contact3.xml', false);
   req.send(null);
 
   var entryBuffer = req.responseText;

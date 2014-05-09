@@ -3,11 +3,11 @@
 
 'use strict';
 
-requireApp('communications/gmail/js/gmail_connector.js');
-requireApp('communications/gmail/test/unit/mock_contact1.js');
-requireApp('communications/gmail/test/unit/mock_listing.js');
-requireApp('communications/gmail/test/unit/mock_rest.js');
-requireApp('communications/gmail/test/unit/mock_groups.js');
+require('/shared/js/contacts/import/gmail/gmail_connector.js');
+requireApp('communications/contacts/test/unit/import/gmail/mock_contact1.js');
+requireApp('communications/contacts/test/unit/import/gmail/mock_listing.js');
+requireApp('communications/contacts/test/unit/import/mock_rest.js');
+requireApp('communications/contacts/test/unit/import/gmail/mock_groups.js');
 
 if (!window.Rest) {
   window.Rest = null;

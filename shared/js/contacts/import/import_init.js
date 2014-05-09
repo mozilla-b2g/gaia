@@ -30,13 +30,15 @@
 
   var servicesConnectors = {
     'live': function(cb) {
-      LazyLoader.load('/live/js/live_connector.js', function() {
-        cb(LiveConnector);
+      LazyLoader.load('/shared/js/contacts/import/live/live_connector.js',
+        function() {
+          cb(LiveConnector);
       });
     },
     'gmail': function gmailLoader(cb) {
-      LazyLoader.load('/gmail/js/gmail_connector.js', function onLoad() {
-        cb(GmailConnector);
+      LazyLoader.load('/shared/js/contacts/import/gmail/gmail_connector.js',
+        function onLoad() {
+          cb(GmailConnector);
       });
     },
     'facebook': function(cb) {
@@ -48,7 +50,7 @@
                    '/contacts/js/fb/fb_contact_utils.js',
                    '/contacts/js/fb/fb_query.js',
                    '/contacts/js/fb/fb_contact.js',
-                   '/facebook/js/facebook_connector.js',
+                   '/shared/js/contacts/import/facebook/facebook_connector.js',
                    '/facebook/js/fb_sync.js',
                    '/contacts/style/fb/facebook.css'
       ];
