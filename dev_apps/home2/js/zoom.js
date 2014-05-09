@@ -15,10 +15,27 @@
     this.curtain = this.container.querySelector('.curtain');
     this.indicator = this.container.querySelector('.indicator');
 
-    window.addEventListener('touchstart', this);
+    this.start();
   }
 
   Zoom.prototype = {
+
+    /**
+     * Starts listening for touchstart events.
+     * This is what starts listening events to start the drag & drop operation.
+     */
+    start: function() {
+      window.addEventListener('touchstart', this);
+    },
+
+    /**
+     * Stops listening for touchstart events.
+     * This will effectively disable pinch-to-zoom.
+     */
+    stop: function() {
+      window.removeEventListener('touchstart', this);
+    },
+
     _attachGestureListeners: function() {
       window.addEventListener('touchmove', this);
       window.addEventListener('touchend', this);
