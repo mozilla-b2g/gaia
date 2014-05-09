@@ -2721,7 +2721,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      * @return {HTMLElement} iframe element.
      */
     createIframe: function(src) {
-      var iframe = document.createElement('iframe');
+      var iframe = document.createElement('iframe'),
+          iframeError;
+
       iframe.src = src + '?time' + String(Date.now());
 
       if (this.iframeAttrs) {
@@ -2735,6 +2737,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           }
         }
       }
+
+      iframe.addEventListener('load', function() {
+        clearTimeout(iframeError);
+      });
+
+      iframeError = setTimeout(function() {
+        var error = 'Cannot access ' + new URL(src).hostname;
+
+        console.error('Error loading ' + src);
+        this.worker.send('error', { msg: error });
+        this._running = false;
+      }.bind(this), 1000);
 
       document.body.appendChild(iframe);
 
