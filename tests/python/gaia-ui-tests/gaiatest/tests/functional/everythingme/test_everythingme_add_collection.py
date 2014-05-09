@@ -4,6 +4,7 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
+import random
 
 
 class TestEverythingMeAddCollection(GaiaTestCase):
@@ -16,13 +17,16 @@ class TestEverythingMeAddCollection(GaiaTestCase):
         self.connect_to_network()
 
     def test_everythingme_add_collection(self):
-        collection = 'Weather'
         homescreen = Homescreen(self.marionette)
         self.apps.switch_to_displayed_app()
         homescreen.wait_for_homescreen_to_load()
 
         contextmenu = homescreen.open_context_menu()
         contextmenu.tap_add_collection()
+
+        collection_list = contextmenu.collection_name_list
+        collection = random.choice(collection_list[1:])
+
         homescreen.select(collection)
         self.assertTrue(homescreen.is_app_installed(collection),
                         "Collection '%s' not found on Homescreen" % collection)
