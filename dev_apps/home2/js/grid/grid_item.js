@@ -87,6 +87,7 @@
 
         nameEl = document.createElement('span');
         nameEl.className = 'title';
+        nameEl.textContent = this.name;
         nameContainerEl.appendChild(nameEl);
 
         // Add delete link if this icon is removable
@@ -107,11 +108,7 @@
         }
 
         container.appendChild(tile);
-      } else {
-        nameEl = this.element.querySelector('.title');
       }
-
-      nameEl.textContent = this.name;
 
       this.setPosition(index);
       this.x = x;
