@@ -6,12 +6,18 @@ define(function(require) {
  */
 
 var debug = require('debug')('view:preview-gallery');
-var bind = require('lib/bind');
+var addPanAndZoomHandlers = require('lib/panzoom');
+var orientation = require('lib/orientation');
+var MediaFrame = require('MediaFrame');
 var attach = require('vendor/attach');
 var View = require('vendor/view');
-var orientation = require('lib/orientation');
-var addPanAndZoomHandlers = require('lib/panzoom');
-var MediaFrame = require('MediaFrame');
+var bind = require('lib/bind');
+
+/**
+ * `<gaia-header>` used in template
+ */
+
+require('gaia-header');
 
 /**
  * Constants
@@ -37,18 +43,24 @@ return View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-    this.els.previewControl = this.find('.js-preview');
     this.els.frameContainer = this.find('.js-frame-container');
+    this.els.previewMenu = this.find('.js-preview-menu');
+    this.els.previewControl = this.find('.js-preview');
     this.els.mediaFrame = this.find('.js-media-frame');
     this.els.countText = this.find('.js-count-text');
-    this.els.previewMenu = this.find('.js-preview-menu');
+    this.els.options = this.find('.js-options');
+    this.els.header = this.find('.js-header');
+    this.els.share = this.find('.js-share');
 
     // Update localization strings
     navigator.mozL10n.translate(this.el);
 
-    // MediaFrame has a GestureDetector that can emit 'tap' events
+    // MediaFrame has a GestureDetector
+    // that can emit 'tap' events
     bind(this.el, 'tap', this.onTap);
-    attach.on(this.els.previewMenu, 'click', '.js-btn', this.onButtonClick);
+    bind(this.els.header, 'action', this.firer('click:back'));
+    bind(this.els.options, 'click', this.onButtonClick);
+    bind(this.els.share, 'click', this.onButtonClick);
 
     this.configure();
     return this;
@@ -66,30 +78,22 @@ return View.extend({
 
   template: function() {
     return '<div class="frame-container js-frame-container">' +
-     '<div class="media-frame js-media-frame"></div>' +
-     '</div>' +
-     '<div class="preview-menu js-preview-menu">' +
-       '<section class="skin-dark" role="region">' +
-        '<header class="js-preview-header">' +
-          '<button class="js-btn" name="back">' +
-            '<span class="preview-back-icon icon-back-arrow">' +
+        '<div class="media-frame js-media-frame"></div>' +
+      '</div>' +
+      '<div class="preview-menu js-preview-menu">' +
+        '<gaia-header class="js-header" action="back" skin="dark">' +
+          '<h1 data-l10n-id="preview">Preview</h1>' +
+          '<button class="js-share" name="share">' +
+            '<span class="preview-share-icon icon-preview-share">' +
             '</span>' +
           '</button>' +
-          '<menu type="toolbar">' +
-            '<button class="js-btn" name="share">' +
-              '<span class="preview-share-icon icon-preview-share">' +
-              '</span>' +
-            '</button>' +
-            '<button class="js-btn" name="options" >' +
-              '<span class="preview-option-icon icon-preview-options">' +
-              '</span>' +
-            '</button>' +
-          '</menu>' +
-          '<h1 data-l10n-id="preview">Preview</h1>' +
-        '</header>' +
-       '</section>' +
-      '<div class="count-text js-count-text"></div>' +
-    '</div>';
+          '<button class="js-options" name="options" >' +
+            '<span class="preview-option-icon icon-preview-options">' +
+            '</span>' +
+          '</button>' +
+        '</gaia-header>' +
+      '</div>' +
+    '<div class="count-text js-count-text"></div>';
   },
 
   onTap: function() {
@@ -210,6 +214,7 @@ return View.extend({
   onButtonClick: function(e, el) {
     if (this.videoPlaying) { return; }
 
+    el = el || e.currentTarget;
     var name = el.getAttribute('name');
     if (this.optionsMenuContainer) {
       this.hideOptionsMenu();
