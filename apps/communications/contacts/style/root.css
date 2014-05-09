@@ -11,8 +11,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6,
-ul, ol, li, dl, dt, dd,
-p, input, textarea, select, button,
+ul, ol, li, dl, dt, dd, p,
 article, aside, details, figcaption, figure, footer, header, hgroup,
 menu, nav, section, video, audio, canvas, progress, meter, time {
   padding: 0;
