@@ -26,8 +26,8 @@
   pointer-events: none;
 }
 
-.lockscreen-icon-area.dark .lockscreen-icon{
-  opacity: 0.65;
+.lockscreen-icon-area.dark .lockscreen-icon {
+  opacity: 0.85;
 }
 
 #lockscreen-area-slide {
@@ -74,11 +74,11 @@
 }
 
 .lockscreen-icon-left > div {
-  background-image: url('images/hangup_icon.png');
+  background-image: url('images/lock_screen/actionicon_lockscreen_reject.png');
 }
 
 .lockscreen-icon-right > div {
-  background-image: url('images/pickup_icon.png');
+  background-image: url('images/lock_screen/actionicon_lockscreen_answer.png');
 }
 
 .touched #lockscreen-icon-container {
@@ -98,7 +98,7 @@
 
 /* Need to override original lockscreen icon container */
 #lockscreen-icon-container {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.85);
   position: absolute;
   bottom: 0;
   width: 100%;
@@ -108,9 +108,9 @@
 
 /* Additional styling for lockscreen icon */
 .lockscreen-icon-right.triggered > div {
-  background-image: url("images/pickup_icon_pressed.png");
+  background-image: url("images/lock_screen/actionicon_lockscreen_answer.png");
 }
 
 .lockscreen-icon-left.triggered > div {
-  background-image: url("images/hangup_icon_pressed.png");
+  background-image: url("images/lock_screen/actionicon_lockscreen_reject.png");
 }
