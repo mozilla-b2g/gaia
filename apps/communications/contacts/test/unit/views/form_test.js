@@ -479,6 +479,52 @@ suite('Render contact form', function() {
       };
     });
 
+    test('FB Contact. Linking and promoting given name', function() {
+      window.fb.setIsFbContact(true);
+      window.fb.setIsFbLinked(false);
+
+      var promoteToLinkedSpy = sinon.spy(Mockfb, 'promoteToLinked');
+      var setPropagatedFlagSpy = sinon.spy(window.fb, 'setPropagatedFlag');
+
+      mockContact.givenName.pop();
+
+      var fbContact = new Mockfb.Contact(mockContact);
+      fbContact.getDataAndValues().onsuccess = function() {
+        subject.render(mockContact, null, this.result);
+        document.querySelector('#givenName').value = '';
+
+        subject.saveContact();
+        assert.isTrue(promoteToLinkedSpy.called);
+        assert.isTrue(setPropagatedFlagSpy.calledWithMatch('givenName'));
+        
+        promoteToLinkedSpy.restore();
+        setPropagatedFlagSpy.restore();
+      };
+    });
+
+    test('FB Contact. Linking and promoting family name', function() {
+      window.fb.setIsFbContact(true);
+      window.fb.setIsFbLinked(false);
+
+      var promoteToLinkedSpy = sinon.spy(Mockfb, 'promoteToLinked');
+      var setPropagatedFlagSpy = sinon.spy(window.fb, 'setPropagatedFlag');
+
+      mockContact.familyName.pop();
+
+      var fbContact = new Mockfb.Contact(mockContact);
+      fbContact.getDataAndValues().onsuccess = function() {
+        subject.render(mockContact, null, this.result);
+        document.querySelector('#familyName').value = '';
+
+        subject.saveContact();
+        assert.isTrue(promoteToLinkedSpy.called);
+        assert.isTrue(setPropagatedFlagSpy.calledWithMatch('familyName'));
+        
+        promoteToLinkedSpy.restore();
+        setPropagatedFlagSpy.restore();
+      };
+    });
+
     test('FB Linked. e-mail and phone both from FB and device', function() {
       window.fb.setIsFbContact(true);
       window.fb.setIsFbLinked(true);

@@ -136,12 +136,12 @@ suite('Contacts', function() {
       sinon.assert.pass(contacts.List.getContactById.called);
       sinon.assert.calledWith(contacts.List.getContactById, mozContact.id);
       sinon.assert.pass(contacts.List.refresh.called);
-      sinon.assert.calledWith(contacts.List.refresh, mozContact);
+      sinon.assert.called(contacts.List.refresh);
 
       var argument = contacts.List.refresh.getCall(0).args[0];
       assert.isTrue(Array.isArray(argument.email));
       argument.email.forEach(function onEmail(email) {
-        assert.isTrue(email.value !== 'myfbemail@email.com');
+        assert.isTrue(email.value === 'myfbemail@email.com');
       });
     });
   });

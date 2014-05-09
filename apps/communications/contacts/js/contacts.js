@@ -807,8 +807,8 @@ var Contacts = (function() {
                 contactsDetails.render(currentContact, null, enrichedContact);
               }
               if (contactsList) {
-                contactsList.refresh(currentContact, checkPendingChanges,
-                                   event.reason);
+                contactsList.refresh(enrichedContact || currentContact,
+                                     checkPendingChanges, event.reason);
               }
           });
         } else {
