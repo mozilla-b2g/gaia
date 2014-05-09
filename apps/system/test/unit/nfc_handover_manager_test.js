@@ -1,15 +1,17 @@
 'use strict';
 
 mocha.globals(['NfcConnectSystemDialog', 'NfcHandoverManager', 'NfcManager',
-               'NfcManagerUtils']);
+               'NDEFUtils']);
 
 /* globals MocksHelper, MockBluetooth, MockNavigatorSettings,
            NDEF, NfcConnectSystemDialog,
-           NfcManager, NfcHandoverManager */
+           NfcManager, NfcHandoverManager,
+           MockNavigatormozSetMessageHandler */
 
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/js/nfc_utils.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_settingslistener_installer.js');
 requireApp('system/test/unit/mock_bluetooth.js');
@@ -26,17 +28,22 @@ suite('Nfc Handover Manager Functions', function() {
 
   var realMozSettings;
   var realMozBluetooth;
+  var realMozSetMessageHandler;
 
   mocksForNfcUtils.attachTestHelpers();
 
   setup(function(done) {
     realMozSettings = navigator.mozSettings;
     realMozBluetooth = navigator.mozBluetooth;
+    realMozSetMessageHandler = navigator.mozSetMessageHandler;
 
     navigator.mozSettings = MockNavigatorSettings;
     navigator.mozBluetooth = MockBluetooth;
+    navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
 
-    requireApp('system/js/nfc_manager_utils.js');
+    MockNavigatormozSetMessageHandler.mSetup();
+
+    requireApp('system/js/ndef_utils.js');
     requireApp('system/js/nfc_manager.js');
     requireApp('system/js/nfc_handover_manager.js', done);
   });
@@ -44,6 +51,7 @@ suite('Nfc Handover Manager Functions', function() {
   teardown(function() {
     navigator.mozSettings = realMozSettings;
     navigator.mozBluetooth = realMozBluetooth;
+    navigator.mozSetMessageHandler = realMozSetMessageHandler;
   });
 
   suite('Activity Routing for NfcHandoverManager', function() {

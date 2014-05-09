@@ -1,41 +1,41 @@
 'use strict';
 
-mocha.globals(['NfcManagerUtils']);
+mocha.globals(['NDEFUtils']);
 
-/* globals MocksHelper, NfcManagerUtils, NDEF, NfcUtils */
+/* globals MocksHelper, NDEFUtils, NDEF, NfcUtils */
 
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 require('/shared/js/nfc_utils.js');
-requireApp('system/js/nfc_manager_utils.js');
+requireApp('system/js/ndef_utils.js');
 
 var mocksForNfcUtils = new MocksHelper([
   'MozNDEFRecord'
 ]).init();
 
-suite('NfcManagerUtils tests', function() {
+suite('NDEFUtils tests', function() {
 
   mocksForNfcUtils.attachTestHelpers();
 
   suite('Helper functions tests', function() {
     test('parseMAC()', function() {
-      assert.isNull(NfcManagerUtils.parseMAC(null));
-      assert.isNull(NfcManagerUtils.parseMAC(''));
-      assert.isNull(NfcManagerUtils.parseMAC('lorem ipsum'));
-      assert.isNull(NfcManagerUtils.parseMAC('ab:cd:ef:gh:ij:kl'));
-      assert.isNull(NfcManagerUtils.parseMAC('ab:cd:ef:12:34'));
-      assert.isNull(NfcManagerUtils.parseMAC(':::::'));
-      assert.isNull(NfcManagerUtils.parseMAC('0:12:12:12:12:12'));
+      assert.isNull(NDEFUtils.parseMAC(null));
+      assert.isNull(NDEFUtils.parseMAC(''));
+      assert.isNull(NDEFUtils.parseMAC('lorem ipsum'));
+      assert.isNull(NDEFUtils.parseMAC('ab:cd:ef:gh:ij:kl'));
+      assert.isNull(NDEFUtils.parseMAC('ab:cd:ef:12:34'));
+      assert.isNull(NDEFUtils.parseMAC(':::::'));
+      assert.isNull(NDEFUtils.parseMAC('0:12:12:12:12:12'));
 
-      assert.isNotNull(NfcManagerUtils.parseMAC('01:23:45:67:89:AB'));
-      assert.isNotNull(NfcManagerUtils.parseMAC('01:23:45:67:89:ab'));
+      assert.isNotNull(NDEFUtils.parseMAC('01:23:45:67:89:AB'));
+      assert.isNotNull(NDEFUtils.parseMAC('01:23:45:67:89:ab'));
     });
 
     test('validateCPS()', function() {
-      assert.isFalse(NfcManagerUtils.validateCPS(-1));
-      assert.isFalse(NfcManagerUtils.validateCPS(4));
+      assert.isFalse(NDEFUtils.validateCPS(-1));
+      assert.isFalse(NDEFUtils.validateCPS(4));
 
       for (var cps = 0; cps <= 3; cps += 1) {
-        assert.isTrue(NfcManagerUtils.validateCPS(cps));
+        assert.isTrue(NDEFUtils.validateCPS(cps));
       }
     });
   });
@@ -61,16 +61,16 @@ suite('NfcManagerUtils tests', function() {
       var records, cps;
 
       cps = 0;
-      records = NfcManagerUtils.encodeHandoverRequest(btMac, cps);
+      records = NDEFUtils.encodeHandoverRequest(btMac, cps);
       assert.equal(records[0].payload[13], cps);
 
       cps = 1;
-      records = NfcManagerUtils.encodeHandoverRequest(btMac, cps);
+      records = NDEFUtils.encodeHandoverRequest(btMac, cps);
       assert.equal(records[0].payload[13], cps);
     });
 
     test('Encodes MAC', function() {
-      var records = NfcManagerUtils.encodeHandoverRequest(btMac, 1);
+      var records = NDEFUtils.encodeHandoverRequest(btMac, 1);
 
       var mac = '';
       for (var m = 7; m >= 2; m -= 1) {
@@ -85,7 +85,7 @@ suite('NfcManagerUtils tests', function() {
     });
 
     test('Encodes random number for collision detection', function() {
-      var request = NfcManagerUtils.encodeHandoverRequest(btMac, 1);
+      var request = NDEFUtils.encodeHandoverRequest(btMac, 1);
 
       assert.isTrue(stubMathRandom.calledTwice);
 
@@ -98,13 +98,13 @@ suite('NfcManagerUtils tests', function() {
 
     test('Returns null when MAC invalid', function() {
       var invalidMAC = 'AB:CD';
-      var records = NfcManagerUtils.encodeHandoverRequest(invalidMAC, 1);
+      var records = NDEFUtils.encodeHandoverRequest(invalidMAC, 1);
       assert.isNull(records);
     });
 
     test('Returns null when CPS invalid', function() {
       var invalidCPS = 5;
-      var records = NfcManagerUtils.encodeHandoverRequest(btMac, invalidCPS);
+      var records = NDEFUtils.encodeHandoverRequest(btMac, invalidCPS);
       assert.isNull(records);
     });
   });
@@ -143,14 +143,14 @@ suite('NfcManagerUtils tests', function() {
     });
 
     test('With MAC, CPS and device name', function() {
-      var records = NfcManagerUtils.encodeHandoverSelect(btMac, 1, btName);
+      var records = NDEFUtils.encodeHandoverSelect(btMac, 1, btName);
       assert.deepEqual(records, recordsDefault);
     });
 
     test('With MAC and CPS only', function() {
       recordsDefault[1].payload =
         new Uint8Array([8, 0, 171, 149, 231, 68, 13, 0]);
-      var records = NfcManagerUtils.encodeHandoverSelect(btMac, 1);
+      var records = NDEFUtils.encodeHandoverSelect(btMac, 1);
       assert.deepEqual(records, recordsDefault);
     });
 
@@ -158,23 +158,23 @@ suite('NfcManagerUtils tests', function() {
       var records, cps;
 
       cps = 0;
-      records = NfcManagerUtils.encodeHandoverSelect(btMac, cps, btName);
+      records = NDEFUtils.encodeHandoverSelect(btMac, cps, btName);
       assert.equal(records[0].payload[6], cps);
 
       cps = 2;
-      records = NfcManagerUtils.encodeHandoverSelect(btMac, cps, btName);
+      records = NDEFUtils.encodeHandoverSelect(btMac, cps, btName);
       assert.equal(records[0].payload[6], cps);
     });
 
     test('Returns null when MAC invalid', function() {
       var invalidMAC = 'AB:CD';
-      var records = NfcManagerUtils.encodeHandoverSelect(invalidMAC, 1);
+      var records = NDEFUtils.encodeHandoverSelect(invalidMAC, 1);
       assert.isNull(records);
     });
 
     test('Returns null when CPS invalid', function() {
       var invalidCPS = 5;
-      var records = NfcManagerUtils.encodeHandoverSelect(btMac, invalidCPS);
+      var records = NDEFUtils.encodeHandoverSelect(btMac, invalidCPS);
       assert.isNull(records);
     });
   });

@@ -4,12 +4,12 @@
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
 /* globals dump, MozNDEFRecord, NDEF, NfcUtils */
-/* exported NfcManagerUtils */
+/* exported NDEFUtils */
 'use strict';
 
 
 /*******************************************************************************
- * NfcManagerUtils offers a set of utility functions to handle NDEF messages
+ * NDEFUtils offers a set of utility functions to handle NDEF messages
  * according to NFCForum-TS-NDEF_1.0. It exports the following functions:
  *
  * - parseHandoverNDEF: parse a NDEF message that represents a handover request
@@ -23,7 +23,7 @@
  * - encodeHandoverSelect: returns a NDEF message that contains a handover
  *         select message
  */
-var NfcManagerUtils = {
+var NDEFUtils = {
 
   DEBUG: false,
 
