@@ -24,6 +24,6 @@
   top: 0;
 }
 
-#value-selector-container li > label {
+.value-selector-container li > label {
   pointer-events: none;
 }

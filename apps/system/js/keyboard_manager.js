@@ -730,12 +730,9 @@ var KeyboardManager = {
         var label = layout.appName + ' ' + layout.name;
         var item = {
           label: label,
-          value: index
+          value: index,
+          selected: (index === activeLayout)
         };
-        if (index === activeLayout) {
-          item.iconClass = 'tail-icon';
-          item.icon = 'style/icons/checkmark.png';
-        }
         items.push(item);
       });
       self.hideKeyboard();
@@ -755,16 +752,6 @@ var KeyboardManager = {
         // Refresh the switcher, or the labled type and layout name
         // won't change.
       }, function() {
-
-        var activity = new MozActivity({
-          name: 'configure',
-          data: {
-            target: 'device',
-            section: 'keyboard'
-          }
-        });
-
-        /*
         var showed = self.showingLayout;
         if (!self.keyboardLayouts[showed.type])
           showed.type = 'text';
@@ -773,12 +760,11 @@ var KeyboardManager = {
         // when user canceled it.
         self.setKeyboardToShow(showed.type);
         self.showKeyboard();
-        */
 
         // Hide the tray to show the app directly after
         // user canceled.
         window.dispatchEvent(new CustomEvent('keyboardchangecanceled'));
-      }, true /* preventFocusChange */);
+      });
       menu.start();
     }, SWITCH_CHANGE_DELAY);
   },
