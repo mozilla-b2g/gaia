@@ -4,7 +4,7 @@
 'use strict';
 
 /*global Utils, ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
-         Settings, LazyLoader, TimeHeaders */
+         Settings, LazyLoader, SMSDraft, TimeHeaders */
 
 window.addEventListener('localized', function localized() {
   // This will be called during startup, and any time the languange is changed

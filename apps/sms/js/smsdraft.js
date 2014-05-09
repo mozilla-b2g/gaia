@@ -1,4 +1,5 @@
-/* global asyncStorage, clearInterval, setInterval, Compose, ThreadUI */
+/* global asyncStorage, Compose, ThreadUI */
+/* exported SMSDraft */
 
 'use strict';
 
@@ -43,6 +44,11 @@ var SMSDraft = {
     Compose.off('input', this.onInput);
     ThreadUI.recipients.off('add', this.onInput);
     ThreadUI.recipients.off('remove', this.onInput);
+
+    if (this._timerId) {
+      clearTimeout(this._timerId);
+      this._timerId = null;
+    }
   },
 
   onHashChange: function() {

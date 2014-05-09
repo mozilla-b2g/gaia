@@ -31,6 +31,7 @@ suite('smsdraft.js', function() {
 
   setup(function() {
     loadBodyHTML('/index.html');
+
     sendButton = document.getElementById('messages-send-button');
     sendButton.disabled = false;
 
@@ -130,11 +131,12 @@ suite('smsdraft.js', function() {
   suite('monitoring', function() {
     setup(function() {
       this.sinon.useFakeTimers();
-      this.sinon.spy(window, 'setInterval');
-      this.sinon.spy(window, 'clearInterval');
 
       this.sinon.stub(Compose, 'on');
       this.sinon.stub(Compose, 'off');
+      this.sinon.stub(ThreadUI.recipients, 'on');
+      this.sinon.stub(ThreadUI.recipients, 'off');
+
       this.sinon.stub(asyncStorage, 'setItem');
       this.sinon.stub(asyncStorage, 'removeItem');
 
@@ -142,14 +144,12 @@ suite('smsdraft.js', function() {
     });
 
     test('Not monitoring at startup', function() {
-      sinon.assert.notCalled(window.setInterval);
+      sinon.assert.notCalled(Compose.on);
+      sinon.assert.notCalled(ThreadUI.recipients.on);
     });
 
     suite('entering the composer', function() {
       setup(function() {
-        this.sinon.stub(ThreadUI.recipients, 'on');
-        this.sinon.stub(ThreadUI.recipients, 'off');
-
         window.location.hash = '#new';
 
         window.dispatchEvent(new HashChangeEvent('hashchange'));
@@ -212,8 +212,33 @@ suite('smsdraft.js', function() {
         );
 
         sinon.assert.called(Compose.off);
+        sinon.assert.calledWith(ThreadUI.recipients.off, 'add');
+        sinon.assert.calledWith(ThreadUI.recipients.off, 'remove');
       });
 
+      test('exiting the composer stops the timeout', function() {
+        var content = ['body'];
+        var subject = 'subject';
+        var recipients = ['recipient1', 'recipient2'];
+        ThreadUI.recipients.list = recipients;
+
+        this.sinon.stub(Compose, 'getContent').returns(content);
+        this.sinon.stub(Compose, 'getSubject').returns(subject);
+
+        // there is an input
+        Compose.on.yield();
+
+        // but the user exits the view
+        window.location.hash = '#thread-list';
+        window.dispatchEvent(new HashChangeEvent('hashchange'));
+
+        // fast forward 2 seconds
+        this.sinon.clock.tick(2000);
+
+        sinon.assert.notCalled(
+          asyncStorage.setItem, 'not calling setItem if user exited the view'
+        );
+      });
     });
   });
 
