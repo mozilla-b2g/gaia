@@ -768,6 +768,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             try:
                 self.connect_to_local_area_network()
             except:
+                self.marionette.log('Failed to connect to wifi, trying cell data instead.')
                 if self.device.has_mobile_connection:
                     self.data_layer.connect_to_cell_data()
                 else:
