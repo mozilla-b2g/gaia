@@ -22,16 +22,16 @@ var SMSDraft = {
 
     // prebinding so that it's possible to remove the listener in uninit
     this.onHashChange = this.onHashChange.bind(this);
-    this.clearDraft = this.clearDraft.bind(this);
+    this.cleanUp = this.cleanUp.bind(this);
     this.onInput = this.onInput.bind(this);
 
     window.addEventListener('hashchange', this.onHashChange);
-    this._sendButton.addEventListener('click', this.clearDraft);
+    this._sendButton.addEventListener('click', this.cleanUp);
   },
 
   uninit: function() {
     window.removeEventListener('hashchange', this.onHashChange);
-    this._sendButton.removeEventListener('click', this.clearDraft);
+    this._sendButton.removeEventListener('click', this.cleanUp);
   },
 
   startMonitor: function() {
@@ -56,9 +56,13 @@ var SMSDraft = {
       this.recoverDraft();
       this.startMonitor();
     } else {
-      this.stopMonitor();
-      this.clearDraft();
+      this.cleanUp();
     }
+  },
+
+  cleanUp: function() {
+    this.stopMonitor();
+    this.clearDraft();
   },
 
   onInput: function() {

@@ -239,6 +239,29 @@ suite('smsdraft.js', function() {
           asyncStorage.setItem, 'not calling setItem if user exited the view'
         );
       });
+
+      test('sending the mssage stops the timeout', function() {
+        var content = ['body'];
+        var subject = 'subject';
+        var recipients = ['recipient1', 'recipient2'];
+        ThreadUI.recipients.list = recipients;
+
+        this.sinon.stub(Compose, 'getContent').returns(content);
+        this.sinon.stub(Compose, 'getSubject').returns(subject);
+
+        // there is an input
+        Compose.on.yield();
+
+        // but the user sends the message before it's saved as draft
+        sendButton.click();
+
+        // fast forward 2 seconds
+        this.sinon.clock.tick(2000);
+
+        sinon.assert.notCalled(
+          asyncStorage.setItem, 'not calling setItem if user exited the view'
+        );
+      });
     });
   });
 
