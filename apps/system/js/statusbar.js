@@ -227,7 +227,7 @@ var StatusBar = {
     // Listen to Custom event send by 'media_recording.js'
     window.addEventListener('recordingEvent', this);
     // Listen to Custom event send by 'nfc_manager.js'
-    window.addEventListener('nfcEvent', this);
+    window.addEventListener('nfc-state-changed', this);
 
     // 'bluetoothconnectionchange' fires when the overall bluetooth connection
     //  changes.
