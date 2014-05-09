@@ -4,8 +4,6 @@
 
 (function(exports) {
 
-  const activateDelay = 400;
-
   const activeScaleAdjust = 0.4;
 
   var container = document.getElementById('icons');
@@ -179,11 +177,10 @@
               return;
             }
 
-            this.timeout = setTimeout(this.begin.bind(this, e),
-              activateDelay);
-
             container.addEventListener('touchmove', this);
             container.addEventListener('touchend', this);
+
+            this.begin(e);
 
             break;
           case 'touchmove':
