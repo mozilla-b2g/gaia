@@ -24,7 +24,7 @@ var DatastoreMigration = function(db) {
 
     this._files = [
       '/shared/js/fb/fb_request.js',
-      'js/fb/fb_data.js'
+      '/shared/js/contacts/import/facebook/fb_data.js'
     ];
 
     // 3 seconds idle time
