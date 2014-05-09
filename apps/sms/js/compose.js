@@ -415,7 +415,7 @@ var Compose = (function() {
         }.bind(this));
         this.ignoreEvents = true;
       } else {
-        this.append(message.body);
+        this.append(message.body ? message.body : '');
         this.focus();
       }
     },

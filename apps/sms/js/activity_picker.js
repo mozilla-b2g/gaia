@@ -1,4 +1,4 @@
-/*global MozActivity */
+/*global ActivityHandler, MozActivity */
 
 (function(exports) {
 'use strict';
@@ -96,16 +96,12 @@ var ActivityPicker = {
 
     tryActivity(params, onsuccess, onerror);
   },
-  sendMessage: function ap_sendMessage(phone, onsuccess, onerror) {
-    var params = {
-      name: 'new',
-      data: {
-        type: 'websms/sms',
-        number: phone
-      }
-    };
-
-    tryActivity(params, onsuccess, onerror);
+  sendMessage: function ap_sendMessage(number) {
+    // Workaround for bug 999286, emulating window activity here so that Home
+    // button press won't dismiss newly created message.
+    ActivityHandler.toView({
+      number: number
+    });
   },
   openSettings: function ap_openSettings(onsuccess, onerror) {
     var params = {
