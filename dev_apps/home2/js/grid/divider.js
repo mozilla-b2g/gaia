@@ -43,10 +43,8 @@
     render: function(coordinates, index) {
       // Generate the content if we need to
       if (!this.divider) {
-        var divider = document.createElement('div');
+        var divider = this.divider = document.createElement('div');
         divider.className = 'divider';
-        this.divider = divider;
-
         container.appendChild(divider);
       }
 
@@ -58,7 +56,9 @@
     },
 
     remove: function() {
-      this.divider.parentNode.removeChild(this.divider);
+      if (this.divider) {
+        this.divider.parentNode.removeChild(this.divider);
+      }
     }
   };
 

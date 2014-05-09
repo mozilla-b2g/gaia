@@ -65,14 +65,10 @@
 
     /**
      * Renders the icon to the container.
-     * @param {Object} coordinates Grid coordinates to render to.
+     * @param {Array} coordinates Grid coordinates to render to.
      * @param {Number} index The index of the items list of this item.
      */
     render: function(coordinates, index) {
-      var x = coordinates.x * layout.gridItemWidth;
-      var y = layout.offsetY;
-      var nameEl = null;
-
       // Generate an element if we need to
       if (!this.element) {
         var tile = document.createElement('div');
@@ -85,8 +81,9 @@
         nameContainerEl.style.marginTop = layout.gridIconSize + 'px';
         tile.appendChild(nameContainerEl);
 
-        nameEl = document.createElement('span');
+        var nameEl = document.createElement('span');
         nameEl.className = 'title';
+        nameEl.textContent = this.name;
         nameContainerEl.appendChild(nameEl);
 
         // Add delete link if this icon is removable
@@ -107,19 +104,17 @@
         }
 
         container.appendChild(tile);
-      } else {
-        nameEl = this.element.querySelector('.title');
       }
 
-      nameEl.textContent = this.name;
-
+      var x = coordinates[0] * layout.gridItemWidth;
+      var y = layout.offsetY;
       this.setPosition(index);
       this.x = x;
       this.y = y;
       this.scale = layout.percent;
 
       // Avoid rendering the icon during a drag to prevent jumpiness
-      if (this.noRender) {
+      if (this.noRearrange) {
         return;
       }
 

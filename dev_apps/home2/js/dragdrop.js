@@ -141,7 +141,7 @@
       var myIndex = this.icon.detail.index;
       if (foundIndex !== myIndex) {
         this.dirty = true;
-        this.icon.noRender = true;
+        this.icon.noRearrange = true;
         app.items.splice(foundIndex, 0, app.items.splice(myIndex, 1)[0]);
         app.render();
       }
@@ -223,7 +223,7 @@
             this.currentTouch = null;
             this.active = false;
 
-            delete this.icon.noRender;
+            delete this.icon.noRearrange;
             this.icon = null;
 
             if (this.target) {

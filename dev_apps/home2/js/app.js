@@ -64,10 +64,12 @@
 
     start: function() {
       this.container.addEventListener('click', this.iconLaunch);
+      this.stopped = false;
     },
 
     stop: function() {
       this.container.removeEventListener('click', this.iconLaunch);
+      this.stopped = true;
     },
 
     /**
@@ -146,7 +148,9 @@
      */
     render: function() {
       app.cleanItems();
-      document.body.dataset.cols = layout.perRow;
+      if (!this.stopped) {
+        document.body.dataset.cols = layout.perRow;
+      }
 
       // Reset offset steps
       layout.offsetY = 0;
@@ -178,11 +182,8 @@
           step(lastItem);
         }
 
-        item.render({
-          x: x,
-          y: y
-        }, idx);
-
+        item.render([x, y], idx);
+        
         // Increment the x-step by the sizing of the item.
         // If we go over the current boundary, reset it, and step the y-axis.
         x += item.gridWidth;
