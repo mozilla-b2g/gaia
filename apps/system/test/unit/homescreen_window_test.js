@@ -98,6 +98,16 @@ suite('system/HomescreenWindow', function() {
         });
         assert.isTrue(stubRestart.calledTwice);
       });
+      test('_localized event', function() {
+        var stubPublish = this.sinon.stub(homescreenWindow, 'publish');
+
+        homescreenWindow.handleEvent({
+          type: '_localized'
+        });
+
+        assert.isTrue(stubPublish.calledOnce);
+        assert.isTrue(stubPublish.calledWith('namechanged'));
+      });
     });
     suite('homescreen is crashed', function() {
       var stubRender;
