@@ -134,7 +134,7 @@ suite('search/search', function() {
 
   suite('submit', function() {
     test('calls navigate for submit types', function() {
-      var stub = this.sinon.stub(Search, 'navigate');
+      var stub = this.sinon.stub(Search, 'openBrowsingWindow');
       Search.dispatchMessage({
         data: {
           action: 'submit',
@@ -193,14 +193,14 @@ suite('search/search', function() {
     test('window.open is called', function() {
       var url = 'http://mozilla.org';
       var stub = this.sinon.stub(window, 'open');
-      Search.navigate(url);
+      Search.openWindow(url);
       assert.ok(stub.calledWith(url));
     });
 
     test('parses features', function() {
       var url = 'http://mozilla.org';
       var stub = this.sinon.stub(window, 'open');
-      Search.navigate(url, {
+      Search.openWindow(url, {
         a: 1,
         b: 2
       });

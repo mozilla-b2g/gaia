@@ -25,7 +25,7 @@
     click: function(e) {
       var url = e.target && e.target.dataset.url;
       if (url) {
-        Search.navigate(url, {
+        Search.openWindow(url, {
           icon: e.target.dataset.icon,
           originUrl: url,
           originName: e.target.dataset.title
