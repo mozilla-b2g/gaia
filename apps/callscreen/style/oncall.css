@@ -734,10 +734,19 @@
 
   #incoming-number {
     width: calc(100% - 3rem);
-    font-size: 2.5rem;
+    font-size: 3.4rem;
     white-space: nowrap;
     text-overflow: ellipsis;
     margin-bottom: 0.5rem;
+  }
+
+  #fake-incoming-number {
+    position: absolute;
+    line-height: 0;
+    visibility: hidden;
+    white-space: nowrap;
+    padding: 0;
+    top: 1rem;
   }
 
   #incoming-number-additional-info {
