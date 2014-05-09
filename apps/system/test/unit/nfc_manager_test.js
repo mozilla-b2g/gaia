@@ -235,6 +235,21 @@ suite('Nfc Manager Functions', function() {
       execCommonTest(dummyNdefMsg, 'text/plain');
     });
 
+    test('TNF absolute uri', function() {
+      // TNF_ABSOLUTE_URI has uri in the type
+      var type = new Uint8Array([0x68, 0x74, 0x74, 0x70,
+                                 0x3A, 0x2F, 0x2F, 0x6D,
+                                 0x6F, 0x7A, 0x69, 0x6C,
+                                 0x6C, 0x61, 0x2E, 0x6F,
+                                 0x72, 0x67]);
+      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_ABSOLUTE_URI,
+                                            type,
+                                            new Uint8Array(),
+                                            new Uint8Array())];
+      
+      execCommonTest(dummyNdefMsg, 'http://mozilla.org');
+    });
+
     test('TNF external type', function() {
       var type = new Uint8Array([0x6D, 0x6F, 0x7A, 0x69,
                                  0x6C, 0x6C, 0x61, 0x2E,
@@ -461,25 +476,6 @@ suite('Nfc Manager Functions', function() {
       assert.equal(activityOptions.data.rtd, NDEF.RTD_TEXT);
       assert.equal(activityOptions.data.language, 'en');
       assert.equal(activityOptions.data.encoding, 'UTF-16');
-      assert.equal(activityOptions.data.records, dummyNdefMsg);
-    });
-
-    // Bug 1004438 TNF Absolute URI should be handled properly in NfcManager
-    test('TNF absolute uri', function() {
-      // TNF_ABSOLUTE_URI has uri in the type
-      var type = new Uint8Array([0x68, 0x74, 0x74, 0x70,
-                                 0x3A, 0x2F, 0x2F, 0x6D,
-                                 0x6F, 0x7A, 0x69, 0x6C,
-                                 0x6C, 0x61, 0x2E, 0x6F,
-                                 0x72, 0x67]);
-      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_ABSOLUTE_URI,
-                                            type,
-                                            new Uint8Array(),
-                                            new Uint8Array())];
-      
-      var activityOptions = NfcManager.handleNdefMessage(dummyNdefMsg);
-      assert.equal(activityOptions.name, 'nfc-ndef-discovered');
-      assert.equal(activityOptions.data.type, 'http://mozilla.org');
       assert.equal(activityOptions.data.records, dummyNdefMsg);
     });
 
