@@ -388,7 +388,6 @@ apps/sharedtest/test/unit/tag_visibility_monitor_test.js
 apps/sharedtest/test/unit/template_test.js
 apps/sharedtest/test/unit/url_helper_test.js
 apps/sharedtest/test/unit/wifi_helper_test.js
-apps/system/js/accessibility.js
 apps/system/js/airplane_mode.js
 apps/system/js/app_install_manager.js
 apps/system/js/app_modal_dialog.js

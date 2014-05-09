@@ -1,42 +1,69 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
+/* global SettingsListener */
 
-/*global SettingsListener*/
+(function(exports) {
 
-(function() {
+  /**
+   * Accessibility enables and disables the screenreader after the user
+   * gestures using the hardware buttons of the phone. To toggle the setting.
+   * the user must press volume up, then volume down three times in a row.
+   * @class Accessibility
+   */
+  function Accessibility() {}
 
-  var AccessibilityRelay = {
-    // How fast the autorepeat is.
+  Accessibility.prototype = {
+
+    /**
+     * How fast the autorepeat is.
+     * @type {Number}
+     * @memberof Accessibility.prototype
+     */
     REPEAT_INTERVAL: 600000,
-    // Maximum interval between initial and final TOGGLE_SCREEN_READER_COUNT
-    // volume button presses.
+
+    /**
+     * Maximum interval between initial and final TOGGLE_SCREEN_READER_COUNT
+     * volume button presses.
+     * @type {Number}
+     * @memberof Accessibility.prototype
+     */
     REPEAT_BUTTON_PRESS: 15000000,
-    // Number of times the buttons need to be pressed before the screen reader
-    // setting is toggled.
+
+    /**
+     * Number of times the buttons need to be pressed before the screen reader
+     * setting is toggled.
+     * @type {Number}
+     * @memberof Accessibility.prototype
+     */
     TOGGLE_SCREEN_READER_COUNT: 6,
+
     /**
      * Current counter for button presses in short succession.
      * @type {Number}
+     * @memberof Accessibility.prototype
      */
     counter: 0,
+
     /**
      * Next expected event.
      * @type {Object}
+     * @memberof Accessibility.prototype
      */
     expectedEvent: {
       type: 'volume-up-button-press',
       timeStamp: 0
     },
+
     /**
      * Expected complete time stamp.
      * @type {Number}
+     * @memberof Accessibility.prototype
      */
     expectedCompleteTimeStamp: 0,
+
     /**
      * Accessibility settings to be observed.
      * @type {Object} name: value pairs.
+     * @memberof Accessibility.prototype
      */
     settings: {
       'accessibility.screenreader': false
@@ -45,19 +72,22 @@
     /**
      * Speech Synthesis
      * @type {Object}
+     * @memberof Accessibility.prototype
      */
     get speechSynthesis() {
       return window.speechSynthesis;
     },
 
     /**
-     * AccessibilityRelay initialization.
+     * Start listening for events.
+     * @memberof Accessibility.prototype
      */
-    init: function ar_init() {
+    start: function ar_init() {
       window.addEventListener('mozChromeEvent', this);
 
       // Attach all observers.
       for (var settingKey in this.settings) {
+        /* jshint loopfunc:true */
         SettingsListener.observe(settingKey,
           this.settings[settingKey], function observe(aValue) {
             this.settings[settingKey] = aValue;
@@ -67,6 +97,7 @@
 
     /**
      * Reset the expected event to defaults.
+     * @memberof Accessibility.prototype
      */
     reset: function ar_resetEvent() {
       this.expectedEvent = {
@@ -80,6 +111,7 @@
      * Unset speaking flag and set the expected complete time stamp.
      * @param  {?Number} aExpectedCompleteTimeStamp Expected complete time
      * stamp.
+     * @memberof Accessibility.prototype
      */
     resetSpeaking: function ar_resetSpeaking(aExpectedCompleteTimeStamp) {
       this.isSpeaking = false;
@@ -89,6 +121,7 @@
     /**
      * Handle a mozChromeEvent event.
      * @param  {Object} aEvent mozChromeEvent.
+     * @memberof Accessibility.prototype
      */
     handleEvent: function ar_handleEvent(aEvent) {
       var type = aEvent.detail.type;
@@ -142,6 +175,7 @@
      * @param {Boolean} enqueue A flag to enqueue the message.
      * @param {Function} aCallback A callback after the speech synthesis is
      * completed.
+     * @memberof Accessibility.prototype
      */
     utter: function ar_utter(aMessage, aEnqueue, aCallback) {
       if (!this.speechSynthesis || !window.SpeechSynthesisUtterance) {
@@ -166,6 +200,7 @@
      * instructions of how to enable/disable it.
      * @param {Function} aCallback A callback after the speech synthesis is
      * completed.
+     * @memberof Accessibility.prototype
      */
     announceScreenReader: function ar_announceScreenReader(aCallback) {
       var enabled = this.settings['accessibility.screenreader'];
@@ -175,6 +210,6 @@
     }
   };
 
-  AccessibilityRelay.init();
+  exports.Accessibility = Accessibility;
 
-})();
+}(window));
