@@ -68,8 +68,8 @@ require([
     var _ignoreSettingChanges = false;
     /** Flag */
     var _getCallForwardingOptionSuccess = true;
-    /** Flag */
-    var _updatingInProgress = false;
+    /** Task scheduler */
+    var _taskScheduler = null;
 
     /**
      * Init function.
@@ -84,6 +84,7 @@ require([
       }
 
       _voiceServiceClassMask = _mobileConnection.ICC_SERVICE_CLASS_VOICE;
+      _taskScheduler = TaskScheduler();
 
       // Set the navigation correctly when on a multi ICC card device.
       if (DsdsSettings.getNumberOfIccSlots() > 1) {
@@ -190,18 +191,11 @@ require([
       cs_updateVoiceMailItemState();
       cs_updateFdnStatus();
       cs_updateVoicePrivacyItemState();
-      if (!_updatingInProgress) {
-        cs_updateCallerIdPreference(
-          function panelready_updateCallerIdPref() {
-            cs_updateCallerIdItemState(
-              function panelready_updateCallerIdItemState() {
-                cs_updateCallWaitingItemState(
-                  function panelready_updateCallWaitingItemState() {
-                    cs_updateCallForwardingSubpanels();
-                });
-            });
-        });
-      }
+
+      cs_updateCallerIdPreference();
+      cs_updateCallerIdItemState();
+      cs_updateCallWaitingItemState();
+      cs_updateCallForwardingSubpanels();
     }
 
     /**
@@ -555,46 +549,48 @@ require([
         return;
       }
 
-      _updatingInProgress = true;
-
-      cs_displayInfoForAll(_('callSettingsQuery'));
-      cs_enableTapOnCallForwardingItems(false);
-      cs_getCallForwardingOption(function got_cfOption(cfOptions) {
-        if (cfOptions) {
-          // Need to check wether we enabled/disabled forwarding calls properly
-          // e.g. the carrier might not support disabling call forwarding
-          // for some reasons such as phone is busy, unreachable, etc.
-          if (checkSetCallForwardingOptionResult) {
-            var rules = cfOptions[reason];
-            var message = cs_getSetCallForwardingOptionResult(rules, action);
-            document.getElementById('cf-confirm-message').textContent = message;
-            var cfAlertPanel = document.querySelector('#call .cf-alert');
-            cfAlertPanel.hidden = false;
+      _taskScheduler.enqueue('CALL_FORWARDING', function(done) {
+        cs_displayInfoForAll(_('callSettingsQuery'));
+        cs_enableTapOnCallForwardingItems(false);
+        cs_getCallForwardingOption(function got_cfOption(cfOptions) {
+          if (cfOptions) {
+            // Need to check wether we enabled/disabled forwarding calls
+            // properly e.g. the carrier might not support disabling call
+            // forwarding for some reasons such as phone is busy, unreachable,
+            // etc.
+            if (checkSetCallForwardingOptionResult) {
+              var rules = cfOptions[reason];
+              var message = cs_getSetCallForwardingOptionResult(rules, action);
+              document.getElementById('cf-confirm-message')
+                .textContent = message;
+              var cfAlertPanel = document.querySelector('#call .cf-alert');
+              cfAlertPanel.hidden = false;
+            }
+            cs_displayRule(
+              cfOptions['unconditional'], 'cfu-desc', 'unconditional');
+            cs_displayRule(cfOptions['mobilebusy'], 'cfmb-desc', 'mobilebusy');
+            cs_displayRule(cfOptions['noreply'], 'cfnrep-desc', 'noreply');
+            cs_displayRule(
+              cfOptions['notreachable'], 'cfnrea-desc', 'notreachable'
+            );
+            _getCallForwardingOptionSuccess = true;
+            cs_enableTabOnCallerIdItem(true);
+            cs_enableTabOnCallWaitingItem(true);
+            //  If the query is a success enable call forwarding items.
+            cs_enableTapOnCallForwardingItems(_getCallForwardingOptionSuccess);
+          } else {
+            cs_displayInfoForAll(_('callSettingsQueryError'));
+            _getCallForwardingOptionSuccess = false;
+            cs_enableTabOnCallerIdItem(true);
+            cs_enableTabOnCallWaitingItem(true);
+            //  If the query is an error disable call forwarding items.
+            cs_enableTapOnCallForwardingItems(_getCallForwardingOptionSuccess);
           }
-          cs_displayRule(
-            cfOptions['unconditional'], 'cfu-desc', 'unconditional');
-          cs_displayRule(cfOptions['mobilebusy'], 'cfmb-desc', 'mobilebusy');
-          cs_displayRule(cfOptions['noreply'], 'cfnrep-desc', 'noreply');
-          cs_displayRule(
-            cfOptions['notreachable'], 'cfnrea-desc', 'notreachable'
-          );
-          _getCallForwardingOptionSuccess = true;
-          cs_enableTabOnCallerIdItem(true);
-          cs_enableTabOnCallWaitingItem(true);
-          //  If the query is a success enable call forwarding items.
-          cs_enableTapOnCallForwardingItems(_getCallForwardingOptionSuccess);
-        } else {
-          cs_displayInfoForAll(_('callSettingsQueryError'));
-          _getCallForwardingOptionSuccess = false;
-          cs_enableTabOnCallerIdItem(true);
-          cs_enableTabOnCallWaitingItem(true);
-          //  If the query is an error disable call forwarding items.
-          cs_enableTapOnCallForwardingItems(_getCallForwardingOptionSuccess);
-        }
-        _updatingInProgress = false;
-        if (callback) {
-          callback(null);
-        }
+          if (callback) {
+            callback(null);
+          }
+          done();
+        });
       });
     }
 
@@ -623,59 +619,69 @@ require([
     }
 
     function cs_updateCallerIdPreference(callback) {
-      if (typeof callback !== 'function') {
-        callback = function() {};
-      }
-
-      cs_enableTabOnCallerIdItem(false);
-      cs_enableTabOnCallWaitingItem(false);
-      cs_enableTapOnCallForwardingItems(false);
-
-      var req = _mobileConnection.getCallingLineIdRestriction();
-      req.onsuccess = function() {
-        var value = 0; //CLIR_DEFAULT
-
-        // In some legitimates error cases (FdnCheckFailure), the req.result
-        // is undefined. This is fine, we want this, and in this case we will
-        // just display an error message for all the matching requests.
-        if (req.result) {
-          switch (req.result['m']) {
-            case 1: // Permanently provisioned
-            case 3: // Temporary presentation disallowed
-            case 4: // Temporary presentation allowed
-              switch (req.result['n']) {
-                case 1: // CLIR invoked, CLIR_INVOCATION
-                case 2: // CLIR suppressed, CLIR_SUPPRESSION
-                case 0: // Network default, CLIR_DEFAULT
-                  value = req.result['n']; //'CLIR_INVOCATION'
-                  break;
-                default:
-                  value = 0; //CLIR_DEFAULT
-                  break;
-              }
-              break;
-            case 0: // Not Provisioned
-            case 2: // Unknown (network error, etc)
-            default:
-              value = 0; //CLIR_DEFAULT
-              break;
-          }
-
-          SettingsCache.getSettings(function(results) {
-            var preferences = results['ril.clirMode'] || [0, 0];
-            var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
-            preferences[targetIndex] = value;
-            var setReq = _settings.createLock().set({
-              'ril.clirMode': preferences
-            });
-            setReq.onsuccess = callback;
-            setReq.onerror = callback;
-          });
+      _taskScheduler.enqueue('CALLER_ID_PREF', function(done) {
+        if (typeof callback !== 'function') {
+          callback = function() {
+            done();
+          };
         } else {
-          callback();
+          var originalCallback = callback;
+          callback = function() {
+            originalCallback();
+            done();
+          };
         }
-      };
-      req.onerror = callback;
+
+        cs_enableTabOnCallerIdItem(false);
+        cs_enableTabOnCallWaitingItem(false);
+        cs_enableTapOnCallForwardingItems(false);
+
+        var req = _mobileConnection.getCallingLineIdRestriction();
+        req.onsuccess = function() {
+          var value = 0; //CLIR_DEFAULT
+
+          // In some legitimates error cases (FdnCheckFailure), the req.result
+          // is undefined. This is fine, we want this, and in this case we will
+          // just display an error message for all the matching requests.
+          if (req.result) {
+            switch (req.result['m']) {
+              case 1: // Permanently provisioned
+              case 3: // Temporary presentation disallowed
+              case 4: // Temporary presentation allowed
+                switch (req.result['n']) {
+                  case 1: // CLIR invoked, CLIR_INVOCATION
+                  case 2: // CLIR suppressed, CLIR_SUPPRESSION
+                  case 0: // Network default, CLIR_DEFAULT
+                    value = req.result['n']; //'CLIR_INVOCATION'
+                    break;
+                  default:
+                    value = 0; //CLIR_DEFAULT
+                    break;
+                }
+                break;
+              case 0: // Not Provisioned
+              case 2: // Unknown (network error, etc)
+              default:
+                value = 0; //CLIR_DEFAULT
+                break;
+            }
+
+            SettingsCache.getSettings(function(results) {
+              var preferences = results['ril.clirMode'] || [0, 0];
+              var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
+              preferences[targetIndex] = value;
+              var setReq = _settings.createLock().set({
+                'ril.clirMode': preferences
+              });
+              setReq.onsuccess = callback;
+              setReq.onerror = callback;
+            });
+          } else {
+            callback();
+          }
+        };
+        req.onerror = callback;
+      });
     }
 
     /**
@@ -690,35 +696,38 @@ require([
         return;
       }
 
-      cs_enableTabOnCallerIdItem(false);
-      cs_enableTabOnCallWaitingItem(false);
-      cs_enableTapOnCallForwardingItems(false);
+      _taskScheduler.enqueue('CALLER_ID', function(done) {
+        cs_enableTabOnCallerIdItem(false);
+        cs_enableTabOnCallWaitingItem(false);
+        cs_enableTapOnCallForwardingItems(false);
 
-      SettingsCache.getSettings(function(results) {
-        var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
-        var preferences = results['ril.clirMode'];
-        var preference = (preferences && preferences[targetIndex]) || 0;
-        var input = document.getElementById('ril-callerId');
+        SettingsCache.getSettings(function(results) {
+          var targetIndex = DsdsSettings.getIccCardIndexForCallSettings();
+          var preferences = results['ril.clirMode'];
+          var preference = (preferences && preferences[targetIndex]) || 0;
+          var input = document.getElementById('ril-callerId');
 
-        var value;
-        switch (preference) {
-          case 1: // CLIR invoked
-            value = 'CLIR_INVOCATION';
-            break;
-          case 2: // CLIR suppressed
-            value = 'CLIR_SUPPRESSION';
-            break;
-          case 0: // Network default
-          default:
-            value = 'CLIR_DEFAULT';
-            break;
-        }
+          var value;
+          switch (preference) {
+            case 1: // CLIR invoked
+              value = 'CLIR_INVOCATION';
+              break;
+            case 2: // CLIR suppressed
+              value = 'CLIR_SUPPRESSION';
+              break;
+            case 0: // Network default
+            default:
+              value = 'CLIR_DEFAULT';
+              break;
+          }
 
-        input.value = value;
+          input.value = value;
 
-        if (typeof callback === 'function') {
-          callback();
-        }
+          if (typeof callback === 'function') {
+            callback();
+          }
+          done();
+        });
       });
     }
 
@@ -798,27 +807,31 @@ require([
         return;
       }
 
-      var input = menuItem.querySelector('.checkbox-label input');
+      _taskScheduler.enqueue('CALL_WAITING', function(done) {
+        var input = menuItem.querySelector('.checkbox-label input');
 
-      var getCWEnabled = _mobileConnection.getCallWaitingOption();
-      getCWEnabled.onsuccess = function cs_getCWEnabledSuccess() {
-        var enabled = getCWEnabled.result;
-        input.checked = enabled;
-        if (enabled) {
-          menuItem.dataset.state = 'on';
-        } else {
-          menuItem.dataset.state = 'off';
-        }
-        if (callback) {
-          callback(null);
-        }
-      };
-      getCWEnabled.onerror = function cs_getCWEnabledError() {
-        menuItem.dataset.state = 'unknown';
-        if (callback) {
-          callback(null);
-        }
-      };
+        var getCWEnabled = _mobileConnection.getCallWaitingOption();
+        getCWEnabled.onsuccess = function cs_getCWEnabledSuccess() {
+          var enabled = getCWEnabled.result;
+          input.checked = enabled;
+          if (enabled) {
+            menuItem.dataset.state = 'on';
+          } else {
+            menuItem.dataset.state = 'off';
+          }
+          if (callback) {
+            callback(null);
+          }
+          done();
+        };
+        getCWEnabled.onerror = function cs_getCWEnabledError() {
+          menuItem.dataset.state = 'unknown';
+          if (callback) {
+            callback(null);
+          }
+          done();
+        };
+      });
     }
 
     /**
@@ -1027,6 +1040,51 @@ require([
       init: cs_init
     };
   })(this, document);
+
+  /**
+   * TaskScheduler helps manage tasks and ensures they are executed in
+   * sequential order. When a task of a certain type is enqueued, all pending
+   * tasks of the same type in the queue are removed. This avoids redundant
+   * queries and improves user perceived performance.
+   */
+  var TaskScheduler = function() {
+    return {
+      _isLocked: false,
+      _tasks: [],
+      _lock: function() {
+        this._isLocked = true;
+      },
+      _unlock: function() {
+        this._isLocked = false;
+        this._executeNextTask();
+      },
+      _removeRedundantTasks: function(type) {
+        return this._tasks.filter(function(task) {
+          return task.type !== type;
+        });
+      },
+      _executeNextTask: function() {
+        if (this._isLocked) {
+          return;
+        }
+        var nextTask = this._tasks.shift();
+        if (nextTask) {
+          this._lock();
+          nextTask.func(function() {
+            this._unlock();
+          }.bind(this));
+        }
+      },
+      enqueue: function(type, func) {
+        this._tasks = this._removeRedundantTasks(type);
+        this._tasks.push({
+          type: type,
+          func: func
+        });
+        this._executeNextTask();
+      }
+    };
+  };
 
   /**
    * Startup.
