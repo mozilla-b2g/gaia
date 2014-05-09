@@ -20,6 +20,11 @@
     },
     "device-storage:sdcard": {
       "access": "readwrite"
+    },
+    "permissions": {
+      "desktop-notification": {
+        "description": "Allows for notifications once import/export are complete."
+      }
     }
   }
 }

@@ -1,8 +1,19 @@
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global Toaster */
+
+'use strict';
+
 function displayInstalledApps() {
 
   function clickHandler(app) {
     return function() {
-      exportAppToSDCard(app);
+      var label = navigator.mozL10n.get('confirmExport',
+                                        {app: app.manifest.name});
+      if (window.confirm(label)) {
+        //exportAppToSDCard(app);
+        notifyOnComplete('export', app.manifest.name);
+      }
     };
   }
 
@@ -78,17 +89,23 @@ function displaySDCardApps() {
 
   var appMgr = navigator.mozApps.mgmt;
 
-  function clickHandler(file) {
+  function clickHandler(file, name) {
     return function() {
-      appMgr.import(file).then(function(nada) {
-        // Yay.
-        console.log('Imported ', file.name, 'from SD card');
-      }, function(reason) {
-        // TODO: enumerate reasons -> user feedback
-        // * already installed
-        // * what else?
-        console.log('Broken promise importing app', file.name, reason);
-      });
+      var label = navigator.mozL10n.get('confirmImport',
+                                        {app: name});
+      if (window.confirm(label)) {
+        notifyOnComplete('import', name);
+        appMgr.import(file).then(function(nada) {
+          // Yay.
+          console.log('Imported ', file.name, 'from SD card');
+          //notifyOnComplete('import', name);
+        }, function(reason) {
+          // TODO: enumerate reasons -> user feedback
+          // * already installed
+          // * what else?
+          console.log('Broken promise importing app', file.name, reason);
+        });
+      }
     };
   }
 
@@ -98,7 +115,7 @@ function displaySDCardApps() {
     files.forEach(function(file) {
       appMgr.getAppManifest(file).then(function(manifest) {
         var entryNode = createAppEntryNode({manifest: manifest});
-        entryNode.querySelector('a').onclick = clickHandler(file);
+        entryNode.querySelector('a').onclick = clickHandler(file, manifest.name);
         container.appendChild(entryNode);
       });
     });
@@ -162,4 +179,11 @@ function getBestIconURL(app, icons) {
   } else {
     return 'style/images/default.png';
   }
+}
+
+function notifyOnComplete(which, name) {
+  var strPrefix = which == 'import' ? 'notifyImport' : 'notifyExport';
+  var title = navigator.mozL10n.get(strPrefix + 'Title',  { app: name });
+  var body = navigator.mozL10n.get(strPrefix + 'Body',  { app: name });
+  new Notification(title, {body: body});
 }
