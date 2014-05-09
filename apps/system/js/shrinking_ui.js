@@ -148,6 +148,9 @@
           this.start();
           break;
         case 'shrinking-stop':
+          // OrientationManager listen this event to
+          // publish 'reset-orientation' event
+          // even when orientation is locked
           this.stop();
           break;
         case 'shrinking-receiving':
@@ -239,6 +242,8 @@
 
       this._setTip();
       this._setState(true);
+      // disable rotation to prevent display UI with wrong image
+      screen.mozLockOrientation(screen.mozOrientation);
       this._shrinkingTilt(afterTilt);
     }).bind(ShrinkingUI);
 
