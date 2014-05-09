@@ -40,6 +40,10 @@ function HandledCall(aCall) {
   this.viaSimNode = this.node.querySelector('.sim .via-sim');
   this.simNumberNode = this.node.querySelector('.sim .sim-number');
   this.numberNode = this.node.querySelector('.numberWrapper .number');
+  this.groupCallNumberNode =
+    document.getElementById('group-call-label');
+  this.groupCallFakeNumberNode =
+    document.querySelector('#group-call .fake-number');
   this.additionalInfoNode = this.node.querySelector('.additionalContactInfo');
   this.hangupButton = this.node.querySelector('.hangup-button');
   this.hangupButton.onclick = (function() {
@@ -59,6 +63,7 @@ function HandledCall(aCall) {
     var durationMessage = (this.call.state == 'incoming') ?
                            _('incoming') : _('connecting');
     this.durationChildNode.textContent = durationMessage;
+    this.updateDirection();
 
     if (navigator.mozIccManager.iccIds.length > 1) {
       var n = this.call.serviceId + 1;
@@ -69,8 +74,6 @@ function HandledCall(aCall) {
       this.simNumberNode.hidden = true;
     }
   }).bind(this));
-
-  this.updateDirection();
 
   // Some calls might be already connected
   if (this._initialState === 'connected') {
@@ -163,7 +166,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     callMessageReq.onsuccess = function onCallMessageSuccess() {
       self._iccCallMessage = callMessageReq.result['icc.callmessage'];
       if (self._iccCallMessage) {
-        self.replacePhoneNumber(self._iccCallMessage, 'end', true);
+        self.replacePhoneNumber(self._iccCallMessage, 'end');
         self._cachedInfo = self._iccCallMessage;
         navigator.mozSettings.createLock().set({'icc.callmessage': null});
       }
@@ -191,7 +194,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
           node.textContent = self._cachedInfo;
         });
       }
-      self.formatPhoneNumber('end', true);
+      self.formatPhoneNumber('end');
       self._cachedAdditionalInfo =
         Utils.getPhoneNumberAdditionalInfo(matchingTel);
       self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
@@ -210,7 +213,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     self._cachedInfo = number;
     node.textContent = self._cachedInfo;
     self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
-    self.formatPhoneNumber('end', true);
+    self.formatPhoneNumber('end');
   }
 };
 
@@ -232,10 +235,15 @@ HandledCall.prototype.restoreAdditionalContactInfo =
 };
 
 HandledCall.prototype.formatPhoneNumber =
-  function hc_formatPhoneNumber(ellipsisSide, maxFontSize) {
+  function hc_formatPhoneNumber(ellipsisSide, visibleCalls) {
     if (this._removed) {
       return;
     }
+
+    var isCallWaiting = (visibleCalls > 1);
+
+    var maxFontSize = KeypadManager.getMaxFontSize(isCallWaiting),
+        minFontSize = KeypadManager.getMinFontSize(isCallWaiting);
 
     // In status bar mode, we want a fixed font-size
     if (CallScreen.inStatusBarMode) {
@@ -243,31 +251,29 @@ HandledCall.prototype.formatPhoneNumber =
       return;
     }
 
-    var fakeView = this.node.querySelector('.fake-number');
-    var view = this.numberNode;
+    var fakeView = !this.call.group ? this.node.querySelector('.fake-number') :
+      this.groupCallFakeNumberNode;
+    var view = !this.call.group ? this.numberNode : this.groupCallNumberNode;
 
     var newFontSize;
-    if (maxFontSize) {
-      newFontSize = KeypadManager.maxFontSize;
-    } else {
-      newFontSize =
-        Utils.getNextFontSize(view, fakeView, KeypadManager.maxFontSize,
-          KeypadManager.minFontSize, kFontStep);
-    }
+    newFontSize =
+      Utils.getNextFontSize(view, fakeView, maxFontSize, minFontSize,
+        kFontStep);
+
     view.style.fontSize = newFontSize + 'px';
     Utils.addEllipsis(view, fakeView, ellipsisSide);
 };
 
 HandledCall.prototype.replacePhoneNumber =
-  function hc_replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize) {
+  function hc_replacePhoneNumber(phoneNumber, ellipsisSide) {
     this.numberNode.textContent = phoneNumber;
-    this.formatPhoneNumber(ellipsisSide, maxFontSize);
+    this.formatPhoneNumber(ellipsisSide);
 };
 
 HandledCall.prototype.restorePhoneNumber =
-  function hc_restorePhoneNumber() {
+  function hc_restorePhoneNumber(visibleCalls) {
     this.numberNode.textContent = this._cachedInfo;
-    this.formatPhoneNumber('end', true);
+    this.formatPhoneNumber('end', visibleCalls);
 };
 
 HandledCall.prototype.updateDirection = function hc_updateDirection() {

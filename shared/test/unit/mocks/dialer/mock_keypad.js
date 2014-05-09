@@ -7,6 +7,14 @@ var MockKeypadManager = {
   _phoneNumber: '',
   maxFontSize: 12,
   minFontSize: 8,
+  mGetMaxFontSizeCalled: false,
+  getMaxFontSize: function khm_getMaxFontSize(isCallWaiting) {
+    this.mGetMaxFontSizeCalled = true;
+  },
+  mGetMinFontSizeCalled: false,
+  getMinFontSize: function khm_getMinFontSize(isCallWaiting) {
+    this.mGetMinFontSizeCalled = true;
+  },
   formatPhoneNumber:
     function khm_formatPhoneNumber(ellipsisSide) {
     this.mFormatPhoneNumberCalled = true;

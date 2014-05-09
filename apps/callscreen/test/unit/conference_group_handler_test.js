@@ -9,6 +9,7 @@ require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/test/unit/mock_call_screen.js');
+require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 
 // The ConferenceGroupHandler binds stuff when evaluated so we load it
 // after the mocks and we don't want it to show up as a leak.
@@ -18,7 +19,8 @@ var mocksHelperForConferenceGroupHandler = new MocksHelper([
   'HandledCall',
   'CallsHandler',
   'LazyL10n',
-  'CallScreen'
+  'CallScreen',
+  'KeypadManager'
 ]).init();
 
 suite('conference group handler', function() {
