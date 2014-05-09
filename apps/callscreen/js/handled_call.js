@@ -22,6 +22,7 @@ function HandledCall(aCall) {
   this._initialState = this.call.state;
   this._cachedInfo = '';
   this._cachedAdditionalInfo = '';
+  this._removed = false;
 
   this.node = document.getElementById('handled-call-template').cloneNode(true);
   this.node.id = '';
@@ -230,6 +231,10 @@ HandledCall.prototype.restoreAdditionalContactInfo =
 
 HandledCall.prototype.formatPhoneNumber =
   function hc_formatPhoneNumber(ellipsisSide, maxFontSize) {
+    if (this._removed) {
+      return;
+    }
+
     // In status bar mode, we want a fixed font-size
     if (CallScreen.inStatusBarMode) {
       this.numberNode.style.fontSize = '';
@@ -277,6 +282,7 @@ HandledCall.prototype.updateDirection = function hc_updateDirection() {
 };
 
 HandledCall.prototype.remove = function hc_remove() {
+  this._removed = true;
   this.call.removeEventListener('statechange', this);
   this.photo = null;
 
