@@ -655,6 +655,14 @@ suite('dialer/handled_call', function() {
       assert.equal(subject.numberNode.style.fontSize, '');
     });
 
+    test('formatPhoneNumber should do nothing if the call was removed',
+    function() {
+      subject.remove();
+      subject.numberNode.style.fontSize = '36px';
+      subject.formatPhoneNumber();
+      assert.equal(subject.numberNode.style.fontSize, '36px');
+    });
+
     test('check replace number', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall);
