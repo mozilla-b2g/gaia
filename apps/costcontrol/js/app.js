@@ -111,7 +111,9 @@ var CostControlApp = (function() {
 
   function hideNotReadyScreen(status) {
     debug('Hiding non-ready screen.');
-    vmanager.closeCurrentView();
+    if (vmanager.getCurrentView() === 'non-ready-screen') {
+      vmanager.closeCurrentView();
+    }
     return;
   }
 

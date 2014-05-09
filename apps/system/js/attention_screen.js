@@ -113,6 +113,16 @@ var AttentionScreen = {
     if (!app || !this._hasAttentionPermission(app))
       return;
 
+    //
+    // The camera app needs to be notified before an attention screen appears
+    // so that it can stop recording video before ringer or alarm sounds are
+    // recorded. We abuse the settings API as a simple way to broadcast
+    // this message. See bugs 995540 and 1006200
+    //
+    navigator.mozSettings.createLock().set({
+        'private.broadcast.attention_screen_opening': true
+      });
+
     // Hide sleep menu/list menu if it is shown now
     ActionMenu.hide();
     SleepMenu.hide();
@@ -206,6 +216,14 @@ var AttentionScreen = {
     if (iframe.dataset.hidden) {
       return;
     }
+
+    //
+    // This resets the state of this settings flag.
+    // See the corresponding code in the open() method.
+    //
+    navigator.mozSettings.createLock().set({
+        'private.broadcast.attention_screen_opening': false
+      });
 
     // Check telephony permission before removing.
     var app = Applications.getByManifestURL(evt.target.dataset.manifestURL);

@@ -2511,7 +2511,10 @@ var ThreadUI = global.ThreadUI = {
           method: function oMessage(param) {
             ActivityPicker.sendMessage(param);
           },
-          params: [number]
+          params: [number],
+          // As activity picker changes location.hash to '#new' we don't want
+          // to call 'complete' that updates location.hash at the same time
+          incomplete: true
         });
       }
     }
