@@ -488,7 +488,8 @@ suite('lib/camera/camera', function() {
       this.camera = new this.Camera();
       this.camera.focus = {
         focus: function() {},
-        resume: function() {}
+        resume: function() {},
+        getMode: function() {}
       };
       sinon.stub(this.camera.focus, 'focus').callsArg(0);
       sinon.stub(this.camera, 'set');
