@@ -1,0 +1,149 @@
+html {
+  font-size: 10px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  line-height: 100%;
+  overflow: hidden;
+  font-weight: normal;
+}
+
+.x-row{
+  width: 32rem;
+  height: 6rem;
+  background-color: #202020;
+  display: block;
+}
+
+.y-row{
+  display: inline-block;
+  background-color: #202020;
+  width: 8rem;
+  height: 24rem;
+  vertical-align: top;
+  margin-left: -3px;
+}
+
+.row-block {
+  display: inline-block;
+  background-color: #1d1d1d;
+  vertical-align: top;
+  width: 24rem;
+  height: 24rem;
+}
+
+.row{
+  display: block;
+  width: 100%;
+}
+
+input {
+  /* text nodes in the source code affect the layout */
+  margin-right: -2px;
+  background: transparent;
+  border: 0;
+  vertical-align: top;
+  border-radius: 0;
+}
+
+input:active {
+  background-color: #e4601d;
+}
+
+input[disabled] {
+  pointer-events: none;
+}
+
+.row-block .row input{
+  font-size: 30px;
+  font-weight: light;
+  color: #e7e7e7;
+  border-top: 1px solid #191919;
+  border-right: 1px solid #191919;
+}
+
+input.small {
+  display: inline-block;
+  width: 7.9rem;
+  height: 5.9rem;
+}
+
+.y-row input{
+  display: block;
+  width: 100%;
+  border-top: 1px solid #191919;
+}
+
+.double-y{
+  width: 7.9rem;
+  height: 12rem;
+  display: block;
+}
+
+.double-x{
+  width: 15.9rem;
+  height: 5.9rem;
+  display: inline-block;
+  line-height: 5.9rem;
+}
+
+input[value="C"]{
+  color: white;
+  font-size: 23px;
+  font-weight: medium;
+  border-right: 1px solid #191919;
+}
+
+input[data-value="+"]{
+  border-right: 1px solid #191919;
+  background: url(images/icon_plus.png) center no-repeat;
+}
+
+input[data-value="-"]{
+  border-right: 1px solid #191919;
+  background: url(images/icon_minus.png) center no-repeat;
+}
+
+input[data-value="×"]{
+  background: url(images/icon_multiply.png) center no-repeat;
+}
+
+input[data-value="÷"]{
+  border-right: 1px solid #191919;
+  background: url(images/divide.png) center no-repeat;
+}
+
+input[data-value="="]{
+  border-right: 1px solid #191919;
+  background: url(images/icon_equal.png) center no-repeat;
+}
+
+input::-moz-focus-inner {
+  padding: 0;
+  margin: 0;
+  border: 0
+}
+
+/* Result Display */
+#display {
+  color: white;
+  background-color: #f56614;
+  height: 15.6rem;
+  line-height: 15.6rem;
+  width: 32rem;
+  position: relative;
+}
+
+#display div {
+  transform-origin: right center;
+  position: absolute;
+  right: 3rem;
+  height: 100%;
+  line-height: 15.6rem;
+  font-weight: lighter;
+  font-size: 82px;
+}
+
