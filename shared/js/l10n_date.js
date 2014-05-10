@@ -88,8 +88,10 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
 
   /**
    * Returns the parts of a number of seconds
+   * @param {Number} seconds seconds
+   * @param {String} diffUnit the unit to force
    */
-  function relativeParts(seconds) {
+  function relativeParts(seconds, diffUnit) {
     seconds = Math.abs(seconds);
     var descriptors = {};
     var units = [
@@ -106,13 +108,25 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
         minutes: Math.round(seconds / 60)
       };
     }
-
+    if (!diffUnit) {
     for (var i = 0, uLen = units.length; i < uLen; i += 2) {
-      var value = units[i + 1];
-      if (seconds >= value) {
-        descriptors[units[i]] = Math.floor(seconds / value);
-        seconds -= descriptors[units[i]] * value;
+        var value = units[i + 1];
+        if (seconds >= value) {
+          descriptors[units[i]] = Math.floor(seconds / value);
+          seconds -= descriptors[units[i]] * value;
+        }
       }
+    } else {
+        var value = '';
+        for (var i = 0; i < units.length; i += 2) {
+            if (units[i] !== diffUnit) {
+                continue;
+            } else {
+                value = units[i + 1];
+                descriptors[units[i]] = Math.floor(seconds / value);
+                break;
+            }
+        }
     }
     return descriptors;
   }
@@ -123,8 +137,9 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
    * @param {String|Date} time before/after the currentDate.
    * @param {String} useCompactFormat whether to use a compact display format.
    * @param {Number} maxDiff returns a formatted date if the diff is greater.
+   * @paraqm {String} diffUnit the unit in which force the difference between dates.
    */
-  function prettyDate(time, useCompactFormat, maxDiff) {
+  function prettyDate(time, useCompactFormat, maxDiff, diffUnit) {
     maxDiff = maxDiff || 86400 * 10; // default = 10 days
 
     switch (time.constructor) {
@@ -153,7 +168,7 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
     }
 
     var f = useCompactFormat ? '-short' : '-long';
-    var parts = relativeParts(secDiff);
+    var parts = relativeParts(secDiff, diffUnit);
 
     var affix = secDiff >= 0 ? '-ago' : '-until';
     for (var i in parts) {
