@@ -1,4 +1,4 @@
-requireApp('communications/shared/js/simple_phone_matcher.js');
+requireApp('sharedtest/shared/js/simple_phone_matcher.js');
 
 suite('lib/simple_phone_matcher', function() {
   suite('sanitization', function() {
