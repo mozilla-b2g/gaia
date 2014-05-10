@@ -58,6 +58,10 @@ module.exports = View.extend({
   getSize: function() {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
+    return {
+      width: this.width,
+      height: this.height
+    };
   },
 
   onClick: function(e) {
