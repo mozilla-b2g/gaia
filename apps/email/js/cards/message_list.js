@@ -1182,6 +1182,16 @@ MessageListCard.prototype = {
     peep.element.textContent = peep.name || peep.address;
   },
 
+  /**
+   * Update the state of the given DOM node.  Note that DOM nodes are reused so
+   * although you can depend on `firstTime` to be accurate, you must ensure that
+   * this method cleans up any dirty state resulting from any possible prior
+   * operation of this method.
+   *
+   * Also note that there is a separate method `updateMatchedMessageDom` for
+   * our search mode.  If you are changing this method you probably also want
+   * to be changing that method.
+   */
   updateMessageDom: function(firstTime, message) {
     var msgNode = message.element;
 
@@ -1232,11 +1242,13 @@ MessageListCard.prototype = {
       // subject
       displaySubject(msgNode.getElementsByClassName('msg-header-subject')[0],
                      message);
-      // attachments
-      if (message.hasAttachments) {
-        msgNode.getElementsByClassName('msg-header-attachments')[0]
-          .classList.add('msg-header-attachments-yes');
-      }
+
+      // attachments (can't change within a message but can change between
+      // messages, and since we reuse DOM nodes...)
+      var attachmentsNode =
+        msgNode.getElementsByClassName('msg-header-attachments')[0];
+      attachmentsNode.classList.toggle('msg-header-attachments-yes',
+                                       message.hasAttachments);
     }
 
     // snippet
@@ -1247,20 +1259,13 @@ MessageListCard.prototype = {
     // child selectors for hypothetical speed)
     var unreadNode =
       msgNode.getElementsByClassName('msg-header-unread-section')[0];
-    if (message.isRead) {
-      unreadNode.classList.remove('msg-header-unread-section-unread');
-      dateNode.classList.remove('msg-header-date-unread');
-    } else {
-      unreadNode.classList.add('msg-header-unread-section-unread');
-      dateNode.classList.add('msg-header-date-unread');
-    }
+    unreadNode.classList.toggle('msg-header-unread-section-unread',
+                                !message.isRead);
+    dateNode.classList.toggle('msg-header-date-unread', !message.isRead);
+
     // star
     var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
-    if (message.isStarred) {
-      starNode.classList.add('msg-header-star-starred');
-    } else {
-      starNode.classList.remove('msg-header-star-starred');
-    }
+    starNode.classList.toggle('msg-header-star-starred', message.isStarred);
 
     // edit mode select state
     if (this.editMode) {
@@ -1327,32 +1332,25 @@ MessageListCard.prototype = {
         snippetNode.textContent = message.snippet;
       }
 
-      // attachments
-      if (message.hasAttachments) {
-        msgNode.getElementsByClassName('msg-header-attachments')[0]
-          .classList.add('msg-header-attachments-yes');
-      }
+      // attachments (can't change within a message but can change between
+      // messages, and since we reuse DOM nodes...)
+      var attachmentsNode =
+        msgNode.getElementsByClassName('msg-header-attachments')[0];
+      attachmentsNode.classList.toggle('msg-header-attachments-yes',
+                                       message.hasAttachments);
     }
 
     // unread (we use very specific classes directly on the nodes rather than
     // child selectors for hypothetical speed)
     var unreadNode =
       msgNode.getElementsByClassName('msg-header-unread-section')[0];
-    if (message.isRead) {
-      unreadNode.classList.remove('msg-header-unread-section-unread');
-      dateNode.classList.remove('msg-header-date-unread');
-    }
-    else {
-      unreadNode.classList.add('msg-header-unread-section-unread');
-      dateNode.classList.add('msg-header-date-unread');
-    }
-    // starmail
+    unreadNode.classList.toggle('msg-header-unread-section-unread',
+                                !message.isRead);
+    dateNode.classList.toggle('msg-header-date-unread', !message.isRead);
+
+    // star
     var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
-    if (message.isStarred) {
-      starNode.classList.add('msg-header-star-starred');
-    } else {
-      starNode.classList.remove('msg-header-star-starred');
-    }
+    starNode.classList.toggle('msg-header-star-starred', message.isStarred);
 
     // edit mode select state
     if (this.editMode) {
