@@ -5,6 +5,8 @@
 /* global Icon */
 /* global ItemStore */
 /* global layout */
+/* global MozActivity */
+/*jshint nonew: false */
 
 (function(exports) {
 
@@ -18,6 +20,7 @@
     this.iconLaunch = this.clickIcon.bind(this);
 
     window.addEventListener('hashchange', this);
+    window.addEventListener('contextmenu', this);
   }
 
   App.prototype = {
@@ -129,6 +132,16 @@
       }
 
       switch(e.type) {
+        case 'contextmenu':
+          // Todo: Show options menu with option to add smart collection
+          // For now we just launch the new smart collection activity.
+          new MozActivity({
+            name: 'create-collection',
+            data: {
+              type: 'folder'
+            }
+          });
+          break;
         case 'hashchange':
           if (this.dragdrop.inEditMode) {
             this.dragdrop.exitEditMode();
