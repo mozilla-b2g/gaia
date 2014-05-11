@@ -5,14 +5,25 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
 
     <script defer src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/settings_listener.js"></script>
+    <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="shared/js/everythingme/eme.js"></script>
+    <script defer src="shared/js/everythingme/api.js"></script>
     <script defer src="shared/js/collections_database.js"></script>
 
     <script defer src="js/activities.js"></script>
 
+    <link rel="stylesheet" href="style/view.css">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
+
   </head>
   <body>
-    <a href="#" id="close">Close.</a>
-    View a smart collection.
+    <img id="bgimage">
+
+    <div id="content">
+      <a href="#" id="close">Close.</a>
+
+      <div id="icons"></div>
+    </div>
   </body>
 </html>

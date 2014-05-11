@@ -1,24 +1,9 @@
 'use strict';
+/* global Promise */
 
-(function() {
+(function(exports) {
 
   var Activities = {
-    'create-collection': function(activity) {
-      alert('Creating collection!');
-
-      // Build and save a fake collection object
-      var collection = {
-        id: Date.now() + '',
-        name: 'Folder ' + (Date.now() + '').substr(10)
-      };
-
-      CollectionsDatabase.add(collection).then(done, done);
-
-      function done() {
-        activity.postResult(true);
-      }
-    },
-
     'update-collection': function(activity) {
       alert('Updating collection!');
     },
@@ -39,4 +24,6 @@
     Activities[name](activity);
   });
 
-}());
+  exports.Activities = Activities;
+
+}(window));
