@@ -15,7 +15,8 @@
     this.detail = {
       type: 'collection',
       name: collection.name,
-      id: collection.id
+      id: collection.id,
+      categoryId: collection.categoryId
     };
   }
 
@@ -77,7 +78,8 @@
         name: 'view-collection',
         data: {
           type: 'folder',
-          id: this.detail.id
+          id: this.detail.id,
+          categoryId: this.detail.categoryId
         }
       });
     },

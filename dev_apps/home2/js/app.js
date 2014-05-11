@@ -114,13 +114,22 @@
         case 'contextmenu':
           // Todo: Show options menu with option to add smart collection
           // For now we just launch the new smart collection activity.
-          new MozActivity({
+          var activity = new MozActivity({
             name: 'create-collection',
             data: {
               type: 'folder'
             }
           });
+          activity.onsuccess = function onsuccess() {
+            // TODO
+            // do something with this.result?
+          };
+          activity.onerror = function onerror(e) {
+            // TODO show error dialog?
+            alert(this.error.name || 'generic-error-message');
+          };
           break;
+
         case 'hashchange':
           if (this.dragdrop.inEditMode) {
             this.dragdrop.exitEditMode();

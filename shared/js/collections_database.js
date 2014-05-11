@@ -3,7 +3,7 @@
 /* global Promise */
 
 (function(exports) {
-  
+
   var datastore;
 
   // Datastore name declared on the manifest.webapp
@@ -102,6 +102,22 @@
     });
   }
 
+  function getAllCategories() {
+    return new Promise(function doGet(resolve, reject) {
+      getAll().then(function(collections) {
+        var categories = [];
+
+        for (var id in collections) {
+          var collection = collections[id];
+          if (collection.categoryId) {
+            categories.push(collection.categoryId);
+          }
+        }
+        resolve(categories);
+      }, reject);
+    });
+  }
+
   function onchangeHandler(event) {
     var operation = event.operation;
     var callbacks = listeners[operation];
@@ -160,10 +176,9 @@
   }
 
   function add(data) {
-
     return new Promise(function doAdd(resolve, reject) {
       init().then(function onInitialized() {
-        var id = data.name  + Date.now();
+        var id = data.id || (Date.now() + '');
         Object.defineProperty(data, 'id', {
           enumerable: true,
           configurable: false,
@@ -220,6 +235,12 @@
     * This method returns an object of collections indexed by id
     */
     getAll: getAll,
+
+
+    /*
+     * This method returns an array of collection.categoryId
+     */
+    getAllCategories: getAllCategories,
 
    /*
     * Returns the latest revision UUID
