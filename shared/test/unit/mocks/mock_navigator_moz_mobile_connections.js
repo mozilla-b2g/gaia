@@ -5,6 +5,7 @@
     var props = ['voice', 'data', 'iccId', 'radioState', 'iccInfo'];
     var eventListeners = null;
     var radioEnabledReq = null;
+    var sendMMIReq = null;
 
     function mnmmc_init() {
       props.forEach(function(prop) {
@@ -12,9 +13,11 @@
       });
       eventListeners = {
         'iccinfochange': [],
-        'radiostatechange': []
+        'radiostatechange': [],
+        'ussdreceived': []
       };
       radioEnabledReq = {};
+      sendMMIReq = {};
     }
 
     function mnmmc_addEventListener(type, callback) {
@@ -52,14 +55,24 @@
       return radioEnabledReq;
     }
 
+    function mnmmc_sendMMI() {
+      return sendMMIReq;
+    }
+    function mnmmc_cancelMMI() {}
+
     var _mock = {
       addEventListener: mnmmc_addEventListener,
       removeEventListener: mnmmc_removeEventListener,
       triggerEventListeners: mnmmc_triggerEventListeners,
       setRadioEnabled: mnmmc_setRadioEnabled,
+      sendMMI: mnmmc_sendMMI,
+      cancelMMI: mnmmc_cancelMMI,
       mTeardown: mnmmc_init,
       get mCachedRadioEnabledReq() {
         return radioEnabledReq;
+      },
+      get mCachedSendMMIReq() {
+        return sendMMIReq;
       },
       get mEventListeners() {
         return eventListeners;
