@@ -47,6 +47,7 @@
         case 'gaiagrid-saveitems':
           this.itemStore.save(this.grid.getItems());
           break;
+
         case 'hashchange':
           if (this.grid._grid.dragdrop.inEditMode) {
             this.grid._grid.dragdrop.exitEditMode();

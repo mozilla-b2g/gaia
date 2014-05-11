@@ -1,11 +1,14 @@
-(function() {
-  'use strict';
-  /* global eme, Promise */
+'use strict';
+/* global Promise */
 
-  function partnersAPI(eme) {
+(function(eme) {
+
+  function partnersAPI() {
     /*jshint validthis:true */
 
     var OK = 1;
+    var NETWORK_ERROR = 'network error';
+
     var API_URL = 'https://api.everything.me/partners/1.0/{resource}/';
     var API_KEY = '79011a035b40ef3d7baeabc8f85b862f';
 
@@ -16,6 +19,7 @@
 
       this.Apps = Apps();
       this.Search = Search();
+      this.Categories = Categories();
     };
 
     function Apps() {
@@ -28,7 +32,7 @@
         if (!!options.query && options.query.length > MAX_QUERY_LENGTH) {
           options.query = options.query.substr(0, MAX_QUERY_LENGTH);
         }
-        return apiRequest(service, method, options);
+        return Request(service, method, options);
       }
 
       return {
@@ -40,11 +44,11 @@
       var service = 'Search';
 
       function suggestions(options) {
-        return apiRequest(service, 'suggestions', options);
+        return Request(service, 'suggestions', options);
       }
 
       function bgimage(options) {
-        return apiRequest(service, 'bgimage', options);
+        return Request(service, 'bgimage', options);
       }
 
       return {
@@ -53,12 +57,24 @@
       };
     }
 
+    function Categories() {
+      var service = 'Categories';
+
+      function list(options) {
+        return CachedRequest(service, 'list', options);
+      }
+
+      return {
+        list: list
+      };
+    }
+
     /**
      * Make an async httpRequest to resource with given options.
      * Returns a promise which will be resolved/reject on success/error
      * respectively
      */
-    function apiRequest(service, method, options) {
+    function Request(service, method, options) {
       var resource = service + '/' + method;
       var url = API_URL.replace('{resource}', resource);
       var payload = '';
@@ -75,6 +91,8 @@
           payload += k + '=' + encodeURIComponent(options[k]) + '&';
         }
       }
+
+      eme.log('API request:', url + '?' + payload);
 
       var httpRequest;
       var promise = new Promise(function done(resolve, reject) {
@@ -101,7 +119,7 @@
         };
 
         httpRequest.onerror = function onError(e) {
-          reject('network error');
+          reject(NETWORK_ERROR);
         };
 
         httpRequest.withCredentials = true;
@@ -115,6 +133,27 @@
       };
 
       return promise;
+    }
+
+    function CachedRequest(service, method, options) {
+      return new Promise(function done(resolve, reject) {
+        if (navigator.onLine) {
+          Request(service, method, options).then(
+            function success(response) {
+              eme.Cache.addRequest(service, method, options, response);
+              resolve(response);
+            }, reject)
+          .catch();
+        }
+        else {
+          eme.Cache.getRequest(service, method, options)
+            .then(function success(cachedResponse) {
+              eme.log('using cached response:', service + '/' + method);
+              resolve(cachedResponse);
+            }, reject.bind(null, NETWORK_ERROR))
+            .catch(reject);
+        }
+      });
     }
   }
 

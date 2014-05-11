@@ -61,12 +61,16 @@
 
         case 'create-smart-collection':
           this.hide(function onhide() {
-            new MozActivity({
+            var activity = new MozActivity({
               name: 'create-collection',
               data: {
                 type: 'folder'
               }
             });
+            activity.onsuccess = function onsuccess() {};
+            activity.onerror = function onerror(e) {
+              alert(this.error.name || 'generic-error-message');
+            };
           });
           break;
 
