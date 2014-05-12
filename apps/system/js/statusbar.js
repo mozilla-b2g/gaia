@@ -67,13 +67,16 @@ function Clock() {
   };
 }
 
+var _ = navigator.mozL10n.get;
+
 var StatusBar = {
   /* all elements that are children nodes of the status bar */
-  ELEMENTS: ['notification', 'emergency-cb-notification', 'time', 'connections',
-    'battery', 'wifi', 'data', 'flight-mode', 'network-activity', 'tethering',
-    'alarm', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
-    'bluetooth-transferring', 'recording', 'sms', 'geolocation', 'usb', 'label',
-    'system-downloads', 'call-forwardings', 'playing', 'nfc'],
+  ELEMENTS: ['notification', 'emergency-cb-notification', 'time',
+    'connections', 'battery', 'btryPercentage', 'wifi', 'data', 'flight-mode',
+    'network-activity', 'tethering', 'alarm', 'bluetooth', 'mute', 'headphones',
+    'bluetooth-headphones', 'bluetooth-transferring', 'recording', 'sms',
+    'geolocation', 'usb', 'label', 'system-downloads', 'call-forwardings',
+    'playing', 'nfc'],
 
   /* Timeout for 'recently active' indicators */
   kActiveIndicatorTimeout: 5 * 1000,
@@ -159,6 +162,21 @@ var StatusBar = {
     this.element.classList.add('invisible');
   },
 
+  updateBatteryDisplay: function sb_updateBatteryDisplay(value) {
+    if (value == 0) {
+      this.icons.battery.hidden = false;
+      this.icons.btryPercentage.hidden = true;
+    }
+    else if (value == 1) {
+      this.icons.battery.hidden = true;
+      this.icons.btryPercentage.hidden = false;
+    }
+    else if (value == 2) {
+      this.icons.battery.hidden = false;
+      this.icons.btryPercentage.hidden = false;
+    }
+  },
+
   init: function sb_init() {
     this.getAllElements();
 
@@ -203,6 +221,21 @@ var StatusBar = {
         self.settingValues[settingKey] = false;
       })(settingKey);
     }
+
+    var lock = navigator.mozSettings.createLock();
+    var req = lock.get('battery.status');
+
+    req.onsuccess = function() {
+      var _battery_res = req.result['battery.status'];
+      StatusBar.updateBatteryDisplay(_battery_res);
+    };
+
+    SettingsListener.observe('battery.status', 0, function(value) {
+      StatusBar.updateBatteryDisplay(value);
+    });
+
+    navigator.mozL10n.ready(this.update.battery.bind(this));
+
     // Listen to 'attentionscreenshow/hide' from attention_screen.js
     window.addEventListener('attentionscreenshow', this);
     window.addEventListener('attentionscreenhide', this);
@@ -687,10 +720,9 @@ var StatusBar = {
       if (!battery) {
         return;
       }
-
       var icon = this.icons.battery;
-
-      icon.hidden = false;
+      var percentage = this.icons.btryPercentage;
+      var percentageValue = Math.floor(battery.level * 100);
       icon.dataset.charging = battery.charging;
       var level = Math.floor(battery.level * 10) * 10;
       icon.dataset.level = level;
@@ -698,6 +730,9 @@ var StatusBar = {
         'statusbarBatteryCharging' : 'statusbarBattery', {
           level: level
         }));
+      percentage.textContent = _('sb-battery-percentage', {
+        'level': percentageValue
+      });
     },
 
     networkActivity: function sb_updateNetworkActivity() {

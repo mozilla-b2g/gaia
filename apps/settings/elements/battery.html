@@ -14,7 +14,22 @@
           </a>
         </li>
       </ul>
-
+      
+      <header>
+        <h2 data-l10n-id="batteryStatusBar">Status Bar</h2>
+      </header>
+      <ul>
+        <li>
+          <p data-l10n-id="batteryStatusIndicator">Status Bar Indicator</p>
+          <span class="button icon icon-dialog">
+            <select id="select-battery-mode" name="battery.status">
+              <option value="0" data-l10n-id="batteryStatusOnlyBattery">Battery icon</option>
+              <option value="1" data-l10n-id="batteryStatusOnlyPercentage">Battery percentage</option>
+              <option value="2" data-l10n-id="batteryStatusBoth">Both icon and percentage</option>
+            </select>
+          </span>
+        </li>
+      <ul>
       <header>
         <h2 data-l10n-id="powerSaveMode">Power Save Mode</h2>
       </header>
