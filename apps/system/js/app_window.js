@@ -1499,7 +1499,7 @@
     }
 
     this.debug('requesting to open');
-    if (!this.loaded) {
+    if (!this.loaded || this._screenshotOverlayState == 'screenshot') {
       this.debug('loaded yet');
       setTimeout(callback);
       return;
