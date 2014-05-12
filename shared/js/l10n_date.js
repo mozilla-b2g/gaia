@@ -117,13 +117,13 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
         }
       }
     } else {
-        var value = '';
-        for (var i = 0; i < units.length; i += 2) {
-            if (units[i] !== diffUnit) {
+        var value_ = '';
+        for (var n = 0; n < units.length; n += 2) {
+            if (units[n] !== diffUnit) {
                 continue;
             } else {
-                value = units[i + 1];
-                descriptors[units[i]] = Math.floor(seconds / value);
+                value_ = units[n + 1];
+                descriptors[units[n]] = Math.floor(seconds / value_);
                 break;
             }
         }
@@ -137,7 +137,8 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
    * @param {String|Date} time before/after the currentDate.
    * @param {String} useCompactFormat whether to use a compact display format.
    * @param {Number} maxDiff returns a formatted date if the diff is greater.
-   * @paraqm {String} diffUnit the unit in which force the difference between dates.
+   * @paraqm {String} diffUnit the unit in which force the difference between
+   * dates.
    */
   function prettyDate(time, useCompactFormat, maxDiff, diffUnit) {
     maxDiff = maxDiff || 86400 * 10; // default = 10 days
