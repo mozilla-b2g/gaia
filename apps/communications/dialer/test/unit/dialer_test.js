@@ -3,7 +3,7 @@
 /* global CallHandler, MocksHelper, MockLazyL10n, MockNavigatormozApps,
    MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
    NavbarManager, Notification, MockKeypadManager, MockVoicemail,
-   MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock */
+   MockCallLog, MockCallLogDBManager, MockNavigatorWakeLock, MmiManager */
 
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -13,6 +13,7 @@ require('/dialer/test/unit/mock_call_log.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
 require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_voicemail.js');
+require('/dialer/test/unit/mock_mmi_manager.js');
 
 require('/shared/test/unit/mocks/mock_accessibility_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
@@ -23,6 +24,7 @@ require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/shared/test/unit/mocks/dialer/mock_contacts.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_keypad.js');
+require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
 
 require('/dialer/js/dialer.js');
@@ -35,10 +37,12 @@ var mocksHelperForDialer = new MocksHelper([
   'LazyL10n',
   'LazyLoader',
   'KeypadManager',
+  'MmiManager',
   'Notification',
   'NotificationHelper',
   'SettingsListener',
   'Utils',
+  'TonePlayer',
   'Voicemail'
 ]).init();
 
@@ -288,6 +292,91 @@ suite('navigation bar', function() {
         triggerSysMsg(sysMsg);
         var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
         assert.isTrue(wakeLock.released);
+      });
+    });
+
+    suite('> Receiving a ussd', function() {
+      function triggerSysMsg() {
+        MockNavigatormozSetMessageHandler.mTrigger('ussd-received', {
+          message: 'testing',
+          sessionEnded: true
+        });
+      }
+
+      var realHidden, stubHidden;
+      setup(function() {
+        realHidden = document.hidden;
+
+        Object.defineProperty(document, 'hidden', {
+          configurable: true,
+          get: function() { return stubHidden; }
+        });
+
+        this.sinon.useFakeTimers();
+      });
+
+      teardown(function() {
+        Object.defineProperty(document, 'hidden', {
+          configurable: true,
+          get: function() { return realHidden; }
+        });
+      });
+
+      test('should call the MmiManager', function() {
+        this.sinon.spy(MmiManager, 'handleMMIReceived');
+        triggerSysMsg();
+        sinon.assert.calledWith(MmiManager.handleMMIReceived,
+                                'testing', true);
+      });
+
+      suite('when the app is invisible', function() {
+        setup(function() {
+          stubHidden = false;
+        });
+
+        test('should not require a high priority wake lock', function() {
+          triggerSysMsg();
+          var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+          assert.isUndefined(wakeLock);
+        });
+      });
+
+      suite('when the app is invisible', function() {
+        setup(function() {
+          stubHidden = true;
+        });
+
+        test('should require a high priority wake lock', function() {
+          triggerSysMsg();
+          var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+          assert.equal(wakeLock.topic, 'high-priority');
+        });
+
+        suite('once the app is visible', function() {
+          setup(function() {
+            triggerSysMsg();
+
+            stubHidden = false;
+          });
+
+          test('should release the wake lock', function() {
+            document.dispatchEvent(new CustomEvent('visibilitychange'));
+            var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+            assert.isTrue(wakeLock.released);
+          });
+        });
+
+        suite('after a safety timeout', function() {
+          setup(function() {
+            triggerSysMsg();
+          });
+
+          test('should release the wake lock', function() {
+            this.sinon.clock.tick(30000);
+            var wakeLock = MockNavigatorWakeLock.mLastWakeLock;
+            assert.isTrue(wakeLock.released);
+          });
+        });
       });
     });
 

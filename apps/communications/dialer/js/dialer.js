@@ -399,6 +399,21 @@ var CallHandler = (function callHandler() {
             request.onsuccess = function() {
               request.result.launch('dialer');
             };
+
+            var lock = navigator.requestWakeLock('high-priority');
+            var safetyId = setTimeout(function safetyUnlock() {
+              if (lock) {
+                lock.unlock();
+                lock = null;
+              }
+            }, 30000);
+            document.addEventListener('visibilitychange', function wait() {
+              if (lock) {
+                lock.unlock();
+                lock = null;
+                clearTimeout(safetyId);
+              }
+            });
           }
 
           MmiManager.handleMMIReceived(evt.message, evt.sessionEnded,
