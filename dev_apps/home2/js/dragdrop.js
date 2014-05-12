@@ -77,7 +77,7 @@
      */
     scrollIfNeeded: function() {
       var screenHeight = window.innerHeight;
-      var scrollStep = Math.round(screenHeight / 100);
+      var scrollStep = Math.round(screenHeight / 50);
 
       var touch = this.currentTouch;
       if (!touch) {
