@@ -47,6 +47,8 @@
     update: function(record) {
       this.detail = record;
       this.detail.type = TYPE;
+      var nameEl = this.element.querySelector('.title');
+      nameEl.textContent = this.name;
     },
 
     /**
