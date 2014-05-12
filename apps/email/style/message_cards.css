@@ -250,6 +250,7 @@ reflows. Foreground/background colors should be safe.
   font-size: 1.7rem;
   line-height: 2.6rem;
   margin: 1rem 1.5rem;
+  word-wrap: break-word;
 }
 
 .card-message-reader .msg-body-container > progress {
@@ -374,7 +375,6 @@ reflows. Foreground/background colors should be safe.
 .msg-body-content {
   color: black;
   margin: 0.4rem 0;
-  word-wrap: break-word;
 }
 .msg-body-signature {
   color: blue;
