@@ -1,6 +1,6 @@
 'use strict';
 
-mocha.globals(['BluetoothTransfer']);
+mocha.globals(['BluetoothTransfer', 'MimeMapper', 'mockMozActivityInstance']);
 
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 require('/shared/test/unit/mocks/mock_event_target.js');
@@ -9,10 +9,19 @@ require('/test/unit/mock_navigator_get_device_storage.js');
 require('/test/unit/mock_bluetooth.js');
 require('/test/unit/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_notification_helper.js');
+require('/shared/test/unit/mocks/mock_custom_dialog.js');
+require('/shared/js/mime_mapper.js');
+require('/test/unit/mock_utility_tray.js');
+require('/test/unit/mock_nfc_handover_manager.js');
+require('/test/unit/mock_activity.js');
 
 var mocksForBluetoothTransfer = new MocksHelper([
   'Bluetooth',
-  'NotificationHelper'
+  'NotificationHelper',
+  'CustomDialog',
+  'MozActivity',
+  'UtilityTray',
+  'NfcHandoverManager'
 ]).init();
 
 suite('system/bluetooth_transfer', function() {
@@ -217,6 +226,477 @@ suite('system/bluetooth_transfer', function() {
         assert.equal(0, BluetoothTransfer._sendingFilesQueue.length);
         assert.equal(MockNotificationHelper.mTitle, title);
         assert.equal(MockNotificationHelper.mBody, body);
+      });
+    });
+
+    suite('confirmation, decline, accept, and storage check', function() {
+      test('receivingFileConfirmation', function() {
+        var stubIsHandOverInProgress =
+          this.sinon.stub(MockNfcHandoverManager, 'isHandoverInProgress')
+          .returns(false);
+        var stubGetDeviceName =
+          this.sinon.stub(BluetoothTransfer, 'getDeviceName')
+          .returns('nameName');
+        var stubGetPairedDevice =
+          this.sinon.stub(BluetoothTransfer, 'getPairedDevice');
+        var stubMockUtilityTrayHide =
+          this.sinon.stub(MockUtilityTray, 'hide');
+        var stubShowReceivePrompt =
+          this.sinon.stub(BluetoothTransfer, 'showReceivePrompt');
+        var _ = navigator.mozL10n.get;
+        var evt = {
+          address: 'AA:BB:CC:00:11:22',
+          fileLength: 1048000
+        };
+        BluetoothTransfer.onReceivingFileConfirmation(evt);
+        assert.isTrue(stubIsHandOverInProgress.called);
+        assert.isTrue(stubGetPairedDevice.called);
+
+        // call getPairedDeviceComplete
+        stubGetPairedDevice.getCall(0).args[0]();
+
+        assert.isTrue(stubGetDeviceName.calledWith(evt.address));
+
+        assert.equal(
+          MockNotificationHelper.mTitle,
+          _('transfer-confirmation-title', {deviceName: 'nameName'})
+        );
+        assert.equal(
+          MockNotificationHelper.mBody,
+          _('transfer-confirmation-description')
+        );
+        assert.equal(
+          MockNotificationHelper.mIcon,
+          'style/bluetooth_transfer/images/icon_bluetooth.png'
+        );
+        MockNotificationHelper.mClickCB();
+        assert.isTrue(stubMockUtilityTrayHide.called);
+        assert.isTrue(stubShowReceivePrompt.called);
+        MockNotificationHelper.mTeardown();
+      });
+
+      test('declineReceive', function() {
+        var spyConfirmReceivingFile =
+          this.sinon.spy(MockBluetooth.defaultAdapter, 'confirmReceivingFile');
+
+        BluetoothTransfer.declineReceive('AA:BB:CC:00:22:33');
+
+        assert.isFalse(MockCustomDialog.mShown);
+        assert.isTrue(
+          spyConfirmReceivingFile.calledWith('AA:BB:CC:00:22:33', false)
+        );
+
+        spyConfirmReceivingFile.reset();
+
+        var stubGetAdapater =
+          this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
+
+        BluetoothTransfer.declineReceive('AA:BB:CC:00:22:33');
+        assert.isFalse(spyConfirmReceivingFile.called);
+
+        MockCustomDialog.mTeardown();
+      });
+
+      test('acceptReceive', function() {
+        var evt = {
+          address: 'AA:BB:CC:00:11:24',
+          fileLength: 1048500
+        };
+        var stubCheckStorageSpace =
+          this.sinon.stub(BluetoothTransfer, 'checkStorageSpace');
+        var stubShowStorageUnavailablePrompt =
+          this.sinon.stub(BluetoothTransfer, 'showStorageUnavaliablePrompt');
+        var spyConfirmReceivingFile =
+          this.sinon.spy(MockBluetooth.defaultAdapter, 'confirmReceivingFile');
+
+        BluetoothTransfer.acceptReceive(evt);
+
+        assert.isFalse(MockCustomDialog.mShown);
+
+        assert.isTrue(stubCheckStorageSpace.calledWith(evt.fileLength));
+        stubCheckStorageSpace.getCall(0).args[1](true, 'somemsg');
+        assert.isTrue(
+          spyConfirmReceivingFile.calledWith(evt.address, true)
+        );
+
+        spyConfirmReceivingFile.reset();
+        stubCheckStorageSpace.getCall(0).args[1](false, 'somemsg2');
+        assert.isTrue(
+          spyConfirmReceivingFile.calledWith(evt.address, false)
+        );
+        assert.isTrue(stubShowStorageUnavailablePrompt.calledWith('somemsg2'));
+
+        spyConfirmReceivingFile.reset();
+        var stubGetAdapater =
+          this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
+        stubCheckStorageSpace.getCall(0).args[1](false, 'somemsg3');
+        assert.isFalse(spyConfirmReceivingFile.called);
+
+        MockCustomDialog.mTeardown();
+      });
+
+      test('showStorageUnavaliablePrompt', function() {
+        var _ = navigator.mozL10n.get;
+
+        MockCustomDialog.mTeardown();
+
+        BluetoothTransfer.showStorageUnavaliablePrompt('message');
+
+        assert.equal(MockCustomDialog.mShowedTitle, _('cannotReceiveFile'));
+        assert.equal(
+          MockCustomDialog.mShowedMsg,
+          'message'
+        );
+        assert.isTrue(MockCustomDialog.mShown);
+
+        assert.equal(MockCustomDialog.mShowedCancel.title, _('confirm'));
+        MockCustomDialog.mShowedCancel.callback();
+        assert.isFalse(MockCustomDialog.mShown);
+
+        MockCustomDialog.mTeardown();
+      });
+
+      test('checkStorageSpace', function() {
+        var _ = navigator.mozL10n.get;
+
+        var spyCb = this.sinon.spy();
+        var mockDeviceStorage = MockNavigatorGetDeviceStorage();
+        var spyAvailable = this.sinon.spy(mockDeviceStorage, 'available');
+        var spyFreeSpace = this.sinon.spy(mockDeviceStorage, 'freeSpace');
+
+        BluetoothTransfer.checkStorageSpace(10240, spyCb);
+
+        assert.isTrue(spyAvailable.called);
+        var availreq = spyAvailable.getCall(0).returnValue;
+
+        availreq.fireError(null);
+        assert.isTrue(spyCb.calledWith(false, _('cannotGetStorageState')));
+        assert.isFalse(spyFreeSpace.called);
+        spyFreeSpace.reset();
+        spyCb.reset();
+
+        availreq.readyState = 'pending';
+        availreq.fireSuccess('unavailable');
+        assert.isTrue(spyCb.calledWith(false, _('sdcard-not-exist2')));
+        assert.isFalse(spyFreeSpace.called);
+        spyFreeSpace.reset();
+        spyCb.reset();
+
+        availreq.readyState = 'pending';
+        availreq.fireSuccess('shared');
+        assert.isTrue(spyCb.calledWith(false, _('sdcard-in-use')));
+        assert.isFalse(spyFreeSpace.called);
+        spyFreeSpace.reset();
+        spyCb.reset();
+
+        availreq.readyState = 'pending';
+        availreq.fireSuccess('some-default-case');
+        assert.isTrue(spyCb.calledWith(false, _('unknown-error')));
+        assert.isFalse(spyFreeSpace.called);
+        spyFreeSpace.reset();
+        spyCb.reset();
+
+        availreq.readyState = 'pending';
+        availreq.fireSuccess('available');
+        var freereq = spyFreeSpace.getCall(0).returnValue;
+        freereq.fireError();
+        assert.isTrue(spyCb.calledWith(false, _('cannotGetStorageState')));
+        spyCb.reset();
+
+        freereq.readyState = 'pending';
+        freereq.fireSuccess(20480);
+        assert.isTrue(spyCb.calledWith(true, ''));
+        spyCb.reset();
+
+        freereq.readyState = 'pending';
+        freereq.fireSuccess(512);
+        assert.isTrue(spyCb.calledWith(false, 'sdcard-no-space2'));
+        spyCb.reset();
+
+        spyAvailable.reset();
+        BluetoothTransfer.checkStorageSpace(10240, null);
+        assert.isFalse(spyAvailable.called);
+      });
+    });
+
+    suite('openReceivedFile', function() {
+      test('until getreq.onsuccess', function() {
+        var evt = {
+          fileName: 'someFile.txt',
+          contentType: 'text/plain'
+        };
+
+        var mockDeviceStorage = MockNavigatorGetDeviceStorage();
+        var spyGetDeviceStorage = this.sinon.spy(navigator, 'getDeviceStorage');
+        var spyGet = this.sinon.spy(mockDeviceStorage, 'get');
+
+        BluetoothTransfer.openReceivedFile(evt);
+        assert.isTrue(spyGetDeviceStorage.calledWith('sdcard'));
+        assert.isTrue(spyGet.calledWith('Download/Bluetooth/' + evt.fileName));
+      });
+
+      test('into getreq.onsuccess', function() {
+        var evt = {
+          fileName: 'someFile.txt',
+          contentType: 'text/plain'
+        };
+
+        var mockDeviceStorage = MockNavigatorGetDeviceStorage();
+        var spyGet = this.sinon.spy(mockDeviceStorage, 'get');
+        BluetoothTransfer.openReceivedFile(evt);
+
+        var stubMimeIsSupportedType =
+          this.sinon.stub(MimeMapper, 'isSupportedType').returns(false);
+        var stubMimeGuessTypeFromExtension =
+          this.sinon.stub(MimeMapper, 'guessTypeFromExtension')
+          .returns('text/plain');
+
+        var req = spyGet.getCall(0).returnValue;
+
+        req.fireSuccess({
+          name: evt.fileName,
+          type: evt.contentType
+        });
+
+        assert.equal(mockMozActivityInstance.name, 'open');
+        assert.deepEqual(
+          mockMozActivityInstance.data,
+          {
+            type: req.result.type,
+            blob: req.result,
+            filename: req.result.name
+          }
+        );
+
+        assert.isFunction(mockMozActivityInstance.onsuccess);
+        assert.isFunction(mockMozActivityInstance.onerror);
+
+        var stubMockUtilityTrayHide = this.sinon.stub(MockUtilityTray, 'hide');
+        var stubShowUnknownMediaPrompt =
+          this.sinon.stub(BluetoothTransfer, 'showUnknownMediaPrompt');
+
+        mockMozActivityInstance.error = {
+          name: 'NO_PROVIDER'
+        };
+
+        mockMozActivityInstance.onerror(null);
+
+        assert.isTrue(stubMockUtilityTrayHide.called);
+        assert.isTrue(stubShowUnknownMediaPrompt.calledWith(req.result.name));
+
+        stubMockUtilityTrayHide.reset();
+        stubShowUnknownMediaPrompt.reset();
+
+        mockMozActivityInstance.error = {
+            name: 'USER_ABORT'
+        };
+
+        mockMozActivityInstance.onerror(null);
+
+        assert.isFalse(stubMockUtilityTrayHide.called);
+        assert.isFalse(stubShowUnknownMediaPrompt.calledWith(req.result.name));
+      });
+
+      test('getreq.onsuccess with vcard', function() {
+        var evt = {
+          fileName: 'someCard.vcf',
+          contentType: 'text/vcard'
+        };
+
+        var mockDeviceStorage = MockNavigatorGetDeviceStorage();
+        var spyGet = this.sinon.spy(mockDeviceStorage, 'get');
+
+        BluetoothTransfer.openReceivedFile(evt);
+
+        var stubMimeIsSupportedType =
+        this.sinon.stub(MimeMapper, 'isSupportedType').returns(true);
+
+        var req = spyGet.getCall(0).returnValue;
+
+        req.fireSuccess({
+          name: evt.fileName,
+          type: evt.contentType
+        });
+
+        assert.equal(mockMozActivityInstance.name, 'import');
+        assert.deepEqual(
+          mockMozActivityInstance.data,
+          {
+            type: req.result.type,
+            blob: req.result,
+            filename: req.result.name
+          }
+        );
+
+        assert.isFunction(mockMozActivityInstance.onsuccess);
+        assert.isFunction(mockMozActivityInstance.onerror);
+      });
+
+      test('showUnknownMediaPrompt', function() {
+        var _ = navigator.mozL10n.get;
+
+        MockCustomDialog.mTeardown();
+
+        BluetoothTransfer.showUnknownMediaPrompt('theFile.ext');
+
+        assert.equal(MockCustomDialog.mShowedTitle, _('cannotOpenFile'));
+        assert.equal(
+          MockCustomDialog.mShowedMsg,
+          _('unknownMediaTypeToOpen') + ' ' + 'theFile.ext'
+        );
+        assert.isTrue(MockCustomDialog.mShown);
+
+        assert.equal(MockCustomDialog.mShowedCancel.title, _('confirm'));
+        MockCustomDialog.mShowedCancel.callback();
+        assert.isFalse(MockCustomDialog.mShown);
+
+        MockCustomDialog.mTeardown();
+      });
+    });
+
+    suite('sendFile, transfer, and progress', function() {
+      test('sendFile', function() {
+        var spySendFile =
+          this.sinon.spy(MockBluetooth.defaultAdapter, 'sendFile');
+        var stubOnFilesSending =
+          this.sinon.stub(BluetoothTransfer, 'onFilesSending');
+        var stubSetTimeout = this.sinon.stub(window, 'setTimeout');
+        BluetoothTransfer.sendFile(
+          'AA:BB:CC:00:11:55',
+          'blahblahblah\0xa0\0xa0blahblahblah'
+        );
+
+        assert.isTrue(stubOnFilesSending.called);
+        assert.equal(typeof stubOnFilesSending.getCall(0).args[0], 'object');
+
+        assert.isTrue(stubSetTimeout.called);
+        assert.isTrue(stubSetTimeout.getCall(0).args[1] > 0);
+        stubSetTimeout.getCall(0).args[0]();
+
+        assert.isTrue(
+          spySendFile
+          .calledWith('AA:BB:CC:00:11:55', 'blahblahblah\0xa0\0xa0blahblahblah')
+        );
+
+        var stubGetAdapater =
+          this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
+        BluetoothTransfer.sendFile(
+          'AA:BB:CC:00:11:66',
+          'blahblahblah\0xa0\0xa0blahblahblahblah'
+        );
+
+        stubOnFilesSending.reset();
+        assert.isFalse(stubOnFilesSending.called);
+      });
+
+      test('onUpdateProgress', function() {
+        // mode = start
+        var stubInitProgress =
+          this.sinon.stub(BluetoothTransfer, 'initProgress');
+        var evt = {
+          detail: {
+            transferInfo: 'info123'
+          }
+        };
+
+        BluetoothTransfer.onUpdateProgress('start', evt);
+        assert.isTrue(stubInitProgress.calledWith('info123'));
+
+        // mode = progress
+        var stubUpdateProgress =
+          this.sinon.stub(BluetoothTransfer, 'updateProgress');
+        evt = {
+          address: 'AA:BB:DD:11:22:44',
+          processedLength: '1024',
+          fileLength: '2048'
+        };
+
+        BluetoothTransfer.onUpdateProgress('progress', evt);
+        assert.isTrue(
+            Math.abs(stubUpdateProgress.getCall(0).args[0]) -
+            (evt.processedLength / evt.fileLength) <
+            0.00001
+        );
+        assert.equal(stubUpdateProgress.getCall(0).args[1], evt);
+
+        evt.fileLength = 0;
+        BluetoothTransfer.onUpdateProgress('progress', evt);
+        assert.isTrue(stubUpdateProgress.calledWith(0, evt));
+
+        evt.fileLength = 1024;
+        evt.processedLength = 1000;
+        BluetoothTransfer.onUpdateProgress('progress', evt);
+        assert.isTrue(stubUpdateProgress.calledWith(0, evt));
+
+        stubUpdateProgress.reset();
+      });
+
+      test('onCancelTransferTask', function() {
+        var stubMockUtilityTrayHide = this.sinon.stub(MockUtilityTray, 'hide');
+        var stubShowCancelTransferPrompt =
+          this.sinon.stub(BluetoothTransfer, 'showCancelTransferPrompt');
+
+        BluetoothTransfer.onCancelTransferTask({
+          target: {
+            dataset: {
+              id: 1234
+            }
+          }
+        });
+
+        assert.isTrue(stubMockUtilityTrayHide.called);
+        assert.isTrue(stubShowCancelTransferPrompt.calledWith(1234));
+      });
+
+      test('showCancelTransferPrompt', function() {
+        MockCustomDialog.mTeardown();
+
+        var _ = navigator.mozL10n.get;
+
+        var stubContinueTransfer =
+          this.sinon.stub(BluetoothTransfer, 'continueTransfer');
+        var stubCancelTransfer =
+          this.sinon.stub(BluetoothTransfer, 'cancelTransfer');
+
+        BluetoothTransfer.showCancelTransferPrompt('DD:FE:00:11:22:33');
+
+        assert.isTrue(MockCustomDialog.mShown);
+        assert.equal(MockCustomDialog.mShowedTitle, _('cancelFileTransfer'));
+        assert.equal(MockCustomDialog.mShowedMsg, _('cancelFileTransfer'));
+        assert.equal(
+          MockCustomDialog.mShowedCancel.title,
+          _('continueFileTransfer')
+        );
+        assert.equal(MockCustomDialog.mShowedConfirm.title, _('cancel'));
+
+        MockCustomDialog.mShowedCancel.callback();
+        assert.isTrue(stubContinueTransfer.called);
+
+        MockCustomDialog.mShowedConfirm.callback();
+        assert.isTrue(stubCancelTransfer.calledWith('DD:FE:00:11:22:33'));
+
+        MockCustomDialog.mTeardown();
+      });
+
+      test('cancelTransfer', function() {
+        var spyStopSendingFile =
+          this.sinon.spy(MockBluetooth.defaultAdapter, 'stopSendingFile');
+        MockCustomDialog.mTeardown();
+
+        BluetoothTransfer.cancelTransfer('CC:DD:00:AA:22:44');
+
+        assert.isFalse(MockCustomDialog.mShown);
+        assert.isTrue(spyStopSendingFile.calledWith('CC:DD:00:AA:22:44'));
+
+        var stubGetAdapater =
+          this.sinon.stub(MockBluetooth, 'getAdapter').returns(null);
+
+        spyStopSendingFile.reset();
+
+        BluetoothTransfer.cancelTransfer('CC:DD:00:AA:22:44');
+        assert.isFalse(spyStopSendingFile.called);
+
+        MockCustomDialog.mTeardown();
       });
     });
   });
