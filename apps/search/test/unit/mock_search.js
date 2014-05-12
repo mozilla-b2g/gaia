@@ -9,7 +9,8 @@ window.Search = {
   },
   onSearchInput: function() {},
   close: function() {},
-  navigate: function() {},
+  openBrowsingWindow: function() {},
+  openWindow: function() {},
   setInput: function() {},
   collect: function(provider, results) {
     provider.render(results);

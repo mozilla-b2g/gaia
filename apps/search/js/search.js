@@ -1,7 +1,7 @@
 (function() {
 
   'use strict';
-  /* global Search, UrlHelper */
+  /* global Search, UrlHelper, MozActivity */
 
   // timeout before notifying providers
   var SEARCH_DELAY = 600;
@@ -221,7 +221,7 @@
         input = 'http://' + input;
       }
 
-      this.navigate(input);
+      this.openBrowsingWindow(input);
     },
 
     /**
@@ -279,11 +279,23 @@
     },
 
     /**
-     * Opens a browser to a URL
+     * Open a new browsing window
      * @param {String} url The url to navigate to
-     * @param {Object} config Optional configuration.
      */
-    navigate: function(url, config) {
+    openBrowsingWindow: function(url) {
+      var activity = new MozActivity({name: 'view', data: {
+        type: 'url',
+        url: url
+      }});
+      // Keep jshint happy
+      activity.onsuccess = function() {};
+    },
+
+    /**
+     * Open a new window
+     * @param {String} url The url to navigate to
+     */
+    openWindow: function(url, config) {
       var features = {
         remote: true,
         useAsyncPanZoom: true

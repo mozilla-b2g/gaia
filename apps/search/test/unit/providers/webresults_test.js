@@ -36,7 +36,7 @@ suite('search/providers/webresults', function() {
 
   suite('click', function() {
     test('calls browser', function() {
-      var stub = this.sinon.stub(Search, 'navigate');
+      var stub = this.sinon.stub(Search, 'openWindow');
       subject.click({
         target: {
           dataset: {

@@ -31,7 +31,7 @@
       });
 
       activity.onerror = function onerror() {
-        Search.navigate('https://marketplace.firefox.com/app/' + slug);
+        Search.openWindow('https://marketplace.firefox.com/app/' + slug);
       };
     },
 
