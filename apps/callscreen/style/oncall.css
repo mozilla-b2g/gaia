@@ -18,7 +18,17 @@
     font-weight: 300;
   }
 
+  #calls:not(.big-duration) .duration {
+    padding-left: 1.5rem;
+  }
+
   #calls:not(.big-duration) .duration .font-light {
+    font-weight: normal;
+    line-height: 8rem;
+   }
+
+  #calls:not(.big-duration) .duration .total-duration {
+    display: none;
     font-weight: normal;
   }
 
@@ -370,7 +380,6 @@
     height: 8rem;
 
     font-size: 1.8rem;
-    line-height: 8rem;
     background-color: #01c5ed;
 
     transition: background-color 0.3s linear;
@@ -383,7 +392,7 @@
 
   #calls > section div {
     padding-left: 2.5rem;
-    padding-right: 1.5rem;
+    padding-right: 2rem;
   }
 
   #calls.big-duration > section {
@@ -434,7 +443,7 @@
 
   #calls:not(.big-duration) > section .numberWrapper {
     padding-left: 4rem;
-    padding-right: 7rem;
+    padding-right: 9rem;
   }
 
   #calls:not(.big-duration) > section:not(.ended) .duration:not(.isTimer) {
@@ -527,19 +536,31 @@
     position: absolute;
     top: 10rem;
     left: 0;
-    height: 7.5rem;
+    height: 9.5rem;
     width: 100%;
   }
 
   #calls.big-duration > section .duration > span {
     font-size: 2.7rem;
-    line-height: 11.1rem;
     text-shadow: 0 0.2rem 0.1rem rgba(0,0,0,0.3);
   }
 
   #calls.big-duration > section .duration.isTimer > span {
     font-size: 5.9rem;
-    line-height: 8.1rem;
+  }
+
+  #calls.big-duration .total-duration {
+    display: none;
+    padding-left: 0;
+    padding-right: 0;
+    font-size: 1.6rem;
+    text-shadow: 0 0.1rem 0 rgba(0,0,0,0.3);
+  }
+
+  #calls.big-duration > section.ended .total-duration {
+    display: inline;
+    font-size: 2.7rem;
+    margin-left: 0.5rem;
   }
 
   #calls:not(.big-duration) > section.incoming {
@@ -587,7 +608,7 @@
     white-space: nowrap;
   }
 
-  #calls > section.held .duration {
+  #calls > section.held:not(.ended) .duration {
     display: none;
   }
 
@@ -597,7 +618,7 @@
 
   #calls.big-duration > section .duration > .direction {
     display: inline-block;
-    width: 3.5rem;
+    width: 4rem;
     height: 6.5rem;
     padding: 0;
   }
@@ -624,20 +645,25 @@
     background-image: url('images/hold_icon.png');
   }
 
-  #calls:not(.big-duration) > section.ended .duration .font-light {
-    font-size: 3.2rem;
+  #calls:not(.big-duration) > section.ended .duration,
+  #calls:not(.big-duration) > section.ended.held .duration {
     color: white;
+    font-size: 1.4rem;
   }
 
-  #calls:not(.big-duration) > section.ended .duration {
-    line-height: 8rem;
-    padding-left: 4rem;
-    left: 0;
+  #calls:not(.big-duration) > section.ended > .duration > .font-light,
+  #calls:not(.big-duration) > section.ended.held > .duration > .font-light {
+    padding: 0;
+    line-height: 6rem;
   }
 
-  #calls:not(.big-duration) > section.ended .numberWrapper,
-  #calls:not(.big-duration) > section.ended .additionalContactInfo {
-    display: none;
+  #calls:not(.big-duration) > section.ended > .duration > .total-duration,
+  #calls:not(.big-duration) > section.ended.held > .duration > .total-duration {
+    display: block;
+    text-align: right;
+    padding: 0;
+    line-height: normal;
+    margin-top: -2rem;
   }
 
   #incoming-container {
@@ -916,6 +942,10 @@
     background: url(images/icon_mergecall.png) no-repeat center;
     border: none;
     font-size: 0;
+  }
+
+  #calls:not(.single-line) .handled-call.ended.held .merge-button {
+    display: none;
   }
 
   /* DSDS SIM indication support */

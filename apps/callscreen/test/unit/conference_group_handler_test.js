@@ -1,3 +1,6 @@
+/* globals CallScreen, MockCall, MockCallScreen, MockCallsHandler, MockLazyL10n,
+           MockNavigatorMozTelephony, MocksHelper, telephonyAddCall */
+
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
@@ -9,9 +12,7 @@ require('/test/unit/mock_call_screen.js');
 
 // The ConferenceGroupHandler binds stuff when evaluated so we load it
 // after the mocks and we don't want it to show up as a leak.
-if (!this.ConferenceGroupHandler) {
-  this.ConferenceGroupHandler = null;
-}
+mocha.globals(['ConferenceGroupHandler']);
 
 var mocksHelperForConferenceGroupHandler = new MocksHelper([
   'HandledCall',
@@ -31,6 +32,7 @@ suite('conference group handler', function() {
   var fakeGroupDetails;
   var fakeMergeButton;
   var fakeDurationChildNode;
+  var fakeTotalDurationChildNode;
 
   suiteSetup(function(done) {
     realMozTelephony = navigator.mozTelephony;
@@ -48,15 +50,15 @@ suite('conference group handler', function() {
                               'class="additionalContactInfo"></div>' +
                             '<div class="duration">' +
                               '<span class="font-light"></span>' +
-                              '<div class="direction">' +
-                                '<div></div>' +
-                              '</div>' +
+                              '<div class="direction"></div>' +
+                              '<div class="total-duration font-light"></div>' +
                             '</div>' +
                             '<button class="merge-button"></button>' +
                           '</section>' +
                           '<form id="group-call-details">' +
                             '<header></header>' +
                           '</form>';
+
     document.body.appendChild(fakeDOM);
     fakeGroupLine = document.getElementById('group-call');
     fakeGroupLabel = document.getElementById('group-call-label');
@@ -64,6 +66,8 @@ suite('conference group handler', function() {
     fakeMergeButton = document.querySelector('.merge-button');
     fakeDurationChildNode =
         document.querySelector('#group-call > .duration > span');
+    fakeTotalDurationChildNode =
+        document.querySelector('#group-call > .duration > .total-duration');
 
     require('/js/conference_group_handler.js', done);
   });
@@ -186,6 +190,12 @@ suite('conference group handler', function() {
           flush();
           assert.isFalse(MockCallScreen.mGroupDetailsShown);
         });
+
+        test('should update the calls display', function() {
+          MockCallScreen.mUpdateSingleLineCalled = false;
+          flush();
+          assert.isTrue(MockCallScreen.mUpdateSingleLineCalled);
+        });
       });
     });
   });
@@ -288,6 +298,16 @@ suite('conference group handler', function() {
       MockNavigatorMozTelephony.conferenceGroup.state = '';
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
       assert.equal(fakeDurationChildNode.textContent, 'callEnded');
+    });
+
+    test('should show call the duration when exiting conference call',
+      function() {
+      var totalCallDuration = '12:34';
+      fakeDurationChildNode.textContent = totalCallDuration;
+      MockNavigatorMozTelephony.conferenceGroup.state = '';
+      MockNavigatorMozTelephony.mTriggerGroupStateChange();
+      assert.deepEqual(fakeTotalDurationChildNode.textContent,
+                       totalCallDuration);
     });
 
     test('should hide the group line after leaving conference call',

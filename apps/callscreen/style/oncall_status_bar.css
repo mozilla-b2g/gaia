@@ -8,6 +8,11 @@
     margin: 0;
   }
 
+  .total-duration {
+    display: none;
+    padding-left: 0.5rem;
+  }
+
   .handled-call,
   #group-call {
     background-color: #82af00;
@@ -19,6 +24,15 @@
     padding-left: 1.5rem;
     padding-right: 1.5rem;
     height: 40px;
+  }
+
+  .handled-call.ended {
+    background-color: rgba(107, 0, 0, 0.9);
+    background-image: none;
+  }
+
+  .handled-call.ended .total-duration {
+    display: inline;
   }
 
   .handled-call.held,
@@ -60,6 +74,11 @@
     align-items: center;
   }
 
+  .duration {
+    display: flex;
+    align-items: flex-end;
+  }
+
   .number {
     white-space: nowrap;
     overflow: hidden;
@@ -87,6 +106,10 @@
 
   .held .direction-status-bar:before {
     background-image: url('images/status_bar/hold_icon.png');
+  }
+
+  .ended .direction-status-bar:before {
+    background-image: url('images/status_bar/actionicon_activecall_hangup_small.png');
   }
 
   .isTimer {
