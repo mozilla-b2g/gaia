@@ -610,8 +610,8 @@ contacts.Form = (function() {
 
     currentContact = currentContact || {};
     currentContact = deviceContact || currentContact;
-    var deviceGivenName = currentContact.givenName;
-    var deviceFamilyName = currentContact.familyName;
+    var deviceGivenName = currentContact.givenName || [''];
+    var deviceFamilyName = currentContact.familyName || [''];
 
     var myContact = {
       id: document.getElementById('contact-form-id').value,
@@ -672,11 +672,11 @@ contacts.Form = (function() {
             var fbContact = new fb.Contact(contact);
             // Here the contact has been promoted to linked but not saved yet
             fbContact.promoteToLinked();
-          } else {
-            setPropagatedFlag('givenName', deviceGivenName[0], contact);
-            setPropagatedFlag('familyName', deviceFamilyName[0], contact);
-            createName(contact);
           }
+
+          setPropagatedFlag('givenName', deviceGivenName[0], contact);
+          setPropagatedFlag('familyName', deviceFamilyName[0], contact);
+          createName(contact);
         }
       } else {
         contact = utils.misc.toMozContact(myContact);
