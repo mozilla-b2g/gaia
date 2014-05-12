@@ -8,53 +8,66 @@ var _ = navigator.mozL10n.get;
 
 var ImportIntegration = {
   get fbExtensions() {
-    delete this.fbExtensions;
-    return (this.fbExtensions = document.getElementById('fb-extensions'));
+    if (!this.fbExtensions) {
+      this.fbExtensions = document.getElementById('fb-extensions');
+    }
+    return this.fbExtensions;
   },
 
   get fbImport() {
-    delete this.fbImport;
-    return (this.fbImport = document.getElementById('fb_import'));
+    if (!this.fbImport) {
+      this.fbImport = document.getElementById('fb_import');
+    }
+    return this.fbImport;
   },
 
   get fbImportButton() {
-    delete this.fbImportButton;
-    return (this.fbImportButton = document.getElementById('fb-import-button'));
+    if (!this.fbImportButton) {
+      this.fbImportButton = document.getElementById('fb-import-button');
+    }
+    return this.fbImportButton;
   },
 
   get liveImportButton() {
-    delete this.liveImportButton;
-    return (this.liveImportButton =
-      document.getElementById('live-import-button'));
+    if (!this.liveImportButton) {
+      this.liveImportButton = document.getElementById('live-import-button');
+    }
+    return this.liveImportButton;
   },
 
   get gmailImportButton() {
-    delete this.gmailImportButton;
-    return (this.gmailImportButton =
-      document.getElementById('gmail-import-button'));
+    if (!this.gmailImportButton) {
+      this.gmailImportButton = document.getElementById('gmail-import-button');
+    }
+    return this.gmailImportButton;
   },
 
   get noNetworkMsg() {
-    delete this.noNetworkMsg;
-    return (this.noNetworkMsg = document.getElementById('no-network'));
+    if (!this.noNetworkMsg) {
+      this.noNetworkMsg = document.getElementById('no-network');
+    }
+    return this.noNetworkMsg;
   },
 
   get fbImportFeedback() {
-    delete this.fbImportFeedback;
-    return (this.fbImportFeedback = document.getElementById(
-      'fb_import_feedback'));
+    if (!this.fbImportFeedback) {
+      this.fbImportFeedback = document.getElementById('fb_import_feedback');
+    }
+    return this.fbImportFeedback;
   },
 
   get fbAfterImport1() {
-    delete this.fbAfterImport1;
-    return (this.fbAfterImport1 = document.getElementById(
-      'fb_after_import1'));
+    if (!this.fbAfterImport1) {
+      this.fbAfterImport1 = document.getElementById('fb_after_import1');
+    }
+    return this.fbAfterImport1;
   },
 
   get fbAfterImport2() {
-    delete this.fbAfterImport2;
-    return (this.fbAfterImport2 = document.getElementById(
-      'fb_after_import2'));
+    if (!this.fbAfterImport2) {
+      this.fbAfterImport2 = document.getElementById('fb_after_import2');
+    }
+    return this.fbAfterImport2;
   },
 
   _contactsNotified: false,
