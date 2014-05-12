@@ -1,7 +1,7 @@
 'use strict';
 
-const kEdgeIntertia = 150;
-const kEdgeThreshold = 0.2;
+const kEdgeIntertia = 250;
+const kEdgeThreshold = 0.3;
 
 var EdgeSwipeDetector = {
   previous: document.getElementById('left-panel'),
