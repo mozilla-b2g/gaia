@@ -135,6 +135,10 @@
 
 'use strict';
 
+var perfTimer = new PerformanceTimer();
+perfTimer.start();
+perfTimer.printTime('keyboard.js');
+
 // InputMethod modules register themselves in this object
 const InputMethods = {};
 
@@ -219,7 +223,6 @@ const HIDE_KEYBOARD_TIMEOUT = 500;
 var deleteTimeout = 0;
 var deleteInterval = 0;
 var menuTimeout = 0;
-var redrawTimeout = 0;
 var hideKeyboardTimeout = 0;
 
 // Special key codes
@@ -255,12 +258,18 @@ const ariaLabelMap = {
   '»': 'rightDoubleAngleQuoteKey'
 };
 
-// These values are initialized with user settings
-var suggestionsEnabled;
-var correctionsEnabled;
-var clickEnabled;
-var vibrationEnabled;
-var isSoundEnabled;
+// SettingsPromiseManager wraps Settings DB methods into promises.
+var settingsPromiseManager = new SettingsPromiseManager();
+
+// User settings (in Settings database) are tracked within these modules
+var soundFeedbackSettings;
+var vibrationFeedbackSettings;
+var imEngineSettings;
+
+// We keep this promise in the global scope for the time being,
+// so they can be called as soon as we need it to.
+var imEngineSettingsInitPromise;
+var inputContextGetTextPromise;
 
 // data URL for keyboard click sound
 const CLICK_SOUND = './resources/sounds/key.ogg';
@@ -285,59 +294,43 @@ var eventHandlers = {
 // For tracking "scrolling the full candidate panel".
 var touchStartCoordinate;
 
-// Before we can initialize the keyboard we need to know the current
-// value of all keyboard-related settings. These are the settings
-// we want to query, with the default values we'll use if the query fails
-var settingsQuery = {
-  'keyboard.wordsuggestion': true,
-  'keyboard.autocorrect': true,
-  'keyboard.vibration': false,
-  'keyboard.clicksound': false,
-  'audio.volume.notification': 7
-};
+initKeyboard();
 
-// Now query the settings
-getSettings(settingsQuery, function gotSettings(values) {
-  // Copy settings values to the corresponding global variables.
-  suggestionsEnabled = values['keyboard.wordsuggestion'];
-  correctionsEnabled = values['keyboard.autocorrect'];
-  vibrationEnabled = values['keyboard.vibration'];
-  clickEnabled = values['keyboard.clicksound'];
-  isSoundEnabled = !!values['audio.volume.notification'];
-
-  handleKeyboardSound();
-
-  // We've got all the settings, so initialize the rest
-  initKeyboard();
-});
+// We cannot listen to resize event right at start because of
+// https://bugzil.la/1007595 ;
+// only attach the event listener after 600ms.
+setTimeout(function attachResizeListener() {
+  perfTimer.printTime('attachResizeListener');
+  // Handle resize events
+  window.addEventListener('resize', onResize);
+}, 600);
 
 function initKeyboard() {
-  navigator.mozSettings.addObserver('keyboard.wordsuggestion', function(e) {
-    // The keyboard won't be displayed when this setting changes, so we
-    // don't need to tell the keyboard about the new value right away.
-    // We pass the value to the input method when the keyboard is displayed
-    suggestionsEnabled = e.settingValue;
+  perfTimer.startTimer('initKeyboard');
+  perfTimer.printTime('initKeyboard');
+  // Getting initial settings values asynchronously,
+  // Plus monitor the value when it changes.
+  soundFeedbackSettings = new SoundFeedbackSettings();
+  soundFeedbackSettings.promiseManager = settingsPromiseManager;
+  soundFeedbackSettings.onsettingchange = handleKeyboardSound;
+  soundFeedbackSettings.initSettings().then(
+    handleKeyboardSound,
+    function rejected() {
+      console.warn('Failed to get initial sound settings.');
+    });
+
+  vibrationFeedbackSettings = new VibrationFeedbackSettings();
+  vibrationFeedbackSettings.promiseManager = settingsPromiseManager;
+  var vibrationInitPromise = vibrationFeedbackSettings.initSettings();
+  vibrationInitPromise.catch(function rejected() {
+    console.warn('Failed to get initial vibration settings.');
   });
 
-  navigator.mozSettings.addObserver('keyboard.autocorrect', function(e) {
-    // The keyboard won't be displayed when this setting changes, so we
-    // don't need to tell the keyboard about the new value right away.
-    // We pass the value to the input method when the keyboard is displayed
-    correctionsEnabled = e.settingValue;
-  });
-
-  navigator.mozSettings.addObserver('keyboard.vibration', function(e) {
-    vibrationEnabled = e.settingValue;
-  });
-
-  navigator.mozSettings.addObserver('audio.volume.notification', function(e) {
-    isSoundEnabled = !!e.settingValue;
-    handleKeyboardSound();
-  });
-
-  navigator.mozSettings.addObserver('keyboard.clicksound', function(e) {
-    clickEnabled = e.settingValue;
-    handleKeyboardSound();
+  imEngineSettings = new IMEngineSettings();
+  imEngineSettings.promiseManager = settingsPromiseManager;
+  imEngineSettingsInitPromise = imEngineSettings.initSettings();
+  imEngineSettingsInitPromise.catch(function rejected() {
+    console.error('Fatal Error! Failed to get initial imEngine settings.');
   });
 
   // Initialize the rendering module
@@ -349,6 +342,7 @@ function initKeyboard() {
   }
 
   dimensionsObserver = new MutationObserver(function() {
+    perfTimer.printTime('dimensionsObserver:callback');
     updateTargetWindowHeight();
   });
 
@@ -359,6 +353,7 @@ function initKeyboard() {
   });
 
   window.addEventListener('hashchange', function() {
+    perfTimer.printTime('hashchange');
     var inputMethodName = window.location.hash.substring(1);
     setKeyboardName(inputMethodName, function() {
       resetKeyboard();
@@ -366,13 +361,11 @@ function initKeyboard() {
     });
   }, false);
 
-  // Handle resize events
-  window.addEventListener('resize', onResize);
-
   // Need to listen to both mozvisibilitychange and oninputcontextchange,
   // because we are not sure which will happen first and we will call
   // showKeyboard() when mozHidden is false and we got inputContext
   window.addEventListener('mozvisibilitychange', function visibilityHandler() {
+    perfTimer.printTime('mozvisibilitychange');
     var inputMethodName = window.location.hash.substring(1);
     setKeyboardName(inputMethodName, function() {
       if (!document.mozHidden && inputContext) {
@@ -384,8 +377,10 @@ function initKeyboard() {
   });
 
   window.navigator.mozInputMethod.oninputcontextchange = function() {
+    perfTimer.printTime('inputcontextchange');
     inputContext = navigator.mozInputMethod.inputcontext;
     if (!document.mozHidden && inputContext) {
+      inputContextGetTextPromise = inputContext.getText();
       showKeyboard();
     } else {
       hideKeyboard();
@@ -405,15 +400,21 @@ function initKeyboard() {
   // have already focused, the keyboard should show right away.
   inputContext = navigator.mozInputMethod.inputcontext;
   if (!document.mozHidden && inputContext) {
+    inputContextGetTextPromise = inputContext.getText();
+    perfTimer.printTime(
+      'initKeyboard->setKeyboardName->showKeyboard', 'initKeyboard');
     // show Keyboard after the input method has been initialized
     setKeyboardName(inputMethodName, showKeyboard);
   } else {
+    perfTimer.printTime(
+      'initKeyboard->setKeyboardName', 'initKeyboard');
     setKeyboardName(inputMethodName);
   }
 }
 
 function handleKeyboardSound() {
-  if (clickEnabled && isSoundEnabled) {
+  if (soundFeedbackSettings.clickEnabled &&
+      !!soundFeedbackSettings.isSoundEnabled) {
     clicker = new Audio(CLICK_SOUND);
     specialClicker = new Audio(SPECIAL_SOUND);
   } else {
@@ -429,6 +430,8 @@ function deactivateInputMethod() {
 }
 
 function setKeyboardName(name, callback) {
+  perfTimer.printTime('setKeyboardName');
+
   var keyboard;
 
   loadLayout(name, function(layout) {
@@ -441,6 +444,7 @@ function setKeyboardName(name, callback) {
     }
 
     function setInputMethod(im) {
+      perfTimer.printTime('setInputMethod');
       if (im !== inputMethod && inputMethod && inputMethod.deactivate)
         inputMethod.deactivate();
       inputMethod = im;
@@ -450,6 +454,7 @@ function setKeyboardName(name, callback) {
   });
 
   function loadLayout(name, callback) {
+    perfTimer.printTime('loadLayout');
     if (name in Keyboards) {
       setLayout(name);
     } else {
@@ -469,6 +474,7 @@ function setKeyboardName(name, callback) {
     }
 
     function setLayout(name) {
+      perfTimer.printTime('setLayout');
       keyboardName = name;
       keyboard = Keyboards[name];
       callback(keyboard);
@@ -727,14 +733,6 @@ function modifyLayout(keyboardName) {
   return layout;
 }
 
-var _t = {};
-function startTime(key) {
-  // _t[key] = +new Date;
-}
-function endTime(key) {
-  // dump('~' + key + ' ' + (+new Date - _t[key]) + '\n');
-}
-
 //
 // This function asks render.js to create an HTML layout for the keyboard.
 // The layout is based on the layout in layout.js, but is augmented by
@@ -751,60 +749,57 @@ function endTime(key) {
 // layout for keyboardName
 //
 function renderKeyboard(keyboardName, callback) {
-  startTime('BLOCKING (main) renderKeyboard');
+  perfTimer.printTime('renderKeyboard');
+  perfTimer.startTimer('renderKeyboard');
 
   // Add meta keys and type-specific keys to the base layout
   currentLayout = modifyLayout(keyboardName);
 
-  function drawKeyboard() {
-    var keyboard = Keyboards[keyboardName];
+  var keyboard = Keyboards[keyboardName];
 
-    IMERender.ime.classList.remove('full-candidate-panel');
+  IMERender.ime.classList.remove('full-candidate-panel');
 
-    // Rule of thumb: always render uppercase, unless secondLayout has been
-    // specified (for e.g. arabic, then depending on shift key)
-    var needsUpperCase = currentLayout.secondLayout ?
-      (isUpperCaseLocked || isUpperCase) :
-      true;
+  // Rule of thumb: always render uppercase, unless secondLayout has been
+  // specified (for e.g. arabic, then depending on shift key)
+  var needsUpperCase = currentLayout.secondLayout ?
+    (isUpperCaseLocked || isUpperCase) :
+    true;
 
-    // And draw the layout
-    IMERender.draw(currentLayout, {
-      uppercase: needsUpperCase,
-      inputType: currentInputType,
-      showCandidatePanel: needsCandidatePanel()
-    }, function() {
-      startTime('BLOCKING (nextTick) renderKeyboard');
-      // So there are a couple of things that we want don't want to block
-      // on here, so we can do it if resizeUI is fully finished
-      IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+  // And draw the layout
+  IMERender.draw(currentLayout, {
+    uppercase: needsUpperCase,
+    inputType: currentInputType,
+    showCandidatePanel: needsCandidatePanel()
+  }, function() {
+    perfTimer.printTime('IMERender.draw:callback');
+    perfTimer.startTimer('IMERender.draw:callback');
+    // So there are a couple of things that we want don't want to block
+    // on here, so we can do it if resizeUI is fully finished
+    IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
 
-      // Tell the input method about the new keyboard layout
-      updateLayoutParams();
+    // Tell the input method about the new keyboard layout
+    updateLayoutParams();
 
-      IMERender.showCandidates(currentCandidates);
-      endTime('BLOCKING (nextTick) renderKeyboard');
-    });
+    IMERender.showCandidates(currentCandidates);
+    perfTimer.printTime(
+      'BLOCKING IMERender.draw:callback', 'IMERender.draw:callback');
+  });
 
-    // Tell the renderer what input method we're using. This will set a CSS
-    // classname that can be used to style the keyboards differently
-    IMERender.setInputMethodName(keyboard.imEngine || 'default');
+  // Tell the renderer what input method we're using. This will set a CSS
+  // classname that can be used to style the keyboards differently
+  IMERender.setInputMethodName(keyboard.imEngine || 'default');
 
-    // If needed, empty the candidate panel
-    if (inputMethod.empty)
-      inputMethod.empty();
+  // If needed, empty the candidate panel
+  if (inputMethod.empty)
+    inputMethod.empty();
 
-    isKeyboardRendered = true;
+  isKeyboardRendered = true;
 
-    endTime('BLOCKING (main) renderKeyboard');
+  perfTimer.printTime('BLOCKING renderKeyboard', 'renderKeyboard');
 
-    if (callback) {
-      callback();
-    }
+  if (callback) {
+    callback();
   }
-
-  clearTimeout(redrawTimeout);
-
-  drawKeyboard();
 }
 
 function setUpperCase(upperCase, upperCaseLocked) {
@@ -830,14 +825,16 @@ function setUpperCase(upperCase, upperCaseLocked) {
   // Otherwise we can just update only the keys we need...
   // Try to block the event loop as little as possible
   requestAnimationFrame(function() {
-    startTime('BLOCKING (nextTick) updateUpperCaseUI');
+    perfTimer.startTimer('setUpperCase:requestAnimationFrame:callback');
     // And make sure the caps lock key is highlighted correctly
     IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
 
     //restore the previous candidates
     IMERender.showCandidates(currentCandidates);
 
-    endTime('BLOCKING (nextTick) updateUpperCaseUI');
+    perfTimer.printTime(
+      'BLOCKING setUpperCase:requestAnimationFrame:callback',
+      'setUpperCase:requestAnimationFrame:callback');
   });
 }
 
@@ -865,6 +862,7 @@ function setLayoutPage(newpage) {
 // Inform about a change in the displayed application via mutation observer
 // http://hacks.mozilla.org/2012/05/dom-mutationobserver-reacting-to-dom-changes-without-killing-browser-performance/
 function updateTargetWindowHeight(hide) {
+  perfTimer.printTime('updateTargetWindowHeight');
   // height of the current active IME + 1px for the borderTop
   var imeHeight = cachedIMEDimensions.height = IMERender.getHeight() + 1;
   var imeWidth = cachedIMEDimensions.width = IMERender.getWidth();
@@ -1628,6 +1626,8 @@ function replaceSurroundingText(text, offset, length) {
 // The state argument is the data passed with that event, and includes
 // the input field type, its inputmode, its content, and the cursor position.
 function showKeyboard() {
+  perfTimer.printTime('showKeyboard');
+
   clearTimeout(hideKeyboardTimeout);
 
   inputContext = navigator.mozInputMethod.inputcontext;
@@ -1654,19 +1654,20 @@ function showKeyboard() {
 
   // everything.me uses this setting to improve searches,
   // but they really shouldn't.
-  navigator.mozSettings.createLock().set({
+  settingsPromiseManager.set({
     'keyboard.current': keyboardName
   });
 
   function doShowKeyboard() {
+    perfTimer.printTime('doShowKeyboard');
     // Force to disable the auto correction for Greek SMS layout.
     // This is because the suggestion result is still unicode and
     // we would not convert the suggestion result to GSM 7-bit.
     if (inputMethod.activate) {
       inputMethod.activate(Keyboards[keyboardName].autoCorrectLanguage,
         state, {
-          suggest: suggestionsEnabled && !isGreekSMS(),
-          correct: correctionsEnabled && !isGreekSMS()
+          suggest: imEngineSettings.suggestionsEnabled && !isGreekSMS(),
+          correct: imEngineSettings.correctionsEnabled && !isGreekSMS()
         });
     }
 
@@ -1677,10 +1678,9 @@ function showKeyboard() {
     });
   }
 
-  var promise = inputContext.getText();
-
-  promise.then(function gotText(value) {
-    state.value = value;
+  Promise.all([inputContextGetTextPromise, imEngineSettingsInitPromise])
+  .then(function gotText(values) {
+    state.value = values[0];
     doShowKeyboard();
   }, function failedToGetText(ex) {
     // something is wrong with the inputcontext. We should not proceed.
@@ -1706,13 +1706,14 @@ function hideKeyboard() {
 
   // everything.me uses this setting to improve searches,
   // but they really shouldn't.
-  navigator.mozSettings.createLock().set({
+  settingsPromiseManager.set({
     'keyboard.current': undefined
   });
 }
 
 // Resize event handler
 function onResize() {
+  perfTimer.printTime('onResize');
   if (IMERender.ime.dataset.hidden)
     return;
 
@@ -1726,6 +1727,8 @@ function onResize() {
 }
 
 function loadIMEngine(name, callback) {
+  perfTimer.printTime('loadIMEngine');
+
   var keyboard = Keyboards[name];
   var sourceDir = './js/imes/';
   var imEngine = keyboard.imEngine;
@@ -1745,14 +1748,17 @@ function loadIMEngine(name, callback) {
   var glue = {
     path: sourceDir + imEngine,
     sendCandidates: function kc_glue_sendCandidates(candidates) {
+      perfTimer.printTime('glue.sendCandidates');
       currentCandidates = candidates;
       IMERender.showCandidates(candidates);
     },
     setComposition: function kc_glue_setComposition(symbols, cursor) {
+      perfTimer.printTime('glue.setComposition');
       cursor = cursor || symbols.length;
       inputContext.setComposition(symbols, cursor);
     },
     endComposition: function kc_glue_endComposition(text) {
+      perfTimer.printTime('glue.endComposition');
       text = text || '';
       inputContext.endComposition(text);
     },
@@ -1802,13 +1808,14 @@ function updateLayoutParams() {
 }
 
 function triggerFeedback(isSpecialKey) {
-  if (vibrationEnabled) {
+  if (vibrationFeedbackSettings.vibrationEnabled) {
     try {
       navigator.vibrate(50);
     } catch (e) {}
   }
 
-  if (clickEnabled && isSoundEnabled) {
+  if (soundFeedbackSettings.clickEnabled &&
+      !!soundFeedbackSettings.isSoundEnabled) {
     (isSpecialKey ? specialClicker : clicker).cloneNode(false).play();
   }
 }
@@ -1830,71 +1837,6 @@ function getWindowLeft(obj) {
     left += obj.offsetLeft;
   }
   return left;
-}
-
-//
-// getSettings: Query the value of multiple settings at once.
-//
-// settings is an object whose property names are the settings to query
-// and whose property values are the default values to use if no such
-// setting is found.  This function will create a setting lock and
-// request the value of each of the specified settings.  Once it receives
-// a response to all of the queries, it passes all the settings values to
-// the specified callback function.  The argument to the callback function
-// is an object just like the settings object, where the property name is
-// the setting name and the property value is the setting value (or the
-// default value if the setting was not found).
-//
-function getSettings(settings, callback) {
-  var results = {};
-  try {
-    var lock = navigator.mozSettings.createLock();
-  }
-  catch (e) {
-    // If settings is broken, just return the default values
-    console.warn('Exception in mozSettings.createLock():', e,
-                 '\nUsing default values');
-    for (var p in settings)
-      results[p] = settings[p];
-    callback(results);
-  }
-  var settingNames = Object.keys(settings);
-  var numSettings = settingNames.length;
-  var numResults = 0;
-
-  for (var i = 0; i < numSettings; i++) {
-    requestSetting(settingNames[i]);
-  }
-
-  function requestSetting(name) {
-    try {
-      var request = lock.get(name);
-    }
-    catch (e) {
-      console.warn('Exception querying setting', name, ':', e,
-                   '\nUsing default value');
-      recordResult(name, settings[name]);
-      return;
-    }
-    request.onsuccess = function() {
-      var value = request.result[name];
-      if (value === undefined)
-        value = settings[name]; // Use the default value
-      recordResult(name, value);
-    };
-    request.onerror = function(evt) {
-      console.warn('Error querying setting', name, ':', evt.error);
-      recordResult(name, settings[name]);
-    };
-  }
-
-  function recordResult(name, value) {
-    results[name] = value;
-    numResults++;
-    if (numResults === numSettings) {
-      callback(results);
-    }
-  }
 }
 
 // To determine if the candidate panel for word suggestion is needed
