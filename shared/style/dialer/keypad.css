@@ -72,11 +72,6 @@
   background-size: 100%;
 }
 
-li:not(:target) #keypad-delete,
-article:not(:target) #keypad-delete {
-  display: none;
-}
-
 #keypad-delete:active {
   opacity: 0.6;
 }
@@ -187,7 +182,6 @@ article:not(:target) #keypad-delete {
   -moz-box-sizing: border-box;
 }
 
-#keypad-callbar-cancel,
 .keypad-callbar-button {
   position: relative;
   width: 9rem;
@@ -196,23 +190,18 @@ article:not(:target) #keypad-delete {
   border-radius: 2rem;
   overflow: hidden;
   height: 4rem;
-}
-
-#keypad-callbar-add-contact:active {
-  background: #94eee9;
-}
-
-#keypad-callbar-cancel {
-  width: 10rem;
-}
-
-#keypad-callbar-cancel:active {
-  opacity: 0.7;
-}
-
-#keypad-callbar-cancel > div {
   text-align: center;
-  font-size: 2rem;
+}
+
+.keypad-callbar-button.cancel {
+  background: #575757;
+  line-height: 4rem;
+  font-size: 1.8rem;
+  font-style: italic; 
+}
+
+.keypad-callbar-button.cancel:active {
+  background: #9ef2e7;
 }
 
 #keypad-callbar-call-action {
@@ -439,4 +428,8 @@ article:not(:target) #keypad-delete {
 
 .suggestion-item .avatar.hidden {
   opacity: 0;
+}
+
+.full-height {
+  height: 100%;
 }
