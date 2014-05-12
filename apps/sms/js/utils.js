@@ -17,6 +17,13 @@
     // TODO: For mms resizing
   };
 
+  // Maps one localizable string IDs (eg. that don't exist) to another.
+  // Introduced as workaround for bug 1003384, so that we don't need to update
+  // locale files when it's too late.
+  const l10nIdMap = {
+    other: 'Other'
+  };
+
   var Utils = {
     date: {
       shared: new Date(),
@@ -514,7 +521,9 @@
     getDisplayObject: function(theTitle, tel) {
       var number = tel.value;
       var title = theTitle || number;
-      var type = tel.type && tel.type.length ? tel.type[0] : '';
+      // Check with l10nIdMap whether we have override for phone type id.
+      var type = tel.type && tel.type.length ?
+        l10nIdMap[tel.type[0]] || tel.type[0] : '';
       var carrier = tel.carrier ? (tel.carrier + ', ') : '';
       var separator = type || carrier ? ' | ' : '';
       var data = {
