@@ -7,13 +7,23 @@
    * @class DeveloperHUD
    */
   function DeveloperHUD() {
-    window.addEventListener('developer-hud-update', function updateHandler(e) {
-      this.display(e.target, e.detail);
-      e.preventDefault();
-    }.bind(this));
   }
 
   DeveloperHUD.prototype = {
+
+    start: function() {
+      window.addEventListener('developer-hud-update', this);
+      return this;
+    },
+
+    stop: function() {
+      window.removeEventListener('developer-hud-update', this);
+    },
+
+    handleEvent: function(e) {
+      this.display(e.target, e.detail);
+      e.preventDefault();
+    },
 
     /**
      * Display a HUD over an app to show its metrics' values.

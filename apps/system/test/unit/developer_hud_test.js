@@ -8,7 +8,7 @@ suite('developerHUD', function() {
   var subject;
 
   setup(function() {
-    subject = new DeveloperHUD();
+    subject = new DeveloperHUD().start();
   });
 
   function updateMetrics(metrics) {
