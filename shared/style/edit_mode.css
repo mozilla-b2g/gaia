@@ -29,7 +29,7 @@
 }
 
 [role="dialog"][data-type="edit"] [role="region"] > header:first-child .icon.icon-close {
-  background-image: url(headers/images/icons/organic/close.svg);
+  background-image: url(headers/images/icons/organic/close.png);
 }
 
 /* Menu */
