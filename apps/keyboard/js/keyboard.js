@@ -519,6 +519,14 @@ function modifyLayout(keyboardName) {
     return newObj;
   }
 
+  // Test if a key has alternatives
+  function hasAlternatives(layout, value) {
+    if (!layout.alt)
+      return false;
+
+    return (value in layout.alt);
+  }
+
   var altLayoutName;
 
   switch (currentInputType) {
@@ -630,13 +638,17 @@ function modifyLayout(keyboardName) {
     }
 
     // Now modify the layout some more based on the input type
+    var defaultPeriodSymbol = { value: '.', ratio: 1, keyCode: 46 };
+    if (hasAlternatives(layout, '.')) {
+      defaultPeriodSymbol['className'] = 'alternate-indicator';
+    }
     if (!layout['typeInsensitive']) {
       switch (currentInputType) {
         // adds . / and .com
       case 'url':
         space.ratio -= 5;
         row.splice(c, 1, // delete space
-                   { value: '.', ratio: 1, keyCode: 46 },
+                   defaultPeriodSymbol,
                    { value: '/', ratio: 2, keyCode: 47 },
                    // As we are removing the space we need to assign
                    // the extra space (i.e to .com)
@@ -652,7 +664,7 @@ function modifyLayout(keyboardName) {
       case 'email':
         space.ratio -= 2;
         row.splice(c, 0, { value: '@', ratio: 1, keyCode: 64 });
-        row.splice(c + 2, 0, { value: '.', ratio: 1, keyCode: 46 });
+        row.splice(c + 2, 0, defaultPeriodSymbol);
         break;
 
         // adds . and , to both sides of the space bar
@@ -684,17 +696,17 @@ function modifyLayout(keyboardName) {
         }
 
         if (overwrites['.']) {
-          row.splice(next, 0, {
+          var periodOverwrite = {
             value: overwrites['.'],
             ratio: 1,
             keyCode: overwrites['.'].charCodeAt(0)
-          });
+          };
+          if (hasAlternatives(layout, overwrites['.'])) {
+            periodOverwrite['className'] = 'alternate-indicator';
+          }
+          row.splice(next, 0, periodOverwrite);
         } else if (overwrites['.'] !== false) {
-          row.splice(next, 0, {
-            value: '.',
-            ratio: 1,
-            keyCode: 46
-          });
+          row.splice(next, 0, defaultPeriodSymbol);
         }
 
         break;
