@@ -4,7 +4,7 @@
   /* global Search, UrlHelper */
 
   // timeout before notifying providers
-  var SEARCH_DELAY = 600;
+  const SEARCH_DELAY = 600;
 
   window.Search = {
     _port: null,
