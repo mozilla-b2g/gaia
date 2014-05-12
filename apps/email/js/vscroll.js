@@ -320,6 +320,10 @@ define(function(require, exports, module) {
       // Rate limit is now expired since doing actual work.
       this._limited = false;
 
+      if (!this._inited) {
+        return;
+      }
+
       var startIndex,
           endIndex,
           scrollTop = this.scrollingContainer.scrollTop,
@@ -346,9 +350,30 @@ define(function(require, exports, module) {
     },
 
     /**
+     * Called when the vscroll becomes visible. In cases where the vscroll
+     * may have been intially created for an element that is not visible,
+     * the sizing information would not be correct and the vscroll instance
+     * would not be initialized correctly. So the instance needs to know
+     * when it should check again to properly initialize. Otherwise, there
+     * may not be any new data signals from the the list data that a display
+     * needs to be tried.
+     */
+    nowVisible: function() {
+      // Only do work if not initialized and have data.
+      if (!this._inited && this.list) {
+        this._init();
+        this.onChange();
+      }
+    },
+
+    /**
      * Renders the list at the current scroll position.
      */
     renderCurrentPosition: function() {
+      if (!this._inited) {
+        return;
+      }
+
       var scrollTop = this.scrollingContainer.scrollTop;
       this.scrollTop = scrollTop;
 
@@ -373,7 +398,7 @@ define(function(require, exports, module) {
       if (top < 0) {
         top = 0;
       }
-      return Math.floor(top / this.itemHeight);
+      return this.itemHeight ? Math.floor(top / this.itemHeight) : 0;
     },
 
     /**
@@ -524,8 +549,10 @@ define(function(require, exports, module) {
       if (this._capturedScreenMetrics) {
         return;
       }
-      this._capturedScreenMetrics = true;
       this.innerHeight = this.scrollingContainer.getBoundingClientRect().height;
+      if (this.innerHeight > 0) {
+        this._capturedScreenMetrics = true;
+      }
     },
 
     /**
@@ -545,8 +572,6 @@ define(function(require, exports, module) {
         return;
       }
 
-      this.scrollingContainer.addEventListener('scroll', this.onEvent);
-
       // Clear out any previous container contents. For example, a
       // cached HTML of a previous card may have been used to init
       // this VScroll instance.
@@ -560,6 +585,16 @@ define(function(require, exports, module) {
 
       // Set up all the bounds used in scroll calculations
       this.captureScreenMetrics();
+
+      // The instance is not visible yet, so cannot finish initialization.
+      // Wait for the next instance API call to see if initialization can
+      // complete.
+      if (!this.itemHeight || !this.innerHeight) {
+        return;
+      }
+
+      this.scrollingContainer.addEventListener('scroll', this.onEvent);
+
       this.itemsPerScreen = Math.ceil(this.innerHeight / this.itemHeight);
       this.prerenderItemCount =
         Math.ceil(this.itemsPerScreen * this.prerenderScreens);
@@ -635,6 +670,10 @@ define(function(require, exports, module) {
      * the absolute scroll position may need to change.
      */
     _recalculate: function(refIndex) {
+      if (!this._inited) {
+        return;
+      }
+
       var node,
           index = this.indexAtScrollPosition(this.scrollTop),
           remainder = this.scrollTop % this.itemHeight,
