@@ -45,6 +45,9 @@ PreferencesBuilder.prototype.preparePref = function() {
   this.prefs['dom.mozInputMethod.enabled'] = true;
   this.prefs['layout.css.sticky.enabled'] = true;
 
+  // This pref can be removed once bug 1000199 has landed
+  this.prefs['dom.webcomponents.enabled'] = true;
+
   // for https://bugzilla.mozilla.org/show_bug.cgi?id=811605 to let user know
   //what prefs is for ril debugging
   this.prefs['ril.debugging.enabled'] = false;

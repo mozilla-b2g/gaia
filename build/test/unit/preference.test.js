@@ -312,6 +312,7 @@ suite('preferences.js', function() {
         'browser.homescreenURL': 'app://homescreen8000/index.html',
         'network.http.max-connections-per-server': 15,
         'dom.mozInputMethod.enabled': true,
+        'dom.webcomponents.enabled': true,
         'layout.css.sticky.enabled': true,
         'ril.debugging.enabled': false,
         'dom.mms.version': 0x11,
