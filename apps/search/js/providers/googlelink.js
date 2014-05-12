@@ -1,4 +1,4 @@
-/* global Provider */
+/* global Provider, Search */
 
 (function(exports) {
 
@@ -18,7 +18,7 @@
 
     click: function(e) {
       if (e.target.dataset.url) {
-        window.open(e.target.dataset.url, '_blank', 'remote=true');
+        Search.navigate(e.target.dataset.url);
       }
     },
 

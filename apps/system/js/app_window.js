@@ -572,6 +572,32 @@
   };
 
   /**
+   * Check an appWindow is a regular browsing window, not tied to a particular
+   * application.
+   *
+   * @return {Boolean} is the current instance a browsing window.
+   */
+  AppWindow.prototype.isBrowser = function aw_isbrowser() {
+    return !this.manifestURL;
+  };
+
+  /**
+   * Try to navigate the current frame to a given url if current instance
+   * is a browsing window.
+   * @param {String} url The url to navigate to
+   */
+  AppWindow.prototype.navigate = function aw_isbrowser(url) {
+    if (this.isBrowser()) {
+      // Kill any front window.
+      if (this.frontWindow) {
+        this.frontWindow.kill();
+        this.frontWindow = null;
+      }
+      this.browser.element.src = url;
+    }
+  };
+
+  /**
    * The event is necessary for edge gesture swiper.
    * It means the app window is swiped in.
    *

@@ -52,7 +52,9 @@ marionette('Rocketbar', function() {
     });
   });
 
-  test('Navigate to URL', function() {
+  // Skip test as it conflicts with master behaviour
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1009855
+  test.skip('Navigate to URL', function() {
     rocketbar.waitForLoad();
     var element = rocketbar.rocketbar;
     var url = server.url('sample.html');
