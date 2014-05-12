@@ -206,8 +206,6 @@ input:invalid,
 textarea:invalid,
 .skin-dark input:invalid,
 .skin-dark textarea:invalid {
-  box-shadow: inset 0 -0.1rem 0 #820000;
-  border-bottom-color: #820000;
   color: #b90000;
 }
 
@@ -217,6 +215,14 @@ textarea:focus,
 .skin-dark textarea:focus {
   box-shadow: inset 0 -0.1rem 0 #00caf2;
   border-bottom-color: #00caf2;
+}
+
+input:invalid:focus,
+textarea:invalid:focus,
+.skin-dark input:invalid:focus,
+.skin-dark textarea:invalid:focus {
+  box-shadow: inset 0 -0.1rem 0 #820000;
+  border-bottom-color: #820000;
 }
 
 /* Tidy (search/submit) */
@@ -442,7 +448,7 @@ form button::-moz-focus-inner {
     font-size: 1.8rem;
     font-style: normal;
     color: #000;
-    background: none repeat scroll 0% 0% transparent;
+    background: none repeat scroll 0 0 transparent;
 }
 
 .skin-comms .bb-editable [contenteditable]:hover,
