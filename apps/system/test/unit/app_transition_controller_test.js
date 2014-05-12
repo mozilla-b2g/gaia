@@ -1,16 +1,13 @@
-/* global MocksHelper, LayoutManager, MockAppWindow,
-          AppTransitionController, layoutManager */
+/* global MocksHelper, MockAppWindow, AppTransitionController*/
 'use strict';
 
-mocha.globals(['AppTransitionController', 'AppWindow', 'System',
-               'layoutManager']);
+mocha.globals(['AppTransitionController', 'AppWindow', 'System']);
 
 requireApp('system/test/unit/mock_app_window.js');
-requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForAppTransitionController = new MocksHelper([
-  'AppWindow', 'LayoutManager', 'SettingsListener'
+  'AppWindow', 'SettingsListener'
 ]).init();
 
 suite('system/AppTransitionController', function() {
@@ -19,8 +16,6 @@ suite('system/AppTransitionController', function() {
   setup(function(done) {
     this.sinon.useFakeTimers();
 
-    window.layoutManager = new LayoutManager().start();
-
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/system.js');
@@ -28,8 +23,6 @@ suite('system/AppTransitionController', function() {
   });
 
   teardown(function() {
-    delete window.layoutManager;
-
     stubById.restore();
   });
 
@@ -119,8 +112,6 @@ suite('system/AppTransitionController', function() {
 
   suite('Opened', function() {
     test('Handle opened', function() {
-      var stubMatch = this.sinon.stub(layoutManager, 'match');
-      stubMatch.returns(false);
       var app1 = new MockAppWindow(fakeAppConfig1);
       var acn1 = new AppTransitionController(app1);
       var stubSetVisible = this.sinon.stub(app1, 'setVisible');
@@ -128,21 +119,8 @@ suite('system/AppTransitionController', function() {
       var stubResize = this.sinon.stub(app1, 'resize');
       acn1.handle_opened();
       assert.isTrue(stubSetVisible.calledWith(true));
-      assert.isFalse(stubResize.called);
-      assert.isTrue(stubSetOrientation.called);
-    });
-
-    test('Handle opened and layout is not matched', function() {
-      var stubMatch = this.sinon.stub(layoutManager, 'match');
-      stubMatch.returns(false);
-      var app1 = new MockAppWindow(fakeAppConfig1);
-      var acn1 = new AppTransitionController(app1);
-      var stubSetVisible = this.sinon.stub(app1, 'setVisible');
-      var stubResize = this.sinon.stub(app1, 'resize');
-      app1.resized = true;
-      acn1.handle_opened();
-      assert.isTrue(stubSetVisible.calledWith(true));
       assert.isTrue(stubResize.called);
+      assert.isTrue(stubSetOrientation.called);
     });
   });
 
