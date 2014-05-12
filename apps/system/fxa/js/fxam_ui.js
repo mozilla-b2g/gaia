@@ -1,7 +1,7 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global Utils, FxaModuleManager, FxaModuleNavigation, LazyLoader */
+/* global HtmlHelper, FxaModuleManager, FxaModuleNavigation, LazyLoader */
 /* exported FxaModuleUI */
 
 'use strict';
@@ -10,7 +10,7 @@ var FxaModuleUI = {
   maxSteps: null,
   init: function(flow) {
     // Add listeners to the main elements
-    Utils.importElements(this,
+    HtmlHelper.importElements(this,
       'fxa-module-close',
       'fxa-module-back',
       'fxa-module-next',
