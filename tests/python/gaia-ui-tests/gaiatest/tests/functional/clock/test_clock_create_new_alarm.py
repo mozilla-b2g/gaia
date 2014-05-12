@@ -4,12 +4,21 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.clock.app import Clock
+from gaiatest.apps.clock.regions.alarm_alert import AlarmAlertScreen
 
 
 class TestClockCreateNewAlarm(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+
+        _seconds_since_epoch = self.marionette.execute_script("""
+                var today = new Date();
+                var yr = today.getFullYear();
+                var mth = today.getMonth();
+                var day = today.getDate();
+                return new Date(yr, mth, day, 1, 0, 0).getTime();""")
+        self.data_layer.set_time(_seconds_since_epoch)
 
         self.clock = Clock(self.marionette)
         self.clock.launch()
@@ -52,17 +61,14 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         # Tap to Edit alarm
         edit_alarm = alarms[0].tap()
 
-        # TODO: change alarm time after Bug 946130 is fixed
-        # edit_alarm.tap_time()
-        # self.marionette.switch_to_frame()
-        # edit_alarm.spin_hour()
-        # edit_alarm.spin_minute()
-        # edit_alarm.spin_hour24()
+        edit_alarm.tap_time()
+        self.marionette.switch_to_frame()
+        edit_alarm.spin_minute()
+        edit_alarm.confirm_alarm_time()
+        self.apps.switch_to_displayed_app()
 
         edit_alarm.tap_done()
         self.clock.dismiss_banner()
-
-        # TODO: assert that alarm time has changed after Bug 946130 is fixed
 
         # turn off the alarm
         self.clock.alarms[0].tap_checkbox()
@@ -73,3 +79,15 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         self.clock.alarms[0].tap_checkbox()
         self.clock.dismiss_banner()
         self.assertTrue(self.clock.alarms[0].is_alarm_active, 'user should be able to turn off the alarm.')
+
+        self.device.touch_home_button()
+        self.marionette.switch_to_frame()
+
+        self.alarm_alert = AlarmAlertScreen(self.marionette)
+        self.alarm_alert.wait_for_alarm_to_trigger()
+
+        self.assertEqual(self.alarm_alert.alarm_label, alarm_label_text)
+        self.alarm_alert.tap_stop_alarm()
+
+        # Switch back to top level now that Clock app is gone
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == 'Homescreen')
