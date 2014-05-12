@@ -1,7 +1,7 @@
 /*jshint maxlen:false*/
 'use strict';
 
-require('/shared/js/gaia-header/js/component.js');
+require('/shared/elements/gaia-header/script.js');
 
 suite('GaiaHeader', function() {
   setup(function() {
