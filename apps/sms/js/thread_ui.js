@@ -1887,21 +1887,27 @@ var ThreadUI = global.ThreadUI = {
   handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
       case 'click':
-        if (!this.inEditMode) {
-          // if the click wasn't on an attachment check for other clicks
-          if (!thui_mmsAttachmentClick(evt.target)) {
-            this.handleMessageClick(evt);
-            LinkActionHandler.onClick(evt);
+        if (this.inEditMode) {
+          var input = evt.target.parentNode.querySelector('input');
+          if (input) {
+            this.chooseMessage(input);
+            this.checkInputs();
           }
           return;
         }
 
-        var input = evt.target.parentNode.querySelector('input');
-        if (input) {
-          this.chooseMessage(input);
-          this.checkInputs();
+        // If we're in composer, let's focus on message editor on click.
+        if (window.location.hash === '#new') {
+          Compose.focus();
+          return;
         }
-        break;
+
+        // if the click wasn't on an attachment check for other clicks
+        if (!thui_mmsAttachmentClick(evt.target)) {
+          this.handleMessageClick(evt);
+          LinkActionHandler.onClick(evt);
+        }
+        return;
       case 'contextmenu':
         evt.preventDefault();
         evt.stopPropagation();
@@ -2170,7 +2176,7 @@ var ThreadUI = global.ThreadUI = {
         'NonActiveSimCardToSendError',
         {
           confirmHandler: function() {
-            // Update messageDOM state to 'sending' while sim switching 
+            // Update messageDOM state to 'sending' while sim switching
             messageDOM.classList.remove('error');
             messageDOM.classList.add('sending');
 

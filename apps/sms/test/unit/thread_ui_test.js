@@ -5367,4 +5367,31 @@ suite('thread_ui.js >', function() {
       assert.isTrue(Recipients.View.isFocusable);
     });
   });
+
+  suite('Compose mode tests', function() {
+    teardown(function() {
+      window.location.hash = '';
+      Compose.clear();
+    });
+
+    suite('message editor focus', function() {
+      setup(function() {
+        this.sinon.spy(Compose, 'focus');
+      });
+
+      test('focus on container click if in Composer', function() {
+        window.location.hash = '#new';
+        container.click();
+
+        sinon.assert.called(Compose.focus);
+      });
+
+      test('do not focus on container click if not in Composer', function() {
+        window.location.hash = '#thread=1';
+
+        container.click();
+        sinon.assert.notCalled(Compose.focus);
+      });
+    });
+  });
 });
