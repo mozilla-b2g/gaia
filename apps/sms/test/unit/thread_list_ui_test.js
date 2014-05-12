@@ -815,34 +815,7 @@ suite('thread_list_ui', function() {
       });
 
       test('show up in a new container', function() {
-        assert.isTrue(ThreadListUI.appendThread(thread));
-        var newContainerId = 'threadsContainer_' + (+thread.timestamp);
-        var newContainer = document.getElementById(newContainerId);
-        assert.ok(newContainer);
-        assert.ok(newContainer.querySelector('li'));
-        var expectedThreadId = 'thread-' + thread.id;
-        assert.equal(newContainer.querySelector('li').id, expectedThreadId);
-      });
-    });
-
-    suite('existing thread and new message in a day', function() {
-      var thread;
-
-      setup(function() {
-        var someDate = new Date(2013, 1, 1).getTime();
-        insertMockMarkup(someDate);
-
-        var nextDate = new Date(2013, 1, 2);
-        var message = MockMessages.sms({
-          threadId: 2,
-          timestamp: +nextDate
-        });
-
-        thread = Thread.create(message);
-      });
-
-      test('show up in a new container', function() {
-        assert.isTrue(ThreadListUI.appendThread(thread));
+        ThreadListUI.appendThread(thread);
         var newContainerId = 'threadsContainer_' + (+thread.timestamp);
         var newContainer = document.getElementById(newContainerId);
         assert.ok(newContainer);
@@ -853,6 +826,66 @@ suite('thread_list_ui', function() {
 
       test('should return false when adding to existing thread', function() {
         assert.isTrue(ThreadListUI.appendThread(thread));
+        assert.isFalse(ThreadListUI.appendThread(thread));
+      });
+    });
+
+    suite('existing thread and new message in a day', function() {
+      var thread;
+      var someDate;
+
+      var appendSingleNewMessage = function() {
+        var nextDate = new Date(2013, 1, 1, 0, 0, 1);
+        var message = MockMessages.sms({
+          threadId: 2,
+          timestamp: +nextDate
+        });
+        thread = Thread.create(message);
+        ThreadListUI.appendThread(thread);
+
+        var containerId = 'threadsContainer_' + (+someDate);
+        var container = document.getElementById(containerId);
+        var threads = container.getElementsByTagName('li');
+        assert.equal(message.timestamp, threads[1].dataset.time);
+      };
+
+      setup(function() {
+        someDate = new Date(2013, 1, 1).getTime();
+        insertMockMarkup(someDate);
+
+        var nextDate = new Date(2013, 1, 1, 0, 0, 2);
+        var message = MockMessages.sms({
+          threadId: 2,
+          timestamp: +nextDate
+        });
+
+        thread = Thread.create(message);
+      });
+
+      test('show up in same container', function() {
+        ThreadListUI.appendThread(thread);
+        var existingContainerId = 'threadsContainer_' + (+someDate);
+        var existingContainer = document.getElementById(existingContainerId);
+        assert.ok(existingContainer);
+        assert.ok(existingContainer.querySelector('li'));
+        var expectedThreadId = 'thread-' + thread.id;
+        assert.equal(existingContainer.querySelector('li').id,
+                     expectedThreadId);
+      });
+
+      test('should be inserted in the right spot', function() {
+        ThreadListUI.appendThread(thread);
+        appendSingleNewMessage();
+      });
+
+      test('in edit mode and a new message arrives', function() {
+        ThreadListUI.appendThread(thread);
+        ThreadListUI.startEdit();
+        appendSingleNewMessage();
+        ThreadListUI.cancelEdit();
+      });
+
+      test('should return false when adding to existing thread', function() {
         assert.isFalse(ThreadListUI.appendThread(thread));
       });
     });
