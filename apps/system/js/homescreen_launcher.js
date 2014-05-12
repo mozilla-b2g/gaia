@@ -70,7 +70,7 @@
         });
     },
 
-    getHomescreen: function hl_getHomescreen() {
+    getHomescreen: function hl_getHomescreen(ensure) {
       if (currentManifestURL === '') {
         console.warn('HomescreenLauncher: not ready right now.');
         return null;
@@ -79,7 +79,9 @@
         instance = new HomescreenWindow(currentManifestURL);
         return instance;
       } else {
-        instance.ensure();
+        if (ensure) {
+          instance.ensure();
+        }
         return instance;
       }
     }

@@ -90,18 +90,25 @@ suite('system/HomescreenLauncher', function() {
       changed = true;
     });
     MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
-    homescreen = HomescreenLauncher.getHomescreen();
+    homescreen = HomescreenLauncher.getHomescreen(true);
     assert.isTrue(stubEnsure.called);
     assert.isFalse(changed);
     stubEnsure.restore();
   });
 
+  test('homescreen should not be ensured if not specified in getHomescreen',
+    function() {
+      var stubEnsure = this.sinon.stub(homescreen, 'ensure');
+      homescreen = HomescreenLauncher.getHomescreen();
+      assert.isFalse(stubEnsure.called);
+    });
+
   test('homescreen ensure', function() {
     MockSettingsListener.mCallbacks['homescreen.manifestURL']('first.home');
     homescreen = HomescreenLauncher.getHomescreen();
     var stubEnsure = this.sinon.stub(homescreen, 'ensure');
-    homescreen = HomescreenLauncher.getHomescreen();
-    homescreen = HomescreenLauncher.getHomescreen();
+    homescreen = HomescreenLauncher.getHomescreen(true);
+    homescreen = HomescreenLauncher.getHomescreen(true);
     assert.isTrue(stubEnsure.calledTwice);
     stubEnsure.restore();
   });

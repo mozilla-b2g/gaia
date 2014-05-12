@@ -536,7 +536,7 @@ var WindowManager = (function() {
     };
 
     onSwitchWindow ? transitionCloseCallback() :
-                     HomescreenLauncher.getHomescreen().
+                     HomescreenLauncher.getHomescreen(true).
                      _waitForNextPaint(transitionCloseCallback);
   }
 
@@ -593,7 +593,7 @@ var WindowManager = (function() {
       HomescreenLauncher.origin;
 
     if (newApp === HomescreenLauncher.origin) {
-      HomescreenLauncher.getHomescreen();
+      HomescreenLauncher.getHomescreen(true);
     }
 
     // Cancel transitions waiting to be started.
@@ -1095,7 +1095,7 @@ var WindowManager = (function() {
     if (displayedApp !== HomescreenLauncher.origin) {
       runningApps[displayedApp].setVisible(false);
     } else {
-      HomescreenLauncher.getHomescreen().setVisible(false);
+      HomescreenLauncher.getHomescreen(true).setVisible(false);
     }
   });
 
@@ -1106,7 +1106,7 @@ var WindowManager = (function() {
     if (displayedApp && displayedApp !== HomescreenLauncher.origin) {
       runningApps[displayedApp].setVisible(true);
     } else {
-      var homescreen = HomescreenLauncher.getHomescreen();
+      var homescreen = HomescreenLauncher.getHomescreen(true);
       homescreen && homescreen.setVisible(true);
     }
   });
