@@ -25,11 +25,22 @@
     click: function(e) {
       var url = e.target && e.target.dataset.url;
       if (url) {
-        Search.navigate(url, {
+
+        var features = {
+          remote: true,
+          useAsyncPanZoom: true,
           icon: e.target.dataset.icon,
           originUrl: url,
           originName: e.target.dataset.title
-        });
+        };
+
+        var featureStr = Object.keys(features)
+          .map(function(key) {
+            return encodeURIComponent(key) + '=' +
+              encodeURIComponent(features[key]);
+          }).join(',');
+
+        window.open(url, '_blank', featureStr);
       }
     },
 
