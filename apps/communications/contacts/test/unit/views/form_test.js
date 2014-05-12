@@ -282,6 +282,21 @@ suite('Render contact form', function() {
                      classList.contains('placeholder'));
     }
 
+    test('no scroll on first load', function() {
+      subject.render(mockContact);
+      var container = document.getElementById('contact-form').parentNode;
+      assert.equal(container.scrollTop, 0);
+    });
+
+    test('no scroll memorised from previous renders', function() {
+      subject.render(mockContact);
+      var container = document.getElementById('contact-form').parentNode;
+      // scroll container
+      container.scrollTop = 100;
+      subject.render(mockContact);
+      assert.equal(container.scrollTop, 0);
+    });
+
     test('with no name', function() {
       mockContact.givenName.pop();
       subject.render(mockContact);
@@ -496,7 +511,7 @@ suite('Render contact form', function() {
         subject.saveContact();
         assert.isTrue(promoteToLinkedSpy.called);
         assert.isTrue(setPropagatedFlagSpy.calledWithMatch('givenName'));
-        
+
         promoteToLinkedSpy.restore();
         setPropagatedFlagSpy.restore();
       };
@@ -519,7 +534,7 @@ suite('Render contact form', function() {
         subject.saveContact();
         assert.isTrue(promoteToLinkedSpy.called);
         assert.isTrue(setPropagatedFlagSpy.calledWithMatch('familyName'));
-        
+
         promoteToLinkedSpy.restore();
         setPropagatedFlagSpy.restore();
       };

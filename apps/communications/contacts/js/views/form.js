@@ -23,6 +23,7 @@ contacts.Form = (function() {
   var TAG_OPTIONS;
   var currentContact = {};
   var dom,
+      contactForm,
       deleteContactButton,
       addNewDateButton,
       thumb,
@@ -64,13 +65,12 @@ contacts.Form = (function() {
 
     get: function textFieldsCache_get() {
       if (!this._textFields) {
-        var form = dom.getElementById('contact-form');
-        var fields = form.querySelectorAll('input.textfield');
+        var fields = contactForm.querySelectorAll('input.textfield');
 
         var removedFields =
-          Array.slice(form.querySelectorAll('.removed input.textfield'));
+          Array.slice(contactForm.querySelectorAll('.removed input.textfield'));
         var invalidFields =
-          Array.slice(form.querySelectorAll('.invalid input.textfield'));
+          Array.slice(contactForm.querySelectorAll('.invalid input.textfield'));
 
         this._textFields = Array.filter(fields, function(field) {
           return (removedFields.indexOf(field) === -1 &&
@@ -94,6 +94,7 @@ contacts.Form = (function() {
     saveButton = dom.querySelector('#save-button');
     addNewDateButton = dom.querySelector('#add-new-date');
     cancelButton = dom.querySelector('#cancel-edit');
+    contactForm = dom.getElementById('contact-form');
     formTitle = dom.getElementById('contact-form-title');
     currentContactId = dom.getElementById('contact-form-id');
     givenName = dom.getElementById('givenName');
@@ -161,8 +162,7 @@ contacts.Form = (function() {
       checkDisableButton();
     });
 
-    var form = dom.getElementById('contact-form');
-    form.addEventListener(touchstart, function click(event) {
+    contactForm.addEventListener(touchstart, function click(event) {
       var tgt = event.target;
       if (tgt.tagName == 'BUTTON' && tgt.getAttribute('type') == 'reset') {
         event.preventDefault();
@@ -232,6 +232,10 @@ contacts.Form = (function() {
     resetForm();
     (renderedContact && renderedContact.id) ?
        showEdit(renderedContact, fromUpdateActivity) : showAdd(renderedContact);
+
+    // reset the scroll from (possible) previous renders
+    contactForm.parentNode.scrollTop = 0;
+
     if (callback) {
       callback();
     }
