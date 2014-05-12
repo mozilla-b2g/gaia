@@ -1,0 +1,8 @@
+{
+  "homescreen-stingray": {
+    "src": ["dev_apps/homescreen-stingray/js/**/*.js"],
+    "options": {
+      "destination": "docs/homescreen-stingray"
+    }
+  }
+}
