@@ -22,6 +22,9 @@ marionette(mozTestInfo.appPath + ' >', function() {
     this.timeout(500000);
     client.setScriptTimeout(50000);
 
+    // inject perf event listener
+    PerformanceHelper.injectHelperAtom(client);
+
     MarionetteHelper.unlockScreen(client);
   });
 
@@ -39,8 +42,6 @@ marionette(mozTestInfo.appPath + ' >', function() {
     performanceHelper.repeatWithDelay(function(app, next) {
       var waitForBody = true;
       app.launch(waitForBody);
-
-      performanceHelper.observe();
 
       app.element('optionRecents', function(err, recentsButton) {
         recentsButton.tap();
