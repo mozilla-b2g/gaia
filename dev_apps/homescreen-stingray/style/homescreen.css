@@ -7,3 +7,12 @@ html, body {
   font-size: 10px;
   overflow: hidden;
 }
+
+.selection-border {
+  position: absolute;
+  outline: solid 0.2rem yellow;
+  box-shadow: 0 0 1rem 0.2rem yellow;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  z-index: 100;
+}
