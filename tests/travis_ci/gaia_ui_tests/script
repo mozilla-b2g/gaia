@@ -17,4 +17,5 @@ $gaiatest --app=b2gdesktop \
           --type=b2g \
           --timeout=10000 \
           --html-output artifacts/gaia_ui_tests_report.html \
-          --restart $root/tests/manifest.ini
+          --restart $root/tests/functional/settings/test_settings_change_keyboard_language.py \
+          --repeat 50

@@ -58,6 +58,9 @@ class KeyboardAddMoreKeyboards(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
+        import time
+        time.sleep(5)
+
         section = self.marionette.find_element(*self._section_locator)
         self.wait_for_condition(lambda m: section.location['x'] == 0)
 
