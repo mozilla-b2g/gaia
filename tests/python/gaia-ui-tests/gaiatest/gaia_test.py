@@ -415,6 +415,11 @@ class GaiaDevice(object):
         else:
             raise Exception('GaiaDevice has no device manager object set.')
 
+    def enable_desktop_mock_sdcard(self):
+        # First set the device root, then pass it into the storage override pref
+        self._device_root = os.path.abspath(os.path.join(os.getcwd(), 'fake-sdcard'))
+        GaiaData(self.marionette).set_char_pref('device.storage.overrideRootDir', self.device_root)
+
     @property
     def device_root(self):
         if not hasattr(self, '_device_root'):
@@ -467,9 +472,12 @@ class GaiaDevice(object):
         return self._has_wifi
 
     def push_file(self, source, count=1, destination='', progress=None):
+        # If the folder does not exist, create it
+        self.manager.mkDirs(destination)
+
+        # If the destination does not already contain the filename, create a fully qualified path
         if not destination.count('.') > 0:
             destination = '/'.join([destination, source.rpartition(os.path.sep)[-1]])
-        self.manager.mkDirs(destination)
         self.manager.pushFile(source, destination)
 
         if count > 1:
@@ -620,13 +628,23 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
         self.device = GaiaDevice(self.marionette, self.testvars)
         if self.device.is_android_build:
+            # Add mozdevice's device manager,
             self.device.add_device_manager(self.get_device_manager())
+        elif self.device.is_desktop_b2g:
+            # otherwise for desktopb2g add our python os wrapper
+            from gaiatest.utils.devicemanager_desktopb2g.devicemanager import DeviceManagerDesktopB2G
+            self.device.add_device_manager(DeviceManagerDesktopB2G())
+
         if self.restart and (self.device.is_android_build or self.marionette.instance):
             # Restart if it's a device, or we have passed a binary instance with --binary command arg
             self.device.stop_b2g()
             if self.device.is_android_build:
                 self.cleanup_data()
             self.device.start_b2g()
+
+            if self.device.is_desktop_b2g:
+                # Enabled the mock sdcard to facilitate sdcard/Device Storage tests
+                self.device.enable_desktop_mock_sdcard()
 
         # Run the fake update checker
         FakeUpdateChecker(self.marionette).check_updates()
@@ -665,8 +683,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.data_layer = GaiaData(self.marionette, self.testvars)
         self.accessibility = Accessibility(self.marionette)
 
-        if self.device.is_android_build:
-            self.cleanup_sdcard()
+        self.cleanup_sdcard()
 
         if self.restart:
             self.cleanup_gaia(full_reset=False)
