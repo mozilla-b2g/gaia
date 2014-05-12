@@ -354,17 +354,17 @@ gaia-header [data-icon="send"]:before {
 
 section[role="region"] > header:first-child .icon.icon-close,
 gaia-header [data-icon="close"]:before {
-  background-image: url(headers/images/icons/close.svg);
+  background-image: url(headers/images/icons/close.png);
 }
 
 section[role="region"] > header:first-child .icon.icon-back,
 gaia-header [data-icon="back"]:before {
-  background-image: url(headers/images/icons/back.svg);
+  background-image: url(headers/images/icons/back.png);
 }
 
 section[role="region"] > header:first-child .icon.icon-menu,
 gaia-header [data-icon="menu"]:before {
-  background-image: url(headers/images/icons/menu.svg);
+  background-image: url(headers/images/icons/menu.png);
 }
 
 section[role="region"] > header:first-child .icon.icon-user,
@@ -500,13 +500,13 @@ gaia-header[data-skin="organic"] button {
 section[role="region"].skin-organic > header:first-child .icon.icon-back,
 .skin-organic section[role="region"] > header:first-child .icon.icon-back,
 gaia-header[data-skin="organic"] [data-icon="back"]:before {
-  background-image: url(headers/images/icons/organic/back.svg);
+  background-image: url(headers/images/icons/organic/back.png);
 }
 
 section[role="region"].skin-organic > header:first-child .icon.icon-close,
 .skin-organic section[role="region"] > header:first-child .icon.icon-close,
 gaia-header[data-skin="organic"] [data-icon="close"]:before {
-  background-image: url(headers/images/icons/organic/close.svg);
+  background-image: url(headers/images/icons/organic/close.png);
 }
 
 section[role="region"].skin-organic > header:first-child .icon.icon-add,
