@@ -781,6 +781,8 @@ var WindowManager = (function() {
       protocol + 'bluetooth.' + domain + '/manifest.webapp';
     var keyboardManifestUrl =
       protocol + 'keyboard.' + domain + '/manifest.webapp';
+    var musicManifestUrl =
+      protocol + 'music.' + domain + '/manifest.webapp';
     var outOfProcessBlackList = [
       browserManifestUrl,
       // Requires nested content processes (bug 761935).  This is not
@@ -788,10 +790,14 @@ var WindowManager = (function() {
       bluetoothManifestUrl,
       // Bluetooth pairing/transfer UI is too critical to be OOM'd,
       // and it manages it's own life cycle.
-      keyboardManifestUrl
+      keyboardManifestUrl,
       // Keyboard Settings page manages it's own life cycle.
       // Make it inproc to prevent Settings app being killed before switching
       // back.
+      musicManifestUrl
+      // Music should stay alive while it's playing in the background, to
+      // avoid being killed by LMK, put it inproc and the media app agent
+      // will manage its life cycle.
     ];
 
     if (outOfProcessBlackList.indexOf(manifestURL) === -1) {
