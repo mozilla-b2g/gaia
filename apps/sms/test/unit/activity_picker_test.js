@@ -8,6 +8,7 @@ requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/test/unit/mock_utils.js');
+requireApp('sms/test/unit/mock_activity_handler.js');
 
 var mocksHelperAP = new MocksHelper([
   'ActivityHandler',
@@ -293,9 +294,9 @@ suite('ActivityPicker', function() {
 
       ActivityPicker.sendMessage('999');
 
-     sinon.assert.calledWith(ActivityHandler.toView, {
-       number: '999'
-     });
+      sinon.assert.calledWith(ActivityHandler.toView, {
+        number: '999'
+      });
     });
   });
 
