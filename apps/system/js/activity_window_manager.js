@@ -33,6 +33,7 @@
       window.addEventListener('activitycreating', this);
       window.addEventListener('activitycreated', this);
       window.addEventListener('activityterminated', this);
+      window.addEventListener('homescreenopened', this);
     },
 
     /**
@@ -62,6 +63,20 @@
 
     handleEvent: function acwf_handleEvent(evt) {
       switch (evt.type) {
+        // XXX: Another workaround for bug 931339
+        // Once homescreen is opened and there's a new activityrequest,
+        // dismiss the background activities.
+        case 'homescreenopened':
+          window.addEventListener('activityrequesting', this);
+          break;
+        case 'activityrequesting':
+          window.removeEventListener('activityrequesting', this);
+          this._activities.forEach(function iterator(activity) {
+            if (!activity.getBottomMostWindow().isActive()) {
+              activity.kill();
+            }
+          });
+          break;
         case 'activitycreating':
           // XXX: See Bug 931339
           // Only the first matched manifestURL + pageURL is sent with
