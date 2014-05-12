@@ -8,7 +8,8 @@
   const API = 'https://marketplace.firefox.com/api/v1/apps/search/rocketbar/' +
     '?q={q}' +
     '&limit=' + NUM_DISPLAY +
-    '&lang=' + document.documentElement.lang;
+    '&lang=' + document.documentElement.lang +
+    '&region=restofworld';
 
   function Marketplace() {}
 
