@@ -29,12 +29,14 @@ Bookmark.prototype = {
   },
 
   save: function(url, browser) {
+    var helper = this.client.helper;
+
     // Running tests with B2G desktop on Linux, a 'Download complete'
     // notification-toaster will pop up and make tests failed
     this.client.switchToFrame();
 
     browser.launch();
-    this.client.helper.waitForElement('body.loaded');
+    helper.waitForElement('body.loaded');
     this.client.switchToFrame();
 
     var notifToaster = this.client.findElement('#notification-toaster');
@@ -44,7 +46,7 @@ Bookmark.prototype = {
       // (notifToaster.displayed() is always true)
       // So we workaround this to wait for .displayed get removed
       // from notifToaster
-      this.client.helper.waitFor(function() {
+      helper.waitFor(function() {
         return notifToaster.getAttribute('class').indexOf('displayed') < 0;
       });
     }
@@ -53,8 +55,14 @@ Bookmark.prototype = {
     browser.searchBar.sendKeys(url);
     browser.searchButton.click();
 
-    this.client.helper.waitForElement(browser.bookmarkButton).click();
-    this.client.helper.waitForElement(browser.bookmarkAddToHomeButton).click();
+    // Ensure page is loaded before clicking the bookmark icon
+    var webFrame = helper.waitForElement('iframe[src="' + url + '"]');
+    this.client.switchToFrame(webFrame);
+    helper.waitForElement('header h1');
+    browser.backToApp();
+
+    helper.waitForElement(browser.bookmarkButton).click();
+    helper.waitForElement(browser.bookmarkAddToHomeButton).click();
     this.backToApp();
     this.addButton.click();
   },
