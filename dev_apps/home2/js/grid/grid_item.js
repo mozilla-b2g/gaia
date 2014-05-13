@@ -74,6 +74,7 @@
         var tile = document.createElement('div');
         tile.className = 'icon';
         tile.dataset.identifier = this.identifier;
+        tile.setAttribute('role', 'link');
 
         // This <p> has been added in order to place the title with respect
         // to this container via CSS without touching JS.
