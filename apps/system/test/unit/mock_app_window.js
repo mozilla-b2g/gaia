@@ -66,6 +66,8 @@
     canGoBack: function() {},
     back: function() {},
     reload: function() {},
+    isBrowser: function() {},
+    navigate: function() {},
     isFullScreen: function() {},
     _changeState: function() {},
     _setVisible: function() {},
