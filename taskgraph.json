@@ -14,7 +14,7 @@
         "payload": {
           "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
           "command": [
-            "./bin/github ./tests/travis_ci/gaia_ui_tests/install && ./tests/travis_ci/gaia_ui_tests/script"
+            "./bin/github './tests/travis_ci/gaia_ui_tests/install && ./tests/travis_ci/gaia_ui_tests/script'"
           ]
         },
         "tags": {
