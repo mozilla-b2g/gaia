@@ -14,7 +14,7 @@ suiteGroup('Views.TimeParent', function() {
   function ChildView(options) {
     this.date = options.date;
     this.app = options.app;
-    this.id = this.date.valueOf();
+    this.id = getDateId(this.date);
   }
 
   ChildView.prototype = {
@@ -48,6 +48,10 @@ suiteGroup('Views.TimeParent', function() {
       this.scrollTop = scrollTop;
     }
   };
+
+  function getDateId(date) {
+    return Calendar.Calc.getDayId(date);
+  }
 
   suiteSetup(function() {
     TimeParent = Calendar.Views.TimeParent;
@@ -106,7 +110,6 @@ suiteGroup('Views.TimeParent', function() {
   test('initializer', function() {
     assert.instanceOf(subject, TimeParent);
     assert.instanceOf(subject, Calendar.View);
-    assert.instanceOf(subject.frames, Calendar.Utils.OrderedMap);
 
     assert.equal(subject.element.id, 'test');
   });
@@ -128,7 +131,7 @@ suiteGroup('Views.TimeParent', function() {
 
     test('#_createFrame', function() {
       var date = new Date();
-      var id = date.valueOf();
+      var id = getDateId(date);
       var out = subject._createFrame(date);
 
       assert.instanceOf(out, ChildView);
@@ -144,30 +147,12 @@ suiteGroup('Views.TimeParent', function() {
       result = subject.addFrame(date);
     });
 
-    test('creation and duplication', function() {
+    test('create frame and add to DOM', function() {
       // verify frame is there
-      var id = date.valueOf();
-      var originalFrame = subject.frames.get(id);
-      assert.equal(result, originalFrame, 'returns frame');
-
-      // verify we have it in the data
-      assert.ok(
-        originalFrame,
-        'has initial frame'
-      );
-
-      // verify it exists in the dom
+      var id = getDateId(date);
       var el = document.getElementById(id);
       assert.ok(el, 'has element');
-      assert.equal(el, originalFrame.element, 'is same element');
-
-      subject.addFrame(date);
-
-      assert.equal(
-        subject.frames.get(id),
-        originalFrame,
-        're-create existing frames'
-      );
+      assert.equal(el, result.element, 'is same element');
     });
   });
 
@@ -180,13 +165,7 @@ suiteGroup('Views.TimeParent', function() {
 
     test('create intial frame', function() {
       // find ids so we can verify they exist.
-      var curId = subject._getId(date);
-
-      var nextId =
-        subject._getId(subject._nextTime(date));
-
-      var prevId =
-        subject._getId(subject._previousTime(date));
+      var curId = getDateId(date);
 
       assert.equal(subject.date, date, 'sets current date');
 
@@ -194,62 +173,23 @@ suiteGroup('Views.TimeParent', function() {
       assert.ok(subject.currentFrame, 'has current frame');
       assert.equal(subject.currentFrame.id, curId, 'cur id');
       assert.ok(document.getElementById(curId), 'element in dom');
-      assert.isTrue(subject.frames.get(curId).active, 'is active');
-
-      var nextFrame = subject.frames.get(nextId);
-      var prevFrame = subject.frames.get(prevId);
-
-      assert.equal(prevFrame.id, prevId, 'frame sanity');
-
-      assert.ok(!nextFrame.active, 'has next frame (should be inactive)');
-      assert.ok(!prevFrame.active, 'has prev frame (should be inactive)');
     });
 
     test('sequentially activate second frame', function() {
-      var curId = subject._getId(date);
-      var curFrame = subject.frames.get(curId);
-
+      var prevId = getDateId(date);
+      var prevFrame = subject.currentFrame;
       var next = subject._nextTime(date);
+      var nextId = getDateId(next);
       subject.changeDate(next);
 
-      assert.ok(!curFrame.active, 'deactivated previously current');
-      assert.ok(subject.frames.get(curId), 'previous id is still present');
-      assert.length(subject.frames, 4);
-    });
-
-    test('max frame pruge', function() {
-      var max = subject.maxFrames - 2;
-      var i = 0;
-      for (; i < max; i++) {
-        subject.changeDate(
-          subject._nextTime(subject.date)
-        );
-      }
-
-      // current
-      var cur = subject._getId(subject.date);
-      cur = subject.frames.get(cur);
-
-      // previous
-      var prev =
-        subject._getId(subject._previousTime(subject.date));
-
-      prev = subject.frames.get(prev);
-
-      // next
-      var next =
-        subject._getId(subject._nextTime(subject.date));
-
-      next = subject.frames.get(next);
-
-      // verify frames exist
-      assert.length(subject.frames, 3, 'trims extra frames when over max');
-      assert.ok(subject.frames.has(cur), 'cur');
-      assert.ok(subject.frames.has(prev), 'prev');
-      assert.ok(subject.frames.has(next), 'next');
-
-      // verify other children where removed
-      assert.length(subject.frameContainer.children, 3);
+      assert.ok(prevFrame.destroyed, 'previous frame was destroyed');
+      assert.ok(subject.currentFrame.active, 'current frame is active');
+      assert.notEqual(subject.currentFrame, prevFrame, 'changed frames');
+      assert.ok(
+        !document.getElementById(prevId),
+        'previous element not in dom'
+      );
+      assert.ok(document.getElementById(nextId), 'element in dom');
     });
 
     test('the same scrollTop between day ane week views', function() {
@@ -267,7 +207,7 @@ suiteGroup('Views.TimeParent', function() {
     test('event: purge', function() {
       var span = new Calendar.Timespan(new Date(), new Date());
       var calledWith;
-      subject.purgeFrames = function() {
+      subject._purgeFrames = function() {
         calledWith = arguments;
       };
 
@@ -277,8 +217,10 @@ suiteGroup('Views.TimeParent', function() {
   });
 
   suite('#purgeFrames', function() {
-    var purgeSpan;
-    var items;
+    var purgeSpan = new Calendar.Timespan(
+      new Date(2012, 1, 5),
+      new Date(2012, 1, 10)
+    );
 
     function span(start, end) {
       return new Calendar.Timespan(
@@ -287,76 +229,60 @@ suiteGroup('Views.TimeParent', function() {
       );
     }
 
-    setup(function() {
-      purgeSpan = new Calendar.Timespan(
-        new Date(2012, 1, 5),
-        new Date(2012, 1, 10)
-      );
+    function destroy() {
+      /*jshint validthis:true */
+      this.destroyed = true;
+    }
 
-      items = Object.create(null);
+    suite('not purged', function() {
+      ([
+        {
+          id: 'before',
+          timespan: span(2, 4)
+        },
+        {
+          id: 'overlap',
+          timespan: span(3, 7)
+        },
+        {
+          id: 'after',
+          timespan: span(11, 24)
+        }
+      ]).forEach(function(context) {
 
-      function destroy() {
-        /*jshint validthis:true */
-        this.destroyed = true;
-      }
+        test(context.id, function() {
+          subject.currentFrame = context;
+          subject._purgeFrames(purgeSpan);
+          assert.equal(subject.currentFrame, context);
+        });
 
-      items.before = {
-        id: 1,
-        timespan: span(2, 4)
-      };
-
-      items.overlap = {
-        id: 2,
-        timespan: span(3, 7)
-      };
-
-      items.same = {
-        id: 3,
-        timespan: purgeSpan,
-        destroy: destroy
-      };
-
-      items.contains = {
-        id: 4,
-        timespan: span(7, 8),
-        destroy: destroy
-      };
-
-      items.after = {
-        id: 5,
-        timespan: span(11, 24)
-      };
-
-      var key;
-      for (key in items) {
-        subject.frames.set(items[key].id, items[key]);
-      }
-
-      // set current frame to a frame
-      // that will be deleted...
-      subject.currentFrame = items.contains;
-
-      subject.purgeFrames(purgeSpan);
+      });
     });
 
-    test('after purge', function() {
-      var frames = subject.frames;
+    suite('should be purged', function() {
+      ([
+        {
+          id: 'same',
+          timespan: purgeSpan,
+          destroy: destroy
+        },
+        {
+          id: 'contains',
+          timespan: span(7, 8),
+          destroy: destroy
+        }
+      ]).forEach(function(context) {
 
-      assert.ok(frames.get(items.before.id), 'before');
-      assert.ok(frames.get(items.overlap.id), 'overlap');
-      assert.ok(frames.get(items.after.id), 'after');
+        test(context.id, function() {
+          subject.currentFrame = context;
+          subject._purgeFrames(purgeSpan);
+          assert.ok(!subject.currentFrame, 'remove pointer');
+          assert.isTrue(context.destroyed, 'destroy frame');
+        });
 
-      assert.ok(!frames.get(items.same.id), 'removed same');
-      assert.ok(!frames.get(items.contains.id), 'removed contains');
-
-      assert.ok(
-        !subject.currentFrame,
-        'removes current frame when it is deleted'
-      );
-
-      assert.isTrue(items.same.destroyed);
-      assert.isTrue(items.contains.destroyed);
+      });
     });
+
   });
 
   suite('#onactive', function() {
