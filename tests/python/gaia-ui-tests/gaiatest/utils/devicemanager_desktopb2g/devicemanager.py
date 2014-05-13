@@ -23,8 +23,18 @@ class DeviceManagerDesktopB2G:
         return os.path.isfile(filepath)
 
     def mkDirs(self, filename):
-        if not os.path.exists(filename):
-            os.makedirs(filename)
+        '''
+        Make directory structure on the device.
+
+        WARNING: does not create last part of the path. For example, if asked to
+        create /mnt/sdcard/foo/bar/baz, it will only create /mnt/sdcard/foo/bar
+        '''
+
+        # Split the filename string to get just the path and remove the filename
+        parts = filename.rpartition(os.path.sep)
+
+        if not self.dirExists(parts[0]):
+            os.makedirs(parts[0])
 
     def pushFile(self, localname, destname):
         if self.dirExists(destname):

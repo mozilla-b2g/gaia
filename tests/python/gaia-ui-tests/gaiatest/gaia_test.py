@@ -472,17 +472,20 @@ class GaiaDevice(object):
         return self._has_wifi
 
     def push_file(self, source, count=1, destination='', progress=None):
+
+        # If the destination is not a filename, join the source's filename to the destination
+        if not destination.rpartition(os.path.sep)[-1].count('.') > 0:
+            destination = '/'.join([destination, source.rpartition(os.path.sep)[-1]])
+
         # If the folder does not exist, create it
         self.manager.mkDirs(destination)
 
-        # If the destination does not already contain the filename, create a fully qualified path
-        if not destination.count('.') > 0:
-            destination = '/'.join([destination, source.rpartition(os.path.sep)[-1]])
         self.manager.pushFile(source, destination)
 
         if count > 1:
             for i in range(1, count + 1):
                 remote_copy = '_%s.'.join(iter(destination.split('.'))) % i
+                # TODO fix this for Windows
                 self.manager._checkCmd(['shell', 'dd', 'if=%s' % destination, 'of=%s' % remote_copy])
                 if progress:
                     progress.update(i)
