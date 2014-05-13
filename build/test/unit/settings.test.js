@@ -135,6 +135,25 @@ suite('settings.js', function() {
         testResult.testConfig);
     });
 
+    test('deviceTypeSettings', function () {
+      var testResult = {
+        'testConfig': 'abc'
+      };
+      mockUtils.getFile = function() {
+        return {
+          exists: function() {
+            return true;
+          }
+        };
+      };
+      mockUtils.getJSON = function(json) {
+        return testResult;
+      };
+      app.deviceTypeSettings(settings, config);
+      assert.equal(settings.testConfig,
+        testResult.testConfig);
+    });
+
     test('writeSettings', function () {
       var settingsFile = {result: ''};
       var settings = { 'testKey': 'testValue' };
