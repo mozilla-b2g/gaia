@@ -21,7 +21,7 @@
   var iccLastCommand = null;
   var iccLastCommandProcessed = false;
   var stkOpenAppName = null;
-  var stkLastSelectedTest = null;
+  var stkLastSelectedText = null;
   var goBackTimer = {
     timer: null,
     timeout: 0
@@ -331,6 +331,18 @@
       }));
     });
 
+    // Optional Help menu
+    if (menu.isHelpAvailable) {
+      iccStkList.appendChild(buildMenuEntry({
+        id: 'stk-helpmenuitem',
+        text: _('operatorServices-helpmenu'),
+        onclick: function __onHelpClick__(event) {
+          showHelpSelection(command, event);
+        },
+        attributes: []
+      }));
+    }
+
     stkResNoResponse();
   }
 
@@ -340,7 +352,51 @@
       resultCode: iccManager.STK_RESULT_OK,
       itemIdentifier: identifier
     });
-    stkLastSelectedTest = event.target.textContent;
+    stkLastSelectedText = event.target.textContent;
+  }
+
+  function showHelpSelection(command, event) {
+    var menu = command.options;
+
+    DUMP('Showing STK help menu');
+    stkOpenAppName = null;
+
+    clearList();
+
+    setSTKScreenType(STK_SCREEN_HELP);
+
+    showTitle(_('operatorServices-helpmenu'));
+    menu.items.forEach(function(menuItem) {
+      DUMP('STK Main App Help item: ' + menuItem.text + ' # ' +
+            menuItem.identifier);
+      iccStkList.appendChild(buildMenuEntry({
+        id: 'stk-helpitem-' + menuItem.identifier,
+        text: menuItem.text,
+        onclick: function onSelectOptionClick(event) {
+          onSelectionHelpItemClick(command, event);
+        },
+        attributes: [
+          ['stk-help-item-identifier', menuItem.identifier],
+          ['stk-menu-item-iccId', menu.iccId]
+        ]
+      }));
+    });
+
+    exitHelp.onclick = function _closeHelp() {
+      updateSelection(message);
+    };
+  }
+
+  function onSelectionHelpItemClick(command, event) {
+    var iccId = event.target.getAttribute('stk-menu-item-iccId');
+    var identifier = event.target.getAttribute('stk-help-item-identifier');
+    DUMP('sendStkHelpMenuSelection: ', identifier);
+
+    responseSTKCommand(command, {
+      resultCode: iccManager.STK_RESULT_HELP_INFO_REQUIRED,
+      itemIdentifier: identifier
+    });
+    stkLastSelectedText = event.target.textContent;
   }
 
   /**
