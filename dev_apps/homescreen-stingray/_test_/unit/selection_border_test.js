@@ -86,7 +86,7 @@ suite('SelectionBorder', function() {
 
     test('selectRect', function() {
       var rect = { left: 10, top: 10, width: 10, height: 10 };
-      selector.selectRect(rect);
+      selector.selectRect(borderContainer, rect);
       assert.equal(selector.selectedItems.length, 1);
       assert.equal(selector.selectedItems[0].rect, rect);
       assert.equal(selector.selectedItems[0].border.style.left, '10px');
@@ -98,7 +98,7 @@ suite('SelectionBorder', function() {
 
     test('deselectRect', function() {
       var rect = { left: 10, top: 10, width: 10, height: 10 };
-      selector.selectRect(rect);
+      selector.selectRect(borderContainer, rect);
       selector.deselectRect(rect);
       assert.equal(selector.selectedItems.length, 0);
       assert.equal(selector.borders.length, 1);
@@ -108,10 +108,10 @@ suite('SelectionBorder', function() {
     test('selectRect rect1 and rect2', function() {
       var rect1 = { left: 10, top: 10, width: 10, height: 10 };
       var rect2 = { left: 100, top: 100, width: 100, height: 100};
-      selector.selectRect(rect1);
+      selector.selectRect(borderContainer, rect1);
       assert.equal(selector.selectedItems.length, 1);
       assert.equal(selector.selectedItems[0].rect, rect1);
-      selector.selectRect(rect2);
+      selector.selectRect(borderContainer, rect2);
       assert.equal(selector.selectedItems.length, 1);
       assert.equal(selector.selectedItems[0].rect, rect2);
       assert.equal(selector.selectedItems[0].border.style.left, '100px');
@@ -162,10 +162,10 @@ suite('SelectionBorder', function() {
     test('selectRect rect1 and rect2', function() {
       var rect1 = { left: 10, top: 10, width: 10, height: 10 };
       var rect2 = { left: 100, top: 100, width: 100, height: 100 };
-      selector.selectRect(rect1);
+      selector.selectRect(borderContainer, rect1);
       assert.equal(selector.selectedItems.length, 1);
       assert.equal(selector.selectedItems[0].rect, rect1);
-      selector.selectRect(rect2);
+      selector.selectRect(borderContainer, rect2);
       assert.equal(selector.selectedItems.length, 2);
       assert.equal(selector.selectedItems[1].rect, rect2);
       assert.equal(selector.selectedItems[1].border.style.left, '100px');
@@ -178,10 +178,10 @@ suite('SelectionBorder', function() {
     test('deselectAll', function() {
       var rect1 = { left: 10, top: 10, width: 10, height: 10 };
       var rect2 = { left: 100, top: 100, width: 100, height: 100 };
-      selector.selectRect(rect1);
+      selector.selectRect(borderContainer, rect1);
       assert.equal(selector.selectedItems.length, 1);
       assert.equal(selector.selectedItems[0].rect, rect1);
-      selector.selectRect(rect2);
+      selector.selectRect(borderContainer, rect2);
       assert.equal(selector.selectedItems.length, 2);
       assert.equal(selector.selectedItems[1].rect, rect2);
       selector.deselectAll();
