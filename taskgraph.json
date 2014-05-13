@@ -48,7 +48,7 @@
         "payload": {
           "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
           "command": [
-            "./bin/github make test-integration REPORTER=mocha-tbpl-reporter"
+            "./bin/github make test-integration"
           ]
         },
         "tags": {
