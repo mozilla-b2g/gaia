@@ -1,4 +1,7 @@
 {
+  "metadata": {},
+  "tags": {},
+  "params": {},
   "tasks": {
     "marionette integration tests": {
       "task": {
