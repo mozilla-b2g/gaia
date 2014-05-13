@@ -34,6 +34,7 @@ var Visibility = {
     }
 
     this._views.forEach(function(view) {
+      var anchor;
       // Check the views and point the anchor to the right parent.
       if (this._isPlayerLoaded && view === PlayerView) {
         anchor = view.cover;
