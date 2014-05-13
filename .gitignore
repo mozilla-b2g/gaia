@@ -38,6 +38,8 @@ manifest.appcache
 /profile/
 /profile-debug/
 /profile-test/
+/profile-gaia-test-b2g/
+/profile-gaia-test-firefox/
 /profile.tar.gz
 /.xulrunner-url
 /xulrunner/
