@@ -14,10 +14,7 @@
 const IMERender = (function() {
 
   var ime, activeIme, menu;
-  var getUpperCaseValue, isSpecialKey, getAriaLabel;
-
-  var _ = navigator.mozL10n ?
-    navigator.mozL10n.get : function(x) { return x };
+  var getUpperCaseValue, isSpecialKey;
 
   var _menuKey, _altContainer;
 
@@ -31,6 +28,24 @@ const IMERender = (function() {
   var cachedWindowHeight = -1;
   var cachedWindowWidth = -1;
 
+  const ariaLabelMap = {
+    '⇪': 'upperCaseKey',
+    '⌫': 'backSpaceKey',
+    '&nbsp': 'spaceKey',
+    '↵': 'returnKey',
+    '.': 'periodKey',
+    ',': 'commaKey',
+    ':': 'colonKey',
+    ';': 'semicolonKey',
+    '?': 'questionMarkKey',
+    '!': 'exclamationPointKey',
+    '(': 'leftBracketKey',
+    ')': 'rightBracketKey',
+    '"': 'doubleQuoteKey',
+    '«': 'leftDoubleAngleQuoteKey',
+    '»': 'rightDoubleAngleQuoteKey'
+  };
+
   window.addEventListener('resize', function kr_onresize() {
     cachedWindowHeight = window.innerHeight;
     cachedWindowWidth = window.innerWidth;
@@ -39,10 +54,9 @@ const IMERender = (function() {
   // Initialize the render. It needs some business logic to determine:
   //   1- The uppercase for a key object
   //   2- When a key is a special key
-  var init = function kr_init(uppercaseFunction, keyTest, labelGetter) {
+  var init = function kr_init(uppercaseFunction, keyTest) {
     getUpperCaseValue = uppercaseFunction;
     isSpecialKey = keyTest;
-    getAriaLabel = labelGetter || function() { return ''; };
     ime = document.getElementById('keyboard');
     menu = document.getElementById('keyboard-accent-char-menu');
 
@@ -267,6 +281,12 @@ const IMERender = (function() {
 
   var hideIME = function km_hideIME() {
     ime.dataset.hidden = 'true';
+  };
+
+  var getAriaLabel = function mk_getAriaLabel(key) {
+    var _ = navigator.mozL10n ?
+      navigator.mozL10n.get : function() { return ''; };
+    return _(key.ariaLabel || ariaLabelMap[key.value] || key.value);
   };
 
   // Highlight the key according to the case.
@@ -810,6 +830,9 @@ const IMERender = (function() {
   };
 
   var candidatePanelCode = function() {
+    var _ = navigator.mozL10n ?
+      navigator.mozL10n.get : function(x) { return x };
+
     var candidatePanel = document.createElement('div');
     candidatePanel.setAttribute('role', 'group');
     candidatePanel.setAttribute('aria-label', _('wordSuggestions'));
