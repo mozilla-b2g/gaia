@@ -41,8 +41,7 @@ marionette('Contacts > Form', function() {
       assert.notEqual(listElementText.indexOf(familyName), -1);
     });
 
-    // disabled bug 989394
-    test.skip('Can create custom label', function() {
+    test('Can create custom label', function() {
       subject.addContact({
         givenName: 'Custom Label Test',
         tel: 1231231234
@@ -83,8 +82,9 @@ marionette('Contacts > Form', function() {
       subject.waitForFormTransition();
       client.helper.waitForElement(selectors.detailsTelLabelFirst);
       client.waitFor(function waiting() {
-        var label = client.findElement(selectors.detailsTelLabelFirst).text();
-        return label === 'BFF';
+        var label = client.helper.
+          waitForElement(selectors.detailsTelLabelFirst);
+        return label.text() === 'BFF';
       });
       assert.ok(true, 'custom label is updated.');
     });
