@@ -101,6 +101,10 @@ suite('STK (icc_worker) >', function() {
 
   function launchStkCommand(cmd) {
     function stkCmd(CMD) {
+      /* TODO: cleanup this function after bug 819831 landed */
+      if (typeof CMD === 'string') {
+        return CMD;
+      }
       return '0x' + CMD.toString(16);
     }
     icc_worker[stkCmd(cmd.command.typeOfCommand)](cmd);
