@@ -371,15 +371,20 @@
 }
 
 /**
- * mode=video
+ * mode-video
+ *
+ * 1. (bug 1008488): Pixel rounding issues sometimes
+ *    means that this circle looks 'chopped'. Using a
+ *    more precise height fixes this, although
+ *    technically this is a platform issue.
  */
 
 .controls.mode-video .capture-button .center:before {
   content: '';
   top: calc(50% - 1rem);
   left: calc(50% - 1rem);
-  width: 2rem;
-  height: 2rem;
+  width: 2.001rem; /* 1 */
+  height: 2.001rem; /* 1 */
   border-radius: 50%;
   background-color: #D92E2E;
   color: white;
