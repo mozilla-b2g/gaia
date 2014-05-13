@@ -240,24 +240,6 @@ const specialCodes = [
   KeyEvent.DOM_VK_SPACE
 ];
 
-const ariaLabelMap = {
-  '⇪': 'upperCaseKey',
-  '⌫': 'backSpaceKey',
-  '&nbsp': 'spaceKey',
-  '↵': 'returnKey',
-  '.': 'periodKey',
-  ',': 'commaKey',
-  ':': 'colonKey',
-  ';': 'semicolonKey',
-  '?': 'questionMarkKey',
-  '!': 'exclamationPointKey',
-  '(': 'leftBracketKey',
-  ')': 'rightBracketKey',
-  '"': 'doubleQuoteKey',
-  '«': 'leftDoubleAngleQuoteKey',
-  '»': 'rightDoubleAngleQuoteKey'
-};
-
 // SettingsPromiseManager wraps Settings DB methods into promises.
 var settingsPromiseManager = new SettingsPromiseManager();
 
@@ -334,7 +316,7 @@ function initKeyboard() {
   });
 
   // Initialize the rendering module
-  IMERender.init(getUpperCaseValue, isSpecialKeyObj, getAriaLabel);
+  IMERender.init(getUpperCaseValue, isSpecialKeyObj);
 
   // Attach event listeners to the element that does rendering
   for (var event in eventHandlers) {
@@ -480,11 +462,6 @@ function setKeyboardName(name, callback) {
       callback(keyboard);
     }
   }
-}
-
-function getAriaLabel(key) {
-  var _ = navigator.mozL10n.get;
-  return _(key.ariaLabel || ariaLabelMap[key.value] || key.value);
 }
 
 // Support function for render
