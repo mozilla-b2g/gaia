@@ -40,6 +40,7 @@ function setRingtone(settings, config) {
     config.GAIA_DIR);
 
   settings['dialer.ringtone'] = utils.getFileAsDataURI(ringtone);
+  settings['dialer.ringtone.name'] = 'Classic Courier';
 }
 
 function setNotification(settings, config) {
@@ -113,6 +114,17 @@ function overrideSettings(settings, config) {
     config.GAIA_DIR);
   if (override.exists()) {
     let content = utils.getJSON(override);
+
+    // Override ringtone if both ringtone and ringtone name properties are available
+    if (content['dialer.ringtone'] && !content['dialer.ringtone.name'] ||
+        !content['dialer.ringtone'] && content['dialer.ringtone.name']) {
+      delete content['dialer.ringtone'];
+      delete content['dialer.ringtone.name'];
+      throw new Error('ringtone not overrided because dialer.ringtone or ' +
+                      'dialer.ringtone.name not found in custom \'settings.json\'. ' +
+                      'Both properties must be set.');
+    }
+
     for (let key in content) {
       settings[key] = content[key];
     }
@@ -135,7 +147,6 @@ function execute(config) {
   }
 
   var settings = utils.getJSON(settingsFile);
-
   if (config.TARGET_BUILD_VARIANT != 'user') {
     // We want the console to be disabled for device builds using the user variant.
     settings['debug.console.enabled'] = true;
