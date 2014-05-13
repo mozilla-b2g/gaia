@@ -3,9 +3,8 @@
 (function(exports) {
 
   var NfcConnectSystemDialog = function NfcConnectSystemDialog(options) {
-    if (options) {
-      this.options = options;
-    }
+    this.options = options || {};
+
     this.render();
     this.publish('created');
   };
@@ -17,25 +16,35 @@
   NfcConnectSystemDialog.prototype.DEBUG = false;
 
   NfcConnectSystemDialog.prototype.setMessage = function ncsd_setMessage(name) {
-    var msg = null;
-    var _ = navigator.mozL10n.get;
     var enabled = window.navigator.mozBluetooth.enabled;
     var l10nArgs = { deviceName: name };
 
+    var msgId;
+    var okayId;
+    var cancelId;
+
     if (enabled && !name) {
-      msg = _('confirmNFCConnectBTenabledNameUnknown');
-    }
-    if (!enabled && !name) {
-      msg = _('confirmNFCConnectBTdisabledNameUnknown');
-    }
-    if (enabled && name) {
-      msg = _('confirmNFCConnectBTenabledNameKnown', l10nArgs);
-    }
-    if (!enabled && name) {
-      msg = _('confirmNFCConnectBTdisabledNameKnown', l10nArgs);
+      msgId = 'confirmNFCConnectBTenabledNameUnknown';
+    } else if (!enabled && !name) {
+      msgId = 'confirmNFCConnectBTdisabledNameUnknown';
+    } else if (enabled && name) {
+      msgId = 'confirmNFCConnectBTenabledNameKnown';
+    } else {
+      msgId = 'confirmNFCConnectBTdisabledNameKnown';
     }
 
-    this.confirmNFCConnectMsg.textContent = msg;
+    if (enabled) {
+      okayId = 'yes';
+      cancelId = 'no';
+    } else {
+      okayId = 'confirmNFCConnectBTdisabled';
+      cancelId = 'dismissNFCConnectBTdisabled';
+    }
+
+    navigator.mozL10n.translate(this.confirmNFCConnectTitle);
+    navigator.mozL10n.localize(this.buttonOK, okayId);
+    navigator.mozL10n.localize(this.buttonCancel, cancelId);
+    navigator.mozL10n.localize(this.confirmNFCConnectMsg, msgId, l10nArgs);
   };
 
   NfcConnectSystemDialog.prototype.hide = function ncsd_hide(reason) {
@@ -47,6 +56,8 @@
     if (reason !== undefined && typeof(this.onabort) == 'function') {
       this.onabort();
     }
+
+    window.SystemDialog.prototype.hide.call(this);
   };
 
   NfcConnectSystemDialog.prototype.show =
@@ -60,14 +71,25 @@
 
   NfcConnectSystemDialog.prototype.view = function ncsd_view() {
     return '<div id="' + this.instanceID + '" role="dialog" ' +
-                'class="generic-dialog"' +
-                'data-z-index-level="nfc-connect-dialog" hidden>' +
-             '<div id="confirm-nfc-connect-msg" class="container">' +
-               'Confirm connect?' +
+                'class="generic-dialog" ' +
+                'data-z-index-level="nfc-connect-dialog">' +
+             '<div class="modal-dialog-message-container inner">' +
+               '<h3 data-l10n-id="confirmation">' +
+                 'Confirmation' +
+               '</h3>' +
+               '<p>' +
+                 '<span id="confirm-nfc-connect-msg">' +
+                   'Do you want to?' +
+                 '</span>' +
+               '</p>' +
              '</div>' +
              '<menu data-items="2">' +
-               '<button data-l10n-id="cancel" type="cancel">Cancel</button>' +
-               '<button data-l10n-id="ok" type="ok">OK</button>' +
+               '<button type="cancel">' +
+                 'No' +
+               '</button>' +
+               '<button type="ok">' +
+                 'Yes' +
+               '</button>' +
              '</menu>' +
            '</div>';
   };
@@ -75,6 +97,8 @@
   // Get all elements when inited.
   NfcConnectSystemDialog.prototype._fetchElements =
     function ncsd_fetchElements() {
+      this.confirmNFCConnectTitle =
+        document.querySelector('#nfc-connect-dialog h3');
       this.confirmNFCConnectMsg =
         document.getElementById('confirm-nfc-connect-msg');
       this.buttonOK =
@@ -91,14 +115,14 @@
   };
 
   NfcConnectSystemDialog.prototype.okHandler = function ncsd_okHandler() {
-    this.element.hidden = true;
+    this.hide();
     this.onconfirm();
     return true;
   };
 
   NfcConnectSystemDialog.prototype.cancelHandler =
     function ncsd_cancelHandler() {
-      this.element.hidden = true;
+      this.hide();
       this.onabort();
       return true;
   };
