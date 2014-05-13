@@ -1,5 +1,8 @@
 {
-  "metadata": {},
+  "metadata": {
+    "name": "Gaia taskgraph",
+    "description": "Gaia taskgraph generator"
+  },
   "tags": {},
   "params": {},
   "tasks": {
