@@ -5,6 +5,7 @@
 import json
 import os
 import time
+import sys
 
 from marionette import MarionetteTestCase, EnduranceTestCaseMixin, \
     B2GTestCaseMixin, MemoryEnduranceTestCaseMixin
@@ -485,8 +486,12 @@ class GaiaDevice(object):
         if count > 1:
             for i in range(1, count + 1):
                 remote_copy = '_%s.'.join(iter(destination.split('.'))) % i
-                # TODO fix this for Windows
-                self.manager._checkCmd(['shell', 'dd', 'if=%s' % destination, 'of=%s' % remote_copy])
+                if sys.platform is 'win32' and self.is_desktop_b2g:
+                    # We're on a windows host and using desktopb2g's fake sdcard
+                    self.manager_checkCmd(['copy', destination, remote_copy])
+                else:
+                    # Otherwise, we have either linux-based host and/or device
+                    self.manager._checkCmd(['shell', 'dd', 'if=%s' % destination, 'of=%s' % remote_copy])
                 if progress:
                     progress.update(i)
 
@@ -635,8 +640,8 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.device.add_device_manager(self.get_device_manager())
         elif self.device.is_desktop_b2g:
             # otherwise for desktopb2g add our python os wrapper
-            from gaiatest.utils.devicemanager_desktopb2g.devicemanager import DeviceManagerDesktopB2G
-            self.device.add_device_manager(DeviceManagerDesktopB2G())
+            from gaiatest.utils.filemanager.file_manager import DesktopB2GFileManager
+            self.device.add_device_manager(DesktopB2GFileManager())
 
         if self.restart and (self.device.is_android_build or self.marionette.instance):
             # Restart if it's a device, or we have passed a binary instance with --binary command arg

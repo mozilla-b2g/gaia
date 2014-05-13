@@ -5,7 +5,7 @@
 import os
 import shutil
 
-class DeviceManagerDesktopB2G:
+class DesktopB2GFileManager:
     '''
     A wrapper of Python os/shutil using mozdevice syntax, for desktopb2g file operations
     It is designed to match http://mozbase.readthedocs.org/en/latest/mozdevice.html
