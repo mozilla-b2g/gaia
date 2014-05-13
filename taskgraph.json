@@ -14,7 +14,7 @@
         "payload": {
           "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
           "command": [
-            "./bin/github './tests/travis_ci/unit-tests-in-firefox/install && ./tests/travis_ci/unit-tests-in-firefox/before_script && ./tests/travis_ci/unit-tests-in-firefox/script'"
+            "./bin/github 'make node_modules && ./tests/travis_ci/unit-tests-in-firefox/install && ./tests/travis_ci/unit-tests-in-firefox/before_script && ./tests/travis_ci/unit-tests-in-firefox/script'"
           ]
         },
         "tags": {
