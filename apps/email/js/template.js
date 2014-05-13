@@ -82,7 +82,6 @@ define(function(require, exports, module) {
 
   function templateCreatedCallback() {
       var node = this.template();
-
       if (node) {
         // Clear out previous contents. If they were needed, they
         // would have been consumed by the this.template.fn() call.

@@ -6,12 +6,12 @@
  */
 /*jshint browser: true */
 /*globals define */
-'use strict';
 define(function() {
+  'use strict';
   var slice = Array.prototype.slice,
       callbackSuffix = 'Callback',
       callbackSuffixLength = callbackSuffix.length,
-      charRegExp = /[\/_]/g;
+      charRegExp = /[^a-z]/g;
 
   /**
    * Converts an attribute like a-long-attr to aLongAttr
@@ -174,7 +174,7 @@ define(function() {
 
         // Translate any characters that are unfit for custom element
         // names to dashes
-        id = id.replace(charRegExp, '-');
+        id = id.toLowerCase().replace(charRegExp, '-');
 
         onload(document.registerElement(id, {
           prototype: proto
