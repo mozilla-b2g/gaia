@@ -428,6 +428,31 @@ section.has-carrier .article-list header:first-child {
   background: #fff;
 }
 
+/**
+ * We're using border-bottom instead of just underline style as line is too
+ * close to the text and doesn't look similar to visual spec.
+ */
+.message .download {
+  display: block;
+  height: 3.2rem;
+  width: auto;
+  padding: 0;
+
+  background: none;
+  border: none;
+  border-bottom: 1px solid #333;
+  font-size: 1.8rem;
+}
+
+.message .download:active {
+  border-color: #038282;
+  color: #038282;
+}
+
+.message.pending .download {
+  border-bottom: none;
+}
+
 ul.message-list {
   background-color: #e4e4e4;
 }
