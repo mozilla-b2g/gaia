@@ -168,10 +168,9 @@ var ConfigManager = (function() {
       if (settings === null) {
         settings = deepCopy(DEFAULT_SETTINGS);
         debug('Storing default settings for ICCID:', currentICCID);
-        asyncStorage.setItem(currentICCID, JSON.stringify(settings));
-      }
-
-      if (callback) {
+        asyncStorage.setItem(currentICCID, JSON.stringify(settings),
+                             callback && callback.bind(null, settings));
+      } else if (callback) {
         callback(settings);
       }
     });
@@ -230,10 +229,10 @@ var ConfigManager = (function() {
                                      settings);
             }
           }
+          if (callback) {
+            callback();
+          }
         });
-        if (callback) {
-          callback();
-        }
       }
     );
   }
