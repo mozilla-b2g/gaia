@@ -253,10 +253,10 @@ CameraController.prototype.setFlashMode = function() {
 };
 
 CameraController.prototype.onHidden = function() {
+  debug('app hidden');
   this.camera.stopRecording();
   this.camera.set('focus', 'none');
   this.camera.release();
-  debug('torn down');
 };
 
 CameraController.prototype.setISO = function() {

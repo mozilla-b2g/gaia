@@ -37,10 +37,7 @@ var app = window.app = new App({
   doc: document,
   win: window,
 
-  camera: new Camera({
-    cacheConfig: true,
-    cafEnabled: settings.caf.enabled()
-  }),
+  camera: new Camera(settings.camera.get()),
 
   controllers: {
     hud: require('controllers/hud'),
