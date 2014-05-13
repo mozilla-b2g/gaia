@@ -847,5 +847,15 @@ suite('system/Rocketbar', function() {
     assert.ok(spy.calledWithNew);
   });
 
+  test('setVisible', function() {
+    subject.activate();
+    var setVisibleStub = this.sinon.stub(subject.searchWindow, '_setVisible');
+    subject.showResults();
+    setVisibleStub.calledWith(true);
+    subject.hideResults();
+    setVisibleStub.calledWith(false);
+    setVisibleStub.restore();
+  });
+
 });
 

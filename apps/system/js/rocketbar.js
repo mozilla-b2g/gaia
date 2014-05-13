@@ -368,6 +368,9 @@
      * @memberof Rocketbar.prototype
      */
     showResults: function() {
+      if (this.searchWindow) {
+        this.searchWindow._setVisible(true);
+      }
       this.results.classList.remove('hidden');
     },
 
@@ -376,6 +379,9 @@
      * @memberof Rocketbar.prototype
      */
     hideResults: function() {
+      if (this.searchWindow) {
+        this.searchWindow._setVisible(false);
+      }
       this.results.classList.add('hidden');
       // Send a message to the search app to clear results
       if (this._port) {
