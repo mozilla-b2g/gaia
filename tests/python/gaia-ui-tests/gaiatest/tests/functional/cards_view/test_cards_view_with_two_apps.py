@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
 from gaiatest import GaiaTestCase
 from gaiatest.apps.system.regions.cards_view import CardsView
 
@@ -16,6 +17,8 @@ class TestCardsView(GaiaTestCase):
         # Launch the test apps
         for app in self._test_apps:
             self.apps.launch(app)
+            # Let's wait a bit for the app to fully launch
+            time.sleep(2)
 
         # Switch to top level frame before starting the test
         self.marionette.switch_to_frame()
@@ -30,11 +33,18 @@ class TestCardsView(GaiaTestCase):
         self.device.hold_home_button()
         cards_view.wait_for_cards_view()
 
+        # Wait for first app not in transition
+        cards_view.wait_for_card_not_in_transition(self._test_apps[1])
+
         for app in self._test_apps:
             self.assertTrue(cards_view.is_app_displayed(app),
-                            '%s app should be visible in cards view' % app)
+                            '%s app should be displayed in cards view' % app)
 
-        cards_view.swipe_to_next_app()
+        cards_view.swipe_to_previous_app()
+
+        # Wait for previous app not in transition
+        cards_view.wait_for_card_not_in_transition(self._test_apps[0])
+
         cards_view.tap_app(self._test_apps[0])
         cards_view.wait_for_cards_view_not_displayed()
 

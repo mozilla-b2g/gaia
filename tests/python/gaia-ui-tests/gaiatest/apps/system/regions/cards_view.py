@@ -11,7 +11,7 @@ from gaiatest.apps.base import Base
 class CardsView(Base):
 
     # Home/Cards view locators
-    _cards_view_locator = (By.CSS_SELECTOR, '#screen.cards-view:not(.edges)')
+    _cards_view_locator = (By.ID, 'cards-view')
     # Check that the origin contains the current app name, origin is in the format:
     # app://clock.gaiamobile.org
     _apps_cards_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"]')
@@ -27,34 +27,38 @@ class CardsView(Base):
     def is_cards_view_displayed(self):
         return self.is_element_displayed(*self._cards_view_locator)
 
-    def is_app_displayed(self, app):
+    def wait_for_card_not_in_transition(self, app):
+        current_frame = self.apps.displayed_app.frame
         card = self.marionette.find_element(*self._app_card_locator(app))
-        # card is displayed and not in transition
-        return card.is_displayed() and 'transition' not in card.get_attribute('style')
+        self.wait_for_condition(lambda m: current_frame.size['width'] - card.size['width'] - card.location['x'] == card.location['x'])
+
+    def is_app_displayed(self, app):
+        return self.is_element_displayed(*self._app_card_locator(app))
 
     def is_app_present(self, app):
         return self.is_element_present(*self._app_card_locator(app))
 
     def tap_app(self, app):
-        return self.marionette.find_element(*self._app_card_locator(app)).tap()
+        self.wait_for_condition(lambda m: self.is_app_displayed(app))
+        self.marionette.find_element(*self._app_card_locator(app)).tap()
 
     def close_app(self, app):
-        self.wait_for_condition(lambda m: self.is_app_displayed(app))
+        self.wait_for_card_not_in_transition(app)
         self.marionette.find_element(*self._close_button_locator(app)).tap()
         self.wait_for_element_not_present(*self._app_card_locator(app))
 
     def wait_for_cards_view(self):
-        self.wait_for_element_displayed(*self._cards_view_locator)
+        self.wait_for_condition(lambda m: m.find_element(*self._cards_view_locator).get_attribute('class') == 'active')
 
     def wait_for_cards_view_not_displayed(self):
         self.wait_for_element_not_displayed(*self._cards_view_locator)
 
-    def swipe_to_next_app(self):
+    def swipe_to_previous_app(self):
         current_frame = self.apps.displayed_app.frame
 
-        start_x_position = current_frame.size['width']
+        final_x_position = current_frame.size['width']
         start_y_position = current_frame.size['height'] // 2
 
-        # swipe backward to get next app card
+        # swipe forward to get previous app card
         Actions(self.marionette).flick(
-            current_frame, start_x_position, start_y_position, 0, start_y_position).perform()
+            current_frame, 0, start_y_position, final_x_position, start_y_position).perform()
