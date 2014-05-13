@@ -21,7 +21,9 @@
   float: left;
 }
 
-.cmp-peep-bubble {
+/* Make sure these styles take precedence over the base msg-peep-bubble styles
+   by using both class names */
+.cmp-peep-bubble.msg-peep-bubble {
   float: left;
   margin-left: 0.3rem;
 }
@@ -30,10 +32,19 @@
   overflow: hidden;
 }
 
+/* Override base shared style that adds a focus highlight */
+.card-compose input {
+  margin-bottom: 0;
+  padding: 0;
+}
+.card-compose input:focus {
+  box-shadow: none;
+  border-bottom: 0;
+}
+
 input.cmp-addr-text, input.cmp-subject-text {
   height: 3rem;
   margin-left: 0.5rem;
-  padding: 0 0 0.2rem;
   font-size: 1.5rem;
   line-height: 2.2rem;
   border: 0 !important;
@@ -48,7 +59,6 @@ input.cmp-addr-text, input.cmp-dot-text {
 
 input.cmp-bcc-text {
   font-size: 1.6rem;
-  padding-bottom: 0.4rem;
 }
 
 input.cmp-subject-text {
