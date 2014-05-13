@@ -121,8 +121,8 @@ OverlayController.prototype.getOverlayData = function(type) {
       data.body = this.localize('nospace2-text');
     break;
     case 'shared':
-      data.title = this.localize('pluggedin-title');
-      data.body = this.localize('pluggedin-text');
+      data.title = this.localize('pluggedin2-title');
+      data.body = this.localize('pluggedin2-text');
     break;
     case 'shutdown':
       data.title = this.localize('battery-shutdown-title');

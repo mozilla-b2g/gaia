@@ -42,7 +42,7 @@ module.exports = View.extend({
     return '<form role="dialog" data-type="confirm">' +
       '<section>' +
         '<h1 class="overlay-title">' + data.title + '</h1>' +
-        '<p id="overlay-text">' + data.body + '<p>' +
+        '<p id="overlay-text">' + data.body + '</p>' +
       '</section>' +
       '<menu class="overlay-menu-close">' +
         '<button class="full js-close-btn" type="button" name="close-btn">' +
