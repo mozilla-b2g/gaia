@@ -145,25 +145,7 @@ tasks.push(function testWrongRulesManifestURLs() {
   });
 });
 
-// Test task #3: wrong rules (installOrigins doesn't match).
-tasks.push(function testWrongRulesInstallOrigins() {
-  var rules = {
-    installOrigins: ["http://foo.test:8888"]
-  };
-
-  connectToGetPorts("test", rules, function(accepted, result) {
-    if (accepted) {
-      updateReceivedMsg("receivedStrMsg", "Error! Should reject to connect " +
-                        "because rules.installOrigins doesn't match.");
-      tasks.finish();
-      return;
-    }
-
-    tasks.next();
-  });
-});
-
-// Test task #4: correct rules.
+// Test task #3: correct rules.
 tasks.push(function testCorrectRules() {
   var rules = {
     manifestURLs: ["app://test-iac-subscriber.gaiamobile.org/manifest.webapp"]
@@ -198,7 +180,7 @@ tasks.push(function testCorrectRules() {
   });
 });
 
-//Test task #5: correct rules (with blob).
+//Test task #4: correct rules (with blob).
 tasks.push(function testCorrectRulesWithBlob() {
   var rules = {
     manifestURLs: ["app://test-iac-subscriber.gaiamobile.org/manifest.webapp"]
