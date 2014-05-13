@@ -23,7 +23,6 @@ class TestDialerFromMessage(GaiaTestCase):
         self.messages.launch()
 
         self.data_layer.send_sms(self.testvars['carrier']['phone_number'], _text_message_content)
-        self.apps.switch_to_displayed_app()
 
         self.messages.wait_for_message_received(timeout=180)
 

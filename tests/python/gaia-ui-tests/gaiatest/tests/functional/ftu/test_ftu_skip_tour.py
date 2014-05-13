@@ -43,7 +43,6 @@ class TestFtu(GaiaTestCase):
         self.wait_for_condition(
             lambda m: self.data_layer.is_cell_data_connected,
             message='Cell data was not connected by FTU app')
-        self.apps.switch_to_displayed_app()
 
         # Tap next
         self.ftu.tap_next_to_wifi_section()
@@ -57,8 +56,6 @@ class TestFtu(GaiaTestCase):
 
         self.assertTrue(self.data_layer.is_wifi_connected(self.testvars['wifi']),
 		    "WiFi was not connected via FTU app")
-
-        self.apps.switch_to_displayed_app()
 
         # Set timezone
         self.ftu.tap_next_to_timezone_section()
@@ -74,7 +71,6 @@ class TestFtu(GaiaTestCase):
         self.wait_for_condition(
 		        lambda m: not self.data_layer.get_setting('geolocation.enabled'),
 		        message='Geolocation was not disabled by the FTU app')
-        self.apps.switch_to_displayed_app()
         self.ftu.tap_next_to_import_contacts_section()
 
         # Tap import from SIM
@@ -83,8 +79,6 @@ class TestFtu(GaiaTestCase):
         self.ftu.wait_for_contacts_imported()
         self.assertEqual(self.ftu.count_imported_contacts, len(self.data_layer.all_contacts))
 
-        # all_contacts switches to top frame; Marionette needs to be switched back to ftu
-        self.apps.switch_to_displayed_app()
         self.ftu.tap_next_to_firefox_accounts_section()
         self.ftu.tap_next_to_welcome_browser_section()
 

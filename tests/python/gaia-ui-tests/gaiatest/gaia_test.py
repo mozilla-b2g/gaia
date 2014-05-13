@@ -16,6 +16,21 @@ from marionette.errors import InvalidResponseException
 from marionette.wait import Wait
 
 
+class needs_system_frame(object):
+    """Decorator to wrap around functions that need to switch to the system frame."""
+
+    def __init__(self, marionette):
+        self.marionette = marionette
+
+    def __call__(self, wrapped):
+        def inner_func(*args, **kwargs):
+            current_frame = self.marionette.get_active_frame()
+            self.marionette.switch_to_frame()
+            val = wrapped(*args, **kwargs)
+            self.marionette.switch_to_frame(current_frame)
+            return val
+        return inner_func
+
 class GaiaApp(object):
 
     def __init__(self, origin=None, name=None, frame=None, src=None):
@@ -36,12 +51,12 @@ class GaiaApps(object):
         js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_apps.js"))
         self.marionette.import_script(js)
 
+    @needs_system_frame
     def get_permission(self, app_name, permission_name):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaApps.getPermission('%s', '%s')" % (app_name, permission_name))
 
+    @needs_system_frame
     def set_permission(self, app_name, permission_name, value):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaApps.setPermission('%s', '%s', '%s')" %
                                                     (app_name, permission_name, value))
 
@@ -72,26 +87,26 @@ class GaiaApps(object):
         self.marionette.switch_to_default_content()
         self.marionette.switch_to_frame(self.displayed_app.frame)
 
+    @needs_system_frame
     def is_app_installed(self, app_name):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("GaiaApps.locateWithName('%s')" % app_name)
 
+    @needs_system_frame
     def uninstall(self, name):
-        self.marionette.switch_to_frame()
         self.marionette.execute_async_script("GaiaApps.uninstallWithName('%s')" % name)
 
+    @needs_system_frame
     def kill(self, app):
-        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("GaiaApps.kill('%s');" % app.origin)
         assert result, "Failed to kill app with name '%s'" % app.name
 
+    @needs_system_frame
     def kill_all(self):
-        self.marionette.switch_to_frame()
         self.marionette.execute_async_script("GaiaApps.killAll()")
 
     @property
+    @needs_system_frame
     def installed_apps(self):
-        self.marionette.switch_to_frame()
         apps = self.marionette.execute_async_script(
             'return GaiaApps.getInstalledApps();')
         result = []
@@ -108,16 +123,16 @@ class GaiaApps(object):
                     name=app['manifest']['name']))
         return result
 
+
     @property
+    @needs_system_frame
     def running_apps(self):
-        self.marionette.switch_to_frame()
         apps = self.marionette.execute_script(
             'return GaiaApps.getRunningApps();')
         result = []
         for app in [a[1] for a in apps.items()]:
             result.append(GaiaApp(origin=app['origin'], name=app['name']))
         return result
-
 
 class GaiaData(object):
 
@@ -128,59 +143,57 @@ class GaiaData(object):
         js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_data_layer.js"))
         self.marionette.import_script(js)
 
+    @needs_system_frame
     def set_time(self, date_number):
-        self.marionette.switch_to_frame()
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
         self.marionette.execute_script("window.navigator.mozTime.set(%s);" % date_number)
         self.marionette.set_context(self.marionette.CONTEXT_CONTENT)
 
     @property
+    @needs_system_frame
     def all_contacts(self):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script('return GaiaDataLayer.getAllContacts();', special_powers=True)
 
     @property
+    @needs_system_frame
     def sim_contacts(self):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script('return GaiaDataLayer.getSIMContacts();', special_powers=True)
 
+    @needs_system_frame
     def insert_contact(self, contact):
-        self.marionette.switch_to_frame()
         mozcontact = contact.create_mozcontact()
         result = self.marionette.execute_async_script('return GaiaDataLayer.insertContact(%s);' % json.dumps(mozcontact), special_powers=True)
         assert result, 'Unable to insert contact %s' % contact
 
+    @needs_system_frame
     def remove_all_contacts(self):
-        self.marionette.switch_to_frame()
         timeout = max(self.marionette.timeout or 60000, 1000 * len(self.all_contacts))
         result = self.marionette.execute_async_script('return GaiaDataLayer.removeAllContacts();', special_powers=True, script_timeout=timeout)
         assert result, 'Unable to remove all contacts'
 
+    @needs_system_frame
     def get_setting(self, name):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script('return GaiaDataLayer.getSetting("%s")' % name, special_powers=True)
 
     @property
     def all_settings(self):
         return self.get_setting('*')
 
+    @needs_system_frame
     def set_setting(self, name, value):
         value = json.dumps(value)
-        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('return GaiaDataLayer.setSetting("%s", %s)' % (name, value), special_powers=True)
         assert result, "Unable to change setting with name '%s' to '%s'" % (name, value)
 
+    @needs_system_frame
     def _get_pref(self, datatype, name):
-        self.marionette.switch_to_frame()
         pref = self.marionette.execute_script("return SpecialPowers.get%sPref('%s');" % (datatype, name), special_powers=True)
-        self.apps.switch_to_displayed_app()
         return pref
 
+    @needs_system_frame
     def _set_pref(self, datatype, name, value):
         value = json.dumps(value)
-        self.marionette.switch_to_frame()
         self.marionette.execute_script("SpecialPowers.set%sPref('%s', %s);" % (datatype, name, value), special_powers=True)
-        self.apps.switch_to_displayed_app()
 
     def get_bool_pref(self, name):
         """Returns the value of a Gecko boolean pref, which is different from a Gaia setting."""
@@ -211,36 +224,36 @@ class GaiaData(object):
         for channel in channels:
             self.set_setting('audio.volume.%s' % channel, value)
 
+    @needs_system_frame
     def bluetooth_enable(self):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaDataLayer.enableBluetooth()")
 
+    @needs_system_frame
     def bluetooth_disable(self):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaDataLayer.disableBluetooth()")
 
     @property
+    @needs_system_frame
     def bluetooth_is_enabled(self):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_script("return window.navigator.mozBluetooth.enabled")
 
     @property
     def is_cell_data_enabled(self):
         return self.get_setting('ril.data.enabled')
 
+    @needs_system_frame
     def connect_to_cell_data(self):
-        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("return GaiaDataLayer.connectToCellData()", special_powers=True)
         assert result, 'Unable to connect to cell data'
 
+    @needs_system_frame
     def disable_cell_data(self):
-        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("return GaiaDataLayer.disableCellData()", special_powers=True)
         assert result, 'Unable to disable cell data'
 
     @property
+    @needs_system_frame
     def is_cell_data_connected(self):
-        self.marionette.switch_to_frame()
         # XXX: check bug-926169
         # this is used to keep all tests passing while introducing multi-sim APIs
         return self.marionette.execute_script('var mobileConnection = window.navigator.mozMobileConnection || ' +
@@ -255,68 +268,69 @@ class GaiaData(object):
         self.set_setting('ril.data.roaming_enabled', False)
 
     @property
+    @needs_system_frame
     def is_wifi_enabled(self):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_script("return window.navigator.mozWifiManager.enabled;")
 
+    @needs_system_frame
     def enable_wifi(self):
-        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("return GaiaDataLayer.enableWiFi()", special_powers=True)
         assert result, 'Unable to enable WiFi'
 
+    @needs_system_frame
     def disable_wifi(self):
-        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("return GaiaDataLayer.disableWiFi()", special_powers=True)
         assert result, 'Unable to disable WiFi'
 
+    @needs_system_frame
     def connect_to_wifi(self, network=None):
         network = network or self.testvars.get('wifi')
         assert network, 'No WiFi network provided'
         self.enable_wifi()
-        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script("return GaiaDataLayer.connectToWiFi(%s)" % json.dumps(network),
                 script_timeout = max(self.marionette.timeout, 60000))
         assert result, 'Unable to connect to WiFi network'
 
+    @needs_system_frame
     def forget_all_networks(self):
-        self.marionette.switch_to_frame()
         self.marionette.execute_async_script('return GaiaDataLayer.forgetAllNetworks()')
 
+    @needs_system_frame
     def is_wifi_connected(self, network=None):
         network = network or self.testvars.get('wifi')
         assert network, 'No WiFi network provided'
-        self.marionette.switch_to_frame()
         return self.marionette.execute_script("return GaiaDataLayer.isWiFiConnected(%s)" % json.dumps(network))
 
     @property
+    @needs_system_frame
     def known_networks(self):
-        self.marionette.switch_to_frame()
         known_networks = self.marionette.execute_async_script(
             'return GaiaDataLayer.getKnownNetworks()')
         return [n for n in known_networks if n]
 
     @property
+    @needs_system_frame
     def active_telephony_state(self):
-        self.marionette.switch_to_frame()
         # Returns the state of only the currently active call or None if no active call
         return self.marionette.execute_script("return GaiaDataLayer.getMozTelephonyState()")
 
     @property
+    @needs_system_frame
     def is_antenna_available(self):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_script('return window.navigator.mozFMRadio.antennaAvailable')
 
     @property
+    @needs_system_frame
     def is_fm_radio_enabled(self):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_script('return window.navigator.mozFMRadio.enabled')
 
     @property
+    @needs_system_frame
     def fm_radio_frequency(self):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_script('return window.navigator.mozFMRadio.frequency')
 
     @property
+    @needs_system_frame
     def media_files(self):
         result = []
         result.extend(self.music_files)
@@ -324,53 +338,53 @@ class GaiaData(object):
         result.extend(self.video_files)
         return result
 
+    @needs_system_frame
     def delete_all_sms(self):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaDataLayer.deleteAllSms();", special_powers=True)
 
+    @needs_system_frame
     def get_all_sms(self):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaDataLayer.getAllSms();", special_powers=True)
 
     def delete_all_call_log_entries(self):
         """The call log needs to be open and focused in order for this to work."""
         self.marionette.execute_script('window.wrappedJSObject.RecentsDBManager.deleteAll();')
 
+    @needs_system_frame
     def kill_active_call(self):
-        self.marionette.switch_to_frame()
         self.marionette.execute_script("var telephony = window.navigator.mozTelephony; " +
                                        "if(telephony.active) telephony.active.hangUp();")
 
     @property
+    @needs_system_frame
     def music_files(self):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllMusic();')
 
     @property
+    @needs_system_frame
     def picture_files(self):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllPictures();')
 
     @property
+    @needs_system_frame
     def video_files(self):
-        self.marionette.switch_to_frame()
         return self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllVideos();')
 
+    @needs_system_frame
     def sdcard_files(self, extension=''):
-        self.marionette.switch_to_frame()
         files = self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllSDCardFiles();')
         if len(extension):
             return [filename for filename in files if filename.endswith(extension)]
         return files
 
+    @needs_system_frame
     def send_sms(self, number, message):
         number = json.dumps(number)
         message = json.dumps(message)
-        self.marionette.switch_to_frame()
         result = self.marionette.execute_async_script('return GaiaDataLayer.sendSMS(%s, %s)' % (number, message), special_powers=True)
         assert result, 'Unable to send SMS to recipient %s with text %s' % (number, message)
 
