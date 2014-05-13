@@ -1111,6 +1111,19 @@ MessageListCard.prototype = {
     }
   },
 
+
+  /**
+   * Communicates a data change to the vscroll instance. It only does so though
+   * if the card is visible, otherwise, if this call triggers an vscroll init,
+   * the measurements for nodes may not be correct.
+   */
+  _setVScrollData: function() {
+    if (this._needVScrollData && Cards.isVisible(this)) {
+      this.vScroll.setData(this.listFunc);
+      this._needVScrollData = false;
+    }
+  },
+
   // The funny name because it is auto-bound as a listener for
   // messagesSlice events in headerCursor using a naming convention.
   messages_splice: function(index, howMany, addedItems,
@@ -1124,10 +1137,7 @@ MessageListCard.prototype = {
 
     this._clearCachedMessages();
 
-    if (this._needVScrollData) {
-      this.vScroll.setData(this.listFunc);
-      this._needVScrollData = false;
-    }
+    this._setVScrollData();
 
     this.vScroll.updateDataBind(index, addedItems, howMany);
 
@@ -1377,6 +1387,11 @@ MessageListCard.prototype = {
       this._whenVisible = null;
       fn();
     }
+
+    // A setData() for vscroll may have beend delayed until the card becomes
+    // visible, so be sure it has the latest data.
+    this._setVScrollData();
+
     // On first construction, or if done in background,
     // this card would not be visible to do the last sync
     // sizing so be sure to check it now.

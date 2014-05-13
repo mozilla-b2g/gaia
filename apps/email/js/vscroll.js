@@ -235,6 +235,9 @@ define(function(require, exports, module) {
     /**
      * Sets the list data source, and then triggers a recalculate
      * since the data changed.
+     * NOTE: this requires the vscroll instance to be visible, since
+     * it may call _init to set up heights, and only works if the
+     * vscroll instance can get accurate node measurements.
      * @param {Function} list the list data source.
      */
     setData: function(list) {
