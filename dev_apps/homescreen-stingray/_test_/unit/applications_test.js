@@ -191,7 +191,7 @@ suite('Applications', function() {
       var entries = Applications.getAppEntries(fakeApp4.manifestURL);
       assert.equal(entries.length, 1);
       assert.equal(entries[0].manifestURL, fakeApp4.manifestURL);
-      assert.equal(entries[0].entry_point, '');
+      assert.equal(entries[0].entryPoint, '');
       assert.equal(entries[0].name, fakeApp4.manifest.name);
     });
 
@@ -199,7 +199,7 @@ suite('Applications', function() {
       var entries = Applications.getAppEntries(fakeApp5.manifestURL);
       assert.equal(entries.length, 1);
       assert.equal(entries[0].manifestURL, fakeApp5.manifestURL);
-      assert.equal(entries[0].entry_point, '');
+      assert.equal(entries[0].entryPoint, '');
       assert.equal(entries[0].name, fakeApp5.manifest.name);
     });
 
@@ -207,10 +207,10 @@ suite('Applications', function() {
       var entries = Applications.getAppEntries(fakeApp6.manifestURL);
       assert.equal(entries.length, 2);
       assert.equal(entries[0].manifestURL, fakeApp6.manifestURL);
-      assert.equal(entries[0].entry_point, 'app6_1');
+      assert.equal(entries[0].entryPoint, 'app6_1');
       assert.equal(entries[0].name, fakeApp6.manifest.entry_points.app6_1.name);
       assert.equal(entries[1].manifestURL, fakeApp6.manifestURL);
-      assert.equal(entries[1].entry_point, 'app6_2');
+      assert.equal(entries[1].entryPoint, 'app6_2');
       assert.equal(entries[1].name, fakeApp6.manifest.entry_points.app6_2.name);
     });
 
