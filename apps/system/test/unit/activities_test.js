@@ -103,6 +103,8 @@ suite('system/Activities', function() {
       });
       this.sinon.clock.tick();
       assert.equal(dispatchStub.getCall(0).args[0].type,
+        'activityrequesting');
+      assert.equal(dispatchStub.getCall(1).args[0].type,
         'activitymenuwillopen');
     });
   });

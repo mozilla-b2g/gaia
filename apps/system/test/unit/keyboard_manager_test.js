@@ -485,6 +485,11 @@ suite('KeyboardManager', function() {
       assert.ok(hideKeyboardImmediately.called);
     });
 
+    test('activityrequesting event', function() {
+      trigger('activityrequesting');
+      assert.ok(hideKeyboardImmediately.called);
+    });
+
     test('applicationsetupdialogshow event', function() {
       trigger('applicationsetupdialogshow');
       assert.ok(hideKeyboardImmediately.called);
