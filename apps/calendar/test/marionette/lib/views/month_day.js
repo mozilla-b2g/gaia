@@ -20,6 +20,12 @@ MonthDay.prototype = {
     return this.findElements('.event');
   },
 
+  get date() {
+    return this
+      .findElement('#event-list-date')
+      .text();
+  },
+
   getTitle: function(event) {
     return event
       .findElement('h5')

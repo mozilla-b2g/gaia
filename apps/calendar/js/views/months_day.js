@@ -14,7 +14,8 @@ Calendar.ns('Views').MonthsDay = (function() {
 
     selectors: {
       element: '#months-day-view',
-      events: '.day-events'
+      events: '.day-events',
+      currentDate: '#event-list-date'
     },
 
     get element() {
@@ -25,8 +26,21 @@ Calendar.ns('Views').MonthsDay = (function() {
       return this._findElement('events');
     },
 
+    get currentDate() {
+      return this._findElement('currentDate');
+    },
+
     get allDayElement() {
       return this.events;
+    },
+
+    changeDate: function(date) {
+      Parent.prototype.changeDate.apply(this, arguments);
+      var currentDate = this.currentDate;
+      currentDate.innerHTML =
+        navigator.mozL10n.get('weekday-' + date.getDay() + '-long') + ', ' +
+        navigator.mozL10n.get('month-' + date.getMonth() + '-short') + ' ' +
+        date.getDate();
     },
 
     _initEvents: function() {
