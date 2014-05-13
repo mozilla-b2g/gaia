@@ -32,6 +32,7 @@ class TestInterAppComm(GaiaTestCase):
 
         test_iac_publisher.launch()
 
+        self.wait_for_element_displayed(*self._pub_app_msg_to_send_locator)
         self.marionette.execute_script("""
             var msgToSend = document.getElementById('msgToSend');
             msgToSend.value = "%s";
