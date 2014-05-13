@@ -37,7 +37,7 @@
       "filters": {
         "target": "device"
        },
-      "disposition": "window"
+      "disposition": "inline"
     }
   },
   "locales": {

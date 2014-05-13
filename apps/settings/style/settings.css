@@ -71,6 +71,16 @@ body[data-ready="true"] section[role="region"].current {
   transition: transform .4s ease;
 }
 
+#placeholder {
+  transform: translateX(0);
+  visibility: visible;
+  height: 100%;
+}
+
+body[data-ready="true"] #placeholder {
+  visibility: hidden;
+}
+
 /**
  * Headers should not scroll with the rest of the page, except for #root.
  */

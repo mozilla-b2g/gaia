@@ -14,7 +14,12 @@ navigator.mozL10n.once(function wifiSettings() {
   var gWifiManager = WifiHelper.getWifiManager();
   var gWifi = document.querySelector('#wifi');
   var gWifiCheckBox = document.querySelector('#wifi-enabled input');
-  var gWifiInfoBlock = document.querySelector('#wifi-desc');
+  // XXX: #wifi-desc is in the root panel and should not be accessed here. If
+  //      the app is invoked to wifi panel directly then we will not have this
+  //      element. Use a fake element here and it must be removed when
+  //      refactoring the wifi panels.
+  var gWifiInfoBlock = document.querySelector('#wifi-desc') ||
+    document.createElement('div');
   var gWpsInfoBlock = document.querySelector('#wps-column small');
   var gWpsPbcLabelBlock = document.querySelector('#wps-column a');
 
