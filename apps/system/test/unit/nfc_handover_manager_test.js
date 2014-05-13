@@ -105,7 +105,7 @@ suite('Nfc Handover Manager Functions', function() {
         techList: ['NDEF'],
         records: [{
           tnf: NDEF.TNF_MIME_MEDIA,
-          type: NfcUtils.fromUTF8('application/vnd.bluetooth.ep.oob'),
+          type: NDEF.MIME_BLUETOOTH_OOB,
           id: new Uint8Array(),
           payload: new Uint8Array([26, 0, 241, 18, 159, 208, 33, 76, 4, 13, 4,
                                    4, 32, 5, 3, 30, 17, 11, 17, 6, 9, 77, 66,

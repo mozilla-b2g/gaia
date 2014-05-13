@@ -44,6 +44,8 @@ const NDEF = {
   CPS_ACTIVATING: 2,
   CPS_UNKNOWN: 3,
 
+  MIME_BLUETOOTH_OOB: 0,
+
   SMARTPOSTER_ACTION: 0,
 
   // Action Record Values:
@@ -63,6 +65,9 @@ const NDEF = {
     this.RTD_HANDOVER_CARRIER = NfcUtils.fromUTF8('Hc');
     this.RTD_HANDOVER_REQUEST = NfcUtils.fromUTF8('Hr');
     this.RTD_HANDOVER_SELECT = NfcUtils.fromUTF8('Hs');
+
+    this.MIME_BLUETOOTH_OOB =
+      NfcUtils.fromUTF8('application/vnd.bluetooth.ep.oob');
 
     this.SMARTPOSTER_ACTION = NfcUtils.fromUTF8('act');
 
@@ -221,7 +226,7 @@ NfcUtils = {
 
   /**
    * Returns a string representation of an Uint8Array.
-   * 
+   *
    * @param {Uint8Array} a Uint8Array instance.
    * @return {String}
    */
