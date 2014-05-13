@@ -315,12 +315,12 @@ var AppInstallManager = {
   },
 
   handleImeConfirmAction: function ai_handleImeConfirmAction() {
-    var origin = this.setupQueue[0].origin;
+    var manifestURL = this.setupQueue[0].manifestURL;
     var keyboards = this.imeList.getElementsByTagName('input');
     for (var i = 0, l = keyboards.length; i < l; i++) {
       var keyboardIME = keyboards[i];
       if (keyboardIME.checked) {
-        KeyboardHelper.setLayoutEnabled(origin, keyboardIME.value, true);
+        KeyboardHelper.setLayoutEnabled(manifestURL, keyboardIME.value, true);
         KeyboardHelper.saveToSettings();
       }
     }
