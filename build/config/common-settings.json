@@ -173,7 +173,7 @@
    "screen.timeout": 60,
    "software-button.enabled": false,
    "homegesture.enabled": false,
-   "edgesgesture.enabled": false,
+   "edgesgesture.enabled": true,
    "continuous-transition.enabled": false,
    "support.onlinesupport.title": "",
    "support.onlinesupport.href": "",
