@@ -316,6 +316,15 @@ function getLocaleBasedir(original) {
     original.replace('/', '\\', 'g') : original;
 }
 
+function existsInAppDirs(appDirs, appName) {
+  var apps = appDirs.split(' ');
+  var exists = apps.some(function (appPath) {
+    let appFile = getFile(appPath);
+    return (appName === appFile.leafName);
+  });
+  return exists;
+}
+
 function getDistributionFileContent(name, defaultContent, distDir) {
   if (distDir) {
     let distributionFile = getFile(distDir, name + '.json');
@@ -893,3 +902,5 @@ exports.dirname = dirname;
 exports.basename = basename;
 exports.addEntryContentWithTime = addEntryContentWithTime;
 exports.getCompression = getCompression;
+exports.existsInAppDirs = existsInAppDirs;
+

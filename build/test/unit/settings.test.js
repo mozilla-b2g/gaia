@@ -19,8 +19,8 @@ suite('settings.js', function() {
       return file.path;
     };
   });
-  suite('setWallpaper, setRingtone, setNotification, overrideSettings ' +
-        'and writeSettings',
+  suite('setWallpaper, setRingtone, setNotification, overrideSettings, ' +
+        'setHomescreenURL and writeSettings',
     function() {
     var config;
     var settings = {};
@@ -171,7 +171,32 @@ suite('settings.js', function() {
       assert.deepEqual(JSON.parse(settingsFile.result),
         settings);
     });
+
+    test('setHomescreenURL with default homescreen', function() {
+      config.GAIA_SCHEME = 'app://';
+      config.GAIA_DOMAIN = 'gaiamobile.com';
+      config.GAIA_PORT = ':8080';
+      var settings = {};
+      var testResult = mockUtils.gaiaManifestURL('homescreen',
+                    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
+      app.setHomescreenURL(settings, config);
+      assert.equal(settings['homescreen.manifestURL'], testResult);
+    });
+
+    test('setHomescreenURL with customizable', function() {
+      config.GAIA_APPDIRS = 'home2 system sms';
+      config.GAIA_SCHEME = 'app://';
+      config.GAIA_DOMAIN = 'gaiamobile.com';
+      config.GAIA_PORT = ':8080';
+      var settings = { 'homescreen.appName': 'home2' };
+      var testResult = mockUtils.gaiaManifestURL('home2',
+                    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
+      app.setHomescreenURL(settings, config);
+      assert.equal(settings['homescreen.manifestURL'], testResult);
+    });
   });
+
+
   suite('execute', function() {
     var config;
     setup(function() {

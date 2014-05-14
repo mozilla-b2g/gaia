@@ -131,6 +131,25 @@ function overrideSettings(settings, config) {
   }
 }
 
+function setHomescreenURL(settings, config) {
+  // 'homescreen' as default value of homescreen.appName
+  let appName = 'homescreen';
+
+  if (typeof(settings['homescreen.appName']) !== 'undefined') {
+    appName = settings['homescreen.appName'];
+
+    let homescreenExists = utils.existsInAppDirs(config.GAIA_APPDIRS, appName);
+
+    if (!homescreenExists) {
+      throw new Error('homescreen APP not found: ' + appName);
+    }
+    // no longer to use this settings so remove it.
+    delete settings['homescreen.appName'];
+  }
+  settings['homescreen.manifestURL'] = utils.gaiaManifestURL(appName,
+    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
+}
+
 function writeSettings(settings, config) {
   // Finally write the settings file
   let settingsFile = utils.getFile(config.STAGE_DIR, 'settings_stage.json');
@@ -155,10 +174,6 @@ function execute(config) {
     // the power button by default for devs.
     settings['developer.menu.enabled'] = true;
   }
-
-  // Set the homescreen URL
-  settings['homescreen.manifestURL'] = utils.gaiaManifestURL('homescreen',
-    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
 
   // Set the ftu manifest URL
   if (config.NOFTU === '0') {
@@ -216,6 +231,9 @@ function execute(config) {
   }).then(function() {
     overrideSettings(settings, config);
   }).then(function() {
+    // Set the homescreen URL
+    setHomescreenURL(settings, config);
+  }).then(function() {
     writeSettings(settings, config);
     return settings;
   });
@@ -233,3 +251,5 @@ exports.deviceTypeSettings = deviceTypeSettings;
 exports.overrideSettings = overrideSettings;
 exports.writeSettings = writeSettings;
 exports.setDefaultKeyboardLayouts = setDefaultKeyboardLayouts;
+exports.setHomescreenURL = setHomescreenURL;
+

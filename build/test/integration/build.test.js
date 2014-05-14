@@ -58,11 +58,25 @@ suite('Build GAIA from differece app list', function() {
     helper.exec('GAIA_DEVICE_TYPE=phone make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
-      // zip path for system app
+      // zip path for sms app
       var zipPath = path.join(process.cwd(), 'profile', 'webapps',
         'sms.gaiamobile.org', 'application.zip');
 
       // sms should not exists in Tablet builds
+      assert.ok(fs.existsSync(zipPath));
+      done();
+    });
+  });
+
+  test('GAIA_DEVICE_TYPE=tv make', function(done) {
+    helper.exec('GAIA_DEVICE_TYPE=tv make', function(error, stdout, stderr) {
+      helper.checkError(error, stdout, stderr);
+
+      // zip path for homescreen-stingray app
+      var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+        'homescreen-stingray.gaiamobile.org', 'application.zip');
+
+      // homescreen-stingray should not exists in tv builds
       assert.ok(fs.existsSync(zipPath));
       done();
     });
