@@ -101,6 +101,7 @@
    "lockscreen.passcode-lock.timeout": 0,
    "lockscreen.passcode-lock.enabled": false,
    "lockscreen.notifications-preview.enabled": true,
+   "notifications.resend": true,
    "lockscreen.enabled": true,
    "lockscreen.locked": true,
    "lockscreen.unlock-sound.enabled": false,
