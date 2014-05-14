@@ -1432,6 +1432,17 @@ function displaySubject(subjectNode, message) {
   }
 }
 
+/**
+ * Given a mime type, generates a CSS class name that uses just the first part
+ * of the mime type. So, audio/ogg becomes mime-audio.
+ * @param  {String} mimeType
+ * @return {String} a class name usable in CSS.
+ */
+function mimeToClass(mimeType) {
+  mimeType = mimeType || '';
+  return 'mime-' + (mimeType.split('/')[0] || '');
+}
+
 exports.Cards = Cards;
 exports.Toaster = Toaster;
 exports.ConfirmDialog = ConfirmDialog;
@@ -1446,4 +1457,5 @@ exports.bindContainerHandler = bindContainerHandler;
 exports.appendMatchItemTo = appendMatchItemTo;
 exports.bindContainerHandler = bindContainerHandler;
 exports.displaySubject = displaySubject;
+exports.mimeToClass = mimeToClass;
 });
