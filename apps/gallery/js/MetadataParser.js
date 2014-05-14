@@ -197,11 +197,31 @@ var metadataParser = (function() {
       // For jpeg images we can downsample while decoding which means that
       // we can handle images that are quite a bit larger.
       //
-      var sizelimit = CONFIG_MAX_IMAGE_PIXEL_SIZE;
+      var imagesizelimit = CONFIG_MAX_IMAGE_PIXEL_SIZE;
       if (file.type === 'image/jpeg')
-        sizelimit *= Downsample.MAX_AREA_REDUCTION;
+        imagesizelimit *= Downsample.MAX_AREA_REDUCTION;
 
-      if (metadata.width * metadata.height > sizelimit) {
+      //
+      // Even if we can downsample an image while decoding it, we still
+      // have to read the entire image file. If the file is particularly
+      // large we might also have memory problems. (See bug 1008834: a 20mb
+      // 80mp jpeg file will cause an OOM on Tarako even though we can
+      // decode it at < 2mp). Rather than adding another build-time config
+      // variable to specify the maximum file size, however, we'll just
+      // base the file size limit on CONFIG_MAX_IMAGE_PIXEL_SIZE.
+      // So if that variable is set to 2M, then we might use up to 12Mb of
+      // memory. 2 * 2M bytes for the image file and 4 bytes times 2M pixels
+      // for the decoded image. A 4mb file size limit should accomodate
+      // most JPEG files up to 12 or 16 megapixels.
+      //
+      // Note that this size limit is just a guess. If we continue to see
+      // OOMs with large files then we should change the number 2 below
+      // to something smaller.
+      //
+      var filesizelimit = 2 * CONFIG_MAX_IMAGE_PIXEL_SIZE;
+
+      if (metadata.width * metadata.height > imagesizelimit ||
+          file.size > filesizelimit) {
         metadataError('Ignoring high-resolution image ' + file.name);
         return;
       }
