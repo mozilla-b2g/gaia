@@ -36,7 +36,7 @@
    * LayoutAppInfo is a app info object for showing widget information at
    * layout editor.
    *
-   * @property {String} origin the origin url of widget.
+   * @property {String} manifestURL the manifestURL of widget.
    * @property {String} [entryPoint=''] the entrypoint of this widget.
    * @property {String} name the name of this widget.
    * @property {String} iconUrl the icon url of this widget.
@@ -127,8 +127,8 @@
      * Exports all widget layout config based on target size.
      * @return {Array} this method returns an array of object. Each object
      *                 contains the positionId, static, left, top, width,
-     *                 height, origin and entryPoints. If a place holder doesn't
-     *                 have app associated and not a static place.
+     *                 height, manifestURL and entryPoints. If a place holder
+     *                 doesn't have app associated and not a static place.
      * @memberof LayoutEditor.prototype
      */
     exportConfig: function hsle_export() {
@@ -145,7 +145,7 @@
                  Math.round(place.top * this.scaleRatio),
             width: Math.round(place.width * this.scaleRatio),
             height: Math.round(place.height * this.scaleRatio),
-            origin: place.app ? place.app.origin : '',
+            manifestURL: place.app ? place.app.manifestURL : '',
             entryPoint: place.app ? place.app.entryPoint : ''
           });
         }

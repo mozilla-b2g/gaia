@@ -122,14 +122,14 @@ suite('LayoutEditor', function() {
     var testApp = {
       'name': 'test-app',
       'iconUrl': '/dummy-icon.jpg',
-      'origin': 'apps://test-app.gaiamobile.org',
+      'manifestURL': 'apps://test-app.gaiamobile.org',
       'entryPoint': ''
     };
 
     var testApp2 = {
       'name': 'test-app2',
       'iconUrl': '/dummy-icon2.jpg',
-      'origin': 'apps://test-app2.gaiamobile.org',
+      'manifestURL': 'apps://test-app2.gaiamobile.org',
       'entryPoint': ''
     };
 
@@ -198,7 +198,7 @@ suite('LayoutEditor', function() {
     test('removeWidgets, test-app removed', function() {
       var found = false;
       editor.removeWidgets(function(place, resultCallback) {
-        var matched = place.app.origin === testApp.origin &&
+        var matched = place.app.manifestURL === testApp.manifestURL &&
                       place.app.entryPoint === testApp.entryPoint;
         resultCallback(matched, place);
         found = found || matched;
@@ -209,7 +209,7 @@ suite('LayoutEditor', function() {
     test('removeWidgets, other apps removed', function() {
       var found = false;
       editor.removeWidgets(function(place, resultCallback) {
-        var matched = place.app.origin === 'other-app-origin' &&
+        var matched = place.app.manifestURL === 'other-app-origin' &&
                       place.app.entryPoint === '';
         resultCallback(matched, place);
         found = found || matched;
@@ -219,7 +219,7 @@ suite('LayoutEditor', function() {
 
     test('updateWidgets, test-app is updated', function() {
       editor.updateWidgets(function(place, resultCallback) {
-        if (place.app.origin === testApp.origin &&
+        if (place.app.manifestURL === testApp.manifestURL &&
             place.app.entryPoint === testApp.entryPoint) {
           place.app.name = 'updated-test-app';
           place.app.iconUrl = '/upated-dummy-icon.jpg';
@@ -234,7 +234,7 @@ suite('LayoutEditor', function() {
 
     test('reset', function() {
       editor.reset(function(place) {
-        assert.equal(place.app.origin, testApp.origin);
+        assert.equal(place.app.manifestURL, testApp.manifestURL);
         assert.equal(place.app.entryPoint, testApp.entryPoint);
       });
 
@@ -249,7 +249,7 @@ suite('LayoutEditor', function() {
     var testApp = {
       'name': 'test-app',
       'iconUrl': '/dummy-icon.jpg',
-      'origin': 'apps://test-app.gaiamobile.org',
+      'manifestURL': 'apps://test-app.gaiamobile.org',
       'entryPoint': ''
     };
 
