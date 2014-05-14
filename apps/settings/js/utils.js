@@ -154,35 +154,6 @@ var FileSizeFormatter = (function FileSizeFormatter(fixed) {
  */
 
 var DeviceStorageHelper = (function DeviceStorageHelper() {
-  function getStat(type, callback) {
-    var deviceStorage = navigator.getDeviceStorage(type);
-
-    if (!deviceStorage) {
-      console.error('Cannot get DeviceStorage for: ' + type);
-      return;
-    }
-    deviceStorage.freeSpace().onsuccess = function(e) {
-      var freeSpace = e.target.result;
-      deviceStorage.usedSpace().onsuccess = function(e) {
-        var usedSpace = e.target.result;
-        callback(usedSpace, freeSpace, type);
-      };
-    };
-  }
-
-  function getFreeSpace(callback) {
-    var deviceStorage = navigator.getDeviceStorage('sdcard');
-
-    if (!deviceStorage) {
-      console.error('Cannot get free space size in sdcard');
-      return;
-    }
-    deviceStorage.freeSpace().onsuccess = function(e) {
-      var freeSpace = e.target.result;
-      callback(freeSpace);
-    };
-  }
-
   function showFormatedSize(element, l10nId, size) {
     if (size === undefined || isNaN(size)) {
       element.textContent = '';
@@ -201,8 +172,6 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
   }
 
   return {
-    getStat: getStat,
-    getFreeSpace: getFreeSpace,
     showFormatedSize: showFormatedSize
   };
 })();
