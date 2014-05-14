@@ -180,7 +180,7 @@ Calendar.ns('Views').DayBased = (function() {
         // new event
         this._idsToHours[id] = [hour];
 
-        var html = this._renderEvent(busytime, record);
+        var html = this._renderEvent(busytime, record, hour);
         var eventArea = hourRecord.element;
 
         if (this.template.hourEventsSelector) {
@@ -357,7 +357,7 @@ Calendar.ns('Views').DayBased = (function() {
     },
 
     /** must be overriden */
-    _renderEvent: function(busytime, event) {},
+    _renderEvent: function(busytime, event, hour) {},
 
     _renderHour: function(hour) {
       return this.template.hour.render({

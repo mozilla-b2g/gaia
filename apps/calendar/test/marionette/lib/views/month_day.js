@@ -23,15 +23,21 @@ MonthDay.prototype = {
     }, this);
   },
 
+  get date() {
+    return this
+      .findElement('#event-list-date')
+      .text();
+  },
+
   getTitle: function(event) {
     return event
-      .findElement('.event-title')
+      .findElement('h5')
       .text();
   },
 
   getLocation: function(event) {
     return event
-      .findElement('.event-location')
+      .findElement('.location')
       .text();
   },
 
@@ -49,6 +55,8 @@ MonthDay.prototype = {
   scrollToEvent: function(event) {
     if (!event) {
       event = this.events[0];
+    } else if (typeof event === 'number') {
+      event = this.events[event];
     }
 
     event.scriptWith(function(element) {

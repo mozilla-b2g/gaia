@@ -197,15 +197,6 @@
 }
 
 
-/* months day view */
-
-#months-day-view .day-events {
-  height: calc(100% - 4.6rem);
-  overflow-x: hidden;
-  overflow-y: auto;
-  will-change: scroll-position;
-}
-
 /* day view */
 
 #day-view > section {
