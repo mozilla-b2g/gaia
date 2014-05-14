@@ -346,6 +346,10 @@ var StatusBar = {
         this.update.label.call(this);
         break;
 
+      case 'wifi-statuschange':
+        this.update.wifi.call(this);
+        break;
+
       case 'datachange':
         this.update.data.call(this);
         break;
@@ -550,8 +554,7 @@ var StatusBar = {
 
       window.addEventListener('simslot-iccinfochange', this);
 
-      window.addEventListener('wifi-statuschange',
-                              this.update.wifi.bind(this));
+      window.addEventListener('wifi-statuschange', this);
 
       var wifiManager = window.navigator.mozWifiManager;
       if (wifiManager) {
@@ -582,6 +585,8 @@ var StatusBar = {
       }
 
       window.removeEventListener('simslot-iccinfochange', this);
+
+      window.removeEventListener('wifi-statuschange', this);
 
       window.removeEventListener('moznetworkupload', this);
       window.removeEventListener('moznetworkdownload', this);
