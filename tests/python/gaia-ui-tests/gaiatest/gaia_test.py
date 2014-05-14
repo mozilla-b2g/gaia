@@ -330,7 +330,6 @@ class GaiaData(object):
         return self.marionette.execute_script('return window.navigator.mozFMRadio.frequency')
 
     @property
-    @needs_system_frame
     def media_files(self):
         result = []
         result.extend(self.music_files)
