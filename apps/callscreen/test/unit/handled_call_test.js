@@ -448,6 +448,8 @@ suite('dialer/handled_call', function() {
 
       test('show the banner', function() {
         assert.isTrue(MockCallScreen.mShowStatusMessageCalled);
+        var caller = MockLazyL10n.keys['caller-left-call'].caller;
+        assert.isTrue(typeof(caller) === 'string');
       });
     });
   });
