@@ -232,6 +232,7 @@ var Settings = {
       window.addEventListener('keydown', this.handleSpecialKeys);
     }).bind(this));
 
+    PerformanceTestingHelper.dispatch('startup-path-done');
   },
 
   // An activity can be closed either by pressing the 'X' button
