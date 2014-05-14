@@ -460,12 +460,12 @@ li button.icon-fb-profile:before {
 
 li button.icon-add:before {
   background-image: url(/contacts/style/gphx/bitmap/default/buttons/plus_sign.png);
-  background-size: auto;
+  background-size: 3rem;
 }
 
 li button.icon-find-and-merge:before {
   background-image: url(/contacts/style/images/findandmerge.png);
-  background-size: auto;
+  background-size: 3rem;
 }
 
 
@@ -673,31 +673,37 @@ form[role="dialog"].no-overlay button {
   background: none;
 }
 
-
 #groups-list[data-type="list"].active.selecting li:not(:active):after {
   display:none !important;
 }
 
-.has-preferred-sim .icon-call div:after {
-  content: "";
-  position: absolute;
-  width: 1.4rem;
-  height: 1rem;
-  bottom: 0;
-  right: 0.9rem;
-  background-image: url("/shared/style/sim_picker/images/long-tap-indicator.png");
-  background-repeat: no-repeat;
-  background-size: 1.4rem 1rem;
+.has-preferred-sim .icon-call b {
+  right: 6.5rem;
+}
+
+.has-preferred-sim .icon-call:before {
+  width: 9.5rem;
+  background-size: 3rem;  
 }
 
 .js-sim-indication {
-  float: right;
-  margin-right: -0.2rem;
   display: none;
+  font-size: 1.3rem;
+  color: #5F5F5F;
+  font-style: normal;
+  line-height: 4rem;
+  height: 4rem;
+  text-align: right;
+  width: 5.5rem;
+  right: 1rem;
+  top: 0;
+  margin: 0;
+  position: absolute;
+  background: url("/shared/style/sim_picker/images/long-tap-indicator.png") no-repeat right bottom 0.2rem / 1.4rem 1rem;
 }
 
 .has-preferred-sim .js-sim-indication {
-  display: initial;
+  display: block;
 }
 
 #sim-picker {
