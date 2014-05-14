@@ -119,11 +119,7 @@
             var scrollY = window.scrollY;
             step = step || (scrollY / 20);
 
-            // If we are at the top we need to toggle scroll position to get
-            // around a platform bug 999162.
             if (!scrollY) {
-              window.scrollTo(0, 1);
-              window.scrollTo(0, 0);
               return;
             }
 
