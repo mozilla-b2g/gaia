@@ -1,4 +1,4 @@
-.devtools-view {
+.developer-hud {
   z-index: 2;
   position: absolute;
   top: 0;
@@ -13,7 +13,7 @@
   justify-content: flex-end;
 }
 
-.devtools-view > .widget {
+.developer-hud > .widget {
   font-size: 1.8rem;
   padding: 0 5px;
   line-height: 30px;

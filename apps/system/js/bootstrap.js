@@ -4,7 +4,7 @@
 /*global ActivityWindowManager, SecureWindowFactory,
          SecureWindowManager, HomescreenLauncher,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
-         DialerAgent, DevtoolsView, RemoteDebugger, HomeGesture,
+         DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
          SettingsURL, SettingsListener, VisibilityManager, Storage,
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
@@ -102,7 +102,7 @@ window.addEventListener('load', function startup() {
   window.activities = new Activities();
   window.accessibility = new Accessibility();
   window.accessibility.start();
-  window.devtoolsView = new DevtoolsView();
+  window.developerHUD = new DeveloperHUD();
   window.dialerAgent = new DialerAgent().start();
   window.homeGesture = new HomeGesture().start();
   window.homeSearchbar = new HomeSearchbar();

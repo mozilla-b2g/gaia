@@ -3,24 +3,22 @@
 (function(exports) {
 
   /**
-   * DevtoolsView displays metrics as an overlay on top of mozapps.
-   * @param {Object} data The data to update the devtools view with.
-   * @class DevtoolsView
+   * The Developer HUD displays app metrics as an overlay on top of MozApps.
+   * @class DeveloperHUD
    */
-  function DevtoolsView() {
+  function DeveloperHUD() {
     window.addEventListener('developer-hud-update', function updateHandler(e) {
       this.display(e.target, e.detail);
       e.preventDefault();
     }.bind(this));
   }
 
-  DevtoolsView.prototype = {
+  DeveloperHUD.prototype = {
 
     /**
-     * Displays the devtools view if it does not exist and updates with data.
-     * Currently we measure errors, warnings, and reflows.
-     * @memberof DevtoolsView.prototype
-     * @param {Object} data The data to update the devtools view with.
+     * Display a HUD over an app to show its metrics' values.
+     * @param {Object} target The iframe of the app being tracked.
+     * @param {Object} data The metric values to display.
      */
     display: function(target, data) {
       if (!target) {
@@ -32,11 +30,11 @@
         return;
       }
 
-      var overlay = appwindow.querySelector('.devtools-view');
+      var overlay = appwindow.querySelector('.developer-hud');
 
       if (!overlay) {
         overlay = document.createElement('div');
-        overlay.classList.add('devtools-view');
+        overlay.classList.add('developer-hud');
         appwindow.appendChild(overlay);
       }
 
@@ -54,11 +52,6 @@
       overlay.innerHTML = html;
     },
 
-    /**
-     * Updates a single metric to be displayed.
-     * @memberof DevtoolsView.prototype
-     * @param {Object} metric The metric to be updated.
-     */
     widget: function(metric) {
       var value = metric.value;
       if (!value) {
@@ -107,11 +100,6 @@
              value + '</div>';
     },
 
-    /**
-     * Given a color name, returns a styled CSS background value.
-     * @memberof DevtoolsView.prototype
-     * @param {String} name The name of the color.
-     */
     colorHash: function(name) {
       var hue = 0;
       for (var i = 0; i < name.length; i++) {
@@ -130,6 +118,6 @@
     }
   };
 
-  exports.DevtoolsView = DevtoolsView;
+  exports.DeveloperHUD = DeveloperHUD;
 
 }(window));

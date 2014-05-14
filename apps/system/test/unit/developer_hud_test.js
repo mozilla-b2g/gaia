@@ -1,14 +1,14 @@
 'use strict';
-/* global DevtoolsView */
+/* global DeveloperHUD */
 
-require('/js/devtools_view.js');
+require('/js/devtools/developer_hud.js');
 
 suite('developerHUD', function() {
 
   var subject;
 
   setup(function() {
-    subject = new DevtoolsView();
+    subject = new DeveloperHUD();
   });
 
   function updateMetrics(metrics) {
@@ -20,10 +20,10 @@ suite('developerHUD', function() {
     target.dispatchEvent(event);
   }
 
-  function getDevtoolsView() {
+  function getDeveloperHUD() {
     var iframe = document.getElementById('target');
     var appwindow = iframe.parentElement;
-    return appwindow.querySelector('.devtools-view');
+    return appwindow.querySelector('.developer-hud');
   }
 
   suite('display()', function() {
@@ -40,7 +40,7 @@ suite('developerHUD', function() {
       updateMetrics([
         {name: 'bugs', value: 42}
       ]);
-      var view = getDevtoolsView();
+      var view = getDeveloperHUD();
       assert.isDefined(view);
       var widget = view.querySelector('.widget');
       assert.isDefined(widget);
@@ -52,7 +52,7 @@ suite('developerHUD', function() {
         {name: 'errors', value: 23},
         {name: 'warnings', value: 16}
       ]);
-      var view = getDevtoolsView();
+      var view = getDeveloperHUD();
       assert.isDefined(view);
       var widgets = view.querySelectorAll('.widget');
       assert.equal(widgets.length, 2);
@@ -65,7 +65,7 @@ suite('developerHUD', function() {
         {name: 'chaos', value: 4}
       ]);
       updateMetrics();
-      assert.isNull(getDevtoolsView());
+      assert.isNull(getDeveloperHUD());
     });
 
   });
