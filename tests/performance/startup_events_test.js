@@ -8,6 +8,7 @@ var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
 var whitelistedApps = [
   'communications/contacts',
+  'camera',
   'clock',
   'fm',
   'sms'
