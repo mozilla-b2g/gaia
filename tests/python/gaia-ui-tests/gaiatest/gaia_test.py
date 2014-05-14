@@ -474,18 +474,27 @@ class GaiaDevice(object):
 
     def push_file(self, source, count=1, destination='', progress=None):
 
+        separator = os.path.sep
+
         # If the destination is not a filename, join the source's filename to the destination
-        if not destination.rpartition(os.path.sep)[-1].count('.') > 0:
-            destination = '/'.join([destination, source.rpartition(os.path.sep)[-1]])
+        if '.' not in destination.rpartition(separator)[-1]:
+            destination = separator.join([destination, source.rpartition(separator)[-1]])
 
         # If the folder does not exist, create it
         self.manager.mkDirs(destination)
-
+        # Now push the file
         self.manager.pushFile(source, destination)
 
         if count > 1:
+            # this copies the file on the host rather than over the network
+
             for i in range(1, count + 1):
-                remote_copy = '_%s.'.join(iter(destination.split('.'))) % i
+                # append _i to the filename to make the filename unique
+                partition = destination.rpartition(separator)
+                remote_file = '_%s.'.join(iter(partition[-1].split('.'))) % i
+                # re-join the destination and new filename
+                remote_copy = separator.join([partition[0], remote_file])
+
                 if sys.platform is 'win32' and self.is_desktop_b2g:
                     # We're on a windows host and using desktopb2g's fake sdcard
                     self.manager_checkCmd(['copy', destination, remote_copy])
