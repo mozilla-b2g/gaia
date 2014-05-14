@@ -1,6 +1,6 @@
 /* global ConfigManager, CostControl, debug, Common, asyncStorage, Formatting,
-          NotificationHelper, _, MozActivity, NetworkUsageAlarm, SimManager,
-          DEBUGGING
+          NotificationHelper, _, MozActivity, NetworkUsageAlarm, LazyLoader,
+          SimManager, IACManager, DEBUGGING
 */
 /* exported activity */
 /*jshint -W020 */
@@ -345,6 +345,15 @@
     };
   }
 
+  function disableSilentModeFor(type, configuration) {
+    LazyLoader.load('js/iac_manager.js', function() {
+      IACManager.init(configuration);
+      IACManager.broadcastEndOfSMSQuery(type).then(function(msg) {
+        debug('After broadcasting for ' + type + ' (disabling)');
+      });
+    });
+  }
+
   // Register in standalone or for application
   var costcontrol;
   function _getCCInstance() {
@@ -438,10 +447,14 @@
                 timestamp: new Date()
               };
 
-              // Remove the timeout
-              navigator.mozAlarms.remove(settings.waitingForBalance);
-              debug('Balance timeout:', settings.waitingForBalance, 'removed');
+              if (settings.waitingForBalance !== null) {
+                // Remove the timeout
+                navigator.mozAlarms.remove(settings.waitingForBalance);
+                debug('Balance timeout:', settings.waitingForBalance,
+                      'removed');
 
+                disableSilentModeFor('balance', configuration);
+              }
               // Store new balance and sync
               ConfigManager.setOption(
                 { 'lastBalance': newBalance, 'waitingForBalance': null },
@@ -454,9 +467,12 @@
                 }
               );
             } else if (isConfirmation) {
-              // Store SUCCESS for TopIp and sync
-              navigator.mozAlarms.remove(settings.waitingForTopUp);
-              debug('TopUp timeout:', settings.waitingForTopUp, 'removed');
+              if (settings.waitingForTopUp !== null) {
+                // Store SUCCESS for TopIp and sync
+                navigator.mozAlarms.remove(settings.waitingForTopUp);
+                debug('TopUp timeout:', settings.waitingForTopUp, 'removed');
+                disableSilentModeFor('topup', configuration);
+              }
               ConfigManager.setOption(
                 {
                   'waitingForTopUp': null,
