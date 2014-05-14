@@ -3,14 +3,15 @@
 
   var Week = Calendar.Template.create({
     header: function() {
-      return '<h1>' + this.h('value') + '</h1>';
+      return '<h1' + (this.arg('isToday') ? ' class="is-today"' : '') + '>' +
+        this.h('title') + '</h1>';
     },
 
     sidebarHour: function() {
       var hour = this.h('hour');
       var displayHour = this.h('displayHour');
 
-      return '<li ' + hour + ' class="hour-' + this.h('hour') + '">' +
+      return '<li class="hour-' + hour + '">' +
                 displayHour +
               '</li>';
     },
@@ -22,12 +23,17 @@
     },
 
     event: function() {
-      var calendarId = 'calendar-id-' + this.h('calendarId');
-      return '<li class="event ' + calendarId + ' calendar-display" ' +
-        'data-id="' + this.h('busytimeId') + '">' +
-          '<div class="container ' + calendarId + ' ' +
-                      'calendar-bg-color ' +
-                      'calendar-border-color">' +
+      var eventClassName = [
+        'event',
+        'calendar-id-' + this.h('calendarId'),
+        'calendar-display',
+        'calendar-bg-color',
+        'calendar-border-color'
+      ].join(' ');
+
+      return '<li class="' + eventClassName +
+        '" data-id="' + this.h('busytimeId') + '">' +
+          '<div class="container">' +
             this.h('title') +
           '</div>' +
         '</li>';
@@ -35,11 +41,9 @@
 
     frame: function() {
       return '<section class="sticky">' +
-          '<section class="children">' +
-            '<span class="all-day">' +
-              this.l10n('', 'hour-allday') +
-            '</span>' +
-          '</section>' +
+          '<span class="all-day icon-allday">' +
+            this.l10n('', 'hour-allday') +
+          '</span>' +
         '</section>' +
         '<div class="scroll">' +
           '<ol class="sidebar"></ol>' +

@@ -17,6 +17,10 @@ Week.prototype = {
     return this.findElements('.weekday.active .event').map(function(el) {
       return new WeekEvent(this.client, el);
     }, this);
+  },
+
+  get todayDates() {
+    return this.findElements('.weekday.active .sticky-frame > h1.is-today');
   }
 };
 
@@ -25,7 +29,7 @@ function WeekEvent(client, element) {
 }
 
 WeekEvent.prototype = {
-  __proto__: MarionetteElement,
+  __proto__: MarionetteElement.prototype,
 
   get container() {
     return this.findElement('.container');
