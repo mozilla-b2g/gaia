@@ -8,13 +8,15 @@
 var requirejsAsLib = true;
 load('../../build/r.js');
 
-var converter =
-      Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].
-      createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+
+var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].
+                createInstance(Ci.nsIScriptableUnicodeConverter);
 converter.charset = "UTF-8";
 
-var secClass = Components.classes["@mozilla.org/security/hash;1"];
-var nsICryptoHash = Components.interfaces.nsICryptoHash;
+var secClass = Cc["@mozilla.org/security/hash;1"];
+var nsICryptoHash = Ci.nsICryptoHash;
 
 var shared = {
   js: [],
@@ -22,9 +24,19 @@ var shared = {
   style_unstable: []
 };
 
+function getStageDir() {
+  // Only for XPC at the moment!
+  var envDir;
+  var defaultDir = '../../build_stage';
+  var env = Cc['@mozilla.org/process/environment;1'].
+      getService(Ci.nsIEnvironment);
+  envDir = env && env.get('STAGE_DIR');
+  return envDir || defaultDir;
+}
+
 // This file is run from the email directory.
 var srcDir = './',
-    buildDir = '../../build_stage/email/';
+    buildDir = getStageDir() + '/email/';
 
 // Taken from r.js css optimizing step.
 var cssImportRegExp = /\@import\s+(url\()?\s*([^);]+)\s*(\))?([\w, ]*)(;)?/ig;

@@ -15,6 +15,11 @@ var CommonjsRunner = function(module) {
   const APP_DIR = env.get('APP_DIR');
 
   let gaiaDirFile = new FileUtils.File(GAIA_DIR);
+
+  // This is defined always on the Makefile, so let's just use it!
+  const STAGE_DIR = env.get('STAGE_DIR');
+  let stageDirFile = new FileUtils.File(STAGE_DIR);
+
   let appBuildDirFile, appDirFile;
 
   if (APP_DIR) {
@@ -45,6 +50,7 @@ var CommonjsRunner = function(module) {
 
   this.require = Loader.Require(loader, Loader.Module('main', 'gaia://'));
   this.gaiaDirFile = gaiaDirFile;
+  this.stageDirFile = stageDirFile;
   this.module = module;
   this.appDirFile = appDirFile;
 };
@@ -56,8 +62,7 @@ CommonjsRunner.prototype.run = function() {
     let options = JSON.parse(env.get("BUILD_CONFIG"));
     // ...and to allow doing easily such thing \o/
     if (this.appDirFile) {
-      var stageAppDir = this.gaiaDirFile.clone();
-      stageAppDir.append('build_stage');
+      var stageAppDir = this.stageDirFile.clone();
       stageAppDir.append(this.appDirFile.leafName);
       options.STAGE_APP_DIR = stageAppDir.path;
       options.APP_DIR = this.appDirFile.path;

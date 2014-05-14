@@ -133,12 +133,16 @@ suite('Node modules tests', function() {
 
 suite('Build Integration tests', function() {
   var localesDir = 'tmplocales';
+  var customStageDir;
+  var defaultStageDir;
 
   suiteSetup(function() {
     rmrf('profile');
     rmrf('profile-debug');
     rmrf('build_stage');
     rmrf(localesDir);
+    customStageDir = path.join('/tmp', ('customStageDir_' + process.pid));
+    defaultStageDir = path.join(process.cwd(), 'build_stage');
   });
 
   function verifyIncludedFilesFromHtml(appName) {
@@ -691,6 +695,45 @@ suite('Build Integration tests', function() {
     );
   });
 
+  test('make with STAGE_DIR=<whatEverPath>', function(done) {
+    if (fs.existsSync(customStageDir)) {
+      rmrf(customStageDir);
+    }
+    helper.exec('STAGE_DIR=' + customStageDir + ' make',
+                function(error, stdout, stderr) {
+      helper.checkError(error, stdout, stderr);
+      //Verify build_stage directory is correct
+      assert.ok(fs.existsSync(customStageDir),
+                'custom build_stage has not been created');
+      assert.isFalse(fs.existsSync(defaultStageDir),
+                'default build_stage has been created');
+
+      // verify file existing in app which using r.js for optimization
+      // (e.g. email or settings)
+      var zipPathWithOptWrong = path.join(defaultStageDir, 'settings');
+      var zipPathWithOptOK = path.join(customStageDir, 'settings');
+      // settings should not exist on default build_stage directory
+      assert.isFalse(fs.existsSync(zipPathWithOptWrong),
+               'settings dir on default build_stage directory should not exist');
+      // settings should exist on custom build_stage directory
+      assert.ok(fs.existsSync(zipPathWithOptOK),
+                'settings dir on configured build_stage directory should exist');
+
+      // verify file existing in app without using r.js for optimization
+      // (e.g. camera or clock)
+      var zipPathWrong = path.join(defaultStageDir, 'clock');
+      var zipPathOK = path.join(customStageDir, 'clock');
+      // settings should not exist on default build_stage directory
+      assert.isFalse(fs.existsSync(zipPathWrong),
+               'clock dir on default build_stage directory should not exist');
+      // settings should exist on custom build_stage directory
+      assert.ok(fs.existsSync(zipPathOK),
+                'clock dir on configured build_stage directory should exist');
+
+      done();
+    });
+  });
+
   suite('Build file inclusion tests', function() {
     test('build includes elements folder and sim_picker', function(done) {
       helper.exec('make', function(error, stdout, stderr) {
@@ -709,5 +752,8 @@ suite('Build Integration tests', function() {
     rmrf('profile');
     rmrf('profile-debug');
     rmrf('build_stage');
+    if (fs.existsSync(customStageDir)) {
+      rmrf(customStageDir);
+    };
   });
 });

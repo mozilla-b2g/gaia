@@ -37,7 +37,12 @@ $(STAGE_APP_DIR):
 	mkdir -p $(STAGE_APP_DIR)
 
 $(STAGE_APP_DIR)/js/main.js: | $(STAGE_APP_DIR)
+ifdef STAGE_DIR
+	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/settings.build.jslike optimize=$(GAIA_SETTINGS_MINIFY) dir=$(STAGE_DIR)/settings
+else
 	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/settings.build.jslike optimize=$(GAIA_SETTINGS_MINIFY)
+endif
+
 
 $(STAGE_APP_DIR)/resources/support.json $(STAGE_APP_DIR)/resources/sensors.json: build/build.js $(STAGE_APP_DIR)
 	@$(call run-js-command,app/build)

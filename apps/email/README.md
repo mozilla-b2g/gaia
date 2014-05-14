@@ -119,9 +119,12 @@ The email app takes advantage of some features in the gaia build system to do
 some optimizations:
 
 * Apps can define an app-specific Makefile in their directory. This is run
-before the rest of the general Gaia build steps. Email uses this to create
-a directory in `gaia/build_stage/email` and runs some optimizations around
-JS and CSS concatenation.
+  before the rest of the general Gaia build steps. The make process uses this to
+  create a directory in $STAGE_DIR/email if $STAGE_DIR is defined, or in
+  $GAIA_DIR/build_stage/email otherwise and runs some optimizations around
+  JS and CSS concatenation.
+  Note that the global Makefile always define STAGE_DIR, with a default value of
+  $GAIA_DIR/build_stage
 * The Gaia build system knows to use `gaia/build_stage/email` to do the rest of
 the Gaia build steps because email specifies the "dir" in the `gaia_build.json`
 in this directory.
