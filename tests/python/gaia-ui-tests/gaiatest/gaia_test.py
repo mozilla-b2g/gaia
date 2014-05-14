@@ -416,15 +416,23 @@ class GaiaDevice(object):
         else:
             raise Exception('GaiaDevice has no device manager object set.')
 
-    def enable_desktop_mock_sdcard(self):
-        # First set the device root, then pass it into the storage override pref
-        self._device_root = os.path.abspath(os.path.join(os.getcwd(), 'fake-sdcard'))
-        GaiaData(self.marionette).set_char_pref('device.storage.overrideRootDir', self.device_root)
+    def enable_desktop_fake_sdcard(self):
+        # First workout the path, then pass it into the storage override pref
+        import tempfile
+        fake_sdcard_path = os.path.abspath(os.path.join(tempfile.gettempdir(), 'fake-sdcard'))
+        GaiaData(self.marionette).set_char_pref('device.storage.overrideRootDir', fake_sdcard_path)
 
     @property
     def device_root(self):
         if not hasattr(self, '_device_root'):
-            if self.manager.dirExists('/sdcard'):
+            if self.is_desktop_b2g:
+                fake_sdcard_path = GaiaData(self.marionette).get_char_pref('device.storage.overrideRootDir')
+                if fake_sdcard_path is not None:
+                    # we're on desktopb2g, using mock sdcard
+                    self._device_root = fake_sdcard_path
+                else:
+                    raise Exception('Cannot use device_root without configuring overrideRootDir/fake-sdcard first')
+            elif self.manager.dirExists('/sdcard'):
                 # it's a hamachi/inari or other single sdcard device
                 self._device_root = '/sdcard/'
             elif self.manager.dirExists('/storage/sdcard0'):
@@ -661,7 +669,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
             if self.device.is_desktop_b2g:
                 # Enabled the mock sdcard to facilitate sdcard/Device Storage tests
-                self.device.enable_desktop_mock_sdcard()
+                self.device.enable_desktop_fake_sdcard()
 
         # Run the fake update checker
         FakeUpdateChecker(self.marionette).check_updates()
