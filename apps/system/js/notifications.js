@@ -53,6 +53,9 @@ var NotificationScreen = {
   lockscreenPreview: true,
   silent: false,
   vibrates: true,
+  isResending: false,
+  resendReceived: 0,
+  resendExpecting: 0,
 
   init: function ns_init() {
     window.addEventListener('mozChromeNotificationEvent', this);
@@ -87,6 +90,7 @@ var NotificationScreen = {
       this.clearDesktopNotifications.bind(this));
     window.addEventListener('appopened',
       this.clearDesktopNotifications.bind(this));
+    window.addEventListener('desktop-notification-resend', this);
 
     this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
 
@@ -114,6 +118,10 @@ var NotificationScreen = {
         switch (detail.type) {
           case 'desktop-notification':
             this.addNotification(detail);
+            if (this.isResending) {
+              this.resendReceived++;
+              this.isResending = (this.resendReceived < this.resendExpecting);
+            }
             break;
           case 'desktop-notification-close':
             this.removeNotification(detail.id);
@@ -145,6 +153,12 @@ var NotificationScreen = {
         break;
       case 'ftudone':
         this.toaster.addEventListener('tap', this);
+        break;
+      case 'desktop-notification-resend':
+        this.resendExpecting = evt.detail.number;
+        if (this.resendExpecting) {
+          this.isResending = true;
+        }
         break;
     }
   },
@@ -315,7 +329,7 @@ var NotificationScreen = {
     }
 
     var time = document.createElement('span');
-    var timestamp = new Date();
+    var timestamp = detail.timestamp ? new Date(detail.timestamp) : new Date();
     time.classList.add('timestamp');
     time.dataset.timestamp = timestamp;
     time.textContent = this.prettyDate(timestamp);
@@ -426,7 +440,7 @@ var NotificationScreen = {
       }
     }
 
-    if (notify) {
+    if (notify && !this.isResending) {
       if (!this.silent) {
         var ringtonePlayer = new Audio();
         ringtonePlayer.src = this._sound;
@@ -532,6 +546,31 @@ var NotificationScreen = {
   }
 
 };
+
+window.addEventListener('load', function() {
+  window.removeEventListener('load', this);
+  if ('mozSettings' in navigator && navigator.mozSettings) {
+    var key = 'notifications.resend';
+    var req = navigator.mozSettings.createLock().get(key);
+    req.onsuccess = function onsuccess() {
+      var resendEnabled = req.result[key] || false;
+      if (!resendEnabled) {
+        return;
+      }
+
+      var resendCallback = (function(number) {
+        window.dispatchEvent(
+          new CustomEvent('desktop-notification-resend',
+            { detail: { number: number } }));
+      }).bind(this);
+
+      if ('mozChromeNotifications' in navigator) {
+        navigator.mozChromeNotifications.
+          mozResendAllNotifications(resendCallback);
+      }
+    };
+  }
+});
 
 NotificationScreen.init();
 

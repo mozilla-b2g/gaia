@@ -1,10 +1,11 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global getTruncated */
+/* exported Pairview */
 
 'use strict';
 
-
-var PairView = {
+var Pairview = {
   /**
    * device to pair with.
    */
@@ -19,7 +20,7 @@ var PairView = {
 
   _passkey: '',
 
-  pairView: document.getElementById('pair-view'),
+  pairview: document.getElementById('pair-view'),
 
   nameLabel: document.getElementById('label-name'),
   pairDescription: document.getElementById('pair-description'),
@@ -47,7 +48,7 @@ var PairView = {
     });
 
     this.nameLabel.textContent = truncatedDeviceName;
-    this.pairView.hidden = false;
+    this.pairview.hidden = false;
 
     var stringName = this._pairMode + '-pair-' + this._pairMethod;
     this.pairDescription.textContent =
@@ -88,15 +89,15 @@ var PairView = {
     }
 
     // show() only until the page is localized.
-    navigator.mozL10n.once(PairView.show.bind(PairView));
+    navigator.mozL10n.once(Pairview.show.bind(Pairview));
   },
 
-  close: function() {
-    window.opener.gDeviceList.setConfirmation(this._device.address, false);
+  close: function pv_close() {
+    window.opener.PairManager.setConfirmation(this._device.address, false);
     window.close();
   },
 
-  closeInput: function() {
+  closeInput: function pv_closeInput() {
     if (!this.pinInputItem.hidden) {
       this.pinInput.blur();
     }
@@ -107,31 +108,34 @@ var PairView = {
 
   handleEvent: function pv_handleEvent(evt) {
     var _ = navigator.mozL10n.get;
-    if (!evt.target)
+    if (!evt.target) {
       return;
+    }
 
     switch (evt.type) {
       case 'click':
         evt.preventDefault();
+
         switch (evt.target.id) {
           case 'button-pair':
             this.pairDescription.textContent = _('device-status-waiting');
             this.pairButton.disabled = true;
             this.closeButton.disabled = true;
+
             switch (this._pairMethod) {
               case 'confirmation':
-                window.opener.gDeviceList.
-                  setConfirmation(this._device.address, true);
+                window.opener.PairManager.setConfirmation(this._device.address,
+                                                          true);
                 break;
               case 'pincode':
-                var value = this.pinInput.value;
-                window.opener.gDeviceList.setPinCode(this._device.address,
-                  value);
+                var pinValue = this.pinInput.value;
+                window.opener.PairManager.setPinCode(this._device.address,
+                                                     pinValue);
                 break;
               case 'passkey':
-                var value = this.passkeyInput.value;
-                window.opener.gDeviceList.setPasskey(this._device.address,
-                  value);
+                var passkeyValue = this.passkeyInput.value;
+                window.opener.PairManager.setPasskey(this._device.address,
+                                                     passkeyValue);
                 break;
             }
             window.close();
@@ -155,4 +159,3 @@ var PairView = {
     }
   }
 };
-

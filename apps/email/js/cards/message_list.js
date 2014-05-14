@@ -1377,6 +1377,13 @@ MessageListCard.prototype = {
       this._whenVisible = null;
       fn();
     }
+
+    // In case the vScroll was initialized when the card was not visible, like
+    // in an activity/notification flow when this card is created in the
+    // background behind the compose/reader card, let it know it is visible now
+    // in case it needs to finish initializing and initial display.
+    this.vScroll.nowVisible();
+
     // On first construction, or if done in background,
     // this card would not be visible to do the last sync
     // sizing so be sure to check it now.

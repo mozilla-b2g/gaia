@@ -1385,6 +1385,30 @@ suite('system/AppWindow', function() {
     assert.deepEqual(app1.nextWindow, childNew);
   });
 
+  test('isBrowser', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var app2 = new AppWindow(fakeAppConfig4);
+    assert.isFalse(app1.isBrowser());
+    assert.isTrue(app2.isBrowser());
+  });
+
+  test('navigate', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var app2 = new AppWindow(fakeAppConfig4);
+    var popup = new AppWindow(fakeAppConfig2);
+    var url = 'http://changed.url';
+
+    app1.navigate(url);
+    assert.isTrue(app1.browser.element.src.indexOf(url) < 0);
+
+    app2.navigate(url);
+    assert.isTrue(app2.browser.element.src.indexOf(url) !== -1);
+
+    app2.frontWindow = popup;
+    app2.navigate(url);
+    assert.isNull(app2.frontWindow);
+  });
+
   function genFakeConfig(id) {
     return {
       url: 'app://www.fake' + id + '/index.html',

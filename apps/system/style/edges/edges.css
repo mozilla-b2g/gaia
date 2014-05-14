@@ -4,10 +4,10 @@
 
 #left-panel {
   position: absolute;
-  height: calc(100% - 88px);
-  width: 30px;
+  height: calc(100% - 10rem);
+  width: 2rem;
   left: 0;
-  top: 44px;
+  top: 6rem;
 
   border-radius: 0 50% 50% 0;
 
@@ -20,10 +20,10 @@
 
 #right-panel {
   position: absolute;
-  height: calc(100% - 88px);
-  width: 30px;
+  height: calc(100% - 10rem);
+  width: 2rem;
   right: 0;
-  top: 44px;
+  top: 6rem;
 
   border-radius: 50% 0 0 50%;
 

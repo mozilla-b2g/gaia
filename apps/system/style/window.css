@@ -621,7 +621,7 @@
   opacity: 0;
 }
 
-#screen.edges #windows > .appWindow.active:not(.will-become-inactive),
+#screen.edges #windows > .appWindow.active:not(.will-become-inactive):not(.back),
 #screen.edges #windows > .appWindow.will-become-active,
 #screen.edges #windows > .appWindow.inside-edges {
   opacity: 1;

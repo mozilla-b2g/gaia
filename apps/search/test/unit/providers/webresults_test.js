@@ -36,7 +36,7 @@ suite('search/providers/webresults', function() {
 
   suite('click', function() {
     test('calls browser', function() {
-      var stub = this.sinon.stub(Search, 'navigate');
+      var stub = this.sinon.stub(window, 'open');
       subject.click({
         target: {
           dataset: {
@@ -45,11 +45,8 @@ suite('search/providers/webresults', function() {
           }
         }
       });
-      assert.ok(stub.calledWith('http://mozilla.org', {
-        icon: 'http://mozilla.org/img',
-        originName: undefined,
-        originUrl: 'http://mozilla.org'
-      }));
+      assert.ok(stub.calledOnce);
+      stub.restore();
     });
   });
 

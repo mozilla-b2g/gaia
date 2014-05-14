@@ -1,4 +1,4 @@
-/* global SettingsListener, System, layoutManager, SimPinDialog, rocketbar */
+/* global SettingsListener, System, SimPinDialog, rocketbar */
 'use strict';
 
 (function(exports) {
@@ -234,13 +234,10 @@
       // May have orientation manager to deal with lock orientation request.
       this.app.setOrientation();
 
-      // this.app.width is defined means we're resized ever.
-      // but this.app.resized may be cleared.
-      if (this.app.resized &&
-          !layoutManager.match(this.app.width,
-            this.app.height - this.app.calibratedHeight())) {
-        this.app.resize();
-      }
+      // Resize when opened.
+      // Note: we will not trigger reflow if the final size
+      // is the same as its current value.
+      this.app.resize();
       this.app.waitForNextPaint(function() {
         if (this._transitionState !== 'opened') {
           return;

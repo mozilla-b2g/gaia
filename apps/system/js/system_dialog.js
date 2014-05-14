@@ -32,9 +32,8 @@
    * @extends BaseUI
    */
   var SystemDialog = function SystemDialog(options) {
-    if (options) {
-      this.options = options;
-    }
+    this.options = options || {};
+
     this.render();
     this.publish('created');
   };

@@ -1,14 +1,18 @@
 'use strict';
-/* global MockNavigatormozApps, MockNavigatormozSetMessageHandler, Search */
+/* global MockNavigatormozApps, MockNavigatormozSetMessageHandler,
+          MockMozActivity, Search */
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
+require('/shared/test/unit/mocks/mock_moz_activity.js');
+
 require('/shared/js/url_helper.js');
 
-mocha.globals(['Search', 'open']);
+mocha.globals(['Search', 'open', 'MozActivity']);
 
 suite('search/search', function() {
   var realMozApps;
+  var realMozActivity;
   var realSetMessageHandler;
   var clock;
 
@@ -19,6 +23,9 @@ suite('search/search', function() {
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
 
+    realMozActivity = window.MozActivity;
+    window.MozActivity = MockMozActivity;
+
     clock = sinon.useFakeTimers();
 
     requireApp('search/js/search.js', done);
@@ -27,14 +34,17 @@ suite('search/search', function() {
   suiteTeardown(function() {
     navigator.mozSetMessageHandler = realSetMessageHandler;
     navigator.mozApps = realMozApps;
+    window.MozActivity = realMozActivity;
     clock.restore();
   });
 
   setup(function() {
+    MockMozActivity.mSetup();
     MockNavigatormozSetMessageHandler.mSetup();
   });
 
   teardown(function() {
+    MockMozActivity.mTeardown();
     MockNavigatormozSetMessageHandler.mTeardown();
     MockNavigatormozApps.mTeardown();
   });
@@ -190,22 +200,11 @@ suite('search/search', function() {
   });
 
   suite('navigate', function() {
-    test('window.open is called', function() {
+    test('Open activity is fired', function() {
       var url = 'http://mozilla.org';
-      var stub = this.sinon.stub(window, 'open');
+      assert.equal(MockMozActivity.calls.length, 0);
       Search.navigate(url);
-      assert.ok(stub.calledWith(url));
-    });
-
-    test('parses features', function() {
-      var url = 'http://mozilla.org';
-      var stub = this.sinon.stub(window, 'open');
-      Search.navigate(url, {
-        a: 1,
-        b: 2
-      });
-      assert.ok(stub.calledWith(url, '_blank',
-        'remote=true,useAsyncPanZoom=true,a=1,b=2'));
+      assert.equal(MockMozActivity.calls.length, 1);
     });
   });
 

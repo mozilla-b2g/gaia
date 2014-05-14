@@ -25,7 +25,8 @@ marionette('manipulate screenLock settings', function() {
       'screenlock is checked');
   });
 
-  test('passcode can\'t be enabled when passcode is wrong', function() {
+  // Disabled for intermittent failures. Bug 983171
+  test.skip('passcode can\'t be enabled when passcode is wrong', function() {
     screenLockPanel.toggleScreenLock();
     screenLockPanel.togglePasscodeLock();
     screenLockPanel.typePasscode('1234', '5678');

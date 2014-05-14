@@ -11,7 +11,7 @@
    * can be launched singly.
    *
    * @property {String} manifestURL The app's manifestURL.
-   * @property {String} entry_point The entry point defined in app's manifest.
+   * @property {String} entryPoint The entry point defined in app's manifest.
    * @property {String} name The name of the entry.
    * @typedef {Object} AppEntryPoint
    */
@@ -268,7 +268,7 @@
       if (!entryPoints || manifest.type !== 'certified') {
         entries.push({
           manifestURL: manifestURL,
-          entry_point: '',
+          entryPoint: '',
           name: manifest.name
         });
       } else {
@@ -276,7 +276,7 @@
           if (entryPoints[entryPoint].icons) {
             entries.push({
               manifestURL: manifestURL,
-              entry_point: entryPoint,
+              entryPoint: entryPoint,
               name: entryPoints[entryPoint].name
             });
           }
@@ -306,7 +306,7 @@
     },
 
     /**
-     * Launch an app by its manifestURL and entry_point.
+     * Launch an app by its manifestURL and entryPoint.
      *
      * @param {String} manifestURL The app's manifestURL.
      * @param {String} [entryPoint] The specific "entry_point" you want to
@@ -330,7 +330,7 @@
     },
 
     /**
-     * Get manifest object by specified manifestURL and entry_point.
+     * Get manifest object by specified manifestURL and entryPoint.
      *
      * @param {String} manifestURL The app's manifestURL.
      * @param {String} [entryPoint] Specify an "entry_point" if you want to get
