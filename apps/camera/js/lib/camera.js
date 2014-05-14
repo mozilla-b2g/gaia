@@ -17,18 +17,15 @@ var mix = require('lib/mixin');
  * Locals
  */
 
-var recordSpaceMin = window.RECORD_SPACE_MIN;
-var recordSpacePadding = window.RECORD_SPACE_PADDING;
-
-// More explicit names for the focus modes we care about
+// More explicit names for the
+// focus modes we care about
 var MANUAL_AUTO_FOCUS = 'auto';
 var CONTINUOUS_AUTO_FOCUS = 'continuous-picture';
 
 /**
- * Locals
+ * Mixin `Model` API (inc. events)
  */
 
-// Mixin model methods (also events)
 model(Camera.prototype);
 
 /**
@@ -44,6 +41,9 @@ module.exports = Camera;
  *
  *   - {Boolean} `cacheConfig`
  *   - {Boolean} `cafEnabled`
+ *   - {Number} `minRecordingTime`
+ *   - {Number} `recordSpaceMin`
+ *   - {Number} `recordSpacePadding`
  *
  * @param {Object} options
  */
@@ -53,17 +53,34 @@ function Camera(options) {
 
   // Options
   options = options || {};
-  this.cacheConfig = !!options.cacheConfig;
-  this.orientation = options.orientation || orientation; // test hook
-  this.storage = options.storage  || localStorage; // test hook
+
+  // mozCamera config is cached by default
+  this.cacheConfig = options.cacheConfig !== false;
+
+  // Minimum video duration length for creating a
+  // video that contains at least few samples, see bug 899864.
+  this.minRecordingTime = options.minRecordingTime || 1000;
+
+  // Number of bytes left on disk to let us stop recording.
+  this.recordSpacePadding = options.recordSpacePadding || 1024 * 1024 * 1;
+
+  // The minimum available disk space to start recording a video.
+  this.recordSpaceMin = options.recordSpaceMin || 1024 * 1024 * 2;
+
+  // Test hooks
+  this.getVideoMetaData = options.getVideoMetaData || getVideoMetaData;
+  this.orientation = options.orientation || orientation;
+  this.storage = options.storage  || localStorage;
 
   this.cameraList = navigator.mozCameras.getListOfCameras();
   this.mozCamera = null;
+
+  // Video config
   this.video = {
     storage: navigator.getDeviceStorage('videos'),
     filepath: null,
-    minSpace: options.recordSpaceMin || recordSpaceMin,
-    spacePadding : options.recordSpacePadding || recordSpacePadding
+    minSpace: this.recordSpaceMin,
+    spacePadding : this.recordSpacePadding
   };
 
   // Indicate this first
@@ -909,34 +926,36 @@ Camera.prototype.startRecording = function(options) {
 /**
  * Stop recording the video.
  *
+ * Once we have told the camera to stop recording
+ * the video we attach a 'change' listener to the
+ * video storage and wait. Once the listener fires
+ * we know that the video file has been saved.
+ *
+ * At this point we fetch the file Blob from
+ * storage and then call the `.onNewVideo()`
+ * method to handle the final stages.
+ *
  * @public
  */
 Camera.prototype.stopRecording = function() {
   debug('stop recording');
 
   var notRecording = !this.get('recording');
-  var elapsedTime = Date.now() - this.get('videoStart');
+  var filepath = this.video.filepath;
   var storage = this.video.storage;
-  var video = this.video;
   var self = this;
-  var takenVideo;
 
-  // Ensure we are in the middle of a recording and that the minimum video
-  // duration has been exceeded. Video files will not save to the file
-  // system unless they are of a certain minimum length (see Bug 899864).
-  //
-  // TODO: There should be a better way of handling this or a fix for
-  // this should be addressed in the Gecko API.
-  if (notRecording || elapsedTime < window.MIN_RECORDING_TIME) {
-    return;
-  }
+  if (notRecording) { return; }
 
+  this.busy();
   this.stopVideoTimer();
   this.mozCamera.stopRecording();
   this.set('recording', false);
-  this.busy();
 
-  // Unlock orientation when stopping video recording
+  // Unlock orientation when stopping video recording.
+  // REVIEW:WP This logic is out of scope of the
+  // Camera hardware. Only the App should be
+  // making such high level decicions.
   this.orientation.start();
 
   // Register a listener for writing
@@ -945,35 +964,80 @@ Camera.prototype.stopRecording = function() {
 
   function onStorageChange(e) {
     debug('video file ready', e.path);
-    var matchesFile = e.path.indexOf(video.filepath) > -1;
+    var matchesFile = e.path.indexOf(filepath) > -1;
 
-    // Regard the modification as
-    // video file writing completion
-    // if e.path matches current video
+    // Regard the modification as video file writing
+    // completion if e.path matches current video
     // filename. Note e.path is absolute path.
-    if (e.reason === 'modified' && matchesFile) {
-      storage.removeEventListener('change', onStorageChange);
-      self.getVideoBlob(gotVideoBlob);
+    if (e.reason !== 'modified' || !matchesFile) { return; }
+
+    // We don't need the listener anymore.
+    storage.removeEventListener('change', onStorageChange);
+
+    // Re-fetch the blob from storage
+    var req = storage.get(filepath);
+    req.onerror = self.onRecordingError;
+    req.onsuccess = onSuccess;
+
+    function onSuccess() {
+      debug('got video blob');
+      self.onNewVideo({
+        blob: req.result,
+        filepath: filepath
+      });
     }
   }
+};
 
-  function gotVideoBlob(blob) {
-    takenVideo = {
-      blob: blob,
-      filepath: video.filepath
-    };
-    getVideoMetaData(blob, gotVideoMetaData);
+/**
+ * Once we have got the new video blob
+ * from storage we assemble the video
+ * object and then get video meta data
+ * to add to it.
+ *
+ * If the video was too short, we delete
+ * it from storage and abort to prevent
+ * the app from ever knowing a new
+ * (potentially corrupted) video file
+ * was recorded.
+ *
+ * @param  {Object} video
+ * @private
+ */
+Camera.prototype.onNewVideo = function(video) {
+  debug('got new video', video);
+
+  var elapsedTime = this.get('videoElapsed');
+  var tooShort = elapsedTime < this.minRecordingTime;
+  var self = this;
+
+  // Discard videos that are too
+  // short and possibly corrupted.
+  if (tooShort) {
+    debug('video too short, deleting...');
+    this.video.storage.delete(video.filepath);
+    this.ready();
+    return;
   }
+
+  // Finally extract some metadata before
+  // telling the app the new video is ready.
+  this.getVideoMetaData(video.blob, gotVideoMetaData);
 
   function gotVideoMetaData(error, data) {
     if (error) {
-      return self.onRecordingError();
+      self.onRecordingError();
+      return;
     }
-    takenVideo.poster = data.poster;
-    takenVideo.width = data.width;
-    takenVideo.height = data.height;
-    takenVideo.rotation = data.rotation;
-    self.emit('newvideo', takenVideo);
+
+    // Bolt on additional metadata
+    video.poster = data.poster;
+    video.width = data.width;
+    video.height = data.height;
+    video.rotation = data.rotation;
+
+    // Tell the app the new video is ready
+    self.emit('newvideo', video);
     self.ready();
   }
 };
@@ -1050,30 +1114,6 @@ Camera.prototype.getFreeVideoStorageSpace = function(done) {
 
   function onError() {
     done('error');
-  }
-};
-
-/**
- * Get the recorded video out of storage.
- *
- * @param  {Function} done
- * @private
- * @async
- */
-Camera.prototype.getVideoBlob = function(done) {
-  debug('get video blob');
-  var video = this.video;
-  var req = video.storage.get(video.filepath);
-  req.onsuccess = onSuccess;
-  req.onerror = onError;
-
-  function onSuccess() {
-    debug('got video blob');
-    done(req.result);
-  }
-
-  function onError() {
-    console.error('failed to get \'%s\' from storage', video.filepath);
   }
 };
 

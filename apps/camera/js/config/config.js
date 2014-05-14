@@ -11,19 +11,8 @@ module.exports = {
     CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH: 0,
     CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT: 0,
 
-    // Minimum EXIF preview size that will be displayed as a
-    // full-screen preview
-    //CONFIG_REQUIRED_EXIF_PREVIEW_SIZE: { width: 640, height: 480},
-
-    // The minimum available disk space to start recording a video.
-    RECORD_SPACE_MIN: 1024 * 1024 * 2,
-
-    // Number of bytes left on disk to let us stop recording.
-    RECORD_SPACE_PADDING: 1024 * 1024 * 1,
-
-    // Minimum video duration length for creating a video that contains at least
-    // few samples, see bug 899864.
-    MIN_RECORDING_TIME: 1000,
+    // TODO: Move these zoom globals
+    // into `zoom` config key below
 
     // Amount of inactivity time (in milliseconds) to hide the Zoom Bar
     ZOOM_BAR_INACTIVITY_TIMEOUT: 3000,
@@ -35,6 +24,11 @@ module.exports = {
     // (smaller values = more sensitivity)
     ZOOM_GESTURE_SENSITIVITY: 0.425
   },
+
+  // You can override any of the `Camera`
+  // default options here (see lib/camera.js
+  // constructor for available options).
+  camera: {},
 
   zoom: {
     disabled: false
