@@ -665,20 +665,19 @@ function Commander(cmd) {
   var command =
     (getOsType().indexOf('WIN') !== -1 && cmd.indexOf('.exe') === -1) ?
     cmd + '.exe' : cmd;
-  var _path;
   var _file = null;
 
   // paths can be string or array, we'll eventually store one workable
   // path as _path.
   this.initPath = function(paths) {
     if (typeof paths === 'string') {
-      _path = paths;
+      var file = getFile(paths, command);
+      _file = file.exists() ? file : null;
     } else if (typeof paths === 'object' && paths.length) {
       for (var p in paths) {
         try {
           var result = getFile(paths[p], command);
           if (result && result.exists()) {
-            _path = paths[p];
             _file = result;
             break;
           }
