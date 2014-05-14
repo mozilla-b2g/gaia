@@ -315,6 +315,7 @@ export GAIA_DISTRIBUTION_DIR
 
 SETTINGS_PATH ?= build/config/custom-settings.json
 KEYBOARD_LAYOUTS_PATH ?= build/config/keyboard-layouts.json
+CONTACTS_IMPORT_SERVICES_PATH ?= build/config/communications_services.json
 
 ifdef GAIA_DISTRIBUTION_DIR
 	DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
@@ -322,6 +323,7 @@ ifdef GAIA_DISTRIBUTION_DIR
 	DISTRIBUTION_APP_CONFIG := $(GAIA_DISTRIBUTION_DIR)$(SEP)apps.list
 	DISTRIBUTION_VARIANT := $(GAIA_DISTRIBUTION_DIR)$(SEP)variant.json
 	DISTRIBUTION_KEYBOARD_LAYOUTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)keyboard-layouts.json
+	DISTRIBUTION_CONTACTS_IMPORT_SERVICES := $(GAIA_DISTRIBUTION_DIR)$(SEP)communications_services.json
 	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
 		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
 	endif
@@ -336,6 +338,9 @@ ifdef GAIA_DISTRIBUTION_DIR
 	endif
 	ifneq ($(wildcard $(DISTRIBUTION_KEYBOARD_LAYOUTS)),)
 		KEYBOARD_LAYOUTS_PATH := $(DISTRIBUTION_KEYBOARD_LAYOUTS)
+	endif
+	ifneq ($(wildcard $(DISTRIBUTION_CONTACTS_IMPORT_SERVICES)),)
+		CONTACTS_IMPORT_SERVICES_PATH := $(DISTRIBUTION_CONTACTS_IMPORT_SERVICES)
 	endif
 endif
 
@@ -465,6 +470,7 @@ define BUILD_CONFIG
 	"SETTINGS_PATH" : "$(subst \,\\,$(SETTINGS_PATH))", \
 	"FTU_PING_URL": "$(FTU_PING_URL)", \
 	"KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)", \
+	"CONTACTS_IMPORT_SERVICES_PATH" : "$(CONTACTS_IMPORT_SERVICES_PATH)", \
 	"STAGE_DIR" : "$(STAGE_DIR)", \
 	"VARIANT_PATH" : "$(VARIANT_PATH)" \
 }
@@ -475,7 +481,7 @@ export BUILD_CONFIG
 include build/common.mk
 
 # Generate profile/
-$(PROFILE_FOLDER): preferences post-manifest app-makefiles keyboard-layouts copy-build-stage-data test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): preferences post-manifest app-makefiles keyboard-layouts contacts-import-services copy-build-stage-data test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -490,7 +496,7 @@ $(STAGE_DIR):
 # FIXME: we use |STAGE_APP_DIR="../../build_stage/$$APP"| here because we got
 # some problem on Windows if use absolute path.
 .PHONY: app-makefiles
-app-makefiles: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts $(STAGE_DIR)/settings_stage.json webapp-manifests svoperapps clear-stage-app webapp-shared | $(STAGE_DIR)
+app-makefiles: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts contacts-import-services $(STAGE_DIR)/settings_stage.json webapp-manifests svoperapps clear-stage-app webapp-shared | $(STAGE_DIR)
 	@for appdir in $(GAIA_APPDIRS); \
 	do \
 		APP="`basename $$appdir`"; \
@@ -571,6 +577,10 @@ optimize-clean: webapp-zip $(XULRUNNER_BASE_DIRECTORY)
 # A separate step for shared/ folder to generate its content in build time
 keyboard-layouts: webapp-manifests $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,keyboard-layouts)
+
+.PHONY: contacts-import-services
+contacts-import-services: webapp-manifests $(XULRUNNER_BASE_DIRECTORY)
+	@$(call run-js-command,contacts-import-services)
 
 .PHONY: post-manifest
 # Updates hostnames for InterApp Communication APIs.

@@ -32,7 +32,7 @@ var fbLoader = (function() {
 
     var scripts = [
       '/contacts/js/service_extensions.js',
-      '/contacts/js/parameters.js',
+      '/shared/pages/import/js/parameters.js',
       '/shared/js/fb/fb_request.js',
       '/shared/js/contacts/import/facebook/fb_data.js',
       '/shared/js/contacts/import/facebook/fb_utils.js',
