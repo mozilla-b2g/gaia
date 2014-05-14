@@ -124,9 +124,10 @@ suite('ActivityHandler', function() {
         source: {
           name: 'share',
           data: {
+            type: 'video/*',
             blobs: [
-              new Blob(['test'], { type: 'text/plain' }),
-              new Blob(['string'], { type: 'text/plain' }),
+              new Blob(['test'], { type: 'video/x-video' }),
+              new Blob(['test2'], { type: 'video/x-video' }),
               new Blob(),
               new Blob(),
               new Blob()
@@ -135,7 +136,8 @@ suite('ActivityHandler', function() {
                         'testBlob5']
           }
         },
-        postResult: sinon.stub()
+        postResult: sinon.stub(),
+        postError: sinon.stub()
       };
     });
 
@@ -221,6 +223,78 @@ suite('ActivityHandler', function() {
     test('share message should set the current activity', function() {
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
       assert.isTrue(ActivityHandler.isInActivity());
+    });
+
+    test('Appends URL to the Compose field for activity with URL data type',
+      function() {
+      window.location.hash = '#new';
+      this.sinon.stub(Compose, 'append');
+      var shareURLActivity = {
+        source: {
+          name: 'share',
+          data: {
+            type: 'url',
+            url: 'test_url'
+          }
+        },
+        postResult: sinon.stub()
+      };
+
+      MockNavigatormozSetMessageHandler.mTrigger('activity', shareURLActivity);
+
+      sinon.assert.calledWith(Compose.append, shareURLActivity.source.data.url);
+    });
+
+    test('Call activity postError if no data to share', function() {
+      window.location.hash = '#new';
+      this.sinon.spy(Compose, 'append');
+      this.sinon.spy(ActivityHandler, 'leaveActivity');
+
+      var activityWithoutData = {
+        source: {
+          name: 'share',
+          data: {
+            type: 'url'
+          }
+        },
+        postResult: sinon.stub(),
+        postError: sinon.stub()
+      };
+
+      MockNavigatormozSetMessageHandler.mTrigger(
+        'activity',
+        activityWithoutData
+      );
+      sinon.assert.called(ActivityHandler.leaveActivity);
+      sinon.assert.called(activityWithoutData.postError);
+      sinon.assert.notCalled(activityWithoutData.postResult);
+      sinon.assert.notCalled(Compose.append);
+    });
+
+    test('Call activity postError on unknown activity data type', function() {
+      window.location.hash = '#new';
+      this.sinon.spy(Compose, 'append');
+      this.sinon.spy(ActivityHandler, 'leaveActivity');
+
+      var unsupportedActivity = {
+        source: {
+          name: 'share',
+          data: {
+            type: 'multipart/mixed'
+          }
+        },
+        postResult: sinon.stub(),
+        postError: sinon.stub()
+      };
+
+      MockNavigatormozSetMessageHandler.mTrigger(
+        'activity',
+        unsupportedActivity
+      );
+      sinon.assert.called(ActivityHandler.leaveActivity);
+      sinon.assert.called(unsupportedActivity.postError);
+      sinon.assert.notCalled(unsupportedActivity.postResult);
+      sinon.assert.notCalled(Compose.append);
     });
   });
 
@@ -744,13 +818,32 @@ suite('ActivityHandler', function() {
   suite('leaveActivity', function() {
     test('should call postResult on current activity', function() {
       var mockActivity = {
-        postResult: sinon.stub()
+        postResult: sinon.stub(),
+        postError: sinon.stub()
       };
       ActivityHandler.setActivity(mockActivity);
       assert.isTrue(ActivityHandler.isInActivity());
 
       ActivityHandler.leaveActivity();
       sinon.assert.called(mockActivity.postResult);
+      sinon.assert.notCalled(mockActivity.postError);
+      assert.isFalse(ActivityHandler.isInActivity());
+    });
+
+    test('should call postError on current activity if reason specified',
+      function() {
+      var mockActivity = {
+        postResult: sinon.stub(),
+        postError: sinon.stub()
+      };
+      var testReason = 'Aaaa something went wrong!';
+
+      ActivityHandler.setActivity(mockActivity);
+      assert.isTrue(ActivityHandler.isInActivity());
+
+      ActivityHandler.leaveActivity(testReason);
+      sinon.assert.notCalled(mockActivity.postResult);
+      sinon.assert.calledWith(mockActivity.postError, testReason);
       assert.isFalse(ActivityHandler.isInActivity());
     });
   });

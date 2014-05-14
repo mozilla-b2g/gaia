@@ -8,6 +8,17 @@
 
 'use strict';
 
+/**
+ * Describes available data types that can be associated with the activities.
+ * @enum {string}
+ */
+const ActivityDataType = {
+  IMAGE: 'image/*',
+  AUDIO: 'audio/*',
+  VIDEO: 'video/*',
+  URL: 'url'
+};
+
 var ActivityHandler = {
   // CSS class applied to the body element when app requested via activity
   REQUEST_ACTIVITY_MODE_CLASS_NAME: 'request-activity-mode',
@@ -79,12 +90,11 @@ var ActivityHandler = {
     var body = activity.source.data.body;
 
     Contacts.findByPhoneNumber(number, function findContact(results) {
-      var record, details, name, contact;
+      var record, name, contact;
 
       // Bug 867948: results null is a legitimate case
       if (results && results.length) {
         record = results[0];
-        details = Utils.getContactDetails(number, record);
         name = record.name.length && record.name[0];
         contact = {
           number: number,
@@ -102,30 +112,52 @@ var ActivityHandler = {
   },
 
   _onShareActivity: function shareHandler(activity) {
-    var activityData = activity.source.data;
+    var activityData = activity.source.data,
+        dataToShare = null;
 
-    var attachments = activityData.blobs.map(function(blob, idx) {
-      var attachment = new Attachment(blob, {
-        name: activityData.filenames[idx],
-        isDraft: true
-      });
+    switch(activityData.type) {
+      case ActivityDataType.AUDIO:
+      case ActivityDataType.VIDEO:
+      case ActivityDataType.IMAGE:
+        var attachments = activityData.blobs.map(function(blob, idx) {
+          var attachment = new Attachment(blob, {
+            name: activityData.filenames[idx],
+            isDraft: true
+          });
 
-      return attachment;
-    });
+          return attachment;
+        });
 
-    var size = attachments.reduce(function(size, attachment) {
-      if (attachment.type !== 'img') {
-        size += attachment.size;
-      }
+        var size = attachments.reduce(function(size, attachment) {
+          if (attachment.type !== 'img') {
+            size += attachment.size;
+          }
 
-      return size;
-    }, 0);
+          return size;
+        }, 0);
 
-    if (size > Settings.mmsSizeLimitation) {
-      alert(navigator.mozL10n.get('files-too-large', {
-        n: activityData.blobs.length
-      }));
-      this.leaveActivity();
+        if (size > Settings.mmsSizeLimitation) {
+          alert(navigator.mozL10n.get('files-too-large', {
+            n: activityData.blobs.length
+          }));
+          this.leaveActivity();
+          return;
+        }
+
+        dataToShare = attachments;
+        break;
+      case ActivityDataType.URL:
+        dataToShare = activityData.url;
+        break;
+      default:
+        this.leaveActivity(
+          'Unsupported activity data type: ' + activityData.type
+        );
+        return;
+    }
+
+    if (!dataToShare) {
+      this.leaveActivity('No data to share found!');
       return;
     }
 
@@ -136,11 +168,12 @@ var ActivityHandler = {
     if (window.location.hash !== '#new') {
       window.addEventListener('hashchange', function onHashChanged() {
         window.removeEventListener('hashchange', onHashChanged);
-        Compose.append(attachments);
+
+        Compose.append(dataToShare);
       });
       window.location.hash = '#new';
     } else {
-      Compose.append(attachments);
+      Compose.append(dataToShare);
     }
   },
 
@@ -151,9 +184,19 @@ var ActivityHandler = {
     );
   },
 
-  leaveActivity: function ah_leaveActivity() {
+  /**
+   * Leaves current activity and toggles request activity mode.
+   * @param {string?} errorReason String message that indicates that something
+   * went wrong and we'd like to call postError with the specified reason
+   * instead of successful postResult.
+   */
+  leaveActivity: function ah_leaveActivity(errorReason) {
     if (this.isInActivity()) {
-      this._activity.postResult({ success: true });
+      if (errorReason) {
+        this._activity.postError(errorReason);
+      } else {
+        this._activity.postResult({ success: true });
+      }
       this._activity = null;
 
       this._toggleActivityRequestMode(false);
