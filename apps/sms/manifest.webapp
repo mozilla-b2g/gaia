@@ -11,6 +11,7 @@
     "sms":{},
     "storage":{},
     "mobileconnection":{},
+    "alarms":{},
     "contacts":{ "access": "readonly" },
     "settings":{ "access": "readwrite" },
     "audio-channel-notification":{},
@@ -69,9 +70,20 @@
     }
   },
   "messages": [
+     { "alarm": "/index.html" },
      { "sms-received": "/index.html" },
      { "notification": "/index.html" }
   ],
+  "connections": {
+    "costcontrolSmsQuery": {
+      "description": "Communicate between Usage and Sms",
+      "rules": {
+        "manifestURLs": [
+          "app://costcontrol.gaiamobile.org/manifest.webapp"
+        ]
+      }
+    }
+  },
   "datastores-access": {
     "Gaia_Facebook_Friends": {
       "description": "Facebook Friends"

@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Utils, MessageManager, Compose, OptionMenu, NotificationHelper,
-         Attachment, Template, Notify, BlackList, Threads, SMIL, Contacts,
+         Attachment, Template, Notify, SilentSms, Threads, SMIL, Contacts,
          ThreadUI, Notification, Settings, Navigation */
 /*exported ActivityHandler */
 
@@ -351,8 +351,6 @@ var ActivityHandler = {
     }
     timeoutID = setTimeout(releaseWakeLock, 30 * 1000);
 
-    // The black list includes numbers for which notifications should not
-    // progress to the user. Se blackllist.js for more information.
     var number = message.sender;
     var threadId = message.threadId;
     var id = message.id;
@@ -379,10 +377,6 @@ var ActivityHandler = {
           releaseWakeLock();
         });
       };
-      return;
-    }
-    if (BlackList.has(message.sender)) {
-      releaseWakeLock();
       return;
     }
 
@@ -499,25 +493,34 @@ var ActivityHandler = {
         });
       };
     }
-    // If message type is mms and pending on server, ignore the notification
-    // because it will be retrieved from server automatically. Handle other
-    // manual/error status as manual download and dispatch notification.
-    // Please ref mxr for all the possible delivery status:
-    // http://mxr.mozilla.org/mozilla-central/source/dom/mms/src/ril/MmsService.js#62
-    if (message.type === 'sms') {
-      dispatchNotification();
-    } else {
-      // Here we can only have one sender, so deliveryInfo[0].deliveryStatus =>
-      // message status from sender.
-      var status = message.deliveryInfo[0].deliveryStatus;
-      if (status === 'pending') {
-        return;
-      }
 
-      // If the delivery status is manual/rejected/error, we need to apply
-      // specific text to notify user that message is not downloaded.
-      dispatchNotification(status !== 'success');
+    function handleNotification(isSilent) {
+      if (isSilent) {
+        releaseWakeLock();
+      } else {
+        // If message type is mms and pending on server, ignore the notification
+        // because it will be retrieved from server automatically. Handle other
+        // manual/error status as manual download and dispatch notification.
+        // Please ref mxr for all the possible delivery status:
+        // http://mxr.mozilla.org/mozilla-central/source/dom/mms/src/ril/
+        // MmsService.js#62
+        if (message.type === 'sms') {
+          dispatchNotification();
+        } else {
+          // Here we can only have one sender, so deliveryInfo[0].deliveryStatus
+          // => message status from sender.
+          var status = message.deliveryInfo[0].deliveryStatus;
+          if (status === 'pending') {
+            return;
+          }
+
+          // If the delivery status is manual/rejected/error, we need to apply
+          // specific text to notify user that message is not downloaded.
+          dispatchNotification(status !== 'success');
+        }
+      }
     }
+    SilentSms.checkSilentModeFor(message.sender).then(handleNotification);
   },
 
   onNotification: function ah_onNotificationClick(message) {

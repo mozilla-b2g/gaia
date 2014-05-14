@@ -178,13 +178,6 @@ suite('Distribution mechanism', function() {
       path.join(cusDir, 'power', 'carrie_power_on.png'), false);
   }
 
-  function validateSms() {
-    var zipPath = path.join(process.cwd(), 'profile',
-      'webapps', 'sms.gaiamobile.org', 'application.zip');
-    helper.checkFileContentByPathInZip(zipPath, 'js/blacklist.json',
-      path.join(cusDir, 'sms-blacklist.json'), true);
-  }
-
   function parseCustimizeImageSetting(appConfig) {
     if (typeof appConfig !== 'object') {
       return '';
@@ -293,7 +286,6 @@ suite('Distribution mechanism', function() {
       validateWappush();
       validateBrowser();
       validateSystem();
-      validateSms();
       validateGallery();
       validateHomescreen();
       validateWallpaper();

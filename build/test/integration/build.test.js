@@ -322,15 +322,6 @@ suite('Build Integration tests', function() {
       helper.checkWebappsScheme(webapps);
       helper.checkFileInZip(zipPath, pathInZip, expectedBrandingPath);
 
-      // Check blacklist.json of sms app
-      var hsSmsZip = new AdmZip(path.join(process.cwd(), 'profile',
-                   'webapps', 'sms.gaiamobile.org', 'application.zip'));
-      var hsSmsBlacklistJSON =
-        hsSmsZip.readAsText(hsSmsZip.getEntry('js/blacklist.json'));
-      var expectedResult = ['4850', '7000'];
-      assert.deepEqual(JSON.parse(hsSmsBlacklistJSON), expectedResult,
-        'Sms blacklist.json is not expected');
-
       // Check config.js file of gallery
       var hsGalleryZip = new AdmZip(path.join(process.cwd(), 'profile',
                    'webapps', 'gallery.gaiamobile.org', 'application.zip'));
