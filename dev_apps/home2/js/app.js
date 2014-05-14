@@ -18,6 +18,7 @@
     this.iconLaunch = this.clickIcon.bind(this);
 
     window.addEventListener('hashchange', this);
+    window.addEventListener('appzoom', this);
   }
 
   App.prototype = {
@@ -64,12 +65,10 @@
 
     start: function() {
       this.container.addEventListener('click', this.iconLaunch);
-      this.stopped = false;
     },
 
     stop: function() {
       this.container.removeEventListener('click', this.iconLaunch);
-      this.stopped = true;
     },
 
     /**
@@ -108,35 +107,40 @@
      * General event handler.
      */
     handleEvent: function(e) {
-      var step;
-      function doScroll() {
-        var scrollY = window.scrollY;
-        step = step || (scrollY / 20);
-
-        // If we are at the top we need to toggle scroll position to get around
-        // a platform bug. https://bugzilla.mozilla.org/show_bug.cgi?id=999162
-        if (!scrollY) {
-          window.scrollTo(0, 1);
-          window.scrollTo(0, 0);
-          return;
-        }
-
-        if (scrollY <= step) {
-          window.scrollTo(0, 0);
-          return;
-        }
-
-        window.scrollBy(0, -step);
-        window.requestAnimationFrame(doScroll);
-      }
-
       switch(e.type) {
         case 'hashchange':
           if (this.dragdrop.inEditMode) {
             this.dragdrop.exitEditMode();
             return;
           }
+          
+          var step;
+          var doScroll = function() {
+            var scrollY = window.scrollY;
+            step = step || (scrollY / 20);
+
+            // If we are at the top we need to toggle scroll position to get
+            // around a platform bug 999162.
+            if (!scrollY) {
+              window.scrollTo(0, 1);
+              window.scrollTo(0, 0);
+              return;
+            }
+
+            if (scrollY <= step) {
+              window.scrollTo(0, 0);
+              return;
+            }
+
+            window.scrollBy(0, -step);
+            window.requestAnimationFrame(doScroll);
+          };
+
           doScroll();
+          break;
+
+        case 'appzoom':
+          this.render();
           break;
       }
     },
@@ -148,9 +152,6 @@
      */
     render: function() {
       app.cleanItems();
-      if (!this.stopped) {
-        document.body.dataset.cols = layout.perRow;
-      }
 
       // Reset offset steps
       layout.offsetY = 0;
