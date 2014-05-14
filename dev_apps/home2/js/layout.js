@@ -19,7 +19,7 @@
   const windowWidth = window.innerWidth;
 
   function Layout() {
-    // Do nothing...
+    window.addEventListener('appzoom', this);
   }
 
   Layout.prototype = {
@@ -110,6 +110,15 @@
      */
     stepYAxis: function(value) {
       this._offsetY += value;
+    },
+
+    /**
+     * General event handler.
+     */
+    handleEvent: function(e) {
+      if (e.type === 'appzoom') {
+        document.body.dataset.cols = this.perRow;
+      }
     }
   };
 
