@@ -49,10 +49,10 @@ body[data-cols="4"] .icon .title {
 
 .divider {
   position: absolute;
-  height: 0.2rem;
-  margin: 2.3rem 25%;
-  background: #fff;
-  width: 50%;
+  height: 0.3rem;
+  margin: 2.3rem 0;
+  background: url(/style/images/divider.png) no-repeat center center;
+  width: 100%;
   z-index: 2;
 }
 
