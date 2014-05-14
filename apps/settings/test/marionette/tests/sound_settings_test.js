@@ -105,21 +105,6 @@ marionette('manipulate sound settings', function() {
     );
   });
 
-  test('check sent mail initial state', function() {
-    assert.ok(
-      soundPanel.isSentMailChecked,
-      'sent mail sound is enabled by default'
-    );
-  });
-
-  test('disable sent mail sound', function() {
-    soundPanel.tapOnSentMail();
-    assert.ok(
-      !soundPanel.isSentMailChecked,
-      'sent mail sound has been disabled'
-    );
-  });
-
   test('check sent message initial state', function() {
     assert.ok(
       soundPanel.isSentMessageChecked,

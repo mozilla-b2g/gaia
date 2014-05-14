@@ -25,8 +25,6 @@ SoundPanel.Selectors = {
   'keypadSpan': '#sound span[data-l10n-id="keypad"]',
   'cameraCheckbox': '#sound input[name="camera.sound.enabled"]',
   'cameraSpan': '#sound span[data-l10n-id="camera"]',
-  'sentMailCheckbox': '#sound input[name="mail.sent-sound.enabled"]',
-  'sentMailSpan': '#sound span[data-l10n-id="sent-mail"]',
   'sentMessageCheckbox':
               '#sound input[name="message.sent-sound.enabled"]',
   'sentMessageSpan': '#sound span[data-l10n-id="sent-message"]',
@@ -96,16 +94,6 @@ SoundPanel.prototype = {
 
   tapOnCamera: function() {
     this.waitForElement('cameraSpan').tap();
-  },
-
-  get isSentMailChecked() {
-    return this.findElement('sentMailCheckbox')
-      .getAttribute('checked') &&
-      this.client.settings.get('mail.sent-sound.enabled');
-  },
-
-  tapOnSentMail: function() {
-    this.waitForElement('sentMailSpan').tap();
   },
 
   get isSentMessageChecked() {

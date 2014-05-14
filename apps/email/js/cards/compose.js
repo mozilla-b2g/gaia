@@ -155,21 +155,9 @@ function ComposeCard(domNode, mode, args) {
   this._selfClosed = false;
 
   // Sent sound init
-  this.sentAudioKey = 'mail.sent-sound.enabled';
   this.sentAudio = new Audio('/sounds/sent.ogg');
   this.sentAudio.mozAudioChannelType = 'notification';
-  this.sentAudioEnabled = false;
-
-  if (navigator.mozSettings) {
-    var req = navigator.mozSettings.createLock().get(this.sentAudioKey);
-    req.onsuccess = (function onsuccess() {
-      this.sentAudioEnabled = req.result[this.sentAudioKey];
-    }).bind(this);
-
-    navigator.mozSettings.addObserver(this.sentAudioKey, (function(e) {
-      this.sentAudioEnabled = e.settingValue;
-    }).bind(this));
-  }
+  this.playSoundOnSend = false;
 }
 ComposeCard.prototype = {
 
@@ -255,23 +243,32 @@ ComposeCard.prototype = {
     // the HTML bit needs us linked into the DOM so the iframe can be
     // linked in, hence this happens in postInsert.
     require(['iframe_shims'], function() {
-      if (this.composer) {
-        this._loadStateFromComposer();
-      } else {
-        var data = this.composerData;
-        model.latestOnce('folder', function(folder) {
-          this.composer = model.api.beginMessageComposition(data.message,
-                                                            folder,
-                                                            data.options,
-                                                            function() {
-            if (data.onComposer) {
-              data.onComposer(this.composer, this);
-            }
 
-            this._loadStateFromComposer();
+      // NOTE: when the compose card changes to allow switching the From account
+      // then this logic will need to change, both the acquisition of the
+      // account pref and the folder to use for the composer. So it is good to
+      // group this logic together, since they both will need to change later.
+      model.latestOnce('account', function(account) {
+        this.playSoundOnSend = !!account.playSoundOnSend;
+
+        if (this.composer) {
+          this._loadStateFromComposer();
+        } else {
+          var data = this.composerData;
+          model.latestOnce('folder', function(folder) {
+            this.composer = model.api.beginMessageComposition(data.message,
+                                                              folder,
+                                                              data.options,
+                                                              function() {
+              if (data.onComposer) {
+                data.onComposer(this.composer, this);
+              }
+
+              this._loadStateFromComposer();
+            }.bind(this));
           }.bind(this));
-        }.bind(this));
-      }
+        }
+      }.bind(this));
     }.bind(this));
   },
 
@@ -892,7 +889,7 @@ ComposeCard.prototype = {
           return;
         }
 
-        if (self.sentAudioEnabled) {
+        if (self.playSoundOnSend) {
           self.sentAudio.play();
         }
 
