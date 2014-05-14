@@ -1,5 +1,5 @@
 #simpin-dialog {
-  background: white;
+  background: #f4f4f4;
   color: #000;
 }
 
@@ -50,12 +50,6 @@
 
 #simpin-dialog .input-wrapper {
   position: relative;
-}
-
-#simpin-dialog .input-wrapper input {
-  font-size: 3rem;
-  display: block;
-  width: auto;
 }
 
 #xckArea .input-wrapper input {
