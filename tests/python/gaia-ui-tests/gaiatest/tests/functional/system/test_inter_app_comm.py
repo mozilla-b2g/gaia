@@ -22,7 +22,8 @@ class TestInterAppComm(GaiaTestCase):
     _pub_app_msg_to_send_locator = (By.ID, "msgToSend")
     _pub_app_send_button_locator = (By.ID, "sendButton")
     _pub_app_num_conns_locator = (By.ID, "numConns")
-    _pub_app_received_msg_locator = (By.ID, "receivedMsg")
+    _pub_app_received_str_msg_locator = (By.ID, "receivedStrMsg")
+    _pub_app_received_blob_msg_locator = (By.ID, "receivedBlobMsg")
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -40,10 +41,15 @@ class TestInterAppComm(GaiaTestCase):
 
         self.marionette.find_element(*self._pub_app_send_button_locator).tap();
 
-        self.wait_for_element_present(*self._pub_app_received_msg_locator)
+        self.wait_for_element_present(*self._pub_app_received_str_msg_locator)
 
-        received_msg = self.marionette.find_element(*self._pub_app_received_msg_locator);
-        self.assertEqual(received_msg.get_attribute("value"), self._testing_message)
+        received_str_msg = self.marionette.find_element(*self._pub_app_received_str_msg_locator);
+        self.assertEqual(received_str_msg.get_attribute("value"), self._testing_message)
+
+        self.wait_for_element_present(*self._pub_app_received_blob_msg_locator)
+
+        received_blob_msg = self.marionette.find_element(*self._pub_app_received_blob_msg_locator);
+        self.assertEqual(received_blob_msg.get_attribute("value"), self._testing_message)
 
         num_conns = self.marionette.find_element(*self._pub_app_num_conns_locator);
         self.assertEqual(num_conns.get_attribute("value"), "1")

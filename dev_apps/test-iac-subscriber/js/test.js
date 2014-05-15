@@ -8,7 +8,7 @@ window.addEventListener('load', function() {
 
     var port = connectionRequest.port;
     port.onmessage = function(event) {
-      port.postMessage({ value: event.data.value });
+      port.postMessage(event.data);
     };
   });
 });
