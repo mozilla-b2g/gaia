@@ -218,7 +218,8 @@
           return;
         }
 
-        var message = self.installedApps[app.manifestURL] ? 'update' : 'install';
+        var message =
+          self.installedApps[app.manifestURL] ? 'update' : 'install';
         self.installedApps[app.manifestURL] = app;
         self.fire(message, self.getAppEntries(app.manifestURL));
       };
