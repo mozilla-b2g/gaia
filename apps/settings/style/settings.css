@@ -700,11 +700,11 @@ ul li > label.range-icons.volume input {
 
 /* Web activity handling */
 .skin-organic section[data-dialog] > header:first-child .icon.icon-back {
-  background-image: url(/shared/style/headers/images/icons/organic/close.svg);
+  background-image: url(/shared/style/headers/images/icons/organic/close.png);
 }
 
 section[data-dialog] > header:first-child .icon.icon-back {
-  background-image: url(/shared/style/headers/images/icons/close.svg);
+  background-image: url(/shared/style/headers/images/icons/close.png);
 }
 
 /******************************************************************************
@@ -863,4 +863,3 @@ html[dir="rtl"] ul li > label.range-icons.volume:before {
 html[dir="rtl"] ul li > label.range-icons.volume input {
   margin-right: 5.8rem;
 }
-
