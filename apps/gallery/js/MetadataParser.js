@@ -25,13 +25,15 @@ var metadataParser = (function() {
   // Don't try to decode image files of unknown type if bigger than this
   var MAX_UNKNOWN_IMAGE_FILE_SIZE = .5 * 1024 * 1024; // half a megabyte
 
-
   // An <img> element for loading images
   var offscreenImage = new Image();
 
   // The screen size. Preview images must be at least this big
-  var sw = window.innerWidth;
-  var sh = window.innerHeight;
+  // Note that we use screen.width instead of window.innerWidth because
+  // the window size is different when we are invoked for a pick activity
+  // (non-fullscreen) and when we are invoked normally (fullscreen).
+  var sw = screen.width * window.devicePixelRatio;
+  var sh = screen.height * window.devicePixelRatio;
 
   // Create a thumbnail size canvas, copy the <img> or <video> into it
   // cropping the edges as needed to make it fit, and then extract the
@@ -362,7 +364,9 @@ var metadataParser = (function() {
         // Make sure the size is big enough for both landscape and portrait
         var scale = Math.max(Math.min(sw / iw, sh / ih, 1),
                              Math.min(sh / iw, sw / ih, 1));
-        var pw = iw * scale, ph = ih * scale; // preview width and height;
+        // preview width and height
+        var pw = Math.round(iw * scale);
+        var ph = Math.round(ih * scale);
 
         // Create the preview in a canvas
         var canvas = document.createElement('canvas');
@@ -396,6 +400,12 @@ var metadataParser = (function() {
             // a relative path.
             filename = '.gallery/previews/' + file.name;
           }
+
+          // Add a '.jpeg' extension to all preview files. This is necessary
+          // because all previews get saved as jpegs even if the original
+          // image is not a jpeg. But DeviceStorage uses the filename extension
+          // to determine the file type.
+          filename += '.jpeg';
 
           // Delete any existing preview by this name
           var delreq = storage.delete(filename);
