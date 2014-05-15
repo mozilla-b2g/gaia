@@ -1,0 +1,2 @@
+/* DEBUG */
+(function() {})();
