@@ -171,4 +171,3 @@ var Utils = {
         return fontSize;
   }
 };
-
