@@ -27,6 +27,7 @@ function startup(data, reason) {
   const LANG_EN = 'en-US';
   const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
   const GAIA_APPDIRS = Services.prefs.getCharPref("extensions.gaia.appdirs");
+  const GAIA_ALLAPPDIRS = Services.prefs.getCharPref("extensions.gaia.allappdirs");
   const GAIA_DIR = Services.prefs.getCharPref("extensions.gaia.dir");
   const GAIA_PORT = Services.prefs.getIntPref("extensions.gaia.port");
   const GAIA_OFFICIAL = Services.prefs.getBoolPref("extensions.gaia.official");
@@ -73,7 +74,7 @@ function startup(data, reason) {
     let host = GAIA_DOMAIN;
     identity.add(scheme, host, port);
 
-    let directories = getDirectories(GAIA_APPDIRS.split(' '));
+    let directories = getDirectories(GAIA_ALLAPPDIRS.split(' '));
     directories.forEach(function appendDir(name) {
       // Some app names can cause a raise here, preventing other apps
       // from being added.
