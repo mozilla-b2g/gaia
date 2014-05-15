@@ -14,9 +14,8 @@ var TelephonyHelper = (function() {
       return;
     }
 
-    var conn = navigator.mozMobileConnection ||
-               (navigator.mozMobileConnections &&
-                navigator.mozMobileConnections[cardIndex]);
+    var conn = navigator.mozMobileConnections &&
+      navigator.mozMobileConnections[cardIndex];
 
     if (!conn || !conn.voice) {
       // No voice connection, the call won't make it
