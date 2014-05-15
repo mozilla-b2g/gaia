@@ -79,7 +79,7 @@ body[data-cols="4"] .icon .title {
 
 .edit-mode #edit-mode-curtain {
   background: #000;
-  opacity: 0.5;
+  opacity: 0.05;
   height: 100%;
   width: 100%;
   position: fixed;
