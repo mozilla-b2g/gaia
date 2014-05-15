@@ -1,3 +1,7 @@
+/* exported getImageSize */
+/* global BlobView */
+/* global parseJPEGMetadata */
+
 /*
  * Determine the pixel dimensions of an image without actually
  * decoding the image. Passes an object of metadata to the callback
@@ -17,6 +21,8 @@
  * parseJPEGMetadata() function from shared/js/media/jpeg_metadata_parser.js
  */
 function getImageSize(blob, callback, error) {
+  'use strict';
+
   BlobView.get(blob, 0, Math.min(1024, blob.size), function(data) {
     // Make sure we are at least 8 bytes long before reading the first 8 bytes
     if (data.byteLength <= 8) {
