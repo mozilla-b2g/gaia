@@ -177,10 +177,16 @@ SettingsController.prototype.onPickActivity = function(data) {
  * Display a notifcation showing the
  * current state of the given setting.
  *
+ * If `notification` is `false in config
+ * for a setting then we don't show one.
+ *
  * @param  {Setting} setting
  * @private
  */
 SettingsController.prototype.notify = function(setting, flashDeactivated) {
+  var dontNotify = setting.get('notifications') === false;
+  if (dontNotify) { return; }
+
   var optionTitle = this.localize(setting.selected('title'));
   var title = this.localize(setting.get('title'));
   var html;
