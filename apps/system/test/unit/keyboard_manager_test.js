@@ -441,9 +441,10 @@ suite('KeyboardManager', function() {
   });
 
   suite('Event handler', function() {
-    var resizeKeyboard, hideKeyboardImmediately, removeKeyboard;
+    var resizeKeyboard, hideKeyboardImmediately, removeKeyboard, hideKeyboard;
     setup(function() {
       resizeKeyboard = this.sinon.stub(KeyboardManager, 'resizeKeyboard');
+      hideKeyboard = this.sinon.stub(KeyboardManager, 'hideKeyboard');
       hideKeyboardImmediately =
             this.sinon.stub(KeyboardManager, 'hideKeyboardImmediately');
       removeKeyboard = this.sinon.stub(KeyboardManager, 'removeKeyboard');
@@ -493,6 +494,11 @@ suite('KeyboardManager', function() {
     test('applicationsetupdialogshow event', function() {
       trigger('applicationsetupdialogshow');
       assert.ok(hideKeyboardImmediately.called);
+    });
+
+    test('sheetstransitionstart event', function() {
+      trigger('sheetstransitionstart');
+      assert.ok(hideKeyboard.called);
     });
   });
 
