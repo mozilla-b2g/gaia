@@ -379,6 +379,15 @@ class Accessibility(object):
             'Accessibility.click.apply(Accessibility, arguments)',
             [element], special_powers=True)
 
+    def get_name(self, element):
+        return self.marionette.execute_async_script(
+            'return Accessibility.getName.apply(Accessibility, arguments)',
+            [element], special_powers=True)
+
+    def get_role(self, element):
+        return self.marionette.execute_async_script(
+            'return Accessibility.getRole.apply(Accessibility, arguments)',
+            [element], special_powers=True)
 
 class FakeUpdateChecker(object):
 
