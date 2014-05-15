@@ -3,14 +3,32 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css" />
     <link rel="stylesheet" type="text/css" href="style/homescreen.css">
+    <link rel="stylesheet" type="text/css" href="style/app_list.css">
     <script defer type="text/javascript" src="js/vendor/evt.js"></script>
     <script defer type="text/javascript" src="js/applications.js"></script>
     <script defer type="text/javascript" src="js/layout_editor.js"></script>
     <script defer type="text/javascript" src="js/selection_border.js"></script>
+    <script defer type="text/javascript" src="js/app_list.js"></script>
     <script defer type="text/javascript" src="js/homescreen.js"></script>
     <script defer type="text/javascript" src="js/bootstrap.js"></script>
   </head>
   <body>
+    <section role="region" class="skin-dark" id="main-section">
+      <header>
+        <menu type="toolbar">
+          <button id="app-list-open-button">Apps</button>
+        </menu>
+      </header>
+    </section>
+    <section id="app-list" hidden>
+      <div id="app-list-header">
+        <span id="app-list-close-button">X</span>
+        <span>App List</span>
+      </div>
+      <div id="app-list-container"></div>
+      <div id="app-list-page-indicator"></div>
+    </section>
   </body>
 </html>
