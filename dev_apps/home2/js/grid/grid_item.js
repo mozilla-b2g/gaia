@@ -159,7 +159,7 @@
       this.scale = layout.percent;
 
       // Avoid rendering the icon during a drag to prevent jumpiness
-      if (this.noRearrange) {
+      if (this.noTransform) {
         return;
       }
 
