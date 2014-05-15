@@ -33,6 +33,10 @@ Keyboard.prototype = {
    */
   switchToActiveKeyboardFrame: function() {
     var client = this.client;
-    client.apps.switchToApp(Keyboard.ORIGIN);
+    // Don't call switchToApp here, since keyboard frame itself would not
+    // follow the rule of AppWindow.
+    var keyboardFrame = client.findElement('iframe[src*="' +
+                                           Keyboard.ORIGIN + '"]');
+    client.switchToFrame(keyboardFrame);
   }
 };
