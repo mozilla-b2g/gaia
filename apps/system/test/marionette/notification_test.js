@@ -1,3 +1,5 @@
+/* DEBUG */
+
 var assert = require('assert'),
     NotificationTest = require('./lib/notification').NotificationTest,
     NotificationList = require('./lib/notification').NotificationList,

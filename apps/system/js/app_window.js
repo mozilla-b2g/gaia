@@ -1,6 +1,7 @@
 /* global SettingsListener, AttentionScreen,
           OrientationManager */
 'use strict';
+/* DEBUG */
 
 (function(exports) {
   var DEBUG = false;

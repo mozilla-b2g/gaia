@@ -1,3 +1,5 @@
+/* DEBUG */
+
 marionette('lockscreen disabled test', function() {
   var assert = require('assert');
 

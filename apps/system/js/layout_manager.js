@@ -2,6 +2,8 @@
           System, lockScreen */
 'use strict';
 
+/* DEBUG */
+
 (function(exports) {
   var DEBUG = false;
   /**

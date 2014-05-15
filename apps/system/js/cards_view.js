@@ -1,6 +1,7 @@
 /* global AppWindowManager, SleepMenu, SettingsListener, AttentionScreen,
           TrustedUIManager, OrientationManager,
           GestureDetector, UtilityTray, StackManager, Event */
+/* DEBUG */
 
 'use strict';
 

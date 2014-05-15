@@ -1,5 +1,7 @@
 'use strict';
 
+/* DEBUG */
+
 mocha.globals(['NfcManager', 'ScreenManager', 'SettingsListener',
       'lockScreen']);
 

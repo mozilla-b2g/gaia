@@ -1,3 +1,4 @@
+/* DEBUG */
 /* exported MockSystem */
 'use strict';
 var MockSystem = {

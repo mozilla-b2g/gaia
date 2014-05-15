@@ -20,6 +20,8 @@
    NfcHandoverManager, NfcUtils, NDEF, ScreenManager */
 'use strict';
 
+/* DEBUG */
+
 var NfcManager = {
   DEBUG: false,
 

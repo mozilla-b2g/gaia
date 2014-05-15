@@ -1,6 +1,8 @@
 /* global AttentionScreen, System */
 'use strict';
 
+/* DEBUG */
+
 (function(exports) {
   var DEBUG = false;
   /**

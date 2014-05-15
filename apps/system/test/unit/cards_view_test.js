@@ -1,6 +1,8 @@
 /* global StackManager, MockStackManager, MockNavigatorSettings,
           MockAppWindowManager, CardsView, AppWindow,
           MockLockScreen, MockScreenLayout, MocksHelper */
+
+/* DEBUG */
 'use strict';
 mocha.globals(['lockScreen', 'SettingsListener', 'CardsView']);
 

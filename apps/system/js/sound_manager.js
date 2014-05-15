@@ -3,6 +3,8 @@
 
 'use strict';
 
+/* DEBUG */
+
 (function() {
   window.addEventListener('volumeup', function() {
     if (ScreenManager.screenEnabled || currentChannel !== 'none') {

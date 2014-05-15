@@ -1,6 +1,6 @@
 {
   "name": "EmergencyCall",
-  "description": "The emergency call pad",
+  "description": "The emergency call pad #DEBUG",
   "type": "certified",
   "role": "system",
   "launch_path": "/index.html",

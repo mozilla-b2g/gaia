@@ -1,6 +1,8 @@
 'use strict';
 /* global MocksHelper, MockLockScreen, MockSettingsListener, Storage */
 
+/* DEBUG */
+
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/storage.js');

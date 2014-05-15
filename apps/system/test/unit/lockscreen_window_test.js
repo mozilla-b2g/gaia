@@ -1,5 +1,7 @@
 'use strict';
 
+/* DEBUG */
+
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'dispatchEvent', 'Applications', 'ManifestHelper',
       'KeyboardManager', 'StatusBar', 'BrowserMixin', 'Template',

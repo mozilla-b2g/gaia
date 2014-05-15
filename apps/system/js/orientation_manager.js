@@ -1,5 +1,7 @@
 'use strict';
 
+/* DEBUG */
+
 (function(window) {
   /**
    * OrientationManager manages the orientation.

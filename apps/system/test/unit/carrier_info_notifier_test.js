@@ -1,3 +1,4 @@
+/* DEBUG */
 'use strict';
 
 requireApp('system/js/carrier_info_notifier.js');

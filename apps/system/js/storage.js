@@ -1,6 +1,8 @@
 'use strict';
 /* global SettingsListener */
 
+/* DEBUG */
+
 (function(exports) {
 
   /**

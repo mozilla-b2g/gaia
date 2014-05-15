@@ -1,5 +1,7 @@
 'use strict';
 
+/* DEBUG */
+
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/js/mock_simslot.js');
 requireApp('system/js/mock_simslot_manager.js');

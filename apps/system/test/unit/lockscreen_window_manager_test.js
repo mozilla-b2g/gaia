@@ -1,6 +1,8 @@
 (function() {
 'use strict';
 
+/* DEBUG */
+
 mocha.globals(['LockScreenWindowManager', 'LockScreen', 'LockScreenWindow',
                'addEventListener', 'dispatchEvent', 'lockScreenWindowManager',
                'lockScreen', 'SettingsListener']);

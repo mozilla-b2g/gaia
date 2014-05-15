@@ -1,6 +1,8 @@
 /* global AppWindowManager, AppWindow, homescreenLauncher,
           MockAttentionScreen, HomescreenWindow, MocksHelper,
           MockSettingsListener, MockLockScreen, HomescreenLauncher */
+
+/* DEBUG */
 'use strict';
 
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',

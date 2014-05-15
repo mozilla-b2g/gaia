@@ -1,3 +1,4 @@
+// DEBUG
 'use strict';
 
 marionette('Find My Device lock >', function() {

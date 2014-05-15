@@ -1,4 +1,5 @@
 'use strict';
+/* DEBUG */
 
 /* global SettingsListener, SettingsURL, AttentionScreen, lockScreen */
 /* r=? dialer+system peers for changes in this file. */
