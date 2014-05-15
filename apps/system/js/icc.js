@@ -521,7 +521,7 @@ var icc = {
     this.icc_input_btn_help.onclick = function() {
       clearInputTimeout();
       self.hideViews();
-      self.responseSTKCommand({
+      self.responseSTKCommand(stkMessage, {
         resultCode: self._iccManager.STK_RESULT_HELP_INFO_REQUIRED
       });
       callback(null);
