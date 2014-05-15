@@ -3,6 +3,8 @@
    FTU is known as First Time Usage,
    which is the first app the users would use, to configure their phone. */
 
+/* DEBUG */
+
 var FtuLauncher = {
   /* The application object of ftu got from Application module */
   _ftu: null,

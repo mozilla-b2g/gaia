@@ -1,5 +1,7 @@
 'use strict';
 
+/* DEBUG */
+
 mocha.globals(['SecureWindowManager', 'SecureWindowFactory', 'LockScreen',
                'LockScreenSlide', 'Clock', 'OrientationManager',
                'addEventListener', 'dispatchEvent', 'secureWindowManager',

@@ -2,6 +2,8 @@
           layoutManager, lockScreen, System */
 'use strict';
 
+/* DEBUG */
+
 (function(exports) {
   var DEBUG = false;
   var screenElement = document.getElementById('screen');

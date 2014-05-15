@@ -1,5 +1,7 @@
 'use strict';
 
+/* DEBUG */
+
 (function(window) {
   var DEBUG = false;
   /**

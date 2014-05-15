@@ -1,5 +1,7 @@
 'use strict';
 
+/* DEBUG */
+
 function click(client, element) {
   // Make sure the element is displayed first. This seems really unnecessary
   // and is probably masking a bug in Marionette, since all the elements we're

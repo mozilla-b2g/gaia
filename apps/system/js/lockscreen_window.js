@@ -2,6 +2,8 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 
+/* DEBUG */
+
 (function(exports) {
   var AppWindow = window.AppWindow;
 

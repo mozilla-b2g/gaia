@@ -1,6 +1,8 @@
 'use strict';
 mocha.globals(['SIMSlotManager', 'SIMSlot']);
 
+/* DEBUG */
+
 requireApp('system/js/mock_simslot.js');
 requireApp('system/test/unit/mock_icc_manager.js');
 requireApp('system/test/unit/mock_system.js');

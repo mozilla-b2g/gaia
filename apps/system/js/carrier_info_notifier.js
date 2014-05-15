@@ -1,5 +1,6 @@
 'use strict';
 
+/* DEBUG */
 var CarrierInfoNotifier = {
 
   _sound: 'style/notifications/ringtones/notifier_exclamation.ogg',

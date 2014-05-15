@@ -4,6 +4,8 @@
 /*global MockNavigatormozApps, MockNavigatorSettings, MocksHelper, MockL10n*/
 /*global MockApplications, Applications*/
 
+/* DEBUG */
+
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_apps.js');
