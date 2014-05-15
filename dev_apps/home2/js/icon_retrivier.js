@@ -32,7 +32,12 @@
 
   function renderBlob(icon, blob) {
     if (blob) {
-      icon.displayIcon(URL.createObjectURL(blob));
+      var img = document.createElement('img');
+      img.src = URL.createObjectURL(blob);
+      img.onload = function() {
+        icon.displayFromImage(img);
+        URL.revokeObjectURL(img.src);
+      };
     }
   }
 

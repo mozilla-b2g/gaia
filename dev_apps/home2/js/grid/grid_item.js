@@ -4,6 +4,13 @@
 /* global LazyLoader */
 
 (function(exports) {
+
+  const SHADOW_BLUR = 1;
+  const SHADOW_OFFSET_Y = 1;
+  const SHADOW_OFFSET_X = 1;
+  const SHADOW_COLOR = 'rgba(0, 0, 0, 0.2)';
+  const CANVAS_PADDING = 2;
+
   // Icon container
   var container = document.getElementById('icons');
 
@@ -43,8 +50,11 @@
       return false;
     },
 
-    isRemoteIcon: function() {
-      return this.icon.startsWith('http');
+    /**
+     * Returns true if the icon is hosted at an origin.
+     */
+    isIconFromOrigin: function() {
+      return this.icon.startsWith('http') || this.icon.startsWith('app:');
     },
 
     /**
@@ -56,11 +66,45 @@
 
     /**
      * Displays the icon as a background of the element.
+     * @param {String} url The image url to display.
      */
     displayIcon: function(url) {
+      var background = new Image();
+      background.src = url || this.icon;
+      background.onload = this.displayFromImage.bind(this, background);
+    },
+
+    /**
+     * Displays an icon from an image element.
+     * @param {HTMLImageElement} img An image element to display from.
+     */
+    displayFromImage: function(img) {
+      const MAX_ICON_SIZE = layout.gridIconSize;
+
+      var canvas = document.createElement('canvas');
+      canvas.width = MAX_ICON_SIZE + (CANVAS_PADDING * 2);
+      canvas.height = MAX_ICON_SIZE + (CANVAS_PADDING * 2);
+      var ctx = canvas.getContext('2d');
+
+      ctx.shadowColor = SHADOW_COLOR;
+      ctx.shadowBlur = SHADOW_BLUR;
+      ctx.shadowOffsetY = SHADOW_OFFSET_Y;
+      ctx.shadowOffsetY = SHADOW_OFFSET_X;
+      ctx.drawImage(img, CANVAS_PADDING, CANVAS_PADDING,
+                    MAX_ICON_SIZE, MAX_ICON_SIZE);
+      canvas.toBlob(this.renderIconFromBlob.bind(this));
+    },
+
+    /**
+     * Displays an icon by blob
+     * @param {Blob} blob The image blob to display.
+     */
+    renderIconFromBlob: function(blob) {
       this.element.style.height = layout.gridItemHeight + 'px';
-      this.element.style.backgroundSize = layout.gridIconSize + 'px';
-      this.element.style.backgroundImage = 'url(' + (url || this.icon) + ')';
+      this.element.style.backgroundSize =
+        (layout.gridIconSize + CANVAS_PADDING) + 'px';
+      this.element.style.backgroundImage =
+        'url(' + URL.createObjectURL(blob) + ')';
     },
 
     /**
@@ -95,7 +139,7 @@
         }
 
         this.element = tile;
-        if (this.isRemoteIcon()) {
+        if (this.isIconFromOrigin()) {
           LazyLoader.load(['shared/js/async_storage.js',
                            'js/icon_retrivier.js'], function() {
             IconRetriever.get(this);
