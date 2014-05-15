@@ -2407,7 +2407,8 @@ suite('thread_ui.js >', function() {
       assert.ok(ThreadUI.tmpl.message.interpolate.calledWith({
         id: '1',
         bodyHTML: '',
-        subject: 'subject'
+        subject: 'subject',
+        progressIndicatorClassName: ''
       }));
     });
 
@@ -2419,6 +2420,21 @@ suite('thread_ui.js >', function() {
 
       node = ThreadUI.buildMessageDOM(MockMessages.mms({ iccId: 'A' }));
       assert.equal(node.dataset.iccId, 'A');
+    });
+
+    test('correctly sets progress indicator class name', function() {
+      var incomingMessage = MockMessages.sms({ delivery: 'received'}),
+          outgoingMessage = MockMessages.sms({ delivery: 'sent'});
+
+      var node = ThreadUI.buildMessageDOM(incomingMessage);
+      assert.isTrue(
+        node.querySelector('progress').classList.contains('light')
+      );
+
+      node = ThreadUI.buildMessageDOM(outgoingMessage);
+      assert.isFalse(
+        node.querySelector('progress').classList.contains('light')
+      );
     });
   });
 

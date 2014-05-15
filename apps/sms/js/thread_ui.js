@@ -1488,13 +1488,15 @@ var ThreadUI = global.ThreadUI = {
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     var bodyHTML = '';
     var delivery = message.delivery;
+
     var isDelivered = this.shouldShowDeliveryStatus(message);
     var isRead = this.shouldShowReadStatus(message);
+    var isNotDownloaded = delivery === 'not-downloaded';
+    var isIncoming = delivery === 'received' || isNotDownloaded;
+
     var messageDOM = document.createElement('li');
 
     var classNames = ['message', message.type, delivery];
-
-    var notDownloaded = delivery === 'not-downloaded';
     var attachments = message.attachments;
 
     // If the MMS has invalid empty content(message without attachment and
@@ -1503,15 +1505,11 @@ var ThreadUI = global.ThreadUI = {
     //
     // Returning attachments would be different based on gecko version:
     // null in b2g18 / empty array in master.
-    var noAttachment = (message.type === 'mms' && !notDownloaded &&
+    var noAttachment = (message.type === 'mms' && !isNotDownloaded &&
       (attachments === null || attachments.length === 0));
     var invalidEmptyContent = (noAttachment && !message.subject);
 
-    if (delivery === 'received' || notDownloaded) {
-      classNames.push('incoming');
-    } else {
-      classNames.push('outgoing');
-    }
+    classNames.push(isIncoming ? 'incoming' : 'outgoing');
 
     if (isDelivered || isRead) {
       classNames.push('delivered');
@@ -1530,7 +1528,7 @@ var ThreadUI = global.ThreadUI = {
       bodyHTML = LinkHelper.searchAndLinkClickableData(escapedBody);
     }
 
-    if (notDownloaded) {
+    if (isNotDownloaded) {
       bodyHTML = this._createNotDownloadedHTML(message, classNames);
     }
 
@@ -1548,7 +1546,10 @@ var ThreadUI = global.ThreadUI = {
     messageDOM.innerHTML = this.tmpl.message.interpolate({
       id: String(message.id),
       bodyHTML: bodyHTML,
-      subject: String(message.subject)
+      subject: String(message.subject),
+      // Incoming and outgoing messages are displayed using different
+      // backgrounds, therefore progress indicator should be styled differently.
+      progressIndicatorClassName: isIncoming ? 'light' : ''
     }, {
       safe: ['bodyHTML']
     });
@@ -1560,7 +1561,7 @@ var ThreadUI = global.ThreadUI = {
       navigator.mozL10n.localize(pElement, 'no-attachment-text');
     }
 
-    if (message.type === 'mms' && !notDownloaded && !noAttachment) { // MMS
+    if (message.type === 'mms' && !isNotDownloaded && !noAttachment) { // MMS
       SMIL.parse(message, function(slideArray) {
         pElement.appendChild(ThreadUI.createMmsContent(slideArray));
       });
