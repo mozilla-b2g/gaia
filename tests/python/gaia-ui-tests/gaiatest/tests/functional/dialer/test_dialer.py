@@ -17,10 +17,18 @@ class TestDialer(GaiaTestCase):
         phone = Phone(self.marionette)
         phone.launch()
 
+        # FIXME: Bug 1011000: will need to switch it on
+        # Assert that the channel has been switched to telephony
+        # channel_change_call = self.data_layer.wait_for_audio_channel_changed()
+
         call_screen = phone.keypad.call_number(test_phone_number)
 
         # Wait for call screen to be dialing
         call_screen.wait_for_outgoing_call()
+
+        # FIXME: Bug 1011000: will need to switch it on
+        # Assert that the channel has been switched back to normal
+        # channel_change_hang = self.data_layer.wait_for_audio_channel_changed()
 
         # Wait for the state to get to at least 'dialing'
         active_states = ('dialing', 'alerting', 'connecting', 'connected')
@@ -33,6 +41,10 @@ class TestDialer(GaiaTestCase):
             self.assertEqual(test_phone_number, call_screen.outgoing_calling_contact)
         else:
             self.assertEqual(test_phone_number[:2], call_screen.outgoing_calling_contact[:2])
+
+        # FIXME: Bug 1011000: will need to switch it on
+        # self.assertEqual(channel_change_call, "telephony")
+        # self.assertEqual(channel_change_hang, "normal")
 
     def tearDown(self):
         # Switch back to main frame before Marionette loses track bug #840931

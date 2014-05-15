@@ -45,6 +45,9 @@ var TonePlayer = {
 
   trashAudio: function tp_trashAudio() {
     this.stop();
+    if (this._channel === 'telephony' && this._audioContext) {
+      this._audioContext.mozAudioChannelType = 'normal';
+    }
     this._audioContext = null;
     this._channel = null;
   },
