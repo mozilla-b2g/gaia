@@ -180,6 +180,13 @@ Settings.prototype = {
     return this._mediaStoragePanel;
   },
 
+  set currentLanguage(value) {
+    // open the language panel
+    var languagePanel = this.languagePanel;
+    languagePanel.currentLanguage = value;
+    languagePanel.back();
+  },
+
   /**
    * @private
    */
