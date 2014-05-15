@@ -132,6 +132,8 @@ var CarrierSettings = (function(window, document, undefined) {
 
         var currentHash = e.detail.current;
         if (currentHash === '#carrier') {
+          cs_updateNetworkTypeLimitedItemsVisibility(
+            _mobileConnection.voice && _mobileConnection.voice.type);
           // Show carrier name.
           cs_showCarrierName();
           cs_disabeEnableDataCallCheckbox();
