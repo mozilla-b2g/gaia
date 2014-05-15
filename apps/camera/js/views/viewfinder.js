@@ -169,6 +169,7 @@ module.exports = View.extend({
    * @param  {Boolean} mirrored
    */
   updatePreview: function(preview, sensorAngle, mirrored) {
+    if (!preview) { return; }
     var aspect;
 
     // Invert dimensions if the camera's `sensorAngle` is

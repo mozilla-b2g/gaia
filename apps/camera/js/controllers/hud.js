@@ -6,6 +6,7 @@ define(function(require, exports, module) {
  */
 
 var debug = require('debug')('controller:hud');
+var debounce = require('lib/debounce');
 var bindAll = require('lib/bind-all');
 
 /**
@@ -60,9 +61,12 @@ HudController.prototype.bindEvents = function() {
   this.app.on('settings:configured', this.updateFlashSupport);
   this.app.once('criticalpathdone', this.hud.show);
 
-  // View
+  // We 'debouce' some UI callbacks to prevent
+  // thrashing the hardware when a user taps repeatedly.
+  // This means the first calback will fire instantly but
+  // subsequent events will be blocked for given time period.
+  this.hud.on('click:camera', debounce(this.onCameraClick, 500, true));
   this.hud.on('click:settings', this.app.firer('settings:toggle'));
-  this.hud.on('click:camera', this.onCameraClick);
   this.hud.on('click:flash', this.onFlashClick);
 
   // Camera
@@ -90,6 +94,7 @@ HudController.prototype.onModeChange = function() {
 };
 
 HudController.prototype.onCameraClick = function() {
+  debug('camera clicked');
   this.clearNotifications();
   this.app.settings.cameras.next();
 };
