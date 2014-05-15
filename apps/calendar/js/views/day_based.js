@@ -293,7 +293,15 @@ Calendar.ns('Views').DayBased = (function() {
       // And if the event is cross next day, the height of event element is 1.
       if (hoursDuration < 1) {
         if (isSameDateWithEndDate) {
-          element.className += ' partial-hour';
+          element.classList.add('partial-hour');
+          // we need to toggle layout if event lasts less than 20, 30 and 45min
+          if (hoursDuration < 0.3) {
+            element.classList.add('partial-hour-micro');
+          } else if (hoursDuration < 0.5) {
+            element.classList.add('partial-hour-tiny');
+          } else if (hoursDuration < 0.75) {
+            element.classList.add('partial-hour-small');
+          }
         } else {
           elementHeight = 1;
         }
@@ -309,7 +317,9 @@ Calendar.ns('Views').DayBased = (function() {
      * @param {Numeric} duration in hours, minutes as decimal part.
      */
     _assignHeight: function(element, hoursDuration) {
-      element.style.height = (hoursDuration * 100) + '%';
+      // we remove 0.1rem from height so multiple consecutive events doesn't
+      // "blend into each other" (works as a margin)
+      element.style.height = 'calc(' + (hoursDuration * 100) + '% - 0.1rem)';
     },
 
     /**

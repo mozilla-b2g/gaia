@@ -22,11 +22,12 @@
     },
 
     event: function() {
-      var calendarIdClass = 'calendar-id-' + this.h('calendarId');
-      return '<li class="event ' + calendarIdClass + ' calendar-display" ' +
+      var calendarId = 'calendar-id-' + this.h('calendarId');
+      return '<li class="event ' + calendarId + ' calendar-display" ' +
         'data-id="' + this.h('busytimeId') + '">' +
-          '<div class="container ' + calendarIdClass + ' ' +
-                      'calendar-color">' +
+          '<div class="container ' + calendarId + ' ' +
+                      'calendar-bg-color ' +
+                      'calendar-border-color">' +
             this.h('title') +
           '</div>' +
         '</li>';
