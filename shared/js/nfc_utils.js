@@ -196,6 +196,10 @@ NfcUtils = {
    * equalArrays: returns true or false whether the arrays are equal
    */
   equalArrays: function equalArrays(a1, a2) {
+    if (!a1 || !a2) {
+      return false;
+    }
+
     if (a1.length != a2.length) {
       return false;
     }

@@ -33,9 +33,9 @@ suite('NFC Utils', function() {
   });
 
   test('equalArrays', function() {
-    var equals = NfcUtils.equalArrays(NfcUtils.fromUTF8(string1),
-                                        uint8array1);
-    assert.equal(equals, true);
+    assert.isTrue(NfcUtils.equalArrays(NfcUtils.fromUTF8(string1),
+                                       uint8array1));
+    assert.isFalse(NfcUtils.equalArrays(null, null));
   });
 
   test('transitive', function() {
