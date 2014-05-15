@@ -500,20 +500,31 @@ ul li > label.range-icons.brightness:before {
 }
 
 ul li > label.range-icons.volume:before {
-  background:
-    url(images/range_icons_volume_min.png) no-repeat 0 50%,
-    url(images/range_icons_volume_max.png) no-repeat 100% 50%;
-  background-size: 3rem;
   left: 1.4rem;
   right: auto;
-  width: calc(100% - 2.1rem);
-  top: calc(50% + .6rem);
+  width: 3rem;
+  top: 4.4rem;
+}
+
+ul li > label.range-icons.volume.media:before {
+  background:
+    url(images/sound_volume_media.png) no-repeat 0 50% / 3rem;
+}
+
+ul li > label.range-icons.volume.notification:before {
+  background:
+    url(images/sound_volume_ringer.png) no-repeat 0 50% / 3rem;
+}
+
+ul li > label.range-icons.volume.alarm:before {
+  background:
+    url(images/sound_volume_alarm.png) no-repeat 0 50% / 3rem;
 }
 
 ul li > label.range-icons.volume input {
-  width: calc(100% - 10.5rem);
-  top: 0.2rem;
-  left: 0.35rem;
+  position: inherit;
+  margin-left: 5.8rem;
+  width: calc(100% - 7.5rem);
 }
 
 /******************************************************************************
@@ -844,11 +855,12 @@ html[dir="rtl"] #feedback-sad {
 }
 
 html[dir="rtl"] ul li > label.range-icons.volume:before {
-  background-position: 100% 50%, 0 50%;
+  left: auto;
+  right: 1.4rem;
+  background-position: 100% 50%;
 }
 
 html[dir="rtl"] ul li > label.range-icons.volume input {
-  left: auto;
-  right: 0.35rem;
+  margin-right: 5.8rem;
 }
 
