@@ -1,5 +1,6 @@
 #tutorial {
   background: url(images/bg_grey-noise.png);
+  z-index: 101;
 }
 
 /*
