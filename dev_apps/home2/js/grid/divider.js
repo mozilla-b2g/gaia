@@ -45,6 +45,7 @@
       if (!this.divider) {
         var divider = this.divider = document.createElement('div');
         divider.className = 'divider';
+        divider.innerHTML = '<span></span>';
         container.appendChild(divider);
       }
 

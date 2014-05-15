@@ -49,15 +49,22 @@ body[data-cols="4"] .icon .title {
 
 .divider {
   position: absolute;
-  height: 0.2rem;
-  margin: 2.3rem 25%;
-  background: #fff;
   width: 50%;
+  margin: 2.3rem 25%;
+}
+
+.divider span {
+  display: block;
+  height: 0.2rem;
+  width: 100%;
+  background: #fff;
+  width: 100%;
   z-index: 2;
 }
 
 .divider:last-of-type {
   visibility: hidden;
+  padding-bottom: 1.4rem;
 }
 
 .dragging .icon.active {
