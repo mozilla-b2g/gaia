@@ -146,8 +146,12 @@
      * Positions app icons and dividers accoriding to available space
      * on the grid.
      */
-    render: function() {
+    render: function(from) {
       app.cleanItems();
+      from = from || 0;
+      // TODO This variable should be an argument of this method. See
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1010742#c4
+      var to = this.items.length - 1;
 
       // Reset offset steps
       layout.offsetY = 0;
@@ -167,8 +171,8 @@
         y++;
       }
 
-      this.items.forEach(function(item, idx) {
-
+      for (var idx = 0; idx <= to; idx++) {
+        var item = this.items[idx];
         // If the item would go over the boundary before rendering,
         // step the y-axis.
         if (x > 0 && item.gridWidth > 1 &&
@@ -179,7 +183,9 @@
           step(lastItem);
         }
 
-        item.render([x, y], idx);
+        if (idx >= from) {
+          item.render([x, y], idx);
+        }
         
         // Increment the x-step by the sizing of the item.
         // If we go over the current boundary, reset it, and step the y-axis.
@@ -187,7 +193,7 @@
         if (x >= layout.perRow) {
           step(item);
         }
-      }, this);
+      }
     },
 
     /**
