@@ -89,7 +89,7 @@
       ctx.shadowColor = SHADOW_COLOR;
       ctx.shadowBlur = SHADOW_BLUR;
       ctx.shadowOffsetY = SHADOW_OFFSET_Y;
-      ctx.shadowOffsetY = SHADOW_OFFSET_X;
+      ctx.shadowOffsetX = SHADOW_OFFSET_X;
       ctx.drawImage(img, CANVAS_PADDING, CANVAS_PADDING,
                     MAX_ICON_SIZE, MAX_ICON_SIZE);
       canvas.toBlob(this.renderIconFromBlob.bind(this));
