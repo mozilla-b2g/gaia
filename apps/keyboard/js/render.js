@@ -272,6 +272,12 @@ const IMERender = (function() {
         if (key.compositeKey) {
           dataset.push({'key': 'compositeKey', 'value': key.compositeKey});
         }
+        if (key.upperCompositeKey) {
+          dataset.push({
+            'key': 'upperCompositeKey',
+            'value': key.upperCompositeKey
+          });
+        }
 
         if (key.disabled) {
           attributeList.push({
@@ -657,6 +663,10 @@ const IMERender = (function() {
           var dataset;
           if (alt.compositeKey) {
             dataset = [{ 'key': 'compositeKey', 'value': alt.compositeKey }];
+            if (alt.upperCompositeKey) {
+              dataset.push({ 'key': 'upperCompositeKey',
+                'value': alt.upperCompositeKey });
+            }
           } else {
             dataset = [
                { 'key': 'keycode', 'value': alt.value.charCodeAt(0) },
