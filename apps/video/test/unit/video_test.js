@@ -21,6 +21,8 @@ var metadataQueue; // Declare here to avoid pulling in metadata.js
 var MediaDB;       // Declare here to avoid pulling in mediadb.js
 var videodb;       // Used in video.js
 var videoControlsAutoHidingMsOverride = 0; // Used in video.js
+var startParsingMetadata; // Declared in metadata.js
+var captureFrame;  // Declared in metadata.js
 
 function containsClass(element, value) {
   return element.classList.contains(value);
@@ -291,8 +293,8 @@ suite('Video App Unit Tests', function() {
     var videoDuration;
     var selectedThumbnail;
 
-    var playSpy;
-    var pauseSpy;
+    var playerPlaySpy;
+    var playerPauseSpy;
 
     function getTitle(autoPlay, enterFullscreen, keepControls, misc) {
       var appendage;
@@ -339,8 +341,8 @@ suite('Video App Unit Tests', function() {
 
       dom.player = new MockVideoPlayer();
 
-      playSpy = sinon.spy(dom.player, 'play');
-      pauseSpy = sinon.spy(dom.player, 'pause');
+      playerPlaySpy = sinon.spy(dom.player, 'play');
+      playerPauseSpy = sinon.spy(dom.player, 'pause');
 
       videoDuration = 1.25;
 
@@ -398,8 +400,8 @@ suite('Video App Unit Tests', function() {
     });
 
     teardown(function() {
-      playSpy.reset();
-      pauseSpy.reset();
+      playerPlaySpy.reset();
+      playerPauseSpy.reset();
     });
 
     /**
@@ -479,7 +481,7 @@ suite('Video App Unit Tests', function() {
       //   * keepControls is true -- controls not hidden
       //
       assert.isTrue(containsClass(dom.play, 'paused'));
-      assert.isTrue(pauseSpy.calledOnce);
+      assert.isTrue(playerPauseSpy.calledOnce);
       assert.isFalse(containsClass(dom.videoControls, 'hidden'));
       assert.isNull(dom.player.onseeked);
     });
@@ -521,14 +523,14 @@ suite('Video App Unit Tests', function() {
       //  * dom.player.onseeked is set to 'doneSeeking' function
       //
       assert.isTrue(dom.player.onseeked.toString().search('doneSeeking') > 0);
-      assert.equal(pauseSpy.callCount, 0);
+      assert.equal(playerPauseSpy.callCount, 0);
       dom.player.onseeked();
       //
       //   * autoPlay is false -- video is paused
       //   * keepControls is true -- controls not hidden
       //
       assert.isTrue(containsClass(dom.play, 'paused'));
-      assert.isTrue(pauseSpy.calledOnce);
+      assert.isTrue(playerPauseSpy.calledOnce);
       assert.isFalse(containsClass(dom.videoControls, 'hidden'));
       assert.isNull(dom.player.onseeked);
     });
@@ -592,7 +594,7 @@ suite('Video App Unit Tests', function() {
       assert.equal(containsClass(document.body,
                    LAYOUT_MODE.fullscreenPlayer), false);
       assert.isTrue(dom.play.classList.contains('paused'));
-      assert.isTrue(pauseSpy.calledOnce);
+      assert.isTrue(playerPauseSpy.calledOnce);
     });
 
     /**
@@ -625,7 +627,7 @@ suite('Video App Unit Tests', function() {
 
       assert.isTrue(containsClass(document.body, LAYOUT_MODE.list));
       assert.isFalse(containsClass(dom.play, 'paused'));
-      assert.isTrue(playSpy.calledOnce);
+      assert.isTrue(playerPlaySpy.calledOnce);
       assert.isFalse(containsClass(dom.videoControls, 'hidden'));
     });
 
@@ -667,8 +669,8 @@ suite('Video App Unit Tests', function() {
       assert.equal(containsClass(document.body,
                    LAYOUT_MODE.fullscreenPlayer), true);
       assert.isFalse(containsClass(dom.play, 'paused'));
-      assert.isTrue(playSpy.calledOnce);
-      assert.equal(pauseSpy.callCount, 0);
+      assert.isTrue(playerPlaySpy.calledOnce);
+      assert.equal(playerPauseSpy.callCount, 0);
       assert.isFalse(containsClass(dom.videoControls, 'hidden'));
     });
 
@@ -713,11 +715,11 @@ suite('Video App Unit Tests', function() {
       assert.equal(containsClass(document.body,
                    LAYOUT_MODE.fullscreenPlayer), true);
       assert.isFalse(containsClass(dom.play, 'paused'));
-      assert.isTrue(playSpy.calledOnce);
-      assert.equal(pauseSpy.callCount, 0);
+      assert.isTrue(playerPlaySpy.calledOnce);
+      assert.equal(playerPauseSpy.callCount, 0);
 
       setTimeout(function() {
-        assert.equal(containsClass(dom.videoControls, 'hidden'), true);
+        assert.isTrue(containsClass(dom.videoControls, 'hidden'));
         done();
       }, 0);
     });
@@ -870,6 +872,457 @@ suite('Video App Unit Tests', function() {
 
       assert.equal(dom.player.currentTime, 0);
       assert.equal(dom.videoTitle.textContent, selectedVideo.title);
+    });
+  });
+
+  suite('hidePlayer flows', function() {
+    var playerPauseSpy;
+    var playerLoadSpy;
+    var startParsingMetadataSpy;
+    var updateMetadataDbSpy;
+    var updatePosterSpy;
+    var setWatchedSpy;
+
+    suiteSetup(function() {
+
+      dom.player = new MockVideoPlayer();
+
+      playerPauseSpy = sinon.spy(dom.player, 'pause');
+      playerLoadSpy = sinon.spy(dom.player, 'load');
+      startParsingMetadataSpy = sinon.spy();
+      startParsingMetadata = startParsingMetadataSpy;
+      updateMetadataDbSpy = sinon.spy();
+      updatePosterSpy = sinon.spy();
+      setWatchedSpy = sinon.spy();
+
+      // We need a mock captureFrame function as opposed to simply
+      // using a spy because the function needs to have an implementation,
+      // it needs to invoke the callback function.
+      captureFrame = function captureFrame(player, metadata, callback) {
+        callback();
+      };
+
+      videodb = new MockMediaDB();
+      updateMetadataDbSpy = sinon.spy(videodb, 'updateMetadata');
+
+      currentVideo = {
+        'name': 'video name'
+      };
+
+      thumbnailList.addItem(currentVideo);
+      var thumbnail = thumbnailList.thumbnailMap[currentVideo.name];
+      thumbnail.updatePoster = updatePosterSpy;
+      thumbnail.setWatched = setWatchedSpy;
+    });
+
+    setup(function() {
+      playerPauseSpy.reset();
+      playerLoadSpy.reset();
+      startParsingMetadataSpy.reset();
+      updateMetadataDbSpy.reset();
+      updatePosterSpy.reset();
+      setWatchedSpy.reset();
+    });
+
+    test('#hidePlayer: !update metadata, playerShowing, !callback',
+        function() {
+
+      pendingPick = false;
+      playerShowing = true;
+
+      // hidePlayer pauses the video and removes the 'paused' class; TODO: why?
+      // In the 'playerShowing' flow, dom.play has 'paused' attribute,
+      // which gets removed during the flow
+      dom.play.classList.add('paused');
+
+      // In the 'playerShowing' flow, dom.player has 'src' attribute,
+      // which gets removed during the flow
+      dom.player.src = 'about:blank';
+
+      hidePlayer(false);
+
+      assert.isFalse(containsClass(dom.play, 'paused'));
+      assert.isFalse(dom.player.hasAttribute('src'));
+      assert.isFalse(playerShowing);
+      assert.isTrue(playerLoadSpy.calledOnce);
+      assert.isTrue(startParsingMetadataSpy.calledOnce);
+    });
+
+    /**
+     * updateVideoMetadata is true and currentVideo.metadata is not null,
+     * pendingPick is false -- updateMetadata function should be invoked
+     * (not first time watched)
+     */
+    test('#hidePlayer: update metadata (1), playerShowing, !callback',
+        function() {
+      playerShowing = true;
+      pendingPick = false;
+
+      // hidePlayer pauses video and then removes 'paused' class - TODO: why?
+      dom.play.classList.add('paused');
+      dom.player.src = 'about:blank';
+
+      //
+      // Initialize dom.player.currentTime in order to test
+      // that currentVideo.metadata.currentTime is set to
+      // dom.player.currentTime
+      //
+      dom.player.currentTime = 1;
+
+      currentVideo = {
+        'name': 'video name',
+        'metadata': {
+          'title': 'video title',
+          'watched': true
+        }
+      };
+
+      hidePlayer(true);
+
+      assert.isFalse(containsClass(dom.play, 'paused'));
+      assert.isFalse(dom.player.hasAttribute('src'));
+      assert.isFalse(playerShowing);
+      assert.isTrue(playerLoadSpy.calledOnce);
+      assert.isTrue(startParsingMetadataSpy.calledOnce);
+      assert.isTrue(updatePosterSpy.calledOnce);
+      assert.isFalse(setWatchedSpy.calledOnce);
+      assert.isTrue(currentVideo.metadata.watched);
+      assert.isTrue(updateMetadataDbSpy.calledOnce);
+      assert.equal(currentVideo.metadata.currentTime, dom.player.currentTime);
+    });
+
+    /**
+     * updateVideoMetadata is true and currentVideo.metadata is not null,
+     * pendingPick is false -- updateMetadata function should be invoked
+     * (first time watched)
+     */
+    test('#hidePlayer: update metadata (2), playerShowing, !callback',
+        function() {
+      playerShowing = true;
+      pendingPick = false;
+
+      dom.play.classList.add('paused');
+      dom.player.src = 'about:blank';
+
+      //
+      // Initialize dom.player.currentTime in order to test
+      // that currentVideo.metadata.currentTime is set to
+      // dom.player.currentTime
+      //
+      dom.player.currentTime = 1;
+
+      currentVideo = {
+        'name': 'video name',
+        'metadata': {
+          'title': 'video title',
+          'watched': false
+        }
+      };
+
+      hidePlayer(true);
+
+      assert.isFalse(containsClass(dom.play, 'paused'));
+      assert.isFalse(dom.player.hasAttribute('src'));
+      assert.isFalse(playerShowing);
+      assert.isTrue(playerLoadSpy.calledOnce);
+      assert.isTrue(startParsingMetadataSpy.calledOnce);
+      assert.isTrue(updatePosterSpy.calledOnce);
+      assert.isTrue(setWatchedSpy.calledOnce);
+      assert.isTrue(currentVideo.metadata.watched);
+      assert.isTrue(updateMetadataDbSpy.calledOnce);
+      assert.equal(currentVideo.metadata.currentTime, dom.player.currentTime);
+    });
+
+    /**
+     * updateVideoMetadata is true and currentVideo.metadata is not null,
+     * pendingPick is true -- updateMetadata function should not be invoked.
+     */
+    test('#hidePlayer: update metadata (3), playerShowing, !callback',
+        function() {
+      playerShowing = true;
+      pendingPick = true;
+
+      dom.play.classList.add('paused');
+      dom.player.src = 'about:blank';
+
+      //
+      // Initialize dom.player.currentTime in order to test
+      // that currentVideo.metadata.currentTime is NOT set to
+      // dom.player.currentTime (since updateMetadata should
+      // not be called).
+      //
+      dom.player.currentTime = 1;
+      var currentTime = 10;
+
+      currentVideo = {
+        'name': 'video name',
+        'metadata': {
+          'title': 'video title',
+          'watched': false,
+          'currentTime': currentTime
+        }
+      };
+
+      hidePlayer(true);
+
+      assert.isFalse(containsClass(dom.play, 'paused'));
+      assert.isTrue(playerPauseSpy.calledOnce);
+      assert.isFalse(dom.player.hasAttribute('src'));
+      assert.isTrue(playerLoadSpy.calledOnce);
+      assert.isFalse(playerShowing);
+      assert.isTrue(startParsingMetadataSpy.calledOnce);
+      assert.isFalse(updatePosterSpy.calledOnce);
+      assert.isFalse(setWatchedSpy.calledOnce);
+      assert.isFalse(currentVideo.metadata.watched);
+      assert.isFalse(updateMetadataDbSpy.calledOnce);
+      assert.equal(currentVideo.metadata.currentTime, currentTime);
+    });
+
+    /**
+     * updateVideoMetadata is true, currentVideo.metadata is null --
+     * updateMetadata function should not be invoked.
+     */
+    test('#hidePlayer: update metadata (4), playerShowing, !callback',
+        function() {
+      playerShowing = true;
+      pendingPick = false;
+
+      dom.play.classList.add('paused');
+      dom.player.src = 'about:blank';
+
+      // dom.player.currentTime is not set for this test because
+      // the current video for this test has no metadata therefore
+      // there is no assertion regarding the value of
+      // currentVideo.metadata.currentTime
+
+      currentVideo = {
+        'name': 'video name'
+      };
+
+      hidePlayer(true);
+
+      assert.isFalse(containsClass(dom.play, 'paused'));
+      assert.isTrue(playerPauseSpy.calledOnce);
+      assert.isFalse(dom.player.hasAttribute('src'));
+      assert.isFalse(playerShowing);
+      assert.isTrue(playerLoadSpy.calledOnce);
+      assert.isTrue(startParsingMetadataSpy.calledOnce);
+      assert.isFalse(updatePosterSpy.calledOnce);
+      assert.isFalse(setWatchedSpy.calledOnce);
+      assert.isFalse(updateMetadataDbSpy.calledOnce);
+    });
+
+    /**
+     * updateVideoMetadata is true and currentVideo.metadata is not null,
+     * pendingPick is false -- updateMetadata function should be invoked
+     * (first time watched). hidePlayer callback is specified.
+     */
+    test('#hidePlayer: update metadata (5), playerShowing, callback',
+        function(done) {
+      playerShowing = true;
+      pendingPick = false;
+
+      dom.play.classList.add('paused');
+      dom.player.src = 'about:blank';
+
+      //
+      // Initialize dom.player.currentTime in order to test
+      // that currentVideo.metadata.currentTime is set to
+      // dom.player.currentTime
+      //
+      dom.player.currentTime = 1;
+
+      currentVideo = {
+        'name': 'video name',
+        'metadata': {
+          'title': 'video title',
+          'watched': false
+        }
+      };
+
+      hidePlayer(true, function() {
+        assert.isFalse(containsClass(dom.play, 'paused'));
+        assert.isTrue(playerPauseSpy.calledOnce);
+        assert.isFalse(dom.player.hasAttribute('src'));
+        assert.isFalse(playerShowing);
+        assert.isTrue(playerLoadSpy.calledOnce);
+        assert.isTrue(startParsingMetadataSpy.calledOnce);
+        assert.isTrue(updatePosterSpy.calledOnce);
+        assert.isTrue(setWatchedSpy.calledOnce);
+        assert.isTrue(currentVideo.metadata.watched);
+        assert.isTrue(updateMetadataDbSpy.calledOnce);
+        assert.equal(currentVideo.metadata.currentTime, dom.player.currentTime);
+        done();
+      });
+    });
+
+    /**
+     * updateVideoMetadata is false -- updateMetadata function should not
+     * be invoked. hidePlayer callback is specified and should be called.
+     */
+    test('#hidePlayer: !update metadata, playerShowing, callback',
+        function(done) {
+      pendingPick = false;
+      playerShowing = true;
+
+      // In the 'playerShowing' flow, dom.play has 'paused' attribute,
+      // which gets removed during the flow
+      dom.play.classList.add('paused');
+
+      // In the 'playerShowing' flow, dom.player has 'src' attribute,
+      // which gets removed during the flow
+      dom.player.src = 'about:blank';
+
+      // dom.player.currentTime is not set for this test because
+      // 'updateVideoMetadata' is false and the current video for
+      // this test has no metadata. Therefore, there is no assertion
+      // regarding the value of currentVideo.metadata.currentTime
+
+      hidePlayer(false, function() {
+        assert.isFalse(containsClass(dom.play, 'paused'));
+        assert.isTrue(playerPauseSpy.calledOnce);
+        assert.isFalse(dom.player.hasAttribute('src'));
+        assert.isFalse(playerShowing);
+        assert.isTrue(playerLoadSpy.calledOnce);
+        assert.isTrue(startParsingMetadataSpy.calledOnce);
+        assert.isFalse(updateMetadataDbSpy.calledOnce);
+        done();
+      });
+    });
+
+    /**
+     * updateMetadata is true but playerShowing is false, hidePlayer should be
+     * a noop other than to call the hidePlayer callback if specified, which
+     * it is for this test.
+     */
+    test('#hidePlayer: !update metadata, !playerShowing, callback',
+        function(done) {
+
+      // In the 'playerShowing' flow, dom.play has 'paused' attribute
+      // and dom.player has 'src' attribute. Set these to test that
+      // in the !playerShowing flow these attributes are not changed.
+      dom.play.classList.add('paused');
+      dom.player.src = 'about:blank';
+
+      // dom.player.currentTime is not set for this test because
+      // 'updateVideoMetadata' is false and the current video for
+      // this test has no metadata. Therefore, there is no assertion
+      // regarding the value of currentVideo.metadata.currentTime
+
+      playerShowing = false;
+
+      hidePlayer(false, function() {
+        assert.isTrue(containsClass(dom.play, 'paused'));
+        assert.isFalse(playerPauseSpy.calledOnce);
+        assert.isTrue(dom.player.hasAttribute('src'));
+        assert.isFalse(playerShowing);
+        assert.isFalse(playerLoadSpy.calledOnce);
+        assert.isFalse(startParsingMetadataSpy.calledOnce);
+        assert.isFalse(updatePosterSpy.calledOnce);
+        assert.isFalse(setWatchedSpy.calledOnce);
+        assert.isFalse(updateMetadataDbSpy.calledOnce);
+        done();
+      });
+    });
+
+    /**
+     * updateMetadata is false and playerShowing is false, hidePlayer should be
+     * a noop other than to call the hidePlayer callback if specified, which
+     * it is not for this test.
+     */
+    test('#hidePlayer: !update metadata, !playerShowing, !callback',
+        function() {
+
+      // In the 'playerShowing' flow, dom.play has 'paused' attribute
+      // and dom.player has 'src' attribute. Set these to test that
+      // in the !playerShowing flow these attributes are not changed.
+      dom.play.classList.add('paused');
+      dom.player.src = 'about:blank';
+
+      // dom.player.currentTime is not set for this test because
+      // 'updateVideoMetadata' is false and the current video for
+      // this test has no metadata. Therefore, there is no assertion
+      // regarding the value of currentVideo.metadata.currentTime
+
+      playerShowing = false;
+
+      hidePlayer(false);
+
+      assert.isTrue(containsClass(dom.play, 'paused'));
+      assert.isFalse(playerPauseSpy.calledOnce);
+      assert.isTrue(dom.player.hasAttribute('src'));
+      assert.isFalse(playerShowing);
+      assert.isFalse(startParsingMetadataSpy.calledOnce);
+      assert.isFalse(updatePosterSpy.calledOnce);
+      assert.isFalse(setWatchedSpy.calledOnce);
+      assert.isFalse(updateMetadataDbSpy.calledOnce);
+    });
+
+    /**
+     * updateMetadata is true, playerShowing is false: hidePlayer should be
+     * a noop other than to call the hidePlayer callback if specified, which
+     * it is for this test.
+     */
+    test('#hidePlayer: update metadata, !playerShowing, callback',
+        function(done) {
+
+      // In the 'playerShowing' flow, dom.play has 'paused' attribute
+      // and dom.player has 'src' attribute. Set these to test that
+      // in the !playerShowing flow these attributes are not changed.
+      dom.play.classList.add('paused');
+      dom.player.src = 'about:blank';
+
+      // dom.player.currentTime is not set for this test because
+      // 'playerShowing' is false and the current video for
+      // this test has no metadata. Therefore, there is no assertion
+      // regarding the value of currentVideo.metadata.currentTime
+
+      playerShowing = false;
+
+      hidePlayer(true, function() {
+        assert.isTrue(containsClass(dom.play, 'paused'));
+        assert.isFalse(playerPauseSpy.calledOnce);
+        assert.isTrue(dom.player.hasAttribute('src'));
+        assert.isFalse(playerShowing);
+        assert.isFalse(startParsingMetadataSpy.calledOnce);
+        assert.isFalse(updatePosterSpy.calledOnce);
+        assert.isFalse(setWatchedSpy.calledOnce);
+        assert.isFalse(updateMetadataDbSpy.calledOnce);
+        done();
+      });
+    });
+
+    /**
+     * updateMetadata is true, playerShowing is false: hidePlayer should be
+     * a noop other than to call the hidePlayer callback if specified, which
+     * it is not for this test.
+     */
+    test('#hidePlayer: update metadata, !playerShowing, !callback',
+        function() {
+
+      // In the 'playerShowing' flow, dom.play has 'paused' attribute
+      // and dom.player has 'src' attribute. Set these to test that
+      // in the !playerShowing flow these attributes are not changed.
+      dom.play.classList.add('paused');
+      dom.player.src = 'about:blank';
+
+      // dom.player.currentTime is not set for this test because
+      // 'playerShowing' is false and the current video for
+      // this test has no metadata. Therefore, there is no assertion
+      // regarding the value of currentVideo.metadata.currentTime
+
+      playerShowing = false;
+
+      hidePlayer(true);
+
+      assert.isTrue(containsClass(dom.play, 'paused'));
+      assert.isFalse(playerPauseSpy.calledOnce);
+      assert.isTrue(dom.player.hasAttribute('src'));
+      assert.isFalse(playerShowing);
+      assert.isFalse(startParsingMetadataSpy.calledOnce);
+      assert.isFalse(updatePosterSpy.calledOnce);
+      assert.isFalse(setWatchedSpy.calledOnce);
+      assert.isFalse(updateMetadataDbSpy.calledOnce);
     });
   });
 });
