@@ -838,19 +838,16 @@ tests: app offline
 	test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
 	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/$(PROFILE_FOLDER)/webapps --extra-profile-file=$(CURDIR)/$(PROFILE_FOLDER)/user.js"
 
-.PHONY: common-install
-common-install:
-	@test -x "$(NODEJS)" || (echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)" && exit 1 )
-	@test -x "$(NPM)" || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
-
 .PHONY: update-common
-update-common: common-install
+update-common: node_modules
 	# common testing tools
-	mkdir -p $(TEST_COMMON)/vendor/test-agent/
+	mkdir -p $(TEST_COMMON)/vendor/test-agent/ $(TEST_COMMON)/vendor/mocha/
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.js
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.css
-	cp node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
-	cp node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
+	rm -f $(TEST_COMMON)/vendor/mocha/mocha.js
+	rm -f $(TEST_COMMON)/vendor/mocha/mocha.css
+	cp node_modules/test-agent/test-agent.{js,css} $(TEST_COMMON)/vendor/test-agent/
+	cp node_modules/mocha/mocha.{js,css} $(TEST_COMMON)/vendor/mocha/
 
 # Create the json config file
 # for use with the test agent GUI
@@ -887,7 +884,7 @@ ifneq ($(strip $(APP)),)
 APP_TEST_LIST=$(shell find -L $(GAIA_DIR)$(SEP)apps$(SEP)$(APP) $(GAIA_DIR)$(SEP)dev_apps$(SEP)$(APP) $(GAIA_DIR)$(SEP)tv_apps$(SEP)$(APP) -name '*_test.js' 2> /dev/null | grep '/test/unit/')
 endif
 .PHONY: test-agent-test
-test-agent-test: node_modules
+test-agent-test: update-common node_modules
 ifneq ($(strip $(APP)),)
 	@echo 'Running tests for $(APP)';
 	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) -t "$(TEST_AGENT_COVERAGE)" -m "://([a-zA-Z-_]+)\." --reporter $(REPORTER) $(APP_TEST_LIST)
@@ -897,7 +894,7 @@ else
 endif
 
 .PHONY: test-agent-server
-test-agent-server: common-install node_modules
+test-agent-server: update-common node_modules
 	./node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./build/config/test-agent-server.js -t "$(TEST_AGENT_COVERAGE)" -m "://([a-zA-Z-_]+)\." --http-path . --growl
 
 .PHONY: marionette
