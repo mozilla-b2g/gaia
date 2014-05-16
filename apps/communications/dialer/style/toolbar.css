@@ -72,6 +72,7 @@
 }
 
 #views.hide-toolbar > li {
+  background: none;
   pointer-events: none;
 }
 
