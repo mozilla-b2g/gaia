@@ -25,17 +25,20 @@ var ActiveAlarm = {
   childwindow: null,
 
   init: function am_init() {
+    console.log('--> active_alarm init()..');
     navigator.mozSetMessageHandler('alarm', this.handler.bind(this));
     AlarmManager.updateAlarmStatusBar();
   },
 
   handler: function aac_handler(message) {
+    console.log('--> handler(): received system message..');
     // Set a watchdog to avoid locking the CPU wake lock too long,
     // because it'd exhaust the battery quickly which is very bad.
     // This could probably happen if the app failed to launch or
     // handle the alarm message due to any unexpected reasons.
     Utils.safeCpuLock(30000, function(done) {
       // receive and parse the alarm id from the message
+      console.log('--> handler(): requested safeCpuLock..');
       var id = message.data.id;
       var type = message.data.type;
 
@@ -46,6 +49,7 @@ var ActiveAlarm = {
       ], function(err) {
         AlarmList.refresh();
         AlarmManager.updateAlarmStatusBar();
+        console.log('--> handler(): finished async.namedParallel..');
         done();
       });
 
@@ -59,7 +63,9 @@ var ActiveAlarm = {
         }
       }
 
+      console.log('--> handler(): getAlarm id..');
       AlarmsDB.getAlarm(id, function aac_gotAlarm(err, alarm) {
+        console.log('--> handler(): gotAlarm id..');
         if (err) {
           done();
           return;
@@ -79,6 +85,7 @@ var ActiveAlarm = {
         this.message = message;
         var protocol = window.location.protocol;
         var host = window.location.host;
+        console.log('--> handler(): do window.open..');
         this.childwindow =
           window.open(protocol + '//' + host + '/onring.html',
                       'ring_screen', 'attention');
