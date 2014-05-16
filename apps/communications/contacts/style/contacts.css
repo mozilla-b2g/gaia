@@ -31,11 +31,6 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   padding-left: 0;
 }
 
-#contact-name-title {
-  max-width: 22rem;
-  float: left;
-}
-
 /* Contact detail main section */
 
 .view-contact-profile .view-body {

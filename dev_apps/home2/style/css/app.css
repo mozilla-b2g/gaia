@@ -15,7 +15,6 @@ html, body, .icons {
   width: calc(100% / 3);
   text-align: center;
   background: no-repeat top center;
-  overflow: hidden;
   z-index: 3;
 }
 
@@ -32,14 +31,16 @@ html, body, .icons {
   /* Space between icon and title .1rem + .2rem = .3rem as spec says */
   margin-top: .1rem;
   /* We need this rule in order not to hide the drop shadow */
-  padding: .2rem .8rem 1rem .8rem;
-  text-shadow: 0 0.2rem 0.8rem #000;
+  padding: 0.2rem 1rem 1rem;
+  text-shadow: -0.1rem 0.1rem 0.3rem rgba(0, 0, 0, 0.3),
+               -0.2rem 0.4rem 1rem rgba(0, 0, 0, 0.4);
   font-size: 1.4rem;
   color: #fff;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 100%;
+  box-sizing: border-box;
 }
 
 body[data-cols="4"] .icon .title {

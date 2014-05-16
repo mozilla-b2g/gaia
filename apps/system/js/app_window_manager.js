@@ -672,6 +672,11 @@
       } else {
         screenElement.classList.remove('fullscreen-app');
       }
+      // Resize when opened.
+      // Note: we will not trigger reflow if the final size
+      // is the same as its current value.
+      this._activeApp.resize();
+
       this.debug('=== Active app now is: ',
         (this._activeApp.name || this._activeApp.origin), '===');
     },

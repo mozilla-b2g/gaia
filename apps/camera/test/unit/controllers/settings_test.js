@@ -215,6 +215,12 @@ suite('SettingsController#configureRecorderProfiles()', function() {
       this.controller.notify(this.setting);
       assert.isTrue(this.notification.display.called);
     });
+
+    test('Should not display a notification if flagged `false`', function() {
+      this.setting.get.withArgs('notifications').returns(false);
+      this.controller.notify(this.setting);
+      sinon.assert.notCalled(this.notification.display);
+    });
   });
 
   suite('SettingsController#validMenuItem()', function() {

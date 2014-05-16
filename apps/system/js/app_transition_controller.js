@@ -234,10 +234,6 @@
       // May have orientation manager to deal with lock orientation request.
       this.app.setOrientation();
 
-      // Resize when opened.
-      // Note: we will not trigger reflow if the final size
-      // is the same as its current value.
-      this.app.resize();
       this.app.waitForNextPaint(function() {
         if (this._transitionState !== 'opened') {
           return;

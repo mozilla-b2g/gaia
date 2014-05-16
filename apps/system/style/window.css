@@ -606,7 +606,7 @@
 /* Edges */
 #screen.edges #windows > .appWindow:not(.homescreen) {
   /* in the viewport but not really */
-  transform: translateX(99.9999%);
+  transform: translateX(-99.9999%);
   opacity: 1;
   will-change: transform, opacity;
 }

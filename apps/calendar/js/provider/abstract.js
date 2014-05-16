@@ -12,6 +12,7 @@ Calendar.ns('Provider').Abstract = (function() {
 
   Abstract.prototype = {
 
+    // orange (used by local calendar)
     defaultColor: '#F97C17',
 
     /**

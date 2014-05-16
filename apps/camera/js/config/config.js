@@ -303,6 +303,7 @@ module.exports = {
     ],
     selected: 'off',
     persistent: true,
+    notifications: false
   },
 
   settingsMenu: {
