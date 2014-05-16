@@ -400,6 +400,15 @@ suite('system/AppWindowManager', function() {
       AppWindowManager._updateActiveApp(app1.instanceID);
       assert.deepEqual(AppWindowManager._activeApp, app1);
     });
+
+    test('should resize the new active app', function() {
+      injectRunningApps(app1, app2, app3, app4);
+      AppWindowManager._activeApp = app2;
+
+      var resizeSpy = this.sinon.spy(app1, 'resize');
+      AppWindowManager._updateActiveApp(app1.instanceID);
+      sinon.assert.calledOnce(resizeSpy);
+    });
   });
 
   suite('Display()', function() {
