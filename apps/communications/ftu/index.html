@@ -92,6 +92,9 @@
   <!-- Confirm dialogs BB library -->
   <script defer src="/shared/js/confirm.js"></script>
 
+  <!-- Components -->
+  <script defer src="/shared/elements/gaia-switch/script.js"></script>
+
   <link rel="import" href="/shared/pages/import/import.html">
 </head>
 <body>
@@ -232,13 +235,9 @@
         <article data-type="list">
           <ul>
             <li>
-              <aside class="pack-end">
-                <label class="pack-switch">
-                  <input type="checkbox" id="data-connection-switch">
-                  <span></span>
-                </label>
-              </aside>
-              <p id="dataSwitchLabel" data-l10n-id="dataConnection"></p>
+              <gaia-switch id="data-connection-switch">
+                <label data-l10n-id="dataConnection"></label>
+              </gaia-switch>
             </li>
           </ul>
         </article>
@@ -375,13 +374,9 @@
         <article data-type="list">
           <ul>
             <li>
-              <aside class="pack-end">
-                <label class="pack-switch">
-                  <input type="checkbox" id="geolocation-switch" name="geolocation.enabled" checked>
-                  <span></span>
-                </label>
-              </aside>
-              <p id="geolocationSwitchLabel" data-l10n-id="geolocationCheckbox"></p>
+              <gaia-switch id="geolocation-switch" name="geolocation.enabled">
+                <label data-l10n-id="geolocationCheckbox"></label>
+              </gaia-switch>
             </li>
           </ul>
         </article>
