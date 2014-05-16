@@ -29,7 +29,11 @@ Calendar.ns('Views').DayChild = (function() {
         calendarId: event.calendarId,
         title: event.remote.title,
         location: event.remote.location,
-        attendees: attendees
+        attendees: attendees,
+        startTime: Calendar.App.dateFormat.localeFormat(
+          event.remote.startDate, navigator.mozL10n.get('shortTimeFormat')),
+        endTime: Calendar.App.dateFormat.localeFormat(
+          event.remote.endDate, navigator.mozL10n.get('shortTimeFormat'))
       });
     },
 
