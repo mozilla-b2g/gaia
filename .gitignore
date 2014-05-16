@@ -25,7 +25,6 @@ manifest.appcache
 /apps/*/test/unit/_proxy.html
 /apps/*/locales-obj
 
-/dev_apps/test-agent/test/config.json
 /dev_apps/*/test/unit/_sandbox.html
 /dev_apps/*/test/unit/_proxy.html
 /dev_apps/*/locales-obj

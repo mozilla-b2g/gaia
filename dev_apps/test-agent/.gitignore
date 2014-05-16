@@ -1,1 +1,3 @@
 config.json
+common/vendor/mocha/*
+common/vendor/test-agent/*
