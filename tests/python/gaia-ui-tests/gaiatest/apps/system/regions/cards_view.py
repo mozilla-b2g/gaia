@@ -1,7 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+import time
 from marionette.by import By
 from marionette.marionette import Actions
 
@@ -32,6 +32,7 @@ class CardsView(Base):
         card = self.marionette.find_element(*self._app_card_locator(app))
         self.wait_for_condition(lambda m: card.is_displayed() and current_frame.size['width'] - card.size['width'] - card.location['x'] == card.location['x'] \
             and 'opacity: 1' in card.get_attribute('style'))
+        time.sleep(1)
 
     def is_app_displayed(self, app):
         return self.is_element_displayed(*self._app_card_locator(app))
