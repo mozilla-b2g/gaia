@@ -30,7 +30,8 @@ class CardsView(Base):
     def wait_for_card_not_in_transition(self, app):
         current_frame = self.apps.displayed_app.frame
         card = self.marionette.find_element(*self._app_card_locator(app))
-        self.wait_for_condition(lambda m: current_frame.size['width'] - card.size['width'] - card.location['x'] == card.location['x'])
+        self.wait_for_condition(lambda m: current_frame.size['width'] - card.size['width'] - card.location['x'] == card.location['x'] \
+            and 'opacity: 1' in card.get_attribute('style'))
 
     def is_app_displayed(self, app):
         return self.is_element_displayed(*self._app_card_locator(app))
