@@ -272,6 +272,12 @@ const IMERender = (function() {
         if (key.compositeKey) {
           dataset.push({'key': 'compositeKey', 'value': key.compositeKey});
         }
+        if (key.upperCompositeKey) {
+          dataset.push({
+            'key': 'upperCompositeKey',
+            'value': key.upperCompositeKey
+          });
+        }
 
         if (key.disabled) {
           attributeList.push({

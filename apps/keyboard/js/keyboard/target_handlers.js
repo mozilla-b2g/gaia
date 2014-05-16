@@ -185,8 +185,17 @@ CompositeTargetHandler.prototype =
   Object.create(DefaultTargetHandler.prototype);
 CompositeTargetHandler.prototype.commit = function() {
   // Keys with this attribute set send more than a single character
-  // Like ".com" or "2nd" or (in Catalan) "l·l".
-  var compositeString = this.target.dataset.compositeKey;
+  // Like "2nd" or (in Catalan) "l·l".
+
+  var compositeString;
+  // Sometimes the uppercase is totally different from the lowercase
+  // and the keyboard need help.
+  if (this.app.upperCaseStateManager.isUpperCase &&
+    this.target.dataset.upperCompositeKey) {
+    compositeString = this.target.dataset.upperCompositeKey;
+  } else {
+    compositeString = this.target.dataset.compositeKey;
+  }
   var engine = this.app.inputMethodManager.currentIMEngine;
   for (var i = 0; i < compositeString.length; i++) {
     engine.click(compositeString.charCodeAt(i));
