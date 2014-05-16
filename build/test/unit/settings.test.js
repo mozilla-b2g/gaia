@@ -238,7 +238,7 @@ suite('settings.js', function() {
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'debugger.remote-mode': 'adb-only',
           'ftu.manifestURL': config.GAIA_SCHEME +
-            'communications.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            'ftu.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'wallpaper.image': undefined,
           'dialer.ringtone.name': 'Classic Courier',
