@@ -167,8 +167,6 @@ define(function(require) {
             timer.save();
           }
         });
-      } else if (type === 'alarm') {
-        App.navigate({ hash: '#alarm-panel' });
       }
     }
   };
