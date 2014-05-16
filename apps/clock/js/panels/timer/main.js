@@ -159,7 +159,7 @@ Timer.Panel.prototype.onvisibilitychange = function(evt) {
  */
 Timer.Panel.prototype.dialog = function(opts = { isVisible: true }) {
   if (opts.isVisible) {
-    Utils.cancelAnimationAfter(this.tickTimeout);
+    window.cancelAnimationFrame(this.tickTimeout);
   }
   View.instance(this.nodes.dialog).visible = opts.isVisible;
   return this;
@@ -170,20 +170,19 @@ Timer.Panel.prototype.tick = function() {
     return;
   }
   this.update(this.timer.remaining);
-  var delay = (this.timer.startTime + this.timer.duration - Date.now()) % 1000;
-  this.tickTimeout = Utils.requestAnimationAfter(this.tick.bind(this), delay);
+  this.tickTimeout = window.requestAnimationFrame(this.tick.bind(this));
 };
 
 /**
- * update Update the Timer UI's time display
- * @param  {Number} remaining Seconds remaining in timer countdown.
- *                            Defaults to 0.
- *
- * @return {Object} Timer.Panel.
+ * Given milliseconds, render the time as a rounded-to-seconds
+ * countdown.
  */
 Timer.Panel.prototype.update = function(remaining = 0) {
-  this.nodes.time.textContent = Utils.format.hms(
-    (remaining - (remaining % 1000)) / 1000, 'hh:mm:ss');
+  var newText = Utils.format.hms(Math.round(remaining / 1000), 'hh:mm:ss');
+  // Use localized caching here to prevent unnecessary DOM repaints.
+  if (this._cachedTimerText !== newText) {
+    this.nodes.time.textContent = this._cachedTimerText = newText;
+  }
   return this;
 };
 
@@ -253,7 +252,7 @@ Timer.Panel.prototype.onclick = function(event) {
 
       // Show new timer dialog
       panel.dialog();
-      Utils.cancelAnimationAfter(this.tickTimeout);
+      window.cancelAnimationFrame(this.tickTimeout);
     }
 
     if (meta.action === 'start') {
@@ -263,7 +262,7 @@ Timer.Panel.prototype.onclick = function(event) {
 
     if (meta.action === 'pause') {
       panel.toggle(nodes.start, nodes.pause);
-      Utils.cancelAnimationAfter(this.tickTimeout);
+      window.cancelAnimationFrame(this.tickTimeout);
     }
   } else {
 
