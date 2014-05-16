@@ -655,5 +655,39 @@ var GaiaDataLayer = {
          window.wrappedJSObject.AlarmManager.delete(aAlarm);
       });
     });
+  },
+
+  // FIXME: Bug 1011000: will make use of SoundManager instead
+  waitForChromeEvent: function(aEventName, aCallback) {
+    window.addEventListener('mozChromeEvent', function gsm_chromeEvent(evt) {
+      window.removeEventListener('mozChromeEvent', gsm_chromeEvent);
+      waitFor(
+        function() {
+          console.log("mozChromeEvent: " + evt.detail.type);
+          if (evt.detail.type === aEventName) {
+            aCallback(evt.detail);
+          }
+        },
+        function() {
+          return true;
+        }
+      );
+    });
+  },
+
+  // FIXME: Bug 1011000: will make use of SoundManager instead
+  waitForAudioChannelChanged: function(aCallback) {
+    var callback = aCallback || marionetteScriptFinished;
+    this.waitForChromeEvent('audio-channel-changed', function(details) {
+      callback(details.channel);
+    });
+  },
+
+  // FIXME: Bug 1011000: will make use of SoundManager instead
+  waitForVisibleAudioChannelChanged: function(aCallback) {
+    var callback = aCallback || marionetteScriptFinished;
+    this.waitForChromeEvent('visible-audio-channel-changed', function(details) {
+      callback(details.channel);
+    });
   }
 };

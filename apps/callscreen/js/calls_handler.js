@@ -308,7 +308,6 @@ var CallsHandler = (function callsHandler() {
 
   function closeWindow() {
     closing = false;
-    TonePlayer.setChannel('normal');
     window.close();
   }
 
