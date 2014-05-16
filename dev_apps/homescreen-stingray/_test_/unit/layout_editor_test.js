@@ -84,10 +84,10 @@ suite('LayoutEditor', function() {
       assert.equal(editor.placeHolders[0].elm.style.height, '800px');
       // the exported config is fit to 640x400
       var config = editor.exportConfig();
-      assert.equal(config[0].left, 0);
-      assert.equal(config[0].top, 0);
-      assert.equal(config[0].width, 640);
-      assert.equal(config[0].height, 400);
+      assert.equal(config[0].rect.left, 0);
+      assert.equal(config[0].rect.top, 0);
+      assert.equal(config[0].rect.width, 640);
+      assert.equal(config[0].rect.height, 400);
     });
 
     test('init without target size', function() {
@@ -109,10 +109,10 @@ suite('LayoutEditor', function() {
       assert.equal(editor.placeHolders[0].elm.style.height, '800px');
       // the exported config is fit to 640x400
       var config = editor.exportConfig();
-      assert.equal(config[0].left, 0);
-      assert.equal(config[0].top, 0);
-      assert.equal(config[0].width, 1280);
-      assert.equal(config[0].height, 800);
+      assert.equal(config[0].rect.left, 0);
+      assert.equal(config[0].rect.top, 0);
+      assert.equal(config[0].rect.width, 1280);
+      assert.equal(config[0].rect.height, 800);
     });
   });
 
