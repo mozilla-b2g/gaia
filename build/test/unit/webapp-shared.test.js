@@ -50,6 +50,9 @@ suite('webapp-shared.js', function() {
         },
         isFile: function() {
           return isFile;
+        },
+        getRelativeDescriptor: function() {
+          return filePath;
         }
       };
     };
@@ -402,6 +405,15 @@ suite('webapp-shared.js', function() {
       };
       webappShared.pushElements(elementFile);
       assert.equal(result[0].path, 'shared/elements/' + elementFile);
+      assert.equal(result.length, 1);
+
+      // Component styles
+      elementFile = 'gaia-component/script.js';
+      webappShared.gaia = {
+        sharedFolder: mockUtils.getFile('elements/gaia-component/style.css')
+      };
+      webappShared.pushElements(elementFile);
+      assert.equal(result[2].path, 'shared/elements/gaia-component/style.css');
     });
 
     test('copyBuildingBlock', function() {
