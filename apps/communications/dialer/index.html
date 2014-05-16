@@ -18,7 +18,7 @@
     <link rel="stylesheet" type="text/css" href="style/toolbar.css">
 
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/keypad.css">
-    <link rel="stylesheet" type="text/css" href="/shared/style/dialer/overlay.css">
+    <link rel="stylesheet" type="text/css" href="/dialer/style/suggestion.css">
 
     <link rel="stylesheet" type="text/css" href="/shared/style/tabs.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/sim_picker.css">
@@ -79,6 +79,7 @@
     -->
 
     <link rel="import" href="elements/edit-mode.html">
+    <link rel="import" href="elements/suggestion-item.html">
     <link rel="import" href="elements/add-contact-action-menu.html">
     <link rel="import" href="elements/confirmation-message.html">
     <link rel="import" href="/shared/elements/sim_picker.html">
@@ -142,15 +143,9 @@
             <button id="keypad-delete" class="reset-button" data-value="delete" data-l10n-id="keypadDelete">
             </button>
           </div>
-          <section id="suggestion-bar" hidden>
-            <div id="suggestion-count" class="more"></div>
-            <div class="suggestion-item">
-              <div class="name"></div>
-              <div>
-                <span class="tel-type"></span>
-                <span class="tel"><span class="matched"></span></span>
-              </div>
-            </div>
+          <section id="suggestion-bar" class="suggestion-bar" hidden>
+            <div role="button" is="suggestion-item" class="js-suggestion-item suggestion-item"></div>
+            <div role="button" id="suggestion-count" class="suggestion-count more"></div>
           </section>
           <article id="keyboard-container">
             <section id="keypad">
@@ -229,24 +224,12 @@
     <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
 
     <form id="suggestion-overlay" role="dialog" data-type="action" class="overlay" hidden>
+      <button role="button" is="suggestion-item" id="suggestion-item-template" class="js-suggestion-item suggestion-item" hidden></button>
       <header></header>
-      <menu>
-        <ul id="suggestion-list" role="listbox">
-        </ul>
-        <button id="suggestion-overlay-cancel" data-l10n-id='cancel'>Cancel</button>
+      <menu id="suggestion-list">
+        <button id="suggestion-overlay-cancel" data-l10n-id="cancel">Cancel</button>
       </menu>
     </form>
-
-    <!-- Template for cloning suggestion bar item. Will never be shown directly. -->
-    <ul hidden>
-      <li class="suggestion-item" id="suggestion-item-template" hidden>
-        <div class="name"></div>
-        <div>
-          <span class="tel-type"></span>
-          <span class="tel"><span class="matched"></span></span>
-        </div>
-      </li>
-    </ul>
 
     <article id="mmi-screen" role="region" hidden>
       <section role="region">
