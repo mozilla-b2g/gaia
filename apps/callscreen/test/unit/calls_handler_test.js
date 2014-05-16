@@ -147,6 +147,12 @@ suite('calls handler', function() {
         MockNavigatorMozTelephony.mTriggerCallsChanged();
         assert.isTrue(toggleSpy.calledOnce);
       });
+
+      test('should not call TonePlayer.setChannel()', function() {
+        var setChannelSpy = this.sinon.spy(MockTonePlayer, 'setChannel');
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(setChannelSpy.notCalled);
+      });
     });
 
     suite('> receiving an extra incoming call', function() {

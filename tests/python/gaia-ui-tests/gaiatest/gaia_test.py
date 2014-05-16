@@ -359,6 +359,20 @@ class GaiaData(object):
         result = self.marionette.execute_async_script('return GaiaDataLayer.sendSMS(%s, %s)' % (number, message), special_powers=True)
         assert result, 'Unable to send SMS to recipient %s with text %s' % (number, message)
 
+    # FIXME: Bug 1011000: will make use of SoundManager instead
+    def wait_for_audio_channel_changed(self):
+        self.marionette.switch_to_frame()
+        result = self.marionette.execute_async_script("return GaiaDataLayer.waitForAudioChannelChanged();")
+        assert result, "Failed to get a mozChromeEvent audio-channel-changed"
+        return result
+
+    # FIXME: Bug 1011000: will make use of SoundManager instead
+    def wait_for_visible_audio_channel_changed(self):
+        self.marionette.switch_to_frame()
+        result = self.marionette.execute_async_script("return GaiaDataLayer.waitForVisibleAudioChannelChanged();")
+        assert result, "Failed to get a mozChromeEvent visible-audio-channel-changed"
+        return result
+
 
 class PowerDataRun(object):
 

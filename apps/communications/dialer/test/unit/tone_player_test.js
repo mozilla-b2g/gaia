@@ -64,4 +64,18 @@ suite('shared/dialer/TonePlayer', function() {
       });
     });
   });
+
+  suite('trashAudio', function() {
+    setup(function() {
+      TonePlayer.init('telephony');
+    });
+
+    test('telephony channel released', function() {
+      TonePlayer.trashAudio();
+
+      assert.equal(MockAudioContext.instances.length, 1);
+      var ctx = MockAudioContext.instances[0];
+      assert.equal(ctx.mozAudioChannelType, 'normal');
+    });
+  });
 });
