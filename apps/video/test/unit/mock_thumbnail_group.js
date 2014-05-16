@@ -2,10 +2,12 @@ MockThumbnailGroup = function(item) {
   var counter = 0;
   var dummyNode = document.createElement('div');
   dummyNode.textContent = MockThumbnailGroup._GroupID;
+  dummyNode.innerHTML = '<div>' + MockThumbnailGroup._GroupID + '</div>';
+  dummyNode.htmlNode = dummyNode.firstElementChild;
 
   function addItem() {
     counter++;
-    return {};
+    return dummyNode;
   }
 
   function removeItem() {

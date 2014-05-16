@@ -94,6 +94,8 @@ var pendingUpdateTitleText = false;
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
 
+var videoControlsAutoHidingMsOverride;
+
 // Pause on visibility change
 document.addEventListener('visibilitychange', function visibilityChange() {
   if (document.hidden) {
@@ -894,9 +896,13 @@ function setVideoUrl(player, video, callback) {
 }
 
 function scheduleVideoControlsAutoHiding() {
+  // Allow control of timeout, e.g., during unit testing
+  var autoHideMs = (videoControlsAutoHidingMsOverride !== null) ?
+      videoControlsAutoHidingMsOverride : 250;
+
   controlFadeTimeout = setTimeout(function() {
     setControlsVisibility(false);
-  }, 250);
+  }, autoHideMs);
 }
 
 function setNFCSharing(enable) {
@@ -966,20 +972,23 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
 
     dom.play.classList.remove('paused');
     playerShowing = true;
-    VideoUtils.fitContainer(dom.videoContainer, dom.player,
-                            currentVideo.metadata.rotation || 0);
 
-
+    var rotation;
     if ('metadata' in currentVideo) {
       if (currentVideo.metadata.currentTime === dom.player.duration) {
         currentVideo.metadata.currentTime = 0;
       }
       dom.videoTitle.textContent = currentVideo.metadata.title;
       dom.player.currentTime = currentVideo.metadata.currentTime || 0;
+      rotation = currentVideo.metadata.rotation;
     } else {
       dom.videoTitle.textContent = currentVideo.title || '';
       dom.player.currentTime = 0;
+      rotation = 0;
     }
+
+    VideoUtils.fitContainer(dom.videoContainer, dom.player,
+                            rotation || 0);
 
     if (dom.player.seeking) {
       dom.player.onseeked = doneSeeking;
