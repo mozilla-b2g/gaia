@@ -116,10 +116,8 @@ suite('system/AppTransitionController', function() {
       var acn1 = new AppTransitionController(app1);
       var stubSetVisible = this.sinon.stub(app1, 'setVisible');
       var stubSetOrientation = this.sinon.stub(app1, 'setOrientation');
-      var stubResize = this.sinon.stub(app1, 'resize');
       acn1.handle_opened();
       assert.isTrue(stubSetVisible.calledWith(true));
-      assert.isTrue(stubResize.called);
       assert.isTrue(stubSetOrientation.called);
     });
   });
