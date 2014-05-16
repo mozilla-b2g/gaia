@@ -1082,7 +1082,7 @@ really-clean: clean
 #    manifest.webapp if it's avaiable in build_stage/ .
 # 2. Copy external app to profile dir.
 # 3. Generate webapps.json from webapps_stage.json and copy to profile dir.
-copy-build-stage-data: app-makefiles post-manifest multilocale
+copy-build-stage-data: app-makefiles post-manifest multilocale $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,copy-build-stage-data)
 
 build-test-unit: $(NPM_INSTALLED_PROGRAMS)
