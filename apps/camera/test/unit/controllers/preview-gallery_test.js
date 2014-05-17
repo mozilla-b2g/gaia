@@ -7,7 +7,7 @@ suite('controllers/preview-gallery', function() {
 
     req([
       'app',
-      'lib/camera',
+      'lib/camera/camera',
       'controllers/preview-gallery',
       'lib/settings',
       'views/preview-gallery',

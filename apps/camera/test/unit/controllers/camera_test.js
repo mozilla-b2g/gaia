@@ -10,7 +10,7 @@ suite('controllers/camera', function() {
     require([
       'app',
       'controllers/camera',
-      'lib/camera',
+      'lib/camera/camera',
       'lib/activity',
       'views/viewfinder',
       'lib/settings',
@@ -101,7 +101,7 @@ suite('controllers/camera', function() {
 
     test('Should relay focus change events', function() {
       assert.isTrue(this.camera.on.calledWith('change:focus'));
-      assert.isTrue(this.app.firer.calledWith('camera:focuschanged'));
+      assert.isTrue(this.app.firer.calledWith('camera:focusstatechanged'));
     });
 
     test('Should listen to storage:changed', function() {

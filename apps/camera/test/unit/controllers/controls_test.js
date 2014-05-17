@@ -7,7 +7,7 @@ suite('controllers/controls', function() {
 
     window.req([
       'app',
-      'lib/camera',
+      'lib/camera/camera',
       'controllers/controls',
       'views/controls',
       'lib/activity',

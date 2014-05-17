@@ -7,10 +7,10 @@ suite('controllers/viewfinder', function() {
 
     req([
       'app',
-      'lib/camera',
+      'lib/camera/camera',
       'controllers/viewfinder',
       'views/viewfinder',
-      'views/focus-ring',
+      'views/focus',
       'lib/activity',
       'lib/settings',
       'lib/setting'
@@ -54,14 +54,14 @@ suite('controllers/viewfinder', function() {
     this.app.settings.viewfinder.get.withArgs('scaleType').returns('fill');
     this.app.settings.grid.selected.withArgs('key').returns('off');
 
-    // Shortcuts
-    this.viewfinder = this.app.views.viewfinder;
-    this.focusRing = this.app.views.focusRing;
-    this.settings = this.app.settings;
-    this.camera = this.app.camera;
-
     // Test instance
     this.controller = new this.ViewfinderController(this.app);
+
+    // Shortcuts
+    this.viewfinder = this.controller.views.viewfinder;
+    this.focusRing = this.controller.views.focus;
+    this.settings = this.app.settings;
+    this.camera = this.app.camera;
   });
 
   suite('ViewfinderController()', function() {
@@ -86,7 +86,7 @@ suite('controllers/viewfinder', function() {
     });
 
     test('Should flash viewfinder shutter when camera shutter fires', function() {
-      assert.isTrue(this.app.on.calledWith('camera:shutter', this.controller.onShutter));
+      assert.isTrue(this.app.on.calledWith('camera:shutter', this.viewfinder.shutter));
     });
 
     test('Should respond to `zoomchanged` event', function() {
@@ -94,7 +94,7 @@ suite('controllers/viewfinder', function() {
     });
 
     test('Should should set the foucsRing state when focus changes', function() {
-      assert.isTrue(this.app.on.calledWith('camera:focuschanged', this.focusRing.setState));
+      assert.isTrue(this.app.on.calledWith('camera:focusstatechanged', this.focusRing.setFocusState));
     });
 
     test('Should set the scaleType on the view', function() {

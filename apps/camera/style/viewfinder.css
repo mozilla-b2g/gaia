@@ -23,6 +23,14 @@
 }
 
 /**
+ * disabled
+ */
+
+.viewfinder[enabled=false] {
+  pointer-events: none;
+}
+
+/**
  * scale-type=fill
  */
 
