@@ -125,6 +125,9 @@
     <link rel="stylesheet" type="text/css" href="style/action_menu/action_menu_extended.css">
     <script defer src="js/action_menu.js"></script>
 
+    <!-- Ime Menu -->
+    <script defer src="js/ime_menu.js"></script>
+
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
     <script defer src="js/statusbar.js"></script>
@@ -741,7 +744,7 @@
       <div id="value-selector" hidden data-z-index-level="value-selector">
         <!-- popup of options for select element -->
         <form id="select-option-popup" role="dialog" data-type="value-selector">
-          <section id="value-selector-container">
+          <section id="value-selector-container" class="value-selector-container">
             <h1 data-l10n-id="choose-option">Choose your option</h1>
             <ol role="listbox">
             </ol>
@@ -1100,6 +1103,33 @@
 
       <!-- keyboard -->
       <div id="keyboards" class="hide" data-z-index-level="keyboards"></div>
+
+      <!-- template for IME Menu. -->
+      <div id="ime-menu-template" hidden>
+        <!--
+        <form role="dialog" data-type="value-selector" class="ime-menu value-selector-container" data-z-index-level="action-menu">
+          <section>
+            <h1>${title}</h1>
+            <ol class="ime-menu-list" aria-multiselectable="false" role="listbox">
+            </ol>
+          </section>
+          <menu id="select-options-buttons">
+            <button class="value-selector-cancel full" data-type="cancel" data-action="cancel" data-l10n-id="cancel">${cancelLabel}</button>
+          </menu>
+        </div>
+        -->
+      </div> <!-- end of template for IME Menu. -->
+
+      <!-- template for each IME item. -->
+      <div id="ime-menu-item-template" hidden>
+        <!--
+        <li role="option" aria-selected="${selected}" data-id="${layoutId}">
+          <label role="presentation">
+            <span >${layoutName}</span>
+          </label>
+        </li>
+        -->
+      </div> <!-- end of template for each IME item. -->
 
       <!-- cards view -->
       <div id="cards-view" data-z-index-level="cards-view">
