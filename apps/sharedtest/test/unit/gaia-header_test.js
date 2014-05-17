@@ -58,6 +58,32 @@ suite('GaiaHeader', function() {
     assert.ok(element.querySelector('style'));
   });
 
+  test('Should change action button when data-action changes', function() {
+    this.container.innerHTML = '<gaia-header></gaia-header>';
+    var element = this.container.firstElementChild;
+    var button = element.shadowRoot.getElementById('action-button');
+    var buttonInner = element.shadowRoot.getElementById('action-button-inner');
+    assert.equal(button.style.display, 'none');
+    element.dataset.action = "back";
+    assert.equal(button.style.display, 'block');
+    assert.isTrue(buttonInner.classList.contains("icon-back"));
+    element.dataset.action = "menu";
+    assert.equal(button.style.display, 'block');
+    assert.isTrue(buttonInner.classList.contains("icon-menu"));
+    element.dataset.action = "";
+    assert.equal(button.style.display, 'none');
+  });
+
+  test('Should add/remove class when `data-skin` changes', function() {
+    this.container.innerHTML = '<gaia-header data-skin="foo"></gaia-header>';
+    var element = this.container.firstElementChild;
+    var header = element.shadowRoot.querySelector('section');
+    assert.isTrue(header.classList.contains('skin-foo'));
+    element.dataset.skin = "bar";
+    assert.isTrue(header.classList.contains('skin-bar'));
+    assert.isTrue(!header.classList.contains('skin-foo'));
+  });
+
   suite('style', function() {
     setup(function() {
 
@@ -158,6 +184,18 @@ suite('GaiaHeader', function() {
 
       element.addEventListener('action', callback);
       element._onActionButtonClick();
+      this.clock.tick(1);
+
+      assert.equal(callback.args[0][0].detail.type, 'menu');
+    });
+
+    test('triggerAction() should cause a `click` on action button', function() {
+      this.container.innerHTML = '<gaia-header data-action="menu"></gaia-header>';
+      var element = this.container.firstElementChild;
+      var callback = sinon.spy();
+
+      element.addEventListener('action', callback);
+      element.triggerAction();
       this.clock.tick(1);
 
       assert.equal(callback.args[0][0].detail.type, 'menu');

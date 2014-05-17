@@ -32,6 +32,10 @@ window.GaiaHeader = (function(win) {
     var shadow = this.createShadowRoot();
 
     this._template = template.content.cloneNode(true);
+    this._header = this._template.getElementById('header');
+    this._button = this._template.getElementById('action-button');
+    this._buttonInner = this._template.getElementById('action-button-inner');
+    
     this._configureActionButton();
     this._configureSkin();
     this._styleHack();
@@ -39,6 +43,28 @@ window.GaiaHeader = (function(win) {
     shadow.appendChild(this._template);
   };
 
+  /**
+   * Called when one of the attributes on the element changes.
+   *
+   * @private
+   */
+  proto.attributeChangedCallback = function(attr, oldVal, newVal) {
+    if (attr === 'data-action') {
+      this._configureActionButton(oldVal);
+    } else if (attr === 'data-skin') {
+      this._configureSkin(oldVal);
+    }
+  };
+
+  /**
+   * When called, trigger the action button.
+   */
+  proto.triggerAction = function() {
+    if (this._button.style.display === 'block') {
+      this._button.click();
+    }
+  };
+  
   /**
    * We clone the scoped stylesheet and append
    * it outside the shadow-root so that we can
@@ -64,24 +90,27 @@ window.GaiaHeader = (function(win) {
    *
    * @private
    */
-  proto._configureActionButton = function() {
-    var button = this._template.getElementById('action-button');
+  proto._configureActionButton = function(oldAction) {
     var type = this.dataset.action;
 
     // TODO: Action button should be
     // hidden by default then shown
     // only with supported action types
     if (!type || !actionTypes[type]) {
-      button.style.display = 'none';
+      this._button.style.display = 'none';
       return;
     }
+    this._button.style.display = 'block';
 
+    // Remove previous icon class from inner
+    if (oldAction) {
+      this._buttonInner.classList.remove('icon-' + oldAction);
+    }
     // Add icon class to inner
-    var inner = this._template.getElementById('action-button-inner');
-    inner.classList.add('icon-' + type);
+    this._buttonInner.classList.add('icon-' + type);
 
-    button.dataset.action = type;
-    button.addEventListener('click', proto._onActionButtonClick.bind(this));
+    this._button.dataset.action = type;
+    this._button.addEventListener('click', proto._onActionButtonClick.bind(this));
   };
 
   /**
@@ -90,11 +119,15 @@ window.GaiaHeader = (function(win) {
    *
    * @private
    */
-  proto._configureSkin = function() {
+  proto._configureSkin = function(oldSkin) {
+    // Remove previous skin class
+    if (oldSkin) {
+      this._header.parentNode.classList.remove('skin-' + oldSkin);
+    }
+    // Add skin class
     var skin = this.dataset.skin;
     if (skin) {
-      var header = this._template.getElementById('header');
-      header.parentNode.classList.add('skin-' + skin);
+      this._header.parentNode.classList.add('skin-' + skin);
     }
   };
 
