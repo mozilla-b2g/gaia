@@ -1,19 +1,11 @@
+// Internet Sharing Test
 'use strict';
-/* global asyncStorage */
-/* global IccHelper */
-/* global InternetSharing */
-/* global MockIccHelper */
-/* global MockL10n */
-/* global MocksHelper */
-/* global MockNavigatorSettings */
 
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp(
-  'system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/js/internet_sharing.js');
 
 var mocksForInternetSharing = new MocksHelper([
   'asyncStorage',
@@ -32,9 +24,9 @@ suite('internet sharing > ', function() {
   const TEST_ICCID1 = 'iccid-1';
   const TEST_ICCID2 = 'iccid-2';
 
-  var realSettings, realL10n, subject;
+  var realSettings, realL10n;
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     // Unfortunately, for asyncStorage scoping reasons, we can't simply
     // use 'attachTestHelpers' anywhere in the internet sharing tests.
     mocksForInternetSharing.suiteSetup();
@@ -43,8 +35,7 @@ suite('internet sharing > ', function() {
     navigator.mozSettings = MockNavigatorSettings;
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    subject = new InternetSharing();
-    subject.start();
+    requireApp('system/js/internet_sharing.js', done);
   });
 
   suiteTeardown(function() {
@@ -69,8 +60,8 @@ suite('internet sharing > ', function() {
   }
   // helper to change card state
   function changeCardState(state, iccid) {
-    MockIccHelper.mProps.cardState = state;
-    MockIccHelper.mProps.iccInfo = {'iccid': iccid};
+    MockIccHelper.mProps['cardState'] = state;
+    MockIccHelper.mProps['iccInfo'] = {'iccid': iccid};
     MockIccHelper.mTriggerEventListeners('cardstatechange', {});
   }
   // helper to change single key-value of mozSettings
@@ -97,7 +88,7 @@ suite('internet sharing > ', function() {
       var mObservers = MockNavigatorSettings.mObservers;
 
       assert.ok(
-        mEventListeners.cardstatechange.length > 0);
+        mEventListeners['cardstatechange'].length > 0);
       assert.ok(
         mObservers[KEY_USB_TETHERING].length > 0);
       assert.ok(
@@ -109,7 +100,7 @@ suite('internet sharing > ', function() {
       var mEventListeners = MockIccHelper.mEventListeners;
       var mObservers = MockNavigatorSettings.mObservers;
       assert.ok(
-        mEventListeners.cardstatechange.length > 0);
+        mEventListeners['cardstatechange'].length > 0);
       assert.ok(
         mObservers[KEY_USB_TETHERING].length > 0);
       assert.ok(
@@ -122,7 +113,7 @@ suite('internet sharing > ', function() {
       var mEventListeners = MockIccHelper.mEventListeners;
       var mObservers = MockNavigatorSettings.mObservers;
       assert.ok(
-        mEventListeners.cardstatechange.length > 0);
+        mEventListeners['cardstatechange'].length > 0);
       assert.ok(
         mObservers[KEY_USB_TETHERING].length > 0);
       assert.ok(
@@ -140,19 +131,19 @@ suite('internet sharing > ', function() {
       // ready state, wait for iccInfo ready.
       var mEventListeners = MockIccHelper.mEventListeners;
       assert.ok(MockIccHelper.oniccinfochange ||
-                mEventListeners.iccinfochange.length == 1);
+                mEventListeners['iccinfochange'].length == 1);
 
       // add iccInfo
-      MockIccHelper.mProps.iccInfo = {dummy: 'dummyValue'};
+      MockIccHelper.mProps['iccInfo'] = {dummy: 'dummyValue'};
       MockIccHelper.mTriggerEventListeners('iccinfochange', {});
       assert.ok(MockIccHelper.oniccinfochange ||
-                mEventListeners.iccinfochange.length == 1);
+                mEventListeners['iccinfochange'].length == 1);
 
       // add iccid
-      MockIccHelper.mProps.iccInfo = {iccid: TEST_ICCID1};
+      MockIccHelper.mProps['iccInfo'] = {iccid: TEST_ICCID1};
       MockIccHelper.mTriggerEventListeners('iccinfochange', {});
       assert.ok(!MockIccHelper.oniccinfochange ||
-                mEventListeners.iccinfochange.length === 0);
+                mEventListeners['iccinfochange'].length == 0);
 
       var testSet = [{'key': KEY_USB_TETHERING, 'result': false},
                      {'key': KEY_WIFI_HOTSPOT, 'result': false}];
@@ -171,8 +162,8 @@ suite('internet sharing > ', function() {
     // user remove sim 1
     test('sim1 removed', function() {
       changeCardState(null, null);
-      IccHelper.mProps.cardState = null;
-      IccHelper.mProps.iccInfo = {};
+      IccHelper.mProps['cardState'] = null;
+      IccHelper.mProps['iccInfo'] = {};
       IccHelper.mTriggerEventListeners('cardstatechange', {});
       var testSet = [{'key': KEY_USB_TETHERING, 'result': false},
                      {'key': KEY_WIFI_HOTSPOT, 'result': false}];

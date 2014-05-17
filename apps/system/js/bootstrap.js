@@ -9,8 +9,7 @@
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
-         HomeSearchbar, SoftwareButtonManager, Accessibility,
-         InternetSharing */
+         HomeSearchbar, SoftwareButtonManager, Accessibility */
 
 'use strict';
 
@@ -106,8 +105,6 @@ window.addEventListener('load', function startup() {
   window.dialerAgent = new DialerAgent().start();
   window.homeGesture = new HomeGesture().start();
   window.homeSearchbar = new HomeSearchbar();
-  window.internetSharing = new InternetSharing();
-  window.internetSharing.start();
   window.layoutManager = new LayoutManager().start();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
