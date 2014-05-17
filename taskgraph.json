@@ -14,12 +14,46 @@
         "payload": {
           "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
           "command": [
-            "./bin/github make test-integration REPORTER=mocha-tbpl-reporter"
+            "./bin/github ./bin/ci run marionette_js"
           ]
         },
         "tags": {
           "treeherderProject": "gaia",
           "treeherderSymbol": "GI"
+        }
+      }
+    },
+    "gaia ui tests": {
+      "task": {
+        "metadata": {
+          "name": "Gaia UI tests"
+        },
+        "payload": {
+          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
+          "command": [
+            "./bin/github ./bin/ci run gaia_ui_tests"
+          ]
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "GU"
+        }
+      }
+    },
+    "gaia unit tests in firefox": {
+      "task": {
+        "metadata": {
+          "name": "gaia unit tests in firefox"
+        },
+        "payload": {
+          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
+          "command": [
+            "./bin/github ./bin/ci run unit-tests-in-firefox"
+          ]
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "GU"
         }
       }
     },
@@ -31,7 +65,7 @@
         "payload": {
           "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
           "command": [
-            "./bin/github ./tests/travis_ci/build_tests/script"
+            "./bin/github ./bin/ci build_tests"
           ]
         },
         "tags": {
@@ -48,7 +82,7 @@
         "payload": {
           "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
           "command": [
-            "./bin/github make hint"
+            "./bin/github ./bin/ci linters"
           ]
         },
         "tags": {
