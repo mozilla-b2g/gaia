@@ -6,6 +6,40 @@
   "tags": {},
   "params": {},
   "tasks": {
+    "gaia unit tests in firefox": {
+      "task": {
+        "metadata": {
+          "name": "gaia unit tests in firefox"
+        },
+        "payload": {
+          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
+          "command": [
+            "./bin/github 'make node_modules && ./tests/travis_ci/unit-tests-in-firefox/install && ./tests/travis_ci/unit-tests-in-firefox/before_script && ./tests/travis_ci/unit-tests-in-firefox/script'"
+          ]
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "G"
+        }
+      }
+    },
+    "gaia ui tests": {
+      "task": {
+        "metadata": {
+          "name": "gaia ui tests"
+        },
+        "payload": {
+          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
+          "command": [
+            "./bin/github './tests/travis_ci/gaia_ui_tests/install && ./tests/travis_ci/gaia_ui_tests/script'"
+          ]
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "GU"
+        }
+      }
+    },
     "marionette integration tests": {
       "task": {
         "metadata": {
@@ -14,7 +48,7 @@
         "payload": {
           "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
           "command": [
-            "./bin/github make test-integration REPORTER=mocha-tbpl-reporter"
+            "./bin/github make test-integration"
           ]
         },
         "tags": {
