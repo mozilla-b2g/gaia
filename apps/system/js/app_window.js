@@ -551,6 +551,9 @@
     // Launched as background: set visibility and overlay screenshot.
     if (this.config.stayBackground) {
       this.setVisible(false, true /* screenshot */);
+    } else if (this.isHomescreen) {
+      // homescreen is launched at background under FTU/lockscreen too.
+      this.setVisible(false);
     }
 
     /**

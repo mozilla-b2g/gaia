@@ -248,6 +248,15 @@ suite('system/AppWindow', function() {
       new AppWindow(fakeAppConfigBackground); // jshint ignore:line
       sinon.assert.calledWith(visibleSpy, false, true);
     });
+
+    test('homescreen is launched at background', function() {
+      var renderSpy = this.sinon.stub(AppWindow.prototype, 'render');
+      var app = new AppWindow(fakeAppConfig1);
+      renderSpy.restore();
+      app.isHomescreen = true;
+      app.render();
+      sinon.assert.calledWith(visibleSpy, false);
+    });
   });
 
   suite('Orientations', function() {
