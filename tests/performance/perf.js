@@ -12,7 +12,6 @@ const excludedApps = [
   'communications/import', 'communications/live', // part of other apps
   'communications', // not an app
   'costcontrol', // XXX FIXME. Hang for now. See bug 971438
-  'camera', // XXX FIXME. hang too often. See bug 971771
   'email/shared', // not an app
   'template', // XXX not a real thing.
   'system/test/marionette/fullscreen-app', // some test app.
