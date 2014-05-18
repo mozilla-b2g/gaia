@@ -394,6 +394,7 @@ void function() {
           onCollectionVisible();
         } else {
           el.addEventListener('transitionend', onCollectionVisible);
+          el.clientLeft; // force reflow
           el.classList.add('visible');
         }
 
