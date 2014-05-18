@@ -835,6 +835,11 @@ function copyRec(source, target) {
   }
 }
 
+function createZip() {
+  var zip = Cc['@mozilla.org/zipwriter;1'].createInstance(Ci.nsIZipWriter);
+  return zip;
+}
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -860,6 +865,7 @@ exports.getNewURI = getNewURI;
 exports.getOsType = getOsType;
 exports.generateUUID = generateUUID;
 exports.copyRec = copyRec;
+exports.createZip = createZip;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;
