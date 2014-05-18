@@ -131,11 +131,6 @@ body:not(.rb-enabled) #rocketbar {
   display: none;
 }
 
-#search.appWindow {
-  top: 0;
-}
-
-
 /**
  * Style overrides for the HomeSearchbar
  */
