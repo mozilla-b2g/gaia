@@ -1,0 +1,50 @@
+{
+  "name": "Collection",
+  "description": "Collection Manager",
+  "type": "certified",
+  "launch_path": "/testpage/testpage.html",
+  "orientation": "default",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "activities": {
+    "create-collection": {
+      "filters": {},
+      "disposition": "inline",
+      "href": "/create.html",
+      "returnValue": true
+    },
+    "update-collection": {
+      "filters": {},
+      "disposition": "inline",
+      "href": "/update.html",
+      "returnValue": true
+    },
+    "delete-collection": {
+      "filters": {},
+      "disposition": "inline",
+      "href": "/delete.html",
+      "returnValue": true
+    },
+    "view-collection": {
+      "filters": {},
+      "disposition": "inline",
+      "href": "/view.html",
+      "returnValue": true
+    }
+  },
+  "locales": {
+    "en-US": {
+      "name": "Collection",
+      "description": "Collection Manager"
+    }
+  },
+  "default_locale": "en-US",
+  "datastores-owned": {
+    "collections_store": {
+      "access": "readwrite",
+      "description": "Stores collections"
+    }
+  }
+}

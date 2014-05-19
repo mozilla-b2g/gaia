@@ -25,9 +25,9 @@
   "activities": {},
   "messages": [],
   "datastores-access": {
-    "bookmarks_store": {
+    "collections_store": {
       "readonly": true,
-      "description": "Display bookmarks"
+      "description": "Display collections"
     }
   }
 }

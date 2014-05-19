@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+
+    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
+
+    <link rel="stylesheet" href="/shared/style/confirm.css">
+    <link rel="stylesheet" href="/shared/style/progress_activity.css">
+    <link rel="stylesheet" href="/style/css/create.css">
+
+
+    <script defer src="/shared/js/l10n.js"></script>
+    <script defer src="/shared/js/lazy_loader.js"></script>
+    <script defer src="/shared/js/settings_listener.js"></script>
+    <script defer src="/shared/js/collections_database.js"></script>
+    <script defer src="/shared/js/async_storage.js"></script>
+
+    <script defer src="/shared/js/everythingme/eme.js"></script>
+    <script defer src="/shared/js/everythingme/cache.js"></script>
+    <script defer src="/shared/js/everythingme/api.js"></script>
+
+    <script defer src="/js/objects.js"></script>
+    <script defer src="/js/suggestions.js"></script>
+    <script defer src="/js/activities.js"></script>
+
+    <script defer src="testpage.js"></script>
+
+    <style>
+      #bgimage {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 1;
+      }
+
+      #content {
+        position: relative;
+        z-index: 2;
+      }
+      #collections-select {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <form id="loading" role="dialog" data-type="confirm">
+      <section>
+        <h1 data-l10n-id="loading"></h1>
+        <p><progress></progress></p>
+      </section>
+      <menu>
+        <button id="cancel" data-l10n-id="cancel" class="full" type="button"></button>
+      </menu>
+    </form>
+
+    <img id="bgimage"></img>
+
+    <div id="content">
+      <H1>COLLECTION TEST PAGE</H1>
+      <span id="close"></span>
+
+      <button id="create-collection">Create</button>
+      <button id="view-collection">View 'Games'</button>
+      <button id="clear">Clear</button>
+
+      <select id="collections-select" multiple="true"></select>
+
+      <div id="icons"></div>
+    </div>
+  </body>
+</html>

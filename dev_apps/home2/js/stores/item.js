@@ -1,7 +1,8 @@
 'use strict';
 /* global ApplicationSource */
 /* global Bookmark */
-/* global BookmarkSource */
+/* global Collection */
+/* global CollectionSource */
 /* global dispatchEvent */
 /* global Divider */
 
@@ -34,9 +35,11 @@
 
   function ItemStore() {
     this.applicationSource = new ApplicationSource(this);
-    this.bookmarkSource = new BookmarkSource(this);
+    /*this.bookmarkSource = new BookmarkSource(this);*/
+    this.collectionSource = new CollectionSource(this);
 
-    this.sources = [this.applicationSource, this.bookmarkSource];
+    this.sources = [this.applicationSource, /*this.bookmarkSource,*/
+      this.collectionSource];
 
     this.ready = false;
 
@@ -146,6 +149,9 @@
           } else if (thisItem.type === 'bookmark') {
             var bookmark = new Bookmark(thisItem);
             this._allItems.push(bookmark);
+          } else if (thisItem.type === 'collection') {
+            var collection = new Collection(thisItem);
+            this._allItems.push(collection);
           }
         }
 
