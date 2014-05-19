@@ -345,7 +345,6 @@ li a[role="button"].activity > b{
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* PULLS: Float an element to the desired position; */
