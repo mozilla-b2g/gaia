@@ -68,8 +68,8 @@ suite('Media Frame Unit Tests', function() {
       var preview = {
         'start': 1,
         'end': 2,
-        'width': 1000,
-        'height': 1000
+        'width': 1600,
+        'height': 1200
       };
       frame.displayImage(dummyBlob, 1600, 1200, preview, 0, false);
       assert.isTrue(frame.displayingPreview);
