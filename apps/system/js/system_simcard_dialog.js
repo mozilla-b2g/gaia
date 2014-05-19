@@ -66,8 +66,6 @@
                '<div class="input-wrapper">' +
                  '<input name="xckpin" type="number" size="16" ' +
                  'maxlength="16" />' +
-                 '<input name="xckpinVis" type="text" size="16" ' +
-                 'maxlength="16" />' +
                '</div>' +
              '</div>' +
              //<!-- new sim pin input field -->
