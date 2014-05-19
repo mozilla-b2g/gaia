@@ -12,7 +12,8 @@
     "open-remote-window":{},
     "storage": {},
     "webapps-manage": {},
-    "systemXHR": {}
+    "systemXHR": {},
+    "settings":{ "access": "readwrite" }
   },
   "default_locale": "en-US",
   "icons": {

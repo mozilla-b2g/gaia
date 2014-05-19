@@ -38,3 +38,7 @@ body[data-cols="4"] .icon .title {
 #confirmation-message.fade-out {
   display: none;
 }
+
+#contextmenu-dialog {
+  display: none;
+}
