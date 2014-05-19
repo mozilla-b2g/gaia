@@ -126,7 +126,12 @@ CameraController.prototype.onSettingsConfigured = function() {
   debug('camera configured with final settings');
 
   // TODO: Move to a new StorageController (or App?)
-  var maxFileSize = (pictureSize.width * pictureSize.height * 4) + 4096;
+  //
+  // It is very unlikely that a JPEG file will have a file size that is
+  // more than half a byte per pixel. There is some fixed EXIF overhead
+  // that is the same for small and large pictures, however, so we add
+  // an additional 25,000 bytes of padding.
+  var maxFileSize = (pictureSize.width * pictureSize.height / 2) + 25000;
   this.storage.setMaxFileSize(maxFileSize);
 };
 
