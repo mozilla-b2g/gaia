@@ -64,13 +64,13 @@ suite('GaiaHeader', function() {
     var button = element.shadowRoot.getElementById('action-button');
     var buttonInner = element.shadowRoot.getElementById('action-button-inner');
     assert.equal(button.style.display, 'none');
-    element.dataset.action = "back";
+    element.dataset.action = 'back';
     assert.equal(button.style.display, 'block');
-    assert.isTrue(buttonInner.classList.contains("icon-back"));
-    element.dataset.action = "menu";
+    assert.isTrue(buttonInner.classList.contains('icon-back'));
+    element.dataset.action = 'menu';
     assert.equal(button.style.display, 'block');
-    assert.isTrue(buttonInner.classList.contains("icon-menu"));
-    element.dataset.action = "";
+    assert.isTrue(buttonInner.classList.contains('icon-menu'));
+    element.dataset.action = '';
     assert.equal(button.style.display, 'none');
   });
 
@@ -79,7 +79,7 @@ suite('GaiaHeader', function() {
     var element = this.container.firstElementChild;
     var header = element.shadowRoot.querySelector('section');
     assert.isTrue(header.classList.contains('skin-foo'));
-    element.dataset.skin = "bar";
+    element.dataset.skin = 'bar';
     assert.isTrue(header.classList.contains('skin-bar'));
     assert.isTrue(!header.classList.contains('skin-foo'));
   });
