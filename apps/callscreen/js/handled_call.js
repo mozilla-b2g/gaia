@@ -326,7 +326,7 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
   if (this._leftGroup) {
     LazyL10n.get(function localized(_) {
       CallScreen.showStatusMessage(_('caller-left-call',
-        {caller: self._cachedInfo}));
+        {caller: self._cachedInfo.toString()}));
     });
     self._leftGroup = false;
   }
