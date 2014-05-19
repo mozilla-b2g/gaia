@@ -22,8 +22,8 @@
       Applications.init();
 
       // Widget lifecycle management
-      window.widgetFactory = new WidgetFactory();
-      window.widgetManager = new WidgetManager().start();
+      this.widgetFactory = new WidgetFactory();
+      this.widgetManager = new WidgetManager().start();
 
       // App List
       this.appList = new AppList({
@@ -49,9 +49,13 @@
       $('widget-editor-open-button').addEventListener('click', this);
       $('widget-editor-close-button').addEventListener('click', this);
 
-      this._loadWidgetConfig((function(configs) {
+      // init widget map and load widget
+      this.currentWidgetList = [];
+      this._loadWidgetConfig(function(configs) {
+        this._updateWidgets(configs);
         this.widgetEditor.loadWidgets(configs);
-      }).bind(this));
+      });
+      this._inited = true;
     },
 
     initLayoutEditor: function(widgetContainer, widgetEditorUI,
@@ -64,8 +68,8 @@
       this.layoutEditor.init(layoutContainer,
                         {
                           // tell layout editor the offset info
-                          top: widgetContainer.offsetTop,
-                          left: widgetContainer.offsetLeft,
+                          top: 0,
+                          left: 0,
                           // tell layout editor the target width/height
                           width: widgetContainer.clientWidth,
                           height: widgetContainer.clientHeight,
@@ -97,6 +101,7 @@
     },
 
     handleEvent: function HS_HandleEvent(evt) {
+      var savedConfigs;
       switch(evt.type) {
         case 'click':
           switch (evt.target.id) {
@@ -111,7 +116,11 @@
               break;
             case 'widget-editor-close-button':
               this.widgetEditor.hide();
-              this._saveWidgetConfig(this.layoutEditor.exportConfig());
+              if (this._inited) {
+                savedConfigs = this._saveWidgetConfig(
+                                              this.layoutEditor.exportConfig());
+                this._updateWidgets(savedConfigs);
+              }
               break;
           }
           break;
@@ -121,6 +130,9 @@
         case 'visibilitychange':
           if (document.visibilityState === 'visible') {
             this.appList.hide();
+            this.widgetManager.showAll();
+          } else {
+            this.widgetManager.hideAll();
           }
           break;
       }
@@ -132,10 +144,65 @@
         config.static || forSave.push(config);
       });
       window.asyncStorage.setItem('widget-configs', forSave);
+      return forSave;
     },
 
     _loadWidgetConfig: function HS_loadWidgetConfig(callback) {
       window.asyncStorage.getItem('widget-configs', callback);
+    },
+
+    _updateWidgets: function HS_updateWidgets(newCfgs) {
+
+      function comparer(a, b) {
+        return a.positionId - b.positionId;
+      }
+
+      var oldCfgs = this.currentWidgetList;
+      var newCfgs = newCfgs || [];
+      oldCfgs.sort(comparer);
+      newCfgs.sort(comparer);
+
+      var oldIdx = 0;
+      var newIdx = 0;
+
+      // to iterate all oldCfg + newCfg.
+      while (oldIdx < oldCfgs.length || newIdx < newCfgs.length) {
+        if (oldIdx < oldCfgs.length && newIdx === newCfgs.length) {
+          // no more newCfgs, all oldCfgs should be removed
+          this.widgetManager.remove(oldCfgs[oldIdx].widget.instanceID);
+          oldIdx++;
+        } else if (oldIdx === oldCfgs.length && newIdx < newCfgs.length) {
+          // no more oldCfgs, all newCfgs should be added
+          newCfgs[newIdx].widget = this.widgetFactory.createWidget(
+                                                               newCfgs[newIdx]);
+          newIdx++;
+        } else if (oldCfgs[oldIdx].positionId < newCfgs[newIdx].positionId) {
+          // oldCfgs[oldIdx] should be removed
+          this.widgetManager.remove(oldCfgs[oldIdx].widget.instanceID);
+          oldIdx++;
+        } else if (oldCfgs[oldIdx].positionId === newCfgs[newIdx].positionId) {
+          var oldApp = oldCfgs[oldIdx].app;
+          var newApp = newCfgs[newIdx].app;
+          // index the same compare manifestURL and entryPoint
+          if (oldApp.manifestURL !== newApp.manifestURL ||
+              oldApp.entryPoint !== newApp.entryPoint) {
+            this.widgetManager.remove(oldCfgs[oldIdx].widget.instanceID);
+            newCfgs[newIdx].widget = this.widgetFactory.createWidget(
+                                                               newCfgs[newIdx]);
+          } else {
+            newCfgs[newIdx] = oldCfgs[oldIdx];
+          }
+          oldIdx++;
+          newIdx++;
+        } else if (oldCfgs[oldIdx].positionId > newCfgs[newIdx].positionId) {
+          // newCfgs[newIdx] should be added.
+          newCfgs[newIdx].widget = this.widgetFactory.createWidget(
+                                                               newCfgs[newIdx]);
+          newIdx++;
+        }
+      }
+      // save newCfgs as our widget list.
+      this.currentWidgetList = newCfgs;
     }
   };
 
