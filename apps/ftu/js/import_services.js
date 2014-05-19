@@ -153,7 +153,7 @@ var FacebookConfiguration = function FacebookConfiguration() {
   };
 
   window.config = {};
-  utils.config.load('/contacts/config.json').then(function cReady(configData) {
+  utils.config.load('/config.json').then(function cReady(configData) {
     if (configData.facebookEnabled === true) {
       enableFacebook();
     } else {

@@ -8,7 +8,7 @@
   (function(window){
     var Loader = window.CommonResourceLoader = {},
         host = document.location.host,
-        domain = host.replace(/(^[\w\d-]+\.)?([\w\d]+\.[a-z]+)/, 'test-agent.$2');
+        domain = host;
 
     Loader.domain = document.location.protocol + '//' + domain;
     Loader.url = function(url){
