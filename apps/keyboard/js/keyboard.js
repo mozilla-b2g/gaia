@@ -223,7 +223,6 @@ const HIDE_KEYBOARD_TIMEOUT = 500;
 var deleteTimeout = 0;
 var deleteInterval = 0;
 var menuTimeout = 0;
-var hideKeyboardTimeout = 0;
 
 // Special key codes
 const BASIC_LAYOUT = -1;
@@ -331,7 +330,7 @@ function initKeyboard() {
   // And observe mutation events on the renderer element
   dimensionsObserver.observe(IMERender.ime, {
     childList: true, // to detect changes in IMEngine
-    attributes: true, attributeFilter: ['class', 'style', 'data-hidden']
+    attributes: true, attributeFilter: ['class', 'style']
   });
 
   window.addEventListener('hashchange', function() {
@@ -737,7 +736,7 @@ function modifyLayout(keyboardName) {
 // keyboardName to produce a currentLayout that is different than the base
 // layout for keyboardName
 //
-function renderKeyboard(keyboardName, callback) {
+function renderKeyboard(keyboardName) {
   perfTimer.printTime('renderKeyboard');
   perfTimer.startTimer('renderKeyboard');
 
@@ -785,10 +784,6 @@ function renderKeyboard(keyboardName, callback) {
   isKeyboardRendered = true;
 
   perfTimer.printTime('BLOCKING renderKeyboard', 'renderKeyboard');
-
-  if (callback) {
-    callback();
-  }
 }
 
 function setUpperCase(upperCase, upperCaseLocked) {
@@ -1617,8 +1612,6 @@ function replaceSurroundingText(text, offset, length) {
 function showKeyboard() {
   perfTimer.printTime('showKeyboard');
 
-  clearTimeout(hideKeyboardTimeout);
-
   inputContext = navigator.mozInputMethod.inputcontext;
 
   resetKeyboard();
@@ -1662,9 +1655,7 @@ function showKeyboard() {
 
     // render the keyboard after activation, which will determine the state
     // of uppercase/suggestion, etc.
-    renderKeyboard(keyboardName, function() {
-      IMERender.showIME();
-    });
+    renderKeyboard(keyboardName);
   }
 
   Promise.all([inputContextGetTextPromise, imEngineSettingsInitPromise])
@@ -1681,14 +1672,6 @@ function hideKeyboard() {
   if (!isKeyboardRendered)
     return;
 
-  clearTimeout(hideKeyboardTimeout);
-
-  // For quick blur/focus events we don't want to hide the IME div
-  // to avoid flickering and such
-  hideKeyboardTimeout = setTimeout(function() {
-    IMERender.hideIME();
-  }, HIDE_KEYBOARD_TIMEOUT);
-
   deactivateInputMethod();
 
   isKeyboardRendered = false;
@@ -1703,8 +1686,9 @@ function hideKeyboard() {
 // Resize event handler
 function onResize() {
   perfTimer.printTime('onResize');
-  if (IMERender.ime.dataset.hidden)
+  if (document.mozHidden) {
     return;
+  }
 
   IMERender.resizeUI(currentLayout);
   updateTargetWindowHeight(); // this case is not captured by the mutation

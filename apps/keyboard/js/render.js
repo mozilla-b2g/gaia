@@ -275,14 +275,6 @@ const IMERender = (function() {
     }
   };
 
-  var showIME = function hm_showIME() {
-    delete ime.dataset.hidden;
-  };
-
-  var hideIME = function km_hideIME() {
-    ime.dataset.hidden = 'true';
-  };
-
   var getAriaLabel = function mk_getAriaLabel(key) {
     var _ = navigator.mozL10n ?
       navigator.mozL10n.get : function() { return ''; };
@@ -1048,8 +1040,6 @@ const IMERender = (function() {
     get menu() {
       return menu;
     },
-    'hideIME': hideIME,
-    'showIME': showIME,
     'highlightKey': highlightKey,
     'unHighlightKey': unHighlightKey,
     'showAlternativesCharMenu': showAlternativesCharMenu,
