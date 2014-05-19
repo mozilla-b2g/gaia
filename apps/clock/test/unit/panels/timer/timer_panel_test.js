@@ -66,14 +66,16 @@ suite('Timer.Panel', function() {
   test('update ', function() {
     var panel = new Timer.Panel(document.createElement('div'));
 
+    // The timer panel should display rounded seconds.
     panel.update(10000);
-
-    // TODO: update for l10n
     assert.equal(panel.nodes.time.textContent, '00:00:10');
-
-    panel.update(0);
-
-    // TODO: update for l10n
+    panel.update( 9555);
+    assert.equal(panel.nodes.time.textContent, '00:00:10');
+    panel.update( 9499);
+    assert.equal(panel.nodes.time.textContent, '00:00:09');
+    panel.update(  500);
+    assert.equal(panel.nodes.time.textContent, '00:00:01');
+    panel.update(    0);
     assert.equal(panel.nodes.time.textContent, '00:00:00');
   });
 
