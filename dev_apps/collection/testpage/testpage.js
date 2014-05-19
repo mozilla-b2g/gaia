@@ -1,7 +1,10 @@
 (function() {
   var activity = {
     source: {
-      categoryId: 207 // games
+      data: {
+        categoryId: 207, // games
+        name: 'Games'
+      }
     },
     postResult: function() {},
     postError: function() {}
@@ -16,11 +19,15 @@
 
   document.getElementById('create-collection').addEventListener('click',
     function() {
+      activity.source.name = 'create-collection';
       HandleCreate(activity);
     });
 
   document.getElementById('view-collection').addEventListener('click',
     function() {
-      Activities['view-collection'](activity);
+      activity.source.name = 'view-collection';
+      eme.init().then(function() {
+        HandleView(activity);
+      })
     });
 })();
