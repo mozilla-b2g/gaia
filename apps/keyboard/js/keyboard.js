@@ -31,106 +31,6 @@
  *  * **layout.js**: defines data structures that represent keyboard layouts
  *  * **render.js**: creates the on-screen keyboard with HTML and CSS
  *
- * Input methods are in subdirectories of imes/.  The latin input method
- * in imes/latin/ provides word suggestions, auto capitalization, and
- * punctuation assistance.
- *
- * Each input method implements the following interface which the keyboard
- * uses to communicate with it. init() and click() are the only two required
- * methods; the keyboard checks that other methods are defined before
- * invoking them:
- *
- *    init(keyboard):
- *      Keyboard is the object that the IM uses to communicate with the keyboard
- *
- *    activate(language, suggestionsEnabled, inputstate):
- *      The keyboard calls this method when it becomes active.
- *      language is the current language.  suggestionsEnabled
- *      specifies whether the user wants word suggestions inputstate
- *      is an object that holds the state of the input field or
- *      textarea being typed into.  it includes content, cursor
- *      position and type and inputmode attributes.
- *
- *    deactivate():
- *      Called when the keyboard is hidden.
- *
- *    empty:
- *      Clear any currently displayed candidates/suggestions.
- *      The latin input method does not use this, and it is not clear
- *      to me whether the Asian IMs need it either.
- *
- *    click(keycode, x, y):
- *      This is the main method: the keyboard calls this each time the
- *      user taps a key. The keyboard does not actually generate any
- *      key events until the input method tells it to. The x and y coordinate
- *      arguments can be used to improve the IM's word suggestions, in
- *      conjunction with the layout data from setLayoutParams().
- *      The coordinates aren't passed for the Backspace key, however.
- *
- *    select(word, data):
- *      Called when the user selects a displayed candidate or word suggestion.
- *
- *    setLayoutParams(params):
- *      Gives the IM information about the onscreen coordinates of
- *      each key. Used with latin IM only.  Can be used with click
- *      coordinates to improve predictions, but it may not currently
- *      be used.
- *
- *    getMoreCandidates(indicator, maxCount, callback):
- *      (optional) Called when the render needs more candidates to show on the
- *      candidate panel.
- *
- * The init method of each IM is passed an object that it uses to
- * communicate with the keyboard. That interface object defines the following
- * properties and methods:
- *
- *    path:
- *      A url that the IM can use to load dictionaries or other resources
- *
- *    sendCandidates(candidates):
- *      A method that makes the keyboard display candidates or suggestions
- *
- *    setComposition(symbols, cursor):
- *      Set current composing text. This method will start composition or update
- *      composition if it has started.
- *
- *    endComposition(text):
- *      End composition, clear the composing text and commit given text to
- *      current input field.
- *
- *    sendKey(keycode, isRepeat):
- *      Generate output. Typically the keyboard will just pass this
- *      keycode to inputcontext.sendKey(). The IM could call
- *      inputcontext.sendKey() directly, but doing it this way allows
- *      us to chain IMs, I think.
- *
- *    sendString(str):
- *      Outputs a string of text by repeated calls to sendKey().
- *
- *    alterKeyboard(layout):
- *      Allows the IM to modify the keyboard layout by specifying a new layout
- *      name. Only used by asian ims currently.
- *
- *    setLayoutPage():
- *      Allows the IM to switch between default and symbol layouts on the
- *      keyboard. Used by the latin IM.
- *
- *    setUpperCase(upperCase, upperCaseLocked):
- *      Allows the IM to switch between uppercase and lowercase layout on the
- *      keyboard. Used by the latin IM.
- *        - upperCase: to enable the upper case or not.
- *        - upperCaseLocked: to change the caps lock state.
- *
- *    resetUpperCase():
- *      Allows the IM to reset the upperCase to lowerCase without knowing the
- *      internal states like caps lock and current layout page while keeping
- *      setUpperCase simple as it is.
- *
- *    getNumberOfCandidatesPerRow():
- *      Allow the IM to know how many candidates the Render need in one row so
- *      the IM can reduce search time and run the remaining process when
- *      "getMoreCandidates" is called.
- *
  */
 
 'use strict';
@@ -138,17 +38,6 @@
 var perfTimer = new PerformanceTimer();
 perfTimer.start();
 perfTimer.printTime('keyboard.js');
-
-// InputMethod modules register themselves in this object
-const InputMethods = {};
-
-// The default input method is trivial: when the keyboard passes a key
-// to it, it just sends that key right back. Real input methods implement
-//  a number of other methods
-const defaultInputMethod = {
-  click: sendKey,
-  displaysCandidates: function() { return false; }
-};
 
 var inputContext = null;
 
