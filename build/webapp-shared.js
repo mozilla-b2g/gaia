@@ -265,6 +265,34 @@ WebappShared.prototype.pushElements = function(path) {
   }
   var pathInStage = 'shared/elements/' + path;
   this.moveToBuildDir(file, pathInStage);
+
+  // Handle image assets for web components
+  var paths = path.split('/');
+  if (paths.length <= 1) {
+    return;
+  }
+
+  var elementName = String(paths.shift());
+
+  // Only handle web components for now (start with gaia-)
+  if (elementName.indexOf('gaia-') !== 0) {
+    return;
+  }
+
+  // Copy possible resources from components.
+  var resources = ['style.css', 'images'];
+  resources.forEach(function(resource) {
+    var eachFile = this.gaia.sharedFolder.clone();
+    eachFile.append('elements');
+    eachFile.append(elementName);
+    eachFile.append(resource);
+
+    if (eachFile.exists()) {
+      var stagePath = 'shared/' + eachFile.getRelativeDescriptor(
+        this.gaia.sharedFolder);
+      this.moveToBuildDir(eachFile, stagePath);
+    }
+  }, this);
 };
 
 WebappShared.prototype.pushFileByType = function(kind, path) {
