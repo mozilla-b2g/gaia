@@ -10,13 +10,7 @@
 
     'remove-collection': function(activity) {
       alert('Removing collection!');
-    },
-
-    'view-collection': function(activity) {
-      document.getElementById('close').addEventListener('click', function() {
-        activity.postResult(true);
-      });
-    },
+    }
   };
 
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/shared/style/confirm.css">
     <link rel="stylesheet" href="/shared/style/progress_activity.css">
     <link rel="stylesheet" href="/style/css/create.css">
+    <link rel="stylesheet" href="/style/css/view.css">
 
 
     <script defer src="/shared/js/l10n.js"></script>
@@ -16,6 +17,20 @@
     <script defer src="/shared/js/settings_listener.js"></script>
     <script defer src="/shared/js/collections_database.js"></script>
     <script defer src="/shared/js/async_storage.js"></script>
+    <script src="/shared/js/async_storage.js"></script>
+    <script src="/shared/elements/gaia_grid/js/icon_retriever.js"></script>
+
+
+    <script defer src="/shared/js/url_helper.js"></script>
+    <script defer src="/shared/elements/gaia_grid/js/grid_view.js"></script>
+    <script defer src="/shared/elements/gaia_grid/js/items/grid_item.js"></script>
+    <script defer src="/shared/elements/gaia_grid/js/items/bookmark.js"></script>
+    <script defer src="/shared/elements/gaia_grid/js/items/divider.js"></script>
+    <script defer src="/shared/elements/gaia_grid/js/items/icon.js"></script>
+    <script defer src="/shared/elements/gaia_grid/js/grid_layout.js"></script>
+    <script defer src="/shared/elements/gaia_grid/js/grid_dragdrop.js"></script>
+    <script defer src="/shared/elements/gaia_grid/js/grid_zoom.js"></script>
+    <script defer src="/shared/elements/gaia_grid/script.js"></script>
 
     <script defer src="/shared/js/everythingme/eme.js"></script>
     <script defer src="/shared/js/everythingme/cache.js"></script>
@@ -25,6 +40,7 @@
     <script defer src="/js/suggestions.js"></script>
     <script defer src="/js/activities.js"></script>
     <script defer src="/js/create_collection.js"></script>
+    <script defer src="/js/view_collection.js"></script>
 
     <script defer src="testpage.js"></script>
 
@@ -33,19 +49,6 @@
         display: none;
       }
 
-      #bgimage {
-        position: absolute;
-        top: 0;
-        right: 0;
-        left: 0;
-        bottom: 0;
-        z-index: 1;
-      }
-
-      #content {
-        position: relative;
-        z-index: 2;
-      }
       #collections-select {
         display: none;
       }
@@ -62,19 +65,28 @@
       </menu>
     </form>
 
-    <img id="bgimage">
+    <H1>COLLECTION TEST PAGE</H1>
+    <span id="close"></span>
 
-    <div id="content">
-      <H1>COLLECTION TEST PAGE</H1>
-      <span id="close"></span>
+    <button id="create-collection">Create</button>
+    <button id="view-collection">View 'Games'</button>
+    <button id="clear">Clear</button>
 
-      <button id="create-collection">Create</button>
-      <button id="view-collection">View 'Games'</button>
-      <button id="clear">Clear</button>
-
+    <div id="create-collection">
       <select id="collections-select" multiple="true"></select>
+    </div>
 
-      <div id="icons"></div>
+    <div id="view-collection">
+      <div id="bgimage"></div>
+
+      <div id="header">
+          <span id="name"></span>
+          <a href="#" id="close">Close</a>
+      </div>
+
+      <div id="content">
+          <gaia-grid id="grid" dragdrop></gaia-grid>
+      </div>
     </div>
   </body>
 </html>

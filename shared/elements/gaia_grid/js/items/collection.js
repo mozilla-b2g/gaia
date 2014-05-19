@@ -15,7 +15,8 @@
       type: 'collection',
       name: collection.name,
       id: collection.id,
-      categoryId: collection.categoryId
+      categoryId: collection.categoryId,
+      query: collection.query
     };
   }
 
@@ -75,11 +76,7 @@
     launch: function() {
       var activity = new MozActivity({
         name: 'view-collection',
-        data: {
-          type: 'folder',
-          id: this.detail.id,
-          categoryId: this.detail.categoryId
-        }
+        data: this.detail
       });
 
       window.dispatchEvent(new CustomEvent('gaiagrid-collection-open'));
@@ -99,10 +96,7 @@
     edit: function() {
       new MozActivity({
         name: 'update-collection',
-        data: {
-          type: 'folder',
-          id: this.detail.id
-        }
+        data: this.detail
       });
     },
 
@@ -112,10 +106,7 @@
     remove: function() {
       new MozActivity({
         name: 'delete-collection',
-        data: {
-          type: 'folder',
-          id: this.detail.id
-        }
+        data: this.detail
       });
     }
   };
