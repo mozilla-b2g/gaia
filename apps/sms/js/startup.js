@@ -44,6 +44,18 @@ navigator.mozL10n.ready(function localized() {
     }
   );
 
+  // Re-translate the placeholder messages
+  Array.prototype.forEach.call(
+    document.getElementsByClassName('js-l10n-placeholder'),
+    function(element) {
+      var id = element.getAttribute('id');
+
+      var l10nId = Utils.camelCase(id);
+      element.dataset.placeholder =
+        navigator.mozL10n.get(l10nId + '_placeholder');
+    }
+  );
+
 });
 
 window.addEventListener('load', function() {
