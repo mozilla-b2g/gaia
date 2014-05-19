@@ -705,7 +705,7 @@ var ThreadListUI = {
     // Append 'time-update' state
     headerDOM.dataset.timeUpdate = 'repeat';
     headerDOM.dataset.time = timestamp;
-    headerDOM.dataset.isThread = true;
+    headerDOM.dataset.dateOnly = true;
 
     // Create UL DOM Element
     var threadsContainerDOM = document.createElement('ul');

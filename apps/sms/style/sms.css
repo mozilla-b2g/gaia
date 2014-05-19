@@ -418,12 +418,14 @@ section.has-carrier .article-list header:first-child {
   display: none;
 }
 
+/* Set padding bottom to 1 rem because .5rem is added by the line-height,
+   which adds up and gives 1.5rem for the whole visible bottom padding */
 .article-list[data-type="list"] .message .bubble {
   overflow: visible;
   -moz-box-sizing: border-box;
   max-width: calc(100% - 4rem);
   height: 100%;
-  padding: 1.5rem;
+  padding: 1.5rem 1.5rem 1rem;
 
   background: #fff;
 }
@@ -616,6 +618,17 @@ ul.message-list {
 
 .article-list[data-type="list"] .message .bubble p a:active {
   color: #FF4E00;
+}
+
+.bubble time {
+  /* TODO: We might need to remove time element display: block in root.css */
+  display: block;
+
+  color: #000;
+  opacity: 0.7;
+  font-size: 1.4rem;
+  font-style: italic;
+  line-height: 2.3rem;
 }
 
 /*

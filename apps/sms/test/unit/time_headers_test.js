@@ -28,7 +28,7 @@ suite('TimeHeaders > ', function() {
       this.sinon.spy(TimeHeaders, 'update');
 
       var additionalDataset = [
-        'data-is-thread="true"',
+        'data-date-only="true"',
         'data-hour-only="true"',
         ''
       ];
@@ -251,7 +251,7 @@ suite('TimeHeaders > ', function() {
     });
 
     test('date header', function() {
-      subject.dataset.isThread = 'true';
+      subject.dataset.dateOnly = 'true';
       TimeHeaders.update(subject);
 
       var content = subject.textContent;
