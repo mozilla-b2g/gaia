@@ -446,6 +446,7 @@ suite('system/ShrinkingUI', function() {
     var stubEnableSlidingCover =
       this.sinon.stub(ShrinkingUI, '_enableSlidingCover');
     var stubSetTip = this.sinon.stub(ShrinkingUI, '_setTip');
+    var stubStop = this.sinon.stub(ShrinkingUI, 'stop');
     var stubSendSlideTo =
       this.sinon.stub(ShrinkingUI, '_sendingSlideTo', function(y, cb){
         assert.equal(y, 'BOTTOM');
@@ -454,10 +455,12 @@ suite('system/ShrinkingUI', function() {
 
         assert.isTrue(stubEnableSlidingCover.called);
         assert.isTrue(stubSetTip.called);
+        assert.isTrue(stubStop.called);
 
         stubEnableSlidingCover.restore();
         stubSetTip.restore();
         stubSendSlideTo.restore();
+        stubStop.restore();
 
         done();
       });
