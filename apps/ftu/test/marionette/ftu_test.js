@@ -1,7 +1,7 @@
 'use strict';
 
 marionette('First Time Use >', function() {
-  var FTU = 'app://communications.gaiamobile.org';
+  var FTU = 'app://ftu.gaiamobile.org';
 
   var client = marionette.client();
 

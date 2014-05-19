@@ -7,11 +7,11 @@ require(
   '/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
-requireApp('communications/ftu/test/unit/mock_ui_manager.js');
-requireApp('communications/ftu/test/unit/mock_l10n.js');
+requireApp('ftu/test/unit/mock_ui_manager.js');
+requireApp('ftu/test/unit/mock_l10n.js');
 
-requireApp('communications/ftu/js/sim_manager.js');
-requireApp('communications/ftu/js/navigation.js');
+requireApp('ftu/js/sim_manager.js');
+requireApp('ftu/js/navigation.js');
 
 require('/shared/test/unit/load_body_html_helper.js');
 
@@ -47,7 +47,7 @@ suite('sim mgmt >', function() {
   };
 
   suiteSetup(function() {
-    loadBodyHTML('/ftu/index.html');
+    loadBodyHTML('/index.html');
 
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = MockNavigatorMozIccManager;

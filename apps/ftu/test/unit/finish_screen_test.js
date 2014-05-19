@@ -2,10 +2,10 @@
 
 'use strict';
 
-requireApp('communications/ftu/test/unit/mock_screenlayout.js');
+requireApp('ftu/test/unit/mock_screenlayout.js');
 
-requireApp('communications/ftu/js/finish_screen.js');
-requireApp('communications/ftu/js/utils.js');
+requireApp('ftu/js/finish_screen.js');
+requireApp('ftu/js/utils.js');
 
 suite('FinishScreen >', function() {
   var mocksHelperForFTU = new MocksHelper([
@@ -16,14 +16,14 @@ suite('FinishScreen >', function() {
 
   suiteSetup(function() {
     mocksHelperForFTU.attachTestHelpers();
-    loadBodyHTML('/ftu/index.html');
+    loadBodyHTML('/index.html');
   });
 
   suiteTeardown(function() {
     document.body.innerHTML = '';
   });
 
- 
+
   test(' init', function() {
     this.sinon.spy(window, 'close');
     // We call to FinishScreen
