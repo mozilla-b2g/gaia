@@ -183,8 +183,7 @@ suite('InputMethodLoader', function() {
       }
     };
 
-    var loader = new InputMethodLoader();
-    loader.app = {};
+    var loader = new InputMethodLoader({});
     loader.start();
 
     assert.equal(!!window.InputMethods.foo, false, 'original removed');
@@ -196,9 +195,8 @@ suite('InputMethodLoader', function() {
   test('loadInputMethod', function(done) {
     window.InputMethods = {};
 
-    var loader = new InputMethodLoader();
+    var loader = new InputMethodLoader({});
     loader.SOURCE_DIR = './fake-imes/';
-    loader.app = {};
     loader.start();
 
     var p = loader.loadInputMethod('foo');
@@ -217,9 +215,8 @@ suite('InputMethodLoader', function() {
   test('loadInputMethod (failed)', function(done) {
     window.InputMethods = {};
 
-    var loader = new InputMethodLoader();
+    var loader = new InputMethodLoader({});
     loader.SOURCE_DIR = './fake-imes/';
-    loader.app = {};
     loader.start();
 
     var p = loader.loadInputMethod('bar');
@@ -237,9 +234,8 @@ suite('InputMethodLoader', function() {
   test('loadInputMethod (twice)', function(done) {
     window.InputMethods = {};
 
-    var loader = new InputMethodLoader();
+    var loader = new InputMethodLoader({});
     loader.SOURCE_DIR = './fake-imes/';
-    loader.app = {};
     loader.start();
 
     var p = loader.loadInputMethod('foo');
@@ -276,8 +272,7 @@ suite('InputMethodManager', function() {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager();
-    manager.app = {};
+    var manager = new InputMethodManager({});
     manager.start();
 
     assert.equal(manager.loader.app, manager.app);
@@ -289,8 +284,7 @@ suite('InputMethodManager', function() {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager();
-    manager.app = {};
+    var manager = new InputMethodManager({});
     manager.start();
     manager.loader.SOURCE_DIR = './fake-imes/';
 
@@ -323,8 +317,7 @@ suite('InputMethodManager', function() {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager();
-    manager.app = {};
+    var manager = new InputMethodManager({});
     manager.start();
     manager.loader.SOURCE_DIR = './fake-imes/';
 
@@ -349,8 +342,7 @@ suite('InputMethodManager', function() {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager();
-    manager.app = {};
+    var manager = new InputMethodManager({});
     manager.start();
     manager.loader.SOURCE_DIR = './fake-imes/';
 
@@ -379,8 +371,7 @@ suite('InputMethodManager', function() {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager();
-    manager.app = {};
+    var manager = new InputMethodManager({});
     manager.start();
     manager.loader.SOURCE_DIR = './fake-imes/';
 
@@ -405,8 +396,7 @@ suite('InputMethodManager', function() {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager();
-    manager.app = {};
+    var manager = new InputMethodManager({});
     manager.start();
     manager.loader.SOURCE_DIR = './fake-imes/';
 
@@ -441,8 +431,7 @@ suite('InputMethodManager', function() {
       'default': realInputMethods['default']
     };
 
-    var manager = new InputMethodManager();
-    manager.app = {};
+    var manager = new InputMethodManager({});
     manager.start();
     manager.loader.SOURCE_DIR = './fake-imes/';
     var loadInputMethodSpy = this.sinon.spy(manager.loader, 'loadInputMethod');

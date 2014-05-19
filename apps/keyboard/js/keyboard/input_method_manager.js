@@ -6,8 +6,8 @@
  * InputMethodManager manages life cycle of input methods.
  *
  * These input methods should have lived in their own worker scopes eventually,
- * (they loads their own workers currently any way), however we still loods them
- * into the main loop now, so it is given the oppotinuty to provide sync
+ * (they loads their own workers currently any way), however we still loads them
+ * into the main loop now, so it is given the opportunity to provide sync
  * feedback.
  *
  * ## Input methods
@@ -190,7 +190,8 @@ InputMethodGlue.prototype.getNumberOfCandidatesPerRow = function() {
   return this.app.getNumberOfCandidatesPerRow();
 };
 
-var InputMethodLoader = function() {
+var InputMethodLoader = function(app) {
+  this.app = app;
 };
 
 InputMethodLoader.prototype.SOURCE_DIR = './js/imes/';
@@ -262,14 +263,14 @@ InputMethodLoader.prototype.initInputMethod = function(imEngineName) {
   imEngine.init(glue);
 };
 
-var InputMethodManager = function InputMethodManager() {
+var InputMethodManager = function InputMethodManager(app) {
   this._targetIMEngineName = null;
   this.currentIMEngine = null;
+  this.app = app;
 };
 
 InputMethodManager.prototype.start = function() {
-  this.loader = new InputMethodLoader();
-  this.loader.app = this.app;
+  this.loader = new InputMethodLoader(this.app);
   this.loader.start();
 
   this.currentIMEngine = this.loader.getInputMethod('default');
@@ -278,7 +279,7 @@ InputMethodManager.prototype.start = function() {
 };
 
 /*
- * Switch switchCurrentIMEngine() will switch the current method the the
+ * Switch switchCurrentIMEngine() will switch the current method to the
  * desired IMEngine.
  *
  * This method returns a promise.
