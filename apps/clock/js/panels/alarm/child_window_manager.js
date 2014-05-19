@@ -1,8 +1,6 @@
 define(function(require) {
   'use strict';
 
-  var Utils = require('utils');
-
   const READY_EVENT_TYPE = 'childWindowReady';
 
   /**
@@ -56,11 +54,10 @@ define(function(require) {
      */
     whenReady: function(callback) {
       if (!this.childWindow || this.childWindow.closed) {
-        Utils.safeWakeLock({ timeoutMs: 30000 }, (releaseCpu) => {
-          this.childWindow = window.open(this.url, '_blank', 'attention');
-          this.childWindowReady = false;
-          this.releaseCpuLock = releaseCpu;
-        });
+        var lock = navigator.requestWakeLock('cpu');
+        this.releaseCpuLock = lock.unlock.bind(lock);
+        this.childWindow = window.open(this.url, '_blank', 'attention');
+        this.childWindowReady = false;
       }
       if (this.childWindowReady) {
         callback();
