@@ -648,8 +648,13 @@
   transition-property: none;
 }
 
-#screen.rocketbar-expanded .appWindow:not(.fullscreen-app).active iframe {
+#screen.rocketbar-expanded:not(.on-homescreen) #windows >
+  .appWindow:not(.fullscreen-app).active iframe {
   transform: translateY(2.4rem);
+}
+
+#search.appWindow {
+  top: 0;
 }
 
 #screen.locked.rocketbar-expanded .appWindow.active iframe,
