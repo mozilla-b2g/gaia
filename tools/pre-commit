@@ -108,4 +108,25 @@ then
   fi
 fi
 
+############################### CSP Lint #####################################
+
+csp_changed_files=`git diff --staged --name-only --diff-filter=ACMRT -- apps shared/ | egrep '\.js$|\.html$' | tr '\n' ' '`
+if [ -n "$csp_changed_files" ]
+then
+  XULRUNNER_SDK=$(make xulrunner_sdk)
+  XPCSHELL_SDK=$(make xpcshell_sdk)
+
+  GAIA_DIR=$(pwd) $XULRUNNER_SDK $XPCSHELL_SDK \
+    -f build/xpcshell-commonjs.js \
+    -e "quit(require('csplint').CSPLintFiles('$(pwd)', '$csp_changed_files'));"
+
+  if [ $? -ne 0 ]
+  then
+    echo "There were errors while linting the files, please see above."
+    exit 1
+  fi
+fi
+
+
+
 echo "No errors - committing"
