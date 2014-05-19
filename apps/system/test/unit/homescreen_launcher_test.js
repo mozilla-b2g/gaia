@@ -236,5 +236,34 @@ suite('system/HomescreenLauncher', function() {
         contains('on-homescreen'));
       window.homescreenLauncher._screen = null;
     });
+
+    suite('software-button-*; resize the homescreenwindow', function() {
+      var isResizeCalled, stubGetHomescreen;
+
+      setup(function() {
+        isResizeCalled = false;
+        stubGetHomescreen = this.sinon.stub(window.homescreenLauncher,
+          'getHomescreen',
+          function() {
+            return {'resize': function() {
+              isResizeCalled = true;
+            }};
+          });
+      });
+
+      test('enabled', function() {
+        window.homescreenLauncher.handleEvent({
+          type: 'software-button-enabled'
+        });
+        assert.isTrue(isResizeCalled);
+      });
+
+      test('disabled', function() {
+        window.homescreenLauncher.handleEvent({
+          type: 'software-button-disabled'
+        });
+        assert.isTrue(isResizeCalled);
+      });
+    });
   });
 });
