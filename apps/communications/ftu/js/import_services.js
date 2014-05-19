@@ -57,6 +57,8 @@ var ImportIntegration = {
       'fb_after_import2'));
   },
 
+  _contactsNotified: false,
+
   init: function fb_init() {
     this.fbImportButton.addEventListener('click', this);
     this.liveImportButton.addEventListener('click', this);
@@ -79,9 +81,41 @@ var ImportIntegration = {
         break;
       case 'fb_imported':
         this.toggleToImportedState();
-        this.updateContactsNumber();
+        // Here we establish a connection to the comms app in order to propagate
+        // token data and the number of imported friends in order to have
+        // consistency
+        this.updateContactsNumber(this.notifyContactsApp.bind(this));
         break;
     }
+  },
+
+  notifyContactsApp: function fb_notifyContactsApp(imported, total) {
+    // Avoid to notify multiple times
+    if (this._contactsNotified) {
+      return;
+    }
+
+    this._contactsNotified = true;
+
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+
+      window.asyncStorage.getItem(fb.utils.TOKEN_DATA_KEY, function(data) {
+        app.connect('ftu-connection').then(function onConnAccepted(ports) {
+          // Get the token data info to attach to message
+          var message = {
+            totalFriends: total,
+            importedFriends: imported,
+            tokenData: data
+          };
+          ports.forEach(function(port) {
+            port.postMessage(message);
+          });
+        }, function onConnRejected(reason) {
+            console.error('Cannot notify Contacts: ', reason);
+        });
+      });
+    };
   },
 
   checkImport: function fb_check(nextState) {
@@ -109,7 +143,7 @@ var ImportIntegration = {
     this.fbImport.parentNode.classList.remove('importOption');
   },
 
-  updateContactsNumber: function fb_ucn() {
+  updateContactsNumber: function fb_ucn(cb) {
     this.fbImportFeedback.textContent = _('fb-checking');
 
     var self = this;
@@ -130,9 +164,11 @@ var ImportIntegration = {
       var callbackListener = {
         'local': function localContacts(number) {
           fbUpdateTotals(friendsOnDevice, number);
+          window.setTimeout(cb, 0, friendsOnDevice, number);
         },
         'remote': function remoteContacts(number) {
           fbUpdateTotals(friendsOnDevice, number);
+          window.setTimeout(cb, 0, friendsOnDevice, number);
         }
       };
       fb.utils.numFbFriendsData(callbackListener);
