@@ -144,7 +144,8 @@ module.exports = {
     exclude: {
       aspects: ['5:3', '11:9', '16:9']
     },
-    persistent: true
+    persistent: true,
+    optionsLocalizable: false,
   },
 
   pictureSizesBack: {
@@ -160,7 +161,8 @@ module.exports = {
       keys: ['1920x1088'],
       aspects: ['5:3', '11:9', '16:9'],
     },
-    persistent: true
+    persistent: true,
+    optionsLocalizable: false,
   },
 
   recorderProfilesBack: {
@@ -169,7 +171,8 @@ module.exports = {
     icon: 'icon-video-size',
     options: [],
     exclude: ['high', '1080p'],
-    persistent: true
+    persistent: true,
+    optionsLocalizable: false,
   },
 
   recorderProfilesFront: {
@@ -177,7 +180,8 @@ module.exports = {
     header: 'video-resolution-header',
     icon: 'icon-video-size',
     options: [],
-    persistent: true
+    persistent: true,
+    optionsLocalizable: false,
   },
 
   flashModesPicture: {

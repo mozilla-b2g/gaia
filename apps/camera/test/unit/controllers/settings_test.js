@@ -396,7 +396,7 @@ suite('SettingsController#configureRecorderProfiles()', function() {
         .returns(this.options);
 
       this.app.localized.returns(true);
-      this.controller.localize.withArgs('mp').returns('MP');
+      this.controller.l10nGet.withArgs('mp').returns('MP');
 
       // Call the test subject
       this.controller.formatPictureSizeTitles();
@@ -416,7 +416,7 @@ suite('SettingsController#configureRecorderProfiles()', function() {
     });
 
     test('Should use localized \'MP\' string', function() {
-      this.controller.localize
+      this.controller.l10nGet
         .withArgs('mp')
         .returns('MP-LOCALIZED');
 

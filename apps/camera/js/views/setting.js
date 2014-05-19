@@ -45,14 +45,19 @@ module.exports = View.extend({
     return this;
   },
 
-  localize: function(value) {
-    return this.l10n.get(value) || value;
-  },
-
   template: function(data) {
+    var value;
+
+    // some data items are not to be localized
+    if (data.optionsLocalizable === false) {
+      value = data.value;
+    } else {
+      value = this.l10n.get(data.value);
+    }
+
     return '<div class="setting_text">' +
-      '<h4 class="setting_title">' + this.localize(data.title) + '</h4>' +
-      '<h5 class="setting_value">' + this.localize(data.value) + '</h5>' +
+      '<h4 class="setting_title">' + this.l10n.get(data.title) + '</h4>' +
+      '<h5 class="setting_value">' + value + '</h5>' +
     '</div>';
   },
 });
