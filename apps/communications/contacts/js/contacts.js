@@ -105,11 +105,12 @@ var Contacts = (function() {
         });
         break;
       default:
-        asyncStorage.getItem('draft', function onDraftGot(draft) {
+        asyncStorage.getItem('draft', function onDraft(draft) {
           if (!draft) {
             showApp();
             return;
           }
+          draft = JSON.parse(draft);
           initForm(function onInitForm() {
             var id = draft.id;
             if (!id || id === 'undefined') {
