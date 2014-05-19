@@ -31,7 +31,7 @@ module.exports = {
     continuousAutoFocus: true,
     // The user can select the area of the image
     // where the camera is going to try to focus the scene.
-    touchFocus: false,
+    touchFocus: true,
     // The camera detects faces and tries to focus
     // on them.
     faceTracking: false
