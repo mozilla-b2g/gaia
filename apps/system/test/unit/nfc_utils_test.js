@@ -1,11 +1,11 @@
 'use strict';
 
 /* globals MocksHelper, MozNDEFRecord, NDEF,
-           NfcUtils, NfcManagerUtils, NfcBuffer */
+           NfcUtils, NDEFUtils, NfcBuffer */
 
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 require('/shared/js/nfc_utils.js');
-requireApp('system/js/nfc_manager_utils.js');
+requireApp('system/js/ndef_utils.js');
 
 
 var mocksForNfcUtils = new MocksHelper([
@@ -119,11 +119,11 @@ suite('NFC Utils', function() {
     });
   });
 
-  suite('NfcManagerUtils', function() {
+  suite('NDEFUtils', function() {
      test('Encode and Parse Handover Request', function() {
       var mac = '01:02:03:04:05:06';
       var cps = 0x2;
-      var hrNDEFs1 = NfcManagerUtils.encodeHandoverRequest(mac, cps);
+      var hrNDEFs1 = NDEFUtils.encodeHandoverRequest(mac, cps);
       assert.equal(!!hrNDEFs1, true);
       var hrNDEFU8a1 = NfcUtils.encodeNDEF(hrNDEFs1);
       assert.equal(!!hrNDEFU8a1, true);
@@ -142,7 +142,7 @@ suite('NFC Utils', function() {
     test('Encode and Parse Handover Select', function() {
       var mac = '01:02:03:04:05:06';
       var cps = 0x2;
-      var hsNDEFs1 = NfcManagerUtils.encodeHandoverSelect(mac, cps);
+      var hsNDEFs1 = NDEFUtils.encodeHandoverSelect(mac, cps);
       assert.equal(!!hsNDEFs1, true);
 
       var hsNDEFU8a1 = NfcUtils.encodeNDEF(hsNDEFs1);

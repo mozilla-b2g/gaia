@@ -17,7 +17,6 @@ requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_nfc.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_settingslistener_installer.js');
-requireApp('system/js/nfc_manager_utils.js');
 requireApp('system/js/nfc_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 

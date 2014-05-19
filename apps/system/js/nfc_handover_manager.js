@@ -3,7 +3,7 @@
 
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
-/* globals dump, BluetoothTransfer, NfcManagerUtils, NfcConnectSystemDialog */
+/* globals dump, BluetoothTransfer, NDEFUtils, NfcConnectSystemDialog */
 /* exported NfcHandoverManager */
 'use strict';
 
@@ -157,13 +157,13 @@ var NfcHandoverManager = {
   },
 
   getBluetoothSSP: function getBluetoothSSP(ndef) {
-    var handover = NfcManagerUtils.parseHandoverNDEF(ndef);
+    var handover = NDEFUtils.parseHandoverNDEF(ndef);
     if (handover == null) {
       // Bad handover message. Just ignore.
       this.debug('Bad handover messsage');
       return null;
     }
-    var btsspRecord = NfcManagerUtils.searchForBluetoothAC(handover);
+    var btsspRecord = NDEFUtils.searchForBluetoothAC(handover);
     if (btsspRecord == null) {
       // There is no Bluetooth Alternative Carrier record in the
       // Handover Select message. Since we cannot handle WiFi Direct,
@@ -171,7 +171,7 @@ var NfcHandoverManager = {
       this.debug('No BT AC');
       return null;
     }
-    return NfcManagerUtils.parseBluetoothSSP(btsspRecord);
+    return NDEFUtils.parseBluetoothSSP(btsspRecord);
   },
 
   doPairing: function doPairing(mac) {
@@ -217,7 +217,7 @@ var NfcHandoverManager = {
     var nfcPeer = this.nfc.getNFCPeer(session);
     var carrierPowerState = this.bluetooth.enabled ? 1 : 2;
     var mac = this.defaultAdapter.address;
-    var hs = NfcManagerUtils.encodeHandoverSelect(mac, carrierPowerState);
+    var hs = NDEFUtils.encodeHandoverSelect(mac, carrierPowerState);
     var req = nfcPeer.sendNDEF(hs);
     var self = this;
     req.onsuccess = function() {
@@ -248,7 +248,7 @@ var NfcHandoverManager = {
       var nfcPeer = this.nfc.getNFCPeer(session);
       var carrierPowerState = this.bluetooth.enabled ? 1 : 2;
       var mac = this.defaultAdapter.address;
-      var hr = NfcManagerUtils.encodeHandoverRequest(mac, carrierPowerState);
+      var hr = NDEFUtils.encodeHandoverRequest(mac, carrierPowerState);
       var req = nfcPeer.sendNDEF(hr);
       req.onsuccess = function() {
         self.debug('sendNDEF(hr) succeeded');
@@ -324,7 +324,7 @@ var NfcHandoverManager = {
   handleSimplifiedPairingRecord: function handleSimplifiedPairingRecord(ndef) {
     this.debug('handleSimplifiedPairingRecord');
     var pairingRecord = ndef[0];
-    var btssp = NfcManagerUtils.parseBluetoothSSP(pairingRecord);
+    var btssp = NDEFUtils.parseBluetoothSSP(pairingRecord);
     this.debug('Simplified pairing with: ' + btssp.mac);
     this.onRequestConnect(btssp);
   },
