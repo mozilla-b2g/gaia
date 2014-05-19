@@ -103,6 +103,12 @@ if (!window.FacebookConnector) {
     }
 
     function setInfraForSync(existingContacts, friendsImported, callback) {
+      // From the FTU the infra for sync will not be loaded
+      if (!fb.sync) {
+        (typeof callback === 'function') && callback();
+        return;
+      }
+
       // Check wether we need to set the update alarm
       window.asyncStorage.getItem(fb.utils.ALARM_ID_KEY, function(data) {
         if (!data || (existingContacts && existingContacts.length === 0) &&

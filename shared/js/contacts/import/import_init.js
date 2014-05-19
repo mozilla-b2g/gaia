@@ -3,6 +3,8 @@
 'use strict';
 
 (function(document) {
+  var params = parseParams(window.location.search.substring(1));
+
   var serviceName = getServiceName();
   var allowedOrigin = location.origin;
 
@@ -13,7 +15,7 @@
       paramsList = paramsStr.split('&');
     }
     else {
-      paramsList = [paramsStr.substring(1)];
+      paramsList = [paramsStr];
     }
     paramsList.forEach(function(param) {
       var paramsValues = param.split('=');
@@ -24,7 +26,6 @@
   }
 
   function getServiceName() {
-    var params = parseParams(window.location.search);
     return params.service;
   }
 
@@ -51,9 +52,11 @@
                    '/shared/js/contacts/import/facebook/fb_query.js',
                    '/shared/js/contacts/import/facebook/fb_contact.js',
                    '/shared/js/contacts/import/facebook/facebook_connector.js',
-                   '/facebook/js/fb_sync.js',
-                   '/contacts/style/fb/facebook.css'
+                   '/shared/pages/import/style/facebook.css'
       ];
+      if (!params.ftu) {
+        files.push('/facebook/js/fb_sync.js');
+      }
       LazyLoader.load(files, function() {
         cb(FacebookConnector);
       });
