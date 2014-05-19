@@ -109,10 +109,9 @@ var GaiaApps = {
           let currentEntryPoint = entryPoints[ep];
 
           let locales = currentEntryPoint.locales;
-          if(locales){
-            for (let loc in locales){
-              let locale = locales[loc];
-              let appName = locale.name;
+          if (locales) {
+            for (let locale in locales){
+              let appName = locales[locale].name;
               if (appName && normalizedSearchName === GaiaApps.normalizeName(appName)) {
                 return GaiaApps.sendLocateResponse(callback, app, currentEntryPoint.name, ep);
               }
@@ -126,9 +125,8 @@ var GaiaApps = {
       } else {
         let locales = app.manifest.locales;
         if(locales){
-            for (let loc in locales){
-              let locale = locales[loc];
-              let appName = locale.name;
+            for (let locale in locales){
+              let appName = locales[locale].name;
               if (appName && normalizedSearchName === GaiaApps.normalizeName(appName)) {
                 return GaiaApps.sendLocateResponse(callback, app, app.manifest.name);
               }
@@ -142,6 +140,52 @@ var GaiaApps = {
       }
     }
     callback(false);
+  },
+
+  locateAppByNameFromList: function(applications, searchName, aCallback){
+    var callback = aCallback || marionetteScriptFinished;
+    let normalizedSearchName = GaiaApps.normalizeName(searchName);
+
+    for (let manifestURL in applications) {
+      let app = applications[manifestURL];
+      let origin = null;
+      let entryPoints = app.manifest.entry_points;
+      if (entryPoints) {
+        for (let ep in entryPoints) {
+          let currentEntryPoint = entryPoints[ep];
+
+          let locales = currentEntryPoint.locales;
+          if (locales) {
+            for (let locale in locales){
+              let appName = locales[locale].name;
+              if (appName && normalizedSearchName === GaiaApps.normalizeName(appName)) {
+                return callback(app, currentEntryPoint.name, ep);
+              }
+            }
+          }
+          let appName = currentEntryPoint.name;
+          if (normalizedSearchName === GaiaApps.normalizeName(appName)) {
+            return callback(app, appName, ep);
+          }
+        }
+      } else {
+        let locales = app.manifest.locales;
+        if(locales){
+            for (let locale in locales){
+              let appName = locales[locale].name;
+              if (appName && normalizedSearchName === GaiaApps.normalizeName(appName)) {
+                return callback(app, app.manifest.name);
+              }
+            }
+        } else {
+          let appName = app.manifest.name;
+          if (normalizedSearchName === GaiaApps.normalizeName(appName)) {
+            return callback(app, appName);
+          }
+        }
+      }
+    }
+  callback(false);
   },
 
   locateWithManifestURL: function(manifestURL, entryPoint, aCallback) {
@@ -239,12 +283,8 @@ var GaiaApps = {
     );
   },
 
-  getLaunchPathForName: function(appName) {
-    let apps = window.wrappedJSObject.applications || window.wrappedJSObject.Applications;
-    let installedApps = apps.installedApps;
+  getLaunchPathForAppName: function(app, appName) {
 
-    for (let manifestURL in installedApps) {
-      let app = installedApps[manifestURL];
       let entryPoints = app.manifest.entry_points;
 
       if (entryPoints) {
@@ -256,33 +296,38 @@ var GaiaApps = {
           }
         }
       } else {
-        let epName = app.manifest.name;
-        if (epName === appName) {
-          return app.manifest.launch_path;
-        }
+        return app.manifest.launch_path;
       }
     }
-    return undefined;
-
   },
 
   launch: function(app, appName, entryPoint) {
     if (app) {
       let origin = app.origin;
-
-      let launch_path = GaiaApps.getLaunchPathForName(appName);
+      let launch_path = GaiaApps.getLaunchPathForAppName(appName);
       let expected_src = origin + launch_path;
+
+      let sendResponse = function(appWindow, name) {
+
+        let origin = appWindow.origin;
+        let result = {
+          frame: (appWindow.browser) ? appWindow.browser.element : appWindow.frame.firstChild,
+          src: (appWindow.browser) ? appWindow.browser.element.src : appWindow.iframe.src,
+          name: appWindow.name,
+          origin: origin};
+          marionetteScriptFinished(result);
+      };
 
       if (GaiaApps.getActiveApp().origin == origin) {
         console.log("app with origin '" + origin + "' is already running");
-        return GaiaApps.displayedApp();
+        GaiaApps.locateAppByNameFromList(GaiaApps.getApps(), appName, sendResponse);
       } else {
         window.addEventListener('appopen', function appOpen() {
           window.removeEventListener('appopen', appOpen);
           waitFor(
             function() {
               console.log("app with origin '" + origin + "' has launched");
-              return GaiaApps.displayedApp();
+              GaiaApps.locateAppByNameFromList(GaiaApps.getApps(), appName, sendResponse);
             },
             function() {
               let app = GaiaApps.getActiveApp();

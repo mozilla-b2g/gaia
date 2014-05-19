@@ -13,7 +13,7 @@ class TestLaunchL10n(GaiaTestCase):
         '''
 
         # set language to non-English
-        self.data_layer.set_setting("language.current", "fr")
+        self.data_layer.set_setting('language.current', 'fr')
 
         for app in ['Clock', 'Phone']:
             self.apps.launch(app)
@@ -27,7 +27,7 @@ class TestLaunchL10n(GaiaTestCase):
         '''
 
         # set language to non-English
-        self.data_layer.set_setting("language.current", "fr")
+        self.data_layer.set_setting('language.current', 'fr')
 
         for app in ['Horloge', u't\xe9l\xe9phone']:
             self.apps.launch(app)
