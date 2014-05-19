@@ -134,6 +134,10 @@ function processFirstQueuedItem() {
 
   videodb.getFile(fileinfo.name, function(file) {
     getMetadata(file, function(metadata) {
+
+      // Before saving , check if vtt DNE or srt exist then convert to vtt
+      (new SubtitleHandler()).setSubtitle(metadata, fileinfo);
+
       // Associate the metadata with this fileinfo object
       fileinfo.metadata = metadata;
 
