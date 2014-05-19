@@ -6,6 +6,14 @@
 
   const activeScaleAdjust = 0.4;
 
+  /* This delay is the time passed once users stop the finger over an icon and
+   * the rearrange is performed */
+  const rearrangeDelay = 30;
+
+  /* The page is scrolled via javascript if an icon is being moved, and is
+   * within a length of a page edge configured by this value */
+  const edgePageThreshold = 50;
+
   var container = document.getElementById('icons');
 
   function DragDrop() {
@@ -45,15 +53,12 @@
      * Sets additional data to make the touchmove handler faster.
      */
     begin: function(e) {
-      if (!this.target || !this.icon) {
-        return;
-      }
-
       // Stop icon launching while we are in active state
       app.stop();
       zoom.stop();
 
-      this.active = true;
+      this.icon.noTransform = true;
+      this.rearrangeDelay = null;
       this.enterEditMode();
       container.classList.add('dragging');
       this.target.classList.add('active');
@@ -69,6 +74,36 @@
         this.icon.scale + activeScaleAdjust);
     },
 
+    finish: function(e) {
+      this.currentTouch = null;
+
+      delete this.icon.noTransform;
+      this.icon = null;
+      this.target.classList.remove('active');
+
+      if (this.rearrangeDelay !== null) {
+        clearTimeout(this.rearrangeDelay);
+        this.doRearrange.call(this);
+      } else {
+        app.render();
+      }
+
+      // Save icon state if we need to
+      if (this.dirty) {
+        app.itemStore.save(app.items);
+      }
+
+      this.target = null;
+      this.dirty = false;
+
+      setTimeout(function nextTick() {
+        app.start();
+        zoom.start();
+      });
+
+      container.classList.remove('dragging');
+    },
+
     /**
      * Scrolls the page if needed.
      * The page is scrolled via javascript if an icon is being moved,
@@ -76,14 +111,14 @@
      * @param {Object} e A touch object from a touchmove event.
      */
     scrollIfNeeded: function() {
-      var screenHeight = window.innerHeight;
-      var scrollStep = Math.round(screenHeight / 50);
-
       var touch = this.currentTouch;
       if (!touch) {
         this.isScrolling = false;
         return;
       }
+
+      var screenHeight = window.innerHeight;
+      var scrollStep = Math.round(screenHeight / edgePageThreshold);
 
       function doScroll(amount) {
         /* jshint validthis:true */
@@ -95,9 +130,10 @@
       }
 
       var docScroll = document.documentElement.scrollTop;
-      if (touch.pageY - docScroll > window.innerHeight - 50) {
+      if (touch.pageY - docScroll > screenHeight - edgePageThreshold) {
         doScroll.call(this, scrollStep);
-      } else if (touch.pageY > 0 && touch.pageY - docScroll < 50) {
+      } else if (touch.pageY > 0 &&
+                 touch.pageY - docScroll < edgePageThreshold) {
         doScroll.call(this, 0 - scrollStep);
       } else {
         this.isScrolling = false;
@@ -138,11 +174,18 @@
       // Insert at the found position
       var myIndex = this.icon.detail.index;
       if (foundIndex !== myIndex) {
-        this.dirty = true;
-        this.icon.noRearrange = true;
-        app.items.splice(foundIndex, 0, app.items.splice(myIndex, 1)[0]);
-        app.render();
+        clearTimeout(this.rearrangeDelay);
+        this.doRearrange = this.rearrange.bind(this, myIndex, foundIndex);
+        this.rearrangeDelay = setTimeout(this.doRearrange.bind(this),
+                                         rearrangeDelay);
       }
+    },
+
+    rearrange: function(sIndex, tIndex) {
+      this.rearrangeDelay = null;
+      this.dirty = true;
+      app.items.splice(tIndex, 0, app.items.splice(sIndex, 1)[0]);
+      tIndex < sIndex ? app.render(tIndex, sIndex) : app.render(sIndex, tIndex);
     },
 
     enterEditMode: function() {
@@ -155,6 +198,17 @@
       this.inEditMode = false;
       document.body.classList.remove('edit-mode');
       document.removeEventListener('visibilitychange', this);
+      this.removeDragHandlers();
+    },
+
+    removeDragHandlers: function() {
+      container.removeEventListener('touchmove', this);
+      container.removeEventListener('touchend', this);
+    },
+
+    addDragHandlers: function() {
+      container.addEventListener('touchmove', this);
+      container.addEventListener('touchend', this);
     },
 
     /**
@@ -167,8 +221,13 @@
               this.exitEditMode();
             }
             break;
+
           case 'contextmenu':
             this.target = e.target;
+
+            if (!this.target) {
+              return;
+            }
 
             var identifier = this.target.dataset.identifier;
             this.icon = app.icons[identifier];
@@ -177,73 +236,35 @@
               return;
             }
 
-            container.addEventListener('touchmove', this);
-            container.addEventListener('touchend', this);
+            this.addDragHandlers();
 
             this.begin(e);
 
             break;
+
           case 'touchmove':
             var touch = e.touches[0];
-            if (!this.active && this.timeout) {
-              clearTimeout(this.timeout);
-              return;
-            }
 
-            if (!this.active || !this.icon) {
-              return;
-            }
+            this.positionIcon(touch.pageX, touch.pageY);
 
             this.currentTouch = {
               pageX: touch.pageX,
               pageY: touch.pageY
             };
 
-            this.positionIcon(touch.pageX, touch.pageY);
-
             if (!this.isScrolling) {
               this.scrollIfNeeded();
             }
 
             break;
+            
           case 'touchend':
-            clearTimeout(this.timeout);
-
-            if (!this.active) {
-              return;
-            }
-
             // Ensure the app is not launched
             e.stopImmediatePropagation();
             e.preventDefault();
+            this.removeDragHandlers();
+            this.finish(e);
 
-            this.currentTouch = null;
-            this.active = false;
-
-            delete this.icon.noRearrange;
-            this.icon = null;
-
-            if (this.target) {
-              this.target.classList.remove('active');
-            }
-            app.render();
-
-            // Save icon state if we need to
-            if (this.dirty) {
-              app.itemStore.save(app.items);
-            }
-
-            this.target = null;
-            this.dirty = false;
-
-            setTimeout(function nextTick() {
-              app.start();
-              zoom.start();
-            });
-
-            container.classList.remove('dragging');
-            container.addEventListener('touchmove', this);
-            container.addEventListener('touchend', this);
             break;
         }
     }
