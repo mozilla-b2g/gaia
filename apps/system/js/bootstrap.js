@@ -10,7 +10,7 @@
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
          HomeSearchbar, SoftwareButtonManager, Accessibility,
-         InternetSharing */
+         InternetSharing, TaskManager */
 
 'use strict';
 
@@ -117,6 +117,8 @@ window.addEventListener('load', function startup() {
   window.rocketbar = new Rocketbar();
   window.softwareButtonManager = new SoftwareButtonManager().start();
   window.sourceView = new SourceView();
+  window.taskManager = new TaskManager();
+  window.taskManager.start();
   window.telephonySettings = new TelephonySettings();
   window.telephonySettings.start();
   window.ttlView = new TTLView();

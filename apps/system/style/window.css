@@ -603,6 +603,19 @@
   100% { transform: translateX(100%); }
 }
 
+/* Task Manager */
+#screen.task-manager:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.in-task-manager,
+#screen.task-manager:not(.active-statusbar):not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow.in-task-manager:not(.fullscreen-app) {
+  /* XXX sfoster - watch specificify here
+     Position values are 1/2 because of scaling */
+  top: calc(25% + 2.5rem);
+  margin: 0 auto;
+  overflow: hidden;
+  transform-origin: 50% 0;
+  transform: translateX(99.99%) scale(0.5, 0.5);
+  will-change: transform;
+}
+
 /* Edges */
 #screen.edges #windows > .appWindow:not(.homescreen) {
   /* in the viewport but not really */

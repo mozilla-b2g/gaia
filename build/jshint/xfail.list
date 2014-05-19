@@ -495,7 +495,6 @@ apps/system/test/unit/mock_apps_mgmt.js
 apps/system/test/unit/mock_asyncStorage.js
 apps/system/test/unit/mock_attention_screen.js
 apps/system/test/unit/mock_captive_portal.js
-apps/system/test/unit/mock_cards_view.js
 apps/system/test/unit/mock_chrome_event.js
 apps/system/test/unit/mock_clock.js
 apps/system/test/unit/mock_custom_dialog.js

@@ -88,7 +88,12 @@
     requestOpen: function() {},
     transitionController: {
       clearTransitionClasses: function() {}
-    }
+    },
+    enterTaskManager: function() {},
+    leaveTaskManager: function() {},
+    applyStyle: function() {},
+    unapplyStyle: function() {},
+    transform: function() {}
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];

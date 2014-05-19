@@ -51,16 +51,21 @@
 
 /* Promote the transitioning appWindow to this level as the entry and exiting
  * transition of the cards view. */
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-opening:not(.homescreen),
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-closing.to-cardview:not(.homescreen),
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-opening.fullscreen-app:not(.homescreen),
-#screen.cards-view > [data-z-index-level="app"] > .appWindow.transition-closing.fullscreen-app.to-cardview:not(.homescreen) {
+#screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
+#screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.transition-opening:not(.homescreen),
+#screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.transition-closing.to-cardview:not(.homescreen),
+#screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.transition-opening.fullscreen-app:not(.homescreen),
+#screen.cards-view:not(.task-manager) > [data-z-index-level="app"] > .appWindow.transition-closing.fullscreen-app.to-cardview:not(.homescreen) {
   z-index: 65537;
 }
 
 #screen.cards-view > [data-z-index-level="cards-view"] {
   z-index: 65535;
+}
+
+/* move app windows to sit above homescreen but below task manager */
+#screen.task-manager > #windows > .in-task-manager:not(.homescreen) {
+  z-index: 2043;
 }
 
 /* Keyboard is shown above task manager */
@@ -154,6 +159,10 @@
 
 /* Keep keyboard and edges zones under lockscreen when locked */
 #screen.locked > [data-z-index-level="keyboards"] {
+  z-index: 2044;
+}
+
+#screen.task-manager > #cards-view[data-z-index-level="cards-view"] {
   z-index: 2044;
 }
 

@@ -97,7 +97,7 @@ var TrustedUIManager = {
       // Only one dialog, so transition back to main app.
       var self = this;
       var container = this.popupContainer;
-      if (!CardsView.cardSwitcherIsShown()) {
+      if (!taskManager.isShown()) {
         if (!origin) {
           this._restoreCallerApp(this._lastDisplayedApp);
         }
