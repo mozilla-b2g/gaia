@@ -13,6 +13,7 @@
     "sinon",
     "mocha",
     "loadBodyHTML",
+    "MocksHelper",
     "document"
   ]
 }

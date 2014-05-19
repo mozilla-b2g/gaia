@@ -49,7 +49,23 @@
    * @property {Integer} positionId the id returned by exportConfig.
    * @property {LayoutAppInfo} app the app information which is the same as the
    *                               app argument of addWidget.
+   * @property {Rectangle} rect the rectangle information which is calculated by
+   *                            layout editor.
    * @typedef {Object} LayoutWidgetConfig
+   */
+
+  /**
+   * LayoutPlaceInfo is the data strucutred used inside of LayoutEditor
+   *
+   * @property {DOMElement} elm the dom element which represents this place.
+   * @property {Boolean} static if this property is true, it is a static place.
+   * @property {LayoutAppInfo} app the app information which is the same as the
+   *                               app argument of addWidget.
+   * @property {Integer} left the left position of this place.
+   * @property {Integer} top the top position of this place.
+   * @property {Integer} width the width position of this place.
+   * @property {Integer} height the height position of this place.
+   * @typedef {Object} LayoutPlaceInfo
    */
 
   /**
@@ -125,10 +141,8 @@
 
     /**
      * Exports all widget layout config based on target size.
-     * @return {Array} this method returns an array of object. Each object
-     *                 contains the positionId, static, left, top, width,
-     *                 height, manifestURL and entryPoints. If a place holder
-     *                 doesn't have app associated and not a static place.
+     * @return {Array} this method returns an array of LayoutWidgetConfig. It
+     *                 only exports config with app associated or static places.
      * @memberof LayoutEditor.prototype
      */
     exportConfig: function hsle_export() {
@@ -139,14 +153,18 @@
           ret.push({
             positionId: i,
             static: place.static,
-            left: this.offsetPosition.left +
-                  Math.round(place.left * this.scaleRatio),
-            top: this.offsetPosition.top +
-                 Math.round(place.top * this.scaleRatio),
-            width: Math.round(place.width * this.scaleRatio),
-            height: Math.round(place.height * this.scaleRatio),
-            manifestURL: place.app ? place.app.manifestURL : '',
-            entryPoint: place.app ? place.app.entryPoint : ''
+            rect: {
+              left: this.offsetPosition.left +
+                    Math.round(place.left * this.scaleRatio),
+              top: this.offsetPosition.top +
+                   Math.round(place.top * this.scaleRatio),
+              width: Math.round(place.width * this.scaleRatio),
+              height: Math.round(place.height * this.scaleRatio)
+            },
+            app: {
+              manifestURL: place.app ? place.app.manifestURL : '',
+              entryPoint: place.app ? place.app.entryPoint : ''
+            }
           });
         }
       }
@@ -170,7 +188,7 @@
      * @return returns the first non-static holder or null if not found.
      * @memberof LayoutEditor.prototype
      */
-    getFirstNonStatic: function getFirstNonStatic() {
+    getFirstNonStatic: function hsle_getFirstNonStatic() {
       for (var i = 0; i < this.placeHolders.length; i++) {
         if (this.placeHolders[i].static) {
           continue;
@@ -178,6 +196,22 @@
         return this.placeHolders[i];
       }
       return null;
+    },
+
+    getNonStaticPlaces: function hsle_getNonStaticPlaces() {
+      var ret = [];
+      for (var i = 0; i < this.placeHolders.length; i++) {
+        this.placeHolders[i].static || ret.push(this.placeHolders[i]);
+      }
+      return ret;
+    },
+
+    getStaticPlaces: function hsle_getStaticPlaces() {
+      var ret = [];
+      for (var i = 0; i < this.placeHolders.length; i++) {
+        !this.placeHolders[i].static || ret.push(this.placeHolders[i]);
+      }
+      return ret;
     },
 
     _createPlaceHolders: function hsle__createPlaceHolders() {
@@ -238,7 +272,8 @@
     /*
      * add app as a widget at place.
      * @param {LayoutAppInfo} app the app information.
-     * @param {Object} place the place object which can be found at holders.
+     * @param {LayoutPlaceInfo} place the place object which can be found at
+     *                                holders.
      * @memberof LayoutEditor.prototype
      */
     addWidget: function hsle_add(app, place) {
@@ -251,7 +286,8 @@
 
     /**
      * remove the associated widget at place
-     * @param {Object} place the place object which can be found at holders.
+     * @param {LayoutPlaceInfo} place the place object which can be found at
+     *                                holders.
      * @memberof LayoutEditor.prototype
      */
     removeWidget: function hsle_remove(place) {
