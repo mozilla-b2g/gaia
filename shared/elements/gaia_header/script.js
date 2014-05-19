@@ -36,8 +36,11 @@ window.GaiaHeader = (function(win) {
     this._button = this._template.getElementById('action-button');
     this._buttonInner = this._template.getElementById('action-button-inner');
     
-    this._configureActionButton();
-    this._configureSkin();
+    this._configureActionButton(this.dataset.action);
+    this._button.addEventListener('click',
+      proto._onActionButtonClick.bind(this));
+      
+    this._configureSkin(this.dataset.skin);
     this._styleHack();
 
     shadow.appendChild(this._template);
@@ -50,9 +53,9 @@ window.GaiaHeader = (function(win) {
    */
   proto.attributeChangedCallback = function(attr, oldVal, newVal) {
     if (attr === 'data-action') {
-      this._configureActionButton(oldVal);
+      this._configureActionButton(newVal, oldVal);
     } else if (attr === 'data-skin') {
-      this._configureSkin(oldVal);
+      this._configureSkin(newVal, oldVal);
     }
   };
 
@@ -60,9 +63,18 @@ window.GaiaHeader = (function(win) {
    * When called, trigger the action button.
    */
   proto.triggerAction = function() {
-    if (this._button.style.display === 'block') {
+    if (this._isSupportedAction(this.dataset.action)) {
       this._button.click();
     }
+  };
+  
+  /**
+   * Validate action against supported list.
+   *
+   * @private
+   */
+  proto._isSupportedAction = function(action) {
+    return action && actionTypes[action];
   };
   
   /**
@@ -90,27 +102,24 @@ window.GaiaHeader = (function(win) {
    *
    * @private
    */
-  proto._configureActionButton = function(oldAction) {
-    var type = this.dataset.action;
-
+  proto._configureActionButton = function(newAction, oldAction) {
+    // Remove previous icon class from inner
+    if (oldAction) {
+      this._buttonInner.classList.remove('icon-' + oldAction);
+    }
     // TODO: Action button should be
     // hidden by default then shown
     // only with supported action types
-    if (!type || !actionTypes[type]) {
+    if (!this._isSupportedAction(newAction)) {
       this._button.style.display = 'none';
       return;
     }
     this._button.style.display = 'block';
 
-    // Remove previous icon class from inner
-    if (oldAction) {
-      this._buttonInner.classList.remove('icon-' + oldAction);
-    }
     // Add icon class to inner
-    this._buttonInner.classList.add('icon-' + type);
+    this._buttonInner.classList.add('icon-' + newAction);
 
-    this._button.dataset.action = type;
-    this._button.addEventListener('click', proto._onActionButtonClick.bind(this));
+    this._button.dataset.action = newAction;
   };
 
   /**
@@ -119,15 +128,14 @@ window.GaiaHeader = (function(win) {
    *
    * @private
    */
-  proto._configureSkin = function(oldSkin) {
+  proto._configureSkin = function(newSkin, oldSkin) {
     // Remove previous skin class
     if (oldSkin) {
       this._header.parentNode.classList.remove('skin-' + oldSkin);
     }
     // Add skin class
-    var skin = this.dataset.skin;
-    if (skin) {
-      this._header.parentNode.classList.add('skin-' + skin);
+    if (newSkin) {
+      this._header.parentNode.classList.add('skin-' + newSkin);
     }
   };
 
