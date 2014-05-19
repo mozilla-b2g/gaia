@@ -3,7 +3,6 @@ define(function(require) {
 
 var Tabs = require('tabs');
 var View = require('view');
-var mozL10n = require('l10n');
 var PerformanceTestingHelper = require('shared/js/performance_testing_helper');
 var rAF = mozRequestAnimationFrame || requestAnimationFrame;
 /**
@@ -17,12 +16,7 @@ var App = {
     this.tabs = new Tabs(document.getElementById('clock-tabs'));
 
     window.addEventListener('hashchange', this);
-    window.addEventListener('localized', this);
     window.addEventListener('visibilitychange', this);
-
-    // we wait for the app to be l10n ready before initializing, so call
-    // the onlocalized once at startup
-    this.onlocalized();
 
     this.visible = !document.hidden;
     this.panels = Array.prototype.map.call(
@@ -124,15 +118,6 @@ var App = {
       return;
     }
     this.navigate({ hash: location.hash });
-  },
-
-  /**
-   * Reset the global localization params on the html element.  Called when
-   * the language changes, and once on application startup.
-   */
-  onlocalized: function(event) {
-    document.documentElement.lang = mozL10n.language.code;
-    document.documentElement.dir = mozL10n.language.direction;
   },
 
   /**
