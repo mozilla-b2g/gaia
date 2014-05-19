@@ -8,8 +8,8 @@ requireApp('system/test/unit/mock_update_manager.js');
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_chrome_event.js');
-requireApp('system/test/unit/mock_custom_dialog.js');
 requireApp('system/test/unit/mock_utility_tray.js');
+requireApp('system/shared/test/unit/mocks/mock_custom_dialog.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 
 

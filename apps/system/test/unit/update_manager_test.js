@@ -5,7 +5,7 @@ requireApp('system/js/update_manager.js');
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_updatable.js');
 requireApp('system/test/unit/mock_apps_mgmt.js');
-requireApp('system/test/unit/mock_custom_dialog.js');
+requireApp('system/shared/test/unit/mocks/mock_custom_dialog.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_chrome_event.js');
