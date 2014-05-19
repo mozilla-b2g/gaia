@@ -1,5 +1,4 @@
 'use strict';
-/* global Divider */
 /* global Icon */
 
 (function(exports) {
@@ -27,23 +26,17 @@
       // There is a last divider that is always in the list, but not rendered
       // unless in edit mode.
       // Remove this divider, append the app, then re-append the divider.
-      var lastItem = app.items[app.items.length - 1];
-      if ((lastItem instanceof Divider)) {
-        var divider = app.items.pop();
-        this.addIconToGrid(event.application);
-        app.items.push(divider);
-      } else {
-        this.addIconToGrid(event.application);
-      }
+      var lastDivider = app.grid.getLastIfDivider();
+      this.addIconToGrid(event.application);
+      app.grid.addItem(lastDivider);
 
-      app.render();
-
-      app.itemStore.save(app.items);
+      app.grid.render();
+      app.itemStore.save(app.grid.getItems());
     }.bind(this);
 
     appMgr.onuninstall = function onuninstall(event) {
       this.removeIconFromGrid(event.application.manifestURL);
-      app.itemStore.save(app.items);
+      app.itemStore.save(app.grid.getItems());
     }.bind(this);
 
   }
@@ -85,7 +78,7 @@
         this.addIconToGrid(newApp.app);
       }, this);
 
-      app.itemStore.save(app.items);
+      app.itemStore.save(app.grid.getItems());
     },
 
     /**
@@ -96,9 +89,8 @@
       var appObject = this.mapToApp({
         manifestURL: application.manifestURL
       });
-      app.icons[appObject.identifier] = appObject;
-      app.items.push(appObject);
-      app.render();
+      app.grid.addIcon(appObject.identifier, appObject);
+      app.grid.render();
     },
 
     /**
@@ -106,13 +98,14 @@
      * @param {String} manifestURL
      */
     removeIconFromGrid: function(manifestURL) {
-      var appObject = app.icons[manifestURL];
-      delete app.icons[appObject.identifier];
+      var icons = app.grid.getIcons();
+      var appObject = icons[manifestURL];
+      app.grid.removeIconByIdentifier(manifestURL);
 
-      var itemIndex = app.items.indexOf(appObject);
-
-      app.items.splice(itemIndex, 1);
-      app.render();
+      var items = app.grid.getItems();
+      var itemIndex = items.indexOf(appObject);
+      app.grid.removeItemByIndex(itemIndex);
+      app.grid.render();
 
       if (appObject.element) {
         appObject.element.parentNode.removeChild(appObject.element);

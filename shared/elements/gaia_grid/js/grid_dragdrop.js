@@ -1,6 +1,4 @@
 'use strict';
-/* global layout */
-/* global zoom */
 
 (function(exports) {
 
@@ -14,10 +12,10 @@
    * within a length of a page edge configured by this value */
   const edgePageThreshold = 50;
 
-  var container = document.getElementById('icons');
-
-  function DragDrop() {
-    container.addEventListener('contextmenu', this);
+  function DragDrop(gridView) {
+    this.gridView = gridView;
+    this.container = gridView.element;
+    this.container.addEventListener('contextmenu', this);
   }
 
   DragDrop.prototype = {
@@ -54,18 +52,18 @@
      */
     begin: function(e) {
       // Stop icon launching while we are in active state
-      app.stop();
-      zoom.stop();
+      this.gridView.stop();
+      window.dispatchEvent(new CustomEvent('gaiagrid-dragdrop-begin'));
 
       this.icon.noTransform = true;
       this.rearrangeDelay = null;
       this.enterEditMode();
-      container.classList.add('dragging');
+      this.container.classList.add('dragging');
       this.target.classList.add('active');
 
       // Testing with some extra offset (20)
-      this.xAdjust = layout.gridItemWidth / 2 + 20;
-      this.yAdjust = layout.gridItemHeight + 20;
+      this.xAdjust = this.gridView.layout.gridItemWidth / 2 + 20;
+      this.yAdjust = this.gridView.layout.gridItemHeight + 20;
 
       // Make the icon larger
       this.icon.transform(
@@ -85,23 +83,23 @@
         clearTimeout(this.rearrangeDelay);
         this.doRearrange.call(this);
       } else {
-        app.render();
+        this.gridView.render();
       }
 
       // Save icon state if we need to
       if (this.dirty) {
-        app.itemStore.save(app.items);
+        window.dispatchEvent(new CustomEvent('gaiagrid-saveitems'));
       }
 
       this.target = null;
       this.dirty = false;
 
       setTimeout(function nextTick() {
-        app.start();
-        zoom.start();
-      });
+        this.gridView.start();
+        window.dispatchEvent(new CustomEvent('gaiagrid-dragdrop-finish'));
+      }.bind(this));
 
-      container.classList.remove('dragging');
+      this.container.classList.remove('dragging');
     },
 
     /**
@@ -160,8 +158,8 @@
       // Todo: this could be more efficient with a binary search.
       var leastDistance;
       var foundIndex;
-      for (var i = 0, iLen = app.items.length; i < iLen; i++) {
-        var item = app.items[i];
+      for (var i = 0, iLen = this.gridView.items.length; i < iLen; i++) {
+        var item = this.gridView.items[i];
         var distance = Math.sqrt(
           (pageX - item.x) * (pageX - item.x) +
           (pageY - item.y) * (pageY - item.y));
@@ -184,31 +182,35 @@
     rearrange: function(sIndex, tIndex) {
       this.rearrangeDelay = null;
       this.dirty = true;
-      app.items.splice(tIndex, 0, app.items.splice(sIndex, 1)[0]);
-      tIndex < sIndex ? app.render(tIndex, sIndex) : app.render(sIndex, tIndex);
+      this.gridView.items.splice(tIndex, 0,
+        this.gridView.items.splice(sIndex, 1)[0]);
+      tIndex < sIndex ? this.gridView.render(tIndex, sIndex) :
+        this.gridView.render(sIndex, tIndex);
     },
 
     enterEditMode: function() {
       this.inEditMode = true;
+      this.container.classList.add('edit-mode');
       document.body.classList.add('edit-mode');
       document.addEventListener('visibilitychange', this);
     },
 
     exitEditMode: function() {
       this.inEditMode = false;
+      this.container.classList.remove('edit-mode');
       document.body.classList.remove('edit-mode');
       document.removeEventListener('visibilitychange', this);
       this.removeDragHandlers();
     },
 
     removeDragHandlers: function() {
-      container.removeEventListener('touchmove', this);
-      container.removeEventListener('touchend', this);
+      this.container.removeEventListener('touchmove', this);
+      this.container.removeEventListener('touchend', this);
     },
 
     addDragHandlers: function() {
-      container.addEventListener('touchmove', this);
-      container.addEventListener('touchend', this);
+      this.container.addEventListener('touchmove', this);
+      this.container.addEventListener('touchend', this);
     },
 
     /**
@@ -230,7 +232,7 @@
             }
 
             var identifier = this.target.dataset.identifier;
-            this.icon = app.icons[identifier];
+            this.icon = this.gridView.icons[identifier];
 
             if (!this.icon) {
               return;
@@ -264,12 +266,11 @@
             e.preventDefault();
             this.removeDragHandlers();
             this.finish(e);
-
             break;
         }
     }
   };
 
-  exports.DragDrop = DragDrop;
+  exports.GridDragDrop = DragDrop;
 
 }(window));

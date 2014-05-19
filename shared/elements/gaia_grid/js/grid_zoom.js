@@ -1,11 +1,12 @@
 'use strict';
-/* global layout */
 
 (function(exports) {
 
   const pinchThreshold = Math.round(window.innerWidth / 12);
 
-  function Zoom() {
+  function GridZoom(gridView) {
+    this.gridView = gridView;
+
     this.touches = 0;
     this.zoomStartTouches = [];
     this.zoomStartDistance = 0;
@@ -16,9 +17,11 @@
     this.indicator = this.container.querySelector('.indicator');
 
     this.start();
+    window.addEventListener('gaiagrid-dragdrop-begin', this.stop.bind(this));
+    window.addEventListener('gaiagrid-dragdrop-finish', this.start.bind(this));
   }
 
-  Zoom.prototype = {
+  GridZoom.prototype = {
 
     /**
      * Starts listening for touchstart events.
@@ -82,6 +85,8 @@
         (touches[0].pageX - touches[1].pageX) +
         (touches[0].pageY - touches[1].pageY) *
         (touches[0].pageY - touches[1].pageY));
+
+      var layout = this.gridView.layout;
 
       switch(e.type) {
         case 'touchstart':
@@ -150,6 +155,6 @@
 
   };
 
-  exports.zoom = new Zoom();
+  exports.GridZoom = GridZoom;
 
 }(window));

@@ -3,7 +3,6 @@
 /* global GridItem */
 /* global LazyLoader */
 /* global UrlHelper */
-/* global layout */
 
 (function(exports) {
 
@@ -38,7 +37,7 @@
      * Returns the height in pixels of each icon.
      */
     get pixelHeight() {
-      return layout.gridItemHeight;
+      return this.grid.layout.gridItemHeight;
     },
 
     /**
@@ -75,7 +74,7 @@
         return ICON_PATH_BY_DEFAULT;
       }
 
-      var maxSize = layout.gridMaxIconSize; // The goal size
+      var maxSize = this.grid.layout.gridMaxIconSize; // The goal size
       var accurateSize = list[0]; // The biggest icon available
       for (var i = 0; i < length; i++) {
         var size = list[i];

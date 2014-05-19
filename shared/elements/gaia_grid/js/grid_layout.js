@@ -18,11 +18,12 @@
 
   const windowWidth = window.innerWidth;
 
-  function Layout() {
+  function GridLayout(gridView) {
+    this.gridView = gridView;
     window.addEventListener('appzoom', this);
   }
 
-  Layout.prototype = {
+  GridLayout.prototype = {
 
     perRow: minIconsPerRow,
 
@@ -71,7 +72,7 @@
      */
     get gridMaxIconSize() {
       return (windowWidth / iconScaleFactorMinIconsPerRow) *
-              app.dragdrop.maxActiveScale;
+              this.gridView.dragdrop.maxActiveScale;
     },
 
     /**
@@ -122,6 +123,6 @@
     }
   };
 
-  exports.layout = new Layout();
+  exports.GridLayout = GridLayout;
 
 }(window));

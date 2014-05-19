@@ -1,10 +1,7 @@
 'use strict';
 /* global GridItem */
-/* global layout */
 
 (function() {
-  // Icon container
-  var container = document.getElementById('icons');
 
   /**
    * Represents a single divider on the homepage.
@@ -36,7 +33,7 @@
     scale: 1,
 
     /**
-     * Renders the icon to the container.
+     * Renders the icon to the grid component.
      * @param {Object} coordinates Grid coordinates to render to.
      * @param {Number} index The index of the items list of this item.
      */
@@ -46,10 +43,10 @@
         var divider = this.divider = document.createElement('div');
         divider.className = 'divider';
         divider.innerHTML = '<span></span>';
-        container.appendChild(divider);
+        this.grid.element.appendChild(divider);
       }
 
-      var y = layout.offsetY;
+      var y = this.grid.layout.offsetY;
       this.divider.style.transform = 'translate(0 ,' + y + 'px)';
 
       this.detail.index = index;

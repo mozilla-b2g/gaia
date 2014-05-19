@@ -1,6 +1,5 @@
 'use strict';
 /* global IconRetriever */
-/* global layout */
 /* global LazyLoader */
 
 (function(exports) {
@@ -10,9 +9,6 @@
   const SHADOW_OFFSET_X = 1;
   const SHADOW_COLOR = 'rgba(0, 0, 0, 0.2)';
   const CANVAS_PADDING = 2;
-
-  // Icon container
-  var container = document.getElementById('icons');
 
   /**
    * Represents a generic grid item from which other items can inherit from.
@@ -35,6 +31,14 @@
     gridWidth: 1,
 
     scale: 1,
+
+    /**
+     * Returns a reference to the current grid.
+     * We can currently only have one grid per page.
+     */
+    get grid() {
+      return document.getElementsByTagName('gaia-grid')[0]._grid;
+    },
 
     /**
      * Returns true if this item is removable.
@@ -79,7 +83,7 @@
      * @param {HTMLImageElement} img An image element to display from.
      */
     displayFromImage: function(img) {
-      const MAX_ICON_SIZE = layout.gridIconSize;
+      const MAX_ICON_SIZE = this.grid.layout.gridIconSize;
 
       var canvas = document.createElement('canvas');
       canvas.width = MAX_ICON_SIZE + (CANVAS_PADDING * 2);
@@ -100,9 +104,9 @@
      * @param {Blob} blob The image blob to display.
      */
     renderIconFromBlob: function(blob) {
-      this.element.style.height = layout.gridItemHeight + 'px';
+      this.element.style.height = this.grid.layout.gridItemHeight + 'px';
       this.element.style.backgroundSize =
-        (layout.gridIconSize + CANVAS_PADDING) + 'px';
+        (this.grid.layout.gridIconSize + CANVAS_PADDING) + 'px';
       this.element.style.backgroundImage =
         'url(' + URL.createObjectURL(blob) + ')';
     },
@@ -123,7 +127,7 @@
         // This <p> has been added in order to place the title with respect
         // to this container via CSS without touching JS.
         var nameContainerEl = document.createElement('p');
-        nameContainerEl.style.marginTop = layout.gridIconSize + 'px';
+        nameContainerEl.style.marginTop = this.grid.layout.gridIconSize + 'px';
         tile.appendChild(nameContainerEl);
 
         var nameEl = document.createElement('span');
@@ -148,22 +152,22 @@
           this.displayIcon();
         }
 
-        container.appendChild(tile);
+        this.grid.element.appendChild(tile);
       }
 
-      var x = coordinates[0] * layout.gridItemWidth;
-      var y = layout.offsetY;
+      var x = coordinates[0] * this.grid.layout.gridItemWidth;
+      var y = this.grid.layout.offsetY;
       this.setPosition(index);
       this.x = x;
       this.y = y;
-      this.scale = layout.percent;
+      this.scale = this.grid.layout.percent;
 
       // Avoid rendering the icon during a drag to prevent jumpiness
       if (this.noTransform) {
         return;
       }
 
-      this.transform(x, y, layout.percent);
+      this.transform(x, y, this.grid.layout.percent);
     },
 
     /**
