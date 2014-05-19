@@ -5,24 +5,24 @@
   <meta charset="utf-8">
 
   <!-- Common style -->
-  <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style_unstable/input_areas.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style_unstable/buttons.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style/lists.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style/progress_activity.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style/status.css" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="/shared/style/animations.css">
+  <link rel="stylesheet" href="/shared/style/headers.css">
+  <link rel="stylesheet" href="/shared/style/switches.css">
+  <link rel="stylesheet" href="/shared/style_unstable/input_areas.css">
+  <link rel="stylesheet" href="/shared/style_unstable/buttons.css">
+  <link rel="stylesheet" href="/shared/style/confirm.css">
+  <link rel="stylesheet" href="/shared/style/lists.css">
+  <link rel="stylesheet" href="/shared/style/progress_activity.css">
+  <link rel="stylesheet" href="/shared/style/status.css" rel="stylesheet">
+  <link rel="stylesheet" href="/shared/style/animations.css">
 
   <!-- Specific style -->
-  <link rel="stylesheet" type="text/css" href="/ftu/css/style.css">
-  <link rel="stylesheet" type="text/css" href="css/status.css">
-  <link rel="stylesheet" type="text/css" href="css/overlay.css">
-  <link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
-  <link rel="stylesheet" type="text/css" href="/ftu/css/tutorial.css">
-  <link rel="stylesheet" type="text/css" href="/ftu/css/responsive.css">
-  <link rel="stylesheet" type="text/css" href="/shared/pages/import/style/curtain_frame.css">
+  <link rel="stylesheet" href="/ftu/css/style.css">
+  <link rel="stylesheet" href="css/status.css">
+  <link rel="stylesheet" href="css/overlay.css">
+  <link rel="stylesheet" href="/ftu/css/fb_extensions.css">
+  <link rel="stylesheet" href="/ftu/css/tutorial.css">
+  <link rel="stylesheet" href="/ftu/css/responsive.css">
+  <link rel="stylesheet" href="/shared/pages/import/style/curtain_frame.css">
 
   <title>Welcome to Browser OS</title>
 
@@ -41,56 +41,56 @@
   <link rel="resource" type="application/json" href="/shared/resources/keyboard_layouts.json"/>
   <link rel="resource" type="application/json" href="/shared/resources/apn.json"/>
   <link rel="resource" type="application/json" href="/shared/resources/apn_tz.json"/>
-  <script type="text/javascript" src="/shared/js/l10n.js"></script>
-  <script type="text/javascript" src="/shared/js/l10n_date.js"></script>
-  <script type="text/javascript" src="/shared/js/tz_select.js"></script>
-  <script defer type="text/javascript" src="/shared/js/keyboard_helper.js"></script>
+  <script src="/shared/js/l10n.js"></script>
+  <script src="/shared/js/l10n_date.js"></script>
+  <script src="/shared/js/tz_select.js"></script>
+  <script defer src="/shared/js/keyboard_helper.js"></script>
 
   <!-- Import contacts help files -->
-  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/status.js"></script>
-  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/overlay.js"></script>
-  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/config.js"></script>
-  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/misc.js"></script>
-  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/sdcard.js"></script>
-  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/vcard_parser.js"></script>
-  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/import_from_vcard.js"></script>
-  <script defer type="text/javascript" src="/shared/js/contacts/import/utilities/import_sim_contacts.js"></script>
+  <script defer src="/shared/js/contacts/import/utilities/status.js"></script>
+  <script defer src="/shared/js/contacts/import/utilities/overlay.js"></script>
+  <script defer src="/shared/js/contacts/import/utilities/config.js"></script>
+  <script defer src="/shared/js/contacts/import/utilities/misc.js"></script>
+  <script defer src="/shared/js/contacts/import/utilities/sdcard.js"></script>
+  <script defer src="/shared/js/contacts/import/utilities/vcard_parser.js"></script>
+  <script defer src="/shared/js/contacts/import/utilities/import_from_vcard.js"></script>
+  <script defer src="/shared/js/contacts/import/utilities/import_sim_contacts.js"></script>
 
   <!-- Code for the FTU App -->
-  <script defer type="text/javascript" src="/shared/js/screen_layout.js"></script>
-  <script defer type="text/javascript" src="/shared/js/text_normalizer.js"></script>
-  <script defer type="text/javascript" src="/shared/js/lazy_loader.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/basket-client.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/services_launcher.js"></script>
-  <script defer type="text/javascript" src="/shared/js/fb/fb_request.js"></script>
-  <script defer type="text/javascript" src="/shared/js/contacts/import/facebook/fb_data.js"></script>
-  <script defer type="text/javascript" src="/shared/js/contacts/import/facebook/fb_utils.js"></script>
-  <script defer type="text/javascript" src="/shared/js/contacts/import/facebook/fb_query.js"></script>
-  <script defer type="text/javascript" src="/shared/js/fb/fb_reader_utils.js"></script>
-  <script defer type="text/javascript" src="/shared/js/contacts/import/facebook/fb_contact_utils.js"></script>
-  <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
-  <script defer type="text/javascript" src="/shared/js/mobile_operator.js"></script>
-  <script defer type="text/javascript" src="/shared/js/icc_helper.js"></script>
-  <script defer type="text/javascript" src="/shared/js/wifi_helper.js"></script>
-  <script defer type="text/javascript" src="/shared/js/fxa_iac_client.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/sim_manager.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/memcard_manager.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/import_services.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/utils.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/finish_screen.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/tutorial.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/external_links.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/data_mobile.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/time.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/ui.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/language.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/app.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/operatorVariant.js"></script>
+  <script defer src="/shared/js/screen_layout.js"></script>
+  <script defer src="/shared/js/text_normalizer.js"></script>
+  <script defer src="/shared/js/lazy_loader.js"></script>
+  <script defer src="/ftu/js/basket-client.js"></script>
+  <script defer src="/ftu/js/services_launcher.js"></script>
+  <script defer src="/shared/js/fb/fb_request.js"></script>
+  <script defer src="/shared/js/contacts/import/facebook/fb_data.js"></script>
+  <script defer src="/shared/js/contacts/import/facebook/fb_utils.js"></script>
+  <script defer src="/shared/js/contacts/import/facebook/fb_query.js"></script>
+  <script defer src="/shared/js/fb/fb_reader_utils.js"></script>
+  <script defer src="/shared/js/contacts/import/facebook/fb_contact_utils.js"></script>
+  <script defer src="/shared/js/async_storage.js"></script>
+  <script defer src="/shared/js/mobile_operator.js"></script>
+  <script defer src="/shared/js/icc_helper.js"></script>
+  <script defer src="/shared/js/wifi_helper.js"></script>
+  <script defer src="/shared/js/fxa_iac_client.js"></script>
+  <script defer src="/ftu/js/sim_manager.js"></script>
+  <script defer src="/ftu/js/memcard_manager.js"></script>
+  <script defer src="/ftu/js/wifi.js"></script>
+  <script defer src="/ftu/js/import_services.js"></script>
+  <script defer src="/ftu/js/utils.js"></script>
+  <script defer src="/ftu/js/finish_screen.js"></script>
+  <script defer src="/ftu/js/tutorial.js"></script>
+  <script defer src="/ftu/js/external_links.js"></script>
+  <script defer src="/ftu/js/navigation.js"></script>
+  <script defer src="/ftu/js/data_mobile.js"></script>
+  <script defer src="/ftu/js/time.js"></script>
+  <script defer src="/ftu/js/ui.js"></script>
+  <script defer src="/ftu/js/language.js"></script>
+  <script defer src="/ftu/js/app.js"></script>
+  <script defer src="/ftu/js/operatorVariant.js"></script>
 
   <!-- Confirm dialogs BB library -->
-  <script defer type="text/javascript" src="/shared/js/confirm.js"></script>
+  <script defer src="/shared/js/confirm.js"></script>
 
   <link rel="import" href="/shared/pages/import/import.html">
 </head>
