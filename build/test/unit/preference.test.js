@@ -299,7 +299,7 @@ suite('preferences.js', function() {
         ]
       };
       preferences.config = {
-        HOMESCREEN: 'app://homescreen',
+        GAIA_SCHEME: 'app://',
         GAIA_PORT: 8000,
         GAIA_DOMAIN: 'domain'
       };
@@ -307,9 +307,9 @@ suite('preferences.js', function() {
       preferences.prefs = {};
       preferences.preparePref();
       assert.deepEqual(preferences.prefs, {
-        'browser.manifestURL': 'app://homescreen8000/manifest.webapp',
-        'b2g.neterror.url': 'app://homescreen8000/net_error.html',
-        'browser.homescreenURL': 'app://homescreen8000/index.html',
+        'browser.manifestURL': 'app://system.domain8000/manifest.webapp',
+        'b2g.neterror.url': 'app://system.domain8000/net_error.html',
+        'browser.homescreenURL': 'app://system.domain8000/index.html',
         'network.http.max-connections-per-server': 15,
         'dom.mozInputMethod.enabled': true,
         'dom.webcomponents.enabled': true,

@@ -29,7 +29,6 @@ var Gaia = {
     config.DEVICE_DEBUG = 0;
     config.LOCAL_DOMAINS = 1;
     config.DESKTOP = 1;
-    config.HOMESCREEN = config.GAIA_SCHEME + 'system.' + config.GAIA_DOMAIN;
     config.GAIA_PORT = ':8080';
     config.GAIA_LOCALES_PATH = 'locales';
     config.LOCALES_FILE = 'shared/resources/languages.json';

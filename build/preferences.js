@@ -23,7 +23,8 @@ PreferencesBuilder.prototype.execute = function(config) {
 };
 
 PreferencesBuilder.prototype.preparePref = function() {
-  this.homescreen = this.config.HOMESCREEN +
+  this.homescreen = this.config.GAIA_SCHEME + 'system.' +
+    this.config.GAIA_DOMAIN +
     (this.config.GAIA_PORT ? this.config.GAIA_PORT : '');
 
   this.prefs['browser.manifestURL'] =
