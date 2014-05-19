@@ -25,6 +25,7 @@
     this._touchStart = -1;
     this._wasClicked = false; // Remember when transition triggered by a click
     this._pendingMessage = null;
+    this._cardStackSize = 0;
 
     // Get DOM elements
     this.body = document.body;
@@ -580,7 +581,11 @@
           }
           if (dy > this.TASK_MANAGER_THRESHOLD &&
               !this.active && !this.cardView) {
-            this.showTaskManager();
+            if (this._cardStackSize === 0) {
+              this.handleClick();
+            } else {
+              this.showTaskManager();
+            }
           }
           break;
         case 'touchend':
@@ -700,8 +705,9 @@
      * @memberof Rocketbar.prototype
      */
     handleStackChanged: function(e) {
+      this._cardStackSize = e.detail.sheets.length;
       // Focus the Rocketbar in cards view when stack length reaches zero.
-      if (this.cardView && e.detail.sheets.length === 0) {
+      if (this.cardView && this._cardStackSize === 0) {
         this.hideResults();
         this.activate((function() {
           this.focus();
