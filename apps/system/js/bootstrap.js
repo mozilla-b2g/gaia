@@ -102,7 +102,7 @@ window.addEventListener('load', function startup() {
   window.activities = new Activities();
   window.accessibility = new Accessibility();
   window.accessibility.start();
-  window.developerHUD = new DeveloperHUD();
+  window.developerHUD = new DeveloperHUD().start();
   window.dialerAgent = new DialerAgent().start();
   window.homeGesture = new HomeGesture().start();
   window.homeSearchbar = new HomeSearchbar();
