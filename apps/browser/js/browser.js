@@ -54,9 +54,6 @@ var Browser = {
 
   init: function browser_init() {
     this.getAllElements();
-    if (window.navigator.mozNfc) {
-      window.navigator.mozNfc.onpeerready = NfcURI.handlePeerConnectivity;
-    }
     // Add event listeners
     this.urlBar.addEventListener('submit', this.handleUrlFormSubmit.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
@@ -1360,6 +1357,7 @@ var Browser = {
       this.loadRemaining();
     }.bind(this));
     Toolbar.bookmarkButton.classList.remove('bookmarked');
+    NfcURI.stopListening();
   },
 
   _topSiteThumbnailObjectURLs: [],
@@ -1378,6 +1376,7 @@ var Browser = {
     document.body.classList.remove('start-page');
     this.startscreen.classList.add('hidden');
     this.clearTopSiteThumbnails();
+    NfcURI.startListening();
   },
 
   showTopSiteThumbnails: function browser_showStartscreenThumbnails(places) {
