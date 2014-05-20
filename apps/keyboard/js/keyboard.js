@@ -204,7 +204,7 @@ setTimeout(function attachResizeListener() {
   perfTimer.printTime('attachResizeListener');
   // Handle resize events
   window.addEventListener('resize', onResize);
-}, 600);
+}, 2000);
 
 function initKeyboard() {
   perfTimer.startTimer('initKeyboard');
