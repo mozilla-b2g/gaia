@@ -29,25 +29,26 @@
      * deviceId is shared with the homescreen/eme instance via mozSettings.
      */
     init: function init() {
-      eme.api.init(generateDeviceId());
+      return new Promise(function ready(resolve) {
+        SettingsListener.observe('search.deviceId', false,
+          function onSettingChange(deviceId) {
+            if (!deviceId) {
+              deviceId = generateDeviceId();
+              navigator.mozSettings.createLock().set({
+                'search.deviceId': deviceId
+              });
+            }
+            eme.api.init(deviceId);
+            resolve();
 
-      // TODO: make this work (if still needed)
-      // do we need a device id for the partners api?
-      // we are not tracking any events anyway.
-      //
-      // SettingsListener.observe('search.deviceId', false,
-      //   function onSettingChange(value) {
-      //     if (!value) {
-      //       value = generateDeviceId();
-      //       navigator.mozSettings.createLock().set({
-      //         'search.deviceId': value
-      //       });
-      //     }
-      //     eme.api.init(value);
-      // });
+            eme.log('init: deviceId', deviceId);
+        });
+      });
 
       this.init = function noop() {
         // avoid multiple init calls
+        eme.log('init: noop');
+        return Promise.resolve();
       };
     }
   };

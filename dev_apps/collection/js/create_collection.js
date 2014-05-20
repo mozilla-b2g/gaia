@@ -7,8 +7,6 @@
   _ = navigator.mozL10n.get,
   eme = exports.eme;
 
-  eme.init();
-
   function HandleCreate(activity) {
 
     var
@@ -71,7 +69,9 @@
 
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {
     if (activity.source.name === 'create-collection') {
-      HandleCreate(activity);
+      eme.init().then(function ready() {
+        HandleCreate(activity);
+      });
     }
   });
 
