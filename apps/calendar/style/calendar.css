@@ -30,13 +30,6 @@ section {
   width: 100%;
 }
 
-button {
-  border: none;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-}
-
 ol,
 menu li,
 ol li {

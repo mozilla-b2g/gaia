@@ -174,7 +174,7 @@ li [role="button"].icon-view:active {
 li button.icon-view:before,
 li [role="button"].icon-view:before {
   background-image: url(buttons/images/next.png);
-  right: 0rem;
+  right: 0;
 }
 
 li button.icon-dialog:before,
@@ -332,7 +332,7 @@ html[dir="rtl"] li .icon-view[role="button"] {
 
 html[dir="rtl"] li button.icon-view:before,
 html[dir="rtl"] li .icon-view[role="button"]:before {
-  left: 0rem;
+  left: 0;
   right: auto;
   transform: rotate(180deg);
 }

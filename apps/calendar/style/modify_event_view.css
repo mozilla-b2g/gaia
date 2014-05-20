@@ -20,10 +20,6 @@
   margin-bottom: 0;
 }
 
-#modify-event-view .button input {
-  font-size: 1.6rem;
-}
-
 #modify-event-view form ol li {
   margin: 0 0 0.5rem;
 }
@@ -96,13 +92,9 @@
   margin: 0.25rem 0;
 }
 
-#modify-event-view .calendar-id select,
-#modify-event-view .alarms select {
-  margin-left: -0.5rem;
-}
-
-#modify-event-view .delete-record {
-  text-align: center;
+#modify-event-view .delete {
+  width: calc(100% - 3rem);
+  margin: 0 auto;
 }
 
 #modify-event-view.readonly menu,
