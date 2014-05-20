@@ -26,6 +26,10 @@ textarea {
   margin: 0 0 1rem 0;
 }
 
+label:active {
+  background-color: transparent;
+}
+
 textarea {
   height: 10rem;
   max-height: 10rem;

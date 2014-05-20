@@ -2,13 +2,6 @@
 * web asset generated css file.
 * Do not directly the contents.
 */
-/* ----------------------------------
- * INPUT AREAS
- * ---------------------------------- */
- body[role="application"] label {
-   display: block;
-   position: relative;
- }
 
 #settings {
   position: absolute;

@@ -181,7 +181,6 @@ body[data-path="/day/"] #view-selector > .day > a:active {
 #advanced-settings-view button {
   margin: 1.1rem auto;
   width: calc(100% - 3rem);
-  text-align: center;
 }
 
 #advanced-settings-view .settings-list label {
@@ -193,26 +192,9 @@ body[data-path="/day/"] #view-selector > .day > a:active {
 
 #advanced-settings-view .settings-list label span {
   display: block;
-  position: relative;
   margin-bottom: 0;
   font-size: 1.9rem;
   line-height: 3.3rem;
-}
-
-#advanced-settings-view .settings-list label .button {
-  height: 4rem;
-}
-
-#advanced-settings-view .settings-list label select {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width: calc(100% + 3rem);
-  padding: 0.8rem 1rem 0;
-  font-size: 1.7rem;
-  font-weight: 500;
 }
 
 #advanced-settings-view .settings-list label span:first-child {
