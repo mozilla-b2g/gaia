@@ -162,7 +162,7 @@ function execute(config) {
 
   // Set the ftu manifest URL
   if (config.NOFTU === '0') {
-    settings['ftu.manifestURL'] = utils.gaiaManifestURL('communications',
+    settings['ftu.manifestURL'] = utils.gaiaManifestURL('ftu',
       config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
   }
 

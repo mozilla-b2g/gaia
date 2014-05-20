@@ -1,13 +1,13 @@
 /* global Tutorial, MockFinishScreen*/
 'use strict';
 
-requireApp('communications/ftu/test/unit/mock_l10n.js');
-requireApp('communications/ftu/test/unit/mock_screenlayout.js');
-requireApp('communications/ftu/test/unit/mock_finish_screen.js');
+requireApp('ftu/test/unit/mock_l10n.js');
+requireApp('ftu/test/unit/mock_screenlayout.js');
+requireApp('ftu/test/unit/mock_finish_screen.js');
 
-requireApp('communications/ftu/js/finish_screen.js');
-requireApp('communications/ftu/js/utils.js');
-requireApp('communications/ftu/js/tutorial.js');
+requireApp('ftu/js/finish_screen.js');
+requireApp('ftu/js/utils.js');
+requireApp('ftu/js/tutorial.js');
 
 suite('Tutorial >', function() {
   var mocksHelperForFTU = new MocksHelper([
@@ -23,7 +23,7 @@ suite('Tutorial >', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
-    loadBodyHTML('/ftu/index.html');
+    loadBodyHTML('/index.html');
 
     Tutorial.init();
   });

@@ -1,12 +1,11 @@
 'use strict';
 
-requireApp('communications/ftu/test/unit/mock_l10n.js');
-requireApp('communications/ftu/test/unit/mock_utils.js');
-requireApp('communications/ftu/test/unit/mock_wifi_helper.js');
-requireApp(
-  'communications/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('ftu/test/unit/mock_l10n.js');
+requireApp('ftu/test/unit/mock_utils.js');
+requireApp('ftu/test/unit/mock_wifi_helper.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
-requireApp('communications/ftu/js/wifi.js');
+requireApp('js/wifi.js');
 
 var _;
 var mocksHelperForWifi = new MocksHelper([
