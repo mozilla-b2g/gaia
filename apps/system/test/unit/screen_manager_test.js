@@ -1,12 +1,12 @@
 'use strict';
 
-mocha.globals(['SettingsListener', 'lockScreen', 'Bluetooth', 'StatusBar',
+mocha.globals(['SettingsListener', 'System', 'Bluetooth', 'StatusBar',
       'AttentionScreen', 'removeEventListener', 'addEventListener',
       'ScreenManager', 'clearIdleTimeout', 'setIdleTimeout', 'dispatchEvent',
       'AppWindowManager']);
 
 requireApp('system/test/unit/mock_app_window_manager.js');
-requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_system.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_bluetooth.js');
 requireApp('system/test/unit/mock_navigator_moz_power.js');
@@ -38,7 +38,7 @@ function restoreProperty(originObject, prop, reals, useDefineProperty) {
 
 var mocksForScreenManager = new MocksHelper([
   'SettingsListener', 'Bluetooth', 'StatusBar',
-  'AppWindowManager'
+  'AppWindowManager', 'System'
 ]).init();
 
 suite('system/ScreenManager', function() {
@@ -46,7 +46,7 @@ suite('system/ScreenManager', function() {
   mocksForScreenManager.attachTestHelpers();
 
   setup(function(done) {
-    window.lockScreen = MockLockScreen;
+    window.System = MockSystem;
     switchProperty(navigator, 'mozPower', MockMozPower, reals, true);
     this.sinon.useFakeTimers();
 
@@ -61,25 +61,25 @@ suite('system/ScreenManager', function() {
   suite('init()', function() {
     setup(function() {
       var stubTelephony = {};
-      var stubLockscreen = {};
+      var stubSystem = {};
       var stubById = this.sinon.stub(document, 'getElementById');
       stubById.withArgs('screen').returns(document.createElement('div'));
 
       this.sinon.stub(MockSettingsListener, 'observe');
       stubTelephony.addEventListener = this.sinon.stub();
-      stubLockscreen.locked = true;
+      stubSystem.locked = true;
 
       this.sinon.stub(ScreenManager, 'turnScreenOn');
       this.sinon.stub(ScreenManager, '_reconfigScreenTimeout');
       this.sinon.stub(ScreenManager, '_setIdleTimeout');
 
       switchProperty(navigator, 'mozTelephony', stubTelephony, reals);
-      switchProperty(window, 'lockScreen', stubLockscreen, reals);
+      switchProperty(window, 'System', stubSystem, reals);
     });
 
     teardown(function() {
       restoreProperty(navigator, 'mozTelephony', reals);
-      restoreProperty(window, 'lockScreen', reals);
+      restoreProperty(window, 'System', reals);
     });
 
     test('Event listener adding', function() {

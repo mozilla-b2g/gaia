@@ -3,25 +3,34 @@
 
 mocha.globals(['LockScreenWindowManager', 'LockScreen', 'LockScreenWindow',
                'addEventListener', 'dispatchEvent', 'lockScreenWindowManager',
-               'lockScreen', 'SettingsListener']);
+               'lockScreen', 'SettingsListener', 'BrowserConfigHelper',
+               'applications']);
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_lockscreen_window.js');
+requireApp('system/test/unit/mock_applications.js');
 requireApp('system/js/lockscreen_window_manager.js');
 
 var mocksForLockScreenWindowManager = new window.MocksHelper([
-  'LockScreen', 'LockScreenWindow'
+  'LockScreenWindow', 'Applications'
 ]).init();
 
 suite('system/LockScreenWindowManager', function() {
   var stubById;
   var appFake;
+  var realApplications;
   var originalSettingsListener;
 
   mocksForLockScreenWindowManager.attachTestHelpers();
 
-  setup(function() {
+  setup(function(done) {
+    requireApp('system/js/browser_config_helper.js', function() {
+      done();
+    });
+    realApplications = window.applications;
+    window.applications = window.MockApplications;
+
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     appFake = new window.LockScreenWindow();
@@ -56,6 +65,8 @@ suite('system/LockScreenWindowManager', function() {
 
   teardown(function() {
     window.SettingsListener = originalSettingsListener;
+    window.applications = realApplications;
+    realApplications = null;
     stubById.restore();
   });
 
