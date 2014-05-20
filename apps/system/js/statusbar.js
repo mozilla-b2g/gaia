@@ -673,7 +673,12 @@ var StatusBar = {
 
       icon.hidden = false;
       icon.dataset.charging = battery.charging;
-      icon.dataset.level = Math.floor(battery.level * 10) * 10;
+      var level = Math.floor(battery.level * 10) * 10;
+      icon.dataset.level = level;
+      icon.setAttribute('aria-label', navigator.mozL10n.get(battery.charging ?
+        'statusbarBatteryCharging' : 'statusbarBattery', {
+          level: level
+        }));
     },
 
     networkActivity: function sb_updateNetworkActivity() {
@@ -729,19 +734,14 @@ var StatusBar = {
           delete icon.dataset.level;
           delete icon.dataset.searching;
           delete icon.dataset.roaming;
+          icon.setAttribute('aria-label', _('noSimCard'));
         } else if (data && data.connected && data.type.startsWith('evdo')) {
           // "Carrier" / "Carrier (Roaming)" (EVDO)
           // Show signal strength of data call as EVDO only supports data call.
-          icon.dataset.level = Math.ceil(data.relSignalStrength / 20); // 0-5
-          icon.dataset.roaming = data.roaming;
-
-          delete icon.dataset.searching;
+          this.updateSignalIcon(icon, data);
         } else if (voice.connected || self.hasActiveCall()) {
           // "Carrier" / "Carrier (Roaming)"
-          icon.dataset.level = Math.ceil(voice.relSignalStrength / 20); // 0-5
-          icon.dataset.roaming = voice.roaming;
-
-          delete icon.dataset.searching;
+          this.updateSignalIcon(icon, voice);
         } else if (simslot.isLocked()) {
           // SIM locked
           // We check if the sim card is locked after checking hasActiveCall
@@ -756,6 +756,8 @@ var StatusBar = {
           // with a red "x", which stands for emergency calls only.
           icon.dataset.searching = (voice.state === 'searching');
           delete icon.dataset.roaming;
+          icon.setAttribute('aria-label', _(icon.dataset.searching ?
+            'statusbarSignalNoneSearching' : 'emergencyCallsOnly'));
         }
       }
 
@@ -806,6 +808,7 @@ var StatusBar = {
         } else {
           icon.classList.add('sb-icon-data-circle');
         }
+        icon.setAttribute('aria-hidden', !!icon.textContent);
       }
 
       this.refreshCallListener();
@@ -841,6 +844,8 @@ var StatusBar = {
           icon.hidden = false;
           icon.dataset.connecting = true;
           icon.dataset.level = 0;
+          icon.setAttribute('aria-label', navigator.mozL10n.get(
+            'statusbarWiFiConnecting'));
 
           break;
 
@@ -850,9 +855,11 @@ var StatusBar = {
           if (icon.dataset.connecting) {
             delete icon.dataset.connecting;
           }
-          var relSignalStrength =
-            wifiManager.connectionInformation.relSignalStrength;
-          icon.dataset.level = Math.floor(relSignalStrength / 25);
+          var level = Math.floor(
+            wifiManager.connectionInformation.relSignalStrength / 25);
+          icon.dataset.level = level;
+          icon.setAttribute('aria-label', navigator.mozL10n.get(
+            'statusbarWiFiConnected', {level: level}));
 
           break;
       }
@@ -870,6 +877,8 @@ var StatusBar = {
       icon.dataset.active =
         (this.settingValues['tethering.wifi.connectedClients'] !== 0) ||
         (this.settingValues['tethering.usb.connectedClients'] !== 0);
+
+      this.updateIconLabel(icon, 'tethering', icon.dataset.active);
     },
 
     bluetooth: function sb_updateBluetooth() {
@@ -877,6 +886,7 @@ var StatusBar = {
 
       icon.hidden = !this.settingValues['bluetooth.enabled'];
       icon.dataset.active = Bluetooth.connected;
+      this.updateIconLabel(icon, 'bluetooth', icon.dataset.active);
     },
 
     bluetoothProfiles: function sv_updateBluetoothProfiles() {
@@ -895,16 +905,22 @@ var StatusBar = {
     },
 
     mute: function sb_updateMute() {
-      this.icons.mute.hidden =
-        (this.settingValues['audio.volume.notification'] !== 0);
+      var icon = this.icons.mute;
+      icon.hidden = (this.settingValues['audio.volume.notification'] !== 0);
+      this.updateIconLabel(icon,
+        (this.settingValues['vibration.enabled'] === true) ?
+          'vibration' : 'mute');
     },
 
     vibration: function sb_vibration() {
+      var icon = this.icons.mute;
       var vibrate = (this.settingValues['vibration.enabled'] === true);
       if (vibrate) {
-        this.icons.mute.classList.add('vibration');
+        icon.classList.add('vibration');
+        this.updateIconLabel(icon, 'vibration');
       } else {
-        this.icons.mute.classList.remove('vibration');
+        icon.classList.remove('vibration');
+        this.updateIconLabel(icon, 'mute');
       }
     },
 
@@ -995,6 +1011,28 @@ var StatusBar = {
     return !!(telephony && telephony.active);
   },
 
+  updateIconLabel: function sb_updateIconLabel(icon, type, active) {
+    if (icon.hidden) {
+      return;
+    }
+    icon.setAttribute('aria-label', navigator.mozL10n.get((active ?
+      'statusbarIconOnActive-' : 'statusbarIconOn-') + type));
+  },
+
+  updateSignalIcon: function sb_updateSignalIcon(icon, connInfo) {
+    icon.dataset.level = Math.ceil(connInfo.relSignalStrength / 20); // 0-5
+    icon.dataset.roaming = connInfo.roaming;
+
+    delete icon.dataset.searching;
+
+    icon.setAttribute('aria-label', navigator.mozL10n.get(connInfo.roaming ?
+      'statusbarSignalRoaming' : 'statusbarSignal', {
+        level: icon.dataset.level,
+        operator: connInfo.network.shortName
+      }
+    ));
+  },
+
   refreshCallListener: function sb_refreshCallListener() {
     // Listen to callschanged only when connected to CDMA networks and emergency
     // calls.
@@ -1055,10 +1093,20 @@ var StatusBar = {
 
     icon.hidden = false;
     icon.dataset.num = count;
+    this.updateNotificationLabel(icon);
   },
 
   updateNotificationUnread: function sb_updateNotificationUnread(unread) {
-    this.icons.notification.dataset.unread = unread;
+    var icon = this.icons.notification;
+    icon.dataset.unread = unread;
+    this.updateNotificationLabel(icon);
+  },
+
+  updateNotificationLabel: function sb_updateNotificationLabel(icon) {
+    icon.setAttribute('aria-label', navigator.mozL10n.get(icon.dataset.unread ?
+      'statusbarNotifications-unread' : 'statusbarNotifications', {
+      n: icon.dataset.num
+    }));
   },
 
   updateEmergencyCbNotification:
@@ -1116,6 +1164,8 @@ var StatusBar = {
         if (multipleSims) {
           signal.dataset.index = i + 1;
         }
+        signal.setAttribute('role', 'listitem');
+        data.setAttribute('role', 'listitem');
         data.className = 'sb-icon statusbar-data';
         data.hidden = true;
 
@@ -1136,7 +1186,8 @@ var StatusBar = {
         if (multipleSims) {
           callForwarding.dataset.index = i + 1;
         }
-
+        callForwarding.setAttribute('role', 'listitem');
+        callForwarding.setAttribute('aria-label', 'statusbarForwarding');
         sbCallForwardings.appendChild(callForwarding);
         this.icons.callForwardings[i] = callForwarding;
       }
