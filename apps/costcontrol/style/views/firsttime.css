@@ -88,36 +88,15 @@
   padding: 1.5rem;
   /* Legacy unstable BB */
   background: transparent;
+  display: flex;
 }
 
 #firsttime-view .step menu button {
-  text-align: right;
-  margin: 0 0 0 1rem;
+  margin-left: 1rem;
 }
 
 #firsttime-view .step menu button:first-child {
   margin-left: 0;
-}
-
-#firsttime-view .step menu[data-items="2"] button {
-  width: calc(50% - 0.75rem);
-}
-
-#firsttime-view .step menu button.recommend {
-  text-align: left;
-}
-
-#firsttime-view .step menu button span:first-child {
-  float: left;
-  width: 1.3rem;
-  height: 2.5rem;
-  margin: 0.7rem -0.5rem 0;
-  background: url(../images/app/icons/prev.png) no-repeat center center / 1.3rem;
-}
-
-#firsttime-view .step menu button.recommend span:first-child {
-  float: right;
-  background: url(../images/app/icons/next.png) no-repeat center center / 1.3rem;
 }
 
 /* Choices */
