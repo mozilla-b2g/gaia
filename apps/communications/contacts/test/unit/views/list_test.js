@@ -325,13 +325,10 @@ suite('Render contacts list', function() {
     selectSection = document.createElement('form');
     selectSection.id = 'selectable-form';
     selectSection.innerHTML = '<section role="region">' +
-    '<header>' +
-      '<button><span class="icon icon-close">close</span></button>' +
-      '<menu type="toolbar">' +
-        '<button type="button" id="select-action"></button>' +
-      '</menu>' +
+    '<gaia-header id="selectable-form-header" data-action="close">' +
       '<h1 id="edit-title" data-l10n-id="contacts"></h1>' +
-      '</header>' +
+      '<button type="button" id="select-action"></button>' +
+    '</gaia-header>' +
     '</section>' +
     '<menu id="select-all-wrapper">' +
       '<button id="deselect-all" disabled="disabled"></button>' +

@@ -1,13 +1,9 @@
 <element name="view-contact-form" extends="section">
   <template>
-    <header>
-      <button id='cancel-edit' class="negative"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
-      <menu type="toolbar" id='contact-form-actions'>
-        <button id="save-button" role="menuitem" data-l10n-id="done">Done</button>
-      </menu>
+    <gaia-header id="contact-form-header" data-action="close">
       <h1 id='contact-form-title' data-l10n-id="addContact">Add contact</h1>
-      <progress id="throbber" value="0" max="100" class="pack-activity hide"></progress>
-    </header>
+      <button id="save-button" role="menuitem" data-l10n-id="done">Done</button>
+    </gaia-header>
 
     <div id='add-phone-#i#' data-template class='phone-template' data-index="#i#">
       <fieldset class="fillflow-row">

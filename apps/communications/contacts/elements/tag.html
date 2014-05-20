@@ -1,12 +1,9 @@
 <element name="view-select-tag" extends="section">
   <template>
-    <header>
-      <button id="settings-cancel" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
-      <menu type="toolbar" id="contact-form-actions">
-        <button id="settings-done" role="menuitem" data-l10n-id="done">Done</button>
-      </menu>
+    <gaia-header id="settings-header" data-action="back">
       <h1 data-l10n-id="label">Label</h1>
-    </header>
+      <button id="settings-done" role="menuitem" data-l10n-id="done">Done</button>
+    </gaia-header>
 
     <article class="view-body">
       <form class="view-body-inner">

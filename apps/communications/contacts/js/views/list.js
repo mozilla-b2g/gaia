@@ -1609,7 +1609,7 @@ contacts.List = (function() {
       deselectAll = document.getElementById('deselect-all');
       deselectAll.addEventListener('click', handleSelection);
 
-      selectForm.querySelector('.icon.icon-close').parentNode.
+      selectForm.querySelector('#selectable-form-header').
                     addEventListener('click', exitSelectMode.bind(null, true));
     }
 

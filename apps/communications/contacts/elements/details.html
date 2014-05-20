@@ -1,12 +1,9 @@
 <element name="view-contact-details" extends="section">
   <template>
-    <header id='details-view-header'>
-      <button id="details-back" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
-      <menu type="toolbar">
-        <button role="menuitem" id="edit-contact-button"><span class="icon icon-edit-contact" data-l10n-id="edit">edit</span></button>
-      </menu>
+    <gaia-header id='details-view-header' data-action="back">
       <h1 id='contact-name-title'></h1>
-    </header>
+      <button id="edit-contact-button" role="menuitem" data-icon="edit"></button>
+    </gaia-header>
 
     <article id="contact-detail-wrapper" class="view-body">
       <div id="cover-img"></div>

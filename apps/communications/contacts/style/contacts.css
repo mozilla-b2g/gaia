@@ -341,8 +341,9 @@ form p textarea + button[type="reset"].hide {
   padding: 0;
 }
 
-section[role="region"] > header .icon.icon-settings {
-  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png);
+section[role="region"] > header .icon.icon-settings,
+gaia-header [data-icon="settings"]:before {
+  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png) !important;
 }
 
 #view-settings {

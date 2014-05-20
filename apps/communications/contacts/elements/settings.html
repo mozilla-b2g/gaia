@@ -1,12 +1,10 @@
 <element name="settings" extends="article">
   <template>
     <section data-theme="organic" id="view-settings" role="region" class="skin-organic view view-bottom">
-      <header>
-        <menu type="toolbar" id="settings-form-actions">
-          <button id="settings-close" role="menuitem" data-l10n-id="done">Done</button>
-        </menu>
+      <gaia-header data-skin="organic">
         <h1 data-l10n-id="settings">Settings</h1>
-      </header>
+        <button id="settings-close" role="menuitem" data-l10n-id="done">Done</button>
+      </gaia-header>
 
       <article class="view-body" id="settings-article">
         <section role="region" class="view-body-inner">
@@ -21,9 +19,9 @@
               <p data-l10n-id="contactsOrderBy">Order by last name</p>
             </li>
           </ul>
-          <header>
-            <h2 data-l10n-id="transferContactsTitle">Transfer Contacts</h2>
-          </header>
+          <gaia-subheader data-l10n-id="transferContactsTitle"  data-skin="organic">
+            Transfer Contacts
+          </gaia-subheader>
           <ul data-type="list" id="sources">
             <li id="importContacts" data-source="sim">
               <button class="icon icon-import" data-l10n-id="importContactsButton">
@@ -36,9 +34,9 @@
               </button>
             </li>
           </ul>
-          <header id="fb-header">
-            <h2 data-l10n-id="facebook">Facebook</h2>
-          </header>
+          <gaia-subheader id="fb-header" data-l10n-id="facebook" data-skin="organic">
+            Facebook
+          </gaia-subheader>
           <ul id="settingsFb" data-type="list" data-state="logged-out">
             <li class="fb-item">
               <aside class="pack-end">
@@ -58,9 +56,9 @@
               <p id="no-connection" data-l10n-id="noConnection11"></p>
             </li>
           </ul>
-          <header>
-            <h2 data-l10n-id="ContactManagementTitle">Contacts Management</h2>
-          </header>
+          <gaia-subheader data-l10n-id="ContactManagementTitle" data-skin="organic">
+            Contacts Management
+          </gaia-subheader>
           <ul data-type="list" id="contactsManagement">
             <li>
               <button id="set-ice" class="action action-delete" data-l10n-id="setICEButton">
@@ -77,10 +75,9 @@
       </article>
     </section>
     <section data-theme="organic" id="import-settings" role="region" class="skin-organic view view-right">
-      <header id="import-settings-header">
-        <button id="import-settings-back" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
+      <gaia-header id="import-settings-header" data-action="back" data-skin="organic">
         <h1 id='import-settings-title'></h1>
-      </header>
+      </gaia-header>
       <article class="view-body">
         <section role="region" class="view-body-inner">
           <ul data-type="list" id="import-options">
