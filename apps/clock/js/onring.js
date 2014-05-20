@@ -5,10 +5,12 @@ requirejs(['require_config'], function() {
     // Initialize a singleton object
     RingView.singleton();
 
-    var onready = window.postMessage.bind(window.opener, {
-      type: 'ringer',
-      status: 'READY'
-    }, window.location.origin);
+    var onready = function() {
+      window.opener.postMessage({
+        type: 'ringer',
+        status: 'READY'
+      }, window.location.origin);
+    };
 
     window.addEventListener('load', onready, false);
     if (document.readyState === 'complete') {
