@@ -11,6 +11,7 @@
       padding: 0;
       font-size: 10px;
       background-color: #fff;
+      width: 100%;
     }
     section {
       text-align: center;
@@ -18,15 +19,17 @@
   </style>
   <script>window.GaiaSwitchBaseurl = '../';</script>
   <script src="../script.js"></script>
+  <script defer src="example.js"></script>
 </head>
 <body role="application">
   <section>
-    <gaia-switch data-checked="true"></gaia-switch>
+    <gaia-switch checked></gaia-switch>
   </section>
   <section>
     <gaia-switch>
       <label>With a label</label>
     </gaia-switch>
   </section>
+  <div id="result"></div>
 </body>
 </html>

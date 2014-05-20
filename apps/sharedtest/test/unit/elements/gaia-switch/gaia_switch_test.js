@@ -21,9 +21,9 @@ suite('GaiaSwitch', function() {
     assert.equal(input.checked, false);
   });
 
-  test('Checks the input based on data-checked', function() {
+  test('Checks the input based on checked attr', function() {
     this.container.innerHTML =
-      '<gaia-switch data-checked="true"></gaia-switch>';
+      '<gaia-switch checked></gaia-switch>';
     var element = this.container.firstElementChild;
     var input = element.shadowRoot.querySelector('input');
     assert.equal(input.checked, true);
@@ -35,8 +35,24 @@ suite('GaiaSwitch', function() {
     var input = element.shadowRoot.querySelector('input');
     assert.equal(input.checked, false);
 
-    element.setAttribute('data-checked', 'true');
+    element.checked = 'true';
     assert.equal(input.checked, true);
-    assert.equal(element.dataset.checked, 'true');
+  });
+
+  test('Gets right value after click', function(done) {
+    this.container.innerHTML = '<gaia-switch></gaia-switch>';
+    var element = this.container.firstElementChild;
+    var input = element.shadowRoot.querySelector('input');
+    assert.equal(input.checked, false);
+
+    element.addEventListener('click', function(e) {
+      assert.equal(e.target.checked, true);
+      done();
+    });
+
+    element.handleClick({
+      preventDefault: function() {},
+      stopImmediatePropagation: function() {}
+    });
   });
 });

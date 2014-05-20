@@ -5,10 +5,21 @@
 label.pack-switch {
   display: inline-block;
   vertical-align: middle;
-  width: 5rem;
+  width: 100%;
   height: 5rem;
   position: relative;
   background: none;
+}
+
+label.pack-switch span {
+  float: left;
+  font-size: 1.8rem;
+  color: #333;
+  padding: 1rem 0 0;
+  height: 6rem;
+  line-height: 3rem;
+  box-sizing: border-box;
+  display: block;
 }
 
 label.pack-switch input {

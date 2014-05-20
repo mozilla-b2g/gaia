@@ -14,26 +14,27 @@ window.GaiaSwitch = (function(win) {
     this._input = this._template.querySelector('input[type="checkbox"]');
     this._styleHack();
 
-    var checked = this.dataset.checked;
-    if (checked) {
+    var checked = this.getAttribute('checked');
+    if (checked !== null) {
       this._input.checked = true;
     }
 
-    var label = this._template.getElementById('switch-label');
-    label.addEventListener('click', this.toggleCheck.bind(this));
+    var label = this._template.querySelector('#switch-label span');
+    label.addEventListener('click', this.handleClick.bind(this));
 
     shadow.appendChild(this._template);
   };
 
-  proto.attributeChangedCallback = function(attr, oldVal, newVal) {
-    if (attr === 'data-checked') {
-      this._input.checked = newVal === 'true';
-    }
-  };
-
-  proto.toggleCheck = function(e) {
-    var element = this._input;
-    this.dataset.checked = element.checked ? 'true' : 'false';
+  proto.handleClick = function(e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    this.checked = !this.checked;
+    var event = new MouseEvent('click', {
+      view: window,
+      bubbles: true,
+      cancelable: true
+    });
+    this.dispatchEvent(event);
   };
 
   /**
@@ -53,6 +54,30 @@ window.GaiaSwitch = (function(win) {
     var style = this._template.querySelector('style');
     this.appendChild(style.cloneNode(true));
   };
+
+  /**
+   * Proxy the checked property to the input element.
+   */
+  Object.defineProperty( proto, 'checked', {
+    get: function() {
+      return this._input.checked;
+    },
+    set: function(value) {
+      this._input.checked = value;
+    }
+  });
+
+  /**
+   * Proxy the name property to the input element.
+   */
+  Object.defineProperty( proto, 'name', {
+    get: function() {
+      return this.getAttribute('name');
+    },
+    set: function(value) {
+      this.setAttribute('name', value);
+    }
+  });
 
   // HACK: Create a <template> in memory at runtime.
   // When the custom-element is created we clone
