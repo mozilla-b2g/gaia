@@ -483,7 +483,6 @@ class GaiaDevice(object):
     def push_file(self, source, count=1, destination='', progress=None):
 
         separator = os.path.sep
-
         # If the destination is not a filename, join the source's filename to the destination
         if '.' not in destination.rpartition(separator)[-1]:
             destination = separator.join([destination, source.rpartition(separator)[-1]])
@@ -503,9 +502,9 @@ class GaiaDevice(object):
                 # re-join the destination and new filename
                 remote_copy = separator.join([partition[0], remote_file])
 
-                if sys.platform is 'win32' and self.is_desktop_b2g:
-                    # We're on a windows host and using desktopb2g's fake sdcard
-                    self.manager_checkCmd(['copy', destination, remote_copy])
+                if self.is_desktop_b2g:
+                    # We're using desktopb2g's fake sdcard
+                    self.manager._copyFile(destination, remote_copy)
                 else:
                     # Otherwise, we have either linux-based host and/or device
                     self.manager._checkCmd(['shell', 'dd', 'if=%s' % destination, 'of=%s' % remote_copy])
@@ -667,9 +666,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                 self.cleanup_data()
             self.device.start_b2g()
 
-            if self.device.is_desktop_b2g:
-                # Enabled the mock sdcard to facilitate sdcard/Device Storage tests
-                self.device.enable_desktop_fake_sdcard()
+        if self.device.is_desktop_b2g:
+            # Enabled the mock sdcard to facilitate sdcard/Device Storage tests
+            self.device.enable_desktop_fake_sdcard()
 
         # Run the fake update checker
         FakeUpdateChecker(self.marionette).check_updates()

@@ -11,10 +11,11 @@ class DesktopB2GFileManager:
     It is designed to match http://mozbase.readthedocs.org/en/latest/mozdevice.html
     '''
 
-    def _checkCmd(self, args):
-        # strip the preceding shell command, redundant with os.system
-        cmd = ' '.join(args).strip('shell')
-        os.system(cmd)
+    def _copyFile(self, src, dst):
+        '''
+        Non-standard mozdevice method, but we directly call shutil copyfile instead of a shell command
+        '''
+        shutil.copyfile(src, dst)
 
     def dirExists(self, remotePath):
         return os.path.exists(remotePath)
