@@ -304,7 +304,7 @@ var CallScreen = {
   },
 
   setEmergencyWallpaper: function cs_setEmergencyWallpaper() {
-    this.mainContainer.classList.add('emergency-active');
+    this.setWallpaper();
   },
 
   insertCall: function cs_insertCall(node) {
