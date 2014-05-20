@@ -167,7 +167,10 @@ Evme.ResultManager = function Evme_ResultsManager() {
         MARKETAPPS in providers &&
           providers[MARKETAPPS].render(marketApps, pageNum);
 
-        response.nativeAppsHint && MARKETSEARCH in providers &&
+        // Tarako: display market search when query is a tarako category
+        // (ignore response.nativeAppsHint)
+        Evme.Config.tarakoCategories.indexOf(query.toLowerCase()) > -1 &&
+          MARKETSEARCH in providers &&
           providers[MARKETSEARCH].render({
           'query': query,
           'label': (installedApps.length || marketApps.length) ?
