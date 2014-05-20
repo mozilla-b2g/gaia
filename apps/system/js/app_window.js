@@ -383,7 +383,6 @@
     if (this._killed) {
       return;
     }
-
     this._killed = true;
 
     if (DEBUG) {
@@ -413,7 +412,8 @@
     }
 
     // If the app is the currently displayed app, switch to the homescreen
-    if (this.isActive() && !this.isHomescreen) {
+    if (this.isActive() && !this.isHomescreen && !this.isLockScreen) {
+      // XXX: Refine this in transition state controller.
       this.element.addEventListener('_closed', (function onClosed() {
         window.removeEventListener('_closed', onClosed);
         this.destroy();

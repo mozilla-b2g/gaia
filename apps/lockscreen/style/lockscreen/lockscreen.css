@@ -1,3 +1,9 @@
+body {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 #lockscreen {
   position: absolute;
   top: 0;
@@ -155,11 +161,11 @@
 #lockscreen-header {
   z-index: 9999;
   position: absolute;
-  top: 2.4rem;   /* 2.4rem = height of status bar */
+  top: 1rem;   /* 1rem = height of status bar */
   left: 0;
   width: 100%;
   -moz-box-sizing: border-box;
-  padding: 1.8rem 2.5rem 1.2rem 2.5rem;
+  padding: 1.1rem 1.6rem 1.2rem 1.6rem;
   color: #fff;
   text-shadow: 0 0 0.3rem #333;
   transition: transform 0.2s ease, opacity 0.2s ease;
@@ -180,9 +186,9 @@
   width: 100%;
   display: inline-block;
   font-weight: 400;
-  font-size: calc(6 * 0.226rem);
+  font-size: 0.9rem;
   text-shadow: 0.1rem 0.1rem 0.3rem #000000;
-  padding-bottom: 1rem;
+  padding-bottom: 0.7rem;
   border-bottom: solid 0.1rem rgba(256,256,256,.4);
 
   overflow: hidden;
@@ -212,16 +218,18 @@
 #lockscreen-clock-time {
   margin: -0.8rem 0 -1rem -0.4rem;
   font-weight: 300;
-  font-size: calc(26 * 0.226rem);
+  font-size: 4rem;
 }
 
 #lockscreen-clock-time span { /* optional meridiem */
-  font-size: calc(17 * 0.226rem);
+  font-size: 2.5rem;
+  margin-left: -1rem;
 }
 
 #lockscreen-date {
   font-weight: 400;
-  font-size: calc(7 * 0.226rem);
+  font-size: 1rem;
+  margin-top: 0.3rem;
 }
 
 #lockscreen-clock-time, #lockscreen-date {
@@ -231,7 +239,7 @@
 
 #lockscreen-area {
   position: absolute;
-  height: 11.2rem;
+  height: 6.3rem;
   left: 0;
   right: 0;
   bottom: 0;
@@ -239,16 +247,15 @@
 }
 
 .lockscreen-icon-area {
-  height: 10rem;
+  height: 6.6rem;
   position: absolute;
   border-style: none;
   transition: opacity 0.5s ease;
 }
 
 .lockscreen-icon {
-  margin-top: 2rem;
-  width: 6rem;
-  height: 6rem;
+  width: 3.7rem;
+  height: 3.7rem;
 
   pointer-events: none;
 }
@@ -267,11 +274,11 @@
 }
 
 .lockscreen-icon-right {
-  right: calc(50% - 14rem);
+  right: calc(50% - 8.5rem);
 }
 
 .lockscreen-icon-left {
-  left: calc(50% - 14rem);
+  left: calc(50% - 8.5rem);
 }
 
 @media (min-width:768px) {
@@ -309,7 +316,9 @@ button::-moz-focus-inner {
   background-image: url('./images/icon-unlock.png');
   background-position: center;
   background-repeat: no-repeat;
-  background-size: 3rem;
+  background-size: auto;
+  height: 100%;
+  margin-top: -0.3rem;
 }
 
 .lockscreen-icon-left, .lockscreen-icon-right {
@@ -327,15 +336,21 @@ button::-moz-focus-inner {
   background-image: url('./images/icon-camera.png');
   background-position: center;
   background-repeat: no-repeat;
-  background-size: 2.4rem;
+  background-size: auto;
+  height: 100%;
+  margin-top: -0.3rem;
+}
+
+#lockscreen-alt-camera-button {
+  margin-top: 0;
 }
 
 #lockscreen-alt-camera {
   border-radius: 3rem;
   background-color: rgba(0, 0, 0, 0.3);
   -moz-box-sizing: border-box;
-  border: 0.2rem solid rgba(255, 255, 255, 0.8);
-
+  border: 0.15rem solid rgba(255, 255, 255, 0.8);
+  margin-top: 1rem;
   float: right;
   pointer-events: auto;
   opacity: 0.1;
@@ -361,91 +376,90 @@ button::-moz-focus-inner {
   z-index: 32;
 }
 
+
 #lockscreen-passcode-code {
-  position: absolute;
-  bottom: 21.4rem;
-  height: 7rem;
+  height: 4.3rem;
   width: 100%;
   background-color: rgba(49, 60, 70, 0.9);
   margin: 0;
-  padding: 0 1rem;
+  padding: 0 0.4rem;
   -moz-box-sizing: border-box;
-  border-top: 0.1rem solid #525050;
+  text-align: center;
+}
+
+#lockscreen-passcode-code .code-container {
+  margin: auto auto;
+}
+
+#lockscreen-passcode-input {
+  transition: visibility 0.3s ease, transform 0.3s ease !important;
   visibility: hidden;
-  transform: translateY(calc(21.4rem + 7.2rem));
-  transition: visibility 0.3s ease, transform 0.3s ease;
+  position: absolute;
+  bottom: 0;
+  transform: translateY(100%);
 }
 
-[data-passcode-status="success"] #lockscreen-passcode-pad,
-[data-passcode-status="success"] #lockscreen-passcode-code {
-  transform: translateY(calc(21.4rem + 7.2rem)) !important;
-}
-
-[data-panel="passcode"] #lockscreen-passcode-code {
+[data-passcode-status="success"] #lockscreen-passcode-input.lockscreen-passcode-input {
   visibility: inherit;
-  transform: translateY(0);
+  transform: translateY(100%) !important;
 }
 
-[data-panel="emergency-call"] #lockscreen-passcode-code {
+[data-panel="passcode"] #lockscreen-passcode-input.lockscreen-passcode-input {
+  visibility: inherit;
+  transform: translateY(0%);
+}
+
+[data-panel="emergency-call"] .lockscreen-passcode-input {
   transition-delay: 0.5s;
 }
 
-#lockscreen-passcode-code > span {
+#lockscreen-passcode-code .code-container {
+  width: 100%;
+  display: inline-block;
+  text-align: center;
+}
+
+#lockscreen-passcode-code .code-container span {
   -moz-box-sizing: border-box;
-  display: block;
-  float: left;
+  display: inline-block;
   width: calc(25% - 1rem);
-  margin: 1.5rem 0.5rem;
-  height: calc(100% - 3rem);
+  margin: 1.0rem 0.3rem;
+  height: 2.5rem;
   text-align: center;
   background-color: #fff;
-  border-radius: 0.5rem;
+  border-radius: 0.3rem;
 
   position: relative;
 }
 
-[data-passcode-status="error"] #lockscreen-passcode-code > span {
+[data-passcode-status="error"] #lockscreen-passcode-code span {
   border: 0.1rem #B70404 solid;
 }
 
-[data-passcode-status="error"] #lockscreen-passcode-code > span[data-dot]::before {
+[data-passcode-status="error"] #lockscreen-passcode-code span[data-dot]::before {
     background-color: #B70404;
 }
 
-#lockscreen-passcode-code > span[data-dot]::before {
+#lockscreen-passcode-code span[data-dot]::before {
   content: '';
   display: block;
   position: absolute;
 
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1rem;
+  height: 1rem;
   background-color: #3e3b39;
   border-radius: 0.75rem;
-  top: 50%;
-  left: 50%;
-  margin-left: -0.75rem;
-  margin-top: -0.75rem;
+  top: 57%;
+  left: 56%;
+  margin-left: -0.7rem;
+  margin-top: -0.7rem;
 }
 
 #lockscreen-passcode-pad {
   -moz-box-sizing: border-box;
-  position: absolute;
-  bottom: 0;
-  height: 21.4rem;
+  height: 13.9rem;
   width: 100%;
   background-color: rgba(0, 0, 0, 0.8);
-  visibility: hidden;
-  transform: translateY(calc(21.4rem + 7em));
-  transition: visibility 0.3s ease, transform 0.3s ease;
-}
-
-[data-panel="passcode"] #lockscreen-passcode-pad {
-  visibility: inherit;
-  transform: translateY(0);
-}
-
-[data-panel="emergency-call"] #lockscreen-passcode-pad {
-  transition-delay: 0.5s;
 }
 
 #lockscreen-passcode-pad > a {
@@ -453,17 +467,17 @@ button::-moz-focus-inner {
   display: block;
   float: left;
   width: 33.333%;
-  height: 5rem;
+  height: 3.1rem;
   border-top: 0.1rem solid #525050;
   border-bottom: 0.1rem solid #000000;
   border-left: 0.1rem solid #525050;
   border-right: 0.1rem solid #000000;
   outline: none;
-  padding: 0 2rem;
+  padding: 0 1.2rem;
 
-  font-size: 3.2rem;
+  font-size: 2rem;
   font-weight: 500;
-  line-height: 5rem;
+  line-height: 3rem;
 
   color: #fff;
   text-decoration: none;
@@ -475,13 +489,13 @@ button::-moz-focus-inner {
 }
 
 #lockscreen-passcode-pad > a.last-row {
-  height: 6.4rem;
+  height: 4.4rem;
 }
 
 #lockscreen-passcode-pad > a > span {
   pointer-events: none;
-  font-size: 1.2rem;
-  padding: 1.2rem;
+  font-size: 0.8rem;
+  padding: 0.8rem;
   color: #9aaabc;
 }
 
@@ -530,11 +544,12 @@ button::-moz-focus-inner {
   display: inline-block;
   padding: 0;
   color: #fff;
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: 500;
-  line-height: 1.6rem;
+  line-height: 1rem;
   text-transform: uppercase;
   vertical-align: middle;
+  margin-left: -0.3rem;
 }
 
 #lockscreen-passcode-pad > a.disabled {
@@ -582,11 +597,11 @@ button::-moz-focus-inner {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 10rem;
+  height: 6.3rem;
   pointer-events: none;
   border-top: 0.1rem solid #989898;
   background-image: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.2) 20%);
-  z-index: 5;
+  z-index: 2;
 }
 
 .touched #lockscreen-icon-container {

@@ -12,38 +12,27 @@
    * @constructor LockScreenWindow
    * @augments AppWindow
    */
-  var LockScreenWindow = function() {
-    // Before we make lockscreen as an app (Bug 898348 ), which would
-    // own its own manifest, we must mock a manifest for him.
-    var configs = {
-      url: window.location.href,
-      manifest: {
-        fullscreen: true,
-        orientation: ['default']
-      },
-      name: 'Lockscreen',
-      // No manifestURL + no chrome would cause a default chrome app
-      manifestURL: window.location.href.replace('system', 'lockscreen') +
-                  '/manifest.webapp',
-      origin: window.location.origin.replace('system', 'lockscreen')
-    };
-
-    // Mock the iframe contains the elements with the existing
-    // lockscreen div.
-    this.iframe = this.createOverlay();
+  var LockScreenWindow = function LockScreenWindow(configs) {
     AppWindow.call(this, configs);
-
-    // XXX: Because we still have to create both LockScreenWindow
-    // and LockScreen.
-    this.lockscreen = new window.LockScreen();
-    window.lockScreen = this.lockscreen;
   };
+
+  LockScreenWindow.REGISTERED_EVENTS =
+    ['mozbrowserclose', 'mozbrowsererror',
+      'mozbrowservisibilitychange', 'mozbrowserloadend'];
 
   /**
    * @borrows AppWindow.prototype as LockScreenWindow.prototype
    * @memberof LockScreenWindow
    */
   LockScreenWindow.prototype = Object.create(AppWindow.prototype);
+
+  /**
+   * AppWindow need this to do some special handling.
+   *
+   * @type boolean
+   * @memberof LockScreenWindow
+   */
+  LockScreenWindow.prototype.isLockScreen = true;
 
   /**
    * We still need this before we put the lockreen inside an iframe.
@@ -86,40 +75,68 @@
   LockScreenWindow.prototype.CLASS_LIST = 'appWindow lockScreenWindow';
 
   /**
-   * Create LockScreen overlay. This method would exist until
-   * we make the overlay loaded from HTML file just like the
-   * real iframe app.
+   * Register events from the static member.
    *
    * @this {LockScreenWindow}
    * @memberof LockScreenWindow
    */
-  LockScreenWindow.prototype.createOverlay =
-    function lsw_createOverlay() {
-      var template = new window.Template('lockscreen-overlay-template'),
-          html = template.interpolate(),
-          dummy = document.createElement('div');
+  LockScreenWindow.prototype._registerEvents = function aw__registerEvents() {
+    if (this.element === null) {
+      this._dump();
+      return;
+    }
+    // Need to read the `LockScreenWindow.REGISTERED_EVENTS` here because the
+    // `AppWindow#_registerEvents` don't know anything about it.
+    LockScreenWindow.REGISTERED_EVENTS.forEach(function iterator(evt) {
+      this.element.addEventListener(evt, this);
+    }, this);
+  };
 
-      dummy.innerHTML = html;
-      var iframe = dummy.firstElementChild;
-      iframe.setVisible = function() {};
-      // XXX: real iframes would own these methods.
-      iframe.addNextPaintListener = function(cb) {
-        cb();
-      };
-      iframe.removeNextPaintListener = function() {};
-      iframe.getScreenshot = function() {
-        // Mock the request.
-        return {
-          get onsuccess() {return null;},
-          set onsuccess(cb) {
-            var mockEvent = {
-              target: {result: null}
-            };
-            cb(mockEvent);
-          }
-        };
-      };
-      return iframe;
+  /**
+   * Need to derive this to restart the LockScreen window when it crashed.
+   *
+   * @param {event} evt
+   * @this {LockScreenWindow}
+   * @memberof LockScreenWindow
+   */
+  LockScreenWindow.prototype._handle_mozbrowsererror =
+    function lw__handle_mozbrowsererror(evt) {
+      if (evt.detail.type == 'fatal') {
+        this.publish('crashed');
+        this.restart();
+      }
     };
+
+  /**
+   * If the crashing app is the lockscreen screen app and it is the
+   * displaying app we will need to relaunch it right away.
+   *
+   * @this {LockScreenWindow}
+   * @memberof LockScreenWindow
+   */
+  LockScreenWindow.prototype.restart = function lw_restart() {
+    // If we're displayed, restart immediately.
+    if (this.isActive()) {
+      this.kill();
+
+      // XXX workaround bug 810431.
+      // we need this here and not in other situations
+      // as it is expected that lockscreen frame is available.
+      setTimeout(function() {
+        // The states of this instance would not be restarted,
+        // so we need to do this.
+        this._killed = false;
+        this.render();
+        this.open();
+      }.bind(this));
+    } else {
+      // Otherwise wait until next opening request.
+      this.kill();
+    }
+  };
+
+  /**
+   * @exports LockScreenWindow
+   */
   exports.LockScreenWindow = LockScreenWindow;
 })(window);

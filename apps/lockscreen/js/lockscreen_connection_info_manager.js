@@ -58,7 +58,7 @@
       this._settings = navigator.mozSettings;
 
       this._connStates.hidden = false;
-      SIMSlotManager.getSlots().forEach(function(simslot, index) {
+      window.SIMSlotManager.getSlots().forEach(function(simslot, index) {
         // connection state
         this._connStates.appendChild(this._createConnStateElement());
         simslot.conn.addEventListener('voicechange',
@@ -96,11 +96,12 @@
       }).bind(this));
 
       // update UI
-      var req = SettingsListener.getSettingsLock().get('ril.radio.disabled');
+      var req = window.SettingsListener.getSettingsLock()
+        .get('ril.radio.disabled');
       req.onsuccess = (function() {
         this._airplaneMode = !!req.result['ril.radio.disabled'];
         var req2 =
-          SettingsListener.getSettingsLock()
+          window.SettingsListener.getSettingsLock()
             .get('ril.telephony.defaultServiceId');
         req2.onsuccess = (function() {
           this._telephonyDefaultServiceId =
@@ -145,7 +146,7 @@
    */
   LockScreenConnInfoManagerPrototype.updateConnStates =
     function lscs_updateConnStates() {
-      SIMSlotManager.getSlots().forEach((function(simslot) {
+      window.SIMSlotManager.getSlots().forEach((function(simslot) {
         this.updateConnState(simslot);
       }).bind(this));
   };
@@ -173,7 +174,7 @@
       connstate.hidden = false;
 
       // Set sim ID line
-      if (SIMSlotManager.isMultiSIM()) {
+      if (window.SIMSlotManager.isMultiSIM()) {
         simIDLine.hidden = false;
         simIDLine.textContent = 'SIM ' + (index + 1);
       } else {
@@ -197,7 +198,7 @@
       // Airplane mode
       if (this._airplaneMode) {
         // Only show one airplane mode status
-        if (index == 0) {
+        if (0 === index) {
           localize(nextLine(), 'airplaneMode');
         } else {
           connstate.hidden = true;
@@ -207,8 +208,8 @@
       }
 
       // If there is no sim card on the device, we only show one information.
-      if (SIMSlotManager.noSIMCardOnDevice()) {
-        if (index == 0) {
+      if (window.SIMSlotManager.noSIMCardOnDevice()) {
+        if (0 === index) {
           if (voice.emergencyCallsOnly) {
             localize(nextLine(), 'emergencyCallsOnly');
             localize(nextLine(), 'emergencyCallsOnly-noSIM');
@@ -218,8 +219,8 @@
         }
         simIDLine.hidden = true;
         return;
-      } else if (SIMSlotManager.noSIMCardConnectedToNetwork()) {
-        if (index == 0) {
+      } else if (window.SIMSlotManager.noSIMCardConnectedToNetwork()) {
+        if (0 === index) {
           localize(nextLine(), 'emergencyCallsOnly');
         }
         simIDLine.hidden = true;
@@ -228,7 +229,7 @@
 
       // If there are multiple sim slots and only one sim card inserted, we
       // only show the state of the inserted sim card.
-      if (SIMSlotManager.isMultiSIM() &&
+      if (window.SIMSlotManager.isMultiSIM() &&
           navigator.mozIccManager.iccIds.length == 1 &&
           simslot.isAbsent()) {
         connstate.hidden = true;
@@ -263,28 +264,30 @@
         return;
       }
 
-      var operatorInfos = MobileOperator.userFacingInfo(conn);
+      var operatorInfos = window.MobileOperator.userFacingInfo(conn);
       var operator = operatorInfos.operator;
       var is2G = _NETWORKS_2G.some(function checkConnectionType(elem) {
         return (conn.voice.type == elem);
       });
 
+      var line = null;
+
       if (voice.roaming) {
         var l10nArgs = { operator: operator };
         localize(nextLine(), 'roaming', l10nArgs);
       } else {
-        var line = nextLine();
+        line = nextLine();
         line.l10nId = '';
         line.textContent = operator;
       }
 
       if (this._cellbroadcastLabel && is2G) {
-        var line = nextLine();
+        line = nextLine();
         line.l10nId = '';
         line.textContent = this._cellbroadcastLabel;
       } else if (operatorInfos.carrier) {
-        var line = nextLine();
-      line.l10nId = '';
+        line = nextLine();
+        line.l10nId = '';
         line.textContent = operatorInfos.carrier + ' ' +
           operatorInfos.region;
       }

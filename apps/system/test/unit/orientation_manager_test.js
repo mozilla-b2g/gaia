@@ -1,26 +1,24 @@
 'use strict';
 
-mocha.globals(['OrientationManager', 'SettingsListener', 'lockScreen']);
+mocha.globals(['OrientationManager', 'SettingsListener', 'System']);
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_system.js');
 
 var mocksForOrientationManager = new MocksHelper([
-  'SettingsListener'
+  'System', 'SettingsListener'
 ]).init();
 
 suite('system/OrientationManager >', function() {
   var originalLocked;
   mocksForOrientationManager.attachTestHelpers();
   setup(function(done) {
-    window.lockScreen = window.MockLockScreen;
-    originalLocked = window.lockScreen.locked;
-    window.lockScreen.locked = false;
+    originalLocked = window.System.locked;
+    window.System.locked = false;
     requireApp('system/js/orientation_manager.js', done);
-    window.lockScreen = MockLockScreen;
   });
 
   teardown(function() {
-    window.lockScreen.locked = originalLocked;
+    window.System.locked = originalLocked;
   });
 
   suite('handle events', function() {
@@ -66,7 +64,7 @@ suite('system/OrientationManager >', function() {
 
     test('attention screen hides when lockscreen is active', function() {
       var stubPublish = this.sinon.stub(OrientationManager, 'publish');
-      window.lockScreen.locked = true;
+      window.System.locked = true;
       OrientationManager.handleEvent({
         type: 'attentionscreenhide'
       });
