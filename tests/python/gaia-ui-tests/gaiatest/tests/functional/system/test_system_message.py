@@ -31,6 +31,35 @@ class TestSystemMessages(GaiaTestCase):
         message = self.marionette.find_element(By.ID, self._testing_message_id)
         self.assertEqual(message.text, self._testing_message_text)
 
+    #The scenario we want to test is:
+    # 1) Launch an app.
+    # 2) DOM side SystemMessageManager has been created.
+    # 3) No system message handler is set.
+    # 4) Broadcast system message internally. The message will be pending.
+    #    until the app sets the message handler.
+    # 5) The app sets the message handler and it should be signalled right away.
+    def test_bug_906164(self):
+        self.apps.kill_all() # Make sure no app is running.
+
+        test_container = TestContainer(self.marionette)
+
+        message_text_json = '{value: "%s"}' % self._testing_message_text
+
+        # Launch the app and call mozHasPendingMessage to ensure the existence of
+        # SystemMessageManager in DOM side.
+        test_container.launch()
+        self.marionette.execute_script("""
+            navigator.mozHasPendingMessage('%s');
+        """ % self._testing_system_message)
+
+        # Broadcast the system message and the test app should receive it.
+
+        self.broadcast_system_message(self._testing_system_message, message_text_json)
+
+        self.on_app_launched()
+        message = self.marionette.find_element(By.ID, self._testing_message_id)
+        self.assertEqual(message.text, self._testing_message_text)
+
     # Inject some javascript to test if the message is delivered
     def on_app_launched(self):
         self.marionette.execute_script("""
