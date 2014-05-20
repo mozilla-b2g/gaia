@@ -149,11 +149,11 @@ suite('preferences.js', function() {
     });
 
     test('editDesktopPref', function () {
-      preferences.homescreen = 'testHomescreen';
+      preferences.system = 'testSystem';
       preferences.prefs = {};
       preferences.setDesktopPref();
       assert.deepEqual(preferences.prefs, {
-        'browser.startup.homepage': preferences.homescreen,
+        'browser.startup.homepage': preferences.system,
         'startup.homepage_welcome_url': '',
         'browser.shell.checkDefaultBrowser': false,
         'devtools.toolbox.host': 'side',
@@ -201,7 +201,7 @@ suite('preferences.js', function() {
       });
 
       test('editDebugPref', function () {
-        preferences.homescreen = 'testHomescreen';
+        preferences.system = 'testSystem';
         preferences.config = {
           GAIA_DIR: 'testGaiaDir',
           GAIA_DOMAIN: 'testGaiaDomain',
@@ -299,7 +299,7 @@ suite('preferences.js', function() {
         ]
       };
       preferences.config = {
-        HOMESCREEN: 'app://homescreen',
+        SYSTEM: 'app://system',
         GAIA_PORT: 8000,
         GAIA_DOMAIN: 'domain'
       };
@@ -307,9 +307,11 @@ suite('preferences.js', function() {
       preferences.prefs = {};
       preferences.preparePref();
       assert.deepEqual(preferences.prefs, {
-        'browser.manifestURL': 'app://homescreen8000/manifest.webapp',
-        'b2g.neterror.url': 'app://homescreen8000/net_error.html',
-        'browser.homescreenURL': 'app://homescreen8000/index.html',
+        'browser.manifestURL': 'app://system8000/manifest.webapp',
+        'b2g.system_manifest_url': 'app://system8000/manifest.webapp',
+        'b2g.neterror.url': 'app://system8000/net_error.html',
+        'browser.homescreenURL': 'app://system8000/index.html',
+        'b2g.system_startup_url': 'app://system8000/index.html',
         'network.http.max-connections-per-server': 15,
         'dom.mozInputMethod.enabled': true,
         'dom.webcomponents.enabled': true,
