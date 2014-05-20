@@ -23,6 +23,7 @@ requireApp('sms/test/unit/mock_attachment_menu.js');
 requireApp('sms/test/unit/mock_information.js');
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 require('/shared/test/unit/mocks/mock_async_storage.js');
+require('/test/unit/mock_settings.js');
 
 requireApp('sms/js/link_helper.js');
 requireApp('sms/js/drafts.js');
@@ -44,6 +45,7 @@ requireApp('sms/js/startup.js');
 
 var MocksHelperForSmsUnitTest = new MocksHelper([
   'asyncStorage',
+  'Settings',
   'AttachmentMenu',
   'TimeHeaders',
   'Information',
