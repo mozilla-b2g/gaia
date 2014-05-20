@@ -141,11 +141,15 @@ function concatenatedScripts(scriptsPaths, targetPath) {
 }
 
 function getJSON(file) {
+  let content;
   try {
-    let content = getFileContent(file);
+    content = getFileContent(file);
     return JSON.parse(content);
   } catch (e) {
     dump('Invalid JSON file : ' + file.path + '\n');
+    if (content) {
+      dump('Content of JSON file:\n' + content + '\n');
+    }
     throw e;
   }
 }
