@@ -5,6 +5,8 @@ var MockBluetooth = {
   enabled: true,
   init: function mbt_init() {
     var MockGetPairedDevices = {
+      address: '01:23:45:67:89:AB',
+      name: 'MockBTDevice',
       getPairedDevices: function mbt_getPairedDevices() {
         // fake object with two paired devices
         var tmpObj = {
@@ -17,6 +19,9 @@ var MockBluetooth = {
           }
         });
         return tmpObj;
+      },
+      pair: function() {
+        return {};
       }
     };
     this.defaultAdapter = MockGetPairedDevices;
@@ -27,7 +32,16 @@ var MockBluetooth = {
   },
 
   getDefaultAdapter: function mbt_getDefaultAdapter() {
-    return this.defaultAdapter;
+    var req = {};
+
+    setTimeout(function() {
+      if (req.onsuccess) {
+        req.result = MockBluetooth.defaultAdapter;
+        req.onsuccess();
+      }
+    });
+
+    return req;
   }
 };
 

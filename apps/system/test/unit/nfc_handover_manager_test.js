@@ -1,11 +1,12 @@
 'use strict';
 
 mocha.globals(['NfcConnectSystemDialog', 'NfcHandoverManager', 'NfcManager',
-               'NDEFUtils']);
+               'NDEFUtils', 'BluetoothTransfer']);
 
 /* globals MocksHelper, MockBluetooth, MockNavigatorSettings,
            NDEF, NfcConnectSystemDialog,
            NfcManager, NfcHandoverManager,
+           NfcManagerUtils, MockMozNfc, NfcUtils,
            MockNavigatormozSetMessageHandler */
 
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
@@ -15,7 +16,9 @@ require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_settingslistener_installer.js');
 requireApp('system/test/unit/mock_bluetooth.js');
+requireApp('system/test/unit/mock_bluetooth_transfer.js');
 requireApp('system/test/unit/mock_system_nfc_connect_dialog.js');
+requireApp('system/test/unit/mock_moz_nfc.js');
 
 
 var mocksForNfcUtils = new MocksHelper([
@@ -26,6 +29,7 @@ var mocksForNfcUtils = new MocksHelper([
 
 suite('Nfc Handover Manager Functions', function() {
 
+  var realMozNfc;
   var realMozSettings;
   var realMozBluetooth;
   var realMozSetMessageHandler;
@@ -33,10 +37,12 @@ suite('Nfc Handover Manager Functions', function() {
   mocksForNfcUtils.attachTestHelpers();
 
   setup(function(done) {
+    realMozNfc = navigator.mozNfc;
     realMozSettings = navigator.mozSettings;
     realMozBluetooth = navigator.mozBluetooth;
     realMozSetMessageHandler = navigator.mozSetMessageHandler;
 
+    navigator.mozNfc = MockMozNfc;
     navigator.mozSettings = MockNavigatorSettings;
     navigator.mozBluetooth = MockBluetooth;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
@@ -45,10 +51,14 @@ suite('Nfc Handover Manager Functions', function() {
 
     requireApp('system/js/ndef_utils.js');
     requireApp('system/js/nfc_manager.js');
-    requireApp('system/js/nfc_handover_manager.js', done);
+    requireApp('system/js/nfc_handover_manager.js', function() {
+      NfcHandoverManager.init();
+      done();
+    });
   });
 
   teardown(function() {
+    navigator.mozNfc = realMozNfc;
     navigator.mozSettings = realMozSettings;
     navigator.mozBluetooth = realMozBluetooth;
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
@@ -131,4 +141,105 @@ suite('Nfc Handover Manager Functions', function() {
     });
   });
 
+  suite('Restore state of Bluetooth adapter', function() {
+    var realBluetoothTransfer;
+    var stubSendNDEF;
+    var spyBluetoothEnabledObserver;
+    var mockFileRequest;
+
+    setup(function() {
+      realBluetoothTransfer = window.BluetoothTransfer;
+      window.BluetoothTransfer = window.MockBluetoothTransfer;
+
+      mockFileRequest = {
+          session: '48c0c37c-e94c-11e3-beca-00a0cca16458',
+          blob: new Blob(),
+          requestId: 'req-id-1'
+      };
+
+      spyBluetoothEnabledObserver = sinon.spy(function(event) {
+        MockBluetooth.enabled = event.settingValue;
+        if (event.settingValue) {
+          window.dispatchEvent(new CustomEvent('bluetooth-adapter-added'));
+        }
+      });
+      MockNavigatorSettings.addObserver('bluetooth.enabled',
+                                        spyBluetoothEnabledObserver);
+
+      stubSendNDEF = sinon.stub(MockMozNfc.MockNFCPeer, 'sendNDEF', function() {
+        // At the time we send the handover message, BT always needs to be
+        // enabled
+        assert.isTrue(MockBluetooth.enabled);
+        NfcHandoverManager.doFileTransfer('11:22:33:44:55:66');
+        return {};
+      });
+    });
+
+    teardown(function() {
+      window.BluetoothTransfer = realBluetoothTransfer;
+      stubSendNDEF.restore();
+      MockNavigatorSettings.removeObserver('bluetooth.enabled');
+    });
+
+    test('Send file with BT enabled',
+      function(done) {
+        MockBluetooth.enabled = true;
+        MockBluetoothTransfer.sendFileQueueEmpty = true;
+        NfcHandoverManager.handleFileTransfer(mockFileRequest.session,
+                                              mockFileRequest.blob,
+                                              mockFileRequest.requestId);
+
+        setTimeout(function() {
+          assert.isTrue(spyBluetoothEnabledObserver.callCount === 0);
+          done();
+        }, 10);
+    });
+
+    test('Send file with BT disabled and empty send file queue',
+      function(done) {
+        MockBluetooth.enabled = false;
+        MockBluetoothTransfer.sendFileQueueEmpty = true;
+        NfcHandoverManager.handleFileTransfer(mockFileRequest.session,
+                                              mockFileRequest.blob,
+                                              mockFileRequest.requestId);
+
+        setTimeout(function() {
+          assert.isTrue(spyBluetoothEnabledObserver.callCount === 2);
+          assert.isTrue(spyBluetoothEnabledObserver.getCall(0)
+                                                   .args[0].settingValue);
+          assert.isFalse(spyBluetoothEnabledObserver.getCall(1)
+                                                     .args[0].settingValue);
+          done();
+        }, 10);
+    });
+
+    test('Send file with BT disabled and non-empty send file queue',
+      function(done) {
+        MockBluetooth.enabled = false;
+        MockBluetoothTransfer.sendFileQueueEmpty = false;
+        NfcHandoverManager.handleFileTransfer(mockFileRequest.session,
+                                              mockFileRequest.blob,
+                                              mockFileRequest.requestId);
+
+        setTimeout(function() {
+          // BT should still be enabled as there is another file transfer
+          // in progress
+          assert.isTrue(spyBluetoothEnabledObserver.callCount === 1);
+          assert.isTrue(spyBluetoothEnabledObserver.getCall(0)
+                                                   .args[0].settingValue);
+
+          // Mimick transfer complete
+          MockBluetoothTransfer.sendFileQueueEmpty = true;
+          var details = {received: false,
+                         success: true,
+                         viaHandover: false};
+          NfcHandoverManager.transferComplete(details);
+          assert.isTrue(spyBluetoothEnabledObserver.callCount === 2);
+          assert.isFalse(spyBluetoothEnabledObserver.getCall(1)
+                                                    .args[0].settingValue);
+          done();
+        }, 10);
+    });
+
+  });
 });
