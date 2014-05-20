@@ -5,7 +5,6 @@
 import json
 import os
 import time
-import sys
 
 from marionette import MarionetteTestCase, EnduranceTestCaseMixin, \
     B2GTestCaseMixin, MemoryEnduranceTestCaseMixin
