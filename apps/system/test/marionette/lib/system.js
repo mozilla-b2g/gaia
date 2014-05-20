@@ -55,6 +55,12 @@ System.prototype = {
     });
   },
 
+  goHome: function() {
+    this.client.executeScript(function() {
+      window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
+    });
+  },
+
   stopClock: function() {
     var client = this.client;
     var clock = client.executeScript(function() {
