@@ -7,14 +7,18 @@ utils.status = (function() {
   var STATUS_TIME = 2000;
   var statusMsg = document.querySelector('#statusMsg');
   var hidingTimeout;
+  var transitionEndTimeout;
 
   var hideAnimationDone = function() {
     statusMsg.removeEventListener('transitionend', hideAnimationDone);
     statusMsg.classList.add('hidden');
   };
   var showAnimationDone = function() {
+    if (transitionEndTimeout) {
+      clearTimeout(transitionEndTimeout);
+    }
     statusMsg.removeEventListener('transitionend', showAnimationDone);
-    hidingTimeout = setTimeout(hideStatus, STATUS_TIME);
+    hidingTimeout = setTimeout(utils.status.hide, STATUS_TIME);
   };
 
   var hideStatus = function() {
@@ -43,10 +47,12 @@ utils.status = (function() {
       setTimeout(function displaying() {
         statusMsg.classList.add('opening');
         statusMsg.classList.add('bannerStart');
+        transitionEndTimeout = setTimeout(showAnimationDone, STATUS_TIME);
       }, 10); // Give the opportunity to paint the UI component
     });
   };
   return {
-    show: showStatus
+    show: showStatus,
+    hide: hideStatus
   };
 })();
