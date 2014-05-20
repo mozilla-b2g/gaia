@@ -6,7 +6,8 @@
 
 mocha.globals(['AppWindowManager', 'applications',
       'ManifestHelper', 'AppWindow', 'System', 'AppWindowFactory',
-      'BrowserConfigHelper', 'homescreenLauncher', 'appWindowFactory']);
+      'BrowserConfigHelper', 'homescreenLauncher', 'appWindowFactory',
+      'dispatchEvent']);
 
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_applications.js');
