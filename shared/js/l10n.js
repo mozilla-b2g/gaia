@@ -702,7 +702,7 @@
   function parseMacro(str) {
     var match = str.match(parsePatterns.macro);
     if (!match) {
-      throw new Error('Malformed macro');
+      throw new Error('l10n.js: Malformed macro');
     }
     return [match[1], match[2]];
   }
@@ -795,8 +795,9 @@
       if (typeof value === 'string') {
         // prevent Billion Laughs attacks
         if (value.length >= MAX_PLACEABLE_LENGTH) {
-          throw new Error('Too many characters in placeable (' + value.length +
-                          ', max allowed is ' + MAX_PLACEABLE_LENGTH + ')');
+          throw new Error('l10n.js: Too many characters in placeable (' +
+                          value.length + ', max allowed is ' +
+                          MAX_PLACEABLE_LENGTH + ')');
         }
         return value;
       }
@@ -809,7 +810,7 @@
     var value = str.replace(rePlaceables, function(match, id) {
       // prevent Quadratic Blowup attacks
       if (placeablesCount++ >= MAX_PLACEABLES) {
-        throw new Error('Too many placeables (' + placeablesCount +
+        throw new Error('l10n.js: Too many placeables (' + placeablesCount +
                         ', max allowed is ' + MAX_PLACEABLES + ')');
       }
       return subPlaceable(ctxdata, env, match, id);
@@ -1136,7 +1137,7 @@
 
   function ContextError(message, id, loc) {
     this.name = 'ContextError';
-    this.message = message;
+    this.message = 'l10n.js: ' + message;
     this.id = id;
     this.loc = loc;
   }
