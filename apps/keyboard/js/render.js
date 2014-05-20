@@ -276,7 +276,8 @@ const IMERender = (function() {
   };
 
   var getAriaLabel = function mk_getAriaLabel(key) {
-    var _ = navigator.mozL10n ?
+    var _ = (navigator.mozL10n &&
+             navigator.mozL10n.readyState === 'complete') ?
       navigator.mozL10n.get : function() { return ''; };
     return _(key.ariaLabel || ariaLabelMap[key.value] || key.value);
   };
@@ -822,7 +823,8 @@ const IMERender = (function() {
   };
 
   var candidatePanelCode = function() {
-    var _ = navigator.mozL10n ?
+    var _ = (navigator.mozL10n &&
+             navigator.mozL10n.readyState === 'complete') ?
       navigator.mozL10n.get : function(x) { return x };
 
     var candidatePanel = document.createElement('div');
