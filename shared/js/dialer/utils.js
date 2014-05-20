@@ -149,6 +149,8 @@ var Utils = {
       minFontSize, fontStep) {
         var computedStyle = window.getComputedStyle(view, null);
         var fontSize = parseInt(computedStyle.getPropertyValue('font-size'));
+        fontSize = (fontSize >= maxFontSize) ? maxFontSize : fontSize;
+        fontSize = (fontSize <= minFontSize) ? minFontSize : fontSize;
         var viewWidth = view.getBoundingClientRect().width;
         var viewHeight = view.getBoundingClientRect().height;
         fakeView.style.fontSize = fontSize + 'px';
@@ -171,4 +173,3 @@ var Utils = {
         return fontSize;
   }
 };
-

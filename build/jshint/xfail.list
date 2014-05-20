@@ -577,7 +577,6 @@ shared/js/device_storage/enumerate_all.js
 shared/js/device_storage/get_storage_if_available.js
 shared/js/device_storage/get_unused_filename.js
 shared/js/dialer/contacts.js
-shared/js/dialer/keypad.js
 shared/js/dialer/utils.js
 shared/js/dialer/voicemail.js
 shared/js/fb/fb_data_reader.js

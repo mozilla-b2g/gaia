@@ -26,8 +26,8 @@
   pointer-events: none;
 }
 
-.lockscreen-icon-area.dark .lockscreen-icon{
-  opacity: 0.65;
+.lockscreen-icon-area.dark .lockscreen-icon {
+  opacity: 0.85;
 }
 
 #lockscreen-area-slide {
@@ -78,7 +78,7 @@
 }
 
 .lockscreen-icon-right > div {
-  background-image: url('images/pickup_icon.png');
+  background-image: url('images/actionicon_lockscreen_answer.svg');
 }
 
 .touched #lockscreen-icon-container {
@@ -98,7 +98,7 @@
 
 /* Need to override original lockscreen icon container */
 #lockscreen-icon-container {
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.85);
   position: absolute;
   bottom: 0;
   width: 100%;
