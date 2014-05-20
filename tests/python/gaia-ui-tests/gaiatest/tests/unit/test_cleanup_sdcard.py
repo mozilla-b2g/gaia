@@ -8,13 +8,16 @@ from gaiatest import GaiaTestCase
 class TestCleanupSDCard(GaiaTestCase):
 
     def test_cleanup_scard(self):
-        self.assertEqual(len(self.data_layer.media_files), 0)
+        root = self.device.manager.deviceRoot
+        self.assertEqual(len(self.device.manager.listFiles(root)), 0)
 
         # push media files
-        self.push_resource('IMG_0001.jpg', destination='DCIM/100MZLLA')
-        self.push_resource('VID_0001.3gp', destination='DCIM/100MZLLA')
-        self.push_resource('MUS_0001.mp3')
-        self.assertEqual(len(self.data_layer.media_files), 3)
+        self.push_resource('IMG_0001.jpg')
+        self.push_resource('VID_0001.3gp')
+        # simulate pushing a non-media file by changing the filename
+        self.push_resource('IMG_0001.jpg', destination='IMG.FILE')
+
+        self.assertEqual(len(self.device.manager.listFiles(root)), 3)
 
         self.cleanup_sdcard()
-        self.assertEqual(len(self.data_layer.media_files), 0)
+        self.assertEqual(len(self.device.manager.listFiles(root)), 0)

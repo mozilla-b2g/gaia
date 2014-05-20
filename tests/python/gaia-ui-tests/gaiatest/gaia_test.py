@@ -440,19 +440,6 @@ class GaiaDevice(object):
             raise Exception('GaiaDevice has no device manager object set.')
 
     @property
-    def device_root(self):
-        if not hasattr(self, '_device_root'):
-            if self.manager.dirExists('/sdcard'):
-                # it's a hamachi/inari or other single sdcard device
-                self._device_root = '/sdcard/'
-            elif self.manager.dirExists('/storage/sdcard0'):
-                # it's a flame or dual-storage device. Default storage is sdcard0
-                self._device_root = '/storage/sdcard0/'
-            else:
-                raise Exception('Could not find a storage location for the device')
-        return self._device_root
-
-    @property
     def is_android_build(self):
         if self.testvars.get('is_android_build') is None:
             self.testvars['is_android_build'] = 'android' in self.marionette.session_capabilities['platformName'].lower()
@@ -709,9 +696,11 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.device.manager.removeFile('/data/misc/wifi/wpa_supplicant.conf')
 
     def cleanup_sdcard(self):
-        # cleanup files from the device_root
-        for item in self.device.manager.listFiles(self.device.device_root):
-            self.device.manager.removeDir('/'.join([self.device.device_root, item]))
+        # cleanup files from the device root
+        for item in self.device.manager.listFiles(
+                self.device.manager.deviceRoot):
+            self.device.manager.removeDir('/'.join([
+                self.device.manager.deviceRoot, item]))
 
     def cleanup_gaia(self, full_reset=True):
         # remove media
@@ -805,8 +794,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                 raise Exception('Unable to connect to local area network')
 
     def push_resource(self, filename, count=1, destination=''):
-        # push to the test storage space defined by device_root
-        self.device.push_file(self.resource(filename), count, '/'.join([self.device.device_root, destination]))
+        # push to the test storage space defined by device root
+        self.device.push_file(self.resource(filename), count, '/'.join([
+            self.device.manager.deviceRoot, destination]))
 
     def resource(self, filename):
         return os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', filename))
