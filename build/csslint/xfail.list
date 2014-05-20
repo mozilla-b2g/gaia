@@ -54,8 +54,8 @@ apps/settings/style/settings_large.css 0 1
 apps/settings/style/lists.css 2 0
 apps/music/style/music.css 0 1
 apps/pdfjs/content/web/viewer.css 3 3
-apps/system/emergency-call/style/keypad.css 1 1
-apps/system/emergency-call/style/dialer.css 2 0
+apps/system/emergency_call/style/keypad.css 1 1
+apps/system/emergency_call/style/dialer.css 2 0
 apps/system/style/notifications/notifications.css 1 0
 apps/system/style/wrapper/wrapper.css 0 1
 apps/system/style/update_manager/update_manager.css 1 0
@@ -74,5 +74,4 @@ shared/style/value_selector.css 0 1
 shared/style/edit_mode.css 0 2
 shared/style/action_menu.css 0 1
 shared/style/headers.css 0 0
-shared/style/dialer/keypad.css 0 1
 shared/pages/import/style/import.css 0 4

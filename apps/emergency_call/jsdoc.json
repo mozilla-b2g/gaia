@@ -1,0 +1,8 @@
+{
+  "emergencycall": {
+    "src": ["apps/emergency_call/js/**/*.js"],
+    "options": {
+      "destination": "docs/emergency_call"
+    }
+  }
+}
