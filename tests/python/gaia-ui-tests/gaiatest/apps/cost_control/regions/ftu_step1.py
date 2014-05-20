@@ -14,7 +14,7 @@ class FTUStep1(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._welcome_title_locator)
+        self.wait_for_condition(lambda m: m.find_element(*self._welcome_title_locator).location['x'] == 0)
 
     def tap_next(self):
         self.wait_for_element_displayed(*self._next_button_locator)
