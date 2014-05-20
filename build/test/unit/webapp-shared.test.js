@@ -408,12 +408,12 @@ suite('webapp-shared.js', function() {
       assert.equal(result.length, 1);
 
       // Component styles
-      elementFile = 'gaia-component/script.js';
+      elementFile = 'gaia_component/script.js';
       webappShared.gaia = {
-        sharedFolder: mockUtils.getFile('elements/gaia-component/style.css')
+        sharedFolder: mockUtils.getFile('elements/gaia_component/style.css')
       };
       webappShared.pushElements(elementFile);
-      assert.equal(result[2].path, 'shared/elements/gaia-component/style.css');
+      assert.equal(result[2].path, 'shared/elements/gaia_component/style.css');
     });
 
     test('copyBuildingBlock', function() {
