@@ -15,9 +15,8 @@ section[role="region"] > header:first-child {
 section[role="region"] > header:first-child h1 {
   font-size: 2.3rem;
   line-height: 5rem;
-  text-align: left;
+  text-align: center;
   white-space: nowrap;
-  text-overflow: ellipsis;
   display: block;
   overflow: hidden;
   margin: 0;
@@ -25,7 +24,6 @@ section[role="region"] > header:first-child h1 {
   height: 100%;
   font-weight: lighter;
   font-style: italic;
-  text-align: center;
 }
 
 section[role="region"] > header:first-child h1 em {
