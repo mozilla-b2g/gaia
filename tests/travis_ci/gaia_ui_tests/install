@@ -31,4 +31,4 @@ echo "downloading b2g-desktop"
 make b2g
 
 echo "building profile"
-DESKTOP_SHIMS=1 make
+make
