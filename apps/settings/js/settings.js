@@ -159,7 +159,7 @@ var Settings = {
     }
 
     if (hash === '#wifi') {
-      PerformanceTestingHelper.dispatch('start');
+      PerformanceTestingHelper.dispatch('start-wifi-list-test');
     }
 
     var panelID = hash;
@@ -227,6 +227,7 @@ var Settings = {
       window.addEventListener('keydown', this.handleSpecialKeys);
     }).bind(this));
 
+    PerformanceTestingHelper.dispatch('startup-path-done');
   },
 
   // An activity can be closed either by pressing the 'X' button

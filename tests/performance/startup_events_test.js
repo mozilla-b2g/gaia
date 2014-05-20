@@ -10,6 +10,7 @@ var whitelistedApps = [
   'communications/contacts',
   'clock',
   'fm',
+  'settings',
   'sms'
 ];
 

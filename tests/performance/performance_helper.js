@@ -103,10 +103,14 @@ PerformanceHelper.injectHelperAtom = function(client) {
   });
 
 PerformanceHelper.prototype = {
-    reportRunDurations: function(runResults) {
+    // startValue is the name of the start event.
+    // By default it is 'start'
+    reportRunDurations: function(runResults, startValue) {
 
-      var start = runResults.start || 0;
-      delete runResults.start;
+      startValue = startValue || 'start';
+
+      var start = runResults[startValue] || 0;
+      delete runResults[startValue];
 
       for (var name in runResults) {
         this.results[name] = this.results[name] || [];

@@ -56,7 +56,8 @@ marionette(mozTestInfo.appPath + ' >', function() {
           app.close();
           throw error;
         } else {
-          performanceHelper.reportRunDurations(runResults);
+          performanceHelper.reportRunDurations(runResults,
+                                              'start-wifi-list-test');
           assert.ok(Object.keys(runResults).length, 'empty results');
           app.close();
         }
