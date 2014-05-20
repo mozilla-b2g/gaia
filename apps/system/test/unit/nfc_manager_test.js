@@ -261,6 +261,23 @@ suite('Nfc Manager Functions', function() {
 
       execCommonTest(dummyNdefMsg, 'mozilla.org:bug');
     });
+
+    //Bug 1004977 TNF Unknown, Unchanged, Reserved handling in NfcManager
+    test('TNF unknown, unchanged, reserved', function() {
+      var pld = NfcUtils.fromUTF8('payload');
+      var empt = new Uint8Array();
+      var unknwn = [new MozNDEFRecord(NDEF.TNF_UNKNOWN, empt, empt, pld)];
+      var unchngd = [new MozNDEFRecord(NDEF.TNF_UNCHANGED, empt, empt, pld)];
+      var rsrvd = [new MozNDEFRecord(NDEF.TNF_RESERVED, empt, empt, pld)];
+
+      execCommonTest(unknwn, undefined);
+      execCommonTest(rsrvd, undefined);
+
+      var activityUnchngd = NfcManager.handleNdefMessage(unchngd);
+      assert.equal(activityUnchngd.name, 'nfc-ndef-discovered');
+      assert.isUndefined(activityUnchngd.data.type);
+      assert.isUndefined(activityUnchngd.data.records);
+    });
   });
 
   suite('Activity Routing', function() {
@@ -477,28 +494,5 @@ suite('Nfc Manager Functions', function() {
       assert.equal(activityOptions.data.records, dummyNdefMsg);
     });
 
-    //Bug 1004977 TNF Unknown, Unchanged, Reserved handling in NfcManager
-    test('TNF unknown, unchanged, reserved', function() {
-      var pld = NfcUtils.fromUTF8('payload');
-      var empt = new Uint8Array();
-      var unknwn = [new MozNDEFRecord(NDEF.TNF_UNKNOWN, empt, empt, pld)];
-      var unchngd = [new MozNDEFRecord(NDEF.TNF_UNCHANGED, empt, empt, pld)];
-      var rsrvd = [new MozNDEFRecord(NDEF.TNF_RESERVED, empt, empt, pld)];
-
-      var activityUnknown = NfcManager.handleNdefMessage(unknwn);
-      assert.equal(activityUnknown.name, 'nfc-ndef-discovered');
-      assert.equal(activityUnknown.data.type, undefined);
-      assert.equal(activityUnknown.data.records, unknwn);
-
-      var activityUnchngd = NfcManager.handleNdefMessage(unchngd);
-      assert.equal(activityUnchngd.name, 'nfc-ndef-discovered');
-      assert.equal(activityUnchngd.data.type, undefined);
-      assert.equal(activityUnchngd.data.records, unchngd);
-
-      var activityRsrvd = NfcManager.handleNdefMessage(rsrvd);
-      assert.equal(activityRsrvd.name, 'nfc-ndef-discovered');
-      assert.equal(activityRsrvd.data.type, undefined);
-      assert.equal(activityRsrvd.data.records, rsrvd);
-    });
   });
 });
