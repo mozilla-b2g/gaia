@@ -1,7 +1,6 @@
 'use strict';
 /* global GridItem */
 /* global MozActivity */
-/* global layout */
 /* jshint nonew: false */
 
 (function(exports) {
@@ -24,7 +23,7 @@
      * Returns the height in pixels of each icon.
      */
     get pixelHeight() {
-      return layout.gridItemHeight;
+      return this.grid.layout.gridItemHeight;
     },
 
     /**
@@ -50,6 +49,12 @@
       var nameEl = this.element.querySelector('.title');
       if (nameEl) {
         nameEl.textContent = this.name;
+
+        // Bug 1007743 - Workaround for projected content nodes disappearing
+        document.body.clientTop;
+        this.element.style.display = 'none';
+        document.body.clientTop;
+        this.element.style.display = '';
       }
     },
 

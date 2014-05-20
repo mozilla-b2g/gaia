@@ -1,10 +1,5 @@
 'use strict';
-/* global Bookmark */
-/* global Divider */
-/* global DragDrop */
-/* global Icon */
 /* global ItemStore */
-/* global layout */
 
 (function(exports) {
 
@@ -12,42 +7,16 @@
   const HIDDEN_ROLES = ['system', 'keyboard', 'homescreen', 'search'];
 
   function App() {
-    this.dragdrop = new DragDrop();
-
-    this.container = document.getElementById('icons');
-    this.iconLaunch = this.clickIcon.bind(this);
+    this.grid = document.getElementById('icons');
 
     window.addEventListener('hashchange', this);
     window.addEventListener('appzoom', this);
+    window.addEventListener('gaiagrid-saveitems', this);
   }
 
   App.prototype = {
 
     HIDDEN_ROLES: HIDDEN_ROLES,
-
-    /**
-     * List of all application icons.
-     * Maps an icon identifier to an icon object.
-     */
-    icons: {},
-
-    /**
-     * Lists of all displayed objects in the homescreen.
-     * Includes app icons, dividers, and bookmarks.
-     */
-    items: [],
-
-    /**
-     * Adds an item into the items array.
-     * If the item is an icon, add it to icons.
-     */
-    addItem: function(item) {
-      this.items.push(item);
-
-      if (item instanceof Icon || item instanceof Bookmark) {
-        this.icons[item.identifier] = item;
-      }
-    },
 
     /**
      * Fetch all icons and render them.
@@ -56,51 +25,18 @@
       this.itemStore = new ItemStore();
       this.itemStore.all(function _all(results) {
         results.forEach(function _eachResult(result) {
-          this.addItem(result);
+          this.grid.add(result);
         }, this);
-        this.render();
-        this.start();
+        this.grid.render();
       }.bind(this));
     },
 
     start: function() {
-      this.container.addEventListener('click', this.iconLaunch);
+      this.grid.start();
     },
 
     stop: function() {
-      this.container.removeEventListener('click', this.iconLaunch);
-    },
-
-    /**
-     * Scrubs the list of items, removing empty sections.
-     */
-    cleanItems: function() {
-      var appCount = 0;
-      var toRemove = [];
-
-      this.items.forEach(function(item, idx) {
-        if (item instanceof Divider) {
-          if (appCount === 0) {
-            toRemove.push(idx);
-          }
-          appCount = 0;
-        } else {
-          appCount++;
-        }
-      }, this);
-
-      toRemove.reverse();
-      toRemove.forEach(function(idx) {
-        var removed = this.items.splice(idx, 1)[0];
-        removed.remove();
-      }, this);
-
-      // There should always be a divider at the end, it's hidden in CSS when 
-      // not in edit mode.
-      var lastItem = this.items[this.items.length - 1];
-      if (!(lastItem instanceof Divider)) {
-        this.items.push(new Divider());
-      }
+      this.grid.stop();
     },
 
     /**
@@ -108,9 +44,12 @@
      */
     handleEvent: function(e) {
       switch(e.type) {
+        case 'gaiagrid-saveitems':
+          this.itemStore.save(this.grid.getItems());
+          break;
         case 'hashchange':
-          if (this.dragdrop.inEditMode) {
-            this.dragdrop.exitEditMode();
+          if (this.grid._grid.dragdrop.inEditMode) {
+            this.grid._grid.dragdrop.exitEditMode();
             return;
           }
           
@@ -136,95 +75,9 @@
           break;
 
         case 'appzoom':
-          this.render();
+          this.grid.render();
           break;
       }
-    },
-
-    /**
-     * Renders all icons.
-     * Positions app icons and dividers accoriding to available space
-     * on the grid.
-     */
-    render: function(from) {
-      app.cleanItems();
-      from = from || 0;
-      // TODO This variable should be an argument of this method. See
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=1010742#c4
-      var to = this.items.length - 1;
-
-      // Reset offset steps
-      layout.offsetY = 0;
-
-      // Grid render coordinates
-      var x = 0;
-      var y = 0;
-
-      /**
-       * Steps the y-axis.
-       * @param {Object} item
-       */
-      function step(item) {
-        layout.stepYAxis(item.pixelHeight);
-
-        x = 0;
-        y++;
-      }
-
-      for (var idx = 0; idx <= to; idx++) {
-        var item = this.items[idx];
-        // If the item would go over the boundary before rendering,
-        // step the y-axis.
-        if (x > 0 && item.gridWidth > 1 &&
-            x + item.gridWidth >= layout.perRow) {
-          // Step the y-axis by the size of the last row.
-          // For now we just check the height of the last item.
-          var lastItem = this.items[idx - 1];
-          step(lastItem);
-        }
-
-        if (idx >= from) {
-          item.render([x, y], idx);
-        }
-        
-        // Increment the x-step by the sizing of the item.
-        // If we go over the current boundary, reset it, and step the y-axis.
-        x += item.gridWidth;
-        if (x >= layout.perRow) {
-          step(item);
-        }
-      }
-    },
-
-    /**
-     * Launches an app.
-     */
-    clickIcon: function(e) {
-      var container = e.target;
-      var action = 'launch';
-
-      if (e.target.classList.contains('remove')) {
-        container = e.target.parentNode;
-        action = 'remove';
-      }
-
-      var identifier = container.dataset.identifier;
-      var icon = this.icons[identifier];
-
-      if (!icon) {
-        return;
-      }
-
-      // We do not allow users to launch icons in edit mode
-      if (action === 'launch' && this.dragdrop.inEditMode) {
-        if (icon.detail.type !== 'bookmark') {
-          return;
-        }
-        // Editing a bookmark in edit mode
-        action = 'edit';
-      }
-
-      icon[action]();
     }
   };
 
