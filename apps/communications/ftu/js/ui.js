@@ -102,7 +102,6 @@ var UIManager = {
     'newsletter-form',
     'newsletter-input',
     'newsletter-success-screen',
-    'offline-newsletter-error-dialog',
     'invalid-email-error-dialog'
   ],
 
