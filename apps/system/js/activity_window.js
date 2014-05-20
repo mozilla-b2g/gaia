@@ -157,20 +157,6 @@
         this._transitionState = 'opened';
         var app = this.activityCaller;
         this.setOrientation();
-        // Set page visibility of focused app to false
-        // once inline activity frame's transition is ended.
-        // XXX: We have trouble to make all inline activity
-        // openers being sent to background now,
-        // because of OOM killer may kill them accidently.
-        // See https://bugzilla.mozilla.org/show_bug.cgi?id=914412,
-        // and https://bugzilla.mozilla.org/show_bug.cgi?id=822325.
-        // So we only set browser app(in-process)'s page visibility
-        // to false now to resolve 914412.
-        if (app && app instanceof AppWindow && app.iframe &&
-            'contentWindow' in app.iframe &&
-            app.iframe.contentWindow != null) {
-          app.setVisible(false);
-        }
         // XXX: Move into WrapperWindow
         if (app && app instanceof AppWindow && 'wrapper' in app.frame.dataset) {
           wrapperFooter.classList.remove('visible');
@@ -256,7 +242,8 @@
       manifest: this.manifest,
       manifestURL: this.manifestURL,
       window_name: 'inline' + this.instanceID,
-      oop: true
+      oop: true,
+      parentApp: this.parentApp
     });
     this.element =
       document.getElementById('activity-window-' + this.instanceID);

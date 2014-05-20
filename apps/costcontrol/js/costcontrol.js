@@ -58,7 +58,7 @@ var CostControl = (function() {
     }
 
     if ('mozNetworkStats' in window.navigator) {
-      statistics = NetworkstatsProxy;
+      statistics = window.navigator.mozNetworkStats;
     }
 
     debug('APIs loaded!');
@@ -87,6 +87,10 @@ var CostControl = (function() {
 
       // Only type is set here
       result.type = requestObj.type;
+
+      function _requestDataStatistics() {
+        requestDataStatistics(configuration, settings, callback, result);
+      }
 
       switch (requestObj.type) {
         case 'balance':
@@ -175,7 +179,16 @@ var CostControl = (function() {
 
         case 'datausage':
           // Dispatch
-          requestDataStatistics(configuration, settings, callback, result);
+          if (!Common.allNetworkInterfaceLoaded) {
+            // It's necessary to continue with the flow of the program, even if
+            // the loading of network Interfaces fails, to prevent an unexpected
+            // error. The requestDataStatistics method is able to manage this
+            // scenario.
+            Common.loadNetworkInterfaces(_requestDataStatistics,
+                                         _requestDataStatistics);
+          } else {
+            _requestDataStatistics();
+          }
           break;
 
         case 'telephony':
@@ -193,9 +206,6 @@ var CostControl = (function() {
 
   // Check service status and return the most representative issue if there is
   function getServiceIssues(configuration, settings) {
-    if (airplaneMode) {
-      return 'airplane_mode';
-    }
 
     if (!connection || !connection.voice || !connection.data) {
       return 'no_service';
@@ -364,7 +374,7 @@ var CostControl = (function() {
   function requestDataStatistics(configuration, settings, callback, result) {
     debug('Statistics out of date. Requesting fresh data...');
 
-    var maxAge = statistics.sampleRate * 1000 * statistics.maxStorageSamples;
+    var maxAge = 1000 * statistics.maxStorageAge;
     var minimumStart = new Date(Date.now() - maxAge);
     debug('The max age for samples is ' + minimumStart);
 
@@ -494,17 +504,7 @@ var CostControl = (function() {
     return [output, accum];
   }
 
-  var airplaneMode = false;
-  function init() {
-    SettingsListener.observe('ril.radio.disabled', false,
-      function _onValue(value) {
-        airplaneMode = value;
-      }
-    );
-  }
-
   return {
-    init: init,
     getInstance: getInstance
   };
 

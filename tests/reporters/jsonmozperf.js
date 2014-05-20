@@ -18,20 +18,29 @@ function JSONMozPerfReporter(runner) {
   var failures = [];
   var passes = [];
   var mozPerfDurations;
+  var mozPerfMemory = [];
 
   runner.on('test', function(test) {
-    mozPerfDurations = [];
+    mozPerfDurations = {};
   });
 
   runner.on('mozPerfDuration', function(content) {
-    mozPerfDurations = content;
+    mozPerfDurations[content.title] = content.values;
+  });
+
+  runner.on('mozPerfMemory', function(content) {
+    mozPerfMemory = content;
   });
 
   runner.on('pass', function(test) {
 
-    if (mozPerfDurations === null) {
-      test.err = new Error('No perf data was reported');
-      failures.push(test);
+    if (mozPerfDurations === null || Object.keys(mozPerfDurations).length == 0) {
+      // this stuff is specific to mocha implementation. It might break.
+      --self.stats.passes;
+
+      var err = new Error('No perf data was reported');
+
+      this.emit('fail', test, err);
       return;
     }
 
@@ -43,7 +52,8 @@ function JSONMozPerfReporter(runner) {
         fullTitle: test.fullTitle() + ' ' + title,
         duration: test.duration,
         mozPerfDurations: mozPerfDurations[title],
-        mozPerfDurationsAverage: average(mozPerfDurations[title])
+        mozPerfDurationsAverage: average(mozPerfDurations[title]),
+        mozPerfMemory: mozPerfMemory[title]
       });
     }
   });

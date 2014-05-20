@@ -12,7 +12,7 @@ var GridManager = (function() {
 
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
-  var DEVICE_HEIGHT = window.innerHeight;
+  var DEVICE_HEIGHT = 460; // XXX: Tarako height (Bug 995886)
 
   var HIDDEN_ROLES = ['system', 'input', 'homescreen'];
 
@@ -40,7 +40,8 @@ var GridManager = (function() {
 
   var container;
 
-  var windowWidth = window.innerWidth;
+  var windowWidth = 320; // XXX: Tarako width (Bug 995886)
+
   var swipeThreshold, swipeFriction, tapThreshold;
 
   var dragging = false;
@@ -699,11 +700,20 @@ var GridManager = (function() {
      */
     addPage: function(icons, numberOficons) {
       var pageElement = document.createElement('div');
+      // first page (provider page): pre-evme-load pseudo searchbar
+      if (pages.length === 0) {
+        var searchPage = Configurator.getSection('search_page');
+        if (searchPage && searchPage.enabled && window[searchPage.provider] &&
+            typeof window[searchPage.provider].preInit === 'function') {
+          window[searchPage.provider].preInit(pageElement);
+          pageElement.classList.add('providerPage');
+        }
+      }
       var page = new Page(pageElement, icons, numberOficons ||
                           MAX_ICONS_PER_PAGE);
       pages.push(page);
 
-      pageElement.className = 'page';
+      pageElement.classList.add('page');
       container.appendChild(pageElement);
 
       // If the new page is situated right after the current displayed page,
@@ -923,6 +933,18 @@ var GridManager = (function() {
     window.addEventListener('singlevariant-ready', function svFileReady(ev) {
       window.removeEventListener('singlevariant-ready', svFileReady);
       pendingInstallRequests.forEach(GridManager.install);
+    });
+  }
+
+  /*
+   * It adds pending bookmarks installed while the homescreen was not running.
+   */
+  function addPendingBookmarks() {
+    BookmarksStorage.getAll(function(descriptors) {
+      descriptors.forEach(function(descriptor) {
+        processApp(new Bookmark(descriptor));
+      });
+      BookmarksStorage.clear();
     });
   }
 
@@ -1380,6 +1402,11 @@ var GridManager = (function() {
 
     IconRetriever.init();
 
+    var _callback = function() {
+      setTimeout(addPendingBookmarks);
+      callback();
+    };
+
     // Initialize the grid from the state saved in IndexedDB.
     HomeState.init(function eachPage(pageState) {
       // First 'page' is the dock.
@@ -1397,12 +1424,12 @@ var GridManager = (function() {
 
       pageHelper.addPage(pageIcons, numberOfIcons);
     }, function onSuccess() {
-      initApps(callback);
+      initApps(_callback);
     }, function onError(error) {
       var dockContainer = document.querySelector(options.dockSelector);
       var dock = new Dock(dockContainer, []);
       DockManager.init(dockContainer, dock, tapThreshold);
-      initApps(callback);
+      initApps(_callback);
     }, function eachSVApp(svApp) {
       GridManager.svPreviouslyInstalledApps.push(svApp);
     });

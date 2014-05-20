@@ -3,6 +3,19 @@
 var EverythingME = {
   pendingEvent: undefined,
 
+  _activationIcon: undefined,
+
+  preInit: function EverythingME_preInit(pageElement) {
+    if (pageElement) {
+      this._activationIcon = document.createElement('div');
+      this._activationIcon.id = 'evme-activation-icon';
+      this._activationIcon.innerHTML =
+        '<input type="text" x-inputmode="verbatim"' +
+        ' data-l10n-id="evme-searchbar-default2" />';
+      pageElement.appendChild(this._activationIcon);
+    }
+  },
+
   init: function EverythingME_init() {
     var footer = document.querySelector('#footer');
     if (footer) {
@@ -12,16 +25,7 @@ var EverythingME = {
     var gridPage = document.querySelector('#icongrid > div:first-child');
     gridPage.classList.add('evmePage');
 
-
-    // pre-evme-load pseudo searchbar
-    var activationIcon = document.createElement('div');
-    activationIcon.id = 'evme-activation-icon';
-    activationIcon.innerHTML =
-      '<input type="text" x-inputmode="verbatim"' +
-      ' data-l10n-id="evme-searchbar-default2" />';
-
-    // insert into first page
-    gridPage.insertBefore(activationIcon, gridPage.firstChild);
+    var activationIcon = this._activationIcon;
 
     // Append appropriate placeholder translation to pseudo searchbar
     navigator.mozL10n.ready(function loadSearchbarValue() {
@@ -75,10 +79,10 @@ var EverythingME = {
 
       // load styles required for Collection styling
       LazyLoader.load([
-        document.getElementById('search-page'),
         'shared/style_unstable/progress_activity.css',
         'everything.me/css/common.css',
-        'everything.me/modules/Collection/Collection.css'],
+        'everything.me/modules/Collection/Collection.css',
+        document.getElementById('search-page')],
         function assetsLoaded() {
           // Activate evme load
           // But wait a tick, so there's no flash of unstyled progress indicator

@@ -168,12 +168,12 @@ function execute(options) {
    'icc.displayTextTimeout': 40000,
    'icc.inputTextTimeout': 40000,
    'icc.toneDefaultTimeout': 5000,
-   'icc.goBackTimeout': 1000,
+   'icc.goBackTimeout': 3000,
    'icc.selectTimeout': 150000,
    'keyboard.vibration': true,
-   'keyboard.clicksound': true,
-   'keyboard.autocorrect': true,
-   'keyboard.wordsuggestion': true,
+   'keyboard.clicksound': false,
+   'keyboard.autocorrect': false,
+   'keyboard.wordsuggestion': false,
    'keyboard.current': undefined,
    'keyboard.ftu.enabled': false,
    'keyboard.3rd-party-app.enabled': false,
@@ -285,6 +285,8 @@ function execute(options) {
    'ums.status': 0,
    'ums.volume.sdcard.enabled': true,
    'ums.volume.extsdcard.enabled': false,
+   'ums.volume.sdcard.mountable': false,
+   'ums.volume.extsdcard.mountable': true,
    'vibration.enabled': true,
    'wifi.enabled': true,
    'wifi.screen_off_timeout': 600000,
@@ -317,15 +319,18 @@ function execute(options) {
   // Set the ftu ping URL -- we set this regardless of NOFTU for now
   settings['ftu.pingURL'] = config.FTU_PING_URL;
 
+  settings['debugger.remote-mode'] = config.REMOTE_DEBUGGER ? 'adb-only'
+                                                            : 'disabled';
+
   if (config.PRODUCTION === '1') {
     settings['feedback.url'] = 'https://input.mozilla.org/api/v1/feedback/';
+    settings['debugger.remote-mode'] = 'disabled';
   }
 
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
-  settings['devtools.debugger.remote-enabled'] = config.REMOTE_DEBUGGER == true;
 
   if (config.DEVICE_DEBUG) {
-    settings['devtools.debugger.remote-enabled'] = true;
+    settings['debugger.remote-mode'] = 'adb-only';
     settings['screen.timeout'] = 0;
     settings['lockscreen.enabled'] = false;
     settings['lockscreen.locked'] = false;

@@ -583,7 +583,8 @@ var Browser = {
   handleCrashedTab: function browser_handleCrashedTab(tab) {
     // No need to show the crash screen for background tabs,
     // they will be revived when selected
-    if (tab.id === this.currentTab.id && !document.hidden) {
+    if (tab.id === this.currentTab.id && !document.hidden &&
+        this.currentTab.url != null) {
       this.showCrashScreen();
     }
     tab.loading = false;
@@ -592,10 +593,6 @@ var Browser = {
     AuthenticationDialog.clear(tab.id);
     this.frames.removeChild(tab.dom);
     delete tab.dom;
-    delete tab.screenshot;
-    if (this.currentScreen === this.TABS_SCREEN) {
-      this.showTabScreen();
-    }
   },
 
   handleVisibilityChange: function browser_handleVisibilityChange() {
@@ -1404,6 +1401,11 @@ var Browser = {
   },
 
   showPageScreen: function browser_showPageScreen() {
+
+    if (this.currentTab.crashed) {
+      this.reviveCrashedTab(this.currentTab);
+    }
+
     if (this.currentScreen === this.TABS_SCREEN) {
       var switchLive = (function browser_switchLive() {
         this.mainScreen.removeEventListener('transitionend', switchLive, true);
@@ -1425,11 +1427,6 @@ var Browser = {
 
     this.switchScreen(this.PAGE_SCREEN);
     this.setUrlBar(this.currentTab.title || this.currentTab.url);
-    if (this.currentTab.crashed) {
-      this.showCrashScreen();
-    } else {
-      this.hideCrashScreen();
-    }
     this.updateTabsCount();
     this.inTransition = false;
   },
@@ -1486,9 +1483,7 @@ var Browser = {
     a.appendChild(span);
     li.appendChild(a);
 
-    if (tab.crashed) {
-      preview.classList.add('crashed');
-    } else if (tab.screenshot) {
+    if (tab.screenshot) {
       var objectURL = URL.createObjectURL(tab.screenshot);
       this._tabScreenObjectURLs.push(objectURL);
       preview.style.backgroundImage = 'url(' + objectURL + ')';

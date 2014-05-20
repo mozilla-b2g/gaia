@@ -1,19 +1,19 @@
 /* global ConfirmDialog, MocksHelper, MockIccHelper, MockMozL10n,
-   MockMozMobileConnection, MockMozTelephony, MockNavigatorSettings,
+   MockMozMobileConnections, MockMozTelephony, MockNavigatorSettings,
    MockTonePlayer, TelephonyHelper */
 
 'use strict';
 
 requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
-requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/dialer/mock_contacts.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 
 requireApp('communications/dialer/test/unit/mock_moztelephony.js');
-requireApp('communications/dialer/test/unit/mock_mozMobileConnection.js');
 requireApp('communications/dialer/test/unit/mock_icc_helper.js');
-requireApp('communications/dialer/test/unit/mock_tone_player.js');
 
 requireApp('communications/dialer/js/telephony_helper.js');
 
@@ -30,7 +30,6 @@ suite('telephony helper', function() {
   var subject;
   var realMozSettings;
   var realMozTelephony;
-  var realMozMobileConnection;
   var realMozMobileConnections;
   var realMozL10n;
   var spyConfirmShow;
@@ -47,11 +46,8 @@ suite('telephony helper', function() {
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockMozTelephony;
 
-    realMozMobileConnection = navigator.mozMobileConnection;
-    navigator.mozMobileConnection = MockMozMobileConnection;
-
     realMozMobileConnections = navigator.mozMobileConnections;
-    navigator.mozMobileConnections = [];
+    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
 
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
@@ -60,7 +56,6 @@ suite('telephony helper', function() {
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
     navigator.mozTelephony = realMozTelephony;
-    navigator.mozMobileConnection = realMozMobileConnection;
     navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozL10n = realMozL10n;
   });
@@ -68,10 +63,11 @@ suite('telephony helper', function() {
   setup(function() {
     spyConfirmShow = this.sinon.spy(ConfirmDialog, 'show');
     mockTelephony = this.sinon.mock(MockMozTelephony);
+    MockNavigatorMozMobileConnections[0].voice = {};
   });
 
   teardown(function() {
-    MockMozMobileConnection.mTeardown();
+    MockNavigatorMozMobileConnections.mTeardown();
     MockMozTelephony.mTeardown();
     MockNavigatorSettings.mTeardown();
   });
@@ -103,7 +99,7 @@ suite('telephony helper', function() {
     setup(function() {
       initialState = MockIccHelper.mCardState;
       MockIccHelper.mCardState = 'unknown';
-      MockMozMobileConnection.voice.emergencyCallsOnly = true;
+      MockNavigatorMozMobileConnections[0].voice = { emergencyCallsOnly: true };
     });
 
     teardown(function() {
@@ -111,10 +107,6 @@ suite('telephony helper', function() {
     });
 
     suite('when there is no sim card', function() {
-      setup(function() {
-        MockMozMobileConnection.iccId = null;
-      });
-
       test('it should always dial emergency with the first service',
       function() {
         var dialNumber = '112';
@@ -125,6 +117,10 @@ suite('telephony helper', function() {
     });
 
     suite('when there is a sim card', function() {
+      setup(function() {
+        MockNavigatorMozMobileConnections[0].iccId = 12;
+      });
+
       test('it should dial emergency with the default service', function() {
         var dialNumber = '112';
         mockTelephony.expects('dialEmergency').withArgs('112', undefined);
@@ -136,7 +132,7 @@ suite('telephony helper', function() {
 
   test('should dialEmergency if the connection is emergency only',
   function() {
-    MockMozMobileConnection.voice.emergencyCallsOnly = true;
+    MockNavigatorMozMobileConnections[0].voice = { emergencyCallsOnly: true };
     var dialNumber = '112';
     mockTelephony.expects('dialEmergency').withArgs('112');
     subject.call(dialNumber);
@@ -202,8 +198,8 @@ suite('telephony helper', function() {
   });
 
   test('should display an error if there is no network', function() {
+    MockNavigatorMozMobileConnections[0].voice = null;
     var dialNumber = '01 45 34 55 20';
-    MockMozMobileConnection.voice = null;
     subject.call(dialNumber);
     assert.isTrue(spyConfirmShow.calledWith('emergencyDialogTitle',
                                             'emergencyDialogBodyBadNumber'));
@@ -270,7 +266,9 @@ suite('telephony helper', function() {
 
       test('should display the NoNetwork message in emergency mode',
       function() {
-        MockMozMobileConnection.voice.emergencyCallsOnly = true;
+        MockNavigatorMozMobileConnections[0].voice = {
+          emergencyCallsOnly: true
+        };
         subject.call('123');
         mockCall.onerror(createCallError('BadNumberError'));
         assert.isTrue(spyConfirmShow.calledWith('emergencyDialogTitle',
@@ -334,10 +332,6 @@ suite('telephony helper', function() {
     });
 
     suite('Only one SIM inserted >', function() {
-      setup(function() {
-        navigator.mozMobileConnections = [MockMozMobileConnection];
-      });
-
       test('should check the connection on the only sim card', function() {
         this.sinon.spy(MockNavigatorSettings, 'createLock');
         var dialNumber = '0145345520';
@@ -345,7 +339,9 @@ suite('telephony helper', function() {
         subject.call(dialNumber);
         mockTelephony.verify();
 
-        MockMozMobileConnection.voice.emergencyCallsOnly = true;
+        MockNavigatorMozMobileConnections[0].voice = {
+          emergencyCallsOnly: true
+        };
         dialNumber = '112';
         mockTelephony.expects('dialEmergency').withArgs('112');
         subject.call(dialNumber);
@@ -357,8 +353,6 @@ suite('telephony helper', function() {
 
     suite('2 SIMs >', function() {
       setup(function() {
-        navigator.mozMobileConnections =
-          [this.sinon.stub(), MockMozMobileConnection];
         MockNavigatorSettings.mSyncRepliesOnly = true;
         MockNavigatorSettings.createLock().set(
           { 'ril.telephony.defaultServiceId': 1 }
@@ -376,7 +370,9 @@ suite('telephony helper', function() {
         MockNavigatorSettings.mReplyToRequests();
         mockTelephony.verify();
 
-        MockMozMobileConnection.voice.emergencyCallsOnly = true;
+        MockNavigatorMozMobileConnections[0].voice = {
+          emergencyCallsOnly: true
+        };
         dialNumber = '112';
         mockTelephony.expects('dialEmergency').withArgs('112');
         subject.call(dialNumber);

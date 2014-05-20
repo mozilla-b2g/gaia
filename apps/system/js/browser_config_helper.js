@@ -85,10 +85,21 @@
       var protocol = document.location.protocol + '//';
       var browserManifestUrl =
         protocol + 'browser.' + domain + '/manifest.webapp';
+      var bluetoothManifestUrl =
+        protocol + 'bluetooth.' + domain + '/manifest.webapp';
+      var keyboardManifestUrl =
+        protocol + 'keyboard.' + domain + '/manifest.webapp';
       var outOfProcessBlackList = [
-        browserManifestUrl
+        browserManifestUrl,
         // Requires nested content processes (bug 761935).  This is not
         // on the schedule for v1.
+        bluetoothManifestUrl,
+        // Bluetooth pairing/transfer UI is too critical to be OOM'd,
+        // and it manages it's own life cycle.
+        keyboardManifestUrl
+        // Keyboard Settings page manages it's own life cycle.
+        // Make it inproc to prevent Settings app being killed before switching
+        // back.
       ];
 
       if (!isOutOfProcessDisabled &&

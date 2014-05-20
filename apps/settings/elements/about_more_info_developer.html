@@ -45,12 +45,6 @@
         </li>
         <li>
           <label class="pack-checkbox">
-            <input type="checkbox" name="layers.composer2d.enabled">
-            <span data-l10n-id="layers-composer2d-enabled">Enable hardware composer</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
             <input type="checkbox" name="debug.log-animations.enabled">
             <span data-l10n-id="log-animations">Log slow animations</span>
           </label>
@@ -62,10 +56,14 @@
           </label>
         </li>
         <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="devtools.debugger.remote-enabled">
-            <span data-l10n-id="remote-debugging">Remote Debugging</span>
-          </label>
+          <p data-l10n-id="remote-debugging">Remote Debugging</p>
+          <span class="button icon icon-dialog">
+            <select name="debugger.remote-mode" data-value-type="string">
+              <option value="disabled" data-l10n-id="debugger-disabled" selected>Disabled</option>
+              <option value="adb-only" data-l10n-id="debugger-adb-only">ADB Only</option>
+              <option value="adb-devtools" data-l10n-id="debugger-adb-and-devtools">ADB and Devtools</option>
+            </select>
+          </span>
         </li>
         <li>
           <label class="pack-checkbox">
@@ -122,12 +120,6 @@
         </li>
         <li>
           <label class="pack-checkbox">
-            <input type="checkbox" name="apz.force-enable"/>
-            <span data-l10n-id="apz-force-enable">Enable APZ for all content processes</span>
-          </label>
-        </li>
-        <li>
-          <label class="pack-checkbox">
             <input type="checkbox" name="layers.enable-tiles"/>
             <span data-l10n-id="layers-enable-tiles">Layers: Enable Tiles</span>
           </label>
@@ -156,18 +148,6 @@
               <option data-l10n-id="apz-heuristic-nocheck" value="no-checkerboard">No checkerboarding</option>
             </select>
           </span>
-        </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="accessibility">Accessibility</h2>
-      </header>
-      <ul>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="accessibility.screenreader">
-            <span data-l10n-id="screenReader">Screen Reader</span>
-          </label>
         </li>
       </ul>
     </div>

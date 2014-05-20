@@ -5,18 +5,18 @@
 
 'use strict';
 
-requireApp('communications/dialer/js/keypad.js');
+require('/shared/js/dialer/keypad.js');
 
 requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
-requireApp('communications/dialer/test/unit/mock_utils.js');
-requireApp('communications/dialer/test/unit/mock_call.js');
 requireApp('communications/dialer/test/unit/mock_call_handler.js');
 requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
-requireApp('communications/dialer/test/unit/mock_calls_handler.js');
-requireApp('communications/dialer/test/unit/mock_handled_call.js');
 requireApp('communications/dialer/test/unit/mock_moztelephony.js');
 requireApp('communications/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('communications/dialer/test/unit/mock_tone_player.js');
+require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
+require('/shared/test/unit/mocks/dialer/mock_utils.js');
+require('/shared/test/unit/mocks/dialer/mock_call.js');
+require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
+require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 
 requireApp('communications/dialer/test/unit/mock_dialer_index.html.js');
 

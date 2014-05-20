@@ -1,20 +1,12 @@
 'use strict';
 
 var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
+var GetAppName = requireGaia('/tests/performance/getappname.js');
+var MemInfo = requireGaia('/tests/performance/meminfo.js');
 
-// XXX make that exportable from the mocha-proxy
-// see https://github.com/mozilla-b2g/mocha-json-proxy/pull/4
-function json_proxy_write(event, content) {
-  var args = Array.prototype.slice.call(arguments);
-
-  if (!process.env['MOCHA_PROXY_SEND_ONLY']) {
-    process.stdout.write(JSON.stringify(args) + '\n');
-    return;
-  }
-
-  process.send(['mocha-proxy', args]);
-}
-
+// Function to send results to the reporter that is OOP
+// Basically writing to the mocha-json-proxy
+var sendResults = require('mocha-json-proxy/reporter').write;
 
 function extend(dest, obj) {
   for (var key in obj) {
@@ -69,7 +61,8 @@ function PerformanceHelper(opts) {
         '}' +
         'w.onapplicationloaded = function(e) {' +
         '  var data = e.detail;' +
-        '  data.src = e.target.src;' +
+        /* So that it is backward compatible with the older gaia. */
+        '  data.src = data.src || e.target.src;' +
         '  w.loadTimes.push(data);' +
         '};' +
         'w.addEventListener("apploadtime", w.onapplicationloaded);';
@@ -92,13 +85,18 @@ function PerformanceHelper(opts) {
 
     reportDuration: function(values, title) {
       title = title || '';
-      var mozPerfDurations = {};
-      mozPerfDurations[title] = values;
-      json_proxy_write('mozPerfDuration', mozPerfDurations);
+      sendResults('mozPerfDuration', { title: title, values: values });
+    },
+
+    reportMemory: function(values, title) {
+      title = title || '';
+      var mozPerfMemory = {};
+      mozPerfMemory[title] = values;
+      sendResults('mozPerfMemory', mozPerfMemory);
     }
   });
 
-  PerformanceHelper.prototype = {
+PerformanceHelper.prototype = {
     reportRunDurations: function(runResults) {
 
       var start = runResults.start || 0;
@@ -183,8 +181,49 @@ function PerformanceHelper(opts) {
 
     waitForPerfEvent: function(callback) {
       this.app.waitForPerfEvents(this.opts.lastEvent, callback);
+    },
+
+    /*
+     * Get the memory stats for the specified app
+     * as well as the main b2g.
+     * See bug 917717.
+     */
+  getMemoryUsage: function(app) {
+    var appName = GetAppName(app);
+    var meminfo = MemInfo.meminfo();
+    var info = null;
+    var system = null;
+    meminfo.some(function(element) {
+      if(element.NAME == appName) {
+        info = element;
+      } else if(element.NAME == 'b2g') {
+        system = element;
+      }
+      return info && system;
+    });
+
+    if (!info) {
+      return null;
     }
-  };
+
+    return {
+      app: {
+        name: info.NAME,
+        uss: parseFloat(info.USS),
+        pss: parseFloat(info.PSS),
+        rss: parseFloat(info.RSS),
+        vsize: parseFloat(info.VSIZE)
+      },
+      system: {
+        name: system.NAME,
+        uss: parseFloat(system.USS),
+        pss: parseFloat(system.PSS),
+        rss: parseFloat(system.RSS),
+        vsize: parseFloat(system.VSIZE)
+      }
+    };
+  }
+};
 
 module.exports = PerformanceHelper;
 

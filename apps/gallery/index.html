@@ -25,6 +25,10 @@
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="shared/js/tag_visibility_monitor.js"></script>
     <script defer src="shared/js/media/media_utils.js"></script>
+    <script defer src="shared/js/media/downsample.js"></script>
+
+    <!-- This script is lazy loaded, but listed here so it gets packaged -->
+    <!-- <script defer src="shared/js/media/crop_resize_rotate.js"></script> -->
 
     <!-- Specific code -->
     <script defer src="js/config.js"></script>
@@ -188,15 +192,15 @@
 
     <!-- This element gets positioned over different view elements -->
     <!-- It gets styled differently depending on what it is over -->
-    <ul id="thumbnails"></ul> <!-- Thumbnails inserted here -->
+    <div id="thumbnails"></div> <!-- Thumbnails inserted here -->
 
     <!-- This element is the template of each thumbnail item -->
     <div id="thumbnail-group-header" hidden>
       <!--
-        <li>
+        <div>
           <div class="thumbnail-group-header">${group-header}</div>
           <ul class="thumbnail-group-container"></ul>
-        </li>
+        </div>
       -->
     </div>
     <!-- A thin indeterminate progress bar to indicate scanning -->
@@ -204,6 +208,10 @@
     <div id="progress" class="hidden">
       <div id="throbber"></div>
     </div>
+
+    <!-- a spinner that we display in the center of the screen when -->
+    <!-- doing time-consuming operations like rotating images -->
+    <progress id="spinner" class="hidden"></progress>
 
     <!-- display messages like "No Photos" and "No SD Card" here -->
     <form id="overlay" role="dialog" data-type="confirm" class="hidden">

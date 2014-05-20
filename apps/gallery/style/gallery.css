@@ -184,13 +184,8 @@ section {
   padding: 0;
 }
 
-#thumbnails>li {
-  /* no list item bullets */
-  list-style-type: none;
-}
 
-
-#thumbnails>li:first-child .thumbnail-group-header {
+#thumbnails>div:first-child .thumbnail-group-header {
   border-top: 0.1rem solid;
   border-color:rgba(255,255,255, 0.1);
 }
@@ -244,7 +239,7 @@ section {
  * give the very last thumbnail a large bottom margin so that it doesn't
  * get stuck hidden behind the overlaid toolbar.
  */
-#thumbnails>li:last-child {
+#thumbnails>div:last-child {
   margin-bottom: 4.5rem;
 }
 
@@ -372,6 +367,18 @@ body.hidden *[data-l10n-id] {
   to {
     transform: translateY(-2.1rem);
   }
+}
+
+#spinner {
+  position: absolute;
+  top: calc(50% - 1.5rem);
+  left: calc(50% - 1.5rem);
+  z-index: 1000;
+}
+
+/* override progress_activity.css */
+#spinner.hidden {
+  display: none;
 }
 
 /* buttons */

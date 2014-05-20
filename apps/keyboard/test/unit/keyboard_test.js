@@ -3,11 +3,13 @@
 suite('keyboard.js', function() {
 
   requireApp('keyboard/js/keyboard.js');
-  var mockMozInputMethod;
   var realMozInputMethod;
 
   suiteSetup(function() {
-    realMozInputMethod = window.navigator.mozInputMethod;
+    if ('mozInputMethod' in window.navigator) {
+      realMozInputMethod = window.navigator.mozInputMethod;
+    }
+
     window.navigator.mozInputMethod = {
       mgmt: {
         showAll: sinon.stub()
@@ -16,7 +18,11 @@ suite('keyboard.js', function() {
   });
 
   suiteTeardown(function() {
-    window.navigator.mozInputMethod = realMozInputMethod;
+    if (realMozInputMethod) {
+      window.navigator.mozInputMethod = realMozInputMethod;
+    } else {
+      delete window.navigator.mozInputMethod;
+    }
   });
 
   suite('clearTouchedKeys', function() {

@@ -5,20 +5,22 @@ SOURCE="${BASH_SOURCE[0]}"
 # Make it an absolute path
 DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
 
+if [ -z "$MOZPERFOUT" ] ; then
+    exec 3>&1
+else
+    exec 3>"$MOZPERFOUT"
+fi
+
 # where all gaia specific customizations for mocha-marionette live.
 SHARED=$GAIA_DIR/shared/test/integration
+
+# make sure node_modules are 100% up to date
+make node_modules
 
 if [ $MARIONETTE_RUNNER_HOST = "marionette-b2gdesktop-host" ] ; then
   # download b2g-desktop (if its not present)
   make -C $GAIA_DIR/ b2g
 fi
-
-# make sure node_modules are 100% up to date
-if [ -z "$NPM_REGISTRY" ]; then
-  NPM_REGISTRY="http://registry.npmjs.org"
-fi
-`cd $DIR && npm install --registry=${NPM_REGISTRY}`
-
 
 if [ $MARIONETTE_RUNNER_HOST = "marionette-b2gdesktop-host" ] ; then
   # tests can timeout without the profile-test folder so build it here.
@@ -47,19 +49,19 @@ fi
 
 
 # All echo calls help create a JSON array
-echo '['
+echo '[' >&3
 SHARED_PERF=`find tests/performance -name "*_test.js" -type f`
 for app in $APPS; do
   if [ -z "$FIRST_LOOP_ITERATION" ]; then
     FIRST_LOOP_ITERATION=done
   else
-    echo ','
+    echo ',' >&3
   fi
   FILES_PERF=`test -d apps/$app/test/performance && find apps/$app/test/performance -name "*_test.js" -type f`
   # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
   # xpcshell in available for email fake servers.
   export CURRENT_APP="$app"
-  PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
+  OUT=`PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
     --timeout 10s \
     --ui tdd \
     --profile-builder $SHARED/profile_builder.js \
@@ -68,6 +70,13 @@ for app in $APPS; do
     $SHARED/setup.js \
     $GAIA_DIR/tests/performance/perf.js $SHARED_PERF $FILES_PERF \
     -R "$GAIA_DIR/tests/reporters/jsonmozperf.js" \
-    $@
+    $@`
+  # Bug 987383 if there is no output report an error.
+  if [ -z "$OUT" ]; then
+    echo "$CURRENT_APP returned no output." >&2
+    echo "{ \"stats\": { \"suites\": 1, \"failures\": 1, \"error\": \"No output !\", \"application\": \""$CURRENT_APP"\" } }" >&3
+  else
+    echo "$OUT" >&3
+  fi
 done
-echo ']'
+echo ']' >&3

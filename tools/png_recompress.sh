@@ -172,7 +172,7 @@ recompress_dir() {
     fi
 
     mkfifo "$tmpdir/files_pipe"
-    printf -- "$files" > "$tmpdir/files_pipe" &
+    printf -- "$files\n" > "$tmpdir/files_pipe" &
 
     while read -r fd; do
         recompress_file "$fd"

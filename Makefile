@@ -15,6 +15,8 @@
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
 #                                                                             #
+# MOZPERFOUT  : File path to output mozperf data. Empty mean stdout.          #
+#                                                                             #
 # MARIONETTE_RUNNER_HOST : The Marionnette runner host.                       #
 #                          Current values can be 'marionette-b2gdesktop-host' #
 #                          and 'marionette-device-host'                       #
@@ -74,6 +76,7 @@ DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
 DOGFOOD?=0
+NODE_MODULES_SRC?=modules.tar
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
@@ -146,10 +149,10 @@ ifneq ($(APP),)
 endif
 
 REPORTER?=Spec
-NPM_REGISTRY?=http://registry.npmjs.org
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
+MOZPERFOUT?=""
 TEST_MANIFEST?=./shared/test/integration/local-manifest.json
 
 GAIA_INSTALL_PARENT?=/system/b2g
@@ -175,6 +178,10 @@ endif
 
 ifeq ($(DOGFOOD), 1)
 GAIA_APP_TARGET=dogfood
+endif
+
+ifdef NODE_MODULES_GIT_URL
+NODE_MODULES_SRC := git-gaia-node-modules
 endif
 
 ###############################################################################
@@ -317,11 +324,13 @@ GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,pl
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
 SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
-DOWNLOAD_CMD = /usr/bin/curl -O
+DOWNLOAD_CMD = /usr/bin/curl -OL
+TAR_WILDCARDS = tar
 else
 MD5SUM = md5sum -b
 SED_INPLACE_NO_SUFFIX = sed -i
 DOWNLOAD_CMD = wget $(WGET_OPTS)
+TAR_WILDCARDS = tar --wildcards
 endif
 
 # Test agent setup
@@ -376,6 +385,7 @@ define BUILD_CONFIG
 	"GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)", \
 	"GAIA_ENGINE" : "xpcshell", \
 	"GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)", \
+	"GAIA_MEMORY_PROFILE" : "$(GAIA_MEMORY_PROFILE)", \
 	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
 	"NOFTU" : "$(NOFTU)", \
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
@@ -389,7 +399,7 @@ export BUILD_CONFIG
 
 # Generate profile/
 
-$(PROFILE_FOLDER): multilocale applications-data preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): multilocale applications-data preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json reorder
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -546,6 +556,11 @@ reference-workload-heavy:
 .PHONY: reference-workload-x-heavy
 reference-workload-x-heavy:
 	test_media/reference-workload/makeReferenceWorkload.sh x-heavy
+
+# Create a tarako demo reference workload
+.PHONY: reference-workload-tarako
+reference-workload-tarako:
+	test_media/reference-workload/makeReferenceWorkload.sh tarako
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
@@ -709,9 +724,31 @@ endif
 # this lists the programs we need in the Makefile and that are installed by npm
 
 NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint
-$(NPM_INSTALLED_PROGRAMS): package.json
-	npm install --registry $(NPM_REGISTRY)
-	touch $(NPM_INSTALLED_PROGRAMS)
+$(NPM_INSTALLED_PROGRAMS): package.json node_modules
+
+
+NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
+$(NODE_MODULES_SRC): gaia_node_modules.revision
+ifeq "$(NODE_MODULES_SRC)" "modules.tar"
+	$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV)
+	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
+else
+	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
+		git clone "$(NODE_MODULES_GIT_URL)" "$(NODE_MODULES_SRC)" ; \
+	fi
+	(cd "$(NODE_MODULES_SRC)" && git fetch && git reset --hard "$(NODE_MODULES_REV)" )
+endif
+
+node_modules: $(NODE_MODULES_SRC)
+ifeq "$(NODE_MODULES_SRC)" "modules.tar"
+	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "mozilla-b2g-gaia-node-modules-*/node_modules"
+else
+	rm -fr node_modules
+	cp -R $(NODE_MODULES_SRC)/node_modules node_modules
+endif
+	npm install && npm rebuild
+	@echo "node_modules installed."
+	touch -c $@
 
 ###############################################################################
 # Tests                                                                       #
@@ -740,13 +777,13 @@ b2g: node_modules/.bin/mozilla-download
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
 test-integration: b2g $(PROFILE_FOLDER)
-	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*$(TEST_INTEGRATION_APP_NAME)/test/marionette/*_test.js") \
+	./bin/gaia-marionette $(shell find . -path "*$(TEST_INTEGRATION_APP_NAME)/test/marionette/*_test.js") \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--reporter $(REPORTER)
 
 .PHONY: test-perf
 test-perf:
-	APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-perf-marionette
+	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" ./bin/gaia-perf-marionette
 
 .PHONY: tests
 tests: webapp-manifests offline
@@ -818,6 +855,23 @@ ifeq ($(BUILD_APP_NAME),*)
 		cp -f $(TEST_COMMON)$(SEP)test$(SEP)boilerplate$(SEP)_sandbox.html $$d$(SEP)test$(SEP)unit$(SEP)_sandbox.html; \
 	done
 	@echo "Finished: bootstrapping test proxies/sandboxes";
+endif
+
+# Reorder application.zip for each app if we have a reordering log file
+# available for this app.
+.PHONY: reorder
+reorder: profile-dir webapp-zip
+ifeq ($(BUILD_APP_NAME),*)
+	@for d in ${GAIA_APPDIRS} ;\
+	do \
+		if [[ -e $$d/application.zip.log ]]; then \
+			fullappname="`basename $$d`.$(GAIA_DOMAIN)"; \
+			echo "Reordering $$fullappname into $(PROFILE_FOLDER)"; \
+			python build/optimizejars.py --optimize $$d $(PROFILE_FOLDER)$(SEP)webapps$(SEP)$$fullappname build_stage | grep Ordered; \
+			mv build_stage$(SEP)application.zip $(PROFILE_FOLDER)$(SEP)webapps$(SEP)$$fullappname; \
+		fi; \
+	done
+	@echo "Finished reordering";
 endif
 
 # For test coverage report
@@ -1045,7 +1099,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf xulrunner-* .xulrunner-* node_modules b2g
+	rm -rf xulrunner-* .xulrunner-* node_modules b2g modules.tar
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true

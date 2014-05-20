@@ -3,9 +3,6 @@
     this.setBrowserConfig(manifestURL);
     this.render();
     this.publish('created');
-    if (window.AppModalDialog) {
-      new AppModalDialog(this);
-    }
     return this;
   };
 
@@ -36,6 +33,7 @@
   HomescreenWindow.prototype.render = function hw_render() {
     // reset transition state.
     this._transitionState = 'closed';
+    this._selfVisibilityState = 'background';
     this.publish('willrender');
     this.containerElement.insertAdjacentHTML('beforeend', this.view());
     this.browser = new BrowserFrame(this.browser_config);
@@ -65,6 +63,10 @@
     this._registerEvents();
     this.resize();
     this.publish('rendered');
+
+    if (window.AppModalDialog) {
+      new AppModalDialog(this);
+    }
   };
 
   HomescreenWindow.prototype._registerEvents = function hw_registerEvents() {
@@ -122,14 +124,19 @@
 
     // If we're displayed, restart immediately.
     this.debug(this._visibilityState);
-    if (this._visibilityState == 'foreground' ||
-        this.element.classList.contains('active')) {
+    this.debug(this._selfVisibilityState);
+    this.debug(AttentionScreen.isVisible());
+    if (this._selfVisibilityState == 'foreground' &&
+        !AttentionScreen.isVisible()) {
       this.kill();
 
       // XXX workaround bug 810431.
       // we need this here and not in other situations
       // as it is expected that homescreen frame is available.
       setTimeout(function() {
+        if (this.element) {
+          return;
+        }
         this.render();
         this.open();
       }.bind(this));

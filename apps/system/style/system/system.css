@@ -280,7 +280,7 @@ body {
 }
 
 .appWindow:not(.homescreen).render > iframe {
-  background-color: #fff;
+  background-color: #000;
 }
 
 #screen.active-statusbar:not(:-moz-full-screen-ancestor) #windows > .appWindow,

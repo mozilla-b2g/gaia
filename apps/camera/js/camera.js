@@ -110,7 +110,7 @@ var Camera = {
   _recording: false,
 
   // In secure mode the user cannot browse to the gallery
-  _secureMode: window.parent !== window,
+  _secureMode: (window.location.hash === '#secure'),
   _currentOverlay: null,
 
   CAMERA: 'camera',
@@ -195,8 +195,8 @@ var Camera = {
   // Number of bytes left on disk to let us stop recording.
   RECORD_SPACE_PADDING: 1024 * 1024 * 1,
 
-  // An estimated JPEG file size is caluclated from 90% quality 24bit/pixel
-  ESTIMATED_JPEG_FILE_SIZE: 300 * 1024,
+  // Approximate bytes per pixel for compressed jpeg files
+  JPEG_BYTES_PER_PIXEL: 0.375,
 
   // Minimum video duration length for creating a video that contains at least
   // few samples, see bug 899864.
@@ -289,6 +289,9 @@ var Camera = {
         '/shared/js/async_storage.js',
         '/shared/js/blobview.js',
         '/shared/js/media/jpeg_metadata_parser.js',
+        '/shared/js/media/image_size.js',
+        '/shared/js/media/downsample.js',
+        '/shared/js/media/crop_resize_rotate.js',
         '/shared/js/media/get_video_rotation.js',
         '/shared/js/media/video_player.js',
         '/shared/js/media/media_frame.js',
@@ -633,7 +636,9 @@ var Camera = {
 
     this.toggleFlashBtn.setAttribute('data-mode', flashModeName);
     this.flashName.textContent = flashModeName;
-    this._cameraObj.flashMode = flashModeName;
+    if (this._cameraObj) {
+      this._cameraObj.flashMode = flashModeName;
+    }
   },
 
   setFocusMode: function camera_setFocusMode() {
@@ -1198,13 +1203,17 @@ var Camera = {
   },
 
   startPreview: function camera_startPreview() {
+    this.showSpinner();
     this.requestScreenWakeLock();
+    this.viewfinder.hidden = true;
     this.viewfinder.play();
     this.loadCameraPreview(this._cameraNumber, this.previewEnabled.bind(this));
     this._previewActive = true;
   },
 
   previewEnabled: function() {
+    this.viewfinder.hidden = false;
+    this.hideSpinner();
     this.enableButtons();
     if (!this._pendingPick) {
       setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
@@ -1244,30 +1253,30 @@ var Camera = {
     this._config.position = null;
     this.hideFocusRing();
 
-
-    if (this._pendingPick) {
-      // If we're doing a Pick, ask the user to confirm the image
-      ConfirmDialog.confirmImage(blob,
-                                 this.selectPressed.bind(this),
-                                 this.retakePressed.bind(this));
-
-      // Just save the blob temporarily until the user presses "Retake" or
-      // "Select".
-      this._savedMedia = {
-        blob: blob
-      };
-    }
-    else {
-      // Otherwise (this is the normal case) start the viewfinder again
-      this.resumePreview();
-    }
-
     // In either case, save the photo to device storage
-    this._addPictureToStorage(blob, function(name, absolutePath) {
+    this._addPictureToStorage(blob, function(name, absolutePath, fileBlob) {
+      blob = fileBlob;
+
       if (!this._pendingPick) {
         Filmstrip.addImage(absolutePath, blob);
         Filmstrip.show(Camera.FILMSTRIP_DURATION);
       }
+
+      if (this._pendingPick) {
+        // If we're doing a Pick, ask the user to confirm the image
+        ConfirmDialog.confirmImage(blob,
+                                   this.selectPressed.bind(this),
+                                   this.retakePressed.bind(this));
+
+        this._savedMedia = {
+          blob: blob
+        };
+      }
+      else {
+        // Otherwise (this is the normal case) start the viewfinder again
+        this.resumePreview();
+      }
+
       this.checkStorageSpace();
     }.bind(this));
   },
@@ -1286,7 +1295,7 @@ var Camera = {
     var media = this._savedMedia;
     this._savedMedia = null;
     if (this._captureMode === this.CAMERA) {
-      this._resizeBlobIfNeeded(media.blob, function(resized_blob) {
+      this._resizeAndRotate(media.blob, function(resized_blob) {
         this._pendingPick.postResult({
           type: 'image/jpeg',
           blob: resized_blob
@@ -1307,34 +1316,68 @@ var Camera = {
     DCFApi.createDCFFilename(this._pictureStorage, 'image',
                              function(path, name) {
       var addreq = this._pictureStorage.addNamed(blob, path + name);
-      addreq.onsuccess = function(e) {
+      addreq.onsuccess = (function(e) {
         var absolutePath = e.target.result;
-        callback(path + name, absolutePath);
-      };
+        this._refetchImage(path + name, absolutePath, callback);
+      }).bind(this);
       addreq.onerror = this.takePictureError;
     }.bind(this));
+
   },
 
-  _resizeBlobIfNeeded: function camera_resizeBlobIfNeeded(blob, callback) {
-    var pickWidth = this._pendingPick.source.data.width;
-    var pickHeight = this._pendingPick.source.data.height;
-    if (!pickWidth || !pickHeight) {
-      callback(blob);
-      return;
+  _refetchImage: function camera_refetchImage(filepath, absolutePath, done) {
+    var req = this._pictureStorage.get(filepath);
+    req.onerror = this.takePictureError;
+    req.onsuccess = function(e) {
+      var fileBlob = e.target.result;
+      done(filepath, absolutePath, fileBlob);
+    };
+  },
+
+  _resizeAndRotate: function camera_resizeAndRotate(blob, callback) {
+    var outputSize = null;
+    if (this._pendingPick.source.data.width) {
+      outputSize = {
+        width: this._pendingPick.source.data.width,
+        height: this._pendingPick.source.data.height
+      };
     }
 
-    var img = new Image();
-    img.onload = function resizeImg() {
-      var canvas = document.createElement('canvas');
-      canvas.width = pickWidth;
-      canvas.height = pickHeight;
-      var ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, pickWidth, pickHeight);
-      canvas.toBlob(function toBlobSuccess(resized_blob) {
-        callback(resized_blob);
-      }, 'image/jpeg');
-    };
-    img.src = window.URL.createObjectURL(blob);
+    var self = this;
+
+    this.showSpinner();
+    cropResizeRotate(blob, null, outputSize, null, function(error, newBlob) {
+      self.hideSpinner();
+      if (error) {
+        // If we couldn't resize or rotate it, use the original
+        console.error('Error while resizing or rotate photo: ' + error);
+        callback(blob);
+        return;
+      }
+
+      // If the image was cropped and/or rotated, then newBlob will be a
+      // memory backed blob instead of a file-backed blob. We need to send
+      // a file-backed blob as the result of a pick activity (see bug 975599)
+      // so we'll overwrite the old blob with the new one. This will mean
+      // that the photo stored on the sdcard will actually match the one
+      // passed to the app that initiated the pick activity.
+      // We delete the old file, then save the new blob with the same name,
+      // and then read the file and pass that to the callback.
+      if (newBlob !== blob) {
+        var storage = self._pictureStorage;
+        var filename = blob.name;
+        storage.delete(filename).onsuccess = function() {
+          storage.addNamed(newBlob, filename).onsuccess = function() {
+            storage.get(filename).onsuccess = function(e) {
+              callback(e.target.result);
+            };
+          };
+        };
+      }
+      else {
+        callback(blob);
+      }
+    });
   },
 
   hideFocusRing: function camera_hideFocusRing() {
@@ -1360,11 +1403,12 @@ var Camera = {
       return;
     }
 
-    // Now verify that there is enough space to store a picture
-    // 4 bytes per pixel plus some room for a header should be more
-    // than enough for a JPEG image.
-    var MAX_IMAGE_SIZE =
-      (this._pictureSize.width * this._pictureSize.height * 4) + 4096;
+    // It is very unlikely that a JPEG file will have a file size that is
+    // more than half a byte per pixel. There is some fixed EXIF overhead
+    // that is the same for small and large pictures, however, so we add
+    // an additional 25,000 bytes of padding.
+    var MAX_FILE_SIZE =
+      (this._pictureSize.width * this._pictureSize.height / 2) + 25000;
 
     this._pictureStorage.freeSpace().onsuccess = (function(e) {
       // XXX
@@ -1374,7 +1418,7 @@ var Camera = {
       // not be enough to get back to the STORAGE_AVAILABLE state.
       // To fix this, we need an else clause here, and also a change
       // in the updateOverlay() method.
-      if (e.target.result < MAX_IMAGE_SIZE) {
+      if (e.target.result < MAX_FILE_SIZE) {
         this._storageState = this.STORAGE_CAPACITY;
       }
       this.updateOverlay();
@@ -1616,18 +1660,23 @@ var Camera = {
     // They come from config.js which is generated in build time,
     // 5 megapixels by default (see build/application-data.js).
     var maxRes = Math.min(CONFIG_MAX_IMAGE_PIXEL_SIZE,
-      CONFIG_MAX_SNAPSHOT_PIXEL_SIZE);
-    var estimatedJpgSize = this.ESTIMATED_JPEG_FILE_SIZE;
+                          CONFIG_MAX_SNAPSHOT_PIXEL_SIZE);
+
+    if (this._pendingPick && CONFIG_MAX_PICK_PIXEL_SIZE) {
+      maxRes = Math.min(maxRes, CONFIG_MAX_PICK_PIXEL_SIZE);
+    }
+
+    var self = this;
     var size = pictureSizes.reduce(function(acc, size) {
       var mp = size.width * size.height;
       // we don't need the resolution larger than maxRes
       if (mp > maxRes) {
         return acc;
       }
-      // We assume the relationship between MP to file size is linear.
-      // This may be inaccurate on all cases.
-      var estimatedFileSize = mp * estimatedJpgSize / maxRes;
-      if (targetFileSize > 0 && estimatedFileSize > targetFileSize) {
+
+      // If a target file size was specfied, and this image size is likely
+      // to produce images larger than that size, then skip it
+      if (targetFileSize && mp * self.JPEG_BYTES_PER_PIXEL > targetFileSize) {
         return acc;
       }
 
@@ -1637,7 +1686,7 @@ var Camera = {
           return acc;
         }
         // it's first pictureSize.
-        if (!acc.width || acc.height) {
+        if (!acc.width || !acc.height) {
           return size;
         }
         // find large enough but as small as possible.
@@ -1740,6 +1789,14 @@ var Camera = {
         callback();
       }
     }.bind(this));
+  },
+
+  showSpinner: function showSpinner() {
+    document.getElementById('spinner').classList.remove('hidden');
+  },
+
+  hideSpinner: function hideSpinner() {
+    document.getElementById('spinner').classList.add('hidden');
   }
 };
 

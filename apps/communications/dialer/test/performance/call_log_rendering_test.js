@@ -1,5 +1,7 @@
 'use strict';
 
+var assert = require('assert');
+
 requireGaia('/test_apps/test-agent/common/test/synthetic_gestures.js');
 var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
@@ -7,12 +9,14 @@ var PerformanceHelper =
   requireGaia('/tests/performance/performance_helper.js');
 var DialerIntegration = require('./integration.js');
 
-marionette(mozTestInfo.appPath + '>', function() {
+marionette(mozTestInfo.appPath + ' >', function() {
   var client = marionette.client({
     settings: {
       'ftu.manifestURL': null
     }
   });
+  // Do nothing on script timeout. Bug 987383
+  client.onScriptTimeout = null;
 
   setup(function() {
     this.timeout(500000);
@@ -42,10 +46,16 @@ marionette(mozTestInfo.appPath + '>', function() {
         recentsButton.tap();
       });
 
-      performanceHelper.waitForPerfEvent(function(runResults) {
-        performanceHelper.reportRunDurations(runResults);
+      performanceHelper.waitForPerfEvent(function(runResults, error) {
+        if (error) {
+          app.close();
+          throw error;
+        } else {
+          performanceHelper.reportRunDurations(runResults);
 
-        app.close();
+          assert.ok(Object.keys(runResults).length, 'empty results');
+          app.close();
+        }
       });
 
     });

@@ -57,6 +57,10 @@ var BrowserFrame = (function invocation() {
       browser.setAttribute('mozasyncpanzoom', 'true');
     }
 
+    if (config.parentApp) {
+      browser.setAttribute('parentapp', config.parentApp);
+    }
+
     setMozAppType(browser, config);
 
     if (config.url)

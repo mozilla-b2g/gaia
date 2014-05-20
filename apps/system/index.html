@@ -81,6 +81,7 @@
     <script defer src="js/source_view.js"></script>
     <script defer src="js/storage.js"></script>
     <script defer src="js/hardware_buttons.js"></script>
+    <script defer src="js/dialer_agent.js"></script>
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/system_dialog.js"></script>
     <script defer src="js/home_gesture.js"></script>
@@ -147,6 +148,7 @@
 
     <!-- Media Playback -->
     <script defer src="js/media_playback.js"></script>
+    <script defer src="js/media_app_agent.js"></script>
     <link rel="stylesheet" type="text/css" href="style/media_playback/media_playback.css">
 
     <!-- LockScreen -->
@@ -325,9 +327,6 @@
     <!-- Device storage watcher -->
     <script defer src="js/storage_watcher.js"></script>
     <link rel="stylesheet" type="text/css" href="style/storage_watcher/storage_watcher.css">
-
-    <!-- Inter App Communication with Dialer -->
-    <script defer src="js/dialercomms.js"></script>
 
     <style>
       /* initlogos style is here to prevent flashing */
@@ -1033,6 +1032,7 @@
       <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>
 
       <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
+        <div id="lockscreen-disabled-cover" data-z-index-level="lockscreen-disabled-cover"></div>
         <div id="lockscreen-container">
           <div id="lockscreen-panel-main" class="lockscreen-panel">
             <div id="lockscreen-header">
@@ -1147,7 +1147,7 @@
       <div id="icc-view" data-z-index-level="icc-view">
         <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-alert">
           <section>
-            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <h1 id="icc-alert-title">STK Message</h1>
             <p id="icc-alert-msg"></p>
           </section>
           <menu>
@@ -1156,7 +1156,7 @@
         </form>
         <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-confirm">
           <section>
-            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <h1 id="icc-confirm-title">STK Message</h1>
             <p id="icc-confirm-msg"></p>
           </section>
           <menu>
@@ -1167,7 +1167,7 @@
         </form>
         <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-asyncconfirm">
           <section>
-            <h1 data-l10n-id="icc-message">STK Message</h1>
+            <h1 id="icc-asyncconfirm-title">STK Message</h1>
             <p id="icc-asyncconfirm-msg"></p>
           </section>
           <menu data-items="2">
@@ -1177,7 +1177,7 @@
         </form>
         <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-input">
           <section>
-            <h1 data-l10n-id="icc-inputtitle">STK Query</h1>
+            <h1 id="icc-input-title">STK Query</h1>
             <p id="icc-input-msg"></p>
             <input id="icc-input-box" required="" type="text">
           </section>

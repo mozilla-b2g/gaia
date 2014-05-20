@@ -2,7 +2,7 @@
 
 /* global MocksHelper, MockAudioContext, TonePlayer */
 
-require('/dialer/js/tone_player.js');
+require('/shared/js/dialer/tone_player.js');
 require('/shared/test/unit/mocks/mock_audio.js');
 
 var mocksForTonePlayer = new MocksHelper([
@@ -62,6 +62,20 @@ suite('shared/dialer/TonePlayer', function() {
         var ctx = MockAudioContext.instances[1];
         assert.equal(ctx.channel, 'normal');
       });
+    });
+  });
+
+  suite('trashAudio', function() {
+    setup(function() {
+      TonePlayer.init('telephony');
+    });
+
+    test('telephony channel released', function() {
+      TonePlayer.trashAudio();
+
+      assert.equal(MockAudioContext.instances.length, 1);
+      var ctx = MockAudioContext.instances[0];
+      assert.equal(ctx.mozAudioChannelType, 'normal');
     });
   });
 });

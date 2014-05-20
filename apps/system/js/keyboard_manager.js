@@ -91,6 +91,7 @@ var KeyboardManager = {
       console.log('[Keyboard Manager] ' + msg);
   },
   keyboardHeight: 0,
+  hasActiveKeyboard: false,
   isOutOfProcessEnabled: false,
 
   init: function km_init() {
@@ -137,6 +138,7 @@ var KeyboardManager = {
     window.addEventListener('attentionscreenshow', this);
     window.addEventListener('mozbrowsererror', this);
     window.addEventListener('applicationsetupdialogshow', this);
+    window.addEventListener('mozmemorypressure', this);
 
     // To handle keyboard layout switching
     window.addEventListener('mozChromeEvent', function(evt) {
@@ -248,8 +250,9 @@ var KeyboardManager = {
 
     // Skip the <select> element and inputs with type of date/time,
     // handled in system app for now
-    if (!type || type in IGNORED_INPUT_TYPES)
-      return;
+    if (!type || type in IGNORED_INPUT_TYPES) {
+      return this.hideKeyboard();
+    }
 
     var self = this;
     // Before a new focus event we get a blur event
@@ -322,7 +325,7 @@ var KeyboardManager = {
       layoutFrame = this.loadKeyboardLayout(layout);
     // TODO make sure setLayoutFrameActive function is ready
     this.setLayoutFrameActive(layoutFrame, false);
-    layoutFrame.hidden = true;
+    layoutFrame.dataset.hidden = true;
     layoutFrame.dataset.frameName = layout.id;
     layoutFrame.dataset.frameManifestURL = layout.manifestURL;
     layoutFrame.dataset.framePath = layout.path;
@@ -425,6 +428,17 @@ var KeyboardManager = {
       case 'mozbrowsererror': // OOM
         this.removeKeyboard(evt.target.dataset.frameManifestURL);
         break;
+      case 'mozmemorypressure':
+        // Memory pressure event. If a keyboard is loaded but not opened,
+        // get rid of it.
+        // We only do that when we don't run keyboards OOP.
+        this._debug('mozmemorypressure event');
+        if (!this.isOutOfProcessEnabled && !this.hasActiveKeyboard) {
+          Object.keys(this.runningLayouts).forEach(this.removeKeyboard, this);
+          this.runningLayouts = {};
+          this._debug('mozmemorypressure event; keyboard removed');
+        }
+        break;
     }
   },
 
@@ -441,7 +455,7 @@ var KeyboardManager = {
     for (var id in this.runningLayouts[manifestURL]) {
       var frame = this.runningLayouts[manifestURL][id];
       try {
-        windows.removeChild(frame);
+        frame.parentNode.removeChild(frame);
       } catch (e) {
         // if it doesn't work, noone cares
       }
@@ -469,7 +483,7 @@ var KeyboardManager = {
     // to the foreground; this is effectively equal to calling
     // setKeyboardToShow() *then* call resetShowingKeyboard().
     if (launchOnly) {
-      this.showingLayout.frame.hidden = true;
+      this.showingLayout.frame.dataset.hidden = true;
       return;
     }
     // remove transitionOut for showing keyboard while user foucus quickly again
@@ -477,7 +491,7 @@ var KeyboardManager = {
       delete this.keyboardFrameContainer.dataset.transitionOut;
     }
 
-    this.showingLayout.frame.hidden = false;
+    delete this.showingLayout.frame.dataset.hidden;
     this.setLayoutFrameActive(this.showingLayout.frame, true);
     this.showingLayout.frame.addEventListener(
          'mozbrowserresize', this, true);
@@ -559,7 +573,7 @@ var KeyboardManager = {
     if (!this.showingLayout.frame) {
       return;
     }
-    this.showingLayout.frame.hidden = true;
+    this.showingLayout.frame.dataset.hidden = true;
     this.setLayoutFrameActive(this.showingLayout.frame, false);
     this.showingLayout.frame.removeEventListener(
         'mozbrowserresize', this, true);
@@ -707,6 +721,7 @@ var KeyboardManager = {
     if (frame.setInputMethodActive) {
       frame.setInputMethodActive(active);
     }
+    this.hasActiveKeyboard = active;
   }
 };
 

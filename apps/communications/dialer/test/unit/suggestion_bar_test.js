@@ -1,13 +1,13 @@
 'use strict';
 
-requireApp('communications/dialer/test/unit/mock_contacts.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
 requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
-requireApp('communications/dialer/test/unit/mock_keypad.js');
 
 requireApp('communications/dialer/js/suggestion_bar.js');
 requireApp('communications/shared/js/simple_phone_matcher.js');
 require('/shared/test/unit/mocks/mock_fb_data_reader.js');
+require('/shared/test/unit/mocks/dialer/mock_contacts.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 
 var mocksHelperForSuggestionBar = new MocksHelper([
   'Contacts',

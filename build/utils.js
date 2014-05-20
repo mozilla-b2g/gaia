@@ -41,6 +41,15 @@ function ls(dir, recursive, exclude) {
   return results;
 }
 
+function isExternalApp(webapp) {
+  if (!webapp.metaData ||
+    (webapp.metaData && webapp.metaData.external === false)) {
+    return false
+  } else {
+    return true;
+  }
+}
+
 function getFileContent(file) {
   try {
     let fileStream = Cc['@mozilla.org/network/file-input-stream;1']
@@ -585,3 +594,4 @@ exports.readJSONFromPath = readJSONFromPath;
 exports.writeContentToFile = writeContentToFile;
 exports.processEvents = processEvents;
 exports.log = log;
+exports.isExternalApp = isExternalApp;

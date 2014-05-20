@@ -130,13 +130,23 @@
   font-size: 2rem;
 }
 
-#cards-view .card > img.appIcon {
-  position: relative;
+#cards-view .card.appIconPreview {
+  background-color: rgba(255, 255, 255, 1);
+}
+
+#cards-view .card > .appIcon {
+  position: absolute;
   height: 8rem;
   width: 8rem;
   border-radius: .6rem;
   top: 50%;
+  left: 50%;
   margin-top: -4rem;
+  margin-left: -4rem;
+}
+#cards-view .card > span.appIcon {
+  background-size: cover;
+  background-image: url(../icons/Default.png);
 }
 
 #cards-view .close-card {

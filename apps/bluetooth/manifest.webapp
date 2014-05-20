@@ -3,7 +3,6 @@
   "type": "certified",
   "role": "system",
   "description": "Gaia Bluetooth Transfer",
-  "launch_path": "/transfer.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -29,7 +28,12 @@
       "href": "/transfer.html"
     }
   },
+  "messages": [
+    { "bluetooth-pairing-request": "/message.html" },
+    { "bluetooth-cancel": "/message.html" }
+  ],
   "permissions": {
+    "attention":{},
     "bluetooth":{},
     "device-storage:sdcard":{ "access": "readonly" },
     "settings":{ "access": "readwrite" }

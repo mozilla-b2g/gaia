@@ -1,3 +1,4 @@
+requireApp('shared/js/airplane_mode_helper.js');
 requireApp('fm/js/fm.js');
 
 suite('FM', function() {
@@ -214,7 +215,7 @@ suite('FM', function() {
 
     suite('airplane mode on', function() {
       setup(function() {
-        rilDisabled = true;
+        airplaneModeEnabled = true;
         updateAirplaneModeUI();
       });
 
@@ -225,7 +226,7 @@ suite('FM', function() {
 
     suite('airplane mode off', function() {
       setup(function() {
-        rilDisabled = false;
+        airplaneModeEnabled = false;
         updateAirplaneModeUI();
       });
 

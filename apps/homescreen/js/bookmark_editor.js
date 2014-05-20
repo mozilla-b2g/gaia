@@ -53,12 +53,15 @@ var BookmarkEditor = {
     this.data.bookmarkURL = this.bookmarkUrl.value;
 
     var homeScreenWindow = window.open('', 'main');
-    if (!homeScreenWindow)
-      this.close();
-    else {
+    if (!homeScreenWindow) {
+      LazyLoader.load(['shared/js/async_storage.js',
+                       'js/bookmarks_storage.js'], (function() {
+                         BookmarksStorage.add(this.data);
+                       }).bind(this));
+    } else {
       homeScreenWindow.postMessage(
         new Message(Message.Type.ADD_BOOKMARK, this.data), this.origin);
-      this.onsaved();
     }
+    this.onsaved();
   }
 };

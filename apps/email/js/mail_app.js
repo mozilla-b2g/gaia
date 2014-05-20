@@ -350,7 +350,7 @@ appMessages.on('activity', function(type, data, rawActivity) {
     Cards.pushCard('compose', 'default', 'immediate', {
       activity: rawActivity,
       composerData: {
-        onComposer: function(composer) {
+        onComposer: function(composer, composeCard) {
           var attachmentBlobs = data.attachmentBlobs;
           /* to/cc/bcc/subject/body all have default values that shouldn't
           be clobbered if they are not specified in the URI*/
@@ -365,12 +365,14 @@ appMessages.on('activity', function(type, data, rawActivity) {
           if (data.bcc)
             composer.bcc = data.bcc;
           if (attachmentBlobs) {
+            var attachmentsToAdd = [];
             for (var iBlob = 0; iBlob < attachmentBlobs.length; iBlob++) {
-              composer.addAttachment({
+              attachmentsToAdd.push({
                 name: data.attachmentNames[iBlob],
                 blob: attachmentBlobs[iBlob]
               });
             }
+            composeCard.addAttachmentsSubjectToSizeLimits(attachmentsToAdd);
           }
         }
       }

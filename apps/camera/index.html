@@ -8,9 +8,9 @@
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
 
     <!-- Shared CSS -->
-    <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css" />
     <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css" />
     <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css" />
+    <link rel="stylesheet" href="shared/style_unstable/progress_activity.css"/>
 
     <link rel="stylesheet" type="text/css" href="style/app.css" />
     <link rel="stylesheet" type="text/css" href="style/viewfinder.css" />
@@ -20,6 +20,7 @@
     <link rel="stylesheet" type="text/css" href="style/hud.css" />
     <link rel="stylesheet" type="text/css" href="style/filmstrip.css" />
     <link rel="stylesheet" type="text/css" href="style/confirm.css" />
+    <link rel="stylesheet" type="text/css" href="style/spinner.css" />
     <link rel="stylesheet" type="text/css" href="style/VideoPlayer.css" />
 
     <!-- for perf-measurement related utilities -->
@@ -33,6 +34,9 @@
     <!-- <script defer src="/shared/js/async_storage.js"></script> -->
     <!-- <script defer src="/shared/js/blobview.js"></script> -->
     <!-- <script defer src="/shared/js/media/jpeg_metadata_parser.js"></script> -->
+    <!-- <script defer src="/shared/js/media/image_size.js"></script> -->
+    <!-- <script defer src="/shared/js/media/downsample.js"></script> -->
+    <!-- <script defer src="/shared/js/media/crop_resize_rotate.js"></script> -->
     <!-- <script defer src="/shared/js/media/get_video_rotation.js"></script> -->
     <!-- <script defer src="/shared/js/media/video_player.js"></script> -->
     <!-- <script defer src="/shared/js/media/media_frame.js"></script> -->
@@ -99,5 +103,8 @@
       </footer>
     </div>
 
+    <!-- This spinner is displayed during pick activities when we -->
+    <!-- rotate the image to address EXIF orientation -->
+    <progress id="spinner"></progress>
   </body>
 </html>

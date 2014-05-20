@@ -45,11 +45,12 @@ function resizeHandler() {
 
 function editPhoto(n) {
   editedPhotoIndex = n;
+  var metadata = files[n].metadata;
 
   // Start with no edits
   editSettings = {
     crop: {
-      x: 0, y: 0, w: files[n].metadata.width, h: files[n].metadata.height
+      x: 0, y: 0, w: metadata.width, h: metadata.height
     },
     gamma: 1,
     matrix: ImageProcessor.IDENTITY_MATRIX,
@@ -57,14 +58,40 @@ function editPhoto(n) {
   };
 
   // Start looking up the image file
-  photodb.getFile(files[n].name, function(file) {
-    // Once we get the file create a URL for it and use that url for the
-    // preview image and all the buttons that need it.
-    editedPhotoURL = URL.createObjectURL(file);
+  photodb.getFile(files[n].name, gotFile);
 
+  function gotFile(file) {
+    // The image editor does not handle EXIF rotation, so if the image has
+    // EXIF orientation flags, we alter the image in place before starting
+    // to edit it.
+    //
+    // For low-memory devices like Tarako, CONFIG_MAX_EDIT_PIXEL_SIZE
+    // will be set to a non-zero value, and this may cause us to downsample
+    // the image before allowing the user to edit it.
+    if (metadata.rotation || metadata.mirrored || CONFIG_MAX_EDIT_PIXEL_SIZE) {
+      showSpinner();
+      cropResizeRotate(file, null, CONFIG_MAX_EDIT_PIXEL_SIZE || null,
+                       null, metadata,
+                       function(error, rotatedBlob) {
+                         hideSpinner();
+                         if (error) {
+                           console.error('Error while rotating image:', error);
+                           rotatedBlob = file;
+                         }
+                         startEdit(rotatedBlob);
+                       });
+    }
+    else {
+      startEdit(file);
+    }
+  }
+
+  // This will be called with the file the user is editing or with a rotated
+  // version of that file
+  function startEdit(blob) {
     // Create the image editor object
     // This has to come after setView or the canvas size is wrong.
-    imageEditor = new ImageEditor(editedPhotoURL,
+    imageEditor = new ImageEditor(blob,
                                   $('edit-preview-area'),
                                   editSettings);
 
@@ -77,11 +104,12 @@ function editPhoto(n) {
     window.addEventListener('resize', resizeHandler);
 
     // Set the background for all of the image buttons
+    editedPhotoURL = URL.createObjectURL(blob);
     var backgroundImage = 'url(' + editedPhotoURL + ')';
     editBgImageButtons.forEach(function(b) {
       b.style.backgroundImage = backgroundImage;
     });
-  });
+  }
 
   // Display the edit screen
   setView(editView);
@@ -331,7 +359,14 @@ function saveEditedImage() {
 
   imageEditor.getFullSizeBlob('image/jpeg', gotBlob, onProgress);
 
-  function onProgress(p) {
+  function onProgress(p, error) {
+    // If error occurs, reset the save button for user.
+    if (error) {
+      $('edit-save-button').disabled = false;
+      progressBar.value = 0;
+      return;
+    }
+
     progressBar.value = Math.floor(p * 100);
   }
 
@@ -404,22 +439,19 @@ function saveEditedImage() {
  * edit-vertex-shader and edit-fragment-shader. It dynamically creates
  * canvas elements with ids edit-preview-canvas and edit-crop-canvas.
  * The stylesheet includes static styles to position those dyanamic elements.
- *
- * Bug 935273: if previewURL is passed then we're using the ImageEditor
- *  only to display a crop overlay. We avoid decoding the full-size
- *  image for as long as we can. Also, if we're only cropping then we
- *  can avoid all of the webgl stuff.
  */
-function ImageEditor(imageURL, container, edits, ready, previewURL) {
-  this.imageURL = imageURL;
+function ImageEditor(imageBlob, container, edits, ready, croponly) {
+  this.imageBlob = imageBlob;
+  this.imageURL = URL.createObjectURL(imageBlob);
   this.container = container;
   this.edits = edits || {};
+  this.croponly = !!croponly;
+
   this.source = {};     // The source rectangle (crop region) of the image
   this.dest = {};       // The destination (preview) rectangle of canvas
   this.cropRegion = {}; // Region displayed in crop overlay during drags
 
   // The canvas that displays the preview
-
   this.previewCanvas = document.createElement('canvas');
   this.previewCanvas.id = 'edit-preview-canvas'; // for stylesheet
   this.container.appendChild(this.previewCanvas);
@@ -435,11 +467,10 @@ function ImageEditor(imageURL, container, edits, ready, previewURL) {
   this.scale = 1.0;
 
   var self = this;
-  if (previewURL) {
-    this.croponly = true;
+  if (this.croponly) {
     this.original = null;
     this.preview = new Image();
-    this.preview.src = previewURL;
+    this.preview.src = this.imageURL;
     this.preview.onload = function() {
       self.displayCropOnlyPreview();
       if (ready)
@@ -447,15 +478,18 @@ function ImageEditor(imageURL, container, edits, ready, previewURL) {
     };
   }
   else {
-    this.croponly = false;
-
     // Start loading the image into a full-size offscreen image
     this.original = new Image();
-    this.original.src = imageURL;
+    this.original.src = this.imageURL;
     this.preview = new Image();
     this.preview.src = null;
 
-    this.processor = new ImageProcessor(this.previewCanvas);
+    var contextRestoreCallback = function() {
+      self.edit();
+    };
+
+    this.processor = new ImageProcessor(this.previewCanvas, null,
+                                        contextRestoreCallback);
 
     // When the image loads display it
     this.original.onload = function() {
@@ -469,7 +503,6 @@ function ImageEditor(imageURL, container, edits, ready, previewURL) {
         if (ready)
           ready();
       });
-
     };
   }
 }
@@ -590,10 +623,9 @@ ImageEditor.prototype.resize = function() {
 };
 
 ImageEditor.prototype.destroy = function() {
-  if (!this.croponly) {
+  if (this.processor) {
     this.processor.destroy();
-    this.resetPreview();
-    this.preview = null;
+    this.processor = null;
   }
 
   if (this.original) {
@@ -601,8 +633,22 @@ ImageEditor.prototype.destroy = function() {
     this.original = null;
   }
 
-  this.container.removeChild(this.previewCanvas);
-  this.previewCanvas = null;
+  if (this.preview) {
+    if (this.preview.src !== this.imageURL) {
+      URL.revokeObjectURL(this.preview.src);
+    }
+    this.preview.src = '';
+    this.preview = null;
+  }
+
+  URL.revokeObjectURL(this.imageURL);
+
+  if (this.previewCanvas) {
+    this.container.removeChild(this.previewCanvas);
+    // Setting the canvas size to 0 causes a WebGL error so we don't do it
+    // this.previewCanvas.width = 0;
+    this.previewCanvas = null;
+  }
   this.hideCropOverlay();
   this.gestureDetector.stopDetecting();
   this.gestureDetector = null;
@@ -725,6 +771,24 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
                       centerX, centerY, rect.w, rect.h,
                       rect.x, rect.y, rect.w, rect.h);
 
+    if (processor.isContextLost()) {
+      processor.destroy();
+      processor = null;
+      context = null;
+      canvas.width = canvas.height = 0;
+      canvas = null;
+
+      if (progress) {
+        // Reload the original image.
+        self.original.src = self.imageURL;
+        self.original.onload = function() {
+          // Send the error to reset processing state.
+          progress(0, true);
+        };
+      }
+      return;
+    }
+
     processed_pixels += rect.w * rect.h;
     if (progress)
       progress(processed_pixels / total_pixels);
@@ -738,14 +802,15 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
       // The processed image is in our offscreen canvas, so we don't need
       // the WebGL stuff anymore.
       processor.destroy();
-      tile.width = tile.height = 0;
-      processor = tile = null;
+      processor = null;
 
       // Now get the canvas contents as a file and pass to the callback
       canvas.toBlob(function(blobData) {
         // Now that we've got the blob, we don't need the canvas anymore
+        context = null;
         canvas.width = canvas.height = 0;
         canvas = null;
+
         // Pass the blob to the callback
         done(blobData);
       }, type);
@@ -1241,81 +1306,25 @@ ImageEditor.prototype.setCropAspectRatio = function(ratioWidth, ratioHeight) {
   this.drawCropControls();
 };
 
-// Get the pixels of the selected crop region, and resize them if width
-// and height are specifed, encode them as an image file of the specified
-// type and pass that file as a blob to the specified callback
-ImageEditor.prototype.getCroppedRegionBlob = function(type,
-                                                      width, height,
-                                                      callback)
-{
-  // This is similar to the code in cropImage() and getFullSizeBlob
-  // but since we're doing only cropping and no pixel manipulation I
-  // don't need to create an ImageProcessor object.
+// Return the crop region as an object with left, top, width and height
+// properties. The values of these properties are numbers between 0 and 1
+// representing fractions of the full image width and height.
+ImageEditor.prototype.getCropRegion = function() {
+  var region = this.cropRegion;
+  var previewRect = this.dest;
 
-  // If we're only doing cropping and no editing, then we haven't
-  // decoded the original image yet, so we have to do that now.
-  var self = this;
-  if (this.croponly) {
-    this.original = new Image();
-    this.original.src = this.imageURL;
-    this.original.onload = function() {
-      self.source.x = 0;
-      self.source.y = 0;
-      self.source.width = self.original.width;
-      self.source.height = self.original.height;
-      finish();
-    };
-  }
-  else {
-    finish();
-  }
+  // Convert the preview crop region to fractions
+  var left = region.left / previewRect.width;
+  var right = region.right / previewRect.width;
+  var top = region.top / previewRect.height;
+  var bottom = region.bottom / previewRect.height;
 
-  function finish() {
-    // Compute the rectangle of the original image that the user selected
-    var region = self.cropRegion;
-    var dest = self.dest;
-
-    // Convert the preview crop region to fractions
-    var left = region.left / dest.width;
-    var right = region.right / dest.width;
-    var top = region.top / dest.height;
-    var bottom = region.bottom / dest.height;
-
-    // Now convert those fractions to pixels in the original image
-    // Note that the original image may have already been cropped, so we
-    // multiply by the size of the crop region, not the full size
-    left = Math.floor(left * self.source.width);
-    right = Math.ceil(right * self.source.width);
-    top = Math.floor(top * self.source.height);
-    bottom = Math.floor(bottom * self.source.height);
-
-    // If no destination size was specified, use the source size
-    if (!width || !height) {
-      width = right - left;
-      height = bottom - top;
-    }
-
-    // Create a canvas of the desired size
-    var canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    var context = canvas.getContext('2d', { willReadFrequently: true });
-
-    // Copy that rectangle to our canvas
-    context.drawImage(self.original,
-                      left, top, right - left, bottom - top,
-                      0, 0, width, height);
-
-    // We're done with the original image
-    self.original.src = '';
-    self.original = null;
-
-    canvas.toBlob(function(blob) {
-      canvas.width = canvas.height = 0;
-      canvas = context = null;
-      callback(blob);
-    }, type);
-  }
+  return {
+    left: left,
+    top: top,
+    width: right - left,
+    height: bottom - top
+  };
 };
 
 // Toggle the auto enhancement on/off.
@@ -1352,24 +1361,107 @@ ImageEditor.prototype.prepareAutoEnhancement = function(pixel) {
   worker.postMessage(pixel);
 };
 
+// WebGL context helper class for handling context lost/restore event
+// and resource management.
+function WebGLCanvasHelper(canvas, lostCallback, restoreCallback, needRestore) {
+  var self = this;
+
+  this.canvas = canvas;
+  // We might just want to listen the lost event but do not need to restore
+  // the context
+  this.needRestore = needRestore;
+
+  this.lostHandler = function(event) {
+    if (self.needRestore) {
+      // We should call preventDefault to prevent the webgl default behavior:
+      // do not restore the context
+      event.preventDefault();
+    }
+
+    if (lostCallback) {
+      lostCallback();
+    }
+  };
+  this.restoreHandler = function(event) {
+    if (restoreCallback) {
+      restoreCallback();
+    }
+  };
+
+  canvas.addEventListener('webglcontextlost', this.lostHandler, false);
+  canvas.addEventListener('webglcontextrestored', this.restoreHandler, false);
+
+  var options = { depth: false, stencil: false, antialias: false };
+  this.context = canvas.getContext('webgl', options) ||
+                 canvas.getContext('experimental-webgl', options);
+
+  this.loseContextExt = this.context.getExtension('WEBGL_lose_context');
+}
+
+// Destroy the webgl canvas and context
+WebGLCanvasHelper.prototype.destroy = function() {
+  // Remove the context lost/restore handler to prevent the restore event
+  if (this.lostHandler) {
+    this.canvas.removeEventListener('webglcontextlost',
+                                    this.lostHandler,
+                                    false);
+  }
+  if (this.restoreHandler) {
+    this.canvas.removeEventListener('webglcontextrestored',
+                                    this.restoreHandler,
+                                    false);
+  }
+
+  this.context = null;
+  this.canvas.width = this.canvas.height = 0;
+  this.canvas = null;
+
+  // Destroy webgl context explicitly. No need to wait for GC cleaning up.
+  // http://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/
+  // We use loseContext() to let the context lost.
+  // It will release the buffer here.
+  if (this.loseContextExt) {
+    // The extension 'WEBGL_lose_context' is still valid even if the context
+    // lost. If we have this extension, we can just call it.
+    this.loseContextExt.loseContext();
+  }
+};
+
 //
 // Create a new ImageProcessor object for the specified canvas to do
 // webgl transformations on an image.  Expects its shader programs to be in
 // <script> elements with ids 'edit-vertex-shader' and 'edit-fragment-shader'.
 //
-function ImageProcessor(canvas) {
-  // WebGL context for the canvas
-  this.canvas = canvas;
-  var options = { depth: false, stencil: false, antialias: false };
-  var gl = this.context =
-    canvas.getContext('webgl', options) ||
-    canvas.getContext('experimental-webgl', options);
+// Webgl context will restore if we have lostCallback or restoreCallback.
+function ImageProcessor(canvas, lostCallback, restoreCallback) {
+  var self = this;
+
+  if (lostCallback || restoreCallback) {
+    this.webglHelper = new WebGLCanvasHelper(canvas, lostCallback, function() {
+        self.initWebGL();
+
+        if (restoreCallback) {
+          restoreCallback();
+        }
+    }, true);
+  }
+  else {
+    this.webglHelper = new WebGLCanvasHelper(canvas);
+  }
+
+  this.initWebGL();
+}
+
+// Init all webgl resource
+ImageProcessor.prototype.initWebGL = function() {
+  var gl = this.webglHelper.context;
 
   // Define our shader programs
   var vshader = this.vshader = gl.createShader(gl.VERTEX_SHADER);
   gl.shaderSource(vshader, ImageProcessor.vertexShader);
   gl.compileShader(vshader);
-  if (!gl.getShaderParameter(vshader, gl.COMPILE_STATUS)) {
+  if (!gl.getShaderParameter(vshader, gl.COMPILE_STATUS) &&
+                             !gl.isContextLost()) {
     var error = new Error('Error compiling vertex shader:' +
                           gl.getShaderInfoLog(vshader));
     gl.deleteShader(vshader);
@@ -1379,7 +1471,8 @@ function ImageProcessor(canvas) {
   var fshader = this.fshader = gl.createShader(gl.FRAGMENT_SHADER);
   gl.shaderSource(fshader, ImageProcessor.fragmentShader);
   gl.compileShader(fshader);
-  if (!gl.getShaderParameter(fshader, gl.COMPILE_STATUS)) {
+  if (!gl.getShaderParameter(fshader, gl.COMPILE_STATUS) &&
+                             !gl.isContextLost()) {
     var error = new Error('Error compiling fragment shader:' +
                           gl.getShaderInfoLog(fshader));
     gl.deleteShader(fshader);
@@ -1390,7 +1483,8 @@ function ImageProcessor(canvas) {
   gl.attachShader(program, vshader);
   gl.attachShader(program, fshader);
   gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS) &&
+                              !gl.isContextLost()) {
     var error = new Error('Error linking GLSL program:' +
                           gl.getProgramInfoLog(program));
     gl.deleteProgram(program);
@@ -1421,12 +1515,11 @@ function ImageProcessor(canvas) {
   this.gammaAddress = gl.getUniformLocation(program, 'gamma');
   this.rgbMinMaxValuesAddress = gl.getUniformLocation(program,
                                                       'rgb_min_max_values');
-}
+};
 
 // Destroy all the stuff we allocated
 ImageProcessor.prototype.destroy = function() {
-  var gl = this.context;
-  this.context = null; // Don't retain a reference to it
+  var gl = this.webglHelper.context;
   gl.deleteShader(this.vshader);
   gl.deleteShader(this.fshader);
   gl.deleteProgram(this.program);
@@ -1435,16 +1528,8 @@ ImageProcessor.prototype.destroy = function() {
   gl.deleteBuffer(this.destinationRectangle);
   gl.viewport(0, 0, 0, 0);
 
-  // Destroy webgl context explicitly. Not wait for GC cleaning up.
-  //
-  // http://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/
-  //
-  // We use loseContext() to let the context lost.
-  // It will release the buffer here.
-  var loseContextExt = gl.getExtension('WEBGL_lose_context');
-  if (loseContextExt) {
-    loseContextExt.loseContext();
-  }
+  this.webglHelper.destroy();
+  this.webglHelper = null;
 };
 
 ImageProcessor.prototype.draw = function(image,
@@ -1452,11 +1537,12 @@ ImageProcessor.prototype.draw = function(image,
                                          dx, dy, dw, dh,
                                          options)
 {
-  var gl = this.context;
+  var gl = this.webglHelper.context;
   gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
   // Set the canvas size and image size
-  gl.uniform2f(this.canvasSizeAddress, this.canvas.width, this.canvas.height);
+  gl.uniform2f(this.canvasSizeAddress, this.webglHelper.canvas.width,
+               this.webglHelper.canvas.height);
   gl.uniform2f(this.imageSizeAddress, image.width, image.height);
   gl.uniform2f(this.destOriginAddress, dx, dy);
   gl.uniform2f(this.destSizeAddress, dw, dh);
@@ -1494,6 +1580,8 @@ ImageProcessor.prototype.draw = function(image,
   // And draw it all
   gl.drawArrays(gl.TRIANGLES, 0, 6);
 
+  return !this.isContextLost();
+
   // Define a rectangle as two triangles
   function makeRectangle(b, x, y, w, h) {
     gl.bindBuffer(gl.ARRAY_BUFFER, b);
@@ -1502,6 +1590,10 @@ ImageProcessor.prototype.draw = function(image,
       x, y + h, x + w, y, x + w, y + h  // another triangle
     ]), gl.STATIC_DRAW);
   }
+};
+
+ImageProcessor.prototype.isContextLost = function() {
+  return this.webglHelper.context.isContextLost();
 };
 
 ImageProcessor.vertexShader =

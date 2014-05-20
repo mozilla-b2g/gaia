@@ -68,6 +68,16 @@ case $1 in
     CAL_COUNT=3200
   ;;
 
+  tarako)
+    IMAGE_COUNT=20
+    MUSIC_COUNT=20
+    VIDEO_COUNT=5
+    CONTACT_COUNT=tarako
+    SMS_COUNT=tarako
+    DIALER_COUNT=tarako
+    CAL_COUNT=tarako
+  ;;
+
   *)
     echo "Size parameter must be one of (empty/light/medium/heavy/x-heavy)"
     exit
@@ -124,7 +134,7 @@ for app in $APPS; do
         LINE=" Dialer History: skipped"
       else
         adb push  $SCRIPT_DIR/dialerDb-$DIALER_COUNT.sqlite $IDB_BASE/$DIALER_DIR$IDB_PATH/2584670174dsitanleecreR.sqlite
-        LINE=" Dialer History: $(printf "%4d" $DIALER_COUNT)"
+        LINE=" Dialer History: $(printf "%s" $DIALER_COUNT)"
       fi
       ;;
 
@@ -154,7 +164,7 @@ for app in $APPS; do
       adb shell "rm $IDB_BASE/chrome$IDB_PATH/3406066227csotncta/*"
       adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT/ $IDB_BASE/chrome$IDB_PATH/3406066227csotncta/
       rm -rf $ATTACHMENT_DIR/
-      LINE=" Contacts:       $(printf "%4d" $CONTACT_COUNT)"
+      LINE=" Contacts:       $(printf "%s" $CONTACT_COUNT)"
       ;;
 
     sms)
@@ -165,7 +175,7 @@ for app in $APPS; do
       adb shell "rm $IDB_BASE/chrome$IDB_PATH/226660312ssm/*"
       adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT/ $IDB_BASE/chrome$IDB_PATH/226660312ssm/
       rm -rf $ATTACHMENT_DIR/
-      LINE=" Sms Messages:   $(printf "%4d" $SMS_COUNT)"
+      LINE=" Sms Messages:   $(printf "%s" $SMS_COUNT)"
       ;;
 
     calendar)
@@ -186,7 +196,7 @@ for app in $APPS; do
           LINE=" Calendar: skipped"
         else
           adb push  $SCRIPT_DIR/calendarDb-$CAL_COUNT.sqlite $IDB_BASE/$CAL_DIR$IDB_PATH/125582036br2agd-nceal.sqlite
-          LINE=" Calendar:   $(printf "%4d" $CAL_COUNT)"
+          LINE=" Calendar:   $(printf "%s" $CAL_COUNT)"
         fi
       fi
       ;;

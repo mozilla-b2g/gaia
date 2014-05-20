@@ -15,6 +15,10 @@ var Filmstrip = (function() {
   var MAX_THUMBNAILS = 5;
   var THUMBNAIL_WIDTH = 46 * DEVICE_RATIO;  // size of each thumbnail
   var THUMBNAIL_HEIGHT = 46 * DEVICE_RATIO;
+  var thumbnailSize = {  // thumbnail size in form needed by cropResizeRotate()
+    width: THUMBNAIL_WIDTH,
+    height: THUMBNAIL_HEIGHT
+  };
 
   // Timer for auto-hiding the filmstrip
   var hideTimer = null;
@@ -44,7 +48,7 @@ var Filmstrip = (function() {
   preview.onclick = function() {};
 
   // Create the MediaFrame for previews
-  var frame = new MediaFrame(mediaFrame);
+  var frame = new MediaFrame(mediaFrame, true, CONFIG_MAX_IMAGE_PIXEL_SIZE);
   if (CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH) {
     frame.setMinimumPreviewSize(CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH,
                                 CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT);
@@ -105,7 +109,12 @@ var Filmstrip = (function() {
     // If we're showing previews be sure we're showing the filmstrip
     // with no timeout and be sure that the viewfinder video is paused.
     show();
-    Camera.viewfinder.pause();
+    // If there is not already a preview on screen, bring it onscreen
+    // and stop the camera
+    if (preview.classList.contains('offscreen')) {
+      preview.classList.remove('offscreen');
+      Camera.stopPreview();
+    }
   };
 
   function previewItem(index) {
@@ -125,8 +134,6 @@ var Filmstrip = (function() {
                          item.rotation);
     }
 
-    preview.classList.remove('offscreen');
-    Camera.releaseScreenWakeLock();
     currentItemIndex = index;
 
     // Highlight the border of the thumbnail we're previewing
@@ -144,11 +151,16 @@ var Filmstrip = (function() {
   }
 
   function hidePreview() {
-    Camera.viewfinder.play();        // Restart the viewfinder
-    show(Camera.FILMSTRIP_DURATION); // Fade the filmstrip after a delay
+    // Hide the preview
     preview.classList.add('offscreen');
-    Camera.requestScreenWakeLock();
     frame.clear();
+
+    // Restart the camera
+    Camera.startPreview();
+
+    // Make the filmstrip visible for a few seconds
+    show(Camera.FILMSTRIP_DURATION);
+
     if (items.length > 0)
       items[currentItemIndex].element.classList.remove('previewed');
     currentItemIndex = null;
@@ -203,19 +215,39 @@ var Filmstrip = (function() {
     var item = items[currentItemIndex];
     var type = item.isImage ? 'image/*' : 'video/*';
     var nameonly = item.filename.substring(item.filename.lastIndexOf('/') + 1);
-    var activity = new MozActivity({
-      name: 'share',
-      data: {
-        type: type,
-        number: 1,
-        blobs: [item.blob],
-        filenames: [nameonly],
-        filepaths: [item.filename] /* temporary hack for bluetooth app */
-      }
-    });
-    activity.onerror = function(e) {
-      console.warn('Share activity error:', activity.error.name);
-    };
+
+    if (item.isImage) {
+      var spinner = document.getElementById('spinner');
+      spinner.classList.remove('hidden');
+      cropResizeRotate(item.blob, null, CONFIG_MAX_PICK_PIXEL_SIZE || null,
+                       function(error, rotatedBlob) {
+                         spinner.classList.add('hidden');
+                         if (error) {
+                           console.error('Error while rotating image:', error);
+                           rotatedBlob = item.blob;
+                         }
+                         share(rotatedBlob);
+                       });
+    }
+    else {
+      share(item.blob);
+    }
+
+    function share(blob) {
+      var activity = new MozActivity({
+        name: 'share',
+        data: {
+          type: type,
+          number: 1,
+          blobs: [blob],
+          filenames: [nameonly],
+          filepaths: [item.filename] /* temporary hack for bluetooth app */
+        }
+      });
+      activity.onerror = function(e) {
+        console.warn('Share activity error:', activity.error.name);
+      };
+    }
   }
 
   function handleSwipe(e) {
@@ -223,7 +255,6 @@ var Filmstrip = (function() {
     // when the phone is rotated, we don't alter these directions based
     // on orientation. To dismiss the preview, the user always swipes toward
     // the filmstrip.
-
     switch (e.detail.direction) {
     case 'up':   // close the preview if the swipe is fast enough
       if (e.detail.vy < -1)
@@ -254,24 +285,57 @@ var Filmstrip = (function() {
         parseJPEGMetadata(previewBlob, function(thumbnailMetadata) {
           metadata.preview.width = thumbnailMetadata.width;
           metadata.preview.height = thumbnailMetadata.height;
-          createThumbnail(
-            previewBlob,
-            false,
-            metadata.rotation,
-            metadata.mirrored,
-            function(thumbnail) {
-              addItem({
-                isImage: true,
-                filename: filename,
-                thumbnail: thumbnail,
-                blob: blob,
-                width: metadata.width,
-                height: metadata.height,
-                preview: metadata.preview,
-                rotation: metadata.rotation,
-                mirrored: metadata.mirrored
-              });
-          });
+
+          // The Tarako may produce EXIF previews that have the wrong
+          // aspect ratio and are distorted. Check for that, and if the
+          // aspect ratio is not right, then create a thumbnail from the
+          // full size image
+          var fullRatio = metadata.width / metadata.height;
+          var previewRatio = thumbnailMetadata.width / thumbnailMetadata.height;
+          if (Math.abs(fullRatio - previewRatio) < 0.01) {
+            // Aspect ratios match: create thumbnail from preview
+            var previewMetadata = {
+              width: thumbnailMetadata.width,
+              height: thumbnailMetadata.height,
+              rotation: metadata.rotation,
+              mirrored: metadata.mirrored
+            };
+
+            cropResizeRotate(previewBlob, null, thumbnailSize, null,
+                             previewMetadata, gotThumbnailBlob);
+          }
+          else {
+            // In this case the preview was no good
+            createThumbnailFromFullImage();
+          }
+        });
+      }
+      else {
+        // No preview at all, so use the full image
+        createThumbnailFromFullImage();
+      }
+
+      function createThumbnailFromFullImage() {
+        cropResizeRotate(blob, null, thumbnailSize, null, metadata,
+                         gotThumbnailBlob);
+      }
+
+      function gotThumbnailBlob(error, thumbnailBlob) {
+        if (error) {
+          console.error('Failed to create thumbnail', error);
+          return;
+        }
+
+        addItem({
+          isImage: true,
+          filename: filename,
+          thumbnail: thumbnailBlob,
+          blob: blob,
+          width: metadata.width,
+          height: metadata.height,
+          preview: metadata.preview,
+          rotation: metadata.rotation,
+          mirrored: metadata.mirrored
         });
       }
     }, function logerr(msg) { console.warn(msg); });

@@ -1,0 +1,13 @@
+style/icons/Email_120.png
+index.html
+style/mail.css
+js/html_cache_restore.js
+shared/style/input_areas/images/ui/shadow.png
+shared/style/input_areas/images/icons/clear.png
+js/mail_app.js
+locales-obj/en-US.json
+js/cards/setup_account_info.js
+js/ext/mailapi/main-frame-setup.js
+js/cards/setup_l10n_map.js
+js/cards/setup_account_info.html
+js/ext/mailapi/worker-bootstrap.js

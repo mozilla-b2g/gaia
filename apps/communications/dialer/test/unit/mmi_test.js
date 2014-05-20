@@ -1,12 +1,33 @@
 'use strict';
 
-requireApp('communications/dialer/js/mmi.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
-requireApp('communications/dialer/test/unit/mock_mmi_ui.js');
-requireApp('communications/dialer/test/unit/mock_mozMobileConnection.js');
-requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
+require('/dialer/js/mmi.js');
+require('/dialer/test/unit/mock_mmi_ui.js');
 
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_mobile_operator.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_icc_manager.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
+
+const SUCCESS_MMI_NO_MSG = 'sucess_mmi_no_msg';
+const FAILED_MMI_NO_MSG = 'failed_mmi_no_msg';
+const SUCCESS_MMI_MSG = 'success_mmi_msg';
+const FAILED_MMI_MSG = 'failed_mmi_msg';
+
+const MMI_MSG = 'mmi_msg';
+
+const MMI_CF_MSG_ACTIVE_VOICE = 'mmi_cf_active_voice';
+const MMI_CF_MSG_ACTIVE_DATA = 'mmi_cf_active_data';
+const MMI_CF_MSG_ACTIVE_FAX = 'mmi_cf_active_fax';
+const MMI_CF_MSG_ACTIVE_DATA_SYNC = 'mmi_cf_active_data_sync';
+const MMI_CF_MSG_ACTIVE_DATA_ASYNC = 'mmi_cf_active_data_async';
+const MMI_CF_MSG_ACTIVE_PACKET = 'mmi_cf_active_package';
+const MMI_CF_MSG_ACTIVE_PAD = 'mmi_cf_active_pad';
+const MMI_CF_MSG_INVALID_SERVICE_CLASS = 'mmi_cf_invalid_sc';
+const MMI_CF_MSG_ALL_INACTIVE = 'mmi_cf_all_inactive';
+const MMI_CF_MSG_TWO_RULES = 'mmi_cf_two_rules';
+
+const EXPECTED_PHONE = '+34666222111';
 
 const TINY_TIMEOUT = 5;
 
@@ -17,15 +38,173 @@ var mocksHelperForMMI = new MocksHelper([
 ]).init();
 
 suite('dialer/mmi', function() {
-  var realMobileConnection;
+  var realMozIccManager;
+  var realMobileConnections;
+  var mobileConn;
 
   mocksHelperForMMI.attachTestHelpers();
   var keys = {};
 
-  setup(function() {
-    realMobileConnection = window.navigator.mozMobileConnection;
-    window.navigator.mozMobileConnection = MockMozMobileConnection;
+  suiteSetup(function() {
+    realMozIccManager = window.navigator.mozIccManager;
+    window.navigator.mozIccManager = MockNavigatorMozIccManager;
 
+    realMobileConnections = navigator.mozMobileConnections;
+    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+
+    /* Replace the default mock connection with our own specialized version
+     * tailored for this suite of tests. */
+    mobileConn = new MockMobileconnection();
+    sinon.stub(mobileConn, 'sendMMI', function(message) {
+      var evt = {
+        target: {
+          result: null,
+          error: {
+            name: null
+          }
+        }
+      };
+
+      switch (message) {
+        case SUCCESS_MMI_NO_MSG:
+          evt.target.result = {
+            statusMessage: null
+          };
+          MmiManager.notifySuccess(evt);
+          break;
+        case SUCCESS_MMI_MSG:
+          evt.target.result = {
+            statusMessage: SUCCESS_MMI_MSG
+          };
+          MmiManager.notifySuccess(evt);
+          break;
+        case FAILED_MMI_NO_MSG:
+          evt.target.error = {
+            name: null
+          };
+          MmiManager.notifyError(evt);
+          break;
+        case FAILED_MMI_MSG:
+          evt.target.error = {
+            name: FAILED_MMI_MSG
+          };
+          MmiManager.notifyError(evt);
+          break;
+        case MMI_CF_MSG_ACTIVE_VOICE:
+          evt.target.result = {
+            additionalInformation: [{
+              active: true,
+              number: EXPECTED_PHONE,
+              serviceClass: this.ICC_SERVICE_CLASS_VOICE
+            }]
+          };
+          MmiManager.notifySuccess(evt);
+          break;
+        case MMI_CF_MSG_ACTIVE_DATA:
+          evt.target.result = {
+            additionalInformation: [{
+              active: true,
+              number: EXPECTED_PHONE,
+              serviceClass: this.ICC_SERVICE_CLASS_DATA
+            }]
+          };
+          MmiManager.notifySuccess(evt);
+          break;
+        case MMI_CF_MSG_ACTIVE_FAX:
+          evt.target.result = {
+            additionalInformation: [{
+              active: true,
+              number: EXPECTED_PHONE,
+              serviceClass: this.ICC_SERVICE_CLASS_FAX
+            }]
+          };
+          MmiManager.notifySuccess(evt);
+          break;
+        case MMI_CF_MSG_ACTIVE_DATA_SYNC:
+          evt.target.result = {
+            additionalInformation: [{
+              active: true,
+              number: EXPECTED_PHONE,
+              serviceClass: this.ICC_SERVICE_CLASS_DATA_SYNC
+            }]
+          };
+          MmiManager.notifySuccess(evt);
+          break;
+        case MMI_CF_MSG_ACTIVE_DATA_ASYNC:
+          evt.target.result = {
+            additionalInformation: [{
+              active: true,
+              number: EXPECTED_PHONE,
+              serviceClass: this.ICC_SERVICE_CLASS_DATA_ASYNC
+            }]
+          };
+          MmiManager.notifySuccess(evt);
+          break;
+        case MMI_CF_MSG_ACTIVE_PACKET:
+          evt.target.result = {
+            additionalInformation: [{
+              active: true,
+              number: EXPECTED_PHONE,
+              serviceClass: this.ICC_SERVICE_CLASS_PACKET
+            }]
+          };
+          MmiManager.notifySuccess(evt);
+          break;
+        case MMI_CF_MSG_ACTIVE_PAD:
+          evt.target.result = {
+            additionalInformation: [{
+              active: true,
+              number: EXPECTED_PHONE,
+              serviceClass: this.ICC_SERVICE_CLASS_PAD
+            }]
+          };
+          MmiManager.notifySuccess(evt);
+          break;
+        case MMI_CF_MSG_INVALID_SERVICE_CLASS:
+          evt.target.result = [{
+            active: true,
+            number: EXPECTED_PHONE,
+            serviceClass: -1
+          }];
+          MmiManager.notifySuccess(evt);
+          break;
+       case MMI_CF_MSG_TWO_RULES:
+          evt.target.result = {
+            additionalInformation: [{
+              active: true,
+              number: EXPECTED_PHONE,
+              serviceClass: this.ICC_SERVICE_CLASS_VOICE
+            },{
+              active: true,
+              number: EXPECTED_PHONE,
+              serviceClass: this.ICC_SERVICE_CLASS_DATA
+            }]
+          };
+          MmiManager.notifySuccess(evt);
+          break;
+        case MMI_CF_MSG_ALL_INACTIVE:
+          evt.target.result = {
+            additionalInformation: [{
+              active: false
+            }]
+          };
+          MmiManager.notifySuccess(evt);
+          break;
+      }
+
+      var domRequest = {};
+      return domRequest;
+    });
+  });
+
+  suiteTeardown(function() {
+    navigator.mozIccManager = realMozIccManager;
+    navigator.mozMobileConnections = realMobileConnections;
+  });
+
+  setup(function() {
+    MockNavigatorMozMobileConnections.mRemoveMobileConnection(0);
+    MockNavigatorMozMobileConnections.mAddMobileConnection(mobileConn, 0);
     MmiManager._ui = MockMmiUI;
     window.addEventListener('message',
                             MmiManager._ui.postMessage.bind(MmiManager._ui));
@@ -33,15 +212,15 @@ suite('dialer/mmi', function() {
   });
 
   teardown(function() {
-    window.navigator.mozMobileConnection = realMobileConnection;
-
-    MmiManager._conn.mTeardown();
+    MockNavigatorMozIccManager.mTeardown();
+    MockNavigatorMozMobileConnections.mTeardown();
+    mobileConn.mTeardown();
     MmiManager._ui.teardown();
   });
 
   suite('Successfully send mmi message with result', function() {
     setup(function() {
-      MmiManager.send(SUCCESS_MMI_MSG);
+      MmiManager.send(SUCCESS_MMI_MSG, 0);
     });
 
     test('Check request result', function(done) {
@@ -61,7 +240,7 @@ suite('dialer/mmi', function() {
 
   suite('Successfully send mmi message no result', function() {
     setup(function() {
-      MmiManager.send(SUCCESS_MMI_NO_MSG);
+      MmiManager.send(SUCCESS_MMI_NO_MSG, 0);
     });
 
     test('Check empty request result', function(done) {
@@ -81,7 +260,7 @@ suite('dialer/mmi', function() {
 
   suite('Error sending mmi message with result', function() {
     setup(function() {
-      MmiManager.send(FAILED_MMI_MSG);
+      MmiManager.send(FAILED_MMI_MSG, 0);
     });
 
     test('Check request result', function(done) {
@@ -101,7 +280,7 @@ suite('dialer/mmi', function() {
 
   suite('Error sending mmi message no result', function() {
     setup(function() {
-      MmiManager.send(FAILED_MMI_NO_MSG);
+      MmiManager.send(FAILED_MMI_NO_MSG, 0);
     });
 
     test('Check empty request result', function(done) {
@@ -127,7 +306,7 @@ suite('dialer/mmi', function() {
 
   suite('Mmi received with message and session active', function() {
     setup(function() {
-      MmiManager._conn.triggerUssdReceived(MMI_MSG, false);
+      MmiManager.handleMMIReceived(MMI_MSG, false, 0);
     });
 
     test('Check request result', function(done) {
@@ -147,7 +326,7 @@ suite('dialer/mmi', function() {
 
   suite('Mmi received with message and session ended', function() {
     setup(function() {
-      MmiManager._conn.triggerUssdReceived(MMI_MSG, true);
+      MmiManager.handleMMIReceived(MMI_MSG, true, 0);
     });
 
     test('Check message', function(done) {
@@ -169,7 +348,7 @@ suite('dialer/mmi', function() {
     setup(function() {
       MmiManager._ui._messageReceived = null;
       MmiManager._ui._sessionEnded = null;
-      MmiManager._conn.triggerUssdReceived(null, false);
+      MmiManager.handleMMIReceived(null, false, 0);
     });
 
     test('Check no message received', function(done) {
@@ -184,7 +363,7 @@ suite('dialer/mmi', function() {
 
   suite('Mmi received with no message and session ended', function() {
     setup(function() {
-      MmiManager._conn.triggerUssdReceived(null, true);
+      MmiManager.handleMMIReceived(null, true, 0);
     });
 
     test('Check no message', function(done) {
@@ -202,8 +381,62 @@ suite('dialer/mmi', function() {
     });
   });
 
+  suite('Mmi received with multiple connections', function() {
+    var simNum = 2;
+
+    setup(function() {
+      // Make this look like a DSDS setup
+      var conn = new MockMobileconnection();
+      MockNavigatorMozMobileConnections.mAddMobileConnection(conn, simNum - 1);
+      MockNavigatorMozIccManager.addIcc('0', { 'cardState' : 'ready' });
+      MockNavigatorMozIccManager.addIcc('1', { 'cardState' : 'ready' });
+
+      MmiManager.handleMMIReceived(MMI_MSG, true, 1);
+    });
+
+    test('Check title, message and sessionEnded', function(done) {
+      setTimeout(function() {
+        assert.isNotNull(MockLazyL10n.keys['mmi-notification-title-with-sim']);
+        assert.equal(MockLazyL10n.keys['sim-number'].n, simNum);
+        assert.equal(MmiManager._ui._messageReceived, MMI_MSG);
+        assert.isTrue(MmiManager._ui._sessionEnded);
+        done();
+      }, TINY_TIMEOUT);
+    });
+  });
+
   suite('Mmi message reply via UI', function() {
     setup(function() {
+      MmiManager._conn = mobileConn;
+      MmiManager._ui.reply(SUCCESS_MMI_MSG);
+    });
+
+    test('Check request result', function(done) {
+      setTimeout(function() {
+        assert.equal(MmiManager._ui._messageReceived, SUCCESS_MMI_MSG);
+        done();
+      }, TINY_TIMEOUT);
+    });
+
+    test('Check sessionEnded null', function(done) {
+      setTimeout(function() {
+        assert.isNull(MmiManager._ui._sessionEnded);
+        done();
+      }, TINY_TIMEOUT);
+    });
+  });
+
+  suite('Mmi message reply via UI with multiple connections', function() {
+    var simNum = 2;
+
+    setup(function() {
+      // Make this look like a DSDS setup
+      var conn = new MockMobileconnection();
+      sinon.stub(conn, 'sendMMI', mobileConn.sendMMI);
+      MockNavigatorMozMobileConnections.mAddMobileConnection(conn, simNum - 1);
+      MockNavigatorMozIccManager.addIcc('0', { 'cardState' : 'ready' });
+      MockNavigatorMozIccManager.addIcc('1', { 'cardState' : 'ready' });
+      MmiManager._conn = conn;
       MmiManager._ui.reply(SUCCESS_MMI_MSG);
     });
 

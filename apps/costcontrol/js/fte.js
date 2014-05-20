@@ -14,6 +14,7 @@
   var defaultLowLimitThreshold = DEFAULT_LOW_LIMIT_THRESHOLD;
   window.addEventListener('DOMContentLoaded', function _onDomReady() {
     Common.loadDataSIMIccId(_onIccReady);
+    Common.loadNetworkInterfaces();
   });
 
   function _onIccReady(iccid) {

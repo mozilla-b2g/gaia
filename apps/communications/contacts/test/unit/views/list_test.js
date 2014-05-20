@@ -18,6 +18,7 @@ requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp(
         'communications/contacts/test/unit/mock_performance_testing_helper.js');
 
@@ -1365,6 +1366,7 @@ suite('Render contacts list', function() {
         'normalMode': 'show' // We don't care, the form will be hide
       }
     };
+    var mockNavigationStack;
 
     var mockNavigationStack;
 

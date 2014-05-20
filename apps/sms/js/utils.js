@@ -9,6 +9,13 @@
   var rescape = /[.?*+^$[\]\\(){}|-]/g;
   var rparams = /([^?=&]+)(?:=([^&]*))?/g;
   var rnondialablechars = /[^,#+\*\d]/g;
+  var downsamplingRefSize = {
+    // Estimate average Thumbnail size:
+    // 120 X 60 (max pixel) X 3 (full color) / 20 (average jpeg compress ratio)
+    // = 1080 (byte)
+    'thumbnail' : 1080
+    // TODO: For mms resizing
+  };
 
   var Utils = {
     date: {
@@ -261,6 +268,36 @@
       return a === b || a.slice(-7) === b.slice(-7);
     },
 
+    /**
+     * multiRecipientMatch
+     *
+     * Check multi-repients without regard to order
+     *
+     * @param {(String|string[])} a First recipient field.
+     * @param {(String|string[])} b Second recipient field.
+     *
+     * @return {Boolean} Return true if all recipients match.
+     */
+    multiRecipientMatch: function ut_multiRecipientMatch(a, b) {
+      // When ES6 syntax is allowed, replace with
+      // multiRecipientMatch([...a], [...b])
+      a = [].concat(a);
+      b = [].concat(b);
+      var blen = b.length;
+      if (a.length !== blen) {
+        return false;
+      }
+      // Check each recipient in a against each in b
+      // Allows for any order (and fails early)
+      return a.every(function(number) {
+        for (var i = 0; i < blen; i++) {
+          if (Utils.probablyMatches(number, b[i])) {
+            return true;
+          }
+        }
+      });
+    },
+
     // Default image size limitation is set to 300KB for MMS user story.
     // If limit is not given or bigger than default 300KB, default value need
     // to be applied here for size checking. Parameters could be:
@@ -353,6 +390,23 @@
         }
         canvas.toBlob(ensureSizeLimit, blob.type);
       };
+    },
+    // Return the url path with #-moz-samplesize postfix and downsampled image
+    // could be loaded directly from backend graphics lib.
+    getDownsamplingSrcUrl: function ut_getDownsamplingSrcUrl(options) {
+      var newUrl = options.url;
+      var size = options.size;
+      var ref = downsamplingRefSize[options.type];
+
+      if (size && ref) {
+        // Estimate average Thumbnail size
+        var ratio = Math.min(Math.sqrt(size / ref), 16);
+
+        if (ratio >= 2) {
+          newUrl += '#-moz-samplesize=' + Math.floor(ratio);
+        }
+      }
+      return newUrl;
     },
     camelCase: function ut_camelCase(str) {
       return str.replace(rdashes, function replacer(str, p1) {

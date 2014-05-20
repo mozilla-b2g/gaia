@@ -104,7 +104,7 @@ var WindowManager = (function() {
 
   // Make the specified app the displayed app.
   // Public function.  Pass null to make the homescreen visible
-  function launch(origin) {
+  function launch(origin, app) {
     // If the origin is indeed valid we make that app as the displayed app.
     if (isRunning(origin)) {
       setDisplayedApp(origin);
@@ -114,6 +114,21 @@ var WindowManager = (function() {
     // If the origin is null, make the homescreen visible.
     if (origin == null) {
       setDisplayedApp(HomescreenLauncher.origin);
+      return;
+    }
+
+    if (app) {
+      var config = {
+        origin: app.origin,
+        url: app.url,
+        name: app.name,
+        manifest: app.manifest,
+        manifestURL: app.manifestURL
+      };
+      var e = {
+        detail: config
+      };
+      windowLauncher(e);
       return;
     }
 
@@ -521,7 +536,7 @@ var WindowManager = (function() {
     };
 
     onSwitchWindow ? transitionCloseCallback() :
-                     HomescreenLauncher.getHomescreen().
+                     HomescreenLauncher.getHomescreen(true).
                      _waitForNextPaint(transitionCloseCallback);
   }
 
@@ -578,7 +593,7 @@ var WindowManager = (function() {
       HomescreenLauncher.origin;
 
     if (newApp === HomescreenLauncher.origin) {
-      HomescreenLauncher.getHomescreen();
+      HomescreenLauncher.getHomescreen(true);
     }
 
     // Cancel transitions waiting to be started.
@@ -741,13 +756,15 @@ var WindowManager = (function() {
       }
     });
 
-  function createFrame(origFrame, origin, url, name, manifest, manifestURL) {
+  function createFrame(origFrame, origin, url, name, manifest, manifestURL,
+                       parentApp) {
     var browser_config = {
       origin: origin,
       url: url,
       name: name,
       manifest: manifest,
-      manifestURL: manifestURL
+      manifestURL: manifestURL,
+      parentApp: parentApp
     };
 
     // TODO: Move into browser configuration helper.
@@ -759,10 +776,21 @@ var WindowManager = (function() {
     var protocol = document.location.protocol + '//';
     var browserManifestUrl =
       protocol + 'browser.' + domain + '/manifest.webapp';
+    var bluetoothManifestUrl =
+      protocol + 'bluetooth.' + domain + '/manifest.webapp';
+    var keyboardManifestUrl =
+      protocol + 'keyboard.' + domain + '/manifest.webapp';
     var outOfProcessBlackList = [
-      browserManifestUrl
+      browserManifestUrl,
       // Requires nested content processes (bug 761935).  This is not
       // on the schedule for v1.
+      bluetoothManifestUrl,
+      // Bluetooth pairing/transfer UI is too critical to be OOM'd,
+      // and it manages it's own life cycle.
+      keyboardManifestUrl
+      // Keyboard Settings page manages it's own life cycle.
+      // Make it inproc to prevent Settings app being killed before switching
+      // back.
     ];
 
     if (outOfProcessBlackList.indexOf(manifestURL) === -1) {
@@ -807,10 +835,10 @@ var WindowManager = (function() {
   }
 
   function appendFrame(origFrame, origin, url, name, manifest, manifestURL,
-                       expectingSystemMessage, stayBackground) {
+                       expectingSystemMessage, stayBackground, parentApp) {
     // Create the <iframe mozbrowser mozapp> that hosts the app
-    var frame =
-        createFrame(origFrame, origin, url, name, manifest, manifestURL);
+    var frame = createFrame(origFrame, origin, url, name, manifest,
+                            manifestURL, parentApp);
     var iframe = frame.firstChild;
     frame.id = 'appframe' + nextAppId++;
     iframe.dataset.frameType = 'window';
@@ -969,7 +997,8 @@ var WindowManager = (function() {
       } else {
         if (!isRunning(config.origin)) {
           appendFrame(null, config.origin, config.url,
-                      config.name, config.manifest, config.manifestURL);
+                      config.name, config.manifest, config.manifestURL,
+                      false, false, config.parentApp);
         }
         // TODO: Move below iframe hack into app window.
         runningApps[config.origin].iframe.dataset.start = startTime;
@@ -1007,7 +1036,7 @@ var WindowManager = (function() {
                                 config.name, config.manifest,
                                 config.manifestURL,
                                 /* expectingSystemMessage */
-                                true, config.stayBackground);
+                                true, config.stayBackground, config.parentApp);
 
           // set the size of the iframe
           // so Cards View will get a correct screenshot of the frame
@@ -1066,7 +1095,7 @@ var WindowManager = (function() {
     if (displayedApp !== HomescreenLauncher.origin) {
       runningApps[displayedApp].setVisible(false);
     } else {
-      HomescreenLauncher.getHomescreen().setVisible(false);
+      HomescreenLauncher.getHomescreen(true).setVisible(false);
     }
   });
 
@@ -1077,7 +1106,7 @@ var WindowManager = (function() {
     if (displayedApp && displayedApp !== HomescreenLauncher.origin) {
       runningApps[displayedApp].setVisible(true);
     } else {
-      var homescreen = HomescreenLauncher.getHomescreen();
+      var homescreen = HomescreenLauncher.getHomescreen(true);
       homescreen && homescreen.setVisible(true);
     }
   });
@@ -1104,15 +1133,6 @@ var WindowManager = (function() {
         app.iframe.blur();
       }
     }
-  });
-
-  /**
-   * We only retain the screenshot layer
-   * when attention screen drops.
-   * Otherwise we just bring the app to background.
-   */
-  window.addEventListener('hidewindow', function() {
-    runningApps[displayedApp].setVisible(false, true);
   });
 
   function getAppName(origin, manifest) {
@@ -1145,7 +1165,7 @@ var WindowManager = (function() {
       app = appendFrame(iframe, config.origin, config.url, config.title, {
         'name': config.title
       }, null, /* expectingSystemMessage */ false,
-      /* stayBackground */ false);
+      /* stayBackground */ false, config.parentApp);
 
       // XXX: Move this into app window.
       // Set the window name in order to reuse this app if we try to open

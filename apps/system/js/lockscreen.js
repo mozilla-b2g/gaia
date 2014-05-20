@@ -216,6 +216,7 @@ var LockScreen = {
     /* Status changes */
     window.addEventListener('volumechange', this);
     window.addEventListener('screenchange', this);
+    window.addEventListener('attentionscreenhide', this);
     document.addEventListener('visibilitychange', this);
 
     /* Telephony changes */
@@ -343,6 +344,9 @@ var LockScreen = {
 
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
+      case 'attentionscreenhide':
+        this.enableWithoutCover();
+        break;
       case 'screenchange':
         // Don't lock if screen is turned off by promixity sensor.
         if (evt.detail.screenOffBy == 'proximity') {
@@ -441,6 +445,9 @@ var LockScreen = {
 
       case 'home':
         if (this.locked) {
+          // If we press home button after received incoming call,
+          // we should enable the lockscreen.
+          this.enableWithoutCover();
           if (this.passCodeEnabled) {
             this.switchPanel('passcode');
           } else {
@@ -466,8 +473,18 @@ var LockScreen = {
           emergencyCallBtn.classList.remove('disabled');
         }
         // Return to main panel once call state changes.
-        if (this.locked)
+        if (this.locked) {
           this.switchPanel();
+          if (!!navigator.mozTelephony.calls.length) {
+            // To hide the normal lockscreen with cover,
+            // when the user is dialing.
+            this.disableWithCover();
+          } else {
+            // Back to the lockscreen and remove the cover,
+            // whe user had dialed but not success.
+            this.enableWithoutCover();
+          }
+        }
         break;
     }
   },
@@ -561,6 +578,22 @@ var LockScreen = {
     }
   },
 
+  /**
+   * Display a cover over the lockscreen.
+   * This is for the scenario that the dialer lockscreen got invoked,
+   * and the transition is too slow to hide this one.
+   */
+  disableWithCover: function ls_disableWithCover() {
+    this.overlay.classList.add('disabled');
+  },
+
+  /**
+   * To remove the cover.
+   */
+  enableWithoutCover: function ls_enableWithoutCover() {
+    this.overlay.classList.remove('disabled');
+  },
+
   lockIfEnabled: function ls_lockIfEnabled(instant) {
     if (FtuLauncher && FtuLauncher.isFtuRunning()) {
       this.unlock(instant);
@@ -584,7 +617,9 @@ var LockScreen = {
 
     var currentFrame = null;
 
-    if (currentApp) {
+    // XXX: the |getAppFrame(currentApp)| may be null in some monkey test.
+    // This was reported at Bug 988717.
+    if (currentApp && null !== WindowManager.getAppFrame(currentApp)) {
       currentFrame = WindowManager.getAppFrame(currentApp).firstChild;
       WindowManager.setOrientationForApp(currentApp);
     }
@@ -695,15 +730,30 @@ var LockScreen = {
       case 'camera':
         // create the <iframe> and load the camera
         var frame = document.createElement('iframe');
+        frame.setAttribute('mozbrowser', true);
+        frame.setAttribute('remote', 'true');
 
-        frame.src = './camera/index.html';
-        frame.onload = (function cameraLoaded() {
+        // XXX hardcode URLs
+        // Proper fix should be done in bug 951978 and friends.
+        var cameraAppUrl =
+          window.location.href.replace('system', 'camera');
+        var cameraAppManifestURL =
+          cameraAppUrl.replace('index.html', 'manifest.webapp');
+
+        cameraAppUrl += '#secure';
+
+        frame.src = cameraAppUrl;
+        frame.setAttribute('mozapp', cameraAppManifestURL);
+        frame.addEventListener('mozbrowserloadend', (function cameraLoaded() {
           this.mainScreen.classList.add('lockscreen-camera');
           this.overlay.classList.add('unlocked');
 
           if (callback)
             callback();
-        }).bind(this);
+        }).bind(this));
+        frame.addEventListener('mozbrowsererror', (function cameraError() {
+          this.switchPanel();
+        }).bind(this));
         this.overlay.classList.remove('no-transition');
         this.camera.appendChild(frame);
 
@@ -879,6 +929,7 @@ var LockScreen = {
     for (var i = 0; i < panels.length; i++) {
       panels[i].style.backgroundImage = url;
     }
+    this.disabledCover.style.backgroundImage = url;
   },
 
   /**
@@ -894,7 +945,7 @@ var LockScreen = {
     var elements = ['conn-states', 'clock-numbers', 'clock-meridiem',
         'date', 'area', 'area-unlock', 'area-camera', 'icon-container',
         'area-handle', 'area-slide', 'media-container', 'passcode-code',
-        'alt-camera', 'alt-camera-button', 'slide-handle',
+        'alt-camera', 'alt-camera-button', 'slide-handle', 'disabled-cover',
         'passcode-pad', 'camera', 'accessibility-camera',
         'accessibility-unlock', 'panel-emergency-call', 'canvas'];
 
