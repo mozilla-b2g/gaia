@@ -190,7 +190,7 @@
           this.appList.once('closed', () => {
             // We need to remove iconClick event listener because users may
             // press "close" without click any app icon.
-            this.off('iconclick', handleAppChosen);
+            this.appList.off('iconclick', handleAppChosen);
           });
         }
       }
