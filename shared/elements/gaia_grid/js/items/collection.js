@@ -73,7 +73,7 @@
      * Launches the application for this icon.
      */
     launch: function() {
-      new MozActivity({
+      var activity = new MozActivity({
         name: 'view-collection',
         data: {
           type: 'folder',
@@ -81,6 +81,15 @@
           categoryId: this.detail.categoryId
         }
       });
+
+      window.dispatchEvent(new CustomEvent('gaiagrid-collection-open'));
+
+      activity.onsuccess = onClose;
+      activity.onerror = onClose;
+
+      function onClose() {
+        window.dispatchEvent(new CustomEvent('gaiagrid-collection-close'));
+      }
     },
 
 

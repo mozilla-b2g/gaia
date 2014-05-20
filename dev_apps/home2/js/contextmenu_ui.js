@@ -1,4 +1,5 @@
 'use strict';
+/* global app */
 /* global LazyLoader */
 /* global MozActivity */
 /* global wallpaper */
@@ -67,8 +68,15 @@
                 type: 'folder'
               }
             });
-            activity.onsuccess = function onsuccess() {};
+
+            app.homescreenFocused = false;
+
+            activity.onsuccess = function onsuccess() {
+              app.homescreenFocused = true;
+            };
+
             activity.onerror = function onerror(e) {
+              app.homescreenFocused = true;
               alert(this.error.name || 'generic-error-message');
             };
           });

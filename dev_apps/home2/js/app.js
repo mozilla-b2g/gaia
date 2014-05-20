@@ -12,6 +12,8 @@
     window.addEventListener('hashchange', this);
     window.addEventListener('appzoom', this);
     window.addEventListener('gaiagrid-saveitems', this);
+    window.addEventListener('gaiagrid-collection-open', this);
+    window.addEventListener('gaiagrid-collection-close', this);
   }
 
   App.prototype = {
@@ -48,9 +50,21 @@
           this.itemStore.save(this.grid.getItems());
           break;
 
+        case 'gaiagrid-collection-open':
+          this.homescreenFocused = false;
+          break;
+
+        case 'gaiagrid-collection-close':
+          this.homescreenFocused = true;
+          break;
+
         case 'hashchange':
           if (this.grid._grid.dragdrop.inEditMode) {
             this.grid._grid.dragdrop.exitEditMode();
+            return;
+          }
+
+          if (!this.homescreenFocused) {
             return;
           }
 
