@@ -9,15 +9,6 @@
   const DEFAULT_ICON = Applications.DEFAULT_ICON_URL;
 
   /**
-   * WidgetConfig is a data object for loading widget information to
-   * layout editor.
-   * @property {Integer} positionId - the id returned by exportConfig.
-   * @property {AppEntryPoint} app - the app information.
-   * @see {@link Applications}
-   * @typedef {Object} WidgetConfig
-   */
-
-  /**
    * WidgetEditor controls UI and handles user interactions for changing the
    * places of widget.
    *
@@ -127,7 +118,7 @@
      * config into LayoutEditor.
      *
      * @param {Array} configs - the configuration set which contains multiple
-     *                        {@link WidgetConfig}.
+     *                        {@link LayoutWidgetConfig}.
      * @see {@link LayoutWidgetConfig}
      * @memberof WidgetEditor.prototype
      */
