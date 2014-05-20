@@ -1,6 +1,6 @@
 'use strict';
 
-require('/shared/elements/gaia-switch/script.js');
+require('/shared/elements/gaia_switch/script.js');
 
 suite('GaiaSwitch', function() {
   setup(function() {
