@@ -7,7 +7,7 @@ requireApp('search/test/unit/mock_search.js');
 requireApp('search/test/unit/mock_googlelink.js');
 requireApp('search/js/providers/provider.js');
 
-mocha.globals(['Places']);
+mocha.globals(['Places', 'SettingsListener']);
 
 suite('search/providers/places', function() {
   var fakeElement, stubById, subject;
@@ -17,6 +17,10 @@ suite('search/providers/places', function() {
     realDatastore = navigator.getDataStores;
     navigator.getDataStores = MockNavigatorDatastore.getDataStores;
     MockNavigatorDatastore._records = {};
+
+    window.SettingsListener = {
+      observe: function() {}
+    };
 
     MockDatastore.sync = function() {
       var cursor = {
@@ -39,6 +43,7 @@ suite('search/providers/places', function() {
 
   suiteTeardown(function() {
     navigator.getDataStores = realDatastore;
+    delete window.SettingsListener;
   });
 
   setup(function(done) {
@@ -47,7 +52,7 @@ suite('search/providers/places', function() {
     stubById = this.sinon.stub(document, 'getElementById')
                           .returns(fakeElement.cloneNode(true));
     requireApp('search/js/providers/places.js', function() {
-      subject = Search.providers.Places;
+      subject = window.Places;
       subject.init();
       done();
     });

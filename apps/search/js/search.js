@@ -72,7 +72,16 @@
      * Adds a search provider
      */
     provider: function(provider) {
-      this.providers[provider.name] = provider;
+      if (!(provider.name in this.providers)) {
+        this.providers[provider.name] = provider;
+      }
+    },
+
+    /**
+     * Removes a search provider
+     */
+    removeProvider: function(provider) {
+      delete this.providers[provider.name];
     },
 
     /**
