@@ -16,12 +16,12 @@ class TestFtu(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        self.ftu = Ftu(self.marionette)
-        self.ftu.launch()
-
         # If mozWifiManager is not initialised an exception may be thrown
         Wait(self.marionette, ignored_exceptions=JavascriptException).until(
             lambda m: self.data_layer.is_wifi_enabled)
+
+        self.ftu = Ftu(self.marionette)
+        self.ftu.launch()
 
     def test_ftu_skip_tour(self):
         """https://moztrap.mozilla.org/manage/case/3876/
@@ -57,8 +57,6 @@ class TestFtu(GaiaTestCase):
         self.assertTrue(self.data_layer.is_wifi_connected(self.testvars['wifi']),
 		    "WiFi was not connected via FTU app")
 
-        self.apps.switch_to_displayed_app()
-
         # Set timezone
         self.ftu.tap_next_to_timezone_section()
         self.ftu.set_timezone_continent("Asia")
@@ -81,8 +79,6 @@ class TestFtu(GaiaTestCase):
         self.ftu.wait_for_contacts_imported()
         self.assertEqual(self.ftu.count_imported_contacts, len(self.data_layer.all_contacts))
 
-        # all_contacts switches to top frame; Marionette needs to be switched back to ftu
-        self.apps.switch_to_displayed_app()
         self.ftu.tap_next_to_firefox_accounts_section()
         self.ftu.tap_next_to_welcome_browser_section()
 
