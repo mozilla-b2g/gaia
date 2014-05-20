@@ -42,16 +42,12 @@ var Resources = function(gaia, settings) {
 Resources.prototype.getResources = function(conf) {
   var operatorJSON = {};
 
-  operatorJSON.default_contacts =
-    this.addFile(conf.default_contacts, 'default_contacts');
-  operatorJSON.support_contacts =
-    this.addFile(conf.support_contacts, 'support_contacts');
-  operatorJSON.network_type =
-    this.addFile(conf.network_type, 'network_type');
-  operatorJSON.known_networks =
-    this.addFile(conf.known_networks, 'known_networks');
-  operatorJSON.nfc = this.addFile(conf.nfc, 'nfc');
-  operatorJSON.sms = this.addFile(conf.sms, 'sms');
+  operatorJSON.default_contacts = this.addFile(conf.default_contacts);
+  operatorJSON.support_contacts = this.addFile(conf.support_contacts);
+  operatorJSON.network_type = this.addFile(conf.network_type);
+  operatorJSON.known_networks = this.addFile(conf.known_networks);
+  operatorJSON.nfc = this.addFile(conf.nfc);
+  operatorJSON.sms = this.addFile(conf.sms);
   operatorJSON.wallpaper = this.getWallpaperResource(conf.wallpaper);
   operatorJSON.ringtone = this.getRingtoneResource(conf.ringtone);
   operatorJSON.power = this.getPowerResource(conf.power);
@@ -79,7 +75,7 @@ Resources.prototype.getFile = function(path) {
 
 // Add new resource entry in the output JSON configuration (key / value)
 // and add the resource path to the resources list.
-Resources.prototype.addEntry = function(resources, name, key) {
+Resources.prototype.addEntry = function(resources, name) {
     if (resources instanceof Array) {
       this.fileList.push.apply(this.fileList, resources);
     } else {
@@ -93,16 +89,16 @@ Resources.prototype.addEntry = function(resources, name, key) {
 Resources.prototype.addFile = function(path, key) {
   if (path) {
     var file = this.getFile(path);
-    return this.addEntry(file, file.leafName, key);
+    return this.addEntry(file, file.leafName);
   }
 };
 
 // Create a new JSON file and add to resources.
-Resources.prototype.createJSON = function(name, content, key) {
+Resources.prototype.createJSON = function(name, content) {
   var obj = { filename: name + '.json',
               content: content };
 
-  return this.addEntry(obj, obj.filename, key);
+  return this.addEntry(obj, obj.filename);
 };
 
 // Create new wallpaper JSON from a wallpaper file path.
@@ -113,11 +109,13 @@ Resources.prototype.getWallpaperResource = function(wallpaper) {
       return;
     }
 
-    var content = { uri: file.leafName,
+    this.addEntry(file, file.leafname);
+
+    var content = { uri: '/resources/' + file.leafName,
                     default: this.settings['wallpaper.image'] };
 
     var jsonName = 'wallpaper-' + getHash(wallpaper);
-    return this.createJSON(jsonName, content, 'wallpaper');
+    return this.createJSON(jsonName, content);
   }
 };
 
@@ -136,11 +134,13 @@ Resources.prototype.getRingtoneResource = function(ringtone) {
       throw new Error('Missing path for ringtone in single variant conf.');
     }
 
-    var content = { uri: file.leafName,
+    this.addEntry(file, file.leafname);
+
+    var content = { uri: '/resources/' + file.leafName,
                     name: ringtoneName ,
                     default: this.settings['dialer.ringtone.name'] };
 
-    return this.createJSON(jsonName, content, 'ringtone');
+    return this.createJSON(jsonName, content);
   }
 };
 
@@ -161,7 +161,8 @@ Resources.prototype.getPowerResource = function (power) {
       }
 
       poweronFile = this.getFile(poweron[poweronType]);
-      powerJSON.poweron[poweronType] = poweronFile.leafName;
+      this.addEntry(poweronFile, poweronFile.leafname);
+      powerJSON.poweron[poweronType] = '/resources/' + poweronFile.leafName;
     }
 
     var poweroff = power.poweroff;
@@ -175,10 +176,11 @@ Resources.prototype.getPowerResource = function (power) {
       }
 
       poweroffFile = this.getFile(poweroff[poweroffType]);
-      powerJSON.poweroff[poweroffType] = poweroffFile.leafName;
+      this.addEntry(poweroffFile, poweroffFile.leafname);
+      powerJSON.poweroff[poweroffType] = '/resources/' + poweroffFile.leafName;
     }
 
-    return this.createJSON(jsonName, powerJSON, 'power');
+    return this.createJSON(jsonName, powerJSON);
   }
 };
 
@@ -202,7 +204,7 @@ Resources.prototype.getKeyboardResource = function (keyboard) {
                     defaults: defaults };
 
     var jsonName = 'keyboard-' + getHash(keyboard);
-    return this.createJSON(jsonName, content, 'keyboard_settings');
+    return this.createJSON(jsonName, content);
   }
 };
 
