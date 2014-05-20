@@ -19,6 +19,7 @@ var Awesomescreen = {
   resultCache: {},
   updateInProgress: false,
   pendingUpdateFilter: null,
+  objectURLs: [],
 
   /**
    * Initialise Awesomescreen.
@@ -470,6 +471,7 @@ var Awesomescreen = {
         if (icon && icon.failed !== true && icon.data) {
           var imgUrl = window.URL.createObjectURL(icon.data);
           link.style.backgroundImage = 'url(' + imgUrl + ')' + underlay;
+          this.objectURLs.push(imgUrl);
         } else {
           link.style.backgroundImage =
             'url(' + this.DEFAULT_FAVICON + ')' + underlay;
@@ -502,6 +504,11 @@ var Awesomescreen = {
   clearResultCache: function awesomescreen_clearResultCache() {
     this.resultCache = {};
     this.searchTemplate = null;
+
+    this.objectURLs.forEach(function(url) {
+      window.URL.revokeObjectURL(url);
+    });
+    this.objectURLs = [];
   },
 
   /**
