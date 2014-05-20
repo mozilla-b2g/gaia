@@ -5,6 +5,7 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var PerformanceTestingHelper = require('performance-testing-helper');
 var NotificationView = require('views/notification');
 var LoadingView = require('views/loading-screen');
 var ViewfinderView = require('views/viewfinder');
@@ -212,7 +213,9 @@ App.prototype.onCriticalPathDone = function() {
   var start = window.performance.timing.domLoading;
   var took = Date.now() - start;
 
+  PerformanceTestingHelper.dispatch('startup-path-done');
   console.log('critical-path took %s', took + 'ms');
+
   this.clearLoading();
   this.loadController(this.controllers.previewGallery);
   this.loadController(this.controllers.storage);
