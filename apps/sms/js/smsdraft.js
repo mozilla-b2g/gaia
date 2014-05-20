@@ -73,8 +73,6 @@ var SMSDraft = {
     this._timerId = setTimeout(function saveDraft() {
       this._timerId = null;
 
-      ThreadUI.assimilateRecipients();
-
       var draft = {
         recipients: ThreadUI.recipients.list,
         subject: Compose.getSubject(),
