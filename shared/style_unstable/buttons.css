@@ -115,6 +115,49 @@ button[disabled]::-moz-selection,
 }
 
 /* ----------------------------------
+ * Buttons with icons
+ * ---------------------------------- */
+
+button.icon,
+[role="button"].icon,
+.button.icon {
+  position: relative;
+}
+
+button.icon:before,
+[role="button"].icon:before,
+.button.icon:before {
+  content: "";
+  width: 3rem;
+  height: 3rem;
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  margin-top: -1.5rem;
+  background: transparent no-repeat center center / 100% auto;
+  pointer-events: none;
+}
+
+button.icon-next:before,
+[role="button"].icon-next:before {
+  background-image: url(buttons/images/next.png);
+}
+
+button.icon-previous:before,
+[role="button"].icon-previous:before {
+  background-image: url(buttons/images/next.png);
+  transform: rotate(180deg);
+  left: 0.5rem;
+}
+
+button.icon-previous:before,
+[role="button"].icon-previous:before {
+  background-image: url(buttons/images/next.png);
+  transform: rotate(180deg);
+  left: 0.5rem;
+}
+
+/* ----------------------------------
  * Buttons inside lists
  * ---------------------------------- */
 
@@ -152,20 +195,6 @@ li .button.icon {
   padding-right: 3rem;
 }
 
-li button.icon:before,
-li [role="button"].icon:before,
-li .button.icon:before {
-  content: "";
-  width: 3rem;
-  height: 3rem;
-  position: absolute;
-  top: 50%;
-  right: 0.5rem;
-  margin-top: -1.5rem;
-  background: transparent no-repeat center center / 100% auto;
-  pointer-events: none;
-}
-
 li button.icon-view:active,
 li [role="button"].icon-view:active {
   background-color: #b2f2ff;
@@ -174,7 +203,7 @@ li [role="button"].icon-view:active {
 li button.icon-view:before,
 li [role="button"].icon-view:before {
   background-image: url(buttons/images/next.png);
-  right: 0rem;
+  right: 0;
 }
 
 li button.icon-dialog:before,
@@ -319,9 +348,9 @@ html[dir="rtl"] li .button {
   text-align: right;
 }
 
-html[dir="rtl"] li button.icon,
-html[dir="rtl"] li .icon[role="button"],
-html[dir="rtl"] li .button.icon {
+html[dir="rtl"] button.icon,
+html[dir="rtl"] .icon[role="button"],
+html[dir="rtl"] .button.icon {
   padding: 0 1.3rem 0 3rem;
 }
 
@@ -332,7 +361,7 @@ html[dir="rtl"] li .icon-view[role="button"] {
 
 html[dir="rtl"] li button.icon-view:before,
 html[dir="rtl"] li .icon-view[role="button"]:before {
-  left: 0rem;
+  left: 0;
   right: auto;
   transform: rotate(180deg);
 }

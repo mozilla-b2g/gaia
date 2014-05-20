@@ -44,7 +44,7 @@ a {
   left: 0;
   right: 0;
   top: 5rem;
-  bottom: 6.5rem;
+  bottom: 7rem;
 }
 
 [role=main] > [role=region] {
@@ -58,17 +58,18 @@ a {
 [role=navigation] {
   white-space: nowrap;
   margin: 0;
-  padding: 1.5rem;
+  padding: 0 1.5rem;
   border-top: 0.1rem solid #e7e7e7;
   background: none;
-  display: block;
-  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 3;
-  height: 3.5rem;
+  height: 7rem;
 }
 
 #nav-bar {
@@ -76,46 +77,26 @@ a {
 }
 
 [role=navigation] button {
-  width: calc((100% / 2) - 0.5rem);
-  float: left;
-  margin-right: 1rem;
-  position: relative;
-  text-align: right;
+  margin: 0 1rem 0 0;
+}
+
+[role=navigation] button::-moz-selection {
+  -moz-user-select: none;
 }
 
 [role=navigation] .recommend {
   margin-right: 0;
-  text-align: left;
-}
-
-[role=navigation] button span {
-  width: 3rem;
-  height: 100%;
-  left: 0.5rem;
-  position: absolute;
-  pointer-events: none;
-  background: url(images/prev.png) no-repeat center center / 1.1rem;
-}
-
-[role=navigation] button.recommend span {
-  left: auto;
-  right: 0.5rem;
-  background-image: url(images/next.png);
 }
 
 [role=navigation] #wifi-join-button {
   display:none;
 }
 
-[role=navigation].forward-only .back {
+[role=navigation].forward-only .icon-previous {
   display:none;
 }
 
-[role=navigation].forward-only .recommend {
-  width: 100%;
-}
-
-[role=navigation].secondary-menu .forward {
+[role=navigation].secondary-menu .icon-next {
   display: none;
 }
 
@@ -123,7 +104,7 @@ a {
   display: block;
 }
 
-[role=navigation].back-only .back {
+[role=navigation].back-only .icon-previous {
   width: 100%;
   margin: 0;
 }
@@ -310,7 +291,7 @@ a {
 }
 
 #unlock-sim-screen input[type="password"] {
-    -moz-box-sizing: border-box;
+    box-sizing: border-box;
     display: block;
     overflow: hidden;
     width: 100%;
@@ -511,7 +492,7 @@ aside.connecting {
 #configure_network_params form label {
   display: block;
   width: 100%;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   padding: 1.5rem 1.5rem 0.5rem 1.5rem;
   font-size: 1.5rem;
 }
@@ -632,7 +613,7 @@ aside.connecting {
   width: 100%;
   height: 100%;
   padding-top: 0.5rem;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 #time_zone_overlay.UTC0000 { background-image: url('images/timezone/+0000.png'); }
@@ -686,7 +667,7 @@ aside.connecting {
   height: 100%;
   width: 100%;
   padding-top: 0.5rem;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   z-index: 1;
 }
 
@@ -827,7 +808,7 @@ aside.connecting {
 }
 
 #statusMsg.ftu {
-  bottom: 6.5rem;
+  bottom: 7rem;
   z-index: 0;
   opacity: 0;
 }
@@ -940,7 +921,7 @@ aside.connecting {
 
 #browser_privacy input {
   margin-bottom: 2rem;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .invisible {
@@ -987,7 +968,7 @@ i.hack-first-child {
   text-decoration: none;
   outline: 0;
   color: #000;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   height: 6rem;
   font-size: 1.9rem;
   line-height: 6rem;
