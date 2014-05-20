@@ -7,6 +7,16 @@ var MockImage = function() {
   this.onload = null;
   this.onabort = null;
   this.onerror = null;
+
+  MockImage.instances.push(this);
+};
+
+MockImage.instances = [];
+
+MockImage.triggerEvent = function(name) {
+  MockImage.instances.forEach(function(aInstance) {
+    aInstance.triggerEvent(name);
+  });
 };
 
 MockImage.prototype.triggerEvent = function(name) {
