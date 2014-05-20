@@ -1,9 +1,9 @@
 'use strict';
-/* global MocksHelper, SimPinSystemDialog */
+/* global MocksHelper, SimPinSystemDialog, LayoutManager */
 
 mocha.globals(['BaseUI', 'AppWindowManager', 'LayoutManager',
-               'System', 'SystemDialog', 'SimPinSystemDialog',
-               'dispatchEvent', 'stubById']);
+               'layoutManager', 'System', 'SystemDialog',
+               'SimPinSystemDialog', 'dispatchEvent', 'stubById']);
 
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_layout_manager.js');
@@ -31,9 +31,11 @@ suite('system/SimPinSystemDialog', function() {
     requireApp('system/js/base_ui.js');
     requireApp('system/js/system_dialog.js');
     requireApp('system/js/system_simcard_dialog.js', done);
+    window.layoutManager = new LayoutManager();
   });
 
   teardown(function() {
+    window.layoutManager = null;
     stubById.restore();
     stubDispatch.restore();
   });
