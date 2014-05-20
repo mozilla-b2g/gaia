@@ -88,9 +88,9 @@ Calendar.ns('Views').MonthsDay = (function() {
         location: event.remote.location,
         attendees: attendees,
         startTime: Calendar.App.dateFormat.localeFormat(
-          event.remote.startDate, navigator.mozL10n.get('shortTimeFormat')),
+          busytime.startDate, navigator.mozL10n.get('shortTimeFormat')),
         endTime: Calendar.App.dateFormat.localeFormat(
-          event.remote.endDate, navigator.mozL10n.get('shortTimeFormat')),
+          busytime.endDate, navigator.mozL10n.get('shortTimeFormat')),
         isAllDay: hour === Calendar.Calc.ALLDAY
       });
     },
