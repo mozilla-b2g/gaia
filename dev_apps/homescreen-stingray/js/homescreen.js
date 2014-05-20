@@ -48,6 +48,10 @@
       $('app-list-close-button').addEventListener('click', this);
       $('widget-editor-open-button').addEventListener('click', this);
       $('widget-editor-close-button').addEventListener('click', this);
+
+      this._loadWidgetConfig((function(configs) {
+        this.widgetEditor.loadWidgets(configs);
+      }).bind(this));
     },
 
     initLayoutEditor: function(widgetContainer, widgetEditorUI,
@@ -107,6 +111,7 @@
               break;
             case 'widget-editor-close-button':
               this.widgetEditor.hide();
+              this._saveWidgetConfig(this.layoutEditor.exportConfig());
               break;
           }
           break;
@@ -119,6 +124,18 @@
           }
           break;
       }
+    },
+
+    _saveWidgetConfig: function HS_saveWidgetConfig(configs) {
+      var forSave = [];
+      configs.forEach(function(config) {
+        config.static || forSave.push(config);
+      });
+      window.asyncStorage.setItem('widget-configs', forSave);
+    },
+
+    _loadWidgetConfig: function HS_loadWidgetConfig(callback) {
+      window.asyncStorage.getItem('widget-configs', callback);
     }
   };
 
