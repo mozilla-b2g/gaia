@@ -133,7 +133,7 @@ suite('calls handler', function() {
 
       test('should not call TonePlayer.setChannel()', function() {
         var setChannelSpy = this.sinon.spy(MockTonePlayer, 'setChannel');
-        MockNavigatorMozTelephony.mTriggerCallsChanged();
+        MockMozTelephony.mTriggerCallsChanged();
         assert.isTrue(setChannelSpy.notCalled);
       });
     });
