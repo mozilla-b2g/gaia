@@ -1515,4 +1515,13 @@ suite('system/Statusbar', function() {
       assert.isFalse(StatusBar.element.classList.contains('invisible'));
     });
   });
+
+  suite('Wifi', function() {
+    test('Wifi status change event', function() {
+      var spyUpdateWifi = this.sinon.spy(StatusBar.update, 'wifi');
+      var evt = new CustomEvent('wifi-statuschange');
+      StatusBar.handleEvent(evt);
+      assert.isTrue(spyUpdateWifi.called);
+    });
+  });
 });
