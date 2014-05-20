@@ -506,7 +506,7 @@ app-makefiles: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts contacts-import-serv
     		STAGE_APP_DIR="../../build_stage/$$APP" make -C "$$appdir" ; \
     	else \
     		echo "copy $$APP to build_stage/" ; \
-    		cp -r "$$appdir" $(STAGE_DIR) && \
+    		cp -LR "$$appdir" $(STAGE_DIR) && \
     		if [ -r "$$appdir/build/build.js" ]; then \
     			echo "execute $$APP/build/build.js"; \
     			export APP_DIR=$$appdir; \
