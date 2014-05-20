@@ -481,7 +481,13 @@ class GaiaDevice(object):
 
     def push_file(self, source, count=1, destination='', progress=None):
 
-        separator = os.path.sep
+        if self.is_android_build:
+            # if it's a device instance the separator will always be '/'
+            separator = '/'
+        else:
+            # using local file system, we will use the host separator
+            separator = os.path.sep
+
         # If the destination is not a filename, join the source's filename to the destination
         if '.' not in destination.rpartition(separator)[-1]:
             destination = separator.join([destination, source.rpartition(separator)[-1]])
