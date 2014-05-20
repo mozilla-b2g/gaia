@@ -61,9 +61,12 @@
     },
 
     /**
-     * Bookmarks are always removable.
+     * Bookmarks are always removable unless specified in this.detail.
      */
     isRemovable: function() {
+      if (this.detail.removable === false) {
+        return false;
+      }
       return true;
     },
 
@@ -83,7 +86,8 @@
         name: this.name,
         icon: this.icon,
         remote: true,
-        useAsyncPanZoom: true
+        useAsyncPanZoom: true,
+        features: this.detail.features
       };
 
       window.open(this.detail.url, '_blank', Object.keys(features)
