@@ -80,6 +80,11 @@ suite('search/search', function() {
         name: 'Foo'
       });
       assert.equal(count + 1, numProviders());
+
+      Search.removeProvider({
+        name: 'Foo'
+      });
+      assert.equal(count, numProviders());
     });
   });
 

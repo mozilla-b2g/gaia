@@ -1,4 +1,4 @@
-/* globals HtmlHelper, Provider, Search, GoogleLink */
+/* globals HtmlHelper, Provider, Search, GoogleLink, SettingsListener */
 
 (function(exports) {
 
@@ -305,7 +305,14 @@
   };
 
   exports.Places = new Places();
-  Search.provider(exports.Places);
+
+  SettingsListener.observe('rocketbar.enabled', false, (function(value) {
+    if (value) {
+      Search.provider(exports.Places);
+    } else {
+      Search.removeProvider(exports.Places);
+    }
+  }).bind(this));
 
   navigator.getDataStores(STORE_NAME).then(function(stores) {
     store = stores[0];
