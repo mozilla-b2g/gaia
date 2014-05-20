@@ -292,6 +292,8 @@
     this._sendingSlideTo('BOTTOM' , (function() {
       this._enableSlidingCover();
       this._setTip();
+      // will stop once flied back
+      this.stop();
     }).bind(this));
   }).bind(ShrinkingUI);
 
@@ -562,13 +564,13 @@
    * @this {ShrinkingUI}
    */
   ShrinkingUI._shrinkingTiltBack =
-    (function su_shrinkingTiltBack(instant, cb) {
+    (function su_shrinkingTiltBack(instant, callback) {
       // Setup the rotating animation.
       if (!instant) {
         var tsEnd = (function _tsEnd(evt) {
             this.current.appFrame.removeEventListener('transitionend', tsEnd);
-            if (cb) {
-              cb();
+            if (callback) {
+              callback();
             }
         }).bind(this);
         this.current.appFrame.style.transition = 'transform 0.3s ease';
@@ -578,8 +580,8 @@
       } else {
         this.current.appFrame.style.transition = '';
         this.current.appFrame.style.transform = 'rotateX(0.0deg)';
-        if (cb) {
-          cb();
+        if (callback) {
+          callback();
         }
       }
     }).bind(ShrinkingUI);
