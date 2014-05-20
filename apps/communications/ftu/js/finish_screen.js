@@ -14,7 +14,7 @@
   var initialized = false;
 
   var FinishScreen = {
-    init: function () {
+    init: function() {
       if (initialized) {
         return;
       }
@@ -24,14 +24,14 @@
         currentLayout = 'large';
       }
       // Get panel selector based on layout
-      var panelSelector = 'tutorial-finish-' +  currentLayout;
+      var panelSelector = 'tutorial-finish-' + currentLayout;
 
       // Show finish panel
       var finishPanel = document.getElementById(panelSelector);
       finishPanel.classList.add('show');
-      
+
       // Cache non-layout-related DOM elements
-      elementIDs.forEach(function (name) {
+      elementIDs.forEach(function(name) {
         dom[Utils.camelCase(name)] = document.getElementById(name);
       }, this);
 

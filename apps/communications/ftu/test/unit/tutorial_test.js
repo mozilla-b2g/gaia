@@ -61,7 +61,7 @@ suite('Tutorial >', function() {
 
   test(' back', function() {
     Tutorial.back();
-     // Are we in Step 1?
+    // Are we in Step 1?
     assert.equal(
       document.getElementById('tutorial').dataset.step,
       1
@@ -73,7 +73,7 @@ suite('Tutorial >', function() {
     this.sinon.spy(navigator.mozL10n, 'localize');
     // Move forwad again
     Tutorial.next();
-     // Are we in Step 2?
+    // Are we in Step 2?
     assert.equal(
       document.getElementById('tutorial').dataset.step,
       2
