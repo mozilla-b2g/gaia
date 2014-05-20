@@ -281,22 +281,31 @@ var CallScreen = {
   },
 
   setCallerContactImage: function cs_setContactImage(blob, force) {
-    // Waiting for the call screen transition to end before updating
-    // the contact image
-    if (!this._transitionDone) {
+    var callElems = this.calls.querySelectorAll('section.handled-call');
+    if (force || callElems.length <= 1) {
+      // Waiting for the call screen transition to end before updating
+      // the contact image
+      if (!this._transitionDone) {
+        this._contactImage = blob;
+        this._contactBackgroundWaiting = true;
+        return;
+      }
+
+      if (this._contactImage == blob && !this._contactBackgroundWaiting) {
+        return;
+      }
+
       this._contactImage = blob;
+    }
+
+    if (!this._transitionDone) {
       this._contactBackgroundWaiting = true;
       return;
     }
 
-    if (this._contactImage == blob && !this._contactBackgroundWaiting) {
-      return;
-    }
-
-    this._contactImage = blob;
-
     this.contactBackground.classList.remove('ready');
-    var background = blob ? 'url(' + URL.createObjectURL(blob) + ')' : '';
+    var background = this._contactImage ?
+      'url(' + URL.createObjectURL(this._contactImage) + ')' : '';
     this.contactBackground.style.backgroundImage = background;
     this.contactBackground.classList.add('ready');
   },
@@ -463,8 +472,6 @@ var CallScreen = {
     var hc = CallsHandler.activeCall;
     if (hc) {
       this.setCallerContactImage(hc.photo);
-    } else {
-      this.setCallerContactImage(null);
     }
   },
 

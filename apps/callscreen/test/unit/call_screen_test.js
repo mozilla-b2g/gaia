@@ -491,7 +491,25 @@ suite('call screen', function() {
     var fakeBlob = new Blob([], {type: 'image/png'});
     var fakeURL = URL.createObjectURL(fakeBlob);
 
-    suiteSetup(function() {
+    var multiCallBackgroundSet = function(force) {
+      var newFakeBlob = new Blob([], {type: 'image/jpg'});
+      var newFakeURL = URL.createObjectURL(newFakeBlob);
+
+      this.sinon.stub(URL, 'createObjectURL').returns(
+        force ? newFakeURL : fakeURL);
+
+      CallScreen.setCallerContactImage(fakeBlob);
+      CallScreen.calls.innerHTML =
+        '<section class="handled-call"></section>' +
+        '<section class="handled-call"></section>';
+      CallScreen.setCallerContactImage(newFakeBlob, force);
+
+      var expectedURL = force ? newFakeURL : fakeURL;
+      assert.equal(CallScreen.contactBackground.style.backgroundImage,
+                   'url("' + expectedURL + '")');
+    };
+
+    setup(function() {
       CallScreen._transitionDone = false;
     });
 
@@ -512,11 +530,18 @@ suite('call screen', function() {
     });
 
     suite('once the transition is over', function() {
+      setup(function() {
+        CallScreen._transitionDone = true;
+        CallScreen._contactBackgroundWaiting = false;
+
+        multiCallBackgroundSet = multiCallBackgroundSet.bind(this);
+      });
+
       test('should change background of the contact photo', function() {
         this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
         CallScreen.setCallerContactImage(fakeBlob);
         assert.equal(CallScreen.contactBackground.style.backgroundImage,
-                       'url("' + fakeURL + '")');
+                     'url("' + fakeURL + '")');
       });
 
       test('should clean up background property if null', function() {
@@ -524,11 +549,13 @@ suite('call screen', function() {
         assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
       });
 
-      test('should do nothing if the blob is the same', function() {
-        var createURLSpy = this.sinon.spy(URL, 'createObjectURL');
-        CallScreen.setCallerContactImage(fakeBlob);
-        CallScreen.setCallerContactImage(fakeBlob);
-        assert.isTrue(createURLSpy.calledOnce);
+      test('should not show new background when handling new incoming call',
+      function() {
+        multiCallBackgroundSet(false); // don't force set incoming
+      });
+
+      test('should set background when forced', function() {
+        multiCallBackgroundSet(true); // force set incoming
       });
     });
   });
@@ -794,12 +821,6 @@ suite('call screen', function() {
       var setImageStub = this.sinon.stub(CallScreen, 'setCallerContactImage');
       CallScreen.hideIncoming();
       assert.isTrue(setImageStub.withArgs(testPhoto).calledOnce);
-    });
-
-    test('should clear caller photo if there is no active call', function() {
-      var setImageStub = this.sinon.stub(CallScreen, 'setCallerContactImage');
-      CallScreen.hideIncoming();
-      assert.isTrue(setImageStub.withArgs(null).calledOnce);
     });
   });
 
