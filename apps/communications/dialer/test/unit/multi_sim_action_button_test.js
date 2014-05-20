@@ -148,6 +148,40 @@ suite('multi SIM action button', function() {
       navigator.mozIccManager.addIcc(1, {});
     });
 
+    suite('settings loading race conditions', function() {
+      var callbackStub;
+
+      setup(function() {
+        phoneNumber = '1234';
+
+        callbackStub = this.sinon.stub();
+
+        subject = new MultiSimActionButton(
+          button,
+          callbackStub,
+          'ril.telephony.defaultServiceId',
+          phoneNumberGetter
+        );
+
+        this.sinon.spy(MockSimPicker, 'getOrPick');
+      });
+
+      test('should queue one tap until settings are loaded', function() {
+        simulateClick();
+        sinon.assert.notCalled(callbackStub);
+
+        MockSettingsListener.mTriggerCallback(
+          'ril.telephony.defaultServiceId', cardIndex);
+
+        sinon.assert.calledOnce(callbackStub);
+      });
+
+      test('should ignore long taps until settings are loaded', function() {
+        simulateContextMenu();
+        sinon.assert.notCalled(MockSimPicker.getOrPick);
+      });
+    });
+
     suite('SIM 2 preferred', function() {
       setup(function() {
         cardIndex = 1;
