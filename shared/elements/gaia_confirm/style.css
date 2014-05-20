@@ -1,0 +1,180 @@
+/* ----------------------------------
+ * Confirm
+ * ---------------------------------- */
+
+/* Main dialog setup */
+gaia-confirm {
+  background:
+    url(images/pattern.png) repeat left top,
+    url(images/gradient.png) no-repeat left top / 100% 100%;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding-bottom: 7rem;
+  font-size: 0;
+  /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
+  created by white-spaces and break lines in the code betewen inline-block elements */
+  color: #fff;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+}
+
+.confirm section {
+  height: 100%;
+  font-weight: lighter;
+  font-size: 2.2rem;
+  color: #FAFAFA;
+  padding: 0 1.5rem;
+  -moz-box-sizing: padding-box;
+  width: 100%;
+  display: inline-block;
+  overflow-y: scroll;
+  max-height: 100%;
+  vertical-align: middle;
+  white-space: normal;
+}
+
+h1 {
+  font-weight: normal;
+  font-size: 1.6rem;
+  line-height: 1.5em;
+  color: #fff;
+  margin: 0;
+  padding: 1rem 1.5rem 0;
+}
+
+/* Specific component code */
+p {
+  word-wrap: break-word;
+  margin: 1rem 0 0;
+  padding: 1rem 1.5rem;
+  border-top: 0.1rem solid #686868;
+  font-size: 1.5rem;
+  line-height: 1.7rem;
+  color: rgba(255,255,255,0.6);
+}
+
+p img {
+  float: left;
+  margin-right: 2rem;
+}
+
+p strong {
+  font-weight: lighter;
+}
+
+p small {
+  font-size: 1.4rem;
+  font-weight: normal;
+  color: #cbcbcb;
+  display: block;
+}
+
+dl {
+  border-top: 0.1rem solid #686868;
+  margin: 1rem 0 0;
+  overflow: hidden;
+  padding-top: 1rem;
+  font-size: 1.6rem;
+  line-height: 2.2rem;
+}
+
+dl > dt {
+  clear: both;
+  float: left;
+  width: 7rem;
+  padding-left: 1.5rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+dl > dd {
+  padding-right: 1.5rem;
+  font-weight: 300;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  overflow: hidden;
+}
+
+figure {
+  margin: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+figure img {
+  padding-right: 1.5rem;
+  flex-shrink: 0;
+}
+
+figure figcaption {
+  font-size: 2.1rem;
+  font-weight: 300;
+}
+
+ul {
+  margin: 0;
+  padding: 2rem 1.5rem;
+  border-top: 0.1rem solid #686868;
+  list-style: none;
+  font-size: 1.6rem;
+  font-weight: normal;
+}
+
+ul li {
+  word-wrap: break-word;
+  line-height: 2rem;
+  padding-bottom: 1.5rem;
+}
+
+ul li:last-child {
+  padding-bottom: 0;
+}
+
+ul li ul {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+/*
+ * Right to left View
+ */
+
+*[dir="rtl"] gaia-confirm {
+  text-align: right;
+}
+
+*[dir="rtl"] gaia-confirm:before {
+  margin-left: auto;
+  margin-right: -0.1rem;
+}
+
+*[dir="rtl"] p img {
+  float: right;
+  margin-left: 2rem;
+  margin-right: auto;
+}
+
+*[dir="rtl"] dl > dt {
+  float: right;
+  padding-left: inherit;
+  padding-right: 1.5rem;
+  text-align: right;
+}
+
+*[dir="rtl"] dl > dd {
+  padding-left: 1.5rem;
+  padding-right: inherit;
+}
+
+*[dir="rtl"] figure img {
+  padding-left: 1.5rem;
+  padding-right: inherit;
+}
+
