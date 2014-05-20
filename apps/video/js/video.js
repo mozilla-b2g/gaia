@@ -172,6 +172,14 @@ function init() {
       }
     });
   }
+window.navigator.mozSetMessageHandler('headset-button',function headsetCommandHandler(message)
+{
+  if (message == 'headset-button-press' && playing) {
+      setVideoPlaying(false);
+    } else if (message == 'headset-button-press' && (!playing)){
+       setVideoPlaying(true);
+    }
+ });
 
   navigator.mozSetMessageHandler('activity', handleActivityEvents);
 
