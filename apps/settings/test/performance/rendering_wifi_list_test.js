@@ -45,6 +45,9 @@ marionette(mozTestInfo.appPath + ' >', function() {
       app.launch(waitForBody);
 
       app.element('wifiSelector', function(err, wifiSubpanel) {
+        client.waitFor(function() {
+          return wifiSubpanel.enabled;
+        });
         wifiSubpanel.tap();
       });
 
