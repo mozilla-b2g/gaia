@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>GaiaConfirm Demo</title>
+  <meta name="description" content="Demo app for gaia-confirm" />
+  <style type="text/css">
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+    }
+  </style>
+  <script>window.GaiaConfirmBaseurl = '../';</script>
+  <script>window.GaiaButtonsBaseurl = '../../gaia_buttons/';</script>
+  <script src="../../gaia_buttons/script.js"></script>
+  <script src="../script.js"></script>
+</head>
+<body role="application">
+
+  <gaia-confirm>
+    <h1>You are about to do a thing. Are you sure you want to do this thing?</h1>
+    <p>Some additional description here.</p>
+    <gaia-buttons skin="dark">
+      <button>Cancel</button>
+      <button class="recommend">Submit</button>
+    </gaia-buttons>
+  </gaia-confirm>
+
+</body>
+</html>
