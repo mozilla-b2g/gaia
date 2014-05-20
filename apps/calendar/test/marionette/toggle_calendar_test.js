@@ -33,8 +33,7 @@ marionette('toggle calendar', function() {
     setup(function() {
       app.createEvent({
         title: 'Toggle Calendar Test',
-        location: 'Some Place',
-        reminders: []
+        location: 'Some Place'
       });
       toggleLocalCalendar();
     });
@@ -103,8 +102,7 @@ marionette('toggle calendar', function() {
       app.createEvent({
         title: 'Toggle Calendar Test',
         location: 'Some Place',
-        allDay: true,
-        reminders: []
+        allDay: true
       });
       toggleLocalCalendar();
     });

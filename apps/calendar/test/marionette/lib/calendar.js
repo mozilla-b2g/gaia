@@ -226,10 +226,9 @@ Calendar.prototype = {
       editEvent.startTime = startDate;
       editEvent.endTime = endDate;
     }
-    if (opts.reminders != null) {
-      // default reminder by default
-      editEvent.reminders = opts.reminders;
-    }
+    // no reminders by default to avoid triggering notifications by mistake.
+    // see: https://bugzil.la/1012507
+    editEvent.reminders = opts.reminders == null ? [] : opts.reminders;
     editEvent.save();
 
     this.waitForKeyboardHide();

@@ -71,7 +71,9 @@ marionette('day view', function() {
   test('event', function() {
     var eventData = {
       title: 'Test Day View',
-      location: 'Somewhere'
+      location: 'Somewhere',
+      startHour: 1,
+      reminders: ['5 minutes before']
     };
     app.createEvent(eventData);
 
@@ -124,8 +126,7 @@ marionette('day view', function() {
       app.createEvent({
         title: title,
         location: location,
-        startHour: 1,
-        reminders: []
+        startHour: 1
       });
     }
 
