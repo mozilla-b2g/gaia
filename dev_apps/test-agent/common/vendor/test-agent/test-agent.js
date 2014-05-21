@@ -3028,7 +3028,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         // detected as global leaks in FF 21+, these global ignores
         // are a workaround. see also:
         // https://developer.mozilla.org/en-US/docs/Site_Compatibility_for_Firefox_21
-        var globalIgnores = ['0', '1', '2', '3', '4', '5'];
+        var globalIgnores = ['0', '1', '2', '3', '4', '5', '_$blanket'];
 
         //setup mocha
         box.mocha.setup({
