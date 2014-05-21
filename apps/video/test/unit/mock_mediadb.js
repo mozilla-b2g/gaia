@@ -20,6 +20,9 @@ var MockMediaDB = (function() {
     getFile: function getFile(filename, callback) {
 
       callback(this.blob);
+    },
+
+    updateMetadata: function updateMetadata() {
     }
   };
 
