@@ -16,6 +16,11 @@
   pointer-events: none;
 }
 
+#screen.locked > #statusbar-background {
+  height: 22.6rem;
+  background-image: linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(255,255,255,0));
+}
+
 /**
  * Because of performance issue, we need to use an individual
  * background element instead of setting the background inside the container.
