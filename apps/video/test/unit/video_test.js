@@ -156,12 +156,24 @@ suite('Video App Unit Tests', function() {
       assert.equal(document.getElementById('info-size').textContent, '');
     });
 
-    test('#Test Video size MB', function() {
+    test('#Test Video size 3.9MB', function() {
       currentVideo = {
         metadata: {
           title: 'Video large size'
         },
         size: 4110000
+      };
+      showInfoView();
+      assert.equal(document.getElementById('info-size').textContent,
+        '3.9 byteUnit-MB');
+    });
+
+    test('#Test Video size 4MB', function() {
+      currentVideo = {
+        metadata: {
+          title: 'Video large size'
+        },
+        size: 4 * 1024 * 1024
       };
       showInfoView();
       assert.equal(document.getElementById('info-size').textContent,
