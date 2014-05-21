@@ -273,15 +273,18 @@
         return false;
       }
 
-      if (service && service.normalize) {
-        a = service.normalize(a);
-        b = service.normalize(b);
-      } else {
-        a = Utils.removeNonDialables(a);
-        b = Utils.removeNonDialables(b);
+      if (!Utils.isEmailAddress(a) || !Utils.isEmailAddress(b)) {
+        if (service && service.normalize) {
+            a = service.normalize(a);
+            b = service.normalize(b);
+        } else {
+            a = Utils.removeNonDialables(a);
+            b = Utils.removeNonDialables(b);
+        }
+        return a === b || a.slice(-7) === b.slice(-7);
       }
 
-      return a === b || a.slice(-7) === b.slice(-7);
+      return a === b;
     },
 
     /**
@@ -535,11 +538,13 @@
       var data = {
         name: title,
         number: number,
+        email: number,
         type: type,
         carrier: carrier,
         separator: separator,
         nameHTML: '',
-        numberHTML: ''
+        numberHTML: '',
+        emailHTML: ''
       };
 
       return data;
@@ -558,7 +563,13 @@
         };
       });
     },
-
+    /*
+       TODO: Email Address check.
+     */
+    isEmailAddress: function(email) {
+       return ((email.indexOf('@') > 0) &&
+        ((email.length - 1) > email.indexOf('@')));
+    },
     /*
       Helper function for removing notifications. It will fetch the notification
       using the current threadId or the parameter if provided, and close them
