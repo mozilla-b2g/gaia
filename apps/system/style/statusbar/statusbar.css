@@ -53,6 +53,10 @@ body:not(.rb-enabled) #statusbar {
   transform: scaleY(1);
 }
 
+#screen.locked:not(.attention) #statusbar-background:before {
+  background-color: transparent;
+}
+
 #screen:not(.locked) #statusbar.invisible.dragged {
   background-color: black;
 }
