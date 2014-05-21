@@ -524,8 +524,17 @@ contacts.Form = (function() {
     saveContactOrDraft(false);
   };
 
-  var saveContactOrDraft = function saveContactOrDraft(draft) {
-    if (!draft) {
+  /**
+   * Saves a contact or a draft that's being edited. This is useful for example
+   * when the user is editing a contact and the application quits for whatever
+   * reason. In this case, a draft is saved and the next time the app is
+   * opened the unsaved data will be there.
+   *
+   * @param {Boolean} isDraft Whether we are saving a draft or not. If not, we
+   * assume we are saving a contact.
+   **/
+  var saveContactOrDraft = function saveContactOrDraft(isDraft) {
+    if (!isDraft) {
       saveButton.setAttribute('disabled', 'disabled');
       showThrobber();
     }
@@ -566,9 +575,10 @@ contacts.Form = (function() {
       // and inspect address by it self.
       var fields = ['givenName', 'familyName', 'org', 'tel',
         'email', 'note', 'adr'];
+
       if (Contacts.isEmpty(myContact, fields)) {
-        if (draft) {
-          asyncStorage.setItem('draft', myContact);
+        if (isDraft) {
+          asyncStorage.setItem('draft', JSON.stringify(myContact));
         }
         return;
       }
@@ -607,8 +617,8 @@ contacts.Form = (function() {
 
       updateCategoryForImported(contact);
 
-      if (draft) {
-        asyncStorage.setItem('draft', myContact);
+      if (isDraft) {
+        asyncStorage.setItem('draft', JSON.stringify(myContact));
         return;
       }
       asyncStorage.removeItem('draft');
