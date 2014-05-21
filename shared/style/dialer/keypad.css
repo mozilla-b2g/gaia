@@ -197,7 +197,7 @@
   background: #575757;
   line-height: 4rem;
   font-size: 1.8rem;
-  font-style: italic; 
+  font-style: italic;
 }
 
 .keypad-callbar-button.cancel:active {
@@ -237,11 +237,16 @@
   background-size: 4rem 8rem;
 }
 
+/* we won't do anything on click but this prevents fluffing/rendering issues */
+.icon-add-contact:disabled {
+  pointer-events: all;
+}
+
 .icon-add-contact:disabled::before {
   opacity: 0.4;
 }
 
-.icon-add-contact:active::before {
+.icon-add-contact:not(:disabled):active::before {
   background-position: center -4rem;
 }
 
