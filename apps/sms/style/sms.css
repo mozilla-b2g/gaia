@@ -111,6 +111,10 @@ form[role="dialog"][data-type="edit"] > menu {
   background-position: 1.5rem 0;
 }
 
+.edit #threads-container[data-type="list"] {
+  height: calc(100% - 12rem);
+}
+
 #threads-container[data-type="list"] header {
   background: #fff;
 }
@@ -394,10 +398,6 @@ section.has-carrier .article-list header:first-child {
   text-transform: uppercase;
 }
 
-.article-list[data-type="list"] > ul:last-child {
-  padding-bottom: 0.5rem;
-}
-
 .article-list header,
   .article-list[data-type="list"] .message.incoming .bubble {
   padding-left: 4rem;
@@ -660,6 +660,10 @@ ul.message-list {
   Styles for Edit mode in Messages Container
 */
 
+.edit #composer-messages-container {
+  margin-bottom: 4.0rem;
+}
+
 .edit .article-list[data-type="list"] .message {
   border-color: #e7e7e7;
 }
@@ -694,8 +698,8 @@ ul.message-list {
 
 /* Add a margin at the end of the last thread or message node to avoid overlay
  * with the edit mode menu */
-.edit .edit-container > :last-child {
-  margin-bottom: 7rem;
+.edit .edit-container {
+  padding-bottom: 7rem;
 }
 
 /*
