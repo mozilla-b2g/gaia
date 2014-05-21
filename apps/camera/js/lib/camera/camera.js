@@ -9,6 +9,7 @@ var CameraUtils = require('lib/camera-utils');
 var getVideoMetaData = require('lib/get-video-meta-data');
 var orientation = require('lib/orientation');
 var debug = require('debug')('camera');
+var debounce = require('lib/debounce');
 var bindAll = require('lib/bind-all');
 var model = require('vendor/model');
 var mix = require('lib/mixin');
@@ -263,7 +264,10 @@ Camera.prototype.fetchBootConfig = function() {
  */
 Camera.prototype.requestCamera = function(camera, config) {
   debug('request camera', camera, config);
+  if (this.isBusy) { return; }
   var self = this;
+
+  // Indicate 'busy'
   this.busy();
 
   // If a config was passed we assume
@@ -282,12 +286,12 @@ Camera.prototype.requestCamera = function(camera, config) {
       touchFocus: self.focus.touchFocus,
       faceTracking: self.focus.faceTracking
     });
-    self.ready();
 
     // If the camera was configured in the
     // `mozCamera.getCamera()` call, we can
     // fire the 'configured' event now.
     if (self.configured) { self.emit('configured'); }
+    self.ready();
   }
 
   function onError(err) {
@@ -388,12 +392,14 @@ Camera.prototype.configure = function() {
   debug('mozCamera configuring', this.mozCameraConfig);
 
   function onSuccess() {
+    debug('configuration success');
+    if (!self.mozCamera) { return; }
     self.configureFocus();
     self.focus.resume();
     self.configured = true;
     self.saveBootConfig();
-    self.ready();
     self.emit('configured');
+    self.ready();
   }
 
   function onError() {
@@ -451,6 +457,7 @@ Camera.prototype.loadStreamInto = function(videoElement) {
  * @private
  */
 Camera.prototype.previewSizes = function() {
+  if (!this.mozCamera) { return; }
   return this.mozCamera.capabilities.previewSizes;
 };
 
@@ -625,10 +632,10 @@ Camera.prototype.release = function(done) {
   this.mozCamera = null;
 
   function onSuccess() {
+    debug('successfully released');
     self.releasing = false;
     self.ready();
     self.emit('released');
-    debug('successfully released');
     done();
   }
 
@@ -1343,9 +1350,10 @@ Camera.prototype.getZoomPreviewAdjustment = function() {
  * http://developer.android.com/reference/android/hardware/Camera.CameraInfo.html#orientation
  *
  * @return {Number}
+ * @public
  */
 Camera.prototype.getSensorAngle = function() {
-  return this.mozCamera.sensorAngle;
+  return this.mozCamera && this.mozCamera.sensorAngle;
 };
 
 /**
@@ -1371,13 +1379,5 @@ Camera.prototype.ready = function() {
   this.isBusy = false;
   this.emit('ready');
 };
-
-function debounce(fn, ms) {
-  var timeout;
-  return function() {
-    clearTimeout(timeout);
-    timeout = setTimeout(fn, ms || 0);
-  };
-}
 
 });

@@ -846,11 +846,11 @@ suite('lib/camera/camera', function() {
       sinon.assert.calledOnce(this.mozCamera.setConfiguration);
     });
 
-    test('Should flag as busy, then ready', function(done) {
+    test('Should flag as busy, then ready', function() {
       var self = this;
 
       // Use async for this case
-      this.mozCamera.setConfiguration.callsArgAsync(1);
+      this.mozCamera.setConfiguration = sinon.stub();
 
       this.camera.configure();
       this.clock.tick(1);
@@ -859,12 +859,30 @@ suite('lib/camera/camera', function() {
       assert.isTrue(this.camera.isBusy);
       sinon.assert.calledWith(this.camera.emit, 'busy');
 
-      // 'ready' once configured
-      this.camera.on('configured', function() {
-        assert.isFalse(self.camera.isBusy);
-        sinon.assert.calledWith(self.camera.emit, 'ready');
-        done();
-      });
+      var onSuccess = this.mozCamera.setConfiguration.args[0][1];
+
+      // Manually call the callback
+      onSuccess();
+
+      assert.isFalse(self.camera.isBusy);
+      sinon.assert.calledWith(self.camera.emit, 'ready');
+    });
+
+    test('Should abort if `mozCamera` has since been released', function() {
+      this.mozCamera.setConfiguration = sinon.stub();
+      this.camera.configure();
+      this.clock.tick(1);
+
+      var onSuccess = this.mozCamera.setConfiguration.args[0][1];
+
+
+      onSuccess();
+
+      sinon.assert.calledWith(this.camera.emit, 'configured');
+      this.camera.emit.reset();
+      this.mozCamera = null;
+
+      assert.isFalse(this.camera.emit.calledWith('configured'));
     });
   });
 
