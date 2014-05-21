@@ -97,7 +97,6 @@ ViewfinderController.prototype.bindEvents = function() {
   this.views.viewfinder.on('click', this.onViewfinderClicked);
 
   this.camera.on('zoomchanged', this.onZoomChanged);
-  this.camera.on('zoomconfigured', this.onZoomConfigured);
   this.app.on('camera:focusconfigured', this.onFocusConfigured);
   this.app.on('camera:focusstatechanged', this.views.focus.setFocusState);
   this.app.on('camera:shutter', this.views.viewfinder.shutter);
@@ -122,6 +121,7 @@ ViewfinderController.prototype.onCameraConfigured = function() {
   debug('configuring');
   this.startStream();
   this.configurePreview();
+  this.configureZoom();
 
   // BUG: We have to use a 300ms timeout here
   // to conceal a Gecko rendering bug whereby the
@@ -212,7 +212,7 @@ ViewfinderController.prototype.configurePreview = function() {
  *
  * @private
  */
-ViewfinderController.prototype.onZoomConfigured = function() {
+ViewfinderController.prototype.configureZoom = function() {
   var zoomSupported = this.camera.isZoomSupported();
   var zoomEnabled = this.app.settings.zoom.enabled();
   var enableZoom = zoomSupported && zoomEnabled;
@@ -220,12 +220,6 @@ ViewfinderController.prototype.onZoomConfigured = function() {
   if (!enableZoom) {
     this.views.viewfinder.disableZoom();
     return;
-  }
-
-  if (this.app.settings.zoom.get('useZoomPreviewAdjustment')) {
-    this.views.viewfinder.enableZoomPreviewAdjustment();
-  } else {
-    this.views.viewfinder.disableZoomPreviewAdjustment();
   }
 
   var minimumZoom = this.camera.getMinimumZoom();
