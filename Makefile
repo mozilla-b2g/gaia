@@ -478,6 +478,26 @@ endef
 
 export BUILD_CONFIG
 
+define app-makefile-template
+.PHONY: $(1)
+$(1): $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts contacts-import-services $(STAGE_DIR)/settings_stage.json webapp-manifests svoperapps clear-stage-app webapp-shared | $(STAGE_DIR)
+	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
+  	if [ -r "$(2)/Makefile" ]; then \
+  		echo "execute Makefile for $(1) app" ; \
+  		STAGE_APP_DIR="../../build_stage/$(1)" make -C "$(2)" ; \
+  	else \
+  		echo "copy $(1) to build_stage/" ; \
+  		cp -LR "$(2)" $(STAGE_DIR) && \
+  		if [ -r "$(2)/build/build.js" ]; then \
+  			echo "execute $(1)/build/build.js"; \
+  			export APP_DIR=$(2); \
+  			$(call run-js-command,app/build); \
+  		fi; \
+  	fi && \
+  	$(call clean-build-files,$(STAGE_DIR)/$(1)); \
+  fi;
+endef
+
 include build/common.mk
 
 # Generate profile/
@@ -493,29 +513,16 @@ test-agent-bootstrap: $(XULRUNNER_BASE_DIRECTORY)
 $(STAGE_DIR):
 	mkdir -p $@
 
+APP_RULES := $(foreach appdir,$(GAIA_APPDIRS),$(notdir $(appdir)))
+$(foreach appdir,$(GAIA_APPDIRS), \
+	$(eval $(call app-makefile-template,$(notdir $(appdir)),$(appdir))) \
+)
+
+
 # FIXME: we use |STAGE_APP_DIR="../../build_stage/$$APP"| here because we got
 # some problem on Windows if use absolute path.
 .PHONY: app-makefiles
-app-makefiles: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts contacts-import-services $(STAGE_DIR)/settings_stage.json webapp-manifests svoperapps clear-stage-app webapp-shared | $(STAGE_DIR)
-	@for appdir in $(GAIA_APPDIRS); \
-	do \
-		APP="`basename $$appdir`"; \
-    if [[ ("$$appdir" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
-    	if [ -r "$$appdir/Makefile" ]; then \
-    		echo "execute Makefile for $$APP app" ; \
-    		STAGE_APP_DIR="../../build_stage/$$APP" make -C "$$appdir" ; \
-    	else \
-    		echo "copy $$APP to build_stage/" ; \
-    		cp -LR "$$appdir" $(STAGE_DIR) && \
-    		if [ -r "$$appdir/build/build.js" ]; then \
-    			echo "execute $$APP/build/build.js"; \
-    			export APP_DIR=$$appdir; \
-    			$(call run-js-command,app/build); \
-    		fi; \
-    	fi && \
-    	$(call clean-build-files,$(STAGE_DIR)/$$APP); \
-    fi; \
-  done
+app-makefiles: $(APP_RULES)
 
 .PHONY: clear-stage-app
 clear-stage-app:
