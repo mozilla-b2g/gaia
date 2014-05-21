@@ -113,8 +113,13 @@ PerformanceHelper.prototype = {
       delete runResults[startValue];
 
       for (var name in runResults) {
-        this.results[name] = this.results[name] || [];
-        this.results[name].push(runResults[name] - start);
+        var value = runResults[name] - start;
+        // Sometime we start from an event that happen later.
+        // Ignore the one that occur before - ie negative values.
+        if (value >= 0) {
+          this.results[name] = this.results[name] || [];
+          this.results[name].push(value);
+        }
       }
 
     },
