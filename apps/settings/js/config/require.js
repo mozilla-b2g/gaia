@@ -25,9 +25,6 @@ require.config({
     'shared/manifest_helper': {
       exports: 'ManifestHelper'
     },
-    'shared/omadrm/fl': {
-      exports: 'ForwardLock'
-    },
     'shared/screen_layout': {
       exports: 'ScreenLayout'
     },
@@ -114,8 +111,7 @@ require.config({
     {
       name: 'panels/sound/panel',
       exclude: [
-        'main',
-        'shared/omadrm/fl'
+        'main'
       ]
     }
   ]

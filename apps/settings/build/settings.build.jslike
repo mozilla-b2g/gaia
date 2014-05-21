@@ -15,9 +15,8 @@
     'shared/keyboard_helper': 'empty:',
     'shared/lazy_loader': 'empty:',
     'shared/manifest_helper': 'empty:',
-    'shared/omadrm/fl': 'empty:',
     'shared/screen_layout': 'empty:',
-    'shared/settings_listener': 'empty:',
+    'shared/settings_listener': 'empty:'
   },
 
   findNestedDependencies: true,

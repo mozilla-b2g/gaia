@@ -6,7 +6,7 @@
 define(function(require) {
   'use strict';
 
-  require('shared/omadrm/fl');
+  // require('shared/omadrm/fl');
   var SettingsListener = require('shared/settings_listener');
 
   var Sound = function() {
