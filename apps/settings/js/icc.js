@@ -68,8 +68,14 @@
     };
   }
 
+  function returnToSettingsMainMenu() {
+    if (Settings) {
+      Settings.currentPanel = '#root';
+    }
+  }
+
   function stkResTerminate(message) {
-    Settings.currentPanel = '#root';
+    returnToSettingsMainMenu();
     responseSTKCommand(message, {
       resultCode: iccManager.STK_RESULT_UICC_SESSION_TERM_BY_USER
     }, true);
@@ -85,9 +91,7 @@
     reqTimerGoBack.onsuccess = function icc_getTimerGoBackSuccess() {
       goBackTimer.timeout = reqTimerGoBack.result['icc.goBackTimeout'];
       goBackTimer.timer = setTimeout(function() {
-        if (Settings) {
-          Settings.currentPanel = '#root';
-        }
+        returnToSettingsMainMenu();
       }, goBackTimer.timeout);
     };
   };
@@ -99,11 +103,9 @@
       selectTimer.timeout = reqTimerSelect.result['icc.selectTimeout'];
       selectTimer.timer = setTimeout(function() {
         responseSTKCommand(message, {
-         resultCode: iccManager.STK_RESULT_NO_RESPONSE_FROM_USER
+          resultCode: iccManager.STK_RESULT_NO_RESPONSE_FROM_USER
         }, true);
-        if (Settings) {
-          Settings.currentPanel = '#root';
-        }
+        returnToSettingsMainMenu();
       }, selectTimer.timeout);
     };
   };
