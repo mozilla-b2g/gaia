@@ -1239,9 +1239,23 @@ suite('system/Statusbar', function() {
         return e;
     }
 
+    function forgeMouseEvent(type, x, y) {
+      var e = document.createEvent('MouseEvent');
+
+      e.initMouseEvent(type, true, true, window, 1, x, y, x, y,
+                       false, false, false, false, 0, null);
+
+      return e;
+    }
+
     function fakeDispatch(type, x, y) {
-      var e = forgeTouchEvent(type, x, y);
-      StatusBar.panelTouchHandler(e);
+      var e;
+      if (type.startsWith('mouse')) {
+        e = forgeMouseEvent(type, x, y);
+      } else {
+        e = forgeTouchEvent(type, x, y);
+      }
+      StatusBar.panelHandler(e);
 
       return e;
     }
@@ -1421,6 +1435,17 @@ suite('system/Statusbar', function() {
       });
     });
 
+    test('it should prevent default on mouse events keep the focus on the app',
+    function() {
+      var mousedown = fakeDispatch('mousedown', 100, 0);
+      var mousemove = fakeDispatch('mousemove', 100, 2);
+      var mouseup = fakeDispatch('mouseup', 100, 2);
+
+      assert.isTrue(mousedown.defaultPrevented);
+      assert.isTrue(mousemove.defaultPrevented);
+      assert.isTrue(mouseup.defaultPrevented);
+    });
+
     suite('Touch forwarding >', function() {
       var forwardSpy;
 
@@ -1428,7 +1453,7 @@ suite('system/Statusbar', function() {
         forwardSpy = this.sinon.spy(MockTouchForwarder.prototype, 'forward');
       });
 
-      test('it should prevent default on all touch events to prevent relows',
+      test('it should prevent default on all touch events to prevent reflows',
       function() {
         var touchstart = fakeDispatch('touchstart', 100, 0);
         var touchmove = fakeDispatch('touchmove', 100, 2);
