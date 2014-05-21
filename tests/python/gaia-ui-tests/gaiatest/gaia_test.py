@@ -438,10 +438,23 @@ class GaiaDevice(object):
         else:
             raise Exception('GaiaDevice has no device manager object set.')
 
+    def enable_desktop_fake_sdcard(self):
+        # First workout the path, then pass it into the storage override pref
+        import tempfile
+        fake_sdcard_path = os.path.abspath(os.path.join(tempfile.gettempdir(), 'fake-sdcard'))
+        GaiaData(self.marionette).set_char_pref('device.storage.overrideRootDir', fake_sdcard_path)
+
     @property
     def device_root(self):
         if not hasattr(self, '_device_root'):
-            if self.manager.dirExists('/sdcard'):
+            if self.is_desktop_b2g:
+                fake_sdcard_path = GaiaData(self.marionette).get_char_pref('device.storage.overrideRootDir')
+                if fake_sdcard_path is not None:
+                    # we're on desktopb2g, using mock sdcard
+                    self._device_root = fake_sdcard_path
+                else:
+                    raise Exception('Cannot use device_root without configuring overrideRootDir/fake-sdcard first')
+            elif self.manager.dirExists('/sdcard'):
                 # it's a hamachi/inari or other single sdcard device
                 self._device_root = '/sdcard/'
             elif self.manager.dirExists('/storage/sdcard0'):
@@ -490,15 +503,39 @@ class GaiaDevice(object):
         return self._has_wifi
 
     def push_file(self, source, count=1, destination='', progress=None):
-        if not destination.count('.') > 0:
-            destination = '/'.join([destination, source.rpartition(os.path.sep)[-1]])
+
+        if self.is_android_build:
+            # if it's a device instance the separator will always be '/'
+            separator = '/'
+        else:
+            # using local file system, we will use the host separator
+            separator = os.path.sep
+
+        # If the destination is not a filename, join the source's filename to the destination
+        if '.' not in destination.rpartition(separator)[-1]:
+            destination = separator.join([destination, source.rpartition(separator)[-1]])
+
+        # If the folder does not exist, create it
         self.manager.mkDirs(destination)
+        # Now push the file
         self.manager.pushFile(source, destination)
 
         if count > 1:
+            # this copies the file on the host rather than over the network
+
             for i in range(1, count + 1):
-                remote_copy = '_%s.'.join(iter(destination.split('.'))) % i
-                self.manager._checkCmd(['shell', 'dd', 'if=%s' % destination, 'of=%s' % remote_copy])
+                # append _i to the filename to make the filename unique
+                partition = destination.rpartition(separator)
+                remote_file = '_%s.'.join(iter(partition[-1].split('.'))) % i
+                # re-join the destination and new filename
+                remote_copy = separator.join([partition[0], remote_file])
+
+                if self.is_desktop_b2g:
+                    # We're using desktopb2g's fake sdcard
+                    self.manager._copyFile(destination, remote_copy)
+                else:
+                    # Otherwise, we have either linux-based host and/or device
+                    self.manager._checkCmd(['shell', 'dd', 'if=%s' % destination, 'of=%s' % remote_copy])
                 if progress:
                     progress.update(i)
 
@@ -643,13 +680,23 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
         self.device = GaiaDevice(self.marionette, self.testvars)
         if self.device.is_android_build:
+            # Add mozdevice's device manager,
             self.device.add_device_manager(self.get_device_manager())
+        elif self.device.is_desktop_b2g:
+            # otherwise for desktopb2g add our python os wrapper
+            from gaiatest.utils.filemanager.file_manager import DesktopB2GFileManager
+            self.device.add_device_manager(DesktopB2GFileManager())
+
         if self.restart and (self.device.is_android_build or self.marionette.instance):
             # Restart if it's a device, or we have passed a binary instance with --binary command arg
             self.device.stop_b2g()
             if self.device.is_android_build:
                 self.cleanup_data()
             self.device.start_b2g()
+
+        if self.device.is_desktop_b2g:
+            # Enabled the mock sdcard to facilitate sdcard/Device Storage tests
+            self.device.enable_desktop_fake_sdcard()
 
         # Run the fake update checker
         FakeUpdateChecker(self.marionette).check_updates()
@@ -688,8 +735,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.data_layer = GaiaData(self.marionette, self.testvars)
         self.accessibility = Accessibility(self.marionette)
 
-        if self.device.is_android_build:
-            self.cleanup_sdcard()
+        self.cleanup_sdcard()
 
         if self.restart:
             self.cleanup_gaia(full_reset=False)

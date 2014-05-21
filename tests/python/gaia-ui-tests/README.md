@@ -141,6 +141,10 @@ However, if you also intend to launch and interact with the desktop build
 manually, we recommend making a copy of the default profile and using the copy
 for your tests.  The location of the default profile is $B2G\_HOME/gaia/profile.
 
+The test framework only supports running the tests and b2g instances locally,
+although in theory it can be used against a running desktopb2g accessible over
+the network.
+
 To run the tests, use the following command:
 
     gaiatest --restart --type=b2g --app=b2gdesktop \
