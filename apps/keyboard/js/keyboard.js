@@ -108,6 +108,7 @@ const HIDE_KEYBOARD_TIMEOUT = 500;
 var deleteTimeout = 0;
 var deleteInterval = 0;
 var menuTimeout = 0;
+var hideKeyboardTimeout = 0;
 
 // Special key codes
 const BASIC_LAYOUT = -1;
@@ -1521,6 +1522,7 @@ function replaceSurroundingText(text, offset, length) {
 // the input field type, its inputmode, its content, and the cursor position.
 function showKeyboard() {
   perfTimer.printTime('showKeyboard');
+  clearTimeout(hideKeyboardTimeout);
 
   inputContext = navigator.mozInputMethod.inputcontext;
 
@@ -1536,16 +1538,24 @@ function showKeyboard() {
     return;
   }
 
-  // render the keyboard (it will be rendered again after imEngine is loaded)
-  renderKeyboard(keyboardName);
-
   // everything.me uses this setting to improve searches,
   // but they really shouldn't.
   settingsPromiseManager.set({
     'keyboard.current': keyboardName
   });
 
-  switchIMEngine(keyboardName);
+  // If we are already visible,
+  // render the keyboard only after IMEngine is loaded.
+  if (isKeyboardRendered) {
+    switchIMEngine(keyboardName, true);
+
+    return;
+  }
+
+  // render the keyboard right away w/o waiting for IMEngine
+  // (it will be rendered again after imEngine is loaded)
+  renderKeyboard(keyboardName);
+  switchIMEngine(keyboardName, false);
 }
 
 // Hide keyboard
@@ -1555,7 +1565,14 @@ function hideKeyboard() {
 
   deactivateInputMethod();
 
-  isKeyboardRendered = false;
+  clearTimeout(hideKeyboardTimeout);
+
+  // For quick blur/focus events we don't want to hide the IME div
+  // to avoid flickering and such
+
+  hideKeyboardTimeout = setTimeout(function() {
+    isKeyboardRendered = false;
+  }, HIDE_KEYBOARD_TIMEOUT);
 
   // everything.me uses this setting to improve searches,
   // but they really shouldn't.
@@ -1580,7 +1597,7 @@ function onResize() {
   updateLayoutParams();
 }
 
-function switchIMEngine(layoutName) {
+function switchIMEngine(layoutName, mustRender) {
   perfTimer.printTime('switchIMEngine');
 
   var layout = Keyboards[layoutName];
@@ -1611,7 +1628,7 @@ function switchIMEngine(layoutName) {
   p.then(function() {
     perfTimer.printTime('switchIMEngine:promise resolved');
     // Render keyboard again to get updated info from imEngine
-    if (imEngineName !== 'default') {
+    if (mustRender || imEngineName !== 'default') {
       renderKeyboard(layoutName);
     }
   }, function() {
