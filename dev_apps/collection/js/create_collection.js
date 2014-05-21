@@ -3,16 +3,14 @@
 
 (function(exports) {
 
-  var
-  _ = navigator.mozL10n.get,
-  eme = exports.eme;
+  var _ = navigator.mozL10n.get;
+  var eme = exports.eme;
 
   function HandleCreate(activity) {
 
-    var
-    request,
-    loading = document.getElementById('loading'),
-    cancel = document.getElementById('cancel');
+    var request;
+    var loading = document.getElementById('loading');
+    var cancel = document.getElementById('cancel');
 
     cancel.addEventListener('click', function() {
       // TODO request should always have an 'abort' method
