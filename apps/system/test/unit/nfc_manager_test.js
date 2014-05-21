@@ -16,7 +16,6 @@ requireApp('system/test/unit/mock_activity.js');
 requireApp('system/test/unit/mock_nfc.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_settingslistener_installer.js');
-requireApp('system/js/nfc_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 
 var mocksForNfcManager = new MocksHelper([
@@ -192,6 +191,28 @@ suite('Nfc Manager Functions', function() {
       assert.equal(activityOptions.data.encoding, 'UTF-8');
     });
 
+    /* should be uncommented once Bug 1003723 will be fixed 
+    test('TNF well known rtd text utf 16', function() {
+      var payload = Uint8Array([0x82, 0x65, 0x6E, 0xFF,
+                                0xFE, 0x48, 0x00, 0x6F,
+                                0x00, 0x21, 0x00, 0x20,
+                                0x00, 0x55, 0x00, 0x54,
+                                0x00, 0x46, 0x00, 0x2D,
+                                0x00, 0x31, 0x00, 0x36,
+                                0x00, 0x20, 0x00, 0x65,
+                                0x00, 0x6E, 0x00]);
+      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
+                                            NDEF.RTD_TEXT,
+                                            new Uint8Array(),
+                                            payload)];
+
+      var activityOptions = execCommonTest(dummyNdefMsg);
+      assert.equal(activityOptions.data.text, 'Ho! UTF-16 en');
+      assert.equal(activityOptions.data.rtd, NDEF.RTD_TEXT);
+      assert.equal(activityOptions.data.language, 'en');
+      assert.equal(activityOptions.data.encoding, 'UTF-16');
+    });*/
+
     test('TNF well known rtd uri', function() {
       var payload = new Uint8Array([0x04, 0x77, 0x69, 0x6B,
                                     0x69, 0x2E, 0x6D, 0x6F,
@@ -262,7 +283,6 @@ suite('Nfc Manager Functions', function() {
       execCommonTest(dummyNdefMsg, 'mozilla.org:bug');
     });
 
-    //Bug 1004977 TNF Unknown, Unchanged, Reserved handling in NfcManager
     test('TNF unknown, unchanged, reserved', function() {
       var pld = NfcUtils.fromUTF8('payload');
       var empt = new Uint8Array();
@@ -465,34 +485,5 @@ suite('Nfc Manager Functions', function() {
       NfcManager.changeHardwareState(NfcManager.NFC_HW_STATE_DISABLE_DISCOVERY);
       assert.isTrue(spyStopPoll.calledOnce);
     });
-  });
-
-  // if bugs will be fixed tests should be moved into handleNdefMessage suite
-  suite.skip('handleNdefMessage not supported records', function() {
-    // Bug 1003723 NfcManager not supporting UTF-16 TNF_WELL_KNOWN RTD_TEXT
-    test('TNF well known rtd text utf 16', function() {
-      var payload = Uint8Array([0x82, 0x65, 0x6E, 0xFF,
-                                0xFE, 0x48, 0x00, 0x6F,
-                                0x00, 0x21, 0x00, 0x20,
-                                0x00, 0x55, 0x00, 0x54,
-                                0x00, 0x46, 0x00, 0x2D,
-                                0x00, 0x31, 0x00, 0x36,
-                                0x00, 0x20, 0x00, 0x65,
-                                0x00, 0x6E, 0x00]);
-      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
-                                            NDEF.RTD_TEXT,
-                                            new Uint8Array(),
-                                            payload)];
-
-      var activityOptions = NfcManager.handleNdefMessage(dummyNdefMsg);
-      assert.equal(activityOptions.name, 'nfc-ndef-discovered');
-      assert.equal(activityOptions.data.type, 'text');
-      assert.equal(activityOptions.data.text, 'Ho! UTF-16 en');
-      assert.equal(activityOptions.data.rtd, NDEF.RTD_TEXT);
-      assert.equal(activityOptions.data.language, 'en');
-      assert.equal(activityOptions.data.encoding, 'UTF-16');
-      assert.equal(activityOptions.data.records, dummyNdefMsg);
-    });
-
   });
 });
