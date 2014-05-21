@@ -28,6 +28,14 @@ suite('Media Frame Unit Tests', function() {
     }
   });
 
+  setup(function() {
+    this.sandbox = sinon.sandbox.create();
+  });
+
+  teardown(function() {
+    this.sandbox.restore();
+  });
+
   suite('#displayImage', function() {
 
     var frame;
@@ -142,7 +150,7 @@ suite('Media Frame Unit Tests', function() {
         'height': 3000
       };
 
-      this.sinon.stub(navigator, 'getDeviceStorage', function(type) {
+      this.sandbox.stub(navigator, 'getDeviceStorage', function(type) {
         assert.equal(type, 'pictures');
 
         function dummyGet(filename) {
@@ -180,7 +188,7 @@ suite('Media Frame Unit Tests', function() {
         'height': 3000
       };
 
-      this.sinon.stub(navigator, 'getDeviceStorage', function(type) {
+      this.sandbox.stub(navigator, 'getDeviceStorage', function(type) {
         assert.equal(type, 'pictures');
 
         function dummyGet(filename) {

@@ -17,7 +17,12 @@ suite('lib/setting-alias', function() {
   setup(function() {
     var self = this;
 
-    this.value = 'a';
+    // We use this object to store state
+    // as nested Suites and tests' context
+    // inherits from this context.
+    this.state = {};
+    this.state.value = 'a';
+
     this.settings = {
       a: new this.Setting({ key: 'a' }),
       b: new this.Setting({ key: 'b' })
@@ -31,24 +36,24 @@ suite('lib/setting-alias', function() {
         'b': 'b',
       },
       get: function() {
-        return this.settings[this.map[self.value]];
+        return this.settings[this.map[self.state.value]];
       }
     });
   });
 
   suite('SettingAlias()', function() {
     test('Should store various options', function() {
-      assert.ok(this.alias.key === 'my-alias');
-      assert.ok(this.alias.settings === this.settings);
-      assert.ok(this.alias.map.a === 'a');
+      assert.equal(this.alias.key, 'my-alias');
+      assert.equal(this.alias.settings, this.settings);
+      assert.equal(this.alias.map.a, 'a');
     });
   });
 
   suite('SettingAlias#get()', function() {
     test('Should get the current setting', function() {
-      assert.ok(this.alias.get().key === 'a');
-      this.value = 'b';
-      assert.ok(this.alias.get().key === 'b');
+      assert.equal(this.alias.get().key, 'a');
+      this.state.value = 'b';
+      assert.equal(this.alias.get().key, 'b');
     });
   });
 

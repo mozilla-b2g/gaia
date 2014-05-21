@@ -87,6 +87,7 @@ suite('lib/camera/focus', function() {
         touchFocus: true,
         faceDetection: false
       };
+
       this.focus = new this.Focus(userPreferences);
       this.focus.mozCamera = this.mozCamera;
       this.sandbox.stub(this.focus, 'isTouchFocusSupported');
