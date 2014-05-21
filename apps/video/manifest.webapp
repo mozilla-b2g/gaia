@@ -53,7 +53,7 @@
     },
     "view" : {
       "filters": {
-        "type": ["video/webm", "video/mp4", "video/3gpp", "video/ogg", "video/rtsp"]
+        "type": ["video/webm", "video/mp4", "video/3gpp", "video/ogg"]
       },
       "href": "view.html",
       "disposition": "inline",
