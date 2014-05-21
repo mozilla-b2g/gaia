@@ -1,3 +1,7 @@
+// Notice:
+// shim should be the same as build/settings.build.jslike::paths
+// in alphabet order.
+// every required file in shared should be explicitly exclude in modules
 require.config({
   baseUrl: '/js',
   paths: {
@@ -20,6 +24,9 @@ require.config({
     },
     'shared/manifest_helper': {
       exports: 'ManifestHelper'
+    },
+    'shared/omadrm/fl': {
+      exports: 'ForwardLock'
     },
     'shared/screen_layout': {
       exports: 'ScreenLayout'
@@ -102,6 +109,13 @@ require.config({
       name: 'panels/keyboard_enabled_default/dialog',
       exclude: [
         'main'
+      ]
+    },
+    {
+      name: 'panels/sound/panel',
+      exclude: [
+        'main',
+        'shared/omadrm/fl'
       ]
     }
   ]
