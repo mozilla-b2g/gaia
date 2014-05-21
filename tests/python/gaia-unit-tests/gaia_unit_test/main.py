@@ -23,7 +23,7 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
     pending_envs = []
     passes = 0
     failures = 0
-    current_test = None
+    current_test = 'None'
     timer = None
     timeout = 120
 
@@ -42,7 +42,8 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
         self.run_tests(self.tests)
 
     def timer_fn(self):
-        self.logger.error("Timed out after %d seconds" % self.timeout)
+        self.logger.error("TEST-UNEXPECTED-FAIL | %s | Timed out after %d seconds" %
+                          (self.current_test, self.timeout))
         self.runner.cleanup()
         sys.exit(1)
 
