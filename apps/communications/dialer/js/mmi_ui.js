@@ -15,7 +15,7 @@ var MmiUI = {
     delete this.headerNode;
     return this.headerNode = document.getElementById('mmi-header');
   },
-  
+
   get cancelNode() {
     delete this.cancelNode;
     return this.cancelNode = document.getElementById('cancel');
