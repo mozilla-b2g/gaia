@@ -21,7 +21,7 @@ class Ftu(Base):
 
     # Step Cell data section
     _section_cell_data_locator = (By.ID, 'data_3g')
-    _enable_data_checkbox_locator = (By.CSS_SELECTOR, '#data_3g .pack-end')
+    _enable_data_checkbox_locator = (By.ID, 'data-connection-switch')
 
     # Step Wifi
     _section_wifi_locator = (By.ID, 'wifi')
@@ -38,7 +38,7 @@ class Ftu(Base):
 
     # Step Geolocation
     _section_geolocation_locator = (By.ID, 'geolocation')
-    _enable_geolocation_checkbox_locator = (By.CSS_SELECTOR, '#geolocation .pack-end label')
+    _enable_geolocation_checkbox_locator = (By.ID, 'geolocation-switch')
 
     # Section Import contacts
     _section_import_contacts_locator = (By.ID, 'import_contacts')
