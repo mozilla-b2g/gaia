@@ -35,6 +35,8 @@
 
 'use strict';
 
+// A timer for time measurement
+// XXX: render.js is using this variable from other script.
 var perfTimer = new PerformanceTimer();
 perfTimer.start();
 perfTimer.printTime('keyboard.js');
