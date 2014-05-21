@@ -65,6 +65,7 @@ CameraController.prototype.bindEvents = function() {
   app.on('settings:configured', this.onSettingsConfigured);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
   app.on('previewgallery:opened', this.onPreviewGalleryOpened);
+  app.on('attentionscreenopened', this.camera.stopRecording);
 
   // Settings
   settings.recorderProfiles.on('change:selected', this.onRecorderProfileChange);

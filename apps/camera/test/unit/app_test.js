@@ -55,6 +55,10 @@ suite('app', function() {
 
     navigator.mozL10n = { readyState: null };
 
+    navigator.mozSettings = {
+      addObserver: function() {}
+    };
+
     var options = this.options = {
       doc: mocks.doc(),
       win: mocks.win(),
