@@ -1,7 +1,8 @@
 'use strict';
 
 mocha.globals(['NfcManager', 'ScreenManager', 'SettingsListener',
-      'lockScreen']);
+      'lockScreen', 'addEventListener', 'removeEventListener',
+      'dispatchEvent']);
 
 /* globals MockDOMRequest, MockNfc, MocksHelper, MozNDEFRecord, NDEF,
            NfcUtils, NfcManager */
@@ -452,6 +453,27 @@ suite('Nfc Manager Functions', function() {
         spyRemoveEventListener.withArgs('shrinking-sent').calledOnce);
     });
 
+  });
+
+  suite('NFC Manager getPrioritizedTech test', function() {
+    var techList1 = ['NDEF_WRITEABLE', 'P2P', 'NDEF', 'NDEF_FORMATABLE'];
+    var techList2 = ['NDEF_WRITEABLE', 'NDEF', 'NDEF_FORMATABLE'];
+    var techList3 = ['NDEF_WRITEABLE', 'NDEF', 'NFC_ISO_DEP'];
+
+    test('techList P2P test', function() {
+      var tech = NfcManager.getPrioritizedTech(techList1);
+      assert.equal(tech, 'P2P');
+    });
+
+    test('techList NDEF test', function() {
+      var tech = NfcManager.getPrioritizedTech(techList2);
+      assert.equal(tech, 'NDEF');
+    });
+
+    test('techList Unsupported technology test', function() {
+      var tech = NfcManager.getPrioritizedTech(techList3);
+      assert.equal(tech, 'NDEF');
+    });
   });
 
   suite('NFC Manager changeHardwareState test', function() {
