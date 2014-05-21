@@ -1,0 +1,268 @@
+/* -------------------------------------------------------------------
+  HEADERS: layout
+  Form factor or Skin dependent styles should NOT be defined here.
+------------------------------------------------------------------- */
+
+gaia-header {
+  position: relative;
+  display: block;
+  z-index: 10;
+  padding: 0;
+  height: 5rem;
+  border: none;
+}
+
+h1 {
+  font-size: 2.3rem;
+  line-height: 5rem;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+  overflow: hidden;
+  margin: 0;
+  padding: 0 1rem;
+  height: 100%;
+  font-weight: lighter;
+  font-style: italic;
+  text-align: center;
+}
+
+h1 em {
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1em;
+  font-style: normal;
+}
+
+menu {
+  height: 100%;
+  float: right;
+  padding: 0;
+  margin: 0;
+}
+
+/* Buttons */
+a,
+button {
+  box-sizing: border-box;
+  position: relative;
+  display: block;
+  overflow: hidden;
+  float: left;
+  min-width: 5rem;
+  width: auto;
+  height: 5rem;
+  border: none;
+  background: none;
+  padding: 0 1rem;
+  margin: 0;
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 5rem;
+  border-radius: 0;
+  text-decoration: none;
+  text-align: center;
+  text-shadow: none;
+  font-style: italic;
+}
+
+/* Pressed state */
+a:focus{
+  outline: none;
+}
+
+button::-moz-focus-inner,
+.button::-moz-focus-inner {
+  outline: none;
+  border: none;
+  margin-top: -0.2rem; /* To fix line-height bug (697451) */
+  padding: 0;
+}
+
+/* Disabled state */
+a[aria-disabled="true"],
+button[disabled] {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Icons */
+[data-icon] {
+  font-size: 0;
+}
+
+[data-icon]:before {
+  position: absolute;
+  content: "";
+  width: 3rem;
+  height: 3rem;
+  background: transparent no-repeat center / 3rem auto;
+  top: 1rem;
+  left: 1rem;
+}
+
+/* right-to-left */
+
+/* We would need an attribute to know if we are using rtl,
+ * as styles are scoped
+ */
+html[dir="rtl"] menu {
+  float: left;
+}
+
+html[dir="rtl"] a,
+html[dir="rtl"] button {
+  float: right;
+}
+
+html[dir="rtl"] [data-icon="back"] {
+  transform: rotate(180deg);
+}
+
+/* -----------------------------------------------------------------
+  HEADER SKIN: default
+  Default values in case we are not overriding them using
+  data-skin
+----------------------------------------------------------------- */
+
+gaia-header {
+  color: #fff;
+  background-color: #f97c17;
+}
+
+h1 {
+  color: #fff;
+}
+
+a,
+button {
+  color: rgba(0,0,0,0.6);
+}
+
+a:active,
+button:active,
+a:hover,
+button:hover {
+  background-color: rgba(0,0,0,0.07);
+}
+
+/* Icons */
+[data-icon="add"]:before {
+  background-image: url(images/icons/add.png);
+}
+
+[data-icon="compose"]:before {
+  background-image: url(images/icons/compose.png);
+}
+
+[data-icon="edit"]:before {
+  background-image: url(images/icons/edit.png);
+}
+
+[data-icon="send"]:before {
+  background-image: url(images/icons/send.png);
+}
+
+[data-icon="close"]:before {
+  background-image: url(images/icons/close.png);
+}
+
+[data-icon="back"]:before {
+  background-image: url(images/icons/back.png);
+}
+
+[data-icon="menu"]:before {
+  background-image: url(images/icons/menu.png);
+}
+
+[data-icon="user"]:before {
+  background-image: url(images/icons/user.png);
+}
+
+[data-icon="up"]:before {
+  background-image: url(images/icons/up.png);
+}
+
+[data-icon="down"]:before {
+  background-image: url(images/icons/down.png);
+}
+
+[data-icon="options"]:before {
+  background-image: url(images/icons/options.png);
+}
+
+/* -----------------------------------------------------------------
+  HEADER SKIN: comms
+----------------------------------------------------------------- */
+
+[data-skin="comms"] {
+  background-color: #00adad;
+}
+
+[data-skin="comms"] a,
+[data-skin="comms"] button {
+  color: rgba(0,0,0,0.5);
+}
+
+[data-skin="comms"] a:hover,
+[data-skin="comms"] button:hover,
+[data-skin="comms"] a:active,
+[data-skin="comms"] button:active {
+  background-color: rgba(0,0,0,0.1);
+}
+
+/* -----------------------------------------------------------------
+  HEADER SKIN: dark
+----------------------------------------------------------------- */
+
+[data-skin="dark"] {
+  background-color: #242d33;
+}
+
+[data-skin="dark"] a,
+[data-skin="dark"] button {
+  color: #00aac5;
+}
+
+[data-skin="dark"] a:hover,
+[data-skin="dark"] button:hover,
+[data-skin="dark"] a:active,
+[data-skin="dark"] button:active {
+  background-color: rgba(0,0,0,0.4);
+}
+
+/* -----------------------------------------------------------------
+  HEADER SKIN: organic
+----------------------------------------------------------------- */
+
+[data-skin="organic"] {
+  color: #868692;
+  background-color: #f4f4f4;
+}
+
+[data-skin="organic"] h1 {
+  color: #868692;
+}
+
+[data-skin="organic"] a,
+[data-skin="organic"] button {
+  color: #00aac5;
+}
+
+/* Icons */
+[data-skin="organic"] [data-icon="back"]:before {
+  background-image: url(images/icons/organic/back.png);
+}
+
+[data-skin="organic"] [data-icon="close"]:before {
+  background-image: url(images/icons/organic/close.png);
+}
+
+[data-skin="organic"] [data-icon="add"]:before {
+  background-image: url(images/icons/organic/add.png);
+}
+
+[data-skin="organic"] [data-icon="edit"]:before {
+  background-image: url(images/icons/organic/edit.png);
+}
