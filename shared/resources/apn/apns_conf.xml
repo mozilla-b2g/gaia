@@ -15699,6 +15699,114 @@
       mmsport="80"
       type="mms"
   />
+  
+  
+  
+  
+  <apn carrier="GP INTERNET"
+      mcc="470"
+      mnc="01"
+      apn="gpinternet"
+      type="default,supl"
+  />
+
+  <apn carrier="GP WAP"
+      mcc="470"
+      mnc="01"
+      apn="gpwap"
+      proxy="010.128.001.002"
+      port="8080"
+      type="default,supl"
+  />
+
+  <apn carrier="GP MMS"
+      mcc="470"
+      mnc="01"
+      apn="gpmms"
+      mmsc="http://mms.gpsurf.net/servlets/mms"
+      mmsproxy="010.128.001.002"
+      mmsport="8080"
+      type="mms"
+  />
+  
+  <apn carrier="Robi-INTERNET"
+      mcc="470"
+      mnc="02"
+      apn="internet"
+      type="default,supl"
+  />
+
+  <apn carrier="Robi-WAP"
+      mcc="470"
+      mnc="02"
+      apn="wap"
+      proxy="10.16.18.77"
+      port="9028"
+      type="default,supl"
+  />
+
+  <apn carrier="Robi-MMS"
+      mcc="470"
+      mnc="02"
+      apn="wap"
+      mmsc="http://10.16.18.40:38090/was"
+      mmsproxy="10.16.18.77"
+      mmsport="9028"
+      type="mms"
+  />
+  
+  <apn carrier="Banglalink-WEB"
+      mcc="470"
+      mnc="03"
+      apn="blweb"
+      proxy="10.10.55.34"
+      port="8799"
+      type="default,supl"
+  />
+
+  <apn carrier="Banglalink-WAP"
+      mcc="470"
+      mnc="03"
+      apn="blwap"
+      proxy="10.10.55.34"
+      port="8799"
+      type="default,supl"
+  />
+
+  <apn carrier="Banglalink-MMS"
+      mcc="470"
+      mnc="03"
+      apn="blwap"
+      mmsc="http://mms"
+      mmsproxy="10.10.55.34"
+      mmsport="8799"
+      type="mms"
+  />
+  
+  <apn carrier="Airtel Internet"
+      mcc="470"
+      mnc="07"
+      apn="internet"
+      type="default,supl"
+  />
+  
+  <apn carrier="Airtel WAP"
+      mcc="470"
+      mnc="07"
+      apn="wap"
+      type="default,supl"
+  />
+  
+  <apn carrier="Airtel MMS"
+      mcc="470"
+      mnc="07"
+      apn="mms"
+      mmsc="http://bd.airtel.com"
+      mmsproxy="10.128.5.6"
+      type="mms"
+  />
+    
+  
 
   <apn carrier="Dhiraagu"
       mcc="472"
