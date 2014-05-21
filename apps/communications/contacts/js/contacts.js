@@ -272,14 +272,15 @@ var Contacts = (function() {
     //       load time.  For more info see bug 725221.
     var text;
     if (ActivityHandler.currentlyHandling) {
-      activityHeader.dataset.action = 'close';
+      activityHeader.setAttribute('action', 'close');
       addButton.classList.add('hide');
       settingsButton.classList.add('hide');
     } else {
-      activityHeader.dataset.action = '';
+      activityHeader.setAttribute('action', '');
       addButton.classList.remove('hide');
       settingsButton.classList.remove('hide');
     }
+
     text = (contactsList && contactsList.isSelecting)?
           _('selectContact'):_('contacts');
 
@@ -678,7 +679,7 @@ var Contacts = (function() {
   var initEventListeners = function initEventListener() {
     // Definition of elements and handlers
     utils.listeners.add({
-      '#activity_header': [
+      '#activity-header': [
         {
           event: 'action',
           handler: handleCancel // Activity (any) cancellation

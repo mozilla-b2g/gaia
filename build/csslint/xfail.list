@@ -18,8 +18,8 @@ apps/camera/style/setting-options.css 0 1
 apps/clock/style/onring.css 0 1
 apps/clock/style/picker/picker.css 0 1
 apps/clock/style/alarm.css 0 3
-apps/communications/contacts/style/app.css 0 6
-apps/communications/contacts/style/contacts.css 0 5
+apps/communications/contacts/style/app.css 0 8
+apps/communications/contacts/style/contacts.css 0 6
 apps/communications/contacts/style/matching_contacts.css 0 3
 apps/communications/contacts/style/overlay.css 0 1
 apps/communications/contacts/style/status.css 0 1

@@ -23,7 +23,6 @@
     <script  type="text/javascript" src="/shared/js/text_normalizer.js"></script>
     <script  type="text/javascript" src="/shared/js/binary_search.js"></script>
     <script  defer type="text/javascript" src="/shared/js/lazy_loader.js"></script>
-    <script  defer type="text/javascript" src="/shared/js/font_size_utils.js"></script>
     <script  defer type="text/javascript" src="/shared/pages/import/js/oauth20.js"></script>
     <script  defer type="text/javascript" src="/shared/js/fb/fb_request.js"></script>
     <script  defer type="text/javascript" src="/shared/js/contacts/import/facebook/fb_data.js"></script>
@@ -46,11 +45,16 @@
     <script type="text/javascript" src="/shared/js/l10n.js"></script>
 
     <!-- Building Blocks -->
-    <link href="/shared/style/headers.css" rel="stylesheet">
     <link href="/shared/style/buttons.css" rel="stylesheet">
     <link href="/shared/style/confirm.css" rel="stylesheet">
     <link href="/shared/style/lists.css" rel="stylesheet">
     <link href="/shared/style/status.css" rel="stylesheet">
+
+    <!-- Web Components -->
+    <script defer src="/shared/elements/config.js"></script>
+    <script defer src="/shared/elements/gaia-header/dist/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-theme/style.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="/shared/elements/gaia-icons/style.css" /> -->
 
     <link rel="stylesheet" href="/shared/pages/import/style/import.css">
     <link rel="stylesheet" href="/shared/pages/import/style/facebook.css">
@@ -59,10 +63,10 @@
     <link rel="import" href="elements/status.html">
   </head>
 
-  <body role="application">
+  <body role="application theme-communications">
     <section role="region" id="content" class="link">
 
-      <gaia-header id="link-header" data-action="close">
+      <gaia-header id="link-header" action="close">
         <h1 data-l10n-id="fbFriends">Facebook Friends</h1>
       </gaia-header>
 

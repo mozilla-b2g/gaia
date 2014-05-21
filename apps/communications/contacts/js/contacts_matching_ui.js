@@ -38,7 +38,8 @@ if (!contacts.MatchingUI) {
       contactsList = document.querySelector('#contacts-list-container > ol');
       title = document.getElementById('title');
 
-      document.getElementById('merge-header').addEventListener('action', onClose);
+      var mergeHeader = document.getElementById('merge-header');
+      mergeHeader.addEventListener('action', onClose);
       contactsList.addEventListener('click', onClick);
       mergeButton.addEventListener('click', onMerge);
 

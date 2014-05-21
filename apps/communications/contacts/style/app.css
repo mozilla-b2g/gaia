@@ -200,9 +200,14 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
 }
 
 /* Rewritting from buttons.css */
-section[role="region"] > header:first-child button,
-section[role="region"] > header:first-child a {
+section[role="region"] > gaia-header button,
+section[role="region"] > gaia-header a {
   white-space: normal;
+}
+
+section[role="region"] > gaia-header button[disabled] {
+  color: #c7c7c7 !important;
+  pointer-events: none !important;
 }
 
 /* Buttons inside list redefinition */
@@ -250,7 +255,7 @@ li button.activity > b {
   left: 0;
 }
 
-[data-type="list"] header {
+[data-type="list"] gaia-header {
   padding: 0 0 0 1.5rem;
   position: sticky;
   top: -1.5rem;

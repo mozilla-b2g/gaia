@@ -17,6 +17,7 @@
 /* global utils */
 /* global MockWebrtcClient */
 /* global ActivityHandler */
+/* global triggerEvent */
 /* export TAG_OPTIONS */
 /* exported SCALE_RATIO */
 /* exported _ */
@@ -45,6 +46,7 @@ requireApp('communications/contacts/test/unit/mock_contacts_list_obj.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
+requireApp('communications/contacts/test/unit/helper.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
@@ -77,7 +79,7 @@ var _ = function(key) { return key; },
     linkButtons,
     realContactsList,
     mozL10nGetSpy,
-    backButton,
+    header,
     realListeners;
 
 requireApp('communications/contacts/js/tag_optionsstem.js');
@@ -166,7 +168,7 @@ suite('Render contact', function() {
     cover = dom.querySelector('#cover-img');
     detailsInner = dom.querySelector('#contact-detail-inner');
     favoriteMessage = dom.querySelector('#toggle-favorite').children[0];
-    backButton = dom.querySelector('#details-back');
+    header = dom.querySelector('#details-view-header');
 
     fbButtons = [
       '#profile_button',
@@ -921,7 +923,7 @@ suite('Render contact', function() {
     });
 
     test('> going back from details', function () {
-      backButton.click();
+      triggerEvent(header, 'action');
 
       sinon.assert.calledOnce(MockWebrtcClient.stop);
       sinon.assert.notCalled(ActivityHandler.postCancel);
@@ -930,7 +932,7 @@ suite('Render contact', function() {
 
     test('> going back from details during an activity', function () {
       ActivityHandler.currentlyHandling = true;
-      backButton.click();
+      triggerEvent(header, 'action');
 
       sinon.assert.calledOnce(MockWebrtcClient.stop);
       sinon.assert.calledOnce(ActivityHandler.postCancel);
@@ -942,7 +944,7 @@ suite('Render contact', function() {
     test('> going back from details during an IMPORT activity', function () {
       ActivityHandler.currentlyHandling = true;
       ActivityHandler.activityName = 'import';
-      backButton.click();
+      triggerEvent(header, 'action');
 
       sinon.assert.calledOnce(MockWebrtcClient.stop);
       sinon.assert.notCalled(ActivityHandler.postCancel);

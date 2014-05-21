@@ -1610,7 +1610,7 @@ contacts.List = (function() {
       deselectAll.addEventListener('click', handleSelection);
 
       selectForm.querySelector('#selectable-form-header').
-                    addEventListener('click', exitSelectMode.bind(null, true));
+                    addEventListener('action', exitSelectMode.bind(null, true));
     }
 
     isDangerSelectList = options && options.isDanger;

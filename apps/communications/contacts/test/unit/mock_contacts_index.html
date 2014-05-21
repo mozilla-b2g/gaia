@@ -4,10 +4,10 @@
       <link rel="resource" type="application/l10n" href="/shared/locales/import_contacts.ini"/>
         <!-- Contacts List Section -->
       <section id='view-contacts-list' role="region" data-state="active" class="view view-noscroll view-contacts-list">
-        <gaia-header id="activity-header" data-action="close">
+        <gaia-header id="activity-header" action="close">
           <h1 id="app-title" data-l10n-id="contacts">Contacts</h1>
-          <button role="menuitem" id="add-contact-button" data-icon="add"></button>
-          <button role="menuitem" id="settings-button" data-icon="settings"></button>
+          <button role="menuitem" id="add-contact-button" data-icon="add" data-l10n-id="add"></button>
+          <button role="menuitem" id="settings-button" data-icon="settings" data-l10n-id="settings"></button>
         </gaia-header>
 
         <article class="view-body">
@@ -79,10 +79,10 @@
       </section>    <!-- Search view -->
 
       <section id='view-screenshot' role="region" class="view hide">
-        <gaia-header id="activity-header" data-action="close">
+        <gaia-header id="activity-header" action="close">
           <h1 id="app-title" data-l10n-id="contacts">Contacts</h1>
-          <button role="menuitem" id="add-contact-button" data-icon="add"></button>
-          <button role="menuitem" id="settings-button" data-icon="settings"></button>
+          <button role="menuitem" id="add-contact-button" data-icon="add" data-l10n-id="add"></button>
+          <button role="menuitem" id="settings-button" data-icon="settings" data-l10n-id="settings"></button>
         </gaia-header>
         <article id="view-screenshot-body">
         </article>
@@ -90,9 +90,9 @@
 
       <!-- Contact Details Section -->
       <section id='view-contact-details' role="region" class="view view-right view-contact-profile">
-        <gaia-header id='details-view-header' data-action="back">
+        <gaia-header id='details-view-header' action="back">
           <h1 id='contact-name-title'></h1>
-          <button id="edit-contact-button" role="menuitem" data-icon="edit"></button>
+          <button id="edit-contact-button" role="menuitem" data-icon="edit" data-l10n-id="edit"></button>
         </gaia-header>
 
         <article id="contact-detail-wrapper" class="view-body">
@@ -194,7 +194,7 @@
 
       <!-- Edit Section -->
       <section id='view-contact-form' role="region" class="view view-bottom view-edit-contact">
-        <gaia-header id="contact-form-header" data-action="close">
+        <gaia-header id="contact-form-header" action="close">
           <h1 id='contact-form-title' data-l10n-id="addContact">Add contact</h1>
           <button id="save-button" role="menuitem" data-l10n-id="done">Done</button>
         </gaia-header>
@@ -365,7 +365,7 @@
 
       <!-- Tag selection -->
       <section id="view-select-tag" role="region" class="view view-right view-select-tag">
-        <gaia-header id="settings-header" data-action="back">
+        <gaia-header id="settings-header" action="back">
           <h1 data-l10n-id="label">Label</h1>
           <button id="settings-done" role="menuitem" data-l10n-id="done">Done</button>
         </gaia-header>
@@ -382,8 +382,8 @@
         </article>
       </section>
 
-     <section data-theme="organic" id="view-settings" role="region" class="skin-organic view view-bottom">
-      <gaia-header data-skin="organic">
+     <section data-theme="organic" id="view-settings" role="region" class="skin-organic view view-bottom theme-settings">
+      <gaia-header>
         <h1 data-l10n-id="settings">Settings</h1>
         <button id="settings-close" role="menuitem" data-l10n-id="done">Done</button>
       </gaia-header>
@@ -456,8 +456,8 @@
         </section>
       </article>
     </section>
-    <section data-theme="organic" id="import-settings" role="region" class="skin-organic view view-right">
-      <gaia-header id="import-settings-header" data-action="back" data-skin="organic">
+    <section data-theme="organic" id="import-settings" role="region" class="skin-organic view view-right theme-settings">
+      <gaia-header id="import-settings-header" action="back">
         <h1 id='import-settings-title'></h1>
       </gaia-header>
       <article class="view-body">
@@ -513,13 +513,10 @@
         </section>
       </article>
     </section>
-    <section data-theme="organic" id="ice-settings" role="region" class="skin-organic view view-right">
-      <header id="ice-settings-header">
-        <button id="ice-settings-back" class="negative">
-          <span class="icon icon-back" data-l10n-id="back">back</span>
-        </button>
+    <section data-theme="organic" id="ice-settings" role="region" class="skin-organic view view-right theme-settings">
+      <gaia-header id="ice-settings-header" action="back">
         <h1 id='ice-settings-title' data-l10n-id="ICESettingTitle">ICE Contacts</h1>
-      </header>
+      </gaia-header>
       <article class="view-body">
         <section role="region" class="view-body-inner">
           <p class="description" data-l10n-id="ICEDescription">
