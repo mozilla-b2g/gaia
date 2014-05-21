@@ -35,9 +35,7 @@ var SheetsTransition = {
       this._new.classList.toggle('outside-edges-right', (direction == 'rtl'));
     }
 
-    if (document.mozFullScreen) {
-      document.mozCancelFullScreen();
-    }
+    window.dispatchEvent(new CustomEvent('sheetstransitionstart'));
   },
 
   _lastProgress: null,

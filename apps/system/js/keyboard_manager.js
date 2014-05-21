@@ -139,6 +139,7 @@ var KeyboardManager = {
     window.addEventListener('mozbrowsererror', this);
     window.addEventListener('applicationsetupdialogshow', this);
     window.addEventListener('mozmemorypressure', this);
+    window.addEventListener('sheetstransitionstart', this);
 
     // To handle keyboard layout switching
     window.addEventListener('mozChromeEvent', function(evt) {
@@ -471,6 +472,9 @@ var KeyboardManager = {
           this.runningLayouts = {};
           this._debug('mozmemorypressure event; keyboard removed');
         }
+        break;
+      case 'sheetstransitionstart':
+        this.hideKeyboard();
         break;
     }
   },

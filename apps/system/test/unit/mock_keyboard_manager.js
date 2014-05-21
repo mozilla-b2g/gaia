@@ -1,6 +1,7 @@
 MockKeyboardManager = {
   mHeight: 0,
   init: function() {},
+  hideKeyboard: function() {},
   getHeight: function() {
     return this.mHeight;
   },

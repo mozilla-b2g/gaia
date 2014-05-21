@@ -237,6 +237,7 @@
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
       window.addEventListener('system-resize', this);
+      window.addEventListener('sheetstransitionstart', this);
 
       this._settingsObserveHandler = {
         // update app name when language setting changes
@@ -310,6 +311,7 @@
       window.removeEventListener('homegesture-enabled', this);
       window.removeEventListener('homegesture-disabled', this);
       window.removeEventListener('system-resize', this);
+      window.removeEventListener('sheetstransitionstart', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -519,6 +521,11 @@
         case 'cardviewbeforeshow':
           if (this._activeApp) {
             this._activeApp.getTopMostWindow().blur();
+          }
+          break;
+        case 'sheetstransitionstart':
+          if (document.mozFullScreen) {
+            document.mozCancelFullScreen();
           }
           break;
       }

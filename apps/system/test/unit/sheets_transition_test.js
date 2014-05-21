@@ -119,6 +119,17 @@ suite('system/SheetsTransition >', function() {
     });
   });
 
+  test('it should dispatch a sheetstransitionstart event', function(done) {
+    window.addEventListener('sheetstransitionstart', function gotIt(evt) {
+      window.removeEventListener('sheetstransitionstart', gotIt);
+
+      assert.isTrue(true, 'got it');
+      done();
+    });
+
+    SheetsTransition.begin('ltr');
+  });
+
   suite('Moving the sheets', function() {
     setup(function() {
       SheetsTransition.begin('ltr');

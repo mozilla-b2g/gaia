@@ -239,6 +239,32 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubResize.called);
     });
 
+    suite('when a document is fullscreen', function() {
+      var realFullScreen;
+
+      setup(function() {
+        realFullScreen = document.mozFullScreen;
+        Object.defineProperty(document, 'mozFullScreen', {
+          configurable: true,
+          get: function() { return true; }
+        });
+      });
+
+      teardown(function() {
+        Object.defineProperty(document, 'mozFullScreen', {
+          configurable: true,
+          get: function() { return realFullScreen; }
+        });
+      });
+
+      test('should exit fullscreen when the sheet transition starts',
+      function() {
+        var cancelSpy = this.sinon.spy(document, 'mozCancelFullScreen');
+        AppWindowManager.handleEvent({ type: 'sheetstransitionstart' });
+        sinon.assert.calledOnce(cancelSpy);
+      });
+    });
+
     test('app request to close', function() {
       injectRunningApps(app1);
       var stubIsActive = this.sinon.stub(app1, 'isActive');
