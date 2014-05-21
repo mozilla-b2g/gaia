@@ -216,7 +216,6 @@ var LockScreen = {
     /* Status changes */
     window.addEventListener('volumechange', this);
     window.addEventListener('screenchange', this);
-    window.addEventListener('attentionscreenhide', this);
     document.addEventListener('visibilitychange', this);
 
     /* Telephony changes */
@@ -344,9 +343,6 @@ var LockScreen = {
 
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
-      case 'attentionscreenhide':
-        this.enableWithoutCover();
-        break;
       case 'screenchange':
         // Don't lock if screen is turned off by promixity sensor.
         if (evt.detail.screenOffBy == 'proximity') {
@@ -473,18 +469,8 @@ var LockScreen = {
           emergencyCallBtn.classList.remove('disabled');
         }
         // Return to main panel once call state changes.
-        if (this.locked) {
+        if (this.locked)
           this.switchPanel();
-          if (!!navigator.mozTelephony.calls.length) {
-            // To hide the normal lockscreen with cover,
-            // when the user is dialing.
-            this.disableWithCover();
-          } else {
-            // Back to the lockscreen and remove the cover,
-            // whe user had dialed but not success.
-            this.enableWithoutCover();
-          }
-        }
         break;
     }
   },
@@ -576,22 +562,6 @@ var LockScreen = {
           this.checkPassCode();
         break;
     }
-  },
-
-  /**
-   * Display a cover over the lockscreen.
-   * This is for the scenario that the dialer lockscreen got invoked,
-   * and the transition is too slow to hide this one.
-   */
-  disableWithCover: function ls_disableWithCover() {
-    this.overlay.classList.add('disabled');
-  },
-
-  /**
-   * To remove the cover.
-   */
-  enableWithoutCover: function ls_enableWithoutCover() {
-    this.overlay.classList.remove('disabled');
   },
 
   lockIfEnabled: function ls_lockIfEnabled(instant) {
@@ -929,7 +899,6 @@ var LockScreen = {
     for (var i = 0; i < panels.length; i++) {
       panels[i].style.backgroundImage = url;
     }
-    this.disabledCover.style.backgroundImage = url;
   },
 
   /**
@@ -945,7 +914,7 @@ var LockScreen = {
     var elements = ['conn-states', 'clock-numbers', 'clock-meridiem',
         'date', 'area', 'area-unlock', 'area-camera', 'icon-container',
         'area-handle', 'area-slide', 'media-container', 'passcode-code',
-        'alt-camera', 'alt-camera-button', 'slide-handle', 'disabled-cover',
+        'alt-camera', 'alt-camera-button', 'slide-handle',
         'passcode-pad', 'camera', 'accessibility-camera',
         'accessibility-unlock', 'panel-emergency-call', 'canvas'];
 
