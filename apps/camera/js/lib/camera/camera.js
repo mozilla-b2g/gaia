@@ -1279,24 +1279,6 @@ Camera.prototype.configureZoom = function() {
   var maxHardwareZoom = maxPreviewSize.width / previewSize.width;
   this.set('maxHardwareZoom', maxHardwareZoom);
 
-  // Bug 983930 - [B2G][Camera] CameraControl API's "zoom" attribute doesn't
-  // scale preview properly
-  //
-  // For some reason, the above calculation for `maxHardwareZoom` does not
-  // work properly on Nexus 4 devices.
-  var hardware = navigator.mozSettings.createLock().get('deviceinfo.hardware');
-  var self = this;
-  hardware.onsuccess = function(evt) {
-    var device = evt.target.result['deviceinfo.hardware'];
-    if (device === 'mako') {
-      if (self.selectedCamera === 'front') {
-        self.set('maxHardwareZoom', 1);
-      } else {
-        self.set('maxHardwareZoom', 1.25);
-      }
-    }
-  };
-
   this.setZoom(this.getMinimumZoom());
   this.emit('zoomconfigured');
   return this;
