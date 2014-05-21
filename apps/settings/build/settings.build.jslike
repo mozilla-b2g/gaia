@@ -9,6 +9,7 @@
   // which makes the objects inaccessible by reference.
   // If the inquiries to the object are all performed by requirejs, we can
   // remove the path of the object from the following list.
+  // list should be the same as js/config/require.js::shim in alphabet order
   paths: {
     'prim': 'empty:',
     'settings': 'empty:',
@@ -17,6 +18,7 @@
     'shared/icc_helper': 'empty:',
     'shared/lazy_loader': 'empty:',
     'shared/manifest_helper': 'empty:',
+    'shared/screen_layout': 'empty:',
     'shared/settings_listener': 'empty:',
     'utils': 'empty:'
   },
