@@ -30,11 +30,13 @@ function toHexString(str) {
 }
 
 // Resources helper constructor
-var Resources = function(gaia, settings) {
+var Resources = function(gaia, settings, appDomain) {
   this.gaia = gaia;
   this.settings = settings;
   this.fileList = [];
   this.json = {};
+  this.appPrefix = 'app://';
+  this.appURL = this.appPrefix + appDomain + '/resources/';
 };
 
 // Parse and get resources for a given JSON configuration of one operator.
@@ -104,14 +106,20 @@ Resources.prototype.createJSON = function(name, content) {
 // Create new wallpaper JSON from a wallpaper file path.
 Resources.prototype.getWallpaperResource = function(wallpaper) {
   if (wallpaper) {
-    var file = this.getFile(wallpaper);
-    if (!file) {
-      return;
+
+    var uri;
+    if (wallpaper.startsWith(this.appPrefix)) {
+      uri = wallpaper;
+    } else {
+      var file = this.getFile(wallpaper);
+      if (!file) {
+        return;
+      }
+      uri = '/resources/' + file.leafName;
+      this.addEntry(file, file.leafname);
     }
 
-    this.addEntry(file, file.leafname);
-
-    var content = { uri: '/resources/' + file.leafName,
+    var content = { uri: uri,
                     default: this.settings['wallpaper.image'] };
 
     var jsonName = 'wallpaper-' + getHash(wallpaper);
@@ -129,15 +137,20 @@ Resources.prototype.getRingtoneResource = function(ringtone) {
       throw new Error('Missing name for ringtone in single variant conf.');
     }
 
-    var file = this.getFile(ringtone.path);
-    if (!file) {
-      throw new Error('Missing path for ringtone in single variant conf.');
+    var uri;
+    if (ringtone.path.startsWith(this.appPrefix)) {
+      uri = ringtone.path;
+    } else {
+      var file = this.getFile(ringtone.path);
+      if (!file) {
+        throw new Error('Missing path for ringtone in single variant conf.');
+      }
+      uri = '/resources/' + file.leafName;
+      this.addEntry(file, file.leafname);
     }
 
-    this.addEntry(file, file.leafname);
-
-    var content = { uri: '/resources/' + file.leafName,
-                    name: ringtoneName ,
+    var content = { uri: uri,
+                    name: ringtoneName,
                     default: this.settings['dialer.ringtone.name'] };
 
     return this.createJSON(jsonName, content);
@@ -160,11 +173,14 @@ Resources.prototype.getPowerResource = function (power) {
                         'valid.');
       }
 
-      poweronFile = this.getFile(poweron[poweronType]);
-      this.addEntry(poweronFile, poweronFile.leafname);
-      powerJSON.poweron[poweronType] = '/resources/' + poweronFile.leafName;
+      if (poweron[poweronType].startsWith(this.appPrefix)) {
+        powerJSON.poweron[poweronType] = poweron[poweronType];
+      } else {
+        poweronFile = this.getFile(poweron[poweronType]);
+        this.addEntry(poweronFile, poweronFile.leafname);
+        powerJSON.poweron[poweronType] = this.appURL + poweronFile.leafName;
+      }
     }
-
     var poweroff = power.poweroff;
     var poweroffFile;
     if (poweroff) {
@@ -175,9 +191,13 @@ Resources.prototype.getPowerResource = function (power) {
                         'valid.');
       }
 
-      poweroffFile = this.getFile(poweroff[poweroffType]);
-      this.addEntry(poweroffFile, poweroffFile.leafname);
-      powerJSON.poweroff[poweroffType] = '/resources/' + poweroffFile.leafName;
+      if (poweroff[poweroffType].startsWith(this.appPrefix)) {
+        powerJSON.poweroff[poweroffType] = poweroff[poweroffType];
+      } else {
+        poweroffFile = this.getFile(poweroff[poweroffType]);
+        this.addEntry(poweroffFile, poweroffFile.leafname);
+        powerJSON.poweroff[poweroffType] = this.appURL + poweroffFile.leafName;
+      }
     }
 
     return this.createJSON(jsonName, powerJSON);
@@ -216,7 +236,6 @@ var OperatorAppBuilder = function() {
 // to set default values.
 OperatorAppBuilder.prototype.setOptions = function(options) {
   this.stageDir = utils.getFile(options.STAGE_APP_DIR);
-  this.appDir = utils.getFile(options.APP_DIR);
 
   this.gaia = utils.gaia.getInstance(options);
 
@@ -225,6 +244,9 @@ OperatorAppBuilder.prototype.setOptions = function(options) {
     throw new Error('file not found: ' + settingsFile.path);
   }
   this.settings = utils.getJSON(settingsFile);
+
+  this.appDir = utils.getFile(options.APP_DIR);
+  this.appDomain = this.appDir.leafName + '.' + options.GAIA_DOMAIN;
 };
 
 // Get resources and copy files and configuration JSON to build_stage folder.
@@ -232,6 +254,7 @@ OperatorAppBuilder.prototype.generateCustomizeResources = function() {
   if (!this.gaia.distributionDir) {
     return;
   }
+
   var variantFile = utils.getFile(this.gaia.distributionDir, 'variant.json');
   if (variantFile.exists()) {
     var resources = this.getSingleVariantResources(variantFile);
@@ -260,7 +283,7 @@ OperatorAppBuilder.prototype.generateCustomizeResources = function() {
 // Use Resources object to get the resources for each operator.
 OperatorAppBuilder.prototype.getSingleVariantResources = function(svConfFile) {
   var svConf = utils.getJSON(svConfFile);
-  var resources = new Resources(this.gaia, this.settings);
+  var resources = new Resources(this.gaia, this.settings, this.appDomain);
 
   svConf.operators.forEach(function(operator) {
     resources.getResources(operator);
