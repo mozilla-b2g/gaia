@@ -30,6 +30,16 @@ var NfcManager = {
 
   hwState: 0,
 
+  // Assign priority of tech handling. Smaller number means higher priority.
+  // This list will expand with supported technologies.
+  TechPriority: {
+    'P2P': 1,
+    'NDEF': 2,
+    'NDEF_WRITEABLE': 3,
+    'NDEF_FORMATABLE': 4,
+    'Unsupported': 20
+  },
+
   _debug: function nm_debug(msg, optObject) {
     if (this.DEBUG) {
       var output = '[DEBUG] SYSTEM NFC: ' + msg;
@@ -220,6 +230,7 @@ var NfcManager = {
   handleNdefDiscovered:
     function nm_handleNdefDiscovered(tech, session, records) {
 
+      var self = this;
       this._debug('handleNdefDiscovered: ' + JSON.stringify(records));
       var action = this.handleNdefMessage(records);
       if (action == null) {
@@ -315,15 +326,23 @@ var NfcManager = {
     };
   },
 
+  getPrioritizedTech: function nm_getPrioritizedTech(techList) {
+    var self = this;
+    techList.sort(function sorter(techA, techB) {
+      var priorityA = self.TechPriority[techA] || self.TechPriority.Unsupported;
+      var priorityB = self.TechPriority[techB] || self.TechPriority.Unsupported;
+      return priorityA - priorityB;
+    });
+
+    return techList[0];
+  },
+
   handleTechnologyDiscovered: function nm_handleTechnologyDiscovered(command) {
     this._debug('Technology Discovered: ' + JSON.stringify(command));
 
     window.dispatchEvent(new CustomEvent('nfc-tech-discovered'));
     window.navigator.vibrate([25, 50, 125]);
 
-    // Check for tech types:
-    this._debug('command.techList: ' + command.techList);
-    var techList = command.techList;
     var records = null;
     if (command.records && (command.records.length > 0)) {
       records = command.records;
@@ -357,47 +376,31 @@ var NfcManager = {
       }
     }
 
-    // Assign priority of tech handling. This list will expand with supported
-    // Technologies.
-    var priority = {
-      'P2P': 0,
-      'NDEF': 1,
-      'NDEF_WRITEABLE': 2,
-      'NDEF_FORMATABLE': 3,
-      'NFC_A': 4,
-      'MIFARE_ULTRALIGHT': 5
-    };
-    techList.sort(function sorter(techA, techB) {
-      return priority[techA] - priority[techB];
-    });
-
+    this._debug('command.techList: ' + command.techList);
+    var tech = this.getPrioritizedTech(command.techList);
     // One shot try. Fallback directly to tag.
-    switch (techList[0]) {
+    switch (tech) {
       case 'P2P':
-        this.handleP2P(techList[0], command.sessionToken, records);
+        this.handleP2P(tech, command.sessionToken, records);
         break;
       case 'NDEF':
         if (records) {
-          this.handleNdefDiscovered(techList[0], command.sessionToken, records);
+          this.handleNdefDiscovered(tech, command.sessionToken, records);
         } else {
-          this.handleNdefDiscoveredEmpty(techList[0], command.sessionToken);
+          this.handleNdefDiscoveredEmpty(tech, command.sessionToken);
         }
         break;
       case 'NDEF_WRITEABLE':
-        this.handleNdefDiscoveredEmpty(techList[0], command.sessionToken);
+        this.handleNdefDiscoveredEmpty(tech, command.sessionToken);
         break;
       case 'NDEF_FORMATABLE':
-        this.handleNdefDiscoveredUseConnect(techList[0], command.sessionToken);
-        break;
-      case 'NFC_A':
-        this._debug('NFCA unsupported: ' + command);
-        break;
-      case 'MIFARE_ULTRALIGHT':
-        this._debug('MiFare unsupported: ' + command);
+        this.handleNdefDiscoveredUseConnect(tech, command.sessionToken);
         break;
       default:
-        this._debug('Unknown or unsupported tag type. Fire Tag-Discovered.');
+        this._debug('Unknown or unsupported tag type.' + tech +
+                    'Fire Tag-Discovered.');
         this.fireTagDiscovered(command);
+        break;
     }
   },
 
