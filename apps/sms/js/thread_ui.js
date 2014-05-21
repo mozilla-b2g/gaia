@@ -2225,23 +2225,26 @@ var ThreadUI = global.ThreadUI = {
         content: content[0],
         serviceId: serviceId,
         oncomplete: function onComplete(requestResult) {
-          if (requestResult.hasError) {
-            var errors = {};
-            requestResult.return.forEach(function(result) {
-              if (result.success) {
-                return;
-              }
+          if (!requestResult.hasError) {
+            this.onMessageSendRequestCompleted();
+            return;
+          }
 
-              if (errors[result.code.name] === undefined) {
-                errors[result.code.name] = [result.recipient];
-              } else {
-                errors[result.code.name].push(result.recipient);
-              }
-            });
-
-            for (var key in errors) {
-              this.showMessageSendingError(key, {recipients: errors[key]});
+          var errors = {};
+          requestResult.return.forEach(function(result) {
+            if (result.success) {
+              return;
             }
+
+            if (errors[result.code.name] === undefined) {
+              errors[result.code.name] = [result.recipient];
+            } else {
+              errors[result.code.name].push(result.recipient);
+            }
+          });
+
+          for (var key in errors) {
+            this.showMessageSendingError(key, {recipients: errors[key]});
           }
         }.bind(this)
       });
@@ -2261,6 +2264,9 @@ var ThreadUI = global.ThreadUI = {
         subject: subject,
         content: smilSlides,
         serviceId: serviceId,
+        onsuccess: function() {
+          this.onMessageSendRequestCompleted();
+        }.bind(this),
         onerror: function onError(error) {
           var errorName = error.name;
           this.showMessageSendingError(errorName);
@@ -2281,7 +2287,13 @@ var ThreadUI = global.ThreadUI = {
     // Update class names to reflect message state
     messageDOM.classList.remove('sending');
     messageDOM.classList.add('sent');
+  },
 
+  /**
+   * Fires once message (both SMS and MMS) send/resend request initiated by the
+   * current application instance is successfully completed.
+   */
+  onMessageSendRequestCompleted: function thui_onMessageSendRequestCompleted() {
     // Play the audio notification
     if (this.sentAudioEnabled) {
       this.sentAudio.play();
@@ -2467,13 +2479,17 @@ var ThreadUI = global.ThreadUI = {
       // the result of the resending
       var messageDOM = document.getElementById('message-' + id);
       var resendOpts = {
+        message: message,
         onerror: function onError(error) {
           var errorName = error.name;
           this.showMessageSendingError(errorName);
+        }.bind(this),
+        onsuccess: function() {
+           this.onMessageSendRequestCompleted();
         }.bind(this)
       };
       this.removeMessageDOM(messageDOM);
-      MessageManager.resendMessage(message, resendOpts);
+      MessageManager.resendMessage(resendOpts);
     }).bind(this);
   },
 
