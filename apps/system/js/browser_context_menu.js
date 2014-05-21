@@ -211,7 +211,7 @@
         // https://bugzilla.mozilla.org/show_bug.cgi?id=1009351
         //
         //   id: 'bookmark-link',
-        //   label: _('add-to-home-screen'),
+        //   label: _('add-link-to-home-screen'),
         //   callback: this.bookmarkUrl.bind(this, [item.data.uri])
         // }, {
           id: 'share-link',
