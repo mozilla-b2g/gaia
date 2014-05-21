@@ -104,9 +104,14 @@ App.prototype.runControllers = function() {
  */
 App.prototype.loadController = function(path) {
   var self = this;
-  this.require([path], function(controller) {
-    controller(self);
-  });
+  this.require([path, 'lib/string-utils'],
+    function(controller, StringUtils) {
+      var name = StringUtils.toCamelCase(
+        StringUtils.lastPathComponent(path));
+
+      self.controllers[name] = controller(self);
+    }
+  );
 };
 
 /**
