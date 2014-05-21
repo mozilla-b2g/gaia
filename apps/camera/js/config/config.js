@@ -17,6 +17,13 @@ module.exports = {
 
   zoom: {
     disabled: false,
+
+    // The viewfinder preview stream should automatically
+    // reflect the current zoom value. However, on some
+    // devices, the viewfinder needs to be scaled by the
+    // application. Set this flag if the preview stream
+    // does not visually reflect the zoom value properly.
+    useZoomPreviewAdjustment: false
   },
 
   focus: {

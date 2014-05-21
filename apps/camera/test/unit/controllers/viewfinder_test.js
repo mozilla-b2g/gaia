@@ -177,7 +177,7 @@ suite('controllers/viewfinder', function() {
     });
   });
 
-  suite('ViewfinderController#configureZoom()', function() {
+  suite('ViewfinderController#onZoomConfigured()', function() {
     setup(function() {
       this.camera.isZoomSupported.returns(true);
       this.settings.zoom.enabled.returns(true);
@@ -187,21 +187,21 @@ suite('controllers/viewfinder', function() {
     });
 
     test('Should call enableZoom on the viewfinder', function() {
-      this.controller.configureZoom();
+      this.controller.onZoomConfigured();
       assert.isTrue(this.viewfinder.enableZoom.calledWith(0, 3));
     });
 
     test('Should disable zoom if camera doesn\'t support zoom', function() {
       this.camera.isZoomSupported.returns(false);
 
-      this.controller.configureZoom();
+      this.controller.onZoomConfigured();
       assert.isTrue(this.viewfinder.disableZoom.called);
     });
 
     test('Should disable zoom if zoom disabled in settings', function() {
       this.settings.zoom.enabled.returns(false);
 
-      this.controller.configureZoom();
+      this.controller.onZoomConfigured();
       assert.isTrue(this.viewfinder.disableZoom.called);
     });
   });
