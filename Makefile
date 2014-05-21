@@ -42,20 +42,16 @@
 #                                                                             #
 ###############################################################################
 #                                                                             #
-# XULrunner download and location configuration                               #
+# b2g desktop download and location configuration (formerly xulrunner)        #
 #                                                                             #
-# USE_LOCAL_XULRUNNER_SDK  : if you have a local XULrunner installation and   #
-#                            wants to use it                                  #
+# USE_LOCAL_XULRUNNER_SDK  : if you have a local b2g desktop installation     #
+#                            and want to use it                               #
 #                                                                             #
 # XULRUNNER_DIRECTORY      : if you use USE_LOCAL_XULRUNNER_SDK, this is      #
-#                            where your local XULrunner installation is       #
+#                            where your local b2g desktop installation is     #
+#                            Note: a full firefox build is good enough        #
 #                                                                             #
-# XULRUNNER_BASE_DIRECTORY : if you don't use USE_LOCAL_XULRUNNER_SDK, this   #
-#                            is where you want the automatic XULrunner        #
-#                            download to uncompress.                          #
-#                                                                             #
-# Submakes will get XULRUNNER_DIRECTORY, XULRUNNERSDK and XPCSHELLSDK as      #
-# absolute paths.                                                             #
+# Submakes will get XULRUNNER_DIRECTORY and XPCSHELLSDK as absolute paths.    #
 #                                                                             #
 ###############################################################################
 
@@ -68,7 +64,7 @@ MAKEFLAGS=-r
 # Headless bot does not need the full output of wget
 # and it can cause crashes in bot.io option is here so
 # -nv can be passed and turn off verbose output.
-WGET_OPTS?=-c
+WGET_OPTS?=-c -nv
 GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
@@ -257,47 +253,75 @@ SEP_FOR_SED=\\\\
 MSYS_FIX=/
 endif
 
-# The install-xulrunner target arranges to get xulrunner downloaded and sets up
-# some commands for invoking it. But it is platform dependent
-# IMPORTANT: you should generally change the directory name when you change the
-# URL unless you know what you're doing
-XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2014/07/2014-07-04-03-02-08-mozilla-central/xulrunner-33.0a1.en-US.
-XULRUNNER_BASE_DIRECTORY?=xulrunner-sdk-33
-XULRUNNER_DIRECTORY?=$(XULRUNNER_BASE_DIRECTORY)/xulrunner-sdk
-XULRUNNER_URL_FILE=$(XULRUNNER_BASE_DIRECTORY)/.url
+# The b2g_sdk target arranges to get b2g desktop downloaded and set up.
+# This is platform dependent code, so a mite complicated.
+# Note: this used to be just xulrunner, hence the use of that name throughout,
+# but xulrunner doesn't include everything we need
+
+# Configuration for pre-built or already downloaded b2g (or alternative)
+ifdef USE_LOCAL_XULRUNNER_SDK
+
+ifndef XULRUNNER_DIRECTORY
+$(error XULRUNNER_DIRECTORY must be set if USE_LOCAL_XULRUNNER_SDK is set)
+endif
+
+# Some guesswork to figure out where the xpcshell binary really is
+# Most of this is to accommodate the variety of setups used
+# by different platforms, build systems and TBPL configurations
+# including Firefox, xulrunner and other builds
+XPCSHELL_GUESS = $(firstword $(wildcard \
+    $(XULRUNNER_DIRECTORY)/B2G.app/Contents/MacOS/xpcshell \
+    $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/xpcshell \
+    $(XULRUNNER_DIRECTORY)/bin/xpcshell* \
+  ))
+ifneq (,$(XPCSHELL_GUESS))
+XPCSHELLSDK := $(abspath $(XPCSHELL_GUESS))
+XULRUNNERSDK := $(wildcard $(XPCSHELLSDK)/run-mozilla.sh)
+endif
+
+# Configuration for a downloaded b2g desktop
+else
+
+# Determine the host-dependent bundle to download
+B2G_SDK_VERSION := 34.0a1
+B2G_SDK_DATE := 2014/08/2014-08-12-04-02-01
+
+XULRUNNER_BASE_DIR ?= b2g_sdk
+XULRUNNER_DIRECTORY ?= $(XULRUNNER_BASE_DIR)/$(B2G_SDK_VERSION)-$(notdir $(B2G_SDK_DATE))
+XULRUNNER_DIRECTORY := $(abspath $(XULRUNNER_DIRECTORY))
 
 ifeq ($(SYS),Darwin)
-# For mac we have the xulrunner-sdk so check for this directory
-# We're on a mac
-XULRUNNER_MAC_SDK_URL=$(XULRUNNER_SDK_URL)mac-
-ifeq ($(ARCH),i386)
-# 32-bit
-XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_MAC_SDK_URL)i386.sdk.tar.bz2
-else
-# 64-bit
-XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_MAC_SDK_URL)x86_64.sdk.tar.bz2
-endif
-XULRUNNERSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/run-mozilla.sh)
-XPCSHELLSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/xpcshell)
+B2G_SDK_EXT := dmg
+B2G_SDK_OS := mac64
+XPCSHELLSDK := $(abspath $(XULRUNNER_DIRECTORY)/B2G.app/Contents/MacOS/xpcshell)
 
 else ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
-# For windows we only have one binary
-XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_SDK_URL)win32.sdk.zip
-XULRUNNERSDK=
-XPCSHELLSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/xpcshell)
+B2G_SDK_EXT := zip
+B2G_SDK_OS := win32
+XPCSHELLSDK := $(abspath $(XULRUNNER_DIRECTORY)/b2g/xpcshell.exe)
 
-else
 # Otherwise, assume linux
-# downloads and installs locally xulrunner to run the xpchsell
-# script that creates the offline cache
-XULRUNNER_LINUX_SDK_URL=$(XULRUNNER_SDK_URL)linux-
-ifeq ($(ARCH),x86_64)
-XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_LINUX_SDK_URL)x86_64.sdk.tar.bz2
 else
-XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_LINUX_SDK_URL)i686.sdk.tar.bz2
+B2G_SDK_EXT := tar.bz2
+ifeq ($(ARCH),x86_64)
+B2G_SDK_OS := linux-x86_64
+else
+B2G_SDK_OS := linux-i686
 endif
-XULRUNNERSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/run-mozilla.sh)
-XPCSHELLSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/xpcshell)
+XPCSHELLSDK := $(abspath $(XULRUNNER_DIRECTORY)/b2g/xpcshell)
+endif
+
+B2G_SDK_URL_BASE := http://ftp.mozilla.org/pub/mozilla.org/b2g/nightly/$(B2G_SDK_DATE)-mozilla-central
+B2G_SDK_FILE_NAME := b2g-$(B2G_SDK_VERSION).multi.$(B2G_SDK_OS).$(B2G_SDK_EXT)
+B2G_SDK_URL := $(B2G_SDK_URL_BASE)/$(B2G_SDK_FILE_NAME)
+B2G_SDK_URL_FILE := $(XULRUNNER_DIRECTORY)/.b2g.url
+
+endif # Firefox build workaround
+
+# XULRUNNERSDK used to be run-mozilla.sh, but some builds don't include it
+# Without that, Linux needs to reference the directory containing libxul.so
+ifeq (,$(XULRUNNERSDK)$(findstring Darwin,$(SYS))$(findstring MINGW32_,$(SYS)))
+XULRUNNERSDK := LD_LIBRARY_PATH="$(dir $(XPCSHELLSDK))"
 endif
 
 # It's difficult to figure out XULRUNNERSDK in subprocesses; it's complex and
@@ -394,7 +418,7 @@ ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
   $(shell mkdir -p outoftree_apps \
     $(foreach dir,$(GAIA_OUTOFTREE_APP_SRCDIRS),\
       $(foreach appdir,$(wildcard $(dir)/*),\
-        && ln -sf $(appdir) outoftree_apps/)))
+	&& ln -sf $(appdir) outoftree_apps/)))
 endif
 
 GAIA_LOCALES_PATH?=locales
@@ -411,7 +435,7 @@ GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,fr-CA,pl,ko,zh-Hans-Pinyin,en-Dvorak
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
 SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
-DOWNLOAD_CMD = /usr/bin/curl -OL
+DOWNLOAD_CMD = /usr/bin/curl -OLsS
 TAR_WILDCARDS = tar
 else
 MD5SUM = md5sum -b
@@ -500,7 +524,7 @@ export BUILD_CONFIG
 include build/common.mk
 
 # Generate profile/
-$(PROFILE_FOLDER): preferences pre-app post-app test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit
+$(PROFILE_FOLDER): preferences pre-app post-app test-agent-config offline contacts extensions b2g_sdk .git/hooks/pre-commit
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -511,7 +535,7 @@ $(STAGE_DIR):
 LANG=POSIX # Avoiding sort order differences between OSes
 
 .PHONY: pre-app
-pre-app: $(XULRUNNER_BASE_DIRECTORY) $(STAGE_DIR)
+pre-app: b2g_sdk $(STAGE_DIR)
 	@$(call run-js-command,pre-app)
 
 .PHONY: app
@@ -519,7 +543,7 @@ app: $(XULRUNNER_BASE_DIRECTORY) pre-app | $(STAGE_DIR)
 	@$(call run-js-command,app)
 
 .PHONY: post-app
-post-app: app pre-app $(XULRUNNER_BASE_DIRECTORY)
+post-app: app pre-app b2g_sdk
 	@$(call run-js-command,post-app)
 
 # Keep old targets just for people/scripts still using it
@@ -586,41 +610,47 @@ reference-workload-heavy:
 reference-workload-x-heavy:
 	test_media/reference-workload/makeReferenceWorkload.sh x-heavy
 
+.PHONY: xpcshell_sdk xulrunner_sdk print-xulrunner-sdk
 xpcshell_sdk:
 	@echo $(XPCSHELLSDK)
 
 xulrunner_sdk:
 	@echo $(XULRUNNERSDK)
 
-.PHONY: print-xulrunner-sdk
 print-xulrunner-sdk:
 	@echo "$(XULRUNNER_DIRECTORY)"
 
-$(XULRUNNER_BASE_DIRECTORY):
-	@echo "XULrunner directory: $(XULRUNNER_DIRECTORY)"
+B2G_SDK_TMP := .b2g.tmp
+.INTERMEDIATES: $(B2G_SDK_TMP)
+.PHONY: b2g_sdk
+b2g_sdk:
+	@echo "Test SDK directory: $(XULRUNNER_DIRECTORY)"
 ifndef USE_LOCAL_XULRUNNER_SDK
-ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell test -d $(XULRUNNER_DIRECTORY) && cat $(XULRUNNER_URL_FILE) 2> /dev/null))
-# must download the xulrunner sdk
-	rm -rf $(XULRUNNER_BASE_DIRECTORY)
-	@echo "Downloading XULRunner..."
-	$(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD)
-ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
-	mkdir -p "$(XULRUNNER_BASE_DIRECTORY)"
-	@echo "Unzipping XULRunner..."
-	unzip -q xulrunner*.zip -d "$(XULRUNNER_BASE_DIRECTORY)" && rm -f xulrunner*.zip
+ifneq ($(B2G_SDK_URL),$(shell test -d $(XULRUNNER_DIRECTORY) && cat $(B2G_SDK_URL_FILE) 2> /dev/null))
+	rm -rf $(XULRUNNER_DIRECTORY)
+	mkdir -p "$(XULRUNNER_DIRECTORY)"
+	@echo "Downloading B2G SDK..."
+	$(DOWNLOAD_CMD) "$(B2G_SDK_URL)"
+ifeq ($(B2G_SDK_EXT),dmg)
+# it's a nasty mac disk image
+	@mkdir -p $(B2G_SDK_TMP)
+	hdiutil attach $(B2G_SDK_FILE_NAME) -readonly -nobrowse -mount required -mountpoint $(B2G_SDK_TMP)
+	cp -Rf $(B2G_SDK_TMP)/* "$(XULRUNNER_DIRECTORY)"
+	ln -sf "$(XULRUNNER_DIRECTORY)/B2G.app/Contents/MacOS" "$(XULRUNNER_DIRECTORY)/b2g"
+	umount $(B2G_SDK_TMP)
+else ifeq ($(B2G_SDK_EXT),tar.bz2)
+	tar xjf "$(B2G_SDK_FILE_NAME)" -C "$(XULRUNNER_DIRECTORY)"
 else
-	mkdir -p $(XULRUNNER_BASE_DIRECTORY)
-	tar xjf xulrunner*.tar.bz2 -C $(XULRUNNER_BASE_DIRECTORY) && rm -f xulrunner*.tar.bz2 || \
-		( echo; \
-		echo "We failed extracting the XULRunner SDK archive which may be corrupted."; \
-		echo "You should run 'make really-clean' and try again." ; false )
-endif # MINGW32
-	@echo $(XULRUNNER_SDK_DOWNLOAD) > $(XULRUNNER_URL_FILE)
-endif # XULRUNNER_SDK_DOWNLOAD
+	unzip -q "$(B2G_SDK_FILE_NAME)" -d "$(XULRUNNER_DIRECTORY)"
+endif
+	@rm -rf $(B2G_SDK_TMP) $(B2G_SDK_FILE_NAME)
+	@echo $(B2G_SDK_URL) > $(B2G_SDK_URL_FILE)
+endif # B2G SDK is up to date
 endif # USE_LOCAL_XULRUNNER_SDK
+	test -f $(XPCSHELLSDK)
 
 # Generate profile/prefs.js
-preferences: profile-dir $(XULRUNNER_BASE_DIRECTORY)
+preferences: profile-dir b2g_sdk
 	@$(call run-js-command,preferences)
 
 # Generate $(PROFILE_FOLDER)/extensions
@@ -872,10 +902,10 @@ hint: node_modules/.bin/jshint
 	@echo Running jshint...
 	@./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES) || (echo Please consult https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md to get some information about how to fix jshint issues. && exit 1)
 
-csslint: $(XULRUNNER_BASE_DIRECTORY)
+csslint: b2g_sdk
 	@$(call run-js-command,csslint)
 
-jsonlint: $(XULRUNNER_BASE_DIRECTORY)
+jsonlint: b2g_sdk
 	@$(call run-js-command,jsonlint)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
@@ -913,7 +943,7 @@ install-gaia: $(PROFILE_FOLDER) push
 # on your phone, and you have adb in your path, then you can use the
 # push target to update the gaia files and reboot b2g
 .PHONY: push
-push: $(XULRUNNER_BASE_DIRECTORY)
+push: b2g_sdk
 	@$(call run-js-command,push-to-device)
 
 # Copy demo media to the sdcard.
@@ -961,7 +991,7 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 	$(ADB) shell 'if test -d $(MSYS_FIX)/persist/svoperapps; then rm -r $(MSYS_FIX)/persist/svoperapps; fi'
 
-$(PROFILE_FOLDER)/settings.json: $(XULRUNNER_BASE_DIRECTORY) profile-dir pre-app post-app
+$(PROFILE_FOLDER)/settings.json: b2g_sdk profile-dir pre-app post-app
 
 # push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone
 install-default-data: $(PROFILE_FOLDER)/settings.json contacts
@@ -981,11 +1011,10 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf xulrunner-* .xulrunner-* node_modules b2g modules.tar js-marionette-env
+	rm -rf b2g-* .b2g-* b2g_sdk node_modules b2g modules.tar js-marionette-env
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
-
 
 build-test-unit: $(NPM_INSTALLED_PROGRAMS)
 	@$(call run-build-test, $(shell find build/test/unit/*.test.js))
