@@ -166,7 +166,6 @@
   -moz-box-sizing: border-box;
   padding: 1.8rem 2.5rem 1.2rem 2.5rem;
   color: #fff;
-  text-shadow: 0 0 0.3rem #333;
   transition: transform 0.2s ease, opacity 0.2s ease;
   opacity: 1;
 }
@@ -184,11 +183,9 @@
 #lockscreen-conn-states {
   width: 100%;
   display: inline-block;
-  font-weight: 400;
-  font-size: calc(6 * 0.226rem);
-  text-shadow: 0.1rem 0.1rem 0.3rem #000000;
+  font-weight: 300;
+  font-size: 1.4rem;
   padding-bottom: 1rem;
-  border-bottom: solid 0.1rem rgba(256,256,256,.4);
 
   overflow: hidden;
   white-space: nowrap;
@@ -216,21 +213,20 @@
 
 #lockscreen-clock-time {
   margin: -0.8rem 0 -1rem -0.4rem;
-  font-weight: 300;
-  font-size: calc(26 * 0.226rem);
+  font-weight: 200;
+  font-size: calc(7.7rem);
 }
 
 #lockscreen-clock-time span { /* optional meridiem */
-  font-size: calc(17 * 0.226rem);
+  font-size: calc(3rem);
 }
 
 #lockscreen-date {
-  font-weight: 400;
-  font-size: calc(7 * 0.226rem);
+  font-weight: 300;
+  font-size: calc(1.4rem);
 }
 
 #lockscreen-clock-time, #lockscreen-date {
-  text-shadow: 0.1rem 0.1rem 0.3rem #000000;
   color: #fff;
 }
 
@@ -289,7 +285,6 @@
   }
 
   #lockscreen-header {
-    text-shadow: 0 0 0.5rem #111111;
     padding-left: 6rem;
     font-weight: lighter;
   }
