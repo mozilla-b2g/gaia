@@ -86,11 +86,6 @@ var isKeyboardRendered = false;
 var currentCandidates = [];
 var candidatePanelScrollTimer = null;
 
-var cachedIMEDimensions = {
-  height: 0,
-  width: 0
-};
-
 // Show accent char menu (if there is one) after ACCENT_CHAR_MENU_TIMEOUT
 const ACCENT_CHAR_MENU_TIMEOUT = 700;
 
@@ -760,8 +755,8 @@ function setLayoutPage(newpage) {
 function updateTargetWindowHeight(hide) {
   perfTimer.printTime('updateTargetWindowHeight');
   // height of the current active IME + 1px for the borderTop
-  var imeHeight = cachedIMEDimensions.height = IMERender.getHeight() + 1;
-  var imeWidth = cachedIMEDimensions.width = IMERender.getWidth();
+  var imeHeight = IMERender.getHeight() + 1;
+  var imeWidth = IMERender.getWidth();
   window.resizeTo(imeWidth, imeHeight);
 }
 
