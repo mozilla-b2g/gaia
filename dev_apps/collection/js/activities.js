@@ -6,10 +6,6 @@
   var Activities = {
     'update-collection': function(activity) {
       alert('Updating collection!');
-    },
-
-    'remove-collection': function(activity) {
-      alert('Removing collection!');
     }
   };
 
