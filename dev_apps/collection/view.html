@@ -23,10 +23,13 @@
     <script defer src="shared/elements/gaia_grid/js/icon_retriever.js"></script>
     <!-- /gaia grid -->
 
+    <script defer src="shared/elements/gaia_menu/script.js"></script>
     <script defer src="shared/js/everythingme/eme.js"></script>
     <script defer src="shared/js/everythingme/cache.js"></script>
     <script defer src="shared/js/everythingme/api.js"></script>
 
+    <script defer src="js/objects.js"></script>
+    <script defer src="js/contextmenu.js"></script>
     <script defer src="js/view_collection.js"></script>
 
     <link rel="stylesheet" href="style/css/base.css">
@@ -43,7 +46,12 @@
     </div>
 
     <div id="content">
-        <gaia-grid id="grid" dragdrop></gaia-grid>
+        <gaia-grid id="grid"></gaia-grid>
     </div>
+
+    <gaia-menu id="cloud-menu" hidden>
+        <button data-l10n="add-to-top-of-collection" id="pin-cloudapp">Add to top of collection</button>
+        <button data-l10n="save-to-homescreen">Save to Homescreen</button>
+    </gaia-menu>
   </body>
 </html>

@@ -1,4 +1,6 @@
 'use strict';
+/* global Promise*/
+/* global asyncStorage*/
 
 (function(eme) {
   var

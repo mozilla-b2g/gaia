@@ -16,7 +16,8 @@
       name: collection.name,
       id: collection.id,
       categoryId: collection.categoryId,
-      query: collection.query
+      query: collection.query,
+      pinned: collection.pinned
     };
   }
 

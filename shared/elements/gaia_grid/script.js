@@ -101,6 +101,10 @@ window.GaiaGrid = (function(win) {
     return this._grid.items;
   };
 
+  proto.getIcon = function(identifier) {
+    return this._grid.icons[identifier];
+  };
+
   /**
    * Removes an icon by identifier.
    * @param {String} identifier

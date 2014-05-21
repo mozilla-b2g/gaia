@@ -7,6 +7,7 @@
   var eme = exports.eme;
 
   var grid = document.getElementById('grid');
+  var menu = document.getElementById('cloud-menu');
 
   var elements = {
     bgimage: document.getElementById('bgimage'),
@@ -15,6 +16,11 @@
   }
 
   function HandleView(activity) {
+
+    var collection = BaseCollection.create(activity.source.data);
+    collection.render(grid);
+
+    var contextmenu = new Contextmenu(menu, grid, collection);
 
     function error(e) {
       eme.log(e);
@@ -28,10 +34,9 @@
       activity.postError(e);
     }
 
-
-    var categoryId = activity.source.data.categoryId;
-    var query = activity.source.data.query;
-    var name = activity.source.data.name;
+    var categoryId = collection.categoryId;
+    var query = collection.query;
+    var name = collection.name;
 
     elements.name.textContent = name;
     elements.close.addEventListener('click', function close() {

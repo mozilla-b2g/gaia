@@ -8,6 +8,7 @@
 
     <link rel="stylesheet" href="/shared/style/confirm.css">
     <link rel="stylesheet" href="/shared/style/progress_activity.css">
+    <link rel="stylesheet" href="/style/css/base.css">
     <link rel="stylesheet" href="/style/css/create.css">
     <link rel="stylesheet" href="/style/css/view.css">
 
@@ -32,12 +33,15 @@
     <script defer src="/shared/elements/gaia_grid/js/grid_zoom.js"></script>
     <script defer src="/shared/elements/gaia_grid/script.js"></script>
 
+    <script defer src="/shared/elements/gaia_menu/script.js"></script>
+
     <script defer src="/shared/js/everythingme/eme.js"></script>
     <script defer src="/shared/js/everythingme/cache.js"></script>
     <script defer src="/shared/js/everythingme/api.js"></script>
 
     <script defer src="/js/objects.js"></script>
     <script defer src="/js/suggestions.js"></script>
+    <script defer src="/js/contextmenu.js"></script>
     <script defer src="/js/activities.js"></script>
     <script defer src="/js/create_collection.js"></script>
     <script defer src="/js/view_collection.js"></script>
@@ -85,8 +89,14 @@
       </div>
 
       <div id="content">
-          <gaia-grid id="grid" dragdrop></gaia-grid>
+          <gaia-grid id="grid"></gaia-grid>
       </div>
+
+      <gaia-menu id="cloud-menu" hidden>
+        <button data-l10n="add-to-top-of-collection">Add to top of collection</button>
+        <button data-l10n="save-to-homescreen">Save to Homescreen</button>
+      </gaia-menu>
     </div>
+
   </body>
 </html>

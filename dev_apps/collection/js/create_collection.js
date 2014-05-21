@@ -34,7 +34,7 @@
               // collections from categories
               var
               collections =
-                CategoryCollection.prototype.fromResponse(selected, data),
+                CategoryCollection.fromResponse(selected, data),
               trxs = collections.map(CollectionsDatabase.add);
 
               // TODO
