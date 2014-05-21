@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
 from marionette.by import By
 from gaiatest.apps.base import Base
 
@@ -14,6 +15,8 @@ class CellDataPrompt(Base):
     def __init__(self, marionette):
         Base.__init__(self, marionette)
         self.wait_for_condition(lambda m: m.find_element(*self._cell_data_prompt_container_locator).location['x'] == 0)
+        # TODO: Remove sleep after Bug 1013249 is fixed.
+        time.sleep(0.5)
 
     def turn_on(self):
         self.marionette.find_element(*self._cell_data_prompt_turn_on_button_locator).tap()
