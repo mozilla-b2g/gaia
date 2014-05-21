@@ -58,7 +58,8 @@ var EdgeSwipeDetector = {
       case 'mousedown':
       case 'mousemove':
       case 'mouseup':
-        // Preventing gecko reflows
+        // Preventing gecko reflows until
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=1005815 lands
         e.preventDefault();
         break;
       case 'touchstart':

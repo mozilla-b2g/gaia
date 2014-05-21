@@ -249,9 +249,12 @@ var StatusBar = {
     window.addEventListener('appopened', this);
     window.addEventListener('homescreenopened', this.show.bind(this));
 
-    var touchEvents = ['touchstart', 'touchmove', 'touchend'];
-    touchEvents.forEach(function bindEvents(name) {
-      this.topPanel.addEventListener(name, this.panelTouchHandler.bind(this));
+    // We need to preventDefault on mouse events until
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1005815 lands
+    var events = ['touchstart', 'touchmove', 'touchend',
+                  'mousedown', 'mousemove', 'mouseup'];
+    events.forEach(function bindEvents(name) {
+      this.topPanel.addEventListener(name, this.panelHandler.bind(this));
     }, this);
 
     this.systemDownloadsCount = 0;
@@ -429,7 +432,7 @@ var StatusBar = {
   _touchStart: null,
   _touchForwarder: new TouchForwarder(),
   _shouldForwardTap: false,
-  panelTouchHandler: function sb_panelTouchHandler(evt) {
+  panelHandler: function sb_panelHandler(evt) {
 
     // Do not forward events if FTU is running
     if (FtuLauncher.isFtuRunning()) {
