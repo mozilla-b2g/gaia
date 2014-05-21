@@ -3024,6 +3024,7 @@ suite('thread_ui.js >', function() {
         .returns(this.getMessageReq);
       this.sinon.stub(MessageManager, 'deleteMessage').callsArgWith(1, true);
       this.sinon.stub(MessageManager, 'resendMessage');
+      this.sinon.spy(ThreadUI, 'onMessageSendRequestCompleted');
     });
 
     // TODO: Implement this functionality in a specialized method and update
@@ -3052,6 +3053,30 @@ suite('thread_ui.js >', function() {
 
       var args = MessageManager.resendMessage.args[0];
       assert.deepEqual(args[0], this.targetMsg);
+    });
+
+    test('invokes onMessageSendRequestCompleted on successful send request',
+      function() {
+      MessageManager.resendMessage.callsArg(1);
+
+      ThreadUI.resendMessage(23);
+
+      this.getMessageReq.result = this.targetMsg;
+      this.getMessageReq.onsuccess();
+
+      sinon.assert.called(ThreadUI.onMessageSendRequestCompleted);
+    });
+
+    test('does not invoke onMessageSendRequestCompleted on failed send request',
+      function() {
+      MessageManager.resendMessage.callsArgWith(1, new Error('failed'));
+
+      ThreadUI.resendMessage(23);
+
+      this.getMessageReq.result = this.targetMsg;
+      this.getMessageReq.onsuccess();
+
+      sinon.assert.notCalled(ThreadUI.onMessageSendRequestCompleted);
     });
   });
 
@@ -4136,6 +4161,56 @@ suite('thread_ui.js >', function() {
       });
     });
 
+    suite('onMessageSendRequestCompleted >', function() {
+      setup(function() {
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+
+        this.sinon.spy(ThreadUI, 'onMessageSendRequestCompleted');
+      });
+
+      test('called if SMS is successfully sent', function() {
+        MessageManager.sendSMS.yieldsTo('oncomplete', {});
+        Compose.append('foo');
+
+        clickButton();
+
+        sinon.assert.called(ThreadUI.onMessageSendRequestCompleted);
+      });
+
+      test('is not called if SMS is failed to be sent', function() {
+        MessageManager.sendSMS.yieldsTo('oncomplete', {
+          hasError: true,
+          return: [{
+            success: true
+          }]
+        });
+        Compose.append('foo');
+
+        clickButton();
+
+        sinon.assert.notCalled(ThreadUI.onMessageSendRequestCompleted);
+      });
+
+      test('called if MMS is successfully sent', function() {
+        MessageManager.sendMMS.yieldsTo('onsuccess', {});
+        Compose.append(mockAttachment(512));
+
+        clickButton();
+
+        sinon.assert.called(ThreadUI.onMessageSendRequestCompleted);
+      });
+
+      test('is not called if MMS is failed to be sent', function() {
+        MessageManager.sendMMS.yieldsTo('onerror', new Error('failed'));
+        Compose.append(mockAttachment(512));
+
+        clickButton();
+
+        sinon.assert.notCalled(ThreadUI.onMessageSendRequestCompleted);
+      });
+    });
 
     test('Deletes draft if there was a draft', function() {
       this.sinon.spy(Drafts, 'delete');
@@ -5121,6 +5196,30 @@ suite('thread_ui.js >', function() {
     test('initializes only once', function() {
       ThreadUI.onBeforeEnter();
       sinon.assert.calledOnce(MultiSimActionButton);
+    });
+  });
+
+  suite('onMessageSendRequestCompleted >', function() {
+    setup(function() {
+       this.sinon.stub(ThreadUI, 'sentAudio', {
+         play: sinon.stub()
+       });
+    });
+
+    test('play sent audio if it is enabled', function() {
+      this.sinon.stub(ThreadUI, 'sentAudioEnabled', true);
+
+      ThreadUI.onMessageSendRequestCompleted();
+
+      sinon.assert.called(ThreadUI.sentAudio.play);
+    });
+
+    test('does not play sent audio if it is not enabled', function() {
+      this.sinon.stub(ThreadUI, 'sentAudioEnabled', false);
+
+      ThreadUI.onMessageSendRequestCompleted();
+
+      sinon.assert.notCalled(ThreadUI.sentAudio.play);
     });
   });
 });
