@@ -312,4 +312,27 @@ suite('system/UtilityTray', function() {
         classList.contains('utility-tray'), false);
     });
   });
+
+  suite('mousedown event on the statusbar', function() {
+    setup(function() {
+      fakeEvt = createEvent('mousedown', true, true);
+      UtilityTray.show();
+    });
+
+    test('keyboard shown > preventDefault mousedown event', function() {
+      var imeShowEvt = createEvent('keyboardimeswitchershow');
+      UtilityTray.handleEvent(imeShowEvt);
+
+      assert.isFalse(UtilityTray.statusbar.dispatchEvent(fakeEvt));
+      assert.isFalse(UtilityTray.overlay.dispatchEvent(fakeEvt));
+    });
+
+    test('keyboard hidden > Don\'t preventDefault mousedown event', function() {
+      var imeShowEvt = createEvent('keyboardimeswitcherhide');
+      UtilityTray.handleEvent(imeShowEvt);
+
+      assert.isTrue(UtilityTray.statusbar.dispatchEvent(fakeEvt));
+      assert.isTrue(UtilityTray.overlay.dispatchEvent(fakeEvt));
+    });
+  });
 });
