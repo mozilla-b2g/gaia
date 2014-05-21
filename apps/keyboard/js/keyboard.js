@@ -278,12 +278,17 @@ function initKeyboard() {
   window.navigator.mozInputMethod.oninputcontextchange = function() {
     perfTimer.printTime('inputcontextchange');
     inputContext = navigator.mozInputMethod.inputcontext;
-    if (!document.mozHidden && inputContext) {
+    if (inputContext) {
       inputContextGetTextPromise = inputContext.getText();
-      showKeyboard();
-    } else {
-      hideKeyboard();
     }
+    var inputMethodName = window.location.hash.substring(1);
+    setKeyboardName(inputMethodName, function() {
+      if (!document.mozHidden && inputContext) {
+        showKeyboard();
+      } else {
+        hideKeyboard();
+      }
+    });
   };
 
   // Initialize the current layout according to
