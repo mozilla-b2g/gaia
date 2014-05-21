@@ -183,7 +183,8 @@ PreferencesBuilder.prototype.setDebugPref = function() {
   this.prefs['extensions.gaia.domain'] = this.config.GAIA_DOMAIN;
   this.prefs['extensions.gaia.port'] =
     parseInt(this.config.GAIA_PORT.replace(/:/g, ''), 10);
-  this.prefs['extensions.gaia.appdirs'] = this.config.GAIA_APPDIRS;
+  this.prefs['extensions.gaia.appdirs'] =
+    utils.getAppDirs(this.config.STAGE_APPS_LIST).join('\n');
   this.prefs['extensions.gaia.locales_debug_path'] =
     this.config.GAIA_LOCALES_PATH;
   this.prefs['extensions.gaia.official'] = Boolean(this.config.OFFICIAL);

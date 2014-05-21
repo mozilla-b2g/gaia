@@ -148,3 +148,4 @@ exports.basename = utils.basename;
 exports.addEntryContentWithTime = utils.addEntryContentWithTime;
 exports.copyDirTo = utils.copyDirTo;
 exports.getCompression = utils.getCompression;
+exports.getAppDirs = utils.getAppDirs;
