@@ -407,13 +407,25 @@ suite('webapp-shared.js', function() {
       assert.equal(result[0].path, 'shared/elements/' + elementFile);
       assert.equal(result.length, 1);
 
-      // Component styles
+      // Test for various supported installs of component files
+      // Note: this test isn't as real as I would like it to be as the exists()
+      // function is stubbed always.
       elementFile = 'gaia_component/script.js';
-      webappShared.gaia = {
-        sharedFolder: mockUtils.getFile('elements/gaia_component/style.css')
-      };
-      webappShared.pushElements(elementFile);
-      assert.equal(result[2].path, 'shared/elements/gaia_component/style.css');
+      var testFiles = [
+        'elements/gaia_component/style.css',
+        'elements/gaia_component/images/myimg.png',
+        'elements/gaia_component/js/myfile.js'
+      ];
+
+      testFiles.forEach(function(testFile) {
+        result.length = 0;
+        webappShared.gaia = {
+          sharedFolder: mockUtils.getFile(testFile)
+        };
+        webappShared.pushElements(elementFile);
+        assert.equal(result[0].path, 'shared/elements/' + elementFile);
+        assert.equal(result[1].path, 'shared/' + testFile);
+      });
     });
 
     test('copyBuildingBlock', function() {
