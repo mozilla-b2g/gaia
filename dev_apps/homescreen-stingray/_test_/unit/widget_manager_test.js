@@ -46,7 +46,7 @@ suite('homescreen-stingray/WidgetManager', function() {
 
   suiteSetup(function() {
     mockUI = document.createElement('div');
-    mockUI.classList.add('widget-overlay');
+    mockUI.id = 'widget-container';
     document.body.appendChild(mockUI);
   });
 

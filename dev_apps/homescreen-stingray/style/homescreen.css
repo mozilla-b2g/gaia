@@ -27,6 +27,10 @@ menu[type="toolbar"] button:before {
   padding-left: 30px;
 }
 
+#app-list-open-button:before {
+  background-color: #33E;
+}
+
 #widget-editor-open-button:before {
   background-color: #E33;
 }

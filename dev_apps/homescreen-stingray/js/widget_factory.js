@@ -39,8 +39,7 @@
         manifest.launch_path);
 
       var config = new BrowserConfigHelper(appURL, manifestURL);
-      var widgetOverlay =
-        document.getElementsByClassName('widget-overlay')[0];
+      var widgetOverlay = document.getElementById('widget-container');
       var app = new WidgetWindow(config, widgetOverlay);
       // XXX: Separate styles.
       app.setStyle(args.rect);

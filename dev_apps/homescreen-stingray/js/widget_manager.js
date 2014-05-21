@@ -8,7 +8,7 @@
    */
   var WidgetManager = function() {
     this.runningWidgetsById = {};
-    this.widgetOverlay = document.getElementsByClassName('widget-overlay')[0];
+    this.widgetOverlay = document.getElementById('widget-container');
   };
 
   WidgetManager.prototype = {
