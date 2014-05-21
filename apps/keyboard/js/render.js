@@ -166,6 +166,10 @@ const IMERender = (function() {
       }
     }
 
+    // XXX We have to wait for layout to complete before
+    // return this function
+    container.offsetWidth;
+
     perfTimer.printTime('BLOCKING IMERender.draw', 'IMERender.draw');
   };
 
@@ -781,6 +785,10 @@ const IMERender = (function() {
         callback();
       }
 
+      // XXX We have to wait for layout to complete before
+      // return this function
+      ime.offsetWidth;
+
       perfTimer.printTime('BLOCKING IMERender.resizeUI:getVisualData',
         'IMERender.resizeUI:getVisualData');
     }
@@ -821,6 +829,10 @@ const IMERender = (function() {
     var rows = activeIme.querySelectorAll('.keyboard-row');
 
     setKeyWidth();
+
+    // XXX We have to wait for layout to complete before
+    // return this function
+    activeIme.offsetWidth;
 
     perfTimer.printTime('BLOCKING IMERender.resizeUI', 'IMERender.resizeUI');
   };
