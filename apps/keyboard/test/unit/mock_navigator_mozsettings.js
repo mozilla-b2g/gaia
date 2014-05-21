@@ -24,6 +24,9 @@ MockNavigatorMozSettings.prototype = new MockEventTarget();
 
 MockNavigatorMozSettings.prototype.onsettingchange = null;
 
+// This function returns a mocked lock object.
+// to spy/stub the methods of the returned lock before this method is called,
+// stub this method and return your own lock with spy/stub methods.
 MockNavigatorMozSettings.prototype.createLock = function() {
   var lock = new MockNavigatorMozSettingsLock();
 
@@ -64,43 +67,27 @@ MockNavigatorMozSettings.prototype.dispatchSettingChange = function(key, val) {
 
 var MockNavigatorMozSettingsLock = function() {
   this.closed = false;
-
-  this.mCalls = [];
 };
 
 MockNavigatorMozSettingsLock.prototype.set = function(arg) {
   var req = new MockDOMRequest();
-  this.mCalls.push({
-    name: 'set',
-    arguments: [].slice.call(arguments),
-    req: req
-  });
 
   return req;
 };
 
 MockNavigatorMozSettingsLock.prototype.get = function(arg) {
   var req = new MockDOMRequest();
-  this.mCalls.push({
-    name: 'get',
-    arguments: [].slice.call(arguments),
-    req: req
-  });
 
   return req;
 };
 
 MockNavigatorMozSettingsLock.prototype.clear = function(arg) {
   var req = new MockDOMRequest();
-  this.mCalls.push({
-    name: 'clear',
-    arguments: [].slice.call(arguments),
-    req: req
-  });
 
   return req;
 };
 
 exports.MockNavigatorMozSettings = MockNavigatorMozSettings;
+exports.MockNavigatorMozSettingsLock = MockNavigatorMozSettingsLock;
 
 })(window);
