@@ -30,7 +30,7 @@ var GaiaApps = {
                 anApp[key] = runningApps[app][key];
             }
         }
-        apps[app.origin] = anApp;
+        apps[runningApps[app]['origin']] = anApp;
     }
     return apps;
   },
@@ -51,16 +51,6 @@ var GaiaApps = {
     }
 
     return undefined;
-  },
-
-  getAppByName: function(name) {
-    let apps = GaiaApps.getApps();
-
-    for (let id in apps) {
-      if (apps[id].name == name) {
-        return apps[id];
-      }
-    }
   },
 
   getPermission: function(appName, permissionName) {
@@ -117,21 +107,85 @@ var GaiaApps = {
       if (entryPoints) {
         for (let ep in entryPoints) {
           let currentEntryPoint = entryPoints[ep];
-          let appName = currentEntryPoint.name;
 
+          let locales = currentEntryPoint.locales;
+          if (locales) {
+            for (let locale in locales){
+              let appName = locales[locale].name;
+              if (appName && normalizedSearchName === GaiaApps.normalizeName(appName)) {
+                return GaiaApps.sendLocateResponse(callback, app, currentEntryPoint.name, ep);
+              }
+            }
+          }
+          let appName = currentEntryPoint.name;
           if (normalizedSearchName === GaiaApps.normalizeName(appName)) {
             return GaiaApps.sendLocateResponse(callback, app, appName, ep);
           }
         }
       } else {
-        let appName = app.manifest.name;
-
-        if (normalizedSearchName === GaiaApps.normalizeName(appName)) {
-          return GaiaApps.sendLocateResponse(callback, app, appName);
+        let locales = app.manifest.locales;
+        if(locales){
+            for (let locale in locales){
+              let appName = locales[locale].name;
+              if (appName && normalizedSearchName === GaiaApps.normalizeName(appName)) {
+                return GaiaApps.sendLocateResponse(callback, app, app.manifest.name);
+              }
+            }
+        } else {
+          let appName = app.manifest.name;
+          if (normalizedSearchName === GaiaApps.normalizeName(appName)) {
+            return GaiaApps.sendLocateResponse(callback, app, appName);
+          }
         }
       }
     }
     callback(false);
+  },
+
+  locateAppByNameFromList: function(applications, searchName, aCallback){
+    var callback = aCallback || marionetteScriptFinished;
+    let normalizedSearchName = GaiaApps.normalizeName(searchName);
+
+    for (let manifestURL in applications) {
+      let app = applications[manifestURL];
+      let origin = null;
+      let entryPoints = app.manifest.entry_points;
+      if (entryPoints) {
+        for (let ep in entryPoints) {
+          let currentEntryPoint = entryPoints[ep];
+
+          let locales = currentEntryPoint.locales;
+          if (locales) {
+            for (let locale in locales){
+              let appName = locales[locale].name;
+              if (appName && normalizedSearchName === GaiaApps.normalizeName(appName)) {
+                return callback(app, currentEntryPoint.name, ep);
+              }
+            }
+          }
+          let appName = currentEntryPoint.name;
+          if (normalizedSearchName === GaiaApps.normalizeName(appName)) {
+            return callback(app, appName, ep);
+          }
+        }
+      } else {
+        let locales = app.manifest.locales;
+        if(locales){
+            for (let locale in locales){
+              let appName = locales[locale].name;
+              if (appName && normalizedSearchName === GaiaApps.normalizeName(appName)) {
+                return callback(app, app.manifest.name);
+              }
+            }
+        } else {
+          let appName = app.manifest.name;
+          if (normalizedSearchName === GaiaApps.normalizeName(appName)) {
+            return callback(app, appName);
+          }
+        }
+      }
+    }
+  callback(false);
   },
 
   locateWithManifestURL: function(manifestURL, entryPoint, aCallback) {
@@ -229,34 +283,56 @@ var GaiaApps = {
     );
   },
 
+  getLaunchPathForAppName: function(app, appName) {
+
+      let entryPoints = app.manifest.entry_points;
+
+      if (entryPoints) {
+        for (let ep in entryPoints) {
+          let currentEntryPoint = entryPoints[ep];
+          let epName = currentEntryPoint.name;
+          if (epName === appName) {
+            return currentEntryPoint.launch_path;
+          }
+        }
+      } else {
+        return app.manifest.launch_path;
+      }
+    }
+  },
+
   launch: function(app, appName, entryPoint) {
     if (app) {
       let origin = app.origin;
+      let launch_path = GaiaApps.getLaunchPathForAppName(appName);
+      let expected_src = origin + launch_path;
 
-      let sendResponse = function() {
-        let appWindow = GaiaApps.getAppByName(appName);
+      let sendResponse = function(appWindow, name) {
+
         let origin = appWindow.origin;
         let result = {
           frame: (appWindow.browser) ? appWindow.browser.element : appWindow.frame.firstChild,
           src: (appWindow.browser) ? appWindow.browser.element.src : appWindow.iframe.src,
           name: appWindow.name,
           origin: origin};
-        marionetteScriptFinished(result);
+          marionetteScriptFinished(result);
       };
 
       if (GaiaApps.getActiveApp().origin == origin) {
         console.log("app with origin '" + origin + "' is already running");
-        sendResponse();
+        GaiaApps.locateAppByNameFromList(GaiaApps.getApps(), appName, sendResponse);
       } else {
         window.addEventListener('appopen', function appOpen() {
           window.removeEventListener('appopen', appOpen);
           waitFor(
             function() {
               console.log("app with origin '" + origin + "' has launched");
-              sendResponse();
+              GaiaApps.locateAppByNameFromList(GaiaApps.getApps(), appName, sendResponse);
             },
             function() {
-              return GaiaApps.getActiveApp().name == appName;
+              let app = GaiaApps.getActiveApp();
+              let active_app_src = (app.browser) ? app.browser.element.src : app.iframe.src;
+              return active_app_src == expected_src;
             }
           );
         });
