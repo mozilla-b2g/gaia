@@ -287,7 +287,8 @@ var WindowManager = (function() {
       if (app && app.iframe)
         app.iframe.blur();
 
-      if (!TrustedUIManager.isVisible() && !FtuLauncher.isFtuRunning()) {
+      if (!TrustedUIManager.isVisible() && !FtuLauncher.isFtuRunning() &&
+          displayedApp == HomescreenLauncher.origin) {
         // Set homescreen visibility to false
         HomescreenLauncher.getHomescreen().setVisible(false);
       }
