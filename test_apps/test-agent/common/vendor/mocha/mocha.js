@@ -3757,7 +3757,13 @@ var globals = [
   'setInterval',
   'clearInterval',
   'XMLHttpRequest',
-  'Date'
+  'Date',
+  'postMessage',
+  'stop',
+  'addEventListener',
+  'removeEventListener',
+  'alert',
+  'dispatchEvent'
 ];
 
 /**
