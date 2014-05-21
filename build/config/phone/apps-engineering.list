@@ -30,3 +30,5 @@ dev_apps/sheet-app-2
 dev_apps/sheet-app-3
 dev_apps/test-findmydevice
 dev_apps/contacts-manager
+dev_apps/contacts-ds-provider1
+dev_apps/contacts-ds-provider2
