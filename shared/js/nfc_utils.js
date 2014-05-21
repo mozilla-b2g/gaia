@@ -39,6 +39,8 @@ const NDEF = {
   RTD_HANDOVER_REQUEST: 0,
   RTD_HANDOVER_SELECT: 0,
 
+  MIME_BLUETOOTH_OOB: 0,
+
   SMARTPOSTER_ACTION: 0,
 
   // Action Record Values:
@@ -58,6 +60,9 @@ const NDEF = {
     this.RTD_HANDOVER_CARRIER = NfcUtils.fromUTF8('Hc');
     this.RTD_HANDOVER_REQUEST = NfcUtils.fromUTF8('Hr');
     this.RTD_HANDOVER_SELECT = NfcUtils.fromUTF8('Hs');
+
+    this.MIME_BLUETOOTH_OOB =
+      NfcUtils.fromUTF8('application/vnd.bluetooth.ep.oob');
 
     this.SMARTPOSTER_ACTION = NfcUtils.fromUTF8('act');
 

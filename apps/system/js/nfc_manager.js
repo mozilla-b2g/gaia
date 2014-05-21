@@ -348,36 +348,29 @@ var NfcManager = {
     window.dispatchEvent(new CustomEvent('nfc-tech-discovered'));
     window.navigator.vibrate([25, 50, 125]);
 
-    var records = null;
-    if (command.records && (command.records.length > 0)) {
-      records = command.records;
-    } else {
-      this._debug('No NDEF Message sent to Technology Discovered');
-    }
-
+    var records = Array.isArray(command.records) ? command.records : null;
     if (records != null) {
       /* First check for handover messages that
        * are handled by the handover manager.
        */
       var firstRecord = records[0];
       if ((firstRecord.tnf == NDEF.TNF_MIME_MEDIA) &&
-            NfcUtils.equalArrays(firstRecord.type,
-            NfcUtils.fromUTF8('application/vnd.bluetooth.ep.oob'))) {
+          NfcUtils.equalArrays(firstRecord.type, NDEF.MIME_BLUETOOTH_OOB)) {
         this._debug('Handle simplified pairing record');
         NfcHandoverManager.handleSimplifiedPairingRecord(records);
         return;
-      }
-      if ((firstRecord.tnf == NDEF.TNF_WELL_KNOWN) &&
-          NfcUtils.equalArrays(firstRecord.type, NDEF.RTD_HANDOVER_SELECT)) {
-        this._debug('Handle Handover Select');
-        NfcHandoverManager.handleHandoverSelect(records);
-        return;
-      }
-      if ((firstRecord.tnf == NDEF.TNF_WELL_KNOWN) &&
-          NfcUtils.equalArrays(firstRecord.type, NDEF.RTD_HANDOVER_REQUEST)) {
-        this._debug('Handle Handover Request');
-        NfcHandoverManager.handleHandoverRequest(records, command.sessionToken);
-        return;
+      } else if (firstRecord.tnf == NDEF.TNF_WELL_KNOWN) {
+        if (NfcUtils.equalArrays(firstRecord.type, NDEF.RTD_HANDOVER_SELECT)) {
+          this._debug('Handle Handover Select');
+          NfcHandoverManager.handleHandoverSelect(records);
+          return;
+        } else if (NfcUtils.equalArrays(firstRecord.type,
+                                        NDEF.RTD_HANDOVER_REQUEST)) {
+          this._debug('Handle Handover Request');
+          NfcHandoverManager.handleHandoverRequest(records,
+                                                   command.sessionToken);
+          return;
+        }
       }
     }
 
