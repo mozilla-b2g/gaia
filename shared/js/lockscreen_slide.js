@@ -57,6 +57,11 @@
       rdraw: {x: null, y: null}
     },
 
+    iconBG: {
+      color: 'rgba(255, 255, 255, 0.25)',
+      radius: 20
+    },
+
     slides: {
       left: null,
       right: null
@@ -244,6 +249,7 @@
           this._drawTrack();
           this._resetArrows();
           this._resetHandle();
+          this._drawIconBG();
           break;
 
         case 'touchstart':
@@ -357,13 +363,16 @@
           this._dpx(this.handle.innerRadius);
       }
 
-      this.track.radius = this.handle.radius + this._dpx(1);
+      this.track.radius =
+        this.handle.radius + this._dpx(this.useNewStyle ? 2 : 1);
 
       this.handle.lineWidth =
         this._dpx(this.handle.lineWidth);
 
       this.handle.autoExpand.sentinelOffset =
         this._dpx(this.handle.autoExpand.sentinelOffset);
+
+      this.iconBG.radius = this._dpx(this.iconBG.radius);
 
       this.canvas.getContext('2d').save();
 
@@ -401,6 +410,7 @@
       this.track.y = this.center.y;
 
       this._drawTrack();
+      this._drawIconBG();
     };
 
   /**
@@ -475,6 +485,7 @@
       this._drawTrack();
       this._drawArrowsTo(mtx);
       this._drawSlideTo(mtx);
+      this._drawIconBG();
     };
 
   /**
@@ -535,6 +546,7 @@
         this._drawTrack();
         this._resetArrows();
         this._resetHandle();
+        this._drawIconBG();
 
       }).bind(this);
 
@@ -661,6 +673,7 @@
             this._drawTrack();
             this._drawArrowsTo(nextTx);
             this._drawSlideTo(nextTx);
+            this._drawIconBG();
           }
           requestAnimationFrame(drawIt);
         } else {
@@ -669,6 +682,7 @@
           this._drawTrack();
           this._drawArrowsTo(center.x);
           this._drawSlideTo(center.x);
+          this._drawIconBG();
           if (cb)
             cb();
         }
@@ -1012,6 +1026,40 @@
    * @return {number}
    * @this {LockScreenSlide}
    */
+  LockScreenSlidePrototype._drawIconBG =
+    function lss_dibg() {
+      if (!this.useNewStyle)
+        return;
+
+      var canvas = this.canvas;
+      var ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = this.iconBG.color;
+      ctx.strokeStyle = 'transparent';
+
+      ctx.beginPath();
+      ctx.arc(this.track.from, this.track.y,
+              this.iconBG.radius, 0, 2 * Math.PI, false);
+      ctx.stroke();
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(this.track.to, this.track.y,
+              this.iconBG.radius, 0, 2 * Math.PI, false);
+      ctx.fill();
+      ctx.stroke();
+      ctx.closePath();
+    };
+
+  /**
+   * Return the mapping pixels according to the device pixel ratio.
+   * This may need to be put int the shared/js.
+   *
+   * @param {number} |px| original px distance.
+   * @return {number}
+   * @this {LockScreenSlide}
+   */
   LockScreenSlidePrototype._dpx =
     function lss_dpx(px) {
       return px * window.devicePixelRatio;
@@ -1067,7 +1115,7 @@
     };
 
   /**
-   * Draw the handle with its initial states (a transparent circle).
+   * Draw the handle with its initial states.
    *
    * @this {LockScreenSlide}
    */
