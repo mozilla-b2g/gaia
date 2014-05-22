@@ -873,53 +873,53 @@
       var strokeStyle = 'white';
       const GRADIENT_LENGTH = 50;
 
-      // If user move over 15px, fill the slide.
-      if (urw > 15 && true !== this.states.slidingColorful) {
-        // The color should be gradient in this length, from the origin.
-        // It would decide how long the color turning to the touched color.
+      if (this.useNewStyle) {
+        // If user move over 15px, fill the slide.
+        if (urw > 15 && true !== this.states.slidingColorful) {
+          // The color should be gradient in this length, from the origin.
+          // It would decide how long the color turning to the touched color.
 
-        fillAlpha = (urw - 15) / GRADIENT_LENGTH;
-        if (fillAlpha > 1.0) {
-          fillAlpha = 1.0;
-          this.states.slidingColorGradientEnd = true;
-        }
+          fillAlpha = (urw - 15) / GRADIENT_LENGTH;
+          if (fillAlpha > 1.0) {
+            fillAlpha = 1.0;
+            this.states.slidingColorGradientEnd = true;
+          }
 
-        // The border must disappear during the sliding,
-        // so it's alpha would decrease to zero.
-        var borderAlpha = 1.0 - fillAlpha;
+          // The border must disappear during the sliding,
+          // so it's alpha would decrease to zero.
+          var borderAlpha = 1.0 - fillAlpha;
 
-        // From white to covered color.
-        strokeStyle = 'rgba(' + this.handle.touchedColorStop +
-          ',' + borderAlpha + ')';
+          // From white to covered color.
+          strokeStyle = 'rgba(' + this.handle.touchedColorStop +
+            ',' + borderAlpha + ')';
 
-        // It's colorful now.
-        this.states.slidingColorful = true;
-        ctx.fillStyle = 'rgba(' + this.handle.touchedColor +
-          ',' + fillAlpha + ')';
-        ctx.lineWidth = this.handle.lineWidth;
-        console.log(strokeStyle);
-        ctx.strokeStyle = strokeStyle;
+          // It's colorful now.
+          this.states.slidingColorful = true;
+          ctx.fillStyle = 'rgba(' + this.handle.touchedColor +
+            ',' + fillAlpha + ')';
+          ctx.lineWidth = this.handle.lineWidth;
+          console.log(strokeStyle);
+          ctx.strokeStyle = strokeStyle;
 
-        // Start to draw it.
-        // Can't use functions like rect or these individual parts
-        // would show its borders.
-        ctx.beginPath();
+          // Start to draw it.
+          // Can't use functions like rect or these individual parts
+          // would show its borders.
+          ctx.beginPath();
 
-        ctx.arc(center.x, center.y,
-            radius, endAngle, startAngle, counterclock);
-        ctx.lineTo(center.x, center.y - radius);
-        ctx.lineTo(center.x + (offset - center.x), center.y - radius);
-        ctx.arc(offset, center.y, radius, startAngle, endAngle, counterclock);
-        ctx.lineTo(center.x, center.y + radius);
+          ctx.arc(center.x, center.y,
+              radius, endAngle, startAngle, counterclock);
+          ctx.lineTo(center.x, center.y - radius);
+          ctx.lineTo(center.x + (offset - center.x), center.y - radius);
+          ctx.arc(offset, center.y, radius, startAngle, endAngle, counterclock);
+          ctx.lineTo(center.x, center.y + radius);
 
-        // Note: When setting both the fill and stroke for a shape,
-        // make sure that you use fill() before stroke().
-        // Otherwise, the fill will overlap half of the stroke.
-        ctx.fill();
-        ctx.stroke();
-        ctx.closePath();
-      } else {
-        if (this.useNewStyle) {
+          // Note: When setting both the fill and stroke for a shape,
+          // make sure that you use fill() before stroke().
+          // Otherwise, the fill will overlap half of the stroke.
+          ctx.fill();
+          ctx.stroke();
+          ctx.closePath();
+        } else {
           if (0 === urw) {  // Draw as the initial circle.
             // outer circle
             ctx.beginPath();
@@ -979,7 +979,54 @@
             ctx.closePath();
 
           }
+        }
 
+      } else {
+        // If user move over 15px, fill the slide.
+        if (urw > 15 && true !== this.states.slidingColorful) {
+          // The color should be gradient in this length, from the origin.
+          // It would decide how long the color turning to the touched color.
+
+          fillAlpha = (urw - 15) / GRADIENT_LENGTH;
+          if (fillAlpha > 1.0) {
+            fillAlpha = 1.0;
+            this.states.slidingColorGradientEnd = true;
+          }
+
+          // The border must disappear during the sliding,
+          // so it's alpha would decrease to zero.
+          var borderAlpha = 1.0 - fillAlpha;
+
+          // From white to covered color.
+          strokeStyle = 'rgba(' + this.handle.touchedColorStop +
+            ',' + borderAlpha + ')';
+
+          // It's colorful now.
+          this.states.slidingColorful = true;
+          ctx.fillStyle = 'rgba(' + this.handle.touchedColor +
+            ',' + fillAlpha + ')';
+          ctx.lineWidth = this.handle.lineWidth;
+          console.log(strokeStyle);
+          ctx.strokeStyle = strokeStyle;
+
+          // Start to draw it.
+          // Can't use functions like rect or these individual parts
+          // would show its borders.
+          ctx.beginPath();
+
+          ctx.arc(center.x, center.y,
+              radius, endAngle, startAngle, counterclock);
+          ctx.lineTo(center.x, center.y - radius);
+          ctx.lineTo(center.x + (offset - center.x), center.y - radius);
+          ctx.arc(offset, center.y, radius, startAngle, endAngle, counterclock);
+          ctx.lineTo(center.x, center.y + radius);
+
+          // Note: When setting both the fill and stroke for a shape,
+          // make sure that you use fill() before stroke().
+          // Otherwise, the fill will overlap half of the stroke.
+          ctx.fill();
+          ctx.stroke();
+          ctx.closePath();
         } else {
           if (0 === urw) {  // Draw as the initial circle.
             fillAlpha = 0.0;
