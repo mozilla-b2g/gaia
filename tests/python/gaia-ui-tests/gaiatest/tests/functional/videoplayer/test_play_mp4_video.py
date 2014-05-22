@@ -35,7 +35,7 @@ class TestPlayMP4Video(GaiaTestCase):
         time.sleep(2)
 
         # We cannot tap the toolbar so let's just enable it with javascript
-        fullscreen_video.display_controls_with_js()
+        fullscreen_video.tap_video_to_display_controls()
 
         # The elapsed time > 0:00 denote the video is playing
         zero_time = time.strptime('00:00', '%M:%S')
