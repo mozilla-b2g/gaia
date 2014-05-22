@@ -13,7 +13,9 @@
     "embed-apps":{},
     "open-remote-window":{},
     "systemXHR":{},
-    "settings":{ "access": "readwrite" }
+    "settings":{ "access": "readwrite" },
+    "device-storage:videos":{ "access": "readonly" },
+    "audio-channel-content":{}
   },
   "locales": {
     "en-US": {
