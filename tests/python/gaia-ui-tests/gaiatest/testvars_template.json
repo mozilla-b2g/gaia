@@ -11,6 +11,9 @@
   "wifi": {
     "ssid": ""
   },
+  "bluetooth": {
+    "ssid": ""
+  },
   "email": {
     "gmail": {
       "name": "",

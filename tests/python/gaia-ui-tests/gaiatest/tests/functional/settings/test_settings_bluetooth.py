@@ -39,3 +39,7 @@ class TestBluetoothSettings(GaiaTestCase):
         # Now have host machine inquire and shouldn't find our device
         device_found = self.bluetooth_host.is_device_visible(device_name)
         self.assertTrue(device_found, "Host should see our device (device discoverable mode is ON)")
+
+        remote_device_name = self.testvars['bluetooth']['ssid']
+        bluetooth_settings.pair_device(remote_device_name)
+        self.assertIn(remote_device_name, bluetooth_settings.connected_devices)

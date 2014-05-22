@@ -19,6 +19,9 @@ class Bluetooth(Base):
     _update_device_name_input_locator = (By.ID, 'update-device-name-input')
     _update_device_name_ok_locator = (By.ID, 'update-device-name-confirm')
 
+    _connected_devices_locator = (By.CSS_SELECTOR, "#bluetooth-paired-devices "
+                                                   "small[data-l10n-id='device-status-connected-phone'] ~ a")
+
     @property
     def is_bluetooth_enabled(self):
         return self.marionette.find_element(*self._bluetooth_checkbox_locator).get_attribute('checked') == 'true'
@@ -50,3 +53,20 @@ class Bluetooth(Base):
     def tap_update_device_name_ok(self):
         self.marionette.find_element(*self._update_device_name_ok_locator).tap()
         self.wait_for_element_not_displayed(*self._update_device_name_form_locator)
+
+    @property
+    def connected_devices(self):
+        return [device.text for device in self.marionette.find_elements(*self._connected_devices_locator)]
+
+    def pair_device(self, device_name):
+        self.wait_for_element_present(*self._unpaired_device_locator(device_name)).tap()
+        self.wait_for_element_present(*self._connected_device_locator(device_name))
+
+    @classmethod
+    def _unpaired_device_locator(cls, device_name):
+        return (By.XPATH, "//*[@id='bluetooth-devices']//a[.='%s']" % device_name)
+
+    @classmethod
+    def _connected_device_locator(cls, device_name):
+        return (By.XPATH, "%s/preceding-sibling::small[@data-l10n-id='device-status-connected-phone']"
+                          % cls._paired_device_locator(device_name)[1])
