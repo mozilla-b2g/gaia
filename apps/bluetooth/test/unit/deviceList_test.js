@@ -1,4 +1,4 @@
-/* global MocksHelper, MockL10n, MockNavigatorSettings, 
+/* global MocksHelper, MockL10n, MockNavigatorSettings,
           MockMozBluetooth, gDeviceList */
 'use strict';
 
@@ -58,9 +58,6 @@ suite('Bluetooth app > deviceList ', function() {
     searchAgainBtn = document.getElementById('search-device');
     searchingItem = document.getElementById('bluetooth-searching');
     exitButton = document.getElementById('cancel-activity');
-  });
-
-  teardown(function() {
   });
 
   suite('deviceList > ', function() {
