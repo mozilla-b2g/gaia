@@ -1,3 +1,4 @@
+/* Add comment for rerun the test */
 'use strict';
 
 var Calendar = require('./lib/calendar'),
