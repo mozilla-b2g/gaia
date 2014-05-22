@@ -320,10 +320,12 @@
 
       // XXX: Bet it would be OK while user start to drag the slide.
       larrow.onload = (function() {
+        var offset =
+          this.useNewStyle ?
+          (this.arrows.left.width + this.handle.radius + this._dpx(12)) :
+          (this.arrows.left.width << 1);
         this.arrows.ldraw.x =
-              center.x - (this.arrows.left.width +
-                          this.handle.radius + this._dpx(12)
-                         );
+              center.x - offset;
         this.arrows.ldraw.y =
               center.y - (this.arrows.left.height >> 1);
         var ctx = this.canvas.getContext('2d');
@@ -332,8 +334,12 @@
             this.arrows.ldraw.y);
       }).bind(this);
       rarrow.onload = (function() {
+        var offset =
+          this.useNewStyle ?
+          (this.handle.radius + this._dpx(12)) :
+          this.arrows.right.width;
         this.arrows.rdraw.x =
-              center.x + (this.handle.radius + this._dpx(12));
+              center.x + offset;
         this.arrows.rdraw.y =
               center.y - (this.arrows.right.height >> 1);
         var ctx = this.canvas.getContext('2d');
@@ -727,16 +733,24 @@
       // The Y of arrows: need to put it from center to sink half of the arrow.
       if (isLeft) {
         // XXX:<<1: OK but don't know why!
+        var position =
+          this.useNewStyle ?
+          (tx - (this.arrows.left.width) - this.handle.radius - this._dpx(12)) :
+          (tx - (this.arrows.left.width << 1));
         ctx.drawImage(this.arrows.left,
-          tx - (this.arrows.left.width << 1),
+          position,
           this.arrows.ldraw.y);
         ctx.drawImage(this.arrows.right,
           this.arrows.rdraw.x,
           this.arrows.ldraw.y);
 
       } else {
+        var position =
+          this.useNewStyle ?
+          (tx + this.handle.radius + this._dpx(12)) :
+          (tx + this.arrows.right.width);
         ctx.drawImage(this.arrows.right,
-          tx + this.arrows.right.width,
+          position,
           this.arrows.rdraw.y);
         ctx.drawImage(this.arrows.left,
           this.arrows.ldraw.x,
