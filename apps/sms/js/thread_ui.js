@@ -1626,7 +1626,9 @@ var ThreadUI = global.ThreadUI = {
 
     classNames.push(isIncoming ? 'incoming' : 'outgoing');
 
-    if (isDelivered || isRead) {
+    if (isRead) {
+      classNames.push('read');
+    } else if (isDelivered) {
       classNames.push('delivered');
     }
 
@@ -2355,7 +2357,8 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
     // Update class names to reflect message state
-    messageDOM.classList.add('delivered');
+    messageDOM.classList.remove('delivered');
+    messageDOM.classList.add('read');
   },
 
   // Some error return from sending error need some specific action instead of
