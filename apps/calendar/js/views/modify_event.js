@@ -367,6 +367,11 @@ Calendar.ns('Views').ModifyEvent = (function() {
       }
 
       if (this.isSaved()) {
+        // Confirm before deletion
+        if (!confirm(navigator.mozL10n.get('event-delete-confirm'))) {
+          return;
+        }
+      
         var self = this;
         var handleDelete = function me_handleDelete() {
           self.provider.deleteEvent(self.event.data, function(err) {
