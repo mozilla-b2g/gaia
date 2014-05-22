@@ -313,7 +313,7 @@
   LockScreen.prototype.init =
   function ls_init() {
     this.ready = true;
-    this._unlocker = new window.LockScreenSlide();
+    this._unlocker = new window.LockScreenSlide({useNewStyle: true});
     this.getAllElements();
 
     this.lockIfEnabled(true);

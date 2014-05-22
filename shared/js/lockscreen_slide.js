@@ -27,9 +27,22 @@
   var LockScreenSlidePrototype = {
     canvas: null,
     layout: '',
+    useNewStyle: false,
     track: {
       length: {tiny: '280', large: '410'},
       color: 'rgba(255, 255, 255, 0.4)',
+      from: 0,
+      to: 0,
+      radius: 0,
+      width: 0 // We need dynamic length here.
+    },
+
+    trackNew: {
+      length: {tiny: '276', large: '406'},
+      strokeColorTop: 'rgba(0, 0, 0, 0.2)',
+      strokeColorBottom: 'rgba(0, 0, 0, 0)',
+      fillColorTop: 'rgba(0, 0, 0, 0.2)',
+      fillColorBottom: 'rgba(0, 0, 0, 0)',
       from: 0,
       to: 0,
       radius: 0,
@@ -149,6 +162,9 @@
     function(opts) {
       if (opts) {
         this._overwriteSettings(opts);
+      }
+      if (opts.useNewStyle) {
+        this.track = this.trackNew;
       }
       this._initializeCanvas();
       this.publish('lockscreenslide-unlocker-initializer');
@@ -690,29 +706,65 @@
 
       var radius = this.track.radius;
 
-      // 1.5 ~ 0.5 is the right part of a circle.
-      var startAngle = 1.5 * Math.PI;
-      var endAngle = 0.5 * Math.PI;
-      var strokeStyle = this.track.color;
+      if (this.useNewStyle) {
+        // the new style is much more complicated in terms of gradient
+        // so things should be drawn separately
+        var startAngle = 1.5 * Math.PI;
+        var endAngle = 0.5 * Math.PI;
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0)';
-      ctx.lineWidth = this.handle.lineWidth;
-      ctx.strokeStyle = strokeStyle;
+        var gradientStroke = ctx.createLinearGradient(this.track.from - radius,
+                                                      this.track.y - radius,
+                                                      this.track.from - radius,
+                                                      this.track.y + radius);
+        var gradientFill = ctx.createLinearGradient(this.track.from - radius,
+                                                    this.track.y - radius,
+                                                    this.track.from - radius,
+                                                    this.track.y + radius);
+        gradientStroke.addColorStop(0, this.track.strokeColorTop);
+        gradientStroke.addColorStop(1, this.track.strokeColorBottom);
+        gradientFill.addColorStop(0, this.track.fillColorTop);
+        gradientFill.addColorStop(1, this.track.fillColorBottom);
 
-      // Start to draw it.
-      // Can't use functions like rect or these individual parts
-      // would show its borders.
-      ctx.beginPath();
+        ctx.beginPath();
+        ctx.fillStyle = gradientFill;
+        ctx.strokeStyle = gradientStroke;
+        ctx.lineWidth = this.handle.lineWidth;
+        ctx.moveTo(this.track.from, this.track.y - radius);
+        ctx.lineTo(this.track.to, this.track.y - radius);
+        ctx.arc(this.track.to, this.track.y,
+                radius, startAngle, endAngle, false);
+        ctx.lineTo(this.track.from, this.track.y + radius);
+        ctx.arc(this.track.from, this.track.y,
+                radius, endAngle, startAngle, false);
+        ctx.stroke();
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        // 1.5 ~ 0.5 is the right part of a circle.
+        var startAngle = 1.5 * Math.PI;
+        var endAngle = 0.5 * Math.PI;
+        var strokeStyle = this.track.color;
 
-      ctx.arc(this.track.from, this.track.y,
-          radius, endAngle, startAngle, false);
-      ctx.lineTo(this.track.from, this.track.y - radius);
-      ctx.lineTo(this.track.to, this.track.y - radius);
-      ctx.arc(this.track.to, this.track.y, radius, startAngle, endAngle, false);
-      ctx.lineTo(this.track.from, this.track.y + radius);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+        ctx.lineWidth = this.handle.lineWidth;
+        ctx.strokeStyle = strokeStyle;
 
-      ctx.stroke();
-      ctx.closePath();
+        // Start to draw it.
+        // Can't use functions like rect or these individual parts
+        // would show its borders.
+        ctx.beginPath();
+
+        ctx.arc(this.track.from, this.track.y,
+            radius, endAngle, startAngle, false);
+        ctx.lineTo(this.track.from, this.track.y - radius);
+        ctx.lineTo(this.track.to, this.track.y - radius);
+        ctx.arc(this.track.to, this.track.y, radius,
+                startAngle, endAngle, false);
+        ctx.lineTo(this.track.from, this.track.y + radius);
+
+        ctx.stroke();
+        ctx.closePath();
+      }
     };
 
   /**
