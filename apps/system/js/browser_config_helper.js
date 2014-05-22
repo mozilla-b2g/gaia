@@ -89,6 +89,8 @@
         protocol + 'bluetooth.' + domain + '/manifest.webapp';
       var keyboardManifestUrl =
         protocol + 'keyboard.' + domain + '/manifest.webapp';
+      var homescreenManifestUrl =
+        protocol + 'homescreen.' + domain + '/manifest.webapp';
       var outOfProcessBlackList = [
         browserManifestUrl,
         // Requires nested content processes (bug 761935).  This is not
@@ -96,7 +98,8 @@
         bluetoothManifestUrl,
         // Bluetooth pairing/transfer UI is too critical to be OOM'd,
         // and it manages it's own life cycle.
-        keyboardManifestUrl
+        keyboardManifestUrl,
+        homescreenManifestUrl
         // Keyboard Settings page manages it's own life cycle.
         // Make it inproc to prevent Settings app being killed before switching
         // back.
