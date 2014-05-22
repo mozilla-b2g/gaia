@@ -239,6 +239,28 @@ var Browser = {
      AuthenticationDialog.init(false);
   },
 
+  getDefaultData: function browser_getConfData(callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/js/inittopsites.json', true);
+
+    xhr.addEventListener('load', (function browser_defaultConfDataListener() {
+      if (!(xhr.status === 200 | xhr.status === 0)) {
+        console.error('Unknown response when getting configuration data.');
+        return;
+      }
+
+      callback(JSON.parse(xhr.responseText));
+
+    }).bind(this), false);
+
+    xhr.onerror = function getDefaultConfDataError() {
+      callback(null);
+      console.error('Error getting configuration data.');
+    };
+
+    xhr.send();
+  },
+
   /**
    * Get configuration data from init.json file generated at build time.
    *
