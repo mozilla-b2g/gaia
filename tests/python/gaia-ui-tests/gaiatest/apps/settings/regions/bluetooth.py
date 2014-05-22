@@ -19,21 +19,35 @@ class Bluetooth(Base):
     _update_device_name_input_locator = (By.ID, 'update-device-name-input')
     _update_device_name_ok_locator = (By.ID, 'update-device-name-confirm')
 
+    _paired_devices_locator = (By.CSS_SELECTOR, "#bluetooth-paired-devices a")
     _connected_devices_locator = (By.CSS_SELECTOR, "#bluetooth-paired-devices "
                                                    "small[data-l10n-id='device-status-connected-phone'] ~ a")
+    _unpair_button_locator = (By.ID, 'unpair-option')
+    _disconnect_button_locator = (By.ID, 'disconnect-option')
 
     @property
     def is_bluetooth_enabled(self):
         return self.marionette.find_element(*self._bluetooth_checkbox_locator).get_attribute('checked') == 'true'
 
     @property
+    def is_bluetooth_button_greyed_out(self):
+        return not self.marionette.find_element(*self._bluetooth_checkbox_locator).is_enabled()
+
+    @property
     def is_visible_enabled(self):
         return self.marionette.find_element(*self._visible_to_all_checkbox_locator).get_attribute('checked') == 'true'
 
     def enable_bluetooth(self):
-        self.marionette.find_element(*self._bluetooth_label_locator).tap()
-        self.wait_for_condition(lambda m: self.is_bluetooth_enabled)
-        self.wait_for_condition(lambda m: m.find_element(*self._rename_my_device_button_locator).is_enabled())
+        if self.is_bluetooth_enabled is False:
+            self.marionette.find_element(*self._bluetooth_label_locator).tap()
+            self.wait_for_condition(lambda m: self.is_bluetooth_enabled)
+            self.wait_for_condition(lambda m: m.find_element(*self._rename_my_device_button_locator).is_enabled())
+
+    def disable_bluetooth(self):
+        if self.is_bluetooth_enabled is True:
+            self.marionette.find_element(*self._bluetooth_label_locator).tap()
+            self.wait_for_condition(lambda m: not self.is_bluetooth_enabled)
+            self.wait_for_condition(lambda m: not self.is_bluetooth_button_greyed_out)
 
     def enable_visible_to_all(self):
         if self.is_visible_enabled is False:
@@ -58,13 +72,35 @@ class Bluetooth(Base):
     def connected_devices(self):
         return [device.text for device in self.marionette.find_elements(*self._connected_devices_locator)]
 
+    @property
+    def paired_devices(self):
+        return [device.text for device in self.marionette.find_elements(*self._paired_devices_locator)]
+
     def pair_device(self, device_name):
         self.wait_for_element_present(*self._unpaired_device_locator(device_name)).tap()
         self.wait_for_element_present(*self._connected_device_locator(device_name))
 
+    def disconnect_device(self, device_name):
+        self.wait_for_element_present(*self._paired_device_locator(device_name)).tap()
+        self.wait_for_element_present(*self._disconnect_button_locator).tap()
+
+    def unpair_device(self, device_name):
+        self.wait_for_element_present(*self._paired_device_locator(device_name)).tap()
+        self.wait_for_element_present(*self._unpair_button_locator).tap()
+
+    def unpair_all_devices(self):
+        for paired_device in self.paired_devices:
+            if paired_device in self.connected_devices:
+                self.disconnect_device(paired_device)
+            self.unpair_device(paired_device)
+
     @classmethod
     def _unpaired_device_locator(cls, device_name):
         return (By.XPATH, "//*[@id='bluetooth-devices']//a[.='%s']" % device_name)
+
+    @classmethod
+    def _paired_device_locator(cls, device_name):
+        return (By.XPATH, "//*[@id='bluetooth-paired-devices']//a[.='%s']" % device_name)
 
     @classmethod
     def _connected_device_locator(cls, device_name):
