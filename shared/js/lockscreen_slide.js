@@ -486,8 +486,8 @@
       // Order matters.
       this._drawTrack();
       this._drawArrowsTo(mtx);
-      this._drawSlideTo(mtx);
       this._drawIconBG();
+      this._drawSlideTo(mtx);
     };
 
   /**
@@ -674,8 +674,8 @@
             this._clearCanvas();
             this._drawTrack();
             this._drawArrowsTo(nextTx);
-            this._drawSlideTo(nextTx);
             this._drawIconBG();
+            this._drawSlideTo(nextTx);
           }
           requestAnimationFrame(drawIt);
         } else {
@@ -683,8 +683,8 @@
           this._clearCanvas();
           this._drawTrack();
           this._drawArrowsTo(center.x);
-          this._drawSlideTo(center.x);
           this._drawIconBG();
+          this._drawSlideTo(center.x);
           if (cb)
             cb();
         }
@@ -879,26 +879,18 @@
           // The color should be gradient in this length, from the origin.
           // It would decide how long the color turning to the touched color.
 
-          fillAlpha = (urw - 15) / GRADIENT_LENGTH;
-          if (fillAlpha > 1.0) {
-            fillAlpha = 1.0;
+          fillAlpha =
+            (urw - 15) / GRADIENT_LENGTH * 0.3 + 0.5; // from 0.5 to 0.8
+          if (fillAlpha > 0.8) {
+            fillAlpha = 0.8;
             this.states.slidingColorGradientEnd = true;
           }
 
-          // The border must disappear during the sliding,
-          // so it's alpha would decrease to zero.
-          var borderAlpha = 1.0 - fillAlpha;
+          strokeStyle = 'transparent';
 
-          // From white to covered color.
-          strokeStyle = 'rgba(' + this.handle.touchedColorStop +
-            ',' + borderAlpha + ')';
-
-          // It's colorful now.
+          // It's not colorful now.
           this.states.slidingColorful = true;
-          ctx.fillStyle = 'rgba(' + this.handle.touchedColor +
-            ',' + fillAlpha + ')';
-          ctx.lineWidth = this.handle.lineWidth;
-          console.log(strokeStyle);
+          ctx.fillStyle = 'rgba(255, 255, 255, ' + fillAlpha + ')';
           ctx.strokeStyle = strokeStyle;
 
           // Start to draw it.
@@ -948,14 +940,14 @@
             ctx.fill();
 
           } else {
-            fillAlpha = (urw - 15) / GRADIENT_LENGTH * 0.8 + 0.2;
-            if (fillAlpha > 1.0) {
-              fillAlpha = 1.0;
+            fillAlpha =
+              1 - ((urw - 15) / GRADIENT_LENGTH * 0.5); // from 1 to 0.5
+            if (fillAlpha < 0.5) {
+              fillAlpha = 0.5;
             }
-            var color = this.handle.touchedColorStop;
+            var color = '255, 255, 255';
 
-            ctx.fillStyle = 'rgba(' + this.handle.touchedColor +
-              ',' + fillAlpha + ')';
+            ctx.fillStyle = 'rgba(255, 255, 255, ' + fillAlpha + ')';
             ctx.strokeStyle = 'transparent';
 
             // Start to draw it.
@@ -981,7 +973,7 @@
           }
         }
 
-      } else {
+      } else { // old style
         // If user move over 15px, fill the slide.
         if (urw > 15 && true !== this.states.slidingColorful) {
           // The color should be gradient in this length, from the origin.
@@ -1006,7 +998,6 @@
           ctx.fillStyle = 'rgba(' + this.handle.touchedColor +
             ',' + fillAlpha + ')';
           ctx.lineWidth = this.handle.lineWidth;
-          console.log(strokeStyle);
           ctx.strokeStyle = strokeStyle;
 
           // Start to draw it.
