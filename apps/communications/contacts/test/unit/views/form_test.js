@@ -368,6 +368,40 @@ suite('Render contact form', function() {
         assert.equal(deviceContact.bday.getTime(), 0);
     });
 
+    test('if the tel field is null, is ignored',
+      function() {
+        var deviceContact = new MockContactAllFields();
+        deviceContact.tel[0].value = null;
+        subject.render(deviceContact);
+        assert.equal(deviceContact.tel.length, 2);
+
+        subject.saveContact();
+        assert.equal(deviceContact.tel.length, 1);
+    });
+
+    test('if the email field is null, is ignored',
+      function() {
+        var deviceContact = new MockContactAllFields();
+        deviceContact.email[0].value = null;
+        subject.render(deviceContact);
+        assert.equal(deviceContact.email.length, 2);
+
+        subject.saveContact();
+        assert.equal(deviceContact.email.length, 1);
+    });
+
+    test('if the address field is null, is ignored',
+      function() {
+        var deviceContact = new MockContactAllFields();
+        deviceContact.adr.unshift({'type': ['personal']});
+        subject.render(deviceContact);
+        assert.equal(deviceContact.adr.length, 2);
+
+        subject.saveContact();
+        assert.equal(deviceContact.adr.length, 1);
+    });
+
+
     test('if tel field has a value, carrier input must be in regular state',
       function() {
         subject.render(mockContact);
@@ -496,7 +530,7 @@ suite('Render contact form', function() {
         subject.saveContact();
         assert.isTrue(promoteToLinkedSpy.called);
         assert.isTrue(setPropagatedFlagSpy.calledWithMatch('givenName'));
-        
+
         promoteToLinkedSpy.restore();
         setPropagatedFlagSpy.restore();
       };
@@ -519,7 +553,7 @@ suite('Render contact form', function() {
         subject.saveContact();
         assert.isTrue(promoteToLinkedSpy.called);
         assert.isTrue(setPropagatedFlagSpy.calledWithMatch('familyName'));
-        
+
         promoteToLinkedSpy.restore();
         setPropagatedFlagSpy.restore();
       };
