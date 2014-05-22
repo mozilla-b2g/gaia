@@ -52,9 +52,9 @@ window.GaiaHeader = (function(win) {
    * @private
    */
   proto.attributeChangedCallback = function(attr, oldVal, newVal) {
-    if (attr === 'data-action') {
+    if (attr === 'action') {
       this._configureActionButton(newVal, oldVal);
-    } else if (attr === 'data-skin') {
+    } else if (attr === 'skin') {
       this._configureSkin(newVal, oldVal);
     }
   };
