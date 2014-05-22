@@ -1,6 +1,8 @@
 /* global require, marionette, setup, suite, test, __dirname */
 'use strict';
 
+/* doiing stability check */
+
 var assert = require('assert');
 var Music = require('./lib/music.js');
 var FakeRingtones = require('./lib/fakeringtones.js');
