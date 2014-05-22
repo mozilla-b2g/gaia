@@ -1142,10 +1142,16 @@ MessageListCard.prototype = {
     // from the compose triggered in that view. The scrollStopped
     // is used to avoid a flash where the old message is briefly visible
     // before cleared, and having the empty layout overlay it.
-    if (headerCursor.messagesSlice.items.length + addedItems.length - howMany <
-        1) {
+    // Using the slice's headerCount because it is updated before splice
+    // listeners are notified, so should be accurate.
+    if (!headerCursor.messagesSlice.headerCount) {
       this.vScroll.once('scrollStopped', function() {
-        this.showEmptyLayout();
+        // Confirm there are still no messages. Since this callback happens
+        // async, some items could have appeared since first issuing the
+        // request to show empty.
+        if (!headerCursor.messagesSlice.headerCount) {
+          this.showEmptyLayout();
+        }
       }.bind(this));
     }
 
