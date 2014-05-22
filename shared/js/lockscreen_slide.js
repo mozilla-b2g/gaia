@@ -922,17 +922,8 @@
           ctx.closePath();
           ctx.fill();
         } else {
-          // The color should be gradient transitioning
-
-          if (urw <= GRADIENT_LENGTH) {
-            fillAlpha = urw / GRADIENT_LENGTH * 0.4;
-            fillAlpha = 0.9 - fillAlpha;
-          } else {
-            fillAlpha = 0.5 + (urw - GRADIENT_LENGTH) / GRADIENT_LENGTH * 0.3;
-            if (fillAlpha > 0.8) {
-              fillAlpha = 0.8;
-            }
-          }
+          // from 0.9 to 0.2
+          fillAlpha = 0.9 - Math.min(0.7, (urw / this.handle.maxWidth) * 0.7);
 
           strokeStyle = 'transparent';
 
