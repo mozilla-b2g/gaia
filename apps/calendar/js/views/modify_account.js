@@ -209,17 +209,11 @@ Calendar.ns('Views').ModifyAccount = (function() {
         event.preventDefault();
       }
 
-      var self = this;
       this.oauth2Window.classList.add(Calendar.View.ACTIVE);
-
-      navigator.mozApps.getSelf().onsuccess = function(e) {
-        var app = e.target.result;
-        app.clearBrowserData().onsuccess = function() {
-          return Calendar.App.loadObject(
-            'OAuthWindow', self._redirectToOAuthFlow.bind(self)
-          );
-        };
-      };
+      return Calendar.App.loadObject(
+        'OAuthWindow',
+        this._redirectToOAuthFlow.bind(this)
+      );
     },
 
     /**
