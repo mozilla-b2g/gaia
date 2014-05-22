@@ -21,22 +21,22 @@ class Bluetooth(Base):
 
     @property
     def is_bluetooth_enabled(self):
-        return self.marionette.find_element(*self._bluetooth_checkbox_locator).get_attribute('checked')
+        return self.marionette.find_element(*self._bluetooth_checkbox_locator).get_attribute('checked') == 'true'
 
     @property
     def is_visible_enabled(self):
-        return self.marionette.find_element(*self._visible_to_all_checkbox_locator).get_attribute('checked')
+        return self.marionette.find_element(*self._visible_to_all_checkbox_locator).get_attribute('checked') == 'true'
 
     def enable_bluetooth(self):
         self.marionette.find_element(*self._bluetooth_label_locator).tap()
-        self.wait_for_condition(lambda m: self.is_bluetooth_enabled == 'true')
+        self.wait_for_condition(lambda m: self.is_bluetooth_enabled)
         self.wait_for_condition(lambda m: m.find_element(*self._rename_my_device_button_locator).is_enabled())
 
     def enable_visible_to_all(self):
-        if self.is_visible_enabled != 'true':
+        if self.is_visible_enabled is False:
             # Bluetooth state is stored outside the profile bug 969310
             self.marionette.find_element(*self._visible_to_all_label_locator).tap()
-            self.wait_for_condition(lambda m: self.is_visible_enabled == 'true')
+            self.wait_for_condition(lambda m: self.is_visible_enabled)
 
     def tap_rename_my_device(self):
         self.marionette.find_element(*self._rename_my_device_button_locator).tap()
