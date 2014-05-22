@@ -9,13 +9,6 @@
    */
   window.System = {
     /**
-     * Indicates the system is busy doing something.
-     * Now it stands for the foreground app is not loaded yet.
-     */
-    isBusyLoading: function() {
-      return !window.AppWindowManager.getActiveApp().loaded;
-    },
-    /**
      * Record the start time of the system for later debugging usage.
      * @access private
      * @type {Number}
