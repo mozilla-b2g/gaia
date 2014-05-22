@@ -131,6 +131,37 @@ body:not(.rb-enabled) #rocketbar {
   display: none;
 }
 
+#rocketbar-overflow-button {
+  display: none;
+  width: 4rem;
+  height: 4.8rem;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  border: none;
+  opacity: 1;
+}
+
+#rocketbar-overflow-button {
+  background-image: url('overflow.png');
+}
+
+#rocketbar.navigation:not(.active) {
+  display: flex;
+  flex-direction: row;
+}
+
+#rocketbar.expanded.navigation:not(.active) #rocketbar-overflow-button {
+  display: block;
+}
+
+#rocketbar.expanded.navigation:not(.active) #rocketbar-title {
+  position: relative;
+  flex: 1;
+  width: auto;
+  margin: 0.6rem 0;
+}
+
 /**
  * Style overrides for the HomeSearchbar
  */

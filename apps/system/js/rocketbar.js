@@ -20,6 +20,7 @@
     this.newTabPage = false;
     this.cardView = false;
     this.waitingOnCardViewLaunch = false;
+    this.currentApp = null;
 
     // Properties
     this._port = null; // Inter-app communications port
@@ -38,6 +39,7 @@
     this.cancel = document.getElementById('rocketbar-cancel');
     this.results = document.getElementById('rocketbar-results');
     this.backdrop = document.getElementById('rocketbar-backdrop');
+    this.overflow = document.getElementById('rocketbar-overflow-button');
 
     // Listen for settings changes
     SettingsListener.observe('rocketbar.enabled', false,
@@ -154,7 +156,6 @@
     addEventListeners: function() {
       // Listen for events from window manager
       window.addEventListener('apploading', this);
-      window.addEventListener('appforeground', this);
       window.addEventListener('apptitlechange', this);
       window.addEventListener('applocationchange', this);
       window.addEventListener('appscroll', this);
@@ -176,6 +177,7 @@
       this.input.addEventListener('blur', this);
       this.input.addEventListener('input', this);
       this.cancel.addEventListener('click', this);
+      this.overflow.addEventListener('click', this);
       this.form.addEventListener('submit', this);
       this.backdrop.addEventListener('click', this);
 
@@ -195,7 +197,6 @@
     handleEvent: function(e) {
       switch(e.type) {
         case 'apploading':
-        case 'appforeground':
         case 'appopened':
           this.handleAppChange(e);
           break;
@@ -231,7 +232,8 @@
         case 'touchstart':
         case 'touchmove':
         case 'touchend':
-          if (e.target != this.cancel) {
+          if (e.target != this.cancel &&
+              e.target != this.overflow) {
             this.handleTouch(e);
           }
           break;
@@ -250,6 +252,8 @@
         case 'click':
           if (e.target == this.cancel) {
             this.handleCancel(e);
+          } else if (e.target == this.overflow) {
+            this.handleOverflow(e);
           } else if (e.target == this.backdrop) {
             this.deactivate();
           }
@@ -279,7 +283,6 @@
     removeEventListeners: function() {
       // Stop listening for events from window manager
       window.removeEventListener('apploading', this);
-      window.removeEventListener('appforeground', this);
       window.removeEventListener('apptitlechange', this);
       window.removeEventListener('applocationchange', this);
       window.removeEventListener('home', this);
@@ -299,6 +302,7 @@
       this.input.removeEventListener('blur', this);
       this.input.removeEventListener('input', this);
       this.cancel.removeEventListener('click', this);
+      this.overflow.removeEventListener('click', this);
       this.form.removeEventListener('submit', this);
       this.backdrop.removeEventListener('click', this);
 
@@ -368,6 +372,7 @@
         this.expand();
       }
       this.clear();
+      this.disableNavigation();
     },
 
     /**
@@ -458,6 +463,20 @@
     },
 
     /**
+     * Enable back button.
+     */
+    enableNavigation: function() {
+      this.rocketbar.classList.add('navigation');
+    },
+
+    /**
+     * Disable back button.
+     */
+    disableNavigation: function() {
+      this.rocketbar.classList.remove('navigation');
+    },
+
+    /**
      * Focus Rocketbar input.
      * @memberof Rocketbar.prototype
      */
@@ -476,6 +495,10 @@
       // To be removed in bug 999463
       this.body.addEventListener('keyboardchange',
         this.handleKeyboardChange, true);
+    },
+
+    handleOverflow: function() {
+      this.currentApp.showDefaultContextMenu();
     },
 
     /**
@@ -505,14 +528,17 @@
      * @memberof Rocketbar.prototype
      */
     handleAppChange: function(e) {
+      this.currentApp = e.detail;
       this.currentScrollPosition = 0;
       this.handleLocationChange(e);
       this.handleTitleChange(e);
       this.exitHome();
-      if (e.detail.manifestURL) {
+      if (!this.currentApp.isBrowser()) {
         this.collapse();
+        this.disableNavigation();
       } else {
         this.expand();
+        this.enableNavigation();
       }
       this.hideResults();
     },

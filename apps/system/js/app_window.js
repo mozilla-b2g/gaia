@@ -1850,5 +1850,15 @@
     }
   };
 
+  /**
+   * Show the default contextmenu for an AppWindow
+   * @memberOf AppWindow.prototype
+   */
+  AppWindow.prototype.showDefaultContextMenu = function() {
+    if (this.contextmenu) {
+      this.contextmenu.showDefaultMenu();
+    }
+  };
+
   exports.AppWindow = AppWindow;
 }(window));

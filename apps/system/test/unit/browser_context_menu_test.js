@@ -120,6 +120,13 @@ suite('system/BrowserContextMenu', function() {
       'url("' + fakeContextMenuEvent.detail.contextmenu.items[0].icon + '")');
   });
 
+  test('manually launch menu', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var md1 = new BrowserContextMenu(app1);
+    md1.showDefaultMenu();
+    assert.isTrue(md1.element.classList.contains('visible'));
+  });
+
   test('Check that a context menu containing items is prevented', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var md1 = new BrowserContextMenu(app1);
