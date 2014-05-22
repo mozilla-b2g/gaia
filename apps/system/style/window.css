@@ -39,7 +39,7 @@
   pointer-events: none;
 }
 
-.appWindow:not(.homescreen) {
+.appWindow:not(.homescreen):not(.searchWindow) {
   background-color: black;
 }
 
@@ -47,7 +47,7 @@
   background-color: white;
 }
 
-.appWindow:not(.homescreen).render {
+.appWindow:not(.homescreen):not(.searchWindow).render {
   background-image: none !important;
   background-color: transparent;
 }
@@ -96,7 +96,7 @@
   background-size: auto 0.3rem;
 }
 
-.appWindow:not(.homescreen).render > iframe {
+.appWindow:not(.homescreen):not(.searchWindow).render > iframe {
   background-color: #fff;
 }
 

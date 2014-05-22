@@ -1,5 +1,6 @@
 'use strict';
-/* global SettingsListener, AppWindow, AppWindowManager, SearchWindow, places */
+/* global SettingsListener, AppWindow, AppWindowManager, SearchWindow, places,
+          SettingsURL */
 
 (function(exports) {
 
@@ -42,14 +43,25 @@
     this.overflow = document.getElementById('rocketbar-overflow-button');
 
     // Listen for settings changes
-    SettingsListener.observe('rocketbar.enabled', false,
-      function(value) {
+    SettingsListener.observe('rocketbar.enabled', false, function(value) {
       if (value) {
         this.start();
       } else {
         this.stop();
       }
     }.bind(this));
+
+    // TODO: We shouldnt be creating a blob for each wallpaper that needs
+    // changed in the system app
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=962902
+    var defaultWall = 'resources/images/backgrounds/default.png';
+    var wallpaperURL = new SettingsURL();
+
+    SettingsListener.observe('wallpaper.image', defaultWall, function(value) {
+      document.getElementById('rocketbar-backdrop').style.backgroundImage =
+        'url(' + wallpaperURL.set(value) + ')';
+    });
+
   }
 
   Rocketbar.prototype = {
