@@ -47,7 +47,7 @@
       }
       this._started = true;
 
-      window.addEventListener('home+sleep', this);
+      window.addEventListener('volume-down+sleep', this);
       window.addEventListener('mozChromeEvent', this);
     },
 
@@ -61,7 +61,7 @@
       }
       this._started = false;
 
-      window.removeEventListener('home+sleep', this);
+      window.removeEventListener('volume-down+sleep', this);
       window.removeEventListener('mozChromeEvent', this);
     },
 
