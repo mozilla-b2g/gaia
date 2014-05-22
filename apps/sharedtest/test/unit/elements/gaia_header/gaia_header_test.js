@@ -25,7 +25,7 @@ suite('GaiaHeader', function() {
 
   test('Should add the correct icon class for the action type', function() {
     ['menu', 'close', 'back'].forEach(function(type) {
-      this.container.innerHTML = '<gaia-header data-action="' + type + '"></gaia-header>';
+      this.container.innerHTML = '<gaia-header action="' + type + '"></gaia-header>';
       var element = this.container.firstElementChild;
       var buttonInner = element.shadowRoot.getElementById('action-button-inner');
       assert.isTrue(buttonInner.classList.contains('icon-' + type));
@@ -33,21 +33,21 @@ suite('GaiaHeader', function() {
   });
 
   test('Should not show an action button for unsupported action types', function() {
-    this.container.innerHTML = '<gaia-header data-action="unsupported"></gaia-header>';
+    this.container.innerHTML = '<gaia-header action="unsupported"></gaia-header>';
     var element = this.container.firstElementChild;
     var button = element.shadowRoot.getElementById('action-button');
     assert.equal(button.style.display, 'none');
   });
 
-  test('Should add the defined `data-skin` as a class', function() {
-    this.container.innerHTML = '<gaia-header data-skin="foo"></gaia-header>';
+  test('Should add the defined `skin` as a class', function() {
+    this.container.innerHTML = '<gaia-header skin="foo"></gaia-header>';
     var element = this.container.firstElementChild;
     var header = element.shadowRoot.querySelector('section');
     assert.isTrue(header.classList.contains('skin-foo'));
   });
 
   test('Should add a click event listener to the action button if an action defined', function() {
-    this.container.innerHTML = '<gaia-header data-action="menu"></gaia-header>';
+    this.container.innerHTML = '<gaia-header action="menu"></gaia-header>';
     var element = this.container.firstElementChild;
     var actionButton = element.shadowRoot.getElementById('action-button');
     assert.isTrue(HTMLElement.prototype.addEventListener.withArgs('click').calledOn(actionButton));
@@ -58,7 +58,7 @@ suite('GaiaHeader', function() {
     assert.ok(element.querySelector('style'));
   });
 
-  test('Should change action button when data-action changes', function() {
+  test('Should change action button when action changes', function() {
     this.container.innerHTML = '<gaia-header></gaia-header>';
     var element = this.container.firstElementChild;
     var button = element.shadowRoot.getElementById('action-button');
@@ -74,8 +74,8 @@ suite('GaiaHeader', function() {
     assert.equal(button.style.display, 'none');
   });
 
-  test('Should add/remove class when `data-skin` changes', function() {
-    this.container.innerHTML = '<gaia-header data-skin="foo"></gaia-header>';
+  test('Should add/remove class when `skin` changes', function() {
+    this.container.innerHTML = '<gaia-header skin="foo"></gaia-header>';
     var element = this.container.firstElementChild;
     var header = element.shadowRoot.querySelector('section');
     assert.isTrue(header.classList.contains('skin-foo'));
@@ -92,7 +92,7 @@ suite('GaiaHeader', function() {
 
       // Create and inject element
       this.container.innerHTML = [
-        '<gaia-header data-action="menu">',
+        '<gaia-header action="menu">',
           '<h1>my title</h1>',
           '<button id="my-button">my button</button>',
         '</gaia-header>'
@@ -178,7 +178,7 @@ suite('GaiaHeader', function() {
     });
 
     test('Should pass the action type as `event.detail.type`', function() {
-      this.container.innerHTML = '<gaia-header data-action="menu"></gaia-header>';
+      this.container.innerHTML = '<gaia-header action="menu"></gaia-header>';
       var element = this.container.firstElementChild;
       var callback = sinon.spy();
 
@@ -190,7 +190,7 @@ suite('GaiaHeader', function() {
     });
 
     test('triggerAction() should cause a `click` on action button', function() {
-      this.container.innerHTML = '<gaia-header data-action="menu"></gaia-header>';
+      this.container.innerHTML = '<gaia-header action="menu"></gaia-header>';
       var element = this.container.firstElementChild;
       var callback = sinon.spy();
 
