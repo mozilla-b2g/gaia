@@ -692,11 +692,4 @@ section[role="status"].toast-visible {
   opacity: 1;
 }
 
-/******************************************************************************
-* Sound settings
-*/
-
-#sound ul li > button {
-  overflow: hidden;
-}
 
