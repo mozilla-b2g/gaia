@@ -43,6 +43,7 @@
       strokeColorBottom: 'rgba(0, 0, 0, 0)',
       fillColorTop: 'rgba(0, 0, 0, 0.2)',
       fillColorBottom: 'rgba(0, 0, 0, 0)',
+      backColor: 'rgba(51, 51, 51, 0.15)',
       from: 0,
       to: 0,
       radius: 0,
@@ -707,11 +708,30 @@
       var radius = this.track.radius;
 
       if (this.useNewStyle) {
-        // the new style is much more complicated in terms of gradient
-        // so things should be drawn separately
         var startAngle = 1.5 * Math.PI;
         var endAngle = 0.5 * Math.PI;
 
+        var draw = (function(fillStyle, strokeStyle) {
+          ctx.beginPath();
+          ctx.fillStyle = fillStyle;
+          ctx.strokeStyle = strokeStyle;
+          ctx.lineWidth = this.handle.lineWidth;
+          ctx.moveTo(this.track.from, this.track.y - radius);
+          ctx.lineTo(this.track.to, this.track.y - radius);
+          ctx.arc(this.track.to, this.track.y,
+                  radius, startAngle, endAngle, false);
+          ctx.lineTo(this.track.from, this.track.y + radius);
+          ctx.arc(this.track.from, this.track.y,
+                  radius, endAngle, startAngle, false);
+          ctx.stroke();
+          ctx.closePath();
+          ctx.fill();
+        }).bind(this);
+
+        // single-color background
+        draw(this.track.backColor, this.track.backColor);
+
+        // actual gradient
         var gradientStroke = ctx.createLinearGradient(this.track.from - radius,
                                                       this.track.y - radius,
                                                       this.track.from - radius,
@@ -725,20 +745,8 @@
         gradientFill.addColorStop(0, this.track.fillColorTop);
         gradientFill.addColorStop(1, this.track.fillColorBottom);
 
-        ctx.beginPath();
-        ctx.fillStyle = gradientFill;
-        ctx.strokeStyle = gradientStroke;
-        ctx.lineWidth = this.handle.lineWidth;
-        ctx.moveTo(this.track.from, this.track.y - radius);
-        ctx.lineTo(this.track.to, this.track.y - radius);
-        ctx.arc(this.track.to, this.track.y,
-                radius, startAngle, endAngle, false);
-        ctx.lineTo(this.track.from, this.track.y + radius);
-        ctx.arc(this.track.from, this.track.y,
-                radius, endAngle, startAngle, false);
-        ctx.stroke();
-        ctx.closePath();
-        ctx.fill();
+        draw(gradientFill, gradientStroke);
+
       } else {
         // 1.5 ~ 0.5 is the right part of a circle.
         var startAngle = 1.5 * Math.PI;
