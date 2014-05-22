@@ -23,12 +23,12 @@ suite('GaiaHeader', function() {
     assert.equal(button.style.display, 'none');
   });
 
-  test('Should add the correct icon class for the action type', function() {
+  test('Should add the correct icon attibute for the action type', function() {
     ['menu', 'close', 'back'].forEach(function(type) {
       this.container.innerHTML = '<gaia-header data-action="' + type + '"></gaia-header>';
       var element = this.container.firstElementChild;
-      var buttonInner = element.shadowRoot.getElementById('action-button-inner');
-      assert.isTrue(buttonInner.classList.contains('icon-' + type));
+      var buttonInner = element.shadowRoot.getElementById('action-button');
+      assert.equal(buttonInner.dataset.icon, type);
     }, this);
   });
 
@@ -39,11 +39,11 @@ suite('GaiaHeader', function() {
     assert.equal(button.style.display, 'none');
   });
 
-  test('Should add the defined `data-skin` as a class', function() {
+  test('Should add the defined `data-skin` in `header`', function() {
     this.container.innerHTML = '<gaia-header data-skin="foo"></gaia-header>';
     var element = this.container.firstElementChild;
-    var header = element.shadowRoot.querySelector('section');
-    assert.isTrue(header.classList.contains('skin-foo'));
+    var header = element.shadowRoot.querySelector('header');
+    assert.equal(header.dataset.skin, 'foo');
   });
 
   test('Should add a click event listener to the action button if an action defined', function() {
@@ -87,7 +87,7 @@ suite('GaiaHeader', function() {
     });
 
     test('Should be orange by default', function() {
-      var header = this.element.shadowRoot.getElementById('header');
+      var header = this.element;
       var styles = getComputedStyle(header);
       var orange = 'rgb(249, 124, 23)';
 
@@ -115,7 +115,7 @@ suite('GaiaHeader', function() {
 
       // Get positions
       var elementRight = this.element.getBoundingClientRect().right;
-      var buttonRight = button.getBoundingClientRect().right;
+      var buttonRight = Math.round(button.getBoundingClientRect().right);
 
       assert.equal(buttonRight, elementRight);
     });

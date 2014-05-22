@@ -6,8 +6,8 @@ window.GaiaHeader = (function(win) {
   var proto = Object.create(HTMLElement.prototype);
 
   // Allow user to override the stylesheet url if need be
-  var stylesheet = win.GaiaHeaderCSS || '/shared/style/headers.css';
-
+  var stylesheet = win.GaiaHeaderCSS ||
+    '/shared/elements/gaia_header/style.css';
 
   /**
    * Supported action types
@@ -76,17 +76,12 @@ window.GaiaHeader = (function(win) {
       return;
     }
 
-    // Add icon class to inner
-    var inner = this._template.getElementById('action-button-inner');
-    inner.classList.add('icon-' + type);
-
-    button.dataset.action = type;
+    button.dataset.icon = type;
     button.addEventListener('click', proto._onActionButtonClick.bind(this));
   };
 
   /**
-   * Configure the skin based on the
-   * `data-skin` attribute.
+   * Copy the skin to the template.
    *
    * @private
    */
@@ -94,7 +89,7 @@ window.GaiaHeader = (function(win) {
     var skin = this.dataset.skin;
     if (skin) {
       var header = this._template.getElementById('header');
-      header.parentNode.classList.add('skin-' + skin);
+      header.dataset.skin = skin;
     }
   };
 
@@ -127,17 +122,14 @@ window.GaiaHeader = (function(win) {
   var template = document.createElement('template');
   template.innerHTML = '<style scoped>' +
     '@import url(' + stylesheet + ');</style>' +
-    '<section role="region">' +
-      '<header id="header">' +
-        '<button id="action-button">' +
-          '<span id="action-button-inner" class="icon"></span></button>' +
-        '<menu id="menu-buttons" type="toolbar">' +
-          '<content id="buttons-content" select="button,a"></content>' +
-        '</menu>' +
-        '<content select="h1,h2,h3,h4"></content>' +
-        '<content id="content"></content>' +
-      '</header>' +
-    '</section>';
+    '<header id="header">' +
+      '<button id="action-button"></button>' +
+      '<menu id="menu-buttons" type="toolbar">' +
+        '<content id="buttons-content" select="button,a"></content>' +
+      '</menu>' +
+      '<content select="h1,h2,h3,h4"></content>' +
+      '<content id="content"></content>' +
+    '</header>';
 
   // Register and return the constructor
   return document.registerElement('gaia-header', { prototype: proto });
