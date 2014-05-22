@@ -40,19 +40,6 @@ section[role="region"].skin-organic {
   font-size: 120%;
   text-align: center;
 }
-.sup-error-code {
-  color: #aaa;
-  margin-top: 0.4rem;
-  text-align: right;
-  font-size: 110%;
-}
-.sup-error-code:before {
-  content: "[";
-}
-.sup-error-code:after {
-  content: "]";
-}
-
 
 .sup-progress-region {
   width: calc(100% - 3rem);
