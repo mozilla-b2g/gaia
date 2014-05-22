@@ -199,7 +199,6 @@ header > a .icon:after {
 }
 
 /* Content */
-section,
 section {
   color: #fff;
   position: absolute;
@@ -212,7 +211,6 @@ section {
 }
 
 /* Specific component code */
-menu,
 menu {
   margin: 0;
   padding: 0;
@@ -229,7 +227,6 @@ menu {
   bottom: 7rem;
 }
 
-button,
 button {
   width: calc(100% - 3rem);
   height: 4rem;
@@ -255,7 +252,6 @@ button {
   font-style: italic;
 }
 
-button:last-child,
 button:last-child {
   position: fixed;
   bottom: 0;
@@ -268,7 +264,6 @@ button:last-child {
   border-radius: 2rem;
 }
 
-button:last-child:before,
 button:last-child:before {
   content: '';
   position: fixed;
@@ -280,20 +275,17 @@ button:last-child:before {
   z-index: -1;
 }
 
-button:nth-last-child(2),
 button:nth-last-child(2) {
   margin-bottom: 1.5rem;
 }
 
 /* Press state */
-button:active,
 button:active {
   background: #00aacc;
   color: #fff;
 }
 
 /* Disabled */
-button[disabled],
 button[disabled] {
   background-color: rgba(87, 87, 87, 0.8);
   color: rgba(255, 255, 255, 0.4);
@@ -301,79 +293,8 @@ button[disabled] {
   pointer-events: none;
 }
 
-button[disabled]:last-child,
 button[disabled]:last-child {
   background-color: #e7e7e7;
   color: #a6a6a6;
   opacity: 1;
-}
-
-/*
- * Right to Left view
- */
-
-*[dir="rtl"] gaia-menu:before,
-gaia-menu:before {
-  margin-left: auto;
-  margin-right: -0.1rem;
-}
-
-*[dir="rtl"] gaia-header h1,
-*[dir="rtl"] gaia-header h1 {
-  text-align: right;
-}
-
-*[dir="rtl"] gaia-header menu.toolbar {
-  float: left;
-  margin-left: -3rem;
-  margin-right: 1rem;
-}
-
-*[dir="rtl"] gaia-header menu.toolbar a,
-*[dir="rtl"] gaia-header menu.toolbar button {
-  float: right;
-}
-
-*[dir="rtl"] gaia-header menu.toolbar a:last-child,
-*[dir="rtl"] gaia-header menu.toolbar button:last-child {
-  background-position: right center;
-  margin-left: auto;
-  margin-right: -0.1rem;
-}
-
-*[dir="rtl"] gaia-header > button,
-*[dir="rtl"] gaia-header > a {
-  float: right;
-  margin-left: -1rem;
-  margin-right: -3rem;
-}
-
-*[dir="rtl"] gaia-header > button:after,
-*[dir="rtl"] gaia-header > a:after {
-  left: auto;
-  right: 0;
-  background-position: 0 top;
-}
-
-*[dir="rtl"] gaia-header > button .icon:after,
-*[dir="rtl"] gaia-header > a .icon:after {
-  left: auto;
-  right: 0;
-}
-
-*[dir="rtl"] gaia-button,
-*[dir="rtl"] gaia-button {
-  text-align: right;
-}
-
-*[dir="rtl"] gaia-button:last-child,
-*[dir="rtl"] gaia-button:last-child {
-  left: auto;
-  right: 0;
-}
-
-*[dir="rtl"] gaia-button:last-child:before,
-*[dir="rtl"] gaia-button:last-child:before {
-  left: auto;
-  right: 0;
 }
