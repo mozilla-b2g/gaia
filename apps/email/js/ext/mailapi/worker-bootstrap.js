@@ -2078,6 +2078,13 @@ if (!Error.captureStackTrace) {
   };
 }
 
+exports.gimmeStack = function() {
+  var obj = {};
+  Error.captureStackTrace(obj);
+  // pop off captureStackTrace and us.
+  return obj.stack.slice(2);
+}
+
 var SM_STACK_FORMAT = /^(.*)@(.+):(\d+)$/;
 
 // this is biased towards v8/chromium for now
@@ -2379,6 +2386,12 @@ define('rdcommon/log',
     $extransform,
     exports
   ) {
+
+var rawGimmeStack = $extransform.gimmeStack;
+var gimmeStack = function() {
+  // Slice off the logger calling us and ourselves.
+  return rawGimmeStack().slice(2);
+};
 
 /**
  * Per-thread/process sequence identifier to provide unambiguous ordering of
@@ -3153,12 +3166,12 @@ LoggestClassMaker.prototype = {
       if (this._resolved)
         throw new Error("Attempt to add expectations when already resolved!");
 
-      this._expectations.push([name, val]);
+      this._expectations.push([name, gimmeStack(), val]);
       return this;
     };
     this.testActorProto['ignore_' + name] = makeIgnoreFunc(name);
     this.testActorProto['_verify_' + name] = function(exp, entry) {
-      return smartCompareEquiv(exp[1], entry[1], COMPARE_DEPTH);
+      return smartCompareEquiv(exp[2], entry[1], COMPARE_DEPTH);
     };
   },
   /**
@@ -3258,7 +3271,7 @@ LoggestClassMaker.prototype = {
       if (this._resolved)
         throw new Error("Attempt to add expectations when already resolved!");
 
-      var exp = [name];
+      var exp = [name, gimmeStack()];
       for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg] && useArgs[iArg] !== EXCEPTION) {
           exp.push(arguments[iArg]);
@@ -3270,8 +3283,8 @@ LoggestClassMaker.prototype = {
     this.testActorProto['ignore_' + name] = makeIgnoreFunc(name);
     this.testActorProto['_verify_' + name] = function(tupe, entry) {
       // only check arguments we had expectations for.
-      for (var iArg = 1; iArg < tupe.length; iArg++) {
-        if (!smartCompareEquiv(tupe[iArg], entry[iArg], COMPARE_DEPTH))
+      for (var iArg = 2; iArg < tupe.length; iArg++) {
+        if (!smartCompareEquiv(tupe[iArg], entry[iArg - 1], COMPARE_DEPTH))
           return false;
       }
       return true;
@@ -3391,7 +3404,7 @@ LoggestClassMaker.prototype = {
       if (this._resolved)
         throw new Error("Attempt to add expectations when already resolved!");
 
-      var exp = [name_begin];
+      var exp = [name_begin, gimmeStack()];
       for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg] && useArgs[iArg] !== EXCEPTION)
           exp.push(arguments[iArg]);
@@ -3408,7 +3421,7 @@ LoggestClassMaker.prototype = {
       if (this._resolved)
         throw new Error("Attempt to add expectations when already resolved!");
 
-      var exp = [name_end];
+      var exp = [name_end, gimmeStack()];
       for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg] && useArgs[iArg] !== EXCEPTION)
           exp.push(arguments[iArg]);
@@ -3420,8 +3433,8 @@ LoggestClassMaker.prototype = {
     this.testActorProto['_verify_' + name_begin] =
         this.testActorProto['_verify_' + name_end] = function(tupe, entry) {
       // only check arguments we had expectations for.
-      for (var iArg = 1; iArg < tupe.length; iArg++) {
-        if (!smartCompareEquiv(tupe[iArg], entry[iArg], COMPARE_DEPTH))
+      for (var iArg = 2; iArg < tupe.length; iArg++) {
+        if (!smartCompareEquiv(tupe[iArg], entry[iArg - 1], COMPARE_DEPTH))
           return false;
       }
       return true;
@@ -3563,7 +3576,7 @@ LoggestClassMaker.prototype = {
       if (this._resolved)
         throw new Error("Attempt to add expectations when already resolved!");
 
-      var exp = [name];
+      var exp = [name, gimmeStack()];
       for (var iArg = 0; iArg < arguments.length; iArg++) {
         if (useArgs[iArg])
           exp.push(arguments[iArg]);
@@ -3578,8 +3591,8 @@ LoggestClassMaker.prototype = {
         return false;
       }
       // only check arguments we had expectations for.
-      for (var iArg = 1; iArg < tupe.length; iArg++) {
-        if (!smartCompareEquiv(tupe[iArg], entry[iArg], COMPARE_DEPTH))
+      for (var iArg = 2; iArg < tupe.length; iArg++) {
+        if (!smartCompareEquiv(tupe[iArg], entry[iArg - 1], COMPARE_DEPTH))
           return false;
       }
       return true;
@@ -3636,8 +3649,8 @@ LoggestClassMaker.prototype = {
     this.testActorProto['ignore_' + name] = makeIgnoreFunc(name);
     this.testActorProto['_verify_' + name] = function(tupe, entry) {
       // only check arguments we had expectations for.
-      for (var iArg = 1; iArg < tupe.length; iArg++) {
-        if (!smartCompareEquiv(tupe[iArg], entry[iArg], COMPARE_DEPTH))
+      for (var iArg = 2; iArg < tupe.length; iArg++) {
+        if (!smartCompareEquiv(tupe[iArg], entry[iArg - 1], COMPARE_DEPTH))
           return false;
       }
       return true;
@@ -3853,7 +3866,7 @@ exports.register = function register(mod, defs) {
  * Provide schemas for every logger that has been registered.
  */
 exports.provideSchemaForAllKnownFabs = function schemaForAllKnownFabs() {
-  var schema = {};
+  var schema = { $v: 2 };
   for (var i = 0; i < ALL_KNOWN_FABS.length; i++) {
     var rawDefs = ALL_KNOWN_FABS[i]._rawDefs;
     for (var key in rawDefs) {
@@ -4447,7 +4460,10 @@ exports.latch = function() {
         throw err;
       }
       resolved = true;
-      if (name) {
+      // 'name' might be the integer zero (among other integers) if
+      // the callee is doing array processing, so we pass anything not
+      // equalling null and undefined, even the poor falsey zero.
+      if (name != null) {
         results[name] = Array.slice(arguments);
       }
       if (--count === 0) {
@@ -6097,9 +6113,28 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
                                                        this._LOG);
 }
 exports.FolderStorage = FolderStorage;
+
+/**
+ * Return true if the given folder type is local-only (i.e. we will
+ * not try to sync this folder with the server).
+ *
+ * @param {String} type
+ *   The type of the folderStorage, e.g. 'inbox' or 'localdrafts'.
+ */
+FolderStorage.isTypeLocalOnly = function(type) {
+  if (typeof type !== 'string') {
+    throw new Error('isTypeLocalOnly() expects a string, not ' + type);
+  }
+  return (type === 'outbox' || type === 'localdrafts');
+}
+
 FolderStorage.prototype = {
   get hasActiveSlices() {
     return this._slices.length > 0;
+  },
+
+  get isLocalOnly() {
+    return FolderStorage.isTypeLocalOnly(this.folderMeta.type);
   },
 
   /**
@@ -7461,14 +7496,14 @@ FolderStorage.prototype = {
 
     // -- grab from database if we have ever synchronized this folder
     // OR if it's synthetic
-    if (this._accuracyRanges.length || this.folderMeta.type === 'localdrafts') {
+
+    if (this._accuracyRanges.length || this.isLocalOnly) {
       // We can only trigger a refresh if we are online.  Our caller may want to
       // force the refresh, ignoring recency data.  (This logic was too ugly as
       // a straight-up boolean/ternarny combo.)
       var triggerRefresh;
       if (this._account.universe.online && this.folderSyncer.syncable &&
-          this.folderMeta.type !== 'localdrafts'
-         ) {
+          !this.isLocalOnly) {
         if (forceRefresh)
           triggerRefresh = 'force';
         else
@@ -7491,7 +7526,7 @@ FolderStorage.prototype = {
     // (we have never synchronized this folder)
 
     // -- no work to do if we are offline or synthetic folder
-    if (!this._account.universe.online || this.folderMeta.type === 'localdrafts') {
+    if (!this._account.universe.online || this.isLocalOnly) {
       doneCallback();
       return;
     }
@@ -8320,6 +8355,10 @@ FolderStorage.prototype = {
    * Fetch up to `limit` messages chronologically before the given message
    * (in the direction of 'start').
    *
+   * If date/id do not point to a valid message, return messages as
+   * though it did point to a valid message (i.e. return messages past
+   * that point, as you would probably expect).
+   *
    * If date/id are null, it as if the date/id of the most recent message
    * are passed.
    */
@@ -8339,11 +8378,26 @@ FolderStorage.prototype = {
     }
 
     if (!headBlockInfo) {
-      // The iteration request is somehow not current; log an error and return
-      // an empty result set.
-      this._LOG.badIterationStart(date, id);
-      messageCallback([], false);
-      return;
+      // headBlockInfo will be null if this date/id pair does not fit
+      // properly into a block, but iHeadBlockInfo will still point to
+      // a location from which we can start looking, and that leads us
+      // to one of two cases: Either iHeadBlockInfo points to a valid
+      // block (the one immediately after this point), in which case
+      // we can just pretend that our targeted date/id resides
+      // immediately futureward of the current block; or we've reached
+      // the complete end of all blocks and iHeadBlockInfo points past
+      // the end of headerBlockInfos, indicating that there are no
+      // more messages pastward of our requested point.
+      if (iHeadBlockInfo < this._headerBlockInfos.length) {
+        // Search in this block.
+        headBlockInfo = this._headerBlockInfos[iHeadBlockInfo];
+      } else {
+        // If this message is older than all the existing blocks,
+        // there aren't any messages to return, period, since we're
+        // seeking pastward.
+        messageCallback([], false);
+        return;
+      }
     }
 
     var iHeader = null;
@@ -8358,15 +8412,29 @@ FolderStorage.prototype = {
 
         // Null means find it by id...
         if (iHeader === null) {
-          if (id !== null)
-            iHeader = headerBlock.ids.indexOf(id);
-          else
-            iHeader = 0;
-          if (iHeader === -1) {
-            self._LOG.badIterationStart(date, id);
-            toFill = 0;
+          if (id != null) {
+            iHeader = bsearchForInsert(headerBlock.headers, {
+              date: date,
+              id: id
+            }, cmpHeaderYoungToOld);
+
+            if (headerBlock.ids[iHeader] === id) {
+              // If we landed exactly on the message we were searching
+              // for, we must skip _past_ it, as this method is not
+              // intended to return this message, but only ones past it.
+              iHeader++;
+            } else {
+              // If we didn't land on the exact header we sought, we
+              // can just start returning results from iHeader onward.
+              // since iHeader points to a message immediately beyond
+              // the message we sought.
+            }
+          } else {
+            // If we didn't specify an id to search for, we're
+            // supposed to pretend that the first message in the block
+            // was the one we wanted; in that case, start from index 1.
+            iHeader = 1;
           }
-          iHeader++;
         }
         // otherwise we know we are starting at the front of the block.
         else {
@@ -8407,6 +8475,10 @@ FolderStorage.prototype = {
   /**
    * Fetch up to `limit` messages chronologically after the given message (in
    * the direction of 'end').
+   *
+   * NOTE: Unlike getMessagesBeforeMessage, this method currently
+   * expects date/id to point to a valid message, otherwise we'll
+   * raise a badIterationStart error.
    */
   getMessagesAfterMessage: function(date, id, limit, messageCallback) {
     var toFill = (limit != null) ? limit : $sync.TOO_MANY_MESSAGES, self = this;
@@ -13816,6 +13888,287 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 
 }); // end define
 ;
+'use strict';
+/**
+ * This module exposes a single helper method,
+ * `sendNextAvailableOutboxMessage`, which is used by the
+ * sendOutboxMessages job in jobmixins.js.
+ */
+define('mailapi/jobs/outbox',['require'],function(require) {
+
+
+  /**
+   * Send the next available outbox message. Returns a promise that
+   * resolves to the following:
+   *
+   * {
+   *   moreExpected: (Boolean),
+   *   messageNamer: { date, suid }
+   * }
+   *
+   * If there might be more messages left to send after this one,
+   * moreExpected will be `true`.
+   *
+   * If we attempted to send a message, messageNamer will point to it.
+   * This can then be passed to a subsequent invocation of this, to
+   * send the next available message after the given messageNamer.
+   *
+   * @param {CompositeAccount|ActiveSyncAccount} account
+   * @param {FolderStorage} storage
+   * @param {MessageNamer|null} beforeMessage
+   *   Send the first message chronologically preceding `beforeMessage`.
+   * @param {Boolean} emitNotifications
+   *   If true, we will emit backgroundSendStatus notifications
+   *   for this message.
+   * @param {Boolean} outboxNeedsFreshSync
+   *   If true, ignore any potentially stale "sending" state,
+   *   as in when we restore the app from a crash.
+   * @param {SmartWakeLock} wakeLock
+   *   A SmartWakeLock to be held open during the sending process.
+   * @return {Promise}
+   * @public
+   */
+  function sendNextAvailableOutboxMessage(
+    account, storage, beforeMessage, emitNotifications,
+    outboxNeedsFreshSync, wakeLock) {
+
+    return getNextHeader(storage, beforeMessage).then(function(header) {
+      // If there are no more messages to send, resolve `null`. This
+      // should ordinarily not happen, because clients should pay
+      // attention to the `moreExpected` results from earlier sends;
+      // but job scheduling might introduce edge cases where this
+      // happens, so better to be safe.
+      if (!header) {
+        return {
+          moreExpected: false,
+          messageNamer: null
+        };
+      }
+
+      // Figure out if this is the last message to consider sending in the
+      // outbox.  (We are moving from newest to oldest, so this is the last one
+      // if it is the oldest.  We need to figure this out before the send
+      // process completes since we will delete the header once it's all sent.)
+      var moreExpected = !storage.headerIsOldestKnown(header.date,
+                                                      header.id);
+
+      if (!header.sendStatus) {
+        header.sendStatus = {};
+      }
+
+      // If the header has not been sent, or we've been instructed to
+      // ignore any existing sendStatus, clear it out.
+      if (header.sendStatus.state !== 'sending' || outboxNeedsFreshSync) {
+        // If this message is not already being sent, send it.
+        return constructComposer(account, storage, header, wakeLock)
+          .then(sendMessage.bind(null, account, storage, emitNotifications))
+          .then(function(header) {
+            return {
+              moreExpected: moreExpected,
+              messageNamer: {
+                suid: header.suid,
+                date: header.date
+              }
+            };
+          });
+      } else {
+        // If this message is currently being sent, advance to the
+        // next header.
+        return sendNextAvailableOutboxMessage(account, storage, {
+          suid: header.suid,
+          date: header.date
+        }, emitNotifications, outboxNeedsFreshSync, wakeLock);
+      }
+    });
+  }
+
+
+  ////////////////////////////////////////////////////////////////
+  // The following functions are internal helpers.
+
+  /**
+   * Resolve to the header immediately preceding `beforeMessage` in
+   * time. If beforeMessage is null, resolve the most recent message.
+   * If no message could be found, resolve `null`.
+   *
+   * @param {FolderStorage} storage
+   * @param {MessageNamer} beforeMessage
+   * @return {Promise(MailHeader)}
+   */
+  function getNextHeader(storage, /* optional */ beforeMessage) {
+    return new Promise(function(resolve) {
+      if (beforeMessage) {
+        // getMessagesBeforeMessage expects an 'id', not a 'suid'.
+        var id = parseInt(beforeMessage.suid.substring(
+          beforeMessage.suid.lastIndexOf('/') + 1));
+        storage.getMessagesBeforeMessage(
+          beforeMessage.date,
+          id,
+          /* limit = */ 1,
+          function(headers, moreExpected) {
+            // There may be no headers, and that's okay.
+            resolve(headers[0] || null);
+          });
+      } else {
+        storage.getMessagesInImapDateRange(
+          0,
+          null,
+          /* min */ 1,
+          /* max */ 1,
+          function(headers, moreExpected) {
+            resolve(headers[0]);
+          });
+      }
+    });
+  }
+
+  /**
+   * Build a Composer instance pointing to the given header.
+   *
+   * @param {MailAccount} account
+   * @param {FolderStorage} storage
+   * @param {MailHeader} header
+   * @param {SmartWakeLock} wakeLock
+   * @return {Promise(Composer)}
+   */
+  function constructComposer(account, storage, header, wakeLock) {
+    return new Promise(function(resolve, reject) {
+      storage.getMessage(header.suid, header.date, function(msg) {
+
+        // If for some reason the message doesn't have a body, we
+        // can't construct a composer for this header.
+        if (!msg || !msg.body) {
+          console.error('Failed to create composer; no body available.');
+          reject();
+          return;
+        }
+
+        require(['mailapi/drafts/composer'], function(cmp) {
+          var composer = new cmp.Composer(msg, account, account.identities[0]);
+          composer.setSmartWakeLock(wakeLock);
+
+          resolve(composer);
+        });
+      });
+    });
+  }
+
+  /**
+   * Attempt to send the given message from the outbox.
+   *
+   * During the sending process, post status updates to the universe,
+   * so that the frontend can display status notifications if it
+   * desires.
+   *
+   * If the message successfully sends, remove it from the outbox;
+   * otherwise, its `sendStatus.state` will equal 'error', with
+   * details about the failure.
+   *
+   * Resolves to the header; you can check `header.sendStatus` to see
+   * the result of this send attempt.
+   *
+   * @param {MailAccount} account
+   * @param {FolderStorage} storage
+   * @param {Composer} composer
+   * @return {Promise(MailHeader)}
+   */
+  function sendMessage(account, storage, emitNotifications, composer) {
+    var header = composer.header;
+    var progress = publishStatus.bind(
+      null, account, storage, composer, header, emitNotifications);
+
+    // As part of the progress notification, the client would like to
+    // know whether or not they can expect us to immediately send more
+    // messages after this one. If there are messages in the outbox
+    // older than this one, the answer is yes.
+    var oldestDate = storage.getOldestMessageTimestamp();
+    var willSendMore = oldestDate > 0 && oldestDate < header.date.valueOf();
+
+    // Send the initial progress information.
+    progress({
+      state: 'sending',
+      err: null,
+      badAddresses: null,
+      sendFailures: header.sendStatus && header.sendStatus.sendFailures || 0
+    });
+
+    return new Promise(function(resolve) {
+      account.sendMessage(composer, function(err, badAddresses) {
+        if (err) {
+          console.log('Message failed to send (' + err + ')');
+
+          progress({
+            state: 'error',
+            err: err,
+            badAddresses: badAddresses,
+            sendFailures: (header.sendStatus.sendFailures || 0) + 1
+          });
+
+          resolve(composer.header);
+        } else {
+          console.log('Message sent; deleting from outbox.');
+
+          progress({
+            state: 'success',
+            err: null,
+            badAddresses: null
+          });
+          storage.deleteMessageHeaderAndBodyUsingHeader(header, function() {
+            resolve(composer.header);
+          });
+        }
+      });
+    });
+  }
+
+  /**
+   * Publish a universe notification with the message's current send
+   * status, and queue it for persistence in the database.
+   *
+   * NOTE: Currently, we do not checkpoint our state, so the
+   * intermediary "sending" steps will not actually get written to
+   * disk. That is generally fine, since sendStatus is invalid upon a
+   * restart. However, when we address bug 1032451 (sendMessage is not
+   * actually atomic), we will want to checkpoint state during the
+   * sending process.
+   */
+  function publishStatus(account, storage, composer,
+                         header, emitNotifications, status) {
+    header.sendStatus = {
+      state: status.state,
+      err: status.err,
+      badAddresses: status.badAddresses,
+      sendFailures: status.sendFailures
+    };
+
+    account.universe.__notifyBackgroundSendStatus({
+      // Status information (also stored on the header):
+      state: status.state,
+      err: status.err,
+      badAddresses: status.badAddresses,
+      sendFailures: status.sendFailures,
+      // Message/Account Information (for notifications):
+      accountId: account.id,
+      suid: header.suid,
+      emitNotifications: emitNotifications,
+      // Unit test support:
+      messageId: composer.messageId,
+      sentDate: composer.sentDate
+    });
+
+    storage.updateMessageHeader(
+      header.date,
+      header.id,
+      /* partOfSync */ false,
+      header,
+      /* body hint */ null);
+  }
+
+  return {
+    sendNextAvailableOutboxMessage: sendNextAvailableOutboxMessage
+  };
+});
+
 define('mailapi/worker-router',[],function() {
 
 var listeners = {};
@@ -13928,6 +14281,145 @@ return {
 
 }); // end define
 ;
+define('mailapi/wakelocks',['require','./worker-router'],function(require) {
+  'use strict';
+
+  var $router = require('./worker-router');
+  var sendMessage = $router.registerCallbackType('wakelocks');
+
+  /**
+   * SmartWakeLock: A renewable, failsafe Wake Lock manager.
+   *
+   * Example:
+   *   var lock = new SmartWakeLock({ locks: ['cpu', 'screen'] });
+   *   // do things; if we do nothing, the lock expires eventually.
+   *   lock.renew(); // Keep the lock around for a while longer.
+   *   // Some time later...
+   *   lock.unlock();
+   *
+   * Grab a set of wake locks, holding on to them until either a
+   * failsafe timeout expires, or you release them.
+   *
+   * @param {int} opts.timeout
+   *   Timeout, in millseconds, to hold the lock if you fail to call
+   *   .unlock().
+   * @param {String[]} opts.locks
+   *   Array of strings, e.g. ['cpu', 'wifi'], representing the locks
+   *   you wish to acquire.
+   */
+  function SmartWakeLock(opts) {
+    this.timeoutMs = opts.timeout || SmartWakeLock.DEFAULT_TIMEOUT_MS;
+    var locks = this.locks = {}; // map of lockType -> wakeLockInstance
+
+    this._timeout = null; // The ID returned from our setTimeout.
+
+    // Since we have to fling things over the bridge, requesting a
+    // wake lock here is asynchronous. Using a Promise to track when
+    // we've successfully acquired the locks (and blocking on it in
+    // the methods on this class) ensures that folks can ignore the
+    // ugly asynchronous parts and not worry about when things happen
+    // under the hood.
+    this._readyPromise = Promise.all(opts.locks.map(function(type) {
+      return new Promise(function(resolve, reject) {
+        sendMessage('requestWakeLock', [type], function(lockId) {
+          locks[type] = lockId;
+          resolve();
+        });
+      });
+    })).then(function() {
+      this._debug('Acquired', this, 'for', this.timeoutMs + 'ms');
+      // For simplicity of implementation, we reuse the `renew` method
+      // here to add the initial `opts.timeout` to the unlock clock.
+      this.renew(); // Start the initial timeout.
+    }.bind(this));
+  }
+
+  SmartWakeLock.DEFAULT_TIMEOUT_MS = 45000;
+
+  SmartWakeLock.prototype = {
+    /**
+     * Renew the timeout, if you're certain that you still need to hold
+     * the locks longer.
+     */
+    renew: function(/* optional */ reason, callback) {
+      if (typeof reason === 'function') {
+        callback = reason;
+        reason = null;
+      }
+
+      // Wait until we've successfully acquired the wakelocks, then...
+      this._readyPromise.then(function() {
+        // If we've already set a timeout, we'll clear that first.
+        // (Otherwise, we're just loading time on for the first time,
+        // and don't need to clear or log anything.)
+        if (this._timeout) {
+          clearTimeout(this._timeout);
+          this._debug('Renewing', this, 'for another', this.timeoutMs + 'ms' +
+                      (reason ? ' (reason: ' + reason + ')' : '') + ',',
+                      'would have expired in ' +
+                      (this.timeoutMs - (Date.now() - this._timeLastRenewed)) +
+                      'ms if not renewed.');
+        }
+
+        this._timeLastRenewed = Date.now(); // Solely for debugging.
+
+        this._timeout = setTimeout(function() {
+          this._debug('*** Unlocking', this,
+                      'due to a TIMEOUT. Did you remember to unlock? ***');
+          this.unlock.bind(this);
+        }.bind(this), this.timeoutMs);
+
+        callback && callback();
+      }.bind(this));
+    },
+
+    /**
+     * Unlock all the locks. This happens asynchronously behind the
+     * scenes; if you want to block on completion, hook onto the
+     * Promise returned from this function.
+     */
+    unlock: function(/* optional */ reason) {
+      // Make sure weve been locked before we try to unlock. Also,
+      // return the promise, throughout the chain of calls here, so
+      // that listeners can listen for completion if they need to.
+      return this._readyPromise.then(function() {
+        var desc = this.toString();
+
+        var locks = this.locks;
+        this.locks = {}; // Clear the locks.
+        clearTimeout(this._timeout);
+
+        // Wait for all of them to successfully unlock.
+        return Promise.all(Object.keys(locks).map(function(type) {
+          return new Promise(function(resolve, reject) {
+            sendMessage('unlock', [locks[type]], function(lockId) {
+              resolve();
+            });
+          });
+        })).then(function() {
+          this._debug('Unlocked', desc + '.',
+                      (reason ? 'Reason: ' + reason : ''));
+        }.bind(this));
+
+      }.bind(this));
+    },
+
+    toString: function() {
+      return Object.keys(this.locks).join('+') || '(no locks)';
+    },
+
+    _debug: function() {
+      var args = Array.slice(arguments);
+      console.log.apply(console, ['SmartWakeLock:'].concat(args));
+    }
+  };
+
+  return {
+    SmartWakeLock: SmartWakeLock
+  };
+
+});
+
 /**
  * Mix-ins for account job functionality where the code is reused.
  **/
@@ -13936,11 +14428,19 @@ define('mailapi/jobmixins',
   [
     './worker-router',
     './util',
+    './allback',
+    './wakelocks',
+    './date',
+    './syncbase',
     'exports'
   ],
   function(
     $router,
     $util,
+    $allback,
+    $wakelocks,
+    $date,
+    $sync,
     exports
   ) {
 
@@ -14045,9 +14545,13 @@ exports.local_do_move = function(op, doneCallback, targetFolderId) {
           stateDelta.serverIdMap[header.suid] = header.srvid;
 
         if (sourceStorage === targetStorage ||
-            // localdraft messages aren't real, and so must not be moved and
-            // are only eligible for nuke deletion.
-            sourceStorage.folderMeta.type === 'localdrafts') {
+            // localdraft messages aren't real, and so must not be
+            // moved and are only eligible for nuke deletion. But they
+            // _can_ be moved to the outbox, and vice versa!
+            (sourceStorage.folderMeta.type === 'localdrafts' &&
+             targetStorage.folderMeta.type !== 'outbox') ||
+            (sourceStorage.folderMeta.type === 'outbox' &&
+             targetStorage.folderMeta.type !== 'localdrafts')) {
           if (op.type === 'move') {
             // A move from a folder to itself is a no-op.
             processNext();
@@ -14100,7 +14604,12 @@ exports.local_do_move = function(op, doneCallback, targetFolderId) {
       }
     },
     function() {
-      doneCallback(null, null, true);
+      // Pass along the moveMap as the move's result, so that the
+      // frontend can directly obtain a reference to the moved
+      // message. This is used when tapping a message in the outbox
+      // folder (wherein we expect it to be moved to localdrafts and
+      // immediately edited).
+      doneCallback(null, stateDelta.moveMap, true);
     },
     null, // connection loss does not happen for local-only ops
     false,
@@ -14115,7 +14624,7 @@ exports.local_undo_move = function(op, doneCallback, targetFolderId) {
 exports.local_do_delete = function(op, doneCallback) {
   var trashFolder = this.account.getFirstFolderWithType('trash');
   if (!trashFolder) {
-    this.account.ensureEssentialFolders();
+    this.account.ensureEssentialOnlineFolders();
     doneCallback('defer');
     return;
   }
@@ -14396,6 +14905,141 @@ exports.do_downloadBodyReps = function(op, callback) {
 exports.local_do_downloadBodyReps = function(op, callback) {
   callback(null);
 };
+
+
+////////////////////////////////////////////////////////////////////////////////
+// sendOutboxMessages
+
+/**
+ * Send some messages from the outbox. At a high level, you can
+ * pretend that "sendOutboxMessages" just kicks off a process to send
+ * all the messages in the outbox.
+ *
+ * As an implementation detail, to keep memory requirements low, this
+ * job is designed to send only one message at a time; it
+ * self-schedules future jobs to walk through the list of outbox
+ * messages, one at a time.
+ *
+ * In pseudocode:
+ *
+ *         CLIENT: "Hey, please kick off a sendOutboxMessages job."
+ *   OUTBOX JOB 1: "Okay, I'll send the first message."
+ *         CLIENT: "thanks"
+ *   OUTBOX JOB 1: "Okay, done. Oh, there are more messages. Scheduling
+ *                  a future job to send the next message."
+ *         CLIENT: "ok"
+ *   OUTBOX JOB 1: *dies*
+ *         CLIENT: *goes off to do other things*
+ *   OUTBOX JOB 2: "on it, sending another message"
+ *
+ * This allows other jobs to interleave the sending process, to avoid
+ * introducing long delays in a world where we only run one job
+ * concurrently.
+ *
+ * This job accepts a `beforeMessage` parameter; if that parameter is
+ * null (the normal case), we'll attempt to send the newest message.
+ * After the first message has been sent, we will _self-schedule_ a
+ * second sendOutboxMessages job to continue sending the rest of the
+ * available messages (one per job).
+ *
+ * We set `header.sendStatus` to an object representing the current
+ * state of the send operation. If the send fails, we'll remove the
+ * flag and indicate that there was an error sending, unless the app
+ * crashes, in which case we'll try to resend upon startup again (see
+ * `outboxNeedsFreshSync`).
+ */
+exports.do_sendOutboxMessages = function(op, callback) {
+  var account = this.account;
+  var outboxFolder = account.getFirstFolderWithType('outbox');
+  if (!outboxFolder) {
+    callback('moot'); // This shouldn't happen, we should always have an outbox.
+    return;
+  }
+
+  // If we temporarily paused outbox syncing, don't do anything.
+  if (!account.outboxSyncEnabled) {
+    console.log('outbox: Outbox syncing temporarily disabled; not syncing.');
+    callback(null);
+    return;
+  }
+
+  var outboxNeedsFreshSync = account.outboxNeedsFreshSync;
+  if (outboxNeedsFreshSync) {
+    console.log('outbox: This is the first outbox sync for this account.');
+    account.outboxNeedsFreshSync = false;
+  }
+
+  // Hold both a CPU and WiFi wake lock for the duration of the send
+  // operation. We'll pass this in to the Composer instance for each
+  // message, so that the SMTP/ActiveSync sending process can renew
+  // the wake lock from time to time as the send continues.
+  var wakeLock = new $wakelocks.SmartWakeLock({
+    locks: ['cpu', 'wifi']
+  });
+
+  this._accessFolderForMutation(
+    outboxFolder.id, /* needConn = */ false,
+    function(nullFolderConn, folderStorage) {
+      require(['mailapi/jobs/outbox'], function ($outbox) {
+        $outbox.sendNextAvailableOutboxMessage(
+          account.compositeAccount || account, // Requires the main account.
+          folderStorage,
+          op.beforeMessage,
+          op.emitNotifications,
+          outboxNeedsFreshSync,
+          wakeLock
+        ).then(function(result) {
+          var moreExpected = result.moreExpected;
+          var messageNamer = result.messageNamer;
+
+          wakeLock.unlock('send complete');
+
+          // If there may be more messages to send, schedule another
+          // sync to send the next available message.
+          if (moreExpected) {
+            account.universe.sendOutboxMessages(account, {
+              beforeMessage: messageNamer
+            });
+          }
+          // Otherwise, we're done. Mark the outbox as "synced".
+          else {
+            account.universe.notifyOutboxSyncDone(account);
+            folderStorage.markSyncRange(
+              $sync.OLDEST_SYNC_DATE, null, 'XXX', $date.NOW());
+          }
+          // Since we modified the folders, save the account.
+          callback(null, /* result = */ null, /* save = */ true);
+        }).catch(function(e) {
+          console.error('Exception while sending a message.',
+                        'Send failure: ' + e, e.stack);
+          wakeLock.unlock(e);
+          callback('aborted-retry');
+        });
+
+      });
+    },
+    /* no conn => no deathback required */ null,
+    'sendOutboxMessages');
+};
+
+exports.check_sendOutboxMessages = function(op, callback) {
+  callback(null, 'moot');
+};
+
+exports.local_undo_sendOutboxMessages = function(op, callback) {
+  callback(null); // You cannot undo sendOutboxMessages.
+};
+
+exports.local_do_setOutboxSyncEnabled = function(op, callback) {
+  // Set a flag on the account to prevent us from kicking off further
+  // sends while the outbox is being edited on the client. The account
+  // referenced by `this.account` is actually the receive piece in a
+  // composite account; this flag is initialized in accountmixins.js.
+  this.account.outboxSyncEnabled = op.outboxSyncEnabled;
+  callback(null);
+};
+
+////////////////////////////////////////////////////////////////
 
 
 exports.postJobCleanup = function(passed) {
@@ -15425,7 +16069,29 @@ function unimplementedJobOperation(op, callback) {
   });
 }
 
+/**
+ * Account Mixins:
+ *
+ * This mixin function is executed from the constructor of the
+ * CompositeAccount and ActiveSyncAccount, with 'this' being bound to
+ * the main account instance. If the account has separate receive/send
+ * parts, they are passed as arguments. (ActiveSync's receive and send
+ * pieces merely reference the root account.)
+ */
+exports.accountConstructorMixin = function(receivePiece, sendPiece) {
+  // The following flags are set on the receivePiece, because the
+  // receiving side is what manages the job operations (and sending
+  // messages from the outbox is a job).
 
+  // On startup, we need to ignore any stale sendStatus information
+  // from messages in the outbox. See `sendOutboxMessages` in
+  // jobmixins.js.
+  receivePiece.outboxNeedsFreshSync = true;
+  // This is a runtime flag, used to temporarily prevent
+  // `sendOutboxMessages` from executing, such as when the user is
+  // actively trying to edit the list of messages in the Outbox.
+  receivePiece.outboxSyncEnabled = true;
+};
 
 /**
  * @args[
@@ -15515,7 +16181,71 @@ exports.getFolderByPath = function(folderPath) {
  return null;
 };
 
+/**
+ * Ensure that local-only folders live in a reasonable place in the
+ * folder hierarchy by moving them if necessary.
+ *
+ * We proactively create local-only folders at the root level before
+ * we synchronize with the server; if possible, we want these
+ * folders to reside as siblings to other system-level folders on
+ * the account. This is called at the end of syncFolderList, after
+ * we have learned about all existing server folders.
+ */
+exports.normalizeFolderHierarchy = function() {
+  // Find a folder for which we'd like to become a sibling.
+  var sibling =
+        this.getFirstFolderWithType('drafts') ||
+        this.getFirstFolderWithType('sent');
 
+  // If for some reason we can't find those folders yet, that's
+  // okay, we will try this again after the next folder sync.
+  if (!sibling) {
+    return;
+  }
+
+  var parent = this.getFolderMetaForFolderId(sibling.parentId);
+
+  // NOTE: `parent` may be null if `sibling` is a top-level folder.
+  var foldersToMove = [this.getFirstFolderWithType('localdrafts'),
+                       this.getFirstFolderWithType('outbox')];
+
+  foldersToMove.forEach(function(folder) {
+    // These folders should always exist, but we double-check here
+    // for safety. Also, if the folder is already in the right
+    // place, we're done.
+    if (!folder || folder.parentId === sibling.parentId) {
+      return;
+    }
+
+    console.log('Moving folder', folder.name,
+                'underneath', parent && parent.name || '(root)');
+
+
+    this.universe.__notifyRemovedFolder(this, folder);
+
+    // On `delim`: IMAP specifies `account.meta.rootDelim` based on
+    // server-specific settings. ActiveSync hard-codes "/". POP3
+    // doesn't even go that far. An empty delimiter would be
+    // incorrect, as it could cause folder paths to smush into one
+    // another. Thus, it should be safe to fall back to "/" when
+    // `account.meta.rootDelim` is undefined.
+    if (parent) {
+      folder.path = parent.path + (parent.delim || '/') + folder.name;
+      folder.delim = parent.delim || this.meta.rootDelim || '/';
+      folder.parentId = parent.id;
+      folder.depth = parent.depth + 1;
+    } else {
+      folder.path = folder.name;
+      folder.delim = this.meta.rootDelim || '/';
+      folder.parentId = null;
+      folder.depth = 0;
+    }
+
+    this.universe.__notifyAddedFolder(this, folder);
+
+  }, this);
+
+};
 
 /**
  * Save the state of this account to the database.  This entails updating all
@@ -15532,6 +16262,8 @@ exports.saveAccountState = function(reuseTrans, callback, reason) {
     this._LOG.accountDeleted('saveAccountState');
     return null;
   }
+
+  this._LOG.saveAccountState_begin(reason, null);
 
   // Indicate save is active, in case something, like
   // signaling the end of a sync, needs to run after
@@ -15552,12 +16284,13 @@ exports.saveAccountState = function(reuseTrans, callback, reason) {
     if (folderStuff)
       perFolderStuff.push(folderStuff);
   }
-  this._LOG.saveAccountState(reason);
+  var folderSaveCount = perFolderStuff.length;
   var trans = this._db.saveAccountFolderStates(
     this.id, this._folderInfos, perFolderStuff,
     this._deadFolderIds,
     function stateSaved() {
       this._saveAccountStateActive = false;
+      this._LOG.saveAccountState_end(reason, folderSaveCount);
 
       // NB: we used to log when the save completed, but it ended up being
       // annoying to the unit tests since we don't block our actions on
@@ -15570,6 +16303,8 @@ exports.saveAccountState = function(reuseTrans, callback, reason) {
       });
     }.bind(this),
     reuseTrans);
+  // Reduce the length of time perFolderStuff and its contents are kept alive.
+  perFolderStuff = null;
   this._deadFolderIds = null;
   return trans;
 };
@@ -16746,11 +17481,12 @@ var FOLDER_TYPE_TO_SORT_PRIORITY = {
   important: 'f',
   drafts: 'g',
   localdrafts: 'h',
-  queue: 'i',
-  sent: 'j',
-  junk: 'k',
-  trash: 'm',
-  archive: 'o',
+  outbox: 'i',
+  queue: 'j',
+  sent: 'k',
+  junk: 'l',
+  trash: 'n',
+  archive: 'p',
   normal: 'z',
   // nomail folders are annoying since they are basically just hierarchy,
   //  but they are also rare and should only happen amongst normal folders.
@@ -17507,12 +18243,37 @@ MailBridge.prototype = {
 
   _cmd_moveMessages: function mb__cmd_moveMessages(msg) {
     var longtermIds = this.universe.moveMessages(
-      msg.messages, msg.targetFolder);
-    this.__sendMessage({
-      type: 'mutationConfirmed',
-      handle: msg.handle,
-      longtermIds: longtermIds,
-    });
+      msg.messages, msg.targetFolder, function(err, moveMap) {
+        this.__sendMessage({
+          type: 'mutationConfirmed',
+          handle: msg.handle,
+          longtermIds: longtermIds,
+          result: moveMap
+        });
+      }.bind(this));
+  },
+
+  _cmd_sendOutboxMessages: function(msg) {
+    var account = this.universe.getAccountForAccountId(msg.accountId);
+    this.universe.sendOutboxMessages(account, {
+      reason: 'api request'
+    }, function(err) {
+      this.__sendMessage({
+        type: 'sendOutboxMessages',
+        handle: msg.handle
+      });
+    }.bind(this));
+  },
+
+  _cmd_setOutboxSyncEnabled: function(msg) {
+    var account = this.universe.getAccountForAccountId(msg.accountId);
+    this.universe.setOutboxSyncEnabled(
+      account, msg.outboxSyncEnabled, function() {
+        this.__sendMessage({
+          type: 'setOutboxSyncEnabled',
+          handle: msg.handle
+        });
+      }.bind(this));
   },
 
   _cmd_undo: function mb__cmd_undo(msg) {
@@ -17813,7 +18574,8 @@ MailBridge.prototype = {
             cc: header.cc,
             bcc: header.bcc,
             referencesStr: body.references,
-            attachments: attachments
+            attachments: attachments,
+            sendStatus: header.sendStatus
           });
           callWhenDone();
         }
@@ -17850,11 +18612,7 @@ MailBridge.prototype = {
         function sendDeleted() {
           self.__sendMessage({
             type: 'doneCompose',
-            handle: msg.handle,
-            err: null,
-            badAddresses: null,
-            messageId: null,
-            sentDate: null
+            handle: msg.handle
           });
         }
         if (req.persistedNamer) {
@@ -17875,34 +18633,55 @@ MailBridge.prototype = {
       account = this.universe.getAccountForSenderIdentityId(wireRep.senderId);
       var identity = this.universe.getIdentityForSenderIdentityId(
                        wireRep.senderId);
+
       if (msg.command === 'send') {
-        // For a send, we first save the state of the draft, then we send it.
+        // To enqueue a message for sending:
+        //   1. Save the draft.
+        //   2. Move the draft to the outbox.
+        //   3. Fire off a job to send pending outbox messages.
+
         req.persistedNamer = this.universe.saveDraft(
           account, req.persistedNamer, wireRep,
           function(err, newRecords) {
-            var composer = new $composer.Composer(newRecords, account,
-                                                  identity);
-
             req.active = null;
-            if (req.die)
+            if (req.die) {
               delete this._pendingRequests[msg.handle];
-            account.sendMessage(composer, function(err, badAddresses) {
-              if (!err) {
-              // Now that we're all successfully sent, nuke the draft
-                this.universe.deleteDraft(account, req.persistedNamer);
-              }
-              // And report success without waiting for the draft to be
-              // deleted.
-              this.__sendMessage({
-                type: 'doneCompose',
-                handle: msg.handle,
-                err: err,
-                badAddresses: badAddresses,
-                messageId: composer.messageId,
-                sentDate: composer.sentDate.valueOf(),
-              });
-            }.bind(this));
+            }
+
+            var outboxFolder = account.getFirstFolderWithType('outbox');
+            this.universe.moveMessages([req.persistedNamer], outboxFolder.id);
+
+            // We only want to display notifications if the universe
+            // is online, i.e. we expect this sendOutboxMessages
+            // invocation to actually fire immediately. If we're in
+            // airplane mode, for instance, this job won't actually
+            // run until we're online, in which case it no longer
+            // makes sense to emit notifications for this job.
+            this.universe.sendOutboxMessages(account, {
+              reason: 'moved to outbox',
+              emitNotifications: this.universe.online
+            });
           }.bind(this));
+
+        var initialSendStatus = {
+          accountId: account.id,
+          suid: req.persistedNamer.suid,
+          state: (this.universe.online ? 'sending' : 'pending'),
+          emitNotifications: true
+        };
+
+        // Send 'doneCompose' nearly immediately, as saveDraft might
+        // take a while to complete if other stuff is going on. We'll
+        // pass along the initialSendStatus so that we can immediately
+        // display status information.
+        this.__sendMessage({
+          type: 'doneCompose',
+          handle: msg.handle,
+          sendStatus: initialSendStatus
+        });
+
+        // Broadcast the send status immediately here as well.
+        this.universe.__notifyBackgroundSendStatus(initialSendStatus);
       }
       else if (msg.command === 'save') {
         // Save the draft, updating our persisted namer.
@@ -17914,11 +18693,7 @@ MailBridge.prototype = {
               delete self._pendingRequests[msg.handle];
             self.__sendMessage({
               type: 'doneCompose',
-              handle: msg.handle,
-              err: null,
-              badAddresses: null,
-              messageId: null,
-              sentDate: null,
+              handle: msg.handle
             });
           });
       }
@@ -17937,9 +18712,19 @@ MailBridge.prototype = {
       type: 'cronSyncStop',
       accountsResults: accountsResults
     });
+  },
+
+  /**
+   * Notify the frontend about the status of message sends. Data has
+   * keys like 'state', 'error', etc, per the sendOutboxMessages job.
+   */
+  notifyBackgroundSendStatus: function(data) {
+    this.__sendMessage({
+      type: 'backgroundSendStatus',
+      data: data
+    });
   }
 
-  //////////////////////////////////////////////////////////////////////////////
 };
 
 var LOGFAB = exports.LOGFAB = $log.register($module, {
@@ -18244,6 +19029,7 @@ define('mailapi/cronsync',
     './worker-router',
     './slice_bridge_proxy',
     './mailslice',
+    './allback',
     'prim',
     'module',
     'exports'
@@ -18253,6 +19039,7 @@ define('mailapi/cronsync',
     $router,
     $sliceBridgeProxy,
     $mailslice,
+    $allback,
     $prim,
     $module,
     exports
@@ -18405,18 +19192,10 @@ CronSync.prototype = {
   },
 
   /**
-   * Synchronize the given account.  Right now this is just the Inbox for the
-   * account.
-   *
-   * XXX For IMAP, we really want to use the standard iterative growth logic
-   * but generally ignoring the number of headers in the slice and instead
-   * just doing things by date.  Since making that correct without breaking
-   * things or making things really ugly will take a fair bit of work, we are
-   * initially just using the UI-focused logic for this.
-   *
-   * XXX because of this, we totally ignore IMAP's number of days synced
-   * value.  ActiveSync handles that itself, so our ignoring it makes no
-   * difference for it.
+   * Synchronize the given account. This fetches new messages for the
+   * inbox, and attempts to send pending outbox messages (if
+   * applicable). The callback occurs after both of those operations
+   * have completed.
    */
   syncAccount: function(account, doneCallback) {
     // - Skip syncing if we are offline or the account is disabled
@@ -18427,19 +19206,8 @@ CronSync.prototype = {
       return;
     }
 
-    var done = function(result) {
-      // Wait for any in-process job operations to complete, so
-      // that the app is not killed in the middle of a sync.
-      this._universe.waitForAccountOps(account, function() {
-        // Also wait for any account save to finish. Most
-        // likely failure will be new message headers not
-        // getting saved if the callback is not fired
-        // until after account saves.
-        account.runAfterSaves(function() {
-          doneCallback(result);
-        });
-      });
-    }.bind(this);
+    var latch = $allback.latch();
+    var inboxDone = latch.defer('inbox');
 
     var inboxFolder = account.getFirstFolderWithType('inbox');
     var storage = account.getFolderStorageForFolderId(inboxFolder.id);
@@ -18478,21 +19246,50 @@ CronSync.prototype = {
               maximumBytesToFetch: MAX_SNIPPET_BYTES
             }, function() {
               debug('Notifying for ' + newHeaders.length + ' headers');
-              done([newHeaders.length, notifyHeaders]);
+              inboxDone([newHeaders.length, notifyHeaders]);
           }.bind(this));
         } else {
           debug('UNIVERSE OFFLINE. Notifying for ' + newHeaders.length +
                 ' headers');
-          done([newHeaders.length, notifyHeaders]);
+          inboxDone([newHeaders.length, notifyHeaders]);
         }
       } else {
-        done();
+        inboxDone();
       }
     }.bind(this), this._LOG);
 
     this._activeSlices.push(slice);
     // Pass true to force contacting the server.
     storage.sliceOpenMostRecent(slice, true);
+
+    // Check the outbox; if it has pending messages, attempt to send them.
+    var outboxFolder = account.getFirstFolderWithType('outbox');
+    if (outboxFolder) {
+      var outboxStorage = account.getFolderStorageForFolderId(outboxFolder.id);
+      if (outboxStorage.getKnownMessageCount() > 0) {
+        this._universe.sendOutboxMessages(account, {
+          reason: 'syncAccount'
+        }, latch.defer('outbox'));
+      }
+    }
+
+    // After both inbox and outbox syncing are algorithmically done,
+    // wait for any ongoing job operations to complete so that the app
+    // is not killed in the middle of a sync.
+    latch.then(function(latchResults) {
+      // Right now, we ignore the outbox sync's results; we only care
+      // about the inbox.
+      var inboxResult = latchResults.inbox[0];
+      this._universe.waitForAccountOps(account, function() {
+        // Also wait for any account save to finish. Most
+        // likely failure will be new message headers not
+        // getting saved if the callback is not fired
+        // until after account saves.
+        account.runAfterSaves(function() {
+          doneCallback(inboxResult);
+        });
+      });
+    }.bind(this));
   },
 
   onAlarm: function(accountIds) {
@@ -19332,6 +20129,7 @@ define('mailapi/mailuniverse',
     './maildb',
     './cronsync',
     './accountcommon',
+    './allback',
     'module',
     'exports'
   ],
@@ -19345,6 +20143,7 @@ define('mailapi/mailuniverse',
     $maildb,
     $cronsync,
     $acctcommon,
+    $allback,
     $module,
     exports
   ) {
@@ -20235,19 +21034,39 @@ MailUniverse.prototype = {
   // expects (accountsResults)
   __notifyStoppedCronSync: makeBridgeFn('notifyCronSyncStop'),
 
+  // __notifyBackgroundSendStatus expects {
+  //   suid: messageSuid,
+  //   accountId: accountId,
+  //   sendFailures: (integer),
+  //   state: 'pending', 'sending', 'error', 'success', or 'syncDone'
+  //   emitNotifications: Boolean,
+  //   err: (if applicable),
+  //   badAddresses: (if applicable)
+  // }
+  __notifyBackgroundSendStatus: makeBridgeFn('notifyBackgroundSendStatus'),
+
   //////////////////////////////////////////////////////////////////////////////
   // Lifetime Stuff
 
   /**
    * Write the current state of the universe to the database.
    */
-  saveUniverseState: function() {
+  saveUniverseState: function(callback) {
     var curTrans = null;
+    var latch = $allback.latch();
 
+    this._LOG.saveUniverseState_begin();
     for (var iAcct = 0; iAcct < this.accounts.length; iAcct++) {
       var account = this.accounts[iAcct];
-      curTrans = account.saveAccountState(curTrans, null, 'saveUniverse');
+      curTrans = account.saveAccountState(curTrans, latch.defer(account.id),
+                                          'saveUniverse');
     }
+    latch.then(function() {
+      this._LOG.saveUniverseState_end();
+      if (callback) {
+        callback();
+      };
+    }.bind(this));
   },
 
   /**
@@ -20420,7 +21239,6 @@ MailUniverse.prototype = {
     var queues = this._opsByAccount[account.id],
         serverQueue = queues.server,
         localQueue = queues.local;
-    queues.active = false;
 
     var removeFromServerQueue = false,
         completeOp = false;
@@ -20445,6 +21263,9 @@ MailUniverse.prototype = {
           completeOp = true;
           break;
       }
+
+      // Do not save if this was an error.
+      accountSaveSuggested = false;
     }
     else {
       switch (op.localStatus) {
@@ -20463,11 +21284,6 @@ MailUniverse.prototype = {
           }
           break;
       }
-
-      // This is a suggestion; in the event of high-throughput on operations,
-      // we probably don't want to save the account every tick, etc.
-      if (accountSaveSuggested)
-        account.saveAccountState(null, null, 'localOp');
     }
 
     if (removeFromServerQueue) {
@@ -20491,18 +21307,13 @@ MailUniverse.prototype = {
       }
     }
 
-    if (localQueue.length) {
-      op = localQueue[0];
-      this._dispatchLocalOpForAccount(account, op);
+    if (accountSaveSuggested) {
+      account.saveAccountState(null, this._startNextOp.bind(this, account),
+                               'localOp');
+      return;
     }
-    else if (serverQueue.length && this.online && account.enabled) {
-      op = serverQueue[0];
-      this._dispatchServerOpForAccount(account, op);
-    }
-    else if (this._opCompletionListenersByAccount[account.id]) {
-      this._opCompletionListenersByAccount[account.id](account);
-      this._opCompletionListenersByAccount[account.id] = null;
-    }
+
+    this._startNextOp(account);
   },
 
   /**
@@ -20566,7 +21377,6 @@ MailUniverse.prototype = {
     var queues = this._opsByAccount[account.id],
         serverQueue = queues.server,
         localQueue = queues.local;
-    queues.active = false;
 
     if (serverQueue[0] !== op)
       this._LOG.opInvariantFailure();
@@ -20708,9 +21518,39 @@ MailUniverse.prototype = {
       // we probably don't want to save the account every tick, etc.
       if (accountSaveSuggested) {
         account._saveAccountIsImminent = false;
-        account.saveAccountState(null, null, 'serverOp');
+        account.saveAccountState(null, this._startNextOp.bind(this, account),
+                                'serverOp');
+        return;
       }
     }
+
+    this._startNextOp(account)
+  },
+
+  /**
+   * Shared code for _localOpCompleted and _serverOpCompleted to figure out what
+   * to do next *after* any account save has completed.  It used to be that we
+   * would trigger saves without waiting for them to complete with the theory
+   * that this would allow us to generally be more efficient without losing
+   * correctness since the IndexedDB transaction model is strong and takes care
+   * of data dependency issues for us.  However, for both testing purposes and
+   * with some new concerns over correctness issues, it's now making sense to
+   * wait on the transaction to commit.  There are potentially some memory-use
+   * wins from waiting for the transaction to complete, especially if we
+   * imagine some particularly pathological situations.
+   */
+  _startNextOp: function(account, queues) {
+    var queues = this._opsByAccount[account.id],
+        serverQueue = queues.server,
+        localQueue = queues.local;
+    var op;
+
+    // We must hold off on freeing up queue.active until after we have
+    // completed processing and called the callback, just as we do in
+    // _localOpCompleted. This allows `callback` to safely schedule
+    // new jobs without interfering with the scheduling we're going to
+    // do immediately below.
+    queues.active = false;
 
     if (localQueue.length) {
       op = localQueue[0];
@@ -20804,8 +21644,9 @@ MailUniverse.prototype = {
 
   waitForAccountOps: function(account, callback) {
     var queues = this._opsByAccount[account.id];
-    if (queues.local.length === 0 &&
-       (queues.server.length === 0 || !this.online || !account.enabled))
+    if (!queues.active &&
+        queues.local.length === 0 &&
+        (queues.server.length === 0 || !this.online || !account.enabled))
       callback();
     else
       this._opCompletionListenersByAccount[account.id] = callback;
@@ -20959,14 +21800,46 @@ MailUniverse.prototype = {
     return longtermIds;
   },
 
-  moveMessages: function(messageSuids, targetFolderId) {
+  moveMessages: function(messageSuids, targetFolderId, callback) {
     var self = this, longtermIds = [],
         targetFolderAccount = this.getAccountForFolderId(targetFolderId);
-    this._partitionMessagesByAccount(messageSuids, null).forEach(function(x) {
+    var latch = $allback.latch();
+    this._partitionMessagesByAccount(messageSuids, null).forEach(function(x,i) {
       // TODO: implement cross-account moves and then remove this constraint
       // and instead schedule the cross-account move.
       if (x.account !== targetFolderAccount)
         throw new Error('cross-account moves not currently supported!');
+
+      // If the move is entirely local-only (i.e. folders that will
+      // never be synced to the server), we don't need to run the
+      // server side of the job.
+      //
+      // When we're moving a message between an outbox and
+      // localdrafts, we need the operation to succeed even if we're
+      // offline, and we also need to receive the "moveMap" returned
+      // by the local side of the operation, so that the client can
+      // call "editAsDraft" on the moved message.
+      //
+      // TODO: When we have server-side 'draft' folder support, we
+      // actually still want to run the server side of the operation,
+      // but we won't want to wait for it to complete. Maybe modify
+      // the job system to pass back localResult and serverResult
+      // independently, or restructure the way we move outbox messages
+      // back to the drafts folder.
+      var targetStorage =
+            targetFolderAccount.getFolderStorageForFolderId(targetFolderId);
+
+      // If any of the sourceStorages (or targetStorage) is not
+      // local-only, we can stop looking.
+      var isLocalOnly = targetStorage.isLocalOnly;
+      for (var j = 0; j < x.messages.length && isLocalOnly; j++) {
+        var sourceStorage =
+              self.getFolderStorageForMessageSuid(x.messages[j].suid);
+        if (!sourceStorage.isLocalOnly) {
+          isLocalOnly = false;
+        }
+      }
+
       var longtermId = self._queueAccountOp(
         x.account,
         {
@@ -20974,13 +21847,31 @@ MailUniverse.prototype = {
           longtermId: null,
           lifecycle: 'do',
           localStatus: null,
-          serverStatus: null,
+          serverStatus: isLocalOnly ? 'n/a' : null,
           tryCount: 0,
           humanOp: 'move',
           messages: x.messages,
           targetFolder: targetFolderId,
-        });
+        }, latch.defer(i));
       longtermIds.push(longtermId);
+    });
+
+    // When the moves finish, they'll each pass back results of the
+    // form [err, moveMap]. The moveMaps provide a mapping of
+    // sourceSuid => targetSuid, allowing the client to point itself
+    // to the moved messages. Since multiple moves would result in
+    // multiple moveMap results, we combine them here into a single
+    // result map.
+    latch.then(function(results) {
+      // results === [[err, moveMap], [err, moveMap], ...]
+      var combinedMoveMap = {};
+      for (var key in results) {
+        var moveMap = results[key][1];
+        for (var k in moveMap) {
+          combinedMoveMap[k] = moveMap[k];
+        }
+      }
+      callback(/* err = */ null, /* result = */ combinedMoveMap);
     });
     return longtermIds;
   },
@@ -21184,6 +22075,85 @@ MailUniverse.prototype = {
   },
 
   /**
+   * Kick off a job to send pending outgoing messages. See the job
+   * documentation regarding "sendOutboxMessages" for more details.
+   *
+   * @param {MailAccount} account
+   * @param {MessageNamer} opts.beforeMessage
+   *   If provided, start with the first message older than this one.
+   *   (This is only used internally within the job itself.)
+   * @param {string} opts.reason
+   *   Optional description, used for debugging.
+   * @param {Boolean} opts.emitNotifications
+   *   True to pass along send status notifications to the model.
+   */
+  sendOutboxMessages: function(account, opts, callback) {
+    opts = opts || {};
+
+    console.log('outbox: sendOutboxMessages(', JSON.stringify(opts), ')');
+
+    // If we are not online, we won't actually kick off a job until we
+    // come back online. Immediately fire a status notification
+    // indicating that we are done attempting to sync for now.
+    if (!this.online) {
+      this.notifyOutboxSyncDone(account);
+      // Fall through; we still want to queue the op.
+    }
+
+    // Do not attempt to check if the outbox is empty here. This op is
+    // queued immediately after the client moves a message to the
+    // outbox. The outbox may be empty here, but it might be filled
+    // when the op runs.
+    this._queueAccountOp(
+      account,
+      {
+        type: 'sendOutboxMessages',
+        longtermId: 'session', // Does not need to be persisted.
+        lifecycle: 'do',
+        localStatus: 'n/a',
+        serverStatus: null,
+        tryCount: 0,
+        beforeMessage: opts.beforeMessage,
+        emitNotifications: opts.emitNotifications,
+        humanOp: 'sendOutboxMessages'
+      },
+      callback);
+  },
+
+  /**
+   * Dispatch a notification to the frontend, indicating that we're
+   * done trying to send messages from the outbox for now.
+   */
+  notifyOutboxSyncDone: function(account) {
+    this.__notifyBackgroundSendStatus({
+      accountId: account.id,
+      state: 'syncDone'
+    });
+  },
+
+  /**
+   * Enable or disable Outbox syncing temporarily. For instance, you
+   * will want to disable outbox syncing if the user is in "edit mode"
+   * for the list of messages in the outbox folder. This setting does
+   * not persist.
+   */
+  setOutboxSyncEnabled: function(account, enabled, callback) {
+    this._queueAccountOp(
+      account,
+      {
+        type: 'setOutboxSyncEnabled',
+        longtermId: 'session', // Does not need to be persisted.
+        lifecycle: 'do',
+        localStatus: null,
+        serverStatus: 'n/a', // Local-only.
+        outboxSyncEnabled: enabled,
+        tryCount: 0,
+        humanOp: 'setOutboxSyncEnabled'
+      },
+      callback);
+  },
+
+  /**
    * Delete an existing (local) draft.
    *
    * This function is implemented as a job/operation so it is inherently ordered
@@ -21338,6 +22308,9 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       configMigrating: { lazyCarryover: false },
       configLoaded: { config: false, accounts: false },
       createAccount: { name: false },
+    },
+    asyncJobs: {
+      saveUniverseState: {}
     },
     errors: {
       badAccountType: { type: true },
