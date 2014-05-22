@@ -36,11 +36,11 @@ window.GaiaHeader = (function(win) {
     this._button = this._template.getElementById('action-button');
     this._buttonInner = this._template.getElementById('action-button-inner');
     
-    this._configureActionButton(this.dataset.action);
+    this._configureActionButton(this.getAttribute('action'));
     this._button.addEventListener('click',
       proto._onActionButtonClick.bind(this));
       
-    this._configureSkin(this.dataset.skin);
+    this._configureSkin(this.getAttribute('skin'));
     this._styleHack();
 
     shadow.appendChild(this._template);
@@ -63,7 +63,7 @@ window.GaiaHeader = (function(win) {
    * When called, trigger the action button.
    */
   proto.triggerAction = function() {
-    if (this._isSupportedAction(this.dataset.action)) {
+    if (this._isSupportedAction(this.getAttribute('action'))) {
       this._button.click();
     }
   };
@@ -119,7 +119,7 @@ window.GaiaHeader = (function(win) {
     // Add icon class to inner
     this._buttonInner.classList.add('icon-' + newAction);
 
-    this._button.dataset.action = newAction;
+    this._button.setAttribute('action', newAction);
   };
 
   /**
@@ -150,7 +150,7 @@ window.GaiaHeader = (function(win) {
    * @private
    */
   proto._onActionButtonClick = function(e) {
-    var config = { detail: { type: this.dataset.action } };
+    var config = { detail: { type: this.getAttribute('action') } };
     var actionEvent = new CustomEvent('action', config);
     setTimeout(this.dispatchEvent.bind(this, actionEvent));
   };
