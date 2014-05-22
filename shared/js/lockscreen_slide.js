@@ -882,24 +882,24 @@
           ctx.fillStyle = 'rgba(' + this.handle.touchedColor +
             ',' + fillAlpha + ')';
 
-        // Start to draw it.
-        // Can't use functions like rect or these individual parts
-        // would show its borders.
-        ctx.beginPath();
+          // Start to draw it.
+          // Can't use functions like rect or these individual parts
+          // would show its borders.
+          ctx.beginPath();
 
-        ctx.arc(center.x, center.y,
-            radius, endAngle, startAngle, counterclock);
-        ctx.lineTo(center.x, center.y - radius);
-        ctx.lineTo(center.x + (offset - center.x), center.y - radius);
-        ctx.arc(offset, center.y, radius, startAngle, endAngle, counterclock);
-        ctx.lineTo(center.x, center.y + radius);
+          ctx.arc(center.x, center.y,
+              radius, endAngle, startAngle, counterclock);
+          ctx.lineTo(center.x, center.y - radius);
+          ctx.lineTo(center.x + (offset - center.x), center.y - radius);
+          ctx.arc(offset, center.y, radius, startAngle, endAngle, counterclock);
+          ctx.lineTo(center.x, center.y + radius);
 
-        // Note: When setting both the fill and stroke for a shape,
-        // make sure that you use fill() before stroke().
-        // Otherwise, the fill will overlap half of the stroke.
-        ctx.fill();
-        ctx.stroke();
-        ctx.closePath();
+          // Note: When setting both the fill and stroke for a shape,
+          // make sure that you use fill() before stroke().
+          // Otherwise, the fill will overlap half of the stroke.
+          ctx.fill();
+          ctx.stroke();
+          ctx.closePath();
 
         } else {
 
@@ -931,7 +931,7 @@
             ctx.fill();
 
           } else {
-            fillAlpha = (urw - 15) / GRADIENT_LENGTH;
+            fillAlpha = (urw - 15) / GRADIENT_LENGTH * 0.8 + 0.2;
             if (fillAlpha > 1.0) {
               fillAlpha = 1.0;
             }
@@ -939,6 +939,7 @@
 
             ctx.fillStyle = 'rgba(' + this.handle.touchedColor +
               ',' + fillAlpha + ')';
+            ctx.strokeStyle = 'transparent';
 
             // Start to draw it.
             // Can't use functions like rect or these individual parts
@@ -963,7 +964,7 @@
           }
         }
 
-      } else {
+      } else { // old style
         // If user move over 15px, fill the slide.
         if (urw > 15 && true !== this.states.slidingColorful) {
           // The color should be gradient in this length, from the origin.
@@ -1003,7 +1004,6 @@
           ',' + fillAlpha + ')';
         ctx.lineWidth = this.handle.lineWidth;
         ctx.strokeStyle = strokeStyle;
-
         // Start to draw it.
         // Can't use functions like rect or these individual parts
         // would show its borders.
