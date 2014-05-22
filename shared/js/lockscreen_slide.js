@@ -723,6 +723,7 @@
       var center = this.center;
       var offset = tx - center.x;
       var isLeft = offset < 0;
+      var alpha = 1 - Math.min(1, Math.abs(offset) / this._dpx(15));
 
       if (this.handle.maxWidth < Math.abs(offset)) {
         this.states.slideReachEnd = true;
@@ -737,9 +738,12 @@
           this.useNewStyle ?
           (tx - (this.arrows.left.width) - this.handle.radius - this._dpx(12)) :
           (tx - (this.arrows.left.width << 1));
+        var oldAlpha = ctx.globalAlpha;
+        ctx.globalAlpha = alpha;
         ctx.drawImage(this.arrows.left,
           position,
           this.arrows.ldraw.y);
+        ctx.globalAlpha = oldAlpha;
         ctx.drawImage(this.arrows.right,
           this.arrows.rdraw.x,
           this.arrows.ldraw.y);
@@ -749,9 +753,12 @@
           this.useNewStyle ?
           (tx + this.handle.radius + this._dpx(12)) :
           (tx + this.arrows.right.width);
+        var oldAlpha = ctx.globalAlpha;
+        ctx.globalAlpha = alpha;
         ctx.drawImage(this.arrows.right,
           position,
           this.arrows.rdraw.y);
+        ctx.globalAlpha = oldAlpha;
         ctx.drawImage(this.arrows.left,
           this.arrows.ldraw.x,
           this.arrows.ldraw.y);
