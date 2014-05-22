@@ -11,7 +11,7 @@ var mocksForRadio = new MocksHelper([
   'NavigatorMozMobileConnections'
 ]).init();
 
-mocha.globals(['Radio']);
+mocha.globals(['Radio', 'dispatchEvent']);
 
 suite('Radio > ', function() {
   var realMozMobileConnections;

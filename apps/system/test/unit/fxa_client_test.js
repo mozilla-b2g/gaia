@@ -2,6 +2,8 @@
 
 requireApp('system/js/fxa_client.js');
 
+mocha.globals(['addEventListener', 'dispatchEvent', 'removeEventListener']);
+
 var MockEventListener = {};
 var MockDispatchedEvents = [];
 

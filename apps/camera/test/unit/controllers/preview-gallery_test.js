@@ -30,6 +30,8 @@ suite('controllers/preview-gallery', function() {
     });
   });
 
+  mocha.globals(['addEventListener', 'removeEventListener']);
+
   setup(function() {
     this.app = sinon.createStubInstance(this.App);
     this.app.camera = sinon.createStubInstance(this.Camera);

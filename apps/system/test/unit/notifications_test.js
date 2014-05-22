@@ -9,7 +9,7 @@
 
 'use strict';
 
-mocha.globals(['ScreenManager']);
+mocha.globals(['ScreenManager', 'dispatchEvent']);
 
 require('/js/notifications.js');
 require('/test/unit/mock_screen_manager.js');

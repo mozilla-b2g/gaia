@@ -9,7 +9,7 @@ requireApp('system/test/unit/mock_navigator_get_device_storage.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/shared/test/unit/mocks/mock_notification.js');
 
-mocha.globals(['Screenshot']);
+mocha.globals(['Screenshot', 'dispatchEvent']);
 
 
 suite('system/Screenshot', function() {

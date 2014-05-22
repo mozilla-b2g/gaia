@@ -1,6 +1,7 @@
 'use strict';
 
-mocha.globals(['BaseUI', 'SystemDialog', 'NfcConnectSystemDialog']);
+mocha.globals(['BaseUI', 'SystemDialog', 'NfcConnectSystemDialog',
+      'dispatchEvent']);
 
 /* globals NfcConnectSystemDialog, document, MockL10n,
             MockBluetooth  */
