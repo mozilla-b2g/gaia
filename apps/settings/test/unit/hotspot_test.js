@@ -7,6 +7,7 @@ require('/js/hotspot_wifi_settings.js');
 require('/test/unit/mock_navigator_settings.js');
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/test/unit/mock_l10n.js');
+require('/js/utils.js');
 
 suite('Hotspot', function() {
   var realMozL10n;
