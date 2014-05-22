@@ -6,6 +6,7 @@ Calendar.ns('Views').DayBased = (function() {
   var OrderedMap = Calendar.Utils.OrderedMap;
 
   const MINUTES_IN_HOUR = 60;
+  var PrevElement = null;
 
   /**
    * Ordered map for storing relevant
@@ -20,6 +21,7 @@ Calendar.ns('Views').DayBased = (function() {
 
     this._resetHourCache();
     this.controller = this.app.timeController;
+    this.controller.on('scaleChange', this);
   }
 
   DayBased.prototype = {
@@ -92,6 +94,12 @@ Calendar.ns('Views').DayBased = (function() {
      * busytime ids and which hours they occur at.
      */
     _idsToHours: null,
+
+    SELECTED: 'selected',
+
+    COLOR: 'color',
+
+    firstClick: false,
 
     get element() {
       return this._element;
@@ -376,6 +384,8 @@ Calendar.ns('Views').DayBased = (function() {
         case 'add':
           this._loadRecords(e.data);
           break;
+        case 'scaleChange':
+          this._clearSelectedDay(PrevElement);
       }
     },
 
@@ -535,10 +545,67 @@ Calendar.ns('Views').DayBased = (function() {
       this.changeDate(this.date);
 
       this.delegate(el, 'click', 'section.hour',
-          this._onHourClick.bind(this));
+          this._onFirstClick.bind(this));
+
       return el;
     },
 
+    _clearSelectedDay: function(ele) {
+
+      if (ele) {
+        if (ele.getAttribute('data-hour') === 'allday') {
+          ele.classList.remove(this.SELECTED);
+          ele.classList.remove(this.COLOR);
+          this.firstClick = false;
+        } else {
+        ele.classList.remove(this.SELECTED);
+        ele.childNodes[1].classList.remove(this.COLOR);
+        this.firstClick = false;
+        }
+      }
+    },
+
+    _selectDay: function(el) {
+      if (PrevElement) {
+        this._clearSelectedDay(PrevElement);
+      }
+
+      if (el) {
+        if (el.getAttribute('data-hour') === 'allday') {
+          el.classList.add(this.SELECTED);
+          el.classList.add(this.COLOR);
+          this.firstClick = true;
+          PrevElement = el;
+        } else {
+        var child = el.childNodes[1];
+        el.classList.add(this.SELECTED);
+        child.classList.add(this.COLOR);
+        this.firstClick = true;
+        PrevElement = el;
+        }
+      }
+    },
+
+    _onFirstClick: function(evt, el) {
+      if (this._clickedOnEvent(evt.target)) {
+	    this._clearSelectedDay(PrevElement);
+        // We just clicked on an event... bail!
+        return;
+      }
+
+      var hour = el.getAttribute('data-hour');
+      if (!hour) {
+        // Something went terribly wrong...
+        return;
+      }
+
+      if ((PrevElement === el) && this.firstClick) {
+        this._clearSelectedDay(el);
+        this._onHourClick(evt, el);
+      } else {
+          this._selectDay(el);
+        }
+    },
     /**
      * @param {MouseEvent} evt A click event on an hour element.
      * @param {Element} el matched by css selector.
@@ -599,6 +666,13 @@ Calendar.ns('Views').DayBased = (function() {
     _clickedOnEvent: function(target) {
       var el = target;
       while (el && el.nodeType === 1 /** ELEMENT_NODE */) {
+        var hour = el.getAttribute('data-hour');
+        if (hour === 'allday') {
+          var child = el.childNodes[1];
+          if (child.childNodes[0].classList.contains('events')) {
+            return false;
+          }
+        }
         if (el.classList.contains('event')) {
           return true;
         }
