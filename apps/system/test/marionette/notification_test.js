@@ -4,6 +4,8 @@ var assert = require('assert'),
     Marionette = require('marionette-client'),
     util = require('util');
 
+/* doing stability check */
+
 marionette('notification tests', function() {
   var client = marionette.client();
   var notificationList = new NotificationList(client);

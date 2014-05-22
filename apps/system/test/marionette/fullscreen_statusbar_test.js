@@ -1,5 +1,7 @@
 'use strict';
 
+/* doing stability check */
+
 marionette('Fullscreen status bar >', function() {
   var assert = require('assert');
   var Actions = require('marionette-client').Actions;

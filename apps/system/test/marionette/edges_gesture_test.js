@@ -1,5 +1,7 @@
 'use strict';
 
+/* doing stability check */
+
 marionette('Edges gesture >', function() {
   var ReflowHelper =
       require('../../../../tests/js-marionette/reflow_helper.js');
