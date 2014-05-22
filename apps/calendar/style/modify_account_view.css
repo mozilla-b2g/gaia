@@ -17,37 +17,10 @@
 
 #modify-account-view.in-progress .during-progress {
   display: block;
-  height: 100%;
-  width: 100%;
-  background-color: #fff;
 }
 
-#modify-account-view.in-progress .during-progress > div {
-  display: inline-block;
-  margin: 16rem 1.5rem 0;
-  padding-top: 1.2rem;
-  border-top: 0.1rem solid #bebebe;
-}
-
-#modify-account-view.in-progress .during-progress > div > span {
-  display: inline-block;
-  width: calc(100% - 4rem);
-  vertical-align: middle;
-  font-weight: 300;
-  font-size: 2.4rem;
-  line-height: 3rem;
-  letter-spacing: 0.024rem;
-  word-spacing: 0.1rem;
-}
-
-#modify-account-view.in-progress .during-progress > div > progress {
-  line-height: normal;
-  margin-right: 0.5rem;
-}
-
-#modify-account-view.in-progress button,
-#modify-account-view.in-progress form {
-  display: none;
+#modify-account-view.in-progress .sup-progress-container {
+  text-align: center;
 }
 
 #modify-account-view form ol {

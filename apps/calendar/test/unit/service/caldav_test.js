@@ -509,6 +509,7 @@ suite('service/caldav', function() {
     var result = {
       url: '/myfoobar/'
     };
+    var xhrId = 'uuid';
 
     subject._requestHome = function(connection, url) {
       connection.oauth = oauth;
@@ -516,14 +517,16 @@ suite('service/caldav', function() {
       calledWith = arguments;
       return {
         send: function(callback) {
+          var xhr = new Object();
           setTimeout(function() {
             callback(null, result);
           }, 0);
+          return xhr;
         }
       };
     };
 
-    subject.getAccount(given, function(err, data) {
+    subject.getAccount(given, xhrId, function(err, data) {
       done(function() {
         assert.ok(!err, 'should succeed');
         assert.equal(data.calendarHome, result.url);
@@ -533,6 +536,9 @@ suite('service/caldav', function() {
         assert.instanceOf(calledWith[0], Caldav.Connection);
         assert.equal(calledWith[0].domain, given.domain);
         assert.equal(calledWith[1], given.entrypoint);
+
+        assert.ok(subject.xhrMap[xhrId] !== undefined,
+                  'should have the xhr object');
       });
     });
   });

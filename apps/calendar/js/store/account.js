@@ -53,7 +53,7 @@
         model.providerType
       );
 
-      provider.getAccount(model.toJSON(), function(err, data) {
+      return provider.getAccount(model.toJSON(), function(err, data) {
         if (err) {
           callback(err);
           return;
