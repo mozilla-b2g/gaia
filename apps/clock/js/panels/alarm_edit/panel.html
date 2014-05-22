@@ -1,11 +1,8 @@
-<header>
-  <button id="alarm-close" data-l10n-id="closeButton"><span class="icon icon-close"></span></button>
-  <menu type="toolbar">
-    <button id="alarm-done" data-l10n-id="done"></button>
-  </menu>
+<gaia-header id="alarm-header" action="close">
   <h1 class="new-alarm-title" data-l10n-id="newAlarm">NeW AlarM</h1>
   <h1 class="edit-alarm-title" data-l10n-id="editAlarm">Edit AlarM</h1>
-</header>
+  <button id="alarm-done" data-l10n-id="done"></button>
+</gaia-header>
 <ul id="edit-alarm" class="compact">
   <li>
     <input type="text" name="alarm.label" id="alarm-name" data-l10n-id="alarmName" placeholder="Alarm name" maxLength="50" dir="auto" />

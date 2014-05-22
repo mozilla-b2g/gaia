@@ -1,7 +1,8 @@
 define(function(require) {
 'use strict';
 
-require('shared/js/font_size_utils');
+require('shared/elements/config.js');
+require('shared/elements/gaia-header/dist/script.js');
 
 var Tabs = require('tabs');
 var View = require('view');

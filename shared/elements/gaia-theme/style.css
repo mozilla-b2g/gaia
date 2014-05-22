@@ -18,6 +18,7 @@ Customizable styles?
   --color-eta: #c7c7c7;
   --color-theta: #e7e7e7;
   --color-iota: #f4f4f4;
+  --color-dark: #242d33;
   --button-transition: all 0s;
   --button-transition-delay: 300ms;
 
@@ -147,4 +148,25 @@ Customizable styles?
 
   --button-background-active: var(--color-brand-blue);
   --button-color-active: var(--color-beta);
+}
+
+.theme-dark {
+  /* variables */
+  --header-background: var(--color-dark);
+  --header-nav-button-color:  var(--color-beta);
+  --header-nav-button-color-active: var(--color-beta);
+  --header-button-color: var(--color-brand-blue);
+  --header-button-color-active: var(--color-brand-blue);
+  --header-title-color: var(--color-beta);
+
+  --button-background: var(--color-delta);
+  --button-background-active: var(--color-brand-blue);
+  --button-color: var(--color-beta);
+  --button-color-active: var(--color-beta);
+  --button-boxshadow: 'none';
+
+  --switch-color: var(--color-delta);
+  --switch-color-checked: var(--color-brand-blue);
+
+  --checkbox-color: var(--color-brand-blue);
 }

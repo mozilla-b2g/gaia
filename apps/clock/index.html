@@ -14,7 +14,6 @@
     <link rel="stylesheet" type="text/css" href="style/picker/picker.css">
 
     <!-- Shared styles -->
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
     <link rel="stylesheet" type="text/css" href="shared/style/tabs.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
@@ -38,7 +37,12 @@
     <!-- <script defer src="/shared/js/gesture_detector.js"></script> -->
     <!-- <script defer src="/shared/js/accessibility_helper.js"></script> -->
     <!-- <script defer src="/shared/js/template.js"></script> -->
-    <!-- <script defer src="/shared/js/font_size_utils.js"></script> -->
+
+    <!-- Web Components -->
+    <!-- <script defer src="/shared/elements/config.js"></script> -->
+    <!-- <script defer src="/shared/elements/gaia-header/dist/script.js"></script> -->
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" /> -->
 
     <!-- Shared sounds -->
     <link rel="resources" type="directory" href="shared/resources/media/alarms/">
@@ -48,7 +52,7 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
   </head>
 
-  <body>
+  <body class="theme-dark">
     <div id="views">
       <div id="main-panel-wrapper">
         <div id="alarm-panel" class="active panel" data-panel-id="alarm" role="tabpanel" aria-labelledby="alarm-tab"></div>
