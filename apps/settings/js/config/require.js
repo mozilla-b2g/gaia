@@ -40,11 +40,11 @@ require.config({
       ]
     },
     {
-      name: 'panels/send_feedback/panel',
+      name: 'panels/feedback_send/panel',
       exclude: ['main']
     },
     {
-      name: 'panels/choose_feedback/panel',
+      name: 'panels/feedback_choose/panel',
       exclude: ['main']
     },
     {
