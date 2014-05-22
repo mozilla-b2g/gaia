@@ -3,6 +3,7 @@ Calendar.ns('Views').WeekChild = (function() {
 
   var template = Calendar.Templates.Week;
   var _super = Calendar.Views.DayBased.prototype;
+  var PrevElement = null;
 
   function Week(options) {
     Calendar.Views.DayBased.apply(this, arguments);
@@ -19,7 +20,7 @@ Calendar.ns('Views').WeekChild = (function() {
 
     template: template,
 
-    outsideAllDay: false,
+    outsideAllDay: true,
 
     _renderHeader: function() {
       var format = this.app.dateFormat.localeFormat(
@@ -66,9 +67,65 @@ Calendar.ns('Views').WeekChild = (function() {
       );
 
       this.stickyFrame.appendChild(this.allDayElement);
+      this.delegate(this.allDayElement, 'click', 'ol.hour',
+        this._onFirstClick.bind(this));
+      this.delegate(el, 'click', 'ol.hour',
+        this._onFirstClick.bind(this));
 
       return el;
-    }
+    },
+
+    _clearSelectedDay: function(ele) {
+      if (ele) {
+        ele.classList.remove(this.SELECTED);
+        this.firstClick = false;
+      }
+    },
+
+    _selectDay: function(el) {
+      if (PrevElement) {
+        this._clearSelectedDay(PrevElement);
+      }
+      if (el) {
+        el.classList.add(this.SELECTED);
+        this.firstClick = true;
+        PrevElement = el;
+      }
+    },
+
+
+    _onFirstClick: function(evt, el) {
+      if (this._clickedOnEvent(evt.target)) {
+        // We just clicked on an event... bail!
+        return;
+      }
+      var hour = el.getAttribute('data-hour');
+      if (!hour) {
+        // Something went terribly wrong...
+        return;
+      }
+
+      if ((PrevElement === el) && this.firstClick) {
+        this._clearSelectedDay(el);
+        this._onHourClick(evt, el);
+      } else {
+          this._selectDay(el);
+        }
+    },
+
+  _clickedOnEvent: function(target) {
+      var el = target;
+      while (el && el.nodeType === 1 /** ELEMENT_NODE */) {
+        if (el.classList.contains('event')) {
+          return true;
+        }
+        if (el.classList.contains('events')) {
+          return false;
+        }
+        el = el.parentNode;
+      }
+      return true;
+  }
 
   };
 

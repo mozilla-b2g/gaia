@@ -78,7 +78,10 @@ Calendar.ns('Views').Month = (function() {
           this.controller.selectedDay = date;
           break;
         case 'dbltap':
-          this.app.go('/day/');
+          var self = this;
+          window.setTimeout(function() {
+          self._createEvent(target);
+          },100);
           break;
         case 'selectedDayChange':
           this._selectDay(e.data[0]);
@@ -89,6 +92,28 @@ Calendar.ns('Views').Month = (function() {
           this.changeDate(e.data[0]);
           break;
       }
+    },
+
+    _createEvent: function(target) {
+        var startDate = Calc.dateFromId(target.dataset.date);
+        var endDate = Calc.dateFromId(target.dataset.date);
+        var temp = new Date();
+        var hour = temp.getHours();
+        hour = parseInt(hour);
+        startDate.setHours(hour + 1);
+        startDate.setMinutes(0);
+        startDate.setSeconds(0);
+        endDate.setHours(hour + 2);
+        endDate.setMinutes(0);
+        endDate.setSeconds(0);
+        var queryString = {};
+        queryString.startDate = startDate.toString();
+        queryString.endDate = endDate.toString();
+        this.app.go(
+          '/event/add/?' +
+          Calendar.QueryString.stringify(queryString)
+      );
+
     },
 
     _createChild: function(time) {
