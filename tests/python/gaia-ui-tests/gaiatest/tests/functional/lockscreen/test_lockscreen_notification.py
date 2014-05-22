@@ -18,9 +18,11 @@ class TestLockScreen(GaiaTestCase):
         self.device.lock()
 
     def test_lock_screen_notification(self):
-        lock_screen = LockScreen(self.marionette)
+        self.marionette.switch_to_frame()
         self.marionette.execute_script('new Notification("%s", {body: "%s"});'
                                        % (self._notification_title, self._notification_body))
+        lock_screen = LockScreen(self.marionette)
+        lock_screen.switch_to_frame()
 
         self.assertEqual(len(lock_screen.notifications), 1)
         self.assertTrue(lock_screen.notifications[0].is_visible)

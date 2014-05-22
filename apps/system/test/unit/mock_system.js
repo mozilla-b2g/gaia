@@ -1,6 +1,7 @@
 /* exported MockSystem */
 'use strict';
 var MockSystem = {
+  locked: false,
   mPublishEvents: {},
   isBusyLoading: function() {
     return false;

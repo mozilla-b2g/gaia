@@ -9,7 +9,7 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "orientation": "default",
-  "fullscreen": true,
+  "fullscreen": false,
   "permissions": {
     "telephony":{},
     "mobileconnection":{},

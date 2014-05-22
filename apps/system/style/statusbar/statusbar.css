@@ -57,6 +57,7 @@ body:not(.rb-enabled) #statusbar {
   transform: translateY(0);
 }
 
+#screen.locked.secureapp-launched #statusbar,
 #screen:not(.locked) #statusbar.invisible.dragged {
   background-color: black;
 }

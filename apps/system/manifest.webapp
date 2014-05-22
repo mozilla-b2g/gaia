@@ -84,6 +84,10 @@
      { "nfc-manager-send-file": "/index.html" }
   ],
   "connections": {
+    "lockscreencomms": {
+      "description": "Communication with the LockScreen app",
+      "rules": {}
+    },
     "mediacomms": {
       "description": "Communication with media apps for now playing info",
       "rules": {}
