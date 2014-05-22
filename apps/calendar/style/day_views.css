@@ -26,6 +26,18 @@
   background-color: #fff;
 }
 
+.day-events .selected {
+  position: relative;
+  color: white !important;
+}
+
+.day-events .color {
+  background-color: #1BA8C6 !important;
+  background-image: url(/shared/style/headers/images/icons/add.png) !important;
+  background-repeat:no-repeat;
+  background-position:center;
+}
+
 .allday-events-wrapper .events {
   /* set scrollable areas to a solid background color. see bug 968478 */
   background-color: #f8f8f8;

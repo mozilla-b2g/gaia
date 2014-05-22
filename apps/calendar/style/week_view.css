@@ -186,6 +186,14 @@
   z-index: 10;
 }
 
+#week-view .selected {
+  position: relative;
+  color: white !important;
+  background-color: #1BA8C6 !important;
+  background-image: url(/shared/style/headers/images/icons/add.png) !important;
+  background-repeat:no-repeat;
+  background-position:center;
+}
 #week-view .week-events .container {
   height: 100%;
   margin: 1px;
