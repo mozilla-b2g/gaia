@@ -4,6 +4,8 @@ var System = require('../../../system/test/marionette/lib/system');
 var Search = require('./lib/search');
 var Rocketbar = require('../../../system/test/marionette/lib/rocketbar.js');
 
+/* doing stability check */
+
 marionette('Search - App search', function() {
   var client = marionette.client(Rocketbar.clientOptions);
   var search, rocketbar, system;
