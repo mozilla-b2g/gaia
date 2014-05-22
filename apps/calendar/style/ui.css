@@ -250,7 +250,7 @@ body[data-path="/day/"] #view-selector > .day > a:active {
   overflow: hidden;
   visibility: hidden;
   /* completely override other views */
-  background-color: #f4f4f4;
+  background-color: #FFFFFF;
   position: absolute;
   top: 0;
   width: 100%;
