@@ -380,6 +380,32 @@ suite('Information view', function() {
       sinon.assert.called(reportView.renderContactList);
     });
 
+    test('Incoming Message with valid sent timestamp', function() {
+      messageOpts = {
+        delivery: 'received',
+        sentTimestamp: Date.now()
+      };
+
+      reportView.render();
+
+      assert.isFalse(
+        reportView.container.classList.contains('no-valid-sent-timestamp')
+      );
+    });
+
+    test('Incoming Message with invalid sent timestamp', function() {
+      messageOpts = {
+        delivery: 'received',
+        sentTimestamp: 0
+      };
+
+      reportView.render();
+
+      assert.isTrue(
+        reportView.container.classList.contains('no-valid-sent-timestamp')
+      );
+    });
+
     suite('Message report with SIM information', function() {
       var simInfo;
       var simDetail;
