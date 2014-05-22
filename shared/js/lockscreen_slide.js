@@ -321,7 +321,9 @@
       // XXX: Bet it would be OK while user start to drag the slide.
       larrow.onload = (function() {
         this.arrows.ldraw.x =
-              center.x - (this.arrows.left.width << 1);
+              center.x - (this.arrows.left.width +
+                          this.handle.radius + this._dpx(12)
+                         );
         this.arrows.ldraw.y =
               center.y - (this.arrows.left.height >> 1);
         var ctx = this.canvas.getContext('2d');
@@ -331,7 +333,7 @@
       }).bind(this);
       rarrow.onload = (function() {
         this.arrows.rdraw.x =
-              center.x + (this.arrows.right.width);
+              center.x + (this.handle.radius + this._dpx(12));
         this.arrows.rdraw.y =
               center.y - (this.arrows.right.height >> 1);
         var ctx = this.canvas.getContext('2d');
