@@ -75,6 +75,18 @@ section[role="region"] > div > ul {
   background-color: #f4f4f4;
 }
 
+
+/*
+ *  override the overflow properties here to avoid 
+ *  the long file name display error. See Bug 1010675
+ */
+section li button,
+section li a[role="button"],
+section li .button {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 /******************************************************************************
  * Explanation texts
  */
