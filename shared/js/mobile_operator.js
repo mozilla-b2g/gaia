@@ -62,12 +62,49 @@ var MobileOperator = {
     var iccInfo = iccObj ? iccObj.iccInfo : null;
     var operator = network ? (network.shortName || network.longName) : null;
 
-    if (operator && iccInfo && iccInfo.isDisplaySpnRequired && iccInfo.spn &&
-        !mobileConnection.voice.roaming) {
-      if (iccInfo.isDisplayNetworkNameRequired && operator !== iccInfo.spn) {
-        operator = operator + ' ' + iccInfo.spn;
+    var roaming = mobileConnection.voice.roaming;
+    var SPNRequired = iccInfo ? iccInfo.isDisplaySpnRequired : false;
+    var PLMNRequired = iccInfo ? iccInfo.isDisplayNetworkNameRequired: false;
+    var SPN = iccInfo ? iccInfo.spn : null;
+    var PLMN = operator;
+
+    // -- Without iccInfo --
+    //
+    // return operator
+    //
+    // -- With iccInfo --
+    //
+    // Roaming  ^ SPN required  ^                  ^ SPN != PLMN -- SPN + PLMN
+    // Roaming  ^ SPN required  ^                  ^ SPN == PLMN -- SPN | PLMN
+    // Roaming  ^ !SPN required ^                  ^             -- PLMN
+    //
+    // !Roaming ^ SPN required  ^ PLMN required    ^ SPN != PLMN -- SPN + PLMN
+    // !Roaming ^ SPN required  ^ PLMN required    ^ SPN == PLMN -- SPN | PLMN
+    // !Roaming ^ !SPN required ^ PLMN required    ^             -- PLMN
+    // !Roaming ^ SPN required  ^ !PLMN required   ^             -- SPN
+    // !Roaming ^ !SPN required ^ !PLMN required   ^             -- null
+    //
+    if (!iccInfo) {
+      return operator;
+    } else if (roaming) {
+      if (SPNRequired && SPN !== PLMN) {
+        operator = PLMN + ' ' + SPN;
+      } else if (SPNRequired && SPN === PLMN){
+        operator = PLMN;
       } else {
-        operator = iccInfo.spn;
+        operator = PLMN;
+      }
+    } else {
+      if (SPNRequired && PLMNRequired && SPN !== PLMN) {
+        operator = PLMN + ' ' + SPN;
+      } else if (SPNRequired && PLMNRequired && SPN === PLMN) {
+        operator = PLMN;
+      } else if (!SPNRequired && PLMNRequired) {
+        operator = PLMN;
+      } else if (SPNRequired && !PLMNRequired) {
+        operator = SPN;
+      } else {
+        operator = null;
       }
     }
 
