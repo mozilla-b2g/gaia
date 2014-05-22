@@ -31,6 +31,12 @@ a:hover, a:active, a:focus {
   display: none !important;
 }
 
+#call-log-frame.select {
+  position: absolute;
+  overflow: hidden;
+  bottom: 0;
+}
+
 .contact-primary-info {
   font-size: -moz-calc(15*0.226rem);
   color: black;

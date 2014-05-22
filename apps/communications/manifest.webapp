@@ -34,6 +34,19 @@
           "name": "電話",
           "description": "Gaia 電話"
         }
+      },
+      "activities": {
+        "pick": {
+          "filters": {
+            "type": {
+              "required": true,
+              "value": ["webcontacts/contact","webcontacts/tel"]
+            }
+           },
+          "disposition": "inline",
+          "href": "/dialer/index.html#call-log-view?pick",
+          "returnValue": true
+        }
       }
     },
     "contacts": {
@@ -62,6 +75,19 @@
           "name": "聯絡人",
           "description": "Gaia 聯絡人"
         }
+      },
+      "activities": {
+        "pick": {
+          "filters": {
+            "type": {
+              "required": true,
+              "value": ["webcontacts/contact","webcontacts/email","webcontacts/tel"]
+            }
+           },
+          "disposition": "inline",
+          "href": "/contacts/index.html?pick",
+          "returnValue": true
+        }
       }
     }
   },
@@ -84,17 +110,6 @@
   },
   "orientation": "default",
   "activities": {
-    "pick": {
-      "filters": {
-        "type": {
-          "required": true,
-          "value": ["webcontacts/contact","webcontacts/email","webcontacts/tel"]
-        }
-       },
-      "disposition": "inline",
-      "href": "/contacts/index.html?pick",
-      "returnValue": true
-    },
     "import": {
       "filters": {
         "type": "text/vcard"
