@@ -7,8 +7,13 @@ var CallLog = {
   _empty: true,
   _dbupgrading: false,
   _contactCache: true,
+  _selectMode: false,
 
-  init: function cl_init() {
+  init: function cl_init(opt, callback) {
+    if (opt && opt.selectMode) {
+      this._selectMode = true;
+    }
+
     if (this._initialized) {
       this.becameVisible();
       return;
@@ -57,15 +62,17 @@ var CallLog = {
     LazyLoader.load(lazyFiles, function resourcesLoaded() {
       var mainNodes = [
         'all-filter',
+        'cancel-activity',
         'call-log-container',
-        'call-log-edit-mode',
+        'call-log-selection-mode',
         'call-log-filter',
         'call-log-icon-close',
         'call-log-icon-edit',
         'call-log-view',
         'deselect-all-threads',
         'delete-button',
-        'header-edit-mode-text',
+        'select-button',
+        'header-selection-mode-text',
         'missed-filter',
         'select-all-threads',
         'call-log-upgrading',
@@ -85,9 +92,11 @@ var CallLog = {
         self.render();
 
         self.callLogIconEdit.addEventListener('click',
-          self.showEditMode.bind(self));
+          self.showSelectionMode.bind(self));
         self.callLogIconClose.addEventListener('click',
-          self.hideEditMode.bind(self));
+          self.exitSelectionMode.bind(self));
+        self.cancelActivity.addEventListener('click',
+          ActivityHandler.postCancel.bind(ActivityHandler));
         self.missedFilter.addEventListener('click',
           self.filter.bind(self));
         self.allFilter.addEventListener('click',
@@ -100,6 +109,8 @@ var CallLog = {
           self.deselectAll.bind(self));
         self.deleteButton.addEventListener('click',
           self.deleteLogGroups.bind(self));
+        self.selectButton.addEventListener('click',
+          self.selectLogs.bind(self));
         document.addEventListener('visibilitychange', function() {
           if (document.hidden) {
             self.pauseHeaders();
@@ -111,6 +122,10 @@ var CallLog = {
 
         self.sticky = new StickyHeader(self.callLogContainer,
                                        document.getElementById('sticky'));
+
+        if (callback) {
+          callback();
+        }
       });
     });
 
@@ -467,7 +482,11 @@ var CallLog = {
     }
 
     var label = document.createElement('label');
-    label.className = 'pack-checkbox call-log-selection danger';
+    if (this._selectMode) {
+      label.className = 'pack-checkbox call-log-selection default';
+    } else {
+      label.className = 'pack-checkbox call-log-selection danger';
+    }
     var input = document.createElement('input');
     input.setAttribute('type', 'checkbox');
     input.value = group.id;
@@ -600,22 +619,52 @@ var CallLog = {
     icon.setAttribute('aria-disabled', true);
   },
 
-  showEditMode: function cl_showEditMode(event) {
-    if (this.callLogIconEdit.hasAttribute('disabled')) {
+  enableSelectMode: function cl_enableSelectMode(multiPick) {
+    if (multiPick) {
+      this.showSelectionMode();
+    } else {
+      this.cancelActivity.classList.remove('hide');
+      CallLog.callLogIconEdit.classList.add('hide');
+    }
+  },
+
+  disableSeletMode: function cl_disableSeletMode() {
+    this._selectMode = false;
+    this.cancelActivity.classList.add('hide');
+    CallLog.callLogIconEdit.classList.remove('hide');
+  },
+
+  showSelectionMode: function cl_showSelectionMode() {
+    if (this.callLogIconEdit.hasAttribute('disabled') &&
+        !this._selectMode) {
       // Disabled does not have effect on an anchor.
       event.preventDefault();
       event.stopPropagation();
       return;
     }
-    this.headerEditModeText.textContent = this._('edit');
-    this.deleteButton.setAttribute('disabled', 'disabled');
+
+    if (this._selectMode) {
+      this.headerSelectionModeText.textContent = this._('callLog');
+      this.deleteButton.classList.add('hide');
+      this.selectButton.setAttribute('disabled', 'disabled');
+    } else {
+      this.headerSelectionModeText.textContent = this._('edit');
+      this.selectButton.classList.add('hide');
+      this.deleteButton.setAttribute('disabled', 'disabled');
+    }
+
     this.selectAllThreads.removeAttribute('disabled');
     this.selectAllThreads.textContent = this._('selectAll');
     this.deselectAllThreads.setAttribute('disabled', 'disabled');
     document.body.classList.add('recents-edit');
   },
 
-  hideEditMode: function cl_hideEditMode() {
+  exitSelectionMode: function cl_exitSelectionMode() {
+    if (this._selectMode) {
+      this._selectMode = false;
+      ActivityHandler.postCancel();
+      return;
+    }
     document.body.classList.remove('recents-edit');
     var cont = this.callLogContainer;
     var inputs = cont.querySelectorAll('input[type="checkbox"]');
@@ -667,6 +716,27 @@ var CallLog = {
       var contactId = null;
       if (contactIds !== null) {
         contactId = contactIds.split(',')[0];
+      }
+
+      //add condition for single pick mode
+      if (this._selectMode) {
+        var primInfo = logItem.querySelector('.primary-info-main');
+        var name = primInfo.textContent;
+
+        var contact = {
+          name: name == null ? [phoneNumber] : [name],
+          tel: [{type: [dataset.type],
+                  value: phoneNumber}]
+
+        };
+
+        if (!(contact instanceof mozContact)) {
+          contact = new mozContact(contact);
+          contact.id = contactId || contact.id;
+        }
+        this.disableSeletMode();
+        ActivityHandler.postPickSuccess(contact);
+        return;
       }
 
       var isMissedCall = logItem.classList.contains('missed-call');
@@ -741,16 +811,25 @@ var CallLog = {
     var allInputs = this.callLogContainer.querySelectorAll(allSelector).length;
 
     if (selected === 0) {
-      this.headerEditModeText.textContent = this._('edit');
+      if (this._selectMode) {
+        this.headerSelectionModeText.textContent = this._('callLog');
+        this.selectButton.setAttribute('disabled', 'disabled');
+      } else {
+        this.headerSelectionModeText.textContent = this._('edit');
+        this.deleteButton.setAttribute('disabled', 'disabled');
+      }
+
       this.selectAllThreads.removeAttribute('disabled');
       this.selectAllThreads.textContent = this._('selectAll');
       this.deselectAllThreads.setAttribute('disabled', 'disabled');
-      this.deleteButton.setAttribute('disabled', 'disabled');
+
       return;
     }
-    this.headerEditModeText.textContent = this._('edit-selected',
+    this.headerSelectionModeText.textContent = this._('edit-selected',
                                             {n: selected});
-    this.deleteButton.removeAttribute('disabled');
+    this._selectMode ? this.selectButton.removeAttribute('disabled') :
+                       this.deleteButton.removeAttribute('disabled');
+
     if (selected === allInputs) {
       this.deselectAllThreads.removeAttribute('disabled');
       this.selectAllThreads.setAttribute('disabled', 'disabled');
@@ -781,6 +860,38 @@ var CallLog = {
       inputs[i].checked = false;
     }
     this.updateHeaderCount();
+  },
+
+  selectLogs: function cl_selectLogs() {
+    var selector = 'input[type="checkbox"]:checked';
+    var inputsSelected =
+          this.callLogContainer.querySelectorAll(selector);
+
+    var logGroupsToSelect = [];
+    for (var i = 0, l = inputsSelected.length; i < l; i++) {
+      var logGroup = inputsSelected[i].parentNode.parentNode;
+      var dataset = logGroup.dataset;
+      var primInfo = logGroup.querySelector('.primary-info-main');
+      var contactName = primInfo.textContent;
+      var contactIds = (dataset.contactId) ? dataset.contactId : null;
+      var contactId = null;
+      if (contactIds !== null) {
+        contactId = contactIds.split(',')[0];
+      }
+
+      var contact = {
+        name: contactName == null ? [dataset.phoneNumber] : [contactName],
+        tel: [{type: [dataset.type],
+                value: dataset.phoneNumber}]
+      };
+
+      if (!(contact instanceof mozContact)) {
+        contact = new mozContact(contact);
+        contact.id = contactId || contact.id;
+      }
+      logGroupsToSelect.push(contact);
+    }
+    ActivityHandler.postPickSuccess(logGroupsToSelect);
   },
 
   deleteLogGroups: function cl_deleteLogGroups() {

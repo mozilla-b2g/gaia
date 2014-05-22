@@ -27,6 +27,7 @@ require('/shared/test/unit/mocks/dialer/mock_keypad.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
 
+require('/dialer/js/activity_handler.js');
 require('/dialer/js/dialer.js');
 
 var mocksHelperForDialer = new MocksHelper([
@@ -50,6 +51,7 @@ suite('navigation bar', function() {
   var domContactsIframe;
   var domOptionRecents;
   var domOptionContacts;
+  var domRecentsPanel;
   var domOptionKeypad;
   var domViews;
 
@@ -84,6 +86,10 @@ suite('navigation bar', function() {
     domOptionContacts = document.createElement('a');
     domOptionContacts.id = 'option-contacts';
     domViews.appendChild(domOptionContacts);
+
+    domRecentsPanel = document.createElement('a');
+    domRecentsPanel.id = 'recents-panel';
+    domViews.appendChild(domRecentsPanel);
 
     domOptionKeypad = document.createElement('a');
     domOptionKeypad.id = 'option-keypad';
@@ -413,63 +419,6 @@ suite('navigation bar', function() {
         sinon.assert.calledWith(getSpy, 3, 'lastEntryDate', true);
         getSpy.yield({number: '333'});
         sinon.assert.calledWith(callSpy, '333');
-      });
-    });
-
-    suite('> WebActivities support', function() {
-      var activity;
-      var originalHash;
-
-      function triggerActivity(activity) {
-        MockNavigatormozSetMessageHandler.mTrigger('activity', activity);
-      }
-
-      setup(function() {
-        originalHash = window.location.hash;
-
-        activity = {
-          source: {
-            name: 'dial',
-            data: {
-              type: 'webtelephony/number',
-              number: '12345'
-            }
-          }
-        };
-      });
-
-      teardown(function() {
-        window.location.hash = originalHash;
-      });
-
-      suite('> dial activity with a number', function() {
-        test('should fill the phone number view', function() {
-          var spy = this.sinon.spy(MockKeypadManager, 'updatePhoneNumber');
-          triggerActivity(activity);
-          sinon.assert.calledWith(spy, '12345', 'begin', false);
-        });
-
-        test('should show the keypad view', function() {
-          triggerActivity(activity);
-          assert.equal(window.location.hash, '#keyboard-view');
-        });
-      });
-
-      suite('> dial without a number', function() {
-        setup(function() {
-          activity.source.data.number = '';
-          triggerActivity(activity);
-        });
-
-        test('should show the contacts view', function() {
-          assert.equal(window.location.hash, '#contacts-view');
-        });
-
-        test('should go to home of contacts', function() {
-          assert.isTrue(
-            domContactsIframe.src.contains('/contacts/index.html#home')
-          );
-        });
       });
     });
   });

@@ -699,27 +699,45 @@ var ThreadUI = global.ThreadUI = {
     var activity = new MozActivity({
       name: 'pick',
       data: {
-        type: 'webcontacts/tel'
+        type: 'webcontacts/tel',
+        multipick: 1
       }
     });
 
     activity.onsuccess = (function() {
-      if (!activity.result ||
-          !activity.result.tel ||
-          !activity.result.tel.length ||
-          !activity.result.tel[0].value) {
+      if (!activity.result) {
         console.error('The pick activity result is invalid.');
         return;
       }
 
       Recipients.View.isFocusable = true;
-
-      var data = Utils.basicContact(
-        activity.result.tel[0].value, activity.result
-      );
-      data.source = 'contacts';
-
-      this.recipients.add(data);
+      if (activity.result.constructor == Array) {
+        activity.result.forEach (function(contact) {
+          if (!contact.tel ||
+              !contact.tel.length ||
+              !contact.tel[0].value) {
+            console.error('The pick activity result is invalid.');
+            return;
+          }
+          var data = Utils.basicContact(
+            contact.tel[0].value, contact
+          );
+          data.source = 'contacts';
+          this.recipients.add(data);
+        },this);
+      } else {
+        if (!activity.result.tel ||
+            !activity.result.tel.length ||
+            !activity.result.tel[0].value) {
+          console.error('The pick activity result is invalid.');
+          return;
+        }
+        var data = Utils.basicContact(
+          activity.result.tel[0].value, activity.result
+        );
+        data.source = 'contacts';
+        this.recipients.add(data);
+      }
     }).bind(this);
 
     activity.onerror = (function(e) {
@@ -731,7 +749,7 @@ var ThreadUI = global.ThreadUI = {
 
   // Method for updating the header when needed
   updateComposerHeader: function thui_updateComposerHeader() {
-    var recipientCount = this.recipients.numbers.length;
+    var recipientCount = this.recipients.length;
     if (recipientCount > 0) {
       navigator.mozL10n.localize(this.headerText, 'recipient', {
           n: recipientCount

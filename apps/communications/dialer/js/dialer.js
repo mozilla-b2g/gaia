@@ -3,7 +3,8 @@
 /* global AccessibilityHelper, CallLog, CallLogDBManager, Contacts,
           KeypadManager,LazyL10n, LazyLoader, MmiManager, Notification,
           NotificationHelper, SettingsListener, SimSettingsHelper,
-          SuggestionBar, TelephonyHelper, TonePlayer, Utils, Voicemail */
+          SuggestionBar, TelephonyHelper, TonePlayer, Utils, Voicemail,
+          ActivityHandler */
 
 var NavbarManager = {
   init: function nm_init() {
@@ -35,6 +36,8 @@ var NavbarManager = {
                      '/shared/js/async_storage.js',
                      '/shared/js/notification_helper.js',
                      '/shared/js/simple_phone_matcher.js',
+                     '/shared/style/edit_mode.css',
+                     '/shared/style/headers.css',
                      '/shared/js/contact_photo_helper.js',
                      '/shared/js/dialer/contacts.js',
                      '/shared/js/dialer/voicemail.js',
@@ -48,6 +51,8 @@ var NavbarManager = {
   },
 
   update: function nm_update() {
+    var self = this;
+
     var recent = document.getElementById('option-recents');
     var contacts = document.getElementById('option-contacts');
     var keypad = document.getElementById('option-keypad');
@@ -76,10 +81,10 @@ var NavbarManager = {
     switch (destination) {
       case '#call-log-view':
         checkContactsTab();
-        this.ensureResources(function() {
+        self.ensureResources(function() {
           recent.classList.add('toolbar-option-selected');
           AccessibilityHelper.setAriaSelected(recent, tabs);
-          CallLog.init();
+          self.handleCallLogMode();
         });
         break;
       case '#contacts-view':
@@ -101,7 +106,7 @@ var NavbarManager = {
       case '#keyboard-view':
         checkContactsTab();
         keypad.classList.add('toolbar-option-selected');
-        this.ensureResources(function() {
+        self.ensureResources(function() {
           AccessibilityHelper.setAriaSelected(keypad, tabs);
         });
         break;
@@ -118,6 +123,21 @@ var NavbarManager = {
     views.classList.remove('hide-toolbar');
   },
 
+  handleCallLogMode: function() {
+
+    if (!ActivityHandler.isPickMode) {
+      CallLog.init();
+      return;
+    }
+    var multiPick = ActivityHandler.multiPickParam;
+    var logFrame = document.getElementById('recents-panel');
+    logFrame.classList.add('select');
+
+    CallLog.init({ selectMode: true }, function() {
+      CallLog.enableSelectMode(multiPick);
+    });
+  },
+
   contactsTabTap: function() {
     // If we are not in the contacts-view, it's a first tap, do nothing
     if (window.location.hash != '#contacts-view') {
@@ -128,6 +148,7 @@ var NavbarManager = {
 
   _contactsHome: function() {
     var contactsIframe = document.getElementById('iframe-contacts');
+    console.log('contactsIframe : ' + contactsIframe);
     if (!contactsIframe) {
       return;
     }
@@ -146,29 +167,6 @@ var CallHandler = (function callHandler() {
 
   /* === Settings === */
   var screenState = null;
-
-  /* === WebActivity === */
-  function handleActivity(activity) {
-    // Workaround here until the bug 787415 is fixed
-    // Gecko is sending an activity event in every multiple entry point
-    // instead only the one that the href match.
-    if (activity.source.name != 'dial') {
-      return;
-    }
-
-    var number = activity.source.data.number;
-    if (number) {
-      KeypadManager.updatePhoneNumber(number, 'begin', false);
-      if (window.location.hash != '#keyboard-view') {
-        window.location.hash = '#keyboard-view';
-      }
-    } else {
-      if (window.location.hash != '#contacts-view') {
-        window.location.hash = '#contacts-view';
-      }
-      NavbarManager._contactsHome();
-    }
-  }
 
   /* === Notifications support === */
   function handleNotification(evt) {
@@ -387,7 +385,8 @@ var CallHandler = (function callHandler() {
       if (window.navigator.mozSetMessageHandler) {
         window.navigator.mozSetMessageHandler('telephony-call-ended',
                                               callEnded);
-        window.navigator.mozSetMessageHandler('activity', handleActivity);
+        window.navigator.mozSetMessageHandler('activity',
+                                ActivityHandler.handle.bind(ActivityHandler));
         window.navigator.mozSetMessageHandler('notification',
                                               handleNotification);
         window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
