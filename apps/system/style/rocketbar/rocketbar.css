@@ -32,7 +32,6 @@ body:not(.rb-enabled) #rocketbar {
 }
 
 #rocketbar-title, #rocketbar-form {
-  position: absolute;
   height: 3.6rem;
   background-color: #333;
   border-radius: 1.8rem;
