@@ -126,9 +126,6 @@
   position: absolute;
   top: 0;
   left: 0;
-  /* Replace this with radical gradient */
-  background: transparent url('./images/mask.png') 50% 50% no-repeat;
-  background-size: cover;
 }
 
 /**
