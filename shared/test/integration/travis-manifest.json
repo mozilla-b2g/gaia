@@ -23,7 +23,6 @@
     "apps/search/test/marionette/places_search_test.js",
     "apps/settings/test/marionette/tests/app_permission_settings_test.js",
     "apps/music/test/marionette/Player_test.js",
-    "apps/search/test/marionette/app_search_test.js",
     "apps/system/test/marionette/desktop_notification_test.js",
     "apps/system/test/marionette/edges_gesture_test.js",
     "apps/system/test/marionette/fullscreen_statusbar_test.js",
