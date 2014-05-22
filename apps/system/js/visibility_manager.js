@@ -30,7 +30,9 @@
       'appclosing',
       'homescreenopening',
       'rocketbar-overlayopened',
-      'rocketbar-overlayclosed'
+      'rocketbar-overlayclosed',
+      'utility-tray-overlayopened',
+      'utility-tray-overlayclosed'
     ];
   };
 
@@ -96,9 +98,11 @@
         this._setAttentionScreenVisibility(evt);
         break;
       case 'rocketbar-overlayopened':
+      case 'utility-tray-overlayopened':
         this.publish('hidewindowforscreenreader');
         break;
       case 'rocketbar-overlayclosed':
+      case 'utility-tray-overlayclosed':
         this.publish('showwindowforscreenreader');
         break;
       case 'mozChromeEvent':
