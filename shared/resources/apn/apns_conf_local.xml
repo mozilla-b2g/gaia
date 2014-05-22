@@ -151,4 +151,14 @@
       password="aptwap"
       type="mms"
   />
+
+  <apn carrier="Conexion Compartida"
+      mcc="214"
+      mnc="07"
+      apn="movistar.es"
+      user="MOVISTAR"
+      password="MOVISTAR"
+      authtype="1"
+      type="dun"
+  />
 </apns>
