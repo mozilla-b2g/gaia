@@ -1073,8 +1073,7 @@
                   detail: detail || this
                 });
 
-    this.debug(' publishing external event: ' + event +
-      JSON.stringify(detail));
+    this.debug(' publishing external event: ' + event);
 
     // Publish external event.
     window.dispatchEvent(evt);
