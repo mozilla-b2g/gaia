@@ -141,20 +141,6 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   text-overflow: ellipsis;
 }
 
-#contact-detail li button.icon-call {
-  padding-left: 0;
-}
-
-#contact-detail li button>div {
-  display: inline-flex;
-  width: calc(100% - 1.5rem);
-  margin-left: 1.5rem;
-}
-
-#contact-detail li button>div b {
-  flex: 1;
-}
-
 #contact-detail .social-actions button {
   margin-bottom: 1rem;
 }
