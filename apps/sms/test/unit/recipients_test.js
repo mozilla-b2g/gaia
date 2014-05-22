@@ -304,6 +304,20 @@ suite('Recipients', function() {
           source: 'manual'
         });
       });
+
+      test('Forcing isQuestionable to false keeps it to false', function(done) {
+        recipients.on('add', function(count, added) {
+          assert.isFalse(added.isQuestionable);
+          recipients.off('add');
+          done();
+        });
+
+        recipients.add({
+          number: 'abc',
+          source: 'manual',
+          isQuestionable: false
+        });
+      });
     });
   });
 

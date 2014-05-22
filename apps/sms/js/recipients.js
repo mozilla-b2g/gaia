@@ -52,7 +52,9 @@
     // is questionable and may be invalid.
     number = this.number[0] === '+' ? this.number.slice(1) : this.number;
 
-    if (this.source === 'manual' && !rdigit.test(number)) {
+    if (opts.isQuestionable === undefined &&
+        this.source === 'manual' &&
+        !rdigit.test(number)) {
       this.isQuestionable = true;
     }
 
