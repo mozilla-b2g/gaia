@@ -202,6 +202,19 @@ suite('Screen: Enter email', function() {
         done();
       });
     });
+
+    test(' > Email NOT registered inside FTU (Sign UP)', function(done) {
+      FxaModuleEnterEmail.isFTU = true;
+      FxModuleServerRequest.error = false;
+      FxModuleServerRequest.registered = false;
+      FxaModuleEnterEmail.onNext(function(params) {
+        assert.equal(params, FxaModuleStates.SET_PASSWORD);
+        assert.ok(hideOverlaySpy.calledOnce);
+        assert.isFalse(showErrorOverlaySpy.calledOnce);
+        FxaModuleEnterEmail.isFTU = null;
+        done();
+      });
+    });
   });
 
 
