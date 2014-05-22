@@ -8,7 +8,7 @@ apps/clock
 apps/communications
 apps/costcontrol
 apps/email
-apps/emergency-call
+apps/emergency_call
 apps/findmydevice
 apps/fl
 apps/fm

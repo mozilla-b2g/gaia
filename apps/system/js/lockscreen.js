@@ -592,7 +592,7 @@
   function ls_handlePassCodeInput(key) {
     switch (key) {
       case 'e': // 'E'mergency Call
-        this.invokeSecureApp('emergency-call');
+        this.invokeSecureApp('emergency_call');
         break;
 
       case 'c': // 'C'ancel
