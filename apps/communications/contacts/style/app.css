@@ -219,11 +219,11 @@ li a[role="button"].activity > b em{
 }
 
 [data-type="list"] aside span[data-type="img"] {
-  border-style: hidden;
+  box-shadow: none;
 }
 
 [data-type="list"] li[data-visited="true"] aside span[data-type="img"] {
-  border-style: solid;
+  box-shadow: 0 0 0 0.1rem #dedede;
 }
 
 [data-type="list"] li p {
