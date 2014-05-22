@@ -895,22 +895,47 @@
       const GRADIENT_LENGTH = 50;
 
       if (this.useNewStyle) {
-        // If user move over 15px, fill the slide.
-        if (urw > 15 && true !== this.states.slidingColorful) {
-          // The color should be gradient in this length, from the origin.
-          // It would decide how long the color turning to the touched color.
+        if (0 === urw) {  // Draw as the initial circle.
+          // outer circle
+          ctx.beginPath();
 
-          fillAlpha =
-            (urw - 15) / GRADIENT_LENGTH * 0.3 + 0.5; // from 0.5 to 0.8
-          if (fillAlpha > 0.8) {
-            fillAlpha = 0.8;
-            this.states.slidingColorGradientEnd = true;
+          ctx.arc(center.x, center.y,
+              radius, 0, 2 * Math.PI, false);
+          ctx.fillStyle = this.handle.outerColor;
+
+          // Note: When setting both the fill and stroke for a shape,
+          // make sure that you use fill() before stroke().
+          // Otherwise, the fill will overlap half of the stroke.
+          ctx.closePath();
+          ctx.fill();
+
+          // outer circle
+          ctx.beginPath();
+
+          ctx.arc(center.x, center.y,
+              this.handle.innerRadius, 0, 2 * Math.PI, false);
+          ctx.fillStyle = this.handle.innerColor;
+
+          // Note: When setting both the fill and stroke for a shape,
+          // make sure that you use fill() before stroke().
+          // Otherwise, the fill will overlap half of the stroke.
+          ctx.closePath();
+          ctx.fill();
+        } else {
+          // The color should be gradient transitioning
+
+          if (urw <= GRADIENT_LENGTH) {
+            fillAlpha = urw / GRADIENT_LENGTH * 0.4;
+            fillAlpha = 0.9 - fillAlpha;
+          } else {
+            fillAlpha = 0.5 + (urw - GRADIENT_LENGTH) / GRADIENT_LENGTH * 0.3;
+            if (fillAlpha > 0.8) {
+              fillAlpha = 0.8;
+            }
           }
 
           strokeStyle = 'transparent';
 
-          // It's not colorful now.
-          this.states.slidingColorful = true;
           ctx.fillStyle = 'rgba(255, 255, 255, ' + fillAlpha + ')';
           ctx.strokeStyle = strokeStyle;
 
@@ -932,68 +957,7 @@
           ctx.fill();
           ctx.stroke();
           ctx.closePath();
-        } else {
-          if (0 === urw) {  // Draw as the initial circle.
-            // outer circle
-            ctx.beginPath();
-
-            ctx.arc(center.x, center.y,
-                radius, 0, 2 * Math.PI, false);
-            ctx.fillStyle = this.handle.outerColor;
-
-            // Note: When setting both the fill and stroke for a shape,
-            // make sure that you use fill() before stroke().
-            // Otherwise, the fill will overlap half of the stroke.
-            ctx.closePath();
-            ctx.fill();
-
-            // outer circle
-            ctx.beginPath();
-
-            ctx.arc(center.x, center.y,
-                this.handle.innerRadius, 0, 2 * Math.PI, false);
-            ctx.fillStyle = this.handle.innerColor;
-
-            // Note: When setting both the fill and stroke for a shape,
-            // make sure that you use fill() before stroke().
-            // Otherwise, the fill will overlap half of the stroke.
-            ctx.closePath();
-            ctx.fill();
-
-          } else {
-            fillAlpha =
-              1 - ((urw - 15) / GRADIENT_LENGTH * 0.5); // from 1 to 0.5
-            if (fillAlpha < 0.5) {
-              fillAlpha = 0.5;
-            }
-            var color = '255, 255, 255';
-
-            ctx.fillStyle = 'rgba(255, 255, 255, ' + fillAlpha + ')';
-            ctx.strokeStyle = 'transparent';
-
-            // Start to draw it.
-            // Can't use functions like rect or these individual parts
-            // would show its borders.
-            ctx.beginPath();
-
-            ctx.arc(center.x, center.y,
-                radius, endAngle, startAngle, counterclock);
-            ctx.lineTo(center.x, center.y - radius);
-            ctx.lineTo(center.x + (offset - center.x), center.y - radius);
-            ctx.arc(offset, center.y, radius,
-                    startAngle, endAngle, counterclock);
-            ctx.lineTo(center.x, center.y + radius);
-
-            // Note: When setting both the fill and stroke for a shape,
-            // make sure that you use fill() before stroke().
-            // Otherwise, the fill will overlap half of the stroke.
-            ctx.fill();
-            ctx.stroke();
-            ctx.closePath();
-
-          }
         }
-
       } else { // old style
         // If user move over 15px, fill the slide.
         if (urw > 15 && true !== this.states.slidingColorful) {
