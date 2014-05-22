@@ -64,7 +64,7 @@ MAKEFLAGS=-r
 # Headless bot does not need the full output of wget
 # and it can cause crashes in bot.io option is here so
 # -nv can be passed and turn off verbose output.
-WGET_OPTS?=-c
+WGET_OPTS?=-c -nv
 GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
@@ -415,7 +415,7 @@ GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,pl,zh-Hans-Pinyin,en-Dvorak
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
 SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
-DOWNLOAD_CMD = /usr/bin/curl -OL
+DOWNLOAD_CMD = /usr/bin/curl -OLsS
 TAR_WILDCARDS = tar
 else
 MD5SUM = md5sum -b
