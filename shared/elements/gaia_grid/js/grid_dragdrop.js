@@ -240,6 +240,8 @@
 
             this.addDragHandlers();
 
+            e.stopImmediatePropagation();
+
             this.begin(e);
 
             break;
