@@ -217,8 +217,8 @@ var DownloadStore = (function() {
   }
 
   // These fields will be stored in our datastore
-  var fieldsToPropagate =
-    ['url', 'path', 'totalBytes', 'contentType', 'startTime', 'state'];
+  var fieldsToPropagate = ['url', 'path', 'totalBytes', 'contentType',
+                           'startTime', 'state', 'storageName', 'storagePath'];
 
   function cookDownload(download) {
     var ret = Object.create(null);
