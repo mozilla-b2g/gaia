@@ -35,6 +35,12 @@
 
     _percent: 1,
 
+    /**
+     * The visible height of each divider.
+     * Calculated by the divider class and cached here.
+     */
+    _dividerLineHeight: 0,
+
     get percent() {
       return this._percent;
     },

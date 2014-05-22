@@ -41,10 +41,10 @@
 
 .divider span {
   display: block;
-  height: 0.2rem;
   background: #fff;
   width: 100%;
   z-index: 2;
+  border-radius: 40%;
 }
 
 .divider:last-of-type {
