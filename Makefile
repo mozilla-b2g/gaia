@@ -1112,7 +1112,7 @@ watch: $(NPM_INSTALLED_PROGRAMS)
 	node build/watcher.js
 
 .PHONY: multilocale
-multilocale: app-makefiles webapp-shared $(XULRUNNER_BASE_DIRECTORY)
+multilocale: post-manifest app-makefiles webapp-shared $(XULRUNNER_BASE_DIRECTORY)
 ifneq ($(LOCALE_BASEDIR),)
 	@$(call run-js-command,multilocale)
 endif
