@@ -27,6 +27,15 @@ GAIA_MAKE_FLAGS += PRODUCTION=1
 B2G_SYSTEM_APPS := 1
 endif
 
+# Gaia currently supports different builds by giving a specific device type.
+# GAIA_DEVICE_TYPE:
+# phone - default
+# tablet
+# tv
+ifneq (,$(GAIA_DEVICE_TYPE))
+GAIA_MAKE_FLAGS += GAIA_DEVICE_TYPE=$(GAIA_DEVICE_TYPE)
+endif
+
 # Gaia currently needs to specify the default scale value manually or pictures
 # with correct resolution will not be applied.
 ifneq (,$(GAIA_DEV_PIXELS_PER_PX))
