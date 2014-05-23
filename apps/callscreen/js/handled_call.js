@@ -315,7 +315,7 @@ HandledCall.prototype.connected = function hc_connected() {
   CallScreen.syncSpeakerEnabled();
 
   if (!this.call.group) {
-    CallScreen.setCallerContactImage(this.photo, true);
+    CallScreen.changeContactImage(this.photo);
   }
 };
 

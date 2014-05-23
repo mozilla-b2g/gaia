@@ -313,21 +313,20 @@ suite('dialer/handled_call', function() {
 
     test('photo displaying', function() {
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
-      assert.isTrue(MockCallScreen.mSetCallerContactImageForced);
     });
 
     suite('with a contact with no picture', function() {
-      var setContactStub;
+      var changeContactStub;
 
       setup(function() {
         subject.photo = null;
-        setContactStub = this.sinon.stub(MockCallScreen,
-                                         'setCallerContactImage');
+        changeContactStub = this.sinon.stub(MockCallScreen,
+                                            'changeContactImage');
         mockCall._connect();
       });
 
       test('wallpaper displaying', function() {
-        assert.isTrue(setContactStub.calledWith(null));
+        assert.isTrue(changeContactStub.calledWith(null));
       });
     });
 
@@ -470,13 +469,14 @@ suite('dialer/handled_call', function() {
   });
 
   suite('resuming', function() {
-    var setContactStub;
+    var changeContactStub;
 
     setup(function() {
       mockCall._hold();
       MockCallScreen.mSyncSpeakerCalled = false;
       MockCallScreen.mEnableKeypadCalled = false;
-      setContactStub = this.sinon.stub(MockCallScreen, 'setCallerContactImage');
+      changeContactStub =
+        this.sinon.stub(MockCallScreen, 'changeContactImage');
       subject.photo = 'dummy_photo_1';
       mockCall._resume();
     });
@@ -494,7 +494,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('changed the user photo', function() {
-      assert.isTrue(setContactStub.calledWith(subject.photo));
+      assert.isTrue(changeContactStub.calledWith(subject.photo));
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
   });

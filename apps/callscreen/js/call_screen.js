@@ -280,34 +280,41 @@ var CallScreen = {
     }
   },
 
-  setCallerContactImage: function cs_setContactImage(blob, force) {
+  /* Sets the DOM up to display a contact's image. */
+  changeContactImage: function cs_changeContactImage(blobOrNull) {
+    this._contactImage = blobOrNull;
+    this.contactBackground.classList.remove('ready');
+    var background = blobOrNull ?
+      'url(' + URL.createObjectURL(blobOrNull) + ')' : '';
+    this.contactBackground.style.backgroundImage = background;
+    this.contactBackground.classList.add('ready');
+  },
+
+  /**
+   * Queues up a caller image until the background transition is done, or sets
+   * it instantly if no transition is in progress. If there's already a call in
+   * progress, this call will be ignored, and changeContactImage should be used
+   * instead.
+   */
+  setCallerContactImage: function cs_setCallerContactImage(blobOrNull) {
     var callElems = this.calls.querySelectorAll('section.handled-call');
-    if (force || callElems.length <= 1) {
-      // Waiting for the call screen transition to end before updating
-      // the contact image
-      if (!this._transitionDone) {
-        this._contactImage = blob;
-        this._contactBackgroundWaiting = true;
-        return;
-      }
-
-      if (this._contactImage == blob && !this._contactBackgroundWaiting) {
-        return;
-      }
-
-      this._contactImage = blob;
+    if (callElems.length > 1) {
+      return;
     }
 
+    // Waiting for the call screen transition to end before updating
+    // the contact image
     if (!this._transitionDone) {
+      this._contactImage = blobOrNull;
       this._contactBackgroundWaiting = true;
       return;
     }
 
-    this.contactBackground.classList.remove('ready');
-    var background = this._contactImage ?
-      'url(' + URL.createObjectURL(this._contactImage) + ')' : '';
-    this.contactBackground.style.backgroundImage = background;
-    this.contactBackground.classList.add('ready');
+    if (this._contactImage == blobOrNull && !this._contactBackgroundWaiting) {
+      return;
+    }
+
+    this.changeContactImage(blobOrNull);
   },
 
   setEmergencyWallpaper: function cs_setEmergencyWallpaper() {

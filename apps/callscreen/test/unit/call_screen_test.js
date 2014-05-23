@@ -491,29 +491,13 @@ suite('call screen', function() {
     var fakeBlob = new Blob([], {type: 'image/png'});
     var fakeURL = URL.createObjectURL(fakeBlob);
 
-    var multiCallBackgroundSet = function(force) {
-      var newFakeBlob = new Blob([], {type: 'image/jpg'});
-      var newFakeURL = URL.createObjectURL(newFakeBlob);
-
-      this.sinon.stub(URL, 'createObjectURL').returns(
-        force ? newFakeURL : fakeURL);
-
-      CallScreen.setCallerContactImage(fakeBlob);
-      CallScreen.calls.innerHTML =
-        '<section class="handled-call"></section>' +
-        '<section class="handled-call"></section>';
-      CallScreen.setCallerContactImage(newFakeBlob, force);
-
-      var expectedURL = force ? newFakeURL : fakeURL;
-      assert.equal(CallScreen.contactBackground.style.backgroundImage,
-                   'url("' + expectedURL + '")');
-    };
-
     setup(function() {
       CallScreen._transitionDone = false;
+      CallScreen._contactImage = null;
     });
 
-    test('it should wait for the transition to be over', function(done) {
+    test('setCallerContactImage should wait for the transition to be over',
+    function(done) {
       var addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
 
       CallScreen.setCallerContactImage(fakeBlob);
@@ -529,33 +513,74 @@ suite('call screen', function() {
       });
     });
 
+    test('changeContactImage should not wait for the transition to be over',
+    function() {
+      this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
+      CallScreen.changeContactImage(fakeBlob);
+      assert.equal(CallScreen.contactBackground.style.backgroundImage,
+                   'url("' + fakeURL + '")');
+    });
+
     suite('once the transition is over', function() {
       setup(function() {
         CallScreen._transitionDone = true;
         CallScreen._contactBackgroundWaiting = false;
-
-        multiCallBackgroundSet = multiCallBackgroundSet.bind(this);
       });
 
-      test('should change background of the contact photo', function() {
+      test('setCallerContactImage should change background of contact photo',
+      function() {
         this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
         CallScreen.setCallerContactImage(fakeBlob);
         assert.equal(CallScreen.contactBackground.style.backgroundImage,
                      'url("' + fakeURL + '")');
       });
 
-      test('should clean up background property if null', function() {
+      test('setCallerContactImage should clean up background property if null',
+      function() {
+        CallScreen.setCallerContactImage(fakeBlob);
         CallScreen.setCallerContactImage(null);
         assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
       });
 
-      test('should not show new background when handling new incoming call',
+      test('setCallerContactImage should not show new background with call',
       function() {
-        multiCallBackgroundSet(false); // don't force set incoming
+        var newFakeBlob = new Blob([], {type: 'image/jpg'});
+        var newFakeURL = URL.createObjectURL(newFakeBlob);
+
+        this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
+
+        CallScreen.setCallerContactImage(fakeBlob);
+        CallScreen.calls.innerHTML =
+          '<section class="handled-call"></section>' +
+          '<section class="handled-call"></section>';
+        CallScreen.setCallerContactImage(newFakeBlob);
+
+        assert.equal(CallScreen.contactBackground.style.backgroundImage,
+                     'url("' + fakeURL + '")');
       });
 
-      test('should set background when forced', function() {
-        multiCallBackgroundSet(true); // force set incoming
+      test('changeContactImage should show background even with current call',
+      function() {
+        var newFakeBlob = new Blob([], {type: 'image/jpg'});
+        var newFakeURL = URL.createObjectURL(newFakeBlob);
+
+        this.sinon.stub(URL, 'createObjectURL').returns(newFakeURL);
+
+        CallScreen.setCallerContactImage(fakeBlob);
+        CallScreen.calls.innerHTML =
+          '<section class="handled-call"></section>' +
+          '<section class="handled-call"></section>';
+        CallScreen.changeContactImage(newFakeBlob);
+
+        assert.equal(CallScreen.contactBackground.style.backgroundImage,
+                     'url("' + newFakeURL + '")');
+      });
+
+      test('changeContactImage should clean up background property if null',
+      function() {
+        CallScreen.setCallerContactImage(fakeBlob);
+        CallScreen.changeContactImage(null);
+        assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
       });
     });
   });
