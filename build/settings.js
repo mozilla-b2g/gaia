@@ -248,8 +248,6 @@ function execute(config) {
 
   setDefaultKeyboardLayouts(config.GAIA_DEFAULT_LOCALE, settings, config);
 
-  // Ensure not quitting xpcshell before all asynchronous code is done
-  utils.processEvents(function(){return {wait : false}});
   var queue = utils.Q.defer();
   queue.resolve();
 

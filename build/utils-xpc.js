@@ -536,11 +536,11 @@ function writeContentToFile(path, content) {
  */
 function processEvents(exitResultFunc) {
   let thread = Services.tm.currentThread;
-  let exitResult;
-  do {
-    exitResult = exitResultFunc();
+  let exitResult = exitResultFunc();
+  while (thread.hasPendingEvents() || exitResult.wait) {
     thread.processNextEvent(true);
-  } while (thread.hasPendingEvents() || exitResult.wait);
+    exitResult = exitResultFunc();
+  }
   if (exitResult.error) {
     throw exitResult.error;
   }
