@@ -469,15 +469,20 @@ button::-moz-focus-inner {
   color: #fff;
   text-decoration: none;
   font-family: 'Keyboard Symbols', sans-serif;
+}
+
+#lockscreen-passcode-pad > a > div {
+  height: calc(100% - 0.6rem);
+  margin-top: 0.3rem;
   border-right-width: 0.1rem;
   border-right-style: solid;
 }
 
-#lockscreen-passcode-pad > a:last-child {
+#lockscreen-passcode-pad > a:last-child > div{
   border-right: none;
 }
 
-#lockscreen-passcode-pad > a:nth-child(3n+1):not([data-key="b"]) {
+#lockscreen-passcode-pad > a:nth-child(3n+1):not([data-key="b"]) > div{
   border-left: none;
 }
 
@@ -486,7 +491,7 @@ button::-moz-focus-inner {
   line-height: 6.4rem;
 }
 
-#lockscreen-passcode-pad > a > span {
+#lockscreen-passcode-pad > a > div > span {
   pointer-events: none;
   font-size: 1.2rem;
   padding: 0.4rem;
@@ -515,7 +520,7 @@ button::-moz-focus-inner {
   text-shadow: none;
 }
 
-#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func:active > span{
+#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func:active > div > span{
   color: #00caf2;
 }
 
@@ -531,29 +536,29 @@ button::-moz-focus-inner {
   background-color: #525c5e;
 }
 
-#lockscreen-passcode-pad .row0 {
+#lockscreen-passcode-pad .row0 > div{
   border-right-color: #525b5e;
 }
 
-#lockscreen-passcode-pad .row1 {
+#lockscreen-passcode-pad .row1 > div {
   border-right-color: #4c5657;
 }
 
-#lockscreen-passcode-pad .row2 {
+#lockscreen-passcode-pad .row2 > div {
   border-right-color: #475052;
 }
 
-#lockscreen-passcode-pad .row3 {
+#lockscreen-passcode-pad .row3 > div {
   border-right-color: #434b4d;
 }
 
-#lockscreen-passcode-pad > a:active > span {
+#lockscreen-passcode-pad > a:active > div > span {
   color: #fff;
   text-shadow: none;
 }
 
 
-#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
+#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func > div{
   padding: 0 1rem;
   text-align: center;
 }
@@ -567,7 +572,7 @@ button::-moz-focus-inner {
   vertical-align: middle;
 }
 
-#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func > span {
+#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func > div > span {
   display: inline-block;
   padding: 0;
   color: white;
@@ -582,7 +587,7 @@ button::-moz-focus-inner {
   pointer-events: none;
 }
 
-#lockscreen-passcode-pad > a.disabled > span {
+#lockscreen-passcode-pad > a.disabled > div > span {
   color: #4d4d4d;
 }
 
