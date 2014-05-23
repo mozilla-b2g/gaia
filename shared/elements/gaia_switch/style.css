@@ -24,7 +24,7 @@ label.pack-switch span {
 
 label.pack-switch input {
   margin: 0;
-  opacity: 0;
+  visibility: hidden;
   position: absolute;
   top: 0;
   left: 0;
