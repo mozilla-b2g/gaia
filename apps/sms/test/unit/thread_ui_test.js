@@ -2094,7 +2094,8 @@ suite('thread_ui.js >', function() {
 
   suite('removeMessageDOM', function() {
     setup(function() {
-      ThreadUI.container.innerHTML = '<h2></h2><ul><li></li><li></li></ul>';
+      ThreadUI.container.innerHTML =
+        '<section><h2></h2><ul><li></li><li></li></ul></section>';
     });
     teardown(function() {
       ThreadUI.container.innerHTML = '';
@@ -2864,7 +2865,10 @@ suite('thread_ui.js >', function() {
           });
           // re-rendering message happens from a status handler
           test('removes message', function() {
-            assert.equal(element.parentNode, null);
+            var messageDateGroup = element.parentNode.parentNode;
+            // As this message is the last one in the list, the entire date
+            // group container will be removed.
+            assert.equal(messageDateGroup.parentNode, null);
           });
         });
       });
@@ -2953,7 +2957,10 @@ suite('thread_ui.js >', function() {
           });
           // re-rendering message happens from a status handler
           test('removes message', function() {
-            assert.equal(element.parentNode, null);
+            var messageDateGroup = element.parentNode.parentNode;
+            // As this message is the last one in the list, the entire date
+            // group container will be removed.
+            assert.equal(messageDateGroup.parentNode, null);
           });
         });
       });

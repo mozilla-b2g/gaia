@@ -33,6 +33,7 @@
   height: auto;
   overflow: hidden;
   order: 2;
+  background-color: #fff;
 }
 
 /* Overwrite. No more fixed height */
@@ -88,7 +89,7 @@ form[role="search"] button[type="submit"] + p > textarea {
   left: 0.5rem;
   top: 0.5rem;
   pointer-events: none;
-  
+
 
   font-style: normal;
   font-weight: normal;
@@ -97,7 +98,7 @@ form[role="search"] button[type="submit"] + p > textarea {
 
 #messages-input.placeholder:after {
   content: attr(data-placeholder);
-} 
+}
 
 #messages-subject-input.placeholder:after {
   content: attr(data-placeholder);
@@ -141,15 +142,15 @@ form[role="search"] button[type="submit"] + p > textarea {
 
 #messages-send-button.has-counter:before {
   content: attr(data-counter);
-  
+
   position: absolute;
   left: 0;
   top: -1.9rem;
-  
+
   box-sizing: border-box;
   height: 1.8rem;
   padding: 0 0.5rem;
- 
+
   color: rgb(133, 133, 133);
   font-weight: normal;
   font-size: 1.4rem;
