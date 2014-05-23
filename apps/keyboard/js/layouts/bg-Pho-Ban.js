@@ -1,5 +1,6 @@
 Keyboards['bg-Pho-Ban'] = {
   label: 'Bulgarian (New)',
+  shortLabel: 'Bg',
   menuLabel: 'Български (БАН)',
   types: ['text', 'url', 'email'],
   imEngine: 'latin',

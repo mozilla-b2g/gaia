@@ -1,5 +1,6 @@
 Keyboards['en-Dvorak'] = {
   label: 'English - Dvorak',
+  shortLabel: 'En',
   menuLabel: 'Dvorak',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

@@ -586,11 +586,10 @@ function modifyLayout(keyboardName) {
     space = copy(space);   // and the original space key
     row[c] = space;
 
-
     // Alternate layout key
     // This gives the author the ability to change the alternate layout
     // key contents
-    var alternateLayoutKey = '?123';
+    var alternateLayoutKey = '12&';
     if (layout['alternateLayoutKey']) {
       alternateLayoutKey = layout['alternateLayoutKey'];
     }
@@ -611,7 +610,8 @@ function modifyLayout(keyboardName) {
           keyCode: ALTERNATE_LAYOUT,
           value: alternateLayoutKey,
           ratio: 1.5,
-          ariaLabel: 'alternateLayoutKey'
+          ariaLabel: 'alternateLayoutKey',
+          className: 'switch-key'
         });
 
       } else {
@@ -627,13 +627,22 @@ function modifyLayout(keyboardName) {
 
     // switch languages button
     var supportsSwitching = navigator.mozInputMethod.mgmt.supportsSwitching();
-    if (!layout['hidesSwitchKey'] && supportsSwitching) {
-      space.ratio -= 1.5;
-      row.splice(c, 0, {
+    var needsSwitchingKey = !layout['hidesSwitchKey'] && supportsSwitching;
+    if (needsSwitchingKey) {
+      var imeSwitchKey = {
         value: '&#x1f310;',
-        ratio: 1.5,
-        keyCode: SWITCH_KEYBOARD
-      });
+        ratio: 1,
+        keyCode: SWITCH_KEYBOARD,
+        className: 'switch-key'
+      };
+
+      if ('shortLabel' in Keyboards[keyboardName]) {
+        imeSwitchKey.value = Keyboards[keyboardName].shortLabel;
+        imeSwitchKey.className += ' alternate-indicator';
+      }
+
+      space.ratio -= 1;
+      row.splice(c, 0, imeSwitchKey);
       c += 1;
     }
 
@@ -677,8 +686,7 @@ function modifyLayout(keyboardName) {
         }
 
         // Add ',' to 2nd level
-        if (layoutPage !== LAYOUT_PAGE_DEFAULT) {
-
+        if (layoutPage !== LAYOUT_PAGE_DEFAULT || !needsSwitchingKey) {
           if (overwrites[','] !== false) {
             space.ratio -= 1;
             next++;

@@ -1,5 +1,6 @@
 Keyboards.es = {
   label: 'Spanish',
+  shortLabel: 'Es',
   menuLabel: 'Español',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

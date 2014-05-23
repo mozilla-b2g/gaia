@@ -1,5 +1,6 @@
 Keyboards['dz-BT'] = {
   label: 'Dzongkha',
+  shortLabel: 'Dz',
   menuLabel: 'རྫོང་ཁ',
   alternateLayoutKey: '༡༢༣',
   basicLayoutKey: 'ཀཁག',

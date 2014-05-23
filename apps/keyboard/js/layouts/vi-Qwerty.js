@@ -4,6 +4,7 @@
 
 Keyboards['vi-Qwerty'] = {
   label: 'Vietnamese',
+  shortLabel: 'Vi',
   menuLabel: 'Tiếng Việt (QWERTY)',
   imEngine: 'vietnamese',
   needsCandidatePanel: true,

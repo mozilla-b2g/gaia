@@ -1,5 +1,6 @@
 Keyboards['jp-kanji'] = {
   label: 'Japanese - Kanji',
+  shortLabel: 'Ja',
   menuLabel: 'Japanese - Kanji',
   imEngine: 'jskanji',
   types: ['text', 'url', 'email'],
