@@ -199,15 +199,20 @@
     });
   };
 
-  BrowserContextMenu.prototype.bookmarkUrl = function(url, name) {
+  BrowserContextMenu.prototype.bookmarkUrl = function(url, name, icon) {
     /*jshint -W031 */
+    var data = {
+      type: 'url',
+      url: url,
+      name: name
+    };
+    if (icon) {
+      data.icon = icon;
+    }
+    console.log(JSON.stringify(data));
     new MozActivity({
       name: 'save-bookmark',
-      data: {
-        type: 'url',
-        url: url,
-        name: name
-      }
+      data: data
     });
   };
 
@@ -238,7 +243,10 @@
   BrowserContextMenu.prototype.showDefaultMenu = function() {
     this.showMenu([{
       label: _('add-to-home-screen'),
-      callback: this.bookmarkUrl.bind(this, this.app.config.url, this.app.title)
+      callback: this.bookmarkUrl.bind(this,
+                                      this.app.config.url,
+                                      this.app.title,
+                                      this.app.config.favicon.href)
     }, {
       label: _('share'),
       callback: this.shareUrl.bind(this, this.app.config.url)
