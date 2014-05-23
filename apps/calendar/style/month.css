@@ -234,7 +234,6 @@ section.month .icon-dot:before {
 }
 
 #months-day-view .icon-dot {
-  color: #0AC;
   display: block;
   font-size: 6rem;
   height: 3rem;
@@ -305,7 +304,6 @@ section.month .icon-dot:before {
 }
 
 #months-day-view .has-alarms .icon-alarm {
-  color: #0AC;
   display: block;
   height: 6rem;
   line-height: 6rem;

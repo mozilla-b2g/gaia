@@ -42,10 +42,10 @@
       return '<section class="' + sectionClassList + '" ' +
                       'data-id="' + this.h('busytimeId') + '">' +
              '<div class="' + containerClassList + '">' +
-               '<div class="icon-dot"></div>' +
+               '<div class="icon-dot calendar-text-color"></div>' +
                '<div class="event-time">' + this.eventTime() + '</div>' +
                '<div class="event-details">' + this.eventDetails() + '</div>' +
-               '<div class="icon-alarm"></div>' +
+               '<div class="icon-alarm calendar-text-color"></div>' +
              '</div>' +
              '</section>';
     }
