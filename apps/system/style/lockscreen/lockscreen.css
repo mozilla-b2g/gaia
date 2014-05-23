@@ -349,8 +349,8 @@ button::-moz-focus-inner {
 
   pointer-events: auto;
 
-  background-image: url('./images/lockscreen_camera.png');
-  background-position: 1.85rem center;
+  background-image: url('./images/pin_camera.png');
+  background-position: 1.1rem center;
   background-repeat: no-repeat;
   background-size: 3rem;
 }
