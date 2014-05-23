@@ -604,6 +604,9 @@ reflows. Foreground/background colors should be safe.
   width: 3rem;
   height: 3rem;
   margin: 0.5rem 1rem 0 0;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 3rem auto;
 }
 
 .msg-reply-menu-reply:before {
