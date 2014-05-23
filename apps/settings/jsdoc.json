@@ -1,16 +1,7 @@
 {
   "settings": {
     "src": ["apps/settings/README.md",
-            "apps/settings/js/**/*.js",
-            "!apps/settings/js/carrier.js",
-            "!apps/settings/js/mvvm/views.js",
-            "!apps/settings/js/settings.js",
-            "!apps/settings/js/wifi.js",
-            "!apps/settings/js/modules/mvvm/list_view.js",
-            "!apps/settings/js/panels/feedback_send/feedback_send.js",
-            "!apps/settings/js/panels/keyboard/core.js",
-            "!apps/settings/js/panels/keyboard_add_layouts/core.js",
-            "!apps/settings/js/panels/keyboard_enabled_layouts/core.js"
+            "apps/settings/js/**/*.js"
     ],
     "options": {
       "destination": "docs/settings"
