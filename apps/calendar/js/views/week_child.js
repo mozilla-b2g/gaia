@@ -27,7 +27,6 @@ Calendar.ns('Views').WeekChild = (function() {
         '%a %e'
       );
       return template.header.render({
-        isToday: Calendar.Calc.isToday(this.date),
         title: format
       });
     },
@@ -68,6 +67,8 @@ Calendar.ns('Views').WeekChild = (function() {
         'afterbegin',
         this._renderHeader()
       );
+
+      this.stickyFrame.dataset.date = this.date;
 
       this.stickyFrame.appendChild(this.allDayElement);
 

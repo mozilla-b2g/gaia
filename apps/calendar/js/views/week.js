@@ -42,6 +42,12 @@ Calendar.ns('Views').Week = (function() {
 
     this.element.querySelector('.sticky').appendChild(stickyList);
     this._appendSidebarHours();
+
+    this._currentTime = new Calendar.Views.CurrentTime({
+      container: this.element.querySelector('.scroll-content'),
+      sticky: this.element.querySelector('.sticky'),
+      timespan: this.timespan
+    });
   }
 
   Frame.prototype = {
@@ -61,16 +67,22 @@ Calendar.ns('Views').Week = (function() {
       for (; i < len; i++) {
         this.children[i][method]();
       }
+
+      if (method in this._currentTime) {
+        this._currentTime[method]();
+      }
     },
 
     /**
      * Activates all children and adds ACTIVE class to frame.
      */
     activate: function() {
-      this._childMethod('activate');
+      // we need to add the active class before caling activate in the child
+      // elements because they might need to get access to element style
       this.element.classList.add(
         Calendar.View.ACTIVE
       );
+      this._childMethod('activate');
     },
 
     /**
