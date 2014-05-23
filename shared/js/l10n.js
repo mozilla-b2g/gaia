@@ -1346,18 +1346,19 @@
     }
     isPretranslated = false;
 
+    document.mozLocalized = true;
     fireLocalizedEvent.call(this);
   }
 
   function fireLocalizedEvent() {
-    var event = new CustomEvent('localized', {
+    var event = new CustomEvent('mozDOMLocalized', {
       'bubbles': false,
       'cancelable': false,
       'detail': {
         'language': this.ctx.supportedLocales[0]
       }
     });
-    window.dispatchEvent(event);
+    document.dispatchEvent(event);
   }
 
   /* jshint -W104 */
