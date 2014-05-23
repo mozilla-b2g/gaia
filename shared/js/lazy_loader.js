@@ -1,5 +1,5 @@
 /* exported LazyLoader */
-/* globals HtmlImports*/
+/* globals HtmlImports, Promise */
 'use strict';
 
 /**
@@ -57,6 +57,30 @@ var LazyLoader = (function() {
         }
       }
       callback();
+    },
+
+    /**
+     * Retrieves content of JSON file.
+     *
+     * @param {String} file Path to JSON file
+     * @return {Promise} A promise that resolves to the JSON content
+     * or null in case of invalid path. Rejects if an error occurs.
+     */
+    getJSON: function(file) {
+      return new Promise(function(resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', file, true);
+        xhr.responseType = 'json';
+
+        xhr.onerror = function(error) {
+          reject(error);
+        };
+        xhr.onload = function() {
+          resolve(xhr.response);
+        };
+
+        xhr.send();
+      });
     },
 
     load: function(files, callback) {
