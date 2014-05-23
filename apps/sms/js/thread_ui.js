@@ -1802,7 +1802,7 @@ var ThreadUI = global.ThreadUI = {
    * the DOM for getting the bubble container of this message.
    */
 
-  getMessageBubble: function thui_getMessageContainer(element) {
+  getMessageBubble: function thui_getMessageBubble(element) {
     var node = element;
     var bubble;
 
