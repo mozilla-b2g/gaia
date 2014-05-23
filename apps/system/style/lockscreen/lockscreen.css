@@ -217,6 +217,7 @@
 
 #lockscreen-clock-time span { /* optional meridiem */
   font-size: 3rem;
+  display: none;
 }
 
 #lockscreen-date {
