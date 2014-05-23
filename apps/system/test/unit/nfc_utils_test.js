@@ -160,3 +160,82 @@ suite('NFC Utils', function() {
     });
   });
 });
+
+suite('NfcBuffer', function() {
+  var arr;
+  var buf;
+
+  setup(function() {
+    arr = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    buf = new NfcBuffer(arr);
+  });
+
+  test('getOctet()', function() {
+    assert.equal(0, buf.getOctet());
+    assert.equal(1, buf.getOctet());
+    assert.equal(2, buf.getOctet());
+    assert.equal(3, buf.getOctet());
+  });
+
+  test('getOctetArray()', function() {
+    assert.deepEqual([0, 1, 2], buf.getOctetArray(3));
+    assert.deepEqual([3], buf.getOctetArray(1));
+    assert.deepEqual([4, 5, 6, 7], buf.getOctetArray(4));
+    assert.deepEqual([], buf.getOctetArray(0));
+  });
+
+  test('skip()', function() {
+    buf.skip(2);
+    assert.equal(2, buf.getOctet());
+    buf.skip(3);
+    assert.equal(6, buf.getOctet());
+    buf.skip(0);
+    assert.equal(7, buf.getOctet());
+  });
+
+  test('len is required', function() {
+    assert.throws(function() {
+      buf.getOctetArray();
+    });
+
+    assert.throws(function() {
+      buf.skip();
+    });
+  });
+
+  test('getOctetArray() throws when len is negative', function() {
+    assert.throws(function() {
+      buf.getOctetArray(-1);
+    }, Error);
+  });
+
+  test('skip() throws when len is negative', function() {
+    assert.throws(function() {
+      buf.skip(-1);
+    });
+  });
+
+  test('getOctetArray() throws on attempt to read too many octets',
+    function() {
+
+    assert.throws(function() {
+      buf.getOctetArray(arr.length + 1);
+    }, Error);
+  });
+
+  test('getOctet() throws on attempt to read after last octet', function() {
+    buf.skip(arr.length);
+
+    assert.throws(function() {
+      buf.getOctet();
+    }, Error);
+  });
+
+  test('skip() throws when after last octet', function() {
+    buf.skip(arr.length);
+
+    assert.throws(function() {
+      buf.skip(1);
+    }, Error);
+  });
+});

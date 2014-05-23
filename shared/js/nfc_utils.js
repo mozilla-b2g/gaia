@@ -122,23 +122,26 @@ function NfcBuffer(uint8array) {
 
 NfcBuffer.prototype.getOctet = function getOctet() {
   if (this.offset == this.uint8array.length) {
-    throw 'NfcBuffer too small';
+    throw Error('NfcBuffer too small');
   }
   return this.uint8array[this.offset++];
 };
 
 NfcBuffer.prototype.getOctetArray = function getOctetArray(len) {
-  if (this.offset + len > this.uint8array.length) {
-    throw 'NfcBuffer too small';
+  if (typeof len !== 'number' || len < 0 ||
+    this.offset + len > this.uint8array.length) {
+
+    throw Error('NfcBuffer too small');
   }
-  var a = this.uint8array.subarray(this.offset, this.offset + len);
-  this.offset += len;
-  return a;
+
+  return this.uint8array.subarray(this.offset, this.offset += len);
 };
 
 NfcBuffer.prototype.skip = function skip(len) {
-  if (this.offset + len > this.uint8array.length) {
-    throw 'NfcBuffer too small';
+  if (typeof len !== 'number' || len < 0 ||
+    this.offset + len > this.uint8array.length) {
+
+    throw Error('NfcBuffer too small');
   }
   this.offset += len;
 };
@@ -319,13 +322,13 @@ NfcUtils = {
     do {
       firstOctet = buffer.getOctet();
       if (isFirstRecord && !(firstOctet & NDEF.MB)) {
-        throw 'MB bit not set in first NDEF record';
+        throw Error('MB bit not set in first NDEF record');
       }
       if (!isFirstRecord && (firstOctet & NDEF.MB)) {
-        throw 'MB can only be set for the first record';
+        throw Error('MB can only be set for the first record');
       }
       if (firstOctet & NDEF.CF) {
-        throw 'Cannot deal with chunked records';
+        throw Error('Cannot deal with chunked records');
       }
       records.push(this.parseNDEFRecord(buffer, firstOctet));
       isFirstRecord = false;
@@ -367,7 +370,7 @@ NfcUtils = {
         return record;
       }
     }
-    throw 'Could not find record with id';
+    throw Error('Could not find record with id');
   }
 };
 
