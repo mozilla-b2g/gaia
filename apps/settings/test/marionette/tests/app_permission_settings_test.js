@@ -17,5 +17,6 @@ marionette('manipulate app permissions', function() {
     appPermissionPanel.enterPermissionDetail();
     appPermissionPanel.tapGeolocationSelect('Grant');
     assert.equal(appPermissionPanel.georlocationSelectValue, 'allow');
+
   });
 });
