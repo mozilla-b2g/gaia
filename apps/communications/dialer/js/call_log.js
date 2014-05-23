@@ -213,8 +213,8 @@ var CallLog = {
           self.enableEditMode();
           self.sticky.refresh();
           self.updateHeadersContinuously();
-          PerformanceTestingHelper.dispatch('call-log-ready');
         }
+        PerformanceTestingHelper.dispatch('call-log-ready');
         return;
       }
 
