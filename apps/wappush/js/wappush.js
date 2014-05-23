@@ -19,7 +19,8 @@
     displayWapPushMessage: wpm_displayWapPushMessage,
     onVisibilityChange: wpm_onVisibilityChange,
     setOnCloseCallback: wpm_setOnCloseCallback,
-    clearNotifications: wpm_clearNotifications
+    clearNotifications: wpm_clearNotifications,
+    enableAcceptButton: wpm_enableAcceptButton
   };
 
   /** Settings key for enabling/disabling WAP Push messages */
@@ -30,6 +31,9 @@
 
   /** A reference to the app's object */
   var app = null;
+
+  /** Accept button node */
+  var acceptButton = null;
 
   /** Close button node */
   var closeButton = null;
@@ -95,6 +99,7 @@
     navigator.mozSettings.addObserver(wapPushEnableKey, wpm_onSettingsChange);
 
     // Retrieve the various page elements
+    acceptButton = document.getElementById('accept');
     closeButton = document.getElementById('close');
 
     // Get the app object and configuration
@@ -143,6 +148,16 @@
       window.clearTimeout(closeTimeout);
       closeTimeout = null;
     }
+  }
+
+  /**
+   * Show/hide the accept button.
+   *
+   * @param {Boolean} enabled Shows the accept button when true, hides it
+   *        otherwise.
+   */
+  function wpm_enableAcceptButton(enabled) {
+    acceptButton.classList.toggle('hidden', !enabled);
   }
 
   /**
