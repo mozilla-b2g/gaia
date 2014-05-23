@@ -65,6 +65,11 @@
       this.xAdjust = this.gridView.layout.gridItemWidth / 2 + 20;
       this.yAdjust = this.gridView.layout.gridItemHeight + 20;
 
+      var items = this.gridView.items;
+      var lastElement = items[items.length - 1];
+      this.maxScroll = lastElement.y + lastElement.pixelHeight +
+                       (this.icon.pixelHeight * this.maxActiveScale);
+
       // Make the icon larger
       this.icon.transform(
         e.pageX - this.xAdjust,
@@ -129,6 +134,13 @@
 
       var docScroll = document.documentElement.scrollTop;
       if (touch.pageY - docScroll > screenHeight - edgePageThreshold) {
+        var maxY = this.maxScroll;
+        // We cannot exceed the maximum scroll value
+        if (touch.pageY >= maxY || maxY - touch.pageY < scrollStep) {
+          this.isScrolling = false;
+          return;
+        }
+
         doScroll.call(this, scrollStep);
       } else if (touch.pageY > 0 &&
                  touch.pageY - docScroll < edgePageThreshold) {
