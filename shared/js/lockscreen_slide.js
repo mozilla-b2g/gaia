@@ -180,6 +180,11 @@
     resources: {
       larrow: '/style/lockscreen/images/larrow.png',
       rarrow: '/style/lockscreen/images/rarrow.png'
+    },
+
+    resourcesNew: {
+      larrow: '/style/lockscreen/images/lockscreen_toggle_arrow_left.png',
+      rarrow: '/style/lockscreen/images/lockscreen_toggle_arrow_right.png'
     }
   };
 
@@ -199,6 +204,7 @@
       if (opts.useNewStyle) {
         this.track = this.trackNew;
         this.handle = this.handleNew;
+        this.resources = this.resourcesNew;
       }
       this._initializeCanvas();
       this.publish('lockscreenslide-unlocker-initializer');
@@ -322,7 +328,7 @@
       larrow.onload = (function() {
         var offset =
           this.useNewStyle ?
-          (this.arrows.left.width + this.handle.radius + this._dpx(12)) :
+          (this.arrows.left.width + this.handle.radius) :
           (this.arrows.left.width << 1);
         this.arrows.ldraw.x =
               center.x - offset;
@@ -335,9 +341,7 @@
       }).bind(this);
       rarrow.onload = (function() {
         var offset =
-          this.useNewStyle ?
-          (this.handle.radius + this._dpx(12)) :
-          this.arrows.right.width;
+          this.useNewStyle ? this.handle.radius : this.arrows.right.width;
         this.arrows.rdraw.x =
               center.x + offset;
         this.arrows.rdraw.y =
@@ -723,7 +727,7 @@
       var center = this.center;
       var offset = tx - center.x;
       var isLeft = offset < 0;
-      var alpha = 1 - Math.min(1, Math.abs(offset) / this._dpx(15));
+      var alpha = 1 - Math.min(1, Math.abs(offset) / this._dpx(30));
 
       if (this.handle.maxWidth < Math.abs(offset)) {
         this.states.slideReachEnd = true;
@@ -736,7 +740,7 @@
         // XXX:<<1: OK but don't know why!
         var position =
           this.useNewStyle ?
-          (tx - (this.arrows.left.width) - this.handle.radius - this._dpx(12)) :
+          (tx - (this.arrows.left.width) - this.handle.radius) :
           (tx - (this.arrows.left.width << 1));
         var oldAlpha = ctx.globalAlpha;
         ctx.globalAlpha = alpha;
@@ -751,7 +755,7 @@
       } else {
         var position =
           this.useNewStyle ?
-          (tx + this.handle.radius + this._dpx(12)) :
+          (tx + this.handle.radius) :
           (tx + this.arrows.right.width);
         var oldAlpha = ctx.globalAlpha;
         ctx.globalAlpha = alpha;

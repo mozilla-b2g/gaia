@@ -305,8 +305,8 @@ button::-moz-focus-inner {
 }
 
 #lockscreen-area-unlock > div {
-  background-image: url('./images/icon-unlock.png');
-  background-position: center;
+  background-image: url('./images/lockscreen_unlock.png');
+  background-position: 1.1rem center;
   background-repeat: no-repeat;
   background-size: 3rem;
 }
@@ -323,10 +323,10 @@ button::-moz-focus-inner {
 
 #lockscreen-alt-camera-button,
 #lockscreen-area-camera > div {
-  background-image: url('./images/icon-camera.png');
-  background-position: center;
+  background-image: url('./images/lockscreen_camera.png');
+  background-position: 1.85rem center;
   background-repeat: no-repeat;
-  background-size: 2.4rem;
+  background-size: 3rem;
 }
 
 #lockscreen-alt-camera {
