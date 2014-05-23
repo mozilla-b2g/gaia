@@ -392,10 +392,6 @@
       // would be draw at the center, and make it align too left.
       this.canvas.getContext('2d', this.handle.radius << 1, 0);
 
-      // Draw the handle.
-      this._resetHandle();
-      this._resetTouchStates();
-
       // We don't reset the arrows because it need to be draw while image
       // got loaded, which is a asynchronous process.
 
@@ -423,6 +419,10 @@
 
       this._drawTrack();
       this._drawIconBG();
+
+      // Draw the handle.
+      this._resetHandle();
+      this._resetTouchStates();
     };
 
   /**
