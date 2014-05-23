@@ -2,9 +2,6 @@
 
 /* global MockApplications, WidgetFactory */
 
-mocha.globals(['BrowserConfigHelper', 'WidgetFactory', 'ManifestHelper',
-               'Applications']);
-
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('homescreen-stingray/test/unit/mock_applications.js');
 requireApp('homescreen-stingray/test/unit/mock_widget_window.js');

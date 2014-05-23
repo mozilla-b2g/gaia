@@ -4,8 +4,6 @@
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/accessibility.js');
 
-mocha.globals(['Accessibility']);
-
 var mocksForTTLView = new MocksHelper([
   'SettingsListener'
 ]).init();

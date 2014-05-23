@@ -1,12 +1,5 @@
 /* global MockMozApps, MockPermissionSettings */
 'use strict';
-mocha.globals([
-  'MockL10n',
-  'MockPermissionSettings',
-  'MockMozApps',
-  'MockManifestHelper'
-]);
-
 suite('app permission detail > ', function() {
   var mockL10n, realL10n;
   var mockConfirmDialog, realConfirmDialog;

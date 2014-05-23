@@ -7,9 +7,6 @@ requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/js/action_menu.js');
 requireApp('system/shared/js/manifest_helper.js');
 requireApp('system/js/activities.js');
-mocha.globals(['Activities', 'addEventListener', 'dispatchEvent',
-              'applications']);
-
 var mocksForActivities = new MocksHelper([
   'Applications'
 ]).init();

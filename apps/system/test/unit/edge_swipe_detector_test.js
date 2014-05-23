@@ -1,7 +1,5 @@
 'use strict';
 
-mocha.globals(['homescreenLauncher']);
-
 requireApp('system/js/edge_swipe_detector.js');
 
 requireApp('system/test/unit/mock_sheets_transition.js');

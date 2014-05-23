@@ -1,8 +1,6 @@
 /* global MocksHelper, MockAppWindow, AppTransitionController*/
 'use strict';
 
-mocha.globals(['AppTransitionController', 'AppWindow', 'System']);
-
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 

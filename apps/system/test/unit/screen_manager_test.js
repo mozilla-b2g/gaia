@@ -1,10 +1,5 @@
 'use strict';
 
-mocha.globals(['SettingsListener', 'lockScreen', 'Bluetooth', 'StatusBar',
-      'AttentionScreen', 'removeEventListener', 'addEventListener',
-      'ScreenManager', 'clearIdleTimeout', 'setIdleTimeout', 'dispatchEvent',
-      'AppWindowManager']);
-
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_statusbar.js');

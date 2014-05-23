@@ -1,8 +1,6 @@
 'use strict';
 /* global AppList, MockApplications, MocksHelper, Blob */
 
-mocha.globals(['Applications']);
-
 requireApp('homescreen-stingray/test/unit/mock_applications.js');
 requireApp('homescreen-stingray/js/vendor/evt.js');
 requireApp('homescreen-stingray/js/app_list.js');

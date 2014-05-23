@@ -2,7 +2,6 @@
           MockStatusBar, MocksoftwareButtonManager, MockLockScreen */
 'use strict';
 
-mocha.globals(['OrientationManager', 'lockScreen']);
 requireApp('system/js/layout_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');

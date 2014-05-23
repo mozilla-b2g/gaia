@@ -8,8 +8,6 @@ require('/shared/test/unit/mocks/mock_moz_activity.js');
 
 require('/shared/js/url_helper.js');
 
-mocha.globals(['Search', 'open', 'MozActivity']);
-
 suite('search/search', function() {
   var realMozApps;
   var realMozActivity;

@@ -1,14 +1,12 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global loadBodyHTML, mocha, MockL10n, MockMessageDB, MockNavigatormozApps,
+/* global loadBodyHTML, MockL10n, MockMessageDB, MockNavigatormozApps,
           MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
           MockNavigatorSettings, MockNotification, MocksHelper, Notification,
           ParsedMessage, WapPushManager */
 
 'use strict';
-
-mocha.globals(['close']);
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');

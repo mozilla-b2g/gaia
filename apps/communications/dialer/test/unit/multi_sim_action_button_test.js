@@ -22,8 +22,6 @@ var mocksHelperForMultiSimActionButton = new MocksHelper([
   'SettingsListener'
 ]).init();
 
-mocha.globals(['TelephonyHelper']);
-
 suite('multi SIM action button', function() {
   var subject;
   var realMozSettings;

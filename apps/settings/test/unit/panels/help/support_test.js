@@ -1,8 +1,4 @@
 'use strict';
-mocha.globals([
-  'MockLoadJSON',
-  'loadJSON']);
-
 suite('Help > ', function() {
   var Help;
   var MockLoadJSON, MockSettingsCache;

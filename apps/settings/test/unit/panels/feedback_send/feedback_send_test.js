@@ -1,14 +1,4 @@
 'use strict';
-mocha.globals([
-  'ScreenLayout',
-  'LazyLoader',
-  'Settings',
-  'Root',
-  'initLocale',
-  'MockL10n',
-  'asyncStorage',
-  'MockAsyncStorage']);
-
 suite('sendFeedback > ', function() {
   var SendFeedback;
   var MockL10n, RealL10n;

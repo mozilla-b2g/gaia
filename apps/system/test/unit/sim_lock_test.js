@@ -1,4 +1,4 @@
-/* global mocha, SimLock, MocksHelper, SimPinDialog, MockSIMSlotManager */
+/* global SimLock, MocksHelper, SimPinDialog, MockSIMSlotManager */
 'use strict';
 
 requireApp('system/js/mock_simslot_manager.js');
@@ -8,8 +8,6 @@ var mocksHelperForSimLock = new MocksHelper([
   'SimPinDialog',
   'SIMSlotManager'
 ]).init();
-
-mocha.globals(['SimLock']);
 
 suite('SimLock', function() {
   mocksHelperForSimLock.attachTestHelpers();

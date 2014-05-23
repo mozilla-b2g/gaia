@@ -14,8 +14,6 @@ var mocksForBatteryManager = new MocksHelper([
   'GestureDetector'
 ]).init();
 
-mocha.globals(['dispatchEvent']);
-
 suite('battery manager >', function() {
   var realBattery;
   var screenNode, notifNode, overlayNode;

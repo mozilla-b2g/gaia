@@ -18,8 +18,6 @@ var mocksForDialerAgent = new MocksHelper([
   'SettingsURL'
 ]).init();
 
-mocha.globals(['lockScreen']);
-
 suite('system/DialerAgent', function() {
   mocksForDialerAgent.attachTestHelpers();
   var realTelephony, realVibrate, realLockscreen;

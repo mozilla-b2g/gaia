@@ -15,8 +15,6 @@ requireApp('settings/test/unit/mock_template.js');
 requireApp('settings/test/unit/mock_sim_pin_dialog.js');
 requireApp('settings/test/unit/mock_toaster.js');
 
-mocha.globals(['Template', 'SimPinLock', 'SimPinDialog']);
-
 var mocksForSimPinLock = new MocksHelper(['Toaster']).init();
 
 suite('SimPinLock > ', function() {

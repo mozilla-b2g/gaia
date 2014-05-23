@@ -1,9 +1,6 @@
 (function() {
 'use strict';
 
-mocha.globals(['SecureWindowManager', 'SecureWindowFactory', 'SecureWindow',
-               'addEventListener', 'dispatchEvent', 'secureWindowManager']);
-
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_secure_window.js');
 requireApp('system/test/unit/mock_secure_window_factory.js');

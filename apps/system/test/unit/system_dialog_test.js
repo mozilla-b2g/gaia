@@ -1,10 +1,6 @@
 'use strict';
 /* global MocksHelper, SystemDialog, LayoutManager */
 
-mocha.globals(['BaseUI', 'AppWindowManager', 'LayoutManager',
-               'layoutManager', 'System', 'SystemDialog',
-               'dispatchEvent', 'stubById']);
-
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_system_dialog_manager.js');
