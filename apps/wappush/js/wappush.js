@@ -35,8 +35,8 @@
   /** Accept button node */
   var acceptButton = null;
 
-  /** Close button node */
-  var closeButton = null;
+  /** Header node - which has the close button */
+  var header = null;
 
   /** Callback function to be invoqued when closing the app from either mode
     * CP or SI/SL */
@@ -100,7 +100,7 @@
 
     // Retrieve the various page elements
     acceptButton = document.getElementById('accept');
-    closeButton = document.getElementById('close');
+    header = document.getElementById('header');
 
     // Get the app object and configuration
     var promise = Promise.all([wpm_getApp(), wpm_getConfig()]);
@@ -114,7 +114,7 @@
       CpScreenHelper.init();
 
       // Register event and message handlers only after initialization is done
-      closeButton.addEventListener('click', wpm_onClose);
+      header.addEventListener('action', wpm_onClose);
       document.addEventListener('visibilitychange', wpm_onVisibilityChange);
       window.navigator.mozSetMessageHandler('notification', wpm_onNotification);
       window.navigator.mozSetMessageHandler('wappush-received',
