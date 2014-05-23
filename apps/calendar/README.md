@@ -16,7 +16,7 @@ js/provider/      => provides apis to frontend code running on the main thread
                      run on the main thread (https://bugzil.la/701634). common pattern is to
                      send a sync operation to the worker which emits events to the
                      provider code which formats calendar data and shoves it in indexedDB
-js/service/       => runs in worker and bridges communication main thread and caldav library
+js/service/       => runs in worker and bridges communication between main thread and caldav library
 js/store/         => wrappers around calendar database collections
 js/utils/         => miscellaneous library code mostly for computing or storing things
                      synchronously in memory
