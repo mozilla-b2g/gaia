@@ -24,7 +24,7 @@ cmd_ls() {
 }
 
 cmd_run() {
-  local steps="before_install install before_script script after_script"
+  local steps="before_install install before_script script"
   local root="$suite_root/$1/"
 
   if [  ! -d $root ] || [ "$1" == "" ] || [ "$1" == " " ];
