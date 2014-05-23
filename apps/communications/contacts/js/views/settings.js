@@ -192,6 +192,7 @@ contacts.Settings = (function() {
 
   function importContactsHandler() {
       // Hide elements for export and transition
+      importSettingsPanel.classList.remove('export');
       importSettingsPanel.classList.add('import');
       updateImportTitle('importContactsTitle');
       navigationHandler.go('import-settings', 'right-left');
@@ -203,6 +204,7 @@ contacts.Settings = (function() {
 
       function loadSearch() {
         Contacts.view('search', function() {
+          importSettingsPanel.classList.remove('import');
           importSettingsPanel.classList.add('export');
           updateImportTitle('exportContactsTitle');
           navigationHandler.go('import-settings', 'right-left');
