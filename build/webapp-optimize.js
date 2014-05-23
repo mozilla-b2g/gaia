@@ -16,11 +16,16 @@ function debug(str) {
 var win = {
   navigator: {},
   Node: {
-    TEXT_NODE: 3
+    TEXT_NODE: 3,
   },
-  CustomEvent: function() {},
-  dispatchEvent: function() {},
+  CustomEvent: function(event, params) {
+    var evt = win.document.createEvent('CustomEvent');
+    evt.initCustomEvent(event, params.bubbles, params.cancelable,
+                        params.detail);
+                        return evt;
+  },
 };
+
 let scope = {};
 let JSMin;
 
