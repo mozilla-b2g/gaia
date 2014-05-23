@@ -11,6 +11,7 @@
    */
   function Activities() {
     window.addEventListener('mozChromeEvent', this);
+    window.addEventListener('appopened', this);
     this.actionMenu = null;
   }
 
@@ -31,6 +32,11 @@
             case 'activity-choice':
               this.chooseActivity(detail);
               break;
+          }
+          break;
+        case 'appopened':
+          if (this.actionMenu) {
+            this.actionMenu.hide();
           }
           break;
       }
