@@ -1,7 +1,5 @@
 'use strict';
 
-mocha.globals(['NDEFUtils']);
-
 /* globals MocksHelper, NDEFUtils, NDEF, NfcUtils */
 
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');

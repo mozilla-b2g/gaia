@@ -2,9 +2,6 @@
 
 /* global WidgetWindow, WidgetManager */
 
-mocha.globals(['BrowserConfigHelper', 'ManifestHelper',
-               'HomescreenLauncher']);
-
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('homescreen-stingray/js/browser_config_helper.js');
 requireApp('homescreen-stingray/js/widget_manager.js');

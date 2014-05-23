@@ -7,7 +7,6 @@
 
 'use strict';
 
-mocha.globals(['Commands', 'DUMP']);
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/mocks/mock_settings_url.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');

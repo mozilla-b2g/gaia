@@ -4,10 +4,6 @@
 /* global MocksHelper, MockApplications, MockAppWindowManager,
           AppWindow, HomescreenLauncher, AppWindowFactory, appWindowFactory */
 
-mocha.globals(['AppWindowManager', 'applications',
-      'ManifestHelper', 'AppWindow', 'System', 'AppWindowFactory',
-      'BrowserConfigHelper', 'homescreenLauncher', 'appWindowFactory']);
-
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_app_window_manager.js');

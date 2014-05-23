@@ -9,8 +9,6 @@ require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_bluetooth_helper.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 
-mocha.globals(['PairManager', 'BluetoothHelper', 'open', 'Pairview']);
-
 var mocksForPairManagerHelper = new MocksHelper([
   'BluetoothHelper',
   'Pairview'

@@ -1,9 +1,5 @@
 'use strict';
 
-mocha.globals(['NfcManager', 'ScreenManager', 'SettingsListener',
-      'lockScreen', 'addEventListener', 'removeEventListener',
-      'dispatchEvent']);
-
 /* globals MockDOMRequest, MockNfc, MocksHelper, MozNDEFRecord, NDEF,
            NfcUtils, NfcManager */
 

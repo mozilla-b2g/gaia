@@ -1,11 +1,9 @@
-/* global MockNavigatorSettings, mocha, AirplaneModeHelper
+/* global MockNavigatorSettings, AirplaneModeHelper
  */
 'use strict';
 
 requireApp(
   'settings/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-
-mocha.globals(['AirplaneModeHelper']);
 
 suite('AirplaneModeHelper > ', function() {
   var realMozSettings;

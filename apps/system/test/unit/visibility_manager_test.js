@@ -2,8 +2,6 @@
            MockAttentionScreen */
 'use strict';
 
-mocha.globals(['VisibilityManager', 'System', 'lockScreen']);
-
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_attention_screen.js');

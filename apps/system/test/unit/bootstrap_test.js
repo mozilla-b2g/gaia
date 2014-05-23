@@ -44,42 +44,6 @@ requireApp('system/test/unit/mock_places.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_task_manager.js');
 
-mocha.globals([
-  'accessibility',
-  'activityWindowManager',
-  'activities',
-  'applications',
-  'appWindowFactory',
-  'cancelHomeTouchstart',
-  'cancelHomeTouchend',
-  'cancelHomeClick',
-  'developerHUD',
-  'dialerAgent',
-  'homeGesture',
-  'homeSearchbar',
-  'homescreenLauncher',
-  'internetSharing',
-  'layoutManager',
-  'lockScreenWindowManager',
-  'mediaRecording',
-  'permissionManager',
-  'places',
-  'remoteDebugger',
-  'rocketbar',
-  'secureWindowFactory',
-  'secureWindowManager',
-  'Shortcuts',
-  'sourceView',
-  'softwareButtonManager',
-  'storage',
-  'systemDialogManager',
-  'taskManager',
-  'telephonySettings',
-  'ttlView',
-  'visibilityManager',
-  'wallpaperURL'
-]);
-
 var mocksForBootstrap = new MocksHelper([
   'Applications',
   'IccHelper',

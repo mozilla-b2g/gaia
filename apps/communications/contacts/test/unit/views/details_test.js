@@ -76,8 +76,6 @@ if (!window.ActivityHandler) {
   window.ActivityHandler = null;
 }
 
-mocha.globals(['fb', 'mozL10n']);
-
 var mocksHelperForDetailView = new MocksHelper([
   'ContactPhotoHelper',
   'LazyLoader',

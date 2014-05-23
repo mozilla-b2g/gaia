@@ -2,8 +2,6 @@
 
 'use strict';
 
-mocha.globals(['MmiUI']);
-
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 
 var mocksHelperForMmiUI = new MocksHelper([

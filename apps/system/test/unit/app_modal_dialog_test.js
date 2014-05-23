@@ -1,7 +1,5 @@
 'use strict';
 
-mocha.globals(['AppWindow', 'AppModalDialog', 'System', 'BaseUI']);
-
 
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_orientation_manager.js');

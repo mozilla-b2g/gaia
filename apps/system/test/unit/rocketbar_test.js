@@ -18,8 +18,6 @@ var mocksForRocketbar = new MocksHelper([
   'IACPort'
 ]).init();
 
-mocha.globals(['SearchWindow', 'Rocketbar']);
-
 suite('system/Rocketbar', function() {
   mocksForRocketbar.attachTestHelpers();
   var stubById;

@@ -20,8 +20,6 @@ requireApp('ftu/test/unit/mock_operatorVariant.js');
 requireApp('ftu/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('ftu/test/unit/mock_navigation.html.js');
 
-mocha.globals(['open']);
-
 var _;
 
 

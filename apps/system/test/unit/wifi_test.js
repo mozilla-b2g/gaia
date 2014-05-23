@@ -1,8 +1,5 @@
 'use strict';
 
-mocha.globals(['SettingsListener', 'ScreenManager',
-  'Wifi', 'addEventListener']);
-
 requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/test/unit/mock_navigator_moz_power.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');

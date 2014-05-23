@@ -2,8 +2,6 @@
 
 /* global HardwareButtons, MocksHelper, ScreenManager */
 
-mocha.globals(['HardwareButtons', 'ScreenManager']);
-
 requireApp('system/js/hardware_buttons.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 

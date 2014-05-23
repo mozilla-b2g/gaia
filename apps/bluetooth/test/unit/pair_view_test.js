@@ -6,9 +6,6 @@ require('/shared/test/unit/load_body_html_helper.js');
 requireApp('bluetooth/test/unit/mock_l10n.js');
 requireApp('bluetooth/test/unit/mock_pair_manager.js');
 
-mocha.globals(['Pairview', 'getTruncated', 'PairManager',
-               'opener', 'close', 'innerHeight']);
-
 function switchReadOnlyProperty(originObject, propName, targetObj) {
   Object.defineProperty(originObject, propName, {
     configurable: true,

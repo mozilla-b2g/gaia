@@ -1,8 +1,6 @@
-/*global mocha, MocksHelper, MockL10n, AppWindow, BrowserContextMenu */
+/*global MocksHelper, MockL10n, AppWindow, BrowserContextMenu */
 
 'use strict';
-
-mocha.globals(['AppWindow', 'BrowserContextMenu', 'System', 'BaseUI']);
 
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_orientation_manager.js');

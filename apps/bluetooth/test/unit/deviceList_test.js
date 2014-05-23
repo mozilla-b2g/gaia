@@ -2,8 +2,6 @@
           MockMozBluetooth, gDeviceList */
 'use strict';
 
-mocha.globals(['gDeviceList']);
-
 require('/shared/test/unit/mocks/mocks_helper.js');
 require('/shared/test/unit/load_body_html_helper.js');
 requireApp('bluetooth/test/unit/mock_l10n.js');

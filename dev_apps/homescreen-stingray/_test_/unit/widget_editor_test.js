@@ -1,8 +1,6 @@
 'use strict';
 /* global MockAppList, MockLayoutEditor, WidgetEditor, Applications*/
 
-mocha.globals(['WidgetEditor']);
-
 requireApp('homescreen-stingray/js/vendor/evt.js');
 requireApp('homescreen-stingray/test/unit/mock_applications.js');
 requireApp('homescreen-stingray/test/unit/mock_app_list.js');

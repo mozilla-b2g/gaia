@@ -50,8 +50,6 @@ var mocksForm = new MocksHelper([
   'ContactPhotoHelper'
 ]).init();
 
-mocha.globals(['fb', 'mozL10n', 'SimplePhoneMatcher']);
-
 suite('Render contact form', function() {
 
   suiteSetup(function() {

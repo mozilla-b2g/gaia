@@ -1,8 +1,5 @@
 'use strict';
 
-mocha.globals(['NfcConnectSystemDialog', 'NfcHandoverManager', 'NfcManager',
-               'NDEFUtils', 'BluetoothTransfer']);
-
 /* globals MocksHelper, MockBluetooth, MockNavigatorSettings,
            NDEF, NfcConnectSystemDialog, MockBluetoothTransfer,
            NfcManager, NfcHandoverManager, NDEFUtils,

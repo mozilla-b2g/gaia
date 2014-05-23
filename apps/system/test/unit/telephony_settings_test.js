@@ -4,8 +4,6 @@
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 requireApp('system/js/telephony_settings.js');
 
-mocha.globals(['TelephonySettings']);
-
 var mocksForTelephonySettings = new MocksHelper([
   'SettingsHelper'
 ]).init();

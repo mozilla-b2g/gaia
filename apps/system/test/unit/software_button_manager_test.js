@@ -7,8 +7,6 @@
 /* global ScreenLayout */
 /* global SoftwareButtonManager */
 
-mocha.globals(['SoftwareButtonManager']);
-
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');

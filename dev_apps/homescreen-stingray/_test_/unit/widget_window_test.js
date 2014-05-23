@@ -1,8 +1,6 @@
 'use strict';
 
 /* global WidgetWindow, BrowserFrame */
-mocha.globals(['ManifestHelper', 'BrowserFrame', 'WidgetWindow']);
-
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('homescreen-stingray/js/browser_config_helper.js');
 requireApp('homescreen-stingray/js/browser_frame.js');

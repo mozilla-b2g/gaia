@@ -24,8 +24,6 @@ var mocksForCaptivePortal = new MocksHelper([
   'AppWindowManager'
 ]).init();
 
-mocha.globals(['MozActivity']);
-
 suite('captive portal > ', function() {
   var realWifiManager;
   var realL10n;

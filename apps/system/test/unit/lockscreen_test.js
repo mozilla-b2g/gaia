@@ -1,11 +1,5 @@
 'use strict';
 
-mocha.globals(['SecureWindowManager', 'SecureWindowFactory', 'LockScreen',
-               'LockScreenSlide', 'Clock', 'OrientationManager',
-               'addEventListener', 'dispatchEvent', 'secureWindowManager',
-               'secureWindowFactory', 'lockScreen', 'LockScreenConnInfoManager',
-               'MediaPlaybackWidget', 'SettingsListener', 'SettingsURL']);
-
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');

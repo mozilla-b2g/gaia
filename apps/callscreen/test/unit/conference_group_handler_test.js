@@ -12,8 +12,6 @@ require('/test/unit/mock_call_screen.js');
 
 // The ConferenceGroupHandler binds stuff when evaluated so we load it
 // after the mocks and we don't want it to show up as a leak.
-mocha.globals(['ConferenceGroupHandler']);
-
 var mocksHelperForConferenceGroupHandler = new MocksHelper([
   'HandledCall',
   'CallsHandler',

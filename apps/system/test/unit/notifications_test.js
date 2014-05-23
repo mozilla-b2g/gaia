@@ -1,5 +1,4 @@
 /* global
-  mocha,
   MocksHelper,
   MockStatusBar,
   NotificationScreen,
@@ -8,8 +7,6 @@
  */
 
 'use strict';
-
-mocha.globals(['ScreenManager']);
 
 require('/js/notifications.js');
 require('/test/unit/mock_screen_manager.js');

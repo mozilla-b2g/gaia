@@ -33,13 +33,6 @@ var mocksHelperForCoppaModule = new MocksHelper([
   'LazyLoader'
 ]);
 
-mocha.globals([
-  'LazyLoader',
-  'FxaModuleErrors',
-  'FxModuleServerRequest',
-  'FxaModuleUI'
-]);
-
 suite('Screen: COPPA', function() {
   var realL10n;
   suiteSetup(function(done) {

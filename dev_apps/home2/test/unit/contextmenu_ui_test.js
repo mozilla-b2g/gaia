@@ -2,8 +2,6 @@
 
 /* global contextMenuUI, wallpaper, MocksHelper */
 
-mocha.globals(['contextMenuUI']);
-
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/load_body_html_helper.js');
 requireApp('home2/js/wallpaper.js');

@@ -1,6 +1,4 @@
 'use strict';
-mocha.globals(['homescreenLauncher']);
-
 requireApp('system/js/sheets_transition.js');
 
 requireApp('system/test/unit/mock_stack_manager.js');

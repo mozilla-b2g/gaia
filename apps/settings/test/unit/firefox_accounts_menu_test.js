@@ -2,13 +2,6 @@
 
 'use strict';
 
-mocha.globals([
-  'FxaMenu',
-  'loadBodyHTML',
-  'MockFxAccountsIACHelper',
-  'MockL10n'
-]);
-
 // require helpers for managing html
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/html_imports.js');
