@@ -2,6 +2,7 @@
   'use strict';
 
   var Calc = Calendar.Calc,
+      debug = Calendar.debug('month child'),
       template = Calendar.Templates.Month;
 
   // horrible hack to clear cache when we re-localize
@@ -93,6 +94,10 @@
 
       // Now redraw the busytime dots.
       var element = this._busyElement(dayId);
+      if (!element) {
+        return debug('Could not find container for ' + dayId + '!');
+      }
+
       var difference = Math.min(3, count) - element.childNodes.length;
 
       if (difference === 0) {

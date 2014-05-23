@@ -91,6 +91,12 @@ ReadEvent.prototype = {
     return this.findElement('.title');
   },
 
+  get editable() {
+    return this
+      .findElement('.edit')
+      .enabled();
+  },
+
   cancel: function() {
     return this
       .findElement('.cancel')
