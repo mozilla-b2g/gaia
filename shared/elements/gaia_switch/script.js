@@ -19,7 +19,7 @@ window.GaiaSwitch = (function(win) {
       this._input.checked = true;
     }
 
-    var label = this._template.querySelector('#switch-label span');
+    var label = this._template.getElementById('switch-label');
     label.addEventListener('click', this.handleClick.bind(this));
 
     shadow.appendChild(this._template);
