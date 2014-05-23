@@ -189,13 +189,20 @@
           break;
         }
 
-        if (!evt.target.dataset.key) {
+        var key = evt.target.dataset.key;
+        if (!key &&
+            (evt.target.tagName.toLowerCase() == 'div' &&
+             evt.target.parentNode.tagName.toLowerCase() == 'a')
+           ) {
+          key = evt.target.parentNode.dataset.key;
+        }
+        if (!key) {
           break;
         }
 
         // Cancel the default action of <a>
         evt.preventDefault();
-        this.handlePassCodeInput(evt.target.dataset.key);
+        this.handlePassCodeInput(key);
         break;
 
       case 'touchstart':

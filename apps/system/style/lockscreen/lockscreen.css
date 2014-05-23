@@ -479,7 +479,7 @@ button::-moz-focus-inner {
 
 #lockscreen-passcode-pad > a:not(.lockscreen-passcode-pad-func) > div{
   text-align: left;
-  padding-left: 4.4rem;
+  padding-left: 4.3rem;
 }
 
 #lockscreen-passcode-pad > a:last-child > div{
