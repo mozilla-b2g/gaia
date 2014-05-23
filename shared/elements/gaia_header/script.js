@@ -5,9 +5,9 @@ window.GaiaHeader = (function(win) {
   // Extend from the HTMLElement prototype
   var proto = Object.create(HTMLElement.prototype);
 
-  // Allow user to override the stylesheet url if need be
-  var stylesheet = win.GaiaHeaderCSS ||
-    '/shared/elements/gaia_header/style.css';
+  // Allow baseurl to be overridden (used for demo page)
+  var baseurl = window.GaiaHeaderBaseurl ||
+    '/shared/elements/gaia_header/';
 
   /**
    * Supported action types
@@ -34,7 +34,7 @@ window.GaiaHeader = (function(win) {
     this._template = template.content.cloneNode(true);
     this._configureActionButton();
     this._configureSkin();
-    this._styleHack();
+    this._addStyle();
 
     shadow.appendChild(this._template);
   };
@@ -52,9 +52,13 @@ window.GaiaHeader = (function(win) {
    *
    * @private
    */
-  proto._styleHack = function() {
-    var style = this._template.querySelector('style');
-    this.appendChild(style.cloneNode(true));
+  proto._addStyle = function() {
+    var style = document.createElement('style');
+    style.setAttribute('scoped', '');
+    var url = baseurl + 'style.css';
+    style.innerHTML = '@import url(' + url + ')';
+    this.appendChild(style);
+    this._template.appendChild(style.cloneNode(true));
   };
 
   /**
@@ -120,9 +124,7 @@ window.GaiaHeader = (function(win) {
   // hack until we can import entire custom-elements
   // using HTML Imports (bug 877072).
   var template = document.createElement('template');
-  template.innerHTML = '<style scoped>' +
-    '@import url(' + stylesheet + ');</style>' +
-    '<header id="header">' +
+  template.innerHTML = '<header id="header">' +
       '<button id="action-button"></button>' +
       '<menu id="menu-buttons" type="toolbar">' +
         '<content id="buttons-content" select="button,a"></content>' +

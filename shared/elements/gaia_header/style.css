@@ -4,12 +4,9 @@
 ------------------------------------------------------------------- */
 
 gaia-header {
-  position: relative;
   display: block;
-  z-index: 10;
-  padding: 0;
   height: 5rem;
-  border: none;
+  z-index: 10;
 }
 
 h1 {
@@ -265,4 +262,35 @@ button:hover {
 
 [data-skin="organic"] [data-icon="edit"]:before {
   background-image: url(images/icons/organic/edit.png);
+}
+
+/* -----------------------------------------------------------------
+  Transitions
+----------------------------------------------------------------- */
+
+[transition] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+}
+
+[transition="slide"] {
+  transform: translateY(0);
+  transition: transform 0.4s ease;
+}
+
+[transition="slide"][hide] {
+  transform: translateY(-100%);
+}
+
+[transition="fade"] {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.4s ease;
+}
+
+[transition="fade"][hide] {
+  opacity: 0;
+  pointer-events: none;
 }
