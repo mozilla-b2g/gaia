@@ -11,6 +11,7 @@ import time
 from marionette import MarionetteTestCase, EnduranceTestCaseMixin, \
     B2GTestCaseMixin, MemoryEnduranceTestCaseMixin
 from marionette.by import By
+from marionette import expected
 from marionette.errors import NoSuchElementException
 from marionette.errors import StaleElementException
 from marionette.errors import InvalidResponseException
@@ -513,10 +514,9 @@ class GaiaDevice(object):
         self.marionette.wait_for_port()
         self.marionette.start_session()
 
-        # Wait for the AppWindowManager to have registered the frame as active (loaded)
-        locator = (By.CSS_SELECTOR, 'div.appWindow.active.render')
-        Wait(marionette=self.marionette, timeout=timeout, ignored_exceptions=NoSuchElementException)\
-            .until(lambda m: m.find_element(*locator).is_displayed())
+        # Wait for the homescreen to finish loading
+        Wait(self.marionette, timeout).until(expected.element_present(
+            By.CSS_SELECTOR, '#homescreen[loading-state=false]'))
 
         # Reset the storage path for desktop B2G
         self._set_storage_path()
