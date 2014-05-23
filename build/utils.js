@@ -158,5 +158,6 @@ exports.dirname = utils.dirname;
 exports.basename = utils.basename;
 exports.addEntryContentWithTime = utils.addEntryContentWithTime;
 exports.copyDirTo = utils.copyDirTo;
+exports.existsInAppDirs = utils.existsInAppDirs;
 exports.getCompression = utils.getCompression;
 exports.cloneJSON = cloneJSON;
