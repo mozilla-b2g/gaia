@@ -1,7 +1,7 @@
+'use strict';
+/* global ComponentUtils */
 
 window.GaiaHeader = (function(win) {
-  'use strict';
-
   // Extend from the HTMLElement prototype
   var proto = Object.create(HTMLElement.prototype);
 
@@ -34,31 +34,10 @@ window.GaiaHeader = (function(win) {
     this._template = template.content.cloneNode(true);
     this._configureActionButton();
     this._configureSkin();
-    this._addStyle();
 
     shadow.appendChild(this._template);
-  };
 
-  /**
-   * We clone the scoped stylesheet and append
-   * it outside the shadow-root so that we can
-   * style projected <content> without the need
-   * of the :content selector.
-   *
-   * When the :content selector lands, we won't
-   * need this hack anymore and can style projected
-   * <content> from stylesheets within the shadow root.
-   * (bug 992249)
-   *
-   * @private
-   */
-  proto._addStyle = function() {
-    var style = document.createElement('style');
-    style.setAttribute('scoped', '');
-    var url = baseurl + 'style.css';
-    style.innerHTML = '@import url(' + url + ')';
-    this.appendChild(style);
-    this._template.appendChild(style.cloneNode(true));
+    ComponentUtils.style.call(this, baseurl);
   };
 
   /**
