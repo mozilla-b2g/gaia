@@ -40,7 +40,7 @@ Calendar.ns('Views').Week = (function() {
       weekChildren.appendChild(children[i].create());
     }
 
-    this.element.querySelector('.sticky .children').appendChild(stickyList);
+    this.element.querySelector('.sticky').appendChild(stickyList);
     this._appendSidebarHours();
   }
 
@@ -120,7 +120,7 @@ Calendar.ns('Views').Week = (function() {
 
       for (; i < 24; i++) {
         hour = String(i);
-        displayHour = Calendar.Calc.formatHour(i);
+        displayHour = Calendar.Calc.formatHourAbbr(i);
 
         element.insertAdjacentHTML(
           'beforeend',
@@ -266,6 +266,7 @@ Calendar.ns('Views').Week = (function() {
       var len = details.length;
       var children = [];
       var stickyList = document.createElement('ul');
+      stickyList.classList.add('sticky-list');
 
       var i = 0;
       for (; i < len; i++) {
@@ -273,6 +274,7 @@ Calendar.ns('Views').Week = (function() {
         date.setDate(date.getDate() + i);
 
         var stickyFrame = document.createElement('li');
+        stickyFrame.classList.add('sticky-frame');
         stickyList.appendChild(stickyFrame);
 
         children.push(new Calendar.Views.WeekChild({
