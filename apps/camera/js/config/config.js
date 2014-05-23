@@ -12,7 +12,7 @@ module.exports = {
 
     // Size of the exif preview embeded in images taken by camera
     CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH: 0,
-    CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT: 0,
+    CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT: 0
   },
 
   zoom: {
@@ -42,6 +42,19 @@ module.exports = {
     // The camera detects faces and tries to focus
     // on them.
     faceDetection: true
+  },
+
+  previewGallery: {
+
+    // Flag for determining if the preview should limit the
+    // image size to the value of CONFIG_MAX_IMAGE_PIXEL_SIZE
+    // (enable for devices with limited memory)
+    limitMaxPreviewSize: false,
+
+    // Dimensions for thumbnail image (will automatically be
+    // multiplied by the devicePixelRatio)
+    thumbnailWidth: 54,
+    thumbnailHeight: 54
   },
 
   viewfinder: {
@@ -93,7 +106,21 @@ module.exports = {
     // parameters. The larger the scale factor, the larger
     // the activity `maxPixelSize` icreasing the probability
     // that a larger pictureSize will be chosen for the activity.
-    maxPixelSizeScaleFactor: 2.5
+    maxPixelSizeScaleFactor: 2.5,
+
+    // Reduce the size of images returned by pick activities.
+    // A pick activity can specify its own maximum size. However,
+    // this setting can lower that pixel size limitation even
+    // further. To prevent further limiting the pixel size for
+    // pick activities, set this value to `0`.
+    // (useful for devices with limited memory)
+    maxPickPixelSize: 0,
+
+    // Reduce the size of images returned by share activities.
+    // To prevent resizing images that are shared, set this
+    // value to `0`.
+    // (useful for devices with limited memory)
+    maxSharePixelSize: 0
   },
 
   loadingScreen: {
