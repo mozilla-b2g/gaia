@@ -2,7 +2,7 @@ define(function(require) {
   'use strict';
 
   var SettingsPanel = require('modules/settings_panel');
-  var SendFeedback = require('panels/send_feedback/send_feedback');
+  var SendFeedback = require('panels/feedback_send/feedback_send');
 
   return function ctor_sendFeedbackPanel() {
     var elements = {};

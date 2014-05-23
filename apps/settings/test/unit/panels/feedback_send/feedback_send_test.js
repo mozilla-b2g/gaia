@@ -20,7 +20,7 @@ suite('sendFeedback > ', function() {
         'unit/mock_l10n',
         'unit/mock_async_storage',
         'unit/mock_xml_http_request',
-        'panels/send_feedback/send_feedback'
+        'panels/feedback_send/feedback_send'
       ],
       function(mockL10n, mockAsyncStorage, mockXMLHttpRequest, module) {
         MockL10n = mockL10n;
