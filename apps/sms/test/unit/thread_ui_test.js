@@ -2094,7 +2094,8 @@ suite('thread_ui.js >', function() {
 
   suite('removeMessageDOM', function() {
     setup(function() {
-      ThreadUI.container.innerHTML = '<h2></h2><ul><li></li><li></li></ul>';
+      ThreadUI.container.innerHTML =
+        '<div><h2></h2><ul><li></li><li></li></ul></div>';
     });
     teardown(function() {
       ThreadUI.container.innerHTML = '';
@@ -2103,11 +2104,10 @@ suite('thread_ui.js >', function() {
       ThreadUI.removeMessageDOM(ThreadUI.container.querySelector('li'));
       assert.equal(ThreadUI.container.querySelectorAll('li').length, 1);
     });
-    test('removeMessageDOM removes headers and ul', function() {
+    test('removeMessageDOM removes header and list container', function() {
       ThreadUI.removeMessageDOM(ThreadUI.container.querySelector('li'));
       ThreadUI.removeMessageDOM(ThreadUI.container.querySelector('li'));
-      assert.equal(ThreadUI.container.querySelectorAll('h2').length, 0);
-      assert.equal(ThreadUI.container.querySelectorAll('ul').length, 0);
+      assert.equal(ThreadUI.container.childElementCount, 0);
     });
   });
 
@@ -2322,25 +2322,94 @@ suite('thread_ui.js >', function() {
     });
   });
 
-  suite('appendMessage removes old message', function() {
+  suite('appendMessage >', function() {
+    var someDateInThePast;
+
     setup(function() {
-      this.targetMsg = {
-        id: 23,
-        type: 'sms',
-        receivers: this.receivers,
-        body: 'This is a test',
-        delivery: 'error',
-        timestamp: Date.now()
-      };
-      ThreadUI.appendMessage(this.targetMsg);
-      this.original = ThreadUI.container.querySelector(
-        '[data-message-id="' + this.targetMsg.id + '"]');
-      ThreadUI.appendMessage(this.targetMsg);
+      someDateInThePast = new Date(2010, 10, 10, 16, 0);
+
+      ThreadUI.appendMessage({
+        id: 1,
+        threadId: 1,
+        timestamp: +someDateInThePast
+      });
     });
-    test('original message removed when rendered a second time', function() {
-      var message = ThreadUI.container.querySelector(
-        '[data-message-id="' + this.targetMsg.id + '"]');
-      assert.notEqual(message, this.original);
+
+    teardown(function() {
+      ThreadUI.container = '';
+    });
+
+    test('removes original message when rendered a second time', function() {
+      var originalMessage = ThreadUI.container.querySelector(
+        '[data-message-id="1"]'
+      );
+
+      ThreadUI.appendMessage({
+        id: 1,
+        threadId: 1,
+        timestamp: +someDateInThePast
+      });
+
+      var message = ThreadUI.container.querySelector('[data-message-id="1"]');
+
+      assert.isNotNull(originalMessage);
+      assert.isNotNull(message);
+      assert.notEqual(message, originalMessage);
+    });
+
+    test('inserts message at the beginning', function() {
+      someDateInThePast.setHours(someDateInThePast.getHours() - 1);
+
+      ThreadUI.appendMessage({
+        id: 2,
+        threadId: 1,
+        timestamp: +someDateInThePast
+      });
+
+      var messageItemNodes = ThreadUI.container.querySelectorAll('.message');
+
+      assert.equal(messageItemNodes.length, 2);
+      assert.equal(+messageItemNodes[0].dataset.messageId, 2);
+      assert.equal(+messageItemNodes[1].dataset.messageId, 1);
+    });
+
+    test('inserts message at the right spot in the middle', function() {
+      someDateInThePast.setHours(someDateInThePast.getHours() + 2);
+      ThreadUI.appendMessage({
+        id: 3,
+        threadId: 1,
+        timestamp: +someDateInThePast
+      });
+
+      someDateInThePast.setHours(someDateInThePast.getHours() - 1);
+      ThreadUI.appendMessage({
+        id: 2,
+        threadId: 1,
+        timestamp: +someDateInThePast
+      });
+
+      var messageItemNodes = ThreadUI.container.querySelectorAll('.message');
+
+      assert.equal(messageItemNodes.length, 3);
+      assert.equal(+messageItemNodes[0].dataset.messageId, 1);
+      assert.equal(+messageItemNodes[1].dataset.messageId, 2);
+      assert.equal(+messageItemNodes[2].dataset.messageId, 3);
+    });
+
+    test('inserts message at the end', function() {
+      someDateInThePast.setHours(someDateInThePast.getHours() + 1);
+
+      ThreadUI.appendMessage({
+        id: 2,
+        threadId: 1,
+        timestamp: +someDateInThePast
+      });
+
+      var messageItemNodes = ThreadUI.container.querySelectorAll('.message');
+
+      assert.equal(messageItemNodes.length, 2);
+      assert.equal(+messageItemNodes[0].dataset.messageId, 1);
+      assert.equal(+messageItemNodes[1].dataset.messageId, 2);
     });
   });
 
