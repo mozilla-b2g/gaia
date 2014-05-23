@@ -158,7 +158,7 @@
     }
   });
 
-  window.addEventListener('localized', function(e) {
+  document.addEventListener('mozDOMLocalized', function(e) {
 
     SettingsListener.observe('audio.volume.cemaxvol', 11, function(volume) {
       CEWarningVol = volume;

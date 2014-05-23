@@ -105,6 +105,6 @@ if (navigator.mozL10n &&
      navigator.mozL10n.readyState == 'interactive')) {
   Identity.init();
 } else {
-  window.addEventListener('localized', Identity.init.bind(Identity));
+  document.addEventListener('mozDOMLocalized', Identity.init.bind(Identity));
 }
 

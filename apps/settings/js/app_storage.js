@@ -27,12 +27,12 @@ var AppStorage = (function AppStorage() {
 
   function attachListeners() {
     _appStorage.addEventListener('change', getSpaceInfo);
-    window.addEventListener('localized', getSpaceInfo);
+    document.addEventListener('mozDOMLocalized', getSpaceInfo);
   }
 
   function detachListeners() {
     _appStorage.removeEventListener('change', getSpaceInfo);
-    window.removeEventListener('localized', getSpaceInfo);
+    document.removeEventListener('mozDOMLocalized', getSpaceInfo);
   }
 
 

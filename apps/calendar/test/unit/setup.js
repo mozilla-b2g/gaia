@@ -304,7 +304,7 @@
 
       var state = navigator.mozL10n.readyState;
       if (state !== 'complete' && state !== 'interactive') {
-        window.addEventListener('localized', function() {
+        document.addEventListener('mozDOMLocalized', function() {
           done();
         });
       } else {

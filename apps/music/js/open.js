@@ -12,9 +12,9 @@ var unknownAlbumL10nId = 'unknownAlbum';
 var unknownArtistL10nId = 'unknownArtist';
 var unknownTitleL10nId = 'unknownTitle';
 
-// We get a localized event when the application is launched and when
+// We get a mozDOMLocalized event when the application is launched and when
 // the user switches languages.
-window.addEventListener('localized', function onlocalized() {
+document.addEventListener('mozDOMLocalized', function onlocalized() {
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;

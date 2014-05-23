@@ -48,7 +48,7 @@ var DataUsageTab = (function() {
       warningLayer = document.getElementById('warning-layer');
       limitsLayer = document.getElementById('limits-layer');
 
-      window.addEventListener('localized', localize);
+      document.addEventListener('mozDOMLocalized', localize);
 
       // Update and chart visibility
       document.addEventListener('visibilitychange', updateWhenVisible);

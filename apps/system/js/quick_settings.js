@@ -339,6 +339,7 @@ if (navigator.mozL10n &&
       navigator.mozL10n.readyState == 'interactive')) {
   QuickSettings.init();
 } else {
-  window.addEventListener('localized', QuickSettings.init.bind(QuickSettings));
+  document.addEventListener('mozDOMLocalized',
+                            QuickSettings.init.bind(QuickSettings));
 }
 

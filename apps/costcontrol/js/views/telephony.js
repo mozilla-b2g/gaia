@@ -25,7 +25,7 @@ var TelephonyTab = (function() {
       time = document.getElementById('telephony-time');
       resetDate = document.getElementById('reset-date');
 
-      window.addEventListener('localized', localize);
+      document.addEventListener('mozDOMLocalized', localize);
 
       // Configure updates
       document.addEventListener('visibilitychange', updateWhenVisible, true);

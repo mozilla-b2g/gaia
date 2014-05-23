@@ -6,7 +6,7 @@
       template = Calendar.Templates.Month;
 
   // horrible hack to clear cache when we re-localize
-  window.addEventListener('localized', function clearHeaderCache() {
+  document.addEventListener('mozDOMLocalized', function clearHeaderCache() {
     Child._dayHeaders = null;
   });
 

@@ -171,7 +171,7 @@ define(function(require) {
   }
 
   var _init = function(callback) {
-    window.addEventListener('localized', function() {
+    document.addEventListener('mozDOMLocalized', function() {
       // refresh keyboard and layout in _keyboards
       _keyboards.forEach(function(keyboard) {
         var keyboardAppInstance = keyboard.app;

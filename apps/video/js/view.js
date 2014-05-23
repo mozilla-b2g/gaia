@@ -153,7 +153,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.videoControls.addEventListener('click', toggleVideoControls, true);
 
     // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-    window.addEventListener('localized', function showBody() {
+    document.addEventListener('mozDOMLocalized', function showBody() {
       document.documentElement.lang = navigator.mozL10n.language.code;
       document.documentElement.dir = navigator.mozL10n.language.direction;
     });

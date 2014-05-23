@@ -58,7 +58,7 @@ var BalanceTab = (function() {
         balanceConfig ? balanceConfig.minimum_delay : undefined
       );
 
-      window.addEventListener('localized', localize);
+      document.addEventListener('mozDOMLocalized', localize);
 
       // Configure updates
       document.addEventListener('visibilitychange', updateWhenVisible);

@@ -211,8 +211,8 @@ suite('L10n', function() {
   suite('translate existing', function() {
     function setLang(lang, callback) {
       // we want onLocalized to be invoked only *after* the language change
-      window.addEventListener('localized', function onLocalized() {
-        window.removeEventListener('localized', onLocalized);
+      document.addEventListener('mozDOMLocalized', function onLocalized() {
+        document.removeEventListener('mozDOMLocalized', onLocalized);
         callback();
       });
       navigator.mozL10n.language.code = lang;

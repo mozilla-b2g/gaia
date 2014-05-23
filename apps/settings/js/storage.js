@@ -41,7 +41,7 @@ require([
           self.updateMediaStorageInfo();
       });
 
-      window.addEventListener('localized', this);
+      document.addEventListener('mozDOMLocalized', this);
     },
 
     handleEvent: function storage_handleEvent(evt) {

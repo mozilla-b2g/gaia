@@ -658,7 +658,7 @@ Calendar.Calc = (function() {
 
   };
 
-  window.addEventListener('localized', function changeStartDay() {
+  document.whenDOMLocalized(function changeStartDay() {
     var startDay = navigator.mozL10n.get('weekStartsOnMonday');
 
     if (startDay && parseInt(startDay, 10)) {

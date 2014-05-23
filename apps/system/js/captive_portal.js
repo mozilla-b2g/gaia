@@ -109,6 +109,7 @@ if (navigator.mozL10n.readyState == 'complete' ||
     navigator.mozL10n.readyState == 'interactive') {
   CaptivePortal.init();
 } else {
-  window.addEventListener('localized', CaptivePortal.init.bind(CaptivePortal));
+  document.addEventListener('mozDOMLocalized',
+                            CaptivePortal.init.bind(CaptivePortal));
 }
 

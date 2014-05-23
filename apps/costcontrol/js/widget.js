@@ -157,7 +157,7 @@ var Widget = (function() {
       }
     });
 
-    window.addEventListener('localized', function _onLocalize() {
+    document.addEventListener('mozDOMLocalized', function _onLocalize() {
       if (initialized) {
         updateUI();
       }
