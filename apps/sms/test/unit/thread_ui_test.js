@@ -618,6 +618,7 @@ suite('thread_ui.js >', function() {
       test('disabled while resizing oversized image and ' +
         'enabled when resize complete ',
         function(done) {
+        this.sinon.stub(Utils, 'getResizedImgBlob');
 
         ThreadUI.recipients.add({
           number: '999'
@@ -633,6 +634,7 @@ suite('thread_ui.js >', function() {
         Compose.on('input', onInput);
         Compose.append(mockImgAttachment(true));
         assert.isTrue(sendButton.disabled);
+        Utils.getResizedImgBlob.yield(testImageBlob);
       });
     });
   });
@@ -1145,6 +1147,60 @@ suite('thread_ui.js >', function() {
         subject.dispatchEvent(new CustomEvent('focus'));
         assert.isTrue(banner.classList.contains('hide'));
       });
+    });
+  });
+
+  suite('Composer input handler', function() {
+    var banner,
+        button;
+
+    setup(function() {
+      banner = document.getElementById('messages-resize-notice');
+      button = document.getElementById('messages-attach-button');
+      this.sinon.stub(Utils, 'getResizedImgBlob');
+    });
+
+    teardown(function() {
+      banner.classList.add('hide');
+      button.classList.remove('disabled');
+      Compose.clear();
+    });
+
+    test('show toaster/disable attach while resizing and ' +
+         'hide toaster/enable attach when resized', function() {
+      // Start resizing
+      Compose.append(mockImgAttachment(true));
+      assert.isFalse(banner.classList.contains('hide'));
+      assert.isTrue(button.classList.contains('disabled'));
+      assert.isNull(ThreadUI._resizeNoticeTimeout);
+
+      // resize complete
+      Utils.getResizedImgBlob.yield(testImageBlob);
+      assert.ok(ThreadUI._resizeNoticeTimeout);
+
+      // toaster displayed / button disabled before timeout
+      assert.isFalse(banner.classList.contains('hide'));
+      assert.isTrue(button.classList.contains('disabled'));
+
+      // toaster hide / button enabled after timeout
+      this.sinon.clock.tick(ThreadUI.IMAGE_RESIZE_DURATION + 1);
+      assert.isTrue(banner.classList.contains('hide'));
+      assert.isFalse(button.classList.contains('disabled'));
+    });
+
+    test('show toaster/disable attach while resizing and ' +
+         'hide toaster/enable attach when compose cleared', function() {
+      // Start resizing
+      Compose.append(mockImgAttachment(true));
+      assert.isFalse(banner.classList.contains('hide'));
+      assert.isTrue(button.classList.contains('disabled'));
+      assert.isNull(ThreadUI._resizeNoticeTimeout);
+
+      // toaster hide / button enabled after compose cleared
+      Compose.clear();
+      assert.isTrue(banner.classList.contains('hide'));
+      assert.isFalse(button.classList.contains('disabled'));
+      assert.isNull(ThreadUI._resizeNoticeTimeout);
     });
   });
 

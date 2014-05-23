@@ -423,12 +423,20 @@ var ThreadUI = global.ThreadUI = {
     this.updateElementsHeight();
     this.enableSend();
 
+    var hideResizeNotice = (function hideNotice() {
+      this.resizeNotice.classList.add('hide');
+      this.attachButton.classList.remove('disabled');
+      this._resizeNoticeTimeout = null;
+    }).bind(this);
+
     if (Compose.type === 'sms') {
+      hideResizeNotice();
       return;
     }
 
     if (Compose.isResizing) {
       this.resizeNotice.classList.remove('hide');
+      this.attachButton.classList.add('disabled');
 
       if (this._resizeNoticeTimeout) {
         clearTimeout(this._resizeNoticeTimeout);
@@ -442,10 +450,8 @@ var ThreadUI = global.ThreadUI = {
         return;
       }
 
-      this._resizeNoticeTimeout = setTimeout(function hideResizeNotice() {
-        this.resizeNotice.classList.add('hide');
-        this._resizeNoticeTimeout = null;
-      }.bind(this), this.IMAGE_RESIZE_DURATION);
+      this._resizeNoticeTimeout = setTimeout(hideResizeNotice,
+        this.IMAGE_RESIZE_DURATION);
     }
   },
 
