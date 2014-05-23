@@ -432,7 +432,7 @@ button::-moz-focus-inner {
   bottom: 0;
   height: 21.4rem;
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: #606b6e;
   visibility: hidden;
   transform: translateY(calc(21.4rem + 7em));
   transition: visibility 0.3s ease, transform 0.3s ease;
@@ -453,20 +453,18 @@ button::-moz-focus-inner {
   float: left;
   width: 33.333%;
   height: 5rem;
-  border-top: 0.1rem solid #525050;
-  border-bottom: 0.1rem solid #000000;
-  border-left: 0.1rem solid #525050;
-  border-right: 0.1rem solid #000000;
   outline: none;
-  padding: 0 2rem;
+  padding: 0; /* 2rem; */
+  text-align: center;
 
-  font-size: 3.2rem;
+  font-size: 1.5rem;
   font-weight: 500;
-  line-height: 5rem;
+  line-height: 4.3rem;
 
   color: #fff;
   text-decoration: none;
-  text-shadow: 0 0 0.3rem #000;
+  font-family: 'Keyboard Symbols', sans-serif;
+  /* text-shadow: 0 0 0.3rem #000; */
 }
 
 #lockscreen-passcode-pad > a:nth-child(3n+1):not([data-key="b"]) {
@@ -503,6 +501,34 @@ button::-moz-focus-inner {
   background-color: #00aacd;
   color: #fff;
   text-shadow: none;
+}
+
+#lockscreen-passcode-pad .row1 {
+  background-color: #5b6668;
+}
+
+#lockscreen-passcode-pad .row2 {
+  background-color: #566061;
+}
+
+#lockscreen-passcode-pad .row3 {
+  background-color: #525c5e;
+}
+
+#lockscreen-passcode-pad .row0 {
+  border-right-color: #525b5e;
+}
+
+#lockscreen-passcode-pad .row1 {
+  border-right-color: #4c5657;
+}
+
+#lockscreen-passcode-pad .row2 {
+  border-right-color: #475052;
+}
+
+#lockscreen-passcode-pad .row3 {
+  border-right-color: #434b4d;
 }
 
 #lockscreen-passcode-pad > a:active > span {
