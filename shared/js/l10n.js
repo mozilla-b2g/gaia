@@ -1148,7 +1148,7 @@
 
   var DEBUG = false;
   var isPretranslated = false;
-  var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
+  var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
 
   // Public API
 
@@ -1187,6 +1187,7 @@
       return {
         Context: Context,
         Locale: Locale,
+        Entity: Entity,
         getPluralRule: getPluralRule,
         rePlaceables: rePlaceables,
         getTranslatableChildren:  getTranslatableChildren,
