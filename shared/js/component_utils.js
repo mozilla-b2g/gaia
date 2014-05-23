@@ -5,6 +5,8 @@
   /**
    * ComponentUtils is a utility which allows us to use web components earlier
    * than we should be able to by polyfilling and fixing platform deficiencies.
+   * This file is automatically pulled into your application bundle when
+   * including any web component from a script in the HTML.
    */
   var ComponentUtils = {
 
