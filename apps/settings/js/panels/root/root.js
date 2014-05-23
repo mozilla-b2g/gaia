@@ -74,7 +74,11 @@ define(function(require) {
         'js/telephony_items_handler.js',
         'js/screen_lock.js'
       ], function() {
-        TelephonySettingHelper.init();
+        TelephonySettingHelper
+          .init()
+          .then(function telephonySettingInitDone() {
+            window.dispatchEvent(new CustomEvent('telephony-settings-loaded'));
+          });
       });
     },
 
