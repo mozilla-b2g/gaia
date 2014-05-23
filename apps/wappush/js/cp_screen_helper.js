@@ -120,15 +120,13 @@ var CpScreenHelper = (function() {
    * Makes the client provisioning screen visible and populate it.
    */
   function cpsh_populateScreen(message) {
-    screen.hidden = false;
-
     // The close button in the header is shared between screens but sadly the
     // flow differs. Let the WapPushManaget knwo what CpScreenHelper function
     // invoque when the user click on the close button.
     WapPushManager.setOnCloseCallback(cpsh_onClose);
 
-    // Show the accept button.
-    acceptButton.hidden = false;
+    WapPushManager.enableAcceptButton(true);
+    screen.hidden = false;
 
     authInfo = message.provisioning.authInfo;
     provisioningDoc = message.provisioning.provisioningDoc;
