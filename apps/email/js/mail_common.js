@@ -1157,6 +1157,10 @@ Toaster = {
                                          this._timeout);
   },
 
+  isShowing: function() {
+    return !this.body.classList.contains('collapsed');
+  },
+
   hide: function() {
     this.body.classList.add('collapsed');
     this.body.classList.remove('fadeout');
