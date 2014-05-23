@@ -1,3 +1,7 @@
+// Notice: 
+// shim should be the same as build/settings.build.jslike::paths
+// in alphabet order.
+// every required file in shared should be explicitly exclude in modules
 require.config({
   baseUrl: '/js',
   paths: {
@@ -53,7 +57,10 @@ require.config({
     },
     {
       name: 'panels/app_permissions_detail/panel',
-      exclude: ['main']
+      exclude: [
+        'main',
+        'shared/manifest_helper'
+      ]
     },
     {
       name: 'panels/app_permissions_list/panel',
@@ -100,6 +107,13 @@ require.config({
     },
     {
       name: 'panels/keyboard_enabled_default/dialog',
+      exclude: [
+        'main',
+        'shared/manifest_helper'
+      ]
+    },
+    {
+      name: 'panels/sound/panel',
       exclude: [
         'main'
       ]
