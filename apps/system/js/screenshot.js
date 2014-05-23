@@ -72,7 +72,7 @@
      */
     handleEvent: function(evt) {
       switch (evt.type) {
-        case 'home+sleep':
+        case 'volume-down+sleep':
           this.takeScreenshot();
           break;
 

@@ -69,7 +69,7 @@ suite('system/Screenshot', function() {
     window.CustomEvent = CustomEvent;
   });
 
-  test('Receive home+sleep event with available device storage.',
+  test('Receive volume-down+sleep event with available device storage.',
     function() {
       var mockDeviceStorage = MockNavigatorGetDeviceStorage();
 
@@ -78,7 +78,7 @@ suite('system/Screenshot', function() {
       var freeSpaceSpy = this.sinon.spy(mockDeviceStorage, 'freeSpace');
       var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
 
-      fireCustomEvent('home+sleep');
+      fireCustomEvent('volume-down+sleep');
 
       assert.isTrue(deviceStorageSpy.calledOnce);
 
@@ -95,7 +95,7 @@ suite('system/Screenshot', function() {
         { type: 'mozContentEvent', detail: { type: 'take-screenshot' }}));
     });
 
-  test('Receive home+sleep event with unavailable device storage.',
+  test('Receive volume-down+sleep event with unavailable device storage.',
     function() {
       var mockDeviceStorage = MockNavigatorGetDeviceStorage();
 
@@ -103,7 +103,7 @@ suite('system/Screenshot', function() {
       var availableSpy = this.sinon.spy(mockDeviceStorage, 'available');
       var notificationSpy = this.sinon.spy(window, 'Notification');
 
-      fireCustomEvent('home+sleep');
+      fireCustomEvent('volume-down+sleep');
 
       assert.isTrue(deviceStorageSpy.calledOnce);
 
@@ -120,7 +120,7 @@ suite('system/Screenshot', function() {
           icon: 'style/icons/Gallery.png'});
     });
 
-  test('Receive home+sleep event with shared device storage.',
+  test('Receive volume-down+sleep event with shared device storage.',
     function() {
       var mockDeviceStorage = MockNavigatorGetDeviceStorage();
 
@@ -128,7 +128,7 @@ suite('system/Screenshot', function() {
       var availableSpy = this.sinon.spy(mockDeviceStorage, 'available');
       var notificationSpy = this.sinon.spy(window, 'Notification');
 
-      fireCustomEvent('home+sleep');
+      fireCustomEvent('volume-down+sleep');
 
       assert.isTrue(deviceStorageSpy.calledOnce);
 
@@ -145,7 +145,7 @@ suite('system/Screenshot', function() {
           icon: 'style/icons/Gallery.png'});
     });
 
-  test('Receive home+sleep event with low disk space.',
+  test('Receive volume-down+sleep event with low disk space.',
     function() {
       var mockDeviceStorage = MockNavigatorGetDeviceStorage();
 
@@ -154,7 +154,7 @@ suite('system/Screenshot', function() {
       var freeSpaceSpy = this.sinon.spy(mockDeviceStorage, 'freeSpace');
       var notificationSpy = this.sinon.spy(window, 'Notification');
 
-      fireCustomEvent('home+sleep');
+      fireCustomEvent('volume-down+sleep');
 
       assert.isTrue(deviceStorageSpy.calledOnce);
 

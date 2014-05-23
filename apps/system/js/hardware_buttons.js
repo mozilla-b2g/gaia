@@ -378,15 +378,15 @@
         return;
       case 'volume-down-button-press':
         /**
-         * When the user presses Home button, before HOLD_INTERVAL,
+         * When the user presses Volume Down button, before HOLD_INTERVAL,
          * while holding the Sleep button.
          * @event HardwareButtonsSleepState#volume-down+sleep
          */
         this.hardwareButtons.publish('volume-down+sleep');
-        this.hardwareButtons.setState('base', type);
         return;
       case 'volume-up-button-press':
         this.hardwareButtons.setState('volume', type);
+        this.hardwareButtons.setState('base', type);
         return;
       case 'home-button-press':
         this.hardwareButtons.setState('base', type);
@@ -471,14 +471,16 @@
         if (this.direction === 'volume-down-button-press') {
           /**
            * When the user presses Sleep button, before HOLD_INTERVAL,
-           * while holding the Home button.
+           * while holding the Volume Down button.
            * @event HardwareButtonsHomeState#volume-down+sleep
            */
           this.hardwareButtons.publish('volume-down+sleep');
+          this.hardwareButtons.setState('base', type);
           return;
         }
         else {
           this.hardwareButtons.setState('sleep', type);
+          this.hardwareButtons.setState('base', type);
           return;
         }
         break;
