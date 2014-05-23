@@ -105,7 +105,7 @@ suite('DownloadList', function() {
     test(' > edit mode UI components are hidden while rendering',
          function(done) {
       DownloadsList.init(function() {
-      var downloadsEditMenu = document.getElementById('downloads-edit-menu');
+        var downloadsEditMenu = document.getElementById('downloads-edit-menu');
         var editModeHeader = document.getElementById('edit-mode-header');
         assert.isTrue(downloadsEditMenu.hidden);
         assert.isTrue(editModeHeader.hidden);
@@ -143,7 +143,7 @@ suite('DownloadList', function() {
         });
 
         // Configuration of the observer
-   var config = { attributes: true, childList: true, characterData: true };
+        var config = { attributes: true, childList: true, characterData: true };
         // Observe changes to the container of downloads
         observer.observe(downloadsContainerDOM, config);
 
@@ -170,7 +170,7 @@ suite('DownloadList', function() {
 
     test(' > select the first one download', function(done) {
       DownloadsList.init(function() {
-      var item = document.querySelector('#downloadList ul > li:first-child');
+        var item = document.querySelector('#downloadList ul > li:first-child');
         // Edit mode
         editButton.click();
         // Select the first one download
@@ -234,7 +234,7 @@ suite('DownloadList', function() {
         });
 
         // Configuration of the observer
-    var config = { attributes: true, childList: true, characterData: true };
+        var config = { attributes: true, childList: true, characterData: true };
         // Observe changes to the container of downloads
         observer.observe(downloadsContainerDOM, config);
 
@@ -316,7 +316,7 @@ suite('DownloadList', function() {
         container.lastChild.click();
         assert.isFalse(DownloadUI.showActions.calledOnce);
         assert.ok(downloadUI.calledOnce);
-    // DownloadUI knows which will be the correct confirm depending on state
+        // DownloadUI knows which will be the correct confirm depending on state
         // and error attributes
         assert.equal(downloadUI.args[0][0], null);
       });

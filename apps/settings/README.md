@@ -180,7 +180,7 @@ If the old module called Settings.mozSettings, Use SettingsCache.getString() ins
 ```js
   var SettingsCache = require('modules/settings_cache');
   ...
-  SettingsCache.getSettings(function(result) {
+  SettingsCache.getSettings(function(result){
     var onlineSupportTitle = result['support.onlinesupport.title'];
     ...
   });
