@@ -162,19 +162,21 @@ Calendar.ns('Views').EventBase = (function() {
           self.element.classList.add(self.READONLY);
         }
 
-        classList.remove(self.LOADING);
 
         // inheritance hook...
-        self._updateUI();
-
-        if (callback) {
-          callback();
-        }
+        self._updateUI(function() {
+          classList.remove(self.LOADING);
+          callback && callback();
+        });
       }
     },
 
     /** override me! **/
-    _updateUI: function() {},
+    _updateUI: function(callback) {
+      if (callback) {
+        Calendar.nextTick(callback);
+      }
+    },
 
     /**
      * Loads event and triggers form update.

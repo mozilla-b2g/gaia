@@ -553,8 +553,10 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * existing events.
      *
      * Resets any value on the current form.
+     *
+     * @param {Function} [callback] notify complete ui building.
      */
-    _updateUI: function() {
+    _updateUI: function(callback) {
       this._overrideEvent();
       this.form.reset();
 
@@ -607,7 +609,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
         currentCalendar.readOnly = true;
       }
 
-      this.updateAlarms(model.isAllDay);
+      this.updateAlarms(model.isAllDay, callback);
     },
 
     /**
@@ -693,6 +695,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
         }
 
         this.alarmList.innerHTML = template.picker.renderEach(alarms).join('');
+        this.onupdatealarms && this.onupdatealarms();
 
         if (callback) {
           callback();
