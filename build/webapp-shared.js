@@ -280,6 +280,7 @@ WebappShared.prototype.pushElements = function(path) {
   }
 
   // Copy possible resources from components.
+  var filesToPush = [];
   var resources = ['style.css', 'css', 'js', 'images'];
   resources.forEach(function(resource) {
     var eachFile = this.gaia.sharedFolder.clone();
@@ -288,10 +289,21 @@ WebappShared.prototype.pushElements = function(path) {
     eachFile.append(resource);
 
     if (eachFile.exists()) {
-      var stagePath = 'shared/' + eachFile.getRelativeDescriptor(
-        this.gaia.sharedFolder);
-      this.moveToBuildDir(eachFile, stagePath);
+      filesToPush.push(eachFile);
     }
+  }, this);
+
+  // All web components also package some basic utilities from shared/
+  var componentUtilsJs = this.gaia.sharedFolder.clone();
+  componentUtilsJs.append('js');
+  componentUtilsJs.append('component_utils.js');
+  filesToPush.push(componentUtilsJs);
+
+  // Now move files to the build dir
+  filesToPush.forEach(function(file) {
+    var stagePath = 'shared/' + file.getRelativeDescriptor(
+        this.gaia.sharedFolder);
+    this.moveToBuildDir(file, stagePath);
   }, this);
 };
 

@@ -65,6 +65,11 @@ HTMLOptimizer.prototype.process = function() {
   if ((!this.win.document.querySelector('script[src$="l10n.js"]') &&
        !this.win.document.querySelector('link[type$="application/l10n"]')) ||
       ignore[this.webapp.sourceDirectoryName]) {
+
+    // Bug 1015107: We don't run steps for non-localized apps
+    this.embedWebComponentSupport();
+    this.serializeNewHTMLDocumentOutput();
+
     this.done(this.files);
     return;
   }
@@ -84,6 +89,7 @@ HTMLOptimizer.prototype._optimize = function() {
   this.concatL10nResources();
 
   this.embedHtmlImports();
+  this.embedWebComponentSupport();
   this.aggregateJsResources();
   this.embededGlobals();
   this.inlineJsResources();
@@ -175,6 +181,33 @@ HTMLOptimizer.prototype.embedHtmlImports = function() {
     el.innerHTML = '<!--' + elementTemplates[el.getAttribute('is')] + '-->';
     el.removeAttribute('is');
   });
+};
+
+/**
+ * This is a quick solution to include web component utilities when a web
+ * component is found in the body. This is only a temporary solution and
+ * will be removed once all referenced bugs in component_utils.js are removed.
+ */
+HTMLOptimizer.prototype.embedWebComponentSupport = function() {
+  var doc = this.win.document;
+  var webComponentFound = false;
+  var scripts = Array.prototype.slice.call(
+    doc.head.querySelectorAll('script[src]'));
+
+  for (var i = 0, iLen = scripts.length; i < iLen; i++ ) {
+    var script = scripts[i];
+    if (script.src.indexOf('shared/elements/gaia_') !== -1) {
+      webComponentFound = true;
+      break;
+    }
+  }
+
+  if (!webComponentFound) {
+    return;
+  }
+  var script = doc.createElement('script');
+  script.src = '/shared/js/component_utils.js';
+  doc.head.appendChild(script);
 };
 
 /**
