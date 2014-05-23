@@ -42,7 +42,7 @@ cmd_run() {
   for step in $steps; do
     if [ -x "$root/$step" ];
     then
-      eval "$root/$step"
+      . "$root/$step";
     fi
   done
 }
