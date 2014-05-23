@@ -241,15 +241,14 @@
   };
 
   BrowserContextMenu.prototype.showDefaultMenu = function() {
+    var config = this.app.config;
+    var icon = ('favicon' in config) ? config.favicon.href : null;
     this.showMenu([{
       label: _('add-to-home-screen'),
-      callback: this.bookmarkUrl.bind(this,
-                                      this.app.config.url,
-                                      this.app.title,
-                                      this.app.config.favicon.href)
+      callback: this.bookmarkUrl.bind(this, config.url, this.app.title, icon)
     }, {
       label: _('share'),
-      callback: this.shareUrl.bind(this, this.app.config.url)
+      callback: this.shareUrl.bind(this, config.url)
     }]);
   };
 
