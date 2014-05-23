@@ -1,9 +1,11 @@
 /*jshint maxlen:false*/
 'use strict';
 
+require('/shared/js/component_utils.js');
 require('/shared/elements/gaia_header/script.js');
 
 suite('GaiaHeader', function() {
+
   setup(function() {
     this.clock = sinon.useFakeTimers();
     this.sandbox = sinon.sandbox.create();
@@ -58,9 +60,8 @@ suite('GaiaHeader', function() {
     assert.ok(element.querySelector('style'));
   });
 
-  suite('style', function() {
-    setup(function() {
-
+  suite('style', function(done) {
+    setup(function(done) {
       // Sizes are in rems, so we set the base font-size
       document.documentElement.style.fontSize = '10px';
 
@@ -76,6 +77,15 @@ suite('GaiaHeader', function() {
 
       // Insert into DOM to get styling
       document.body.appendChild(this.element);
+
+      // Temporary workaround for component_utils style loading.
+      // We need to wait for the stylesheet to fully load due to the
+      // async insertion.
+      this.clock.tick(1);
+      var style = this.element.shadowRoot.querySelector('style');
+      style.onload = function() {
+        done();
+      };
     });
 
     teardown(function() {

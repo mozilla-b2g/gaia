@@ -1,4 +1,5 @@
 'use strict';
+/* global ComponentUtils */
 
 window.GaiaMenu = (function(win) {
   // Extend from HTMLElement prototype
@@ -11,7 +12,6 @@ window.GaiaMenu = (function(win) {
   proto.createdCallback = function () {
     var shadow = this.createShadowRoot();
     this._template = template.content.cloneNode(true);
-    this._styleHack();
 
     var cancelButton = this._template.querySelector('.gaia-menu-cancel');
 
@@ -20,20 +20,13 @@ window.GaiaMenu = (function(win) {
     }.bind(this));
 
     shadow.appendChild(this._template);
+
+    ComponentUtils.style.call(this, baseurl);
   };
 
-  proto._styleHack = function() {
-    var style = this._template.querySelector('style');
-    this.appendChild(style.cloneNode(true));
-  };
-
-  var stylesheet = baseurl + 'style.css';
   var template = document.createElement('template');
 
   template.innerHTML =
-    '<style scoped>' +
-      '@import url(' + stylesheet + ');' +
-    '</style>' +
     '<form role="dialog" data-type="action">' +
       '<content select="header"></content>' +
       '<menu>' +
