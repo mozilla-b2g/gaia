@@ -460,11 +460,10 @@ button::-moz-focus-inner {
   height: 5rem;
   outline: none;
   padding: 0; /* 2rem; */
-  text-align: center;
 
   font-size: 3rem;
   font-weight: 400;
-  line-height: 5rem;
+  line-height: 4.2rem;
 
   color: #fff;
   text-decoration: none;
@@ -472,10 +471,15 @@ button::-moz-focus-inner {
 }
 
 #lockscreen-passcode-pad > a > div {
-  height: calc(100% - 0.6rem);
-  margin-top: 0.3rem;
+  height: calc(100% - 0.8rem);
+  margin-top: 0.4rem;
   border-right-width: 0.1rem;
   border-right-style: solid;
+}
+
+#lockscreen-passcode-pad > a:not(.lockscreen-passcode-pad-func) > div{
+  text-align: left;
+  padding-left: 4.4rem;
 }
 
 #lockscreen-passcode-pad > a:last-child > div{
@@ -488,7 +492,7 @@ button::-moz-focus-inner {
 
 #lockscreen-passcode-pad > a.last-row {
   height: 6.4rem;
-  line-height: 6.4rem;
+  line-height: 5.6rem;
 }
 
 #lockscreen-passcode-pad > a > div > span {
@@ -556,7 +560,6 @@ button::-moz-focus-inner {
   color: #fff;
   text-shadow: none;
 }
-
 
 #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func > div{
   padding: 0 1rem;
