@@ -1234,6 +1234,7 @@
 
   if (window.document) {
     isPretranslated = (document.documentElement.lang === navigator.language);
+    document.mozLocalized = isPretranslated;
 
     // this is a special case for netError bug; see https://bugzil.la/444165
     if (document.documentElement.dataset.noCompleteBug) {
