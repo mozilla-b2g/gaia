@@ -1,5 +1,6 @@
 Keyboards.ko = {
   label: 'Korean',
+  secondLayout: true,
   imEngine: 'jshangul',
   types: ['text', 'url', 'email'],
   menuLabel: '한국어',
