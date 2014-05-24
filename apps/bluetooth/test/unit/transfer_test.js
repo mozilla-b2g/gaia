@@ -64,7 +64,7 @@ suite('Bluetooth app > transfer ', function() {
   setup(function() {
     loadBodyHTML('./_transfer.html');
 
-    window.dispatchEvent(new CustomEvent('localized', {}));
+    document.dispatchEvent(new CustomEvent('mozDOMLocalized', {}));
 
     dialogConfirmBluetooth = document.getElementById('enable-bluetooth-view');
     bluetoothCancelButton = document.getElementById(

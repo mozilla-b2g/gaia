@@ -161,7 +161,7 @@ App.prototype.bindEvents = function() {
 
   // we bind to window.onlocalized in order not to depend
   // on l10n.js loading (which is lazy). See bug 999132
-  bind(this.win, 'localized', this.firer('localized'));
+  bind(this.doc, 'mozDOMLocalized', this.firer('localized'));
   bind(this.win, 'beforeunload', this.onBeforeUnload);
   bind(this.el, 'click', this.onClick);
 

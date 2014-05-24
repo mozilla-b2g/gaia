@@ -193,13 +193,13 @@ suite('calendar/calc', function() {
 
     test('weekStartsOnMonday = 1', function() {
       weekStartsOnMonday = 1;
-      window.dispatchEvent(new Event('localized'));
+      document.dispatchEvent(new Event('mozDOMLocalized'));
       assert.ok(subject.startsOnMonday, 'week starts on monday');
     });
 
     test('weekStartsOnMonday = 0', function() {
       weekStartsOnMonday = 0;
-      window.dispatchEvent(new Event('localized'));
+      document.dispatchEvent(new Event('mozDOMLocalized'));
       assert.ok(!subject.startsOnMonday, 'week starts on sunday');
     });
   });

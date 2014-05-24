@@ -375,7 +375,7 @@ require([
 
     handleEvent: function ms_handleEvent(evt) {
       switch (evt.type) {
-        case 'localized':
+        case 'mozDOMLocalized':
           this.updateInfo();
           break;
         case 'change':

@@ -286,8 +286,8 @@ suite('app', function() {
       assert.isTrue(this.app.doc.addEventListener.calledWith('visibilitychange'));
     });
 
-    test('Should relay window \'localized\' event', function() {
-      assert.isTrue(this.app.win.addEventListener.calledWith('localized'));
+    test('Should relay document \'mozDOMLocalized\' event', function() {
+      assert.isTrue(this.app.doc.addEventListener.calledWith('mozDOMLocalized'));
       assert.isTrue(this.app.firer.calledWith('localized'));
     });
   });

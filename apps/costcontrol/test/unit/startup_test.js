@@ -1,6 +1,6 @@
-/* global MockCommon, MockCostControl, MockNavigatorMozMobileConnections, Event,
-          CostControlApp, Common, MockConfigManager, MockSettingsListener,
-          MockMozNetworkStats, MocksHelper
+/* global MockCommon, MockCostControl, MockNavigatorMozMobileConnections,
+          CustomEvent, CostControlApp, Common, MockConfigManager,
+          MockSettingsListener, MockMozNetworkStats, MocksHelper
 */
 'use strict';
 
@@ -98,7 +98,7 @@ suite('Application Startup Modes Test Suite >', function() {
   setup(function() {
     CostControlApp.reset();
     navigator.mozIccManager = window.MockNavigatorMozIccManager;
-    window.dispatchEvent(new Event('localized'));
+    document.dispatchEvent(new CustomEvent('mozDOMLocalized'));
   });
 
   teardown(function() {

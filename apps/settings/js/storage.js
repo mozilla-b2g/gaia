@@ -46,7 +46,7 @@ require([
 
     handleEvent: function storage_handleEvent(evt) {
       switch (evt.type) {
-        case 'localized':
+        case 'mozDOMLocalized':
           this.updateAppFreeSpace();
           this.updateMediaStorageInfo();
           break;

@@ -93,7 +93,7 @@ suite('app', function() {
       addExpect(formatCDate, 'otherl10nKey', '%c');
 
       subject.observeDateLocalization();
-      window.dispatchEvent(new Event('localized'));
+      document.dispatchEvent(new Event('mozDOMLocalized'));
     });
 
     test('updates elements with data-l10n-date-format', function() {
