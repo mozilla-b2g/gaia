@@ -23,4 +23,8 @@ $(STAGE_APP_DIR):
 $(STAGE_APP_DIR)/js/main.js: | $(STAGE_APP_DIR)
 	$(CP_USER_CONFIGURATION)
 	rm -rf $(STAGE_APP_DIR)/style
+ifdef STAGE_DIR
+	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/require_config.jslike dir=$(STAGE_DIR)/camera
+else
 	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/require_config.jslike
+endif

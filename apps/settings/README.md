@@ -74,10 +74,11 @@ The settings app has it's own [`Makefile`](Makefile). A Makefile is similar to G
 
 Our `Makefile` has two tasks, one to **'build'** and one to **'clean'** (delete the build). The build steps are as follows:
 
-1. Remove any previous settings build from the `build_stage/`
-2. Create an new directory `build_stage/settings`
+1. Remove any previous settings build from the $STAGE_DIR/ if it is defined or `build_stage/` otherwise
+2. Create an new directory $STAGE_DIR/settings if it is defined or `build_stage/settings` otherwise
 3. Run the `r.js` (RequireJS optimizer), pointing it at our `require_config.jslike` file (`.jslike` because we don't want Gaia builds to mess with it [I think]). This copies our entire application (JS and all) and bundles our JS (tracing `require()` calls) and CSS (tracing `@import`) in two single files.
 
+Note: The global Makefile always define STAGE_DIR, with a default value of $GAIA_DIR/build_stage
 
 ## Implement Guide
 ###How to create a new panel in Settings?

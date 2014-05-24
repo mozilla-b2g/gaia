@@ -4,7 +4,7 @@
  * to generate a gaia_shared.json
  */
 /*jshint moz: true */
-/*global load */
+/*global load, Components */
 /* jshint unused:false */
 var requirejsAsLib = true;
 load('../../build/r.js');
@@ -15,9 +15,22 @@ var shared = {
   style_unstable: []
 };
 
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+
+function getStageDir() {
+  // Only for XPC at the moment!
+  var envDir;
+  var defaultDir = '../../build_stage';
+  var env = Cc['@mozilla.org/process/environment;1'].
+      getService(Ci.nsIEnvironment);
+  envDir = env && env.get('STAGE_DIR');
+  return envDir || defaultDir;
+}
+
 // This file is run from the clock directory.
 var srcDir = './',
-    buildDir = '../../build_stage/clock/';
+    buildDir = getStageDir() + '/clock/';
 
 // Taken from r.js css optimizing step.
 var cssImportRegExp = /\@import\s+(url\()?\s*([^);]+)\s*(\))?([\w, ]*)(;)?/ig;
