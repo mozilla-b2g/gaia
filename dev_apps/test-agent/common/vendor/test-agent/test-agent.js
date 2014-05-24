@@ -3032,6 +3032,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
         //setup mocha
         box.mocha.setup({
+          ignoreLeaks: true,
           globals: globalIgnores,
           ui: self.ui,
           reporter: self.getReporter(box),
