@@ -37,10 +37,11 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/Sms_60.png",
-    "90": "/style/icons/Sms_90.png",
-    "120": "/style/icons/Sms_120.png",
-    "135": "/style/icons/Sms_135.png"
+    "84": "/style/icons/sms_84.png",
+    "126": "/style/icons/sms_126.png",
+    "142": "/style/icons/sms_142.png",
+    "189": "/style/icons/sms_189.png",
+    "289": "/style/icons/sms_289.png"
   },
   "orientation": "default",
   "activities": {
