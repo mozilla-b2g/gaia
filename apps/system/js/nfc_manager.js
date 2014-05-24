@@ -497,6 +497,17 @@ var NfcManager = {
           }
         };
         break;
+      case 'mailto:':
+        var emailAddress = NfcUtils.toUTF8(record.payload.subarray(1));
+        this._debug('Handle NDEF URI type "mailto:"');
+        options = {
+          name: 'new',
+          data: {
+            type: 'mail',
+            url: 'mailto:' + emailAddress
+          }
+        };
+        break;
       case 'http://www.':
       case 'https://www.': // Fall through.
       case 'http://':
