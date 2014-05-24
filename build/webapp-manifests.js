@@ -3,11 +3,17 @@
 var utils = require('./utils');
 
 var ManifestBuilder = function() {
-  this.INSTALL_TIME = Date.now();
-  this.UPDATE_TIME = Date.now();
 };
 
 ManifestBuilder.prototype.setConfig = function(config) {
+  if (config.REPRODUCIBLE_BUILD) {
+    // Fake a stable date (time for the very first gaia revision)
+    this.INSTALL_TIME = 1316221071000;
+    this.UPDATE_TIME = 1316221071000;
+  } else {
+    this.INSTALL_TIME = Date.now();
+    this.UPDATE_TIME = Date.now();
+  }
   this.id = 1;
   this.config = config;
   this.errors = [];
@@ -42,8 +48,10 @@ ManifestBuilder.prototype.fillExternalAppManifest = function(webapp) {
   // and it has an origin in its manifest file it'll be able to specify a custom
   // folder name. Otherwise, generate an UUID to use as folder name.
   var webappTargetDirName = utils.generateUUID().toString();
-  if (type === 2 && isPackaged && webapp.pckManifest.origin) {
+  if (isPackaged) {
     webappTargetDirName = utils.getNewURI(webapp.pckManifest.origin).host;
+  } else {
+    webappTargetDirName = utils.getNewURI(webapp.metaData.origin).host;
   }
 
   var origin = isPackaged ? 'app://' + webappTargetDirName :
