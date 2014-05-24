@@ -203,7 +203,7 @@ suite('Build Integration tests', function() {
       var fileInZip = zipEntries[f];
       var fileName = fileInZip.entryName;
       if (/\.(png|gif|jpg)$/.test(fileName)) {
-        if (reso !== 1 && fileName.indexOf('Browser_') === -1) {
+        if (reso !== 1 && fileName.indexOf('browser_') === -1) {
           fileName = fileName.replace(
             /(.*)(\.(png|gif|jpg))$/, "$1@" + reso + "x$2");
         }
