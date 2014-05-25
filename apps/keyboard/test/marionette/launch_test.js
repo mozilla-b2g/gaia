@@ -40,7 +40,6 @@ marionette('show Keyboard APP', function() {
     // Please refer to http://bugzil.la/995865.
     var keyboardContainer =
       client.findElement('.keyboard-type-container[data-active]');
-
     assert.ok(keyboardContainer.displayed());
   });
 
