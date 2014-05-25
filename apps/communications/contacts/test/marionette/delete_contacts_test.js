@@ -27,15 +27,14 @@ marionette('Contacts > Delete', function() {
     // Click on delete button and wait for slide down animation
     client.helper.waitForElement(selectors.bulkDelete).click();
     subject.waitForSlideDown(settings);
-    
+
     var editForm = client.findElement(selectors.editForm);
     editForm.displayed(function onDisplayed() {
-      var editMenu = client.helper.waitForElement(selectors.editMenu);
-
       // Enter in search mode
       client.helper.waitForElement(selectors.searchLabel).click();
 
       // Check that edit menu goes down
+      var editMenu = client.helper.waitForElement(selectors.editMenu);
       subject.waitForSlideDown(editMenu);
     });
   });

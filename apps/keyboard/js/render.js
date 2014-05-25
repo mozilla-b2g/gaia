@@ -111,6 +111,9 @@ const IMERender = (function() {
 
   // Draw the keyboard and its components. Meat is here.
   var draw = function kr_draw(layout, flags, callback) {
+    perfTimer.printTime('IMERender.draw');
+    perfTimer.startTimer('IMERender.draw');
+
     flags = flags || {};
 
     var supportsSwitching = 'mozInputMethod' in navigator ?
@@ -162,6 +165,12 @@ const IMERender = (function() {
         requestAnimationFrame(callback);
       }
     }
+
+    // XXX We have to wait for layout to complete before
+    // return this function
+    container.offsetWidth;
+
+    perfTimer.printTime('BLOCKING IMERender.draw', 'IMERender.draw');
   };
 
   /**
@@ -275,16 +284,9 @@ const IMERender = (function() {
     }
   };
 
-  var showIME = function hm_showIME() {
-    delete ime.dataset.hidden;
-  };
-
-  var hideIME = function km_hideIME() {
-    ime.dataset.hidden = 'true';
-  };
-
   var getAriaLabel = function mk_getAriaLabel(key) {
-    var _ = navigator.mozL10n ?
+    var _ = (navigator.mozL10n &&
+             navigator.mozL10n.readyState === 'complete') ?
       navigator.mozL10n.get : function() { return ''; };
     return _(key.ariaLabel || ariaLabelMap[key.value] || key.value);
   };
@@ -694,6 +696,9 @@ const IMERender = (function() {
 
   // Recalculate dimensions for the current render
   var resizeUI = function(layout, callback) {
+    perfTimer.printTime('IMERender.resizeUI');
+    perfTimer.startTimer('IMERender.resizeUI');
+
     var RESIZE_UI_TIMEOUT = 0;
 
     // This function consists of two actual functions
@@ -702,6 +707,9 @@ const IMERender = (function() {
     // these are seperated into separate groups because they do similar
     // operations and minimizing reflow causes because of this
     function setKeyWidth() {
+      perfTimer.printTime('IMERender.resizeUI:setKeyWidth');
+      perfTimer.startTimer('IMERender.resizeUI:setKeyWidth');
+
       [].forEach.call(rows, function(rowEl, rIx) {
         var rowLayoutWidth = parseInt(rowEl.dataset.layoutWidth, 10);
         var keysInRow = rowEl.childNodes.length;
@@ -733,9 +741,15 @@ const IMERender = (function() {
       });
 
       setTimeout(getVisualData, RESIZE_UI_TIMEOUT);
+
+      perfTimer.printTime('BLOCKING IMERender.resizeUI:setKeyWidth',
+        'IMERender.resizeUI:setKeyWidth');
     }
 
     function getVisualData() {
+      perfTimer.printTime('IMERender.resizeUI:getVisualData');
+      perfTimer.startTimer('IMERender.resizeUI:getVisualData');
+
       // Now that key sizes have been set and adjusted for the row,
       // loop again and record the size and position of each. If we
       // do this as part of the loop above, we get bad position data.
@@ -770,6 +784,13 @@ const IMERender = (function() {
       if (callback) {
         callback();
       }
+
+      // XXX We have to wait for layout to complete before
+      // return this function
+      ime.offsetWidth;
+
+      perfTimer.printTime('BLOCKING IMERender.resizeUI:getVisualData',
+        'IMERender.resizeUI:getVisualData');
     }
 
     var changeScale;
@@ -808,6 +829,12 @@ const IMERender = (function() {
     var rows = activeIme.querySelectorAll('.keyboard-row');
 
     setKeyWidth();
+
+    // XXX We have to wait for layout to complete before
+    // return this function
+    activeIme.offsetWidth;
+
+    perfTimer.printTime('BLOCKING IMERender.resizeUI', 'IMERender.resizeUI');
   };
 
   //
@@ -830,7 +857,8 @@ const IMERender = (function() {
   };
 
   var candidatePanelCode = function() {
-    var _ = navigator.mozL10n ?
+    var _ = (navigator.mozL10n &&
+             navigator.mozL10n.readyState === 'complete') ?
       navigator.mozL10n.get : function(x) { return x };
 
     var candidatePanel = document.createElement('div');
@@ -1048,8 +1076,6 @@ const IMERender = (function() {
     get menu() {
       return menu;
     },
-    'hideIME': hideIME,
-    'showIME': showIME,
     'highlightKey': highlightKey,
     'unHighlightKey': unHighlightKey,
     'showAlternativesCharMenu': showAlternativesCharMenu,
