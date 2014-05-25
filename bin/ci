@@ -1,4 +1,4 @@
-#! /bin/bash -vex
+#! /bin/bash -e
 
 # XXX: At some point we probably don't need travis specific logic but for now
 #      it's very easy to use this with environment variables to keep everything
