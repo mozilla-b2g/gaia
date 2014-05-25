@@ -4,9 +4,9 @@ install: ./node_modules/.bin/travisaction $CI_ACTION install
 before_script:
 - export DISPLAY=:99.0
 - sh -e /etc/init.d/xvfb start
-- ./node_modules/.bin/travisaction $CI_ACTION before_script
-script: ./node_modules/.bin/travisaction $CI_ACTION script
-after_script: ./node_modules/.bin/travisaction $CI_ACTION after_script
+- ./bin/ci run-step $CI_ACTION before_script
+script: ./bin/ci run-step $CI_ACTION script
+after_script: ./bin/ci run-step $CI_ACTION after_script
 branches:
   only:
   - master

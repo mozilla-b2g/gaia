@@ -1,10 +1,10 @@
-#! /bin/bash -e
+#! /bin/bash -vex
 
 # XXX: At some point we probably don't need travis specific logic but for now
 #      it's very easy to use this with environment variables to keep everything
 #      running as it does in travis.
 
-# test suite root for all travis ci hook style tests...
+# test suite root for all travis ci step style tests...
 suite_root="tests/travis_ci"
 
 usage() {
@@ -14,22 +14,27 @@ usage() {
   echo "  Commands:"
   echo
   echo "    run <suite> - run a particular test suite (use ls to see all suites)"
+  echo "    run-step <suite> <step>"
   echo "    ls - list all the test suites which can be run"
   echo
   echo
 }
 
-cmd_ls() {
-  ls $suite_root
+run_step() {
+  local step="$suite_root/$1/$2"
+  if [ -x "$step" ];
+  then
+    . $step
+  fi
 }
 
-cmd_run() {
-  local steps="before_install install before_script script"
-  local root="$suite_root/$1/"
+validate_suite() {
+  local suite="$1"
+  local root="$suite_root/$suite"
 
-  if [  ! -d $root ] || [ "$1" == "" ] || [ "$1" == " " ];
+  if [  ! -d $root ] || [ "$suite" == "" ] || [ "$suite" == " " ];
   then
-    echo "CI suite $1 does not exist in path $root"
+    echo "CI suite $suite does not exist in path $root"
     echo
     echo "Allowed suites:"
     echo
@@ -38,18 +43,33 @@ cmd_run() {
     usage
     exit 1
   fi
+}
 
+cmd_ls() {
+  ls $suite_root
+}
+
+cmd_run_step() {
+  local suite=$1
+  local step=$2
+
+  validate_suite $suite
+  run_step $suite $step
+}
+
+cmd_run() {
+  validate_suite $suite
   for step in $steps; do
-    if [ -x "$root/$step" ];
-    then
-      . "$root/$step";
-    fi
+    run_step $suite $step
   done
 }
 
 case "$1" in
 "run")
   cmd_run ${@:2}
+  ;;
+"run-step")
+  cmd_run_step ${@:2}
   ;;
 "ls")
   cmd_ls
@@ -58,4 +78,3 @@ case "$1" in
   usage
   ;;
 esac
-
