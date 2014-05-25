@@ -13,6 +13,6 @@ else
   python virtualenv-${VERSION_VIRTUALENV}/virtualenv.py ${DIR_TEST_ENV}
 fi
 
-. $DIR_TEST_ENV/bin/activate
+source $DIR_TEST_ENV/bin/activate
 
 easy_install http://closure-linter.googlecode.com/files/closure_linter-latest.tar.gz
