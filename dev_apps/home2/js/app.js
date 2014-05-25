@@ -15,7 +15,6 @@
     window.addEventListener('gaiagrid-saveitems', this);
     window.addEventListener('gaiagrid-collection-open', this);
     window.addEventListener('gaiagrid-collection-close', this);
-    window.addEventListener('gaiagrid-layout-ready', this);
   }
 
   App.prototype = {
@@ -91,11 +90,6 @@
           };
 
           doScroll();
-          break;
-
-        case 'gaiagrid-layout-ready':
-          this.init();
-          window.removeEventListener('gaiagrid-layout-ready', this);
           break;
       }
     }
