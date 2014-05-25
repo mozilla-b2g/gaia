@@ -5,21 +5,18 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <title>FirefoxOS Homescreen</title>
 
-    <link rel="import" href="elements/contextmenu.html">
-
     <link rel="stylesheet" href="style/css/app.css">
     <link rel="stylesheet" href="style/css/search.css">
     <link rel="stylesheet" href="style/css/zoom.css">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
 
     <!-- Confirm dialog component -->
-    <script defer src="/shared/js/component_utils.js"></script>
-    <script defer src="/shared/elements/gaia_buttons/script.js"></script>
-    <script defer src="/shared/elements/gaia_confirm/script.js"></script>
+    <script src="/shared/js/component_utils.js"></script>
+    <script src="/shared/elements/gaia_buttons/script.js"></script>
+    <script src="/shared/elements/gaia_confirm/script.js"></script>
+    <script src="/shared/elements/gaia_menu/script.js"></script>
 
     <!-- Lazy load for Context Menu -->
-    <!-- <link rel="stylesheet" href="shared/style/action_menu.css">-->
-    <!-- <link rel="stylesheet" href="style/css/contextmenu.css"> -->
     <!-- <script src="js/contextmenu_ui.js"></script> -->
     <!-- <script type="text/javascript" src="shared/js/omadrm/fl.js"></script> -->
     <!-- <script type="text/javascript" src="js/wallpaper.js"></script> -->
@@ -76,6 +73,9 @@
         <button id="confirmation-message-delete" type="button" data-l10n-id="delete" class="danger">Delete</button>
       </gaia-buttons>
     </gaia-confirm>
-    <form is="contextmenu-dialog" id="contextmenu-dialog" role="dialog" data-type="action"></form>
+    <gaia-menu id="contextmenu-dialog" hidden>
+      <button id="change-wallpaper-action" data-l10n-id="change-wallpaper" type="button"></button>
+      <button id="create-smart-collection" data-l10n-id="add-smart-collections" type="button"></button>
+    </gaia-menu>
   </body>
 </html>

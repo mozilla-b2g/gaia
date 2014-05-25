@@ -17,6 +17,7 @@ window.GaiaMenu = (function(win) {
 
     cancelButton.addEventListener('click', function () {
       this.dispatchEvent(new CustomEvent('gaiamenu-cancel'));
+      this.setAttribute('hidden', '');
     }.bind(this));
 
     shadow.appendChild(this._template);
