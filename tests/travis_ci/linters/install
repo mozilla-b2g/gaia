@@ -16,4 +16,3 @@ fi
 . $DIR_TEST_ENV/bin/activate
 
 easy_install http://closure-linter.googlecode.com/files/closure_linter-latest.tar.gz
-which gjslint
