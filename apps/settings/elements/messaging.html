@@ -64,6 +64,21 @@
           </label>
         </li>
       </ul>
+      <header>
+        <h2 data-l10n-id="messagesLimit"> Message limitation </h2>
+      </header>
+      <ul>
+        <li id="menuItem-messagesLimit" aria-disabled="true" class="hint">
+          <label class="pack-switch">
+            <input type="checkbox" name="sms.limit.last-month"/>
+            <span data-l10n-id="messages-limit-last-month">Limit thread to last month</span>
+          </label>
+          <p class="explanation" data-l10n-id="messages-limit-last-month">
+            When displaying a thread in Messages app, only limit to the messages
+            of the last month. This helps coping with huge databases.
+          </p>
+        </li>
+      </ul>
     </div>
 
     <script src="js/messaging.js"></script>
