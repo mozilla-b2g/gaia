@@ -14,9 +14,14 @@ window.GaiaSwitch = (function(win) {
     this._input = this._template.querySelector('input[type="checkbox"]');
     this._styleHack();
 
+    if (!this.getAttribute('role')) {
+      this.setAttribute('role', 'checkbox');
+    }
+
     var checked = this.getAttribute('checked');
     if (checked !== null) {
       this._input.checked = true;
+      this.setAttribute('aria-checked', true);
     }
 
     var label = this._template.getElementById('switch-label');
@@ -64,6 +69,7 @@ window.GaiaSwitch = (function(win) {
     },
     set: function(value) {
       this._input.checked = value;
+      this.setAttribute('aria-checked', value);
     }
   });
 
@@ -93,9 +99,9 @@ window.GaiaSwitch = (function(win) {
   var template = document.createElement('template');
   template.innerHTML = '<style scoped>' +
     '@import url(' + stylesheet + ');</style>' +
-    '<label id="switch-label" class="pack-switch">' +
+    '<label id="switch-label" class="pack-switch" role="presentation">' +
       '<input type="checkbox">' +
-      '<span><content select="label"></content></span>' +
+      '<span role="presentation"><content select="label"></content></span>' +
     '</label>';
 
   // Register and return the constructor
