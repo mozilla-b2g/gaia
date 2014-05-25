@@ -1,5 +1,6 @@
 Keyboards['zh-Hant-Zhuyin'] = {
   label: 'Chinese - Traditional - Zhuyin',
+  shortLabel: '注',
   menuLabel: '注音',
   needsCandidatePanel: true,
   imEngine: 'jszhuyin',

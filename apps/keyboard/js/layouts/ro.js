@@ -1,5 +1,6 @@
 Keyboards.ro = {
   label: 'Romanian',
+  shortLabel: 'Ro',
   menuLabel: 'Română',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

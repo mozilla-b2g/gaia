@@ -1,5 +1,6 @@
 Keyboards.en = {
   label: 'English',
+  shortLabel: 'En',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'en_us',
