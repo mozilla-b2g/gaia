@@ -1,4 +1,5 @@
 'use strict';
+/* global ComponentUtils */
 
 /**
  * The gaia-confirm component displays a dialog in which the user has a
@@ -17,21 +18,14 @@ window.GaiaConfirm = (function(win) {
   proto.createdCallback = function() {
     var shadow = this.createShadowRoot();
     this._template = template.content.cloneNode(true);
-    this._styleHack();
 
     shadow.appendChild(this._template);
+
+    ComponentUtils.style.call(this, baseurl);
   };
 
-  proto._styleHack = function() {
-    var style = this._template.querySelector('style');
-    this.appendChild(style.cloneNode(true));
-  };
-
-  var stylesheet = baseurl + 'style.css';
   var template = document.createElement('template');
-  template.innerHTML = '<style scoped>' +
-    '@import url(' + stylesheet + ');</style>' +
-    '<form role="dialog" class="confirm">' +
+  template.innerHTML = '<form role="dialog" class="confirm">' +
       '<section>' +
         '<content select="h1"></content>' +
         '<content select="p"></content>' +

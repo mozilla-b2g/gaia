@@ -1,5 +1,6 @@
 'use strict';
 
+require('/shared/js/component_utils.js');
 require('/shared/elements/gaia_menu/script.js');
 
 suite('GaiaMenu', function() {
