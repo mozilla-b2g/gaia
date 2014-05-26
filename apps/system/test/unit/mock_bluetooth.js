@@ -1,11 +1,13 @@
 'use strict';
 
+/* global MockDOMRequest */
+
 var MockBluetooth = {
   defaultAdapter: null,
   enabled: true,
   init: function mbt_init() {
-    var MockGetPairedDevices = {
-      getPairedDevices: function mbt_getPairedDevices() {
+    var mockAdapater = {
+      getPairedDevices: function mbta_getPairedDevices() {
         // fake object with two paired devices
         var tmpObj = {
           result: [{}, {}]
@@ -17,9 +19,19 @@ var MockBluetooth = {
           }
         });
         return tmpObj;
+      },
+      confirmReceivingFile:
+      function mbta_confirmReceivingFile(deviceAddress, flag) {
+        return new MockDOMRequest();
+      },
+      sendFile: function mbta_sendFile(deviceAddress, file) {
+        return new MockDOMRequest();
+      },
+      stopSendingFile: function mbta_stopSendingFile(deviceAddress) {
+        return new MockDOMRequest();
       }
     };
-    this.defaultAdapter = MockGetPairedDevices;
+    this.defaultAdapter = mockAdapater;
   },
 
   getAdapter: function mbt_getAdapter() {
