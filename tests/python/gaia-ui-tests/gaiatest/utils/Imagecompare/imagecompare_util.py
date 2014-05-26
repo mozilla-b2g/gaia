@@ -2,6 +2,7 @@ import mozdevice
 import os
 import subprocess
 import time
+from gaiatest import GaiaTestCase
 
 
 class ImageCompareUtil():
@@ -120,18 +121,14 @@ class ImageCompareUtil():
     #reference and target images have stripped off status bar on top, because of the clock and other status changes
     #fuzz_value is the % of the fuzz factor for imagemagick.  (color difference) 5% seems to remove most rendering
     #peculiarities that report false positives
-    @staticmethod
-    def sub_image_compare(target_img, ref_img, diff_img, fuzz_value):
+    def sub_image_compare(self,target_img, ref_img, diff_img, fuzz_value):
         p = subprocess.Popen(
             ["compare", "-fuzz", str(fuzz_value) + "%", "-metric", "AE", target_img, ref_img, diff_img],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         p.wait()
-        print "\n" + target_img + " vs. " + ref_img + "\nNo. of mismatching pixels: " + err
-        if err == '0':
-            return "pass"
-        else:
-            return "fail"
+        if err != '0':
+            raise self.ImageMismatchError(err, target_img,ref_img)
 
     #do batch image compare- pick images with specified module name and compare against ref images
     def batch_image_compare(self, local_path, module_name, fuzz_value):
@@ -146,6 +143,11 @@ class ImageCompareUtil():
                 print self.sub_image_compare(os.path.join(shot_path, f),
                                              ref_file, ref_file + "_diff.png", fuzz_value)
                 filecounter += 1
+
+    #do collect and compare in one shot
+    def collect_and_compare(self,local_path, device_path, module_name, fuzz_value):
+        self.collect_screenshots(device_path, local_path, module_name)
+        self.batch_image_compare(local_path,module_name,fuzz_value)
 
     #sort the files in the path in timestamp order and return as a list
     @staticmethod
@@ -169,3 +171,9 @@ class ImageCompareUtil():
         for f in listoffiles:
             fullpath = src + "/" + f
             os.system("mv" + " " + fullpath + " " + dst)
+
+    class ImageMismatchError(Exception):
+        def __init__(self, pixelcount, target, reference):
+            message = '%s pixels mismatched between: %s, %s' \
+                           % (pixelcount, target, reference)
+            Exception.__init__(self, message)
