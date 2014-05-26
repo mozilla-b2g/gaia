@@ -719,6 +719,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             else:
                 self.data_layer.set_char_pref(name, value)
 
+        # set homescreen origin
+        self.data_layer.set_setting('homescreen.manifestURL', 'app://homescreen.gaiamobile.org/manifest.webapp')
+
         # unlock
         self.device.unlock()
 
