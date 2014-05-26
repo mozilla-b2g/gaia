@@ -1,6 +1,6 @@
 'use strict';
+/* global CollectionsDatabase */
 /* global Promise */
-
 
 (function(exports) {
 
@@ -65,8 +65,8 @@
 
           }, reject);
       }.bind(this));
-    }
-  };
+    };
+  }
 
   Suggestions.prototype = {
     handleEvent: function suggestions_handleEvent(e) {

@@ -925,7 +925,7 @@ ifdef APP
   JSHINTED_PATH = apps/$(APP)
   GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint/xfail.list | ( while read file ; do test -f "$$file" && echo $$file ; done ) )
 else
-  JSHINTED_PATH = apps shared build/test/unit dev_apps/home2
+  JSHINTED_PATH = apps shared build/test/unit dev_apps/home2 dev_apps/collection
   GJSLINTED_PATH = $(shell ( while read file ; do test -f "$$file" && echo $$file ; done ) < build/jshint/xfail.list )
 endif
 endif

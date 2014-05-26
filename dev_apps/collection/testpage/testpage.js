@@ -1,3 +1,8 @@
+'use strict';
+/* global eme */
+/* global HandleCreate */
+/* global HandleView */
+
 (function() {
   var activity = {
     source: {
@@ -28,6 +33,6 @@
       activity.source.name = 'view-collection';
       eme.init().then(function() {
         HandleView(activity);
-      })
+      });
     });
 })();
