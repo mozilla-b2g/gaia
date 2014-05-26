@@ -131,7 +131,8 @@
     renderIconFromBlob: function(blob) {
       this.element.style.height = this.grid.layout.gridItemHeight + 'px';
       this.element.style.backgroundSize =
-        (this.grid.layout.gridIconSize + CANVAS_PADDING) + 'px';
+        ((this.grid.layout.gridIconSize * (1 / this.scale)) + CANVAS_PADDING) +
+        'px';
       this.element.style.backgroundImage =
         'url(' + URL.createObjectURL(blob) + ')';
     },
@@ -142,6 +143,8 @@
      * @param {Number} index The index of the items list of this item.
      */
     render: function(coordinates, index) {
+      this.scale = this.grid.layout.percent;
+
       // Generate an element if we need to
       if (!this.element) {
         var tile = document.createElement('div');
@@ -152,7 +155,8 @@
         // This <p> has been added in order to place the title with respect
         // to this container via CSS without touching JS.
         var nameContainerEl = document.createElement('p');
-        nameContainerEl.style.marginTop = this.grid.layout.gridIconSize + 'px';
+        nameContainerEl.style.marginTop = (this.grid.layout.gridIconSize *
+                                          (1 / this.scale)) + 'px';
         tile.appendChild(nameContainerEl);
 
         var nameEl = document.createElement('span');
@@ -186,7 +190,6 @@
       this.setPosition(index);
       this.x = x;
       this.y = y;
-      this.scale = this.grid.layout.percent;
 
       // Avoid rendering the icon during a drag to prevent jumpiness
       if (this.noTransform) {
