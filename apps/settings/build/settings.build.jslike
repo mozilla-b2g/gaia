@@ -18,7 +18,9 @@
     'shared/lazy_loader': 'empty:',
     'shared/manifest_helper': 'empty:',
     'shared/settings_listener': 'empty:',
-    'utils': 'empty:'
+    'utils': 'empty:',
+    'shared/settings_url': 'empty:',
+    'shared/omadrm/fl': 'empty:'
   },
 
   findNestedDependencies: true,
