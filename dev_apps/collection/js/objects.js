@@ -37,7 +37,7 @@
         return collections;
       }
 
-  }
+  };
 
   function QueryCollection(props) {
     BaseCollection.call(this, props);

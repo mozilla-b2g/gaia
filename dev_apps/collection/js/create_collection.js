@@ -1,5 +1,9 @@
 'use strict';
+/* global CategoryCollection */
+/* global CollectionsDatabase */
 /* global Promise */
+/* global QueryCollection */
+/* global Suggestions */
 
 (function(exports) {
 
@@ -15,7 +19,8 @@
     cancel.addEventListener('click', function() {
       // TODO request should always have an 'abort' method
       // but sometimes it doesn't. find out why!
-      // "TypeError: request.abort is not a function" {file: "app://collection.gaiamobile.org/js/activities.js" line: 20}
+      // "TypeError: request.abort is not a function"
+      // {file: "app://collection.gaiamobile.org/js/activities.js" line: 20}
       request.abort && request.abort();
       activity.postResult(false);
     });
