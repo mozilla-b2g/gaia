@@ -17,6 +17,5 @@ points for each layout.
 Configuration is done with the GAIA_KEYBOARD_LAYOUTS environment
 variable, and there is a default value defined in the Makefile.
 
-The build happens in $STAGE_DIR if it is defined or in gaia/build_stage
-otherwise.
+The build happens in gaia/build_stage.
 The actual configuration code is in build/keyboard-config.js.

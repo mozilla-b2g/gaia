@@ -15,7 +15,7 @@ HomescreenAppBuilder.prototype.setOptions = function(options) {
 
   let mappingFile = utils.getFile(options.STAGE_DIR, 'webapps_stage.json');
   if (!mappingFile.exists()) {
-    throw new Error(options.STAGE_DIR + '/webapps_stage.json not found.');
+    throw new Error('build_stage/webapps_stage.json not found.');
   }
   this.webappsMapping = utils.getJSON(mappingFile);
 

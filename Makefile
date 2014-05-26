@@ -483,7 +483,7 @@ $(1): $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts contacts-import-services $(ST
 	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
   	if [ -r "$(2)/Makefile" ]; then \
   		echo "execute Makefile for $(1) app" ; \
-  		STAGE_APP_DIR="$(STAGE_DIR)/$(1)" make -C "$(2)" ; \
+  		STAGE_APP_DIR="../../build_stage/$(1)" make -C "$(2)" ; \
   	else \
   		echo "copy $(1) to build_stage/" ; \
   		cp -LR "$(2)" $(STAGE_DIR) && \
@@ -517,6 +517,9 @@ $(foreach appdir,$(GAIA_APPDIRS), \
 	$(eval $(call app-makefile-template,$(notdir $(appdir)),$(appdir))) \
 )
 
+
+# FIXME: we use |STAGE_APP_DIR="../../build_stage/$$APP"| here because we got
+# some problem on Windows if use absolute path.
 .PHONY: app-makefiles
 app-makefiles: $(APP_RULES)
 

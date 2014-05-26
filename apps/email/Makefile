@@ -23,12 +23,7 @@ clean:
 $(STAGE_APP_DIR)/js/mail_app.js:
 	mkdir -p $(STAGE_APP_DIR)/shared
 
-ifdef STAGE_DIR
-	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/email.build.js optimize=$(GAIA_EMAIL_MINIFY) dir=$(STAGE_DIR)/email
-else
 	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/email.build.js optimize=$(GAIA_EMAIL_MINIFY)
-endif
-
 	@rm -rf $(STAGE_APP_DIR)/build
 	@rm $(STAGE_APP_DIR)/build.txt
 	@rm $(STAGE_APP_DIR)/js/tmpl_builder.js

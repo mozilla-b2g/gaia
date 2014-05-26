@@ -253,7 +253,7 @@ SvoperappsBuilder.prototype.fetchApps = function(done) {
 SvoperappsBuilder.prototype.prepareDir = function() {
   var profilePath = this.options.PROFILE_DIR;
   var distributionPath = this.options.GAIA_DISTRIBUTION_DIR;
-  var svoperappsStagePath = utils.joinPath(this.options.STAGE_DIR,
+  var svoperappsStagePath = utils.joinPath(this.options.GAIA_DIR, 'build_stage',
     this.STAGE_SVOPERAPPS_FOLDER);
   utils.mkdirs(svoperappsStagePath);
 

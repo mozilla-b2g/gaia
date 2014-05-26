@@ -110,16 +110,14 @@ By restricting the constructor to simply managing arguments and setting up prope
 
 The camera app has it's own [`Makefile`](Makefile). A Makefile is similar to Grunt, but written in bash, it is essentially a list of tasks that can be run (via `make <task-name>`). When a Gaia application has its own `apps/<app-name>/Makefile`, it will be automatically run when Gaia builds.
 
-At the root we also have [`gaia_build.json`](gaia_build.json), which tells Gaia to fetch the built app from '$STAGE_DIR/camera' (if STAGE_DIR exists) or from `build_stage/camera` (if STAGE_DIR does not exist) instead of `apps/camera`, before zipping it up to `profile/webapps/camera/application.zip`.
+At the root we also have [`gaia_build.json`](gaia_build.json), which tells Gaia to fetch the built app from `build_stage/camera` instead of `apps/camera`, before zipping it up to `profile/webapps/camera/application.zip`.
 
 Our `Makefile` has two tasks, one to **'build'** and one to **'clean'** (delete the build). The build steps are as follows:
 
-1. Remove any previous camera build from the $STAGE_DIR if it is defined or `build_stage/` otherwise
-2. Create an new directory $STAGE_DIR/camera if it is defined or `build_stage/camera` otherwise
+1. Remove any previous camera build from the `build_stage/`
+2. Create an new directory `build_stage/camera`
 3. Copy all the entire `shared/` directory into our build directory. This is so that any shared dependencies that we are using are available in `build_stage/camera/shared/`, mimicking the magically resolved `/shared/` HTTP requests in development.
 4. Run the `r.js` (RequireJS optimizer), pointing it at our `require_config.jslike` file (`.jslike` because we don't want Gaia builds to mess with it [I think]). This copies our entire application (JS and all) and bundles our JS (tracing `require()` calls) and CSS (tracing `@import`) in two single files.
-
-Note: The global Makefile always define STAGE_DIR, with a default value of $GAIA_DIR/build_stage
 
 ## Camera configuration
 

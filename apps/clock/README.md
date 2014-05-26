@@ -6,12 +6,9 @@ The Clock app takes advantage of some features in the gaia build system to do
 some optimizations:
 
 * Apps can define an app-specific Makefile in their directory. This is run
-  before the rest of the general Gaia build steps. The make process uses this to
-  create a directory in $STAGE_DIR/clock if $STAGE_DIR is defined, or in
-  $GAIA_DIR/build_stage/clock otherwise, and and runs some optimizations around
+  before the rest of the general Gaia build steps. Email uses this to create
+  a directory in `gaia/build_stage/clock` and runs some optimizations around
   JS and CSS concatenation.
-  Note that the global Makefile always define STAGE_DIR, with a default value of
-  $GAIA_DIR/build_stage
 * The Gaia build system knows to use `gaia/build_stage/clock` to do the rest of
   the Gaia build steps because Clock specifies the "dir" in the
   `gaia_build.json` in this directory.
