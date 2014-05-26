@@ -189,12 +189,12 @@ window.navigator.mozSetMessageHandler('headset-button', headsetCommandHandler);
 
 function headsetCommandHandler(message) {
   if (message === 'headset-button-press') {
-      if (playing) {
-	setVideoPlaying(false);
-      } else if (!playing) {
-	setVideoPlaying(true);
-      }
+    if (playing) {
+      setVideoPlaying(false);
+    } else if (!playing) {
+      setVideoPlaying(true);
     }
+  }
  }
 
 function initThumbnailSize() {
