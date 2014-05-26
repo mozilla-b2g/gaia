@@ -11,6 +11,9 @@
   height: 100%;
   background-repeat: no-repeat;
   background-position: center center;
+
+  transform: translateX(0);
+  will-change: transform, opacity;
 }
 
 .appWindow > .appWindow {
@@ -216,13 +219,6 @@
   animation-duration: 3s;
 }
 
-.appWindow.transition-closing,
-.appWindow.transition-opening {
-  /* The animation takes .3 seconds so users cannot touch the app while the
-   * closing animation is performing */
-  pointer-events: none;
-}
-
 .appWindow.reduce {
   animation: closeApp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
@@ -352,6 +348,24 @@
 
 .appWindow.homescreen.fadeout > .fade-overlay {
   opacity: 0.8;
+}
+
+.appWindow > .touch-blocker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+  background: transparent;
+  pointer-events: all;
+}
+
+.appWindow.transition-closing .touch-blocker,
+.appWindow.transition-opening .touch-blocker {
+  /* The animation takes .3 seconds so users cannot touch the app while the
+   * closing animation is performing */
+  visibility: visible;
 }
 
 .appWindow > .modal-dialog,
@@ -484,6 +498,10 @@
 
 .appWindow > .appWindow {
   z-index: 65536;
+}
+
+.appWindow > .touch-blocker {
+  z-index: 1026;
 }
 
 .appWindow > .fade-overlay {
@@ -621,7 +639,6 @@
   /* in the viewport but not really */
   transform: translateX(-99.9999%);
   opacity: 1;
-  will-change: transform, opacity;
 }
 
 #screen:-moz-full-screen-ancestor > #windows .appWindow.active {
