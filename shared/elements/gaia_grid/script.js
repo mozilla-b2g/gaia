@@ -133,6 +133,11 @@ window.GaiaGrid = (function(win) {
     return null;
   };
 
+  Object.defineProperty(proto, 'maxIconSize', {
+    get: function() {
+      return this._grid.layout.gridMaxIconSize;
+    }
+  });
 
   /**
    * We clone the scoped stylesheet and append

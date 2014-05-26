@@ -8,6 +8,7 @@
 (function(exports) {
 
   function ContextMenuUI() {
+    this.grid = document.getElementById('icons');
     this.dialog = document.getElementById('contextmenu-dialog');
     this.collectionOption = document.getElementById('create-smart-collection');
     this.wallpaperOption = document.getElementById('change-wallpaper-action');
@@ -52,10 +53,12 @@
         case 'create-smart-collection':
           this.hide();
 
+          var maxIconSize = this.grid.maxIconSize;
           var activity = new MozActivity({
             name: 'create-collection',
             data: {
-              type: 'folder'
+              type: 'folder',
+              maxIconSize: maxIconSize
             }
           });
 
