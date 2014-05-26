@@ -51,7 +51,7 @@ marionette('Homescreen navigation >', function() {
     client.switchToFrame();
     sys.waitForStartup();
 
-    homescreen = sys.getAppIframe('homescreen.gaiamobile.org');
+    homescreen = sys.getAppIframe('verticalhome.gaiamobile.org');
     settings = launchSettings();
   });
 

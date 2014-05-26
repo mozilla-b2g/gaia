@@ -207,7 +207,7 @@ suite('settings.js', function() {
       config.GAIA_DOMAIN = 'gaiamobile.com';
       config.GAIA_PORT = ':8080';
       var settings = {};
-      var testResult = mockUtils.gaiaManifestURL('homescreen',
+      var testResult = mockUtils.gaiaManifestURL('verticalhome',
                     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
       app.setHomescreenURL(settings, config);
       assert.equal(settings['homescreen.manifestURL'], testResult);
@@ -263,7 +263,7 @@ suite('settings.js', function() {
           'debug.console.enabled': true,
           'developer.menu.enabled': true,
           'homescreen.manifestURL': config.GAIA_SCHEME +
-            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
@@ -293,7 +293,7 @@ suite('settings.js', function() {
       queue.done(function(result) {
         assert.deepEqual({
           'homescreen.manifestURL': config.GAIA_SCHEME +
-            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
@@ -326,7 +326,7 @@ suite('settings.js', function() {
       queue.done(function(result) {
         assert.deepEqual({
           'homescreen.manifestURL': config.GAIA_SCHEME +
-            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
@@ -358,7 +358,7 @@ suite('settings.js', function() {
       queue.done(function(result) {
         assert.deepEqual({
           'homescreen.manifestURL': config.GAIA_SCHEME +
-            'homescreen.' + config.GAIA_DOMAIN + config.GAIA_PORT +
+            'verticalhome.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'rocketbar.searchAppURL': config.GAIA_SCHEME + 'search.' +
             config.GAIA_DOMAIN + config.GAIA_PORT + '/index.html',
