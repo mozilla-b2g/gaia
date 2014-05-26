@@ -16,7 +16,6 @@ suite('GaiaMenu', function() {
   });
 
   test('Content is populated', function() {
-
     // Validate header
     var headers = this.element.querySelectorAll('header');
     assert.equal(headers.length, 1);

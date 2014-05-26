@@ -9,41 +9,29 @@
 
   function ContextMenuUI() {
     this.dialog = document.getElementById('contextmenu-dialog');
-    this.menu = document.querySelector('#contextmenu-dialog menu');
+    this.collectionOption = document.getElementById('create-smart-collection');
+    this.wallpaperOption = document.getElementById('change-wallpaper-action');
+
+    this.handleCancel = this._handleCancel.bind(this);
   }
 
   ContextMenuUI.prototype = {
     show: function() {
-      if (this.displayed) {
-        return;
-      }
-
-      this.displayed = true;
-      var classList = this.dialog.classList;
-      classList.add('visible');
-      this.menu.addEventListener('click', this);
-      setTimeout(function() {
-        classList.add('show');
-      }, 50); // Give the opportunity to paint the UI component
+      this.dialog.addEventListener('gaiamenu-cancel', this.handleCancel);
+      this.dialog.removeAttribute('hidden');
+      this.collectionOption.addEventListener('click', this);
+      this.wallpaperOption.addEventListener('click', this);
     },
 
-    hide: function(cb) {
-      if (!this.displayed) {
-        cb && cb();
-        return;
-      }
+    hide: function() {
+      this.dialog.removeEventListener('gaiamenu-cancel', this.handleCancel);
+      this.collectionOption.removeEventListener('click', this);
+      this.wallpaperOption.removeEventListener('click', this);
+      this.dialog.setAttribute('hidden', '');
+    },
 
-      this.displayed = false;
-      var dialog = this.dialog;
-      var classList = dialog.classList;
-      this.menu.removeEventListener('click', this);
-      dialog.addEventListener('transitionend', function hide(e) {
-        dialog.removeEventListener('transitionend', hide);
-        classList.remove('visible');
-        cb && cb();
-      });
-
-      classList.remove('show');
+    _handleCancel: function(e) {
+      this.hide();
     },
 
     handleEvent: function(e) {
@@ -55,35 +43,32 @@
         case 'change-wallpaper-action':
           LazyLoader.load(['shared/js/omadrm/fl.js',
                            'js/wallpaper.js'], function() {
-            this.hide(wallpaper.change);
+            this.hide();
+            wallpaper.change();
           }.bind(this));
 
           break;
 
         case 'create-smart-collection':
-          this.hide(function onhide() {
-            var activity = new MozActivity({
-              name: 'create-collection',
-              data: {
-                type: 'folder'
-              }
-            });
-
-            app.homescreenFocused = false;
-
-            activity.onsuccess = function onsuccess() {
-              app.homescreenFocused = true;
-            };
-
-            activity.onerror = function onerror(e) {
-              app.homescreenFocused = true;
-              alert(this.error.name || 'generic-error-message');
-            };
-          });
-          break;
-
-        case 'cancel-action':
           this.hide();
+
+          var activity = new MozActivity({
+            name: 'create-collection',
+            data: {
+              type: 'folder'
+            }
+          });
+
+          app.homescreenFocused = false;
+
+          activity.onsuccess = function onsuccess() {
+            app.homescreenFocused = true;
+          };
+
+          activity.onerror = function onerror(e) {
+            app.homescreenFocused = true;
+            alert(this.error.name || 'generic-error-message');
+          };
 
           break;
       }
