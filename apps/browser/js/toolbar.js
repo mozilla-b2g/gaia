@@ -1,3 +1,4 @@
+/* globals Browser, BrowserDB, MozActivity */
 /**
  *  Browser app toolbar
  */
@@ -44,8 +45,9 @@ var Toolbar = {
   refreshButtons: function toolbar_refreshButtons() {
     // When handling window.open we may hit this code
     // before canGoBack etc has been applied to the frame
-    if (!Browser.currentTab.dom.getCanGoBack)
+    if (!Browser.currentTab.dom.getCanGoBack) {
       return;
+    }
 
     Browser.currentTab.dom.getCanGoBack().onsuccess = (function(e) {
       this.backButton.disabled = !e.target.result;
@@ -56,25 +58,37 @@ var Toolbar = {
     this.refreshBookmarkButton();
   },
 
-    /**
+  _timeWindow: 1000,
+  _lastExecution: new Date((new Date()).getTime() - 1000),
+  /**
+   * Share URL activity
+   * Make the activity be called no more than one time every 1000 seconds
+   */
+  onShare: function toolbar_onShare() {
+    if ((this._lastExecution.getTime() + this._timeWindow) <=
+      (new Date()).getTime()) {
+      this._lastExecution = new Date();
+      new MozActivity({
+        name: 'share',
+        data: {
+          type: 'url',
+          url: Browser.currentTab.url
+        }
+      });
+    }
+  },
+
+  /**
    * Handle share button clicks.
    *
    * @param {Event} evt Click event.
    */
   handleShareButtonClick: function toolbar_handleShareButtonClick(evt) {
-    if (this.shareButton.disabled)
+    if (this.shareButton.disabled) {
       return;
-
-    // Fire web activity to share URL
-    new MozActivity({
-      name: 'share',
-      data: {
-        type: 'url',
-        url: Browser.currentTab.url
-      }
-    });
+    }
+    this.onShare();
   }
-
 };
 
 window.addEventListener('load', function toolbarOnLoad(evt) {
