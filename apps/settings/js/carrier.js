@@ -415,7 +415,13 @@ var CarrierSettings = (function(window, document, undefined) {
 
       // name
       var name = document.createElement('a');
-      name.textContent = network.shortName || network.longName;
+
+      // if the operator has no name, unknown is shown
+      if (network.shortName || network.longName) {
+        name.textContent = network.shortName || network.longName;
+      } else {
+        localize(name, 'unknown-phoneNumber');
+      }
 
       // state
       var state = document.createElement('small');
