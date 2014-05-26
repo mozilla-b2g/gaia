@@ -454,17 +454,17 @@ var NfcManager = {
 
   formatTextRecord: function nm_formatTextRecord(record) {
     var status = record.payload[0];
-    var languageLength = status & NDEF.RTD_TEXT_IANA_LENGTH;
+    var langLen = status & NDEF.RTD_TEXT_IANA_LENGTH;
     var language = NfcUtils.toUTF8(
-                     record.payload.subarray(1, languageLength + 1));
-    var encoding = status & NDEF.RTD_TEXT_ENCODING;
+                     record.payload.subarray(1, langLen + 1));
+    var encoding = (status & NDEF.RTD_TEXT_ENCODING) !== 0 ? 1 : 0;
     var text;
     var encodingString;
-    if (encoding == NDEF.RTD_TEXT_UTF8) {
-      text = NfcUtils.toUTF8(record.payload.subarray(languageLength + 1));
+    if (encoding === NDEF.RTD_TEXT_UTF8) {
+      text = NfcUtils.toUTF8(record.payload.subarray(langLen + 1));
       encodingString = 'UTF-8';
-    } else if (encoding == NDEF.RTD_TEXT_UTF16) {
-      text = NfcUtils.toUTF16(record.payload.subarray(languageLength + 2));
+    } else if (encoding === NDEF.RTD_TEXT_UTF16) {
+      text = NfcUtils.UTF16BytesToString(record.payload.subarray(langLen + 1));
       encodingString = 'UTF-16';
     }
 
