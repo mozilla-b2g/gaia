@@ -84,8 +84,13 @@ body:not(.rb-enabled) #statusbar {
 }
 
 #screen.rocketbar-expanded:not(.on-homescreen):not(.locked) #statusbar-icons,
-#screen.rocketbar-expanded.on-homescreen.rocketbar-focused:not(.locked) #statusbar-icons,
+#screen.on-homescreen.rocketbar-focused:not(.locked) #statusbar-icons,
 #screen.rocketbar-expanded.cards-view #statusbar-icons {
+  visibility: hidden;
+  opacity: 0;
+}
+
+#screen.rocketbar-focused #statusbar-background {
   visibility: hidden;
   opacity: 0;
 }
