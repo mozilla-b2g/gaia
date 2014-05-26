@@ -13,13 +13,23 @@ branches:
   - master
 env:
   matrix:
-  - CI_ACTION=linters
-  - CI_ACTION=unit-tests-in-firefox
-  - CI_ACTION=marionette_js PART=1 NBPARTS=3
-  - CI_ACTION=marionette_js PART=2 NBPARTS=3
-  - CI_ACTION=marionette_js PART=3 NBPARTS=3
-  - CI_ACTION=gaia_ui_tests
-  - CI_ACTION=build_tests
+  - CI_ACTION=marionette_js_stable_check DO=1
+  - CI_ACTION=marionette_js_stable_check DO=2
+  - CI_ACTION=marionette_js_stable_check DO=3
+  - CI_ACTION=marionette_js_stable_check DO=4
+  - CI_ACTION=marionette_js_stable_check DO=5
+  - CI_ACTION=marionette_js_stable_check DO=6
+  - CI_ACTION=marionette_js_stable_check DO=7
+  - CI_ACTION=marionette_js_stable_check DO=8
+  - CI_ACTION=marionette_js_stable_check DO=9
+  - CI_ACTION=marionette_js_stable_check DO=10
+  - CI_ACTION=marionette_js_stable_check DO=11
+  - CI_ACTION=marionette_js_stable_check DO=12
+  - CI_ACTION=marionette_js_stable_check DO=13
+  - CI_ACTION=marionette_js_stable_check DO=14
+  - CI_ACTION=marionette_js_stable_check DO=15
+  - CI_ACTION=marionette_js_stable_check DO=16
+  - CI_ACTION=marionette_js_stable_check DO=17
   global:
   - ARTIFACTS_S3_BUCKET=mozilla-releng-travis-uploads
   - secure: Gf2qm+xhLRTotuIvDD7HrNRmng3/dctGdsgF5P4aEu3nDujfxtZTp4sGirTqIngbfVzh9WkJ9eoT0yaDXtvWkr40Df6vwAUyI3P1x+NBOa2CkLz7U+f9j1yaJ3pJ121+L3o+7eTzJy/mvXHJYXAfa7rxcmjrCHpH5BSm+9/OZ4s=
