@@ -191,10 +191,10 @@
 #notifications-lockscreen-container {
   z-index: 1;
   position: absolute;
-  top: 19.4rem;
+  top: 18.8rem;
   left: 0;
   width: 100%;
-  max-height: 18.6rem;
+  max-height: 18.2rem;
   overflow-x: hidden;
   overflow-y: auto;
 
@@ -205,6 +205,10 @@
   background-color: transparent;
   border-top: none;
   border-bottom: 0.1rem solid rgba(255, 255, 255, 0.3);
+  height: 4.8rem;
+  width: calc(100 - 6rem);
+  margin-left: 2.4rem;
+  margin-right: 2.4rem;
 }
 
 #notifications-lockscreen-container .notification:first-child {
@@ -216,13 +220,13 @@
 }
 
 #notifications-lockscreen-container .notification > div {
-  width: calc(100% - 8.4rem);
-  margin-left: 6rem;
+  width: calc(100% - 3.6rem);
+  margin-left: 3.6rem;
   color: #ffffff;
 }
 
 #notifications-lockscreen-container .notification > div:first-of-type {
-  width: calc(100% - 14.4rem);
+  width: calc(100% - 9.6rem);
   font-size: 1.4rem;
 }
 
@@ -233,7 +237,7 @@
 #notifications-lockscreen-container .notification > .timestamp {
   position: absolute;
   top: 0.1rem;
-  right: 2.4rem;
+  right: 0;
   margin-top: 0;
   color: rgba(255, 255, 255, 0.6);
   font-size: 1.4rem;
@@ -244,7 +248,7 @@
 
 #notifications-lockscreen-container .notification > img {
   margin-top: 0.8rem;
-  margin-left: 2.4rem;
+  margin-left: 0;
   width: 2.4rem;
   height: 2.4rem;
 }
