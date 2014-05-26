@@ -91,6 +91,7 @@
   background-position: center center;
   background-repeat: no-repeat;
   background-color: transparent;
+  background-size: 3rem auto;
 }
 
 .media-playback-controls > button:active {
@@ -120,6 +121,10 @@
 
 .media-playback-controls.big {
   height: 7rem;
+}
+
+.media-playback-controls.big > button {
+  background-size: 4rem auto;
 }
 
 .media-playback-controls.big > .previous {
