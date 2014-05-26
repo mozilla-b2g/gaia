@@ -36,6 +36,10 @@ dom.player.mozAudioChannelType = 'content';
 
 var playing = false;
 
+// toolbarpause required to store the pause -play status while accessing
+// the the toolbar (info ,sharevideo ,deletevideo) in the current video
+var toolbarpause = false;
+
 // if this is true then the video tag is showing
 // if false, then the gallery is showing
 var playerShowing = false;
@@ -411,6 +415,10 @@ function showInfoView() {
   MediaUtils.populateMediaInfo(data);
   // We need to disable NFC sharing when showing info view
   setNFCSharing(false);
+  if (playing) {
+    toolbarpause = true;
+    setVideoPlaying(false);
+    }
   //Show the video info view
   dom.infoView.classList.remove('hidden');
 }
@@ -418,6 +426,10 @@ function showInfoView() {
 function hideInfoView() {
   // Enable NFC sharing when user hides info and returns to fullscreen mode
   setNFCSharing(true);
+  if (!playing && (toolbarpause == true)) {
+    toolbarpause = false;
+    setVideoPlaying(true);
+    }
   dom.infoView.classList.add('hidden');
 }
 
@@ -645,6 +657,10 @@ function share(blobs) {
       var msg = navigator.mozL10n.get('share-noprovider');
       alert(msg);
     } else {
+      if (!playing && (toolbarpause == true)) {
+        toolbarpause = false;
+        setVideoPlaying(true);
+      }
       console.warn('share activity error:', a.error.name);
     }
   };
@@ -805,6 +821,10 @@ function setVideoPlaying(playing) {
 }
 
 function deleteCurrentVideo() {
+  if (playing) {
+    toolbarpause = true;
+    setVideoPlaying(false);
+  }
   // We need to disable NFC sharing when showing delete confirmation dialog
   setNFCSharing(false);
   // If we're deleting the file shown in the player we've got to
@@ -824,6 +844,10 @@ function deleteCurrentVideo() {
   } else {
       // Enable NFC sharing when cancels delete and returns to fullscreen mode
       setNFCSharing(true);
+    if (!playing && (toolbarpause == true)) {
+        toolbarpause = false;
+        setVideoPlaying(true);
+      }
   }
 }
 
@@ -851,6 +875,10 @@ function postPickResult() {
 }
 
 function shareCurrentVideo() {
+  if (playing) {
+    toolbarpause = true;
+    setVideoPlaying(false);
+  }
   videodb.getFile(currentVideo.name, function(blob) {
     share([blob]);
   });
