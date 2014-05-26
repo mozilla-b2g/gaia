@@ -55,7 +55,7 @@
       message: 'fxa-coppa-failure-error-message'
     },
     COPPA_FTU_ERROR: {
-      title: 'fxa-coppa-error-title',
+      title: 'fxa-coppa-failure-error-title',
       message: 'fxa-coppa-ftu-error-message'
     },
     OFFLINE: {
