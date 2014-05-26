@@ -133,10 +133,10 @@ function startup(data, reason) {
     server.registerDirectory('/shared/', new LocalFile(baseDir + '/shared'));
 
     let brandingLocalFile = new LocalFile(
-      baseDir + '/shared/branding/' + GAIA_OFFICIAL ? 'official' : 'unofficial'
+      baseDir + '/shared/resources/branding/' + (GAIA_OFFICIAL ? 'official' : 'unofficial')
     );
 
-    server.registerDirectory('/shared/branding/', brandingLocalFile);
+    server.registerDirectory('/shared/resources/branding/', brandingLocalFile);
   }
 
   function getDirectories(appDirs) {
