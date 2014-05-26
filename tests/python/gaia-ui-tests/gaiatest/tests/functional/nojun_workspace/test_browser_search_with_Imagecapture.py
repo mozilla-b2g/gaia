@@ -12,6 +12,7 @@ class TestBrowserSearch(GaiaTestCase):
     _google_search_input_locator = (By.NAME, 'q')
     current_module = str(sys.modules[__name__])
     module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
+    device_path = '//sdcard//screenshots//'
 
     def setUp(self):
 
@@ -39,13 +40,11 @@ class TestBrowserSearch(GaiaTestCase):
         time.sleep(5)
         graphics.invoke_screen_capture(browserframe)
 
-        # collect screenshots and save it as ref images
-        #graphics.collect_ref_images('//storage//sdcard0//screenshots//','.',self.module_name)
-
-        # pull the screenshots off the device.  this copies multiple files and put it in the destination folder
-        graphics.collect_screenshots('//storage//sdcard0//screenshots//','.',self.module_name)
-
-        # compare the images for this test
-        graphics.batch_image_compare('.',self.module_name,5)
+        if (self.testvars['collect_ref_images'] == 'true'):
+            # collect screenshots and save it as ref images
+            graphics.collect_ref_images(self.device_path,'.',self.module_name)
+        else:
+            # pull the screenshots off the device and compare.
+            graphics.collect_and_compare('.',self.device_path , self.module_name, 5)
 
 
