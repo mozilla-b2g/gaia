@@ -56,6 +56,7 @@
       this.app.element.addEventListener('_closing', this);
       this.app.element.addEventListener('_opened', this);
       this.app.element.addEventListener('_closed', this);
+      this.app.element.addEventListener('_loaded', this);
       this.app.element.addEventListener('_opentransitionstart', this);
       this.app.element.addEventListener('_closetransitionstart', this);
       this.app.element.addEventListener('_openingtimeout', this);
@@ -72,6 +73,7 @@
     this.app.element.removeEventListener('_closing', this);
     this.app.element.removeEventListener('_opened', this);
     this.app.element.removeEventListener('_closed', this);
+    this.app.element.removeEventListener('_loaded', this);
     this.app.element.removeEventListener('_opentransitionstart', this);
     this.app.element.removeEventListener('_closetransitionstart', this);
     this.app.element.removeEventListener('_openingtimeout', this);
@@ -234,7 +236,6 @@
       }
 
       this.resetTransition();
-      this.app.element.removeAttribute('aria-hidden');
       this.app.element.classList.add('active');
       this.app.setVisible(true);
 
@@ -243,8 +244,7 @@
       this.app.setOrientation();
 
       this.app.waitForNextPaint(function() {
-        if (this._transitionState !== 'opened' || !this.app.loaded) {
-          this.app.debug('not loaded so not focusing for now.');
+        if (this._transitionState !== 'opened') {
           return;
         }
         // XXX: Remove this after SIMPIN Dialog is refactored.
@@ -318,18 +318,14 @@
         case '_openingtimeout':
           this.changeTransitionState('timeout', evt.type);
           break;
+        case '_loaded':
+          this.changeTransitionState('complete', evt.type);
+          break;
         case 'animationend':
           evt.stopPropagation();
           // We decide to drop this event if system is busy loading
           // the active app or doing some other more important task.
           if (System.isBusyLoading()) {
-            if (this.app.isHomescreen && this._transitionState == 'opening') {
-              /**
-               * focusing the app will have some side effect,
-               * but we don't care if we are opening the homescreen.
-               */
-              this.app.focus();
-            }
             return;
           }
           this.app.debug(evt.animationName + ' has been ENDED!');
