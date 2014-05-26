@@ -30,6 +30,8 @@
 
     CLASS_NAME: 'Search',
 
+    CLASS_LIST: 'appWindow searchWindow',
+
     openAnimation: 'zoom-out',
 
     closeAnimation: 'zoom-in',
