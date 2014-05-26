@@ -47,9 +47,12 @@ marionette('Vertical - Bookmark', function() {
     var numIcons = home.numIcons;
     var numDividers = home.numDividers;
     var url = server.url('sample.html');
+    var homescreenFrame;
+
     bookmark.save(url, browser);
     client.switchToFrame();
-    client.apps.switchToApp(Home2.URL);
+    homescreenFrame = client.findElement('iframe[src*="' + Home2.URL + '"]');
+    client.switchToFrame(homescreenFrame);
 
     assert.equal(numIcons + 1, home.numIcons);
     assert.equal(numDividers, home.numDividers);
