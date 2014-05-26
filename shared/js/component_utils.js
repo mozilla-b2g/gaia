@@ -16,7 +16,7 @@
       var style = document.createElement('style');
       style.setAttribute('scoped', '');
       var url = baseUrl + 'style.css';
-      style.innerHTML = '@import url(' + url + ')';
+      style.innerHTML = '@import url(' + url + ');';
 
       this.appendChild(style);
 
