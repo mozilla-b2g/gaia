@@ -215,6 +215,40 @@
   border-bottom: none;
 }
 
+#notifications-lockscreen-container .notification > div {
+  width: calc(100% - 8.4rem);
+  margin-left: 6rem;
+  color: #ffffff;
+}
+
+#notifications-lockscreen-container .notification > div:first-of-type {
+  width: calc(100% - 14.4rem);
+  font-size: 1.4rem;
+}
+
+#notifications-lockscreen-container .notification > div.detail {
+  margin-top: 0.2rem;
+}
+
+#notifications-lockscreen-container .notification > .timestamp {
+  position: absolute;
+  top: 0.1rem;
+  right: 2.4rem;
+  margin-top: 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.4rem;
+  font-style: italic;
+  font-weight: 400;
+  overflow: hidden;
+}
+
+#notifications-lockscreen-container .notification > img {
+  margin-top: 0.8rem;
+  margin-left: 2.4rem;
+  width: 2.4rem;
+  height: 2.4rem;
+}
+
 @keyframes fn-rotate {
   from {
     transform: rotate(1deg);
