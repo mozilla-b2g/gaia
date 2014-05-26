@@ -47,6 +47,12 @@ require(['config/require'], function() {
         Settings.init(options);
       });
     }
+
+    // Tell audio channel manager that we want to adjust the notification
+    // channel if the user press the volumeup/volumedown buttons in Settings.
+    if (navigator.mozAudioChannelManager) {
+      navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+    }
   });
 
   require(['boot']);

@@ -264,6 +264,12 @@ var Contacts = (function() {
     else {
       window.console.info('FB Already migrated!!!');
     }
+
+    // Tell audio channel manager that we want to adjust the notification
+    // channel if the user press the volumeup/volumedown buttons in Contacts.
+    if (navigator.mozAudioChannelManager) {
+      navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+    }
   };
 
   var initContactsList = function initContactsList() {

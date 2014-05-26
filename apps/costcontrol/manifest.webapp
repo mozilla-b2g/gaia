@@ -15,7 +15,8 @@
     "networkstats-manage":{},
     "alarms": {},
     "telephony": {},
-    "storage": {}
+    "storage": {},
+    "audio-channel-notification":{}
   },
   "activities": {
     "costcontrol/balance": {
