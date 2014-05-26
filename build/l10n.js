@@ -245,7 +245,7 @@
     /* jshint -W084 */
 
     if (!this.isReady) {
-      throw new L10n.Context.Error('Context not ready');
+      throw new L10n.Error('Context not ready');
     }
 
     var cur = 0;
@@ -267,7 +267,7 @@
         }
       }
 
-      var e = new L10n.Context.Error(id + ' not found in ' + loc, id, loc);
+      var e = new L10n.Error(id + ' not found in ' + loc, id, loc);
       this._emitter.emit('warning', e);
       cur++;
     }
@@ -339,7 +339,7 @@
     if (!(type in buildMessages)) {
       buildMessages[type] = [];
     }
-    if (e instanceof L10n.Context.Error &&
+    if (e instanceof L10n.Error &&
         e.loc === this.ctx.supportedLocales[0] &&
         buildMessages[type].indexOf(e.id) === -1) {
       buildMessages[type].push(e.id);
