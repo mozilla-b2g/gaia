@@ -24,7 +24,7 @@ button::-moz-focus-inner {
   outline: none;
 }
 
-a, 
+a,
 button {
   position: relative;
   font-family: sans-serif;
@@ -165,21 +165,21 @@ gaia-buttons[skin="dark"] {
 ----------------------------------------------------------------- */
 
 @media (min-width: 768px) {
-  
+
   gaia-buttons {
     height: 10rem;
     padding-right: 3rem;
     border-top-width: 0.2rem;
   }
-  
-  a, 
+
+  a,
   button {
     margin-left: 3rem;
     font-size: 2rem;
     height: 5rem;
     line-height: 5rem;
     border-radius: 2.5rem;
-    max-width: 40rem
+    max-width: 40rem;
   }
-  
+
 }

@@ -3,8 +3,8 @@
 
 requireApp('search/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('search/shared/js/settings_listener.js');
-requireApp('search/js/eme/eme.js');
-requireApp('search/js/eme/api.js');
+requireApp('search/shared/js/everythingme/eme.js');
+requireApp('search/shared/js/everythingme/api.js');
 requireApp('search/test/unit/mock_search.js');
 requireApp('search/js/providers/provider.js');
 requireApp('search/js/providers/bgimage.js');

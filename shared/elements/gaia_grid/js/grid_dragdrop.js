@@ -253,6 +253,7 @@
             this.addDragHandlers();
 
             e.stopImmediatePropagation();
+            e.preventDefault();
 
             this.begin(e);
 

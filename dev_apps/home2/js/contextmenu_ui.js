@@ -1,5 +1,9 @@
 'use strict';
-/* global LazyLoader, wallpaper */
+/* global app */
+/* global LazyLoader */
+/* global MozActivity */
+/* global wallpaper */
+/* jshint nonew: false */
 
 (function(exports) {
 
@@ -54,6 +58,28 @@
             this.hide(wallpaper.change);
           }.bind(this));
 
+          break;
+
+        case 'create-smart-collection':
+          this.hide(function onhide() {
+            var activity = new MozActivity({
+              name: 'create-collection',
+              data: {
+                type: 'folder'
+              }
+            });
+
+            app.homescreenFocused = false;
+
+            activity.onsuccess = function onsuccess() {
+              app.homescreenFocused = true;
+            };
+
+            activity.onerror = function onerror(e) {
+              app.homescreenFocused = true;
+              alert(this.error.name || 'generic-error-message');
+            };
+          });
           break;
 
         case 'cancel-action':

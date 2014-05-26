@@ -1,7 +1,5 @@
 'use strict';
-/* global Bookmark */
 /* global Divider */
-/* global Icon */
 /* global GridDragDrop */
 /* global GridLayout */
 /* global GridZoom */
@@ -12,7 +10,7 @@
 
   /**
    * GridView is a generic class to render and display a grid of items.
-   * @param {Object} config Configuration object containing: 
+   * @param {Object} config Configuration object containing:
    *  - element: The shadow root of the grid
    */
   function GridView(config) {
@@ -61,7 +59,7 @@
     add: function(item) {
       this.items.push(item);
 
-      if (item instanceof Icon || item instanceof Bookmark) {
+      if (item.identifier) {
         this.icons[item.identifier] = item;
       }
     },
@@ -104,7 +102,7 @@
       }
 
       // We do not allow users to launch icons in edit mode
-      if (action === 'launch' && this.dragdrop.inEditMode) {
+      if (action === 'launch' && this.dragdrop && this.dragdrop.inEditMode) {
         if (icon.detail.type !== 'bookmark') {
           return;
         }
@@ -139,7 +137,7 @@
         removed.remove();
       }, this);
 
-      // There should always be a divider at the end, it's hidden in CSS when 
+      // There should always be a divider at the end, it's hidden in CSS when
       // not in edit mode.
       var lastItem = this.items[this.items.length - 1];
       if (!(lastItem instanceof Divider)) {
