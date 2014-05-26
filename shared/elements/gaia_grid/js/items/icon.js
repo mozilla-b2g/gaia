@@ -1,7 +1,5 @@
 'use strict';
-/* global ConfirmDialog */
 /* global GridItem */
-/* global LazyLoader */
 /* global UrlHelper */
 
 (function(exports) {
@@ -9,6 +7,8 @@
   var _ = navigator.mozL10n.get;
 
   const ICON_PATH_BY_DEFAULT = 'style/images/default_icon.png';
+
+  const CONFIRM_DIALOG_ID = 'confirmation-message';
 
   /**
    * Represents a single app icon on the homepage.
@@ -152,35 +152,39 @@
      * Uninstalls the application.
      */
     remove: function() {
-
       var nameObj = {
         name: this.name
       };
 
-      LazyLoader.load([
-        '/shared/js/confirm.js',
-        '/shared/style/animations.css',
-        '/shared/style/confirm.css',
-        document.getElementById('confirmation-message')
-        ],
-        function() {
-        ConfirmDialog.show(_('delete-title', nameObj),
-          _('delete-body', nameObj),
-        {
-          title: _('cancel'),
-          callback: function _cancel() {
-            ConfirmDialog.hide();
+      var title = document.getElementById(CONFIRM_DIALOG_ID + '-title');
+      title.textContent = _('delete-title', nameObj);
+
+      var body = document.getElementById(CONFIRM_DIALOG_ID + '-body');
+      body.textContent = _('delete-body', nameObj);
+
+      var dialog = document.getElementById(CONFIRM_DIALOG_ID);
+      var cancelButton = document.getElementById(CONFIRM_DIALOG_ID + '-cancel');
+      var deleteButton = document.getElementById(CONFIRM_DIALOG_ID + '-delete');
+
+      var app = this.app;
+      var handler = {
+        handleEvent: function(e) {
+          if (e.type === 'click' && e.target === deleteButton) {
+            navigator.mozApps.mgmt.uninstall(app);
           }
-        },
-        {
-          title: _('delete'),
-          isDanger: true,
-          callback: function _confirm() {
-            ConfirmDialog.hide();
-            navigator.mozApps.mgmt.uninstall(this.app);
-          }.bind(this)
-        });
-      }.bind(this));
+
+          window.removeEventListener('hashchange', handler);
+          cancelButton.removeEventListener('click', handler);
+          deleteButton.removeEventListener('click', handler);
+          dialog.setAttribute('hidden', '');
+        }
+      };
+
+      cancelButton.addEventListener('click', handler);
+      deleteButton.addEventListener('click', handler);
+      window.addEventListener('hashchange', handler);
+
+      dialog.removeAttribute('hidden');
     }
   };
 
