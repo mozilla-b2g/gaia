@@ -172,6 +172,15 @@
           LazyLoader.load(
             ['/shared/js/async_storage.js',
              '/shared/elements/gaia_grid/js/icon_retriever.js'], function() {
+            var app = this.app;
+            // The download should finish when the icon is local
+            if (app && app.downloading && this.icon.startsWith('app:')) {
+              app.ondownloadsuccess = app.ondownloaderror = function() {
+                app.ondownloadsuccess = app.ondownloaderror = null;
+                IconRetriever.get(this);
+              }.bind(this);
+              return;
+            }
             IconRetriever.get(this);
           }.bind(this));
         } else {
