@@ -257,6 +257,8 @@ var StatusBar = {
       this.topPanel.addEventListener(name, this.panelHandler.bind(this));
     }, this);
 
+    this.statusbarIcons.addEventListener('wheel', this);
+
     this.systemDownloadsCount = 0;
     this.setActive(true);
   },
@@ -422,6 +424,13 @@ var StatusBar = {
       case 'moznetworkupload':
       case 'moznetworkdownload':
         this.update.networkActivity.call(this);
+        break;
+
+      case 'wheel':
+        if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaY &&
+          evt.deltaY < 0) {
+          window.dispatchEvent(new CustomEvent('statusbarwheel'));
+        }
         break;
     }
   },
