@@ -7,8 +7,6 @@ var assert = require('assert');
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 var CALENDAR_APP_MANIFEST = CALENDAR_APP + '/manifest.webapp';
 
-/* doing stability check */
-
 marionette('Notification events', function() {
 
   var client = marionette.client({
@@ -180,8 +178,8 @@ marionette('Notification events', function() {
     assert.equal(error, false, 'Error on resending after removing: ' + error);
 
     // close app, to make sure.
-    client.switchToFrame();
-    client.apps.close(CALENDAR_APP);
+    //client.switchToFrame();
+    //client.apps.close(CALENDAR_APP);
 
     // switch to system app and send desktop-notification-click
     client.switchToFrame();
