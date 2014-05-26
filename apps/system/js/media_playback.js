@@ -99,14 +99,18 @@ MediaPlaybackWidget.prototype = {
   },
 
   updatePlaybackStatus: function mp_updatePlaybackStatus(status) {
+    var _ = navigator.mozL10n.get;
     switch (status.playStatus) {
       case 'PLAYING':
         this.hidden = false;
         this.playPauseButton.classList.remove('is-paused');
+        this.playPauseButton.setAttribute('aria-label',
+          _('mediaPlaybackPause'));
         break;
       case 'PAUSED':
         this.hidden = false;
         this.playPauseButton.classList.add('is-paused');
+        this.playPauseButton.setAttribute('aria-label', _('mediaPlaybackPlay'));
         break;
       case 'STOPPED':
         this.hidden = true;
