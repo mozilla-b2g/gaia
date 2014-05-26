@@ -74,10 +74,15 @@ gaia-tests-zip:
 
 .PHONY: $(LOCAL_PATH)/profile.tar.gz
 $(LOCAL_PATH)/profile.tar.gz:
+# Prevent rebuilding gaia at all if we executed ./build.sh gecko
+ifeq ($(MAKECMDGOALS),gecko)
+	$(MAKE) -C $(GAIA_PATH) $(GAIA_MAKE_FLAGS) preferences
+else
 ifeq ($(CLEAN_PROFILE), 1)
 	rm -rf $(GAIA_PATH)/profile $(GAIA_PATH)/profile.tar.gz
 endif
 	$(MAKE) -C $(GAIA_PATH) $(GAIA_MAKE_FLAGS) profile
+endif
 	@FOLDERS='webapps'; \
 	if [ -d $(GAIA_PATH)/profile/indexedDB ]; then \
 	FOLDERS="indexedDB $${FOLDERS}"; \
