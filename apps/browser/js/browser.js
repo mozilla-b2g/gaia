@@ -891,7 +891,8 @@ var Browser = {
     if (this.shouldFocus) {
       e.preventDefault();
       this.urlInput.focus();
-      this.urlInput.select();
+      this.urlInput.setSelectionRange(0, this.urlInput.value.length);
+      this.urlInput.scrollLeft = this.urlInput.scrollWidth;
       this.shouldFocus = false;
     }
   },
@@ -913,6 +914,7 @@ var Browser = {
   },
 
   urlBlur: function browser_urlBlur() {
+    this.urlInput.scrollLeft = 0;
     this.urlBar.classList.remove('focus');
   },
 
