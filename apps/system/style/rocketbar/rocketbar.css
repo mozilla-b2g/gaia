@@ -56,7 +56,12 @@ body:not(.rb-enabled) #rocketbar {
   height: 3.6rem;
   color: #fff;
   padding: 0.6rem;
+  font-style: italic;
   text-overflow: ellipsis;
+}
+
+#rocketbar-input::-moz-placeholder {
+  color: #333;
 }
 
 #rocketbar-title-content {
