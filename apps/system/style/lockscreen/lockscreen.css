@@ -24,7 +24,7 @@
  * contains children and do the opacity animation, which would cost lot on
  * temporary surfaces.
  **/
-#lockscreen-background {
+#lockscreen-background, #lockscreen-secondary-background {
   position: absolute;
   top: 0;
   overflow: hidden;
@@ -32,14 +32,22 @@
   /* Must match the CSS background rule of #screen in system.css */
   width: 100%;
   height: 100%;
-  background-color: #000;
-  background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
   background-repeat: no-repeat;
-  background-position: 50% 50%;
 
   -moz-user-select: none;
   opacity: 1;
   z-index: 1;
+}
+
+#lockscreen-background {
+  background-color: #000;
+  background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
+  background-position: 50% 50%;
+}
+
+#lockscreen-secondary-background {
+  background-image: linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(255,255,255,0));
+  background-size: 100% 22.6rem;
 }
 
 #screen.screenoff > #lockscreen,
