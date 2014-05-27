@@ -5,6 +5,9 @@
           NotificationHelper, SettingsListener, SimPicker, SimSettingsHelper,
           SuggestionBar, TelephonyHelper, TonePlayer, Utils, Voicemail */
 
+// Web Components
+window.COMPONENTS_BASE_URL = '/shared/elements/';
+
 var NavbarManager = {
   init: function nm_init() {
     this.update();

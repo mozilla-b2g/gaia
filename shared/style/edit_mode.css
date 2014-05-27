@@ -14,7 +14,8 @@
 }
 
 /* Header */
-[role="dialog"][data-type="edit"] [role="region"] > header:first-child {
+[role="dialog"][data-type="edit"] [role="region"] > header:first-child,
+gaia-header {
   background-color: #f4f4f4;
   transition: transform 0.4s ease;
   pointer-events: auto;
