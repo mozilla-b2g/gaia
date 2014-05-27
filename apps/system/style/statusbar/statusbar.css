@@ -57,6 +57,15 @@ body:not(.rb-enabled) #statusbar {
   transform: translateY(0);
 }
 
+#screen.locked > #statusbar-background {
+  height: 22.6rem;
+  background-image: linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(255,255,255,0));
+}
+
+#screen.locked:not(.attention) #statusbar-background:before {
+  background-color: transparent;
+}
+
 #screen:not(.locked) #statusbar.invisible.dragged {
   background-color: black;
 }
