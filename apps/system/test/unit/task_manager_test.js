@@ -28,7 +28,7 @@ var mocksForTaskManager = new MocksHelper([
   'UtilityTray',
   'AppWindowManager',
   'Rocketbar',
-  'sleepMenu',
+  'SleepMenu',
   'OrientationManager',
   'StackManager',
   'AppWindow'

@@ -10,7 +10,7 @@
    * * AttentionScreen is hidden.
    * * AttentionScreen is closed.
    * * TrustedUI is closed.
-   * * sleepMenu is hidden.
+   * * SleepMenu is hidden.
    *
    * Any of them occurs would trigger OrientationManager to dispatch
    * <code>reset-orientation</code> event and AppWindowManager would reset the

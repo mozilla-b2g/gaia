@@ -387,13 +387,13 @@ suite('system/ScreenManager', function() {
     });
 
     test('Testing shutdown event', function() {
-      var powerOffSpy = this.sinon.spy(MocksleepMenu, 'startPowerOff');
+      var powerOffSpy = this.sinon.spy(MockSleepMenu, 'startPowerOff');
       powerOffSpy.withArgs(false);
       this.sinon.stub(ScreenManager, 'turnScreenOn');
 
       ScreenManager.handleEvent({
         type: 'requestshutdown',
-        detail: MocksleepMenu
+        detail: MockSleepMenu
       });
 
       assert.isTrue(ScreenManager.turnScreenOn.calledOnce);
