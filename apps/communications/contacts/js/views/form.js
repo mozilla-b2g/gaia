@@ -942,11 +942,11 @@ contacts.Form = (function() {
       var carrierSelector = 'carrier_' + arrayIndex;
       var carrierField = dom.getElementById(carrierSelector).value || '';
       contact['tel'] = contact['tel'] || [];
-      contact['tel'][i] = {
+      contact['tel'].push({
         value: numberValue,
         type: [typeField],
         carrier: carrierField
-      };
+      });
     }
   };
 
@@ -958,19 +958,17 @@ contacts.Form = (function() {
       var arrayIndex = currentEmail.dataset.index;
       var emailField = dom.getElementById('email_' + arrayIndex);
       var emailValue = emailField.value;
-      if (emailValue) {
-        emailValue = emailValue.trim();
+      emailValue = emailValue && emailValue.trim();
+      if (!emailValue) {
+        continue;
       }
       var selector = 'email_type_' + arrayIndex;
       var typeField = dom.getElementById(selector).dataset.value || '';
-      if (!emailValue)
-        continue;
-
       contact['email'] = contact['email'] || [];
-      contact['email'][i] = {
+      contact['email'].push({
         value: emailValue,
         type: [typeField]
-      };
+      });
     }
   };
 
@@ -1020,16 +1018,21 @@ contacts.Form = (function() {
       var arrayIndex = currentAddress.dataset.index;
       var addressField = dom.getElementById('streetAddress_' + arrayIndex);
       var addressValue = addressField.value || '';
+      addressValue = addressValue.trim();
 
       var selector = 'address_type_' + arrayIndex;
       var typeField = dom.getElementById(selector).dataset.value || '';
+      typeField = typeField.trim();
 
       selector = 'locality_' + arrayIndex;
       var locality = dom.getElementById(selector).value || '';
+      locality = locality.trim();
       selector = 'postalCode_' + arrayIndex;
       var postalCode = dom.getElementById(selector).value || '';
+      postalCode = postalCode.trim();
       selector = 'countryName_' + arrayIndex;
       var countryName = dom.getElementById(selector).value || '';
+      countryName = countryName.trim();
 
       // Sanity check for pameters, check all params but the typeField
       if (addressValue == '' && locality == '' &&
@@ -1038,13 +1041,13 @@ contacts.Form = (function() {
       }
 
       contact['adr'] = contact['adr'] || [];
-      contact['adr'][i] = {
+      contact['adr'].push({
         streetAddress: addressValue,
         postalCode: postalCode,
         locality: locality,
         countryName: countryName,
         type: [typeField]
-      };
+      });
     }
   };
 
@@ -1056,6 +1059,7 @@ contacts.Form = (function() {
       var arrayIndex = currentNote.dataset.index;
       var noteField = dom.getElementById('note_' + arrayIndex);
       var noteValue = noteField.value;
+      noteValue = noteValue && noteValue.trim();
       if (!noteValue) {
         continue;
       }

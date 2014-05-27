@@ -365,6 +365,39 @@ suite('Render contact form', function() {
         assertCarrierState(element, null);
     });
 
+    test('if the tel field is null, is ignored',
+      function() {
+        var deviceContact = new MockContactAllFields();
+        deviceContact.tel[0].value = null;
+        subject.render(deviceContact);
+        assert.equal(deviceContact.tel.length, 2);
+
+        subject.saveContact();
+        assert.equal(deviceContact.tel.length, 1);
+    });
+
+    test('if the email field is null, is ignored',
+      function() {
+        var deviceContact = new MockContactAllFields();
+        deviceContact.email[0].value = null;
+        subject.render(deviceContact);
+        assert.equal(deviceContact.email.length, 2);
+
+        subject.saveContact();
+        assert.equal(deviceContact.email.length, 1);
+    });
+
+    test('if the address field is null, is ignored',
+      function() {
+        var deviceContact = new MockContactAllFields();
+        deviceContact.adr.unshift({'type': ['personal']});
+        subject.render(deviceContact);
+        assert.equal(deviceContact.adr.length, 2);
+
+        subject.saveContact();
+        assert.equal(deviceContact.adr.length, 1);
+    });
+
     test('if tel field has no value, carrier input must be in disabled state',
       function() {
         mockContact.tel = [];
