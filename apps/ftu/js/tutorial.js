@@ -3,7 +3,7 @@
 /* exported Tutorial */
 
 (function(exports) {
-  
+
   'use strict';
   // Keeps track of the current step
   var currentStep = 1;
@@ -37,7 +37,7 @@
     }
     // Set the step
     dom.tutorial.dataset.step = currentStep;
-    
+
     // Internationalize
     navigator.mozL10n.localize(
       dom.tutorialStepTitle,
@@ -46,7 +46,7 @@
 
     // Update the image
     dom.tutorialStepImage.querySelector('img').src =
-      'css/images/tutorial/' + currentStep + imgSuffix + '.png';
+      'style/images/tutorial/' + currentStep + imgSuffix + '.png';
 
     _setProgressBarStep(currentStep);
   }
@@ -86,11 +86,11 @@
       elementIDs.forEach(function (name) {
         dom[Utils.camelCase(name)] = document.getElementById(name);
       }, this);
-      
+
       // Cache max steps taking into account the layout
       stepsLength.tiny = dom.tutorial.dataset.maxstepsTiny;
       stepsLength.large = dom.tutorial.dataset.maxstepsLarge;
-      
+
       // Add event listeners
       dom.forwardTutorial.addEventListener(
         'click',
