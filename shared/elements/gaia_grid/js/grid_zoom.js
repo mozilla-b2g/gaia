@@ -129,7 +129,11 @@
             // Change the indicator color at the end.
             this.indicator.classList.add('active');
 
-            window.dispatchEvent(new CustomEvent('appzoom'));
+            window.dispatchEvent(new CustomEvent('appzoom', {
+              'detail': {
+                cols: layout.perRow
+              }
+            }));
 
             // Reset zoom element state after a set time.
             var zoomHideTime = 400;

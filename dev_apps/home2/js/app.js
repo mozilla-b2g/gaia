@@ -11,10 +11,10 @@
     this.homescreenFocused = true;
 
     window.addEventListener('hashchange', this);
-    window.addEventListener('appzoom', this);
     window.addEventListener('gaiagrid-saveitems', this);
     window.addEventListener('gaiagrid-collection-open', this);
     window.addEventListener('gaiagrid-collection-close', this);
+    window.addEventListener('gaiagrid-layout-ready', this);
   }
 
   App.prototype = {
@@ -90,14 +90,14 @@
           doScroll();
           break;
 
-        case 'appzoom':
-          this.grid.render();
+        case 'gaiagrid-layout-ready':
+          this.init();
+          window.removeEventListener('gaiagrid-layout-ready', this);
           break;
       }
     }
   };
 
   exports.app = new App();
-  exports.app.init();
 
 }(window));
