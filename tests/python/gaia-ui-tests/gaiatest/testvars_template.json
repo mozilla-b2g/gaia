@@ -12,7 +12,7 @@
     "ssid": ""
   },
   "bluetooth": {
-    "ssid": ""
+    "remote_ssid": ""
   },
   "email": {
     "gmail": {

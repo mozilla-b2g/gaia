@@ -17,13 +17,9 @@ class TestBluetoothSettings(GaiaTestCase):
         # Bluetooth host object
         self.bluetooth_host = BluetoothHost(self.marionette)
 
-        self.settings = Settings(self.marionette)
-        self.settings.launch()
-        self.bluetooth_settings = self.settings.open_bluetooth_settings()
-
     def tearDown(self):
-        self.bluetooth_settings.unpair_all_devices()
-        self.bluetooth_settings.disable_bluetooth()
+        self.data_layer.unpair_all_bluetooth_devices()
+        self.data_layer.bluetooth_disable()
 
     def test_toggle_bluetooth_settings(self):
         """Toggle Bluetooth via Settings - Networks & Connectivity
@@ -32,18 +28,22 @@ class TestBluetoothSettings(GaiaTestCase):
         """
         device_name = str(time.time())
 
-        self.bluetooth_settings.enable_bluetooth()
+        settings = Settings(self.marionette)
+        settings.launch()
+        bluetooth_settings = settings.open_bluetooth_settings()
 
-        self.bluetooth_settings.tap_rename_my_device()
-        self.bluetooth_settings.type_phone_name(device_name)
-        self.bluetooth_settings.tap_update_device_name_ok()
+        bluetooth_settings.enable_bluetooth()
 
-        self.bluetooth_settings.enable_visible_to_all()
+        bluetooth_settings.tap_rename_my_device()
+        bluetooth_settings.type_phone_name(device_name)
+        bluetooth_settings.tap_update_device_name_ok()
+
+        bluetooth_settings.enable_visible_to_all()
 
         # Now have host machine inquire and shouldn't find our device
         device_found = self.bluetooth_host.is_device_visible(device_name)
         self.assertTrue(device_found, "Host should see our device (device discoverable mode is ON)")
 
-        remote_device_name = self.testvars['bluetooth']['ssid']
-        self.bluetooth_settings.pair_device(remote_device_name)
-        self.assertIn(remote_device_name, self.bluetooth_settings.connected_devices)
+        remote_device_name = self.testvars['bluetooth']['remote_ssid']
+        bluetooth_settings.pair_device(remote_device_name)
+        self.assertIn(remote_device_name, bluetooth_settings.connected_devices)
