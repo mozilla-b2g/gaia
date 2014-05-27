@@ -1464,12 +1464,17 @@ RequestReader.prototype =
               }
 
               if (!file || !file.exists()) {
-                request._path = filePath + oldPath;
                 let foundL10nFile = this._findLocalizationPath();
                 if (!foundL10nFile) {
                   // find the file path in build_stage instead.
                   var stageFilePath = this._findStageRealPath(applicationName);
-                  request._path = stageFilePath + oldPath;
+                  try {
+                    file = _handler._getFileForPath(stageFilePath + oldPath);
+                    if (file && file.exists()) {
+                      request._path = stageFilePath + oldPath;
+                    }
+                  } catch(e) {
+                  }
                 }
               } else {
                 request._path = filePath + oldPath;
