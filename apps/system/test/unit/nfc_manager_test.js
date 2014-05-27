@@ -160,10 +160,10 @@ suite('Nfc Manager Functions', function() {
   });
 
   suite('handleNdefMessage', function() {
-    var execCommonTest = function(message, type) {
+    var execCommonTest = function(message, type, name) {
       var activityOptions = NfcManager.handleNdefMessage(message);
 
-      assert.equal(activityOptions.name, 'nfc-ndef-discovered');
+      assert.equal(activityOptions.name, name || 'nfc-ndef-discovered');
       assert.equal(activityOptions.data.type, type);
       assert.equal(activityOptions.data.records, message);
 
@@ -227,6 +227,30 @@ suite('Nfc Manager Functions', function() {
 
       var activityOptions = execCommonTest(dummyNdefMsg, 'url');
       assert.equal(activityOptions.data.url, 'https://wiki.mozilla.org');
+    });
+
+    test('TNF well known mailto: uri', function() {
+      var payload = new Uint8Array([6].concat(
+        Array.apply([], NfcUtils.fromUTF8('jorge@borges.ar'))));
+      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
+                                            NDEF.RTD_URI,
+                                            new Uint8Array(),
+                                            payload)];
+      var activityOptions = execCommonTest(dummyNdefMsg, 'mail', 'new');
+      assert.equal(activityOptions.data.url, 'mailto:jorge@borges.ar');
+    });
+
+    test('TNF well known tel: uri', function() {
+      var payload = new Uint8Array([5].concat(
+        Array.apply([], NfcUtils.fromUTF8('0054267437'))));
+      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
+                                            NDEF.RTD_URI,
+                                            new Uint8Array(),
+                                            payload)];
+      var activityOptions = execCommonTest(dummyNdefMsg, 'webtelephony/number',
+                                           'dial');
+      assert.equal(activityOptions.data.uri, 'tel:0054267437');
+      assert.equal(activityOptions.data.number, '0054267437');
     });
 
     test('TNF well known rtd smart poster', function() {
