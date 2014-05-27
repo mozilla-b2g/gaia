@@ -26,11 +26,8 @@ marionette('media playback tests', function() {
     playback.unlockScreen();
   });
 
-  // We want to run the same tests on both the utility tray and the lockscreen,
-  // so we'll write the tests once and then generate a pair of suites.
   var suiteInfos = [
-    { name: 'in utility tray', opener: 'inUtilityTray' },
-    { name: 'in lockscreen', opener: 'inLockscreen' }
+    { name: 'in utility tray', opener: 'inUtilityTray' }
   ];
 
   suiteInfos.forEach(function(suiteInfo) {

@@ -1,0 +1,143 @@
+#media-playback-container {
+  height: auto;
+}
+
+#media-playback-container.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+#lockscreen-media-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(6rem + 1px);
+  height: auto;
+  background: rgba(0, 0, 0, 0.75);
+  border-top: 1px solid #9c9a9c;
+  border-bottom: 1px solid black;
+  z-index: 1;
+}
+
+#lockscreen-media-container.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* The "Now Playing" section */
+
+.media-playback-nowplaying {
+  height: 1.5rem;
+  margin: 0.8rem 0.6rem 0.6rem 0.6rem;
+}
+
+.media-playback-nowplaying > .icon {
+  position: relative;
+  float: left;
+  width: 2.2rem;
+  height: 2.2rem;
+  margin: 0 0.3rem 0.2rem 0;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 2.0rem;
+}
+
+.media-playback-nowplaying > .albumart {
+  float: right;
+  width: 1.8rem;
+  height: 1.8rem;
+  background-size: 3rem;
+}
+
+.media-playback-nowplaying > .title,
+.media-playback-nowplaying > .artist {
+  margin-left: 0;
+  margin-right: 3rem;
+  line-height: 1.2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.media-playback-nowplaying > .title {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.media-playback-nowplaying > .artist {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #bfbfbf;
+}
+
+/* The playback controls section */
+
+.media-playback-controls {
+  height: 4.5rem;
+  margin-top: -1rem;
+  overflow: hidden;
+  text-align: center;
+  font-size: 0; /* ensure there's no space between the buttons */
+}
+
+.media-playback-controls > button {
+  height: 100%;
+  padding: 0;
+  border-width: 0;
+  border-radius: 0;
+  overflow: hidden;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-color: transparent;
+}
+
+.media-playback-controls > button:active {
+  background-color: #00aacc;
+}
+
+.media-playback-controls > .previous {
+  width: 6rem;
+  margin-right: 0.1rem;
+  background-image: url("./images/icon-previous.png");
+}
+
+.media-playback-controls > .play-pause {
+  width: 6rem;
+  margin-right: 0.1rem;
+  margin-left: 0.1rem;
+  background-image: url("./images/icon-pause.png");
+}
+
+.media-playback-controls > .play-pause.is-paused {
+  background-image: url("./images/icon-play.png");
+}
+
+.media-playback-controls > .next {
+  width: 6rem;
+  margin-left: 0.1rem;
+  background-image: url("./images/icon-next.png");
+}
+
+/* Overrides for the larger-sized playback controls */
+
+.media-playback-controls.big {
+  height: 4.2rem;
+  width: 100%;
+}
+
+.media-playback-controls.big > .previous {
+  background-image: url("./images/icon-big-previous.png");
+}
+
+.media-playback-controls.big > .play-pause {
+  background-image: url("./images/icon-big-pause.png");
+}
+
+.media-playback-controls.big > .play-pause.is-paused {
+  background-image: url("./images/icon-big-play.png");
+}
+
+.media-playback-controls.big > .next {
+  background-image: url("./images/icon-big-next.png");
+}
