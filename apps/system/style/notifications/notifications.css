@@ -201,6 +201,10 @@
   background-color: transparent;
 }
 
+#notifications-lockscreen-container.collapsed {
+  max-height: 6rem;
+}
+
 #notifications-lockscreen-container .notification {
   background-color: transparent;
   border-top: none;
