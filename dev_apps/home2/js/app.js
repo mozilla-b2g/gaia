@@ -8,6 +8,7 @@
 
   function App() {
     this.grid = document.getElementById('icons');
+    this.homescreenFocused = true;
 
     window.addEventListener('hashchange', this);
     window.addEventListener('appzoom', this);
