@@ -17,7 +17,19 @@ var SettingsPromiseManager = function SettingsPromiseManager() {
 };
 
 SettingsPromiseManager.prototype._cleanLock = function(type) {
-  var propName = '_' + type + 'Lock';
+  var propName;
+  switch (type) {
+    case 'read':
+      propName = '_readLock';
+      break;
+
+    case 'write':
+      propName = '_writeLock';
+      break;
+
+    default:
+      throw new Error('SettingsPromiseManager: Not such type.');
+  }
 
   // If there is a close lock, remove it.
   if (this[propName] && this[propName].closed) {
@@ -26,7 +38,19 @@ SettingsPromiseManager.prototype._cleanLock = function(type) {
 };
 
 SettingsPromiseManager.prototype._getLock = function(type) {
-  var propName = '_' + type + 'Lock';
+  var propName;
+  switch (type) {
+    case 'read':
+      propName = '_readLock';
+      break;
+
+    case 'write':
+      propName = '_writeLock';
+      break;
+
+    default:
+      throw new Error('SettingsPromiseManager: Not such type.');
+  }
 
   // If there is a lock present we return that
   if (this[propName] && !this[propName].closed) {
@@ -113,7 +137,14 @@ SettingsPromiseManager.prototype.setOne = function(key, value) {
 };
 
 var SettingsManagerBase = function() {
+  // Indicate the values is available
+  this.initialized = false;
+  // Callbacks attached to mozSettings observers.
   this._callbacks = null;
+  // Value object keeping the value (and returns to callers)
+  this._values = {};
+  // Promise to return when calling initSettings()
+  this._initPromise = null;
 };
 
 SettingsManagerBase.prototype.onsettingchange = null;
@@ -121,32 +152,59 @@ SettingsManagerBase.prototype.onsettingchange = null;
 SettingsManagerBase.prototype.KEYS = [];
 SettingsManagerBase.prototype.PROPERTIES = [];
 
+/**
+ * Get current settings synchronizely.
+ * Return the object holding settings values.
+ * Object will be empty if this.initialized is false.
+ */
+SettingsManagerBase.prototype.getSettingsSync = function() {
+  return this._values;
+};
+
+/**
+ * Get current settings asynchronizely and start observing changings.
+ * Return a promise object resolves to object holding setting values.
+ */
 SettingsManagerBase.prototype.initSettings = function() {
-  var promise = new Promise(function(resolve, reject) {
-    this.promiseManager.get(this.KEYS)
-    .then(function(results) {
-      results.forEach(function(value, i) {
-        this[this.PROPERTIES[i]] = value;
-      }, this);
+  if (this._initPromise) {
+    return this._initPromise;
+  }
 
-      this.startObserve();
+  // We create our promise start by getting a promise of the raw settings
+  // result, then do our own stuff.
+  var promise = this.promiseManager.get(this.KEYS).then(function(results) {
+    results.forEach(function(value, i) {
+      this._values[this.PROPERTIES[i]] = value;
+    }, this);
 
-      resolve();
-    }.bind(this),
-    reject);
+    this.startObserve();
+    this.initialized = true;
+
+    // Our promise should resolve to values.
+    return this._values;
+  }.bind(this),
+  function(error) {
+    this._initPromise = null;
+
+    // Our promise should be rejected.
+    return Promise.reject(error);
   }.bind(this));
 
+  this._initPromise = promise;
   return promise;
 };
 
 SettingsManagerBase.prototype.startObserve = function() {
+  if (this._callbacks) {
+    return;
+  }
   var callbacks = this._callbacks = [];
 
   this.KEYS.forEach(function(key, i) {
     var callback = function(e) {
-      this[this.PROPERTIES[i]] = e.settingValue;
+      this._values[this.PROPERTIES[i]] = e.settingValue;
       if (typeof this.onsettingchange === 'function') {
-        this.onsettingchange();
+        this.onsettingchange(this._values);
       }
     }.bind(this);
 
