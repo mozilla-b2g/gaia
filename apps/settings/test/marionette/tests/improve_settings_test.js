@@ -1,3 +1,5 @@
+/* Modified for stability test */
+
 var Settings = require('../app/app'),
     assert = require('assert');
 
