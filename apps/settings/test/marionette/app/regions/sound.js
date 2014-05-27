@@ -23,11 +23,8 @@ SoundPanel.Selectors = {
   'alarmSlider': '#sound input[name="audio.volume.alarm"]',
   'keypadCheckbox': '#sound input[name="phone.ring.keypad"]',
   'keypadSpan': '#sound span[data-l10n-id="keypad"]',
-  'cameraShutterCheckbox': '#sound input[name="camera.shutter.enabled"]',
-  'cameraShutterSpan': '#sound span[data-l10n-id="camera-shutter"]',
-  'videoRecordingCheckbox':
-              '#sound input[name="camera.recordingsound.enabled"]',
-  'videoRecordingSpan': '#sound span[data-l10n-id="camera-recordingsound"]',
+  'cameraCheckbox': '#sound input[name="camera.sound.enabled"]',
+  'cameraSpan': '#sound span[data-l10n-id="camera"]',
   'sentMailCheckbox': '#sound input[name="mail.sent-sound.enabled"]',
   'sentMailSpan': '#sound span[data-l10n-id="sent-mail"]',
   'sentMessageCheckbox':
@@ -88,24 +85,14 @@ SoundPanel.prototype = {
     this.waitForElement('keypadSpan').tap();
   },
 
-  get isCameraShutterChecked() {
-    return this.findElement('cameraShutterCheckbox')
+  get isCameraChecked() {
+    return this.findElement('cameraCheckbox')
       .getAttribute('checked') &&
-      this.client.settings.get('phone.ring.keypad');
+      this.client.settings.get('camera.sound.enabled');
   },
 
-  tapOnCameraShutter: function() {
-    this.waitForElement('cameraShutterSpan').tap();
-  },
-
-  get isVideoRecordingChecked() {
-    return this.findElement('videoRecordingCheckbox')
-      .getAttribute('checked') &&
-      this.client.settings.get('camera.recordingsound.enabled');
-  },
-
-  tapOnVideoRecording: function() {
-    this.waitForElement('videoRecordingSpan').tap();
+  tapOnCamera: function() {
+    this.waitForElement('cameraSpan').tap();
   },
 
   get isSentMailChecked() {

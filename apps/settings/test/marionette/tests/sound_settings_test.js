@@ -76,33 +76,18 @@ marionette('manipulate sound settings', function() {
     );
   });
 
-  test('check camera shutter initial state', function() {
+  test('check camera initial state', function() {
     assert.ok(
-      soundPanel.isCameraShutterChecked,
-      'camera shutter sound is enabled by default'
+      soundPanel.isCameraChecked,
+      'camera sound is enabled by default'
     );
   });
 
-  test('disable camera shutter sound', function() {
-    soundPanel.tapOnCameraShutter();
+  test('disable camera sound', function() {
+    soundPanel.tapOnCamera();
     assert.ok(
-      !soundPanel.isCameraShutterChecked,
-      'camera shutter sound has been disabled'
-    );
-  });
-
-  test('check video recording initial state', function() {
-    assert.ok(
-      !soundPanel.isVideoRecordingChecked,
-      'video recording sound is disabled by default'
-    );
-  });
-
-  test('enable video recording sound', function() {
-    soundPanel.tapOnVideoRecording();
-    assert.ok(
-      soundPanel.isVideoRecordingChecked,
-      'video recording sound has been enabled'
+      !soundPanel.isCameraChecked,
+      'camera sound has been disabled'
     );
   });
 

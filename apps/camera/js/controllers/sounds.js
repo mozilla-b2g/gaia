@@ -32,6 +32,7 @@ function SoundsController(app) {
 SoundsController.prototype.bindEvents = function() {
   this.app.on('change:recording', this.onRecordingChange.bind(this));
   this.app.on('camera:shutter', this.sounds.player('shutter'));
+  this.app.on('timer:immanent', this.sounds.player('timer'));
 };
 
 /**

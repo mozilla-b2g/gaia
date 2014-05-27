@@ -65,18 +65,23 @@ module.exports = {
     list: [
       {
         name: 'shutter',
-        setting: 'camera.shutter.enabled',
-        url: './resources/sounds/shutter.ogg'
+        url: './resources/sounds/shutter.ogg',
+        setting: 'camera.sound.enabled'
+      },
+      {
+        name: 'timer',
+        url: './resources/sounds/timer.ogg',
+        setting: 'camera.sound.enabled'
       },
       {
         name: 'recordingStart',
         url: './resources/sounds/camcorder_start.opus',
-        setting: 'camera.recordingsound.enabled'
+        setting: 'camera.sound.enabled'
       },
       {
         name: 'recordingEnd',
         url: './resources/sounds/camcorder_end.opus',
-        setting: 'camera.recordingsound.enabled'
+        setting: 'camera.sound.enabled'
       }
     ]
   },
