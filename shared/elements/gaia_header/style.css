@@ -84,6 +84,11 @@ button[disabled] {
   pointer-events: none;
 }
 
+/* Hidden */
+[hidden] {
+  display: none;
+}
+
 /* Icons */
 [data-icon] {
   font-size: 0;
@@ -269,6 +274,7 @@ button:hover {
 ----------------------------------------------------------------- */
 
 [transition] {
+  display: block;
   position: absolute;
   top: 0;
   right: 0;
@@ -280,7 +286,7 @@ button:hover {
   transition: transform 0.4s ease;
 }
 
-[transition="slide"][hide] {
+[transition="slide"][hidden] {
   transform: translateY(-100%);
 }
 
@@ -290,7 +296,7 @@ button:hover {
   transition: opacity 0.4s ease;
 }
 
-[transition="fade"][hide] {
+[transition="fade"][hidden] {
   opacity: 0;
   pointer-events: none;
 }

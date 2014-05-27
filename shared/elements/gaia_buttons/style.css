@@ -17,6 +17,7 @@ gaia-buttons {
   box-sizing: border-box;
   padding: 0 1.5rem 0 0;
   border-top: 0.1rem solid #e7e7e7;
+  background-color: #fff;
 }
 
 button::-moz-focus-inner {
@@ -97,6 +98,11 @@ button[disabled]::-moz-selection {
   -moz-user-select: none;
 }
 
+/* Hidden */
+[hidden] {
+  display: none;
+}
+
 /* Icons */
 a.icon,
 button.icon {
@@ -158,6 +164,34 @@ gaia-buttons[skin="dark"] {
 [skin="dark"] a[aria-disabled="true"].danger,
 [skin="dark"] button[disabled].danger {
   background-color: #730f0f;
+}
+
+/* -----------------------------------------------------------------
+  Transitions
+----------------------------------------------------------------- */
+
+[transition] {
+  display: flex;
+}
+
+[transition="slide"] {
+  transform: translateY(0);
+  transition: transform 0.4s ease;
+}
+
+[transition="slide"][hidden] {
+  transform: translateY(100%);
+}
+
+[transition="fade"] {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.4s ease;
+}
+
+[transition="fade"][hidden] {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* -----------------------------------------------------------------

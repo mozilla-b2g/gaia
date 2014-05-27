@@ -13,6 +13,7 @@
     }
     body {
       background: none;
+      overflow: hidden;
       height: 100%;
     }
   </style>
@@ -29,12 +30,12 @@
     <button id="edit1">Edit mode</button>
   </gaia-header>
 
-  <gaia-header id="header2" data-action="close" data-skin="organic" transition="slide" hide>
+  <gaia-header id="header2" data-action="close" data-skin="organic" transition="slide" hidden>
     <h1>Edit mode</h1>
     <button id="done2">done</button>
   </gaia-header>
 
-  <gaia-buttons>
+  <gaia-buttons id="buttons" transition="slide" hidden>
     <button>Deselect all</button>
     <button>Select none</button>
   </gaia-buttons>
@@ -42,13 +43,16 @@
   <script>
     window.onload = function() {
       document.getElementById('edit1').addEventListener('click', function() {
-        document.getElementById('header2').removeAttribute('hide');
+        document.getElementById('header2').removeAttribute('hidden');
+        document.getElementById('buttons').removeAttribute('hidden');
       });
       document.getElementById('header2').addEventListener('action', function(e) {
-        document.getElementById('header2').setAttribute('hide', '');
+        document.getElementById('header2').setAttribute('hidden', '');
+        document.getElementById('buttons').setAttribute('hidden', '');
       });
       document.getElementById('done2').addEventListener('click', function() {
-        document.getElementById('header2').setAttribute('hide', '');
+        document.getElementById('header2').setAttribute('hidden', '');
+        document.getElementById('buttons').setAttribute('hidden', '');
       });
     };
   </script>
