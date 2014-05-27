@@ -477,53 +477,44 @@ var NfcManager = {
   },
 
   formatURIRecord: function nm_formatURIRecord(record) {
-    this._debug('XXXX Handle Ndef URI type');
-    var options = null;
     var prefix = NDEF.URIS[record.payload[0]];
-    if (!prefix) {
+    if (prefix === undefined) {
+      this._debug('Handle NDEF URI: identifier not known.');
       return null;
     }
 
-    switch (prefix) {
-      case 'tel:':
-        var number = NfcUtils.toUTF8(record.payload.subarray(1));
-        this._debug('Handle Ndef URI type, TEL');
-        options = {
-          name: 'dial',
-          data: {
-            type: 'webtelephony/number',
-            number: number,
-            uri: prefix + number
-          }
-        };
-        break;
-      case 'mailto:':
-        var emailAddress = NfcUtils.toUTF8(record.payload.subarray(1));
-        this._debug('Handle NDEF URI type "mailto:"');
-        options = {
-          name: 'new',
-          data: {
-            type: 'mail',
-            url: 'mailto:' + emailAddress
-          }
-        };
-        break;
-      case 'http://www.':
-      case 'https://www.': // Fall through.
-      case 'http://':
-      case 'https://':
-        this._debug('Handle Ndef URI type, Http(s)');
-        options = this.createActivityOptionsWithType('url');
-        options.data.rtd = record.type;
-        options.data.url = prefix +
-                           NfcUtils.toUTF8(record.payload.subarray(1));
-        break;
-      default:
-        options = this.createActivityOptionsWithType('uri');
-        options.data.rtd = record.type;
-        options.data.uri = prefix +
-                           NfcUtils.toUTF8(record.payload.subarray(1));
-        break;
+    var options,
+        suffix = NfcUtils.toUTF8(record.payload.subarray(1)),
+        uri = prefix + suffix;
+
+    this._debug('Handle NDEF URI: ' + uri);
+
+    if (uri.indexOf('tel:') === 0) {
+      options = {
+        name: 'dial',
+        data: {
+          type: 'webtelephony/number',
+          number: suffix,
+          uri: uri
+        }
+      };
+    } else if (uri.indexOf('mailto:') === 0) {
+      options = {
+        name: 'new',
+        data: {
+          type: 'mail',
+          url: uri
+        }
+      };
+    } else if (uri.indexOf('http://') === 0 ||
+               uri.indexOf('https://') === 0) {
+      options = this.createActivityOptionsWithType('url');
+      options.data.rtd = record.type;
+      options.data.url = uri;
+    } else {
+      options = this.createActivityOptionsWithType('uri');
+      options.data.rtd = record.type;
+      options.data.uri = uri;
     }
 
     return options;
