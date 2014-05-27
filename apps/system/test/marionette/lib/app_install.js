@@ -1,0 +1,91 @@
+'use strict';
+
+/**
+ * A Marionette test helper for app installation flow.
+ */
+
+/**
+ * @constructor
+ * @param {Marionette.Client} client Marionette client to use.
+ */
+function AppInstall(client) {
+  this.client = client.scope({ searchTimeout: 200000 });
+}
+
+module.exports = AppInstall;
+
+AppInstall.Selector = Object.freeze({
+  // General app install dialog
+  installDialog: '#app-install-dialog',
+  installButton: '#app-install-install-button',
+  // Setup dialog after installation
+  setupDialog: '#setup-installed-app-dialog',
+  setupButton: '#setup-confirm-button',
+  // Ime Layout selection menu
+  imeDialog: '#ime-layout-dialog',
+  imeLayoutOption: '#ime-list li',
+  imeConfirmButton: '#ime-confirm-button'
+});
+
+AppInstall.prototype = {
+
+  get installDialog() {
+    return this.client.findElement(AppInstall.Selector.installDialog);
+  },
+
+  get installButton() {
+    return this.client.findElement(AppInstall.Selector.installButton);
+  },
+
+  get setupDialog() {
+    return this.client.findElement(AppInstall.Selector.setupDialog);
+  },
+
+  get setupButton() {
+    return this.client.findElement(AppInstall.Selector.setupButton);
+  },
+
+  get imeDialog() {
+    return this.client.findElement(AppInstall.Selector.imeDialog);
+  },
+
+  get imeLayoutOption() {
+    return this.client.findElement(AppInstall.Selector.imeLayoutOption);
+  },
+
+  get imeConfirmButton() {
+    return this.client.findElement(AppInstall.Selector.imeConfirmButton);
+  },
+
+  /**
+   * Install an app.
+   * @param {string} manifestURL The manifestURL of the app to be installed.
+   * @param {Object} [options] The options for installation.
+   * @param {boolean} [options.allowInstall=true] If true, allow the
+   * installation directly.
+   */
+  install: function install(manifestURL, options) {
+    this.client.executeScript(function install(url) {
+      window.wrappedJSObject.navigator.mozApps.install(url);
+    }, [manifestURL]);
+
+    options = options || { allowInstall: true };
+
+    if (options.allowInstall) {
+      // Click install button on the app install dialog
+      this.waitForDialog(this.installDialog);
+      this.installButton.click();
+    }
+  },
+
+  /**
+   * Wait for the specified dialog to show up.
+   * @param {Marionette.Element} element The dialog element to wait for.
+   */
+  waitForDialog: function waitForAppInstallDialog(element) {
+    this.client.waitFor(function() {
+      var dialogClass = element.getAttribute('class');
+      return dialogClass.indexOf('visible') != -1;
+    });
+  }
+};
