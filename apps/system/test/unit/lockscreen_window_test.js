@@ -1,3 +1,4 @@
+/* global layoutManager, LayoutManager */
 'use strict';
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -5,11 +6,13 @@ requireApp('system/shared/js/template.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
+requireApp('system/test/unit/mock_layout_manager.js');
+requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_screen_layout.js');
 
 var mocksForLockScreenWindow = new window.MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
-  'ManifestHelper', 'ScreenLayout'
+  'ManifestHelper', 'ScreenLayout', 'LayoutManager', 'StatusBar'
 ]).init();
 
 suite('system/LockScreenWindow', function() {
@@ -30,6 +33,7 @@ suite('system/LockScreenWindow', function() {
     });
     // Differs from the existing mock which is expected by other components.
     window.LockScreen = function() {};
+    window.layoutManager = new LayoutManager().start();
     requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
@@ -101,5 +105,13 @@ suite('system/LockScreenWindow', function() {
       assert.isNotNull(app.iframe,
         'the layout did\'t draw after window opened');
     });
+  });
+
+  test('Resize', function() {
+    var app = new window.LockScreenWindow();
+    var stubIsActive = this.sinon.stub(app, 'isActive');
+    stubIsActive.returns(true);
+    app.resize();
+    assert.equal(app.height, layoutManager.height + 20);
   });
 });
