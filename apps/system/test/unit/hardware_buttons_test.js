@@ -153,7 +153,7 @@ suite('system/HardwareButtons', function() {
     fireChromeEvent('volume-down-button-release');
 
     assert.isTrue(stubDispatchEvent.calledOnce);
-    assert.isTrue(stubDispatchEvent.calledWith({ type: 'volume-down+sleep',
+    assert.isTrue(stubDispatchEvent.calledWith({ type: 'volumedown+sleep',
                                                  bubbles: false }));
   });
 
@@ -174,7 +174,7 @@ suite('system/HardwareButtons', function() {
       stubDispatchEvent.getCall(0).calledWith({ type: 'wake',
                                                 bubbles: false }));
     assert.isTrue(
-      stubDispatchEvent.getCall(1).calledWith({ type: 'volume-down+sleep',
+      stubDispatchEvent.getCall(1).calledWith({ type: 'volumedown+sleep',
                                                 bubbles: false }));
 
     assert.isTrue(stubSetTimeout.calledOnce);
@@ -197,12 +197,12 @@ suite('system/HardwareButtons', function() {
     fireChromeEvent('volume-down-button-release');
 
     assert.isTrue(stubDispatchEvent.calledOnce);
-    assert.isTrue(stubDispatchEvent.calledWith({ type: 'volume-down+sleep',
+    assert.isTrue(stubDispatchEvent.calledWith({ type: 'volumedown+sleep',
                                                  bubbles: false }));
 
     assert.isTrue(stubSetTimeout.calledOnce);
     assert.equal(stubSetTimeout.getCall(0).args[1],
-      hardwareButtons.HOLD_INTERVAL);
+      hardwareButtons.REPEAT_DELAY);
     assert.isTrue(stubClearTimeout.calledOnce);
     assert.equal(stubClearTimeout.getCall(0).args[0],
       stubSetTimeout.getCall(0).returnValue);
@@ -220,17 +220,14 @@ suite('system/HardwareButtons', function() {
     fireChromeEvent('sleep-button-release');
     fireChromeEvent('volume-down-button-release');
 
-    assert.isTrue(stubDispatchEvent.calledTwice);
+    assert.isTrue(stubDispatchEvent.calledOnce);
     assert.isTrue(
-      stubDispatchEvent.getCall(0).calledWith({ type: 'wake',
-                                                bubbles: false }));
-    assert.isTrue(
-      stubDispatchEvent.getCall(1).calledWith({ type: 'volume-down+sleep',
+      stubDispatchEvent.getCall(0).calledWith({ type: 'volumedown+sleep',
                                                 bubbles: false }));
 
     assert.isTrue(stubSetTimeout.calledOnce);
     assert.equal(stubSetTimeout.getCall(0).args[1],
-      hardwareButtons.HOLD_INTERVAL);
+      hardwareButtons.REPEAT_DELAY);
     assert.isTrue(stubClearTimeout.calledOnce);
     assert.equal(stubClearTimeout.getCall(0).args[0],
       stubSetTimeout.getCall(0).returnValue);
