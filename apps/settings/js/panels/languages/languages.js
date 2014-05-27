@@ -16,8 +16,8 @@ define(function(require) {
           option.value = lang;
           // Right-to-Left (RTL) languages:
           // (http://www.w3.org/International/questions/qa-scripts)
-          // Arabic, Hebrew, Farsi, Pashto, Urdu
-          var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
+          // Arabic, Hebrew, Farsi, Pashto, Mirrored English (pseudo), Urdu
+          var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
           // Use script direction control-characters to wrap the text labels
           // since markup (i.e. <bdo>) does not work inside <option> tags
           // http://www.w3.org/International/tutorials/bidi-xhtml/#nomarkup
