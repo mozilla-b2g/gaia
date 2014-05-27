@@ -119,8 +119,9 @@ var QuickSettings = {
       // Set to the initializing state to block user interaction until the
       // operation completes. (unless we are being called for the first time,
       // where Bluetooth is already initialize
-      if (!btFirstSet)
+      if (!btFirstSet) {
         self.bluetooth.dataset.initializing = 'true';
+      }
       btFirstSet = false;
 
       self.setAccessibilityAttributes(self.bluetooth, 'bluetoothButton');
@@ -176,14 +177,26 @@ var QuickSettings = {
 
   monitorAirplaneModeChange: function() {
     var self = this;
-    SettingsListener.observe('ril.radio.disabled', false, function(value) {
-      self.data.dataset.airplaneMode = value;
-      if (value) {
-        self.data.classList.add('quick-settings-airplane-mode');
-        self.airplaneMode.dataset.enabled = 'true';
-      } else {
-        self.data.classList.remove('quick-settings-airplane-mode');
-        delete self.airplaneMode.dataset.enabled;
+    SettingsListener.observe('airplaneMode.status', false, function(value) {
+      delete self.airplaneMode.dataset.enabling;
+      delete self.airplaneMode.dataset.disabling;
+
+      self.data.dataset.airplaneMode = (value === 'enabled');
+      switch (value) {
+        case 'enabled':
+          self.data.classList.add('quick-settings-airplane-mode');
+          self.airplaneMode.dataset.enabled = 'true';
+          break;
+        case 'disabled':
+          self.data.classList.remove('quick-settings-airplane-mode');
+          delete self.airplaneMode.dataset.enabled;
+          break;
+        case 'enabling':
+          self.airplaneMode.dataset.enabling = 'true';
+          break;
+        case 'disabling':
+          self.airplaneMode.dataset.disabling = 'true';
+          break;
       }
       self.setAccessibilityAttributes(self.airplaneMode, 'airplaneMode');
     });
