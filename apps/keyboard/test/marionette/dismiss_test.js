@@ -1,5 +1,7 @@
 'use strict';
 
+/* Add comment to do stability test*/
+
 var KeyboardTestApp = require('./lib/keyboard_test_app'),
     Keyboard = require('./lib/keyboard'),
     assert = require('assert'),
