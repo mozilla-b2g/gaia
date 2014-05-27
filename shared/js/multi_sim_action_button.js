@@ -1,4 +1,4 @@
-/* globals LazyLoader, SettingsListener, SimPicker */
+/* globals LazyLoader, Promise, SettingsListener, SimPicker */
 /* exported MultiSimActionButton */
 
 'use strict';
@@ -43,11 +43,16 @@ MultiSimActionButton.prototype._getCardIndex = function() {
   if (window.TelephonyHelper) {
     var inUseSim = window.TelephonyHelper.getInUseSim();
     if (inUseSim !== null) {
-      return inUseSim;
+      return Promise.resolve(inUseSim);
     }
   }
 
-  return this._defaultCardIndex;
+  var self = this;
+  return new Promise(function(resolve) {
+    LazyLoader.load(['/shared/js/settings_listener.js'], function() {
+      resolve(self._defaultCardIndex);
+    });
+  });
 };
 
 MultiSimActionButton.prototype._click = function(event) {
@@ -65,39 +70,40 @@ MultiSimActionButton.prototype._click = function(event) {
     return;
   }
 
-  var cardIndex = this._getCardIndex();
-  // The user has requested that we ask them every time for this key,
-  // so we prompt them to pick a SIM even when they only click.
-  if (cardIndex == ALWAYS_ASK_OPTION_VALUE) {
-    var self = this;
-    LazyLoader.load(['/shared/js/sim_picker.js'], function() {
-      SimPicker.getOrPick(cardIndex, phoneNumber,
-                          self.performAction.bind(self));
-    });
-  } else {
-    this.performAction(cardIndex);
-  }
+  var self = this;
+  this._getCardIndex().then(function(cardIndex) {
+    // The user has requested that we ask them every time for this key,
+    // so we prompt them to pick a SIM even when they only click.
+    if (cardIndex == ALWAYS_ASK_OPTION_VALUE) {
+      LazyLoader.load(['/shared/js/sim_picker.js'], function() {
+        SimPicker.getOrPick(cardIndex, phoneNumber,
+                            self.performAction.bind(self));
+      });
+    } else {
+      self.performAction(cardIndex);
+    }
+  });
 };
 
 MultiSimActionButton.prototype._updateUI = function() {
-  var cardIndex = this._getCardIndex();
+  var self = this;
+  this._getCardIndex().then(function(cardIndex) {
+    if (cardIndex >= 0 &&
+        navigator.mozIccManager &&
+        navigator.mozIccManager.iccIds.length > 1) {
+      if (self._simIndication) {
+        navigator.mozL10n.ready(function() {
+          navigator.mozL10n.localize(self._simIndication,
+                                     'sim-picker-button',
+                                     {n: cardIndex+1});
+        });
+      }
 
-  if (cardIndex >= 0 &&
-      navigator.mozIccManager &&
-      navigator.mozIccManager.iccIds.length > 1) {
-    if (this._simIndication) {
-      var self = this;
-      navigator.mozL10n.ready(function() {
-        navigator.mozL10n.localize(self._simIndication,
-                                   'sim-picker-button',
-                                   {n: cardIndex+1});
-      });
+      document.body.classList.add('has-preferred-sim');
+    } else {
+      document.body.classList.remove('has-preferred-sim');
     }
-
-    document.body.classList.add('has-preferred-sim');
-  } else {
-    document.body.classList.remove('has-preferred-sim');
-  }
+  });
 };
 
 MultiSimActionButton.prototype._contextmenu = function(event) {
@@ -120,20 +126,28 @@ MultiSimActionButton.prototype._contextmenu = function(event) {
 
   var self = this;
   LazyLoader.load(['/shared/js/sim_picker.js'], function() {
-    SimPicker.getOrPick(self._getCardIndex(), phoneNumber,
-                        self.performAction.bind(self));
+    self._getCardIndex().then(function(cardIndex) {
+      SimPicker.getOrPick(cardIndex, phoneNumber,
+                          self.performAction.bind(self));
+    });
   });
 };
 
 MultiSimActionButton.prototype.performAction = function(cardIndex) {
   var phoneNumber = this._phoneNumberGetter && this._phoneNumberGetter();
   if (phoneNumber === '') {
-    return;
+    return Promise.resolve();
   }
 
+  var cardIndexPromise;
   if (cardIndex === undefined) {
-    cardIndex = this._getCardIndex();
+    cardIndexPromise = this._getCardIndex();
+  } else {
+    cardIndexPromise = Promise.resolve(cardIndex);
   }
 
-  this._callCallback(phoneNumber, cardIndex);
+  var self = this;
+  return cardIndexPromise.then(function(cardIndex) {
+    self._callCallback(phoneNumber, cardIndex);
+  });
 };
