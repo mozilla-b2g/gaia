@@ -35,9 +35,17 @@ class MessageThread(Base):
     def all_messages(self):
         return [Message(self.marionette, message) for message in self.marionette.find_elements(*self._all_messages_locator)]
 
+    @property
+    def header_text(self):
+        self.wait_for_element_displayed(*self._message_header_locator)
+        return self.marionette.find_element(*self._message_header_locator).text
+
     def tap_header(self):
         self.wait_for_element_displayed(*self._message_header_locator)
         self.marionette.find_element(*self._message_header_locator).tap()
+
+        from gaiatest.apps.messages.regions.activities import Activities
+        return Activities(self.marionette)
 
     def tap_call(self):
         self.marionette.find_element(*self._call_button_locator).tap()
