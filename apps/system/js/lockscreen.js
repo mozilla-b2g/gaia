@@ -321,8 +321,9 @@
         }
         break;
       case 'appterminated':
-        if (evt.detail.origin === this.mediaPlaybackWidget.origin)
+        if (evt.detail.origin === this.mediaPlaybackWidget.origin) {
           this.notificationsContainer.classList.remove('collapsed');
+        }
         break;
     }
   };  // -- LockScreen#handleEvent --
@@ -344,7 +345,8 @@
     this.ready = true;
     this._unlocker = new window.LockScreenSlide({useNewStyle: true});
     this.getAllElements();
-    this.notificationsContainer = document.getElementById('notifications-lockscreen-container');
+    this.notificationsContainer =
+      document.getElementById('notifications-lockscreen-container');
 
     this.lockIfEnabled(true);
     this.writeSetting(this.enabled);
