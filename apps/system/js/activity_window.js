@@ -235,6 +235,9 @@
   ActivityWindow.prototype.render = function acw_render() {
     this.publish('willrender');
     this.containerElement.insertAdjacentHTML('beforeend', this.view());
+    // We need to know wether to run this activity frame oop, and
+    // BrowserConfigHelper has the logic to do that.
+    var helper = new BrowserConfigHelper(null, this.manifestURL);
     this.browser = new BrowserFrame({
       origin: this.origin,
       url: this.url,
@@ -242,7 +245,7 @@
       manifest: this.manifest,
       manifestURL: this.manifestURL,
       window_name: 'inline' + this.instanceID,
-      oop: true,
+      oop: helper.oop,
       parentApp: this.parentApp
     });
     this.element =
