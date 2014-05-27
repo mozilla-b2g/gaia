@@ -200,6 +200,10 @@
   height: 7rem;
 }
 
+#lockscreen-media-container .media-playback-controls.big > button {
+  background-size: auto auto;
+}
+
 #lockscreen-media-container .media-playback-controls.big > .previous {
   background-image: url("./images/lockscreen-icon-big-previous.png");
 }

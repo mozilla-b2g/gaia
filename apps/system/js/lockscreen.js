@@ -302,6 +302,28 @@
       case 'lockscreen-mode-off':
         this.modeSwitch(evt.detail, false);
         break;
+      case 'iac-mediacomms':
+        if (evt.detail.type === 'status') {
+          switch (evt.detail.data.playStatus) {
+            case 'PLAYING':
+              this.notificationsContainer.classList.add('collapsed');
+              break;
+            case 'PAUSED':
+              this.notificationsContainer.classList.add('collapsed');
+              break;
+            case 'STOPPED':
+              this.notificationsContainer.classList.remove('collapsed');
+              break;
+            case 'mozinterruptbegin':
+              this.notificationsContainer.classList.remove('collapsed');
+              break;
+          }
+        }
+        break;
+      case 'appterminated':
+        if (evt.detail.origin === this.mediaPlaybackWidget.origin)
+          this.notificationsContainer.classList.remove('collapsed');
+        break;
     }
   };  // -- LockScreen#handleEvent --
 
@@ -322,6 +344,7 @@
     this.ready = true;
     this._unlocker = new window.LockScreenSlide({useNewStyle: true});
     this.getAllElements();
+    this.notificationsContainer = document.getElementById('notifications-lockscreen-container');
 
     this.lockIfEnabled(true);
     this.writeSetting(this.enabled);
@@ -371,6 +394,10 @@
     /* media playback widget */
     this.mediaPlaybackWidget =
       new window.MediaPlaybackWidget(this.mediaContainer);
+
+    // listen to media playback events to adjust notification container height
+    window.addEventListener('iac-mediacomms', this);
+    window.addEventListener('appterminated', this);
 
     window.SettingsListener.observe('lockscreen.enabled', true,
       (function(value) {
