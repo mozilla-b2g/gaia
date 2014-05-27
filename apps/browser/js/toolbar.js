@@ -1,3 +1,5 @@
+/* global Browser, BrowserDB, MozActivity */
+'use strict';
 /**
  *  Browser app toolbar
  */
@@ -44,8 +46,9 @@ var Toolbar = {
   refreshButtons: function toolbar_refreshButtons() {
     // When handling window.open we may hit this code
     // before canGoBack etc has been applied to the frame
-    if (!Browser.currentTab.dom.getCanGoBack)
+    if (!Browser.currentTab.dom.getCanGoBack) {
       return;
+    }
 
     Browser.currentTab.dom.getCanGoBack().onsuccess = (function(e) {
       this.backButton.disabled = !e.target.result;
@@ -62,17 +65,28 @@ var Toolbar = {
    * @param {Event} evt Click event.
    */
   handleShareButtonClick: function toolbar_handleShareButtonClick(evt) {
-    if (this.shareButton.disabled)
+    if (this.shareButton.disabled) {
       return;
+    }
+
+    this.shareButton.disabled = true;
 
     // Fire web activity to share URL
-    new MozActivity({
+    var activity = new MozActivity({
       name: 'share',
       data: {
         type: 'url',
         url: Browser.currentTab.url
       }
     });
+
+    activity.onsuccess = (function success() {
+      this.shareButton.disabled = false;
+    }).bind(this);
+
+    activity.onerror = (function error() {
+      this.shareButton.disabled = false;
+    }).bind(this);
   }
 
 };
