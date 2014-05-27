@@ -15,9 +15,9 @@ var templateNode = require('tmpl!./message_list.html'),
     model = require('model'),
     headerCursor = require('header_cursor').cursor,
     htmlCache = require('html_cache'),
-    MessageListTopbar = require('message_list_topbar'),
     mozL10n = require('l10n!'),
     VScroll = require('vscroll'),
+    MessageListTopBar = require('message_list_topbar'),
     Cards = common.Cards,
     ConfirmDialog = common.ConfirmDialog,
     batchAddClass = common.batchAddClass,
@@ -238,7 +238,6 @@ function MessageListCard(domNode, mode, args) {
 
   this.usingCachedNode = !!args.cachedNode;
 
-
   // Set up the list data source for VScroll
   var listFunc = (function(index) {
      return headerCursor.messagesSlice.items[index];
@@ -321,6 +320,11 @@ function MessageListCard(domNode, mode, args) {
     }
   }.bind(this));
 
+  this._topBar = new MessageListTopBar(
+    domNode.querySelector('.message-list-topbar')
+  );
+  this._topBar.bindToElements(this.scrollContainer, this.vScroll);
+
   // Binding "this" to some functions as they are used for
   // event listeners.
   this._folderChanged = this._folderChanged.bind(this);
@@ -384,7 +388,7 @@ MessageListCard.prototype = {
    * @type {MessageListTopbar}
    * @private
    */
-  _topbar: null,
+  _topBar: null,
 
   /**
    * Cache the distance between messages since rows are effectively fixed
@@ -410,6 +414,9 @@ MessageListCard.prototype = {
     // vScroll about it, but only do this once the DOM is displayed
     // so the ClientRect gives an actual height.
     this.vScroll.visibleOffset = this.searchBar.getBoundingClientRect().height;
+
+    // Also tell the MessageListTopBar
+    this._topBar.visibleOffset = this.vScroll.visibleOffset;
 
     // For search we want to make sure that we capture the screen size prior to
     // focusing the input since the FxOS keyboard will resize our window to be
@@ -783,6 +790,7 @@ MessageListCard.prototype = {
       }
       this.toolbar.refreshBtn.dataset.state = 'synchronized';
       this.syncingNode.classList.add('collapsed');
+      this._manuallyTriggeredSync = false;
     }
   },
 
@@ -909,19 +917,13 @@ MessageListCard.prototype = {
         return;
       }
 
-      // Decorate or update the little notification bar that tells the user
-      // how many new emails they've received after a sync.
-      if (this._topbar && this._topbar.getElement() !== null) {
-        // Update the existing status bar.
-        this._topbar.updateNewEmailCount(newEmailCount);
+      // If the user manually synced, then want to jump to show the new
+      // messages. Otherwise, show the top bar.
+      if (this._manuallyTriggeredSync) {
+        this.vScroll.jumpToIndex(0);
       } else {
-        this._topbar = new MessageListTopbar(
-            this.scrollContainer, newEmailCount);
-
-        var el =
-            document.getElementsByClassName(MessageListTopbar.CLASS_NAME)[0];
-        this._topbar.decorate(el);
-        this._topbar.render();
+        // Update the existing status bar.
+        this._topBar.showNewEmailCount(newEmailCount);
       }
     }
   },
@@ -1075,10 +1077,9 @@ MessageListCard.prototype = {
     }
 
     // Hide "new mail" topbar too
-    removableCacheNode = cacheNode
-                           .querySelector('.' + MessageListTopbar.CLASS_NAME);
+    removableCacheNode = cacheNode.querySelector('.message-list-topbar');
     if (removableCacheNode) {
-      removableCacheNode.classList.add('collapsed');
+      this._topBar.resetNodeForCache(removableCacheNode);
     }
 
     // Hide the last sync number
@@ -1740,6 +1741,7 @@ MessageListCard.prototype = {
         break;
       // If we fully synchronized, then yes, let us refresh.
       case 'synced':
+        this._manuallyTriggeredSync = true;
         headerCursor.messagesSlice.refresh();
         break;
       // If we failed to talk to the server, then let's only do a refresh if we

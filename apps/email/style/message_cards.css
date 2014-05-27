@@ -686,19 +686,44 @@ reflows. Foreground/background colors should be safe.
   margin: 0 3rem;
 }
 
-.msg-list-topbar {
-  -moz-box-sizing: border-box;
+.message-list-topbar {
   position: absolute;
-  top: 5rem;
-  left: 0;
-  width: 100%;
-  padding: 0.6rem 3rem;
-  color: #fff;
+  display: inline-block;
+  margin: 1.5rem 1.5rem 0 0;
+  opacity: .8;
+  transform: translateY(-6.5rem);
+  transition-property: transform;
+  transition-duration: .6s;
+  transition-timing-function: ease;
+  transition-delay: 0s;
+}
+
+.message-list-topbar[data-state="top"] {
+  transform: translateY(0);
+  right: 0;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 5rem;
+  background: url('../../shared/style/headers/images/icons/up.png') no-repeat scroll center center / 3rem auto #a6a6a6;
+  font-size: 0;
+}
+
+.message-list-topbar[data-state="message"] {
+  transform: translateY(0);
+  margin: 1.5rem auto;
+  padding: 0 1.3rem;
+  height: 4rem;
+  line-height: 4rem;
   font-size: 1.4rem;
-  font-weight: 500;
-  line-height: 2.4rem;
-  background-color: #00aacc;
-  z-index: 10;
+  border-radius: 4rem;
+  color: white;
+  background-color: #a6a6a6;
+  opacity: .95;
+}
+
+.message-list-topbar.closing[data-state="message"],
+.message-list-topbar.closing[data-state="top"] {
+  transform: translateY(-6.5rem);
 }
 
 .msg-reply-menu button:before {
