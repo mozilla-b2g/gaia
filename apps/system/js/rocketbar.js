@@ -181,9 +181,9 @@
       window.addEventListener('searchcrashed', this);
 
       // Listen for events from Rocketbar
-      this.rocketbar.addEventListener('touchstart', this);
-      this.rocketbar.addEventListener('touchmove', this);
-      this.rocketbar.addEventListener('touchend', this);
+      this.titleContent.addEventListener('touchstart', this);
+      this.titleContent.addEventListener('touchmove', this);
+      this.titleContent.addEventListener('touchend', this);
       this.rocketbar.addEventListener('transitionend', this);
       this.input.addEventListener('focus', this);
       this.input.addEventListener('blur', this);
@@ -244,10 +244,7 @@
         case 'touchstart':
         case 'touchmove':
         case 'touchend':
-          if (e.target != this.cancel &&
-              e.target != this.overflow) {
-            this.handleTouch(e);
-          }
+          this.handleTouch(e);
           break;
         case 'transitionend':
           this.handleTransitionEnd(e);
@@ -306,9 +303,9 @@
       window.removeEventListener('stackchanged', this);
 
       // Stop listening for events from Rocketbar
-      this.rocketbar.removeEventListener('touchstart', this);
-      this.rocketbar.removeEventListener('touchmove', this);
-      this.rocketbar.removeEventListener('touchend', this);
+      this.titleContent.removeEventListener('touchstart', this);
+      this.titleContent.removeEventListener('touchmove', this);
+      this.titleContent.removeEventListener('touchend', this);
       this.rocketbar.removeEventListener('transitionend', this);
       this.input.removeEventListener('focus', this);
       this.input.removeEventListener('blur', this);

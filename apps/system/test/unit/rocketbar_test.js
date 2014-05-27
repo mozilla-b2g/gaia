@@ -74,6 +74,8 @@ suite('system/Rocketbar', function() {
       'addEventListener');
     var rocketbarAddEventListenerStub = this.sinon.stub(subject.rocketbar,
       'addEventListener');
+    var titleContentAddEventListenerStub = this.sinon.stub(subject.titleContent,
+      'addEventListener');
     var inputAddEventListenerStub = this.sinon.stub(subject.input,
       'addEventListener');
     var formAddEventListenerStub = this.sinon.stub(subject.form,
@@ -89,9 +91,9 @@ suite('system/Rocketbar', function() {
     assert.ok(windowAddEventListenerStub.calledWith('appopened'));
     assert.ok(windowAddEventListenerStub.calledWith('homescreenopening'));
     assert.ok(windowAddEventListenerStub.calledWith('stackchanged'));
-    assert.ok(rocketbarAddEventListenerStub.calledWith('touchstart'));
-    assert.ok(rocketbarAddEventListenerStub.calledWith('touchmove'));
-    assert.ok(rocketbarAddEventListenerStub.calledWith('touchend'));
+    assert.ok(titleContentAddEventListenerStub.calledWith('touchstart'));
+    assert.ok(titleContentAddEventListenerStub.calledWith('touchmove'));
+    assert.ok(titleContentAddEventListenerStub.calledWith('touchend'));
     assert.ok(rocketbarAddEventListenerStub.calledWith('transitionend'));
     assert.ok(inputAddEventListenerStub.calledWith('blur'));
     assert.ok(inputAddEventListenerStub.calledWith('input'));
@@ -100,6 +102,7 @@ suite('system/Rocketbar', function() {
 
     windowAddEventListenerStub.restore();
     rocketbarAddEventListenerStub.restore();
+    titleContentAddEventListenerStub.restore();
     inputAddEventListenerStub.restore();
     formAddEventListenerStub.restore();
   });
@@ -109,6 +112,8 @@ suite('system/Rocketbar', function() {
       'removeEventListener');
     var rocketbarRemoveEventListenerStub = this.sinon.stub(subject.rocketbar,
       'removeEventListener');
+    var titleContentRemoveEventListenerStub = this.sinon
+      .stub(subject.titleContent, 'removeEventListener');
     var inputRemoveEventListenerStub = this.sinon.stub(subject.input,
       'removeEventListener');
     var formRemoveEventListenerStub = this.sinon.stub(subject.form,
@@ -124,9 +129,9 @@ suite('system/Rocketbar', function() {
     assert.ok(windowRemoveEventListenerStub.calledWith('appopened'));
     assert.ok(windowRemoveEventListenerStub.calledWith('homescreenopening'));
     assert.ok(windowRemoveEventListenerStub.calledWith('stackchanged'));
-    assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchstart'));
-    assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchmove'));
-    assert.ok(rocketbarRemoveEventListenerStub.calledWith('touchend'));
+    assert.ok(titleContentRemoveEventListenerStub.calledWith('touchstart'));
+    assert.ok(titleContentRemoveEventListenerStub.calledWith('touchmove'));
+    assert.ok(titleContentRemoveEventListenerStub.calledWith('touchend'));
     assert.ok(rocketbarRemoveEventListenerStub.calledWith('transitionend'));
     assert.ok(inputRemoveEventListenerStub.calledWith('blur'));
     assert.ok(inputRemoveEventListenerStub.calledWith('input'));
@@ -135,6 +140,7 @@ suite('system/Rocketbar', function() {
 
     windowRemoveEventListenerStub.restore();
     rocketbarRemoveEventListenerStub.restore();
+    titleContentRemoveEventListenerStub.restore();
     inputRemoveEventListenerStub.restore();
     formRemoveEventListenerStub.restore();
   });
