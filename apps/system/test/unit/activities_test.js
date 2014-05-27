@@ -83,6 +83,13 @@ suite('system/Activities', function() {
       });
       assert.ok(stub.calledWith(detail));
     });
+
+    test('hides actionMenu on appopended if it exists', function() {
+      var stub = this.sinon.stub(ActionMenu.prototype, 'hide');
+      subject.actionMenu = new ActionMenu();
+      subject.handleEvent({type: 'appopened'});
+      assert.ok(stub.calledOnce);
+    });
   });
 
   suite('chooseActivity', function() {
