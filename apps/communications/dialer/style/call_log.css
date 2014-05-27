@@ -4,16 +4,8 @@ section[role="region"] > header:first-child .icon {
 }
 
 /* Overriding BB styles for edit mode */
-form[role="dialog"][data-type="edit"] header .icon {
+form[role="dialog"][data-type="edit"] gaia-header {
   pointer-events: auto;
-}
-
-form[role="dialog"][data-type="edit"] header {
-  transform: translateY(-110%);
-}
-
-form[role="dialog"][data-type="edit"] > menu {
-  transform: translateY(110%);
 }
 
 #call-log-container[data-type="list"] section {
