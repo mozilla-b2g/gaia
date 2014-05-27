@@ -15,6 +15,13 @@ var MockMozTelephony = {
   speakerEnabled: false,
   startTone: function(dtmfChar) {},
   stopTone: function() {},
+  addEventListener: function(event, callback) {
+    // we always get at least 1 oncallschanged
+    if (event === 'callschanged') {
+      callback([]);
+    }
+  },
+  removeEventListener: function() {},
 
   mTriggerCallsChanged: function() {
     if (this.oncallschanged) {
