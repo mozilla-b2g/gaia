@@ -36,8 +36,8 @@ dom.player.mozAudioChannelType = 'content';
 
 var playing = false;
 
-// toolbarpause required to store the pause -play status while accessing
-// the the toolbar (info ,sharevideo ,deletevideo) in the current video
+// toolbarpause variable required to store the pause -play status while
+// accessing the the toolbar (info ,sharevideo ,deletevideo) in the current video
 var toolbarpause = false;
 
 // if this is true then the video tag is showing
