@@ -6,7 +6,6 @@ apps/browser/js/browser_db.js
 apps/browser/js/modal_dialog.js
 apps/browser/js/nfc.js
 apps/browser/js/settings.js
-apps/browser/js/toolbar.js
 apps/browser/test/marionette/awesomescreen_test.js
 apps/browser/test/marionette/contextmenu_test.js
 apps/browser/test/marionette/lib/browser.js
