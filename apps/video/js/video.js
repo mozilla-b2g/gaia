@@ -82,6 +82,7 @@ var pendingPick;
 // careful to relinquish the hardware when we are not visible.
 var restoreTime = null;
 
+
 var isPhone;
 var isPortrait;
 var currentLayoutMode;
