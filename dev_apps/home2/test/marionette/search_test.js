@@ -20,7 +20,9 @@ marionette('Vertical - Search', function() {
     system.waitForStartup();
   });
 
-  test('Search for app', function() {
+  // Skip test since it fails to handle the geolocation permission dialog
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1018925
+  test.skip('Search for app', function() {
     home.waitForLaunch();
     client.helper.waitForElement(Home2.Selectors.search).tap();
     client.switchToFrame();
