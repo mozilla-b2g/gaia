@@ -37,12 +37,7 @@ AppPermissionPanel.prototype = {
   },
 
   enterPermissionDetail: function() {
-    var entry;
-    this.client.waitFor(function() {
-      entry = this.findElement('firstAppEntry');
-      return entry;
-    }.bind(this));
-    entry.tap();
+    this.waitForElement('firstAppEntry').tap();
     this.client.waitFor(function() {
       return this.findElement('geolocationSelect');
     }.bind(this));
