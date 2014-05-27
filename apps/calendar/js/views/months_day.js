@@ -42,11 +42,10 @@ Calendar.ns('Views').MonthsDay = (function() {
 
     changeDate: function(date) {
       Parent.prototype.changeDate.apply(this, arguments);
-      var l10n = navigator.mozL10n;
-      this.currentDate.innerHTML =
-        l10n.get('weekday-' + date.getDay() + '-long') + ', ' +
-        l10n.get('month-' + date.getMonth() + '-short') + ' ' +
-        date.getDate();
+      this.currentDate.innerHTML = Calendar.App.dateFormat.localeFormat(
+        date,
+        navigator.mozL10n.get('months-day-view-header-format')
+      );
 
       var children = this.events.children;
       this.emptyMessage.classList.toggle(
