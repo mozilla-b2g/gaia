@@ -259,9 +259,9 @@ suite('preferences.js', function() {
       preferences.prefs = {};
       preferences.setDeviceDebugPref();
       assert.deepEqual(preferences.prefs, {
-        'devtools.debugger.enable-content-actors': true,
         'devtools.debugger.prompt-connection': false,
         'devtools.debugger.forbid-certified-apps': false,
+        'javascript.options.discardSystemSource': false,
         'b2g.adb.timeout': 0
       });
     });
