@@ -25,7 +25,7 @@ var BatteryManager = {
     if (!battery)
       return;
     if (battery.level <= this.AUTO_SHUTDOWN_LEVEL && !battery.charging) {
-      // Fire a event to inform SleepMenu perform shutdown.
+      // Fire a event to inform sleepMenu perform shutdown.
       window.dispatchEvent(new CustomEvent('batteryshutdown'));
     }
   },
@@ -35,7 +35,7 @@ var BatteryManager = {
     var battery = this._battery;
     if (battery) {
       // When the device is booted, check if the battery is drained.
-      // If so, batteryshutdown would be triggered to inform SleepMenu shutdown.
+      // If so, batteryshutdown would be triggered to inform sleepMenu shutdown.
       window.addEventListener('homescreen-ready',
                               this.checkBatteryDrainage.bind(this));
 

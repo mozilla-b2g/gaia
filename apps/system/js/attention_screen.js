@@ -110,7 +110,7 @@ var AttentionScreen = {
       return;
 
     // Hide sleep menu/list menu if it is shown now
-    SleepMenu.hide();
+    sleepMenu.hide();
 
     // We want the user attention, so we need to turn the screen on
     // if it's off. The lockscreen will grab the focus when we do that
