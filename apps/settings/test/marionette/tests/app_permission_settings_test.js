@@ -15,6 +15,7 @@ marionette('manipulate app permissions', function() {
 
   test('set geolocation of first app to Grant', function() {
     appPermissionPanel.enterPermissionDetail();
+    client.scope({ searchTimeout: 4000 });
     appPermissionPanel.tapGeolocationSelect('Grant');
     assert.equal(appPermissionPanel.georlocationSelectValue, 'allow');
 
