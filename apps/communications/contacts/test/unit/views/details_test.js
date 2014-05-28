@@ -18,6 +18,8 @@
 
 //Avoiding lint checking the DOM file renaming it to .html
 requireApp('communications/contacts/test/unit/mock_details_dom.js.html');
+requireApp(
+  'communications/contacts/test/unit/webrtc-client/mock_webrtc_client.js');
 
 require('/shared/js/text_normalizer.js');
 require('/shared/js/contacts/import/utilities/misc.js');
@@ -29,6 +31,7 @@ require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_multi_sim_action_button.js');
 require('/dialer/test/unit/mock_mmi_manager.js');
 require('/dialer/test/unit/mock_telephony_helper.js');
+
 
 requireApp('communications/contacts/js/views/details.js');
 requireApp('communications/contacts/test/unit/mock_navigation.js');
@@ -78,6 +81,7 @@ if (!window.ActivityHandler) {
 
 var mocksHelperForDetailView = new MocksHelper([
   'ContactPhotoHelper',
+  'WebrtcClient',
   'LazyLoader',
   'MmiManager',
   'MultiSimActionButton',
@@ -832,8 +836,9 @@ suite('Render contact', function() {
       this.sinon.stub(MmiManager, 'isMMI').returns(false);
       subject.render(null, TAG_OPTIONS);
 
-      // We have two buttons, 2 calls per button created
-      assert.equal(LazyLoader.load.callCount, 4);
+      // We have two buttons, 2 calls per button created plus webrtc
+      // client call
+      assert.equal(LazyLoader.load.callCount, 5);
       var spyCall = LazyLoader.load.getCall(1);
       assert.deepEqual(
         ['/shared/js/multi_sim_action_button.js'], spyCall.args[0]);
