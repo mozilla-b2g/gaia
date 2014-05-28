@@ -20,6 +20,7 @@ contacts.List = (function() {
       contactsListView,
       fastScroll,
       scrollable,
+      groupsContainer,
       settingsView,
       noContacts,
       imgLoader = null,
@@ -167,6 +168,7 @@ contacts.List = (function() {
     scrollable = document.querySelector('#groups-container');
     settingsView = document.querySelector('#view-settings .view-body-inner');
     noContacts = document.querySelector('#no-contacts');
+    groupsContainer = document.getElementById('groups-container-box');
 
     groupsList = document.getElementById('groups-list');
     groupsList.addEventListener('click', onClickHandler);
@@ -937,10 +939,12 @@ contacts.List = (function() {
       }
     }
     if (show && !ActivityHandler.currentlyHandling) {
+      groupsContainer.classList.add('hide');
       noContacts.classList.remove('hide');
       return;
     }
     noContacts.classList.add('hide');
+    groupsContainer.classList.remove('hide');
   };
 
   var showNoContactsAlert = function showNoContactsAlert() {
@@ -1711,7 +1715,7 @@ contacts.List = (function() {
                              'contact-text-selecting');
         row.dataset.selectStyleSet = true;
       }
-      
+
       var label = row.querySelector('label');
       if (isDangerSelectList) {
         label.classList.add('danger');

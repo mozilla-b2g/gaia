@@ -129,6 +129,7 @@ suite('Render contacts list', function() {
       settings,
       searchSection,
       noContacts,
+      groupsContainerBox,
       realMozContacts;
 
   function doLoad(list, values, callback) {
@@ -271,6 +272,9 @@ suite('Render contacts list', function() {
     container = document.createElement('div');
     containerSection.appendChild(container);
 
+    groupsContainerBox = document.createElement('div');
+    groupsContainerBox.id = 'groups-container-box';
+
     var groupsContainer = document.createElement('div');
     groupsContainer.id = 'groups-container';
     groupsContainer.innerHTML += '<section data-type="list" ' +
@@ -283,7 +287,8 @@ suite('Render contacts list', function() {
     groupsContainer.style.height = '100%';
     groupsContainer.style.overflow = 'scroll';
 
-    container.appendChild(groupsContainer);
+    groupsContainerBox.appendChild(groupsContainer);
+    container.appendChild(groupsContainerBox);
     loading = document.createElement('div');
     loading.id = 'loading-overlay';
     settings = document.createElement('div');
@@ -349,7 +354,7 @@ suite('Render contacts list', function() {
     searchList = document.getElementById('search-list');
     noResults = document.getElementById('no-result');
     noContacts = document.getElementById('no-contacts');
-
+    groupsContainerBox = document.getElementById('groups-container-box');
     updateDomReferences();
 
     window.asyncScriptsLoaded = true;
@@ -442,6 +447,7 @@ suite('Render contacts list', function() {
       MockMozContacts.limit = limit;
       subject.getAllContacts();
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       for (var i = 0; i <= limit; i++) {
         var toCheck = container.innerHTML.contains('GIVENNAME ' + i);
         assert.isTrue(toCheck, 'contains ' + i);
@@ -453,6 +459,7 @@ suite('Render contacts list', function() {
       MockMozContacts.limit = limit;
       subject.getAllContacts();
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       for (var i = 0; i <= limit; i++) {
         var toCheck = container.innerHTML.contains('GIVENNAME ' + i);
         assert.isTrue(toCheck, 'contains ' + i);
@@ -464,6 +471,7 @@ suite('Render contacts list', function() {
       MockMozContacts.limit = limit;
       subject.getAllContacts();
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       for (var i = 0; i <= limit; i++) {
         var toCheck = container.innerHTML.contains('GIVENNAME ' + i);
         assert.isTrue(toCheck, 'contains ' + i);
@@ -483,6 +491,7 @@ suite('Render contacts list', function() {
       updateDomReferences();
 
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       assertGroup(groupA, containerA, 1);
       assertGroup(groupB, containerB, 1);
@@ -503,6 +512,7 @@ suite('Render contacts list', function() {
       assertNoGroup(groupFav, containerFav);
       var aContacts = assertGroup(groupA, containerA, 2);
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       assert.isTrue(aContacts[0].querySelector('p').innerHTML.indexOf('AA') >
                     -1);
       assert.isTrue(aContacts[1].querySelector('p').innerHTML.indexOf('AD') >
@@ -520,6 +530,7 @@ suite('Render contacts list', function() {
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 2);
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       assert.isTrue(cContacts[0].querySelector('p').innerHTML.indexOf('CC') >
                     -1);
       assert.isTrue(cContacts[1].querySelector('p').innerHTML.indexOf('CZ') >
@@ -537,6 +548,7 @@ suite('Render contacts list', function() {
       newContact.org = ['AD'];
       doRefreshContact(subject, newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 1);
       assert.isTrue(cContacts[0].querySelector('p').innerHTML.indexOf('CC') >
@@ -557,6 +569,7 @@ suite('Render contacts list', function() {
       newContact.org = null;
       doRefreshContact(subject, newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 1);
       assert.isTrue(cContacts[0].querySelector('p').innerHTML.indexOf('CC') >
@@ -580,6 +593,7 @@ suite('Render contacts list', function() {
       newContact.email[0].value = 'CZ@CZ.com';
       doRefreshContact(subject, newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 2);
       assert.notEqual(cContacts[0].querySelector('p').innerHTML.indexOf('CC'),
@@ -602,6 +616,7 @@ suite('Render contacts list', function() {
       newContact.email[0].value = 'CZ@CZ.com';
       doRefreshContact(subject, newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 2);
       assert.notEqual(cContacts[0].querySelector('p').innerHTML.indexOf('CC'),
@@ -624,6 +639,7 @@ suite('Render contacts list', function() {
       newContact.email = null;
       doRefreshContact(subject, newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 1);
       assert.notEqual(cContacts[0].querySelector('p').innerHTML.indexOf('CC') >
@@ -647,6 +663,7 @@ suite('Render contacts list', function() {
       newContact.email = null;
       doRefreshContact(subject, newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       var favContacts = assertGroup(groupFav, containerFav, 1);
       assert.notEqual(favContacts[0].querySelector('p').innerHTML.
                       indexOf('noName'), -1);
@@ -670,6 +687,7 @@ suite('Render contacts list', function() {
       assertNoGroup(groupFav, containerFav);
       var _Contacts = assertGroup(groupGreek, containerGreek, 1);
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       assert.isTrue(_Contacts[0].querySelector('p').innerHTML.indexOf(name) >
                     -1);
       assertTotal(4, 4);
@@ -685,6 +703,7 @@ suite('Render contacts list', function() {
       doRefreshContact(subject, newContact);
       assertNoGroup(groupFav, containerFav);
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       var _Contacts = assertGroup(groupCyrillic, containerCyrillic, 1);
       assert.isTrue(_Contacts[0].querySelector('p').innerHTML.indexOf(name) >
                     -1);
@@ -705,6 +724,7 @@ suite('Render contacts list', function() {
       doRefreshContact(subject, newContact);
       doRefreshContact(subject, newContact2);
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 3);
       assert.notEqual(cContacts[0].querySelector('p').innerHTML.indexOf('CC'),
@@ -725,6 +745,7 @@ suite('Render contacts list', function() {
       doRefreshContact(subject, newContact);
       subject.remove(5); // We are removing the element from previous test
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       assertGroup(groupC, containerC, 1);
       var bContacts = assertGroup(groupB, containerB, 2);
@@ -744,6 +765,7 @@ suite('Render contacts list', function() {
       assertNoGroup(groupD, containerD);
       doRefreshContact(subject, newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var dContacts = assertGroup(groupD, containerD, 1);
       assert.notEqual(dContacts[0].querySelector('p').innerHTML.indexOf('DD'),
@@ -772,6 +794,7 @@ suite('Render contacts list', function() {
       assertNoGroup(groupD, containerD);
       doRefreshContact(subject, newContact);
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       var dContacts = assertGroup(groupD, containerD, 1);
       assertGroup(groupFav, containerFav, 1);
       assert.notEqual(dContacts[0].querySelector('p').innerHTML.indexOf('DD'),
@@ -789,6 +812,7 @@ suite('Render contacts list', function() {
       var dContacts = assertGroup(groupD, containerD, 2);
       var fContacts = assertGroup(groupFav, containerFav, 2);
       assert.isTrue(noContacts.classList.contains('hide'));
+      assert.isFalse(groupsContainerBox.classList.contains('hide'));
       assertGroup(groupFav, containerFav, 2);
       assert.notEqual(dContacts[0].querySelector('p').innerHTML.indexOf('DA'),
                       -1);
@@ -947,6 +971,7 @@ suite('Render contacts list', function() {
 
         // There are contacts on the list so no contacts should be hidden
         assert.isTrue(noContacts.classList.contains('hide'));
+        assert.isFalse(groupsContainerBox.classList.contains('hide'));
 
         done();
       });
@@ -956,6 +981,7 @@ suite('Render contacts list', function() {
       MockActivities.currentlyHandling = true;
       doLoad(subject, [], function() {
         assert.isTrue(noContacts.classList.contains('hide'));
+        assert.isFalse(groupsContainerBox.classList.contains('hide'));
         assertNoGroup(groupFav, containerFav);
         assertTotal(0, 0);
         MockActivities.currentlyHandling = false;
