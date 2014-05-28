@@ -1,11 +1,12 @@
 'use strict';
 
-/* global MocksHelper, MockL10n, contextMenuUI */
+/* global MocksHelper, MockL10n, contextMenuUI, loadBodyHTML,
+          contextMenuHandler */
 
+require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('home2/test/unit/mock_l10n.js');
 requireApp('home2/js/contextmenu_ui.js');
-requireApp('home2/js/contextmenu_handler.js');
 
 var mocksHelperForContextMenuHandler = new MocksHelper([
   'LazyLoader'
@@ -17,9 +18,11 @@ suite('contextmenu_handler.js >', function() {
 
   mocksHelperForContextMenuHandler.attachTestHelpers();
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+    loadBodyHTML('/index.html');
+    requireApp('home2/js/contextmenu_handler.js', done);
   });
 
   suiteTeardown(function() {
@@ -32,7 +35,7 @@ suite('contextmenu_handler.js >', function() {
       stub.restore();
       done();
     });
-    window.dispatchEvent(new CustomEvent('contextmenu'));
+    contextMenuHandler.container.dispatchEvent(new CustomEvent('contextmenu'));
   });
 
   test(' Handling hashchange event', function(done) {

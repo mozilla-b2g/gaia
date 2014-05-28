@@ -4,7 +4,8 @@
 (function(exports) {
 
   function ContextMenuHandler() {
-    window.addEventListener('contextmenu', this);
+    this.container = document.getElementById('icons').parentNode;
+    this.container.addEventListener('contextmenu', this);
     window.addEventListener('hashchange', this);
   }
 

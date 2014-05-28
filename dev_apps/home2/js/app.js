@@ -7,6 +7,7 @@
   const HIDDEN_ROLES = ['system', 'keyboard', 'homescreen', 'search'];
 
   function App() {
+    this.scrollable = document.querySelector('.scrollable');
     this.grid = document.getElementById('icons');
     this.homescreenFocused = true;
 
@@ -70,8 +71,10 @@
           }
 
           var step;
+          var scrollable = this.scrollable;
+
           var doScroll = function() {
-            var scrollY = window.scrollY;
+            var scrollY = scrollable.scrollTop;
             step = step || (scrollY / 20);
 
             if (!scrollY) {
@@ -79,11 +82,11 @@
             }
 
             if (scrollY <= step) {
-              window.scrollTo(0, 0);
+              scrollable.scrollTop = 0;
               return;
             }
 
-            window.scrollBy(0, -step);
+            scrollable.scrollTop -= step;
             window.requestAnimationFrame(doScroll);
           };
 
