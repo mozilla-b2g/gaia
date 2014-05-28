@@ -133,8 +133,6 @@
       window.addEventListener('shrinking-stop', this);
       window.addEventListener('homescreenopening', this);
       window.addEventListener('homescreenclosing', this);
-      window.addEventListener('software-button-enabled', this);
-      window.addEventListener('software-button-disabled', this);
       return this;
     },
 
@@ -163,8 +161,6 @@
       window.removeEventListener('shrinking-stop', this);
       window.removeEventListener('homescreenopening', this);
       window.removeEventListener('homescreenclosing', this);
-      window.removeEventListener('software-button-enabled', this);
-      window.removeEventListener('software-button-disabled', this);
       this._started = false;
     },
 
@@ -224,10 +220,6 @@
           break;
         case 'homescreenclosing':
           this._screen.classList.remove('on-homescreen');
-          break;
-        case 'software-button-enabled':
-        case 'software-button-disabled':
-          this.getHomescreen().resize();
           break;
       }
     },

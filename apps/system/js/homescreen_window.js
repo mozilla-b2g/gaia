@@ -188,19 +188,6 @@
   };
 
   /**
-  *
-  * The homescreen instance always resizes if it's needed.
-  * (ie. the current layout is different from the current window dimensions)
-  * This helps with the back-to-homescreen transition.
-  *
-  */
-  HomescreenWindow.prototype.resize = function aw_resize() {
-    this.debug('request RESIZE...');
-    this.debug(' will resize... ');
-    this._resize();
-  };
-
-  /**
    * Hide the overlay element of this window.
    *
    * this {HomescreenWindow}
