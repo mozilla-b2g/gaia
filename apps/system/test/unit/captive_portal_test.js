@@ -77,16 +77,9 @@ suite('captive portal > ', function() {
     CaptivePortal.init();
   });
 
-  test('system/captive portal login w manual enable wifi', function() {
+  test('system/captive portal login', function() {
     CaptivePortal.handleEvent(event);
-    MockSettingsListener.mCallback(true);
     assert.ok(MockNotificationScreen.wasMethodCalled['addNotification']);
-  });
-
-  test('system/captive portal login w/o manual enable wifi', function() {
-    CaptivePortal.handleEvent(event);
-    MockSettingsListener.mCallback(true);
-    assert.equal(mockMozActivityInstance.name, 'view');
   });
 
   test('system/captive portal while FTU running..', function() {
