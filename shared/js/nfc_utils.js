@@ -100,7 +100,7 @@ const NDEF = {
   },
 
   RTD_TEXT_IANA_LENGTH: 0x3F,
-  RTD_TEXT_ENCODING: 0x40,
+  RTD_TEXT_ENCODING: 0x80,
   RTD_TEXT_UTF8: 0,
   RTD_TEXT_UTF16: 1
 };
@@ -230,6 +230,41 @@ NfcUtils = {
       str += String.fromCharCode(a[i]);
     }
     return str;
+  },
+
+  /**
+   * Decodes UTF-16 bytes array into a String
+   *
+   * @param {Array} array containing UTF-16 encoded bytes
+   * @return {String}
+   */
+  UTF16BytesToString: function UTF16BytesToString(array) {
+      // if BOM not present Big-endian should be used
+      // NFCForum-TS-RTD_Text_1.0
+      var offset1 = 0, offset2 = 1, i = 0;
+
+      if (array[0] === 0xFE && array[1] === 0xFF) {
+        i = 2;
+      } else if (array[0] === 0xFF && array[1] === 0xFE) {
+        i = 2;
+        offset1 = 1;
+        offset2 = 0;
+      }
+
+      var str = '';
+      for (var len = array.length; i < len; i += 2) {
+          var b1 = array[i + offset1];
+          if (b1 < 0xD8 || b1 >= 0xE0) {
+            var b2 = array[i + offset2];
+            var word = (b1 << 8) + b2;
+            str += String.fromCharCode(word);
+          } else {
+            i += 2;
+            // as for now we handle only BMP characters
+          }
+      }
+
+      return str;
   },
 
   /*****************************************************************************

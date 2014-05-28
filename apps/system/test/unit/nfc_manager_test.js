@@ -192,7 +192,6 @@ suite('Nfc Manager Functions', function() {
       assert.equal(activityOptions.data.encoding, 'UTF-8');
     });
 
-    /* should be uncommented once Bug 1003723 will be fixed 
     test('TNF well known rtd text utf 16', function() {
       var payload = Uint8Array([0x82, 0x65, 0x6E, 0xFF,
                                 0xFE, 0x48, 0x00, 0x6F,
@@ -207,12 +206,13 @@ suite('Nfc Manager Functions', function() {
                                             new Uint8Array(),
                                             payload)];
 
-      var activityOptions = execCommonTest(dummyNdefMsg);
+      var activityOptions = execCommonTest(dummyNdefMsg, 'text');
+
       assert.equal(activityOptions.data.text, 'Ho! UTF-16 en');
       assert.equal(activityOptions.data.rtd, NDEF.RTD_TEXT);
       assert.equal(activityOptions.data.language, 'en');
       assert.equal(activityOptions.data.encoding, 'UTF-16');
-    });*/
+    });
 
     test('TNF well known rtd uri', function() {
       var payload = new Uint8Array([0x04, 0x77, 0x69, 0x6B,
