@@ -1,6 +1,7 @@
 'use strict';
 /* global CategoryCollection */
 /* global CollectionsDatabase */
+/* global CollectionIcon */
 /* global Promise */
 /* global QueryCollection */
 /* global Suggestions */
@@ -15,6 +16,10 @@
     var request;
     var loading = document.getElementById('loading');
     var cancel = document.getElementById('cancel');
+    var maxIconSize = activity.source.data.maxIconSize;
+
+    CollectionIcon.init(maxIconSize);
+    var numAppIcons = CollectionIcon.numAppIcons;
 
     cancel.addEventListener('click', function() {
       // TODO request should always have an 'abort' method
@@ -34,22 +39,59 @@
         suggest.then(
           function select(selected) {
             eme.log('resolved with', selected);
+            var dataReady;
 
             if (Array.isArray(selected)) {
               // collections from categories
-              var
-              collections =
-                CategoryCollection.prototype.fromResponse(selected, data),
-              trxs = collections.map(CollectionsDatabase.add);
-
-              // TODO
-              // store a batch of collections at once. possible?
-              Promise.all(trxs).then(done, done);
+              // we have the web app icons in the response
+              var collections = CategoryCollection.fromResponse(selected, data);
+              dataReady = Promise.resolve(collections);
             } else {
               // collection from custom query
-              var collection = new QueryCollection({query: selected});
-              CollectionsDatabase.add(collection).then(done, done);
+              // we make another request to get web app icons
+              dataReady = new Promise(function getIcons(resolve) {
+                eme.api.Apps.search({query: selected, limit: numAppIcons})
+                  .then(function success(response) {
+                    var webicons =
+                    response.response.apps.slice(0,numAppIcons).map(
+                      function each(app) {
+                        return app.icon;
+                    });
+
+                    var collection = new QueryCollection({
+                      query: selected,
+                      webicons: webicons
+                    });
+
+                    resolve([collection]);
+                  }, noIcons)
+                  .catch(noIcons);
+
+                  function noIcons(e) {
+                    eme.log('noIcons', e);
+                    resolve([new QueryCollection({query: selected})]);
+                  }
+              });
             }
+
+            dataReady.then(function success(collections) {
+              var iconsReady = [];
+              collections.forEach(function doIcon(collection) {
+                iconsReady.push(collection.renderIcon());
+              });
+
+              Promise.all(iconsReady).then(function then() {
+                // TODO
+                // 1. store a batch of collections at once. possible?
+                // 2. we can store to db *before* icons is ready and once
+                // the homescreen syncs it will update the icons
+                var trxs = collections.map(CollectionsDatabase.add);
+                Promise.all(trxs).then(done, done);
+              }).catch(function _catch(ex) {
+                eme.log('caught exception', ex);
+                activity.postResult(false);
+              });
+            });
 
             function done() {
               activity.postResult(true);
