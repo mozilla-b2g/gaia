@@ -43,8 +43,7 @@
 // GAIA-
 Components.utils.import('resource://gre/modules/Services.jsm');
 const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
-const GAIA_DIR = Services.prefs.getCharPref("extensions.gaia.dir");
-const GAIA_ALLAPPDIRS = Services.prefs.getCharPref("extensions.gaia.allappdirs");
+const GAIA_APP_RELATIVEPATH = Services.prefs.getCharPref("extensions.gaia.app_relative_path");
 const GAIA_LOCALES_PATH = Services.prefs.getCharPref("extensions.gaia.locales_debug_path");
 const GAIA_DEVICE_PIXEL_SUFFIX = Services.prefs.getCharPref("extensions.gaia.device_pixel_suffix");
 // -GAIA
@@ -1524,6 +1523,7 @@ RequestReader.prototype =
 
   /**
    * Try to find out real path of apps,
+   * according to GAIA_APP_RELATIVEPATH provided by Makefile.
    */
   _findRealPath: function(appName) {
     if (this._realPath) {
@@ -1532,16 +1532,15 @@ RequestReader.prototype =
 
     this._realPath = {};
 
-    var appPathList = GAIA_ALLAPPDIRS.trim().split(" ");
+    var appPathList = GAIA_APP_RELATIVEPATH.trim().split(" ");
     for (var i = 0; i < appPathList.length; i++) {
-      var relativePath = appPathList[i].substr(GAIA_DIR.length + 1),
-          currentAppName = relativePath.split("/")[1];
+      var currentAppName = appPathList[i].split("/")[1];
 
       if (!currentAppName) {
         continue;
       }
 
-      this._realPath[currentAppName] = relativePath;
+      this._realPath[currentAppName] = appPathList[i];
     }
     return "/" + this._realPath[appName];
   },

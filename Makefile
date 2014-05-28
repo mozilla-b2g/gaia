@@ -360,8 +360,6 @@ GAIA_APP_CONFIG := /tmp/gaia-apps-temp.list
 $(warning GAIA_APP_SRCDIRS is deprecated, please use GAIA_APP_CONFIG)
 endif
 
-GAIA_ALLAPPDIRS=$(shell find $(GAIA_DIR)/apps $(GAIA_DIR)/dev_apps -maxdepth 1 -mindepth 1 -type d)
-
 GAIA_APPDIRS=$(shell while read LINE; do \
 	if [ "$${LINE\#$${LINE%?}}" = "*" ]; then \
 		srcdir="`echo "$$LINE" | sed 's/.\{2\}$$//'`"; \
@@ -464,7 +462,6 @@ define BUILD_CONFIG
 	"GAIA_ENGINE" : "xpcshell", \
 	"GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)", \
 	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
-	"GAIA_ALLAPPDIRS" : "$(GAIA_ALLAPPDIRS)", \
 	"NOFTU" : "$(NOFTU)", \
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
 	"HAIDA" : $(HAIDA), \
@@ -850,7 +847,7 @@ ifeq ($(BUILD_APP_NAME),*)
 	@touch $(TEST_AGENT_CONFIG)
 	@rm -f /tmp/test-agent-config;
 	@# Build json array of all test files
-	@for d in ${GAIA_ALLAPPDIRS}; \
+	@for d in ${GAIA_APPDIRS}; \
 	do \
 		parent="`dirname $$d`"; \
 		pathlen=`expr $${#parent} + 2`; \
