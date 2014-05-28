@@ -1023,8 +1023,13 @@ var Camera = {
       this.setFocusMode();
 
       camera.onShutter = (function() {
-        // play shutter sound.
-        SoundEffect.playCameraShutterSound();
+        // Play shutter sound. When the sound is complete, hide the
+        // focus ring. Because of bad latency in the audio system, the
+        // picture success callback can be called before the sound even
+        // plays, especially on a loaded Tarako device. So linking the
+        // focus ring to the sound playback makes it all appear to be more
+        // in sync.
+        SoundEffect.playCameraShutterSound(this.hideFocusRing.bind(this));
       }).bind(this);
       camera.onRecorderStateChange = this.recordingStateChanged.bind(this);
       if (this._captureMode === this.CAMERA) {
@@ -1251,7 +1256,6 @@ var Camera = {
 
   takePictureSuccess: function camera_takePictureSuccess(blob) {
     this._config.position = null;
-    this.hideFocusRing();
 
     // In either case, save the photo to device storage
     this._addPictureToStorage(blob, function(name, absolutePath, fileBlob) {
@@ -1283,6 +1287,7 @@ var Camera = {
 
   retakePressed: function camera_retakePressed() {
     this._savedMedia = null;
+    ConfirmDialog.hide();
     if (this._captureMode === this.CAMERA) {
       this.resumePreview();
     } else {
@@ -1294,6 +1299,16 @@ var Camera = {
     var self = this;
     var media = this._savedMedia;
     this._savedMedia = null;
+
+    // We purposely do not hide the confirmation dialog here, since we don't
+    // want the user to see the viewfinder again. We just want to transition
+    // immediately from the confirmation screen back to the app that invoked
+    // the pick activity. On Tarako, it can take some time to rotate the
+    // picked photo and return to the invoking app, so we display a spinner
+    // as soon as the user selects the photo and leave it spinning until
+    // we exit and the invoking app comes back.
+    this.showSpinner();
+
     if (this._captureMode === this.CAMERA) {
       this._resizeAndRotate(media.blob, function(resized_blob) {
         this._pendingPick.postResult({
@@ -1345,9 +1360,7 @@ var Camera = {
 
     var self = this;
 
-    this.showSpinner();
     cropResizeRotate(blob, null, outputSize, null, function(error, newBlob) {
-      self.hideSpinner();
       if (error) {
         // If we couldn't resize or rotate it, use the original
         console.error('Error while resizing or rotate photo: ' + error);
@@ -1510,6 +1523,12 @@ var Camera = {
       this.focusRing.setAttribute('data-state', 'focusing');
       this._cameraObj.autoFocus(this.autoFocusDone.bind(this));
     } else {
+      // On Tarako we're not actually doing any focusing but because
+      // the camera is not very responsive on that device, we display
+      // the focus ring anyway so that the user knows something is
+      // happening. The focus ring will be cleared when the shutter
+      // sound is done playing.
+      this.focusRing.setAttribute('data-state', 'focused');
       this.takePicture();
     }
   },

@@ -186,5 +186,28 @@ suite('Sound Effect Unit Tests', function() {
         assert.isTrue(MockAudio.instances[i].playing);
       }
     });
+
+    test('#play enabled shutter sound with callback', function(done) {
+      MockNavigatorSettings.mSettings[SHUTTER_KEY] = true;
+      MockNavigatorSettings.mTriggerObservers(SHUTTER_KEY,
+                                              {settingName: SHUTTER_KEY,
+                                               settingValue: true});
+
+      // If this test fails, it will be with a timeout
+      SoundEffect.playCameraShutterSound(done);
+      checkSoundPlaying('./resources/sounds/shutter.ogg');
+    });
+
+    test('#play disabled shutter sound with callback', function(done) {
+      MockNavigatorSettings.mSettings[SHUTTER_KEY] = false;
+      MockNavigatorSettings.mTriggerObservers(SHUTTER_KEY,
+                                              {settingName: SHUTTER_KEY,
+                                               settingValue: false});
+
+      // The callback should be called even if the sound is disabled
+      // If this test fails, it will be with a timeout
+      SoundEffect.playCameraShutterSound(done);
+      checkSoundNotPlaying('./resources/sounds/shutter.ogg');
+    });
   });
 });
