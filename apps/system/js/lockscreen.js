@@ -441,8 +441,11 @@
     }).bind(this));
 
     window.SettingsListener.observe('wallpaper.color',
-      'rgba(150, 160, 112, 0.6)', (function(value) {
+      'hsla(73, 25%, 42%, 0.75)', (function(value) {
       this.secondaryBackground.dataset.wallpaperColor = value;
+      if (!this.secondaryBackground.classList.contains('blank')) {
+        this.secondaryBackground.style.backgroundColor = value;
+      }
     }).bind(this));
 
     navigator.mozL10n.ready(this.l10nInit.bind(this));

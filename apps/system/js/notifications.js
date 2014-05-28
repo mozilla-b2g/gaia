@@ -422,6 +422,11 @@ var NotificationScreen = {
           this.lockScreenContainer.firstElementChild
         );
       }
+
+      window.lockScreen.secondaryBackground.style.backgroundColor =
+        window.lockScreen.secondaryBackground.dataset.wallpaperColor;
+
+      window.lockScreen.classList.remove('blank');
     }
 
     if (notify && !this.isResending) {
@@ -511,9 +516,15 @@ var NotificationScreen = {
     if (notificationNode)
       notificationNode.parentNode.removeChild(notificationNode);
 
-    if (lockScreenNotificationNode)
+    if (lockScreenNotificationNode) {
       lockScreenNotificationNode.parentNode
         .removeChild(lockScreenNotificationNode);
+      if (!lockScreenNotificationNode.parentNode.firstElementChild) {
+        window.lockScreen.secondaryBackground.style.backgroundColor =
+          'transparent';
+        window.lockScreen.classList.add('blank');
+      }
+    }
     this.updateStatusBarIcon();
 
     if (!this.container.firstElementChild) {
@@ -537,6 +548,8 @@ var NotificationScreen = {
       var element = this.lockScreenContainer.firstElementChild;
       this.lockScreenContainer.removeChild(element);
     }
+    window.lockScreen.secondaryBackground.style.backgroundColor = 'transparent';
+    window.lockScreen.classList.add('blank');
   },
 
   updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {

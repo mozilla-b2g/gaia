@@ -104,11 +104,43 @@ var Wallpaper = {
       }
     }
 
-    r = parseInt(r / (imageWidth * imageHeight));
-    g = parseInt(g / (imageWidth * imageHeight));
-    b = parseInt(b / (imageWidth * imageHeight));
+    r = r / (imageWidth * imageHeight) / 255;
+    g = g / (imageWidth * imageHeight) / 255;
+    b = b / (imageWidth * imageHeight) / 255;
 
-    return 'rgba(' + r + ', ' + g + ', ' + b + ', 0.6)';
+    // http://en.wikipedia.org/wiki/HSL_and_HSV#Formal_derivation
+    var M = Math.max(r, g, b);
+    var m = Math.min(r, g, b);
+    var C = M - m;
+    var h, s, l;
+
+    l = 0.5 * (M + m);
+    if (C == 0) {
+      h = s = 0; // no satuaration (monochromatic)
+    } else {
+      switch (M) {
+        case r:
+          h = ((g - b) / C) % 6;
+          break;
+        case g:
+          h = ((b - r) / C) + 2;
+          break;
+        case b:
+          h = ((r - g) / C) + 4;
+          break;
+      }
+      h *= 60;
+      h = (h + 360) % 360;
+      s = C / (1 - Math.abs(2 * l - 1));
+    }
+
+    s *= 1.25;
+    l *= 0.8;
+
+    h = parseInt(h);
+    s = parseInt(s * 100) + '%';
+    l = parseInt(l * 100) + '%';
+    return 'hsla(' + h + ', ' + s + ', ' + l + ', 0.75)';
   }
 };
 
