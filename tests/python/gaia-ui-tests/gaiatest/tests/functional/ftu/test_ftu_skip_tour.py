@@ -20,8 +20,7 @@ class TestFtu(GaiaTestCase):
         self.ftu.launch()
 
         # If mozWifiManager is not initialised an exception may be thrown
-        Wait(self.marionette, ignored_exceptions=JavascriptException).until(
-            lambda m: self.data_layer.is_wifi_enabled)
+        Wait(self.marionette).until(lambda m: self.data_layer.is_wifi_enabled)
 
     def test_ftu_skip_tour(self):
         """https://moztrap.mozilla.org/manage/case/3876/
