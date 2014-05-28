@@ -10,7 +10,7 @@ MARIONETTE_TEST_FILE_NAMES=$(node tests/travis_ci/marionette_js_stable_check/pul
 if [ ${#MARIONETTE_TEST_FILE_NAMES} -gt 0 ]; then
   TEST_RESULT=0
   MAKE_BUILD="PROFILE_FOLDER=profile-test make"
-  RUN_SPECIFIC_TESTS="make test-integration-test TEST_FILES=\"$MARIONETTE_TEST_FILE_NAMES\" REPORTER=spec"
+  RUN_SPECIFIC_TESTS="make test-integration-test TEST_FILES=\"$MARIONETTE_TEST_FILE_NAMES\" REPORTER=spec VERBOSE=1"
 
   # We only build once
   eval ${MAKE_BUILD}
