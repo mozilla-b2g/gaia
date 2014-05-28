@@ -45,12 +45,11 @@ PreferencesBuilder.prototype.preparePref = function() {
   this.prefs['browser.homescreenURL'] = this.system;
   this.prefs['b2g.system_startup_url'] = this.system;
 
-  this.domains = [];
-  this.domains.push(this.config.GAIA_DOMAIN);
-
-  this.gaia.webapps.forEach(function(webapp) {
-    this.domains.push(webapp.domain);
-  }.bind(this));
+  this.domains = [this.config.GAIA_DOMAIN];
+  this.config.GAIA_ALLAPPDIRS.split(' ').forEach(function(appdir) {
+    this.domains.push(utils.getFile(appdir).leafName + '.' +
+      this.config.GAIA_DOMAIN);
+  }, this);
 
   this.prefs['network.http.max-connections-per-server'] = 15;
   this.prefs['dom.mozInputMethod.enabled'] = true;
@@ -196,6 +195,7 @@ PreferencesBuilder.prototype.setDebugPref = function() {
   this.prefs['extensions.gaia.port'] =
     parseInt(this.config.GAIA_PORT.replace(/:/g, ''), 10);
   this.prefs['extensions.gaia.appdirs'] = this.config.GAIA_APPDIRS;
+  this.prefs['extensions.gaia.allappdirs'] = this.config.GAIA_ALLAPPDIRS;
   this.prefs['extensions.gaia.locales_debug_path'] =
     this.config.GAIA_LOCALES_PATH;
   this.prefs['extensions.gaia.official'] = Boolean(this.config.OFFICIAL);
@@ -207,13 +207,6 @@ PreferencesBuilder.prototype.setDebugPref = function() {
   var suffix = this.config.GAIA_DEV_PIXELS_PER_PX === '1' ?
                '' : '@' + this.config.GAIA_DEV_PIXELS_PER_PX + 'x';
   this.prefs['extensions.gaia.device_pixel_suffix'] = suffix;
-
-  var appPathList = [];
-  this.gaia.webapps.forEach(function(webapp) {
-    appPathList.push(webapp.sourceAppDirectoryName + '/' +
-                     webapp.sourceDirectoryName);
-  });
-  this.prefs['extensions.gaia.app_relative_path'] = appPathList.join(' ');
   this.prefs['extensions.autoDisableScopes'] = 0;
 };
 
