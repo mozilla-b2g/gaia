@@ -87,6 +87,7 @@ define(function(require) {
           }
 
           _panel = panel;
+          console.log('invoke activate for: ' + panel.id);
           PanelUtils.activate(panel);
 
           options.onInit(panel, initOptions);

@@ -103,7 +103,7 @@ var UtilityTray = {
         break;
 
       case 'touchstart':
-        if (lockScreen.locked) {
+        if (window.System.locked) {
           return;
         }
 
@@ -193,7 +193,7 @@ var UtilityTray = {
 
   onTouchEnd: function ut_onTouchEnd(touch) {
     // Prevent utility tray shows while the screen got black out.
-    if (window.lockScreen && window.lockScreen.locked) {
+    if (window.System.locked) {
       this.hide(true);
     } else {
       var significant = (Math.abs(this.lastDelta) > (this.screenHeight / 5));
@@ -215,7 +215,7 @@ var UtilityTray = {
 
     // If the transition has not started yet there won't be any transitionend
     // event so let's not wait in order to remove the utility-tray class.
-    if (instant || style.MozTransform == '') {
+    if (instant || style.MozTransform === '') {
       this.screen.classList.remove('utility-tray');
     }
     window.dispatchEvent(new CustomEvent('utility-tray-overlayclosed'));

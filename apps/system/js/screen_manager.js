@@ -18,6 +18,15 @@ var ScreenManager = {
    */
   _unlocking: false,
 
+  /**
+   * When the first lock event received, the reconfigScreenTimeout
+   * should be called.
+   *
+   * This is because the ScreenManager would do reconfig before the
+   * LockScreen got locked.
+   */
+  _reconfigTimeoutFirstLock: false,
+
   /*
    * before idle-screen-off, invoke a nice dimming to the brightness
    * to notify the user that the screen is about to be turn off.
@@ -104,6 +113,8 @@ var ScreenManager = {
   _cpuWakeLock: null,
 
   init: function scm_init() {
+    window.addEventListener('lock', this);
+    window.addEventListener('unlock', this);
     window.addEventListener('sleep', this);
     window.addEventListener('wake', this);
     window.addEventListener('nfc-tech-discovered', this);
@@ -198,6 +209,12 @@ var ScreenManager = {
 
   handleEvent: function scm_handleEvent(evt) {
     switch (evt.type) {
+      case 'lock':
+        if (!this._reconfigTimeoutFirstLock) {
+          this._reconfigScreenTimeout();
+          this._reconfigTimeoutFirstLock = true;
+        }
+        break;
       case 'devicelight':
         if (!this._deviceLightEnabled || !this.screenEnabled ||
             this._inTransition)
@@ -446,7 +463,7 @@ var ScreenManager = {
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.
     } else if (!this._unlocking) {
-      if (window.lockScreen && window.lockScreen.locked) {
+      if (window.System.locked) {
         this._setIdleTimeout(10, true);
         window.addEventListener('will-unlock', this);
         window.addEventListener('lockpanelchange', this);

@@ -40,8 +40,8 @@
     -->
 
     <!-- SIMSlot -->
-    <script type="text/javascript" defer src="js/simslot.js"></script>
-    <script type="text/javascript" defer src="js/simslot_manager.js"></script>
+    <script type="text/javascript" defer src="shared/js/simslot.js"></script>
+    <script type="text/javascript" defer src="shared/js/simslot_manager.js"></script>
     <script type="text/javascript" defer src="js/sim_settings_helper.js"></script>
 
 
@@ -155,14 +155,9 @@
     <script defer src="js/icc.js"></script>
 
     <!-- Media Playback -->
+    <script defer src="js/media_playback_manager.js"></script>
     <script defer src="js/media_playback.js"></script>
     <link rel="stylesheet" type="text/css" href="style/media_playback/media_playback.css">
-
-    <!-- LockScreen -->
-    <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
-    <script defer src="/shared/js/lockscreen_slide.js"></script>
-    <script defer src="js/lockscreen_connection_info_manager.js"></script>
-    <script defer src="js/lockscreen.js"></script>
 
     <!-- Airplane Mode -->
     <script defer src="js/airplane_mode.js"></script>
@@ -999,88 +994,6 @@
           </menu>
         </section>
       </form>
-
-      <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>
-
-      <!-- template for LockScreen window. -->
-      <div id="lockscreen-overlay-template" hidden>
-        <!--
-        <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
-        <div id="lockscreen-background" class="lockscreen-background"></div>
-        <div id="lockscreen-container">
-          <div id="lockscreen-panel-main" class="lockscreen-panel">
-            <div id="lockscreen-header">
-              <div id="lockscreen-conn-states" hidden></div>
-              <div id="lockscreen-mute" hidden></div>
-              <div id="lockscreen-alt-camera" class="lockscreen-icon">
-                <div id="lockscreen-alt-camera-button" role="button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
-              </div>
-              <div id="lockscreen-clock-time"></div>
-              <div id="lockscreen-date"></div>
-            </div>
-            <div id="notifications-lockscreen-container">
-            </div>
-            <div id="lockscreen-message" hidden></div>
-            <div id="lockscreen-area"></div>
-            <div id="lockscreen-media-container" hidden>
-              <div class="media-playback-nowplaying">
-                <div class="icon"></div>
-                <div class="albumart"></div>
-                <div class="title"></div>
-                <div class="artist"></div>
-              </div>
-              <div class="media-playback-controls big">
-                <button class="previous"></button>
-                <button class="play-pause"></button>
-                <button class="next"></button>
-              </div>
-            </div>
-            <div id="lockscreen-icon-container">
-              <div id="lockscreen-area-camera"
-                   class="lockscreen-icon-area lockscreen-icon-left dark" role="button"
-                   data-l10n-id="camera-a11y-button" aria-label="Camera">
-                <div class="lockscreen-icon">
-                </div>
-              </div>
-              <div id="lockscreen-area-unlock"
-                   class="lockscreen-icon-area lockscreen-icon-right dark" role="button"
-                   data-l10n-id="unlock-a11y-button" aria-label="Unlock">
-                <div class="lockscreen-icon">
-                </div>
-              </div>
-              <div id="lockscreen-area-slide"
-                   class="lockscreen-icon-area lockscreen-icon-center">
-                <div id="lockscreen-canvas-wrapper">
-                  <canvas id="lockscreen-canvas"></canvas>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div id="lockscreen-panel-passcode" class="lockscreen-panel">
-            <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
-            <div id="lockscreen-passcode-pad">
-              <a role="button" href="#" data-key="1">1<span>.</span></a>
-              <a role="button" href="#" data-key="2">2<span>ABC</span></a>
-              <a role="button" href="#" data-key="3">3<span>DEF</span></a>
-              <a role="button" href="#" data-key="4">4<span>GHI</span></a>
-              <a role="button" href="#" data-key="5">5<span>JKL</span></a>
-              <a role="button" href="#" data-key="6">6<span>MNO</span></a>
-              <a role="button" href="#" data-key="7">7<span>PQRS</span></a>
-              <a role="button" href="#" data-key="8">8<span>TUV</span></a>
-              <a role="button" href="#" data-key="9">9<span>WXYZ</span></a>
-              <a role="button" href="#" data-key="e" class="lockscreen-passcode-pad-func last-row"><span data-l10n-id="emergency-call-button">Emergency Call</span></a>
-              <a role="button" href="#" data-key="0" class="last-row">0</a>
-              <a role="button" href="#" data-key="c" class="lockscreen-passcode-pad-func last-row"><span data-l10n-id="cancel">Cancel</span></a>
-              <a role="button" href="#" data-key="b" class="last-row">⌫</a>
-            </div>
-          </div>
-
-          <div id="lockscreen-panel-emergency-call" class="lockscreen-panel"></div>
-        </div>
-      </div>
-            -->
-      </div> <!-- end of lockscreen overlay template -->
 
       <div id="attention-screen" data-z-index-level="attention-screen">
         <div id="attention-bar"></div>

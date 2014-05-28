@@ -4,10 +4,10 @@ var childProcess = require('child_process'),
     fs = require('fs'),
     request = require('request');
 
-var PULL_REQUEST_URL_PATTERN =
-      'https://api.github.com/repos/mozilla-b2g/gaia/pulls/[id]/files',
-    MARIONETTE_TEST_FILE_NAME_PATTERN =
-      /apps\/[a-z]+\/test\/marionette\/[\w\/]+_test.js/;
+var PULL_REQUEST_URL_PATTERN = 'https://api.github.com/repos/mozilla-b2g/gaia/' +
+                               'commits/ad72112c83c65755bd72abf36bc2cc0d0006dfaa';
+var MARIONETTE_TEST_FILE_NAME_PATTERN =
+  /apps\/[a-z]+\/test\/marionette\/[\w\/]+_test.js/;
 
 /**
  * Get file name list of marionette test in the current pull request on Travis.
@@ -22,7 +22,7 @@ var PullRequestMarionetteTest = (function() {
   function getPullRequestFiles(id, callback) {
     // Configure the request
     var options = {
-      url: PULL_REQUEST_URL_PATTERN.replace('[id]', id),
+      url: PULL_REQUEST_URL_PATTERN,//.replace('[id]', id),
       method: 'GET',
       headers: { 'User-Agent': 'FirefoxOS-Gaia-Travis' }
     };
@@ -32,7 +32,9 @@ var PullRequestMarionetteTest = (function() {
         var json = JSON.parse(body),
             fileNames = [];
 
-        json.forEach(function(file) {
+        var files = json.files;
+
+        files.forEach(function(file) {
           fileNames.push(file.filename);
         });
         if (callback && typeof(callback) === 'function') {
@@ -55,7 +57,7 @@ var PullRequestMarionetteTest = (function() {
 
       testFileNames = fileNames.filter(function(filename) {
                         // Get the marionette test file list in the patch.
-                        if (filename.match(MARIONETTE_TEST_FILE_NAME_PATTERN) &&
+                        if (filename.match(MARIONETTE_TEST_FILE_NAME_PATTERN)  &&
                             fs.existsSync(filename)) {
                           return true;
                         }
