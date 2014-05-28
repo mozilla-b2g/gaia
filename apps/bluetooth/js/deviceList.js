@@ -30,7 +30,7 @@ navigator.mozL10n.once(function deviceList() {
     var bluetoothSearch = document.getElementById('bluetooth-search');
     var searchAgainBtn = document.getElementById('search-device');
     var searchingItem = document.getElementById('bluetooth-searching');
-    var exitButton = document.getElementById('cancel-activity');
+    var header = document.getElementById('devices-list-header');
 
     var pairingAddress = null;
     var connectingAddress = null;
@@ -140,7 +140,7 @@ navigator.mozL10n.once(function deviceList() {
     // when DefaultAdapter is ready.
     function initial(adapter, deviceSelectedCallback, exitBtnClickedCallback) {
       deviceList.hidden = false;
-      exitButton.addEventListener('click', cancelActivity);
+      header.addEventListener('action', cancelActivity);
       defaultAdapter = adapter;
       defaultAdapter.onpairedstatuschanged = function bt_getPairedMessage(evt) {
         showDevicePaired(evt.status, 'Authentication Failed');
@@ -158,7 +158,7 @@ navigator.mozL10n.once(function deviceList() {
     function uninit() {
       deviceList.hidden = true;
       defaultAdapter = null;
-      exitButton.removeEventListener('click', cancelActivity);
+      header.removeEventListener('action', cancelActivity);
     }
 
     function getPairedDevice() {
