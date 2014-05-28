@@ -1,5 +1,5 @@
 'use strict';
-/* global MocksHelper, MockSettingsListener, Accessibility */
+/* global MocksHelper, Accessibility */
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/js/accessibility.js');
@@ -20,6 +20,7 @@ suite('system/Accessibility', function() {
   });
 
   suite('handleEvent', function() {
+    /* Disabled bug 1016748
     test('toggles screenreader state after button sequence', function() {
       assert.ok(!subject.settings['accessibility.screenreader']);
       var volumeUp = {
@@ -42,6 +43,7 @@ suite('system/Accessibility', function() {
       var lock = MockSettingsListener.getSettingsLock().locks.pop();
       assert.equal(lock['accessibility.screenreader'], true);
     });
+    */
   });
 
 });
