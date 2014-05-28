@@ -5384,8 +5384,8 @@ window.addEventListener('afterprint', function afterPrint(evt) {
     var url = URL.createObjectURL(blob);
     PDFView.open(url);
 
-    var cancelButton = document.getElementById('activityClose');
-    cancelButton.addEventListener('click', function() {
+    var header = document.getElementById('header');
+    header.addEventListener('action', function() {
       activity.postResult('close');
     });
   });
