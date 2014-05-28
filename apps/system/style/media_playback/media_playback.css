@@ -151,14 +151,8 @@
   background-size: 3rem;
 }
 
-#lockscreen-media-container .media-playback-nowplaying > .albumart {
-  float: left;
-  width: 3rem;
-  height: 3rem;
-  margin: 0.4rem 1.4rem 2.4rem;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 3rem;
+#lockscreen-media-container .media-playback-nowplaying > .icon {
+  display: none;
 }
 
 #lockscreen-media-container .media-playback-nowplaying > .title {
