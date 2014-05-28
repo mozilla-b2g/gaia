@@ -138,10 +138,20 @@
   z-index: 4098 !important;
 }
 
-#screen > [data-z-index-level="app"] > .lockScreenWindow.active
+#screen > [data-z-index-level="app"] > .lockScreenWindow.active,
+#screen > [data-z-index-level="app"] > .lockScreenWindow.transition-opening
 {
   /* Or the .appWindow one would be first adopted.*/
   z-index: 2048 !important;
+}
+
+/**
+ * Before the window get opened, it should overlap upon the foreground app,
+ * or the user can still manipulate before the window opened.
+ */
+#screen > [data-z-index-level="app"] > .lockScreenWindow.transition-opening
+{
+  pointer-events: auto;
 }
 
 /* Permission screen is here because of the lockscreen camera. */

@@ -1,0 +1,216 @@
+#notification-toaster {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5rem;
+  overflow: hidden;
+  background-image: url('images/grey-noise-bg.png');
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  -moz-box-sizing: border-box;
+  border-bottom: 0.1rem #2c2c2c solid;
+  transform: translateY(-5rem);
+  transition: transform .3s ease-in-out;
+}
+
+#toaster-icon {
+  position: absolute;
+  width: 3rem;
+  height: 3rem;
+  top: 0.7rem;
+  left: 1rem;
+  pointer-events: none;
+}
+
+#notification-toaster > div {
+  left: 5rem;
+  width: calc(100% - 5.5rem);
+  height: 1.9rem;
+  padding: 0;
+  line-height: 1.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#toaster-title {
+  pointer-events: none;
+  position: absolute;
+  top: 0.3rem;
+  color: #52b8cc;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+#toaster-detail {
+  pointer-events: none;
+  position: absolute;
+  top: 2.2rem;
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#notification-toaster.displayed {
+  transform: translateY(0);
+}
+
+#notification-bar {
+  height: 3rem;
+  background-color: #52b6cc;
+  color: #1b3f46;
+}
+
+#notification-bar span {
+  display: inline-block;
+  margin-left: 1.5rem;
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 3rem;
+}
+
+#notification-bar span[hidden] {
+  display: none;
+}
+
+#notification-bar button {
+  float: right;
+  margin-right: 1.5rem;
+  width: 30%;
+  height: 3rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: right;
+  font-size: 1.4rem;
+  font-weight: 500;
+}
+
+#notification-bar button[disabled] {
+  color: #556365;
+}
+
+/* remove ugly dotted outline when focus */
+#notification-bar button::-moz-focus-inner {
+  border: 0;
+}
+
+#notifications-container {
+  width: 100%;
+
+  /* minus cost control, quick settings, bar and grippy */
+  height: calc(100% - 4.5rem - 6rem - 3rem - 2rem);
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+
+.notification {
+  position: relative;
+  height: 4.2rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5rem;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-top: 0.1rem #404547 solid;
+  border-bottom: 0.1rem black solid;
+}
+
+.notification:active {
+  background-color: rgba(52,140,158, .6);
+}
+
+.notification:first-child {
+  border-top-color: black;
+}
+
+.notification div {
+  pointer-events: none;
+}
+
+.notification > div:first-of-type {
+  width: calc(100% - 8rem);
+  margin-top: 0.6rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #fff;
+}
+
+.notification > div {
+  width: calc(100% - 5.5rem);
+  color: #bfbfbf;
+  min-height: 1.4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1rem;
+}
+
+.notification > .timestamp {
+  position: absolute;
+  right: 1.5rem;
+  color: #52B6CC;
+  margin-top: 0.5rem;
+  padding: 0;
+  display: inline;
+  font-size: 0.8rem;
+  font-weight: bold;
+  line-height: 1.6rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notification > img {
+  float: left;
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  margin: 1rem 0.7rem;
+  pointer-events: none;
+}
+
+.notification.disappearing,
+#notification-toaster.disappearing {
+  transition: transform 0.3s linear;
+  transform: translateX(100%);
+}
+
+.notification.disappearing ~ .notification {
+  transition: transform 0.3s linear;
+  transform: translateY(-6.2rem);
+}
+
+#notifications-lockscreen-container {
+  z-index: 1;
+  position: absolute;
+  top: 11rem;
+  left: 0;
+  width: 100%;
+  max-height: 13rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9),
+                              rgba(0, 0, 0, 0.6) 35%,
+                              rgba(0, 0, 0, 0));
+  background-size: 100% 18.6rem;
+}
+
+#notifications-lockscreen-container .notification {
+  background-color: transparent;
+}
+
+@keyframes fn-rotate {
+  from {
+    transform: rotate(1deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
