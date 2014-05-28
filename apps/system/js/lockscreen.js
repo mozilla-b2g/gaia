@@ -189,13 +189,20 @@
           break;
         }
 
-        if (!evt.target.dataset.key) {
+        var key = evt.target.dataset.key;
+        if (!key &&
+            (evt.target.tagName.toLowerCase() == 'div' &&
+             evt.target.parentNode.tagName.toLowerCase() == 'a')
+           ) {
+          key = evt.target.parentNode.dataset.key;
+        }
+        if (!key) {
           break;
         }
 
         // Cancel the default action of <a>
         evt.preventDefault();
-        this.handlePassCodeInput(evt.target.dataset.key);
+        this.handlePassCodeInput(key);
         break;
 
       case 'touchstart':
@@ -295,6 +302,29 @@
       case 'lockscreen-mode-off':
         this.modeSwitch(evt.detail, false);
         break;
+      case 'iac-mediacomms':
+        if (evt.detail.type === 'status') {
+          switch (evt.detail.data.playStatus) {
+            case 'PLAYING':
+              this.notificationsContainer.classList.add('collapsed');
+              break;
+            case 'PAUSED':
+              this.notificationsContainer.classList.add('collapsed');
+              break;
+            case 'STOPPED':
+              this.notificationsContainer.classList.remove('collapsed');
+              break;
+            case 'mozinterruptbegin':
+              this.notificationsContainer.classList.remove('collapsed');
+              break;
+          }
+        }
+        break;
+      case 'appterminated':
+        if (evt.detail.origin === this.mediaPlaybackWidget.origin) {
+          this.notificationsContainer.classList.remove('collapsed');
+        }
+        break;
     }
   };  // -- LockScreen#handleEvent --
 
@@ -313,8 +343,10 @@
   LockScreen.prototype.init =
   function ls_init() {
     this.ready = true;
-    this._unlocker = new window.LockScreenSlide();
+    this._unlocker = new window.LockScreenSlide({useNewStyle: true});
     this.getAllElements();
+    this.notificationsContainer =
+      document.getElementById('notifications-lockscreen-container');
 
     this.lockIfEnabled(true);
     this.writeSetting(this.enabled);
@@ -365,6 +397,10 @@
     this.mediaPlaybackWidget =
       new window.MediaPlaybackWidget(this.mediaContainer);
 
+    // listen to media playback events to adjust notification container height
+    window.addEventListener('iac-mediacomms', this);
+    window.addEventListener('appterminated', this);
+
     window.SettingsListener.observe('lockscreen.enabled', true,
       (function(value) {
         this.setEnabled(value);
@@ -403,6 +439,16 @@
       '', (function(value) {
       this.setLockMessage(value);
     }).bind(this));
+
+    window.SettingsListener.observe('wallpaper.color',
+      'hsla(73, 25%, 42%, 0.75)', (function(value) {
+      this.secondaryBackground.dataset.wallpaperColor = value;
+      if (!this.secondaryBackground.classList.contains('blank')) {
+        this.secondaryBackground.style.backgroundColor = value;
+      }
+      this.passcodeCode.style.backgroundColor = value;
+    }).bind(this));
+
     navigator.mozL10n.ready(this.l10nInit.bind(this));
   };
 
@@ -919,7 +965,8 @@
         'area-handle', 'area-slide', 'media-container', 'passcode-code',
         'alt-camera', 'alt-camera-button', 'slide-handle',
         'passcode-pad', 'camera', 'accessibility-camera',
-        'accessibility-unlock', 'panel-emergency-call', 'canvas', 'message'];
+        'accessibility-unlock', 'panel-emergency-call', 'canvas', 'message',
+        'secondary-background'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
