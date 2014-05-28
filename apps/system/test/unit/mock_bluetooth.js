@@ -7,7 +7,9 @@ var MockBluetooth = {
   enabled: true,
   init: function mbt_init() {
     var mockAdapater = {
-      getPairedDevices: function mbta_getPairedDevices() {
+      address: '01:23:45:67:89:AB',
+      name: 'MockBTDevice',
+      getPairedDevices: function mbt_getPairedDevices() {
         // fake object with two paired devices
         var tmpObj = {
           result: [{}, {}]
@@ -29,6 +31,9 @@ var MockBluetooth = {
       },
       stopSendingFile: function mbta_stopSendingFile(deviceAddress) {
         return new MockDOMRequest();
+      },
+      pair: function() {
+        return {};
       }
     };
     this.defaultAdapter = mockAdapater;
@@ -39,7 +44,7 @@ var MockBluetooth = {
   },
 
   getDefaultAdapter: function mbt_getDefaultAdapter() {
-    return this.defaultAdapter;
+    return new MockDOMRequest();
   }
 };
 
