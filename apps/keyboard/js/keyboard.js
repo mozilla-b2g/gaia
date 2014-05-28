@@ -158,6 +158,10 @@ var fakeAppObject = {
 var inputMethodManager = new InputMethodManager(fakeAppObject);
 inputMethodManager.start();
 
+// LayoutLoader loads and hold layouts for us.
+var layoutLoader = new LayoutLoader();
+layoutLoader.start();
+
 // SettingsPromiseManager wraps Settings DB methods into promises.
 var settingsPromiseManager = new SettingsPromiseManager();
 
@@ -337,41 +341,25 @@ function deactivateInputMethod() {
 function setKeyboardName(name, callback) {
   perfTimer.printTime('setKeyboardName');
 
-  var keyboard;
-
-  if (name in Keyboards) {
-    setLayout(name);
-  } else {
-    // If we have not already loaded the layout, load it now
-    var layoutFile = 'js/layouts/' + name + '.js';
-    var script = document.createElement('script');
-    script.src = layoutFile;
-    script.onload = function() {
-      setLayout(name);
-    };
-    script.onerror = function() {
-      // If this happens, we have a misconfigured build and the
-      // keyboard manifest does not match the layouts in js/layouts/
-      console.error('Cannot load keyboard layout', layoutFile);
-    };
-    document.head.appendChild(script);
-  }
-
-  function setLayout(name) {
-    perfTimer.printTime('setLayout');
+  layoutLoader.getLayoutAsync(name).then(function() {
+    perfTimer.printTime('setKeyboardName:promise resolved');
     keyboardName = name;
-    keyboard = Keyboards[name];
+    keyboard = layoutLoader.getLayout(name);
 
     // Ask the loader to start loading IMEngine
-    var loader = inputMethodManager.loader;
+    var imEngineloader = inputMethodManager.loader;
     var imEngineName = keyboard.imEngine;
-    if (imEngineName && !loader.getInputMethod(imEngineName)) {
-      loader.getInputMethodAsync(imEngineName);
+    if (imEngineName && !imEngineloader.getInputMethod(imEngineName)) {
+      imEngineloader.getInputMethodAsync(imEngineName);
     }
+
     if (callback) {
       callback();
     }
-  }
+  }, function(error) {
+    console.warn('Failed to switch layout for ' + name + '.' +
+      ' It might possible because we were called more than once.');
+  });
 }
 
 // Support function for render
@@ -469,10 +457,11 @@ function modifyLayout(keyboardName) {
   // Start with this base layout
   var layout;
   if (altLayoutName) {
-    layout = Keyboards[keyboardName][altLayoutName] || Keyboards[altLayoutName];
+    layout = layoutLoader.getLayout(keyboardName)[altLayoutName] ||
+      layoutLoader.getLayout(altLayoutName);
   }
   else {
-    layout = Keyboards[keyboardName];
+    layout = layoutLoader.getLayout(keyboardName);
   }
 
   // Look for the space key in the layout. We're going to insert
@@ -509,8 +498,8 @@ function modifyLayout(keyboardName) {
     // 'layout' holds alternatelayout which doesn't include basicLayoutKey.
     // Check and use 'basicLayoutKey' defined by each keyboard.
     var basicLayoutKey = 'ABC';
-    if (Keyboards[keyboardName]['basicLayoutKey']) {
-      basicLayoutKey = Keyboards[keyboardName]['basicLayoutKey'];
+    if (layoutLoader.getLayout(keyboardName)['basicLayoutKey']) {
+      basicLayoutKey = layoutLoader.getLayout(keyboardName)['basicLayoutKey'];
     }
 
     if (!layout['disableAlternateLayout']) {
@@ -546,8 +535,8 @@ function modifyLayout(keyboardName) {
         className: 'switch-key'
       };
 
-      if ('shortLabel' in Keyboards[keyboardName]) {
-        imeSwitchKey.value = Keyboards[keyboardName].shortLabel;
+      if ('shortLabel' in layoutLoader.getLayout(keyboardName)) {
+        imeSwitchKey.value = layoutLoader.getLayout(keyboardName).shortLabel;
         imeSwitchKey.className += ' alternate-indicator';
       }
 
@@ -653,7 +642,7 @@ function renderKeyboard(keyboardName) {
   // Add meta keys and type-specific keys to the base layout
   currentLayout = modifyLayout(keyboardName);
 
-  var keyboard = Keyboards[keyboardName];
+  var keyboard = layoutLoader.getLayout(keyboardName);
 
   IMERender.ime.classList.remove('full-candidate-panel');
 
@@ -1611,7 +1600,7 @@ function onResize() {
 function switchIMEngine(layoutName, mustRender) {
   perfTimer.printTime('switchIMEngine');
 
-  var layout = Keyboards[layoutName];
+  var layout = layoutLoader.getLayout(layoutName);
   var imEngineName = layout.imEngine || 'default';
 
   // dataPromise resolves to an array of data to be sent to imEngine.activate()
@@ -1725,8 +1714,8 @@ function needsCandidatePanel() {
     return false;
   }
 
-  return !!((Keyboards[keyboardName].autoCorrectLanguage ||
-           Keyboards[keyboardName].needsCandidatePanel) &&
+  return !!((layoutLoader.getLayout(keyboardName).autoCorrectLanguage ||
+           layoutLoader.getLayout(keyboardName).needsCandidatePanel) &&
           (!inputMethodManager.currentIMEngine.displaysCandidates ||
            inputMethodManager.currentIMEngine.displaysCandidates()));
 }
