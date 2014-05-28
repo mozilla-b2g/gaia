@@ -50,6 +50,7 @@ var appMessages = require('app_messages'),
     evt = require('evt'),
     model = require('model'),
     Cards = common.Cards,
+    slice = Array.prototype.slice,
     waitingForCreateAccountPrompt = false,
     activityCallback = null;
 
@@ -331,21 +332,32 @@ model.on('acctsSlice', function() {
   }
 });
 
-var lastActivityTime = 0;
-appMessages.on('activity', function(type, data, rawActivity) {
-  // Rate limit rapid fire activity triggers, like an accidental
-  // double tap. While the card code adjusts for the taps, in
-  // the case of configured account, user can end up with multiple
-  // compose cards in the stack, which is probably confusing,
-  // and the rapid tapping is likely just an accident, or an
-  // incorrect user belief that double taps are needed for
-  // activation.
-  var activityTime = Date.now();
-  if (activityTime < lastActivityTime + 1000) {
-    return;
-  }
-  lastActivityTime = activityTime;
+// Rate limit rapid fire entries, like an accidental double tap. While the card
+// code adjusts for the taps, in the case of configured account, user can end up
+// with multiple compose or reader cards in the stack, which is probably
+// confusing, and the rapid tapping is likely just an accident, or an incorrect
+// user belief that double taps are needed for activation.
+// Using one entry time tracker across all gate entries since ideally we do not
+// want to handle a second fast action regardless of source. We want the first
+// one to have a chance of getting a bit further along. If this becomes an issue
+// though, the closure created inside getEntry could track a unique time for
+// each gateEntry use.
+var lastEntryTime = 0;
+function gateEntry(fn) {
+  return function() {
+    var entryTime = Date.now();
+    // Only one entry per second.
+    if (entryTime < lastEntryTime + 1000) {
+      console.log('email entry gate blocked fast repeated action');
+      return;
+    }
+    lastEntryTime = entryTime;
 
+    return fn.apply(null, slice.call(arguments));
+  };
+}
+
+appMessages.on('activity', gateEntry(function(type, data, rawActivity) {
   function initComposer() {
     Cards.pushCard('compose', 'default', 'immediate', {
       activity: rawActivity,
@@ -435,9 +447,9 @@ appMessages.on('activity', function(type, data, rawActivity) {
       }
     });
   }
-});
+}));
 
-appMessages.on('notification', function(data) {
+appMessages.on('notification', gateEntry(function(data) {
   var type = data ? data.type : '';
 
   model.latestOnce('foldersSlice', function latestFolderSlice() {
@@ -492,7 +504,7 @@ appMessages.on('notification', function(data) {
       }
     }
   });
-});
+}));
 
 model.init();
 });
