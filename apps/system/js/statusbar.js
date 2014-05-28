@@ -428,7 +428,7 @@ var StatusBar = {
 
       case 'wheel':
         if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaY &&
-          evt.deltaY < 0) {
+          evt.deltaY < 0 && !this.isLocked()) {
           window.dispatchEvent(new CustomEvent('statusbarwheel'));
         }
         break;
