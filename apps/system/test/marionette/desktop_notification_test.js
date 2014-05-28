@@ -2,6 +2,8 @@
 
 var SMS_APP = 'app://sms.gaiamobile.org';
 
+/* doing stability check */
+
 marionette('Desktop Notifications', function() {
   var client = marionette.client({
     settings: {

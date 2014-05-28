@@ -5,6 +5,8 @@ var assert = require('assert');
 var CALENDAR_APP = 'app://calendar.gaiamobile.org';
 var CALENDAR_APP_MANIFEST = CALENDAR_APP + '/manifest.webapp';
 
+/* doing stability check */
+
 marionette('Notification.get():', function() {
 
   var client = marionette.client({
