@@ -60,7 +60,7 @@
     // mark it visually for the user.
     //
     if (this.isQuestionable || this.isInvalid) {
-      this.className += ' attention';
+      this.className += ' invalid';
     }
   }
 
