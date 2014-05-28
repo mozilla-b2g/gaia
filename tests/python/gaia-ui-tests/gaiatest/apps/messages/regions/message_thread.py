@@ -41,7 +41,7 @@ class MessageThread(Base):
         return self.marionette.find_element(*self._message_header_locator).text
 
     def tap_header(self):
-        self.wait_for_element_displayed(*self._message_header_locator)
+        self.wait_for_condition(lambda m: m.find_element(*self._back_header_link_locator).location['x'] == 0)
         self.marionette.find_element(*self._message_header_locator).tap()
 
         from gaiatest.apps.messages.regions.activities import Activities
