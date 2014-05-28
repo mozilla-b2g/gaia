@@ -35,7 +35,11 @@ var MockL10n = {
     callback();
   },
 
+  once: function(callback) {
+    callback();
+  },
+
   translate: function() {
-    
+
   }
 };

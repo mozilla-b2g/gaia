@@ -1,15 +1,14 @@
+/* global Promise */
 /* exported Basket */
 'use strict';
 
 // Simple Javascript client for Mozilla Basket newsletters
-
 var Basket = {
-
+  DATASTORE_NAME: 'Basket_Newsletter',
   basketUrl: 'https://basket.mozilla.org/news/subscribe/',
   newsletterId: 'firefox-os',
   callback: null,
   xhr: null,
-  itemId: 'newsletter_email',
   // https://github.com/mozilla/basket-client/blob/master/basket/errors.py
   errors: {
     NETWORK_FAILURE: 1,
@@ -80,11 +79,37 @@ var Basket = {
     });
   },
 
+  getDataStore: function() {
+    var self = this;
+    return new Promise(function (resolve, reject) {
+      navigator.getDataStores(self.DATASTORE_NAME).then(function(stores) {
+        // check it's not empty
+        if (!stores.length) {
+          reject(new Error('DataStore not loaded'));
+        } else {
+          var dataStore = stores[0];
+          // check ownership of the DS
+          if (dataStore.owner === 'app://ftu.gaiamobile.org/manifest.webapp') {
+            resolve(dataStore);
+          } else {
+            reject(new Error('Wrong DataStore'));
+          }
+        }
+      });
+    });
+  },
+
   store: function b_store(email, callback) {
-    window.asyncStorage.setItem(this.itemId, email, function stored() {
-      if (callback) {
-        callback();
-      }
+    this.getDataStore().then(function loaded(store) {
+      // Store the email address
+      store.add({ 'newsletter_email': email }).then(function(id) {
+        if (callback) {
+          callback(false, id);
+        }
+      });
+    }).catch(function error(err) {
+      console.error('Something went wrong: ' + err);
+      callback(err);
     });
   },
 

@@ -253,9 +253,10 @@ var UIManager = {
             return callback(true);
           });
         } else {
-          Basket.store(emailValue);
-          utils.overlay.hide();
-          return callback(true);
+          Basket.store(emailValue, function stored(errorStoring) {
+            utils.overlay.hide();
+            return callback(!errorStoring);
+          });
         }
       } else {
         utils.overlay.hide();
