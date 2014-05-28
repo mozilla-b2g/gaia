@@ -46,6 +46,11 @@
 }
 
 #lockscreen-secondary-background {
+  background-size: 100% 100%;
+  transition: background-image 0.3s ease, background-color 0.3s ease;
+}
+
+#lockscreen-secondary-background.blank {
   background-image: linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(255,255,255,0));
   background-size: 100% 22.6rem;
 }

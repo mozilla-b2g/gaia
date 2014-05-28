@@ -439,6 +439,12 @@
       '', (function(value) {
       this.setLockMessage(value);
     }).bind(this));
+
+    window.SettingsListener.observe('wallpaper.color',
+      'rgba(150, 160, 112, 0.6)', (function(value) {
+      this.secondaryBackground.dataset.wallpaperColor = value;
+    }).bind(this));
+
     navigator.mozL10n.ready(this.l10nInit.bind(this));
   };
 
@@ -955,7 +961,8 @@
         'area-handle', 'area-slide', 'media-container', 'passcode-code',
         'alt-camera', 'alt-camera-button', 'slide-handle',
         'passcode-pad', 'camera', 'accessibility-camera',
-        'accessibility-unlock', 'panel-emergency-call', 'canvas', 'message'];
+        'accessibility-unlock', 'panel-emergency-call', 'canvas', 'message',
+        'secondary-background'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {

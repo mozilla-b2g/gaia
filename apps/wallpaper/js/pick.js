@@ -64,11 +64,14 @@ var Wallpaper = {
       canvas.height = img.height;
       context.drawImage(img, 0, 0);
 
+      var color_ = self.getImageColor(context, canvas.width, canvas.height);
+
       canvas.toBlob(function(blob) {
         self.pickActivity.postResult({
           type: 'image/jpeg',
           blob: blob,
-          name: src
+          name: src,
+          color: color_
         }, 'image/jpeg');
 
         self.endPick();
@@ -85,6 +88,27 @@ var Wallpaper = {
     this.pickActivity = null;
     this.cancelButton.removeEventListener('click', this.cancelPick);
     this.wallpapers.removeEventListener('click', this.pickWallpaper);
+  },
+
+  getImageColor:
+    function wallpaper_getImageColor(context, imageWidth, imageHeight) {
+    var imageData = context.getImageData(0, 0, imageWidth, imageHeight);
+    var data = imageData.data;
+    var r = 0, g = 0, b = 0;
+
+    for (var row = 0; row < imageHeight; row++) {
+      for (var col = 0; col < imageWidth; col++) {
+        r += data[((imageWidth * row) + col) * 4];
+        g += data[((imageWidth * row) + col) * 4 + 1];
+        b += data[((imageWidth * row) + col) * 4 + 2];
+      }
+    }
+
+    r = parseInt(r / (imageWidth * imageHeight));
+    g = parseInt(g / (imageWidth * imageHeight));
+    b = parseInt(b / (imageWidth * imageHeight));
+
+    return 'rgba(' + r + ', ' + g + ', ' + b + ', 0.6)';
   }
 };
 
