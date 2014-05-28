@@ -998,15 +998,16 @@ section[role="region"].new .article-list[data-type="list"]  li {
 }
 
 /* Elements related to information view */
-section[role="region"].information #messages-options-icon,
-section[role="region"].information #messages-attach-button,
-section[role="region"].information #messages-subheader,
-section[role="region"].information #messages-container,
-section[role="region"].information #messages-compose-form {
+section[role="region"][class$='information'] #messages-options-icon,
+section[role="region"][class$='information'] #messages-attach-button,
+section[role="region"][class$='information'] #messages-subheader,
+section[role="region"][class$='information'] #messages-container,
+section[role="region"][class$='information'] #messages-compose-form {
   display: none;
 }
 
-section[role="region"].information > header:first-child .icon.icon-back {
+/* Override icon style with close one */
+section[role="region"].report-information > header .icon-back {
   background-image: url(/shared/style/headers/images/icons/close.png);
 }
 
