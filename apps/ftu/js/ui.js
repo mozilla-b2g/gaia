@@ -109,6 +109,9 @@ var UIManager = {
   init: function ui_init() {
     _ = navigator.mozL10n.get;
 
+    // Preload the tutorial config
+    Tutorial.loadConfig();
+
     // Initialization of the DOM selectors
     this.domSelectors.forEach(function createElementRef(name) {
       this[toCamelCase(name)] = document.getElementById(name);
@@ -207,9 +210,13 @@ var UIManager = {
     this.letsGoButton.addEventListener('click', function() {
       // Stop Wifi Manager
       WifiManager.finish();
-      UIManager.activationScreen.classList.remove('show');
-      UIManager.finishScreen.classList.remove('show');
-      Tutorial.init();
+
+      // Tutorial config is probably preloaded by now, but init could be
+      // async if it is still loading
+      Tutorial.init(null, function onTutorialLoaded() {
+        UIManager.activationScreen.classList.remove('show');
+        UIManager.finishScreen.classList.remove('show');
+      });
     });
 
     // Enable sharing performance data (saving to settings)

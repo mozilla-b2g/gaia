@@ -1,0 +1,30 @@
+{
+  "default": {
+    "steps": [
+      {
+        "image": "/style/images/tutorial/1.png",
+        "l10nKey": "tutorial-step1-tiny"
+      },
+      {
+        "image": "/style/images/tutorial/2.png",
+        "l10nKey": "tutorial-step2-tiny"
+      },
+      {
+        "image": "/style/images/tutorial/3.png",
+        "l10nKey": "tutorial-step3-tiny"
+      },
+      {
+        "image": "/style/images/tutorial/4.png",
+        "l10nKey": "tutorial-step4-tiny"
+      },
+      {
+        "image": "/style/images/tutorial/5.png",
+        "l10nKey": "tutorial-step5-tiny"
+      },
+      {
+        "image": "/style/images/tutorial/6.png",
+        "l10nKey": "tutorial-step6-tiny"
+      }
+    ]
+  }
+}
