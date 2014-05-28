@@ -80,7 +80,10 @@ define(function(require) {
         };
         permissionListModule.init(elements);
       },
-
+      onShow: function() {
+        console.log('---- 20140528 ---- ');
+        console.log('---- app permission on show ----');
+      },
       onBeforeShow: function() {
         if (permissionsTableHasBeenLoaded) {
           permissionListModule.refresh();
