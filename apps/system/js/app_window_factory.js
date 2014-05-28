@@ -36,6 +36,26 @@
     _started: false,
 
     /**
+     * Indicates if we are ready to launch applications.
+     * We wait for the homescreen to be created before we start launching
+     * applications to support things like the runapp cli command.
+     * @access private
+     * @type {Boolean}
+     * @memberof AppWindowFactory.prototype
+     */
+    _readyToLaunch: false,
+
+    /**
+     * A queue of applications to launch.
+     * Applications are queued to launch if we receive a launch request for
+     * them before the homescreen is ready.
+     * @access private
+     * @type {Array}
+     * @memberof AppWindowFactory.prototype
+     */
+    _launchQueue: [],
+
+    /**
      * Register all event handlers.
      * @memberof AppWindowFactory.prototype
      */
@@ -50,6 +70,7 @@
        *
        * @listens webapps-launch
        */
+      window.addEventListener('homescreencreated', this);
       if (applications.ready) {
         window.addEventListener('webapps-launch', this);
         window.addEventListener('webapps-close', this);
@@ -75,6 +96,7 @@
       }
       this._started = false;
 
+      window.removeEventListener('homescreencreated', this);
       window.removeEventListener('webapps-launch', this);
       window.removeEventListener('webapps-close', this);
       window.removeEventListener('open-app', this);
@@ -92,8 +114,11 @@
       if (!config.manifest) {
         return;
       }
-
       switch (evt.type) {
+        case 'homescreencreated':
+          this._readyToLaunch = true;
+          this.processLaunchQueue();
+          break;
         case 'webapps-launch':
           // TODO: Look up current opened window list,
           // and then create a new instance here.
@@ -162,6 +187,14 @@
       if (config.manifest.role === 'search') {
         return;
       }
+
+      // Bug 991262: support the runapp CLI argument.
+      // Delay launch of requested apps if homescreen has not launched.
+      if (!this._readyToLaunch) {
+        this._launchQueue.push(this.launch.bind(this, config));
+        return;
+      }
+
       var app = AppWindowManager.getApp(config.origin);
       if (app) {
         app.reviveBrowser();
@@ -183,7 +216,21 @@
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent(event, true, false, detail);
       window.dispatchEvent(evt);
-    }
+    },
+
+    /**
+     * Process cached display callbacks.
+     * This should be run only ftu has been completed.
+     * @memberof AppWindowFactory.prototype
+     */
+    processLaunchQueue: function() {
+      if (this._readyToLaunch && this._launchQueue.length) {
+        var eachCb;
+        while((eachCb = this._launchQueue.shift())) {
+          eachCb();
+        }
+      }
+    },
   };
 
   exports.AppWindowFactory = AppWindowFactory;
