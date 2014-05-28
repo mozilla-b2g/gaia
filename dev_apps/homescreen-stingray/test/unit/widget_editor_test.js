@@ -66,8 +66,8 @@ suite('WidgetEditor', function() {
     test('Should respond to uninstall/update events', function() {
       Applications.trigger('uninstall');
       Applications.trigger('update');
-      assert.isTrue(widgetEditor._handleAppRemoved.called);
-      assert.isTrue(widgetEditor._handleAppUpdated.called);
+      assert.isTrue(!widgetEditor._handleAppRemoved.called);
+      assert.isTrue(!widgetEditor._handleAppUpdated.called);
     });
 
     test('Should respond to container click events', function() {
