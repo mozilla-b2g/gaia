@@ -61,6 +61,16 @@ suite('system/SheetsTransition >', function() {
       SheetsTransition.begin('ltr');
     });
 
+    test('it should cleanup previous sheet transitions', function() {
+      SheetsTransition.moveInDirection('ltr', 0.3);
+
+      MockStackManager.getCurrent.returns(contacts);
+      SheetsTransition.begin('ltr');
+
+      assert.isFalse(settingsFrame.classList.contains('inside-edges'));
+      assert.equal(settingsFrame.style.transform, '');
+    });
+
     test('it should add the inside-edges class to the current sheet',
     function() {
       assert.isTrue(settingsFrame.classList.contains('inside-edges'));
