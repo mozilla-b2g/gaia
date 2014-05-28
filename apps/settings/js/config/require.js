@@ -26,6 +26,9 @@ require.config({
     },
     'shared/settings_listener': {
       exports: 'SettingsListener'
+    },
+    'utils': {
+      exports: ''
     }
   },
   modules: [

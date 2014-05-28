@@ -120,35 +120,6 @@ function loadJSON(href, callback) {
 var localize = navigator.mozL10n.localize;
 
 /**
- * Helper class for formatting file size strings
- * required by *_storage.js
- */
-
-var FileSizeFormatter = (function FileSizeFormatter(fixed) {
-  function getReadableFileSize(size, digits) { // in: size in Bytes
-    if (size === undefined)
-      return {};
-
-    var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-    var i = 0;
-    while (size >= 1024) {
-      size /= 1024;
-      ++i;
-    }
-
-    var sizeString = size.toFixed(digits || 0);
-    var sizeDecimal = parseFloat(sizeString);
-
-    return {
-      size: sizeDecimal.toString(),
-      unit: units[i]
-    };
-  }
-
-  return { getReadableFileSize: getReadableFileSize };
-})();
-
-/**
  * Helper class for getting available/used storage
  * required by *_storage.js
  */
@@ -183,15 +154,19 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
     };
   }
 
+  function getFormatedSize(size) {
+    // KB - 3 KB (nearest ones), MB, GB - 1.2 MB (nearest tenth)
+    var fixedDigits = (size < 1024 * 1024) ? 0 : 1;
+    return FileSizeFormatter.getReadableFileSize(size, fixedDigits);
+  }
+
   function showFormatedSize(element, l10nId, size) {
     if (size === undefined || isNaN(size)) {
       element.textContent = '';
       return;
     }
 
-    // KB - 3 KB (nearest ones), MB, GB - 1.2 MB (nearest tenth)
-    var fixedDigits = (size < 1024 * 1024) ? 0 : 1;
-    var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
+    var sizeInfo = getFormatedSize(size);
 
     var _ = navigator.mozL10n.get;
     element.textContent = _(l10nId, {
@@ -200,10 +175,40 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
     });
   }
 
+  /**
+   * Helper class for formatting file size strings
+   * required by *_storage.js
+   */
+
+  var FileSizeFormatter = (function FileSizeFormatter(fixed) {
+    function getReadableFileSize(size, digits) { // in: size in Bytes
+      if (size === undefined)
+        return {};
+
+      var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+      var i = 0;
+      while (size >= 1024) {
+        size /= 1024;
+        ++i;
+      }
+
+      var sizeString = size.toFixed(digits || 0);
+      var sizeDecimal = parseFloat(sizeString);
+
+      return {
+        size: sizeDecimal.toString(),
+        unit: units[i]
+      };
+    }
+
+    return { getReadableFileSize: getReadableFileSize };
+  }());
+
   return {
     getStat: getStat,
     getFreeSpace: getFreeSpace,
-    showFormatedSize: showFormatedSize
+    showFormatedSize: showFormatedSize,
+    getFormatedSize: getFormatedSize
   };
 })();
 

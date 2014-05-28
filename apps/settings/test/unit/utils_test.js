@@ -8,7 +8,7 @@ require('/shared/test/unit/mocks/mock_iccmanager.js');
 require('/apps/settings/test/unit/mock_l10n.js');
 
 mocha.globals(['DsdsSettings', 'reopenSettings', 'openLink', 'openDialog',
-  'loadJSON', 'FileSizeFormatter', 'DeviceStorageHelper', 'getMobileConnection',
+  'loadJSON', 'DeviceStorageHelper', 'getMobileConnection',
   'getBluetooth', 'getNfc', 'getSupportedNetworkInfo', 'isIP', 'getIccByIndex',
   'sanitizeAddress', 'getIccByIndexalize', 'localize',
   'getSupportedLanguages']);

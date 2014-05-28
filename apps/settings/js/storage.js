@@ -1,10 +1,12 @@
+/* global DeviceStorageHelper */
 'use strict';
 
 require([
-  'shared/settings_listener'
-], function(exports, SettingsListener) {
+  'shared/settings_listener',
+  'shared/async_storage'
+], function(exports, SettingsListener, AsyncStorage) {
   var Storage = {
-    appStorage: null,
+    _appStorage: null,
     defaultMediaVolume: null,
     defaultVolumeState: 'available',
 
@@ -16,15 +18,16 @@ require([
       this.umsEnabledCheckBox = document.getElementById('ums-switch-root');
       this.umsEnabledInfoBlock = document.getElementById('ums-desc-root');
       this.umsEnabledCheckBox.addEventListener('change', this);
+      // USB storage
       SettingsListener.observe(umsSettingKey, false, function(enabled) {
         self.umsEnabledCheckBox.checked = enabled;
-        self.updateUmsInfo();
+        self.updateUmsDesc();
       });
 
       // application storage
-      this.appStorage = navigator.getDeviceStorage('apps');
+      this._appStorage = navigator.getDeviceStorage('apps');
       this.appStorageDesc = document.getElementById('application-storage-desc');
-      this.updateAppFreeSpace();
+      this.updateAppFreeSpace(this.appStorage, this.appStorageDesc);
 
       // media storage
       // Show default media volume state on root panel
@@ -47,7 +50,7 @@ require([
     handleEvent: function storage_handleEvent(evt) {
       switch (evt.type) {
         case 'localized':
-          this.updateAppFreeSpace();
+          this.updateAppFreeSpace(this.appStorage, this.appStorageDesc);
           this.updateMediaStorageInfo();
           break;
         case 'change':
@@ -63,7 +66,7 @@ require([
     },
 
     // ums info
-    updateUmsInfo: function storage_updateUmsInfo() {
+    updateUmsDesc: function storage_updateUmsDesc() {
       var localize = navigator.mozL10n.localize;
       var key;
       if (this.umsEnabledCheckBox.checked) {
@@ -77,7 +80,6 @@ require([
       localize(this.umsEnabledInfoBlock, key);
     },
     umsMasterSettingChanged: function storage_umsMasterSettingChanged(evt) {
-      var _ = navigator.mozL10n.get;
       var checkbox = evt.target;
       var cset = {};
       var umsSettingKey = 'ums.enabled';
@@ -87,7 +89,7 @@ require([
       var umsCancelButton = document.getElementById('ums-cancel-option');
 
       if (checkbox.checked) {
-        window.asyncStorage.getItem(warningKey, function(showed) {
+        AsyncStorage.getItem(warningKey, function(showed) {
           if (!showed) {
             umsWarningDialog.hidden = false;
 
@@ -95,7 +97,7 @@ require([
               cset[umsSettingKey] = true;
               Settings.mozSettings.createLock().set(cset);
 
-              window.asyncStorage.setItem(warningKey, true);
+              AsyncStorage.setItem(warningKey, true);
               umsWarningDialog.hidden = true;
             };
 
@@ -118,10 +120,10 @@ require([
     },
 
     // Application Storage
-    updateAppFreeSpace: function storage_updateAppFreeSpace() {
-      var self = this;
-      this.getFreeSpace(this.appStorage, function(freeSpace) {
-        DeviceStorageHelper.showFormatedSize(self.appStorageDesc,
+    updateAppFreeSpace: function storage_updateAppFreeSpace(
+      appStorage, appStorageDesc) {
+      this.getFreeSpace(appStorage, function(freeSpace) {
+        DeviceStorageHelper.showFormatedSize(appStorageDesc,
           'availableSize', freeSpace);
       });
     },
@@ -152,7 +154,7 @@ require([
     updateVolumeState: function storage_updateVolumeState(volume, state) {
       var localize = navigator.mozL10n.localize;
       this.defaultVolumeState = state;
-      this.updateUmsInfo();
+      this.updateUmsDesc();
       switch (state) {
         case 'available':
           this.updateMediaFreeSpace(volume);
@@ -208,8 +210,9 @@ require([
 
     getFreeSpace: function storage_getFreeSpace(storage, callback) {
       storage.freeSpace().onsuccess = function(e) {
-        if (callback)
+        if (callback) {
           callback(e.target.result);
+        }
       };
     }
   };
