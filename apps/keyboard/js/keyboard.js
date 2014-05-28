@@ -158,9 +158,11 @@ var fakeAppObject = {
 var inputMethodManager = new InputMethodManager(fakeAppObject);
 inputMethodManager.start();
 
-// LayoutLoader loads and hold layouts for us.
-var layoutLoader = new LayoutLoader();
-layoutLoader.start();
+// LayoutManager loads and holds layout layouts for us.
+// It also help us ensure there is only one current layout at the time.
+var layoutManager = new LayoutManager();
+layoutManager.start();
+var layoutLoader = layoutManager.loader;
 
 // SettingsPromiseManager wraps Settings DB methods into promises.
 var settingsPromiseManager = new SettingsPromiseManager();
@@ -341,7 +343,7 @@ function deactivateInputMethod() {
 function setKeyboardName(name, callback) {
   perfTimer.printTime('setKeyboardName');
 
-  layoutLoader.getLayoutAsync(name).then(function() {
+  layoutManager.switchCurrentLayout(name).then(function() {
     perfTimer.printTime('setKeyboardName:promise resolved');
     keyboardName = name;
     keyboard = layoutLoader.getLayout(name);
