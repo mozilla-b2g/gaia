@@ -876,6 +876,9 @@ contacts.Settings = (function() {
 
     // Facebook settings
     if (fb.isEnabled) {
+      if (!fbImportOption) {
+        fbImportOption = document.querySelector('#settingsFb');
+      }
       if (navigator.onLine === true) {
         fbImportOption.querySelector('li').removeAttribute('aria-disabled');
         fbUpdateButton.classList.remove('hide');
