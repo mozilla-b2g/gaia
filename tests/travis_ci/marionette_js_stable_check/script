@@ -16,7 +16,7 @@ if [ ${#MARIONETTE_TEST_FILE_NAMES} -gt 0 ]; then
   eval ${MAKE_BUILD}
 
   # Then we would run tests for six times
-  for i in {1..6}
+  for i in {1..3}
   do
     eval ${RUN_SPECIFIC_TESTS}
     if [ $? -ne 0 ]; then
@@ -25,7 +25,7 @@ if [ ${#MARIONETTE_TEST_FILE_NAMES} -gt 0 ]; then
   done
 
   if [ $TEST_RESULT -eq 1 ]; then
-    echo "The marionette tests are not passed for 6 times continually."
+    echo "The marionette tests are not passed for 3 times continually."
     exit 1
   fi
 else
