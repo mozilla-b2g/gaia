@@ -446,6 +446,7 @@
       if (!this.secondaryBackground.classList.contains('blank')) {
         this.secondaryBackground.style.backgroundColor = value;
       }
+      this.passcodeCode.style.backgroundColor = value;
     }).bind(this));
 
     navigator.mozL10n.ready(this.l10nInit.bind(this));
