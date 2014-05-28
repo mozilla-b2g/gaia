@@ -12,7 +12,6 @@ gaia-header {
 h1 {
   font-size: 2.3rem;
   line-height: 5rem;
-  text-align: left;
   white-space: nowrap;
   text-overflow: ellipsis;
   display: block;
@@ -149,6 +148,11 @@ button:hover {
   background-color: rgba(0,0,0,0.07);
 }
 
+a:focus,
+button:focus {
+  background-color: transparent;
+}
+
 /* Icons */
 [icon="add"]:before {
   background-image: url(images/icons/add.png);
@@ -214,6 +218,11 @@ button:hover {
   background-color: rgba(0,0,0,0.1);
 }
 
+[data-skin="comms"] a:focus,
+[data-skin="comms"] button:focus {
+  background-color: transparent;
+}
+
 /* -----------------------------------------------------------------
   HEADER SKIN: dark
 ----------------------------------------------------------------- */
@@ -234,6 +243,11 @@ button:hover {
   background-color: rgba(0,0,0,0.4);
 }
 
+[data-skin="dark"] a:focus,
+[data-skin="dark"] button:focus {
+  background-color: transparent;
+}
+
 /* -----------------------------------------------------------------
   HEADER SKIN: organic
 ----------------------------------------------------------------- */
@@ -250,6 +264,11 @@ button:hover {
 [skin="organic"] a,
 [skin="organic"] button {
   color: #00aac5;
+}
+
+[data-skin="organic"] a:focus,
+[data-skin="organic"] button:focus {
+  background-color: transparent;
 }
 
 /* Icons */
