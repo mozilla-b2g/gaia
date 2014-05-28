@@ -18,6 +18,9 @@ var SpinDatePicker = (function SpinDatePicker() {
 
   var GLOBAL_MIN_YEAR = 1900;
   var GLOBAL_MAX_YEAR = 2099;
+  var IGNORED_YEAR = 9996; // Leap year
+
+  var _ = navigator.mozL10n.get;
 
   var DateRange = (function DateRange(min, max) {
     var _minYear = min.getFullYear();
@@ -102,6 +105,16 @@ var SpinDatePicker = (function SpinDatePicker() {
   }
 
   /**
+   * It returns the year passed as argument if it is leap or the first leap year
+   * earlier.
+   *
+   * @param {Number} Year
+   */
+  function getLeapYear(year) {
+    return getDaysInMonth(year, 1) === 29 ? year : getLeapYear(year - 1);
+  }
+
+  /**
    * Get the order of date components.
    *
    * @param {String} date format.
@@ -169,6 +182,9 @@ var SpinDatePicker = (function SpinDatePicker() {
       element.querySelector('.value-picker-month');
     var datePickerContainer =
       element.querySelector('.value-picker-date');
+    var yearButton = this.yearButton =
+      element.querySelector('.spin-date-picker-button-year');
+    yearButton.addEventListener('click', this);
 
     var updateCurrentValue = (function spd_updateCurrentValue() {
       var selectedYear = this.yearPicker.getSelectedIndex() + GLOBAL_MIN_YEAR;
@@ -302,12 +318,54 @@ var SpinDatePicker = (function SpinDatePicker() {
     _value: null,
 
     /**
-     * Gets current value
+     * Toggles the year's column visibility.
+     */
+    _toggleYearVisibility: function sv_toggleYearVisibility() {
+      var hidden = this.element.classList.toggle('year-hidden');
+      this.yearButton.textContent = _(hidden ? 'add-year' : 'remove-year');
+    },
+
+    /**
+     * Sets the year's column visibility depending on year. If it is equal
+     * to IGNORED_YEAR (9996) constant, the column will be hidden.
+     *
+     * @param {Date} Date object.
+     */
+    _initYearVisibility: function sv_initYearVisibility(date) {
+      if (date.getFullYear() === IGNORED_YEAR) {
+        this.element.classList.add('year-hidden');
+        this.yearButton.textContent = _('add-year');
+        date.setFullYear(getLeapYear((new Date()).getFullYear()));
+      } else {
+        this.element.classList.remove('year-hidden');
+        this.yearButton.textContent = _('remove-year');
+      }
+    },
+
+    /**
+     * Returns `true` if the year's column is hidden.
+     *
+     * @return {Boolean} True when the year's column is hidden.
+     */
+    _isYearHidden: function sv_isYearHidden() {
+      return this.element.classList.contains('year-hidden');
+    },
+
+    /**
+     * Gets current value. If users ignore the year, the value will be the
+     * selected date but with IGNORED_YEAR (9996) constant as year.
      *
      * @return {Null|Date} date or null.
      */
     get value() {
-      return this._value;
+      var value = this._value;
+
+      if (this._isYearHidden()) {
+        value = new Date(value.getTime());
+        value.setFullYear(IGNORED_YEAR);
+      }
+
+      return value;
     },
 
     /**
@@ -319,6 +377,7 @@ var SpinDatePicker = (function SpinDatePicker() {
       var old = this._value;
       if (old !== value) {
         this._value = value;
+        this._initYearVisibility(value);
         this.onvaluechangeInternal(value);
       }
     },
@@ -327,7 +386,7 @@ var SpinDatePicker = (function SpinDatePicker() {
      * Getter is used for date normalization.
      */
     get year() {
-      return this._value.getFullYear();
+      return this._isYearHidden() ? IGNORED_YEAR : this._value.getFullYear();
     },
 
     /**
@@ -347,6 +406,8 @@ var SpinDatePicker = (function SpinDatePicker() {
           // Prevent focus being taken away by us.
           evt.preventDefault();
           break;
+        case 'click':
+          this._toggleYearVisibility();
       }
     },
 
@@ -374,6 +435,7 @@ var SpinDatePicker = (function SpinDatePicker() {
       this.pickerElements.forEach((function pickerElements_forEach(picker) {
         picker.removeEventListener('mousedown', this);
       }).bind(this));
+      this.yearButton.removeEventListener('click', this);
     },
 
     /**
