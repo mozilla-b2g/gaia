@@ -179,6 +179,9 @@ var VIEWS = {
         var message = request.result;
         var type = message.type;
 
+        var isIncoming = message.delivery === 'received' ||
+            message.delivery === 'not-downloaded';
+
         this.subject.textContent = '';
 
         // Fill in the description/status/size
@@ -206,15 +209,24 @@ var VIEWS = {
         localize(this.status, 'message-status-' + message.delivery);
 
         // Set different layout/value for received and sent message
-        if (message.delivery === 'received' ||
-            message.delivery === 'not-downloaded') {
-          this.container.classList.add('received');
-          localize(this.contactTitle, 'report-from');
+        this.container.classList.toggle('received', isIncoming);
+
+        // If incoming message is migrated from the database where sentTimestamp
+        // hadn't been supported yet then we won't have valid value for it.
+        this.container.classList.toggle(
+          'no-valid-sent-timestamp',
+          isIncoming && !message.sentTimestamp
+        );
+
+        localize(
+          this.contactTitle,
+          isIncoming ? 'report-from' : 'report-recipients'
+        );
+
+        if (isIncoming) {
           l10nContainsDateSetup(this.receivedTimeStamp, message.timestamp);
           l10nContainsDateSetup(this.sentTimeStamp, message.sentTimestamp);
         } else {
-          this.container.classList.remove('received');
-          localize(this.contactTitle, 'report-recipients');
           l10nContainsDateSetup(this.datetime, message.timestamp);
         }
 
