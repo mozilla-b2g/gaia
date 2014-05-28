@@ -224,6 +224,16 @@ body {
   overflow: hidden;
 }
 
+#windows::before {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 2.4rem;
+
+  background: black;
+  content: '';
+}
+
 #secure-windows {
   position: absolute;
   left: 0;
