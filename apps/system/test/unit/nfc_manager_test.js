@@ -253,6 +253,17 @@ suite('Nfc Manager Functions', function() {
       assert.equal(activityOptions.data.number, '0054267437');
     });
 
+    test('TNF well known, rtd uri unabbreviated', function() {
+      var uri = Array.apply([], NfcUtils.fromUTF8('http://mozilla.com'));
+      var payload = [0x00].concat(uri);
+      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
+                                            NDEF.RTD_URI,
+                                            new Uint8Array(),
+                                            new Uint8Array(payload))];
+      var activityOptions = execCommonTest(dummyNdefMsg, 'url');
+      assert.equal(activityOptions.data.url, 'http://mozilla.com');
+    });
+
     test('TNF well known rtd smart poster', function() {
       // smart poster handling is application specific, don't need payload
       var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
