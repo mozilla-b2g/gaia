@@ -522,7 +522,9 @@
 
     // XXX: Determine |this.isHomescreen| or not on our own in
     // appWindow.
-    if (this.isHomescreen) {
+
+    // For Tarako, we never want to take screenshots!
+    if (callback) {
       callback();
       return;
     }
