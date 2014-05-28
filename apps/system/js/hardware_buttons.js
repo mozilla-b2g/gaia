@@ -280,7 +280,9 @@
        * @event HardwareButtonsHomeState#holdhome
        */
       this.hardwareButtons.publish('holdhome');
-      navigator.vibrate(50);
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
       this.hardwareButtons.setState('base');
     }.bind(this), this.hardwareButtons.HOLD_INTERVAL);
   };
@@ -309,7 +311,9 @@
          * @event HardwareButtonsHomeState#home
          */
         this.hardwareButtons.publish('home');
-        navigator.vibrate(50);
+	if ('vibrate' in navigator) {
+          navigator.vibrate(50);
+	}
         this.hardwareButtons.setState('base', type);
         return;
       case 'sleep-button-press':

@@ -1,8 +1,15 @@
 'use strict';
 
-/* global HardwareButtons, MocksHelper, ScreenManager */
+/* global HardwareButtons, MocksHelper, ScreenManager,
+ *        MockSettingsListener, MockNavigatorMozTelephony
+ */
 
-mocha.globals(['HardwareButtons', 'ScreenManager']);
+mocha.globals([
+  'HardwareButtons',
+  'ScreenManager',
+  'MockSettingsListener',
+  'MockNavigatorMozTelephony'
+]);
 
 requireApp('system/js/hardware_buttons.js');
 requireApp('system/test/unit/mock_screen_manager.js');
@@ -33,6 +40,8 @@ suite('system/HardwareButtons', function() {
     hardwareButtons.handleEvent(evt);
   };
 
+  var vibrateSpy;
+
   setup(function() {
     /**
      * Since the script still initialize itself, we should not allow
@@ -49,6 +58,13 @@ suite('system/HardwareButtons', function() {
     window.CustomEvent = function MockCustomEvent(type, dict) {
       return { type: type, bubbles: dict.bubbles };
     };
+
+    /**
+     * Since vibration wasn't tested yet, the setup from
+     * dialer_ringer_test.js is applied here where necessary.
+     */
+    vibrateSpy = this.sinon.spy();
+    navigator.vibrate = vibrateSpy;
   });
 
   teardown(function() {
@@ -77,6 +93,7 @@ suite('system/HardwareButtons', function() {
     assert.isTrue(stubClearTimeout.calledOnce);
     assert.equal(stubClearTimeout.getCall(0).args[0],
       stubSetTimeout.getCall(0).returnValue);
+    assert.isTrue(vibrateSpy.calledWith([50]));
   });
 
   test('press and release home (screen disabled)', function() {
@@ -556,5 +573,36 @@ suite('system/HardwareButtons', function() {
     assert.isTrue(stubClearTimeout.calledOnce);
     assert.equal(stubClearTimeout.getCall(0).args[0],
       stubSetTimeout.getCall(0).returnValue);
+  });
+
+  suite('if the vibration is disabled', function() {
+    setup(function() {
+      /**
+       * Since the script still initialize itself, we should not allow
+       * the "global" instance from being responsive in our tests here.
+       */
+      if (window.hardwareButtons) {
+        window.hardwareButtons.stop();
+        window.hardwareButtons = null;
+      }
+
+      hardwareButtons = new HardwareButtons();
+      hardwareButtons.start();
+
+      window.CustomEvent = function MockCustomEvent(type, dict) {
+        return { type: type, bubbles: dict.bubbles };
+      };
+
+      MockSettingsListener.mTriggerCallback('vibration.enabled', false);
+      var evt = new CustomEvent('callschanged');
+      MockNavigatorMozTelephony.mTriggerEvent(evt);
+    });
+
+    test('it should not vibrate', function() {
+      fireChromeEvent('home-button-press');
+      fireChromeEvent('home-button-release');
+
+      assert.isTrue(vibrateSpy.notCalled);
+    });
   });
 });
