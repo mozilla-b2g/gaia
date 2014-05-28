@@ -37,7 +37,10 @@ AppPermissionPanel.prototype = {
   },
 
   enterPermissionDetail: function() {
+    console.log('----Settings App marionette 20140528 ------');
+    console.log('---- start to wait for element ------');
     this.waitForElement('firstAppEntry').tap();
+    console.log('---- element is tapped ------');
     this.client.waitFor(function() {
       return this.findElement('geolocationSelect');
     }.bind(this));

@@ -151,6 +151,8 @@ define(function(require) {
      * Genrate UI template of app item.
      */
     renderList: function pl_render_list() {
+      console.log('-----Settings App 20140528 ------');
+      console.log('-----clean all the contents of list------');
       this._elements.list.innerHTML = '';
       var listFragment = document.createDocumentFragment();
       this._apps.forEach(function appIterator(app, index) {
@@ -163,7 +165,9 @@ define(function(require) {
         });
         listFragment.appendChild(li);
       }.bind(this));
+      console.log('-----start to append child------');
       this._elements.list.appendChild(listFragment);
+      console.log('-----appending done------');
     },
 
     /**
