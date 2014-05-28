@@ -449,8 +449,16 @@
 }
 
 .appWindow.suspended > .identification-overlay,
-#screen.edges .appWindow:not(.active) .identification-overlay.visible {
+.appWindow:not(.active) > .identification-overlay.visible {
   opacity: 1;
+}
+
+/* we don't want to show the overlay at all during the opening
+   transition (from the homescreen and from the cardview) */
+.appWindow.enlarge > .identification-overlay.visible,
+.appWindow.from-cardview > .identification-overlay.visible {
+  opacity: 0 !important;
+  transition: none !important;
 }
 
 .identification-overlay > div {
@@ -635,7 +643,7 @@
 }
 
 /* Edges */
-#screen.edges #windows > .appWindow:not(.homescreen) {
+#windows > .appWindow:not(.homescreen):not(.lockScreenWindow) {
   /* in the viewport but not really */
   transform: translateX(-99.9999%);
   opacity: 1;
@@ -647,23 +655,23 @@
   will-change: auto;
 }
 
-#screen.edges .appWindow.will-become-inactive {
+#screen #windows > .appWindow.will-become-inactive {
   opacity: 0;
 }
 
-#screen.edges #windows > .appWindow.active:not(.will-become-inactive):not(.back),
-#screen.edges #windows > .appWindow.will-become-active,
-#screen.edges #windows > .appWindow.inside-edges {
+#screen #windows > .appWindow.active:not(.will-become-inactive):not(.back),
+#screen #windows > .appWindow.will-become-active,
+#screen #windows > .appWindow.inside-edges {
   opacity: 1;
   transform: translateX(0);
 }
 
-#screen.edges #windows > .appWindow.outside-edges-left {
+#screen #windows > .appWindow.outside-edges-left {
   opacity: 1;
   transform: translateX(calc(-100% - 2rem));
 }
 
-#screen.edges #windows > .appWindow.outside-edges-right {
+#screen #windows > .appWindow.outside-edges-right {
   opacity: 1;
   transform: translateX(calc(100% + 2rem));
 }
