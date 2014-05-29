@@ -311,6 +311,18 @@ class GaiaData(object):
         result.extend(self.video_files)
         return result
 
+    def delete_all_music_files(self):
+        self.marionette.execute_async_script(
+            "return GaiaDataLayer.deleteAllFiles('music');")
+
+    def delete_all_picture_files(self):
+        self.marionette.execute_async_script(
+            "return GaiaDataLayer.deleteAllFiles('pictures');")
+
+    def delete_all_video_files(self):
+        self.marionette.execute_async_script(
+            "return GaiaDataLayer.deleteAllFiles('videos');")
+
     def delete_all_sms(self):
         self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("return GaiaDataLayer.deleteAllSms();", special_powers=True)
@@ -715,9 +727,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
     def cleanup_gaia(self, full_reset=True):
         # remove media
-        if self.device.is_android_build:
-            for filename in self.data_layer.media_files:
-                self.device.manager.removeFile(filename)
+        self.data_layer.delete_all_music_files()
+        self.data_layer.delete_all_picture_files()
+        self.data_layer.delete_all_video_files()
 
         # restore settings from testvars
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
