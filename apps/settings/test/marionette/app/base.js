@@ -5,7 +5,7 @@
  * @param {Marionette.Client} client for operations.
  */
 function Base(client, origin, selectors) {
-  this.client = client.scope({ searchTimeout: 60000 });
+  this.client = client.scope({ searchTimeout: 20000 });
   this.origin = origin;
   this.selectors = selectors;
 }
