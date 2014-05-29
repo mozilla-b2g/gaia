@@ -370,10 +370,22 @@
         this.setEnabled(value);
     }).bind(this));
 
-    window.addEventListener('wallpaperchange', function(evt) {
-      self.updateBackground(evt.detail.url);
-      self.overlay.classList.remove('uninit');
-    });    
+    // it is possible that lockscreen is initialized after wallpapermanager
+    // (e.g. user turns on lockscreen in settings after system is booted);
+    // if this is the case, then the wallpaperchange event might not be captured
+    //   and the lockscreen would initialize into empty wallpaper
+    // so we need to see if there is already a wallpaper blob available
+    if (window.wallpaperManager) {
+      var wallpaperURL = window.wallpaperManager.getBlobURL();
+      if (wallpaperURL) {
+        this.updateBackground(window.wallpaperManager.getBlobURL());
+        this.overlay.classList.remove('uninit');
+      }
+    }
+    window.addEventListener('wallpaperchange', (function(evt) {
+      this.updateBackground(evt.detail.url);
+      this.overlay.classList.remove('uninit');
+    }).bind(this));
 
     window.SettingsListener.observe(
       'lockscreen.passcode-lock.code', '0000', (function(value) {

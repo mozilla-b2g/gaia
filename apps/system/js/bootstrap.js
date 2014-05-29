@@ -5,12 +5,11 @@
          SecureWindowManager, HomescreenLauncher,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
          DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
-         SettingsURL, SettingsListener, VisibilityManager, Storage,
+         VisibilityManager, Storage, InternetSharing, TaskManager,
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
-         HomeSearchbar, SoftwareButtonManager, Accessibility,
-         InternetSharing, TaskManager */
+         HomeSearchbar, SoftwareButtonManager, Accessibility */
 
 'use strict';
 
@@ -123,6 +122,7 @@ window.addEventListener('load', function startup() {
   window.telephonySettings.start();
   window.ttlView = new TTLView();
   window.visibilityManager = new VisibilityManager().start();
+  window.wallpaperManager = new window.WallpaperManager().start();
 
   navigator.mozL10n.ready(function l10n_ready() {
     window.mediaRecording = new MediaRecording().start();
