@@ -2069,15 +2069,7 @@ var ThreadUI = global.ThreadUI = {
         if (messageBubble.node.parentNode.classList.contains('error')) {
           params.items.splice(2, 0, {
             l10nId: 'resend-message',
-            method: function resendMessage(messageId) {
-              messageId = +messageId;
-              var request = MessageManager.getMessage(messageId);
-              request.onsuccess = (function() {
-                var message = request.result;
-                messageBubble.node.parentNode.remove();
-                MessageManager.resendMessage(message);
-              }).bind(this);
-            },
+            method: this.resendMessage.bind(this),
             params: [messageId]
           });
         }
@@ -2224,23 +2216,26 @@ var ThreadUI = global.ThreadUI = {
         content: content[0],
         serviceId: serviceId,
         oncomplete: function onComplete(requestResult) {
-          if (requestResult.hasError) {
-            var errors = {};
-            requestResult.return.forEach(function(result) {
-              if (result.success) {
-                return;
-              }
+          if (!requestResult.hasError) {
+            this.onMessageSendRequestCompleted();
+            return;
+          }
 
-              if (errors[result.code.name] === undefined) {
-                errors[result.code.name] = [result.recipient];
-              } else {
-                errors[result.code.name].push(result.recipient);
-              }
-            });
-
-            for (var key in errors) {
-              this.showMessageError(key, {recipients: errors[key]});
+          var errors = {};
+          requestResult.return.forEach(function(result) {
+            if (result.success) {
+              return;
             }
+
+            if (errors[result.code.name] === undefined) {
+              errors[result.code.name] = [result.recipient];
+            } else {
+              errors[result.code.name].push(result.recipient);
+            }
+          });
+
+          for (var key in errors) {
+            this.showMessageError(key, {recipients: errors[key]});
           }
         }.bind(this)
       });
@@ -2260,6 +2255,9 @@ var ThreadUI = global.ThreadUI = {
         subject: subject,
         content: smilSlides,
         serviceId: serviceId,
+        onsuccess: function() {
+          this.onMessageSendRequestCompleted();
+        }.bind(this),
         onerror: function onError(error) {
           var errorName = error.name;
           if (errorName === 'NotFoundError') {
@@ -2284,7 +2282,13 @@ var ThreadUI = global.ThreadUI = {
     // Update class names to reflect message state
     messageDOM.classList.remove('sending');
     messageDOM.classList.add('sent');
+  },
 
+  /**
+   * Fires once message (both SMS and MMS) send/resend request initiated by the
+   * current application instance is successfully completed.
+   */
+  onMessageSendRequestCompleted: function thui_onMessageSendRequestCompleted() {
     // Play the audio notification
     if (this.sentAudioEnabled) {
       this.sentAudio.play();
@@ -2431,7 +2435,11 @@ var ThreadUI = global.ThreadUI = {
       var messageDOM = document.getElementById('message-' + id);
       this.removeMessageDOM(messageDOM);
 
-      MessageManager.resendMessage(message);
+      MessageManager.resendMessage(message, function(error) {
+        if (!error) {
+          this.onMessageSendRequestCompleted();
+        }
+      }.bind(this));
     }).bind(this);
   },
 
