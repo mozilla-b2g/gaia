@@ -8,6 +8,95 @@
     "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.2.0"
   },
   "tasks": {
+    "play with emulator build c3-xlarge": {
+      "task": {
+        "metadata": {
+          "name": "play with emulator build"
+        },
+        "workerType": "test-c3-xlarge",
+        "timeout": 1200,
+        "payload": {
+          "maxRunTime": 14400,
+          "env": {
+            "REVISION": "9506880e4879"
+          },
+          "image": "registry.taskcluster.net/mozilla/b2g-build:0.0.3",
+          "command": [
+            "./bin/build"
+          ],
+          "artifacts": {
+            "b2g-crashreporter-symbols.zip": "/home/worker/artifacts/b2g-crashreporter-symbols.zip",
+            "b2g-tests.zip": "/home/worker/artifacts/b2g-tests.zip",
+            "emulator.tar.gz": "/home/worker/artifacts/emulator.tar.gz",
+            "gaia-tests.zip": "/home/worker/artifacts/gaia-tests.zip",
+            "sources.xml": "sources.xml"
+          }
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "B-C3"
+        }
+      }
+    },
+    "play with emulator build m3-xlarge": {
+      "task": {
+        "metadata": {
+          "name": "play with emulator build"
+        },
+        "workerType": "test-m3-xlarge",
+        "timeout": 1200,
+        "payload": {
+          "maxRunTime": 14400,
+          "env": {
+            "REVISION": "9506880e4879"
+          },
+          "image": "registry.taskcluster.net/mozilla/b2g-build:0.0.3",
+          "command": [
+            "./bin/build"
+          ],
+          "artifacts": {
+            "b2g-crashreporter-symbols.zip": "/home/worker/artifacts/b2g-crashreporter-symbols.zip",
+            "b2g-tests.zip": "/home/worker/artifacts/b2g-tests.zip",
+            "emulator.tar.gz": "/home/worker/artifacts/emulator.tar.gz",
+            "gaia-tests.zip": "/home/worker/artifacts/gaia-tests.zip",
+            "sources.xml": "sources.xml"
+          }
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "B-M3"
+        }
+      }
+    },
+    "play with emulator build c3-xlarge shared": {
+      "task": {
+        "metadata": {
+          "name": "play with emulator build"
+        },
+        "timeout": 1200,
+        "payload": {
+          "maxRunTime": 14400,
+          "env": {
+            "REVISION": "9506880e4879"
+          },
+          "image": "registry.taskcluster.net/mozilla/b2g-build:0.0.3",
+          "command": [
+            "./bin/build"
+          ],
+          "artifacts": {
+            "b2g-crashreporter-symbols.zip": "/home/worker/artifacts/b2g-crashreporter-symbols.zip",
+            "b2g-tests.zip": "/home/worker/artifacts/b2g-tests.zip",
+            "emulator.tar.gz": "/home/worker/artifacts/emulator.tar.gz",
+            "gaia-tests.zip": "/home/worker/artifacts/gaia-tests.zip",
+            "sources.xml": "sources.xml"
+          }
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "B-C3-SHARE"
+        }
+      }
+    },
     "marionette integration tests": {
       "task": {
         "metadata": {
