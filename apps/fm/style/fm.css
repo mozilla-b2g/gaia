@@ -27,7 +27,7 @@ a:active {
 #container {
   height: 100%;
   width: 100%;
-  background-color: #272d32;
+  background-color: #2F3337;
 }
 
 #container > div {
@@ -38,12 +38,13 @@ a:active {
 
 /****** styles for frequency view *******/
 #frequency-bar {
+  border-bottom: 1px solid #24292E;
+  box-sizing: border-box;
   top: 0;
   height: 10rem;
   width: 100%;
   text-align: center;
-  background-color:	#43464B;
-  background-image: -moz-linear-gradient(#33373C, rgba(0, 0, 0, 0));
+  background-color: #353A41;
   overflow: hidden;
   transition: background-color 680ms ease;
 }
@@ -87,7 +88,7 @@ a:active {
   font-size: 6rem;
   font-weight: 300;
   color: #fff;
-  padding-top: .5rem;
+  padding-top: 1.5rem;
   position: absolute;
   width: 100%;
   height: 10rem;
@@ -146,16 +147,39 @@ a:active {
   font-weight: 400;
   height: 9rem;
   overflow: hidden;
-  background: #4C5055;
-  border-top: .1rem solid #3A3D41;
+  background: #2F3337;
   color: #FFF;
-  box-shadow: 0 .3rem .4rem #111;
+  box-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, 0.3);
 }
 
 #dialer-container {
+  box-shadow: inset 0 0.05rem 0 #3A3F44;
+  position: relative;
   padding-left: 50%;
-  width: 100%;
+  margin: 0 2rem;
   height: 100%;
+}
+
+#dialer-container:before,
+#dialer-container:after {
+  content: "";
+  background-color: #474E57;
+  box-shadow: inset 0 0.05rem 0 #585E65;
+  position: absolute;
+  width: 2rem;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+#dialer-container:before {
+  border-right: 0.1rem solid #24292E;
+  left: -2rem;
+}
+
+#dialer-container:after {
+  border-left: 0.1rem solid #24292E;
+  right: -2rem;
 }
 
 #frequency-indicator {
@@ -167,6 +191,7 @@ a:active {
   z-index: 1;
   background: url(images/selector.png) no-repeat center center / 1.6rem;
   top: 0;
+  left: 50%;
 }
 
 div.animation-on > div {
@@ -178,7 +203,7 @@ div.animation-on > div {
   display: -moz-inline-box;
   -moz-user-select: none;
   width: 100%;
-  margin-left: -0.2rem;
+  margin-left: -2.2rem;
   position: absolute;
   top: 0;
 }
@@ -200,7 +225,7 @@ div.animation-on > div {
 are out of range. */
 .dialer-unit-mark-mask-start,
 .dialer-unit-mark-mask-end {
-  background: #4C5055;
+  background-color: #2F3337;
   display: block;
   height: 5.5rem;
   position: absolute;
