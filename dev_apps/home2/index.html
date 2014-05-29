@@ -52,19 +52,24 @@
   </head>
   <body>
     <div id="edit-mode-curtain"></div>
-    <div id="search">
-      <form id="search-form">
-        <input id="search-input" type="text" x-inputmode="verbatim"
-          placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="">
-        </input>
-      </form>
+    
+    <div class="scrollable">
+      <div id="search">
+        <form id="search-form">
+          <input id="search-input" type="text" x-inputmode="verbatim"
+            placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="">
+          </input>
+        </form>
+      </div>
+      <gaia-grid id="icons" zoom dragdrop></gaia-grid>
     </div>
-    <gaia-grid id="icons" zoom dragdrop></gaia-grid>
+    
     <div id="zoom" hidden>
       <div class="curtain"></div>
       <div class="arrows"></div>
       <div class="indicator"></div>
     </div>
+
     <gaia-confirm id="confirmation-message" hidden>
       <h1 id="confirmation-message-title">Delete</h1>
       <p id="confirmation-message-body">All of its data will be deleted.</p>
@@ -73,6 +78,7 @@
         <button id="confirmation-message-delete" type="button" data-l10n-id="delete" class="danger">Delete</button>
       </gaia-buttons>
     </gaia-confirm>
+
     <gaia-menu id="contextmenu-dialog" hidden>
       <button id="change-wallpaper-action" data-l10n-id="change-wallpaper" type="button"></button>
       <button id="create-smart-collection" data-l10n-id="add-smart-collections" type="button"></button>

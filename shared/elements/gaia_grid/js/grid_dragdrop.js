@@ -22,6 +22,7 @@
   function DragDrop(gridView) {
     this.gridView = gridView;
     this.container = gridView.element;
+    this.scrollable = this.container.parentNode;
     this.container.addEventListener('contextmenu', this);
   }
 
@@ -80,7 +81,7 @@
       // Make the icon larger
       this.icon.transform(
         e.pageX - this.xAdjust,
-        e.pageY - this.yAdjust,
+        e.pageY - this.yAdjust + this.scrollable.scrollTop,
         this.icon.scale + activeScaleAdjust);
     },
 
@@ -146,13 +147,13 @@
       function doScroll(amount) {
         /* jshint validthis:true */
         this.isScrolling = true;
-        document.documentElement.scrollTop += amount;
+        this.scrollable.scrollTop += amount;
         exports.requestAnimationFrame(this.scrollIfNeeded.bind(this));
         touch.pageY += amount;
         this.positionIcon(touch.pageX, touch.pageY);
       }
 
-      var docScroll = document.documentElement.scrollTop;
+      var docScroll = this.scrollable.scrollTop;
       var distanceFromTop = Math.abs(touch.pageY - docScroll);
       if (distanceFromTop > screenHeight - edgePageThreshold) {
         var maxY = this.maxScroll;
@@ -283,11 +284,12 @@
           case 'touchmove':
             var touch = e.touches[0];
 
-            this.positionIcon(touch.pageX, touch.pageY);
+            var pageY = touch.pageY + this.scrollable.scrollTop;
+            this.positionIcon(touch.pageX, pageY);
 
             this.currentTouch = {
               pageX: touch.pageX,
-              pageY: touch.pageY
+              pageY: pageY
             };
 
             if (!this.isScrolling) {

@@ -8,6 +8,16 @@ html, body {
   margin: 0;
 }
 
+.scrollable {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 gaia-grid {
   display: block;
   height: 100%;
@@ -26,7 +36,6 @@ body[data-cols="4"] .icon .title {
   width: 100%;
   position: fixed;
   top: 0;
-  z-index: 2;
 }
 
 #confirmation-message {
