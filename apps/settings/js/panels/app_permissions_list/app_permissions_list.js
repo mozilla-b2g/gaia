@@ -151,7 +151,6 @@ define(function(require) {
      * Genrate UI template of app item.
      */
     renderList: function pl_render_list() {
-      console.log('-----clean all the contents of list------');
       this._elements.list.innerHTML = '';
       var listFragment = document.createDocumentFragment();
       this._apps.forEach(function appIterator(app, index) {
