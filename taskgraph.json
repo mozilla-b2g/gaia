@@ -18,14 +18,14 @@
           "env": {
             "REVISION": "9506880e4879"
           },
-          "image": "registry.taskcluster.net/mozilla/b2g-build",
+          "image": "registry.taskcluster.net/mozilla/b2g-build:0.0.2",
           "command": [
             "./bin/entrypoint"
           ]
         },
         "tags": {
           "treeherderProject": "gaia",
-          "treeherderSymbol": "B-4"
+          "treeherderSymbol": "B-5"
         }
       }
     },
