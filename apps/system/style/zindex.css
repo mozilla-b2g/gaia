@@ -193,6 +193,10 @@
   z-index: 1024;
 }
 
+#screen > [data-z-index-level="ext-selection-dialog"] {
+  z-index: 10;
+}
+
 /* Level 8 */
 /**
  *#screen > [data-z-index-level="app"] {
