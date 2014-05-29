@@ -684,15 +684,29 @@ var TitleBar = {
 
             break;
           case 'title-done':
-            pendingPick.postResult({
-              type: PlayerView.playingBlob.type,
-              blob: PlayerView.playingBlob,
-              name:
-                PlayerView.dataSource[PlayerView.currentIndex].metadata.title ||
-                ''
+            var currentFileinfo = PlayerView.dataSource[
+              PlayerView.currentIndex
+            ];
+            var playingBlob = PlayerView.playingBlob;
+            getAlbumArtBlob(currentFileinfo, function(err, picture) {
+              var currentMetadata = currentFileinfo.metadata;
+              pendingPick.postResult({
+                type: playingBlob.type,
+                blob: playingBlob,
+                name: currentMetadata.title || '',
+                // We only pass some metadata attributes so we don't share
+                // personal details like # of times played and ratings.
+                metadata: {
+                  title: currentMetadata.title,
+                  artist: currentMetadata.artist,
+                  album: currentMetadata.album,
+                  picture: picture
+                }
+              });
+
+              cleanupPick();
             });
 
-            cleanupPick();
             break;
         }
 

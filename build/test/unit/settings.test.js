@@ -112,6 +112,12 @@ suite('settings.js', function() {
       app.setRingtone(settings, config);
       assert.equal(settings['dialer.ringtone'], config.GAIA_DIR + '/' +
         ringtoneLink);
+      assert.deepEqual(settings['dialer.ringtone.name'],
+                       {l10nID: 'ringer_classic_courier'});
+      assert.equal(settings['dialer.ringtone.id'],
+                   'builtin:ringer_classic_courier');
+      assert.equal(settings['dialer.ringtone.default.id'],
+                   'builtin:ringer_classic_courier');
     });
 
     test('setNotification', function () {
@@ -126,6 +132,12 @@ suite('settings.js', function() {
       app.setNotification(settings, config);
       assert.equal(settings['notification.ringtone'],
         config.GAIA_DIR + '/' + notificationLink);
+      assert.deepEqual(settings['notification.ringtone.name'],
+                       {l10nID: 'notifier_bell'});
+      assert.equal(settings['notification.ringtone.id'],
+                   'builtin:notifier_bell');
+      assert.equal(settings['notification.ringtone.default.id'],
+                   'builtin:notifier_bell');
     });
 
     test('overrideSettings', function () {
@@ -260,8 +272,13 @@ suite('settings.js', function() {
           'wallpaper.image': undefined,
           'media.ringtone': undefined,
           'alarm.ringtone': undefined,
-          'dialer.ringtone.name': 'Classic Courier',
+          'dialer.ringtone.name': {l10nID: 'ringer_classic_courier'},
+          'dialer.ringtone.id': 'builtin:ringer_classic_courier',
+          'dialer.ringtone.default.id': 'builtin:ringer_classic_courier',
           'dialer.ringtone': undefined,
+          'notification.ringtone.name': {l10nID: 'notifier_bell'},
+          'notification.ringtone.id': 'builtin:notifier_bell',
+          'notification.ringtone.default.id': 'builtin:notifier_bell',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
@@ -288,8 +305,13 @@ suite('settings.js', function() {
           'wallpaper.image': undefined,
           'media.ringtone': undefined,
           'alarm.ringtone': undefined,
-          'dialer.ringtone.name': 'Classic Courier',
+          'dialer.ringtone.name': {l10nID: 'ringer_classic_courier'},
+          'dialer.ringtone.id': 'builtin:ringer_classic_courier',
+          'dialer.ringtone.default.id': 'builtin:ringer_classic_courier',
           'dialer.ringtone': undefined,
+          'notification.ringtone.name': {l10nID: 'notifier_bell'},
+          'notification.ringtone.id': 'builtin:notifier_bell',
+          'notification.ringtone.default.id': 'builtin:notifier_bell',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
@@ -314,8 +336,13 @@ suite('settings.js', function() {
           'wallpaper.image': undefined,
           'media.ringtone': undefined,
           'alarm.ringtone': undefined,
-          'dialer.ringtone.name': 'Classic Courier',
+          'dialer.ringtone.name': {l10nID: 'ringer_classic_courier'},
+          'dialer.ringtone.id': 'builtin:ringer_classic_courier',
+          'dialer.ringtone.default.id': 'builtin:ringer_classic_courier',
           'dialer.ringtone': undefined,
+          'notification.ringtone.name': {l10nID: 'notifier_bell'},
+          'notification.ringtone.id': 'builtin:notifier_bell',
+          'notification.ringtone.default.id': 'builtin:notifier_bell',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
@@ -343,8 +370,13 @@ suite('settings.js', function() {
           'wallpaper.image': undefined,
           'media.ringtone': undefined,
           'alarm.ringtone': undefined,
-          'dialer.ringtone.name': 'Classic Courier',
+          'dialer.ringtone.name': {l10nID: 'ringer_classic_courier'},
+          'dialer.ringtone.id': 'builtin:ringer_classic_courier',
+          'dialer.ringtone.default.id': 'builtin:ringer_classic_courier',
           'dialer.ringtone': undefined,
+          'notification.ringtone.name': {l10nID: 'notifier_bell'},
+          'notification.ringtone.id': 'builtin:notifier_bell',
+          'notification.ringtone.default.id': 'builtin:notifier_bell',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);

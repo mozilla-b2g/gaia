@@ -32,7 +32,10 @@ SoundPanel.Selectors = {
   'sentMessageSpan': '#sound span[data-l10n-id="sent-message"]',
   'unlockScreenCheckbox':
               '#sound input[name="lockscreen.unlock-sound.enabled"]',
-  'unlockScreenSpan': '#sound span[data-l10n-id="unlock-screen"]'
+  'unlockScreenSpan': '#sound span[data-l10n-id="unlock-screen"]',
+  'alerttoneButton': '#alert-tone-selection',
+  'ringtoneButton': '#ring-tone-selection',
+  'manageRingtonesButton': '#manage-ringtones-button'
 };
 
 SoundPanel.prototype = {
@@ -123,6 +126,33 @@ SoundPanel.prototype = {
 
   tapOnUnlockScreen: function() {
     this.waitForElement('unlockScreenSpan').tap();
-  }
+  },
 
+  clickRingToneSelect: function() {
+    this.waitForElement('ringtoneButton').tap();
+  },
+
+  clickAlertToneSelect: function() {
+    this.waitForElement('alerttoneButton').tap();
+  },
+
+  clickManageRingtones: function() {
+    this.waitForElement('manageRingtonesButton').tap();
+  },
+
+  get selectedRingtone() {
+    return this.waitForElement('ringtoneButton').text();
+  },
+
+  get selectedAlertTone() {
+    return this.waitForElement('alerttoneButton').text();
+  },
+
+  getSelectedTone: function(type) {
+    if (type === 'ringtone') {
+      return this.selectedRingtone;
+    } else if (type === 'alerttone') {
+      return this.selectedAlertTone;
+    }
+  }
 };

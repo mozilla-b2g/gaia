@@ -9,6 +9,10 @@ marionette('manipulate sound settings', function() {
 
   setup(function() {
     settingsApp = new Settings(client);
+
+    client.contentScript.inject(__dirname +
+      '/../mocks/mock_navigator_moz_telephony.js');
+
     settingsApp.launch();
     // Navigate to the sound menu
     soundPanel = settingsApp.soundPanel;
@@ -58,6 +62,16 @@ marionette('manipulate sound settings', function() {
       !alarm_val,
       'alarm state is changed'
     );
+  });
+
+  test('check default ringtone name', function() {
+    var ringtone_name = soundPanel.selectedRingtone;
+    assert.equal(ringtone_name, 'Classic Courier');
+  });
+
+  test('check default alert tone name', function() {
+    var alerttone_name = soundPanel.selectedAlertTone;
+    assert.equal(alerttone_name, 'Bell');
   });
 
   /* Other sounds */
