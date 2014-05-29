@@ -184,6 +184,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 1);
     });
 
     test('data mobile screen >', function(done) {
@@ -194,6 +195,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 2);
     });
 
     test('wifi screen >', function(done) {
@@ -207,6 +209,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 3);
     });
 
     test('date&time screen >', function(done) {
@@ -217,6 +220,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 4);
     });
 
     test('geolocation screen >', function(done) {
@@ -227,6 +231,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 5);
     });
 
     test('import contacts screen >', function(done) {
@@ -237,6 +242,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 6);
     });
 
     test('firefox accounts screen >', function(done) {
@@ -247,6 +253,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 7);
     });
 
     test('welcome screen >', function(done) {
@@ -262,6 +269,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 8);
     });
 
     test('privacy screen >', function(done) {
@@ -272,6 +280,7 @@ suite('navigation >', function() {
         done();
       });
       observer.observe(UIManager.mainTitle, observerConfig);
+      assert.equal(Navigation.getProgressBarState(), 9);
     });
   });
 

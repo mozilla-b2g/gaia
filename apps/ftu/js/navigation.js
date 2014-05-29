@@ -157,7 +157,13 @@ var Navigation = {
       return 1;
     }
 
-    return this.currentStep - (this.skipDataScreen ? 1 : 0);
+    var progressBarPosition = this.currentStep - (this.skipDataScreen ? 1 : 0);
+
+    if (progressBarPosition > this.totalSteps) {
+      return this.totalSteps;
+    }
+
+    return progressBarPosition;
   },
 
   handleEvent: function n_handleEvent(event) {
