@@ -19,7 +19,9 @@ require('/js/settings/autosettings.js');
 require('/js/settings/settings.js');
 require('/js/sim_manager.js');
 require('/js/utils/toolkit.js');
-
+require('/shared/js/component_utils.js');
+require('/shared/elements/gaia_header/script.js');
+require('/shared/elements/gaia_subheader/script.js');
 
 var realMozL10n,
     realAddNetworkUsageAlarm;
@@ -259,7 +261,12 @@ suite('Settings Test Suite >', function() {
       dataLimitDialog = document.getElementById('data-limit-dialog');
       dataLimitInput = dataLimitDialog.querySelector('input');
       dataLimitOkButton = dataLimitDialog.querySelector('button.recommend');
-      dataLimitCancelButton = dataLimitDialog.querySelector('a.cancel');
+      var dataLimitHeader = dataLimitDialog.getElementById(
+        'limit-dialog-header'
+      );
+      dataLimitCancelButton = dataLimitHeader.shadowRoot.getElementById(
+        'action-button'
+      );
       dataLimitSwitchUnitButton = dataLimitDialog.
         querySelector('.switch-unit-button');
       limitUnitValue = dataLimitSwitchUnitButton.querySelector('span.tag');
