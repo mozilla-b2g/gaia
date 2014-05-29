@@ -10,9 +10,11 @@ from gaiatest.apps.settings.app import Settings
 class TestDSDSCellData(GaiaTestCase):
 
     def test_cell_data_for_two_sims(self):
-        """https://moztrap.mozilla.org/manage/case/10687/"""
+        """
+        https://moztrap.mozilla.org/manage/case/1373/
+        We only test with 1 SIM in the device
+        """
               
-        # Launchs settings
         settings = Settings(self.marionette)
         settings.launch()
 
@@ -22,14 +24,22 @@ class TestDSDSCellData(GaiaTestCase):
         # Go into SIM 1
         cell_and_data_settings.select_sim(1)
 
-        # Verify that a carrier is displayed
+        # verify that a carrier is displayed
         self.assertTrue(len(cell_and_data_settings.carrier_name) > 0)
 
-        # Back to previous page
-        cell_and_data_settings.go_back()
- 
-        # Go into SIM 2
-        cell_and_data_settings.select_sim(2)
+        cell_data_prompt = cell_and_data_settings.enable_data()
 
-        # Verify that a carrier is displayed
-        self.assertTrue(len(cell_and_data_settings.carrier_name) > 0)
+        # deal with prompt that sometimes appears (on first setting)
+        if cell_data_prompt.is_displayed:
+            # Cell data should not be enabled until we turn it on via the prompt
+            self.assertFalse(self.data_layer.get_setting('ril.data.enabled'), "Cell data was enabled before responding to the prompt")
+            cell_data_prompt.turn_on()
+
+        # Wait for cell data to be turned on
+        self.wait_for_condition(lambda m: cell_and_data_settings.is_data_toggle_checked)
+
+        # verify that cell data is now enabled and connected
+        self.assertTrue(self.data_layer.is_cell_data_enabled, "Cell data was not enabled via Settings app")
+        self.wait_for_condition(
+            lambda m: self.data_layer.is_cell_data_connected,
+            message='Cell data was not connected via Settings app')
