@@ -18,7 +18,7 @@
           "env": {
             "REVISION": "9506880e4879"
           },
-          "image": "registry.taskcluster.net/mozilla/b2g-build:0.0.2",
+          "image": "registry.taskcluster.net/mozilla/b2g-build:0.0.3",
           "command": [
             "./bin/entrypoint"
           ]
