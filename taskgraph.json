@@ -15,14 +15,14 @@
         },
         "payload": {
           "maxRunTime": 14400,
-          "image": "registry.taskcluster.net/mozilla/b2g-build",
+          "image": "registry.taskcluster.net/mozilla/b2g-build:0.0.1-alpha.1",
           "command": [
             "./bin/entrypoint"
           ]
         },
         "tags": {
           "treeherderProject": "gaia",
-          "treeherderSymbol": "B"
+          "treeherderSymbol": "B-3"
         }
       }
     },
