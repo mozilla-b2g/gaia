@@ -23,20 +23,20 @@
           return;
         }
 
-        // Mark the desired panel as a dialog
-        _targetPanel.dataset.dialog = true;
+        // Apply the filter
+        if (_targetPanelId === 'root') {
+          var filterBy = activity.source.data.filterBy;
+          if (filterBy) {
+            document.body.dataset.filterBy = filterBy;
+          }
+        } else {
+          // Mark the desired panel as a dialog
+          _targetPanel.dataset.dialog = true;
+        }
       } else {
         // If there isn't a section specified,
         // simply show ourselve without making ourselves a dialog.
         _targetPanelId = 'root';
-      }
-
-      // Apply the filter
-      if (_targetPanelId === 'root') {
-        var filterBy = activity.source.data.filterBy;
-        if (filterBy) {
-          document.body.dataset.filterBy = filterBy;
-        }
       }
 
       // Post result when pressing home button

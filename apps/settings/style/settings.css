@@ -73,12 +73,13 @@ body[data-ready="true"] section[role="region"].current {
 
 #placeholder {
   transform: translateX(0);
+  /* placeholder is also a region, overrides the visibility */
   visibility: visible;
   height: 100%;
 }
 
 body[data-ready="true"] #placeholder {
-  visibility: hidden;
+  display: none;
 }
 
 /**
