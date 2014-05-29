@@ -9,7 +9,8 @@ var AccessibilityHelper = require('shared/js/accessibility_helper');
  */
 function Tabs(element) {
   this.element = element;
-  this.links = element.querySelectorAll('a');
+  this.lis = element.querySelectorAll('li');
+  this.anchors = element.querySelectorAll('a');
   this.element.addEventListener('click', this);
 }
 
@@ -18,7 +19,18 @@ function Tabs(element) {
  * Also emit a 'selected' event with the relevant data.
  */
 Tabs.prototype.handleEvent = function tabsHandleEvent(event) {
-  AccessibilityHelper.setAriaSelected(event.target, this.links);
+  // Regrettably, the ideal layout of the DOM for the tabs in building
+  // blocks doesn't match the layout of Clock's views. So we'll apply
+  // some plaster here and make sure that we end up setting
+  // aria-selected on the <li> element in addition to the <a>, so that
+  // the proper active-state CSS is applied.
+  // TODO: During the clock visual redesign, address this properly.
+  var liTarget = event.target;
+  while (liTarget && !liTarget.mozMatchesSelector('li')) {
+    liTarget = liTarget.parentElement;
+  }
+  AccessibilityHelper.setAriaSelected(liTarget, this.lis);
+  AccessibilityHelper.setAriaSelected(event.target, this.anchors);
 };
 
 
