@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+from marionette.marionette import Actions
 from gaiatest.apps.base import Base
 
 
@@ -10,6 +11,7 @@ class System(Base):
 
     # status bar
     _status_bar_locator = (By.ID, 'statusbar')
+    _status_bar_icons_locator = (By.ID, 'statusbar-icons')
     _status_bar_notification_locator = (By.ID, 'statusbar-notification')
     _geoloc_statusbar_locator = (By.ID, 'statusbar-geolocation')
     _airplane_mode_statusbar_locator = (By.ID, 'statusbar-flight-mode')
@@ -31,8 +33,12 @@ class System(Base):
         self.wait_for_condition(lambda m: m.find_element(*self._notification_toaster_locator).location['y'] == -50, timeout=timeout)
 
     def open_utility_tray(self):
-        # TODO Use actions for this
-        self.marionette.execute_script("window.wrappedJSObject.UtilityTray.show()")
+        icon_status_bar = self.marionette.find_element(*self._status_bar_icons_locator)
+
+        status_bar_x_center = int(icon_status_bar.size['width'] / 2)
+        status_bar_y_center = int(icon_status_bar.size['height'] / 2)
+
+        Actions(self.marionette).flick(icon_status_bar, status_bar_x_center, status_bar_y_center, 0, 200, 200).perform()
 
         from gaiatest.apps.system.regions.utility_tray import UtilityTray
         return UtilityTray(self.marionette)
