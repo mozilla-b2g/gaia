@@ -30,7 +30,7 @@ Home2.URL = 'app://home2.gaiamobile.org';
 
 Home2.Selectors = {
   search: '#search',
-  firstIcon: '#icons div.icon',
+  firstIcon: '#icons div.icon:not(.placeholder)',
   dividers: '#icons div.divider'
 };
 

@@ -3,6 +3,7 @@
 /* global GridDragDrop */
 /* global GridLayout */
 /* global GridZoom */
+/* global Placeholder */
 
 (function(exports) {
 
@@ -146,15 +147,71 @@
     },
 
     /**
+     * Removes placeholders from the grid.
+     */
+    removeAllPlaceholders: function() {
+      var toSplice = [];
+      var previousItem;
+      this.items.forEach(function(item, idx) {
+        if (item instanceof Placeholder) {
+
+          // If the previous item is a divider, and we are in edit mode
+          // we do not remove the placeholder. This is so the section will
+          // remain even if the user drags the icon around. Bug 1014982
+          if (previousItem && previousItem instanceof Divider &&
+              this.dragdrop && this.dragdrop.inDragAction) {
+            return;
+          }
+
+          toSplice.push(idx);
+        }
+
+        previousItem = item;
+      }, this);
+
+      toSplice.reverse().forEach(function(idx) {
+        var item = this.items[idx];
+        item.element && item.element.parentNode.removeChild(item.element);
+        this.items.splice(idx, 1);
+      }, this);
+    },
+
+    /**
+     * Creates placeholders and injects them into the grid.
+     * @param {Array} coordinates [x,y] coordinates on the grid of the first
+     * item in grid units.
+     * @param {Integer} idx The position of the first placeholder.
+     * @param {Integer} idx The number of placeholders to create.
+     */
+    createPlaceholders: function(coordinates, idx, count) {
+      for (var i = 0; i < count; i++) {
+        var itemCoords = [
+          coordinates[0] + i,
+          coordinates[1]
+        ];
+
+        var item = new Placeholder();
+        this.items.splice(idx + i, 0, item);
+        item.render(itemCoords, idx + i);
+      }
+    },
+
+    /**
      * Renders all icons.
      * Positions app icons and dividers accoriding to available space
      * on the grid.
+     * @param {Integer} from The index to start rendering from.
      */
     render: function(from) {
       var self = this;
 
+      this.removeAllPlaceholders();
       this.cleanItems();
-      from = from || 0;
+
+      // Start rendering from one before the drop target. If not,
+      // we may drop over the divider and miss rendering an icon.
+      from = from - 1 || 0;
+
       // TODO This variable should be an argument of this method. See
       // https://bugzilla.mozilla.org/show_bug.cgi?id=1010742#c4
       var to = this.items.length - 1;
@@ -183,9 +240,19 @@
         // step the y-axis.
         if (x > 0 && item.gridWidth > 1 &&
             x + item.gridWidth >= this.layout.perRow) {
+
+          // Insert placeholders to fill remaining space
+          var remaining = this.layout.perRow - x;
+          this.createPlaceholders([x, y], idx, remaining);
+
+          // Increment the current index due to divider insertion
+          idx += remaining;
+          to += remaining;
+          item = this.items[idx];
+
           // Step the y-axis by the size of the last row.
           // For now we just check the height of the last item.
-          var lastItem = this.items[idx - 1];
+          var lastItem = this.items[idx - (remaining + 1)];
           step(lastItem);
         }
 
