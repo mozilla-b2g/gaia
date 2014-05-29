@@ -566,8 +566,9 @@ var ScreenManager = {
       self.turnScreenOn(true);
     };
 
+    var finalTimeout = instant ? time * 1000 : (time * 1000) - this._dimNotice;
     this._idleTimerId = window.setIdleTimeout(idleCallback,
-                                              activeCallback, time * 1000);
+                                              activeCallback, finalTimeout);
   },
 
   fireScreenChangeEvent: function scm_fireScreenChangeEvent() {
