@@ -6,6 +6,177 @@
 (function() {
   'use strict';
 
+  // Setup the sliders for previewing the tones.
+  (function() {
+    var channelTypes = ['content', 'notification', 'alarm'];
+    var sliders = document.querySelectorAll('#sound .volume input');
+
+    Array.prototype.forEach.call(sliders, function(slider, index) {
+      var channelType = channelTypes[index];
+      var channelKey = 'audio.volume.' + channelType;
+      // The default volume is 15(MAX).
+      var previous = 15;
+      var isTouching = false;
+      var isFirstInput = false;
+      var interval = 500;
+      var intervalID = null;
+      var delay = 800;
+      var player = new Audio();
+
+      // Get the volume value for the slider, also observe the value change.
+      SettingsListener.observe(channelKey, '', setSliderValue);
+
+      function setSliderValue(value) {
+        slider.value = value;
+        // The slider is transparent if the value is not set yet, display it
+        // once the value is set.
+        if (slider.style.opacity !== 1) {
+          slider.style.opacity = 1;
+        }
+      }
+
+      // The sliders listen to input, touchstart and touchend events to fit
+      // the ux requirements, and when the user tap or drag the sliders, the
+      // sequence of the events is:
+      // touchstart -> input -> input(more if dragging) -> touchend -> input
+      slider.addEventListener('touchstart', function(event) {
+        isTouching = true;
+        isFirstInput = true;
+        var toneKey;
+        // Stop the tone previewing from the last touchstart if the delayed
+        // stopTone() is not called yet.
+        stopTone();
+        // Stop observing when the user is adjusting the slider, this is to
+        // get better ux that the slider won't be updated by both the observer
+        // and the ui.
+        SettingsListener.unobserve(channelKey, setSliderValue);
+
+        switch (channelType) {
+          case 'content':
+            toneKey = 'media.ringtone';
+            break;
+          case 'notification':
+            toneKey = 'dialer.ringtone';
+            break;
+          case 'alarm':
+            toneKey = 'alarm.ringtone';
+            break;
+        }
+
+        getToneBlob(channelType, toneKey, function(blob) {
+          playTone(channelType, blob);
+        });
+      });
+
+      slider.addEventListener('input', function(event) {
+        // The mozSettings api is not designed to call rapidly, but ux want the
+        // new volume to be applied immediately while previewing the tone, so
+        // here we use setInterval() as a timer to ease the number of calling,
+        // or we will see the queued callbacks try to update the slider's value
+        // which we are unable to avoid and make bad ux for the users.
+        if (isFirstInput) {
+          isFirstInput = false;
+          setVolume();
+          intervalID = setInterval(setVolume, interval);
+        }
+      });
+
+      slider.addEventListener('touchend', function(event) {
+        isTouching = false;
+        // Clear the interval setVolume() and set it directly when the user's
+        // finger leaves the panel.
+        clearInterval(intervalID);
+        setVolume();
+        // Re-observe the value change after the user finished tapping/dragging
+        // on the slider and the preview is ended.
+        SettingsListener.observe(channelKey, '', setSliderValue);
+        // If the user tap the slider very quickly, like the click event, then
+        // we try to stop the player after a constant duration so that the user
+        // is able to hear the tone's preview with the adjusted volume.
+        setTimeout(function() {
+          if (!isTouching) {
+            stopTone();
+          }
+        }, delay);
+      });
+
+      function setVolume() {
+        var value = parseInt(slider.value);
+        var settingObject = {};
+        settingObject[channelKey] = value;
+
+        // Only set the new value if it does not equal to the previous one.
+        if (value !== previous) {
+          navigator.mozSettings.createLock().set(settingObject);
+          previous = value;
+        }
+      }
+
+      function getToneBlob(type, toneKey, callback) {
+        navigator.mozSettings.createLock().get(toneKey).onsuccess =
+          function(e) {
+            if (e.target.result[toneKey]) {
+              callback(e.target.result[toneKey]);
+            } else {
+              // Fall back to the predefined tone if the value does not exist
+              // in the mozSettings.
+              getDefaultTone(type, toneKey, function(blob) {
+                // Save the default tone to mozSettings so that next time we
+                // don't have to fall back to it from the system files.
+                var settingObject = {};
+                settingObject[toneKey] = blob;
+                navigator.mozSettings.createLock().set(settingObject);
+
+                callback(blob);
+              });
+            }
+          };
+      }
+
+      function getDefaultTone(type, toneKey, callback) {
+        var mediaToneURL = '/shared/resources/media/notifications/' +
+          'notifier_bop.opus';
+        var ringerToneURL = '/shared/resources/media/ringtones/' +
+          'ringer_classic_courier.opus';
+        var alarmToneURL = '/shared/resources/media/alarms/' +
+          'ac_classic_clock_alarm.opus';
+
+        var toneURLs = {
+          'content' : mediaToneURL,
+          'notification' : ringerToneURL,
+          'alarm' : alarmToneURL
+        };
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', toneURLs[type]);
+        xhr.overrideMimeType('audio/ogg');
+        xhr.responseType = 'blob';
+        xhr.send();
+        xhr.onload = function() {
+          callback(xhr.response);
+        };
+      }
+
+      function playTone(type, blob) {
+        // Don't set the audio channel type to content or it will interrupt the
+        // background music and won't resume after the user previewed the tone.
+        if (type !== 'content') {
+          player.mozAudioChannelType = type;
+        }
+        player.src = URL.createObjectURL(blob);
+        player.load();
+        player.loop = true;
+        player.play();
+      }
+
+      function stopTone() {
+        player.pause();
+        player.removeAttribute('src');
+        player.load();
+      }
+    });
+  })();
+
   var _ = navigator.mozL10n.get;
   (function() {
     var mobileConnections = window.navigator.mozMobileConnections;

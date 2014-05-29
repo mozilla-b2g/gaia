@@ -32,6 +32,26 @@ function setWallpaper(settings, config) {
   settings['wallpaper.image'] = utils.getFileAsDataURI(wallpaper);
 }
 
+function setMediatone(settings, config) {
+  // Grab ac_classic_clock_alarm.opus and convert it into a base64 string
+  let mediatone_name = 'shared/resources/media/notifications/' +
+    'notifier_bop.opus';
+  let mediatone = utils.resolve(mediatone_name,
+    config.GAIA_DIR);
+
+  settings['media.ringtone'] = utils.getFileAsDataURI(mediatone);
+}
+
+function setAlarmtone(settings, config) {
+  // Grab ac_classic_clock_alarm.opus and convert it into a base64 string
+  let alarmtone_name = 'shared/resources/media/alarms/' +
+    'ac_classic_clock_alarm.opus';
+  let alarmtone = utils.resolve(alarmtone_name,
+    config.GAIA_DIR);
+
+  settings['alarm.ringtone'] = utils.getFileAsDataURI(alarmtone);
+}
+
 function setRingtone(settings, config) {
   // Grab ringer_classic_courier.opus and convert it into a base64 string
   let ringtone_name = 'shared/resources/media/ringtones/' +
@@ -223,6 +243,10 @@ function execute(config) {
   var result = queue.promise.then(function() {
     setWallpaper(settings, config);
   }).then(function() {
+    setMediatone(settings, config);
+  }).then(function() {
+    setAlarmtone(settings, config);
+  }).then(function() {
     setRingtone(settings, config);
   }).then(function() {
     setNotification(settings, config);
@@ -245,6 +269,8 @@ function execute(config) {
 }
 exports.execute = execute;
 exports.setWallpaper = setWallpaper;
+exports.setMediatone = setMediatone;
+exports.setAlarmtone = setAlarmtone;
 exports.setRingtone = setRingtone;
 exports.setNotification = setNotification;
 exports.deviceTypeSettings = deviceTypeSettings;

@@ -87,6 +87,24 @@ suite('settings.js', function() {
         jpgLink);
     });
 
+    test('setMediatone', function () {
+      var mediatoneLink =
+        'shared/resources/media/notifications/' +
+        'notifier_bop.opus';
+      app.setMediatone(settings, config);
+      assert.equal(settings['media.ringtone'], config.GAIA_DIR + '/' +
+        mediatoneLink);
+    });
+
+    test('setAlarmtone', function () {
+      var alarmtoneLink =
+        'shared/resources/media/alarms/' +
+        'ac_classic_clock_alarm.opus';
+      app.setAlarmtone(settings, config);
+      assert.equal(settings['alarm.ringtone'], config.GAIA_DIR + '/' +
+        alarmtoneLink);
+    });
+
     test('setRingtone', function () {
       var ringtoneLink =
         'shared/resources/media/ringtones/' +
@@ -240,6 +258,8 @@ suite('settings.js', function() {
           'debugger.remote-mode': 'adb-only',
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'wallpaper.image': undefined,
+          'media.ringtone': undefined,
+          'alarm.ringtone': undefined,
           'dialer.ringtone.name': 'Classic Courier',
           'dialer.ringtone': undefined,
           'notification.ringtone': undefined,
@@ -266,6 +286,8 @@ suite('settings.js', function() {
             'ftu.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'wallpaper.image': undefined,
+          'media.ringtone': undefined,
+          'alarm.ringtone': undefined,
           'dialer.ringtone.name': 'Classic Courier',
           'dialer.ringtone': undefined,
           'notification.ringtone': undefined,
@@ -290,6 +312,8 @@ suite('settings.js', function() {
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'debugger.remote-mode': 'disabled',
           'wallpaper.image': undefined,
+          'media.ringtone': undefined,
+          'alarm.ringtone': undefined,
           'dialer.ringtone.name': 'Classic Courier',
           'dialer.ringtone': undefined,
           'notification.ringtone': undefined,
@@ -317,6 +341,8 @@ suite('settings.js', function() {
           'lockscreen.enabled': false,
           'lockscreen.locked': false,
           'wallpaper.image': undefined,
+          'media.ringtone': undefined,
+          'alarm.ringtone': undefined,
           'dialer.ringtone.name': 'Classic Courier',
           'dialer.ringtone': undefined,
           'notification.ringtone': undefined,
