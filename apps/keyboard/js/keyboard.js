@@ -46,13 +46,13 @@ var inputContext = null;
 // The keyboard app can display different layouts for different languages
 // We sometimes refer to these different layouts as "keyboards", so this single
 // keyboard app can display many different keyboards.  The currently displayed
-// keyboard is specified with setKeyboardName(). That function sets the
+// keyboard is specified with updateCurrentLayout(). That function sets the
 // following variables based on its argument.
 //
 // See keyboard/layouts for layout data.
 //
 // The keyboardName is always the URL hash this page loaded with.
-// setKeyboardName() is called when pages loads, when visibility changes,
+// updateCurrentLayout() is called when pages loads, when visibility changes,
 // and when URL hash changes.
 var keyboardName = null;
 
@@ -259,11 +259,9 @@ function initKeyboard() {
 
   window.addEventListener('hashchange', function() {
     perfTimer.printTime('hashchange');
-    var inputMethodName = window.location.hash.substring(1);
-    setKeyboardName(inputMethodName, function() {
-      resetKeyboard();
-      showKeyboard();
-    });
+    var layoutName = window.location.hash.substring(1);
+    layoutLoader.getLayoutAsync(layoutName);
+    updateCurrentLayout(layoutName);
   }, false);
 
   // Need to listen to both mozvisibilitychange and oninputcontextchange,
@@ -271,14 +269,14 @@ function initKeyboard() {
   // showKeyboard() when mozHidden is false and we got inputContext
   window.addEventListener('mozvisibilitychange', function visibilityHandler() {
     perfTimer.printTime('mozvisibilitychange');
-    var inputMethodName = window.location.hash.substring(1);
-    setKeyboardName(inputMethodName, function() {
-      if (!document.mozHidden && inputContext) {
-        showKeyboard();
-      } else {
-        hideKeyboard();
-      }
-    });
+    if (document.mozHidden && !inputContext) {
+      hideKeyboard();
+
+      return;
+    }
+
+    var layoutName = window.location.hash.substring(1);
+    updateCurrentLayout(layoutName);
   });
 
   window.navigator.mozInputMethod.oninputcontextchange = function() {
@@ -287,39 +285,37 @@ function initKeyboard() {
     if (inputContext) {
       inputContextGetTextPromise = inputContext.getText();
     }
-    var inputMethodName = window.location.hash.substring(1);
-    setKeyboardName(inputMethodName, function() {
-      if (!document.mozHidden && inputContext) {
-        showKeyboard();
-      } else {
-        hideKeyboard();
-      }
-    });
+    if (document.mozHidden && !inputContext) {
+      hideKeyboard();
+
+      return;
+    }
+
+    var layoutName = window.location.hash.substring(1);
+    updateCurrentLayout(layoutName);
   };
 
   // Initialize the current layout according to
   // the hash this page is loaded with.
-  var inputMethodName = '';
+  var layoutName = '';
   if (window.location.hash !== '') {
-    inputMethodName = window.location.hash.substring(1);
+    layoutName = window.location.hash.substring(1);
+    layoutLoader.getLayoutAsync(layoutName);
   } else {
     console.error('This page should never be loaded without an URL hash.');
+
+    return;
+  }
+
+  // fill inputContextGetTextPromise and inputContext
+  inputContext = navigator.mozInputMethod.inputcontext;
+  if (inputContext) {
+    inputContextGetTextPromise = inputContext.getText();
   }
 
   // Finally, if we are only loaded by keyboard manager when the user
   // have already focused, the keyboard should show right away.
-  inputContext = navigator.mozInputMethod.inputcontext;
-  if (!document.mozHidden && inputContext) {
-    inputContextGetTextPromise = inputContext.getText();
-    perfTimer.printTime(
-      'initKeyboard->setKeyboardName->showKeyboard', 'initKeyboard');
-    // show Keyboard after the input method has been initialized
-    setKeyboardName(inputMethodName, showKeyboard);
-  } else {
-    perfTimer.printTime(
-      'initKeyboard->setKeyboardName', 'initKeyboard');
-    setKeyboardName(inputMethodName);
-  }
+  updateCurrentLayout(layoutName);
 }
 
 function handleKeyboardSound(settings) {
@@ -340,11 +336,11 @@ function deactivateInputMethod() {
   inputMethodManager.switchCurrentIMEngine('default');
 }
 
-function setKeyboardName(name, callback) {
-  perfTimer.printTime('setKeyboardName');
+function updateCurrentLayout(name) {
+  perfTimer.printTime('updateCurrentLayout');
 
   layoutManager.switchCurrentLayout(name).then(function() {
-    perfTimer.printTime('setKeyboardName:promise resolved');
+    perfTimer.printTime('updateCurrentLayout:promise resolved');
     keyboardName = name;
     keyboard = layoutLoader.getLayout(name);
 
@@ -355,8 +351,12 @@ function setKeyboardName(name, callback) {
       imEngineloader.getInputMethodAsync(imEngineName);
     }
 
-    if (callback) {
-      callback();
+    // Now the that we have the layout ready,
+    // we should either show or hide the keyboard.
+    if (!document.mozHidden && inputContext) {
+      showKeyboard();
+    } else {
+      hideKeyboard();
     }
   }, function(error) {
     console.warn('Failed to switch layout for ' + name + '.' +
