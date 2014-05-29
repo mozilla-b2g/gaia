@@ -1024,7 +1024,7 @@ ImageEditor.prototype.drawCropControls = function(handle) {
     }
 
     context.beginPath();
-    context.arc(cx, cy, 25, 0, 2 * Math.PI);
+    context.arc(cx, cy, 40, 0, 2 * Math.PI);
     context.fillStyle = 'rgba(255,255,255,.5)';
     context.lineWidth = 1;
     context.fill();
@@ -1049,10 +1049,11 @@ ImageEditor.prototype.cropStart = function(ev) {
   var centerX = (region.left + region.right) / 2;
   var centerY = (region.top + region.bottom) / 2;
 
-  // Return true if (x0,y0) is within 25 pixels of (x,y)
+  // Return true if (x0,y0) is within 40 pixels of (x,y)
   function hit(x, y) {
-    return (x0 > x - 25 && x0 < x + 25 &&
-            y0 > y - 25 && y0 < y + 25);
+    var range = 40;
+    return (x0 > x - range && x0 < x + range &&
+            y0 > y - range && y0 < y + range);
   }
 
   if (hit((left + right) / 2, top))
