@@ -56,7 +56,7 @@ class FTUStep3(CostControl):
 
         data_limit_view = self.marionette.find_element(
             *self._data_limit_view_locator)
-        self.wait_for_condition(lambda m: data_limit_view.location['y'] == data_limit_view.size['height'])
+        self.wait_for_condition(lambda m: int(data_limit_view.location['y']) == int(data_limit_view.size['height']))
 
     def tap_lets_go(self):
         self.wait_for_element_displayed(*self._go_button_locator)
