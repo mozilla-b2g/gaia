@@ -28,15 +28,19 @@ var ConfirmDialog = (function() {
 
   // Event handlers for the two buttons
   retakeButton.onclick = function() {
-    confirm.hidden = true;
+    retakeButton.disabled = true;
+    selectButton.disabled = true;
     retakecb();
   };
   selectButton.onclick = function() {
-    confirm.hidden = true;
+    retakeButton.disabled = true;
+    selectButton.disabled = true;
     selectcb();
   };
 
   function confirmImage(blob, selectCallback, retakeCallback) {
+    retakeButton.disabled = false;
+    selectButton.disabled = false;
     selectcb = selectCallback;
     retakecb = retakeCallback;
 
@@ -81,12 +85,18 @@ var ConfirmDialog = (function() {
   function confirmVideo(blob, posterBlob, width, height, rotation,
                         selectCallback, retakeCallback)
   {
+    retakeButton.disabled = false;
+    selectButton.disabled = false;
     selectcb = selectCallback;
     retakecb = retakeCallback;
     // Show the dialog and then display the video in it.
     // We have to do it in this order, or the video won't display correctly.
     confirm.hidden = false;
     frame.displayVideo(blob, posterBlob, width, height, rotation);
+  }
+
+  function hide() {
+    confirm.hidden = true;
   }
 
   function isShowing() {
@@ -97,6 +107,7 @@ var ConfirmDialog = (function() {
   return {
     confirmImage: confirmImage,
     confirmVideo: confirmVideo,
+    hide: hide,
     isShowing: isShowing
   };
 })();

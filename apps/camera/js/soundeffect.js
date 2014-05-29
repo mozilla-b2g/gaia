@@ -19,6 +19,11 @@ SoundEffect = (function() {
       var req = navigator.mozSettings.createLock().get(SHUTTER_KEY);
       req.onsuccess = function onsuccess() {
         shutterSoundEnabled = req.result[SHUTTER_KEY];
+        if (shutterSoundEnabled) {
+          // It is important that this sound plays quickly, so initialize
+          // it if it will be needed
+          initSound(TYPE_CAMERA);
+        }
       };
 
       navigator.mozSettings.addObserver(SHUTTER_KEY, function(e) {
@@ -36,17 +41,31 @@ SoundEffect = (function() {
     }
   }
 
-  function playSound(type) {
+  function initSound(type) {
     if (!soundAudios[type]) {
       soundAudios[type] = new Audio(soundUrls[type]);
+      soundAudios[type].setAttribute('preload', 'auto');
       soundAudios[type].mozAudioChannelType = 'notification';
     }
-    soundAudios[type].cloneNode(false).play();
   }
 
-  function playCameraShutterSound() {
+  function playSound(type, callback) {
+    initSound(type);
+    var clone = soundAudios[type].cloneNode(false);
+    if (callback) {
+      clone.onended = function(e) {
+        callback();
+      };
+    }
+    clone.play();
+  }
+
+  function playCameraShutterSound(callback) {
     if (shutterSoundEnabled) {
-      playSound(TYPE_CAMERA);
+      playSound(TYPE_CAMERA, callback);
+    }
+    else if (callback) {
+      callback();
     }
   }
 

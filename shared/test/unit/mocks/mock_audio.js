@@ -17,6 +17,9 @@ MockAudio.mTeardown = function() {
 
 MockAudio.prototype.play = function() {
   this.playing = true;
+  if (this.onended) {
+    setTimeout(this.onended.bind(this, { type: 'ended' }), 25);
+  }
 };
 
 MockAudio.prototype.pause = function() {
@@ -25,6 +28,9 @@ MockAudio.prototype.pause = function() {
 
 MockAudio.prototype.cloneNode = function() {
   return this;
+};
+
+MockAudio.prototype.setAttribute = function(key, value) {
 };
 
 function MockAudioContext(channel) {
