@@ -16,7 +16,6 @@ apps/browser/test/marionette/settings_test.js
 apps/browser/test/marionette/share_url_test.js
 apps/browser/test/unit/browser_db_test.js
 apps/callscreen/js/bluetooth_helper.js
-apps/callscreen/js/call_screen.js
 apps/callscreen/js/calls_handler.js
 apps/callscreen/js/fake-oncall-desktop.js
 apps/callscreen/js/index.js

@@ -962,15 +962,31 @@
 
   #call-screen[data-layout="incoming-locked"] #calls {
     position: absolute;
-    top: calc(100% - 17.1rem);
-    height: 7rem;
+    top: calc(100% - 19rem);
+    height: 9rem;
+    color: #333;
+    font-weight: normal;
     background: rgba(255, 255, 255, 0.85);
   }
 
+  #call-screen[data-layout="incoming-locked"] .number {
+    font-weight: lighter;
+  }
+
   #call-screen[data-layout="incoming-locked"] #calls.big-duration .numberWrapper .number {
-    width: calc(100% - 6rem);
-    color: #333;
+    line-height: 3.4rem;
+    padding-top: 2rem;
+  }
+
+  #call-screen[data-layout="incoming-locked"] #calls.big-duration > section:not(.additionalInfo) .number {
+    padding-top: 0;
+    line-height: 9rem;
+  }
+
+  #call-screen[data-layout="incoming-locked"] #calls.big-duration .additionalContactInfo {
     font-weight: normal;
+    line-height: 1.6rem;
+    padding-bottom: 2rem;
   }
 
   #lockscreen-header {
@@ -1057,11 +1073,6 @@
     right: 2rem;
     height: 2.2rem;
     padding-right: 2.6rem;
-
-    background-image: url('images/handled_call/actionicon_callscreen_incomingcall.png');
-    background-position: top right;
-    background-repeat: no-repeat;
-    background-size: 2.2rem;
 
     text-align: right;
     font-size: 1.3rem;
