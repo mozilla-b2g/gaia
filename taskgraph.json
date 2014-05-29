@@ -8,6 +8,23 @@
     "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.2.0"
   },
   "tasks": {
+    "play with emulator build": {
+      "task": {
+        "metadata": {
+          "name": "play with emulator build"
+        },
+        "payload": {
+          "image": "registry.taskcluster.net/mozilla/b2g-build",
+          "command": [
+            "./bin/entrypoint"
+          ]
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "BE-ICS"
+        }
+      }
+    },
     "marionette integration tests": {
       "task": {
         "metadata": {
