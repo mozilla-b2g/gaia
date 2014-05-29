@@ -64,6 +64,28 @@ input.error {
   opacity: 0.0;
 }
 
+/**
+ * 1. GaiaHeader will vertically align
+ *    display block elements
+ */
+
+gaia-header [data-icon]:before {
+  display: block; /* 1 */
+  color: var(--header-button-color, #000);
+}
+
+/**
+ * 1. Something to do with font-loading causes
+ *    icons to render late, this mean that
+ *    the font-fit logic is wrong. By locking
+ *    the width the button won't change size
+ *    and head text is positioned correctly.
+ */
+
+gaia-header [data-icon] {
+  width: 50px !important; /* 1 */
+}
+
 #fte_view.non-ready {
   pointer-events: none;
 }
@@ -132,16 +154,9 @@ input.error {
 }
 
 /* BB HEADER ICONS */
-body[role="application"] section[role="region"] > header .icon.config {
+[icon="config"]:before {
   background-image: url(images/app/icons/config.png);
-  background-size: 3rem;
 }
-
-body[role="application"] section[role="region"] > header button {
-  text-shadow: none;
-  font-weight: normal;
-}
-
 
 /* BB BUTTONS ICONS */
 .buttons-list {

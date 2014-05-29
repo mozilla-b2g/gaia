@@ -56,7 +56,7 @@
 }
 
 /* Content */
-#firsttime-view .content {
+#firsttime-view .content:not(gaia-header) {
   padding: 0 1.5rem 0;
   margin-top: 3.5rem;
   list-style: none;
