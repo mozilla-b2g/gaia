@@ -726,6 +726,7 @@ section[data-dialog] > header:first-child .icon.icon-back {
 .fxa-logo {
   background-image: url('images/fxa_logo.png');
   background-repeat: no-repeat;
+  background-size: 16.4rem;
   margin: 3rem auto 0;
   width: 17rem;
   height: 19.5rem;
@@ -734,6 +735,7 @@ section[data-dialog] > header:first-child .icon.icon-back {
 #fxa-unverified .description {
   background-image: url('images/fxa_envelope.png');
   background-repeat: no-repeat;
+  background-size: 7rem;
   background-position: 0 1.5rem;
   padding-top: 1.5rem;
 }

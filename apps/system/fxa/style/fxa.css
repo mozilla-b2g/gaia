@@ -218,6 +218,7 @@ ul {
 .fxa-logo {
   background-image: url('fxa_logo.png');
   background-repeat: no-repeat;
+  background-size: 16.4rem;
   margin: 1.4rem auto 0;
   width: 17rem;
   height: 17.5rem;
@@ -226,6 +227,7 @@ ul {
 p.fxa-envelope {
   background-image: url('fxa_envelope.png');
   background-repeat: no-repeat;
+  background-size: 7rem;
   padding-left: 8rem;
   padding-top: 1rem;
   line-height: 2rem;
