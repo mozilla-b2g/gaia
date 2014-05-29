@@ -630,7 +630,8 @@
     'modalDialog': window.AppModalDialog,
     'authDialog': window.AppAuthenticationDialog,
     'contextmenu': window.BrowserContextMenu,
-    'childWindowFactory': window.ChildWindowFactory
+    'childWindowFactory': window.ChildWindowFactory,
+    'textSelectionDialog': window.TextSelectionDialog
   };
 
   /**
