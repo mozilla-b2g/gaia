@@ -220,11 +220,10 @@ suite('system/HardwareButtons', function() {
     fireChromeEvent('volume-down-button-release');
     fireChromeEvent('sleep-button-release');
 
+    assert.isTrue(stubDispatchEvent.calledTwice);
     assert.isTrue(
       stubDispatchEvent.getCall(0).calledWith({ type: 'wake',
                                                 bubbles: false }));
-
-    assert.isTrue(stubDispatchEvent.calledTwice);
     assert.isTrue(
       stubDispatchEvent.getCall(1).calledWith({ type: 'volumedown+sleep',
                                                 bubbles: false }));
