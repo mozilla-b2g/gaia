@@ -63,17 +63,15 @@ Keyboards.symbolLayout = {
 };
 
 Keyboards.numberLayout = {
-  width: 9,
+  width: 3,
   keyClassName: 'big-key special-key',
   keys: [
-    [{ value: '1', ratio: 3},{ value: '2', ratio: 3},{ value: '3', ratio: 3}],
-    [{ value: '4', ratio: 3},{ value: '5', ratio: 3},{ value: '6', ratio: 3}],
-    [{ value: '7', ratio: 3},{ value: '8', ratio: 3},{ value: '9', ratio: 3}],
-    [
-      { value: '.', ratio: 3, altNote: ','},
-      { value: '0', ratio: 3, altNote: '-'},
-      { value: '⌫', ratio: 3, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
-    ]
+    [ { value: '1'}, { value: '2'}, { value: '3'} ],
+    [ { value: '4'}, { value: '5'}, { value: '6'} ],
+    [ { value: '7'}, { value: '8'}, { value: '9'} ],
+    [ { value: '.', altNote: ',' },
+      { value: '0', altNote: '-' },
+      { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE } ]
   ],
   alt: {
     '.' : ',',
@@ -82,32 +80,29 @@ Keyboards.numberLayout = {
 };
 
 Keyboards.pinLayout = {
-  width: 9,
+  width: 3,
   keyClassName: 'big-key special-key',
   keys: [
-    [{ value: '1', ratio: 3},{ value: '2', ratio: 3},{ value: '3', ratio: 3}],
-    [{ value: '4', ratio: 3},{ value: '5', ratio: 3},{ value: '6', ratio: 3}],
-    [{ value: '7', ratio: 3},{ value: '8', ratio: 3},{ value: '9', ratio: 3}],
-    [
-      { value: '', ratio: 3},
-      { value: '0', ratio: 3},
-      { value: '⌫', ratio: 3, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
-    ]
+    [ { value: '1'}, { value: '2'}, { value: '3'} ],
+    [ { value: '4'}, { value: '5'}, { value: '6'} ],
+    [ { value: '7'}, { value: '8'}, { value: '9'} ],
+    [ { value: ''}, { value: '0'},
+      { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE } ]
   ]
 };
 
 Keyboards.telLayout = {
-  width: 9,
+  width: 3,
   keyClassName: 'big-key special-key',
   keys: [
-    [{ value: '1', ratio: 3},{ value: '2', ratio: 3},{ value: '3', ratio: 3}],
-    [{ value: '4', ratio: 3},{ value: '5', ratio: 3},{ value: '6', ratio: 3}],
-    [{ value: '7', ratio: 3, altNote: '#'},
-     { value: '8', ratio: 3, altNote: '-'},
-     { value: '9', ratio: 3, altNote: '*'}],
-    [{ value: '(', ratio: 3, altNote: ')'},
-     { value: '0', ratio: 3, altNote: '+'},
-     { value: '⌫', ratio: 3, keyCode: KeyEvent.DOM_VK_BACK_SPACE }]
+    [ { value: '1'}, { value: '2'}, { value: '3'} ],
+    [ { value: '4'}, { value: '5'}, { value: '6'} ],
+    [ { value: '7', altNote: '#'},
+      { value: '8', altNote: '-'},
+      { value: '9', altNote: '*'} ],
+    [ { value: '(', altNote: ')'},
+      { value: '0', altNote: '+'},
+      { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE } ]
   ],
   alt: {
     '7' : '#',
