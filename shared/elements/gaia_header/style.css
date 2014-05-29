@@ -12,7 +12,6 @@ gaia-header {
 h1 {
   font-size: 2.3rem;
   line-height: 5rem;
-  text-align: left;
   white-space: nowrap;
   text-overflow: ellipsis;
   display: block;
@@ -51,7 +50,8 @@ button {
   width: auto;
   height: 5rem;
   border: none;
-  background: none;
+  background-color: transparent;
+  background-image: none;
   padding: 0 1rem;
   margin: 0;
   font-weight: 400;

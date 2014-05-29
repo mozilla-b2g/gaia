@@ -21,13 +21,10 @@
       <!-- video controls -->
       <div id="videoControls" class="hidden">
         <section role="region" class="skin-dark">
-          <header>
-            <a href="#" id="close"><span class="icon icon-back">back</span></a>
-            <menu type="toolbar" id="menu" hidden>
-              <button id="save" data-l10n-id="save"></button>
-            </menu>
+          <gaia-header id="player-header" action="back" skin="dark">
             <h1 id="video-title"></h1>
-          </header>
+            <button id="save" data-l10n-id="save"></button>
+          </gaia-header>
 
           <footer id="videoBar">
             <button id="play"></button>
@@ -49,14 +46,21 @@
       <p id="message"></p>
     </section>
 
-    <script type="text/javascript" src="shared/js/l10n.js"></script>
-    <script type="text/javascript" src="shared/js/device_storage/get_storage_if_available.js"></script>
-    <script type="text/javascript" src="shared/js/device_storage/get_unused_filename.js"></script>
+    <!-- Shared Libs -->
+    <script src="shared/js/l10n.js"></script>
+    <script src="shared/js/device_storage/get_storage_if_available.js"></script>
+    <script src="shared/js/device_storage/get_unused_filename.js"></script>
     <script defer src="shared/js/blobview.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/media/get_video_rotation.js"></script>
     <script defer src="shared/js/media/media_utils.js"></script>
+
+    <!-- Web Components -->
+    <script defer src="shared/js/component_utils.js"></script>
+    <script defer src="shared/elements/gaia_header/script.js"></script>
+
+    <!-- App Code -->
     <script defer src="js/video_utils.js"></script>
-    <script type="text/javascript" src="js/view.js"></script>
+    <script src="js/view.js"></script>
   </body>
 </html>
