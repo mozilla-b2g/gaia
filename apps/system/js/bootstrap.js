@@ -8,7 +8,7 @@
          SettingsURL, SettingsListener, VisibilityManager, Storage,
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
-         applications, Rocketbar, LayoutManager, PermissionManager,
+         applications, Rocketbar, LayoutManager,
          HomeSearchbar, SoftwareButtonManager, Accessibility,
          InternetSharing, SleepMenu, TaskManager */
 
@@ -109,8 +109,6 @@ window.addEventListener('load', function startup() {
   window.internetSharing = new InternetSharing();
   window.internetSharing.start();
   window.layoutManager = new LayoutManager().start();
-  window.permissionManager = new PermissionManager();
-  window.permissionManager.start();
   window.places = new Places();
   window.places.start();
   window.remoteDebugger = new RemoteDebugger();
