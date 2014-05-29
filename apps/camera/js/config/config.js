@@ -41,7 +41,7 @@ module.exports = {
     touchFocus: true,
     // The camera detects faces and tries to focus
     // on them.
-    faceTracking: false
+    faceDetection: true
   },
 
   viewfinder: {
@@ -233,7 +233,7 @@ module.exports = {
   timer: {
     title: 'self-timer',
     header: 'self-timer-header',
-    icon: 'icon-timer',
+    icon: 'icon-self-timer',
     options: [
       {
         key: 'off',
@@ -301,7 +301,7 @@ module.exports = {
   grid: {
     title: 'grid',
     header: 'grid-header',
-    icon: 'icon-frame-grid',
+    icon: 'icon-grid',
     options: [
       {
         key: 'off',

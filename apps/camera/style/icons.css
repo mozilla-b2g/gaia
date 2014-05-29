@@ -34,7 +34,7 @@
 .icon-pick-cancel:before {
   content: "\e617";
 }
-.icon-timer:before {
+.icon-self-timer:before {
   content: "\e607";
 }
 .icon-back-arrow:before {
@@ -67,7 +67,7 @@
 .icon-flash-off:before {
   content: "\e60e";
 }
-.icon-frame-grid:before {
+.icon-grid:before {
   content: "\e605";
 }
 .icon-scene:before {

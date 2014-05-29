@@ -54,10 +54,10 @@ module.exports = View.extend({
   },
 
   template: function() {
-    return '<div class="hud_btn hud_camera rotates icon-toggle-camera ' +
-    'test-toggle-camera js-camera"></div>' +
-    '<div class="hud_btn hud_flash rotates test-toggle-flash js-flash"></div>' +
-    '<div class="hud_btn hud_settings rotates icon-settings js-settings">' +
+    /*jshint maxlen:false*/
+    return '<div class="hud_btn hud_camera rotates icon-toggle-camera test-camera-toggle js-camera"></div>' +
+    '<div class="hud_btn hud_flash rotates test-flash-button js-flash"></div>' +
+    '<div class="hud_btn hud_settings rotates icon-settings test-settings-toggle js-settings">' +
     '</div>';
   }
 });

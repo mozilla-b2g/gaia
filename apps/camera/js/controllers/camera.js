@@ -46,6 +46,7 @@ CameraController.prototype.bindEvents = function() {
   camera.on('change:videoElapsed', app.firer('camera:recorderTimeUpdate'));
   camera.on('focusconfigured',  app.firer('camera:focusconfigured'));
   camera.on('change:focus', app.firer('camera:focusstatechanged'));
+  camera.on('facesdetected', app.firer('camera:facesdetected'));
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
   camera.on('change:recording', app.setter('recording'));
   camera.on('newcamera', app.firer('camera:newcamera'));
