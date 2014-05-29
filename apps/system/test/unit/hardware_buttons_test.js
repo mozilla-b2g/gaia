@@ -215,19 +215,24 @@ suite('system/HardwareButtons', function() {
     var stubClearTimeout = this.sinon.stub(window, 'clearTimeout');
 
     ScreenManager.screenEnabled = false;
-    fireChromeEvent('volume-down-button-press');
     fireChromeEvent('sleep-button-press');
-    fireChromeEvent('sleep-button-release');
+    fireChromeEvent('volume-down-button-press');
     fireChromeEvent('volume-down-button-release');
+    fireChromeEvent('sleep-button-release');
 
-    assert.isTrue(stubDispatchEvent.calledOnce);
+    //alert(stubDispatchEvent.getCall(0).args.toSource())
     assert.isTrue(
-      stubDispatchEvent.getCall(0).calledWith({ type: 'volumedown+sleep',
+      stubDispatchEvent.getCall(0).calledWith({ type: 'wake',
+                                                bubbles: false }));
+
+    assert.isTrue(stubDispatchEvent.calledTwice);
+    assert.isTrue(
+      stubDispatchEvent.getCall(1).calledWith({ type: 'volumedown+sleep',
                                                 bubbles: false }));
 
     assert.isTrue(stubSetTimeout.calledOnce);
     assert.equal(stubSetTimeout.getCall(0).args[1],
-      hardwareButtons.REPEAT_DELAY);
+      hardwareButtons.HOLD_INTERVAL);
     assert.isTrue(stubClearTimeout.calledOnce);
     assert.equal(stubClearTimeout.getCall(0).args[0],
       stubSetTimeout.getCall(0).returnValue);

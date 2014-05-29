@@ -47,7 +47,7 @@
       }
       this._started = true;
 
-      window.addEventListener('volume-down+sleep', this);
+      window.addEventListener('volumedown+sleep', this);
       window.addEventListener('mozChromeEvent', this);
     },
 
@@ -61,7 +61,7 @@
       }
       this._started = false;
 
-      window.removeEventListener('volume-down+sleep', this);
+      window.removeEventListener('volumedown+sleep', this);
       window.removeEventListener('mozChromeEvent', this);
     },
 
@@ -72,7 +72,7 @@
      */
     handleEvent: function(evt) {
       switch (evt.type) {
-        case 'volume-down+sleep':
+        case 'volumedown+sleep':
           this.takeScreenshot();
           break;
 
