@@ -16,7 +16,7 @@ execfile(os.path.join('gaiatest', 'version.py'), version)
 with open('requirements.txt') as f:
     deps = f.read().splitlines()
 
-setup(name='gaiatest',
+setup(name='gaiatest-v1.3',
       version=version['__version__'],
       description="Marionette test automation client for Gaia",
       long_description=description,
