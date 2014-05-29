@@ -22,7 +22,7 @@ suite('firefox accounts menu item > ', function() {
 
   suiteSetup(function() {
     // attach mock html to page, so it inits without complaint
-    loadBodyHTML('/index.html');
+    loadBodyHTML('./_root.html');
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
   });
@@ -35,6 +35,7 @@ suite('firefox accounts menu item > ', function() {
 
   setup(function() {
     localizeSpy = sinon.spy(navigator.mozL10n, 'localize');
+    fxaDescEl = document.getElementById('fxa-desc');
   });
 
   teardown(function() {
@@ -43,7 +44,6 @@ suite('firefox accounts menu item > ', function() {
   });
 
   test('check the html loaded correctly', function() {
-    fxaDescEl = document.getElementById('fxa-desc');
     assert.isNotNull(fxaDescEl, 'failed to load settings page html');
   });
 

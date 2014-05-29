@@ -45,9 +45,6 @@ marionette('check root panel settings', function() {
         return rootPanel.WiFiDesc === 'Disabled';
       });
       client.waitFor(function() {
-        return rootPanel.bluetoothDesc === 'Turned off';
-      });
-      client.waitFor(function() {
         return hasNumbers(rootPanel.applicationStorageDesc);
       });
       client.waitFor(function() {

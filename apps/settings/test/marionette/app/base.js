@@ -20,7 +20,7 @@ Base.prototype = {
   launch: function() {
     this.client.apps.launch(this.origin);
     this.client.apps.switchToApp(this.origin);
-    this.client.helper.waitForElement('body');
+    this.client.helper.waitForElement('body[data-ready="true"]');
   },
 
   /**
