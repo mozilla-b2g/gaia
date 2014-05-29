@@ -3,6 +3,7 @@
 
 var MockCallsHandler = {
   mActiveCall: null,
+  mActiveCallForContactImage: null,
   mUpdateKeypadEnabledCalled: true,
 
   updateKeypadEnabled: function() {
@@ -12,6 +13,10 @@ var MockCallsHandler = {
 
   get activeCall() {
     return this.mActiveCall;
+  },
+
+  get activeCallForContactImage() {
+    return this.mActiveCallForContactImage;
   },
 
   toggleCalls: function() {},
@@ -30,6 +35,7 @@ var MockCallsHandler = {
 
   mTeardown: function() {
     this.mActiveCall = null;
+    this.mActiveCallForContactImage = null;
     this.mUpdateKeypadEnabledCalled = true;
   }
 };
