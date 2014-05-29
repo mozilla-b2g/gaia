@@ -38,6 +38,7 @@ var CallScreen = {
   hideGroupButton: document.getElementById('group-hide'),
 
   incomingContainer: document.getElementById('incoming-container'),
+  incomingInfo: document.getElementById('incoming-info'),
   incomingNumber: document.getElementById('incoming-number'),
   incomingSim: document.getElementById('incoming-sim'),
   incomingNumberAdditionalInfo:
@@ -182,8 +183,8 @@ var CallScreen = {
         },
 
         resources: {
-          larrow: '/style/images/larrow.png',
-          rarrow: '/style/images/rarrow.png'
+          larrow: '/style/images/lock_screen/LArrow_Lockscreen.png',
+          rarrow: '/style/images/lock_screen/RArrow_Lockscreen.png'
         },
         handle: {
           autoExpand: {
