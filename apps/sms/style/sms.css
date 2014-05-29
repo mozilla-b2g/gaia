@@ -585,7 +585,8 @@ ul.message-list {
 }
 
 .article-list[data-type="list"] .message.error .bubble aside progress,
-.article-list[data-type="list"] .message.delivered .bubble aside progress {
+.article-list[data-type="list"] .message.delivered .bubble aside progress,
+.article-list[data-type="list"] .message.read .bubble aside progress {
   display: none;
 }
 
@@ -593,13 +594,21 @@ ul.message-list {
   display: block;
 
   background: url('images/icons/exclamation.png') no-repeat center center;
-  background-size: 2.2rem;
+  background-size: 3rem;
 }
 
 .article-list[data-type="list"] .message.delivered .bubble aside {
   display: block;
+
   background: url('images/icons/deliveredtick.png') no-repeat center center;
-  background-size: 2.2rem;
+  background-size: 3rem;
+}
+
+.article-list[data-type="list"] .message.read .bubble aside {
+  display: block;
+
+  background: url('images/icons/message_read.png') no-repeat center center;
+  background-size: 3rem;
 }
 
 .article-list[data-type="list"] .message.pending .bubble aside,

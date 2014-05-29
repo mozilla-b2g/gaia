@@ -2082,7 +2082,17 @@ suite('thread_ui.js >', function() {
         this.fakeMessage.deliveryInfo = [{
           receiver: null, readStatus: 'success'}];
         ThreadUI.onReadSuccess(this.fakeMessage);
-        assert.isTrue(this.container.classList.contains('delivered'));
+        assert.isTrue(this.container.classList.contains('read'));
+      });
+      test('display read icon when both delivery/read success', function() {
+        this.fakeMessage.type = 'mms';
+        this.fakeMessage.delivery = 'sent';
+        this.fakeMessage.deliveryInfo = [{
+          receiver: null, deliveryStatus: 'success', readStatus: 'success'}];
+        ThreadUI.onDeliverySuccess(this.fakeMessage);
+        ThreadUI.onReadSuccess(this.fakeMessage);
+        assert.isFalse(this.container.classList.contains('delivered'));
+        assert.isTrue(this.container.classList.contains('read'));
       });
       test('multiple recipients mms read success', function() {
         this.fakeMessage.type = 'mms';
@@ -2091,7 +2101,7 @@ suite('thread_ui.js >', function() {
           {receiver: null, readStatus: 'success'},
           {receiver: null, readStatus: 'success'}];
         ThreadUI.onReadSuccess(this.fakeMessage);
-        assert.isTrue(this.container.classList.contains('delivered'));
+        assert.isTrue(this.container.classList.contains('read'));
       });
       test('not all recipients return mms read success', function() {
         this.fakeMessage.type = 'mms';
@@ -2100,7 +2110,7 @@ suite('thread_ui.js >', function() {
           {receiver: null, readStatus: 'success'},
           {receiver: null, readStatus: 'pending'}];
         ThreadUI.onReadSuccess(this.fakeMessage);
-        assert.isFalse(this.container.classList.contains('delivered'));
+        assert.isFalse(this.container.classList.contains('read'));
       });
     });
   });
@@ -2498,6 +2508,47 @@ suite('thread_ui.js >', function() {
       assert.isFalse(
         node.querySelector('progress').classList.contains('light')
       );
+    });
+
+    test('sets delivery class when delivery status is success', function() {
+      var message = MockMessages.mms({
+        delivery: 'sent',
+        deliveryInfo: [{
+          receiver: null,
+          deliveryStatus: 'success'
+        }]
+      });
+
+      var node = ThreadUI.buildMessageDOM(message);
+      assert.isTrue(node.classList.contains('delivered'));
+    });
+
+    test('sets read class when read status is success', function() {
+      var message = MockMessages.mms({
+        delivery: 'sent',
+        deliveryInfo: [{
+          receiver: null,
+          readStatus: 'success'
+        }]
+      });
+
+      var node = ThreadUI.buildMessageDOM(message);
+      assert.isTrue(node.classList.contains('read'));
+    });
+
+    test('sets read class only when both statuses are success', function() {
+      var message = MockMessages.mms({
+        delivery: 'sent',
+        deliveryInfo: [{
+          receiver: null,
+          deliveryStatus: 'success',
+          readStatus: 'success'
+        }]
+      });
+
+      var node = ThreadUI.buildMessageDOM(message);
+      assert.isFalse(node.classList.contains('delivered'));
+      assert.isTrue(node.classList.contains('read'));
     });
   });
 
