@@ -3508,22 +3508,57 @@ suite('thread_ui.js >', function() {
       assert.isFalse(threadMessages.classList.contains('has-carrier'));
     });
 
-    test(' If there is one participant & contacts', function() {
-      var thread = {
-        participants: [number]
-      };
+    suite(' If there is one participant', function() {
+      var thread;
 
-      ThreadUI.updateCarrier(thread, contacts, details);
-      assert.isTrue(threadMessages.classList.contains('has-carrier'));
-    });
+      setup(function() {
+        thread = {
+          participants: [number]
+        };
+      });
 
-    test(' If there is one participant & no contacts', function() {
-      var thread = {
-        participants: [number]
-      };
+      test(' And contacts available', function() {
+        ThreadUI.updateCarrier(thread, contacts, details);
+        assert.isTrue(threadMessages.classList.contains('has-carrier'));
+      });
 
-      ThreadUI.updateCarrier(thread, [], details);
-      assert.isFalse(threadMessages.classList.contains('has-carrier'));
+      test(' And no contacts and any phone details available', function() {
+        ThreadUI.updateCarrier(thread, [], details);
+
+        assert.isFalse(threadMessages.classList.contains('has-carrier'));
+        assert.isFalse(carrierTag.classList.contains('has-phone-type'));
+        assert.isFalse(carrierTag.classList.contains('has-phone-details'));
+      });
+
+      test(' And only phone type is available', function() {
+        ThreadUI.updateCarrier(thread, [{
+          tel: [{
+            value: number,
+            type: 'type'
+          }]
+        }], {});
+
+        assert.isTrue(carrierTag.classList.contains('has-phone-type'));
+        assert.isFalse(carrierTag.classList.contains('has-phone-details'));
+      });
+
+      test(' And only phone details are available', function() {
+        ThreadUI.updateCarrier(thread, [{
+          tel: [{
+            value: number
+          }]
+        }], details);
+
+        assert.isFalse(carrierTag.classList.contains('has-phone-type'));
+        assert.isTrue(carrierTag.classList.contains('has-phone-details'));
+      });
+
+      test(' And phone type and details are available', function() {
+        ThreadUI.updateCarrier(thread, contacts, details);
+
+        assert.isTrue(carrierTag.classList.contains('has-phone-type'));
+        assert.isTrue(carrierTag.classList.contains('has-phone-details'));
+      });
     });
   });
 
@@ -5657,9 +5692,12 @@ suite('thread_ui.js >', function() {
   });
 
   suite('afterLeave()', function() {
+    setup(function() {
+       this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+    });
+
     test('properly clean the composer when moving back to thread list',
     function() {
-      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
       Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
       Compose.append('some stuff');
       ThreadUI.recipients.add({
@@ -5670,6 +5708,24 @@ suite('thread_ui.js >', function() {
 
       assert.equal(Compose.getContent(), '');
       assert.equal(ThreadUI.recipients.length, 0);
+    });
+
+    test('properly cleans the thread view when moving back to thread list',
+    function() {
+      var contact = new MockContact(),
+          number = contact.tel[0].value,
+          contactDetails = Utils.getContactDetails(number, [contact]),
+          thread = {
+            participants: [number]
+          };
+      Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
+
+      ThreadUI.updateCarrier(thread, [contact], contactDetails);
+      assert.isTrue(threadMessages.classList.contains('has-carrier'));
+
+      ThreadUI.afterLeave();
+
+      assert.isFalse(threadMessages.classList.contains('has-carrier'));
     });
   });
 
