@@ -3,7 +3,6 @@
 'use strict';
 
 var CaptivePortal = {
-  isManualConnect: false,
   eventId: null,
   settings: null,
   notification: null,
@@ -34,28 +33,20 @@ var CaptivePortal = {
       return;
     }
 
-    if (!this.isManualConnect) {
-      this.notification = NotificationScreen.addNotification({
-        id: id, title: '', text: message, icon: icon
-      });
-      this.captiveNotification_onTap = function() {
-        self.notification.removeEventListener('tap',
-                                              self.captiveNotification_onTap);
-        self.captiveNotification_onTap = null;
-        NotificationScreen.removeNotification(id);
-        new MozActivity({
-          name: 'view',
-          data: { type: 'url', url: url }
-        });
-      };
-      this.notification.addEventListener('tap', this.captiveNotification_onTap);
-    } else {
-      settings.createLock().set({'wifi.connect_via_settings': false});
+    this.notification = NotificationScreen.addNotification({
+      id: id, title: '', text: message, icon: icon
+    });
+    this.captiveNotification_onTap = function() {
+      self.notification.removeEventListener('tap',
+                                            self.captiveNotification_onTap);
+      self.captiveNotification_onTap = null;
+      NotificationScreen.removeNotification(id);
       new MozActivity({
         name: 'view',
         data: { type: 'url', url: url }
       });
-    }
+    };
+    this.notification.addEventListener('tap', this.captiveNotification_onTap);
   },
 
   handleLoginAbort: function handleLoginAbort(id) {
@@ -95,13 +86,6 @@ var CaptivePortal = {
   init: function cp_init() {
     var self = this;
     window.addEventListener('mozChromeEvent', this);
-
-    // Using settings API to know whether user is manually selecting
-    // wifi AP from settings app.
-    SettingsListener.observe('wifi.connect_via_settings', true,
-      function(value) {
-        self.isManualConnect = value;
-      });
   }
 };
 
