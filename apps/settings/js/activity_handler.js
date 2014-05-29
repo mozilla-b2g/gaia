@@ -2,43 +2,52 @@
 (function(exports) {
   'use strict';
 
-  var _targetPanel = null;
-  var _targetPanelId = null;
-  var _currentActivity = null;
-
   var ActivityHandler = {
-    _handle: function ah_handler(activity) {
-      var name = activity.source.name;
-      _currentActivity = activity;
+    _targetPanelId: null,
+    _currentActivity: null,
 
-      if (name === 'configure' && activity.source.data.section) {
-        _targetPanelId = activity.source.data.section;
-        _targetPanel = document.getElementById(_targetPanelId);
+    _handlers: {
+      'configure': function ah_configureHandler(activitySource) {
+        if (activitySource.data.section) {
+          var targetPanelId = activitySource.data.section;
+          var targetPanel = document.getElementById(targetPanelId);
 
-        // Validate if the section exists
-        if (!_targetPanel || _targetPanel.tagName !== 'SECTION') {
-          var msg = 'Trying to open an non-existent section: ' + _targetPanelId;
-          console.warn(msg);
-          activity.postError(msg);
-          return;
-        }
-
-        // Apply the filter
-        if (_targetPanelId === 'root') {
-          var filterBy = activity.source.data.filterBy;
-          if (filterBy) {
-            document.body.dataset.filterBy = filterBy;
+          // Validate if the section exists
+          if (!targetPanel || targetPanel.tagName !== 'SECTION') {
+            var msg =
+              'Trying to open an non-existent section: ' + targetPanelId;
+            console.warn(msg);
+            return 'root';
           }
-        } else {
-          // Mark the desired panel as a dialog
-          _targetPanel.dataset.dialog = true;
-        }
-      } else {
-        // If there isn't a section specified,
-        // simply show ourselve without making ourselves a dialog.
-        _targetPanelId = 'root';
-      }
 
+          if (targetPanelId === 'root') {
+            // Apply the filter
+            var filterBy = activitySource.data.filterBy;
+            if (filterBy) {
+              document.body.dataset.filterBy = filterBy;
+            }
+          } else {
+            // Mark the desired panel as a dialog
+            targetPanel.dataset.dialog = true;
+          }
+
+          return targetPanelId;
+        } else {
+          // If there isn't a section specified,
+          // simply show ourselve without making ourselves a dialog.
+          return 'root';
+        }
+      }
+    },
+
+    _handle: function ah_handler(activitySource) {
+      var handler = this._handlers[activitySource.name];
+      if (handler) {
+        return handler(activitySource);
+      }
+    },
+
+    _registerListener: function ah_registerListener() {
       // Post result when pressing home button
       document.addEventListener('visibilitychange', function change() {
         if (document.hidden) {
@@ -46,17 +55,17 @@
           // An activity can be closed either by pressing the 'X' button
           // or by a visibility change (i.e. home button or app switch).
           // Send a result to finish this activity
-          _currentActivity.postResult(null);
+          this._currentActivity.postResult(null);
         }
-      });
+      }.bind(this));
     },
 
     get currentActivity() {
-      return _currentActivity;
+      return this._currentActivity;
     },
 
     get targetPanelId() {
-      return _targetPanelId;
+      return this._targetPanelId;
     },
 
     ready: function ah_ready(callback) {
@@ -69,13 +78,16 @@
       }
 
       navigator.mozSetMessageHandler('activity', function(activity) {
-        this._handle(activity);
+        this._currentActivity = activity;
+        this._targetPanelId = this._handle(this._currentActivity.source);
+        this._registerListener();
+
         callback();
       }.bind(this));
     },
 
     postResult: function ah_postResult(result) {
-      _currentActivity.postResult(result);
+      this._currentActivity.postResult(result);
     }
   };
 
