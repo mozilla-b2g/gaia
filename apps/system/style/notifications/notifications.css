@@ -88,6 +88,7 @@
   text-align: right;
   font-size: 1.4rem;
   font-weight: 500;
+  font-family: "MozTT", sans-serif;
 }
 
 #notification-bar button[disabled] {
