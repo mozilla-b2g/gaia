@@ -14,7 +14,7 @@
           "name": "play with emulator build"
         },
         "workerType": "test-c3-xlarge",
-        "timeout": 3600,
+        "timeout": 1200,
         "payload": {
           "maxRunTime": 14400,
           "env": {
@@ -44,7 +44,7 @@
           "name": "play with emulator build"
         },
         "workerType": "test-m3-xlarge",
-        "timeout": 3600,
+        "timeout": 1200,
         "payload": {
           "maxRunTime": 14400,
           "env": {
@@ -73,7 +73,7 @@
         "metadata": {
           "name": "play with emulator build"
         },
-        "timeout": 3600,
+        "timeout": 1200,
         "payload": {
           "maxRunTime": 14400,
           "env": {
