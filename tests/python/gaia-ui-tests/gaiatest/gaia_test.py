@@ -738,7 +738,7 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
     window.removeEventListener('mozbrowserloadend', loaded);
     marionetteScriptFinished();
   }
-});""", script_timeout=timeout)
+});""", script_timeout=timeout * 1000)
             # TODO: Remove this sleep when Bug 924912 is addressed
             time.sleep(5)
 
