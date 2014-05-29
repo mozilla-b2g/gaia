@@ -6,7 +6,6 @@
     <title>Videos</title>
     <link rel="resource" type="application/l10n" href="locales/locales.ini" />
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini" />
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css" />
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css" />
     <link rel="stylesheet" type="text/css" href="style/video.css" />
     <link rel="stylesheet" type="text/css" href="style/info.css" />
@@ -14,6 +13,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css" />
     <link rel="stylesheet" type="text/css" href="style/video_tablet.css" media="(min-height: 768px) and (min-width: 768px)" />
 
+    <!-- Shared Libs -->
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/l10n_date.js"></script>
     <script defer src="shared/js/screen_layout.js"></script>
@@ -26,7 +26,13 @@
     <script defer src="shared/js/manifest_helper.js"></script>
     <script defer src="shared/js/media/video_stats.js"></script>
     <script defer src="shared/js/performance_testing_helper.js"></script>
-    <script defer src="shared/js/font_size_utils.js"></script>
+
+    <!-- Web Components -->
+    <script defer src="shared/elements/config.js"></script>
+    <script defer src="shared/elements/gaia-header/dist/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" /> -->
+
     <script defer src="js/metadata.js"></script>
     <script defer src="js/db.js"></script>
     <script defer src="js/thumbnail_list.js"></script>
@@ -36,14 +42,13 @@
     <script defer src="js/forward_rewind_controller.js"></script>
     <script defer src="js/video.js"></script>
   </head>
-  <body role="application" class="skin-dark">
+  <body role="application" class="skin-dark theme-media">
     <div id="two-column-spearator"></div>
     <section role="region" id="thumbnail-list-view">
-      <header>
-        <a href="#" id="picker-close"><span class="icon icon-back">back</span></a>
+      <gaia-header id="picker-header" action="back">
         <h1 id="picker-title" data-l10n-id="pick-title"></h1>
         <h1 id="thumbnail-list-title">Video</h1>
-      </header>
+      </gaia-header>
 
       <footer id="thumbnails-bottom">
         <a id="thumbnails-video-button" class="button"></a>
@@ -51,12 +56,10 @@
       </footer>
     </section>
 
-
     <section role="region" id="thumbnail-select-view" class="skin-dark">
-      <header id="thumbnails-select-top">
-        <button id="thumbnails-cancel-button"><span class="icon icon-close"></span></button>
+      <gaia-header id="thumbnails-select-top" action="close">
         <h1 id="thumbnails-number-selected"></h1>
-      </header>
+      </gaia-header>
 
       <footer id="thumbnails-select-bottom">
         <a id="thumbnails-delete-button" class="button icon-delete"></a>
@@ -74,16 +77,13 @@
       <!-- video controls -->
       <div id="videoControls">
         <section role="region" class="skin-dark">
-          <header>
-            <a href="#" id="close"><span class="icon icon-back">back</span></a>
-            <menu type="toolbar">
-            <a id="options"><span class="icon icon-options"></span></a>
-            </menu>
-            <menu type="toolbar">
-              <button id="picker-done"><span class="icon icon-done"></span></button>
-            </menu>
+          <gaia-header id="player-header" action="back">
             <h1 id="video-title"></h1>
-          </header>
+            <button class="single-delete-button icon icon-delete large-only"></button>
+            <button class="single-share-button icon icon-share large-only"></button>
+            <button class="single-info-button icon icon-info large-only"></button>
+            <button id="picker-done" class="icon icon-done"></button>
+          </gaia-header>
           <footer id="videoBar">
             <div id="timeSlider">
               <span id="elapsed-text"></span>

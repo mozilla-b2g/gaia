@@ -5,13 +5,12 @@
     <meta charset="utf-8" />
     <title>Videos</title>
     <link rel="resource" type="application/l10n" href="locales/locales.ini" />
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="style/video.css" />
     <link rel="stylesheet" type="text/css" href="style/spinner.css" />
     <link rel="stylesheet" type="text/css" href="shared/style/status.css" />
     <link rel="stylesheet" type="text/css" href="style/video_tablet.css" media="(min-height: 768px) and (min-width: 768px)" />
   </head>
-  <body role="application" class="skin-dark layout-fullscreen-player view-activity">
+  <body role="application" class="skin-dark layout-fullscreen-player view-activity theme-media">
     <!-- display this at startup while we create thumbnails -->
     <div id="spinner-overlay"><div id="spinner"></div></div>
     <section role="region" id="player-view">
@@ -21,13 +20,10 @@
       <!-- video controls -->
       <div id="videoControls" class="hidden">
         <section role="region" class="skin-dark">
-          <header>
-            <a href="#" id="close"><span class="icon icon-back">back</span></a>
-            <menu type="toolbar" id="menu" hidden>
-              <button id="save" data-l10n-id="save"></button>
-            </menu>
+          <gaia-header id="player-header" action="back">
             <h1 id="video-title"></h1>
-          </header>
+            <button id="save" data-l10n-id="save"></button>
+          </gaia-header>
 
           <footer id="videoBar">
             <div id="timeSlider">
@@ -55,16 +51,25 @@
       <p id="message"></p>
     </section>
 
-    <script type="text/javascript" src="shared/js/l10n.js"></script>
-    <script type="text/javascript" src="shared/js/device_storage/get_storage_if_available.js"></script>
-    <script type="text/javascript" src="shared/js/device_storage/get_unused_filename.js"></script>
-    <script defer src="shared/js/font_size_utils.js"></script>
+    <!-- Shared Libs -->
+    <script src="shared/js/l10n.js"></script>
+    <script src="shared/js/device_storage/get_storage_if_available.js"></script>
+    <script src="shared/js/device_storage/get_unused_filename.js"></script>
+
     <script defer src="shared/js/blobview.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/media/get_video_rotation.js"></script>
     <script defer src="shared/js/media/media_utils.js"></script>
+
+    <!-- Web Components -->
+    <script defer src="shared/elements/config.js"></script>
+    <script defer src="shared/elements/gaia-header/dist/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" />
+
+    <!-- App Code -->
     <script defer src="js/video_utils.js"></script>
     <script defer src="js/forward_rewind_controller.js"></script>
-    <script type="text/javascript" src="js/view.js"></script>
+    <script src="js/view.js"></script>
   </body>
 </html>

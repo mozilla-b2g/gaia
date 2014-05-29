@@ -208,13 +208,34 @@ footer {
   display: block;
 }
 
+/**
+ * 1. COMPLEX: Scoped style-sheets within <gaia-header>
+ *    trump all other rules. !important is required
+ *    for an app to over-ride the default appearance
+ *    of content within the custom-element. This may
+ *    change when we get `:host` and `:content` selectors
+ *    in shadow-dom.
+ */
+.layout-fullscreen-player .large-only {
+  display: block !important; /* 1 */
+}
+
+/* we don't need to show toolbar buttons in pick mode */
+body.pick-activity .single-delete-button,
+body.pick-activity .single-share-button,
+body.pick-activity .single-info-button {
+  display: none;
+}
 
 @media (orientation: landscape) {
 
   /* panels of selection mode */
   .layout-selection #thumbnail-list-view,
   .layout-selection #switch-fullscreen,
-  .layout-selection #player-view > * {
+  .layout-selection #player-view > *,
+  .layout-selection .single-delete-button,
+  .layout-selection .single-share-button,
+  .layout-selection .single-info-button {
     display: none;
   }
   /* show player-view for displaying background image, but all decendants are
@@ -232,7 +253,10 @@ footer {
   .layout-list #thumbnail-select-view,
   .layout-list #switch-fullscreen,
   .layout-list #videoControls #videoActionBar,
-  .layout-list #videoControls #close {
+  .layout-list #videoControls #close,
+  .layout-list .single-delete-button,
+  .layout-list .single-share-button,
+  .layout-list .single-info-button {
     display: none;
   }
 
@@ -611,7 +635,7 @@ footer {
 
   .thumbnail .details .after {
     color: #FFFFFF;
-  }  
+  }
 
   .thumbnail .details .title {
     font-size: 2.6rem;

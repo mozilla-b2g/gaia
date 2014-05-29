@@ -240,8 +240,8 @@ WebappShared.prototype.pushElements = function(path) {
 
   var elementName = String(paths.shift());
 
-  // Only handle web components for now (start with gaia_)
-  if (elementName.indexOf('gaia_') !== 0) {
+  // Only handle web components for now (start with gaia)
+  if (elementName.indexOf('gaia') !== 0) {
     return;
   }
 

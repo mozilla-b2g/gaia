@@ -16,12 +16,12 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
            'thumbnails', 'thumbnails-video-button', 'thumbnails-select-button',
            'thumbnail-select-view',
            'thumbnails-delete-button', 'thumbnails-share-button',
-           'thumbnails-cancel-button', 'thumbnails-number-selected',
+           'thumbnails-select-top', 'thumbnails-number-selected',
            'player-view', 'fullscreen-button', 'spinner-overlay',
            'thumbnails-single-delete-button', 'thumbnails-single-share-button',
            'thumbnails-single-info-button', 'info-view', 'info-close-button',
            'player', 'overlay', 'overlay-title', 'overlay-text',
-           'overlay-menu', 'overlay-action-button',
+           'overlay-menu', 'overlay-action-button', 'player-header',
            'video-container', 'videoControls', 'videoBar', 'videoControlBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
@@ -237,7 +237,7 @@ function initPlayerControls() {
   // handle user tapping events
   dom.videoControls.addEventListener('click', toggleVideoControls, true);
   dom.play.addEventListener('click', handlePlayButtonClick);
-  dom.close.addEventListener('click', handleCloseButtonClick);
+  dom.playerHeader.addEventListener('action', handleCloseButtonClick);
   dom.pickerDone.addEventListener('click', postPickResult);
   dom.options.addEventListener('click', showOptionsView);
 }
@@ -247,7 +247,7 @@ function initOptionsButtons() {
   dom.thumbnailsVideoButton.addEventListener('click', launchCameraApp);
   // buttons for entering/exiting selection mode
   dom.thumbnailsSelectButton.addEventListener('click', showSelectView);
-  dom.thumbnailsCancelButton.addEventListener('click', hideSelectView);
+  dom.thumbnailsSelectTop.addEventListener('action', hideSelectView);
   // action buttons for selection mode
   dom.thumbnailsDeleteButton.addEventListener('click', deleteSelectedItems);
   dom.thumbnailsShareButton.addEventListener('click', shareSelectedItems);
@@ -511,6 +511,10 @@ function updateSelection(videodata) {
   dom.thumbnailsNumberSelected.textContent =
     navigator.mozL10n.get('number-selected2', { n: numSelected });
 
+  // HACK: Aggressive redraw to work around bug 1007743.
+  // When fixed remove these three lines.
+  reflowHack(dom.thumbnailsSelectTop);
+
   if (numSelected === 0) {
     dom.thumbnailsDeleteButton.classList.add('disabled');
     dom.thumbnailsShareButton.classList.add('disabled');
@@ -519,6 +523,12 @@ function updateSelection(videodata) {
     dom.thumbnailsDeleteButton.classList.remove('disabled');
     dom.thumbnailsShareButton.classList.remove('disabled');
   }
+}
+
+function reflowHack(el) {
+  el.style.display = 'none';
+  el.offsetTop;
+  el.style.display = '';
 }
 
 function launchCameraApp() {
@@ -1302,7 +1312,7 @@ function showPickView() {
   thumbnailList.setPickMode(true);
   document.body.classList.add('pick-activity');
 
-  dom.pickerClose.addEventListener('click', cancelPick);
+  dom.pickerHeader.addEventListener('action', cancelPick);
 
   // In tablet, landscape mode, the pick view will have different UI from normal
   // view.

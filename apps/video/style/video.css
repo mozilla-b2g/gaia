@@ -321,6 +321,8 @@ body.hidden *[data-l10n-id] {
 
 .icon.icon-done {
   background-image: url('images/iconaction_done_30x30.png') !important;
+  background-position: center center;
+  background-repeat: no-repeat;
   background-size: 3rem;
 }
 
@@ -675,6 +677,19 @@ body:not(.pick-activity) #picker-close {
   display: none;
 }
 
+/**
+ * 1. COMPLEX: Scoped style-sheets within <gaia-header>
+ *    trump all other rules. !important is required
+ *    for an app to over-ride the default appearance
+ *    of content within the custom-element. This may
+ *    change when we get `:host` and `:content` selectors
+ *    in shadow-dom.
+ */
+
+body:not(.pick-activity) #picker-done {
+  display: none !important; /* 1 */
+}
+
 /* hide options when picking */
 body.pick-activity #options,
 body.pick-activity #thumbnails-bottom {
@@ -716,13 +731,21 @@ body.pick-activity #thumbnails-bottom {
   display: none;
 }
 
-body:not(.pick-activity) #thumbnail-list-view header {
-  display: none;
-}
-
 /* we don't have fullscreen button when we are not in large layout */
 #fullscreen-button {
   display: none;
+}
+
+/**
+ * 1. COMPLEX: Scoped style-sheets within <gaia-header>
+ *    trump all other rules. !important is required
+ *    for an app to over-ride the default appearance
+ *    of content within the custom-element. This may
+ *    change when we get `:host` and `:content` selectors
+ *    in shadow-dom.
+ */
+.large-only {
+  display: none !important; /* 1 */
 }
 
 /* selection mode */
