@@ -450,7 +450,6 @@ apps/system/test/marionette/notification_get_test.js
 apps/system/test/marionette/notification_launch_app.js
 apps/system/test/marionette/notification_test.js
 apps/system/test/unit/app_install_manager_test.js
-apps/system/test/unit/app_modal_dialog_test.js
 apps/system/test/unit/async_semaphore_test.js
 apps/system/test/unit/battery_manager_test.js
 apps/system/test/unit/bluetooth_transfer_test.js
