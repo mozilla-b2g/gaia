@@ -160,9 +160,11 @@ suite('FindMyDevice >', function() {
           done();
         });
       }
+
+      fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
     });
 
-    fakeClock.tick();
+    fakeClock.tick(subject.TRACK_UPDATE_INTERVAL_MS);
   });
 
   teardown(function() {
