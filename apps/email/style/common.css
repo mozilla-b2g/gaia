@@ -216,7 +216,8 @@ body {
 }
 
 .highlight {
-  background-color: #f3f3D3;
+  background-color: #ffe3d6;
+  font-weight: bolder;
 }
 
 .icon-download {

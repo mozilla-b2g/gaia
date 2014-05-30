@@ -1220,6 +1220,8 @@ MessageListCard.prototype = {
 
     // some things only need to be done once
     var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
+    var subjectNode = msgNode.getElementsByClassName('msg-header-subject')[0];
+    var snippetNode = msgNode.getElementsByClassName('msg-header-snippet')[0];
     if (firstTime) {
       var listPerson;
       if (this.isIncomingFolder) {
@@ -1255,23 +1257,21 @@ MessageListCard.prototype = {
         msgNode.getElementsByClassName('msg-header-attachments')[0];
       attachmentsNode.classList.toggle('msg-header-attachments-yes',
                                        message.hasAttachments);
+      // snippet needs to be shorter if icon is shown
+      snippetNode.classList.toggle('icon-short', message.hasAttachments);
     }
 
     // snippet
-    msgNode.getElementsByClassName('msg-header-snippet')[0]
-      .textContent = message.snippet;
+    snippetNode.textContent = message.snippet;
 
-    // unread (we use very specific classes directly on the nodes rather than
-    // child selectors for hypothetical speed)
-    var unreadNode =
-      msgNode.getElementsByClassName('msg-header-unread-section')[0];
-    unreadNode.classList.toggle('msg-header-unread-section-unread',
-                                !message.isRead);
-    dateNode.classList.toggle('msg-header-date-unread', !message.isRead);
+    // update styles throughout the node for read vs unread
+    msgNode.classList.toggle('unread', !message.isRead);
 
     // star
     var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
     starNode.classList.toggle('msg-header-star-starred', message.isStarred);
+    // subject needs to give space for star if it is visible
+    subjectNode.classList.toggle('icon-short', message.isStarred);
 
     // edit mode select state
     if (this.editMode) {
@@ -1302,6 +1302,7 @@ MessageListCard.prototype = {
 
     // some things only need to be done once
     var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
+    var subjectNode = msgNode.getElementsByClassName('msg-header-subject')[0];
     if (firstTime) {
       // author
       var authorNode = msgNode.getElementsByClassName('msg-header-author')[0];
@@ -1321,7 +1322,6 @@ MessageListCard.prototype = {
       dateNode.textContent = prettyDate(message.date);
 
       // subject
-      var subjectNode = msgNode.getElementsByClassName('msg-header-subject')[0];
       if (matches.subject) {
         subjectNode.textContent = '';
         appendMatchItemTo(matches.subject[0], subjectNode);
@@ -1344,6 +1344,8 @@ MessageListCard.prototype = {
         msgNode.getElementsByClassName('msg-header-attachments')[0];
       attachmentsNode.classList.toggle('msg-header-attachments-yes',
                                        message.hasAttachments);
+      // snippet needs to be shorter if icon is shown
+      snippetNode.classList.toggle('icon-short', message.hasAttachments);
     }
 
     // unread (we use very specific classes directly on the nodes rather than
@@ -1357,6 +1359,8 @@ MessageListCard.prototype = {
     // star
     var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
     starNode.classList.toggle('msg-header-star-starred', message.isStarred);
+    // subject needs to give space for star if it is visible
+    subjectNode.classList.toggle('icon-short', message.isStarred);
 
     // edit mode select state
     if (this.editMode) {

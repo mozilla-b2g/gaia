@@ -5,8 +5,7 @@
 apps/video/style/video_tablet.css 0 1
 apps/video/style/video.css 0 7
 apps/video/style/info.css 0 2
-apps/email/style/compose_cards.css 0 6
-apps/email/style/message_cards.css 0 14
+apps/email/style/message_cards.css 0 1
 apps/email/style/common.css 0 5
 apps/email/style/setup_cards.css 0 1
 apps/costcontrol/style/bb/input-areas/style.css 2 0
