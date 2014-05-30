@@ -1,8 +1,6 @@
 'use strict';
 
 var TelephonyHelper = (function() {
-  var confirmLoaded = false;
-
   var call = function t_call(number, oncall, onconnected,
                              ondisconnected, onerror) {
     var sanitizedNumber = number.replace(/(\s|-|\.|\(|\))/g, '');
@@ -18,28 +16,29 @@ var TelephonyHelper = (function() {
         return;
       }
 
-      var telephony = navigator.mozTelephony;
-      var openLines = telephony.calls.length +
-          (telephony.conferenceGroup.calls.length ? 1 : 0);
-      // User can make call only when there are less than 2 calls by spec.
-      // If the limit reached, return early to prevent holding active call.
-      if (openLines >= 2) {
-        displayMessage('UnableToCall');
-        return;
-      }
+      ensureTelephony(function() {
+        var openLines = telephony.calls.length +
+            (telephony.conferenceGroup.calls.length ? 1 : 0);
+        // User can make call only when there are less than 2 calls by spec.
+        // If the limit reached, return early to prevent holding active call.
+        if (openLines >= 2) {
+          displayMessage('UnableToCall');
+          return;
+        }
 
-      var activeCall = telephony.active;
-      if (!activeCall) {
-        startDial(
-          conn, sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
-        return;
-      }
-      activeCall.onheld = function activeCallHeld() {
-        activeCall.onheld = null;
-        startDial(
-          conn, sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
-      };
-      activeCall.hold();
+        var activeCall = telephony.active;
+        if (!activeCall) {
+          startDial(conn, sanitizedNumber, oncall, onconnected,
+                    ondisconnected, onerror);
+          return;
+        }
+        activeCall.onheld = function activeCallHeld() {
+          activeCall.onheld = null;
+          startDial(conn, sanitizedNumber, oncall, onconnected,
+                    ondisconnected, onerror);
+        };
+        activeCall.hold();
+      });
     });
   };
 
@@ -57,7 +56,6 @@ var TelephonyHelper = (function() {
   function startDial(
     conn, sanitizedNumber, oncall, connected, disconnected, error) {
 
-    var telephony = navigator.mozTelephony;
     if (!telephony) {
       return;
     }
@@ -166,6 +164,23 @@ var TelephonyHelper = (function() {
     };
   };
 
+  var telephony = null;
+  var ensureTelephony = function th_ensureTelephony(cb) {
+    if (telephony) {
+      cb && cb();
+      return;
+    }
+
+    navigator.mozTelephony.addEventListener('callschanged',
+    function telephonyReady() {
+      telephony = navigator.mozTelephony;
+      telephony.removeEventListener('callschanged', telephonyReady);
+
+      cb && cb();
+    });
+  };
+
+  var confirmLoaded = false;
   var loadConfirm = function t_loadConfirm(cb) {
     if (confirmLoaded) {
       cb();
