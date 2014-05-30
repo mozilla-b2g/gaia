@@ -80,42 +80,6 @@ function bindContainerHandler(containerNode, eventName, func) {
 }
 
 /**
- * Bind both 'click' and 'contextmenu' (synthetically created by b2g), plus
- * handling click suppression that is currently required because we still
- * see the click event.  We also suppress contextmenu's default event so that
- * we don't trigger the browser's right-click menu when operating in firefox.
- */
-function bindContainerClickAndHold(containerNode, clickFunc, holdFunc) {
-  // Rather than tracking suppressClick ourselves in here, we maintain the
-  // state globally in Cards.  The rationale is that popup menus will be
-  // triggered on contextmenu, which transfers responsibility of the click
-  // event to the popup handling logic.  There is also no chance for multiple
-  // contextmenu events overlapping (that we would consider reasonable).
-  bindContainerHandler(
-    containerNode, 'click',
-    function(node, event) {
-      if (Cards._suppressClick) {
-        Cards._suppressClick = false;
-        return;
-      }
-      clickFunc(node, event);
-    });
-  bindContainerHandler(
-    containerNode, 'contextmenu',
-    function(node, event) {
-      // Always preventDefault, as this terminates processing of the click as a
-      // drag event.
-      event.preventDefault();
-      // suppress the subsequent click if this was actually a left click
-      if (event.button === 0) {
-        Cards._suppressClick = true;
-      }
-
-      return holdFunc(node, event);
-    });
-}
-
-/**
  * Fairly simple card abstraction with support for simple horizontal animated
  * transitions.  We are cribbing from deuxdrop's mobile UI's cards.js
  * implementation created jrburke.
@@ -211,11 +175,6 @@ Cards = {
   _transitionCount: 0,
 
   /**
-   * Annoying logic related to contextmenu event handling; search for the uses
-   * for more info.
-   */
-  _suppressClick: false,
-  /**
    * Is a tray card visible, suggesting that we need to intercept clicks in the
    * tray region so that we can transition back to the thing visible because of
    * the tray and avoid the click triggering that card's logic.
@@ -247,9 +206,6 @@ Cards = {
     this._containerNode.addEventListener('click',
                                          this._onMaybeIntercept.bind(this),
                                          true);
-    this._containerNode.addEventListener('contextmenu',
-                                         this._onMaybeIntercept.bind(this),
-                                         true);
 
     // XXX be more platform detecty. or just add more events. unless the
     // prefixes are already gone with webkit and opera?
@@ -263,13 +219,6 @@ Cards = {
    * back to the visible thing (which must be to our right currently.)
    */
   _onMaybeIntercept: function(event) {
-    // Contextmenu-derived click suppression wants to gobble an explicitly
-    // expected event, and so takes priority over other types of suppression.
-    if (event.type === 'click' && this._suppressClick) {
-      this._suppressClick = false;
-      event.stopPropagation();
-      return;
-    }
     if (this._eatingEventsUntilNextCard) {
       event.stopPropagation();
       return;
@@ -1452,10 +1401,8 @@ exports.prettyFileSize = prettyFileSize;
 exports.addClass = addClass;
 exports.removeClass = removeClass;
 exports.batchAddClass = batchAddClass;
-exports.bindContainerClickAndHold = bindContainerClickAndHold;
 exports.bindContainerHandler = bindContainerHandler;
 exports.appendMatchItemTo = appendMatchItemTo;
-exports.bindContainerHandler = bindContainerHandler;
 exports.displaySubject = displaySubject;
 exports.mimeToClass = mimeToClass;
 });

@@ -21,7 +21,6 @@ var templateNode = require('tmpl!./message_list.html'),
     Toaster = common.Toaster,
     ConfirmDialog = common.ConfirmDialog,
     batchAddClass = common.batchAddClass,
-    bindContainerClickAndHold = common.bindContainerClickAndHold,
     bindContainerHandler = common.bindContainerHandler,
     appendMatchItemTo = common.appendMatchItemTo,
     displaySubject = common.displaySubject,
@@ -145,16 +144,11 @@ function MessageListCard(domNode, mode, args) {
 
   this.messagesContainer =
     domNode.getElementsByClassName('msg-messages-container')[0];
+  bindContainerHandler(this.messagesContainer, 'click',
+                       this.onClickMessage.bind(this));
 
   this.messageEmptyContainer =
     domNode.getElementsByClassName('msg-list-empty-container')[0];
-  // - message actions
-  bindContainerClickAndHold(
-    this.messagesContainer,
-    // clicking shows the message reader for a message
-    this.onClickMessage.bind(this),
-    // press-and-hold shows the single-message mutation options
-    this.onHoldMessage.bind(this));
 
   this.scrollContainer =
     domNode.getElementsByClassName('msg-list-scrollouter')[0];
@@ -1401,16 +1395,6 @@ MessageListCard.prototype = {
   },
 
   onClickMessage: function(messageNode, event) {
-    // Find the node that has the header info.
-    messageNode = event.originalTarget;
-    while (messageNode && !messageNode.classList.contains('msg-header-item')) {
-      messageNode = messageNode.parentNode;
-    }
-
-    if (!messageNode) {
-      return;
-    }
-
     var header = messageNode.message;
 
     // Skip nodes that are default/placeholder ones.
