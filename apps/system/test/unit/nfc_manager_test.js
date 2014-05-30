@@ -171,7 +171,7 @@ suite('Nfc Manager Functions', function() {
       assert.equal(stubDispatchEvent.getCall(0).args[0].type,
                    'nfc-tech-discovered',
                    'when msg ' + msg);
-      assert.isTrue(stubFireTag.withArgs(validMsg).calledOnce,
+      assert.isTrue(stubFireTag.withArgs(validMsg, 'Unknown').calledOnce,
                     'fireTagDiscovered, when msg: ' + msg);
 
       stubVibrate.restore();
@@ -226,10 +226,11 @@ suite('Nfc Manager Functions', function() {
 
       NfcManager.handleTechnologyDiscovered(msg);
       assert.deepEqual(MozActivity.getCall(0).args[0],
-                   { name: 'nfc-ndef-discovered',
-                     data: { type: 'url', url: 'http://mozilla.org',
-                             records: msg.records, rtd: NDEF.RTD_URI,
-                             tech: 'NDEF', sessionToken: msg.sessionToken }});
+                       { name: 'nfc-ndef-discovered',
+                         data: { type: 'url', url: 'http://mozilla.org',
+                                 records: msg.records, rtd: NDEF.RTD_URI,
+                                 tech: 'NDEF',
+                                 sessionToken: msg.sessionToken }});
 
       msg.records.shift();
       NfcManager.handleTechnologyDiscovered(msg);
@@ -246,6 +247,56 @@ suite('Nfc Manager Functions', function() {
                          data: { type: 'empty', tech: 'NDEF',
                                  records: msg.records,
                                  sessionToken: msg.sessionToken }});
+    });
+
+    test('NDEF_FORMATABLE and unsupported tech type', function() {
+      var msg = {
+        sessionToken: 'token',
+        techList: ['NDEF_FORMATABLE', 'FAKE_TECH'],
+        records: NfcUtils.fromUTF8('fake data'),
+        type: 'techDiscovered'
+      };
+
+      var stubTagDiscovered = this.sinon.stub(NfcManager, 'fireTagDiscovered');
+
+      NfcManager.handleTechnologyDiscovered(msg);
+      assert.deepEqual(stubTagDiscovered.getCall(0).args[0], msg,
+                       'NDEF_FORMATABLE msg not passed.');
+      assert.equal(stubTagDiscovered.getCall(0).args[1], 'NDEF_FORMATABLE',
+                   'NDEF_FORMATABLE tech type not passed.');
+
+      msg.techList.shift();
+      NfcManager.handleTechnologyDiscovered(msg);
+      assert.deepEqual(stubTagDiscovered.getCall(1).args[0], msg,
+                       'Unknown tech msg not passed.');
+      assert.equal(stubTagDiscovered.getCall(1).args[1], 'FAKE_TECH',
+                   'Unknown tech type not passed');
+    });
+  });
+
+  suite('fireTagDiscovered', function() {
+    var msg = {
+      sessionToken: 'token',
+      techList: ['NDEF_FORMATABLE', 'ISODEP', 'FAKE_TECH'],
+      type: 'techDiscovered',
+      records: []
+    };
+
+    test('NDEF_FORMATABLE tech type', function() {
+      this.sinon.stub(window, 'MozActivity');
+      var dummyMsg = Object.create(msg);
+
+      NfcManager.fireTagDiscovered(dummyMsg, dummyMsg.techList[0]);
+      assert.deepEqual(MozActivity.getCall(0).args[0],
+                       {
+                         name: 'nfc-tag-discovered',
+                         data: {
+                           type: 'NDEF_FORMATABLE',
+                           techList: dummyMsg.techList,
+                           sessionToken: dummyMsg.sessionToken,
+                           records: dummyMsg.records
+                         }
+                       });
     });
   });
 
