@@ -12,8 +12,6 @@ require.config({
     'MediaFrame': '../shared/js/media/media_frame',
     'BlobView': '../shared/js/blobview',
     'CustomDialog': '../shared/js/custom_dialog',
-    'gaia-header': '../shared/elements/gaia_header/script',
-    'component-utils': '../shared/js/component_utils',
     'debug': 'vendor/debug'
   },
   shim: {
@@ -46,10 +44,6 @@ require.config({
     },
     'CustomDialog': {
       exports: 'CustomDialog'
-    },
-    'gaia-header': {
-      deps: ['component-utils'],
-      exports: 'GaiaHeader'
     }
   }
 });

@@ -32,7 +32,6 @@ requireApp('camera/js/vendor/alameda.js', function() {
   window.req = window.requirejs.config({
     baseUrl: '/js',
     paths: {
-      'l10n': '../shared/js/l10n',
       'asyncStorage': '../shared/js/async_storage',
       'getVideoRotation': '../shared/js/media/get_video_rotation',
       'performance-testing-helper': '../shared/js/performance_testing_helper',
@@ -43,8 +42,6 @@ requireApp('camera/js/vendor/alameda.js', function() {
       'MediaFrame': '../shared/js/media/media_frame',
       'BlobView': '../shared/js/blobview',
       'CustomDialog': '../shared/js/custom_dialog',
-      'gaia-header': '../shared/elements/gaia_header/script',
-      'component-utils': '../shared/js/component_utils',
       'debug': 'vendor/debug'
     },
     shim: {
@@ -69,7 +66,6 @@ requireApp('camera/js/vendor/alameda.js', function() {
         exports: 'PerformanceTestingHelper'
       },
       'jpegMetaDataParser': {
-        deps: ['BlobView'],
         exports: 'parseJPEGMetadata'
       },
       'GestureDetector': {
@@ -77,10 +73,6 @@ requireApp('camera/js/vendor/alameda.js', function() {
       },
       'CustomDialog': {
         exports: 'CustomDialog'
-      },
-      'gaia-header': {
-        deps: ['component-utils'],
-        exports: 'GaiaHeader'
       }
     }
   });

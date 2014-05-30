@@ -56,21 +56,12 @@
 /** Preview Menu
  ---------------------------------------------------------*/
 
-/**
- * 1. Sits on-top of frame-container.
- */
-
 .preview-menu {
-  position: relative; /* 1 */
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   transition: visibility 0.3s ease-in-out, opacity 0.3s ease-in-out;
 }
-
-/**
- * visible
- */
 
 .preview-menu.visible {
   opacity: 1;
@@ -78,17 +69,10 @@
   pointer-events: auto;
 }
 
-/**
- * secure-mode
- */
-
 .preview-gallery[secure-mode=true] .preview-share-icon,
 .preview-gallery[secure-mode=true] .preview-option-icon {
   display: none;
 }
-
-/** Count Text
- ---------------------------------------------------------*/
 
 .count-text {
   position: absolute;
