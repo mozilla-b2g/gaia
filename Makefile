@@ -780,7 +780,7 @@ ifndef APPS
 	ifdef APP
 		APPS=$(APP)
 	else
-		APPS=template $(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' )
+		APPS=template $(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' | sort )
 	endif
 endif
 
