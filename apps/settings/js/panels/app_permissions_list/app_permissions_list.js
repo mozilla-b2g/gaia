@@ -164,6 +164,7 @@ define(function(require) {
         listFragment.appendChild(li);
       }.bind(this));
       this._elements.list.appendChild(listFragment);
+      console.log('-----appending done------');
     },
 
     /**
