@@ -1,4 +1,5 @@
 'use strict';
+/* global AsyncSemaphore */
 
 requireApp('system/js/async_semaphore.js');
 
@@ -65,6 +66,7 @@ suite('AsyncSemaphore', function() {
   });
 
   suite('Operations', function() {
+    var clock;
     var tokenContext = {
         token: 'to be done'
       },
@@ -77,6 +79,13 @@ suite('AsyncSemaphore', function() {
     var secondFakeTask = function() {
         this.token = 'done again';
       };
+
+    suiteSetup(function() {
+      clock = sinon.useFakeTimers();
+    });
+    suiteTeardown(function() {
+      clock.restore();
+    });
 
     setup(function() {
       tokenContext.token = 'to be done';
@@ -130,6 +139,7 @@ suite('AsyncSemaphore', function() {
       }, 0);
       async_sem.wait(fakeTask, tokenContext);
       assert.equal(tokenContext.token, expectedFalseToken);
+      clock.tick(1);
     });
 
     test('> wait() should not throw exception when pass null as arguments',

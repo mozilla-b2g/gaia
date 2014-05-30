@@ -380,7 +380,6 @@ apps/sharedtest/test/unit/wifi_helper_test.js
 apps/system/js/airplane_mode.js
 apps/system/js/app_install_manager.js
 apps/system/js/app_modal_dialog.js
-apps/system/js/async_semaphore.js
 apps/system/js/attention_screen.js
 apps/system/js/base_ui.js
 apps/system/js/battery_manager.js
@@ -449,7 +448,6 @@ apps/system/test/marionette/notification_get_test.js
 apps/system/test/marionette/notification_launch_app.js
 apps/system/test/marionette/notification_test.js
 apps/system/test/unit/app_install_manager_test.js
-apps/system/test/unit/async_semaphore_test.js
 apps/system/test/unit/battery_manager_test.js
 apps/system/test/unit/bluetooth_transfer_test.js
 apps/system/test/unit/browser_frame_test.js
