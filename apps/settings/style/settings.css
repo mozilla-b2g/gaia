@@ -71,6 +71,17 @@ body[data-ready="true"] section[role="region"].current {
   transition: transform .4s ease;
 }
 
+#placeholder {
+  transform: translateX(0);
+  /* placeholder is also a region, overrides the visibility */
+  visibility: visible;
+  height: 100%;
+}
+
+body[data-ready="true"] #placeholder {
+  display: none;
+}
+
 /**
  * Headers should not scroll with the rest of the page, except for #root.
  */
@@ -117,7 +128,9 @@ body[data-filter-by] #root > div li {
 
 /* These rules show the "Network & Connectivity" header and items related to
    connectivity (airplane mode, Wi-Fi and cellular & data) */
-body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
+body[data-filter-by="connectivity"] #root > div [data-category="connectivity"],
+body[data-filter-by="all"] #root > div header,
+body[data-filter-by="all"] #root > div li {
   display: block;
 }
 

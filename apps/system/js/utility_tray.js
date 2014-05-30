@@ -33,6 +33,7 @@ var UtilityTray = {
     window.addEventListener('launchapp', this);
     window.addEventListener('displayapp', this);
     window.addEventListener('appopening', this);
+    window.addEventListener('activitywillopen', this);
 
     // Firing when the keyboard and the IME switcher shows/hides.
     window.addEventListener('keyboardimeswitchershow', this);
@@ -80,6 +81,7 @@ var UtilityTray = {
       case 'simpinshow':
       case 'appopening':
       case 'launchapp':
+      case 'activitywillopen':
         if (this.shown) {
           this.hide();
         }

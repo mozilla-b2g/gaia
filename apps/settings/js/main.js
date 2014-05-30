@@ -28,7 +28,10 @@ require(['config/require'], function() {
      *      two column layout, so that the root panel will not be deactivated
      *      in one column layout.
      */
-    SettingsService.init('root');
+    SettingsService.init({
+      rootPanelId: 'root',
+      context: window.LaunchContext
+    });
 
     var options = {
       SettingsService: SettingsService,

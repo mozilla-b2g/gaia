@@ -311,6 +311,18 @@ suite('system/UtilityTray', function() {
     });
   });
 
+  suite('handleEvent: activitywillopen', function() {
+    setup(function() {
+      fakeEvt = createEvent('activitywillopen');
+      UtilityTray.show();
+      UtilityTray.handleEvent(fakeEvt);
+    });
+
+    test('should be hidden', function() {
+      assert.equal(UtilityTray.shown, false);
+    });
+  });
+
   suite('mousedown event on the statusbar', function() {
     setup(function() {
       fakeEvt = createEvent('mousedown', true, true);
