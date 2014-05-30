@@ -50,7 +50,7 @@ body:not(.rb-enabled) #statusbar {
 #screen.locked:not(.attention) #statusbar-background {
   background-color: transparent;
   display: block;
-  transform: scaleY(0);
+  transform: scaleY(1);
 }
 
 #screen:not(.locked) #statusbar.invisible.dragged {
