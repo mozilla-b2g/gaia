@@ -14,15 +14,17 @@
 
 .suggestion-count {
   width: 5.5rem;
-  text-align: center;
+  box-sizing: border-box;
   border-left: 1px solid rgba(255,255,255,0.2);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  padding-right: 2rem;
+  padding-left: 1rem;
+  line-height: 4.5rem;
+  text-align: center;
 }
 
 .suggestion-count.more {
-  background: url(/dialer/style/images/suggestion/icon_arrow_white.png) no-repeat right .4rem bottom .4rem;
+  background: url(/dialer/style/images/suggestion/actionicon_dialer_more.png) no-repeat right 0 bottom 0.8rem;
+  background-size: 3rem;
 }
 
 .suggestion-bar .suggestion-item:active,

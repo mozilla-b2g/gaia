@@ -302,7 +302,14 @@ var SuggestionBar = {
            str.substr(start, end - start + 1) + '</mark>' + str.substr(end + 1);
   },
 
+  _clearOverlay: function() {
+    while (this.list.firstElementChild != this.overlayCancel) {
+      this.list.firstElementChild.remove();
+    }
+  },
+
   showOverlay: function sb_showOverlay() {
+    this._clearOverlay();
     var maxItems = Math.min(this._contactList.length, this.MAX_ITEMS);
     var title = this.overlay.querySelector('header');
     var self = this;
@@ -319,7 +326,8 @@ var SuggestionBar = {
           this._allMatched.allMatches[i][j], node);
       }
     }
-    this.overlay.hidden = false;
+    this.overlay.setAttribute('aria-hidden', false);
+    this.overlay.classList.add('display');
   },
 
   _getAllMatched: function sb_getAllMatched(contacts) {
@@ -335,10 +343,8 @@ var SuggestionBar = {
   },
 
   hideOverlay: function sb_hideOverlay() {
-    this.overlay.hidden = true;
-    while (this.list.firstElementChild != this.overlayCancel) {
-      this.list.firstElementChild.remove();
-    }
+    this.overlay.setAttribute('aria-hidden', true);
+    this.overlay.classList.remove('display');
   }
 };
 
