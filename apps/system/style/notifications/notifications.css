@@ -12,6 +12,7 @@
   border-bottom: 0.1rem #2c2c2c solid;
   transform: translateY(-5rem);
   transition: transform .3s ease-in-out;
+  visibility: hidden;
 }
 
 #toaster-icon {
@@ -57,6 +58,7 @@
 
 #notification-toaster.displayed {
   transform: translateY(0);
+  visibility: visible;
 }
 
 #notification-bar {
