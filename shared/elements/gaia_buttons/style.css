@@ -18,6 +18,7 @@ gaia-buttons {
   padding: 0 1.5rem 0 0;
   border-top: 0.1rem solid #e7e7e7;
   background-color: #fff;
+  pointer-events: auto;
 }
 
 button::-moz-focus-inner {
@@ -73,12 +74,17 @@ button:active {
   color: #fff;
 }
 
+a::-moz-selection,
+button::-moz-selection {
+  background-color: transparent;
+}
+
 /* Disabled */
 a[aria-disabled="true"],
 button[disabled] {
   background-color: rgba(0,0,0,0.05);
   color: #c7c7c7;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 a[aria-disabled="true"].recommend,
@@ -119,7 +125,6 @@ button.icon:before {
   right: 0.5rem;
   margin-top: -1.5rem;
   background: transparent no-repeat center center / 100% auto;
-  pointer-events: none;
 }
 
 a.icon-next:before,
@@ -174,6 +179,10 @@ gaia-buttons[skin="dark"] {
   display: flex;
 }
 
+[transition][hidden] {
+  pointer-events: none;
+}
+
 [transition="slide"] {
   transform: translateY(0);
   transition: transform 0.4s ease;
@@ -185,13 +194,11 @@ gaia-buttons[skin="dark"] {
 
 [transition="fade"] {
   opacity: 1;
-  pointer-events: auto;
   transition: opacity 0.4s ease;
 }
 
 [transition="fade"][hidden] {
   opacity: 0;
-  pointer-events: none;
 }
 
 /* -----------------------------------------------------------------

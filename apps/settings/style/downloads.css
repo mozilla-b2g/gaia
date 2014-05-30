@@ -1,12 +1,3 @@
-.disabled {
-  pointer-events: none;
-  opacity: .3;
-}
-
-.disabled * {
-  pointer-events: none;
-}
-
 #download-list-empty {
   height: calc(100% - 5rem);
   text-align: center;
@@ -42,26 +33,6 @@
   display: none;
 }
 
-#downloads.edit #downloads-edit-menu {
-  display: block;
-}
-
-#downloads #downloads-edit-menu {
-  display: none;
-  height: 5rem;
-  background: #ccc;
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  margin: 0;
-  padding: .5rem 1rem;
-  -moz-box-sizing: border-box;
-}
-
-.downloads-edit-menu-item {
-  width: calc(50% - .2rem);
-}
-
 #downloads #edit-mode-header {
   display: none;
 }
@@ -76,11 +47,6 @@
 
 #downloads.edit aside {
   display: none;
-}
-
-#downloads.edit #downloads-edit-button {
-  pointer-events: none;
-  opacity: .3;
 }
 
 #downloads.edit ul {
@@ -213,7 +179,7 @@
 #downloadList ul > li[data-state="failed"] .download-status {
   width: 3rem;
   height: 3rem;
-  background: url('images/download_exclamation.png'); 
+  background: url('images/download_exclamation.png');
   background-repeat: no-repeat;
   left: 0.2rem;
 }
@@ -232,7 +198,7 @@
   margin: 0;
   pointer-events: all;
   right: 0;
-  
+
 }
 
 #downloadList ul > li[data-state="downloading"] .pack-end {
@@ -261,7 +227,7 @@
  * downloaded item names are always LTR: elements should stay as they are no
  * matter what direction the system uses.
  */
- 
+
 html[dir="rtl"] #downloadList {
   direction: ltr;
 }
@@ -269,4 +235,3 @@ html[dir="rtl"] #downloadList {
 html[dir="rtl"] #downloadList ul li > label.pack-checkbox {
   margin-left: .5rem;
 }
-
