@@ -19,5 +19,5 @@ class TestCleanupSDCard(GaiaTestCase):
 
         self.assertEqual(len(self.device.manager.listFiles(root)), 3)
 
-        self.cleanup_sdcard()
+        self.cleanup_storage()
         self.assertEqual(len(self.device.manager.listFiles(root)), 0)

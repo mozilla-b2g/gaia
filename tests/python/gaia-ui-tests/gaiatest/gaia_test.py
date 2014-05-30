@@ -677,7 +677,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.accessibility = Accessibility(self.marionette)
 
         if self.device.is_android_build:
-            self.cleanup_sdcard()
+            self.cleanup_storage()
 
         if self.restart:
             self.cleanup_gaia(full_reset=False)
@@ -695,19 +695,20 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         # remove remembered networks
         self.device.manager.removeFile('/data/misc/wifi/wpa_supplicant.conf')
 
-    def cleanup_sdcard(self):
-        # cleanup files from the device root
-        for item in self.device.manager.listFiles(
-                self.device.manager.deviceRoot):
-            self.device.manager.removeDir('/'.join([
-                self.device.manager.deviceRoot, item]))
+    def cleanup_storage(self):
+        """Remove all files from the device's storage paths"""
+        # TODO: Remove hard-coded paths once bug 1018079 is resolved
+        for path in ['/mnt/sdcard',
+                     '/mnt/extsdcard',
+                     '/storage/sdcard0',
+                     '/storage/sdcard1']:
+            if self.device.manager.dirExists(path):
+                for item in self.device.manager.listFiles(
+                        self.device.manager.deviceRoot):
+                    self.device.manager.removeDir('/'.join([
+                        self.device.manager.deviceRoot, item]))
 
     def cleanup_gaia(self, full_reset=True):
-        # remove media
-        if self.device.is_android_build:
-            for filename in self.data_layer.media_files:
-                self.device.manager.removeFile(filename)
-
         # restore settings from testvars
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
 
