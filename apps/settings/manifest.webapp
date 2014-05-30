@@ -38,6 +38,12 @@
         "target": "device"
        },
       "disposition": "inline"
+    },
+    "configure_window": {
+      "filters": {
+        "target": "device"
+       },
+      "disposition": "window"
     }
   },
   "locales": {

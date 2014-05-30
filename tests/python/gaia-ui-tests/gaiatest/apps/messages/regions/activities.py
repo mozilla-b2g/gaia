@@ -23,8 +23,10 @@ class Activities(Base):
 
     def tap_settings(self):
         self.marionette.find_element(*self._settings_button_locator).tap()
-        self.wait_for_condition(lambda m: self.apps.displayed_app.name == 'Settings')
-        self.apps.switch_to_displayed_app()
+        self.wait_for_element_not_displayed(*self._actions_menu_locator)
+        from gaiatest.apps.settings.app import Settings
+        settings = Settings(self.marionette)
+        settings.switch_to_settings_frame()
         from gaiatest.apps.messages.regions.messaging_settings import MessagingSettings
         return MessagingSettings(self.marionette)
 

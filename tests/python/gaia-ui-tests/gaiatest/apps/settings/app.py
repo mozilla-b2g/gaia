@@ -10,6 +10,7 @@ class Settings(Base):
 
     name = 'Settings'
 
+    _settings_frame_locator = (By.CSS_SELECTOR, "iframe[src^='app://settings']")
     _header_text_locator = (By.CSS_SELECTOR, '#root > header > h1')
     _data_text_locator = (By.ID, 'data-desc')
     _airplane_switch_locator = (By.XPATH, "//input[@id='airplaneMode-input']/..")
@@ -35,6 +36,9 @@ class Settings(Base):
         # _currentPanel is set after all handlers are set
         self.wait_for_condition(lambda m:
                                 m.execute_script("return window.wrappedJSObject.Settings && window.wrappedJSObject.Settings._currentPanel === '#root'"))
+    def switch_to_settings_frame(self):
+        self.wait_for_element_displayed(*self._settings_frame_locator)
+        self.marionette.switch_to_frame(self.marionette.find_element(*self._settings_frame_locator))
 
     def wait_for_airplane_toggle_ready(self):
         checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)

@@ -8,35 +8,30 @@
 
     _handlers: {
       'configure': function ah_configureHandler(activitySource) {
-        if (activitySource.data.section) {
-          var targetPanelId = activitySource.data.section;
-          var targetPanel = document.getElementById(targetPanelId);
+        var targetPanelId = activitySource.data.section || 'root';
+        var targetPanel = document.getElementById(targetPanelId);
 
-          // Validate if the section exists
-          if (!targetPanel || targetPanel.tagName !== 'SECTION') {
-            var msg =
-              'Trying to open an non-existent section: ' + targetPanelId;
-            console.warn(msg);
-            return 'root';
-          }
+        // Validate if the section exists
+        if (!targetPanel || targetPanel.tagName !== 'SECTION') {
+          var msg =
+            'Trying to open an non-existent section: ' + targetPanelId;
+          console.warn(msg);
 
-          if (targetPanelId === 'root') {
-            // Apply the filter
-            var filterBy = activitySource.data.filterBy;
-            if (filterBy) {
-              document.body.dataset.filterBy = filterBy;
-            }
-          } else {
-            // Mark the desired panel as a dialog
-            targetPanel.dataset.dialog = true;
-          }
-
-          return targetPanelId;
-        } else {
-          // If there isn't a section specified,
-          // simply show ourselve without making ourselves a dialog.
-          return 'root';
+          // fallback to root panel
+          targetPanelId = 'root';
+          targetPanel = document.getElementById(targetPanelId);
         }
+
+        if (targetPanelId === 'root') {
+          // Apply the filter
+          document.body.dataset.filterBy =
+            activitySource.data.filterBy || 'all';
+        } else {
+          // Mark the desired panel as a dialog
+          targetPanel.dataset.dialog = true;
+        }
+
+        return targetPanelId;
       }
     },
 

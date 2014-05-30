@@ -128,7 +128,9 @@ body[data-filter-by] #root > div li {
 
 /* These rules show the "Network & Connectivity" header and items related to
    connectivity (airplane mode, Wi-Fi and cellular & data) */
-body[data-filter-by="connectivity"] #root > div [data-category="connectivity"] {
+body[data-filter-by="connectivity"] #root > div [data-category="connectivity"],
+body[data-filter-by="all"] #root > div header,
+body[data-filter-by="all"] #root > div li {
   display: block;
 }
 

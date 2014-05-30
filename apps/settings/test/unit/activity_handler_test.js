@@ -5,7 +5,20 @@ require('/js/activity_handler.js');
 mocha.globals(['ActivityHandler']);
 
 suite('ActivityHandler', function() {
+  var originalMozHasPendingMessage;
+  var originalMozSetMessageHandler;
+
+  setup(function() {
+    originalMozHasPendingMessage = navigator.mozHasPendingMessage;
+    originalMozSetMessageHandler = navigator.mozSetMessageHandler;
+    navigator.mozHasPendingMessage = function() {};
+    navigator.mozSetMessageHandler = function() {};
+  });
+
   teardown(function() {
+    navigator.mozHasPendingMessage = originalMozHasPendingMessage;
+    navigator.mozSetMessageHandler = originalMozSetMessageHandler;
+
     ActivityHandler._targetPanel = null;
     ActivityHandler._currentActivity = null;
   });
@@ -57,7 +70,7 @@ suite('ActivityHandler', function() {
       sandbox.stub(ActivityHandler, '_handle', function() {
         return mockSectionId;
       });
-      sandbox.spy(ActivityHandler, '_registerListener');
+      sandbox.stub(ActivityHandler, '_registerListener');
 
       ActivityHandler.ready(callbackSpy);
       assert.ok(ActivityHandler.currentActivity === mockActivity,
@@ -124,13 +137,11 @@ suite('ActivityHandler', function() {
           }
         });
         assert.ok(targetPanelId === 'root', 'should "return root"');
+        assert.ok(document.body.dataset.filterBy === 'all',
+          'body.filterBy should be set');
       });
 
       test('with root specified and with filter by', function() {
-        var rootSection = document.createElement('section');
-        rootSection.id = 'root';
-        document.body.appendChild(rootSection);
-
         var targetPanelId = handler({
           data: {
             section: 'root',
@@ -143,12 +154,18 @@ suite('ActivityHandler', function() {
       });
 
       test('with invalid section id specified', function() {
+        var rootSection = document.createElement('section');
+        rootSection.id = 'root';
+        document.body.appendChild(rootSection);
+
         var targetPanelId = handler({
           data: {
             section: 'invalid'
           }
         });
         assert.ok(targetPanelId === 'root', 'should "return root"');
+        assert.ok(document.body.dataset.filterBy === 'all',
+          'body.filterBy should be set');
       });
 
       test('with valid section id but invalid section element', function() {
@@ -162,6 +179,8 @@ suite('ActivityHandler', function() {
           }
         });
         assert.ok(targetPanelId === 'root', 'should "return root"');
+        assert.ok(document.body.dataset.filterBy === 'all',
+          'body.filterBy should be set');
       });
     });
   });
