@@ -60,15 +60,6 @@
       } catch (e) {
         console.log(e.stack);
       }
-    },
-
-    publish: function sys_publish(eventName, detail) {
-      var evt = new CustomEvent(eventName, {
-        bubbles: true,
-        cancelable: false,
-        detail: detail
-      });
-      window.dispatchEvent(evt);
     }
   };
 }(this));
