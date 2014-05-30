@@ -190,7 +190,8 @@
     {"carrier":"Movistar","apn":"telefonica.es","user":"telefonica","password":"telefonica","proxy":"10.138.255.133","port":"8080","mmsc":"http://mms.movistar.com","mmsproxy":"10.138.255.5","mmsport":"8080","authtype":"1","type":["default","supl","mms"]},
     {"voicemail":"123","enableStrict7BitEncodingForSms":true,"operatorSizeLimitation":512000,"type":["operatorvariant"]},
     {"carrier":"Jazztel Internet","apn":"jazzinternet","type":["default","supl"],"mvno_match_data":"JAZZTEL","mvno_type":"spn"},
-    {"carrier":"Jazztel MMS","apn":"jazzmms","user":"","password":"","mmsc":"http://jazztelmms.com/servlets/mms","mmsproxy":"37.132.0.10","mmsport":"8080","authtype":"1","type":["mms"],"mvno_match_data":"JAZZTEL","mvno_type":"spn"}
+    {"carrier":"Jazztel MMS","apn":"jazzmms","user":"","password":"","mmsc":"http://jazztelmms.com/servlets/mms","mmsproxy":"37.132.0.10","mmsport":"8080","authtype":"1","type":["mms"],"mvno_match_data":"JAZZTEL","mvno_type":"spn"},
+    {"carrier":"Conexion Compartida","apn":"movistar.es","user":"MOVISTAR","password":"MOVISTAR","authtype":"1","type":["dun"]}
   ],
   "08": [
     {"carrier":"Euskaltel MMS","apn":"euskaltelmms.euskaltel.mobi","user":"MMS","password":"EUSKALTEL","mmsc":"http://mms.euskaltel.mobi","mmsproxy":"172.16.18.74","mmsport":"8080","authtype":"1","type":["mms"]},
