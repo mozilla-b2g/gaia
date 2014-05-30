@@ -18,7 +18,7 @@
 
   const distanceBetweenIconsWithMaxIconsPerRow = 44;
 
-  const windowWidth = window.innerWidth;
+  var windowWidth = window.innerWidth;
 
   function GridLayout(gridView) {
     this.gridView = gridView;
@@ -172,6 +172,10 @@
     onColsUpdated: function(cols) {
       this.cols = cols;
       this.gridView.render();
+    },
+
+    calculateSize: function() {
+      windowWidth = window.innerWidth;
     },
 
     onReady: function() {
