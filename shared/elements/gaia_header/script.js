@@ -32,12 +32,39 @@ window.GaiaHeader = (function(win) {
     var shadow = this.createShadowRoot();
 
     this._template = template.content.cloneNode(true);
+    this._actionButton = this._template.getElementById('action-button');
+    this._header = this._template.getElementById('header');
     this._configureActionButton();
     this._configureSkin();
+    this._actionButton.addEventListener(
+      'click', proto._onActionButtonClick.bind(this)
+    );
 
     shadow.appendChild(this._template);
 
     ComponentUtils.style.call(this, baseurl);
+  };
+
+  /**
+   * Called when one of the attributes on the element changes.
+   *
+   * @private
+   */
+  proto.attributeChangedCallback = function(attr, oldVal, newVal) {
+    if (attr === 'action') {
+      this._configureActionButton();
+    } else if (attr === 'skin') {
+      this._configureSkin();
+    }
+  };
+
+  /**
+   * When called, trigger the action button.
+   */
+  proto.triggerAction = function() {
+    if (this._isSupportedAction(this.getAttribute('action'))) {
+      this._actionButton.click();
+    }
   };
 
   /**
@@ -48,19 +75,17 @@ window.GaiaHeader = (function(win) {
    * @private
    */
   proto._configureActionButton = function() {
-    var button = this._template.getElementById('action-button');
-    var type = this.dataset.action;
+    var type = this.getAttribute('action');
 
     // TODO: Action button should be
     // hidden by default then shown
     // only with supported action types
-    if (!type || !actionTypes[type]) {
-      button.style.display = 'none';
+    if (!this._isSupportedAction(type)) {
+      this._actionButton.style.display = 'none';
       return;
     }
-
-    button.dataset.icon = type;
-    button.addEventListener('click', proto._onActionButtonClick.bind(this));
+    this._actionButton.style.display = 'block';
+    this._actionButton.setAttribute('icon', type);
   };
 
   /**
@@ -69,11 +94,16 @@ window.GaiaHeader = (function(win) {
    * @private
    */
   proto._configureSkin = function() {
-    var skin = this.dataset.skin;
-    if (skin) {
-      var header = this._template.getElementById('header');
-      header.dataset.skin = skin;
-    }
+    this._header.setAttribute('skin', this.getAttribute('skin'));
+  };
+
+  /**
+   * Validate action against supported list.
+   *
+   * @private
+   */
+  proto._isSupportedAction = function(action) {
+    return action && actionTypes[action];
   };
 
   /**
@@ -87,7 +117,7 @@ window.GaiaHeader = (function(win) {
    * @private
    */
   proto._onActionButtonClick = function(e) {
-    var config = { detail: { type: this.dataset.action } };
+    var config = { detail: { type: this.getAttribute('action') } };
     var actionEvent = new CustomEvent('action', config);
     setTimeout(this.dispatchEvent.bind(this, actionEvent));
   };
