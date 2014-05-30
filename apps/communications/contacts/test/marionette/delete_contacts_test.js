@@ -34,10 +34,7 @@ marionette('Contacts > Delete', function() {
       client.helper.waitForElement(selectors.searchLabel).click();
 
       // Wait until the select-all view goes away
-      var editMenu = client.helper.waitForElement(selectors.editMenu);
-      client.waitFor(function() {
-        return !editMenu.displayed();
-      });
+      client.helper.waitForElementToDisappear(selectors.editMenu);
     });
   });
 });
