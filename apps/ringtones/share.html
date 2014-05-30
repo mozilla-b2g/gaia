@@ -6,7 +6,6 @@
     <meta http-equiv="pragma" content="no-cache" />
     <title>Create Ringtone</title>
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/progress_activity.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" href="style/share.css" type="text/css"/>
@@ -14,21 +13,26 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" defer src="shared/js/custom_dialog.js"></script>
-    <script type="text/javascript" defer src="shared/js/font_size_utils.js"></script>
+
+    <!-- Web Components -->
+    <script type="text/javascript" defer src="shared/js/component_utils.js"></script>
+    <script type="text/javascript" defer src="shared/elements/gaia_subheader/script.js"></script>
+    <script defer src="shared/elements/config.js"></script>
+    <script defer src="shared/elements/gaia-header/dist/script.js"></script>
+    <link rel="stylesheet" type="text/css" href="shared/elements/gaia-theme/style.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="shared/elements/gaia-icons/style.css" /> -->
 
     <script type="text/javascript" defer src="js/system_tones.js"></script>
     <script type="text/javascript" defer src="js/custom_ringtones.js"></script>
     <script type="text/javascript" defer src="js/share.js"></script>
   </head>
 
-  <body>
+  <body class="theme-media">
     <section role="region" class="skin-dark">
-      <header>
-        <button id="cancel"><span class="icon icon-close"></span></button>
-        <menu type="toolbar"><button id="save" data-l10n-id="create-save"
-                                     disabled>save</button></menu>
+      <gaia-header id="header" action="close">
         <h1 id="title" data-l10n-id="create-title"></h1>
-      </header>
+        <button id="save" data-l10n-id="create-save" disabled>save</button>
+      </gaia-header>
 
       <article>
         <section id="metadata">
