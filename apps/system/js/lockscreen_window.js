@@ -1,5 +1,6 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* global StatusBar */
 'use strict';
 
 (function(exports) {
@@ -84,6 +85,28 @@
    * @memberof LockScreenWindow
    */
   LockScreenWindow.prototype.CLASS_LIST = 'appWindow lockScreenWindow';
+
+  LockScreenWindow.prototype._resize = function aw__resize() {
+    var height, width;
+
+    // We want the lockscreen to go below the StatusBar
+    height = self.layoutManager.height + StatusBar.height;
+    width = self.layoutManager.width;
+
+    this.width = width;
+    this.height = height;
+    this.element.style.width = this.width + 'px';
+    this.element.style.height = this.height + 'px';
+
+    this.resized = true;
+
+    /**
+     * Fired when the app is resized.
+     *
+     * @event LockScreenWindow#lockscreen-appresize
+     */
+    this.publish('resize');
+  };
 
   /**
    * Create LockScreen overlay. This method would exist until
