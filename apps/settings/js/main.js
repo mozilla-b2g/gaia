@@ -20,6 +20,36 @@ require(['config/require'], function() {
     var Settings = require('settings');
     var Connectivity = require('connectivity');
 
+    function isInitialPanel(panel) {
+      var isTabletAndLandscape = Settings.isTabletAndLandscape();
+
+      return (!isTabletAndLandscape && panel === '#root') ||
+        (isTabletAndLandscape && panel === '#wifi');
+    }
+
+    window.addEventListener('panelready', function onPanelReady(e) {
+      if (!isInitialPanel(e.detail.current)) {
+        return;
+      }
+
+      window.removeEventListener('panelready', onPanelReady);
+
+      // The loading of the first panel denotes that we are ready for display
+      // and ready for user interaction
+      window.dispatchEvent(new CustomEvent('moz-app-visually-ready'));
+      window.dispatchEvent(new CustomEvent('moz-content-interactive'));
+    }, false);
+
+    window.addEventListener('telephony-settings-loaded',
+      function onTelephonySettingsLoaded() {
+        window.removeEventListener('telephony-settings-loaded',
+          onTelephonySettingsLoaded);
+
+        // The loading of telephony settings is dependent on being idle,
+        // once complete we are safe to declare the settings app as loaded
+        window.dispatchEvent(new CustomEvent('moz-app-loaded'));
+      });
+
     /**
      * In two column layout, the root panel should not be deactivated. We pass
      * the id of the root panel to SettingsService so that it won't deacivate
