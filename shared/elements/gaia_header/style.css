@@ -12,7 +12,6 @@ gaia-header {
 h1 {
   font-size: 2.3rem;
   line-height: 5rem;
-  text-align: left;
   white-space: nowrap;
   text-overflow: ellipsis;
   display: block;
@@ -86,7 +85,7 @@ button[disabled] {
 
 /* Hidden */
 [hidden] {
-  display: none;
+  visibility: hidden;
 }
 
 /* Icons */
@@ -274,16 +273,16 @@ button:hover {
 ----------------------------------------------------------------- */
 
 [transition] {
-  display: block;
   position: absolute;
   top: 0;
   right: 0;
   left: 0;
+  transition: visibility 0.4s;
 }
 
 [transition="slide"] {
   transform: translateY(0);
-  transition: transform 0.4s ease;
+  transition: transform 0.4s ease, visibility 0.4s;
 }
 
 [transition="slide"][hidden] {
@@ -293,7 +292,7 @@ button:hover {
 [transition="fade"] {
   opacity: 1;
   pointer-events: auto;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.4s ease, visibility 0.4s;
 }
 
 [transition="fade"][hidden] {

@@ -106,7 +106,7 @@ button[disabled]::-moz-selection {
 
 /* Hidden */
 [hidden] {
-  display: none;
+  visibility: hidden;
 }
 
 /* Icons */
@@ -177,6 +177,7 @@ gaia-buttons[skin="dark"] {
 
 [transition] {
   display: flex;
+  transition: visibility 0.4s;
 }
 
 [transition][hidden] {
@@ -185,7 +186,7 @@ gaia-buttons[skin="dark"] {
 
 [transition="slide"] {
   transform: translateY(0);
-  transition: transform 0.4s ease;
+  transition: transform 0.4s ease, visibility 0.4s;
 }
 
 [transition="slide"][hidden] {
@@ -194,7 +195,7 @@ gaia-buttons[skin="dark"] {
 
 [transition="fade"] {
   opacity: 1;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.4s ease, visibility 0.4s;
 }
 
 [transition="fade"][hidden] {
