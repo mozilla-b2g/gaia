@@ -243,7 +243,7 @@ input[type="image"] {
   padding-right: 6.5rem;
 }
 
-.page-screen #toolbar-start:active {
+.page-screen #toolbar-start.tab-btn-active {
   background-image: url('./images/tab-pressed-bg.png');
 }
 
@@ -256,7 +256,7 @@ input[type="image"] {
   padding-right: 6.5rem;
 }
 
-.tabs-screen #toolbar-start:active {
+.tabs-screen #toolbar-start.tab-btn-active {
   background-image: url('./images/iconaction_back_50x50.png'),
                     url('./images/tab-pressed-bg.png');
   background-size: 5rem, auto 5rem;
