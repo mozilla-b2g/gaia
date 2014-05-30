@@ -135,7 +135,8 @@
     var popupFrame;
     var frameForScreenshot = app.getFrameForScreenshot();
 
-    if (CardsHelper.getOffOrigin(frameForScreenshot.src, origin)) {
+    if (frameForScreenshot &&
+        CardsHelper.getOffOrigin(frameForScreenshot.src, origin)) {
       this.subTitle = CardsHelper.getOffOrigin(
                         frameForScreenshot.src, origin);
     }
