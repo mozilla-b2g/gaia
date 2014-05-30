@@ -346,7 +346,8 @@ suite('suggestion Bar', function() {
       });
 
       test('overlay is displayed', function() {
-        assert.isFalse(subject.overlay.hidden, 'should show suggestion list');
+        assert.equal(subject.overlay.getAttribute('aria-hidden'), 'false');
+        assert.isTrue(subject.overlay.classList.contains('display'));
       });
 
       test('should have a cancel button as the last button', function() {
@@ -384,25 +385,17 @@ suite('suggestion Bar', function() {
                        '1111');
         });
       });
+    });
 
-      suite('#hide overlay', function() {
-        setup(function() {
-          subject.hideOverlay();
-        });
-
-        test('should hide the overlay', function() {
-          assert.isTrue(subject.overlay.hidden);
-        });
-
-        test('should remove all suggestions', function() {
-          suggestions = Array.prototype.filter.call(subject.list.children,
-            function(element) {
-              return element.classList.contains('js-suggestion-item');
-            });
-          assert.equal(suggestions.length, 0);
-        });
+    suite('hide overlay', function() {
+      setup(function() {
+        subject.hideOverlay();
       });
 
+      test('should hide the overlay', function() {
+        assert.equal(subject.overlay.getAttribute('aria-hidden'), 'true');
+        assert.isFalse(subject.overlay.classList.contains('display'));
+      });
     });
 
     test('#show overlay of all numbers of contact', function() {
