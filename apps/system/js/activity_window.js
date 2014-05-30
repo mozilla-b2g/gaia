@@ -237,7 +237,7 @@
     this.containerElement.insertAdjacentHTML('beforeend', this.view());
     // We need to know wether to run this activity frame oop, and
     // BrowserConfigHelper has the logic to do that.
-    var helper = new BrowserConfigHelper(null, this.manifestURL);
+    var helper = new BrowserConfigHelper(this.url, this.manifestURL);
     this.browser = new BrowserFrame({
       origin: this.origin,
       url: this.url,
