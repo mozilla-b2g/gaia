@@ -1,8 +1,9 @@
+'use strict';
+
 requireApp('keyboard/test/unit/setup_engine.js');
 requireApp('keyboard/js/imes/latin/latin.js');
 
 suite('latin input method capitalization and punctuation', function() {
-  suiteSetup(init);
 
   // this will hold the input method we're testing
   var im;
@@ -12,6 +13,34 @@ suite('latin input method capitalization and punctuation', function() {
 
   // State we maintain to work with the im
   var isUpperCase;
+
+  var defaultKeyboardGlue = {
+    resetUpperCase: function() {
+      isUpperCase = false;
+    },
+    sendKey: sendKey,
+    sendCandidates: function(words) {
+      // gotSuggestions(words);
+    },
+    setUpperCase: function(uc) {
+      isUpperCase = uc;
+    },
+    setLayoutPage: function() {
+    },
+    isCapitalized: function() {
+      return isUpperCase;
+    }
+  };
+
+  function sendKey(keycode) {
+    if (keycode === 8) { // backspace
+      output = output.substring(0, output.length - 1);
+    }
+    else {
+      output += String.fromCharCode(keycode);
+    }
+    return Promise.resolve();
+  }
 
   // Call this before each test to reset the state to the default
   function reset() {
@@ -25,34 +54,8 @@ suite('latin input method capitalization and punctuation', function() {
 
     // Initialize the input method with the object it will use to send
     // its output back to us
-    im.init({
-      resetUpperCase: function() {
-        isUpperCase = false;
-      },
-      sendKey: function(keycode) {
-        if (keycode === 8) { // backspace
-          output = output.substring(0, output.length - 1);
-        }
-        else {
-          output += String.fromCharCode(keycode);
-        }
-        return new Promise(function(res, rej) { res(); });
-      },
-      sendString: function(s) {
-        output += s;
-        return new Promise(function(res, rej) { res(); });
-      },
-      sendCandidates: function(words) {
-        // gotSuggestions(words);
-      },
-      setUpperCase: function(uc) {
-        isUpperCase = uc;
-      },
-      setLayoutPage: function() {
-      }
-    });
+    im.init(defaultKeyboardGlue);
   }
-
 
   // Utility funcs
   function capitalize(s) {
@@ -244,32 +247,107 @@ suite('latin input method capitalization and punctuation', function() {
   // There are lots of possible initial states, and we may have different
   // output in each case.
 
-  for (var t = 0; t < types.length; t++) {
-    var type = types[t];
-    for (var m = 0; m < modes.length; m++) {
-      var mode = modes[m];
-      for (var statename in contentStates) {
-        var state = contentStates[statename];
-        for (var input in inputs) {
-          runtest(input, type, mode, statename);
+  suite('Input keys one by one', function() {
+    suiteSetup(init);
+
+    setup(function() {
+      // reset the output state
+      reset();
+    });
+
+    for (var t = 0; t < types.length; t++) {
+      var type = types[t];
+      for (var m = 0; m < modes.length; m++) {
+        var mode = modes[m];
+        for (var statename in contentStates) {
+          for (var input in inputs) {
+            runtest(input, type, mode, statename);
+          }
         }
       }
     }
-  }
+  });
 
-  function runtest(input, type, mode, statename) {
-    var testname = type + '-' + mode + '-' + statename + '-' + input;
+  suite('Input keys continuously', function() {
+    suiteSetup(init);
+
+    setup(function() {
+      // reset the output state
+      reset();
+    });
+
+    for (var t = 0; t < types.length; t++) {
+      var type = types[t];
+      for (var m = 0; m < modes.length; m++) {
+        var mode = modes[m];
+        for (var statename in contentStates) {
+          for (var input in inputs) {
+            runtest(input, type, mode, statename, {continuous: true});
+          }
+        }
+      }
+    }
+  });
+
+  suite('Input keys while one of them would be rejected', function() {
+    var glueToRejectKey = null;
+
+    suiteSetup(function() {
+      im = InputMethods.latin;
+      glueToRejectKey = Object.create(defaultKeyboardGlue);
+      glueToRejectKey.sendKey = function() {
+        return Promise.reject();
+      };
+
+      im.init(glueToRejectKey);
+    });
+
+    setup(function() {
+      // reset the output state
+      reset();
+      im.activate('en', {
+        type: 'text',
+        inputmode: '',
+        value: '',
+        selectionStart: 0,
+        selectionEnd: 0
+      },{suggest: false, correct: false});
+    });
+
+    test('Can input after the previous key has been rejected', function(next) {
+      im.click('a'.charCodeAt(0)).then(function() {
+        // Restore the sendKey to the normal one
+        glueToRejectKey.sendKey = sendKey;
+
+        // input anther key
+        im.click('b'.charCodeAt(0)).then(function() {
+          assert.isTrue(true); // The promise would be resolved
+          assert.equal('b', output);
+          next();
+        });
+      });
+    });
+  });
+
+  function runtest(input, type, mode, statename, options) {
+    var modeTitle = '-' + (mode ? mode : 'default');
+    var optionsTitle = options ? '-' + JSON.stringify(options) : '';
+    var testname = type + modeTitle + '-' + statename + optionsTitle +
+                   '-' + input;
     var state = contentStates[statename];
     var expected = inputs[input](input, type, mode, state.value, state.cursor);
 
     // Skip the test if the expected function returns nothing.
     // This is so we don't have too large a number of tests.
-    if (expected === undefined)
+    if (expected === undefined) {
       return;
+    }
 
     test(testname, function(next) {
-      // reset the output state
-      reset();
+      function queue(q, n) {
+        q.length ? q.shift()(queue.bind(this, q, n)) : n();
+      }
+
       // activate the IM
       im.activate('en', {
         type: type,
@@ -279,25 +357,37 @@ suite('latin input method capitalization and punctuation', function() {
         selectionEnd: state.cursor
       },{suggest: false, correct: false});
 
-      // Send the input one character at a time, converting
-      // the input to uppercase if the IM has set uppercase
-      var inputQueue = input.split('').map(function(c) {
-        return function(n) {
-          if (isUpperCase)
-            im.click(c.toUpperCase().charCodeAt(0)).then(n);
-          else
-            im.click(c.charCodeAt(0)).then(n);
-        };
-      });
-      function queue(q, n) {
-        q.length ? q.shift()(queue.bind(this, q, n)) : n();
+      var inputQueue;
+      if (options && options.continuous) {
+        var lastPromise;
+        input.split('').forEach(function(c) {
+          lastPromise = im.click(c.charCodeAt(0),
+                                 c.toUpperCase().charCodeAt(0));
+        });
+
+        lastPromise.then(function() {
+          im.deactivate();
+          assert.equal(output, expected,
+                       'expected "' + expected + '" for input "' + input + '"');
+          next();
+        });
+      } else {
+        // Send the input one character at a time, converting
+        // the input to uppercase if the IM has set uppercase
+        inputQueue = input.split('').map(function(c) {
+          return function(n) {
+            im.click(c.charCodeAt(0),
+                     c.toUpperCase().charCodeAt(0)).then(n);
+          };
+        });
+
+        queue(inputQueue, function() {
+          im.deactivate();
+          assert.equal(output, expected,
+                       'expected "' + expected + '" for input "' + input + '"');
+          next();
+        });
       }
-      queue(inputQueue, function() {
-        im.deactivate();
-        assert.equal(output, expected,
-                     'expected "' + expected + '" for input "' + input + '"');
-        next();
-      });
     });
   }
 });
