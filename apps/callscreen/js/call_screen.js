@@ -1,3 +1,7 @@
+/* globals CallsHandler, KeypadManager, LazyL10n, LockScreenSlide,
+           MozActivity */
+/* jshint nonew: false */
+
 'use strict';
 
 var CallScreen = {
@@ -170,6 +174,10 @@ var CallScreen = {
           }
         },
 
+        track: {
+          backgroundColor: 'rgba(0, 0, 0, 0.4)'
+        },
+
         colors: {
           left: {
             touchedColor: '255, 0, 0',
@@ -189,7 +197,9 @@ var CallScreen = {
         handle: {
           autoExpand: {
             sentinelOffset: 80
-          }
+          },
+          backgroundColor: '255, 255, 255',
+          backgroundAlpha: 0.85
         }
       }
     );
@@ -502,8 +512,9 @@ var CallScreen = {
   createTicker: function(durationNode) {
     var durationChildNode = durationNode.querySelector('span');
 
-    if (durationNode.dataset.tickerId)
+    if (durationNode.dataset.tickerId) {
       return false;
+    }
 
     durationChildNode.textContent = '00:00';
     durationNode.classList.add('isTimer');
