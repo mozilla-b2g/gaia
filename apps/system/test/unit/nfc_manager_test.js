@@ -155,6 +155,61 @@ suite('Nfc Manager Functions', function() {
     });
   });
 
+  suite('handleTechnologyDiscovered', function() {
+    var execInvalidMessageTest = function(msg) {
+      var stubVibrate = this.sinon.stub(window.navigator, 'vibrate');
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+      var stubFireTag = this.sinon.stub(NfcManager, 'fireTagDiscovered');
+      var validMsg = {techList: [], records: []};
+
+      NfcManager.handleTechnologyDiscovered(msg);
+
+      assert.isTrue(stubVibrate.withArgs([25, 50, 125]).calledOnce,
+                    'wrong vibrate, when msg: ' + msg);
+      assert.isTrue(stubDispatchEvent.calledOnce,
+                    'dispatchEvent not called once, when msg: ' + msg);
+      assert.equal(stubDispatchEvent.getCall(0).args[0].type,
+                   'nfc-tech-discovered',
+                   'when msg ' + msg);
+      assert.isTrue(stubFireTag.withArgs(validMsg).calledOnce,
+                    'fireTagDiscovered, when msg: ' + msg);
+
+      stubVibrate.restore();
+      stubDispatchEvent.restore();
+      stubFireTag.restore();
+    };
+
+    test('wrong message handling', function() {
+      execInvalidMessageTest.call(this, null);
+      execInvalidMessageTest.call(this, {});
+      execInvalidMessageTest.call(this, {techList: 'invalid'});
+      execInvalidMessageTest.call(this, {techList: []});
+    });
+
+    // simple test to verify not breaking the current P2P/Sharing,
+    // it will be extended in Bug 1006375
+    test('proper message handling', function() {
+      var msg = {
+        sessionToken: 'token',
+        techList: ['P2P', 'NDEF'],
+        records: [{ tnf: NDEF.TNF_MIME_MEDIA, payload: new Uint8Array(),
+                    type: NfcUtils.fromUTF8('text/vcard') }]
+      };
+
+      var stubNdefDiscvrd = this.sinon.stub(NfcManager, 'handleNdefDiscovered');
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+
+      NfcManager.handleTechnologyDiscovered(msg);
+      assert.isTrue(stubNdefDiscvrd.withArgs('P2P', 'token', msg.records)
+                                   .calledOnce);
+
+      msg.records.shift();
+      NfcManager.handleTechnologyDiscovered(msg);
+      assert.equal(stubDispatchEvent.getCall(2).args[0].type,
+                   'check-p2p-registration-for-active-app');
+    });
+  });
+
   suite('handleNdefMessage', function() {
     var execCommonTest = function(message, type, name) {
       var activityOptions = NfcManager.handleNdefMessage(message);
