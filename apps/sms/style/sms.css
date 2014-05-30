@@ -287,11 +287,6 @@ form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(0);
 }
 
-/* Completely hide the Compose form from view when in Edit mode */
-.edit .messages-compose-form {
-  transform: translateY(100%);
-}
-
 .edit form[role="dialog"][data-type="edit"] header {
   transform: translateY(0);
 }
@@ -689,12 +684,19 @@ ul.message-list {
   pointer-events: none;
 }
 
+.edit #messages-compose-form {
+  display: none;
+}
+
+.edit #composer-messages-container {
+  margin-bottom: 7rem;
+}
+
 /* Add a margin at the end of the last thread or message node to avoid overlay
  * with the edit mode menu */
 .edit .edit-container > :last-child {
   margin-bottom: 7rem;
 }
-
 
 /*
   DSDS
