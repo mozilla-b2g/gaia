@@ -299,7 +299,7 @@ Information.prototype = {
 
   show: function() {
     // Hide the Messages edit icon, view container and composer form
-    this.parent.classList.add('information');
+    this.parent.classList.add(this.name + '-information');
 
     this.render();
     // Append and Show the participants list
@@ -307,7 +307,7 @@ Information.prototype = {
   },
 
   refresh: function() {
-    if (this.parent.classList.contains('information')) {
+    if (this.parent.classList.contains(this.name + '-information')) {
       this.render();
     }
   },
@@ -320,7 +320,7 @@ Information.prototype = {
       this.contactList.textContent = '';
     }
     // Restore message list view UI elements
-    this.parent.classList.remove('information');
+    this.parent.classList.remove(this.name + '-information');
   },
 
   // Param participants could be:

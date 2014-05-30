@@ -82,20 +82,23 @@ suite('Information view', function() {
 
     suite('view show/reset status', function() {
       test('view status before show method', function() {
-        assert.isFalse(reportView.parent.classList.contains('information'));
+        assert.isFalse(reportView.parent.classList.contains(
+          reportView.name + '-information'));
         assert.isTrue(reportView.container.classList.contains('hide'));
       });
 
       test('view status after show method', function() {
         this.sinon.stub(reportView, 'render');
         reportView.show();
-        assert.isTrue(reportView.parent.classList.contains('information'));
+        assert.isTrue(reportView.parent.classList.contains(
+          reportView.name + '-information'));
         assert.isFalse(reportView.container.classList.contains('hide'));
       });
 
       test('view status after reset method', function() {
         reportView.reset();
-        assert.isFalse(reportView.parent.classList.contains('information'));
+        assert.isFalse(reportView.parent.classList.contains(
+          reportView.name + '-information'));
         assert.isTrue(reportView.container.classList.contains('hide'));
       });
     });
