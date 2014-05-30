@@ -83,7 +83,7 @@ marionette('Ringtone management', function() {
         });
         assert.equal(tone.name, 'My ringtone');
         assert.equal(tone.subtitle, 'Bob\'s Ringtones');
-        container.backButton.tap();
+        container.backButton.tap(25, 25);
       });
 
       app.inManager(soundPanel, function(container) {
@@ -115,7 +115,7 @@ marionette('Ringtone management', function() {
         container.addCustomRingtone({
           name: 'My ringtone', subtitle: 'Bob\'s Ringtones'
         });
-        container.backButton.tap();
+        container.backButton.tap(25, 25);
       });
 
       app.inManager(soundPanel, function(container) {
@@ -156,7 +156,7 @@ marionette('Ringtone management', function() {
         container.addCustomRingtone({
           name: 'My ringtone', subtitle: 'Bob\'s Ringtones'
         });
-        container.backButton.tap();
+        container.backButton.tap(25, 25);
       });
 
       app.inManager(soundPanel, function(container) {

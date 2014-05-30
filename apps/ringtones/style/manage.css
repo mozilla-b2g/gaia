@@ -14,9 +14,14 @@ section[role="region"] {
 }
 
 article {
-  width: 100%;
-  height: calc(100% - 5rem);
-  overflow: auto;
+  position: absolute;
+  top: 5rem;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  will-change: scroll-position;
 }
 
 ul {

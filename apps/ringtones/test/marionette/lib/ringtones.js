@@ -156,7 +156,7 @@ function BaseSoundList(client, element, Sound) {
 }
 
 BaseSoundList.Selectors = Object.freeze({
-  header: 'h2',
+  header: 'gaia-subheader',
   sound: 'li'
 });
 
@@ -236,7 +236,7 @@ ManageRingtonesContainer.prototype = Object.create(
 ManageRingtonesContainer.prototype.constructor = ManageRingtonesContainer;
 
 ManageRingtonesContainer.Selectors = Object.freeze({
-  backButton: 'button#back',
+  backButton: '#header',
   addButton: 'button#add',
   shareFrame: 'iframe[data-url$="share.html"]'
 });
@@ -289,7 +289,7 @@ PickRingtoneContainer.prototype = Object.create(
 PickRingtoneContainer.prototype.constructor = PickRingtoneContainer;
 
 PickRingtoneContainer.Selectors = Object.freeze({
-  cancelButton: 'button#cancel',
+  cancelButton: '#header',
   doneButton: 'button#done'
 });
 
@@ -331,7 +331,7 @@ function NewRingtoneContainer(client) {
 }
 
 NewRingtoneContainer.Selectors = Object.freeze({
-  cancelButton: 'button#cancel',
+  cancelButton: '#header',
   saveButton: 'button#save',
 
   songTitle: 'p#songtitle',

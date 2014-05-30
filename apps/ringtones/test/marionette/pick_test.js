@@ -115,7 +115,7 @@ marionette('Ringtone picker', function() {
           });
           assert.equal(tone.name, 'My ringtone');
           assert.equal(tone.subtitle, 'Bob\'s Ringtones');
-          container.backButton.tap();
+          container.backButton.tap(25, 25);
         });
 
         app[suiteInfo.opener](soundPanel, function(container) {
@@ -171,7 +171,7 @@ marionette('Ringtone picker', function() {
           }
 
           tone.select();
-          container.cancelButton.tap();
+          container.cancelButton.tap(25, 25);
         });
 
         var buttonText = soundPanel.getSelectedTone(suiteInfo.type);
