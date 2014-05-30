@@ -68,3 +68,6 @@ mozilla-b2g-gaia-node-modules-*
 /.cproject
 /.project
 /.settings
+
+venv/
+travis_venv/
