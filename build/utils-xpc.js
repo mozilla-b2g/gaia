@@ -853,6 +853,22 @@ function createZip() {
   return zip;
 }
 
+var scriptLoader = {
+  scripts: {},
+  load: function(path, exportObj) {
+    try {
+      if (this.scripts[path]) {
+        return;
+      }
+      Services.scriptloader.loadSubScript(path, exportObj);
+      this.scripts[path] = true;
+    } catch(e) {
+      delete this.scripts[path];
+      throw 'cannot load script from ' + path;
+    }
+  }
+};
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -879,6 +895,7 @@ exports.getOsType = getOsType;
 exports.generateUUID = generateUUID;
 exports.copyRec = copyRec;
 exports.createZip = createZip;
+exports.scriptLoader = scriptLoader;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;
