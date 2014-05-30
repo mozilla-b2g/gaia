@@ -33,6 +33,11 @@
     scale: 1,
 
     /**
+     * Whether or not this icon will persist to the database.
+     */
+    persistToDB: true,
+
+    /**
      * Returns a reference to the current grid.
      * We can currently only have one grid per page.
      */

@@ -54,6 +54,13 @@
     },
 
     /**
+     * Returns true if we are currently dragging an icon.
+     */
+    get inDragAction() {
+      return this.target && this.target.classList.contains('active');
+    },
+
+    /**
      * Begins the drag/drop interaction.
      * Enlarges the icon.
      * Sets additional data to make the touchmove handler faster.

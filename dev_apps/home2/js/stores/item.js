@@ -108,7 +108,10 @@
         newTxn(DB_ITEM_STORE, 'readwrite', function(txn, store) {
           store.clear();
           for (var i = 0, iLen = entries.length; i < iLen; i++) {
-            store.put(entries[i].detail);
+            var entry = entries[i];
+            if (entry.persistToDB) {
+              store.put(entry.detail);
+            }
           }
         }, callback);
     },
