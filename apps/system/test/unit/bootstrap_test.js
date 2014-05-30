@@ -30,6 +30,7 @@ requireApp('system/js/permission_manager.js');
 requireApp('system/js/remote_debugger.js');
 requireApp('system/js/secure_window_factory.js');
 requireApp('system/js/secure_window_manager.js');
+requireApp('system/js/sleep_menu.js');
 requireApp('system/js/software_button_manager.js');
 requireApp('system/js/source_view.js');
 requireApp('system/js/storage.js');
@@ -63,6 +64,7 @@ suite('system/Bootstrap', function() {
   var realDocumentElementLang;
   var realApplications;
   var stubById;
+  var stubQuerySelector;
   var fakeElement;
 
   mocksForBootstrap.attachTestHelpers();
@@ -71,10 +73,13 @@ suite('system/Bootstrap', function() {
     fakeElement = document.createElement('div');
     stubById = this.sinon.stub(document, 'getElementById')
                          .returns(fakeElement.cloneNode(true));
+    stubQuerySelector = this.sinon.stub(document, 'querySelector')
+                         .returns(fakeElement.cloneNode(true));
   });
 
   teardown(function() {
     stubById.restore();
+    stubQuerySelector.restore();
   });
 
   suiteSetup(function(done) {

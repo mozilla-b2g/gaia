@@ -1,5 +1,5 @@
 /* global Card, TaskCard,
-          AppWindowManager, SleepMenu, SettingsListener, AttentionScreen,
+          AppWindowManager, sleepMenu, SettingsListener, AttentionScreen,
           OrientationManager,
           GestureDetector, UtilityTray, StackManager, Event */
 
@@ -710,7 +710,7 @@
             (window.lockScreen && window.lockScreen.locked)) {
           return;
         }
-        SleepMenu.hide();
+        sleepMenu.hide();
         if (this.isRocketbar) {
           this.show();
         } else {
