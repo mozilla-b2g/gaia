@@ -26,7 +26,7 @@
 
   function updateHomescreenSectionVisibility() {
     var hideHomescreen = homescreenCount < 2;
-    document.getElementById('homescreen-section').hidden = hideHomescreen;
+    document.getElementById('homescreens-section').hidden = hideHomescreen;
   };
 
   function isHomescreen(app) {

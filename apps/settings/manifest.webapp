@@ -67,6 +67,10 @@
     "download_store": {
       "readonly": false,
       "description": "Stores download finished"
+    },
+    "vertical_preferences_store": {
+      "readonly": false,
+      "description": "Vertical homescreen preferences"
     }
   },
   "default_locale": "en-US",
