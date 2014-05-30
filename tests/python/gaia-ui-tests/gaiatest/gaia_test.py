@@ -703,10 +703,8 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                      '/storage/sdcard0',
                      '/storage/sdcard1']:
             if self.device.manager.dirExists(path):
-                for item in self.device.manager.listFiles(
-                        self.device.manager.deviceRoot):
-                    self.device.manager.removeDir('/'.join([
-                        self.device.manager.deviceRoot, item]))
+                for item in self.device.manager.listFiles(path):
+                    self.device.manager.removeDir('/'.join([path, item]))
 
     def cleanup_gaia(self, full_reset=True):
         # restore settings from testvars
