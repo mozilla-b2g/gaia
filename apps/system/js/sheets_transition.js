@@ -12,6 +12,7 @@ var SheetsTransition = {
 
   begin: function st_begin(direction) {
     this.transitioning = true;
+    this._cleanupPreviousTransitions();
     // Ask Homescreen App to fade out when sheets begin moving.
     // Homescreen App would fade in next time it's opened automatically.
     var home = homescreenLauncher.getHomescreen();
@@ -164,6 +165,19 @@ var SheetsTransition = {
     }
 
     sheet.style.transition = 'transform ' + ms + 'ms linear';
+  },
+
+  _cleanupPreviousTransitions: function st_cleanUpPreviousTransitions() {
+    var sheets = [this._current, this._new];
+    sheets.forEach(function(sheet) {
+      if (sheet) {
+        sheet.style.transform = '';
+        sheet.classList.remove('inside-edges');
+        sheet.classList.remove('outside-edges-left');
+        sheet.classList.remove('outside-edges-right');
+        sheet.style.transition = '';
+      }
+    });
   },
 
   _edgesEnabled: false,
