@@ -121,6 +121,8 @@
   // this much more highly weighted than the second suggested word.
   const AUTO_CORRECT_THRESHOLD = 1.30;
 
+  var inputSequence = Promise.resolve();
+
   // keyboard.js calls this to pass us the interface object we need
   // to communicate with it
   function init(interfaceObject) {
@@ -335,46 +337,59 @@
    *
    * Update the capitalization state, if we're capitalizing
    */
-  function click(keycode, repeat) {
+
+  /*
+   * @param {Object}, keyObject keyObject which contains both lowercase
+   * and uppercase keycodes.
+   */
+  function click(keyObject, repeat) {
     // If the key is anything other than a backspace, forget about any
     // previous changes that we would otherwise revert.
-    if (keycode !== BACKSPACE) {
-      revertTo = revertFrom = '';
-      justAutoCorrected = false;
-    }
+    var keycode;
 
-    var handler;
+    inputSequence = inputSequence.then(function() {
+      // Get the keycode for current state
+      keycode = getKeyCode(keyObject);
+      console.log('keycode ' + keycode);
 
-    if (selection) {
-      // If there is selected text, don't do anything fancy here.
-      handler = handleKey(keycode);
-    }
-    else {
-      switch (keycode) {
-      case SPACE:        // This list of characters matches the WORDSEP regexp
-      case RETURN:
-      case PERIOD:
-      case QUESTION:
-      case EXCLAMATION:
-      case COMMA:
-      case COLON:
-      case SEMICOLON:
-        // These keys may trigger word or punctuation corrections
-        handler = handleCorrections(keycode);
-        correctionDisabled = false;
-        break;
+      if (keycode !== BACKSPACE) {
+        revertTo = revertFrom = '';
+        justAutoCorrected = false;
+      }
 
-      case BACKSPACE:
-        handler = handleBackspace(repeat);
-        break;
+      var handler;
 
-      default:
+      if (selection) {
+        // If there is selected text, don't do anything fancy here.
         handler = handleKey(keycode);
       }
-    }
+      else {
+        switch (keycode) {
+          case SPACE:        // This list of characters matches the WORDSEP regexp
+            case RETURN:
+            case PERIOD:
+            case QUESTION:
+            case EXCLAMATION:
+            case COMMA:
+            case COLON:
+            case SEMICOLON:
+            // These keys may trigger word or punctuation corrections
+            handler = handleCorrections(keycode);
+          correctionDisabled = false;
+          break;
 
-    return handler.then(function() {
-      // If there was a potential auto correction, we either used it in
+          case BACKSPACE:
+            handler = handleBackspace(repeat);
+          break;
+
+          default:
+            handler = handleKey(keycode);
+        }
+      }
+      return handler;
+    }).then(function() {
+      keycode = getKeyCode(keyObject);
+
       // handleCorrections() above or it is now out of date, so clear it
       // so it doesn't get used later
       autoCorrection = null;
@@ -392,6 +407,8 @@
 
       lastSpaceTimestamp = (keycode === SPACE) ? Date.now() : 0;
     });
+
+    return inputSequence;
   }
 
   // Handle any key (including backspace) and do the right thing even if
@@ -488,6 +505,8 @@
   // character. It performs auto correction or auto punctuation or just
   // inserts the character.
   function handleCorrections(keycode) {
+    dump('handleCorrections: ' + keycode);
+
     if (correcting && autoCorrection && !correctionDisabled && atWordEnd() &&
         wordBeforeCursor() !== autoCorrection) {
       return autoCorrect(keycode);
@@ -496,6 +515,7 @@
              isWhiteSpace(inputText[cursor - 1]) &&
              !WORDSEP.test(inputText[cursor - 2]))
     {
+      console.log('cursor: ' + cursor + inputText + ' - ' + inputText.length);
       return autoPunctuate(keycode);
     }
     else {
@@ -533,12 +553,17 @@
   // close enough together. Assumes that pre-conditions for auto punctuation
   // have been met.
   function autoPunctuate(keycode) {
+    console.log('autoPunctuate: ' + keycode);
+
     switch (keycode) {
     case SPACE:
-      if (Date.now() - lastSpaceTimestamp < DOUBLE_SPACE_TIME)
+      if (Date.now() - lastSpaceTimestamp < DOUBLE_SPACE_TIME) {
+        console.log('fixPunctuation to period');
         return fixPunctuation(PERIOD, SPACE);
-      else
+      } else {
+        console.log('send space key');
         return handleKey(keycode);
+      }
       break;
 
     case PERIOD:
@@ -845,6 +870,7 @@
   }
 
   function updateCapitalization() {
+    console.log('updateCapitalization');
     // If either the input mode or the input type is one that doesn't
     // want capitalization, then don't alter the state of the keyboard.
     if (!capitalizing) {
@@ -867,6 +893,9 @@
     //
     // 5) Otherwise: lowercase
     //
+    //
+    //
+    console.log('updateCapitalization: ' + cursor + ' - ' + inputText);
     if (cursor === 0) {
       keyboard.setUpperCase(true);
     }
@@ -957,6 +986,21 @@
 
     var c = inputText[i];
     return c === '.' || c === '?' || c === '!';
+  }
+
+  function getKeyCode(keyObject) {
+    console.log('keyObject: ' + JSON.stringify(keyObject) );
+    var keycode;
+    if (typeof keyObject.upperKeyCode === 'undefined') {
+      console.log('no upper');
+      keycode = keyObject.keyCode;
+    } else {
+      keycode = keyboard.isCapitalized() ? keyObject.upperKeyCode :
+                                           keyObject.keyCode;
+    }
+
+    console.log('code to return ' + keycode);
+    return keycode;
   }
 
   if (!('LAYOUT_PAGE_DEFAULT' in window))
