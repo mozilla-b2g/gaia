@@ -21,7 +21,8 @@
 }(this));
 
 CommonResourceLoader
-  .stylesheet('/common/vendor/test-agent/test-agent.css');
+  .stylesheet('/common/vendor/test-agent/test-agent.css')
+  .stylesheet('/common/vendor/mocha/mocha.css');
 
 CommonResourceLoader
   .script('/common/vendor/mocha/mocha.js')
