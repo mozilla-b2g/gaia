@@ -40,7 +40,10 @@ define(function(require) {
       var parentPanelId =
         backBtn && backBtn.getAttribute('href').replace('#', '');
 
-      return panelId === parentPanelId;
+      // Close the activity if the current panel is the original target panel,
+      // and the new panel is the parent panel of the current panel.
+      return _currentPanelId === _activityHandler.targetPanelId &&
+             panelId === parentPanelId;
     };
 
     var _transit = function ss_transit(oldPanel, newPanel, callback) {
