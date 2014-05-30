@@ -97,7 +97,9 @@ var UIManager = {
     'newsletter-input',
     'newsletter-success-screen',
     'offline-newsletter-error-dialog',
-    'invalid-email-error-dialog'
+    'invalid-email-error-dialog',
+    // Browser privacy 'about' section
+    'privacy-marketplace-link'
   ],
 
   init: function ui_init() {
@@ -233,6 +235,81 @@ var UIManager = {
     var button = this.offlineErrorDialog.querySelector('button');
     button.addEventListener('click',
                             this.onOfflineDialogButtonClick.bind(this));
+
+    // Track language changes to update link to marketplace privacy policy
+    var settings = window.navigator.mozSettings;
+    if (settings) {
+      var setting = 'language.current';
+      settings.addObserver(
+        setting,
+        function(event) {
+          this.updatePrivacyLinks(event.settingValue);
+        }.bind(this)
+      );
+
+      // In case our build doesn't default to english we must update the privacy
+      // links even if the language setting hasn't been changed.
+      var request = settings.createLock().get(setting);
+      request.onsuccess = (function() {
+        this.updatePrivacyLinks(request.result[setting]);
+      }).bind(this);
+      request.onerror = function() {
+        console.error('Error checking setting ', setting);
+      };
+    }
+  },
+
+  updatePrivacyLinks: function ui_updatePrivacyLinks(languageSetting) {
+    var url = 'https://marketplace.cdn.mozilla.net/media/docs/privacy/';
+
+    // Based on the list of languages available here:
+    // https://github.com/mozilla/legal-docs/tree/master/marketplace_privacy_policy
+    var links = {
+      bn: ['BD', 'IN'],
+      cs: true,
+      de: true,
+      el: true,
+      en: ['US'],
+      es: true,
+      hi: true,
+      hr: true,
+      hu: true,
+      it: true,
+      mk: true,
+      pl: true,
+      pt: ['BR'],
+      ru: true,
+      sr: true,
+      ta: true,
+      zh: ['CN']
+    };
+
+    var codes = languageSetting.split('-');
+    var language = codes[0];
+    var country = codes[1] || '';
+
+    // Not available, don't do anything.
+    if (!links[language]) {
+      return;
+    }
+
+    if (Array.isArray(links[language]) && links[language].length) {
+      // If we have something specific, use that.
+      if (links[language].indexOf(country) > -1) {
+        url += language + '-' + country;
+      }
+      else {
+        // Otherwise default to first one.
+        url += language + '-' + links[language][0];
+      }
+    }
+    else {
+      url += language;
+    }
+
+    // Finally add the extension and set the href value on the link.
+    url += '.html';
+    this.privacyMarketplaceLink.href = url;
   },
 
   scrollToElement: function ui_scrollToElement(container, element) {

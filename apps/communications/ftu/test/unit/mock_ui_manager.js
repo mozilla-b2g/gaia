@@ -60,7 +60,9 @@ var MockUIManager = {
     // Navigation
     'back',
     'forward',
-    'wifi-join-button'
+    'wifi-join-button',
+    // Privacy
+    'privacy-marketplace-link'
   ],
 
   mSuiteSetup: function muim_mSuiteSetup() {

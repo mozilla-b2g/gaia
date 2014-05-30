@@ -108,4 +108,103 @@ suite('UI Manager > ', function() {
 
   });
 
+  suite('About Browser > ', function() {
+    var baseURL = 'https://marketplace.cdn.mozilla.net/media/docs/privacy/',
+        link;
+
+    setup(function() {
+      link = document.getElementById('privacy-marketplace-link');
+    });
+
+    test('Privacy Policy Link (bn-BD)', function() {
+      var settingValue = 'bn-BD';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'bn-BD.html');
+    });
+    test('Privacy Policy Link (bn-IN)', function() {
+      var settingValue = 'bn-IN';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'bn-IN.html');
+    });
+    test('Privacy Policy Link (cs)', function() {
+      var settingValue = 'cs-CS';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'cs.html');
+    });
+    test('Privacy Policy Link (de)', function() {
+      var settingValue = 'de-DE';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'de.html');
+    });
+    test('Privacy Policy Link (el)', function() {
+      var settingValue = 'el-EL';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'el.html');
+    });
+    test('Privacy Policy Link (en-US)', function() {
+      var settingValue = 'en';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'en-US.html');
+    });
+    test('Privacy Policy Link (es)', function() {
+      var settingValue = 'es-ES';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'es.html');
+    });
+    test('Privacy Policy Link (hi)', function() {
+      var settingValue = 'hi-HI';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'hi.html');
+    });
+    test('Privacy Policy Link (hr)', function() {
+      var settingValue = 'hr-HR';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'hr.html');
+    });
+    test('Privacy Policy Link (hu)', function() {
+      var settingValue = 'hu-HU';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'hu.html');
+    });
+    test('Privacy Policy Link (it)', function() {
+      var settingValue = 'it-IT';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'it.html');
+    });
+    test('Privacy Policy Link (mk)', function() {
+      var settingValue = 'mk-MK';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'mk.html');
+    });
+    test('Privacy Policy Link (pl)', function() {
+      var settingValue = 'pl-PL';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'pl.html');
+    });
+    test('Privacy Policy Link (pt-BR)', function() {
+      var settingValue = 'pt';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'pt-BR.html');
+    });
+    test('Privacy Policy Link (ru)', function() {
+      var settingValue = 'ru-RU';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'ru.html');
+    });
+    test('Privacy Policy Link (sr)', function() {
+      var settingValue = 'sr-SR';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'sr.html');
+    });
+    test('Privacy Policy Link (ta)', function() {
+      var settingValue = 'ta-TA';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'ta.html');
+    });
+    test('Privacy Policy Link (zh-CN)', function() {
+      var settingValue = 'zh';
+      UIManager.updatePrivacyLinks(settingValue);
+      assert.equal(link.href, baseURL + 'zh-CN.html');
+    });
+  });
 });
