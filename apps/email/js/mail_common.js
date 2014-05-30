@@ -268,14 +268,17 @@ Cards = {
     if (event.type === 'click' && this._suppressClick) {
       this._suppressClick = false;
       event.stopPropagation();
+      event.preventDefault();
       return;
     }
     if (this._eatingEventsUntilNextCard) {
       event.stopPropagation();
+      event.preventDefault();
       return;
     }
     if (this._popupActive) {
       event.stopPropagation();
+      event.preventDefault();
       this._popupActive.close();
       return;
     }
@@ -292,6 +295,7 @@ Cards = {
     // that card.
     if (this._trayActive && cardNode && cardNode.classList.contains('after')) {
       event.stopPropagation();
+      event.preventDefault();
 
       // Look for a card with a data-tray-target attribute
       var targetIndex = -1;
