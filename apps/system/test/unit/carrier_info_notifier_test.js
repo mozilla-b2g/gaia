@@ -18,7 +18,6 @@ if (typeof window.NotificationScreen == 'undefined') {
   window.NotificationScreen = null;
 }
 
-mocha.globals(['ModalDialog', 'NotificationScreen', 'lockScreen']);
 suite('carrier info notifier >', function() {
   var subject;
 

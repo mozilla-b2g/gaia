@@ -100,8 +100,7 @@ marionette('Notification.get():', function() {
     done();
   });
 
-  // skip until gecko part of bug 1000337 lands
-  test.skip('should work across domains', function(done) {
+  test('should work across domains', function(done) {
     var sharedTag = 'shared tag:' + Date.now();
     var emailTitle = 'email title:' + Date.now();
     var systemTitle = 'system tite:' + Date.now();

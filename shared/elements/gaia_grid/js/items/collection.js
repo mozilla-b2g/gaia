@@ -16,7 +16,8 @@
       name: collection.name,
       id: collection.id,
       categoryId: collection.categoryId,
-      query: collection.query
+      query: collection.query,
+      icon: collection.icon
     };
   }
 
@@ -44,7 +45,7 @@
      * Returns the icon image path.
      */
     get icon() {
-      return 'style/images/default_icon.png';
+      return this.detail.icon || 'style/images/default_icon.png';
     },
 
     get identifier() {

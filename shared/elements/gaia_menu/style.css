@@ -21,6 +21,11 @@ gaia-menu {
    */
   font-size: 0;
   color: #fff;
+  display: block;
+}
+
+gaia-menu[hidden] {
+  display: none;
 }
 
 gaia-menu:before {

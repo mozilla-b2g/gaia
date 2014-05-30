@@ -360,6 +360,8 @@ GAIA_APP_CONFIG := /tmp/gaia-apps-temp.list
 $(warning GAIA_APP_SRCDIRS is deprecated, please use GAIA_APP_CONFIG)
 endif
 
+GAIA_ALLAPPDIRS=$(shell find $(GAIA_DIR)$(SEP)apps $(GAIA_DIR)$(SEP)dev_apps -maxdepth 1 -mindepth 1 -type d  | sed 's@[/\\]@$(SEP_FOR_SED)@g')
+
 GAIA_APPDIRS=$(shell while read LINE; do \
 	if [ "$${LINE\#$${LINE%?}}" = "*" ]; then \
 		srcdir="`echo "$$LINE" | sed 's/.\{2\}$$//'`"; \
@@ -462,6 +464,7 @@ define BUILD_CONFIG
 	"GAIA_ENGINE" : "xpcshell", \
 	"GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)", \
 	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
+	"GAIA_ALLAPPDIRS" : "$(GAIA_ALLAPPDIRS)", \
 	"NOFTU" : "$(NOFTU)", \
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
 	"HAIDA" : $(HAIDA), \
@@ -572,13 +575,6 @@ webapp-shared: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts $(STAGE_DIR) clear-s
 webapp-optimize: multilocale app-makefiles $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,webapp-optimize)
 
-.PHONY: optimize-clean
-# Remove temporary l10n files created by the webapp-optimize step.  Because
-# webapp-zip wants these files to still be around during the zip stage, depend
-# on webapp-zip so it runs to completion before we start the cleanup.
-optimize-clean: webapp-zip $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,optimize-clean)
-
 .PHONY: keyboard-layouts
 # A separate step for shared/ folder to generate its content in build time
 keyboard-layouts: webapp-manifests $(XULRUNNER_BASE_DIRECTORY)
@@ -616,7 +612,7 @@ endif
 endif
 
 # Create webapps
-offline: app-makefiles optimize-clean
+offline: app-makefiles webapp-zip
 
 # Create an empty reference workload
 .PHONY: reference-workload-empty
@@ -777,7 +773,7 @@ ifndef APPS
 	ifdef APP
 		APPS=$(APP)
 	else
-		APPS=template $(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' )
+		APPS=template $(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' | sort )
 	endif
 endif
 
@@ -808,9 +804,7 @@ test-integration-test:
 
 .PHONY: caldav-server-install
 caldav-server-install:
-	pip install --user virtualenv
-	virtualenv js-marionette-env; \
-  source ./js-marionette-env/bin/activate; \
+	source tests/travis_ci/venv.sh; \
 				export LC_ALL=en_US.UTF-8; \
 				export LANG=en_US.UTF-8; \
 				pip install radicale;
@@ -849,7 +843,7 @@ ifeq ($(BUILD_APP_NAME),*)
 	@touch $(TEST_AGENT_CONFIG)
 	@rm -f /tmp/test-agent-config;
 	@# Build json array of all test files
-	@for d in ${GAIA_APPDIRS}; \
+	@for d in ${GAIA_ALLAPPDIRS}; \
 	do \
 		parent="`dirname $$d`"; \
 		pathlen=`expr $${#parent} + 2`; \
@@ -925,7 +919,7 @@ ifdef APP
   JSHINTED_PATH = apps/$(APP)
   GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint/xfail.list | ( while read file ; do test -f "$$file" && echo $$file ; done ) )
 else
-  JSHINTED_PATH = apps shared build/test/unit dev_apps/home2
+  JSHINTED_PATH = apps shared build/test/unit dev_apps/home2 dev_apps/collection
   GJSLINTED_PATH = $(shell ( while read file ; do test -f "$$file" && echo $$file ; done ) < build/jshint/xfail.list )
 endif
 endif

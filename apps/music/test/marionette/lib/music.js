@@ -18,7 +18,10 @@ Music.Selector = Object.freeze({
   songsTab: '#tabs-songs',
   firstSong: '.list-item',
   playButton: '#player-controls-play',
-  progressBar: '#player-seek-bar-progress'
+  progressBar: '#player-seek-bar-progress',
+  shareButton: '#player-cover-share',
+  shareMenu: 'form[data-z-index-level="action-menu"]',
+  pickDoneButton: '#title-done'
 });
 
 Music.prototype = {
@@ -40,8 +43,23 @@ Music.prototype = {
     return this.client.findElement(Music.Selector.playButton);
   },
 
+  get shareButton() {
+    return this.client.findElement(Music.Selector.shareButton);
+  },
+
+  // TODO(gareth): Move this shareMenu stuff into the helper.
+  get shareMenu() {
+    // Switch to the system app first.
+    this.client.switchToFrame();
+    return this.client.helper.waitForElement(Music.Selector.shareMenu);
+  },
+
   get progressBar() {
     return this.client.findElement(Music.Selector.progressBar);
+  },
+
+  get pickDoneButton() {
+    return this.client.findElement(Music.Selector.pickDoneButton);
   },
 
   get isPlaying() {
@@ -60,7 +78,8 @@ Music.prototype = {
   },
 
   switchToMe: function() {
-    this.launch();
+    this.client.switchToFrame();
+    this.client.apps.switchToApp(this.origin);
   },
 
   waitForFirstTile: function() {
@@ -77,5 +96,25 @@ Music.prototype = {
 
   tapPlayButton: function() {
     this.actions.tap(this.playButton).perform();
+  },
+
+  shareWith: function(appName) {
+    var shareButton = this.shareButton;
+    this.client.waitFor(function() {
+      return shareButton.displayed();
+    });
+    shareButton.tap();
+
+    var list = this.shareMenu.findElements('button');
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].text() === appName) {
+        list[i].tap();
+        return;
+      }
+    }
+  },
+
+  finishPick: function() {
+    this.actions.tap(this.pickDoneButton).perform();
   }
 };

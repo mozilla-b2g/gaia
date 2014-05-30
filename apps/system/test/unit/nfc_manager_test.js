@@ -1,9 +1,5 @@
 'use strict';
 
-mocha.globals(['NfcManager', 'ScreenManager', 'SettingsListener',
-      'lockScreen', 'addEventListener', 'removeEventListener',
-      'dispatchEvent']);
-
 /* globals MockDOMRequest, MockNfc, MocksHelper, MozNDEFRecord, NDEF,
            NfcUtils, NfcManager */
 
@@ -159,11 +155,66 @@ suite('Nfc Manager Functions', function() {
     });
   });
 
+  suite('handleTechnologyDiscovered', function() {
+    var execInvalidMessageTest = function(msg) {
+      var stubVibrate = this.sinon.stub(window.navigator, 'vibrate');
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+      var stubFireTag = this.sinon.stub(NfcManager, 'fireTagDiscovered');
+      var validMsg = {techList: [], records: []};
+
+      NfcManager.handleTechnologyDiscovered(msg);
+
+      assert.isTrue(stubVibrate.withArgs([25, 50, 125]).calledOnce,
+                    'wrong vibrate, when msg: ' + msg);
+      assert.isTrue(stubDispatchEvent.calledOnce,
+                    'dispatchEvent not called once, when msg: ' + msg);
+      assert.equal(stubDispatchEvent.getCall(0).args[0].type,
+                   'nfc-tech-discovered',
+                   'when msg ' + msg);
+      assert.isTrue(stubFireTag.withArgs(validMsg).calledOnce,
+                    'fireTagDiscovered, when msg: ' + msg);
+
+      stubVibrate.restore();
+      stubDispatchEvent.restore();
+      stubFireTag.restore();
+    };
+
+    test('wrong message handling', function() {
+      execInvalidMessageTest.call(this, null);
+      execInvalidMessageTest.call(this, {});
+      execInvalidMessageTest.call(this, {techList: 'invalid'});
+      execInvalidMessageTest.call(this, {techList: []});
+    });
+
+    // simple test to verify not breaking the current P2P/Sharing,
+    // it will be extended in Bug 1006375
+    test('proper message handling', function() {
+      var msg = {
+        sessionToken: 'token',
+        techList: ['P2P', 'NDEF'],
+        records: [{ tnf: NDEF.TNF_MIME_MEDIA, payload: new Uint8Array(),
+                    type: NfcUtils.fromUTF8('text/vcard') }]
+      };
+
+      var stubNdefDiscvrd = this.sinon.stub(NfcManager, 'handleNdefDiscovered');
+      var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+
+      NfcManager.handleTechnologyDiscovered(msg);
+      assert.isTrue(stubNdefDiscvrd.withArgs('P2P', 'token', msg.records)
+                                   .calledOnce);
+
+      msg.records.shift();
+      NfcManager.handleTechnologyDiscovered(msg);
+      assert.equal(stubDispatchEvent.getCall(2).args[0].type,
+                   'check-p2p-registration-for-active-app');
+    });
+  });
+
   suite('handleNdefMessage', function() {
-    var execCommonTest = function(message, type) {
+    var execCommonTest = function(message, type, name) {
       var activityOptions = NfcManager.handleNdefMessage(message);
 
-      assert.equal(activityOptions.name, 'nfc-ndef-discovered');
+      assert.equal(activityOptions.name, name || 'nfc-ndef-discovered');
       assert.equal(activityOptions.data.type, type);
       assert.equal(activityOptions.data.records, message);
 
@@ -192,7 +243,6 @@ suite('Nfc Manager Functions', function() {
       assert.equal(activityOptions.data.encoding, 'UTF-8');
     });
 
-    /* should be uncommented once Bug 1003723 will be fixed 
     test('TNF well known rtd text utf 16', function() {
       var payload = Uint8Array([0x82, 0x65, 0x6E, 0xFF,
                                 0xFE, 0x48, 0x00, 0x6F,
@@ -207,12 +257,13 @@ suite('Nfc Manager Functions', function() {
                                             new Uint8Array(),
                                             payload)];
 
-      var activityOptions = execCommonTest(dummyNdefMsg);
+      var activityOptions = execCommonTest(dummyNdefMsg, 'text');
+
       assert.equal(activityOptions.data.text, 'Ho! UTF-16 en');
       assert.equal(activityOptions.data.rtd, NDEF.RTD_TEXT);
       assert.equal(activityOptions.data.language, 'en');
       assert.equal(activityOptions.data.encoding, 'UTF-16');
-    });*/
+    });
 
     test('TNF well known rtd uri', function() {
       var payload = new Uint8Array([0x04, 0x77, 0x69, 0x6B,
@@ -227,6 +278,41 @@ suite('Nfc Manager Functions', function() {
 
       var activityOptions = execCommonTest(dummyNdefMsg, 'url');
       assert.equal(activityOptions.data.url, 'https://wiki.mozilla.org');
+    });
+
+    test('TNF well known mailto: uri', function() {
+      var payload = new Uint8Array([6].concat(
+        Array.apply([], NfcUtils.fromUTF8('jorge@borges.ar'))));
+      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
+                                            NDEF.RTD_URI,
+                                            new Uint8Array(),
+                                            payload)];
+      var activityOptions = execCommonTest(dummyNdefMsg, 'mail', 'new');
+      assert.equal(activityOptions.data.url, 'mailto:jorge@borges.ar');
+    });
+
+    test('TNF well known tel: uri', function() {
+      var payload = new Uint8Array([5].concat(
+        Array.apply([], NfcUtils.fromUTF8('0054267437'))));
+      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
+                                            NDEF.RTD_URI,
+                                            new Uint8Array(),
+                                            payload)];
+      var activityOptions = execCommonTest(dummyNdefMsg, 'webtelephony/number',
+                                           'dial');
+      assert.equal(activityOptions.data.uri, 'tel:0054267437');
+      assert.equal(activityOptions.data.number, '0054267437');
+    });
+
+    test('TNF well known, rtd uri unabbreviated', function() {
+      var uri = Array.apply([], NfcUtils.fromUTF8('http://mozilla.com'));
+      var payload = [0x00].concat(uri);
+      var dummyNdefMsg = [new MozNDEFRecord(NDEF.TNF_WELL_KNOWN,
+                                            NDEF.RTD_URI,
+                                            new Uint8Array(),
+                                            new Uint8Array(payload))];
+      var activityOptions = execCommonTest(dummyNdefMsg, 'url');
+      assert.equal(activityOptions.data.url, 'http://mozilla.com');
     });
 
     test('TNF well known rtd smart poster', function() {

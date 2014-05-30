@@ -4998,8 +4998,6 @@ process.on = function(e, fn){
 
   mocha.run = function(fn){
     var options = mocha.options;
-    mocha.globals('location');
-
     var query = Mocha.utils.parseQuery(window.location.search || '');
     if (query.grep) mocha.grep(query.grep);
     if (query.invert) mocha.invert();

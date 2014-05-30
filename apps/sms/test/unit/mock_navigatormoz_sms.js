@@ -10,11 +10,10 @@ var MockNavigatormozMobileMessage = {
   _mMessagesRequest: null,
   _mMessageRequest: null,
 
-  send: function(recipients, content) {
-    this._mSmsRequest = [];
-    for (var i = 0; i < recipients.length; i++) {
-      this._mSmsRequest.push({});
-    }
+  send: function(recipients) {
+    this._mSmsRequest = Array.isArray(recipients) ?
+      recipients.map(() => { return {}; }) : {};
+
     return this._mSmsRequest;
   },
 
@@ -162,11 +161,16 @@ var MockNavigatormozMobileMessage = {
     var evt = { target: { result: null } };
 
     if (this._mSmsRequest) {
-      this._mSmsRequest.forEach(function(request) {
-        if (request.onsuccess) {
-          request.onsuccess.call(evt.target, evt);
-        }
-      });
+      if (Array.isArray(this._mSmsRequest)) {
+        this._mSmsRequest.forEach(function(request) {
+          if (request.onsuccess) {
+            request.onsuccess.call(evt.target, evt);
+          }
+        });
+      } else {
+        this._mSmsRequest.onsuccess &&
+          this._mSmsRequest.onsuccess.call(evt.target, evt);
+      }
       this._mSmsRequest = null;
     }
   },
@@ -175,11 +179,17 @@ var MockNavigatormozMobileMessage = {
     var evt = { target: { error: { name: null } } };
 
     if (this._mSmsRequest) {
-      this._mSmsRequest.forEach(function(request) {
-        if (request.onerror) {
-          request.onerror.call(evt.target, evt);
-        }
-      });
+       if (Array.isArray(this._mSmsRequest)) {
+        this._mSmsRequest.forEach(function(request) {
+          if (request.onerror) {
+            request.onerror.call(evt.target, evt);
+          }
+        });
+      } else {
+        this._mSmsRequest.onerror &&
+          this._mSmsRequest.onerror.call(evt.target, evt);
+      }
+
       this._mSmsRequest = null;
     }
   },

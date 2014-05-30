@@ -198,7 +198,7 @@ InputMethodLoader.prototype.SOURCE_DIR = './js/imes/';
 
 InputMethodLoader.prototype.start = function() {
   this._initializedIMEngines = {};
-  this._pendingIMEngines = {};
+  this._imEnginesPromises = {};
   this.initPreloadedInputMethod();
 };
 
@@ -207,6 +207,8 @@ InputMethodLoader.prototype.initPreloadedInputMethod = function() {
   var InputMethods = exports.InputMethods;
   for (imEngineName in InputMethods) {
     this.initInputMethod(imEngineName);
+    this._imEnginesPromises[imEngineName] =
+      Promise.resolve(this._initializedIMEngines[imEngineName]);
   }
 };
 
@@ -214,27 +216,21 @@ InputMethodLoader.prototype.getInputMethod = function(imEngineName) {
   return this._initializedIMEngines[imEngineName];
 };
 
-// This method returns a promise and resolves once the IMEngine script
+// This method returns a promise and resolves when the IMEngine script
 // is loaded.
-InputMethodLoader.prototype.loadInputMethod = function(imEngineName) {
-  if (this.getInputMethod[imEngineName]) {
-    throw new Error('InputMethodLoader: attempt to load ' + imEngineName +
-      ' which is already loaded.');
-  }
-
-  if (this._pendingIMEngines[imEngineName]) {
-    return this._pendingIMEngines[imEngineName];
+InputMethodLoader.prototype.getInputMethodAsync = function(imEngineName) {
+  if (this._imEnginesPromises[imEngineName]) {
+    return this._imEnginesPromises[imEngineName];
   }
 
   var p = new Promise(function(resolve, reject) {
     var script = document.createElement('script');
     script.onload = function() {
-      this._pendingIMEngines[imEngineName] = null;
       this.initInputMethod(imEngineName);
-      resolve();
+      resolve(this._initializedIMEngines[imEngineName]);
     }.bind(this);
     script.onerror = function() {
-      this._pendingIMEngines[imEngineName] = null;
+      this._imEnginesPromises[imEngineName] = null;
       console.error('InputMethodLoader: unable to load ' + imEngineName + '.');
       reject();
     }.bind(this);
@@ -242,7 +238,7 @@ InputMethodLoader.prototype.loadInputMethod = function(imEngineName) {
     document.body.appendChild(script);
   }.bind(this));
 
-  this._pendingIMEngines[imEngineName] = p;
+  this._imEnginesPromises[imEngineName] = p;
   return p;
 };
 
@@ -294,52 +290,40 @@ InputMethodManager.prototype.switchCurrentIMEngine = function(imEngineName,
                                                               dataPromise) {
   var switchStateId = ++this._switchStateId;
 
-  if (!dataPromise) {
-    dataPromise = new Promise(function(resolve) {
-      resolve();
-    });
-  }
-
+  dataPromise = dataPromise || Promise.resolve();
   // Deactivate and switch the currentIMEngine to 'default' first.
   if (this.currentIMEngine && this.currentIMEngine.deactivate) {
     this.currentIMEngine.deactivate();
   }
   this.currentIMEngine = this.loader.getInputMethod('default');
 
-  var p = new Promise(function(resolve, reject) {
-    var imEngine = this.loader.getInputMethod(imEngineName);
+  // Create our own promise by resolving promise from loader and the passed
+  // dataPromise, then do our things.
+  var loaderPromise = this.loader.getInputMethodAsync(imEngineName);
 
-    // activate the loaded IMEngine with data given, and resolve.
-    // reject if we are not the last switchCurrentIMEngine() call.
-    var activateIMEngine = function(dataValues) {
-      if (switchStateId !== this._switchStateId) {
-        console.log('InputMethodManager: ' +
-          'Promise is resolved after another switchCurrentIMEngine() call. ' +
-          'Reject the promise instead.');
+  var p = Promise.all([loaderPromise, dataPromise]).then(function(values) {
+    if (switchStateId !== this._switchStateId) {
+      console.log('InputMethodManager: ' +
+        'Promise is resolved after another switchCurrentIMEngine() call. ' +
+        'Reject the promise instead.');
 
-        reject();
-        return;
-      }
-
-      var imEngine = this.loader.getInputMethod(imEngineName);
-      if (typeof imEngine.activate === 'function') {
-        imEngine.activate.apply(imEngine, dataValues);
-      }
-
-      this.currentIMEngine = imEngine;
-
-      resolve();
-    }.bind(this);
-
-    if (imEngine) {
-      dataPromise.then(activateIMEngine, reject);
-    } else {
-      // load the IMEngine script.
-      var loaderPromise = this.loader.loadInputMethod(imEngineName);
-      Promise.all([dataPromise, loaderPromise]).then(function(values) {
-        activateIMEngine(values[0]);
-      }, reject);
+      return Promise.reject(new Error(
+        'InputMethodManager: switchCurrentIMEngine() is called again before ' +
+        'resolving.'));
     }
+
+    var imEngine = values[0];
+    var dataValues = values[1];
+
+    if (typeof imEngine.activate === 'function') {
+      imEngine.activate.apply(imEngine, dataValues);
+    }
+    this.currentIMEngine = imEngine;
+
+    // resolve to undefined
+    return;
+  }.bind(this), function(error) {
+    return Promise.reject(error);
   }.bind(this));
 
   return p;

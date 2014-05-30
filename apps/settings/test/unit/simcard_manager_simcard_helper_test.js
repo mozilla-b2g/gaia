@@ -1,10 +1,8 @@
-/* global requireApp, mocha, suite, suiteSetup, suiteTeardown,
+/* global requireApp, suite, suiteSetup, suiteTeardown,
           setup, MockL10n, SimUIModel, assert, test */
 'use strict';
 
 requireApp('settings/test/unit/mock_l10n.js');
-
-mocha.globals(['SimUIModel']);
 
 suite('SimUIModel', function() {
   var realL10n;

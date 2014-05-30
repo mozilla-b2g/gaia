@@ -47,6 +47,11 @@
     "to": "/shared/pages/import/redirects/redirect.html"}
   ],
 
+  "datastores-owned": {
+    "Basket_Newsletter": {
+      "description": "Email address for sending newsletter"
+    }
+  },
   "datastores-access": {
     "Gaia_Facebook_Friends": {
       "readonly": false,

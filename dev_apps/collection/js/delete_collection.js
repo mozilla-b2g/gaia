@@ -1,15 +1,13 @@
 'use strict';
-/* global Promise */
+/* global CollectionsDatabase */
 
 (function(exports) {
 
-  var _ = navigator.mozL10n.get;
   var cancelButton = document.getElementById('cancel');
   var deleteButton = document.getElementById('delete');
 
   function HandleDelete(activity) {
     var id = activity.source.data.id;
-    var name = activity.source.data.name;
 
     // Bug 1007743
     // need to l10n the dialog title and body

@@ -1,10 +1,6 @@
 'use strict';
 /* global MocksHelper, FxAccountsDialog, SystemDialog, LayoutManager */
 
-mocha.globals(['BaseUI', 'AppWindowManager', 'LayoutManager',
-               'layoutManager', 'System', 'SystemDialog',
-               'FxAccountsDialog', 'dispatchEvent']);
-
 require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_layout_manager.js');
 require('/test/unit/mock_system_dialog_manager.js');

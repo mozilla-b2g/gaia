@@ -1,5 +1,5 @@
 .gesture-panel.disabled {
-  pointer-events: none;
+  visibility: hidden;
 }
 
 #left-panel {
@@ -14,9 +14,6 @@
   background-color: red;
   opacity: 0;
 }
-#left-panel.disabled {
-  background-color: gray;
-}
 
 #right-panel {
   position: absolute;
@@ -29,9 +26,6 @@
 
   background-color: green;
   opacity: 0;
-}
-#right-panel.disabled {
-  background-color: gray;
 }
 
 #screen.edges-debug .gesture-panel {

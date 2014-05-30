@@ -12,9 +12,17 @@
    * within a length of a page edge configured by this value */
   const edgePageThreshold = 50;
 
+  const screenHeight = window.innerHeight;
+
+  const scrollStep = Math.round(screenHeight / edgePageThreshold);
+
+  /* The scroll step will be 10 times bigger over the edge */
+  const maxScrollStepFactor = 10;
+
   function DragDrop(gridView) {
     this.gridView = gridView;
     this.container = gridView.element;
+    this.scrollable = this.container.parentNode;
     this.container.addEventListener('contextmenu', this);
   }
 
@@ -46,6 +54,13 @@
     },
 
     /**
+     * Returns true if we are currently dragging an icon.
+     */
+    get inDragAction() {
+      return this.target && this.target.classList.contains('active');
+    },
+
+    /**
      * Begins the drag/drop interaction.
      * Enlarges the icon.
      * Sets additional data to make the touchmove handler faster.
@@ -73,7 +88,7 @@
       // Make the icon larger
       this.icon.transform(
         e.pageX - this.xAdjust,
-        e.pageY - this.yAdjust,
+        e.pageY - this.yAdjust + this.scrollable.scrollTop,
         this.icon.scale + activeScaleAdjust);
     },
 
@@ -108,6 +123,22 @@
     },
 
     /**
+     * The closer to edge the faster (bigger step).
+     ** Distance 0px -> 10 times faster
+     ** Distance 25px -> 5 times faster
+     ** Distance 50px (edgePageThreshold) -> 0 times
+     */
+    getScrollStep: function(distanceToEdge) {
+      var factor = maxScrollStepFactor;
+
+      if (distanceToEdge > 0) {
+        factor *= ((edgePageThreshold - distanceToEdge) / edgePageThreshold);
+      }
+
+      return Math.round(scrollStep * factor);
+    },
+
+    /**
      * Scrolls the page if needed.
      * The page is scrolled via javascript if an icon is being moved,
      * and is within a percentage of a page edge.
@@ -120,21 +151,20 @@
         return;
       }
 
-      var screenHeight = window.innerHeight;
-      var scrollStep = Math.round(screenHeight / edgePageThreshold);
-
       function doScroll(amount) {
         /* jshint validthis:true */
         this.isScrolling = true;
-        document.documentElement.scrollTop += amount;
+        this.scrollable.scrollTop += amount;
         exports.requestAnimationFrame(this.scrollIfNeeded.bind(this));
         touch.pageY += amount;
         this.positionIcon(touch.pageX, touch.pageY);
       }
 
-      var docScroll = document.documentElement.scrollTop;
-      if (touch.pageY - docScroll > screenHeight - edgePageThreshold) {
+      var docScroll = this.scrollable.scrollTop;
+      var distanceFromTop = Math.abs(touch.pageY - docScroll);
+      if (distanceFromTop > screenHeight - edgePageThreshold) {
         var maxY = this.maxScroll;
+        var scrollStep = this.getScrollStep(screenHeight - distanceFromTop);
         // We cannot exceed the maximum scroll value
         if (touch.pageY >= maxY || maxY - touch.pageY < scrollStep) {
           this.isScrolling = false;
@@ -142,9 +172,8 @@
         }
 
         doScroll.call(this, scrollStep);
-      } else if (touch.pageY > 0 &&
-                 touch.pageY - docScroll < edgePageThreshold) {
-        doScroll.call(this, 0 - scrollStep);
+      } else if (touch.pageY > 0 && distanceFromTop < edgePageThreshold) {
+        doScroll.call(this, 0 - this.getScrollStep(distanceFromTop));
       } else {
         this.isScrolling = false;
       }
@@ -262,11 +291,12 @@
           case 'touchmove':
             var touch = e.touches[0];
 
-            this.positionIcon(touch.pageX, touch.pageY);
+            var pageY = touch.pageY + this.scrollable.scrollTop;
+            this.positionIcon(touch.pageX, pageY);
 
             this.currentTouch = {
               pageX: touch.pageX,
-              pageY: touch.pageY
+              pageY: pageY
             };
 
             if (!this.isScrolling) {

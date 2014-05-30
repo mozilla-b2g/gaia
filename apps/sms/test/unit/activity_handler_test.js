@@ -1,4 +1,4 @@
-/*global Notify, Compose, mocha, MocksHelper, ActivityHandler, Contacts,
+/*global Notify, Compose, MocksHelper, ActivityHandler, Contacts,
          Attachment, ThreadUI, Settings, Notification,
          Threads, Navigation, Promise  */
 /*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
@@ -9,8 +9,6 @@
 */
 
 'use strict';
-
-mocha.globals(['alert', 'confirm', 'Notify']);
 
 requireApp(
   'sms/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'

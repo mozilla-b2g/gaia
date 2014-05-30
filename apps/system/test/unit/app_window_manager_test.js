@@ -3,15 +3,6 @@
           MockSettingsListener, MockLockScreen, HomescreenLauncher */
 'use strict';
 
-mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
-      'dispatchEvent', 'ActivityWindow',
-      'AppWindowManager', 'Applications', 'ManifestHelper',
-      'KeyboardManager', 'StatusBar', 'HomescreenWindow',
-      'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
-      'lockScreen', 'OrientationManager', 'BrowserFrame',
-      'BrowserConfigHelper', 'System', 'BrowserMixin', 'TransitionMixin',
-      'homescreenLauncher', 'layoutManager', 'lockscreen']);
-
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_orientation_manager.js');

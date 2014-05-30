@@ -23,8 +23,6 @@ var mocksHelperForSuggestionBar = new MocksHelper([
   'CallHandler'
 ]).init();
 
-mocha.globals(['fb']);
-
 suite('suggestion Bar', function() {
   var realFbContacts;
   var realMozIccManager;

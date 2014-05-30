@@ -71,6 +71,21 @@
       bearer="0"
   />
 
+  <!-- Default APN for undefined types -->
+  <apn carrier="No type test"
+      mcc="001"
+      mnc="03"
+      apn="internet"
+      user="user"
+      password="password"
+      proxy="127.0.0.1"
+      port="8080"
+      mmsc="http://127.0.0.1"
+      mmsproxy="127.0.0.1"
+      mmsport="8080"
+      authtype="0"
+  />
+
   <!-- /Test Networks -->
 
   <apn carrier="SpeakOut"

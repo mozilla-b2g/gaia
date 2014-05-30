@@ -257,9 +257,14 @@ var NfcManager = {
       this.handleNdefDiscovered(tech, sessionToken, emptyRec);
   },
 
-  // NDEF only currently
+  /**
+   * Handles P2P messages. Supports NDEF only currently.
+   * @param {string} tech set to 'P2P', TODO: verify if needed
+   * @param {string} sessionToken
+   * @param {Array} records NDEF records
+   */
   handleP2P: function handleP2P(tech, sessionToken, records) {
-    if (records != null) {
+    if (records.length !== 0) {
        // Incoming P2P message carries a NDEF message. Dispatch
        // the NDEF message (this might bring another app to the
        // foreground).
@@ -342,69 +347,77 @@ var NfcManager = {
     return techList[0];
   },
 
-  handleTechnologyDiscovered: function nm_handleTechnologyDiscovered(command) {
-    this._debug('Technology Discovered: ' + JSON.stringify(command));
+  /**
+   * Handler for nfc-manager-tech-discovered messages which originate from
+   * gecko. Basing on the first NDEF record tnf and type this method can use
+   * NfcHandoverManager to handle handover scenarios. Basing on the techList
+   * array it can either trigger P2P sharing scenario or create MozActivities
+   * for other apps to act upon.
+   * @param {Object} msg gecko originated message
+   * @param {Array} msg.records NDEF records
+   * @param {Array} msg.techList
+   * @param {string} msg.sessionToken
+   * @param {string} msg.type set to 'techDiscovered'
+   */
+  handleTechnologyDiscovered: function nm_handleTechnologyDiscovered(msg) {
+    this._debug('Technology Discovered: ' + JSON.stringify(msg));
+    msg = msg || {};
+    msg.records = Array.isArray(msg.records) ? msg.records : [];
+    msg.techList = Array.isArray(msg.techList) ? msg.techList : [];
 
     window.dispatchEvent(new CustomEvent('nfc-tech-discovered'));
     window.navigator.vibrate([25, 50, 125]);
 
-    var records = null;
-    if (command.records && (command.records.length > 0)) {
-      records = command.records;
-    } else {
-      this._debug('No NDEF Message sent to Technology Discovered');
-    }
-
-    if (records != null) {
+    if (msg.records.length !== 0) {
       /* First check for handover messages that
        * are handled by the handover manager.
        */
-      var firstRecord = records[0];
+      var firstRecord = msg.records[0];
       if ((firstRecord.tnf == NDEF.TNF_MIME_MEDIA) &&
             NfcUtils.equalArrays(firstRecord.type,
             NfcUtils.fromUTF8('application/vnd.bluetooth.ep.oob'))) {
         this._debug('Handle simplified pairing record');
-        NfcHandoverManager.handleSimplifiedPairingRecord(records);
+        NfcHandoverManager.handleSimplifiedPairingRecord(msg.records);
         return;
       }
       if ((firstRecord.tnf == NDEF.TNF_WELL_KNOWN) &&
           NfcUtils.equalArrays(firstRecord.type, NDEF.RTD_HANDOVER_SELECT)) {
         this._debug('Handle Handover Select');
-        NfcHandoverManager.handleHandoverSelect(records);
+        NfcHandoverManager.handleHandoverSelect(msg.records);
         return;
       }
       if ((firstRecord.tnf == NDEF.TNF_WELL_KNOWN) &&
           NfcUtils.equalArrays(firstRecord.type, NDEF.RTD_HANDOVER_REQUEST)) {
         this._debug('Handle Handover Request');
-        NfcHandoverManager.handleHandoverRequest(records, command.sessionToken);
+        NfcHandoverManager.handleHandoverRequest(msg.records, msg.sessionToken);
         return;
       }
     }
 
-    this._debug('command.techList: ' + command.techList);
-    var tech = this.getPrioritizedTech(command.techList);
+    this._debug('msg.techList: ' + msg.techList);
+    var tech = this.getPrioritizedTech(msg.techList);
     // One shot try. Fallback directly to tag.
     switch (tech) {
       case 'P2P':
-        this.handleP2P(tech, command.sessionToken, records);
+        this.handleP2P(tech, msg.sessionToken, msg.records);
         break;
       case 'NDEF':
-        if (records) {
-          this.handleNdefDiscovered(tech, command.sessionToken, records);
+        if (msg.records.length !== 0) {
+          this.handleNdefDiscovered(tech, msg.sessionToken, msg.records);
         } else {
-          this.handleNdefDiscoveredEmpty(tech, command.sessionToken);
+          this.handleNdefDiscoveredEmpty(tech, msg.sessionToken);
         }
         break;
       case 'NDEF_WRITEABLE':
-        this.handleNdefDiscoveredEmpty(tech, command.sessionToken);
+        this.handleNdefDiscoveredEmpty(tech, msg.sessionToken);
         break;
       case 'NDEF_FORMATABLE':
-        this.handleNdefDiscoveredUseConnect(tech, command.sessionToken);
+        this.handleNdefDiscoveredUseConnect(tech, msg.sessionToken);
         break;
       default:
         this._debug('Unknown or unsupported tag type.' + tech +
                     'Fire Tag-Discovered.');
-        this.fireTagDiscovered(command);
+        this.fireTagDiscovered(msg);
         break;
     }
   },
@@ -454,17 +467,17 @@ var NfcManager = {
 
   formatTextRecord: function nm_formatTextRecord(record) {
     var status = record.payload[0];
-    var languageLength = status & NDEF.RTD_TEXT_IANA_LENGTH;
+    var langLen = status & NDEF.RTD_TEXT_IANA_LENGTH;
     var language = NfcUtils.toUTF8(
-                     record.payload.subarray(1, languageLength + 1));
-    var encoding = status & NDEF.RTD_TEXT_ENCODING;
+                     record.payload.subarray(1, langLen + 1));
+    var encoding = (status & NDEF.RTD_TEXT_ENCODING) !== 0 ? 1 : 0;
     var text;
     var encodingString;
-    if (encoding == NDEF.RTD_TEXT_UTF8) {
-      text = NfcUtils.toUTF8(record.payload.subarray(languageLength + 1));
+    if (encoding === NDEF.RTD_TEXT_UTF8) {
+      text = NfcUtils.toUTF8(record.payload.subarray(langLen + 1));
       encodingString = 'UTF-8';
-    } else if (encoding == NDEF.RTD_TEXT_UTF16) {
-      text = NfcUtils.toUTF16(record.payload.subarray(languageLength + 2));
+    } else if (encoding === NDEF.RTD_TEXT_UTF16) {
+      text = NfcUtils.UTF16BytesToString(record.payload.subarray(langLen + 1));
       encodingString = 'UTF-16';
     }
 
@@ -477,42 +490,44 @@ var NfcManager = {
   },
 
   formatURIRecord: function nm_formatURIRecord(record) {
-    this._debug('XXXX Handle Ndef URI type');
-    var options = null;
     var prefix = NDEF.URIS[record.payload[0]];
-    if (!prefix) {
+    if (prefix === undefined) {
+      this._debug('Handle NDEF URI: identifier not known.');
       return null;
     }
 
-    switch (prefix) {
-      case 'tel:':
-        var number = NfcUtils.toUTF8(record.payload.subarray(1));
-        this._debug('Handle Ndef URI type, TEL');
-        options = {
-          name: 'dial',
-          data: {
-            type: 'webtelephony/number',
-            number: number,
-            uri: prefix + number
-          }
-        };
-        break;
-      case 'http://www.':
-      case 'https://www.': // Fall through.
-      case 'http://':
-      case 'https://':
-        this._debug('Handle Ndef URI type, Http(s)');
-        options = this.createActivityOptionsWithType('url');
-        options.data.rtd = record.type;
-        options.data.url = prefix +
-                           NfcUtils.toUTF8(record.payload.subarray(1));
-        break;
-      default:
-        options = this.createActivityOptionsWithType('uri');
-        options.data.rtd = record.type;
-        options.data.uri = prefix +
-                           NfcUtils.toUTF8(record.payload.subarray(1));
-        break;
+    var options,
+        suffix = NfcUtils.toUTF8(record.payload.subarray(1)),
+        uri = prefix + suffix;
+
+    this._debug('Handle NDEF URI: ' + uri);
+
+    if (uri.indexOf('tel:') === 0) {
+      options = {
+        name: 'dial',
+        data: {
+          type: 'webtelephony/number',
+          number: suffix,
+          uri: uri
+        }
+      };
+    } else if (uri.indexOf('mailto:') === 0) {
+      options = {
+        name: 'new',
+        data: {
+          type: 'mail',
+          url: uri
+        }
+      };
+    } else if (uri.indexOf('http://') === 0 ||
+               uri.indexOf('https://') === 0) {
+      options = this.createActivityOptionsWithType('url');
+      options.data.rtd = record.type;
+      options.data.url = uri;
+    } else {
+      options = this.createActivityOptionsWithType('uri');
+      options.data.rtd = record.type;
+      options.data.uri = uri;
     }
 
     return options;

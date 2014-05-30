@@ -359,12 +359,18 @@ var MessageManager = {
   },
 
   // takes a formatted message in case you happen to have one
-  resendMessage: function mm_resendMessage(message, opts) {
-    var request;
+  resendMessage: function mm_resendMessage(opts) {
+    var message = opts.message;
+
+    if (!message) {
+      throw new Error('Message to resend is not defined.');
+    }
+
     var serviceId = Settings.getServiceIdByIccId(message.iccId);
     var sendOpts = this._getSendOptionsFromServiceId(serviceId);
     var onsuccess = opts.onsuccess;
     var onerror = opts.onerror;
+    var request;
 
     if (message.type === 'sms') {
       request = this._mozMobileMessage.send(

@@ -24,7 +24,8 @@ var MimeMapper,
     ConfirmDialog = common.ConfirmDialog,
     displaySubject = common.displaySubject,
     prettyDate = common.prettyDate,
-    prettyFileSize = common.prettyFileSize;
+    prettyFileSize = common.prettyFileSize,
+    mimeToClass = common.mimeToClass;
 var CONTENT_TYPES_TO_CLASS_NAMES = [
     null,
     'msg-body-content',
@@ -125,9 +126,8 @@ MessageReaderCard.prototype = {
     if (!this.header.isRead)
       this.header.setRead(true);
 
-    if (this.hackMutationHeader.isStarred)
-      this.domNode.getElementsByClassName('msg-star-btn')[0].classList
-             .add('msg-btn-active');
+    this.domNode.getElementsByClassName('msg-star-btn')[0].classList
+        .toggle('msg-star-btn-on', this.hackMutationHeader.isStarred);
 
     this.emit('header');
   },
@@ -363,10 +363,8 @@ MessageReaderCard.prototype = {
 
   onToggleStar: function() {
     var button = this.domNode.getElementsByClassName('msg-star-btn')[0];
-    if (!this.hackMutationHeader.isStarred)
-      button.classList.add('msg-btn-active');
-    else
-      button.classList.remove('msg-btn-active');
+    button.classList.toggle('msg-star-btn-on',
+                            !this.hackMutationHeader.isStarred);
 
     this.hackMutationHeader.isStarred = !this.hackMutationHeader.isStarred;
     this.header.setStarred(this.hackMutationHeader.isStarred);
@@ -919,6 +917,8 @@ MessageReaderCard.prototype = {
 
           var MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024;
           var attachmentDownloadable = true;
+          var mimeClass = mimeToClass(attachment.mimetype ||
+                          MimeMapper.guessTypeFromExtension(extension));
 
           if (attachment.isDownloaded) {
             state = 'downloaded';
@@ -940,6 +940,7 @@ MessageReaderCard.prototype = {
             attachment.sizeEstimateInBytes);
 
           var attachmentNode = attTemplate.cloneNode(true);
+          attachmentNode.classList.add(mimeClass);
           attachmentsContainer.replaceChild(attachmentNode, attNode);
 
           var downloadButton = attachmentNode.getElementsByClassName(

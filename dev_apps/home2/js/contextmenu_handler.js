@@ -4,7 +4,8 @@
 (function(exports) {
 
   function ContextMenuHandler() {
-    window.addEventListener('contextmenu', this);
+    this.container = document.getElementById('icons').parentNode;
+    this.container.addEventListener('contextmenu', this);
     window.addEventListener('hashchange', this);
   }
 
@@ -15,13 +16,8 @@
           // Prevent the click when the finger is released
           e.preventDefault();
 
-          var contextMenuEl = document.getElementById('contextmenu-dialog');
-          var resources = ['style/css/contextmenu.css',
-                           'shared/style/action_menu.css',
-                            contextMenuEl,
-                           'js/contextmenu_ui.js'];
+          var resources = ['js/contextmenu_ui.js'];
           LazyLoader.load(resources, function loaded() {
-            navigator.mozL10n.translate(contextMenuEl);
             contextMenuUI.show();
           });
 

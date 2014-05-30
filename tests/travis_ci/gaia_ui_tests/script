@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e
-DIR_TEST_ENV=travis_venv
 export GAIATEST_ACKNOWLEDGED_RISKS=true
 export GAIATEST_SKIP_WARNING=true
+source tests/travis_ci/venv.sh
 
 root=tests/python/gaia-ui-tests/gaiatest
 b2g=`find b2g -follow -name "b2g-bin" | tail -n 1`
@@ -10,7 +10,6 @@ profile=profile
 gaiatest="python $root/cli.py"
 
 echo "run the tests!"
-. $DIR_TEST_ENV/bin/activate
 $gaiatest --app=b2gdesktop \
           --binary=$b2g \
           --profile=$profile \

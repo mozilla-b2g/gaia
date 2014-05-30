@@ -1,8 +1,6 @@
 /* global PermissionManager, MocksHelper, MockL10n*/
 'use strict';
 
-mocha.globals(['PermissionManager', 'dispatchEvent']);
-
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/template.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');

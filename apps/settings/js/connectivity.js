@@ -92,9 +92,6 @@ var Connectivity = (function(window, document, undefined) {
   /**
    * Wifi Manager
    */
-
-  var wifiDesc = document.getElementById('wifi-desc');
-
   function updateWifi() {
     if (!wifiManager) {
       return;
@@ -103,6 +100,8 @@ var Connectivity = (function(window, document, undefined) {
       init();
       return; // init will call updateWifi()
     }
+
+    var wifiDesc = document.getElementById('wifi-desc');
 
     // If the MAC address is in the Settings database, it's already displayed in
     // all `MAC address' fields; if not, it will be set as soon as the Wi-Fi is
@@ -257,16 +256,3 @@ var Connectivity = (function(window, document, undefined) {
     set wifiStatusChange(listener) { wifiStatusChangeListeners.push(listener); }
   };
 })(this, document);
-
-
-// starting when we get a chance
-navigator.mozL10n.once(function loadWhenIdle() {
-  var idleObserver = {
-    time: 3,
-    onidle: function() {
-      Connectivity.init();
-      navigator.removeIdleObserver(idleObserver);
-    }
-  };
-  navigator.addIdleObserver(idleObserver);
-});

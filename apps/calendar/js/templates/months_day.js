@@ -14,8 +14,7 @@
 
       var containerClassList = [
         'container',
-        'calendar-id-' + calendarId,
-        'calendar-color'
+        'calendar-id-' + calendarId
       ].join(' ');
 
       this.eventTime = function() {

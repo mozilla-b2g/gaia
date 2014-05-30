@@ -495,6 +495,7 @@
                 '</div>' +
               '</div>' +
               '<div class="fade-overlay"></div>' +
+              '<div class="touch-blocker"></div>' +
            '</div>';
   };
 
@@ -1073,7 +1074,8 @@
                   detail: detail || this
                 });
 
-    this.debug(' publishing external event: ' + event);
+    this.debug(' publishing external event: ' + event +
+      JSON.stringify(detail));
 
     // Publish external event.
     window.dispatchEvent(evt);

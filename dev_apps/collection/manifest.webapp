@@ -11,7 +11,8 @@
   "permissions": {
     "open-remote-window":{},
     "webapps-manage": {},
-    "settings":{ "access": "readwrite" }
+    "settings":{ "access": "readwrite" },
+    "systemXHR":{}
   },
   "activities": {
     "create-collection": {

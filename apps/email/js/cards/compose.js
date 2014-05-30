@@ -25,7 +25,8 @@ var templateNode = require('tmpl!./compose.html'),
 
     prettyFileSize = common.prettyFileSize,
     Cards = common.Cards,
-    ConfirmDialog = common.ConfirmDialog;
+    ConfirmDialog = common.ConfirmDialog,
+    mimeToClass = common.mimeToClass;
 
 /**
  * Max composer attachment size is defined as 5120000 bytes.
@@ -59,6 +60,8 @@ function focusInputAndPositionCursorFromContainerClick(event, input) {
   }
   input.setSelectionRange(cursorPos, cursorPos);
 }
+
+
 
 /**
  * Composer card; wants an initialized message composition object when it is
@@ -683,11 +686,13 @@ ComposeCard.prototype = {
 
       for (var i = 0; i < this.composer.attachments.length; i++) {
         var attachment = this.composer.attachments[i];
+
         filenameTemplate.textContent = attachment.name;
         filesizeTemplate.textContent = prettyFileSize(attachment.blob.size);
         var attachmentNode = attTemplate.cloneNode(true);
         attachmentsContainer.appendChild(attachmentNode);
 
+        attachmentNode.classList.add(mimeToClass(attachment.blob.type));
         attachmentNode.getElementsByClassName('cmp-attachment-remove')[0]
           .addEventListener('click',
                             this.onClickRemoveAttachment.bind(

@@ -6,7 +6,6 @@ apps/browser/js/browser_db.js
 apps/browser/js/modal_dialog.js
 apps/browser/js/nfc.js
 apps/browser/js/settings.js
-apps/browser/js/toolbar.js
 apps/browser/test/marionette/awesomescreen_test.js
 apps/browser/test/marionette/contextmenu_test.js
 apps/browser/test/marionette/lib/browser.js
@@ -17,7 +16,6 @@ apps/browser/test/marionette/settings_test.js
 apps/browser/test/marionette/share_url_test.js
 apps/browser/test/unit/browser_db_test.js
 apps/callscreen/js/bluetooth_helper.js
-apps/callscreen/js/call_screen.js
 apps/callscreen/js/calls_handler.js
 apps/callscreen/js/fake-oncall-desktop.js
 apps/callscreen/js/index.js
@@ -299,8 +297,6 @@ apps/music/js/music.js
 apps/music/js/open.js
 apps/music/js/utils.js
 apps/music/test/unit/remote_controls_test.js
-apps/ringtones/js/pick.js
-apps/setringtone/js/share.js
 apps/settings/js/about.js
 apps/settings/js/about_more_info.js
 apps/settings/js/airplane_mode.js
@@ -423,7 +419,6 @@ apps/system/js/sheets_transition.js
 apps/system/js/sim_lock.js
 apps/system/js/simslot.js
 apps/system/js/simslot_manager.js
-apps/system/js/sleep_menu.js
 apps/system/js/sound_manager.js
 apps/system/js/statusbar.js
 apps/system/js/storage_watcher.js
@@ -454,7 +449,6 @@ apps/system/test/marionette/notification_get_test.js
 apps/system/test/marionette/notification_launch_app.js
 apps/system/test/marionette/notification_test.js
 apps/system/test/unit/app_install_manager_test.js
-apps/system/test/unit/app_modal_dialog_test.js
 apps/system/test/unit/async_semaphore_test.js
 apps/system/test/unit/battery_manager_test.js
 apps/system/test/unit/bluetooth_transfer_test.js
@@ -515,14 +509,12 @@ apps/system/test/unit/mock_keyboard_manager.js
 apps/system/test/unit/mock_lock_screen.js
 apps/system/test/unit/mock_media_files.js
 apps/system/test/unit/mock_modal_dialog.js
-apps/system/test/unit/mock_navigator_moz_power.js
 apps/system/test/unit/mock_navigator_moz_voicemail.js
 apps/system/test/unit/mock_notification_screen.js
 apps/system/test/unit/mock_orientation_manager.js
 apps/system/test/unit/mock_screen_layout.js
 apps/system/test/unit/mock_settingslistener_installer.js
 apps/system/test/unit/mock_sheets_transition.js
-apps/system/test/unit/mock_sleep_menu.js
 apps/system/test/unit/mock_stack_manager.js
 apps/system/test/unit/mock_statusbar.js
 apps/system/test/unit/mock_template.js

@@ -1,8 +1,6 @@
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
-mocha.globals(['UtilityTray', 'lockScreen']);
-
 requireApp('system/test/unit/mock_lock_screen.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([

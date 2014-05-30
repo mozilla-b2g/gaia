@@ -12,8 +12,6 @@ require('/shared/js/contacts/import/facebook/fb_data.js');
 require('/shared/test/unit/mocks/mock_navigator_datastore.js');
 require('/shared/test/unit/mocks/mock_moz_phone_number_service.js');
 
-mocha.globals(['SimplePhoneMatcher', 'TelIndexer', 'Node', 'utils']);
-
 var realDatastore, realPhoneNumberService;
 
 if (!window.realDatastore) {

@@ -32,24 +32,48 @@ function setWallpaper(settings, config) {
   settings['wallpaper.image'] = utils.getFileAsDataURI(wallpaper);
 }
 
-function setRingtone(settings, config) {
-  // Grab ringer_classic_courier.opus and convert it into a base64 string
-  let ringtone_name = 'shared/resources/media/ringtones/' +
-    'ringer_classic_courier.opus';
-  let ringtone = utils.resolve(ringtone_name,
+function setTone(settings, config, settingsKey, dir, name) {
+  let tone = utils.resolve(dir + name, config.GAIA_DIR);
+
+  settings[settingsKey] = utils.getFileAsDataURI(tone);
+  settings[settingsKey + '.name'] = {l10nID: name.replace(/\.\w+$/, '')};
+  settings[settingsKey + '.id'] = settings[settingsKey + '.default.id'] =
+    'builtin:' + name.replace(/\.\w+$/, '');
+}
+
+function setMediatone(settings, config) {
+  // Grab ac_classic_clock_alarm.opus and convert it into a base64 string
+  let mediatone_name = 'shared/resources/media/notifications/' +
+    'notifier_bop.opus';
+  let mediatone = utils.resolve(mediatone_name,
     config.GAIA_DIR);
 
-  settings['dialer.ringtone'] = utils.getFileAsDataURI(ringtone);
-  settings['dialer.ringtone.name'] = 'Classic Courier';
+  settings['media.ringtone'] = utils.getFileAsDataURI(mediatone);
+}
+
+function setAlarmtone(settings, config) {
+  // Grab ac_classic_clock_alarm.opus and convert it into a base64 string
+  let alarmtone_name = 'shared/resources/media/alarms/' +
+    'ac_classic_clock_alarm.opus';
+  let alarmtone = utils.resolve(alarmtone_name,
+    config.GAIA_DIR);
+
+  settings['alarm.ringtone'] = utils.getFileAsDataURI(alarmtone);
+}
+
+function setRingtone(settings, config) {
+  // Grab ringer_classic_courier.opus and convert it into a base64 string
+  let ringtone_dir = 'shared/resources/media/ringtones/';
+  let ringtone_name = 'ringer_classic_courier.opus';
+  setTone(settings, config, 'dialer.ringtone', ringtone_dir, ringtone_name);
 }
 
 function setNotification(settings, config) {
   // Grab notifier_bell.opus and convert it into a base64 string
-  let notification_name = 'shared/resources/media/notifications/' +
-    'notifier_bell.opus';
-  let notification = utils.resolve(notification_name,
-    config.GAIA_DIR);
-  settings['notification.ringtone'] = utils.getFileAsDataURI(notification);
+  let notification_dir = 'shared/resources/media/notifications/';
+  let notification_name = 'notifier_bell.opus';
+  setTone(settings, config, 'notification.ringtone', notification_dir,
+          notification_name);
 }
 
 /* Setup the default keyboard layouts according to the current language */
@@ -108,6 +132,22 @@ function deviceTypeSettings(settings, config) {
   }
 }
 
+function overrideRingtoneSettings(content, key) {
+  // Override ringtone if ringtone, ringtone name, and ringtone ID properties
+  // are available.
+  if (content[key] && content[key + '.name'] && content[key + '.id']) {
+    content[key + '.default.id'] = content[key + '.id'];
+  } else if (content[key] || content[key + '.name'] || content[key + '.id']) {
+    delete content[key];
+    delete content[key + '.name'];
+    delete content[key + '.id'];
+    delete content[key + '.default.id'];
+    throw new Error('ringtone not overridden because ' + key + ', ' +
+                    key + '.name, or ' + key + '.id not found in custom ' +
+                    '\'settings.json\'. All properties must be set.');
+  }
+}
+
 function overrideSettings(settings, config) {
   // See if any override file exists and eventually override settings
   let override = utils.resolve(config.SETTINGS_PATH,
@@ -115,15 +155,8 @@ function overrideSettings(settings, config) {
   if (override.exists()) {
     let content = utils.getJSON(override);
 
-    // Override ringtone if both ringtone and ringtone name properties are available
-    if (content['dialer.ringtone'] && !content['dialer.ringtone.name'] ||
-        !content['dialer.ringtone'] && content['dialer.ringtone.name']) {
-      delete content['dialer.ringtone'];
-      delete content['dialer.ringtone.name'];
-      throw new Error('ringtone not overrided because dialer.ringtone or ' +
-                      'dialer.ringtone.name not found in custom \'settings.json\'. ' +
-                      'Both properties must be set.');
-    }
+    overrideRingtoneSettings(content, 'dialer.ringtone');
+    overrideRingtoneSettings(content, 'notification.ringtone');
 
     for (let key in content) {
       settings[key] = content[key];
@@ -223,6 +256,10 @@ function execute(config) {
   var result = queue.promise.then(function() {
     setWallpaper(settings, config);
   }).then(function() {
+    setMediatone(settings, config);
+  }).then(function() {
+    setAlarmtone(settings, config);
+  }).then(function() {
     setRingtone(settings, config);
   }).then(function() {
     setNotification(settings, config);
@@ -245,6 +282,8 @@ function execute(config) {
 }
 exports.execute = execute;
 exports.setWallpaper = setWallpaper;
+exports.setMediatone = setMediatone;
+exports.setAlarmtone = setAlarmtone;
 exports.setRingtone = setRingtone;
 exports.setNotification = setNotification;
 exports.deviceTypeSettings = deviceTypeSettings;

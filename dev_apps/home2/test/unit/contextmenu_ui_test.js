@@ -2,8 +2,6 @@
 
 /* global contextMenuUI, wallpaper, MocksHelper */
 
-mocha.globals(['contextMenuUI']);
-
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/load_body_html_helper.js');
 requireApp('home2/js/wallpaper.js');
@@ -21,10 +19,6 @@ suite('contextmenu_ui.js >', function() {
     loadBodyHTML('/index.html');
   });
 
-  suiteTemplate('contextmenu-dialog', {
-    id: 'contextmenu-dialog'
-  });
-
   setup(function(done) {
     requireApp('home2/js/contextmenu_ui.js', done);
   });
@@ -34,16 +28,11 @@ suite('contextmenu_ui.js >', function() {
   });
 
   function assertDisplayed() {
-    assert.isTrue(contextMenuUI.displayed);
-    assert.isTrue(contextMenuUI.dialog.classList.contains('visible'));
-    assert.isTrue(contextMenuUI.dialog.classList.contains('show'));
+    assert.isTrue(!contextMenuUI.dialog.hasAttribute('hidden'));
   }
 
   function assertHidden() {
-    assert.isFalse(contextMenuUI.displayed);
-    assert.isFalse(contextMenuUI.dialog.classList.contains('show'));
-    contextMenuUI.dialog.dispatchEvent(new CustomEvent('transitionend'));
-    assert.isFalse(contextMenuUI.dialog.classList.contains('visible'));
+    assert.isTrue(contextMenuUI.dialog.hasAttribute('hidden'));
   }
 
   test(' Show and hide context menu', function() {
@@ -62,13 +51,13 @@ suite('contextmenu_ui.js >', function() {
     });
 
     contextMenuUI.show();
-    contextMenuUI.menu.querySelector('#change-wallpaper-action').click();
+    contextMenuUI.dialog.querySelector('#change-wallpaper-action').click();
     assertHidden();
   });
 
   test(' Cancel action', function() {
     contextMenuUI.show();
-    contextMenuUI.menu.querySelector('#cancel-action').click();
+    contextMenuUI.dialog.dispatchEvent(new CustomEvent('gaiamenu-cancel'));
     assertHidden();
   });
 

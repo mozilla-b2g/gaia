@@ -45,7 +45,6 @@ section[role="region"] {
  */
 section[role="region"] {
   transform: translateX(+100%);
-  transition: transform .4s ease, visibility .4s;
   visibility: hidden;
   height: 0;
 }
@@ -58,8 +57,18 @@ section[role="region"].previous {
 section[role="region"].current {
   transform: translateX(0);
   visibility: visible;
-  transition: transform .4s ease;
   height: 100%;
+}
+
+/**
+ * Only use the animation when ready
+ */
+body[data-ready="true"] section[role="region"] {
+  transition: transform .4s ease, visibility .4s;
+}
+
+body[data-ready="true"] section[role="region"].current {
+  transition: transform .4s ease;
 }
 
 /**
@@ -525,6 +534,8 @@ ul li > label.range-icons.volume input {
   position: inherit;
   margin-left: 5.8rem;
   width: calc(100% - 7.5rem);
+  opacity: 0;
+  transition: opacity .6s ease 0s;
 }
 
 /******************************************************************************

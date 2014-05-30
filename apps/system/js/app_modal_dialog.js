@@ -1,3 +1,4 @@
+/* global AppModalDialog, AirplaneMode */
 'use strict';
 
 (function(window) {
@@ -97,7 +98,7 @@
   };
 
   AppModalDialog.prototype.getTitle = function amd_getTitle() {
-    if (AirplanMode && AirplaneMode.enabled) {
+    if (AirplaneMode && AirplaneMode.enabled) {
       return _('airplane-is-on');
     } else if (!navigator.onLine) {
       return _('network-connection-unavailable');
@@ -207,8 +208,9 @@
 
   // Show relative dialog and set message/input value well
   AppModalDialog.prototype.show = function amd_show() {
-    if (!this.events.length)
+    if (!this.events.length) {
       return;
+    }
 
     var evt = this.events[0];
 
@@ -218,7 +220,7 @@
 
     function escapeHTML(str) {
       var stringHTML = str;
-      stringHTML = stringHTML.replace(/\</g, '&#60;');
+      stringHTML = stringHTML.replace(/</g, '&#60;');
       stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
       stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
 
@@ -320,14 +322,16 @@
     this.element.blur();
     this.app.browser.element.removeAttribute('aria-hidden');
     this.element.classList.remove('visible');
-    if (this.app)
+    if (this.app) {
       this.app.focus();
-    if (!this.events.length)
+    }
+    if (!this.events.length) {
       return;
+    }
 
     var evt = this.events[0];
     var type = evt.detail.promptType;
-    if (type == 'prompt') {
+    if (type === 'prompt') {
       this.elements.promptInput.blur();
     }
     this.elements[type].classList.remove('visible');
@@ -336,8 +340,9 @@
   // When user clicks OK button on alert/confirm/prompt
   AppModalDialog.prototype.confirmHandler =
     function amd_confirmHandler(clickEvt) {
-      if (!this.events.length)
+      if (!this.events.length) {
         return;
+      }
 
       clickEvt.preventDefault();
 
@@ -365,15 +370,17 @@
           var returnValue = {
             selectedButton: clickEvt.target.dataset.buttonIndex
           };
-          if (evt.detail.showCheckbox)
+          if (evt.detail.showCheckbox) {
             returnValue.checked = elements.customPromptCheckbox.checked;
+          }
           evt.detail.returnValue = returnValue;
           elements.customPrompt.classList.remove('visible');
           break;
       }
 
-      if (evt.detail.unblock)
+      if (evt.detail.unblock) {
         evt.detail.unblock();
+      }
 
       this.processNextEvent();
     };
@@ -382,8 +389,9 @@
   // when the user try to escape the dialog with the escape key
   AppModalDialog.prototype.cancelHandler =
     function amd_cancelHandler(clickEvt) {
-      if (!this.events.length)
+      if (!this.events.length) {
         return;
+      }
 
       clickEvt.preventDefault();
       var evt = this.events[0];
@@ -414,8 +422,9 @@
           break;
       }
 
-      if (evt.detail.unblock)
+      if (evt.detail.unblock) {
         evt.detail.unblock();
+      }
 
       this.processNextEvent();
     };
@@ -423,8 +432,9 @@
   // When user selects an option on selectone dialog
   AppModalDialog.prototype.selectOneHandler =
     function amd_selectOneHandler(target) {
-      if (!this.events.length)
+      if (!this.events.length) {
         return;
+      }
 
       var elements = this.elements;
 
@@ -433,8 +443,9 @@
       evt.detail.returnValue = target.id;
       elements.selectOne.classList.remove('visible');
 
-      if (evt.detail.unblock)
+      if (evt.detail.unblock) {
         evt.detail.unblock();
+      }
 
       this.processNextEvent();
     };

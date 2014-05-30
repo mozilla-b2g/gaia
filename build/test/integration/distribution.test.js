@@ -93,7 +93,7 @@ suite('Distribution mechanism', function() {
         'known_networks':'/resources/mobizilla_known_networks.json',
         'nfc':'/resources/mobizilla_nfc.json',
         'sms':'/resources/mobizilla_sms.json',
-        'ringtone':'/resources/ringtone-7478fc5ffc5d40c2ae7a3f984c8d9f3b331a4e35.json',
+        'ringtone':'/resources/ringtone-8261e854cb494bf7f3a2a25510e595931244292a.json',
         'power':'/resources/power-0ccc24f04b44aaadc8962735b5f86eabc5bb71e6.json',
         'data_ftu':true
     };
@@ -120,7 +120,7 @@ suite('Distribution mechanism', function() {
       path.join(cusDir, 'mobizilla', 'mobizilla_nfc.json'));
     helper.checkFileInZip(zipPath, 'resources/mobizilla_sms.json',
       path.join(cusDir, 'mobizilla', 'mobizilla_sms.json'));
-    helper.checkFileInZip(zipPath, 'resources/ringtone-7478fc5ffc5d40c2ae7a3f984c8d9f3b331a4e35.json',
+    helper.checkFileInZip(zipPath, 'resources/ringtone-8261e854cb494bf7f3a2a25510e595931244292a.json',
       path.join(cusDir, 'mobizilla', 'mobizilla_expected_ringtone.json'));
     helper.checkFileInZip(zipPath, 'resources/power-0ccc24f04b44aaadc8962735b5f86eabc5bb71e6.json',
       path.join(cusDir, 'mobizilla', 'mobizilla_expected_power.json'));

@@ -26,7 +26,8 @@
       "default_contacts": "mobizilla/mobizilla_contacts.json",
       "ringtone": {
         "path": "mobizilla/mobizilla_ringtone.ogg",
-        "name": "Mobizilla ringtone"
+        "name": "Mobizilla ringtone",
+        "id": "builtin:mobizilla_ringtone"
       },
       "wallpaper": "mobizilla/mobizilla_wallpaper.png",
       "power": {

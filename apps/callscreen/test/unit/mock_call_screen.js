@@ -90,6 +90,7 @@ var MockCallScreen = {
   calls: document.createElement('div'),
   screen: document.createElement('div'),
   incomingContainer: document.createElement('div'),
+  incomingInfo: document.createElement('div'),
   incomingNumber: document.createElement('div'),
   incomingSim: document.createElement('div'),
   incomingNumberAdditionalInfo: document.createElement('span'),
@@ -119,6 +120,7 @@ var MockCallScreen = {
     this.calls = document.createElement('div');
     this.screen = document.createElement('div');
     this.incomingContainer = document.createElement('div');
+    this.incomingInfo = document.createElement('div');
     this.incomingNumber = document.createElement('div');
     this.incomingNumberAdditionalInfo = document.createElement('span');
     this.mGroupDetailsShown = false;
@@ -126,5 +128,3 @@ var MockCallScreen = {
     this.mSetEndConferenceCall = false;
   }
 };
-
-

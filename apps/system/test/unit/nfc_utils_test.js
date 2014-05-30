@@ -63,6 +63,24 @@ suite('NFC Utils', function() {
     assert.equal(nullStr, null);
   });
 
+  suite('String <> byte conversions', function() {
+    test('UTF16BytesToString', function() {
+      assert.equal('©', NfcUtils.UTF16BytesToString([0xFE, 0xFF, 0x00, 0xA9]));
+      assert.equal('©', NfcUtils.UTF16BytesToString([0xFF, 0xFE, 0xA9, 0x00]));
+      assert.equal('ą', NfcUtils.UTF16BytesToString([0x01, 0x05]));
+
+      var foxArr = [0x00, 0x42, 0x00, 0x69, 0x00, 0x67, 0x00, 0x20, 0x00, 0x62,
+                    0x00, 0x72, 0x00, 0x6F, 0x00, 0x77, 0x00, 0x6E, 0x00, 0x20,
+                    0x00, 0x66, 0x00, 0x6F, 0x00, 0x78, 0x00, 0x21, 0x00, 0x20,
+                    0x00, 0x44, 0x00, 0x75, 0x01, 0x7C, 0x00, 0x79, 0x00, 0x20,
+                    0x00, 0x62, 0x00, 0x72, 0x01, 0x05, 0x00, 0x7A, 0x00, 0x6F,
+                    0x00, 0x77, 0x00, 0x79, 0x00, 0x20, 0x00, 0x6C, 0x00, 0x69,
+                    0x00, 0x73, 0x00, 0x3F];
+      var foxTxt = 'Big brown fox! Duży brązowy lis?';
+      assert.equal(foxTxt, NfcUtils.UTF16BytesToString(foxArr));
+    });
+  });
+
   suite('NDEF Conversions', function() {
     var urlNDEF; // MozNDEFRecord
     var urlU8a; // Uint8Array
@@ -158,5 +176,84 @@ suite('NFC Utils', function() {
       var equal1 = NfcUtils.equalArrays(hsNDEFU8a2, hsNDEFU8a1);
       assert.equal(equal1, true);
     });
+  });
+});
+
+suite('NfcBuffer', function() {
+  var arr;
+  var buf;
+
+  setup(function() {
+    arr = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    buf = new NfcBuffer(arr);
+  });
+
+  test('getOctet()', function() {
+    assert.equal(0, buf.getOctet());
+    assert.equal(1, buf.getOctet());
+    assert.equal(2, buf.getOctet());
+    assert.equal(3, buf.getOctet());
+  });
+
+  test('getOctetArray()', function() {
+    assert.deepEqual([0, 1, 2], buf.getOctetArray(3));
+    assert.deepEqual([3], buf.getOctetArray(1));
+    assert.deepEqual([4, 5, 6, 7], buf.getOctetArray(4));
+    assert.deepEqual([], buf.getOctetArray(0));
+  });
+
+  test('skip()', function() {
+    buf.skip(2);
+    assert.equal(2, buf.getOctet());
+    buf.skip(3);
+    assert.equal(6, buf.getOctet());
+    buf.skip(0);
+    assert.equal(7, buf.getOctet());
+  });
+
+  test('len is required', function() {
+    assert.throws(function() {
+      buf.getOctetArray();
+    });
+
+    assert.throws(function() {
+      buf.skip();
+    });
+  });
+
+  test('getOctetArray() throws when len is negative', function() {
+    assert.throws(function() {
+      buf.getOctetArray(-1);
+    }, Error);
+  });
+
+  test('skip() throws when len is negative', function() {
+    assert.throws(function() {
+      buf.skip(-1);
+    });
+  });
+
+  test('getOctetArray() throws on attempt to read too many octets',
+    function() {
+
+    assert.throws(function() {
+      buf.getOctetArray(arr.length + 1);
+    }, Error);
+  });
+
+  test('getOctet() throws on attempt to read after last octet', function() {
+    buf.skip(arr.length);
+
+    assert.throws(function() {
+      buf.getOctet();
+    }, Error);
+  });
+
+  test('skip() throws when after last octet', function() {
+    buf.skip(arr.length);
+
+    assert.throws(function() {
+      buf.skip(1);
+    }, Error);
   });
 });

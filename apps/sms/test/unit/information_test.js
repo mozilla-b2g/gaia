@@ -82,20 +82,23 @@ suite('Information view', function() {
 
     suite('view show/reset status', function() {
       test('view status before show method', function() {
-        assert.isFalse(reportView.parent.classList.contains('information'));
+        assert.isFalse(reportView.parent.classList.contains(
+          reportView.name + '-information'));
         assert.isTrue(reportView.container.classList.contains('hide'));
       });
 
       test('view status after show method', function() {
         this.sinon.stub(reportView, 'render');
         reportView.show();
-        assert.isTrue(reportView.parent.classList.contains('information'));
+        assert.isTrue(reportView.parent.classList.contains(
+          reportView.name + '-information'));
         assert.isFalse(reportView.container.classList.contains('hide'));
       });
 
       test('view status after reset method', function() {
         reportView.reset();
-        assert.isFalse(reportView.parent.classList.contains('information'));
+        assert.isFalse(reportView.parent.classList.contains(
+          reportView.name + '-information'));
         assert.isTrue(reportView.container.classList.contains('hide'));
       });
     });
@@ -389,6 +392,34 @@ suite('Information view', function() {
       sinon.assert.calledWith(navigator.mozL10n.localize,
         reportView.contactTitle, 'report-from');
       sinon.assert.called(reportView.renderContactList);
+    });
+
+    test('Incoming Message with valid sent timestamp', function() {
+      messageOpts = {
+        delivery: 'received',
+        sentTimestamp: Date.now()
+      };
+
+      reportView.id = 1;
+      reportView.render();
+
+      assert.isFalse(
+        reportView.container.classList.contains('no-valid-sent-timestamp')
+      );
+    });
+
+    test('Incoming Message with invalid sent timestamp', function() {
+      messageOpts = {
+        delivery: 'received',
+        sentTimestamp: 0
+      };
+
+      reportView.id = 1;
+      reportView.render();
+
+      assert.isTrue(
+        reportView.container.classList.contains('no-valid-sent-timestamp')
+      );
     });
 
     suite('Message report with SIM information', function() {

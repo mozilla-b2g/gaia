@@ -34,5 +34,11 @@
       "readonly": true,
       "description": "Display collections"
     }
+  },
+  "datastores-owned": {
+    "vertical_preferences_store": {
+      "access": "readwrite",
+      "description": "Stores preferences"
+    }
   }
 }

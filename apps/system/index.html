@@ -55,7 +55,7 @@
 
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
-    <link rel="stylesheet" type="text/css" href="shared/style_unstable/input_areas.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/value_selector.css">
@@ -143,13 +143,16 @@
     <script defer src="js/uuid.js"></script>
     <script defer src="js/ftu_ping.js"></script>
 
+    <!-- Basket newsletter -->
+    <script defer src="/shared/js/basket_client.js"></script>
+    <script defer src="js/newsletter_manager.js"></script>
+
     <!-- ICC/STK -->
     <!-- This depends on ftu_launcher.js, please load it in order ;) -->
     <link rel="stylesheet" type="text/css" href="style/icc.css">
     <script defer src="js/icc_events.js"></script>
     <script defer src="js/icc_worker.js"></script>
     <script defer src="js/icc.js"></script>
-    <script defer src="js/stkTester.js"></script>
 
     <!-- Media Playback -->
     <script defer src="js/media_playback.js"></script>
@@ -215,6 +218,11 @@
       <script src="shared/js/download/download_store.js"></script>
     -->
 
+    <!-- Nfc -->
+    <script defer src="js/ndef_utils.js"></script>
+    <script defer src="js/nfc_handover_manager.js"></script>
+    <script defer src="js/nfc_manager.js"></script>
+
     <!-- Cards View -->
     <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
     <script defer src="js/cards_helper.js"></script>
@@ -229,11 +237,6 @@
 
     <!-- Wifi -->
     <script defer src="js/wifi.js"></script>
-
-    <!-- Nfc -->
-    <script defer src="js/ndef_utils.js"></script>
-    <script defer src="js/nfc_handover_manager.js"></script>
-    <script defer src="js/nfc_manager.js"></script>
 
     <!-- Radio  -->
     <script defer src="js/radio.js"></script>
@@ -461,7 +464,7 @@
             <input id="rocketbar-input" type="text" x-inputmode="verbatim"
               placeholder="Search or enter address" data-l10n-id="search-or-enter-address" value="">
             </input>
-            <button type="reset" id="rocketbar-cancel" data-l10n-id="close">Close</button>
+            <button id="rocketbar-cancel" data-l10n-id="close">Close</button>
           </form>
         </div>
         <!-- Statusbar icons -->
@@ -515,7 +518,9 @@
       </div>
 
       <!-- Rocketbar Results -->
-      <div id="rocketbar-backdrop" class="hidden" data-z-index-level="rocketbar-results"></div>
+      <div id="rocketbar-backdrop" class="hidden" data-z-index-level="rocketbar-results">
+        <div id="rocketbar-backdrop-cover"></div>
+      </div>
       <div id="rocketbar-results" class="hidden" data-z-index-level="rocketbar-results"></div>
 
       <!-- Utility Tray -->
@@ -529,7 +534,7 @@
 
         <div id="notifications-container">
           <!-- Update Manager -->
-          <div id="update-manager-container" class="fake-notification">
+          <div id="update-manager-container" class="fake-notification" role="link">
             <div class="icon">
             </div>
             <div class="activity">
@@ -538,7 +543,7 @@
             </div>
           </div>
           <!-- Emergency callback Manager -->
-          <div id="emergency-callback-notification" class="fake-notification" hidden>
+          <div id="emergency-callback-notification" class="fake-notification" hidden role="link">
             <div class="icon">
             </div>
             <div class="message" data-l10n-id="emergency-callback-mode">
@@ -547,7 +552,7 @@
             </div>
           </div>
           <!-- Storage watcher notification -->
-          <div id="storage-watcher-container" class="fake-notification">
+          <div id="storage-watcher-container" class="fake-notification" role="link">
             <div class="icon">
             </div>
             <div class="message">
@@ -562,15 +567,15 @@
               </div>
               <div class="albumart">
               </div>
-              <div class="title">
+              <div class="title" data-l10n-id="mediaPlaybackTitle">
               </div>
-              <div class="artist">
+              <div class="artist" data-l10n-id="mediaPlaybackArtist">
               </div>
             </div>
-            <div class="media-playback-controls">
-              <button class="previous"></button>
+            <div class="media-playback-controls" role="toolbar" data-l10n-id="mediaPlaybackControls">
+              <button class="previous" data-l10n-id="mediaPlaybackPrevious"></button>
               <button class="play-pause"></button>
-              <button class="next"></button>
+              <button class="next" data-l10n-id="mediaPlaybackNext"></button>
             </div>
           </div>
           <!-- App Install Manager -->
@@ -581,7 +586,7 @@
           </div>
           <!-- Another entry to show IME list when the keyboard is activated -->
           <div id="keyboard-show-ime-list">
-            <div class="fake-notification">
+            <div class="fake-notification" role="link">
                 <div class="message">
                 </div>
                 <div class="tip">
@@ -589,7 +594,7 @@
             </div>
           </div>
           <!-- media recording status -->
-          <div id="media-recoding-status-list">
+          <div id="media-recoding-status-list" role="list">
           </div>
 
           <div id="desktop-notifications-container">
@@ -600,19 +605,19 @@
         <div id="cost-control-widget"></div>
 
         <!-- quick settings -->
-        <div id="quick-settings">
-          <a href="#" id="quick-settings-wifi" data-enabled="false"></a>
+        <div id="quick-settings" role="toolbar">
+          <a href="#" id="quick-settings-wifi" data-enabled="false" role="button"></a>
           <div class="separator"></div>
-          <a href="#" id="quick-settings-data" data-enabled="false"></a>
+          <a href="#" id="quick-settings-data" data-enabled="false" role="button"></a>
           <div class="separator"></div>
-          <a href="#" id="quick-settings-bluetooth" data-enabled="false"></a>
+          <a href="#" id="quick-settings-bluetooth" data-enabled="false" role="button"></a>
           <div class="separator"></div>
-          <a href="#" id="quick-settings-airplane-mode" data-enabled="false"></a>
+          <a href="#" id="quick-settings-airplane-mode" data-enabled="false" role="button"></a>
           <div class="separator"></div>
-          <a href="#" id="quick-settings-full-app" data-enabled="false"></a>
+          <a href="#" id="quick-settings-full-app" data-enabled="false" role="button" data-l10n-id="settingsButton"></a>
         </div>
 
-        <div id="utility-tray-grippy" role="button">
+        <div id="utility-tray-grippy" role="button" data-l10n-id="utilityTrayGrippy">
         </div>
       </div>
 
@@ -1081,14 +1086,14 @@
         <div id="attention-bar"></div>
       </div>
 
-      <div id="update-manager-toaster" data-z-index-level="notification-toaster">
+      <div id="update-manager-toaster" data-z-index-level="notification-toaster" aria-live="assertive" aria-atomic="true">
         <div class="icon">
         </div>
         <div class="message">
         </div>
       </div>
 
-      <div id="emergency-callback-toaster" data-z-index-level="notification-toaster" hidden>
+      <div id="emergency-callback-toaster" data-z-index-level="notification-toaster" hidden role="link" aria-live="assertive" aria-atomic="true">
         <div class="icon">
         </div>
         <div class="message" data-l10n-id="emergency-callback-mode">
@@ -1097,8 +1102,8 @@
         </div>
       </div>
 
-      <div id="notification-toaster" data-z-index-level="notification-toaster">
-        <img id="toaster-icon" />
+      <div id="notification-toaster" data-z-index-level="notification-toaster" role="link" aria-live="assertive" aria-atomic="true">
+        <img id="toaster-icon" role="presentation"/>
         <div id="toaster-title"></div>
         <div id="toaster-detail"></div>
       </div>
@@ -1179,6 +1184,7 @@
           </section>
           <menu>
               <button type="button" data-l10n-id="help" id="icc-input-btn_help">Help</button>
+              <button type="button" data-l10n-id="close" id="icc-input-btn_close">Close</button>
               <button type="button" data-l10n-id="back" id="icc-input-btn_back">Back</button>
               <span class="yesnodisabled">
                 <button type="button" data-l10n-id="ok" id="icc-input-btn" class="recommend">OK</button>

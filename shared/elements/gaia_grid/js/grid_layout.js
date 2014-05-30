@@ -1,5 +1,7 @@
 'use strict';
 
+/* global verticalPreferences */
+
 (function(exports) {
 
   const maxIconsPerRow = 4;
@@ -20,6 +22,18 @@
 
   function GridLayout(gridView) {
     this.gridView = gridView;
+
+    if (window.verticalPreferences) {
+      verticalPreferences.get('grid.cols').then(function(value) {
+        this.cols = value;
+        this.onReady();
+      }.bind(this), this.onReady);
+
+      verticalPreferences.addEventListener('updated', this);
+    } else {
+      this.onReady();
+    }
+
     window.addEventListener('appzoom', this);
   }
 
@@ -51,6 +65,15 @@
 
       this._percent = value;
       this.perRow = maxIconsPerRow + minIconsPerRow - maxIconsPerRow * value;
+    },
+
+    set cols(value) {
+      if (!value) {
+        return;
+      }
+      
+      this.percent = value == minIconsPerRow ? 1 : 0.75;
+      document.body.dataset.cols = this.perRow;
     },
 
     /**
@@ -123,9 +146,34 @@
      * General event handler.
      */
     handleEvent: function(e) {
-      if (e.type === 'appzoom') {
-        document.body.dataset.cols = this.perRow;
+      switch(e.type) {
+        case 'updated':
+          var prop = e.target;
+          if (prop.name === 'grid.cols') {
+            this.onColsUpdated(prop.value);
+          }
+
+          break;
+
+        case 'appzoom':
+          var cols = e.detail.cols;
+          if (window.verticalPreferences) {
+            verticalPreferences.put('grid.cols', cols);
+          } else {
+            this.onColsUpdated(cols);
+          }
+
+          break;
       }
+    },
+
+    onColsUpdated: function(cols) {
+      this.cols = cols;
+      this.gridView.render();
+    },
+
+    onReady: function() {
+      window.dispatchEvent(new CustomEvent('gaiagrid-layout-ready'));
     }
   };
 

@@ -87,6 +87,24 @@ suite('settings.js', function() {
         jpgLink);
     });
 
+    test('setMediatone', function () {
+      var mediatoneLink =
+        'shared/resources/media/notifications/' +
+        'notifier_bop.opus';
+      app.setMediatone(settings, config);
+      assert.equal(settings['media.ringtone'], config.GAIA_DIR + '/' +
+        mediatoneLink);
+    });
+
+    test('setAlarmtone', function () {
+      var alarmtoneLink =
+        'shared/resources/media/alarms/' +
+        'ac_classic_clock_alarm.opus';
+      app.setAlarmtone(settings, config);
+      assert.equal(settings['alarm.ringtone'], config.GAIA_DIR + '/' +
+        alarmtoneLink);
+    });
+
     test('setRingtone', function () {
       var ringtoneLink =
         'shared/resources/media/ringtones/' +
@@ -94,6 +112,12 @@ suite('settings.js', function() {
       app.setRingtone(settings, config);
       assert.equal(settings['dialer.ringtone'], config.GAIA_DIR + '/' +
         ringtoneLink);
+      assert.deepEqual(settings['dialer.ringtone.name'],
+                       {l10nID: 'ringer_classic_courier'});
+      assert.equal(settings['dialer.ringtone.id'],
+                   'builtin:ringer_classic_courier');
+      assert.equal(settings['dialer.ringtone.default.id'],
+                   'builtin:ringer_classic_courier');
     });
 
     test('setNotification', function () {
@@ -108,6 +132,12 @@ suite('settings.js', function() {
       app.setNotification(settings, config);
       assert.equal(settings['notification.ringtone'],
         config.GAIA_DIR + '/' + notificationLink);
+      assert.deepEqual(settings['notification.ringtone.name'],
+                       {l10nID: 'notifier_bell'});
+      assert.equal(settings['notification.ringtone.id'],
+                   'builtin:notifier_bell');
+      assert.equal(settings['notification.ringtone.default.id'],
+                   'builtin:notifier_bell');
     });
 
     test('overrideSettings', function () {
@@ -240,8 +270,15 @@ suite('settings.js', function() {
           'debugger.remote-mode': 'adb-only',
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'wallpaper.image': undefined,
-          'dialer.ringtone.name': 'Classic Courier',
+          'media.ringtone': undefined,
+          'alarm.ringtone': undefined,
+          'dialer.ringtone.name': {l10nID: 'ringer_classic_courier'},
+          'dialer.ringtone.id': 'builtin:ringer_classic_courier',
+          'dialer.ringtone.default.id': 'builtin:ringer_classic_courier',
           'dialer.ringtone': undefined,
+          'notification.ringtone.name': {l10nID: 'notifier_bell'},
+          'notification.ringtone.id': 'builtin:notifier_bell',
+          'notification.ringtone.default.id': 'builtin:notifier_bell',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
@@ -266,8 +303,15 @@ suite('settings.js', function() {
             'ftu.' + config.GAIA_DOMAIN + config.GAIA_PORT +
             '/manifest.webapp',
           'wallpaper.image': undefined,
-          'dialer.ringtone.name': 'Classic Courier',
+          'media.ringtone': undefined,
+          'alarm.ringtone': undefined,
+          'dialer.ringtone.name': {l10nID: 'ringer_classic_courier'},
+          'dialer.ringtone.id': 'builtin:ringer_classic_courier',
+          'dialer.ringtone.default.id': 'builtin:ringer_classic_courier',
           'dialer.ringtone': undefined,
+          'notification.ringtone.name': {l10nID: 'notifier_bell'},
+          'notification.ringtone.id': 'builtin:notifier_bell',
+          'notification.ringtone.default.id': 'builtin:notifier_bell',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
@@ -290,8 +334,15 @@ suite('settings.js', function() {
           'language.current': config.GAIA_DEFAULT_LOCALE,
           'debugger.remote-mode': 'disabled',
           'wallpaper.image': undefined,
-          'dialer.ringtone.name': 'Classic Courier',
+          'media.ringtone': undefined,
+          'alarm.ringtone': undefined,
+          'dialer.ringtone.name': {l10nID: 'ringer_classic_courier'},
+          'dialer.ringtone.id': 'builtin:ringer_classic_courier',
+          'dialer.ringtone.default.id': 'builtin:ringer_classic_courier',
           'dialer.ringtone': undefined,
+          'notification.ringtone.name': {l10nID: 'notifier_bell'},
+          'notification.ringtone.id': 'builtin:notifier_bell',
+          'notification.ringtone.default.id': 'builtin:notifier_bell',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);
@@ -317,8 +368,15 @@ suite('settings.js', function() {
           'lockscreen.enabled': false,
           'lockscreen.locked': false,
           'wallpaper.image': undefined,
-          'dialer.ringtone.name': 'Classic Courier',
+          'media.ringtone': undefined,
+          'alarm.ringtone': undefined,
+          'dialer.ringtone.name': {l10nID: 'ringer_classic_courier'},
+          'dialer.ringtone.id': 'builtin:ringer_classic_courier',
+          'dialer.ringtone.default.id': 'builtin:ringer_classic_courier',
           'dialer.ringtone': undefined,
+          'notification.ringtone.name': {l10nID: 'notifier_bell'},
+          'notification.ringtone.id': 'builtin:notifier_bell',
+          'notification.ringtone.default.id': 'builtin:notifier_bell',
           'notification.ringtone': undefined,
           'ftu.pingURL': config.FTU_PING_URL },
           result);

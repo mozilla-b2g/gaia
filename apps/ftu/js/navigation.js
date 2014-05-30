@@ -43,8 +43,7 @@ var steps = {
   7: {
     onlyForward: false,
     hash: '#firefox_accounts',
-    requireSIM: false,
-    requireFxAEnabled: true
+    requireSIM: false
   },
   8: {
     onlyForward: false,
@@ -68,8 +67,6 @@ var Navigation = {
   previousStep: 1,
   totalSteps: numSteps,
   simMandatory: false,
-  fxaEnabled: false,
-  skipFxaScreen: false,
   skipDataScreen: false,
   init: function n_init() {
     _ = navigator.mozL10n.get;
@@ -90,18 +87,6 @@ var Navigation = {
       self.simMandatory = reqSIM.result['ftu.sim.mandatory'] || false;
     };
 
-    var reqFxA =
-      settings &&
-      settings.createLock().get('identity.fxaccounts.ui.enabled') || {};
-    reqFxA.onsuccess = function onSuccess() {
-      self.fxaEnabled =
-        reqFxA.result['identity.fxaccounts.ui.enabled'] || false;
-
-      if (!self.fxaEnabled) {
-        // step 7 is skipped in this case, so numSteps is smaller by 1
-        self.totalSteps = numSteps - 1;
-      }
-    };
   },
 
   back: function n_back(event) {
@@ -172,9 +157,7 @@ var Navigation = {
       return 1;
     }
 
-    return this.currentStep -
-              (this.skipFxaScreen ? 1 : 0) -
-              (this.skipDataScreen ? 1 : 0);
+    return this.currentStep - (this.skipDataScreen ? 1 : 0);
   },
 
   handleEvent: function n_handleEvent(event) {
@@ -310,21 +293,12 @@ var Navigation = {
 
     // Reset totalSteps and skip screen flags at beginning of navigation
     if (self.currentStep == 1) {
-      self.totalSteps = !self.fxaEnabled ? numSteps - 1 : numSteps;
-      self.skipFxaScreen = false;
+      self.totalSteps = numSteps;
       self.skipDataScreen = false;
     }
 
     // Retrieve future location
     var futureLocation = steps[self.currentStep];
-
-    // Check required setting.
-    if (futureLocation.requireFxAEnabled && !this.fxaEnabled) {
-      // Toggle skip flag to ensure it is set properly if navigating backwards
-      self.skipFxaScreen = !self.skipFxaScreen;
-      self.skipStep();
-      return;
-    }
 
     // There is some locations which need a 'loading'
     if (futureLocation.hash === '#wifi') {

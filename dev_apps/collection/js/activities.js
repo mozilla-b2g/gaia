@@ -1,5 +1,4 @@
 'use strict';
-/* global Promise */
 
 (function(exports) {
 

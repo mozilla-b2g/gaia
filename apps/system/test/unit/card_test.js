@@ -1,8 +1,6 @@
 /* global AppWindow, Card, MocksHelper, CardsHelper */
 'use strict';
 
-mocha.globals(['AppWindow', 'System', 'BaseUI', 'Card', 'CardsHelper']);
-
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_trusted_ui_manager.js');
 

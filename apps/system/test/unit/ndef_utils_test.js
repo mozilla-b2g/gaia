@@ -1,7 +1,5 @@
 'use strict';
 
-mocha.globals(['NDEFUtils']);
-
 /* globals MocksHelper, NDEFUtils, NDEF, NfcUtils */
 
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
@@ -34,18 +32,20 @@ suite('NDEFUtils tests', function() {
       assert.isFalse(NDEFUtils.validateCPS(-1));
       assert.isFalse(NDEFUtils.validateCPS(4));
 
-      for (var cps = 0; cps <= 3; cps += 1) {
-        assert.isTrue(NDEFUtils.validateCPS(cps));
-      }
+      assert.isTrue(NDEFUtils.validateCPS(NDEF.CPS_INACTIVE));
+      assert.isTrue(NDEFUtils.validateCPS(NDEF.CPS_ACTIVE));
+      assert.isTrue(NDEFUtils.validateCPS(NDEF.CPS_ACTIVATING));
+      assert.isTrue(NDEFUtils.validateCPS(NDEF.CPS_UNKNOWN));
     });
   });
 
   suite('encodeHandoverRequest() tests', function() {
-
+    var cps;
     var btMac;
     var stubMathRandom;
 
     setup(function() {
+      cps = NDEF.CPS_ACTIVE;
       btMac = '00:0D:44:E7:95:AB';
 
       stubMathRandom = this.sinon.stub(Math, 'random');
@@ -58,19 +58,19 @@ suite('NDEFUtils tests', function() {
     });
 
     test('Encodes CPS', function() {
-      var records, cps;
+      var records;
 
-      cps = 0;
-      records = NDEFUtils.encodeHandoverRequest(btMac, cps);
-      assert.equal(records[0].payload[13], cps);
+      var cps1 = NDEF.CPS_INACTIVE;
+      records = NDEFUtils.encodeHandoverRequest(btMac, cps1);
+      assert.equal(records[0].payload[13], cps1);
 
-      cps = 1;
-      records = NDEFUtils.encodeHandoverRequest(btMac, cps);
-      assert.equal(records[0].payload[13], cps);
+      var cps2 = NDEF.CPS_ACTIVE;
+      records = NDEFUtils.encodeHandoverRequest(btMac, cps2);
+      assert.equal(records[0].payload[13], cps2);
     });
 
     test('Encodes MAC', function() {
-      var records = NDEFUtils.encodeHandoverRequest(btMac, 1);
+      var records = NDEFUtils.encodeHandoverRequest(btMac, cps);
 
       var mac = '';
       for (var m = 7; m >= 2; m -= 1) {
@@ -85,7 +85,7 @@ suite('NDEFUtils tests', function() {
     });
 
     test('Encodes random number for collision detection', function() {
-      var request = NDEFUtils.encodeHandoverRequest(btMac, 1);
+      var request = NDEFUtils.encodeHandoverRequest(btMac, cps);
 
       assert.isTrue(stubMathRandom.calledTwice);
 
@@ -98,7 +98,7 @@ suite('NDEFUtils tests', function() {
 
     test('Returns null when MAC invalid', function() {
       var invalidMAC = 'AB:CD';
-      var records = NDEFUtils.encodeHandoverRequest(invalidMAC, 1);
+      var records = NDEFUtils.encodeHandoverRequest(invalidMAC, cps);
       assert.isNull(records);
     });
 
@@ -111,19 +111,21 @@ suite('NDEFUtils tests', function() {
 
   suite('encodeHandoverSelect() tests', function() {
 
+    var cps;
     var btMac;
     var btName;
     var recordsDefault;
 
     setup(function() {
+      cps = NDEF.CPS_ACTIVE;
+      btMac = '00:0D:44:E7:95:AB';
+      btName = NfcUtils.fromUTF8('UE MINI BOOM');
+
       /*
        * The following NDEF message contains a static handover request
        * from a Motorola UE Mini Boom. The NDEF message encodes the
        * MAC address(00:0D:44:E7:95:AB) and its name (UE MINI BOOM).
        */
-      btMac = '00:0D:44:E7:95:AB';
-      btName = NfcUtils.fromUTF8('UE MINI BOOM');
-
       recordsDefault = [{
         tnf: NDEF.TNF_WELL_KNOWN,
         type: new Uint8Array([72, 115]),
@@ -143,32 +145,32 @@ suite('NDEFUtils tests', function() {
     });
 
     test('With MAC, CPS and device name', function() {
-      var records = NDEFUtils.encodeHandoverSelect(btMac, 1, btName);
+      var records = NDEFUtils.encodeHandoverSelect(btMac, cps, btName);
       assert.deepEqual(records, recordsDefault);
     });
 
     test('With MAC and CPS only', function() {
       recordsDefault[1].payload =
         new Uint8Array([8, 0, 171, 149, 231, 68, 13, 0]);
-      var records = NDEFUtils.encodeHandoverSelect(btMac, 1);
+      var records = NDEFUtils.encodeHandoverSelect(btMac, cps);
       assert.deepEqual(records, recordsDefault);
     });
 
     test('Encodes CPS', function() {
-      var records, cps;
+      var records;
 
-      cps = 0;
-      records = NDEFUtils.encodeHandoverSelect(btMac, cps, btName);
-      assert.equal(records[0].payload[6], cps);
+      var cps1 = NDEF.CPS_INACTIVE;
+      records = NDEFUtils.encodeHandoverSelect(btMac, cps1, btName);
+      assert.equal(records[0].payload[6], cps1);
 
-      cps = 2;
-      records = NDEFUtils.encodeHandoverSelect(btMac, cps, btName);
-      assert.equal(records[0].payload[6], cps);
+      var cps2 = NDEF.CPS_ACTIVATING;
+      records = NDEFUtils.encodeHandoverSelect(btMac, cps2, btName);
+      assert.equal(records[0].payload[6], cps2);
     });
 
     test('Returns null when MAC invalid', function() {
       var invalidMAC = 'AB:CD';
-      var records = NDEFUtils.encodeHandoverSelect(invalidMAC, 1);
+      var records = NDEFUtils.encodeHandoverSelect(invalidMAC, cps);
       assert.isNull(records);
     });
 

@@ -52,8 +52,8 @@ var FxaModuleEnterPassword = (function() {
   function _forgotPassword() {
     /*jshint validthis:true*/
     var self = this;
-    if (this.fxaDialog.classList.contains('isFTU')) {
-      return self.showErrorResponse({
+    if (this.isFTU) {
+      return this.showErrorResponse({
         error: 'RESET_PASSWORD_IN_SETTINGS'
       });
     }
@@ -79,8 +79,7 @@ var FxaModuleEnterPassword = (function() {
         'fxa-user-email',
         'fxa-pw-input',
         'fxa-show-pw',
-        'fxa-forgot-password',
-        'fxa-dialog'
+        'fxa-forgot-password'
       );
       // Add listeners
       this.fxaPwInput.addEventListener(
@@ -121,6 +120,7 @@ var FxaModuleEnterPassword = (function() {
       return;
     }
 
+    this.isFTU = !!(options && options.isftu);
     this.fxaUserEmail.textContent = options.email;
     this.email = options.email;
 

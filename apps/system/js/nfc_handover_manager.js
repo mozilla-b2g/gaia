@@ -3,7 +3,8 @@
 
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
-/* globals dump, BluetoothTransfer, NDEFUtils, NfcConnectSystemDialog */
+/* globals dump, BluetoothTransfer, NDEFUtils, NfcConnectSystemDialog,
+           NDEF */
 /* exported NfcHandoverManager */
 'use strict';
 
@@ -75,7 +76,7 @@ var NfcHandoverManager = {
         output += JSON.stringify(optObject);
       }
       if (typeof dump !== 'undefined') {
-        dump(output);
+        dump(output + '\n');
       } else {
         console.log(output);
       }
@@ -215,9 +216,9 @@ var NfcHandoverManager = {
     }
 
     var nfcPeer = this.nfc.getNFCPeer(session);
-    var carrierPowerState = this.bluetooth.enabled ? 1 : 2;
+    var cps = this.bluetooth.enabled ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
     var mac = this.defaultAdapter.address;
-    var hs = NDEFUtils.encodeHandoverSelect(mac, carrierPowerState);
+    var hs = NDEFUtils.encodeHandoverSelect(mac, cps);
     var req = nfcPeer.sendNDEF(hs);
     var self = this;
     req.onsuccess = function() {
@@ -246,9 +247,9 @@ var NfcHandoverManager = {
                               requestId: requestId,
                               onsuccess: onsuccess, onerror: onerror};
       var nfcPeer = this.nfc.getNFCPeer(session);
-      var carrierPowerState = this.bluetooth.enabled ? 1 : 2;
+      var cps = this.bluetooth.enabled ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
       var mac = this.defaultAdapter.address;
-      var hr = NDEFUtils.encodeHandoverRequest(mac, carrierPowerState);
+      var hr = NDEFUtils.encodeHandoverRequest(mac, cps);
       var req = nfcPeer.sendNDEF(hr);
       req.onsuccess = function() {
         self.debug('sendNDEF(hr) succeeded');
@@ -295,7 +296,7 @@ var NfcHandoverManager = {
 
   dispatchSendFileStatus: function dispatchSendFileStatus(status) {
     this.debug('In dispatchSendFileStatus ' + status);
-    window.navigator.mozNfc.notifySendFileStatus(status,
+    navigator.mozNfc.notifySendFileStatus(status,
                          this.sendFileRequest.requestId);
   },
 

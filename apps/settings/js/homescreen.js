@@ -12,16 +12,16 @@ var Homescreen = {
 
     this._apps = [];
 
-    this._container = document.querySelector('#homescreen > div > ul');
+    this._container = document.querySelector('#homescreens > div > ul');
     this._container.addEventListener('click', this.handleListClick.bind(this));
 
     this._detailTitle =
-      document.querySelector('#homescreen-details > header > h1');
+      document.querySelector('#homescreens-details > header > h1');
     this._detailDescription =
-      document.querySelector('#homescreen-details > div > p');
+      document.querySelector('#homescreens-details > div > p');
 
     this._detailButton =
-      document.querySelector('#homescreen-details > div > button');
+      document.querySelector('#homescreens-details > div > button');
     this._detailButton.addEventListener('click',
                                         this.handleChangeHomescreen.bind(this));
 
@@ -65,7 +65,7 @@ var Homescreen = {
       self._apps.forEach(function homescreensItr(app, index) {
         var item = document.createElement('li');
         var link = document.createElement('a');
-        link.href = '#homescreen-details';
+        link.href = '#homescreens-details';
 
         var manifest =
           new ManifestHelper(app.manifest || app.updateManifest);

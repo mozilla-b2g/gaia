@@ -6,11 +6,17 @@ require.config({
     'shared': '../shared/js'
   },
   shim: {
+    'connectivity': {
+      exports: 'Connectivity'
+    },
     'settings': {
       exports: 'Settings'
     },
     'shared/async_storage': {
-      exports: 'AsyncStorage'
+      exports: 'asyncStorage'
+    },
+    'shared/icc_helper': {
+      exports: 'IccHelper'
     },
     'shared/keyboard_helper': {
       exports: 'KeyboardHelper'
@@ -26,11 +32,21 @@ require.config({
     },
     'shared/settings_listener': {
       exports: 'SettingsListener'
+    },
+    'shared/wifi_helper': {
+      exports: 'WifiHelper'
+    },
+    'utils': {
+      exports: ''
     }
   },
   modules: [
     {
       name: 'main'
+    },
+    {
+      name: 'panels/root/panel',
+      exclude: ['main']
     },
     {
       name: 'panels/languages/panel',

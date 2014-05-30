@@ -9,6 +9,7 @@ require('/shared/elements/gaia_grid/js/items/grid_item.js');
 require('/shared/elements/gaia_grid/js/items/divider.js');
 require('/shared/elements/gaia_grid/js/items/icon.js');
 require('/shared/elements/gaia_grid/js/items/bookmark.js');
+require('/shared/elements/gaia_grid/js/items/placeholder.js');
 require('/shared/elements/gaia_grid/script.js');
 
 suite('GaiaGrid > DragDrop', function() {

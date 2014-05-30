@@ -134,6 +134,13 @@
 #quick-settings-airplane-mode[data-enabled] {
   background-image: url(images/airplane-mode-on.png);
 }
+#quick-settings-airplane-mode[data-enabling] {
+  background-image: url(images/airplane-mode-on.png);
+  opacity: 0.5;
+}
+#quick-settings-airplane-mode[data-disabling] {
+  background-image: url(images/airplane-mode-off.png);
+}
 #quick-settings-full-app {
   background-image: url(images/settings-off.png);
 }

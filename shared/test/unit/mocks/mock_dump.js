@@ -1,7 +1,4 @@
-/* global mocha */
 'use strict';
-
-mocha.globals(['DUMP']);
 
 var MockDump = (function() {
   var dump_off = function() {};

@@ -7,13 +7,15 @@
   const HIDDEN_ROLES = ['system', 'keyboard', 'homescreen', 'search'];
 
   function App() {
+    this.scrollable = document.querySelector('.scrollable');
     this.grid = document.getElementById('icons');
+    this.homescreenFocused = true;
 
     window.addEventListener('hashchange', this);
-    window.addEventListener('appzoom', this);
     window.addEventListener('gaiagrid-saveitems', this);
     window.addEventListener('gaiagrid-collection-open', this);
     window.addEventListener('gaiagrid-collection-close', this);
+    window.addEventListener('gaiagrid-layout-ready', this);
   }
 
   App.prototype = {
@@ -69,8 +71,10 @@
           }
 
           var step;
+          var scrollable = this.scrollable;
+
           var doScroll = function() {
-            var scrollY = window.scrollY;
+            var scrollY = scrollable.scrollTop;
             step = step || (scrollY / 20);
 
             if (!scrollY) {
@@ -78,25 +82,25 @@
             }
 
             if (scrollY <= step) {
-              window.scrollTo(0, 0);
+              scrollable.scrollTop = 0;
               return;
             }
 
-            window.scrollBy(0, -step);
+            scrollable.scrollTop -= step;
             window.requestAnimationFrame(doScroll);
           };
 
           doScroll();
           break;
 
-        case 'appzoom':
-          this.grid.render();
+        case 'gaiagrid-layout-ready':
+          this.init();
+          window.removeEventListener('gaiagrid-layout-ready', this);
           break;
       }
     }
   };
 
   exports.app = new App();
-  exports.app.init();
 
 }(window));

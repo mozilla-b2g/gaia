@@ -33,6 +33,11 @@
     scale: 1,
 
     /**
+     * Whether or not this icon will persist to the database.
+     */
+    persistToDB: true,
+
+    /**
      * Returns a reference to the current grid.
      * We can currently only have one grid per page.
      */
@@ -131,7 +136,8 @@
     renderIconFromBlob: function(blob) {
       this.element.style.height = this.grid.layout.gridItemHeight + 'px';
       this.element.style.backgroundSize =
-        (this.grid.layout.gridIconSize + CANVAS_PADDING) + 'px';
+        ((this.grid.layout.gridIconSize * (1 / this.scale)) + CANVAS_PADDING) +
+        'px';
       this.element.style.backgroundImage =
         'url(' + URL.createObjectURL(blob) + ')';
     },
@@ -142,6 +148,8 @@
      * @param {Number} index The index of the items list of this item.
      */
     render: function(coordinates, index) {
+      this.scale = this.grid.layout.percent;
+
       // Generate an element if we need to
       if (!this.element) {
         var tile = document.createElement('div');
@@ -152,7 +160,8 @@
         // This <p> has been added in order to place the title with respect
         // to this container via CSS without touching JS.
         var nameContainerEl = document.createElement('p');
-        nameContainerEl.style.marginTop = this.grid.layout.gridIconSize + 'px';
+        nameContainerEl.style.marginTop = (this.grid.layout.gridIconSize *
+                                          (1 / this.scale)) + 'px';
         tile.appendChild(nameContainerEl);
 
         var nameEl = document.createElement('span');
@@ -172,6 +181,15 @@
           LazyLoader.load(
             ['/shared/js/async_storage.js',
              '/shared/elements/gaia_grid/js/icon_retriever.js'], function() {
+            var app = this.app;
+            // The download should finish when the icon is local
+            if (app && app.downloading && this.icon.startsWith('app:')) {
+              app.ondownloadsuccess = app.ondownloaderror = function() {
+                app.ondownloadsuccess = app.ondownloaderror = null;
+                IconRetriever.get(this);
+              }.bind(this);
+              return;
+            }
             IconRetriever.get(this);
           }.bind(this));
         } else {
@@ -186,7 +204,6 @@
       this.setPosition(index);
       this.x = x;
       this.y = y;
-      this.scale = this.grid.layout.percent;
 
       // Avoid rendering the icon during a drag to prevent jumpiness
       if (this.noTransform) {
