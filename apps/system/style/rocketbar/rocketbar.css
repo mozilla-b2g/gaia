@@ -1,7 +1,7 @@
 #rocketbar {
   position: fixed;
   width: 100%;
-  height: 4.6rem;
+  height: 4.8rem;
   left: 0;
   top: 0;
   transition: transform 0.5s;
@@ -32,11 +32,11 @@ body:not(.rb-enabled) #rocketbar {
 }
 
 #rocketbar-title, #rocketbar-form {
-  height: 3.4rem;
+  height: 3.6rem;
   background: rgba(51, 51, 51, 0.5);
-  border-radius: 1.7rem;
+  border-radius: 1.8rem;
   padding: 0 1rem;
-  margin: 0.3rem 0.6rem 0.6rem 0.6rem;
+  margin: 0.6rem;
   overflow: hidden;
   white-space: nowrap;
 }
@@ -54,16 +54,15 @@ body:not(.rb-enabled) #rocketbar {
   background: none;
   display: block;
   width: 100%;
-  height: 3.4rem;
-  color: #e7e7e7;
-  padding: 0 0 0 0.4rem;
+  height: 3.6rem;
+  color: #fff;
+  padding: 0.6rem;
   text-overflow: ellipsis;
 }
 
 #rocketbar-title-content {
   font-size: 1.8rem;
   font-style: italic;
-  font-weight: lighter;
   transform: scale(1.33);
   transform-origin: left center;
   transition: transform 0.5s;
@@ -80,21 +79,7 @@ body:not(.rb-enabled) #rocketbar {
 
 #rocketbar-input {
   font-size: 1.8rem;
-  box-shadow: none;
   border: none;
-  height: 2rem;
-  margin-top: .7rem;
-}
-
-#rocketbar-input::-moz-placeholder {
-  font-style: italic;
-  font-weight: lighter;
-  opacity: 1;
-  color: #e7e7e7;
-}
-
-#rocketbar-input:focus::-moz-placeholder {
-  opacity: 0.4;
 }
 
 #rocketbar-input, #rocketbar-cancel {
@@ -102,24 +87,12 @@ body:not(.rb-enabled) #rocketbar {
 }
 
 #rocketbar-cancel {
-  position: relative;
   background: none;
   border: none;
+  border-left: solid 1px rgba(255, 255, 255, 0.08);
   color: #00AACC;
   font-size: 1.4rem;
-  font-style: italic;
   line-height: 1.8rem;
-  padding-left: 1.4rem;
-}
-
-#rocketbar-cancel::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: .5rem;
-  height: 2.4rem;
-  width: .1rem;
-  background-color: rgba(255, 255, 255, 0.08);
 }
 
 #rocketbar-title.hidden, #rocketbar-form.hidden {
@@ -151,7 +124,7 @@ body:not(.rb-enabled) #rocketbar {
 #rocketbar-backdrop-cover {
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.35);
+  background-color: rgba(0, 0, 0, 0.5);
   pointer-events: none;
 }
 
@@ -213,7 +186,7 @@ body.homesearch-enabled #rocketbar.active {
 }
 
 body.homesearch-enabled #rocketbar-input {
-  height: 2rem;
+  height: 3.7rem;
 }
 
 /* Expand the rocketbar when it's active */
