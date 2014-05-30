@@ -64,6 +64,16 @@ suite('system/HomescreenWindow', function() {
     });
     teardown(function() {
     });
+
+    test('should always resize', function() {
+      var stubResize = this.sinon.stub(homescreenWindow, '_resize');
+      var stubIsActive = this.sinon.stub(homescreenWindow, 'isActive');
+      stubIsActive.returns(false);
+
+      homescreenWindow.resize();
+      assert.isTrue(stubResize.calledOnce);
+    });
+
     test('Homescreen browser frame', function() {
       assert.equal(homescreenWindow.browser.element.name, 'main');
       assert.equal(
