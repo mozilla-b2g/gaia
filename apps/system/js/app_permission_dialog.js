@@ -20,10 +20,8 @@
     // One to one mapping.
     this.instanceID = _id++;
     this._injected = false;
-    console.log('Error >>>>><<<<<<<<');
-    // app.element.addEventListener('mozbrowsershowmodalprompt', this);
+    // this.app.element.addEventListener('mozChromeEvent', this);
     window.addEventListener('mozChromeEvent', this);
-    // return this;
   };
 
   AppPermissionDialog.prototype.__proto__ = window.BaseUI.prototype;
@@ -41,7 +39,7 @@
   };
 
   AppPermissionDialog.prototype.handleEvent = function amd_handleEvent(evt) {
-    console.log('Erorr XXXX permission dialog');
+    console.log('Erorr XXXX >>>permission dialog');
     this.app.debug('handling ' + evt.type);
     evt.preventDefault();
     this.events.push(evt);
@@ -62,7 +60,7 @@
       });
     };
 
-    this.elementClasses = ['permission-screen', 'permission-dialog',
+    this.elementClasses = ['permission-dialog',
       'permission-message', 'permission-more-info', 'permission-more-info-link',
       'permission-hide-info-link', 'permission-more-info-box',
       'permission-yes', 'permission-no', 'permission-remember-checkbox',
@@ -94,7 +92,7 @@
   };
 
   AppPermissionDialog.prototype.view = function amd_view() {
-    console.log('Error view');
+    console.log('Error >>>view');
     return '<div data-z-index-level="permission-screen' +
       ' id="' + this.CLASS_NAME + this.instanceID + '">' +
       '<div id="permission-dialog" role="dialog" class="generic-dialog">' +
