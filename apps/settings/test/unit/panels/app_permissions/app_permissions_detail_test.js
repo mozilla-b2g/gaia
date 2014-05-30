@@ -190,11 +190,15 @@ suite('app permission detail > ', function() {
     });
 
     test('uninstall', function() {
+      this.sinon.stub(permissionDetail, 'back');
+
       MockMozApps.mSetApps([mock_app]);
       permissionDetail.showAppDetails(mock_app);
       permissionDetail.uninstall();
       assert.equal(MockMozApps.mApps.length, 0,
         'should have no memeber in mozAppList if we remove it.');
+      assert.isTrue(permissionDetail.back.called,
+        'we would go back to previous panel');
     });
   });
 });

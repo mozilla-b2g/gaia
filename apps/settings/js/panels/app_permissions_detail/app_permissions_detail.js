@@ -188,6 +188,7 @@ define(function(require) {
 
       if (confirm(_('uninstallConfirm', {app: name}))) {
         mozApps.mgmt.uninstall(this._app);
+        this.back();
       }
     }
   };
