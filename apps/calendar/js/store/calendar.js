@@ -93,8 +93,26 @@
     },
 
     persist: function(calendar, trans, callback) {
+      if (typeof(trans) === 'function') {
+        callback = trans;
+        trans = undefined;
+      }
+
       this._updateCalendarColor(calendar);
-      Calendar.Store.Abstract.prototype.persist.apply(this, arguments);
+
+      var cb = callback;
+      var cached = this._cached[calendar._id];
+
+      if (cached && cached.localDisplayed !== calendar.localDisplayed) {
+        cb = function(err, id, model) {
+          this.emit('calendarVisibilityChange', id, model);
+          callback(err, id, model);
+        }.bind(this);
+      }
+
+      Calendar.Store.Abstract.prototype.persist.call(
+        this, calendar, trans, cb
+      );
     },
 
     remove: function(id, trans, callback) {
@@ -168,6 +186,11 @@
       }
 
       return leastUsedColor;
+    },
+
+    shouldDisplayCalendar: function(calendarId) {
+      var calendar = this._cached[calendarId];
+      return calendar && calendar.localDisplayed;
     },
 
     /**
