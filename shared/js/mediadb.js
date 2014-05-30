@@ -1587,13 +1587,11 @@ var MediaDB = (function() {
             continue;
           }
 
-          // Case 4: two files with the same name.
-          // 4a: date and size are the same for both: do nothing
+          // Case 4: two files with the same name
+          // 4a: size is the same for both: do nothing
           // 4b: file has changed: it is both a deletion and a creation
           if (dsfile.name === dbfile.name) {
-            var lastModified = dsfile.lastModifiedDate;
-            if ((lastModified && lastModified.getTime() !== dbfile.date) ||
-                dsfile.size !== dbfile.size) {
+            if (dsfile.size !== dbfile.size) {
               deleteRecord(media, dbfile.name);
               insertRecord(media, dsfile);
             }
