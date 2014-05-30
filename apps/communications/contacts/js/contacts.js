@@ -695,6 +695,13 @@ var Contacts = (function() {
           handler: enterSearchMode
         }
       ],
+      // For screen reader users
+      '#search-start > input': [
+        {
+          event: 'focus',
+          handler: enterSearchMode
+        }
+      ],
       'button[type="reset"]': stopPropagation
     });
   };
