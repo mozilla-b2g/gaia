@@ -12,6 +12,17 @@
   transition: opacity 0.2s ease, transform 0.4s ease;
 }
 
+#keyboards.hide {
+  opacity: 0;
+  transform: translateY(100%);
+  /* ease-in for disappearing */
+  transition: opacity 0.4s ease-in, transform 0.4s ease-in;
+}
+
+#keyboards.no-transition {
+  transition: none !important;
+}
+
 @media not all and (-moz-physical-home-button) {
   #screen:not(.software-button-disabled) #keyboards {
     bottom: 5rem;
@@ -20,13 +31,6 @@
 
 #screen.software-button-enabled #keyboards {
   bottom: 5rem;
-}
-
-#keyboards.hide {
-  opacity: 0;
-  transform: translateY(100%);
-  /* ease-in for disappearing */
-  transition: opacity 0.4s ease-in, transform 0.4s ease-in;
 }
 
 #keyboards iframe {
@@ -81,8 +85,4 @@
   content: '';
 
   background: url(../icons/Keyboard.png) top left no-repeat;
-}
-
-.notransition {
-  transition: none !important;
 }
