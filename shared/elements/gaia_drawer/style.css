@@ -30,8 +30,9 @@ gaia-drawer {
   color: #5F5F5F;
   background-color: #F4F4F4;
   transform: translateY(-100%);
-  transition: transform 300ms ease;
+  transition: transform 300ms ease, visibility 300ms;
   will-change: transform;
+  visibility: hidden;
 }
 
 /**
@@ -40,6 +41,7 @@ gaia-drawer {
 
 [open] .content {
   transform: translateY(0);
+  visibility: visible;
 }
 
 /** Background
