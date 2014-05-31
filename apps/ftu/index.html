@@ -45,6 +45,7 @@
   <script src="/shared/js/l10n_date.js"></script>
   <script src="/shared/js/tz_select.js"></script>
   <script defer src="/shared/js/keyboard_helper.js"></script>
+  <script defer src="/shared/js/version_helper.js"></script>
 
   <!-- Import contacts help files -->
   <script defer src="/shared/js/contacts/import/utilities/status.js"></script>
@@ -652,6 +653,25 @@
         </button>
       </menu>
     </section>
+  </section>
+
+  <section id="update-screen" class="finish-screen-base" role="region">
+    <section class="content">
+      <h1 data-l10n-id="whatsNew">
+        What's new
+      </h1>
+      <p data-l10n-id="updatedSuccessfully">
+        Your phone has updated successfully! Start the tour to find out more about the new features.
+      </p>
+    </section>
+    <menu role="navigation">
+      <button id="update-skip-tutorial-button" class="button-left" data-l10n-id="skip">
+        Skip
+      </button>
+      <button id="update-lets-go-button" class="recommend" data-l10n-id="startTour">
+        Start Tour!
+      </button>
+    </menu>
   </section>
 
   <section id="tutorial" role="region" data-step="1">

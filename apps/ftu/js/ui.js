@@ -19,6 +19,7 @@ var UIManager = {
     'progress-bar',
     'progress-bar-state',
     'finish-screen',
+    'update-screen',
     'nav-bar',
     'main-title',
     // Unlock SIM Screen
@@ -92,9 +93,11 @@ var UIManager = {
     'data-connection-switch',
     // Geolocation
     'geolocation-switch',
-    // Before Tutorial
+    // Tutorial
     'lets-go-button',
+    'update-lets-go-button',
     'skip-tutorial-button',
+    'update-skip-tutorial-button',
     // Privacy Settings
     'share-performance',
     'offline-error-dialog',
@@ -195,7 +198,7 @@ var UIManager = {
           this.invalidEmailErrorDialog.classList.remove('visible');
         }.bind(this));
 
-    this.skipTutorialButton.addEventListener('click', function() {
+    var skipTutorialAction = function() {
       // Stop Wifi Manager
       WifiManager.finish();
       // For tiny devices
@@ -205,7 +208,10 @@ var UIManager = {
         // for large devices
         FinishScreen.init();
       }
-    });
+    };
+
+    this.skipTutorialButton.addEventListener('click', skipTutorialAction);
+    this.updateSkipTutorialButton.addEventListener('click', skipTutorialAction);
 
     this.letsGoButton.addEventListener('click', function() {
       // Stop Wifi Manager
@@ -217,6 +223,16 @@ var UIManager = {
         UIManager.activationScreen.classList.remove('show');
         UIManager.finishScreen.classList.remove('show');
       });
+    });
+
+    this.updateLetsGoButton.addEventListener('click', function() {
+      // Stop Wifi Manager
+      WifiManager.finish();
+      UIManager.activationScreen.classList.remove('show');
+      UIManager.updateScreen.classList.remove('show');
+      // Tutorial config is probably preloaded by now, but init could be
+      // async if it is still loading
+      Tutorial.init();
     });
 
     // Enable sharing performance data (saving to settings)

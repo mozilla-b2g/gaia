@@ -1,5 +1,6 @@
 /* global DataMobile, Navigation, SimManager, TimeManager,
-          UIManager, WifiManager, ImportIntegration */
+          UIManager, WifiManager, ImportIntegration, Tutorial, Promise,
+          VersionHelper */
 /* exported AppManager */
 'use strict';
 
@@ -47,10 +48,33 @@ var AppManager = {
 };
 
 navigator.mozL10n.ready(function showBody() {
-  if (!AppManager.isInitialized) {
-    AppManager.init();
-  } else {
-    UIManager.initTZ();
-    UIManager.mainTitle.innerHTML = _('language');
-  }
+  var versionInfo;
+  Promise.all([
+    VersionHelper.getVersionInfo().then(function(info) {
+      versionInfo = info;
+    }),
+    Tutorial.loadConfig()
+  ]).then(function() {
+    if (versionInfo.isUpgrade()) {
+      var stepsKey = versionInfo.delta();
+      // Play the FTU Tuto steps directly on update
+      UIManager.init();
+      UIManager.splashScreen.classList.remove('show');
+      UIManager.activationScreen.classList.remove('show');
+      UIManager.updateScreen.classList.add('show');
+      if (stepsKey && Tutorial.config[stepsKey]) {
+        Tutorial.init(stepsKey);
+      } else {
+        // play the whole tutorial if there is no specific upgrade steps
+        Tutorial.init();
+      }
+    } else {
+      if (!AppManager.isInitialized) {
+        AppManager.init();
+      } else {
+        UIManager.initTZ();
+        UIManager.mainTitle.innerHTML = _('language');
+      }
+    }
+  });
 });
