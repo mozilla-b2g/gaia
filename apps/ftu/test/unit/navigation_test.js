@@ -2,6 +2,7 @@
 
 require('/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 require('/shared/test/unit/mocks/mock_icc_helper.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 requireApp('ftu/js/external_links.js');
 requireApp('ftu/js/navigation.js');
@@ -17,7 +18,6 @@ requireApp('ftu/test/unit/mock_tutorial.js');
 requireApp('ftu/test/unit/mock_wifi_manager.js');
 requireApp('ftu/test/unit/mock_utils.js');
 requireApp('ftu/test/unit/mock_operatorVariant.js');
-requireApp('ftu/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('ftu/test/unit/mock_navigation.html.js');
 
 var _;
