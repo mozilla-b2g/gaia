@@ -122,7 +122,8 @@
     expandSearch: function(query) {
       this.clear();
       this.providers.WebResults.fullscreen(query);
-      this.providers.BGImage.fetchImage(query);
+      // Disabled due to https://bugzilla.mozilla.org/show_bug.cgi?id=1018572
+      //this.providers.BGImage.fetchImage(query);
     },
 
     /**
