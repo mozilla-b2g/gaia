@@ -1,4 +1,4 @@
-/* globals HtmlHelper, Provider, Search, GoogleLink, SettingsListener */
+/* globals HtmlHelper, Provider, Search, SettingsListener */
 
 (function(exports) {
 
@@ -247,11 +247,8 @@
 
     click: itemClicked,
 
-    googleLink: new GoogleLink(),
-
     init: function() {
       Provider.prototype.init.apply(this, arguments);
-      this.googleLink.init();
     },
 
     search: function(filter, collect) {
@@ -271,17 +268,12 @@
         }
       }
 
-      if (matched < 3) {
-        this.googleLink.search(filter);
-      }
-
       collect(renderResults);
     },
 
 
     clear: function() {
       Provider.prototype.clear.apply(this, arguments);
-      this.googleLink.clear();
     },
 
     /**
