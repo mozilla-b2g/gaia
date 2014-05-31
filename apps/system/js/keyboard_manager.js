@@ -80,7 +80,8 @@ var KeyboardManager = {
       this.frame = null;
       this.type = 'text';
       this.index = 0;
-    }
+    },
+    height: 0
   },
 
   focusChangeTimeout: 0,
@@ -90,7 +91,6 @@ var KeyboardManager = {
     if (this._onDebug)
       console.log('[Keyboard Manager] ' + msg);
   },
-  keyboardHeight: 0,
   hasActiveKeyboard: false,
   isOutOfProcessEnabled: false,
 
@@ -124,8 +124,6 @@ var KeyboardManager = {
         this.showAll();
     }.bind(this));
 
-    this.keyboardFrameContainer.classList.add('hide');
-
     // get enabled keyboard from mozSettings, parse their manifest
 
     // For Bug 812115: hide the keyboard when the app is closed here,
@@ -158,6 +156,15 @@ var KeyboardManager = {
       }
     }.bind(this));
 
+    this.transitionManager = new InputAppsTransitionManager();
+    this.transitionManager.onstatechange = (function statechanged() {
+      if (this.transitionManager.currentState ===
+          this.transitionManager.STATE_HIDDEN) {
+        this.resetShowingKeyboard();
+      }
+    }).bind(this);
+    this.transitionManager.start();
+
     LazyLoader.load([
       'shared/js/keyboard_helper.js'
     ], function() {
@@ -168,7 +175,7 @@ var KeyboardManager = {
   },
 
   getHeight: function kn_getHeight() {
-    return this.keyboardHeight;
+    return this.transitionManager.occupyingHeight;
   },
 
   updateLayouts: function km_updateLayouts(layouts) {
@@ -261,6 +268,18 @@ var KeyboardManager = {
         this.setKeyboardToShow('text', undefined, true);
       }
     }).bind(this);
+  },
+
+  resizeKeyboard: function km_resizeKeyboard(evt) {
+    var height = evt.detail.height;
+
+    this._debug('resizeKeyboard: ' + height);
+    this.showingLayout.height = height;
+    this.transitionManager.handleResize(height);
+
+    evt.stopPropagation();
+
+    this.showIMESwitcher();
   },
 
   inputFocusChange: function km_inputFocusChange(evt) {
@@ -397,50 +416,12 @@ var KeyboardManager = {
     return keyboard;
   },
 
-  resizeKeyboard: function km_resizeKeyboard(evt) {
-    // ignore mozbrowserresize event while keyboard Frame is hidding
-    if (this.keyboardFrameContainer.dataset.transitionOut === 'true')
-      return;
-
-    this.keyboardHeight = parseInt(evt.detail.height);
-    this._debug('resizeKeyboard: ' + this.keyboardHeight);
-    if (this.keyboardHeight <= 0)
-       return;
-    evt.stopPropagation();
-
-    var self = this;
-    var updateHeight = function km_updateHeight() {
-      self._debug('updateHeight: ' + self.keyboardHeight);
-      if (self.keyboardFrameContainer.classList.contains('hide')) {
-        // The keyboard has been closed already, let's not resize the
-        // application and ends up with half apps.
-        return;
-      }
-      // to do
-      var detail = {
-        'detail': {
-          'height': self.keyboardHeight
-        },
-        bubbles: true,
-        cancellable: true
-      };
-      // We dispatch the events at the body level so we are able to intercept
-      // them and prevent page resizing where desired.
-      document.body.dispatchEvent(new CustomEvent('keyboardchange', detail));
-    };
-
-    this.showKeyboard(updateHeight);
-
-    // update latest keyboard info to notification bar
-    // for swiching other keyboard layouts.
-    this.showIMESwitcher();
-  },
-
   handleEvent: function km_handleEvent(evt) {
     var self = this;
     switch (evt.type) {
       case 'mozbrowserresize':
         this.resizeKeyboard(evt);
+
         break;
       case 'attentionscreenshow':
         // If we call hideKeyboardImmediately synchronously,
@@ -531,59 +512,17 @@ var KeyboardManager = {
       this.resetShowingKeyboard();
       return;
     }
-    // remove transitionOut for showing keyboard while user foucus quickly again
-    if (this.keyboardFrameContainer.dataset.transitionOut === 'true') {
-      delete this.keyboardFrameContainer.dataset.transitionOut;
+    // Make sure we are not in the transition out state
+    // while user foucus quickly again.
+    if (this.transitionManager.currentState ===
+        this.transitionManager.STATE_TRANSITION_OUT) {
+      this.transitionManager.handleResize(this.showingLayout.height);
     }
 
     this.showingLayout.frame.classList.remove('hide');
     this.setLayoutFrameActive(this.showingLayout.frame, true);
     this.showingLayout.frame.addEventListener(
          'mozbrowserresize', this, true);
-  },
-
-  showKeyboard: function km_showKeyboard(callback) {
-    // Are we already shown and not currently in a transition? Continue.
-    if (!this.keyboardFrameContainer.classList.contains('hide') &&
-        this.keyboardFrameContainer.dataset.transitionIn !== 'true') {
-      if (callback) {
-        callback();
-      }
-      return;
-    }
-
-    if (this.keyboardFrameContainer.classList.contains('hide')) {
-      delete this.keyboardFrameContainer.dataset.transitionOut;
-      this.keyboardFrameContainer.classList.remove('hide');
-      this.keyboardFrameContainer.dataset.transitionIn = 'true';
-    }
-
-    // XXX Keyboard transition may be affected by window.open event,
-    // and thus the keyboard looks like jump into screen.
-    // It may because window.open blocks main thread?
-    // Monitor transitionend time here.
-    var self = this;
-    var onTransitionEnd = function(evt) {
-      if (evt.propertyName !== 'transform') {
-        return;
-      }
-
-      self.keyboardFrameContainer.removeEventListener('transitionend',
-          onTransitionEnd);
-
-      delete self.keyboardFrameContainer.dataset.transitionIn;
-      self._debug('showKeyboard display transitionend');
-
-      // keyboard is now hidden?
-      if (self.keyboardFrameContainer.classList.contains('hide')) {
-        return;
-      }
-      if (callback) {
-        callback();
-      }
-    };
-    this.keyboardFrameContainer.addEventListener('transitionend',
-        onTransitionEnd);
   },
 
   /**
@@ -617,6 +556,7 @@ var KeyboardManager = {
 
   // Reset the current keyboard frame
   resetShowingKeyboard: function km_resetShowingKeyboard() {
+    this._debug('resetShowingKeyboard');
     if (!this.showingLayout) {
       return;
     }
@@ -643,65 +583,19 @@ var KeyboardManager = {
 
   hideKeyboard: function km_hideKeyboard() {
     // prevent hidekeyboard trigger again while 'appwillclose' is fired.
-    if (this.keyboardFrameContainer.classList.contains('hide')) {
+    var transitionState = this.transitionManager.currentState;
+    if ((transitionState === this.transitionManager.STATE_HIDDEN) ||
+        (transitionState === this.transitionManager.STATE_TRANSITION_OUT)) {
+      // Bug 963377. Also reset yet-to-show keyboards.
       this.resetShowingKeyboard();
       return;
     }
 
-    var self = this;
-    var onTransitionEnd = function(evt) {
-      if (evt.propertyName !== 'transform') {
-        return;
-      }
-      self.keyboardFrameContainer.removeEventListener('transitionend',
-        onTransitionEnd);
-
-      self._debug('hideKeyboard display transitionend');
-
-      // TODO: Transfer to keyboardclosed
-      window.dispatchEvent(new CustomEvent('keyboardhidden'));
-
-      // prevent destroying the keyboard when we're not hidden anymore
-      if (!self.keyboardFrameContainer.classList.contains('hide') ||
-              self.keyboardFrameContainer.dataset.transitionOut !== 'true') {
-        return;
-      }
-
-      self.resetShowingKeyboard();
-      delete self.keyboardFrameContainer.dataset.transitionOut;
-    };
-    this.keyboardFrameContainer.addEventListener('transitionend',
-      onTransitionEnd);
-
-    this.keyboardHeight = 0;
-    // TODO: Transfer to keyboardclosing
-    window.dispatchEvent(new CustomEvent('keyboardhide'));
-    this.keyboardFrameContainer.classList.add('hide');
-    this.keyboardFrameContainer.dataset.transitionOut = 'true';
+    this.transitionManager.hide();
   },
 
   hideKeyboardImmediately: function km_hideImmediately() {
-    // Don't need to trigger keyboardhide event if we're already hidden.
-    if (this.keyboardFrameContainer.classList.contains('hide')) {
-      return;
-    }
-    this.keyboardHeight = 0;
-    // TODO: Transfer to keyboardclosing
-    window.dispatchEvent(new CustomEvent('keyboardhide'));
-
-    // TODO: Transfer to keyboardclosed
-    window.dispatchEvent(new CustomEvent('keyboardhidden'));
-
-    var keyboard = this.keyboardFrameContainer;
-    keyboard.classList.add('notransition');
-    keyboard.classList.add('hide');
-    // Trigger reflow, because the class changes will be grouped
-    // and the notransition has no effect
-    keyboard.offsetHeight;
-
-    // after reflow it's safe to remove the class again
-    keyboard.classList.remove('notransition');
-    this.resetShowingKeyboard();
+    this.transitionManager.hideImmediately();
   },
 
   switchToNext: function km_switchToNext() {
@@ -751,7 +645,6 @@ var KeyboardManager = {
           showed.type = 'text';
         self.keyboardLayouts[showed.type].activeLayout = selectedIndex;
         self.setKeyboardToShow(showed.type, selectedIndex);
-        self.showKeyboard();
 
         // Hide the tray to show the app directly after
         // user selected a new keyboard.
@@ -767,7 +660,6 @@ var KeyboardManager = {
         // Mimic the success callback to show the current keyboard
         // when user canceled it.
         self.setKeyboardToShow(showed.type);
-        self.showKeyboard();
 
         // Hide the tray to show the app directly after
         // user canceled.
