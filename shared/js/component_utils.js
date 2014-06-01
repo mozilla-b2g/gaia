@@ -20,12 +20,6 @@
       style.innerHTML = '@import url(' + url + ');';
       this.appendChild(style);
 
-      // Because the stylsheet is loaded using @import
-      // there is a high chance that we may see 'FOUC'.
-      // To avoid this, we hide the component until we
-      // know that the stylesheet has loaded.
-//      this.style.visibility = 'hidden';
-
       // Wait for the stylesheet to load before injecting
       // it into the shadow-dom. This is to work around
       // bug 1003294, let's review once landed.
@@ -40,9 +34,6 @@
         if (this.shadowRoot) {
           this.shadowRoot.appendChild(style.cloneNode(true));
         }
-
-        // Show the component now we know it's styled
-//        this.style.visibility = '';
       }.bind(this));
     }
   };

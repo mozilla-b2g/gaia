@@ -115,10 +115,11 @@ suite('GaiaHeader', function() {
       // Temporary workaround for component_utils style loading.
       // We need to wait for the stylesheet to fully load due to the
       // async insertion.
-      this.element.querySelector('style').addEventListener('load', function() {
+      var style = this.element.querySelector('style');
+      style.addEventListener('load', function() {
         this.clock.tick(1);
-        var style = this.element.shadowRoot.querySelector('style');
-        style.onload = function() {
+        var shadowStyle = this.element.shadowRoot.querySelector('style');
+        shadowStyle.onload = function() {
           done();
         };
       }.bind(this));
