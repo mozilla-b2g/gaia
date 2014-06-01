@@ -645,7 +645,7 @@ void function() {
     //  data:     String (required)
     //  checksum: String (optional)
     //  url:      String (optional)
-    //  revision: Number (optional)
+    //  revision: String (optional)
     // }
     this.bg = args.bg || null;
 
@@ -732,6 +732,9 @@ void function() {
         case 'bg':
           var newBg = data.bg;
           if (newBg.data) {
+            if (newBg.revision) {
+              newBg.revision = String(newBg.revision);
+            }
             cleanData.bg = newBg;
           }
           break;
