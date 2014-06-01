@@ -30,86 +30,95 @@
       activity.postResult(false);
     });
 
-    request = eme.api.Categories.list().then(
-      function success(response) {
-        loading.style.display = 'none';
+    // filter installed categories
+    CollectionsDatabase.getAllCategories().then(function doRequest(installed) {
+      // TODO send existingExperienceIds instead of filtering on client side
+      // (when supported in Partners API)
+      request = eme.api.Categories.list().then(
+        function success(response) {
+          loading.style.display = 'none';
 
-        var data = response.response;
-        var suggest = Suggestions.load(data.categories, data.locale);
-        suggest.then(
-          function select(selected) {
-            eme.log('resolved with', selected);
-            var dataReady;
-
-            if (Array.isArray(selected)) {
-              // collections from categories
-              // we have the web app icons in the response
-              var collections = CategoryCollection.fromResponse(selected, data);
-              dataReady = Promise.resolve(collections);
-            } else {
-              // collection from custom query
-              // we make another request to get web app icons
-              dataReady = new Promise(function getIcons(resolve) {
-                eme.api.Apps.search({query: selected, limit: numAppIcons})
-                  .then(function success(response) {
-                    var webicons =
-                    response.response.apps.slice(0,numAppIcons).map(
-                      function each(app) {
-                        return app.icon;
-                    });
-
-                    var collection = new QueryCollection({
-                      query: selected,
-                      webicons: webicons
-                    });
-
-                    resolve([collection]);
-                  }, noIcons)
-                  .catch(noIcons);
-
-                  function noIcons(e) {
-                    eme.log('noIcons', e);
-                    resolve([new QueryCollection({query: selected})]);
-                  }
-              });
-            }
-
-            dataReady.then(function success(collections) {
-              var iconsReady = [];
-              collections.forEach(function doIcon(collection) {
-                iconsReady.push(collection.renderIcon());
-              });
-
-              Promise.all(iconsReady).then(function then() {
-                // TODO
-                // 1. store a batch of collections at once. possible?
-                // 2. we can store to db *before* icons is ready and once
-                // the homescreen syncs it will update the icons
-                var trxs = collections.map(CollectionsDatabase.add);
-                Promise.all(trxs).then(done, done);
-              }).catch(function _catch(ex) {
-                eme.log('caught exception', ex);
-                activity.postResult(false);
-              });
-            });
-
-            function done() {
-              activity.postResult(true);
-            }
-          },
-          function cancel(reason) {
-            eme.log('rejected with', reason);
-            activity.postResult(false);
+          var data = response.response;
+          var categories = data.categories.filter(function filter(category) {
+            return installed.indexOf(category.categoryId) === -1;
           });
 
-    }, function error(reason) {
-      eme.log('create-collection: error', reason);
-      activity.postError(_(reason === 'network error' ?
-                                 'network-error-message' : undefined));
-    }).catch(function fail(ex) {
-      eme.log('create-collection: failed', ex);
-      activity.postError();
-    });
+          Suggestions.load(categories).then(
+            function select(selected) {
+              eme.log('resolved with', selected);
+              var dataReady;
+
+              if (Array.isArray(selected)) {
+                // collections from categories
+                // we have the web app icons in the response
+                dataReady = Promise.resolve(
+                  CategoryCollection.fromResponse(selected, data));
+              } else {
+                // collection from custom query
+                // we make another request to get web app icons
+                dataReady = new Promise(function getIcons(resolve) {
+                  eme.api.Apps.search({query: selected, limit: numAppIcons})
+                    .then(function success(response) {
+                      var webicons =
+                      response.response.apps.slice(0,numAppIcons).map(
+                        function each(app) {
+                          return app.icon;
+                      });
+
+                      var collection = new QueryCollection({
+                        query: selected,
+                        webicons: webicons
+                      });
+
+                      resolve([collection]);
+                    }, noIcons)
+                    .catch(noIcons);
+
+                    function noIcons(e) {
+                      eme.log('noIcons', e);
+                      resolve([new QueryCollection({query: selected})]);
+                    }
+                });
+              }
+
+              dataReady.then(function success(collections) {
+                var iconsReady = [];
+                collections.forEach(function doIcon(collection) {
+                  iconsReady.push(collection.renderIcon());
+                });
+
+                Promise.all(iconsReady).then(function then() {
+                  // TODO
+                  // 1. store a batch of collections at once. possible?
+                  // 2. we can store to db *before* icons is ready and once
+                  // the homescreen syncs it will update the icons
+                  var trxs = collections.map(CollectionsDatabase.add);
+                  Promise.all(trxs).then(done, done);
+                }).catch(function _catch(ex) {
+                  eme.log('caught exception', ex);
+                  activity.postResult(false);
+                });
+              });
+
+              function done() {
+                activity.postResult(true);
+              }
+            },
+            function cancel(reason) {
+              eme.log('rejected with', reason);
+              activity.postResult(false);
+            });
+
+      }, function error(reason) {
+        eme.log('create-collection: error', reason);
+        activity.postError(_(reason === 'network error' ?
+                                   'network-error-message' : undefined));
+      }).catch(function fail(ex) {
+        eme.log('create-collection: failed', ex);
+        activity.postError();
+      });
+
+    }, activity.postError);
   }
 
   navigator.mozSetMessageHandler('activity', function onActivity(activity) {
