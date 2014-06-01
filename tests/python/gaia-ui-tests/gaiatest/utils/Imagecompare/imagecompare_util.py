@@ -6,8 +6,9 @@ from gaiatest import GaiaTestCase
 
 
 class ImageCompareUtil():
-    def __init__(self, marionette, local_path):
+    def __init__(self, marionette, apps, local_path):
         self.marionette = marionette
+        self.apps = apps
         self.temp_dir = 'temporary'
         self.ref_dir = 'refimages'
         self.shots_dir = 'shots'
@@ -31,13 +32,16 @@ class ImageCompareUtil():
         return out.rstrip()
 
     #invokes screen capture event (pressing home button + sleep button together)
-    def invoke_screen_capture(self, frame):
+    def invoke_screen_capture(self,browser=None):
+        time.sleep(2)
         self.marionette.switch_to_frame()  # switch to root frame (system app)
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home+sleep'));")
-        self.marionette.switch_to_frame(frame)  # switch back to original frame
+        self.apps.switch_to_displayed_app()
         time.sleep(5)  # for the notification overlay to disappear
+        if (browser != None):
+            browser.switch_to_content()
 
-    #this can be used as an alternative to sub_image_compare, if you want to grab the whole buffer.  the dimension may
+    #this can be used as an alternative to invoke_screen_capture, if you want to grab the whole buffer.  the dimension may
     #vary depending on the context
     def redraw_buffer(self, filename):
         shot = self.marionette.screenshot()
@@ -45,9 +49,7 @@ class ImageCompareUtil():
         fh.write(shot.decode('base64'))
         fh.close()
 
-    #this method collects images in the sd card to the /refimages folder, trims the top, and renames it.
-    #also creates /refimages folder if it does not exist
-    #it should be noted that for each script would have its own ref images folder.
+    #this method collects images in the sd card and places in the /refimages folder, renames it, and trims the top.
     def collect_ref_images(self, device_path, local_path, test_name):
 
         path = local_path + "/" + self.ref_dir + "/"
@@ -63,16 +65,16 @@ class ImageCompareUtil():
         for f in filelist:
             print "Captured file: " + f
             if "png" in f:
-                newname = temp_path + str(filecounter) + "_" + test_name + "_" + self.get_device_name() + ".png"
+                newname = temp_path + test_name + "_" + self.get_device_name() + "_" + str(filecounter) + ".png"
 
                 os.rename(temp_path + f, newname)
-                self.crop_ref_images(newname, newname)
+                self.crop_images(newname, newname)
                 filecounter += 1
         self.move(temp_path, path)
 
     # crops the top portion of the image by 1/24 of vertical resolution to remove the status bar
     @staticmethod
-    def crop_ref_images(filename, newfilename):
+    def crop_images(filename, newfilename):
         #get vertical dimension of the image
         p = subprocess.Popen(["identify", filename],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -102,15 +104,16 @@ class ImageCompareUtil():
         os.chdir(os.path.join(os.getcwd(), self.temp_dir))
 
         filecounter = 0
+        print "\n"
         for filename in self.sorted_ls(os.getcwd()):
-            print "shot filename: " + filename
+            print "Copying..." + filename
             if "png" in filename:
                 #rename files to following format: <counter>_<timestamp>_<testname>_<device>.png
                 timestamp = filename[0:filename.find('.png')]
-                newname = str(
-                    filecounter) + "_" + timestamp + "_" + module_name + "_" + self.get_device_name().rstrip() + '.png'
+                newname = module_name + "_" + self.get_device_name().rstrip() + "_" + str(
+                    filecounter) + "_" + timestamp + '.png'
                 os.rename(filename, newname)
-                self.crop_ref_images(newname, newname)
+                self.crop_images(newname, newname)
                 filecounter += 1
         os.chdir('..')
 
@@ -121,14 +124,16 @@ class ImageCompareUtil():
     #reference and target images have stripped off status bar on top, because of the clock and other status changes
     #fuzz_value is the % of the fuzz factor for imagemagick.  (color difference) 5% seems to remove most rendering
     #peculiarities that report false positives
-    def sub_image_compare(self,target_img, ref_img, diff_img, fuzz_value):
+    def sub_image_compare(self, target_img, ref_img, diff_img, fuzz_value):
         p = subprocess.Popen(
             ["compare", "-fuzz", str(fuzz_value) + "%", "-metric", "AE", target_img, ref_img, diff_img],
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         p.wait()
+
         if err != '0':
-            raise self.ImageMismatchError(err, target_img,ref_img)
+            print '\nWARNING: ' + err + ' pixels mismatched between ' + target_img + ' and ' + ref_img
+            #raise self.ImageMismatchError(err, target_img,ref_img) #Enable this line instead if exception is needed
 
     #do batch image compare- pick images with specified module name and compare against ref images
     def batch_image_compare(self, local_path, module_name, fuzz_value):
@@ -138,22 +143,31 @@ class ImageCompareUtil():
         filelist = self.sorted_ls(shot_path)
         filecounter = 0
         for f in filelist:
-            if module_name in f:
-                ref_file = ref_path + "/" + str(filecounter) + "_" + module_name + "_" + self.get_device_name() + ".png"
-                print self.sub_image_compare(os.path.join(shot_path, f),
-                                             ref_file, ref_file + "_diff.png", fuzz_value)
+            if module_name + "_" + self.get_device_name() + "_" + str(filecounter) in f:
+                ref_file = ref_path + "/" + module_name + "_" + self.get_device_name() + "_" + str(filecounter) + ".png"
+                self.sub_image_compare(os.path.join(shot_path, f),
+                                       ref_file, os.path.join(shot_path, f) + "_diff.png", fuzz_value)
                 filecounter += 1
 
     #do collect and compare in one shot
-    def collect_and_compare(self,local_path, device_path, module_name, fuzz_value):
+    def collect_and_compare(self, local_path, device_path, module_name, fuzz_value):
         self.collect_screenshots(device_path, local_path, module_name)
-        self.batch_image_compare(local_path,module_name,fuzz_value)
+        self.batch_image_compare(local_path, module_name, fuzz_value)
+
+
+    #execute the image job
+    def execute_image_job(self,GaiaTC):
+        if (GaiaTC.testvars['collect_ref_images'] == 'true'):
+            # collect screenshots and save it as ref images
+            self.collect_ref_images(GaiaTC.testvars['screenshot_location'],'.',GaiaTC.module_name)
+        else:
+            # pull the screenshots off the device and compare.
+            self.collect_and_compare('.',GaiaTC.testvars['screenshot_location'] , GaiaTC.module_name,
+                                     GaiaTC.testvars['fuzz_factor'])
 
     #sort the files in the path in timestamp order and return as a list
     @staticmethod
     def sorted_ls(path):
-        #mtime = lambda f: os.stat(os.path.join(path, f)).st_mtime
-        #return list(sorted(os.listdir(path), key=mtime))
         files = os.listdir(path)
         return sorted(files, key=lambda x: str(x.split('.')[0]))
 
@@ -174,6 +188,6 @@ class ImageCompareUtil():
 
     class ImageMismatchError(Exception):
         def __init__(self, pixelcount, target, reference):
-            message = '%s pixels mismatched between: %s, %s' \
-                           % (pixelcount, target, reference)
+            message = '\n %s pixels mismatched between: %s, %s' \
+                      % (pixelcount, target, reference)
             Exception.__init__(self, message)
