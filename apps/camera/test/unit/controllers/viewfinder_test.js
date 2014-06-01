@@ -11,15 +11,17 @@ suite('controllers/viewfinder', function() {
       'controllers/viewfinder',
       'views/viewfinder',
       'views/focus',
+      'views/faces',
       'lib/activity',
       'lib/settings',
       'lib/setting'
     ], function(
       App, Camera, ViewfinderController, ViewfinderView,
-      FocusRingView, Activity, Settings, Setting) {
+      FocusRingView, FacesView, Activity, Settings, Setting) {
       self.ViewfinderController = ViewfinderController.ViewfinderController;
       self.ViewfinderView = ViewfinderView;
       self.FocusRingView = FocusRingView;
+      self.FacesView = FacesView;
       self.Settings = Settings;
       self.Setting = Setting;
       self.Activity = Activity;
@@ -38,6 +40,7 @@ suite('controllers/viewfinder', function() {
     this.app.views = {
       viewfinder: sinon.createStubInstance(this.ViewfinderView),
       focusRing: sinon.createStubInstance(this.FocusRingView),
+      faces: sinon.createStubInstance(this.FacesView)
     };
 
     // Fake elements
@@ -60,6 +63,7 @@ suite('controllers/viewfinder', function() {
     // Shortcuts
     this.viewfinder = this.controller.views.viewfinder;
     this.focusRing = this.controller.views.focus;
+    this.faces = this.controller.views.faces;
     this.settings = this.app.settings;
     this.camera = this.app.camera;
   });
@@ -124,6 +128,20 @@ suite('controllers/viewfinder', function() {
       this.app.hidden = false;
       this.controller.onPreviewGalleryClosed();
       assert.isTrue(this.controller.startStream.called);
+    });
+  });
+
+  suite('ViewfinderController#onFacesDetected', function() {
+    setup(function() {
+      this.viewfinder.getSize.returns({ width: 800, height: 600});
+      sinon.spy(this.faces, 'show');
+      sinon.spy(this.faces, 'render');
+    });
+
+    test('Should call render faces and show the faces view', function() {
+      this.controller.onFacesDetected([]);
+      assert.isTrue(this.controller.views.faces.show.called);
+      assert.isTrue(this.faces.render.called);
     });
   });
 

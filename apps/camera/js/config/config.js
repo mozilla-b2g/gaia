@@ -41,7 +41,7 @@ module.exports = {
     touchFocus: true,
     // The camera detects faces and tries to focus
     // on them.
-    faceTracking: false
+    faceDetection: true
   },
 
   viewfinder: {
