@@ -998,9 +998,9 @@ install-media-samples:
 	$(ADB) shell 'if test -d /sdcard/music; then mv /sdcard/music /sdcard/music.temp; mv /sdcard/music.temp /sdcard/Music; fi'
 	$(ADB) shell 'if test -d /sdcard/videos; then mv /sdcard/videos /sdcard/Movies;	fi'
 
-	$(ADB) push media-samples/DCIM $(MSYS_FIX)/sdcard/DCIM
-	$(ADB) push media-samples/Movies $(MSYS_FIX)/sdcard/Movies
-	$(ADB) push media-samples/Music $(MSYS_FIX)/sdcard/Music
+	$(ADB) push test_media/samples/DCIM $(MSYS_FIX)/sdcard/DCIM
+	$(ADB) push test_media/samples/Movies $(MSYS_FIX)/sdcard/Movies
+	$(ADB) push test_media/samples/Music $(MSYS_FIX)/sdcard/Music
 
 install-test-media:
 	$(ADB) push test_media/Pictures $(MSYS_FIX)/sdcard/DCIM
