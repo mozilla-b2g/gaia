@@ -6,15 +6,26 @@ from marionette.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.lockscreen.app import LockScreen
 from gaiatest.apps.homescreen.app import Homescreen
+from gaiatest.utils.Imagecompare.imagecompare_util import ImageCompareUtil
+import sys,time
 
 
 class TestLockScreenAccessibility(GaiaTestCase):
 
+    #needed for the imagecapture utility
+
     def setUp(self):
         GaiaTestCase.setUp(self)
+
+        current_module = str(sys.modules[__name__])
+        self.module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
+        self.graphics = ImageCompareUtil(self.marionette,'.')
+
         self.device.lock()
 
+
     def test_a11y_unlock_to_homescreen(self):
+
         lock_screen = LockScreen(self.marionette)
         lockScreen_window = self.marionette.find_element(*lock_screen._lockscreen_window_locator)
         homescreen_container = self.marionette.find_element(By.ID, 'homescreen')
@@ -28,3 +39,4 @@ class TestLockScreenAccessibility(GaiaTestCase):
 
         self.assertTrue(self.accessibility.is_hidden(lockScreen_window))
         self.assertTrue(self.accessibility.is_visible(homescreen_container))
+
