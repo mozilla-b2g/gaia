@@ -12,7 +12,9 @@
   },
   "imei" : "013498000389040",
   "wifi": {
-    "ssid": "Mozilla Guest"
+    "ssid": "Lindholm",
+    "keyManagement": "WPA-PSK",
+    "psk": "19761122"
   },
   "settings": {
     "ril.cellbroadcast.disabled": true,
@@ -56,5 +58,7 @@
   "settings": {
       "debugger.remote-mode": "adb-devtools"
   },
-  "collect_ref_images": "false"
+  "collect_ref_images": "false",
+  "screenshot_location": "//sdcard//screenshots//",
+  "fuzz_factor": "5"
 }
