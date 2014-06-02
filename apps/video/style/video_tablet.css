@@ -52,24 +52,20 @@ body.pick-activity #thumbnails>li:last-child {
   border: 0;
 }
 
+.player-controls-button {
+  color: #FFFFFF;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  transition: none;
+}
+
 /* player-view of background */
 #player-view {
   background-color: #1c2124;
 }
 
 /* play/pause button */
-#play {
-  background: none;
-  height: 100%;
-  position: absolute;
-  border: none;
-  padding: 0;
-  margin: 0;
-  top: 0;
-  left: 0;
-  z-index: 20;
-}
-
 #play:before {
   border: 0;
 }
@@ -208,23 +204,17 @@ footer {
 }
 
 .layout-selection #thumbnail-select-view,
-.layout-list #thumbnail-list-view,
-.layout-fullscreen-player #fullscreen-tool-bar {
+.layout-list #thumbnail-list-view {
   display: block;
 }
 
-/* we don't need to show fullscreen-tool-bar in pick mode */
-body.pick-activity #fullscreen-tool-bar {
-  display: none;
-}
 
 @media (orientation: landscape) {
 
   /* panels of selection mode */
   .layout-selection #thumbnail-list-view,
   .layout-selection #switch-fullscreen,
-  .layout-selection #player-view > *,
-  .layout-selection #fullscreen-tool-bar {
+  .layout-selection #player-view > * {
     display: none;
   }
   /* show player-view for displaying background image, but all decendants are
@@ -242,8 +232,7 @@ body.pick-activity #fullscreen-tool-bar {
   .layout-list #thumbnail-select-view,
   .layout-list #switch-fullscreen,
   .layout-list #videoControls #videoActionBar,
-  .layout-list #videoControls #close,
-  .layout-list #fullscreen-tool-bar {
+  .layout-list #videoControls #close {
     display: none;
   }
 
@@ -318,13 +307,6 @@ body.pick-activity #fullscreen-tool-bar {
     background: url(images/tablet_section_divider.png) no-repeat left;
   }
 
-
-  /* position */
-  /* the videoActionBar is not shown and videoBar should be moved to bottom */
-  #player-view #videoControls #videoBar {
-    bottom: 0;
-  }
-
   #fullscreen-button {
     background-image: url(images/tablet_fullscreen.png);
     background-size: 4.6rem;
@@ -375,10 +357,6 @@ body.pick-activity #fullscreen-tool-bar {
 
   .layout-list #duration-text {
     width: 5rem;
-  }
-
-  .layout-fullscreen-player #play {
-    width: 20rem;
   }
 
   .layout-fullscreen-player #timeSlider {
@@ -556,19 +534,9 @@ body.pick-activity #fullscreen-tool-bar {
     display: none;
   }
 
-  /* the videoActionBar is not shown and videoBar should be moved to bottom */
-  #player-view #videoControls #videoBar {
-    bottom: 0;
-  }
-
   /* spinner is only valid for tablet and landscape mode */
   #spinner-overlay {
     display: none;
-  }
-
-  /* video controls */
-  .layout-fullscreen-player #play {
-    width: 14rem;
   }
 
   .layout-fullscreen-player #timeSlider {
