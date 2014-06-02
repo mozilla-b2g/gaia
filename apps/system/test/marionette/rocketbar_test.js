@@ -86,7 +86,9 @@ marionette('Rocketbar', function() {
     });
   });
 
-  test('Cancel Rocketbar with backdrop', function() {
+  // Skip test since it fails to handle the geolocation permission dialog
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1018925
+  test.skip('Cancel Rocketbar with backdrop', function() {
     rocketbar.waitForLoad();
 
     // Check that scrim appears
