@@ -19,6 +19,7 @@
 
     <link rel="stylesheet" type="text/css" href="/shared/style/dialer/keypad.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/suggestion.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/dialer/overlay.css">
 
     <link rel="stylesheet" type="text/css" href="/shared/style/tabs.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/sim_picker.css">
@@ -222,7 +223,7 @@
 
     <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
 
-    <form id="suggestion-overlay" role="dialog" data-type="action" class="overlay" hidden>
+    <form id="suggestion-overlay" role="dialog" data-type="action" class="overlay" aria-hidden="true">
       <button role="button" is="suggestion-item" id="suggestion-item-template" class="js-suggestion-item suggestion-item" hidden></button>
       <header></header>
       <menu id="suggestion-list">
