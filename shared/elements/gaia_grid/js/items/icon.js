@@ -10,6 +10,8 @@
 
   const CONFIRM_DIALOG_ID = 'confirmation-message';
 
+  const IDENTIFIER_SEP = '-';
+
   /**
    * Represents a single app icon on the homepage.
    */
@@ -60,7 +62,7 @@
       if (!icons) {
         return ICON_PATH_BY_DEFAULT;
       }
-      
+
       // Create a list with the sizes and order it by descending size
       var list = Object.keys(icons).map(function(size) {
         return size;
@@ -78,7 +80,7 @@
       var accurateSize = list[0]; // The biggest icon available
       for (var i = 0; i < length; i++) {
         var size = list[i];
-        
+
         if (size < maxSize) {
           break;
         }
@@ -120,6 +122,8 @@
       return manifest;
     },
 
+    identifierSeparator: IDENTIFIER_SEP,
+
     get identifier() {
       var identifier = [this.app.manifestURL];
 
@@ -127,7 +131,7 @@
         identifier.push(this.entryPoint);
       }
 
-      return identifier.join('-');
+      return identifier.join(IDENTIFIER_SEP);
     },
 
     /**

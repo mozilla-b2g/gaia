@@ -6,6 +6,7 @@
 /* global CollectionSource */
 /* global dispatchEvent */
 /* global Divider */
+/* global configurator */
 
 (function(exports) {
 
@@ -14,8 +15,70 @@
   const DB_NAME = 'home2-alpha20';
 
   const DB_ITEM_STORE = 'items';
+  const DB_SV_APP_STORE_NAME = 'svAppsInstalled';
 
   var db;
+
+  function sort(entries, order) {
+
+    if (!order || !order.length) {
+      return entries;
+    }
+
+    var newEntries = [];
+    function isEqual(lookFor, compareWith) {
+      if (!lookFor || !lookFor.manifestURL ||
+          !compareWith.detail || !compareWith.detail.manifestURL) {
+        return false;
+      }
+      if (compareWith.detail.entryPoint) {
+        return lookFor.manifestURL === compareWith.detail.manifestURL &&
+               lookFor.entry_point === compareWith.detail.entryPoint;
+      } else {
+        return lookFor.manifestURL === compareWith.detail.manifestURL;
+      }
+    }
+
+    for (var i = 0, iLen = order.length; i < iLen; i++) {
+      // Add all entries of current section
+      for (var j = 0, jLen = order[i].length; j < jLen; j++) {
+        var ind = entries.findIndex(
+                           isEqual.bind(null, order[i][j]));
+        if (ind >= 0) {
+          newEntries.push(entries.splice(ind,1)[0]);
+        }
+      }
+      // If we have more sections add a divider
+      if (i < iLen - 1) {
+        newEntries.push(new Divider());
+      }
+    }
+    // If entries is not empty yet add orderless entries
+    if (entries.length > 0) {
+        newEntries.push(new Divider());
+        newEntries = newEntries.concat(entries);
+    }
+    for (i = 0, iLen = newEntries.length; i < iLen; i++) {
+      if (newEntries[i].detail) {
+        newEntries[i].detail.index = i;
+      }
+    }
+   return newEntries;
+  }
+
+  function loadTable(table, indexName, iterator, aNext) {
+    newTxn(table, 'readonly', function(txn, store) {
+      var index = store.index(indexName);
+      index.openCursor().onsuccess = function onsuccess(event) {
+        var cursor = event.target.result;
+        if (!cursor) {
+          return;
+        }
+        iterator(cursor.value);
+        cursor.continue();
+      };
+    }, aNext);
+  }
 
   function newTxn(storeName, txnType, withTxnAndStore, successCb) {
     var txn = db.transaction([storeName], txnType);
@@ -35,16 +98,18 @@
   }
 
   function ItemStore() {
+    var self = this;
     this.applicationSource = new ApplicationSource(this);
     this.bookmarkSource = new BookmarkSource(this);
     this.collectionSource = new CollectionSource(this);
 
     this.sources = [this.applicationSource, this.bookmarkSource,
-      this.collectionSource];
+                    this.collectionSource];
 
     this.ready = false;
 
     var isEmpty = false;
+    self.gridOrder = null;
 
     var request = window.indexedDB.open(DB_NAME, DB_VERSION);
 
@@ -52,13 +117,13 @@
       db = request.result;
 
       if (isEmpty) {
-        this.populate(
-          this.fetch.bind(this, this.synchronize.bind(this)));
+        self.populate(
+          self.fetch.bind(self, self.synchronize.bind(self)));
       } else {
-        this.initSources(
-          this.fetch.bind(this, this.synchronize.bind(this)));
+        self.initSources(
+          self.fetch.bind(self, self.synchronize.bind(self)));
       }
-    }.bind(this);
+    };
 
     request.onupgradeneeded = function _onupgradeneeded(event) {
       var db = event.target.result;
@@ -72,6 +137,10 @@
 
           objectStore.createIndex('index', 'index', { unique: true });
           isEmpty = true;
+          self.gridOrder = configurator.getGrid();
+          var objectSV = db.createObjectStore(DB_SV_APP_STORE_NAME,
+            { keyPath: 'manifestURL' });
+          objectSV.createIndex('indexSV', 'indexSV', { unique: true });
       }
     };
   }
@@ -100,20 +169,35 @@
       success(this._allItems);
     },
 
+    saveTable: function(table, objArr, column, checkPersist, aNext) {
+      newTxn(table, 'readwrite', function(txn, store) {
+        store.clear();
+        for (var i = 0, iLen = objArr.length; i < iLen; i++) {
+          if (!checkPersist || (checkPersist && objArr[i].persistToDB)) {
+            store.put(column?objArr[i][column]:objArr[i]);
+          }
+        }
+        if (typeof aNext === 'function') {
+          aNext();
+        }
+      });
+    },
+
     /**
      * Saves all icons to the database.
      */
-    save: function(entries, callback) {
-        // The initial config is simply the list of apps
-        newTxn(DB_ITEM_STORE, 'readwrite', function(txn, store) {
-          store.clear();
-          for (var i = 0, iLen = entries.length; i < iLen; i++) {
-            var entry = entries[i];
-            if (entry.persistToDB) {
-              store.put(entry.detail);
-            }
-          }
-        }, callback);
+    save: function(entries, aNext) {
+      entries = sort(entries, this.gridOrder);
+      this.gridOrder = null;
+      // The initial config is simply the list of apps
+      this.saveTable(DB_ITEM_STORE, entries, 'detail', true, aNext);
+    },
+
+    /**
+     * Save reference to SingleVariant app previously installed
+     */
+    savePrevInstalledSvApp: function(svApps, aNext) {
+      this.saveTable(DB_SV_APP_STORE_NAME, svApps, null, false, aNext);
     },
 
     /**
@@ -127,17 +211,13 @@
         collected.push(value);
       }
 
-      newTxn(DB_ITEM_STORE, 'readonly', function(txn, store) {
-        var index = store.index('index');
-        index.openCursor().onsuccess = function onsuccess(event) {
-          var cursor = event.target.result;
-          if (!cursor) {
-            return;
-          }
-          iterator(cursor.value);
-          cursor.continue();
-        };
-      }.bind(this), finish.bind(this));
+      function iteratorSV(value) {
+        /* jshint validthis: true */
+        this.applicationSource.addPreviouslyInstalledSvApp(value.manifestURL);
+      }
+
+      loadTable(DB_SV_APP_STORE_NAME, 'indexSV', iteratorSV.bind(this));
+      loadTable(DB_ITEM_STORE, 'index', iterator, finish.bind(this));
 
       function finish() {
         /* jshint validthis: true */

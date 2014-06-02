@@ -1,5 +1,7 @@
 /* global Divider */
 /* global GridView */
+/* global Placeholder */
+/* global Icon */
 
 /**
  * The GaiaGrid component is a helper to display grid-like results.
@@ -8,6 +10,8 @@
  */
 window.GaiaGrid = (function(win) {
   'use strict';
+
+  var nonVisualElements = [Placeholder];
 
   // Extend from the HTMLElement prototype
   var proto = Object.create(HTMLElement.prototype);
@@ -142,6 +146,54 @@ window.GaiaGrid = (function(win) {
       return this._grid.layout.gridMaxIconSize;
     }
   });
+
+  /**
+   * Returns the position of the last item which is not a divider
+   */
+  proto.getIndexLastIcon = function() {
+    var items = this._grid.items;
+    for (var i = this._grid.items.length - 1; i >= 0; i--) {
+      if ((items[i] instanceof Icon)) {
+        return i;
+      }
+    }
+  };
+
+  proto.removeNonVisualElements = function() {
+
+    function isNonVisual(elem) {
+      var retVal = false;
+      for (var i = 0, iLen = nonVisualElements.length; i < iLen && !retVal;
+           i++) {
+        retVal = elem instanceof nonVisualElements[i];
+      }
+      return retVal;
+    }
+
+    var i = 0 ;
+    var iLen = this._grid.items.length;
+    while (i < iLen) {
+      this._grid.items[i].detail.index = i;
+      if (isNonVisual(this._grid.items[i])) {
+        this._grid.items.splice(i,1);
+        iLen -= 1;
+      } else {
+        i += 1;
+      }
+    }
+  };
+
+  /**
+   * Move item on orig position to dst position
+   * This function only moves elements on the items array, without calling
+   * render.
+   * @param {number} orig Element's position to move
+   * @param {number} orig New position of the item
+   */
+  proto.moveTo = function(orig, dst) {
+    this._grid.items.splice(dst, 0,
+      this._grid.items.splice(orig, 1)[0]);
+  };
 
   /**
    * We clone the scoped stylesheet and append

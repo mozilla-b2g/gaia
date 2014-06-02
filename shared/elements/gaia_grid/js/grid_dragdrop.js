@@ -304,7 +304,7 @@
             }
 
             break;
-            
+
           case 'touchend':
             // Ensure the app is not launched
             e.stopImmediatePropagation();
