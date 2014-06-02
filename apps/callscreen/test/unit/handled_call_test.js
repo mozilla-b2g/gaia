@@ -548,7 +548,7 @@ suite('dialer/handled_call', function() {
   test('should display switch-calls l10n key', function() {
     mockCall = new MockCall('888', 'connected');
     subject = new HandledCall(mockCall);
-    mockCall.secondNumber = '999';
+    mockCall.cdmaWaitingCall = { number: '999' };
     subject.updateCallNumber();
 
     assert.equal(subject.numberNode.textContent, 'switch-calls');
@@ -605,7 +605,7 @@ suite('dialer/handled_call', function() {
     test('check switch-calls mode', function() {
       mockCall = new MockCall('888', 'connected');
       subject = new HandledCall(mockCall);
-      mockCall.secondNumber = '999';
+      mockCall.cdmaWaitingCall = { number: '999' };
       subject.updateCallNumber();
 
       assert.equal('', subject.additionalInfoNode.textContent);
@@ -742,7 +742,7 @@ suite('dialer/handled_call', function() {
     test('should reset photo for more than 1 calls in CDMA', function() {
       mockCall = new MockCall('888', 'connected');
       subject = new HandledCall(mockCall);
-      mockCall.secondNumber = '999';
+      mockCall.cdmaWaitingCall = { number: '999' };
       subject.updateCallNumber();
 
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);

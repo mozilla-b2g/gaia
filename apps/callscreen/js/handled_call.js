@@ -106,7 +106,6 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
 
 HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var number = this.call.number;
-  var secondNumber = this.call.secondNumber;
   var node = this.numberNode;
   var self = this;
 
@@ -114,7 +113,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
 
   /* If we have a second call waiting in CDMA mode then we don't know which
    * number is currently active */
-  if (secondNumber) {
+  if (this.call.cdmaWaitingCall) {
     LazyL10n.get(function localized(_) {
       node.textContent = _('switch-calls');
       self._cachedInfo = _('switch-calls');

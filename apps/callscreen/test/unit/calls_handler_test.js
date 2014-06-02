@@ -722,7 +722,7 @@ suite('calls handler', function() {
 
             telephonyAddCall.call(this, call, {trigger: true});
             MockNavigatorMozTelephony.active = call;
-            call.secondNumber = '12345';
+            call.cdmaWaitingCall = { number: '12345' };
             call.state = 'connected';
           });
 
