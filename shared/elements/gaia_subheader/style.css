@@ -11,7 +11,7 @@ gaia-subheader {
 /* -----------------------------------------------------------------
   SKIN: organic
 ----------------------------------------------------------------- */
-gaia-subheader[data-skin="organic"] {
+gaia-subheader[skin="organic"] {
   border: none;
   background-color: #e7e7e7;
   color: #4d4d4d;
