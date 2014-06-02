@@ -8,6 +8,8 @@
     16, 17, 18, 19, 20, 21, 22, 23
   ];
 
+  var _screenWidth = 0;
+
   /**
    * Utility functions for measuring and manipulating font sizes
    */
@@ -130,7 +132,11 @@
         i--;
       } while (resultWidth > maxWidth && i >= 0);
 
-      return { fontSize: fontSize, overflow: resultWidth > maxWidth };
+      return {
+        fontSize: fontSize,
+        //overflow: resultWidth > maxWidth,
+        textWidth: resultWidth
+      };
     },
 
     /**
@@ -199,7 +205,7 @@
      *
      * @param {UIEvent} ext The overflow/underflow event object.
      */
-    handleTextFlowChange: function (evt) {
+    handleTextFlowChange: function(evt) {
       var element = evt.target;
       // This check should really be in its own function, but as a
       // performance optimization we will avoid the overhead of any
@@ -227,7 +233,42 @@
      * @param {HTMLElement} element The element whose text we want to center.
      */
     centerTextToScreen: function(element) {
-      // TODO: fill in centering logic here
+      // Get header and text widths.
+      var headerWidth = element.clientWidth;
+
+      // @todo Inline with autoResizeElement to avoid calling getAllowedSizes.
+      var style = window.getComputedStyle(element);
+      var allowedSizes = FontSizeUtils.getAllowedSizes(element);
+      var info = FontSizeUtils.getMaxFontSizeInfo(
+        element.textContent,
+        allowedSizes,
+        style.fontFamily,
+        parseInt(style.width, 10)
+      );
+
+      // There is a 10px padding on each side, so we need to subtract 20.
+      var textWidth = info.textWidth + 20;
+
+      var sideSpaceLeft = element.offsetLeft;
+      var sideSpaceRight = FontSizeUtils.containerWidth -
+        sideSpaceLeft - headerWidth;
+
+      var margin = Math.max(sideSpaceLeft, sideSpaceRight);
+
+      console.log('containerWidth', FontSizeUtils.containerWidth, 'headerWidth',
+        headerWidth, 'textWidth', textWidth, 'margin', margin)
+
+      // Can the header be centered?
+      if (textWidth + (margin * 2) <= FontSizeUtils.containerWidth) {
+        console.log('Header centered')
+        element.style.marginLeft = element.style.marginRight = margin + 'px';
+      } else if (textWidth <= headerWidth) {
+        console.log('Header not centered')
+        // Do nothing, just for better debugging.
+      } else if (textWidth > headerWidth) {
+        console.log('Header not centered and truncated')
+        element.style.textOverflow = 'ellipsis';
+      }
     },
 
     /**
@@ -253,6 +294,22 @@
           this.autoResizeElement(headers[i]);
         }
       });
+    },
+
+    /**
+     * Cache the screen width.
+     * @todo See if not caching has an impact on performance.
+     *
+     * @returns {number}
+     */
+    get containerWidth() {
+      _screenWidth = screen.width;
+
+      // Evaluated on first call, then will always return a cached version of
+      // `screen.width` after.
+      return function() {
+        return _screenWidth;
+      }();
     }
   };
 
