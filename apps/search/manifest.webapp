@@ -19,6 +19,8 @@
     "128": "/style/icons/Blank.png"
   },
   "permissions": {
+    "geolocation": {},
+    "mobileconnection":{},
     "webapps-manage":{},
     "open-remote-window":{},
     "settings":{ "access": "readwrite" },
