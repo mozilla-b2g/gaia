@@ -251,6 +251,7 @@ reflows. Foreground/background colors should be safe.
   font-size: 1.6rem;
   font-weight: 500;
   color: #5f5f5f;
+  word-wrap: break-word;
 }
 
 .msg-body-container {
