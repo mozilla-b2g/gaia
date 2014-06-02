@@ -1,4 +1,6 @@
-before_install: travis_retry make node_modules
+before_install:
+  - travis_retry make node_modules
+  - source ./tests/travis_ci/venv.sh
 install: ./node_modules/.bin/travisaction $CI_ACTION install
 before_script:
 - export DISPLAY=:99.0

@@ -12,9 +12,14 @@ CreateAccount.prototype = {
 
   selector: '#create-account-view',
 
-  createCalDavAccount: function() {
+  /**
+   * @param {String} accountType is one of
+   *     'google', 'yahoo', or 'caldav'.
+   */
+  chooseAccountType: function(accountType) {
+    var selector = '.' + accountType;
     this
-      .findElement('a[href="/create-account/caldav"]')
+      .findElement(selector)
       .click();
   }
 };

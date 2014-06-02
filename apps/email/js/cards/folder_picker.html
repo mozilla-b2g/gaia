@@ -1,23 +1,59 @@
-<div class="card-folder-picker card">
-  <section class="fld-folders-header skin-dark" role="region">
-    <header>
-      <a href="#" class="fld-accounts-btn">
-        <span class="icon icon-back"></span>
-      </a>
-      <h1 class="fld-folders-header-account-label"></h1>
-    </header>
-  </section>
-  <div class="scrollregion-below-header folder-scroller-region">
-    <div class="fld-folders-container">
-    </div>
+<div class="card-folder-picker card anim-vertical anim-overlay one-account">
+  <!-- Our card does not have a header of its own; it reuses the message_list's
+       header.  We want to steal clicks on its menu button too, hence this node
+       and fld-header-back which is a transparent button that overlays the menu
+       button. -->
+  <div class="fld-header-placeholder">
+    <button data-l10n-id="drawer-back"
+            class="fld-header-back">BacK</button>
   </div>
-  <div class="fld-nav-toolbar bottom-toolbar">
-    <button class="fld-nav-settings-btn bottom-btn"></button>
-    <h3 class="fld-nav-last-synced">
-      <span class="fld-nav-last-synced-label"
-            data-l10n-id="account-last-synced-label"></span>
-      <span class="fld-nav-last-synced-value"></span>
-    </h3>
-    <span class="fld-nav-account-problem icon collapsed">!</span>
+  <!-- Backing semi-opaque layer for everything below the header so that
+       anything that the folder drawer does not cover looks inactive-ish.
+       Clicking on this makes the drawer go away. -->
+  <div class="fld-shield"></div>
+  <!-- This exists to clip fld-content so that when it animates in/out using
+       translateY it doesn't paint over-top of the header. -->
+  <div class="fld-content-container">
+    <!-- This is the actual drawer thing that slides up/down using translateY.
+         -->
+    <div class="fld-content">
+      <!-- Scrollable container holds everything but the non-scrolling settings
+           button. -->
+      <div class="fld-acct-scrollouter">
+        <!-- Combo-box style widget that shows the current account name when
+             collapsed and the fld-acct-header-account-header label when
+             expanded.  The actual items live in fld-accountlist-container
+             for animation reasons; see below. -->
+        <a class="fld-acct-header closed" role="region">
+          <span class="fld-acct-header-account-label"></span>
+          <span class="fld-acct-header-account-header"
+                data-l10n-id="drawer-accounts-header">AccountS</span>
+          <span class="fld-account-switch-arrow"></span>
+        </a>
+        <!-- Exists to clip fld-acct-container which uses translateY to hide the
+             list of accounts in negative-space until the account list is
+             opened.  This has an explicit height style set based on whether the
+             list of accounts is displayed or not because fld-acct-scrollinner
+             will always have the same height for layout purposes because the
+             translateY hiding does not affect layout. -->
+        <div class="fld-acct-scrollinner">
+          <!-- The list of all accounts and the folders for the current account.
+               As noted above, translateY is used to hide the list of accounts
+               when we don't want to be displaying it. -->
+          <div class="fld-acct-container">
+            <!-- The list of accounts -->
+            <div class="fld-accountlist-container">
+            </div>
+            <!-- The list of folders for the current account. -->
+            <div class="fld-folders-container">
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- settings button; always present; does not scroll -->
+      <a class="fld-nav-toolbar bottom-toolbar">
+        <span class="fld-settings-link" data-l10n-id="drawer-settings-link">SettingS</span>
+      </a>
+    </div>
   </div>
 </div>

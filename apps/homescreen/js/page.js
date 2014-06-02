@@ -160,8 +160,9 @@ Icon.prototype = {
     }
   },
 
-  appendOptions: function icon_appendOptions() {
-    var options = this.container.querySelector('.options');
+  appendOptions: function icon_appendOptions(container) {
+    container = container || this.container;
+    var options = container.querySelector('.options');
     if (options) {
       return;
     }
@@ -170,7 +171,7 @@ Icon.prototype = {
     options = document.createElement('span');
     options.className = 'options';
     options.dataset.isIcon = true;
-    this.container.appendChild(options);
+    container.appendChild(options);
   },
 
   removeOptions: function icon_removeOptions() {
@@ -569,6 +570,10 @@ Icon.prototype = {
       img.style.visibility = 'visible';
     };
     draggableElem.appendChild(icon);
+
+    if (this.descriptor.removable === true) {
+      this.appendOptions(icon);
+    }
 
     var container = this.container;
     container.dataset.dragging = 'true';

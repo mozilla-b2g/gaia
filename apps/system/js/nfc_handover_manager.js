@@ -3,7 +3,8 @@
 
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
-/* globals dump, BluetoothTransfer, NfcManagerUtils, NfcConnectSystemDialog */
+/* globals dump, BluetoothTransfer, NDEFUtils, NfcConnectSystemDialog,
+           NDEF */
 /* exported NfcHandoverManager */
 'use strict';
 
@@ -75,7 +76,7 @@ var NfcHandoverManager = {
         output += JSON.stringify(optObject);
       }
       if (typeof dump !== 'undefined') {
-        dump(output);
+        dump(output + '\n');
       } else {
         console.log(output);
       }
@@ -157,13 +158,13 @@ var NfcHandoverManager = {
   },
 
   getBluetoothSSP: function getBluetoothSSP(ndef) {
-    var handover = NfcManagerUtils.parseHandoverNDEF(ndef);
+    var handover = NDEFUtils.parseHandoverNDEF(ndef);
     if (handover == null) {
       // Bad handover message. Just ignore.
       this.debug('Bad handover messsage');
       return null;
     }
-    var btsspRecord = NfcManagerUtils.searchForBluetoothAC(handover);
+    var btsspRecord = NDEFUtils.searchForBluetoothAC(handover);
     if (btsspRecord == null) {
       // There is no Bluetooth Alternative Carrier record in the
       // Handover Select message. Since we cannot handle WiFi Direct,
@@ -171,7 +172,7 @@ var NfcHandoverManager = {
       this.debug('No BT AC');
       return null;
     }
-    return NfcManagerUtils.parseBluetoothSSP(btsspRecord);
+    return NDEFUtils.parseBluetoothSSP(btsspRecord);
   },
 
   doPairing: function doPairing(mac) {
@@ -215,9 +216,9 @@ var NfcHandoverManager = {
     }
 
     var nfcPeer = this.nfc.getNFCPeer(session);
-    var carrierPowerState = this.bluetooth.enabled ? 1 : 2;
+    var cps = this.bluetooth.enabled ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
     var mac = this.defaultAdapter.address;
-    var hs = NfcManagerUtils.encodeHandoverSelect(mac, carrierPowerState);
+    var hs = NDEFUtils.encodeHandoverSelect(mac, cps);
     var req = nfcPeer.sendNDEF(hs);
     var self = this;
     req.onsuccess = function() {
@@ -246,11 +247,9 @@ var NfcHandoverManager = {
                               requestId: requestId,
                               onsuccess: onsuccess, onerror: onerror};
       var nfcPeer = this.nfc.getNFCPeer(session);
-      var carrierPowerState = this.bluetooth.enabled ? 1 : 2;
-      var rnd = Math.floor(Math.random() * 0xffff);
+      var cps = this.bluetooth.enabled ? NDEF.CPS_ACTIVE : NDEF.CPS_ACTIVATING;
       var mac = this.defaultAdapter.address;
-      var hr = NfcManagerUtils.encodeHandoverRequest(mac, carrierPowerState,
-                                                    rnd);
+      var hr = NDEFUtils.encodeHandoverRequest(mac, cps);
       var req = nfcPeer.sendNDEF(hr);
       req.onsuccess = function() {
         self.debug('sendNDEF(hr) succeeded');
@@ -297,7 +296,7 @@ var NfcHandoverManager = {
 
   dispatchSendFileStatus: function dispatchSendFileStatus(status) {
     this.debug('In dispatchSendFileStatus ' + status);
-    window.navigator.mozNfc.notifySendFileStatus(status,
+    navigator.mozNfc.notifySendFileStatus(status,
                          this.sendFileRequest.requestId);
   },
 
@@ -323,6 +322,14 @@ var NfcHandoverManager = {
    *****************************************************************************
    ****************************************************************************/
 
+  handleSimplifiedPairingRecord: function handleSimplifiedPairingRecord(ndef) {
+    this.debug('handleSimplifiedPairingRecord');
+    var pairingRecord = ndef[0];
+    var btssp = NDEFUtils.parseBluetoothSSP(pairingRecord);
+    this.debug('Simplified pairing with: ' + btssp.mac);
+    this.onRequestConnect(btssp);
+  },
+
   handleHandoverSelect: function handleHandoverSelect(ndef) {
     this.debug('handleHandoverSelect');
     var btssp = this.getBluetoothSSP(ndef);
@@ -340,6 +347,7 @@ var NfcHandoverManager = {
 
   handleHandoverRequest: function handleHandoverRequest(ndef, session) {
     this.debug('handleHandoverRequest');
+    this.bluetoothWasEnabled = this.bluetooth.enabled;
     this.doAction({callback: this.doHandoverRequest, args: [ndef, session]});
   },
 
@@ -357,11 +365,11 @@ var NfcHandoverManager = {
 
   transferComplete: function transferComplete(succeeded) {
     this.debug('transferComplete');
+    if (!this.bluetoothWasEnabled) {
+      this.debug('Disabling Bluetooth');
+      this.settings.createLock().set({'bluetooth.enabled': false});
+    }
     if (this.sendFileRequest != null) {
-      if (!this.bluetoothWasEnabled) {
-        this.debug('Disabling Bluetooth');
-        this.settings.createLock().set({'bluetooth.enabled': false});
-      }
       // Completed an outgoing send file request. Call onsuccess/onerror
       if (succeeded) {
         this.sendFileRequest.onsuccess();

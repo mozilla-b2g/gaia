@@ -1,5 +1,6 @@
 Keyboards['pt-BR'] = {
   label: 'Portuguese',
+  shortLabel: 'Pt',
   menuLabel: 'Português',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

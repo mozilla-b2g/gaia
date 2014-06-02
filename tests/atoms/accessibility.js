@@ -59,5 +59,20 @@ var Accessibility = {
       }
       this._matchState(acc, 'STATE_INVISIBLE');
     });
-  }
+  },
+
+  getName: function Accessibility_getName(element) {
+    this._getAccessible(element.wrappedJSObject, (acc) => {
+      marionetteScriptFinished(acc.name);
+    });
+  },
+
+  getRole: function Accessibility_getRole(element) {
+    this._getAccessible(element.wrappedJSObject, (acc) => {
+      let gAccRetrieval = SpecialPowers.Cc[
+        "@mozilla.org/accessibleRetrieval;1"].getService(
+          SpecialPowers.Ci.nsIAccessibleRetrieval);
+      marionetteScriptFinished(gAccRetrieval.getStringRole(acc.role));
+    });
+  },
 };

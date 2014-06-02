@@ -50,8 +50,6 @@ var mocksForm = new MocksHelper([
   'ContactPhotoHelper'
 ]).init();
 
-mocha.globals(['fb', 'mozL10n', 'SimplePhoneMatcher']);
-
 suite('Render contact form', function() {
 
   suiteSetup(function() {
@@ -282,6 +280,21 @@ suite('Render contact form', function() {
                      classList.contains('placeholder'));
     }
 
+    test('no scroll on first load', function() {
+      subject.render(mockContact);
+      var container = document.getElementById('contact-form').parentNode;
+      assert.equal(container.scrollTop, 0);
+    });
+
+    test('no scroll memorised from previous renders', function() {
+      subject.render(mockContact);
+      var container = document.getElementById('contact-form').parentNode;
+      // scroll container
+      container.scrollTop = 100;
+      subject.render(mockContact);
+      assert.equal(container.scrollTop, 0);
+    });
+
     test('with no name', function() {
       mockContact.givenName.pop();
       subject.render(mockContact);
@@ -367,6 +380,40 @@ suite('Render contact form', function() {
         subject.saveContact();
         assert.equal(deviceContact.bday.getTime(), 0);
     });
+
+    test('if the tel field is null, is ignored',
+      function() {
+        var deviceContact = new MockContactAllFields();
+        deviceContact.tel[0].value = null;
+        subject.render(deviceContact);
+        assert.equal(deviceContact.tel.length, 2);
+
+        subject.saveContact();
+        assert.equal(deviceContact.tel.length, 1);
+    });
+
+    test('if the email field is null, is ignored',
+      function() {
+        var deviceContact = new MockContactAllFields();
+        deviceContact.email[0].value = null;
+        subject.render(deviceContact);
+        assert.equal(deviceContact.email.length, 2);
+
+        subject.saveContact();
+        assert.equal(deviceContact.email.length, 1);
+    });
+
+    test('if the address field is null, is ignored',
+      function() {
+        var deviceContact = new MockContactAllFields();
+        deviceContact.adr.unshift({'type': ['personal']});
+        subject.render(deviceContact);
+        assert.equal(deviceContact.adr.length, 2);
+
+        subject.saveContact();
+        assert.equal(deviceContact.adr.length, 1);
+    });
+
 
     test('if tel field has a value, carrier input must be in regular state',
       function() {
@@ -476,6 +523,52 @@ suite('Render contact form', function() {
         assertAddDateState(false);
 
         assert.isFalse(footer.classList.contains('hide'));
+      };
+    });
+
+    test('FB Contact. Linking and promoting given name', function() {
+      window.fb.setIsFbContact(true);
+      window.fb.setIsFbLinked(false);
+
+      var promoteToLinkedSpy = sinon.spy(Mockfb, 'promoteToLinked');
+      var setPropagatedFlagSpy = sinon.spy(window.fb, 'setPropagatedFlag');
+
+      mockContact.givenName.pop();
+
+      var fbContact = new Mockfb.Contact(mockContact);
+      fbContact.getDataAndValues().onsuccess = function() {
+        subject.render(mockContact, null, this.result);
+        document.querySelector('#givenName').value = '';
+
+        subject.saveContact();
+        assert.isTrue(promoteToLinkedSpy.called);
+        assert.isTrue(setPropagatedFlagSpy.calledWithMatch('givenName'));
+
+        promoteToLinkedSpy.restore();
+        setPropagatedFlagSpy.restore();
+      };
+    });
+
+    test('FB Contact. Linking and promoting family name', function() {
+      window.fb.setIsFbContact(true);
+      window.fb.setIsFbLinked(false);
+
+      var promoteToLinkedSpy = sinon.spy(Mockfb, 'promoteToLinked');
+      var setPropagatedFlagSpy = sinon.spy(window.fb, 'setPropagatedFlag');
+
+      mockContact.familyName.pop();
+
+      var fbContact = new Mockfb.Contact(mockContact);
+      fbContact.getDataAndValues().onsuccess = function() {
+        subject.render(mockContact, null, this.result);
+        document.querySelector('#familyName').value = '';
+
+        subject.saveContact();
+        assert.isTrue(promoteToLinkedSpy.called);
+        assert.isTrue(setPropagatedFlagSpy.calledWithMatch('familyName'));
+
+        promoteToLinkedSpy.restore();
+        setPropagatedFlagSpy.restore();
       };
     });
 

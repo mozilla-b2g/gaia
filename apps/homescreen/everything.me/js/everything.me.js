@@ -3,6 +3,7 @@
 var EverythingME = {
   activated: false,
   pendingEvent: undefined,
+  gridPage: null,
 
   init: function EverythingME_init(config) {
     this.debug = !!config.debug;
@@ -23,6 +24,7 @@ var EverythingME = {
     }
 
     var gridPage = document.querySelector('#icongrid > div:first-child');
+    self.gridPage = gridPage;
     gridPage.classList.add('evmePage');
 
 
@@ -252,7 +254,8 @@ var EverythingME = {
           'modules/Results/ResultManager.js',
           'modules/Searchbar/Searchbar.js',
           'modules/SearchHistory/SearchHistory.js',
-          'modules/Collection/Collection.js'
+          'modules/Collection/Collection.js',
+          'modules/Collection/CollectionIcon.js'
         ],
         css_files = [
           'shared/style/confirm.css',
@@ -371,7 +374,7 @@ var EverythingME = {
   onEvmeLoaded: function onEvmeLoaded() {
 
     var page = document.getElementById('evmeContainer'),
-        gridPage = document.querySelector('#icongrid > div:first-child'),
+        gridPage = EverythingME.gridPage,
         activationIcon = document.getElementById('evme-activation-icon'),
         activationIconInput = activationIcon.querySelector('input'),
         existingQuery = activationIconInput && activationIconInput.value,

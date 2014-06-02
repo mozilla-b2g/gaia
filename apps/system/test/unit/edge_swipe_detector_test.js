@@ -1,7 +1,5 @@
 'use strict';
 
-mocha.globals(['homescreenLauncher']);
-
 requireApp('system/js/edge_swipe_detector.js');
 
 requireApp('system/test/unit/mock_sheets_transition.js');
@@ -75,7 +73,6 @@ suite('system/EdgeSwipeDetector >', function() {
     setup(function() {
       EdgeSwipeDetector.previous.classList.remove('disabled');
       EdgeSwipeDetector.next.classList.remove('disabled');
-      screen.classList.add('edges');
 
       homescreen();
     });
@@ -84,17 +81,12 @@ suite('system/EdgeSwipeDetector >', function() {
       assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
       assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
     });
-
-    test('the screen should go out of edges mode', function() {
-      assert.isFalse(screen.classList.contains('edges'));
-    });
   });
 
   suite('When the cardsview is displayed', function() {
     setup(function() {
       EdgeSwipeDetector.previous.classList.remove('disabled');
       EdgeSwipeDetector.next.classList.remove('disabled');
-      screen.classList.add('edges');
 
       // currently we always go to the homescreen before showing
       // the cards view. This test will fail when this behavior changes.
@@ -104,10 +96,6 @@ suite('system/EdgeSwipeDetector >', function() {
     test('the edges should be disabled', function() {
       assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
       assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
-    });
-
-    test('the screen should go out of edges mode', function() {
-      assert.isFalse(screen.classList.contains('edges'));
     });
 
     test('after a card was shown from the cards view edges should be enabled',
@@ -122,7 +110,6 @@ suite('system/EdgeSwipeDetector >', function() {
     setup(function() {
       EdgeSwipeDetector.previous.classList.add('disabled');
       EdgeSwipeDetector.next.classList.add('disabled');
-      screen.classList.remove('edges');
     });
 
     test('the edges should be enabled', function() {
@@ -148,21 +135,6 @@ suite('system/EdgeSwipeDetector >', function() {
       });
     });
 
-    test('the screen should go into edges mode after the transition',
-    function() {
-      appLaunch(dialer);
-      launchTransitionEnd();
-      assert.isTrue(screen.classList.contains('edges'));
-    });
-
-    test('the screen should not go into edges mode if the setting if off',
-    function() {
-      MockSettingsListener.mCallbacks['edgesgesture.enabled'](false);
-      appLaunch(dialer);
-      launchTransitionEnd();
-      assert.isFalse(screen.classList.contains('edges'));
-    });
-
     test('the edges should be enabled if an app is launched from cards view',
     function() {
       launchTransitionEnd();
@@ -183,10 +155,6 @@ suite('system/EdgeSwipeDetector >', function() {
         var cssNext = EdgeSwipeDetector.next.classList;
         assert.isTrue(cssNext.contains('disabled'));
       });
-
-      test('the screen should not go into edges mode', function() {
-        assert.isFalse(screen.classList.contains('edges'));
-      });
     });
   });
 
@@ -205,20 +173,12 @@ suite('system/EdgeSwipeDetector >', function() {
     setup(function() {
       EdgeSwipeDetector.previous.classList.add('disabled');
       EdgeSwipeDetector.next.classList.add('disabled');
-      screen.classList.remove('edges');
     });
 
     test('the edges should be enabled', function() {
       wrapperLaunch(google);
       assert.isFalse(EdgeSwipeDetector.previous.classList.contains('disabled'));
       assert.isFalse(EdgeSwipeDetector.next.classList.contains('disabled'));
-    });
-
-    test('the screen should go into edges mode after the transition',
-    function() {
-      wrapperLaunch(google);
-      launchTransitionEnd();
-      assert.isTrue(screen.classList.contains('edges'));
     });
   });
 

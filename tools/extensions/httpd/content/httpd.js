@@ -43,7 +43,8 @@
 // GAIA-
 Components.utils.import('resource://gre/modules/Services.jsm');
 const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
-const GAIA_APP_RELATIVEPATH = Services.prefs.getCharPref("extensions.gaia.app_relative_path");
+const GAIA_DIR = Services.prefs.getCharPref("extensions.gaia.dir");
+const GAIA_ALLAPPDIRS = Services.prefs.getCharPref("extensions.gaia.allappdirs");
 const GAIA_LOCALES_PATH = Services.prefs.getCharPref("extensions.gaia.locales_debug_path");
 const GAIA_DEVICE_PIXEL_SUFFIX = Services.prefs.getCharPref("extensions.gaia.device_pixel_suffix");
 // -GAIA
@@ -1463,9 +1464,13 @@ RequestReader.prototype =
               }
 
               if (!file || !file.exists()) {
-                // find the file path in build_stage instead.
-                var stageFilePath = this._findStageRealPath(applicationName);
-                request._path = stageFilePath + oldPath;
+                request._path = filePath + oldPath;
+                let foundL10nFile = this._findLocalizationPath();
+                if (!foundL10nFile) {
+                  // find the file path in build_stage instead.
+                  var stageFilePath = this._findStageRealPath(applicationName);
+                  request._path = stageFilePath + oldPath;
+                }
               } else {
                 request._path = filePath + oldPath;
               }
@@ -1473,7 +1478,6 @@ RequestReader.prototype =
 
             // TODO refactor this to a "filter" style
             this._findHidpiPath();
-            this._findLocalizationPath();
           }
         } catch (e) {
           dump(e);
@@ -1513,13 +1517,13 @@ RequestReader.prototype =
     // Handle localization files
     if (oldPath.indexOf(".properties") !== -1 &&
         oldPath.indexOf("en-US.properties") === -1) {
-      this._findPropertiesPath();
+      return this._findPropertiesPath();
     }
+    return false;
   },
 
   /**
    * Try to find out real path of apps,
-   * according to GAIA_APP_RELATIVEPATH provided by Makefile.
    */
   _findRealPath: function(appName) {
     if (this._realPath) {
@@ -1528,15 +1532,16 @@ RequestReader.prototype =
 
     this._realPath = {};
 
-    var appPathList = GAIA_APP_RELATIVEPATH.trim().split(" ");
+    var appPathList = GAIA_ALLAPPDIRS.trim().split(" ");
     for (var i = 0; i < appPathList.length; i++) {
-      var currentAppName = appPathList[i].split("/")[1];
+      var relativePath = appPathList[i].substr(GAIA_DIR.length + 1),
+          currentAppName = relativePath.split("/")[1];
 
       if (!currentAppName) {
         continue;
       }
 
-      this._realPath[currentAppName] = appPathList[i];
+      this._realPath[currentAppName] = relativePath;
     }
     return "/" + this._realPath[appName];
   },
@@ -1562,12 +1567,12 @@ RequestReader.prototype =
     // browser.fr.properties, date/date.fr.properties
     var resource = path.split("/locales/")[1];
     if (!resource) {
-      return;
+      return false;
     }
 
     var resourceParts = resource.split(".");
     if (!resourceParts.length) {
-      return;
+      return false;
     }
 
     var resourceName = resourceParts[0]; // browser, date/date
@@ -1586,7 +1591,7 @@ RequestReader.prototype =
       let appName = path.split("/")[2]; // browser
       debugPath += "/apps/" + appName + "/" + resourceName + ".properties";
     } else {
-      return;
+      return false;
     }
 
     dumpn("l10n: try loading " + debugPath + " instead of " + path);
@@ -1595,7 +1600,9 @@ RequestReader.prototype =
     var file = this._connection.server._handler._getFileForPath(debugPath);
     if (file.exists() && file.isFile()) {
       request._path = debugPath;
+      return true;
     }
+    return false;
   },
 
   /**

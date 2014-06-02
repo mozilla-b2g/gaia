@@ -31,18 +31,29 @@ SELF_DIR=`dirname $0`
 #
 
 usage() {
-  echo "$SELF [ -d ] [ -h ] [ <gaia dir> [ <firefox/B2G binary> ] ]"
+  echo "$SELF [ -d ] [ -f ] [ -h ] [ <gaia dir> [ <firefox/B2G binary> ] ]"
   echo "  -d: runs in B2G Desktop"
+  echo "  -f: forces the profile generation -- will delete an existing profile directory"
   echo "  -h: displays this help"
+  echo
+  echo "Use the environment variable FIREFOX to point to a specific firefox binary."
+  echo "Use the environment variable B2G to point to a specific B2G Desktop binary."
+  echo "Use the environment variable GAIADIR to point to a specific Gaia directory."
+  echo -n "Use the environment variable PROFILE_FOLDER to change the profile directory."
+  echo " It should be a subdirectory of the Gaia directory."
   exit 1
 }
 
-configure_mode() {
+handle_options() {
   mode="firefox"
-  while getopts dh f; do
+  force_profile=
+  while getopts dfh f; do
     case $f in
       d)
         mode="b2g"
+        ;;
+      f)
+        force_profile=1
         ;;
       h|\?)
         usage
@@ -134,19 +145,40 @@ configure_b2g_location() {
   echo "$SELF: Using B2G Desktop at '$B2G'."
 }
 
+configure_profile_folder() {
+  if [ -z "$PROFILE_FOLDER" ] ; then
+    PROFILE_FOLDER="profile-gaia-test-$mode"
+  fi
+  export PROFILE_FOLDER
+
+  echo "$SELF: Using profile at '$PROFILE_FOLDER'"
+}
+
+generate_profile_folder_if_needed() {
+  if [ -n "$force_profile" ] ; then
+    rm -rf "$PROFILE_FOLDER"
+  fi
+
+  if [ ! -d "$PROFILE_FOLDER" ] ; then
+    echo "$SELF: Building the debug profile."
+    NO_LOCK_SCREEN=1 DEBUG=1 DESKTOP=0 make
+  fi
+
+}
+
 launch_test_runner_in_firefox() {
   #
   # Launch firefox
   #
-  $FIREFOX --no-remote -profile "$PROFILE" http://test-agent.gaiamobile.org:8080/ &
+  $FIREFOX --no-remote -profile "$GAIADIR/$PROFILE_FOLDER" http://test-agent.gaiamobile.org:8080/ &
 }
 
 launch_test_runner_in_b2g() {
-  $B2G -profile "$PROFILE" --runapp 'Test Agent' &
+  $B2G -profile "$GAIADIR/$PROFILE_FOLDER" --runapp 'Test Agent' &
 }
 
 
-configure_mode "$@" && shift `expr $OPTIND - 1`
+handle_options "$@" && shift `expr $OPTIND - 1`
 configure_gaia_location "$1"
 configure_${mode}_location "$2"
 
@@ -168,15 +200,8 @@ fi
 
 cd $GAIADIR
 
-#
-# Verify the profile is ready
-#
-PROFILE="$GAIADIR/profile-debug"
-if [ ! -d "$PROFILE" ] ; then
-  echo "$SELF: Building the debug profile."
-  NO_LOCK_SCREEN=1 DEBUG=1 DESKTOP=0 make
-fi
-
+configure_profile_folder
+generate_profile_folder_if_needed
 launch_test_runner_in_${mode}
 
 cleanup() {

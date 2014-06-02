@@ -177,8 +177,9 @@
   left: 0;
   right: 0;
   bottom: 6.8rem;
-  height: 6.6rem;
-  padding: 0.5rem 1.8rem;
+  max-height: 6.6rem;
+  padding: 1rem 1.8rem;
+  line-height: 2.2rem;
   margin: 0;
 
   background-color: rgba(0, 0, 0, 0.4);

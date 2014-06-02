@@ -7,6 +7,10 @@ define(function(require, exports, module) {
 
 var debug = require('debug')('controller:viewfinder');
 var bindAll = require('lib/bind-all');
+var FocusView = require('views/focus');
+var FacesView = require('views/faces');
+var calculateFocusArea = require('lib/calculate-focus-area');
+var convertFaceToPixels = require('lib/convert-face-to-pixel-coordinates');
 
 /**
  * Exports
@@ -24,11 +28,16 @@ function ViewfinderController(app) {
   debug('initializing');
   bindAll(this);
   this.app = app;
+  this.views = {};
   this.camera = app.camera;
   this.activity = app.activity;
   this.settings = app.settings;
-  this.viewfinder = app.views.viewfinder;
-  this.focusRing = app.views.focusRing;
+  this.views.viewfinder = app.views.viewfinder;
+  // Append focus ring to viewfinder
+  this.views.focus = new FocusView();
+  this.views.focus.appendTo(this.views.viewfinder.el);
+  this.views.faces = new FacesView();
+  this.views.faces.appendTo(this.views.viewfinder.el);
   this.bindEvents();
   this.configure();
   debug('initialized');
@@ -40,8 +49,9 @@ function ViewfinderController(app) {
  * @private
  */
 ViewfinderController.prototype.configure = function() {
-  this.sensitivity = window.ZOOM_GESTURE_SENSITIVITY * window.innerWidth;
-
+  var settings = this.app.settings;
+  var zoomSensitivity = settings.viewfinder.get('zoomGestureSensitivity');
+  this.sensitivity = zoomSensitivity * window.innerWidth;
   this.configureScaleType();
   this.configureGrid();
 };
@@ -54,7 +64,7 @@ ViewfinderController.prototype.configure = function() {
  */
 ViewfinderController.prototype.configureScaleType = function() {
   var scaleType = this.app.settings.viewfinder.get('scaleType');
-  this.viewfinder.scaleType = scaleType;
+  this.views.viewfinder.scaleType = scaleType;
   debug('set scale type: %s', scaleType);
 };
 
@@ -66,7 +76,7 @@ ViewfinderController.prototype.configureScaleType = function() {
  */
 ViewfinderController.prototype.configureGrid = function() {
   var grid = this.app.settings.grid.selected('key');
-  this.viewfinder.set('grid', grid);
+  this.views.viewfinder.set('grid', grid);
 };
 
 /**
@@ -75,7 +85,7 @@ ViewfinderController.prototype.configureGrid = function() {
  * @private
  */
 ViewfinderController.prototype.hideGrid = function() {
-  this.viewfinder.set('grid', 'off');
+  this.views.viewfinder.set('grid', 'off');
 };
 
 /**
@@ -84,13 +94,22 @@ ViewfinderController.prototype.hideGrid = function() {
  * @private
  */
 ViewfinderController.prototype.bindEvents = function() {
-  this.app.settings.grid.on('change:selected', this.viewfinder.setter('grid'));
-  this.viewfinder.on('click', this.app.firer('viewfinder:click'));
+  this.app.settings.grid.on('change:selected',
+    this.views.viewfinder.setter('grid'));
+
+  this.views.viewfinder.on('click', this.app.firer('viewfinder:click'));
+  this.views.viewfinder.on('click', this.onViewfinderClicked);
+
   this.camera.on('zoomchanged', this.onZoomChanged);
-  this.app.on('camera:shutter', this.onShutter);
-  this.app.on('camera:focuschanged', this.focusRing.setState);
-  this.app.on('camera:configured', this.onCameraConfigured);
+  this.camera.on('zoomconfigured', this.onZoomConfigured);
+  this.app.on('camera:focusconfigured', this.onFocusConfigured);
+  this.app.on('camera:focusstatechanged', this.views.focus.setFocusState);
+  this.app.on('camera:facesdetected', this.onFacesDetected);
+  this.app.on('camera:shutter', this.views.viewfinder.shutter);
+  this.app.on('camera:busy', this.views.viewfinder.disable);
+  this.app.on('camera:ready', this.views.viewfinder.enable);
   this.app.on('previewgallery:closed', this.onPreviewGalleryClosed);
+  this.app.on('camera:configured', this.onCameraConfigured);
   this.app.on('previewgallery:opened', this.stopStream);
   this.app.on('settings:closed', this.configureGrid);
   this.app.on('settings:opened', this.hideGrid);
@@ -108,7 +127,6 @@ ViewfinderController.prototype.onCameraConfigured = function() {
   debug('configuring');
   this.startStream();
   this.configurePreview();
-  this.configureZoom();
 
   // BUG: We have to use a 300ms timeout here
   // to conceal a Gecko rendering bug whereby the
@@ -120,13 +138,36 @@ ViewfinderController.prototype.onCameraConfigured = function() {
 };
 
 ViewfinderController.prototype.show = function() {
-  this.viewfinder.fadeIn();
+  this.views.viewfinder.fadeIn();
   this.app.emit('viewfinder:visible');
 };
 
-ViewfinderController.prototype.onShutter = function() {
-  this.focusRing.setState('none');
-  this.viewfinder.shutter();
+/**
+ *  Sets appropiate flags when the camera focus is configured
+ */
+ViewfinderController.prototype.onFocusConfigured = function(config) {
+  this.views.focus.setFocusMode(config.mode);
+  this.touchFocusEnabled = config.touchFocus;
+  this.views.faces.clear();
+  if (config.maxDetectedFaces > 0) {
+    this.views.faces.configure(config.maxDetectedFaces);
+  }
+};
+
+ViewfinderController.prototype.onFacesDetected = function(faces) {
+  var faceInPixels;
+  var facesInPixels = [];
+  var viewfinderSize =  this.views.viewfinder.getSize();
+  var viewportHeight = viewfinderSize.height;
+  var viewportWidth = viewfinderSize.width;
+
+  faces.forEach(function(face, index) {
+    // Face comes in camera coordinates from gecko
+    faceInPixels = convertFaceToPixels(face, viewportWidth, viewportHeight);
+    facesInPixels.push(faceInPixels);
+  });
+  this.views.faces.show();
+  this.views.faces.render(facesInPixels);
 };
 
 /**
@@ -155,7 +196,7 @@ ViewfinderController.prototype.onPreviewGalleryClosed = function() {
  */
 ViewfinderController.prototype.startStream = function() {
   if (this.app.get('previewGalleryOpen')) { return; }
-  this.camera.loadStreamInto(this.viewfinder.els.video);
+  this.camera.loadStreamInto(this.views.viewfinder.els.video);
   debug('stream started');
 };
 
@@ -170,7 +211,7 @@ ViewfinderController.prototype.startStream = function() {
  * @private
  */
 ViewfinderController.prototype.stopStream = function() {
-  this.viewfinder.stopStream();
+  this.views.viewfinder.stopStream();
   debug('stream stopped');
 };
 
@@ -186,7 +227,7 @@ ViewfinderController.prototype.configurePreview = function() {
   var sensorAngle = this.camera.getSensorAngle();
   var previewSize = this.camera.previewSize();
 
-  this.viewfinder.updatePreview(previewSize, sensorAngle, isFrontCamera);
+  this.views.viewfinder.updatePreview(previewSize, sensorAngle, isFrontCamera);
 };
 
 /**
@@ -195,20 +236,26 @@ ViewfinderController.prototype.configurePreview = function() {
  *
  * @private
  */
-ViewfinderController.prototype.configureZoom = function() {
+ViewfinderController.prototype.onZoomConfigured = function() {
   var zoomSupported = this.camera.isZoomSupported();
   var zoomEnabled = this.app.settings.zoom.enabled();
   var enableZoom = zoomSupported && zoomEnabled;
 
   if (!enableZoom) {
-    this.viewfinder.disableZoom();
+    this.views.viewfinder.disableZoom();
     return;
+  }
+
+  if (this.app.settings.zoom.get('useZoomPreviewAdjustment')) {
+    this.views.viewfinder.enableZoomPreviewAdjustment();
+  } else {
+    this.views.viewfinder.disableZoomPreviewAdjustment();
   }
 
   var minimumZoom = this.camera.getMinimumZoom();
   var maximumZoom = this.camera.getMaximumZoom();
 
-  this.viewfinder.enableZoom(minimumZoom, maximumZoom);
+  this.views.viewfinder.enableZoom(minimumZoom, maximumZoom);
 };
 
 /**
@@ -218,8 +265,9 @@ ViewfinderController.prototype.configureZoom = function() {
  * @private
  */
 ViewfinderController.prototype.onPinchChanged = function(deltaPinch) {
-  var zoom = this.viewfinder._zoom * (1 + (deltaPinch / this.sensitivity));
-  this.viewfinder.setZoom(zoom);
+  var zoom = this.views.viewfinder._zoom *
+    (1 + (deltaPinch / this.sensitivity));
+  this.views.viewfinder.setZoom(zoom);
   this.camera.setZoom(zoom);
 };
 
@@ -234,8 +282,25 @@ ViewfinderController.prototype.onPinchChanged = function(deltaPinch) {
  */
 ViewfinderController.prototype.onZoomChanged = function(zoom) {
   var zoomPreviewAdjustment = this.camera.getZoomPreviewAdjustment();
-  this.viewfinder.setZoomPreviewAdjustment(zoomPreviewAdjustment);
-  this.viewfinder.setZoom(zoom);
+  this.views.viewfinder.setZoomPreviewAdjustment(zoomPreviewAdjustment);
+  this.views.viewfinder.setZoom(zoom);
+};
+
+ViewfinderController.prototype.onViewfinderClicked = function(e) {
+  if (!this.touchFocusEnabled) {
+    return;
+  }
+  var focusPoint = {
+    x: e.pageX,
+    y: e.pageY
+  };
+  this.views.faces.hide();
+  focusPoint.area = calculateFocusArea(
+    focusPoint.x, focusPoint.y,
+    this.views.viewfinder.el.clientWidth,
+    this.views.viewfinder.el.clientHeight);
+  this.views.focus.setPosition(focusPoint.x, focusPoint.y);
+  this.app.emit('viewfinder:focuspointchanged', focusPoint);
 };
 
 });

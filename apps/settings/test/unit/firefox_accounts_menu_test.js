@@ -2,13 +2,6 @@
 
 'use strict';
 
-mocha.globals([
-  'FxaMenu',
-  'loadBodyHTML',
-  'MockFxAccountsIACHelper',
-  'MockL10n'
-]);
-
 // require helpers for managing html
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/js/html_imports.js');
@@ -29,7 +22,7 @@ suite('firefox accounts menu item > ', function() {
 
   suiteSetup(function() {
     // attach mock html to page, so it inits without complaint
-    loadBodyHTML('/index.html');
+    loadBodyHTML('./_root.html');
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
   });
@@ -42,6 +35,7 @@ suite('firefox accounts menu item > ', function() {
 
   setup(function() {
     localizeSpy = sinon.spy(navigator.mozL10n, 'localize');
+    fxaDescEl = document.getElementById('fxa-desc');
   });
 
   teardown(function() {
@@ -50,13 +44,12 @@ suite('firefox accounts menu item > ', function() {
   });
 
   test('check the html loaded correctly', function() {
-    fxaDescEl = document.getElementById('fxa-desc');
     assert.isNotNull(fxaDescEl, 'failed to load settings page html');
   });
 
   test('show the correct status on FxaMenu init', function() {
     MockFxAccountsIACHelper.setCurrentState({
-      accountId: 'init@ialization.com',
+      email: 'init@ialization.com',
       verified: true
     });
     // init app code
@@ -81,7 +74,7 @@ suite('firefox accounts menu item > ', function() {
 
   test('show the correct status after onlogin event', function() {
     MockFxAccountsIACHelper.setCurrentState({
-      accountId: 'on@log.in',
+      email: 'on@log.in',
       verified: false
     });
     FxaMenu.init(MockFxAccountsIACHelper);
@@ -95,7 +88,7 @@ suite('firefox accounts menu item > ', function() {
 
   test('show the correct status after onverifiedlogin event', function() {
     MockFxAccountsIACHelper.setCurrentState({
-      accountId: 'on@verifiedlog.in',
+      email: 'on@verifiedlog.in',
       verified: true
     });
     FxaMenu.init(MockFxAccountsIACHelper);

@@ -1,7 +1,7 @@
 /*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI,
          MessageManager, WaitingScreen, Threads, Template, MockMessages,
          MockThreadList, MockTimeHeaders, Draft, Drafts, Thread, ThreadUI,
-         MockOptionMenu, Utils, Contacts, MockContact
+         MockOptionMenu, Utils, Contacts, MockContact, Navigation
          */
 
 'use strict';
@@ -32,6 +32,7 @@ requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_action_menu.js');
 require('/shared/test/unit/mocks/mock_performance_testing_helper.js');
 require('/shared/test/unit/mocks/mock_sticky_header.js');
+require('/test/unit/mock_navigation.js');
 
 var mocksHelperForThreadListUI = new MocksHelper([
   'asyncStorage',
@@ -44,36 +45,51 @@ var mocksHelperForThreadListUI = new MocksHelper([
   'ContactPhotoHelper',
   'OptionMenu',
   'PerformanceTestingHelper',
-  'StickyHeader'
+  'StickyHeader',
+  'Navigation'
 ]).init();
 
 suite('thread_list_ui', function() {
   var nativeMozL10n = navigator.mozL10n;
   var draftSavedBanner;
+  var mainWrapper;
 
   mocksHelperForThreadListUI.attachTestHelpers();
-  suiteSetup(function() {
+  setup(function() {
     loadBodyHTML('/index.html');
     navigator.mozL10n = MockL10n;
     draftSavedBanner = document.getElementById('threads-draft-saved-banner');
+    mainWrapper = document.getElementById('main-wrapper');
     ThreadListUI.init();
 
     // Clear drafts as leftovers in the profile might break the tests
     Drafts.clear();
   });
 
-  suiteTeardown(function() {
+  teardown(function() {
     navigator.mozL10n = nativeMozL10n;
+    document.body.textContent = '';
   });
 
   function insertMockMarkup(someDate) {
     someDate = +someDate;
     var markup =
       '<header></header>' +
-      '<ul id="threadsContainer_' + someDate + '">' +
-        '<li id="thread-1" data-time="' + someDate + '"></li>' +
-        '<li id="thread-2" data-time="' + someDate + '"></li>' +
-      '</ul>';
+      '<ul id="threadsContainer_' + someDate + '">';
+
+    for (var i = 1; i < 3; i++) {
+      markup +=
+        '<li id="thread-' + i + '" class="threadlist-item" ' +
+            'data-time="' + someDate + '" ' +
+            'data-thread-id="' + i + '">' +
+          '<label>' +
+            '<input type="checkbox" data-mode="threads" value="' + i + '"/>' +
+          '</label>' +
+          '<a href="#thread=' + i + '"</a>' +
+        '</li>';
+    }
+
+    markup += '</ul>';
 
     ThreadListUI.container.innerHTML = markup;
   }
@@ -341,8 +357,16 @@ suite('thread_list_ui', function() {
         sinon.assert.calledTwice(ThreadListUI.appendThread);
       });
 
-      test('Refresh the fixed header', function() {
-        sinon.assert.called(ThreadListUI.sticky.refresh);
+      test('only refreshes StickyHeader with new container', function() {
+        var sameDate = new Date(2013, 1, 2);
+        var newMessage = MockMessages.sms({
+          threadId: 3,
+          timestamp: +sameDate
+        });
+        ThreadListUI.updateThread(newMessage);
+        // It had to be called once before during setup() since that created a
+        // new container.
+        sinon.assert.calledOnce(ThreadListUI.sticky.refresh);
       });
     });
 
@@ -804,10 +828,10 @@ suite('thread_list_ui', function() {
         });
 
         thread = Thread.create(message);
-        ThreadListUI.appendThread(thread);
       });
 
       test('show up in a new container', function() {
+        ThreadListUI.appendThread(thread);
         var newContainerId = 'threadsContainer_' + (+thread.timestamp);
         var newContainer = document.getElementById(newContainerId);
         assert.ok(newContainer);
@@ -815,32 +839,70 @@ suite('thread_list_ui', function() {
         var expectedThreadId = 'thread-' + thread.id;
         assert.equal(newContainer.querySelector('li').id, expectedThreadId);
       });
+
+      test('should return false when adding to existing thread', function() {
+        assert.isTrue(ThreadListUI.appendThread(thread));
+        assert.isFalse(ThreadListUI.appendThread(thread));
+      });
     });
 
     suite('existing thread and new message in a day', function() {
       var thread;
+      var someDate;
+
+      var appendSingleNewMessage = function() {
+        var nextDate = new Date(2013, 1, 1, 0, 0, 1);
+        var message = MockMessages.sms({
+          threadId: 2,
+          timestamp: +nextDate
+        });
+        thread = Thread.create(message);
+        ThreadListUI.appendThread(thread);
+
+        var containerId = 'threadsContainer_' + (+someDate);
+        var container = document.getElementById(containerId);
+        var threads = container.getElementsByTagName('li');
+        assert.equal(message.timestamp, threads[1].dataset.time);
+      };
 
       setup(function() {
-        var someDate = new Date(2013, 1, 1).getTime();
+        someDate = new Date(2013, 1, 1).getTime();
         insertMockMarkup(someDate);
 
-        var nextDate = new Date(2013, 1, 2);
+        var nextDate = new Date(2013, 1, 1, 0, 0, 2);
         var message = MockMessages.sms({
           threadId: 2,
           timestamp: +nextDate
         });
 
         thread = Thread.create(message);
-        ThreadListUI.appendThread(thread);
       });
 
-      test('show up in a new container', function() {
-        var newContainerId = 'threadsContainer_' + (+thread.timestamp);
-        var newContainer = document.getElementById(newContainerId);
-        assert.ok(newContainer);
-        assert.ok(newContainer.querySelector('li'));
+      test('show up in same container', function() {
+        ThreadListUI.appendThread(thread);
+        var existingContainerId = 'threadsContainer_' + (+someDate);
+        var existingContainer = document.getElementById(existingContainerId);
+        assert.ok(existingContainer);
+        assert.ok(existingContainer.querySelector('li'));
         var expectedThreadId = 'thread-' + thread.id;
-        assert.equal(newContainer.querySelector('li').id, expectedThreadId);
+        assert.equal(existingContainer.querySelector('li').id,
+                     expectedThreadId);
+      });
+
+      test('should be inserted in the right spot', function() {
+        ThreadListUI.appendThread(thread);
+        appendSingleNewMessage();
+      });
+
+      test('in edit mode and a new message arrives', function() {
+        ThreadListUI.appendThread(thread);
+        ThreadListUI.startEdit();
+        appendSingleNewMessage();
+        ThreadListUI.cancelEdit();
+      });
+
+      test('should return false when adding to existing thread', function() {
+        assert.isFalse(ThreadListUI.appendThread(thread));
       });
     });
   });
@@ -1027,7 +1089,7 @@ suite('thread_list_ui', function() {
     });
   });
 
-  suite.only('setContact', function() {
+  suite('setContact', function() {
     var node, pictureContainer;
 
     setup(function() {
@@ -1072,6 +1134,44 @@ suite('thread_list_ui', function() {
       var photo = node.querySelector('span[data-type=img]');
       assert.isFalse(photo.style.backgroundImage.contains('blob:'));
       assert.isTrue(pictureContainer.classList.contains('empty'));
+    });
+  });
+
+  suite('beforeLeave()', function() {
+    setup(function() {
+
+      this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+      Navigation.isCurrentPanel.withArgs('thread-list').returns(true);
+      ThreadListUI.startEdit();
+    });
+
+    test('Exit edit mode (Thread or Message) ', function() {
+      ThreadListUI.beforeLeave();
+      assert.isFalse(mainWrapper.classList.contains('edit'));
+    });
+  });
+
+  suite('click handling,', function() {
+    var thread1, thread2;
+    setup(function() {
+      this.sinon.stub(Navigation, 'toPanel');
+      insertMockMarkup(new Date(2013, 1, 1));
+
+      thread1 = document.getElementById('thread-1');
+      thread2 = document.getElementById('thread-2');
+    });
+
+    test('clicking on a list item', function() {
+      thread1.querySelector('a').click();
+
+      sinon.assert.calledWith(Navigation.toPanel, 'thread', { id: 1 });
+    });
+
+    test('clicking on a list item in edit mode', function() {
+      thread1.querySelector('label').click();
+
+      sinon.assert.notCalled(Navigation.toPanel);
+      assert.ok(thread1.querySelector('input').checked);
     });
   });
 });

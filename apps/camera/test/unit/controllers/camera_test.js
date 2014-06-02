@@ -10,7 +10,7 @@ suite('controllers/camera', function() {
     require([
       'app',
       'controllers/camera',
-      'lib/camera',
+      'lib/camera/camera',
       'lib/activity',
       'views/viewfinder',
       'lib/settings',
@@ -101,7 +101,7 @@ suite('controllers/camera', function() {
 
     test('Should relay focus change events', function() {
       assert.isTrue(this.camera.on.calledWith('change:focus'));
-      assert.isTrue(this.app.firer.calledWith('camera:focuschanged'));
+      assert.isTrue(this.app.firer.calledWith('camera:focusstatechanged'));
     });
 
     test('Should listen to storage:changed', function() {
@@ -156,6 +156,28 @@ suite('controllers/camera', function() {
 
   suite('CameraController#onSettingsConfigured()', function() {
     setup(function() {
+
+      // Mock object that mimicks
+      // mozSettings get API. Inside
+      // tests set this.mozSettingsGetResult
+      // define the result of the mock call.
+      navigator.mozSettings = {
+        createLock: function() { return this; },
+        get: function(key) {
+          var mozSettings = this;
+          setTimeout(function() {
+            var result = {};
+            result[key] = 'the-result';
+            mozSettings.onsuccess({
+              target: {
+                result: result
+              }
+            });
+          });
+          return this;
+        }
+      };
+
       this.app.settings.flashModes.selected.returns('on');
       this.app.settings.isoModes.get = sinon.spy();
       this.app.settings.isoModes.selected.returns({key: 'auto'});

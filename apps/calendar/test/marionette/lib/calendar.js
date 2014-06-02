@@ -74,18 +74,29 @@ Calendar.prototype = {
   },
 
   _toggleSettingsView: function(isOpen) {
-    var client = this.client,
-        timeView = client.findElement('#time-views');
-
+    var client = this.client;
     client.helper
       .waitForElement(this.settingsButton)
       .click();
-    // Wait for #time-views is on the transition end state.
-    client.waitFor(function() {
-      var transform = timeView.cssProperty('transform');
-      return (isOpen && transform === 'matrix(1, 0, 0, 1, 256, 0)') ||
-             (!isOpen && transform === 'matrix(1, 0, 0, 1, 0, 0)');
+
+    // Wait for the animation to be complete before trying to click on
+    // items in the drawer.
+    var drawer = this.client.findElement('#settings .settings-drawer');
+
+    this.client.waitFor(function() {
+      return drawer.getAttribute('data-animstate') === 'done';
     });
+
+    if (!isOpen) {
+      var body = this.client.findElement('body');
+      // Also wait for the UI to be in a non-settings state after
+      // waiting for the animation to finish and the app UI to go
+      // back to non-settings state.
+      this.client.waitFor(function() {
+        return body.getAttribute('data-path') !== '/settings/';
+      });
+    }
+    return this;
   },
 
   openAdvancedSettingsView: function() {
@@ -93,6 +104,12 @@ Calendar.prototype = {
     this.settings.setupAdvancedSettings();
     this.advancedSettings.waitForDisplay();
     return this;
+  },
+
+  closeAdvancedSettingsView: function() {
+    var advancedSettings = this.advancedSettings;
+    advancedSettings.close();
+    advancedSettings.waitForHide();
   },
 
   openDayView: function() {
@@ -126,42 +143,44 @@ Calendar.prototype = {
     return this;
   },
 
-  createCalDavAccount: function(opts) {
-    var modifyAccount = this.modifyAccount;
-
-    this.openSettingsView();
-
-    this.settings.createAccount();
+  setupAccount: function(options) {
+    this.openAdvancedSettingsView();
+    this.advancedSettings.createAccount();
     this.createAccount.waitForDisplay();
+    this.createAccount.chooseAccountType(options.accountType);
 
-    this.createAccount.createCalDavAccount();
+    var modifyAccount = this.modifyAccount;
     modifyAccount.waitForDisplay();
-
-    if (opts) {
-      if (opts.user) {
-        modifyAccount.user = opts.user;
+    [
+      'user',
+      'password',
+      'fullUrl'
+    ].forEach(function(key) {
+      if (key in options) {
+        modifyAccount[key] = options[key];
       }
-      if (opts.password) {
-        modifyAccount.password = opts.password;
-      }
-      if (opts.fullUrl) {
-        modifyAccount.fullUrl = opts.fullUrl;
-      }
-    }
+    });
 
     modifyAccount.save();
     this.waitForKeyboardHide();
-    // XXX: Workaround to wait for the modify account view is hide.
-    // We should do `modifyAccount.waitForHide()` here
-    // after http://bugzil.la/995563 is fixed.
-    this.client.waitFor(function() {
-      return modifyAccount.getElement().cssProperty('z-index') === '-1';
-    });
+    modifyAccount.waitForHide();
     this.closeSettingsView();
     return this;
   },
 
-  syncCalendar: function() {
+  teardownAccount: function(username) {
+    this.openAdvancedSettingsView();
+    this.advancedSettings.clickAccount(username);
+    var modifyAccount = this.modifyAccount;
+    modifyAccount.waitForDisplay();
+    modifyAccount.delete();
+    modifyAccount.waitForHide();
+    this.closeAdvancedSettingsView();
+    this.closeSettingsView();
+    return this;
+  },
+
+  sync: function() {
     this.openSettingsView();
     this.settings.sync();
     this.closeSettingsView();
@@ -172,12 +191,14 @@ Calendar.prototype = {
    * Create an event.
    *
    * Options:
+   *   (String) calendar - calendar name [defaults to "Offline calendar"].
    *   (String) title - event title.
    *   (String) location - event location.
    *   (Date) startDate - event start date.
    *   (Date) endDate - event end date.
    *   (Number) startHour - shortcut for creating an event that starts today.
    *   (Number) duration - length of event in hours.
+   *   (Boolean) allDay - whether this is an all day event.
    *   (Array) reminders - array of strings like '5 minutes before'.
    */
   createEvent: function(opts) {
@@ -207,6 +228,7 @@ Calendar.prototype = {
     editEvent.title = opts.title;
     editEvent.location = opts.location || '';
     editEvent.description = opts.description || '';
+    editEvent.calendar = opts.calendar || 'Offline calendar';
     editEvent.startDate = startDate;
     editEvent.endDate = endDate;
     if (opts.allDay) {
@@ -215,7 +237,9 @@ Calendar.prototype = {
       editEvent.startTime = startDate;
       editEvent.endTime = endDate;
     }
-    editEvent.reminders = opts.reminders || [];
+    // no reminders by default to avoid triggering notifications by mistake.
+    // see: https://bugzil.la/1012507
+    editEvent.reminders = opts.reminders == null ? [] : opts.reminders;
     editEvent.save();
 
     this.waitForKeyboardHide();
@@ -264,7 +288,10 @@ Calendar.prototype = {
     // need to go back to top most frame before being able to switch to
     // a different app!!!
     client.switchToFrame();
-    client.apps.switchToApp('app://keyboard.gaiamobile.org');
+
+    var keyboardFrame = client.findElement(
+      'iframe[src*="app://keyboard.gaiamobile.org"]');
+    client.switchToFrame(keyboardFrame);
     client.waitFor(function() {
       return client.executeScript(function() {
         return document.hidden;
@@ -313,12 +340,12 @@ Calendar.prototype = {
     // (x1, y1) is swipe start.
     // (x2, y2) is swipe end.
     var x1, x2, y1, y2;
-    y1 = y2 = bodySize.height * 0.2;
+    y1 = y2 = bodySize.height * 0.5;
     if (options.direction === 'left') {
-      x1 = bodySize.width * 0.2;
+      x1 = bodySize.width * 0.8;
       x2 = 0;
     } else if (options.direction === 'right') {
-      x1 = bodySize.width * 0.8;
+      x1 = bodySize.width * 0.2;
       x2 = bodySize.width;
     } else {
       throw new Error('swipe needs a direction');

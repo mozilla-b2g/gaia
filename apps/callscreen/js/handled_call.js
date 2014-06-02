@@ -1,3 +1,6 @@
+/* globals CallsHandler, CallScreen, Contacts, ContactPhotoHelper,
+           KeypadManager, kFontStep, LazyL10n, Utils, Voicemail */
+
 'use strict';
 
 function HandledCall(aCall) {
@@ -22,14 +25,18 @@ function HandledCall(aCall) {
   this._initialState = this.call.state;
   this._cachedInfo = '';
   this._cachedAdditionalInfo = '';
+  this._removed = false;
 
   this.node = document.getElementById('handled-call-template').cloneNode(true);
   this.node.id = '';
   this.node.classList.add('handled-call');
   this.node.hidden = false;
 
+  // TODO: The structure of the duration related elements will be refactored in
+  //  https://bugzilla.mozilla.org/show_bug.cgi?id=1007148
   this.durationNode = this.node.querySelector('.duration');
   this.durationChildNode = this.node.querySelector('.duration span');
+  this.totalDurationNode = this.node.querySelector('.total-duration');
   this.viaSimNode = this.node.querySelector('.sim .via-sim');
   this.simNumberNode = this.node.querySelector('.sim .sim-number');
   this.numberNode = this.node.querySelector('.numberWrapper .number');
@@ -101,7 +108,6 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var number = this.call.number;
   var secondNumber = this.call.secondNumber;
   var node = this.numberNode;
-  var additionalInfoNode = this.additionalInfoNode;
   var self = this;
 
   CallScreen.setCallerContactImage(null);
@@ -139,7 +145,6 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     return;
   }
 
-  var self = this;
   Voicemail.check(number, function(isVoicemailNumber) {
     if (isVoicemailNumber) {
       LazyL10n.get(function localized(_) {
@@ -160,9 +165,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       if (self._iccCallMessage) {
         self.replacePhoneNumber(self._iccCallMessage, 'end', true);
         self._cachedInfo = self._iccCallMessage;
-        var clearReq = navigator.mozSettings.createLock().set({
-          'icc.callmessage': null
-        });
+        navigator.mozSettings.createLock().set({'icc.callmessage': null});
       }
     };
   }
@@ -230,6 +233,10 @@ HandledCall.prototype.restoreAdditionalContactInfo =
 
 HandledCall.prototype.formatPhoneNumber =
   function hc_formatPhoneNumber(ellipsisSide, maxFontSize) {
+    if (this._removed) {
+      return;
+    }
+
     // In status bar mode, we want a fixed font-size
     if (CallScreen.inStatusBarMode) {
       this.numberNode.style.fontSize = '';
@@ -277,11 +284,17 @@ HandledCall.prototype.updateDirection = function hc_updateDirection() {
 };
 
 HandledCall.prototype.remove = function hc_remove() {
+  this._removed = true;
   this.call.removeEventListener('statechange', this);
   this.photo = null;
 
   var self = this;
   CallScreen.stopTicker(this.durationNode);
+  var currentDuration = this.durationChildNode.textContent;
+  // FIXME/bug 1007148: Refactor duration element structure. No number or ':'
+  //  existence checking will be necessary.
+  this.totalDurationNode.textContent =
+    !!currentDuration.match(/\d+/g) ? currentDuration : '';
 
   LazyL10n.get(function localized(_) {
     self.durationNode.classList.remove('isTimer');
@@ -313,7 +326,7 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
   if (this._leftGroup) {
     LazyL10n.get(function localized(_) {
       CallScreen.showStatusMessage(_('caller-left-call',
-        {caller: self._cachedInfo}));
+        {caller: self._cachedInfo.toString()}));
     });
     self._leftGroup = false;
   }

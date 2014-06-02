@@ -24,7 +24,8 @@ marionette('configure CalDAV accounts', function() {
           endDate = new Date(),
           event = {};
 
-      app.createCalDavAccount({
+      app.setupAccount({
+        accountType: 'caldav',
         user: ACCOUNT_USERNAME,
         fullUrl: accountUrl
       });
@@ -40,7 +41,7 @@ marionette('configure CalDAV accounts', function() {
       };
       serverHelper.addEvent(ACCOUNT_USERNAME, event);
 
-      app.syncCalendar();
+      app.sync();
       // Make sure we start the server before the setup is ended.
       done();
     });

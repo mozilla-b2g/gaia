@@ -4,12 +4,13 @@
 /*global ActivityWindowManager, SecureWindowFactory,
          SecureWindowManager, HomescreenLauncher,
          FtuLauncher, SourceView, ScreenManager, Places, Activities,
-         DialerAgent, DevtoolsView, RemoteDebugger, HomeGesture,
+         DeveloperHUD, DialerAgent, RemoteDebugger, HomeGesture,
          SettingsURL, SettingsListener, VisibilityManager, Storage,
          TelephonySettings, SuspendingAppPriorityManager, TTLView,
          MediaRecording, AppWindowFactory, SystemDialogManager,
          applications, Rocketbar, LayoutManager, PermissionManager,
-         SoftwareButtonManager */
+         HomeSearchbar, SoftwareButtonManager, Accessibility,
+         InternetSharing, SleepMenu, TaskManager */
 
 'use strict';
 
@@ -99,9 +100,14 @@ window.addEventListener('load', function startup() {
 
   // Please sort it alphabetically
   window.activities = new Activities();
-  window.devtoolsView = new DevtoolsView();
+  window.accessibility = new Accessibility();
+  window.accessibility.start();
+  window.developerHUD = new DeveloperHUD().start();
   window.dialerAgent = new DialerAgent().start();
   window.homeGesture = new HomeGesture().start();
+  window.homeSearchbar = new HomeSearchbar();
+  window.internetSharing = new InternetSharing();
+  window.internetSharing.start();
   window.layoutManager = new LayoutManager().start();
   window.permissionManager = new PermissionManager();
   window.permissionManager.start();
@@ -109,8 +115,12 @@ window.addEventListener('load', function startup() {
   window.places.start();
   window.remoteDebugger = new RemoteDebugger();
   window.rocketbar = new Rocketbar();
+  window.sleepMenu = new SleepMenu();
+  window.sleepMenu.start();
   window.softwareButtonManager = new SoftwareButtonManager().start();
   window.sourceView = new SourceView();
+  window.taskManager = new TaskManager();
+  window.taskManager.start();
   window.telephonySettings = new TelephonySettings();
   window.telephonySettings.start();
   window.ttlView = new TTLView();

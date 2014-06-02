@@ -48,6 +48,12 @@ function PerformanceHelper(opts) {
   this.results = Object.create(null);
 }
 
+PerformanceHelper.injectHelperAtom = function(client) {
+  client.contentScript.inject(
+    GAIA_DIR + '/tests/performance/performance_helper_atom.js');
+}
+
+
   extend(PerformanceHelper, {
     // FIXME encapsulate this in a nice object like PerformanceHelperAtom
     // https://bugzilla.mozilla.org/show_bug.cgi?id=844032
@@ -97,14 +103,23 @@ function PerformanceHelper(opts) {
   });
 
 PerformanceHelper.prototype = {
-    reportRunDurations: function(runResults) {
+    // startValue is the name of the start event.
+    // By default it is 'start'
+    reportRunDurations: function(runResults, startValue) {
 
-      var start = runResults.start || 0;
-      delete runResults.start;
+      startValue = startValue || 'start';
+
+      var start = runResults[startValue] || 0;
+      delete runResults[startValue];
 
       for (var name in runResults) {
-        this.results[name] = this.results[name] || [];
-        this.results[name].push(runResults[name] - start);
+        var value = runResults[name] - start;
+        // Sometime we start from an event that happen later.
+        // Ignore the one that occur before - ie negative values.
+        if (value >= 0) {
+          this.results[name] = this.results[name] || [];
+          this.results[name].push(value);
+        }
       }
 
     },
@@ -169,14 +184,6 @@ PerformanceHelper.prototype = {
       var interval = this.opts.spawnInterval;
 
       MarionetteHelper.delay(this.app.client, interval, givenCallback);
-    },
-
-    observe: function() {
-      if (! this.opts.lastEvent) {
-        var errMsg = 'the "lastEvent" property must be configured.';
-        throw new Error('PerformanceHelper: ' + errMsg);
-      }
-      this.app.observePerfEvents(this.opts.lastEvent);
     },
 
     waitForPerfEvent: function(callback) {

@@ -16,7 +16,7 @@ var fbLoader = (function() {
 
     var curtain = document.createElement('iframe');
     curtain.id = 'fb-curtain';
-    curtain.src = '/facebook/curtain.html';
+    curtain.src = '/shared/pages/import/curtain.html';
     iframesFragment.appendChild(curtain);
 
     var oauth = document.createElement('iframe');
@@ -32,14 +32,14 @@ var fbLoader = (function() {
 
     var scripts = [
       '/contacts/js/service_extensions.js',
-      '/contacts/oauth2/js/parameters.js',
+      '/shared/pages/import/js/parameters.js',
       '/shared/js/fb/fb_request.js',
-      '/contacts/js/fb/fb_data.js',
-      '/contacts/js/fb/fb_utils.js',
-      '/contacts/js/fb/fb_query.js',
+      '/shared/js/contacts/import/facebook/fb_data.js',
+      '/shared/js/contacts/import/facebook/fb_utils.js',
+      '/shared/js/contacts/import/facebook/fb_query.js',
       '/shared/js/fb/fb_reader_utils.js',
-      '/contacts/js/fb/fb_contact_utils.js',
-      '/contacts/js/fb/fb_contact.js',
+      '/shared/js/contacts/import/facebook/fb_contact_utils.js',
+      '/shared/js/contacts/import/facebook/fb_contact.js',
       '/contacts/js/fb/fb_link.js',
       '/contacts/js/fb/fb_messaging.js',
       '/contacts/js/value_selector.js'

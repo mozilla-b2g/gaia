@@ -167,6 +167,11 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
         progressClass,
         null
       );
+      utils.overlay.showMenu();
+      utils.overlay.oncancel = function() {
+        strategy.cancelExport();
+        utils.overlay.hide();
+      };
 
       // Allow the strategy to setup the progress bar
       if (determinativeProgress) {

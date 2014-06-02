@@ -3,8 +3,6 @@
           MockActivityWindow */
 /* jshint nonew: false */
 
-mocha.globals(['ChildWindowFactory', 'AppWindow', 'ActivityWindow']);
-
 requireApp('system/test/unit/mock_app_window.js');
 requireApp('system/test/unit/mock_activity_window.js');
 

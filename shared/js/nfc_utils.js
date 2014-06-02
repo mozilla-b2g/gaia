@@ -39,6 +39,11 @@ const NDEF = {
   RTD_HANDOVER_REQUEST: 0,
   RTD_HANDOVER_SELECT: 0,
 
+  CPS_INACTIVE: 0,
+  CPS_ACTIVE: 1,
+  CPS_ACTIVATING: 2,
+  CPS_UNKNOWN: 3,
+
   SMARTPOSTER_ACTION: 0,
 
   // Action Record Values:
@@ -100,7 +105,7 @@ const NDEF = {
   },
 
   RTD_TEXT_IANA_LENGTH: 0x3F,
-  RTD_TEXT_ENCODING: 0x40,
+  RTD_TEXT_ENCODING: 0x80,
   RTD_TEXT_UTF8: 0,
   RTD_TEXT_UTF16: 1
 };
@@ -122,23 +127,26 @@ function NfcBuffer(uint8array) {
 
 NfcBuffer.prototype.getOctet = function getOctet() {
   if (this.offset == this.uint8array.length) {
-    throw 'NfcBuffer too small';
+    throw Error('NfcBuffer too small');
   }
   return this.uint8array[this.offset++];
 };
 
 NfcBuffer.prototype.getOctetArray = function getOctetArray(len) {
-  if (this.offset + len > this.uint8array.length) {
-    throw 'NfcBuffer too small';
+  if (typeof len !== 'number' || len < 0 ||
+    this.offset + len > this.uint8array.length) {
+
+    throw Error('NfcBuffer too small');
   }
-  var a = this.uint8array.subarray(this.offset, this.offset + len);
-  this.offset += len;
-  return a;
+
+  return this.uint8array.subarray(this.offset, this.offset += len);
 };
 
 NfcBuffer.prototype.skip = function skip(len) {
-  if (this.offset + len > this.uint8array.length) {
-    throw 'NfcBuffer too small';
+  if (typeof len !== 'number' || len < 0 ||
+    this.offset + len > this.uint8array.length) {
+
+    throw Error('NfcBuffer too small');
   }
   this.offset += len;
 };
@@ -196,6 +204,10 @@ NfcUtils = {
    * equalArrays: returns true or false whether the arrays are equal
    */
   equalArrays: function equalArrays(a1, a2) {
+    if (!a1 || !a2) {
+      return false;
+    }
+
     if (a1.length != a2.length) {
       return false;
     }
@@ -223,6 +235,41 @@ NfcUtils = {
       str += String.fromCharCode(a[i]);
     }
     return str;
+  },
+
+  /**
+   * Decodes UTF-16 bytes array into a String
+   *
+   * @param {Array} array containing UTF-16 encoded bytes
+   * @return {String}
+   */
+  UTF16BytesToString: function UTF16BytesToString(array) {
+      // if BOM not present Big-endian should be used
+      // NFCForum-TS-RTD_Text_1.0
+      var offset1 = 0, offset2 = 1, i = 0;
+
+      if (array[0] === 0xFE && array[1] === 0xFF) {
+        i = 2;
+      } else if (array[0] === 0xFF && array[1] === 0xFE) {
+        i = 2;
+        offset1 = 1;
+        offset2 = 0;
+      }
+
+      var str = '';
+      for (var len = array.length; i < len; i += 2) {
+          var b1 = array[i + offset1];
+          if (b1 < 0xD8 || b1 >= 0xE0) {
+            var b2 = array[i + offset2];
+            var word = (b1 << 8) + b2;
+            str += String.fromCharCode(word);
+          } else {
+            i += 2;
+            // as for now we handle only BMP characters
+          }
+      }
+
+      return str;
   },
 
   /*****************************************************************************
@@ -315,13 +362,13 @@ NfcUtils = {
     do {
       firstOctet = buffer.getOctet();
       if (isFirstRecord && !(firstOctet & NDEF.MB)) {
-        throw 'MB bit not set in first NDEF record';
+        throw Error('MB bit not set in first NDEF record');
       }
       if (!isFirstRecord && (firstOctet & NDEF.MB)) {
-        throw 'MB can only be set for the first record';
+        throw Error('MB can only be set for the first record');
       }
       if (firstOctet & NDEF.CF) {
-        throw 'Cannot deal with chunked records';
+        throw Error('Cannot deal with chunked records');
       }
       records.push(this.parseNDEFRecord(buffer, firstOctet));
       isFirstRecord = false;
@@ -363,7 +410,7 @@ NfcUtils = {
         return record;
       }
     }
-    throw 'Could not find record with id';
+    throw Error('Could not find record with id');
   }
 };
 

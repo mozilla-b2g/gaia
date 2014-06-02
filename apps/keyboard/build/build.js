@@ -62,7 +62,7 @@ KeyboardAppBuilder.prototype.copyStaticFiles = function() {
     filenames = filenames.concat('index.html', 'locales',
                                  'settings.html', 'style',
                                  'js/keyboard.js', 'js/layout.js',
-                                 'js/render.js', 'js/settings',
+                                 'js/render.js', 'js/settings', 'js/keyboard',
                                  'js/imes/latin/latin.js',
                                  'js/imes/latin/predictions.js',
                                  'js/imes/latin/worker.js');

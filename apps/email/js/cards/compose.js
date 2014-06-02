@@ -17,6 +17,7 @@ var templateNode = require('tmpl!./compose.html'),
     cmpSendingContainerNode = require('tmpl!./cmp/sending_container.html'),
     msgAttachConfirmNode = require('tmpl!./msg/attach_confirm.html'),
     common = require('mail_common'),
+    Toaster = common.Toaster,
     model = require('model'),
     iframeShims = require('iframe_shims'),
     Marquee = require('marquee'),
@@ -24,7 +25,8 @@ var templateNode = require('tmpl!./compose.html'),
 
     prettyFileSize = common.prettyFileSize,
     Cards = common.Cards,
-    ConfirmDialog = common.ConfirmDialog;
+    ConfirmDialog = common.ConfirmDialog,
+    mimeToClass = common.mimeToClass;
 
 /**
  * Max composer attachment size is defined as 5120000 bytes.
@@ -59,6 +61,8 @@ function focusInputAndPositionCursorFromContainerClick(event, input) {
   input.setSelectionRange(cursorPos, cursorPos);
 }
 
+
+
 /**
  * Composer card; wants an initialized message composition object when it is
  * created (for now).
@@ -70,6 +74,12 @@ function ComposeCard(domNode, mode, args) {
   this.activity = args.activity;
   this.sending = false;
   this.wifiLock = null;
+
+  // Management of attachment work, to limit memory use
+  this._totalAttachmentsFinishing = 0;
+  this._totalAttachmentsDone = 0;
+  this._wantAttachment = false;
+  this._onAttachmentDone = this._onAttachmentDone.bind(this);
 
   domNode.getElementsByClassName('cmp-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this), false);
@@ -254,8 +264,9 @@ ComposeCard.prototype = {
                                                             folder,
                                                             data.options,
                                                             function() {
-            if (data.onComposer)
-              data.onComposer(this.composer);
+            if (data.onComposer) {
+              data.onComposer(this.composer, this);
+            }
 
             this._loadStateFromComposer();
           }.bind(this));
@@ -293,7 +304,7 @@ ComposeCard.prototype = {
     }
 
     // Add attachments
-    this.insertAttachments();
+    this.renderAttachments();
 
     this.subjectNode.value = this.composer.subject;
     this.populateEditor(this.composer.body.text);
@@ -546,7 +557,120 @@ ComposeCard.prototype = {
     focusInputAndPositionCursorFromContainerClick(evt, input);
   },
 
-  insertAttachments: function() {
+  /**
+   * Helper to show the appropriate error when we refuse to add attachments.
+   */
+  _warnAttachmentSizeExceeded: function(numAttachments) {
+    var dialog = msgAttachConfirmNode.cloneNode(true);
+    var title = dialog.getElementsByTagName('h1')[0];
+    var content = dialog.getElementsByTagName('p')[0];
+
+    if (numAttachments > 1) {
+      title.textContent = mozL10n.get('composer-attachments-large');
+      content.textContent = mozL10n.get('compose-attchments-size-exceeded');
+    } else {
+      title.textContent = mozL10n.get('composer-attachment-large');
+      content.textContent = mozL10n.get('compose-attchment-size-exceeded');
+    }
+    ConfirmDialog.show(dialog,
+     {
+      // ok
+      id: 'msg-attach-ok',
+      handler: function() {
+        // There is nothing to do.
+      }.bind(this)
+     }
+    );
+  },
+
+  /**
+   * Used to count when an attachment has been fully processed by this.composer.
+   * Broken out as a separate member method to avoid inline closures in
+   * addAttachmentsSubjectToSizeLimits that may lead to holding on to too much
+   * memory.
+   */
+  _onAttachmentDone: function() {
+    this._totalAttachmentsDone += 1;
+    if (this._totalAttachmentsDone < this._totalAttachmentsFinishing) {
+      return;
+    }
+
+    // Give a bit of time for all the DB transactions to clean up.
+    // Unfortunately there are no good signals to do this decisively so just
+    // adding a bit of a buffer, just to be nice for super low memory
+    // devices. Not a catastrophe if work is still going on when the timeout
+    // fires.
+    setTimeout(function() {
+      var wantAttachment = this._wantAttachment;
+      this._totalAttachmentsFinishing = 0;
+      this._totalAttachmentsDone = 0;
+      this._wantAttachment = false;
+
+      // Close out the toaster if it was showing. While the toaster could
+      // be showing for some other reason, this is the most likely cause,
+      // and want to give the user the impression of fast action.
+      if (Toaster.isShowing()) {
+        Toaster.hide();
+      }
+
+      // If the user wanted to add something else, proceed, since in many
+      // cases, the user just had to wait a second or so before we could
+      // proceed anyway.
+      if (wantAttachment) {
+        this.onAttachmentAdd();
+      }
+    }.bind(this), 600);
+  },
+
+  /**
+   * Given a list of Blobs/Files that we want to attach, attach as many as
+   * possible and generate an error message for any we can't attach.  This will
+   * update the UI as a side-effect; you do not need to do it.
+   */
+  addAttachmentsSubjectToSizeLimits: function(toAttach) {
+    var totalSize = 0;
+    // Tally the size of the already-attached attachments.
+    if (this.composer.attachments) {
+      // Using a for loop to avoid any closures that may capture
+      // the large attachments.
+      for (var i = 0; i < this.composer.attachments.length; i++) {
+        totalSize += this.composer.attachments[i].blob.size;
+      }
+    }
+
+    // Keep attaching until we find one that puts us over the limit.  Then
+    // generate an error whose plurality is based on the number of attachments
+    // we are not attaching.  We do not do any bin-packing smarts where we try
+    // and see if any of the attachments in `toAttach` might fit.
+    //
+    // This specific behaviour is potentially a little odd; we're going with
+    // consistency of the original implementation of bug 871852 but without the
+    // horrible bug introduced by bug 871897 and being addressed by this in bug
+    // 1006271.
+    var attachedAny = false;
+    while (toAttach.length) {
+      var attachment = toAttach.shift();
+      totalSize += attachment.blob.size;
+      if (totalSize >= MAX_ATTACHMENT_SIZE) {
+        this._warnAttachmentSizeExceeded(1 + toAttach.length);
+        break;
+      }
+
+      this._totalAttachmentsFinishing += 1;
+      this.composer.addAttachment(attachment, this._onAttachmentDone);
+      attachedAny = true;
+    }
+
+    if (attachedAny) {
+      this.renderAttachments();
+    }
+  },
+
+  /**
+   * Build the UI that displays the current attachments.  Invokes
+   * `updateAttachmentsSize` too so you don't have to.
+   */
+  renderAttachments: function() {
     var attachmentsContainer =
       this.domNode.getElementsByClassName('cmp-attachment-container')[0];
 
@@ -559,46 +683,16 @@ ComposeCard.prototype = {
             attTemplate.getElementsByClassName('cmp-attachment-filename')[0],
           filesizeTemplate =
             attTemplate.getElementsByClassName('cmp-attachment-filesize')[0];
-      var totalSize = 0;
+
       for (var i = 0; i < this.composer.attachments.length; i++) {
         var attachment = this.composer.attachments[i];
-        //check for attachment max size
-        if ((totalSize + attachment.blob.size) > MAX_ATTACHMENT_SIZE) {
 
-          /*Remove all the remaining attachments from composer*/
-          while (this.composer.attachments.length > i) {
-            this.composer.removeAttachment(this.composer.attachments[i]);
-          }
-          var dialog = msgAttachConfirmNode.cloneNode(true);
-          var title = dialog.getElementsByTagName('h1')[0];
-          var content = dialog.getElementsByTagName('p')[0];
-
-          if (this.composer.attachments.length > 0) {
-            title.textContent = mozL10n.get('composer-attachments-large');
-            content.textContent =
-            mozL10n.get('compose-attchments-size-exceeded');
-          } else {
-            title.textContent = mozL10n.get('composer-attachment-large');
-            content.textContent =
-            mozL10n.get('compose-attchment-size-exceeded');
-          }
-          ConfirmDialog.show(dialog,
-           {
-            // ok
-            id: 'msg-attach-ok',
-            handler: function() {
-              this.updateAttachmentsSize();
-            }.bind(this)
-           }
-          );
-          return;
-        }
-        totalSize = totalSize + attachment.blob.size;
         filenameTemplate.textContent = attachment.name;
         filesizeTemplate.textContent = prettyFileSize(attachment.blob.size);
         var attachmentNode = attTemplate.cloneNode(true);
         attachmentsContainer.appendChild(attachmentNode);
 
+        attachmentNode.classList.add(mimeToClass(attachment.blob.type));
         attachmentNode.getElementsByClassName('cmp-attachment-remove')[0]
           .addEventListener('click',
                             this.onClickRemoveAttachment.bind(
@@ -614,6 +708,10 @@ ComposeCard.prototype = {
     }
   },
 
+  /**
+   * Update the summary that says how many attachments we have and the aggregate
+   * attachment size.
+   */
   updateAttachmentsSize: function() {
     var attachmentLabel =
       this.domNode.getElementsByClassName('cmp-attachment-label')[0];
@@ -646,10 +744,11 @@ ComposeCard.prototype = {
     }
 
     // Only display the total size when the number of attachments is more than 1
-    if (this.composer.attachments.length > 1)
+    if (this.composer.attachments.length > 1) {
       attachmentTotal.classList.remove('collapsed');
-    else
+    } else {
       attachmentTotal.classList.add('collapsed');
+    }
   },
 
   onClickRemoveAttachment: function(node, attachment) {
@@ -832,7 +931,20 @@ ComposeCard.prototype = {
   },
 
   onAttachmentAdd: function(event) {
-    event.stopPropagation();
+    if (event) {
+      event.stopPropagation();
+    }
+
+    // To be nice on memory consumption, wait for any previous attachment to
+    // finish attaching before triggering another attachment action.
+    if (this._totalAttachmentsFinishing > 0) {
+      // Use a separate flag than testing if the toaster is showing, in case the
+      // toaster is shown for some other reason. In that case, do not want to
+      // trigger activity after previous attachment completes.
+      this._wantAttachment = true;
+      Toaster.show('text', mozL10n.get('compose-attachment-still-working'));
+      return;
+    }
 
     try {
       console.log('compose: attach: triggering web activity');
@@ -857,12 +969,10 @@ ComposeCard.prototype = {
 
           name = name.substring(name.lastIndexOf('/') + 1);
 
-          this.composer.addAttachment({
+          this.addAttachmentsSubjectToSizeLimits([{
             name: name,
             blob: activity.result.blob
-          });
-
-          this.insertAttachments();
+          }]);
         }.bind(this));
       }).bind(this);
     } catch (e) {

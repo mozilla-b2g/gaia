@@ -336,6 +336,8 @@ navigator.mozL10n.once(function wifiSettings() {
 
     // scan wifi networks and display them in the list
     function scan() {
+      PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
+
       if (scanning)
         return;
 

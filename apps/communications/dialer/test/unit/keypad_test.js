@@ -3,7 +3,8 @@
            MockDialerIndexHtml, MockIccManager, MockNavigatorMozTelephony,
            MockNavigatorSettings, MockSettingsListener, MocksHelper,
            MockTonePlayer, SimPicker, telephonyAddCall,
-           MockMultiSimActionButtonSingleton
+           MockMultiSimActionButtonSingleton, MockMozL10n, CustomDialog,
+           MockMozActivity
 */
 
 'use strict';
@@ -13,6 +14,7 @@ require('/shared/js/dialer/keypad.js');
 require('/dialer/test/unit/mock_lazy_loader.js');
 require('/dialer/test/unit/mock_call_handler.js');
 require('/dialer/test/unit/mock_call_log_db_manager.js');
+require('/dialer/test/unit/mock_confirm_dialog.js');
 require('/shared/test/unit/mocks/mock_iccmanager.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
@@ -25,6 +27,8 @@ require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require('/shared/test/unit/mocks/dialer/mock_tone_player.js');
+require('/shared/test/unit/mocks/mock_custom_dialog.js');
+require('/shared/test/unit/mocks/mock_moz_activity.js');
 
 require('/dialer/test/unit/mock_dialer_index.html.js');
 
@@ -39,13 +43,17 @@ var mocksHelperForKeypad = new MocksHelper([
   'HandledCall',
   'SettingsListener',
   'SimPicker',
-  'TonePlayer'
+  'TonePlayer',
+  'CustomDialog',
+  'MozActivity'
 ]).init();
 
 suite('dialer/keypad', function() {
   var subject;
   var previousBody;
+  var realMozActivity;
   var realMozIccManager;
+  var realMozL10n;
   var realMozSettings;
   var realMozTelephony;
 
@@ -54,6 +62,9 @@ suite('dialer/keypad', function() {
   suiteSetup(function() {
     realMozIccManager = navigator.mozIccManager;
     navigator.mozIccManager = new MockIccManager();
+
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockMozL10n;
 
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
@@ -67,6 +78,7 @@ suite('dialer/keypad', function() {
 
   suiteTeardown(function() {
     navigator.mozIccManager = realMozIccManager;
+    navigator.mozL10n = realMozL10n;
     navigator.mozSettings = realMozSettings;
     MockNavigatorSettings.mSyncRepliesOnly = false;
 
@@ -336,24 +348,59 @@ suite('dialer/keypad', function() {
     });
 
     suite('voiceMail hotkey', function() {
-      setup(function() {
-        this.sinon.spy(CallHandler, 'call');
+      var fakeVoicemail;
+
+      suiteSetup(function() {
+        realMozActivity = window.MozActivity;
+        window.MozActivity = MockMozActivity;
       });
+
+      suiteTeardown(function() {
+        window.MozActivity = realMozActivity;
+      });
+
+      setup(function() {
+        fakeVoicemail = '888';
+
+        this.sinon.spy(CallHandler, 'call');
+
+        MockMozActivity.mSetup();
+      });
+
+      teardown(function() {
+        MockMozActivity.mTeardown();
+      });
+
+      var doLongPress = function() {
+        subject._touchStart('1', true);
+        this.sinon.clock.tick(1500);
+        subject._touchEnd('1');
+      };
 
       var shouldRemove1FromPhoneNumber = function() {
         assert.equal(KeypadManager.phoneNumber(), '');
       };
 
-      suite('SingleSIM', function() {
-        var fakeVoicemail = '888';
+      var shouldOpenSettingsAppWithMozActivity = function() {
+        var activitySpy = this.sinon.spy(window, 'MozActivity');
+        subject.showVoicemailSettings();
+        sinon.assert.calledWithNew(activitySpy);
+        sinon.assert.calledOnce(activitySpy);
+        assert.deepEqual(activitySpy.firstCall.args, [{
+          name: 'configure',
+          data: {
+            target: 'device',
+            section: 'call'
+          }
+        }]);
+      };
 
+      suite('SingleSIM', function() {
         setup(function() {
           navigator.mozIccManager.iccIds[0] = 0;
           MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = fakeVoicemail;
 
-          subject._touchStart('1', true);
-          this.sinon.clock.tick(1500);
-          subject._touchEnd('1');
+          doLongPress.bind(this)();
 
           MockNavigatorSettings.mReplyToRequests();
         });
@@ -363,24 +410,56 @@ suite('dialer/keypad', function() {
         });
 
         test('should remove 1 from phone number', shouldRemove1FromPhoneNumber);
+
+        test('should display an error if no voicemail number is set',
+        function() {
+          var getSpy = this.sinon.spy(MockMozL10n, 'get');
+          var showSpy = this.sinon.spy(CustomDialog, 'show');
+          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = '';
+
+          doLongPress.bind(this)();
+          MockNavigatorSettings.mReplyToRequests();
+
+          var expectedVoicemailDialog = {
+            title: 'voicemailNoNumberTitle',
+            text: 'voicemailNoNumberText',
+            confirm: {
+              title: 'voicemailNoNumberSettings',
+              recommend: true,
+              callback: subject.showVoicemailSettings
+            },
+            cancel: {
+              title: 'voicemailNoNumberCancel',
+              callback: subject._hideNoVoicemailDialog
+            }
+          };
+
+          sinon.assert.calledWith(showSpy,
+            expectedVoicemailDialog.title, expectedVoicemailDialog.text,
+            expectedVoicemailDialog.cancel, expectedVoicemailDialog.confirm);
+          sinon.assert.calledWith(getSpy, 'voicemailNoNumberTitle');
+          sinon.assert.calledWith(getSpy, 'voicemailNoNumberText');
+          sinon.assert.calledWith(getSpy, 'voicemailNoNumberSettings');
+          sinon.assert.calledWith(getSpy, 'voicemailNoNumberCancel');
+        });
+
+        test('should open settings app with MozActivity when no voicemail set',
+             shouldOpenSettingsAppWithMozActivity);
       });
 
       suite('DualSIM', function() {
-        var fakeVoicemail1 = '1664';
         var fakeVoicemail2 = '666';
 
         setup(function() {
           navigator.mozIccManager.iccIds[0] = 0;
           navigator.mozIccManager.iccIds[1] = 1;
 
-          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = [fakeVoicemail1,
-          fakeVoicemail2];
+          MockNavigatorSettings.mSettings['ril.iccInfo.mbdn'] = [
+            fakeVoicemail, fakeVoicemail2];
           MockNavigatorSettings.mSettings['ril.voicemail.defaultServiceId'] = 1;
 
           this.sinon.spy(SimPicker, 'getOrPick');
-          subject._touchStart('1', true);
-          this.sinon.clock.tick(1500);
-          subject._touchEnd('1');
+          doLongPress.bind(this)();
 
           MockNavigatorSettings.mReplyToRequests();
         });
@@ -392,7 +471,7 @@ suite('dialer/keypad', function() {
         test('should call voicemail for SIM1', function() {
           SimPicker.getOrPick.yield(0);
           MockNavigatorSettings.mReplyToRequests();
-          sinon.assert.calledWith(CallHandler.call, fakeVoicemail1, 0);
+          sinon.assert.calledWith(CallHandler.call, fakeVoicemail, 0);
         });
 
         test('should call voicemail for SIM2', function() {
@@ -402,6 +481,9 @@ suite('dialer/keypad', function() {
         });
 
         test('should remove 1 from phone number', shouldRemove1FromPhoneNumber);
+
+        test('should open settings app with MozActivity when no voicemail set',
+             shouldOpenSettingsAppWithMozActivity);
       });
     });
   });

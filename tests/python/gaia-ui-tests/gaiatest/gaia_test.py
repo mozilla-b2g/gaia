@@ -14,9 +14,6 @@ from marionette.errors import StaleElementException
 from marionette.errors import TimeoutException
 from marionette.errors import InvalidResponseException
 from marionette.wait import Wait
-from yoctopuce.yocto_api import YAPI, YRefParam, YModule
-from yoctopuce.yocto_current import YCurrent
-from yoctopuce.yocto_datalogger import YDataLogger
 
 
 class GaiaApp(object):
@@ -251,7 +248,8 @@ class GaiaData(object):
 
     @property
     def is_wifi_enabled(self):
-        return self.marionette.execute_script("return window.navigator.mozWifiManager.enabled;")
+        return self.marionette.execute_script("return window.navigator.mozWifiManager && "
+                                              "window.navigator.mozWifiManager.enabled;")
 
     def enable_wifi(self):
         self.marionette.switch_to_frame()
@@ -358,234 +356,20 @@ class GaiaData(object):
         result = self.marionette.execute_async_script('return GaiaDataLayer.sendSMS(%s, %s)' % (number, message), special_powers=True)
         assert result, 'Unable to send SMS to recipient %s with text %s' % (number, message)
 
+    # FIXME: Bug 1011000: will make use of SoundManager instead
+    def wait_for_audio_channel_changed(self):
+        self.marionette.switch_to_frame()
+        result = self.marionette.execute_async_script("return GaiaDataLayer.waitForAudioChannelChanged();")
+        assert result, "Failed to get a mozChromeEvent audio-channel-changed"
+        return result
 
-class PowerDataRun(object):
+    # FIXME: Bug 1011000: will make use of SoundManager instead
+    def wait_for_visible_audio_channel_changed(self):
+        self.marionette.switch_to_frame()
+        result = self.marionette.execute_async_script("return GaiaDataLayer.waitForVisibleAudioChannelChanged();")
+        assert result, "Failed to get a mozChromeEvent visible-audio-channel-changed"
+        return result
 
-    def __init__(self):
-        self._samples = []
-
-    @classmethod
-    def from_json(cls, json_str):
-        pds = json.loads(json_str)
-        samples = []
-        for pd in pds:
-            samples.append( PowerData( **pd ) )
-        return cls(samples)
-
-    def plot(self, filename):
-        """ \o/ yay! gnuplot for the win! """
-        pass
-
-    def add_sample(self, sample):
-        self._samples.append(sample)
-
-    def clear(self):
-        del self._samples[:]
-
-    def to_json(self):
-        data = []
-        for d in self._samples:
-            data.append(d.data())
-        return json.dumps(data)
-
-
-class PowerData(object):
-
-    def __init__(self, start_time=None, amps=None, volts=None):
-        self._start_time = start_time
-        self._amps = amps
-        self._volts = volts
-
-    @classmethod
-    def from_yocto_sensors(cls, ammeter, volts):
-        """ gathers the recorded data from the ammeter """
-        data = ammeter.data
-        columns = [u't']
-        columns.extend(data.get_columnNames())
-
-        start = data.get_startTimeUTC()
-        period = data.get_dataSamplesInterval()
-        num_samples = data.get_rowCount()
-
-        # add the timestamp to each row
-        samples = []
-        rows = data.get_dataRows()
-        for i in xrange(0, num_samples):
-            row = [ start + i * period ]
-            row.extend(rows[i])
-            samples.append( row )
-
-        amps = { "columns": columns, "samples": samples, "events": ammeter.events }
-
-        return cls( start, amps, volts )
-
-    @classmethod
-    def from_json(cls, json_str):
-        """ XXX FIXME: we need to validate that the decoded
-        data is sane and has what we're looking for """
-        pd = json.loads(json_str)
-        return cls( **pd )
-
-    def data(self):
-        return {"start_time":self._start_time,
-                "amps":self._amps,
-                "volts":self._volts}
-
-    def to_json(self):
-        """output format looks like this:
-        {
-            "start_time":"<utc start time>",
-            "amps":
-            {
-                "columns":["t", "col1","col2","col3"],
-                "samples":
-                [
-                    [<utc stamp>,1,2,3],
-                    [<utc stamp>,1,2,3],
-                    .
-                    .
-                    .
-                ],
-                "events":
-                [
-                    [<utc stamp>,"blah happened"],
-                    [<utc stamp>,"blah again!"],
-                    .
-                    .
-                    .
-                ]
-            },
-            "volts": <voltage in micro-amps>
-        }"""
-        return json.dumps(self.data())
-
-class YoctoDevice(object):
-
-    def __init__(self):
-        pass
-
-    @property
-    def module(self):
-        if hasattr(self, '_module') and self._module:
-            return self._module
-
-        # need to verify that the yocto device is attached
-        errmsg = YRefParam()
-        if YAPI.RegisterHub("usb", errmsg) != YAPI.SUCCESS:
-            raise Exception('could not register yocto usb connection')
-        sensor = YCurrent.FirstCurrent()
-        if sensor is None:
-            raise Exception('could not find yocto ammeter device')
-        if sensor.isOnline():
-            self._module = sensor.get_module()
-        return self._module
-
-    @property
-    def beacon(self):
-        return self._module.get_beacon()
-
-    @beacon.setter
-    def beacon(self, value):
-        if value:
-            self._module.set_beacon(YModule.BEACON_ON)
-        else:
-            self._module.set_beacon(YModule.BEACON_OFF)
-
-
-class YoctoAmmeter(YoctoDevice):
-
-    def __init__(self):
-        self._data = None
-        # make sure the data logger is off
-        self.recording = False
-        super(YoctoAmmeter, self).__init__()
-
-    @property
-    def sensor(self):
-        if hasattr(self, '_sensor') and self._sensor:
-            return self._sensor
-
-        # get a handle to the ammeter sensor
-        self._sensor = YCurrent.FindCurrent(self.module.get_serialNumber() + '.current1')
-        if not self.module.isOnline() or self._sensor is None:
-            raise Exception('could not get sensor device')
-        return self._sensor
-
-    @property
-    def data_logger(self):
-        if hasattr(self, '_data_logger') and self._data_logger:
-            return self._data_logger
-
-        # get a handle to the data logger
-        self._data_logger = YDataLogger.FindDataLogger(self.module.get_serialNumber() + '.dataLogger')
-        if not self.module.isOnline() or self._data_logger is None:
-            raise Exception('could not get data logger device')
-
-        # fix up the data logger's internal clock
-        self._data_logger.set_timeUTC(time.mktime(time.gmtime()))
-
-        return self._data_logger
-
-    @property
-    def recording(self):
-        return (self.data_logger.get_recording() == YDataLogger.RECORDING_ON)
-
-    @recording.setter
-    def recording(self, value):
-        if value:
-            if self.recording:
-                raise Exception('data logger already recording')
-
-            # erase the data logger memory
-            if self.data_logger.forgetAllDataStreams() != YAPI.SUCCESS:
-                raise Exception('failed to clear yocto data logger memory')
-
-            # go!
-            if self.data_logger.set_recording(YDataLogger.RECORDING_ON) != YAPI.SUCCESS:
-                raise Exception('failed to start yocto data logger')
-
-            # delete all data that may be cached
-            del self._data
-            self._data = None
-
-            # turn on the beacon
-            self.beacon = True
-
-        else:
-            # are we currently recording?
-            was_recording = self.recording
-
-            # stop!
-            if self.data_logger.set_recording(YDataLogger.RECORDING_OFF) != YAPI.SUCCESS:
-                raise Exception('failed to stop yocto data logger')
-
-            if was_recording:
-                # get the first data stream
-                streamsRef = YRefParam()
-                self.data_logger.get_dataStreams(streamsRef)
-                self._data = streamsRef.value[0]
-
-            # turn off the beacon
-            self.beacon = False
-
-    @property
-    def events(self):
-        if not hasattr(self, '_events'):
-            self._events = []
-        return self._events
-
-    @property
-    def data(self):
-        if not hasattr(self, '_data'):
-            self._data = None
-        return self._data
-
-    def mark_event(self, desc=""):
-        """used to store a timestamp and description for later correlation
-        with the power draw data"""
-        if not self.recording:
-            raise Exception('yocto device is not logging data')
-        self.events.append([self.data_logger.get_timeUTC(), desc])
 
 class Accessibility(object):
 
@@ -610,6 +394,15 @@ class Accessibility(object):
             'Accessibility.click.apply(Accessibility, arguments)',
             [element], special_powers=True)
 
+    def get_name(self, element):
+        return self.marionette.execute_async_script(
+            'return Accessibility.getName.apply(Accessibility, arguments)',
+            [element], special_powers=True)
+
+    def get_role(self, element):
+        return self.marionette.execute_async_script(
+            'return Accessibility.getRole.apply(Accessibility, arguments)',
+            [element], special_powers=True)
 
 class FakeUpdateChecker(object):
 
@@ -684,10 +477,6 @@ class GaiaDevice(object):
             self._has_wifi = self.marionette.execute_script('return window.navigator.mozWifiManager !== undefined')
         return self._has_wifi
 
-    @property
-    def voltage_now(self):
-        return self.manager.shellCheckOutput(["cat", "/sys/class/power_supply/battery/voltage_now"])
-
     def push_file(self, source, count=1, destination='', progress=None):
         if not destination.count('.') > 0:
             destination = '/'.join([destination, source.rpartition(os.path.sep)[-1]])
@@ -720,12 +509,9 @@ class GaiaDevice(object):
         self.marionette.start_session()
 
         # Wait for the AppWindowManager to have registered the frame as active (loaded)
-        locator = (By.CSS_SELECTOR, 'div.appWindow.active')
+        locator = (By.CSS_SELECTOR, 'div.appWindow.active.render')
         Wait(marionette=self.marionette, timeout=timeout, ignored_exceptions=NoSuchElementException)\
             .until(lambda m: m.find_element(*locator).is_displayed())
-
-        # Run the fake update checker
-        FakeUpdateChecker(self.marionette).check_updates()
 
     @property
     def is_b2g_running(self):
@@ -833,9 +619,6 @@ class GaiaDevice(object):
 class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
     def __init__(self, *args, **kwargs):
         self.restart = kwargs.pop('restart', False)
-        self.yocto = kwargs.pop('yocto', False)
-        kwargs.pop('iterations', None)
-        kwargs.pop('checkpoint_interval', None)
         MarionetteTestCase.__init__(self, *args, **kwargs)
         B2GTestCaseMixin.__init__(self, *args, **kwargs)
 
@@ -846,24 +629,18 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             if self.restart:
                 pass
 
-        if self.yocto:
-            """ with the yocto ammeter we only get amp measurements
-            so we also need to use the linux kernel voltage device to
-            sample the voltage at the start of each test so we can
-            calculate watts."""
-            try:
-                self.ammeter = YoctoAmmeter()
-            except:
-                self.ammeter = None
-
         self.device = GaiaDevice(self.marionette, self.testvars)
         if self.device.is_android_build:
             self.device.add_device_manager(self.get_device_manager())
         if self.restart and (self.device.is_android_build or self.marionette.instance):
+            # Restart if it's a device, or we have passed a binary instance with --binary command arg
             self.device.stop_b2g()
             if self.device.is_android_build:
                 self.cleanup_data()
             self.device.start_b2g()
+
+        # Run the fake update checker
+        FakeUpdateChecker(self.marionette).check_updates()
 
         # We need to set the default timeouts because we may have a new session
         if self.marionette.timeout is None:
@@ -900,7 +677,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.accessibility = Accessibility(self.marionette)
 
         if self.device.is_android_build:
-            self.cleanup_sdcard()
+            self.cleanup_storage()
 
         if self.restart:
             self.cleanup_gaia(full_reset=False)
@@ -915,23 +692,21 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         self.device.manager.removeDir('/data/local/OfflineCache')
         self.device.manager.removeDir('/data/local/permissions.sqlite')
         self.device.manager.removeDir('/data/local/storage/persistent')
-        self.device.manager.removeDir('/data/local/webapps')
         # remove remembered networks
         self.device.manager.removeFile('/data/misc/wifi/wpa_supplicant.conf')
 
-    def cleanup_sdcard(self):
-        for item in self.device.manager.listFiles('/sdcard/'):
-            self.device.manager.removeDir('/'.join(['/sdcard', item]))
+    def cleanup_storage(self):
+        """Remove all files from the device's storage paths"""
+        # TODO: Remove hard-coded paths once bug 1018079 is resolved
+        for path in ['/mnt/sdcard',
+                     '/mnt/extsdcard',
+                     '/storage/sdcard0',
+                     '/storage/sdcard1']:
+            if self.device.manager.dirExists(path):
+                for item in self.device.manager.listFiles(path):
+                    self.device.manager.removeDir('/'.join([path, item]))
 
     def cleanup_gaia(self, full_reset=True):
-        # remove media
-        if self.device.is_android_build:
-            for filename in self.data_layer.media_files:
-                self.device.manager.removeFile(filename)
-
-        # switch off keyboard FTU screen
-        self.data_layer.set_setting("keyboard.ftu.enabled", False)
-
         # restore settings from testvars
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
 
@@ -958,8 +733,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             # change language back to english
             self.data_layer.set_setting("language.current", "en-US")
 
-            # switch off spanish keyboard
-            self.data_layer.set_setting("keyboard.layouts.spanish", False)
+            # reset keyboard to default values
+            self.data_layer.set_setting("keyboard.enabled-layouts",
+                                        "{'app://keyboard.gaiamobile.org/manifest.webapp': {'en': True, 'number': True}}")
 
             # reset do not track
             self.data_layer.set_setting('privacy.donottrackheader.value', '-1')
@@ -1001,6 +777,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             try:
                 self.connect_to_local_area_network()
             except:
+                self.marionette.log('Failed to connect to wifi, trying cell data instead.')
                 if self.device.has_mobile_connection:
                     self.data_layer.connect_to_cell_data()
                 else:
@@ -1016,7 +793,9 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
                 raise Exception('Unable to connect to local area network')
 
     def push_resource(self, filename, count=1, destination=''):
-        self.device.push_file(self.resource(filename), count, '/'.join(['sdcard', destination]))
+        # push to the test storage space defined by device root
+        self.device.push_file(self.resource(filename), count, '/'.join([
+            self.device.manager.deviceRoot, destination]))
 
     def resource(self, filename):
         return os.path.abspath(os.path.join(os.path.dirname(__file__), 'resources', filename))
@@ -1115,42 +894,8 @@ class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranc
         GaiaTestCase.__init__(self, *args, **kwargs)
         EnduranceTestCaseMixin.__init__(self, *args, **kwargs)
         MemoryEnduranceTestCaseMixin.__init__(self, *args, **kwargs)
-        self.add_drive_setup_function(self.yocto_drive_setup)
-        self.add_pre_test_function(self.yocto_pre_test)
-        self.add_post_test_function(self.yocto_post_test)
-        self.add_checkpoint_function(self.yocto_checkpoint)
-
-    def yocto_drive_setup(self, tests, app=None):
-        self.power_data = PowerDataRun()
-
-    def yocto_pre_test(self):
-        if self.yocto:
-            # start gathering power draw data
-            self.ammeter.recording = True
-
-    def yocto_post_test(self):
-        if self.yocto:
-            # stop the power draw data recorder and get the data
-            self.ammeter.recording = False
-            data = PowerData.from_yocto_sensors( self.ammeter,
-                                                 self.device.voltage_now )
-            self.power_data.add_sample(data)
-
-    def yocto_checkpoint(self):
-        if self.yocto:
-            # convert the power data to json
-            power_data_json = self.power_data.to_json()
-
-            # XXX: commented out for now since we don't support graphing the samples just yet.
-            # plot the data run
-            #self.power_data.plot(self.log_name.replace('.log', '.ps')
-
-            # clear the power data samples
-            self.power_data.clear()
-
-        with open(self.log_name, 'a') as log_file:
-            if self.yocto:
-                log_file.write('%s\n' % power_data_json)
+        kwargs.pop('iterations', None)
+        kwargs.pop('checkpoint_interval', None)
 
     def close_app(self):
         # Close the current app (self.app) by using the home button

@@ -433,9 +433,8 @@ var GaiaDataLayer = {
     req.onsuccess = function() {
       var file = req.result;
       if (file) {
-        if (aType === 'music' &&
-            file.name.slice(0, 13) === '/sdcard/DCIM/' &&
-            file.name.slice(-4) === '.3gp') {
+        if (aType === 'music' && file.name.slice(-4) === '.3gp') {
+          // 3gp is both music and video; we skip the music definition
           req.continue();
         }
         else {
@@ -496,12 +495,10 @@ var GaiaDataLayer = {
 
     let msgList = new Array();
     let filter = new MozSmsFilter();
-    let request = sms.getMessages(filter, false);
+    let cursor = sms.getMessages(filter, false);
 
-    request.onsuccess = function(event) {
-      var cursor = event.target;
-
-      if(!cursor.done) {
+    cursor.onsuccess = function(event) {
+      if(cursor.result) {
         // Add the sms to the list
         msgList.push(cursor.result);
         // Now get the next in the list
@@ -513,7 +510,7 @@ var GaiaDataLayer = {
       }
     };
 
-    request.onerror = function(event) {
+    cursor.onerror = function(event) {
       console.log('sms.getMessages error: ' + event.target.error.name);
       disableSms();
       callback(false);
@@ -535,13 +532,12 @@ var GaiaDataLayer = {
 
     let msgList = new Array();
     let filter = new MozSmsFilter;
-    let request = sms.getMessages(filter, false);
+    let cursor = sms.getMessages(filter, false);
 
-    request.onsuccess = function(event) {
-      var cursor = event.target.result;
+    cursor.onsuccess = function(event) {
       // Check if message was found
-      if (cursor && cursor.message) {
-        msgList.push(cursor.message.id);
+      if (cursor.result) {
+        msgList.push(cursor.result.id);
         // Now get next message in the list
         cursor.continue();
       } else {
@@ -557,7 +553,7 @@ var GaiaDataLayer = {
       }
     };
 
-    request.onerror = function(event) {
+    cursor.onerror = function(event) {
       console.log('sms.getMessages error: ' + event.target.error.name);
       disableSms();
       callback(false);
@@ -658,6 +654,40 @@ var GaiaDataLayer = {
          console.log("Deleting alarm with id  '" + aAlarm.id + "'");
          window.wrappedJSObject.AlarmManager.delete(aAlarm);
       });
+    });
+  },
+
+  // FIXME: Bug 1011000: will make use of SoundManager instead
+  waitForChromeEvent: function(aEventName, aCallback) {
+    window.addEventListener('mozChromeEvent', function gsm_chromeEvent(evt) {
+      window.removeEventListener('mozChromeEvent', gsm_chromeEvent);
+      waitFor(
+        function() {
+          console.log("mozChromeEvent: " + evt.detail.type);
+          if (evt.detail.type === aEventName) {
+            aCallback(evt.detail);
+          }
+        },
+        function() {
+          return true;
+        }
+      );
+    });
+  },
+
+  // FIXME: Bug 1011000: will make use of SoundManager instead
+  waitForAudioChannelChanged: function(aCallback) {
+    var callback = aCallback || marionetteScriptFinished;
+    this.waitForChromeEvent('audio-channel-changed', function(details) {
+      callback(details.channel);
+    });
+  },
+
+  // FIXME: Bug 1011000: will make use of SoundManager instead
+  waitForVisibleAudioChannelChanged: function(aCallback) {
+    var callback = aCallback || marionetteScriptFinished;
+    this.waitForChromeEvent('visible-audio-channel-changed', function(details) {
+      callback(details.channel);
     });
   }
 };

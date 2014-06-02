@@ -27,6 +27,12 @@ module.exports = View.extend({
 
     this._orientation = orientation.get();
 
+    // Amount (%) to adjust the Zoom Bar by when tapping the min/max indicators
+    this.zoomBarIndicatorInterval = 10;
+
+    // Amount of inactivity time (in milliseconds) to hide the Zoom Bar
+    this.zoomBarInactivityTimeout = 3000;
+
     // Bind events
     bind(this.els.scrubber, 'touchstart', this.onTouchStart);
     bind(this.els.scrubber, 'touchmove', this.onTouchMove);
@@ -108,13 +114,13 @@ module.exports = View.extend({
   },
 
   onIncrement: function(evt) {
-    this.setValue(this._value + window.ZOOM_BAR_INDICATOR_INTERVAL, true);
+    this.setValue(this._value + this.zoomBarIndicatorInterval, true);
     this.flashScrubberActive();
     evt.stopPropagation();
   },
 
   onDecrement: function(evt) {
-    this.setValue(this._value - window.ZOOM_BAR_INDICATOR_INTERVAL, true);
+    this.setValue(this._value - this.zoomBarIndicatorInterval, true);
     this.flashScrubberActive();
     evt.stopPropagation();
   },
@@ -196,7 +202,7 @@ module.exports = View.extend({
     var self = this;
     this._inactivityTimeout = window.setTimeout(function() {
       self.hide();
-    }, window.ZOOM_BAR_INACTIVITY_TIMEOUT);
+    }, this.zoomBarInactivityTimeout);
   },
 
   show: function() {

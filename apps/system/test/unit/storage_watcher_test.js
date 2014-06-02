@@ -267,9 +267,33 @@ suite('system/DeviceStorageWatcher >', function() {
       assert.equal(result.unit, 'byteUnit-KB');
     });
 
+    test('KB with decimal (round down)', function() {
+      var result = DeviceStorageWatcher.formatSize(1024 + 511);
+      assert.equal(result.size, 1);
+      assert.equal(result.unit, 'byteUnit-KB');
+    });
+
+    test('KB with decimal (round up)', function() {
+      var result = DeviceStorageWatcher.formatSize(1024 + 512);
+      assert.equal(result.size, 2);
+      assert.equal(result.unit, 'byteUnit-KB');
+    });
+
     test('MB', function() {
       var result = DeviceStorageWatcher.formatSize(1024 * 1024);
       assert.equal(result.size, 1);
+      assert.equal(result.unit, 'byteUnit-MB');
+    });
+
+    test('MB with decimal (lower than 1K)', function() {
+      var result = DeviceStorageWatcher.formatSize(1024 * 1024 + 512);
+      assert.equal(result.size, 1);
+      assert.equal(result.unit, 'byteUnit-MB');
+    });
+
+    test('MB with decimal (0.5MB)', function() {
+      var result = DeviceStorageWatcher.formatSize(1024 * 1024 + 512 * 1024);
+      assert.equal(result.size, 1.5);
       assert.equal(result.unit, 'byteUnit-MB');
     });
 

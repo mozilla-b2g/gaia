@@ -1,5 +1,5 @@
 /*global loadBodyHTML, Recipients, MocksHelper, CustomEvent, KeyEvent,
-         MockDialog, Template, MockL10n */
+         MockDialog, Template, MockL10n, Navigation */
 'use strict';
 
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
@@ -10,11 +10,13 @@ requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_dialog.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_l10n.js');
+require('/test/unit/mock_navigation.js');
 
 var mocksHelperForRecipients = new MocksHelper([
   'Dialog',
   'GestureDetector',
-  'Utils'
+  'Utils',
+  'Navigation'
 ]);
 
 mocksHelperForRecipients.init();
@@ -517,6 +519,7 @@ suite('Recipients', function() {
         is.placeholder(view.lastElementChild)
       );
 
+      Element.prototype.scrollIntoView.reset();
       recipients.length = 0;
 
       assert.ok(
@@ -527,6 +530,9 @@ suite('Recipients', function() {
       );
 
       assert.equal(view.firstElementChild, view.lastElementChild);
+
+      // this should not be called when we reset the recipients list
+      sinon.assert.notCalled(Element.prototype.scrollIntoView);
     });
 
     suite('Interaction', function() {
@@ -809,16 +815,13 @@ suite('Recipients', function() {
       var outer, inner, target, visible;
 
       setup(function() {
-        location.hash = '#new';
+        this.sinon.stub(Navigation, 'isCurrentPanel').returns(false);
+        Navigation.isCurrentPanel.withArgs('composer').returns(true);
 
         outer = document.getElementById('messages-recipients-list-container');
         inner = document.getElementById('messages-recipients-list');
         target = document.createElement('input');
         visible = Recipients.View.prototype.visible;
-      });
-
-      teardown(function() {
-        location.hash = '';
       });
 
       suite('to singleline ', function() {

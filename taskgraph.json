@@ -1,4 +1,12 @@
 {
+  "metadata": {
+    "name": "Gaia taskgraph",
+    "description": "Gaia taskgraph generator"
+  },
+  "tags": {},
+  "params": {
+    "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.2.0"
+  },
   "tasks": {
     "marionette integration tests": {
       "task": {
@@ -6,14 +14,48 @@
           "name": "Gaia Marionette JS integration testing"
         },
         "payload": {
-          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
+          "image": "{{image}}",
           "command": [
-            "./bin/github make test-integration REPORTER=mocha-tbpl-reporter"
+            "./bin/ci run marionette_js"
           ]
         },
         "tags": {
           "treeherderProject": "gaia",
           "treeherderSymbol": "GI"
+        }
+      }
+    },
+    "gaia ui tests": {
+      "task": {
+        "metadata": {
+          "name": "Gaia UI tests"
+        },
+        "payload": {
+          "image": "{{image}}",
+          "command": [
+            "./bin/ci run gaia_ui_tests"
+          ]
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "GU"
+        }
+      }
+    },
+    "gaia unit tests in firefox": {
+      "task": {
+        "metadata": {
+          "name": "gaia unit tests in firefox"
+        },
+        "payload": {
+          "image": "{{image}}",
+          "command": [
+            "./bin/ci run unit-tests-in-firefox"
+          ]
+        },
+        "tags": {
+          "treeherderProject": "gaia",
+          "treeherderSymbol": "G"
         }
       }
     },
@@ -23,9 +65,9 @@
           "name": "Gaia build system tests"
         },
         "payload": {
-          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
+          "image": "{{image}}",
           "command": [
-            "./bin/github ./tests/travis_ci/build_tests/script"
+            "./bin/ci run build_tests"
           ]
         },
         "tags": {
@@ -40,9 +82,9 @@
           "name": "Gaia code linters"
         },
         "payload": {
-          "image": "registry.taskcluster.net/lightsofapollo/gaia-taskenv:0.0.1",
+          "image": "{{image}}",
           "command": [
-            "./bin/github make hint"
+            "./bin/ci run linters"
           ]
         },
         "tags": {

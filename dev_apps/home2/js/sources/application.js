@@ -1,5 +1,5 @@
 'use strict';
-/* global Icon */
+/* global Icon, configurator */
 
 (function(exports) {
 
@@ -12,6 +12,20 @@
     this.store = store;
     this.entries = [];
     this.entriesByManifestUrl = {};
+    this.svPreviouslyInstalledApps = [];
+    // Store the pending apps to be installed until SingleVariant conf is loaded
+    var pendingInstallRequests = [];
+
+    function addSVEventListener() {
+      window.addEventListener('singlevariant-ready', function svFileReady(ev) {
+        window.removeEventListener('singlevariant-ready', svFileReady);
+        for (var i = 0; i < pendingInstallRequests; i++) {
+          pendingInstallRequests[i]();
+        }
+      });
+    }
+
+    addSVEventListener();
 
     var appMgr = navigator.mozApps.mgmt;
 
@@ -21,23 +35,79 @@
       }
     }.bind(this);
 
-    appMgr.oninstall = function oninstall(event) {
+    /**
+     * Adds a new application to the layout when the user installed it
+     * from market
+     *
+     * @param {Application} application - The application object
+     */
+    function install(application) {
+      /* jshint validthis: true */
+
+      var manifest = application.manifest || application.updateManifest;
+      if (manifest.role && app.HIDDEN_ROLES.indexOf(manifest.role) !== -1) {
+        return;
+      }
 
       // There is a last divider that is always in the list, but not rendered
       // unless in edit mode.
       // Remove this divider, append the app, then re-append the divider.
-      var divider = app.items.pop();
+      var lastDivider = app.grid.getLastIfDivider();
+      this.addIconToGrid(application);
+      var svApp = configurator.getSingleVariantApp(application.manifestURL);
+      var lastElem = app.grid.getIndexLastIcon();
+      if (configurator.isSimPresentOnFirstBoot && svApp &&
+          svApp.location < lastElem &&
+          !this.isPreviouslyInstalled(application.manifestURL)) {
+        app.grid.removeNonVisualElements();
+        lastElem = app.grid.getIndexLastIcon();
+        app.grid.moveTo(lastElem, svApp.location);
+        _moveAhead(svApp.location + 1);
+        this.addPreviouslyInstalledSvApp(application.manifestURL);
+        app.itemStore.savePrevInstalledSvApp(this.svPreviouslyInstalledApps);
+      }
+      app.grid.addItem(lastDivider);
 
-      this.addIconToGrid(event.application);
-      app.items.push(divider);
-      app.render();
+      app.grid.render();
+      app.itemStore.save(app.grid.getItems());
+    }
 
-      app.itemStore.save(app.items);
+    /**
+     * Goes through all the items in the grid from startPos.
+     * If it finds one whose desired position is lower than it's current
+     * position then it'll switch it with the item ahead of it on the list
+     * (it'll move ahead one position).
+     * This is a auxiliary function, if the grid configuration is correct,
+     * it'll be sorted after the last item is inserted, although at intermediate
+     * steps it can and will be incorrectly sorted.
+     * @param {number} startPos - Starting position
+     */
+    function _moveAhead(startPos) {
+      var elems = app.grid.getItems();
+      for (var i = startPos, iLen = elems.length; i < iLen; i++) {
+        var item = elems[i];
+        //At the moment SV only configures apps
+        if (item instanceof Icon) {
+          //elems[i].identifier returns manifestURL IDENTIFIER_SEP entry_point
+          var svApp = configurator.getSingleVariantApp(elems[i].identifier);
+          if (svApp && i > svApp.location) {
+            app.grid.moveTo(i, i - 1);
+          }
+        }
+      }
+    }
+
+    appMgr.oninstall = function oninstall(event) {
+      if (configurator.isSingleVariantReady) {
+        install.bind(this)(event.application);
+      } else {
+        pendingInstallRequests.push(install.bind(this, event.application));
+      }
     }.bind(this);
 
     appMgr.onuninstall = function onuninstall(event) {
       this.removeIconFromGrid(event.application.manifestURL);
-      app.itemStore.save(app.items);
+      app.itemStore.save(app.grid.getItems());
     }.bind(this);
 
   }
@@ -79,7 +149,7 @@
         this.addIconToGrid(newApp.app);
       }, this);
 
-      app.itemStore.save(app.items);
+      app.itemStore.save(app.grid.getItems());
     },
 
     /**
@@ -90,9 +160,8 @@
       var appObject = this.mapToApp({
         manifestURL: application.manifestURL
       });
-      app.icons[appObject.identifier] = appObject;
-      app.items.push(appObject);
-      app.render();
+      app.grid.addIcon(appObject.identifier, appObject);
+      app.grid.render();
     },
 
     /**
@@ -100,13 +169,14 @@
      * @param {String} manifestURL
      */
     removeIconFromGrid: function(manifestURL) {
-      var appObject = app.icons[manifestURL];
-      delete app.icons[appObject.identifier];
+      var icons = app.grid.getIcons();
+      var appObject = icons[manifestURL];
+      app.grid.removeIconByIdentifier(manifestURL);
 
-      var itemIndex = app.items.indexOf(appObject);
-
-      app.items.splice(itemIndex, 1);
-      app.render();
+      var items = app.grid.getItems();
+      var itemIndex = items.indexOf(appObject);
+      app.grid.removeItemByIndex(itemIndex);
+      app.grid.render();
 
       if (appObject.element) {
         appObject.element.parentNode.removeChild(appObject.element);
@@ -170,6 +240,28 @@
 
       return new Icon(app,
         entry.entryPoint);
+    },
+
+    /**
+     * Add a reference to singleVariant app previously installed
+     */
+    addPreviouslyInstalledSvApp: function(manifest) {
+      this.svPreviouslyInstalledApps.push({manifestURL: manifest});
+    },
+
+    /*
+     * Return true if manifest is in the array of installed singleVariant apps,
+     * false otherwise
+     * @param {string} app's manifest consulted
+     */
+    isPreviouslyInstalled: function(manifest) {
+      for (var i = 0, elemNum = this.svPreviouslyInstalledApps.length;
+           i < elemNum; i++) {
+        if (this.svPreviouslyInstalledApps[i].manifestURL === manifest) {
+          return true;
+        }
+      }
+      return false;
     }
 
   };

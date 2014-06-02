@@ -106,7 +106,7 @@
     var callbacks = listeners[operation];
     callbacks && callbacks.forEach(function iterCallback(callback) {
       datastore.get(event.id).then(function got(result) {
-        callback({
+        callback.method.call(callback.context || this, {
           type: operation,
           target: result || event
         });
@@ -115,17 +115,22 @@
   }
 
   function addEventListener(type, callback) {
+    var context;
     if (!(type in listeners)) {
       listeners[type] = [];
     }
 
     var cb = callback;
     if (typeof cb === 'object') {
+      context = cb;
       cb = cb.handleEvent;
     }
 
     if (cb) {
-      listeners[type].push(cb);
+      listeners[type].push({
+        method: cb,
+        context: context
+      });
       init();
     }
   }
@@ -138,7 +143,13 @@
     var callbacks = listeners[type];
     var length = callbacks.length;
     for (var i = 0; i < length; i++) {
-      if (callbacks[i] && callbacks[i] === callback) {
+
+      var thisCallback = callback;
+      if (typeof thisCallback === 'object') {
+        thisCallback = callback.handleEvent;
+      }
+
+      if (callbacks[i] && callbacks[i].method === thisCallback) {
         callbacks.splice(i, 1);
         return true;
       }

@@ -7,22 +7,13 @@ html, body {
   height: 100%;
 }
 
-html {
-  background: #212121;
-}
-
 body, a {
-  color: #5A5A5A;
-  font-size: 10px;
-}
-
-section {
-  color: #858585;
+  color: rgba(255, 255, 255, 0.9);
   font-size: 1rem;
 }
 
 section.suggestions {
-  background: #1a1a1a;
+  font-style: italic;
 }
 
 section.suggestions ul {
@@ -73,10 +64,6 @@ section .result * {
   border-radius: 2px;
 }
 
-.local .meta {
-  color: #858585;
-}
-
 .local .title, .local .meta {
   display: block;
   white-space:nowrap;
@@ -87,15 +74,6 @@ section .result * {
 .local .highlight {
   font-weight: bold;
   text-decoration: underline;
-}
-
-#googlelink .result {
-  color: #858585;
-  font-size: 1rem;
-  background: url(icons/google_favicon.png) 8px center no-repeat;
-  padding: 12px;
-  text-indent: 30px;
-  border-bottom: 1px solid #5A5A5A;
 }
 
 /* web */

@@ -1,5 +1,6 @@
 Keyboards.hi = {
   label: 'Hindi',
+  shortLabel: 'Hi',
   imEngine: 'india',
   menuLabel: 'हिन्दी',
   secondLayout: true,

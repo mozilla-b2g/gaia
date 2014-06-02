@@ -1,5 +1,12 @@
-
 'use strict';
+/* exported DownloadHelper */
+/* global DownloadFormatter */
+/* global DownloadStore */
+/* global DownloadUI */
+/* global LazyLoader */
+/* global MimeMapper */
+/* global MozActivity */
+/* global SettingsListener */
 
 /*
  * DownloadHelper.js: Perform some utility functions with DOMDownload
@@ -86,18 +93,6 @@ var DownloadHelper = (function() {
     );
   });
 
-  /*
-   * Returns the relative path from the file absolute path
-   *
-   * @param{String} Absolute path
-   *
-   * @returns(String) Relative path
-   */
-  function getRelativePath(path) {
-    var storagePath = storageName + '/';
-    return path.substring(path.indexOf(storagePath) + storagePath.length);
-  }
-
  /*
   * Error auxiliary method
   */
@@ -118,25 +113,24 @@ var DownloadHelper = (function() {
    */
   function getBlob(download) {
     var req = new Request();
-    var storage = navigator.getDeviceStorage(storageName);
+    var storage = navigator.getDeviceStorage(download.storageName);
     var storeAvailableReq = storage.available();
 
     storeAvailableReq.onsuccess = function available_onsuccess(e) {
-      var path = download.path;
+      var path = download.storagePath;
       switch (storeAvailableReq.result) {
         case 'unavailable':
           sendError(req, ' Could not open the file: ' + path + ' from ' +
-                    storageName, CODE.NO_SDCARD);
+                    download.storageName, CODE.NO_SDCARD);
           break;
 
         case 'shared':
           sendError(req, ' Could not open the file: ' + path + ' from ' +
-                    storageName, CODE.UNMOUNTED_SDCARD);
+                    download.storageName, CODE.UNMOUNTED_SDCARD);
           break;
 
         default:
           try {
-            path = getRelativePath(path);
             var storeGetReq = storage.get(path);
 
             storeGetReq.onsuccess = function store_onsuccess() {
@@ -146,11 +140,11 @@ var DownloadHelper = (function() {
             storeGetReq.onerror = function store_onerror() {
               sendError(req, storeGetReq.error.name +
                         ' Could not open the file: ' + path + ' from ' +
-                        storageName, CODE.FILE_NOT_FOUND);
+                        download.storageName, CODE.FILE_NOT_FOUND);
             };
           } catch (ex) {
             sendError(req, 'Error getting the file ' + path + ' from ' +
-                      storageName, CODE.DEVICE_STORAGE);
+                      download.storageName, CODE.DEVICE_STORAGE);
           }
       }
     };
@@ -443,7 +437,7 @@ var DownloadHelper = (function() {
     };
 
     return req;
-  };
+  }
 
   function handlerError(error, download, cb) {
     LazyLoader.load('shared/js/download/download_ui.js', (function loaded() {

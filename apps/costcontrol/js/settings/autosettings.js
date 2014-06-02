@@ -16,7 +16,7 @@ var AutoSettings = (function() {
           parent.insertBefore(span, parent.firstChild);
         }
       }
-      guiWidget.addEventListener('change', function _onSelectChange() {
+      guiWidget.addEventListener('blur', function _onSelectChange() {
         debug('Value:', guiWidget.value);
         settings.option(optionName, guiWidget.value);
       });

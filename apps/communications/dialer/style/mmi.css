@@ -43,6 +43,6 @@
   Loading screen
 */
 
-#loading-overlay.hide {
+.hide {
   display: none;
 }

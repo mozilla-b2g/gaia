@@ -1,4 +1,9 @@
+'use strict';
+
 marionette('Edges gesture >', function() {
+  var ReflowHelper =
+      require('../../../../tests/js-marionette/reflow_helper.js');
+
   var assert = require('assert');
   var Actions = require('marionette-client').Actions;
   var System = require('./lib/system.js');
@@ -9,13 +14,16 @@ marionette('Edges gesture >', function() {
 
   var client = marionette.client({
     prefs: {
-      'dom.w3c_touch_events.enabled': 1
+      'dom.w3c_touch_events.enabled': 1,
+      'devtools.debugger.forbid-certified-apps': false
     },
     settings: {
       'ftu.manifestURL': null,
       'lockscreen.enabled': false,
       'edgesgesture.debug': true,
-      'edgesgesture.enabled': true
+      'edgesgesture.enabled': true,
+      'devtools.overlay': true,
+      'hud.reflows': true
     }
   });
   var sys = new System(client);
@@ -25,7 +33,11 @@ marionette('Edges gesture >', function() {
 
   var halfWidth, halfHeight;
 
+  var reflowHelper;
+
   setup(function() {
+    reflowHelper = new ReflowHelper(client);
+
     settings = sys.waitForLaunch(SETTINGS_APP);
     sms = sys.waitForLaunch(SMS_APP);
     calendar = sys.waitForLaunch(CALENDAR_APP);
@@ -70,7 +82,33 @@ marionette('Edges gesture >', function() {
 
     // Overflow swipe
     edgeSwipeToApp(sys.leftPanel, 0, halfWidth);
-    assert(settings.displayed(), 'settings is still visible');
+    client.waitFor(function() {
+      return settings.displayed();
+    });
+    assert(true, 'settings is still visible');
+  });
+
+  test('No reflow while swiping', function() {
+    // Since the clock will cause reflows we're disabling it
+    // Also disabling the developer hud because of
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=971008
+    sys.stopDevtools();
+    sys.stopClock();
+
+    assert(calendar.displayed(), 'calendar is visible');
+    assert(!sms.displayed(), 'sms is invisible');
+
+    var panel = sys.leftPanel;
+    reflowHelper.startTracking(System.URL);
+
+    edgeSwipeToApp(panel, 0, halfWidth, calendar, sms);
+    edgeSwipeToApp(panel, 0, halfWidth, sms, settings);
+
+    var count = reflowHelper.getCount();
+    assert.equal(count, 0, 'we got ' + count + ' reflows instead of 0');
+    reflowHelper.stopTracking();
+
+    assert(true, 'swiped to settings without any reflow');
   });
 
   test('Swiping between apps right to left', function() {

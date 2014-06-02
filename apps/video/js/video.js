@@ -22,11 +22,13 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnail-list-title',
            'thumbnails-single-info-button', 'info-view', 'info-close-button',
            'player', 'overlay', 'overlay-title', 'overlay-text',
            'overlay-menu', 'overlay-action-button',
-           'video-container', 'videoControls', 'videoBar', 'videoActionBar',
+           'video-container', 'videoControls', 'videoBar', 'videoControlBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
            'slider-wrapper', 'throbber', 'delete-video-button',
-           'picker-close', 'picker-title', 'picker-done'];
+           'picker-close', 'picker-title', 'picker-done', 'options',
+           'options-view', 'options-cancel-button', 'seek-backward',
+           'seek-forward'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -94,6 +96,8 @@ var pendingUpdateTitleText = false;
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
 
+var videoControlsAutoHidingMsOverride;
+
 // Pause on visibility change
 document.addEventListener('visibilitychange', function visibilityChange() {
   if (document.hidden) {
@@ -160,6 +164,7 @@ function init() {
   }
 
   initPlayerControls();
+  ForwardRewindController.init(dom.player, dom.seekForward, dom.seekBackward);
 
   // We get headphoneschange event when the headphones is plugged or unplugged
   var acm = navigator.mozAudioChannelManager;
@@ -234,6 +239,7 @@ function initPlayerControls() {
   dom.play.addEventListener('click', handlePlayButtonClick);
   dom.close.addEventListener('click', handleCloseButtonClick);
   dom.pickerDone.addEventListener('click', postPickResult);
+  dom.options.addEventListener('click', showOptionsView);
 }
 
 function initOptionsButtons() {
@@ -248,6 +254,8 @@ function initOptionsButtons() {
 
   // info buttons
   dom.infoCloseButton.addEventListener('click', hideInfoView);
+  // option button cancel
+  dom.optionsCancelButton.addEventListener('click', hideOptionsView);
   // fullscreen player
   dom.fullscreenButton.addEventListener('click', toggleFullscreenPlayer);
   // fullscreen toolbar
@@ -378,6 +386,7 @@ function handleActivityEvents(a) {
 }
 
 function showInfoView() {
+  hideOptionsView();
   //Get the length of the playing video
   var length = isFinite(currentVideo.metadata.duration) ?
       MediaUtils.formatDuration(currentVideo.metadata.duration) : '';
@@ -407,11 +416,15 @@ function showInfoView() {
 
   //Populate info overlay view
   MediaUtils.populateMediaInfo(data);
+  // We need to disable NFC sharing when showing info view
+  setNFCSharing(false);
   //Show the video info view
   dom.infoView.classList.remove('hidden');
 }
 
 function hideInfoView() {
+  // Enable NFC sharing when user hides info and returns to fullscreen mode
+  setNFCSharing(true);
   dom.infoView.classList.add('hidden');
 }
 
@@ -438,6 +451,14 @@ function hideSelectView() {
                              false, /* enterFullscreen */
                              true); /* keepControls */
   }
+}
+
+function showOptionsView() {
+  dom.optionsView.classList.remove('hidden');
+}
+
+function hideOptionsView() {
+  dom.optionsView.classList.add('hidden');
 }
 
 function clearSelection() {
@@ -799,6 +820,9 @@ function setVideoPlaying(playing) {
 }
 
 function deleteCurrentVideo() {
+  hideOptionsView();
+  // We need to disable NFC sharing when showing delete confirmation dialog
+  setNFCSharing(false);
   // If we're deleting the file shown in the player we've got to
   // return to the thumbnail list. We pass false to hidePlayer() to tell it
   // not to record new metadata for the file we're about to delete.
@@ -813,6 +837,9 @@ function deleteCurrentVideo() {
     } else {
       hidePlayer(false);
     }
+  } else {
+      // Enable NFC sharing when cancels delete and returns to fullscreen mode
+      setNFCSharing(true);
   }
 }
 
@@ -840,6 +867,7 @@ function postPickResult() {
 }
 
 function shareCurrentVideo() {
+  hideOptionsView();
   videodb.getFile(currentVideo.name, function(blob) {
     share([blob]);
   });
@@ -885,9 +913,33 @@ function setVideoUrl(player, video, callback) {
 }
 
 function scheduleVideoControlsAutoHiding() {
+  // Allow control of timeout, e.g., during unit testing
+  var autoHideMs = (videoControlsAutoHidingMsOverride !== null) ?
+      videoControlsAutoHidingMsOverride : 250;
+
   controlFadeTimeout = setTimeout(function() {
     setControlsVisibility(false);
-  }, 250);
+  }, autoHideMs);
+}
+
+function setNFCSharing(enable) {
+  if (!window.navigator.mozNfc) {
+    return;
+  }
+
+  if (enable) {
+    // If we have NFC, we need to put the callback to have shrinking UI.
+    window.navigator.mozNfc.onpeerready = function(event) {
+      // The callback function is called when user confirm to share the
+      // content, send it with NFC Peer.
+      videodb.getFile(video.name, function(file) {
+        navigator.mozNfc.getNFCPeer(event.detail).sendFile(file);
+      });
+    };
+  } else {
+    // We need to remove onpeerready while out of fullscreen view.
+    window.navigator.mozNfc.onpeerready = null;
+  }
 }
 
 // show video player
@@ -937,37 +989,31 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
 
     dom.play.classList.remove('paused');
     playerShowing = true;
-    VideoUtils.fitContainer(dom.videoContainer, dom.player,
-                            currentVideo.metadata.rotation || 0);
 
-
+    var rotation;
     if ('metadata' in currentVideo) {
       if (currentVideo.metadata.currentTime === dom.player.duration) {
         currentVideo.metadata.currentTime = 0;
       }
       dom.videoTitle.textContent = currentVideo.metadata.title;
       dom.player.currentTime = currentVideo.metadata.currentTime || 0;
+      rotation = currentVideo.metadata.rotation;
     } else {
       dom.videoTitle.textContent = currentVideo.title || '';
       dom.player.currentTime = 0;
+      rotation = 0;
     }
+
+    VideoUtils.fitContainer(dom.videoContainer, dom.player,
+                            rotation || 0);
 
     if (dom.player.seeking) {
       dom.player.onseeked = doneSeeking;
     } else {
       doneSeeking();
     }
-
-   if (window.navigator.mozNfc) {
-      // If we have NFC, we need to put the callback to have shrinking UI.
-      window.navigator.mozNfc.onpeerready = function(event) {
-        // The callback function is called when user confirm to share the
-        // content, send it with NFC Peer.
-        videodb.getFile(video.name, function(file) {
-          navigator.mozNfc.getNFCPeer(event.detail).sendFile(file);
-        });
-      };
-    }
+    // Enable NFC sharing in fullscreen player mode
+    setNFCSharing(true);
   });
 }
 
@@ -980,10 +1026,8 @@ function hidePlayer(updateVideoMetadata, callback) {
   }
 
   dom.player.pause();
-  if (window.navigator.mozNfc) {
-    // We need to remove onpeerready while out of sharable context.
-    window.navigator.mozNfc.onpeerready = null;
-  }
+  // Disable NFC sharing when leaving player mode
+  setNFCSharing(false);
 
   function completeHidingPlayer() {
     // switch to the video gallery view

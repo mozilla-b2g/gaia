@@ -1,5 +1,6 @@
 Keyboards.ca = {
   label: 'Catalan',
+  shortLabel: 'Ca',
   menuLabel: 'Català',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

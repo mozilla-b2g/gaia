@@ -6,14 +6,6 @@ requireApp('costcontrol/test/unit/mock_all_network_interfaces.js');
 
 var MockCommon = function(config) {
 
-  function getMockRequiredMessage(mocking, parameter, isAFunction) {
-    var whatIsBeingAccesed = mocking + (isAFunction ? '() is being called' :
-                                                      'is being accessed');
-
-    return 'Please, ' + whatIsBeingAccesed + '. Provide the key `' +
-           parameter + '` in the constructor config object to mock it.';
-  }
-
   config = config || {};
 
   var allInterfacesFake = MockAllNetworkInterfaces;
@@ -26,17 +18,7 @@ var MockCommon = function(config) {
     localize: function (element, label, args) {
       element.textContent = label;
     },
-    isValidICCID: function(iccid) {
-      assert.isDefined(
-        config.isValidICCID,
-        getMockRequiredMessage('isValidICCID', 'isValidICCID', true)
-      );
-      return config.isValidICCID;
-    },
     waitForDOMAndMessageHandler: function(window, callback) {
-      callback();
-    },
-    checkSIM: function(callback) {
       callback();
     },
     startFTE: function(mode) {
@@ -84,6 +66,26 @@ var MockCommon = function(config) {
           onsuccess(Common.dataSimIccId);
         }
       }, 0);
+    },
+    localizeWeekdaySelector: function _localizeWeekdaySelector(selector) {
+      var weekStartsOnMonday =
+        !!parseInt(navigator.mozL10n.get('weekStartsOnMonday'), 10);
+
+      var monday = selector.querySelector('.monday');
+      var sunday = selector.querySelector('.sunday');
+      var list = monday.parentNode;
+      if (weekStartsOnMonday) {
+        list.insertBefore(monday, list.childNodes[0]); // monday is the first
+        list.appendChild(sunday); // sunday is the last
+      } else {
+        list.insertBefore(sunday, list.childNodes[0]); // sunday is the first
+        list.insertBefore(monday, sunday.nextSibling); // monday is the second
+      }
+    },
+    getDataLimit: function _getDataLimit(settings) {
+      var multiplier = (settings.dataLimitUnit === 'MB') ?
+                       1000000 : 1000000000;
+      return settings.dataLimitValue * multiplier;
     }
   };
 };

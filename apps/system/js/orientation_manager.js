@@ -10,7 +10,7 @@
    * * AttentionScreen is hidden.
    * * AttentionScreen is closed.
    * * TrustedUI is closed.
-   * * SleepMenu is hidden.
+   * * sleepMenu is hidden.
    *
    * Any of them occurs would trigger OrientationManager to dispatch
    * <code>reset-orientation</code> event and AppWindowManager would reset the
@@ -37,6 +37,7 @@
       window.addEventListener('status-active', this);
       window.addEventListener('sleepmenuhide', this);
       window.addEventListener('trusteduiclose', this);
+      window.addEventListener('shrinking-stop', this);
     },
 
     handleEvent: function om_handleEvent(evt) {
@@ -54,6 +55,9 @@
          * Fired when the orientation needs to be locked/unlocked again.
          * @event module:OrientationManager#reset-orientation
          */
+          this.publish('reset-orientation');
+          break;
+        case 'shrinking-stop':
           this.publish('reset-orientation');
           break;
       }

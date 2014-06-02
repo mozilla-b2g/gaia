@@ -137,7 +137,13 @@ var icc = {
       return DUMP('FTU is running, delaying STK...');
     }
 
-    var cmdId = '0x' + message.command.typeOfCommand.toString(16);
+    /* TODO: cleanup branching after bug 819831 landed */
+    var cmdId;
+    if (typeof message.command.typeOfCommand === 'string') {
+      cmdId = message.command.typeOfCommand;
+    } else {
+      cmdId = '0x' + message.command.typeOfCommand.toString(16);
+    }
     if (icc_worker[cmdId]) {
       return icc_worker[cmdId](message);
     }
@@ -429,6 +435,7 @@ var icc = {
       this.icc_input_btn_yes = document.getElementById('icc-input-btn_yes');
       this.icc_input_btn_no = document.getElementById('icc-input-btn_no');
       this.icc_input_btn_back = document.getElementById('icc-input-btn_back');
+      this.icc_input_btn_close = document.getElementById('icc-input-btn_close');
       this.icc_input_btn_help = document.getElementById('icc-input-btn_help');
     }
 
@@ -505,17 +512,23 @@ var icc = {
     this.icc_input.classList.add('visible');
     this.icc_view.classList.add('visible');
 
-    // STK Default response (BACK and HELP)
+    // STK Default response (BACK, CLOSE and HELP)
     this.icc_input_btn_back.onclick = function() {
       clearInputTimeout();
       self.hideViews();
       self.backResponse(stkMessage);
       callback(null);
     };
+    this.icc_input_btn_close.onclick = function() {
+      clearInputTimeout();
+      self.hideViews();
+      self.terminateResponse(stkMessage);
+      callback(null);
+    };
     this.icc_input_btn_help.onclick = function() {
       clearInputTimeout();
       self.hideViews();
-      self.responseSTKCommand({
+      self.responseSTKCommand(stkMessage, {
         resultCode: self._iccManager.STK_RESULT_HELP_INFO_REQUIRED
       });
       callback(null);

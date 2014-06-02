@@ -73,7 +73,7 @@ suite('contacts_bulk_delete.js', function() {
     assert.isNull(ConfirmDialog.title);
     assert.equal(ConfirmDialog.text, 'ContactConfirmDel' + numberOfContacts);
     assert.equal(ConfirmDialog.noObject.title, 'cancel');
-    assert.equal(ConfirmDialog.yesObject.title, 'remove');
+    assert.equal(ConfirmDialog.yesObject.title, 'delete');
   }
 
   test('call performDelete successfully and user confirms', function(done) {

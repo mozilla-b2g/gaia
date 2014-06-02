@@ -2,98 +2,46 @@ html {
   font-size: 10px;
 }
 
-html, body, .icons {
+html, body {
   height: 100%;
   padding: 0;
   margin: 0;
 }
 
-.icon {
+.scrollable {
   position: absolute;
-  transform-origin: 0 0;
-  will-change: transform;
-  display: inline-block;
-  width: calc(100% / 3);
-  height: 9rem;
-  text-align: center;
-  background: no-repeat center;
-  background-size: 8rem;
-  z-index: 3;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
-.icon .title {
+gaia-grid {
   display: block;
-  margin-top: 9rem;
-  pointer-events: none;
-  color: #fff;
-  font-size: 1.2rem;
-  text-shadow: 0 0 0.5rem rgba(0,0,0,0.5);
+  height: 100%;
+  width: 100%;
 }
 
-.divider {
-  position: absolute;
-  height: 0.2rem;
-  margin: 2.3rem 25%;
-  background: #fff;
-  width: 50%;
-  z-index: 2;
-}
-
-.divider:last-child {
-  visibility: hidden;
-}
-
-.dragging .icon.active {
-  z-index: 4;
-}
-
-.dragging .divider,
-.dragging .icon:not(.active) {
-  transition: transform 0.35s;
-}
-
-.edit-mode .divider:last-child {
-  visibility: visible;
-}
-
-.icon .remove {
-  display: none;
+body[data-cols="4"] .icon .title {
+  /* Font size is the same independent on grid configuration */
+  font-size: calc(1.4rem * 1.333);
 }
 
 .edit-mode #edit-mode-curtain {
   background: #000;
-  opacity: 0.5;
+  opacity: 0.05;
   height: 100%;
   width: 100%;
   position: fixed;
   top: 0;
-  z-index: 2;
 }
 
-.edit-mode .icon:not(.active) {
-  opacity: 0.8;
+#confirmation-message {
+  z-index: 10;
 }
 
-.edit-mode .icon .remove {
-  display: block;
-  position: absolute;
-  top: 0.1rem;
-  left: 0.5rem;
-  width: 2.6rem;
-  height: 2.6rem;
-  background: url(/style/images/remove.png) no-repeat;
-}
-
-.edit-mode .icon.active .remove {
-  display: none;
-}
-
-#confirmation-message.fade-in {
-  position: fixed;
-}
-
-/* The confirmation message can not successfully fade out as implemented due
-   to our vertical layout and position: fixed assignment */
-#confirmation-message.fade-out {
+#contextmenu-dialog {
   display: none;
 }

@@ -329,8 +329,7 @@
         var title = _('data-limit-notification-title2', { limit: limitText });
         var message = _('data-limit-notification-text2');
         NotificationHelper.send(title, message, iconURL, goToDataUsage);
-        ConfigManager.setOption({ 'dataUsageNotified': true });
-        closeIfProceeds();
+        ConfigManager.setOption({ 'dataUsageNotified': true }, closeIfProceeds);
         return;
       });
     };

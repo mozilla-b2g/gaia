@@ -3,15 +3,6 @@
           MockSettingsListener, MockLockScreen, HomescreenLauncher */
 'use strict';
 
-mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
-      'dispatchEvent', 'ActivityWindow',
-      'AppWindowManager', 'Applications', 'ManifestHelper',
-      'KeyboardManager', 'StatusBar', 'HomescreenWindow',
-      'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
-      'lockScreen', 'OrientationManager', 'BrowserFrame',
-      'BrowserConfigHelper', 'System', 'BrowserMixin', 'TransitionMixin',
-      'homescreenLauncher', 'layoutManager', 'lockscreen']);
-
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -136,7 +127,8 @@ suite('system/AppWindowManager', function() {
     manifest: {},
     manifestURL: 'app://wwww.fake7/ManifestURL',
     origin: 'app://www.fake7',
-    isActivity: true
+    isActivity: true,
+    parentApp: ''
   };
 
   function injectRunningApps() {
@@ -238,6 +230,32 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubResize.called);
     });
 
+    suite('when a document is fullscreen', function() {
+      var realFullScreen;
+
+      setup(function() {
+        realFullScreen = document.mozFullScreen;
+        Object.defineProperty(document, 'mozFullScreen', {
+          configurable: true,
+          get: function() { return true; }
+        });
+      });
+
+      teardown(function() {
+        Object.defineProperty(document, 'mozFullScreen', {
+          configurable: true,
+          get: function() { return realFullScreen; }
+        });
+      });
+
+      test('should exit fullscreen when the sheet transition starts',
+      function() {
+        var cancelSpy = this.sinon.spy(document, 'mozCancelFullScreen');
+        AppWindowManager.handleEvent({ type: 'sheetstransitionstart' });
+        sinon.assert.calledOnce(cancelSpy);
+      });
+    });
+
     test('app request to close', function() {
       injectRunningApps(app1);
       var stubIsActive = this.sinon.stub(app1, 'isActive');
@@ -335,6 +353,32 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubSetVisible.calledWith(false));
     });
 
+    test('Show for screen reader top window', function() {
+      injectRunningApps(app1);
+      AppWindowManager._activeApp = app1;
+      var stubSetVisibleForScreenReader = this.sinon.stub(app1,
+        'setVisibleForScreenReader');
+
+      AppWindowManager.handleEvent({
+        type: 'showwindowforscreenreader'
+      });
+
+      assert.isTrue(stubSetVisibleForScreenReader.calledWith(true));
+    });
+
+    test('Hide for screen reader top window', function() {
+      injectRunningApps(app1);
+      AppWindowManager._activeApp = app1;
+      var stubSetVisibleForScreenReader = this.sinon.stub(app1,
+        'setVisibleForScreenReader');
+
+      AppWindowManager.handleEvent({
+        type: 'hidewindowforscreenreader'
+      });
+
+      assert.isTrue(stubSetVisibleForScreenReader.calledWith(false));
+    });
+
     test('Overlay start on top of in process app', function() {
       injectRunningApps(app6);
       AppWindowManager._activeApp = app6;
@@ -372,6 +416,15 @@ suite('system/AppWindowManager', function() {
       AppWindowManager._activeApp = app2;
       AppWindowManager._updateActiveApp(app1.instanceID);
       assert.deepEqual(AppWindowManager._activeApp, app1);
+    });
+
+    test('should resize the new active app', function() {
+      injectRunningApps(app1, app2, app3, app4);
+      AppWindowManager._activeApp = app2;
+
+      var resizeSpy = this.sinon.spy(app1, 'resize');
+      AppWindowManager._updateActiveApp(app1.instanceID);
+      sinon.assert.calledOnce(resizeSpy);
     });
   });
 
@@ -572,6 +625,42 @@ suite('system/AppWindowManager', function() {
     test('continuous-transition.enabled', function() {
       MockSettingsListener.mCallbacks['continuous-transition.enabled'](true);
       assert.isTrue(AppWindowManager.continuousTransition);
+    });
+  });
+
+  suite('linkWindowActivity', function() {
+    var fakeAppConfig = Object.create(fakeAppConfig7Activity);
+
+    setup(function() {
+      // we fake getHomescreen as app2
+      this.sinon.stub(homescreenLauncher, 'getHomescreen').returns(app2);
+    });
+
+    test('caller is system app, we would go to homescreen', function() {
+      // callee is app7, caller is homescreen
+      injectRunningApps(app7);
+      fakeAppConfig.parentApp = window.location.origin;
+
+      AppWindowManager.linkWindowActivity(fakeAppConfig);
+
+      assert.deepEqual(app2.calleeWindow, app7);
+      assert.deepEqual(app7.callerWindow, app2);
+      assert.isTrue(homescreenLauncher.getHomescreen.called);
+    });
+
+    test('caller is not system app, we would go back to original app',
+      function() {
+        // callee is app7, caller is app2
+        injectRunningApps(app7);
+        AppWindowManager._activeApp = app1;
+        fakeAppConfig.parentApp = '';
+        this.sinon.stub(app1, 'getTopMostWindow').returns(app2);
+
+        AppWindowManager.linkWindowActivity(fakeAppConfig);
+
+        assert.deepEqual(app2.calleeWindow, app7);
+        assert.deepEqual(app7.callerWindow, app2);
+        assert.isFalse(homescreenLauncher.getHomescreen.called);
     });
   });
 

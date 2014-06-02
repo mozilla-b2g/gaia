@@ -25,12 +25,12 @@ suite('controllers/overlay', function() {
       cancel: sinon.spy()
     };
 
-    this.app.localize.withArgs('nocard2-title').returns('nocard title');
-    this.app.localize.withArgs('nocard3-text').returns('nocard body');
-    this.app.localize.withArgs('nospace2-title').returns('nospace title');
-    this.app.localize.withArgs('nospace2-text').returns('nospace body');
-    this.app.localize.withArgs('pluggedin-title').returns('pluggedin title');
-    this.app.localize.withArgs('pluggedin-text').returns('pluggedin body');
+    this.app.l10nGet.withArgs('nocard2-title').returns('nocard title');
+    this.app.l10nGet.withArgs('nocard3-text').returns('nocard body');
+    this.app.l10nGet.withArgs('nospace2-title').returns('nospace title');
+    this.app.l10nGet.withArgs('nospace2-text').returns('nospace body');
+    this.app.l10nGet.withArgs('pluggedin2-title').returns('pluggedin title');
+    this.app.l10nGet.withArgs('pluggedin2-text').returns('pluggedin body');
   });
 
   suite('OverlayController()', function() {

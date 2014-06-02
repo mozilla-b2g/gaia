@@ -1,5 +1,6 @@
 'use strict';
-/* global SettingsListener, AppWindow, SearchWindow, places */
+/* global SettingsListener, AppWindow, AppWindowManager, SearchWindow, places,
+          SettingsURL */
 
 (function(exports) {
 
@@ -19,6 +20,8 @@
     this.onHomescreen = false;
     this.newTabPage = false;
     this.cardView = false;
+    this.waitingOnCardViewLaunch = false;
+    this.currentApp = null;
 
     // Properties
     this._port = null; // Inter-app communications port
@@ -37,16 +40,28 @@
     this.cancel = document.getElementById('rocketbar-cancel');
     this.results = document.getElementById('rocketbar-results');
     this.backdrop = document.getElementById('rocketbar-backdrop');
+    this.overflow = document.getElementById('rocketbar-overflow-button');
 
     // Listen for settings changes
-    SettingsListener.observe('rocketbar.enabled', false,
-      function(value) {
+    SettingsListener.observe('rocketbar.enabled', false, function(value) {
       if (value) {
         this.start();
       } else {
         this.stop();
       }
     }.bind(this));
+
+    // TODO: We shouldnt be creating a blob for each wallpaper that needs
+    // changed in the system app
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=962902
+    var defaultWall = 'resources/images/backgrounds/default.png';
+    var wallpaperURL = new SettingsURL();
+
+    SettingsListener.observe('wallpaper.image', defaultWall, function(value) {
+      document.getElementById('rocketbar-backdrop').style.backgroundImage =
+        'url(' + wallpaperURL.set(value) + ')';
+    });
+
   }
 
   Rocketbar.prototype = {
@@ -121,6 +136,7 @@
       this.backdrop.classList.remove('hidden');
       this.loadSearchApp(callback);
       this.screen.classList.add('rocketbar-focused');
+      window.dispatchEvent(new CustomEvent('rocketbar-overlayopened'));
     },
 
     /**
@@ -142,6 +158,7 @@
       this.backdrop.classList.add('hidden');
       this.blur();
       this.screen.classList.remove('rocketbar-focused');
+      window.dispatchEvent(new CustomEvent('rocketbar-overlayclosed'));
     },
 
     /**
@@ -151,12 +168,13 @@
     addEventListeners: function() {
       // Listen for events from window manager
       window.addEventListener('apploading', this);
-      window.addEventListener('appforeground', this);
       window.addEventListener('apptitlechange', this);
       window.addEventListener('applocationchange', this);
       window.addEventListener('appscroll', this);
       window.addEventListener('home', this);
       window.addEventListener('cardviewclosedhome', this);
+      window.addEventListener('cardviewclosed', this);
+      window.addEventListener('cardviewshown', this);
       window.addEventListener('appopened', this);
       window.addEventListener('homescreenopening', this);
       window.addEventListener('stackchanged', this);
@@ -171,6 +189,7 @@
       this.input.addEventListener('blur', this);
       this.input.addEventListener('input', this);
       this.cancel.addEventListener('click', this);
+      this.overflow.addEventListener('click', this);
       this.form.addEventListener('submit', this);
       this.backdrop.addEventListener('click', this);
 
@@ -190,7 +209,6 @@
     handleEvent: function(e) {
       switch(e.type) {
         case 'apploading':
-        case 'appforeground':
         case 'appopened':
           this.handleAppChange(e);
           break;
@@ -207,13 +225,27 @@
         case 'cardviewclosedhome':
           this.handleHome(e);
           break;
+        case 'cardviewshown':
+          if (this.waitingOnCardViewLaunch) {
+            this.showTaskManager();
+            this.waitingOnCardViewLaunch = false;
+          }
+          break;
+        case 'cardviewclosed':
+          this.cardView = false;
+          if (this.waitingOnCardViewLaunch) {
+            this.handleClick();
+            this.waitingOnCardViewLaunch = false;
+          }
+        break;
         case 'searchcrashed':
           this.handleSearchCrashed(e);
           break;
         case 'touchstart':
         case 'touchmove':
         case 'touchend':
-          if (e.target != this.cancel) {
+          if (e.target != this.cancel &&
+              e.target != this.overflow) {
             this.handleTouch(e);
           }
           break;
@@ -232,6 +264,8 @@
         case 'click':
           if (e.target == this.cancel) {
             this.handleCancel(e);
+          } else if (e.target == this.overflow) {
+            this.handleOverflow(e);
           } else if (e.target == this.backdrop) {
             this.deactivate();
           }
@@ -261,10 +295,11 @@
     removeEventListeners: function() {
       // Stop listening for events from window manager
       window.removeEventListener('apploading', this);
-      window.removeEventListener('appforeground', this);
       window.removeEventListener('apptitlechange', this);
       window.removeEventListener('applocationchange', this);
       window.removeEventListener('home', this);
+      window.removeEventListener('cardviewclosed', this);
+      window.removeEventListener('cardviewshown', this);
       window.removeEventListener('cardviewclosedhome', this);
       window.removeEventListener('appopened', this);
       window.removeEventListener('homescreenopening', this);
@@ -279,6 +314,7 @@
       this.input.removeEventListener('blur', this);
       this.input.removeEventListener('input', this);
       this.cancel.removeEventListener('click', this);
+      this.overflow.removeEventListener('click', this);
       this.form.removeEventListener('submit', this);
       this.backdrop.removeEventListener('click', this);
 
@@ -305,6 +341,13 @@
       if (this.expanded || this.transitioning) {
         return;
       }
+
+      //TODO: support fullscreen apps in the rocketbar
+      var app = AppWindowManager.getActiveApp();
+      if (app && app.isFullScreen()) {
+        return;
+      }
+
       this.transitioning = true;
       this.rocketbar.classList.add('expanded');
       this.screen.classList.add('rocketbar-expanded');
@@ -341,6 +384,7 @@
         this.expand();
       }
       this.clear();
+      this.disableNavigation();
     },
 
     /**
@@ -359,6 +403,9 @@
      * @memberof Rocketbar.prototype
      */
     showResults: function() {
+      if (this.searchWindow) {
+        this.searchWindow._setVisible(true);
+      }
       this.results.classList.remove('hidden');
     },
 
@@ -367,6 +414,9 @@
      * @memberof Rocketbar.prototype
      */
     hideResults: function() {
+      if (this.searchWindow) {
+        this.searchWindow._setVisible(false);
+      }
       this.results.classList.add('hidden');
       // Send a message to the search app to clear results
       if (this._port) {
@@ -386,6 +436,14 @@
     },
 
     /**
+     * Send event to the system app to show the task manager.
+     */
+    fireTaskManagerShow: function() {
+      this.waitingOnCardViewLaunch = true;
+      window.dispatchEvent(new CustomEvent('taskmanagershow'));
+    },
+
+    /**
      * Show the task manager and clear Rocketbar.
      * @memberof Rocketbar.prototype
      */
@@ -397,7 +455,6 @@
         });
       }
       this.showResults();
-      window.dispatchEvent(new CustomEvent('taskmanagershow'));
       this.clear();
     },
 
@@ -415,6 +472,20 @@
           });
         }
       }).bind(this));
+    },
+
+    /**
+     * Enable back button.
+     */
+    enableNavigation: function() {
+      this.rocketbar.classList.add('navigation');
+    },
+
+    /**
+     * Disable back button.
+     */
+    disableNavigation: function() {
+      this.rocketbar.classList.remove('navigation');
     },
 
     /**
@@ -436,6 +507,10 @@
       // To be removed in bug 999463
       this.body.addEventListener('keyboardchange',
         this.handleKeyboardChange, true);
+    },
+
+    handleOverflow: function() {
+      this.currentApp.showDefaultContextMenu();
     },
 
     /**
@@ -465,14 +540,17 @@
      * @memberof Rocketbar.prototype
      */
     handleAppChange: function(e) {
+      this.currentApp = e.detail;
       this.currentScrollPosition = 0;
       this.handleLocationChange(e);
       this.handleTitleChange(e);
       this.exitHome();
-      if (e.detail.manifestURL) {
+      if (!this.currentApp.isBrowser()) {
         this.collapse();
+        this.disableNavigation();
       } else {
         this.expand();
+        this.enableNavigation();
       }
       this.hideResults();
     },
@@ -564,15 +642,15 @@
             this.collapse();
           }
           if (dy > this.TASK_MANAGER_THRESHOLD &&
-              !this.active && !this.cardView) {
-            this.showTaskManager();
+              !this.active && !this.cardView && !this.waitingOnCardViewLaunch) {
+            this.fireTaskManagerShow();
           }
           break;
         case 'touchend':
           dy = parseInt(e.changedTouches[0].pageY) -
             parseInt(this._touchStart);
           if (dy > (this.EXPANSION_THRESHOLD * -1) &&
-            dy < this.EXPANSION_THRESHOLD) {
+              dy < this.EXPANSION_THRESHOLD) {
             this.handleClick();
           }
           this._touchStart = -1;
@@ -768,6 +846,9 @@
         return;
       }
       switch (e.detail.action) {
+        case 'render':
+          this.activate(this.focus.bind(this));
+          break;
         case 'input':
           this.input.value = e.detail.input;
           break;

@@ -12,6 +12,17 @@ ReadEvent.prototype = {
 
   selector: '#event-view',
 
+  waitForDisplay: function() {
+    // event details are loaded asynchronously, so we need to wait until the
+    // "loading" class is removed from the view; this will avoid intermittent
+    // failures on Travis (caused by race condition)
+    var element = this.getElement();
+    this.client.waitFor(function(){
+      return element.displayed() &&
+        element.getAttribute('className').indexOf('loading') === -1;
+    });
+  },
+
   get alarms() {
     return this
       .findElements('.alarms > .content > div')
@@ -78,6 +89,12 @@ ReadEvent.prototype = {
 
   get titleContainer() {
     return this.findElement('.title');
+  },
+
+  get editable() {
+    return this
+      .findElement('.edit')
+      .enabled();
   },
 
   cancel: function() {

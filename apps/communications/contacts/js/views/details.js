@@ -711,11 +711,16 @@ contacts.Details = (function() {
     cover.dataset.imgHash = '';
   };
 
-  var reMark = function(field, value) {
+  var reMark = function(field, value, remarkClass) {
     var selector = '[data-' + field + '="' + value + '"]';
     var elements = listContainer.querySelectorAll(selector);
+
+    if (typeof remarkClass === 'undefined') {
+      remarkClass = 'remark';
+    }
+
     for (var i = 0; i < elements.length; i++) {
-      elements[i].classList.add('remark');
+      elements[i].classList.add(remarkClass);
     }
   };
 

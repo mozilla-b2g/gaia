@@ -20,14 +20,15 @@ class Keypad(Phone):
     _keypad_delete_locator = (By.ID, 'keypad-delete')
     _call_bar_locator = (By.ID, 'keypad-callbar-call-action')
     _add_new_contact_button_locator = (By.ID, 'keypad-callbar-add-contact')
-    _search_popup_locator = (By.CSS_SELECTOR, '#suggestion-bar .suggestion-item')
-    _suggested_contact_name_locator = (By.CSS_SELECTOR, '#suggestion-bar .suggestion-item .name')
-    _suggested_contact_phone_number_locator = (By.CSS_SELECTOR, '#suggestion-bar .suggestion-item .tel')
+    _search_popup_locator = (By.CSS_SELECTOR, '#suggestion-bar .js-suggestion-item')
+    _suggested_contact_name_locator = (By.CSS_SELECTOR, '#suggestion-bar .js-suggestion-item .js-name')
+    _suggested_contact_phone_number_locator = (By.CSS_SELECTOR, '#suggestion-bar .js-suggestion-item .js-tel')
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
-        # TODO sometimes we may tap before the click handlers are ready
-        time.sleep(0.5)
+        self.switch_to_keypad_frame()
+        keypad_toolbar_button = self.marionette.find_element(*self._keypad_toolbar_button_locator)
+        self.wait_for_condition(lambda m: 'toolbar-option-selected' in keypad_toolbar_button.get_attribute('class'))
 
     @property
     def phone_number(self):
@@ -90,8 +91,7 @@ class Keypad(Phone):
 
     def wait_for_phone_number_ready(self):
         # Entering dialer and expecting a phone number there is js that sets the phone value and enables this button
-        self.wait_for_condition(lambda m:
-            'true' not in m.find_element(*self._add_new_contact_button_locator).get_attribute('aria-disabled'))
+        self.wait_for_condition(lambda m: m.find_element(*self._add_new_contact_button_locator).is_enabled())
 
     def switch_to_keypad_frame(self):
         app = self.apps.displayed_app

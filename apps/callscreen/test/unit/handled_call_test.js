@@ -1,3 +1,8 @@
+/* globals CallsHandler, HandledCall, MockCall, MockCallScreen,
+           MockCallsHandler, MockContactPhotoHelper, MockContacts, MockLazyL10n,
+           MockNavigatorMozIccManager, MockNavigatorSettings, MocksHelper,
+           MockUtils, Voicemail */
+
 'use strict';
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -67,9 +72,8 @@ suite('dialer/handled_call', function() {
                             '<div class="additionalContactInfo"></div>' +
                             '<div class="duration">' +
                               '<span class="font-light"></span>' +
-                              '<div class="direction">' +
-                                '<div></div>' +
-                              '</div>' +
+                              '<div class="direction"></div>' +
+                              '<div class="total-duration font-light"></div>' +
                             '</div>' +
                             '<div class="sim">' +
                               '<span class="via-sim"></span>' +
@@ -368,40 +372,62 @@ suite('dialer/handled_call', function() {
     });
 
     suite('from a regular call', function() {
-      setup(function() {
-        this.sinon.spy(mockCall, 'removeEventListener');
-        mockCall._disconnect();
-      });
 
       test('should show call ended', function() {
+        mockCall._disconnect();
         assert.equal(
-          subject.node.querySelector('.duration').textContent, 'callEnded');
+          subject.node.querySelector('.duration span').textContent,
+          'callEnded');
+      });
+
+      test('should not show the total call duration', function() {
+        subject.node.querySelector('.duration span').textContent = 'Incoming';
+        mockCall._disconnect();
+        assert.equal(subject.node.querySelector('.total-duration').textContent,
+                     '');
+      });
+
+      test('should show the total call duration', function() {
+        var totalCallDuration = '12:34';
+        subject.node.querySelector('.duration span').textContent =
+          totalCallDuration;
+        mockCall._disconnect();
+        assert.equal(subject.node.querySelector('.total-duration').textContent,
+                     totalCallDuration);
       });
 
       test('should remove listener on the call', function() {
+        this.sinon.spy(mockCall, 'removeEventListener');
+        mockCall._disconnect();
         sinon.assert.calledWith(mockCall.removeEventListener,
                                 'statechange', subject);
+        mockCall.removeEventListener.restore();
       });
 
       test('should keep the call', function() {
+        mockCall._disconnect();
         assert.ok(subject.call);
       });
 
       test('should nullify the photo', function() {
+        mockCall._disconnect();
         assert.isNull(subject.photo);
       });
 
       test('should clear the ticker', function() {
+        mockCall._disconnect();
         assert.isTrue(MockCallScreen.mCalledStopTicker);
       });
 
       test('should remove the node from the dom', function() {
+        mockCall._disconnect();
         assert.isFalse(MockCallScreen.mRemoveCallCalled);
         this.sinon.clock.tick(2000);
         assert.isTrue(MockCallScreen.mRemoveCallCalled);
       });
 
       test('should nullify the node', function() {
+        mockCall._disconnect();
         assert.isNotNull(subject.node);
         this.sinon.clock.tick(2000);
         assert.isNull(subject.node);
@@ -422,6 +448,8 @@ suite('dialer/handled_call', function() {
 
       test('show the banner', function() {
         assert.isTrue(MockCallScreen.mShowStatusMessageCalled);
+        var caller = MockLazyL10n.keys['caller-left-call'].caller;
+        assert.isTrue(typeof(caller) === 'string');
       });
     });
   });
@@ -639,6 +667,14 @@ suite('dialer/handled_call', function() {
       assert.equal(subject.numberNode.style.fontSize, '');
     });
 
+    test('formatPhoneNumber should do nothing if the call was removed',
+    function() {
+      subject.remove();
+      subject.numberNode.style.fontSize = '36px';
+      subject.formatPhoneNumber();
+      assert.equal(subject.numberNode.style.fontSize, '36px');
+    });
+
     test('check replace number', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall);
@@ -837,8 +873,6 @@ suite('dialer/handled_call', function() {
   });
 
   suite('merge button', function() {
-    var addEventListenerSpy;
-
     test('should listen for click', function() {
       var mergeActiveCallWithSpy = this.sinon.spy(CallsHandler,
                                                   'mergeActiveCallWith');

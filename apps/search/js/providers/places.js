@@ -1,4 +1,4 @@
-/* globals HtmlHelper, Provider, Search, GoogleLink */
+/* globals HtmlHelper, Provider, Search, SettingsListener */
 
 (function(exports) {
 
@@ -44,7 +44,7 @@
 
   function itemClicked(e) {
     if (e.target.dataset.url) {
-      window.open(e.target.dataset.url, '_blank', 'remote=true');
+      Search.navigate(e.target.dataset.url);
     }
   }
 
@@ -247,11 +247,8 @@
 
     click: itemClicked,
 
-    googleLink: new GoogleLink(),
-
     init: function() {
       Provider.prototype.init.apply(this, arguments);
-      this.googleLink.init();
     },
 
     search: function(filter, collect) {
@@ -271,17 +268,12 @@
         }
       }
 
-      if (matched < 3) {
-        this.googleLink.search(filter);
-      }
-
       collect(renderResults);
     },
 
 
     clear: function() {
       Provider.prototype.clear.apply(this, arguments);
-      this.googleLink.clear();
     },
 
     /**
@@ -305,7 +297,14 @@
   };
 
   exports.Places = new Places();
-  Search.provider(exports.Places);
+
+  SettingsListener.observe('rocketbar.enabled', false, (function(value) {
+    if (value) {
+      Search.provider(exports.Places);
+    } else {
+      Search.removeProvider(exports.Places);
+    }
+  }).bind(this));
 
   navigator.getDataStores(STORE_NAME).then(function(stores) {
     store = stores[0];

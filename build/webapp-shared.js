@@ -164,7 +164,7 @@ WebappShared.prototype.copyPage = function(path) {
 
   if (!file.exists()) {
     throw new Error('Using inexistent shared page file: ' + path +
-                    ' from: ' + webapp.domain);
+                    ' from: ' + this.webapp.domain);
   }
 
   var pathInStage = 'shared/pages/' + path;
@@ -265,6 +265,34 @@ WebappShared.prototype.pushElements = function(path) {
   }
   var pathInStage = 'shared/elements/' + path;
   this.moveToBuildDir(file, pathInStage);
+
+  // Handle image assets for web components
+  var paths = path.split('/');
+  if (paths.length <= 1) {
+    return;
+  }
+
+  var elementName = String(paths.shift());
+
+  // Only handle web components for now (start with gaia_)
+  if (elementName.indexOf('gaia_') !== 0) {
+    return;
+  }
+
+  // Copy possible resources from components.
+  var resources = ['style.css', 'css', 'js', 'images'];
+  resources.forEach(function(resource) {
+    var eachFile = this.gaia.sharedFolder.clone();
+    eachFile.append('elements');
+    eachFile.append(elementName);
+    eachFile.append(resource);
+
+    if (eachFile.exists()) {
+      var stagePath = 'shared/' + eachFile.getRelativeDescriptor(
+        this.gaia.sharedFolder);
+      this.moveToBuildDir(eachFile, stagePath);
+    }
+  }, this);
 };
 
 WebappShared.prototype.pushFileByType = function(kind, path) {
@@ -306,12 +334,10 @@ WebappShared.prototype.pushFileByType = function(kind, path) {
       }
       break;
     case 'locales':
-      if (this.config.GAIA_INLINE_LOCALES !== '1') {
-        var localeName = path.substr(0, path.lastIndexOf('.'));
-        if (this.used.locales.indexOf(localeName) === -1) {
-          this.used.locales.push(localeName);
-          this.pushLocale(localeName);
-        }
+      var localeName = path.substr(0, path.lastIndexOf('.'));
+      if (this.used.locales.indexOf(localeName) === -1) {
+        this.used.locales.push(localeName);
+        this.pushLocale(localeName);
       }
       break;
     case 'elements':

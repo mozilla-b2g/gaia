@@ -65,6 +65,14 @@ exports.stringContainsTime = function(str, date) {
   }
 };
 
+exports.stringToDate = function(str) {
+  var time = extractTime(str);
+  var date = new Date();
+  date.setHours(time.hours);
+  date.setMinutes(time.minutes);
+  return date;
+};
+
 assert.deepEqual(extractTime('It is 12:30 PM.'),
                  { hours: 12, minutes: 30, hasAmPm: true });
 assert.deepEqual(extractTime('It is 12:30 AM.'),

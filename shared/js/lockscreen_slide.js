@@ -30,6 +30,7 @@
     track: {
       length: {tiny: '280', large: '410'},
       color: 'rgba(255, 255, 255, 0.4)',
+      backgroundColor: 'rgba(0, 0, 0, 0)',
       from: 0,
       to: 0,
       radius: 0,
@@ -73,7 +74,6 @@
       radius: 28, // The radius of the handle in pixel.
       lineWidth: 1.6,
       maxWidth: 0,  // We need dynamic length here.
-      towardLeft: false,
 
       // The colors here is the current color, which
       // will be alternated with another side's color
@@ -82,7 +82,13 @@
       // If it slide across the boundary to color it.
       touchedColor: '0, 170, 204', // RGB
       // The intermediate color of touched color.
-      touchedColorStop: '178, 229, 239'
+      touchedColorStop: '178, 229, 239',
+      // The initial stroke color.
+      color: '255, 255, 255',
+      // The initial handle background color.
+      backgroundColor: '255, 255, 255',
+      // The initial handle background color alpha value.
+      backgroundAlpha: 0
     },
 
     colors: {
@@ -197,8 +203,8 @@
           // If the screen got blackout, we should restore the slide.
           this._clearCanvas();
           this._drawTrack();
-          this._resetArrows();
           this._resetHandle();
+          this._resetArrows();
           break;
 
         case 'touchstart':
@@ -321,10 +327,6 @@
       // would be draw at the center, and make it align too left.
       this.canvas.getContext('2d', this.handle.radius << 1, 0);
 
-      // Draw the handle.
-      this._resetHandle();
-      this._resetTouchStates();
-
       // We don't reset the arrows because it need to be draw while image
       // got loaded, which is a asynchronous process.
 
@@ -351,6 +353,10 @@
       this.track.y = this.center.y;
 
       this._drawTrack();
+
+      // Draw the handle.
+      this._resetHandle();
+      this._resetTouchStates();
     };
 
   /**
@@ -483,9 +489,8 @@
       var bounceEnd = (function _bounceEnd() {
         this._clearCanvas();
         this._drawTrack();
-        this._resetArrows();
         this._resetHandle();
-
+        this._resetArrows();
       }).bind(this);
 
       if (false === this.states.slideReachEnd) {
@@ -695,7 +700,7 @@
       var endAngle = 0.5 * Math.PI;
       var strokeStyle = this.track.color;
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+      ctx.fillStyle = this.track.backgroundColor;
       ctx.lineWidth = this.handle.lineWidth;
       ctx.strokeStyle = strokeStyle;
 
@@ -711,6 +716,7 @@
       ctx.arc(this.track.to, this.track.y, radius, startAngle, endAngle, false);
       ctx.lineTo(this.track.from, this.track.y + radius);
 
+      ctx.fill();
       ctx.stroke();
       ctx.closePath();
     };
@@ -744,15 +750,12 @@
         counterclock = true;
       }
       var isLeft = counterclock;
+      var isRight = offset - center.x > 0;
 
-      if (isLeft && !this.handle.towardLeft) {
-        this.handle.towardLeft = true;
+      if (isLeft) {
         this.handle.touchedColor = this.colors.left.touchedColor;
         this.handle.touchedColorStop = this.colors.left.touchedColorStop;
-      }
-
-      if (!isLeft && this.handle.towardLeft) {
-        this.handle.towardLeft = false;
+      } else if (isRight) {
         this.handle.touchedColor = this.colors.right.touchedColor;
         this.handle.touchedColorStop = this.colors.right.touchedColorStop;
       }
@@ -761,6 +764,8 @@
       var startAngle = 1.5 * Math.PI;
       var endAngle = 0.5 * Math.PI;
       var fillAlpha = 0.0;
+      var fillColor;
+      var strokeColor;
       var strokeStyle = 'white';
       const GRADIENT_LENGTH = 50;
 
@@ -788,20 +793,21 @@
       } else {
 
         if (0 === urw) {  // Draw as the initial circle.
-          fillAlpha = 0.0;
-          var color = '255,255,255';
+          fillAlpha = this.handle.backgroundAlpha;
+          strokeColor = this.handle.color;
+          fillColor = this.handle.backgroundColor;
         } else {
           fillAlpha = (urw - 15) / GRADIENT_LENGTH;
           if (fillAlpha > 1.0) {
             fillAlpha = 1.0;
           }
-          var color = this.handle.touchedColorStop;
+          strokeColor = this.handle.touchedColorStop;
+          fillColor = this.handle.touchedColor;
         }
         var borderAlpha = 1.0 - fillAlpha;
-        strokeStyle = 'rgba(' + color + ',' + borderAlpha + ')';
+        strokeStyle = 'rgba(' + strokeColor + ',' + borderAlpha + ')';
       }
-      ctx.fillStyle = 'rgba(' + this.handle.touchedColor +
-        ',' + fillAlpha + ')';
+      ctx.fillStyle = 'rgba(' + fillColor + ',' + fillAlpha + ')';
       ctx.lineWidth = this.handle.lineWidth;
       ctx.strokeStyle = strokeStyle;
 

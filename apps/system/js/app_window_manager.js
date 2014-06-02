@@ -231,10 +231,13 @@
       window.addEventListener('applicationuninstall', this);
       window.addEventListener('hidewindow', this);
       window.addEventListener('showwindow', this);
+      window.addEventListener('hidewindowforscreenreader', this);
+      window.addEventListener('showwindowforscreenreader', this);
       window.addEventListener('overlaystart', this);
       window.addEventListener('homegesture-enabled', this);
       window.addEventListener('homegesture-disabled', this);
       window.addEventListener('system-resize', this);
+      window.addEventListener('sheetstransitionstart', this);
 
       this._settingsObserveHandler = {
         // update app name when language setting changes
@@ -302,10 +305,13 @@
       window.removeEventListener('applicationuninstall', this);
       window.removeEventListener('hidewindow', this);
       window.removeEventListener('showwindow', this);
+      window.removeEventListener('hidewindowforscreenreader', this);
+      window.removeEventListener('showwindowforscreenreader', this);
       window.removeEventListener('overlaystart', this);
       window.removeEventListener('homegesture-enabled', this);
       window.removeEventListener('homegesture-disabled', this);
       window.removeEventListener('system-resize', this);
+      window.removeEventListener('sheetstransitionstart', this);
 
       for (var name in this._settingsObserveHandler) {
         SettingsListener.unobserve(
@@ -429,6 +435,14 @@
           }
           break;
 
+        case 'hidewindowforscreenreader':
+          activeApp.setVisibleForScreenReader(false);
+          break;
+
+        case 'showwindowforscreenreader':
+          activeApp.setVisibleForScreenReader(true);
+          break;
+
         case 'showwindow':
           if (activeApp && activeApp.origin !== homescreenLauncher.origin) {
             activeApp.setVisible(true);
@@ -507,6 +521,11 @@
         case 'cardviewbeforeshow':
           if (this._activeApp) {
             this._activeApp.getTopMostWindow().blur();
+          }
+          break;
+        case 'sheetstransitionstart':
+          if (document.mozFullScreen) {
+            document.mozCancelFullScreen();
           }
           break;
       }
@@ -594,10 +613,18 @@
     },
 
     linkWindowActivity: function awm_linkWindowActivity(config) {
-      // Caller should be either the current active inline activity window,
-      // or the active app.
-      var caller = this._activeApp.getTopMostWindow();
+      var caller;
       var callee = this.getApp(config.origin);
+      var origin = window.location.origin;
+
+      // if caller is system app, we would change the caller to homescreen
+      // so that we won't go back to the wrong place
+      if (config.parentApp && config.parentApp.match(origin)) {
+        caller = homescreenLauncher.getHomescreen(true);
+      } else {
+        caller = this._activeApp.getTopMostWindow();
+      }
+
       callee.callerWindow = caller;
       caller.calleeWindow = callee;
     },
@@ -652,6 +679,11 @@
       } else {
         screenElement.classList.remove('fullscreen-app');
       }
+      // Resize when opened.
+      // Note: we will not trigger reflow if the final size
+      // is the same as its current value.
+      this._activeApp.resize();
+
       this.debug('=== Active app now is: ',
         (this._activeApp.name || this._activeApp.origin), '===');
     },

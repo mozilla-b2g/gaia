@@ -40,7 +40,6 @@ marionette('Fullscreen status bar >', function() {
     client.waitFor(function() {
       return (statusbar.location().y === 0);
     });
-
-    assert.ok(true, 'The statusbar is fully displayed');
+    assert(statusbar.displayed(), 'The status bar is visible');
   });
 });

@@ -8,7 +8,7 @@ suite('app', function() {
 
     window.req([
       'app',
-      'lib/camera',
+      'lib/camera/camera',
       'vendor/view',
       'lib/geo-location',
       'lib/activity',
@@ -181,7 +181,6 @@ suite('app', function() {
       var el = this.app.el;
 
       assert.ok(el.querySelector('.viewfinder'));
-      assert.ok(el.querySelector('.focus-ring'));
       assert.ok(el.querySelector('.hud'));
     });
 

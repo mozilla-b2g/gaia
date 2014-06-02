@@ -31,120 +31,15 @@
  *  * **layout.js**: defines data structures that represent keyboard layouts
  *  * **render.js**: creates the on-screen keyboard with HTML and CSS
  *
- * Input methods are in subdirectories of imes/.  The latin input method
- * in imes/latin/ provides word suggestions, auto capitalization, and
- * punctuation assistance.
- *
- * Each input method implements the following interface which the keyboard
- * uses to communicate with it. init() and click() are the only two required
- * methods; the keyboard checks that other methods are defined before
- * invoking them:
- *
- *    init(keyboard):
- *      Keyboard is the object that the IM uses to communicate with the keyboard
- *
- *    activate(language, suggestionsEnabled, inputstate):
- *      The keyboard calls this method when it becomes active.
- *      language is the current language.  suggestionsEnabled
- *      specifies whether the user wants word suggestions inputstate
- *      is an object that holds the state of the input field or
- *      textarea being typed into.  it includes content, cursor
- *      position and type and inputmode attributes.
- *
- *    deactivate():
- *      Called when the keyboard is hidden.
- *
- *    empty:
- *      Clear any currently displayed candidates/suggestions.
- *      The latin input method does not use this, and it is not clear
- *      to me whether the Asian IMs need it either.
- *
- *    click(keycode, x, y):
- *      This is the main method: the keyboard calls this each time the
- *      user taps a key. The keyboard does not actually generate any
- *      key events until the input method tells it to. The x and y coordinate
- *      arguments can be used to improve the IM's word suggestions, in
- *      conjunction with the layout data from setLayoutParams().
- *      The coordinates aren't passed for the Backspace key, however.
- *
- *    select(word, data):
- *      Called when the user selects a displayed candidate or word suggestion.
- *
- *    setLayoutParams(params):
- *      Gives the IM information about the onscreen coordinates of
- *      each key. Used with latin IM only.  Can be used with click
- *      coordinates to improve predictions, but it may not currently
- *      be used.
- *
- *    getMoreCandidates(indicator, maxCount, callback):
- *      (optional) Called when the render needs more candidates to show on the
- *      candidate panel.
- *
- * The init method of each IM is passed an object that it uses to
- * communicate with the keyboard. That interface object defines the following
- * properties and methods:
- *
- *    path:
- *      A url that the IM can use to load dictionaries or other resources
- *
- *    sendCandidates(candidates):
- *      A method that makes the keyboard display candidates or suggestions
- *
- *    setComposition(symbols, cursor):
- *      Set current composing text. This method will start composition or update
- *      composition if it has started.
- *
- *    endComposition(text):
- *      End composition, clear the composing text and commit given text to
- *      current input field.
- *
- *    sendKey(keycode, isRepeat):
- *      Generate output. Typically the keyboard will just pass this
- *      keycode to inputcontext.sendKey(). The IM could call
- *      inputcontext.sendKey() directly, but doing it this way allows
- *      us to chain IMs, I think.
- *
- *    sendString(str):
- *      Outputs a string of text by repeated calls to sendKey().
- *
- *    alterKeyboard(layout):
- *      Allows the IM to modify the keyboard layout by specifying a new layout
- *      name. Only used by asian ims currently.
- *
- *    setLayoutPage():
- *      Allows the IM to switch between default and symbol layouts on the
- *      keyboard. Used by the latin IM.
- *
- *    setUpperCase(upperCase, upperCaseLocked):
- *      Allows the IM to switch between uppercase and lowercase layout on the
- *      keyboard. Used by the latin IM.
- *        - upperCase: to enable the upper case or not.
- *        - upperCaseLocked: to change the caps lock state.
- *
- *    resetUpperCase():
- *      Allows the IM to reset the upperCase to lowerCase without knowing the
- *      internal states like caps lock and current layout page while keeping
- *      setUpperCase simple as it is.
- *
- *    getNumberOfCandidatesPerRow():
- *      Allow the IM to know how many candidates the Render need in one row so
- *      the IM can reduce search time and run the remaining process when
- *      "getMoreCandidates" is called.
- *
  */
 
 'use strict';
 
-// InputMethod modules register themselves in this object
-const InputMethods = {};
-
-// The default input method is trivial: when the keyboard passes a key
-// to it, it just sends that key right back. Real input methods implement
-//  a number of other methods
-const defaultInputMethod = {
-  click: sendKey,
-  displaysCandidates: function() { return false; }
-};
+// A timer for time measurement
+// XXX: render.js is using this variable from other script.
+var perfTimer = new PerformanceTimer();
+perfTimer.start();
+perfTimer.printTime('keyboard.js');
 
 var inputContext = null;
 
@@ -160,7 +55,6 @@ var inputContext = null;
 // setKeyboardName() is called when pages loads, when visibility changes,
 // and when URL hash changes.
 var keyboardName = null;
-var inputMethod = defaultInputMethod;
 
 // These are the possible layout page values
 const LAYOUT_PAGE_DEFAULT = 'Default';
@@ -192,11 +86,6 @@ var isKeyboardRendered = false;
 var currentCandidates = [];
 var candidatePanelScrollTimer = null;
 
-var cachedIMEDimensions = {
-  height: 0,
-  width: 0
-};
-
 // Show accent char menu (if there is one) after ACCENT_CHAR_MENU_TIMEOUT
 const ACCENT_CHAR_MENU_TIMEOUT = 700;
 
@@ -219,7 +108,6 @@ const HIDE_KEYBOARD_TIMEOUT = 500;
 var deleteTimeout = 0;
 var deleteInterval = 0;
 var menuTimeout = 0;
-var redrawTimeout = 0;
 var hideKeyboardTimeout = 0;
 
 // Special key codes
@@ -237,12 +125,49 @@ const specialCodes = [
   KeyEvent.DOM_VK_SPACE
 ];
 
-// These values are initialized with user settings
-var suggestionsEnabled;
-var correctionsEnabled;
-var clickEnabled;
-var vibrationEnabled;
-var isSoundEnabled;
+// InputMethodManager is responsible of loading/activating input methods.
+// XXX: For now let's pass a fake app object.
+var fakeAppObject = {
+  sendCandidates: function kc_glue_sendCandidates(candidates) {
+    perfTimer.printTime('glue.sendCandidates');
+    currentCandidates = candidates;
+    IMERender.showCandidates(candidates);
+  },
+  setComposition: function kc_glue_setComposition(symbols, cursor) {
+    perfTimer.printTime('glue.setComposition');
+    cursor = cursor || symbols.length;
+    inputContext.setComposition(symbols, cursor);
+  },
+  endComposition: function kc_glue_endComposition(text) {
+    perfTimer.printTime('glue.endComposition');
+    text = text || '';
+    inputContext.endComposition(text);
+  },
+  sendKey: sendKey,
+  alterKeyboard: function kc_glue_alterKeyboard(keyboard) {
+    renderKeyboard(keyboard);
+  },
+  setLayoutPage: setLayoutPage,
+  setUpperCase: setUpperCase,
+  resetUpperCase: resetUpperCase,
+  replaceSurroundingText: replaceSurroundingText,
+  getNumberOfCandidatesPerRow:
+    IMERender.getNumberOfCandidatesPerRow.bind(IMERender)
+};
+var inputMethodManager = new InputMethodManager(fakeAppObject);
+inputMethodManager.start();
+
+// SettingsPromiseManager wraps Settings DB methods into promises.
+var settingsPromiseManager = new SettingsPromiseManager();
+
+// User settings (in Settings database) are tracked within these modules
+var soundFeedbackSettings;
+var vibrationFeedbackSettings;
+var imEngineSettings;
+
+// We keep this promise in the global scope for the time being,
+// so they can be called as soon as we need it to.
+var inputContextGetTextPromise;
 
 // data URL for keyboard click sound
 const CLICK_SOUND = './resources/sounds/key.ogg';
@@ -264,73 +189,46 @@ var eventHandlers = {
   'mousemove': onMouseMove
 };
 
-// For "swipe down to hide" feature
+// For tracking "scrolling the full candidate panel".
 var touchStartCoordinate;
-var toShowKeyboardFTU = false;
-const SWIPE_VELOCICTY_THRESHOLD = 0.4;
 
-// Before we can initialize the keyboard we need to know the current
-// value of all keyboard-related settings. These are the settings
-// we want to query, with the default values we'll use if the query fails
-var settingsQuery = {
-  'keyboard.wordsuggestion': true,
-  'keyboard.autocorrect': true,
-  'keyboard.vibration': false,
-  'keyboard.clicksound': false,
-  'keyboard.ftu.enabled': false,
-  'audio.volume.notification': 7
-};
+initKeyboard();
 
-// Now query the settings
-getSettings(settingsQuery, function gotSettings(values) {
-  // Copy settings values to the corresponding global variables.
-  suggestionsEnabled = values['keyboard.wordsuggestion'];
-  correctionsEnabled = values['keyboard.autocorrect'];
-  vibrationEnabled = values['keyboard.vibration'];
-  clickEnabled = values['keyboard.clicksound'];
-  isSoundEnabled = !!values['audio.volume.notification'];
-
-  // To see if this is first time the user launches the keyboard
-  toShowKeyboardFTU = values['keyboard.ftu.enabled'];
-
-  handleKeyboardSound();
-
-  // We've got all the settings, so initialize the rest
-  initKeyboard();
-});
+// We cannot listen to resize event right at start because of
+// https://bugzil.la/1007595 ;
+// only attach the event listener after 600ms.
+setTimeout(function attachResizeListener() {
+  perfTimer.printTime('attachResizeListener');
+  // Handle resize events
+  window.addEventListener('resize', onResize);
+}, 2000);
 
 function initKeyboard() {
-  navigator.mozSettings.addObserver('keyboard.wordsuggestion', function(e) {
-    // The keyboard won't be displayed when this setting changes, so we
-    // don't need to tell the keyboard about the new value right away.
-    // We pass the value to the input method when the keyboard is displayed
-    suggestionsEnabled = e.settingValue;
+  perfTimer.startTimer('initKeyboard');
+  perfTimer.printTime('initKeyboard');
+  // Getting initial settings values asynchronously,
+  // Plus monitor the value when it changes.
+  soundFeedbackSettings = new SoundFeedbackSettings();
+  soundFeedbackSettings.promiseManager = settingsPromiseManager;
+  soundFeedbackSettings.onsettingchange = handleKeyboardSound;
+  soundFeedbackSettings.initSettings().then(
+    handleKeyboardSound,
+    function rejected() {
+      console.warn('Failed to get initial sound settings.');
+    });
+
+  vibrationFeedbackSettings = new VibrationFeedbackSettings();
+  vibrationFeedbackSettings.promiseManager = settingsPromiseManager;
+  var vibrationInitPromise = vibrationFeedbackSettings.initSettings();
+  vibrationInitPromise.catch(function rejected() {
+    console.warn('Failed to get initial vibration settings.');
   });
 
-  navigator.mozSettings.addObserver('keyboard.autocorrect', function(e) {
-    // The keyboard won't be displayed when this setting changes, so we
-    // don't need to tell the keyboard about the new value right away.
-    // We pass the value to the input method when the keyboard is displayed
-    correctionsEnabled = e.settingValue;
-  });
-
-  navigator.mozSettings.addObserver('keyboard.vibration', function(e) {
-    vibrationEnabled = e.settingValue;
-  });
-
-  navigator.mozSettings.addObserver('audio.volume.notification', function(e) {
-    isSoundEnabled = !!e.settingValue;
-    handleKeyboardSound();
-  });
-
-  navigator.mozSettings.addObserver('keyboard.clicksound', function(e) {
-    clickEnabled = e.settingValue;
-    handleKeyboardSound();
-  });
-
-  // Gaia UI Test may change this setting to disable keyboard FTU
-  navigator.mozSettings.addObserver('keyboard.ftu.enabled', function(e) {
-    toShowKeyboardFTU = e.settingValue;
+  imEngineSettings = new IMEngineSettings();
+  imEngineSettings.promiseManager = settingsPromiseManager;
+  var imEngineSettingsInitPromise = imEngineSettings.initSettings();
+  imEngineSettingsInitPromise.catch(function rejected() {
+    console.error('Fatal Error! Failed to get initial imEngine settings.');
   });
 
   // Initialize the rendering module
@@ -341,44 +239,19 @@ function initKeyboard() {
     IMERender.ime.addEventListener(event, eventHandlers[event]);
   }
 
-  // Prevent focus being taken away by tip window
-  var tipWindow = document.getElementById('confirm-dialog');
-  function tipFocusHandler(evt) {
-    evt.preventDefault();
-  }
-
-  tipWindow.addEventListener('mousedown', tipFocusHandler);
-
-  var tipButton = document.getElementById('ftu-ok');
-  tipButton.addEventListener('click', function(evt) {
-    // Need to preventDefault or it will make the input lose the focus
-    evt.preventDefault();
-    tipWindow.hidden = true;
-  });
-
-  /* To simulate :active effect for button */
-  tipButton.addEventListener('mousedown', function mouseDownHandler(evt) {
-    tipButton.classList.add('active');
-  });
-
-  var inActiveHandlers = ['mouseup', 'mouseleave'];
-  inActiveHandlers.forEach(function addInActiveHandler(evtName) {
-    tipButton.addEventListener(evtName, function inActiveHandler(evt) {
-      tipButton.classList.remove('active');
-    });
-  });
-
   dimensionsObserver = new MutationObserver(function() {
+    perfTimer.printTime('dimensionsObserver:callback');
     updateTargetWindowHeight();
   });
 
   // And observe mutation events on the renderer element
   dimensionsObserver.observe(IMERender.ime, {
     childList: true, // to detect changes in IMEngine
-    attributes: true, attributeFilter: ['class', 'style', 'data-hidden']
+    attributes: true, attributeFilter: ['class', 'style']
   });
 
   window.addEventListener('hashchange', function() {
+    perfTimer.printTime('hashchange');
     var inputMethodName = window.location.hash.substring(1);
     setKeyboardName(inputMethodName, function() {
       resetKeyboard();
@@ -386,13 +259,11 @@ function initKeyboard() {
     });
   }, false);
 
-  // Handle resize events
-  window.addEventListener('resize', onResize);
-
   // Need to listen to both mozvisibilitychange and oninputcontextchange,
   // because we are not sure which will happen first and we will call
   // showKeyboard() when mozHidden is false and we got inputContext
   window.addEventListener('mozvisibilitychange', function visibilityHandler() {
+    perfTimer.printTime('mozvisibilitychange');
     var inputMethodName = window.location.hash.substring(1);
     setKeyboardName(inputMethodName, function() {
       if (!document.mozHidden && inputContext) {
@@ -404,12 +275,19 @@ function initKeyboard() {
   });
 
   window.navigator.mozInputMethod.oninputcontextchange = function() {
+    perfTimer.printTime('inputcontextchange');
     inputContext = navigator.mozInputMethod.inputcontext;
-    if (!document.mozHidden && inputContext) {
-      showKeyboard();
-    } else {
-      hideKeyboard();
+    if (inputContext) {
+      inputContextGetTextPromise = inputContext.getText();
     }
+    var inputMethodName = window.location.hash.substring(1);
+    setKeyboardName(inputMethodName, function() {
+      if (!document.mozHidden && inputContext) {
+        showKeyboard();
+      } else {
+        hideKeyboard();
+      }
+    });
   };
 
   // Initialize the current layout according to
@@ -425,15 +303,21 @@ function initKeyboard() {
   // have already focused, the keyboard should show right away.
   inputContext = navigator.mozInputMethod.inputcontext;
   if (!document.mozHidden && inputContext) {
+    inputContextGetTextPromise = inputContext.getText();
+    perfTimer.printTime(
+      'initKeyboard->setKeyboardName->showKeyboard', 'initKeyboard');
     // show Keyboard after the input method has been initialized
     setKeyboardName(inputMethodName, showKeyboard);
   } else {
+    perfTimer.printTime(
+      'initKeyboard->setKeyboardName', 'initKeyboard');
     setKeyboardName(inputMethodName);
   }
 }
 
-function handleKeyboardSound() {
-  if (clickEnabled && isSoundEnabled) {
+function handleKeyboardSound(settings) {
+  if (settings.clickEnabled &&
+      !!settings.isSoundEnabled) {
     clicker = new Audio(CLICK_SOUND);
     specialClicker = new Audio(SPECIAL_SOUND);
   } else {
@@ -443,55 +327,48 @@ function handleKeyboardSound() {
 }
 
 function deactivateInputMethod() {
-  if (inputMethod.deactivate) {
-    inputMethod.deactivate();
-  }
+  // Switching to default IMEngine makes the current IMEngine deactivate.
+  // The currentIMEngine will be set and activates again in
+  // showKeyboard() (specifically, switchIMEngine()).
+  inputMethodManager.switchCurrentIMEngine('default');
 }
 
 function setKeyboardName(name, callback) {
+  perfTimer.printTime('setKeyboardName');
+
   var keyboard;
 
-  loadLayout(name, function(layout) {
-    if (layout.imEngine) {
-      loadIMEngine(name, function() {
-        setInputMethod(InputMethods[layout.imEngine]);
-      });
-    } else {
-      setInputMethod(defaultInputMethod);
-    }
-
-    function setInputMethod(im) {
-      if (im !== inputMethod && inputMethod && inputMethod.deactivate)
-        inputMethod.deactivate();
-      inputMethod = im;
-      if (callback)
-        callback();
-    }
-  });
-
-  function loadLayout(name, callback) {
-    if (name in Keyboards) {
+  if (name in Keyboards) {
+    setLayout(name);
+  } else {
+    // If we have not already loaded the layout, load it now
+    var layoutFile = 'js/layouts/' + name + '.js';
+    var script = document.createElement('script');
+    script.src = layoutFile;
+    script.onload = function() {
       setLayout(name);
-    } else {
-      // If we have not already loaded the layout, load it now
-      var layoutFile = 'js/layouts/' + name + '.js';
-      var script = document.createElement('script');
-      script.src = layoutFile;
-      script.onload = function() {
-        setLayout(name);
-      };
-      script.onerror = function() {
-        // If this happens, we have a misconfigured build and the
-        // keyboard manifest does not match the layouts in js/layouts/
-        console.error('Cannot load keyboard layout', layoutFile);
-      };
-      document.head.appendChild(script);
-    }
+    };
+    script.onerror = function() {
+      // If this happens, we have a misconfigured build and the
+      // keyboard manifest does not match the layouts in js/layouts/
+      console.error('Cannot load keyboard layout', layoutFile);
+    };
+    document.head.appendChild(script);
+  }
 
-    function setLayout(name) {
-      keyboardName = name;
-      keyboard = Keyboards[name];
-      callback(keyboard);
+  function setLayout(name) {
+    perfTimer.printTime('setLayout');
+    keyboardName = name;
+    keyboard = Keyboards[name];
+
+    // Ask the loader to start loading IMEngine
+    var loader = inputMethodManager.loader;
+    var imEngineName = keyboard.imEngine;
+    if (imEngineName && !loader.getInputMethod(imEngineName)) {
+      loader.getInputMethodAsync(imEngineName);
+    }
+    if (callback) {
+      callback();
     }
   }
 }
@@ -549,6 +426,14 @@ function modifyLayout(keyboardName) {
       newObj[prop] = obj[prop];
     }
     return newObj;
+  }
+
+  // Test if a key has alternatives
+  function hasAlternatives(layout, value) {
+    if (!layout.alt)
+      return false;
+
+    return (value in layout.alt);
   }
 
   var altLayoutName;
@@ -610,11 +495,10 @@ function modifyLayout(keyboardName) {
     space = copy(space);   // and the original space key
     row[c] = space;
 
-
     // Alternate layout key
     // This gives the author the ability to change the alternate layout
     // key contents
-    var alternateLayoutKey = '?123';
+    var alternateLayoutKey = '12&';
     if (layout['alternateLayoutKey']) {
       alternateLayoutKey = layout['alternateLayoutKey'];
     }
@@ -634,14 +518,17 @@ function modifyLayout(keyboardName) {
         row.splice(c, 0, {
           keyCode: ALTERNATE_LAYOUT,
           value: alternateLayoutKey,
-          ratio: 1.5
+          ratio: 1.5,
+          ariaLabel: 'alternateLayoutKey',
+          className: 'switch-key'
         });
 
       } else {
         row.splice(c, 0, {
           keyCode: BASIC_LAYOUT,
           value: basicLayoutKey,
-          ratio: 1.5
+          ratio: 1.5,
+          ariaLabel: 'basicLayoutKey'
         });
       }
       c += 1;
@@ -649,24 +536,37 @@ function modifyLayout(keyboardName) {
 
     // switch languages button
     var supportsSwitching = navigator.mozInputMethod.mgmt.supportsSwitching();
-    if (!layout['hidesSwitchKey'] && supportsSwitching) {
-      space.ratio -= 1.5;
-      row.splice(c, 0, {
+    var needsSwitchingKey = !layout['hidesSwitchKey'] && supportsSwitching;
+    if (needsSwitchingKey) {
+      var imeSwitchKey = {
         value: '&#x1f310;',
-        ratio: 1.5,
-        keyCode: SWITCH_KEYBOARD
-      });
+        ratio: 1,
+        keyCode: SWITCH_KEYBOARD,
+        className: 'switch-key'
+      };
+
+      if ('shortLabel' in Keyboards[keyboardName]) {
+        imeSwitchKey.value = Keyboards[keyboardName].shortLabel;
+        imeSwitchKey.className += ' alternate-indicator';
+      }
+
+      space.ratio -= 1;
+      row.splice(c, 0, imeSwitchKey);
       c += 1;
     }
 
     // Now modify the layout some more based on the input type
+    var defaultPeriodSymbol = { value: '.', ratio: 1, keyCode: 46 };
+    if (hasAlternatives(layout, '.')) {
+      defaultPeriodSymbol['className'] = 'alternate-indicator';
+    }
     if (!layout['typeInsensitive']) {
       switch (currentInputType) {
         // adds . / and .com
       case 'url':
         space.ratio -= 5;
         row.splice(c, 1, // delete space
-                   { value: '.', ratio: 1, keyCode: 46 },
+                   defaultPeriodSymbol,
                    { value: '/', ratio: 2, keyCode: 47 },
                    // As we are removing the space we need to assign
                    // the extra space (i.e to .com)
@@ -682,7 +582,7 @@ function modifyLayout(keyboardName) {
       case 'email':
         space.ratio -= 2;
         row.splice(c, 0, { value: '@', ratio: 1, keyCode: 64 });
-        row.splice(c + 2, 0, { value: '.', ratio: 1, keyCode: 46 });
+        row.splice(c + 2, 0, defaultPeriodSymbol);
         break;
 
         // adds . and , to both sides of the space bar
@@ -695,8 +595,7 @@ function modifyLayout(keyboardName) {
         }
 
         // Add ',' to 2nd level
-        if (layoutPage !== LAYOUT_PAGE_DEFAULT) {
-
+        if (layoutPage !== LAYOUT_PAGE_DEFAULT || !needsSwitchingKey) {
           if (overwrites[','] !== false) {
             space.ratio -= 1;
             next++;
@@ -714,17 +613,17 @@ function modifyLayout(keyboardName) {
         }
 
         if (overwrites['.']) {
-          row.splice(next, 0, {
+          var periodOverwrite = {
             value: overwrites['.'],
             ratio: 1,
             keyCode: overwrites['.'].charCodeAt(0)
-          });
+          };
+          if (hasAlternatives(layout, overwrites['.'])) {
+            periodOverwrite['className'] = 'alternate-indicator';
+          }
+          row.splice(next, 0, periodOverwrite);
         } else if (overwrites['.'] !== false) {
-          row.splice(next, 0, {
-            value: '.',
-            ratio: 1,
-            keyCode: 46
-          });
+          row.splice(next, 0, defaultPeriodSymbol);
         }
 
         break;
@@ -738,14 +637,6 @@ function modifyLayout(keyboardName) {
   layout.altLayoutName = altLayoutName;
 
   return layout;
-}
-
-var _t = {};
-function startTime(key) {
-  // _t[key] = +new Date;
-}
-function endTime(key) {
-  // dump('~' + key + ' ' + (+new Date - _t[key]) + '\n');
 }
 
 //
@@ -763,61 +654,55 @@ function endTime(key) {
 // keyboardName to produce a currentLayout that is different than the base
 // layout for keyboardName
 //
-function renderKeyboard(keyboardName, callback) {
-  startTime('BLOCKING (main) renderKeyboard');
+function renderKeyboard(keyboardName) {
+  perfTimer.printTime('renderKeyboard');
+  perfTimer.startTimer('renderKeyboard');
 
   // Add meta keys and type-specific keys to the base layout
   currentLayout = modifyLayout(keyboardName);
 
-  function drawKeyboard() {
-    var keyboard = Keyboards[keyboardName];
+  var keyboard = Keyboards[keyboardName];
 
-    IMERender.ime.classList.remove('full-candidate-panel');
+  IMERender.ime.classList.remove('full-candidate-panel');
 
-    // Rule of thumb: always render uppercase, unless secondLayout has been
-    // specified (for e.g. arabic, then depending on shift key)
-    var needsUpperCase = currentLayout.secondLayout ?
-      (isUpperCaseLocked || isUpperCase) :
-      true;
+  // Rule of thumb: always render uppercase, unless secondLayout has been
+  // specified (for e.g. arabic, then depending on shift key)
+  var needsUpperCase = currentLayout.secondLayout ?
+    (isUpperCaseLocked || isUpperCase) :
+    true;
 
-    // And draw the layout
-    IMERender.draw(currentLayout, {
-      uppercase: needsUpperCase,
-      inputType: currentInputType,
-      showCandidatePanel: needsCandidatePanel()
-    }, function() {
-      startTime('BLOCKING (nextTick) renderKeyboard');
-      // So there are a couple of things that we want don't want to block
-      // on here, so we can do it if resizeUI is fully finished
-      IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+  // And draw the layout
+  IMERender.draw(currentLayout, {
+    uppercase: needsUpperCase,
+    inputType: currentInputType,
+    showCandidatePanel: needsCandidatePanel()
+  }, function() {
+    perfTimer.printTime('IMERender.draw:callback');
+    perfTimer.startTimer('IMERender.draw:callback');
+    // So there are a couple of things that we want don't want to block
+    // on here, so we can do it if resizeUI is fully finished
+    IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
 
-      // Tell the input method about the new keyboard layout
-      updateLayoutParams();
+    // Tell the input method about the new keyboard layout
+    updateLayoutParams();
 
-      IMERender.showCandidates(currentCandidates);
-      endTime('BLOCKING (nextTick) renderKeyboard');
-    });
+    IMERender.showCandidates(currentCandidates);
+    perfTimer.printTime(
+      'BLOCKING IMERender.draw:callback', 'IMERender.draw:callback');
+  });
 
-    // Tell the renderer what input method we're using. This will set a CSS
-    // classname that can be used to style the keyboards differently
-    IMERender.setInputMethodName(keyboard.imEngine || 'default');
+  // Tell the renderer what input method we're using. This will set a CSS
+  // classname that can be used to style the keyboards differently
+  IMERender.setInputMethodName(keyboard.imEngine || 'default');
 
-    // If needed, empty the candidate panel
-    if (inputMethod.empty)
-      inputMethod.empty();
-
-    isKeyboardRendered = true;
-
-    endTime('BLOCKING (main) renderKeyboard');
-
-    if (callback) {
-      callback();
-    }
+  // If needed, empty the candidate panel
+  if (inputMethodManager.currentIMEngine.empty) {
+    inputMethodManager.currentIMEngine.empty();
   }
 
-  clearTimeout(redrawTimeout);
+  isKeyboardRendered = true;
 
-  drawKeyboard();
+  perfTimer.printTime('BLOCKING renderKeyboard', 'renderKeyboard');
 }
 
 function setUpperCase(upperCase, upperCaseLocked) {
@@ -843,14 +728,16 @@ function setUpperCase(upperCase, upperCaseLocked) {
   // Otherwise we can just update only the keys we need...
   // Try to block the event loop as little as possible
   requestAnimationFrame(function() {
-    startTime('BLOCKING (nextTick) updateUpperCaseUI');
+    perfTimer.startTimer('setUpperCase:requestAnimationFrame:callback');
     // And make sure the caps lock key is highlighted correctly
     IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
 
     //restore the previous candidates
     IMERender.showCandidates(currentCandidates);
 
-    endTime('BLOCKING (nextTick) updateUpperCaseUI');
+    perfTimer.printTime(
+      'BLOCKING setUpperCase:requestAnimationFrame:callback',
+      'setUpperCase:requestAnimationFrame:callback');
   });
 }
 
@@ -871,16 +758,18 @@ function setLayoutPage(newpage) {
 
   renderKeyboard(keyboardName);
 
-  if (inputMethod.setLayoutPage)
-    inputMethod.setLayoutPage(layoutPage);
+  if (inputMethodManager.currentIMEngine.setLayoutPage) {
+    inputMethodManager.currentIMEngine.setLayoutPage(layoutPage);
+  }
 }
 
 // Inform about a change in the displayed application via mutation observer
 // http://hacks.mozilla.org/2012/05/dom-mutationobserver-reacting-to-dom-changes-without-killing-browser-performance/
 function updateTargetWindowHeight(hide) {
+  perfTimer.printTime('updateTargetWindowHeight');
   // height of the current active IME + 1px for the borderTop
-  var imeHeight = cachedIMEDimensions.height = IMERender.getHeight() + 1;
-  var imeWidth = cachedIMEDimensions.width = IMERender.getWidth();
+  var imeHeight = IMERender.getHeight() + 1;
+  var imeWidth = IMERender.getWidth();
   window.resizeTo(imeWidth, imeHeight);
 }
 
@@ -892,7 +781,8 @@ function sendDelete(isRepeat) {
   // Pass the isRepeat argument to the input method. It may not want
   // to compute suggestions, for example, if this is just one in a series
   // of repeating events.
-  inputMethod.click(KeyboardEvent.DOM_VK_BACK_SPACE, isRepeat);
+  inputMethodManager.currentIMEngine
+    .click(KeyboardEvent.DOM_VK_BACK_SPACE, isRepeat);
 }
 
 // Return the upper value for a key object
@@ -962,6 +852,12 @@ function showAlternatives(key) {
   // Handle languages alternatives
   if (keyObj.keyCode === SWITCH_KEYBOARD) {
     showIMEList();
+    return;
+  }
+
+  // Hide the keyboard
+  if (keyObj.keyCode === KeyEvent.DOM_VK_SPACE) {
+    dismissKeyboard();
     return;
   }
 
@@ -1139,36 +1035,13 @@ function onTouchEnd(evt) {
 
   handleTouches(evt, function handleTouchEnd(touch, touchId) {
 
-    // Swipe down can trigger hiding the keyboard
     if (touchStartCoordinate && touchStartCoordinate.touchId == touchId) {
       var dx = touch.pageX - touchStartCoordinate.pageX;
       var dy = touch.pageY - touchStartCoordinate.pageY;
-      var dt = evt.timeStamp - touchStartCoordinate.timeStamp;
-      var vy = dy / dt;
 
-      var keyboardHeight = cachedIMEDimensions.height;
       var hasCandidateScrolled = (IMERender.isFullCandidataPanelShown() &&
                                   (Math.abs(dx) > 3 || Math.abs(dy) > 3));
 
-      // hide the keyboard if:
-      // 1. swipe down
-      // 2. the distance is longer than half of the keyboard
-      // 3. not in candidate panel
-      if ((dy > keyboardHeight / 2 && dy > dx) &&
-          vy > SWIPE_VELOCICTY_THRESHOLD &&
-          !hasCandidateScrolled) {
-
-        // de-activate the highlighted effect
-        if (touchedKeys[touchId] && touchedKeys[touchId].target)
-          IMERender.unHighlightKey(touchedKeys[touchId].target);
-
-        clearTimeout(deleteTimeout);
-        clearInterval(deleteInterval);
-        clearTimeout(menuTimeout);
-
-        navigator.mozInputMethod.mgmt.hide();
-        return;
-      }
     }
 
     // Because of bug 822558, we sometimes get two touchend events,
@@ -1235,7 +1108,10 @@ function startPress(target, coords, touchId) {
   // Feedback
   var isSpecialKey = specialCodes.indexOf(keyCode) >= 0 || keyCode < 0;
   triggerFeedback(isSpecialKey);
-  IMERender.highlightKey(target);
+  IMERender.highlightKey(target, {
+    isUpperCase: isUpperCase,
+    isUpperCaseLocked: isUpperCaseLocked
+  });
 
   setMenuTimeout(target, coords, touchId);
 
@@ -1322,8 +1198,12 @@ function movePress(target, coords, touchId) {
   var keyCode = getKeyCodeFromTarget(target);
 
   // Update highlight: add to the new (Ignore if moving over delete key)
-  if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
-    IMERender.highlightKey(target);
+  if (keyCode != KeyEvent.DOM_VK_BACK_SPACE) {
+    IMERender.highlightKey(target, {
+      isUpperCase: isUpperCase,
+      isUpperCaseLocked: isUpperCaseLocked
+    });
+  }
 
   setCurrentKey(target, touchId);
 
@@ -1366,8 +1246,9 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
   hideAlternatives();
 
   if (target.classList.contains('dismiss-suggestions-button')) {
-    if (inputMethod.dismissSuggestions)
-      inputMethod.dismissSuggestions();
+    if (inputMethodManager.currentIMEngine.dismissSuggestions) {
+      inputMethodManager.currentIMEngine.dismissSuggestions();
+    }
     return;
   }
 
@@ -1380,11 +1261,12 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
     if (!hasCandidateScrolled) {
       IMERender.toggleCandidatePanel(false, true);
 
-      if (inputMethod.select) {
+      if (inputMethodManager.currentIMEngine.select) {
         // We use dataset.data instead of target.textContent because the
         // text actually displayed to the user might have an ellipsis in it
         // to make it fit.
-        inputMethod.select(target.textContent, dataset.data);
+        inputMethodManager.currentIMEngine
+          .select(target.textContent, dataset.data);
       }
     }
 
@@ -1472,8 +1354,8 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
         var candidateIndicator =
           parseInt(candidatePanel.dataset.candidateIndicator);
 
-        if (inputMethod.getMoreCandidates) {
-          inputMethod.getMoreCandidates(
+        if (inputMethodManager.currentIMEngine.getMoreCandidates) {
+          inputMethodManager.currentIMEngine.getMoreCandidates(
             candidateIndicator,
             firstPageRows * numberOfCandidatesPerRow + 1,
             function getMoreCandidatesCallbackOnToggle(list) {
@@ -1494,7 +1376,7 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
         doToggleCandidatePanel();
       }
     } else {
-      if (inputMethod.getMoreCandidates) {
+      if (inputMethodManager.currentIMEngine.getMoreCandidates) {
         candidatePanel.removeEventListener('scroll', candidatePanelOnScroll);
         if (candidatePanelScrollTimer) {
           clearTimeout(candidatePanelScrollTimer);
@@ -1538,11 +1420,11 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
       // Like ".com" or "2nd" or (in Catalan) "l·l".
       var compositeKey = target.dataset.compositekey;
       for (var i = 0; i < compositeKey.length; i++) {
-        inputMethod.click(compositeKey.charCodeAt(i));
+        inputMethodManager.currentIMEngine.click(compositeKey.charCodeAt(i));
       }
     }
     else {
-      inputMethod.click(keyCode);
+      inputMethodManager.currentIMEngine.click(keyCode);
     }
     break;
   }
@@ -1564,8 +1446,8 @@ function candidatePanelOnScroll() {
       var candidateIndicator =
         parseInt(candidatePanel.dataset.candidateIndicator);
 
-      if (inputMethod.getMoreCandidates) {
-        inputMethod.getMoreCandidates(
+      if (inputMethodManager.currentIMEngine.getMoreCandidates) {
+        inputMethodManager.currentIMEngine.getMoreCandidates(
           candidateIndicator,
           pageRows * numberOfCandidatesPerRow + 1,
           IMERender.showMoreCandidates.bind(IMERender, pageRows)
@@ -1651,21 +1533,12 @@ function replaceSurroundingText(text, offset, length) {
 // The state argument is the data passed with that event, and includes
 // the input field type, its inputmode, its content, and the cursor position.
 function showKeyboard() {
+  perfTimer.printTime('showKeyboard');
   clearTimeout(hideKeyboardTimeout);
 
   inputContext = navigator.mozInputMethod.inputcontext;
 
   resetKeyboard();
-
-  if (toShowKeyboardFTU) {
-    var dialog = document.getElementById('confirm-dialog');
-    dialog.hidden = false;
-    toShowKeyboardFTU = false;
-
-    navigator.mozSettings.createLock().set({
-      'keyboard.ftu.enabled': false
-    });
-  }
 
   if (inputContext) {
     currentInputMode = inputContext.inputMode;
@@ -1677,47 +1550,24 @@ function showKeyboard() {
     return;
   }
 
-  var state = {
-    type: inputContext.inputType,
-    inputmode: inputContext.inputMode,
-    selectionStart: inputContext.selectionStart,
-    selectionEnd: inputContext.selectionEnd,
-    value: ''
-  };
-
   // everything.me uses this setting to improve searches,
   // but they really shouldn't.
-  navigator.mozSettings.createLock().set({
+  settingsPromiseManager.set({
     'keyboard.current': keyboardName
   });
 
-  function doShowKeyboard() {
-    // Force to disable the auto correction for Greek SMS layout.
-    // This is because the suggestion result is still unicode and
-    // we would not convert the suggestion result to GSM 7-bit.
-    if (inputMethod.activate) {
-      inputMethod.activate(Keyboards[keyboardName].autoCorrectLanguage,
-        state, {
-          suggest: suggestionsEnabled && !isGreekSMS(),
-          correct: correctionsEnabled && !isGreekSMS()
-        });
-    }
+  // If we are already visible,
+  // render the keyboard only after IMEngine is loaded.
+  if (isKeyboardRendered) {
+    switchIMEngine(keyboardName, true);
 
-    // render the keyboard after activation, which will determine the state
-    // of uppercase/suggestion, etc.
-    renderKeyboard(keyboardName, function() {
-      IMERender.showIME();
-    });
+    return;
   }
 
-  var promise = inputContext.getText();
-
-  promise.then(function gotText(value) {
-    state.value = value;
-    doShowKeyboard();
-  }, function failedToGetText(ex) {
-    // something is wrong with the inputcontext. We should not proceed.
-  });
+  // render the keyboard right away w/o waiting for IMEngine
+  // (it will be rendered again after imEngine is loaded)
+  renderKeyboard(keyboardName);
+  switchIMEngine(keyboardName, false);
 }
 
 // Hide keyboard
@@ -1725,29 +1575,30 @@ function hideKeyboard() {
   if (!isKeyboardRendered)
     return;
 
+  deactivateInputMethod();
+
   clearTimeout(hideKeyboardTimeout);
 
   // For quick blur/focus events we don't want to hide the IME div
   // to avoid flickering and such
+
   hideKeyboardTimeout = setTimeout(function() {
-    IMERender.hideIME();
+    isKeyboardRendered = false;
   }, HIDE_KEYBOARD_TIMEOUT);
-
-  deactivateInputMethod();
-
-  isKeyboardRendered = false;
 
   // everything.me uses this setting to improve searches,
   // but they really shouldn't.
-  navigator.mozSettings.createLock().set({
+  settingsPromiseManager.set({
     'keyboard.current': undefined
   });
 }
 
 // Resize event handler
 function onResize() {
-  if (IMERender.ime.dataset.hidden)
+  perfTimer.printTime('onResize');
+  if (document.mozHidden) {
     return;
+  }
 
   IMERender.resizeUI(currentLayout);
   updateTargetWindowHeight(); // this case is not captured by the mutation
@@ -1758,61 +1609,48 @@ function onResize() {
   updateLayoutParams();
 }
 
-function loadIMEngine(name, callback) {
-  var keyboard = Keyboards[name];
-  var sourceDir = './js/imes/';
-  var imEngine = keyboard.imEngine;
+function switchIMEngine(layoutName, mustRender) {
+  perfTimer.printTime('switchIMEngine');
 
-  // Same IME Engine could be load by multiple keyboard layouts
-  // keep track of it by adding a placeholder to the registration point
-  if (InputMethods[imEngine]) {
-    if (callback)
-      callback();
-    return;
-  }
+  var layout = Keyboards[layoutName];
+  var imEngineName = layout.imEngine || 'default';
 
-  var script = document.createElement('script');
-  script.src = sourceDir + imEngine + '/' + imEngine + '.js';
+  // dataPromise resolves to an array of data to be sent to imEngine.activate()
+  var dataPromise = Promise.all(
+    [inputContextGetTextPromise, imEngineSettings.initSettings()])
+  .then(function(values) {
+    perfTimer.printTime('switchIMEngine:dataPromise resolved');
 
-  // glue is an object that lets the input method interact with the keyboard
-  var glue = {
-    path: sourceDir + imEngine,
-    sendCandidates: function kc_glue_sendCandidates(candidates) {
-      currentCandidates = candidates;
-      IMERender.showCandidates(candidates);
-    },
-    setComposition: function kc_glue_setComposition(symbols, cursor) {
-      cursor = cursor || symbols.length;
-      inputContext.setComposition(symbols, cursor);
-    },
-    endComposition: function kc_glue_endComposition(text) {
-      text = text || '';
-      inputContext.endComposition(text);
-    },
-    sendKey: sendKey,
-    sendString: function kc_glue_sendString(str) {
-      for (var i = 0; i < str.length; i++)
-        sendKey(str.charCodeAt(i));
-    },
-    alterKeyboard: function kc_glue_alterKeyboard(keyboard) {
-      renderKeyboard(keyboard);
-    },
-    setLayoutPage: setLayoutPage,
-    setUpperCase: setUpperCase,
-    resetUpperCase: resetUpperCase,
-    replaceSurroundingText: replaceSurroundingText,
-    getNumberOfCandidatesPerRow:
-      IMERender.getNumberOfCandidatesPerRow.bind(IMERender)
-  };
-
-  script.addEventListener('load', function IMEngineLoaded() {
-    var engine = InputMethods[imEngine];
-    engine.init(glue);
-    if (callback)
-      callback();
+    // Resolve to this array
+    return [
+      layout.autoCorrectLanguage,
+      {
+        type: inputContext.inputType,
+        inputmode: inputContext.inputMode,
+        selectionStart: inputContext.selectionStart,
+        selectionEnd: inputContext.selectionEnd,
+        value: values[0]
+      },
+      {
+        suggest: values[1].suggestionsEnabled && !isGreekSMS(),
+        correct: values[1].correctionsEnabled && !isGreekSMS()
+      }
+    ];
+  }, function(error) {
+    return Promise.reject(error);
   });
 
-  document.body.appendChild(script);
+  var p = inputMethodManager.switchCurrentIMEngine(imEngineName, dataPromise);
+  p.then(function() {
+    perfTimer.printTime('switchIMEngine:promise resolved');
+    // Render keyboard again to get updated info from imEngine
+    if (mustRender || imEngineName !== 'default') {
+      renderKeyboard(layoutName);
+    }
+  }, function() {
+    console.warn('Failed to switch imEngine for ' + layoutName + '.' +
+      ' It might possible because we were called more than once.');
+  });
 }
 
 // If the input method cares about layout details, get those details
@@ -1822,9 +1660,9 @@ function loadIMEngine(name, callback) {
 // the default, since the input methods we support don't do anything special
 // for symbols
 function updateLayoutParams() {
-  if (inputMethod.setLayoutParams &&
+  if (inputMethodManager.currentIMEngine.setLayoutParams &&
       layoutPage === LAYOUT_PAGE_DEFAULT) {
-    inputMethod.setLayoutParams({
+    inputMethodManager.currentIMEngine.setLayoutParams({
       keyboardWidth: IMERender.getWidth(),
       keyboardHeight: getKeyCoordinateY(IMERender.getHeight()),
       keyArray: IMERender.getKeyArray(),
@@ -1835,14 +1673,28 @@ function updateLayoutParams() {
 }
 
 function triggerFeedback(isSpecialKey) {
-  if (vibrationEnabled) {
-    try {
-      navigator.vibrate(50);
-    } catch (e) {}
+  if (vibrationFeedbackSettings.initialized) {
+    var vibrationFeedbackSettingsValues =
+      vibrationFeedbackSettings.getSettingsSync();
+    if (vibrationFeedbackSettingsValues.vibrationEnabled) {
+      try {
+        navigator.vibrate(50);
+      } catch (e) {}
+    }
+  } else {
+    console.warn(
+      'Vibration feedback needed but settings is not available yet.');
   }
 
-  if (clickEnabled && isSoundEnabled) {
-    (isSpecialKey ? specialClicker : clicker).cloneNode(false).play();
+  if (soundFeedbackSettings.initialized) {
+    var soundFeedbackSettingsValues = soundFeedbackSettings.getSettingsSync();
+    if (soundFeedbackSettingsValues.clickEnabled &&
+        !!soundFeedbackSettingsValues.isSoundEnabled) {
+      (isSpecialKey ? specialClicker : clicker).cloneNode(false).play();
+    }
+  } else {
+    console.warn(
+      'Sound feedback needed but settings is not available yet.');
   }
 }
 
@@ -1865,71 +1717,6 @@ function getWindowLeft(obj) {
   return left;
 }
 
-//
-// getSettings: Query the value of multiple settings at once.
-//
-// settings is an object whose property names are the settings to query
-// and whose property values are the default values to use if no such
-// setting is found.  This function will create a setting lock and
-// request the value of each of the specified settings.  Once it receives
-// a response to all of the queries, it passes all the settings values to
-// the specified callback function.  The argument to the callback function
-// is an object just like the settings object, where the property name is
-// the setting name and the property value is the setting value (or the
-// default value if the setting was not found).
-//
-function getSettings(settings, callback) {
-  var results = {};
-  try {
-    var lock = navigator.mozSettings.createLock();
-  }
-  catch (e) {
-    // If settings is broken, just return the default values
-    console.warn('Exception in mozSettings.createLock():', e,
-                 '\nUsing default values');
-    for (var p in settings)
-      results[p] = settings[p];
-    callback(results);
-  }
-  var settingNames = Object.keys(settings);
-  var numSettings = settingNames.length;
-  var numResults = 0;
-
-  for (var i = 0; i < numSettings; i++) {
-    requestSetting(settingNames[i]);
-  }
-
-  function requestSetting(name) {
-    try {
-      var request = lock.get(name);
-    }
-    catch (e) {
-      console.warn('Exception querying setting', name, ':', e,
-                   '\nUsing default value');
-      recordResult(name, settings[name]);
-      return;
-    }
-    request.onsuccess = function() {
-      var value = request.result[name];
-      if (value === undefined)
-        value = settings[name]; // Use the default value
-      recordResult(name, value);
-    };
-    request.onerror = function(evt) {
-      console.warn('Error querying setting', name, ':', evt.error);
-      recordResult(name, settings[name]);
-    };
-  }
-
-  function recordResult(name, value) {
-    results[name] = value;
-    numResults++;
-    if (numResults === numSettings) {
-      callback(results);
-    }
-  }
-}
-
 // To determine if the candidate panel for word suggestion is needed
 function needsCandidatePanel() {
   // Disable the word suggestion for Greek SMS layout.
@@ -1941,8 +1728,8 @@ function needsCandidatePanel() {
 
   return !!((Keyboards[keyboardName].autoCorrectLanguage ||
            Keyboards[keyboardName].needsCandidatePanel) &&
-          (!inputMethod.displaysCandidates ||
-           inputMethod.displaysCandidates()));
+          (!inputMethodManager.currentIMEngine.displaysCandidates ||
+           inputMethodManager.currentIMEngine.displaysCandidates()));
 }
 
 // To determine if we need to show a "all uppercase layout" for Greek SMS
@@ -1972,6 +1759,16 @@ function clearTouchedKeys() {
   hideAlternatives();
   touchedKeys = {};
 }
+
+// Hide the keyboard via input method API
+function dismissKeyboard() {
+  clearTimeout(deleteTimeout);
+  clearInterval(deleteInterval);
+  clearTimeout(menuTimeout);
+
+  navigator.mozInputMethod.mgmt.hide();
+}
+
 /*
  * This is a helper to scroll the keyboard layout menu when the touch moves near
  * the edge of the top or bottom of the menu

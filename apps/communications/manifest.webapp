@@ -63,29 +63,6 @@
           "description": "Gaia 聯絡人"
         }
       }
-    },
-    "ftu": {
-      "launch_path": "/ftu/index.html",
-      "name": "FTU",
-      "fullscreen": "true",
-      "locales": {
-        "ar": {
-          "name": "FTU",
-          "description": "FTU"
-        },
-        "en-US": {
-          "name": "FTU",
-          "description": "FTU"
-        },
-        "fr": {
-          "name": "FTU",
-          "description": "FTU"
-        },
-        "zh-TW": {
-          "name": "FTU",
-          "description": "FTU"
-        }
-      }
     }
   },
   "permissions": {
@@ -98,8 +75,6 @@
     "desktop-notification":{},
     "alarms": {},
     "systemXHR": {},
-    "wifi-manage":{},
-    "time": {},
     "audio-channel-telephony":{},
     "idle":{},
     "storage": {},
@@ -161,6 +136,7 @@
       "disposition": "window"
     }
   },
+
   "messages": [
      { "alarm": "/facebook/fb_sync.html" },
      { "bluetooth-dialer-command": "/dialer/index.html#keyboard-view" },
@@ -168,23 +144,36 @@
      { "telephony-call-ended": "/dialer/index.html#keyboard-view" },
      { "ussd-received": "/dialer/index.html#keyboard-view" }
   ],
+
   "redirects": [
     {"from": "facebook",
-    "to": "/redirects/redirect.html"},
+    "to": "/shared/pages/import/redirects/redirect.html"},
     {"from": "facebook_dialogs",
-    "to": "/redirects/dialogs_end.html"},
+    "to": "/shared/pages/import/redirects/dialogs_end.html"},
     {"from": "facebook_logout",
-    "to": "/redirects/dialogs_end.html"},
+    "to": "/shared/pages/import/redirects/dialogs_end.html"},
     {"from": "live",
-    "to": "/redirects/redirect.html"},
+    "to": "/shared/pages/import/redirects/redirect.html"},
     {"from": "gmail",
-    "to": "/redirects/redirect.html"}
+    "to": "/shared/pages/import/redirects/redirect.html"}
   ],
+
   "datastores-owned": {
     "Gaia_Facebook_Friends": {
       "description": "Imported Facebook Friends"
     }
   },
+
+  "connections": {
+    "ftu-connection": {
+      "description": "FTU Token Data Facebook",
+      "rules": {
+        "manifestURLs": ["app://ftu.gaiamobile.org/manifest.webapp"]
+      },
+      "handler_path": "/contacts/iac.html"
+    }
+  },
+
   "icons": {
         "30": "/style/icons/communication_30.png",
         "45": "/style/icons/communication_45.png"

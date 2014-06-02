@@ -4,8 +4,6 @@
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 requireApp('system/js/telephony_settings.js');
 
-mocha.globals(['TelephonySettings']);
-
 var mocksForTelephonySettings = new MocksHelper([
   'SettingsHelper'
 ]).init();
@@ -15,6 +13,13 @@ suite('system/TelephonySettings', function() {
   var originalMobileConnections;
   mocksForTelephonySettings.attachTestHelpers();
 
+  var functionsUnderTest = [
+    'initVoicePrivacy',
+    'initRoaming',
+    'initCallerIdPreference',
+    'initPreferredNetworkType'
+  ];
+
   var reqResponse = {
     onerror: function() {}
   };
@@ -22,12 +27,29 @@ suite('system/TelephonySettings', function() {
   var fakeConnections = [{
     setVoicePrivacyMode: function() {},
     setRoamingPreference: function() {},
+    getCallingLineIdRestriction: function() {},
+    setCallingLineIdRestriction: function() {},
     setPreferredNetworkType: function() {},
     supportedNetworkTypes: ['gsm', 'wcdma', 'cdma', 'evdo'],
     addEventListener: function() {},
     removeEventListener: function() {},
-    radioState: 'enabled'
+    radioState: 'enabled',
+    voice: {
+      connected: true
+    }
   }];
+
+  // Stub functions of the subject
+  var stubFunctions = function(subject, exceptions) {
+    exceptions = exceptions || [];
+    return functionsUnderTest.map(function(name) {
+      if (exceptions.indexOf(name) === -1) {
+        return sinon.stub(subject, name);
+      } else {
+        return null;
+      }
+    });
+  };
 
   setup(function() {
     originalMobileConnections = navigator.mozMobileConnections;
@@ -55,23 +77,17 @@ suite('system/TelephonySettings', function() {
     test('does not call methods if no connections', function() {
       navigator.mozMobileConnections = null;
       subject = new TelephonySettings();
-      var privacyStub = this.sinon.stub(subject, 'initVoicePrivacy');
-      var roamingStub = this.sinon.stub(subject, 'initRoaming');
+      var stubs = stubFunctions(subject);
       subject.start();
-      assert.ok(privacyStub.notCalled);
-      assert.ok(roamingStub.notCalled);
+      assert.ok(stubs.every(stub => stub.notCalled));
     });
 
     test('calls init methods', function() {
       navigator.mozMobileConnections = fakeConnections;
       subject = new TelephonySettings();
-      var privacyStub = this.sinon.stub(subject, 'initVoicePrivacy');
-      var roamingStub = this.sinon.stub(subject, 'initRoaming');
-      var preferredStub = this.sinon.stub(subject, 'initPreferredNetworkType');
+      var stubs = stubFunctions(subject);
       subject.start();
-      assert.ok(privacyStub.calledOnce);
-      assert.ok(roamingStub.calledOnce);
-      assert.ok(preferredStub.calledOnce);
+      assert.ok(stubs.every(stub => stub.calledOnce));
     });
   });
 
@@ -83,8 +99,7 @@ suite('system/TelephonySettings', function() {
         .returns(reqResponse);
 
       subject = new TelephonySettings();
-      this.sinon.stub(subject, 'initRoaming');
-      this.sinon.stub(subject, 'initPreferredNetworkType');
+      stubFunctions(subject, 'initVoicePrivacy');
     });
 
     teardown(function() {
@@ -112,8 +127,7 @@ suite('system/TelephonySettings', function() {
         .returns(reqResponse);
 
       subject = new TelephonySettings();
-      this.sinon.stub(subject, 'initVoicePrivacy');
-      this.sinon.stub(subject, 'initPreferredNetworkType');
+      stubFunctions(subject, 'initRoaming');
     });
 
     teardown(function() {
@@ -133,6 +147,46 @@ suite('system/TelephonySettings', function() {
     });
   });
 
+  suite('initCallerIdPreference', function() {
+    var getStub, setStub, subject;
+    setup(function() {
+      navigator.mozMobileConnections = fakeConnections;
+      getStub = this.sinon.stub(fakeConnections[0],
+        'getCallingLineIdRestriction').returns(reqResponse);
+      setStub = this.sinon.stub(fakeConnections[0],
+        'setCallingLineIdRestriction').returns(reqResponse);
+
+      subject = new TelephonySettings();
+      stubFunctions(subject, 'initCallerIdPreference');
+      sinon.spy(subject, '_registerListenerForCallerIdPreference');
+    });
+
+    teardown(function() {
+      getStub.restore();
+      setStub.restore();
+    });
+
+    test('setCallingLineIdRestriction default value', function() {
+      subject.start();
+      assert.ok(setStub.calledWith(0));
+    });
+
+    test('_registerListenerForCallerIdPreference is called when init',
+      function() {
+        subject.start();
+        reqResponse.onsuccess();
+        assert.ok(subject._registerListenerForCallerIdPreference
+          .calledWith(fakeConnections[0], 0));
+    });
+
+    test('setCallingLineIdRestriction from settings', function() {
+      MockSettingsHelper.instances['ril.clirMode'] =
+        {value: ['custom-value-clir']};
+      subject.start();
+      assert.ok(setStub.calledWith('custom-value-clir'));
+    });
+  });
+
   suite('initPreferredNetworkType', function() {
     var stub, subject;
     setup(function() {
@@ -141,8 +195,7 @@ suite('system/TelephonySettings', function() {
         .returns(reqResponse);
 
       subject = new TelephonySettings();
-      this.sinon.stub(subject, 'initVoicePrivacy');
-      this.sinon.stub(subject, 'initRoaming');
+      stubFunctions(subject, 'initPreferredNetworkType');
     });
 
     teardown(function() {
@@ -191,7 +244,6 @@ suite('system/TelephonySettings', function() {
         fakeConnection.radioState = 'disabled';
         subject.start();
         fakeConnection.radioState = 'enabled';
-        console.log(callbacks.radiostatechange.length);
         callbacks.radiostatechange.forEach(function(callback) {
           callback();
         });

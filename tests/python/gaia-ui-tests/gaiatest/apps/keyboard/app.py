@@ -68,7 +68,7 @@ class Keyboard(Base):
                       'spanish']
 
     # special keys locators
-    _language_key_locator = (By.CSS_SELECTOR, ".keyboard-row button[data-keycode='-3']")
+    _language_key_locator = (By.CSS_SELECTOR, ".keyboard-type-container[data-active='true'] .keyboard-row button[data-keycode='-3']")
     _dotcom_key_locator = (By.CSS_SELECTOR, ".keyboard-row button[data-compositekey='.com']")
     _numeric_sign_key = '-2'
     _alpha_key = '-1'
@@ -84,6 +84,9 @@ class Keyboard(Base):
     _button_locator = (By.CSS_SELECTOR, '.keyboard-type-container[data-active] button.keyboard-key[data-keycode="%s"], .keyboard-type-container[data-active] button.keyboard-key[data-keycode-upper="%s"]')
     _highlight_key_locator = (By.CSS_SELECTOR, 'div.highlighted button')
     _predicted_word_locator = (By.CSS_SELECTOR, '.autocorrect')
+    _candidate_panel_locator = (By.CSS_SELECTOR, '.keyboard-candidate-panel')
+    _suggestions_container_locator = (By.CSS_SELECTOR, '.suggestions-container')
+    _dismiss_suggestions_button_locator = (By.CSS_SELECTOR, '.dismiss-suggestions-button')
 
     # find the key to long press and return
     def _find_key_for_longpress(self, input_value):
@@ -339,4 +342,73 @@ keyboard.removeFocus();""")
         self.switch_to_keyboard()
         self.wait_for_element_displayed(*self._predicted_word_locator)
         self.marionette.find_element(*self._predicted_word_locator).tap()
+        self.apps.switch_to_displayed_app()
+
+    # Accessibility related properties and methods
+
+    def _a11y_get_role(self, locator_args):
+        self.wait_for_element_displayed(*locator_args)
+        return self.accessibility.get_role(
+            self.marionette.find_element(*locator_args))
+
+    def _a11y_get_name(self, locator_args):
+        self.wait_for_element_displayed(*locator_args)
+        return self.accessibility.get_name(
+            self.marionette.find_element(*locator_args))
+
+    @property
+    def a11y_first_predictive_word_name(self):
+        return self._a11y_get_name(self._predicted_word_locator)
+
+    @property
+    def a11y_first_predictive_word_role(self):
+        return self._a11y_get_role(self._predicted_word_locator)
+
+    @property
+    def a11y_candidate_panel_name(self):
+        return self._a11y_get_name(self._candidate_panel_locator)
+
+    @property
+    def a11y_suggestions_container_role(self):
+        return self._a11y_get_role(self._suggestions_container_locator)
+
+    @property
+    def a11y_dismiss_suggestions_button_role(self):
+        return self._a11y_get_role(self._dismiss_suggestions_button_locator)
+
+    @property
+    def a11y_dismiss_suggestions_button_name(self):
+        return self._a11y_get_name(self._dismiss_suggestions_button_locator)
+
+    @property
+    def a11y_enter_key_role(self):
+        return self._a11y_get_role(self._key_locator(self._enter_key))
+
+    @property
+    def a11y_enter_key_name(self):
+        return self._a11y_get_name(self._key_locator(self._enter_key))
+
+    @property
+    def a11y_space_key_role(self):
+        return self._a11y_get_role(self._key_locator(self._space_key))
+
+    @property
+    def a11y_space_key_name(self):
+        return self._a11y_get_name(self._key_locator(self._space_key))
+
+    @property
+    def a11y_backspace_key_name(self):
+        return self._a11y_get_name([self._button_locator[0],
+            self._button_locator[1] % (self._backspace_key, self._backspace_key)])
+
+    @property
+    def a11y_backspace_key_role(self):
+        return self._a11y_get_role([self._button_locator[0],
+            self._button_locator[1] % (self._backspace_key, self._backspace_key)])
+
+    def a11y_first_predictive_word_click(self):
+        self.switch_to_keyboard()
+        self.wait_for_element_displayed(*self._predicted_word_locator)
+        self.accessibility.click(
+            self.marionette.find_element(*self._predicted_word_locator))
         self.apps.switch_to_displayed_app()

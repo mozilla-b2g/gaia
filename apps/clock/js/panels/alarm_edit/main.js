@@ -88,8 +88,7 @@ var AlarmEdit = function() {
   // When the language changes, the value of 'weekStartsOnMonday'
   // might change. Since that's more than a simple text string, we
   // can't just use mozL10n.translate().
-  window.addEventListener('localized', this.updateL10n.bind(this));
-  this.updateL10n();
+  mozL10n.ready(this.updateL10n.bind(this));
 
   this.buttons.close.addEventListener('click', handleDomEvent);
   this.buttons.done.addEventListener('click', handleDomEvent);
@@ -213,6 +212,16 @@ Utils.extend(AlarmEdit.prototype, {
     this.initSoundSelect();
     this.initSnoozeSelect();
     this.checkboxes.vibrate.checked = this.alarm.vibrate;
+
+    // Update the labels for any FormButton dropdowns that have
+    // changed, because setting <select>.value does not fire a change
+    // event.
+    for (var key in this.buttons) {
+      var button = this.buttons[key];
+      if (button instanceof FormButton) {
+        button.refresh();
+      }
+    }
 
     location.hash = '#alarm-edit-panel';
   },

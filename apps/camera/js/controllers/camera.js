@@ -30,7 +30,7 @@ function CameraController(app) {
   this.viewfinder = app.views.viewfinder;
   this.controls = app.views.controls;
   this.hdrDisabled = this.settings.hdr.get('disabled');
-  this.localize = app.localize;
+  this.l10nGet = app.l10nGet;
   this.configure();
   this.bindEvents();
   debug('initialized');
@@ -44,8 +44,10 @@ CameraController.prototype.bindEvents = function() {
   // Relaying camera events means other modules
   // don't have to depend directly on camera
   camera.on('change:videoElapsed', app.firer('camera:recorderTimeUpdate'));
+  camera.on('focusconfigured',  app.firer('camera:focusconfigured'));
+  camera.on('change:focus', app.firer('camera:focusstatechanged'));
+  camera.on('facesdetected', app.firer('camera:facesdetected'));
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
-  camera.on('change:focus', app.firer('camera:focuschanged'));
   camera.on('change:recording', app.setter('recording'));
   camera.on('newcamera', app.firer('camera:newcamera'));
   camera.on('newimage', app.firer('camera:newimage'));
@@ -57,6 +59,7 @@ CameraController.prototype.bindEvents = function() {
   camera.on('busy', app.firer('camera:busy'));
 
   // App
+  app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
   app.on('previewgallery:opened', this.onPreviewGalleryOpened);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
   app.on('settings:configured', this.onSettingsConfigured);
@@ -109,6 +112,31 @@ CameraController.prototype.onSettingsConfigured = function() {
   this.camera.setRecorderProfile(recorderProfile);
   this.camera.setPictureSize(pictureSize);
   this.camera.configureZoom();
+
+  // Bug 983930 - [B2G][Camera] CameraControl API's "zoom" attribute doesn't
+  // scale preview properly
+  //
+  // For some reason, the above calculation for `maxHardwareZoom` does not
+  // work properly on Nexus 4 devices.
+  var hardware = navigator.mozSettings.createLock().get('deviceinfo.hardware');
+  var self = this;
+  hardware.onsuccess = function(evt) {
+    var device = evt.target.result['deviceinfo.hardware'];
+    if (device === 'mako') {
+      
+      // Nexus 4 needs zoom preview adjustment since the viewfinder preview
+      // stream does not automatically reflect the current zoom value.
+      self.settings.zoom.set('useZoomPreviewAdjustment', true);
+
+      if (self.camera.selectedCamera === 'front') {
+        self.camera.set('maxHardwareZoom', 1);
+      } else {
+        self.camera.set('maxHardwareZoom', 1.25);
+      }
+
+      self.camera.emit('zoomconfigured');
+    }
+  };
 
   debug('camera configured with final settings');
 };
@@ -189,7 +217,7 @@ CameraController.prototype.showSizeLimitAlert = function() {
   var alertText = this.activity.pick ?
     'activity-size-limit-reached' :
     'storage-size-limit-reached';
-  alert(this.localize(alertText));
+  alert(this.l10nGet(alertText));
   this.sizeLimitAlertActive = false;
 };
 
@@ -253,10 +281,10 @@ CameraController.prototype.setFlashMode = function() {
 };
 
 CameraController.prototype.onHidden = function() {
+  debug('app hidden');
   this.camera.stopRecording();
   this.camera.set('focus', 'none');
   this.camera.release();
-  debug('torn down');
 };
 
 CameraController.prototype.setISO = function() {
@@ -314,6 +342,13 @@ CameraController.prototype.onStorageChanged = function(state) {
  */
 CameraController.prototype.onPreviewGalleryOpened = function() {
   this.camera.configureZoom(this.camera.previewSize());
+};
+
+/**
+ * Updates focus area when the user clicks on the viewfinder
+ */
+CameraController.prototype.onFocusPointChanged = function(focusPoint) {
+  this.camera.updateFocusArea(focusPoint.area);
 };
 
 });

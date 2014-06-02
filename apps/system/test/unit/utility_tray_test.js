@@ -1,8 +1,6 @@
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_lazy_loader.js');
-mocha.globals(['UtilityTray', 'lockScreen']);
-
 requireApp('system/test/unit/mock_lock_screen.js');
 
 var mocksHelperForUtilityTray = new MocksHelper([
@@ -310,6 +308,29 @@ suite('system/UtilityTray', function() {
     test('Test utilitytrayhide is correcly dispatched', function() {
       assert.equal(UtilityTray.screen.
         classList.contains('utility-tray'), false);
+    });
+  });
+
+  suite('mousedown event on the statusbar', function() {
+    setup(function() {
+      fakeEvt = createEvent('mousedown', true, true);
+      UtilityTray.show();
+    });
+
+    test('keyboard shown > preventDefault mousedown event', function() {
+      var imeShowEvt = createEvent('keyboardimeswitchershow');
+      UtilityTray.handleEvent(imeShowEvt);
+
+      assert.isFalse(UtilityTray.statusbar.dispatchEvent(fakeEvt));
+      assert.isFalse(UtilityTray.overlay.dispatchEvent(fakeEvt));
+    });
+
+    test('keyboard hidden > Don\'t preventDefault mousedown event', function() {
+      var imeShowEvt = createEvent('keyboardimeswitcherhide');
+      UtilityTray.handleEvent(imeShowEvt);
+
+      assert.isTrue(UtilityTray.statusbar.dispatchEvent(fakeEvt));
+      assert.isTrue(UtilityTray.overlay.dispatchEvent(fakeEvt));
     });
   });
 });

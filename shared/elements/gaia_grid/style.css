@@ -1,0 +1,94 @@
+.icon {
+  position: absolute;
+  transform-origin: 0 0;
+  display: inline-block;
+  width: calc(100% / 3);
+  text-align: center;
+  background: no-repeat top center;
+  z-index: 3;
+}
+
+.icon p {
+  pointer-events: none;
+  height: 3.2rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.icon .title {
+  display: inline-block;
+  /* Space between icon and title .1rem + .2rem = .3rem as spec says */
+  margin-top: .1rem;
+  /* We need this rule in order not to hide the drop shadow */
+  padding: 0.2rem 1rem 1rem;
+  text-shadow: 0.1rem 0.1rem 0.3rem rgba(0, 0, 0, 0.3),
+               0.2rem 0.4rem 1rem rgba(0, 0, 0, 0.4);
+  font-size: 1.4rem;
+  color: #fff;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.divider {
+  position: absolute;
+  width: 50%;
+  margin: 2.3rem 25%;
+}
+
+.divider span {
+  display: block;
+  background: #fff;
+  width: 100%;
+  z-index: 2;
+  border-radius: 40%;
+}
+
+.divider:last-of-type {
+  visibility: hidden;
+  padding-bottom: 1.4rem;
+}
+
+.dragging .icon.active {
+  z-index: 4;
+}
+
+.dragging .divider,
+.dragging .icon:not(.active) {
+  transition: transform 0.35s;
+}
+
+.edit-mode .divider:last-child {
+  visibility: visible;
+}
+
+.edit-mode .icon .remove {
+  display: block;
+  position: absolute;
+  top: 0.1rem;
+  left: 0.5rem;
+  width: 2.6rem;
+  height: 2.6rem;
+  background: url(/style/images/remove.png) no-repeat;
+}
+
+.edit-mode .icon:not(.active) {
+  opacity: 0.8;
+}
+
+.icon .remove {
+  display: none;
+}
+
+.edit-mode .icon.active .remove {
+  display: none;
+}
+
+.edit-mode .icon.bookmark .title {
+  background-color: rgba(132, 132, 132, 0.7);
+  border-radius: 2rem;
+  padding-bottom: .2rem;
+}

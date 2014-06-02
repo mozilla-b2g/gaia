@@ -114,6 +114,7 @@ var utils = window.utils || {};
   Object.defineProperty(utils.overlay, 'oncancel', {
     set: function(cancelCb) {
       if (typeof cancelCb === 'function') {
+        cancelButton.disabled = false;
         cancelButton.onclick = function on_cancel(e) {
           delete cancelButton.onclick;
           cancelCb();

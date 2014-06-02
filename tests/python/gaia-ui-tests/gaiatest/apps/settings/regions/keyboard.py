@@ -25,7 +25,7 @@ class KeyboardSelectKeyboard(Base):
 
     _section_locator = (By.ID, 'keyboard-selection')
     _add_more_keyboards_button_locator = (By.CSS_SELECTOR, "button[data-l10n-id='addMoreKeyboards']")
-    _built_in_keyboard_list_element_locator = (By.CSS_SELECTOR, '#enabledKeyboardList > li >span')
+    _built_in_keyboard_list_element_locator = (By.CSS_SELECTOR, '.enabledKeyboardList > li >span')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -52,7 +52,7 @@ class KeyboardAddMoreKeyboards(Base):
     _section_locator = (By.ID, 'keyboard-selection-addMore')
     _select_language_locator = (
         By.XPATH,
-        "//div[@id='keyboardAppContainer']//li[label[span[text()='%s']]]"
+        "//div[contains(@class,'keyboardAppContainer')]//li[label[span[text()='%s']]]"
     )
     _back_button_locator = (By.CSS_SELECTOR, '.current header > a')
 

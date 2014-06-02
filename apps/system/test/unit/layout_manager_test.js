@@ -1,15 +1,16 @@
 /* global MocksHelper, LayoutManager, MockKeyboardManager,
-          MockStatusBar, MocksoftwareButtonManager */
+          MockStatusBar, MocksoftwareButtonManager, MockLockScreen */
 'use strict';
 
-mocha.globals(['OrientationManager']);
 requireApp('system/js/layout_manager.js');
+requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
 
 var mocksForLayoutManager = new MocksHelper([
-  'KeyboardManager', 'softwareButtonManager', 'StatusBar'
+  'KeyboardManager', 'softwareButtonManager', 'StatusBar',
+  'LockScreen'
 ]).init();
 
 suite('system/LayoutManager >', function() {
@@ -17,6 +18,7 @@ suite('system/LayoutManager >', function() {
 
   var layoutManager;
   setup(function() {
+    window.lockScreen = MockLockScreen;
     layoutManager = new LayoutManager().start();
   });
 
@@ -99,7 +101,6 @@ suite('system/LayoutManager >', function() {
     assert.equal(layoutManager.height, H - 100 - 30 - 50);
     assert.equal(layoutManager.width, W);
     assert.equal(layoutManager.clientWidth, _w);
-
     assert.isTrue(layoutManager.match(W, H - 100 - 30 - 50));
   });
 });

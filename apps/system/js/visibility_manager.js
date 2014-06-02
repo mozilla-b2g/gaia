@@ -28,7 +28,11 @@
       'status-inactive',
       'mozChromeEvent',
       'appclosing',
-      'homescreenopening'
+      'homescreenopening',
+      'rocketbar-overlayopened',
+      'rocketbar-overlayclosed',
+      'utility-tray-overlayopened',
+      'utility-tray-overlayclosed'
     ];
   };
 
@@ -92,6 +96,14 @@
         break;
       case 'attentionscreenshow':
         this._setAttentionScreenVisibility(evt);
+        break;
+      case 'rocketbar-overlayopened':
+      case 'utility-tray-overlayopened':
+        this.publish('hidewindowforscreenreader');
+        break;
+      case 'rocketbar-overlayclosed':
+      case 'utility-tray-overlayclosed':
+        this.publish('showwindowforscreenreader');
         break;
       case 'mozChromeEvent':
         if (evt.detail.type == 'visible-audio-channel-changed') {

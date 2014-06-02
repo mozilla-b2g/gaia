@@ -9,6 +9,8 @@ var templateNode = require('tmpl!./message_list.html'),
     deleteConfirmMsgNode = require('tmpl!./msg/delete_confirm.html'),
     largeMsgConfirmMsgNode = require('tmpl!./msg/large_message_confirm.html'),
     common = require('mail_common'),
+    date = require('date'),
+    evt = require('evt'),
     model = require('model'),
     headerCursor = require('header_cursor').cursor,
     htmlCache = require('html_cache'),
@@ -19,7 +21,6 @@ var templateNode = require('tmpl!./message_list.html'),
     Toaster = common.Toaster,
     ConfirmDialog = common.ConfirmDialog,
     batchAddClass = common.batchAddClass,
-    bindContainerClickAndHold = common.bindContainerClickAndHold,
     bindContainerHandler = common.bindContainerHandler,
     appendMatchItemTo = common.appendMatchItemTo,
     displaySubject = common.displaySubject,
@@ -132,6 +133,7 @@ var MAXIMUM_BYTES_PER_MESSAGE_DURING_SCROLL = 4 * 1024;
 function MessageListCard(domNode, mode, args) {
   this.domNode = domNode;
   this.mode = mode;
+  this.headerMenuNode = this.domNode.querySelector('menu[type="toolbar"]');
   this.scrollNode = domNode.getElementsByClassName('msg-list-scrollouter')[0];
 
   if (mode === 'nonsearch') {
@@ -142,16 +144,11 @@ function MessageListCard(domNode, mode, args) {
 
   this.messagesContainer =
     domNode.getElementsByClassName('msg-messages-container')[0];
+  bindContainerHandler(this.messagesContainer, 'click',
+                       this.onClickMessage.bind(this));
 
   this.messageEmptyContainer =
     domNode.getElementsByClassName('msg-list-empty-container')[0];
-  // - message actions
-  bindContainerClickAndHold(
-    this.messagesContainer,
-    // clicking shows the message reader for a message
-    this.onClickMessage.bind(this),
-    // press-and-hold shows the single-message mutation options
-    this.onHoldMessage.bind(this));
 
   this.scrollContainer =
     domNode.getElementsByClassName('msg-list-scrollouter')[0];
@@ -175,9 +172,12 @@ function MessageListCard(domNode, mode, args) {
 
   // - toolbar: non-edit mode
   this.toolbar = {};
-  this.toolbar.searchBtn = domNode.getElementsByClassName('msg-search-btn')[0];
-  this.toolbar.searchBtn
-    .addEventListener('click', this.onSearchButton.bind(this), false);
+  this.toolbar.lastSyncedAtNode = domNode
+                            .getElementsByClassName('msg-last-synced-value')[0];
+  this.toolbar.lastSyncedLabel = domNode
+                            .getElementsByClassName('msg-last-synced-label')[0];
+  this._needsSizeLastSync = true;
+  this.updateLastSynced();
   this.toolbar.editBtn = domNode.getElementsByClassName('msg-edit-btn')[0];
   this.toolbar.editBtn
     .addEventListener('click', this.setEditMode.bind(this, true), false);
@@ -318,13 +318,19 @@ function MessageListCard(domNode, mode, args) {
   // event listeners.
   this._folderChanged = this._folderChanged.bind(this);
   this.onNewMail = this.onNewMail.bind(this);
+  this.onFoldersSliceChange = this.onFoldersSliceChange.bind(this);
   this.messages_splice = this.messages_splice.bind(this);
   this.messages_change = this.messages_change.bind(this);
   this.messages_status = this.messages_status.bind(this);
   this.messages_complete = this.messages_complete.bind(this);
 
+  this.onFolderPickerClosing = this.onFolderPickerClosing.bind(this);
+  evt.on('folderPickerClosing', this.onFolderPickerClosing);
+
   model.latest('folder', this._folderChanged);
   model.on('newInboxMessages', this.onNewMail);
+
+  model.on('foldersSliceOnChange', this.onFoldersSliceChange);
 
   this.sliceEvents.forEach(function(type) {
     var name = 'messages_' + type;
@@ -553,36 +559,46 @@ MessageListCard.prototype = {
   },
 
   onShowFolders: function() {
-    var query = ['folder_picker', 'navigation'];
-    if (Cards.hasCard(query)) {
-      Cards.moveToCard(query);
-    } else {
-      // Add navigation, but before the message list.
-      Cards.pushCard(
-        'folder_picker', 'navigation', 'none',
-        {
-          onPushed: function() {
-            setTimeout(function() {
-            // Do showCard here instead of using an 'animate'
-            // for the pushCard call, since the styling of
-            // the folder_picker uses new images that need to
-            // load, and if 'animate' is used, the banner
-            // gradient is not loaded during the transition.
-            // The setTimeout also gives the header image a
-            // chance to finish loading. Without it, there is
-            // still a white flash. Going lower than 50, not
-            // specifying a value, still resulted in white flash.
-            Cards.moveToCard(query);
-          }, 50);
-          }.bind(this)
-        },
-        // Place to left of message list
-        'left');
-    }
+    Cards.pushCard('folder_picker', 'default', 'immediate', {
+      onPushed: function() {
+        this.headerMenuNode.classList.add('transparent');
+      }.bind(this)
+    });
   },
 
   onCompose: function() {
     Cards.pushCard('compose', 'default', 'animate');
+  },
+
+  /**
+   * If the last synchronised label is more than half the length
+   * of its display area, set a "long" style on it that allows
+   * different styling. But only do this once per card instance,
+   * the label should not change otherwise.
+   * TODO though, once locale changing in app is supported, this
+   * should be revisited.
+   */
+  sizeLastSync: function() {
+    if (this._needsSizeLastSync && this.toolbar.lastSyncedLabel.scrollWidth) {
+      var label = this.toolbar.lastSyncedLabel;
+      var overHalf = label.scrollWidth > label.parentNode.clientWidth / 2;
+      label.parentNode.classList[(overHalf ? 'add' : 'remove')]('long');
+      this._needsSizeLastSync = false;
+    }
+  },
+
+  updateLastSynced: function(value) {
+    var method = value ? 'remove' : 'add';
+    this.toolbar.lastSyncedLabel.classList[method]('collapsed');
+    date.setPrettyNodeDate(this.toolbar.lastSyncedAtNode, value);
+    this.sizeLastSync();
+  },
+
+  onFoldersSliceChange: function(folder) {
+    // Just care about updating the last sync time
+    if (folder === this.curFolder) {
+      this.updateLastSynced(folder.lastSyncedAt);
+    }
   },
 
   /**
@@ -630,6 +646,8 @@ MessageListCard.prototype = {
       this.toolbar.moveBtn.classList.remove('collapsed');
     }
 
+    this.updateLastSynced(folder.lastSyncedAt);
+
     if (forceNewSlice) {
       // We are creating a new slice, so any pending snippet requests are moot.
       this._snippetRequestPending = false;
@@ -662,6 +680,7 @@ MessageListCard.prototype = {
       subject: filter === 'all' || filter === 'subject',
       body: filter === 'all' || filter === 'body'
     });
+
     return true;
   },
 
@@ -737,7 +756,6 @@ MessageListCard.prototype = {
       mozL10n.get('messages-folder-empty');
     this.messageEmptyContainer.classList.remove('collapsed');
     this.toolbar.editBtn.classList.add('disabled');
-    this.toolbar.searchBtn.classList.add('disabled');
     this._hideSearchBoxByScrolling();
   },
   /**
@@ -747,7 +765,6 @@ MessageListCard.prototype = {
   hideEmptyLayout: function() {
     this.messageEmptyContainer.classList.add('collapsed');
     this.toolbar.editBtn.classList.remove('disabled');
-    this.toolbar.searchBtn.classList.remove('disabled');
   },
 
 
@@ -958,6 +975,10 @@ MessageListCard.prototype = {
 
     var cacheNode = this.domNode.cloneNode(true);
 
+    // Make sure toolbar is visible, could be hidden by drawer
+    cacheNode.querySelector('menu[type="toolbar"]')
+             .classList.remove('transparent');
+
     // Hide search field as it will not operate and gets scrolled out
     // of view after real load.
     var removableCacheNode = cacheNode.querySelector('.msg-search-tease-bar');
@@ -970,6 +991,16 @@ MessageListCard.prototype = {
                            .querySelector('.' + MessageListTopbar.CLASS_NAME);
     if (removableCacheNode) {
       removableCacheNode.classList.add('collapsed');
+    }
+
+    // Hide the last sync number
+    var tempNode = cacheNode.querySelector('.msg-last-synced-label');
+    if (tempNode) {
+      tempNode.classList.add('collapsed');
+    }
+    tempNode = cacheNode.querySelector('.msg-last-synced-value');
+    if (tempNode) {
+      tempNode.innerHTML = '';
     }
 
     // Trim vScroll containers that are not in play
@@ -1105,10 +1136,16 @@ MessageListCard.prototype = {
     // from the compose triggered in that view. The scrollStopped
     // is used to avoid a flash where the old message is briefly visible
     // before cleared, and having the empty layout overlay it.
-    if (headerCursor.messagesSlice.items.length + addedItems.length - howMany <
-        1) {
+    // Using the slice's headerCount because it is updated before splice
+    // listeners are notified, so should be accurate.
+    if (!headerCursor.messagesSlice.headerCount) {
       this.vScroll.once('scrollStopped', function() {
-        this.showEmptyLayout();
+        // Confirm there are still no messages. Since this callback happens
+        // async, some items could have appeared since first issuing the
+        // request to show empty.
+        if (!headerCursor.messagesSlice.headerCount) {
+          this.showEmptyLayout();
+        }
       }.bind(this));
     }
 
@@ -1145,6 +1182,16 @@ MessageListCard.prototype = {
     peep.element.textContent = peep.name || peep.address;
   },
 
+  /**
+   * Update the state of the given DOM node.  Note that DOM nodes are reused so
+   * although you can depend on `firstTime` to be accurate, you must ensure that
+   * this method cleans up any dirty state resulting from any possible prior
+   * operation of this method.
+   *
+   * Also note that there is a separate method `updateMatchedMessageDom` for
+   * our search mode.  If you are changing this method you probably also want
+   * to be changing that method.
+   */
   updateMessageDom: function(firstTime, message) {
     var msgNode = message.element;
 
@@ -1167,6 +1214,8 @@ MessageListCard.prototype = {
 
     // some things only need to be done once
     var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
+    var subjectNode = msgNode.getElementsByClassName('msg-header-subject')[0];
+    var snippetNode = msgNode.getElementsByClassName('msg-header-snippet')[0];
     if (firstTime) {
       var listPerson;
       if (this.isIncomingFolder) {
@@ -1195,35 +1244,28 @@ MessageListCard.prototype = {
       // subject
       displaySubject(msgNode.getElementsByClassName('msg-header-subject')[0],
                      message);
-      // attachments
-      if (message.hasAttachments) {
-        msgNode.getElementsByClassName('msg-header-attachments')[0]
-          .classList.add('msg-header-attachments-yes');
-      }
+
+      // attachments (can't change within a message but can change between
+      // messages, and since we reuse DOM nodes...)
+      var attachmentsNode =
+        msgNode.getElementsByClassName('msg-header-attachments')[0];
+      attachmentsNode.classList.toggle('msg-header-attachments-yes',
+                                       message.hasAttachments);
+      // snippet needs to be shorter if icon is shown
+      snippetNode.classList.toggle('icon-short', message.hasAttachments);
     }
 
     // snippet
-    msgNode.getElementsByClassName('msg-header-snippet')[0]
-      .textContent = message.snippet;
+    snippetNode.textContent = message.snippet;
 
-    // unread (we use very specific classes directly on the nodes rather than
-    // child selectors for hypothetical speed)
-    var unreadNode =
-      msgNode.getElementsByClassName('msg-header-unread-section')[0];
-    if (message.isRead) {
-      unreadNode.classList.remove('msg-header-unread-section-unread');
-      dateNode.classList.remove('msg-header-date-unread');
-    } else {
-      unreadNode.classList.add('msg-header-unread-section-unread');
-      dateNode.classList.add('msg-header-date-unread');
-    }
+    // update styles throughout the node for read vs unread
+    msgNode.classList.toggle('unread', !message.isRead);
+
     // star
     var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
-    if (message.isStarred) {
-      starNode.classList.add('msg-header-star-starred');
-    } else {
-      starNode.classList.remove('msg-header-star-starred');
-    }
+    starNode.classList.toggle('msg-header-star-starred', message.isStarred);
+    // subject needs to give space for star if it is visible
+    subjectNode.classList.toggle('icon-short', message.isStarred);
 
     // edit mode select state
     if (this.editMode) {
@@ -1254,6 +1296,7 @@ MessageListCard.prototype = {
 
     // some things only need to be done once
     var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
+    var subjectNode = msgNode.getElementsByClassName('msg-header-subject')[0];
     if (firstTime) {
       // author
       var authorNode = msgNode.getElementsByClassName('msg-header-author')[0];
@@ -1273,7 +1316,6 @@ MessageListCard.prototype = {
       dateNode.textContent = prettyDate(message.date);
 
       // subject
-      var subjectNode = msgNode.getElementsByClassName('msg-header-subject')[0];
       if (matches.subject) {
         subjectNode.textContent = '';
         appendMatchItemTo(matches.subject[0], subjectNode);
@@ -1290,38 +1332,43 @@ MessageListCard.prototype = {
         snippetNode.textContent = message.snippet;
       }
 
-      // attachments
-      if (message.hasAttachments) {
-        msgNode.getElementsByClassName('msg-header-attachments')[0]
-          .classList.add('msg-header-attachments-yes');
-      }
+      // attachments (can't change within a message but can change between
+      // messages, and since we reuse DOM nodes...)
+      var attachmentsNode =
+        msgNode.getElementsByClassName('msg-header-attachments')[0];
+      attachmentsNode.classList.toggle('msg-header-attachments-yes',
+                                       message.hasAttachments);
+      // snippet needs to be shorter if icon is shown
+      snippetNode.classList.toggle('icon-short', message.hasAttachments);
     }
 
     // unread (we use very specific classes directly on the nodes rather than
     // child selectors for hypothetical speed)
     var unreadNode =
       msgNode.getElementsByClassName('msg-header-unread-section')[0];
-    if (message.isRead) {
-      unreadNode.classList.remove('msg-header-unread-section-unread');
-      dateNode.classList.remove('msg-header-date-unread');
-    }
-    else {
-      unreadNode.classList.add('msg-header-unread-section-unread');
-      dateNode.classList.add('msg-header-date-unread');
-    }
-    // starmail
+    unreadNode.classList.toggle('msg-header-unread-section-unread',
+                                !message.isRead);
+    dateNode.classList.toggle('msg-header-date-unread', !message.isRead);
+
+    // star
     var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
-    if (message.isStarred) {
-      starNode.classList.add('msg-header-star-starred');
-    } else {
-      starNode.classList.remove('msg-header-star-starred');
-    }
+    starNode.classList.toggle('msg-header-star-starred', message.isStarred);
+    // subject needs to give space for star if it is visible
+    subjectNode.classList.toggle('icon-short', message.isStarred);
 
     // edit mode select state
     if (this.editMode) {
       var checkbox = msgNode.querySelector('input[type=checkbox]');
       checkbox.checked = this.selectedMessages.indexOf(message) !== -1;
     }
+  },
+
+  /**
+   * Called when the folder picker is animating to close. Need to
+   * listen for it so this card can animate fading in the header menu.
+   */
+  onFolderPickerClosing: function() {
+    this.headerMenuNode.classList.remove('transparent');
   },
 
   /**
@@ -1334,19 +1381,20 @@ MessageListCard.prototype = {
       this._whenVisible = null;
       fn();
     }
+
+    // In case the vScroll was initialized when the card was not visible, like
+    // in an activity/notification flow when this card is created in the
+    // background behind the compose/reader card, let it know it is visible now
+    // in case it needs to finish initializing and initial display.
+    this.vScroll.nowVisible();
+
+    // On first construction, or if done in background,
+    // this card would not be visible to do the last sync
+    // sizing so be sure to check it now.
+    this.sizeLastSync();
   },
 
   onClickMessage: function(messageNode, event) {
-    // Find the node that has the header info.
-    messageNode = event.originalTarget;
-    while (messageNode && !messageNode.classList.contains('msg-header-item')) {
-      messageNode = messageNode.parentNode;
-    }
-
-    if (!messageNode) {
-      return;
-    }
-
     var header = messageNode.message;
 
     // Skip nodes that are default/placeholder ones.
@@ -1591,8 +1639,11 @@ MessageListCard.prototype = {
       headerCursor.removeListener(name, this[name]);
     }.bind(this));
 
+    evt.removeListener('folderPickerClosing', this.onFolderPickerClosing);
+
     model.removeListener('folder', this._folderChanged);
     model.removeListener('newInboxMessages', this.onNewMail);
+    model.removeListener('foldersSliceOnChange', this.onFoldersSliceChange);
     headerCursor.removeListener('currentMessage', this.onCurrentMessage);
 
     this.vScroll.destroy();

@@ -16,8 +16,7 @@ var CallsHandler = (function callsHandler() {
   // Setting up the SimplePhoneMatcher
   // XXX: check bug-926169
   // this is used to keep all tests passing while introducing multi-sim APIs
-  var conn = window.navigator.mozMobileConnection ||
-             window.navigator.mozMobileConnections &&
+  var conn = window.navigator.mozMobileConnections &&
              window.navigator.mozMobileConnections[0];
 
   if (conn && conn.voice && conn.voice.network && conn.voice.network.mcc) {
@@ -251,6 +250,7 @@ var CallsHandler = (function callsHandler() {
       Contacts.findByNumber(number,
                             function lookupContact(contact, matchingTel) {
         if (contact && contact.name) {
+          CallScreen.incomingInfo.classList.add('additionalInfo');
           CallScreen.incomingNumber.textContent = contact.name;
           CallScreen.incomingNumberAdditionalInfo.textContent =
             Utils.getPhoneNumberAdditionalInfo(matchingTel);
@@ -308,7 +308,6 @@ var CallsHandler = (function callsHandler() {
 
   function closeWindow() {
     closing = false;
-    TonePlayer.setChannel('normal');
     window.close();
   }
 
@@ -753,4 +752,3 @@ var CallsHandler = (function callsHandler() {
     }
   };
 })();
-

@@ -40,9 +40,36 @@ if (!window.reopenSettings) {
 }
 
 suite('STK (App menu) >', function() {
-  setup(function() {
-    mocksHelper.setup();
+  suiteSetup(function(done) {
+    // Load markup of settings APP
+    loadBodyHTML('/index.html');
+    // Inject the panel of downloads
+    var importHook = document.createElement('link');
+    importHook.setAttribute('rel', 'import');
+    importHook.setAttribute('href', '/elements/icc.html');
+    document.head.appendChild(importHook);
 
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+    realMozIccManager = navigator.mozIccManager;
+    navigator.mozIccManager = MockNavigatorMozIccManager;
+    realDUMP = window.DUMP;
+    window.DUMP = MockDump.disable();
+    realReopenSettings = window.reopenSettings;
+    window.reopenSettings = function mockReopenSettings() {};
+    mocksHelper = new MocksHelper(mocksForIccApp);
+    mocksHelper.suiteSetup();
+
+    HtmlImports.populate(function() {
+      window.addEventListener('iccPageLoaded', function onLoaded(event) {
+        done();
+      });
+      requireApp('settings/js/icc.js');
+    });
+
+    // Test commands
     this.items = [{
       'identifier': 2,
       'text': 'Item stkItemsNaiSetUpCall',
@@ -124,77 +151,11 @@ suite('STK (App menu) >', function() {
           options: {
             'title': 'Dummy Test Menu',
             'defaultItem': 1,
-            'items': this.items
+            'items': this.items,
+            'isHelpAvailable': true
           }
         }
       }}});
-    window.dispatchEvent(this.StkCommandEvent);
-  });
-
-  teardown(function() {
-    mocksHelper.teardown();
-  });
-
-  suiteSetup(function(done) {
-     // Load markup of settings APP
-    loadBodyHTML('/index.html');
-    // Inject the panel of downloads
-    var importHook = document.createElement('link');
-    importHook.setAttribute('rel', 'import');
-    importHook.setAttribute('href', '/elements/icc.html');
-    document.head.appendChild(importHook);
-
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
-    realMozSettings = navigator.mozSettings;
-    navigator.mozSettings = MockNavigatorSettings;
-    realMozIccManager = navigator.mozIccManager;
-    navigator.mozIccManager = MockNavigatorMozIccManager;
-    realDUMP = window.DUMP;
-    window.DUMP = MockDump.disable();
-    realReopenSettings = window.reopenSettings;
-    window.reopenSettings = function mockReopenSettings() {};
-    mocksHelper = new MocksHelper(mocksForIccApp);
-    mocksHelper.suiteSetup();
-
-    HtmlImports.populate(function() {
-      window.addEventListener('iccPageLoaded', function onLoaded(event) {
-          done();
-        });
-      requireApp('settings/js/icc.js');
-    });
-  });
-
-  test('Check initialization', function() {
-    assert.ok(document.getElementById('icc-stk-app-back'));
-    assert.ok(document.getElementById('icc-stk-help-exit'));
-    assert.ok(document.getElementById('icc-stk-exit'));
-    assert.ok(document.getElementById('icc-stk-header'));
-    assert.ok(document.getElementById('icc-stk-subheader'));
-    assert.ok(document.getElementById('icc-stk-list'));
-  });
-
-  test('Correct number of entries into the STK options list', function() {
-    assert.equal(document.getElementById('icc-stk-list').childElementCount, 18);
-  });
-
-  test('STK Header', function() {
-    assert.equal(document.getElementById('icc-stk-header').textContent,
-      'Dummy Test Menu');
-  });
-
-  test('All items with correct NAI data', function() {
-    this.items.forEach(function(item, index) {
-      assert.equal(document.querySelector('#icc-stk-list li:nth-child(' +
-        (index + 1) + ') small').textContent, item.nai);
-    });
-  });
-
-  test('All items with correct data', function() {
-    this.items.forEach(function(item, index) {
-      assert.equal(document.querySelector('#icc-stk-list li:nth-child(' +
-        (index + 1) + ') a').textContent, item.text);
-    });
   });
 
   suiteTeardown(function() {
@@ -204,5 +165,84 @@ suite('STK (App menu) >', function() {
     navigator.mozIccManager = realMozIccManager;
     window.DUMP = realDUMP;
     window.reopenSettings = realReopenSettings;
+  });
+
+  suite('UI checks >', function() {
+    setup(function() {
+      mocksHelper.setup();
+      window.dispatchEvent(this.StkCommandEvent);
+    });
+
+    teardown(function() {
+      mocksHelper.teardown();
+    });
+
+    test('Check initialization', function() {
+      assert.ok(document.getElementById('icc-stk-app-back'));
+      assert.ok(document.getElementById('icc-stk-help-exit'));
+      assert.ok(document.getElementById('icc-stk-exit'));
+      assert.ok(document.getElementById('icc-stk-header'));
+      assert.ok(document.getElementById('icc-stk-subheader'));
+      assert.ok(document.getElementById('icc-stk-list'));
+    });
+
+    test('Correct number of entries into the STK options list', function() {
+      // The list contains all the items plus the help entry
+      assert.equal(document.getElementById('icc-stk-list').childElementCount,
+        this.items.length + 1);
+    });
+
+    test('STK Header', function() {
+      assert.equal(document.getElementById('icc-stk-header').textContent,
+        'Dummy Test Menu');
+    });
+
+    test('All items with correct NAI data', function() {
+      this.items.forEach(function(item, index) {
+        assert.equal(document.querySelector('#icc-stk-list li:nth-child(' +
+          (index + 1) + ') small').textContent, item.nai);
+      });
+    });
+
+    test('All items with correct data', function() {
+      this.items.forEach(function(item, index) {
+        assert.equal(document.querySelector('#icc-stk-list li:nth-child(' +
+          (index + 1) + ') a').textContent, item.text);
+      });
+    });
+
+    test('Help entry showed (isHelpAvailable)', function() {
+      assert.equal(document.querySelector('#icc-stk-list li:nth-child(' +
+        (this.items.length + 1) + ') a').textContent,
+        'operatorServices-helpmenu');
+    });
+  });
+
+  suite('Check timeouts >', function() {
+    var fakeClock = null;
+
+    setup(function() {
+      fakeClock = this.sinon.useFakeTimers();
+      mocksHelper.setup();
+    });
+
+    teardown(function() {
+      fakeClock.restore();
+      mocksHelper.teardown();
+    });
+
+    test('Wait for timeout (1 sec)', function(done) {
+      var testTimeout = 1000;
+      navigator.mozIccManager.getIccById('12345').sendStkResponse =
+        function(msg, res) {
+          assert.equal(res.resultCode,
+            navigator.mozIccManager.STK_RESULT_NO_RESPONSE_FROM_USER);
+          done();
+        };
+
+      MockNavigatorSettings.mSettings['icc.selectTimeout'] = testTimeout;
+      window.dispatchEvent(this.StkCommandEvent);
+      fakeClock.tick(testTimeout);
+    });
   });
 });

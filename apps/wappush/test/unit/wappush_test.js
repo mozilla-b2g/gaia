@@ -1,14 +1,12 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-/* global loadBodyHTML, mocha, MockL10n, MockMessageDB, MockNavigatormozApps,
+/* global loadBodyHTML, MockL10n, MockMessageDB, MockNavigatormozApps,
           MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
           MockNavigatorSettings, MockNotification, MocksHelper, Notification,
           ParsedMessage, WapPushManager */
 
 'use strict';
-
-mocha.globals(['close']);
 
 require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
@@ -135,7 +133,7 @@ suite('WAP Push', function() {
     });
   });
 
-  suite('receiving and displaying a message', function() {
+  suite('receiving and displaying a SI message', function() {
     // UI elements
     var screen;
     var closeButton;
@@ -218,6 +216,51 @@ suite('WAP Push', function() {
           body: 'check this out http://www.mozilla.org'
         });
       });
+    });
+  });
+
+  suite('receiving and displaying a SL message', function() {
+    // UI elements
+    var screen;
+    var closeButton;
+    var title;
+    var container;
+    var text;
+    var link;
+
+    var message = {
+        sender: '+31641600986',
+        contentType: 'text/vnd.wap.sl',
+        content: '<sl href="http://www.mozilla.org" />',
+        serviceId: 0
+    };
+
+    test('the notification is sent and populated correctly', function() {
+      this.sinon.spy(window, 'Notification');
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      sinon.assert.calledOnce(Notification);
+      sinon.assert.calledWithMatch(window.Notification, message.sender,
+        { body: 'http://www.mozilla.org' });
+    });
+
+    test('the display is populated with the message contents', function() {
+      closeButton = document.getElementById('close');
+      title = document.getElementById('title');
+      screen = document.getElementById('si-sl-screen');
+      container = screen.querySelector('.container');
+      text = container.querySelector('p');
+      link = container.querySelector('a');
+
+      var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
+
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      WapPushManager.displayWapPushMessage(0);
+      retrieveSpy.yield(ParsedMessage.from(message, 0));
+      assert.equal(title.textContent, message.sender);
+      assert.equal(text.textContent, '');
+      assert.equal(link.textContent, 'http://www.mozilla.org');
+      assert.equal(link.dataset.url, 'http://www.mozilla.org');
+      assert.equal(link.href, 'http://www.mozilla.org/');
     });
   });
 

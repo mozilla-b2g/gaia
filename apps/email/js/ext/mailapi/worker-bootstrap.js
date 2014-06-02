@@ -8865,13 +8865,15 @@ FolderStorage.prototype = {
 
     this.headerCount += 1;
 
-    if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders) {
+    if (this._curSyncSlice) {
       // TODO: make sure the slice knows the true offset of its
       // first header in the folder. Currently the UI never
       // shrinks its slice so this number is always 0 and we can
       // get away without providing that offset for now.
       this._curSyncSlice.headerCount = this.headerCount;
-      this._curSyncSlice.onHeaderAdded(header, body, true, true);
+      if (!this._curSyncSlice.ignoreHeaders) {
+        this._curSyncSlice.onHeaderAdded(header, body, true, true);
+      }
     }
 
     // - Generate notifications for (other) interested slices
@@ -8879,8 +8881,17 @@ FolderStorage.prototype = {
       var date = header.date, uid = header.id;
       for (var iSlice = 0; iSlice < this._slices.length; iSlice++) {
         var slice = this._slices[iSlice];
-        if (slice === this._curSyncSlice)
+        if (slice === this._curSyncSlice) {
           continue;
+        }
+
+        if (slice.type === 'folder') {
+          // TODO: make sure the slice knows the true offset of its
+          // first header in the folder. Currently the UI never
+          // shrinks its slice so this number is always 0 and we can
+          // get away without providing that offset for now.
+          slice.headerCount = this.headerCount;
+        }
 
         // Note: the following control flow is to decide when to bail; if we
         // make it through the conditionals, the header gets reported to the
@@ -8915,14 +8926,6 @@ FolderStorage.prototype = {
           // Make sure to increase the number of desired headers so the
           // truncating heuristic won't rule the header out.
           slice.desiredHeaders++;
-        }
-
-        if (slice.type === 'folder') {
-          // TODO: make sure the slice knows the true offset of its
-          // first header in the folder. Currently the UI never
-          // shrinks its slice so this number is always 0 and we can
-          // get away without providing that offset for now.
-          slice.headerCount = this.headerCount;
         }
 
         if (slice._onAddingHeader) {
@@ -9129,13 +9132,18 @@ FolderStorage.prototype = {
 
     this.headerCount -= 1;
 
-    if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders) {
+    if (this._curSyncSlice) {
       // TODO: make sure the slice knows the true offset of its
       // first header in the folder. Currently the UI never
       // shrinks its slice so this number is always 0 and we can
       // get away without providing that offset for now.
       this._curSyncSlice.headerCount = this.headerCount;
-      this._curSyncSlice.onHeaderRemoved(header);
+      // NB: ignoreHeaders should never be true if we are deleting headers, but
+      // just doing this as a simple transform for equivalence purposes.
+      // ignoreHeaders should go away.
+      if (!this._curSyncSlice.ignoreHeaders) {
+        this._curSyncSlice.onHeaderRemoved(header);
+      }
     }
     if (this._slices.length > (this._curSyncSlice ? 1 : 0)) {
       for (var iSlice = 0; iSlice < this._slices.length; iSlice++) {

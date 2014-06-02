@@ -21,9 +21,9 @@
     return settingsRequest;
   }
 
-  function mns_mLockGet() {
+  function mns_mLockGet(name) {
     var settingsRequest = {
-      result: {}
+      result: settings
     };
 
     setTimeout(function() {

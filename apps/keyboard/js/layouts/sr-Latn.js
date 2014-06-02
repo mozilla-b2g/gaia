@@ -1,5 +1,6 @@
 Keyboards['sr-Latn'] = {
   label: 'Serbian (Latin)',
+  shortLabel: 'Sr',
   menuLabel: 'Srpski',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],

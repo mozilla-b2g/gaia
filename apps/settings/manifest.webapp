@@ -23,13 +23,13 @@
     "systemXHR": {},
     "settings":{ "access": "readwrite" },
     "wifi-manage":{},
-    "attention":{},
     "time":{},
     "desktop-notification":{},
     "power":{},
     "idle":{},
     "telephony":{},
     "audio-channel-notification":{},
+    "audio-channel-alarm":{},
     "downloads":{},
     "nfc":{ "access": "readonly" }
   },
@@ -41,8 +41,6 @@
       "disposition": "window"
     }
   },
-  "messages": ["bluetooth-pairing-request",
-               "bluetooth-cancel"],
   "locales": {
     "ar": {
       "name": "الضبط",
@@ -69,6 +67,10 @@
     "download_store": {
       "readonly": false,
       "description": "Stores download finished"
+    },
+    "vertical_preferences_store": {
+      "readonly": false,
+      "description": "Vertical homescreen preferences"
     }
   },
   "default_locale": "en-US",

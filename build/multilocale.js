@@ -1,23 +1,21 @@
 'use strict';
 
-const { Cc, Ci, Cr, Cu } = require('chrome');
+/* global exports, require, dump, OS */
+
+const { Cu } = require('chrome');
 Cu.import('resource://gre/modules/osfile.jsm');
 
 const utils = require('utils');
-const webappZip = require('./webapp-zip');
 const RE_SECTION_LINE = /\[(.*)\]/;
 const RE_IMPORT_LINE = /@import url\((.*)\)/;
 const RE_PROPERTY_LINE = /(.*)\s*[:=]\s*(.*)/;
 const RE_INI_FILE = /locales[\/\\].+\.ini$/;
+const RE_PROPERTIES_FILE = /\.([\w-]+)\.properties$/;
 const MODNAME = 'multilocale';
 
-// Make all timestamps the same so we always generate the same
-// output zip file for the same inputs
-const DEFAULT_TIME = 0;
-
-function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
+function L10nManager(gaiaDir, localesFilePath, localeBasedir) {
   function checkArg(arg) {
-    return new Boolean(arg);
+    return Boolean(arg);
   }
   if (arguments.length !== 4 &&
     !Array.prototype.every.call(arguments, checkArg)) {
@@ -28,15 +26,15 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
   var localesFile = utils.resolve(localesFilePath, gaiaDir);
   var baseDir = utils.resolve(localeBasedir, gaiaDir);
 
-  [utils.getFile(gaiaDir), utils.getFile(sharedDir), localesFile, baseDir]
+  [utils.getFile(gaiaDir), localesFile, baseDir]
   .forEach(function(file) {
     if (!file.exists()) {
       throw new Error('file not found: ' + file.path);
     }
   });
 
-  [this.locales, this.localeBasedir, this.gaiaDir, this.sharedDir] =
-    [Object.keys(utils.getJSON(localesFile)), baseDir.path, gaiaDir, sharedDir];
+  [this.locales, this.localeBasedir, this.gaiaDir] =
+    [Object.keys(utils.getJSON(localesFile)), baseDir.path, gaiaDir];
 
 
   /**
@@ -101,53 +99,13 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
   }
 
   /**
-   * For a given webapp zip, localize one INI file and all related .properties
-   * files into zip file.
+   * For a given webapp object, localize one INI file and all related
+   * .properties files into build_stage directory
    *
-   * @param {nsIZipWriter} zip          - zip file for specific app in profile
-   *                                      directory
    * @param {nsIFile}      iniFile      - INI file object
    * @param {Object}       webapp       - A webapp object for specific app
-   * @param {String}       IniPathInZip - INI file path in zip
    */
-  function localizeIni(zip, iniFile, webapp, IniPathInZip, compression) {
-    var localesClone = JSON.parse(JSON.stringify(self.locales));
-
-    var enIndex = localesClone.indexOf('en-US');
-    if (enIndex !== -1) {
-      localesClone.splice(enIndex, 1);
-    }
-
-    var origin = utils.getFileContent(iniFile);
-    var ini = modifyLocaleIni(origin, localesClone);
-    var iniContent = serializeIni(ini);
-
-    if (zip.hasEntry(IniPathInZip)) {
-      zip.removeEntry(IniPathInZip, false);
-    }
-
-    utils.addEntryContentWithTime(zip, IniPathInZip, iniContent,
-      DEFAULT_TIME, compression);
-
-    localesClone.forEach(function(locale) {
-      ini[locale].forEach(function(path) {
-        var origin = utils.getFile(iniFile.parent.path, path);
-        var propFile = getPropertiesFile(webapp, origin.path);
-        if (!propFile.exists()) {
-          utils.log(MODNAME, 'Properties file not found: ' + propFile.path);
-          return;
-        }
-        var propsFilePathInZip = getPropertiesPathInZip(origin.path, webapp);
-        if (zip.hasEntry(propsFilePathInZip)) {
-          zip.removeEntry(propsFilePathInZip, false);
-        }
-        utils.addEntryContentWithTime(zip, propsFilePathInZip, propFile,
-          DEFAULT_TIME, compression);
-      });
-    });
-  }
-
-  function localizeIniShared(target, iniFile, webapp, callback) {
+  function localizeIni(iniFile, webapp) {
     var localesClone = JSON.parse(JSON.stringify(self.locales));
     var enIndex = localesClone.indexOf('en-US');
     if (enIndex !== -1) {
@@ -157,25 +115,37 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
     var origin = utils.getFileContent(iniFile);
     var ini = modifyLocaleIni(origin, localesClone);
     var iniContent = serializeIni(ini);
-    var targetIni = utils.getFile(webapp.sourceDirectoryFile.path,
-      target);
-    utils.writeContent(targetIni, iniContent);
+
+    utils.writeContent(iniFile, iniContent);
 
     localesClone.forEach(function(locale) {
       ini[locale].forEach(function(path) {
-        var origin = utils.getFile(iniFile.parent.path, path);
-        var propFile = getPropertiesFile(webapp, origin.path);
+        var targetFile = utils.getFile(iniFile.parent.path, path);
+        var propFile = getPropertiesFile(webapp, targetFile.path);
         if (!propFile.exists()) {
           utils.log(MODNAME, 'Properties file not found: ' + propFile.path);
           return;
         }
-        var propsFilePathInZip = getPropertiesPathInZip(origin.path, webapp);
-        log(propFile.path);
-        log(propsFilePathInZip);
-        callback(propFile, propsFilePathInZip);
+        if (targetFile.exists()) {
+          targetFile.remove(false);
+        }
+        propFile.copyTo(targetFile.parent, targetFile.leafName);
       });
     });
   }
+
+  /**
+   * Remove locale files that aren't explicitely listed in locales file.
+   */
+  function cleanLocaleFiles(stageDir) {
+    utils.ls(stageDir, true).forEach(function(file) {
+      var matched = RE_PROPERTIES_FILE.exec(file.leafName);
+      if (matched && self.locales.indexOf(matched[1]) === -1) {
+        file.remove(false);
+      }
+    });
+  }
+
   /**
    * For a given properties file from gaia repo, returns the matching properties
    * file from multilocale repos being hosted in LOCALE_BASEDIR
@@ -188,17 +158,18 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
   function getPropertiesFile(webapp, originalPath) {
     // properties file name in multilocale repo don't contain locale name,
     // instead, they are sorted in folder whose name is the locale name.
-    // Also, whereas ini and properties files are segregated in app 'locales' folder,
-    // in multilocale repos, they are just put in matching app folder.
+    // Also, whereas ini and properties files are segregated in app 'locales'
+    // folder, in multilocale repos, they are just put in matching app folder.
     // So /gaia/apps/system/locales/system.en-US.properties
     // maps to /gaia-l10n/en-US/system/system.properties
     function removeLocale(str, locale) {
       return str.replace('.' + locale, '').replace(/locales[\\\/]/, '');
     }
 
-    var isShared = originalPath.contains(self.sharedDir);
-    var locale = /\.([\w-]+)\.properties$/.exec(originalPath)[1];
-    var propFile, relativePath, dirLength;
+    var sharedDir = utils.joinPath(webapp.buildDirectoryFile.path, 'shared');
+    var isShared = originalPath.contains(sharedDir);
+    var locale = RE_PROPERTIES_FILE.exec(originalPath)[1];
+    var propFile, dirLength;
     var {getFile} = utils;
     var paths = [self.localeBasedir, locale];
 
@@ -209,7 +180,7 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
       // "<GAIA_DIR>/shared/locales/tz/tz.<LANG>.properties"
       // to:
       // "<LOCALE_BASEDIR>/<LANG>/shared/tz/tz.properties"
-      dirLength = self.sharedDir.length;
+      dirLength = sharedDir.length;
       paths.push(
         'shared',
         removeLocale(originalPath.substr(dirLength), locale)
@@ -232,54 +203,29 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
   }
 
   /**
-   * given a properties file in webapp directory and get the path in zip.
-   *
-   * @param   {String} propPath - path of properties file in webapp directory
-   * @param   {String} gaiaDir  - path of gaia source tree
-   * @param   {Object} webapp
-   * @returns {String} returns a path in zip.
-   */
-  function getPropertiesPathInZip(propPath, webapp) {
-    var pathInZip;
-    if (propPath.contains(self.sharedDir)) {
-      pathInZip = propPath.substr(self.gaiaDir.length);
-    } else {
-      pathInZip = propPath.substr(webapp.buildDirectoryFile.path.length);
-    }
-    return pathInZip.substr(1);
-  }
-
-  /**
    * localize all manifest, INI file and copy properties files.
    *
    * @param {nsIFile[]} files        - all files in webapp source tree
-   * @param {nsIZipWriter} zip       - zip file for specific app in profile
-   *                                   directory
    * @param {Object} webapp          - A webapp object for specific app
-   * @param {Boolean} inlineOrConcat - if GAIA_INLINE_LOCALES or
-   *                                   GAIA_CONCAT_LOCALES is "1"
    */
-  function localize(files, zip, webapp, inlineOrConcat) {
+  function localize(files, webapp) {
     // Using manifest.properties to localize manifest.webapp
     var manifest = localizeManifest(webapp);
-    if (zip.hasEntry('manifest.webapp')) {
-      zip.removeEntry('manifest.webapp', false);
-    }
-    utils.addEntryContentWithTime(zip, 'manifest.webapp',
-      JSON.stringify(manifest, undefined, 2));
+    utils.writeContent(webapp.buildManifestFile, JSON.stringify(manifest));
 
-    // Ignore l10n files if they have been inlined or concatenated
-    if (inlineOrConcat) {
-      return;
-    }
-
-    // Localize ini files and copy properties files into zip file.
+    // Localize ini files and copy properties files into build_stage directory
     files.filter(function(file) {
       return RE_INI_FILE.test(file.path);
     }).forEach(function(iniFile) {
-      var pathInZip = getPropertiesPathInZip(iniFile.path, webapp);
-      var localizedIni = localizeIni(zip, iniFile, webapp, pathInZip);
+      localizeIni(iniFile, webapp);
     });
+
+    cleanLocaleFiles(webapp.buildDirectoryFile);
+    var localeObjDir = webapp.buildDirectoryFile.clone();
+    localeObjDir.append('locales-obj');
+    if (localeObjDir.exists()) {
+      localeObjDir.remove(true);
+    }
   }
 
   /**
@@ -308,8 +254,11 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
       return true;
     });
 
-    var manifestFile = webapp.buildManifestFile.exists() ?
-      webapp.buildManifestFile : webapp.manifestFile;
+    var manifestFile = webapp.buildManifestFile;
+    if (!manifestFile || !manifestFile.exists()) {
+      throw new Error('Missing webapp manifest for multilocale: ' +
+        manifestFile.path);
+    }
 
     var manifest = addLocaleManifest(localesForManifest, localesProps,
       utils.getJSON(manifestFile));
@@ -406,40 +355,61 @@ function L10nManager(gaiaDir, sharedDir, localesFilePath, localeBasedir) {
    * @returns {String} serialized content
    */
   function serializeIni(ini) {
+    var output = [];
     function _section(locale) {
       return '[' + locale + ']';
     }
     function _import(path) {
       return '@import url(' + path + ')';
     }
-    var output = [];
+    function _unshift(path) {
+      output.unshift(_import(path));
+    }
+    function _push(path) {
+      output.push(_import(path));
+    }
     for (var locale in ini) {
       if (locale === 'default') {
-        ini[locale].forEach(function(path) {
-          output.unshift(_import(path));
-        });
+        ini[locale].forEach(_unshift);
         continue;
       }
       output.push(_section(locale));
-      ini[locale].forEach(function(path) {
-        output.push(_import(path));
-      });
+      ini[locale].forEach(_push);
     }
     return output.join('\n');
-  }
-
-  function debug(msg) {
-    // utils.log('multilocale', msg);
   }
 
   this.modifyLocaleIni = modifyLocaleIni;
   this.localizeIni = localizeIni;
   this.getPropertiesFile = getPropertiesFile;
-  this.getPropertiesPathInZip = getPropertiesPathInZip;
   this.localize = localize;
   this.localizeManifest = localizeManifest;
   this.serializeIni = serializeIni;
-  this.localizeIniShared = localizeIniShared;
 }
 
+function execute(options) {
+  if (!options.LOCALE_BASEDIR) {
+    utils.log('multilocale', 'multilocale command requires LOCALES_BASEDIR ' +
+      'to be set');
+    return;
+  }
+  var gaia = utils.gaia.getInstance(options);
+
+  // Bug 952901: remove getLocaleBasedir() if bug 952900 fixed.
+  var localeBasedir = utils.getLocaleBasedir(options.LOCALE_BASEDIR);
+  var l10nManager = new L10nManager(
+    options.GAIA_DIR,
+    options.LOCALES_FILE,
+    localeBasedir);
+
+  gaia.webapps.forEach(function(webapp) {
+    if (utils.isExternalApp(webapp)) {
+      return;
+    }
+    var files = utils.ls(webapp.buildDirectoryFile, true);
+    l10nManager.localize(files, webapp);
+  });
+}
+
+exports.execute = execute;
 exports.L10nManager = L10nManager;

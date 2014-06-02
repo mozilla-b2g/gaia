@@ -489,8 +489,8 @@ function ds_showStorages(storages) {
   for (var i = 0; i < storages.length; i++) {
     var storage = storages[i];
     if (storage) {
-      log('storage[' + i + '].storageName = ' + storage.storageName +
-          ' default = ' + storage.default);
+      log('storage[' + i + "].storageName = '" + storage.storageName +
+          "' default = " + storage.default + ' canBeShared = ' + storage.canBeShared);
     } else {
       log('storage[' + i + '] = null');
     }

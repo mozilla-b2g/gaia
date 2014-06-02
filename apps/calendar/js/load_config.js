@@ -132,7 +132,10 @@ Calendar.LoadConfig = (function() {
       },
 
       'Views.MonthsDay': {
-        group: ['Views.DayChild'],
+        group: [
+          'Templates.MonthsDay',
+          'Views.DayChild'
+        ],
         js: [
           'views/months_day'
         ]
@@ -310,6 +313,13 @@ Calendar.LoadConfig = (function() {
       },
 
       'Templates.Month': {
+        js: [
+          'template',
+          'templates/month'
+        ]
+      },
+
+      'Templates.MonthsDay': {
         js: [
           'template',
           'templates/month'

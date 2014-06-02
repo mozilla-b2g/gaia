@@ -8,7 +8,7 @@ suite('controllers/hud', function() {
 
     req([
       'app',
-      'lib/camera',
+      'lib/camera/camera',
       'controllers/hud',
       'views/hud',
       'views/controls',
@@ -36,7 +36,6 @@ suite('controllers/hud', function() {
   setup(function() {
     this.app = sinon.createStubInstance(this.App);
     this.app.camera = sinon.createStubInstance(this.Camera);
-    this.app.settings = sinon.createStubInstance(this.Settings);
     this.app.l10n = { get: sinon.spy(function(value) { return value; }) };
     this.app.views = {
       notification: sinon.createStubInstance(this.NotificationView),
@@ -46,6 +45,7 @@ suite('controllers/hud', function() {
     };
 
     // Stub 'cameras' setting
+    this.app.settings = {};
     this.app.settings.cameras = sinon.createStubInstance(this.Setting);
     this.app.settings.flashModes = sinon.createStubInstance(this.Setting);
     this.app.settings.settingsMenu = sinon.createStubInstance(this.Setting);
@@ -175,4 +175,29 @@ suite('controllers/hud', function() {
     });
   });
 
+  suite('HudController#onCameraClick()', function() {
+    setup(function() {
+      this.callback = this.hud.on.withArgs('click:camera').args[0][1];
+    });
+
+    test('Should clear notifications', function() {
+      this.callback();
+      sinon.assert.called(this.notification.clear);
+    });
+
+    test('Should call move to next available camera', function() {
+      this.callback();
+      sinon.assert.calledOnce(this.settings.cameras.next);
+    });
+
+    test('Should debounce (immediate) rapid button taps', function() {
+      this.callback();
+      sinon.assert.called(this.settings.cameras.next);
+      this.callback();
+      this.callback();
+      this.callback();
+      this.callback();
+      sinon.assert.calledOnce(this.settings.cameras.next);
+    });
+  });
 });

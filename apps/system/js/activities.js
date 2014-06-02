@@ -11,6 +11,7 @@
    */
   function Activities() {
     window.addEventListener('mozChromeEvent', this);
+    window.addEventListener('appopened', this);
     this.actionMenu = null;
   }
 
@@ -33,6 +34,11 @@
               break;
           }
           break;
+        case 'appopened':
+          if (this.actionMenu) {
+            this.actionMenu.hide();
+          }
+          break;
       }
     },
 
@@ -44,8 +50,8 @@
     */
     chooseActivity: function(detail) {
       this._id = detail.id;
-
       var choices = detail.choices;
+      this.publish('activityrequesting');
       if (choices.length === 1) {
         this.choose('0');
       } else {
@@ -100,6 +106,11 @@
 
       this._sendEvent(returnedChoice);
       delete this._id;
+    },
+
+    publish: function(eventName) {
+      var event = new CustomEvent(eventName);
+      window.dispatchEvent(event);
     },
 
     /**

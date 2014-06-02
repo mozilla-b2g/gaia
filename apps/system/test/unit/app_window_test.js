@@ -1,20 +1,13 @@
 /* global AppWindow, ScreenLayout, MockOrientationManager,
-      LayoutManager, MocksHelper, MockAttentionScreen,
-          AppChrome, ActivityWindow, PopupWindow, layoutManager */
+      LayoutManager, MocksHelper, MockAttentionScreen, MockContextMenu,
+      AppChrome, ActivityWindow, PopupWindow, layoutManager */
 'use strict';
-
-mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
-      'dispatchEvent', 'Applications', 'ManifestHelper',
-      'KeyboardManager', 'StatusBar', 'BrowserMixin',
-      'SoftwareButtonManager', 'AppWindow', 'AppChrome',
-      'OrientationManager', 'SettingsListener', 'BrowserFrame',
-      'BrowserConfigHelper', 'System', 'layoutManager', 'ActivityWindow',
-      'AppTransitionController', 'AppWindowManager', 'PopupWindow']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/test/unit/mock_context_menu.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 requireApp('system/test/unit/mock_app_chrome.js');
@@ -81,6 +74,13 @@ suite('system/AppWindow', function() {
     url: 'app://www.fake4/index.html',
     manifest: {},
     origin: 'app://www.fake4'
+  };
+
+  var fakeAppConfigBackground = {
+    url: 'app://www.fakebackground/index.html',
+    manifest: {},
+    origin: 'app://www.fakebackground',
+    stayBackground: true
   };
 
   var fakeAppConfigWithIcon = {
@@ -227,6 +227,28 @@ suite('system/AppWindow', function() {
       popups[1].resize();
       assert.isTrue(stubTopResize.called);
       assert.isTrue(stubBottomRealResize.called);
+    });
+  });
+
+  suite('Render', function() {
+    var visibleSpy;
+
+    setup(function() {
+      visibleSpy = this.sinon.stub(AppWindow.prototype, 'setVisible');
+    });
+
+    test('display screenshot for apps launched in background', function() {
+      new AppWindow(fakeAppConfigBackground); // jshint ignore:line
+      sinon.assert.calledWith(visibleSpy, false, true);
+    });
+
+    test('homescreen is launched at background', function() {
+      var renderSpy = this.sinon.stub(AppWindow.prototype, 'render');
+      var app = new AppWindow(fakeAppConfig1);
+      renderSpy.restore();
+      app.isHomescreen = true;
+      app.render();
+      sinon.assert.calledWith(visibleSpy, false);
     });
   });
 
@@ -745,6 +767,7 @@ suite('system/AppWindow', function() {
     focus: function() {},
     blur: function() {},
     setVisible: function() {},
+    setVisibleForScreenReader: function() {},
     goBack: function() {},
     goForward: function() {},
     reload: function() {},
@@ -775,6 +798,23 @@ suite('system/AppWindow', function() {
       iframe[method] = fakeMozBrowserIframe[method];
     }
   }
+
+  test('we do not need to wait if there is screenshot layer covered',
+    function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      var callback = this.sinon.spy();
+      var stubWaitForNextPaint = this.sinon.stub(app1, 'waitForNextPaint');
+      var stubEnsureFullRepaint =
+        this.sinon.stub(app1, 'tryWaitForFullRepaint');
+
+      app1.loaded = true;
+      app1._screenshotOverlayState = 'screenshot';
+      app1.ready(callback);
+      assert.isFalse(stubEnsureFullRepaint.called);
+      assert.isFalse(stubWaitForNextPaint.called);
+      this.sinon.clock.tick(0);
+      assert.isTrue(callback.calledOnce);
+    });
 
   test('ready', function() {
     var app1 = new AppWindow(fakeAppConfig1);
@@ -954,6 +994,99 @@ suite('system/AppWindow', function() {
 
       app1.setVisible(false);
       assert.isTrue(stubApp2SetVisible.calledWith(false));
+    });
+  });
+
+  suite('setVisibleForScreenReader', function() {
+    test('setVisibleForScreenReader: false', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+
+      app1.setVisibleForScreenReader(false);
+      assert.equal(app1.element.getAttribute('aria-hidden'), 'true');
+    });
+    test('setVisibleForScreenReader: true', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      injectFakeMozBrowserAPI(app1.browser.element);
+
+      app1.setVisibleForScreenReader(true);
+      assert.equal(app1.element.getAttribute('aria-hidden'), 'false');
+    });
+  });
+
+  suite('apply and unapplyStyle', function() {
+    test('applyStyle', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      app.element.style.opacity = '0.5';
+
+      app.applyStyle({
+        MozTransform: 'scale(2)',
+        fontSize: 'large'
+      });
+      assert.equal(app.element.style.MozTransform, 'scale(2)');
+      assert.equal(app.element.style.fontSize, 'large');
+      // is non-destructive
+      assert.equal(app.element.style.opacity, '0.5');
+    });
+    test('unapplyStyle', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      app.applyStyle({
+        MozTransform: 'scale(2)',
+        fontSize: 'large',
+        scale: '0.5'
+      });
+      app.unapplyStyle({ MozTransform: true, fontSize: true });
+      assert.ok(!app.element.style.MozTransform);
+      assert.ok(!app.element.style.fontSize);
+      assert.equal(app.element.style.scale, '0.5');
+    });
+
+  });
+
+  suite('enter/leaveTaskManager', function() {
+    test('class gets added and removed', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      assert.isFalse(app.element.classList.contains('in-task-manager'));
+      app.enterTaskManager();
+      assert.isTrue(app.element.classList.contains('in-task-manager'));
+      app.leaveTaskManager();
+      assert.isFalse(app.element.classList.contains('in-task-manager'));
+    });
+
+    test('leaveTaskManager: element.style cleanup', function() {
+      var app = new AppWindow(fakeAppConfig1);
+      var unapplyStyleStub = sinon.stub(app, 'unapplyStyle');
+      app.applyStyle({
+        fontSize: '11',
+        MozTransform: 'scale(2)'
+      });
+      app.applyStyle({
+        pointerEvents: 'none'
+      });
+      app.leaveTaskManager();
+
+      // ensure unapplyStyle gets called with aggregated property list
+      assert.isTrue(unapplyStyleStub.calledOnce);
+      var unapplyProps = unapplyStyleStub.getCall(0).args[0];
+      assert.equal(Object.keys(unapplyProps).length, 3);
+      assert.ok('fontSize' in unapplyProps);
+      assert.ok('MozTransform' in unapplyProps);
+      assert.ok('pointerEvents' in unapplyProps);
+    });
+  });
+
+  suite('transform', function(){
+    test('transform composes correct string value', function(){
+      var app = new AppWindow(fakeAppConfig1);
+      var transformProps = {
+        scale: 0.5,
+        translateX: '10px',
+        rotateY: '10deg'
+      };
+      // although order isn't important, it should come out looking like this:
+      var expectedStr = 'scale(0.5) translateX(10px) rotateY(10deg)';
+      app.transform(transformProps);
+      assert.equal(app.element.style.MozTransform, expectedStr);
     });
   });
 
@@ -1328,6 +1461,41 @@ suite('system/AppWindow', function() {
     app1.setNextWindow(childNew);
     assert.isTrue(stubKillOldChild.called);
     assert.deepEqual(app1.nextWindow, childNew);
+  });
+
+  test('isBrowser', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var app2 = new AppWindow(fakeAppConfig4);
+    assert.isFalse(app1.isBrowser());
+    assert.isTrue(app2.isBrowser());
+  });
+
+  test('navigate', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var app2 = new AppWindow(fakeAppConfig4);
+    var popup = new AppWindow(fakeAppConfig2);
+    var url = 'http://changed.url';
+
+    app1.navigate(url);
+    assert.isTrue(app1.browser.element.src.indexOf(url) < 0);
+
+    app2.navigate(url);
+    assert.isTrue(app2.browser.element.src.indexOf(url) !== -1);
+
+    app2.frontWindow = popup;
+    app2.navigate(url);
+    assert.isNull(app2.frontWindow);
+  });
+
+  test('showDefaultContextMenu', function() {
+    var app = new AppWindow(fakeAppConfig1);
+    // Nothing goes wrong if contextmenu is undefined
+    app.showDefaultContextMenu();
+
+    app.contextmenu = MockContextMenu;
+    var stubCtx = this.sinon.stub(app.contextmenu, 'showDefaultMenu');
+    app.showDefaultContextMenu();
+    assert.isTrue(stubCtx.called);
   });
 
   function genFakeConfig(id) {

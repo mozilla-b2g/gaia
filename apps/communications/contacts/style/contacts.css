@@ -1,3 +1,5 @@
+@import url("root.css");
+
 /* Contact detail header */
 .contact-header {
   margin: -1.4rem -2rem 1rem;
@@ -27,11 +29,6 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 .view-contacts-list .view-body-inner {
   padding-left: 0;
-}
-
-#contact-name-title {
-  max-width: 22rem;
-  float: left;
 }
 
 /* Contact detail main section */
@@ -142,20 +139,6 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-#contact-detail li button.icon-call {
-  padding-left: 0;
-}
-
-#contact-detail li button>div {
-  display: inline-flex;
-  width: calc(100% - 1.5rem);
-  margin-left: 1.5rem;
-}
-
-#contact-detail li button>div b {
-  flex: 1;
 }
 
 #contact-detail .social-actions button {
@@ -396,6 +379,9 @@ section[role="region"] > header .icon.icon-settings {
 #import-settings .view-body-inner,
 #view-contact-form .view-body-inner {
   background: #f4f4f4;
+}
+#view-contact-form #thumbnail-photo {
+   background-color: transparent;
 }
 
 /* Order switch */
@@ -664,7 +650,11 @@ section[role="region"] > header .icon.icon-settings {
 }
 
 .remark {
-  color: #ff4e00;
+  color: #339999;
+}
+
+.remark-missed {
+  color: #CC0000;
 }
 
 .valueselector {
@@ -742,11 +732,12 @@ form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(110%);
 }
 
-form[role="dialog"][data-type="edit"].contacts-select.in-edit-mode header {
+form[role="dialog"][data-type="edit"].contacts-select.in-edit-mode header,
+form[role="dialog"][data-type="edit"].contacts-select.in-edit-mode > menu {
   transition: 0s;
 }
 
-form[role="dialog"][data-type="edit"].contacts-select > menu {
+form[role="dialog"][data-type="edit"].contacts-select:not(.insearchmode) > menu {
   transform: translateY(0);
 }
 

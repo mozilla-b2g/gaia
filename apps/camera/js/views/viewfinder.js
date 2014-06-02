@@ -40,7 +40,6 @@ module.exports = View.extend({
 
   render: function() {
     this.el.innerHTML = this.template();
-
     // Find elements
     this.els.frame = this.find('.js-frame');
     this.els.video = this.find('.js-video');
@@ -59,10 +58,14 @@ module.exports = View.extend({
   getSize: function() {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
+    return {
+      width: this.width,
+      height: this.height
+    };
   },
 
   onClick: function(e) {
-    this.emit('click');
+    this.emit('click', e);
   },
 
   enableZoom: function(minimumZoom, maximumZoom) {
@@ -115,6 +118,16 @@ module.exports = View.extend({
     this._zoom = clamp(zoom, this._minimumZoom, this._maximumZoom);
   },
 
+  _useZoomPreviewAdjustment: false,
+
+  enableZoomPreviewAdjustment: function() {
+    this._useZoomPreviewAdjustment = true;
+  },
+
+  disableZoomPreviewAdjustment: function() {
+    this._useZoomPreviewAdjustment = false;
+  },
+
   /**
    * Adjust the scale of the <video/> tag to compensate for the inability
    * of the Camera API to zoom the preview stream beyond a certain point.
@@ -122,7 +135,9 @@ module.exports = View.extend({
    * calculated by `Camera.prototype.getZoomPreviewAdjustment()`.
    */
   setZoomPreviewAdjustment: function(zoomPreviewAdjustment) {
-    this.els.video.style.transform = 'scale(' + zoomPreviewAdjustment + ')';
+    if (this._useZoomPreviewAdjustment) {
+      this.els.video.style.transform = 'scale(' + zoomPreviewAdjustment + ')';
+    }
   },
 
   stopStream: function() {
@@ -170,6 +185,7 @@ module.exports = View.extend({
    * @param  {Boolean} mirrored
    */
   updatePreview: function(preview, sensorAngle, mirrored) {
+    if (!preview) { return; }
     var aspect;
 
     // Invert dimensions if the camera's `sensorAngle` is

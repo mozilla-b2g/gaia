@@ -53,10 +53,11 @@ var NotificationScreen = {
   lockscreenPreview: true,
   silent: false,
   vibrates: true,
+  isResending: false,
+  resendReceived: 0,
+  resendExpecting: 0,
 
   init: function ns_init() {
-    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-    window.addEventListener('mozChromeEvent', this);
     window.addEventListener('mozChromeNotificationEvent', this);
     this.container =
       document.getElementById('desktop-notifications-container');
@@ -69,7 +70,7 @@ var NotificationScreen = {
     this.clearAllButton = document.getElementById('notification-clear');
 
     this._toasterGD = new GestureDetector(this.toaster);
-    ['tap', 'mousedown', 'swipe'].forEach(function(evt) {
+    ['tap', 'mousedown', 'swipe', 'wheel'].forEach(function(evt) {
       this.container.addEventListener(evt, this);
       this.toaster.addEventListener(evt, this);
     }, this);
@@ -89,6 +90,7 @@ var NotificationScreen = {
       this.clearDesktopNotifications.bind(this));
     window.addEventListener('appopened',
       this.clearDesktopNotifications.bind(this));
+    window.addEventListener('desktop-notification-resend', this);
 
     this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
 
@@ -111,13 +113,15 @@ var NotificationScreen = {
 
   handleEvent: function ns_handleEvent(evt) {
     switch (evt.type) {
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      case 'mozChromeEvent':
       case 'mozChromeNotificationEvent':
         var detail = evt.detail;
         switch (detail.type) {
           case 'desktop-notification':
             this.addNotification(detail);
+            if (this.isResending) {
+              this.resendReceived++;
+              this.isResending = (this.resendReceived < this.resendExpecting);
+            }
             break;
           case 'desktop-notification-close':
             this.removeNotification(detail.id);
@@ -134,6 +138,8 @@ var NotificationScreen = {
       case 'swipe':
         this.swipe(evt);
         break;
+      case 'wheel':
+        this.wheel(evt);
       case 'utilitytrayshow':
         this.updateTimestamps();
         StatusBar.updateNotificationUnread(false);
@@ -149,6 +155,12 @@ var NotificationScreen = {
         break;
       case 'ftudone':
         this.toaster.addEventListener('tap', this);
+        break;
+      case 'desktop-notification-resend':
+        this.resendExpecting = evt.detail.number;
+        if (this.resendExpecting) {
+          this.isResending = true;
+        }
         break;
     }
   },
@@ -194,48 +206,20 @@ var NotificationScreen = {
       return;
     }
 
-    var notification = this._notification;
-    this._notification = null;
+    this.swipeCloseNotification();
+  },
 
-    var toaster = this.toaster;
-    var self = this;
-    notification.addEventListener('transitionend', function trListener() {
-      notification.removeEventListener('transitionend', trListener);
-
-      self.closeNotification(notification);
-
-      if (notification != toaster)
-        return;
-
-      // Putting back the toaster in a clean state for the next notification
-      toaster.style.display = 'none';
-      setTimeout(function nextLoop() {
-        toaster.style.MozTransition = '';
-        toaster.style.MozTransform = '';
-        toaster.classList.remove('displayed');
-        toaster.classList.remove('disappearing');
-
-        setTimeout(function nextLoop() {
-          toaster.style.display = 'block';
-        });
-      });
-    });
-
-    notification.classList.add('disappearing');
+  wheel: function ns_wheel(evt) {
+    if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaX) {
+      this._notification = evt.target;
+      this.swipeCloseNotification();
+    }
   },
 
   tap: function ns_tap(node) {
     var notificationId = node.dataset.notificationId;
     var notificationNode = this.container.querySelector(
       '[data-notification-id="' + notificationId + '"]');
-
-    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-    var contentEvent = document.createEvent('CustomEvent');
-    contentEvent.initCustomEvent('mozContentEvent', true, true, {
-      type: 'desktop-notification-click',
-      id: notificationId
-    });
-    window.dispatchEvent(contentEvent);
 
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentNotificationEvent', true, true, {
@@ -309,6 +293,7 @@ var NotificationScreen = {
       document.getElementById('notifications-lockscreen-container');
     var notificationNode = document.createElement('div');
     notificationNode.className = 'notification';
+    notificationNode.setAttribute('role', 'link');
 
     notificationNode.dataset.notificationId = detail.id;
     notificationNode.dataset.obsoleteAPI = 'false';
@@ -323,11 +308,12 @@ var NotificationScreen = {
     if (detail.icon) {
       var icon = document.createElement('img');
       icon.src = detail.icon;
+      icon.setAttribute('role', 'presentation');
       notificationNode.appendChild(icon);
     }
 
     var time = document.createElement('span');
-    var timestamp = new Date();
+    var timestamp = detail.timestamp ? new Date(detail.timestamp) : new Date();
     time.classList.add('timestamp');
     time.dataset.timestamp = timestamp;
     time.textContent = this.prettyDate(timestamp);
@@ -371,14 +357,6 @@ var NotificationScreen = {
       this.container.insertBefore(notificationNode,
           this.container.firstElementChild);
     }
-
-    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-    var contentEvent = document.createEvent('CustomEvent');
-    contentEvent.initCustomEvent('mozContentEvent', true, true, {
-      type: 'desktop-notification-show',
-      id: detail.id
-    });
-    window.dispatchEvent(contentEvent);
 
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentNotificationEvent', true, true, {
@@ -446,7 +424,7 @@ var NotificationScreen = {
       }
     }
 
-    if (notify) {
+    if (notify && !this.isResending) {
       if (!this.silent) {
         var ringtonePlayer = new Audio();
         ringtonePlayer.src = this._sound;
@@ -477,16 +455,40 @@ var NotificationScreen = {
     return notificationNode;
   },
 
+  swipeCloseNotification: function ns_swipeCloseNotification() {
+    var notification = this._notification;
+    this._notification = null;
+
+    var toaster = this.toaster;
+    var self = this;
+    notification.addEventListener('transitionend', function trListener() {
+      notification.removeEventListener('transitionend', trListener);
+
+      self.closeNotification(notification);
+
+      if (notification != toaster) {
+        return;
+      }
+
+      // Putting back the toaster in a clean state for the next notification
+      toaster.style.display = 'none';
+      setTimeout(function nextLoop() {
+        toaster.style.MozTransition = '';
+        toaster.style.MozTransform = '';
+        toaster.classList.remove('displayed');
+        toaster.classList.remove('disappearing');
+
+        setTimeout(function nextLoop() {
+          toaster.style.display = 'block';
+        });
+      });
+    });
+
+    notification.classList.add('disappearing');
+  },
+
   closeNotification: function ns_closeNotification(notificationNode) {
     var notificationId = notificationNode.dataset.notificationId;
-    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-    var contentEvent = document.createEvent('CustomEvent');
-    contentEvent.initCustomEvent('mozContentEvent', true, true, {
-      type: 'desktop-notification-close',
-      id: notificationId
-    });
-    window.dispatchEvent(contentEvent);
-
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentNotificationEvent', true, true, {
       type: 'desktop-notification-close',
@@ -560,6 +562,31 @@ var NotificationScreen = {
   }
 
 };
+
+window.addEventListener('load', function() {
+  window.removeEventListener('load', this);
+  if ('mozSettings' in navigator && navigator.mozSettings) {
+    var key = 'notifications.resend';
+    var req = navigator.mozSettings.createLock().get(key);
+    req.onsuccess = function onsuccess() {
+      var resendEnabled = req.result[key] || false;
+      if (!resendEnabled) {
+        return;
+      }
+
+      var resendCallback = (function(number) {
+        window.dispatchEvent(
+          new CustomEvent('desktop-notification-resend',
+            { detail: { number: number } }));
+      }).bind(this);
+
+      if ('mozChromeNotifications' in navigator) {
+        navigator.mozChromeNotifications.
+          mozResendAllNotifications(resendCallback);
+      }
+    };
+  }
+});
 
 NotificationScreen.init();
 

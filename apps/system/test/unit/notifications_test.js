@@ -1,35 +1,46 @@
 /* global
-  mocha,
   MocksHelper,
   MockStatusBar,
-  NotificationScreen
+  NotificationScreen,
+  MockNavigatorMozChromeNotifications,
+  MockNavigatorSettings
  */
 
 'use strict';
 
-mocha.globals(['ScreenManager']);
-
-require('/shared/test/unit/mocks/mock_settings_url.js');
-require('/test/unit/mock_statusbar.js');
-require('/shared/test/unit/mocks/mock_gesture_detector.js');
-require('/test/unit/mock_screen_manager.js');
-require('/test/unit/mock_utility_tray.js');
-require('/shared/test/unit/mocks/mock_settings_listener.js');
 require('/js/notifications.js');
+require('/test/unit/mock_screen_manager.js');
+require('/test/unit/mock_statusbar.js');
+require('/test/unit/mock_utility_tray.js');
+require('/test/unit/mock_navigator_moz_chromenotifications.js');
+require('/shared/test/unit/mocks/mock_gesture_detector.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_settings_url.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
 
 var mocksForNotificationScreen = new MocksHelper([
   'StatusBar',
   'GestureDetector',
+  'NavigatorMozChromeNotifications',
   'ScreenManager',
+  'NavigatorSettings',
   'SettingsListener',
   'SettingsURL',
-  'UtilityTray'
+  'UtilityTray',
 ]).init();
 
 suite('system/NotificationScreen >', function() {
   var fakeNotifContainer, fakeLockScreenContainer, fakeToaster,
     fakeButton, fakeNoNotifications, fakeToasterIcon, fakeToasterTitle,
     fakeToasterDetail, fakeSomeNotifications;
+
+  function sendChromeNotificationEvent(detail) {
+    var event = new CustomEvent('mozChromeNotificationEvent', {
+      detail: detail
+    });
+
+    window.dispatchEvent(event);
+  }
 
   mocksForNotificationScreen.attachTestHelpers();
   setup(function() {
@@ -83,12 +94,6 @@ suite('system/NotificationScreen >', function() {
     });
 
     function sendChromeNotificationEvent(detail) {
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      var chromeEvent = new CustomEvent('mozChromeEvent', {
-        detail: detail
-      });
-
-      window.dispatchEvent(chromeEvent);
       var event = new CustomEvent('mozChromeNotificationEvent', {
         detail: detail
       });
@@ -216,6 +221,79 @@ suite('system/NotificationScreen >', function() {
       assert.equal('undefined', toasterTitle.lang);
     });
 
+    test('calling addNotification with timestamp', function() {
+      var timestamp = 1397802220000;
+      var detail = {timestamp: timestamp};
+      NotificationScreen.addNotification(detail);
+      var timestamps = document.getElementsByClassName('timestamp');
+      assert.equal(timestamps.length, 1);
+      var ts = timestamps[0].dataset.timestamp;
+      assert.isTrue(typeof ts === 'string');
+      var fromDate = new Date(ts).getTime();
+      assert.equal(timestamp, fromDate);
+    });
+
+    test('calling addNotification without timestamp', function() {
+      // we parseInt(date/1000)*1000 to make sure to remove some resolution
+      // fromDate == 1397810684000 -- now == 1397810684105
+      var now = parseInt(new Date().getTime() / 1000) * 1000;
+      var detail = {timestamp: undefined};
+      NotificationScreen.addNotification(detail);
+      var timestamps = document.getElementsByClassName('timestamp');
+      assert.equal(timestamps.length, 1);
+      var ts = timestamps[0].dataset.timestamp;
+      assert.isTrue(typeof ts === 'string');
+      var fromDate = new Date(ts).getTime();
+      assert.isTrue(typeof fromDate === 'number');
+      assert.isTrue(fromDate >= now);
+    });
+
+    suite('prettyDate() behavior >', function() {
+      var realMozL10n;
+      setup(function() {
+        var mozL10nStub = {
+          DateTimeFormat: function() {
+            return {
+              fromNow: function(time, compact) {
+                var retval;
+                var delta = new Date().getTime() - time.getTime();
+                if (delta >= 0 && delta < 60*1000) {
+                  retval = 'now';
+                } else if (delta >= 60*1000) {
+                  retval = '1m ago';
+                }
+                return retval;
+              }
+            };
+          }
+        };
+        realMozL10n = navigator.mozL10n;
+        navigator.mozL10n = mozL10nStub;
+      });
+
+      teardown(function() {
+        navigator.mozL10n = realMozL10n;
+      });
+
+      test('converts timestamp to string', function() {
+        var timestamp = new Date();
+        var date = NotificationScreen.prettyDate(timestamp);
+        assert.isTrue(typeof date === 'string');
+      });
+
+      test('shows now', function() {
+        var timestamp = new Date();
+        var date = NotificationScreen.prettyDate(timestamp);
+        assert.equal(date, 'now');
+      });
+
+      test('shows 1m ago', function() {
+        var timestamp = new Date(new Date().getTime() - 61*1000);
+        var date = NotificationScreen.prettyDate(timestamp);
+        assert.equal(date, '1m ago');
+      });
+    });
+
     test('remove lockscreen notifications at the same time', function() {
       NotificationScreen.addNotification({
         id: 'id-10000', title: '', message: ''
@@ -249,9 +327,7 @@ suite('system/NotificationScreen >', function() {
   });
 
   suite('tap a notification >', function() {
-    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-    var notificationNode, notifClickedStub, contentEventStub,
-        contentNotificationEventStub;
+    var notificationNode, notifClickedStub, contentNotificationEventStub;
     var details = {
       type: 'desktop-notification',
       id: 'id-1',
@@ -263,13 +339,9 @@ suite('system/NotificationScreen >', function() {
       notificationNode = NotificationScreen.addNotification(details);
 
       notifClickedStub = sinon.stub();
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      contentEventStub = sinon.stub();
       contentNotificationEventStub = sinon.stub();
 
       window.addEventListener('notification-clicked', notifClickedStub);
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      window.addEventListener('mozContentEvent', contentEventStub);
       window.addEventListener(
         'mozContentNotificationEvent', contentNotificationEventStub);
 
@@ -279,28 +351,16 @@ suite('system/NotificationScreen >', function() {
 
     teardown(function() {
       window.removeEventListener('notification-clicked', notifClickedStub);
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      window.removeEventListener('mozContentEvent', contentEventStub);
       window.removeEventListener(
         'mozContentNotificationEvent', contentNotificationEventStub);
     });
 
     test('dispatch events once with the expected parameters', function() {
       sinon.assert.calledOnce(notifClickedStub);
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledOnce(contentEventStub);
       sinon.assert.calledOnce(contentNotificationEventStub);
 
       sinon.assert.calledWithMatch(notifClickedStub, {
         detail: {
-          id: details.id
-        }
-      });
-
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledWithMatch(contentEventStub, {
-        detail: {
-          type: 'desktop-notification-click',
           id: details.id
         }
       });
@@ -315,9 +375,7 @@ suite('system/NotificationScreen >', function() {
   });
 
   suite('tap a notification using the obsolete API >', function() {
-    // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-    var notificationNode, notifClickedStub, contentEventStub,
-        contentNotificationEventStub;
+    var notificationNode, notifClickedStub, contentNotificationEventStub;
     var details = {
       type: 'desktop-notification',
       id: 'app-notif-1',
@@ -329,21 +387,15 @@ suite('system/NotificationScreen >', function() {
       notificationNode = NotificationScreen.addNotification(details);
 
       notifClickedStub = sinon.stub();
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      contentEventStub = sinon.stub();
       contentNotificationEventStub = sinon.stub();
 
       window.addEventListener('notification-clicked', notifClickedStub);
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      window.addEventListener('mozContentEvent', contentEventStub);
       window.addEventListener(
         'mozContentNotificationEvent', contentNotificationEventStub);
     });
 
     teardown(function() {
       window.removeEventListener('notification-clicked', notifClickedStub);
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      window.removeEventListener('mozContentEvent', contentEventStub);
       window.removeEventListener(
         'mozContentNotificationEvent', contentNotificationEventStub);
     });
@@ -353,28 +405,10 @@ suite('system/NotificationScreen >', function() {
       notificationNode.dispatchEvent(event);
 
       sinon.assert.calledOnce(notifClickedStub);
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledTwice(contentEventStub);
       sinon.assert.calledTwice(contentNotificationEventStub);
 
       sinon.assert.calledWithMatch(notifClickedStub, {
         detail: {
-          id: details.id
-        }
-      });
-
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledWithMatch(contentEventStub, {
-        detail: {
-          type: 'desktop-notification-click',
-          id: details.id
-        }
-      });
-
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledWithMatch(contentEventStub, {
-        detail: {
-          type: 'desktop-notification-close',
           id: details.id
         }
       });
@@ -399,8 +433,6 @@ suite('system/NotificationScreen >', function() {
       fakeToaster.dispatchEvent(event);
 
       sinon.assert.calledOnce(notifClickedStub);
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledTwice(contentEventStub);
       sinon.assert.calledTwice(contentNotificationEventStub);
 
       sinon.assert.calledWithMatch(notifClickedStub, {
@@ -409,22 +441,6 @@ suite('system/NotificationScreen >', function() {
         }
       });
 
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledWithMatch(contentEventStub, {
-        detail: {
-          type: 'desktop-notification-click',
-          id: details.id
-        }
-      });
-
-      // FIXME: mozContentEvent to be removed once bug 963234 lands on gecko
-      sinon.assert.calledWithMatch(contentEventStub, {
-        detail: {
-          type: 'desktop-notification-close',
-          id: details.id
-        }
-      });
-
       sinon.assert.calledWithMatch(contentNotificationEventStub, {
         detail: {
           type: 'desktop-notification-click',
@@ -437,6 +453,145 @@ suite('system/NotificationScreen >', function() {
           type: 'desktop-notification-close',
           id: details.id
         }
+      });
+    });
+  });
+
+  suite('resending notifications >', function() {
+    var realMozSettings;
+    var realNavigatorMozChromeNotifications;
+
+    suiteSetup(function() {
+      realMozSettings = navigator.mozSettings;
+      window.navigator.mozSettings = MockNavigatorSettings;
+
+      realNavigatorMozChromeNotifications = navigator.mozChromeNotifications;
+      navigator.mozChromeNotifications = MockNavigatorMozChromeNotifications;
+    });
+
+    suiteTeardown(function() {
+      navigator.mozSettings = realMozSettings;
+      navigator.mozChromeNotifications = realNavigatorMozChromeNotifications;
+    });
+
+    suite('inhibition of vibration and sound >', function() {
+      var vibrateSpy;
+
+      function sendNotification() {
+        var imgpath = 'http://example.com/test.png';
+        var detail = {icon: imgpath, title: 'title', detail: 'detail'};
+        NotificationScreen.addNotification(detail);
+      }
+
+      setup(function() {
+        vibrateSpy = this.sinon.spy(navigator, 'vibrate');
+        this.sinon.useFakeTimers();
+      });
+
+      test('isResending is false', function() {
+        assert.isFalse(NotificationScreen.isResending);
+      });
+
+      test('isResending is switched to true when receiving resend event',
+        function() {
+          assert.isFalse(NotificationScreen.isResending);
+          window.dispatchEvent(
+            new CustomEvent('desktop-notification-resend',
+            { detail: { number: 1 } } ));
+          this.sinon.clock.tick();
+          assert.isTrue(NotificationScreen.isResending);
+        }
+      );
+
+      test('isResending is switched to false when receiving a notification',
+        function() {
+          assert.isTrue(NotificationScreen.isResending);
+          window.dispatchEvent(
+            new CustomEvent('desktop-notification-resend',
+            { detail: { number: 1 } } ));
+          this.sinon.clock.tick();
+          sendChromeNotificationEvent({
+            type: 'desktop-notification',
+            id: 'id-1'
+          });
+          this.sinon.clock.tick(1000);
+          assert.isFalse(NotificationScreen.isResending);
+        }
+      );
+
+      test('isResending true blocks vibrate()', function() {
+        NotificationScreen.isResending = true;
+        assert.isTrue(NotificationScreen.isResending);
+
+        sendNotification();
+        this.sinon.clock.tick(1000);
+        assert.ok(vibrateSpy.notCalled);
+      });
+
+      test('isResending false allows vibrate()', function() {
+        NotificationScreen.isResending = false;
+        assert.isFalse(NotificationScreen.isResending);
+
+        sendNotification();
+        this.sinon.clock.tick(1000);
+        assert.ok(vibrateSpy.called);
+      });
+    });
+
+    suite('on restart >', function() {
+      var dispatchEventSpy, resendSpy;
+      var setting = 'notifications.resend';
+
+      setup(function() {
+        resendSpy = this.sinon.spy(MockNavigatorMozChromeNotifications,
+          'mozResendAllNotifications');
+        this.sinon.useFakeTimers();
+        dispatchEventSpy = this.sinon.spy(window, 'dispatchEvent');
+      });
+
+      suite('setting is true >', function() {
+        setup(function() {
+          MockNavigatorSettings.mSettings[setting] = true;
+          window.dispatchEvent(new CustomEvent('load'));
+        });
+
+        test('mozResendAllNotifications called', function() {
+          this.sinon.clock.tick();
+          assert.ok(resendSpy.calledOnce);
+        });
+
+        test('desktop-notification-resend sent', function() {
+          this.sinon.clock.tick();
+          var expectedEvent =
+            new CustomEvent('desktop-notification-resend',
+              { detail: { number: 1 } } );
+          assert.ok(dispatchEventSpy.called);
+          assert.equal(
+            dispatchEventSpy.lastCall.args[0].type, expectedEvent.type);
+          assert.equal(
+            dispatchEventSpy.lastCall.args[0].detail.number,
+            expectedEvent.detail.number);
+        });
+      });
+
+      suite('setting is false >', function() {
+        setup(function() {
+          MockNavigatorSettings.mSettings[setting] = false;
+          window.dispatchEvent(new CustomEvent('load'));
+        });
+
+        test('mozResendAllNotifications not called', function() {
+          assert.ok(resendSpy.notCalled);
+        });
+
+        test('desktop-notification-resend not sent', function() {
+          var expectedEvent =
+            new CustomEvent('desktop-notification-resend',
+              { detail: { number: 1 } } );
+          assert.ok(dispatchEventSpy.called);
+          assert.notEqual(
+            dispatchEventSpy.lastCall.args[0].type, expectedEvent.type);
+        });
       });
     });
   });

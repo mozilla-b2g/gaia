@@ -27,10 +27,6 @@
   font-weight: bold;
 }
 
-#close-settings {
-  width: 8.5rem;
-}
-
 /* SETTINGS LISTS */
 .settings li {
   border-bottom: solid 0.1rem #e0e0dd;

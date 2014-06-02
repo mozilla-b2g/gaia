@@ -31,6 +31,13 @@ suite('AlarmEditView', function() {
       alarmListPanel = new AlarmListPanel(document.createElement('div'));
       AlarmManager = _AlarmManager;
       mozL10n = l10n;
+      mozL10n.setResources('en-US', {
+        'weekStartsOnMonday': '0',
+      });
+      mozL10n.setResources('fr', {
+        'weekStartsOnMonday': '1',
+      });
+
       done();
     });
   });
@@ -190,8 +197,7 @@ suite('AlarmEditView', function() {
       // Sunday gets moved to the end.
       parent.appendChild(sunday);
 
-      mozL10n.setForTest('weekStartsOnMonday', '0');
-      window.dispatchEvent(new Event('localized'));
+      mozL10n.language.code = 'en-US';
 
       assert.ok(!sunday.previousSibling, 'Sunday should be first (prev)');
       assert.ok(sunday.nextSibling, 'Sunday should be first (next)');
@@ -203,8 +209,7 @@ suite('AlarmEditView', function() {
       // Sunday goes first.
       parent.insertBefore(sunday, parent.firstChild);
 
-      mozL10n.setForTest('weekStartsOnMonday', '1');
-      window.dispatchEvent(new Event('localized'));
+      mozL10n.language.code = 'fr';
 
       assert.ok(sunday.previousSibling, 'Sunday should be last (prev)');
       assert.ok(!sunday.nextSibling, 'Sunday should be last (next)');

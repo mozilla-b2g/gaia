@@ -1,6 +1,5 @@
 'use strict';
 
-mocha.globals(['OrientationManager', 'SettingsListener', 'lockScreen']);
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 
@@ -71,6 +70,14 @@ suite('system/OrientationManager >', function() {
         type: 'attentionscreenhide'
       });
       assert.isFalse(stubPublish.called);
+    });
+
+    test('shrinking-stop', function() {
+      var stubPublish = this.sinon.stub(OrientationManager, 'publish');
+      OrientationManager.handleEvent({
+        type: 'shrinking-stop'
+      });
+      assert.isTrue(stubPublish.calledWith('reset-orientation'));
     });
   });
 });

@@ -8,104 +8,6 @@
  * `uncaught exception: 2147500033' message (= 0x80004001).
  */
 
-/**
- * Handle root panel functionality
- */
-define('Root', function() {
-  var LazyLoader = require('shared/lazy_loader');
-
-  var Root = function() {};
-
-  Root.prototype = {
-    init: function root_init() {
-      // hide telephony panels
-      if (!navigator.mozTelephony) {
-        var elements = ['call-settings',
-                        'data-connectivity',
-                        'messaging-settings',
-                        'simSecurity-settings'];
-        elements.forEach(function(el) {
-          document.getElementById(el).hidden = true;
-        });
-      }
-
-      // hide unused panel
-      if (navigator.mozMobileConnections) {
-        if (navigator.mozMobileConnections.length == 1) { // single sim
-          document.getElementById('simCardManager-settings').hidden = true;
-        } else { // dsds
-          document.getElementById('simSecurity-settings').hidden = true;
-        }
-      }
-
-      setTimeout((function nextTick() {
-        LazyLoader.load(['js/utils.js'], function() {
-          this.startupLocale();
-        }.bind(this));
-
-        /**
-         * Enable or disable the menu items related to the ICC card
-         * relying on the card and radio state.
-         */
-        LazyLoader.load([
-          'shared/js/wifi_helper.js',
-          'js/firefox_accounts/menu_loader.js',
-          'shared/js/airplane_mode_helper.js',
-          'js/airplane_mode.js',
-          'js/battery.js',
-          'shared/js/async_storage.js',
-          'js/storage.js',
-          'js/try_show_homescreen_section.js',
-          'shared/js/mobile_operator.js',
-          'shared/js/icc_helper.js',
-          'shared/js/settings_listener.js',
-          'shared/js/toaster.js',
-          'js/connectivity.js',
-          'js/security_privacy.js',
-          'js/icc_menu.js',
-          'js/nfc.js',
-          'js/dsds_settings.js',
-          'js/telephony_settings.js',
-          'js/telephony_items_handler.js',
-          'js/screen_lock.js'
-        ], function() {
-          TelephonySettingHelper.init();
-        });
-      }).bind(this));
-    },
-
-    // startup & language switching
-    startupLocale: function root_startupLocale() {
-      // XXX change to mozL10n.ready when https://bugzil.la/993188 is fixed
-      navigator.mozL10n.once(function startupLocale() {
-        this.initLocale();
-        window.addEventListener('localized', this.initLocale);
-      }.bind(this));
-    },
-
-    initLocale: function root_initLocale() {
-      var lang = navigator.mozL10n.language.code;
-
-      // set the 'lang' and 'dir' attributes to <html>
-      // when the page is translated
-      document.documentElement.lang = lang;
-      document.documentElement.dir = navigator.mozL10n.language.direction;
-
-      // display the current locale in the main panel
-      getSupportedLanguages(function displayLang(languages) {
-        document.getElementById('language-desc').textContent = languages[lang];
-      });
-    }
-  };
-
-  return function ctor_root() {
-    return new Root();
-  };
-});
-
-/**
- * Main entrance of Settings App
- */
 var Settings = {
   get mozSettings() {
     // return navigator.mozSettings when properly supported, null otherwise
@@ -171,7 +73,7 @@ var Settings = {
     }
 
     if (hash === '#wifi') {
-      PerformanceTestingHelper.dispatch('start');
+      PerformanceTestingHelper.dispatch('start-wifi-list-test');
     }
 
     var panelID = hash;
@@ -181,15 +83,10 @@ var Settings = {
 
     this._currentPanel = hash;
     this.SettingsService.navigate(panelID, null, function() {
-      switch (hash) {
-        case 'about-licensing':
-          // Workaround for bug 825622, remove when fixed
-          var iframe = document.getElementById('os-license');
-          iframe.src = iframe.dataset.src;
-          break;
-        case 'wifi':
-          PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
-          break;
+      if (hash === 'about-licensing') {
+        // Workaround for bug 825622, remove when fixed
+        var iframe = document.getElementById('os-license');
+        iframe.src = iframe.dataset.src;
       }
     });
   },
@@ -205,19 +102,25 @@ var Settings = {
 
     this.SettingsService = options.SettingsService;
     this.PageTransitions = options.PageTransitions;
-    this.LazyLoader = options.LazyLoader;
     this.ScreenLayout = options.ScreenLayout;
+    this.Connectivity = options.Connectivity;
 
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
-    // open root panel
-    require(['Root'], function(Root) {
-      var root = Root();
-      root.init();
-    });
-
     this.currentPanel = 'root';
+
+    // init connectivity when we get a chance
+    navigator.mozL10n.once(function loadWhenIdle() {
+      var idleObserver = {
+        time: 3,
+        onidle: function() {
+          this.Connectivity.init();
+          navigator.removeIdleObserver(idleObserver);
+        }.bind(this)
+      };
+      navigator.addIdleObserver(idleObserver);
+    }.bind(this));
 
     // make operations not block the load time
     setTimeout((function nextTick() {
@@ -230,19 +133,16 @@ var Settings = {
         '(min-width: 768px) and (orientation: landscape)');
       window.addEventListener('screenlayoutchange', this.rotate);
 
-      // display of default panel(#wifi) must wait for
-      // lazy-loaded script - wifi_helper.js - loaded
+      // WifiHelper is guaranteed to be loaded in main.js before calling to
+      // this line.
       if (this.isTabletAndLandscape()) {
-        this.LazyLoader.load([
-          'shared/js/wifi_helper.js'
-          ], function() {
-            this.currentPanel = this.defaultPanelForTablet;
-        });
+        self.currentPanel = self.defaultPanelForTablet;
       }
 
       window.addEventListener('keydown', this.handleSpecialKeys);
     }).bind(this));
 
+    PerformanceTestingHelper.dispatch('startup-path-done');
   },
 
   // An activity can be closed either by pressing the 'X' button

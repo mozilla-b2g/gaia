@@ -69,7 +69,7 @@ SystemAppBuilder.prototype.generateManifest = function() {
 SystemAppBuilder.prototype.execute = function(options) {
   this.setOptions(options);
   this.initConfigJsons();
-  if (options.ROCKETBAR !== 'none') {
+  if (options.HAIDA) {
     this.generateManifest();
   }
   if (this.distDirPath) {

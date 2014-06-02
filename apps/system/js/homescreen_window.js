@@ -94,7 +94,7 @@
     };
 
   HomescreenWindow.REGISTERED_EVENTS =
-    ['_opening', 'mozbrowserclose', 'mozbrowsererror',
+    ['_opening', '_localized', 'mozbrowserclose', 'mozbrowsererror',
       'mozbrowservisibilitychange', 'mozbrowserloadend'];
 
   HomescreenWindow.SUB_COMPONENTS = {
@@ -139,6 +139,9 @@
       // we need this here and not in other situations
       // as it is expected that homescreen frame is available.
       setTimeout(function() {
+        if (this.element) {
+          return;
+        }
         this.render();
         this.open();
       }.bind(this));
@@ -182,6 +185,19 @@
     }
 
     return this.element;
+  };
+
+  /**
+  *
+  * The homescreen instance always resizes if it's needed.
+  * (ie. the current layout is different from the current window dimensions)
+  * This helps with the back-to-homescreen transition.
+  *
+  */
+  HomescreenWindow.prototype.resize = function aw_resize() {
+    this.debug('request RESIZE...');
+    this.debug(' will resize... ');
+    this._resize();
   };
 
   /**

@@ -2,6 +2,9 @@ define(function(require, exports, module) {
 'use strict';
 
 module.exports = {
+  // This remaining globals are required by external dependencies of camera.
+  // shared/js/media/jpeg_metadata_parser.js
+  // shared/js/media/media_frame.js
   globals : {
     // The maximum picture size that camera is allowed to take
     CONFIG_MAX_IMAGE_PIXEL_SIZE: 5242880,
@@ -10,44 +13,42 @@ module.exports = {
     // Size of the exif preview embeded in images taken by camera
     CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH: 0,
     CONFIG_REQUIRED_EXIF_PREVIEW_HEIGHT: 0,
-
-    // Minimum EXIF preview size that will be displayed as a
-    // full-screen preview
-    //CONFIG_REQUIRED_EXIF_PREVIEW_SIZE: { width: 640, height: 480},
-
-    // The minimum available disk space to start recording a video.
-    RECORD_SPACE_MIN: 1024 * 1024 * 2,
-
-    // Number of bytes left on disk to let us stop recording.
-    RECORD_SPACE_PADDING: 1024 * 1024 * 1,
-
-    // Minimum video duration length for creating a video that contains at least
-    // few samples, see bug 899864.
-    MIN_RECORDING_TIME: 1000,
-
-    // Amount of inactivity time (in milliseconds) to hide the Zoom Bar
-    ZOOM_BAR_INACTIVITY_TIMEOUT: 3000,
-
-    // Amount (%) to adjust the Zoom Bar by when tapping the min/max indicators
-    ZOOM_BAR_INDICATOR_INTERVAL: 10,
-
-    // Used to adjust sensitivity for pinch-to-zoom gesture
-    // (smaller values = more sensitivity)
-    ZOOM_GESTURE_SENSITIVITY: 0.425
   },
 
   zoom: {
-    disabled: false
+    disabled: false,
+
+    // The viewfinder preview stream should automatically
+    // reflect the current zoom value. However, on some
+    // devices, the viewfinder needs to be scaled by the
+    // application. Set this flag if the preview stream
+    // does not visually reflect the zoom value properly.
+    useZoomPreviewAdjustment: false
   },
 
-  caf: {
-    // Set this property to true if you want to disable continuous auto focus
-    // even on hardware that supports it.
-    disabled: false
+  focus: {
+    // Set this properties to false if you
+    // want to disable focus modes
+    // even on hardware that supports them
+    // -----------------------------------
+    // The camera will be continously focusing
+    // on a point of the scene. It is the center of the image
+    // unless touch to focus is enabled and the user selects a
+    // different region.
+    continuousAutoFocus: true,
+    // The user can select the area of the image
+    // where the camera is going to try to focus the scene.
+    touchFocus: true,
+    // The camera detects faces and tries to focus
+    // on them.
+    faceDetection: true
   },
 
   viewfinder: {
-    scaleType: 'fill'
+    scaleType: 'fill',
+    // Used to adjust sensitivity for pinch-to-zoom gesture
+    // (smaller values = more sensitivity)
+    zoomGestureSensitivity: 0.425
   },
 
   battery: {
@@ -64,18 +65,23 @@ module.exports = {
     list: [
       {
         name: 'shutter',
-        setting: 'camera.shutter.enabled',
-        url: './resources/sounds/shutter.ogg'
+        url: './resources/sounds/shutter.ogg',
+        setting: 'camera.sound.enabled'
+      },
+      {
+        name: 'timer',
+        url: './resources/sounds/timer.ogg',
+        setting: 'camera.sound.enabled'
       },
       {
         name: 'recordingStart',
         url: './resources/sounds/camcorder_start.opus',
-        setting: 'camera.recordingsound.enabled'
+        setting: 'camera.sound.enabled'
       },
       {
         name: 'recordingEnd',
         url: './resources/sounds/camcorder_end.opus',
-        setting: 'camera.recordingsound.enabled'
+        setting: 'camera.sound.enabled'
       }
     ]
   },
@@ -150,7 +156,8 @@ module.exports = {
     exclude: {
       aspects: ['5:3', '11:9', '16:9']
     },
-    persistent: true
+    persistent: true,
+    optionsLocalizable: false,
   },
 
   pictureSizesBack: {
@@ -166,7 +173,8 @@ module.exports = {
       keys: ['1920x1088'],
       aspects: ['5:3', '11:9', '16:9'],
     },
-    persistent: true
+    persistent: true,
+    optionsLocalizable: false,
   },
 
   recorderProfilesBack: {
@@ -175,7 +183,8 @@ module.exports = {
     icon: 'icon-video-size',
     options: [],
     exclude: ['high', '1080p'],
-    persistent: true
+    persistent: true,
+    optionsLocalizable: false,
   },
 
   recorderProfilesFront: {
@@ -183,7 +192,8 @@ module.exports = {
     header: 'video-resolution-header',
     icon: 'icon-video-size',
     options: [],
-    persistent: true
+    persistent: true,
+    optionsLocalizable: false,
   },
 
   flashModesPicture: {
@@ -236,9 +246,9 @@ module.exports = {
         value: 0
       },
       {
-        key: '3secs',
-        value: 3,
-        title: 'self-timer-3-seconds'
+        key: '2secs',
+        value: 2,
+        title: 'self-timer-2-seconds'
       },
       {
         key: '5secs',
@@ -309,6 +319,7 @@ module.exports = {
     ],
     selected: 'off',
     persistent: true,
+    notifications: false
   },
 
   settingsMenu: {

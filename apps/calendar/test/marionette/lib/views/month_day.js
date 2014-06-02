@@ -1,6 +1,7 @@
 'use strict';
 
-var View = require('./view');
+var MonthDayEvent = require('./month_day_event'),
+    View = require('./view');
 
 function MonthDay() {
   View.apply(this, arguments);
@@ -17,7 +18,15 @@ MonthDay.prototype = {
   },
 
   get events() {
-    return this.findElements('.event');
+    return this.findElements('.event').map(function(el) {
+      return new MonthDayEvent(this.client, el);
+    }, this);
+  },
+
+  get date() {
+    return this
+      .findElement('#event-list-date')
+      .text();
   },
 
   getTitle: function(event) {
@@ -46,10 +55,12 @@ MonthDay.prototype = {
   scrollToEvent: function(event) {
     if (!event) {
       event = this.events[0];
+    } else if (typeof event === 'number') {
+      event = this.events[event];
     }
 
     event.scriptWith(function(element) {
-      var container = document.getElementById('event-list');
+      var container = document.getElementById('months-day-view');
       container.scrollTop = element.offsetTop;
     });
   }

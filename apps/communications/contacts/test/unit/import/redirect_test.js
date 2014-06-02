@@ -1,7 +1,8 @@
-/* global Redirect */
 'use strict';
 
-requireApp('communications/redirects/redirect.js');
+/* global Redirect */
+
+require('/shared/pages/import/redirects/redirect.js');
 
 
 suite('OAuth redirect', function() {

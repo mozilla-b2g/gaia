@@ -16,7 +16,7 @@
     this.entries = [];
 
     eventTypesToListenFor.forEach(function iterateTypes(type) {
-      BookmarksDatabase.addEventListener(type, this.handleEvent.bind(this));
+      BookmarksDatabase.addEventListener(type, this);
     }, this);
   }
 
@@ -28,9 +28,10 @@
     synchronize: function() {
       var allAppBookmarks = {};
       var toAdd = [];
+      var icons = app.grid.getIcons();
 
-      for (var i in app.icons) {
-        var icon = app.icons[i];
+      for (var i in icons) {
+        var icon = icons[i];
         if (!(icon instanceof Bookmark)) {
           continue;
         }
@@ -54,7 +55,7 @@
         this.addIconToGrid(toAdd[i].detail);
       }
 
-      app.itemStore.save(app.items);
+      app.itemStore.save(app.grid.getItems());
     },
 
     /**
@@ -82,7 +83,7 @@
         case 'added':
         case 'updated':
           this.addIconToGrid(e.target);
-          app.itemStore.save(app.items);
+          app.itemStore.save(app.grid.getItems());
           break;
         case 'removed':
           // The 'id' of a bookmark is really the url.
@@ -97,10 +98,11 @@
     addIconToGrid: function(detail) {
 
       // If there is a pre-existing icon, just update it.
-      var existing = app.icons[detail.id];
+      var icons = app.grid.getIcons();
+      var existing = icons[detail.id];
       if (existing) {
-        existing.detail = detail;
-        app.render();
+        existing.update(detail);
+        app.grid.render();
         return;
       }
 
@@ -109,21 +111,26 @@
       this.entries.push(bookmark);
 
       // Manually inject this book mark into the app item list for now.
-      app.icons[bookmark.identifier] = bookmark;
-      app.items.push(bookmark);
-      app.render();
+      // Remove and re-append a divider if the last item is a divider
+      var lastDivider = app.grid.getLastIfDivider();
+      app.grid.addIcon(bookmark.identifier, bookmark);
+      app.grid.addItem(lastDivider);
+
+      app.grid.render();
     },
 
     /**
      * Removes a bookmark icon from the grid.
      */
     removeIconFromGrid: function(url) {
-      var appObject = app.icons[url];
-      delete app.icons[appObject.identifier];
+      var icons = app.grid.getIcons();
+      var appObject = icons[url];
+      app.grid.removeIconByIdentifier(url);
 
-      var itemIndex = app.items.indexOf(appObject);
-      app.items.splice(itemIndex, 1);
-      app.render();
+      var items = app.grid.getItems();
+      var itemIndex = items.indexOf(appObject);
+      app.grid.removeItemByIndex(itemIndex);
+      app.grid.render();
 
       if (appObject.element) {
         appObject.element.parentNode.removeChild(appObject.element);

@@ -29,7 +29,7 @@
   SimPinSystemDialog.prototype.view = function spd_view() {
     return '<div id="' + this.instanceID + '" role="dialog" ' +
            'class="generic-dialog" data-z-index-level="simpin-dialog" hidden>' +
-           '<section role="region">' +
+           '<section role="region" class="skin-organic">' +
              '<header>' +
                '<button class="back" hidden>' +
                  '<span class="icon icon-back"></span>' +
@@ -65,8 +65,6 @@
                '<div name="xckDesc" data-l10n-id="nckCode">NCK Code</div>' +
                '<div class="input-wrapper">' +
                  '<input name="xckpin" type="number" size="16" ' +
-                 'maxlength="16" />' +
-                 '<input name="xckpinVis" type="text" size="16" ' +
                  'maxlength="16" />' +
                '</div>' +
              '</div>' +

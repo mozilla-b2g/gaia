@@ -21,7 +21,7 @@ exports.execute = function(options) {
   var sandboxFile = srcDir.clone();
   sandboxFile.append('_sandbox.html');
 
-  options.GAIA_APPDIRS.split(' ').forEach(function(appPath) {
+  options.GAIA_ALLAPPDIRS.split(' ').forEach(function(appPath) {
     var testDir = utils.getFile(appPath, 'test');
     var unitDir = testDir.clone();
     unitDir.append('unit');

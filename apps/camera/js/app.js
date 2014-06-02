@@ -5,11 +5,11 @@ define(function(require, exports, module) {
  * Dependencies
  */
 
+var PerformanceTestingHelper = require('performance-testing-helper');
 var NotificationView = require('views/notification');
 var LoadingView = require('views/loading-screen');
 var ViewfinderView = require('views/viewfinder');
 var orientation = require('lib/orientation');
-var FocusRing = require('views/focus-ring');
 var ZoomBarView = require('views/zoom-bar');
 var bindAll = require('lib/bind-all');
 var model = require('vendor/model');
@@ -104,9 +104,14 @@ App.prototype.runControllers = function() {
  */
 App.prototype.loadController = function(path) {
   var self = this;
-  this.require([path], function(controller) {
-    controller(self);
-  });
+  this.require([path, 'lib/string-utils'],
+    function(controller, StringUtils) {
+      var name = StringUtils.toCamelCase(
+        StringUtils.lastPathComponent(path));
+
+      self.controllers[name] = controller(self);
+    }
+  );
 };
 
 /**
@@ -117,7 +122,6 @@ App.prototype.loadController = function(path) {
 App.prototype.initializeViews = function() {
   debug('initializing views');
   this.views.viewfinder = new ViewfinderView();
-  this.views.focusRing = new FocusRing();
   this.views.hud = new HudView();
   this.views.zoomBar = new ZoomBarView();
   this.views.notification = new NotificationView();
@@ -132,7 +136,6 @@ App.prototype.initializeViews = function() {
 App.prototype.injectViews = function() {
   debug('injecting views');
   this.views.viewfinder.appendTo(this.el);
-  this.views.focusRing.appendTo(this.el);
   this.views.hud.appendTo(this.el);
   this.views.zoomBar.appendTo(this.el);
   this.views.notification.appendTo(this.el);
@@ -155,6 +158,9 @@ App.prototype.bindEvents = function() {
 
   // DOM
   bind(this.doc, 'visibilitychange', this.onVisibilityChange);
+
+  // we bind to window.onlocalized in order not to depend
+  // on l10n.js loading (which is lazy). See bug 999132
   bind(this.win, 'localized', this.firer('localized'));
   bind(this.win, 'beforeunload', this.onBeforeUnload);
   bind(this.el, 'click', this.onClick);
@@ -212,7 +218,9 @@ App.prototype.onCriticalPathDone = function() {
   var start = window.performance.timing.domLoading;
   var took = Date.now() - start;
 
+  PerformanceTestingHelper.dispatch('startup-path-done');
   console.log('critical-path took %s', took + 'ms');
+
   this.clearLoading();
   this.loadController(this.controllers.previewGallery);
   this.loadController(this.controllers.storage);
@@ -299,9 +307,15 @@ App.prototype.localized = function() {
  * @param  {String} key
  * @public
  */
-App.prototype.localize = function(key) {
+App.prototype.l10nGet = function(key) {
   var l10n = navigator.mozL10n;
-  return (l10n && l10n.get(key)) || key;
+  if (l10n) {
+    return l10n.get(key);
+  }
+
+  // in case we don't have mozL10n loaded yet, we want to
+  // return the key. See bug 999132
+  return key;
 };
 
 /**

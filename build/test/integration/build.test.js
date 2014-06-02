@@ -58,11 +58,25 @@ suite('Build GAIA from differece app list', function() {
     helper.exec('GAIA_DEVICE_TYPE=phone make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
-      // zip path for system app
+      // zip path for sms app
       var zipPath = path.join(process.cwd(), 'profile', 'webapps',
         'sms.gaiamobile.org', 'application.zip');
 
       // sms should not exists in Tablet builds
+      assert.ok(fs.existsSync(zipPath));
+      done();
+    });
+  });
+
+  test('GAIA_DEVICE_TYPE=tv make', function(done) {
+    helper.exec('GAIA_DEVICE_TYPE=tv make', function(error, stdout, stderr) {
+      helper.checkError(error, stdout, stderr);
+
+      // zip path for homescreen-stingray app
+      var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+        'homescreen-stingray.gaiamobile.org', 'application.zip');
+
+      // homescreen-stingray should not exists in tv builds
       assert.ok(fs.existsSync(zipPath));
       done();
     });
@@ -221,8 +235,7 @@ suite('Build Integration tests', function() {
   }
 
   test('make without rule & variable', function(done) {
-    helper.exec('ROCKETBAR=none make', { maxBuffer: 400*1024 },
-      function(error, stdout, stderr) {
+    helper.exec('make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       // expected values for prefs and user_prefs
@@ -412,8 +425,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with SIMULATOR=1', function(done) {
-    helper.exec('SIMULATOR=1 make', { maxBuffer: 400*1024 },
-    function(error, stdout, stderr) {
+    helper.exec('SIMULATOR=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       var settingsPath = path.join(process.cwd(), 'profile-debug',
@@ -471,9 +483,9 @@ suite('Build Integration tests', function() {
         'font.name.monospace.x-western': 'Source Code Pro',
         'font.name-list.sans-serif.x-western': 'Fira Sans, Roboto',
         'extensions.autoDisableScopes': 0,
-        'devtools.debugger.enable-content-actors': true,
         'devtools.debugger.prompt-connection': false,
         'devtools.debugger.forbid-certified-apps': false,
+        'javascript.options.discardSystemSource': false,
         'b2g.adb.timeout': 0
       };
       var userjs = fs.readFileSync(
@@ -490,8 +502,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with DEBUG=1', function(done) {
-    helper.exec('DEBUG=1 make', { maxBuffer: 400*1024 },
-    function(error, stdout, stderr) {
+    helper.exec('DEBUG=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       var installedExtsPath = path.join('profile-debug',
@@ -536,6 +547,7 @@ suite('Build Integration tests', function() {
         'dom.mozContacts.enabled': true,
         'dom.navigator-property.disable.mozContacts': false,
         'dom.global-constructor.disable.mozContact': false,
+        'image.mozsamplesize.enabled': true,
         'dom.experimental_forms': true,
         'dom.webapps.useCurrentProfile': true,
         'bluetooth.enabled': true,
@@ -599,8 +611,7 @@ suite('Build Integration tests', function() {
   });
 
   test('make with MOZILLA_OFFICIAL=1', function(done) {
-    helper.exec('MOZILLA_OFFICIAL=1 make', { maxBuffer: 400*1024 },
-    function(error, stdout, stderr) {
+    helper.exec('MOZILLA_OFFICIAL=1 make', function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
 
       // path in zip for unofficial branding
@@ -616,9 +627,8 @@ suite('Build Integration tests', function() {
     });
   });
 
-  test('make with ROCKETBAR=full', function(done) {
-    helper.exec('ROCKETBAR=full make', { maxBuffer: 400*1024 },
-      function(error, stdout, stderr) {
+  test('make with HAIDA=1', function(done) {
+    helper.exec('HAIDA=1 make', function(error, stdout, stderr) {
         helper.checkError(error, stdout, stderr);
 
         var hsBroZip = new AdmZip(path.join(process.cwd(), 'profile',
@@ -682,14 +692,56 @@ suite('Build Integration tests', function() {
   });
 
   suite('Build file inclusion tests', function() {
-    test('build includes elements folder and sim-picker', function(done) {
+    test('build includes elements folder and sim_picker', function(done) {
       helper.exec('make', function(error, stdout, stderr) {
-        var pathInZip = 'shared/elements/sim-picker.html';
+        var pathInZip = 'shared/elements/sim_picker.html';
         var zipPath = path.join(process.cwd(), 'profile', 'webapps',
           'communications.gaiamobile.org', 'application.zip');
         var expectedSimPickerPath = path.join(process.cwd(),
-          'shared', 'elements', 'sim-picker.html');
+          'shared', 'elements', 'sim_picker.html');
         helper.checkFileInZip(zipPath, pathInZip, expectedSimPickerPath);
+        done();
+      });
+    });
+  });
+
+  suite('Pseudolocalizations', function() {
+    test('build with GAIA_CONCAT_LOCALES=0 doesn\'t include pseudolocales', function(done) {
+      helper.exec('GAIA_CONCAT_LOCALES=0 make', function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+        var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+          'settings.gaiamobile.org', 'application.zip');
+        var zip = new AdmZip(zipPath);
+        var qpsPlocPathInZip = 'locales-obj/qps-ploc.json';
+        assert.isNull(zip.getEntry(qpsPlocPathInZip),
+          'accented English file ' + qpsPlocPathInZip + ' should not exist');
+        var qpsPlocmPathInZip = 'locales-obj/qps-plocm.json';
+        assert.isNull(zip.getEntry(qpsPlocmPathInZip),
+          'mirrored English file ' + qpsPlocmPathInZip + ' should not exist');
+        done();
+      });
+    });
+    test('build with GAIA_CONCAT_LOCALES=1 includes pseudolocales', function(done) {
+      helper.exec('GAIA_CONCAT_LOCALES=1 make', function(error, stdout, stderr) {
+        helper.checkError(error, stdout, stderr);
+        var zipPath = path.join(process.cwd(), 'profile', 'webapps',
+          'system.gaiamobile.org', 'application.zip');
+        var zip = new AdmZip(zipPath);
+        var enUSFileInZip = zip.getEntry('locales-obj/en-US.json');
+        var qpsPlocPathInZip = 'locales-obj/qps-ploc.json';
+        var qpsPlocmPathInZip = 'locales-obj/qps-plocm.json';
+        var qpsPlocFileInZip = zip.getEntry(qpsPlocPathInZip);
+        var qpsPlocmFileInZip = zip.getEntry(qpsPlocmPathInZip);
+        assert.isNotNull(qpsPlocFileInZip,
+          'accented English file ' + qpsPlocPathInZip + ' should exist');
+        assert.notDeepEqual(JSON.parse(zip.readAsText(qpsPlocFileInZip)),
+                            JSON.parse(zip.readAsText(enUSFileInZip)),
+          'accented English file should not be identical to regular English');
+        assert.isNotNull(qpsPlocmFileInZip,
+          'mirrored English file ' + qpsPlocmPathInZip + ' should exist');
+        assert.notDeepEqual(JSON.parse(zip.readAsText(qpsPlocmFileInZip)),
+                            JSON.parse(zip.readAsText(enUSFileInZip)),
+          'mirrored English file should not be identical to regular English');
         done();
       });
     });

@@ -16,8 +16,6 @@ var mocksHelperForSimPicker = new MocksHelper([
   'LazyL10n'
 ]).init();
 
-mocha.globals(['TelephonyHelper']);
-
 suite('SIM picker', function() {
   var subject;
   var realMozIccManager;
@@ -29,7 +27,7 @@ suite('SIM picker', function() {
   mocksHelperForSimPicker.attachTestHelpers();
 
   var loadBody = function() {
-    loadBodyHTML('/shared/elements/sim-picker.html');
+    loadBodyHTML('/shared/elements/sim_picker.html');
     document.body.innerHTML = document.body.querySelector('template').innerHTML;
   };
 

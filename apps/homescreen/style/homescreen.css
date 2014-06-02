@@ -98,30 +98,17 @@ li:active {
   opacity: 0.1;
 }
 
-.apps ol > li[data-is-collection = "true"] > div > img,
-#footer ol > li[data-is-collection = "true"] > div > img {
-  position: relative;
-  z-index: 20;
-}
-.apps ol > li[data-is-collection = "true"] > div:before,
-#footer ol > li[data-is-collection = 'true'] > div::before {
-  content: "";
+span.options {
   position: absolute;
-  top: 0;
-  left: 50%;
-  width: 5.8rem;
-  height: 5.8rem;
-  margin: 0.3rem 0 0 -2.9rem;
-  background: rgba(0, 0, 0, .1);
-  border: 0.2rem solid rgba(255, 255, 255, .5);
-  border-radius: 50%;
-  z-index: 10;
-  -moz-box-sizing: border-box;
-  background-clip: content-box;
-  transform: scale(1);
+  top: .1rem;
+  left: .5rem;
+  width: calc(100% - .5rem);
+  height: 2.6rem;
+  z-index: 15; /* So the Delete button will be above the collections' circle */
+  background: url(../resources/images/delete.png) no-repeat left top / 2.4rem;
 }
 
-body[data-mode = 'normal'] ol > li span.options {
+body[data-mode = 'normal'] span.options {
   display: none;
 }
 
@@ -141,6 +128,11 @@ body[data-mode = 'edit'] .apps ol > li[data-type = "bookmark"] > div > span > sp
 @media (min-width: 768px) {
   #bg-overlay {
     transform: translateY(-16.9rem);
+  }
+
+  span.options {
+    height: 4.5rem;
+    background: url(../resources/images/delete.png) no-repeat left top / 4.5rem;
   }
 }
 /* This is a dirty hack to hide the bottom toolbar while

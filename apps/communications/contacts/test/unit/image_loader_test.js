@@ -5,7 +5,7 @@
 require('/shared/js/contacts/utilities/image_loader.js');
 
 requireApp('communications/contacts/test/unit/mock_link.html.js');
-requireApp('communications/contacts/test/unit/mock_image.js');
+require('/shared/test/unit/mocks/mock_image.js');
 
 var mocksHelperForImageLoader = new MocksHelper([
   'Image'

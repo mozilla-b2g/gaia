@@ -2,7 +2,8 @@
  * UI infrastructure code and utility code for the gaia email app.
  **/
 /*jshint browser: true */
-/*global define, console, hookupInputAreaResetButtons */
+/*global define, console */
+'use strict';
 define(function(require, exports) {
 
 var Cards, Toaster,
@@ -29,13 +30,6 @@ function batchAddClass(domNode, searchClass, classToAdd) {
   var nodes = domNode.getElementsByClassName(searchClass);
   for (var i = 0; i < nodes.length; i++) {
     nodes[i].classList.add(classToAdd);
-  }
-}
-
-function batchRemoveClass(domNode, searchClass, classToRemove) {
-  var nodes = domNode.getElementsByClassName(searchClass);
-  for (var i = 0; i < nodes.length; i++) {
-    nodes[i].classList.remove(classToRemove);
   }
 }
 
@@ -83,42 +77,6 @@ function bindContainerHandler(containerNode, eventName, func) {
     }
     func(node, event);
   }, false);
-}
-
-/**
- * Bind both 'click' and 'contextmenu' (synthetically created by b2g), plus
- * handling click suppression that is currently required because we still
- * see the click event.  We also suppress contextmenu's default event so that
- * we don't trigger the browser's right-click menu when operating in firefox.
- */
-function bindContainerClickAndHold(containerNode, clickFunc, holdFunc) {
-  // Rather than tracking suppressClick ourselves in here, we maintain the
-  // state globally in Cards.  The rationale is that popup menus will be
-  // triggered on contextmenu, which transfers responsibility of the click
-  // event to the popup handling logic.  There is also no chance for multiple
-  // contextmenu events overlapping (that we would consider reasonable).
-  bindContainerHandler(
-    containerNode, 'click',
-    function(node, event) {
-      if (Cards._suppressClick) {
-        Cards._suppressClick = false;
-        return;
-      }
-      clickFunc(node, event);
-    });
-  bindContainerHandler(
-    containerNode, 'contextmenu',
-    function(node, event) {
-      // Always preventDefault, as this terminates processing of the click as a
-      // drag event.
-      event.preventDefault();
-      // suppress the subsequent click if this was actually a left click
-      if (event.button === 0) {
-        Cards._suppressClick = true;
-      }
-
-      return holdFunc(node, event);
-    });
 }
 
 /**
@@ -217,11 +175,6 @@ Cards = {
   _transitionCount: 0,
 
   /**
-   * Annoying logic related to contextmenu event handling; search for the uses
-   * for more info.
-   */
-  _suppressClick: false,
-  /**
    * Is a tray card visible, suggesting that we need to intercept clicks in the
    * tray region so that we can transition back to the thing visible because of
    * the tray and avoid the click triggering that card's logic.
@@ -253,9 +206,6 @@ Cards = {
     this._containerNode.addEventListener('click',
                                          this._onMaybeIntercept.bind(this),
                                          true);
-    this._containerNode.addEventListener('contextmenu',
-                                         this._onMaybeIntercept.bind(this),
-                                         true);
 
     // XXX be more platform detecty. or just add more events. unless the
     // prefixes are already gone with webkit and opera?
@@ -269,13 +219,6 @@ Cards = {
    * back to the visible thing (which must be to our right currently.)
    */
   _onMaybeIntercept: function(event) {
-    // Contextmenu-derived click suppression wants to gobble an explicitly
-    // expected event, and so takes priority over other types of suppression.
-    if (event.type === 'click' && this._suppressClick) {
-      this._suppressClick = false;
-      event.stopPropagation();
-      return;
-    }
     if (this._eatingEventsUntilNextCard) {
       event.stopPropagation();
       return;
@@ -401,7 +344,6 @@ Cards = {
    */
   pushCard: function(type, mode, showMethod, args, placement) {
     var cardDef = this._cardDefs[type];
-    var typePrefix = type.split('-')[0];
 
     args = args || {};
 
@@ -461,8 +403,9 @@ Cards = {
     }
     this._cardStack.splice(cardIndex, 0, cardInst);
 
-    if (!args.cachedNode)
+    if (!args.cachedNode) {
       this._cardsNode.insertBefore(domNode, insertBuddy);
+    }
 
     // If the card has any <button type="reset"> buttons,
     // make them clear the field they're next to and not the entire form.
@@ -610,7 +553,7 @@ Cards = {
     var cardIndex = this._findCard(query),
         cardInst = this._cardStack[cardIndex];
     if (!('told' in cardInst.cardImpl))
-      console.warn("Tried to tell a card that's not listening!", query, what);
+      console.warn('Tried to tell a card that\'s not listening!', query, what);
     else
       cardInst.cardImpl.told(what);
   },
@@ -824,10 +767,14 @@ Cards = {
       if (isForward) {
         // If a forward animation and overlay had a vertical transition,
         // disable it, use normal horizontal transition.
-        if (showMethod !== 'immediate' &&
-            beginNode.classList.contains('anim-vertical')) {
-          removeClass(beginNode, 'anim-vertical');
-          addClass(beginNode, 'disabled-anim-vertical');
+        if (showMethod !== 'immediate') {
+          if (beginNode.classList.contains('anim-vertical')) {
+            removeClass(beginNode, 'anim-vertical');
+            addClass(beginNode, 'disabled-anim-vertical');
+          } else if (beginNode.classList.contains('anim-fade')) {
+            removeClass(beginNode, 'anim-fade');
+            addClass(beginNode, 'disabled-anim-fade');
+          }
         }
       } else {
         endNode = null;
@@ -889,8 +836,9 @@ Cards = {
       removeClass(beginNode, 'no-anim');
       removeClass(endNode, 'no-anim');
 
-      if (cardInst && cardInst.cardImpl.onCardVisible)
+      if (cardInst && cardInst.cardImpl.onCardVisible) {
         cardInst.cardImpl.onCardVisible();
+      }
     }
 
     // Hide toaster while active card index changed:
@@ -902,6 +850,11 @@ Cards = {
   },
 
   _onTransitionEnd: function(event) {
+    // Avoid other transitions except ones on cards as a whole.
+    if (!event.target.classList.contains('card')) {
+      return;
+    }
+
     var activeCard = this._cardStack[this.activeCardIndex];
     // If no current card, this could be initial setup from cache, no valid
     // cards yet, so bail.
@@ -931,9 +884,13 @@ Cards = {
       // If an vertical overlay transition was was disabled, if
       // current node index is an overlay, enable it again.
       var endNode = activeCard.domNode;
+
       if (endNode.classList.contains('disabled-anim-vertical')) {
         removeClass(endNode, 'disabled-anim-vertical');
         addClass(endNode, 'anim-vertical');
+      } else if (endNode.classList.contains('disabled-anim-fade')) {
+        removeClass(endNode, 'disabled-anim-fade');
+        addClass(endNode, 'anim-fade');
       }
 
       // Popup toaster that pended for previous card view.
@@ -1111,7 +1068,6 @@ Toaster = {
     }
 
     var text, textId, showUndo = false;
-    var undoBtn = this.body.querySelector('.toaster-banner-undo');
     if (type === 'undo') {
       this.undoableOp = operation;
       // There is no need to show toaster if affected message count < 1
@@ -1148,6 +1104,10 @@ Toaster = {
     this.body.classList.remove('collapsed');
     this.fadeTimeout = window.setTimeout(this._animationHandler.bind(this),
                                          this._timeout);
+  },
+
+  isShowing: function() {
+    return !this.body.classList.contains('collapsed');
   },
 
   hide: function() {
@@ -1421,16 +1381,28 @@ function displaySubject(subjectNode, message) {
   }
 }
 
+/**
+ * Given a mime type, generates a CSS class name that uses just the first part
+ * of the mime type. So, audio/ogg becomes mime-audio.
+ * @param  {String} mimeType
+ * @return {String} a class name usable in CSS.
+ */
+function mimeToClass(mimeType) {
+  mimeType = mimeType || '';
+  return 'mime-' + (mimeType.split('/')[0] || '');
+}
+
 exports.Cards = Cards;
 exports.Toaster = Toaster;
 exports.ConfirmDialog = ConfirmDialog;
 exports.FormNavigation = FormNavigation;
 exports.prettyDate = prettyDate;
 exports.prettyFileSize = prettyFileSize;
+exports.addClass = addClass;
+exports.removeClass = removeClass;
 exports.batchAddClass = batchAddClass;
-exports.bindContainerClickAndHold = bindContainerClickAndHold;
 exports.bindContainerHandler = bindContainerHandler;
 exports.appendMatchItemTo = appendMatchItemTo;
-exports.bindContainerHandler = bindContainerHandler;
 exports.displaySubject = displaySubject;
+exports.mimeToClass = mimeToClass;
 });

@@ -6,6 +6,8 @@ function System(client) {
 
 module.exports = System;
 
+System.URL = 'app://system.gaiamobile.org/manifest.webapp';
+
 System.Selector = Object.freeze({
   statusbar: '#statusbar',
   topPanel: '#top-panel',
@@ -50,6 +52,31 @@ System.prototype = {
     var osLogo = this.client.findElement('#os-logo');
     this.client.waitFor(function() {
       return osLogo.getAttribute('class') == 'hide';
+    });
+  },
+
+  goHome: function() {
+    this.client.executeScript(function() {
+      window.wrappedJSObject.dispatchEvent(new CustomEvent('home'));
+    });
+  },
+
+  stopClock: function() {
+    var client = this.client;
+    var clock = client.executeScript(function() {
+      return window.wrappedJSObject.StatusBar.icons.time;
+    });
+    client.executeScript(function() {
+      window.wrappedJSObject.StatusBar.toggleTimeLabel(false);
+    });
+    client.waitFor(function() {
+      return !clock.displayed();
+    });
+  },
+
+  stopDevtools: function() {
+    this.client.executeScript(function() {
+      window.wrappedJSObject.developerHUD.stop();
     });
   }
 };

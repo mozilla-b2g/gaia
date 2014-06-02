@@ -1,10 +1,5 @@
 'use strict';
 
-mocha.globals(['SettingsListener', 'lockScreen', 'Bluetooth', 'StatusBar',
-      'AttentionScreen', 'removeEventListener', 'addEventListener',
-      'ScreenManager', 'clearIdleTimeout', 'setIdleTimeout', 'dispatchEvent',
-      'AppWindowManager']);
-
 requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_lock_screen.js');
 requireApp('system/test/unit/mock_statusbar.js');
@@ -387,13 +382,13 @@ suite('system/ScreenManager', function() {
     });
 
     test('Testing shutdown event', function() {
-      var powerOffSpy = this.sinon.spy(MockSleepMenu, 'startPowerOff');
+      var powerOffSpy = this.sinon.spy(MocksleepMenu, 'startPowerOff');
       powerOffSpy.withArgs(false);
       this.sinon.stub(ScreenManager, 'turnScreenOn');
 
       ScreenManager.handleEvent({
         type: 'requestshutdown',
-        detail: MockSleepMenu
+        detail: MocksleepMenu
       });
 
       assert.isTrue(ScreenManager.turnScreenOn.calledOnce);

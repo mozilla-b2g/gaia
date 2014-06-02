@@ -8,12 +8,44 @@ var helper = require('./helper');
 var path = require('path');
 var assert = require('chai').assert;
 var fs = require('fs');
+var http = require('http');
 
 suite('Distribution mechanism', function() {
   var cusDir;
-  suiteSetup(function() {
+  var server;
+  var variantPath;
+  var originalVariant;
+
+  setup(function() {
     rmrf('profile');
     rmrf('build_stage');
+
+    // Setup local server and handle manifest downloading to avoid remote
+    // server dependency
+    var fakeManifest = {
+      "version": "1.0",
+      "name": "Fake",
+      "description": "Fake app"
+    };
+
+    server = http.createServer(function(req, res) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(fakeManifest));
+    });
+
+    // Change manifestURL from
+    // https://mobile.twitter.com/cache/twitter.webapp
+    // to
+    // http://localhost:9999/manifest.webapp
+    cusDir = path.join(process.cwd(), 'customization');
+    variantPath = path.join(cusDir, 'variant.json');
+    var port = 9999;
+    originalVariant = fs.readFileSync(variantPath, { encoding: 'utf8' });
+    var variant = JSON.parse(originalVariant);
+    variant.apps.Twitter.manifestURL = 'http://localhost:' + port +
+      '/manifest.webapp';
+    fs.writeFileSync(variantPath, JSON.stringify(variant));
+    server.listen(port);
   });
 
   function validatePreloadSettingDB() {
@@ -49,35 +81,49 @@ suite('Distribution mechanism', function() {
       path.join(cusDir, 'sensors.json'), true);
   }
 
-  function validateComm() {
+  function validateOperatorVariant() {
     var zipPath = path.join(process.cwd(), 'profile',
-      'webapps', 'communications.gaiamobile.org', 'application.zip');
+      'webapps', 'operatorvariant.gaiamobile.org', 'application.zip');
     var variantConfig = {
-        'wallpaper':'/resources/mobizilla_wallpaper.png',
+        'wallpaper':'/resources/wallpaper-7b8d66705b283f474c5892e70ece5890df7f9be2.json',
         'default_contacts':'/resources/mobizilla_contacts.json',
         'support_contacts':'/resources/mobizilla_support_contacts.json',
-        'keyboardSettings':'/resources/mobizilla_keyboard.json',
-        'dataiconstatusbar':'/resources/mobizilla_network_type.json',
-        'knownNetworks':'/resources/mobizilla_known_networks.json'
+        'keyboard_settings':'/resources/keyboard-88cf36fbc274369ce1c2bea24dffce3017cc6f69.json',
+        'network_type':'/resources/mobizilla_network_type.json',
+        'known_networks':'/resources/mobizilla_known_networks.json',
+        'nfc':'/resources/mobizilla_nfc.json',
+        'sms':'/resources/mobizilla_sms.json',
+        'ringtone':'/resources/ringtone-8261e854cb494bf7f3a2a25510e595931244292a.json',
+        'power':'/resources/power-0ccc24f04b44aaadc8962735b5f86eabc5bb71e6.json',
+        'data_ftu':true
     };
     var expectedCustom = {
       '310-260': variantConfig,
       '311-261': variantConfig
     };
+
     helper.checkFileContentInZip(zipPath, 'resources/customization.json',
       expectedCustom, true);
-    helper.checkFileInZip(zipPath, 'resources/mobizilla_wallpaper.png',
-      path.join(cusDir, 'mobizilla', 'mobizilla_wallpaper.png'));
+    helper.checkFileInZip(zipPath, 'resources/wallpaper-7b8d66705b283f474c5892e70ece5890df7f9be2.json',
+      path.join(cusDir, 'mobizilla', 'mobizilla_expected_wallpaper.json'));
     helper.checkFileInZip(zipPath, 'resources/mobizilla_contacts.json',
       path.join(cusDir, 'mobizilla', 'mobizilla_contacts.json'));
     helper.checkFileInZip(zipPath, 'resources/mobizilla_support_contacts.json',
       path.join(cusDir, 'mobizilla', 'mobizilla_support_contacts.json'));
-    helper.checkFileInZip(zipPath, 'resources/mobizilla_keyboard.json',
-      path.join(cusDir, 'mobizilla', 'mobizilla_keyboard.json'));
+    helper.checkFileInZip(zipPath, 'resources/keyboard-88cf36fbc274369ce1c2bea24dffce3017cc6f69.json',
+      path.join(cusDir, 'mobizilla', 'mobizilla_expected_keyboard.json'));
     helper.checkFileInZip(zipPath, 'resources/mobizilla_network_type.json',
       path.join(cusDir, 'mobizilla', 'mobizilla_network_type.json'));
     helper.checkFileInZip(zipPath, 'resources/mobizilla_known_networks.json',
       path.join(cusDir, 'mobizilla', 'mobizilla_known_networks.json'));
+    helper.checkFileInZip(zipPath, 'resources/mobizilla_nfc.json',
+      path.join(cusDir, 'mobizilla', 'mobizilla_nfc.json'));
+    helper.checkFileInZip(zipPath, 'resources/mobizilla_sms.json',
+      path.join(cusDir, 'mobizilla', 'mobizilla_sms.json'));
+    helper.checkFileInZip(zipPath, 'resources/ringtone-8261e854cb494bf7f3a2a25510e595931244292a.json',
+      path.join(cusDir, 'mobizilla', 'mobizilla_expected_ringtone.json'));
+    helper.checkFileInZip(zipPath, 'resources/power-0ccc24f04b44aaadc8962735b5f86eabc5bb71e6.json',
+      path.join(cusDir, 'mobizilla', 'mobizilla_expected_power.json'));
   }
 
   function validateCalendar() {
@@ -227,17 +273,17 @@ suite('Distribution mechanism', function() {
   test('build with GAIA_DISTRIBUTION_DIR', function(done) {
     cusDir = path.join(process.cwd(), 'customization');
     var cmd = 'GAIA_DISTRIBUTION_DIR=' + cusDir + ' make';
-    helper.exec(cmd, { maxBuffer: 400*1024 }, function(error, stdout, stderr) {
+    helper.exec(cmd, function(error, stdout, stderr) {
       helper.checkError(error, stdout, stderr);
       validatePreloadSettingDB();
       validateSettings();
+      validateOperatorVariant();
       validateCalendar();
       validateWappush();
       validateBrowser();
       validateSystem();
       validateSms();
       validateGallery();
-      validateComm();
       validateHomescreen();
       validateWallpaper();
       validateVariantSettings();
@@ -248,5 +294,9 @@ suite('Distribution mechanism', function() {
   teardown(function() {
     rmrf('profile');
     rmrf('build_stage');
+
+    // Close server and restore file to original.
+    server.close();
+    fs.writeFileSync(variantPath, originalVariant);
   });
 });

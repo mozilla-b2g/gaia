@@ -54,9 +54,6 @@ var Browser = {
 
   init: function browser_init() {
     this.getAllElements();
-    if (window.navigator.mozNfc) {
-      window.navigator.mozNfc.onpeerready = NfcURI.handlePeerConnectivity;
-    }
     // Add event listeners
     this.urlBar.addEventListener('submit', this.handleUrlFormSubmit.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
@@ -130,8 +127,8 @@ var Browser = {
     var filesToLoad = [
       // css files
       'shared/style/headers.css',
-      'shared/style_unstable/buttons.css',
-      'shared/style_unstable/input_areas.css',
+      'shared/style/buttons.css',
+      'shared/style/input_areas.css',
       'shared/style/status.css',
       'shared/style/confirm.css',
       'shared/style/action_menu.css',
@@ -894,7 +891,8 @@ var Browser = {
     if (this.shouldFocus) {
       e.preventDefault();
       this.urlInput.focus();
-      this.urlInput.select();
+      this.urlInput.setSelectionRange(0, this.urlInput.value.length);
+      this.urlInput.scrollLeft = this.urlInput.scrollWidth;
       this.shouldFocus = false;
     }
   },
@@ -916,6 +914,7 @@ var Browser = {
   },
 
   urlBlur: function browser_urlBlur() {
+    this.urlInput.scrollLeft = 0;
     this.urlBar.classList.remove('focus');
   },
 
@@ -1360,6 +1359,7 @@ var Browser = {
       this.loadRemaining();
     }.bind(this));
     Toolbar.bookmarkButton.classList.remove('bookmarked');
+    NfcURI.stopListening();
   },
 
   _topSiteThumbnailObjectURLs: [],
@@ -1378,6 +1378,7 @@ var Browser = {
     document.body.classList.remove('start-page');
     this.startscreen.classList.add('hidden');
     this.clearTopSiteThumbnails();
+    NfcURI.startListening();
   },
 
   showTopSiteThumbnails: function browser_showStartscreenThumbnails(places) {

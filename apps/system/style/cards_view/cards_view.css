@@ -114,7 +114,7 @@
   top: 1.5rem;
 }
 
-#cards-view .card > *:not(.close-card) {
+#screen.cards-view > #cards-view .card > *:not(.close-card) {
   pointer-events: none;
 }
 
@@ -152,6 +152,7 @@
 }
 
 #cards-view .close-card {
+  display: block;
   position: absolute;
   top: -1rem;
   left: -1rem;
@@ -163,14 +164,159 @@
 }
 
 #screen.task-manager #cards-view {
-  background: transparent;
   margin-top: 5rem;
+  background-color: transparent;
+  transition-duration: 0.3s;
 }
 
 #screen.task-manager #cards-view li.card {
   transform-origin: 50% 30%;
+  transform: scale(1.0);
+  margin: 0;
+  height: calc(100% - 5rem);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+  transition-delay: 0.3s;
+  will-change: transform, opacity;
+}
+#screen.task-manager #cards-view:not(.active) li.card {
+  opacity: 0;
 }
 
-#screen.task-manager #cards-view .card > p {
+#screen.task-manager #cards-view li.card[data-card-position='current'] {
+  z-index: 1;
+}
+
+#screen.task-manager #cards-view li.card > section.card-inner {
+  position: relative;
+  top: 0;
+  left: 25%;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+}
+
+#screen.task-manager #cards-view .card .card-header {
+  position: absolute;
+  top: auto;
+  bottom: 50%;
+  left: 0;
+  width: 100%;
+  padding-bottom: 2.5rem;
+  -moz-box-sizing: border-box;
   display: none;
 }
+
+#screen.task-manager #cards-view .card .appPreview {
+  display: block;
+  background-color: orange;
+}
+
+#screen.task-manager #cards-view li.card[data-card-position='current'] .card-header {
+  display: block;
+}
+
+#screen.task-manager #cards-view .card h1.title {
+  position: static;
+  z-index: auto;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 300;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+}
+
+#screen.task-manager #cards-view .card p.subtitle {
+  display: none;
+}
+
+#screen.task-manager #cards-view .card > .appIconView {
+  position: absolute;
+  top: calc(33.2rem - 20px);
+  left: calc(50% - 20px);
+  width: 40px;
+  height: 40px;
+  background-image: url(../icons/Default.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+  box-shadow: 0 0 6px 0 rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+#screen.task-manager #cards-view .screenshotView {
+  display: none;
+}
+
+#screen.task-manager #cards-view .card-tray {
+  position: absolute;
+  /* position in vertical middle to align with app/screenshot */
+  top: calc(50% - 4rem);
+  left: 0;
+  height: 3rem;
+  width: 100%;
+  transform-origin: 50% 0;
+  pointer-events: auto;
+  overflow: visible;
+  z-index: 100;
+  padding: 0;
+  -moz-box-sizing: border-box;
+  color: #fff;
+}
+
+#screen.task-manager #cards-view .card-tray > menu.buttonbar {
+  height: 3rem;
+  margin: 0;
+  padding: 0;
+  background: rgba(255,255,255,0.95);
+}
+#screen.task-manager #cards-view .card-tray > menu.buttonbar > button {
+  background-size: 2rem auto;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  width: 20%;
+  height: 100%;
+  border: none;
+  display: none;
+  position: absolute;
+  top: 0;
+  z-index: 99999;
+}
+#screen.task-manager #cards-view .card-tray .close-button {
+  background-image: url(../task-manager/close.png);
+  left: 0.8rem;
+}
+#screen.task-manager #cards-view .card-tray .favorite-button {
+  background-image: url(../task-manager/favorite.png);
+  right: 0.8rem;
+}
+#screen.task-manager #cards-view .card-tray > button.appIcon {
+  top: 1rem;
+  left: calc(50% - 2rem);
+  width: 4rem;
+  height: 4rem;
+  background-image: url(../icons/Default.png);
+  background-color: transparent;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  display: block;
+  border: none;
+  position: absolute;
+  z-index: 99999;
+}
+
+#screen.task-manager #cards-view li.card[data-card-position='current'] .close-button,
+#screen.task-manager #cards-view li.card[data-card-position='current'] .favorite-button {
+  display: block;
+}
+
+/*#screen.task-manager #homescreen > iframe {
+  visibility: hidden;
+}
+#screen.task-manager #homescreen > .fade-overlay {
+  visibility: visible;
+}
+*/

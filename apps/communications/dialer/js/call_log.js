@@ -93,6 +93,7 @@ var CallLog = {
         self.allFilter.addEventListener('click',
           self.unfilter.bind(self));
         self.callLogContainer.addEventListener('click', self);
+        self.callLogContainer.addEventListener('contextmenu', self);
         self.selectAllThreads.addEventListener('click',
           self.selectAll.bind(self));
         self.deselectAllThreads.addEventListener('click',
@@ -212,8 +213,8 @@ var CallLog = {
           self.enableEditMode();
           self.sticky.refresh();
           self.updateHeadersContinuously();
-          PerformanceTestingHelper.dispatch('call-log-ready');
         }
+        PerformanceTestingHelper.dispatch('call-log-ready');
         return;
       }
 
@@ -326,7 +327,7 @@ var CallLog = {
       var parent = previousLogGroup.parentNode;
       parent.removeChild(previousLogGroup);
       this.insertInSection(logGroupDOM, parent);
-      return;
+      return logGroupDOM;
     }
 
     var groupSelector = '[data-timestamp="' + dayIndex + '"]';
@@ -337,7 +338,7 @@ var CallLog = {
       // in the right position.
       var section = sectionExists.getElementsByTagName('ol')[0];
       this.insertInSection(logGroupDOM, section);
-      return;
+      return logGroupDOM;
     }
 
     // We don't have any call for that day, so creating a new section
@@ -373,6 +374,8 @@ var CallLog = {
     }
 
     this.sticky.refresh();
+
+    return logGroupDOM;
   },
 
   // Method that places a log group in the right place inside a section
@@ -634,9 +637,7 @@ var CallLog = {
     this.callLogUpgradePercent.textContent = progress + '%';
   },
 
-  // Method that handles click events in the call log.
   // In case we are in edit mode, just update the counter of selected rows.
-  // Display the action menu, otherwise.
   handleEvent: function cl_handleEvent(evt) {
     if (document.body.classList.contains('recents-edit')) {
       this.updateHeaderCount();
@@ -649,21 +650,37 @@ var CallLog = {
     }
     var dataset = logItem.dataset;
     var phoneNumber = dataset.phoneNumber;
-    if (phoneNumber) {
+    if (!phoneNumber) {
+      return;
+    }
+
+    if (evt.type == 'click') {
+      if (navigator.mozIccManager &&
+          navigator.mozIccManager.iccIds.length > 1) {
+        KeypadManager.updatePhoneNumber(phoneNumber);
+        window.location.hash = '#keyboard-view';
+      } else {
+        CallHandler.call(phoneNumber, 0);
+      }
+    } else {
       var contactIds = (dataset.contactId) ? dataset.contactId : null;
       var contactId = null;
       if (contactIds !== null) {
         contactId = contactIds.split(',')[0];
       }
-      PhoneNumberActionMenu.show(contactId, phoneNumber);
+
+      var isMissedCall = logItem.classList.contains('missed-call');
+      PhoneNumberActionMenu.show(
+        contactId,
+        phoneNumber,
+        null,
+        isMissedCall
+      );
+      evt.preventDefault();
     }
   },
 
   filter: function cl_filter() {
-    if (document.body.classList.contains('recents-edit')) {
-      this.hideEditMode();
-    }
-
     this.callLogContainer.classList.add('filter');
     AccessibilityHelper.setAriaSelected(this.missedFilter.firstElementChild, [
       this.allFilter.firstElementChild, this.missedFilter.firstElementChild]);
@@ -690,10 +707,6 @@ var CallLog = {
   },
 
   unfilter: function cl_unfilter() {
-    if (document.body.classList.contains('recents-edit')) {
-      this.hideEditMode();
-    }
-
     // If the call log is empty display the appropriate message, otherwise hide
     // the empty call log message and enable edit mode
     if (this._empty) {
@@ -1013,20 +1026,22 @@ var CallLog = {
   },
 
   loadBackgroundImage: function cl_loadBackgroundImage(element, url) {
+    var REVOKE_TIMEOUT = 60000;
+
     if (typeof url === 'string') {
       element.style.backgroundImage = 'url(' + url + ')';
     } else if (url instanceof Blob) {
       url = URL.createObjectURL(url);
       element.style.backgroundImage = 'url(' + url + ')';
 
-      // Revoke the blob once it's ready.
-      setTimeout(function() {
-        var image = new Image();
-        image.src = url;
-        image.onload = image.onerror = function() {
-          URL.revokeObjectURL(this.src);
-        };
-      });
+      // Revoke the blob once it's ready. A 1 min timeout is added in order
+      // to avoid a race condition between the revoke an the assignment of
+      // the background image
+      var image = new Image();
+      image.src = url;
+      image.onload = image.onerror = function() {
+        setTimeout(URL.revokeObjectURL, REVOKE_TIMEOUT, image.src);
+      };
     }
   },
 

@@ -8,20 +8,12 @@
 
 #statusbar-background {
   width: 100%;
-  height: 4.8rem;
+  height: 2.4rem;
   background-color: #000;
   padding: 0;
-  transform: scaleY(0.5);
-  transition: transform 0.5s;
-  transform-origin: left top;
-}
-
-#screen.rocketbar-expanded #statusbar-background {
   transform: scaleY(1);
-}
-
-body.rb-enabled #screen.on-homescreen:not(.cards-view):not(.rocketbar-focused) #statusbar-background {
-  transform: scaleY(1.5);
+  transition: transform 0.3s;
+  transform-origin: left bottom;
 }
 
 #statusbar {
@@ -32,11 +24,24 @@ body.rb-enabled #screen.on-homescreen:not(.cards-view):not(.rocketbar-focused) #
   left: 0;
 }
 
-#statusbar-background.hidden, #statusbar.invisible {
+body:not(.rb-enabled) #statusbar {
+  transition: transform 0.2s linear;
+  will-change: transform;
+}
+
+/* Hiding the black background while the homescreen is in foreground but not
+ * utility tray or attention screen */
+#screen.on-homescreen:not(.utility-tray):not(.attention) #statusbar-background,
+#screen.lockscreen-camera > #statusbar,
+#statusbar.invisible {
+  transform: scaleY(0);
+  transform-origin: left top;
+}
+
+#statusbar-background.hidden {
   display: none;
 }
 
-#screen.lockscreen-camera > #statusbar,
 #screen.lockscreen-camera > #statusbar-background {
   display: none;
 }
@@ -44,6 +49,8 @@ body.rb-enabled #screen.on-homescreen:not(.cards-view):not(.rocketbar-focused) #
 #screen.locked:not(.attention) #statusbar,
 #screen.locked:not(.attention) #statusbar-background {
   background-color: transparent;
+  display: block;
+  transform: scaleY(1);
 }
 
 #screen:not(.locked) #statusbar.invisible.dragged {
@@ -73,8 +80,13 @@ body.rb-enabled #screen.on-homescreen:not(.cards-view):not(.rocketbar-focused) #
 }
 
 #screen.rocketbar-expanded:not(.on-homescreen):not(.locked) #statusbar-icons,
-#screen.rocketbar-expanded.on-homescreen.rocketbar-focused:not(.locked) #statusbar-icons,
+#screen.on-homescreen.rocketbar-focused:not(.locked) #statusbar-icons,
 #screen.rocketbar-expanded.cards-view #statusbar-icons {
+  visibility: hidden;
+  opacity: 0;
+}
+
+#screen.rocketbar-focused #statusbar-background {
   visibility: hidden;
   opacity: 0;
 }

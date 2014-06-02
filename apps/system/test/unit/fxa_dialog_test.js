@@ -1,9 +1,5 @@
 'use strict';
-/* global MocksHelper, FxAccountsDialog, SystemDialog */
-
-mocha.globals(['BaseUI', 'AppWindowManager', 'LayoutManager',
-               'System', 'SystemDialog', 'FxAccountsDialog',
-               'dispatchEvent']);
+/* global MocksHelper, FxAccountsDialog, SystemDialog, LayoutManager */
 
 require('/test/unit/mock_app_window_manager.js');
 require('/test/unit/mock_layout_manager.js');
@@ -33,6 +29,8 @@ suite('system/FxAccountsDialog', function() {
     SystemDialog.prototype.containerElement = container;
 
     stubDispatch = this.sinon.stub(window, 'dispatchEvent');
+
+    window.layoutManager = new LayoutManager();
   });
 
   teardown(function() {
@@ -40,6 +38,8 @@ suite('system/FxAccountsDialog', function() {
     SystemDialog.prototype.containerElement = container = null;
 
     stubDispatch.restore();
+
+    window.layoutManager = null;
   });
 
   suite('Handle events', function() {

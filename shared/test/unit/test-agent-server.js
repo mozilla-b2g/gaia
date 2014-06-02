@@ -8,7 +8,7 @@ var Agent = TestAgent,
       paths: [fsPath.resolve(__dirname + '/../../../apps/'),
               fsPath.resolve(__dirname + '/../../../dev_apps/')],
       strictMode: false,
-      testDir: 'test/unit',
+      testDir: '/test/unit/',
       libDir: 'js/',
       testSuffix: '_test.js'
     });

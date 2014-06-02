@@ -1,8 +1,6 @@
-/*global mocha, MocksHelper, MockL10n, AppWindow, BrowserContextMenu */
+/*global MocksHelper, MockL10n, AppWindow, BrowserContextMenu */
 
 'use strict';
-
-mocha.globals(['AppWindow', 'BrowserContextMenu', 'System', 'BaseUI']);
 
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -50,12 +48,30 @@ suite('system/BrowserContextMenu', function() {
     },
     detail: {
       contextmenu: {
-        items: [
-          {
-            label: 'test0',
-            icon: 'test'
-          }]
+        items: [{
+          label: 'test0',
+          icon: 'test'
+        }]
       }
+    }
+  };
+
+  var fakeSystemContextMenuEvent = {
+    type: 'mozbrowsercontextmenu',
+    defaultPrevented: false,
+    preventDefault: function() {
+      this.defaultPrevented = true;
+    },
+    detail: {
+      contextmenu: {
+        items: []
+      },
+      systemTargets: [{
+        nodeName: 'A',
+        data: {
+          uri: 'http://fake.com'
+        }
+      }]
     }
   };
 
@@ -102,6 +118,13 @@ suite('system/BrowserContextMenu', function() {
       'url("' + fakeContextMenuEvent.detail.contextmenu.items[0].icon + '")');
   });
 
+  test('manually launch menu', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var md1 = new BrowserContextMenu(app1);
+    md1.showDefaultMenu();
+    assert.isTrue(md1.element.classList.contains('visible'));
+  });
+
   test('Check that a context menu containing items is prevented', function() {
     var app1 = new AppWindow(fakeAppConfig1);
     var md1 = new BrowserContextMenu(app1);
@@ -125,4 +148,32 @@ suite('system/BrowserContextMenu', function() {
     md1.handleEvent(fakeNoItemsContextMenuEvent);
     assert.isTrue(!fakeNoItemsContextMenuEvent.defaultPrevented);
   });
+
+
+  test('Check that a system menu without items is prevented', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var md1 = new BrowserContextMenu(app1);
+
+    app1.isBrowser = function() {
+      return true;
+    };
+
+    md1.handleEvent(fakeSystemContextMenuEvent);
+    assert.isTrue(fakeSystemContextMenuEvent.defaultPrevented);
+  });
+
+
+  test('Check that an app with system menu is not prevented', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var md1 = new BrowserContextMenu(app1);
+
+    fakeSystemContextMenuEvent.defaultPrevented = false;
+    app1.isBrowser = function() {
+      return false;
+    };
+
+    md1.handleEvent(fakeSystemContextMenuEvent);
+    assert.isFalse(fakeSystemContextMenuEvent.defaultPrevented);
+  });
+
 });

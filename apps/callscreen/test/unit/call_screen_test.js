@@ -1,7 +1,5 @@
 'use strict';
 
-mocha.globals(['resizeTo']);
-
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');

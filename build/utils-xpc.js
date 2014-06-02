@@ -1,6 +1,5 @@
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
 const { btoa } = Cu.import('resource://gre/modules/Services.jsm', {});
-const multilocale = require('./multilocale');
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');
@@ -142,11 +141,15 @@ function concatenatedScripts(scriptsPaths, targetPath) {
 }
 
 function getJSON(file) {
+  let content;
   try {
-    let content = getFileContent(file);
+    content = getFileContent(file);
     return JSON.parse(content);
   } catch (e) {
     dump('Invalid JSON file : ' + file.path + '\n');
+    if (content) {
+      dump('Content of JSON file:\n' + content + '\n');
+    }
     throw e;
   }
 }
@@ -240,6 +243,9 @@ function getWebapp(app, domain, scheme, port, stageDir) {
   if (metaData.exists()) {
     webapp.pckManifest = readZipManifest(webapp.sourceDirectoryFile);
     webapp.metaData = getJSON(metaData);
+    webapp.appStatus = utils.getAppStatus(webapp.metaData.type || 'web');
+  } else {
+    webapp.appStatus = utils.getAppStatus(webapp.manifest.type);
   }
 
   // Some webapps control their own build
@@ -290,6 +296,7 @@ var gaia = {
       !this.instance) {
       this.config = config;
       this.instance = {
+        stageDir: getFile(this.config.STAGE_DIR),
         engine: this.config.GAIA_ENGINE,
         sharedFolder: getFile(this.config.GAIA_DIR, 'shared'),
         webapps: makeWebappsObject(this.config.GAIA_APPDIRS.split(' '),
@@ -298,15 +305,6 @@ var gaia = {
         aggregatePrefix: 'gaia_build_',
         distributionDir: this.config.GAIA_DISTRIBUTION_DIR
       };
-    }
-    if (this.config.LOCALE_BASEDIR) {
-      // Bug 952901: remove getLocaleBasedir() if bug 952900 fixed.
-      var localeBasedir = getLocaleBasedir(this.config.LOCALE_BASEDIR);
-      this.instance.l10nManager = new multilocale.L10nManager(
-        this.config.GAIA_DIR,
-        this.instance.sharedFolder.path,
-        this.config.LOCALES_FILE,
-        localeBasedir);
     }
     return this.instance;
   }
@@ -320,6 +318,15 @@ var gaia = {
 function getLocaleBasedir(original) {
   return (getOsType().indexOf('WIN') !== -1) ?
     original.replace('/', '\\', 'g') : original;
+}
+
+function existsInAppDirs(appDirs, appName) {
+  var apps = appDirs.split(' ');
+  var exists = apps.some(function (appPath) {
+    let appFile = getFile(appPath);
+    return (appName === appFile.leafName);
+  });
+  return exists;
 }
 
 function getDistributionFileContent(name, defaultContent, distDir) {
@@ -372,7 +379,7 @@ function deleteFile(path, recursive) {
  * Note: this function is a wrapper function  for node.js
  */
 function listFiles(path, type, recursive, exclude) {
-  var file = getFile(path);
+  var file = (typeof path === 'string' ? getFile(path) : path);
   if (!file.isDirectory()) {
     throw new Error('the path is not a directory.');
   }
@@ -671,20 +678,19 @@ function Commander(cmd) {
   var command =
     (getOsType().indexOf('WIN') !== -1 && cmd.indexOf('.exe') === -1) ?
     cmd + '.exe' : cmd;
-  var _path;
   var _file = null;
 
   // paths can be string or array, we'll eventually store one workable
   // path as _path.
   this.initPath = function(paths) {
     if (typeof paths === 'string') {
-      _path = paths;
+      var file = getFile(paths, command);
+      _file = file.exists() ? file : null;
     } else if (typeof paths === 'object' && paths.length) {
       for (var p in paths) {
         try {
           var result = getFile(paths[p], command);
           if (result && result.exists()) {
-            _path = paths[p];
             _file = result;
             break;
           }
@@ -750,8 +756,10 @@ function killAppByPid(appName, gaiaDir) {
   var content = getFileContent(tempFile);
   var pidMap = utils.psParser(content);
   sh.run(['-c', 'rm ' + tempFileName]);
-  if (pidMap[appName] && pidMap[appName].PID) {
-    sh.run(['-c', 'adb shell kill ' + pidMap[appName].PID]);
+  // b2g-ps only show first 15 letters of app name
+  var truncatedAppName = appName.substr(0, 15);
+  if (pidMap[truncatedAppName] && pidMap[truncatedAppName].PID) {
+    sh.run(['-c', 'adb shell kill ' + pidMap[truncatedAppName].PID]);
   }
 }
 
@@ -816,6 +824,51 @@ function getCompression(type) {
   }
 }
 
+function generateUUID() {
+  var uuidGenerator = Cc['@mozilla.org/uuid-generator;1']
+                      .createInstance(Ci.nsIUUIDGenerator);
+  return uuidGenerator.generateUUID();
+}
+
+function copyRec(source, target) {
+  var results = [];
+  var files = source.directoryEntries;
+  if (!target.exists())
+    target.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+
+  while (files.hasMoreElements()) {
+    var file = files.getNext().QueryInterface(Ci.nsILocalFile);
+    if (file.isDirectory()) {
+      var subFolder = target.clone();
+      subFolder.append(file.leafName);
+      copyRec(file, subFolder);
+    } else {
+      file.copyTo(target, file.leafName);
+    }
+  }
+}
+
+function createZip() {
+  var zip = Cc['@mozilla.org/zipwriter;1'].createInstance(Ci.nsIZipWriter);
+  return zip;
+}
+
+var scriptLoader = {
+  scripts: {},
+  load: function(path, exportObj) {
+    try {
+      if (this.scripts[path]) {
+        return;
+      }
+      Services.scriptloader.loadSubScript(path, exportObj);
+      this.scripts[path] = true;
+    } catch(e) {
+      delete this.scripts[path];
+      throw 'cannot load script from ' + path;
+    }
+  }
+};
+
 exports.Q = Promise;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -839,6 +892,10 @@ exports.getEnvPath = getEnvPath;
 exports.getLocaleBasedir = getLocaleBasedir;
 exports.getNewURI = getNewURI;
 exports.getOsType = getOsType;
+exports.generateUUID = generateUUID;
+exports.copyRec = copyRec;
+exports.createZip = createZip;
+exports.scriptLoader = scriptLoader;
 // ===== the following functions support node.js compitable interface.
 exports.deleteFile = deleteFile;
 exports.listFiles = listFiles;
@@ -866,3 +923,5 @@ exports.dirname = dirname;
 exports.basename = basename;
 exports.addEntryContentWithTime = addEntryContentWithTime;
 exports.getCompression = getCompression;
+exports.existsInAppDirs = existsInAppDirs;
+

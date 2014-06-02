@@ -1,0 +1,18 @@
+
+gaia-subheader {
+  display: block;
+  padding: 0.8rem 3rem;
+  border-bottom: solid 0.1rem #e6e6e6;
+  color: #424242;
+  font-size: 1.5rem;
+  line-height: 1.8rem;
+}
+
+/* -----------------------------------------------------------------
+  SKIN: organic
+----------------------------------------------------------------- */
+gaia-subheader[skin="organic"] {
+  border: none;
+  background-color: #e7e7e7;
+  color: #4d4d4d;
+}

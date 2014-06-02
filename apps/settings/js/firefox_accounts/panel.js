@@ -55,9 +55,7 @@ var FxaPanel = (function fxa_panel() {
   // if e.verified, user is logged in & verified.
   // if !e.verified, user is logged in & unverified.
   function onFxAccountStateChange(e) {
-    // XXX FxAccountsIACHelper currently is inconsistent about response format
-    //     fix this after 981210 lands (e.accountId vs e.email)
-    var email = e ? Normalizer.escapeHTML(e.accountId || e.email) : '';
+    var email = e ? Normalizer.escapeHTML(e.email) : '';
 
     if (!e) {
       hideLoggedInPanel();

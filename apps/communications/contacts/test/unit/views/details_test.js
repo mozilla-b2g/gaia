@@ -76,8 +76,6 @@ if (!window.ActivityHandler) {
   window.ActivityHandler = null;
 }
 
-mocha.globals(['fb', 'mozL10n']);
-
 var mocksHelperForDetailView = new MocksHelper([
   'ContactPhotoHelper',
   'LazyLoader',
@@ -441,6 +439,40 @@ suite('Render contact', function() {
       assert.include(container.innerHTML, contactMultTel.tel[1].carrier);
       assert.include(container.innerHTML, subject.defaultTelType);
       assert.equal(-1, container.innerHTML.indexOf('phone-details-template-2'));
+    });
+
+    test('highlight phone number', function() {
+
+      var contact = new MockContactAllFields(true);
+      contact.tel = [
+        {
+          value: '+48225363636',
+          type: ['Personal']
+        }
+      ];
+      subject.setContact(contact);
+      subject.render(null, TAG_OPTIONS);
+      subject.reMark('tel', contact.tel[0].value);
+      var phoneButton = container.querySelector('#call-or-pick-0');
+      assert.isTrue(phoneButton.classList.contains('remark'));
+
+    });
+
+    test('highlight phone number as missed', function() {
+
+      var contact = new MockContactAllFields(true);
+      contact.tel = [
+        {
+          value: '+48225363636',
+          type: ['Personal']
+        }
+      ];
+      subject.setContact(contact);
+      subject.render(null, TAG_OPTIONS);
+      subject.reMark('tel', contact.tel[0].value, 'remark-missed');
+      var phoneButton = container.querySelector('#call-or-pick-0');
+      assert.isTrue(phoneButton.classList.contains('remark-missed'));
+
     });
   });
 

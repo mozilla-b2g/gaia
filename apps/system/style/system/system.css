@@ -230,7 +230,7 @@ body {
   width: 100%;
   height: 2.4rem;
 
-  background: black;
+  background: rgba(0, 0, 0, .15);
   content: '';
 }
 
@@ -255,14 +255,7 @@ body {
   pointer-events: none;
 }
 
-@media not all and (-moz-physical-home-button) {
-  #dialog-overlay {
-    bottom: 5rem;
-    height: calc(100% - 2.4rem - 5rem);
-  }
-}
-
-#screen.software-button-enabled #windows > #dialog-overlay {
+#screen.software-button-enabled #windows + #dialog-overlay {
   bottom: 5rem;
   height: calc(100% - 2.4rem - 5rem);
 }

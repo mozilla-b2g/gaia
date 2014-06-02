@@ -34,7 +34,7 @@ requireApp('camera/js/vendor/alameda.js', function() {
     paths: {
       'asyncStorage': '../shared/js/async_storage',
       'getVideoRotation': '../shared/js/media/get_video_rotation',
-      'performanceTesting': '../shared/js/performance_testing_helper',
+      'performance-testing-helper': '../shared/js/performance_testing_helper',
       'jpegMetaDataParser': '../shared/js/media/jpeg_metadata_parser',
       'format': '../shared/js/format',
       'GestureDetector': '../shared/js/gesture_detector',
@@ -62,7 +62,7 @@ requireApp('camera/js/vendor/alameda.js', function() {
       'asyncStorage': {
         exports: 'asyncStorage'
       },
-      'performanceTesting': {
+      'performance-testing-helper': {
         exports: 'PerformanceTestingHelper'
       },
       'jpegMetaDataParser': {

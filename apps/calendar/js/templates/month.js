@@ -8,7 +8,7 @@
                 ' busy-length-' + this.h('length') +
                 ' busy-' + this.h('start') +
                 ' calendar-id-' + this.h('calendarId') +
-                ' calendar-color calendar-display' +
+                ' calendar-display' +
               '">' +
               '&nbsp;' +
             '</span>';
@@ -39,7 +39,7 @@
                   '" data-date="' + this.s('dateString') +
                   '" class="' + this.s('state') + '">' +
           '<span class="day">' + this.h('date') + '</span>' +
-          '<div class="busy-indicator">' + this.s('busy') + '</div>' +
+          '<div class="busy-indicator"></div>' +
         '</li>';
     }
   });

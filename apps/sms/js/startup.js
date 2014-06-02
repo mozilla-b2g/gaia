@@ -5,14 +5,10 @@
 
 /*global Utils, ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
          Settings, LazyLoader, TimeHeaders, Information,
-         PerformanceTestingHelper, App */
+         PerformanceTestingHelper, App, Navigation */
 
-window.addEventListener('localized', function localized() {
+navigator.mozL10n.ready(function localized() {
   // This will be called during startup, and any time the languange is changed
-
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
 
   // Look for any iframes and localize them - mozL10n doesn't do this
   Array.prototype.forEach.call(document.querySelectorAll('iframe'),
@@ -48,11 +44,24 @@ window.addEventListener('localized', function localized() {
     }
   );
 
+  // Re-translate the placeholder messages
+  Array.prototype.forEach.call(
+    document.getElementsByClassName('js-l10n-placeholder'),
+    function(element) {
+      var id = element.getAttribute('id');
+
+      var l10nId = Utils.camelCase(id);
+      element.dataset.placeholder =
+        navigator.mozL10n.get(l10nId + '_placeholder');
+    }
+  );
+
 });
 
 window.addEventListener('load', function() {
   PerformanceTestingHelper.dispatch('load');
   function initUIApp() {
+    Navigation.init();
     TimeHeaders.init();
     ActivityHandler.init();
 

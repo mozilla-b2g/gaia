@@ -35,16 +35,23 @@ class MessageThread(Base):
     def all_messages(self):
         return [Message(self.marionette, message) for message in self.marionette.find_elements(*self._all_messages_locator)]
 
-    def tap_header(self):
+    @property
+    def header_text(self):
         self.wait_for_element_displayed(*self._message_header_locator)
+        return self.marionette.find_element(*self._message_header_locator).text
+
+    def tap_header(self):
+        self.wait_for_condition(lambda m: m.find_element(*self._back_header_link_locator).location['x'] == 0)
         self.marionette.find_element(*self._message_header_locator).tap()
+
+        from gaiatest.apps.messages.regions.activities import Activities
+        return Activities(self.marionette)
 
     def tap_call(self):
         self.marionette.find_element(*self._call_button_locator).tap()
         self.wait_for_element_not_displayed(*self._call_button_locator)
         from gaiatest.apps.phone.regions.keypad import Keypad
         keypad = Keypad(self.marionette)
-        keypad.switch_to_keypad_frame()
         keypad.wait_for_phone_number_ready()
         return keypad
 

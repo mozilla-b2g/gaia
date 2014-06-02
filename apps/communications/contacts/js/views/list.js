@@ -52,7 +52,9 @@ contacts.List = (function() {
       boundSelectAction4Select = null,
       // Dictionary by contact id with the rows on screen
       rowsOnScreen = {},
-      selectedContacts = {};
+      selectedContacts = {},
+      _notifyRowOnScreenCallback = null,
+      _notifyRowOnScreenUUID = null;
 
   // Possible values for the configuration field 'defaultContactsOrder'
   // config.json file (see bug 841693)
@@ -110,6 +112,11 @@ contacts.List = (function() {
     if (imgLoader && needImgLoaderReload) {
       needImgLoaderReload = false;
       imgLoader.reload();
+    }
+
+    if (_notifyRowOnScreenUUID === id) {
+      _notifyRowOnScreenCallback(row);
+      _clearNotifyRowOnScreenByUUID();
     }
 
     monitor && monitor.resumeMonitoringMutations(false);
@@ -360,6 +367,7 @@ contacts.List = (function() {
     title.appendChild(letterAbbr);
 
     var contactsContainer = document.createElement('ol');
+    contactsContainer.setAttribute('role', 'listbox');
     contactsContainer.id = 'contacts-list-' + group;
     contactsContainer.dataset.group = group;
     letteredSection.appendChild(title);
@@ -449,6 +457,7 @@ contacts.List = (function() {
       container.dataset.fbUid = fbUid;
     }
     container.className = 'contact-item';
+    container.setAttribute('role', 'option');
     var timestampDate = contact.updated || contact.published || new Date();
     container.dataset.updated = timestampDate.getTime();
 
@@ -1711,7 +1720,7 @@ contacts.List = (function() {
                              'contact-text-selecting');
         row.dataset.selectStyleSet = true;
       }
-      
+
       var label = row.querySelector('label');
       if (isDangerSelectList) {
         label.classList.add('danger');
@@ -1827,6 +1836,36 @@ contacts.List = (function() {
     Contacts.updateSelectCountTitle(count);
   }
 
+  // Given a UUID we will call the callback function
+  // if the contact's row get displayed on the screen
+  // or is already on the screen. The callback will
+  // receive the row displayed on the screen.
+  // This method was created with testing purposes, and
+  // just tracks a single row, not multiple ones.
+  var notifyRowOnScreenByUUID = function notifyRowOnScreenByUUID(uuid,
+     callback) {
+    if (typeof callback !== 'function' || !uuid) {
+      return;
+    }
+
+    if (rowsOnScreen[uuid]) {
+      // Get the first group that is not favourites
+      var groups = Object.keys(rowsOnScreen[uuid]);
+      var group = groups.length > 1 ? groups[1] : groups[0];
+      callback(rowsOnScreen[uuid][group]);
+      _clearNotifyRowOnScreenByUUID();
+      return;
+    }
+
+    _notifyRowOnScreenCallback = callback;
+    _notifyRowOnScreenUUID = uuid;
+  };
+
+  function _clearNotifyRowOnScreenByUUID() {
+    _notifyRowOnScreenCallback = null;
+    _notifyRowOnScreenUUID = null;
+  }
+
   return {
     'init': init,
     'load': load,
@@ -1861,6 +1900,7 @@ contacts.List = (function() {
     },
     get isSelecting() {
       return inSelectMode;
-    }
+    },
+    'notifyRowOnScreenByUUID': notifyRowOnScreenByUUID
   };
 })();

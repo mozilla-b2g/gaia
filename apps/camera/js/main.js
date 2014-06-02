@@ -13,7 +13,7 @@ var Settings = require('lib/settings');
 var GeoLocation = require('lib/geo-location');
 var settingsData = require('config/config');
 var settings = new Settings(settingsData);
-var Camera = require('lib/camera');
+var Camera = require('lib/camera/camera');
 var App = require('app');
 
 /**
@@ -28,7 +28,6 @@ if (settingsData.globals) {
 /**
  * Create new `App`
  */
-
 var app = window.app = new App({
   settings: settings,
   geolocation: new GeoLocation(),
@@ -38,8 +37,7 @@ var app = window.app = new App({
   win: window,
 
   camera: new Camera({
-    cacheConfig: true,
-    cafEnabled: settings.caf.enabled()
+    focus: settingsData.focus
   }),
 
   controllers: {

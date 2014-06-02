@@ -172,6 +172,14 @@
       return details;
     },
 
+    extend: function ut_extend(target, source) {
+      for (var key in source) {
+        if (source.hasOwnProperty(key)) {
+          target[key] = source[key];
+        }
+      }
+    },
+
     getCarrierTag: function ut_getCarrierTag(input, tels, details) {
       /**
         1. If a phone number has carrier associated with it
@@ -333,8 +341,9 @@
         });
         return;
       }
+
       var ratio = Math.sqrt(blob.size / limit);
-      Utils.resizeImageBlobWithRatio({
+      Utils._resizeImageBlobWithRatio({
         blob: blob,
         limit: limit,
         ratio: ratio,
@@ -345,29 +354,45 @@
     //  resizeImageBlobWithRatio have additional ratio to force image
     //  resize to smaller size to avoid edge case about quality adjustment
     //  not working.
-    resizeImageBlobWithRatio: function ut_resizeImageBlobWithRatio(obj) {
+    //  For JPG images, a ratio between 2 and 8 will be set to a close
+    //  power of 2. A ratio between 1 and 2 will be set to 2. A ratio bigger
+    //  than 8 will be rounded to the closest bigger integer.
+    //
+    _resizeImageBlobWithRatio: function ut_resizeImageBlobWithRatio(obj) {
       var blob = obj.blob;
       var callback = obj.callback;
       var limit = obj.limit;
-      var ratio = obj.ratio;
-      var qualities = [0.75, 0.5, 0.25];
+      var ratio = Math.ceil(obj.ratio);
+      var qualities = [0.65, 0.5, 0.25];
 
-      if (blob.size < limit) {
+      var sampleSize = 1;
+      var sampleSizeHash = '';
+
+      if (blob.size < limit || ratio <= 1) {
         setTimeout(function blobCb() {
           callback(blob);
         });
         return;
       }
 
+      if (blob.type === 'image/jpeg') {
+        if (ratio >= 8) {
+          sampleSize = 8;
+        } else {
+          sampleSize = ratio = Utils.getClosestSampleSize(ratio);
+        }
+
+        sampleSizeHash = '#-moz-samplesize=' + sampleSize;
+      }
+
       var img = document.createElement('img');
       var url = window.URL.createObjectURL(blob);
-      img.src = url;
+      img.src = url + sampleSizeHash;
+
       img.onload = function onBlobLoaded() {
         window.URL.revokeObjectURL(url);
-        var imageWidth = img.width;
-        var imageHeight = img.height;
-        var targetWidth = imageWidth / ratio;
-        var targetHeight = imageHeight / ratio;
+        var targetWidth = img.width * sampleSize / ratio;
+        var targetHeight = img.height * sampleSize / ratio;
 
         var canvas = document.createElement('canvas');
         canvas.width = targetWidth;
@@ -375,6 +400,7 @@
         var context = canvas.getContext('2d', { willReadFrequently: true });
 
         context.drawImage(img, 0, 0, targetWidth, targetHeight);
+        img.src = '';
         // Bug 889765: Since we couldn't know the quality of the original jpg
         // The 'resized' image might have a bigger size because it was saved
         // with quality or dpi. Here we will adjust the jpg quality(or resize
@@ -382,12 +408,22 @@
         // sure the size won't exceed the limitation.
         var level = 0;
 
+        function cleanup() {
+          canvas.width = canvas.height = 0;
+          canvas = null;
+        }
+
         function ensureSizeLimit(resizedBlob) {
           if (resizedBlob.size < limit) {
-            callback(resizedBlob);
+            cleanup();
+
+            // using a setTimeout so that used objects can be garbage collected
+            // right now
+            setTimeout(callback.bind(null, resizedBlob));
           } else {
+            resizedBlob = null; // we don't need it anymore
             // Reduce image quality for match limitation. Here we set quality
-            // to 0.75, 0.5 and 0.25 for image blob resizing.
+            // to 0.65, 0.5 and 0.25 for image blob resizing.
             // (Default image quality is 0.92 for jpeg)
             if (level < qualities.length) {
               canvas.toBlob(ensureSizeLimit, 'image/jpeg',
@@ -395,18 +431,42 @@
             } else {
               // We will resize the blob if image quality = 0.25 still exceed
               // size limitation.
-              Utils.resizeImageBlobWithRatio({
-                blob: blob,
-                limit: limit,
-                ratio: ratio * 2,
-                callback: callback
-              });
+              cleanup();
+
+              // using a setTimeout so that used objects can be garbage
+              // collected right now
+              setTimeout(
+                Utils._resizeImageBlobWithRatio.bind(Utils, {
+                  blob: blob,
+                  limit: limit,
+                  ratio: ratio * 2,
+                  callback: callback
+                })
+              );
             }
           }
         }
+
         canvas.toBlob(ensureSizeLimit, blob.type);
       };
     },
+
+    getClosestSampleSize: function ut_getClosestSampleSize(ratio) {
+      if (ratio >= 8) {
+        return 8;
+      }
+
+      if (ratio >= 4) {
+        return 4;
+      }
+
+      if (ratio >= 2) {
+        return 2;
+      }
+
+      return 1;
+    },
+
     // Return the url path with #-moz-samplesize postfix and downsampled image
     // could be loaded directly from backend graphics lib.
     getDownsamplingSrcUrl: function ut_getDownsamplingSrcUrl(options) {

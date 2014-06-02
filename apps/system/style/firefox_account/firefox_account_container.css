@@ -5,16 +5,6 @@
   background: white;
 }
 
-#fxa-dialog.isFTU {
-  /* 
-   * In the case of FTU, we need to use the whole space available,
-   * including the one used for the tray (during the FTU there is
-   * no tray).
-   */
-  height: calc(100% + 2rem);
-}
-
-
 #fxa-dialog.fxa-dialog {
   animation: show-fx-acct .5s;
 }

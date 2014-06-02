@@ -31,7 +31,7 @@ function SettingsController(app) {
   this.settings = app.settings;
   this.activity = app.activity;
   this.notification = app.views.notification;
-  this.localize = app.localize;
+  this.l10nGet = app.l10nGet;
 
   // Allow test stubs
   this.nav = app.nav || navigator;
@@ -177,12 +177,18 @@ SettingsController.prototype.onPickActivity = function(data) {
  * Display a notifcation showing the
  * current state of the given setting.
  *
+ * If `notification` is `false in config
+ * for a setting then we don't show one.
+ *
  * @param  {Setting} setting
  * @private
  */
 SettingsController.prototype.notify = function(setting, flashDeactivated) {
-  var optionTitle = this.localize(setting.selected('title'));
-  var title = this.localize(setting.get('title'));
+  var dontNotify = setting.get('notifications') === false;
+  if (dontNotify) { return; }
+
+  var optionTitle = this.l10nGet(setting.selected('title'));
+  var title = this.l10nGet(setting.get('title'));
   var html;
 
   // Check if the `flashMode` setting is going to be deactivated as part
@@ -190,7 +196,7 @@ SettingsController.prototype.notify = function(setting, flashDeactivated) {
   // notification if that is the case
   if (flashDeactivated) {
     html = title + ' ' + optionTitle + '<br/>' +
-      this.localize('flash-deactivated');
+      this.l10nGet('flash-deactivated');
   } else {
     html = title + '<br/>' + optionTitle;
   }
@@ -288,7 +294,7 @@ SettingsController.prototype.configureRecorderProfiles = function(sizes) {
 SettingsController.prototype.formatPictureSizeTitles = function() {
   if (!this.app.localized()) { return; }
   var options = this.settings.pictureSizes.get('options');
-  var MP = this.localize('mp');
+  var MP = this.l10nGet('mp');
 
   options.forEach(function(size) {
     var data = size.data;
