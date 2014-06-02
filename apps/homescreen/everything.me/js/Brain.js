@@ -134,6 +134,47 @@
     }
   }
 
+  function updateCollectionBgImage(collectionSettings) {
+    var request;
+
+    var p = new window.Promise(function handler(resolve, reject) {
+      var query = collectionSettings.getQuery(),
+          checksum = collectionSettings.bg ?
+            collectionSettings.bg.checksum : null;
+
+      request = Evme.DoATAPI.bgimage({
+        '_checksum': checksum,
+        'query': query,
+        'feature': SEARCH_SOURCES.SHORTCUT_COLLECTION,
+        'exact': true,
+        'width': Evme.__config.bgImageSize[0],
+        'height': Evme.__config.bgImageSize[1]
+      }, function onSuccess(data) {
+        if (data.response) {
+          Evme.Collection.update(collectionSettings, {
+            'bg': {
+              'checksum': data.checksum,
+              'url': data.response.source,
+              'data': Evme.Utils.formatImageData(data.response.image),
+              'revision': data.response.image.revision
+            }
+          }, resolve);
+        } else {
+          reject();
+        }
+      });
+    });
+
+    // for backwards compatibility we return an 'abortable' object
+    p.abort = function abortWrapper() {
+      if (request.abort) {
+        request.abort();
+      }
+    };
+
+    return p;
+  }
+
   /*  EVENT HANDLERS */
 
   // Core.js
@@ -994,25 +1035,12 @@
     }
 
     function loadBGImage() {
-      if (!Evme.Collection.isOpen()) { return; }
-      if (Evme.Collection.userSetBg()) { return; }
+      var collectionSettings = Evme.Collection.getCurrentSettings();
 
-      var query = Evme.Collection.getQuery();
-
-      requestCollectionImage = Evme.DoATAPI.bgimage({
-        'query': query,
-        'feature': SEARCH_SOURCES.SHORTCUT_COLLECTION,
-        'exact': true,
-        'width': Evme.__config.bgImageSize[0],
-        'height': Evme.__config.bgImageSize[1]
-      }, function onSuccess(data) {
-        Evme.Collection.setBackground({
-          'image': Evme.Utils.formatImageData(data.response.image),
-          'query': query,
-          'source': data.response.source,
-          'setByUser': false
-        });
-
+      requestCollectionImage = updateCollectionBgImage(collectionSettings);
+      requestCollectionImage.then(function resolved() {
+        requestCollectionImage = null;
+      }, function rejected() {
         requestCollectionImage = null;
       });
     }
@@ -1305,6 +1333,8 @@
                 Evme.Collection.update(collectionSettings, {
                   'extraIconsData': extraIconsData
                 });
+
+                updateCollectionBgImage(collectionSettings);
               }
             });
         }
