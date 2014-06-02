@@ -416,10 +416,8 @@ function showInfoView() {
   MediaUtils.populateMediaInfo(data);
   // We need to disable NFC sharing when showing info view
   setNFCSharing(false);
-  if (playing) {
-    toolbarpause = true;
-    setVideoPlaying(false);
-    }
+  pausevideoplay();  
+
   //Show the video info view
   dom.infoView.classList.remove('hidden');
 }
@@ -427,10 +425,7 @@ function showInfoView() {
 function hideInfoView() {
   // Enable NFC sharing when user hides info and returns to fullscreen mode
   setNFCSharing(true);
-  if (!playing && (toolbarpause == true)) {
-    toolbarpause = false;
-    setVideoPlaying(true);
-    }
+  enablevideoplay();
   dom.infoView.classList.add('hidden');
 }
 
@@ -652,16 +647,15 @@ function share(blobs) {
       filepaths: fullpaths
     }
   });
-
+  a.onsuccess = function(s) {
+    enablevideoplay();
+};
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
       var msg = navigator.mozL10n.get('share-noprovider');
       alert(msg);
     } else {
-      if (!playing && (toolbarpause == true)) {
-        toolbarpause = false;
-        setVideoPlaying(true);
-      }
+      enablevideoplay();
       console.warn('share activity error:', a.error.name);
     }
   };
@@ -822,10 +816,7 @@ function setVideoPlaying(playing) {
 }
 
 function deleteCurrentVideo() {
-  if (playing) {
-    toolbarpause = true;
-    setVideoPlaying(false);
-  }
+  pausevideoplay();
   // We need to disable NFC sharing when showing delete confirmation dialog
   setNFCSharing(false);
   // If we're deleting the file shown in the player we've got to
@@ -845,10 +836,7 @@ function deleteCurrentVideo() {
   } else {
       // Enable NFC sharing when cancels delete and returns to fullscreen mode
       setNFCSharing(true);
-    if (!playing && (toolbarpause == true)) {
-        toolbarpause = false;
-        setVideoPlaying(true);
-      }
+      enablevideoplay();
   }
 }
 
@@ -876,10 +864,7 @@ function postPickResult() {
 }
 
 function shareCurrentVideo() {
-  if (playing) {
-    toolbarpause = true;
-    setVideoPlaying(false);
-  }
+  pausevideoplay();
   videodb.getFile(currentVideo.name, function(blob) {
     share([blob]);
   });
@@ -1329,4 +1314,20 @@ function showThrobber() {
 function hideThrobber() {
   dom.throbber.classList.add('hidden');
   dom.throbber.classList.remove('throb');
+}
+
+function pausevideoplay() {
+  if (playing) {
+    toolbarpause = true;
+    setVideoPlaying(false);
+    } else {
+    return;
+    }
+}
+
+function enablevideoplay() {
+  if (!playing && (toolbarpause == true)) {
+    toolbarpause = false;
+    setVideoPlaying(true);
+    }
 }
