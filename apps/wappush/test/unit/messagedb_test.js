@@ -95,198 +95,208 @@ suite('MessageDB', function() {
     }
   };
 
-  teardown(function(done) {
-    MessageDB.clear(done);
+  setup(function(done) {
+    MessageDB.clear().then(done, done);
   });
 
   suite('storing and retrieving messages', function() {
     test('message is stored', function(done) {
-      MessageDB.put(messages.current,
-        function putSuccess(status) {
-          assert.equal(status, 'new');
+      var results = {};
 
-          MessageDB.retrieve(messages.current.timestamp,
-            function retrieveSuccess(message) {
-              done(function checks() {
-                assert.equal(message.type, messages.current.type);
-                assert.equal(message.sender, messages.current.sender);
-                assert.equal(message.serviceId, messages.current.serviceId);
-                assert.equal(message.href, messages.current.href);
-                assert.equal(message.text, messages.current.text);
-              });
-            });
+      MessageDB.put(messages.current).then(function(status) {
+        results.status = status;
+        return MessageDB.retrieve(messages.current.timestamp);
+      }).then(function(message) {
+        done(function checks() {
+          assert.equal(results.status, 'new');
+          assert.equal(message.type, messages.current.type);
+          assert.equal(message.sender, messages.current.sender);
+          assert.equal(message.serviceId, messages.current.serviceId);
+          assert.equal(message.href, messages.current.href);
+          assert.equal(message.text, messages.current.text);
         });
+      }, done);
     });
 
     test('message is removed after retrieval', function(done) {
-      MessageDB.put(messages.current,
-        function putSuccess(status) {
-          MessageDB.retrieve(messages.current.timestamp,
-            function retrieveSuccess(message) {
-              MessageDB.retrieve(messages.current.timestamp,
-                function retrieveSuccess(message) {
-                  done(function checks() {
-                    assert.equal(message, null);
-                  });
-                });
-            });
+      MessageDB.put(messages.current).then(function() {
+        return MessageDB.retrieve(messages.current.timestamp);
+      }).then(function(message) {
+        return MessageDB.retrieve(messages.current.timestamp);
+      }).then(function(message) {
+        done(function checks() {
+          assert.isNull(message);
         });
+      }, done);
     });
   });
 
   suite('handling multiple messages', function() {
     test('storing multiple messages with the same si-id', function(done) {
-      MessageDB.put(messages.low, function putSuccess(status_low) {
-        MessageDB.put(messages.medium, function putSuccess(status_medium) {
-          MessageDB.put(messages.high, function putSuccess(status_high) {
-            MessageDB.retrieve(messages.low.timestamp,
-              function retrieveSuccess(low) {
-                MessageDB.retrieve(messages.medium.timestamp,
-                  function retrieveSuccess(medium) {
-                    MessageDB.retrieve(messages.high.timestamp,
-                      function retrieveSuccess(high) {
-                        done(function checks() {
-                          assert.equal(status_low, 'new');
-                          assert.equal(low.id, messages.low.id);
-                          assert.equal(low.action, messages.low.action);
-                          assert.equal(status_medium, 'new');
-                          assert.equal(medium.id, messages.medium.id);
-                          assert.equal(medium.action, messages.medium.action);
-                          assert.equal(status_high, 'new');
-                          assert.equal(high.id, 'http://www.mozilla.org');
-                          assert.equal(high.action, messages.high.action);
-                        });
-                      });
-                  });
-              });
-          });
+      var results = {};
+
+      MessageDB.put(messages.low).then(function(message) {
+        results.low = { stored: message, retrieved: null };
+        return MessageDB.put(messages.medium);
+      }).then(function(message) {
+        results.medium = { stored: message, retrieved: null };
+        return MessageDB.put(messages.high);
+      }).then(function(message) {
+        results.high = { stored: message, retrieved: null };
+        return MessageDB.retrieve(messages.low.timestamp);
+      }).then(function(message) {
+        results.low.retrieved = message;
+        return MessageDB.retrieve(messages.medium.timestamp);
+      }).then(function(message) {
+        results.medium.retrieved = message;
+        return MessageDB.retrieve(messages.high.timestamp);
+      }).then(function(message) {
+        results.high.retrieved = message;
+
+        done(function checks() {
+          assert.ok(results.low.stored);
+          assert.equal(results.low.retrieved.id, messages.low.id);
+          assert.equal(results.low.retrieved.action, messages.low.action);
+          assert.ok(results.medium.stored);
+          assert.equal(results.medium.retrieved.id, messages.medium.id);
+          assert.equal(results.medium.retrieved.action, messages.medium.action);
+          assert.ok(results.high.stored);
+          assert.equal(results.high.retrieved.id, messages.high.id);
+          assert.equal(results.high.retrieved.action, messages.high.action);
         });
-      });
+      }, done);
     });
   });
 
   suite('out-of-order message handling', function() {
     test('message is updated by newer message', function(done) {
-      MessageDB.put(messages.current,
-        function putSuccess(status) {
-          MessageDB.put(messages.newer,
-            function putSuccess(status) {
-              assert.equal(status, 'updated');
+      var results = {};
 
-              MessageDB.retrieve(messages.newer.timestamp,
-                function retrieveSuccess(message) {
-                  assert.equal(message.text, messages.newer.text);
-
-                  MessageDB.retrieve(messages.current.timestamp,
-                    function retrieveSuccess(message) {
-                      done(function checks() {
-                        assert.equal(message, null);
-                      });
-                    });
-                });
-            });
+      MessageDB.put(messages.current).then(function() {
+        return MessageDB.put(messages.newer);
+      }).then(function(status) {
+        results.status = status;
+        return MessageDB.retrieve(messages.newer.timestamp);
+      }).then(function(message) {
+        results.timestamp = message.timestamp;
+        results.text = message.text;
+        return MessageDB.retrieve(messages.current.timestamp);
+      }).then(function(message) {
+        done(function checks() {
+          assert.equal(results.status, 'updated');
+          assert.equal(results.timestamp, messages.current.timestamp);
+          assert.equal(results.text, messages.newer.text);
+          assert.isNull(message);
         });
+      }, done);
     });
 
     test('old message is discarded', function(done) {
-      MessageDB.put(messages.current,
-        function putSuccess(status) {
-          MessageDB.put(messages.older,
-            function putSuccess(status) {
-              assert.equal(status, 'discarded');
+      var results = {};
 
-              MessageDB.retrieve(messages.older.timestamp,
-                function retrieveSuccess(message) {
-                  done(function checks() {
-                    assert.equal(message, null);
-                  });
-                });
-            });
+      MessageDB.put(messages.current).then(function() {
+        return MessageDB.put(messages.older);
+      }).then(function(status) {
+        results.status = status;
+        return MessageDB.retrieve(messages.older.timestamp);
+      }).then(function(message) {
+        done(function checks() {
+          assert.equal(results.status, 'discarded');
+          assert.isNull(message);
         });
+      }, done);
     });
   });
 
   suite('message actions', function() {
     test('delete action removes all message with same id', function(done) {
-      MessageDB.put(messages.current,
-        function putSuccess() {
-          MessageDB.put(messages.delete,
-            function putSuccess(status) {
-              MessageDB.retrieve(messages.current.timestamp,
-                function retrieveSuccess(message) {
-                  done(function checks() {
-                    assert.equal(status, 'discarded');
-                    assert.equal(message, null);
-                  });
-                });
-            });
+      var results = {};
+
+      MessageDB.put(messages.current).then(function() {
+        return MessageDB.put(messages.delete);
+      }).then(function(status) {
+        results.status = status;
+        return MessageDB.retrieve(messages.current.timestamp);
+      }).then(function(message) {
+        done(function checks() {
+          assert.equal(results.status, 'discarded');
+          assert.isNull(message);
         });
+      }, done);
     });
 
     test('delete action messages are never stored', function(done) {
-      MessageDB.put(messages.delete, function putSuccess(status) {
-        MessageDB.retrieve(messages.delete.timestamp,
-          function retrieveSuccess(message) {
-            done(function checks() {
-              assert.equal(status, 'discarded');
-              assert.equal(message, null);
-            });
-          });
-      });
+      var results = {};
+
+      MessageDB.put(messages.delete).then(function(status) {
+        results.status = status;
+        return MessageDB.retrieve(messages.delete.timestamp);
+      }).then(function(message) {
+        done(function checks() {
+          assert.equal(results.status, 'discarded');
+          assert.isNull(message);
+        });
+      }, done);
     });
 
     test('old delete action is ignored', function(done) {
-      MessageDB.put(messages.current,
-        function putSuccess(status) {
-          MessageDB.put(messages.old_delete,
-            function putSuccess(status) {
-              assert.equal(status, 'discarded');
+      var results = {};
 
-              MessageDB.retrieve(messages.current.timestamp,
-                function retrieveSuccess(message) {
-                  done(function checks() {
-                    assert.ok(message);
-                  });
-                });
-            });
+      MessageDB.put(messages.current).then(function() {
+        return MessageDB.put(messages.old_delete);
+      }).then(function(status) {
+        results.status = status;
+        return MessageDB.retrieve(messages.current.timestamp);
+      }).then(function(message) {
+        done(function checks() {
+          assert.equal(results.status, 'discarded');
+          assert.ok(message);
         });
+      }, done);
     });
   });
 
   suite('deleting messages', function() {
     test('delete messages by timestamp', function(done) {
-      MessageDB.put(messages.low, function putSuccess(status_low) {
-        MessageDB.put(messages.medium, function putSuccess(status_medium) {
-          MessageDB.put(messages.high, function putSuccess(status_high) {
-            MessageDB.deleteByTimestamp(messages.medium.timestamp,
-              function deleteSuccess() {
-                MessageDB.deleteByTimestamp(messages.low.timestamp,
-                  function deleteSuccess() {
-                    MessageDB.deleteByTimestamp(messages.high.timestamp,
-                      function deleteSuccess() {
-                        MessageDB.retrieve(messages.low.timestamp,
-                          function retrieveSuccess(lowMessage) {
-                            MessageDB.retrieve(messages.medium.timestamp,
-                              function retrieveSuccess(mediumMessage) {
-                                MessageDB.retrieve(messages.high.timestamp,
-                                  function retrieveSuccess(highMessage) {
-                                    done(function checks() {
-                                      assert.equal(status_low, 'new');
-                                      assert.equal(status_medium, 'new');
-                                      assert.equal(status_high, 'new');
-                                      assert.equal(lowMessage, null);
-                                      assert.equal(mediumMessage, null);
-                                      assert.equal(highMessage, null);
-                                    });
-                                  });
-                              });
-                          });
-                      });
-                  });
-              });
-          });
+      var status_low = null;
+      var status_medium = null;
+      var status_high = null;
+      var message_low = null;
+      var message_medium = null;
+      var message_high = null;
+
+      MessageDB.put(messages.low).then(function(status) {
+        status_low = status;
+        return MessageDB.put(messages.medium);
+      }).then(function(status) {
+        status_medium = status;
+        return MessageDB.put(messages.high);
+      }).then(function(status) {
+        status_high = status;
+        return MessageDB.deleteByTimestamp(messages.low.timestamp);
+      }).then(function() {
+        return MessageDB.deleteByTimestamp(messages.medium.timestamp);
+      }).then(function() {
+        return MessageDB.deleteByTimestamp(messages.high.timestamp);
+      }).then(function() {
+        return MessageDB.retrieve(messages.low.timestamp);
+      }).then(function(message) {
+        message_low = message;
+        return MessageDB.retrieve(messages.medium.timestamp);
+      }).then(function(message) {
+        message_medium = message;
+        return MessageDB.retrieve(messages.high.timestamp);
+      }).then(function(message) {
+        message_high = message;
+        done(function checks() {
+          assert.equal(status_low, 'new');
+          assert.equal(status_medium, 'new');
+          assert.equal(status_high, 'new');
+          assert.isNull(message_low);
+          assert.isNull(message_medium);
+          assert.isNull(message_high);
         });
-      });
+      }, done);
     });
   });
 });
