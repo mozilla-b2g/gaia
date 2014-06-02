@@ -4,6 +4,7 @@
   /* global Search */
   /* global SearchDedupe */
   /* global UrlHelper */
+  /* global SettingsListener */
 
   // timeout before notifying providers
   var SEARCH_DELAY = 600;
@@ -12,6 +13,14 @@
     _port: null,
 
     providers: {},
+
+    /**
+     * Template to construct search query URL. Set from search.urlTemplate
+     * setting. {searchTerms} is replaced with user provided search terms.
+     *
+     * 'everything.me' is a special case which uses the e.me UI instead.
+     */
+    urlTemplate: 'everything.me',
 
     searchResults: document.getElementById('search-results'),
     newTabPage: document.getElementById('newtab-page'),
@@ -52,6 +61,14 @@
           self.providers[i].init(self);
         }
       }
+
+      // Listen for changes in default search engine
+      SettingsListener.observe('search.urlTemplate', false,
+        function(value) {
+        if (value) {
+          this.urlTemplate = value;
+        }
+      }.bind(this));
     },
 
     /**
@@ -136,7 +153,14 @@
 
       // Not a valid URL, could be a search term
       if (UrlHelper.isNotURL(input)) {
-        this.expandSearch(input);
+        // Special case for everything.me
+        if (this.urlTemplate == 'everything.me') {
+          this.expandSearch(input);
+        // Other search providers show results in the browser
+        } else {
+          var url = this.urlTemplate.replace('{searchTerms}', input);
+          this.navigate(url);
+        }
         return;
       }
 
