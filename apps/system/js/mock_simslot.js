@@ -4,12 +4,14 @@
 var MockSIMSlot = function(conn, index) {
   this.conn = conn;
   this.index = index;
+  this.absent = false;
+  this.locked = false;
   this.simCard = {
     cardState: null
   };
   this.update = function() {};
-  this.isAbsent = function() {};
-  this.isLocked = function() { return false; };
+  this.isAbsent = function() { return this.absent; };
+  this.isLocked = function() { return this.locked; };
   // Inject method
   ['sendStkResponse', 'sendStkMenuSelection',
     'sendStkTimerExpiration', 'sendStkEventDownload'].forEach(function(name) {
