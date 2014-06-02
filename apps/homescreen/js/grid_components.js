@@ -123,5 +123,11 @@ Collection.prototype = {
     window.dispatchEvent(new CustomEvent('collectionlaunch', {
       'detail': features
     }));
+  },
+
+  getDescriptor: function sc_getDescriptor() {
+    var descriptor = GridItem.prototype.getDescriptor.call(this);
+    descriptor.providerId = this.providerId;
+    return descriptor;
   }
 };
