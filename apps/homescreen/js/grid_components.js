@@ -43,8 +43,14 @@ var GridItem = function GridItem(params) {
     };
   }
 
+  // collection apps
   if (params.apps) {
     this.manifest.apps = params.apps;
+  }
+
+  // collection background
+  if (params.background) {
+    this.manifest.background = params.background;
   }
 
   this.useAsyncPanZoom = 'useAsyncPanZoom' in params && params.useAsyncPanZoom;
