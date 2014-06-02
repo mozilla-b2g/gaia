@@ -206,8 +206,28 @@
       // additional function call by doing this check inline.
       if (element.tagName === 'H1' && element.parentNode &&
           element.parentNode.tagName === 'HEADER') {
-        this.autoResizeElement(evt.target);
+        this.reformatHeaderText(element);
       }
+    },
+
+    /**
+     * Resize and reposition the header text based on string length and
+     * container position.
+     *
+     * @param {HTMLElement} header h1 text inside header to reformat.
+     */
+    reformatHeaderText: function(header) {
+      FontSizeUtils.autoResizeElement(header);
+      FontSizeUtils.centerTextToScreen(header);
+    },
+
+    /**
+     * Center an elements text based on screen position rather than container.
+     *
+     * @param {HTMLElement} element The element whose text we want to center.
+     */
+    centerTextToScreen: function(element) {
+      // TODO: fill in centering logic here
     },
 
     /**
