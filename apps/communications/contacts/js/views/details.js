@@ -13,6 +13,7 @@
 /* global SCALE_RATIO */
 /* global TelephonyHelper */
 /* global utils */
+/* global TAG_OPTIONS */
 
 var contacts = window.contacts || {};
 
@@ -42,7 +43,6 @@ contacts.Details = (function() {
       cover,
       favoriteMessage,
       detailsInner,
-      TAG_OPTIONS,
       dom,
       currentSocial,
       _;
@@ -165,7 +165,7 @@ contacts.Details = (function() {
   var render = function cd_render(currentContact, tags, fbContactData) {
     contactData = currentContact || contactData;
 
-    TAG_OPTIONS = tags || TAG_OPTIONS;
+    //TAG_OPTIONS = tags || TAG_OPTIONS;
     isFbContact = fb.isFbContact(contactData);
     isFbLinked = fb.isFbLinked(contactData);
 
