@@ -205,7 +205,8 @@ Mockfb.Contact = function(devContact, mozCid) {
           'test@test.com': true,
           'Palencia': true,
           'Castilla y León': true,
-          'España': true
+          'España': true,
+          'Test ORG': true
         };
         this.result[1][date] = true;
 

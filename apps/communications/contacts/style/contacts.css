@@ -220,28 +220,6 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   width: calc(100% - 5rem);
 }
 
-/* FB info (non-editable) */
-.view-edit-contact .facebook fieldset legend,
-.view-edit-contact .facebook fieldset input[type="date"] {
-  width: 100%;
-  border-color: #acbee4;
-  color: #8d9abb;
-  background-image: url(fb/dialog.svg);
-}
-
-.view-edit-contact .facebook input {
-  border-color: #acbee4;
-  color: #8d9abb;
-}
-
-.view-edit-contact .facebook span {
-  color: #8d9abb;
-}
-
-.view-edit-contact .facebook input[value=""] {
-  display: none;
-}
-
 hr {
   background-color: #BCBCBC;
   border: 0;
