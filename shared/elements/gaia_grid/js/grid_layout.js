@@ -1,5 +1,5 @@
 'use strict';
-
+/* global devicePixelRatio */
 /* global verticalPreferences */
 
 (function(exports) {
@@ -100,8 +100,10 @@
      * applied in dragdrop
      */
     get gridMaxIconSize() {
-      return (windowWidth / iconScaleFactorMinIconsPerRow) *
+      var scaledSize = (windowWidth / iconScaleFactorMinIconsPerRow) *
               this.gridView.dragdrop.maxActiveScale;
+      scaledSize *= devicePixelRatio;
+      return scaledSize;
     },
 
     /**

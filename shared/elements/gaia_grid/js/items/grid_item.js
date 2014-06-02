@@ -1,4 +1,5 @@
 'use strict';
+/* global devicePixelRatio */
 /* global IconRetriever */
 /* global LazyLoader */
 
@@ -8,12 +9,15 @@
   const SHADOW_OFFSET_Y = 1;
   const SHADOW_OFFSET_X = 1;
   const SHADOW_COLOR = 'rgba(0, 0, 0, 0.2)';
-  const CANVAS_PADDING = 2;
+  const UNSCALED_CANVAS_PADDING = 2;
+  const CANVAS_PADDING = UNSCALED_CANVAS_PADDING * devicePixelRatio;
 
   /**
    * Represents a generic grid item from which other items can inherit from.
    */
-  function GridItem() {}
+  function GridItem() {
+    this.detail = {};
+  }
 
   GridItem.prototype = {
 
@@ -88,7 +92,7 @@
      * @param {HTMLImageElement} img An image element to display from.
      */
     displayFromImage: function(img) {
-      const MAX_ICON_SIZE = this.grid.layout.gridIconSize;
+      const MAX_ICON_SIZE = this.grid.layout.gridIconSize * devicePixelRatio;
 
       var shadowCanvas = document.createElement('canvas');
       shadowCanvas.width = MAX_ICON_SIZE + (CANVAS_PADDING * 2);
@@ -136,8 +140,8 @@
     renderIconFromBlob: function(blob) {
       this.element.style.height = this.grid.layout.gridItemHeight + 'px';
       this.element.style.backgroundSize =
-        ((this.grid.layout.gridIconSize * (1 / this.scale)) + CANVAS_PADDING) +
-        'px';
+        ((this.grid.layout.gridIconSize * (1 / this.scale)) +
+        UNSCALED_CANVAS_PADDING) +'px';
       this.element.style.backgroundImage =
         'url(' + URL.createObjectURL(blob) + ')';
     },
