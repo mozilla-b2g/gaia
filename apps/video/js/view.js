@@ -30,6 +30,14 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var touchStartID = null;
   var isPausedWhileDragging;
   var sliderRect;
+  var powerManager = navigator.mozPower;
+
+  const CRITICAL_BATTERY_LEVEL = {
+   'FIVE': 5,
+   'FIFTEEN': 15
+  };
+
+  const LOW_POWER_BRIGHTNESS = 0.5;
 
   initUI();
 
@@ -156,6 +164,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     window.addEventListener('localized', function showBody() {
       document.documentElement.lang = navigator.mozL10n.language.code;
       document.documentElement.dir = navigator.mozL10n.language.direction;
+      lowBatteryHandler();
     });
   }
 
@@ -312,7 +321,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   }
 
   function handleError(msg) {
-    alert(msg);
+    setTimeout(function() {
+      alert(msg);
+    });
     done();
   }
 
@@ -461,5 +472,30 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
   function hideSpinner() {
     dom.spinnerOverlay.classList.add('hidden');
+  }
+
+// We need to handle Low Battery scenario
+  function lowBatteryHandler() {
+    BatteryHelper.addBatteryListener(CRITICAL_BATTERY_LEVEL.FIVE,
+    function fun(value) {
+      var msg = navigator.mozL10n.get('low-battery-less-than-5percent');
+      handleError(msg);
+    });
+
+    BatteryHelper.addBatteryListener(CRITICAL_BATTERY_LEVEL.FIFTEEN,
+    function(value) {
+      var msg = navigator.mozL10n.get('low-battery-less-than-15percent');
+      var player = document.getElementById('videoBar');
+      player.classList.add('hidden');
+      showBanner(msg);
+      window.setTimeout(function() {
+        player.classList.remove('hidden');
+      }, 4000);
+      if (powerManager) {
+        if (powerManager.screenBrightness > LOW_POWER_BRIGHTNESS) {
+          powerManager.screenBrightness = LOW_POWER_BRIGHTNESS;
+        }
+      }
+    });
   }
 });
