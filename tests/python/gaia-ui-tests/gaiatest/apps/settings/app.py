@@ -10,6 +10,7 @@ class Settings(Base):
 
     name = 'Settings'
 
+    _app_loaded_locator = (By.CSS_SELECTOR, 'body[data-ready="true"]')
     _header_text_locator = (By.CSS_SELECTOR, '#root > header > h1')
     _data_text_locator = (By.ID, 'data-desc')
     _airplane_switch_locator = (By.XPATH, "//input[@id='airplaneMode-input']/..")
@@ -32,9 +33,7 @@ class Settings(Base):
 
     def launch(self):
         Base.launch(self)
-        # _currentPanel is set after all handlers are set
-        self.wait_for_condition(lambda m:
-                                m.execute_script("return window.wrappedJSObject.Settings && window.wrappedJSObject.Settings._currentPanel === '#root'"))
+        self.wait_for_element_present(*self._app_loaded_locator)
 
     def wait_for_airplane_toggle_ready(self):
         checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
