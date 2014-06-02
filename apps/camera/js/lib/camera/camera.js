@@ -529,7 +529,7 @@ Camera.prototype.setPictureSize = function(size, options) {
     }
   }
 
-  this.mozCamera.pictureSize = size;
+  this.mozCamera.setPictureSize(size);
   this.pictureSize = size;
   this.setThumbnailSize();
 
@@ -591,9 +591,9 @@ Camera.prototype.getRecorderProfile = function() {
 
 Camera.prototype.setThumbnailSize = function() {
   var sizes = this.mozCamera.capabilities.thumbnailSizes;
-  var pictureSize = this.mozCamera.pictureSize;
+  var pictureSize = this.mozCamera.getPictureSize();
   var picked = this.pickThumbnailSize(sizes, pictureSize);
-  if (picked) { this.mozCamera.thumbnailSize = picked; }
+  if (picked) { this.mozCamera.setThumbnailSize(picked); }
 };
 
 /**
