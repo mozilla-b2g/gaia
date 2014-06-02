@@ -3673,7 +3673,7 @@ suite('thread_ui.js >', function() {
         // Dispatch custom event for testing long press
         link.dispatchEvent(contextMenuEvent);
         assert.ok(MockOptionMenu.calls.length, 1);
-      
+
         // Confirm that the menu doesn't contained a "resend-message" option
         assert.isTrue(MockOptionMenu.calls[0].items.every(function(item){
           return item.l10nId !== 'resend-message';
@@ -6081,6 +6081,37 @@ suite('thread_ui.js >', function() {
       ThreadUI.onMessageSendRequestCompleted();
 
       sinon.assert.notCalled(ThreadUI.sentAudio.play);
+    });
+  });
+
+  suite('Keyboard should not close when slightly missing the send button',
+        function() {
+    var touchstartEvent;
+    setup(function() {
+      touchstartEvent = new CustomEvent(
+        'touchstart',
+        {bubbles: true, cancelable: true}
+      );
+    });
+
+    test('should prevent the touch', function() {
+      composeForm.dispatchEvent(touchstartEvent);
+      assert.isTrue(touchstartEvent.defaultPrevented);
+    });
+
+    test('should not prevent touch on message input', function() {
+      input.dispatchEvent(touchstartEvent);
+      assert.isFalse(touchstartEvent.defaultPrevented);
+    });
+
+    test('should not prevent touch on message subject', function() {
+      subject.dispatchEvent(touchstartEvent);
+      assert.isFalse(touchstartEvent.defaultPrevented);
+    });
+
+    test('should not prevent touch on message send button', function() {
+      sendButton.dispatchEvent(touchstartEvent);
+      assert.isFalse(touchstartEvent.defaultPrevented);
     });
   });
 });
