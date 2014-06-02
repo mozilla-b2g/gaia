@@ -367,6 +367,7 @@ contacts.List = (function() {
     title.appendChild(letterAbbr);
 
     var contactsContainer = document.createElement('ol');
+    contactsContainer.setAttribute('role', 'listbox');
     contactsContainer.id = 'contacts-list-' + group;
     contactsContainer.dataset.group = group;
     letteredSection.appendChild(title);
@@ -456,6 +457,7 @@ contacts.List = (function() {
       container.dataset.fbUid = fbUid;
     }
     container.className = 'contact-item';
+    container.setAttribute('role', 'option');
     var timestampDate = contact.updated || contact.published || new Date();
     container.dataset.updated = timestampDate.getTime();
 
