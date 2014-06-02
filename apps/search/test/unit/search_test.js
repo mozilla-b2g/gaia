@@ -235,7 +235,8 @@ suite('search/search', function() {
       assert.ok(stub.calledOnce);
     });
 
-    test('calls fetchImage for BGImage', function() {
+    // Disabled due to https://bugzilla.mozilla.org/show_bug.cgi?id=1018572
+    test.skip('calls fetchImage for BGImage', function() {
       var searchStub = this.sinon.stub(Search.providers.BGImage, 'fetchImage');
       Search.expandSearch();
       assert.ok(searchStub.calledOnce);
