@@ -33,6 +33,17 @@ suite('search/providers/provider', function() {
     });
   });
 
+  suite('abort', function() {
+    test('calls abort on the current request', function() {
+      subject.request = {
+        abort: function() {}
+      };
+      var stub = this.sinon.stub(subject.request, 'abort');
+      subject.abort();
+      assert.ok(stub.calledOnce);
+    });
+  });
+
   suite('clear', function() {
     test('clears container', function() {
       subject.init();
