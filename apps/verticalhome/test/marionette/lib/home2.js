@@ -15,7 +15,8 @@ Home2.clientOptions = {
     'dom.w3c_touch_events.enabled': 1
   },
   settings: {
-    'homescreen.manifestURL': 'app://home2.gaiamobile.org/manifest.webapp',
+    'homescreen.manifestURL':
+      'app://verticalhome.gaiamobile.org/manifest.webapp',
     'ftu.manifestURL': null,
     'keyboard.ftu.enabled': false,
     'lockscreen.enabled': false,
@@ -26,7 +27,7 @@ Home2.clientOptions = {
 /**
  * @type String Origin of Home2 app
  */
-Home2.URL = 'app://home2.gaiamobile.org';
+Home2.URL = 'app://verticalhome.gaiamobile.org';
 
 Home2.Selectors = {
   search: '#search',

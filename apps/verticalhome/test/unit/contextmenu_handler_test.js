@@ -5,8 +5,8 @@
 
 require('/shared/test/unit/load_body_html_helper.js');
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
-requireApp('home2/test/unit/mock_l10n.js');
-requireApp('home2/js/contextmenu_ui.js');
+require('/test/unit/mock_l10n.js');
+require('/js/contextmenu_ui.js');
 
 var mocksHelperForContextMenuHandler = new MocksHelper([
   'LazyLoader'
@@ -22,7 +22,7 @@ suite('contextmenu_handler.js >', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     loadBodyHTML('/index.html');
-    requireApp('home2/js/contextmenu_handler.js', done);
+    require('/js/contextmenu_handler.js', done);
   });
 
   suiteTeardown(function() {

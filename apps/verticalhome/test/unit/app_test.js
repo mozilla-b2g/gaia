@@ -3,14 +3,14 @@
 /* global MocksHelper, loadBodyHTML */
 
 require('/shared/test/unit/load_body_html_helper.js');
-requireApp('home2/shared/elements/gaia_grid/js/grid_dragdrop.js');
-requireApp('home2/shared/elements/gaia_grid/js/grid_layout.js');
-requireApp('home2/shared/elements/gaia_grid/js/grid_view.js');
-requireApp('home2/shared/elements/gaia_grid/js/grid_zoom.js');
+require('/shared/elements/gaia_grid/js/grid_dragdrop.js');
+require('/shared/elements/gaia_grid/js/grid_layout.js');
+require('/shared/elements/gaia_grid/js/grid_view.js');
+require('/shared/elements/gaia_grid/js/grid_zoom.js');
 require('/shared/elements/gaia_grid/js/items/grid_item.js');
 require('/shared/elements/gaia_grid/js/items/placeholder.js');
-requireApp('home2/shared/elements/gaia_grid/script.js');
-requireApp('home2/test/unit/mock_item_store.js');
+require('/shared/elements/gaia_grid/script.js');
+require('/test/unit/mock_item_store.js');
 
 var mocksHelperForApp = new MocksHelper([
   'ItemStore'
@@ -29,7 +29,7 @@ suite('app.js > ', function() {
 
   setup(function(done) {
     loadBodyHTML('/index.html');
-    requireApp('home2/js/app.js', function() {
+    require('/js/app.js', function() {
       initialize();
       assert.ok(app.homescreenFocused);
       done();

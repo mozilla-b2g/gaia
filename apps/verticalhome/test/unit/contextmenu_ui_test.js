@@ -4,8 +4,8 @@
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/load_body_html_helper.js');
-requireApp('home2/js/wallpaper.js');
-requireElements('home2/elements/contextmenu.html');
+require('/js/wallpaper.js');
+requireElements('verticalhome/elements/contextmenu.html');
 
 var mocksHelperForContextMenuUI = new MocksHelper([
   'LazyLoader'
@@ -20,7 +20,7 @@ suite('contextmenu_ui.js >', function() {
   });
 
   setup(function(done) {
-    requireApp('home2/js/contextmenu_ui.js', done);
+    require('/js/contextmenu_ui.js', done);
   });
 
   suiteTeardown(function() {
