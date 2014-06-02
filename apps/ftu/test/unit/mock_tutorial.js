@@ -7,5 +7,12 @@ var MockTutorial = {
   init: function() {},
   jumpTo: function() {},
   jumpToExitStep: function() {},
-  manageStep: function() {}
+  manageStep: function() {},
+  loadConfig: function() {
+    return {
+      then: function(cb) {
+        cb();
+      }
+    };
+  }
 };
