@@ -35,7 +35,7 @@ window.GaiaHeader = (function(win) {
     this._actionButton = this._template.getElementById('action-button');
     this._header = this._template.getElementById('header');
     this._configureActionButton();
-    this._configureSkin();
+    this._configureIcons();
     this._actionButton.addEventListener(
       'click', proto._onActionButtonClick.bind(this)
     );
@@ -53,8 +53,8 @@ window.GaiaHeader = (function(win) {
   proto.attributeChangedCallback = function(attr, oldVal, newVal) {
     if (attr === 'action') {
       this._configureActionButton();
-    } else if (attr === 'skin') {
-      this._configureSkin();
+    } else if (attr === 'icons') {
+      this._configureIcons();
     }
   };
 
@@ -93,8 +93,8 @@ window.GaiaHeader = (function(win) {
    *
    * @private
    */
-  proto._configureSkin = function() {
-    this._header.setAttribute('skin', this.getAttribute('skin'));
+  proto._configureIcons = function() {
+    this._header.setAttribute('icons', this.getAttribute('icons'));
   };
 
   /**
