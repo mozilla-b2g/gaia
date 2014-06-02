@@ -79,16 +79,26 @@ var ActivityHandler = {
   },
 
   _onNewActivity: function newHandler(activity) {
-    // This lock is for avoiding several calls at the same time.
+    this._ensureActivity(function() {
+      var number = activity.source.data.number;
+      var body = activity.source.data.body;
+      this._buildSMSFromActivity(number, body);
+    }.bind(this));
+  },
+
+  _ensureActivity: function ensureActivity(onUnlocked) {
     if (this.isLocked) {
       return;
     }
-
     this.isLocked = true;
+    onUnlocked();
+  },
 
-    var number = activity.source.data.number;
-    var body = activity.source.data.body;
+  _unlockActivity: function unlockActivity() {
+    this.isLocked = false;
+  },
 
+  _buildSMSFromActivity: function buildSMSFromActivity(number, body) {
     Contacts.findByPhoneNumber(number, function findContact(results) {
       var record, name, contact;
 
@@ -112,58 +122,68 @@ var ActivityHandler = {
   },
 
   _onShareActivity: function shareHandler(activity) {
-    var activityData = activity.source.data,
+    this._ensureActivity(function() {
+      var activityData = activity.source.data,
         dataToShare = null;
 
-    switch(activityData.type) {
-      case ActivityDataType.AUDIO:
-      case ActivityDataType.VIDEO:
-      case ActivityDataType.IMAGE:
-        var attachments = activityData.blobs.map(function(blob, idx) {
-          var attachment = new Attachment(blob, {
-            name: activityData.filenames[idx],
-            isDraft: true
+      switch(activityData.type) {
+        case ActivityDataType.AUDIO:
+        case ActivityDataType.VIDEO:
+        case ActivityDataType.IMAGE:
+          var attachments = activityData.blobs.map(function(blob, idx) {
+            var attachment = new Attachment(blob, {
+              name: activityData.filenames[idx],
+              isDraft: true
+            });
+
+            return attachment;
           });
 
-          return attachment;
-        });
+          var size = attachments.reduce(function(size, attachment) {
+            if (attachment.type !== 'img') {
+              size += attachment.size;
+            }
 
-        var size = attachments.reduce(function(size, attachment) {
-          if (attachment.type !== 'img') {
-            size += attachment.size;
+            return size;
+          }, 0);
+
+          if (size > Settings.mmsSizeLimitation) {
+            alert(navigator.mozL10n.get('files-too-large', {
+              n: activityData.blobs.length
+            }));
+            this.leaveActivity();
+            return;
           }
 
-          return size;
-        }, 0);
+          dataToShare = attachments;
+          break;
+        case ActivityDataType.URL:
+          dataToShare = activityData.url;
+          
+          if (activityData.number) {
+            this._buildSMSFromActivity(activityData.number, dataToShare);
+            return;
+          }
 
-        if (size > Settings.mmsSizeLimitation) {
-          alert(navigator.mozL10n.get('files-too-large', {
-            n: activityData.blobs.length
-          }));
-          this.leaveActivity();
+          break;
+        default:
+          ActivityHandler.leaveActivity(
+            'Unsupported activity data type: ' + activityData.type
+          );
           return;
-        }
+      }
 
-        dataToShare = attachments;
-        break;
-      case ActivityDataType.URL:
-        dataToShare = activityData.url;
-        break;
-      default:
-        this.leaveActivity(
-          'Unsupported activity data type: ' + activityData.type
-        );
+      if (!dataToShare) {
+        this.leaveActivity('No data to share found!');
         return;
-    }
+      }
+      
+      Navigation.toPanel('composer').then(function() {
+        this._unlockActivity();
+        Compose.append(dataToShare);
+      }.bind(this));
 
-    if (!dataToShare) {
-      this.leaveActivity('No data to share found!');
-      return;
-    }
-
-    Navigation.toPanel('composer').then(
-      Compose.append.bind(Compose, dataToShare)
-    );
+    }.bind(this));
   },
 
   _toggleActivityRequestMode: function(toggle) {
@@ -291,8 +311,7 @@ var ActivityHandler = {
     if (!message) {
       return;
     }
-
-    this.isLocked = false;
+    this._unlockActivity();
     var threadId = message.threadId ? message.threadId : null;
     var body = message.body ? Template.escape(message.body) : '';
     var number = message.number ? message.number : '';

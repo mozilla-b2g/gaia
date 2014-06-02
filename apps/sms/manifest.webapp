@@ -60,7 +60,7 @@
       "filters": {
         "type": ["image/*", "audio/*", "video/*", "url"],
         "number": {
-          "max": 5
+          "pattern":"[\\w\\s+#*().-]{0,50}"
         }
        },
       "disposition": "inline",
