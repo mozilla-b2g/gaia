@@ -122,7 +122,6 @@
     expandSearch: function(query) {
       this.clear();
       this.providers.WebResults.fullscreen(query);
-      this.providers.BGImage.fetchImage(query);
     },
 
     /**

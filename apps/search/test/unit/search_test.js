@@ -219,12 +219,6 @@ suite('search/search', function() {
           abort: function() {},
           search: function() {},
           fullscreen: function() {}
-        },
-        BGImage: {
-          clear: function() {},
-          abort: function() {},
-          search: function() {},
-          fetchImage: function() {}
         }
       };
     });
@@ -233,12 +227,6 @@ suite('search/search', function() {
       var stub = this.sinon.stub(Search.providers.WebResults,'fullscreen');
       Search.expandSearch();
       assert.ok(stub.calledOnce);
-    });
-
-    test('calls fetchImage for BGImage', function() {
-      var searchStub = this.sinon.stub(Search.providers.BGImage, 'fetchImage');
-      Search.expandSearch();
-      assert.ok(searchStub.calledOnce);
     });
   });
 
