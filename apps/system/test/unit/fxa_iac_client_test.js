@@ -65,7 +65,7 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
 
   test('Library integrity', function() {
     assert.isNotNull(FxAccountsIACHelper);
-    assert.equal(Object.keys(FxAccountsIACHelper).length, 8);
+    assert.equal(Object.keys(FxAccountsIACHelper).length, 9);
   });
 
   ['getAccounts', 'openFlow', 'logout'].forEach(function(method) {
@@ -126,6 +126,43 @@ suite('FirefoxOS Accounts IAC Client Suite', function() {
 
           assert.deepEqual(arg, {
             'name': 'refreshAuthentication',
+            'email': 'dummy@domain.org'
+          });
+          done();
+        },
+        function() {
+          // Break if we are called.
+          assert.ok(false);
+          done();
+        }
+      );
+    });
+
+    teardown(function() {
+      postMessageSpy.restore();
+    });
+  });
+
+  suite('resendVerificationEmail suite', function() {
+    setup(function() {
+      postMessageSpy = sinon.spy(port, 'postMessage');
+    });
+
+    test('Check that we send the resend message', function(done) {
+      this.timeout(20000);
+      port.methodName = 'resendVerificationEmail';
+      FxAccountsIACHelper.resendVerificationEmail('dummy@domain.org',
+        function() {
+          assert.ok(postMessageSpy.called);
+          var arg = postMessageSpy.args[0][0];
+          // We do have an id for this message
+          assert.isNotNull(arg.id);
+          assert.isNotNull(arg);
+          // Remove the id, as it's automatically generated
+          delete arg.id;
+
+          assert.deepEqual(arg, {
+            'name': 'resendVerificationEmail',
             'email': 'dummy@domain.org'
           });
           done();
