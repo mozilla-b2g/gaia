@@ -1,0 +1,7 @@
+
+[theme="organic"] {
+  --color-1: #f4f4f4;
+  --text-color-1: #868692;
+  --text-color-2: #00aac5;
+  --background: var(--color-1);
+}
