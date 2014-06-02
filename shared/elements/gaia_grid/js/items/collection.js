@@ -17,7 +17,8 @@
       id: collection.id,
       categoryId: collection.categoryId,
       query: collection.query,
-      icon: collection.icon
+      icon: collection.icon,
+      pinned: collection.pinned
     };
   }
 

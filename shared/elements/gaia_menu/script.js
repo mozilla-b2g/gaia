@@ -7,7 +7,7 @@ window.GaiaMenu = (function(win) {
 
   // Allow baseurl to be overridden (used for demo page)
   var baseurl = window.GaiaMenuBaseurl ||
-    'shared/elements/gaia_menu/';
+    '/shared/elements/gaia_menu/';
 
   proto.createdCallback = function () {
     var shadow = this.createShadowRoot();
@@ -16,13 +16,21 @@ window.GaiaMenu = (function(win) {
     var cancelButton = this._template.querySelector('.gaia-menu-cancel');
 
     cancelButton.addEventListener('click', function () {
+      this.hide();
       this.dispatchEvent(new CustomEvent('gaiamenu-cancel'));
-      this.setAttribute('hidden', '');
     }.bind(this));
 
     shadow.appendChild(this._template);
 
     ComponentUtils.style.call(this, baseurl);
+  };
+
+  proto.show = function() {
+    this.removeAttribute('hidden');
+  };
+
+  proto.hide = function() {
+    this.setAttribute('hidden', 'hidden');
   };
 
   var template = document.createElement('template');

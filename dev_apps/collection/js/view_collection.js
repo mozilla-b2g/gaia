@@ -1,5 +1,7 @@
 'use strict';
 /* global Bookmark */
+/* global BaseCollection */
+/* global Contextmenu */
 
 (function(exports) {
 
@@ -15,6 +17,12 @@
 
   function HandleView(activity) {
 
+    var collection = BaseCollection.create(activity.source.data);
+    collection.render(grid);
+
+    /* jshint -W031 */
+    new Contextmenu(collection);
+
     function error(e) {
       eme.log(e);
       alert('view-collection error', e);
@@ -27,10 +35,9 @@
       activity.postError(e);
     }
 
-
-    var categoryId = activity.source.data.categoryId;
-    var query = activity.source.data.query;
-    var name = activity.source.data.name;
+    var categoryId = collection.categoryId;
+    var query = collection.query;
+    var name = collection.name;
 
     elements.name.textContent = name;
     elements.close.addEventListener('click', function close() {
