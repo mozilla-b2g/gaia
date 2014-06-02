@@ -79,6 +79,7 @@ var FxAccountsManager = {
     switch (methodName) {
       case 'getAccounts':
       case 'logout':
+      case 'resendVerificationEmail':
         (function(methodName) {
           LazyLoader.load('js/fxa_client.js', function() {
             FxAccountsClient[methodName](function(data) {

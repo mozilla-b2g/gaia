@@ -12,20 +12,29 @@ require('mock_fx_accounts_iac_helper.js');
 require('/shared/js/text_normalizer.js');
 requireApp('settings/test/unit/mock_l10n.js');
 
-// source the code we care about
-requireApp('settings/js/firefox_accounts/panel.js');
-
 suite('firefox accounts panel > ', function() {
   var suiteSandbox = sinon.sandbox.create(),
     localizeSpy,
     realL10n,
     loggedOutScreen,
     unverifiedScreen,
+    alertSpy,
     loggedInScreen;
 
   suiteSetup(function(done) {
+    alertSpy = sinon.stub(window, 'alert');
+
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
+
+    // override generic mozL10n.get for dynamically-created resend strings/els
+    var l10nStub = sinon.stub(navigator.mozL10n, 'get');
+    l10nStub.withArgs('fxa-dont-see-email').returns('placeholder {{resend}}');
+    l10nStub.withArgs('fxa-resend-alert', {email: 'foo@bar.com'})
+      .returns('placeholder foo@bar.com');
+
+    // source the code we care about - have to wait for mock l10n
+    requireApp('settings/js/firefox_accounts/panel.js');
 
     // first, load settings app
     loadBodyHTML('/index.html');
@@ -49,8 +58,8 @@ suite('firefox accounts panel > ', function() {
   });
   suiteTeardown(function() {
     suiteSandbox.restore();
-    // TODO: should we try to destroy FxaPanel? remove mock html from page?
     navigator.mozL10n = realL10n;
+    window.alert.restore();
     document.body.innerHTML = '';
   });
 
@@ -130,5 +139,83 @@ suite('firefox accounts panel > ', function() {
         'fxa-logged-in-text',
         { email: 'on@verifiedlog.in' }
       ]);
+  });
+
+  suite('resendVerificationEmail tests > ', function() {
+    var getAccountsSpy;
+
+    suiteSetup(function() {
+      getAccountsSpy = sinon.stub(MockFxAccountsIACHelper, 'getAccounts');
+      FxaPanel.init(MockFxAccountsIACHelper);
+    });
+
+    suiteTeardown(function() {
+      MockFxAccountsIACHelper.getAccounts.restore();
+      getAccountsSpy = null;
+    });
+
+    setup(function() {
+      getAccountsSpy.reset();
+    });
+
+    test('on resend click, if link is enabled, get accounts', function() {
+      var fakeEvt = {
+        stopPropagation: function() {},
+        preventDefault: function() {},
+        target: {
+          classList: {
+            contains: function() {
+              // _onResendCLick is looking for the .disabled class in the
+              // classList. to keep the mock simple, always return false.
+              return false;
+            }
+          }
+        }
+      };
+      FxaPanel._onResendClick.call(null, fakeEvt);
+      assert.isTrue(getAccountsSpy.called);
+    });
+
+    test('on resend click, if link is disabled, do nothing', function() {
+      var fakeEvt = {
+        stopPropagation: function() {},
+        preventDefault: function() {},
+        target: {
+          classList: {
+            contains: function() {
+              // _onResendCLick is looking for the .disabled class in the
+              // classList. to keep the mock simple, always return true.
+              return true;
+            }
+          }
+        }
+      };
+      FxaPanel._onResendClick.call(null, fakeEvt);
+      assert.isFalse(getAccountsSpy.called);
+    });
+
+    test('_onResend should alert resend message', function() {
+      FxaPanel._onResend.call(null, 'foo@bar.com');
+      assert.isTrue(alertSpy.calledWith('placeholder foo@bar.com'));
+    });
+
+    suite('timer tests > ', function() {
+      setup(function() {
+        this.clock = sinon.useFakeTimers();
+      });
+
+      teardown(function() {
+        this.clock.restore();
+      });
+
+      test('_onResend should disable link for 60 seconds', function() {
+        var resendLink = document.getElementById('fxa-resend');
+        FxaPanel._onResend.call(null, 'foo@bar.com');
+        this.clock.tick(100);
+        assert.isTrue(resendLink.classList.contains('disabled'));
+        this.clock.tick(59900);
+        assert.isFalse(resendLink.classList.contains('disabled'));
+      });
+    });
   });
 });
