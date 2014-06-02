@@ -3,6 +3,7 @@
   "description": "Collection Manager",
   "type": "certified",
   "launch_path": "/testpage/testpage.html",
+  "role": "system",
   "orientation": "default",
   "developer": {
     "name": "The Gaia Team",
