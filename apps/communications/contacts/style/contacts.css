@@ -380,6 +380,9 @@ section[role="region"] > header .icon.icon-settings {
 #view-contact-form .view-body-inner {
   background: #f4f4f4;
 }
+#view-contact-form #thumbnail-photo {
+   background-color: transparent;
+}
 
 /* Order switch */
 #view-settings [data-type="list"] li#settingsOrder aside {
