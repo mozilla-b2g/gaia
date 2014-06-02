@@ -1335,12 +1335,9 @@
 
   function initLocale() {
     this.ctx.requestLocales(navigator.language);
-    // mozSettings won't be required here when https://bugzil.la/780953 lands
-    if (navigator.mozSettings) {
-      navigator.mozSettings.addObserver('language.current', function(event) {
-        navigator.mozL10n.language.code = event.settingValue;
-      });
-    }
+    window.addEventListener('languagechange', function l10n_langchange() {
+      navigator.mozL10n.language.code = navigator.language;
+    });
   }
 
   function onReady() {

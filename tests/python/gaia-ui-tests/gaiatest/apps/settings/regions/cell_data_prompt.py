@@ -16,7 +16,9 @@ class CellDataPrompt(Base):
         self.wait_for_condition(lambda m: m.find_element(*self._cell_data_prompt_container_locator).location['x'] == 0)
 
     def turn_on(self):
+        container = self.marionette.find_element(*self._cell_data_prompt_container_locator)
         self.marionette.find_element(*self._cell_data_prompt_turn_on_button_locator).tap()
+        self.wait_for_condition(lambda m: container.location['x'] == container.size['width'])
 
     @property
     def is_displayed(self):
