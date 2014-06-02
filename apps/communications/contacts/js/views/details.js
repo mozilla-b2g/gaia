@@ -72,6 +72,9 @@ contacts.Details = (function() {
     favoriteMessage = dom.querySelector('#toggle-favorite');
     notesTemplate = dom.querySelector('#note-details-template-\\#i\\#');
 
+    window.addEventListener('online', checkOnline);
+    window.addEventListener('offline', checkOnline);
+
     initPullEffect(cover);
 
     utils.listeners.add({
@@ -400,8 +403,9 @@ contacts.Details = (function() {
     listContainer.appendChild(social);
   };
 
-  var checkOnline = function(social) {
-    var socialTemplate = social || currentSocial;
+  var checkOnline = function() {
+    var socialTemplate = document.querySelector(
+                                        ':not([data-template])[data-social]');
 
     if (socialTemplate) {
       if (isFbContact) {
@@ -729,7 +733,6 @@ contacts.Details = (function() {
     'setContact': setContact,
     'toggleFavorite': toggleFavorite,
     'render': render,
-    'onLineChanged': checkOnline,
     'reMark': reMark,
     'defaultTelType' : DEFAULT_TEL_TYPE
   };

@@ -475,7 +475,8 @@ suite('Contacts settings >', function() {
     suite('Online', function() {
       setup(function() {
         navigator.onLine = true;
-        contacts.Settings.onLineChanged();
+        var customEvent = new CustomEvent('online');
+        window.dispatchEvent(customEvent);
       });
 
       test('Import Facebook enabled', function() {
@@ -511,7 +512,8 @@ suite('Contacts settings >', function() {
     suite('Offline', function() {
       setup(function() {
         navigator.onLine = false;
-        contacts.Settings.onLineChanged();
+        var customEvent = new CustomEvent('offline');
+        window.dispatchEvent(customEvent);
       });
       test('Import Facebook disabled', function() {
         assert.isTrue(

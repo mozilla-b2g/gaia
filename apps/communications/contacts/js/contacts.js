@@ -699,15 +699,6 @@ var Contacts = (function() {
     });
   };
 
-  var onLineChanged = function() {
-    Contacts.view('Settings', function viewLoaded() {
-      contacts.Settings.onLineChanged();
-    });
-    Contacts.view('Details', function viewLoaded() {
-      contacts.Details.onLineChanged();
-    });
-  };
-
   var getFirstContacts = function c_getFirstContacts() {
     var onerror = function() {
       console.error('Error getting first contacts');
@@ -843,8 +834,6 @@ var Contacts = (function() {
       var actHandler = ActivityHandler.handle.bind(ActivityHandler);
       window.navigator.mozSetMessageHandler('activity', actHandler);
     }
-    window.addEventListener('online', Contacts.onLineChanged);
-    window.addEventListener('offline', Contacts.onLineChanged);
 
     document.addEventListener('visibilitychange', function visibility(e) {
       if (ActivityHandler.currentlyHandling && document.hidden) {
@@ -985,7 +974,6 @@ var Contacts = (function() {
     'hideOverlay': hideOverlay,
     'showContactDetail': contactListClickHandler,
     'updateContactDetail': updateContactDetail,
-    'onLineChanged': onLineChanged,
     'showStatus': showStatus,
     'loadFacebook': loadFacebook,
     'confirmDialog': loadConfirmDialog,
