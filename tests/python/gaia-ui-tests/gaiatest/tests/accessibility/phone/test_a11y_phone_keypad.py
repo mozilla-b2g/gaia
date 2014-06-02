@@ -7,8 +7,6 @@ from gaiatest import GaiaTestCase
 from gaiatest.mocks.mock_contact import MockContact
 from gaiatest.apps.phone.app import Phone
 
-from gaiatest.utils.Imagecompare.imagecompare_util import ImageCompareUtil
-import sys,time
 
 class TestAccessibilityPhoneKeypad(GaiaTestCase):
 
@@ -19,10 +17,6 @@ class TestAccessibilityPhoneKeypad(GaiaTestCase):
         self.phone = Phone(self.marionette)
         self.phone.launch()
 
-        current_module = str(sys.modules[__name__])
-        self.module_name = current_module[current_module.find("'")+1:current_module.find("' from")]
-        self.graphics = ImageCompareUtil(self.marionette,'.')
-
     def test_phone_keypad(self):
 
         # Delete is hidden from the screen reader.
@@ -31,8 +25,6 @@ class TestAccessibilityPhoneKeypad(GaiaTestCase):
         # Add contact button is disabled for the screen reader.
         self.assertTrue(self.accessibility.is_disabled(self.marionette.find_element(
             *self.phone.keypad._add_new_contact_button_locator)))
-
-        self.graphics.invoke_screen_capture(self.marionette.get_active_frame())
 
         number_to_verify = self.contact['tel']['value']
 
@@ -50,17 +42,3 @@ class TestAccessibilityPhoneKeypad(GaiaTestCase):
         # Add contact button is enabled for the screen reader.
         self.assertFalse(self.accessibility.is_disabled(self.marionette.find_element(
             *self.phone.keypad._add_new_contact_button_locator)))
-
-
-    def tearDown(self):
-
-        # In case the assertion fails this will still kill the call
-        # An open call creates problems for future tests
-        if (self.testvars['collect_ref_images'] == 'true'):
-            # collect screenshots and save it as ref images
-            self.graphics.collect_ref_images(self.device_path,'.',self.module_name)
-        else:
-            # pull the screenshots off the device and compare.
-            self.graphics.collect_and_compare(self,'.',self.device_path , self.module_name, 5)
-
-        GaiaTestCase.tearDown(self)
