@@ -143,7 +143,9 @@ class Ftu(Base):
 
     def disable_geolocation(self):
         self.wait_for_element_displayed(*self._enable_geolocation_checkbox_locator)
-        self.marionette.find_element(*self._enable_geolocation_checkbox_locator).tap()
+
+        # TODO: Remove y parameter when Bug 932804 is fixed
+        self.marionette.find_element(*self._enable_geolocation_checkbox_locator).tap(y=20)
 
     def tap_next_to_import_contacts_section(self):
         self.tap_next()
