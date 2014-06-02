@@ -198,6 +198,11 @@ function singletap(e) {
     if (currentFrame.displayingImage || currentFrame.video.player.paused) {
       fullscreenView.classList.toggle('toolbar-hidden');
     }
+    if (currentFrame.video.playerShowing) {
+      fullscreenView.classList.toggle('toolbar-hidden');
+    if (!this.isToolbarHidden)
+      fullscreenView.classList.remove('toolbar-hidden');
+    }
   } else if (currentView === LAYOUT_MODE.list &&
              !files[currentFileIndex].metadata.video) {
     // We don't separate cases by screen size, because we don't show
