@@ -546,12 +546,19 @@ suite('dialer/handled_call', function() {
       MockCallScreen.mSetEmergencyWallpaperCalled = false;
     });
 
+    test('should set the emergency class', function() {
+      mockCall = new MockCall('112', 'dialing');
+      subject = new HandledCall(mockCall);
+
+      assert.isTrue(subject.node.classList.contains('emergency'));
+    });
+
     test('should display emergency number label', function() {
       mockCall = new MockCall('112', 'dialing');
       mockCall.emergency = true;
       subject = new HandledCall(mockCall);
 
-      assert.equal(subject.numberNode.textContent, 'emergencyNumber');
+      assert.equal(subject.numberNode.textContent, '112');
     });
 
     test('should display emergency Wallpaper', function() {
@@ -701,7 +708,7 @@ suite('dialer/handled_call', function() {
       subject = new HandledCall(mockCall);
 
       subject.restorePhoneNumber();
-      assert.equal(subject.numberNode.textContent, 'emergencyNumber');
+      assert.equal(subject.numberNode.textContent, '112');
     });
   });
 
