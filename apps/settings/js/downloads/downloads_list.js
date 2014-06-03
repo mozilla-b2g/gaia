@@ -368,6 +368,7 @@
       targetHeader,
       targetHeader.parentNode.firstChild
     );
+    targetHeader.hidden = downloadsEditMenu.hidden = true;
     // Remove "edit" styles
     downloadsPanel.classList.remove('edit');
     // Clean vars

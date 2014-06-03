@@ -25,6 +25,8 @@ define(function(require) {
                        'shared/style/confirm.css',
                        'shared/style/input_areas.css',
                        'shared/style/progress_activity.css',
+                       'shared/js/component_utils.js',
+                       'shared/elements/gaia_buttons/script.js',
                        'style/apps.css',
                        'style/screen_lock.css',
                        'style/simcard.css',
