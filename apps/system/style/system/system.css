@@ -234,6 +234,10 @@ body {
   content: '';
 }
 
+#screen.fullscreen-app #windows::before {
+  background: black;
+}
+
 #secure-windows {
   position: absolute;
   left: 0;
