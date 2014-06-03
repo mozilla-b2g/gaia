@@ -39,14 +39,11 @@ var SuggestionBar = {
     this.bar = document.getElementById('suggestion-bar');
     this.barSuggestionItem = this.bar.querySelector('.js-suggestion-item');
     this.countTag = document.getElementById('suggestion-count');
-    this.list = document.getElementById('suggestion-list');
-    this.overlayCancel = document.getElementById('suggestion-overlay-cancel');
     this.template = document.getElementById('suggestion-item-template');
 
     this.overlay.addEventListener('click', this);
     this.bar.addEventListener('click', this);
     this.countTag.addEventListener('click', this.showOverlay.bind(this));
-    this.overlayCancel.addEventListener('click', this.hideOverlay.bind(this));
     KeypadManager.onValueChanged = this.update.bind(this);
   },
 
@@ -302,6 +299,16 @@ var SuggestionBar = {
            str.substr(start, end - start + 1) + '</mark>' + str.substr(end + 1);
   },
 
+  _initOverlay: function() {
+    if (this.list) {
+      return;
+    }
+
+    this.list = document.getElementById('suggestion-list');
+    this.overlayCancel = document.getElementById('suggestion-overlay-cancel');
+    this.overlayCancel.addEventListener('click', this.hideOverlay.bind(this));
+  },
+
   _clearOverlay: function() {
     while (this.list.firstElementChild != this.overlayCancel) {
       this.list.firstElementChild.remove();
@@ -309,25 +316,28 @@ var SuggestionBar = {
   },
 
   showOverlay: function sb_showOverlay() {
-    this._clearOverlay();
-    var maxItems = Math.min(this._contactList.length, this.MAX_ITEMS);
-    var title = this.overlay.querySelector('header');
     var self = this;
-    LazyL10n.get(function localized(_) {
-      title.textContent = _('suggestionMatches', {
-        n: self.countTag.textContent,
-        matchNumber: self._phoneNumber
+    LazyLoader.load(this.overlay, function() {
+      self._initOverlay();
+      self._clearOverlay();
+      var maxItems = Math.min(self._contactList.length, self.MAX_ITEMS);
+      var title = self.overlay.querySelector('header');
+      LazyL10n.get(function localized(_) {
+        title.textContent = _('suggestionMatches', {
+          n: self.countTag.textContent,
+          matchNumber: self._phoneNumber
+        });
       });
-    });
-    for (var i = 0; i < maxItems; i++) {
-      for (var j = 0; j < this._allMatched.allMatches[i].length; j++) {
-        var node = this._createItem();
-        this._fillContacts(this._contactList[i],
-          this._allMatched.allMatches[i][j], node);
+      for (var i = 0; i < maxItems; i++) {
+        for (var j = 0; j < self._allMatched.allMatches[i].length; j++) {
+          var node = self._createItem();
+          self._fillContacts(self._contactList[i],
+            self._allMatched.allMatches[i][j], node);
+        }
       }
-    }
-    this.overlay.setAttribute('aria-hidden', false);
-    this.overlay.classList.add('display');
+      self.overlay.setAttribute('aria-hidden', false);
+      self.overlay.classList.add('display');
+    });
   },
 
   _getAllMatched: function sb_getAllMatched(contacts) {
