@@ -128,6 +128,7 @@
 
       return {
         fontSize: fontSize,
+        // XXX why kill this?
         //overflow: resultWidth > maxWidth,
         textWidth: resultWidth
       };
@@ -186,6 +187,11 @@
     autoResizeElement: function(element) {
       var allowedSizes = FontSizeUtils.getAllowedSizes(element);
       if (allowedSizes) {
+
+        // XXX: Let's move this into a separate function, something like
+        // resetFormating, and then call that at the beginning of
+        // ------
+        // reformatHeaderText instead of here.
         // Reset basic styling.
         element.style.marginLeft = element.style.marginRight = '0';
         element.style.textOverflow = '';
@@ -196,6 +202,11 @@
                                  style.fontFamily, parseInt(style.width, 10));
         element.style.fontSize = info.fontSize + 'px';
 
+        // XXX: Now that we have reformatHeaderText, adding the mutation
+        // observer doesn't belong here anymore. Le'ts make autoResizeElement
+        // return a bool (true if auto resized), and than have
+        // reformatHeaderText add the observer. Thoughts?
+        // -----
         // If we have resized to less than our max fontSize for this
         // container, we need to listen for textContent changes so that
         // we can auto resize to a larger fontSize if space allows it.
@@ -251,6 +262,7 @@
         parseInt(style.width, 10)
       );
 
+      // XXX: grab the padding from the element rather than hardcoding it.
       // There is a 10px padding on each side, so we need to subtract 20.
       var textWidth = info.textWidth + 20;
 
@@ -261,17 +273,17 @@
       var margin = Math.max(sideSpaceLeft, sideSpaceRight);
 
       console.log('containerWidth', FontSizeUtils.containerWidth, 'headerWidth',
-        headerWidth, 'textWidth', textWidth, 'margin', margin)
+        headerWidth, 'textWidth', textWidth, 'margin', margin);
 
       // Can the header be centered?
       if (textWidth + (margin * 2) <= FontSizeUtils.containerWidth) {
-        console.log('Header centered')
+        console.log('Header centered');
         element.style.marginLeft = element.style.marginRight = margin + 'px';
       } else if (textWidth <= headerWidth) {
-        console.log('Header not centered')
+        console.log('Header not centered');
         // Do nothing, just for better debugging.
       } else if (textWidth > headerWidth) {
-        console.log('Header not centered and truncated')
+        console.log('Header not centered and truncated');
         element.style.textOverflow = 'ellipsis';
       }
     },
@@ -290,6 +302,10 @@
      *
      * @returns {number}
      */
+
+    // XXX: I don't think this does what you think. This runs every time.
+    // Also, I don't think we need to worry about caching screen width, let's
+    // just put that screen.width inline above
     get containerWidth() {
       _screenWidth = screen.width;
 

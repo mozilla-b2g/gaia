@@ -17,6 +17,8 @@ section[role="region"] > header:first-child h1 {
   line-height: 5rem;
   text-align: center;
   white-space: nowrap;
+  /* XXX: Why add this in javascript? Seems to me it
+          doesn't hurt by being on by default */
   /*text-overflow: ellipsis;*/ /* Added in JavaScript */
   display: block;
   overflow: hidden;
@@ -25,6 +27,11 @@ section[role="region"] > header:first-child h1 {
   height: 100%;
   font-weight: lighter;
   font-style: italic;
+  /* XXX: We are going to need to support apps, as well
+          as third party developers who want to specify
+          their box model. I think we can change our logic
+          to account for the different types. What do you
+          think? */
   box-sizing: content-box; /* Important! */
 }
 
