@@ -5,11 +5,11 @@
 
 html, body {
   height: 100%;
+  font-size: 10px;
 }
 
 body, a {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 1rem;
 }
 
 section.suggestions {
