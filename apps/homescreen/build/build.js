@@ -26,19 +26,10 @@ HomescreenAppBuilder.prototype.setOptions = function(options) {
   this.preferredIconSize =
     this.BASE_ICON_SIZE * parseFloat(options.GAIA_DEV_PIXELS_PER_PX);
 
-  this.displayHeight = options.GAIA_DEV_DISPLAY_HEIGHT;
-
   options.configPath =
     utils.joinPath(options.APP_DIR, 'build', options.GAIA_DEVICE_TYPE);
 
   this.options = options;
-};
-
-HomescreenAppBuilder.prototype.isAbsoluteURL = function(url) {
-  return url.indexOf('data:') === 0 ||
-         url.indexOf('app://') === 0 ||
-         url.indexOf('http://') === 0 ||
-         url.indexOf('https://') === 0;
 };
 
 // c.f. the corresponding implementation in the Homescreen app.
@@ -74,32 +65,14 @@ HomescreenAppBuilder.prototype.bestMatchingIcon =
   }
 
   // If the icon path is not an absolute URL, prepend the app's origin.
-  if (!this.isAbsoluteURL(url)) {
-    url = origin + url;
+  if (url.indexOf('data:') === 0 ||
+      url.indexOf('app://') === 0 ||
+      url.indexOf('http://') === 0 ||
+      url.indexOf('https://') === 0) {
+    return url;
   }
 
-  return url;
-};
-
-HomescreenAppBuilder.prototype.bestMatchingBackground =
-  function(manifest, origin) {
-    var backgrounds = manifest.backgrounds;
-    if (!backgrounds) {
-      return undefined;
-    }
-
-    var url = backgrounds[this.displayHeight];
-    if (url) {
-      if (!this.isAbsoluteURL(url)) {
-        url = origin + url;
-      }
-      return url;
-
-    } else {
-      throw new Error('invalid background height ' + this.displayHeight +
-        ' for ' + manifest.name + ' (found ' +
-        Object.keys(backgrounds).join(',') + ')\n');
-    }
+  return origin + url;
 };
 
 HomescreenAppBuilder.prototype.getCollectionManifest =
@@ -181,13 +154,7 @@ HomescreenAppBuilder.prototype.getIconDescriptorFromApp =
         apps.push(app);
       }, this);
     }
-
     descriptor.apps = apps;
-
-    let background = this.bestMatchingBackground(manifest, origin);
-    if (background) {
-      descriptor.background = background;
-    }
   }
 
   descriptor.manifestURL = manifestURL;

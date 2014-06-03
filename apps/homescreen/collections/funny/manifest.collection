@@ -11,12 +11,5 @@
     "90": "/collections/funny/icon_90.png",
     "120": "/collections/funny/icon_120.png",
     "135": "/collections/funny/icon_135.png"
-  },
-  "backgrounds": {
-    "480": "/collections/funny/background_320x480.jpg",
-    "800": "/collections/funny/background_480x800.jpg",
-    "854": "/collections/funny/background_480x854.jpg",
-    "960": "/collections/funny/background_540x960.jpg",
-    "1280": "/collections/funny/background_720x1280.jpg"
   }
 }
