@@ -13,7 +13,7 @@ class TestPlay3GPVideo(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
         # add video to storage
-        self.push_resource('VID_0001.3gp', destination='DCIM/100MZLLA')
+        self.push_resource('VID_0001.3gp')
 
     def test_play_3gp_video(self):
         """https://moztrap.mozilla.org/manage/case/2478/"""

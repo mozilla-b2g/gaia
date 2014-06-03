@@ -15,7 +15,7 @@ class TestGallery(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
         # Add photos to storage.
-        self.push_resource(self.images, self.image_count, 'DCIM/100MZLLA')
+        self.push_resource(self.images, count=self.image_count)
 
     def test_gallery_full_screen_image_flicks(self):
         """https://moztrap.mozilla.org/manage/case/1326/"""

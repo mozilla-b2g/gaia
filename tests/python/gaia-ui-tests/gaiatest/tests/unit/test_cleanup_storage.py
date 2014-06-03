@@ -5,19 +5,30 @@
 from gaiatest import GaiaTestCase
 
 
-class TestCleanupSDCard(GaiaTestCase):
+class TestCleanupStorage(GaiaTestCase):
 
-    def test_cleanup_scard(self):
-        root = self.device.manager.deviceRoot
-        self.assertEqual(len(self.device.manager.listFiles(root)), 0)
+    test_data = [
+        # remote path
+        {'resource': 'IMG_0001.jpg', 'path': 'DCIM/100MZLLA'},
+        # no remote path
+        {'resource': 'MUS_0001.mp3'}]
 
-        # push media files
-        self.push_resource('IMG_0001.jpg')
-        self.push_resource('VID_0001.3gp')
-        # simulate pushing a non-media file by changing the filename
-        self.push_resource('IMG_0001.jpg', destination='IMG.FILE')
-
-        self.assertEqual(len(self.device.manager.listFiles(root)), 3)
+    def test_cleanup_storage(self):
+        for data in self.test_data:
+            print 'Test data: %s' % data
+            remote_path = None
+            if data.get('path'):
+                remote_path = '/'.join([self.device.storage_path,
+                                        data['path']])
+            self.push_resource(data['resource'], remote_path)
 
         self.cleanup_storage()
-        self.assertEqual(len(self.device.manager.listFiles(root)), 0)
+
+        for data in self.test_data:
+            print 'Test data: %s' % data
+            remote_path = None
+            if data.get('path'):
+                remote_path = '/'.join([self.device.storage_path,
+                                        data['path']])
+            self.assertFalse(self.device.file_manager.file_exists('/'.join([
+                remote_path or self.device.storage_path, data['resource']])))
