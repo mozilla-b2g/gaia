@@ -19,7 +19,6 @@
     "storage":{},
     "device-storage:sdcard":{ "access": "readcreate" },
     "systemXHR":{},
-    "settings":{ "access": "readonly" },
     "tcp-socket":{}
   },
   "locales": {

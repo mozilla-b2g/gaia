@@ -104,7 +104,6 @@
    "lockscreen.enabled": true,
    "lockscreen.locked": true,
    "lockscreen.unlock-sound.enabled": false,
-   "mail.sent-sound.enabled": true,
    "message.sent-sound.enabled": true,
    "nfc.enabled": false,
    "nfc.suspended": false,
