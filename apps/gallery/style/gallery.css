@@ -514,6 +514,7 @@ footer {
   display: inline-block;
   width: 20%;
   height: 100%;
+  outline: none;
 }
 
 #fullscreen-view.toolbar-hidden #fullscreen-toolbar {
