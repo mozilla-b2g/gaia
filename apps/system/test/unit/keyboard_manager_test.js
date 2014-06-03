@@ -87,14 +87,21 @@ suite('KeyboardManager', function() {
   mocksHelperForKeyboardManager.attachTestHelpers();
 
   var realMozSettings = null;
+  var realKeyboard = null;
 
   suiteSetup(function() {
     document.body.innerHTML += '<div id="run-container"></div>';
     navigator.mozSettings = MockNavigatorSettings;
+
+    realKeyboard = window.navigator.mozInputMethod;
+    window.navigator.mozInputMethod = {
+      removeFocus: function() {}
+    };
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realMozSettings;
+    window.navigator.mozInputMethod = realKeyboard;
   });
 
   setup(function() {
@@ -496,9 +503,17 @@ suite('KeyboardManager', function() {
       assert.ok(hideKeyboardImmediately.called);
     });
 
-    test('sheetstransitionstart event', function() {
+    test('sheetstransitionstart event: do nothing if no keyboard', function() {
       trigger('sheetstransitionstart');
-      assert.ok(hideKeyboard.called);
+      assert.ok(hideKeyboard.notCalled);
+    });
+
+    test('sheetstransitionstart event: hide keyboard if needed', function() {
+      var realActive = KeyboardManager.hasActiveKeyboard;
+      KeyboardManager.hasActiveKeyboard = true;
+      trigger('sheetstransitionstart');
+      assert.ok(hideKeyboard.calledOnce);
+      KeyboardManager.hasActiveKeyboard = realActive;
     });
   });
 
@@ -611,6 +626,12 @@ suite('KeyboardManager', function() {
       sinon.assert.callCount(rsk, 1, 'resetShowingKeyborad');
       sinon.assert.callCount(kh, 1, 'keyboardhide event');
       sinon.assert.callCount(khed, 1, 'keyboardhidden event');
+    });
+
+    test('Hide removes the IM focus', function() {
+      var spy = this.sinon.spy(navigator.mozInputMethod, 'removeFocus');
+      KeyboardManager.hideKeyboard();
+      sinon.assert.calledOnce(spy);
     });
   });
 
