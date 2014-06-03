@@ -20,6 +20,7 @@
 
     /**
      * Grab or create a cached canvas context for a given fontSize/family pair.
+     * @todo Add font-weight as a new dimension for caching.
      *
      * @param {Integer} fontSize The font size of the canvas we want.
      * @param {String} fontFamily The font family of the canvas we want.
@@ -129,7 +130,8 @@
       return {
         fontSize: fontSize,
         // XXX why kill this?
-        //overflow: resultWidth > maxWidth,
+        // YYY: Sorry, I thought it wasn't used anymore.
+        overflow: resultWidth > maxWidth,
         textWidth: resultWidth
       };
     },
@@ -151,7 +153,7 @@
         overflowCount++;
         substring = string.substr(0, string.length - overflowCount);
         resultWidth = FontSizeUtils.getFontWidth(substring, fontSize,
-                                                 fontFamily);
+          fontFamily);
       } while (substring.length > 0 && resultWidth > maxWidth);
 
       return overflowCount;
@@ -165,7 +167,7 @@
      */
     getAllowedSizes: function(element) {
       if (element.tagName === 'H1' && element.parentNode &&
-          element.parentNode.tagName === 'HEADER') {
+        element.parentNode.tagName === 'HEADER') {
         // h1 elements inside the headers should auto resize
         // between MIN and MAX header font size
         if (!FontSizeUtils._allowedHeaderSizes) {
@@ -187,39 +189,36 @@
     autoResizeElement: function(element) {
       var allowedSizes = FontSizeUtils.getAllowedSizes(element);
       if (allowedSizes) {
-
-        // XXX: Let's move this into a separate function, something like
-        // resetFormating, and then call that at the beginning of
-        // ------
-        // reformatHeaderText instead of here.
-        // Reset basic styling.
-        element.style.marginLeft = element.style.marginRight = '0';
-        element.style.textOverflow = '';
-
         var style = window.getComputedStyle(element);
+        // YYY: FYI, this line sometimes triggers a reflow (~1.2ms on a Flame).
+        var width = parseInt(style.width, 10);
         var info = FontSizeUtils.getMaxFontSizeInfo(
-                                 element.textContent, allowedSizes,
-                                 style.fontFamily, parseInt(style.width, 10));
+          element.textContent, allowedSizes,
+          style.fontFamily, width);
         element.style.fontSize = info.fontSize + 'px';
 
-        // XXX: Now that we have reformatHeaderText, adding the mutation
-        // observer doesn't belong here anymore. Le'ts make autoResizeElement
-        // return a bool (true if auto resized), and than have
-        // reformatHeaderText add the observer. Thoughts?
-        // -----
-        // If we have resized to less than our max fontSize for this
-        // container, we need to listen for textContent changes so that
-        // we can auto resize to a larger fontSize if space allows it.
-        if (info.fontSize !== allowedSizes[allowedSizes.length - 1]) {
-          FontSizeUtils._resizeOnTextChange(element);
-        }
+        // Return true if we have resized to less than our max fontSize given
+        // the space available.
+        return info.fontSize !== allowedSizes[allowedSizes.length - 1];
       }
+
+      return false;
+    },
+
+    /**
+     * Reset basic styling.
+     *
+     * @param {HTMLElement} element The element to perform auto-resize on.
+     */
+    resetFormatting: function(element) {
+      element.style.marginLeft = element.style.marginRight = '0';
+      element.style.textOverflow = '';
     },
 
     /**
      * When certain elements overflow, auto resize their fonts
      *
-     * @param {UIEvent} ext The overflow/underflow event object.
+     * @param {UIEvent} evt The overflow/underflow event object.
      */
     handleTextFlowChange: function(evt) {
       var element = evt.target;
@@ -227,7 +226,7 @@
       // performance optimization we will avoid the overhead of any
       // additional function call by doing this check inline.
       if (element.tagName === 'H1' && element.parentNode &&
-          element.parentNode.tagName === 'HEADER') {
+        element.parentNode.tagName === 'HEADER') {
         FontSizeUtils.reformatHeaderText(element);
       }
     },
@@ -239,8 +238,29 @@
      * @param {HTMLElement} header h1 text inside header to reformat.
      */
     reformatHeaderText: function(header) {
-      FontSizeUtils.autoResizeElement(header);
+      FontSizeUtils.resetFormatting(header);
+
+      var autoResizeNeeded = FontSizeUtils.autoResizeElement(header);
+      if (autoResizeNeeded) {
+        // We need to listen for textContent changes so that we can
+        // auto resize to a larger fontSize if space allows it.
+        FontSizeUtils._resizeOnTextChange(header);
+      }
+
       FontSizeUtils.centerTextToScreen(header);
+    },
+
+    /**
+     * Get an element width disregarding of its box model sizing.
+     * Style objects are not impacted by the box model whereas clientWidth is.
+     *
+     * @param {HTMLElement} element
+     * @returns {Number}
+     */
+    getElementWidth: function(element) {
+      var style = window.getComputedStyle(element);
+      return parseInt(style.paddingLeft, 10) + parseInt(style.width, 10) +
+        parseInt(style.paddingRight, 10);
     },
 
     /**
@@ -250,7 +270,8 @@
      */
     centerTextToScreen: function(element) {
       // Get header and text widths.
-      var headerWidth = element.clientWidth;
+      // YYY: FYI, this line always triggers a reflow (~1ms on a Flame).
+      var headerWidth = FontSizeUtils.getElementWidth(element);
 
       // @todo Inline with autoResizeElement to avoid calling getAllowedSizes.
       var style = window.getComputedStyle(element);
@@ -262,27 +283,49 @@
         parseInt(style.width, 10)
       );
 
-      // XXX: grab the padding from the element rather than hardcoding it.
-      // There is a 10px padding on each side, so we need to subtract 20.
-      var textWidth = info.textWidth + 20;
+      // If there are padding on each side, so we need to add their values.
+      var textWidth = info.textWidth +
+        (parseInt(style.paddingRight, 10) | 0) +
+        (parseInt(style.paddingLeft, 10) | 0);
 
+      // Get the width of side buttons.
       var sideSpaceLeft = element.offsetLeft;
-      var sideSpaceRight = FontSizeUtils.containerWidth -
-        sideSpaceLeft - headerWidth;
+      var sideSpaceRight = 0;
+
+      var parent = element.parentNode;
+      if (parent) {
+        for (var i = 0; i < parent.children.length; i++) {
+          var child = parent.children[i];
+          if (child === element) {
+            continue;
+          }
+          var childStyle = window.getComputedStyle(child);
+          if (childStyle.cssFloat !== 'right') {
+            continue;
+          }
+
+          sideSpaceRight += parseInt(childStyle.width, 10);
+        }
+      }
 
       var margin = Math.max(sideSpaceLeft, sideSpaceRight);
 
       console.log('containerWidth', FontSizeUtils.containerWidth, 'headerWidth',
-        headerWidth, 'textWidth', textWidth, 'margin', margin);
+        headerWidth, 'textWidth', textWidth, 'margin', margin,
+          '= max(' + sideSpaceLeft + ', ' + sideSpaceRight + ')');
 
       // Can the header be centered?
       if (textWidth + (margin * 2) <= FontSizeUtils.containerWidth) {
+        /*console.log(textWidth, '+', (margin * 2), '<=',
+          FontSizeUtils.containerWidth);*/
         console.log('Header centered');
         element.style.marginLeft = element.style.marginRight = margin + 'px';
       } else if (textWidth <= headerWidth) {
+        //console.log(textWidth, '<=', headerWidth);
         console.log('Header not centered');
         // Do nothing, just for better debugging.
       } else if (textWidth > headerWidth) {
+        //console.log(textWidth, '>', headerWidth);
         console.log('Header not centered and truncated');
         element.style.textOverflow = 'ellipsis';
       }
@@ -297,23 +340,23 @@
     },
 
     /**
-     * Cache the screen width.
-     * @todo See if not caching has an impact on performance.
+     * Return the screen width.
      *
      * @returns {number}
      */
-
-    // XXX: I don't think this does what you think. This runs every time.
-    // Also, I don't think we need to worry about caching screen width, let's
-    // just put that screen.width inline above
     get containerWidth() {
-      _screenWidth = screen.width;
+      if (_screenWidth === 0) {
+        _screenWidth = screen.width;
+      }
+      return _screenWidth;
+    },
 
-      // Evaluated on first call, then will always return a cached version of
-      // `screen.width` after.
-      return function() {
-        return _screenWidth;
-      }();
+    /**
+     * For unit testing purposes only.
+     * @param {number} value
+     */
+    set containerWidth(value) {
+      _screenWidth = value;
     }
   };
 
