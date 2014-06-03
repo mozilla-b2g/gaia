@@ -1075,13 +1075,12 @@ suite('lib/camera/camera', function() {
     setup(function() {
       sinon.stub(this.camera, 'configure');
       sinon.stub(this.camera, 'setThumbnailSize');
-      this.camera.mozCamera = this.mozCamera;
+      this.camera.mozCamera = { setPictureSize: sinon.stub() };
     });
 
-    test('Should set `this.pictureSize` and `this.mozCamera.pictureSize`', function() {
+    test('Should set `this.pictureSize` and `this.mozCamera.get/setPictureSize`', function() {
       this.camera.setPictureSize({ width: 400, height: 300 });
       assert.deepEqual(this.camera.pictureSize, { width: 400, height: 300 });
-      assert.deepEqual(this.camera.mozCamera.pictureSize, { width: 400, height: 300 });
     });
 
     test('Should do nothing if value is falsy', function() {
