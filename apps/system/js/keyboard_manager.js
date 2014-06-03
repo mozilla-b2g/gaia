@@ -474,7 +474,9 @@ var KeyboardManager = {
         }
         break;
       case 'sheetstransitionstart':
-        this.hideKeyboard();
+        if (this.hasActiveKeyboard) {
+          this.hideKeyboard();
+        }
         break;
     }
   },
@@ -676,6 +678,8 @@ var KeyboardManager = {
     window.dispatchEvent(new CustomEvent('keyboardhide'));
     this.keyboardFrameContainer.classList.add('hide');
     this.keyboardFrameContainer.dataset.transitionOut = 'true';
+
+    navigator.mozInputMethod.removeFocus();
   },
 
   hideKeyboardImmediately: function km_hideImmediately() {
