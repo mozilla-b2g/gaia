@@ -38,6 +38,7 @@ requireApp('system/js/system_dialog_manager.js');
 requireApp('system/js/telephony_settings.js');
 requireApp('system/js/ttlview.js');
 requireApp('system/js/visibility_manager.js');
+requireApp('system/js/wallpaper_manager.js');
 
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_l10n.js');
