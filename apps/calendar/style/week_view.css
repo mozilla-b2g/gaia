@@ -144,7 +144,14 @@
   will-change: scroll-position;
 }
 
-#week-view .scroll > .children {
+#week-view .scroll-content {
+  position: relative;
+  background-color: #FFF;
+  overflow: hidden;
+}
+
+
+#week-view .scroll-content > .children {
   position: relative;
   float: left;
   width: calc(100% - 2.9rem);
@@ -238,3 +245,15 @@
   transform: translateY(-50%);
 }
 
+#week-view .current-time {
+  text-indent: 0.2rem;
+}
+
+#week-view .current-time:before {
+  left: 2.9rem;
+}
+
+#week-view .current-time:after {
+  width: calc(100% - 2.9rem);
+  left: 2.9rem;
+}

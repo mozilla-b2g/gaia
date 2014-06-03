@@ -92,11 +92,18 @@ Calendar.LoadConfig = (function() {
         group: [
           'Views.WeekChild',
           'Views.Day',
+          'Views.CurrentTime',
           'Templates.Week'
         ],
 
         js: [
           'views/week'
+        ]
+      },
+
+      'Views.CurrentTime': {
+        js: [
+          'views/current_time'
         ]
       },
 
@@ -236,7 +243,10 @@ Calendar.LoadConfig = (function() {
       },
 
       'Views.DayChild': {
-        group: ['Views.DayBased'],
+        group: [
+          'Views.DayBased',
+          'Views.CurrentTime'
+        ],
 
         js: [
           'views/day_child'
