@@ -240,15 +240,13 @@ form[role="search"] button[type="submit"]:after {
   box-sizing: border-box;
   position: relative;
 
-  right: 1rem;
   left: 0;
   height: 0;
-  padding: 0 1.5rem;
 
   color: #575757;
   font-size: 0;
   font-weight: normal;
-  text-align: left;
+  text-align: center;
 }
 
 [data-message-type='mms'] #messages-counter-label {
@@ -275,7 +273,8 @@ form[role="search"] button[type="submit"]:after {
   position: absolute;
 
   top: 0;
-  left: 1.5rem;
+  left: 0;
+  width: 100%;
 
   color: #575757;
   font-size: 1.4rem;
@@ -288,5 +287,51 @@ form[role="search"] button[type="submit"]:after {
 
 [data-message-type='sms'].subject-input-visible .has-counter:after {
   top: 3rem;
+}
+
+/*
+  DSDS
+*/
+
+.sim-indication {
+  position: absolute;
+  top: 0.6rem;
+  right: 1.9rem;
+
+  display: none;
+  line-height: 1;
+
+  color: black;
+  font-size: 1.3rem;
+  font-style: normal;
+  opacity: 0.5;
+}
+
+button[disabled] .sim-indication {
+  color: inherit;
+}
+
+.has-preferred-sim .sim-indication {
+  display: block;
+}
+
+.has-preferred-sim #messages-send-button {
+  height: 4.5rem;
+  padding-top: 0.5rem;
+}
+
+.has-preferred-sim #messages-send-button:before {
+  position: absolute;
+  top: 1.2rem;
+  left: 0;
+  right: 0;
+
+  content: '...';
+  display: block;
+  width: 100%;
+
+  color: #b2b2b2;
+  text-align: center;
+  font-size: 1.8rem;
 }
 
