@@ -70,7 +70,7 @@ Calendar.ns('Views').EventBase = (function() {
      * Dismiss modification and go back to previous screen.
      */
     cancel: function() {
-      window.back();
+      window.history.back();
     },
 
     /**

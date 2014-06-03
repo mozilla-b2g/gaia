@@ -83,7 +83,7 @@
     },
 
     cancel: function() {
-      window.back();
+      window.history.back();
     }
   };
 
