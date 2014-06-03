@@ -477,7 +477,7 @@ var NfcManager = {
       text = NfcUtils.toUTF8(record.payload.subarray(langLen + 1));
       encodingString = 'UTF-8';
     } else if (encoding === NDEF.RTD_TEXT_UTF16) {
-      text = NfcUtils.UTF16BytesToString(record.payload.subarray(langLen + 1));
+      text = NfcUtils.UTF16BytesToStr(record.payload.subarray(langLen + 1));
       encodingString = 'UTF-16';
     }
 
