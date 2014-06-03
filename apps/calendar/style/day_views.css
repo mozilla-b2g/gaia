@@ -244,3 +244,16 @@
   top: 0.4rem;
   left: 0.4rem;
 }
+
+#day-view .current-time {
+  text-indent: 2.2rem;
+}
+
+#day-view .current-time:before {
+  left: 7rem;
+}
+
+#day-view .current-time:after {
+  width: calc(100% - 7rem);
+  left: 7rem;
+}
