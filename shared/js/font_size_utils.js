@@ -134,6 +134,7 @@
 
       return {
         fontSize: fontSize,
+        // XXX why kill this?
         //overflow: resultWidth > maxWidth,
         textWidth: resultWidth
       };
@@ -246,6 +247,7 @@
         parseInt(style.width, 10)
       );
 
+      // XXX: grab the padding from the element rather than hardcoding it.
       // There is a 10px padding on each side, so we need to subtract 20.
       var textWidth = info.textWidth + 20;
 
@@ -256,17 +258,17 @@
       var margin = Math.max(sideSpaceLeft, sideSpaceRight);
 
       console.log('containerWidth', FontSizeUtils.containerWidth, 'headerWidth',
-        headerWidth, 'textWidth', textWidth, 'margin', margin)
+        headerWidth, 'textWidth', textWidth, 'margin', margin);
 
       // Can the header be centered?
       if (textWidth + (margin * 2) <= FontSizeUtils.containerWidth) {
-        console.log('Header centered')
+        console.log('Header centered');
         element.style.marginLeft = element.style.marginRight = margin + 'px';
       } else if (textWidth <= headerWidth) {
-        console.log('Header not centered')
+        console.log('Header not centered');
         // Do nothing, just for better debugging.
       } else if (textWidth > headerWidth) {
-        console.log('Header not centered and truncated')
+        console.log('Header not centered and truncated');
         element.style.textOverflow = 'ellipsis';
       }
     },
@@ -302,6 +304,10 @@
      *
      * @returns {number}
      */
+
+    // XXX: I don't think this does what you think. This runs every time.
+    // Also, I don't think we need to worry about caching screen width, let's
+    // just put that screen.width inline above
     get containerWidth() {
       _screenWidth = screen.width;
 
