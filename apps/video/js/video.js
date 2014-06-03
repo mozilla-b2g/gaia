@@ -1102,7 +1102,10 @@ function hidePlayer(updateVideoMetadata, callback) {
 }
 
 function playerEnded() {
-  if (dragging) {
+  // If user drags slider to the end or
+  // uses the forward button to move to the end,
+  // don't move video to beginning.
+  if (dragging || !playing) {
     return;
   }
   if (endedTimer) {
@@ -1222,7 +1225,7 @@ function handleSliderTouchMove(event) {
   dom.playHead.classList.add('active');
   dom.playHead.style.left = percent;
   dom.elapsedTime.style.width = percent;
-  dom.player.currentTime = dom.player.duration * pos;
+  dom.player.fastSeek(dom.player.duration * pos);
   dom.elapsedText.textContent = MediaUtils.formatDuration(
     dom.player.currentTime);
 }

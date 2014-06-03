@@ -1,4 +1,5 @@
 /* exported ForwardRewindController */
+/* globals pause */
 
 /**
    * This file is used for forward and rewind funtionality of Gaia Video app.
@@ -11,8 +12,6 @@
    */
 
 'use strict';
-
-var seekInterval;
 
 var ForwardRewindController = (function() {
 
@@ -69,16 +68,14 @@ var ForwardRewindController = (function() {
   }
 
   function startFastSeeking(direction) {
+    
     // direction can be 1 or -1, 1 means forward and -1 means rewind.
     var offset = direction * 10;
 
     if (isLongPressing) {
-      // To hold the interval time, e.g., during unit testing
-      var interval = (seekInterval !== undefined) ? seekInterval : 1000;
-
       intervalId = window.setInterval(function() {
         seekVideo(player.currentTime + offset);
-      }, interval);
+      }, 1000);
     } else {
       seekVideo(player.currentTime + offset);
     }
@@ -93,22 +90,25 @@ var ForwardRewindController = (function() {
   }
 
   function seekVideo(seekTime) {
-    if (seekTime >= player.duration) {
+    if (seekTime >= player.duration || seekTime < 0) {
       if (isLongPressing) {
         stopFastSeeking();
       }
-      var remaingDuration = player.duration - player.currentTime;
-      player.currentTime = player.currentTime + remaingDuration;
-    } else {
-      player.currentTime = seekTime;
+      if (seekTime >= player.duration) {
+        seekTime = player.duration;
+        pause();
+      }
+      else {
+        seekTime = 0;
+      }
     }
+    
+    player.fastSeek(seekTime);
   }
 
   return {
    init: init,
    uninit: uninit,
-   handlePlayerLongPress: handlePlayerLongPress,
-   startFastSeeking: startFastSeeking,
    stopFastSeeking: stopFastSeeking
   };
 
