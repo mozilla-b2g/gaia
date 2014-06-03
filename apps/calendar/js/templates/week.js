@@ -8,7 +8,7 @@
 
     sidebarHour: function() {
       var hour = this.h('hour');
-      var displayHour = this.h('displayHour');
+      var displayHour = this.s('displayHour');
 
       return '<li class="hour hour-' + hour + '">' +
                 '<span class="display-hour">' + displayHour + '</span>' +

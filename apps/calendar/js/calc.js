@@ -51,28 +51,9 @@ Calendar.Calc = (function() {
      */
     formatHour: function(hour) {
       var format = navigator.mozL10n.get('hour-format');
-      return this._formatHour(hour, format);
-    },
 
-    /**
-     * Formats a numeric value for an hour into an abbreviated format.
-     */
-    formatHourAbbr: function(hour) {
-      // since week view use an abbreviated value for "am" and "pm" we need
-      // to use special keys for each one to avoid conflicts (specially since
-      // some locales will use 24h time format for both cases)
-      var id = 'hour-format-abbr-';
-      id += hour < 11 ? 'am' : 'pm';
-      var format = navigator.mozL10n.get(id);
-      return this._formatHour(hour, format);
-    },
-
-    /**
-     * formats a numeric value for an hour
-     */
-    _formatHour: function(hour, format) {
       if (hour === Calc.ALLDAY) {
-        return Calc.ALLDAY;
+        return navigator.mozL10n.get('hour-allday');
       }
 
       Calc._hourDate.setHours(hour);
