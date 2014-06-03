@@ -32,7 +32,7 @@
     "marionette-profile-builder": "0.0.3",
     "marionette-js-runner": "~0.4.3",
     "marionette-settings-api": "~0.1.0",
-    "mocha-gaia": "1.18.x",
+    "mocha": "1.20.0",
     "mocha-json-proxy": "~0.0.7",
     "mocha-parallel": "0.1.0",
     "mocha-tbpl-reporter": ">=0.1.1",
