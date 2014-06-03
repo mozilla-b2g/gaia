@@ -29,7 +29,7 @@
             "b2g-tests.zip": "/home/worker/artifacts/b2g-tests.zip",
             "emulator.tar.gz": "/home/worker/artifacts/emulator.tar.gz",
             "gaia-tests.zip": "/home/worker/artifacts/gaia-tests.zip",
-            "sources.xml": "sources.xml"
+            "sources.xml": "/home/worker/artifacts/sources.xml"
           }
         },
         "tags": {
@@ -59,7 +59,7 @@
             "b2g-tests.zip": "/home/worker/artifacts/b2g-tests.zip",
             "emulator.tar.gz": "/home/worker/artifacts/emulator.tar.gz",
             "gaia-tests.zip": "/home/worker/artifacts/gaia-tests.zip",
-            "sources.xml": "sources.xml"
+            "sources.xml": "/home/worker/artifacts/sources.xml"
           }
         },
         "tags": {
@@ -89,7 +89,7 @@
             "b2g-tests.zip": "/home/worker/artifacts/b2g-tests.zip",
             "emulator.tar.gz": "/home/worker/artifacts/emulator.tar.gz",
             "gaia-tests.zip": "/home/worker/artifacts/gaia-tests.zip",
-            "sources.xml": "sources.xml"
+            "sources.xml": "/home/worker/artifacts/sources.xml"
           }
         },
         "tags": {
@@ -118,7 +118,7 @@
             "b2g-tests.zip": "/home/worker/artifacts/b2g-tests.zip",
             "emulator.tar.gz": "/home/worker/artifacts/emulator.tar.gz",
             "gaia-tests.zip": "/home/worker/artifacts/gaia-tests.zip",
-            "sources.xml": "sources.xml"
+            "sources.xml": "/home/worker/artifacts/sources.xml"
           }
         },
         "tags": {
