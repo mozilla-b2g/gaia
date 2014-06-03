@@ -5,6 +5,7 @@
 /* global MockGetStorageIfAvailable */
 /* global MockGetUnusedFilename */
 /* global MocksHelper */
+/* global MockMozActivity */
 /* global MockMozL10n */
 
 requireApp('communications/contacts/js/export/bt.js');
@@ -127,6 +128,8 @@ suite('BT export', function() {
       assert.equal(1, exported);
       done();
     });
+    // Execute the onsuccess on demand
+    MockMozActivity.currentActivity.onsuccess();
   });
 
   test('Calling with several contacts', function(done) {
@@ -138,6 +141,8 @@ suite('BT export', function() {
       assert.equal(contacts.length, exported);
       done();
     });
+    // Execute the onsuccess on demand
+    MockMozActivity.currentActivity.onsuccess();
   });
 
   test('Calling with cancel flag activated', function(done) {

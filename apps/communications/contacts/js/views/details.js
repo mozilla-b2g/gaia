@@ -12,6 +12,7 @@
 /* global Normalizer */
 /* global SCALE_RATIO */
 /* global TelephonyHelper */
+/* global WebrtcClient */
 /* global utils */
 
 var contacts = window.contacts || {};
@@ -84,12 +85,27 @@ contacts.Details = (function() {
     });
   };
 
+  var getWebrtcClientResources = function getWebrtcClientResources(cb) {
+    if (typeof cb !== 'function') {
+      return;
+    }
+    LazyLoader.load(
+      [
+        '/contacts/style/webrtc-client/webrtc_client.css',
+        '/contacts/js/webrtc-client/webrtc_client.js'
+      ],
+      cb
+    );
+  };
+
   var handleDetailsBack = function handleDetailsBack() {
     // disable NFC listeners if NFC is available
     if ('mozNfc' in navigator) {
       contacts.NFC.stopListening();
     }
 
+    getWebrtcClientResources(WebrtcClient.stop);
+    
     if (ActivityHandler.currentlyHandling) {
       ActivityHandler.postCancel();
       Contacts.navigation.home();
@@ -234,6 +250,9 @@ contacts.Details = (function() {
 
     renderPhones(contact);
     renderEmails(contact);
+    
+    renderWebrtcClient(contactData);// Don't share the FB info
+    
     renderAddresses(contact);
 
     renderDates(contact);
@@ -482,6 +501,12 @@ contacts.Details = (function() {
 
       listContainer.appendChild(template);
     }
+  };
+
+  var renderWebrtcClient = function renderWebrtcClient(contact) {
+    getWebrtcClientResources(function onLoaded() {
+      WebrtcClient.start(contact);
+    });
   };
 
   // Check current situation and setup different listener for the button
