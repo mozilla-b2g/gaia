@@ -3,6 +3,7 @@
 /* global CollectionIcon */
 /* global Bookmark */
 /* global Divider */
+/* global SearchDedupe */
 
 (function(exports){
 
@@ -16,6 +17,10 @@
 
     // A list of the web results for this collection view
     this.webResults = [];
+
+    if (window.SearchDedupe) {
+      this.dedupe = new SearchDedupe();
+    }
   }
 
   BaseCollection.create = function create(data) {
@@ -44,24 +49,31 @@
       this.save();
     },
 
-    render: function render(grid) {
-      grid.clear();
+    addToGrid: function(results, grid) {
+      // Add a dedupeId to each result
+      results.forEach(function eachResult(item) {
+        item.dedupeId = item.url;
+      });
 
-      this.pinned.forEach(function render(pinned) {
-        var icon = new Bookmark(pinned);
+      results = this.dedupe.reduce(results, 'fuzzy');
+      results.forEach(function render(result) {
+        var icon = new Bookmark(result);
         grid.add(icon);
       });
+    },
+
+    render: function render(grid) {
+      this.dedupe.reset();
+      grid.clear();
+
+      this.addToGrid(this.pinned, grid);
 
       if (!this.webResults.length) {
         return;
       }
 
       grid.add(new Divider());
-
-      this.webResults.forEach(function(detail) {
-        var bookmark = new Bookmark(detail);
-        grid.add(bookmark);
-      });
+      this.addToGrid(this.webResults, grid);
       grid.render();
     },
 
