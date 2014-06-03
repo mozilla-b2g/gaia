@@ -575,6 +575,13 @@ webapp-shared: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts $(STAGE_DIR) clear-s
 webapp-optimize: multilocale app-makefiles $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,webapp-optimize)
 
+.PHONY: optimize-clean
+# Remove temporary l10n files created by the webapp-optimize step.  Because
+# webapp-zip wants these files to still be around during the zip stage, depend
+# on webapp-zip so it runs to completion before we start the cleanup.
+optimize-clean: webapp-zip $(XULRUNNER_BASE_DIRECTORY)
+	@$(call run-js-command,optimize-clean)
+
 .PHONY: keyboard-layouts
 # A separate step for shared/ folder to generate its content in build time
 keyboard-layouts: webapp-manifests $(XULRUNNER_BASE_DIRECTORY)
@@ -612,7 +619,7 @@ endif
 endif
 
 # Create webapps
-offline: app-makefiles webapp-zip
+offline: app-makefiles optimize-clean
 
 # Create an empty reference workload
 .PHONY: reference-workload-empty

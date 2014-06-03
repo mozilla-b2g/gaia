@@ -5,7 +5,7 @@ var proxyquire = require('proxyquire');
 var mockUtils =
   require('./mock_utils.js');
 
-suite('webapp-manifest.js', function() {
+suite('settings.js', function() {
   var app;
   var fileExists;
   var writingContent = null;
