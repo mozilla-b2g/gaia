@@ -41,8 +41,7 @@ window.GaiaHeader = (function(win) {
     );
 
     shadow.appendChild(this._template);
-
-    ComponentUtils.style.call(this, baseurl);
+    ComponentUtils.style.call(this, [{ url: 'style.css' }], baseurl);
   };
 
   /**

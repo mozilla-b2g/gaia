@@ -9,17 +9,21 @@ window.GaiaSwitch = (function(win) {
   var baseurl = window.GaiaSwitchBaseurl ||
     '/shared/elements/gaia_switch/';
 
+  var stylesheets = [
+    { url: '../../style/icons/style.css' },
+    { url: 'style.css', scoped: true }
+  ];
+
   proto.createdCallback = function() {
     var shadow = this.createShadowRoot();
     this._template = template.content.cloneNode(true);
     this._inner = this._template.firstElementChild;
 
-    this.count = 0;
     this.checked = this.hasAttribute('checked');
     this._inner.addEventListener('click', this.onClick.bind(this));
 
     shadow.appendChild(this._template);
-    ComponentUtils.style.call(this, baseurl);
+    ComponentUtils.style.call(this, stylesheets, baseurl);
   };
 
   proto.toggle = function(value) {
@@ -89,6 +93,7 @@ window.GaiaSwitch = (function(win) {
   template.innerHTML = '<button class="inner">' +
       '<div class="track">' +
         '<div class="head">' +
+          '<span class="icon icon_tick"></span>' +
           '<div class="circle-1"></div>' +
           '<div class="circle-2"></div>' +
         '</div>' +

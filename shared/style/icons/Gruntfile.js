@@ -14,7 +14,9 @@ module.exports = function(grunt) {
           font: 'gaia-icons',
           destHtml: 'examples/',
           embed: true,
-          types: 'woff'
+          types: 'woff',
+          ligatures: true,
+          // hashes: false
         }
       }
     },

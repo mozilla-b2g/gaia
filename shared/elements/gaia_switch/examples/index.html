@@ -20,7 +20,6 @@
   <script src="../../../js/component_utils.js"></script>
   <script>window.GaiaSwitchBaseurl = '../';</script>
   <script src="../script.js"></script>
-  <script defer src="example.js"></script>
 </head>
 <body role="application">
   <section>
@@ -32,5 +31,18 @@
     </gaia-switch>
   </section>
   <div id="result"></div>
+  <script>
+  (function() {
+    'use strict';
+    var result = document.getElementById('result');
+    var elements = document.querySelectorAll('gaia-switch');
+    [].forEach.call(elements, function(switchEl, index) {
+      switchEl.addEventListener('click', function(e) {
+        result.textContent = 'Switch event for: ' + (index + 1) + ' value: ' +
+          e.target.checked;
+      });
+    });
+  })();
+  </script>
 </body>
 </html>
