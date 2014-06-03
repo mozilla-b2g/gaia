@@ -4,7 +4,7 @@
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 require('/shared/test/unit/mocks/mock_moz_activity.js');
-requireApp('home2/js/wallpaper.js');
+require('/js/wallpaper.js');
 
 var mocksHelperForWallpaper = new MocksHelper([
   'MozActivity'

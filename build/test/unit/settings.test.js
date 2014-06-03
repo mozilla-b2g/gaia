@@ -214,12 +214,12 @@ suite('settings.js', function() {
     });
 
     test('setHomescreenURL with customizable', function() {
-      config.GAIA_APPDIRS = 'home2 system sms';
+      config.GAIA_APPDIRS = 'verticalhome system sms';
       config.GAIA_SCHEME = 'app://';
       config.GAIA_DOMAIN = 'gaiamobile.com';
       config.GAIA_PORT = ':8080';
-      var settings = { 'homescreen.appName': 'home2' };
-      var testResult = mockUtils.gaiaManifestURL('home2',
+      var settings = { 'homescreen.appName': 'verticalhome' };
+      var testResult = mockUtils.gaiaManifestURL('verticalhome',
                     config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
       app.setHomescreenURL(settings, config);
       assert.equal(settings['homescreen.manifestURL'], testResult);

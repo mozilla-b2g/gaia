@@ -12,7 +12,7 @@
 
   const DB_VERSION = 1;
 
-  const DB_NAME = 'home2-alpha20';
+  const DB_NAME = 'verticalhome';
 
   const DB_ITEM_STORE = 'items';
   const DB_SV_APP_STORE_NAME = 'svAppsInstalled';
