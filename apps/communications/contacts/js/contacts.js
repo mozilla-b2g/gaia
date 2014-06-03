@@ -12,12 +12,13 @@
 /* global PerformanceTestingHelper */
 /* global SmsIntegration */
 /* global utils */
+/* global TAG_OPTIONS */
+
 /* exported COMMS_APP_ORIGIN */
 /* exported SCALE_RATIO */
 /* jshint nonew: false */
 
 var _;
-var TAG_OPTIONS;
 var COMMS_APP_ORIGIN = location.origin;
 
 // Scale ratio for different devices
@@ -200,34 +201,6 @@ var Contacts = (function() {
     addButton = document.getElementById('add-contact-button');
     editModeTitleElement = document.getElementById('edit-title');
     appTitleElement = document.getElementById('app-title');
-
-    TAG_OPTIONS = {
-      'phone-type' : [
-        {type: 'mobile', value: _('mobile')},
-        {type: 'home', value: _('home')},
-        {type: 'work', value: _('work')},
-        {type: 'personal', value: _('personal')},
-        {type: 'faxHome', value: _('faxHome')},
-        {type: 'faxOffice', value: _('faxOffice')},
-        {type: 'faxOther', value: _('faxOther')},
-        {type: 'other', value: _('other')}
-      ],
-      'email-type' : [
-        {type: 'personal', value: _('personal')},
-        {type: 'home', value: _('home')},
-        {type: 'work', value: _('work')},
-        {type: 'other', value: _('other')}
-      ],
-      'address-type' : [
-        {type: 'current', value: _('current')},
-        {type: 'home', value: _('home')},
-        {type: 'work', value: _('work')}
-      ],
-      'date-type': [
-        {type: 'birthday', value: _('birthday')},
-        {type: 'anniversary', value: _('anniversary')}
-      ]
-    };
   };
 
   var onLocalized = function onLocalized() {
@@ -568,6 +541,7 @@ var Contacts = (function() {
           Contacts.view('Form', function viewLoaded() {
             formReady = true;
             contactsForm = contacts.Form;
+            console.log(TAG_OPTIONS);
             contactsForm.init(TAG_OPTIONS);
             callback();
           });
@@ -713,6 +687,7 @@ var Contacts = (function() {
       '/shared/js/contacts/utilities/templates.js',
       '/shared/js/contacts/contacts_shortcuts.js',
       '/contacts/js/contacts_tag.js',
+      '/contacts/js/tag_options.js',
       SHARED_UTILS_PATH + '/' + 'misc.js',
       '/contacts/js/utilities/normalizer.js',
       '/shared/js/text_normalizer.js',
@@ -967,7 +942,6 @@ var Contacts = (function() {
     'getLength': getLength,
     'showForm': showForm,
     'setCurrent': setCurrent,
-    'getTags': TAG_OPTIONS,
     'onLocalized': onLocalized,
     'init': init,
     'showOverlay': showOverlay,
