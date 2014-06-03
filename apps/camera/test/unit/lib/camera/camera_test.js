@@ -995,6 +995,36 @@ suite('lib/camera/camera', function() {
     });
   });
 
+  suite('Camera#configureFocus()', function() {
+    setup(function() {
+      this.camera = new this.Camera();
+      this.focus = {
+        configure: function() {}
+      };
+      this.camera.focus = this.focus;
+      sinon.stub(this.focus, 'configure');
+    });
+
+    test('Should set the focus state to the passed value', function() {
+      this.camera.configureFocus();
+      assert.ok(this.focus.configure.called);
+      assert.ok(this.focus.onFacesDetected === this.camera.onFacesDetected);
+      assert.ok(this.focus.onAutoFocusChanged === this.camera.onAutoFocusChanged);
+    });
+  });
+
+  suite('Camera#onAutoFocusChanged()', function() {
+    setup(function() {
+      this.camera = new this.Camera();
+      sinon.stub(this.camera, 'set');
+    });
+
+    test('Should set the focus state to the passed value', function() {
+      this.camera.onAutoFocusChanged();
+      assert.ok(this.camera.set.calledWith('focus', 'autofocus'));
+    });
+  });
+
   suite('Camera#saveBootConfig()', function() {
     setup(function() {
       this.options.cacheConfig = true;

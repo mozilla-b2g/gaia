@@ -44,6 +44,7 @@ CameraController.prototype.bindEvents = function() {
   // Relaying camera events means other modules
   // don't have to depend directly on camera
   camera.on('change:videoElapsed', app.firer('camera:recorderTimeUpdate'));
+  camera.on('autofocuschanged', app.firer('camera:autofocuschanged'));
   camera.on('focusconfigured',  app.firer('camera:focusconfigured'));
   camera.on('change:focus', app.firer('camera:focusstatechanged'));
   camera.on('facesdetected', app.firer('camera:facesdetected'));
@@ -63,6 +64,7 @@ CameraController.prototype.bindEvents = function() {
   // App
   app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
   app.on('previewgallery:opened', this.onPreviewGalleryOpened);
+  app.on('previewgallery:closed', this.onPreviewGalleryClosed);
   app.on('change:batteryStatus', this.onBatteryStatusChange);
   app.on('settings:configured', this.onSettingsConfigured);
   app.on('storage:changed', this.onStorageChanged);
@@ -340,11 +342,20 @@ CameraController.prototype.onStorageChanged = function(state) {
 };
 
 /**
- * Resets the camera zoom when the preview gallery
+ * Resets the camera zoom and stops focus when the preview gallery
  * is opened.
  */
 CameraController.prototype.onPreviewGalleryOpened = function() {
   this.camera.configureZoom(this.camera.previewSize());
+  this.camera.stopFocus();
+};
+
+/**
+ * Resumes focus when the preview gallery
+ * is opened.
+ */
+CameraController.prototype.onPreviewGalleryClosed = function() {
+  this.camera.resumeFocus();
 };
 
 /**
