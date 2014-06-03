@@ -1,3 +1,5 @@
 {
-  "blacklist": []
+  "blacklist": [
+    "apps/calendar/test/marionette/screenshot_ref_test.js"
+  ]
 }
