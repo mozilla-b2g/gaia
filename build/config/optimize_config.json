@@ -8,7 +8,7 @@
     "email": "*",
     "camera": "*",
     "clock": "*",
-    "settings": "*"
+    "communications": "*"
   },
   "INLINE_WHITELIST": {
     "system": [ "net_error.html" ],
