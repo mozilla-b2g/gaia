@@ -106,7 +106,7 @@ var DownloadHelper = (function() {
    */
   function getBlob(download) {
     var req = new Request();
-    var storage = navigator.getDeviceStorage(download.storageName);
+    var storage = getVolume(download.storageName);
     var storeAvailableReq = storage.available();
 
     storeAvailableReq.onsuccess = function available_onsuccess(e) {
@@ -379,7 +379,7 @@ var DownloadHelper = (function() {
     var req = new Request();
 
     deleteRequest.onsuccess = function() {
-      var storage = navigator.getDeviceStorage(storageName);
+      var storage = getVolume(download.storageName);
       var storeAvailableReq = storage.available();
 
       storeAvailableReq.onsuccess = function available_onsuccess(e) {
@@ -396,7 +396,7 @@ var DownloadHelper = (function() {
             break;
 
           default:
-            var storeDeleteReq = storage.delete(getRelativePath(path));
+            var storeDeleteReq = storage.delete(download.storagePath);
 
             storeDeleteReq.onsuccess = function store_onsuccess() {
               // Remove from the datastore if status is 'succeeded'
@@ -501,6 +501,26 @@ var DownloadHelper = (function() {
     req.onerror = function() {
       cb(null);
     };
+  }
+
+  /**
+   *  Gets the storage for the download based on the volumen
+   *  it was saved (storageName)
+   */
+  function getVolume(volumeName) {
+    // Per API design, all media type return the same volumes.
+    // So we use 'sdcard' here for no reason.
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=856782#c10
+    var volumes = navigator.getDeviceStorages('sdcard');
+    if (!volumeName || volumeName === '') {
+      return volumes[0];
+    }
+    for (var i = 0; i < volumes.length; ++i) {
+      if (volumes[i].storageName === volumeName) {
+        return volumes[i];
+      }
+    }
+    return volumes[0];
   }
 
   return {
