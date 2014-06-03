@@ -546,25 +546,34 @@ section[role="region"].new > header:first-child form {
   DSDS
 */
 
-.js-sim-indication {
+.sim-indication {
   position: absolute;
-  top: 0.2rem;
-  left: 0;
+  top: 0.6rem;
+  right: 1.9rem;
 
   display: none;
   line-height: 1;
-  width: 100%;
 
+  color: black;
   font-size: 1.3rem;
+  font-style: normal;
   opacity: 0.5;
 }
 
-.has-preferred-sim .js-sim-indication {
+button[disabled] .sim-indication {
+  color: inherit;
+}
+
+.has-preferred-sim .sim-indication {
   display: block;
 }
 
+.has-preferred-sim #messages-send-button {
+  height: 4.5rem;
+  padding-top: 0.5rem;
+}
 
-.has-preferred-sim #messages-send-button:after {
+.has-preferred-sim #messages-send-button:before {
   position: absolute;
   top: 1.2rem;
   left: 0;
