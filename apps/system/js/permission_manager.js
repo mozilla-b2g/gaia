@@ -19,11 +19,6 @@
     fullscreenRequest: undefined,
     isVideo: false,
     isAudio: false,
-    /**
-     * special dialog for camera selection while in app mode and
-     * permission is granted
-     */
-    isCamSelector: false,
     responseStatus: undefined,
     /**
      * A queue of pending requests. Callers of requestPermission() must be
@@ -51,7 +46,6 @@
       // Div over in which the permission UI resides.
       this.overlay = document.getElementById('permission-screen');
       this.dialog = document.getElementById('permission-dialog');
-      this.title = document.getElementById('permission-title');
       this.message = document.getElementById('permission-message');
       this.moreInfo = document.getElementById('permission-more-info');
       this.moreInfoLink = document.getElementById('permission-more-info-link');
@@ -59,7 +53,6 @@
       this.moreInfoBox = document.getElementById('permission-more-info-box');
 
       // "Yes"/"No" buttons on the permission UI.
-      this.buttons = document.getElementById('permission-buttons');
       this.yes = document.getElementById('permission-yes');
       this.no = document.getElementById('permission-no');
 
@@ -67,8 +60,6 @@
       this.remember = document.getElementById('permission-remember-checkbox');
       this.rememberSection =
         document.getElementById('permission-remember-section');
-      this.deviceSelector =
-        document.getElementById('permission-device-selector');
       this.devices = document.getElementById('permission-devices');
 
       var self = this;
@@ -100,7 +91,6 @@
       this.fullscreenRequest = null;
       this.isVideo = false;
       this.isAudio = false;
-      this.isCamSelector = false;
 
       this.responseStatus = null;
       this.pending = [];
@@ -109,20 +99,17 @@
 
       this.overlay = null;
       this.dialog = null;
-      this.title = null;
       this.message = null;
       this.moreInfo = null;
       this.moreInfoLink = null;
       this.moreInfoBox = null;
 
-      this.remember = null;
-      this.rememberSection = null;
-      this.deviceSelector = null;
-      this.devices = null;
-
-      this.buttons = null;
       this.yes = null;
       this.no = null;
+
+      this.remember = null;
+      this.rememberSection = null;
+      this.devices = null;
 
       window.removeEventListener('mozChromeEvent', this);
       window.removeEventListener('home', this);
@@ -136,26 +123,13 @@
     cleanDialog: function pm_cleanDialog() {
       this.permissionType = undefined;
       this.currentPermissions = undefined;
-      this.currentChoices = {};
       this.isVideo = false;
       this.isAudio = false;
-      this.isCamSelector = false;
-
-      this.rememberSection.style.display = 'block';
-
-      //handled in showPermissionPrompt
-      if (this.message.classList.contains('hidden')) {
-        this.message.classList.remove('hidden');
-      }
+      this.currentChoices = {};
+      this.devices.innerHTML = '';
       if (!this.moreInfoBox.classList.contains('hidden')) {
         this.moreInfoBox.classList.add('hidden');
       }
-      this.devices.innerHTML = '';
-      if (!this.deviceSelector.classList.contains('hidden')) {
-        this.deviceSelector.classList.add('hidden');
-      }
-      this.buttons.dataset.items = 2;
-      this.no.style.display = 'inline';
     },
 
     /**
@@ -173,18 +147,14 @@
           if (detail.permissions) {
             if ('video-capture' in detail.permissions) {
               this.isVideo = true;
-              LazyLoader.load('shared/js/template.js');
 
-              // video selector is only for app
-              if (detail.isApp && detail.isGranted &&
-                detail.permissions['video-capture'].length > 1) {
-                this.isCamSelector = true;
-              }
+              LazyLoader.load('shared/js/template.js');
             }
             if ('audio-capture' in detail.permissions) {
               this.isAudio = true;
             }
-          } else { // work in <1.4 compatible mode
+          } else {
+            // work in compatible mode
             if (detail.permission) {
               this.permissionType = detail.permission;
               if ('video-capture' === detail.permission) {
@@ -210,13 +180,9 @@
           }
           this.overlay.dataset.type = this.permissionType;
 
+          // Not show remember my choice option in gUM
           if (this.isAudio || this.isVideo) {
-            if (!detail.isApp) {
-              // Not show remember my choice option in website
-              this.rememberSection.style.display = 'none';
-            } else {
-              this.rememberSection.style.display = 'block';
-            }
+            this.rememberSection.style.display = 'none';
 
             // Set default options
             this.currentPermissions = detail.permissions;
@@ -229,6 +195,8 @@
                 }
               }
             }
+          } else {
+            this.rememberSection.style.display = 'block';
           }
 
           this.handlePermissionPrompt(detail);
@@ -303,40 +271,27 @@
      * @param {Object} detail The event detail object.
      */
     handlePermissionPrompt: function pm_handlePermissionPrompt(detail) {
-      if ((this.isAudio || this.isVideo) && !this.isCamSelector) {
-        // gUM always not remember in web mode
+      if (this.isAudio || this.isVideo) {
         this.remember.checked = false;
       } else {
-        this.remember.checked = detail.remember;
+        this.remember.checked = detail.remember ? true : false;
       }
-
-      var message = '';
+      var str = '';
       var permissionID = 'perm-' + this.permissionType.replace(':', '-');
       var _ = navigator.mozL10n.get;
 
       if (detail.isApp) { // App
         var app = applications.getByManifestURL(detail.manifestURL);
-        message = _(permissionID + '-appRequest',
+        str = _(permissionID + '-appRequest',
           { 'app': new ManifestHelper(app.manifest).name });
-
-        this.title.innerHTML = _('title-app');
-        if (this.isCamSelector) {
-          this.title.innerHTML = _('title-cam');
-        }
-        this.deviceSelector.innerHTML = _('perm-camera-selector-appRequest',
-            { 'app': new ManifestHelper(app.manifest).name });
       } else { // Web content
-        message = _(permissionID + '-webRequest', { 'site': detail.origin });
-
-        this.title.innerHTML = _('title-web');
-        this.deviceSelector.innerHTML = _('perm-camera-selector-webRequest',
-            { 'site': detail.origin });
+        str = _(permissionID + '-webRequest', { 'site': detail.origin });
       }
 
       var moreInfoText = _(permissionID + '-more-info');
       var self = this;
       this.requestPermission(detail.origin, this.permissionType,
-        message, moreInfoText,
+        str, moreInfoText,
         function pm_permYesCB() {
           self.dispatchResponse(detail.id, 'permission-allow',
             self.remember.checked);
@@ -351,9 +306,7 @@
      * @memberof PermissionManager.prototype
      */
     dispatchResponse: function pm_dispatchResponse(id, type, remember) {
-      if (this.isCamSelector) {
-        remember = true;
-      }
+      remember = remember ? true : false;
       this.responseStatus = type;
 
       var response = {
@@ -362,7 +315,7 @@
         remember: remember
       };
 
-      if (this.isVideo || this.isAudio || this.isCamSelector) {
+      if (this.isVideo || this.isAudio) {
         response.choices = this.currentChoices;
       }
       var event = document.createEvent('CustomEvent');
@@ -485,10 +438,6 @@
       var self = this;
       var template = new Template('device-list-item-tmpl');
       var checked;
-
-      // show description
-      this.deviceSelector.classList.remove('hidden');
-      // build device list
       this.currentPermissions['video-capture'].forEach(function(option) {
         // Match currentChoices
         checked = (self.currentChoices['video-capture'] === option) ?
@@ -536,6 +485,9 @@
         this.listDeviceOptions();
       }
 
+      // Make the screen visible
+      this.overlay.classList.add('visible');
+
       // Set event listeners for the yes and no buttons
       var isSharedPermission = this.isVideo || this.isAudio ||
            this.permissionType === 'geolocation';
@@ -552,17 +504,6 @@
       this.noHandler = this.clickHandler.bind(this);
       this.no.addEventListener('click', this.noHandler);
       this.no.callback = nocallback;
-
-      // customize camera selector dialog
-      if (this.isCamSelector) {
-        this.message.classList.add('hidden');
-        this.rememberSection.style.display = 'none';
-        this.buttons.dataset.items = 1;
-        this.no.style.display = 'none';
-        this.yes.textContent = _('ok');
-      }
-      // Make the screen visible
-      this.overlay.classList.add('visible');
     },
 
     /**
