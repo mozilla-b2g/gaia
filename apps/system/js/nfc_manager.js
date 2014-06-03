@@ -374,8 +374,7 @@ var NfcManager = {
        */
       var firstRecord = msg.records[0];
       if ((firstRecord.tnf == NDEF.TNF_MIME_MEDIA) &&
-            NfcUtils.equalArrays(firstRecord.type,
-            NfcUtils.fromUTF8('application/vnd.bluetooth.ep.oob'))) {
+          NfcUtils.equalArrays(firstRecord.type, NDEF.MIME_BLUETOOTH_OOB)) {
         this._debug('Handle simplified pairing record');
         NfcHandoverManager.handleSimplifiedPairingRecord(msg.records);
         return;
