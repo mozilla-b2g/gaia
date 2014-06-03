@@ -117,7 +117,7 @@
     /**
      * Scrubs the list of items, removing empty sections.
      */
-    cleanItems: function() {
+    cleanItems: function(skipDivider) {
       var appCount = 0;
       var toRemove = [];
 
@@ -140,6 +140,9 @@
 
       // There should always be a divider at the end, it's hidden in CSS when
       // not in edit mode.
+      if (skipDivider) {
+        return;
+      }
       var lastItem = this.items[this.items.length - 1];
       if (!(lastItem instanceof Divider)) {
         this.items.push(new Divider());
@@ -202,11 +205,11 @@
      * on the grid.
      * @param {Integer} from The index to start rendering from.
      */
-    render: function(from) {
+    render: function(from, skipDivider) {
       var self = this;
 
       this.removeAllPlaceholders();
-      this.cleanItems();
+      this.cleanItems(skipDivider);
 
       // Start rendering from one before the drop target. If not,
       // we may drop over the divider and miss rendering an icon.
