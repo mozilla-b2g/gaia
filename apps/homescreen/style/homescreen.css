@@ -98,6 +98,29 @@ li:active {
   opacity: 0.1;
 }
 
+.apps ol > li[data-is-collection = "true"] > div > img,
+#footer ol > li[data-is-collection = "true"] > div > img {
+  position: relative;
+  z-index: 20;
+}
+.apps ol > li[data-is-collection = "true"] > div:before,
+#footer ol > li[data-is-collection = 'true'] > div::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 5.8rem;
+  height: 5.8rem;
+  margin: 0.3rem 0 0 -2.9rem;
+  background: rgba(0, 0, 0, .1);
+  border: 0.2rem solid rgba(255, 255, 255, .5);
+  border-radius: 50%;
+  z-index: 10;
+  -moz-box-sizing: border-box;
+  background-clip: content-box;
+  transform: scale(1);
+}
+
 span.options {
   position: absolute;
   top: .1rem;

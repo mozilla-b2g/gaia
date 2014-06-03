@@ -240,7 +240,6 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     !options && (options = {});
 
     var params = {
-      '_checksum': options._checksum || '',
       'query': options.query,
       'experienceId': options.experienceId || '',
       'typeHint': options.typeHint || '',
