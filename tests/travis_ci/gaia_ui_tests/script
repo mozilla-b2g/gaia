@@ -19,3 +19,5 @@ $gaiatest --app=b2gdesktop \
           --this-chunk=${THIS_CHUNK:=1} \
           --total-chunks=${TOTAL_CHUNKS:=1} \
           --restart $root/tests/$SUITE/manifest.ini
+          --restart $root/tests/functional/clock/test_clock_create_new_alarm.py \
+          --repeat 40
