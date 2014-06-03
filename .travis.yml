@@ -8,8 +8,6 @@ before_script:
 - ./node_modules/.bin/travisaction $CI_ACTION before_script
 script: ./node_modules/.bin/travisaction $CI_ACTION script
 after_script: ./node_modules/.bin/travisaction $CI_ACTION after_script
-git:
-  depth: 1
 branches:
   only:
   - master
