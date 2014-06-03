@@ -1,7 +1,7 @@
 {
   "name": "E-Mail",
   "description": "Gaia E-Mail",
-  "type": "certified",
+  "type": "privileged",
   "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
