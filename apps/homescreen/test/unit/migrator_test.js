@@ -1,19 +1,23 @@
 'use strict';
 
 /* global MockNavigatormozSetMessageHandler, CollectionsDatabase, migrator,
-          BookmarksDatabase, HomeState, GridItemsFactory */
+          BookmarksDatabase, HomeState, GridItemsFactory, MockasyncStorage */
 
 require('/shared/js/bookmarks_database.js');
 require('/shared/js/collections_database.js');
 require('/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js');
 
+requireApp('homescreen/test/unit/mock_asyncStorage.js');
 requireApp('homescreen/js/grid_components.js');
 requireApp('homescreen/js/bookmark.js');
 requireApp('homescreen/js/state.js');
 
+mocha.globals(['asyncStorage']);
+
 suite('migrator.js >', function() {
 
   var realSetMessageHandler = null,
+      realAsyncStorage = null,
       eventName = 'connection',
       url = 'http://www.test.com/',
       bdAddStub = null,
@@ -31,6 +35,8 @@ suite('migrator.js >', function() {
       };
 
   suiteSetup(function(done) {
+    realAsyncStorage = window.asyncStorage;
+    window.asyncStorage = MockasyncStorage;
     realSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
     MockNavigatormozSetMessageHandler.mSetup();
@@ -38,6 +44,7 @@ suite('migrator.js >', function() {
   });
 
   suiteTeardown(function() {
+    window.asyncStorage = realAsyncStorage;
     MockNavigatormozSetMessageHandler.mTeardown();
     navigator.mozSetMessageHandler = realSetMessageHandler;
   });
