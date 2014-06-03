@@ -104,6 +104,9 @@
       });
       // Init in progress
       initialized = true;
+      // Custom event that can be used to apply (screen reader) visibility
+      // changes.
+      window.dispatchEvent(new CustomEvent('tutorialinitialized'));
     },
     handleEvent: function(evt) {
       if (evt.type === 'click') {
