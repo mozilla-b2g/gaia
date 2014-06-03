@@ -15,9 +15,15 @@ section[role="region"] > header:first-child {
 section[role="region"] > header:first-child h1 {
   font-size: 2.3rem;
   line-height: 5rem;
-  text-align: left;
+  text-align: center;
   white-space: nowrap;
-  text-overflow: ellipsis;
+  /* XXX: Why add this in javascript? Seems to me it
+          doesn't hurt by being on by default */
+  /* YYY: It's either enable it at first then turn it off, or disable it then
+          turn it on when needed.
+          From my experience the latter case is more frequent so we may as
+          well do it by default. */
+  /*text-overflow: ellipsis; => Added in JavaScript */
   display: block;
   overflow: hidden;
   margin: 0;
@@ -25,7 +31,6 @@ section[role="region"] > header:first-child h1 {
   height: 100%;
   font-weight: lighter;
   font-style: italic;
-  text-align: center;
 }
 
 section[role="region"] > header:first-child h1 em {
@@ -152,14 +157,14 @@ section[role="region"] > header:first-child h1 {
 
 section[role="region"] > header:first-child a,
 section[role="region"] > header:first-child button {
-  color: rgba(0,0,0,0.6);
+  color: rgba(0, 0, 0, 0.6);
 }
 
 section[role="region"] > header:first-child a:active,
 section[role="region"] > header:first-child button:active,
 section[role="region"] > header:first-child a:hover,
 section[role="region"] > header:first-child button:hover {
-  background-color: rgba(0,0,0,0.07);
+  background-color: rgba(0, 0, 0, 0.07);
 }
 
 /* ----------------------------------
@@ -233,7 +238,7 @@ section[role="region"].skin-comms > header:first-child {
 .skin-comms section[role="region"] > header:first-child button,
 section[role="region"].skin-comms > header:first-child a,
 section[role="region"].skin-comms > header:first-child button {
-  color: rgba(0,0,0,0.5);
+  color: rgba(0, 0, 0, 0.5);
 }
 
 .skin-comms section[role="region"] > header:first-child a:active,
@@ -244,7 +249,7 @@ section[role="region"].skin-comms > header:first-child a:active,
 section[role="region"].skin-comms > header:first-child button:active,
 section[role="region"].skin-comms > header:first-child a:hover,
 section[role="region"].skin-comms > header:first-child button:hover {
-  background-color: rgba(0,0,0,0.1);
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 /* -----------------------------------------------------------------
@@ -272,7 +277,7 @@ section[role="region"].skin-dark > header:first-child a:active,
 section[role="region"].skin-dark > header:first-child button:active,
 section[role="region"].skin-dark > header:first-child a:hover,
 section[role="region"].skin-dark > header:first-child button:hover {
-  background-color: rgba(0,0,0,0.4);
+  background-color: rgba(0, 0, 0, 0.4);
 }
 
 section[role="region"].skin-dark header h2,
