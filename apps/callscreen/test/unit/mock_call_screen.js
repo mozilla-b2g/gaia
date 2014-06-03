@@ -21,6 +21,10 @@ var MockCallScreen = {
     this.mSetCallerContactImageCalled = true;
     this.mSetCallerContactImageArg = arg;
   },
+  changeContactImage: function(arg) {
+    this.mChangeContactImageCalled = true;
+    this.mChangeContactImageArg = arg;
+  },
   setEmergencyWallpaper: function() {
     this.mSetEmergencyWallpaperCalled = true;
   },
@@ -99,6 +103,8 @@ var MockCallScreen = {
   mSyncSpeakerCalled: false,
   mSetCallerContactImageCalled: false,
   mSetCallerContactImageArg: null,
+  mChangeContactImageCalled: false,
+  mChangeContactImageArg: null,
   mMuteOn: false,
   mSpeakerOn: false,
   mLastRenderMode: null,
@@ -107,6 +113,8 @@ var MockCallScreen = {
     this.mSyncSpeakerCalled = false;
     this.mSetCallerContactImageCalled = false;
     this.mSetCallerContactImageArg = null;
+    this.mChangeContactImageCalled = false;
+    this.mChangeContactImageArg = null;
     this.mSetEmergencyWallpaperCalled = false;
     this.mMuteOn = false;
     this.mSpeakerOn = false;

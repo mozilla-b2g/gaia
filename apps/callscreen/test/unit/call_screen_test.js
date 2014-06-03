@@ -489,11 +489,13 @@ suite('call screen', function() {
     var fakeBlob = new Blob([], {type: 'image/png'});
     var fakeURL = URL.createObjectURL(fakeBlob);
 
-    suiteSetup(function() {
+    setup(function() {
       CallScreen._transitionDone = false;
+      CallScreen._contactImage = null;
     });
 
-    test('it should wait for the transition to be over', function(done) {
+    test('setCallerContactImage should wait for the transition to be over',
+    function(done) {
       var addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
 
       CallScreen.setCallerContactImage(fakeBlob);
@@ -509,24 +511,74 @@ suite('call screen', function() {
       });
     });
 
+    test('changeContactImage should not wait for the transition to be over',
+    function() {
+      this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
+      CallScreen.changeContactImage(fakeBlob);
+      assert.equal(CallScreen.contactBackground.style.backgroundImage,
+                   'url("' + fakeURL + '")');
+    });
+
     suite('once the transition is over', function() {
-      test('should change background of the contact photo', function() {
+      setup(function() {
+        CallScreen._transitionDone = true;
+        CallScreen._contactBackgroundWaiting = false;
+      });
+
+      test('setCallerContactImage should change background of contact photo',
+      function() {
         this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
         CallScreen.setCallerContactImage(fakeBlob);
         assert.equal(CallScreen.contactBackground.style.backgroundImage,
-                       'url("' + fakeURL + '")');
+                     'url("' + fakeURL + '")');
       });
 
-      test('should clean up background property if null', function() {
+      test('setCallerContactImage should clean up background property if null',
+      function() {
+        CallScreen.setCallerContactImage(fakeBlob);
         CallScreen.setCallerContactImage(null);
         assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
       });
 
-      test('should do nothing if the blob is the same', function() {
-        var createURLSpy = this.sinon.spy(URL, 'createObjectURL');
+      test('setCallerContactImage should not show new background with call',
+      function() {
+        var newFakeBlob = new Blob([], {type: 'image/jpg'});
+        var newFakeURL = URL.createObjectURL(newFakeBlob);
+
+        this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
+
         CallScreen.setCallerContactImage(fakeBlob);
+        CallScreen.calls.innerHTML =
+          '<section class="handled-call"></section>' +
+          '<section class="handled-call"></section>';
+        CallScreen.setCallerContactImage(newFakeBlob);
+
+        assert.equal(CallScreen.contactBackground.style.backgroundImage,
+                     'url("' + fakeURL + '")');
+      });
+
+      test('changeContactImage should show background even with current call',
+      function() {
+        var newFakeBlob = new Blob([], {type: 'image/jpg'});
+        var newFakeURL = URL.createObjectURL(newFakeBlob);
+
+        this.sinon.stub(URL, 'createObjectURL').returns(newFakeURL);
+
         CallScreen.setCallerContactImage(fakeBlob);
-        assert.isTrue(createURLSpy.calledOnce);
+        CallScreen.calls.innerHTML =
+          '<section class="handled-call"></section>' +
+          '<section class="handled-call"></section>';
+        CallScreen.changeContactImage(newFakeBlob);
+
+        assert.equal(CallScreen.contactBackground.style.backgroundImage,
+                     'url("' + newFakeURL + '")');
+      });
+
+      test('changeContactImage should clean up background property if null',
+      function() {
+        CallScreen.setCallerContactImage(fakeBlob);
+        CallScreen.changeContactImage(null);
+        assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
       });
     });
   });
@@ -792,12 +844,6 @@ suite('call screen', function() {
       var setImageStub = this.sinon.stub(CallScreen, 'setCallerContactImage');
       CallScreen.hideIncoming();
       assert.isTrue(setImageStub.withArgs(testPhoto).calledOnce);
-    });
-
-    test('should clear caller photo if there is no active call', function() {
-      var setImageStub = this.sinon.stub(CallScreen, 'setCallerContactImage');
-      CallScreen.hideIncoming();
-      assert.isTrue(setImageStub.withArgs(null).calledOnce);
     });
   });
 

@@ -316,17 +316,17 @@ suite('dialer/handled_call', function() {
     });
 
     suite('with a contact with no picture', function() {
-      var setContactStub;
+      var changeContactStub;
 
       setup(function() {
         subject.photo = null;
-        setContactStub = this.sinon.stub(MockCallScreen,
-                                         'setCallerContactImage');
+        changeContactStub = this.sinon.stub(MockCallScreen,
+                                            'changeContactImage');
         mockCall._connect();
       });
 
       test('wallpaper displaying', function() {
-        assert.isTrue(setContactStub.calledWith(null));
+        assert.isTrue(changeContactStub.calledWith(null));
       });
     });
 
@@ -469,13 +469,14 @@ suite('dialer/handled_call', function() {
   });
 
   suite('resuming', function() {
-    var setContactStub;
+    var changeContactStub;
 
     setup(function() {
       mockCall._hold();
       MockCallScreen.mSyncSpeakerCalled = false;
       MockCallScreen.mEnableKeypadCalled = false;
-      setContactStub = this.sinon.stub(MockCallScreen, 'setCallerContactImage');
+      changeContactStub =
+        this.sinon.stub(MockCallScreen, 'changeContactImage');
       subject.photo = 'dummy_photo_1';
       mockCall._resume();
     });
@@ -493,7 +494,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('changed the user photo', function() {
-      assert.isTrue(setContactStub.calledWith(subject.photo));
+      assert.isTrue(changeContactStub.calledWith(subject.photo));
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
   });
@@ -715,55 +716,6 @@ suite('dialer/handled_call', function() {
 
       subject.restorePhoneNumber();
       assert.equal(subject.numberNode.textContent, 'emergencyNumber');
-    });
-  });
-
-  suite('caller photo', function() {
-    setup(function() {
-      MockCallScreen.mSetCallerContactImageCalled = false;
-    });
-
-    test('should reset photo when no contact info exists', function() {
-      mockCall = new MockCall('111', 'incoming');
-      subject = new HandledCall(mockCall);
-
-      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
-    });
-
-    test('should reset photo for withheld number', function() {
-      mockCall = new MockCall('', 'incoming');
-      subject = new HandledCall(mockCall);
-
-      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
-    });
-
-    test('should reset photo for more than 1 calls in CDMA', function() {
-      mockCall = new MockCall('888', 'connected');
-      subject = new HandledCall(mockCall);
-      mockCall.secondNumber = '999';
-      subject.updateCallNumber();
-
-      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
-    });
-
-    test('should reset photo for emergency number', function() {
-      mockCall = new MockCall('112', 'dialing');
-      mockCall.emergency = true;
-      subject = new HandledCall(mockCall);
-
-      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
-    });
-
-    test('should reset photo for voicemail', function() {
-      mockCall = new MockCall('123', 'dialing');
-      subject = new HandledCall(mockCall);
-
-      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
     });
   });
 
