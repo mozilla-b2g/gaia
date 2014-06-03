@@ -228,16 +228,16 @@
       </menu>
       <h1 id="main-title"></h1>
     </header>
-    <ol id="progress-bar" class="step-state">
-      <li id="progress-bar-state" class="step-state-bar"></li>
-      <li>languages</li>
-      <li>SIM_mandatory</li>
-      <li>3g</li>
-      <li>wifi</li>
-      <li>configure network</li>
-      <li>date and time</li>
-      <li>geolocation</li>
-      <li>browser privacy</li>
+    <ol id="progress-bar" class="step-state" role="progressbar" aria-label="First Time Experience" data-l10n-id="progressbar">
+      <li id="progress-bar-state" class="step-state-bar" role="presentation"></li>
+      <li role="presentation">languages</li>
+      <li role="presentation">SIM_mandatory</li>
+      <li role="presentation">3g</li>
+      <li role="presentation">wifi</li>
+      <li role="presentation">configure network</li>
+      <li role="presentation">date and time</li>
+      <li role="presentation">geolocation</li>
+      <li role="presentation">browser privacy</li>
     </ol>
     <article role="main">
       <section role="region" id="languages">
@@ -299,13 +299,13 @@
           <form data-type="list">
             <ul>
               <li>
-                <label id="label_wifi_ssid" for="wifi_ssid" data-l10n-id="ssid-name">
+                <label id="label_wifi_ssid" for="hidden-wifi-ssid" data-l10n-id="ssid-name">
                   SSID Network Name
                 </label>
                 <input type="text" name="wifi_ssid" id="hidden-wifi-ssid"/>
               </li>
               <li>
-                <label id="label_wifi_security" for="wifi_security" data-l10n-id="security">
+                <label id="label_wifi_security" for="hidden-wifi-security" data-l10n-id="security">
                   Security
                 </label>
                 <span class="button icon icon-dialog">
@@ -318,17 +318,17 @@
                 </span>
               </li>
               <li class="hidden" id="hidden-wifi-identity-box">
-                <label id="label_wifi_identity" for="wifi_identity" data-l10n-id="identity">
+                <label id="label_wifi_identity" for="hidden-wifi-identity" data-l10n-id="identity">
                   Identity
                 </label>
                 <input type="text" name="wifi_identity" id="hidden-wifi-identity"/>
               </li>
               <li>
-                <label id="label_hidden_wifi_password" for="wifi_hidden_password" data-l10n-id="password">
+                <label id="label_hidden_wifi_password" for="hidden-wifi-password" data-l10n-id="password">
                   Password
                 </label>
                 <input type="password" name="wifi_hidden_password" id="hidden-wifi-password" value=""/>
-                <label class="pack-checkbox" id="label_show_password">
+                <label class="pack-checkbox" id="label_show_password" for="hidden-wifi-show-password">
                   <input type="checkbox" id="hidden-wifi-show-password">
                   <span data-l10n-id="showPassword">
                     Show Password
@@ -577,7 +577,7 @@
       </section>
       <section role="region" id="welcome_browser">
         <section id="browser_logo_horizontal">
-          <img src="/shared/resources/branding/logosmall.png">
+          <img src="/shared/resources/branding/logosmall.png" role="presentation">
         </section>
         <p data-l10n-id="welcomeBrowser">
           Welcome to Browser OS, the free and
@@ -654,14 +654,14 @@
   </section>
 
   <section id="tutorial" role="region" data-step="1">
-    <ol id="tutorial-progress" class="step-state">
+    <ol id="tutorial-progress" class="step-state" role="progressbar" aria-label="Tutorial" data-l10n-id="tutorial">
       <li id="tutorial-progress-bar" class="step-state-bar"></li>
     </ol>
     <article id="tutorial-steps-container" role="main">
       <section id="tutorial-step-title">
       </section>
       <section id="tutorial-step-image">
-        <img class="step-img-base">
+        <img class="step-img-base" role="presentation">
       </section>
     </article>
     <nav role="navigation" id="tutorial-nav-bar">

@@ -252,10 +252,17 @@ var Navigation = {
         break;
     }
 
+    var progressBarState = this.getProgressBarState();
     UIManager.progressBarState.style.width =
       'calc(100% / ' + this.totalSteps + ')';
     UIManager.progressBarState.style.transform =
-      'translateX(' + ((this.getProgressBarState() - 1) * 100) + '%)';
+      'translateX(' + ((progressBarState - 1) * 100) + '%)';
+    UIManager.progressBar.setAttribute('aria-valuetext', _('progressbar', {
+      step: progressBarState,
+      total: this.totalSteps
+    }));
+    UIManager.progressBar.setAttribute('aria-valuemin', 1);
+    UIManager.progressBar.setAttribute('aria-valuemax', this.totalSteps);
 
     // If SIM card is mandatory, we hide the button skip
     if (this.simMandatory) {
