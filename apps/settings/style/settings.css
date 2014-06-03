@@ -687,13 +687,13 @@ ul li > label.range-icons.volume input {
   height: auto;
 }
 
-#call-support-numbers, #online-support-text {
+#help-call-support-numbers, #help-online-support-text {
   display: block;
   line-height: 3rem;
   margin-bottom: 2rem;
 }
 
-#call-support-numbers a, #online-support-text a {
+#help-call-support-numbers a, #help-online-support-text a {
   display: block;
 }
 
