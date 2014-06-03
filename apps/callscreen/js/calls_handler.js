@@ -702,6 +702,19 @@ var CallsHandler = (function callsHandler() {
     return activeCall;
   }
 
+  function activeCallForContactImage() {
+    if (handledCalls.length === 1) {
+      return handledCalls[0];
+    }
+
+    // The active call can be null. We're concatenating the active call with the
+    // list of all handled calls. The active call will appear twice in this
+    // array if it's not null.
+    return [activeCall()].concat(handledCalls).find(function(elem) {
+      return !elem || !elem.call.group;
+    });
+  }
+
   /**
    * Detects if we're in CDMA call waiting mode
    *
@@ -749,6 +762,10 @@ var CallsHandler = (function callsHandler() {
 
     get activeCall() {
       return activeCall();
+    },
+
+    get activeCallForContactImage() {
+      return activeCallForContactImage();
     }
   };
 })();
