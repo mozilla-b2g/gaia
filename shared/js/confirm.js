@@ -47,6 +47,9 @@ var ConfirmDialog = (function() {
     screen.classList.remove('fade-in');
     screen.classList.add('fade-out');
     isAnimationPlaying = true;
+    // Custom event that can be used to apply (screen reader) visibility
+    // changes.
+    window.dispatchEvent(new CustomEvent('confirmdialoghiding'));
     screen.addEventListener('animationend', function cd_fadeOut(ev) {
       isAnimationPlaying = false;
       screen.removeEventListener('animationend', cd_fadeOut);
@@ -128,12 +131,15 @@ var ConfirmDialog = (function() {
     screen.classList.remove('fade-out');
     screen.classList.add('fade-in');
     isAnimationPlaying = true;
+    // Custom event that can be used to apply (screen reader) visibility
+    // changes.
+    window.dispatchEvent(new CustomEvent('confirmdialogshowing'));
     screen.addEventListener('animationend', function cd_fadeIn(ev) {
       isAnimationPlaying = false;
       screen.removeEventListener('animationend', cd_fadeIn);
       screen.classList.remove('no-opacity');
+      isShown = true;
     });
-    isShown = true;
   };
 
   return {

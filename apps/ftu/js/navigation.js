@@ -118,6 +118,7 @@ var Navigation = {
           if (result) { // sending process ok, we advance
             UIManager.activationScreen.classList.remove('show');
             UIManager.finishScreen.classList.add('show');
+            UIManager.hideActivationScreenFromScreenReader();
           } else { // error on sending, we stay where we are
             self.currentStep--;
           }
