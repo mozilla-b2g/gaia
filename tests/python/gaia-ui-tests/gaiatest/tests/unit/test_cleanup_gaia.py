@@ -44,9 +44,6 @@ return manager.pageHelper.getCurrentPageNumber();
         self.device.lock()
         self.assertTrue(self.device.is_locked)
 
-        # push media files
-        self.push_resource('IMG_0001.jpg', 3)
-
         self.cleanup_gaia()
         self.check_initial_state()
 
@@ -63,8 +60,6 @@ return manager.pageHelper.getCurrentPageNumber();
             'audio.volume.content'), 0)
 
         self.assertEqual(self.data_layer.all_contacts, [])
-
-        self.assertEqual(self.data_layer.media_files, [])
 
         # check we're on the home screen
         self.marionette.switch_to_frame(

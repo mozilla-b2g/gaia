@@ -311,17 +311,30 @@ class GaiaData(object):
         result.extend(self.video_files)
         return result
 
-    def delete_all_music_files(self):
+    def delete_all_files(self, storage_name):
+        """Delete all files in the specified storage area.
+
+        WARNING: Use with extreme caution! This method will irrevocably remove
+        files. If run against a device files from the internal or external
+        storage may be removed. If run against a desktop B2G instance files
+        from your host machine may be removed! Without a storage override this
+        may have disastrous effects!
+        """
+        valid_storage_names = ('music', 'pictures', 'videos')
+        if not storage_name in valid_storage_names:
+            raise Exception("Invalid storage name: '%s' must be one of: %s" % (
+                storage_name, ', '.join(valid_storage_names)))
         self.marionette.execute_async_script(
-            "GaiaDataLayer.deleteAllFiles('music');")
+            "GaiaDataLayer.deleteAllFiles('%s');" % storage_name)
+
+    def delete_all_music_files(self):
+        self.delete_all_files('music')
 
     def delete_all_picture_files(self):
-        self.marionette.execute_async_script(
-            "GaiaDataLayer.deleteAllFiles('pictures');")
+        self.delete_all_files('pictures')
 
     def delete_all_video_files(self):
-        self.marionette.execute_async_script(
-            "GaiaDataLayer.deleteAllFiles('videos');")
+        self.delete_all_files('videos')
 
     def delete_all_sms(self):
         self.marionette.switch_to_frame()
@@ -726,13 +739,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.device.manager.removeDir('/'.join([self.device.device_root, item]))
 
     def cleanup_gaia(self, full_reset=True):
-        if not self.device.is_desktop_b2g:
-            # WARNING: Do not attempt to remove media on desktop B2G as it may
-            # unexpectedly remove files from the user's system
-            self.data_layer.delete_all_music_files()
-            self.data_layer.delete_all_picture_files()
-            self.data_layer.delete_all_video_files()
-
         # restore settings from testvars
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
 
