@@ -23,6 +23,10 @@ suite('search/search', function() {
 
     realMozActivity = window.MozActivity;
     window.MozActivity = MockMozActivity;
+    
+    window.SettingsListener = {
+      observe: function() {}
+    };
 
     clock = sinon.useFakeTimers();
 
@@ -34,6 +38,7 @@ suite('search/search', function() {
     navigator.mozApps = realMozApps;
     window.MozActivity = realMozActivity;
     clock.restore();
+    delete window.SettingsListener;
   });
 
   setup(function() {
@@ -148,7 +153,7 @@ suite('search/search', function() {
   });
 
   suite('submit', function() {
-    test('calls navigate for submit types', function() {
+    test('Navigates to a URL', function() {
       var stub = this.sinon.stub(Search, 'navigate');
       Search.dispatchMessage({
         data: {
@@ -158,6 +163,34 @@ suite('search/search', function() {
       });
       clock.tick(1000); // For typing timeout
       assert.ok(stub.calledOnce);
+    });
+    
+    test('Uses configured search template', function() {
+      var navigateStub = this.sinon.stub(Search, 'navigate');
+      var realUrlTemplate = Search.urlTemplate;
+      Search.urlTemplate = 'http://example.com/?q={searchTerms}';
+      var msg = {
+        data: {
+          input: 'foo'
+        }
+      };
+      Search.submit(msg);
+      assert.ok(navigateStub.calledWith('http://example.com/?q=foo'));
+      Search.urlTemplate = realUrlTemplate;
+    });
+    
+    test('Uses special case for everything.me full search', function() {
+      var expandSearchStub = this.sinon.stub(Search, 'expandSearch');
+      var realUrlTemplate = Search.urlTemplate;
+      Search.urlTemplate = 'everything.me';
+      var msg = {
+        data: {
+          input: 'foo'
+        }
+      };
+      Search.submit(msg);
+      assert.ok(expandSearchStub.calledOnce);
+      Search.urlTemplate = realUrlTemplate;
     });
   });
 
