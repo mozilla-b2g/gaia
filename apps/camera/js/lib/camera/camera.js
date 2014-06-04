@@ -885,6 +885,7 @@ Camera.prototype.startRecording = function(options) {
 
     self.createVideoFilepath(function(filepath) {
       video.filepath = filepath;
+      self.emit('willrecord');
       self.mozCamera.startRecording(
         config,
         storage,

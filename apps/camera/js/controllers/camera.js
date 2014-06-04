@@ -57,6 +57,7 @@ CameraController.prototype.bindEvents = function() {
   camera.on('loaded', app.firer('camera:loaded'));
   camera.on('ready', app.firer('camera:ready'));
   camera.on('busy', app.firer('camera:busy'));
+  camera.on('willrecord', app.firer('camera:willrecord'));
 
   // App
   app.on('viewfinder:focuspointchanged', this.onFocusPointChanged);
