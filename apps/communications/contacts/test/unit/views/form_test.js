@@ -11,6 +11,7 @@
 /* global MockMozContactsObj */
 /* global MockThumbnailImage */
 /* global utils */
+/* exported _ */
 
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/js/text_normalizer.js');
@@ -35,7 +36,8 @@ requireApp('communications/contacts/test/unit/mock_image_thumbnail.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
-var subject,
+var _ = function(key){ return key; },
+    subject,
     realL10n,
     Contacts,
     realFb,
@@ -43,6 +45,8 @@ var subject,
     mockContact,
     footer,
     ActivityHandler;
+
+requireApp('communications/contacts/js/tag_options.js');
 
 var mocksForm = new MocksHelper([
   'Contacts',
@@ -82,7 +86,7 @@ suite('Render contact form', function() {
       currentlyHandling: false
     };
 
-    subject.init(Contacts.getTags());
+    subject.init();
   });
 
   suiteTeardown(function() {

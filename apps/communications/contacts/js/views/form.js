@@ -9,6 +9,7 @@
 /* global MozActivity */
 /* global Normalizer */
 /* global utils */
+/* global TAG_OPTIONS */
 
 var contacts = window.contacts || {};
 
@@ -20,7 +21,7 @@ contacts.Form = (function() {
     'date': 0,
     'note': 0
   };
-  var TAG_OPTIONS;
+
   var currentContact = {};
   var dom,
       contactForm,
@@ -154,7 +155,7 @@ contacts.Form = (function() {
 
   var init = function cf_init(tags, currentDom) {
     dom = currentDom || document;
-    TAG_OPTIONS = tags;
+  
     _ = navigator.mozL10n.get;
     initContainers();
 
