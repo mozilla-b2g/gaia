@@ -1,6 +1,8 @@
 define(function(require) {
 'use strict';
 
+require('shared/js/font_size_utils');
+
 var Tabs = require('tabs');
 var View = require('view');
 var PerformanceTestingHelper = require('shared/js/performance_testing_helper');
