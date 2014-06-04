@@ -12,6 +12,8 @@ require(['config/require'], function() {
     require('shared/wifi_helper');
     // used by security_privacy.js, messaging.js
     require('shared/icc_helper');
+    // used by all header building blocks
+    require('shared/font_size_utils');
 
     var SettingsService = require('modules/settings_service');
     var PageTransitions = require('modules/page_transitions');

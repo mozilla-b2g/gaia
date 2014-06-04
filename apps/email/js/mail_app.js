@@ -67,6 +67,7 @@ var appMessages = require('app_messages'),
     waitingForCreateAccountPrompt = false,
     activityCallback = null;
 
+require('shared/js/font_size_utils');
 require('sync');
 require('wake_locks');
 
