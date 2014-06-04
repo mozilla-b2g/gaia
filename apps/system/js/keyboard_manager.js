@@ -745,7 +745,6 @@ var KeyboardManager = {
         };
         items.push(item);
       });
-      self.hideKeyboard();
 
       var menu = new ImeMenu(items, actionMenuTitle,
         function(selectedIndex) {
@@ -769,7 +768,6 @@ var KeyboardManager = {
         // Mimic the success callback to show the current keyboard
         // when user canceled it.
         self.setKeyboardToShow(showed.type);
-        self.showKeyboard();
 
         // Hide the tray to show the app directly after
         // user canceled.
