@@ -36,7 +36,7 @@ test/unit/        => javascript unit tests run in the browser via test-agent
 
 We have a test suite that checks whether or not we're interoperable with a particular calendar server. In order to run the test suite against your favorite server:
 
-1. Add a file named `config.json` at `apps/calendar/test/interop/<provider>/config.json. The json configuration file needs to have
+1. Add a file named `config.json` at `apps/calendar/test/interop/<provider>/config.json`. The json configuration file needs to have
   + user (username)
   + password (user password)
   + fullUrl (url for caldav server)
