@@ -12,6 +12,9 @@ class CellData(Base):
     _carrier_name_locator = (By.ID, 'dataNetwork-desc')
     _cell_data_enabled_input_locator = (By.XPATH, "//input[@name='ril.data.enabled']")
     _cell_data_enabled_label_locator = (By.XPATH, "//input[@name='ril.data.enabled']/..")
+    _menuItem_carrier_sim1 = (By.ID, "menuItem-carrier-sim1")
+    _menuItem_carrier_sim2 = (By.ID, "menuItem-carrier-sim2")
+    _back_button_locator = (By.CSS_SELECTOR, '.current header > a')
 
     @property
     def carrier_name(self):
@@ -26,3 +29,16 @@ class CellData(Base):
         self.wait_for_element_displayed(*self._cell_data_enabled_label_locator)
         self.marionette.find_element(*self._cell_data_enabled_label_locator).tap()
         return CellDataPrompt(self.marionette)
+
+    def select_sim(self, sim):
+        if sim == 1:
+            self.wait_for_element_displayed(*self._menuItem_carrier_sim1)
+            self.marionette.find_element(*self._menuItem_carrier_sim1).tap()
+        else:
+            self.wait_for_element_displayed(*self._menuItem_carrier_sim2)
+            self.marionette.find_element(*self._menuItem_carrier_sim2).tap()
+
+    def go_back(self):
+        self.marionette.find_element(*self._back_button_locator).tap()
+
+
