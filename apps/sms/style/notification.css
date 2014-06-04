@@ -1,6 +1,7 @@
 /* Most of this should probably move to the Building Blocks: Bug 1011418 */
 
 section[role="notification"] {
+  box-sizing: border-box;
   z-index: 1;
   position: relative; /* so that we can compete
                          with absolutely positioned elements */
@@ -9,11 +10,10 @@ section[role="notification"] {
   min-height: 3.5rem;
 
   background-color: rgba(77,77,77,0.95);
-  font-weight: normal;
-  font-style: italic;
   font-size: 1.5rem;
+  font-weight: 300;
+  font-style: italic;
   color: #fff;
-  text-align: left;
 }
 
 section[role="notification"] a {
@@ -35,10 +35,13 @@ section[role="region"].new .overlay {
 }
 
 section[role="notification"] p {
-  margin: 1rem 2rem;
-  padding: 0;
-  line-height: 2rem;
+  margin: .9rem 1.5rem;
+  line-height: 1.7rem;
 
-  font-size: 1.5rem;
   text-align: center;
+}
+
+section[role="notification"] a {
+  color: #9ef2e7;
+  text-decoration: underline;
 }
