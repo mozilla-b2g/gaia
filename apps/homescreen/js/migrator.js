@@ -56,8 +56,9 @@
 
         ++this.pendingItems;
         // We are going to propagate the bookmark/collection to datastore
-        var descriptor = GridItemsFactory.create(icon).getDescriptor();
-        database.add(descriptor).then(onItemMigrated, onItemMigrated);
+        GridItemsFactory.create(icon).getDescriptor(function(descriptor) {
+          database.add(descriptor).then(onItemMigrated, onItemMigrated);
+        });
       }.bind(this));
     },
 
