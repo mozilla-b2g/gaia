@@ -27,7 +27,7 @@
 // they affect the dimensions of the image and an areaScale property that
 // specifies how much they affect the area (number of pixels) in an
 // image. (The areaScale is just the square of the scale.) To avoid
-// floating-point rounding issues, the vaulues of these scale properties
+// floating-point rounding issues, the values of these scale properties
 // are rounded to the nearest hundredth.
 //
 // The returned objects also have a scale() method that scales a

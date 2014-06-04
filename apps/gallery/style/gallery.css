@@ -404,6 +404,18 @@ body.hidden *[data-l10n-id] {
   }
 }
 
+#spinner {
+  position: absolute;
+  top: calc(50% - 1.5rem);
+  left: calc(50% - 1.5rem);
+  z-index: 1000;
+}
+
+/* override progress_activity.css */
+#spinner.hidden {
+  display: none;
+}
+
 /* buttons */
 a.button {
   display: block;
