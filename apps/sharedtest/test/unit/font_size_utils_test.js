@@ -2,32 +2,26 @@
  * Tests for the shared text utils helper
  */
 
-/* global TextUtils */
+/* global FontSizeUtils */
 
 'use strict';
 
-require('/shared/js/text_utils.js');
+require('/shared/js/font_size_utils.js');
 
 suite('shared/js/text_utils.js', function() {
   const kDefaultFace = 'Arial';
   const kContainerWidth = 100;
   const kDefaultSize = 12;
   const kAllowedSizes = [8, 10, 14];
-  const kParameters = {
-    'fontFace': kDefaultFace,
-    'maxWidth': kContainerWidth,
-    'fontSize': {
-      'current': kDefaultSize,
-      'allowed': kAllowedSizes
-    }
-  };
 
-  function getTextInfos() {
-    return TextUtils.getTextInfosFor(text, kParameters);
+  function getMaxFontSizeInfo() {
+    return FontSizeUtils.getMaxFontSizeInfo(text, kAllowedSizes,
+       kDefaultFace, kContainerWidth);
   }
 
   function getOverflowCount() {
-    return TextUtils.getOverflowCount(text, kParameters);
+    return FontSizeUtils.getOverflowCount(text, kDefaultSize,
+      kDefaultFace, kContainerWidth);
   }
 
   function generateStringForPixels(width, fontSize, fontFace) {
@@ -66,96 +60,99 @@ suite('shared/js/text_utils.js', function() {
   });
 
   teardown(function() {
-    TextUtils.resetCache();
+    FontSizeUtils.resetCache();
   });
 
   /* Global */
   suite('Global', function() {
-    test('TextUtils exists', function() {
-      assert.ok(TextUtils);
+    test('FontSizeUtils exists', function() {
+      assert.ok(FontSizeUtils);
     });
   });
 
   suite('Cache Mechanism', function() {
     test('Created', function() {
-      TextUtils._getContextFor(kDefaultSize, kDefaultFace);
+      FontSizeUtils._getCachedContext(kDefaultSize, kDefaultFace);
 
-      assert.equal(Object.keys(TextUtils._cacheContext).length, 1);
+      assert.equal(Object.keys(FontSizeUtils._cachedContexts).length, 1);
     });
 
     test('Used', function() {
-      var oldContext = TextUtils._getContextFor(kDefaultSize, kDefaultFace);
-      var newContext = TextUtils._getContextFor(kDefaultSize, kDefaultFace);
+      var oldContext = FontSizeUtils._getCachedContext(kDefaultSize,
+                                                        kDefaultFace);
+      var newContext = FontSizeUtils._getCachedContext(kDefaultSize,
+                                                        kDefaultFace);
 
       assert.equal(oldContext, newContext);
     });
 
     test('Cleared', function() {
-      TextUtils._getContextFor(kDefaultSize, kDefaultFace);
-      TextUtils.resetCache();
+      FontSizeUtils._getCachedContext(kDefaultSize, kDefaultFace);
+      FontSizeUtils.resetCache();
 
-      assert.equal(Object.keys(TextUtils._cacheContext).length, 0);
+      assert.equal(Object.keys(FontSizeUtils._cachedContexts).length, 0);
     });
 
     test('Created for specified font [size/face]', function() {
-      getTextInfos();
+      getMaxFontSizeInfo();
 
       for (var i = 0; i < kAllowedSizes.length; i++) {
-        assert.ok(TextUtils._getContextFor(kAllowedSizes[i], kDefaultFace));
+        assert.ok(FontSizeUtils._getCachedContext(kAllowedSizes[i],
+                                                   kDefaultFace));
       }
     });
   });
 
-  suite('TextUtils.getTextInfosFor(Small text)', function() {
+  suite('FontSizeUtils.getMaxFontSizeInfo(Small text)', function() {
     setup(function() {
       setupSmallString();
     });
 
     test('Returns max font size', function() {
-      var infos = getTextInfos();
+      var infos = getMaxFontSizeInfo();
       assert.equal(infos.fontSize, kAllowedSizes[kAllowedSizes.length - 1]);
     });
 
     test('No overflow', function() {
-      var infos = getTextInfos();
+      var infos = getMaxFontSizeInfo();
       assert.isFalse(infos.overflow);
     });
   });
 
-  suite('TextUtils.getTextInfosFor(Medium text)', function() {
+  suite('FontSizeUtils.getMaxFontSizeInfo(Medium text)', function() {
     setup(function() {
       setupMediumString();
     });
 
     test('Returns middle font size', function() {
-      var infos = getTextInfos();
+      var infos = getMaxFontSizeInfo();
       assert.equal(infos.fontSize, kAllowedSizes[1]);
     });
 
     test('overflow is false', function() {
-      var infos = getTextInfos();
+      var infos = getMaxFontSizeInfo();
       assert.isFalse(infos.overflow);
     });
   });
 
-  suite('TextUtils.getTextInfosFor(Large Text)', function() {
+  suite('FontSizeUtils.getMaxFontSizeInfo(Large Text)', function() {
     setup(function() {
       setupLargeString();
     });
 
     test('Returns min font size', function() {
-      var infos = getTextInfos();
+      var infos = getMaxFontSizeInfo();
       assert.equal(infos.fontSize, kAllowedSizes[0]);
     });
 
     test('Overflow is true', function() {
-      var infos = getTextInfos();
+      var infos = getMaxFontSizeInfo();
       assert.isTrue(infos.overflow);
     });
   });
 
 
-  suite('TextUtils.getOverflowCount', function() {
+  suite('FontSizeUtils.getOverflowCount', function() {
     test('Should be 0 for small text', function() {
       setupSmallString();
 
