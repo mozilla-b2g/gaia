@@ -8,8 +8,6 @@
     16, 17, 18, 19, 20, 21, 22, 23
   ];
 
-  var _screenWidth = 0;
-
   /**
    * Utility functions for measuring and manipulating font sizes
    */
@@ -206,7 +204,6 @@
      */
     resetFormatting: function(element) {
       element.style.marginLeft = element.style.marginRight = '0';
-      element.style.textOverflow = '';
     },
 
     /**
@@ -284,34 +281,33 @@
 
       // Get the width of side buttons.
       var sideSpaceLeft = element.offsetLeft;
-      //var sideSpaceRight = FontSizeUtils.containerWidth -
-      //  sideSpaceLeft - headerWidth;
-      var sideSpaceRight = 0;
+      var sideSpaceRight = screen.width -
+        sideSpaceLeft - headerWidth;
 
-      var parent = element.parentNode;
-      if (parent) {
-        for (var i = 0; i < parent.children.length; i++) {
-          var child = parent.children[i];
-          if (child === element) {
-            continue;
-          }
-          var childStyle = window.getComputedStyle(child);
-          if (childStyle.cssFloat !== 'right') {
-            continue;
-          }
+      //var parent = element.parentNode;
+      //if (parent) {
+      //  for (var i = 0; i < parent.children.length; i++) {
+      //    var child = parent.children[i];
+      //    if (child === element) {
+      //      continue;
+      //    }
+      //    var childStyle = window.getComputedStyle(child);
+      //    if (childStyle.cssFloat !== 'right') {
+      //      continue;
+      //    }
 
-          sideSpaceRight += parseInt(childStyle.width, 10);
-        }
-      }
+      //    sideSpaceRight += parseInt(childStyle.width, 10);
+      //  }
+      //}
 
       var margin = Math.max(sideSpaceLeft, sideSpaceRight);
 
-      console.log('containerWidth', FontSizeUtils.containerWidth, 'headerWidth',
+      console.log('containerWidth', screen.width, 'headerWidth',
         headerWidth, 'textWidth', textWidth, 'margin', margin,
           '= max(' + sideSpaceLeft + ', ' + sideSpaceRight + ')');
 
       // Can the header be centered?
-      if (textWidth + (margin * 2) <= FontSizeUtils.containerWidth) {
+      if (textWidth + (margin * 2) <= screen.width) {
         /*console.log(textWidth, '+', (margin * 2), '<=',
           FontSizeUtils.containerWidth);*/
         console.log('Header centered');
@@ -323,7 +319,6 @@
       } else if (textWidth > headerWidth) {
         //console.log(textWidth, '>', headerWidth);
         console.log('Header not centered and truncated');
-        element.style.textOverflow = 'ellipsis';
       }
     },
 
@@ -352,25 +347,25 @@
       }.bind(this));
     },
 
-    /**
-     * Return the screen width.
-     *
-     * @returns {number}
-     */
-    get containerWidth() {
-      if (_screenWidth === 0) {
-        _screenWidth = screen.width;
-      }
-      return _screenWidth;
-    },
-
-    /**
-     * For unit testing purposes only.
-     * @param {number} value
-     */
-    set containerWidth(value) {
-      _screenWidth = value;
-    }
+//    /**
+//     * Return the screen width.
+//     *
+//     * @returns {number}
+//     */
+//    get containerWidth() {
+//      if (_screenWidth === 0) {
+//        _screenWidth = screen.width;
+//      }
+//      return _screenWidth;
+//    },
+//
+//    /**
+//     * For unit testing purposes only.
+//     * @param {number} value
+//     */
+//    set containerWidth(value) {
+//      _screenWidth = value;
+//    }
   };
 
   FontSizeUtils.init();

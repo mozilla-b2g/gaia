@@ -17,13 +17,7 @@ section[role="region"] > header:first-child h1 {
   line-height: 5rem;
   text-align: center;
   white-space: nowrap;
-  /* XXX: Why add this in javascript? Seems to me it
-          doesn't hurt by being on by default */
-  /* YYY: It's either enable it at first then turn it off, or disable it then
-          turn it on when needed.
-          From my experience the latter case is more frequent so we may as
-          well do it by default. */
-  /*text-overflow: ellipsis; => Added in JavaScript */
+  text-overflow: ellipsis;
   display: block;
   overflow: hidden;
   margin: 0;

@@ -505,7 +505,7 @@ suite('shared/js/text_utils.js', function() {
     });
   });
 
-  suite('FontSizeUtils.centerTextToScreen', function() {
+  suite.only('FontSizeUtils.centerTextToScreen', function() {
     var originalFontSizeUtilsContainerWidth;
 
     setup(function() {
@@ -539,6 +539,9 @@ suite('shared/js/text_utils.js', function() {
 
     test('Should center a medium header title', function() {
       console.log('Medium');
+
+      // XXX: are you sure we should be centering this?
+      // seems to me we shouldn't be, since there is barely enough room
 
       var el = setupHeaderElementWithButtons();
       var fontSizeBefore = getComputedStyle(el).fontSize;
@@ -631,6 +634,8 @@ suite('shared/js/text_utils.js', function() {
 
       FontSizeUtils.centerTextToScreen(el);
 
+      // XXX: instead we should listen for the overflow event
+      // on the element rather than use textOverflow value
       assert.equal(el.style.textOverflow, 'ellipsis');
 
       // Clean up.
@@ -646,6 +651,8 @@ suite('shared/js/text_utils.js', function() {
 
       FontSizeUtils.centerTextToScreen(el);
 
+      // XXX: instead we should listen for the overflow event
+      // on the element rather than use textOverflow value
       assert.equal(el.style.textOverflow, 'ellipsis');
 
       // Clean up.
