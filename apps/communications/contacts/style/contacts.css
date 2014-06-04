@@ -172,6 +172,10 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   pointer-events: none;
 }
 
+.view:not(.current) {
+  visibility: hidden;
+}
+
 /* Edit contact section */
 .view-edit-contact .item.first,
 .view-edit-contact form li {
