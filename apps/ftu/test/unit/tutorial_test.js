@@ -105,7 +105,7 @@ suite('Tutorial >', function() {
       );
     });
 
-    test(' text & image are the right ones for the current step (2)',
+    test(' text & src are the right ones for the current step (2)',
       function() {
       // Spy the l10n
       this.sinon.spy(navigator.mozL10n, 'localize');
@@ -117,13 +117,15 @@ suite('Tutorial >', function() {
         2
       );
       // We are in step 2 and taking into account the current layout
-      var l10nKey = 'tutorial-step2-' + MockScreenLayout._currentDevice;
+      var l10nKey = 'tutorial-notifications-tiny';
       assert.equal(navigator.mozL10n.localize.args[0][1], l10nKey);
-      // Now we check the image.
-      // As we are in 'tiny' (default layout in the mock) there is no prefix
-      var imgSRC =
-        document.getElementById('tutorial-step-image').querySelector('img').src;
-      assert.isTrue(imgSRC.contains('2.png'));
+      // Now we check the element src.
+      // As we are in 'tiny' (default layout in the mock)
+      // the 2nd step should be notifications
+      var imgSRC = document.querySelector(
+                    '#tutorial-step-media > *:not([hidden])'
+                   ).src;
+      assert.isTrue(imgSRC.contains('Notifications.mp4'));
     });
 
     test(' hide the tutorial when done and move to FinishScreen', function() {
