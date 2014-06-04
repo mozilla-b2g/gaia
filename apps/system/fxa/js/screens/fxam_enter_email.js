@@ -2,7 +2,8 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /* global FxaModuleStates, FxaModuleUI, FxaModule, FxaModuleNavigation,
-   FxModuleServerRequest, FxaModuleOverlay, FxaModuleManager */
+   FxModuleServerRequest, FxaModuleOverlay, FxaModuleManager, EntrySheet,
+   BrowserFrame */
 /* exported FxaModuleEnterEmail */
 
 'use strict';
@@ -16,6 +17,8 @@ var FxaModuleEnterEmail = (function() {
 
   var _ = null;
   var localize = null;
+  var termsUrl = 'https://accounts.firefox.com/legal/terms';
+  var privacyUrl = 'https://accounts.firefox.com/legal/privacy';
 
   function _isEmailValid(emailEl) {
     return emailEl && emailEl.value && emailEl.validity.valid;
@@ -59,11 +62,11 @@ var FxaModuleEnterEmail = (function() {
     var noticeText = _('fxa-notice');
     var tosReplaced = noticeText.replace(
       '{{tos}}',
-      '<a id="fxa-terms" href="#" class="disabled">Terms of Service</a>'
+      '<a id="fxa-terms" href="' + termsUrl + '">Terms of Service</a>'
     );
     var tosPnReplaced = tosReplaced.replace(
       '{{pn}}',
-      '<a id="fxa-privacy" href="#" class="disabled">Privacy Notice</a>'
+      '<a id="fxa-privacy" href="' + privacyUrl + '">Privacy Notice</a>'
     );
     this.fxaNotice.innerHTML = tosPnReplaced;
 
@@ -80,6 +83,42 @@ var FxaModuleEnterEmail = (function() {
         _enableNext(event.target);
       }
     );
+
+    this.fxaTerms.addEventListener('click', onExternalLinkClick.bind(this));
+    this.fxaPrivacy.addEventListener('click', onExternalLinkClick.bind(this));
+
+    function onExternalLinkClick(e) {
+      /*jshint validthis:true */
+      e.stopPropagation();
+      e.preventDefault();
+      var url = e.target.href;
+      if (this.entrySheet) {
+        this.entrySheet = null;
+      }
+      this.entrySheet = new EntrySheet(
+        window.top.document.getElementById('dialog-overlay'),
+        url,
+        new BrowserFrame({url: url})
+      );
+      this.entrySheet.open();
+    }
+
+    document.addEventListener(
+      'visibilitychange',
+      onVisibilityChange.bind(this)
+    );
+
+    function onVisibilityChange() {
+      /*jshint validthis:true */
+      if (document.hidden) {
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+        if (this.entrySheet) {
+          this.entrySheet.close();
+          this.entrySheet = null;
+        }
+      }
+    }
+
     // Ensure that pressing 'ENTER' (keycode 13) we send the form
     // as expected
     this.fxaEmailInput.addEventListener(
