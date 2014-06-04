@@ -508,7 +508,7 @@ suite('Build Integration tests', function() {
       var installedExtsPath = path.join('profile-debug',
         'installed-extensions.json');
       var expectedSettings = {
-        'homescreen.manifestURL': 'http://homescreen.gaiamobile.org:8080/manifest.webapp',
+        'homescreen.manifestURL': 'http://verticalhome.gaiamobile.org:8080/manifest.webapp',
         'rocketbar.searchAppURL': 'http://search.gaiamobile.org:8080/index.html'
       };
       var expectedUserPrefs = {
