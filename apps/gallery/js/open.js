@@ -12,15 +12,6 @@ window.addEventListener('localized', function() {
 
   function $(id) { return document.getElementById(id); }
 
-  // If the image is bigger than this, decoding it will take too much
-  // memory, and we don't want to cause an OOM, so we won't display it.
-  //
-  // XXX: see bug 847060: we ought to be able to handle images bigger
-  // than 5 megapixels. But I'm getting OOMs on 8mp images, so I'm
-  // keeping this small.
-  //
-  var MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-
   // If we can't figure out the image size in megapixels, then we have to base
   // our decision whether or not to display it on the file size. Note that
   // this is a very, very imperfect test. imagesize.js has code to determine
@@ -39,7 +30,7 @@ window.addEventListener('localized', function() {
       $('save').addEventListener('click', save);
 
       // And register event handlers for gestures
-      frame = new MediaFrame($('frame'), false);
+      frame = new MediaFrame($('frame'), false, CONFIG_MAX_IMAGE_PIXEL_SIZE);
 
       if (CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH) {
         frame.setMinimumPreviewSize(CONFIG_REQUIRED_EXIF_PREVIEW_WIDTH,
@@ -94,8 +85,37 @@ window.addEventListener('localized', function() {
     function success(metadata) {
       var pixels = metadata.width * metadata.height;
 
-      // If the image is too large, display an error
-      if (pixels > MAX_IMAGE_SIZE) {
+      //
+      // If the image is too big, reject it now so we don't have
+      // memory trouble later.
+      //
+      // CONFIG_MAX_IMAGE_PIXEL_SIZE is maximum image resolution we
+      // can handle.  It's from config.js which is generated at build
+      // time (see build/application-data.js).
+      //
+      // For jpeg images, we can downsample while decoding so we can
+      // handle images that are quite a bit larger
+      //
+      var imagesizelimit = CONFIG_MAX_IMAGE_PIXEL_SIZE;
+      if (blob.type === 'image/jpeg')
+        imagesizelimit *= Downsample.MAX_AREA_REDUCTION;
+
+      //
+      // Even if we can downsample an image while decoding it, we still
+      // have to read the entire image file. If the file is particularly
+      // large we might also have memory problems. (See bug 1008834: a 20mb
+      // 80mp jpeg file will cause an OOM on Tarako even though we can
+      // decode it at < 2mp). Rather than adding another build-time config
+      // variable to specify the maximum file size, however, we'll just
+      // base the file size limit on CONFIG_MAX_IMAGE_PIXEL_SIZE.
+      // So if that variable is set to 2M, then we might use up to 12Mb of
+      // memory. 2 * 2M bytes for the image file and 4 bytes times 2M pixels
+      // for the decoded image. A 4mb file size limit should accomodate
+      // most JPEG files up to 12 or 16 megapixels
+      //
+      var filesizelimit = 2 * CONFIG_MAX_IMAGE_PIXEL_SIZE;
+
+      if (pixels > imagesizelimit || blob.size > filesizelimit) {
         displayError('imagetoobig');
         return;
       }
@@ -118,11 +138,13 @@ window.addEventListener('localized', function() {
                                      metadata.preview.end,
                                      'image/jpeg'),
                           function success(previewmetadata) {
+                            //
                             // If we parsed the preview image, add its
                             // dimensions to the metdata.preview
                             // object, and then let the MediaFrame
                             // object display the preview instead of
                             // the full-size image.
+                            //
                             metadata.preview.width = previewmetadata.width;
                             metadata.preview.height = previewmetadata.height;
                             frame.displayImage(blob,
@@ -133,11 +155,17 @@ window.addEventListener('localized', function() {
                                                metadata.mirrored);
                           },
                           function error() {
+                            //
                             // If we couldn't parse the preview image,
                             // just display full-size.
+                            //
                             frame.displayImage(blob,
                                                metadata.width,
-                                               metadata.height);
+                                               metadata.height,
+                                               null,
+                                               metadata.rotation,
+                                               metadata.mirrored);
+
                           });
       }
     }
