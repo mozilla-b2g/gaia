@@ -193,7 +193,6 @@ Calendar.LoadConfig = (function() {
         dom: ['event-view'],
 
         js: [
-          'templates/duration_time',
           'templates/alarm',
           'views/view_event'
         ],
