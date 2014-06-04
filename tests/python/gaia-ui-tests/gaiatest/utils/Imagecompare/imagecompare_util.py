@@ -32,14 +32,16 @@ class ImageCompareUtil():
         return out.rstrip()
 
     #invokes screen capture event (pressing home button + sleep button together)
-    def invoke_screen_capture(self,browser=None):
+    def invoke_screen_capture(self,frame=None,browser=None):
         time.sleep(2)
         self.marionette.switch_to_frame()  # switch to root frame (system app)
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home+sleep'));")
         self.apps.switch_to_displayed_app()
-        time.sleep(5)  # for the notification overlay to disappear
+        time.sleep(6)  # for the notification overlay to disappear
         if (browser != None):
             browser.switch_to_content()
+        if (frame != None):
+            self.marionette.switch_to_frame(frame)
 
     #this can be used as an alternative to invoke_screen_capture, if you want to grab the whole buffer.  the dimension may
     #vary depending on the context
