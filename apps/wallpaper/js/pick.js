@@ -29,7 +29,8 @@ var Wallpaper = {
       xhr.response.forEach(function(wallpaper) {
         var div = document.createElement('div');
         div.classList.add('wallpaper');
-        div.style.backgroundImage = 'url(resources/' + wallpaper + ')';
+        div.style.backgroundImage = 'url(resources/thumbnails/' +
+                                     wallpaper + ')';
         self.wallpapers.appendChild(div);
       });
       if (cb) {
@@ -48,6 +49,9 @@ var Wallpaper = {
     // Identify the wallpaper
     var backgroundImage = e.target.style.backgroundImage;
     var src = backgroundImage.match(/url\([\"']?([^\s\"']*)[\"']?\)/)[1];
+    // Get the wallpaper file name
+    var array = src.split('/');
+    src = array.length > 1 ? 'resources/' + array.pop() : '';
     // Ignore clicks that are not on one of the images
     if (src == '')
       return;
