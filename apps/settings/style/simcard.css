@@ -125,6 +125,7 @@
   height: 3rem;
   margin: 2.5rem 1rem;
   background-image: url(images/simcards.png);
+  background-size: 6rem 6rem;
 }
 .sim-card-name {
   display: inline-block;
