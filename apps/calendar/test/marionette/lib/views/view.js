@@ -49,6 +49,22 @@ View.prototype = {
     }.bind(this));
   },
 
+  /**
+   * Wait for the element's text in the getter is not empty,
+   * and then return the text.
+   *
+   * @param {String} getter id.
+   * @return {String} element's text.
+   */
+  waitForTextNotEmpty: function(getter) {
+    var text;
+    this.client.waitFor(function() {
+      text = this[getter];
+      return text !== '';
+    }.bind(this));
+    return text;
+  },
+
   /* Form helpers */
 
   setFormValue: function(name, value) {

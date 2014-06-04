@@ -50,17 +50,40 @@ marionette('creating an event', function() {
       app.readEvent.waitForDisplay();
     });
 
-    // disabled bug 974731
-    test.skip('should display the created event in read view', function() {
+    test('should display the created event in read view', function() {
       var readEvent = app.readEvent;
-      assert.equal(readEvent.title, title);
-      assert.equal(readEvent.description, description);
-      assert.equal(readEvent.location, location);
-      assert.equal(readEvent.calendar, 'Offline calendar');
-      assert.equal(readEvent.startDate, app.formatDate(date));
-      assert.equal(readEvent.startTime, format('%d:00 AM', startHour));
-      assert.equal(readEvent.endDate, app.formatDate(date));
-      assert.equal(readEvent.endTime, format('%d:00 AM', startHour + duration));
+      assert.equal(
+        readEvent.waitForTextNotEmpty('title'),
+        title
+      );
+      assert.equal(
+        readEvent.waitForTextNotEmpty('description'),
+        description
+      );
+      assert.equal(
+        readEvent.waitForTextNotEmpty('location'),
+        location
+      );
+      assert.equal(
+        readEvent.waitForTextNotEmpty('calendar'),
+        'Offline calendar'
+      );
+      assert.equal(
+        readEvent.waitForTextNotEmpty('startDate'),
+        app.formatDate(date)
+      );
+      assert.equal(
+        readEvent.waitForTextNotEmpty('startTime'),
+        format('%d:00 AM', startHour)
+      );
+      assert.equal(
+        readEvent.waitForTextNotEmpty('endDate'),
+        app.formatDate(date)
+      );
+      assert.equal(
+        readEvent.waitForTextNotEmpty('endTime'),
+        format('%d:00 AM', startHour + duration)
+      );
     });
 
     // disabled bug 1001166
