@@ -35,6 +35,11 @@
   pointer-events: none;
 }
 
+#contacts-list-container > ol > li[data-uuid] aside > img {
+  box-shadow: none;
+  border: none;
+}
+
 #contacts-list-container > ol > li[data-uuid]:last-child {
   border-bottom: none !important;
 }
