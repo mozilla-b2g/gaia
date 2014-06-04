@@ -243,7 +243,7 @@ var NDEFUtils = {
 
     var res = [];
     for (var i = 0; i < 6; i += 1) {
-      let m = mac[i].toString(16);
+      var m = mac[i].toString(16);
       res.unshift(m.length === 1 ? '0' + m : m);
     }
 
