@@ -498,6 +498,21 @@ suite('Render contact form', function() {
       };
     });
 
+    test('FB Contact. organization from Facebook', function() {
+      window.fb.setIsFbContact(true);
+
+      var deviceContact = new MockContactAllFields();
+      var fbContact = new Mockfb.Contact(deviceContact);
+      fbContact.getDataAndValues().onsuccess = function() {
+        subject.render(deviceContact, null, this.result);
+
+        var org = document.querySelector('input[name="org"]');
+
+        assert.isTrue(org.parentNode.classList.contains('facebook'));
+        assert.isTrue(org.parentNode.classList.contains('removed'));
+      };
+    });
+
     test('FB Contact. Birthday from Facebook', function() {
       window.fb.setIsFbContact(true);
 

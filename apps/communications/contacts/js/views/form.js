@@ -1109,6 +1109,7 @@ contacts.Form = (function() {
     var removedFields = dom.querySelectorAll('.removed');
     for (var i = 0; i < removedFields.length; i++) {
       removedFields[i].classList.remove(REMOVED_CLASS);
+      removedFields[i].classList.remove(FB_CLASS);
     }
     thumbAction.classList.remove('with-photo');
     var removeButton = thumbAction.querySelector('button');
