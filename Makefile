@@ -304,11 +304,11 @@ endif
 ifndef GAIA_DISTRIBUTION_DIR
   GAIA_DISTRIBUTION_DIR := $(GAIA_DIR)$(SEP)distribution
 else
-	ifneq (,$(findstring MINGW32_,$(SYS)))
-		GAIA_DISTRIBUTION_DIR := $(shell pushd $(GAIA_DISTRIBUTION_DIR) > /dev/null; \
-			pwd -W | sed 's|/|\\\\|g'; popd > /dev/null;)
-	else
-		GAIA_DISTRIBUTION_DIR := $(realpath $(GAIA_DISTRIBUTION_DIR))
+  ifneq (,$(findstring MINGW32_,$(SYS)))
+	GAIA_DISTRIBUTION_DIR := $(shell pushd $(GAIA_DISTRIBUTION_DIR) > /dev/null; \
+		pwd -W | sed 's|/|\\\\|g'; popd > /dev/null;)
+  else
+	GAIA_DISTRIBUTION_DIR := $(realpath $(GAIA_DISTRIBUTION_DIR))
 	endif
 endif
 export GAIA_DISTRIBUTION_DIR
@@ -318,30 +318,30 @@ KEYBOARD_LAYOUTS_PATH ?= build/config/keyboard-layouts.json
 CONTACTS_IMPORT_SERVICES_PATH ?= build/config/communications_services.json
 
 ifdef GAIA_DISTRIBUTION_DIR
-	DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
-	DISTRIBUTION_CONTACTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)contacts.json
-	DISTRIBUTION_APP_CONFIG := $(GAIA_DISTRIBUTION_DIR)$(SEP)apps.list
-	DISTRIBUTION_VARIANT := $(GAIA_DISTRIBUTION_DIR)$(SEP)variant.json
-	DISTRIBUTION_KEYBOARD_LAYOUTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)keyboard-layouts.json
-	DISTRIBUTION_CONTACTS_IMPORT_SERVICES := $(GAIA_DISTRIBUTION_DIR)$(SEP)communications_services.json
-	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
-		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
-	endif
-	ifneq ($(wildcard $(DISTRIBUTION_CONTACTS)),)
-		CONTACTS_PATH := $(DISTRIBUTION_CONTACTS)
-	endif
-	ifneq ($(wildcard $(DISTRIBUTION_APP_CONFIG)),)
-		GAIA_APP_CONFIG := $(DISTRIBUTION_APP_CONFIG)
-	endif
-	ifneq ($(wildcard $(DISTRIBUTION_VARIANT)),)
-		VARIANT_PATH := $(DISTRIBUTION_VARIANT)
-	endif
-	ifneq ($(wildcard $(DISTRIBUTION_KEYBOARD_LAYOUTS)),)
-		KEYBOARD_LAYOUTS_PATH := $(DISTRIBUTION_KEYBOARD_LAYOUTS)
-	endif
-	ifneq ($(wildcard $(DISTRIBUTION_CONTACTS_IMPORT_SERVICES)),)
-		CONTACTS_IMPORT_SERVICES_PATH := $(DISTRIBUTION_CONTACTS_IMPORT_SERVICES)
-	endif
+  DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
+  DISTRIBUTION_CONTACTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)contacts.json
+  DISTRIBUTION_APP_CONFIG := $(GAIA_DISTRIBUTION_DIR)$(SEP)apps.list
+  DISTRIBUTION_VARIANT := $(GAIA_DISTRIBUTION_DIR)$(SEP)variant.json
+  DISTRIBUTION_KEYBOARD_LAYOUTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)keyboard-layouts.json
+  DISTRIBUTION_CONTACTS_IMPORT_SERVICES := $(GAIA_DISTRIBUTION_DIR)$(SEP)communications_services.json
+  ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
+	SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
+  endif
+  ifneq ($(wildcard $(DISTRIBUTION_CONTACTS)),)
+	CONTACTS_PATH := $(DISTRIBUTION_CONTACTS)
+  endif
+  ifneq ($(wildcard $(DISTRIBUTION_APP_CONFIG)),)
+	GAIA_APP_CONFIG := $(DISTRIBUTION_APP_CONFIG)
+  endif
+  ifneq ($(wildcard $(DISTRIBUTION_VARIANT)),)
+	VARIANT_PATH := $(DISTRIBUTION_VARIANT)
+  endif
+  ifneq ($(wildcard $(DISTRIBUTION_KEYBOARD_LAYOUTS)),)
+	KEYBOARD_LAYOUTS_PATH := $(DISTRIBUTION_KEYBOARD_LAYOUTS)
+  endif
+  ifneq ($(wildcard $(DISTRIBUTION_CONTACTS_IMPORT_SERVICES)),)
+	CONTACTS_IMPORT_SERVICES_PATH := $(DISTRIBUTION_CONTACTS_IMPORT_SERVICES)
+  endif
 endif
 
 # Read the file specified in $GAIA_APP_CONFIG and turn them into $GAIA_APPDIRS,
@@ -363,19 +363,19 @@ endif
 GAIA_ALLAPPDIRS=$(shell find $(GAIA_DIR)$(SEP)apps $(GAIA_DIR)$(SEP)dev_apps -maxdepth 1 -mindepth 1 -type d  | sed 's@[/\\]@$(SEP_FOR_SED)@g')
 
 GAIA_APPDIRS=$(shell while read LINE; do \
-	if [ "$${LINE\#$${LINE%?}}" = "*" ]; then \
-		srcdir="`echo "$$LINE" | sed 's/.\{2\}$$//'`"; \
-		[ -d $(GAIA_DIR)$(SEP)$$srcdir ] && find -L $(GAIA_DIR)$(SEP)$$srcdir -mindepth 1 -maxdepth 1 -type d | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-		[ -d $(GAIA_DISTRIBUTION_DIR)$(SEP)$$srcdir ] && find -L $(GAIA_DISTRIBUTION_DIR)$(SEP)$$srcdir -mindepth 1 -maxdepth 1 -type d | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-	else \
+  if [ "$${LINE\#$${LINE%?}}" = "*" ]; then \
+	srcdir="`echo "$$LINE" | sed 's/.\{2\}$$//'`"; \
+	[ -d $(GAIA_DIR)$(SEP)$$srcdir ] && find -L $(GAIA_DIR)$(SEP)$$srcdir -mindepth 1 -maxdepth 1 -type d | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
+	[ -d $(GAIA_DISTRIBUTION_DIR)$(SEP)$$srcdir ] && find -L $(GAIA_DISTRIBUTION_DIR)$(SEP)$$srcdir -mindepth 1 -maxdepth 1 -type d | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
+  else \
     if [ -d "$(GAIA_DISTRIBUTION_DIR)$(SEP)$$LINE" ]; then \
       echo "$(GAIA_DISTRIBUTION_DIR)$(SEP)$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-    elif [ -d "$(GAIA_DIR)$(SEP)$$LINE" ]; then \
-      echo "$(GAIA_DIR)$(SEP)$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-    elif [ -d "$$LINE" ]; then \
-      echo "$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
-    fi \
-	fi \
+  elif [ -d "$(GAIA_DIR)$(SEP)$$LINE" ]; then \
+    echo "$(GAIA_DIR)$(SEP)$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
+  elif [ -d "$$LINE" ]; then \
+    echo "$$LINE" | sed 's@[/\\]@$(SEP_FOR_SED)@g'; \
+  fi \
+  fi \
 done < $(GAIA_APP_CONFIG))
 
 ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
@@ -410,11 +410,11 @@ endif
 # Test agent setup
 TEST_COMMON=dev_apps/test-agent/common
 ifeq ($(strip $(NODEJS)),)
-	NODEJS := `which node`
+  NODEJS := `which node`
 endif
 
 ifeq ($(strip $(NPM)),)
-	NPM := `which npm`
+  NPM := `which npm`
 endif
 
 TEST_AGENT_CONFIG="./dev_apps/test-agent/config.json"
@@ -433,48 +433,48 @@ TEST_DIRS ?= $(GAIA_DIR)/tests
 
 define BUILD_CONFIG
 { \
-	"ADB" : "$(patsubst "%",%,$(ADB))", \
-	"GAIA_DIR" : "$(GAIA_DIR)", \
-	"PROFILE_DIR" : "$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)", \
-	"PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
-	"GAIA_SCHEME" : "$(SCHEME)", \
-	"GAIA_DOMAIN" : "$(GAIA_DOMAIN)", \
-	"DEBUG" : $(DEBUG), \
-	"LOCAL_DOMAINS" : $(LOCAL_DOMAINS), \
-	"DESKTOP" : $(DESKTOP), \
-	"DEVICE_DEBUG" : $(DEVICE_DEBUG), \
-	"NO_LOCK_SCREEN" : $(NO_LOCK_SCREEN), \
-	"SYSTEM" : "$(SYSTEM)", \
-	"GAIA_PORT" : "$(GAIA_PORT)", \
-	"GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)", \
-	"GAIA_INSTALL_PARENT" : "$(GAIA_INSTALL_PARENT)", \
-	"LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
-	"GAIA_KEYBOARD_LAYOUTS" : "$(GAIA_KEYBOARD_LAYOUTS)", \
-	"LOCALE_BASEDIR" : "$(subst \,\\,$(LOCALE_BASEDIR))", \
-	"BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
-	"PRODUCTION" : "$(PRODUCTION)", \
-	"GAIA_OPTIMIZE" : "$(GAIA_OPTIMIZE)", \
-	"GAIA_DEVICE_TYPE" : "$(GAIA_DEVICE_TYPE)", \
-	"GAIA_DEV_PIXELS_PER_PX" : "$(GAIA_DEV_PIXELS_PER_PX)", \
-	"DOGFOOD" : "$(DOGFOOD)", \
-	"OFFICIAL" : "$(MOZILLA_OFFICIAL)", \
-	"GAIA_DEFAULT_LOCALE" : "$(GAIA_DEFAULT_LOCALE)", \
-	"GAIA_INLINE_LOCALES" : "$(GAIA_INLINE_LOCALES)", \
-	"GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)", \
-	"GAIA_ENGINE" : "xpcshell", \
-	"GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)", \
-	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
-	"GAIA_ALLAPPDIRS" : "$(GAIA_ALLAPPDIRS)", \
-	"NOFTU" : "$(NOFTU)", \
-	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
-	"HAIDA" : $(HAIDA), \
-	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
-	"SETTINGS_PATH" : "$(subst \,\\,$(SETTINGS_PATH))", \
-	"FTU_PING_URL": "$(FTU_PING_URL)", \
-	"KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)", \
-	"CONTACTS_IMPORT_SERVICES_PATH" : "$(CONTACTS_IMPORT_SERVICES_PATH)", \
-	"STAGE_DIR" : "$(STAGE_DIR)", \
-	"VARIANT_PATH" : "$(VARIANT_PATH)" \
+  "ADB" : "$(patsubst "%",%,$(ADB))", \
+  "GAIA_DIR" : "$(GAIA_DIR)", \
+  "PROFILE_DIR" : "$(GAIA_DIR)$(SEP)$(PROFILE_FOLDER)", \
+  "PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
+  "GAIA_SCHEME" : "$(SCHEME)", \
+  "GAIA_DOMAIN" : "$(GAIA_DOMAIN)", \
+  "DEBUG" : $(DEBUG), \
+  "LOCAL_DOMAINS" : $(LOCAL_DOMAINS), \
+  "DESKTOP" : $(DESKTOP), \
+  "DEVICE_DEBUG" : $(DEVICE_DEBUG), \
+  "NO_LOCK_SCREEN" : $(NO_LOCK_SCREEN), \
+  "SYSTEM" : "$(SYSTEM)", \
+  "GAIA_PORT" : "$(GAIA_PORT)", \
+  "GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)", \
+  "GAIA_INSTALL_PARENT" : "$(GAIA_INSTALL_PARENT)", \
+  "LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
+  "GAIA_KEYBOARD_LAYOUTS" : "$(GAIA_KEYBOARD_LAYOUTS)", \
+  "LOCALE_BASEDIR" : "$(subst \,\\,$(LOCALE_BASEDIR))", \
+  "BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
+  "PRODUCTION" : "$(PRODUCTION)", \
+  "GAIA_OPTIMIZE" : "$(GAIA_OPTIMIZE)", \
+  "GAIA_DEVICE_TYPE" : "$(GAIA_DEVICE_TYPE)", \
+  "GAIA_DEV_PIXELS_PER_PX" : "$(GAIA_DEV_PIXELS_PER_PX)", \
+  "DOGFOOD" : "$(DOGFOOD)", \
+  "OFFICIAL" : "$(MOZILLA_OFFICIAL)", \
+  "GAIA_DEFAULT_LOCALE" : "$(GAIA_DEFAULT_LOCALE)", \
+  "GAIA_INLINE_LOCALES" : "$(GAIA_INLINE_LOCALES)", \
+  "GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)", \
+  "GAIA_ENGINE" : "xpcshell", \
+  "GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)", \
+  "GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
+  "GAIA_ALLAPPDIRS" : "$(GAIA_ALLAPPDIRS)", \
+  "NOFTU" : "$(NOFTU)", \
+  "REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
+  "HAIDA" : $(HAIDA), \
+  "TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
+  "SETTINGS_PATH" : "$(subst \,\\,$(SETTINGS_PATH))", \
+  "FTU_PING_URL": "$(FTU_PING_URL)", \
+  "KEYBOARD_LAYOUTS_PATH" : "$(KEYBOARD_LAYOUTS_PATH)", \
+  "CONTACTS_IMPORT_SERVICES_PATH" : "$(CONTACTS_IMPORT_SERVICES_PATH)", \
+  "STAGE_DIR" : "$(STAGE_DIR)", \
+  "VARIANT_PATH" : "$(VARIANT_PATH)" \
 }
 endef
 
@@ -485,16 +485,16 @@ define app-makefile-template
 $(1): $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts contacts-import-services $(STAGE_DIR)/settings_stage.json webapp-manifests svoperapps clear-stage-app webapp-shared | $(STAGE_DIR)
 	@if [[ ("$(2)" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
 	if [ -r "$(2)/Makefile" ]; then \
-		echo "execute Makefile for $(1) app" ; \
-		STAGE_APP_DIR="../../build_stage/$(1)" make -C "$(2)" ; \
+	  echo "execute Makefile for $(1) app" ; \
+	  STAGE_APP_DIR="../../build_stage/$(1)" make -C "$(2)" ; \
 	else \
-		echo "copy $(1) to build_stage/" ; \
-		cp -LR "$(2)" $(STAGE_DIR) && \
-		if [ -r "$(2)/build/build.js" ]; then \
-			echo "execute $(1)/build/build.js"; \
-			export APP_DIR=$(2); \
-			$(call run-js-command,app/build); \
-		fi; \
+	  echo "copy $(1) to build_stage/" ; \
+	  cp -LR "$(2)" $(STAGE_DIR) && \
+	  if [ -r "$(2)/build/build.js" ]; then \
+		echo "execute $(1)/build/build.js"; \
+		export APP_DIR=$(2); \
+		$(call run-js-command,app/build); \
+	  fi; \
 	fi && \
 	$(call clean-build-files,$(STAGE_DIR)/$(1)); \
   fi;
@@ -505,19 +505,19 @@ include build/common.mk
 # Generate profile/
 $(PROFILE_FOLDER): preferences post-manifest app-makefiles keyboard-layouts contacts-import-services copy-build-stage-data test-agent-config offline contacts extensions $(XULRUNNER_BASE_DIRECTORY) .git/hooks/pre-commit create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
-	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
+  @echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
 
 .PHONY: test-agent-bootstrap
 test-agent-bootstrap: $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,test-agent-bootstrap)
+  @$(call run-js-command,test-agent-bootstrap)
 
 $(STAGE_DIR):
-	mkdir -p $@
+  mkdir -p $@
 
 APP_RULES := $(foreach appdir,$(GAIA_APPDIRS),$(notdir $(appdir)))
 $(foreach appdir,$(GAIA_APPDIRS), \
-	$(eval $(call app-makefile-template,$(notdir $(appdir)),$(appdir))) \
+  $(eval $(call app-makefile-template,$(notdir $(appdir)),$(appdir))) \
 )
 
 
@@ -528,17 +528,17 @@ app-makefiles: $(APP_RULES)
 
 .PHONY: clear-stage-app
 clear-stage-app:
-	@for appdir in $(GAIA_APPDIRS); \
-	do \
-		if [[ ("$$appdir" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
-			APP="`basename $$appdir`"; \
-			echo "clear $$APP in build_stage" ; \
-			rm -rf $(STAGE_DIR)/$$APP/*; \
-		fi; \
-	done
+  @for appdir in $(GAIA_APPDIRS); \
+  do \
+	if [[ ("$$appdir" =~ "${BUILD_APP_NAME}") || ("${BUILD_APP_NAME}" == "*") ]]; then \
+	  APP="`basename $$appdir`"; \
+	  echo "clear $$APP in build_stage" ; \
+	  rm -rf $(STAGE_DIR)/$$APP/*; \
+	fi; \
+  done
 
 svoperapps: $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,svoperapps)
+  @$(call run-js-command,svoperapps)
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
@@ -553,68 +553,68 @@ LANG=POSIX # Avoiding sort order differences between OSes
 # in case someone does decide to get fancy.
 .PHONY: webapp-manifests
 webapp-manifests: $(XULRUNNER_BASE_DIRECTORY) $(STAGE_DIR)
-	@$(call run-js-command,webapp-manifests)
+  @$(call run-js-command,webapp-manifests)
 
 .PHONY: webapp-zip
 # Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
 webapp-zip: webapp-optimize app-makefiles keyboard-layouts $(XULRUNNER_BASE_DIRECTORY)
 ifneq ($(DEBUG),1)
-	@mkdir -p $(PROFILE_FOLDER)/webapps
-	@$(call run-js-command,webapp-zip)
+  @mkdir -p $(PROFILE_FOLDER)/webapps
+  @$(call run-js-command,webapp-zip)
 endif
 
 .PHONY: webapp-shared
 # Copy shared files to stage folders
 webapp-shared: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts $(STAGE_DIR) clear-stage-app
-	@$(call run-js-command, webapp-shared)
+  @$(call run-js-command, webapp-shared)
 
 .PHONY: webapp-optimize
 # Web app optimization steps (like precompling l10n, concatenating js files, etc..).
 # You need xulrunner ($(XULRUNNER_BASE_DIRECTORY)) to do this, and you need the app
 # to have been built (app-makefiles).
 webapp-optimize: multilocale app-makefiles $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,webapp-optimize)
+  @$(call run-js-command,webapp-optimize)
 
 .PHONY: optimize-clean
 # Remove temporary l10n files created by the webapp-optimize step.  Because
 # webapp-zip wants these files to still be around during the zip stage, depend
 # on webapp-zip so it runs to completion before we start the cleanup.
 optimize-clean: webapp-zip $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,optimize-clean)
+  @$(call run-js-command,optimize-clean)
 
 .PHONY: keyboard-layouts
 # A separate step for shared/ folder to generate its content in build time
 keyboard-layouts: webapp-manifests $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,keyboard-layouts)
+  @$(call run-js-command,keyboard-layouts)
 
 .PHONY: contacts-import-services
 contacts-import-services: webapp-manifests $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,contacts-import-services)
+  @$(call run-js-command,contacts-import-services)
 
 .PHONY: post-manifest
 # Updates hostnames for InterApp Communication APIs.
 post-manifest: app-makefiles $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,post-manifest)
+  @$(call run-js-command,post-manifest)
 
 # Get additional extensions
 $(PROFILE_FOLDER)/installed-extensions.json: build/config/additional-extensions.json $(wildcard .build/config/custom-extensions.json)
 ifeq ($(SIMULATOR),1)
 	# Prevent installing external firefox helper addon for the simulator
 else ifeq ($(DESKTOP),1)
-	@$(call run-js-command,additional-extensions)
+  @$(call run-js-command,additional-extensions)
 endif
 
 profile-dir:
-	@test -d $(PROFILE_FOLDER) || mkdir -p $(PROFILE_FOLDER)
+  @test -d $(PROFILE_FOLDER) || mkdir -p $(PROFILE_FOLDER)
 
 # Copy preload contacts to profile
 contacts: profile-dir
 ifeq ($(BUILD_APP_NAME),*)
 ifdef CONTACTS_PATH
-	@echo "Copying preload contacts to profile"
-	@cp $(CONTACTS_PATH) $(PROFILE_FOLDER)
+  @echo "Copying preload contacts to profile"
+  @cp $(CONTACTS_PATH) $(PROFILE_FOLDER)
 else
-	@rm -f $(PROFILE_FOLDER)/contacts.json
+  @rm -f $(PROFILE_FOLDER)/contacts.json
 endif
 endif
 
@@ -624,58 +624,58 @@ offline: app-makefiles optimize-clean
 # Create an empty reference workload
 .PHONY: reference-workload-empty
 reference-workload-empty:
-	test_media/reference-workload/makeReferenceWorkload.sh empty
+  test_media/reference-workload/makeReferenceWorkload.sh empty
 
 # Create a light reference workload
 .PHONY: reference-workload-light
 reference-workload-light:
-	test_media/reference-workload/makeReferenceWorkload.sh light
+  test_media/reference-workload/makeReferenceWorkload.sh light
 
 # Create a medium reference workload
 .PHONY: reference-workload-medium
 reference-workload-medium:
-	test_media/reference-workload/makeReferenceWorkload.sh medium
+  test_media/reference-workload/makeReferenceWorkload.sh medium
 
 # Create a heavy reference workload
 .PHONY: reference-workload-heavy
 reference-workload-heavy:
-	test_media/reference-workload/makeReferenceWorkload.sh heavy
+  test_media/reference-workload/makeReferenceWorkload.sh heavy
 
 # Create an extra heavy reference workload
 .PHONY: reference-workload-x-heavy
 reference-workload-x-heavy:
-	test_media/reference-workload/makeReferenceWorkload.sh x-heavy
+  test_media/reference-workload/makeReferenceWorkload.sh x-heavy
 
 xpcshell_sdk:
-	@echo $(XPCSHELLSDK)
+  @echo $(XPCSHELLSDK)
 
 xulrunner_sdk:
-	@echo $(XULRUNNERSDK)
+  @echo $(XULRUNNERSDK)
 
 .PHONY: print-xulrunner-sdk
 print-xulrunner-sdk:
-	@echo "$(XULRUNNER_DIRECTORY)"
+  @echo "$(XULRUNNER_DIRECTORY)"
 
 $(XULRUNNER_BASE_DIRECTORY):
-	@echo "XULrunner directory: $(XULRUNNER_DIRECTORY)"
+  @echo "XULrunner directory: $(XULRUNNER_DIRECTORY)"
 ifndef USE_LOCAL_XULRUNNER_SDK
 ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell test -d $(XULRUNNER_DIRECTORY) && cat $(XULRUNNER_URL_FILE) 2> /dev/null))
 # must download the xulrunner sdk
-	rm -rf $(XULRUNNER_BASE_DIRECTORY)
-	@echo "Downloading XULRunner..."
-	$(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD)
+  rm -rf $(XULRUNNER_BASE_DIRECTORY)
+  @echo "Downloading XULRunner..."
+  $(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD)
 ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
-	mkdir "$(XULRUNNER_BASE_DIRECTORY)"
-	@echo "Unzipping XULRunner..."
-	unzip -q xulrunner*.zip -d "$(XULRUNNER_BASE_DIRECTORY)" && rm -f xulrunner*.zip
+  mkdir "$(XULRUNNER_BASE_DIRECTORY)"
+  @echo "Unzipping XULRunner..."
+  unzip -q xulrunner*.zip -d "$(XULRUNNER_BASE_DIRECTORY)" && rm -f xulrunner*.zip
 else
-	mkdir $(XULRUNNER_BASE_DIRECTORY)
-	tar xjf xulrunner*.tar.bz2 -C $(XULRUNNER_BASE_DIRECTORY) && rm -f xulrunner*.tar.bz2 || \
-		( echo; \
-		echo "We failed extracting the XULRunner SDK archive which may be corrupted."; \
-		echo "You should run 'make really-clean' and try again." ; false )
+  mkdir $(XULRUNNER_BASE_DIRECTORY)
+  tar xjf xulrunner*.tar.bz2 -C $(XULRUNNER_BASE_DIRECTORY) && rm -f xulrunner*.tar.bz2 || \
+	( echo; \
+	echo "We failed extracting the XULRunner SDK archive which may be corrupted."; \
+	echo "You should run 'make really-clean' and try again." ; false )
 endif # MINGW32
-	@echo $(XULRUNNER_SDK_DOWNLOAD) > $(XULRUNNER_URL_FILE)
+  @echo $(XULRUNNER_SDK_DOWNLOAD) > $(XULRUNNER_URL_FILE)
 endif # XULRUNNER_SDK_DOWNLOAD
 endif # USE_LOCAL_XULRUNNER_SDK
 
@@ -704,37 +704,37 @@ PARTNER_PREF_FILES = \
 # Generate profile/prefs.js
 preferences: profile-dir $(XULRUNNER_BASE_DIRECTORY)
 ifeq ($(BUILD_APP_NAME),*)
-	@$(call run-js-command,preferences)
-	@$(foreach prefs_file,$(addprefix build/config/,$(EXTENDED_PREF_FILES)),\
-	  if [ -f $(prefs_file) ]; then \
-	    cat $(prefs_file) >> $(PROFILE_FOLDER)/user.js; \
-	  fi; \
-	)
-	@echo "" >> $(PROFILE_FOLDER)/user.js
-	@$(foreach prefs_file,$(addprefix $(GAIA_DISTRIBUTION_DIR)/,$(PARTNER_PREF_FILES)),\
-	  if [ -f $(prefs_file) ]; then \
-	    cat $(prefs_file) >> $(PROFILE_FOLDER)/user.js; \
-	  fi; \
-	)
+  @$(call run-js-command,preferences)
+  @$(foreach prefs_file,$(addprefix build/config/,$(EXTENDED_PREF_FILES)),\
+    if [ -f $(prefs_file) ]; then \
+      cat $(prefs_file) >> $(PROFILE_FOLDER)/user.js; \
+    fi; \
+  )
+  @echo "" >> $(PROFILE_FOLDER)/user.js
+  @$(foreach prefs_file,$(addprefix $(GAIA_DISTRIBUTION_DIR)/,$(PARTNER_PREF_FILES)),\
+    if [ -f $(prefs_file) ]; then \
+      cat $(prefs_file) >> $(PROFILE_FOLDER)/user.js; \
+    fi; \
+  )
 endif
 
 # Generate $(PROFILE_FOLDER)/extensions
 EXT_DIR=$(PROFILE_FOLDER)/extensions
 extensions:
 ifeq ($(BUILD_APP_NAME),*)
-	@rm -rf $(EXT_DIR)
-	@mkdir -p $(EXT_DIR)
+  @rm -rf $(EXT_DIR)
+  @mkdir -p $(EXT_DIR)
 ifeq ($(SIMULATOR),1)
-	cp -r tools/extensions/{activities@gaiamobile.org,activities,alarms@gaiamobile.org,alarms,desktop-helper,desktop-helper@gaiamobile.org} $(EXT_DIR)/
+  cp -r tools/extensions/{activities@gaiamobile.org,activities,alarms@gaiamobile.org,alarms,desktop-helper,desktop-helper@gaiamobile.org} $(EXT_DIR)/
 else ifeq ($(DESKTOP),1)
-	cp -r tools/extensions/* $(EXT_DIR)/
+  cp -r tools/extensions/* $(EXT_DIR)/
 else ifeq ($(DEBUG),1)
-	cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
-	cp -r tools/extensions/httpd $(EXT_DIR)/
+  cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
+  cp -r tools/extensions/httpd $(EXT_DIR)/
 else ifeq ($(DESKTOP_SHIMS),1)
-	cp -r tools/extensions/{desktop-helper,desktop-helper@gaiamobile.org} $(EXT_DIR)/
+  cp -r tools/extensions/{desktop-helper,desktop-helper@gaiamobile.org} $(EXT_DIR)/
 endif
-	@echo "Finished: Generating extensions"
+  @echo "Finished: Generating extensions"
 endif
 
 
@@ -747,25 +747,25 @@ $(NPM_INSTALLED_PROGRAMS): package.json node_modules
 NODE_MODULES_REV=$(shell cat gaia_node_modules.revision)
 $(NODE_MODULES_SRC): gaia_node_modules.revision
 ifeq "$(NODE_MODULES_SRC)" "modules.tar"
-	-$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
-	mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
+  -$(DOWNLOAD_CMD) https://github.com/mozilla-b2g/gaia-node-modules/tarball/$(NODE_MODULES_REV) &&\
+  mv $(NODE_MODULES_REV) "$(NODE_MODULES_SRC)"
 else
-	if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
-		git clone "$(NODE_MODULES_GIT_URL)" "$(NODE_MODULES_SRC)" ; \
-	fi
+  if [ ! -d "$(NODE_MODULES_SRC)" ] ; then \
+    git clone "$(NODE_MODULES_GIT_URL)" "$(NODE_MODULES_SRC)" ; \
+  fi
 	(cd "$(NODE_MODULES_SRC)" && git fetch && git reset --hard "$(NODE_MODULES_REV)" )
 endif
 
 node_modules: $(NODE_MODULES_SRC)
 ifeq "$(NODE_MODULES_SRC)" "modules.tar"
-	$(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "mozilla-b2g-gaia-node-modules-*/node_modules"
+  $(TAR_WILDCARDS) --strip-components 1 -x -m -f $(NODE_MODULES_SRC) "mozilla-b2g-gaia-node-modules-*/node_modules"
 else
-	rm -fr node_modules
-	cp -R $(NODE_MODULES_SRC)/node_modules node_modules
+  rm -fr node_modules
+  cp -R $(NODE_MODULES_SRC)/node_modules node_modules
 endif
-	npm install && npm rebuild
-	@echo "node_modules installed."
-	touch -c $@
+  npm install && npm rebuild
+  @echo "node_modules installed."
+  touch -c $@
 
 ###############################################################################
 # Tests                                                                       #
@@ -777,19 +777,19 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 TEST_PATH=gaia/tests/${TEST_FILE}
 
 ifndef APPS
-	ifdef APP
-		APPS=$(APP)
-	else
-		APPS=template $(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' | sort )
-	endif
+  ifdef APP
+  	APPS=$(APP)
+  else
+    APPS=template $(shell find apps -type d -name 'test' | sed -e 's|^apps/||' -e 's|/test$$||' | sort )
+  endif
 endif
 
 b2g: node_modules/.bin/mozilla-download
-	./node_modules/.bin/mozilla-download  \
-		--verbose \
-		--product b2g \
-		--channel tinderbox \
-		--branch mozilla-central $@
+  ./node_modules/.bin/mozilla-download  \
+    --verbose \
+	  --product b2g \
+	  --channel tinderbox \
+	  --branch mozilla-central $@
 
 .PHONY: test-integration
 # $(PROFILE_FOLDER) should be `profile-test` when we do `make test-integration`.
@@ -804,69 +804,69 @@ test-integration: clean $(PROFILE_FOLDER) test-integration-test
 # Remember to remove this target after bug-969215 is finished !
 .PHONY: test-integration-test
 test-integration-test:
-	./bin/gaia-marionette \
-		--host $(MARIONETTE_RUNNER_HOST) \
-		--manifest $(TEST_MANIFEST) \
-		--reporter $(REPORTER)
+  ./bin/gaia-marionette \
+	--host $(MARIONETTE_RUNNER_HOST) \
+	--manifest $(TEST_MANIFEST) \
+	--reporter $(REPORTER)
 
 .PHONY: caldav-server-install
 caldav-server-install:
-	source tests/travis_ci/venv.sh; \
-				export LC_ALL=en_US.UTF-8; \
-				export LANG=en_US.UTF-8; \
-				pip install radicale;
+  source tests/travis_ci/venv.sh; \
+          export LC_ALL=en_US.UTF-8; \
+		  export LANG=en_US.UTF-8; \
+		  pip install radicale;
 
 .PHONY: test-perf
 test-perf:
-	MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" \
-	MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" \
-	REPORTER=$(REPORTER) \
-	./bin/gaia-perf-marionette
+  MOZPERFOUT="$(MOZPERFOUT)" APPS="$(APPS)" \
+  MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR="`pwd`" \
+  REPORTER=$(REPORTER) \
+  ./bin/gaia-perf-marionette
 
 .PHONY: tests
 tests: app-makefiles offline
-	echo "Checking if the mozilla build has tests enabled..."
-	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
-	echo "Checking the injected Gaia..."
-	test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
-	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/$(PROFILE_FOLDER)/webapps --extra-profile-file=$(CURDIR)/$(PROFILE_FOLDER)/user.js"
+  echo "Checking if the mozilla build has tests enabled..."
+  test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
+  echo "Checking the injected Gaia..."
+  test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
+  TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/$(PROFILE_FOLDER)/webapps --extra-profile-file=$(CURDIR)/$(PROFILE_FOLDER)/user.js"
 
 .PHONY: common-install
 common-install:
-	@test -x "$(NODEJS)" || (echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)" && exit 1 )
-	@test -x "$(NPM)" || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
+  @test -x "$(NODEJS)" || (echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)" && exit 1 )
+  @test -x "$(NPM)" || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
 
 .PHONY: update-common
 update-common: common-install
-	# common testing tools
-	mkdir -p $(TEST_COMMON)/vendor/test-agent/
-	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.js
-	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.css
-	cp node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
-	cp node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
+  # common testing tools
+  mkdir -p $(TEST_COMMON)/vendor/test-agent/
+  rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.js
+  rm -f $(TEST_COMMON)/vendor/test-agent/test-agent.css
+  cp node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
+  cp node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
 
 # Create the json config file
 # for use with the test agent GUI
 test-agent-config: test-agent-bootstrap
 ifeq ($(BUILD_APP_NAME),*)
-	@rm -f $(TEST_AGENT_CONFIG)
-	@touch $(TEST_AGENT_CONFIG)
-	@rm -f /tmp/test-agent-config;
-	@# Build json array of all test files
-	@for d in ${GAIA_ALLAPPDIRS}; \
-	do \
-		parent="`dirname $$d`"; \
-		pathlen=`expr $${#parent} + 2`; \
-		find "$$d" -name '*_test.js' -path '*/test/unit/*' | awk '{print substr($$0,'$${pathlen}')}' >> /tmp/test-agent-config; \
-	done;
-	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
-	@cat /tmp/test-agent-config |  \
-		sed 's:\(.*\):"\1":' | \
-		sed -e ':a' -e 'N' -e '$$!ba' -e 's/\n/,\
-	/g' >> $(TEST_AGENT_CONFIG);
-	@echo '  ]}' >> $(TEST_AGENT_CONFIG);
-	@echo "Finished: test ui config file: $(TEST_AGENT_CONFIG)"
-	@rm -f /tmp/test-agent-config
+  @rm -f $(TEST_AGENT_CONFIG)
+  @touch $(TEST_AGENT_CONFIG)
+  @rm -f /tmp/test-agent-config;
+  @# Build json array of all test files
+  @for d in ${GAIA_ALLAPPDIRS}; \
+  do \
+	parent="`dirname $$d`"; \
+	pathlen=`expr $${#parent} + 2`; \
+	find "$$d" -name '*_test.js' -path '*/test/unit/*' | awk '{print substr($$0,'$${pathlen}')}' >> /tmp/test-agent-config; \
+  done;
+  @echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
+  @cat /tmp/test-agent-config |  \
+	sed 's:\(.*\):"\1":' | \
+	sed -e ':a' -e 'N' -e '$$!ba' -e 's/\n/,\
+  /g' >> $(TEST_AGENT_CONFIG);
+  @echo '  ]}' >> $(TEST_AGENT_CONFIG);
+  @echo "Finished: test ui config file: $(TEST_AGENT_CONFIG)"
+  @rm -f /tmp/test-agent-config
 endif
 
 # For test coverage report
@@ -882,37 +882,37 @@ endif
 .PHONY: test-agent-test
 test-agent-test: node_modules
 ifneq ($(strip $(APP)),)
-	@echo 'Running tests for $(APP)';
-	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
+  @echo 'Running tests for $(APP)';
+  ./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
 else
-	@echo 'Running all tests';
-	./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
+  @echo 'Running all tests';
+  ./node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
 endif
 
 .PHONY: test-agent-server
 test-agent-server: common-install node_modules
-	./node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./shared/test/unit/test-agent-server.js --http-path . --growl
+  ./node_modules/test-agent/bin/js-test-agent server --port $(TEST_AGENT_PORT) -c ./shared/test/unit/test-agent-server.js --http-path . --growl
 
 .PHONY: marionette
 marionette:
 #need the profile
-	test -d $(GAIA)/$(PROFILE_FOLDER) || $(MAKE) $(PROFILE_FOLDER)
+  test -d $(GAIA)/$(PROFILE_FOLDER) || $(MAKE) $(PROFILE_FOLDER)
 ifneq ($(PYTHON_MAJOR), 2)
-	@echo "Python 2.7.x is needed for the marionette client. You can set the PYTHON_27 variable to your python2.7 path." && exit 1
+  @echo "Python 2.7.x is needed for the marionette client. You can set the PYTHON_27 variable to your python2.7 path." && exit 1
 endif
 ifneq ($(PYTHON_MINOR), 7)
-	@echo "Python 2.7.x is needed for the marionette client. You can set the PYTHON_27 variable to your python2.7 path." && exit 1
+  @echo "Python 2.7.x is needed for the marionette client. You can set the PYTHON_27 variable to your python2.7 path." && exit 1
 endif
 ifeq ($(strip $(MC_DIR)),)
-	@echo "Please have the MC_DIR environment variable point to the top of your mozilla-central tree." && exit 1
+  @echo "Please have the MC_DIR environment variable point to the top of your mozilla-central tree." && exit 1
 endif
 #if B2G_BIN is defined, we will run the b2g binary, otherwise, we assume an instance is running
 ifneq ($(strip $(B2G_BIN)),)
-	cd $(MC_DIR)/testing/marionette/client/marionette && \
-	sh venv_test.sh $(PYTHON_27) --address=$(MARIONETTE_HOST):$(MARIONETTE_PORT) --b2gbin=$(B2G_BIN) $(TEST_DIRS)
+  cd $(MC_DIR)/testing/marionette/client/marionette && \
+  sh venv_test.sh $(PYTHON_27) --address=$(MARIONETTE_HOST):$(MARIONETTE_PORT) --b2gbin=$(B2G_BIN) $(TEST_DIRS)
 else
-	cd $(MC_DIR)/testing/marionette/client/marionette && \
-	sh venv_test.sh $(PYTHON_27) --address=$(MARIONETTE_HOST):$(MARIONETTE_PORT) $(TEST_DIRS)
+  cd $(MC_DIR)/testing/marionette/client/marionette && \
+  sh venv_test.sh $(PYTHON_27) --address=$(MARIONETTE_HOST):$(MARIONETTE_PORT) $(TEST_DIRS)
 endif
 
 ###############################################################################
@@ -935,55 +935,55 @@ endif
 endif
 
 lint:
-	NO_XFAIL=1 $(MAKE) -k gjslint hint
+  NO_XFAIL=1 $(MAKE) -k gjslint hint
 
 gjslint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/\/\*\*$$//' | paste -s -d, -)
 gjslint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)
 gjslint:
-	# gjslint --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
-	# http://code.google.com/p/closure-linter/issues/detail?id=64
-	@echo Running gjslint...
-	@gjslint --disable 210,217,220,225 --custom_jsdoc_tags="prop,borrows,memberof,augments,exports,global,event,example,mixes,mixin,fires,inner,todo,access,namespace,listens,module,memberOf,property,requires,alias,returns" -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(GJSLINTED_PATH) $(LINTED_FILES)
-	@echo Note: gjslint only checked the files that are xfailed for jshint.
+  # gjslint --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
+  # http://code.google.com/p/closure-linter/issues/detail?id=64
+  @echo Running gjslint...
+  @gjslint --disable 210,217,220,225 --custom_jsdoc_tags="prop,borrows,memberof,augments,exports,global,event,example,mixes,mixin,fires,inner,todo,access,namespace,listens,module,memberOf,property,requires,alias,returns" -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(GJSLINTED_PATH) $(LINTED_FILES)
+  @echo Note: gjslint only checked the files that are xfailed for jshint.
 
 JSHINT_ARGS := --reporter=build/jshint/xfail $(JSHINT_ARGS)
 
 ifdef JSHINTRC
-	JSHINT_ARGS := $(JSHINT_ARGS) --config $(JSHINTRC)
+  JSHINT_ARGS := $(JSHINT_ARGS) --config $(JSHINTRC)
 endif
 
 ifdef VERBOSE
-	JSHINT_ARGS := $(JSHINT_ARGS) --verbose
+  SHINT_ARGS := $(JSHINT_ARGS) --verbose
 endif
 
 hint: node_modules/.bin/jshint
-	@echo Running jshint...
-	@./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES) || (echo Please consult https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md to get some information about how to fix jshint issues. && exit 1)
+  @echo Running jshint...
+  @./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES) || (echo Please consult https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md to get some information about how to fix jshint issues. && exit 1)
 
 csslint: $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,csslint)
+  @$(call run-js-command,csslint)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
-	@echo 'Stopping b2g'
-	@$(ADB) shell stop b2g
-	@$(ADB) shell rm -r $(MSYS_FIX)/data/local/indexedDB/*
-	@echo 'Starting b2g'
-	@$(ADB) shell start b2g
+  @echo 'Stopping b2g'
+  @$(ADB) shell stop b2g
+  @$(ADB) shell rm -r $(MSYS_FIX)/data/local/indexedDB/*
+  @echo 'Starting b2g'
+  @$(ADB) shell start b2g
 
 # Take a screenshot of the device and put it in screenshot.png
 screenshot:
-	mkdir -p screenshotdata
-	$(ADB) pull $(MSYS_FIX)/dev/graphics/fb0 screenshotdata/fb0
-	dd bs=1920 count=800 if=screenshotdata/fb0 of=screenshotdata/fb0b
-	ffmpeg -vframes 1 -vcodec rawvideo -f rawvideo -pix_fmt rgb32 -s 480x800 -i screenshotdata/fb0b -f image2 -vcodec png screenshot.png
-	rm -rf screenshotdata
+  mkdir -p screenshotdata
+  $(ADB) pull $(MSYS_FIX)/dev/graphics/fb0 screenshotdata/fb0
+  dd bs=1920 count=800 if=screenshotdata/fb0 of=screenshotdata/fb0b
+  ffmpeg -vframes 1 -vcodec rawvideo -f rawvideo -pix_fmt rgb32 -s 480x800 -i screenshotdata/fb0b -f image2 -vcodec png screenshot.png
+  rm -rf screenshotdata
 
 # Forward port to use the RIL daemon from the device
 forward:
-	$(ADB) shell touch $(MSYS_FIX)/data/local/rilproxyd
-	$(ADB) shell killall rilproxy
-	$(ADB) forward tcp:6200 localreserved:rilproxyd
+  $(ADB) shell touch $(MSYS_FIX)/data/local/rilproxyd
+  $(ADB) shell killall rilproxy
+  $(ADB) forward tcp:6200 localreserved:rilproxyd
 
 # install-gaia is alias to build & push to device.
 .PHONY: install-gaia
@@ -999,30 +999,30 @@ install-gaia: $(PROFILE_FOLDER) push
 # push target to update the gaia files and reboot b2g
 .PHONY: push
 push: $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,push-to-device)
+  @$(call run-js-command,push-to-device)
 
 # Copy demo media to the sdcard.
 # If we've got old style directories on the phone, rename them first.
 install-media-samples:
-	$(ADB) shell 'if test -d /sdcard/Pictures; then mv /sdcard/Pictures /sdcard/DCIM; fi'
-	$(ADB) shell 'if test -d /sdcard/music; then mv /sdcard/music /sdcard/music.temp; mv /sdcard/music.temp /sdcard/Music; fi'
-	$(ADB) shell 'if test -d /sdcard/videos; then mv /sdcard/videos /sdcard/Movies;	fi'
+  $(ADB) shell 'if test -d /sdcard/Pictures; then mv /sdcard/Pictures /sdcard/DCIM; fi'
+  $(ADB) shell 'if test -d /sdcard/music; then mv /sdcard/music /sdcard/music.temp; mv /sdcard/music.temp /sdcard/Music; fi'
+  $(ADB) shell 'if test -d /sdcard/videos; then mv /sdcard/videos /sdcard/Movies;	fi'
 
-	$(ADB) push test_media/samples/DCIM $(MSYS_FIX)/sdcard/DCIM
-	$(ADB) push test_media/samples/Movies $(MSYS_FIX)/sdcard/Movies
-	$(ADB) push test_media/samples/Music $(MSYS_FIX)/sdcard/Music
+  $(ADB) push test_media/samples/DCIM $(MSYS_FIX)/sdcard/DCIM
+  $(ADB) push test_media/samples/Movies $(MSYS_FIX)/sdcard/Movies
+  $(ADB) push test_media/samples/Music $(MSYS_FIX)/sdcard/Music
 
 install-test-media:
-	$(ADB) push test_media/Pictures $(MSYS_FIX)/sdcard/DCIM
-	$(ADB) push test_media/Movies $(MSYS_FIX)/sdcard/Movies
-	$(ADB) push test_media/Music $(MSYS_FIX)/sdcard/Music
+  $(ADB) push test_media/Pictures $(MSYS_FIX)/sdcard/DCIM
+  $(ADB) push test_media/Movies $(MSYS_FIX)/sdcard/Movies
+  $(ADB) push test_media/Music $(MSYS_FIX)/sdcard/Music
 
 dialer-demo:
-	@cp -R apps/contacts apps/dialer
-	@rm apps/dialer/contacts/manifest*
-	@mv apps/dialer/contacts/index.html apps/dialer/contacts/contacts.html
-	@sed -i.bak 's/manifest.appcache/..\/manifest.appcache/g' apps/dialer/contacts/contacts.html
-	@find apps/dialer/ -name '*.bak' -exec rm {} \;
+  @cp -R apps/contacts apps/dialer
+  @rm apps/dialer/contacts/manifest*
+  @mv apps/dialer/contacts/index.html apps/dialer/contacts/contacts.html
+  @sed -i.bak 's/manifest.appcache/..\/manifest.appcache/g' apps/dialer/contacts/contacts.html
+  @find apps/dialer/ -name '*.bak' -exec rm {} \;
 
 demo: install-media-samples install-gaia
 
@@ -1034,61 +1034,61 @@ reset-gaia: purge install-gaia install-default-data
 
 # remove the memories and apps on the phone
 purge:
-	$(ADB) shell stop b2g
-	@(for FILE in `$(ADB) shell ls $(MSYS_FIX)/data/local | tr -d '\r'`; \
-	do \
-		[ $$FILE = 'tmp' ] || $(ADB) shell rm -r $(MSYS_FIX)/data/local/$$FILE; \
-	done);
-	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
-	$(ADB) shell rm -r $(MSYS_FIX)/data/b2g/*
-	$(ADB) shell rm -r $(MSYS_FIX)/data/local/webapps
-	$(ADB) remount
-	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
-	$(ADB) shell 'if test -d $(MSYS_FIX)/persist/svoperapps; then rm -r $(MSYS_FIX)/persist/svoperapps; fi'
+  $(ADB) shell stop b2g
+  @(for FILE in `$(ADB) shell ls $(MSYS_FIX)/data/local | tr -d '\r'`; \
+  do \
+	[ $$FILE = 'tmp' ] || $(ADB) shell rm -r $(MSYS_FIX)/data/local/$$FILE; \
+  done);
+  $(ADB) shell rm -r $(MSYS_FIX)/cache/*
+  $(ADB) shell rm -r $(MSYS_FIX)/data/b2g/*
+  $(ADB) shell rm -r $(MSYS_FIX)/data/local/webapps
+  $(ADB) remount
+  $(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
+  $(ADB) shell 'if test -d $(MSYS_FIX)/persist/svoperapps; then rm -r $(MSYS_FIX)/persist/svoperapps; fi'
 
 $(PROFILE_FOLDER)/settings.json: $(XULRUNNER_BASE_DIRECTORY) profile-dir keyboard-layouts $(STAGE_DIR)/settings_stage.json copy-build-stage-data
 
 $(STAGE_DIR)/settings_stage.json: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts
 ifeq ($(BUILD_APP_NAME),*)
-	@$(call run-js-command,settings)
+  @$(call run-js-command,settings)
 endif
 
 # push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone
 install-default-data: $(PROFILE_FOLDER)/settings.json contacts
-	$(ADB) shell stop b2g
-	$(ADB) remount
-	$(ADB) push $(PROFILE_FOLDER)/settings.json $(MSYS_FIX)/system/b2g/defaults/settings.json
+  $(ADB) shell stop b2g
+  $(ADB) remount
+  $(ADB) push $(PROFILE_FOLDER)/settings.json $(MSYS_FIX)/system/b2g/defaults/settings.json
 ifdef CONTACTS_PATH
-	$(ADB) push $(PROFILE_FOLDER)/contacts.json $(MSYS_FIX)/system/b2g/defaults/contacts.json
+  $(ADB) push $(PROFILE_FOLDER)/contacts.json $(MSYS_FIX)/system/b2g/defaults/contacts.json
 else
-	$(ADB) shell rm /system/b2g/defaults/contacts.json
+  $(ADB) shell rm /system/b2g/defaults/contacts.json
 endif
-	$(ADB) shell start b2g
+  $(ADB) shell start b2g
 
 # create default data, gonk-misc will copy this folder during B2G build time
 create-default-data: preferences $(PROFILE_FOLDER)/settings.json contacts
 ifeq ($(BUILD_APP_NAME),*)
 	# create a clean folder to store data for B2G, this folder will copy to b2g output folder.
-	rm -rf $(PROFILE_FOLDER)/defaults
-	mkdir -p $(PROFILE_FOLDER)/defaults/pref
+  rm -rf $(PROFILE_FOLDER)/defaults
+  mkdir -p $(PROFILE_FOLDER)/defaults/pref
 	# rename user_pref() to pref() in user.js
-	sed s/user_pref\(/pref\(/ $(PROFILE_FOLDER)/user.js > $(PROFILE_FOLDER)/defaults/pref/user.js
-	cp $(PROFILE_FOLDER)/settings.json $(PROFILE_FOLDER)/defaults/settings.json
+  sed s/user_pref\(/pref\(/ $(PROFILE_FOLDER)/user.js > $(PROFILE_FOLDER)/defaults/pref/user.js
+  cp $(PROFILE_FOLDER)/settings.json $(PROFILE_FOLDER)/defaults/settings.json
 ifdef CONTACTS_PATH
-	cp $(PROFILE_FOLDER)/contacts.json $(PROFILE_FOLDER)/defaults/contacts.json
+  cp $(PROFILE_FOLDER)/contacts.json $(PROFILE_FOLDER)/defaults/contacts.json
 endif
 endif
 
 # clean out build products
 clean:
-	rm -rf profile profile-debug profile-test profile-gaia-test-b2g profile-gaia-test-firefox $(PROFILE_FOLDER) $(STAGE_DIR) docs
+  rm -rf profile profile-debug profile-test profile-gaia-test-b2g profile-gaia-test-firefox $(PROFILE_FOLDER) $(STAGE_DIR) docs
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf xulrunner-* .xulrunner-* node_modules b2g modules.tar js-marionette-env
+  rm -rf xulrunner-* .xulrunner-* node_modules b2g modules.tar js-marionette-env
 
 .git/hooks/pre-commit: tools/pre-commit
-	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
+  test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
 
 
 # This task will do three things.
@@ -1098,24 +1098,24 @@ really-clean: clean
 # 2. Copy external app to profile dir.
 # 3. Generate webapps.json from webapps_stage.json and copy to profile dir.
 copy-build-stage-data: app-makefiles post-manifest multilocale $(XULRUNNER_BASE_DIRECTORY)
-	@$(call run-js-command,copy-build-stage-data)
+  @$(call run-js-command,copy-build-stage-data)
 
 build-test-unit: $(NPM_INSTALLED_PROGRAMS)
-	@$(call run-build-test, $(shell find build/test/unit/*.test.js))
+  @$(call run-build-test, $(shell find build/test/unit/*.test.js))
 
 build-test-integration: $(NPM_INSTALLED_PROGRAMS)
-	@$(call run-build-test, $(shell find build/test/integration/*.test.js))
+  @$(call run-build-test, $(shell find build/test/integration/*.test.js))
 
 .PHONY: docs
 docs: $(NPM_INSTALLED_PROGRAMS)
-	grunt docs
+  grunt docs
 
 .PHONY: watch
 watch: $(NPM_INSTALLED_PROGRAMS)
-	node build/watcher.js
+  node build/watcher.js
 
 .PHONY: multilocale
 multilocale: post-manifest app-makefiles webapp-shared $(XULRUNNER_BASE_DIRECTORY)
 ifneq ($(LOCALE_BASEDIR),)
-	@$(call run-js-command,multilocale)
+  @$(call run-js-command,multilocale)
 endif
