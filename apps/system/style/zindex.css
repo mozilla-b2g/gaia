@@ -129,6 +129,9 @@
 #screen.attention:not(.active-statusbar) > [data-z-index-level="utility-tray"] {
   z-index: 16385;
 }
+#screen.attention:not(.active-statusbar) > [data-z-index-level="permission-screen"] {
+  z-index: 16385;
+}
 
 /* Level 6: Lock Screen */
 
