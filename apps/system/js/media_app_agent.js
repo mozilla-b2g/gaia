@@ -48,6 +48,13 @@ var MediaAppAgent = {
     this._telephony.addEventListener(
       'callschanged', this._handleTelephony.bind(this)
     );
+
+    // When we receive the mozmemorypressure event, check the media app status
+    // to decide if we can close it to release the memory that supposed to be
+    // freed if the media app is out-of-process.
+    window.addEventListener(
+      'mozmemorypressure', this._handleMemorypressure.bind(this)
+    );
   },
 
   _startRecording: function maa_startRecording() {
@@ -109,6 +116,24 @@ var MediaAppAgent = {
         this.killedOrigin = null;
       }
     }.bind(this));
+  },
+
+  _handleMemorypressure: function maa_handleMemorypressure(event) {
+    switch (this.playStatus) {
+      case 'STOPPED':
+        WindowManager.kill(this.origin);
+        break;
+      // Should we kill the media app because the player is paused/interrupted?
+      // Maybe use a timer to check if the user has paused the player, or the
+      // player is interrupted for a while, so that we can assume the user also
+      // expect the media app is closed silently.
+      case 'PAUSED':
+        WindowManager.kill(this.origin);
+        break;
+      case 'mozinterruptbegin':
+        WindowManager.kill(this.origin);
+        break;
+    }
   },
 
   _tellMediaAppToResume: function maa_tellMediaAppToResume(callback) {
