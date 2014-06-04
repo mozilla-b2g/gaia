@@ -157,10 +157,6 @@ suiteGroup('Views.ViewEvent', function() {
       var expected = {
         title: remote.title,
         location: remote.location,
-        startDate: subject.formatDate(remote.startDate),
-        startTime: subject.formatTime(remote.startDate),
-        endDate: subject.formatDate(remote.endDate),
-        endTime: subject.formatTime(remote.endDate),
         currentCalendar: calendar.remote.name,
         description: remote.description
       };
@@ -236,17 +232,6 @@ suiteGroup('Views.ViewEvent', function() {
       );
     });
 
-    test('when start & end times are 00:00:00', function(done) {
-      remote.startDate = new Date(2012, 0, 1);
-      remote.endDate = new Date(2012, 0, 2);
-
-      updatesValues(
-        { endDate: '01/01/2012' },
-        true,
-        done
-      );
-    });
-
     test('alarms are displayed', function(done) {
 
       event.remote.alarms = [
@@ -275,13 +260,6 @@ suiteGroup('Views.ViewEvent', function() {
 
         done();
       });
-    });
-  });
-
-  suite('#formatTime', function() {
-    test('returns empty if invalid', function() {
-      var result = subject.formatTime();
-      assert.equal('', result);
     });
   });
 
