@@ -752,7 +752,7 @@ function cropPickedImage(fileinfo) {
   pickedFile = fileinfo;
 
   // Do we actually want to allow the user to crop the image?
-  var nocrop = pendingPick.source.data.nocrop;
+  var nocrop = CONFIG_NO_CROP_TOOL_IN_PICKER || pendingPick.source.data.nocrop;
 
   if (nocrop) {
     // If we're not cropping we don't want the word "Crop" in the title bar
@@ -846,9 +846,12 @@ function cropAndEndPick() {
   // If we're not changing the file type or resizing the image and if
   // we're not cropping, or if the user did not crop, then we can just
   // use the file as it is.
-  if (pickType === pickedFile.type &&
-      !pickWidth && !pickHeight &&
-      (pendingPick.source.data.nocrop || !cropEditor.hasBeenCropped())) {
+  // If CONFIGNO_CROP_TOOL_IN_PICKER is true, we don't need to crop the image,
+  // just return the file reference.
+  if (CONFIG_NO_CROP_TOOL_IN_PICKER ||
+      (pickType === pickedFile.type &&
+       !pickWidth && !pickHeight &&
+       (pendingPick.source.data.nocrop || !cropEditor.hasBeenCropped()))) {
     photodb.getFile(pickedFile.name, endPick);
   }
   else {
