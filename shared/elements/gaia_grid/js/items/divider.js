@@ -11,21 +11,6 @@
       type: 'divider',
       index: 0
     };
-
-    /**
-     * Use polynomial regression to find the ideal divider size.
-     * This calculates the appropriate divider height depending
-     * on screen height. Examples (height, divider size):
-     * 480,3 / 854,4 / 960,4 / 1280,6 / 1920,8
-     * This result is cached in the GridView so we don't have to
-     * calculate it again.
-     */
-    if (!this.grid.layout._dividerLineHeight) {
-      this.grid.layout._dividerLineHeight = Math.round(3.8 * Math.pow(10, -7) *
-        Math.pow(screen.height, 2) + 2.7 * Math.pow(10, -3) *
-        screen.height + 1.5);
-    }
-    this.lineHeight = this.grid.layout._dividerLineHeight;
   }
 
   Divider.prototype = {
@@ -59,7 +44,6 @@
         divider.className = 'divider';
 
         var span = document.createElement('span');
-        span.style.height = this.lineHeight + 'px';
         divider.appendChild(span);
 
         this.grid.element.appendChild(divider);
