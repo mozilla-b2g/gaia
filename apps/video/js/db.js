@@ -89,6 +89,12 @@ function enumerateDB() {
 
     // If we've parsed the metadata and know this is a video, display it.
     if (isVideo === true) {
+
+      // If we don't put subtitle with this video first, after we put subtitle,
+      // the metadata of this video should be updated.
+      // Or if we remove the subtitle file, we should update metadata as well.
+      (new SubtitleHandler()).updateSubtitle(videoinfo, addToMetadataQueue);
+
       batch.push(videoinfo);
       if (batch.length >= batchSize) {
         flush();

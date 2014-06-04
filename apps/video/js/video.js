@@ -1012,12 +1012,26 @@ function showPlayer(video, autoPlay, enterFullscreen, keepControls) {
     } else {
       doneSeeking();
     }
+
+    // Insert <track kind="subtitles" src="foo.en.vtt">
+    if (currentVideo.metadata.subtitles !== undefined) {
+      var blob = currentVideo.metadata.subtitles.default.blob;
+      var url = URL.createObjectURL(blob);
+      dom.player.innerHTML = '<track kind="subtitles" src=' + url + '>';
+    }
+
     // Enable NFC sharing in fullscreen player mode
     setNFCSharing(true);
   });
 }
 
 function hidePlayer(updateVideoMetadata, callback) {
+
+  // Hide <track>
+  if (currentVideo.metadata.subtitles !== undefined) {
+    dom.player.innerHTML = '';
+  }
+
   if (!playerShowing) {
     if (callback) {
       callback();
