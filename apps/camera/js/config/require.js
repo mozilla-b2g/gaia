@@ -12,6 +12,7 @@ require.config({
     'MediaFrame': '../shared/js/media/media_frame',
     'BlobView': '../shared/js/blobview',
     'CustomDialog': '../shared/js/custom_dialog',
+    'FontSizeUtils': '../shared/js/font_size_utils',
     'debug': 'vendor/debug'
   },
   shim: {
@@ -44,6 +45,9 @@ require.config({
     },
     'CustomDialog': {
       exports: 'CustomDialog'
+    },
+    'FontSizeUtils': {
+      exports: 'FontSizeUtils'
     }
   }
 });
