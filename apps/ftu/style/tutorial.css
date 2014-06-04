@@ -4,7 +4,7 @@
 }
 
 /*
- * Tiny devices. Number of steps is 6
+ * Tiny devices. Number of steps is 3
  */
 
 #tutorial .step-state {
@@ -26,12 +26,17 @@
   -moz-box-sizing: border-box;
 }
 
-#tutorial-step-image {
+#tutorial-step-media {
   height: calc(100% - 6rem);
   text-align: center;
+  overflow: hidden;
 }
 
-#tutorial-step-image img {
+.step-video-base {
+  height: 100%;
+}
+
+#tutorial-step-media img {
   width: 28.9rem;
 }
 
@@ -55,7 +60,7 @@
     width: 83rem;
   }
 
-  #tutorial-step-image img {
+  #tutorial-step-media img {
     width: 82.2rem;
   }
 }

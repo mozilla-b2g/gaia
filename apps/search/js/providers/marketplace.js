@@ -1,4 +1,4 @@
-/* global Provider, MozActivity, Search */
+/* global Search, DataGridProvider, MarketPlaceApp */
 
 (function() {
 
@@ -15,29 +15,14 @@
 
   Marketplace.prototype = {
 
-    __proto__: Provider.prototype,
+    __proto__: DataGridProvider.prototype,
 
     name: 'Marketplace',
 
     dedupes: true,
     dedupeStrategy: 'exact',
 
-    click: function(e) {
-      var slug = e.target.dataset.slug;
-      var activity = new MozActivity({
-        name: 'marketplace-app',
-        data: {
-          slug: slug
-        }
-      });
-
-      activity.onerror = function onerror() {
-        Search.navigate('https://marketplace.firefox.com/app/' + slug);
-      };
-    },
-
     search: function(input, collect) {
-      this.clear();
       this.abort();
 
       if (!input) {
@@ -56,15 +41,16 @@
         var formatted = [];
         for (var i = 0; i < length; i++) {
           var app = results[i];
-
           formatted.push({
-            title: navigator.mozL10n.get('install-marketplace-title',
-              {title: app.name}),
-            icon: app.icon,
             dedupeId: app.manifest_url,
-            dataset: {
+            data: new MarketPlaceApp({
+              id: app.manifest_url,
+              name: navigator.mozL10n.get('install-marketplace-title', {
+                title: app.name
+              }),
+              icon: app.icon,
               slug: app.slug
-            }
+            })
           });
         }
         collect(formatted);

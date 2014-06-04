@@ -64,6 +64,7 @@ suite('search/search', function() {
         'search-results');
       MockNavigatormozApps.mLastConnectionCallback([]);
       assert.ok(initCalled);
+      Search.providers = [];
     });
   });
 
@@ -104,7 +105,8 @@ suite('search/search', function() {
       var fakeProvider = {
         name: 'Foo',
         search: function() {},
-        abort: function() {}
+        abort: function() {},
+        clear: function() {}
       };
       Search.provider(fakeProvider);
     });

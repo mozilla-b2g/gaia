@@ -1,75 +1,40 @@
-/* global MockAllNetworkInterfaces, Common, MockMozNetworkStats, resetData,
-          MockNavigatorMozMobileConnections, WifiInterfaceType,
-          MockNavigatorSettings, MobileInterfaceType, MockConfigManager */
+/* global MockAllNetworkInterfaces, Common, MockMozNetworkStats, ConfigManager,
+          WifiInterfaceType, SimManager, MobileInterfaceType */
 
 'use strict';
 
-requireApp('costcontrol/test/unit/mock_debug.js');
-requireApp('costcontrol/js/common.js');
-requireApp('costcontrol/test/unit/mock_moz_l10n.js');
-requireApp('costcontrol/test/unit/mock_moz_network_stats.js');
-requireApp('costcontrol/test/unit/mock_all_network_interfaces.js');
-requireApp('costcontrol/test/unit/mock_config_manager.js');
-requireApp('costcontrol/js/utils/toolkit.js');
-requireApp('costcontrol/shared/test/unit/mocks/mock_navigator_moz_settings.js');
-requireApp(
-  'costcontrol/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js'
-);
+require('/test/unit/mock_debug.js');
+require('/js/common.js');
+require('/js/sim_manager.js');
+require('/js/config/config_manager.js');
+require('/test/unit/mock_moz_l10n.js');
+require('/test/unit/mock_moz_network_stats.js');
+require('/js/utils/toolkit.js');
 
 var realMozL10n,
-    realMozNetworkStats,
-    realConfigManager,
-    realMozSettings,
-    realMozMobileConnections;
+    realMozNetworkStats;
 
 if (!window.navigator.mozL10n) {
   window.navigator.mozL10n = null;
-}
-
-if (!window.ConfigManager) {
-  window.ConfigManager = null;
 }
 
 if (!window.navigator.mozNetworkStats) {
   window.navigator.mozNetworkStats = null;
 }
 
-if (!window.navigator.mozMobileConnections) {
-  window.navigator.mozMobileConnections = null;
-}
-
-if (!window.navigator.mozSettings) {
-  window.navigator.mozSettings = null;
-}
-
 suite('Cost Control Common >', function() {
 
   suiteSetup(function() {
-
     realMozL10n = window.navigator.mozL10n;
     window.navigator.mozL10n = window.MockMozL10n;
 
     realMozNetworkStats = window.navigator.mozNetworkStats;
     navigator.mozNetworkStats = MockMozNetworkStats;
-
-    realMozMobileConnections = navigator.mozMobileConnections;
-    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
-
-    realMozSettings = navigator.mozSettings;
-    navigator.mozSettings = MockNavigatorSettings;
-
-    realConfigManager = window.ConfigManager;
-
-    sinon.stub(Common, 'getIccInfo').returns = null;
   });
 
   suiteTeardown(function() {
-    window.ConfigManager = realConfigManager;
     window.navigator.mozL10n = realMozL10n;
     window.navigator.mozNetworkStats = realMozNetworkStats;
-    window.navigator.mozSettings = realMozSettings;
-    window.navigator.mozMobileConnections = realMozMobileConnections;
-    Common.getIccInfo.restore();
   });
 
   function getCustomClearStats(willFail) {
@@ -96,27 +61,6 @@ suite('Cost Control Common >', function() {
     return getCustomClearStats(true);
   }
 
-  function createLockRequestFails() {
-    return function() {
-      return {
-        set: null,
-        get: function() {
-          var request = {};
-          setTimeout(function() {
-            request.error = { name: 'error' };
-            request.onerror && request.onerror();
-          }, 0);
-          return request;
-        }
-      };
-    };
-  }
-
-  setup(function() {
-    Common.dataSimIccIdLoaded = false;
-    Common.dataSimIccId = null;
-  });
-
   test('loadNetworkInterfaces correctly', function(done) {
     Common.loadNetworkInterfaces(
       function() {
@@ -132,108 +76,29 @@ suite('Cost Control Common >', function() {
     );
   });
 
-  test('loadIccDataSIM() works ok without settings', function(done) {
-    MockNavigatorMozMobileConnections[0] = {
-      iccId: MockAllNetworkInterfaces[1].id
-    };
-    Common.loadDataSIMIccId(
-      function() {
-        assert.isTrue(Common.dataSimIccIdLoaded);
-        assert.equal(Common.dataSimIccId,
-                     MockAllNetworkInterfaces[1].id);
-        done();
-      }
-    );
-  });
-
-  test('loadIccDataSIM() fails noICC', function(done) {
-    MockNavigatorSettings.mSettings['ril.data.defaultServiceId'] = 0;
-    MockNavigatorMozMobileConnections[0] = {
-      iccId: null
-    };
-    Common.loadDataSIMIccId(function() { },
-      function _onError() {
-        assert.isFalse(Common.dataSimIccIdLoaded);
-        assert.isNull(Common.dataSimIccId);
-        done();
-      }
-    );
-  });
-
-  test('loadIccDataSIM() works correctly', function(done) {
-    MockNavigatorSettings.mSettings['ril.data.defaultServiceId'] = 0;
-    MockNavigatorMozMobileConnections[0] = {
-      iccId: Common.allNetworkInterfaces[1].id
-    };
-    Common.loadDataSIMIccId(
-      function() {
-        assert.isTrue(Common.dataSimIccIdLoaded);
-        assert.equal(Common.dataSimIccId,
-                     Common.allNetworkInterfaces[1].id);
-        done();
-      }
-    );
-  });
-
-  test('loadIccDataSIM() works ok when settings request fails', function(done) {
-    sinon.stub(navigator.mozSettings, 'createLock', createLockRequestFails());
-    MockNavigatorMozMobileConnections[0] = {
-      iccId: MockAllNetworkInterfaces[1].id
-    };
-    Common.loadDataSIMIccId(function _onSuccess() {
-      assert.isTrue(Common.dataSimIccIdLoaded);
-      assert.equal(Common.dataSimIccId,
-                   MockAllNetworkInterfaces[1].id);
-      navigator.mozSettings.createLock.restore();
-      done();
-    });
-  });
-
-  test('loadIccDataSIM() all fails', function(done) {
-    sinon.stub(navigator.mozSettings, 'createLock', createLockRequestFails());
-    MockNavigatorMozMobileConnections[0] = {
-      iccId: null
-    };
-
-    Common.loadDataSIMIccId(function() { },
-      function _onError() {
-        assert.isFalse(Common.dataSimIccIdLoaded);
-        navigator.mozSettings.createLock.restore();
-        done();
-      }
-    );
-  });
-
   suite('Reset Data>', function() {
-    MockNavigatorSettings.mSettings['ril.data.defaultServiceId'] = 0;
-    MockNavigatorMozMobileConnections[0] = {
-      iccId: Common.allNetworkInterfaces[1].id
-    };
-
     suiteSetup(function() {
-      sinon.stub(MockMozNetworkStats, 'clearStats', getSuccessfullClearStats());
+      sinon.stub(SimManager, 'requestDataSimIcc', function(callback) {
+        (typeof callback === 'function') &&
+          callback({iccId: Common.allNetworkInterfaces[1].id});
+      });
+      sinon.stub(ConfigManager, 'setOption', function() {});
+      sinon.stub(ConfigManager, 'requestSettings', function() {});
     });
-
     suiteTeardown(function() {
-      MockMozNetworkStats.clearStats.restore();
-    });
-
-
-    setup(function() {
-      window.ConfigManager = new MockConfigManager({});
-      MockMozNetworkStats.clearStats.restore();
-
+      SimManager.requestDataSimIcc.restore();
+      ConfigManager.setOption.restore();
+      ConfigManager.requestSettings.restore();
     });
 
     test('resetData() wifi interface', function(done) {
-
       sinon.stub(MockMozNetworkStats, 'clearStats', getSuccessfullClearStats());
-
       Common.loadNetworkInterfaces(function() {
         Common.resetData('wifi', function() {
           assert.isTrue(MockMozNetworkStats.clearStats.calledOnce);
           assert.isTrue(MockMozNetworkStats.clearStats
                                    .calledWith(Common.allNetworkInterfaces[0]));
+          MockMozNetworkStats.clearStats.restore();
           done();
         });
       });
@@ -248,6 +113,7 @@ suite('Cost Control Common >', function() {
           assert.isTrue(MockMozNetworkStats.clearStats.calledOnce);
           assert.isTrue(MockMozNetworkStats.clearStats
                                    .calledWith(Common.allNetworkInterfaces[1]));
+          MockMozNetworkStats.clearStats.restore();
           done();
         });
       });
@@ -260,6 +126,7 @@ suite('Cost Control Common >', function() {
       Common.loadNetworkInterfaces(function() {
         Common.resetData('all', function() {
           assert.isTrue(MockMozNetworkStats.clearStats.calledTwice);
+          MockMozNetworkStats.clearStats.restore();
           done();
         });
       });
@@ -269,10 +136,10 @@ suite('Cost Control Common >', function() {
 
       sinon.stub(MockMozNetworkStats, 'clearStats', getFailingClearStats());
 
-      window.ConfigManager = new MockConfigManager({});
       Common.loadNetworkInterfaces(function() {
-        resetData('wifi', function() {}, function _onError() {
+        Common.resetData('wifi', function() {}, function _onError() {
           assert.isTrue(MockMozNetworkStats.clearStats.calledOnce);
+          MockMozNetworkStats.clearStats.restore();
           done();
         });
       });
@@ -284,6 +151,7 @@ suite('Cost Control Common >', function() {
 
       var testOk = function() {
         if (MockMozNetworkStats.clearStats.calledTwice) {
+          MockMozNetworkStats.clearStats.restore();
           done();
         }
       };

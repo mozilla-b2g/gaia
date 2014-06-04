@@ -109,6 +109,9 @@ var UIManager = {
   init: function ui_init() {
     _ = navigator.mozL10n.get;
 
+    // Preload the tutorial config
+    Tutorial.loadConfig();
+
     // Initialization of the DOM selectors
     this.domSelectors.forEach(function createElementRef(name) {
       this[toCamelCase(name)] = document.getElementById(name);
@@ -207,9 +210,13 @@ var UIManager = {
     this.letsGoButton.addEventListener('click', function() {
       // Stop Wifi Manager
       WifiManager.finish();
-      UIManager.activationScreen.classList.remove('show');
-      UIManager.finishScreen.classList.remove('show');
-      Tutorial.init();
+
+      // Tutorial config is probably preloaded by now, but init could be
+      // async if it is still loading
+      Tutorial.init(null, function onTutorialLoaded() {
+        UIManager.activationScreen.classList.remove('show');
+        UIManager.finishScreen.classList.remove('show');
+      });
     });
 
     // Enable sharing performance data (saving to settings)
@@ -217,6 +224,20 @@ var UIManager = {
     var button = this.offlineErrorDialog.querySelector('button');
     button.addEventListener('click',
                             this.onOfflineDialogButtonClick.bind(this));
+
+    // Handle activation screen visibility.
+    ['confirmdialogshowing',
+     'loadingoverlayshowing',
+     'tutorialinitialized'].forEach(function(event) {
+      window.addEventListener(event,
+        this.hideActivationScreenFromScreenReader.bind(this));
+    }, this);
+
+    ['confirmdialoghiding',
+     'loadingoverlayhiding'].forEach(function(event) {
+      window.addEventListener(event,
+        this.showActivationScreenToScreenReader.bind(this));
+    }, this);
   },
 
   scrollToElement: function ui_scrollToElement(container, element) {
@@ -409,11 +430,23 @@ var UIManager = {
         text = _('offline-dialog-text', { url: href });
     dialog.querySelector('small').textContent = text;
     dialog.classList.add('visible');
+    this.hideActivationScreenFromScreenReader();
   },
 
   onOfflineDialogButtonClick: function ui_onOfflineDialogButtonClick(e) {
     this.offlineErrorDialog.classList.remove('visible');
+    this.showActivationScreenToScreenReader();
   },
+
+  hideActivationScreenFromScreenReader:
+    function ui_hideActivationScreenFromScreenReader() {
+      this.activationScreen.setAttribute('aria-hidden', true);
+    },
+
+  showActivationScreenToScreenReader:
+    function ui_showActivationScreenToScreenReader() {
+      this.activationScreen.setAttribute('aria-hidden', false);
+    },
 
   setDate: function ui_sd() {
     if (!!this.lock) {

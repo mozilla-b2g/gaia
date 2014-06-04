@@ -1564,4 +1564,86 @@ suite('calls handler', function() {
       });
     });
   });
+
+  suite('> active calls getters', function() {
+    var mockCalls;
+
+    setup(function() {
+      mockCalls = MockNavigatorMozTelephony.calls = [
+        new MockCall('99999', 'incoming'),
+        new MockCall('88888', 'incoming')
+      ];
+      MockNavigatorMozTelephony.active = mockCalls[0];
+      MockNavigatorMozTelephony.mTriggerCallsChanged();
+    });
+
+    test('getActiveCall should return active call', function() {
+      assert.equal(CallsHandler.activeCall.call.number,
+                   MockNavigatorMozTelephony.active.number);
+    });
+
+    suite('> getActiveCallForContactImage', function() {
+      test('should return active call if it is the only one', function() {
+        MockNavigatorMozTelephony.calls = [mockCalls[0]];
+        MockNavigatorMozTelephony.active = mockCalls[0];
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        assert.equal(CallsHandler.activeCallForContactImage.call.number,
+                     MockNavigatorMozTelephony.active.number);
+      });
+
+      test('should return first already connected call', function() {
+        assert.equal(CallsHandler.activeCallForContactImage.call.number,
+                     MockNavigatorMozTelephony.active.number);
+      });
+
+      test('should return null if no active call', function() {
+        MockNavigatorMozTelephony.active = null;
+        assert.equal(CallsHandler.activeCallForContactImage, null);
+      });
+
+      test('should return null if in group call', function() {
+        MockNavigatorMozTelephony.calls = mockCalls;
+        MockNavigatorMozTelephony.conferenceGroup.calls =
+          mockCalls;
+        MockNavigatorMozTelephony.active =
+          MockNavigatorMozTelephony.conferenceGroup;
+
+        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        assert.equal(CallsHandler.activeCallForContactImage, null);
+      });
+
+      test('should return null if in group call and has incoming', function() {
+        MockNavigatorMozTelephony.calls =
+          [mockCalls[0], new MockCall('1111', 'incoming')];
+        MockNavigatorMozTelephony.conferenceGroup.calls =
+          mockCalls;
+        MockNavigatorMozTelephony.active =
+          MockNavigatorMozTelephony.conferenceGroup;
+
+        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        assert.equal(CallsHandler.activeCallForContactImage, null);
+      });
+
+      test('should return first non-group call', function() {
+        var mockCall = new MockCall('2222', 'incoming');
+
+        MockNavigatorMozTelephony.calls =
+          [mockCalls[0], mockCall];
+        MockNavigatorMozTelephony.conferenceGroup.calls =
+          mockCalls;
+        MockNavigatorMozTelephony.active = mockCall;
+
+        MockNavigatorMozTelephony.mTriggerGroupCallsChanged();
+        MockNavigatorMozTelephony.mTriggerCallsChanged();
+
+        assert.equal(CallsHandler.activeCallForContactImage.call.number,
+                     MockNavigatorMozTelephony.active.number);
+      });
+    });
+  });
 });

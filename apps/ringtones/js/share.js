@@ -8,12 +8,19 @@ screen.mozLockOrientation('portrait');
 // let's handle the activity case.
 if (document.location.hash === '#activity') {
   navigator.mozSetMessageHandler('activity', function(activity) {
-    var srcData = activity.source.data;
-    var data = {
-      blob: srcData.blobs && srcData.blobs[0],
-      metadata: srcData.metadata && srcData.metadata[0],
-      name: srcData.filenames && srcData.filenames[0]
-    };
+    // Turn an array of data into its first element; we need this to make
+    // "share" activity data look more like "pick" activity data. We still want
+    // to preserve the rest of the structure though, so that other attributes
+    // get passed along.
+    function flatten(arr) {
+      return arr && arr.length ? arr[0] : null;
+    }
+
+    var data = activity.source.data;
+    data.blob = flatten(data.blobs);
+    data.metadata = flatten(data.metadata);
+    data.name = flatten(data.filenames);
+
     handleShare(data, function(command, details) {
       switch (command) {
       case 'save':

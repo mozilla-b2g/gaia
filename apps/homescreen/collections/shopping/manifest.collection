@@ -8,12 +8,5 @@
     "90": "/collections/shopping/icon_90.png",
     "120": "/collections/shopping/icon_120.png",
     "135": "/collections/shopping/icon_135.png"
-  },
-  "backgrounds": {
-    "480": "/collections/shopping/background_320x480.jpg",
-    "800": "/collections/shopping/background_480x800.jpg",
-    "854": "/collections/shopping/background_480x854.jpg",
-    "960": "/collections/shopping/background_540x960.jpg",
-    "1280": "/collections/shopping/background_720x1280.jpg"
   }
 }

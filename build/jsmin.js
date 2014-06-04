@@ -456,8 +456,3 @@ action recognizes a regular expression if it is preceded by ( or , or =.
 
   jsmin();
 }
-
-// Support commonjs.
-if (module && module.exports) {
-  module.exports = JSMin;
-}

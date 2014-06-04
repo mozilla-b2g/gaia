@@ -34,7 +34,7 @@ marionette('Music player tests', function() {
 
     client.fileManager.removeAllFiles();
     client.fileManager.add([
-      { type: 'music', filePath: 'media-samples/Music/b2g.ogg' }
+      { type: 'music', filePath: 'test_media/samples/Music/b2g.ogg' }
     ]);
   });
 

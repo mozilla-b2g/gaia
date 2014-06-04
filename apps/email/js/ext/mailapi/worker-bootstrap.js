@@ -17008,6 +17008,10 @@ MailBridge.prototype = {
           accountDef.notifyOnNew = val;
           break;
 
+        case 'playSoundOnSend':
+          accountDef.playSoundOnSend = val;
+          break;
+
         case 'setAsDefault':
           // Weird things can happen if the device's clock goes back in time,
           // but this way, at least the user can change their default if they

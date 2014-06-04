@@ -80,6 +80,9 @@
 .non-mobile #quick-settings-data + .separator {
   display: none;
 }
+#quick-settings-data[data-network="undefined"]  {
+  background-position: 15px 0;
+}
 #quick-settings-data[data-network="2G"]  {
   background-position: 15px -30px;
 }

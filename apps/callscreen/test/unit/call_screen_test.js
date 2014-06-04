@@ -7,18 +7,17 @@ require('/shared/test/unit/mocks/dialer/mock_lazy_l10n.js');
 require('/shared/test/unit/mocks/dialer/mock_handled_call.js');
 require('/shared/test/unit/mocks/dialer/mock_calls_handler.js');
 
-// The CallScreen binds stuff when evaluated so we load it
-// after the fake dom and we don't want it to show up as a leak.
-if (!this.CallScreen) {
-  this.CallScreen = null;
-}
-
 var mocksHelperForCallScreen = new MocksHelper([
   'CallsHandler',
   'MozActivity',
   'LazyL10n'
 ]).init();
 
+// The CallScreen binds stuff when evaluated so we load it
+// after the fake dom and we don't want it to show up as a leak.
+if (!this.CallScreen) {
+  this.CallScreen = null;
+}
 
 suite('call screen', function() {
   var realMozTelephony;
@@ -493,10 +492,19 @@ suite('call screen', function() {
       CallScreen._transitionDone = false;
     });
 
+    setup(function() {
+      MockCallsHandler.mActiveCallForContactImage = new MockHandledCall();
+      MockCallsHandler.mActiveCallForContactImage.photo = fakeBlob;
+    });
+
     test('it should wait for the transition to be over', function(done) {
       var addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
 
-      CallScreen.setCallerContactImage(fakeBlob);
+      MockCallsHandler.mActiveCallForContactImage = new MockHandledCall();
+      MockCallsHandler.mActiveCallForContactImage.photo =
+        new Blob([], {type: 'image/png'});
+
+      CallScreen.setCallerContactImage();
       assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
 
       CallScreen.toggle();
@@ -504,7 +512,7 @@ suite('call screen', function() {
       setTimeout(function() {
         addEventListenerSpy.yield({target: screen});
         assert.ok(CallScreen.contactBackground.style.backgroundImage);
-        CallScreen.setCallerContactImage(null);
+        CallScreen.setCallerContactImage();
         done();
       });
     });
@@ -512,21 +520,15 @@ suite('call screen', function() {
     suite('once the transition is over', function() {
       test('should change background of the contact photo', function() {
         this.sinon.stub(URL, 'createObjectURL').returns(fakeURL);
-        CallScreen.setCallerContactImage(fakeBlob);
+        CallScreen.setCallerContactImage();
         assert.equal(CallScreen.contactBackground.style.backgroundImage,
                        'url("' + fakeURL + '")');
       });
 
       test('should clean up background property if null', function() {
-        CallScreen.setCallerContactImage(null);
+        MockCallsHandler.mActiveCallForContactImage = null;
+        CallScreen.setCallerContactImage();
         assert.equal(CallScreen.contactBackground.style.backgroundImage, '');
-      });
-
-      test('should do nothing if the blob is the same', function() {
-        var createURLSpy = this.sinon.spy(URL, 'createObjectURL');
-        CallScreen.setCallerContactImage(fakeBlob);
-        CallScreen.setCallerContactImage(fakeBlob);
-        assert.isTrue(createURLSpy.calledOnce);
       });
     });
   });
@@ -787,17 +789,9 @@ suite('call screen', function() {
     });
 
     test('should set caller photo to active call if exist', function() {
-      MockCallsHandler.mActiveCall = new MockHandledCall();
-      var testPhoto = MockCallsHandler.mActiveCall.photo = 'testphoto';
-      var setImageStub = this.sinon.stub(CallScreen, 'setCallerContactImage');
+      this.sinon.stub(CallScreen, 'setCallerContactImage');
       CallScreen.hideIncoming();
-      assert.isTrue(setImageStub.withArgs(testPhoto).calledOnce);
-    });
-
-    test('should clear caller photo if there is no active call', function() {
-      var setImageStub = this.sinon.stub(CallScreen, 'setCallerContactImage');
-      CallScreen.hideIncoming();
-      assert.isTrue(setImageStub.withArgs(null).calledOnce);
+      sinon.assert.calledOnce(CallScreen.setCallerContactImage);
     });
   });
 

@@ -58,6 +58,8 @@ suite('Contacts', function() {
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
 
+    sinon.spy(navigator.mozL10n, 'once');
+
     realContacts = window.contacts;
     window.contacts = {};
     window.contacts.List = MockContactsListObj;
@@ -99,6 +101,10 @@ suite('Contacts', function() {
       sinon.assert.called(mockNavigation.home);
       done();
     });
+  });
+
+  test('mozL10n initialized', function() {
+    sinon.assert.calledOnce(navigator.mozL10n.once);
   });
 
   suite('on contacts change', function() {

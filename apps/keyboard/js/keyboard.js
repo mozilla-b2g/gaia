@@ -564,18 +564,9 @@ function modifyLayout(keyboardName) {
       switch (currentInputType) {
         // adds . / and .com
       case 'url':
-        space.ratio -= 5;
-        row.splice(c, 1, // delete space
-                   defaultPeriodSymbol,
-                   { value: '/', ratio: 2, keyCode: 47 },
-                   // As we are removing the space we need to assign
-                   // the extra space (i.e to .com)
-                   { value: '.com',
-                     ratio: 2 + space.ratio,
-                     compositeKey: '.com'
-                   }
-                  );
-
+        space.ratio -= 2;
+        row.splice(c, 0, { value: '/', ratio: 1, keyCode: 47 });
+        row.splice(c + 2, 0, defaultPeriodSymbol);
         break;
 
         // adds @ and .

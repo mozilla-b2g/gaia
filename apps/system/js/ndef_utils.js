@@ -43,124 +43,129 @@ var NDEFUtils = {
         output += JSON.stringify(optObject);
       }
       if (typeof dump !== 'undefined') {
-        dump(output);
+        dump(output + '\n');
       } else {
         console.log(output);
       }
     }
   },
 
-  /**
-   * parseHandoverNDEF(): parse a NDEF message containing a handover message.
-   * 'ndefMsg' is an Array of MozNDEFRecord. Only 'Hr' and 'Hs' records are
-   * parsed (NFCForum-TS-ConnectionHandover_1_2.doc)
-   * The result is an object with the following attributes:
-   *   - type: either 'Hr' (Handover Request) or 'Hs' (Handover Select)
-   *   - majorVersion
-   *   - minorVersion
-   *   - cr: Collision resolution value. This value is only present
-   *         for a 'Hr' record
-   *   - ac: Array of Alternate Carriers. Each object of this array has
-   *         the following attributes:
-   *           - cps: Carrier Power State
-   *           - cdr: Carrier Data Record: MozNDEFRecord containing further
-   *                  info
+   /**
+   * Parse Handover Request NDEF message. Only 'Hr' and 'Hs' records
+   * are supported (NFCForum-TS-ConnectionHandover_1_2.doc).
+   *
+   * Returns handover object similar to:
+   * {
+   *   majorVersion: 1,
+   *   minorVersion: 2,
+   *   type: 'Hr'         // or 'Hs'
+   *   cr: 123            // 'Hr' only
+   *   ac: [              // Array of BT OOB records
+   *     {
+   *       cps: 1,
+   *       cdr: ...       // MozNDEFRecord with details, i.e.
+   *     },               // Bluetooth MAC address.
+   *     ...
+   *   ]
+   * }
+   *
+   * @param {Array} ndefMsg NDEF message (array of MozNDEFRecords)
+   * @return {Object} Parsed handover request or null if ndefMsg
+   *                  was not valid or well formatted.
    */
   parseHandoverNDEF: function parseHandoverNDEF(ndefMsg) {
     try {
-      return this.doParseHandoverNDEF(ndefMsg);
+      return this._doParseHandoverNDEF(ndefMsg);
     } catch (err) {
       this.debug(err);
       return null;
     }
   },
 
-  doParseHandoverNDEF: function doParseHandoverNDEF(ndefMsg) {
-    var record = ndefMsg[0];
-    var buffer = NfcUtils.createBuffer(record.payload);
-    var h = {};
-    var version = buffer.getOctet();
-    h.majorVersion = version >>> 4;
-    h.minorVersion = version & 0x0f;
-    h.ac = [];
+  _doParseHandoverNDEF: function doParseHandoverNDEF(msg) {
+    var hRecordBuffer = NfcUtils.createBuffer(msg[0].payload);
+    var version = hRecordBuffer.getOctet();
 
-    var embeddedNdef = NfcUtils.parseNDEF(buffer);
-    if (embeddedNdef == null) {
-      throw 'Could not parse embedded NDEF in Hr/Hs record';
+    var h = {
+      majorVersion: version >>> 4,
+      minorVersion: version & 0x0f,
+      type: NfcUtils.toUTF8(msg[0].type),
+      ac: []
+    };
+
+    if (msg[0].tnf !== NDEF.TNF_WELL_KNOWN) {
+      throw Error('Expected Well Known TNF in Hs/Hr record');
     }
 
-    if (record.tnf != NDEF.TNF_WELL_KNOWN) {
-      throw 'Expected Well Known TNF in Hr/Hs record';
+    if (['Hs', 'Hr'].indexOf(h.type) < 0) {
+      throw Error('Record "' + h.type + '" not supported.');
     }
 
-    if (NfcUtils.equalArrays(record.type,
-        NDEF.RTD_HANDOVER_SELECT)) {
-      h.type = 'Hs';
-      this.parseAcRecords(h, ndefMsg, embeddedNdef, 0);
-    } else if (NfcUtils.equalArrays(record.type,
-               NDEF.RTD_HANDOVER_REQUEST)) {
-      h.type = 'Hr';
-      var crr = embeddedNdef[0];
-      if (!NfcUtils.equalArrays(crr.type,
-          NDEF.RTD_COLLISION_RESOLUTION)) {
-        throw 'Expected Collision Resolution Record';
+    var hRecord = NfcUtils.parseNDEF(hRecordBuffer);
+    if (!hRecord) {
+      throw Error('Could not parse embedded NDEF in Hr/Hs record');
+    }
+
+    if (hRecordBuffer.offset < msg[0].payload.length) {
+      throw Error('Embedded NDEF payload contains extraneous bytes');
+    }
+
+    for (var i = 0; i < hRecord.length; i += 1) {
+      var type = NfcUtils.toUTF8(hRecord[i].type);
+      if ('ac' === type) {
+        h.ac.push(this._parseAlternativeCarrier(hRecord[i].payload, msg));
+      } else if ('cr' === type) {
+        h.cr = this._parseCollisionResolution(hRecord[i].payload);
       }
-      if (crr.payload.length != 2) {
-        throw 'Expected random number in Collision Resolution Record';
-      }
-      h.cr = (crr.payload[0] << 8) | crr.payload[1];
-      this.parseAcRecords(h, ndefMsg, embeddedNdef, 1);
-    } else {
-      throw 'Can only handle Hr and Hs records for now';
     }
+
+    // Make sure collision resolution record is present
+    // in Hr message.
+    if ('Hr' === h.type && !h.cr) {
+      throw Error('Collision resolution record missing');
+    }
+
     return h;
   },
 
-  parseAcRecords: function parseAcRecords(h, ndef, acNdef, offset) {
-    for (var i = offset; i < acNdef.length; i++) {
-      var record = acNdef[i];
-      if (NfcUtils.equalArrays(record.type,
-          NDEF.RTD_ALTERNATIVE_CARRIER)) {
-        h.ac.push(this.parseAC(record.payload, ndef));
-      } else {
-        throw 'Can only parse AC record within Hs';
-      }
+  _parseAlternativeCarrier: function _parseAlternativeCarrier(bytes, msg) {
+    var b = NfcUtils.createBuffer(bytes);
+    var ac = {
+      cps: b.getOctet() & 0x03
+    };
+
+    var recordId = b.getOctetArray(b.getOctet());
+    ac.cdr = msg.filter(function(record) {
+      return NfcUtils.equalArrays(record.id, recordId);
+    }.bind(this))[0];
+
+    if (!ac.cdr) {
+      throw Error('Could not find record with given id');
     }
+
+    return ac;
   },
 
-  parseAC: function parseAC(ac, ndef) {
-    var b = NfcUtils.createBuffer(ac);
-    var ac2 = {};
-    ac2.cps = b.getOctet() & 0x03;
-    var cdrLen = b.getOctet();
-    var cdr = b.getOctetArray(cdrLen);
-    ac2.cdr = this.findNdefRecordWithId(cdr, ndef);
-    return ac2;
-  },
-
-  findNdefRecordWithId: function findNdefRecordWithId(id, ndef) {
-    for (var i = 0; i < ndef.length; i++) {
-      var record = ndef[i];
-      if (NfcUtils.equalArrays(id, record.id)) {
-        return record;
-      }
+  _parseCollisionResolution: function _parseCollisionResolution(bytes) {
+    if (bytes.length !== 2) {
+      throw Error('Expected random number in Collision Resolution Record');
     }
-    throw 'Could not find record with id';
+
+    return (bytes[0] << 8) | bytes[1];
   },
 
-  /**
-   * searchForBluetoothAC(): searches a Handover message for an
-   * Alternative Carrier that contains a Bluetooth profile.
-   * Parameter 'h' is the result of the parse() function.
-   * Returns null if no Bluetooth AC could be found, otherwise
-   * returns a MozNDEFRecord.
-   */
+   /**
+    * Returns first record from handover message which
+    * contains Bluetooth OOB (Out of Band) data.
+    *
+    * @param {Array} h Handover message (array of records).
+    * @return {Object} MozNDEFRecord with Bluetooth OOB.
+    */
   searchForBluetoothAC: function searchForBluetoothAC(h) {
     for (var i = 0; i < h.ac.length; i++) {
       var cdr = h.ac[i].cdr;
-      if (cdr.tnf == NDEF.TNF_MIME_MEDIA) {
-        var mimeType = NfcUtils.toUTF8(cdr.type);
-        if (mimeType == 'application/vnd.bluetooth.ep.oob') {
+      if (cdr.tnf === NDEF.TNF_MIME_MEDIA) {
+        if (NfcUtils.equalArrays(cdr.type, NDEF.MIME_BLUETOOTH_OOB)) {
           return cdr;
         }
       }
@@ -169,35 +174,46 @@ var NDEFUtils = {
   },
 
   /**
-   * parseBluetoothSSP(): Parses a Carrier Data Record that contains a
-   * Bluetooth Secure Simple Pairing record (NFCForum-AD-BTSSP_1.0).
-   * 'cdr': Carrier Data Record. Returns an object with the following
-   * attributes:
-   *   - mac: MAC address (string representation)
-   *   - localName: Local name (optional)
+   * Parses a Carrier Data Record according to NFCForum-AD-BTSSP_1.0.
+   * This method will parse MAC address. In addition to that, it will
+   * parse, if found in EIR data, Bluetooth Local Name. Other EIR fields
+   * are currently unsupported.
+   *
+   * @param {Object} cdr Carrier Data Record. It's payload field should
+   *                     contain Bluetooth OOB data.
+   * @returns {Object} Parsed record. Will always contain 'mac' property.
+   *                   If BT local name was present in cdr, will also have
+   *                   'localName' property. Null if cdr was invalid.
    */
   parseBluetoothSSP: function parseBluetoothSSP(cdr) {
+    if (!cdr || !cdr.payload || cdr.payload.length < 8) {
+      return null;
+    }
+
     var btssp = {};
     var buf = NfcUtils.createBuffer(cdr.payload);
-    var mac = '';
-    var btsspLen = 0;
 
-    btsspLen = buf.getOctet() | (buf.getOctet() << 8);
-    for (var i = 0; i < 6; i++) {
-      if (mac.length > 0) {
-        mac = ':' + mac;
-      }
-      var o = buf.getOctet();
-      mac = o.toString(16).toUpperCase() + mac;
-      if (o < 16) {
-        mac = '0' + mac;
-      }
+    var btsspLen = buf.getOctet() | (buf.getOctet() << 8);
+    if (cdr.payload.length !== btsspLen) {
+      this.debug('Invalid BT SSP record. Length indicated:' +
+        btsspLen + ', actual length: ' + cdr.payload.length);
+      return null;
     }
-    btssp.mac = mac;
+
+    btssp.mac = this.formatMAC(buf.getOctetArray(6));
+
     while (buf.offset != cdr.payload.length) {
       // Read OOB value
       var len = buf.getOctet() - 1 /* 'len' */;
       var type = buf.getOctet();
+
+      if (buf.offset + len > buf.uint8array.length) {
+        this.debug('EIR field ' + type + ' indicated length=' +
+          len + ', but only ' + (buf.uint8array.length - buf.offset) +
+          ' characters left in buffer.');
+        return null;
+      }
+
       switch (type) {
       case 0x08:
       case 0x09:
@@ -212,6 +228,26 @@ var NDEFUtils = {
       }
     }
     return btssp;
+  },
+
+  /**
+   * Formats MAC address as a MAC-48 string (colon-separated).
+   *
+   * @param   {Array}   Array of six numbers representing MAC.
+   * @returns {String}  MAC address.
+   */
+  formatMAC: function formatMAC(mac) {
+    if (!mac || mac.length !== 6) {
+      return null;
+    }
+
+    var res = [];
+    for (var i = 0; i < 6; i += 1) {
+      let m = mac[i].toString(16);
+      res.unshift(m.length === 1 ? '0' + m : m);
+    }
+
+    return res.join(':').toUpperCase();
   },
 
   /**
@@ -299,8 +335,7 @@ var NDEFUtils = {
                                                 0x02, 0x04, 0x61, 0x63, cps,
                                                 0x01, pid[0], 0x00])),
               new MozNDEFRecord(NDEF.TNF_MIME_MEDIA,
-                                NfcUtils.fromUTF8(
-                                  'application/vnd.bluetooth.ep.oob'),
+                                NDEF.MIME_BLUETOOTH_OOB,
                                 pid,
                                 new Uint8Array(OOB))];
     return hr;
@@ -375,8 +410,7 @@ var NDEFUtils = {
                                                 0x61, 0x63, cps, 0x01,
                                                 pid[0], 0x00])),
               new MozNDEFRecord(NDEF.TNF_MIME_MEDIA,
-                                NfcUtils.fromUTF8(
-                                  'application/vnd.bluetooth.ep.oob'),
+                                NDEF.MIME_BLUETOOTH_OOB,
                                 pid,
                                 new Uint8Array(OOB))];
 

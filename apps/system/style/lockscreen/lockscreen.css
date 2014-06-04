@@ -24,7 +24,7 @@
  * contains children and do the opacity animation, which would cost lot on
  * temporary surfaces.
  **/
-#lockscreen-background {
+#lockscreen-background, #lockscreen-masked-background {
   position: absolute;
   top: 0;
   overflow: hidden;
@@ -32,14 +32,27 @@
   /* Must match the CSS background rule of #screen in system.css */
   width: 100%;
   height: 100%;
-  background-color: #000;
-  background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
   background-repeat: no-repeat;
-  background-position: 50% 50%;
 
   -moz-user-select: none;
   opacity: 1;
   z-index: 1;
+}
+
+#lockscreen-background {
+  background-color: #000;
+  background-size: cover; /* Possible memory over-consumption with huge images, it should be removed for improving stability*/
+  background-position: 50% 50%;
+}
+
+#lockscreen-masked-background {
+  background-size: 100% 100%;
+  transition: background-image 0.3s ease, background-color 0.3s ease;
+}
+
+#lockscreen-masked-background.blank {
+  background-image: linear-gradient(to bottom, rgba(255,255,255,0.2), rgba(255,255,255,0));
+  background-size: 100% 22.6rem;
 }
 
 #screen.screenoff > #lockscreen,
@@ -121,9 +134,6 @@
   position: absolute;
   top: 0;
   left: 0;
-  /* Replace this with radical gradient */
-  background: transparent url('./images/mask.png') 50% 50% no-repeat;
-  background-size: cover;
 }
 
 /**
@@ -159,9 +169,8 @@
   left: 0;
   width: 100%;
   -moz-box-sizing: border-box;
-  padding: 1.8rem 2.5rem 1.2rem 2.5rem;
+  padding: 2rem 2.4rem 4.4rem;
   color: #fff;
-  text-shadow: 0 0 0.3rem #333;
   transition: transform 0.2s ease, opacity 0.2s ease;
   opacity: 1;
 }
@@ -179,11 +188,9 @@
 #lockscreen-conn-states {
   width: 100%;
   display: inline-block;
-  font-weight: 400;
-  font-size: calc(6 * 0.226rem);
-  text-shadow: 0.1rem 0.1rem 0.3rem #000000;
-  padding-bottom: 1rem;
-  border-bottom: solid 0.1rem rgba(256,256,256,.4);
+  font-weight: 300;
+  font-size: 1.4rem;
+  padding-bottom: 1.4rem;
 
   overflow: hidden;
   white-space: nowrap;
@@ -210,22 +217,23 @@
 }
 
 #lockscreen-clock-time {
-  margin: -0.8rem 0 -1rem -0.4rem;
-  font-weight: 300;
-  font-size: calc(26 * 0.226rem);
+  line-height: 1;
+  margin: -1.4rem 0 0 -0.4rem;
+  font-weight: 200;
+  font-size: 7.7rem;
 }
 
 #lockscreen-clock-time span { /* optional meridiem */
-  font-size: calc(17 * 0.226rem);
+  font-size: 3rem;
+  display: none;
 }
 
 #lockscreen-date {
-  font-weight: 400;
-  font-size: calc(7 * 0.226rem);
+  font-weight: 300;
+  font-size: 1.4rem;
 }
 
 #lockscreen-clock-time, #lockscreen-date {
-  text-shadow: 0.1rem 0.1rem 0.3rem #000000;
   color: #fff;
 }
 
@@ -284,7 +292,6 @@
   }
 
   #lockscreen-header {
-    text-shadow: 0 0 0.5rem #111111;
     padding-left: 6rem;
     font-weight: lighter;
   }
@@ -306,8 +313,8 @@ button::-moz-focus-inner {
 }
 
 #lockscreen-area-unlock > div {
-  background-image: url('./images/icon-unlock.png');
-  background-position: center;
+  background-image: url('./images/lockscreen_unlock.png');
+  background-position: 1.1rem center;
   background-repeat: no-repeat;
   background-size: 3rem;
 }
@@ -322,24 +329,24 @@ button::-moz-focus-inner {
   background: none;
 }
 
-#lockscreen-alt-camera-button,
 #lockscreen-area-camera > div {
-  background-image: url('./images/icon-camera.png');
-  background-position: center;
+  background-image: url('./images/lockscreen_camera.png');
+  background-position: 1.85rem center;
   background-repeat: no-repeat;
-  background-size: 2.4rem;
+  background-size: 3rem;
 }
 
 #lockscreen-alt-camera {
-  border-radius: 3rem;
-  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 2.5rem;
+  background-color: rgba(255, 255, 255, 0.25);
   -moz-box-sizing: border-box;
-  border: 0.2rem solid rgba(255, 255, 255, 0.8);
 
   float: right;
   pointer-events: auto;
   opacity: 0.1;
   transition: opacity 0.5s ease;
+  width: 5rem;
+  height: 5rem;
 }
 
 #lockscreen-alt-camera-button {
@@ -349,6 +356,11 @@ button::-moz-focus-inner {
   border-radius: 50%;
 
   pointer-events: auto;
+
+  background-image: url('./images/pin_camera.png');
+  background-position: 1.1rem center;
+  background-repeat: no-repeat;
+  background-size: 3rem;
 }
 
 #lockscreen-panel-passcode {
@@ -370,7 +382,6 @@ button::-moz-focus-inner {
   margin: 0;
   padding: 0 1rem;
   -moz-box-sizing: border-box;
-  border-top: 0.1rem solid #525050;
   visibility: hidden;
   transform: translateY(calc(21.4rem + 7.2rem));
   transition: visibility 0.3s ease, transform 0.3s ease;
@@ -398,7 +409,7 @@ button::-moz-focus-inner {
   margin: 1.5rem 0.5rem;
   height: calc(100% - 3rem);
   text-align: center;
-  background-color: #fff;
+  background-color: rgba(255, 255, 255, 0.8);
   border-radius: 0.5rem;
 
   position: relative;
@@ -433,7 +444,7 @@ button::-moz-focus-inner {
   bottom: 0;
   height: 21.4rem;
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: #606b6e;
   visibility: hidden;
   transform: translateY(calc(21.4rem + 7em));
   transition: visibility 0.3s ease, transform 0.3s ease;
@@ -454,34 +465,48 @@ button::-moz-focus-inner {
   float: left;
   width: 33.333%;
   height: 5rem;
-  border-top: 0.1rem solid #525050;
-  border-bottom: 0.1rem solid #000000;
-  border-left: 0.1rem solid #525050;
-  border-right: 0.1rem solid #000000;
   outline: none;
-  padding: 0 2rem;
+  padding: 0; /* 2rem; */
 
-  font-size: 3.2rem;
-  font-weight: 500;
-  line-height: 5rem;
+  font-size: 3rem;
+  font-weight: 400;
+  line-height: 4.2rem;
 
   color: #fff;
   text-decoration: none;
-  text-shadow: 0 0 0.3rem #000;
+  font-family: 'Keyboard Symbols', sans-serif;
 }
 
-#lockscreen-passcode-pad > a:nth-child(3n+1):not([data-key="b"]) {
+#lockscreen-passcode-pad > a > div {
+  height: calc(100% - 0.8rem);
+  margin-top: 0.4rem;
+  border-right-width: 0.1rem;
+  border-right-style: solid;
+}
+
+#lockscreen-passcode-pad > a:not(.lockscreen-passcode-pad-func) > div{
+  text-align: left;
+  padding-left: 4.3rem;
+}
+
+#lockscreen-passcode-pad > a:last-child > div{
+  border-right: none;
+}
+
+#lockscreen-passcode-pad > a:nth-child(3n+1):not([data-key="b"]) > div{
   border-left: none;
 }
 
 #lockscreen-passcode-pad > a.last-row {
   height: 6.4rem;
+  line-height: 5.6rem;
 }
 
-#lockscreen-passcode-pad > a > span {
+#lockscreen-passcode-pad > a > div > span {
   pointer-events: none;
   font-size: 1.2rem;
-  padding: 1.2rem;
+  padding: 0.4rem;
+  font-weight: 400;
   color: #9aaabc;
 }
 
@@ -491,7 +516,7 @@ button::-moz-focus-inner {
 
 #lockscreen-passcode-pad > a[data-key="b"] {
   display: none;
-  background: url(images/icon-clear.png) no-repeat center center;
+  background: url(images/icon-clear.png) no-repeat center center #525c5e;
 }
 
 .passcode-entered #lockscreen-passcode-pad > a[data-key="b"] {
@@ -501,18 +526,49 @@ button::-moz-focus-inner {
 }
 
 #lockscreen-passcode-pad > a:active {
-  background-color: #00aacd;
+  background-color: #4a5255;
+  color: #00caf2;
+  text-shadow: none;
+}
+
+#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func:active > div > span{
+  color: #00caf2;
+}
+
+#lockscreen-passcode-pad .row1 {
+  background-color: #5b6668;
+}
+
+#lockscreen-passcode-pad .row2 {
+  background-color: #566061;
+}
+
+#lockscreen-passcode-pad .row3 {
+  background-color: #525c5e;
+}
+
+#lockscreen-passcode-pad .row0 > div{
+  border-right-color: #525b5e;
+}
+
+#lockscreen-passcode-pad .row1 > div {
+  border-right-color: #4c5657;
+}
+
+#lockscreen-passcode-pad .row2 > div {
+  border-right-color: #475052;
+}
+
+#lockscreen-passcode-pad .row3 > div {
+  border-right-color: #434b4d;
+}
+
+#lockscreen-passcode-pad > a:active > div > span {
   color: #fff;
   text-shadow: none;
 }
 
-#lockscreen-passcode-pad > a:active > span {
-  color: #fff;
-  text-shadow: none;
-}
-
-
-#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
+#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func > div{
   padding: 0 1rem;
   text-align: center;
 }
@@ -526,12 +582,12 @@ button::-moz-focus-inner {
   vertical-align: middle;
 }
 
-#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func > span {
+#lockscreen-passcode-pad > a.lockscreen-passcode-pad-func > div > span {
   display: inline-block;
   padding: 0;
-  color: #fff;
+  color: white;
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.6rem;
   text-transform: uppercase;
   vertical-align: middle;
@@ -541,7 +597,7 @@ button::-moz-focus-inner {
   pointer-events: none;
 }
 
-#lockscreen-passcode-pad > a.disabled > span {
+#lockscreen-passcode-pad > a.disabled > div > span {
   color: #4d4d4d;
 }
 
@@ -584,8 +640,6 @@ button::-moz-focus-inner {
   width: 100%;
   height: 10rem;
   pointer-events: none;
-  border-top: 0.1rem solid #989898;
-  background-image: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.2) 20%);
   z-index: 5;
 }
 

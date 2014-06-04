@@ -78,7 +78,6 @@ PRODUCTION?=0
 DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
-GAIA_DEV_DISPLAY_HEIGHT?=480
 DOGFOOD?=0
 NODE_MODULES_SRC?=modules.tar
 
@@ -394,7 +393,7 @@ GAIA_INLINE_LOCALES?=1
 GAIA_CONCAT_LOCALES?=1
 
 # This variable is for customizing the keyboard layouts in a build.
-GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,pl,zh-Hans-Pinyin
+GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,pl,zh-Hans-Pinyin,en-Dvorak
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
@@ -457,7 +456,6 @@ define BUILD_CONFIG
 	"GAIA_OPTIMIZE" : "$(GAIA_OPTIMIZE)", \
 	"GAIA_DEVICE_TYPE" : "$(GAIA_DEVICE_TYPE)", \
 	"GAIA_DEV_PIXELS_PER_PX" : "$(GAIA_DEV_PIXELS_PER_PX)", \
-	"GAIA_DEV_DISPLAY_HEIGHT" : "$(GAIA_DEV_DISPLAY_HEIGHT)", \
 	"DOGFOOD" : "$(DOGFOOD)", \
 	"OFFICIAL" : "$(MOZILLA_OFFICIAL)", \
 	"GAIA_DEFAULT_LOCALE" : "$(GAIA_DEFAULT_LOCALE)", \
@@ -577,6 +575,13 @@ webapp-shared: $(XULRUNNER_BASE_DIRECTORY) keyboard-layouts $(STAGE_DIR) clear-s
 webapp-optimize: multilocale app-makefiles $(XULRUNNER_BASE_DIRECTORY)
 	@$(call run-js-command,webapp-optimize)
 
+.PHONY: optimize-clean
+# Remove temporary l10n files created by the webapp-optimize step.  Because
+# webapp-zip wants these files to still be around during the zip stage, depend
+# on webapp-zip so it runs to completion before we start the cleanup.
+optimize-clean: webapp-zip $(XULRUNNER_BASE_DIRECTORY)
+	@$(call run-js-command,optimize-clean)
+
 .PHONY: keyboard-layouts
 # A separate step for shared/ folder to generate its content in build time
 keyboard-layouts: webapp-manifests $(XULRUNNER_BASE_DIRECTORY)
@@ -614,7 +619,7 @@ endif
 endif
 
 # Create webapps
-offline: app-makefiles webapp-zip
+offline: app-makefiles optimize-clean
 
 # Create an empty reference workload
 .PHONY: reference-workload-empty
@@ -924,7 +929,7 @@ ifdef APP
   JSHINTED_PATH = apps/$(APP)
   GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint/xfail.list | ( while read file ; do test -f "$$file" && echo $$file ; done ) )
 else
-  JSHINTED_PATH = apps shared build/test/unit dev_apps/home2 dev_apps/collection
+  JSHINTED_PATH = apps shared build/test/unit
   GJSLINTED_PATH = $(shell ( while read file ; do test -f "$$file" && echo $$file ; done ) < build/jshint/xfail.list )
 endif
 endif
@@ -1003,9 +1008,9 @@ install-media-samples:
 	$(ADB) shell 'if test -d /sdcard/music; then mv /sdcard/music /sdcard/music.temp; mv /sdcard/music.temp /sdcard/Music; fi'
 	$(ADB) shell 'if test -d /sdcard/videos; then mv /sdcard/videos /sdcard/Movies;	fi'
 
-	$(ADB) push media-samples/DCIM $(MSYS_FIX)/sdcard/DCIM
-	$(ADB) push media-samples/Movies $(MSYS_FIX)/sdcard/Movies
-	$(ADB) push media-samples/Music $(MSYS_FIX)/sdcard/Music
+	$(ADB) push test_media/samples/DCIM $(MSYS_FIX)/sdcard/DCIM
+	$(ADB) push test_media/samples/Movies $(MSYS_FIX)/sdcard/Movies
+	$(ADB) push test_media/samples/Music $(MSYS_FIX)/sdcard/Music
 
 install-test-media:
 	$(ADB) push test_media/Pictures $(MSYS_FIX)/sdcard/DCIM

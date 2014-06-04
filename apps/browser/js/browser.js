@@ -66,6 +66,8 @@ var Browser = {
     this.tabsBadge.addEventListener('click',
       this.handleTabsBadgeClicked.bind(this));
 
+    this.addTabBtnActive();
+
     // Hack to make integration tests pass, see bug 912150
     this.urlInput.addEventListener('click', this.urlFocus.bind(this));
 
@@ -299,6 +301,24 @@ var Browser = {
     };
 
     xhr.send();
+  },
+
+  // Extract :active behaviour from CSS into js at it was misbehaving
+  addTabBtnActive: function() {
+    var self = this;
+
+    this.tabsBadge.addEventListener('mousedown', function() {
+
+      var leave = function() {
+        self.toolbarStart.classList.remove('tab-btn-active');
+        self.tabsBadge.removeEventListener('mouseleave', leave);
+        self.tabsBadge.removeEventListener('mouseup', leave);
+      };
+
+      self.toolbarStart.classList.add('tab-btn-active');
+      self.tabsBadge.addEventListener('mouseleave', leave);
+      self.tabsBadge.addEventListener('mouseup', leave);
+    });
   },
 
   // Clicking the page preview on the left gutter of the tab page opens

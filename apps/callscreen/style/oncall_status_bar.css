@@ -120,6 +120,7 @@
   .isTimer {
     display: flex;
     align-items: center;
+    font-feature-settings: "tnum";
   }
 
   .muted .isTimer:before {

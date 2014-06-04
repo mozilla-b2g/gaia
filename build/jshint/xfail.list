@@ -34,8 +34,6 @@ apps/communications/dialer/js/newsletter_manager.js
 apps/communications/dialer/js/phone_action_menu.js
 apps/communications/dialer/test/marionette/lib/dialer.js
 apps/communications/dialer/test/marionette/navigation_test.js
-apps/communications/dialer/test/performance/call_log_rendering_test.js
-apps/communications/dialer/test/performance/integration.js
 apps/communications/dialer/test/unit/call_log_db_test.js
 apps/communications/dialer/test/unit/call_log_test.js
 apps/communications/dialer/test/unit/mock_call_handler.js
@@ -340,9 +338,6 @@ apps/settings/js/wifi_select_certificate_file.js
 apps/settings/test/marionette/app/regions/feedback.js
 apps/settings/test/marionette/app/regions/improve.js
 apps/settings/test/marionette/tests/improve_settings_test.js
-apps/settings/test/performance/integration.js
-apps/settings/test/performance/rendering_wifi_list_test.js
-apps/settings/test/performance/overfill_ratio_test.js
 apps/settings/test/unit/download_api_manager_test.js
 apps/settings/test/unit/download_formatter_test.js
 apps/settings/test/unit/download_helper_test.js

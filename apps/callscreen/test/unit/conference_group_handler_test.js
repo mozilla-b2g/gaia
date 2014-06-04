@@ -237,19 +237,17 @@ suite('conference group handler', function() {
       assert.isFalse(fakeGroupLine.hidden);
     });
 
-    test('should set photo to default when connected', function() {
+    test('should set photo when connected', function() {
       MockNavigatorMozTelephony.conferenceGroup.state = 'connected';
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
 
-    test('should set photo to default when resuming', function() {
+    test('should set photo when resuming', function() {
       MockNavigatorMozTelephony.conferenceGroup.state = 'resuming';
       MockNavigatorMozTelephony.mTriggerGroupStateChange();
 
-      assert.isNull(MockCallScreen.mSetCallerContactImageArg);
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
 

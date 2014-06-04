@@ -17,9 +17,8 @@ var MockCallScreen = {
   syncSpeakerEnabled: function() {
     this.mSyncSpeakerCalled = true;
   },
-  setCallerContactImage: function(arg) {
+  setCallerContactImage: function() {
     this.mSetCallerContactImageCalled = true;
-    this.mSetCallerContactImageArg = arg;
   },
   setEmergencyWallpaper: function() {
     this.mSetEmergencyWallpaperCalled = true;
@@ -98,7 +97,6 @@ var MockCallScreen = {
   mEnableKeypadCalled: false,
   mSyncSpeakerCalled: false,
   mSetCallerContactImageCalled: false,
-  mSetCallerContactImageArg: null,
   mMuteOn: false,
   mSpeakerOn: false,
   mLastRenderMode: null,
@@ -106,7 +104,6 @@ var MockCallScreen = {
     this.mEnableKeypadCalled = false;
     this.mSyncSpeakerCalled = false;
     this.mSetCallerContactImageCalled = false;
-    this.mSetCallerContactImageArg = null;
     this.mSetEmergencyWallpaperCalled = false;
     this.mMuteOn = false;
     this.mSpeakerOn = false;

@@ -166,22 +166,12 @@ window.Evme = new function Evme_Core() {
   }
 
   function saveCollectionSettings(collection, apps, done) {
-    var settings = {
+    var collectionSettings = new Evme.CollectionSettings({
       'id': collection.id,
       'experienceId': collection.providerId,
       'apps': apps,
       'defaultIcon': collection.getFeatures().icon
-    };
-
-    var background = collection.manifest.background;
-    if (background) {
-      settings.bg = {
-        'revision': 'system',  // default background
-        'data': background
-      };
-    }
-
-    var collectionSettings = new Evme.CollectionSettings(settings);
+    });
 
     Evme.CollectionStorage.add(collectionSettings, done);
   }
@@ -301,6 +291,8 @@ window.Evme = new function Evme_Core() {
     });
 
     Evme.InstalledAppsService.init();
+
+    Evme.IconGroup.init({});
 
     Evme.IconManager.init({});
 

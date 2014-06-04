@@ -33,7 +33,7 @@ var Connectivity = (function(window, document, undefined) {
   var wifiEnabledListeners = [updateWifi];
   var wifiDisabledListeners = [updateWifi];
   var wifiStatusChangeListeners = [updateWifi];
-  var settings = Settings.mozSettings;
+  var settings = navigator.mozSettings;
 
   //
   // Now register callbacks to track the state of the wifi hardware

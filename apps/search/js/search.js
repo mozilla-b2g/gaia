@@ -83,12 +83,15 @@
      * Called when the user changes the search query
      */
     change: function(msg) {
+
       clearTimeout(this.changeTimeout);
 
       this.showSearchResults();
 
       var input = msg.data.input;
       var providers = this.providers;
+
+      this.clear();
 
       this.changeTimeout = setTimeout(function doSearch() {
         this.dedupe.reset();

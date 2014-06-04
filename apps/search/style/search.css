@@ -5,11 +5,11 @@
 
 html, body {
   height: 100%;
+  font-size: 10px;
 }
 
 body, a {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 1rem;
 }
 
 section.suggestions {
@@ -83,31 +83,10 @@ section.apps {
   font-size: 0;
 }
 
-section.apps section {
-  display: inline;
-  font-size: 0.8125rem;
-}
-
-section.apps .result {
-  width: calc(100%/4 - 0.4rem);
-  display: inline-block;
-  text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  height: 6.1rem;
-  line-height: 1rem;
-  padding: 0 0.2rem;
-}
-
-section.apps img {
+gaia-grid {
   display: block;
-  margin: 0 auto 0.3rem;
-  pointer-events: none;
-  width: 2.75rem;
-}
-
-#webresults .result img {
-  border-radius: 50%;
+  height: 100%;
+  width: 100%;
 }
 
 #newtab-page {

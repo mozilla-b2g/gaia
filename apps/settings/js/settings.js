@@ -82,13 +82,7 @@ var Settings = {
     }
 
     this._currentPanel = hash;
-    this.SettingsService.navigate(panelID, null, function() {
-      if (hash === 'about-licensing') {
-        // Workaround for bug 825622, remove when fixed
-        var iframe = document.getElementById('os-license');
-        iframe.src = iframe.dataset.src;
-      }
-    });
+    this.SettingsService.navigate(panelID);
   },
 
   _initialized: false,

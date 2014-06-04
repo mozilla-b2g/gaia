@@ -3,16 +3,15 @@
 
   var Week = Calendar.Template.create({
     header: function() {
-      return '<h1' + (this.arg('isToday') ? ' class="is-today"' : '') + '>' +
-        this.h('title') + '</h1>';
+      return '<h1>' + this.h('title') + '</h1>';
     },
 
     sidebarHour: function() {
       var hour = this.h('hour');
       var displayHour = this.h('displayHour');
 
-      return '<li class="hour-' + hour + '">' +
-                displayHour +
+      return '<li class="hour hour-' + hour + '">' +
+                '<span class="display-hour">' + displayHour + '</span>' +
               '</li>';
     },
 
@@ -46,8 +45,10 @@
           '</span>' +
         '</section>' +
         '<div class="scroll">' +
-          '<ol class="sidebar"></ol>' +
-          '<section class="children"></section>' +
+          '<div class="scroll-content">' +
+            '<ol class="sidebar"></ol>' +
+            '<section class="children"></section>' +
+          '</div>' +
         '</div>';
     }
   });

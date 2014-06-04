@@ -46,10 +46,23 @@ window.GaiaGrid = (function(win) {
     this._grid.add.apply(this._grid, arguments);
   };
 
+  proto.clear = function() {
+    this._grid.items = [];
+    this._grid.icons = {};
+    var children = this.childNodes;
+    var i = children.length;
+    while (i--) {
+      if (children[i].nodeName !== 'STYLE') {
+        this.removeChild(children[i]);
+      }
+    }
+  };
+
   /**
    * Helper for GridView.prototype.render
    */
   proto.render = function() {
+    this._grid.layout.calculateSize();
     this._grid.render.apply(this._grid, arguments);
   };
 

@@ -18,7 +18,7 @@
 
   const distanceBetweenIconsWithMaxIconsPerRow = 44;
 
-  const windowWidth = window.innerWidth;
+  var windowWidth = window.innerWidth;
 
   function GridLayout(gridView) {
     this.gridView = gridView;
@@ -100,8 +100,9 @@
      * applied in dragdrop
      */
     get gridMaxIconSize() {
+      var dragdrop = this.gridView.dragdrop;
       var scaledSize = (windowWidth / iconScaleFactorMinIconsPerRow) *
-              this.gridView.dragdrop.maxActiveScale;
+              (dragdrop ? dragdrop.maxActiveScale : 1);
       scaledSize *= devicePixelRatio;
       return scaledSize;
     },
@@ -172,6 +173,10 @@
     onColsUpdated: function(cols) {
       this.cols = cols;
       this.gridView.render();
+    },
+
+    calculateSize: function() {
+      windowWidth = window.innerWidth;
     },
 
     onReady: function() {

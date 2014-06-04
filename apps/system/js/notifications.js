@@ -422,6 +422,13 @@ var NotificationScreen = {
           this.lockScreenContainer.firstElementChild
         );
       }
+
+      // when we have notifications, show bgcolor from wallpaper
+      // remove the simple gradient at the same time
+      window.lockScreen.maskedBackground.style.backgroundColor =
+        window.lockScreen.maskedBackground.dataset.wallpaperColor;
+
+      window.lockScreen.classList.remove('blank');
     }
 
     if (notify && !this.isResending) {
@@ -511,9 +518,17 @@ var NotificationScreen = {
     if (notificationNode)
       notificationNode.parentNode.removeChild(notificationNode);
 
-    if (lockScreenNotificationNode)
+    if (lockScreenNotificationNode) {
       lockScreenNotificationNode.parentNode
         .removeChild(lockScreenNotificationNode);
+      // if we don't have any notifications, remove the bgcolor from wallpaper
+      // and use the simple gradient
+      if (!lockScreenNotificationNode.parentNode.firstElementChild) {
+        window.lockScreen.maskedBackground.style.backgroundColor =
+          'transparent';
+        window.lockScreen.classList.add('blank');
+      }
+    }
     this.updateStatusBarIcon();
 
     if (!this.container.firstElementChild) {
@@ -537,6 +552,10 @@ var NotificationScreen = {
       var element = this.lockScreenContainer.firstElementChild;
       this.lockScreenContainer.removeChild(element);
     }
+    // remove the bgcolor from wallpaper,
+    // and use the simple gradient
+    window.lockScreen.maskedBackground.style.backgroundColor = 'transparent';
+    window.lockScreen.classList.add('blank');
   },
 
   updateStatusBarIcon: function ns_updateStatusBarIcon(unread) {

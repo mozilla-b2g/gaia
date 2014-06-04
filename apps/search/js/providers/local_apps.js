@@ -1,4 +1,4 @@
-/* global Provider, Search, UrlHelper */
+/* global Search, DataGridProvider, Icon */
 
 (function() {
 
@@ -27,68 +27,25 @@
 
   LocalApps.prototype = {
 
-    __proto__: Provider.prototype,
+    __proto__: DataGridProvider.prototype,
 
     name: 'LocalApps',
 
     dedupes: true,
     dedupeStrategy: 'exact',
 
-    click: function(e) {
-      var target = e.target;
-
-      var manifestURL = target.dataset.manifest;
-      if (manifestURL && this.apps[manifestURL]) {
-        if (target.dataset.entryPoint) {
-          this.apps[manifestURL].launch(
-            target.dataset.entryPoint
-          );
-        } else {
-          this.apps[manifestURL].launch();
-        }
-      }
-    },
-
     search: function(input, collect) {
-      this.clear();
 
       var results = this.find(input);
       var formatted = [];
+
       results.forEach(function eachResult(result) {
-        var dataset = {
-          manifest: result.manifestURL
-        };
-
-        if (result.entryPoint) {
-          dataset.entryPoint = result.entryPoint;
-        }
-
-        var icons = result.manifest.icons || {};
-        var imgUrl = '';
-        for (var i in icons) {
-          var eachUrl = icons[i];
-          if (UrlHelper.hasScheme(eachUrl)) {
-            imgUrl = eachUrl;
-          } else {
-            // For relative URLs
-            var a = document.createElement('a');
-            a.href = result.origin;
-            imgUrl = a.protocol + '//' + a.host + eachUrl;
-          }
-        }
-
-        // Only display results which have icons.
-        if (!imgUrl) {
-          return;
-        }
-
         formatted.push({
-          title: result.manifest.name,
-          icon: imgUrl,
           dedupeId: result.manifestURL,
-          dataset: dataset
+          data: new Icon(result)
         });
       }, this);
+
       collect(formatted);
     },
 
@@ -122,13 +79,7 @@
 
         appListing.forEach(function(manifest) {
           if (manifest.name.toLowerCase().indexOf(query.toLowerCase()) != -1) {
-            results.push({
-              origin: app.origin,
-              manifestURL: manifestURL,
-              app: app,
-              manifest: manifest,
-              entryPoint: manifest.entryPoint
-            });
+            results.push(app);
           }
         });
       }, this);

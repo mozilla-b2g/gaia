@@ -68,7 +68,8 @@ var Wallpaper = {
         self.pickActivity.postResult({
           type: 'image/jpeg',
           blob: blob,
-          name: src
+          name: src,
+          color: self.getImageColor(context, canvas.width, canvas.height)
         }, 'image/jpeg');
 
         self.endPick();
@@ -85,6 +86,59 @@ var Wallpaper = {
     this.pickActivity = null;
     this.cancelButton.removeEventListener('click', this.cancelPick);
     this.wallpapers.removeEventListener('click', this.pickWallpaper);
+  },
+
+  getImageColor:
+    function wallpaper_getImageColor(context, imageWidth, imageHeight) {
+    var imageData = context.getImageData(0, 0, imageWidth, imageHeight);
+    var data = imageData.data;
+    var r = 0, g = 0, b = 0;
+
+    for (var row = 0; row < imageHeight; row++) {
+      for (var col = 0; col < imageWidth; col++) {
+        r += data[((imageWidth * row) + col) * 4];
+        g += data[((imageWidth * row) + col) * 4 + 1];
+        b += data[((imageWidth * row) + col) * 4 + 2];
+      }
+    }
+
+    r = r / (imageWidth * imageHeight) / 255;
+    g = g / (imageWidth * imageHeight) / 255;
+    b = b / (imageWidth * imageHeight) / 255;
+
+    // http://en.wikipedia.org/wiki/HSL_and_HSV#Formal_derivation
+    var M = Math.max(r, g, b);
+    var m = Math.min(r, g, b);
+    var C = M - m;
+    var h, s, l;
+
+    l = 0.5 * (M + m);
+    if (C == 0) {
+      h = s = 0; // no satuaration (monochromatic)
+    } else {
+      switch (M) {
+        case r:
+          h = ((g - b) / C) % 6;
+          break;
+        case g:
+          h = ((b - r) / C) + 2;
+          break;
+        case b:
+          h = ((r - g) / C) + 4;
+          break;
+      }
+      h *= 60;
+      h = (h + 360) % 360;
+      s = C / (1 - Math.abs(2 * l - 1));
+    }
+
+    s *= 1.25;
+    l *= 0.8;
+
+    h = parseInt(h);
+    s = parseInt(s * 100) + '%';
+    l = parseInt(l * 100) + '%';
+    return 'hsla(' + h + ', ' + s + ', ' + l + ', 0.75)';
   }
 };
 

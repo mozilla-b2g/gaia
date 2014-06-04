@@ -24,7 +24,9 @@
 }
 
 [role="dialog"][data-type="object"] > header {
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
   font-size: 1.6rem;
   background: url(object_menu/images/ui/alpha.png) repeat 0 0;
   position: absolute;
@@ -33,11 +35,9 @@
   right: 0;
   z-index: 10;
   height: 5rem;
-  line-height: 4.9rem;
   color: #fff;
   white-space: nowrap;
   text-overflow: ellipsis;
-  display: block;
   overflow: hidden;
   font-weight: normal;
   padding: 0 3rem;
@@ -46,7 +46,6 @@
 
 [role="dialog"][data-type="object"] > header h1 {
   font-size: 1.6rem;
-  line-height: 4.9rem;
   text-align: left;
   color: #fff;
   white-space: nowrap;
@@ -54,7 +53,6 @@
   display: block;
   overflow: hidden;
   margin: 0;
-  height: 100%;
   font-weight: normal;
 }
 
@@ -76,12 +74,13 @@
 }
 
 [role="dialog"][data-type="object"] ul li {
-  margin: 0;
+  margin: 0 1.5rem;
   padding: 1rem 1.5rem;
   min-height: 3.9rem;
   height: auto;
   list-style: none;
   position: relative;
+  font-size: 2.2rem;
   font-weight: lighter;
   color: #fff;
   display: flex;
@@ -90,13 +89,23 @@
   transition: background-color 0.2s ease;
 }
 
+[role="dialog"][data-type="object"] ul li:before {
+  position: absolute;
+  content: "";
+  top: 0;
+  right: -1.5rem;
+  bottom: 0;
+  left: -1.5rem;
+  z-index: -1;
+}
+
 [role="dialog"][data-type="object"] ul li:after {
   position: absolute;
   content: "";
   height: 0.1rem;
   top: 0;
-  right: 1.5rem;
-  left: 1.5rem;
+  right: 0;
+  left: 0;
   background-color: #666;
 }
 
@@ -104,13 +113,30 @@
   display: none;
 }
 
+[role="dialog"][data-type="object"] ul li a {
+  color: #fff;
+  text-decoration: none;
+}
+
+[role="dialog"][data-type="object"] ul li button {
+  font-family: sans-serif;
+  color: #fff;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 2.2rem;
+  font-weight: lighter;
+  padding: 0;
+}
+
 [role="dialog"][data-type="object"] ul li p {
   outline: none;
   display: block;
-  padding: 0 1.5rem;
   margin: 0;
   color: #fff;
-  line-height: normal;
+  font-size: 1.5rem;
+  line-height: 1.8rem;
+  font-weight: normal;
 }
 
 [role="dialog"][data-type="object"] ul li p:first-child {
@@ -118,24 +144,13 @@
   font-weight: 500;
 }
 
-[role="dialog"][data-type="object"] ul li p:last-child {
-  font-size: 1.5rem;
-  line-height: 1.8rem;
-  font-weight: normal;
-}
-
-[role="dialog"][data-type="object"] ul li p:only-child {
-  font-size: 2.2rem;
-  font-weight: 300;
-}
-
 [role="dialog"][data-type="object"] ul li p:empty {
   display: none;
 }
 
 /* Pressed status */
-[role="dialog"][data-type="object"] ul li:active {
-  background-color: #00ABCC;
+[role="dialog"][data-type="object"] ul li:active:before {
+  background-color: #00aacc;
 }
 
 [role="dialog"][data-type="object"] ul li:active:after,
@@ -170,7 +185,7 @@
   height: 4rem;
   margin: 0 0 1rem;
   padding: 0 1.2rem;
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   display: inline-block;
   vertical-align: middle;
   text-overflow: ellipsis;

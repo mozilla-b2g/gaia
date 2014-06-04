@@ -58,6 +58,10 @@ contacts.Settings = (function() {
 
     fb.init(function onFbInit() {
       initContainers();
+      // To avoid any race condition we listen for online events once
+      // containers have been initialized
+      window.addEventListener('online', checkOnline);
+      window.addEventListener('offline', checkOnline);
     });
     utils.listeners.add({
       '#settings-close': hideSettings
@@ -1000,7 +1004,6 @@ contacts.Settings = (function() {
     'init': init,
     'close': close,
     'refresh': refresh,
-    'onLineChanged': checkOnline,
     'cardStateChanged': checkSIMCard,
     'updateTimestamps': updateTimestamps,
     'navigation': navigationHandler,

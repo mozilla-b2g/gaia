@@ -380,7 +380,6 @@ var CallHandler = (function callHandler() {
                      '/dialer/js/mmi.js',
                      '/dialer/js/mmi_ui.js',
                      '/shared/style/headers.css',
-                     '/shared/style/input_areas.css',
                      '/shared/style/progress_activity.css',
                      '/dialer/style/mmi.css'], function() {
 

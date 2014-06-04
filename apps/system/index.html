@@ -1007,6 +1007,7 @@
         <!--
         <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
         <div id="lockscreen-background" class="lockscreen-background"></div>
+        <div id="lockscreen-masked-background" class="blank"></div>
         <div id="lockscreen-container">
           <div id="lockscreen-panel-main" class="lockscreen-panel">
             <div id="lockscreen-header">
@@ -1060,19 +1061,19 @@
           <div id="lockscreen-panel-passcode" class="lockscreen-panel">
             <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
             <div id="lockscreen-passcode-pad">
-              <a role="button" href="#" data-key="1">1<span>.</span></a>
-              <a role="button" href="#" data-key="2">2<span>ABC</span></a>
-              <a role="button" href="#" data-key="3">3<span>DEF</span></a>
-              <a role="button" href="#" data-key="4">4<span>GHI</span></a>
-              <a role="button" href="#" data-key="5">5<span>JKL</span></a>
-              <a role="button" href="#" data-key="6">6<span>MNO</span></a>
-              <a role="button" href="#" data-key="7">7<span>PQRS</span></a>
-              <a role="button" href="#" data-key="8">8<span>TUV</span></a>
-              <a role="button" href="#" data-key="9">9<span>WXYZ</span></a>
-              <a role="button" href="#" data-key="e" class="lockscreen-passcode-pad-func last-row"><span data-l10n-id="emergency-call-button">Emergency Call</span></a>
-              <a role="button" href="#" data-key="0" class="last-row">0</a>
-              <a role="button" href="#" data-key="c" class="lockscreen-passcode-pad-func last-row"><span data-l10n-id="cancel">Cancel</span></a>
-              <a role="button" href="#" data-key="b" class="last-row">⌫</a>
+              <a role="button" href="#" data-key="1" class="row0"><div>1<span>.</span></div></a>
+              <a role="button" href="#" data-key="2" class="row0"><div>2<span>ABC</span></div></a>
+              <a role="button" href="#" data-key="3" class="row0"><div>3<span>DEF</span></div></a>
+              <a role="button" href="#" data-key="4" class="row1"><div>4<span>GHI</span></div></a>
+              <a role="button" href="#" data-key="5" class="row1"><div>5<span>JKL</span></div></a>
+              <a role="button" href="#" data-key="6" class="row1"><div>6<span>MNO</span></div></a>
+              <a role="button" href="#" data-key="7" class="row2"><div>7<span>PQRS</span></div></a>
+              <a role="button" href="#" data-key="8" class="row2"><div>8<span>TUV</span></div></a>
+              <a role="button" href="#" data-key="9" class="row2"><div>9<span>WXYZ</span></div></a>
+              <a role="button" href="#" data-key="e" class="lockscreen-passcode-pad-func last-row row3"><div><span data-l10n-id="emergency-call-button">Emergency Call</span></div></a>
+              <a role="button" href="#" data-key="0" class="last-row row3"><div>0</div></a>
+              <a role="button" href="#" data-key="c" class="lockscreen-passcode-pad-func last-row row3"><div><span data-l10n-id="cancel">Cancel</span></div></a>
+              <a role="button" href="#" data-key="b" class="last-row row3"><div>⌫</div></a>
             </div>
           </div>
 
