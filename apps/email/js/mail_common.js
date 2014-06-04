@@ -412,6 +412,10 @@ Cards = {
     // See input_areas.js and shared/style/input_areas.css.
     hookupInputAreaResetButtons(domNode);
 
+    window.dispatchEvent(new CustomEvent('lazyload', {
+      detail: domNode
+    }));
+
     if ('postInsert' in cardImpl)
       cardImpl.postInsert();
 

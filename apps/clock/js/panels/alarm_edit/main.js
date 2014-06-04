@@ -16,6 +16,11 @@ var constants = require('constants');
 var AlarmEdit = function() {
   Panel.apply(this, arguments);
   this.element.innerHTML = html;
+
+  window.dispatchEvent(new CustomEvent('lazyload', {
+    detail: this.element
+  }));
+
   mozL10n.translate(this.element);
   var handleDomEvent = this.handleDomEvent.bind(this);
 
