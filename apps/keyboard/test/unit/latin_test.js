@@ -316,11 +316,8 @@ suite('latin input method capitalization and punctuation', function() {
       if (options && options.continuous) {
         var lastPromise;
         input.split('').forEach(function(c) {
-          lastPromise = im.click(
-            {
-              keyCode: c.charCodeAt(0),
-              upperKeyCode: c.toUpperCase().charCodeAt(0),
-            });
+          lastPromise = im.click(c.charCodeAt(0),
+                                 c.toUpperCase().charCodeAt(0));
         });
 
         lastPromise.then(function() {
@@ -334,11 +331,8 @@ suite('latin input method capitalization and punctuation', function() {
         // the input to uppercase if the IM has set uppercase
         inputQueue = input.split('').map(function(c) {
           return function(n) {
-            im.click(
-              {
-                keyCode: c.charCodeAt(0),
-                upperKeyCode: c.toUpperCase().charCodeAt(0),
-              }).then(n);
+            im.click(c.charCodeAt(0),
+                     c.toUpperCase().charCodeAt(0)).then(n);
           };
         });
 

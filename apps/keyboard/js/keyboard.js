@@ -780,8 +780,9 @@ function sendDelete(isRepeat) {
   // Pass the isRepeat argument to the input method. It may not want
   // to compute suggestions, for example, if this is just one in a series
   // of repeating events.
-  inputMethodManager.currentIMEngine
-    .click({keyCode: KeyboardEvent.DOM_VK_BACK_SPACE}, isRepeat);
+  inputMethodManager.currentIMEngine.click(KeyboardEvent.DOM_VK_BACK_SPACE,
+                                           null,
+                                           isRepeat);
 }
 
 // Return the upper value for a key object
@@ -1094,13 +1095,6 @@ function getKeyCodeFromTarget(target) {
   return isUpperCase || isUpperCaseLocked ?
     parseInt(target.dataset.keycodeUpper, 10) :
     parseInt(target.dataset.keycode, 10);
-}
-
-function getKeyObjectFromTarget(target) {
-  return {
-    upperKeyCode: parseInt(target.dataset.keycodeUpper, 10),
-    keyCode: parseInt(target.dataset.keycode, 10)
-  };
 }
 
 // The coords object can either be a mouse event or a touch. We just expect the
@@ -1426,13 +1420,13 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
       // Like ".com" or "2nd" or (in Catalan) "l·l".
       var compositeKey = target.dataset.compositekey;
       for (var i = 0; i < compositeKey.length; i++) {
-        inputMethodManager.currentIMEngine.click({
-          keyCode: compositeKey.charCodeAt(i)}
-        );
+        inputMethodManager.currentIMEngine.click(compositeKey.charCodeAt(i));
       }
     }
     else {
-      inputMethodManager.currentIMEngine.click(getKeyObjectFromTarget(target));
+      inputMethodManager.currentIMEngine.click(
+        parseInt(target.dataset.keycode, 10),
+        parseInt(target.dataset.keycodeUpper, 10)));
     }
     break;
   }
