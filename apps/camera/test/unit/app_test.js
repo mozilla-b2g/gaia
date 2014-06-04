@@ -111,7 +111,14 @@ suite('app', function() {
 
     // More complex stubs
     options.activity.check.callsArg(0);
+
+    // Sometimes we have to spy on the prototype,
+    // this is because methods get bound and passed
+    // directly as callbacks. We set spys on prototype
+    // methods before any of this happens, so that the
+    // spy is always at the root of any call.
     this.sandbox.spy(this.App.prototype, 'boot');
+    this.sandbox.spy(this.App.prototype, 'clearLoading');
 
     // Aliases
     this.settings = options.settings;
@@ -124,6 +131,7 @@ suite('app', function() {
     this.sandbox.spy(this.app, 'once');
     this.sandbox.spy(this.app, 'emit');
     this.sandbox.spy(this.app, 'firer');
+    this.sandbox.spy(this.app, 'showLoading');
   });
 
   teardown(function() {
@@ -209,6 +217,20 @@ suite('app', function() {
       assert.ok(this.app.once.calledWith('storage:checked:healthy', geolocationWatch));
     });
 
+    test('Should show loading screen', function() {
+      sinon.assert.calledOnce(this.app.showLoading);
+    });
+
+    test('Should clear loading screen when camera is ready', function() {
+      var on = this.app.on.withArgs('camera:ready');
+      var callback = on.args[0][1];
+
+      // Call the callback and make sure
+      // that `clearLoading` was called.
+      callback();
+      sinon.assert.calledOnce(this.App.prototype.clearLoading);
+    });
+
     suite('App#geolocationWatch()', function() {
       test('Should *not* watch location if in activity', function() {
         this.app.hidden = false;
@@ -269,10 +291,6 @@ suite('app', function() {
         assert.isTrue(loadController.calledWith(controllers.confirm));
         assert.isTrue(loadController.calledWith(controllers.battery));
         assert.isTrue(loadController.calledWith(controllers.sounds));
-      });
-
-      test('Should clear loading screen', function() {
-        sinon.assert.called(this.app.clearLoading);
       });
     });
   });
@@ -386,6 +404,11 @@ suite('app', function() {
 
       sinon.assert.called(view.hide);
       assert.ok(view.destroy.calledAfter(view.hide));
+    });
+
+    test('Should clear reference to `app.views.loading`', function() {
+      this.app.clearLoading();
+      assert.equal(this.app.views.loading, null);
     });
   });
 });
