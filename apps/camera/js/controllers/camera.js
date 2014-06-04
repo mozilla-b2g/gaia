@@ -48,6 +48,7 @@ CameraController.prototype.bindEvents = function() {
   camera.on('change:focus', app.firer('camera:focusstatechanged'));
   camera.on('facesdetected', app.firer('camera:facesdetected'));
   camera.on('filesizelimitreached', this.onFileSizeLimitReached);
+  camera.on('takingpicture', app.firer('camera:takingpicture'));
   camera.on('change:recording', app.setter('recording'));
   camera.on('newcamera', app.firer('camera:newcamera'));
   camera.on('newimage', app.firer('camera:newimage'));
@@ -123,7 +124,7 @@ CameraController.prototype.onSettingsConfigured = function() {
   hardware.onsuccess = function(evt) {
     var device = evt.target.result['deviceinfo.hardware'];
     if (device === 'mako') {
-      
+
       // Nexus 4 needs zoom preview adjustment since the viewfinder preview
       // stream does not automatically reflect the current zoom value.
       self.settings.zoom.set('useZoomPreviewAdjustment', true);

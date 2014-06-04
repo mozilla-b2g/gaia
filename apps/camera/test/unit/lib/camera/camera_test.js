@@ -510,6 +510,12 @@ suite('lib/camera/camera', function() {
       assert.isTrue(this.camera.mozCamera.takePicture.called);
     });
 
+    test('Should emit a `takingpicture` event', function() {
+      sinon.stub(this.camera, 'emit');
+      this.camera.takePicture({});
+      sinon.assert.calledWith(this.camera.emit, 'takingpicture');
+    });
+
     test('Should still take picture even when focus fails', function() {
       this.camera.focus.focus = sinon.stub().callsArgWith(0, 'some error');
       this.camera.takePicture({});
