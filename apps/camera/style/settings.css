@@ -118,7 +118,8 @@
   height: 9rem;
   padding: 0 1.5rem;
   font-size: 2.4rem;
-  font-weight: 100;
+  font-weight: 300;
+  font-style: italic;
   line-height: 9rem;
   color: rgba(255,255,255,0.8);
 }

@@ -46,14 +46,14 @@ requireApp('camera/bower_components/alameda/index.js', function() {
       'MediaFrame': '../shared/js/media/media_frame',
       'BlobView': '../shared/js/blobview',
       'CustomDialog': '../shared/js/custom_dialog',
-      'FontSizeUtils': '../shared/js/font_size_utils',
       'debug': '../bower_components/debug/index',
       'attach': '../bower_components/attach/index',
       'model': '../bower_components/model/index',
       'view': '../bower_components/view/index',
       'evt': '../bower_components/evt/index',
       'drag': '../bower_components/drag/index',
-      'device-orientation': '../bower_components/device-orientation/index'
+      'device-orientation': '../bower_components/device-orientation/index',
+      'gaia-header': '../bower_components/gaia-header/dist/script'
     },
     shim: {
       'format': {
@@ -77,6 +77,7 @@ requireApp('camera/bower_components/alameda/index.js', function() {
         exports: 'PerformanceTestingHelper'
       },
       'jpegMetaDataParser': {
+        deps: ['BlobView'],
         exports: 'parseJPEGMetadata'
       },
       'getImageSize': {
@@ -92,9 +93,6 @@ requireApp('camera/bower_components/alameda/index.js', function() {
       },
       'CustomDialog': {
         exports: 'CustomDialog'
-      },
-      'FontSizeUtils': {
-        exports: 'FontSizeUtils'
       }
     }
   });
