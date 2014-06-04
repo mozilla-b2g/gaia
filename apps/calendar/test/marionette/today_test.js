@@ -10,7 +10,14 @@ marionette('today', function() {
   var app;
 
   var client = marionette.client({
-    settings: { 'keyboard.ftu.enabled': false }
+    prefs: {
+      // we need to disable the keyboard to avoid intermittent failures on
+      // Travis (transitions might take longer to run and block UI)
+      'dom.mozInputMethod.enabled': false,
+      // Do not require the B2G-desktop app window to have focus (as per the
+      // system window manager) in order for it to do focus-related things.
+      'focusmanager.testmode': true,
+    }
   });
 
   setup(function() {
