@@ -192,67 +192,20 @@ button:focus {
   background-image: url(images/icons/options.png);
 }
 
-/* -----------------------------------------------------------------
-  HEADER SKIN: comms
------------------------------------------------------------------ */
-
-[skin="comms"] {
-  background-color: #00adad;
-}
-
-[skin="comms"] a,
-[skin="comms"] button {
-  color: rgba(0,0,0,0.5);
-}
-
-[skin="comms"] a:hover,
-[skin="comms"] button:hover,
-[skin="comms"] a:active,
-[skin="comms"] button:active {
-  background-color: rgba(0,0,0,0.1);
-}
-
-[data-skin="comms"] a:focus,
-[data-skin="comms"] button:focus {
-  background-color: transparent;
-}
-
-/* -----------------------------------------------------------------
-  HEADER SKIN: dark
------------------------------------------------------------------ */
-
-[skin="dark"] {
-  background-color: #242d33;
-}
-
-[skin="dark"] a,
-[skin="dark"] button {
-  color: #00aac5;
-}
-
-
-
-[data-skin="dark"] a:focus,
-[data-skin="dark"] button:focus {
-  background-color: transparent;
-}
-
-/* -----------------------------------------------------------------
-  HEADER SKIN: organic
------------------------------------------------------------------ */
-
-
-
-/*:host-context([skin="organic"]) [icon="back"]:before {
-  background-image: url(images/icons/organic/back.png);
-}*/
-
-[data-skin="organic"] a:focus,
-[data-skin="organic"] button:focus {
-  background-color: transparent;
-}
-
-/* Icons */
+/**
+ * I haven't yet thought of a way that
+ * specific images can be selected using
+ * outside CSS variables.
+ *
+ * Using icon-fonts will allow us to
+ * switch the color of our icons easily,
+ * but there may still be a use-case
+ * for PNGs.
+ *
+ * For the time being the dark icons can
+ * be chosen using an attribute on the
+ * <gaia-header> element.
+ */
 
 [icons="dark"] [icon="back"]:before {
   background-image: url(images/icons/organic/back.png);
