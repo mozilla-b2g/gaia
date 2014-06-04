@@ -459,9 +459,13 @@ if (typeof window.importer === 'undefined') {
     function markExisting(deviceFriends) {
       updateButton.textContent = deviceFriends.length === 0 ? _('import') :
                                                               _('update');
+      var reallyExisting = 0;
 
       deviceFriends.forEach(function(fbContact) {
         var uid = serviceConnector.getContactUid(fbContact);
+        if (myFriendsByUid[uid]) {
+          reallyExisting++;
+        }
         // We are updating those friends that are potentially selectable
         delete selectableFriends[uid];
         var ele = document.querySelector('[data-uuid="' + uid + '"]');
@@ -477,10 +481,8 @@ if (typeof window.importer === 'undefined') {
         }
       });
 
-      var newValue = myFriends.length -
-                        Object.keys(existingContactsByUid).length;
       friendsMsgElement.textContent = _('fbFriendsFound', {
-        numFriends: newValue
+        numFriends: myFriends.length - reallyExisting
       });
 
       checkDisabledButtons();
