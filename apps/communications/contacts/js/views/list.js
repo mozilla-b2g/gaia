@@ -941,6 +941,8 @@ contacts.List = (function() {
     if (show) {
       if (!ActivityHandler.currentlyHandling) {
         noContacts.classList.remove('hide');
+        fastScroll.classList.add('hide');
+        scrollable.classList.add('hide');
         return;
       }
 
@@ -950,6 +952,8 @@ contacts.List = (function() {
       }
     }
     noContacts.classList.add('hide');
+    fastScroll.classList.remove('hide');
+    scrollable.classList.remove('hide');
   };
 
   var showNoContactsAlert = function showNoContactsAlert() {
