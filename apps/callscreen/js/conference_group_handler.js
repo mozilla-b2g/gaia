@@ -35,8 +35,13 @@ var ConferenceGroupHandler = (function() {
     }
 
     LazyL10n.get(function localized(_) {
-      groupDetailsHeader.textContent = groupLabel.textContent =
-        _('group-call', {n: calls.length});
+      if (CallsHandler.isCdmaNetwork()) {
+        groupDetailsHeader.textContent = groupLabel.textContent =
+          _('conference');
+      } else {
+        groupDetailsHeader.textContent = groupLabel.textContent =
+          _('group-call', {n: calls.length});
+      }
     });
 
     // When hanging up phones on conferenceGroup.calls.length >= 2,
@@ -47,6 +52,10 @@ var ConferenceGroupHandler = (function() {
     // exiting.
     if (telephony.conferenceGroup.calls.length >= 2) {
       CallsHandler.checkCalls();
+    }
+
+    if (CallsHandler.isCdmaNetwork()) {
+      CallScreen.cdmaConferenceCall();
     }
   }
 

@@ -34,18 +34,27 @@ var TelephonyHelper = (function() {
       return;
     }
 
-    var activeCall = telephony.active;
-    if (!activeCall) {
+    var cdmaTypes = ['evdo0', 'evdoa', 'evdob', '1xrtt', 'is95a', 'is95b'];
+    var voiceType = conn.voice ? conn.voice.type : null;
+
+    if (cdmaTypes.indexOf(voiceType) !== -1) {
       startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
                 ondisconnected, onerror);
       return;
-    }
-    activeCall.onheld = function activeCallHeld() {
-      activeCall.onheld = null;
-      startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
+    } else {
+      var activeCall = telephony.active;
+      if (!activeCall) {
+        startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
                 ondisconnected, onerror);
-    };
-    activeCall.hold();
+        return;
+      }
+      activeCall.onheld = function activeCallHeld() {
+        activeCall.onheld = null;
+        startDial(cardIndex, conn, sanitizedNumber, oncall, onconnected,
+                ondisconnected, onerror);
+      };
+      activeCall.hold();
+    }
   };
 
   function notifyBusyLine() {

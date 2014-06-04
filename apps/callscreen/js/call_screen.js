@@ -80,6 +80,15 @@ var CallScreen = {
   },
 
   /**
+   * When enabled hides the add call button in CDMA network.
+   *
+   * @param {Boolean} enabled hide add call button UI.
+   */
+   set hideAddCallButton(enabled) {
+     this.callToolbar.classList.toggle('no-add-call', enabled);
+   },
+
+  /**
    * When enabled hides the end-and-answer button in call waiting mode and
    * displays only the hold-and-answer one.
    *
@@ -600,6 +609,11 @@ var CallScreen = {
         this.initUnlockerEvents();
       }
     }
+  },
+
+  cdmaConferenceCall: function cs_cdmaConferenceCall() {
+    this.hideAddCallButton = true;
+    this.showGroupButton.hidden = true;
   },
 
   initUnlockerEvents: function cs_initUnlockerEvents() {
