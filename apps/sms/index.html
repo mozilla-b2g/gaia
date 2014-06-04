@@ -257,19 +257,21 @@
             <span class="size"></span>
           </div>
         </article>
-        <article id="composer-container" class="view-body" data-composer-layout="">
+        <article id="composer-container" class="view-body">
           <div class="flex-composer">
             <div id="composer-messages-container">
               <div id="messages-container" data-type="list" class="article-list">
               </div>
             </div>
             <form id="messages-compose-form" role="search" class="bottom" data-message-type="sms">
-              <button id="messages-send-button" data-l10n-id="send" type="submit">Send</button>
-              <div class="message-complete">
+              <div class="composer-message-complete">
                 <div id="messages-subject-input" contentEditable="true" class="placeholder js-l10n-placeholder" data-max-length="40">
                 </div>
                 <div id="messages-input" contentEditable="true" name="message" x-inputmode="-moz-sms" class="js-l10n-placeholder">
                 </div>
+              </div>
+              <div class='composer-button-container'>
+                <button id="messages-send-button" data-l10n-id="send" type="submit">Send</button>
               </div>
             </form>
           </div>

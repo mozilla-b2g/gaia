@@ -63,14 +63,6 @@ var ThreadUI = global.ThreadUI = {
   // activity after this delay after moving to the thread list.
   LEAVE_ACTIVITY_DELAY: 3000,
 
-  // these layouts are used to distinguish between "new message" and "thread"
-  // TODO use a panel-based CSS
-  LAYOUT: {
-    DEFAULT: '',
-    COMPOSER: 'composer',
-    THREAD: 'thread'
-  },
-
   draft: null,
   recipients: null,
   // Set to |true| when in edit mode
@@ -573,7 +565,6 @@ var ThreadUI = global.ThreadUI = {
     // TODO should we implement hooks to Navigation so that Threads could
     // get an event whenever the panel changes?
     Threads.currentId = args.id;
-    this.composerContainer.dataset.composerLayout = this.LAYOUT.THREAD;
 
     return this.updateHeaderData();
   },
@@ -639,7 +630,6 @@ var ThreadUI = global.ThreadUI = {
 
   afterLeave: function thui_afterLeave(args) {
     if (Navigation.isCurrentPanel('thread-list')) {
-      this.composerContainer.dataset.composerLayout = this.LAYOUT.DEFAULT;
       this.container.textContent = '';
       this.cleanFields(true);
       this.recipients.length = 0;
@@ -763,7 +753,6 @@ var ThreadUI = global.ThreadUI = {
     this.updateComposerHeader();
     this.container.textContent = '';
     this.threadMessages.classList.add('new');
-    this.composerContainer.dataset.composerLayout = this.LAYOUT.COMPOSER;
 
     // not strictly necessary but being consistent
     return Promise.resolve();
