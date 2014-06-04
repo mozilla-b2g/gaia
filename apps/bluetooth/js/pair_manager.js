@@ -32,6 +32,18 @@
       navigator.mozSetMessageHandler('bluetooth-cancel',
         this.onBluetoothCancel.bind(this)
       );
+
+      // Observe Bluetooth ondisabled event from hardware side.
+      // Then, close pairing dialog immediately.
+      navigator.mozBluetooth.ondisabled = this.onBluetoothDisabled.bind(this);
+
+      // Observe Bluetooth enabled state for close pairing dialog immediately.
+      navigator.mozSettings.addObserver('bluetooth.enabled',
+        function gotBluetoothEnabledChanged(event) {
+          if (!event.settingValue) {
+            this.onBluetoothDisabled();
+          }
+      }.bind(this));
     },
 
     onRequestPairing: function(message) {
@@ -86,6 +98,19 @@
         this.childWindow.Pairview.closeInput();
         this.childWindow.close();
       }
+    },
+
+    onBluetoothDisabled: function() {
+      this.debug('onBluetoothDisabled():');
+
+      // if the attention screen still open, close it
+      if (this.childWindow) {
+        this.childWindow.Pairview.closeInput();
+        this.childWindow.close();
+      }
+
+      // Since Bluetooth is off, close itself.
+      window.close();
     },
 
     setConfirmation: function(address, confirmed) {
