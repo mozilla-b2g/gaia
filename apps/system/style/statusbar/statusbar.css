@@ -278,7 +278,7 @@ body.rb-enabled #statusbar-label {
 .sb-icon {
   width: 1.6rem;
   height: 1.6rem;
-  background: url('images/icons.png') no-repeat;
+  background: url('images/icons.svg') no-repeat;
   background-size: 31.4rem 9.6rem;
 }
 
@@ -435,7 +435,7 @@ body.rb-enabled #statusbar-label {
   height: 0.5rem;
   top: 0;
   left: 0;
-  background: url('images/icons.png') no-repeat;
+  background: url('images/icons.svg') no-repeat;
   background-position: -16.8rem -4rem;
   background-size: 31.4rem 9.6rem;
 }
@@ -526,7 +526,7 @@ body.rb-enabled #statusbar-label {
   left: 0;
   width: 1.6rem;
   height: 1.6rem;
-  background: url('images/icons.png') no-repeat;
+  background: url('images/icons.svg') no-repeat;
   background-position: -18.9rem -6rem;
   background-size: 31.4rem 9.6rem;
 }
