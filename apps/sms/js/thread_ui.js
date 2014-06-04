@@ -648,6 +648,10 @@ var ThreadUI = global.ThreadUI = {
     if (!Navigation.isCurrentPanel('composer')) {
       this.threadMessages.classList.remove('new');
     }
+
+    if (!Navigation.isCurrentPanel('thread')) {
+      this.threadMessages.classList.remove('has-carrier');
+    }
   },
 
   handleForward: function thui_handleForward(forward) {
@@ -1335,28 +1339,38 @@ var ThreadUI = global.ThreadUI = {
     var carrierTag = document.getElementById('contact-carrier');
     var threadMessages = this.threadMessages;
     var number = thread.participants[0];
-    var isCarrierTagShown = false;
-    var carrierText;
+    var carrierDetails;
 
     // The carrier banner is meaningless and confusing in
     // group message mode.
     if (thread.participants.length === 1 &&
         (contacts && contacts.length)) {
 
-
-      carrierText = Utils.getCarrierTag(
+      carrierDetails = Utils.getCarrierTag(
         number, contacts[0].tel, details
       );
 
-      // Known Contact with at least:
-      //
-      //  1. a name
-      //  2. a carrier
-      //  3. a type
-      //
-      if (carrierText) {
-        carrierTag.textContent = carrierText;
-        isCarrierTagShown = true;
+      if (carrierDetails) {
+        var phoneType = carrierTag.querySelector('.phone-type'),
+            phoneDetails = carrierTag.querySelector('.phone-details');
+
+        phoneType.dataset.l10nId = carrierDetails.type;
+        // We need this line for the unknown phone type case, so that we display
+        // phone type instead of empty string if we can't translate it.
+        phoneType.textContent = carrierDetails.type;
+        phoneDetails.textContent = carrierDetails.carrier ||
+          carrierDetails.number;
+
+        navigator.mozL10n.translate(carrierTag);
+
+        carrierTag.classList.toggle(
+          'has-phone-type',
+          !!carrierDetails.type
+        );
+        carrierTag.classList.toggle(
+          'has-phone-details',
+          carrierDetails.carrier || carrierDetails.number
+        );
         threadMessages.classList.add('has-carrier');
       } else {
         threadMessages.classList.remove('has-carrier');
