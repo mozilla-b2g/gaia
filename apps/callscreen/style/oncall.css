@@ -578,6 +578,7 @@
 
   #calls.big-duration > section .duration.isTimer > span {
     font-size: 5.9rem;
+    font-feature-settings: "tnum";
   }
 
   #calls.big-duration .total-duration {
