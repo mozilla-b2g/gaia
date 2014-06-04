@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
+
 from marionette.by import By
 from gaiatest.apps.testapp.app import TestContainer
 from gaiatest import GaiaTestCase
@@ -27,6 +29,9 @@ class TestSystemMessages(GaiaTestCase):
         # We've made sure app is running.
         # Now test if the message is delivered correctly to the app
         test_container.launch()
+        # Let's wait a bit for app to launch (bug 1020252)
+        time.sleep(5)
+
         self.on_app_launched()
         message = self.marionette.find_element(By.ID, self._testing_message_id)
         self.assertEqual(message.text, self._testing_message_text)
