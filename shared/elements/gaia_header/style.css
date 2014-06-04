@@ -7,7 +7,7 @@ gaia-header {
   display: block;
   height: 5rem;
   z-index: 10;
-  color: var(--text-color-1, #fff);
+  color: var(--text-color, #fff);
   background: var(--background, #f97c17);
   border-bottom-right-radius: var(--border-radius, 0);
   border-bottom-left-radius: var(--border-radius, 0);
@@ -27,7 +27,7 @@ h1 {
   font-weight: lighter;
   font-style: italic;
   text-align: center;
-  color: var(--text-color-1, #fff);
+  color: var(--text-color, #fff);
 }
 
 h1 em {
@@ -67,7 +67,7 @@ button {
   text-align: center;
   text-shadow: none;
   font-style: italic;
-  color: var(--text-color-2, rgba(0,0,0,0.6));
+  color: var(--text-color, rgba(0,0,0,0.6));
 }
 
 a:hover,

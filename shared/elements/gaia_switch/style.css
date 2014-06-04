@@ -75,7 +75,7 @@ button::-moz-focus-inner {
 
   height: 100%;
   line-height: var(--height);
-  color: #fff;
+  color: var(--text-color, #fff);
   font-size: 1.6rem;
 }
 

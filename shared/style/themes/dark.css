@@ -1,7 +1,6 @@
 
 [theme="dark"] {
   --color-1: #242d33;
-  --text-color-1: #fff;
-  --text-color-2: #00aac5;
+  --text-color: #fff;
   --background: var(--color-1);
 }
