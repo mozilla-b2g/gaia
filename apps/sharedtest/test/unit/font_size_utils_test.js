@@ -1,8 +1,8 @@
+/* global FontSizeUtils */
+
 /**
  * Tests for the shared text utils helper
  */
-
-/* global FontSizeUtils */
 
 'use strict';
 
@@ -14,10 +14,12 @@ suite('shared/js/text_utils.js', function() {
   const kDefaultSize = 12;
   const kAllowedSizes = [8, 10, 14];
   const kStringChar = '#';
+  const leftButtonWidth = 25;
+  const rightButtonWidth = 55;
 
   function getMaxFontSizeInfo() {
     return FontSizeUtils.getMaxFontSizeInfo(text, kAllowedSizes,
-       kDefaultFace, kContainerWidth);
+      kDefaultFace, kContainerWidth);
   }
 
   function getOverflowCount() {
@@ -75,7 +77,7 @@ suite('shared/js/text_utils.js', function() {
   // string just barely larger than the container width
   function setupMediumPlusString(size, face) {
     text = generateStringForPixels(kContainerWidth + 1, size, face) +
-             kStringChar;
+      kStringChar;
     return text;
   }
 
@@ -93,6 +95,37 @@ suite('shared/js/text_utils.js', function() {
     headerText.style.overflow = 'hidden';
     headerText.style.textOverflow = 'ellipsis';
     headerText.style.width = kContainerWidth + 'px';
+    // use maximum header fontSize
+    var sizes = FontSizeUtils.getAllowedSizes(headerText);
+    headerText.style.fontSize = sizes[sizes.length - 1] + 'px';
+    headerText.style.fontFamily = kDefaultFace;
+    return headerText;
+  }
+
+  function setupHeaderElementWithButtons() {
+    var header = document.createElement('header');
+    var headerText = document.createElement('h1');
+    var leftButton = document.createElement('button');
+    var rightButton = document.createElement('button');
+
+    header.appendChild(leftButton);
+    header.appendChild(rightButton);
+    header.appendChild(headerText);
+
+    header.style.width = (kContainerWidth + leftButtonWidth +
+      rightButtonWidth) + 'px';
+
+    leftButton.style.cssFloat = 'left';
+    leftButton.style.width = leftButtonWidth + 'px';
+
+    rightButton.style.cssFloat = 'right';
+    rightButton.style.width = rightButtonWidth + 'px';
+
+    headerText.style.overflow = 'hidden';
+    headerText.style.textOverflow = '';
+    headerText.style.margin = '0';
+    headerText.style.paddingLeft = '10px';
+    headerText.style.paddingRight = '10px';
     // use maximum header fontSize
     var sizes = FontSizeUtils.getAllowedSizes(headerText);
     headerText.style.fontSize = sizes[sizes.length - 1] + 'px';
@@ -143,9 +176,9 @@ suite('shared/js/text_utils.js', function() {
 
     test('Used', function() {
       var oldContext = FontSizeUtils._getCachedContext(kDefaultSize,
-                                                        kDefaultFace);
+        kDefaultFace);
       var newContext = FontSizeUtils._getCachedContext(kDefaultSize,
-                                                        kDefaultFace);
+        kDefaultFace);
 
       assert.equal(oldContext, newContext);
     });
@@ -162,7 +195,7 @@ suite('shared/js/text_utils.js', function() {
 
       for (var i = 0; i < kAllowedSizes.length; i++) {
         assert.ok(FontSizeUtils._getCachedContext(kAllowedSizes[i],
-                                                   kDefaultFace));
+          kDefaultFace));
       }
     });
   });
@@ -214,7 +247,6 @@ suite('shared/js/text_utils.js', function() {
       assert.isTrue(infos.overflow);
     });
   });
-
 
   suite('FontSizeUtils.getOverflowCount', function() {
     test('Should be 0 for small text', function() {
@@ -288,14 +320,25 @@ suite('shared/js/text_utils.js', function() {
     });
   });
 
+  suite('FontSizeUtils.resetFormatting', function() {
+    test('Should reset margin of header elements', function() {
+      var el = setupHeaderElement();
+      el.style.marginLeft = el.style.marginRight = '10px';
+      FontSizeUtils.resetFormatting(el);
+      assert.equal(parseInt(el.style.marginLeft, 10), 0);
+      assert.equal(parseInt(el.style.marginRight, 10), 0);
+    });
+  });
+
   suite('FontSizeUtils.autoResizeElement', function() {
     test('Should not resize a small header title', function() {
       var el = setupHeaderElement();
       var fontSizeBefore = getComputedStyle(el).fontSize;
 
       el.textContent = setupSmallString(fontSizeBefore);
-      FontSizeUtils.autoResizeElement(el);
+      var autoResizeNeeded = FontSizeUtils.autoResizeElement(el);
 
+      assert.isFalse(autoResizeNeeded);
       assert.equal(fontSizeBefore, getComputedStyle(el).fontSize);
     });
 
@@ -304,8 +347,9 @@ suite('shared/js/text_utils.js', function() {
       var fontSizeBefore = getComputedStyle(el).fontSize;
 
       el.textContent = setupMediumString(parseInt(fontSizeBefore));
-      FontSizeUtils.autoResizeElement(el);
+      var autoResizeNeeded = FontSizeUtils.autoResizeElement(el);
 
+      assert.isFalse(autoResizeNeeded);
       assert.equal(fontSizeBefore, getComputedStyle(el).fontSize);
     });
 
@@ -314,18 +358,9 @@ suite('shared/js/text_utils.js', function() {
       var fontSizeBefore = getComputedStyle(el).fontSize;
 
       el.textContent = setupMediumPlusString(parseInt(fontSizeBefore));
-      FontSizeUtils.autoResizeElement(el);
+      var autoResizeNeeded = FontSizeUtils.autoResizeElement(el);
 
-      assert.notEqual(fontSizeBefore, getComputedStyle(el).fontSize);
-    });
-
-    test('Should resize a barely overflowing header title', function() {
-      var el = setupHeaderElement();
-      var fontSizeBefore = getComputedStyle(el).fontSize;
-
-      el.textContent = setupMediumPlusString(parseInt(fontSizeBefore));
-      FontSizeUtils.autoResizeElement(el);
-
+      assert.isTrue(autoResizeNeeded);
       assert.notEqual(fontSizeBefore, getComputedStyle(el).fontSize);
     });
 
@@ -335,8 +370,9 @@ suite('shared/js/text_utils.js', function() {
       el.style.fontSize = fontSizeBefore;
 
       el.textContent = setupLargeString(parseInt(fontSizeBefore));
-      FontSizeUtils.autoResizeElement(el);
+      var autoResizeNeeded = FontSizeUtils.autoResizeElement(el);
 
+      assert.isTrue(autoResizeNeeded);
       assert.notEqual(getMinHeaderFontSize(), getComputedStyle(el).fontSize);
     });
   });
@@ -398,21 +434,231 @@ suite('shared/js/text_utils.js', function() {
     });
   });
 
+  suite('FontSizeUtils auto resize without Mutation Observer', function() {
+    test('Should auto-resize back up when text changes', function(done) {
+      var el = setupHeaderElement();
+      document.body.appendChild(el.parentNode);
+      el.textContent = setupLargeString();
+
+      // When we get an overflow event, make sure we have auto-resized
+      // to the minimum possible font size for the large string.
+      el.addEventListener('overflow', function onOverflow() {
+        el.removeEventListener('overflow', onOverflow);
+        assert.equal(parseInt(getComputedStyle(el).fontSize),
+          getMinHeaderFontSize());
+
+        // Now set the smallest string possible, and make sure we have
+        // auto-resized back to the maximum possible font size.
+        el.textContent = setupSmallString();
+        el.addEventListener('underflow', function onUnderflow() {
+          el.removeEventListener('underflow', onUnderflow);
+          assert.equal(parseInt(getComputedStyle(el).fontSize),
+            getMaxHeaderFontSize());
+
+          // Clean up.
+          document.body.removeChild(el.parentNode);
+          done();
+        });
+      });
+    });
+  });
+
+  suite('FontSizeUtils.getElementWidth', function() {
+    var el;
+
+    setup(function() {
+      el = document.createElement('div');
+      el.style.width = '50px';
+      el.style.padding = '10px';
+      document.body.appendChild(el);
+    });
+
+    teardown(function() {
+      document.body.removeChild(el);
+    });
+
+    test('Should compute the width of content-box element', function() {
+      el.style.boxSizing = 'content-box';
+      var width = FontSizeUtils.getElementWidth(el);
+
+      assert.equal(width, 70);
+    });
+
+    test('Should compute the width of border-box element', function() {
+      el.style.boxSizing = 'border-box';
+      var width = FontSizeUtils.getElementWidth(el);
+
+      assert.equal(width, 70);
+    });
+  });
+
+  suite('FontSizeUtils.centerTextToScreen', function() {
+    // We can't mock screen.width, hence the following code.
+    var originalFontSizeUtilsContainerWidth;
+
+    setup(function() {
+      originalFontSizeUtilsContainerWidth = FontSizeUtils.containerWidth;
+      FontSizeUtils.containerWidth = kContainerWidth + leftButtonWidth +
+        rightButtonWidth;
+    });
+
+    teardown(function() {
+      FontSizeUtils.containerWidth = originalFontSizeUtilsContainerWidth;
+    });
+
+    test('Should center a small header title', function() {
+      console.log('Small');
+
+      var el = setupHeaderElementWithButtons();
+      var fontSizeBefore = getComputedStyle(el).fontSize;
+
+      el.textContent = setupSmallString(fontSizeBefore);
+      document.body.appendChild(el.parentNode);
+
+      FontSizeUtils.centerTextToScreen(el);
+
+      var margin = Math.max(leftButtonWidth, rightButtonWidth);
+      assert.equal(parseInt(el.style.marginLeft, 10), margin);
+      assert.equal(parseInt(el.style.marginRight, 10), margin);
+
+      // Clean up.
+      document.body.removeChild(el.parentNode);
+    });
+
+    test('Should not center a medium header title', function() {
+      console.log('Medium');
+
+      var el = setupHeaderElementWithButtons();
+      var fontSizeBefore = getComputedStyle(el).fontSize;
+
+      el.textContent = setupMediumString(parseInt(fontSizeBefore));
+      document.body.appendChild(el.parentNode);
+
+      FontSizeUtils.centerTextToScreen(el);
+
+      assert.equal(parseInt(el.style.marginLeft, 10), 0);
+      assert.equal(parseInt(el.style.marginRight, 10), 0);
+
+      // Clean up.
+      document.body.removeChild(el.parentNode);
+    });
+
+    test('Should not center a barely overflowing header title', function() {
+      console.log('MediumPlus');
+
+      var el = setupHeaderElementWithButtons();
+      var fontSizeBefore = getComputedStyle(el).fontSize;
+
+      el.textContent = setupMediumPlusString(parseInt(fontSizeBefore));
+      document.body.appendChild(el.parentNode);
+
+      FontSizeUtils.centerTextToScreen(el);
+
+      assert.equal(parseInt(el.style.marginLeft, 10), 0);
+      assert.equal(parseInt(el.style.marginRight, 10), 0);
+
+      // Clean up.
+      document.body.removeChild(el.parentNode);
+    });
+
+    test('Should not center a very long header title', function() {
+      console.log('Large');
+
+      var el = setupHeaderElementWithButtons();
+      var fontSizeBefore = getComputedStyle(el).fontSize;
+
+      el.textContent = setupLargeString(parseInt(fontSizeBefore));
+      document.body.appendChild(el.parentNode);
+
+      FontSizeUtils.centerTextToScreen(el);
+
+      assert.equal(parseInt(el.style.marginLeft, 10), 0);
+      assert.equal(parseInt(el.style.marginRight, 10), 0);
+
+      // Clean up.
+      document.body.removeChild(el.parentNode);
+    });
+
+    test('Should not truncate a small header title', function() {
+      var el = setupHeaderElementWithButtons();
+      var fontSizeBefore = getComputedStyle(el).fontSize;
+
+      el.textContent = setupSmallString(fontSizeBefore);
+      document.body.appendChild(el.parentNode);
+
+      FontSizeUtils.centerTextToScreen(el);
+
+      assert.equal(el.style.textOverflow, '');
+
+      // Clean up.
+      document.body.removeChild(el.parentNode);
+    });
+
+    test('Should not truncate a medium header title', function() {
+      var el = setupHeaderElementWithButtons();
+      var fontSizeBefore = getComputedStyle(el).fontSize;
+
+      el.textContent = setupMediumString(parseInt(fontSizeBefore));
+      document.body.appendChild(el.parentNode);
+
+      FontSizeUtils.centerTextToScreen(el);
+
+      assert.equal(el.style.textOverflow, '');
+
+      // Clean up.
+      document.body.removeChild(el.parentNode);
+    });
+
+    test('Should truncate a barely overflowing header title', function(done) {
+      var el = setupHeaderElementWithButtons();
+      var fontSizeBefore = getComputedStyle(el).fontSize;
+
+      el.textContent = setupMediumPlusString(parseInt(fontSizeBefore));
+      document.body.appendChild(el.parentNode);
+
+      el.addEventListener('overflow', function onOverflow() {
+        el.removeEventListener('overflow', onOverflow);
+        assert.equal(el.style.textOverflow, '');
+
+        // Clean up.
+        document.body.removeChild(el.parentNode);
+        done();
+      });
+    });
+
+    test('Should truncate a very long header title', function(done) {
+      var el = setupHeaderElementWithButtons();
+      var fontSizeBefore = getComputedStyle(el).fontSize;
+
+      el.textContent = setupLargeString(parseInt(fontSizeBefore));
+      document.body.appendChild(el.parentNode);
+
+      el.addEventListener('overflow', function onOverflow() {
+        el.removeEventListener('overflow', onOverflow);
+        assert.equal(el.style.textOverflow, '');
+
+        // Clean up.
+        document.body.removeChild(el.parentNode);
+        done();
+      });
+    });
+  });
+
   suite('FontSizeUtils handle overflow events', function() {
-    test('Header overflow should cause autoresize', function(done) {
+    test('Header overflow should cause auto-resize', function(done) {
       var el = setupHeaderElement();
       document.body.appendChild(el.parentNode);
       el.textContent = setupLargeString();
 
       var stub = sinon.stub(FontSizeUtils, 'autoResizeElement', function() {
-        el.parentNode.removeChild(el);
+        document.body.removeChild(el.parentNode);
         stub.restore();
         assert.isTrue(stub.calledWith(el));
         done();
       });
     });
 
-    test('Non-header overflow should cause not autoresize', function(done) {
+    test('Non-header overflow should not cause auto-resize', function(done) {
       var el = setupNonHeaderElement();
       document.body.appendChild(el);
       el.textContent = setupLargeString();
@@ -421,7 +667,7 @@ suite('shared/js/text_utils.js', function() {
       assert.isTrue(spy.notCalled);
 
       el.addEventListener('overflow', function() {
-        el.parentNode.removeChild(el);
+        document.body.removeChild(el);
         spy.restore();
         assert.isTrue(spy.notCalled);
         done();
@@ -440,7 +686,7 @@ suite('shared/js/text_utils.js', function() {
       el.addEventListener('overflow', function onOverflow() {
         el.removeEventListener('overflow', onOverflow);
         assert.equal(parseInt(getComputedStyle(el).fontSize),
-                     getMinHeaderFontSize());
+          getMinHeaderFontSize());
 
         // Now set the smallest string possible, and make sure we have
         // auto-resized back to the maximum possible font size.
@@ -448,14 +694,13 @@ suite('shared/js/text_utils.js', function() {
         el.addEventListener('underflow', function onUnderflow() {
           el.removeEventListener('underflow', onUnderflow);
           assert.equal(parseInt(getComputedStyle(el).fontSize),
-                       getMaxHeaderFontSize());
+            getMaxHeaderFontSize());
 
           // Clean up.
-          el.parentNode.removeChild(el);
+          document.body.removeChild(el.parentNode);
           done();
         });
       });
     });
   });
 });
-
