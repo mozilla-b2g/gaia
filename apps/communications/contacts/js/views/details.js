@@ -14,6 +14,7 @@
 /* global TelephonyHelper */
 /* global WebrtcClient */
 /* global utils */
+/* global TAG_OPTIONS */
 
 var contacts = window.contacts || {};
 
@@ -43,7 +44,6 @@ contacts.Details = (function() {
       cover,
       favoriteMessage,
       detailsInner,
-      TAG_OPTIONS,
       dom,
       currentSocial,
       _;
@@ -181,10 +181,9 @@ contacts.Details = (function() {
     cover.addEventListener('touchstart', onTouchStart, true);
   };
 
-  var render = function cd_render(currentContact, tags, fbContactData) {
+  var render = function cd_render(currentContact, fbContactData) {
     contactData = currentContact || contactData;
 
-    TAG_OPTIONS = tags || TAG_OPTIONS;
     isFbContact = fb.isFbContact(contactData);
     isFbLinked = fb.isFbLinked(contactData);
 

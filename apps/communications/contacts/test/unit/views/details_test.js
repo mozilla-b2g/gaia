@@ -14,7 +14,9 @@
 /* global Normalizer */
 /* global TelephonyHelper */
 /* global utils */
+/* export TAG_OPTIONS */
 /* exported SCALE_RATIO */
+/* exported _ */
 
 //Avoiding lint checking the DOM file renaming it to .html
 requireApp('communications/contacts/test/unit/mock_details_dom.js.html');
@@ -43,7 +45,8 @@ requireApp('communications/contacts/test/unit/mock_activities.js');
 
 require('/shared/test/unit/mocks/mock_contact_photo_helper.js');
 
-var subject,
+var _ = function(key) { return key; },
+    subject,
     container,
     realL10n,
     realOnLine,
@@ -72,6 +75,8 @@ var subject,
     linkButtons,
     realContactsList,
     mozL10nGetSpy;
+
+requireApp('communications/contacts/js/tag_optionsstem.js');
 
 var SCALE_RATIO = 1;
 
@@ -190,7 +195,6 @@ suite('Render contact', function() {
   setup(function() {
     mockContact = new MockContactAllFields(true);
     subject.setContact(mockContact);
-    TAG_OPTIONS = Contacts.getTags();
     window.set;
   });
 
