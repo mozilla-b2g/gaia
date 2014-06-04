@@ -104,8 +104,8 @@ var LanguageManager = {
 
         // Right-to-Left (RTL) languages:
         // (http://www.w3.org/International/questions/qa-scripts)
-        // Arabic, Hebrew, Farsi, Pashto, Urdu
-        var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
+        // Arabic, Hebrew, Farsi, Pashto, Mirrored English (pseudo), Urdu
+        var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
         var langDir = (rtlList.indexOf(lang) >= 0) ? 'rtl' : 'ltr';
         // Each language label should be wrapped in Bi-Directional Override
         // <bdo> tags with language-specific script direction to correctly
