@@ -831,21 +831,20 @@ section[role="region"].new #messages-to-field.multiline {
 }
 
 #to-label {
+  flex-shrink: 0;
+
   height: 4rem;
-  width: 3.5rem;
-  min-width: 3.5rem;
+  padding-left: 1.5rem;
   padding-right: 0.7rem;
 
   line-height: 4rem;
   font-weight: 200;
   font-size: 1.465rem;
-  text-align: right;
   color: #000;
 }
 
 #messages-recipients-list-container {
   min-height: 4rem;
-  max-width: 23rem;
   box-sizing: border-box;
 
   flex-grow: 1;
@@ -1007,6 +1006,7 @@ section[role="region"].new .article-list[data-type="list"]  li {
 
 .subheader menu {
   position: relative;
+  flex-shrink: 0;
 
   width: 5rem;
   height: 4rem;
