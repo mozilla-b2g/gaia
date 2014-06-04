@@ -24,6 +24,20 @@
   function _setProgressBarStep(step) {
     dom.tutorialProgressBar.style.transform =
       'translate(' + ((step - 1) * 100) + '%)';
+    if (stepsConfig) {
+      dom.tutorialProgress.setAttribute('aria-valuetext', navigator.mozL10n.get(
+        'progressbar', {
+          step: step,
+          total: stepsConfig.steps.length
+        }));
+      dom.tutorialProgress.setAttribute('aria-valuemin', 1);
+      dom.tutorialProgress.setAttribute('aria-valuemax',
+        stepsConfig.steps.length);
+    } else {
+      dom.tutorialProgress.removeAttribute('aria-valuetext');
+      dom.tutorialProgress.removeAttribute('aria-valuemin');
+      dom.tutorialProgress.removeAttribute('aria-valuemax');
+    }
   }
 
   function _setStep(value, callback) {
@@ -58,6 +72,7 @@
     'tutorial-step-image',
     'forward-tutorial',
     'back-tutorial',
+    'tutorial-progress',
     'tutorial-progress-bar'
   ];
 
