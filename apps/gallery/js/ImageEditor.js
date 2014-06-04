@@ -45,6 +45,11 @@ function resizeHandler() {
 
 function editPhoto(n) {
   editedPhotoIndex = n;
+  // current file metdata for image editor
+  var metadata = {
+    rotation: files[editedPhotoIndex].metadata.rotation || 0,
+    mirrored: files[editedPhotoIndex].metadata.mirrored || false
+  };
 
   // Start with no edits
   editSettings = {
@@ -66,7 +71,7 @@ function editPhoto(n) {
     // This has to come after setView or the canvas size is wrong.
     imageEditor = new ImageEditor(editedPhotoURL,
                                   $('edit-preview-area'),
-                                  editSettings);
+                                  editSettings, null, null, metadata);
 
     // Configure the exposure tool as the first one shown
     setEditTool('exposure');
@@ -449,13 +454,14 @@ function saveEditedImage() {
  *  image for as long as we can. Also, if we're only cropping then we
  *  can avoid all of the webgl stuff.
  */
-function ImageEditor(imageURL, container, edits, ready, previewURL) {
+function ImageEditor(imageURL, container, edits, ready, previewURL, metadata) {
   this.imageURL = imageURL;
   this.container = container;
   this.edits = edits || {};
   this.source = {};     // The source rectangle (crop region) of the image
   this.dest = {};       // The destination (preview) rectangle of canvas
   this.cropRegion = {}; // Region displayed in crop overlay during drags
+  this.metadata = metadata; // Rotation and mirrored metadata of image
 
   // The canvas that displays the preview
 
@@ -526,6 +532,43 @@ function ImageEditor(imageURL, container, edits, ready, previewURL) {
   }
 }
 
+ImageEditor.prototype.rotateContext =
+  function(context, width, height) {
+    var centerX = Math.floor(width / 2);
+    var centerY = Math.floor(height / 2);
+
+    if (this.metadata.rotation || this.metadata.mirrored) {
+      context.save();
+      // All transformation are applied to the center.
+      context.translate(centerX, centerY);
+    }
+    if (this.metadata.mirrored) {
+      context.scale(-1, 1);
+    }
+    if (this.metadata.rotation) {
+      switch (this.metadata.rotation) {
+      case 90:
+        context.rotate(Math.PI / 2);
+        break;
+      case 180:
+        context.rotate(Math.PI);
+        break;
+      case 270:
+        context.rotate(-Math.PI / 2);
+        break;
+      }
+    }
+
+    if (this.metadata.rotation || this.metadata.mirrored) {
+      if (this.metadata.rotation === 90 || this.metadata.rotation === 270) {
+        context.translate(-centerY, -centerX);
+      } else {
+        context.translate(-centerX, -centerY);
+      }
+    }
+    return context;
+  };
+
 ImageEditor.prototype.displayCropOnlyPreview = function() {
   var previewContext = this.previewCanvas.getContext('2d');
 
@@ -563,17 +606,32 @@ ImageEditor.prototype.generateNewPreview = function(callback) {
 
   // Create a preview image
   var canvas = document.createElement('canvas');
-  canvas.width = previewWidth;
-  canvas.height = previewHeight;
+  if (this.metadata.rotation === 90 || this.metadata.rotation === 270) {
+    canvas.width = previewHeight;
+    canvas.height = previewWidth;
+  }
+  else {
+    canvas.width = previewWidth;
+    canvas.height = previewHeight;
+  }
   // In this case, we only need graphic 2d to do the scaling. The
   // willReadFrequently option makes canvas use software graphic 2d. This can
   // skip a bug of GPU version, bug 960276.
   var context = canvas.getContext('2d', { willReadFrequently: true });
 
+  // Rotate so that image displays correctly
+  context = self.rotateContext(context, canvas.width, canvas.height);
+
+
   // Draw that region of the image into the canvas, scaling it down
   context.drawImage(this.original, this.source.x, this.source.y,
                     this.source.width, this.source.height,
                     0, 0, previewWidth, previewHeight);
+
+  // Restore the default rotation
+  if (this.metadata.rotation || this.metadata.mirrored) {
+    context.restore();
+  }
 
   // Feed the thumbnail's pixel data as input to the image enhancement worker.
   if (imageEditor) {
@@ -712,13 +770,28 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
 
   // Create an offscreen canvas and copy the image into it
   var canvas = document.createElement('canvas');
-  canvas.width = this.source.width; // "full size" is cropped image size
-  canvas.height = this.source.height;
   var context = canvas.getContext('2d', { willReadFrequently: true });
+
+  if (this.metadata.rotation === 90 || this.metadata.rotation === 270) {
+    canvas.width = this.source.height;
+    canvas.height = this.source.width;
+  }
+  else {
+    canvas.width = this.source.width; // "full size" is cropped image size
+    canvas.height = this.source.height;
+  }
+
+  // Rotate so that image displays correctly
+  context = self.rotateContext(context, canvas.width, canvas.height);
+
   context.drawImage(this.original,
                     this.source.x, this.source.y,
                     this.source.width, this.source.height,
                     0, 0, this.source.width, this.source.height);
+  // Restore the default rotation
+  if (this.metadata.rotation || this.metadata.mirrored) {
+    context.restore();
+  }
 
   // As soon as we've copied the original image into the canvas we are
   // done with the original and should release it to reduce memory usage.
@@ -1256,6 +1329,8 @@ ImageEditor.prototype.cropImage = function(callback) {
   this.source.width = right - left;
   this.source.height = bottom - top;
 
+
+
   this.resetPreview();
   // Adjust the image
   var self = this;
@@ -1377,10 +1452,22 @@ ImageEditor.prototype.getCroppedRegionBlob = function(type,
     canvas.height = height;
     var context = canvas.getContext('2d', { willReadFrequently: true });
 
+    if (self.metadata.rotation === 90 || self.metadata.rotation === 270) {
+      canvas.width = height;
+      canvas.height = width;
+    }
+    // Rotate/mirror so that image displays correctly
+    context = self.rotateContext(context, canvas.width, canvas.height);
+
     // Copy that rectangle to our canvas
     context.drawImage(self.original,
                       left, top, right - left, bottom - top,
                       0, 0, width, height);
+
+    // Restore the default rotation
+    if (self.metadata.rotation || self.metadata.mirrored) {
+      context.restore();
+    }
 
     // We're done with the original image
     self.original.src = '';

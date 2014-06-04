@@ -797,8 +797,13 @@ function cropPickedImage(fileinfo) {
     }
 
     function startCrop(previewURL) {
+      // Picked file metdata for image editor
+      var metadata = {
+        rotation: pickedFile.metadata.rotation || 0,
+        mirrored: pickedFile.metadata.mirrored || false
+      };
       cropEditor = new ImageEditor(cropURL, $('crop-frame'), {},
-                                   cropEditorReady, previewURL);
+                                   cropEditorReady, previewURL, metadata);
     }
 
     function cropEditorReady() {
