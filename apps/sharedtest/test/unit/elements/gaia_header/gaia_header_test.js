@@ -56,7 +56,8 @@ suite('GaiaHeader', function() {
   });
 
   test('Should add the shadow-dom stylesheet to the root of the element', function() {
-    var element = new window.GaiaHeader();
+    this.container.innerHTML = '<gaia-header action="menu"></gaia-header>';
+    var element = this.container.firstElementChild;
     assert.ok(element.querySelector('style'));
   });
 
@@ -115,11 +116,14 @@ suite('GaiaHeader', function() {
       // Temporary workaround for component_utils style loading.
       // We need to wait for the stylesheet to fully load due to the
       // async insertion.
-      this.clock.tick(1);
-      var style = this.element.shadowRoot.querySelector('style');
-      style.onload = function() {
-        done();
-      };
+      var style = this.element.querySelector('style');
+      style.addEventListener('load', function() {
+        this.clock.tick(1);
+        var shadowStyle = this.element.shadowRoot.querySelector('style');
+        shadowStyle.onload = function() {
+          done();
+        };
+      }.bind(this));
     });
 
     teardown(function() {
@@ -185,7 +189,8 @@ suite('GaiaHeader', function() {
 
   suite('GaiaHeader#_onActionButtonClick()', function(done) {
     test('Should emit an \'action\' event', function() {
-      var element = new window.GaiaHeader();
+      this.container.innerHTML = '<gaia-header action="menu"></gaia-header>';
+      var element = this.container.firstElementChild;
       var callback = sinon.spy();
 
       element.addEventListener('action', callback);
