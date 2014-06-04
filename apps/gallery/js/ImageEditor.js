@@ -493,7 +493,7 @@ function ImageEditor(imageBlob, container, edits, ready, croponly) {
   this.previewCanvas.height = this.previewCanvas.clientHeight;
 
   // prepare gesture detector for ImageEditor
-  this.gestureDetector = new GestureDetector(container);
+  this.gestureDetector = new GestureDetector(container, { panThreshold: 3 });
   this.gestureDetector.startDetecting();
 
   // preset the scale to something useful in case resize() gets called
