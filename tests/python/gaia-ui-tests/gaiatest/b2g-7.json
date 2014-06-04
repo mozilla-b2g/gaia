@@ -12,9 +12,7 @@
   },
   "imei" : "013498000389040",
   "wifi": {
-    "ssid": "Lindholm",
-    "keyManagement": "WPA-PSK",
-    "psk": "19761122"
+    "ssid": "Mozilla Guest"
   },
   "settings": {
     "ril.cellbroadcast.disabled": true,

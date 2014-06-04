@@ -41,6 +41,10 @@ class TestBrowserSearch(GaiaTestCase):
         time.sleep(5)
         self.graphics.invoke_screen_capture()
 
+    def tearDown(self):
+
+        # In case the assertion fails this will still kill the call
+        # An open call creates problems for future tests
         self.graphics.execute_image_job(self)
 
-
+        GaiaTestCase.tearDown(self)
