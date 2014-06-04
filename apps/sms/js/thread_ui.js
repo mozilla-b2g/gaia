@@ -2398,7 +2398,7 @@ var ThreadUI = global.ThreadUI = {
   removeMessageDOM: function thui_removeMessageDOM(messageDOM) {
     var messagesContainer = messageDOM.parentNode;
 
-    messageDOM.remove();
+    messageDOM.remove(); 
 
     // If we don't have any other messages in the list, then we remove entire
     // date group (date header + messages container).
@@ -2541,7 +2541,7 @@ var ThreadUI = global.ThreadUI = {
     var last = this.recipientsList.lastElementChild;
     var typed = last && last.textContent.trim();
     var isContact = false;
-    var record, tel, length, number, contact;
+    var record, length, number, contact, target;
 
     if (index < 0) {
       index = 0;
@@ -2553,20 +2553,31 @@ var ThreadUI = global.ThreadUI = {
     if (contacts && contacts.length) {
       isInvalid = false;
       record = contacts[0];
-      length = record.tel.length;
+      length = Utils.isEmailAddress(fValue) ?
+        record.email.length : record.tel.length;
 
       // Received an exact match with a single tel record
       if (source.isLookupable && !source.isQuestionable && length === 1) {
         if (Utils.probablyMatches(record.tel[0].value, fValue)) {
           isContact = true;
-          number = record.tel[0].value;
+          if (!Utils.isEmailAddress(fValue) &&
+               Utils.probablyMatches(record.tel[0].value, fValue)) {
+            number = record.tel[0].value;
+          } else if (Utils.isEmailAddress(fValue) &&
+                     Utils.probablyMatches(record.email[0].value, fValue)) {
+            number = record.email[0].value;
+          }
         }
       } else {
         // Received an exact match that may have multiple tel records
         for (var i = 0; i < length; i++) {
-          tel = record.tel[i];
-          if (this.recipients.numbers.indexOf(tel.value) === -1) {
-            number = tel.value;
+          if (!Utils.isEmailAddress(fValue)) {
+            target = record.tel[i];
+          } else {
+            target = record.email[i];
+          }
+          if (this.recipients.numbers.indexOf(target.value) === -1) {
+            number = target.value;
             break;
           }
         }

@@ -281,6 +281,10 @@
         return false;
       }
 
+      if (Utils.isEmailAddress(a) && Utils.isEmailAddress(b)) {
+        return a === b;
+      }
+
       if (service && service.normalize) {
         a = service.normalize(a);
         b = service.normalize(b);
@@ -595,11 +599,13 @@
       var data = {
         name: title,
         number: number,
+        email: number,
         type: type,
         carrier: carrier,
         separator: separator,
         nameHTML: '',
-        numberHTML: ''
+        numberHTML: '',
+        emailHTML: ''
       };
 
       return data;
@@ -618,7 +624,13 @@
         };
       });
     },
-
+    /*
+       TODO: Email Address check.
+     */
+    isEmailAddress: function(email) {
+      var regExp = new RegExp(/[\w-]+@[\w\-]/);
+      return regExp.test(email);
+    },
     /*
       Helper function for removing notifications. It will fetch the notification
       using the current threadId or the parameter if provided, and close them

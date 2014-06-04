@@ -1,4 +1,4 @@
-/*global GestureDetector, Dialog, Navigation */
+/*global Utils, GestureDetector, Dialog, Navigation */
 
 (function(exports) {
   'use strict';
@@ -52,7 +52,9 @@
     // is questionable and may be invalid.
     number = this.number[0] === '+' ? this.number.slice(1) : this.number;
 
-    if (this.source === 'manual' && !rdigit.test(number)) {
+    if (Utils.isEmailAddress(this.number)) {
+      this.className += ' email';
+    } else if (this.source === 'manual' && !rdigit.test(number)) {
       this.isQuestionable = true;
     }
 

@@ -187,7 +187,7 @@
 
       request.onsuccess = function onsuccess() {
         var contacts = this.result.slice();
-        var fields = ['tel', 'givenName', 'familyName'];
+        var fields = ['tel', 'email', 'givenName', 'familyName'];
         var criteria = { fields: fields, terms: lower };
         var results = [];
         var contact;
@@ -229,7 +229,7 @@
 
     findContactByString: function contacts_findBy(filterValue, callback) {
       return this.findBy({
-        filterBy: ['tel', 'givenName', 'familyName'],
+        filterBy: ['tel', 'email', 'givenName', 'familyName'],
         filterOp: 'contains',
         filterValue: filterValue
       }, callback);
