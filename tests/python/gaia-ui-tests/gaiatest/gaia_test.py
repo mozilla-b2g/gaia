@@ -389,6 +389,11 @@ class Accessibility(object):
             'return Accessibility.isHidden.apply(Accessibility, arguments)',
             [element], special_powers=True)
 
+    def is_visible(self, element):
+        return self.marionette.execute_async_script(
+            'return Accessibility.isVisible.apply(Accessibility, arguments)',
+            [element], special_powers=True)
+
     def is_disabled(self, element):
         return self.marionette.execute_async_script(
             'return Accessibility.isDisabled.apply(Accessibility, arguments)',

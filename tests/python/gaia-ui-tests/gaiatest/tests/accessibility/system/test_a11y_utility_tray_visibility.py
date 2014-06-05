@@ -27,7 +27,7 @@ class TestUtilityTrayVisibilityAccessibility(GaiaTestCase):
         self.status_bar.a11y_wheel_status_bar_time()
 
         # Utility tray should now be visible.
-        self.assertFalse(self.accessibility.is_hidden(utility_tray_container))
+        self.assertTrue(self.accessibility.is_visible(utility_tray_container))
 
         self.utility_tray.a11y_wheel_utility_tray_grippy()
 
