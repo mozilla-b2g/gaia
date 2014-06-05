@@ -9,7 +9,7 @@ from gaiatest.mocks.mock_contact import MockContact
 
 class TestCleanupGaia(GaiaTestCase):
 
-    homescreen_frame_locator = (By.CSS_SELECTOR, 'div.homescreen iframe')
+    homescreen_frame_locator = (By.CSS_SELECTOR, '#homescreen iframe')
 
     def test_cleanup_gaia(self):
         self.check_initial_state()
@@ -32,12 +32,6 @@ class TestCleanupGaia(GaiaTestCase):
         # move away from home screen
         self.marionette.switch_to_frame(
             self.marionette.find_element(*self.homescreen_frame_locator))
-        self.marionette.execute_script(
-            'window.wrappedJSObject.GridManager.goToPage(1);')
-        self.assertEqual(self.marionette.execute_script("""
-var manager = window.wrappedJSObject.GridManager;
-return manager.pageHelper.getCurrentPageNumber();
-"""), 1)
         self.marionette.switch_to_frame()
 
         # lock screen
@@ -64,8 +58,4 @@ return manager.pageHelper.getCurrentPageNumber();
         # check we're on the home screen
         self.marionette.switch_to_frame(
             self.marionette.find_element(*self.homescreen_frame_locator))
-        self.assertEqual(self.marionette.execute_script("""
-var manager = window.wrappedJSObject.GridManager;
-return manager.pageHelper.getCurrentPageNumber();
-"""), 0)
         self.marionette.switch_to_frame()
