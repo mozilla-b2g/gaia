@@ -213,4 +213,4 @@
   };
 
   SIMSlotManager.init();
-}(this));
+}(window));
