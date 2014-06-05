@@ -3415,7 +3415,7 @@ suite('thread_ui.js >', function() {
       'should try to resend and remove the errored message',
       function() {
       window.confirm.returns(true);
-      this.errorMsg.querySelector('.pack-end').click();
+      this.errorMsg.querySelector('.message-status').click();
 
       request.result = message;
       request.onsuccess && request.onsuccess.call(request);
@@ -3771,10 +3771,10 @@ suite('thread_ui.js >', function() {
       };
     });
 
-    test('clicking on "pack-end" aside in an error message' +
+    test('clicking on "message-status" aside in an error message' +
       'triggers a confirmation dialog',
       function() {
-      this.elems.errorMsg.querySelector('.pack-end').click();
+      this.elems.errorMsg.querySelector('.message-status').click();
       assert.equal(window.confirm.callCount, 1);
     });
 
@@ -3791,10 +3791,11 @@ suite('thread_ui.js >', function() {
       assert.equal(window.confirm.callCount, 0);
     });
 
-    test('clicking on "pack-end" aside in an error message and accepting the ' +
-      'confirmation dialog triggers a message re-send operation', function() {
+    test('clicking on "message-status" aside in an error message and ' +
+      'accepting the confirmation dialog triggers a message re-send operation',
+    function() {
       window.confirm.returns(true);
-      this.elems.errorMsg.querySelector('.pack-end').click();
+      this.elems.errorMsg.querySelector('.message-status').click();
       assert.equal(ThreadUI.resendMessage.callCount, 1);
     });
 

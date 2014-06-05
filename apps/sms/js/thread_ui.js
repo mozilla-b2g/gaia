@@ -1379,7 +1379,6 @@ var ThreadUI = global.ThreadUI = {
       // Hide carrier tag in group message or unknown contact cases.
       threadMessages.classList.remove('has-carrier');
     }
-
   },
 
   // Method for updating the header with the info retrieved from Contacts API
@@ -1962,8 +1961,8 @@ var ThreadUI = global.ThreadUI = {
         elems.bubble = currentNode;
       } else if (currentNode.classList.contains('message')) {
         elems.message = currentNode;
-      } else if (currentNode.classList.contains('pack-end')) {
-        elems.packEnd = currentNode;
+      } else if (currentNode.classList.contains('message-status')) {
+        elems.messageStatus = currentNode;
       }
       currentNode = currentNode.parentNode;
     }
@@ -1992,9 +1991,9 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
-    // Click events originating from a "pack-end" aside of an error message
-    // should trigger a prompt for retransmission.
-    if (elems.message.classList.contains('error') && elems.packEnd) {
+    // Click events originating from a "message-status" aside of an error
+    // message should trigger a prompt for retransmission.
+    if (elems.message.classList.contains('error') && elems.messageStatus) {
       if (window.confirm(navigator.mozL10n.get('resend-confirmation'))) {
         this.resendMessage(elems.message.dataset.messageId);
       }

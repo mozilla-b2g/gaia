@@ -21,6 +21,7 @@
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
+    <link rel="stylesheet" type="text/css" href="style/message.css">
     <link rel="stylesheet" type="text/css" href="style/notification.css">
     <link rel="stylesheet" type="text/css" href="style/report_view.css">
     <link rel="stylesheet" type="text/css" href="style/attachment.css">
@@ -425,6 +426,7 @@
       <!--
       <div id="${id}" class="messages-date-group" data-timestamp="${timestamp}">
         <header
+          class="messages-date-group-header"
           data-time-update="${headerTimeUpdate}"
           data-time="${headerTime}"
           data-date-only="${headerDateOnly}">
@@ -441,15 +443,17 @@
         <span></span>
       </label>
       <section class="bubble">
-        <h1 class="subject">
+        <h1 class="message-subject">
           ${subject}
         </h1>
         <div class="message-content">
-          <aside class="pack-end">
+          <aside class="message-status">
             <progress class="${progressIndicatorClassName}"></progress>
           </aside>
-          <p>${bodyHTML}</p>
-          <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
+          <div class="message-body">
+            <p>${bodyHTML}</p>
+            <time data-time-update="true" data-time-only="true" data-time="${timestamp}"></time>
+          </div>
         </div>
       </section>
       -->
