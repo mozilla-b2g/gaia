@@ -68,7 +68,6 @@
     }
 
     if (stepData.video) {
-
       if (typeof callback === 'function') {
         videoElement.addEventListener('loadeddata', onVideoLoadOrError, false);
         videoElement.addEventListener('error', onVideoLoadOrError, false);
