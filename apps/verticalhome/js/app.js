@@ -31,6 +31,8 @@
           this.grid.add(result);
         }, this);
         this.grid.render();
+
+        window.addEventListener('localized', this.onLocalized.bind(this));
       }.bind(this));
     },
 
@@ -40,6 +42,24 @@
 
     stop: function() {
       this.grid.stop();
+    },
+
+    /**
+     * Called whenever the page is localized after the first render.
+     * Localizes all of the items.
+     */
+    onLocalized: function() {
+      var items = this.grid.getItems();
+      items.forEach(function eachItem(item) {
+        if(!item.name) {
+          return;
+        }
+
+        // Name is a magic getter and always returns the localized name of
+        // the app. We just need to get it and set the content.
+        var element = item.element.querySelector('.title');
+        element.textContent = item.name;
+      });
     },
 
     /**

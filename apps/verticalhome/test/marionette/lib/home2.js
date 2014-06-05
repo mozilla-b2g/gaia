@@ -49,6 +49,15 @@ Home2.prototype = {
   },
 
   /**
+   * Gets an icon by identifier.
+   */
+  getIconByIdentifier: function(identifier) {
+    return this.client.helper.waitForElement(
+      '[data-identifier="' + identifier + '"]'
+    );
+  },
+
+  /**
    * Emulates pressing of the hardware home button.
    */
   pressHomeButton: function() {
@@ -64,6 +73,30 @@ Home2.prototype = {
   waitForLaunch: function() {
     this.client.helper.waitForElement('body.homesearch-enabled');
     this.client.apps.switchToApp(Home2.URL);
+  },
+
+  /**
+   * Gets a localized application name from a manifest.
+   * @param {String} app to open
+   * @param {String} locale
+   */
+  localizedAppName: function(app, locale) {
+    this.client = this.client.scope({context: 'chrome'});
+
+    var file = 'app://' + app + '.gaiamobile.org/manifest.webapp';
+    var manifest = this.client.executeScript(function(file) {
+      var xhr = new XMLHttpRequest();
+      var data;
+      xhr.open('GET', file, false); // Intentional sync
+      xhr.onload = function(o) {
+        data = JSON.parse(xhr.response);
+      };
+      xhr.send(null);
+      return data;
+    }, [file]);
+
+    var locales = manifest.locales;
+    return locales && locales[locale].name;
   }
 };
 
