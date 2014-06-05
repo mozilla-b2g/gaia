@@ -1,6 +1,5 @@
 'use strict';
 /* global eme */
-/* global GridIconRenderer */
 
 (function(exports) {
 
@@ -15,7 +14,6 @@
     var options = collection.categoryId ? {categoryId: collection.categoryId}
                                         : {query: collection.query};
 
-
     // render pinned apps first
     collection.render(grid);
 
@@ -26,7 +24,6 @@
     }
 
     addListeners();
-
     function onOffline() {
       loading(false);
 
@@ -41,24 +38,11 @@
       loading();
 
       eme.api.Apps.search(options)
-        .then(function success(searchResponse) {
-          var results = [];
-
-          searchResponse.response.apps.forEach(function each(webapp) {
-            results.push({
-              id: webapp.id, // e.me app id (int)
-              name: webapp.name,
-              url: webapp.appUrl,
-              icon: webapp.icon,
-              renderer: GridIconRenderer.TYPE.CLIP
-            });
-          });
+        .then(function success(response) {
 
           onResponse();
 
-          // XXX force layout or else grid isn't displayed
-          grid.clientLeft;
-          collection.webResults = results;
+          collection.addWebResults(response.response.apps);
           collection.render(grid);
 
         }, onResponse);

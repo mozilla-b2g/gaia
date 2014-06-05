@@ -10,6 +10,7 @@
   const API_URL = 'https://api.everything.me/partners/1.0/{resource}/';
 
   var initPromise = null;
+  var slice = Function.call.bind(Array.prototype.slice);
 
   exports.eme = {
     config: {
@@ -63,18 +64,18 @@
 
     log: function log() {
       if (DEBUG) {
-        var args = Array.prototype.slice.apply(arguments);
+        var args = slice(arguments);
         args.unshift('evme');
         console.log.apply(console, args);
       }
     },
     warn: function warn() {
-      var args = Array.prototype.slice.apply(arguments);
+      var args = slice(arguments);
       args.unshift('evme', 'WARNING');
       console.warn.apply(console, args);
     },
     error: function error() {
-      var args = Array.prototype.slice.apply(arguments);
+      var args = slice(arguments);
       args.unshift('evme', 'ERROR');
       console.error.apply(console, args);
     }
