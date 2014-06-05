@@ -42,7 +42,7 @@ var fbLoader = (function() {
       '/shared/js/contacts/import/facebook/fb_contact.js',
       '/contacts/js/fb/fb_link.js',
       '/contacts/js/fb/fb_messaging.js',
-      '/contacts/js/value_selector.js'
+      '/contacts/js/action_menu.js'
     ];
 
     LazyLoader.load(scripts, function() {
