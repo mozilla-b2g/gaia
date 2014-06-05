@@ -203,17 +203,20 @@
      * Renders all icons.
      * Positions app icons and dividers accoriding to available space
      * on the grid.
-     * @param {Integer} from The index to start rendering from.
+     * @param {Object} options Options to render with including:
+     *  - from {Integer} The index to start rendering from.
+     *  - skipDivider {Boolean} Whether or not to skip the divider
      */
-    render: function(from, skipDivider) {
+    render: function(options) {
       var self = this;
+      options = options || {};
 
       this.removeAllPlaceholders();
-      this.cleanItems(skipDivider);
+      this.cleanItems(options.skipDivider);
 
       // Start rendering from one before the drop target. If not,
       // we may drop over the divider and miss rendering an icon.
-      from = from - 1 || 0;
+      var from = options.from - 1 || 0;
 
       // TODO This variable should be an argument of this method. See
       // https://bugzilla.mozilla.org/show_bug.cgi?id=1010742#c4
@@ -239,6 +242,7 @@
 
       for (var idx = 0; idx <= to; idx++) {
         var item = this.items[idx];
+
         // If the item would go over the boundary before rendering,
         // step the y-axis.
         if (x > 0 && item.gridWidth > 1 &&
