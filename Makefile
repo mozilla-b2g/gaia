@@ -516,7 +516,11 @@ test-agent-bootstrap: $(XULRUNNER_BASE_DIRECTORY)
 $(STAGE_DIR):
 	mkdir -p $@
 
+ifeq (${BUILD_APP_NAME},*)
 APP_RULES := $(foreach appdir,$(GAIA_APPDIRS),$(notdir $(appdir)))
+else
+APP_RULES := ${BUILD_APP_NAME}
+endif
 $(foreach appdir,$(GAIA_APPDIRS), \
 	$(eval $(call app-makefile-template,$(notdir $(appdir)),$(appdir))) \
 )
