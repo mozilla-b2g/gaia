@@ -30,8 +30,8 @@ var metadataParser = (function() {
   var offscreenImage = new Image();
 
   // The screen size. Preview images must be at least this big
-  var sw = window.innerWidth;
-  var sh = window.innerHeight;
+  var sw = window.innerWidth * window.devicePixelRatio;
+  var sh = window.innerHeight * window.devicePixelRatio;
 
   // Create a thumbnail size canvas, copy the <img> or <video> into it
   // cropping the edges as needed to make it fit, and then extract the
