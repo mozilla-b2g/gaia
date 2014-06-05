@@ -719,8 +719,11 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             else:
                 self.data_layer.set_char_pref(name, value)
 
-        # set homescreen origin
+        # set homescreen origin to old homescreen - remove after migration to vertical homescreen
+        self.marionette.switch_to_frame()
         self.data_layer.set_setting('homescreen.manifestURL', 'app://homescreen.gaiamobile.org/manifest.webapp')
+        homescreen = self.marionette.find_element(By.ID, 'homescreen')
+        Wait(self.marionette, timeout=60).until(lambda m: homescreen.get_attribute('loading-state') == 'false')
 
         # unlock
         self.device.unlock()
