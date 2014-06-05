@@ -122,6 +122,7 @@ form[role="search"] button[type="submit"]:after {
 
 #messages-input.placeholder:after {
   content: attr(data-placeholder);
+  font-style: italic;
 }
 
 #messages-subject-input.placeholder:after {
