@@ -9,7 +9,7 @@ requireApp('system/fxa/js/fxam_module.js');
 requireApp('system/fxa/js/fxam_states.js');
 
 // Mockuped code
-requireApp('/system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 requireApp('system/fxa/js/fxam_ui.js');
 requireApp('/system/test/unit/fxa_test/mock_fxam_ui.js');

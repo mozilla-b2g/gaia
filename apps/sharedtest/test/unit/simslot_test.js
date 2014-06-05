@@ -1,3 +1,4 @@
+/* globals SIMSlot */
 'use strict';
 
 suite('SIMSlot', function() {
@@ -8,7 +9,7 @@ suite('SIMSlot', function() {
   });
 
   setup(function(callback) {
-    requireApp('system/js/simslot.js', callback);
+    require('/shared/js/simslot.js', callback);
   });
 
   teardown(function() {
@@ -19,6 +20,7 @@ suite('SIMSlot', function() {
     window.addEventListener('simslot-created', function() {
       created = true;
     });
+    /*jshint unused: false */
     var slot = new SIMSlot(null, 0);
     assert.isTrue(created);
   });

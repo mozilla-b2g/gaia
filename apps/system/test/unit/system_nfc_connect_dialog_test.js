@@ -3,7 +3,7 @@
 /* globals NfcConnectSystemDialog, document, MockL10n,
             MockBluetooth  */
 
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/test/unit/mock_bluetooth.js');
 
 suite('NfcConnectSystemDialog', function() {

@@ -1,24 +1,25 @@
 /* globals FtuLauncher, MockAppWindowManager, MockL10n, MockMobileOperator,
            MockNavigatorMozMobileConnections, MockNavigatorMozTelephony,
            MockSettingsListener, MocksHelper, MockSIMSlot, MockSIMSlotManager,
-           MockSystem, MockTouchForwarder, StatusBar, System */
+           MockSystem, MockTouchForwarder, SimPinDialog, StatusBar, System */
 
 'use strict';
 
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/shared/test/unit/mocks/mock_mobile_operator.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
-requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
-requireApp('system/shared/test/unit/mocks/mock_app_window_manager.js');
-requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/test/unit/mock_system.js');
-requireApp('system/js/mock_simslot.js');
-requireApp('system/js/mock_simslot_manager.js');
-requireApp('system/test/unit/mock_app_window_manager.js');
-requireApp('system/test/unit/mock_ftu_launcher.js');
-requireApp('system/test/unit/mock_touch_forwarder.js');
-requireApp('system/test/unit/mock_sim_pin_dialog.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_mobile_operator.js');
+require(
+  '/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
+require('/shared/test/unit/mocks/mock_icc_helper.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_telephony.js');
+require('/shared/test/unit/mocks/mock_app_window_manager.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_system.js');
+require('/shared/test/unit/mocks/mock_simslot.js');
+require('/shared/test/unit/mocks/mock_simslot_manager.js');
+require('/test/unit/mock_app_window_manager.js');
+require('/test/unit/mock_ftu_launcher.js');
+require('/test/unit/mock_touch_forwarder.js');
+require('/test/unit/mock_sim_pin_dialog.js');
 
 var mocksForStatusBar = new MocksHelper([
   'FtuLauncher',
@@ -33,33 +34,16 @@ var mocksForStatusBar = new MocksHelper([
 suite('system/Statusbar', function() {
   var mobileConnectionCount = 2;
   var fakeStatusBarNode, fakeTopPanel, fakeStatusBarBackground,
-    fakeStatusBarIcons;
+      fakeStatusBarIcons, fakeStatusBarConnections,
+      fakeStatusBarCallForwardings, fakeStatusBarTime, fakeStatusBarLabel,
+      fakeStatusBarBattery;
   var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [];
 
-  mocksForStatusBar.attachTestHelpers();
-  suiteSetup(function(done) {
-    window.System = MockSystem;
-    realMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
-    realMozMobileConnections = navigator.mozMobileConnections;
-    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
-    realMozTelephony = navigator.mozTelephony;
-    navigator.mozTelephony = MockNavigatorMozTelephony;
-
-    requireApp('system/js/statusbar.js', done);
-  });
-
-  suiteTeardown(function() {
-    System.locked = false;
-    navigator.mozL10n = realMozL10n;
-    navigator.mozMobileConnections = realMozMobileConnections;
-    navigator.mozTelephony = realMozTelephony;
-  });
-
-  setup(function() {
+  function prepareDOM() {
     for (var i = 1; i < mobileConnectionCount; i++) {
       MockNavigatorMozMobileConnections.mAddMobileConnection();
     }
+
     fakeStatusBarNode = document.createElement('div');
     fakeStatusBarNode.id = 'statusbar';
     document.body.appendChild(fakeStatusBarNode);
@@ -76,39 +60,90 @@ suite('system/Statusbar', function() {
     fakeStatusBarIcons.id = 'statusbar-icons';
     document.body.appendChild(fakeStatusBarIcons);
 
-    StatusBar.ELEMENTS.forEach(function testAddElement(elementName) {
-      var elt;
-      if (elementName == 'system-downloads' ||
-          elementName == 'network-activity') {
-        elt = document.createElement('canvas');
-      } else {
-        elt = document.createElement('div');
-      }
-      elt.id = 'statusbar-' + elementName;
-      elt.hidden = true;
-      fakeStatusBarNode.appendChild(elt);
-      fakeIcons[elementName] = elt;
-    });
+    fakeStatusBarConnections = document.createElement('div');
+    fakeStatusBarConnections.id = 'statusbar-connections';
+    document.body.appendChild(fakeStatusBarConnections);
 
-    // executing init again
-    StatusBar.init();
+    fakeStatusBarCallForwardings = document.createElement('div');
+    fakeStatusBarCallForwardings.id = 'statusbar-call-forwardings';
+    document.body.appendChild(fakeStatusBarCallForwardings);
 
-    var signalElements = document.querySelectorAll('.statusbar-signal');
-    var dataElements = document.querySelectorAll('.statusbar-data');
+    fakeStatusBarTime = document.createElement('div');
+    fakeStatusBarTime.id = 'statusbar-time';
+    document.body.appendChild(fakeStatusBarTime);
 
-    fakeIcons.signals = {};
-    Array.prototype.slice.call(signalElements).forEach(function(signal, index) {
-      fakeIcons.signals[mobileConnectionCount - index - 1] = signal;
-    });
-    fakeIcons.data = {};
-    Array.prototype.slice.call(dataElements).forEach(function(data, index) {
-      fakeIcons.data[mobileConnectionCount - index - 1] = data;
-    });
+    fakeStatusBarLabel = document.createElement('div');
+    fakeStatusBarLabel.id = 'statusbar-label';
+    document.body.appendChild(fakeStatusBarLabel);
+
+    fakeStatusBarBattery = document.createElement('div');
+    fakeStatusBarBattery.id = 'statusbar-battery';
+    document.body.appendChild(fakeStatusBarBattery);
+  }
+
+  mocksForStatusBar.attachTestHelpers();
+
+  setup(function(done) {
+    window.System = MockSystem;
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+    realMozMobileConnections = navigator.mozMobileConnections;
+    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
+    realMozTelephony = navigator.mozTelephony;
+    navigator.mozTelephony = MockNavigatorMozTelephony;
+
+    prepareDOM();
+
+    requireApp('system/js/statusbar.js', statusBarReady);
+
+    function statusBarReady() {
+
+      StatusBar.ELEMENTS.forEach(function testAddElement(elementName) {
+        var elt =document.getElementById('statusbar-' + elementName);
+        if (elt) {
+          elt.parentNode.removeChild(elt);
+        }
+        if (elementName == 'system-downloads' ||
+            elementName == 'network-activity') {
+          elt = document.createElement('canvas');
+        } else {
+          elt = document.createElement('div');
+        }
+        elt.id = 'statusbar-' + elementName;
+        elt.hidden = true;
+        fakeStatusBarNode.appendChild(elt);
+        fakeIcons[elementName] = elt;
+      });
+
+      // executing init again
+      StatusBar.init();
+
+      var signalElements = document.querySelectorAll('.statusbar-signal');
+      var dataElements = document.querySelectorAll('.statusbar-data');
+
+      fakeIcons.signals = {};
+      Array.prototype.slice.call(signalElements).forEach(
+        function(signal, index) {
+          fakeIcons.signals[mobileConnectionCount - index - 1] = signal;
+        }
+      );
+      fakeIcons.data = {};
+      Array.prototype.slice.call(dataElements).forEach(function(data, index) {
+        fakeIcons.data[mobileConnectionCount - index - 1] = data;
+      });
+
+      done();
+    }
   });
+
   teardown(function() {
     fakeStatusBarNode.parentNode.removeChild(fakeStatusBarNode);
     MockNavigatorMozTelephony.mTeardown();
     MockNavigatorMozMobileConnections.mTeardown();
+    System.locked = false;
+    navigator.mozL10n = realMozL10n;
+    navigator.mozMobileConnections = realMozMobileConnections;
+    navigator.mozTelephony = realMozTelephony;
   });
 
   suite('airplane mode icon', function() {
@@ -241,11 +276,14 @@ suite('system/Statusbar', function() {
       assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('moztime change while lockscreen is unlocked', function() {
+      this.sinon.useFakeTimers();
       System.locked = false;
       var evt = new CustomEvent('moztimechange');
       StatusBar.handleEvent(evt);
+      this.sinon.clock.tick();
       assert.notEqual(StatusBar.clock.timeoutID, null);
       assert.equal(StatusBar.icons.time.hidden, false);
+      this.sinon.clock.restore();
     });
     test('screen enable but screen is unlocked', function() {
       var evt = new CustomEvent('screenchange', {
@@ -296,370 +334,372 @@ suite('system/Statusbar', function() {
       mockSimSlots = null;
     });
 
-    for (var i = 0; i < mobileConnectionCount; i++) {
-      (function(slotIndex) {
-        suite('slot: ' + slotIndex, function() {
-          var dataset;
-          setup(function() {
-            dataset = fakeIcons.signals[slotIndex].dataset;
-            MockSIMSlotManager.mInstances = mockSimSlots;
-          });
-
-          test('no network without sim, not searching', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: null,
-              emergencyCallsOnly: false,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = null;
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(true);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.isUndefined(dataset.level);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('no network without sim, searching', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: null,
-              emergencyCallsOnly: false,
-              state: 'searching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = null;
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(true);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.isUndefined(dataset.level);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('no network with sim, sim locked', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: null,
-              emergencyCallsOnly: false,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.equal(fakeIcons.signals[slotIndex].hidden, true);
-          });
-
-          test('searching', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: null,
-              emergencyCallsOnly: false,
-              state: 'searching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'ready';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.equal(dataset.level, -1);
-            assert.equal(dataset.searching, 'true');
-          });
-
-          test('emergency calls only, no sim', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 80,
-              emergencyCallsOnly: true,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = null;
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(true);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.isUndefined(dataset.level);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('emergency calls only, with sim', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 80,
-              emergencyCallsOnly: true,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.equal(fakeIcons.signals[slotIndex].hidden, true);
-          });
-
-          test('emergency calls only, in call', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 80,
-              emergencyCallsOnly: true,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
-
-            MockNavigatorMozTelephony.active = {
-              state: 'connected',
-              serviceId: slotIndex
-            };
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.equal(dataset.level, 4);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('emergency calls only, dialing', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 80,
-              emergencyCallsOnly: true,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
-
-            MockNavigatorMozTelephony.active = {
-              state: 'dialing',
-              serviceId: slotIndex
-            };
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.equal(dataset.level, 4);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('emergency calls, passing a call', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 80,
-              emergencyCallsOnly: true,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            var activeCall = {
-              state: 'dialing',
-              serviceId: slotIndex
-            };
-
-            MockNavigatorMozTelephony.active = activeCall;
-            MockNavigatorMozTelephony.calls = [activeCall];
-
-            var evt = new CustomEvent('callschanged');
-            MockNavigatorMozTelephony.mTriggerEvent(evt);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.equal(dataset.level, 4);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('normal carrier', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: true,
-              relSignalStrength: 80,
-              emergencyCallsOnly: false,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'ready';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.equal(dataset.level, 4);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('airplane mode', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: true,
-              relSignalStrength: 80,
-              emergencyCallsOnly: false,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'ready';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-
-            MockSettingsListener.mCallbacks['airplaneMode.enabled'](true);
-
-            assert.isFalse(StatusBar.icons.flightMode.hidden);
-            assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
-          });
-
-          test('roaming', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: true,
-              relSignalStrength: 80,
-              emergencyCallsOnly: false,
-              state: 'notSearching',
-              roaming: true,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'ready';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.equal(dataset.roaming, 'true');
-            assert.equal(dataset.level, 4);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('emergency calls, roaming', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 80,
-              emergencyCallsOnly: true,
-              state: 'notSearching',
-              roaming: true,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'ready';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-
-            StatusBar.update.signal.call(StatusBar);
-
-            assert.notEqual(dataset.roaming, 'true');
-            assert.equal(dataset.level, -1);
-            assert.notEqual(dataset.searching, 'true');
-          });
-
-          test('emergency calls, avoid infinite callback loop', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 80,
-              emergencyCallsOnly: true,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-            sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
-
-            var mockTel = MockNavigatorMozTelephony;
-
-            StatusBar.update.signal.call(StatusBar);
-            assert.equal(mockTel.mCountEventListener('callschanged',
-                                                     StatusBar), 1);
-
-            // Bug 880390: On B2G18 adding a 'callschanged' listener can trigger
-            // another event immediately.  To avoid an infinite loop, the
-            // listener must only be added once.  Simulate this immediate event
-            // here and then check that we still only have one listener.
-
-            var evt = new CustomEvent('callschanged');
-            mockTel.mTriggerEvent(evt);
-            assert.equal(mockTel.mCountEventListener('callschanged',
-                                                     StatusBar), 1);
-          });
-
-          test('EVDO connection, show data call signal strength', function() {
-            MockNavigatorMozMobileConnections[slotIndex].voice = {
-              connected: false,
-              relSignalStrength: 0,
-              emergencyCallsOnly: false,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            MockNavigatorMozMobileConnections[slotIndex].data = {
-              connected: true,
-              relSignalStrength: 80,
-              type: 'evdo',
-              emergencyCallsOnly: false,
-              state: 'notSearching',
-              roaming: false,
-              network: {}
-            };
-
-            mockSimSlots[slotIndex].simCard.cardState = 'ready';
-            mockSimSlots[slotIndex].simCard.iccInfo = {};
-            sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
-
-            StatusBar.update.signal.call(StatusBar);
-            assert.equal(dataset.level, 4);
-          });
+    function slotIndexTests(slotIndex) {
+      suite('slot: ' + slotIndex, function() {
+        var dataset;
+        setup(function() {
+          dataset = fakeIcons.signals[slotIndex].dataset;
+          MockSIMSlotManager.mInstances = mockSimSlots;
         });
-      })(i);
+
+        test('no network without sim, not searching', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: null,
+            emergencyCallsOnly: false,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = null;
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(true);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.isUndefined(dataset.level);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('no network without sim, searching', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: null,
+            emergencyCallsOnly: false,
+            state: 'searching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = null;
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(true);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.isUndefined(dataset.level);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('no network with sim, sim locked', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: null,
+            emergencyCallsOnly: false,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+          sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.equal(fakeIcons.signals[slotIndex].hidden, true);
+        });
+
+        test('searching', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: null,
+            emergencyCallsOnly: false,
+            state: 'searching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'ready';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.equal(dataset.level, -1);
+          assert.equal(dataset.searching, 'true');
+        });
+
+        test('emergency calls only, no sim', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 80,
+            emergencyCallsOnly: true,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = null;
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(true);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.isUndefined(dataset.level);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('emergency calls only, with sim', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 80,
+            emergencyCallsOnly: true,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+          sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.equal(fakeIcons.signals[slotIndex].hidden, true);
+        });
+
+        test('emergency calls only, in call', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 80,
+            emergencyCallsOnly: true,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+          sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
+
+          MockNavigatorMozTelephony.active = {
+            state: 'connected',
+            serviceId: slotIndex
+          };
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.equal(dataset.level, 4);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('emergency calls only, dialing', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 80,
+            emergencyCallsOnly: true,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+          sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
+
+          MockNavigatorMozTelephony.active = {
+            state: 'dialing',
+            serviceId: slotIndex
+          };
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.equal(dataset.level, 4);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('emergency calls, passing a call', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 80,
+            emergencyCallsOnly: true,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+          sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          var activeCall = {
+            state: 'dialing',
+            serviceId: slotIndex
+          };
+
+          MockNavigatorMozTelephony.active = activeCall;
+          MockNavigatorMozTelephony.calls = [activeCall];
+
+          var evt = new CustomEvent('callschanged');
+          MockNavigatorMozTelephony.mTriggerEvent(evt);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.equal(dataset.level, 4);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('normal carrier', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: true,
+            relSignalStrength: 80,
+            emergencyCallsOnly: false,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'ready';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.equal(dataset.level, 4);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('airplane mode', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: true,
+            relSignalStrength: 80,
+            emergencyCallsOnly: false,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'ready';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+
+          MockSettingsListener.mCallbacks['airplaneMode.enabled'](true);
+
+          assert.isFalse(StatusBar.icons.flightMode.hidden);
+          assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+        });
+
+        test('roaming', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: true,
+            relSignalStrength: 80,
+            emergencyCallsOnly: false,
+            state: 'notSearching',
+            roaming: true,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'ready';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.equal(dataset.roaming, 'true');
+          assert.equal(dataset.level, 4);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('emergency calls, roaming', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 80,
+            emergencyCallsOnly: true,
+            state: 'notSearching',
+            roaming: true,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'ready';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+
+          StatusBar.update.signal.call(StatusBar);
+
+          assert.notEqual(dataset.roaming, 'true');
+          assert.equal(dataset.level, -1);
+          assert.notEqual(dataset.searching, 'true');
+        });
+
+        test('emergency calls, avoid infinite callback loop', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 80,
+            emergencyCallsOnly: true,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'pinRequired';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+          sinon.stub(mockSimSlots[slotIndex], 'isLocked').returns(true);
+
+          var mockTel = MockNavigatorMozTelephony;
+
+          StatusBar.update.signal.call(StatusBar);
+          assert.equal(mockTel.mCountEventListener('callschanged',
+                                                   StatusBar), 1);
+
+          // Bug 880390: On B2G18 adding a 'callschanged' listener can trigger
+          // another event immediately.  To avoid an infinite loop, the
+          // listener must only be added once.  Simulate this immediate event
+          // here and then check that we still only have one listener.
+
+          var evt = new CustomEvent('callschanged');
+          mockTel.mTriggerEvent(evt);
+          assert.equal(mockTel.mCountEventListener('callschanged',
+                                                   StatusBar), 1);
+        });
+
+        test('EVDO connection, show data call signal strength', function() {
+          MockNavigatorMozMobileConnections[slotIndex].voice = {
+            connected: false,
+            relSignalStrength: 0,
+            emergencyCallsOnly: false,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          MockNavigatorMozMobileConnections[slotIndex].data = {
+            connected: true,
+            relSignalStrength: 80,
+            type: 'evdo',
+            emergencyCallsOnly: false,
+            state: 'notSearching',
+            roaming: false,
+            network: {}
+          };
+
+          mockSimSlots[slotIndex].simCard.cardState = 'ready';
+          mockSimSlots[slotIndex].simCard.iccInfo = {};
+          sinon.stub(mockSimSlots[slotIndex], 'isAbsent').returns(false);
+
+          StatusBar.update.signal.call(StatusBar);
+          assert.equal(dataset.level, 4);
+        });
+      });
+    }
+
+    for (var i = 0; i < mobileConnectionCount; i++) {
+      slotIndexTests(i);
     }
   });
 
@@ -776,148 +816,290 @@ suite('system/Statusbar', function() {
       StatusBar.settingValues['ril.cf.enabled'] = defaultValue;
     });
 
-    for (var i = 0; i < mobileConnectionCount; i++) {
-      (function(slotIndex) {
-        suite('slot: ' + slotIndex, function() {
-          test('call forwarding enabled', function() {
-            StatusBar.settingValues['ril.cf.enabled'][slotIndex] = true;
-            StatusBar.update.callForwarding.call(StatusBar);
-            assert.isFalse(StatusBar.icons.callForwardings[slotIndex].hidden);
-          });
-
-          test('call forwarding disabled', function() {
-            StatusBar.settingValues['ril.cf.enabled'][slotIndex] = false;
-            StatusBar.update.callForwarding.call(StatusBar);
-            assert.isTrue(StatusBar.icons.callForwardings[slotIndex].hidden);
-          });
+    function slotIndexTests(slotIndex) {
+      suite('slot: ' + slotIndex, function() {
+        test('call forwarding enabled', function() {
+          StatusBar.settingValues['ril.cf.enabled'][slotIndex] = true;
+          StatusBar.update.callForwarding.call(StatusBar);
+          assert.isFalse(StatusBar.icons.callForwardings[slotIndex].hidden);
         });
-      })(i);
+
+        test('call forwarding disabled', function() {
+          StatusBar.settingValues['ril.cf.enabled'][slotIndex] = false;
+          StatusBar.update.callForwarding.call(StatusBar);
+          assert.isTrue(StatusBar.icons.callForwardings[slotIndex].hidden);
+        });
+      });
+    }
+
+    for (var i = 0; i < mobileConnectionCount; i++) {
+      slotIndexTests(i);
     }
   });
 
   suite('data connection', function() {
-    for (var i = 0; i < mobileConnectionCount; i++) {
-      (function(slotIndex) {
-        suite('slot: ' + slotIndex, function() {
-          suite('data connection unavailable', function() {
-            teardown(function() {
-              StatusBar.settingValues = {};
+    function slotIndexTests(slotIndex) {
+      suite('slot: ' + slotIndex, function() {
+        suite('data connection unavailable', function() {
+          teardown(function() {
+            StatusBar.settingValues = {};
+          });
+
+          test('radio disabled', function() {
+            StatusBar.settingValues['ril.radio.disabled'] = true;
+            StatusBar.update.data.call(StatusBar);
+            assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+            // Just because radio is disabled doesn't mean we're in airplane
+            // mode.
+            assert.isTrue(StatusBar.icons.flightMode.hidden);
+          });
+
+          test('data disabled', function() {
+            StatusBar.settingValues['ril.data.enabled'] = false;
+            StatusBar.update.data.call(StatusBar);
+            assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+          });
+
+          test('data not connected', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data =
+              { connected: false };
+            StatusBar.update.data.call(StatusBar);
+            assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+          });
+
+          test('wifi icon is displayed', function() {
+            StatusBar.icons.wifi.hidden = false;
+            StatusBar.update.data.call(StatusBar);
+            assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+          });
+        });
+
+        suite('data connection available', function() {
+          setup(function() {
+            StatusBar.settingValues['ril.radio.disabled'] = false;
+            StatusBar.settingValues['ril.data.enabled'] = true;
+            StatusBar.icons.wifi.hidden = true;
+          });
+
+          teardown(function() {
+            StatusBar.settingValues = {};
+          });
+
+          test('type lte', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'lte'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, '4G');
+          });
+
+          // GSM
+          test('type hspa+', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'hspa+'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H+');
+          });
+
+          test('type hsdpa', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'hsdpa'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H');
+          });
+
+          test('type hsupa', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'hsupa'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H');
+          });
+
+          test('type hspa', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'hspa'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H');
+          });
+
+          test('type umts', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'umts'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, '3G');
+          });
+
+          test('type edge', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'edge'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, 'E');
+          });
+
+          test('type gprs', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'gprs'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, '2G');
+          });
+
+          // CDMA
+          test('type 1xrtt', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: '1xrtt'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
+          });
+
+          test('type is95a', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'is95a'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
+          });
+
+          test('type is95b', function() {
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              type: 'is95b'
+            };
+            StatusBar.update.data.call(StatusBar);
+            assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
+          });
+
+          // CDMA related to calls
+          suite('CDMA network types when there is a call',
+            function() {
+              test('type ehrpd', function() {
+                MockNavigatorMozTelephony.calls = [{}];
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'ehrpd'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent,
+                             '4G');
             });
 
-            test('radio disabled', function() {
-              StatusBar.settingValues['ril.radio.disabled'] = true;
+            test('type evdo0', function() {
+              MockNavigatorMozTelephony.calls = [{}];
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'evdo0'
+              };
               StatusBar.update.data.call(StatusBar);
-              assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
-              // Just because radio is disabled doesn't mean we're in airplane
-              // mode.
-              assert.isTrue(StatusBar.icons.flightMode.hidden);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
             });
 
-            test('data disabled', function() {
-              StatusBar.settingValues['ril.data.enabled'] = false;
+            test('type evdoa', function() {
+              MockNavigatorMozTelephony.calls = [{}];
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'evdoa'
+              };
               StatusBar.update.data.call(StatusBar);
-              assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
             });
 
-            test('data not connected', function() {
-              MockNavigatorMozMobileConnections[slotIndex].data =
-                { connected: false };
+            test('type evdob', function() {
+              MockNavigatorMozTelephony.calls = [{}];
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'evdob'
+              };
               StatusBar.update.data.call(StatusBar);
-              assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
             });
 
-            test('wifi icon is displayed', function() {
-              StatusBar.icons.wifi.hidden = false;
+            test('type 1xrtt', function() {
+              MockNavigatorMozTelephony.calls = [{}];
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: '1xrtt'
+              };
               StatusBar.update.data.call(StatusBar);
-              assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
+            });
+
+            test('type is95a', function() {
+              MockNavigatorMozTelephony.calls = [{}];
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'is95a'
+              };
+              StatusBar.update.data.call(StatusBar);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
+            });
+
+            test('type is95b', function() {
+              MockNavigatorMozTelephony.calls = [{}];
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'is95b'
+              };
+              StatusBar.update.data.call(StatusBar);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
             });
           });
 
-          suite('data connection available', function() {
-            setup(function() {
-              StatusBar.settingValues['ril.radio.disabled'] = false;
-              StatusBar.settingValues['ril.data.enabled'] = true;
-              StatusBar.icons.wifi.hidden = true;
+          suite('CDMA network types when there is no call',
+            function() {
+              test('type ehrpd', function() {
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'ehrpd'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent,
+                             '4G');
             });
 
-            teardown(function() {
-              StatusBar.settingValues = {};
-            });
-
-            test('type lte', function() {
+            test('type evdo0', function() {
               MockNavigatorMozMobileConnections[slotIndex].data = {
                 connected: true,
-                type: 'lte'
+                type: 'evdo0'
               };
               StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, '4G');
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
             });
 
-            // GSM
-            test('type hspa+', function() {
+            test('type evdoa', function() {
               MockNavigatorMozMobileConnections[slotIndex].data = {
                 connected: true,
-                type: 'hspa+'
+                type: 'evdoa'
               };
               StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H+');
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
             });
 
-            test('type hsdpa', function() {
+            test('type evdob', function() {
               MockNavigatorMozMobileConnections[slotIndex].data = {
                 connected: true,
-                type: 'hsdpa'
+                type: 'evdob'
               };
               StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H');
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
             });
 
-            test('type hsupa', function() {
-              MockNavigatorMozMobileConnections[slotIndex].data = {
-                connected: true,
-                type: 'hsupa'
-              };
-              StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H');
-            });
-
-            test('type hspa', function() {
-              MockNavigatorMozMobileConnections[slotIndex].data = {
-                connected: true,
-                type: 'hspa'
-              };
-              StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H');
-            });
-
-            test('type umts', function() {
-              MockNavigatorMozMobileConnections[slotIndex].data = {
-                connected: true,
-                type: 'umts'
-              };
-              StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, '3G');
-            });
-
-            test('type edge', function() {
-              MockNavigatorMozMobileConnections[slotIndex].data = {
-                connected: true,
-                type: 'edge'
-              };
-              StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'E');
-            });
-
-            test('type gprs', function() {
-              MockNavigatorMozMobileConnections[slotIndex].data = {
-                connected: true,
-                type: 'gprs'
-              };
-              StatusBar.update.data.call(StatusBar);
-              assert.equal(StatusBar.icons.data[slotIndex].textContent, '2G');
-            });
-
-            // CDMA
             test('type 1xrtt', function() {
               MockNavigatorMozMobileConnections[slotIndex].data = {
                 connected: true,
@@ -944,151 +1126,13 @@ suite('system/Statusbar', function() {
               StatusBar.update.data.call(StatusBar);
               assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
             });
-
-            // CDMA related to calls
-            suite('CDMA network types when there is a call',
-              function() {
-                test('type ehrpd', function() {
-                  MockNavigatorMozTelephony.calls = [{}];
-                  MockNavigatorMozMobileConnections[slotIndex].data = {
-                    connected: true,
-                    type: 'ehrpd'
-                  };
-                  StatusBar.update.data.call(StatusBar);
-                  assert.equal(StatusBar.icons.data[slotIndex].textContent,
-                               '4G');
-              });
-
-              test('type evdo0', function() {
-                MockNavigatorMozTelephony.calls = [{}];
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'evdo0'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
-              });
-
-              test('type evdoa', function() {
-                MockNavigatorMozTelephony.calls = [{}];
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'evdoa'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
-              });
-
-              test('type evdob', function() {
-                MockNavigatorMozTelephony.calls = [{}];
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'evdob'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
-              });
-
-              test('type 1xrtt', function() {
-                MockNavigatorMozTelephony.calls = [{}];
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: '1xrtt'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
-              });
-
-              test('type is95a', function() {
-                MockNavigatorMozTelephony.calls = [{}];
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'is95a'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
-              });
-
-              test('type is95b', function() {
-                MockNavigatorMozTelephony.calls = [{}];
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'is95b'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
-              });
-            });
-
-            suite('CDMA network types when there is no call',
-              function() {
-                test('type ehrpd', function() {
-                  MockNavigatorMozMobileConnections[slotIndex].data = {
-                    connected: true,
-                    type: 'ehrpd'
-                  };
-                  StatusBar.update.data.call(StatusBar);
-                  assert.equal(StatusBar.icons.data[slotIndex].textContent,
-                               '4G');
-              });
-
-              test('type evdo0', function() {
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'evdo0'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
-              });
-
-              test('type evdoa', function() {
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'evdoa'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
-              });
-
-              test('type evdob', function() {
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'evdob'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
-              });
-
-              test('type 1xrtt', function() {
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: '1xrtt'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
-              });
-
-              test('type is95a', function() {
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'is95a'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
-              });
-
-              test('type is95b', function() {
-                MockNavigatorMozMobileConnections[slotIndex].data = {
-                  connected: true,
-                  type: 'is95b'
-                };
-                StatusBar.update.data.call(StatusBar);
-                assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
-              });
-            });
           });
         });
-      })(i);
+      });
+    }
+
+    for (var i = 0; i < mobileConnectionCount; i++) {
+      slotIndexTests(i);
     }
   });
 
@@ -1515,9 +1559,9 @@ suite('system/Statusbar', function() {
       suite('if it\'s not a tap and the statusbar is not fully displayed',
       function() {
         test('it should not forward any events', function() {
-          var touchstart = fakeDispatch('touchstart', 100, 0);
+          fakeDispatch('touchstart', 100, 0);
           fakeDispatch('touchmove', 100, 8);
-          var touchend = fakeDispatch('touchend', 100, 8);
+          fakeDispatch('touchend', 100, 8);
 
           assert.isTrue(forwardSpy.notCalled);
         });

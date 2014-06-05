@@ -1,7 +1,7 @@
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('system/test/unit/mock_system.js');
+require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksForOrientationManager = new MocksHelper([
   'SettingsListener', 'System'

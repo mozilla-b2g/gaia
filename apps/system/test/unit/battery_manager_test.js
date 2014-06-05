@@ -5,7 +5,7 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 require('/shared/test/unit/mocks/mock_gesture_detector.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 requireApp('system/js/battery_manager.js');
 
 var mocksForBatteryManager = new MocksHelper([

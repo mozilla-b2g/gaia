@@ -14,7 +14,7 @@ requireApp('system/test/unit/mock_nfc.js');
 requireApp('system/test/unit/mock_nfc_handover_manager.js');
 requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_bluetooth.js');
-requireApp('system/test/unit/mock_system.js');
+require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksForNfcManager = new MocksHelper([
   'MozActivity',

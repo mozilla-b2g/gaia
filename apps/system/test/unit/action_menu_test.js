@@ -3,7 +3,7 @@
 
 require('/shared/test/unit/load_body_html_helper.js');
 requireApp('system/js/action_menu.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('ActionMenu', function() {
   var activitiesMockup, realL10n, genericActionsMockup;

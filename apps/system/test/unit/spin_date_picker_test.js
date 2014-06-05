@@ -2,7 +2,7 @@
 
 requireApp('system/js/value_selector/value_picker.js');
 requireApp('system/js/value_selector/spin_date_picker.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('value selector/spin date picker', function() {
   var subject;

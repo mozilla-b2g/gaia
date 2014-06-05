@@ -5,7 +5,7 @@
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_attention_screen.js');
-requireApp('system/test/unit/mock_system.js');
+require('/shared/test/unit/mocks/mock_system.js');
 
 var mocksForVisibilityManager = new MocksHelper([
   'AttentionScreen', 'System'

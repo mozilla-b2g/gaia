@@ -2,7 +2,7 @@
 'use strict';
 
 require('/test/unit/mock_activity.js');
-require('/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/test/unit/mock_wifi_manager.js');
 require('/test/unit/mock_airplane_mode.js');
 require('/shared/test/unit/mocks/mock_settings_helper.js');
