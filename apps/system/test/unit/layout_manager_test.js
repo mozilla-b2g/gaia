@@ -29,6 +29,7 @@ suite('system/LayoutManager >', function() {
         type: 'resize'
       });
       assert.isTrue(stubPublish.calledWith('system-resize'));
+      assert.isTrue(stubPublish.calledWith('orientationchange'));
     });
 
     test('status-active', function() {
