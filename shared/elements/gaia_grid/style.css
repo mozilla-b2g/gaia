@@ -1,3 +1,26 @@
+.loading:before {
+  /**
+  XXX: Do something less terrible...
+
+  -13% to align the icon above the text of the icon.
+  */
+  margin-top: -13%;
+  content: "";
+  z-index: 30000;
+  background: no-repeat center url('images/loading_spinner.png');
+  background-size: 6rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  /**
+  keyframe must be defined outside of the web component
+  See bug 1018269
+  */
+  animation: rotate 2.25s linear infinite;
+}
+
 .icon {
   position: absolute;
   transform-origin: 0 0;
@@ -72,7 +95,7 @@
   left: 0.5rem;
   width: 2.6rem;
   height: 2.6rem;
-  background: url(/style/images/remove.png) no-repeat;
+  background: url(images/remove.png) no-repeat;
 }
 
 .edit-mode .icon:not(.active) {

@@ -57,6 +57,30 @@ AppInstall.prototype = {
     return this.client.findElement(AppInstall.Selector.imeConfirmButton);
   },
 
+  _install: function(type, manifestURL, options) {
+    this.client.executeScript(function install(type, url) {
+      window.wrappedJSObject.navigator.mozApps[type](url);
+    }, [type, manifestURL]);
+
+    options = options || { allowInstall: true };
+    if (options.allowInstall) {
+      this.waitForDialog(this.installDialog);
+      // Click install button on the app install dialog
+      this.installButton.click();
+    }
+  },
+
+  /**
+   * Install an app.
+   * @param {string} manifestURL The manifestURL of the app to be installed.
+   * @param {Object} [options] The options for installation.
+   * @param {boolean} [options.allowInstall=true] If true, allow the
+   * installation directly.
+   */
+  installPackage: function install(manifestURL, options) {
+    return this._install('installPackage', manifestURL, options);
+  },
+
   /**
    * Install an app.
    * @param {string} manifestURL The manifestURL of the app to be installed.
@@ -65,17 +89,7 @@ AppInstall.prototype = {
    * installation directly.
    */
   install: function install(manifestURL, options) {
-    this.client.executeScript(function install(url) {
-      window.wrappedJSObject.navigator.mozApps.install(url);
-    }, [manifestURL]);
-
-    options = options || { allowInstall: true };
-
-    if (options.allowInstall) {
-      // Click install button on the app install dialog
-      this.waitForDialog(this.installDialog);
-      this.installButton.click();
-    }
+    return this._install('install', manifestURL, options);
   },
 
   /**
