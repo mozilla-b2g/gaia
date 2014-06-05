@@ -142,10 +142,10 @@ suite('shared/js/text_utils.js', function() {
     return element;
   }
 
-  function getMaxHeaderFontSize() {
+  /*function getMaxHeaderFontSize() {
     var sizes = FontSizeUtils.getAllowedSizes(setupHeaderElement());
     return sizes[sizes.length - 1];
-  }
+  }*/
 
   function getMinHeaderFontSize() {
     var sizes = FontSizeUtils.getAllowedSizes(setupHeaderElement());
@@ -335,9 +335,8 @@ suite('shared/js/text_utils.js', function() {
       var fontSizeBefore = getComputedStyle(el).fontSize;
 
       el.textContent = setupSmallString(fontSizeBefore);
-      var autoResizeNeeded = FontSizeUtils.autoResizeElement(el);
+      FontSizeUtils.autoResizeElement(el);
 
-      assert.isFalse(autoResizeNeeded);
       assert.equal(fontSizeBefore, getComputedStyle(el).fontSize);
     });
 
@@ -346,9 +345,8 @@ suite('shared/js/text_utils.js', function() {
       var fontSizeBefore = getComputedStyle(el).fontSize;
 
       el.textContent = setupMediumString(parseInt(fontSizeBefore));
-      var autoResizeNeeded = FontSizeUtils.autoResizeElement(el);
+      FontSizeUtils.autoResizeElement(el);
 
-      assert.isFalse(autoResizeNeeded);
       assert.equal(fontSizeBefore, getComputedStyle(el).fontSize);
     });
 
@@ -357,9 +355,8 @@ suite('shared/js/text_utils.js', function() {
       var fontSizeBefore = getComputedStyle(el).fontSize;
 
       el.textContent = setupMediumPlusString(parseInt(fontSizeBefore));
-      var autoResizeNeeded = FontSizeUtils.autoResizeElement(el);
+      FontSizeUtils.autoResizeElement(el);
 
-      assert.isTrue(autoResizeNeeded);
       assert.notEqual(fontSizeBefore, getComputedStyle(el).fontSize);
     });
 
@@ -369,9 +366,8 @@ suite('shared/js/text_utils.js', function() {
       el.style.fontSize = fontSizeBefore;
 
       el.textContent = setupLargeString(parseInt(fontSizeBefore));
-      var autoResizeNeeded = FontSizeUtils.autoResizeElement(el);
+      FontSizeUtils.autoResizeElement(el);
 
-      assert.isTrue(autoResizeNeeded);
       assert.notEqual(getMinHeaderFontSize(), getComputedStyle(el).fontSize);
     });
   });
@@ -433,7 +429,7 @@ suite('shared/js/text_utils.js', function() {
     });
   });
 
-  suite('FontSizeUtils auto resize without Mutation Observer', function() {
+  /*suite('FontSizeUtils auto resize without Mutation Observer', function() {
     test('Should auto-resize back up when text changes', function(done) {
       var el = setupHeaderElement();
       document.body.appendChild(el.parentNode);
@@ -460,6 +456,41 @@ suite('shared/js/text_utils.js', function() {
         });
       });
     });
+  });*/
+
+  suite('FontSizeUtils.getElementWidth', function() {
+    var el;
+
+    setup(function() {
+      el = document.createElement('div');
+      el.style.width = '50px';
+      el.style.padding = '10px';
+      document.body.appendChild(el);
+    });
+
+    teardown(function() {
+      document.body.removeChild(el);
+    });
+
+    test('Should compute the width of content-box element', function() {
+      el.style.boxSizing = 'content-box';
+      var style = getComputedStyle(el);
+      var styleWidth = parseInt(style.width, 10);
+      var actualWidth = FontSizeUtils.getElementWidth(style);
+
+      assert.equal(styleWidth, 50);
+      assert.equal(actualWidth, 50);
+    });
+
+    test('Should compute the width of border-box element', function() {
+      el.style.boxSizing = 'border-box';
+      var style = getComputedStyle(el);
+      var styleWidth = parseInt(style.width, 10);
+      var actualWidth = FontSizeUtils.getElementWidth(style);
+
+      assert.equal(styleWidth, 50);
+      assert.equal(actualWidth, 30);
+    });
   });
 
   suite('FontSizeUtils.centerTextToScreen', function() {
@@ -468,7 +499,7 @@ suite('shared/js/text_utils.js', function() {
       // for the centering logic to work like it does in apps.
       document.body.style.margin = '0';
 
-      sinon.stub(FontSizeUtils, 'getScreenWidth', function() {
+      sinon.stub(FontSizeUtils, 'getWindowWidth', function() {
         return kContainerWidth + leftButtonWidth + rightButtonWidth;
       });
     });
@@ -480,7 +511,7 @@ suite('shared/js/text_utils.js', function() {
       el.textContent = setupSmallString(fontSizeBefore);
       document.body.appendChild(el.parentNode);
 
-      FontSizeUtils.centerTextToScreen(el);
+      FontSizeUtils.reformatHeaderText(el);
 
       var margin = Math.max(leftButtonWidth, rightButtonWidth);
       assert.equal(parseInt(el.style.marginLeft, 10), margin);
@@ -497,7 +528,7 @@ suite('shared/js/text_utils.js', function() {
       el.textContent = setupMediumString(parseInt(fontSizeBefore));
       document.body.appendChild(el.parentNode);
 
-      FontSizeUtils.centerTextToScreen(el);
+      FontSizeUtils.reformatHeaderText(el);
 
       assert.equal(parseInt(el.style.marginLeft, 10), 0);
       assert.equal(parseInt(el.style.marginRight, 10), 0);
@@ -513,7 +544,7 @@ suite('shared/js/text_utils.js', function() {
       el.textContent = setupMediumPlusString(parseInt(fontSizeBefore));
       document.body.appendChild(el.parentNode);
 
-      FontSizeUtils.centerTextToScreen(el);
+      FontSizeUtils.reformatHeaderText(el);
 
       assert.equal(parseInt(el.style.marginLeft, 10), 0);
       assert.equal(parseInt(el.style.marginRight, 10), 0);
@@ -529,7 +560,7 @@ suite('shared/js/text_utils.js', function() {
       el.textContent = setupLargeString(parseInt(fontSizeBefore));
       document.body.appendChild(el.parentNode);
 
-      FontSizeUtils.centerTextToScreen(el);
+      FontSizeUtils.reformatHeaderText(el);
 
       assert.equal(parseInt(el.style.marginLeft, 10), 0);
       assert.equal(parseInt(el.style.marginRight, 10), 0);
@@ -545,7 +576,7 @@ suite('shared/js/text_utils.js', function() {
       el.textContent = setupSmallString(fontSizeBefore);
       document.body.appendChild(el.parentNode);
 
-      FontSizeUtils.centerTextToScreen(el);
+      FontSizeUtils.reformatHeaderText(el);
 
       // Clean up.
       document.body.removeChild(el.parentNode);
@@ -558,7 +589,7 @@ suite('shared/js/text_utils.js', function() {
       el.textContent = setupMediumString(parseInt(fontSizeBefore));
       document.body.appendChild(el.parentNode);
 
-      FontSizeUtils.centerTextToScreen(el);
+      FontSizeUtils.reformatHeaderText(el);
 
       // Clean up.
       document.body.removeChild(el.parentNode);
@@ -603,7 +634,7 @@ suite('shared/js/text_utils.js', function() {
       document.body.appendChild(el.parentNode);
       el.textContent = setupLargeString();
 
-      var stub = sinon.stub(FontSizeUtils, 'autoResizeElement', function() {
+      var stub = sinon.stub(FontSizeUtils, 'reformatHeaderText', function() {
         document.body.removeChild(el.parentNode);
         stub.restore();
         assert.isTrue(stub.calledWith(el));
@@ -616,7 +647,7 @@ suite('shared/js/text_utils.js', function() {
       document.body.appendChild(el.parentNode);
       el.textContent = setupLargeString();
 
-      var spy = sinon.spy(FontSizeUtils, 'autoResizeElement');
+      var spy = sinon.spy(FontSizeUtils, 'reformatHeaderText');
       assert.isTrue(spy.notCalled);
 
       el.addEventListener('overflow', function() {
@@ -624,35 +655,6 @@ suite('shared/js/text_utils.js', function() {
         spy.restore();
         assert.isTrue(spy.notCalled);
         done();
-      });
-    });
-  });
-
-  suite('FontSizeUtils auto resize without Mutation Observer', function() {
-    test('Should auto-resize back up when text changes', function(done) {
-      var el = setupHeaderElement();
-      document.body.appendChild(el.parentNode);
-      el.textContent = setupLargeString();
-
-      // When we get an overflow event, make sure we have auto-resized
-      // to the minimum possible font size for the large string.
-      el.addEventListener('overflow', function onOverflow() {
-        el.removeEventListener('overflow', onOverflow);
-        assert.equal(parseInt(getComputedStyle(el).fontSize),
-          getMinHeaderFontSize());
-
-        // Now set the smallest string possible, and make sure we have
-        // auto-resized back to the maximum possible font size.
-        el.textContent = setupSmallString();
-        el.addEventListener('underflow', function onUnderflow() {
-          el.removeEventListener('underflow', onUnderflow);
-          assert.equal(parseInt(getComputedStyle(el).fontSize),
-            getMaxHeaderFontSize());
-
-          // Clean up.
-          document.body.removeChild(el.parentNode);
-          done();
-        });
       });
     });
   });
