@@ -86,7 +86,7 @@ body:not(.rb-enabled) #statusbar {
 #screen.rocketbar-expanded:not(.on-homescreen):not(.locked) #statusbar-icons,
 #screen.on-homescreen.rocketbar-focused:not(.locked) #statusbar-icons,
 #screen.rocketbar-expanded.cards-view #statusbar-icons,
-#screen.fullscreen-app #statusbar-icons {
+#screen.fullscreen-app #statusbar:not(.dragged) #statusbar-icons {
   visibility: hidden;
   opacity: 0;
 }
