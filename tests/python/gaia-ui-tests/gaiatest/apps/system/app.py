@@ -10,12 +10,16 @@ class System(Base):
 
     # status bar
     _status_bar_locator = (By.ID, 'statusbar')
+    _status_bar_icons_locator = (By.ID, 'statusbar-icons')
     _status_bar_notification_locator = (By.ID, 'statusbar-notification')
     _geoloc_statusbar_locator = (By.ID, 'statusbar-geolocation')
     _airplane_mode_statusbar_locator = (By.ID, 'statusbar-flight-mode')
 
     _notification_toaster_locator = (By.ID, 'notification-toaster')
     _update_manager_toaster_locator = (By.ID, 'update-manager-toaster')
+
+    def wait_for_status_bar_icon_displayed(self):
+        self.wait_for_element_displayed(*self._status_bar_icons_locator)
 
     def wait_for_status_bar_displayed(self):
         self.wait_for_element_displayed(*self._status_bar_locator)
