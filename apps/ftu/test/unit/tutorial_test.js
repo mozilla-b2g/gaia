@@ -1,4 +1,5 @@
-/* global Tutorial, MockFinishScreen */
+/* global Tutorial, FinishScreen,
+          MocksHelper, MockL10n */
 'use strict';
 
 requireApp('ftu/test/unit/mock_l10n.js');
@@ -149,6 +150,76 @@ suite('Tutorial >', function() {
       assert.isTrue(FinishScreen.init.calledOnce);
       // Reset the spy
       FinishScreen.init.reset();
+    });
+
+  });
+
+  suite(' progressbar', function() {
+    function mockConfig(stepCount) {
+      var steps = [];
+      for (; stepCount; stepCount--) {
+        steps.push({
+          video: '/style/images/tutorial/VerticalScroll.mp4',
+          l10nKey: 'tutorial-vertical-scroll-tiny'
+        });
+      }
+      var config = {
+        'default': {
+          steps: steps
+        }
+      };
+      return config;
+    }
+    var realXHR;
+    function MockXMLHttpRequest() {
+      this.open = function() {};
+      this.send = function() {
+        this.response = this.mResponse;
+        this.timeout = setTimeout(this.onload.bind(this));
+      };
+      this.abort = function() {
+        if (this.timeout) {
+          clearTimeout(this.clearTimeout);
+        }
+      };
+    }
+
+    suiteSetup(function() {
+      window.XMLHttpRequest = MockXMLHttpRequest;
+      Tutorial.reset();
+    });
+    suiteTeardown(function() {
+      window.XMLHttpRequest = realXHR;
+    });
+    teardown(function() {
+      Tutorial.reset();
+    });
+    test(' sanity test mocks', function(done) {
+      XMLHttpRequest.prototype.mResponse = mockConfig(2);
+      Tutorial.init(null, function() {
+        assert.equal(Tutorial.config['default'].steps.length, 2);
+        done();
+      });
+    });
+
+    test(' dont display with 3 steps', function(done) {
+      XMLHttpRequest.prototype.mResponse = mockConfig(3);
+      Tutorial.init(null, function() {
+        assert.equal(Tutorial.config['default'].steps.length, 3);
+        var tutorialNode = document.getElementById('tutorial');
+        assert.ok(!tutorialNode.hasAttribute('data-progressbar'), '');
+        done();
+      });
+    });
+
+    test(' do display with 4 steps', function(done) {
+      XMLHttpRequest.prototype.mResponse = mockConfig(4);
+      Tutorial.init(null, function() {
+        assert.equal(Tutorial.config['default'].steps.length, 4);
+        var tutorialNode = document.getElementById('tutorial');
+        assert.ok(tutorialNode.hasAttribute('data-progressbar'));
+        done();
+      });
     });
 
   });
