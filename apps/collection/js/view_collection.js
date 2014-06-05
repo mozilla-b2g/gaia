@@ -1,5 +1,4 @@
 'use strict';
-/* global Bookmark */
 /* global BaseCollection */
 /* global Contextmenu */
 
@@ -49,18 +48,21 @@
 
     eme.api.Apps.search({categoryId: categoryId, query: query, iconFormat: 20})
       .then(function success(searchResponse) {
+
+        var webResults = [];
+
         searchResponse.response.apps.forEach(function each(webapp) {
-          var webBookmark = new Bookmark({
+          webResults.push({
             id: webapp.id, // e.me app id (int)
             name: webapp.name,
             url: webapp.appUrl,
             icon: webapp.icon,
             clipIcon: true
           });
-          grid.add(webBookmark);
         });
 
-        grid.render();
+        collection.webResults = webResults;
+        collection.render(grid);
       }, error)
       .catch(fail);
 

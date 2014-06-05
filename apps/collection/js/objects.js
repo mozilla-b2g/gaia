@@ -2,6 +2,7 @@
 /* global CollectionsDatabase */
 /* global CollectionIcon */
 /* global Bookmark */
+/* global Divider */
 
 (function(exports){
 
@@ -12,6 +13,9 @@
     this.icon = props.icon || null;
     this.pinned = props.pinned || [];
     this.webicons = props.webicons || [];
+
+    // A list of the web results for this collection view
+    this.webResults = [];
   }
 
   BaseCollection.create = function create(data) {
@@ -41,11 +45,23 @@
     },
 
     render: function render(grid) {
+      grid.clear();
+
       this.pinned.forEach(function render(pinned) {
         var icon = new Bookmark(pinned);
         grid.add(icon);
       });
 
+      if (!this.webResults.length) {
+        return;
+      }
+
+      grid.add(new Divider());
+
+      this.webResults.forEach(function(detail) {
+        var bookmark = new Bookmark(detail);
+        grid.add(bookmark);
+      });
       grid.render();
     },
 
