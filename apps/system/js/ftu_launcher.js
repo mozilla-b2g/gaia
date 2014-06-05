@@ -173,8 +173,9 @@ var FtuLauncher = {
     window.asyncStorage.getItem('ftu.enabled', function getItem(shouldFTU) {
       // launch full FTU when enabled
       if (shouldFTU !== false) {
-        self.launch();
-        return;
+        return VersionHelper.updatePrevious().then(function() {
+          self.launch();
+        });
       }
 
       // launch FTU when a version upgrade is detected
