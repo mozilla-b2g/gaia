@@ -16,8 +16,7 @@ marionette('Notification events', function() {
     }
   });
 
-  // FIXME: bug 1006537, only works in B2G with OOP
-  test.skip('click event starts application', function(done) {
+  test('click event starts application', function(done) {
     var notificationTitle = 'Title:' + Date.now();
 
     // switch to calendar app and send notification
