@@ -1,3 +1,9 @@
+/* globals CallScreen, CallsHandler, HandledCall, MockBluetoothHelperInstance,
+           MockCall, MockCallScreen, MockLazyL10n, MockNavigatormozApps,
+           MockNavigatorMozIccManager, MockNavigatormozSetMessageHandler,
+           MockNavigatorMozTelephony, MockNavigatorWakeLock, MocksHelper,
+           MockTonePlayer, MockUtils, telephonyAddCall, telephonyAddCdmaCall */
+
 'use strict';
 
 require('/test/unit/mock_call_screen.js');
@@ -19,12 +25,6 @@ require('/shared/test/unit/mocks/dialer/mock_utils.js');
 require(
   '/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
 );
-
-// The CallsHandler binds stuff when evaluated so we load it
-// after the mocks and we don't want it to show up as a leak.
-if (!this.CallsHandler) {
-  this.CallsHandler = null;
-}
 
 var mocksHelperForCallsHandler = new MocksHelper([
   'HandledCall',
@@ -137,7 +137,7 @@ suite('calls handler', function() {
     suite('> hanging up the last incoming call', function() {
       setup(function() {
         var mockCall = new MockCall('12334', 'incoming');
-        var mockHC = telephonyAddCall.call(this, mockCall, {trigger: true});
+        telephonyAddCall.call(this, mockCall, {trigger: true});
 
         MockNavigatorMozTelephony.calls = [];
       });
@@ -1153,8 +1153,7 @@ suite('calls handler', function() {
       });
 
       test('should get active call', function() {
-        var activeHandlerCall = CallsHandler.activecall;
-          assert.equal(CallsHandler.activeCall.call, activeCall);
+        assert.equal(CallsHandler.activeCall.call, activeCall);
       });
     });
 

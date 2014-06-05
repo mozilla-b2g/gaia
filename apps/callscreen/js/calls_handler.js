@@ -1,3 +1,6 @@
+/* globals BluetoothHelper, CallScreen, Contacts, HandledCall, KeypadManager,
+           LazyL10n, SimplePhoneMatcher, TonePlayer, Utils */
+
 'use strict';
 
 var CallsHandler = (function callsHandler() {
@@ -74,7 +77,7 @@ var CallsHandler = (function callsHandler() {
     if (!highPriorityWakeLock && telephony.calls.length > 0) {
       highPriorityWakeLock = navigator.requestWakeLock('high-priority');
     }
-    if (highPriorityWakeLock && telephony.calls.length == 0) {
+    if (highPriorityWakeLock && telephony.calls.length === 0) {
       highPriorityWakeLock.unlock();
       highPriorityWakeLock = null;
     }
@@ -91,17 +94,15 @@ var CallsHandler = (function callsHandler() {
     });
 
     // Removing any ended calls to handledCalls
+    function hcIterator(call) {
+      return (call == hc.call);
+    }
+
     for (var index = (handledCalls.length - 1); index >= 0; index--) {
       var hc = handledCalls[index];
 
-      var stillHere = telephony.calls.some(function hcIterator(call) {
-        return (call == hc.call);
-      });
-
-      stillHere = stillHere ||
-        telephony.conferenceGroup.calls.some(function hcIterator(call) {
-        return (call == hc.call);
-      });
+      var stillHere = telephony.calls.some(hcIterator) ||
+                      telephony.conferenceGroup.calls.some(hcIterator);
 
       if (!stillHere) {
         removeCall(index);
@@ -129,13 +130,13 @@ var CallsHandler = (function callsHandler() {
 
     // No more room
     if (telephony.calls.length > CALLS_LIMIT) {
-      new HandledCall(call);
+      HandledCall(call);
       call.hangUp();
       return;
     }
 
     // First incoming or outgoing call, reset mute and speaker.
-    if (handledCalls.length == 0) {
+    if (handledCalls.length === 0) {
       CallScreen.unmute();
 
       /**
@@ -182,7 +183,6 @@ var CallsHandler = (function callsHandler() {
   }
 
   function removeCall(index) {
-    var removedCall = handledCalls[index];
     handledCalls.splice(index, 1);
 
     if (handledCalls.length === 0) {
@@ -326,7 +326,7 @@ var CallsHandler = (function callsHandler() {
 
   /* === Bluetooth Headset support ===*/
   function handleBTCommand(message) {
-    var command = message['command'];
+    var command = message.command;
     switch (command) {
       case 'CHUP':
         end();
@@ -390,10 +390,10 @@ var CallsHandler = (function callsHandler() {
       case 'headset-button-press':
         lastHeadsetPress = Date.now();
         return;
-        break;
       case 'headset-button-release':
-        if ((Date.now() - lastHeadsetPress) > 1000)
+        if ((Date.now() - lastHeadsetPress) > 1000) {
           return;
+        }
         break;
       default:
         return;
@@ -697,15 +697,15 @@ var CallsHandler = (function callsHandler() {
 
   function activeCall() {
     var telephonyActiveCall = telephony.active;
-    var activeCall = null;
+    var active = null;
     for (var i = 0; i < handledCalls.length; i++) {
       var handledCall = handledCalls[i];
       if (telephonyActiveCall === handledCall.call) {
-        activeCall = handledCall;
+        active = handledCall;
         break;
       }
     }
-    return activeCall;
+    return active;
   }
 
   function activeCallForContactImage() {
