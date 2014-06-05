@@ -3,7 +3,7 @@
 
 /* Copyright © 2013, Deutsche Telekom, Inc. */
 
-/* globals dump, MozNDEFRecord, TextEncoder, TextDecoder */
+/* globals dump, MozNDEFRecord */
 /* exported NDEF, NfcBuffer, NfcUtils */
 'use strict';
 
@@ -198,8 +198,11 @@ NfcUtils = {
       return null;
     }
 
-    var enc = new TextEncoder('utf-8');
-    return enc.encode(str);
+    var buf = new Uint8Array(str.length);
+    for (var i = 0; i < str.length; i++) {
+      buf[i] = str.charCodeAt(i);
+    }
+    return buf;
   },
 
   /**
@@ -232,54 +235,46 @@ NfcUtils = {
       return null;
     }
 
-    // BOM removal
-    if (this.equalArrays(a.subarray(0, 3), [0xEF, 0xBB, 0xBF])) {
-      a = a.subarray(3);
+    var str = '';
+    for (var i = 0; i < a.length; i++) {
+      str += String.fromCharCode(a[i]);
     }
-    var dec = new TextDecoder('utf-8');
-    return dec.decode(a);
+    return str;
   },
 
   /**
    * Decodes UTF-16 bytes array into a String
    *
-   * @param {Uint8Array} array containing UTF-16 encoded bytes
-   * @return {string}
+   * @param {Array} array containing UTF-16 encoded bytes
+   * @return {String}
    */
-  UTF16BytesToStr: function UTF16BytesToStr(array) {
-      if (!array) {
-        return null;
-      }
-
+  UTF16BytesToString: function UTF16BytesToString(array) {
       // if BOM not present Big-endian should be used
       // NFCForum-TS-RTD_Text_1.0
-      var le = false;
+      var offset1 = 0, offset2 = 1, i = 0;
 
-      var possibleBom = array.subarray(0, 2);
-      if (this.equalArrays(possibleBom, [0xFF, 0xFE])) {
-        array = array.subarray(2);
-        le = true;
-      } else if (this.equalArrays(possibleBom, [0xFE, 0xFF])) {
-        array = array.subarray(2);
+      if (array[0] === 0xFE && array[1] === 0xFF) {
+        i = 2;
+      } else if (array[0] === 0xFF && array[1] === 0xFE) {
+        i = 2;
+        offset1 = 1;
+        offset2 = 0;
       }
 
-      var encoding = (le) ? 'utf-16le' : 'utf-16be';
-      var dec = new TextDecoder(encoding);
-      return dec.decode(array);
-  },
+      var str = '';
+      for (var len = array.length; i < len; i += 2) {
+          var b1 = array[i + offset1];
+          if (b1 < 0xD8 || b1 >= 0xE0) {
+            var b2 = array[i + offset2];
+            var word = (b1 << 8) + b2;
+            str += String.fromCharCode(word);
+          } else {
+            i += 2;
+            // as for now we handle only BMP characters
+          }
+      }
 
-  /**
-   * Ecodes string into Uint8Array conating UTF-16 BE bytes without BOM
-   * @param {string}
-   * @return {Uint8Array}
-   */
-  strToUTF16Bytes: function strToUTF16Bytes(str) {
-    if (!str) {
-      return null;
-    }
-
-    var enc = new TextEncoder('utf-16be');
-    return enc.encode(str);
+      return str;
   },
 
   /*****************************************************************************
