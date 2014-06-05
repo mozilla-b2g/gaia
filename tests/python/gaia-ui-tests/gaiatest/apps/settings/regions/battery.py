@@ -10,8 +10,10 @@ class Battery(Base):
 
     _power_save_checkbox_locator = (By.CSS_SELECTOR, '.uninit[name*="powersave"]')
     _power_save_label_locator = (By.CSS_SELECTOR, 'span[data-l10n-id="powerSaveMode"]')
+    _back_button_locator = (By.CSS_SELECTOR, '.icon-back')
 
     def toggle_power_save_mode(self):
+        self.wait_for_condition(lambda m: m.find_element(*self._back_button_locator).location['x'] == 0)
         checkbox = self.marionette.find_element(*self._power_save_checkbox_locator)
         label = self.marionette.find_element(*self._power_save_label_locator)
         checkbox_state = checkbox.is_selected()
