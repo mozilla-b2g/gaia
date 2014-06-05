@@ -5,12 +5,12 @@
 
 requireApp('system/mobile_id/js/ui.js');
 requireApp('system/mobile_id/js/controller.js');
-requireApp('system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 require('/shared/test/unit/load_body_html_helper.js');
 
 suite('MobileID Controller', function() {
   var realL10n;
-  
+
   var mockDetails = [
     {
       primary: true,
@@ -29,7 +29,7 @@ suite('MobileID Controller', function() {
     navigator.mozL10n = MockL10n;
 
     loadBodyHTML('/mobile_id/index.html');
-    
+
     Controller.init();
   });
 
@@ -42,6 +42,7 @@ suite('MobileID Controller', function() {
 
   test(' when "init" is launched, we listen mozL10n ready and we render',
     function() {
+    this.sinon.useFakeTimers();
     this.sinon.stub(UI, 'localize');
     this.sinon.stub(UI, 'render');
     this.sinon.spy(navigator.mozL10n, 'ready');
@@ -55,9 +56,11 @@ suite('MobileID Controller', function() {
       }
     );
     window.dispatchEvent(eventToLaunch);
+    this.sinon.clock.tick();
     assert.isTrue(navigator.mozL10n.ready.calledOnce);
     assert.isTrue(UI.render.calledOnce);
     assert.isTrue(UI.localize.calledOnce);
+    this.sinon.clock.restore();
   });
 
   test(' when "shown" is launched, we set the scroll params', function() {

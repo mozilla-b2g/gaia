@@ -4,7 +4,7 @@ require('/shared/js/input_parser.js');
 require('/shared/test/unit/load_body_html_helper.js');
 require('/apps/system/js/value_selector/value_picker.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
-require('/apps/system/test/unit/mock_l10n.js');
+require('/shared/test/unit/mocks/mock_l10n.js');
 
 suite('value selector/value selector', function() {
   var realL10n;
