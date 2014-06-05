@@ -60,6 +60,9 @@ var ThreadUI = global.ThreadUI = {
   // delay between 2 counter updates while composing a message
   UPDATE_DELAY: 500,
 
+  // Min available chars count that triggers available chars counter
+  MIN_AVAILABLE_CHARS_COUNT: 20,
+
   // when sending an sms to several recipients in activity, we'll exit the
   // activity after this delay after moving to the thread list.
   LEAVE_ACTIVITY_DELAY: 3000,
@@ -96,8 +99,8 @@ var ThreadUI = global.ThreadUI = {
       'attach-button', 'delete-button', 'cancel-button', 'subject-input',
       'new-message-notice', 'options-icon', 'edit-mode', 'edit-form',
       'tel-form', 'header-text', 'max-length-notice', 'convert-notice',
-      'resize-notice', 'dual-sim-information',
-      'new-message-notice', 'subject-max-length-notice'
+      'resize-notice', 'dual-sim-information', 'new-message-notice',
+      'subject-max-length-notice', 'counter-label'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -1203,7 +1206,9 @@ var ThreadUI = global.ThreadUI = {
     var smsInfoRequest = this._mozMobileMessage.getSegmentInfoForText(value);
     smsInfoRequest.onsuccess = (function onSmsInfo(event) {
       if (Compose.type !== 'sms') {
+        // Remove 'has-counter'(as it's supposed to be used for sms only) and
         // bailout if the type changed since the request started
+        this.counterLabel.classList.remove('has-counter');
         return;
       }
 
@@ -1212,18 +1217,19 @@ var ThreadUI = global.ThreadUI = {
       var availableChars = smsInfo.charsAvailableInLastSegment;
 
       // in MMS mode, the counter value isn't used anyway, so we can update this
-      this.sendButton.dataset.counter = availableChars + '/' + segments;
+      this.counterLabel.dataset.counter = availableChars + '/' + segments;
 
       // if we are going to force MMS, this is true anyway, so adding
       // has-counter again doesn't hurt us.
-      var showCounter = (segments && (segments > 1 || availableChars <= 20));
-      this.sendButton.classList.toggle('has-counter', showCounter);
+      var showCounter = (segments && (segments > 1 ||
+        availableChars <= this.MIN_AVAILABLE_CHARS_COUNT));
+      this.counterLabel.classList.toggle('has-counter', showCounter);
 
       var overLimit = segments > kMaxConcatenatedMessages;
       callback(overLimit);
     }).bind(this);
     smsInfoRequest.onerror = (function onSmsInfoError(e) {
-      this.sendButton.classList.remove('has-counter');
+      this.counterLabel.classList.remove('has-counter');
     }).bind(this);
   },
 
@@ -1261,8 +1267,6 @@ var ThreadUI = global.ThreadUI = {
   },
 
   updateCounterForMms: function thui_updateCounterForMms() {
-    // always turn on the counter for mms, it just displays "MMS"
-    this.sendButton.classList.add('has-counter');
     // Counter should be updated when image resizing complete
     if (Compose.isResizing) {
       return false;
@@ -2166,8 +2170,8 @@ var ThreadUI = global.ThreadUI = {
       Compose.clear();
 
       // reset the counter
-      this.sendButton.dataset.counter = '';
-      this.sendButton.classList.remove('has-counter');
+      this.counterLabel.dataset.counter = '';
+      this.counterLabel.classList.remove('has-counter');
     }).bind(this);
 
     // TODO understand this : bug 1009568
