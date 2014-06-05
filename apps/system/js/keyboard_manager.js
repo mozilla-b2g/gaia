@@ -475,7 +475,9 @@ var KeyboardManager = {
         break;
       case 'sheetstransitionstart':
         if (this.hasActiveKeyboard) {
-          this.hideKeyboard();
+          // Instead of hideKeyboard(), we should removeFocus() here.
+          // (and, removing the focus cause Gecko to ask us to hideKeyboard())
+          navigator.mozInputMethod.removeFocus();
         }
         break;
     }
@@ -678,8 +680,6 @@ var KeyboardManager = {
     window.dispatchEvent(new CustomEvent('keyboardhide'));
     this.keyboardFrameContainer.classList.add('hide');
     this.keyboardFrameContainer.dataset.transitionOut = 'true';
-
-    navigator.mozInputMethod.removeFocus();
   },
 
   hideKeyboardImmediately: function km_hideImmediately() {
