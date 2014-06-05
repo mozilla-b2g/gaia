@@ -74,6 +74,8 @@ suite('SimSettingsHelper > ', function() {
     });
   });
 
+  /*
+   * Disabled bug 1017831
   suite('SimSettingsHelper._setToSettingsDB > ', function() {
     var fakeSettingKey = 'ril.sms.defaultServiceId';
     var fakeSettingValue = 0;
@@ -87,6 +89,7 @@ suite('SimSettingsHelper > ', function() {
         fakeSettingValue);
     });
   });
+  */
 
   suite('SimSettingsHelper._set("key")._on(cardIndex) > ', function() {
     var fakeCardIndex = 0;
