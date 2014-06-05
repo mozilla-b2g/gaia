@@ -46,7 +46,7 @@
         var identifier = this.target.dataset.identifier;
         var icon = this.grid.getIcon(identifier);
 
-        collection.pin(icon.detail);
+        collection.pinWebResult(icon.detail);
         collection.render(this.grid);
       }
 

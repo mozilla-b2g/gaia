@@ -3,9 +3,8 @@
 /* global asyncStorage*/
 
 (function(eme) {
-  var
-  PREFIX = 'eme-cache',
-  slice = Function.call.bind(Array.prototype.slice);
+  var PREFIX = 'eme-cache';
+  var slice = Function.call.bind(Array.prototype.slice);
 
 
   function Cache() { }
@@ -31,6 +30,7 @@
         });
       });
     },
+
     addRequest: function cache_addRequest(service, method, options, response) {
       this.add(this.generateKey(service, method, options), response);
     },
