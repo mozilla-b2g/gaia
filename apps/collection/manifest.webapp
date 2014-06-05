@@ -55,5 +55,14 @@
       "access": "readwrite",
       "description": "Stores collections"
     }
+  },
+  "connections": {
+    "setup": {
+      "description": "It populates datastore with pre-installed collections",
+      "rules": {
+        "manifestURLs": ["app://ftu.gaiamobile.org/manifest.webapp"]
+      },
+      "handler_path": "/setup.html"
+    }
   }
 }
