@@ -1715,7 +1715,7 @@
 
   AppWindow.prototype.getFrameForScreenshot = function() {
     var top = this.getTopMostWindow();
-    return top.browser.element;
+    return top.browser ? top.browser.element : null;
   };
 
   AppWindow.prototype._handle_activityterminated = function() {
