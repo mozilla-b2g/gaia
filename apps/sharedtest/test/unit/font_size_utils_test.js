@@ -103,14 +103,14 @@ suite('shared/js/text_utils.js', function() {
   }
 
   function setupHeaderElementWithButtons() {
-    var header = document.createElement('header');
-    var headerText = document.createElement('h1');
+    var headerText = setupHeaderElement();
+    var header = headerText.parentNode;
+
     var leftButton = document.createElement('button');
     var rightButton = document.createElement('button');
 
-    header.appendChild(leftButton);
+    header.insertBefore(leftButton, headerText);
     header.appendChild(rightButton);
-    header.appendChild(headerText);
 
     header.style.width = (kContainerWidth + leftButtonWidth +
       rightButtonWidth) + 'px';
@@ -121,11 +121,7 @@ suite('shared/js/text_utils.js', function() {
     rightButton.style.cssFloat = 'right';
     rightButton.style.width = rightButtonWidth + 'px';
 
-    headerText.style.overflow = 'hidden';
-    headerText.style.textOverflow = '';
     headerText.style.margin = '0';
-    headerText.style.paddingLeft = '10px';
-    headerText.style.paddingRight = '10px';
     // use maximum header fontSize
     var sizes = FontSizeUtils.getAllowedSizes(headerText);
     headerText.style.fontSize = sizes[sizes.length - 1] + 'px';
@@ -479,31 +475,32 @@ suite('shared/js/text_utils.js', function() {
 
     test('Should compute the width of content-box element', function() {
       el.style.boxSizing = 'content-box';
-      var width = FontSizeUtils.getElementWidth(el);
+      var styleWidth = parseInt(getComputedStyle(el).width, 10);
+      var actualWidth = FontSizeUtils.getElementWidth(el);
 
-      assert.equal(width, 70);
+      assert.equal(styleWidth, 50);
+      assert.equal(actualWidth, 70);
     });
 
     test('Should compute the width of border-box element', function() {
       el.style.boxSizing = 'border-box';
-      var width = FontSizeUtils.getElementWidth(el);
+      var styleWidth = parseInt(getComputedStyle(el).width, 10);
+      var actualWidth = FontSizeUtils.getElementWidth(el);
 
-      assert.equal(width, 70);
+      assert.equal(styleWidth, 50);
+      assert.equal(actualWidth, 50);
     });
   });
 
   suite('FontSizeUtils.centerTextToScreen', function() {
-    // We can't mock screen.width, hence the following code.
-    var originalFontSizeUtilsContainerWidth;
+    suiteSetup(function() {
+      // Body often has a default margin which needs to be removed
+      // for the centering logic to work like it does in apps.
+      document.body.style.margin = '0';
 
-    setup(function() {
-      originalFontSizeUtilsContainerWidth = FontSizeUtils.containerWidth;
-      FontSizeUtils.containerWidth = kContainerWidth + leftButtonWidth +
-        rightButtonWidth;
-    });
-
-    teardown(function() {
-      FontSizeUtils.containerWidth = originalFontSizeUtilsContainerWidth;
+      sinon.stub(FontSizeUtils, 'getScreenWidth', function() {
+        return kContainerWidth + leftButtonWidth + rightButtonWidth;
+      });
     });
 
     test('Should center a small header title', function() {
@@ -588,8 +585,6 @@ suite('shared/js/text_utils.js', function() {
 
       FontSizeUtils.centerTextToScreen(el);
 
-      assert.equal(el.style.textOverflow, '');
-
       // Clean up.
       document.body.removeChild(el.parentNode);
     });
@@ -602,8 +597,6 @@ suite('shared/js/text_utils.js', function() {
       document.body.appendChild(el.parentNode);
 
       FontSizeUtils.centerTextToScreen(el);
-
-      assert.equal(el.style.textOverflow, '');
 
       // Clean up.
       document.body.removeChild(el.parentNode);
@@ -618,7 +611,6 @@ suite('shared/js/text_utils.js', function() {
 
       el.addEventListener('overflow', function onOverflow() {
         el.removeEventListener('overflow', onOverflow);
-        assert.equal(el.style.textOverflow, '');
 
         // Clean up.
         document.body.removeChild(el.parentNode);
@@ -635,7 +627,6 @@ suite('shared/js/text_utils.js', function() {
 
       el.addEventListener('overflow', function onOverflow() {
         el.removeEventListener('overflow', onOverflow);
-        assert.equal(el.style.textOverflow, '');
 
         // Clean up.
         document.body.removeChild(el.parentNode);

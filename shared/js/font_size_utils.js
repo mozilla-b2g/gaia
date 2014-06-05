@@ -8,8 +8,6 @@
     16, 17, 18, 19, 20, 21, 22, 23
   ];
 
-  var _screenWidth = 0;
-
   /**
    * Utility functions for measuring and manipulating font sizes
    */
@@ -71,7 +69,7 @@
      */
     _handleTextChanges: function(mutations) {
       for (var i = 0; i < mutations.length; i++) {
-        this.autoResizeElement(mutations[i].target);
+        this.reformatHeaderText(mutations[i].target);
       }
     },
 
@@ -209,22 +207,6 @@
     },
 
     /**
-     * When certain elements overflow, auto resize their fonts
-     *
-     * @param {UIEvent} evt The overflow/underflow event object.
-     */
-    handleTextFlowChange: function(evt) {
-      var element = evt.target;
-      // This check should really be in its own function, but as a
-      // performance optimization we will avoid the overhead of any
-      // additional function call by doing this check inline.
-      if (element.tagName === 'H1' && element.parentNode &&
-        element.parentNode.tagName === 'HEADER') {
-        this.reformatHeaderText(element);
-      }
-    },
-
-    /**
      * Resize and reposition the header text based on string length and
      * container position.
      *
@@ -244,16 +226,19 @@
     },
 
     /**
-     * Get an element width disregarding of its box model sizing.
-     * Style objects are not impacted by the box model whereas clientWidth is.
+     * Get an element width disregarding its box model sizing.
      *
      * @param {HTMLElement} element
      * @returns {Number}
      */
     getElementWidth: function(element) {
       var style = window.getComputedStyle(element);
-      return parseInt(style.paddingLeft, 10) + parseInt(style.width, 10) +
-        parseInt(style.paddingRight, 10);
+      var width = parseInt(style.width, 10);
+      if (style.boxSizing === 'content-box') {
+        width += parseInt(style.paddingRight, 10) +
+          parseInt(style.paddingLeft, 10);
+      }
+      return width;
     },
 
     /**
@@ -266,7 +251,6 @@
       // YYY: FYI, this line always triggers a reflow (~1ms on a Flame).
       var headerWidth = FontSizeUtils.getElementWidth(element);
 
-      // @todo Inline with autoResizeElement to avoid calling getAllowedSizes.
       var style = window.getComputedStyle(element);
       var allowedSizes = FontSizeUtils.getAllowedSizes(element);
       var info = FontSizeUtils.getMaxFontSizeInfo(
@@ -278,24 +262,24 @@
 
       // If there are padding on each side, so we need to add their values.
       var textWidth = info.textWidth +
-        (parseInt(style.paddingRight, 10) | 0) +
-        (parseInt(style.paddingLeft, 10) | 0);
+        parseInt(style.paddingRight, 10) +
+        parseInt(style.paddingLeft, 10);
 
       // Get the width of side buttons.
       var sideSpaceLeft = element.offsetLeft;
-      var sideSpaceRight = FontSizeUtils.containerWidth - sideSpaceLeft -
+      var sideSpaceRight = FontSizeUtils.getScreenWidth() - sideSpaceLeft -
         headerWidth;
 
       var margin = Math.max(sideSpaceLeft, sideSpaceRight);
 
-      /*console.log('containerWidth', FontSizeUtils.containerWidth,
+      console.log('screen widith', FontSizeUtils.getScreenWidth(),
         'headerWidth', headerWidth, 'textWidth', textWidth, 'margin', margin,
-          '= max(' + sideSpaceLeft + ', ' + sideSpaceRight + ')');*/
+          '= max(' + sideSpaceLeft + ', ' + sideSpaceRight + ')');
 
       // Can the header be centered?
-      if (textWidth + (margin * 2) <= FontSizeUtils.containerWidth) {
+      if (textWidth + (margin * 2) <= FontSizeUtils.getScreenWidth()) {
         /*console.log(textWidth, '+', (margin * 2), '<=',
-          FontSizeUtils.containerWidth);*/
+          FontSizeUtils.getScreenWidth());*/
         console.log('Header centered');
         element.style.marginLeft = element.style.marginRight = margin + 'px';
       } else if (textWidth <= headerWidth) {
@@ -305,6 +289,22 @@
       } else if (textWidth > headerWidth) {
         //console.log(textWidth, '>', headerWidth);
         console.log('Header not centered and truncated');
+      }
+    },
+
+    /**
+     * When certain elements overflow, auto resize their fonts.
+     *
+     * @param {UIEvent} evt The overflow/underflow event object.
+     */
+    handleTextFlowChange: function(evt) {
+      var element = evt.target;
+      // This check should really be in its own function, but as a
+      // performance optimization we will avoid the overhead of any
+      // additional function call by doing this check inline.
+      if (element.tagName === 'H1' && element.parentNode &&
+        element.parentNode.tagName === 'HEADER') {
+        this.reformatHeaderText(element);
       }
     },
 
@@ -334,23 +334,12 @@
     },
 
     /**
-     * Return the screen width.
+     * Get the width of the screen in pixels.
      *
-     * @returns {number}
+     * @return {Integer} The width of the screen.
      */
-    get containerWidth() {
-      if (_screenWidth === 0) {
-        _screenWidth = screen.width;
-      }
-      return _screenWidth;
-    },
-
-    /**
-     * For unit testing purposes only.
-     * @param {number} value
-     */
-    set containerWidth(value) {
-      _screenWidth = value;
+    getScreenWidth: function() {
+      return screen.width;
     }
   };
 
