@@ -71,6 +71,23 @@ function SimContactsImporter(targetIcc) {
     }
   }
 
+  function onContactsReadyForImport() {
+    if (typeof self.onread === 'function') {
+      // This way the total number can be known by the caller
+      self.onread(self.items.length);
+    }
+
+    if (loadedMatch) {
+      startMigration();
+    }
+    else {
+      document.addEventListener('matchLoaded', function mloaded() {
+        document.removeEventListener('matchLoaded', mloaded);
+        startMigration();
+      });
+    }
+  }
+
   this.start = function() {
     if (mustFinish) {
       notifyFinish();
@@ -88,49 +105,50 @@ function SimContactsImporter(targetIcc) {
       document.dispatchEvent(new CustomEvent('matchLoaded'));
     });
 
-    var request;
+    var requestAdn, requestSdn;
 
     // request contacts with readContacts() -- valid types are:
     //   'adn': Abbreviated Dialing Numbers
     //   'fdn': Fixed Dialing Numbers
+    //   'sdn': Service Dialing Numbers
     if (icc && icc.readContacts) {
-      request = icc.readContacts('adn');
-    }
-    else if (navigator.mozContacts) {
-      // Just to enable import on builds different than M-C
-      // In the longer term this line of code would disappear
-      request = navigator.mozContacts.getSimContacts('ADN');
-    }
-    else {
+      requestAdn = icc.readContacts('adn');
+    } else {
       throw new Error('Not able to obtain a SIM import function from platform');
     }
 
-    request.onsuccess = function onsuccess() {
+    requestAdn.onsuccess = function onsuccess() {
       if (mustFinish) {
         notifyFinish();
         return;
       }
+      self.items = requestAdn.result || [];
 
-      self.items = request.result; // array of mozContact elements
-      if (typeof self.onread === 'function') {
-        // This way the total number can be known by the caller
-        self.onread(self.items.length);
-      }
+      requestSdn = icc.readContacts('sdn');
+      requestSdn.onsuccess = function onsuccess() {
+        if (mustFinish) {
+          notifyFinish();
+          return;
+        }
 
-      if (loadedMatch) {
-        startMigration();
-      }
-      else {
-        document.addEventListener('matchLoaded', function mloaded() {
-          document.removeEventListener('matchLoaded', mloaded);
-          startMigration();
-        });
-      }
+        if (Array.isArray(requestSdn.result)) {
+          self.items = self.items.concat(requestSdn.result);
+        }
+        onContactsReadyForImport();
+      };
+      requestSdn.onerror = function error() {
+        if (mustFinish) {
+          notifyFinish();
+          return;
+        }
+        console.warn('Could not read SDN Contacts from SIM Card', error.name);
+        onContactsReadyForImport();
+      };
+
     };
-
-    request.onerror = function error() {
+    requestAdn.onerror = function error() {
       if (typeof self.onerror === 'function') {
-        self.onerror(request.error);
+        self.onerror(requestAdn.error);
       }
     };
   };
