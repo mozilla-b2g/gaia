@@ -27,7 +27,7 @@ class TestFtu(GaiaTestCase):
     _enable_data_checkbox_locator = (By.CSS_SELECTOR, '#data_3g .pack-end')
 
     # Step Wifi
-    _section_wifi_locator = (By.ID, 'wifi')
+    _loading_networks_locator = (By.ID, 'progress-activity')
     _found_wifi_networks_locator = (By.CSS_SELECTOR, 'ul#networks-list li')
     _network_state_locator = (By.XPATH, 'p[2]')
     _password_input_locator = (By.ID, 'wifi_password')
@@ -124,7 +124,7 @@ class TestFtu(GaiaTestCase):
 
         # Tap next
         self.marionette.find_element(*self._next_button_locator).tap()
-        self.wait_for_element_displayed(*self._section_wifi_locator)
+        self.wait_for_condition(lambda m: m.find_element(*self._loading_networks_locator).get_attribute('class') == 'hide')
 
         # Wait for the network to be found
         wifi_network_locator = (By.CSS_SELECTOR, '#networks-list li[data-ssid="%s"]' % self.testvars['wifi']['ssid'])
