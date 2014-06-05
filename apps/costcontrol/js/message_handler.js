@@ -1,5 +1,7 @@
 /* global ConfigManager, CostControl, debug, Common, asyncStorage, Formatting,
-          NotificationHelper, _, MozActivity, NetworkUsageAlarm, SimManager */
+          NotificationHelper, _, MozActivity, NetworkUsageAlarm, SimManager,
+          DEBUGGING
+*/
 /* exported activity */
 /*jshint -W020 */
 /* The previous directive,ignore the "Read only" errors, that are produced when
@@ -419,7 +421,12 @@
               return;
             }
 
-            // TODO: Remove the SMS
+            if (!DEBUGGING &&
+                (isBalance && (settings.waitingForBalance !== null)) ||
+                (isConfirmation && (settings.waitingForTopUp !== null))) {
+              var mobileMessageManager = window.navigator.mozMobileMessage;
+              mobileMessageManager.delete(sms.id);
+            }
 
             if (isBalance) {
               // Compose new balance

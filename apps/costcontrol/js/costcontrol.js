@@ -1,4 +1,6 @@
-/* global debug, ConfigManager, Toolkit, addAlarmTimeout, Common, SimManager */
+/* global debug, ConfigManager, Toolkit, addAlarmTimeout, Common, SimManager,
+          DEBUGGING
+ */
 /* exported CostControl */
 'use strict';
 
@@ -276,6 +278,10 @@ var CostControl = (function() {
     newSMS.onsuccess = function _onSuccess() {
       debug('Request SMS sent! Waiting for response.');
 
+      if (!DEBUGGING) {
+        mobileMessageManager.delete(newSMS.result.id);
+      }
+
       // Add the timeout
       var newAlarm = addAlarmTimeout('balanceTimeout', BALANCE_TIMEOUT);
 
@@ -332,6 +338,10 @@ var CostControl = (function() {
 
     newSMS.onsuccess = function _onSuccess() {
       debug('TopUp SMS sent! Waiting for response.');
+
+      if (!DEBUGGING) {
+        mobileMessageManager.delete(newSMS.result.id);
+      }
 
       // Add the timeout (if fail, do not inform the callback)
       var newAlarm = addAlarmTimeout('topupTimeout', TOPUP_TIMEOUT);
