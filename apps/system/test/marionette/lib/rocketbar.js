@@ -37,6 +37,7 @@ Rocketbar.prototype = {
     activeBrowserFrame: '#windows .appWindow.active',
     screen: '#screen',
     rocketbar: '#rocketbar',
+    titleContent: '#rocketbar-title-content',
     title: '#rocketbar-title',
     input: '#rocketbar-input',
     cancel: '#rocketbar-cancel',
