@@ -11,7 +11,7 @@ from gaiatest.apps.base import PageRegion
 
 class Homescreen(Base):
 
-    name = 'Homescreen'
+    name = 'Vertical'
 
     _homescreen_icon_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
     _homescreen_all_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .icon:not(.placeholder)')
@@ -31,27 +31,14 @@ class Homescreen(Base):
         return SearchPanel(self.marionette)
 
     def wait_for_app_icon_present(self, app_name):
-        self.wait_for_element_present(self._homescreen_icon_locator[0], self._homescreen_icon_locator[1] % app_name)
+        self.wait_for_condition(lambda m: self.installed_app(app_name))
 
     def wait_for_app_icon_not_present(self, app_name):
-        self.wait_for_element_not_present(self._homescreen_icon_locator[0], self._homescreen_icon_locator[1] % app_name)
+        self.wait_for_condition(lambda m: self.installed_app(app_name) is None)
 
     def is_app_installed(self, app_name):
         """Checks whether app is installed"""
-        is_installed = False
-        for i in range(self.homescreen_get_total_pages_number):
-            if self.is_element_displayed(self._homescreen_icon_locator[0], self._homescreen_icon_locator[1] % app_name):
-                is_installed = True
-                break
-            elif self.homescreen_has_more_pages:
-                self.go_to_next_page()
-
-        return is_installed
-
-    def go_to_next_page(self):
-        self.marionette.execute_script('window.wrappedJSObject.GridManager.goToNextPage()')
-        self.wait_for_condition(lambda m: m.find_element('tag name', 'body')
-            .get_attribute('data-transitioning') != 'true')
+        return self.installed_app(app_name) is not None
 
     def activate_edit_mode(self):
         app = self.marionette.find_element(*self._homescreen_all_icons_locator)
@@ -91,19 +78,6 @@ class Homescreen(Base):
         return self.is_element_present(*self._edit_mode_locator)
 
     @property
-    def homescreen_get_total_pages_number(self):
-        return self.marionette.execute_script("""
-        var pageHelper = window.wrappedJSObject.GridManager.pageHelper;
-        return pageHelper.getTotalPagesNumber();""")
-
-    @property
-    def homescreen_has_more_pages(self):
-        # the naming of this could be more concise when it's in an app object!
-        return self.marionette.execute_script("""
-        var pageHelper = window.wrappedJSObject.GridManager.pageHelper;
-        return pageHelper.getCurrentPageNumber() < (pageHelper.getTotalPagesNumber() - 1);""")
-
-    @property
     def collections_count(self):
         return len(self.marionette.find_elements(*self._collections_locator))
 
@@ -132,12 +106,13 @@ class Homescreen(Base):
                 for root_element in apps if root_element.is_displayed()]
 
     def installed_app(self, app_name):
-        root_el = self.marionette.find_element(self._homescreen_icon_locator[0], self._homescreen_icon_locator[1] % app_name)
-        return self.InstalledApp(self.marionette, root_el)
+        for root_el in self.marionette.find_elements(*self._homescreen_all_icons_locator):
+            if root_el.text == app_name:
+                return self.InstalledApp(self.marionette, root_el)
 
     class InstalledApp(PageRegion):
 
-        _delete_app_locator = (By.CSS_SELECTOR, 'span.options')
+        _delete_app_locator = (By.CSS_SELECTOR, 'span.remove')
 
         @property
         def name(self):
