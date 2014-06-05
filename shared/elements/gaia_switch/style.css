@@ -104,7 +104,7 @@ button::-moz-focus-inner {
   height: var(--height);
   background: #00caf2;
   border-radius: 50%;
-  background: #fff;
+  background: var(--text-color, #fff);
   border: solid 3px transparent;
   background-clip: padding-box;
 }

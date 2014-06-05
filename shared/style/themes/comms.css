@@ -2,17 +2,23 @@
 [theme="comms"] {
 
   /* Raw Colors */
-  --color-orange: #00adad;
+  --color-green: #00adad;
   --color-white: #fff;
   --color-blue: #00aac5;
 
-  --main-color: var(--color-orange);
-  --main-color-lighter: var(--color-orange);
-  --main-color-darker: var(--color-orange);
+  --color-1: var(--color-green);
+
+  --main-color: var(--color-green);
+  --main-color-lighter: var(--color-green);
+  --main-color-darker: var(--color-green);
+  --main-color-tint: var(--color-green);
+  --main-color-shade: var(--color-green);
 
   --neutral-color: #bbb;
   --neutral-color-lighter: #bbb;
   --neutral-color-darker: #bbb;
+  --neutral-color-tint: #bbb;
+  --neutral-color-shade: #bbb;
 
   --text-color: var(--color-white);
   --text-color-link: var(--color-blue);
