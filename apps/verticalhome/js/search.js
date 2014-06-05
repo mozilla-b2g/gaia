@@ -1,3 +1,5 @@
+/* global appManager */
+
 (function(exports) {
   'use strict';
 
@@ -12,28 +14,34 @@
     this.connected = false;
     this.pendingRender = false;
 
-    var self = this;
-    navigator.mozApps.getSelf().onsuccess = function() {
-      var app = this.result;
-      app.connect('search-results').then(
-        function onConnectionAccepted(ports) {
-          ports.forEach(function(port) {
-            self._port = port;
-          });
-          self.connected = true;
-          if (self.pendingRender) {
-            self.open();
-          }
-        },
-        function onConnectionRejected() {}
-      );
-    };
+    if (!appManager.app) {
+      window.addEventListener('appmanager-ready', function onReady() {
+        window.removeEventListener('appmanager-ready', onReady);
+        this.onAppReady();
+      }.bind(this));
+    } else {
+      this.onAppReady();
+    }
 
     var input = document.getElementById('search');
     input.addEventListener('touchstart', this.open.bind(this));
   }
 
   Search.prototype = {
+    onAppReady: function onAppReady() {
+      appManager.app.connect('search-results').then(
+        function onConnectionAccepted(ports) {
+          ports.forEach(function(port) {
+            this._port = port;
+          }.bind(this));
+          this.connected = true;
+          if (this.pendingRender) {
+            this.open();
+          }
+        }.bind(this),
+        function onConnectionRejected() {}
+      );
+    },
 
     /**
      * Sends a message to open the rocketbar.

@@ -109,6 +109,12 @@ Home2.prototype = {
 
     var locales = manifest.locales;
     return locales && locales[locale].name;
+  },
+
+  containsClass: function(selector, clazz) {
+    return this.client.executeScript(function(selector, clazz) {
+      return document.querySelector(selector).classList.contains(clazz);
+    }, [selector, clazz]);
   }
 };
 

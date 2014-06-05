@@ -12,8 +12,8 @@
   background-color: #000;
   padding: 0;
   transform: scaleY(1);
-  transition: transform 0.3s;
-  transform-origin: left bottom;
+  transition: transform 0.1s;
+  transform-origin: left top;
 }
 
 #statusbar {
@@ -31,7 +31,7 @@ body:not(.rb-enabled) #statusbar {
 
 /* Hiding the black background while the homescreen is in foreground but not
  * utility tray or attention screen */
-#screen.on-homescreen:not(.utility-tray):not(.attention) #statusbar-background,
+#screen.on-homescreen:not(.utility-tray):not(.attention) #statusbar-background:not(.opaque),
 #screen.lockscreen-camera > #statusbar,
 #statusbar.invisible {
   transform: scaleY(0);
