@@ -10,7 +10,7 @@ from gaiatest.apps.base import Base
 class FullscreenImage(Base):
 
     _fullscreen_view_locator = (By.ID, 'fullscreen-view')
-    _current_image_locator = (By.CSS_SELECTOR, '#frames > div.frame[style ~= "translateX(0px);"] > img')
+    _current_image_locator = (By.CSS_SELECTOR, '#frames > div.frame[style ~= "translateX(0px);"] > img[style ~= "block;"]')
     _photos_toolbar_locator = (By.ID, 'fullscreen-toolbar')
     _delete_image_locator = (By.ID, 'fullscreen-delete-button-tiny')
     _confirm_delete_locator = (By.ID, 'confirm-ok')
