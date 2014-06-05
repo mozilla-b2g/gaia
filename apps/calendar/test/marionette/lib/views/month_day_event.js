@@ -30,6 +30,12 @@ MonthDayEvent.prototype = {
       .text();
   },
 
+  get allDay() {
+    return this
+      .findElement('.all-day')
+      .text();
+  },
+
   get startTime() {
     return this
       .findElement('.start-time')
