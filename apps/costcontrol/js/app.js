@@ -458,6 +458,11 @@ var CostControlApp = (function() {
         ];
         LazyLoader.load(SCRIPTS_NEEDED, initApp);
       }
+      // Tell audio channel manager that we want to adjust the notification
+      // channel if the user press the volumeup/volumedown buttons in Usage.
+      if (navigator.mozAudioChannelManager) {
+        navigator.mozAudioChannelManager.volumeControlChannel = 'notification';
+      }
     },
     reset: function() {
       costcontrol = null;

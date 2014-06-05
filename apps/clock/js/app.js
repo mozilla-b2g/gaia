@@ -19,6 +19,11 @@ var App = {
 
     window.addEventListener('hashchange', this);
     window.addEventListener('visibilitychange', this);
+    // Tell audio channel manager that we want to adjust the alarm channel
+    // if the user press the volumeup/volumedown buttons in Clock.
+    if (navigator.mozAudioChannelManager) {
+      navigator.mozAudioChannelManager.volumeControlChannel = 'alarm';
+    }
 
     this.visible = !document.hidden;
     this.panels = Array.prototype.map.call(

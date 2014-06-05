@@ -17,7 +17,8 @@
     "alarms":{},
     "browser": {},
     "storage":{},
-    "desktop-notification":{}
+    "desktop-notification":{},
+    "audio-channel-notification":{}
   },
   "locales": {
     "ar": {
