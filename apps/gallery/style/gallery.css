@@ -586,8 +586,8 @@ footer {
 #edit-preview-canvas {
   position: absolute;
   top: 1.5rem;
-  left: 1.5rem;
-  width: calc(100% - 3rem);  /* I can't do right: 1.5rem here. Bug? */
+  left: 2.5rem;
+  width: calc(100% - 5rem);  /* I can't do right: 2.5rem here. Bug? */
   height: calc(100% - 3rem);  /* can't just set bottom: 1.5rem here */
 }
 

@@ -893,7 +893,7 @@ ImageEditor.prototype.showCropOverlay = function showCropOverlay(newRegion) {
   var context = this.cropContext = canvas.getContext('2d');
 
   // Crop handle styles
-  context.translate(15, 15);
+  context.translate(25, 15);
   context.lineCap = 'round';
   // XXX
   // Please turn on the followig line when Bug 937529 is fixed. This is an
@@ -963,7 +963,7 @@ ImageEditor.prototype.drawCropControls = function(handle) {
   var height = bottom - top;
 
   // Erase everything
-  context.clearRect(-15, -15, canvas.width, canvas.height);
+  context.clearRect(-25, -15, canvas.width, canvas.height);
 
   // Overlay the preview canvas with translucent gray
   context.fillStyle = 'rgba(0, 0, 0, .5)';
