@@ -1,0 +1,15 @@
+
+/**
+ * Gaia Toolbar
+ *
+ * Toolbars contain actions, indicators,
+ * and navigation associated with
+ * the current view.
+ */
+
+gaia-hr {
+  display: block;
+  /*margin: 1rem 0;*/
+  height: 1px;
+  background: var(--base-color-shade-1, #ddd);
+}
