@@ -27,6 +27,11 @@
   display: inline-block;
 }
 
+#permission-dialog > div.inner {
+  max-height: calc(100% - 5.6rem);
+  overflow-y: scroll;
+}
+
 @media not all and (-moz-physical-home-button) {
   #screen:not(.software-button-disabled) #permission-screen {
     height: calc(100% - 2.4rem - 5rem);
@@ -54,19 +59,23 @@
   height: calc(100% - 5rem);
 }
 
-#permission-remember-section {
-  border-top: 0.1rem solid #686868;
-  font-size: 1.6rem;
-  display: none;
-  padding: 1.5rem;
+#permission-title {
+  padding: 1.2rem;
+  font-size: 1.8rem;
+  font-weight: normal;
+  color: #ffffff;
+  margin: 0;
+  border-bottom: 0.1rem solid #686868;
 }
 
 #permission-message {
   margin: 0;
   padding-top: 1.2rem;
-  padding-bottom: 0.8rem;
-  min-height: 4.4rem;
-  font-size: 1.6rem;
+  padding-bottom: 1.2rem;
+  font-size: 2.2rem;
+  font-weight: lighter;
+  font-style: italic;
+  color: #dcdcdc;
   background-repeat: no-repeat;
   background-size: 6.4rem;
   background-position: 0 50%;
@@ -81,11 +90,9 @@
 }
 
 #permission-more-info {
-  margin: 1rem;
-  padding-top: 1.2rem;
-  padding-bottom: 0.8rem;
-  min-height: 4.4rem;
-  font-size: 1.6rem;
+  margin-left: 1rem;
+  padding-bottom: 1.2rem;
+  font-size: 1.8rem;
 }
 
 #permission-more-info.hidden {
@@ -93,19 +100,28 @@
 }
 
 #permission-more-info a {
-  padding-bottom: 2rem;
   color: white;
   outline: none;
 }
 
 #permission-more-info-box {
-  padding: 1.5rem;
+  margin-top: 1.2rem;
+  margin-left: 1.2rem;
   max-height: 13rem; /* XXX: use magic calc(); expression instead */
   overflow-y: scroll;
 }
 
 #permission-more-info-box.hidden {
   display: none;
+}
+
+#permission-remember-section {
+  font-size: 1.8rem;
+  font-weight: lighter;
+  color: #fbfbfb;
+  display: none;
+  padding: 1.2rem;
+  border-bottom: 0.1rem solid #686868;
 }
 
 #permission-screen[data-type] #permission-remember-section {
@@ -121,15 +137,15 @@
 }
 
 #permission-remember-section label {
-  float: right;
-  width: 5.8rem;
+  width: 2.8rem;
   height: 2rem;
+  margin-top: -0.2rem;
 }
 
-#permission-remember-label {
-  float: left;
-  width: calc(100% - 6rem);
-  line-height: 2.4rem;
+#permission-device-selector {
+  font-size: 1.8rem;
+  font-weight: lighter;
+  padding: 3rem 0 2rem 1.2rem;
 }
 
 #permission-devices {
@@ -139,7 +155,7 @@
 
 #permission-devices li.device-cell {
   position: relative;
-  height: 6rem;
+  list-style-type: none;
 }
 
 #permission-devices li.device-cell > a:active {
@@ -152,17 +168,15 @@
 
 #permission-devices .deviceEnable {
   position: absolute;
-  z-index: 1;
   top: 0;
   right: 0;
-
   width: 100%;
   height: 100%;
 }
 
 #permission-devices input[type="checkbox"] + span {
   position: absolute;
-  top: -moz-calc(50% - 1.7rem);
+  top: 0.3rem;
   right: 1.5rem;
   margin: 0;
   background: url(images/alarm_off.png) no-repeat center top / 3.4rem;
@@ -180,10 +194,10 @@
 }
 
 #permission-devices .device-item {
-  padding: 2rem;
+  padding: 1rem;
   display: block;
   font-weight: lighter;
-  font-size: 2.1rem;
+  font-size: 1.8rem;
 }
 
 #permission-devices .device-item:active {
@@ -192,15 +206,6 @@
 
 .device-item > span {
   pointer-events: none;
-}
-
-.device-item > .label {
-  position: absolute;
-  top: 1.0rem;
-  left: 1.7rem;
-  font-size: 2.8rem;
-  font-weight: lighter;
-  color: #cfe2e5;
 }
 
 #permission-screen[data-type="geolocation"] #permission-message {
@@ -228,6 +233,10 @@
 }
 
 #permission-screen[data-type="video-capture"] #permission-message {
+  background-image: url(images/PermissionsDialogIcons_VideoRecorder.png);
+}
+
+#permission-screen[data-type="camera-selector"] #permission-message {
   background-image: url(images/PermissionsDialogIcons_VideoRecorder.png);
 }
 
