@@ -1,7 +1,7 @@
 'use strict';
 
 /* globals MockDOMRequest, MockNfc, MocksHelper, MozNDEFRecord, NDEF,
-           NfcUtils, NfcManager, MozActivity */
+           NfcUtils, NfcManager */
 
 require('/shared/test/unit/mocks/mock_moz_ndefrecord.js');
 require('/shared/test/unit/mocks/mock_settings_listener.js');
@@ -207,45 +207,6 @@ suite('Nfc Manager Functions', function() {
       NfcManager.handleTechnologyDiscovered(msg);
       assert.equal(stubDispatchEvent.getCall(2).args[0].type,
                    'check-p2p-registration-for-active-app');
-    });
-    
-    // integration test, will be refactored in Bug 1006375
-    test('NDEF and empty records activity triggering', function() {
-       var msg = { type: 'techDiscovered', sessionToken: 'token',
-                   techList: ['NDEF', 'NDEF_WRITEABLE'], records: [] };
-      // NDEF TNF well know uri unabbreviated
-      var uri = { tnf: NDEF.TNF_WELL_KNOWN, type: NDEF.RTD_URI,
-                 id: new Uint8Array([1]),
-                 payload: NfcUtils.fromUTF8('\u0000http://mozilla.org') };
-      // empty record
-      var empty = { tnf: NDEF.TNF_EMPTY };
-      msg.records.push(uri);
-      msg.records.push(empty);
-
-      this.sinon.stub(window, 'MozActivity');
-
-      NfcManager.handleTechnologyDiscovered(msg);
-      assert.deepEqual(MozActivity.getCall(0).args[0],
-                   { name: 'nfc-ndef-discovered',
-                     data: { type: 'url', url: 'http://mozilla.org',
-                             records: msg.records, rtd: NDEF.RTD_URI,
-                             tech: 'NDEF', sessionToken: msg.sessionToken }});
-
-      msg.records.shift();
-      NfcManager.handleTechnologyDiscovered(msg);
-      assert.deepEqual(MozActivity.getCall(1).args[0],
-                       { name: 'nfc-ndef-discovered',
-                         data: { type: 'empty', tech: 'NDEF',
-                                 records: msg.records,
-                                 sessionToken: msg.sessionToken }});
-
-      msg.records.shift();
-      NfcManager.handleTechnologyDiscovered(msg);
-      assert.deepEqual(MozActivity.getCall(2).args[0],
-                       { name: 'nfc-ndef-discovered',
-                         data: { type: 'empty', tech: 'NDEF',
-                                 records: msg.records,
-                                 sessionToken: msg.sessionToken }});
     });
   });
 
