@@ -39,7 +39,7 @@ button::-moz-focus-inner {
   flex: 1;
   align-items: center;
   font-size: 1.5rem;
-  color: var(--text-color);
+  color: var(--text-color, #5f5f5f);
 }
 
 /** Track
@@ -52,8 +52,9 @@ button::-moz-focus-inner {
   width: var(--width);
   height: var(--height);
   border-radius: 2.7rem;
-  background: #b0babc;
+  background-color: var(--base-color-shade, #c7c7c7);
   overflow: hidden;
+  cursor: pointer;
 }
 
 [checked] .track {
@@ -103,7 +104,6 @@ button::-moz-focus-inner {
   background: rgba(0,0,0,0.05);
   border-radius: 50%
 }
-
 
 [checked] .circle-1 {
   background: rgba(255,255,255,0.34);

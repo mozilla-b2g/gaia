@@ -35,6 +35,7 @@
   --base-color-shade: var(--color-root-eta);
 
   --text-color: var(--color-root-delta);
+  --text-color-shade: var(--color-root-gamma);
   --text-color-brand: var(--color-root-beta);
 
   --text-color-link: var(--color-blue);

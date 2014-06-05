@@ -26,7 +26,7 @@
       height: 600px;
       border: solid 1px #eee;
       border-width: 0 1px 1px 0;
-      background-color: var(--base-color);
+      background-color: var(--base-color, #f4f4f4);
     }
 
     .content {
@@ -53,20 +53,6 @@
 </head>
 
 <body role="application">
-  <section>
-    <gaia-header action="back">
-      <h1 id="title2">No Theme</h1>
-      <button id="edit2" icon="edit"></button>
-    </gaia-header>
-    <div class="content">
-      <gaia-buttons>
-        <button>Label 1</button>
-        <button class="recommend">Label 2</button>
-      </gaia-buttons>
-      <gaia-switch checked></gaia-switch>
-      <gaia-switch></gaia-switch>
-    </div>
-  </section>
   <section theme="comms">
     <gaia-header action="close">
       <h1 id="title1">Comms</h1>
@@ -78,16 +64,14 @@
         <button>Label 1</button>
         <button class="recommend">Label 2</button>
       </gaia-buttons>
+      <gaia-textinput placeholder="First Name..." resettable></gaia-textinput>
+      <gaia-textinput resettable></gaia-textinput>
+      <gaia-textinput type="password" placeholder="Password..."></gaia-textinput>
       <gaia-textinput></gaia-textinput>
-      <gaia-textinput></gaia-textinput>
-      <gaia-textinput></gaia-textinput>
-      <gaia-textinput></gaia-textinput>
-      <div>
-        <gaia-switch checked>Switch Off</gaia-switch>
-        <gaia-switch>Switch Transition</gaia-switch>
-        <gaia-switch checked>Switch Active</gaia-switch>
-        <gaia-switch></gaia-switch>
-      </div>
+      <gaia-switch checked>Switch Off</gaia-switch>
+      <gaia-switch>Switch Transition</gaia-switch>
+      <gaia-switch checked>Switch Active</gaia-switch>
+      <gaia-switch></gaia-switch>
     </div>
   </section>
   <section theme="media">
@@ -101,22 +85,33 @@
         <button>Label 1</button>
         <button class="recommend">Label 2</button>
       </gaia-buttons>
-      <gaia-switch checked></gaia-switch>
+      <gaia-textinput placeholder="First Name..." resettable></gaia-textinput>
+      <gaia-textinput resettable></gaia-textinput>
+      <gaia-textinput type="password" placeholder="Password..."></gaia-textinput>
+      <gaia-textinput></gaia-textinput>
+      <gaia-switch checked>Switch Off</gaia-switch>
+      <gaia-switch>Switch Transition</gaia-switch>
+      <gaia-switch checked>Switch Active</gaia-switch>
       <gaia-switch></gaia-switch>
     </div>
   </section>
-  <section theme="dark">
-    <gaia-header action="menu">
-      <h1 id="title2">Dark Theme</h1>
-      <button id="edit5" icon="edit"></button>
-      <button id="done5">done</button>
+  <section>
+    <gaia-header action="back">
+      <h1 id="title2">Default</h1>
+      <button id="edit2" icon="edit"></button>
     </gaia-header>
     <div class="content">
       <gaia-buttons>
         <button>Label 1</button>
         <button class="recommend">Label 2</button>
       </gaia-buttons>
-      <gaia-switch checked></gaia-switch>
+      <gaia-textinput placeholder="First Name..." resettable></gaia-textinput>
+      <gaia-textinput resettable></gaia-textinput>
+      <gaia-textinput type="password" placeholder="Password..."></gaia-textinput>
+      <gaia-textinput></gaia-textinput>
+      <gaia-switch checked>Switch Off</gaia-switch>
+      <gaia-switch>Switch Transition</gaia-switch>
+      <gaia-switch checked>Switch Active</gaia-switch>
       <gaia-switch></gaia-switch>
     </div>
   </section>

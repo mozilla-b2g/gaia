@@ -44,7 +44,9 @@
   --base-color-tint: var(--color-root-epsilon);
   --base-color-shade: var(--color-root-alpha);
 
-  --text-color: var(--color-white);
+  --text-color: var(--color-root-beta);
+  --text-color-brand: var(--color-root-beta);
+  --text-color-shade: var(--color-root-theta);
   --text-color-link: var(--color-blue);
   --text-color-title: #333;
   --text-color-body: #333;

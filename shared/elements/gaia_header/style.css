@@ -7,8 +7,8 @@ gaia-header {
   display: block;
   height: 5rem;
   z-index: 10;
-  color: var(--text-color-brand, #fff);
-  background: var(--brand-color, #f97c17);
+  color: var(--text-color-brand, #858585);
+  background: var(--brand-color, #f4f4f4);
   border-bottom-right-radius: var(--border-radius, 0);
   border-bottom-left-radius: var(--border-radius, 0);
   box-shadow: var(--box-shadow, none);
@@ -135,7 +135,7 @@ button:focus {
 
 .action-button {
   font-size: 3rem;
-  color: var(--text-color-brand, #fff);
+  color: inherit;
 }
 
 /* Icons */

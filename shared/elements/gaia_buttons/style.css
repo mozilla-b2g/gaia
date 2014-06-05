@@ -35,13 +35,13 @@ button {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  background: var(--base-color-tint);
+  background: var(--base-color-tint, #fff);
   border: none;
   border-radius: 2rem;
   font-weight: normal;
   font-size: 1.6rem;
   line-height: 4rem;
-  color: var(--text-color, #333);
+  color: var(--text-color, #5f5f5f);
   text-align: center;
   text-decoration: none;
   outline: none;
@@ -55,7 +55,7 @@ button:first-child {
 /* Recommend */
 a.recommend,
 button.recommend {
-  background-color: var(--brand-color);
+  background-color: var(--brand-color, #00caf2);
   color: #fff;
 }
 
