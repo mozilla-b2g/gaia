@@ -1,4 +1,4 @@
-window.addEventListener('localized', function() {
+navigator.mozL10n.once(function() {
   var activity;         // The activity object we're handling
   var activityData;     // The data sent by the initiating app
   var blob;             // The blob we'll be displaying and maybe saving
