@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-/* globals dump, lockScreen, CustomEvent, MozActivity, MozNDEFRecord,
+/* globals dump, lockScreen, CustomEvent, MozActivity,
    NfcHandoverManager, NfcUtils, NDEF, ScreenManager */
 'use strict';
 
@@ -149,11 +149,22 @@ var NfcManager = {
     }
   },
 
-  // An NDEF Message is an array of one or more NDEF records.
-  handleNdefMessage: function nm_handleNdefMessage(ndefmessage) {
+  /**
+   * Parses NDEF message and returns options object which is used to create
+   * MozActivity. It checks the first NDEF record and basing on tnf value
+   * passes the record for further parsing of paylod and type to helper methods.
+   * If first record is valid, options object will contain the whole NDEF 
+   * message, so the app can access other records and handle them appropriately.
+   * TODO: together with helper methods should be moved to different file
+   * TODO: more appropriate name needed
+   * @param {Array} NDEF message - an array of NDEF records
+   * @returns {Object} options - object used to construct MozActivity
+   * @returns {Array} options.data.records - NDEF message 
+   */
+  handleNdefMessage: function nm_handleNdefMessage(ndefMsg) {
     var options = null;
 
-    var record = ndefmessage[0];
+    var record = (ndefMsg.length !== 0) ? ndefMsg[0] : { tnf: NDEF.TNF_EMPTY };
     this._debug('RECORD: ' + JSON.stringify(record));
 
     switch (+record.tnf) {
@@ -182,13 +193,13 @@ var NfcManager = {
     }
 
     if (options === null) {
-      this._debug('XX Found no ndefmessage actions. XX');
+      this._debug('XX Found no NDEF message actions. XX');
       // we're handling here also tnf unchanged, not adding record payload
       // as ndef record is malformed/unxpected, this is a workaround
-      // until Bug 1007724 will land 
+      // until Bug 1007724 will land
       options = this.createDefaultActivityOptions();
     } else {
-      options.data.records = ndefmessage;
+      options.data.records = ndefMsg;
     }
 
     return options;
@@ -249,12 +260,6 @@ var NfcManager = {
           self._debug('Firing nfc-ndef-discovered failed');
         };
       }
-  },
-
-  handleNdefDiscoveredEmpty:
-    function nm_handleNdefDiscoveredEmpty(tech, sessionToken) {
-      var emptyRec = [new MozNDEFRecord(NDEF.tnf_empty, NDEF.rtd_text)];
-      this.handleNdefDiscovered(tech, sessionToken, emptyRec);
   },
 
   /**
@@ -401,14 +406,8 @@ var NfcManager = {
         this.handleP2P(tech, msg.sessionToken, msg.records);
         break;
       case 'NDEF':
-        if (msg.records.length !== 0) {
-          this.handleNdefDiscovered(tech, msg.sessionToken, msg.records);
-        } else {
-          this.handleNdefDiscoveredEmpty(tech, msg.sessionToken);
-        }
-        break;
       case 'NDEF_WRITEABLE':
-        this.handleNdefDiscoveredEmpty(tech, msg.sessionToken);
+        this.handleNdefDiscovered(tech, msg.sessionToken, msg.records);
         break;
       case 'NDEF_FORMATABLE':
         this.handleNdefDiscoveredUseConnect(tech, msg.sessionToken);
