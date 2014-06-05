@@ -18,16 +18,20 @@
     <script defer src="/shared/js/settings_listener.js"></script>
     <script defer src="shared/js/uuid.js"></script>
     <script defer src="/shared/js/collections_database.js"></script>
+    <script defer src="/shared/js/bookmarks_database.js"></script>
     <script defer src="/shared/js/async_storage.js"></script>
 
 
     <script defer src="/shared/js/dedupe.js"></script>
     <script defer src="/shared/js/url_helper.js"></script>
+    <script defer src="/shared/js/component_utils.js"></script>
+
     <script defer src="/shared/elements/gaia_grid/js/grid_view.js"></script>
     <script defer src="/shared/elements/gaia_grid/js/items/grid_item.js"></script>
     <script defer src="/shared/elements/gaia_grid/js/items/bookmark.js"></script>
     <script defer src="/shared/elements/gaia_grid/js/items/divider.js"></script>
     <script defer src="/shared/elements/gaia_grid/js/items/mozapp.js"></script>
+    <script defer src="/shared/elements/gaia_grid/js/items/placeholder.js"></script>
     <script defer src="/shared/elements/gaia_grid/js/grid_layout.js"></script>
     <script defer src="/shared/elements/gaia_grid/js/grid_dragdrop.js"></script>
     <script defer src="/shared/elements/gaia_grid/js/grid_zoom.js"></script>
@@ -36,7 +40,7 @@
     <script defer src="/shared/elements/gaia_menu/script.js"></script>
 
     <script defer src="/shared/js/everythingme/eme.js"></script>
-    <script defer src="/shared/js/everythingme/device.js"></script>
+    <!-- <script defer src="/shared/js/everythingme/device.js"></script> -->
     <script defer src="/shared/js/everythingme/cache.js"></script>
     <script defer src="/shared/js/everythingme/api.js"></script>
 
@@ -46,15 +50,23 @@
     <script defer src="/js/activities.js"></script>
     <script defer src="/js/create_collection.js"></script>
     <script defer src="/js/view_collection.js"></script>
+    <script defer src="/js/home_icons.js"></script>
+    <script defer src="/js/native_info.js"></script>
 
     <script defer src="testpage.js"></script>
 
     <style>
+      body {
+        background: white;
+      }
       #loading {
         display: none;
       }
 
       #collections-select {
+        display: none;
+      }
+      #view-collection {
         display: none;
       }
     </style>
@@ -71,7 +83,6 @@
     </form>
 
     <H1>COLLECTION TEST PAGE</H1>
-    <span id="close"></span>
 
     <button id="create-collection">Create</button>
     <button id="view-collection">View 'Games'</button>
@@ -87,13 +98,14 @@
       <div id="header">
           <span id="name"></span>
           <a href="#" id="close">Close</a>
+          <span id="close"></span>
       </div>
 
       <div id="content">
           <gaia-grid cols="4" id="grid"></gaia-grid>
       </div>
 
-      <gaia-menu id="cloud-menu" hidden>
+      <gaia-menu id="cloud-menu" hidden="hidden">
         <button data-l10n="add-to-top-of-collection">Add to top of collection</button>
         <button data-l10n="save-to-homescreen">Save to Homescreen</button>
       </gaia-menu>
