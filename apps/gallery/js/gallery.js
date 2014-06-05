@@ -761,9 +761,9 @@ function cropPickedImage(fileinfo) {
   var nocrop = pendingPick.source.data.nocrop;
 
   if (nocrop) {
-    // If we're not cropping we don't want the word "Crop" in the title bar
+    // If we're not cropping show file name in the title bar
     // XXX: UX will probably get rid of this title bar soon, anyway.
-    $('crop-header').textContent = '';
+    $('crop-header').textContent = pickedFile.name.split('/').pop();
   }
 
   setView(LAYOUT_MODE.crop);
