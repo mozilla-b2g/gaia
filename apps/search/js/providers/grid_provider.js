@@ -30,6 +30,8 @@ DataGridProvider.prototype = {
     results.forEach(function(config, index) {
       this.grid.add(config.data);
     }, this);
-    this.grid.render(null, true);
+
+    // Render the grid, skipping the divider at the end
+    this.grid.render(null, null, false, true);
   }
 };

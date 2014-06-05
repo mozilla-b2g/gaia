@@ -1,11 +1,27 @@
+gaia-grid {
+  position: relative;
+  overflow-x: hidden;
+  display: block;
+}
+
 .icon {
   position: absolute;
   transform-origin: 0 0;
   display: inline-block;
-  width: calc(100% / 3);
   text-align: center;
-  background: no-repeat top center;
   z-index: 3;
+  left: 0;
+  top: 0;
+}
+
+.icon .image {
+  display: inline-block;
+  pointer-events: none;
+}
+
+.icon.visible .image {
+  transition: opacity 0.4s;
+  transition-delay: 0.3s;
 }
 
 .icon p {
@@ -35,6 +51,8 @@
 
 .divider {
   position: absolute;
+  left: 0;
+  top: 0;
   width: 50%;
   margin: 2.3rem 25%;
 }
@@ -57,9 +75,23 @@
 }
 
 .dragging .divider,
-.dragging .icon:not(.active) {
-  transition: transform 0.35s;
+.dragging .icon.has-transform.visible:not(.active) {
+  transition-delay: 0.3s;
+  transition: transform 0.4s;
 }
+
+/* Hiding overflow has the effect of cancelling out the off-screen rendering
+ * caused by the display-port. As it's not possible to scroll while dragging,
+ * this is a reasonable hack to recover some performance.
+ *
+ * XXX Unfortunately, changing the overflow of a web component causes it
+ *     to disappear forever (seemingly a layout bug).
+ */
+/*
+.edit-mode.dragging {
+  overflow: hidden;
+}
+*/
 
 .edit-mode .divider:last-child {
   visibility: visible;
@@ -75,8 +107,28 @@
   background: url(/style/images/remove.png) no-repeat;
 }
 
-.edit-mode .icon:not(.active) {
-  opacity: 0.8;
+/* Bug 1018269: This has no effect when this style is in a scoped style and
+ *              needs to be redefined at the top level.
+ */
+@keyframes pulse {
+  from { opacity: 0.65; }
+  to { opacity: 1.0; }
+}
+
+.edit-mode .icon:not(.active) .image {
+  animation-name: pulse;
+  animation-duration: 0.4s;
+  animation-delay: 0.5s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  opacity: 0.65;
+}
+
+.edit-mode.dragging .icon .image,
+.edit-mode.scrolling .icon .image,
+.edit-mode .icon:not(.visible) .image {
+  animation-name: none;
 }
 
 .icon .remove {

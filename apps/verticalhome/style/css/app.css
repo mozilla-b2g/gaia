@@ -8,20 +8,16 @@ html, body {
   margin: 0;
 }
 
-.scrollable {
-  position: absolute;
+#icons {
+  position: absolute !important;
   top: 0;
+  right: 0;
+  bottom: 0;
   left: 0;
-  height: 100%;
-  width: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
+  overflow-y: scroll;
 
-gaia-grid {
-  display: block;
-  height: 100%;
-  width: 100%;
+  /* 4.6rem is the height of the search bar */
+  padding-top: 4.6rem;
 }
 
 body[data-cols="4"] .icon .title {
@@ -44,4 +40,10 @@ body[data-cols="4"] .icon .title {
 
 #contextmenu-dialog {
   display: none;
+}
+
+/* Copied from gaia_grid/style.css, necessary until bug 1018269 is fixed */
+@keyframes pulse {
+  from { opacity: 1.0; }
+  to { opacity: 0.65; }
 }

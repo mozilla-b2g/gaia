@@ -45,6 +45,8 @@
 
     maxIconsPerRow: maxIconsPerRow,
 
+    _offsetX: 0,
+
     _offsetY: 0,
 
     _percent: 1,
@@ -102,7 +104,7 @@
     get gridMaxIconSize() {
       var dragdrop = this.gridView.dragdrop;
       var scaledSize = (windowWidth / iconScaleFactorMinIconsPerRow) *
-              (dragdrop ? dragdrop.maxActiveScale : 1);
+              (dragdrop ? this.gridView.dragdrop.activeScale : 1);
       scaledSize *= devicePixelRatio;
       return scaledSize;
     },
@@ -122,6 +124,14 @@
       }
 
       return size;
+    },
+
+    get offsetX() {
+      return this._offsetX;
+    },
+
+    set offsetX(value) {
+      this._offsetX = value;
     },
 
     /**
