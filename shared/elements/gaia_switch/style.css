@@ -52,9 +52,11 @@ button::-moz-focus-inner {
   width: var(--width);
   height: var(--height);
   border-radius: 2.7rem;
-  background-color: var(--base-color-shade, #c7c7c7);
   overflow: hidden;
   cursor: pointer;
+
+  background-color: var(--base-color-shade-1, #c7c7c7);
+  border: var(--border-input, 0);
 }
 
 [checked] .track {
@@ -101,7 +103,7 @@ button::-moz-focus-inner {
   width: 4.2rem;
   height: 4.2rem;
   margin: -2.1rem 0 0 -2.1rem;
-  background: rgba(0,0,0,0.05);
+  background: var(--base-color-shade-2, rgba(0,0,0,0.05));
   border-radius: 50%
 }
 

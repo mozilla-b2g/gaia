@@ -31,8 +31,10 @@
   --brand-color: var(--color-brand-turquoise);
 
   --base-color: var(--color-root-iota);
-  --base-color-tint: var(--color-white);
-  --base-color-shade: var(--color-root-eta);
+  --base-color-tint-1: var(--color-white);
+  --base-color-tint-2: var(--color-white);
+  --base-color-shade-1: var(--color-root-theta);
+  --base-color-shade-2: var(--color-root-eta);
 
   --text-color: var(--color-root-delta);
   --text-color-shade: var(--color-root-gamma);
@@ -68,6 +70,11 @@
   --button-active: transparent;
 
   --box-shadow: none;
+  --box-shadow-button: 0 1px 0 var(--base-color-shade-1);
+  --box-shadow-input:
+    inset 1px 1px 0 var(--base-color-shade-1),
+    inset -1px -1px 0 var(--base-color-shade-1);
+
   --font-family: sans-serif;
   --border-radius: 0;
 }

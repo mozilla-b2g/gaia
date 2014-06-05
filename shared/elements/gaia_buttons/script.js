@@ -9,8 +9,12 @@ window.GaiaButtons = (function(win) {
   var baseurl = window.GaiaButtonsBaseurl ||
     '/shared/elements/gaia_buttons/';
 
+  var stylesheets = [
+    { url: 'style.css', scoped: true }
+  ];
+
   proto.createdCallback = function() {
-    ComponentUtils.style.call(this, [{ url: 'style.css' }], baseurl);
+    ComponentUtils.style.call(this, stylesheets, baseurl);
   };
 
   // Register and return the constructor

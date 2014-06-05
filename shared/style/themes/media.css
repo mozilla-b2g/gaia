@@ -41,8 +41,10 @@
 
 
   --base-color: var(--color-root-gamma);
-  --base-color-tint: var(--color-root-epsilon);
-  --base-color-shade: var(--color-root-alpha);
+  --base-color-tint-1: var(--color-root-delta);
+  --base-color-tint-2: var(--color-root-epsilon);
+  --base-color-shade-1: var(--color-root-alpha);
+  --base-color-shade-2: #2b2b2b;
 
   --text-color: var(--color-root-beta);
   --text-color-brand: var(--color-root-beta);
@@ -68,6 +70,8 @@
   --background-cta-hover: var(--main-color);
   --background-cta-down: var(--main-color);
 
+  --input-background: var(--base-color-shade-2);
+
   /**
    *
    */
@@ -77,6 +81,13 @@
   --button-active: transparent;
 
   --box-shadow: none;
+  --box-shadow-button: 0 1px 0 var(--base-color-shade-1);
+/*  --box-shadow-input:
+    1px 1px 0 var(--base-color-tint-1),
+    -1px -1px 0 var(--base-color-tint-1);*/
+
+  --border-input: solid 1px var(--base-color-tint-1);
+
   --font-family: sans-serif;
   --border-radius: 0;
 }

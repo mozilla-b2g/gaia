@@ -19,11 +19,6 @@ gaia-textinput {
 /** Input
  ---------------------------------------------------------*/
 
-/**
- * 1. Override the box-shadow from
- *    the system (performance issue)
- */
-
 input {
   box-sizing: border-box;
   display: block;
@@ -33,10 +28,10 @@ input {
   padding: 0 1.2rem;
   font-size: 1.8rem;
   line-height: 4rem;
-  border: 0;
   border-radius: 0;
-  box-shadow: none; /* 1 */
-  background-color: var(--base-color-tint, #fff);
+  border: var(--border-input, 0);
+  box-shadow: var(--box-shadow-input, none);
+  background: var(--input-background, #fff);
   color: var(--text-color, #333);
 }
 
@@ -59,13 +54,14 @@ input:invalid {
 
 input:focus {
   padding-right: 3rem;
+  border-bottom: solid 3px var(--brand-color);
 }
 
 /** Placeholder Text
  ---------------------------------------------------------*/
 
 input::-moz-placeholder {
-  color: var(--text-color-shade, #a6a6a6);
+  color: var(--text-color-shade-1, #a6a6a6);
   opacity: 1;
 }
 
@@ -88,7 +84,7 @@ input + button {
   border-radius: 50%;
   opacity: 0;
   pointer-events: none;
-  background-color: var(--base-color-shade);
+  background-color: var(--base-color-shade-1);
   color: #fff;
   cursor: pointer;
 }
