@@ -38,13 +38,27 @@
      *
      * @memberOf LayoutManager
      */
-    get clientWidth() {
-      if (this._clientWidth) {
-        return this._clientWidth;
+    get fullWidth() {
+      if (this._width) {
+        return this._width;
       }
 
-      this._clientWidth = document.documentElement.clientWidth;
-      return this._clientWidth;
+      this._width = window.innerWidth;
+      return this._width;
+    },
+
+    /**
+     * Gives the width for the screen.
+     *
+     * @memberOf LayoutManager
+     */
+    get fullHeight() {
+      if (this._height) {
+        return this._height;
+      }
+
+      this._height = window.innerHeight;
+      return this._height;
     },
 
     /**
@@ -68,6 +82,8 @@
       return window.innerWidth;
     },
 
+    keyboardHeight: 0,
+
     /**
      * Match the given size with current layout.
      * @param  {Number}  width        The matched width.
@@ -77,7 +93,7 @@
      * @memberOf LayoutManager
      */
     match: function lm_match(width, height) {
-      return (this.height === height);
+      return (this.fullHeight === height);
     },
 
     /**
@@ -108,11 +124,17 @@
     handleEvent: function lm_handleEvent(evt) {
       this.debug('resize event got: ', evt.type);
       switch (evt.type) {
+        case 'resize':
+          delete this._width;
+          delete this._height;
+          this.publish('system-resize');
+          break;
         case 'keyboardchange':
           if (document.mozFullScreen) {
             document.mozCancelFullScreen();
           }
           this.keyboardEnabled = true;
+          this.keyboardHeight = KeyboardManager.getHeight();
           /**
            * Fired when layout needs to be adjusted.
            * @event LayoutManager#system-resize
@@ -122,6 +144,7 @@
         default:
           if (evt.type === 'keyboardhide') {
             this.keyboardEnabled = false;
+            this.keyboardHeight = 0;
           }
           this.publish('system-resize');
           break;

@@ -6,14 +6,14 @@
   margin: 0;
   padding: 0;
   overflow: hidden;
-  top: 2.4rem;
+  top: 0;
   width: 100%;
   height: 100%;
   background-repeat: no-repeat;
   background-position: center center;
-
   transform: translateX(0);
   will-change: transform, opacity;
+  transform-origin: 50% 50%;
 }
 
 .appWindow > .appWindow {
@@ -23,19 +23,12 @@
   height: 100%;
 }
 
-@media not all and (-moz-physical-home-button) {
-  #screen:not(.software-button-disabled) > #windows > .appWindow {
-    bottom: 5rem;
-  }
+.appWindow[transition-state="closed"]:not(.homescreen) {
+  opacity: 0.5;
 }
 
-.appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen) {
-  opacity: 0;
-  transform: translateX(0);
-}
-
-#screen.software-button-enabled #windows > .appWindow {
-  bottom: 5rem;
+#screen.on-homescreen .appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen) {
+  opacity: 0.5;
 }
 
 #screen.utility-tray #windows > .appWindow {
@@ -50,47 +43,15 @@
   background-color: white;
 }
 
-.appWindow:not(.homescreen):not(.searchWindow).render {
-  background-image: none !important;
-  background-color: transparent;
-}
-
 /* mozbrowser iframe layout */
 
 .appWindow > iframe {
   position: absolute;
-  top: 0;
+  top: 2.4rem;
   left: 0;
   width: 100%;
   height: 100%;
   border: none;
-}
-
-.appWindow.navigation:not(.rocketbar) > iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 1rem;
-  width: 100%;
-  height: calc(100% - 1rem);
-}
-
-.appWindow.rocketbar:not(.navigation) > iframe {
-  position: absolute;
-  top: 5rem;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: calc(100% - 5rem);
-}
-
-.appWindow.navigation.rocketbar > iframe {
-  position: absolute;
-  top: 5rem;
-  left: 0;
-  bottom: 1rem;
-  width: 100%;
-  height: calc(100% - 6rem);
 }
 
 .appWindow .throbber.loading {
@@ -103,14 +64,6 @@
   background-color: #fff;
 }
 
-/* app window layout */
-
-#screen.active-statusbar > #windows > .appWindow,
-#screen.active-statusbar > #windows > .appWindow.fullscreen-app {
-  top: 4rem;
-  height: calc(100% - 4rem);
-}
-
 .appWindow.enlarge {
   pointer-events: auto;
   animation: openApp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
@@ -118,6 +71,10 @@
 
 .appWindow.transition-closing.perpendicular {
   animation-duration: 0.1s;
+}
+
+.app-statusbar {
+  display: none;
 }
 
 .appWindow.from-cardview {
@@ -225,7 +182,7 @@
 
 .appWindow.transition-opening.perpendicular {
   animation-duration: 0.1s;
-  opacity: 0;
+  opacity: 0.8;
 }
 
 .appWindow.zoom-out {
@@ -244,54 +201,6 @@
 
 #screen.task-manager #windows > .appWindow.to-cardview {
   animation: closeAppTowardsTaskManager 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
-}
-
-/* Prebuild width/height */
-#screen:not(.active-statusbar):not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow:not(.fullscreen-app),
-.appWindow.homescreen {
-  top: 2.4rem;
-  height: calc(100% - 2.4rem);
-  width: 100%;
-}
-
-#screen:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
-  top: 0;
-  height: 100%;
-  width: 100%;
-}
-
-#screen.active-statusbar:not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow {
-  top: 4rem;
-  height: calc(100% - 4rem);
-  width: 100%;
-}
-
-#screen.active-statusbar.software-button-enabled:not(:-moz-full-screen-ancestor) > #windows > .appWindow {
-  top: 4rem;
-  bottom: 5rem;
-  height: calc(100% - 5rem - 4rem);
-  width: 100%;
-}
-
-#screen.software-button-enabled:not(:-moz-full-screen-ancestor) > #windows > .appWindow {
-  top: 2.4rem;
-  bottom: 5rem;
-  height: calc(100% - 5rem - 2.4rem);
-  width: 100%;
-}
-
-#screen.software-button-enabled:not(.active-statusbar) > #windows > .appWindow.fullscreen-app {
-  top: 0;
-  bottom: 5rem;
-  height: calc(100% - 5rem);
-  width: 100%;
-}
-
-#screen.active-statusbar:not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
-  top: 4rem;
-  bottom: 0;
-  height: calc(100% - 4rem);
-  width: 100%;
 }
 
 @keyframes closeApp {
@@ -319,14 +228,11 @@
   transition: transform 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
-#screen > #windows > .appWindow.fullscreen-app {
-  top: 0;
-}
-
 .appWindow > iframe {
   visibility: visible;
 }
 
+.appWindow > .overlay > .fade-overlay,
 .appWindow > .fade-overlay {
   background-color: black;
   position: absolute;
@@ -342,6 +248,7 @@
   visibility: hidden;
 }
 
+.appWindow.fadeout > .overlay > .fade-overlay,
 .appWindow.fadeout > .fade-overlay {
   visibility: visible;
 }
@@ -416,7 +323,7 @@
   visibility: visible;
 }
 
-.appWindow > .screenshot-overlay {
+.appWindow > .overlay > .screenshot-overlay {
   visibility: hidden;
   position: absolute;
   top: 0;
@@ -429,11 +336,11 @@
   background-size: cover;
 }
 
-.appWindow > .screenshot-overlay.visible {
+.appWindow > .overlay > .screenshot-overlay.visible {
   visibility: visible;
 }
 
-.appWindow > .identification-overlay {
+.appWindow > .overlay > .identification-overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -448,8 +355,8 @@
   will-change: opacity;
 }
 
-.appWindow.suspended > .identification-overlay,
-.appWindow:not(.active) > .identification-overlay.visible {
+.appWindow.suspended > .overlay > .identification-overlay,
+.appWindow:not(.active) > .overlay > .identification-overlay.visible {
   opacity: 1;
 }
 
@@ -512,15 +419,15 @@
   z-index: 1026;
 }
 
-.appWindow > .fade-overlay {
+.appWindow > .overlay > .fade-overlay {
   z-index: 1025;
 }
 
-.appWindow > .identification-overlay {
+.appWindow > .overlay > .identification-overlay {
   z-index: 1024;
 }
 
-.appWindow > .screenshot-overlay {
+.appWindow > .overlay > .screenshot-overlay {
   z-index: 1023;
 }
 
@@ -642,10 +549,7 @@
   will-change: transform;
 }
 
-/* Edges */
-#windows > .appWindow:not(.homescreen):not(.lockScreenWindow) {
-  /* in the viewport but not really */
-  transform: translateX(-99.9999%);
+#windows > .appWindow:not(.homescreen):not(.active):not(.lockScreenWindow).edge-transitioning {
   opacity: 1;
 }
 
@@ -655,34 +559,17 @@
   will-change: auto;
 }
 
-#screen #windows > .appWindow.will-become-inactive {
+#windows > .appWindow.will-become-inactive {
   opacity: 0;
 }
 
-#screen #windows > .appWindow.active:not(.will-become-inactive):not(.back),
-#screen #windows > .appWindow.will-become-active,
-#screen #windows > .appWindow.inside-edges {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-#screen #windows > .appWindow.outside-edges-left {
-  opacity: 1;
-  transform: translateX(calc(-100% - 2rem));
-}
-
-#screen #windows > .appWindow.outside-edges-right {
-  opacity: 1;
-  transform: translateX(calc(100% + 2rem));
-}
-
-#windows .appWindow.active iframe {
+#windows .appWindow.active > iframe {
   transition-property: transform;
   transition-duration: 0.5s;
 }
 
-#screen.locked #windows .appWindow.active iframe,
-#screen.on-homescreen #windows .appWindow.active iframe {
+#screen.locked #windows .appWindow.active > iframe,
+#screen.on-homescreen #windows .appWindow.active > iframe {
   transition-property: none;
 }
 
@@ -695,12 +582,39 @@
   top: 0;
 }
 
-#screen.locked.rocketbar-expanded .appWindow.active iframe,
-#screen.on-homescreen.rocketbar-expanded .appWindow.active iframe {
+#screen.rocketbar-expanded .appWindow:not(.fullscreen-app).active > iframe {
+  transform: translateY(2.4rem);
+}
+
+#screen.locked.rocketbar-expanded .appWindow.active > iframe,
+#screen.on-homescreen.rocketbar-expanded .appWindow.active > iframe {
   transform: none;
 }
 
-#screen:-moz-full-screen-ancestor > #windows .appWindow.active iframe {
-  top: 0;
+/* Background */
+
+.appWindow.edge-transitioning:not(.homescreen).render[rotating-degree="90"],
+.appWindow.edge-transitioning:not(.homescreen).render[rotating-degree="270"],
+.appWindow.edge-transitioning:not(.homescreen).render[rotating-degree="180"] {
+  background-color: black;
+}
+
+.appWindow:not(.homescreen):not(.searchWindow).render {
+  background-image: none !important;
+  background-color: transparent;
+}
+
+#sheet-transition-overlay {
+  display: none;
+  background-color: black;
+  opacity: 0.8;
+  width: 100%;
   height: 100%;
+  top: 0;
+  left: 0;
+  position: absolute;
+}
+
+#sheet-transition-overlay.visible {
+  display: block;
 }

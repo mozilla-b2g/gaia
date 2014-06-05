@@ -93,7 +93,14 @@
     leaveTaskManager: function() {},
     applyStyle: function() {},
     unapplyStyle: function() {},
-    transform: function() {}
+    transform: function() {},
+    resetDuration: function() {},
+    setDuration: function() {},
+    place_right: function() {},
+    place_left: function() {},
+    place_center: function() {},
+    move_right: function() {},
+    move_left: function() {}
   };
   MockAppWindow.mTeardown = function() {
     MockAppWindowHelper.mInstances = [];

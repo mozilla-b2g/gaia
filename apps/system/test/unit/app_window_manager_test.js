@@ -251,7 +251,7 @@ suite('system/AppWindowManager', function() {
       test('should exit fullscreen when the sheet transition starts',
       function() {
         var cancelSpy = this.sinon.spy(document, 'mozCancelFullScreen');
-        AppWindowManager.handleEvent({ type: 'sheetstransitionstart' });
+        AppWindowManager.handleEvent({ type: 'appsheet-transitionstart' });
         sinon.assert.calledOnce(cancelSpy);
       });
     });

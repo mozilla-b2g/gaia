@@ -12,6 +12,7 @@
   "icons": {
     "120": "/style/icons/Uitest.png"
   },
+  "orientation": ["landscape"],
   "permissions": {
     "fmradio":{},
     "browser":{},

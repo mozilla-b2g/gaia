@@ -1,0 +1,159 @@
+.appWindow > .appWindow {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+@media not all and (-moz-physical-home-button) {
+  #screen:not(.software-button-disabled) > #windows > .appWindow > *:not(.appWindow) {
+    bottom: 5rem;
+  }
+}
+
+#screen.software-button-enabled #windows > .appWindow > *:not(.appWindow) {
+  bottom: 5rem;
+}
+
+.appWindow >  *:not(.appWindow) {
+  position: absolute;
+  top: 2.4rem;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+#screen.active-statusbar > #windows > .appWindow >  *:not(.appWindow),
+#screen.active-statusbar > #windows > .appWindow.fullscreen-app > *:not(.appWindow) {
+  top: 4rem;
+  height: calc(100% - 4rem);
+}
+
+/* Prebuild width/height */
+#screen:not(.active-statusbar):not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow:not(.fullscreen-app) >  *:not(.appWindow) {
+  top: 2.4rem;
+  height: calc(100% - 2.4rem);
+  width: 100%;
+}
+
+#screen:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.fullscreen-app > *:not(.appWindow) {
+  top: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#screen.active-statusbar:not(.software-button-enabled):not(:-moz-full-screen-ancestor) > #windows > .appWindow > *:not(.appWindow) {
+  top: 4rem;
+  height: calc(100% - 4rem);
+  width: 100%;
+}
+
+#screen.active-statusbar.software-button-enabled:not(:-moz-full-screen-ancestor) > #windows > .appWindow > *:not(.appWindow) {
+  top: 4rem;
+  bottom: 5rem;
+  height: calc(100% - 5rem - 4rem);
+  width: 100%;
+}
+
+#screen.software-button-enabled:not(:-moz-full-screen-ancestor) > #windows > .appWindow > *:not(.appWindow) {
+  top: 2.4rem;
+  bottom: 5rem;
+  height: calc(100% - 5rem - 2.4rem);
+  width: 100%;
+}
+
+#screen.software-button-enabled:not(.active-statusbar) > #windows > .appWindow.fullscreen-app > *:not(.appWindow) {
+  top: 0;
+  bottom: 5rem;
+  height: calc(100% - 5rem);
+  width: 100%;
+}
+
+#screen.active-statusbar:not(.software-button-enabled) > #windows > .appWindow.fullscreen-app > *:not(.appWindow) {
+  top: 4rem;
+  bottom: 0;
+  height: calc(100% - 4rem);
+  width: 100%;
+}
+
+.appWindow.navigation:not(.rocketbar) > *:not(.appWindow) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 1rem;
+  width: 100%;
+  height: calc(100% - 1rem);
+}
+
+.appWindow.rocketbar:not(.navigation) > *:not(.appWindow) {
+  position: absolute;
+  top: 5rem;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: calc(100% - 5rem);
+}
+
+.appWindow.navigation.rocketbar > *:not(.appWindow) {
+  position: absolute;
+  top: 5rem;
+  left: 0;
+  bottom: 1rem;
+  width: 100%;
+  height: calc(100% - 6rem);
+}
+
+.appWindow > .overlay > .fade-overlay {
+  background-color: black;
+  position: absolute;
+  visibility: hidden;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.8;
+}
+
+.appWindow > .modal-dialog,
+.appWindow > .authentication-dialog,
+.authentication-dialog > .authentication-dialog-http {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+}
+
+#screen > #windows > .appWindow.fullscreen-app > *:not(.appWindow) {
+  top: 0;
+}
+
+#screen:-moz-full-screen-ancestor > #windows .appWindow.active > *:not(.appWindow) {
+  top: 0;
+  height: 100%;
+}
+
+#screen.edges .appWindow.will-become-inactive {
+  opacity: 0;
+}
+
+#windows .appWindow.active > *:not(.appWindow) {
+  transition-property: transform;
+  transition-duration: 0.5s;
+}
+
+#screen.locked #windows .appWindow.active > *:not(.appWindow),
+#screen.on-homescreen #windows .appWindow.active > *:not(.appWindow) {
+  transition-property: none;
+}
+
+#screen.rocketbar-expanded .appWindow:not(.fullscreen-app).active > *:not(.appWindow) {
+  transform: translateY(2.4rem);
+}
+
+#screen.locked.rocketbar-expanded .appWindow.active > *:not(.appWindow),
+#screen.on-homescreen.rocketbar-expanded .appWindow.active > *:not(.appWindow) {
+  transform: none;
+}

@@ -1,5 +1,5 @@
 /* global SettingsListener, AttentionScreen,
-          OrientationManager */
+          OrientationManager, layoutManager */
 'use strict';
 
 (function(exports) {
@@ -76,7 +76,7 @@
    * @memberof AppWindow
    */
   AppWindow.prototype.CLASS_LIST = 'appWindow';
-  AppWindow.prototype._DEBUG = false;
+  AppWindow.prototype._DEBUG = true;
 
   /**
    * Generate instanceID of this instance.
@@ -486,15 +486,17 @@
     return '<div class=" ' + this.CLASS_LIST +
             ' " id="' + this.instanceID +
             '" transition-state="closed">' +
-              '<div class="screenshot-overlay">' +
-              '</div>' +
-              '<div class="identification-overlay">' +
-                '<div>' +
-                  '<div class="icon"></div>' +
-                  '<span class="title"></span>' +
+              '<div class="overlay">' +
+                '<div class="screenshot-overlay">' +
                 '</div>' +
+                '<div class="identification-overlay">' +
+                  '<div>' +
+                    '<div class="icon"></div>' +
+                    '<span class="title"></span>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="fade-overlay"></div>' +
               '</div>' +
-              '<div class="fade-overlay"></div>' +
               '<div class="touch-blocker"></div>' +
            '</div>';
   };
@@ -1076,6 +1078,7 @@
 
     this.debug(' publishing external event: ' + event +
       JSON.stringify(detail));
+    this.debug(' publishing external event: ' + event);
 
     // Publish external event.
     window.dispatchEvent(evt);
@@ -1116,16 +1119,27 @@
         return 0;
       }
 
-      var appOrientation = this.manifest.orientation;
-      var orientation = this.determineOrientation(appOrientation);
-      var table =
-        OrientationRotationTable[
-          OrientationManager.defaultOrientation];
-      var degree = table[OrientationRotationArray.indexOf(orientation)];
+      var degree = this.getRotationDegree();
       this.rotatingDegree = degree;
+
+      this.element.setAttribute('rotating-degree', degree);
       if (degree == 90 || degree == 270) {
         this.element.classList.add('perpendicular');
       }
+      return degree;
+    };
+
+  AppWindow.prototype.getRotationDegree = function(orientation1, orientation2) {
+      if (!orientation1) {
+        orientation1 = this.findProperOrientation();
+      }
+      if (!orientation2) {
+        orientation2 = OrientationManager.fetchCurrentOrientation();
+      }
+      var table =
+        OrientationRotationTable[orientation2];
+      var degree = table[OrientationRotationArray.indexOf(orientation1)];
+
       return degree;
     };
 
@@ -1139,9 +1153,7 @@
       var homeOrientation = OrientationManager.defaultOrientation;
       var currentOrientation = OrientationManager
         .fetchCurrentOrientation();
-      this.debug(currentOrientation);
-      var table = OrientationRotationTable[homeOrientation];
-      var degree = table[OrientationRotationArray.indexOf(currentOrientation)];
+      var degree = this.getRotationDegree(currentOrientation, homeOrientation);
       return Math.abs(360 - degree) % 360;
     };
 
@@ -1160,24 +1172,54 @@
     return this._fullScreen;
   };
 
-  AppWindow.prototype._defaultOrientation = null;
-
-  AppWindow.prototype.determineOrientation =
-    function aw_determineOrientation(orientation) {
-      if (this._defaultOrientation) {
-        return this._defaultOrientation;
+  /**
+   * Choose a proper orientation according to manifest and current orientation.
+   * @returns {String} The returned value could only be one of these:
+   *  'portrait-primary', 'portrait-secondary', 'landscape-primary',
+   *  'landscape-secondary'
+   */
+  AppWindow.prototype.findProperOrientation =
+    function aw_findProperOrientation() {
+      var orientation = this.manifest ? this.manifest.orientation : null;
+      if (orientation === 'default') {
+        this.debug('use device default..');
+        return OrientationManager.defaultOrientation;
       } else if (!orientation) {
-        this._defaultOrientation = 'default';
-        return this._defaultOrientation;
+        this.debug('No orientation specified. use current orientation..');
+        orientation = screen.mozOrientation;
       }
 
       if (!Array.isArray(orientation)) {
         orientation = [orientation];
       }
 
-      this._defaultOrientation = orientation[0];
+      if ((orientation.indexOf(screen.mozOrientation) >= 0) ||
+          orientation.some(function(o) {
+            return screen.mozOrientation.startsWith(o);
+          })
+          ) {
+        this.debug('use current orientation..');
+        orientation[0] = screen.mozOrientation;
+      }
 
-      return this._defaultOrientation;
+      // XXX: workaround for a non-locking app if the app is already having
+      // a snapshot which is different to current dimension.
+      if (this.width && this.height) {
+        if (this.width > this.height) {
+          // Landscape
+          if (!orientation[0].startsWith('landscape')) {
+            return 'landscape-primary';
+          }
+        } else {
+          // Portrait
+          if (!orientation[0].startsWith('portrait')) {
+            return 'portrait-primary';
+          }
+        }
+      }
+
+      this.debug('randomly choose one');
+      return orientation[0];
     };
 
   AppWindow.prototype.calibratedHeight = function aw_calibratedHeight() {
@@ -1189,7 +1231,6 @@
   };
 
   AppWindow.prototype._resize = function aw__resize() {
-    var height, width;
     this.debug('force RESIZE...');
     if (self.layoutManager.keyboardEnabled) {
       /**
@@ -1198,6 +1239,12 @@
        * @access private
        * @event AppWindow~_withkeyboard
        */
+      this.element.style.width =
+        layoutManager.fullWidth + 'px';
+      this.width = layoutManager.fullWidth;
+      this.element.style.height =
+        (layoutManager.fullHeight - layoutManager.keyboardHeight) + 'px';
+      this.height = layoutManager.fullHeight - layoutManager.keyboardHeight;
       this.broadcast('withkeyboard');
     } else {
       /**
@@ -1206,17 +1253,13 @@
        * @access private
        * @event AppWindow~_withoutkeyboard
        */
+
+      this.element.style.width = layoutManager.fullWidth + 'px';
+      this.element.style.height = layoutManager.fullHeight + 'px';
+      this.width = layoutManager.fullWidth;
+      this.height = layoutManager.fullHeight;
       this.broadcast('withoutkeyboard');
     }
-    height = self.layoutManager.height + this.calibratedHeight();
-
-    // If we have sidebar in the future, change layoutManager then.
-    width = self.layoutManager.width;
-
-    this.width = width;
-    this.height = height;
-    this.element.style.width = this.width + 'px';
-    this.element.style.height = this.height + 'px';
 
     this.resized = true;
 
@@ -1292,6 +1335,7 @@
       if (rv === false) {
         console.warn('screen.mozLockOrientation() returned false for',
                      this.origin, 'orientation', orientation);
+        this.lockFakeOrientation();
       } else {
         this.debug(' locking screen orientation to ' + orientation);
       }
@@ -1299,6 +1343,10 @@
       screen.mozUnlockOrientation();
       this.debug(' Unlocking screen orientation..');
     }
+  };
+
+  AppWindow.prototype.lockFakeOrientation = function() {
+    this._resize();
   };
 
   /**
@@ -1586,6 +1634,7 @@
     this.reviveBrowser();
     // Request "open" to our internal transition controller.
     if (this.transitionController) {
+      this.element.classList.add('active');
       this.transitionController.switchTransitionState('opened');
       this.publish('opened');
     }
@@ -1684,7 +1733,7 @@
       }
       app = app.nextWindow;
     }
-    return null;
+    return this;
   };
 
   /**

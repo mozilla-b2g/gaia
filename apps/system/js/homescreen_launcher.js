@@ -135,6 +135,7 @@
       window.addEventListener('homescreenclosing', this);
       window.addEventListener('software-button-enabled', this);
       window.addEventListener('software-button-disabled', this);
+      window.addEventListener('appsheet-transitionstart', this);
       return this;
     },
 
@@ -165,6 +166,7 @@
       window.removeEventListener('homescreenclosing', this);
       window.removeEventListener('software-button-enabled', this);
       window.removeEventListener('software-button-disabled', this);
+      window.addEventListener('appsheet-transitionstart', this);
       this._started = false;
     },
 
@@ -196,6 +198,7 @@
             this.getHomescreen().fadeOut();
           }
           break;
+        case 'appsheet-transitionstart':
         case 'keyboardchange':
           // Fade out the homescreen, so that it won't be seen when showing/
           // hiding/switching keyboard.

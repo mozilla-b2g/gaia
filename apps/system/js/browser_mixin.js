@@ -101,7 +101,7 @@
           self._screenshotBlob = result;
         }
 
-        self.debug('getScreenshot succeed!');
+        self.debug('getScreenshot succeed! W= ' + width + ';H=' + height);
         if (invoked)
           return;
         invoked = true;
@@ -112,7 +112,6 @@
       };
 
       req.onerror = function gotScreenshotFromFrameError(evt) {
-
         self.debug('getScreenshot failed!');
         if (invoked)
           return;

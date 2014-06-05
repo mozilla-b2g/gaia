@@ -296,6 +296,7 @@
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
     <link rel="stylesheet" type="text/css" href="style/window.css">
+    <link rel="stylesheet" type="text/css" href="style/window_layout.css">
     <script defer src="js/base_ui.js"></script>
     <script defer src="js/browser_context_menu.js"></script>
     <script defer src="js/child_window_factory.js"></script>
@@ -308,6 +309,7 @@
     <script defer src="js/shrinking_ui.js"></script>
     <link rel="stylesheet" type="text/css" href="style/shrinking_ui/shrinking_ui.css">
     <script defer src="js/browser_mixin.js"></script>
+    <script defer src="js/sheet_transition_controller.js"></script>
     <script defer src="js/wrapper_factory.js"></script>
     <script defer src="js/homescreen_window.js"></script>
     <script defer src="js/homescreen_launcher.js"></script>
@@ -330,9 +332,9 @@
     <script defer src="js/suspending_app_priority_manager.js"></script>
 
     <!-- Edge Gestures -->
-    <script defer src="js/stack_manager.js"></script>
-    <script defer src="js/sheets_transition.js"></script>
     <script defer src="js/edge_swipe_detector.js"></script>
+    <script defer src="js/stack_manager.js"></script>
+    <script defer src="js/sheet_transition_manager.js"></script>
     <link rel="stylesheet" type="text/css" href="style/edges/edges.css">
 
     <!-- Entry Sheet -->
@@ -1207,6 +1209,8 @@
           <button data-l10n-id="cancel">Cancel</button>
         </menu>
       </div>
+
+      <div id="sheet-transition-overlay" data-z-index-level="sheet-transition-overlay"></div>
 
       <div id="system-overlay" data-z-index-level="system-overlay">
         <div id="battery">

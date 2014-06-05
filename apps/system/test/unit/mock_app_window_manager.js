@@ -42,6 +42,10 @@ var MockAppWindowManager = {
     this.mActiveApp = null;
   },
 
+  _updateActiveApp: function() {
+
+  },
+
   broadcastMessage: function() {
   }
 };

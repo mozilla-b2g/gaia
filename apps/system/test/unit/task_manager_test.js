@@ -93,6 +93,7 @@ suite('system/TaskManager >', function() {
 
   mocksForTaskManager.attachTestHelpers();
   suiteSetup(function cv_suiteSetup(done) {
+    window.stackManager = MockStackManager;
     apps = {
       'http://sms.gaiamobile.org': new AppWindow({
         launchTime: 5,
@@ -349,6 +350,7 @@ suite('system/TaskManager >', function() {
   });
 
   suiteTeardown(function() {
+    window.stackManager = undefined;
     Object.defineProperty(window, 'innerHeight', ihDescriptor);
     window.lockScreen = originalLockScreen;
     screenNode.parentNode.removeChild(screenNode);
