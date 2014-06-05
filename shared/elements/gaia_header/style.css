@@ -7,6 +7,11 @@ gaia-header {
   display: block;
   height: 5rem;
   z-index: 10;
+  color: var(--text-color-brand, #858585);
+  background: var(--brand-color, #f4f4f4);
+  border-bottom-right-radius: var(--border-radius, 0);
+  border-bottom-left-radius: var(--border-radius, 0);
+  box-shadow: var(--box-shadow, none);
 }
 
 h1 {
@@ -63,6 +68,13 @@ button {
   font-style: italic;
 }
 
+a:hover,
+button:hover,
+a:active,
+button:active {
+  background: var(--active-background, rgba(0,0,0,0.7));
+}
+
 /* Pressed state */
 a:focus{
   outline: none;
@@ -88,21 +100,6 @@ button[disabled] {
   display: none;
 }
 
-/* Icons */
-[icon] {
-  font-size: 0;
-}
-
-[icon]:before {
-  position: absolute;
-  content: "";
-  width: 3rem;
-  height: 3rem;
-  background: transparent no-repeat center / 3rem auto;
-  top: 1rem;
-  left: 1rem;
-}
-
 /* right-to-left */
 
 /* We would need an attribute to know if we are using rtl,
@@ -121,26 +118,6 @@ html[dir="rtl"] [icon="back"] {
   transform: rotate(180deg);
 }
 
-/* -----------------------------------------------------------------
-  HEADER SKIN: default
-  Default values in case we are not overriding them using
-  'skin'
------------------------------------------------------------------ */
-
-gaia-header {
-  color: #fff;
-  background-color: #f97c17;
-}
-
-h1 {
-  color: #fff;
-}
-
-a,
-button {
-  color: rgba(0,0,0,0.6);
-}
-
 a:active,
 button:active,
 a:hover,
@@ -153,139 +130,12 @@ button:focus {
   background-color: transparent;
 }
 
-/* Icons */
-[icon="add"]:before {
-  background-image: url(images/icons/add.png);
-}
+/** Action Button
+ ---------------------------------------------------------*/
 
-[icon="compose"]:before {
-  background-image: url(images/icons/compose.png);
-}
-
-[icon="edit"]:before {
-  background-image: url(images/icons/edit.png);
-}
-
-[icon="send"]:before {
-  background-image: url(images/icons/send.png);
-}
-
-[icon="close"]:before {
-  background-image: url(images/icons/close.png);
-}
-
-[icon="back"]:before {
-  background-image: url(images/icons/back.png);
-}
-
-[icon="menu"]:before {
-  background-image: url(images/icons/menu.png);
-}
-
-[icon="user"]:before {
-  background-image: url(images/icons/user.png);
-}
-
-[icon="up"]:before {
-  background-image: url(images/icons/up.png);
-}
-
-[icon="down"]:before {
-  background-image: url(images/icons/down.png);
-}
-
-[icon="options"]:before {
-  background-image: url(images/icons/options.png);
-}
-
-/* -----------------------------------------------------------------
-  HEADER SKIN: comms
------------------------------------------------------------------ */
-
-[skin="comms"] {
-  background-color: #00adad;
-}
-
-[skin="comms"] a,
-[skin="comms"] button {
-  color: rgba(0,0,0,0.5);
-}
-
-[skin="comms"] a:hover,
-[skin="comms"] button:hover,
-[skin="comms"] a:active,
-[skin="comms"] button:active {
-  background-color: rgba(0,0,0,0.1);
-}
-
-[data-skin="comms"] a:focus,
-[data-skin="comms"] button:focus {
-  background-color: transparent;
-}
-
-/* -----------------------------------------------------------------
-  HEADER SKIN: dark
------------------------------------------------------------------ */
-
-[skin="dark"] {
-  background-color: #242d33;
-}
-
-[skin="dark"] a,
-[skin="dark"] button {
-  color: #00aac5;
-}
-
-[skin="dark"] a:hover,
-[skin="dark"] button:hover,
-[skin="dark"] a:active,
-[skin="dark"] button:active {
-  background-color: rgba(0,0,0,0.4);
-}
-
-[data-skin="dark"] a:focus,
-[data-skin="dark"] button:focus {
-  background-color: transparent;
-}
-
-/* -----------------------------------------------------------------
-  HEADER SKIN: organic
------------------------------------------------------------------ */
-
-[skin="organic"] {
-  color: #868692;
-  background-color: #f4f4f4;
-}
-
-[skin="organic"] h1 {
-  color: #868692;
-}
-
-[skin="organic"] a,
-[skin="organic"] button {
-  color: #00aac5;
-}
-
-[data-skin="organic"] a:focus,
-[data-skin="organic"] button:focus {
-  background-color: transparent;
-}
-
-/* Icons */
-[skin="organic"] [icon="back"]:before {
-  background-image: url(images/icons/organic/back.png);
-}
-
-[skin="organic"] [icon="close"]:before {
-  background-image: url(images/icons/organic/close.png);
-}
-
-[skin="organic"] [icon="add"]:before {
-  background-image: url(images/icons/organic/add.png);
-}
-
-[skin="organic"] [icon="edit"]:before {
-  background-image: url(images/icons/organic/edit.png);
+.action-button {
+  font-size: 3rem;
+  color: inherit;
 }
 
 /* -----------------------------------------------------------------

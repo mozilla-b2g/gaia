@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Header Demo</title>
+  <meta name="description" content="Demo app for Custom Element based headers">
+  <link rel="stylesheet" type="text/css" href="themes/dark.css">
+  <link rel="stylesheet" type="text/css" href="themes/comms.css">
+  <link rel="stylesheet" type="text/css" href="themes/organic.css">
+  <link rel="stylesheet" type="text/css" href="themes/custom.css">
+  <style type="text/css">
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    body {
+      background: none;
+    }
+
+    section {
+      box-sizing: border-box;
+      float: left;
+      width: 50%;
+      height: 400px;
+      border: solid 1px #eee;
+      border-width: 0 1px 1px 0;
+    }
+  </style>
+  <script>window.GaiaHeaderBaseurl = '../';</script>
+  <script src="../../../js/component_utils.js"></script>
+  <script src="../script.js" type="text/javascript"></script>
+</head>
+
+<body role="application">
+  <section>
+    <gaia-header theme="comms">
+      <h1 id="title1" data-l10n-id="title">Messages</h1>
+      <button id="edit1" icon="edit"></button>
+      <button id="add1" icon="add"></button>
+    </gaia-header>
+  </section>
+  <section>
+    <gaia-header action="back">
+      <h1 id="title2">Mark Alfenito</h1>
+      <button id="edit2" icon="edit"></button>
+    </gaia-header>
+  </section>
+  <section>
+    <gaia-header action="back" theme="organic" icons="dark">
+      <h1 id="title2">Inbox <em>(2)</em></h1>
+      <button id="edit3" icon="edit"></button>
+      <button id="add3" icon="add"></button>
+    </gaia-header>
+  </section>
+  <section>
+    <gaia-header action="back" theme="dark">
+      <h1 id="title2">Skin: dark</h1>
+      <button id="edit5" icon="edit"></button>
+      <button id="done5">done</button>
+    </gaia-header>
+  </section>
+  <section>
+    <gaia-header action="close">
+      <h1 id="title2">Title</h1>
+      <button id="done4">done</button>
+    </gaia-header>
+  </section>
+  <section>
+    <gaia-header theme="custom" action="back">
+      <h1 id="title2">Skin: organic</h1>
+      <button id="edit6" icon="edit"></button>
+      <button id="done6">done</button>
+    </gaia-header>
+  </section>
+  <section>
+    <gaia-header action="back">
+      <h1 id="title2">Skin: comms</h1>
+      <button id="edit7" icon="edit"></button>
+      <button id="done7">done</button>
+    </gaia-header>
+  </section>
+</body>
+</html>

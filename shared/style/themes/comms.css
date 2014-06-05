@@ -1,0 +1,80 @@
+
+[theme="comms"] {
+
+  /* Raw Colors */
+  --color-green: #00adad;
+  --color-white: #fff;
+  --color-blue: #00aac5;
+
+  --color-root-alpha: #333333;
+  --color-root-beta: #ffffff;
+  --color-root-gamma: #4d4d4d;
+  --color-root-delta: #5f5f5f;
+  --color-root-epsilon: #858585;
+  --color-root-zeta: #a6a6a6;
+  --color-root-eta: #c7c7c7;
+  --color-root-theta: #e7e7e7;
+  --color-root-iota: #f4f4f4;
+
+  --color-brand-darkblue: #00539f;
+  --color-brand-blue: #00caf2;
+  --color-brand-turquoise: #27c8c2;
+  --color-brand-darkorange: #e66000;
+  --color-brand-orange: #ff9500;
+  --color-brand-yellow: #ffcb00;
+  --color-brand-violet: #c40c84;
+
+  --color-brand-alpha: #00aac5;
+  --color-brand-beta: #00caf2;
+  --color-brand-gamma: #b2f2ff;
+
+  --brand-color: var(--color-brand-turquoise);
+
+  --base-color: var(--color-root-iota);
+  --base-color-tint-1: var(--color-white);
+  --base-color-tint-2: var(--color-white);
+  --base-color-shade-1: var(--color-root-theta);
+  --base-color-shade-2: var(--color-root-eta);
+
+  --text-color: var(--color-root-delta);
+  --text-color-shade: var(--color-root-gamma);
+  --text-color-brand: var(--color-root-beta);
+
+  --text-color-link: var(--color-blue);
+  --text-color-title: #333;
+  --text-color-body: #333;
+
+  /**
+   * Used to define large blocks
+   * of background color/image
+   */
+
+  --background: var(--main-color);
+  --background-hover: var(--main-color);
+  --background-down: var(--main-color);
+
+  /**
+   * Call To Action (cta)
+   */
+
+  --background-cta: var(--main-color);
+  --background-cta-hover: var(--main-color);
+  --background-cta-down: var(--main-color);
+
+  /**
+   *
+   */
+
+  --button-color: transparent;
+  --button-hover: transparent;
+  --button-active: transparent;
+
+  --box-shadow: none;
+  --box-shadow-button: 0 1px 0 var(--base-color-shade-1);
+  --box-shadow-input:
+    inset 1px 1px 0 var(--base-color-shade-1),
+    inset -1px -1px 0 var(--base-color-shade-1);
+
+  --font-family: sans-serif;
+  --border-radius: 0;
+}

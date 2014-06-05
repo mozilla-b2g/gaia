@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Theme Demo</title>
+  <meta name="description" content="Examples of component theming">
+  <link rel="stylesheet" type="text/css" href="../media.css">
+  <link rel="stylesheet" type="text/css" href="../comms.css">
+  <link rel="stylesheet" type="text/css" href="../organic.css">
+  <style type="text/css">
+    html, body {
+      margin: 0;
+      padding: 0;
+      font: 10px sans-serif;
+      background-color: #fff;
+    }
+
+    body {
+      background: none;
+    }
+
+    section {
+      box-sizing: border-box;
+      float: left;
+      width: 50%;
+      height: 600px;
+      border: solid 1px #eee;
+      border-width: 0 1px 1px 0;
+      background-color: var(--base-color, #f4f4f4);
+    }
+
+    .content {
+      padding: 2rem;
+    }
+
+    .content > * {
+      margin-bottom: 2rem;
+    }
+
+    gaia-switch {
+      margin-bottom: 1rem;
+    }
+  </style>
+  <script>window.GaiaHeaderBaseurl = '../../../elements/gaia_header/';</script>
+  <script src="../../../js/component_utils.js"></script>
+  <script src="../../../elements/gaia_header/script.js"></script>
+  <script>window.GaiaSwitchBaseurl = '../../../elements/gaia_switch/';</script>
+  <script src="../../../elements/gaia_switch/script.js"></script>
+  <script>window.GaiaButtonsBaseurl = '../../../elements/gaia_buttons/';</script>
+  <script src="../../../elements/gaia_buttons/script.js"></script>
+  <script>window.GaiaTextinputBaseurl = '../../../elements/gaia_textinput/';</script>
+  <script src="../../../elements/gaia_textinput/script.js"></script>
+  <script>window.GaiaHrBaseurl = '../../../elements/gaia_hr/';</script>
+  <script src="../../../elements/gaia_hr/script.js"></script>
+</head>
+
+<body role="application">
+  <section theme="comms">
+    <gaia-header action="close">
+      <h1 id="title1">Comms</h1>
+      <button>Done</button>
+    </gaia-header>
+    <div class="content">
+      <gaia-buttons>
+        <button>Label 1</button>
+        <button class="recommend">Label 2</button>
+      </gaia-buttons>
+      <gaia-hr></gaia-hr>
+      <gaia-textinput placeholder="First Name..." resettable></gaia-textinput>
+      <gaia-textinput resettable></gaia-textinput>
+      <gaia-textinput type="password" placeholder="Password..."></gaia-textinput>
+      <gaia-textinput></gaia-textinput>
+      <gaia-hr></gaia-hr>
+      <gaia-switch checked>Switch Off</gaia-switch>
+      <gaia-switch>Switch Transition</gaia-switch>
+      <gaia-switch checked>Switch Active</gaia-switch>
+      <gaia-switch></gaia-switch>
+    </div>
+  </section>
+  <section theme="media">
+    <gaia-header action="back">
+      <h1 id="title2">Media</h1>
+      <button>Done</button>
+    </gaia-header>
+    <div class="content">
+      <gaia-buttons>
+        <button>Label 1</button>
+        <button class="recommend">Label 2</button>
+      </gaia-buttons>
+      <gaia-hr></gaia-hr>
+      <gaia-textinput placeholder="First Name..." resettable></gaia-textinput>
+      <gaia-textinput resettable></gaia-textinput>
+      <gaia-textinput type="password" placeholder="Password..."></gaia-textinput>
+      <gaia-textinput></gaia-textinput>
+      <gaia-hr></gaia-hr>
+      <gaia-switch checked>Switch Off</gaia-switch>
+      <gaia-switch>Switch Transition</gaia-switch>
+      <gaia-switch checked>Switch Active</gaia-switch>
+      <gaia-switch></gaia-switch>
+    </div>
+  </section>
+  <section>
+    <gaia-header action="back">
+      <h1 id="title2">Default</h1>
+      <button>Done</button>
+    </gaia-header>
+    <div class="content">
+      <gaia-buttons>
+        <button>Label 1</button>
+        <button class="recommend">Label 2</button>
+      </gaia-buttons>
+      <gaia-hr></gaia-hr>
+      <gaia-textinput placeholder="First Name..." resettable></gaia-textinput>
+      <gaia-textinput resettable></gaia-textinput>
+      <gaia-textinput type="password" placeholder="Password..."></gaia-textinput>
+      <gaia-textinput></gaia-textinput>
+      <gaia-hr></gaia-hr>
+      <gaia-switch checked>Switch Off</gaia-switch>
+      <gaia-switch>Switch Transition</gaia-switch>
+      <gaia-switch checked>Switch Active</gaia-switch>
+      <gaia-switch></gaia-switch>
+    </div>
+  </section>
+</body>
+</html>

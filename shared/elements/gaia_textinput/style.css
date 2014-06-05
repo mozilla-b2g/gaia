@@ -1,95 +1,99 @@
-/* ----------------------------------
- * TEXT INPUT
- * ---------------------------------- */
 
-input[type="text"],
-input[type="password"],
-input[type="email"],
-input[type="tel"],
-input[type="search"],
-input[type="url"],
-input[type="number"],
-input[type="date"],
-textarea {
-  -moz-box-sizing: border-box;
+/**
+ * Gaia Textinput
+ */
+
+gaia-textinput {
   display: block;
-  width: 100%;
   height: 4rem;
-  resize: none;
-  padding: 0 1.2rem;
-  font-size: 1.8rem;
-  line-height: 4rem;
-  border: 0.1rem solid #ccc;
-  border-radius: 0.3rem;
-  box-shadow: none; /* override the box-shadow from the system (performance issue) */
-  background: #fff url(input_areas/images/ui/shadow.png) repeat-x;
 }
 
-/* fix for required inputs with wrong or empty value e.g. [type=email] */
-input:invalid,
-textarea:invalid {
-  border: 0.1rem solid #820000;
-  color: #b90000;
-}
+/** Inner
+ ---------------------------------------------------------*/
 
-input::-moz-placeholder,
-textarea::-moz-placeholder {
-  color: #858585;
-  opacity: 1;
-}
-
-input:-moz-placeholder,
-textarea:-moz-placeholder {
-  color: #858585;
-  opacity: 1;
-}
-
-input:focus {
-  padding-right: 3rem;
-}
-
-input:focus + button[type="reset"],
-textarea:focus + button[type="reset"],
-input:focus + button.reset,
-textarea:focus + button.reset {
-  opacity: 1;
-  pointer-events: all;
-}
-
-input + button[type="reset"],
-textarea + button[type="reset"],
-input + button.reset,
-textarea + button.reset {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  width: 3rem;
-  height: 4rem;
-  padding: 0;
-  border: none;
-  font-size: 0;
-  opacity: 0;
-  pointer-events: none;
-  background: transparent url(images/clear.png) no-repeat 50% 50% / 1.7rem auto;
-}
-
-.skin-dark input + button[type="reset"],
-.skin-dark textarea + button[type="reset"],
-.skin-dark input + button.reset,
-.skin-dark textarea + button.reset {
-  background-image: url(images/clear_dark.png);
-}
-
-input + button[type="reset"],
-textarea + button[type="reset"],
-input + button.reset,
-textarea + button.reset {
-  top: 0;
-  margin: 0;
-}
-
-#gaia-text-input {
+.inner {
   position: relative;
   margin: 0;
 }
 
+/** Input
+ ---------------------------------------------------------*/
+
+input {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: 100%;
+  resize: none;
+  padding: 0 1.2rem;
+  font-size: 1.8rem;
+  line-height: 4rem;
+  border-radius: 0;
+  border: var(--border-input, 0);
+  box-shadow: var(--box-shadow-input, none);
+  background: var(--input-background, #fff);
+  color: var(--text-color, #333);
+}
+
+/**
+ * :invalid
+ *
+ * Fix for required inputs with
+ * wrong or empty value
+ * eg. [type=email]
+ */
+
+input:invalid {
+  border: 0.1rem solid #820000;
+  color: #b90000;
+}
+
+/**
+ * :focus
+ */
+
+input:focus {
+  padding-right: 3rem;
+  border-bottom: solid 3px var(--brand-color);
+}
+
+/** Placeholder Text
+ ---------------------------------------------------------*/
+
+input::-moz-placeholder {
+  color: var(--text-color-shade-1, #a6a6a6);
+  opacity: 1;
+}
+
+
+/** Reset Button
+ ---------------------------------------------------------*/
+
+input + button {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  width: 2.1rem;
+  height: 2.1rem;
+  font-size: 1.8rem;
+  line-height: 2.1rem;
+  text-align: center;
+  margin-top: -1.1rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  background-color: var(--base-color-shade-1);
+  color: #fff;
+  cursor: pointer;
+}
+
+/**
+ * [resettable]
+ */
+
+[resettable] input:focus + button {
+  opacity: 1;
+  pointer-events: all;
+}

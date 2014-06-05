@@ -12,25 +12,33 @@
      * Injects a style.css into both the shadow root and outside the shadow
      * root so we can style projected content. Bug 992249.
      */
-    style: function(baseUrl) {
-      var style = document.createElement('style');
-      style.setAttribute('scoped', '');
-      var url = baseUrl + 'style.css';
-      style.innerHTML = '@import url(' + url + ');';
+    style: function(stylesheets, baseUrl) {
+      var self = this;
 
-      this.appendChild(style);
+      stylesheets.forEach(add);
 
-      if (!this.shadowRoot) {
-        return;
+      function add(stylesheet) {
+        var style = document.createElement('style');
+        var url = baseUrl + stylesheet.url;
+        style.innerHTML = '@import url(' + url + ');';
+
+        if (stylesheet.scoped) {
+          style.setAttribute('scoped', '');
+        }
+
+        self.appendChild(style);
+
+        if (!self.shadowRoot) {
+          return;
+        }
+
+        // The setTimeout is necessary to avoid missing @import styles
+        // when appending two stylesheets. Bug 1003294.
+        style.onload = function nextTick() {
+          self.shadowRoot.appendChild(style.cloneNode(true));
+        };
       }
-
-      // The setTimeout is necessary to avoid missing @import styles
-      // when appending two stylesheets. Bug 1003294.
-      setTimeout(function nextTick() {
-        this.shadowRoot.appendChild(style.cloneNode(true));
-      }.bind(this));
     }
-
   };
 
   exports.ComponentUtils = ComponentUtils;

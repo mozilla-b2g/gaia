@@ -20,6 +20,11 @@ window.GaiaHeader = (function(win) {
     close: true
   };
 
+  var stylesheets = [
+    { url: '../../style/icons/style.css' },
+    { url: 'style.css', scoped: true }
+  ];
+
   /**
    * Called when the element is first created.
    *
@@ -35,14 +40,12 @@ window.GaiaHeader = (function(win) {
     this._actionButton = this._template.getElementById('action-button');
     this._header = this._template.getElementById('header');
     this._configureActionButton();
-    this._configureSkin();
     this._actionButton.addEventListener(
       'click', proto._onActionButtonClick.bind(this)
     );
 
     shadow.appendChild(this._template);
-
-    ComponentUtils.style.call(this, baseurl);
+    ComponentUtils.style.call(this, stylesheets, baseurl);
   };
 
   /**
@@ -53,8 +56,6 @@ window.GaiaHeader = (function(win) {
   proto.attributeChangedCallback = function(attr, oldVal, newVal) {
     if (attr === 'action') {
       this._configureActionButton();
-    } else if (attr === 'skin') {
-      this._configureSkin();
     }
   };
 
@@ -75,6 +76,7 @@ window.GaiaHeader = (function(win) {
    * @private
    */
   proto._configureActionButton = function() {
+    var old = this._actionButton.getAttribute('icon');
     var type = this.getAttribute('action');
 
     // TODO: Action button should be
@@ -84,17 +86,13 @@ window.GaiaHeader = (function(win) {
       this._actionButton.style.display = 'none';
       return;
     }
+
     this._actionButton.style.display = 'block';
     this._actionButton.setAttribute('icon', type);
-  };
+    this._actionButton.classList.remove('icon-' + old);
+    this._actionButton.classList.add('icon-' + type);
 
-  /**
-   * Copy the skin to the template.
-   *
-   * @private
-   */
-  proto._configureSkin = function() {
-    this._header.setAttribute('skin', this.getAttribute('skin'));
+    console.log(old, type);
   };
 
   /**
@@ -134,7 +132,7 @@ window.GaiaHeader = (function(win) {
   // using HTML Imports (bug 877072).
   var template = document.createElement('template');
   template.innerHTML = '<header id="header">' +
-      '<button id="action-button"></button>' +
+      '<button id="action-button" class="action-button icon"></button>' +
       '<menu id="menu-buttons" type="toolbar">' +
         '<content id="buttons-content" select="button,a"></content>' +
       '</menu>' +

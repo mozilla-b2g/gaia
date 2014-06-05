@@ -1,0 +1,8 @@
+{
+  "name": "gaia-icons",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-rename": "^0.1.3",
+    "grunt-webfont": "^0.4.2"
+  }
+}

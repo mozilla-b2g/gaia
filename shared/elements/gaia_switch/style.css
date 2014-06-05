@@ -1,84 +1,126 @@
-/* ----------------------------------
- * SWITCHES
- * ---------------------------------- */
 
-label.pack-switch {
-  display: inline-block;
-  vertical-align: middle;
-  width: 100%;
-  height: 5rem;
-  position: relative;
-  background: none;
+gaia-switch {
+  display: block;
+  overflow: hidden
 }
 
-label.pack-switch span {
-  float: left;
-  font-size: 1.8rem;
-  color: #333;
-  padding: 1rem 0 0;
-  height: 6rem;
-  line-height: 3rem;
+button {
   box-sizing: border-box;
   display: block;
+  overflow: hidden;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
 }
 
-label.pack-switch input {
-  margin: 0;
-  opacity: 0;
+button::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+/** Inner
+ ---------------------------------------------------------*/
+
+.inner {
+  --width: 6rem;
+  --height: 2.7rem;
+
+  display: flex;
+  width: 100%;
+}
+
+/** Label
+ ---------------------------------------------------------*/
+
+.label {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  font-size: 1.5rem;
+  color: var(--text-color, #5f5f5f);
+}
+
+/** Track
+ ---------------------------------------------------------*/
+
+.track {
+  /*height: 100%;*/
+
+  align-self: flex-end;
+  width: var(--width);
+  height: var(--height);
+  border-radius: 2.7rem;
+  overflow: hidden;
+  cursor: pointer;
+
+  background-color: var(--base-color-shade-1, #c7c7c7);
+  border: var(--border-input, 0);
+}
+
+[checked] .track {
+  background: var(--brand-color, #00aacc);
+}
+
+/** Button
+ ---------------------------------------------------------*/
+
+.head {
+  position: relative;
+  box-sizing: border-box;
+  width: 2.7rem;
+  height: 100%;
+  transition: transform 200ms ease;
+  will-change: transform;
+}
+
+[checked] .head {
+  transform:
+    translateX(var(--width))
+    translateX(-2.7rem);
+}
+
+/** Tick Icon
+ ---------------------------------------------------------*/
+
+.icon {
   position: absolute;
   top: 0;
-  left: 0;
+  right: 100%;
+  margin-right: 1.2rem;
+
+  height: 100%;
+  line-height: var(--height);
+  color: var(--text-color-brand, #fff);
+  font-size: 1.6rem;
 }
 
-label.pack-switch input:checked ~ span:after {
-  background-position: center bottom;
-}
-
-/* ----------------------------------
- * ON/OFF SWITCHES
- * ---------------------------------- */
-
-label.pack-switch input ~ span:after {
-  content: '';
+.circle-1 {
   position: absolute;
-  right: 0;
   top: 50%;
-  width: 6rem;
-  margin: -1.4rem 0 0;
-  height: 2.7rem;
-  border-radius: 1.35rem;
-  overflow: hidden;
-  background: #e6e6e6 url(images/background_off.png) no-repeat -3.2rem 0 / 9.2rem 2.7rem;
-  transition: background 0.2s ease;
+  left: 50%;
+  width: 4.2rem;
+  height: 4.2rem;
+  margin: -2.1rem 0 0 -2.1rem;
+  background: var(--base-color-shade-2, rgba(0,0,0,0.05));
+  border-radius: 50%
 }
 
-/* switch: 'ON' state */
-label.pack-switch input:checked ~ span:after {
-  background: #e6e6e6 url(images/background.png) no-repeat 0 0 / 9.2rem 2.7rem;
+[checked] .circle-1 {
+  background: rgba(255,255,255,0.34);
 }
 
-/* switch: disabled state */
-label.pack-switch input:disabled ~ span:after {
-  opacity: 0.4;
-}
-
-label.pack-switch input.uninit ~ span:after {
-  transition: none;
-}
-
-/******************************************************************************
- * Right-To-Left tweaks
- */
-html[dir="rtl"] label.pack-switch input {
-  left: auto;
-  right: 0;
-}
-
-html[dir="rtl"] label.pack-switch input ~ span:after {
+.circle-2 {
+  box-sizing: border-box;
+  position: absolute;
   left: 0;
-  right: auto;
-}
-
-html[dir="rtl"] label.pack-switch input ~ span:after {
-  background-position: 0;
+  top: 0;
+  width: var(--height);
+  height: var(--height);
+  background: #00caf2;
+  border-radius: 50%;
+  background: var(--text-color-brand, #fff);
+  border: solid 3px transparent;
+  background-clip: padding-box;
 }
