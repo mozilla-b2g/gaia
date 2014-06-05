@@ -1173,12 +1173,13 @@ html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input
 */
 
 .tutorial-screen-base {
-    z-index: 200;
+  z-index: 200;
 }
 
 .fxa-logo {
   background-image: url('images/fxa_logo.png');
   background-repeat: no-repeat;
+  background-size: 16.4rem auto;
   margin: 3rem auto 0;
   width: 17rem;
   height: 17.5rem;
