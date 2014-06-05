@@ -1,3 +1,4 @@
+/* globals MobileOperator, SettingsListener, SIMSlotManager */
 'use strict';
 
 (function(exports) {
@@ -217,7 +218,7 @@
       // Airplane mode
       if (this._airplaneMode) {
         // Only show one airplane mode status
-        if (index == 0) {
+        if (index === 0) {
           lineText(nextLine(), 'airplaneMode');
         } else {
           connstate.hidden = true;
@@ -228,7 +229,7 @@
 
       // If there is no sim card on the device, we only show one information.
       if (SIMSlotManager.noSIMCardOnDevice()) {
-        if (index == 0) {
+        if (index === 0) {
           if (voice.emergencyCallsOnly) {
             lineText(nextLine(), 'emergencyCallsOnly');
             lineText(nextLine(), 'emergencyCallsOnly-noSIM');
@@ -239,7 +240,7 @@
         simIDLine.hidden = true;
         return;
       } else if (SIMSlotManager.noSIMCardConnectedToNetwork()) {
-        if (index == 0) {
+        if (index === 0) {
           lineText(nextLine(), 'emergencyCallsOnly');
         }
         simIDLine.hidden = true;
@@ -289,8 +290,9 @@
         return (conn.voice.type == elem);
       });
 
+      var l10nArgs;
       if (voice.roaming) {
-        var l10nArgs = { operator: operator };
+        l10nArgs = { operator: operator };
         lineText(nextLine(), 'roaming', l10nArgs);
       } else {
         lineText(nextLine(), null, null, operator);
@@ -300,7 +302,7 @@
       if (this._cellbroadcastLabel && is2G) {
         lineText(nextLine(), null, null, this._cellbroadcastLabel);
       } else if (operatorInfos.carrier) {
-        var l10nArgs = { carrier: operatorInfos.carrier,
+        l10nArgs = { carrier: operatorInfos.carrier,
                          region: operatorInfos.region };
         lineText(nextLine(), 'operator-info', l10nArgs);
       }

@@ -1,3 +1,5 @@
+/* globals SIMSlot */
+
 'use strict';
 
 (function(window) {
@@ -134,4 +136,4 @@
   SIMSlot.prototype.isLocked = function ss_isLocked() {
     return this.constructor.LOCK_TYPES.indexOf(this.simCard.cardState) >= 0;
   };
-}(this));
+}(window));
