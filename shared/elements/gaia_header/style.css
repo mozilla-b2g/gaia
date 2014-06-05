@@ -7,8 +7,8 @@ gaia-header {
   display: block;
   height: 5rem;
   z-index: 10;
-  color: var(--text-color, #fff);
-  background: var(--background, #f97c17);
+  color: var(--text-color-brand, #fff);
+  background: var(--brand-color, #f97c17);
   border-bottom-right-radius: var(--border-radius, 0);
   border-bottom-left-radius: var(--border-radius, 0);
   box-shadow: var(--box-shadow, none);
@@ -27,7 +27,6 @@ h1 {
   font-weight: lighter;
   font-style: italic;
   text-align: center;
-  color: var(--text-color, #fff);
 }
 
 h1 em {
@@ -67,7 +66,6 @@ button {
   text-align: center;
   text-shadow: none;
   font-style: italic;
-  color: var(--text-color, rgba(0,0,0,0.6));
 }
 
 a:hover,
@@ -102,21 +100,6 @@ button[disabled] {
   display: none;
 }
 
-/* Icons */
-[icon] {
-  font-size: 0;
-}
-
-[icon]:before {
-  position: absolute;
-  content: "";
-  width: 3rem;
-  height: 3rem;
-  background: transparent no-repeat center / 3rem auto;
-  top: 1rem;
-  left: 1rem;
-}
-
 /* right-to-left */
 
 /* We would need an attribute to know if we are using rtl,
@@ -147,24 +130,16 @@ button:focus {
   background-color: transparent;
 }
 
+/** Action Button
+ ---------------------------------------------------------*/
+
+.action-button {
+  font-size: 3rem;
+  color: var(--text-color-brand, #fff);
+}
+
 /* Icons */
-[icon="add"]:before {
-  background-image: url(images/icons/add.png);
-}
-
-[icon="compose"]:before {
-  background-image: url(images/icons/compose.png);
-}
-
-[icon="edit"]:before {
-  background-image: url(images/icons/edit.png);
-}
-
-[icon="send"]:before {
-  background-image: url(images/icons/send.png);
-}
-
-[icon="close"]:before {
+/*[icon="close"]:before {
   background-image: url(images/icons/close.png);
 }
 
@@ -190,7 +165,7 @@ button:focus {
 
 [icon="options"]:before {
   background-image: url(images/icons/options.png);
-}
+}*/
 
 /**
  * I haven't yet thought of a way that
@@ -207,7 +182,7 @@ button:focus {
  * <gaia-header> element.
  */
 
-[icons="dark"] [icon="back"]:before {
+/*[icons="dark"] [icon="back"]:before {
   background-image: url(images/icons/organic/back.png);
 }
 
@@ -225,7 +200,7 @@ button:focus {
 
 [icons="dark"] [icon="menu"]:before {
   background-image: url(images/icons/organic/menu.png);
-}
+}*/
 
 /* -----------------------------------------------------------------
   Transitions

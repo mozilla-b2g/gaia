@@ -90,15 +90,16 @@ window.GaiaSwitch = (function(win) {
   //     '<span></span>' +
   //   '</label>';
 
-  template.innerHTML = '<button class="inner">' +
+    template.innerHTML = '<div class="inner">' +
+      '<div class="label"><content></content></div>' +
       '<div class="track">' +
         '<div class="head">' +
-          '<span class="icon icon_tick"></span>' +
+          '<span class="icon icon-tick"></span>' +
           '<div class="circle-1"></div>' +
           '<div class="circle-2"></div>' +
         '</div>' +
       '</div>' +
-    '</button>';
+    '</div>';
 
   // Register and return the constructor
   return document.registerElement('gaia-switch', { prototype: proto });

@@ -8,18 +8,12 @@ gaia-buttons {
   display: flex;
   justify-content: center;
   align-items: center;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10;
-  height: 7rem;
-  box-sizing: border-box;
-  padding: 0 1.5rem 0 0;
-  border-top: 0.1rem solid #e7e7e7;
-  background-color: #fff;
-  pointer-events: auto;
+  padding-left: 2rem;
 }
+
+/**
+ * Remove dotted focus outline
+ */
 
 button::-moz-focus-inner {
   border: none;
@@ -29,34 +23,39 @@ button::-moz-focus-inner {
 a,
 button {
   position: relative;
-  font-family: sans-serif;
-  font-style: italic;
   width: 100%;
   height: 4rem;
-  margin: 0 0 0 1rem;
+  margin: 0 0 0 2rem;
   padding: 0 1.2rem;
   box-sizing: border-box;
   display: inline-block;
   vertical-align: middle;
+  font-family: sans-serif;
+  font-style: italic;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  background: #d8d8d8;
+  background: var(--base-color-tint);
   border: none;
   border-radius: 2rem;
   font-weight: normal;
   font-size: 1.6rem;
   line-height: 4rem;
-  color: #333;
+  color: var(--text-color, #333);
   text-align: center;
   text-decoration: none;
   outline: none;
 }
 
+a:first-child,
+button:first-child {
+  margin-left: -2rem;
+}
+
 /* Recommend */
 a.recommend,
 button.recommend {
-  background-color: #00caf2;
+  background-color: var(--brand-color);
   color: #fff;
 }
 
@@ -204,7 +203,7 @@ gaia-buttons[skin="dark"] {
 /* -----------------------------------------------------------------
   RESPONSIVE: tablet
 ----------------------------------------------------------------- */
-
+/*
 @media (min-width: 768px) {
 
   gaia-buttons {
@@ -224,3 +223,4 @@ gaia-buttons[skin="dark"] {
   }
 
 }
+*/

@@ -1,11 +1,7 @@
 
 gaia-switch {
-  --width: 6rem;
-  --height: 2.7rem;
-
   display: block;
-  width: var(--width);
-  height: var(--height);
+  overflow: hidden
 }
 
 button {
@@ -28,22 +24,40 @@ button::-moz-focus-inner {
  ---------------------------------------------------------*/
 
 .inner {
+  --width: 6rem;
+  --height: 2.7rem;
+
+  display: flex;
   width: 100%;
-  height: 100%;
-  border-radius: 2.7rem;
-  background: #b0babc;
-  overflow: hidden;
 }
 
-.inner[checked] {
-  background: var(--color-1, #00aacc);
+/** Label
+ ---------------------------------------------------------*/
+
+.label {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  font-size: 1.5rem;
+  color: var(--text-color);
 }
 
 /** Track
  ---------------------------------------------------------*/
 
 .track {
-  height: 100%;
+  /*height: 100%;*/
+
+  align-self: flex-end;
+  width: var(--width);
+  height: var(--height);
+  border-radius: 2.7rem;
+  background: #b0babc;
+  overflow: hidden;
+}
+
+[checked] .track {
+  background: var(--brand-color, #00aacc);
 }
 
 /** Button
@@ -75,7 +89,7 @@ button::-moz-focus-inner {
 
   height: 100%;
   line-height: var(--height);
-  color: var(--text-color, #fff);
+  color: var(--text-color-brand, #fff);
   font-size: 1.6rem;
 }
 
@@ -104,7 +118,7 @@ button::-moz-focus-inner {
   height: var(--height);
   background: #00caf2;
   border-radius: 50%;
-  background: var(--text-color, #fff);
+  background: var(--text-color-brand, #fff);
   border: solid 3px transparent;
   background-clip: padding-box;
 }

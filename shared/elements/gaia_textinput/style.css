@@ -2,6 +2,10 @@
  * TEXT INPUT
  * ---------------------------------- */
 
+gaia-textinput {
+  display: block;
+}
+
 input[type="text"],
 input[type="password"],
 input[type="email"],

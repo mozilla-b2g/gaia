@@ -1,5 +1,5 @@
 
-[theme="comms"] {
+[theme="media"] {
 
   /* Raw Colors */
   --color-green: #00adad;
@@ -28,15 +28,23 @@
   --color-brand-beta: #00caf2;
   --color-brand-gamma: #b2f2ff;
 
-  --brand-color: var(--color-brand-turquoise);
 
-  --base-color: var(--color-root-iota);
-  --base-color-tint: var(--color-white);
-  --base-color-shade: var(--color-root-eta);
+/*  --color-1: var(--color-green);
 
-  --text-color: var(--color-root-delta);
-  --text-color-brand: var(--color-root-beta);
+  --main-color: var(--color-green);
+  --main-color-lighter: var(--color-green);
+  --main-color-darker: var(--color-green);
+  --main-color-tint: var(--color-green);
+  --main-color-shade: var(--color-green);*/
 
+  --brand-color: var(--color-brand-violet);
+
+
+  --base-color: var(--color-root-gamma);
+  --base-color-tint: var(--color-root-epsilon);
+  --base-color-shade: var(--color-root-alpha);
+
+  --text-color: var(--color-white);
   --text-color-link: var(--color-blue);
   --text-color-title: #333;
   --text-color-body: #333;

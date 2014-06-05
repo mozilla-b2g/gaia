@@ -16,7 +16,9 @@ module.exports = function(grunt) {
           embed: true,
           types: 'woff',
           ligatures: true,
-          // hashes: false
+          templateOptions: {
+            classPrefix: 'icon-'
+          }
         }
       }
     },
