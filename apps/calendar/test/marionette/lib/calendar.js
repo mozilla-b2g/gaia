@@ -162,7 +162,6 @@ Calendar.prototype = {
     });
 
     modifyAccount.save();
-    this.waitForKeyboardHide();
     modifyAccount.waitForHide();
     this.closeSettingsView();
     return this;
@@ -242,7 +241,6 @@ Calendar.prototype = {
     editEvent.reminders = opts.reminders == null ? [] : opts.reminders;
     editEvent.save();
 
-    this.waitForKeyboardHide();
     editEvent.waitForHide();
     return this;
   },
@@ -274,32 +272,6 @@ Calendar.prototype = {
       throw new Error(msg);
     }
 
-    return this;
-  },
-
-  // TODO: extract this logic into the marionette-helper repository since this
-  // can be useful for other apps as well
-  waitForKeyboardHide: function() {
-    // FIXME: keyboard might affect the click if test is being executed on
-    // a slow machine (eg. travis-ci) so we do this hack until Bug 965131 is
-    // fixed
-    var client = this.client;
-
-    // need to go back to top most frame before being able to switch to
-    // a different app!!!
-    client.switchToFrame();
-
-    var keyboardFrame = client.findElement(
-      'iframe[src*="app://keyboard.gaiamobile.org"]');
-    client.switchToFrame(keyboardFrame);
-    client.waitFor(function() {
-      return client.executeScript(function() {
-        return document.hidden;
-      });
-    });
-
-    client.switchToFrame();
-    client.apps.switchToApp(Calendar.ORIGIN);
     return this;
   },
 
