@@ -33,9 +33,10 @@ marionette('creating an event', function() {
   test('should display the created event in months day', function() {
     var monthDay = app.monthDay;
     var event = monthDay.events[0];
-    assert.equal(monthDay.getTitle(event), title);
-    assert.equal(monthDay.getLocation(event), location);
-    // assert.equal(monthDay.getStartHour(event), '2AM');
+    assert.equal(event.title, title);
+    assert.equal(event.address, location);
+    assert.equal(event.startTime, '2:00 AM');
+    assert.equal(event.endTime, '3:00 AM');
   });
 
   suite('opening event in read view', function() {
@@ -50,8 +51,7 @@ marionette('creating an event', function() {
       app.readEvent.waitForDisplay();
     });
 
-    // disabled bug 974731
-    test.skip('should display the created event in read view', function() {
+    test('should display the created event in read view', function() {
       var readEvent = app.readEvent;
       assert.equal(readEvent.title, title);
       assert.equal(readEvent.description, description);
@@ -63,8 +63,7 @@ marionette('creating an event', function() {
       assert.equal(readEvent.endTime, format('%d:00 AM', startHour + duration));
     });
 
-    // disabled bug 1001166
-    test.skip('should not overflow title, location, or description',
+    test('should not overflow title, location, or description',
       function() {
       var readEvent = app.readEvent;
       app.checkOverflow(readEvent.titleContainer, 'title');

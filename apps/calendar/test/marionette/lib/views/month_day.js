@@ -29,26 +29,6 @@ MonthDay.prototype = {
       .text();
   },
 
-  getTitle: function(event) {
-    return event
-      .findElement('h5')
-      .text();
-  },
-
-  getLocation: function(event) {
-    return event
-      .findElement('.location')
-      .text();
-  },
-
-  getStartHour: function(event) {
-    var section = this.client.helper
-      .closest(event, '.hour');
-    return section
-      .findElement('.display-hour')
-      .text();
-  },
-
   /**
    * If event is not specified, we'll use today's first event.
    */
