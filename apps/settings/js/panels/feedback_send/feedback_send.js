@@ -160,7 +160,7 @@ define(function(require) {
     _messageHandler: function(type) {
       var _ = navigator.mozL10n.get;
       if (type === 'success') {
-        this.elements.doneBtn.hidden = false;
+        this.elements.doneDialog.hidden = false;
       } else {
         this._keepAllInputs();
         this.elements.alertMsg.textContent =
