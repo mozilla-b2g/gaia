@@ -4,7 +4,7 @@
 (function(exports) {
 
   // Hidden manifest roles that we do not show
-  const HIDDEN_ROLES = ['system', 'keyboard', 'homescreen', 'search'];
+  const HIDDEN_ROLES = ['system', 'input', 'homescreen', 'search'];
 
   function App() {
     this.scrollable = document.querySelector('.scrollable');
