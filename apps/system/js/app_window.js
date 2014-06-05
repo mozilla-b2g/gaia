@@ -432,7 +432,9 @@
     this.uninstallSubComponents();
     if (this.element) {
       this.debug(' removing element... ');
-      this.element.parentNode.removeChild(this.element);
+      if (this.element.parentNode) {
+        this.element.parentNode.removeChild(this.element);
+      }
       this.element = null;
     }
 
