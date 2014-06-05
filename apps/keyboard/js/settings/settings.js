@@ -12,7 +12,7 @@
   });
 
   // Until Haida lands this is how users could go back to Settings app
-  document.getElementById('header').addEventListener('action', function() {
+  document.getElementById('back').addEventListener('click', function() {
     var activity = new MozActivity({
       name: 'configure',
       data: {
