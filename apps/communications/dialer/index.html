@@ -80,6 +80,7 @@
 
     <link rel="import" href="elements/edit-mode.html">
     <link rel="import" href="elements/suggestion-item.html">
+    <link rel="import" href="elements/suggestion-overlay.html">
     <link rel="import" href="elements/add-contact-action-menu.html">
     <link rel="import" href="elements/confirmation-message.html">
     <link rel="import" href="/shared/elements/sim_picker.html">
@@ -147,6 +148,8 @@
             <div role="button" is="suggestion-item" class="js-suggestion-item suggestion-item"></div>
             <div role="button" id="suggestion-count" class="suggestion-count more"></div>
           </section>
+          <button role="button" is="suggestion-item" id="suggestion-item-template" class="js-suggestion-item suggestion-item" hidden></button>
+
           <article id="keyboard-container">
             <section id="keypad">
               <div class="keypad-row">
@@ -223,12 +226,7 @@
 
     <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
 
-    <form id="suggestion-overlay" role="dialog" data-type="action" class="overlay" aria-hidden="true">
-      <button role="button" is="suggestion-item" id="suggestion-item-template" class="js-suggestion-item suggestion-item" hidden></button>
-      <header></header>
-      <menu id="suggestion-list">
-        <button id="suggestion-overlay-cancel" data-l10n-id="cancel">Cancel</button>
-      </menu>
+    <form is="suggestion-overlay" id="suggestion-overlay" role="dialog" data-type="action" class="overlay" aria-hidden="true">
     </form>
 
     <article id="mmi-screen" role="region" hidden>

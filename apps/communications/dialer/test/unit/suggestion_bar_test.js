@@ -1,5 +1,6 @@
-/* globals MockCallHandler, MockContacts, MockFbContacts, MocksHelper,
-           MockLazyL10n, MockNavigatorMozIccManager, SuggestionBar */
+/* globals LazyLoader, MockCallHandler, MockContacts, MockFbContacts,
+           MocksHelper, MockLazyL10n, MockNavigatorMozIccManager,
+           SuggestionBar */
 
 'use strict';
 
@@ -111,6 +112,12 @@ suite('suggestion Bar', function() {
     MockNavigatorMozIccManager.addIcc(0, {});
 
     loadBodyHTML('/dialer/elements/suggestion-item.html');
+    var suggestionItemTemplate =
+      document.body.querySelector('template').innerHTML;
+
+    loadBodyHTML('/dialer/elements/suggestion-overlay.html');
+    var suggestionOverlayTemplate =
+      document.body.querySelector('template').innerHTML;
 
     domSuggestionBar = document.createElement('section');
     domSuggestionBar.id = 'suggestion-bar';
@@ -120,21 +127,27 @@ suite('suggestion Bar', function() {
         'class="js-suggestion-item suggestion-item"></div>';
     document.body.appendChild(domSuggestionBar);
     document.querySelector('.js-suggestion-item').innerHTML =
-      document.body.querySelector('template').innerHTML;
+      suggestionItemTemplate;
+
+    var domSuggestionItem = document.createElement('button');
+    domSuggestionItem.id = 'suggestion-item-template';
+    domSuggestionItem.setAttribute('role', 'button');
+    domSuggestionItem.setAttribute('is', 'suggestion-item');
+    domSuggestionItem.classList.add('js-suggestion-item', 'suggestion-item');
+    domSuggestionItem.hidden = true;
+    document.body.appendChild(domSuggestionItem);
+    domSuggestionItem.innerHTML = suggestionItemTemplate;
+
     domOverlay = document.createElement('form');
     domOverlay.id = 'suggestion-overlay';
-    domOverlay.innerHTML =
-      '<button role="button" is="suggestion-item" ' +
-        ' id="suggestion-item-template" ' +
-        ' class="js-suggestion-item suggestion-item" hidden></button>' +
-      '<header></header>' +
-      '<menu id="suggestion-list">' +
-        '<button id="suggestion-overlay-cancel" ' +
-          'data-l10n-id="cancel">Cancel</button>' +
-      '</menu>';
-    domOverlay.querySelector('.js-suggestion-item').innerHTML =
-      document.body.querySelector('template').innerHTML;
+    domOverlay.setAttribute('is', 'suggestion-overlay');
+    domOverlay.setAttribute('role', 'dialog');
+    domOverlay.dataset.type = 'action';
+    domOverlay.classList.add('overlay');
+    domOverlay.setAttribute('aria-hidden', 'true');
+    domOverlay.innerHTML = suggestionOverlayTemplate;
     document.body.appendChild(domOverlay);
+
     domSuggestionCount = domSuggestionBar.querySelector('#suggestion-count');
 
     subject.overlay = domOverlay;
@@ -338,11 +351,17 @@ suite('suggestion Bar', function() {
         MockContacts.mResult = mockResult2;
         subject.update('1111');
 
+        this.sinon.spy(LazyLoader, 'load');
+
         subject.showOverlay();
         suggestions = Array.prototype.filter.call(subject.list.children,
           function(element) {
             return element.classList.contains('js-suggestion-item');
           });
+      });
+
+      test('should load the overlay', function() {
+        sinon.assert.calledWith(LazyLoader.load, domOverlay);
       });
 
       test('overlay is displayed', function() {
