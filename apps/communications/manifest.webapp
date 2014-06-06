@@ -90,7 +90,7 @@
       "filters": {
         "type": {
           "required": true,
-          "value": ["webcontacts/contact","webcontacts/email","webcontacts/tel"]
+          "value": ["webcontacts/contact","webcontacts/email","webcontacts/tel","webcontacts/select"]
         }
        },
       "disposition": "inline",
