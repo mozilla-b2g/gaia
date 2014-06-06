@@ -30,7 +30,7 @@ class FmRadio(Base):
         dialer = self.marionette.find_element(*self._frequency_dialer_locator)
 
         dialer_x_center = int(dialer.size['width'] / 2)
-        dialer_y_center = int(dialer.size['height'] / 2)
+        dialer_y_center = int(dialer.size['height'])
         Actions(self.marionette).flick(dialer, dialer_x_center, dialer_y_center, 0, 800, 800).perform()
 
     def tap_next(self):
