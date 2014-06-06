@@ -10,6 +10,8 @@ from gaiatest.mocks.mock_contact import MockContact
 class TestCleanupGaia(GaiaTestCase):
 
     homescreen_frame_locator = (By.CSS_SELECTOR, '#homescreen iframe')
+    homescreen_all_icons_locator = (By.CSS_SELECTOR, 'gaia-grid .icon')
+    homescreen_scrollable_element = (By.CSS_SELECTOR, '.scrollable')
 
     def test_cleanup_gaia(self):
         self.check_initial_state()
@@ -29,9 +31,17 @@ class TestCleanupGaia(GaiaTestCase):
         self.data_layer.insert_contact(MockContact())
         self.assertEqual(len(self.data_layer.all_contacts), 2)
 
-        # move away from home screen
+        # move to homescreen and scroll last icon into view
         self.marionette.switch_to_frame(
             self.marionette.find_element(*self.homescreen_frame_locator))
+        homescreen_last_icon = self.marionette.find_elements(*self.homescreen_all_icons_locator)[-1]
+        homescreen_scrollable_element = self.marionette.find_element(*self.homescreen_scrollable_element)
+        self.marionette.execute_script(
+            'arguments[0].scrollIntoView(false);', [homescreen_last_icon])
+        self.assertGreater(self.marionette.execute_script(
+            "return arguments[0].scrollTop", [homescreen_scrollable_element]), 0)
+
+        # move away from homescreen
         self.marionette.switch_to_frame()
 
         # lock screen
