@@ -336,12 +336,10 @@ suiteGroup('Views.Week', function() {
       assert.ok(html, 'has contents');
 
       var i = 0;
-      var ampm;
       for (; i < 24; i++) {
         assert.include(html, i, 'has hour #' + i);
-        ampm = '<span class="ampm">' + (i < 12 ? 'AM' : 'PM' ) + '</span>';
         assert.include(
-          html, (i % 12) + ampm,
+          html, Calendar.Calc.formatHourAbbr(i),
           'has display hour #' + i
         );
       }
