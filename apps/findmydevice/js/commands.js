@@ -5,6 +5,8 @@
 'use strict';
 
 var Commands = {
+  TRACK_UPDATE_INTERVAL_MS: 10000,
+
   _ringer: null,
 
   _lockscreenEnabled: false,
@@ -66,17 +68,17 @@ var Commands = {
     appreq.onerror = errorCallback;
   },
 
-  _watchPositionId: null,
+  _trackIntervalId: null,
 
   track: function fmdc_track(duration, reply) {
     // We actually ignore duration if it's nonzero. If zero, stop
     // tracking.
 
-    if (this._watchPositionId !== null) {
+    if (this._trackIntervalId !== null) {
       if (duration === 0) {
         // stop tracking
-        navigator.geolocation.clearWatch(this._watchPositionId);
-        this._watchPositionId = null;
+        clearInterval(this._trackIntervalId);
+        this._trackIntervalId = null;
       }
 
       reply(true);
@@ -88,20 +90,23 @@ var Commands = {
       return;
     }
 
+    // set geolocation permission to true, and start requesting
+    // the current position every TRACK_UPDATE_INTERVAL_MS milliseconds
     var self = this;
     this._setGeolocationPermission(function fmdc_permission_success() {
-      self._watchPositionId = navigator.geolocation.watchPosition(
-        function fmdc_watchposition_success(position) {
-          DUMP('updating location to (' +
-            position.coords.latitude + ', ' +
-            position.coords.longitude + ')'
-          );
+      self._trackIntervalId = setInterval(function fmdc_track_interval() {
+        navigator.geolocation.getCurrentPosition(
+          function fmdc_gcp_success(position) {
+            DUMP('updating location to (' +
+              position.coords.latitude + ', ' +
+              position.coords.longitude + ')'
+            );
 
-          reply(true, position);
-        }, function fmdc_watchposition_error(error) {
-          reply(false, 'failed to get location: ' + error.message);
-        }
-      );
+            reply(true, position);
+          }, function fmdc_gcp_error(error) {
+            reply(false, 'failed to get location: ' + error.message);
+          });
+      }, self.TRACK_UPDATE_INTERVAL_MS);
     }, function fmdc_permission_error() {
       reply(false, 'failed to set geolocation permission!');
     });
