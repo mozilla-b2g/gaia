@@ -280,18 +280,18 @@ suite('Contacts', function(done) {
       var mozContacts = navigator.mozContacts;
 
       Contacts.findByString('a@b.com', function(contacts) {
-        var mHistory = mozContacts.mHistory;
+        done(function() {
+          var mHistory = mozContacts.mHistory;
 
-        // contacts were found
-        assert.ok(Array.isArray(contacts));
-        assert.equal(contacts.length, 1);
+          // contacts were found
+          assert.ok(Array.isArray(contacts));
+          assert.equal(contacts.length, 1);
 
-        // navigator.mozContacts.find was called?
-        assert.equal(mHistory.length, 1);
-        assert.equal(mHistory[0].filter.filterValue, 'a@b.com');
-        assert.isNull(mHistory[0].request.error);
-
-        done();
+          // navigator.mozContacts.find was called?
+          assert.equal(mHistory.length, 1);
+          assert.equal(mHistory[0].filter.filterValue, 'a@b.com');
+          assert.isNull(mHistory[0].request.error);
+        });
       });
     });
 
@@ -299,18 +299,18 @@ suite('Contacts', function(done) {
       var mozContacts = navigator.mozContacts;
 
       Contacts.findByString('z@y.com', function(contacts) {
-        var mHistory = mozContacts.mHistory;
+        done(function() {
+          var mHistory = mozContacts.mHistory;
 
-        // contacts were not found
-        assert.ok(Array.isArray(contacts));
-        assert.equal(contacts.length, 0);
+          // contacts were not found
+          assert.ok(Array.isArray(contacts));
+          assert.equal(contacts.length, 0);
 
-        // navigator.mozContacts.find was called?
-        assert.equal(mHistory.length, 1);
-        assert.equal(mHistory[0].filter.filterValue, 'z@y.com');
-        assert.isNull(mHistory[0].request.error);
-
-        done();
+          // navigator.mozContacts.find was called?
+          assert.equal(mHistory.length, 1);
+          assert.equal(mHistory[0].filter.filterValue, 'z@y.com');
+          assert.isNull(mHistory[0].request.error);
+        });
       });
     });
   });
@@ -464,16 +464,17 @@ suite('Contacts', function(done) {
     test('name first, part of email address last', function(done) {
       var mozContacts = navigator.mozContacts;
 
-      Contacts.findByString('Pepito a@b', function(contacts) {
-        var mHistory = mozContacts.mHistory;
+        Contacts.findByString('Pepito a@b', function(contacts) {
+          done(function() {
+          var mHistory = mozContacts.mHistory;
 
-        // contacts were found
-        assert.ok(Array.isArray(contacts));
-        assert.equal(contacts.length, 1);
+          // contacts were found
+          assert.ok(Array.isArray(contacts));
+          assert.equal(contacts.length, 1);
 
-        // navigator.mozContacts.find was called?
-        assert.equal(mHistory.length, 1);
-        done();
+          // navigator.mozContacts.find was called?
+          assert.equal(mHistory.length, 1);
+        });
       });
     });
 
@@ -481,15 +482,16 @@ suite('Contacts', function(done) {
       var mozContacts = navigator.mozContacts;
 
       Contacts.findByString('a@b Pepito', function(contacts) {
-        var mHistory = mozContacts.mHistory;
+        done(function() {
+          var mHistory = mozContacts.mHistory;
 
-        // contacts were found
-        assert.ok(Array.isArray(contacts));
-        assert.equal(contacts.length, 1);
+          // contacts were found
+          assert.ok(Array.isArray(contacts));
+          assert.equal(contacts.length, 1);
 
-        // navigator.mozContacts.find was called?
-        assert.equal(mHistory.length, 1);
-        done();
+          // navigator.mozContacts.find was called?
+          assert.equal(mHistory.length, 1);
+        });
       });
     });
 

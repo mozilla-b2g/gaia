@@ -9,6 +9,7 @@
   var rescape = /[.?*+^$[\]\\(){}|-]/g;
   var rparams = /([^?=&]+)(?:=([^&]*))?/g;
   var rnondialablechars = /[^,#+\*\d]/g;
+  var rmail = /[\w-]+@[\w\-]/;
   var downsamplingRefSize = {
     // Estimate average Thumbnail size:
     // 120 X 60 (max pixel) X 3 (full color) / 20 (average jpeg compress ratio)
@@ -628,8 +629,7 @@
        TODO: Email Address check.
      */
     isEmailAddress: function(email) {
-      var regExp = new RegExp(/[\w-]+@[\w\-]/);
-      return regExp.test(email);
+      return email.match(rmail) ? true : false;
     },
     /*
       Helper function for removing notifications. It will fetch the notification

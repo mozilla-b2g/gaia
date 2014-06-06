@@ -1339,19 +1339,19 @@ suite('getContactDisplayInfo', function() {
 });
 suite('isEmailAddress', function() {
   test('check +348888888888', function() {
-    assert.equal(Utils.isEmailAddress('+348888888888'), false);
+    assert.isFalse(Utils.isEmailAddress('+348888888888'));
   });
   test('check a@b.com', function() {
-    assert.equal(Utils.isEmailAddress('a@b.com'), true);
+    assert.isTrue(Utils.isEmailAddress('a@b.com'));
   });
   test('check @b.com', function() {
-    assert.equal(Utils.isEmailAddress('@b.com'), false);
+    assert.isFalse(Utils.isEmailAddress('@b.com'));
   });
   test('check abcd@', function() {
-    assert.equal(Utils.isEmailAddress('abcd@'), false);
+    assert.isFalse(Utils.isEmailAddress('abcd@'));
   });
   test('check a@a', function() {
-    assert.equal(Utils.isEmailAddress('a@a'), true);
+    assert.isTrue(Utils.isEmailAddress('a@a'));
   });
 });
 test('getClosestSampleSize', function() {

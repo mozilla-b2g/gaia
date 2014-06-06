@@ -538,11 +538,9 @@ suite('ContactRenderer', function() {
         input: '5559999',
         target: ul
       });
-      if (ul.firstElementChild) {
-        html = ul.firstElementChild.innerHTML;
+      html = ul.firstElementChild.innerHTML;
 
-        assert.isFalse(html.contains('span[data-type=img]'));
-      }
+      assert.isFalse(html.contains('span[data-type=img]'));
     });
 
     test('Render contact with photo renders the image', function() {

@@ -207,8 +207,9 @@ ContactRenderer.prototype = {
     if (contact.email && contact.email.length) {
       addresses = addresses.concat(contact.email);
     }
-    var details = Utils.getContactDetails(addresses[0].value,
-                                           contact, include);
+    var details = Utils.getContactDetails(
+                    addresses[0].value, contact, include
+                  );
 
     var tempDiv = document.createElement('div');
 
