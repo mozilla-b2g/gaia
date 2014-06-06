@@ -3960,8 +3960,6 @@ suite('thread_ui.js >', function() {
               participants: ['a@b.com']
             });
 
-            window.location.hash = '#thread=1';
-
             var header = document.createElement('div');
 
             ThreadUI.prompt({
@@ -4035,6 +4033,64 @@ suite('thread_ui.js >', function() {
             assert.equal(items[3].l10nId, 'cancel');
           });
 
+          test('Multiple known (phone)', function() {
+
+            Threads.set(1, {
+              participants: ['999', '888']
+            });
+
+            var header = document.createElement('div');
+            ThreadUI.prompt({
+              number: '999',
+              header: header,
+              isContact: true
+            });
+
+            assert.equal(MockOptionMenu.calls.length, 1);
+
+            var call = MockOptionMenu.calls[0];
+            var items = call.items;
+
+            // ensure that we display no body
+            assert.isUndefined(call.section);
+
+            // ensures we'll show a contact header
+            assert.equal(call.header, header);
+
+            assert.equal(items.length, 3);
+
+            // The first item is a "call" option
+            assert.equal(items[0].l10nId, 'call');
+
+            // The second item is a "send message" option
+            assert.equal(items[1].l10nId, 'sendMessage');
+
+            // The third and last item is a "cancel" option
+            assert.equal(items[2].l10nId, 'cancel');
+          });
+
+          test('Multiple unknown (phone)', function() {
+
+            Threads.set(1, {
+              participants: ['999', '888']
+            });
+
+            ThreadUI.prompt({
+              number: '999',
+              isContact: false
+            });
+
+            assert.equal(MockOptionMenu.calls.length, 1);
+
+            var call = MockOptionMenu.calls[0];
+            var items = call.items;
+
+            // Ensures that the OptionMenu was given
+            // the phone number to diplay
+            assert.equal(call.header, '999');
+
+            assert.equal(items.length, 5);
+
             // The first item is a "call" option
             assert.equal(items[0].l10nId, 'call');
 
@@ -4050,13 +4106,12 @@ suite('thread_ui.js >', function() {
             // The fifth and last item is a "cancel" option
             assert.equal(items[4].l10nId, 'cancel');
           });
+
           test('Multiple known (email)', function() {
 
             Threads.set(1, {
               participants: ['a@b.com', 'a@c.com']
             });
-
-            window.location.hash = '#thread=1';
 
             var header = document.createElement('div');
             ThreadUI.prompt({
@@ -4090,8 +4145,6 @@ suite('thread_ui.js >', function() {
             Threads.set(1, {
               participants: ['a@b.com', 'a@c.com']
             });
-
-            window.location.hash = '#thread=1';
 
             ThreadUI.prompt({
               email: 'a@b.com',
@@ -4177,9 +4230,6 @@ suite('thread_ui.js >', function() {
             Threads.set(1, {
               participants: ['a@b.com']
             });
-
-            window.location.hash = '#thread=1';
-
 
             ThreadUI.headerText.dataset.isContact = true;
             ThreadUI.headerText.dataset.number = 'a@b.com';
@@ -4282,8 +4332,6 @@ suite('thread_ui.js >', function() {
           Threads.set(1, {
             participants: ['b@c.com']
           });
-
-          window.location.hash = '#thread=1';
 
           ThreadUI.headerText.dataset.isContact = false;
           ThreadUI.headerText.dataset.number = 'b@c.com';
@@ -6264,4 +6312,4 @@ suite('thread_ui.js >', function() {
       sinon.assert.notCalled(ThreadUI.sentAudio.play);
     });
   });
-
+});

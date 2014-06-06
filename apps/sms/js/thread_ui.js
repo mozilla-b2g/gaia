@@ -2398,7 +2398,7 @@ var ThreadUI = global.ThreadUI = {
   removeMessageDOM: function thui_removeMessageDOM(messageDOM) {
     var messagesContainer = messageDOM.parentNode;
 
-    messageDOM.remove(); 
+    messageDOM.remove();
 
     // If we don't have any other messages in the list, then we remove entire
     // date group (date header + messages container).
