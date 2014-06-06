@@ -7,7 +7,7 @@ define(function(require, exports, module) {
 
 var debug = require('debug')('controller:activity');
 var bytesToPixels = require('lib/bytes-to-pixels');
-var resizeImageAndSave = require('lib/resize-image-and-save');
+var resizeImage = require('lib/resize-image');
 var bindAll = require('lib/bind-all');
 
 /**
@@ -144,7 +144,6 @@ ActivityController.prototype.configureMode = function(activity) {
 ActivityController.prototype.getMaxPixelSize = function(activity) {
   var data = activity.source.data;
   var bytes = data.maxFileSizeBytes;
-  var maxPickPixelSize = this.settings.activity.get('maxPickPixelSize') || 0;
   var maxPixelSize;
 
   // If bytes were specified then derive
@@ -155,14 +154,6 @@ ActivityController.prototype.getMaxPixelSize = function(activity) {
     maxPixelSize = bytesToPixels(bytes);
   } else if (data.width || data.height) {
     maxPixelSize = this.getMaxPixelsFromSize(data);
-  } else {
-    maxPixelSize = maxPickPixelSize;
-  }
-
-  // If the Camera app has been configured to have a max pixel size
-  // for pick activities, ensure we are at or below that value.
-  if (maxPickPixelSize > 0) {
-    maxPixelSize = Math.min(maxPixelSize, maxPickPixelSize);
   }
 
   debug('maxPixelsSize: %s', maxPixelSize);
@@ -267,12 +258,12 @@ ActivityController.prototype.onActivityConfirmed = function(newMedia) {
     debug('needs resizing: %s', needsResizing);
 
     if (needsResizing) {
-      resizeImageAndSave({
+      resizeImage({
         blob: newMedia.blob,
         width: activity.source.data.width,
         height: activity.source.data.height
-      }, function(resizedBlob) {
-        media.blob = resizedBlob;
+      }, function(newBlob) {
+        media.blob = newBlob;
         activity.postResult(media);
       });
       return;
