@@ -78,6 +78,8 @@
    */
   LockScreenWindow.prototype.closeAnimation = 'fade-out';
 
+  LockScreenWindow.prototype._DEBUG = false;
+
   /**
    * LockScreenWindow has its own styles.
    *

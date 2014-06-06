@@ -15,8 +15,6 @@ suite('system/AppTransitionController', function() {
   var stubById;
   mocksForAppTransitionController.attachTestHelpers();
   setup(function(done) {
-    this.sinon.useFakeTimers();
-
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
     requireApp('system/js/app_transition_controller.js', done);
@@ -39,28 +37,36 @@ suite('system/AppTransitionController', function() {
     assert.isTrue(acn1._transitionState === 'closed');
   });
 
-  test('Open request', function() {
+  test('Open', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
-    acn1.handleEvent({ type: '_openrequest', detail: {} });
+    assert.deepEqual(acn1._transitionState, 'closed');
+    acn1.requireOpen();
+    assert.deepEqual(acn1._transitionState, 'opening');
   });
 
-  test('Close request', function() {
+  test('Open with immediate animation', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
-    acn1.handleEvent({ type: '_closerequest', detail: {} });
+    assert.deepEqual(acn1._transitionState, 'closed');
+    acn1.requireOpen('immediate');
+    assert.deepEqual(acn1._transitionState, 'opened');
   });
 
-  test('Opening event', function() {
+  test('Close', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
-    acn1.handleEvent({ type: '_opening' });
+    acn1._transitionState = 'opened';
+    acn1.requireClose();
+    assert.deepEqual(acn1._transitionState, 'closing');
   });
 
-  test('Closing event', function() {
+  test('Close with immediate animation', function() {
     var app1 = new MockAppWindow(fakeAppConfig1);
     var acn1 = new AppTransitionController(app1);
-    acn1.handleEvent({ type: '_closing' });
+    acn1._transitionState = 'opened';
+    acn1.requireClose('immediate');
+    assert.deepEqual(acn1._transitionState, 'closed');
   });
 
   test('Closed notfication', function() {

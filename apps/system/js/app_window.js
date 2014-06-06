@@ -1599,7 +1599,6 @@
   AppWindow.prototype.open = function aw_open(animation) {
     // Request "open" to our internal transition controller.
     if (this.transitionController) {
-      this.debug('open with ' + animation || this.openAnimation);
       this.transitionController.requireOpen(animation);
     }
   };
@@ -1611,7 +1610,6 @@
   AppWindow.prototype.close = function aw_close(animation) {
     // Request "close" to our internal transition controller.
     if (this.transitionController) {
-      this.debug('close with ' + animation || this.closeAnimation);
       this.transitionController.requireClose(animation);
     }
   };

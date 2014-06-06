@@ -2,13 +2,15 @@
 'use strict';
 
 (function(exports) {
-  var TransitionEvents = ['open', 'close', 'complete', 'timeout'];
+  var TransitionEvents =
+    ['open', 'close', 'complete', 'timeout',
+      'immediate-open', 'immediate-close'];
 
   var TransitionStateTable = {
-    'closed': ['opening', null, null, null],
-    'opened': [null, 'closing', null, null],
-    'opening': [null, 'closing', 'opened', 'opened'],
-    'closing': ['opened', null, 'closed', 'closed']
+    'closed': ['opening', null, null, null, 'opened', null],
+    'opened': [null, 'closing', null, null, null, 'closed'],
+    'opening': [null, 'closing', 'opened', 'opened', 'opened', 'closed'],
+    'closing': ['opened', null, 'closed', 'closed', 'opened', 'closed']
   };
 
   var appTransitionSetting = 'app-transition.enabled';
@@ -40,6 +42,8 @@
       }
 
       this.app = app;
+      this.app.debug('default animation:',
+        this.app.openAnimation, this.app.closeAnimation);
       if (this.app.openAnimation) {
         this.openAnimation = this.app.openAnimation;
       }
@@ -131,6 +135,7 @@
 
   AppTransitionController.prototype._do_closing =
     function atc_do_closing() {
+      this.app.debug('timer to ensure closed does occur.');
       this._closingTimeout = window.setTimeout(function() {
         this.app.broadcast('closingtimeout');
       }.bind(this),
@@ -146,7 +151,7 @@
 
   AppTransitionController.prototype.getAnimationName = function(type) {
     if (transitionEnabled) {
-      return this.currentAnimation || this[type + 'Animation'];
+      return this.currentAnimation || this[type + 'Animation'] || type;
     } else {
       return 'immediate';
     }
@@ -155,6 +160,7 @@
 
   AppTransitionController.prototype._do_opening =
     function atc_do_opening() {
+      this.app.debug('timer to ensure opened does occur.');
       this._openingTimeout = window.setTimeout(function() {
         this.app.broadcast('openingtimeout');
       }.bind(this),
@@ -259,13 +265,23 @@
     };
 
   AppTransitionController.prototype.requireOpen = function(animation) {
-    this.currentAnimation = animation;
-    this.changeTransitionState('open', 'requireopen');
+    this.currentAnimation = animation || this.openAnimation;
+    this.app.debug('open with ' + this.currentAnimation);
+    if (this.currentAnimation == 'immediate') {
+      this.changeTransitionState('immediate-open');
+    } else {
+      this.changeTransitionState('open');
+    }
   };
 
   AppTransitionController.prototype.requireClose = function(animation) {
-    this.currentAnimation = animation;
-    this.changeTransitionState('close', 'requireclose');
+    this.currentAnimation = animation || this.closeAnimation;
+    this.app.debug('close with ' + this.currentAnimation);
+    if (this.currentAnimation == 'immediate') {
+      this.changeTransitionState('immediate-close');
+    } else {
+      this.changeTransitionState('close');
+    }
   };
 
   AppTransitionController.prototype.resetTransition =
