@@ -85,7 +85,7 @@
             return;
           }
 
-          if (!this.homescreenFocused) {
+          if (!this.homescreenFocused || document.hidden) {
             return;
           }
 
