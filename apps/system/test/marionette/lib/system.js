@@ -38,6 +38,10 @@ System.prototype = {
     return this.client.findElement('iframe[src*="' + url + '"]');
   },
 
+  getHomescreenIframe: function() {
+    return this.client.findElement('#homescreen iframe');
+  },
+
   waitForLaunch: function(url) {
     this.client.apps.launch(url);
     var iframe = this.getAppIframe(url);

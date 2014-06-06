@@ -59,6 +59,18 @@ Home2.prototype = {
   },
 
   /**
+  Fetch an icon element on the homescreen.
+
+  @param {String} manifestURL must be a fully qualified manifest url.
+  @return {Marionette.Element}
+  */
+  getIcon: function(manifestUrl) {
+    return this.client.helper.waitForElement(
+      '[data-identifier="' + manifestUrl + '"]'
+    );
+  },
+
+  /**
    * Waits for the homescreen to launch and switches to the frame.
    */
   waitForLaunch: function() {

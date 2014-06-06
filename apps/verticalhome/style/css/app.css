@@ -1,3 +1,17 @@
+/**
+Bug 1018269 - we need to specify the keyframe outside
+              of the web component...
+*/
+
+@keyframes rotate {
+  from {
+    transform: rotate(1deg)
+  }
+  to {
+    transform: rotate(360deg)
+  }
+}
+
 html {
   font-size: 10px;
 }
