@@ -23,7 +23,7 @@
     "60": "/style/icons/vertical_60.png",
     "68": "/style/icons/vertical_68.png"
   },
-  "orientation": "portrait-primary",
+  "orientation": "default",
   "activities": {},
   "messages": [],
   "datastores-access": {
