@@ -163,6 +163,13 @@ suite('system/AppWindowManager', function() {
       assert.isTrue(stubBroadcastMessage.calledWith('homegesture-disabled'));
     });
 
+    test('Orientation change', function() {
+      var stubBroadcastMessage =
+        this.sinon.stub(AppWindowManager, 'broadcastMessage');
+      AppWindowManager.handleEvent({ type: 'orientationchange' });
+      assert.isTrue(stubBroadcastMessage.calledWith('orientationchange'));
+    });
+
     test('Press home on home displayed', function() {
       injectRunningApps(home);
       var stubEnsure = this.sinon.stub(home, 'ensure');

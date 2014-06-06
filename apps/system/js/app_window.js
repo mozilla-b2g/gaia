@@ -1,5 +1,5 @@
 /* global SettingsListener, AttentionScreen,
-          OrientationManager */
+          OrientationManager, StatusBar */
 'use strict';
 
 (function(exports) {
@@ -623,7 +623,7 @@
      'mozbrowsericonchange', 'mozbrowserasyncscroll',
      '_localized', '_swipein', '_swipeout', '_kill_suspended',
      'popupterminated', 'activityterminated', 'activityclosing',
-     'popupclosing', 'activityopened'];
+     'popupclosing', 'activityopened', '_orientationchange'];
 
   AppWindow.SUB_COMPONENTS = {
     'transitionController': window.AppTransitionController,
@@ -720,6 +720,38 @@
     // For uitest.
     this.element.dataset.localizedName = this.name;
     this.publish('namechanged');
+  };
+
+  AppWindow.prototype._handle__orientationchange = function() {
+    if (this.isActive()) {
+      // Will be resized by the AppWindowManager
+      return;
+    }
+
+    // Resize only the overlays not the app
+    var width = self.layoutManager.width;
+    var height = self.layoutManager.height + this.calibratedHeight();
+    if (this.isFullScreen()) {
+      height += StatusBar.height;
+    }
+
+    this.iframe.style.width = this.width + 'px';
+    this.iframe.style.height = this.height + 'px';
+
+    this.element.style.width = width + 'px';
+    this.element.style.height = height + 'px';
+
+    // The homescreen doesn't have an identification overlay
+    if (this.isHomescreen) {
+      return;
+    }
+
+    // If the screenshot doesn't match the new orientation hide it
+    if (this.width != width) {
+      this.screenshotOverlay.style.visibility = 'hidden';
+    } else {
+      this.screenshotOverlay.style.visibility = '';
+    }
   };
 
   AppWindow.prototype._handle_mozbrowservisibilitychange =
@@ -1218,7 +1250,13 @@
     this.element.style.width = this.width + 'px';
     this.element.style.height = this.height + 'px';
 
+    this.iframe.style.width = '';
+    this.iframe.style.height = '';
+
     this.resized = true;
+    if (this.screenshotOverlay) {
+      this.screenshotOverlay.style.visibility = '';
+    }
 
     /**
      * Fired when the app is resized.

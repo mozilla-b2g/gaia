@@ -119,6 +119,10 @@
            */
           this.publish('system-resize');
           break;
+        case 'resize':
+          this.publish('system-resize');
+          this.publish('orientationchange');
+          break;
         default:
           if (evt.type === 'keyboardhide') {
             this.keyboardEnabled = false;

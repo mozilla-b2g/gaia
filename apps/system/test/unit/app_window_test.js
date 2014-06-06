@@ -15,11 +15,13 @@ requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_popup_window.js');
 requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_activity_window.js');
+requireApp('system/test/unit/mock_statusbar.js');
 
 var mocksForAppWindow = new MocksHelper([
   'OrientationManager', 'Applications', 'SettingsListener',
   'ManifestHelper', 'LayoutManager', 'ActivityWindow',
-  'ScreenLayout', 'AppChrome', 'PopupWindow', 'AttentionScreen'
+  'ScreenLayout', 'AppChrome', 'PopupWindow', 'AttentionScreen',
+  'StatusBar'
 ]).init();
 
 suite('system/AppWindow', function() {
@@ -175,7 +177,7 @@ suite('system/AppWindow', function() {
 
     test('Resize if we are not fullscreen', function() {
       var stubIsFullScreen = this.sinon.stub(app1, 'isFullScreen');
-      stubIsFullScreen.returns(true);
+      stubIsFullScreen.returns(false);
       var stubIsActive = this.sinon.stub(app1, 'isActive');
       stubIsActive.returns(true);
       app1.resize();
@@ -198,6 +200,24 @@ suite('system/AppWindow', function() {
       stubIsActive.returns(true);
       app1.resize();
       assert.isTrue(stubbroadcast.calledWith('withkeyboard'));
+    });
+
+    test('Reset the screenshot overlay visibilty', function() {
+      app1.screenshotOverlay.style.visibility = 'hidden';
+      var stubIsActive = this.sinon.stub(app1, 'isActive');
+      stubIsActive.returns(true);
+      app1.resize();
+      assert.equal(app1.screenshotOverlay.style.visibility, '');
+    });
+
+    test('Reset the iframe inline size', function() {
+      app1.iframe.style.width = '480px';
+      app1.iframe.style.height = '320px';
+      var stubIsActive = this.sinon.stub(app1, 'isActive');
+      stubIsActive.returns(true);
+      app1.resize();
+      assert.equal(app1.iframe.style.width, '');
+      assert.equal(app1.iframe.style.height, '');
     });
 
     test('Would get the height of chrome\'s button bar', function() {
@@ -1293,6 +1313,78 @@ suite('system/AppWindow', function() {
       assert.isTrue(spyManifestHelper.calledWithExactly(app1.manifest));
       assert.isTrue(stubPublish.calledWithExactly('namechanged'));
     assert.equal(app1.identificationTitle.textContent, 'Mon Application');
+    });
+
+    test('Orientation change event on app', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      this.sinon.stub(app1, 'isActive').returns(false);
+      app1.width = 320;
+      app1.height = 460;
+      layoutManager.width = 480;
+      layoutManager.height = 300;
+
+      app1.handleEvent({
+        type: '_orientationchange'
+      });
+
+      assert.equal(app1.element.style.width, '480px');
+      assert.equal(app1.element.style.height, '300px');
+      assert.equal(app1.iframe.style.width, '320px');
+      assert.equal(app1.iframe.style.height, '460px');
+
+      assert.equal(app1.screenshotOverlay.style.visibility, 'hidden');
+    });
+
+    test('Orientation change event on app with match orientation', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      this.sinon.stub(app1, 'isActive').returns(false);
+      app1.width = 320;
+      app1.height = 460;
+      layoutManager.width = 320;
+      layoutManager.height = 460;
+
+      app1.screenshotOverlay.style.visibility = 'hidden';
+
+      app1.handleEvent({
+        type: '_orientationchange'
+      });
+
+      assert.equal(app1.screenshotOverlay.style.visibility, '');
+    });
+
+    test('Orientation change event on active app', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      this.sinon.stub(app1, 'isActive').returns(true);
+
+      app1.handleEvent({
+        type: '_orientationchange'
+      });
+
+      assert.equal(app1.element.style.width, '');
+      assert.equal(app1.element.style.height, '');
+      assert.equal(app1.iframe.style.width, '');
+      assert.equal(app1.iframe.style.height, '');
+    });
+
+    test('Orientation change event on fullscreen app', function() {
+      var app1 = new AppWindow(fakeAppConfig1);
+      this.sinon.stub(app1, 'isActive').returns(false);
+      this.sinon.stub(app1, 'isFullScreen').returns(true);
+      app1.width = 320;
+      app1.height = 480;
+      layoutManager.width = 480;
+      layoutManager.height = 300;
+
+      app1.handleEvent({
+        type: '_orientationchange'
+      });
+
+      assert.equal(app1.element.style.width, '480px');
+      assert.equal(app1.element.style.height, '320px');
+      assert.equal(app1.iframe.style.width, '320px');
+      assert.equal(app1.iframe.style.height, '480px');
+
+      assert.equal(app1.screenshotOverlay.style.visibility, 'hidden');
     });
 
     test('Swipe in event', function() {
