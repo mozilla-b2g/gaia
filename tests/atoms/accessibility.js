@@ -35,19 +35,6 @@ var Accessibility = {
     });
   },
 
-  wheel: function Accessibility_wheel(element, direction) {
-    let horizontal = direction === "left" || direction === "right";
-    let page = (direction === "left" || direction === "up") ? 1 : -1;
-    let event = new window.wrappedJSObject.WheelEvent('wheel', {
-      bubbles: true,
-      cancelable: true,
-      deltaX: horizontal ? page : 0,
-      deltaY: horizontal ? 0 : page,
-      deltaMode: window.wrappedJSObject.WheelEvent.DOM_DELTA_PAGE,
-    });
-    element.wrappedJSObject.dispatchEvent(event);
-  },
-
   isDisabled: function Accessibility_isDisabled(element) {
     this._getAccessible(element.wrappedJSObject, (acc) => {
       this._matchState(acc, 'STATE_UNAVAILABLE');
