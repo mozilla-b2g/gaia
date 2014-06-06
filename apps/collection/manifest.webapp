@@ -1,6 +1,6 @@
 {
-  "name": "Collection",
-  "description": "Collection Manager",
+  "name": "Smart Collections",
+  "description": "Smart Collections Manager",
   "type": "certified",
   "launch_path": "/testpage/testpage.html",
   "role": "system",
@@ -45,8 +45,8 @@
   },
   "locales": {
     "en-US": {
-      "name": "Collection",
-      "description": "Collection Manager"
+      "name": "Smart Collections",
+      "description": "Smart Collections Manager"
     }
   },
   "default_locale": "en-US",
