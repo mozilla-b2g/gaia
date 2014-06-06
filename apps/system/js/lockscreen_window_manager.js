@@ -122,8 +122,7 @@
           // or the power button. If it's caused by the proximity sensor,
           // we should not open the LockScreen, because the user may stay
           // in another app, not the LockScreen.
-          if (evt.detail.screenEnabled &&
-              'proximity' !== evt.detail.screenOffBy &&
+          if ('proximity' !== evt.detail.screenOffBy &&
               !this.states.FTUOccurs) {
             // The app would be inactive while screen off.
             this.openApp();
