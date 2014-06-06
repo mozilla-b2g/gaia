@@ -57,7 +57,7 @@ return View.extend({
   configure: function() {
     this.currentIndex = this.lastIndex = 0;
 
-    this.frame = new MediaFrame(this.els.mediaFrame);
+    this.frame = new MediaFrame(this.els.mediaFrame, true, this.maxPreviewSize);
     this.frame.video.onplaying = this.handleVideoPlay;
     this.frame.video.onpaused = this.handleVideoStop;
 

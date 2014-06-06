@@ -32,13 +32,13 @@ module.exports = function(blob, done) {
     parseJpegMetadata(previewBlob, onSuccess, onError);
 
     // If we parsed the preview image, add its
-    // dimensions to the metdata.preview
+    // dimensions to the metadata.preview
     // object, and then let the MediaFrame
     // object display the preview instead of
     // the full-size image.
-    function onSuccess(previewmetadata) {
-       metadata.preview.width = previewmetadata.width;
-       metadata.preview.height = previewmetadata.height;
+    function onSuccess(previewMetadata) {
+       metadata.preview.width = previewMetadata.width;
+       metadata.preview.height = previewMetadata.height;
        done(metadata);
      }
 
