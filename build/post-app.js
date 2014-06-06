@@ -2,6 +2,7 @@
 'use strict';
 
 function execute(options) {
+  require('./clean-build-files').execute(options);
 
   // Filter images by GAIA_DEV_PIXELS_PER_PX.
   require('./image-resolution').execute(options);
