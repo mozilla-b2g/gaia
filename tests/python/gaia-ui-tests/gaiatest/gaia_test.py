@@ -20,29 +20,6 @@ from yoctopuce.yocto_current import YCurrent
 from yoctopuce.yocto_datalogger import YDataLogger
 
 
-class LockScreen(object):
-
-    def __init__(self, marionette):
-        self.marionette = marionette
-        js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
-        self.marionette.import_script(js)
-
-    @property
-    def is_locked(self):
-        self.marionette.switch_to_frame()
-        return self.marionette.execute_script('return window.wrappedJSObject.LockScreen.locked')
-
-    def lock(self):
-        self.marionette.switch_to_frame()
-        result = self.marionette.execute_async_script('GaiaLockScreen.lock()')
-        assert result, 'Unable to lock screen'
-
-    def unlock(self):
-        self.marionette.switch_to_frame()
-        result = self.marionette.execute_async_script('GaiaLockScreen.unlock()')
-        assert result, 'Unable to unlock screen'
-
-
 class GaiaApp(object):
 
     def __init__(self, origin=None, name=None, frame=None, src=None):
@@ -664,6 +641,9 @@ class GaiaDevice(object):
     def __init__(self, marionette, testvars=None):
         self.marionette = marionette
         self.testvars = testvars or {}
+        self.lockscreen_atom = os.path.abspath(
+            os.path.join(__file__, os.path.pardir, 'atoms', "gaia_lock_screen.js"))
+        self.marionette.import_script(self.lockscreen_atom)
 
     def add_device_manager(self, device_manager):
         self._manager = device_manager
@@ -735,7 +715,7 @@ class GaiaDevice(object):
         time.sleep(2)
         self.start_b2g()
 
-    def start_b2g(self):
+    def start_b2g(self, timeout=60):
         if self.marionette.instance:
             # launch the gecko instance attached to marionette
             self.marionette.instance.start()
@@ -752,9 +732,10 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
     window.removeEventListener('mozbrowserloadend', loaded);
     marionetteScriptFinished();
   }
-});""", script_timeout=60000)
+});""", script_timeout=timeout * 1000)
             # TODO: Remove this sleep when Bug 924912 is addressed
             time.sleep(5)
+        self.marionette.import_script(self.lockscreen_atom)
 
     def stop_b2g(self):
         if self.marionette.instance:
@@ -767,6 +748,21 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
         self.marionette.client.close()
         self.marionette.session = None
         self.marionette.window = None
+
+    @property
+    def is_locked(self):
+        self.marionette.switch_to_frame()
+        return self.marionette.execute_script('return window.wrappedJSObject.LockScreen.locked')
+
+    def lock(self):
+        self.marionette.switch_to_frame()
+        result = self.marionette.execute_async_script('GaiaLockScreen.lock()')
+        assert result, 'Unable to lock screen'
+
+    def unlock(self):
+        self.marionette.switch_to_frame()
+        result = self.marionette.execute_async_script('GaiaLockScreen.unlock()')
+        assert result, 'Unable to unlock screen'
 
 
 class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
@@ -813,7 +809,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             self.marionette.timeouts(self.marionette.TIMEOUT_SEARCH, 10000)
             self.marionette.timeouts(self.marionette.TIMEOUT_PAGE, 30000)
 
-        self.lockscreen = LockScreen(self.marionette)
         self.apps = GaiaApps(self.marionette)
         self.data_layer = GaiaData(self.marionette, self.testvars)
         from gaiatest.apps.keyboard.app import Keyboard
@@ -848,7 +843,7 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
 
         # unlock
-        self.lockscreen.unlock()
+        self.device.unlock()
 
         if full_reset:
             # disable passcode
@@ -1052,7 +1047,6 @@ class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
             return False
 
     def tearDown(self):
-        self.lockscreen = None
         self.apps = None
         self.data_layer = None
         MarionetteTestCase.tearDown(self)

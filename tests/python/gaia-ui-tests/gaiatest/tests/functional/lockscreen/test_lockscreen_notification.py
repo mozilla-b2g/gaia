@@ -15,15 +15,14 @@ class TestLockScreen(GaiaTestCase):
         GaiaTestCase.setUp(self)
 
         # this time we need it locked!
-        self.lockscreen.lock()
-        self.lock_screen = LockScreen(self.marionette)
+        self.device.lock()
 
     def test_lock_screen_notification(self):
-
+        lock_screen = LockScreen(self.marionette)
         self.marionette.execute_script('navigator.mozNotification.createNotification("%s", "%s").show();'
                                        % (self._notification_title, self._notification_body))
 
-        self.assertEqual(len(self.lock_screen.notifications), 1)
-        self.assertTrue(self.lock_screen.notifications[0].is_visible)
-        self.assertEqual(self.lock_screen.notifications[0].content, self._notification_body)
-        self.assertEqual(self.lock_screen.notifications[0].title, self._notification_title)
+        self.assertEqual(len(lock_screen.notifications), 1)
+        self.assertTrue(lock_screen.notifications[0].is_visible)
+        self.assertEqual(lock_screen.notifications[0].content, self._notification_body)
+        self.assertEqual(lock_screen.notifications[0].title, self._notification_title)
