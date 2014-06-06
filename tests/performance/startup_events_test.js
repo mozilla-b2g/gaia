@@ -19,8 +19,9 @@ var whitelistedApps = [
 ];
 
 var whitelistedUnifiedApps = [
-  'settings',
-  'communications/dialer'
+  'communications/dialer',
+  'fm',
+  'settings'
 ];
 
 function contains(haystack, needle) {
