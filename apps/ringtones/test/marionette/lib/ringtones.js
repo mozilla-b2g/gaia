@@ -249,7 +249,9 @@ ManageRingtonesContainer.prototype.addCustomRingtone = function(info) {
     var customRingtones = window.wrappedJSObject.customRingtones;
     customRingtones.add(JSON.parse(info)).then(function(tone) {
       marionetteScriptFinished({
-        name: tone.name, subtitle: tone.subtitle, id: tone.id
+        // Use the private members of tone, since the getters are getting Xrayed
+        // into oblivion. See bug 987111.
+        name: tone._name, subtitle: tone._subtitle, id: tone._id
       });
     }, function(error) {
       marionetteScriptFinished(null);
