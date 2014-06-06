@@ -505,12 +505,13 @@
     padding: 0;
   }
 
-  #calls > section .additionalContactInfo {
+  #calls > section .additionalContactInfo,
+  #group-call-details-list  > section .additionalContactInfo {
     height: 1.5rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 0 7rem 2rem 4rem;
+    padding: 0px 0rem 2rem;
     font-size: 1.6rem;
     line-height: 2rem;
     font-style: italic;
@@ -847,6 +848,7 @@
   #group-call-details-list .number {
     font-size: 1.7rem !important;
     line-height: 2.4rem;
+    white-space: nowrap;
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
