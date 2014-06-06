@@ -695,17 +695,16 @@ section[role="region"].new #messages-to-field.multiline {
 /*
 Used by Recipients.View to display multi or single line.
 Do not remove.
-
-generateHeightRule() (in ThreadUI/thread_ui.js) will create:
-#messages-recipients-list.multiline {
-  max-height: {max available height}px;
-}
 */
 #messages-recipients-list.singleline {
   overflow-y: hidden;
 }
 
 #messages-recipients-list.multiline {
+  /* max-height = viewport - header - minimum composer - list margin */
+  max-height: calc(100vh - 5rem - 3.7rem - 0.6rem);
+  margin-bottom: 0.6rem;
+
   overflow-y: scroll;
 }
 
