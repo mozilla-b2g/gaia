@@ -301,10 +301,23 @@ var DownloadHelper = (function() {
                         function loaded() {
           var type = getType(download);
 
+          //
+          // The 'open' action will always launch an activity using the original
+          // content type to allow for third party applications to handle
+          // arbitrary types of content.
+          //
+          // The 'share' action on the other hand only works with known mime
+          // types at this time.
+          //
+
           if (type.length === 0) {
-            sendError(req, 'Mime type not supported: ' + type,
-                      CODE.MIME_TYPE_NOT_SUPPORTED);
-            return;
+            type = download.contentType;
+
+            if (actionType !== ActionsFactory.TYPE.OPEN) {
+              sendError(req, 'Mime type not supported: ' + type,
+                        CODE.MIME_TYPE_NOT_SUPPORTED);
+              return;
+            }
           }
 
           var blobReq = getBlob(download);
