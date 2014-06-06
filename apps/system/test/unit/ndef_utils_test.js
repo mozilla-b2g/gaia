@@ -97,12 +97,12 @@ suite('NDEFUtils tests', function() {
       var hin = NDEFUtils.encodeHandoverSelect(mac, cps, name);
       var hout = NDEFUtils.parseHandoverNDEF(hin);
 
-      var ac = Array.apply([], hout.ac[0].cdr.payload);
+      var ac = hout.ac[0].cdr.payload;
 
-      var m = ac.slice(2, 8);
+      var m = ac.subarray(2, 8);
       assert.equal(NDEFUtils.formatMAC(m), mac);
 
-      var n = ac.slice(10, 10 + name.length);
+      var n = ac.subarray(10, 10 + name.length);
       assert.equal(NfcUtils.toUTF8(n), 'lorem ipsum');
     });
 
