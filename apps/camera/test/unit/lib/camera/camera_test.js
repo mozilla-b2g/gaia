@@ -484,11 +484,11 @@ suite('lib/camera/camera', function() {
     setup(function() {
       this.camera = new this.Camera();
       this.camera.focus = {
-        focus: function() {},
         resume: function() {},
-        getMode: function() {}
+        focus: sinon.stub().callsArg(0),
+        getMode: sinon.spy()
       };
-      sinon.stub(this.camera.focus, 'focus').callsArg(0);
+
       sinon.stub(this.camera, 'set');
       this.camera.mozCamera = {
         takePicture: sinon.stub().callsArgWith(1, 'the-blob'),
@@ -507,10 +507,12 @@ suite('lib/camera/camera', function() {
       assert.isTrue(this.camera.mozCamera.takePicture.called);
     });
 
-    test('Should emit a `takingpicture` event', function() {
+    test('Should emit a `busy` event with `takingPicture` type after focus', function() {
       sinon.stub(this.camera, 'emit');
       this.camera.takePicture({});
-      sinon.assert.calledWith(this.camera.emit, 'takingpicture');
+      var busyTakingPicture = this.camera.emit.withArgs('busy', 'takingPicture');
+      sinon.assert.called(busyTakingPicture);
+      assert.isTrue(busyTakingPicture.calledAfter(this.camera.focus.getMode));
     });
 
     test('Should still take picture even when focus fails', function() {

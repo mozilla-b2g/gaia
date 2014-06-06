@@ -124,7 +124,8 @@ module.exports = {
   },
 
   loadingScreen: {
-    delay: 600
+    takingPicture: 1500,
+    requestingCamera: 600
   },
 
   mode: {
