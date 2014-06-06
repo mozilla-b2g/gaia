@@ -22,6 +22,8 @@ var FindMyDevice = {
 
   _enabledHelper: SettingsHelper('findmydevice.enabled'),
 
+  _loggedIn: false,
+
   init: function fmd_init() {
     var self = this;
     var settings = navigator.mozSettings;
@@ -143,23 +145,50 @@ var FindMyDevice = {
 
     this._registering = true;
 
-    // Refresh the assertion we have to make sure it's not expired.
-    // This shouldn't bring up the Firefox Accounts dialog because that
-    // would only happen if it is logged out, and in that case Find My Device
-    // would have been disabled. We will continue the registration process
-    // once we get a new assertion.
-    navigator.mozId.request();
+    if (this._state === null) {
+      // We are not registered yet, so we need to give the server a FxA
+      // assertion. Request a fresh one here and continue the registration
+      // process from the login callback.
+
+      if (!this._loggedIn) {
+        // Can't request() while not logged in, as that would bring up the
+        // FxA dialog. Attempting a first registration while logged out is
+        // theoretically possible (if, for example, a first registration
+        // failed, and this is an alarm-driven re-attempt, and the user logged
+        // out while we slept before this attempt), but it's a very unlikely
+        // corner case. For now, just give up if this happens, but we still
+        // need to notify the user somehow (bug 1013423).
+        return;
+      }
+
+      navigator.mozId.request();
+    } else {
+      // We don't need to send assertions on re-registrations, just rely on
+      // our client ID and HAWK signature to authenticate us. This works even
+      // if we're logged out of FxA, so use null for the assertion.
+      this._continueRegistration(null);
+    }
   },
 
   _onLogin: function fmd_on_login(assertion) {
+    this._loggedIn = true;
+
     if (!this._enabled || !this._registering) {
       return;
     }
 
-    // We are in the middle of a registration, so continue here by obtaining a
-    // push endpoint
+    // We are in the middle of a registration, so continue here
+    this._continueRegistration(assertion);
+  },
 
+  _continueRegistration: function fmd_continue_registration(assertion) {
     var self = this;
+
+    if (assertion == null && this._state == null) {
+      // this shouldn't happen
+      throw new Error('Trying to register with no assertion and no state!');
+    }
+
     var pushRequest = navigator.push.register();
     pushRequest.onsuccess = function fmd_push_handler() {
       DUMP('findmydevice received push endpoint!');
@@ -182,9 +211,12 @@ var FindMyDevice = {
 
   _requestRegistration: function fmd_request_registration(assertion, endpoint) {
     var obj = {
-      assert: assertion,
       pushurl: endpoint
     };
+
+    if (assertion != null) {
+      obj.assert = assertion;
+    }
 
     if (this._state !== null) {
       obj.deviceid = this._state.deviceid;
@@ -201,7 +233,7 @@ var FindMyDevice = {
   },
 
   _onLogout: function fmd_fxa_onlogout() {
-    this._enabledHelper.set(false);
+    this._loggedIn = false;
   },
 
   _scheduleAlarm: function fmd_schedule_alarm(mode) {
